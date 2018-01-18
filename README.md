@@ -1,5 +1,5 @@
 
-[logo]: https://github.com/tmobile/t-vault/raw/master/T-Vault.png
+![logo](T-Vault.png)
 
 # T-Vault
 T-Vault is built to simplify the process of secrets management. We wanted to build an intuitive and easy to use tool that application developers can easily adopt without sacrificing their agility while still following best practices for secrets management.
