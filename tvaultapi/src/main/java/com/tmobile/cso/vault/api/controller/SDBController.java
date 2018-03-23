@@ -268,62 +268,7 @@ public class SDBController {
 	}
 	
 	
-	/**
-	 * 
-	 * @param token
-	 * @param jsonstr
-	 * @return
-	 */
-	@PostMapping(value="/sdb/approle",consumes="application/json",produces="application/json")
-	public ResponseEntity<String>associateApproletoSDB(@RequestHeader(value="vault-token") String token, @RequestBody String jsonstr){
-		
-		Map<String,Object> requestMap = ControllerUtil.parseJson(jsonstr);
-		
-		ObjectMapper objMapper = new ObjectMapper();
 
-		String approle = requestMap.get("role_name").toString();
-		String path = requestMap.get("path").toString();
-		String access = requestMap.get("access").toString();
-		
-		if(ControllerUtil.isValidSafePath(path) && ControllerUtil.isValidSafe(path, token)){
-		
-			String folders[] = path.split("[/]+");
-			
-			String policy ="";
-			
-			switch (access){
-				case "read": policy = "r_" + folders[0] + "_" + folders[1] ; break ; 
-				case "write": policy = "w_"  + folders[0] + "_" + folders[1] ;break; 
-				case "deny": policy = "d_"  + folders[0] + "_" + folders[1] ;break; 
-			}
-			
-			if("".equals(policy)){
-				return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body("{\"errors\":[\"Incorrect access requested. Valid values are read,write,deny \"]}");
-			}
-			
-			//Call controller to update the policy for approle
-			Response approleControllerResp = ControllerUtil.configureApprole(approle,policy,token);
-
-		
-			if(HttpStatus.OK.equals(approleControllerResp.getHttpstatus())) {
-					
-				return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Approle :" + approle + " is successfully associated with SDB\"]}");		
-			
-			}else if(HttpStatus.NO_CONTENT.equals(approleControllerResp.getHttpstatus())) {
-				
-				return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Approle :" + approle + " is successfully associated with SDB\"]}");		
-			
-			}else {
-				log.error( "Associate Approle" +approle + "to sdb FAILED");
-				return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"messages\":[\"Approle :" + approle + " failed to be associated with SDB\"]}");		
-			}
-		} else {
-			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"messages\":[\"Approle :" + approle + " failed to be associated with SDB.. Invalid Path specified\"]}");		
-		}
-
-	}
-	
-	
 
 	@PostMapping(value="/sdb/adduser",consumes="application/json",produces="application/json")
 	public ResponseEntity<String> addUsertoSDB(@RequestHeader(value="vault-token") String token, @RequestBody String jsonstr){
