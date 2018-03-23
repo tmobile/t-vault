@@ -330,8 +330,8 @@ public class SDBController {
 		
 		Map<String,Object> requestMap = ControllerUtil.parseJson(jsonstr);
 		String userName = requestMap.get("username").toString();
-		String path = requestMap.get("path").toString();;
-		String access = requestMap.get("access").toString();;
+		String path = requestMap.get("path").toString();
+		String access = requestMap.get("access").toString();
 		
 		if(ControllerUtil.isValidSafePath(path) && ControllerUtil.isValidSafe(path, token)){
 		
@@ -427,6 +427,69 @@ public class SDBController {
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid 'path' specified\"]}");
 		}
 	}
+	
+	/**
+	 * 
+	 * @param token
+	 * @param jsonstr
+	 * @return
+	 */
+	@PostMapping(value="/sdb/approle",consumes="application/json",produces="application/json")
+	public ResponseEntity<String>associateApproletoSDB(@RequestHeader(value="vault-token") String token, @RequestBody String jsonstr){
+		
+		log.info("Associate approle to SDB -  JSON :" + jsonstr );
+		
+		Map<String,Object> requestMap = ControllerUtil.parseJson(jsonstr);
+		
+		String approle = requestMap.get("role_name").toString();
+		String path = requestMap.get("path").toString();
+		String access = requestMap.get("access").toString();
+		
+		if(ControllerUtil.isValidSafePath(path) && ControllerUtil.isValidSafe(path, token)){
+
+			log.info("Associate approle to SDB -  path :" + path + "valid" );
+
+			String folders[] = path.split("[/]+");
+			
+			String policy ="";
+			
+			switch (access){
+				case "read": policy = "r_" + folders[0] + "_" + folders[1] ; break ; 
+				case "write": policy = "w_"  + folders[0] + "_" + folders[1] ;break; 
+				case "deny": policy = "d_"  + folders[0] + "_" + folders[1] ;break; 
+			}
+			
+			if("".equals(policy)){
+				return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body("{\"errors\":[\"Incorrect access requested. Valid values are read,write,deny \"]}");
+			}
+			
+
+			log.info("Associate approle to SDB -  policy :" + policy + " is being configured" );
+			
+			//Call controller to update the policy for approle
+			Response approleControllerResp = ControllerUtil.configureApprole(approle,policy,token);
+
+		
+			if(HttpStatus.OK.equals(approleControllerResp.getHttpstatus()) || (HttpStatus.NO_CONTENT.equals(approleControllerResp.getHttpstatus()))) {
+					
+				log.info("Associate approle to SDB -  policy :" + policy + " is associated" );
+
+				return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Approle :" + approle + " is successfully associated with SDB\"]}");		
+			
+		}else {
+
+				log.error( "Associate Approle" +approle + "to sdb FAILED");
+				return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"messages\":[\"Approle :" + approle + " failed to be associated with SDB\"]}");		
+			}
+		} else {
+			
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"messages\":[\"Approle :" + approle + " failed to be associated with SDB.. Invalid Path specified\"]}");		
+		
+		}
+
+	}
+	
+	
 	
 	@PostMapping(value="/sdb/deleteuser",consumes="application/json",produces="application/json")
 	public ResponseEntity<String> deleteUserSDB(@RequestHeader(value="vault-token") String token, @RequestBody String jsonstr){

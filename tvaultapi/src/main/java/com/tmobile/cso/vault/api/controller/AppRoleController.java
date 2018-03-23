@@ -47,6 +47,7 @@ public class AppRoleController {
 	private Logger log = LogManager.getLogger(AppRoleController.class);
 	@Autowired
 	private RequestProcessor reqProcessor;
+	private SDBController sdbController = new SDBController();
 
 	
 	/**
@@ -68,6 +69,33 @@ public class AppRoleController {
 		return ResponseEntity.status(response.getHttpstatus()).body(response.getResponse());	
 	}
 
+	/**
+	 * ASSOCIATE APPROLE TO SDB
+	 * @param token
+	 * @param jsonStr
+	 * @return
+	 */
+
+	@PostMapping(value="/associateApprole",produces="application/json")
+	public ResponseEntity<String> associateApprole(@RequestHeader(value="vault-token") String token, @RequestBody String jsonStr){
+
+			log.info("Associate AppRole to SDB - Approle Controller ");
+
+			ResponseEntity<String> response = sdbController.associateApproletoSDB(token,jsonStr);
+
+			log.info("Associate AppRole to SDB - After SDBController call..");
+
+			if(response.getStatusCode().equals(HttpStatus.NO_CONTENT))
+				
+				return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Approle associated to SDB\"]}");
+		
+			else if(response.getStatusCode().equals(HttpStatus.OK))
+			
+				return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Approle associated to SDB\"]}");
+			else
+				
+				return ResponseEntity.status(response.getStatusCode()).body(response.toString());	
+	}
 	
 	/**
 	 * READ APPROLE
@@ -191,11 +219,16 @@ public class AppRoleController {
 		
 		Response response = reqProcessor.process("/auth/approle/login",jsonStr,"");
 
+		log.info("Approle login HTTP STATUSCODE  :" + response.getHttpstatus());
 		
 		if(HttpStatus.OK.equals(response.getHttpstatus())){
+			
 			return ResponseEntity.status(response.getHttpstatus()).body(response.getResponse());
+		
 		}else{
-			return ResponseEntity.status(response.getHttpstatus()).body("{\"errors\":[\"Approle Login Failed.\"]}");
+		
+			return ResponseEntity.status(response.getHttpstatus()).body("{\"errors\":[\"Approle Login Failed.\"]}" + "HTTP STATUSCODE  :" + response.getHttpstatus());
+		
 		}
 
 	}
