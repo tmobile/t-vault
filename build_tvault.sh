@@ -158,6 +158,7 @@ if [[ "$APPS_TO_BUILD" == "UI_ONLY"  || "$APPS_TO_BUILD" == "ALL" ]]; then
    gulp build
    UI_DESTINATION_DIR=$COMPONENTS_DIR/web/nginx/html
    echo "Copying Vault UI to $UI_DESTINATION_DIR"
+   rm -rf $COMPONENTS_DIR/web/nginx/html/*
    cp -rf $UI_DIR/app/* $UI_DESTINATION_DIR/.
 
    mkdir -p $UI_DESTINATION_DIR/styles/sass/components/
