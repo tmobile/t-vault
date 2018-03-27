@@ -19,7 +19,7 @@
 
 'use strict';
 angular
-    .module( 'pacman' )
+    .module('vault' )
     .filter( 'timeFilter', function( $filter ) {
         return function( seconds ) {
             var result;

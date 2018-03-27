@@ -28,4 +28,4 @@
         'ERROR_PROCESSING_DATA'  : 'Error processing response data. Please try again, if the issue persists contact Vault Administrator',
         'ERROR_PROCESSING_RELOAD_PAGE' : 'Error processing. Please Reload the Page'       
     } );
-} )( angular.module( 'pacman.constants.ErrorMessage', [] ) );
+} )( angular.module( 'vault.constants.ErrorMessage', [] ) );

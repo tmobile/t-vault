@@ -82,4 +82,4 @@
             }
         };
     } );
-})(angular.module('pacman.services.SafesManagement',[]));
+})(angular.module('vault.services.SafesManagement',[]));

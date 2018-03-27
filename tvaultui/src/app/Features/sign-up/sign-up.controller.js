@@ -70,6 +70,6 @@
 
         init();
     })
-})(angular.module('pacman.features.SignUpCtrl',[
-    'pacman.services.UtilityService'
+})(angular.module('vault.features.SignUpCtrl',[
+    'vault.services.UtilityService'
 ]));

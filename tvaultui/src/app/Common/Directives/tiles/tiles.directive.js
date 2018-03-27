@@ -27,8 +27,8 @@
             scope: {
                 data: '=',                             // Input data
                 img: '=',                              // Name of the image to be used as tile (no need of url)
-                tileFuncAvailable: '=',                // Set to True if function is available to handle click on tile
-                numOfTiles: '=?',   
+                tileFuncAvailable: '=',
+                numOfTiles: '=?',
                 loading: '=',
                 searchValue: '=',                      // Filter string
                 tileDetails : '&',     
@@ -48,4 +48,4 @@
             }
         }
     } );
-})(angular.module('pacman.directives.tiles',[]))
+})(angular.module('vault.directives.tiles',[]))

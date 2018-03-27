@@ -28,4 +28,4 @@
             }
         }
     } );
-})(angular.module('pacman.directives.footer',[]))
+})(angular.module('vault.directives.footer',[]))

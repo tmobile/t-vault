@@ -44,4 +44,4 @@
             }
         }
     }]);
-})(angular.module('pacman.filters.CustomFilter', []));
+})(angular.module('vault.filters.CustomFilter', []));

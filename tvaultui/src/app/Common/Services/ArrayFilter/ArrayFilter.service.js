@@ -36,4 +36,4 @@
           return index;
         }
     } );
-} )( angular.module( 'pacman.services.ArrayFilter', [] ) );
+} )( angular.module( 'vault.services.ArrayFilter', [] ) );

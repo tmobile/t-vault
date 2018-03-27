@@ -19,7 +19,7 @@
 
 'use strict';
 angular
-    .module( 'pacman' )
+    .module('vault' )
     .filter( 'percent', function( $filter ) {
         return function( input ) {
             var appendString = "<span class='target-text'>" + input + "</span><span class='text-suffix'>%</span>";

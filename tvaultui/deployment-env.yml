@@ -1,4 +1,4 @@
-service : vault-pacman
-domain : pacman
+service : vault
+domain : vault
 owner: pbaser1
 create_cloudfront_url: true

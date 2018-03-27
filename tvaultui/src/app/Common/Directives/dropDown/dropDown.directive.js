@@ -93,4 +93,4 @@
 		    }
         }
     } );
-})(angular.module('pacman.directives.dropDown',[]))
+})(angular.module('vault.directives.dropDown',[]));

@@ -31,11 +31,6 @@
                     return response;
                 });
             },
-            getPeriscopeList: function(payload) {
-                return ServiceEndpoint.periscopeList.makeRequest(payload).then(function(response) {
-                    return response;
-                });
-            },
             deletePermission: function(payload, url, apiKey) {
                 return ServiceEndpoint.deletePermission.makeRequest(payload, url, apiKey).then(function(response) {
                     return response;
@@ -48,4 +43,4 @@
             }
         };
     } );
-})(angular.module('pacman.services.fetchData',[]))
+})(angular.module('vault.services.fetchData',[]))

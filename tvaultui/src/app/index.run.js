@@ -20,7 +20,7 @@
 (function() {
   'use strict';
   angular
-    .module('pacman')
+    .module('vault')
       .config(function($httpProvider){
           $httpProvider.interceptors.push( 'httpInterceptor' );
       })

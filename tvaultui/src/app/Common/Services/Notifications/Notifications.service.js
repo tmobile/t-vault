@@ -51,6 +51,6 @@
             }
         };
     } );
-})( angular.module( 'pacman.services.Notifications', [
+})( angular.module( 'vault.services.Notifications', [
     'toastr'
 ] ) );

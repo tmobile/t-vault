@@ -91,4 +91,4 @@
 
         };
     }]);
-})(angular.module('pacman.features.Autocomplete', []));
+})(angular.module('vault.features.Autocomplete', []));

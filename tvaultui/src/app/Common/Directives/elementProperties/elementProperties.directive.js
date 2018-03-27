@@ -33,4 +33,4 @@
             }
         }
     }]);
-})(angular.module('pacman.features.ElementProperties', []));
+})(angular.module('vault.features.ElementProperties', []));

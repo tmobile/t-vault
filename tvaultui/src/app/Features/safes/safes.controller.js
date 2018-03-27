@@ -134,11 +134,11 @@
                                     }],
                                     "appIndex" : categoryIndex,
                                     "safeIndex": index
-                                }                            
+                                };
 
                                 $rootScope.categories[categoryIndex].tableData[index].folders.push(obj);
                                 $scope.slideItems = $rootScope.categories[categoryIndex].tableData[index].folders;
-                                Modal.save();
+                                // Modal.save();
                                 var notification = UtilityService.getAParticularSuccessMessage('MESSAGE_ADD_SUCCESS');
                                 Notifications.toast(newFolderName+notification);
                             }
@@ -397,7 +397,7 @@
 
 
     });
-})(angular.module('pacman.features.SafesCtrl', [
-    'pacman.services.SafesManagement',
-    'pacman.services.Notifications'
+})(angular.module('vault.features.SafesCtrl', [
+    'vault.services.SafesManagement',
+    'vault.services.Notifications'
 ]));

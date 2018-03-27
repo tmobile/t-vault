@@ -62,10 +62,6 @@ this.readTextFile("../apiUrls.json");
             url: '/sdb/list?',
             method: 'GET'
         }, {
-            name: 'periscopeList',
-            url: '/periscope/list',
-            method: 'GET'
-        }, {
             name: 'deleteSafe',
             url: '/sdb/delete?',
             method: 'DELETE'
@@ -137,11 +133,8 @@ this.readTextFile("../apiUrls.json");
             name: 'unsealProgress',
             url: '/unseal-progress?serverip=',
             method: 'GET'
-        }
-
-        ]
+        }]
     } );
-})( angular.module( 'pacman.constants.RestEndpoints', [
+})( angular.module( 'vault.constants.RestEndpoints', [
 
 ] ) );
-/* TODO: Periscope services to be put in a new Rest End point file*/
