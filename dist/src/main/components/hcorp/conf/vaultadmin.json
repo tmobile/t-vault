@@ -1,7 +1,25 @@
 {
-    "name": "vaultadmin",
-    "path":{
-		"sys/*":{"policy":"write"},
-		"auth/*":{"policy":"write"}
-	}
+  "name": "vaultadmin",
+  "path": {
+    "sys/*": {
+      "capabilities": [
+        "create",
+        "read",
+        "update",
+        "delete",
+        "list",
+        "sudo"
+      ]
+    }, 
+    "auth/*": {
+      "capabilities": [
+        "create",
+        "read",
+        "update",
+        "delete",
+        "list",
+        "sudo"
+      ]
+    }
+  }
 }
