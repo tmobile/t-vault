@@ -106,4 +106,4 @@
         }
 
     } );
-})(angular.module('pacman.services.AdminSafesManagement',[]));
+})(angular.module('vault.services.AdminSafesManagement',[]));

@@ -22,7 +22,7 @@
   'use strict';
 
   angular
-    .module('pacman')
+    .module('vault')
     .constant('malarkey', malarkey)
     .constant('moment', moment);
 

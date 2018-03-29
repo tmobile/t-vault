@@ -61,4 +61,4 @@
 
         };
     });
-})(angular.module('pacman.services.Modal',[]));
+})(angular.module('vault.services.Modal',[]));

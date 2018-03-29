@@ -28,4 +28,4 @@
 	        return result;
 	    };
 	});
-})(angular.module('pacman.filters.ToArray', []));
+})(angular.module('vault.filters.ToArray', []));

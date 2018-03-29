@@ -38,8 +38,8 @@
             }
         }
     });
-})(angular.module('pacman.services.ModifyUrl',[
-    'pacman.constants.RestEndpoints',
-    'pacman.services.ArrayFilter'
+})(angular.module('vault.services.ModifyUrl',[
+    'vault.constants.RestEndpoints',
+    'vault.services.ArrayFilter'
 ]));
 

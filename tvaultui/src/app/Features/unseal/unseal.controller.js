@@ -132,7 +132,7 @@
 
 
     });
-})(angular.module('pacman.features.UnsealCtrl', [
-    'pacman.services.SafesManagement',
-    'pacman.services.Notifications'
+})(angular.module('vault.features.UnsealCtrl', [
+    'vault.services.SafesManagement',
+    'vault.services.Notifications'
 ]));

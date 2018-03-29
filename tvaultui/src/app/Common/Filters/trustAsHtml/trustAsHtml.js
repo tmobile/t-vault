@@ -19,7 +19,7 @@
 
 'use strict';
 angular
-    .module( 'pacman' )
+    .module('vault' )
     .filter( "trustAsHtml", function( $sce ) {
         return function( htmlCode ) {
             return $sce.trustAsHtml( htmlCode );

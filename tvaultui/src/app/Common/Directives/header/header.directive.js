@@ -35,4 +35,4 @@
             }
         }
     } );
-})(angular.module('pacman.directives.header',[]))
+})(angular.module('vault.directives.header',[]))

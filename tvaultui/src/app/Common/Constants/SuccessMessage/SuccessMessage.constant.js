@@ -26,4 +26,4 @@
         'MESSAGE_UPDATE_SUCCESS'   : ' updated successfully!',
         'COPY_TO_CLIPBOARD'        : 'Secret copied to clipboard'
     } );
-} )( angular.module( 'pacman.constants.SuccessMessage', [] ) );
+} )( angular.module( 'vault.constants.SuccessMessage', [] ) );

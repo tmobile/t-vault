@@ -32,4 +32,4 @@
             }
         }
     });
-})(angular.module('pacman.features.Scroll', []));
+})(angular.module('vault.features.Scroll', []));

@@ -61,4 +61,4 @@
 
         };
     } );
-})(angular.module('pacman.services.DeviceDetector',[]));
+})(angular.module('vault.services.DeviceDetector',[]));

@@ -51,4 +51,4 @@
             }
         };
     } );
-})(angular.module('pacman.services.DataCache',[]));
+})(angular.module('vault.services.DataCache',[]));

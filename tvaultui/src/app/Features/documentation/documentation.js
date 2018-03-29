@@ -21,7 +21,7 @@
     'use strict';
 
     angular
-        .module( 'pacman' )
+        .module('vault' )
         .config( routerConfig );
 
     /** @ngInject */

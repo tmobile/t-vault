@@ -38,4 +38,4 @@
             $rootScope.modalParent.currentState = to.name;
         })
     })
-})(angular.module('pacman'));
+})(angular.module('vault'));

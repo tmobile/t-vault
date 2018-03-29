@@ -2,6 +2,8 @@
 <Configuration monitorInterval="60">
     <Properties>
         <Property name="TVAULT-API-LOG-PATH">/var/log/tvault</Property>
+        <Property name="APP_ID">cso</Property>
+        <Property name="VAULT_ENV">dev</Property>
     </Properties>
     <Appenders>
         <Console name="Console-Appender" target="SYSTEM_OUT">
@@ -9,10 +11,9 @@
                 <pattern>
                     [%-5level] %d{yyyy-MM-dd HH:mm:ss.SSS} [%t] %c{1} - %msg%n
                 </pattern>
-                >
             </PatternLayout>
         </Console>
-        <RollingFile name="App-Appender" fileName="${sys:TVAULT-API-LOG-PATH}/tvault-api-app.log" filePattern="${sys:TVAULT-API-LOG-PATH}/tvault-api-app-%i.log">
+        <RollingFile name="App-Appender" fileName="${sys:TVAULT-API-LOG-PATH}/${sys:APP_ID}-${sys:VAULT_ENV}-tvault-api-app.log" filePattern="${sys:TVAULT-API-LOG-PATH}/${sys:APP_ID}-${sys:VAULT_ENV}-tvault-api-app-%i.log">
             <PatternLayout>
                 <pattern>
                     [%-5level] %d{yyyy-MM-dd HH:mm:ss.SSS} [%t] %c{1} - %msg%n
@@ -23,7 +24,7 @@
 			</Policies>
 			<DefaultRolloverStrategy max="5"/>  
         </RollingFile>
-        <RollingFile name="SpringBoot-Appender" fileName="${sys:TVAULT-API-LOG-PATH}/tvault-api-spring.log" filePattern="${sys:TVAULT-API-LOG-PATH}/tvault-api-spring-%i.log">
+        <RollingFile name="SpringBoot-Appender" fileName="${sys:TVAULT-API-LOG-PATH}/${sys:APP_ID}-${sys:VAULT_ENV}-tvault-api-spring.log" filePattern="${sys:TVAULT-API-LOG-PATH}/${sys:APP_ID}-${sys:VAULT_ENV}-tvault-api-spring-%i.log">
             <PatternLayout>
                 <pattern>
                     [%-5level] %d{yyyy-MM-dd HH:mm:ss.SSS} [%t] %c{1} - %msg%n
@@ -34,7 +35,7 @@
 			</Policies>
 			<DefaultRolloverStrategy max="5"/>    
         </RollingFile>
-       <RollingFile name="api-metric-Appender" fileName="${sys:TVAULT-API-LOG-PATH}/tvault-api-auditmetric.log" filePattern="${sys:TVAULT-API-LOG-PATH}/tvault-api-auditmetric-%i.log">
+       <RollingFile name="api-metric-Appender" fileName="${sys:TVAULT-API-LOG-PATH}/${sys:APP_ID}-${sys:VAULT_ENV}-tvault-api-auditmetric.log" filePattern="${sys:TVAULT-API-LOG-PATH}/${sys:APP_ID}-${sys:VAULT_ENV}-tvault-api-auditmetric-%i.log">
         	<PatternLayout>
                 <pattern>
                  	%msg%n
@@ -47,11 +48,11 @@
         </RollingFile>
     </Appenders>
     <Loggers>
-        <Logger name="org.springframework.web" level="info" additivity="true">
+        <Logger name="org.springframework.web" level="info" additivity="false">
             <AppenderRef ref="SpringBoot-Appender" />
         </Logger>
         <Logger name="com.tmobile.cso.vault.api" level="debug"
-            additivity="true">
+            additivity="false">
             <AppenderRef ref="App-Appender" />
         </Logger>
        <Logger name="metric-logger" level="info"

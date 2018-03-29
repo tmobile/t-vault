@@ -76,7 +76,7 @@
 
         };
     } );
-})(angular.module('pacman.services.Authentication',[
-    'pacman.services.ServiceEndpoint',
-    'pacman.constants.ErrorMessage'
+})(angular.module('vault.services.Authentication',[
+    'vault.services.ServiceEndpoint',
+    'vault.constants.ErrorMessage'
 ]))

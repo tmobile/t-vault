@@ -87,4 +87,4 @@
             } );
         };
     } );
-})(angular.module('pacman.directives.resize',[]))
+})(angular.module('vault.directives.resize',[]))

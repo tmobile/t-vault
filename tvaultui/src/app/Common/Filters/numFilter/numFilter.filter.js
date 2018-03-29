@@ -19,7 +19,7 @@
 
 'use strict';
 angular
-    .module( 'pacman' )
+    .module('vault' )
     .filter( 'numFilter', function( $filter ) {
         return function( number ) {
             var abs;

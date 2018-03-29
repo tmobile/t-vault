@@ -61,14 +61,7 @@ public class RestProcessor {
 	
 	public ResponseEntity<String> post(String endpoint,String token,String payload ){
 		RestTemplate restTemplate = getRestTemplate(sslVerify, token);
-		
-		String _endpoint ;
-		if(!endpoint.contains("http")){
-			_endpoint = vaultApiUrl+endpoint ;
-		}else{
-			_endpoint = endpoint ;
-		}
-		
+		String _endpoint  = formURL(endpoint);
 		log.debug(_endpoint); 
 		ResponseEntity<String> response;
 		try{
@@ -83,13 +76,7 @@ public class RestProcessor {
 	}
 	public ResponseEntity<String> get(String endpoint,String token){
 
-		String _endpoint ;
-		if(!endpoint.contains("http")){
-			_endpoint = vaultApiUrl+endpoint ;
-		}else{
-			_endpoint = endpoint ;
-		}
-		
+		String _endpoint  = formURL(endpoint);
 		log.debug(_endpoint); 
 		RestTemplate restTemplate = getRestTemplate(sslVerify, token);
 		
@@ -104,14 +91,14 @@ public class RestProcessor {
 		return response;
 	}
 	public ResponseEntity<String> delete(String endpoint,String token){
-		log.debug(vaultApiUrl+endpoint);
-		
+		String _endpoint  = formURL(endpoint);
+		log.debug(_endpoint); 
 		RestTemplate restTemplate = getRestTemplate(sslVerify, token);
 		ResponseEntity<String> response = null;
 		
 		try{
 			//restTemplate.delete(vaultApiUrl+endpoint);
-			response = restTemplate.exchange(vaultApiUrl+endpoint,HttpMethod.DELETE,null,String.class);
+			response = restTemplate.exchange(_endpoint,HttpMethod.DELETE,null,String.class);
 		}catch(HttpStatusCodeException e){
 			System.out.println("Caught 1");
 			return ResponseEntity.status(e.getStatusCode()).body(e.getResponseBodyAsString());
@@ -157,6 +144,17 @@ public class RestProcessor {
 				token );
 		restTemplate.getInterceptors().add(interceptor);
 		return restTemplate;
+	}
+	
+	private  String formURL(String endpoint){
+		
+		String _endpoint ;
+		if(endpoint.startsWith("http")){
+			_endpoint = endpoint ;
+		}else{
+			_endpoint = vaultApiUrl+endpoint ;
+		}
+		return _endpoint;
 	}
 	
 }

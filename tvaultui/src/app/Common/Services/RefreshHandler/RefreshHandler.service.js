@@ -53,4 +53,4 @@
             SessionStore.removeItem( 'onRefreshRedirectState' );
         };
     } );
-})(angular.module('pacman.services.RefreshHandler',[]));
+})(angular.module('vault.services.RefreshHandler',[]));

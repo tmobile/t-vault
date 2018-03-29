@@ -383,8 +383,8 @@
         init();
 
     });
-})(angular.module('pacman.features.AdminCtrl',[
-    'pacman.services.fetchData',
-    'pacman.services.ModifyUrl',
-    'pacman.services.Notifications'
+})(angular.module('vault.features.AdminCtrl',[
+    'vault.services.fetchData',
+    'vault.services.ModifyUrl',
+    'vault.services.Notifications'
 ]));

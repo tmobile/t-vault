@@ -135,7 +135,7 @@ script(src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"
                                     .row.change-safe
                                         .add-block.container.name.col-lg-4.col-md-4.col-sm-12.col-xs-12
                                             //- input.form-control.input-box-style(id="addUser" class="form-control" placeholder="Username" restrict-special-char ng-model="userNameVal" ng-class="{error: userNameValEmpty &&  (userNameVal == '' ||  userNameVal == undefined)}" ng-change="userNameValEmpty = false;")
-                                            input.form-control.input-box-style(type='text' class="form-control" auto-complete restrict-special-char ui-items='dropDownValArray.userNameDropdownVal' placeholder='Username' ng-model="userNameVal" id="addUser" ng-class="{error: userNameValEmpty &&  (userNameVal == '' ||  userNameVal == undefined)}" ng-change="periscopeSearch.userName = userNameVal; userNameValEmpty = false;")
+                                            input.form-control.input-box-style(type='text' class="form-control" auto-complete restrict-special-char ui-items='dropDownValArray.userNameDropdownVal' placeholder='Username' ng-model="userNameVal" id="addUser" ng-class="{error: userNameValEmpty &&  (userNameVal == '' ||  userNameVal == undefined)}" ng-change="searchValue.userName = userNameVal; userNameValEmpty = false;")
                                         .add-block.container.radio-inputs.col-lg-4.col-md-4.col-sm-12.col-xs-12
                                             radio-buttons(data="radio" value="usrRadioBtnVal" state="true")
 
