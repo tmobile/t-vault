@@ -78,11 +78,9 @@ public class RequestValidator {
 	private boolean validateSDBInputs(Map<String, Object> requestParams) {
 		LinkedHashMap<String, Object> map = (LinkedHashMap<String, Object>) requestParams.get("data");
 		String sdbName = (String) map.get("name");
-		String sdbType = (String) map.get("type");
 		String sdbOwner = (String) map.get("owner");
 		String sdbDescription = (String) map.get("description");
 		if (StringUtils.isEmpty(sdbName) 
-				|| StringUtils.isEmpty(sdbType) 
 				|| StringUtils.isEmpty(sdbOwner) 
 				|| StringUtils.isEmpty(sdbDescription) 
 				) {
