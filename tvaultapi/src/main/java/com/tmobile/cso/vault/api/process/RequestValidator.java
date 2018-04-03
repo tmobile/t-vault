@@ -17,12 +17,14 @@
 
 package com.tmobile.cso.vault.api.process;
 
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 
 import com.tmobile.cso.vault.api.config.ApiConfig;
 
@@ -52,6 +54,12 @@ public class RequestValidator {
 				break;
 			}
 			case "/sdb/create":{
+				boolean validInput = validateSDBInputs(requestParams);
+				if(!validInput){
+					msg.setMsgTxt("Invalid input values");
+					msg.setMsgType(MSG_TYPE.ERR);
+					break;
+				}
 				boolean duplicate = checkforDuplicateSDB(requestParams, token);
 				if(duplicate){
 					msg.setMsgTxt("Existing safe");
@@ -61,6 +69,24 @@ public class RequestValidator {
 			}
 		}
 		return msg;
+	}
+	/**
+	 * Validates inputs values required for SDB creation
+	 * @param requestParams
+	 * @return
+	 */
+	private boolean validateSDBInputs(Map<String, Object> requestParams) {
+		LinkedHashMap<String, Object> map = (LinkedHashMap<String, Object>) requestParams.get("data");
+		String sdbName = (String) map.get("name");
+		String sdbOwner = (String) map.get("owner");
+		String sdbDescription = (String) map.get("description");
+		if (StringUtils.isEmpty(sdbName) 
+				|| StringUtils.isEmpty(sdbOwner) 
+				|| StringUtils.isEmpty(sdbDescription) 
+				) {
+			return false;
+		}
+		return true;
 	}
 	private boolean checkforDuplicatePolicy(Map<String, Object> requestParams,String token){
 		if(requestParams.get("accessid")!= null){
