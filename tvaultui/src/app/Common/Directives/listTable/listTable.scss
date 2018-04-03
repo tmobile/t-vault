@@ -94,9 +94,7 @@
     text-overflow: ellipsis;
     font-family: montserratbold;
 }
-.folder-keys .row {
-    height: 4.2vh;
-}
+.folder-keys .row {}
 .accordion-table-data .accordion-expand-block .block-2 {
     padding: 0;
 }
@@ -274,6 +272,7 @@ button:disabled {
     white-space: nowrap;
     text-overflow: ellipsis;
     overflow: hidden;
+    position: relative;
 }
 .secrets-accordion-wrapper{
     height: 70%;
@@ -296,4 +295,13 @@ button:disabled {
     top: 1.2vh;
     font-size: 2vh;
     right: 1vw;
+}
+
+.folder-key{
+    margin-top: calc(2.1vh - 11px);
+    align-self: center;
+    width: 100%;
+    display: inline-block;
+    white-space: normal;
+    word-break: break-all;
 }
