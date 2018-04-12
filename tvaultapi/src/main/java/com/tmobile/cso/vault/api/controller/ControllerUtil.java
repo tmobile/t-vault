@@ -22,18 +22,21 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+
 import javax.annotation.PostConstruct;
+
 import org.apache.logging.log4j.LogManager;
-import org.springframework.beans.factory.annotation.Value;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -536,5 +539,24 @@ public final class ControllerUtil {
 			return true;
 		}
 		return false;
+	}
+	
+	/**
+	 * Validates inputs values required for SDB creation
+	 * @param requestParams
+	 * @return
+	 */
+	public static boolean areSDBInputsValid(Map<String, Object> requestParams) {
+		LinkedHashMap<String, Object> map = (LinkedHashMap<String, Object>) requestParams.get("data");
+		String sdbName = (String) map.get("name");
+		String sdbOwner = (String) map.get("owner");
+		String sdbDescription = (String) map.get("description");
+		if (StringUtils.isEmpty(sdbName) 
+				|| StringUtils.isEmpty(sdbOwner) 
+				|| StringUtils.isEmpty(sdbDescription) 
+				) {
+			return false;
+		}
+		return true;
 	}
 }

@@ -99,7 +99,9 @@ public class SDBController {
 	public ResponseEntity<String> updateSDB(@RequestHeader(value="vault-token" ) String token, @RequestBody String jsonStr){
 		
 		Map<String, Object> requestParams = ControllerUtil.parseJson(jsonStr);
-		
+		if (!ControllerUtil.areSDBInputsValid(requestParams)) {
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid input values\"]}");
+		}
 		@SuppressWarnings("unchecked")
 		Map<Object,Object> data = (Map<Object,Object>)requestParams.get("data");
 		String path = requestParams.get("path").toString();
@@ -142,6 +144,9 @@ public class SDBController {
 	public ResponseEntity<String> createSDB(@RequestHeader(value="vault-token" ) String token, @RequestBody String jsonStr){
 		
 		Map<String,Object> rqstParams = ControllerUtil.parseJson(jsonStr);
+		if (!ControllerUtil.areSDBInputsValid(rqstParams)) {
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid input values\"]}");
+		}
 		String path = rqstParams.get("path").toString();
 		if(ControllerUtil.isValidSafePath(path)){
 			Response response = reqProcessor.process("/sdb/create",jsonStr,token);
