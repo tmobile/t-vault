@@ -1,3 +1,11 @@
+script(type='text/ng-template', id='duplicateSecretError.html')
+    .top-lg-sep
+        .top-lg-sep
+            .common-header-label.text-center Duplicate Secrets
+        .top-lg-sep.notification-text You may not have two secrets of the same key.
+        .text-center.bottom-lg-sep.top-lg-sep.notification-button
+            .clearfix
+                button.link-style.common-btn.btn.btn-default.btn-lg(ng-click="close()") OK
 script(type='text/ng-template', id='deleteFolderPopup.html')
   loading-state(ng-if="isLoadingModalData")
   .top-lg-sep(ng-if="!isLoadingModalData")
@@ -58,7 +66,8 @@ script(type='text/ng-template', id='deleteSecretPopup.html')
                             | No secrets available in your folder
                         .folder-keys.clearfix(ng-repeat="key in item.keys track by $index" ng-cloak="ng-cloak" ng-if='(!(!item.keys || (item.keys.length == 1 && item.keys[0].key == "default")))')
                             .row(ng-if="!key.new && key.key !== 'default'" ng-cloak="ng-cloak")
-                                .cell.block-2.col-lg-2.col-md-2.col-sm-2.col-xs-4.key {{ key.key }}
+                                .cell.block-2.col-lg-2.col-md-2.col-sm-2.col-xs-4.key
+                                    .folder-key {{ key.key }}
                                 .cell.block-3.col-lg-4.col-md-4.col-sm-4.col-xs-4.folder-key-input
                                     input(class="form-control" ng-attr-type="{{ showPassword ? 'text' : 'password' }}" ng-model="key.value")
                                     .list-icon.icon-views(ng-mousedown="showPassword = !showPassword" ng-mouseup="showPassword = !showPassword")                                
@@ -68,7 +77,8 @@ script(type='text/ng-template', id='deleteSecretPopup.html')
                                     .list-icon.icon-delete(ng-click = "openDeleteSecretModal(item, $index)")
                             .row(ng-if="key.new" ng-cloak="")
                                 .cell.block-2.col-lg-2.col-md-2.col-sm-2.col-xs-4.folder-key-input
-                                    input(id="key" class="form-control input-box-style key-input-box" restrict-special-char maxlength="20" ng-model="key.key" placeholder="Key" required)
+                                    input(id="key" class="form-control input-box-style key-input-box"
+                                    restrict-special-char maxlength="60" ng-model="key.key" placeholder="Key" required)
                                 .cell.block-3.col-lg-4.col-md-4.col-sm-4.col-xs-4.folder-key-input
                                     input(id="secret" class="form-control input-box-style" ng-attr-type="{{ showPassword ? 'text' : 'password' }}" type="password" ng-model="key.value" placeholder="Secret" autocomplete="new-password" required)
                                     .list-icon.icon-views(ng-mousedown="showPassword = !showPassword" ng-mouseup="showPassword = !showPassword")
