@@ -118,20 +118,21 @@
                       scope.data[index].keys = keyData;
                       scope.newSecretAdded = false;
                   }
-                };
+                }
 
                 scope.saveSafe = function(folder) {
 
-                    //IF DUPLICATE KEY EXISTS STAY
-                    var newestKey = folder.keys[folder.keys.length - 1].key;
-                    var duplicateKeys = false;
-                    folder.keys.forEach(function (key, index) {
+                  //IF DUPLICATE KEY EXISTS STAY
+                  var newestKey = folder.keys[folder.keys.length - 1].key;
+                  var duplicateKeys = false;
+                  folder.keys.forEach(function (key, index) {
                         if(newestKey === key.key && index !== folder.keys.length - 1) {
-                            duplicateKeys = true;
-                            Modal.createModal('lg', 'duplicateSecretError.html');
-                        }
+                              duplicateKeys = true;
+                              Modal.createModal('lg', 'duplicateSecretError.html');
+                          }
                     });
-                    if(duplicateKeys) return;
+                  if(duplicateKeys) return;
+
 
                   if($rootScope.categories[folder.appIndex]) {
                       // $rootScope.isLoadingData = true;
