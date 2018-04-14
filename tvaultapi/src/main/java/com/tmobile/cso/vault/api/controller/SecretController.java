@@ -68,6 +68,9 @@ public class SecretController {
 		String path="";
 		try {
 			path = new ObjectMapper().readTree(jsonStr).at("/path").asText();
+			if (!ControllerUtil.isSecretKeyValid(jsonStr)) {
+				return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid request.Check json data\"]}");
+			}
 		} catch (IOException e) {
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid request.Check json data\"]}");
 		}
