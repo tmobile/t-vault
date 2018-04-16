@@ -17,36 +17,33 @@
 * =========================================================================
 */
 
-(function () {
-    'use strict';
+(function() {
+  'use strict';
 
-    angular
-        .module('vault')
-        .config(config);
+  angular
+    .module('vault')
+    .config(config);
 
-    /** @ngInject */
-    function config($logProvider, toastrConfig, AppConstant, IdleProvider) {
+  /** @ngInject */
+  function config($logProvider, toastrConfig, AppConstant, IdleProvider) {
+      var timeout = AppConstant['SESSION-TIMEOUT'] * 60;
+      if (timeout <= 300) {
+          IdleProvider.idle(1);
+          IdleProvider.timeout(timeout);
+      } else {
+          IdleProvider.idle(300);
+          IdleProvider.timeout(timeout - 300);
+      }
+    // Enable log
+    $logProvider.debugEnabled(true);
 
-        var timeout = AppConstant['SESSION-TIMEOUT'] * 60;
-        if (timeout <= 300) {
-            IdleProvider.idle(1);
-            IdleProvider.timeout(timeout);
-        } else {
-            IdleProvider.idle(300);
-            IdleProvider.timeout(timeout - 300);
-        }
-
-
-        // Enable log
-        $logProvider.debugEnabled(true);
-
-        // Set options third-party lib
-        toastrConfig.allowHtml = true;
-        toastrConfig.timeOut = 2000;
-        toastrConfig.positionClass = 'custom-toast';
-        toastrConfig.tapToDismiss = true;
-        toastrConfig.preventDuplicates = true;
-        toastrConfig.progressBar = false;
-    }
+    // Set options third-party lib
+    toastrConfig.allowHtml = true;
+    toastrConfig.timeOut = 2000;
+    toastrConfig.positionClass = 'custom-toast';
+    toastrConfig.tapToDismiss = true;
+    toastrConfig.preventDuplicates = true;
+    toastrConfig.progressBar = false;
+  }
 
 })();
