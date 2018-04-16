@@ -22,21 +22,28 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 import javax.annotation.PostConstruct;
+
 import org.apache.logging.log4j.LogManager;
-import org.springframework.beans.factory.annotation.Value;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 
+import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tmobile.cso.vault.api.process.RequestProcessor;
@@ -48,13 +55,19 @@ public final class ControllerUtil {
 	private static Logger log = LogManager.getLogger(ControllerUtil.class);
 
 	@Value("${vault.auth.method}")
-        private String tvaultAuthMethod;
+    private String tvaultAuthMethod;
 
 	private static String vaultAuthMethod;
+	
+	@Value("${vault.secret.key.whitelistedchars:[^a-z0-9_]}")
+    private String secretKeyWhitelistedCharacters;
+	
+	private static String secretKeyAllowedCharacters;
 
 	@PostConstruct     
 	private void initStatic () {
 		vaultAuthMethod = this.tvaultAuthMethod;
+		secretKeyAllowedCharacters = this.secretKeyWhitelistedCharacters;
 	}
 
 	@Autowired(required = true)
@@ -536,5 +549,62 @@ public final class ControllerUtil {
 			return true;
 		}
 		return false;
+	}
+	
+	/**
+	 * Validates inputs values required for SDB creation
+	 * @param requestParams
+	 * @return
+	 */
+	public static boolean areSDBInputsValid(Map<String, Object> requestParams) {
+		LinkedHashMap<String, Object> map = (LinkedHashMap<String, Object>) requestParams.get("data");
+		String sdbName = (String) map.get("name");
+		String sdbOwner = (String) map.get("owner");
+		String sdbDescription = (String) map.get("description");
+		if (StringUtils.isEmpty(sdbName) 
+				|| StringUtils.isEmpty(sdbOwner) 
+				|| StringUtils.isEmpty(sdbDescription) 
+				) {
+			return false;
+		}
+		return true;
+	}
+
+	/**
+	 * Validates the SecretKey
+	 * @return
+	 */
+	public static boolean isSecretKeyValid(String jsonString) {
+		Pattern pattern = Pattern.compile(secretKeyAllowedCharacters, Pattern.CASE_INSENSITIVE);
+		String secretKey = getSecretKey(jsonString);
+		if (StringUtils.isEmpty(secretKey)) {
+			return false;
+		}
+		Matcher matcher = pattern.matcher(secretKey);
+		boolean valid = matcher.find();
+		return !valid;
+	}
+	
+	private static String getSecretKey(String jsonString) {
+		String secretKey = null ;
+		String secretValue = null;
+		try {
+			Map<String, Object> requestParams = new ObjectMapper().readValue(jsonString, new TypeReference<Map<String, Object>>(){});
+			LinkedHashMap<String, Object> map = (LinkedHashMap<String, Object>) requestParams.get("data");
+			for (Object key : map.keySet()) {
+				secretKey = (String) key;
+				secretValue = (String) map.get(key);
+			    break;
+			  }
+			return secretKey;
+		} catch (JsonParseException e) {
+			return secretKey;
+		} catch (JsonMappingException e) {
+			return secretKey;
+		} catch (IOException e) {
+			return secretKey;
+		}
+
+		
 	}
 }

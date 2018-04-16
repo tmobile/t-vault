@@ -17,12 +17,14 @@
 
 package com.tmobile.cso.vault.api.process;
 
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 
 import com.tmobile.cso.vault.api.config.ApiConfig;
 
@@ -62,6 +64,7 @@ public class RequestValidator {
 		}
 		return msg;
 	}
+
 	private boolean checkforDuplicatePolicy(Map<String, Object> requestParams,String token){
 		if(requestParams.get("accessid")!= null){
 			String policyName = requestParams.get("accessid").toString();
