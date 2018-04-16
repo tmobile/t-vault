@@ -37,7 +37,8 @@
         'vault.services',
         'vault.constants',
         'vault.directives',
-        'vault.factories'
+        'vault.factories',
+        'ngIdle'
     ]);
 
 

@@ -22,7 +22,8 @@
     /*inject:constant*/
     app.constant('AppConstant', {
         'FORGOT_PASSWORD_LINK': '',
-        'AD_USERS_DATA_URL': ''
+        'AD_USERS_DATA_URL': '',
+        'AUTH-TYPE': 'LDAP'
     });
     /*endinject*/
 })(angular.module('vault.constants.AppConstant', []));

@@ -46,12 +46,26 @@
           var url = ModifyUrl.addUrlParameteres('getSecrets', path);
           return ServiceEndpoint.getSecrets.makeRequest(null, url).then(
               function(response) {
+                  if(response.data.data) {
+                      var decoded = {};
+                      Object.keys(response.data.data).forEach(function (key, index) {
+                          decoded[key] = atob(response.data.data[key]);
+                      })
+                      response.data.data = decoded;
+                  }
                 return response;
               }
           );
         };
 
         this.writeSecret = function(payload) {
+            var base64Payload = {};
+            Object.keys(payload.data).forEach(function (key, index) {
+                base64Payload[key] = btoa(payload.data[key]);
+            });
+            payload.data = base64Payload;
+
+
           return ServiceEndpoint.postSecrets.makeRequest(payload).then(
               function(response) {
                 return response;

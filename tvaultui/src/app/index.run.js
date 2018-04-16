@@ -27,8 +27,12 @@
     .run(runBlock);
 
   /** @ngInject */
-  function runBlock($log) {
-
+  function runBlock($log, Idle, $rootScope, $state) {
+      Idle.watch();
+      $rootScope.$on('IdleTimeout', function () {
+          console.log('User inactive for too long.');
+          $state.go('signup');
+      });
     $log.debug('runBlock end');
   }
 

@@ -19,7 +19,7 @@
 
 'use strict';
 (function(app){
-    app.controller('SignUpCtrl', function($scope, Modal, $state, Authentication, SessionStore, UtilityService){
+    app.controller('SignUpCtrl', function($scope, Modal, $state, Authentication, SessionStore, UtilityService, Idle){
 
         var init = function(){
             $scope.forgotPasswordLink = UtilityService.getAppConstant('FORGOT_PASSWORD_LINK');
@@ -59,6 +59,7 @@
           Authentication.authenticateUser(reqObjtobeSent).then(function(response){
               $scope.isLoadingData = false;
               if(UtilityService.ifAPIRequestSuccessful(response)){
+                  Idle.watch();
                   saveParametersInSessionStore(response.data);
               }
               else{

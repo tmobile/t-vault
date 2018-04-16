@@ -17,25 +17,36 @@
 * =========================================================================
 */
 
-(function() {
-  'use strict';
+(function () {
+    'use strict';
 
-  angular
-    .module('vault')
-    .config(config);
+    angular
+        .module('vault')
+        .config(config);
 
-  /** @ngInject */
-  function config($logProvider, toastrConfig) {
-    // Enable log
-    $logProvider.debugEnabled(true);
+    /** @ngInject */
+    function config($logProvider, toastrConfig, AppConstant, IdleProvider) {
 
-    // Set options third-party lib
-    toastrConfig.allowHtml = true;
-    toastrConfig.timeOut = 2000;
-    toastrConfig.positionClass = 'custom-toast';
-    toastrConfig.tapToDismiss = true;
-    toastrConfig.preventDuplicates = true;
-    toastrConfig.progressBar = false;
-  }
+        var timeout;
+        if (AppConstant['AUTH-TYPE'] === 'LDAP') {
+            timeout = 25
+        } else if (AppConstant['AUTH-TYPE'] === 'USERPASS') {
+            timeout = 10;
+        }
+        var idle = timeout - 5;
+        IdleProvider.idle(idle * 60);
+        IdleProvider.timeout(timeout * 60);
+
+        // Enable log
+        $logProvider.debugEnabled(true);
+
+        // Set options third-party lib
+        toastrConfig.allowHtml = true;
+        toastrConfig.timeOut = 2000;
+        toastrConfig.positionClass = 'custom-toast';
+        toastrConfig.tapToDismiss = true;
+        toastrConfig.preventDuplicates = true;
+        toastrConfig.progressBar = false;
+    }
 
 })();
