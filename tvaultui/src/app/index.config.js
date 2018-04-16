@@ -31,8 +31,8 @@
           IdleProvider.idle(1);
           IdleProvider.timeout(timeout);
       } else {
-          IdleProvider.idle(300);
-          IdleProvider.timeout(timeout - 300);
+          IdleProvider.idle(timeout - 300);
+          IdleProvider.timeout(300);
       }
     // Enable log
     $logProvider.debugEnabled(true);
