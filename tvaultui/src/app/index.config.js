@@ -27,15 +27,15 @@
     /** @ngInject */
     function config($logProvider, toastrConfig, AppConstant, IdleProvider) {
 
-        var timeout;
-        if (AppConstant['AUTH-TYPE'] === 'LDAP') {
-            timeout = 25
-        } else if (AppConstant['AUTH-TYPE'] === 'USERPASS') {
-            timeout = 10;
+        var timeout = AppConstant['SESSION-TIMEOUT'] * 60;
+        if (timeout <= 300) {
+            IdleProvider.idle(1);
+            IdleProvider.timeout(timeout);
+        } else {
+            IdleProvider.idle(300);
+            IdleProvider.timeout(timeout - 300);
         }
-        var idle = timeout - 5;
-        IdleProvider.idle(idle * 60);
-        IdleProvider.timeout(timeout * 60);
+
 
         // Enable log
         $logProvider.debugEnabled(true);
