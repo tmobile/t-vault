@@ -248,7 +248,7 @@
         	{"name":"username","required":true,"appendToPath":true},
         	{"name":"password","required":true}
         ],
-        "outparams":["auth/client_token","admin","access","auth/policies"]
+        "outparams":["auth/client_token","admin","access","auth/policies","auth/lease_duration"]
 	},
 	
 	{"#":"Configuring LDAP Group",
