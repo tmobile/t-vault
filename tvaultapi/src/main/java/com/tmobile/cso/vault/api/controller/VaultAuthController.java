@@ -74,8 +74,37 @@ public class VaultAuthController {
 		}
 
 	}
+	/**
+	 * To renew token
+	 * @param token
+	 * @return
+	 */
+	@PostMapping(value="/renew",produces="application/json")	
+	public ResponseEntity<String> renew(@RequestHeader(value="vault-token") String token){
+		Response response = reqProcessor.process("/auth/tvault/renew","{}", token);	
+ 		if(HttpStatus.OK.equals(response.getHttpstatus())){
+			return ResponseEntity.status(response.getHttpstatus()).body(response.getResponse());
+		}else{
+			return ResponseEntity.status(response.getHttpstatus()).body("{\"errors\":[\"Self renewal of token Failed.\"]}");
+		}
+
+	}
 	
-	
+	/**
+	 * To Lookup token details
+	 * @param token
+	 * @return
+	 */
+	@PostMapping(value="/lookup",produces="application/json")	
+	public ResponseEntity<String> lookup(@RequestHeader(value="vault-token") String token){
+		Response response = reqProcessor.process("/auth/tvault/lookup","{}", token);	
+ 		if(HttpStatus.OK.equals(response.getHttpstatus())){
+			return ResponseEntity.status(response.getHttpstatus()).body(response.getResponse());
+		}else{
+			return ResponseEntity.status(response.getHttpstatus()).body("{\"errors\":[\"Token Lookup Failed.\"]}");
+		}
+
+	}
 	
 }
 

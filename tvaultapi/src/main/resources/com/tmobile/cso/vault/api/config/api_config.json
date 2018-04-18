@@ -148,9 +148,24 @@
         		{"name":"username", "required":true,"appendToPath":true}, 
     	  		{"name":"password","required":true}
  	    ],
-       "outparams":["auth/client_token","admin","access","auth/policies"] 
+       "outparams":["auth/client_token","admin","access","auth/policies","auth/lease_duration"] 
     },
 
+	{"#" : "**** - Used to renew the token *******",
+ 	
+    	"apiEndPoint":"/auth/tvault/renew",
+    	"vaultEndPoint":"/auth/token/renew-self",
+    	"method":"POST",
+        "outparams":["auth/client_token", "auth/policies","auth/lease_duration"] 
+    },
+    
+	{"#" : "**** - Used to lookup the token *******",
+ 	
+    	"apiEndPoint":"/auth/tvault/lookup",
+    	"vaultEndPoint":"/auth/token/lookup-self",
+    	"method":"GET",
+        "outparams":["data/id","data/last_renewal_time","renewable","data/policies","data/creation_ttl"] 
+    },
    
      {"#":"**** - dec'2017 - Create / Update a USER *******",
     
