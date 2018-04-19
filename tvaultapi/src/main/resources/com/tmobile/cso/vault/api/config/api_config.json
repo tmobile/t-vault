@@ -166,6 +166,12 @@
     	"method":"GET",
         "outparams":["data/id","data/last_renewal_time","renewable","data/policies","data/creation_ttl"] 
     },
+	{"#" : "**** - Used to revoke the token *******",
+ 	
+    	"apiEndPoint":"/auth/tvault/revoke",
+    	"vaultEndPoint":"/auth/token/revoke-self",
+    	"method":"POST"
+    },
    
      {"#":"**** - dec'2017 - Create / Update a USER *******",
     

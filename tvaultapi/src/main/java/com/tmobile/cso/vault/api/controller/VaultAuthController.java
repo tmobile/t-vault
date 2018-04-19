@@ -106,5 +106,22 @@ public class VaultAuthController {
 
 	}
 	
+	
+	/**
+	 * To revoke a token
+	 * @param token
+	 * @return
+	 */
+	@PostMapping(value="/revoke",produces="application/json")	
+	public ResponseEntity<String> revoke(@RequestHeader(value="vault-token") String token){
+		Response response = reqProcessor.process("/auth/tvault/revoke","{}", token);	
+ 		if(HttpStatus.OK.equals(response.getHttpstatus())){
+			return ResponseEntity.status(response.getHttpstatus()).body(response.getResponse());
+		}else{
+			return ResponseEntity.status(response.getHttpstatus()).body("{\"errors\":[\"Token revoke Failed.\"]}");
+		}
+
+	}
+	
 }
 
