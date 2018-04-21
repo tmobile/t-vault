@@ -23,7 +23,7 @@
 
         var init = function(){
             $scope.forgotPasswordLink = UtilityService.getAppConstant('FORGOT_PASSWORD_LINK');
-
+            Idle.unwatch();
         }
 
         var saveParametersInSessionStore = function(loginResponseData){
@@ -59,7 +59,6 @@
           Authentication.authenticateUser(reqObjtobeSent).then(function(response){
               $scope.isLoadingData = false;
               if(UtilityService.ifAPIRequestSuccessful(response)){
-                  Idle.watch();
                   saveParametersInSessionStore(response.data);
               }
               else{

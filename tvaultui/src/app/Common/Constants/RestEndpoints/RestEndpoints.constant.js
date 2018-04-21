@@ -53,7 +53,24 @@ this.readTextFile("../apiUrls.json");
             name: 'getAction',
             url: '/getAction',
             method: 'GET'
-        }, {/* To enable ldap insert this to "url" : '/auth/ldap/login' */
+        },
+        {
+            name: 'renewToken',
+            url: '/auth/tvault/renew',
+            method: 'POST'
+        },
+        {
+            name: 'lookupToken',
+            url: '/auth/tvault/lookup',
+            method: 'POST'
+        },
+        {
+            name: 'revokeToken',
+            url: '/auth/tvault/revoke',
+            method: 'POST'
+        },
+
+            {/* To enable ldap insert this to "url" : '/auth/ldap/login' */
             name: 'login',
             url: '/auth/tvault/login',
             method: 'POST'

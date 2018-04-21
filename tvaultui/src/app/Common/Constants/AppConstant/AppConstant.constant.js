@@ -22,8 +22,7 @@
     /*inject:constant*/
     app.constant('AppConstant', {
         'FORGOT_PASSWORD_LINK': '',
-        'AD_USERS_DATA_URL': '',
-        'SESSION-TIMEOUT': 30//Integer number of minutes
+        'AD_USERS_DATA_URL': ''
     });
     /*endinject*/
 })(angular.module('vault.constants.AppConstant', []));

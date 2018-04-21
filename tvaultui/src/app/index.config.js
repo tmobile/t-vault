@@ -25,15 +25,7 @@
     .config(config);
 
   /** @ngInject */
-  function config($logProvider, toastrConfig, AppConstant, IdleProvider) {
-      var timeout = AppConstant['SESSION-TIMEOUT'] * 60;
-      if (timeout <= 300) {
-          IdleProvider.idle(1);
-          IdleProvider.timeout(timeout);
-      } else {
-          IdleProvider.idle(timeout - 300);
-          IdleProvider.timeout(300);
-      }
+  function config($logProvider, toastrConfig) {
     // Enable log
     $logProvider.debugEnabled(true);
 
