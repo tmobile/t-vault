@@ -46,6 +46,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.tmobile.cso.vault.api.model.SafeNode;
 import com.tmobile.cso.vault.api.process.RequestProcessor;
 import com.tmobile.cso.vault.api.process.Response;
 @Component
@@ -113,16 +114,9 @@ public final class ControllerUtil {
 		}
 	}
 	
-	/** TODO
-	 *  Need to test this..Currently put on hold since UI doesnt support nested folders
-	 * @param jsonstr
-	 * @param token
-	 * @param responseVO
-	 * @param secretMap
-	 */
-	public static void recursiveRead(String jsonstr,String token,  Response responseVO,Map<String,String> secretMap){
-		
-		ObjectMapper objMapper =  new ObjectMapper();
+	
+	private static String getPath(ObjectMapper objMapper, String jsonstr, Response responseVO) {
+
 		String path = "";
 		try {
 			path = objMapper.readTree(jsonstr).at("/path").asText();
@@ -132,34 +126,147 @@ public final class ControllerUtil {
 			responseVO.setHttpstatus(HttpStatus.INTERNAL_SERVER_ERROR);
 			responseVO.setResponse("{\"errors\":[\"Unexpected error :"+e.getMessage() +"\"]}");
 		}
-		
+		return path;
+	}
+	
+
+	/**
+	 * Recursively reads the folders/secrets for a given path
+	 * @param jsonstr
+	 * @param token
+	 * @param responseVO
+	 * @param secretMap
+	 */
+	public static void recursiveRead(String jsonstr,String token,  Response responseVO, SafeNode safeNode){
+		ObjectMapper objMapper =  new ObjectMapper();
+		String path = getPath(objMapper, jsonstr, responseVO);
+		/* Read the secrets for the given path */
+		Response secresp = reqProcessor.process("/read",jsonstr,token);
+		if (HttpStatus.OK.equals(secresp.getHttpstatus())) {
+			responseVO.setResponse(secresp.getResponse());
+			responseVO.setHttpstatus(secresp.getHttpstatus());
+			SafeNode sn = new SafeNode();
+			sn.setId(path);
+			sn.setValue(secresp.getResponse());
+			if (!"safe".equals(safeNode.getType())) {
+				sn.setType("secret");
+				sn.setParentId(safeNode.getId());
+				safeNode.addChild(sn);
+			}
+			else {
+				safeNode.setValue(secresp.getResponse());
+			}
+		}
+		/* Read the folders for the given path */
 		Response lisresp = reqProcessor.process("/sdb/list",jsonstr,token);
 		if(HttpStatus.NOT_FOUND.equals(lisresp.getHttpstatus())){
 			Response resp = reqProcessor.process("/read",jsonstr,token);
 			responseVO.setResponse(resp.getResponse());
 			responseVO.setHttpstatus(resp.getHttpstatus());
-			secretMap.put(path, resp.getResponse());
+			return;
 		}else if ( HttpStatus.FORBIDDEN.equals(lisresp.getHttpstatus())){
 			responseVO.setResponse(lisresp.getResponse());
 			responseVO.setHttpstatus(lisresp.getHttpstatus());
 			return;
 		}else{
-			try {
-				 JsonNode folders = objMapper.readTree(lisresp.getResponse()).get("keys");
-				 for(JsonNode node : folders){
-					 recursiveRead ("{\"path\":\""+path+"/"+node.asText()+"\"}" ,token,responseVO,secretMap);
-				 }
-			} catch (IOException e) {
-				log.error(e);
+			if (!lisresp.getResponse().contains("errors")) {
+				try {
+					JsonNode folders = objMapper.readTree(lisresp.getResponse()).get("keys");
+					for(JsonNode node : folders){
+						jsonstr = "{\"path\":\""+path+"/"+node.asText()+"\"}";
+						SafeNode sn = new SafeNode();
+						sn.setId(path+"/"+node.asText());
+						sn.setValue(path+"/"+node.asText());
+						sn.setType("folder");
+						sn.setParentId(safeNode.getId());
+						safeNode.addChild(sn);
+						/* Recursively read the folders for the given folder/sub folders */
+						recursiveRead ( jsonstr,token,responseVO, sn);
+					}
+
+				} catch (IOException e) {
+					log.error(e);
+					responseVO.setSuccess(false);
+					responseVO.setHttpstatus(HttpStatus.INTERNAL_SERVER_ERROR);
+					responseVO.setResponse("{\"errors\":[\"Unexpected error :"+e.getMessage() +"\"]}");
+				}
+			}
+			else {
+				log.error("Unable to recursively read the given path " + jsonstr);
 				responseVO.setSuccess(false);
 				responseVO.setHttpstatus(HttpStatus.INTERNAL_SERVER_ERROR);
-				responseVO.setResponse("{\"errors\":[\"Unexpected error :"+e.getMessage() +"\"]}");
+				responseVO.setResponse("{\"errors\":[\"Unable to recursively read the given path :"+jsonstr +"\"]}");
 			}
-			recursiveRead("{\"path\":\""+path+"\"}" ,token,responseVO,secretMap);
 		}
 	}
 
-	
+	/**
+	 * Gets the folders and secrets for a given path
+	 * @param jsonstr
+	 * @param token
+	 * @param responseVO
+	 * @param secretMap
+	 */
+	public static void getFoldersAndSecrets(String jsonstr,String token,  Response responseVO, SafeNode safeNode){
+		ObjectMapper objMapper =  new ObjectMapper();
+		String path = getPath(objMapper, jsonstr, responseVO);
+		/* Read the secrets for the given path */
+		Response secresp = reqProcessor.process("/read",jsonstr,token);
+		if (HttpStatus.OK.equals(secresp.getHttpstatus())) {
+			responseVO.setResponse(secresp.getResponse());
+			responseVO.setHttpstatus(secresp.getHttpstatus());
+			SafeNode sn = new SafeNode();
+			sn.setId(path);
+			sn.setValue(secresp.getResponse());
+			if (!"safe".equals(safeNode.getType())) {
+				sn.setType("secret");
+				sn.setParentId(safeNode.getId());
+				safeNode.addChild(sn);
+			}
+			else {
+				safeNode.setValue(secresp.getResponse());
+			}
+		}
+		/* Read the folders for the given path */
+		Response lisresp = reqProcessor.process("/sdb/list",jsonstr,token);
+		if(HttpStatus.NOT_FOUND.equals(lisresp.getHttpstatus())){
+			Response resp = reqProcessor.process("/read",jsonstr,token);
+			responseVO.setResponse(resp.getResponse());
+			responseVO.setHttpstatus(resp.getHttpstatus());
+			return;
+		}else if ( HttpStatus.FORBIDDEN.equals(lisresp.getHttpstatus())){
+			responseVO.setResponse(lisresp.getResponse());
+			responseVO.setHttpstatus(lisresp.getHttpstatus());
+			return;
+		}else{
+			if (!lisresp.getResponse().contains("errors")) {
+				try {
+					JsonNode folders = objMapper.readTree(lisresp.getResponse()).get("keys");
+					for(JsonNode node : folders){
+						jsonstr = "{\"path\":\""+path+"/"+node.asText()+"\"}";
+						SafeNode sn = new SafeNode();
+						sn.setId(path+"/"+node.asText());
+						sn.setValue(path+"/"+node.asText());
+						sn.setType("folder");
+						sn.setParentId(safeNode.getId());
+						safeNode.addChild(sn);
+					}
+
+				} catch (IOException e) {
+					log.error(e);
+					responseVO.setSuccess(false);
+					responseVO.setHttpstatus(HttpStatus.INTERNAL_SERVER_ERROR);
+					responseVO.setResponse("{\"errors\":[\"Unexpected error :"+e.getMessage() +"\"]}");
+				}
+			}
+			else {
+				log.error("Unable to recursively read the given path " + jsonstr);
+				responseVO.setSuccess(false);
+				responseVO.setHttpstatus(HttpStatus.INTERNAL_SERVER_ERROR);
+				responseVO.setResponse("{\"errors\":[\"Unable to recursively read the given path :"+jsonstr +"\"]}");
+			}
+		}
+	}
 	public static Response configureLDAPUser(String userName,String policies,String groups,String token ){
 		ObjectMapper objMapper = new ObjectMapper();
 		Map<String,String>configureUserMap = new HashMap<String,String>();
@@ -524,6 +631,20 @@ public final class ControllerUtil {
 		}
 		return true;
 	}
+	
+	public static boolean isPathValid(String path){
+		String paths[] =  path.split("/");
+		if(paths.length > 0){
+			String safeType =  paths[0];
+			if(!("apps".equals(safeType)||"shared".equals(safeType)||"users".equals(safeType))){
+				return false;
+			}
+		}else{
+			return false;
+		}
+		return true;
+	}
+	
 	public static boolean isValidSafePath(String path){
 		String paths[] =  path.split("/");
 		if(paths.length==2){
@@ -541,6 +662,7 @@ public final class ControllerUtil {
 		return paths[0]+"/"+paths[1];
 	}
 	
+
 	public static boolean isValidSafe(String path,String token){
 		String safePath = getSafePath(path);
 		String _path = "metadata/"+safePath;

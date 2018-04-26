@@ -22,9 +22,9 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.logging.log4j.LogManager;
-import org.springframework.beans.factory.annotation.Value;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -915,5 +915,45 @@ public class SDBController {
 		}else{
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid 'path' specified\"]}");
 		}
+	}
+	/**
+	 * Reads the contents of a folder recursively
+	 * @param token
+	 * @param path
+	 * @return
+	 */
+	@GetMapping(value="/v2/sdb/list",produces="application/json")
+	public ResponseEntity<String> getFoldersRecursively(@RequestHeader(value="vault-token") String token, @RequestParam("path") String path){
+		String _path = "";
+		if( "apps".equals(path)||"shared".equals(path)||"users".equals(path)){
+			_path = "metadata/"+path;
+		}else{
+			 _path = path;
+		}
+		
+		Response response = reqProcessor.process("/sdb/list","{\"path\":\""+_path+"\"}",token);
+		return ResponseEntity.status(response.getHttpstatus()).body(response.getResponse());
+		
+	}
+	
+	/**
+	 * Creates a sub folder for a given folder
+	 * @param token
+	 * @param path
+	 * @return
+	 */
+	@PostMapping(value="/v2/sdb/createfolder",produces="application/json")
+	public ResponseEntity<String> createNestedfolder(@RequestHeader(value="vault-token") String token, @RequestParam("path") String path){
+		
+		if(ControllerUtil.isPathValid(path)){
+			String jsonStr ="{\"path\":\""+path +"\",\"data\":{\"default\":\"default\"}}";
+			Response response = reqProcessor.process("/sdb/create",jsonStr,token);
+			if(response.getHttpstatus().equals(HttpStatus.NO_CONTENT))
+				return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Folder created \"]}");
+			return ResponseEntity.status(response.getHttpstatus()).body(response.getResponse());
+		}else{
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid path\"]}");
+		}
+		
 	}
 }
