@@ -212,13 +212,15 @@ public final class ControllerUtil {
 		String path = getPath(objMapper, jsonstr, responseVO);
 		/* Read the secrets for the given path */
 		Response secresp = reqProcessor.process("/read",jsonstr,token);
+		responseVO.setResponse(secresp.getResponse());
+		responseVO.setHttpstatus(secresp.getHttpstatus());
+		boolean secretsExist = false;
 		if (HttpStatus.OK.equals(secresp.getHttpstatus())) {
-			responseVO.setResponse(secresp.getResponse());
-			responseVO.setHttpstatus(secresp.getHttpstatus());
 			SafeNode sn = new SafeNode();
 			sn.setId(path);
 			sn.setValue(secresp.getResponse());
 			if (!"safe".equals(safeNode.getType())) {
+				secretsExist = true;
 				sn.setType("secret");
 				sn.setParentId(safeNode.getId());
 				safeNode.addChild(sn);
@@ -227,12 +229,14 @@ public final class ControllerUtil {
 				safeNode.setValue(secresp.getResponse());
 			}
 		}
+
 		/* Read the folders for the given path */
 		Response lisresp = reqProcessor.process("/sdb/list",jsonstr,token);
 		if(HttpStatus.NOT_FOUND.equals(lisresp.getHttpstatus())){
-			Response resp = reqProcessor.process("/read",jsonstr,token);
-			responseVO.setResponse(resp.getResponse());
-			responseVO.setHttpstatus(resp.getHttpstatus());
+			if (!secretsExist) {
+				responseVO.setResponse(lisresp.getResponse());
+				responseVO.setHttpstatus(lisresp.getHttpstatus());
+			}
 			return;
 		}else if ( HttpStatus.FORBIDDEN.equals(lisresp.getHttpstatus())){
 			responseVO.setResponse(lisresp.getResponse());
@@ -251,6 +255,8 @@ public final class ControllerUtil {
 						sn.setParentId(safeNode.getId());
 						safeNode.addChild(sn);
 					}
+					responseVO.setSuccess(true);
+					responseVO.setHttpstatus(HttpStatus.OK);
 
 				} catch (IOException e) {
 					log.error(e);
@@ -260,10 +266,10 @@ public final class ControllerUtil {
 				}
 			}
 			else {
-				log.error("Unable to recursively read the given path " + jsonstr);
+				log.error("Unable to read the given path " + jsonstr);
 				responseVO.setSuccess(false);
 				responseVO.setHttpstatus(HttpStatus.INTERNAL_SERVER_ERROR);
-				responseVO.setResponse("{\"errors\":[\"Unable to recursively read the given path :"+jsonstr +"\"]}");
+				responseVO.setResponse("{\"errors\":[\"Unable to read the given path :"+jsonstr +"\"]}");
 			}
 		}
 	}
