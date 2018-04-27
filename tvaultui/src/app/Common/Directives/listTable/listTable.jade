@@ -48,18 +48,11 @@ script(type='text/ng-template', id='deleteSecretPopup.html')
             li(class="accordian-list-item" ng-repeat="item in data | filter: searchObject | filter : searchValue track by $index")
                 .accordion-list-main(ng-switch="item.type")
                     .row.accordion-list-wrapper(ng-switch-when="folder" ng-click="navigateToFolder(item)")
-                        .cell.pink-text.col-lg-5.col-md-5.col-sm-5.col-xs-4.column-value-wrapper.table-first-cell  {{item.value.split('/').pop()}}
-                            span.list-icon(class="list-icon folder icon folder")
-                        .cell.col-lg-5.col-md-5.col-sm-5.col-xs-5.column-value-wrapper next part
-                    .row.accordion-list-wrapper(ng-switch-when="secret")
-                        .cell.pink-text.col-lg-5.col-md-5.col-sm-5.col-xs-4.column-value-wrapper.table-first-cellsecret secret
-                            span.list-icon(class="list-icon folder icon folder")
-                        .cell.col-lg-5.col-md-5.col-sm-5.col-xs-5.column-value-wrapper secret description
-                        //.cell.pink-text.col-lg-5.col-md-5.col-sm-5.col-xs-4.column-value-wrapper.table-first-cell(ng-if="accordion != true ")  {{item.safe}}
-                        //.cell.pink-text.col-lg-5.col-md-5.col-sm-5.col-xs-4.column-value-wrapper.table-first-cell(ng-if="accordion == true ")
+                        .cell.pink-text.col-lg-5.col-md-5.col-sm-5.col-xs-4.column-value-wrapper.table-first-cell(ng-if="accordion != true ")  {{item.safe}}
+                        .cell.pink-text.col-lg-5.col-md-5.col-sm-5.col-xs-4.column-value-wrapper.table-first-cell(ng-if="accordion == true ")
                             span.list-icon(class="list-icon folder icon-folder" ng-if="accordion == true" ng-class="{'icon-folder-open' : expandBlock == true}")
                             span {{item.name}}
-                        //.cell.col-lg-5.col-md-5.col-sm-5.col-xs-5.column-value-wrapper(ng-class="{'invisible': accordion == true}") {{item.type}}
+                        .cell.col-lg-5.col-md-5.col-sm-5.col-xs-5.column-value-wrapper(ng-class="{'invisible': accordion == true}") {{item.type}}
                         .cell.col-lg-2.col-md-2.col-sm-2.col-xs-3.column-value-wrapper
                             .list-icon.icon-mode_edit(ng-if="admin" ng-click="editFolder({param: item})")
                             .list-icon.icon-delete(ng-if="admin || auth === 'write'" ng-click = "openDeleteFolderModal(item, $event)")
