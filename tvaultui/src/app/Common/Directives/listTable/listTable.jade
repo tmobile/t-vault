@@ -46,13 +46,20 @@ script(type='text/ng-template', id='deleteSecretPopup.html')
                 img(src="assets/images/loading.gif" class="loading-state-img")
         ul(ng-show="!loading" class="accordion-table-data"  ng-cloak="")
             li(class="accordian-list-item" ng-repeat="item in data | filter: searchObject | filter : searchValue track by $index")
-                .accordion-list-main
-                    .row.accordion-list-wrapper(ng-click="loadFolderData(item); expandRow($index)")
-                        .cell.pink-text.col-lg-5.col-md-5.col-sm-5.col-xs-4.column-value-wrapper.table-first-cell(ng-if="accordion != true ")  {{item.safe}}
-                        .cell.pink-text.col-lg-5.col-md-5.col-sm-5.col-xs-4.column-value-wrapper.table-first-cell(ng-if="accordion == true ")
+                .accordion-list-main(ng-switch="item.type")
+                    .row.accordion-list-wrapper(ng-switch-when="folder" ng-click="navigateToFolder(item)")
+                        .cell.pink-text.col-lg-5.col-md-5.col-sm-5.col-xs-4.column-value-wrapper.table-first-cell  {{item.value.split('/').pop()}}
+                            span.list-icon(class="list-icon folder icon folder")
+                        .cell.col-lg-5.col-md-5.col-sm-5.col-xs-5.column-value-wrapper next part
+                    .row.accordion-list-wrapper(ng-switch-when="secret")
+                        .cell.pink-text.col-lg-5.col-md-5.col-sm-5.col-xs-4.column-value-wrapper.table-first-cellsecret secret
+                            span.list-icon(class="list-icon folder icon folder")
+                        .cell.col-lg-5.col-md-5.col-sm-5.col-xs-5.column-value-wrapper secret description
+                        //.cell.pink-text.col-lg-5.col-md-5.col-sm-5.col-xs-4.column-value-wrapper.table-first-cell(ng-if="accordion != true ")  {{item.safe}}
+                        //.cell.pink-text.col-lg-5.col-md-5.col-sm-5.col-xs-4.column-value-wrapper.table-first-cell(ng-if="accordion == true ")
                             span.list-icon(class="list-icon folder icon-folder" ng-if="accordion == true" ng-class="{'icon-folder-open' : expandBlock == true}")
                             span {{item.name}}
-                        .cell.col-lg-5.col-md-5.col-sm-5.col-xs-5.column-value-wrapper(ng-class="{'invisible': accordion == true}") {{item.type}}
+                        //.cell.col-lg-5.col-md-5.col-sm-5.col-xs-5.column-value-wrapper(ng-class="{'invisible': accordion == true}") {{item.type}}
                         .cell.col-lg-2.col-md-2.col-sm-2.col-xs-3.column-value-wrapper
                             .list-icon.icon-mode_edit(ng-if="admin" ng-click="editFolder({param: item})")
                             .list-icon.icon-delete(ng-if="admin || auth === 'write'" ng-click = "openDeleteFolderModal(item, $event)")
@@ -70,7 +77,7 @@ script(type='text/ng-template', id='deleteSecretPopup.html')
                                     .folder-key {{ key.key }}
                                 .cell.block-3.col-lg-4.col-md-4.col-sm-4.col-xs-4.folder-key-input
                                     input(class="form-control" ng-attr-type="{{ showPassword ? 'text' : 'password' }}" ng-model="key.value")
-                                    .list-icon.icon-views(ng-mousedown="showPassword = !showPassword" ng-mouseup="showPassword = !showPassword")                                
+                                    .list-icon.icon-views(ng-mousedown="showPassword = !showPassword" ng-mouseup="showPassword = !showPassword")
                                 .down
                                     .list-icon.icon-content_copy(ng-click = "copy(key.value)")
                                 .down(ng-if="auth === 'write'")

@@ -337,12 +337,25 @@
             try {
                 $rootScope.isLoadingData = true;
                 var path = "path=" + $scope.currentCategory + "/" + safe;
-                SafesManagement.getFolderData(null, path).then(
+
+                return SafesManagement.getFolderContents($scope.currentCategory + '/' + safe)
+                    .then(function(folderContents) {
+                        $rootScope.isLoadingData = false;
+                            $scope.slideItems = folderContents.children;
+
+                    })
+                    .catch(function (error) {
+                        console.log(e);
+                        $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
+                        error('md');
+                        $rootScope.isLoadingData = false;
+                    });
+
+                // path = $scope.currentCategory.
+                return SafesManagement.getFolderData(null, path).then(
                     function(response) {
-                        if(UtilityService.ifAPIRequestSuccessful(response)){
-                            console.log('safes info', response);
-                            $rootScope.isLoadingData = false;
                             var data = response.data;
+                            $rootScope.isLoadingData = false;
                             if (data.keys) {
                                 var index;
                                 switch ($scope.currentCategory) {
@@ -372,16 +385,19 @@
                                 $rootScope.categories[index].tableData[safeIndex].folders = folders;
                                 $scope.slideItems = $rootScope.categories[index].tableData[safeIndex].folders;
                             }
-                        }
-                        else{
-                            $scope.slideItems = [];
-                            $rootScope.isLoadingData = false;
-                            $scope.errorMessage = SafesManagement.getTheRightErrorMessage(response);
-                            if($scope.errorMessage !=='Requested content not found!'){
-                                error('md');
-                            }                                
-                        }                        
-                    }) // wraps the first request
+                        // }
+                        // else{
+                        //     $scope.slideItems = [];
+                        //     $rootScope.isLoadingData = false;
+                        //     $scope.errorMessage = SafesManagement.getTheRightErrorMessage(response);
+                        //     if($scope.errorMessage !=='Requested content not found!'){
+                        //         error('md');
+                        //     }
+                        // }
+                    })
+                    .catch(function (error) {
+                        console.log(error);
+                    })// wraps the first request
 
             } catch (e) {
                 // To handle errors while calling 'fetchData' function
@@ -392,6 +408,15 @@
             } // wraps outer catch block
         } // wraps the whole function
 
+
+        $scope.navigateToFolder = function (folder) {
+            $rootScope.isLoadingData = true;
+            return SafesManagement.getFolderContents(folder.id)
+                .then(function(data) {
+                    $rootScope.isLoadingData = false;
+                    $scope.slideItems = data.children;
+                })
+        };
 
         $scope.init();
 

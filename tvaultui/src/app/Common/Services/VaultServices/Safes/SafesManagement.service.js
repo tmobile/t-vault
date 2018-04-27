@@ -19,7 +19,39 @@
 
 'use strict';
 (function(app){
-    app.service( 'SafesManagement', function( ServiceEndpoint, $q, DataCache, fetchData, $rootScope, ModifyUrl, ErrorMessage ) {
+    app.service( 'SafesManagement', function( ServiceEndpoint, $q, DataCache, fetchData, $rootScope, ModifyUrl, ErrorMessage, UtilityService ) {
+
+
+        this.getFolderContents = function (path) {
+            return ServiceEndpoint.readAllContents.makeRequest(null,
+                ServiceEndpoint.readAllContents.url + '?path=' + path)
+                .then(function(response) {
+                    if(UtilityService.ifAPIRequestSuccessful(response)) {
+                        var contents = [];
+                         response.data.children.map(function (element) {
+                            if(element.type === 'secret') {
+                                var secrets = JSON.parse(element.value);
+                                Object.keys(secrets.data).forEach(function (key) {
+                                    contents.push({
+                                        type: 'secret',
+                                        id: key,
+                                        key: key,
+                                        value: secrets.data[key],
+                                        parentId: element.parentId
+                                    })
+                                })
+                            } else if (element.type === 'folder') {
+                                contents.push(element);
+                            }
+                        });
+                         response.data.children = contents;
+
+                        return response.data;
+                    } else {
+                        return $q.reject(response);
+                    }
+                });
+        };
 
         this.saveNewFolder = function(payload, path) {
             var url = ModifyUrl.addUrlParameteres('saveNewFolder', path);

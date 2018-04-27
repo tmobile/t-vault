@@ -1,0 +1,101 @@
+script(type='text/ng-template', id='duplicateSecretError.html')
+    .top-lg-sep
+        .top-lg-sep
+            .common-header-label.text-center Duplicate Secrets
+        .top-lg-sep.notification-text You may not have two secrets of the same key.
+        .text-center.bottom-lg-sep.top-lg-sep.notification-button
+            .clearfix
+                button.link-style.common-btn.btn.btn-default.btn-lg(ng-click="close()") OK
+script(type='text/ng-template', id='deleteFolderPopup.html')
+    loading-state(ng-if="isLoadingModalData")
+    .top-lg-sep(ng-if="!isLoadingModalData")
+        .top-lg-sep
+            .common-header-label.text-center Confirmation
+        .top-lg-sep.notification-text Are you sure you want to delete this item?
+        .text-center.bottom-lg-sep.top-lg-sep.notification-button
+            .clearfix.bottom-sm-sep
+                button.common-btn.btn.btn-primary.btn-lg(ng-click="deleteFolder()") DELETE
+            .clearfix
+                button.link-style.common-btn.btn.btn-default.btn-lg(ng-click="close()") CANCEL
+script(type='text/ng-template', id='deleteSecretPopup.html')
+    loading-state(ng-if="isLoadingModalData")
+    .top-lg-sep(ng-if="!isLoadingModalData")
+        .top-lg-sep
+            .common-header-label.text-center Confirmation
+        .top-lg-sep.notification-text Are you sure you want to delete this secret?
+        .text-center.bottom-lg-sep.top-lg-sep.notification-button
+            .clearfix.bottom-sm-sep
+                button.common-btn.btn.btn-primary.btn-lg(ng-click="deleteSecret()") DELETE
+            .clearfix
+                button.link-style.common-btn.btn.btn-default.btn-lg(ng-click="close()") CANCEL
+.unavailable-text(ng-if='(data.length === 0) && (!admin)')
+    | No folders available in your safe
+.unavailable-text(ng-if='(data.length === 0) && (admin)')
+    | No Safes Available
+.table-container(ng-if='data.length !== 0')
+    .table-header
+        .row
+            .cell.col-lg-5.col-md-5.col-sm-5.col-xs-4.table-first-cell NAME
+            .cell.col-lg-5.col-md-5.col-sm-5.col-xs-5(ng-class="{'invisible': true}")
+            .cell.col-lg-2.col-md-2.col-sm-2.col-xs-3.block-3.action-header ACTION
+    .accordion-table-data-container
+        .loader-wrapper(ng-show="loading" ng-cloak="")
+            .gif-wrp
+                img(src="assets/images/loading.gif" class="loading-state-img")
+        ul(ng-show="!loading" class="accordion-table-data"  ng-cloak="")
+            li(class="accordian-list-item" ng-repeat="item in data | filter: searchObject | filter : searchValue track by $index")
+                .accordion-list-main(ng-switch="item.type")
+                    .row.accordion-list-wrapper(ng-switch-when="folder" ng-click="navigateToFolder(item)")
+                        .cell.pink-text.col-lg-5.col-md-5.col-sm-5.col-xs-4.column-value-wrapper.table-first-cell {{item.id.split('/').pop()}}
+                            span.icon.list-icon.folder.icon-folder-open
+
+                        .cell.col-lg-5.col-md-5.col-sm-5.col-xs-5.column-value-wrapper(ng-class="{'invisible': true}")
+                        .cell.col-lg-5.col-md-5.col-sm-5.col-xs-5.column-value-wrapper ACTIONS
+
+
+                    .row.accordion-list-wrapper(ng-switch-when="secret")
+                        .cell.pink-text.col-lg-5.col-md-5.col-sm-5.col-xs-4.column-value-wrapper.table-first-cellsecret {{item.id}}
+                            span.list-icon.folder.icon.folder
+                        .cell.col-lg-5.col-md-5.col-sm-5.col-xs-5.column-value-wrapper {{item.value}}
+                        .cell.col-lg-2.col-md-2.col-sm-2.col-xs-3.column-value-wrapper
+                            .list-icon.icon-mode_edit(ng-if="admin" ng-click="editFolder({param: item})")
+                            .list-icon.icon-delete(ng-if="admin || auth === 'write'" ng-click = "openDeleteFolderModal(item, $event)")
+                .accordion-expand-block(ng-class="{'open-accordion' : expandBlock === true && $index === expandBlockIndex && !admin}")
+
+                    //- loading-state(ng-if="item.isLoadingData" position="'relative'")
+                    form.folder-wrapper(ng-submit="saveSafe(item)")
+                        loading-state(ng-if="isLoadingSecrets && $index === expandBlockIndex && expandBlock === true" ng-cloak="ng-cloak")
+                        .secrets-accordion-wrapper
+                            .unavailable-text(ng-if='(!item.keys || (item.keys.length == 1 && item.keys[0].key == "default"))' ng-cloak="ng-cloak")
+                                | No secrets available in your folder
+                            .folder-keys.clearfix(ng-repeat="key in item.keys track by $index" ng-cloak="ng-cloak" ng-if='(!(!item.keys || (item.keys.length == 1 && item.keys[0].key == "default")))')
+                                .row(ng-if="!key.new && key.key !== 'default'" ng-cloak="ng-cloak")
+                                    .cell.block-2.col-lg-2.col-md-2.col-sm-2.col-xs-4.key
+                                        .folder-key {{ key.key }}
+                                    .cell.block-3.col-lg-4.col-md-4.col-sm-4.col-xs-4.folder-key-input
+                                        input(class="form-control" ng-attr-type="{{ showPassword ? 'text' : 'password' }}" ng-model="key.value")
+                                        .list-icon.icon-views(ng-mousedown="showPassword = !showPassword" ng-mouseup="showPassword = !showPassword")
+                                    .down
+                                        .list-icon.icon-content_copy(ng-click = "copy(key.value)")
+                                    .down(ng-if="auth === 'write'")
+                                        .list-icon.icon-delete(ng-click = "openDeleteSecretModal(item, $index)")
+                                .row(ng-if="key.new" ng-cloak="")
+                                    .cell.block-2.col-lg-2.col-md-2.col-sm-2.col-xs-4.folder-key-input
+                                        input(id="key" class="form-control input-box-style key-input-box"
+                                        restrict-special-char ng-model="key.key" placeholder="Key" required)
+                                    .cell.block-3.col-lg-4.col-md-4.col-sm-4.col-xs-4.folder-key-input
+                                        input(id="secret" class="form-control input-box-style" ng-attr-type="{{ showPassword ? 'text' : 'password' }}" type="password" ng-model="key.value" placeholder="Secret" autocomplete="new-password" required)
+                                        .list-icon.icon-views(ng-mousedown="showPassword = !showPassword" ng-mouseup="showPassword = !showPassword")
+
+                        .extra-actions(ng-if="auth === 'write'" ng-cloak="ng-cloak")
+                            .create-folder-container
+                                .function-text.link-style.clearfix(ng-click="addNewSecret($index)")
+                                    .action-icon-wrapper.static
+                                        .rotate.glyphicon.glyphicon-remove-circle
+                                    .create-link.middle-block
+                                        .text ADD NEW SECRET
+
+                            .row.button-container(ng-if="auth === 'write'" ng-cloak="")
+                                button.btn.btn-primary.btn-sm.pull-right(type="submit") SAVE
+                                //button.btn.btn-default.pull-right(ng-if="!newSecretAdded" disabled) RESET
+                                //button.btn.btn-default.pull-right(ng-click="cancelSafe($index); expandBlock = !expandBlock;" ng-if="newSecretAdded") RESET

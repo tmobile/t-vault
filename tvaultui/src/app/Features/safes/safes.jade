@@ -66,7 +66,10 @@ script(type='text/ng-template', id='error.html')
                                             .sub-header.clearfix {{slideHeaderDescription}}
                                             
                                                                                                                                                                                
-                                    listTable(data="slideItems" auth="slideAuth" admin="false" slider-func="sliderFunction" search-value="searchValue" type="'accordion'" loading="isLoadingData" folder="getFolder(folder)")
+                                    //listTable(data="slideItems" auth="slideAuth" admin="false" slider-func="sliderFunction" search-value="searchValue" type="'accordion'" loading="isLoadingData" folder="getFolder(folder)")
+                                    folder-contents-table(data="slideItems" auth="slideAuth" admin="false" loading="isLoading" search-value="searchValue" navigate-to-folder="navigateToFolder")
+
+
                             .md-content-inner-wrapper(ng-if="slide !== true")  
                                 .new-container.page-content-container(ng-if='!isLoadingData' ng-class="{'slide-left-parent' : slide == true}")
                                     radio-buttons.invisible(data="radio" state="'active'")

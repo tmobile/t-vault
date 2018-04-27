@@ -102,7 +102,8 @@
         'vault.directives.radioButtons',
         'vault.directives.restrictSpecialChar',
         'vault.directives.dropDown',
-        'vault.directives.navBar'
+        'vault.directives.navBar',
+        'vault.directives.folderContentsTable'
     ]);
 
     angular.module( 'vault.factories', [
