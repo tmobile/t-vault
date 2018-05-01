@@ -272,7 +272,62 @@ public class SDBController {
 		}
 	}
 	
-	
+	@SuppressWarnings("unchecked")
+	@DeleteMapping(value="/v2/sdb/delete",produces="application/json")
+	public ResponseEntity<String> deleteFolder(@RequestHeader(value="vault-token") String token, @RequestParam("path") String path){
+		
+		if(ControllerUtil.isPathValid(path) && ControllerUtil.isValidSafe(path, token)){
+			Response response = new Response(); 
+			ControllerUtil.recursivedeletesdb("{\"path\":\""+path+"\"}",token,response);
+			if(response.getHttpstatus().equals(HttpStatus.NO_CONTENT)){
+				String folders[] = path.split("[/]+");
+				String r_policy = "r_"+folders[0]+"_"+folders[1];
+				String w_policy = "w_"+folders[0]+"_"+folders[1];
+				String d_policy = "d_"+folders[0]+"_"+folders[1];
+				
+				reqProcessor.process("/access/delete","{\"accessid\":\""+r_policy+"\"}",token);
+				reqProcessor.process("/access/delete","{\"accessid\":\""+w_policy+"\"}",token);
+				reqProcessor.process("/access/delete","{\"accessid\":\""+d_policy+"\"}",token);
+							
+				String _path = "metadata/"+path;
+		
+				// Get SDB metadataInfo
+				response = reqProcessor.process("/sdb","{\"path\":\""+_path+"\"}",token);
+				Map<String, Object> responseMap = null;
+				try {
+					responseMap = new ObjectMapper().readValue(response.getResponse(), new TypeReference<Map<String, Object>>(){});
+				} catch (IOException e) {
+					log.error(e);
+					return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Error Fetching existing safe info \"]}");
+				}
+				if(responseMap!=null && responseMap.get("data")!=null){
+					Map<String,Object> metadataMap = (Map<String,Object>)responseMap.get("data");
+					Map<String,String> awsroles = (Map<String, String>)metadataMap.get("aws-roles");
+					Map<String,String> groups = (Map<String, String>)metadataMap.get("groups");
+					Map<String,String> users = (Map<String, String>) metadataMap.get("users");
+					ControllerUtil.updateUserPolicyAssociationOnSDBDelete(path,users,token);
+					ControllerUtil.updateGroupPolicyAssociationOnSDBDelete(path,groups,token);
+					ControllerUtil.deleteAwsRoleOnSDBDelete(path,awsroles,token);
+				}	
+				ControllerUtil.recursivedeletesdb("{\"path\":\""+_path+"\"}",token,response);
+				return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"SDB deleted\"]}");
+				
+			}else{
+				return ResponseEntity.status(response.getHttpstatus()).body(response.getResponse());
+			}
+		}else if(ControllerUtil.isValidDataPath(path)){
+			Response response = new Response(); 
+			ControllerUtil.recursivedeletesdb("{\"path\":\""+path+"\"}",token,response);
+			if(response.getHttpstatus().equals(HttpStatus.NO_CONTENT)){
+				return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Folder deleted\"]}");
+			}else{
+				return ResponseEntity.status(response.getHttpstatus()).body(response.getResponse());
+			}
+			
+		}else{
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid 'path' specified\"]}");
+		}
+	}
 
 
 	@PostMapping(value="/sdb/adduser",consumes="application/json",produces="application/json")
