@@ -276,7 +276,7 @@ public class SDBController {
 	@DeleteMapping(value="/v2/sdb/delete",produces="application/json")
 	public ResponseEntity<String> deleteFolder(@RequestHeader(value="vault-token") String token, @RequestParam("path") String path){
 		
-		if(ControllerUtil.isPathValid(path) && ControllerUtil.isValidSafe(path, token)){
+		if(ControllerUtil.isPathValid(path) ){
 			Response response = new Response(); 
 			ControllerUtil.recursivedeletesdb("{\"path\":\""+path+"\"}",token,response);
 			if(response.getHttpstatus().equals(HttpStatus.NO_CONTENT)){
