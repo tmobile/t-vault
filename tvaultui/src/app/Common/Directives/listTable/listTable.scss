@@ -171,8 +171,7 @@
 .accordion-table-data .accordian-list-item:hover {
     background-color: #fafafa;
 }
-.accordion-list-main .list-icon.icon-delete,
-.accordion-list-main .list-icon.icon-mode_edit {
+.accordion-list-main .list-icon {
     display: inline-block;
     position: relative;
     padding-right: 1vw;
@@ -289,18 +288,21 @@ button:disabled {
 }
 .cell.folder-key-input .list-icon.icon-views {
     position: absolute;
-    color: #666 !important;
     display: inline-block;
     top: 1.2vh;
     font-size: 2vh;
     right: 1vw;
 }
 
+.accordion-list-main.adjustment {
+  height: inherit;
+  padding: 10px;
+}
+
 .folder-key {
-    margin-top: calc(2.1vh - 11px);
-    align-self: center;
-    width: 100%;
+    width: 80%;
     display: inline-block;
     white-space: normal;
     word-break: break-all;
 }
+

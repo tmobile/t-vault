@@ -1,7 +1,7 @@
 /*
 * =========================================================================
 * Copyright 2018 T-Mobile, US
-* 
+*
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
@@ -31,6 +31,9 @@
         $scope.slideHeader = ''; // header of the slide page
         $scope.slideHeaderDescription = ''; // description of the slide page
         $scope.currentCategory = 'users';
+        $scope.currentItem = null;
+        $scope.folders = [];
+
         $rootScope.categories = [{
                 "name": "My Safes",
                 "id": "users"
@@ -80,7 +83,7 @@
             displayName: 'DOCUMENTATION',
             navigationName: 'documentation',
             addComma: false,
-            show: true                    
+            show: true
         }];
 
         // Accordion table
@@ -108,64 +111,70 @@
             Modal.createModal(size, 'error.html', 'SafesCtrl', $scope);
         };
 
+        $scope.createSecret = function () {
+            newSecret = $scope.folders[$scope.folders.length - 1].children
+                .find(function (item) {
+                    return item.isNew;
+                });
+            if(newSecret) return;
+            var newSecret = {
+                isNew: true,
+                type: 'secret',
+                id: $scope.folders[$scope.folders.length - 1].id,
+                key: '',
+                value: '',
+                parentId: $scope.folders[$scope.folders.length - 1].id
+            }
+            $scope.folders[$scope.folders.length - 1].children.splice(0, 0, newSecret);
+        }
+
         $scope.createFolder = function(cat) {
             Modal.createModal('md', 'createNewFolderPopup.html', 'SafesCtrl', $scope);
         };
 
         $scope.saveNewFolder = function(newFolderName) {
+            if(!newFolderName) return;
             Modal.close();
-            if (newFolderName) {
-                $scope.isLoadingData = true;
-                try {
-                    var safeName = $scope.currentSafe;
-                    newFolderName = UtilityService.formatName(newFolderName);
-                    var path = $scope.currentCategory + "/" + safeName + "/" + newFolderName;                    
-                    SafesManagement.saveNewFolder(null, path).then(
-                        function(res) {
-                            if(UtilityService.ifAPIRequestSuccessful(res)){
-                                $scope.isLoadingData = false;
-                                var categoryIndex = ArrayFilter.findIndexInArray("id", $scope.currentCategory, $rootScope.categories);
-                                var index = ArrayFilter.findIndexInArray("safe", safeName, $rootScope.categories[categoryIndex].tableData);
-                                var obj = {
-                                    "name": newFolderName,
-                                    "keys": [{
-                                        "key": "default",
-                                        "value": "default"
-                                    }],
-                                    "appIndex" : categoryIndex,
-                                    "safeIndex": index
-                                };
-
-                                $rootScope.categories[categoryIndex].tableData[index].folders.push(obj);
-                                $scope.slideItems = $rootScope.categories[categoryIndex].tableData[index].folders;
-                                // Modal.save();
-                                var notification = UtilityService.getAParticularSuccessMessage('MESSAGE_ADD_SUCCESS');
-                                Notifications.toast(newFolderName+notification);
-                            }
-                            else{
-                                $scope.isLoadingData = false;
-                                $scope.errorMessage = SafesManagement.getTheRightErrorMessage(res);
-                                error('md');
-                            }
-                            
-                        },
-                        function(error) {
-
-                            // Error handling function
-                            console.log(error);
-                            $scope.isLoadingData = false;
-                            $scope.errorMessage = SafesManagement.getTheRightErrorMessage(error);
-                            // $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
-                            $scope.error('md');
-                        });
-                } catch(e) {
-                    console.log(e);
-                    $scope.isLoadingData = false;
-                    $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
-                    $scope.error('md');                    
+                $rootScope.isLoadingData = true;
+                if($scope.folders.length) {
+                    var folderList = $scope.folders[$scope.folders.length - 1].id.split('/');
+                } else {
+                    var folderList = [];
                 }
-                // Modal.save();
-            } 
+
+                folderList.push(newFolderName);
+                var newFolderPath = folderList.join('/');
+                var promise;
+                if(folderList.length > 3) {
+                    promise = SafesManagement.createFolderV2(newFolderPath);
+                }  else {
+                    promise = SafesManagement.saveNewFolder(null, newFolderPath);
+                }
+
+                promise.then(function(res) {
+                        var categoryIndex = ArrayFilter.findIndexInArray("id", $scope.currentCategory, $rootScope.categories);
+                        var index = ArrayFilter.findIndexInArray("safe", $scope.currentSafe, $rootScope.categories[categoryIndex].tableData);
+                        var obj = {
+                            "name": newFolderName,
+                            "keys": [{
+                                "key": "default",
+                                "value": "default"
+                            }],
+                            "appIndex" : categoryIndex,
+                            "safeIndex": index
+                        };
+
+                        $rootScope.categories[categoryIndex].tableData[index].folders.push(obj);
+                        return $scope.navigateToFolder(newFolderPath);
+                    })
+                    .then(function() {
+                        var notification = UtilityService.getAParticularSuccessMessage('MESSAGE_ADD_SUCCESS');
+                        Notifications.toast(newFolderName+notification);
+                    })
+                    .catch(function (res) {
+                        $scope.errorMessage = SafesManagement.getTheRightErrorMessage(res);
+                        error('md');
+                    });
         };
 
         $scope.close = function() {
@@ -174,58 +183,18 @@
 
         // slider to slide the table containers left and right
 
-        $scope.sliderFunction = function(item) {
+        $scope.goToFolders = function(item) {
             $scope.slide = !$scope.slide;
-            if (item != null && item != undefined) {
-                $scope.slideAuth = item.auth;
-                $scope.slideHeader = item.safe;     
-                $scope.currentSafe = item.safe; 
-                $scope.requestDataFrSafes(item.safe); //This function is not required to be called
-                //getFolderDetailsOfSafe
-                $state.transitionTo('safes', {safe: item.safe}, { notify: false });
-                try{   
-                    $scope.slideHeaderDescription = '';
-                    $rootScope.isLoadingData = true;             
-                    var queryParameters = "path=users" + '/' + item.safe;
-                    var updatedUrlOfEndPoint = ModifyUrl.addUrlParameteres('getSafeInfo',queryParameters);
-                    AdminSafesManagement.getSafeInfo(null, updatedUrlOfEndPoint).then(
-                        function(response) {    
-                            if(UtilityService.ifAPIRequestSuccessful(response)){                                   
-                                // Try-Catch block to catch errors if there is any change in object structure in the response
-                                try {
-                                    $rootScope.isLoadingData = false;  
-                                    $scope.slideHeaderDescription = response.data.data.description;
-                                }
-                                catch(e) {
-                                    console.log(e);
-                                    $rootScope.isLoadingData = false;  
-                                    $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_PROCESSING_DATA');
-                                    // $scope.error('md');
-                                }
-                            }
-                            else {
-                                $rootScope.isLoadingData = false;  
-                                $scope.errorMessage = AdminSafesManagement.getTheRightErrorMessage(response);
-                                // error('md');
-                            }
-                        },
-                        function(error) {
-                            // Error handling function
-                            console.log(error);
-                            $rootScope.isLoadingData = false;  
-                            $scope.errorMessage = SafesManagement.getTheRightErrorMessage(error);
-                            // $scope.error('md');
+            $scope.slideAuth = item.auth;
+            $scope.slideHeader = item.safe;
+            $scope.currentSafe = item.safe;
+            $scope.currentItem = item;
+            $scope.navigateToFolder($scope.currentCategory + '/' + item.safe);
+        };
 
-                    })
-                } catch(e) {
-                    // To handle errors while calling 'fetchData' function
-                    console.log(e);
-                    $rootScope.isLoadingData = false;  
-                    $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
-                    // $scope.error('md');
-
-                }                          
-            }
+        $scope.goToSafes = function () {
+            $scope.slide = false;
+            $scope.folders = [];
         };
 
         $scope.resetSlide = function(cat) {
@@ -236,6 +205,32 @@
         // Fetching data
 
         $scope.init = function() {
+            if(SessionStore.getItem("allSafes") === null || SessionStore.getItem("allSafes") === undefined) {
+                $rootScope.safes = [];
+                SafesManagement.getFolderData(null, 'path=apps').then(function(response) {
+                    if(String(response.status) !== "404" && (response.data.keys !== undefined && response.data.keys !== null)) {
+                        response.data.keys.forEach(function(item, index) {
+                            $rootScope.safes.push(item);
+                        } );
+                    }
+                    SafesManagement.getFolderData(null, 'path=users').then(function(response) {
+                        if(String(response.status) !== "404" && (response.data.keys !== undefined && response.data.keys !== null)) {
+                            response.data.keys.forEach(function(item, index) {
+                                $rootScope.safes.push(item);
+                            } );
+                        }
+                        SafesManagement.getFolderData(null, 'path=shared').then(function(response) {
+                            if(String(response.status) !== "404" && (response.data.keys !== undefined && response.data.keys !== null)) {
+                                response.data.keys.forEach(function(item, index) {
+                                    $rootScope.safes.push(item);
+                                } );
+                            }
+                            SessionStore.setItem("allSafes", JSON.stringify($rootScope.safes));
+                        });
+                    });
+                });
+            }
+
             if(!SessionStore.getItem('myVaultKey')){ /* Check if user is in the same session */
                 $state.go('signup');
             }
@@ -307,114 +302,30 @@
         $scope.error = function (size) {
             Modal.createModal(size, 'error.html', 'SafesCtrl', $scope);
         };
-        if(SessionStore.getItem("allSafes") === null || SessionStore.getItem("allSafes") === undefined) {
-            $rootScope.safes = [];
-            SafesManagement.getFolderData(null, 'path=apps').then(function(response) {
-                if(String(response.status) !== "404" && (response.data.keys !== undefined && response.data.keys !== null)) {
-                    response.data.keys.forEach(function(item, index) {
-                        $rootScope.safes.push(item);
-                    } );
-                }                
-                SafesManagement.getFolderData(null, 'path=users').then(function(response) {
-                    if(String(response.status) !== "404" && (response.data.keys !== undefined && response.data.keys !== null)) {
-                        response.data.keys.forEach(function(item, index) {
-                            $rootScope.safes.push(item);
-                        } );
-                    }
-                    SafesManagement.getFolderData(null, 'path=shared').then(function(response) {
-                        if(String(response.status) !== "404" && (response.data.keys !== undefined && response.data.keys !== null)) {
-                            response.data.keys.forEach(function(item, index) {
-                                $rootScope.safes.push(item);
-                            } );
-                        }
-                        SessionStore.setItem("allSafes", JSON.stringify($rootScope.safes));
-                    });
-                });
-            });
-        }         
-        
-        $scope.requestDataFrSafes = function(safe) {
-            try {
-                $rootScope.isLoadingData = true;
-                var path = "path=" + $scope.currentCategory + "/" + safe;
 
-                return SafesManagement.getFolderContents($scope.currentCategory + '/' + safe)
-                    .then(function(folderContents) {
-                        $rootScope.isLoadingData = false;
-                            $scope.slideItems = folderContents.children;
-
-                    })
-                    .catch(function (error) {
-                        console.log(e);
-                        $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
-                        error('md');
-                        $rootScope.isLoadingData = false;
-                    });
-
-                // path = $scope.currentCategory.
-                return SafesManagement.getFolderData(null, path).then(
-                    function(response) {
-                            var data = response.data;
-                            $rootScope.isLoadingData = false;
-                            if (data.keys) {
-                                var index;
-                                switch ($scope.currentCategory) {
-                                    case "users":
-                                    index = 0;
-                                    break;
-                                    case "shared":
-                                    index = 1;
-                                    break;
-                                    case "apps":
-                                    index = 2;
-                                    break;
-                                    default:
-                                    index = 0;
-                                }
-
-                                var safeIndex = ArrayFilter.findIndexInArray("safe", safe, $rootScope.categories[index].tableData);
-                                var folders = []
-                                data.keys.forEach(function(folder) {
-                                    var folderObj = {
-                                        "name": folder,
-                                        "appIndex": index,
-                                        "safeIndex": safeIndex
-                                    }
-                                    folders.push(folderObj);
-                                })
-                                $rootScope.categories[index].tableData[safeIndex].folders = folders;
-                                $scope.slideItems = $rootScope.categories[index].tableData[safeIndex].folders;
-                            }
-                        // }
-                        // else{
-                        //     $scope.slideItems = [];
-                        //     $rootScope.isLoadingData = false;
-                        //     $scope.errorMessage = SafesManagement.getTheRightErrorMessage(response);
-                        //     if($scope.errorMessage !=='Requested content not found!'){
-                        //         error('md');
-                        //     }
-                        // }
-                    })
-                    .catch(function (error) {
-                        console.log(error);
-                    })// wraps the first request
-
-            } catch (e) {
-                // To handle errors while calling 'fetchData' function
-                console.log(e);
-                $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
-                error('md');
-                $rootScope.isLoadingData = false;
-            } // wraps outer catch block
-        } // wraps the whole function
-
-
-        $scope.navigateToFolder = function (folder) {
+        $scope.goToFolderInPath = function(folder) {
             $rootScope.isLoadingData = true;
-            return SafesManagement.getFolderContents(folder.id)
-                .then(function(data) {
+            for(var i = $scope.folders.length - 1; i >= 0; i -= 1) {
+                var folderInPath = $scope.folders[i];
+                if(folderInPath.id === folder.id) {
+                    return SafesManagement.getFolderContents(folderInPath.id)
+                        .then(function(folderData) {
+                            $scope.folders.pop();
+                            $scope.folders.push(folderData);
+                            $rootScope.isLoadingData = false;
+                        })
+                }
+                $scope.folders.pop();
+            }
+        };
+
+
+        $scope.navigateToFolder = function (folderPath) {
+            return SafesManagement.getFolderContents(folderPath)
+                .then(function(folderData) {
+                    $scope.folders.push(folderData);
+                    $scope.slideItems = folderData.children;
                     $rootScope.isLoadingData = false;
-                    $scope.slideItems = data.children;
                 })
         };
 

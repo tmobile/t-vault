@@ -1,0 +1,32 @@
+.au-searchbar {
+  position: relative;
+  width: calc(200rem/10);
+  border: 1px solid #aaa;
+  font-size: 14px;
+
+  input[type="text"] {
+    width: calc(100% - 3rem);
+    padding: 7px;
+    color: #333;
+  }
+
+  .au-search-button{
+    position: absolute;
+    right: 0;
+    top: 0;
+    height: 100%;
+    width: 3rem;
+    text-align: center;
+    background: $pink;
+
+    .icon-search {
+      color: #fff;
+      position: relative;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+    }
+  }
+
+}
+

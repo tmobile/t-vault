@@ -35,12 +35,22 @@
                 editFolder : '&',
                 navigateToFolder: '=',
                 folder: '&',
+                parent: '=',
                 auth: "="
             },
-            link: function( scope, element, attrs ) {}
+            link: function( scope, element, attrs ) {},
+            controller: 'folderContentsTableController as vm',
+            bindToController: true
         }
     } );
 
     function folderContentsTableController($scope) {
+        var vm = this;
+
+        vm.clickRow = function (item) {
+            if(item.type === 'folder') {
+                return vm.navigateToFolder(item.id)
+            }
+        }
     }
 })();

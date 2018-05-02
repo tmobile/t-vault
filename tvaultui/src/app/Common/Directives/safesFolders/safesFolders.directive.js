@@ -17,23 +17,24 @@
 * =========================================================================
 */
 
-( function() {
-    'use strict';
-
-    angular
-        .module('vault' )
-        .config( routerConfig );
-
-    /** @ngInject */
-    function routerConfig( $stateProvider ) {
-        $stateProvider
-            .state( 'safes', {
-                url: '/safes',
-                params: {
-                    safe: null
+'use strict';
+(function() {
+    angular.module('vault.directives.safesFolders',[])
+        .controller('safesFoldersController', safesFoldersController)
+        .directive( 'safesFolders', function() {
+            return {
+                restrict: 'E',
+                templateUrl: 'app/Common/Directives/safesFolders/safesFolders.html',
+                scope: {},
+                link: function( scope, element, attrs ) {
+                    console.log('contents-table link');
                 },
-                templateUrl: 'app/Features/safes/safes.html',
-                controller: 'SafesCtrl'
-            } )
+                controller: 'safesFoldersController as vm',
+                bindToController: true
+            }
+        } );
+
+    function safesFoldersController($scope) {
+        var vm = this;
     }
 })();

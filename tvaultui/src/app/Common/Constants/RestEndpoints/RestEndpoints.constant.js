@@ -76,7 +76,7 @@ this.readTextFile("../apiUrls.json");
             },
             {
                 name: 'createFolderV2',
-                url: '/v2/sdb/createFolder',
+                url: '/v2/sdb/createfolder',
                 method: 'POST'
             },
             {
@@ -100,7 +100,7 @@ this.readTextFile("../apiUrls.json");
             method: 'GET'
         }, {
             name: 'deleteSafe',
-            url: '/sdb/delete?',
+            url: '/v2/sdb/delete?',
             method: 'DELETE'
         }, {
             name: 'getSafeInfo',

@@ -19,7 +19,7 @@
 
 'use strict';
 (function(app){
-    app.service( 'SafesManagement', function( ServiceEndpoint, $q, DataCache, fetchData, $rootScope, ModifyUrl, ErrorMessage, UtilityService ) {
+    app.service( 'SafesManagement', function( $http, SessionStore, ServiceEndpoint, $q, DataCache, fetchData, $rootScope, ModifyUrl, ErrorMessage, UtilityService, Modal ) {
 
 
         this.getFolderContents = function (path) {
@@ -32,6 +32,8 @@
                             if(element.type === 'secret') {
                                 var secrets = JSON.parse(element.value);
                                 Object.keys(secrets.data).forEach(function (key) {
+                                    if(key === 'default' && secrets.data['default'] === 'default') return;
+
                                     contents.push({
                                         type: 'secret',
                                         id: key,
@@ -52,6 +54,36 @@
                     }
                 });
         };
+
+        this.createFolderV2 = function (folderPath) {
+            return $http({
+                method: ServiceEndpoint.createFolderV2.method,
+                url: ServiceEndpoint.createFolderV2.url + '?path=' + folderPath,
+                headers: {
+                    'vault-token': SessionStore.getItem('myVaultKey')
+                }
+            })
+                .then(function(response) {
+                    return response.data;
+                })
+        }
+
+        this.writeSecretV2= function (path, data) {
+            return $http({
+                method: ServiceEndpoint.writeSecretV2.method,
+                url: ServiceEndpoint.writeSecretV2.url,
+                data: {
+                    path: path,
+                    data: data
+                },
+                headers: {
+                    'vault-token': SessionStore.getItem('myVaultKey')
+                }
+            })
+                .then(function(response) {
+                    return response.data;
+                })
+        }
 
         this.saveNewFolder = function(payload, path) {
             var url = ModifyUrl.addUrlParameteres('saveNewFolder', path);

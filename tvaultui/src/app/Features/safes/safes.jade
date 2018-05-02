@@ -11,28 +11,28 @@ script(type='text/ng-template', id='createNewFolderPopup.html')
                     .details-input-group
                         .common-form-label Folder Name
                         input.form-control.input-box-style(placeholder="Enter folder name" restrict-special-char ng-model="newFolderName" required)
-                
+
         .text-center.bottom-lg-sep.modal-sep.aws
             .clearfix.bottom-sm-sep
                 button.common-btn.btn.btn-primary.btn-lg(type="submit") CREATE 
             .clearfix
                 button.link-style.common-btn.btn.btn-default.btn-lg(ng-click="close()") CANCEL
-      
+
 script(type='text/ng-template', id='error.html')
     .row
         .top-lg-sep
             .common-header-label.text-center Error
         .top-lg-sep.notification-text {{errorMessage}}
-    
+
     .text-center.bottom-lg-sep.top-lg-sep.notification-button
         .clearfix.bottom-sm-sep
             button.link-style.common-btn.btn.btn-primary.btn-lg(ng-click="close()") Close
-        
+
 .container-fluid.safes
     .container-fluid-wrapper.curved
         .page-header-container
             .header-inner-container
-                nav-bar(active-tab="safes" gotoPage="goToPage" nav-tags="safesNavTags")
+                nav-bar(active-tab="safes" gotoPage="goToPage"  nav-tags="vm.safesNavTags")
                 .page-header-text SAFES
 
         .page-content-container
@@ -47,34 +47,37 @@ script(type='text/ng-template', id='error.html')
                 md-tabs(md-dynamic-height md-border-bottom)
                     md-tab(ng-repeat="cat in categories" ng-attr-label="{{cat.name}}" ng-click="resetSlide(cat)")
                         md-content(class="md-padding md-content-wrapper")
-                            loading-state(ng-if='isLoadingData')                        
-                            .slider-block(ng-class="{'slide-left' : slide == true, 'hidden' : !cat.tableData}" ng-if='!isLoadingData')                                
+                            loading-state(ng-if='isLoadingData')
+                            .slider-block(ng-class="{'slide-left' : slide == true, 'hidden' : !cat.tableData}" ng-if='!isLoadingData')
                                 .md-content-inner-wrapper
                                     .new-container.page-content-container
                                         .create-folder-container.slide-header
-                                            .function-text(ng-click="sliderFunction(null)")
+                                            .function-text
                                                 .clearfix
-                                                    .editColor.left.static
+                                                    .editColor.left.static(ng-click="goToSafes()")
                                                         .glyphicon.glyphicon-chevron-left
                                                     div.left
-                                                        span {{slideHeader}}
-                                            .function-text.link-style.option.right(ng-show="slideAuth == 'write'" ng-click="createFolder(cat.name)")
+                                                        span(ng-repeat="folder in folders") 
+                                                            span(ng-click="goToFolderInPath(folder)" ng-class="{'folder-link': $index !== folders.length -1}") {{folder.id.split('/').pop()}}
+                                                            span(ng-if="$index !==folders.length - 1") {{' / '}}
+                                            .function-text.link-style.option.right(ng-show="slideAuth == 'write'" ng-click="createFolder()")
                                                 .action-icon-wrapper.static
                                                     .rotate.glyphicon.glyphicon-remove-circle
                                                 .create-link.middle-block
                                                     .text.hide-in-mobile CREATE NEW FOLDER
+
+                                            .function-text.link-style.option.right(ng-show="slideAuth == 'write' && folders.length > 1" ng-click="createSecret()")
+                                                .action-icon-wrapper.static
+                                                    .rotate.glyphicon.glyphicon-remove-circle
+                                                .create-link.middle-block
+                                                    .text.hide-in-mobile CREATE NEW SECRET
                                             .sub-header.clearfix {{slideHeaderDescription}}
-                                            
-                                                                                                                                                                               
-                                    //listTable(data="slideItems" auth="slideAuth" admin="false" slider-func="sliderFunction" search-value="searchValue" type="'accordion'" loading="isLoadingData" folder="getFolder(folder)")
-                                    folder-contents-table(data="slideItems" auth="slideAuth" admin="false" loading="isLoading" search-value="searchValue" navigate-to-folder="navigateToFolder")
 
+                                            folder-contents-table(parent="folders[folders.length - 1]" navigate-to-folder="navigateToFolder")
 
-                            .md-content-inner-wrapper(ng-if="slide !== true")  
+                            .md-content-inner-wrapper(ng-if="slide !== true")
                                 .new-container.page-content-container(ng-if='!isLoadingData' ng-class="{'slide-left-parent' : slide == true}")
                                     radio-buttons.invisible(data="radio" state="'active'")
-                                    tiles(data="cat.tableData" tile-func-available="true" img="'safe_tile.png'" search-value="searchValue" tile-details="sliderFunction" ng-if="cat.tableData")
+                                    tiles(data="cat.tableData" tile-func-available="true" img="'safe_tile.png'" search-value="searchValue" tile-details="goToFolders" ng-if="cat.tableData")
                                     .unavailable-text(ng-if='cat.tableData.length === 0')
-                                      | No safes available
-            
-//- footer  
+                                        | No safes available
