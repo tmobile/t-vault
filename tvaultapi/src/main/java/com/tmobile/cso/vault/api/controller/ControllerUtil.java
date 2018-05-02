@@ -234,8 +234,15 @@ public final class ControllerUtil {
 		Response lisresp = reqProcessor.process("/sdb/list",jsonstr,token);
 		if(HttpStatus.NOT_FOUND.equals(lisresp.getHttpstatus())){
 			if (!secretsExist) {
-				responseVO.setResponse(lisresp.getResponse());
-				responseVO.setHttpstatus(lisresp.getHttpstatus());
+				// No secrets and no folders
+				if ("safe".equals(safeNode.getType())) {
+					responseVO.setResponse("{}");
+					responseVO.setHttpstatus(HttpStatus.OK);
+				}
+				else {
+					responseVO.setResponse(lisresp.getResponse());
+					responseVO.setHttpstatus(lisresp.getHttpstatus());
+				}
 			}
 			return;
 		}else if ( HttpStatus.FORBIDDEN.equals(lisresp.getHttpstatus())){
