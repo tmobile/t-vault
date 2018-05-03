@@ -3,11 +3,10 @@
     angular.module('vault.features.safes')
         .controller('safesTabsController', safesTabsController);
 
-    function safesTabsController(SessionStore, safesService, $state) {
+    function safesTabsController(SessionStore, safesService, $state, $scope) {
         var vm = this;
         vm.search = '';
-
-        vm.safesNavTags = [{
+        $scope.safesNavTags = [{
             displayName: 'SAFES',
             navigationName: 'safes',
             addComma: false,
@@ -35,15 +34,7 @@
         }];
 
         vm.isLoadingData = true;
-
         vm.onSearch = onSearch;
-
-
-        vm.goToSafesTab = goToSafesTab;
-
-        function goToSafesTab(data) {
-
-        }
 
         function onSearch(searchWords) {
             console.log('search');

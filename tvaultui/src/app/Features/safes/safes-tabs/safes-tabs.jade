@@ -1,10 +1,10 @@
 .au-tabs
     .au-tabs-header
         .au-tabs-gutter
-            nav-bar(active-tab="" go-to="vm.goToSafe"  nav-tags="vm.safesNavTags")
+            nav-bar(active-tab="safes" nav-tags="safesNavTags")
             .page-header-text SAFES
-            searchbar.au-push-left(on-search="vm.onSearch")
+            searchbar.au-push-left
 
 
     .au-tabs-body
-        div(ui-view="content")
+        div(ui-view="content").au-100-height

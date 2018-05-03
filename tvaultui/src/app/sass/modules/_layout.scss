@@ -1,7 +1,7 @@
 
 .au-base-content {
   height: 93vh;
-  padding: 1vh calc(.5% + 15px);
+  padding: 2vh calc(.5% + 15px);
   font-family: Montserrat;
 }
 
@@ -15,8 +15,6 @@
 }
 
 .au-tabs-header {
-  border: 1px solid black;
-  height: 6rem;
   display: table-row;
   position: relative;
 }
@@ -31,8 +29,11 @@
 }
 
 .au-tabs-inner {
-  min-height: calc(86vh - 15rem);
+  margin: 0 auto;
+  width: 80vw;
+  padding: 16px;
 }
+
 
 
 

@@ -1,4 +1,4 @@
-(function () {
+ (function () {
     "use strict";
     angular.module('vault.features.safes')
         .config(config);
@@ -17,31 +17,30 @@
                     }
                 }
             })
-        //     .state('safes', {
-        //     url: '/safes',
-        //     parent: 'safes-tabs',
-        //     params: {
-        //         type: 'shared'
-        //     },
-        //     resolve: {
-        //         safes: function (SessionStore) {
-        //             return JSON.parse(SessionStore.getItem('accessSafes'))
-        //         }
-        //     },
-        //     views: {
-        //         'content@safes-tabs': {
-        //             templateUrl: 'app/Features/safes/safes-tiles/safes-tiles.html',
-        //             controller: 'safesTilesController as vm'
-        //         }
-        //     }
-        // })
+            .state('safes', {
+            url: '/safes',
+            parent: 'safes-tabs',
+            params: {
+                type: 'shared'
+            },
+            resolve: {
+                safes: function (SessionStore) {
+                    return JSON.parse(SessionStore.getItem('accessSafes'))
+                }
+            },
+            views: {
+                'content@safes-tabs': {
+                    templateUrl: 'app/Features/safes/safes-tiles/safes-tiles.html',
+                    controller: 'safesTilesController as vm'
+                }
+            }
+        })
             .state('safes-folders', {
                 url: '/safes/folders/:path',
                 parent: 'safes-tabs',
                 resolve: {
-                    folder: function (safesService, SafesManagement, $stateParams) {
-                        // return safesService.getFolders($stateParams.path)
-                        return SafesManagement.getFolderContents($stateParams.path);
+                    folderContent: function (safesService, SafesManagement, $stateParams) {
+                        return safesService.getFolderContent($stateParams.path)
                     }
                 },
                 params: {

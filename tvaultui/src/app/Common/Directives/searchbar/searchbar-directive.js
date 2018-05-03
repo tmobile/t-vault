@@ -7,11 +7,7 @@
     function Directive() {
         return {
             restrict: 'E',
-            link: function(scope, el, attrs, ctrl, transclude) {
-            },
-            scope: {
-                onSearch: '='
-            },
+            link: function(scope, el, attrs, ctrl, transclude) {},
             templateUrl: 'app/Common/Directives/searchbar/searchbar.html',
             controller: 'searchbarController as vm',
             bindToController: true,
@@ -19,13 +15,12 @@
         }
     }
 
-    function Controller() {
+    function Controller($rootScope) {
         var vm = this;
         vm.callSearch = callSearch;
 
-
         function callSearch() {
-            return vm.onSearch(vm.searchValue);
+            return $rootScope.$broadcast('search', vm.searchValue);
         }
 
     }

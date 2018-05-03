@@ -27,13 +27,13 @@
     /** @ngInject */
     function routerConfig( $stateProvider ) {
         $stateProvider
-            .state( 'safes', {
-                url: '/safes',
-                params: {
-                    safe: null
-                },
-                templateUrl: 'app/Features/safes/safes.html',
-                controller: 'SafesCtrl'
-            } )
+            // .state( 'safes', {
+            //     url: '/safes',
+            //     params: {
+            //         safe: null
+            //     },
+            //     templateUrl: 'app/Features/safes/safes.html',
+            //     controller: 'SafesCtrl'
+            // } )
     }
 })();

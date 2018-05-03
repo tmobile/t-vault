@@ -3,7 +3,7 @@
     angular.module('vault.features.safes')
         .controller('safesTilesController', safesTilesController);
 
-    function safesTilesController(safesService, safes, SAFES_CONSTANTS, $stateParams, $state) {
+    function safesTilesController(safesService, safes, SAFES_CONSTANTS, $stateParams, $state, $rootScope) {
         var vm = this;
         vm.safeCategories = safesService.getSafeTabs();
         vm.searchValue = '';
@@ -18,6 +18,10 @@
         }
 
         function init() {
+            $rootScope.$on('search', function (event, searchValue) {
+                vm.searchValue = searchValue;
+            });
+
             vm.tabIndex = SAFES_CONSTANTS.SAFE_TYPES.findIndex(function (type) {
                 return type.key === $stateParams.type;
             });

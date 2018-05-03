@@ -1,8 +1,53 @@
+script(type='text/ng-template', id='text-input.modal.html')
+    .modal-sep.createFolder
+        .common-header-label.text-center {{config.title}}
+    form.createFolder.left-lg-sep.right-lg-sep
+        .modal-inner-wrapper
+            .common-form
+                .common-form-row
+                    .details-input-group
+                        .common-form-label {{config.inputLabel}}
+                        input.form-control.input-box-style(placeholder="{{config.placeholder}}" restrict-special-char ng-model="form.inputValue" required)
+                .common-form-row(ng-if="config.passwordLabel")
+                    .details-input-group
+                        .common-form-label {{config.passwordLabel}}
+                        input.form-control.input-box-style(placeholder="{{config.passwordPlaceholder}}" type="password" restrict-special-char ng-model="form.passwordValue" required)
+        .au-modal-buttons
+            .au-inline-buttons
+                button.common-btn.btn.btn-primary.btn-lg(ng-click="close({inputValue: form.inputValue, passwordValue: form.passwordValue})") {{config.submitLabel}}
+                button.link-style.common-btn.btn.btn-default.btn-lg(ng-click="dismiss()") {{config.cancelLabel}}
+
+
 md-content
-    md-tabs.md-dynamic-height.md-border-bottom
+    md-tabs.md-dynamic-height.md-border-bottom(md-selected="vm.tabIndex")
         md-tab(ng-repeat="tab in vm.safeCategories" ng-attr-label="{{tab.name}}" ng-click="vm.clickSafeTab(tab)")
-            md-content(ng-init="safeList = vm.tiles[tab.id]")
-                tiles(data="safeList" tile-func-available="true" img="'safe_tile.png'" search-value="vm.searchValue" tile-details="vm.goToFolders")
-                .unavailable-text(ng-if='!safeList.length')
-                    | No safes available
+            md-content
+                div.invisible stand-in content
+    md-content.au-tabs-inner
+        .md-content-inner-wrapper
+            .new-container.page-content-container
+                .create-folder-container.slide-header
+                    .function-text
+                        .clearfix
+                            .editColor.left.static(ng-click="vm.goToSafeTiles()")
+                                .glyphicon.glyphicon-chevron-left
+                            div.left
+                                span(ng-repeat="folder in vm.folderPathArray")
+                                    span(ng-click="vm.goToFolder(folder.fullPath)" ng-class="{'folder-link': !$last}") {{folder.folderName}}
+                                    span(ng-if="!$last") {{' / '}}
+
+                    .function-text.link-style.option.right(ng-click="vm.createFolder()")
+                        .action-icon-wrapper.static
+                            .rotate.glyphicon.glyphicon-remove-circle
+                        .create-link.middle-block
+                            .text.hide-in-mobile CREATE NEW FOLDER
+
+                    .function-text.link-style.option.right(ng-click="vm.createSecret()" ng-if="vm.userViewingFolder")
+                        .action-icon-wrapper.static
+                            .rotate.glyphicon.glyphicon-remove-circle
+                        .create-link.middle-block
+                            .text.hide-in-mobile CREATE NEW SECRET
+
+            folder-contents-table(data="vm.folderContent.children" parent="vm.folderContent" navigate-to-folder="vm.goToFolder")
+
 

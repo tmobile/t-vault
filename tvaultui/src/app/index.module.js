@@ -57,7 +57,8 @@
         'ngMaterial',
         'ngTable',
         'ui.select',
-        'ngIdle'
+        'ngIdle',
+        'vault.directives'
     ]);
 
     // Module names categorized for better understanding and to
