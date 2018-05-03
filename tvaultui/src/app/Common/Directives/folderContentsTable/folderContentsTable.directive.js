@@ -18,39 +18,49 @@
 */
 
 'use strict';
-(function() {
-    angular.module('vault.directives.folderContentsTable',[])
+(function () {
+    angular.module('vault.directives.folderContentsTable', [])
         .controller('folderContentsTableController', folderContentsTableController)
-        .directive( 'folderContentsTable', function(CopyToClipboard, Modal, $rootScope, SafesManagement, $state, ArrayFilter, Notifications, UtilityService) {
-        return {
-            restrict: 'E',
-            templateUrl: 'app/Common/Directives/folderContentsTable/folderContentsTable.html',
-            scope: {
-                data: '=',
-                loading: '=',
-                admin: '=',
-                searchValue: '=',
-                searchObject: '=?',
-                deleteFolder : '&',
-                editFolder : '&',
-                navigateToFolder: '=',
-                folder: '&',
-                parent: '=',
-                auth: "="
-            },
-            link: function( scope, element, attrs ) {},
-            controller: 'folderContentsTableController as vm',
-            bindToController: true
-        }
-    } );
+        .directive('folderContentsTable', function () {
+            return {
+                restrict: 'E',
+                templateUrl: 'app/Common/Directives/folderContentsTable/folderContentsTable.html',
+                scope: {
+                    folderContent: '=',
+                    loading: '=',
+                    write: '='
+                },
+                controller: 'folderContentsTableController as vm',
+                bindToController: true
+            }
+        });
 
-    function folderContentsTableController($scope) {
+    function folderContentsTableController($scope, $state, $rootScope) {
         var vm = this;
+        vm.clickRow = clickRow;
+        vm.filter = filter;
+        vm.search = '';
+        $rootScope.$on('search', function (event, args) {
+            vm.search = args;
+        });
 
-        vm.clickRow = function (item) {
-            if(item.type === 'folder') {
-                return vm.navigateToFolder(item.id)
+        function filter(item) {
+            if (!vm.search) return item;
+            if (item.type === 'folder') {
+                return !!~item.id.split('/').pop().indexOf(vm.search);
+            } else {
+                return !!~item.id.indexOf(vm.search);
             }
         }
+
+        function clickRow(item) {
+            if (item.type === 'folder') {
+                $state.go('safes-folders', {
+                    path: item.id
+                });
+            }
+        }
+
+
     }
 })();

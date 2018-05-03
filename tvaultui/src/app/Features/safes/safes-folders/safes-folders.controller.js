@@ -3,22 +3,29 @@
     angular.module('vault.features.safes')
         .controller('safesFoldersController', safesFoldersController);
 
-    function safesFoldersController($state, folderContent, safesService, SAFES_CONSTANTS, $rootScope, Modal, $scope) {
+    function safesFoldersController(folderContent, writeAccess, safesService, SAFES_CONSTANTS, $state, $rootScope, Modal, Notifications) {
         var vm = this;
         vm.safeCategories = safesService.getSafeTabs();
         vm.search = '';
         vm.folderPathArray = [];
         vm.currentFolder = null;
         vm.folderContent = folderContent;
+        vm.writeAccess = writeAccess;
         vm.userViewingFolder = false;
         vm.root = null;
         vm.tabIndex = 0;
+        vm.loadingFlag = false;
         init();
         vm.clickSafeTab = clickSafeTab;
         vm.goToFolder = goToFolder;
         vm.goToSafeTiles = goToSafeTiles;
         vm.createFolder = createFolder;
         vm.createSecret = createSecret;
+        vm.loading = loading;
+
+        function loading(value) {
+            vm.loadingFlag = value;
+        }
 
         function createSecret() {
             return Modal.createModalWithController('text-input.modal.html', {
@@ -30,20 +37,24 @@
                 submitLabel: 'CREATE',
                 cancelLabel: 'CANCEL'
             }).result.then(function (modalData) {
+                vm.loading(true);
                 var newSecret = {
                     id: modalData.inputValue,
                     key: modalData.inputValue,
                     value: modalData.passwordValue,
                     type: 'secret',
                     parentId: folderContent.id
-                }
-                return safesService.createSecret(folderContent, newSecret)
+                };
+
+                return safesService.saveFolder(folderContent, newSecret)
                     .then(function (data) {
-                        folderContent.children = [newSecret].concat(folderContent.children);
+                        vm.loading(false);
+                        vm.folderContent.children = [newSecret].concat(folderContent.children);
+                        Notifications.toast('Added successfully');
                     });
             })
+                .catch(catchError)
         }
-
 
         function createFolder() {
             return Modal.createModalWithController('text-input.modal.html', {
@@ -53,15 +64,16 @@
                 submitLabel: 'CREATE',
                 cancelLabel: 'CANCEL'
             }).result.then(function (modalData) {
+                vm.loading(true);
                 var path = vm.currentFolder.fullPath + '/' + modalData.inputValue;
                 return safesService.createFolder(path)
                     .then(function (data) {
+                        vm.loading(false);
                         $state.go('safes-folders', {
                             path: path
-                        })
+                        });
                     })
-            })
-
+            }).catch(catchError);
         }
 
         function clickSafeTab(tab) {
@@ -92,11 +104,19 @@
             });
             vm.folderPathArray = vm.folderPathArray.reverse();
             vm.currentFolder = vm.folderPathArray[vm.folderPathArray.length - 1];
-            vm.userViewingFolder = vm.currentFolder.type === 'folder';
+            vm.userViewingFolder = vm.folderContent.type === 'folder';
 
 
             $rootScope.$on('search', function (event, params) {
                 vm.search = params;
+            });
+        }
+
+        function catchError(error) {
+            vm.loading(false);
+            Modal.createModalWithController('error.modal.html', {
+                title: 'Error',
+                message: 'Please try again. If this issue persists please contact an administrator.'
             });
         }
     }

@@ -1,17 +1,13 @@
-.unavailable-text(ng-if='!vm.parent.children.length')
+.unavailable-text(ng-if='!vm.folderContent.children.length')
     | No folders or secrets found here.
 
-
-.table-container(ng-if="vm.parent.children.length")
+.table-container(ng-if="vm.folderContent.children.length")
     .table-header
         .row
             .cell.col-lg-5.col-md-5.col-sm-5.col-xs-4.table-first-cell NAME
             .cell.col-lg-5.col-md-5.col-sm-5.col-xs-5.invisible
             .cell.col-lg-2.col-md-2.col-sm-2.col-xs-3.block-3.action-header ACTION
     .accordion-table-data-container
-        .loader-wrapper(ng-show="vm.loading" ng-cloak="")
-            .gif-wrp
-                img(src="assets/images/loading.gif" class="loading-state-img")
         ul.accordion-table-data
-            li.accordian-list-item(ng-repeat="item in vm.parent.children")
-                folder-contents-row(item="item" ng-click="vm.clickRow(item)" parent="vm.parent")
+            li.accordian-list-item(ng-repeat="item in vm.folderContent.children | filter : vm.filter")
+                folder-contents-row(index="$index" item="item" parent="vm.folderContent" loading="vm.loading" write="vm.write" ng-click="vm.clickRow(item)")

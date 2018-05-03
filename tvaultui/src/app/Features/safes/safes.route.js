@@ -24,8 +24,8 @@
                 type: 'shared'
             },
             resolve: {
-                safes: function (SessionStore) {
-                    return JSON.parse(SessionStore.getItem('accessSafes'))
+                safes: function (SessionStore, $q) {
+                    return JSON.parse(SessionStore.getItem('accessSafes'));
                 }
             },
             views: {
@@ -41,6 +41,17 @@
                 resolve: {
                     folderContent: function (safesService, SafesManagement, $stateParams) {
                         return safesService.getFolderContent($stateParams.path)
+                    },
+                    writeAccess: function (folderContent, SessionStore) {
+                        var safeType = folderContent.id.split('/')[0];
+                        var safeName = folderContent.id.split('/')[1];
+                        var admin = JSON.parse(SessionStore.getItem('isAdmin'));
+                        var safesOfType = JSON.parse(SessionStore.getItem('accessSafes'))[safeType];
+                        var writeAccess = safesOfType.find(function (safeObj) {
+                            return safeObj[safeName];
+                        })[safeName];
+
+                        return admin || (writeAccess === 'write');
                     }
                 },
                 params: {

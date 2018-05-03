@@ -3,15 +3,14 @@
     angular.module('vault.features.safes')
         .factory('safesService', safesService);
 
-    function safesService(SAFES_CONSTANTS, $http, RestEndpoints, SessionStore) {
+    function safesService(SAFES_CONSTANTS, $http, RestEndpoints, SessionStore, $q) {
         var service = {
             getSafeTabs: getSafeTabs,
             parseSafes: parseSafes,
             createFolder: createFolder,
             saveFolder: saveFolder,
             deleteFolder: deleteFolder,
-            getFolderContent: getFolderContent,
-            createSecret: createSecret
+            getFolderContent: getFolderContent
         };
 
         function getFolderContent(path) {
@@ -45,7 +44,6 @@
                 }).catch(catchError);
         }
 
-
         function createFolder(path) {
             var url = RestEndpoints.baseURL + '/v2/sdb/createfolder?path=' + path;
             return $http({
@@ -59,19 +57,25 @@
                 .catch(catchError);
         }
 
-        function saveFolder() {
-
-        }
-
         function deleteFolder(path) {
-
+            var url = RestEndpoints.baseURL + '/v2/sdb/delete?path=' + path;
+            return $http({
+                method: 'DELETE',
+                url: url
+            })
+                .then(function (response) {
+                    return response.data;
+                })
+                .catch(catchError);
         }
 
-        function createSecret(folderContent, newSecret) {
+        function saveFolder(folderContent, newSecret) {
             // newSecret = {key: 'string', value: 'string'}
-            var url = RestEndpoints.baseURL + '/v2/write?path=' +folderContent.id;
+            var url = RestEndpoints.baseURL + '/v2/write?path=' + folderContent.id;
             var content = folderContent.children.slice(0);
-            content.push(newSecret);
+            if (newSecret) {
+                content.push(newSecret);
+            }
             var data = parseFolderContentToSecrets(content);
             return $http({
                 method: 'POST',
@@ -81,8 +85,7 @@
                     data: data
                 },
                 headers: getHeaders()
-
-            })
+            }).catch(catchError);
         }
 
 
@@ -130,6 +133,7 @@
 
         function catchError(error) {
             console.log(error);
+            return $q.reject(error);
         }
 
         return service;

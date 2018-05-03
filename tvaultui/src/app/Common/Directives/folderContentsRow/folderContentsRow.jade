@@ -1,44 +1,20 @@
-script(type='text/ng-template', id='error-inner.html')
-    .row
-        .top-lg-sep
-            .common-header-label.text-center Error
-        .top-lg-sep.notification-text {{errorMessage}}
+.accordion-list-main.adjustment(ng-click="vm.onRowClick($event)")
+    .row.accordion-list-wrapper
+        .cell.pink-text.col-lg-5.col-md-5.col-sm-5.col-xs-4.column-value-wrapper.table-first-cell.fits-contents
+            span.icon.list-icon.folder.icon-folder.icon-folder-open(ng-if="!vm.editing && !vm.isSecret")
+            img.list-icon.folder(src="assets/Icons/safe.svg" ng-if="!vm.editing && vm.isSecret")
+            span(ng-if="!vm.editing && !vm.isSecret") {{vm.folderName}}
+            span(ng-if="!vm.editing && vm.isSecret") {{vm.item.key}}
 
-    .text-center.bottom-lg-sep.top-lg-sep.notification-button
-        .clearfix.bottom-sm-sep
-            button.link-style.common-btn.btn.btn-primary.btn-lg(ng-click="close()") Close
+            input.form-control.input-box-style.au-input-box(ng-if="vm.editing && vm.isSecret" restrict-special-char ng-model="vm.item.key")
 
-.accordion-list-main.adjustment(ng-switch="vm.item.type" ng-click="vm.onRowClick($event)")
-
-
-    .row.accordion-list-wrapper(ng-switch-when="folder")
-        .cell.pink-text.col-lg-5.col-md-5.col-sm-5.col-xs-4.column-value-wrapper.table-first-cell
-            span.icon.list-icon.folder.icon-folder.icon-folder-open(ng-if="!vm.editing")
-            span(ng-if="!vm.editing") {{vm.itemName}}
-            input.form-control.input-box-style.key-input-box(ng-if="vm.editing" restrict-special-char ng-model="vm.itemName" ng-change="vm.onItemNameChange()")
         .cell.col-lg-3.col-md-3.col-sm-3.col-xs-3.column-value-wrapper
-        .cell.col-lg-2.col-md-2.col-sm-2.col-xs-2.column-value-wrapper(ng-style="{'text-align': 'center'}")
+            div(ng-if="vm.isSecret")
+                input.form-control.input-box-style.au-input-box(ng-disabled="!vm.editing" type="password" ng-model="vm.item.value" placeholder="Secret" autocomplete="new-password" required ng-attr-type="{{ showPassword ? 'textarea' : 'password' }}")
+                .icon.icon-views.vertical-center(ng-mouseenter="showPassword = true;" ng-mouseleave="showPassword = false")
+        .cell.col-lg-2.col-md-2.col-sm-2.col-xs-2.column-value-wrapper.center-text
             button.btn.btn-primary.btn-sm.save-button(ng-if="vm.editing" ng-click="vm.save($event)") SAVE
         .cell.col-lg-2.col-md-2.col-sm-2.col-xs-3.column-value-wrapper
-            .list-icon.icon-views(ng-style="{'opacity': 0}")
-            .list-icon.icon-views(ng-style="{'opacity': 0}")
-            .list-icon.icon-delete(ng-click="vm.deleteItem($event)")
-
-
-
-    .row.accordion-list-wrapper(ng-switch-when="secret")
-        .cell.pink-text.col-lg-5.col-md-5.col-sm-5.col-xs-4.column-value-wrapper.table-first-cell.folder-key
-            img.list-icon.folder(src="assets/Icons/safe.svg" ng-if="!vm.editing")
-            span(ng-if="!vm.editing") {{vm.itemName}}
-            input.form-control.input-box-style.key-input-box.secret-input-box(ng-if="vm.editing" restrict-special-char ng-model="vm.itemName" ng-change="vm.onItemNameChange()")
-        .cell.col-lg-3.col-md-3.col-sm-3.col-xs-3.column-value-wrapper.folder-key-input
-
-            input.form-control.input-box-style(ng-disabled="!vm.editing" type="password" ng-model="vm.item.value" placeholder="Secret" autocomplete="new-password" required ng-attr-type="{{ vm.showItemPassword ? 'text' : 'password' }}")
-
-        .cell.col-lg-2.col-md-2.col-sm-2.col-xs-2.column-value-wrapper(ng-style="{'text-align': 'center'}")
-            button.btn.btn-primary.btn-sm.save-button(ng-if="vm.editing" ng-click="vm.save($event)") SAVE
-        .cell.col-lg-2.col-md-2.col-sm-2.col-xs-3.column-value-wrapper
-            .list-icon.icon-views(ng-click="vm.showItemPassword = !vm.showItemPassword")
-            .list-icon.icon-content_copy(ng-if="!vm.item.isNew" ng-click="vm.copyToClipboard()")
-            .list-icon.icon-mode_edit(ng-if="!vm.item.isNew" ng-click="vm.edit($event)")
-            .list-icon.icon-delete(ng-click="vm.save($event, true)")
+            .list-icon.icon-content_copy(ng-if="vm.isSecret" ng-click="vm.copyToClipboard($event)")
+            .list-icon.icon-mode_edit(ng-if="vm.isSecret && vm.write" ng-click="vm.edit()")
+            .list-icon.icon-delete(ng-if="vm.write" ng-click="vm.isSecret ? vm.deleteSecret($event) : vm.deleteFolder($event)")

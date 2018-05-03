@@ -1,5 +1,5 @@
 script(type='text/ng-template', id='text-input.modal.html')
-    .modal-sep.createFolder
+    .modal-sep.createFolder.montserrat
         .common-header-label.text-center {{config.title}}
     form.createFolder.left-lg-sep.right-lg-sep
         .modal-inner-wrapper
@@ -16,13 +16,22 @@ script(type='text/ng-template', id='text-input.modal.html')
             .au-inline-buttons
                 button.common-btn.btn.btn-primary.btn-lg(ng-click="close({inputValue: form.inputValue, passwordValue: form.passwordValue})") {{config.submitLabel}}
                 button.link-style.common-btn.btn.btn-default.btn-lg(ng-click="dismiss()") {{config.cancelLabel}}
+script(type='text/ng-template', id='error.modal.html')
+    .row.montserrat
+        .top-lg-sep
+            .common-header-label.text-center {{config.title}}
+        .top-lg-sep.notification-text {{config.message}}
 
+    .text-center.bottom-lg-sep.top-lg-sep.notification-button
+        .clearfix.bottom-sm-sep
+            button.link-style.common-btn.btn.btn-primary.btn-lg(ng-click="close()") Close
 
-md-content
+md-content.au-100-height
     md-tabs.md-dynamic-height.md-border-bottom(md-selected="vm.tabIndex")
         md-tab(ng-repeat="tab in vm.safeCategories" ng-attr-label="{{tab.name}}" ng-click="vm.clickSafeTab(tab)")
             md-content
                 div.invisible stand-in content
+
     md-content.au-tabs-inner
         .md-content-inner-wrapper
             .new-container.page-content-container
@@ -36,18 +45,21 @@ md-content
                                     span(ng-click="vm.goToFolder(folder.fullPath)" ng-class="{'folder-link': !$last}") {{folder.folderName}}
                                     span(ng-if="!$last") {{' / '}}
 
-                    .function-text.link-style.option.right(ng-click="vm.createFolder()")
+                    .function-text.link-style.option.right(ng-click="vm.createFolder()" ng-if="vm.writeAccess")
                         .action-icon-wrapper.static
                             .rotate.glyphicon.glyphicon-remove-circle
                         .create-link.middle-block
                             .text.hide-in-mobile CREATE NEW FOLDER
 
-                    .function-text.link-style.option.right(ng-click="vm.createSecret()" ng-if="vm.userViewingFolder")
+                    .function-text.link-style.option.right(ng-click="vm.createSecret()" ng-if="vm.userViewingFolder && vm.writeAccess")
                         .action-icon-wrapper.static
                             .rotate.glyphicon.glyphicon-remove-circle
                         .create-link.middle-block
                             .text.hide-in-mobile CREATE NEW SECRET
+            .au-loader(ng-if="vm.loadingFlag")
+                loading-state
 
-            folder-contents-table(data="vm.folderContent.children" parent="vm.folderContent" navigate-to-folder="vm.goToFolder")
+            folder-contents-table(folder-content="vm.folderContent" loading="vm.loading" write="vm.writeAccess" ng-if="!vm.loadingFlag")
+
 
 

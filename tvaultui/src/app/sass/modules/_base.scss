@@ -2,12 +2,41 @@
   margin-left:auto;
 }
 
-.au-absolute-left {
-  position: absolute;
-  right: 0;
-}
-
-
 .au-100-height {
   height: 100%
+}
+
+.centered {
+  text-align: center;
+}
+
+.fits-contents {
+  display: inline-block;
+  word-break: break-all;
+}
+
+.au-input-box {
+  width: 90%;
+}
+
+.vertical-center {
+  margin: 0;
+  position: absolute;
+  top: 50%;
+  left: 100%;
+  transform: translate(-50%, -50%)
+}
+
+.icon {
+  padding: 1rem;
+  font-size: 20px;
+  z-index: 1;
+}
+
+.au-loader {
+  height: 16rem;
+}
+
+.montserrat {
+  font-family: Montserrat;
 }
