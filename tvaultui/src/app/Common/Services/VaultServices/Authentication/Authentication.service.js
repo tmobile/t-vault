@@ -19,45 +19,55 @@
 
 'use strict';
 (function(app) {
-    app.service( 'Authentication', function( fetchData, $window, ServiceEndpoint, ErrorMessage ) {
+    app.service( 'Authentication', function( fetchData, $window, ServiceEndpoint, ErrorMessage, $q, $http, Idle, Keepalive, AppConstant, SessionStore){
         return {
             authenticateUser: function(reqObjtobeSent, callback) {
+              try{
 
-              var object = {};
-            
-                try{
-                    /*fetchData.login(reqObjtobeSent).then(
-                        function(response) {
-                            var data = response.data;
-                            object = {"success":200,"data":response.data};
-                            return callback(object);
-                        },
-                        function(error) {
-                            object = {"error":error};
-                            return callback(object);
-
-                        }) // wraps the request to get secrets */
-
-                    return ServiceEndpoint.login.makeRequest(reqObjtobeSent).then(
-                        function(response) {
+                  return ServiceEndpoint.login
+                      .makeRequest(reqObjtobeSent)
+                      .then(function(response) {
+                            var leaseDuration = response.data['lease_duration'];
+                            Idle.setIdle(180);
+                            Idle.setTimeout(leaseDuration - 180);
+                            Keepalive.setInterval(leaseDuration - 60);
+                            Idle.watch();
                             return response;
                         },
                         function(error){
                             console.log("error in login");
                             console.log(error);
                             return error;
-                        }
-                    );
-
+                        });
                 } catch(e) {
-                  // To handle errors while calling 'fetchData' function
-                  object = {"error":e};
-                  return callback(object);
+                  return callback({"error":e});
                 }
-
             },
-
-            getTheRightErrorMessage : function(responseObject){
+            renewAuthToken: function(vaultAPIKey) {
+                return ServiceEndpoint.renewToken.makeRequest(null, null, {"vault-token": vaultAPIKey})
+                    .then(function(response) {
+                        var leaseDuration = response.data['lease_duration'];
+                        Idle.setIdle(180);
+                        Idle.setTimeout(leaseDuration - 180);
+                        Keepalive.setInterval(leaseDuration - 60);
+                    }, function (error) {
+                        window.location.replace('signup');
+                        SessionStore.clear();
+                        console.log("error retrieving token", error);
+                        return error;
+                    });
+            },
+            revokeAuthToken: function (vaultAPIKey) {
+              return ServiceEndpoint.revokeToken
+                  .makeRequest(null, null, {"vault-token": vaultAPIKey})
+                  .then(function(response) {
+                      return response;
+                      },
+                      function (error) {
+                        console.log(error);
+                      });
+            },
+            getTheRightErrorMessage: function(responseObject){
                 if(responseObject.status==='500' || responseObject.statusText==='Internal Server Error'){
                     return ErrorMessage.ERROR_NETWORK;
                 }
@@ -79,4 +89,4 @@
 })(angular.module('vault.services.Authentication',[
     'vault.services.ServiceEndpoint',
     'vault.constants.ErrorMessage'
-]))
+]));

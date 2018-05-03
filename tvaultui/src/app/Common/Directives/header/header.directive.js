@@ -19,7 +19,7 @@
 
 'use strict';
 (function(app) {
-    app.directive( 'header', function($state, SessionStore) {
+    app.directive( 'header', function($state, SessionStore, Authentication) {
         return {
             restrict: 'E',
             templateUrl: 'app/Common/Directives/header/header.html',
@@ -27,10 +27,12 @@
                 scope.showingDropdown = false;
                 scope.showDropdown = function() {
                     scope.showingDropdown = !scope.showingDropdown;
-                } 
+                };
                 scope.logout = function() {
+                    var token = SessionStore.getItem('myVaultKey');
                     SessionStore.clear();
-                    $state.go('signup');
+                    Authentication.revokeAuthToken(token);
+                    window.location.replace('signup');
                 }               
             }
         }

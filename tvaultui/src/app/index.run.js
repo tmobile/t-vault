@@ -27,8 +27,25 @@
     .run(runBlock);
 
   /** @ngInject */
-  function runBlock($log) {
+  function runBlock($log, Idle, $rootScope, $state, Keepalive, SessionStore, Authentication) {
+      $rootScope.$on('IdleTimeout', function () {
+          var vaultAPIKey = SessionStore.getItem('myVaultKey');
+          SessionStore.clear();
+          Authentication.revokeAuthToken(vaultAPIKey);
+          window.location.replace('signup');
 
+
+      });
+
+      $rootScope.$on('Keepalive', function () {
+          var vaultAPIKey = SessionStore.getItem('myVaultKey');
+          if(vaultAPIKey) {
+                return Authentication.renewAuthToken(vaultAPIKey);
+            }
+      });
+
+      Idle.watch();
+      Keepalive.ping();
     $log.debug('runBlock end');
   }
 

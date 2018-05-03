@@ -19,11 +19,11 @@
 
 'use strict';
 (function(app){
-    app.controller('SignUpCtrl', function($scope, Modal, $state, Authentication, SessionStore, UtilityService){
+    app.controller('SignUpCtrl', function($scope, Modal, $state, Authentication, SessionStore, UtilityService, Idle){
 
         var init = function(){
             $scope.forgotPasswordLink = UtilityService.getAppConstant('FORGOT_PASSWORD_LINK');
-
+            Idle.unwatch();
         }
 
         var saveParametersInSessionStore = function(loginResponseData){
