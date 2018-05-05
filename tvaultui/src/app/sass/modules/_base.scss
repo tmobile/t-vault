@@ -15,9 +15,6 @@
   word-break: break-all;
 }
 
-.au-input-box {
-  width: 90%;
-}
 
 .vertical-center {
   margin: 0;
@@ -27,14 +24,10 @@
   transform: translate(-50%, -50%)
 }
 
-.icon {
-  padding: 1rem;
-  font-size: 20px;
-  z-index: 1;
-}
-
 .au-loader {
-  height: 16rem;
+  position: relative;
+  min-height: 16rem;
+  height: 100%;
 }
 
 .montserrat {

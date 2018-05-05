@@ -32,6 +32,15 @@
                     loading: '=',
                     write: '='
                 },
+                link: function (scope) {
+                    var vm = scope.vm;
+                    vm.originalId = vm.item.id;
+                    vm.originalValue = vm.item.value;
+                    vm.isSecret = vm.item.type === 'secret';
+                    if (!vm.isSecret) {
+                        vm.folderName = vm.item.id.split('/').pop();
+                    }
+                },
                 controller: 'folderContentsRowController as vm',
                 bindToController: true
             }
@@ -39,9 +48,11 @@
 
     function folderContentsTableController($scope, CopyToClipboard, SafesManagement, Modal, UtilityService, Notifications, $rootScope, toastr, safesService, $timeout) {
         var vm = this;
+        vm.anyRegex = /.|\s/g;
         vm.editing = false;
         vm.originalId = '';
         vm.originalValue = '';
+        vm.showPassword = false;
         init();
         vm.copyToClipboard = copyToClipboard;
         vm.onRowClick = onRowClick;
@@ -77,12 +88,12 @@
                 id: vm.parent.id,
                 children: vm.parent.children.slice(0)
             };
-            var index  = modifiedFolder.children.findIndex(function (item) {
+            var index = modifiedFolder.children.findIndex(function (item) {
                 return item.id === vm.item.id;
             });
             modifiedFolder.children.splice(index, 1);
             return safesService.saveFolder(modifiedFolder)
-                .then(function(response) {
+                .then(function (response) {
                     vm.loading(false);
                     vm.parent.children.splice(index, 1);
                     Notifications.toast('Deleted successfully');
@@ -94,7 +105,7 @@
             $event.stopPropagation();
             vm.loading(true);
             return safesService.deleteFolder(vm.item.id)
-                .then(function(response) {
+                .then(function (response) {
                     vm.loading(false);
                     var index = vm.parent.children.findIndex(function (item) {
                         return item.id === vm.item.id;
@@ -105,27 +116,11 @@
         }
 
         function save($event) {
-            if(!vm.item.key || !vm.item.value){
-                return Modal.createModalWithController('error.modal.html', {
-                    title: 'Invalid',
-                    message: 'You are missing one or more data fields.'
-                });
-            }
-            var otherWithSameName = vm.parent.children.find(function (item, index) {
-                if(index === vm.index) return false;
-                var comparator = item.type === 'folder'? vm.folderName : vm.item.key
-                return comparator === item.key;
-            });
-
-            if(otherWithSameName) {
-                return Modal.createModalWithController('error.modal.html', {
-                    title: 'Naming Conflict',
-                    message: 'This folder already contains an item with the specified name.'
-                });
-            }
-
-            vm.loading(true);
-            return safesService.saveFolder(vm.parent)
+            return safesService.itemIsValidToSave(vm.item, vm.index, vm.parent)
+                .then(function () {
+                    vm.loading(true);
+                    return safesService.saveFolder(vm.parent);
+                })
                 .then(function (response) {
                     vm.loading(false);
                     vm.editing = false;
@@ -136,33 +131,27 @@
 
         function init() {
             $rootScope.$on('edit-row', function (event, id) {
-                if(vm.item.id !== id) {
+                    if (vm.item.id === id) return;
                     vm.editing = false;
                     vm.item.id = vm.originalId;
                     vm.item.key = vm.originalId;
                     vm.item.value = vm.originalValue;
                 }
-            });
-
-            $scope.$watch(function () {
-                return vm.item;
-            }, function () {
-                vm.originalId = vm.item.id;
-                vm.originalValue = vm.item.value;
-                vm.isSecret = vm.item.type === 'secret';
-                if (!vm.isSecret) {
-                    vm.folderName = vm.item.id.split('/').pop();
-                }
-            });
+            );
         }
 
 
-        function catchError() {
+        function catchError(error) {
+            if (error) {
+                vm.item.key = vm.originalId;
+                vm.item.value = vm.originalValue;
+                Modal.createModalWithController('stop.modal.html', {
+                    title: 'Error',
+                    message: 'Please try again. If this issue persists please contact an administrator.'
+                });
+            }
             vm.loading(false);
-            Modal.createModalWithController('error.modal.html', {
-                title: 'Error',
-                message: 'Please try again. If this issue persists please contact an administrator.'
-            });
         }
     }
-})();
+})
+();

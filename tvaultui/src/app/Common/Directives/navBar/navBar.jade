@@ -1,5 +1,5 @@
 .page-nav-block 
-	.breadcrumb(ng-if="navTagName.show" ng-click="goTo(navTagName.navigationName)" ng-repeat="navTagName in navTags")
+	.breadcrumb(ng-if="navTagName.show" ng-click="goTo(navTagName)" ng-repeat="navTagName in navTags")
 		span(ng-class="{'active': activeTab == navTagName.navigationName }") {{navTagName.displayName}}
 		span.breadcrumb-arrow.glyphicon.glyphicon-menu-right(ng-if="navTagName.addComma")
 

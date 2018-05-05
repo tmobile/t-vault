@@ -5,9 +5,7 @@
 
     function baseController(SessionStore) {
         var vm = this;
-
-        console.log('base cotroller');
-
+        vm.baseLoading = false;
         vm.safesNavTags = [{
             displayName: 'SAFES',
             navigationName: 'safes',

@@ -19,8 +19,8 @@
 
 'use strict';
 (function(app) {
-    app.service( 'Authentication', function( fetchData, $window, ServiceEndpoint, ErrorMessage, $q, $http, Idle, Keepalive, AppConstant, SessionStore){
-        return {
+    app.service( 'Authentication', function(RestEndpoints, fetchData, $window, ServiceEndpoint, ErrorMessage, $q, $http, Idle, Keepalive, AppConstant, SessionStore){
+        var service = {
             authenticateUser: function(reqObjtobeSent, callback) {
               try{
 
@@ -51,21 +51,24 @@
                         Idle.setTimeout(leaseDuration - 180);
                         Keepalive.setInterval(leaseDuration - 60);
                     }, function (error) {
-                        window.location.replace('signup');
+                        window.location.replace('/!#/signup');
                         SessionStore.clear();
                         console.log("error retrieving token", error);
                         return error;
                     });
             },
-            revokeAuthToken: function (vaultAPIKey) {
-              return ServiceEndpoint.revokeToken
-                  .makeRequest(null, null, {"vault-token": vaultAPIKey})
-                  .then(function(response) {
-                      return response;
-                      },
-                      function (error) {
-                        console.log(error);
-                      });
+            revokeAuthToken: function () {
+                var url = RestEndpoints.baseURL + '/auth/tvault/revoke';
+                return $http({
+                    method: 'POST',
+                    url: url,
+                    headers: {
+                        'vault-token': SessionStore.getItem('myVaultKey')
+                    }
+                })
+                .then(function (response) {
+                    return response.data;
+                });
             },
             getTheRightErrorMessage: function(responseObject){
                 if(responseObject.status==='500' || responseObject.statusText==='Internal Server Error'){
@@ -82,9 +85,21 @@
             formatUsernameWithoutDomain: function(username){
                 var regex = /^(corp\/|corp\\)/gi;
                 return username.replace(regex, '');
-            }
+            },
+
+            logout: logout
 
         };
+
+        function logout() {
+            return service.revokeAuthToken()
+                .finally(function (error) {
+                    window.location.replace("/!#/signup");
+                });
+        }
+
+
+        return service;
     } );
 })(angular.module('vault.services.Authentication',[
     'vault.services.ServiceEndpoint',

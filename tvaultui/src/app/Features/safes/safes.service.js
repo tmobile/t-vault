@@ -3,14 +3,16 @@
     angular.module('vault.features.safes')
         .factory('safesService', safesService);
 
-    function safesService(SAFES_CONSTANTS, $http, RestEndpoints, SessionStore, $q) {
+    function safesService(SAFES_CONSTANTS, $http, RestEndpoints, SessionStore, $q, Modal, Authentication) {
         var service = {
             getSafeTabs: getSafeTabs,
+            getSafesNavTags: getSafesNavTags,
             parseSafes: parseSafes,
             createFolder: createFolder,
             saveFolder: saveFolder,
             deleteFolder: deleteFolder,
-            getFolderContent: getFolderContent
+            getFolderContent: getFolderContent,
+            itemIsValidToSave: itemIsValidToSave
         };
 
         function getFolderContent(path) {
@@ -88,6 +90,45 @@
             }).catch(catchError);
         }
 
+        function itemIsValidToSave(item, index, parent) {
+            //SECRET MISSING INPUT
+            if (!item.key || !item.value) {
+                return Modal.createModalWithController('stop.modal.html', {
+                    title: 'Unable to complete action',
+                    message: 'Form is missing one or more data fields.'
+                });
+            }
+
+            //SECRET DUPLICATE KEY
+            var otherWithSameName = parent.children.find(function (childItem, position) {
+                if (position === index) return false;
+                var comparator = (childItem.type === 'folder') ?
+                    childItem.id.split('/').pop() : childItem.key;
+                return comparator === item.key;
+            });
+
+            if (otherWithSameName) {
+                return Modal.createModalWithController('stop.modal.html', {
+                    title: 'Unable to complete action',
+                    message: 'This folder already contains an item with the specified name.'
+                });
+            }
+
+            //SECRET CONTAINS NEWLINE
+            var regex = /\n|\r/gm;
+            if (!!item.value.match(regex)) {
+                return Modal.createModalWithController('confirm.modal.html', {
+                    title: 'Notice',
+                    message: 'Line-break characters are restricted in Safe Keys and will be removed before saving.',
+                    submitLabel: 'OK'
+                })
+                    .then(function () {
+                        var newValue = item.value.replace(regex, '');
+                        item.value = newValue;
+                    });
+            }
+            return $q.when(true);
+        }
 
         function getSafeTabs() {
             return SAFES_CONSTANTS.SAFE_TYPES
@@ -99,6 +140,31 @@
                 })
         }
 
+        function getSafesNavTags() {
+            return [{
+                displayName: 'SAFES',
+                navigationName: 'safes',
+                addComma: false,
+                show: true
+            }, {
+                displayName: 'ADMIN',
+                navigationName: 'admin',
+                addComma: false,
+                show: (JSON.parse(SessionStore.getItem("isAdmin")))
+            }, {
+                displayName: 'DOCUMENTATION',
+                navigationName: 'documentation',
+                addComma: false,
+                show: true,
+                redirectTo: function () {
+                    var address = RestEndpoints.baseURL + '/swagger-ui.html';
+                    var link = document.createElement('a');
+                    link.setAttribute('href', address);
+                    link.setAttribute('target', '_blank');
+                    link.click();
+                }
+            }];
+        }
 
         function parseSafes(safeListObject) {
             return safeListObject

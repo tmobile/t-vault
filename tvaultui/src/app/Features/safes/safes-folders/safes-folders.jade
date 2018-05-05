@@ -1,31 +1,3 @@
-script(type='text/ng-template', id='text-input.modal.html')
-    .modal-sep.createFolder.montserrat
-        .common-header-label.text-center {{config.title}}
-    form.createFolder.left-lg-sep.right-lg-sep
-        .modal-inner-wrapper
-            .common-form
-                .common-form-row
-                    .details-input-group
-                        .common-form-label {{config.inputLabel}}
-                        input.form-control.input-box-style(placeholder="{{config.placeholder}}" restrict-special-char ng-model="form.inputValue" required)
-                .common-form-row(ng-if="config.passwordLabel")
-                    .details-input-group
-                        .common-form-label {{config.passwordLabel}}
-                        input.form-control.input-box-style(placeholder="{{config.passwordPlaceholder}}" type="password" restrict-special-char ng-model="form.passwordValue" required)
-        .au-modal-buttons
-            .au-inline-buttons
-                button.common-btn.btn.btn-primary.btn-lg(ng-click="close({inputValue: form.inputValue, passwordValue: form.passwordValue})") {{config.submitLabel}}
-                button.link-style.common-btn.btn.btn-default.btn-lg(ng-click="dismiss()") {{config.cancelLabel}}
-script(type='text/ng-template', id='error.modal.html')
-    .row.montserrat
-        .top-lg-sep
-            .common-header-label.text-center {{config.title}}
-        .top-lg-sep.notification-text {{config.message}}
-
-    .text-center.bottom-lg-sep.top-lg-sep.notification-button
-        .clearfix.bottom-sm-sep
-            button.link-style.common-btn.btn.btn-primary.btn-lg(ng-click="close()") Close
-
 md-content.au-100-height
     md-tabs.md-dynamic-height.md-border-bottom(md-selected="vm.tabIndex")
         md-tab(ng-repeat="tab in vm.safeCategories" ng-attr-label="{{tab.name}}" ng-click="vm.clickSafeTab(tab)")

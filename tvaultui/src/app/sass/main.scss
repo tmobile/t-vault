@@ -79,7 +79,10 @@
 
 // Common styles
 @import 'sass/common.scss';
+
+//Modules
 @import 'sass/modules/layout';
 @import "sass/modules/searchbar";
 @import "sass/modules/base";
 @import "sass/modules/modal";
+@import "sass/modules/forms";

@@ -9,11 +9,15 @@
             .state('safes-tabs', {
                 url: '/safes-tabs',
                 parent: 'base',
-                resolve: {},
+                resolve: {
+                    auth: function () {
+
+                    }
+                },
                 views: {
                     'content@base': {
                         templateUrl: 'app/Features/safes/safes-tabs/safes-tabs.html',
-                        controller: 'safesTabsController as vm'
+                        controller: 'safesTabsController'
                     }
                 }
             })
@@ -21,10 +25,10 @@
             url: '/safes',
             parent: 'safes-tabs',
             params: {
-                type: 'shared'
+                type: 'users'
             },
             resolve: {
-                safes: function (SessionStore, $q) {
+                safes: function (SessionStore, $q, $state) {
                     return JSON.parse(SessionStore.getItem('accessSafes'));
                 }
             },
@@ -39,19 +43,27 @@
                 url: '/safes/folders/:path',
                 parent: 'safes-tabs',
                 resolve: {
-                    folderContent: function (safesService, SafesManagement, $stateParams) {
-                        return safesService.getFolderContent($stateParams.path)
+                    folderContent: function (safesService, SafesManagement, $state, $stateParams, $q) {
+                        var deferred = $q.defer();
+                        safesService.getFolderContent($stateParams.path)
+                            .then(function(data) {
+                                deferred.resolve(data);
+                            })
+                            .catch(function (error) {
+                                if(error.status === 403) {
+                                    Authentication.logout()
+                                }
+                            });
+                        return deferred.promise;
                     },
                     writeAccess: function (folderContent, SessionStore) {
                         var safeType = folderContent.id.split('/')[0];
                         var safeName = folderContent.id.split('/')[1];
-                        var admin = JSON.parse(SessionStore.getItem('isAdmin'));
                         var safesOfType = JSON.parse(SessionStore.getItem('accessSafes'))[safeType];
                         var writeAccess = safesOfType.find(function (safeObj) {
                             return safeObj[safeName];
                         })[safeName];
-
-                        return admin || (writeAccess === 'write');
+                        return (writeAccess === 'write');
                     }
                 },
                 params: {

@@ -29,12 +29,9 @@
                     scope.showingDropdown = !scope.showingDropdown;
                 };
                 scope.logout = function() {
-                    var token = SessionStore.getItem('myVaultKey');
-                    SessionStore.clear();
-                    Authentication.revokeAuthToken(token);
-                    window.location.replace('signup');
+                    Authentication.logout();
                 }               
             }
         }
     } );
-})(angular.module('vault.directives.header',[]))
+})(angular.module('vault.directives.header',[]));

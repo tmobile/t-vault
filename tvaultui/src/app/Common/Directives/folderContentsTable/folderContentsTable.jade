@@ -1,7 +1,7 @@
-.unavailable-text(ng-if='!vm.folderContent.children.length')
+.unavailable-text(ng-if='!(vm.folderContent.children | filter : vm.filter).length')
     | No folders or secrets found here.
 
-.table-container(ng-if="vm.folderContent.children.length")
+.table-container(ng-if="(vm.folderContent.children | filter : vm.filter).length")
     .table-header
         .row
             .cell.col-lg-5.col-md-5.col-sm-5.col-xs-4.table-first-cell NAME

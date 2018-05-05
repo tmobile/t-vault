@@ -71,7 +71,6 @@
         'vault.features.ChangeSafeCtrl',
         'vault.features.DocumentationCtrl',
         'vault.features.UnsealCtrl',
-        'vault.features.SafesCtrl',
         'vault.features.safes'
     ]);
     angular.module( 'vault.services', [
