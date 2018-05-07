@@ -109,8 +109,8 @@
 
             if (otherWithSameName) {
                 return Modal.createModalWithController('stop.modal.html', {
-                    title: 'Unable to complete action',
-                    message: 'This folder already contains an item with the specified name.'
+                    title: 'Key already exists.',
+                    message: 'This folder already contains an item with the specified name. You can\'t store two secrets with the same key. Please try a different name for the key.'
                 });
             }
 
