@@ -59,8 +59,8 @@
               } else {
                 var error = response.data;
                 return Modal.createModalWithController('error.html', {
-                  shortMessage: error.errors[0],
-                  longMessage: error.errors[1]
+                  shortMessage: error && error.errors[0] || 'There was an error. Please try again, if the problem persists contact an administrator',
+                  longMessage: error && error.errors[1]
              
                   })
               }
