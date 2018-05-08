@@ -1,0 +1,37 @@
+md-content.au-100-height
+    md-tabs.md-dynamic-height.md-border-bottom(md-selected="vm.tabIndex")
+        md-tab(ng-repeat="tab in vm.safeCategories" ng-attr-label="{{tab.name}}" ng-click="vm.clickSafeTab(tab)")
+            md-content
+                div.invisible stand-in content
+
+    md-content.au-tabs-inner
+        .md-content-inner-wrapper
+            .new-container.page-content-container
+                .create-folder-container.slide-header
+                    .function-text
+                        .clearfix
+                            .editColor.left.static(ng-click="vm.goToSafeTiles()")
+                                .glyphicon.glyphicon-chevron-left
+                            div.left
+                                span(ng-repeat="folder in vm.folderPathArray")
+                                    span(ng-click="vm.goToFolder(folder.fullPath)" ng-class="{'folder-link': !$last}") {{folder.folderName}}
+                                    span(ng-if="!$last") {{' / '}}
+
+                    .function-text.link-style.option.right(ng-click="vm.createFolder()" ng-if="vm.writeAccess")
+                        .action-icon-wrapper.static
+                            .rotate.glyphicon.glyphicon-remove-circle
+                        .create-link.middle-block
+                            .text.hide-in-mobile CREATE NEW FOLDER
+
+                    .function-text.link-style.option.right(ng-click="vm.createSecret()" ng-if="vm.userViewingFolder && vm.writeAccess")
+                        .action-icon-wrapper.static
+                            .rotate.glyphicon.glyphicon-remove-circle
+                        .create-link.middle-block
+                            .text.hide-in-mobile CREATE NEW SECRET
+            .au-loader(ng-if="vm.loadingFlag")
+                loading-state
+
+            folder-contents-table(folder-content="vm.folderContent" loading="vm.loading" write="vm.writeAccess" ng-if="!vm.loadingFlag")
+
+
+

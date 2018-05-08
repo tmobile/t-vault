@@ -1,0 +1,11 @@
+.au-tabs
+    .au-tabs-header
+        .au-tabs-gutter
+            nav-bar(active-tab="safes" nav-tags="safesNavTags")
+            .page-header-text SAFES
+            searchbar.au-push-left
+
+    .au-tabs-body
+        .au-loader(ng-if="loadingSafeTabs")
+            loading-state
+        .au-100-height(ui-view="content" ng-if="!loadingSafeTabs")

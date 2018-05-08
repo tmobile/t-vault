@@ -1,0 +1,40 @@
+
+.au-base-content {
+  height: 93vh;
+  padding: 2vh calc(.5% + 15px);
+  font-family: Montserrat;
+}
+
+.au-tabs {
+  display: table;
+  border-radius: $border-radius-large;
+  height: 100%;
+  width: 100%;
+  background: #fff;
+  padding: 2.5vh 0;
+}
+
+.au-tabs-header {
+  display: table-row;
+  position: relative;
+}
+
+.au-tabs-body {
+  display: table-row;
+  height: 100%;
+}
+
+.au-tabs-gutter {
+  padding: 0 2.81vw;
+}
+
+.au-tabs-inner {
+  margin: 0 auto;
+  width: 80vw;
+  padding: 16px;
+}
+
+
+
+
+

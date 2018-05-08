@@ -29,12 +29,7 @@
   /** @ngInject */
   function runBlock($log, Idle, $rootScope, $state, Keepalive, SessionStore, Authentication) {
       $rootScope.$on('IdleTimeout', function () {
-          var vaultAPIKey = SessionStore.getItem('myVaultKey');
-          SessionStore.clear();
-          Authentication.revokeAuthToken(vaultAPIKey);
-          window.location.replace('signup');
-
-
+          Authentication.logout();
       });
 
       $rootScope.$on('Keepalive', function () {

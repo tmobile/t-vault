@@ -28,7 +28,12 @@
                 navTags:"="
 	        },
 	        link: function (scope, elem, attr) {     
-		        scope.goTo=function(tab){ 
+		        scope.goTo=function(navTag){
+		            var tab = navTag.navigationName;
+		            if(navTag.redirectTo) {
+		                return navTag.redirectTo();
+                    }
+
                     if(tab !== 'details' && tab !== 'permissions') {
                         try {
                             $state.go(tab);

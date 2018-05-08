@@ -19,7 +19,7 @@
 
 'use strict';
 (function(app){
-    app.service( 'SafesManagement', function( ServiceEndpoint, $q, DataCache, fetchData, $rootScope, ModifyUrl, ErrorMessage ) {
+    app.service( 'SafesManagement', function( $http, SessionStore, ServiceEndpoint, $q, DataCache, fetchData, $rootScope, ModifyUrl, ErrorMessage, UtilityService, Modal ) {
 
         this.saveNewFolder = function(payload, path) {
             var url = ModifyUrl.addUrlParameteres('saveNewFolder', path);

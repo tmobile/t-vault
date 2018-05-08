@@ -69,6 +69,26 @@ this.readTextFile("../apiUrls.json");
             url: '/auth/tvault/revoke',
             method: 'POST'
         },
+            {
+                name: 'writeSecretV2',
+                url: '/v2/write',
+                method: 'POST'
+            },
+            {
+                name: 'createFolderV2',
+                url: '/v2/sdb/createfolder',
+                method: 'POST'
+            },
+            {
+                name: 'readAllContents',
+                url: '/readAll',
+                method: 'GET'
+            },
+            {
+                name: 'readAllContentsRecursive',
+                url: '/readfull',
+                method: 'GET'
+            },
 
             {/* To enable ldap insert this to "url" : '/auth/ldap/login' */
             name: 'login',
@@ -80,7 +100,7 @@ this.readTextFile("../apiUrls.json");
             method: 'GET'
         }, {
             name: 'deleteSafe',
-            url: '/sdb/delete?',
+            url: '/v2/sdb/delete?',
             method: 'DELETE'
         }, {
             name: 'getSafeInfo',

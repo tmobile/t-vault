@@ -70,7 +70,7 @@ script(type='text/ng-template', id='deleteSecretPopup.html')
                                     .folder-key {{ key.key }}
                                 .cell.block-3.col-lg-4.col-md-4.col-sm-4.col-xs-4.folder-key-input
                                     input(class="form-control" ng-attr-type="{{ showPassword ? 'text' : 'password' }}" ng-model="key.value")
-                                    .list-icon.icon-views(ng-mousedown="showPassword = !showPassword" ng-mouseup="showPassword = !showPassword")                                
+                                    .list-icon.icon-views(ng-mousedown="showPassword = !showPassword" ng-mouseup="showPassword = !showPassword")
                                 .down
                                     .list-icon.icon-content_copy(ng-click = "copy(key.value)")
                                 .down(ng-if="auth === 'write'")

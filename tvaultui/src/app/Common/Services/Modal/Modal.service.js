@@ -23,7 +23,7 @@
         var modalInstance;
         var animationsEnabled = true;   // Toggle to enable or disable animations of the modal
         return {
-            createModal : function (size, template, controller, scope) {
+            createModal : function (size, template, controller, scope, $q) {
                 if(modalInstance){
                     this.close();
                 }
@@ -53,10 +53,28 @@
                     modalInstance = null;
                 }                
             },
-
             save : function () {
                 modalInstance.close('Save clicked');        // modalInstance.dismiss('....') is also valid way to close the modal
                 modalInstance = null;
+            },
+            createModalWithController: function (templateUrl, config) {
+                //Modals are stored in app/Layout/base/base.jade
+                var modal = $uibModal.open({
+                    templateUrl: templateUrl,
+                    animationsEnabled: animationsEnabled,
+                    size: config.size || 'md',
+                    controller: function ($scope, $uibModalInstance) {
+                        $scope.dismiss = $uibModalInstance.dismiss;
+                        $scope.close = $uibModalInstance.close;
+                        $scope.config = config;
+                        $scope.form = {
+                            inputValue: '',
+                            passwordValue: ''
+                        }
+                    }
+                });
+
+                return modal.result;
             }
 
         };

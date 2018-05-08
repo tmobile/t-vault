@@ -38,9 +38,28 @@
         'vault.constants',
         'vault.directives',
         'vault.factories',
+        'vault.layout',
+        'vault.core',
         'ngIdle'
     ]);
 
+    angular.module('vault.core', [
+        'ngAnimate',
+        'ngCookies',
+        'ngTouch',
+        'ngSanitize',
+        'ngMessages',
+        'ngResource',
+        'ui.router',
+        'ui.bootstrap',
+        'toastr',
+        'counter',
+        'ngMaterial',
+        'ngTable',
+        'ui.select',
+        'ngIdle',
+        'vault.directives'
+    ]);
 
     // Module names categorized for better understanding and to
     // track the modules being used in the code
@@ -48,11 +67,11 @@
 
     angular.module( 'vault.features', [
         'vault.features.SignUpCtrl',
-        'vault.features.SafesCtrl',
         'vault.features.AdminCtrl',
         'vault.features.ChangeSafeCtrl',
         'vault.features.DocumentationCtrl',
-        'vault.features.UnsealCtrl'
+        'vault.features.UnsealCtrl',
+        'vault.features.safes'
     ]);
     angular.module( 'vault.services', [
         'vault.services.CopyToClipboard',
@@ -102,7 +121,10 @@
         'vault.directives.radioButtons',
         'vault.directives.restrictSpecialChar',
         'vault.directives.dropDown',
-        'vault.directives.navBar'
+        'vault.directives.navBar',
+        'vault.directives.folderContentsTable',
+        'vault.directives.folderContentsRow',
+        'vault.directives.searchbar'
     ]);
 
     angular.module( 'vault.factories', [

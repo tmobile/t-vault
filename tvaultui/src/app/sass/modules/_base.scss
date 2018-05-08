@@ -1,0 +1,35 @@
+.au-push-left {
+  margin-left:auto;
+}
+
+.au-100-height {
+  height: 100%
+}
+
+.centered {
+  text-align: center;
+}
+
+.fits-contents {
+  display: inline-block;
+  word-break: break-all;
+}
+
+
+.vertical-center {
+  margin: 0;
+  position: absolute;
+  top: 50%;
+  left: 100%;
+  transform: translate(-50%, -50%)
+}
+
+.au-loader {
+  position: relative;
+  min-height: 16rem;
+  height: 100%;
+}
+
+.montserrat {
+  font-family: Montserrat;
+}
