@@ -35,4 +35,4 @@
             }
         }
     } );
-})(angular.module('vault.directives.loadingState',[]))
+})(angular.module('vault.directives.loadingState',[]));

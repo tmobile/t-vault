@@ -171,4 +171,4 @@
             };
         }
     );
-})(angular.module('vault.directives.dateTimeFilter',[]))
+})(angular.module('vault.directives.dateTimeFilter',[]));

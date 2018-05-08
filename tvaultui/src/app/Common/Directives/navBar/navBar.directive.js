@@ -59,4 +59,4 @@
 		    }
         }
     } );
-})(angular.module('vault.directives.navBar',[]))
+})(angular.module('vault.directives.navBar',[]));
