@@ -148,7 +148,7 @@ public class UserPassController {
 	@PostMapping(value="/login",produces="application/json")	
 	public ResponseEntity<String> login(@RequestBody String jsonStr){
 		
-		log.info("login user");
+		log.info("login user {}", jsonStr);
 		
 		Response response = reqProcessor.process("/auth/userpass/login",jsonStr,"");
 
@@ -156,6 +156,12 @@ public class UserPassController {
 		if(HttpStatus.OK.equals(response.getHttpstatus())){
 			return ResponseEntity.status(response.getHttpstatus()).body(response.getResponse());
 		}else{
+			if (HttpStatus.BAD_REQUEST.equals(response.getHttpstatus())) {
+				return ResponseEntity.status(response.getHttpstatus()).body("{\"errors\": [\"User Authentication failed\", \"Invalid username and/or password combination. Please retry again after correcting username/password.\"]}");
+			}
+			else if (HttpStatus.INTERNAL_SERVER_ERROR.equals(response.getHttpstatus())) {
+				return ResponseEntity.status(response.getHttpstatus()).body("{\"errors\": [\"User Authentication failed\", \"This may be due to vault services are down or vault services are not reachable\"]}");
+			}
 			return ResponseEntity.status(response.getHttpstatus()).body("{\"errors\":[\"Username Authentication Failed.\"]}");
 		}
 
