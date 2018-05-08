@@ -30,6 +30,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.tmobile.cso.vault.api.model.UserLogin;
 import com.tmobile.cso.vault.api.service.VaultAuthService;
 
+import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
@@ -37,6 +38,7 @@ import io.swagger.annotations.ApiResponses;
 
 @RestController
 @CrossOrigin
+@Api(description = "Manage Vault Authentication", position = 19)
 public class VaultAuthControllerV2 {
     @Value("${vault.auth.method}")
     private String vaultAuthMethod;

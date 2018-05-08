@@ -42,8 +42,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tmobile.cso.vault.api.process.RequestProcessor;
 import com.tmobile.cso.vault.api.process.Response;
 
+import io.swagger.annotations.Api;
+
 @RestController
 @CrossOrigin
+@Api(description = "Manage Safes/SDBs", position = 6)
 public class SDBController {
 	private Logger log = LogManager.getLogger(LDAPAuthController.class);
 

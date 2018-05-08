@@ -3,10 +3,11 @@ package com.tmobile.cso.vault.api.config;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.PropertySource;
+import org.springframework.web.bind.annotation.CrossOrigin;
 
 import com.tmobile.cso.vault.api.controller.SDBController;
 
@@ -22,17 +23,18 @@ import springfox.documentation.swagger2.annotations.EnableSwagger2;
 
 @Configuration
 @EnableSwagger2
-@ComponentScan(basePackageClasses = {
-		SDBController.class
-})
+@EnableAutoConfiguration
+@ComponentScan(basePackages="com.tmobile.cso.vault.api.*")
 public class SwaggerConfig {
 
 	@Bean
 	public Docket tvaultapi() {
 		return new Docket(DocumentationType.SWAGGER_2).select()                                  
 				.apis(RequestHandlerSelectors.any())              
-				.paths(PathSelectors.any())                          
-				.build().apiInfo(metadata());
+				.paths(PathSelectors.any())                      
+				.build()
+				.pathMapping("/")
+				.apiInfo(metadata());
 	}
 	/**
 	 * TODO: Values to be corrected later

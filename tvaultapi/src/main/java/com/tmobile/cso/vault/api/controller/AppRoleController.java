@@ -30,18 +30,18 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tmobile.cso.vault.api.process.RequestProcessor;
 import com.tmobile.cso.vault.api.process.Response;
+
+import io.swagger.annotations.Api;
 
 
 @RestController
 @RequestMapping(value="/auth/approle")
 @CrossOrigin
-
+@Api(description = "Manage AppRole Authentication", position = 2)
 public class AppRoleController {
 	
 	private Logger log = LogManager.getLogger(AppRoleController.class);

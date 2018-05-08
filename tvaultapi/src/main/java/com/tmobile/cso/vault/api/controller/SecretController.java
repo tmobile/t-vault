@@ -37,9 +37,12 @@ import com.tmobile.cso.vault.api.model.SafeNode;
 import com.tmobile.cso.vault.api.process.RequestProcessor;
 import com.tmobile.cso.vault.api.process.Response;
 
+import io.swagger.annotations.Api;
+
 
 @RestController
 @CrossOrigin
+@Api(description = "Manage Secrets", position = 5)
 public class SecretController {
 	
 	@Autowired
@@ -88,31 +91,31 @@ public class SecretController {
 		}
 	}
 	
-	@PostMapping(value="/v2/write",consumes="application/json",produces="application/json")
-	public ResponseEntity<String> write(@RequestHeader(value="vault-token") String token, @RequestBody String jsonStr){
-		
-		String path="";
-		try {
-			path = new ObjectMapper().readTree(jsonStr).at("/path").asText();
-			if (!ControllerUtil.isSecretKeyValid(jsonStr)) {
-				return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid request.Check json data\"]}");
-			}
-		} catch (IOException e) {
-			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid request.Check json data\"]}");
-		}
-		if(ControllerUtil.isPathValid(path)){
-			//if(ControllerUtil.isValidSafe(path,token)){
-				Response response = reqProcessor.process("/write",jsonStr,token);
-				if(response.getHttpstatus().equals(HttpStatus.NO_CONTENT))
-					return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Secret saved to vault\"]}");
-				return ResponseEntity.status(response.getHttpstatus()).body(response.getResponse());
-			//}else{
-			//	return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid safe\"]}");
-			//}
-		}else{
-			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid path\"]}");
-		}
-	}
+//	@PostMapping(value="/v2/write",consumes="application/json",produces="application/json")
+//	public ResponseEntity<String> write(@RequestHeader(value="vault-token") String token, @RequestBody String jsonStr){
+//		
+//		String path="";
+//		try {
+//			path = new ObjectMapper().readTree(jsonStr).at("/path").asText();
+//			if (!ControllerUtil.isSecretKeyValid(jsonStr)) {
+//				return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid request.Check json data\"]}");
+//			}
+//		} catch (IOException e) {
+//			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid request.Check json data\"]}");
+//		}
+//		if(ControllerUtil.isPathValid(path)){
+//			//if(ControllerUtil.isValidSafe(path,token)){
+//				Response response = reqProcessor.process("/write",jsonStr,token);
+//				if(response.getHttpstatus().equals(HttpStatus.NO_CONTENT))
+//					return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Secret saved to vault\"]}");
+//				return ResponseEntity.status(response.getHttpstatus()).body(response.getResponse());
+//			//}else{
+//			//	return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid safe\"]}");
+//			//}
+//		}else{
+//			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid path\"]}");
+//		}
+//	}
 	
 	
 	

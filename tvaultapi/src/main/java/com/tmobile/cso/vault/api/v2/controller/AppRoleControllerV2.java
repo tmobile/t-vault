@@ -33,22 +33,16 @@ import com.tmobile.cso.vault.api.model.AppRoleIdSecretId;
 import com.tmobile.cso.vault.api.model.AppRoleNameSecretId;
 import com.tmobile.cso.vault.api.model.AppRoleSecretData;
 import com.tmobile.cso.vault.api.model.SafeAppRoleAccess;
-import com.tmobile.cso.vault.api.process.RequestProcessor;
 import com.tmobile.cso.vault.api.service.AppRoleService;
 
+import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 
 
 @RestController
 @CrossOrigin
-
+@Api(description = "Manage AppRole Authentication", position = 12)
 public class AppRoleControllerV2 {
-
-	@Autowired
-	private RequestProcessor reqProcessor;
-	
-//	@Autowired
-//	private SDBController sdbController = new SDBController();
 
 	@Autowired
 	private AppRoleService appRoleService;

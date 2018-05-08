@@ -35,11 +35,13 @@ import com.tmobile.cso.vault.api.model.UserLogin;
 import com.tmobile.cso.vault.api.model.UserpassUser;
 import com.tmobile.cso.vault.api.service.UserPassService;
 
+import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 
 
 @RestController
 @CrossOrigin
+@Api(description = "Manage Userpass Authentication", position = 18)
 public class UserPassControllerV2 {
 
 	private Logger log = LogManager.getLogger(UserPassControllerV2.class);
@@ -113,7 +115,7 @@ public class UserPassControllerV2 {
 	 * @return
 	 */
 	@ApiOperation(value = "${UserPassControllerV2.login.value}", notes = "${UserPassControllerV2.login.notes}")
-	@PostMapping(value="/v2/auth/userpass/login",produces="application/json")	
+	@PostMapping(value="/v2/auth/userpass/login")	
 	public ResponseEntity<String> login(@RequestBody UserLogin user){
 		return userpassService.login(user);
 	}

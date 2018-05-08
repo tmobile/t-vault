@@ -39,10 +39,13 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tmobile.cso.vault.api.process.RequestProcessor;
 import com.tmobile.cso.vault.api.process.Response;
 
+import io.swagger.annotations.Api;
+
 
 @RestController
 @RequestMapping(value="/auth/ldap")
 @CrossOrigin
+@Api(description = "Manage LDAP Authentication", position = 4)
 public class LDAPAuthController {
 	
 	private Logger log = LogManager.getLogger(LDAPAuthController.class);

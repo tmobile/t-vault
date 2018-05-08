@@ -33,10 +33,13 @@ import org.springframework.web.bind.annotation.RestController;
 import com.tmobile.cso.vault.api.process.RequestProcessor;
 import com.tmobile.cso.vault.api.process.Response;
 
+import io.swagger.annotations.Api;
+
 
 @RestController
 @RequestMapping(value="/access")
 @CrossOrigin
+@Api(description = "Manage Vault Policies", position = 1)
 public class AccessController {
 	
 	@Autowired

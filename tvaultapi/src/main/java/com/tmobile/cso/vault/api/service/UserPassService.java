@@ -23,6 +23,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 
+import com.tmobile.cso.vault.api.model.TVaultError;
 import com.tmobile.cso.vault.api.model.UserLogin;
 import com.tmobile.cso.vault.api.model.UserpassUser;
 import com.tmobile.cso.vault.api.process.RequestProcessor;
@@ -37,7 +38,12 @@ public class  UserPassService {
 
 	@Value("${vault.auth.method}")
 	private String vaultAuthMethod;
-
+	/**
+	 * To create user
+	 * @param token
+	 * @param user
+	 * @return
+	 */
 	public ResponseEntity<String> createUser(String token, UserpassUser user){
 		String jsonStr = JSONUtil.getJSON(user);
 		Response response = reqProcessor.process("/auth/userpass/create", jsonStr,token);
@@ -46,13 +52,22 @@ public class  UserPassService {
 		}
 		return ResponseEntity.status(response.getHttpstatus()).body(response.getResponse());	
 	}
-
-
+	/**
+	 * To get user info
+	 * @param token
+	 * @param username
+	 * @return
+	 */
 	public ResponseEntity<String> readUser(String token, String username){
 		Response response = reqProcessor.process("/auth/userpass/read","{\"username\":\""+username+"\"}",token);
 		return ResponseEntity.status(response.getHttpstatus()).body(response.getResponse());	
 	}
-
+	/**
+	 * To delete user
+	 * @param token
+	 * @param username
+	 * @return
+	 */
 	public ResponseEntity<String> deleteUser(String token, String username){
 		UserLogin user = new UserLogin();
 		user.setUsername(username);
@@ -63,7 +78,12 @@ public class  UserPassService {
 		}
 		return ResponseEntity.status(response.getHttpstatus()).body(response.getResponse());	
 	}
-
+	/**
+	 * To update password
+	 * @param token
+	 * @param user
+	 * @return
+	 */
 	public ResponseEntity<String> updatePassword( String token, UserpassUser user){
 		String jsonStr = JSONUtil.getJSON(user);
 		Response response = reqProcessor.process("/auth/userpass/update",jsonStr,token);
@@ -72,21 +92,34 @@ public class  UserPassService {
 		}
 		return ResponseEntity.status(response.getHttpstatus()).body(response.getResponse());	
 	}
-	
+	/**
+	 * To get list of users
+	 * @param token
+	 * @return
+	 */
 	public ResponseEntity<String> listUsers(String token){
 		Response response = reqProcessor.process("/auth/userpass/list","{}",token);
 		return ResponseEntity.status(response.getHttpstatus()).body(response.getResponse());	
 
 	}
-	
+	/**
+	 * To login using userpass auth
+	 * @param user
+	 * @return
+	 */
 	public ResponseEntity<String> login(UserLogin user){
 		String jsonStr = JSONUtil.getJSON(user);
 		Response response = reqProcessor.process("/auth/userpass/login",jsonStr,"");
 		if(HttpStatus.OK.equals(response.getHttpstatus())){
 			return ResponseEntity.status(response.getHttpstatus()).body(response.getResponse());
 		}else{
+			if (HttpStatus.BAD_REQUEST.equals(response.getHttpstatus())) {
+				return ResponseEntity.status(response.getHttpstatus()).body("{\"errors\": [\"User Authentication failed\", \"Invalid username and/or password combination. Please retry again after correcting username/password.\"]}");
+			}
+			else if (HttpStatus.INTERNAL_SERVER_ERROR.equals(response.getHttpstatus())) {
+				return ResponseEntity.status(response.getHttpstatus()).body("{\"errors\": [\"User Authentication failed\", \"This may be due to vault services are down or vault services are not reachable\"]}");
+			}
 			return ResponseEntity.status(response.getHttpstatus()).body("{\"errors\":[\"Username Authentication Failed.\"]}");
 		}
-
 	}
 }

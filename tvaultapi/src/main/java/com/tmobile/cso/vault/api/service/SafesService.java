@@ -30,6 +30,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -59,6 +60,59 @@ public class  SafesService {
 
 
 	private static Logger logger = LogManager.getLogger(SafesService.class);
+	
+	/**
+	 * Get Folders
+	 * @param token
+	 * @param path
+	 * @return
+	 */
+	public ResponseEntity<String> getFolders( String token, String path){
+		String _path = "";
+		if( "apps".equals(path)||"shared".equals(path)||"users".equals(path)){
+			_path = "metadata/"+path;
+		}else{
+			 _path = path;
+		}
+		
+		Response response = reqProcessor.process("/sdb/list","{\"path\":\""+_path+"\"}",token);
+		return ResponseEntity.status(response.getHttpstatus()).body(response.getResponse());
+	}
+	/**
+	 * Get SDB Info
+	 * @param token
+	 * @param path
+	 * @return
+	 */
+	public ResponseEntity<String> getInfo(String token, String path){
+		String _path = "metadata/"+path;
+		Response response = reqProcessor.process("/sdb","{\"path\":\""+_path+"\"}",token);
+		return ResponseEntity.status(response.getHttpstatus()).body(response.getResponse());
+		
+	}
+	/**
+	 * Create a folder
+	 * @param token
+	 * @param path
+	 * @return
+	 */
+	public ResponseEntity<String> createfolder(String token, String path){
+		
+		if(ControllerUtil.isValidDataPath(path)){
+			//if(ControllerUtil.isValidSafe(path, token)){
+				String jsonStr ="{\"path\":\""+path +"\",\"data\":{\"default\":\"default\"}}";
+				Response response = reqProcessor.process("/sdb/create",jsonStr,token);
+				if(response.getHttpstatus().equals(HttpStatus.NO_CONTENT))
+					return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Folder created \"]}");
+				return ResponseEntity.status(response.getHttpstatus()).body(response.getResponse());
+			//}else{
+			//	return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid safe\"]}");
+			//}
+		}else{
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid path\"]}");
+		}
+		
+	}
 	/**
 	 * Creates Safe
 	 * @param token
