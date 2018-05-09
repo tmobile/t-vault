@@ -38,9 +38,6 @@
 
         $scope.tableOptions = [
             {
-            //     "type": "All safes",
-            //     "value": ""
-            // }, {
                 "type": "User Safe",
                 "value": "User Safe"
             }, {

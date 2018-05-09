@@ -8,10 +8,8 @@
     padding: 0rem !important;
 }
 .tiles-wrapper ul li {
-    // width: 24%;
     width: auto;
     height: auto;
-    // padding: 1.5vw 2.5vw;
     padding: 1.5vw 0 1.5vw 4vw;
 }
 
@@ -55,7 +53,6 @@
     display: flex;
     flex-direction: column;
     justify-content: center;
-    // font-size: $base-font-size-medium;
     font-size: 0.9vw;
 }
 
@@ -65,9 +62,6 @@
 }
 
 @media only screen and (max-width: 426px){
-    .tiles-container {
-      // padding: 0 5px !important;
-    }
     .tiles-wrapper ul {
       text-align: center;
     }
@@ -111,7 +105,6 @@
 }
 .tiles-container-block.admin-parent:hover{
     .admin-tile-overlay{
-        // display: block;
         pointer-events: initial;
         background: $hover-color;
         opacity: 0.9;        
@@ -136,7 +129,6 @@
 }
 .modify-safe-text{
     font-weight: 700;
-    // font-size:$base-font-size;
     font-size: 1.1vw;
     font-family: montserrat;
     display: table-cell;
