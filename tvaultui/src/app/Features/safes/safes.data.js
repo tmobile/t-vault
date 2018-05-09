@@ -19,7 +19,7 @@
                 {
                     label: 'Application',
                     tabLabel: 'Application Safes',
-                    key: 'app'
+                    key: 'apps'
                 }
             ]
         })
