@@ -38,9 +38,9 @@
 
         $scope.tableOptions = [
             {
-                "type": "All safes",
-                "value": ""
-            }, {
+            //     "type": "All safes",
+            //     "value": ""
+            // }, {
                 "type": "User Safe",
                 "value": "User Safe"
             }, {
@@ -381,7 +381,7 @@
         };
 
         init();
-
+        
     });
 })(angular.module('vault.features.AdminCtrl',[
     'vault.services.fetchData',
