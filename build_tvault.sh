@@ -128,7 +128,7 @@ if [[ "$APPS_TO_BUILD" == "UI_ONLY"  || "$APPS_TO_BUILD" == "ALL" ]]; then
    # check for gulp
    # check for Bower
    if [ "$(exists node)" == "0" ] ; then
-      echo "Java is not installed/not available in the path. Please correct it and try again later"
+      echo "Node is not installed/not available in the path. Please correct it and try again later"
       exit 1  
    fi
    if [ "$(exists bower)" == "0" ] ; then
@@ -172,7 +172,6 @@ if [[  "$APPS_TO_BUILD" == "API_ONLY" || "$APPS_TO_BUILD" == "ALL" ]]; then
    echo "-----------------------------------------------------"
    echo "Building TVault API"
    echo "-----------------------------------------------------"
-   # Check for JAVA
    # Check for JAVA
    if [ "$(exists java)" == "0" ] ; then
       echo "Java is not installed/not available in the path. Please correct it and try again later"
