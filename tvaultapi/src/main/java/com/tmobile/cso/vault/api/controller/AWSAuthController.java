@@ -41,9 +41,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tmobile.cso.vault.api.process.RequestProcessor;
 import com.tmobile.cso.vault.api.process.Response;
 
+import io.swagger.annotations.Api;
+
 @RestController
 @RequestMapping(value="/auth/aws")
 @CrossOrigin
+@Api(description = "Manage AWS Authentication", position = 3)
 public class AWSAuthController {
 	
 	@Autowired

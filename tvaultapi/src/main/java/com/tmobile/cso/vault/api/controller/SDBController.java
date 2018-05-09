@@ -22,9 +22,9 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.logging.log4j.LogManager;
-import org.springframework.beans.factory.annotation.Value;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -42,8 +42,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tmobile.cso.vault.api.process.RequestProcessor;
 import com.tmobile.cso.vault.api.process.Response;
 
+import io.swagger.annotations.Api;
+
 @RestController
 @CrossOrigin
+@Api(description = "Manage Safes/SDBs", position = 6)
 public class SDBController {
 	private Logger log = LogManager.getLogger(LDAPAuthController.class);
 
@@ -272,7 +275,62 @@ public class SDBController {
 		}
 	}
 	
-	
+	@SuppressWarnings("unchecked")
+	@DeleteMapping(value="/v2/sdb/delete",produces="application/json")
+	public ResponseEntity<String> deleteFolder(@RequestHeader(value="vault-token") String token, @RequestParam("path") String path){
+		
+		if(ControllerUtil.isPathValid(path) ){
+			Response response = new Response(); 
+			ControllerUtil.recursivedeletesdb("{\"path\":\""+path+"\"}",token,response);
+			if(response.getHttpstatus().equals(HttpStatus.NO_CONTENT)){
+				String folders[] = path.split("[/]+");
+				String r_policy = "r_"+folders[0]+"_"+folders[1];
+				String w_policy = "w_"+folders[0]+"_"+folders[1];
+				String d_policy = "d_"+folders[0]+"_"+folders[1];
+				
+				reqProcessor.process("/access/delete","{\"accessid\":\""+r_policy+"\"}",token);
+				reqProcessor.process("/access/delete","{\"accessid\":\""+w_policy+"\"}",token);
+				reqProcessor.process("/access/delete","{\"accessid\":\""+d_policy+"\"}",token);
+							
+				String _path = "metadata/"+path;
+		
+				// Get SDB metadataInfo
+				response = reqProcessor.process("/sdb","{\"path\":\""+_path+"\"}",token);
+				Map<String, Object> responseMap = null;
+				try {
+					responseMap = new ObjectMapper().readValue(response.getResponse(), new TypeReference<Map<String, Object>>(){});
+				} catch (IOException e) {
+					log.error(e);
+					return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Error Fetching existing safe info \"]}");
+				}
+				if(responseMap!=null && responseMap.get("data")!=null){
+					Map<String,Object> metadataMap = (Map<String,Object>)responseMap.get("data");
+					Map<String,String> awsroles = (Map<String, String>)metadataMap.get("aws-roles");
+					Map<String,String> groups = (Map<String, String>)metadataMap.get("groups");
+					Map<String,String> users = (Map<String, String>) metadataMap.get("users");
+					ControllerUtil.updateUserPolicyAssociationOnSDBDelete(path,users,token);
+					ControllerUtil.updateGroupPolicyAssociationOnSDBDelete(path,groups,token);
+					ControllerUtil.deleteAwsRoleOnSDBDelete(path,awsroles,token);
+				}	
+				ControllerUtil.recursivedeletesdb("{\"path\":\""+_path+"\"}",token,response);
+				return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"SDB deleted\"]}");
+				
+			}else{
+				return ResponseEntity.status(response.getHttpstatus()).body(response.getResponse());
+			}
+		}else if(ControllerUtil.isValidDataPath(path)){
+			Response response = new Response(); 
+			ControllerUtil.recursivedeletesdb("{\"path\":\""+path+"\"}",token,response);
+			if(response.getHttpstatus().equals(HttpStatus.NO_CONTENT)){
+				return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Folder deleted\"]}");
+			}else{
+				return ResponseEntity.status(response.getHttpstatus()).body(response.getResponse());
+			}
+			
+		}else{
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid 'path' specified\"]}");
+		}
+	}
 
 
 	@PostMapping(value="/sdb/adduser",consumes="application/json",produces="application/json")
@@ -915,5 +973,45 @@ public class SDBController {
 		}else{
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid 'path' specified\"]}");
 		}
+	}
+	/**
+	 * Reads the contents of a folder recursively
+	 * @param token
+	 * @param path
+	 * @return
+	 */
+	@GetMapping(value="/v2/sdb/list",produces="application/json")
+	public ResponseEntity<String> getFoldersRecursively(@RequestHeader(value="vault-token") String token, @RequestParam("path") String path){
+		String _path = "";
+		if( "apps".equals(path)||"shared".equals(path)||"users".equals(path)){
+			_path = "metadata/"+path;
+		}else{
+			 _path = path;
+		}
+		
+		Response response = reqProcessor.process("/sdb/list","{\"path\":\""+_path+"\"}",token);
+		return ResponseEntity.status(response.getHttpstatus()).body(response.getResponse());
+		
+	}
+	
+	/**
+	 * Creates a sub folder for a given folder
+	 * @param token
+	 * @param path
+	 * @return
+	 */
+	@PostMapping(value="/v2/sdb/createfolder",produces="application/json")
+	public ResponseEntity<String> createNestedfolder(@RequestHeader(value="vault-token") String token, @RequestParam("path") String path){
+		
+		if(ControllerUtil.isPathValid(path)){
+			String jsonStr ="{\"path\":\""+path +"\",\"data\":{\"default\":\"default\"}}";
+			Response response = reqProcessor.process("/sdb/create",jsonStr,token);
+			if(response.getHttpstatus().equals(HttpStatus.NO_CONTENT))
+				return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Folder created \"]}");
+			return ResponseEntity.status(response.getHttpstatus()).body(response.getResponse());
+		}else{
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid path\"]}");
+		}
+		
 	}
 }

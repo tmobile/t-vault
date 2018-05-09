@@ -32,9 +32,12 @@ import org.springframework.web.bind.annotation.RestController;
 import com.tmobile.cso.vault.api.process.RequestProcessor;
 import com.tmobile.cso.vault.api.process.Response;
 
+import io.swagger.annotations.Api;
+
 
 @RestController
 @CrossOrigin
+@Api(description = "Manage Vault System", position = 7)
 public class SysController {
 	@Value("${vault.port}")
 	private String vaultPort;

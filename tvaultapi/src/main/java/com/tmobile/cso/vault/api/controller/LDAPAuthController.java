@@ -39,10 +39,13 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tmobile.cso.vault.api.process.RequestProcessor;
 import com.tmobile.cso.vault.api.process.Response;
 
+import io.swagger.annotations.Api;
+
 
 @RestController
 @RequestMapping(value="/auth/ldap")
 @CrossOrigin
+@Api(description = "Manage LDAP Authentication", position = 4)
 public class LDAPAuthController {
 	
 	private Logger log = LogManager.getLogger(LDAPAuthController.class);
@@ -68,8 +71,14 @@ public class LDAPAuthController {
 		if(HttpStatus.OK.equals(response.getHttpstatus())){
 			return ResponseEntity.status(response.getHttpstatus()).body(response.getResponse());
 		}else{
-			return ResponseEntity.status(response.getHttpstatus()).body("{\"errors\":[\"Authentication Failed.\"]}");
-		}
+			if (HttpStatus.BAD_REQUEST.equals(response.getHttpstatus())) {
+				return ResponseEntity.status(response.getHttpstatus()).body("{\"errors\": [\"User Authentication failed\", \"Invalid username and/or password combination. Please retry again after correcting username/password.\"]}");
+			}
+			else if (HttpStatus.INTERNAL_SERVER_ERROR.equals(response.getHttpstatus())) {
+				return ResponseEntity.status(response.getHttpstatus()).body("{\"errors\": [\"User Authentication failed\", \"This may be due to vault services are down or vault services are not reachable\"]}");
+			}
+			return ResponseEntity.status(response.getHttpstatus()).body("{\"errors\":[\"Username Authentication Failed.\"]}");
+				}
 		
 	}
 	

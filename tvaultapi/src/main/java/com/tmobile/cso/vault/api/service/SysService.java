@@ -1,0 +1,103 @@
+// =========================================================================
+// Copyright 2018 T-Mobile, US
+// 
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//    http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+// See the readme.txt file for additional language around disclaimer of warranties.
+// =========================================================================
+
+package com.tmobile.cso.vault.api.service;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Component;
+
+import com.tmobile.cso.vault.api.model.Unseal;
+import com.tmobile.cso.vault.api.process.RequestProcessor;
+import com.tmobile.cso.vault.api.process.Response;
+import com.tmobile.cso.vault.api.utils.JSONUtil;
+
+@Component
+public class  SysService {
+
+	@Value("${vault.port}")
+	private String vaultPort;
+	
+	@Autowired
+	private RequestProcessor reqProcessor;
+
+	@Value("${vault.auth.method}")
+	private String vaultAuthMethod;
+
+	private static Logger logger = LogManager.getLogger(SysService.class);
+
+	/**
+	 * Returns the health of TVault system
+	 * @return
+	 */
+	public ResponseEntity<String> checkVaultHealth() {
+		// Try with https first
+		Response response = reqProcessor.process("/health","{}","");
+		if(HttpStatus.OK.equals(response.getHttpstatus()) || HttpStatus.TOO_MANY_REQUESTS.equals(response.getHttpstatus())) {
+			return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Healthy.All OK\"]}");
+		} else {
+			// If no response for https, then try http
+			response = reqProcessor.process("/v2/health","{}","");
+			if(HttpStatus.OK.equals(response.getHttpstatus()) || HttpStatus.TOO_MANY_REQUESTS.equals(response.getHttpstatus())) {
+				return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Healthy.All OK\"]}");
+			}
+			else {
+				return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"messages\":[\"Not OK \"]}");
+			}
+		}
+	}
+	/**
+	 * Unseals the vault
+	 * @param unseal
+	 * @return
+	 */
+	public ResponseEntity<String> unseal (Unseal unseal){
+		String jsonStr = JSONUtil.getJSON(unseal);
+		jsonStr = jsonStr.substring(0,jsonStr.lastIndexOf("}"));
+		jsonStr = jsonStr+ ",\"port\":\""+vaultPort+"\"}";
+		// Try with https first
+		Response response = reqProcessor.process("/unseal",jsonStr,"");
+		if(HttpStatus.OK.equals(response.getHttpstatus())) {
+			return ResponseEntity.status(response.getHttpstatus()).body(response.getResponse());
+		}
+		else {
+			if(HttpStatus.INTERNAL_SERVER_ERROR.equals(response.getHttpstatus())) {
+				// Try with http now
+				response = reqProcessor.process("/v2/unseal",jsonStr,"");
+			}
+			return ResponseEntity.status(response.getHttpstatus()).body(response.getResponse());
+		}
+
+	}
+	
+	public ResponseEntity<String> unsealProgress (String serverip){
+		Response response = reqProcessor.process("/unseal-progress","{\"serverip\":\""+serverip+"\",\"port\":\""+vaultPort+"\"}","");
+		if(HttpStatus.OK.equals(response.getHttpstatus())) {
+			return ResponseEntity.status(response.getHttpstatus()).body(response.getResponse());
+		}
+		else {
+			if(HttpStatus.INTERNAL_SERVER_ERROR.equals(response.getHttpstatus())) {
+				response = reqProcessor.process("/v2/unseal-progress","{\"serverip\":\""+serverip+"\",\"port\":\""+vaultPort+"\"}","");
+			}
+			return ResponseEntity.status(response.getHttpstatus()).body(response.getResponse());
+		}
+	}
+}

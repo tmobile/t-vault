@@ -5,10 +5,29 @@
     	"vaultEndPoint":"https://localhost:8200/v1/sys/health",
     	"method":"GET"
     },
+    {"#":"Health Check ",
+    
+    	"apiEndPoint":"/v2/health",
+    	"vaultEndPoint":"http://localhost:8200/v1/sys/health",
+    	"method":"GET"
+    },
     {"#":"Unseal",
     
     	"apiEndPoint":"/unseal",
     	"vaultEndPoint":"https://<serverip>:<port>/v1/sys/unseal",
+    	"method":"POST",
+    	"params":[
+        	{"name":"serverip","required":true,"appendToPath":true},
+        	{"name":"port","required":true,"appendToPath":true},
+        	{"name":"key","required":true},
+        	{"name":"reset"}
+        ],
+      	"outparams":["sealed","progress"]
+    },
+    {"#":"Unseal",
+    
+    	"apiEndPoint":"/v2/unseal",
+    	"vaultEndPoint":"http://<serverip>:<port>/v1/sys/unseal",
     	"method":"POST",
     	"params":[
         	{"name":"serverip","required":true,"appendToPath":true},
@@ -29,7 +48,17 @@
         ],
       	"outparams":["sealed","progress"]
     },
+    {"#":"Unseal Progress",
     
+    	"apiEndPoint":"/v2/unseal-progress",
+    	"vaultEndPoint":"http://<serverip>:<port>/v1/sys/seal-status",
+    	"method":"GET",
+    	"params":[
+        	{"name":"serverip","required":true,"appendToPath":true},
+        	{"name":"port","required":true,"appendToPath":true}
+        ],
+      	"outparams":["sealed","progress"]
+    },
     	
 	
 	{"#" : "**** - dec'2017 - AppRole Create *****",

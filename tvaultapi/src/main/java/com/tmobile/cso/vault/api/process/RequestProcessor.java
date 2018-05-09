@@ -117,9 +117,9 @@ public class RequestProcessor {
 			vaultResponseMap = parseVaultResponseJson(vaultResponse.getBody());
 		}
 		
-		if(!(vaultResponseMap.containsKey("errors") || vaultResponseMap.size() == 0))
+		if(!(vaultResponseMap.containsKey("errors") || vaultResponseMap.size() == 0)) {
 			respTransformer.transform(apiConfig, vaultResponseMap,token);
-		
+		}
 		response.response = createResponseJson(vaultResponseMap,apiConfig);
 		response.httpstatus= vaultResponse.getStatusCode();
 		return response;
