@@ -27,13 +27,9 @@
     height: 100% !important;
 }
 .admin.slim-container {
-    width: 100%;
     height: auto;
-    margin: auto;
-    padding: $gutterspace-top-bottom;
 }
 .admin.slim-container .dropdown-wrapper {
-    // width: 25rem;
     width: 17vw;
 }
 .admin.slim-container .right {
@@ -70,7 +66,6 @@
     cursor:pointer;
 }
 .tiles-container-block .tile-label.edit-icon {
-//    right: 62px;
     position: absolute;
     top: 10%;
     text-align: right;
@@ -78,7 +73,6 @@
 }
 
 .tiles-container-block .tile-label.delete-icon {
-    // right: 30px;
     position: absolute;
     top: 10%;
     text-align: right;
@@ -90,8 +84,6 @@
 }
 
 .page-content-container .md-content-inner-wrapper{
-    // max-width: 968px;
-    // width:100%;
     width: 80vw;
     margin: 0 auto;
 }
@@ -116,6 +108,23 @@
     color: #333 !important;
 }
 
+.flex-container {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    flex-wrap: wrap;
+}
+
+.page-content-wrapper{
+    overflow: hidden;
+}
+
+.create-safe-wrapper{
+    top: 0;
+    position: absolute;
+    right: 0em;
+}
+
 @media #{$small-only}{
   .admin.slim-container .dropdown-wrapper {
     width: 70%;
@@ -128,4 +137,44 @@
   .admin.slim-container .right {
     padding-top: 0;
   }
+}
+
+.safe-management-content md-tabs md-tabs-wrapper{
+    box-shadow: 0 0 0 0 #fff !important;
+}
+
+.safe-management-content md-tab-item.md-tab.ng-scope.ng-isolate-scope.md-ink-ripple{
+    color: gray !important;
+}
+
+.safe-management-content md-tab-item.md-tab.ng-scope.ng-isolate-scope.md-ink-ripple.md-active {
+    color: #f6006e !important;
+}
+
+.create-safe-wrapper .action-icon-wrapper.static{
+    color: gray !important;
+}
+
+.create-safe-wrapper .middle-block {
+    color: gray !important;
+}
+.create-safe-wrapper .middle-block:hover, 
+.create-safe-wrapper .action-icon-wrapper.static:hover{
+    font-family: montserrat;
+    font-weight: bold !important;
+    letter-spacing: 0.05vw;
+    color: #f6006e !important;
+}
+.create-safe-wrapper .function-text.link-style:hover .action-icon-wrapper.static,
+.create-safe-wrapper .function-text.link-style:hover .create-link {
+    font-family: montserrat;
+    font-weight: bold !important;
+    letter-spacing: 0.05vw;
+    color: #f6006e !important;
+}
+
+.tiles-wrapper{
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
 }

@@ -1,5 +1,5 @@
 md-content.au-100-height
-    md-tabs.au-100-height.md-border-bottom(md-selected="vm.tabIndex")
+    md-tabs.au-100-height.md-border-bottom.md-dynamic-height(md-selected="vm.tabIndex")
         md-tab(ng-repeat="tab in vm.safeCategories" ng-attr-label="{{tab.name}}")
             md-content.au-tabs-inner(ng-init="safeList = vm.tiles[tab.id]")
                     tiles(data="safeList" tile-func-available="true" img="'safe_tile.png'" search-value="vm.searchValue" tile-details="vm.goToFolders")
