@@ -57,27 +57,31 @@
             }
 
             function createFolder() {
-                var folderName;
+                var folder;
                 return Modal.createModalWithController('text-input.modal.html', {
                     title: 'Create Folder',
                     inputLabel: 'Folder Name',
                     placeholder: 'Enter folder name',
                     submitLabel: 'CREATE'
                 }).then(function (modalData) {
-                    folderName = modalData.inputValue;
+                    folder = {
+                      parentId: vm.currentFolder.fullPath,
+                      id: vm.currentFolder.fullPath + '/' + modalData.inputValue,
+                      name: modalData.inputValue,
+                      value: null,
+                      type: 'folder',
+                      children: []
+                  };
                     return safesService.itemIsValidToSave({
-                        key: folderName,
-                        value: folderName
+                        key: folder.name,
+                        value: folder.name
                     }, -1, folderContent);
                 }).then(function () {
                     vm.loading(true);
-                    var path = vm.currentFolder.fullPath + '/' + folderName;
-                    return safesService.createFolder(path)
+                    return safesService.createFolder(folder.id)
                 }).then(function (data) {
                     vm.loading(false);
-                    $state.go('safes-folders', {
-                        path: path
-                    });
+                    vm.folderContent.children.push(folder);
                 }).catch(catchError);
             }
 
@@ -119,6 +123,7 @@
 
             function catchError(error) {
                 vm.loading(false);
+                console.log(error);
                 if (error) {
                     Modal.createModalWithController('stop.modal.html', {
                         title: 'Error',

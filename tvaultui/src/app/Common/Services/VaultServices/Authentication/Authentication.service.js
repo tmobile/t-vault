@@ -18,90 +18,94 @@
 */
 
 'use strict';
-(function(app) {
-    app.service( 'Authentication', function(RestEndpoints, fetchData, $window, ServiceEndpoint, ErrorMessage, $q, $http, Idle, Keepalive, AppConstant, SessionStore){
-        var service = {
-            authenticateUser: function(reqObjtobeSent, callback) {
-              try{
+(function (app) {
+  app.service('Authentication', function (RestEndpoints, fetchData, $window, ServiceEndpoint, ErrorMessage, $q, $http, Idle, Keepalive, AppConstant, SessionStore, $state) {
+    var service = {
+      authenticateUser: function (reqObjtobeSent, callback) {
+        try {
 
-                  return ServiceEndpoint.login
-                      .makeRequest(reqObjtobeSent)
-                      .then(function(response) {
-                            var leaseDuration = response.data['lease_duration'];
-                            Idle.setIdle(180);
-                            Idle.setTimeout(leaseDuration - 180);
-                            Keepalive.setInterval(leaseDuration - 60);
-                            Idle.watch();
-                            return response;
-                        },
-                        function(error){
-                            console.log("error in login");
-                            console.log(error);
-                            return error;
-                        });
-                } catch(e) {
-                  return callback({"error":e});
-                }
-            },
-            renewAuthToken: function(vaultAPIKey) {
-                return ServiceEndpoint.renewToken.makeRequest(null, null, {"vault-token": vaultAPIKey})
-                    .then(function(response) {
-                        var leaseDuration = response.data['lease_duration'];
-                        Idle.setIdle(180);
-                        Idle.setTimeout(leaseDuration - 180);
-                        Keepalive.setInterval(leaseDuration - 60);
-                    }, function (error) {
-                        window.location.replace('/!#/signup');
-                        SessionStore.clear();
-                        console.log("error retrieving token", error);
-                        return error;
-                    });
-            },
-            revokeAuthToken: function () {
-                var url = RestEndpoints.baseURL + '/auth/tvault/revoke';
-                return $http({
-                    method: 'POST',
-                    url: url,
-                    headers: {
-                        'vault-token': SessionStore.getItem('myVaultKey')
-                    }
-                })
-                .then(function (response) {
-                    return response.data;
-                });
-            },
-            getTheRightErrorMessage: function(responseObject){
-                if(responseObject.status==='500' || responseObject.statusText==='Internal Server Error'){
-                    return ErrorMessage.ERROR_NETWORK;
-                }
-                else if(responseObject.status==='404'){
-                    return ErrorMessage.ERROR_WRONG_USERNAME_PASSWORD;
-                }
-                else{
-                    return ErrorMessage.ERROR_GENERAL;
-                }
-            },
-
-            formatUsernameWithoutDomain: function(username){
-                var regex = /^(corp\/|corp\\)/gi;
-                return username.replace(regex, '');
-            },
-
-            logout: logout
-
-        };
-
-        function logout() {
-            return service.revokeAuthToken()
-                .finally(function (error) {
-                    window.location.replace("/!#/signup");
-                });
+          return ServiceEndpoint.login
+            .makeRequest(reqObjtobeSent)
+            .then(function (response) {
+                var leaseDuration = response.data['lease_duration'];
+                Idle.setIdle(180);
+                Idle.setTimeout(leaseDuration - 180);
+                Keepalive.setInterval(leaseDuration - 60);
+                Idle.watch();
+                return response;
+              },
+              function (error) {
+                console.log("error in login");
+                console.log(error);
+                return error;
+              });
+        } catch (e) {
+          return callback({"error": e});
         }
+      },
+      renewAuthToken: function (vaultAPIKey) {
+        return ServiceEndpoint.renewToken.makeRequest(null, null, {"vault-token": vaultAPIKey})
+          .then(function (response) {
+            var leaseDuration = response.data['lease_duration'];
+            Idle.setIdle(180);
+            Idle.setTimeout(leaseDuration - 180);
+            Keepalive.setInterval(leaseDuration - 60);
+          }, function (error) {
+            logout(true);
+            console.log("error retrieving token", error);
+            return error;
+          });
+      },
+      revokeAuthToken: function () {
+        var url = RestEndpoints.baseURL + '/auth/tvault/revoke';
+        return $http({
+          method: 'POST',
+          url: url,
+          headers: {
+            'vault-token': SessionStore.getItem('myVaultKey')
+          }
+        })
+          .then(function (response) {
+            return response.data;
+          });
+      },
+      getTheRightErrorMessage: function (responseObject) {
+        if (responseObject.status === '500' || responseObject.statusText === 'Internal Server Error') {
+          return ErrorMessage.ERROR_NETWORK;
+        }
+        else if (responseObject.status === '404') {
+          return ErrorMessage.ERROR_WRONG_USERNAME_PASSWORD;
+        }
+        else {
+          return ErrorMessage.ERROR_GENERAL;
+        }
+      },
+
+      formatUsernameWithoutDomain: function (username) {
+        var regex = /^(corp\/|corp\\)/gi;
+        return username.replace(regex, '');
+      },
+
+      logout: logout
+
+    };
+
+    function logout(withoutRevoke) {
+      var url = '/#!/signup';
+      if (withoutRevoke) {
+        window.location.replace(url)
+      } else {
+        return service.revokeAuthToken()
+          .finally(function (error) {
+            window.location.replace(url);
+          });
+      }
+    }
 
 
-        return service;
-    } );
-})(angular.module('vault.services.Authentication',[
-    'vault.services.ServiceEndpoint',
-    'vault.constants.ErrorMessage'
+    return service;
+  });
+})(angular.module('vault.services.Authentication', [
+  'vault.services.ServiceEndpoint',
+  'vault.constants.ErrorMessage'
 ]));

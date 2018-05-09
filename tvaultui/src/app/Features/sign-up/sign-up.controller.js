@@ -38,10 +38,6 @@
                 SessionStore.setItem("policies",policies);
                 $state.go('safes');
             }
-            else{
-                $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
-                error('md');
-            }
         }
         var error = function (size) {
             Modal.createModal(size, 'error.html', 'SignUpCtrl', $scope);
@@ -60,12 +56,15 @@
               $scope.isLoadingData = false;
               if(UtilityService.ifAPIRequestSuccessful(response)){
                   saveParametersInSessionStore(response.data);
+              } else {
+                var error = response.data;
+                return Modal.createModalWithController('error.html', {
+                  shortMessage: error && error.errors[0] || 'There was an error. Please try again, if the problem persists contact an administrator',
+                  longMessage: error && error.errors[1]
+             
+                  })
               }
-              else{
-                  $scope.errorMessage = Authentication.getTheRightErrorMessage(response);
-                  error('md');
-              }
-          });
+          })
         };
 
         init();
