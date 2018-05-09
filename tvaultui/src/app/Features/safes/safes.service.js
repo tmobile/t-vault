@@ -117,15 +117,10 @@
             //SECRET CONTAINS NEWLINE
             var regex = /\n|\r/gm;
             if (!!item.value.match(regex)) {
-                return Modal.createModalWithController('confirm.modal.html', {
-                    title: 'Notice',
-                    message: 'Line-break characters are restricted in Safe Keys and will be removed before saving.',
-                    submitLabel: 'OK'
-                })
-                    .then(function () {
-                        var newValue = item.value.replace(regex, '');
-                        item.value = newValue;
-                    });
+                return Modal.createModalWithController('stop.modal.html', {
+                    title: 'Error',
+                    message: 'Line-break characters are not allowed in Safe Keys .'
+                });
             }
             return $q.when(true);
         }

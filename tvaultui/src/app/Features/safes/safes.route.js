@@ -43,18 +43,8 @@
                 url: '/safes/folders/:path',
                 parent: 'safes-tabs',
                 resolve: {
-                    folderContent: function (safesService, SafesManagement, $state, $stateParams, $q) {
-                        var deferred = $q.defer();
-                        safesService.getFolderContent($stateParams.path)
-                            .then(function(data) {
-                                deferred.resolve(data);
-                            })
-                            .catch(function (error) {
-                                if(error.status === 403) {
-                                    Authentication.logout()
-                                }
-                            });
-                        return deferred.promise;
+                    folderContent: function (safesService, SafesManagement, $state, $stateParams, $q, $timeout) {
+                        return safesService.getFolderContent($stateParams.path);
                     },
                     writeAccess: function (folderContent, SessionStore) {
                         var safeType = folderContent.id.split('/')[0];

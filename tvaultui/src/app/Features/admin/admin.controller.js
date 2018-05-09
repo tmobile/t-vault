@@ -340,12 +340,15 @@
                     var queryParameters = "path="+currentVaultType;
                     var updatedUrlOfEndPoint = ModifyUrl.addUrlParameteres('safesList',queryParameters);
                     $scope.isLoadingData = true;
+                    var allSafes = [];
                     AdminSafesManagement.getCompleteSafesList(null,updatedUrlOfEndPoint).then(                        
                         function(response) {
                             if(UtilityService.ifAPIRequestSuccessful(response)){ 
                                 $scope.isLoadingData = false;
                                 // Try-Catch block to catch errors if there is any change in object structure in the response
                                 try {
+                                    allSafes = allSafes.concat(response.data.keys);
+                                    SessionStore.setItem('allSafes', JSON.stringify(allSafes));
                                     $scope.massageDataForTiles(response.data,currentVaultType);
                                 }
                                 catch(e) {

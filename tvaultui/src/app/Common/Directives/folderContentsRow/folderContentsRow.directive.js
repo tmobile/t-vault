@@ -140,7 +140,6 @@
             );
         }
 
-
         function catchError(error) {
             if (error) {
                 vm.item.key = vm.originalId;
@@ -151,6 +150,7 @@
                 });
             }
             vm.loading(false);
+            console.log(error);
         }
     }
 })

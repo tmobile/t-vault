@@ -5,9 +5,10 @@ script(type='text/ng-template', id='error.html')
         .top-lg-sep
             .common-header-label.text-center Error
         .top-lg-sep.notification-text {{config.shortMessage}}
-    div.text-center(ng-if="config.showMore") {{config.longMessage}}
-    div.text-center(ng-if="config.longMessage")
-        a.pointer(ng-click="config.showMore = !config.showMore") {{config.showMore ? 'Less' : 'More' }}
+
+    .text-center.md-margin(ng-if="config.showMore") {{config.longMessage}}
+    .text-center.md-margin(ng-if="config.longMessage")
+        a.pointer(ng-click="config.showMore = !config.showMore") {{'Show ' + (config.showMore ? 'Less' : 'More') }}
     .text-center.bottom-lg-sep.top-lg-sep.notification-button
         .clearfix.bottom-sm-sep
             button.common-btn.btn.btn-primary.btn-lg(ng-click="dismiss()") Close
