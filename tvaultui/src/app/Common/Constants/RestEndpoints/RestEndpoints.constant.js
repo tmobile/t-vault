@@ -92,7 +92,7 @@ this.readTextFile("../apiUrls.json");
 
             {/* To enable ldap insert this to "url" : '/auth/ldap/login' */
             name: 'login',
-            url: '/auth/ldap/login',
+            url: '/auth/tvault/login',
             method: 'POST'
         }, { /* Get the list of full safes for Admin */
             name: 'safesList',
