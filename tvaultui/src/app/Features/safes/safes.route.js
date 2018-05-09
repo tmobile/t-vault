@@ -52,7 +52,10 @@
                             .catch(function (error) {
                                 if(error.status === 403) {
                                     Authentication.logout()
+                                } else {
+                                  $state.go('safes');
                                 }
+                                deferred.reject();
                             });
                         return deferred.promise;
                     },
