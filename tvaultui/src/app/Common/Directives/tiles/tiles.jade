@@ -7,8 +7,6 @@
             .tiles-container-block(class="padded" md-whiteframe="{{height}}" ng-init="height = 3" ng-mouseenter="height = 12" ng-mouseleave="height = 3" ng-class="{'admin-parent' : parent === 'admin', 'safe-parent': parent != 'admin'}")
                 .tile-image-wrapper
                 .tile-label {{item.safe}}
-                //.icon-mode_edit.edit-icon(ng-if="parent === 'admin'" ng-click="$event.stopPropagation(); editFolder({param: item})")
-                //.icon-delete.delete-icon(ng-if="parent === 'admin'" ng-click="$event.stopPropagation(); deleteFolder({param: item})")
                 .admin-tile-overlay(ng-if="parent === 'admin'")
                     .modify-safe-admin-wrapper.edit-wrapper(ng-click="$event.stopPropagation(); editFolder({param: item})")
                         span.icon-mode_edit.action-icons-style.action-icon-with-text-gap
@@ -22,5 +20,5 @@
     .pagination-button-wrapper(ng-click='showMoreItems()')
         button.show-more-btn VIEW MORE
         span
-            img(src="../assets/icons/front-arrow.svg")
+            img(src="assets/icons/front-arrow.svg")
     
