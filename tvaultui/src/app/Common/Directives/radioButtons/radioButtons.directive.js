@@ -35,4 +35,4 @@
             }
         }
     } );
-})(angular.module('vault.directives.radioButtons',[]))
+})(angular.module('vault.directives.radioButtons',[]));

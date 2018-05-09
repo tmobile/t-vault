@@ -292,4 +292,4 @@
             }
         }
     } );
-})(angular.module('vault.directives.listtable',[]))
+})(angular.module('vault.directives.listtable',[]));
