@@ -87,4 +87,4 @@
             } );
         };
     } );
-})(angular.module('vault.directives.resize',[]))
+})(angular.module('vault.directives.resize',[]));
