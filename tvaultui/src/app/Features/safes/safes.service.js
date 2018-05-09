@@ -120,11 +120,7 @@
                 return Modal.createModalWithController('stop.modal.html', {
                     title: 'Error',
                     message: 'Line-break characters are not allowed in Safe Keys .'
-                })
-                    .then(function () {
-                        var newValue = item.value.replace(regex, '');
-                        item.value = newValue;
-                    });
+                });
             }
             return $q.when(true);
         }
