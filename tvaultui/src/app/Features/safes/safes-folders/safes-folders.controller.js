@@ -27,33 +27,46 @@
                 vm.loadingFlag = value;
             }
 
-            function createSecret() {
-                var newSecret;
-                return Modal.createModalWithController('text-input.modal.html', {
-                    title: 'Create Secret',
-                    inputLabel: 'Key',
-                    placeholder: 'Enter secret key',
-                    passwordLabel: 'Secret',
-                    passwordPlaceholder: 'Enter secret value',
-                    submitLabel: 'CREATE',
-                    cancelLabel: 'CANCEL'
-                }).then(function (modalData) {
-                    newSecret = {
-                        id: modalData.inputValue,
-                        key: modalData.inputValue,
-                        value: modalData.passwordValue,
-                        type: 'secret',
-                        parentId: folderContent.id
+            function createSecret(key, value) {
+                var modalSettings = {
+                  title: 'Create Secret',
+                  inputValue: key || '',
+                  inputLabel: 'Key',
+                  placeholder: 'Enter secret key',
+                  passwordValue:  value || '',
+                  passwordLabel: 'Secret',
+                  passwordPlaceholder: 'Enter secret value',
+                  submitLabel: 'CREATE',
+                  cancelLabel: 'CANCEL'
+                };
+                return Modal.createModalWithController('text-input.modal.html', modalSettings)
+                  .then(function (modalData) {
+                    var newSecret = {
+                      id: modalData.inputValue,
+                      key: modalData.inputValue,
+                      value: modalData.passwordValue,
+                      type: 'secret',
+                      parentId: folderContent.id
                     };
-                    return safesService.itemIsValidToSave(newSecret, -1, folderContent)
-                }).then(function () {
-                    vm.loading(true);
-                    return safesService.saveFolder(folderContent, newSecret)
-                }).then(function (data) {
-                    vm.loading(false);
-                    vm.folderContent.children = [newSecret].concat(folderContent.children);
-                    Notifications.toast('Added successfully');
-                }).catch(catchError)
+                    return tryToSaveSecret(newSecret);
+                  })
+            }
+
+            function tryToSaveSecret(newSecret) {
+              return safesService.itemIsValidToSave(newSecret, -1, folderContent)
+                .then(function (data) {
+                  return safesService.saveFolder(folderContent, newSecret)
+                    .then(function() {
+                      vm.loading(false);
+                      vm.folderContent.children = [newSecret].concat(folderContent.children);
+                      Notifications.toast('Added successfully');
+                    }).catch(catchError);
+                })
+                .catch(function (error) {
+                  return createSecret(newSecret.key, newSecret.value);
+                })
+
+
             }
 
             function createFolder() {
