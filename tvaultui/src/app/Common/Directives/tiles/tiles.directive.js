@@ -38,6 +38,7 @@
             },
             link: function( scope, element, attrs ) {
               // console.log(scope);
+                scope.parent_admin = false;
                 scope.imgSource = 'assets/images/' + scope.img;
                 scope.tileClicked = function(e, item) {
                     if(scope.tileFuncAvailable) {
@@ -45,6 +46,27 @@
                     }
                     e.stopPropagation();
                 }
+                //show more functionality
+                if (scope.parent == 'admin'){
+                    scope.parent_admin = true;
+                }
+			var pagesShown = 1;
+		    var pageSize = 20;
+		    
+		    scope.paginationLimit = function(data) {
+                scope.currentshown = pageSize * pagesShown;
+                if(scope.currentshown >= scope.numOfTiles){
+                    scope.currentshown = scope.numOfTiles;
+                }
+		        return scope.currentshown;
+		    };
+		    scope.hasMoreItemsToShow = function() {             
+		        return pagesShown < (scope.numOfTiles / pageSize);
+		    };
+		    scope.showMoreItems = function() {
+		        pagesShown = pagesShown + 1;       
+		    };	
+
             }
         }
     } );
