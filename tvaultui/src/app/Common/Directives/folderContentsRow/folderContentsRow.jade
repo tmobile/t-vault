@@ -26,7 +26,7 @@
             textarea.form-control.input-box-style.au-textarea(rows="1" au-display="{{!vm.editing && !vm.showPassword}}" ng-disabled="true" ng-value="vm.item.value.replace(vm.anyRegex, '\u00B7')")
             textarea.form-control.input-box-style.au-textarea(rows="1" au-display="{{!vm.editing && vm.showPassword}}" ng-disabled="true" ng-value="vm.item.value")
             textarea.form-control.input-box-style.au-textarea(rows="1" au-display="{{vm.editing}}" ng-model="vm.item.value" required)
-            .icon-views.vertical-center.au-input-icon(ng-mouseenter="vm.showPassword = true;" ng-mouseleave="vm.showPassword = false" ng-if="!vm.editing")
+            .icon-views.vertical-center.au-input-icon(ng-mousedown="vm.showPassword = true;" ng-mouseup="vm.showPassword = false" ng-if="!vm.editing")
 
         .cell.col-lg-2.col-md-2.col-sm-2.col-xs-2.column-value-wrapper.center-text
             button.btn.btn-primary.btn-sm.save-button(ng-if="vm.editing" type="submit") SAVE

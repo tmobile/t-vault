@@ -1,5 +1,5 @@
 script(type='text/ng-template', id='text-input.modal.html')
-    .modal-sep.createFolder.montserrat
+    .modal-sep.createFolder.montserrat(ng-init="form.inputValue = config.inputValue; form.passwordValue = config.passwordValue")
         .common-header-label.text-center {{config.title}}
     form.createFolder.left-lg-sep.right-lg-sep(ng-submit="close({inputValue: form.inputValue, passwordValue: form.passwordValue})")
         .modal-inner-wrapper
