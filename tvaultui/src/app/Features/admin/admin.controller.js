@@ -19,7 +19,7 @@
 
 'use strict';
 (function(app){
-    app.controller('AdminCtrl', function($scope, $rootScope, Modal, fetchData, $http, $window, $state, SessionStore, AdminSafesManagement, ModifyUrl, UtilityService, Notifications){
+    app.controller('AdminCtrl', function($scope, $rootScope, Modal, fetchData, $http, $window, $state, SessionStore, AdminSafesManagement, ModifyUrl, UtilityService, Notifications, safesService){
 
         $scope.filterValue = '';            // Initial search filter value kept empty
         $scope.isLoadingData = false;       // Variable to set the loader on
@@ -53,32 +53,7 @@
         ];
 
         
-        $scope.adminNavTags = [{
-            displayName: 'SAFES',
-            navigationName: 'safes',
-            addComma: false,
-            show: true
-        }, {
-            displayName: 'ADMIN',
-            navigationName: 'admin',
-            addComma: false,
-            show: SessionStore.getItem("isAdmin") == 'true'
-        }, {
-            displayName: 'HEALTH',
-            navigationName: 'health',
-            addComma: false,
-            show: false                              // Temporarily hidden
-        }, {
-            displayName: 'ALERTS',
-            navigationName: 'alerts',
-            addComma: false,
-            show: false                              // Temporarily hidden
-        }, {
-            displayName: 'DOCUMENTATION',
-            navigationName: 'documentation',
-            addComma: false,
-            show: true                    
-        }];
+        $scope.adminNavTags = safesService.getSafesNavTags();
 
         $scope.showNotification = function() {
             console.log('showing notify');
