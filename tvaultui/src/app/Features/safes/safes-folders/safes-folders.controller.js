@@ -55,6 +55,7 @@
             function tryToSaveSecret(newSecret) {
               return safesService.itemIsValidToSave(newSecret, -1, folderContent)
                 .then(function (data) {
+                  vm.loading(true);
                   return safesService.saveFolder(folderContent, newSecret)
                     .then(function() {
                       vm.loading(false);
@@ -88,14 +89,15 @@
                     return safesService.itemIsValidToSave({
                         key: folder.name,
                         value: folder.name
-                    }, -1, folderContent);
-                }).then(function () {
-                    vm.loading(true);
-                    return safesService.createFolder(folder.id)
-                }).then(function (data) {
-                    vm.loading(false);
-                    vm.folderContent.children.push(folder);
-                }).catch(catchError);
+                    }, -1, folderContent)
+                      .then(function () {
+                        vm.loading(true);
+                        return safesService.createFolder(folder.id)
+                      }).then(function (data) {
+                        vm.loading(false);
+                        vm.folderContent.children.push(folder);
+                      }).catch(catchError);
+                });
             }
 
             function clickSafeTab(tab) {
