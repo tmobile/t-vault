@@ -70,9 +70,9 @@
       })
     }
 
-    function copyToClipboard($event, copyValue) {
+    function copyToClipboard($event, copyValue, messageKey) {
       $event.stopPropagation();
-      var notification = UtilityService.getAParticularSuccessMessage('COPY_TO_CLIPBOARD');
+      var notification = UtilityService.getAParticularSuccessMessage(messageKey);
       Notifications.toast(notification);
       CopyToClipboard.copy(copyValue);
     }
