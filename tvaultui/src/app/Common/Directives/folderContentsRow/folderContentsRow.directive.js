@@ -53,7 +53,6 @@
     vm.originalId = '';
     vm.originalValue = '';
     vm.showPassword = false;
-    init();
     vm.onRowClick = onRowClick;
     vm.save = save;
     vm.edit = edit;
@@ -63,11 +62,8 @@
 
 
     function edit() {
-      $rootScope.$broadcast('edit-row', vm.item.id);
       editSecret(vm.item.key, vm.item.value);
-      $timeout(function () {
-        vm.editing = true;
-      })
+      vm.editing = true;
     }
 
     function copyToClipboard($event, copyValue, messageKey) {
@@ -128,9 +124,7 @@
               vm.parent.children.splice(index, 1);
               Notifications.toast('Deleted successfully');
             }).catch(catchError);
-        })
-
-
+        });
     }
 
     function save() {
@@ -145,17 +139,6 @@
           Notifications.toast('Saved successfully');
         })
         .catch(catchError);
-    }
-
-    function init() {
-      $rootScope.$on('edit-row', function (event, id) {
-          if (vm.item.id === id) return;
-          vm.editing = false;
-          vm.item.id = vm.originalId;
-          vm.item.key = vm.originalId;
-          vm.item.value = vm.originalValue;
-        }
-      );
     }
 
     function catchError(error) {
@@ -185,11 +168,20 @@
       };
       return Modal.createModalWithController('text-input.modal.html', modalSettings)
         .then(function (modalData) {
-          vm.item.key = modalData.inputValue;
-          vm.item.value = modalData.passwordValue;
-          vm.item.id = modalData.inputValue;
-          return save();
+          return safesService.itemIsValidToSave({
+            key: modalData.inputValue,
+            value: modalData.passwordValue
+          }, vm.index, vm.parent)
+            .then(function () {
+              vm.item.key = modalData.inputValue;
+              vm.item.value = modalData.passwordValue;
+              vm.item.id = modalData.inputValue;
+              return save();
+            }).catch(function () {
+              return editSecret(key, value);
+            });
         })
+
     }
   }
 })
