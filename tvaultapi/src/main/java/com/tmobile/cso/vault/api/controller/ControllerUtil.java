@@ -49,6 +49,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tmobile.cso.vault.api.model.SafeNode;
 import com.tmobile.cso.vault.api.process.RequestProcessor;
 import com.tmobile.cso.vault.api.process.Response;
+import com.tmobile.cso.vault.api.utils.JSONUtil;
 @Component
 public final class ControllerUtil {
 	
@@ -780,7 +781,22 @@ public final class ControllerUtil {
 		} catch (IOException e) {
 			return secretKey;
 		}
-
-		
+	}
+	
+	public static String  addDefaultSecretKey(String jsonString) {
+		try {
+			Map<String, Object> requestParams = new ObjectMapper().readValue(jsonString, new TypeReference<Map<String, Object>>(){});
+			LinkedHashMap<String, Object> map = (LinkedHashMap<String, Object>) requestParams.get("data");
+			if (map.isEmpty()) {
+				map.put("default", "default");
+			}
+			return JSONUtil.getJSON(requestParams);
+		} catch (JsonParseException e) {
+			return jsonString;
+		} catch (JsonMappingException e) {
+			return jsonString;
+		} catch (IOException e) {
+			return jsonString;
+		}
 	}
 }
