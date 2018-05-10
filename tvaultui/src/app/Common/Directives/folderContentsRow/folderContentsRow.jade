@@ -15,23 +15,21 @@
 
     form.row.accordion-list-wrapper(ng-if="vm.isSecret" ng-submit="vm.save($event)")
         .cell.pink-text.col-lg-4.col-md-4.col-sm-4.col-xs-3.column-value-wrapper.fits-contents
-            div(ng-if="!vm.editing")
-                img.list-icon.folder(src="assets/Icons/safe.svg" )
-                span.au-table-row-input {{vm.item.key}}
-
-            input.form-control.input-box-style(au-display="{{vm.editing}}" ng-model="vm.item.key" restrict-special-char required)
+            img.list-icon.folder(src="assets/Icons/safe.svg" )
+            input.form-control.input-box-style.input-disabled-text-wrapper.folder-row-key-wrapper(rows="1" ng-model="vm.item.key" ng-disabled="true" required)
+            .list-icon.icon-content_copy.vertical-sub-align(ng-if="vm.isSecret" ng-click="vm.copyKeyToClipboard($event)")
         .col-lg-1.col-md-1.col-sm-1.col-xs-1.column-value-wrapper
             .invisible CLEARFIX
-        .cell.col-lg-3.col-md-3.col-sm-3.col-xs-3.column-value-wrapper
-            textarea.form-control.input-box-style.au-textarea(rows="1" au-display="{{!vm.editing && !vm.showPassword}}" ng-disabled="true" ng-value="vm.item.value.replace(vm.anyRegex, '\u00B7')")
-            textarea.form-control.input-box-style.au-textarea(rows="1" au-display="{{!vm.editing && vm.showPassword}}" ng-disabled="true" ng-value="vm.item.value")
-            textarea.form-control.input-box-style.au-textarea(rows="1" au-display="{{vm.editing}}" ng-model="vm.item.value" required)
-            .icon-views.vertical-center.au-input-icon(ng-mousedown="vm.showPassword = true;" ng-mouseup="vm.showPassword = false" ng-if="!vm.editing")
-
-        .cell.col-lg-2.col-md-2.col-sm-2.col-xs-2.column-value-wrapper.center-text
-            button.btn.btn-primary.btn-sm.save-button(ng-if="vm.editing" type="submit") SAVE
-
+        .cell.col-lg-4.col-md-4.col-sm-4.col-xs-4.column-value-wrapper
+            input.form-control.input-box-style.au-textarea.input-disabled-text-wrapper.folder-row-secret-wrapper(rows="1" au-display="{{!vm.editing && !vm.showPassword}}" ng-disabled="true" ng-value="vm.item.value.replace(vm.anyRegex, '\u00B7')")
+            input.form-control.input-box-style.au-textarea.input-disabled-text-wrapper.folder-row-secret-wrapper(rows="1" au-display="{{!vm.editing && vm.showPassword}}" ng-disabled="true" ng-value="vm.item.value")
+            input.form-control.input-box-style.au-textarea.input-disabled-text-wrapper.folder-row-secret-wrapper(rows="1" au-display="{{vm.editing}}" ng-model="vm.item.value" required)
+            .list-icon.icon-content_copy.vertical-sub-align(ng-if="vm.isSecret" ng-click="vm.copySecretToClipboard($event)")
+            .list-icon.icon-views.vertical-sub-align(ng-mousedown="vm.showPassword = true;" ng-mouseup="vm.showPassword = false" ng-if="!vm.editing")
+            
+        .col-lg-1.col-md-1.col-sm-1.col-xs-1.column-value-wrapper
+            .invisible CLEARFIX
+        
         .cell.col-lg-2.col-md-2.col-sm-2.col-xs-3.column-value-wrapper
             .list-icon.icon-mode_edit(ng-if="vm.isSecret && vm.write" ng-click="vm.edit()")
-            .list-icon.icon-content_copy(ng-if="vm.isSecret" ng-click="vm.copyToClipboard($event)")
             .list-icon.icon-delete(ng-if="vm.write" ng-click="vm.deleteSecret($event) ")
