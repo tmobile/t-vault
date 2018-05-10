@@ -54,7 +54,6 @@
     vm.originalValue = '';
     vm.showPassword = false;
     vm.onRowClick = onRowClick;
-    vm.save = save;
     vm.edit = edit;
     vm.deleteSecret = deleteSecret;
     vm.deleteFolder = deleteFolder;
@@ -127,20 +126,6 @@
         });
     }
 
-    function save() {
-      return safesService.itemIsValidToSave(vm.item, vm.index, vm.parent)
-        .then(function () {
-          vm.loading(true);
-          return safesService.saveFolder(vm.parent);
-        })
-        .then(function (response) {
-          vm.loading(false);
-          vm.editing = false;
-          Notifications.toast('Saved successfully');
-        })
-        .catch(catchError);
-    }
-
     function catchError(error) {
       if (error) {
         vm.item.key = vm.originalId;
@@ -176,8 +161,15 @@
               vm.item.key = modalData.inputValue;
               vm.item.value = modalData.passwordValue;
               vm.item.id = modalData.inputValue;
-              return save();
-            }).catch(function () {
+              vm.loading(true);
+              return safesService.saveFolder(vm.parent)
+                .then(function (response) {
+                  vm.loading(false);
+                  vm.editing = false;
+                  Notifications.toast('Saved successfully');
+                }).catch(catchError);
+            })
+            .catch(function () {
               return editSecret(key, value);
             });
         })

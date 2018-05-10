@@ -13,7 +13,7 @@
             .list-icon.icon-delete(ng-if="vm.write" ng-click="vm.deleteFolder($event)")
 
 
-    form.row.accordion-list-wrapper(ng-if="vm.isSecret" ng-submit="vm.save($event)")
+    form.row.accordion-list-wrapper(ng-if="vm.isSecret")
         .cell.pink-text.col-lg-4.col-md-4.col-sm-4.col-xs-3.column-value-wrapper.fits-contents
             img.list-icon.folder(src="assets/Icons/safe.svg" )
             input.form-control.input-box-style.input-disabled-text-wrapper.folder-row-key-wrapper(rows="1" ng-model="vm.item.key" ng-disabled="true" required)
