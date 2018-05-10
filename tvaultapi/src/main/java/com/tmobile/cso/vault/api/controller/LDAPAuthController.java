@@ -72,7 +72,7 @@ public class LDAPAuthController {
 			return ResponseEntity.status(response.getHttpstatus()).body(response.getResponse());
 		}else{
 			if (HttpStatus.BAD_REQUEST.equals(response.getHttpstatus())) {
-				return ResponseEntity.status(response.getHttpstatus()).body("{\"errors\": [\"User Authentication failed\", \"Invalid username and/or password combination. Please retry again after correcting username/password.\"]}");
+				return ResponseEntity.status(response.getHttpstatus()).body("{\"errors\": [\"User Authentication failed\", \"Invalid username or password. Please retry again after correcting username or password.\"]}");
 			}
 			else if (HttpStatus.INTERNAL_SERVER_ERROR.equals(response.getHttpstatus())) {
 				return ResponseEntity.status(response.getHttpstatus()).body("{\"errors\": [\"User Authentication failed\", \"This may be due to vault services are down or vault services are not reachable\"]}");
