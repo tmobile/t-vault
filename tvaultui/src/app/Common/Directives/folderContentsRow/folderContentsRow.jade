@@ -15,7 +15,7 @@
 
     form.row.accordion-list-wrapper(ng-if="vm.isSecret")
         .cell.pink-text.col-lg-4.col-md-4.col-sm-4.col-xs-3.column-value-wrapper.fits-contents
-            img.list-icon.folder(src="assets/Icons/safe.svg" )
+            img.list-icon.folder(src="assets/icons/safe.svg" )
             input.form-control.input-box-style.input-disabled-text-wrapper.folder-row-key-wrapper(rows="1" ng-model="vm.item.key" ng-disabled="true" required)
             .list-icon.icon-content_copy.vertical-sub-align(ng-if="vm.isSecret" ng-click="vm.copyToClipboard($event, vm.item.key, 'COPY_KEY_TO_CLIPBOARD')")
         .col-lg-1.col-md-1.col-sm-1.col-xs-1.column-value-wrapper
