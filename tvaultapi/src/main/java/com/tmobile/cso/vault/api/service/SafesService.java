@@ -98,7 +98,7 @@ public class  SafesService {
 	 */
 	public ResponseEntity<String> createfolder(String token, String path){
 		
-		if(ControllerUtil.isValidDataPath(path)){
+		if(ControllerUtil.isPathValid(path)){
 			//if(ControllerUtil.isValidSafe(path, token)){
 				String jsonStr ="{\"path\":\""+path +"\",\"data\":{\"default\":\"default\"}}";
 				Response response = reqProcessor.process("/sdb/create",jsonStr,token);
@@ -292,10 +292,23 @@ public class  SafesService {
 		if(response.getHttpstatus().equals(HttpStatus.NO_CONTENT)){
 
 			String folders[] = safe.getPath().split("[/]+");
-			String r_policy = "r_"+folders[0]+"_"+folders[1];
-			String w_policy = "w_"+folders[0]+"_"+folders[1];
-			String d_policy = "d_"+folders[0]+"_"+folders[1];
-
+			String r_policy = "r_";
+			String w_policy = "w_";
+			String d_policy = "d_";
+			if (folders.length > 0) {
+				for (int index = 0; index < folders.length; index++) {
+					if (index == folders.length -1 ) {
+						r_policy += folders[index];
+						w_policy += folders[index];
+						d_policy += folders[index];
+					}
+					else {
+						r_policy += folders[index]  +"_";
+						w_policy += folders[index] +"_";
+						d_policy += folders[index] +"_";
+					}
+				}
+			}
 			reqProcessor.process("/access/delete","{\"accessid\":\""+r_policy+"\"}",token);
 			reqProcessor.process("/access/delete","{\"accessid\":\""+w_policy+"\"}",token);
 			reqProcessor.process("/access/delete","{\"accessid\":\""+d_policy+"\"}",token);	
@@ -428,9 +441,23 @@ public class  SafesService {
 			}
 
 			String policy = policyPrefix+folders[0]+"_"+folders[1];
-			String r_policy = "r_"+folders[0]+"_"+folders[1];
-			String w_policy = "w_"+folders[0]+"_"+folders[1];
-			String d_policy = "d_"+folders[0]+"_"+folders[1];
+			String r_policy = "r_";
+			String w_policy = "w_";
+			String d_policy = "d_";
+			if (folders.length > 0) {
+				for (int index = 0; index < folders.length; index++) {
+					if (index == folders.length -1 ) {
+						r_policy += folders[index];
+						w_policy += folders[index];
+						d_policy += folders[index];
+					}
+					else {
+						r_policy += folders[index]  +"_";
+						w_policy += folders[index] +"_";
+						d_policy += folders[index] +"_";
+					}
+				}
+			}
 			Response userResponse;
 			if ("userpass".equals(vaultAuthMethod)) {
 				userResponse = reqProcessor.process("/auth/userpass/read","{\"username\":\""+userName+"\"}",token);	
@@ -543,9 +570,23 @@ public class  SafesService {
 				return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body("{\"errors\":[\"Incorrect access requested. Valid values are read,write,deny \"]}");
 			}
 			String policy = policyPrefix+folders[0]+"_"+folders[1];
-			String r_policy = "r_"+folders[0]+"_"+folders[1];
-			String w_policy = "w_"+folders[0]+"_"+folders[1];
-			String d_policy = "d_"+folders[0]+"_"+folders[1];
+			String r_policy = "r_";
+			String w_policy = "w_";
+			String d_policy = "d_";
+			if (folders.length > 0) {
+				for (int index = 0; index < folders.length; index++) {
+					if (index == folders.length -1 ) {
+						r_policy += folders[index];
+						w_policy += folders[index];
+						d_policy += folders[index];
+					}
+					else {
+						r_policy += folders[index]  +"_";
+						w_policy += folders[index] +"_";
+						d_policy += folders[index] +"_";
+					}
+				}
+			}
 			Response getGrpResp = reqProcessor.process("/auth/ldap/groups","{\"groupname\":\""+groupName+"\"}",token);
 			String responseJson="";
 
@@ -621,9 +662,23 @@ public class  SafesService {
 		if(ControllerUtil.isValidSafePath(path) && ControllerUtil.isValidSafe(path, token)){
 			String folders[] = path.split("[/]+");
 
-			String r_policy = "r_"+folders[0]+"_"+folders[1];
-			String w_policy = "w_"+folders[0]+"_"+folders[1];
-			String d_policy = "d_"+folders[0]+"_"+folders[1];
+			String r_policy = "r_";
+			String w_policy = "w_";
+			String d_policy = "d_";
+			if (folders.length > 0) {
+				for (int index = 0; index < folders.length; index++) {
+					if (index == folders.length -1 ) {
+						r_policy += folders[index];
+						w_policy += folders[index];
+						d_policy += folders[index];
+					}
+					else {
+						r_policy += folders[index]  +"_";
+						w_policy += folders[index] +"_";
+						d_policy += folders[index] +"_";
+					}
+				}
+			}
 			Response userResponse;
 			if ("userpass".equals(vaultAuthMethod)) {	
 				userResponse = reqProcessor.process("/auth/userpass/read","{\"username\":\""+userName+"\"}",token);
@@ -728,9 +783,23 @@ public class  SafesService {
 		if(ControllerUtil.isValidSafePath(path) && ControllerUtil.isValidSafe(path, token)){
 			String folders[] = path.split("[/]+");
 
-			String r_policy = "r_"+folders[0]+"_"+folders[1];
-			String w_policy = "w_"+folders[0]+"_"+folders[1];
-			String d_policy = "d_"+folders[0]+"_"+folders[1];
+			String r_policy = "r_";
+			String w_policy = "w_";
+			String d_policy = "d_";
+			if (folders.length > 0) {
+				for (int index = 0; index < folders.length; index++) {
+					if (index == folders.length -1 ) {
+						r_policy += folders[index];
+						w_policy += folders[index];
+						d_policy += folders[index];
+					}
+					else {
+						r_policy += folders[index]  +"_";
+						w_policy += folders[index] +"_";
+						d_policy += folders[index] +"_";
+					}
+				}
+			}
 			Response userResponse = reqProcessor.process("/auth/ldap/groups","{\"groupname\":\""+groupName+"\"}",token);
 			String responseJson="";
 			String policies ="";
@@ -822,9 +891,23 @@ public class  SafesService {
 				return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body("{\"errors\":[\"Incorrect access requested. Valid values are read,write,deny \"]}");
 			}
 			String policy = policyPrefix+folders[0]+"_"+folders[1];
-			String r_policy = "r_"+folders[0]+"_"+folders[1];
-			String w_policy = "w_"+folders[0]+"_"+folders[1];
-			String d_policy = "d_"+folders[0]+"_"+folders[1];
+			String r_policy = "r_";
+			String w_policy = "w_";
+			String d_policy = "d_";
+			if (folders.length > 0) {
+				for (int index = 0; index < folders.length; index++) {
+					if (index == folders.length -1 ) {
+						r_policy += folders[index];
+						w_policy += folders[index];
+						d_policy += folders[index];
+					}
+					else {
+						r_policy += folders[index]  +"_";
+						w_policy += folders[index] +"_";
+						d_policy += folders[index] +"_";
+					}
+				}
+			}
 			Response roleResponse = reqProcessor.process("/auth/aws/roles","{\"role\":\""+role+"\"}",token);
 			String responseJson="";
 

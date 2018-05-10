@@ -495,10 +495,24 @@ public final class ControllerUtil {
 		log.debug ("updateUserPolicyAssociationOnSDBDelete...for auth method " + vaultAuthMethod);
 		if(acessInfo!=null){
 			String folders[] = sdb.split("[/]+");
-			String r_policy = "r_"+folders[0]+"_"+folders[1];
-			String w_policy = "w_"+folders[0]+"_"+folders[1];
-			String d_policy = "d_"+folders[0]+"_"+folders[1];
-	
+			String r_policy = "r_";
+			String w_policy = "w_";
+			String d_policy = "d_";
+			
+			if (folders.length > 0) {
+				for (int index = 0; index < folders.length; index++) {
+					if (index == folders.length -1 ) {
+						r_policy += folders[index];
+						w_policy += folders[index];
+						d_policy += folders[index];
+					}
+					else {
+						r_policy += folders[index]  +"_";
+						w_policy += folders[index] +"_";
+						d_policy += folders[index] +"_";
+					}
+				}
+			}	
 			Set<String> users = acessInfo.keySet();
 			ObjectMapper objMapper = new ObjectMapper();
 			for(String userName : users){
@@ -550,10 +564,24 @@ public final class ControllerUtil {
 		}
 		if(acessInfo!=null){
 			String folders[] = sdb.split("[/]+");
-			String r_policy = "r_"+folders[0]+"_"+folders[1];
-			String w_policy = "w_"+folders[0]+"_"+folders[1];
-			String d_policy = "d_"+folders[0]+"_"+folders[1];
-	
+			String r_policy = "r_";
+			String w_policy = "w_";
+			String d_policy = "d_";
+			
+			if (folders.length > 0) {
+				for (int index = 0; index < folders.length; index++) {
+					if (index == folders.length -1 ) {
+						r_policy += folders[index];
+						w_policy += folders[index];
+						d_policy += folders[index];
+					}
+					else {
+						r_policy += folders[index]  +"_";
+						w_policy += folders[index] +"_";
+						d_policy += folders[index] +"_";
+					}
+				}
+			}	
 			Set<String> groups = acessInfo.keySet();
 			ObjectMapper objMapper = new ObjectMapper();
 			for(String groupName : groups){
@@ -583,10 +611,23 @@ public final class ControllerUtil {
 	public static void updateAwsRolePolicyAssociationOnSDBDelete(String sdb,Map<String,String> acessInfo,String token){
 		if(acessInfo!=null){
 			String folders[] = sdb.split("[/]+");
-			String r_policy = "r_"+folders[0]+"_"+folders[1];
-			String w_policy = "w_"+folders[0]+"_"+folders[1];
-			String d_policy = "d_"+folders[0]+"_"+folders[1];
-	
+			String r_policy = "r_";
+			String w_policy = "w_";
+			String d_policy = "d_";
+			if (folders.length > 0) {
+				for (int index = 0; index < folders.length; index++) {
+					if (index == folders.length -1 ) {
+						r_policy += folders[index];
+						w_policy += folders[index];
+						d_policy += folders[index];
+					}
+					else {
+						r_policy += folders[index]  +"_";
+						w_policy += folders[index] +"_";
+						d_policy += folders[index] +"_";
+					}
+				}
+			}	
 			Set<String> roles = acessInfo.keySet();
 			ObjectMapper objMapper = new ObjectMapper();
 			for(String role : roles){
