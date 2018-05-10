@@ -54,7 +54,8 @@
         vm.originalValue = '';
         vm.showPassword = false;
         init();
-        vm.copyToClipboard = copyToClipboard;
+        vm.copySecretToClipboard = copySecretToClipboard;
+        vm.copyKeyToClipboard = copyKeyToClipboard;
         vm.onRowClick = onRowClick;
         vm.save = save;
         vm.edit = edit;
@@ -64,16 +65,24 @@
 
         function edit() {
             $rootScope.$broadcast('edit-row', vm.item.id);
+            editSecret(vm.item.key, vm.item.value);
             $timeout(function () {
                 vm.editing = true;
             })
         }
 
-        function copyToClipboard($event) {
+        function copySecretToClipboard($event) {
             $event.stopPropagation();
             var notification = UtilityService.getAParticularSuccessMessage('COPY_TO_CLIPBOARD');
             Notifications.toast(notification);
             CopyToClipboard.copy(vm.item.value);
+        }
+
+        function copyKeyToClipboard($event) {
+            $event.stopPropagation();
+            var notification = UtilityService.getAParticularSuccessMessage('COPY_KEY_TO_CLIPBOARD');
+            Notifications.toast(notification);
+            CopyToClipboard.copy(vm.item.key);
         }
 
         function onRowClick($event) {
@@ -115,7 +124,7 @@
                 }).catch(catchError)
         }
 
-        function save($event) {
+        function save() {
             return safesService.itemIsValidToSave(vm.item, vm.index, vm.parent)
                 .then(function () {
                     vm.loading(true);
@@ -151,6 +160,27 @@
             }
             vm.loading(false);
             console.log(error);
+        }
+
+        function editSecret(key, value) {
+            var modalSettings = {
+              title: 'Create Secret',
+              inputValue: key || '',
+              inputLabel: 'Key',
+              placeholder: 'Enter secret key',
+              passwordValue:  value || '',
+              passwordLabel: 'Secret',
+              passwordPlaceholder: 'Enter secret value',
+              submitLabel: 'SAVE',
+              cancelLabel: 'CANCEL'
+            };
+            return Modal.createModalWithController('text-input.modal.html', modalSettings)
+              .then(function (modalData) {
+                  vm.item.key = modalData.inputValue;
+                  vm.item.value = modalData.passwordValue;
+                  vm.item.id = modalData.inputValue;
+                  return save();
+              })
         }
     }
 })
