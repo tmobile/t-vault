@@ -19,169 +19,178 @@
 
 'use strict';
 (function () {
-    angular.module('vault.directives.folderContentsRow', [])
-        .controller('folderContentsRowController', folderContentsTableController)
-        .directive('folderContentsRow', function () {
-            return {
-                restrict: 'E',
-                templateUrl: 'app/Common/Directives/folderContentsRow/folderContentsRow.html',
-                scope: {
-                    index: '=',
-                    item: '=',
-                    parent: '=',
-                    loading: '=',
-                    write: '='
-                },
-                link: function (scope) {
-                    var vm = scope.vm;
-                    vm.originalId = vm.item.id;
-                    vm.originalValue = vm.item.value;
-                    vm.isSecret = vm.item.type === 'secret';
-                    if (!vm.isSecret) {
-                        vm.folderName = vm.item.id.split('/').pop();
-                    }
-                },
-                controller: 'folderContentsRowController as vm',
-                bindToController: true
-            }
-        });
+  angular.module('vault.directives.folderContentsRow', [])
+    .controller('folderContentsRowController', folderContentsTableController)
+    .directive('folderContentsRow', function () {
+      return {
+        restrict: 'E',
+        templateUrl: 'app/Common/Directives/folderContentsRow/folderContentsRow.html',
+        scope: {
+          index: '=',
+          item: '=',
+          parent: '=',
+          loading: '=',
+          write: '='
+        },
+        link: function (scope) {
+          var vm = scope.vm;
+          vm.originalId = vm.item.id;
+          vm.originalValue = vm.item.value;
+          vm.isSecret = vm.item.type === 'secret';
+          if (!vm.isSecret) {
+            vm.folderName = vm.item.id.split('/').pop();
+          }
+        },
+        controller: 'folderContentsRowController as vm',
+        bindToController: true
+      }
+    });
 
-    function folderContentsTableController($scope, CopyToClipboard, SafesManagement, Modal, UtilityService, Notifications, $rootScope, toastr, safesService, $timeout) {
-        var vm = this;
-        vm.anyRegex = /.|\s/g;
-        vm.editing = false;
-        vm.originalId = '';
-        vm.originalValue = '';
-        vm.showPassword = false;
-        init();
-        vm.copySecretToClipboard = copySecretToClipboard;
-        vm.copyKeyToClipboard = copyKeyToClipboard;
-        vm.onRowClick = onRowClick;
-        vm.save = save;
-        vm.edit = edit;
-        vm.deleteSecret = deleteSecret;
-        vm.deleteFolder = deleteFolder;
+  function folderContentsTableController($scope, CopyToClipboard, SafesManagement, Modal, UtilityService, Notifications, $rootScope, toastr, safesService, $timeout) {
+    var vm = this;
+    vm.anyRegex = /.|\s/g;
+    vm.editing = false;
+    vm.originalId = '';
+    vm.originalValue = '';
+    vm.showPassword = false;
+    init();
+    vm.onRowClick = onRowClick;
+    vm.save = save;
+    vm.edit = edit;
+    vm.deleteSecret = deleteSecret;
+    vm.deleteFolder = deleteFolder;
+    vm.copyToClipboard = copyToClipboard;
 
 
-        function edit() {
-            $rootScope.$broadcast('edit-row', vm.item.id);
-            editSecret(vm.item.key, vm.item.value);
-            $timeout(function () {
-                vm.editing = true;
-            })
-        }
-
-        function copySecretToClipboard($event) {
-            $event.stopPropagation();
-            var notification = UtilityService.getAParticularSuccessMessage('COPY_TO_CLIPBOARD');
-            Notifications.toast(notification);
-            CopyToClipboard.copy(vm.item.value);
-        }
-
-        function copyKeyToClipboard($event) {
-            $event.stopPropagation();
-            var notification = UtilityService.getAParticularSuccessMessage('COPY_KEY_TO_CLIPBOARD');
-            Notifications.toast(notification);
-            CopyToClipboard.copy(vm.item.key);
-        }
-
-        function onRowClick($event) {
-            if (vm.editing) {
-                $event.stopPropagation();
-            }
-        }
-
-        function deleteSecret($event) {
-            vm.loading(true);
-            var modifiedFolder = {
-                id: vm.parent.id,
-                children: vm.parent.children.slice(0)
-            };
-            var index = modifiedFolder.children.findIndex(function (item) {
-                return item.id === vm.item.id;
-            });
-            modifiedFolder.children.splice(index, 1);
-            return safesService.saveFolder(modifiedFolder)
-                .then(function (response) {
-                    vm.loading(false);
-                    vm.parent.children.splice(index, 1);
-                    Notifications.toast('Deleted successfully');
-                })
-                .catch(catchError)
-        }
-
-        function deleteFolder($event) {
-            $event.stopPropagation();
-            vm.loading(true);
-            return safesService.deleteFolder(vm.item.id)
-                .then(function (response) {
-                    vm.loading(false);
-                    var index = vm.parent.children.findIndex(function (item) {
-                        return item.id === vm.item.id;
-                    });
-                    vm.parent.children.splice(index, 1);
-                    Notifications.toast('Deleted successfully');
-                }).catch(catchError)
-        }
-
-        function save() {
-            return safesService.itemIsValidToSave(vm.item, vm.index, vm.parent)
-                .then(function () {
-                    vm.loading(true);
-                    return safesService.saveFolder(vm.parent);
-                })
-                .then(function (response) {
-                    vm.loading(false);
-                    vm.editing = false;
-                    Notifications.toast('Saved successfully');
-                })
-                .catch(catchError);
-        }
-
-        function init() {
-            $rootScope.$on('edit-row', function (event, id) {
-                    if (vm.item.id === id) return;
-                    vm.editing = false;
-                    vm.item.id = vm.originalId;
-                    vm.item.key = vm.originalId;
-                    vm.item.value = vm.originalValue;
-                }
-            );
-        }
-
-        function catchError(error) {
-            if (error) {
-                vm.item.key = vm.originalId;
-                vm.item.value = vm.originalValue;
-                Modal.createModalWithController('stop.modal.html', {
-                    title: 'Error',
-                    message: 'Please try again. If this issue persists please contact an administrator.'
-                });
-            }
-            vm.loading(false);
-            console.log(error);
-        }
-
-        function editSecret(key, value) {
-            var modalSettings = {
-              title: 'Create Secret',
-              inputValue: key || '',
-              inputLabel: 'Key',
-              placeholder: 'Enter secret key',
-              passwordValue:  value || '',
-              passwordLabel: 'Secret',
-              passwordPlaceholder: 'Enter secret value',
-              submitLabel: 'SAVE',
-              cancelLabel: 'CANCEL'
-            };
-            return Modal.createModalWithController('text-input.modal.html', modalSettings)
-              .then(function (modalData) {
-                  vm.item.key = modalData.inputValue;
-                  vm.item.value = modalData.passwordValue;
-                  vm.item.id = modalData.inputValue;
-                  return save();
-              })
-        }
+    function edit() {
+      $rootScope.$broadcast('edit-row', vm.item.id);
+      editSecret(vm.item.key, vm.item.value);
+      $timeout(function () {
+        vm.editing = true;
+      })
     }
+
+    function copyToClipboard($event, copyValue) {
+      $event.stopPropagation();
+      var notification = UtilityService.getAParticularSuccessMessage('COPY_TO_CLIPBOARD');
+      Notifications.toast(notification);
+      CopyToClipboard.copy(copyValue);
+    }
+
+    function onRowClick($event) {
+      if (vm.editing) {
+        $event.stopPropagation();
+      }
+    }
+
+    function deleteSecret($event) {
+      return Modal.createModalWithController('confirm.modal.html', {
+        title: 'Confirmation',
+        message: 'Are you sure you want to delete this secret?',
+        submitLabel: 'DELETE'
+      })
+        .then(function () {
+          vm.loading(true);
+          var modifiedFolder = {
+            id: vm.parent.id,
+            children: vm.parent.children.slice(0)
+          };
+          var index = modifiedFolder.children.findIndex(function (item) {
+            return item.id === vm.item.id;
+          });
+          modifiedFolder.children.splice(index, 1);
+          return safesService.saveFolder(modifiedFolder)
+            .then(function (response) {
+              vm.loading(false);
+              vm.parent.children.splice(index, 1);
+              Notifications.toast('Deleted successfully');
+            })
+            .catch(catchError)
+        })
+
+    }
+
+    function deleteFolder($event) {
+      $event.stopPropagation();
+      return Modal.createModalWithController('confirm.modal.html', {
+        title: 'Confirmation',
+        message: 'Are you sure you want to delete this folder?',
+        submitLabel: 'DELETE'
+      })
+        .then(function () {
+          vm.loading(true);
+          return safesService.deleteFolder(vm.item.id)
+            .then(function (response) {
+              vm.loading(false);
+              var index = vm.parent.children.findIndex(function (item) {
+                return item.id === vm.item.id;
+              });
+              vm.parent.children.splice(index, 1);
+              Notifications.toast('Deleted successfully');
+            }).catch(catchError);
+        })
+
+
+    }
+
+    function save() {
+      return safesService.itemIsValidToSave(vm.item, vm.index, vm.parent)
+        .then(function () {
+          vm.loading(true);
+          return safesService.saveFolder(vm.parent);
+        })
+        .then(function (response) {
+          vm.loading(false);
+          vm.editing = false;
+          Notifications.toast('Saved successfully');
+        })
+        .catch(catchError);
+    }
+
+    function init() {
+      $rootScope.$on('edit-row', function (event, id) {
+          if (vm.item.id === id) return;
+          vm.editing = false;
+          vm.item.id = vm.originalId;
+          vm.item.key = vm.originalId;
+          vm.item.value = vm.originalValue;
+        }
+      );
+    }
+
+    function catchError(error) {
+      if (error) {
+        vm.item.key = vm.originalId;
+        vm.item.value = vm.originalValue;
+        Modal.createModalWithController('stop.modal.html', {
+          title: 'Error',
+          message: 'Please try again. If this issue persists please contact an administrator.'
+        });
+      }
+      vm.loading(false);
+      console.log(error);
+    }
+
+    function editSecret(key, value) {
+      var modalSettings = {
+        title: 'Create Secret',
+        inputValue: key || '',
+        inputLabel: 'Key',
+        placeholder: 'Enter secret key',
+        passwordValue: value || '',
+        passwordLabel: 'Secret',
+        passwordPlaceholder: 'Enter secret value',
+        submitLabel: 'SAVE',
+        cancelLabel: 'CANCEL'
+      };
+      return Modal.createModalWithController('text-input.modal.html', modalSettings)
+        .then(function (modalData) {
+          vm.item.key = modalData.inputValue;
+          vm.item.value = modalData.passwordValue;
+          vm.item.id = modalData.inputValue;
+          return save();
+        })
+    }
+  }
 })
 ();

@@ -55,6 +55,7 @@
             function tryToSaveSecret(newSecret) {
               return safesService.itemIsValidToSave(newSecret, -1, folderContent)
                 .then(function (data) {
+                  vm.loading(true);
                   return safesService.saveFolder(folderContent, newSecret)
                     .then(function() {
                       vm.loading(false);
