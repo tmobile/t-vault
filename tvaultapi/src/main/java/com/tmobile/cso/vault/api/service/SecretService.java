@@ -81,6 +81,7 @@ public class  SecretService {
 		String path="";
 		try {
 			path = new ObjectMapper().readTree(jsonStr).at("/path").asText();
+			jsonStr = ControllerUtil.addDefaultSecretKey(jsonStr);
 			if (!ControllerUtil.isSecretKeyValid(jsonStr)) {
 				return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid request.Check json data\"]}");
 			}
