@@ -49,10 +49,10 @@
   function folderContentsTableController($scope, CopyToClipboard, SafesManagement, Modal, UtilityService, Notifications, $rootScope, toastr, safesService, $timeout) {
     var vm = this;
     vm.anyRegex = /.|\s/g;
-    vm.editing = false;
     vm.originalId = '';
     vm.originalValue = '';
     vm.showPassword = false;
+    vm.editing = false;
     vm.onRowClick = onRowClick;
     vm.edit = edit;
     vm.deleteSecret = deleteSecret;
@@ -157,22 +157,24 @@
             key: modalData.inputValue,
             value: modalData.passwordValue
           }, vm.index, vm.parent)
-            .then(function () {
+        .then(function () {
               vm.item.key = modalData.inputValue;
               vm.item.value = modalData.passwordValue;
               vm.item.id = modalData.inputValue;
               vm.loading(true);
-              return safesService.saveFolder(vm.parent)
-                .then(function (response) {
+          return safesService.saveFolder(vm.parent)
+        .then(function (response) {
                   vm.loading(false);
                   vm.editing = false;
                   Notifications.toast('Saved successfully');
                 }).catch(catchError);
             })
-            .catch(function () {
+        .catch(function () {
               return editSecret(key, value);
-            });
-        })
+            })
+        }).finally(function () {
+          vm.editing = false;
+        });
 
     }
   }
