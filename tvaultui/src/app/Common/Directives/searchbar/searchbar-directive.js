@@ -15,9 +15,14 @@
         }
     }
 
-    function Controller($rootScope) {
+    function Controller($rootScope, $scope) {
         var vm = this;
         vm.callSearch = callSearch;
+
+        $scope.$watch(function () {
+          return vm.searchValue;
+        }, callSearch);
+
 
         function callSearch() {
             return $rootScope.$broadcast('search', vm.searchValue);

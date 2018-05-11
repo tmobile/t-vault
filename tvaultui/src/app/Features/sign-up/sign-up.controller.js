@@ -56,13 +56,16 @@
               $scope.isLoadingData = false;
               if(UtilityService.ifAPIRequestSuccessful(response)){
                   saveParametersInSessionStore(response.data);
-              } else {
-                var error = response.data;
+              } else if (response.data && response.data.errors){
+                var errors = response.data.errors;
                 return Modal.createModalWithController('error.html', {
-                  shortMessage: error && error.errors[0] || 'There was an error. Please try again, if the problem persists contact an administrator',
-                  longMessage: error && error.errors[1]
-             
-                  })
+                  shortMessage: errors[0] || 'There was an error. Please try again, if the problem persists contact an administrator',
+                  longMessage: errors[1]
+                  });
+              } else {
+                return Modal.createModalWithController('error.html', {
+                  shortMessage: 'Something went wrong, please try again later.'
+                })
               }
           })
         };
