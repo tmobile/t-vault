@@ -476,7 +476,9 @@
                 if ($scope.isEditSafe) {
                     $rootScope.showDetails = false;               // To show the 'permissions' and hide the 'details'
                     $rootScope.activeDetailsTab = 'permissions';
-                    $scope.editSafe();
+                    if(!angular.equals($scope.safePrevious, $scope.safe)){
+                        $scope.editSafe();
+                    }                        
                 }
                 else {
                     $rootScope.noTypeSelected = false;
@@ -520,6 +522,7 @@
                                         description: decodeURIComponent(object.description) || $stateParams.safeObject.description || '',
                                         type: decodeURIComponent(object.type) || $stateParams.safeObject.type || $scope.dropDownOptions.selectedGroupOption.type || ''
                                     }
+                                    $scope.safePrevious = angular.copy($scope.safe);
                                     $scope.selectedGroupOption = $scope.safe;
                                     $scope.dropDownOptions = {
                                         'selectedGroupOption': $scope.selectedGroupOption,
