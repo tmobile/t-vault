@@ -141,7 +141,7 @@
 
     function editSecret(key, value) {
       var modalSettings = {
-        title: 'Create Secret',
+        title: 'Edit Secret',
         inputValue: key || '',
         inputLabel: 'Key',
         placeholder: 'Enter secret key',
