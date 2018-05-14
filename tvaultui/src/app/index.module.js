@@ -69,7 +69,6 @@
         'vault.features.SignUpCtrl',
         'vault.features.AdminCtrl',
         'vault.features.ChangeSafeCtrl',
-        'vault.features.DocumentationCtrl',
         'vault.features.UnsealCtrl',
         'vault.features.safes'
     ]);
