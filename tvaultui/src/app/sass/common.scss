@@ -1300,15 +1300,12 @@ input[disabled] {
 
 /* Toast message - Notifications */
 
-.toast {
+// .toast {
   #toast-container > .toast-info {
-    background-image: none;
+    background-image: none !important;
     text-align: center;
-    height: 60px;
-    background: brown;
-    padding-top: 25px;
   }
-}
+// }
 
 #toast-container > div {
   display: inline-block;
