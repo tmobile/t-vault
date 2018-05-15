@@ -1,15 +1,16 @@
 .au-searchbar {
-  top: 20vh;
-  right: 5.8vw;
+  top: 19vh;
+  right: 4.8vw;
   z-index: 10;
   position: absolute;
-  width: calc(170vw/10); 
+  width: 16vw; 
   font-size: 14px;
   height: 4vh;
 
   input[type="text"] {
     width: calc(100% - 3rem);
     padding: 7px;
+    padding-left: 5% !important;
     color: #333;
   }
 

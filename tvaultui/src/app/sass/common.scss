@@ -493,7 +493,7 @@ button{
 .search-bar{
     float: right;
     padding: 0;
-    min-width: 18vw;
+    min-width: 16vw;
     height: 100% !important;
 }
 
@@ -824,8 +824,8 @@ input[type='radio']:checked:before {
 .right.search-bar-container {
     position: absolute;
     // right: 4rem;
-    right: 2.8vw !important;
-    top: -1vh;
+    right: 3.4vw !important;
+    top: -1.7vh;
     z-index: 10;
     height: 4vh;
 }
