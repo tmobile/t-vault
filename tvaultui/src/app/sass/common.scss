@@ -471,9 +471,9 @@ button{
     display: inline-block;
 }
 .search-icon {
-  outline: 1px solid #ed0295;
+  outline: 1px solid #f6006e;
   display: inline-block;
-  background-color: #ed0295;
+  background-color: #f6006e;
   height: 100%;
   color: #fff;
   position: relative;
@@ -498,7 +498,7 @@ button{
 }
 
 .search-bar input {
-    font-size: 1.7vh !important;
+    font-size: 1.4vh !important;
     // height: 3.8vh;
     height: 100% !important;
     padding-left: 5% !important;
@@ -832,17 +832,20 @@ input[type='radio']:checked:before {
 .right.search-bar-container .search-box {
     width: 100%;
     position: relative;
+    border: 0;
 }
 .right.search-bar-container .search-box .search-icon {
     position: absolute;
     right: 0;
-    width: 2.3vw;
+    width: 3rem;
 }
 .right.search-bar-container .search-box .search-input-wrapper {
-    width: 15vw;
+    width: calc(100% - 3rem);
 }
 .search-input-box{
-  height: 100%;
+    height: 100%;
+    border: 1px solid #aaa !important;
+    border-right: 0 !important;
 }
 @media only screen and (min-width: 919px){
     /*.form-wrapper{
