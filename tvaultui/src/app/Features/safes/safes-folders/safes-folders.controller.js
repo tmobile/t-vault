@@ -93,13 +93,17 @@
             .then(function () {
               vm.loading(true);
               return safesService.createFolder(folder.id)
-            }).then(function (data) {
+            .then(function (data) {
               vm.loading(false);
               vm.folderContent.children.push(folder);
             }).catch(catchError);
+          })
+          .catch(function (error) {
+            return createFolder(folder.id);
+          })
         });
       }
-
+     
       function clickSafeTab(tab) {
         $state.go('safes', {type: tab.id});
       }
