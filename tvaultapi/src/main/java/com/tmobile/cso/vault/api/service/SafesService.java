@@ -124,6 +124,9 @@ public class  SafesService {
 		String path = safe.getPath();
 		String jsonStr = JSONUtil.getJSON(safe);
 		Map<String,Object> rqstParams = ControllerUtil.parseJson(jsonStr);
+		if (!ControllerUtil.areSDBInputsValid(rqstParams)) {
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid input values\"]}");
+		}
 		if(ControllerUtil.isValidSafePath(path)){
 			Response response = reqProcessor.process("/sdb/create",jsonStr,token);
 			if(response.getHttpstatus().equals(HttpStatus.NO_CONTENT)){

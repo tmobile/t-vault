@@ -44,7 +44,7 @@ import io.swagger.annotations.ApiOperation;
 @Api(description = "Manage Userpass Authentication", position = 18)
 public class UserPassControllerV2 {
 
-	private Logger log = LogManager.getLogger(UserPassControllerV2.class);
+	private Logger logger = LogManager.getLogger(UserPassControllerV2.class);
 
 	@Autowired
 	private UserPassService userpassService;

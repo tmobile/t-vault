@@ -36,8 +36,13 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.ImmutableMap;
+import com.tmobile.cso.vault.api.exception.LogMessage;
+import com.tmobile.cso.vault.api.model.UserLogin;
 import com.tmobile.cso.vault.api.process.RequestProcessor;
 import com.tmobile.cso.vault.api.process.Response;
+import com.tmobile.cso.vault.api.utils.JSONUtil;
+import com.tmobile.cso.vault.api.utils.ThreadLocalContext;
 
 import io.swagger.annotations.Api;
 
@@ -66,19 +71,59 @@ public class LDAPAuthController {
 
 	@PostMapping(value="/login",consumes="application/json",produces="application/json")
 	public ResponseEntity<String> authenticateLdap( @RequestBody String jsonStr){
-		
+		UserLogin loginObj = null;
+		try {
+			loginObj = (UserLogin) JSONUtil.getObj(jsonStr, UserLogin.class);
+		} catch (Exception e) {
+			loginObj = new UserLogin();
+		}
+		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+			      put(LogMessage.USER, loginObj.getUsername()).
+				  put(LogMessage.ACTION, "LDAP Login").
+			      put(LogMessage.MESSAGE, "Trying to authenticate").
+			      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+			      build()));
 		Response response = reqProcessor.process("/auth/ldap/login",jsonStr,"");
 		if(HttpStatus.OK.equals(response.getHttpstatus())){
+			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+				      put(LogMessage.USER, loginObj.getUsername()).
+					  put(LogMessage.ACTION, "LDAP Login").
+				      put(LogMessage.MESSAGE, "Authentication Successful").
+				      put(LogMessage.RESULT, "").
+				      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+				      build()));
 			return ResponseEntity.status(response.getHttpstatus()).body(response.getResponse());
-		}else{
+		}
+		else{
 			if (HttpStatus.BAD_REQUEST.equals(response.getHttpstatus())) {
+				log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+					      put(LogMessage.USER, loginObj.getUsername()).
+						  put(LogMessage.ACTION, "LDAP Login").
+					      put(LogMessage.MESSAGE, "User Authentication failed. Invalid username or password.").
+					      put(LogMessage.RESULT, response.getResponse()).
+					      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+					      build()));
 				return ResponseEntity.status(response.getHttpstatus()).body("{\"errors\": [\"User Authentication failed\", \"Invalid username or password. Please retry again after correcting username or password.\"]}");
 			}
 			else if (HttpStatus.INTERNAL_SERVER_ERROR.equals(response.getHttpstatus())) {
+				log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+					      put(LogMessage.USER, loginObj.getUsername()).
+						  put(LogMessage.ACTION, "LDAP Login").
+					      put(LogMessage.MESSAGE, "User Authentication failed. Vault Services could be down.").
+					      put(LogMessage.RESULT, response.getResponse()).
+					      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+					      build()));
 				return ResponseEntity.status(response.getHttpstatus()).body("{\"errors\": [\"User Authentication failed\", \"This may be due to vault services are down or vault services are not reachable\"]}");
 			}
+			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+				      put(LogMessage.USER, loginObj.getUsername()).
+					  put(LogMessage.ACTION, "LDAP Login").
+				      put(LogMessage.MESSAGE, "User Authentication failed.").
+				      put(LogMessage.RESULT, response.getResponse()).
+				      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+				      build()));
 			return ResponseEntity.status(response.getHttpstatus()).body("{\"errors\":[\"Username Authentication Failed.\"]}");
-				}
+		}
 		
 	}
 	
@@ -106,7 +151,12 @@ public class LDAPAuthController {
 		} catch (IOException e) {
 			log.error(e);
 		}
-		
+		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+			      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+				  put(LogMessage.ACTION, "Create LDAP Group").
+			      put(LogMessage.MESSAGE, String.format ("Trying to create LDAP group [%s]", jsonStr)).
+			      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+			      build()));
 		// Fetch current policies associated with the group.
 		
 		Response grpResponse = reqProcessor.process("/auth/ldap/groups","{\"groupname\":\""+groupName+"\"}",token);
@@ -124,11 +174,33 @@ public class LDAPAuthController {
 		Response response = reqProcessor.process("/auth/ldap/groups/configure",jsonStr,token);
 		if(response.getHttpstatus().equals(HttpStatus.NO_CONTENT)) { // Group is configured. So update SDB metadata as well.
 			response = ControllerUtil.updateMetaDataOnConfigChanges(groupName, "groups", currentPolicies, latestPolicies, token);
-			if(!HttpStatus.OK.equals(response.getHttpstatus()))
+			if(!HttpStatus.OK.equals(response.getHttpstatus())) {
+				log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+					      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+						  put(LogMessage.ACTION, "Create LDAP group").
+					      put(LogMessage.MESSAGE, "Creation of LDAP group completed").
+					      put(LogMessage.RESULT, response.getResponse()).
+					      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+					      build()));
 				return ResponseEntity.status(response.getHttpstatus()).body("{\"messages\":[\"LDAP group configured\",\""+response.getResponse()+"\"]}");
+			}
 		}else{
+			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+				      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+					  put(LogMessage.ACTION, "Create LDAP group").
+				      put(LogMessage.MESSAGE, "Creation of LDAP group completed").
+				      put(LogMessage.RESULT, response.getResponse()).
+				      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+				      build()));
 			return ResponseEntity.status(response.getHttpstatus()).body(response.getResponse());
 		}
+		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+			      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+				  put(LogMessage.ACTION, "Create LDAP group").
+			      put(LogMessage.MESSAGE, "Creation of LDAP group completed").
+			      put(LogMessage.RESULT, response.getResponse()).
+			      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+			      build()));
 		return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"LDAP Group configured\"]}");
 	}
 	
@@ -148,7 +220,20 @@ public class LDAPAuthController {
 		if(token == null || "".equals(token)){
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Missing token \"]}");
 		}
+		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+			      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+				  put(LogMessage.ACTION, "List LDAP Groups").
+			      put(LogMessage.MESSAGE, "Trying to list LDAP groups ").
+			      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+			      build()));
 		Response response = reqProcessor.process("/auth/ldap/groups/list","{}",token);
+		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+			      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+				  put(LogMessage.ACTION, "List LDAP Groups").
+			      put(LogMessage.MESSAGE, "Listing of LDAP groups completed").
+			      put(LogMessage.RESULT, response.getResponse()).
+			      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+			      build()));
 		return ResponseEntity.status(response.getHttpstatus()).body(response.getResponse());	
 	}
 	
@@ -165,17 +250,49 @@ public class LDAPAuthController {
 	
 	@GetMapping(value="/groups/{groupname}",produces="application/json")
 	public ResponseEntity<String> fetchLdapGroup(@RequestHeader(value="vault-token") String token,@PathVariable("groupname" ) String groupname){
-		
+		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+			      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+				  put(LogMessage.ACTION, "Fetch LDAP Groups").
+			      put(LogMessage.MESSAGE, String.format("Trying to fetch LDAP groups for [%s]", groupname)).
+			      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+			      build()));
 		Response response = reqProcessor.process("/auth/ldap/groups","{\"groupname\":\""+groupname+"\"}",token);
+		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+			      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+				  put(LogMessage.ACTION, "Fetch LDAP Groups").
+			      put(LogMessage.MESSAGE, "Fetching of LDAP groups completed").
+			      put(LogMessage.RESULT, response.getResponse()).
+			      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+			      build()));
 		return ResponseEntity.status(response.getHttpstatus()).body(response.getResponse());	
 	}
 	
 	@DeleteMapping(value="/groups/delete/{groupname}",produces="application/json")
 	public ResponseEntity<String> deleteLdapGroup(@RequestHeader(value="vault-token") String token,@PathVariable("groupname" ) String groupname){
-		
+		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+			      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+				  put(LogMessage.ACTION, "Delete LDAP Group").
+			      put(LogMessage.MESSAGE, String.format("Trying to delete LDAP group [%s]", groupname)).
+			      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+			      build()));
 		Response response = reqProcessor.process("/auth/ldap/groups/delete","{\"groupname\":\""+groupname+"\"}",token);
-		if(response.getHttpstatus().equals(HttpStatus.NO_CONTENT))
+		if(response.getHttpstatus().equals(HttpStatus.NO_CONTENT)) {
+			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+				      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+					  put(LogMessage.ACTION, "Delete LDAP Group").
+				      put(LogMessage.MESSAGE, "Deleting of LDAP group successful").
+				      put(LogMessage.RESULT, response.getResponse()).
+				      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+				      build()));
 			return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"LDAP Group deleted\"]}");
+		}
+		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+			      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+				  put(LogMessage.ACTION, "Delete LDAP Group").
+			      put(LogMessage.MESSAGE, "Deleting of LDAP group failed").
+			      put(LogMessage.RESULT, response.getResponse()).
+			      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+			      build()));
 		return ResponseEntity.status(response.getHttpstatus()).body(response.getResponse());	
 	}
 	
@@ -207,7 +324,12 @@ public class LDAPAuthController {
 			log.error(e);
 		}
 		
-		
+		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+			      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+				  put(LogMessage.ACTION, "Configure LDAP User").
+			      put(LogMessage.MESSAGE, String.format ("Trying to configure LDAP user [%s]", jsonStr)).
+			      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+			      build()));
 		Response userResponse = reqProcessor.process("/auth/ldap/users","{\"username\":\""+userName+"\"}",token);
 		String responseJson="";	
 		if(HttpStatus.OK.equals(userResponse.getHttpstatus())){
@@ -222,11 +344,33 @@ public class LDAPAuthController {
 		Response response = reqProcessor.process("/auth/ldap/users/configure",jsonStr,token);
 		if(response.getHttpstatus().equals(HttpStatus.NO_CONTENT)) {
 			response = ControllerUtil.updateMetaDataOnConfigChanges(userName, "users", currentPolicies, latestPolicies, token);
-			if(!HttpStatus.OK.equals(response.getHttpstatus()))
+			if(!HttpStatus.OK.equals(response.getHttpstatus())) {
+				log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+					      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+						  put(LogMessage.ACTION, "Configure LDAP User").
+					      put(LogMessage.MESSAGE, "Configuring of LDAP user successful").
+					      put(LogMessage.RESULT, response.getResponse()).
+					      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+					      build()));
 				return ResponseEntity.status(response.getHttpstatus()).body("{\"messages\":[\"LDAP user configured\",\""+response.getResponse()+"\"]}");
+			}
 		}else{
+			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+				      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+					  put(LogMessage.ACTION, "Configure LDAP User").
+				      put(LogMessage.MESSAGE, "Configuring of LDAP user completed").
+				      put(LogMessage.RESULT, response.getResponse()).
+				      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+				      build()));
 			return ResponseEntity.status(response.getHttpstatus()).body(response.getResponse());
 		}
+		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+			      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+				  put(LogMessage.ACTION, "Configure LDAP User").
+			      put(LogMessage.MESSAGE, "Configuring of LDAP user completed").
+			      put(LogMessage.RESULT, response.getResponse()).
+			      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+			      build()));
 		return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"LDAP user configured\"]}");
 	}
 	
@@ -241,8 +385,20 @@ public class LDAPAuthController {
 	
 	@GetMapping(value="/users",produces="application/json")
 	public ResponseEntity<String> listLdapUsers(@RequestHeader(value="vault-token") String token){
-		
+		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+			      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+				  put(LogMessage.ACTION, "List LDAP User").
+			      put(LogMessage.MESSAGE,  "Trying to list LDAP user").
+			      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+			      build()));
 		Response response = reqProcessor.process("/auth/ldap/users/list","{}",token);
+		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+			      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+				  put(LogMessage.ACTION, "List LDAP User").
+			      put(LogMessage.MESSAGE, "Listing of LDAP user completed successfully").
+			      put(LogMessage.RESULT, response.getResponse()).
+			      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+			      build()));
 		return ResponseEntity.status(response.getHttpstatus()).body(response.getResponse());	
 	}
 	
@@ -259,8 +415,20 @@ public class LDAPAuthController {
 	 */
 	@GetMapping(value="/users/{username}",produces="application/json")
 	public ResponseEntity<String> fetchLdapUser(@RequestHeader(value="vault-token") String token,@PathVariable("username" ) String username){
-		
+		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+			      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+				  put(LogMessage.ACTION, "Fetch LDAP user").
+			      put(LogMessage.MESSAGE, String.format("Trying to fetch LDAP user for [%s]", username)).
+			      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+			      build()));
 		Response response = reqProcessor.process("/auth/ldap/users","{\"username\":\""+username+"\"}",token);
+		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+			      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+				  put(LogMessage.ACTION, "Fetch LDAP user").
+			      put(LogMessage.MESSAGE, "Listing of LDAP user completed").
+			      put(LogMessage.RESULT, response.getResponse()).
+			      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+			      build()));
 		return ResponseEntity.status(response.getHttpstatus()).body(response.getResponse());	
 	}
 	
@@ -274,10 +442,30 @@ public class LDAPAuthController {
 	
 	@DeleteMapping(value="/users/delete/{username}",produces="application/json")
 	public ResponseEntity<String> deleteLdapUser(@RequestHeader(value="vault-token") String token,@PathVariable("username" ) String username){
-				
+		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+			      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+				  put(LogMessage.ACTION, "Delete LDAP user").
+			      put(LogMessage.MESSAGE, String.format("Trying to delete LDAP user for [%s]", username)).
+			      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+			      build()));	
 		Response response = reqProcessor.process("/auth/ldap/users/delete","{\"username\":\""+username+"\"}",token);
-		if(response.getHttpstatus().equals(HttpStatus.NO_CONTENT))
+		if(response.getHttpstatus().equals(HttpStatus.NO_CONTENT)) {
+			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+				      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+					  put(LogMessage.ACTION, "Delete LDAP user").
+				      put(LogMessage.MESSAGE, "Deletion of LDAP user completed").
+				      put(LogMessage.RESULT, response.getResponse()).
+				      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+				      build()));
 			return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"LDAP User deleted\"]}");
+		}
+		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+			      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+				  put(LogMessage.ACTION, "Delete LDAP user").
+			      put(LogMessage.MESSAGE, "Deletion of LDAP user completed").
+			      put(LogMessage.RESULT, response.getResponse()).
+			      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+			      build()));
 		return ResponseEntity.status(response.getHttpstatus()).body(response.getResponse());	
 	}
 	

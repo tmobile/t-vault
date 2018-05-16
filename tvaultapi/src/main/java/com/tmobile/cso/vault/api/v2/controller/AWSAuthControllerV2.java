@@ -49,7 +49,7 @@ public class AWSAuthControllerV2 {
 	 * @param login
 	 * @return
 	 */
-	@ApiOperation(value = "${AWSAuthControllerV2.authenticateLdap.value}", notes = "${AccessControllerV2.authenticateLdap.notes}")
+	@ApiOperation(value = "${AWSAuthControllerV2.authenticateLdap.value}", notes = "${AWSAuthControllerV2.authenticateLdap.notes}")
 	@PostMapping(value="/v2/auth/aws/login",consumes="application/json",produces="application/json")
 	public ResponseEntity<String> authenticateLdap( @RequestBody AWSLogin login){
 		return awsAuthService.authenticateLdap(login);

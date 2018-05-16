@@ -32,8 +32,12 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.google.common.collect.ImmutableMap;
+import com.tmobile.cso.vault.api.exception.LogMessage;
 import com.tmobile.cso.vault.api.process.RequestProcessor;
 import com.tmobile.cso.vault.api.process.Response;
+import com.tmobile.cso.vault.api.utils.JSONUtil;
+import com.tmobile.cso.vault.api.utils.ThreadLocalContext;
 
 import io.swagger.annotations.Api;
 
@@ -59,13 +63,25 @@ public class AppRoleController {
 	@PostMapping(value="/createAppRole", consumes="application/json", produces="application/json")
 	public ResponseEntity<String> createAppRole(@RequestHeader(value="vault-token") String token, @RequestBody String jsonStr){
 		
-		log.info("creating AppRole");
+		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+			      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+				  put(LogMessage.ACTION, "Create AppRole").
+			      put(LogMessage.MESSAGE, String.format("Trying to create AppRole [%s]", jsonStr)).
+			      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+			      build()));
 		
 		Response response = reqProcessor.process("/auth/approle/role/create", jsonStr,token);
 
-		if(response.getHttpstatus().equals(HttpStatus.NO_CONTENT))
+		if(response.getHttpstatus().equals(HttpStatus.NO_CONTENT)) {
 			return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"AppRole created\"]}");
-				
+		}
+		log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+			      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+				  put(LogMessage.ACTION, "Create AppRole").
+			      put(LogMessage.MESSAGE, "Creation of AppRole failed").
+			      put(LogMessage.RESULT, response.getResponse()).
+			      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+			      build()));
 		return ResponseEntity.status(response.getHttpstatus()).body(response.getResponse());	
 	}
 
@@ -79,22 +95,44 @@ public class AppRoleController {
 	@PostMapping(value="/associateApprole",produces="application/json")
 	public ResponseEntity<String> associateApprole(@RequestHeader(value="vault-token") String token, @RequestBody String jsonStr){
 
-			log.info("Associate AppRole to SDB - Approle Controller ");
+		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+			      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+				  put(LogMessage.ACTION, "Associate AppRole").
+			      put(LogMessage.MESSAGE, String.format("Trying to Associate AppRole [%s]", jsonStr)).
+			      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+			      build()));
 
 			ResponseEntity<String> response = sdbController.associateApproletoSDB(token,jsonStr);
 
-			log.info("Associate AppRole to SDB - After SDBController call..");
-
-			if(response.getStatusCode().equals(HttpStatus.NO_CONTENT))
-				
+			if(response.getStatusCode().equals(HttpStatus.NO_CONTENT)) {
+				log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+					      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+						  put(LogMessage.ACTION, "Associate AppRole").
+					      put(LogMessage.MESSAGE, "AppRole successfully associated").
+					      put(LogMessage.RESULT, "Approle associated to SDB").
+					      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+					      build()));
 				return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Approle associated to SDB\"]}");
-		
-			else if(response.getStatusCode().equals(HttpStatus.OK))
-			
+			}
+			else if(response.getStatusCode().equals(HttpStatus.OK)) {
+				log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+					      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+						  put(LogMessage.ACTION, "Create AppRole").
+					      put(LogMessage.MESSAGE, "AppRole successfully associated").
+					      put(LogMessage.RESULT, "Approle associated to SDB").
+					      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+					      build()));
 				return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Approle associated to SDB\"]}");
-			else
-				
+			} else {
+				log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+					      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+						  put(LogMessage.ACTION, "Associate AppRole").
+					      put(LogMessage.MESSAGE, "AppRole association failed").
+					      put(LogMessage.RESULT, response.toString()).
+					      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+					      build()));
 				return ResponseEntity.status(response.getStatusCode()).body(response.toString());	
+			}
 	}
 	
 	/**
@@ -106,10 +144,21 @@ public class AppRoleController {
 	@GetMapping(value="/readAppRole/{role_name}",produces="application/json")
 	public ResponseEntity<String> readAppRole(@RequestHeader(value="vault-token") String token, @PathVariable("role_name" ) String rolename){
 
-			log.info("Read AppRole");
+		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+			      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+				  put(LogMessage.ACTION, "Read AppRole").
+			      put(LogMessage.MESSAGE, String.format("Trying to read AppRole [%s]", rolename)).
+			      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+			      build()));
 
 			Response response = reqProcessor.process("/auth/approle/role/read","{\"role_name\":\""+rolename+"\"}",token);
-		
+			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+				      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+					  put(LogMessage.ACTION, "Read AppRole").
+				      put(LogMessage.MESSAGE, "Reading AppRole completed").
+				      put(LogMessage.RESULT, response.getResponse()).
+				      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+				      build()));
 			return ResponseEntity.status(response.getHttpstatus()).body(response.getResponse());	
 	}
 	
@@ -123,10 +172,21 @@ public class AppRoleController {
 	@GetMapping(value="/readAppRoleRoleId/{role_name}",produces="application/json")
 	public ResponseEntity<String> readAppRoleRoleId(@RequestHeader(value="vault-token") String token, @PathVariable("role_name" ) String rolename){
 
-			log.info("Read AppRole RoleID");
+		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+			      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+				  put(LogMessage.ACTION, "Read AppRoleId").
+			      put(LogMessage.MESSAGE, String.format("Trying to read AppRoleId [%s]", rolename)).
+			      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+			      build()));
 
 			Response response = reqProcessor.process("/auth/approle/role/readRoleID","{\"role_name\":\""+rolename+"\"}",token);
-		
+			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+				      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+					  put(LogMessage.ACTION, "Read AppRoleId").
+				      put(LogMessage.MESSAGE, "Reading AppRoleId completed").
+				      put(LogMessage.RESULT, response.getResponse()).
+				      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+				      build()));
 			return ResponseEntity.status(response.getHttpstatus()).body(response.getResponse());	
 	}
 	
@@ -142,12 +202,32 @@ public class AppRoleController {
 	@DeleteMapping(value="/deleteAppRole",produces="application/json")
 	public ResponseEntity<String> deleteAppRole(@RequestHeader(value="vault-token") String token, @RequestBody String jsonStr){
 		
-		log.info("delete AppRole");
+		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+			      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+				  put(LogMessage.ACTION, "Delete AppRoleId").
+			      put(LogMessage.MESSAGE, String.format("Trying to delete AppRoleId [%s]", jsonStr)).
+			      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+			      build()));
 
 		Response response = reqProcessor.process("/auth/approle/role/delete",jsonStr,token);
 	
-		if(response.getHttpstatus().equals(HttpStatus.NO_CONTENT))
+		if(response.getHttpstatus().equals(HttpStatus.NO_CONTENT)) {
+			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+				      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+					  put(LogMessage.ACTION, "Delete AppRole").
+				      put(LogMessage.MESSAGE, "Delete AppRole completed").
+				      put(LogMessage.RESULT, response.getResponse()).
+				      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+				      build()));
 			return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"AppRole deleted\"]}");
+		}
+		log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+			      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+				  put(LogMessage.ACTION, "Delete AppRole").
+			      put(LogMessage.MESSAGE, "Reading AppRole failed").
+			      put(LogMessage.RESULT, response.getResponse()).
+			      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+			      build()));
 		return ResponseEntity.status(response.getHttpstatus()).body(response.getResponse());	
 	}
 
@@ -161,13 +241,32 @@ public class AppRoleController {
 	@PostMapping(value="/createSecretId", consumes="application/json", produces="application/json")
 	public ResponseEntity<String> createsecretId(@RequestHeader(value="vault-token") String token, @RequestBody String jsonStr){
 		
-		log.info("creating SecretId for AppRole");
+		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+			      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+				  put(LogMessage.ACTION, "Create SecretId").
+			      put(LogMessage.MESSAGE, String.format("Trying to create SecretId [%s]", jsonStr)).
+			      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+			      build()));
 		
 		Response response = reqProcessor.process("/auth/approle/secretid/create", jsonStr,token);
 
-		if(response.getHttpstatus().equals(HttpStatus.NO_CONTENT))
+		if(response.getHttpstatus().equals(HttpStatus.NO_CONTENT)) {
+			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+				      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+					  put(LogMessage.ACTION, "Create SecretId").
+				      put(LogMessage.MESSAGE, "Create SecretId completed successfully").
+				      put(LogMessage.RESULT, response.getResponse()).
+				      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+				      build()));
 			return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Secret ID created for AppRole\"]}");
-				
+		}
+		log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+			      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+				  put(LogMessage.ACTION, "Create SecretId").
+			      put(LogMessage.MESSAGE, "Create SecretId failed").
+			      put(LogMessage.RESULT, response.getResponse()).
+			      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+			      build()));
 		return ResponseEntity.status(response.getHttpstatus()).body(response.getResponse());	
 	}
 
@@ -183,10 +282,21 @@ public class AppRoleController {
 	@GetMapping(value="/readSecretId/{role_name}",produces="application/json")
 	public ResponseEntity<String> readSecretId(@RequestHeader(value="vault-token") String token, @PathVariable("role_name" ) String rolename){
 
-			log.info("Read SecretID");
+		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+			      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+				  put(LogMessage.ACTION, "Read SecretId").
+			      put(LogMessage.MESSAGE, String.format("Trying to read SecretId [%s]", rolename)).
+			      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+			      build()));
 
 			Response response = reqProcessor.process("/auth/approle/secretid/lookup","{\"role_name\":\""+rolename+"\"}",token);
-		
+			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+				      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+					  put(LogMessage.ACTION, "Read SecretId").
+				      put(LogMessage.MESSAGE, "Read SecretId completed").
+				      put(LogMessage.RESULT, response.getResponse()).
+				      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+				      build()));
 			return ResponseEntity.status(response.getHttpstatus()).body(response.getResponse());	
 	}
 	
@@ -201,12 +311,32 @@ public class AppRoleController {
 	@PostMapping(value="/deleteSecretId",produces="application/json")
 	public ResponseEntity<String> deleteSecretId(@RequestHeader(value="vault-token") String token, @RequestBody String jsonStr){
 		
-		log.info("Delete SecretId");
+		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+			      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+				  put(LogMessage.ACTION, "Delete SecretId").
+			      put(LogMessage.MESSAGE, String.format("Trying to delete SecretId [%s]", jsonStr)).
+			      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+			      build()));
 
 		Response response = reqProcessor.process("/auth/approle/secret/delete",jsonStr,token);
 	
-		if(response.getHttpstatus().equals(HttpStatus.NO_CONTENT))
+		if(response.getHttpstatus().equals(HttpStatus.NO_CONTENT)) {
+			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+				      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+					  put(LogMessage.ACTION, "Delete SecretId").
+				      put(LogMessage.MESSAGE, "Deletion of SecretId completed successfully").
+				      put(LogMessage.RESULT, response.getResponse()).
+				      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+				      build()));
 			return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"SecretId for AppRole deleted\"]}");
+		}
+		log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+			      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+				  put(LogMessage.ACTION, "Delete SecretId").
+			      put(LogMessage.MESSAGE, "Deletion of SecretId failed").
+			      put(LogMessage.RESULT, response.getResponse()).
+			      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+			      build()));
 		return ResponseEntity.status(response.getHttpstatus()).body(response.getResponse());	
 	}
 
@@ -215,18 +345,34 @@ public class AppRoleController {
 	@PostMapping(value="/login",produces="application/json")	
 	public ResponseEntity<String> login(@RequestBody String jsonStr){
 		
-		log.info("login Approle");
+		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+			      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+				  put(LogMessage.ACTION, "AppRole Login").
+			      put(LogMessage.MESSAGE, "Trying to authenticate with AppRole").
+			      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+			      build()));
 		
 		Response response = reqProcessor.process("/auth/approle/login",jsonStr,"");
 
 		log.info("Approle login HTTP STATUSCODE  :" + response.getHttpstatus());
 		
 		if(HttpStatus.OK.equals(response.getHttpstatus())){
-			
+			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+				      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+					  put(LogMessage.ACTION, "AppRole Login").
+				      put(LogMessage.MESSAGE, "AppRole Authentication Successful").
+				      put(LogMessage.RESULT, "").
+				      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+				      build()));
 			return ResponseEntity.status(response.getHttpstatus()).body(response.getResponse());
-		
 		}else{
-		
+			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+				      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+					  put(LogMessage.ACTION, "AppRole Login").
+				      put(LogMessage.MESSAGE, "AppRole Authentication failed.").
+				      put(LogMessage.RESULT, response.getResponse()).
+				      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+				      build()));
 			return ResponseEntity.status(response.getHttpstatus()).body("{\"errors\":[\"Approle Login Failed.\"]}" + "HTTP STATUSCODE  :" + response.getHttpstatus());
 		
 		}

@@ -7,16 +7,28 @@
     </Properties>
     <Appenders>
         <Console name="Console-Appender" target="SYSTEM_OUT">
-            <PatternLayout>
-                <pattern>
-                    [%-5level] %d{yyyy-MM-dd HH:mm:ss.SSS} [%t] %c{1} - %msg%n
-                </pattern>
-            </PatternLayout>
+        	<PatternLayout>
+        		<pattern>
+{
+	"Info":"%-5level",
+	"Date": "%d{yyyy-MM-dd HH:mm:ss.SSS}",
+	"Thread":  "[%t]",
+	"Context": "%c{1}",
+	"Message": "%msg"
+}%n
+        		</pattern>
+        	</PatternLayout>
         </Console>
         <RollingFile name="App-Appender" fileName="${sys:TVAULT-API-LOG-PATH}/${sys:APP_ID}-${sys:VAULT_ENV}-tvault-api-app.log" filePattern="${sys:TVAULT-API-LOG-PATH}/${sys:APP_ID}-${sys:VAULT_ENV}-tvault-api-app-%i.log">
             <PatternLayout>
                 <pattern>
-                    [%-5level] %d{yyyy-MM-dd HH:mm:ss.SSS} [%t] %c{1} - %msg%n
+{
+	"Info":"%-5level",
+	"Date": "%d{yyyy-MM-dd HH:mm:ss.SSS}",
+	"Thread":  "[%t]",
+	"Context": "%c{1}",
+	"Message": "%msg"
+}%n
                 </pattern>
             </PatternLayout>
                         <Policies>
@@ -27,7 +39,13 @@
         <RollingFile name="SpringBoot-Appender" fileName="${sys:TVAULT-API-LOG-PATH}/${sys:APP_ID}-${sys:VAULT_ENV}-tvault-api-spring.log" filePattern="${sys:TVAULT-API-LOG-PATH}/${sys:APP_ID}-${sys:VAULT_ENV}-tvault-api-spring-%i.log">
             <PatternLayout>
                 <pattern>
-                    [%-5level] %d{yyyy-MM-dd HH:mm:ss.SSS} [%t] %c{1} - %msg%n
+{
+	"Info":"%-5level",
+	"Date": "%d{yyyy-MM-dd HH:mm:ss.SSS}",
+	"Thread":  "[%t]",
+	"Context": "%c{1}",
+	"Message": "%msg"
+}%n
                 </pattern>
             </PatternLayout>
             <Policies>
@@ -48,18 +66,18 @@
         </RollingFile>
     </Appenders>
     <Loggers>
-        <Logger name="org.springframework.web" level="info" additivity="false">
+        <Logger name="org.springframework.web" level="info" additivity="true">
             <AppenderRef ref="SpringBoot-Appender" />
         </Logger>
         <Logger name="com.tmobile.cso.vault.api" level="debug"
-            additivity="false">
+            additivity="true">
             <AppenderRef ref="App-Appender" />
         </Logger>
        <Logger name="metric-logger" level="info"
-            additivity="false">
+            additivity="true">
             <AppenderRef ref="api-metric-Appender" />
         </Logger>
-        <Root>
+        <Root >
             <AppenderRef ref="Console-Appender" />
         </Root>
     </Loggers>

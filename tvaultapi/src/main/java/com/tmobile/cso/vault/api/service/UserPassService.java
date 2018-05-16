@@ -17,22 +17,28 @@
 
 package com.tmobile.cso.vault.api.service;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 
+import com.google.common.collect.ImmutableMap;
+import com.tmobile.cso.vault.api.exception.LogMessage;
 import com.tmobile.cso.vault.api.model.TVaultError;
 import com.tmobile.cso.vault.api.model.UserLogin;
 import com.tmobile.cso.vault.api.model.UserpassUser;
 import com.tmobile.cso.vault.api.process.RequestProcessor;
 import com.tmobile.cso.vault.api.process.Response;
 import com.tmobile.cso.vault.api.utils.JSONUtil;
+import com.tmobile.cso.vault.api.utils.ThreadLocalContext;
+import com.tmobile.cso.vault.api.v2.controller.UserPassControllerV2;
 
 @Component
 public class  UserPassService {
-
+	private Logger logger = LogManager.getLogger(UserPassService.class);
 	@Autowired
 	private RequestProcessor reqProcessor;
 
@@ -109,16 +115,50 @@ public class  UserPassService {
 	 */
 	public ResponseEntity<String> login(UserLogin user){
 		String jsonStr = JSONUtil.getJSON(user);
+		logger.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+			      put(LogMessage.USER, user.getUsername()).
+				  put(LogMessage.ACTION, "User Login").
+			      put(LogMessage.MESSAGE, "Trying to authenticate").
+			      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+			      build()));
 		Response response = reqProcessor.process("/auth/userpass/login",jsonStr,"");
 		if(HttpStatus.OK.equals(response.getHttpstatus())){
+			logger.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+				      put(LogMessage.USER, user.getUsername()).
+					  put(LogMessage.ACTION, "User Login").
+				      put(LogMessage.MESSAGE, "User Authentication Successful").
+				      put(LogMessage.RESULT, response.getResponse()).
+				      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+				      build()));
 			return ResponseEntity.status(response.getHttpstatus()).body(response.getResponse());
 		}else{
 			if (HttpStatus.BAD_REQUEST.equals(response.getHttpstatus())) {
+				logger.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+					      put(LogMessage.USER, user.getUsername()).
+						  put(LogMessage.ACTION, "User Login").
+					      put(LogMessage.MESSAGE, "User Authentication failed. Invalid username or password.").
+					      put(LogMessage.RESULT, response.getResponse()).
+					      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+					      build()));
 				return ResponseEntity.status(response.getHttpstatus()).body("{\"errors\": [\"User Authentication failed\", \"Invalid username or password. Please retry again after correcting username or password.\"]}");
 			}
 			else if (HttpStatus.INTERNAL_SERVER_ERROR.equals(response.getHttpstatus())) {
+				logger.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+					      put(LogMessage.USER, user.getUsername()).
+						  put(LogMessage.ACTION, "User Login").
+					      put(LogMessage.MESSAGE, "User Authentication failed. Vault services could be down").
+					      put(LogMessage.RESULT, response.getResponse()).
+					      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+					      build()));
 				return ResponseEntity.status(response.getHttpstatus()).body("{\"errors\": [\"User Authentication failed\", \"This may be due to vault services are down or vault services are not reachable\"]}");
 			}
+			logger.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+				      put(LogMessage.USER, user.getUsername()).
+					  put(LogMessage.ACTION, "User Login").
+				      put(LogMessage.MESSAGE, "User Authentication failed.").
+				      put(LogMessage.RESULT, response.getResponse()).
+				      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+				      build()));
 			return ResponseEntity.status(response.getHttpstatus()).body("{\"errors\":[\"Username Authentication Failed.\"]}");
 		}
 	}
