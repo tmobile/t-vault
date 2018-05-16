@@ -83,7 +83,7 @@ public class VaultAuthController {
 				      put(LogMessage.USER, loginObj.getUsername()).
 					  put(LogMessage.ACTION, "User Login").
 				      put(LogMessage.MESSAGE, "Authentication Successful").
-				      put(LogMessage.RESULT, response.getResponse()).
+				      put(LogMessage.RESULT, "").
 				      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 				      build()));
 			return ResponseEntity.status(response.getHttpstatus()).body(response.getResponse());
@@ -220,7 +220,6 @@ public class VaultAuthController {
 				      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 					  put(LogMessage.ACTION, "Revoke Token").
 				      put(LogMessage.MESSAGE, "User Token Revoke Failed.").
-				      put(LogMessage.RESULT, response.getResponse()).
 				      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 				      build()));
 			return ResponseEntity.status(response.getHttpstatus()).body("{\"errors\":[\"Token revoke Failed.\"]}");
