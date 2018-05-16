@@ -137,14 +137,6 @@
                 });
             }
 
-            //SECRET CONTAINS NEWLINE
-            var regex = /\n|\r/gm;
-            if (!!item.value.match(regex)) {
-                return Modal.createModalWithController('stop.modal.html', {
-                    title: 'Error',
-                    message: 'Line-break characters are not allowed in Safe Value.'
-                });
-            }
             return $q.when(true);
         }
 
