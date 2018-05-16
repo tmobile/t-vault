@@ -99,29 +99,44 @@
                 });
             }
 
-            //SECRET DUPLICATE KEY
-            var otherWithSameName = parent.children.find(function (childItem, position) {
+            //Duplicate folder
+            var otherWithSameFolderName = parent.children.find(function (childItem, position) {
                 if (position === index) return false;
-                var comparator = (childItem.type === 'folder') ?
-                    childItem.id.split('/').pop() : childItem.key;
-                return comparator === item.key;
+                var comparator;
+                if (childItem.type === 'folder') {
+                    comparator = childItem.id.split('/').pop();
+                }
+                if (comparator === item.key)
+                    return true;
+                else return false;
             });
 
-            if (otherWithSameName) {
+            if (otherWithSameFolderName) {
+                return Modal.createModalWithController('stop.modal.html', {
+                    title: 'Folder already exists.',
+                    message: 'This safe already contains an item with the specified name. You can\'t store two folders with the same name. Please try a different name for the folder.'
+                });
+            }
+
+            //SECRET DUPLICATE KEY
+            var otherWithSameKeyName = parent.children.find(function (childItem, position) {
+                if (position === index) return false;
+                var comparator;
+                if (childItem.type !== 'folder') {
+                    comparator = childItem.key;
+                }
+                if (comparator === item.key)
+                    return true;
+                else return false;
+            });
+
+            if (otherWithSameKeyName) {
                 return Modal.createModalWithController('stop.modal.html', {
                     title: 'Key already exists.',
                     message: 'This folder already contains an item with the specified name. You can\'t store two secrets with the same key. Please try a different name for the key.'
                 });
             }
 
-            //SECRET CONTAINS NEWLINE
-            var regex = /\n|\r/gm;
-            if (!!item.value.match(regex)) {
-                return Modal.createModalWithController('stop.modal.html', {
-                    title: 'Error',
-                    message: 'Line-break characters are not allowed in Safe Value.'
-                });
-            }
             return $q.when(true);
         }
 

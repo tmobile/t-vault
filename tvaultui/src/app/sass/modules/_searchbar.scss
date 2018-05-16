@@ -1,19 +1,23 @@
 .au-searchbar {
-  position: relative;
-  width: calc(200rem/10);
-  border: 1px solid #aaa;
+  top: 19vh;
+  right: 4.8vw;
+  z-index: 10;
+  position: absolute;
+  width: 16vw; 
   font-size: 14px;
+  height: 4vh;
 
   input[type="text"] {
     width: calc(100% - 3rem);
     padding: 7px;
+    padding-left: 5% !important;
     color: #333;
   }
 
   .au-search-button{
     position: absolute;
     right: 0;
-    top: 0;
+    bottom: 0;
     height: 100%;
     width: 3rem;
     text-align: center;
@@ -26,6 +30,14 @@
       left: 50%;
       transform: translate(-50%, -50%);
     }
+  }
+
+  .search-input {
+    border: 1px solid #aaa;
+    border-right : 0px;
+    font-size: 1.4vh;
+    height: 100%;
+    top: 0;
   }
 
 }
