@@ -43,5 +43,4 @@ public class LogMessage implements Serializable {
 		this.messages = messages;
 	}
 
-
 }
