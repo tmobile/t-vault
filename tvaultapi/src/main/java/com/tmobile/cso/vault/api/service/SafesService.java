@@ -98,6 +98,7 @@ public class  SafesService {
 	 */
 	public ResponseEntity<String> createfolder(String token, String path){
 		
+		path = (path != null) ? path.toString() : path;
 		if(ControllerUtil.isPathValid(path)){
 			//if(ControllerUtil.isValidSafe(path, token)){
 				String jsonStr ="{\"path\":\""+path +"\",\"data\":{\"default\":\"default\"}}";
@@ -122,7 +123,7 @@ public class  SafesService {
 	public ResponseEntity<String> createSafe(String token, Safe safe) {
 
 		String path = safe.getPath();
-		String jsonStr = JSONUtil.getJSON(safe);
+		String jsonStr = ControllerUtil.converSDBInputsToLowerCase(JSONUtil.getJSON(safe));
 		Map<String,Object> rqstParams = ControllerUtil.parseJson(jsonStr);
 		if (!ControllerUtil.areSDBInputsValid(rqstParams)) {
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid input values\"]}");
@@ -246,7 +247,7 @@ public class  SafesService {
 	 * @return
 	 */
 	public ResponseEntity<String>  updateSafe(String token, Safe safe) {
-		Map<String, Object> requestParams = ControllerUtil.parseJson(JSONUtil.getJSON(safe));
+		Map<String, Object> requestParams = ControllerUtil.parseJson(ControllerUtil.converSDBInputsToLowerCase(JSONUtil.getJSON(safe)));
 		@SuppressWarnings("unchecked")
 		Map<Object,Object> data = (Map<Object,Object>)requestParams.get("data");
 		String path = safe.getPath();
@@ -429,6 +430,10 @@ public class  SafesService {
 		String path = safeUser.getPath();
 		String access = safeUser.getAccess();
 
+		userName = (userName !=null) ? userName.toLowerCase() : userName;
+		path = (path != null) ? path.toLowerCase() : path;
+		access = (access != null) ? access.toLowerCase(): access;
+		
 		if(ControllerUtil.isValidSafePath(path) && ControllerUtil.isValidSafe(path, token)){
 
 			String folders[] = path.split("[/]+");
@@ -559,8 +564,12 @@ public class  SafesService {
 
 		String groupName = requestMap.get("groupname");
 		String path = requestMap.get("path");
+		String access = requestMap.get("access");
+		groupName = (groupName !=null) ? groupName.toLowerCase() : groupName;
+		path = (path != null) ? path.toLowerCase() : path;
+		access = (access != null) ? access.toLowerCase(): access;
+		
 		if(ControllerUtil.isValidSafePath(path) && ControllerUtil.isValidSafe(path, token)){
-			String access = requestMap.get("access");
 			String folders[] = path.split("[/]+");
 
 			String policyPrefix ="";
@@ -880,8 +889,13 @@ public class  SafesService {
 
 		String role = requestMap.get("role");
 		String path = requestMap.get("path");
+		String access = requestMap.get("access");
+
+		role = (role !=null) ? role.toLowerCase() : role;
+		path = (path != null) ? path.toLowerCase() : path;
+		access = (access != null) ? access.toLowerCase(): access;
+		
 		if(ControllerUtil.isValidSafePath(path) && ControllerUtil.isValidSafe(path, token)){
-			String access = requestMap.get("access");
 			String folders[] = path.split("[/]+");
 
 			String policyPrefix ="";
