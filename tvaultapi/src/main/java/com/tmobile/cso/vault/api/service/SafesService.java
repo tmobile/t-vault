@@ -98,7 +98,7 @@ public class  SafesService {
 	 */
 	public ResponseEntity<String> createfolder(String token, String path){
 		
-		path = (path != null) ? path.toString() : path;
+		path = (path != null) ? path.toLowerCase() : path;
 		if(ControllerUtil.isPathValid(path)){
 			//if(ControllerUtil.isValidSafe(path, token)){
 				String jsonStr ="{\"path\":\""+path +"\",\"data\":{\"default\":\"default\"}}";
