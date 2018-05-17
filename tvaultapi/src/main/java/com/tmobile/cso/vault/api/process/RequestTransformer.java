@@ -59,8 +59,7 @@ public  class RequestTransformer {
 		pathPolicyMap.forEach((path,policy)-> {
 			Map<String,String> policyMap = new HashMap<String,String>();
 			policyMap.put("policy",policy);
-			pathMap.put(path, policyMap);
-			
+			pathMap.put(path.toLowerCase(), policyMap);
 		});
 				
 		Map<String,Object> pathsMap = new HashMap<String,Object> ();

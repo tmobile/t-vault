@@ -69,7 +69,7 @@ public class AppRoleController {
 			      put(LogMessage.MESSAGE, String.format("Trying to create AppRole [%s]", jsonStr)).
 			      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 			      build()));
-		
+		jsonStr = ControllerUtil.convertAppRoleInputsToLowerCase(jsonStr);
 		Response response = reqProcessor.process("/auth/approle/role/create", jsonStr,token);
 
 		if(response.getHttpstatus().equals(HttpStatus.NO_CONTENT)) {
@@ -101,7 +101,7 @@ public class AppRoleController {
 			      put(LogMessage.MESSAGE, String.format("Trying to Associate AppRole [%s]", jsonStr)).
 			      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 			      build()));
-
+			jsonStr = ControllerUtil.convertSafeAppRoleAccessToLowerCase(jsonStr);
 			ResponseEntity<String> response = sdbController.associateApproletoSDB(token,jsonStr);
 
 			if(response.getStatusCode().equals(HttpStatus.NO_CONTENT)) {
@@ -247,7 +247,7 @@ public class AppRoleController {
 			      put(LogMessage.MESSAGE, String.format("Trying to create SecretId [%s]", jsonStr)).
 			      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 			      build()));
-		
+		jsonStr = ControllerUtil.convertAppRoleSecretIdToLowerCase(jsonStr);
 		Response response = reqProcessor.process("/auth/approle/secretid/create", jsonStr,token);
 
 		if(response.getHttpstatus().equals(HttpStatus.NO_CONTENT)) {
@@ -361,7 +361,7 @@ public class AppRoleController {
 				      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 					  put(LogMessage.ACTION, "AppRole Login").
 				      put(LogMessage.MESSAGE, "AppRole Authentication Successful").
-				      put(LogMessage.RESULT, "").
+				      put(LogMessage.RESULT, response.getResponse()).
 				      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 				      build()));
 			return ResponseEntity.status(response.getHttpstatus()).body(response.getResponse());

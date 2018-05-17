@@ -36,11 +36,14 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
 import com.tmobile.cso.vault.api.exception.LogMessage;
+import com.tmobile.cso.vault.api.model.Safe;
 import com.tmobile.cso.vault.api.process.RequestProcessor;
 import com.tmobile.cso.vault.api.process.Response;
 import com.tmobile.cso.vault.api.utils.JSONUtil;
@@ -112,6 +115,7 @@ public class SDBController {
 	public ResponseEntity<String> createfolder(@RequestHeader(value="vault-token") String token, @RequestParam("path") String path){
 		
 		if(ControllerUtil.isValidDataPath(path)){
+			path = (path != null) ? path.toLowerCase() : path;
 			//if(ControllerUtil.isValidSafe(path, token)){
 				String jsonStr ="{\"path\":\""+path +"\",\"data\":{\"default\":\"default\"}}";
 				log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
@@ -160,6 +164,7 @@ public class SDBController {
 		if (!ControllerUtil.areSDBInputsValid(requestParams)) {
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid input values\"]}");
 		}
+		jsonStr = ControllerUtil.converSDBInputsToLowerCase(jsonStr);
 		@SuppressWarnings("unchecked")
 		Map<Object,Object> data = (Map<Object,Object>)requestParams.get("data");
 		String path = requestParams.get("path").toString();
@@ -221,6 +226,7 @@ public class SDBController {
 	
 	@PostMapping(value="/sdb/create",consumes="application/json",produces="application/json")
 	public ResponseEntity<String> createSDB(@RequestHeader(value="vault-token" ) String token, @RequestBody String jsonStr){
+
 		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 			      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 				  put(LogMessage.ACTION, "Create SDB").
@@ -231,6 +237,7 @@ public class SDBController {
 		if (!ControllerUtil.areSDBInputsValid(rqstParams)) {
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid input values\"]}");
 		}
+		jsonStr = ControllerUtil.converSDBInputsToLowerCase(jsonStr);
 		String path = rqstParams.get("path").toString();
 		if(ControllerUtil.isValidSafePath(path)){
 			Response response = reqProcessor.process("/sdb/create",jsonStr,token);
@@ -565,7 +572,9 @@ public class SDBController {
 		String userName = requestMap.get("username").toString();
 		String path = requestMap.get("path").toString();
 		String access = requestMap.get("access").toString();
-		
+		userName = (userName !=null) ? userName.toLowerCase() : userName;
+		path = (path != null) ? path.toLowerCase() : path;
+		access = (access != null) ? access.toLowerCase(): access;
 		if(ControllerUtil.isValidSafePath(path) && ControllerUtil.isValidSafe(path, token)){
 		
 			String folders[] = path.split("[/]+");
@@ -714,13 +723,16 @@ public class SDBController {
 			      put(LogMessage.MESSAGE, String.format ("Trying to associate AppRole to SDB [%s]", jsonstr)).
 			      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 			      build()));		
-		log.info("Associate approle to SDB -  JSON :" + jsonstr );
 		
 		Map<String,Object> requestMap = ControllerUtil.parseJson(jsonstr);
 		
 		String approle = requestMap.get("role_name").toString();
 		String path = requestMap.get("path").toString();
 		String access = requestMap.get("access").toString();
+		
+		approle = (approle !=null) ? approle.toLowerCase() : approle;
+		path = (path != null) ? path.toLowerCase() : path;
+		access = (access != null) ? access.toLowerCase(): access;
 		
 		if(ControllerUtil.isValidSafePath(path) && ControllerUtil.isValidSafe(path, token)){
 
@@ -1087,6 +1099,10 @@ public class SDBController {
 		
 		String role = requestMap.get("role");
 		String path = requestMap.get("path");
+		
+		role = (role !=null) ? role.toLowerCase() : role;
+		path = (path != null) ? path.toLowerCase() : path;
+		
 		if(ControllerUtil.isValidSafePath(path) && ControllerUtil.isValidSafe(path, token)){
 			String access = requestMap.get("access");
 			String folders[] = path.split("[/]+");
@@ -1313,8 +1329,14 @@ public class SDBController {
 		
 		String groupName = requestMap.get("groupname");
 		String path = requestMap.get("path");
+		String access = requestMap.get("access");
+		
+		groupName = (groupName !=null) ? groupName.toLowerCase() : groupName;
+		path = (path != null) ? path.toLowerCase() : path;
+		access = (access != null) ? access.toLowerCase(): access;
+		
 		if(ControllerUtil.isValidSafePath(path) && ControllerUtil.isValidSafe(path, token)){
-			String access = requestMap.get("access");
+
 			String folders[] = path.split("[/]+");
 			
 			String policyPrefix ="";
@@ -1468,6 +1490,7 @@ public class SDBController {
 			      put(LogMessage.MESSAGE, String.format ("Trying to createNestedfolder [%s]", path)).
 			      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 			      build()));
+		path = (path != null) ? path.toLowerCase(): path;
 		if(ControllerUtil.isPathValid(path)){
 			String jsonStr ="{\"path\":\""+path +"\",\"data\":{\"default\":\"default\"}}";
 			Response response = reqProcessor.process("/sdb/create",jsonStr,token);

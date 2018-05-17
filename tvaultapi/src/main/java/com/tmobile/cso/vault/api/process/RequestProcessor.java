@@ -36,10 +36,14 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.ImmutableMap;
 import com.tmobile.cso.vault.api.config.ApiConfig;
 import com.tmobile.cso.vault.api.config.ConfigManager;
 import com.tmobile.cso.vault.api.config.Param;
+import com.tmobile.cso.vault.api.exception.LogMessage;
 import com.tmobile.cso.vault.api.exception.NoApiConfigFoundException;
+import com.tmobile.cso.vault.api.utils.JSONUtil;
+import com.tmobile.cso.vault.api.utils.ThreadLocalContext;
 
 
 @Component
@@ -56,15 +60,28 @@ public class RequestProcessor {
 	private static Logger log = LogManager.getLogger(RequestProcessor.class);
 	
 	public Response process(String apiEndPoint, String request, String token){
+		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+			      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+				  put(LogMessage.ACTION, "Process Request").
+			      put(LogMessage.MESSAGE, String.format ("Processing input for [%s] for request [%s]", apiEndPoint, request)).
+			      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+			      build()));
 		Response response = new Response(); 
 		ApiConfig apiConfig = null ;
 		try{
 			apiConfig = ConfigManager.lookUpApiConfig(apiEndPoint);
 		}catch(NoApiConfigFoundException e){
-			log.error(e);
 			response.httpstatus= HttpStatus.NOT_IMPLEMENTED;
 			response.success = false;
 			response.response= "{\"errors\":[\"End point is not not found/ configured.\"]}";
+			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+				      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+					  put(LogMessage.ACTION, "Process Request").
+				      put(LogMessage.MESSAGE, String.format ("Processing input for [%s] for request [%s] failed", apiEndPoint, request)).
+				      put(LogMessage.STACKTRACE, e.getStackTrace().toString()).
+				      put(LogMessage.RESULT, response.getResponse()).
+				      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+				      build()));
 			return response;
 		}
 		
@@ -75,7 +92,12 @@ public class RequestProcessor {
 		if(requestParams == null){
 			return response;
 		}
-		
+		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+			      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+				  put(LogMessage.ACTION, "Process Request").
+			      put(LogMessage.MESSAGE, String.format ("Initiating validate for [%s] the request [%s]", apiEndPoint, request)).
+			      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+			      build()));
 		Message msg = reqValidator.validate(apiConfig, requestParams, token);
 		if(MSG_TYPE.ERR.equals(msg.getMsgType())){
 			response.httpstatus= HttpStatus.UNPROCESSABLE_ENTITY;
@@ -83,7 +105,12 @@ public class RequestProcessor {
 			response.response= "{\"errors\":[\""+msg.getMsgTxt()+"\"]}";
 			return response;
 		}
-		
+		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+			      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+				  put(LogMessage.ACTION, "Process Request").
+			      put(LogMessage.MESSAGE, "Transforming the request").
+			      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+			      build()));
 		reqTransformer.transform(apiConfig, requestParams);
 		
 		StringBuffer vaultEndponint = new StringBuffer(apiConfig.getVaultEndPoint());
@@ -98,12 +125,30 @@ public class RequestProcessor {
 		
 		switch (apiConfig.getMethod()) {
 		case "POST":
+			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+				      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+					  put(LogMessage.ACTION, "Process Request").
+				      put(LogMessage.MESSAGE, String.format("Calling the vault end point [%s] using post method", vaultEndponint.toString())).
+				      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+				      build()));
 			vaultResponse = restprocessor.post(vaultEndponint.toString(), token, vaultRequestJson);
 			break;
 		case "GET":
+			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+				      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+					  put(LogMessage.ACTION, "Process Request").
+				      put(LogMessage.MESSAGE, String.format("Calling the vault end point [%s] using get method", vaultEndponint.toString())).
+				      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+				      build()));
 			vaultResponse = restprocessor.get(vaultEndponint.toString(), token);
 			break;
 		case "DELETE":
+			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+				      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+					  put(LogMessage.ACTION, "Process Request").
+				      put(LogMessage.MESSAGE, String.format("Calling the vault end point [%s] using delete method", vaultEndponint.toString())).
+				      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+				      build()));
 			vaultResponse = restprocessor.delete(vaultEndponint.toString(), token);
 			break;
 		}

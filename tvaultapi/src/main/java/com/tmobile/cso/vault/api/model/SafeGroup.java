@@ -19,6 +19,8 @@ package com.tmobile.cso.vault.api.model;
 
 import java.io.Serializable;
 
+import io.swagger.annotations.ApiModelProperty;
+
 public class SafeGroup implements Serializable {
 
 	/**
@@ -56,6 +58,7 @@ public class SafeGroup implements Serializable {
 	/**
 	 * @return the path
 	 */
+	@ApiModelProperty(example="shared/mysafe01", position=1)
 	public String getPath() {
 		return path;
 	}
@@ -72,6 +75,7 @@ public class SafeGroup implements Serializable {
 	/**
 	 * @return the groupname
 	 */
+	@ApiModelProperty(example="mygroup01", position=2)
 	public String getGroupname() {
 		return groupname;
 	}
@@ -88,6 +92,7 @@ public class SafeGroup implements Serializable {
 	/**
 	 * @return the access
 	 */
+	@ApiModelProperty(example="read", position=3)
 	public String getAccess() {
 		return access;
 	}

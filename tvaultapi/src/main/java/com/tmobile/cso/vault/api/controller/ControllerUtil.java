@@ -46,10 +46,17 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.ImmutableMap;
+import com.tmobile.cso.vault.api.exception.LogMessage;
+import com.tmobile.cso.vault.api.model.AppRole;
+import com.tmobile.cso.vault.api.model.AppRoleSecretData;
+import com.tmobile.cso.vault.api.model.Safe;
+import com.tmobile.cso.vault.api.model.SafeAppRoleAccess;
 import com.tmobile.cso.vault.api.model.SafeNode;
 import com.tmobile.cso.vault.api.process.RequestProcessor;
 import com.tmobile.cso.vault.api.process.Response;
 import com.tmobile.cso.vault.api.utils.JSONUtil;
+import com.tmobile.cso.vault.api.utils.ThreadLocalContext;
 @Component
 public final class ControllerUtil {
 	
@@ -747,6 +754,75 @@ public final class ControllerUtil {
 		return true;
 	}
 
+	public static String converSDBInputsToLowerCase(String jsonStr) {
+		try {
+			Safe safe = (Safe)JSONUtil.getObj(jsonStr, Safe.class);
+			safe.getSafeBasicDetails().setName(safe.getSafeBasicDetails().getName().toLowerCase());
+			safe.setPath(safe.getPath().toLowerCase());
+			jsonStr = JSONUtil.getJSON(safe);
+			return jsonStr;
+		} catch (Exception e) {
+			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+				      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+					  put(LogMessage.ACTION, "converSDBInputsToLowerCase").
+				      put(LogMessage.MESSAGE, String.format ("Failed to convert [%s] to lowercase.", jsonStr)).
+				      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+				      build()));
+			return jsonStr;
+		}
+	}
+	
+	public static String convertAppRoleInputsToLowerCase(String jsonstr) {
+		try {
+			AppRole appRole = (AppRole)JSONUtil.getObj(jsonstr, AppRole.class);
+			appRole.setRole_name(appRole.getRole_name());
+			jsonstr = JSONUtil.getJSON(appRole);
+			return jsonstr;
+		} catch (Exception e) {
+			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+				      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+					  put(LogMessage.ACTION, "convertAppRoleInputsToLowerCase").
+				      put(LogMessage.MESSAGE, String.format ("Failed to convert [%s] to lowercase.", jsonstr)).
+				      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+				      build()));
+			return jsonstr;
+		}
+	}
+	
+	public static String convertSafeAppRoleAccessToLowerCase(String jsonstr) {
+		try {
+			SafeAppRoleAccess safeAppRoleAccess = (SafeAppRoleAccess)JSONUtil.getObj(jsonstr, SafeAppRoleAccess.class);
+			safeAppRoleAccess.setRole_name(safeAppRoleAccess.getRole_name());
+			jsonstr = JSONUtil.getJSON(safeAppRoleAccess);
+			return jsonstr;
+		} catch (Exception e) {
+			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+				      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+					  put(LogMessage.ACTION, "convertSafeAppRoleAccessToLowerCase").
+				      put(LogMessage.MESSAGE, String.format ("Failed to convert [%s] to lowercase.", jsonstr)).
+				      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+				      build()));
+			return jsonstr;
+		}
+	}
+	
+	public static String convertAppRoleSecretIdToLowerCase(String jsonstr) {
+		try {
+			AppRoleSecretData appRoleSecretData = (AppRoleSecretData)JSONUtil.getObj(jsonstr, AppRoleSecretData.class);
+			appRoleSecretData.setRole_name(appRoleSecretData.getRole_name());
+			jsonstr = JSONUtil.getJSON(appRoleSecretData);
+			return jsonstr;
+		} catch (Exception e) {
+			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+				      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+					  put(LogMessage.ACTION, "convertAppRoleSecretIdToLowerCase").
+				      put(LogMessage.MESSAGE, String.format ("Failed to convert [%s] to lowercase.", jsonstr)).
+				      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+				      build()));
+			return jsonstr;
+		}
+	}
+	
 	/**
 	 * Validates the SecretKey
 	 * @return
