@@ -1493,7 +1493,7 @@ public class SDBController {
 		path = (path != null) ? path.toLowerCase(): path;
 		if(ControllerUtil.isPathValid(path)){
 			String jsonStr ="{\"path\":\""+path +"\",\"data\":{\"default\":\"default\"}}";
-			Response response = reqProcessor.process("/sdb/create",jsonStr,token);
+			Response response = reqProcessor.process("/sdb/createfolder",jsonStr,token);
 			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 				      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 					  put(LogMessage.ACTION, "createNestedfolder").
