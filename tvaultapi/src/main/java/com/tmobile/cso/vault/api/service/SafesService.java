@@ -102,7 +102,7 @@ public class  SafesService {
 		if(ControllerUtil.isPathValid(path)){
 			//if(ControllerUtil.isValidSafe(path, token)){
 				String jsonStr ="{\"path\":\""+path +"\",\"data\":{\"default\":\"default\"}}";
-				Response response = reqProcessor.process("/sdb/create",jsonStr,token);
+				Response response = reqProcessor.process("/sdb/createfolder",jsonStr,token);
 				if(response.getHttpstatus().equals(HttpStatus.NO_CONTENT))
 					return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Folder created \"]}");
 				return ResponseEntity.status(response.getHttpstatus()).body(response.getResponse());
