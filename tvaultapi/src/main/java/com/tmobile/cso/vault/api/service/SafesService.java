@@ -248,6 +248,9 @@ public class  SafesService {
 	 */
 	public ResponseEntity<String>  updateSafe(String token, Safe safe) {
 		Map<String, Object> requestParams = ControllerUtil.parseJson(ControllerUtil.converSDBInputsToLowerCase(JSONUtil.getJSON(safe)));
+		if (!ControllerUtil.areSDBInputsValid(requestParams)) {
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid input values\"]}");
+		}
 		@SuppressWarnings("unchecked")
 		Map<Object,Object> data = (Map<Object,Object>)requestParams.get("data");
 		String path = safe.getPath();

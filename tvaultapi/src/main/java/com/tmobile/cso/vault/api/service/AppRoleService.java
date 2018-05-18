@@ -61,6 +61,7 @@ public class  AppRoleService {
 	 */
 	public ResponseEntity<String> createAppRole(String token, AppRole appRole){
 		String jsonStr = JSONUtil.getJSON(appRole);
+		jsonStr = ControllerUtil.convertAppRoleInputsToLowerCase(jsonStr);
 		Response response = reqProcessor.process("/auth/approle/role/create", jsonStr,token);
 		if(response.getHttpstatus().equals(HttpStatus.NO_CONTENT)) {
 			return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"AppRole created\"]}");
@@ -95,6 +96,7 @@ public class  AppRoleService {
 	 */
 	public ResponseEntity<String> createsecretId(String token, AppRoleSecretData appRoleSecretData){
 		String jsonStr = JSONUtil.getJSON(appRoleSecretData);
+		jsonStr = ControllerUtil.convertAppRoleSecretIdToLowerCase(jsonStr);
 		Response response = reqProcessor.process("/auth/approle/secretid/create", jsonStr,token);
 		if(response.getHttpstatus().equals(HttpStatus.NO_CONTENT)) {
 			return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Secret ID created for AppRole\"]}");
@@ -181,6 +183,7 @@ public class  AppRoleService {
 	 */
 	private ResponseEntity<String>associateApproletoSafe(String token,  SafeAppRoleAccess safeAppRoleAccess){
 		String jsonstr = JSONUtil.getJSON(safeAppRoleAccess);
+		jsonstr = ControllerUtil.convertSafeAppRoleAccessToLowerCase(jsonstr);
 		logger.info("Associate approle to SDB -  JSON :" + jsonstr );
 		Map<String,Object> requestMap = ControllerUtil.parseJson(jsonstr);
 		String approle = requestMap.get("role_name").toString();
