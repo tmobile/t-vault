@@ -29,10 +29,14 @@ import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.ImmutableMap;
 import com.tmobile.cso.vault.api.controller.ControllerUtil;
+import com.tmobile.cso.vault.api.exception.LogMessage;
 import com.tmobile.cso.vault.api.model.SafeNode;
 import com.tmobile.cso.vault.api.process.RequestProcessor;
 import com.tmobile.cso.vault.api.process.Response;
+import com.tmobile.cso.vault.api.utils.JSONUtil;
+import com.tmobile.cso.vault.api.utils.ThreadLocalContext;
 
 @Component
 public class  SecretService {
@@ -46,7 +50,7 @@ public class  SecretService {
 	@Value("${vault.auth.method}")
 	private String vaultAuthMethod;
 
-	private static Logger logger = LogManager.getLogger(SecretService.class);
+	private static Logger log = LogManager.getLogger(SecretService.class);
 	/**
 	 * To read secret from vault
 	 * @param token
@@ -55,14 +59,34 @@ public class  SecretService {
 	 */
 	public ResponseEntity<String> readFromVault(String token, String path){
 		// Path would be apps|shared|users/<safename>/<foldename
+		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+			      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+				  put(LogMessage.ACTION, "Read Secret").
+			      put(LogMessage.MESSAGE, String.format("Trying to read secret [%s]", path)).
+			      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+			      build()));
 		if(ControllerUtil.isValidDataPath(path)){
 			//if(ControllerUtil.isValidSafe(path,token)){
 			Response response = reqProcessor.process("/read","{\"path\":\""+path+"\"}",token);
+			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+				      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+					  put(LogMessage.ACTION, "Read Secret").
+				      put(LogMessage.MESSAGE, String.format("Reading secret [%s] completed succssfully", path)).
+				      put(LogMessage.RESULT, response.getResponse()).
+				      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+				      build()));
 			return ResponseEntity.status(response.getHttpstatus()).body(response.getResponse());
 			//}else{
 			//	return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid safe\"]}");
 			//}
 		}else{
+			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+				      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+					  put(LogMessage.ACTION, "Read Secret").
+				      put(LogMessage.MESSAGE, String.format("Reading secret [%s] failed", path)).
+				      put(LogMessage.RESULT, "Invalid path").
+				      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+				      build()));
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid path\"]}");
 		}
 	}
@@ -76,6 +100,12 @@ public class  SecretService {
 		String path="";
 		try {
 			path = new ObjectMapper().readTree(jsonStr).at("/path").asText();
+			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+				      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+					  put(LogMessage.ACTION, "Write Secret").
+				      put(LogMessage.MESSAGE, String.format("Trying to write secret [%s]", path)).
+				      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+				      build()));
 			jsonStr = ControllerUtil.addDefaultSecretKey(jsonStr);
 			if (!ControllerUtil.isSecretKeyValid(jsonStr)) {
 				return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid request.Check json data\"]}");
@@ -86,13 +116,35 @@ public class  SecretService {
 		if(ControllerUtil.isPathValid(path)){
 			//if(ControllerUtil.isValidSafe(path,token)){
 			Response response = reqProcessor.process("/write",jsonStr,token);
-			if(response.getHttpstatus().equals(HttpStatus.NO_CONTENT))
+			if(response.getHttpstatus().equals(HttpStatus.NO_CONTENT)) {
+				log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+					      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+						  put(LogMessage.ACTION, "Write Secret").
+					      put(LogMessage.MESSAGE, String.format("Writing secret [%s] completed succssfully", path)).
+					      put(LogMessage.RESULT, response.getResponse()).
+					      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+					      build()));
 				return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Secret saved to vault\"]}");
+			}
+			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+				      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+					  put(LogMessage.ACTION, "Write Secret").
+				      put(LogMessage.MESSAGE, String.format("Writing secret [%s] failed", path)).
+				      put(LogMessage.RESULT, response.getResponse()).
+				      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+				      build()));
 			return ResponseEntity.status(response.getHttpstatus()).body(response.getResponse());
 			//}else{
 			//	return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid safe\"]}");
 			//}
 		}else{
+			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+				      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+					  put(LogMessage.ACTION, "Write Secret").
+				      put(LogMessage.MESSAGE, String.format("Writing secret [%s] failed", path)).
+				      put(LogMessage.RESULT, "Invalid path").
+				      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+				      build()));
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid path\"]}");
 		}
 	}
@@ -105,14 +157,35 @@ public class  SecretService {
 	public ResponseEntity<String> deleteFromVault(String token, String path){
 		if(ControllerUtil.isValidDataPath(path)){
 			//if(ControllerUtil.isValidSafe(path,token)){
+			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+				      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+					  put(LogMessage.ACTION, "Delete Secret").
+				      put(LogMessage.MESSAGE, String.format("Trying to delete secret [%s]", path)).
+				      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+				      build()));
 				Response response = reqProcessor.process("/delete","{\"path\":\""+path+"\"}",token);
-				if(response.getHttpstatus().equals(HttpStatus.NO_CONTENT))
+				if(response.getHttpstatus().equals(HttpStatus.NO_CONTENT)) {
+					log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+						      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+							  put(LogMessage.ACTION, "Delete Secret").
+						      put(LogMessage.MESSAGE, String.format("Deleting secret [%s] completed", path)).
+						      put(LogMessage.RESULT, response.getResponse()).
+						      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+						      build()));
 					return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Secrets deleted\"]}");
+				}
 				return ResponseEntity.status(response.getHttpstatus()).body(response.getResponse());
 			//}else{
 			//	return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid safe\"]}");
 			//}
 		}else{
+			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+				      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+					  put(LogMessage.ACTION, "Delete Secret").
+				      put(LogMessage.MESSAGE, String.format("Deleting secret [%s] failed", path)).
+				      put(LogMessage.RESULT, "Invalid path").
+				      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+				      build()));
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid path\"]}");
 		}
 	}

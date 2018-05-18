@@ -25,10 +25,13 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 
+import com.google.common.collect.ImmutableMap;
+import com.tmobile.cso.vault.api.exception.LogMessage;
 import com.tmobile.cso.vault.api.model.Unseal;
 import com.tmobile.cso.vault.api.process.RequestProcessor;
 import com.tmobile.cso.vault.api.process.Response;
 import com.tmobile.cso.vault.api.utils.JSONUtil;
+import com.tmobile.cso.vault.api.utils.ThreadLocalContext;
 
 @Component
 public class  SysService {
@@ -42,7 +45,7 @@ public class  SysService {
 	@Value("${vault.auth.method}")
 	private String vaultAuthMethod;
 
-	private static Logger logger = LogManager.getLogger(SysService.class);
+	private static Logger log = LogManager.getLogger(SysService.class);
 
 	/**
 	 * Returns the health of TVault system
@@ -50,6 +53,12 @@ public class  SysService {
 	 */
 	public ResponseEntity<String> checkVaultHealth() {
 		// Try with https first
+		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+			      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+				  put(LogMessage.ACTION, "Check Health").
+			      put(LogMessage.MESSAGE, "Trying to get health of the Vault Server").
+			      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+			      build()));
 		Response response = reqProcessor.process("/health","{}","");
 		if(HttpStatus.OK.equals(response.getHttpstatus()) || HttpStatus.TOO_MANY_REQUESTS.equals(response.getHttpstatus())) {
 			return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Healthy.All OK\"]}");
@@ -57,9 +66,23 @@ public class  SysService {
 			// If no response for https, then try http
 			response = reqProcessor.process("/v2/health","{}","");
 			if(HttpStatus.OK.equals(response.getHttpstatus()) || HttpStatus.TOO_MANY_REQUESTS.equals(response.getHttpstatus())) {
+				log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+					      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+						  put(LogMessage.ACTION, "Check Health").
+					      put(LogMessage.MESSAGE, "Getting Vault Health information completed successfully").
+					      put(LogMessage.RESULT, response.getResponse()).
+					      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+					      build()));
 				return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Healthy.All OK\"]}");
 			}
 			else {
+				log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+					      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+						  put(LogMessage.ACTION, "Check Health").
+					      put(LogMessage.MESSAGE, "Getting Vault Health information failed.").
+					      put(LogMessage.RESULT, response.getResponse()).
+					      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+					      build()));
 				return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"messages\":[\"Not OK \"]}");
 			}
 		}
@@ -73,8 +96,21 @@ public class  SysService {
 		String jsonStr = JSONUtil.getJSON(unseal);
 		jsonStr = jsonStr.substring(0,jsonStr.lastIndexOf("}"));
 		jsonStr = jsonStr+ ",\"port\":\""+vaultPort+"\"}";
+		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+			      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+				  put(LogMessage.ACTION, "Unseal Vault").
+			      put(LogMessage.MESSAGE, "Trying to unseal Vault Server").
+			      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+			      build()));
 		// Try with https first
 		Response response = reqProcessor.process("/unseal",jsonStr,"");
+		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+			      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+				  put(LogMessage.ACTION, "Unseal Vault").
+			      put(LogMessage.MESSAGE, "Unsealing Vault server completed").
+			      put(LogMessage.RESULT, response.getResponse()).
+			      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+			      build()));
 		if(HttpStatus.OK.equals(response.getHttpstatus())) {
 			return ResponseEntity.status(response.getHttpstatus()).body(response.getResponse());
 		}
@@ -89,7 +125,20 @@ public class  SysService {
 	}
 	
 	public ResponseEntity<String> unsealProgress (String serverip){
+		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+			      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+				  put(LogMessage.ACTION, "Unseal Vault Progress").
+			      put(LogMessage.MESSAGE, String.format("Unseal Vault Progress for [%s]", serverip)).
+			      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+			      build()));
 		Response response = reqProcessor.process("/unseal-progress","{\"serverip\":\""+serverip+"\",\"port\":\""+vaultPort+"\"}","");
+		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+			      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+				  put(LogMessage.ACTION, "Unseal Vault").
+			      put(LogMessage.MESSAGE, String.format("Unsealing Vault server completed for [%s]", serverip)).
+			      put(LogMessage.RESULT, response.getResponse()).
+			      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+			      build()));
 		if(HttpStatus.OK.equals(response.getHttpstatus())) {
 			return ResponseEntity.status(response.getHttpstatus()).body(response.getResponse());
 		}
