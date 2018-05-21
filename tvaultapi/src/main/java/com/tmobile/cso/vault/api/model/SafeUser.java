@@ -19,6 +19,8 @@ package com.tmobile.cso.vault.api.model;
 
 import java.io.Serializable;
 
+import io.swagger.annotations.ApiModelProperty;
+
 public class SafeUser implements Serializable {
 
 	/**
@@ -55,6 +57,7 @@ public class SafeUser implements Serializable {
 	/**
 	 * @return the path
 	 */
+	@ApiModelProperty(example="shared/mysafe01", position=1)
 	public String getPath() {
 		return path;
 	}
@@ -71,6 +74,7 @@ public class SafeUser implements Serializable {
 	/**
 	 * @return the username
 	 */
+	@ApiModelProperty(example="testuser1", position=2)
 	public String getUsername() {
 		return username;
 	}
@@ -87,6 +91,7 @@ public class SafeUser implements Serializable {
 	/**
 	 * @return the access
 	 */
+	@ApiModelProperty(example="write", position=3)
 	public String getAccess() {
 		return access;
 	}

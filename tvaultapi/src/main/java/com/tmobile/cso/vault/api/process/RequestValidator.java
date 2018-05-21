@@ -17,22 +17,26 @@
 
 package com.tmobile.cso.vault.api.process;
 
-import java.util.LinkedHashMap;
 import java.util.Map;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
-import org.springframework.util.StringUtils;
 
+import com.google.common.collect.ImmutableMap;
 import com.tmobile.cso.vault.api.config.ApiConfig;
+import com.tmobile.cso.vault.api.exception.LogMessage;
+import com.tmobile.cso.vault.api.utils.JSONUtil;
+import com.tmobile.cso.vault.api.utils.ThreadLocalContext;
 
 @Component
 public class RequestValidator {
 	@Autowired
 	private RestProcessor restProcessor;
-	
+	private Logger log = LogManager.getLogger(RequestValidator.class);
 	public Message validate(final ApiConfig apiConfig,final Map<String, Object> requestParams,String token){
 		Message msg = new Message();
 		switch (apiConfig.getApiEndPoint()){
@@ -54,9 +58,41 @@ public class RequestValidator {
 				break;
 			}
 			case "/sdb/create":{
+				log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+				      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+					  put(LogMessage.ACTION, "Validate").
+				      put(LogMessage.MESSAGE, String.format ("Checking for duplicate safe  [%s]", JSONUtil.getJSON(requestParams))).
+				      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+				      build()));
 				boolean duplicate = checkforDuplicateSDB(requestParams, token);
 				if(duplicate){
+					log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+						      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+							  put(LogMessage.ACTION, "Validate").
+						      put(LogMessage.MESSAGE, "Existing safe").
+						      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+						      build()));
 					msg.setMsgTxt("Existing safe");
+					msg.setMsgType(MSG_TYPE.ERR);
+				}
+				break;
+			}
+			case "/sdb/createfolder":{
+				log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+				      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+					  put(LogMessage.ACTION, "Validate").
+				      put(LogMessage.MESSAGE, String.format ("Checking for duplicate folder  [%s]", JSONUtil.getJSON(requestParams))).
+				      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+				      build()));
+				boolean duplicate = checkforDuplicateFolder(requestParams, token);
+				if(duplicate){
+					log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+						      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+							  put(LogMessage.ACTION, "Validate").
+						      put(LogMessage.MESSAGE, "Existing folder").
+						      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+						      build()));
+					msg.setMsgTxt("Existing folder");
 					msg.setMsgType(MSG_TYPE.ERR);
 				}
 				break;
@@ -91,8 +127,19 @@ public class RequestValidator {
 	
 	private boolean checkforDuplicateSDB(Map<String, Object> requestParams,String token){	
 		if(requestParams.get("path") !=null){
-			String path = requestParams.get("path").toString();
+			String path = requestParams.get("path").toString().toLowerCase();
 			ResponseEntity<String> valutResponse = restProcessor.get("/metadata/"+path, token);
+			if(valutResponse.getStatusCode().equals(HttpStatus.OK)){
+				return true;
+			}
+			return false;
+		}
+		return false;
+	}
+	private boolean checkforDuplicateFolder(Map<String, Object> requestParams,String token){	
+		if(requestParams.get("path") !=null){
+			String path = requestParams.get("path").toString().toLowerCase();
+			ResponseEntity<String> valutResponse = restProcessor.get("/"+path, token);
 			if(valutResponse.getStatusCode().equals(HttpStatus.OK)){
 				return true;
 			}

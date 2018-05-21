@@ -36,11 +36,18 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.ImmutableMap;
+import com.tmobile.cso.vault.api.exception.LogMessage;
+import com.tmobile.cso.vault.api.model.Safe;
 import com.tmobile.cso.vault.api.process.RequestProcessor;
 import com.tmobile.cso.vault.api.process.Response;
+import com.tmobile.cso.vault.api.utils.JSONUtil;
+import com.tmobile.cso.vault.api.utils.ThreadLocalContext;
 
 import io.swagger.annotations.Api;
 
@@ -51,7 +58,7 @@ public class SDBController {
 	private Logger log = LogManager.getLogger(LDAPAuthController.class);
 
 	@Value("${vault.auth.method}")
-        private String vaultAuthMethod;
+    private String vaultAuthMethod;
 
 	@Autowired
 	private RequestProcessor reqProcessor;
@@ -64,8 +71,20 @@ public class SDBController {
 		}else{
 			 _path = path;
 		}
-		
+		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+			      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+				  put(LogMessage.ACTION, "Get Folders").
+			      put(LogMessage.MESSAGE, String.format ("Trying to get folders for [%s]", path)).
+			      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+			      build()));
 		Response response = reqProcessor.process("/sdb/list","{\"path\":\""+_path+"\"}",token);
+		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+			      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+				  put(LogMessage.ACTION, "Get Folders").
+			      put(LogMessage.MESSAGE, "Getting folders completed").
+			      put(LogMessage.RESULT, response.getResponse()).
+			      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+			      build()));
 		return ResponseEntity.status(response.getHttpstatus()).body(response.getResponse());
 		
 	}
@@ -74,7 +93,20 @@ public class SDBController {
 	public ResponseEntity<String> getInfo(@RequestHeader(value="vault-token") String token, @RequestParam("path") String path){
 		
 		String _path = "metadata/"+path;
+		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+			      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+				  put(LogMessage.ACTION, "Get Info").
+			      put(LogMessage.MESSAGE, String.format ("Trying to get Info for [%s]", path)).
+			      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+			      build()));
 		Response response = reqProcessor.process("/sdb","{\"path\":\""+_path+"\"}",token);
+		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+			      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+				  put(LogMessage.ACTION, "Get Info").
+			      put(LogMessage.MESSAGE, "Getting Info completed").
+			      put(LogMessage.RESULT, response.getResponse()).
+			      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+			      build()));
 		return ResponseEntity.status(response.getHttpstatus()).body(response.getResponse());
 		
 	}
@@ -83,16 +115,38 @@ public class SDBController {
 	public ResponseEntity<String> createfolder(@RequestHeader(value="vault-token") String token, @RequestParam("path") String path){
 		
 		if(ControllerUtil.isValidDataPath(path)){
+			path = (path != null) ? path.toLowerCase() : path;
 			//if(ControllerUtil.isValidSafe(path, token)){
 				String jsonStr ="{\"path\":\""+path +"\",\"data\":{\"default\":\"default\"}}";
+				log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+					      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+						  put(LogMessage.ACTION, "Create Folder").
+					      put(LogMessage.MESSAGE, String.format ("Trying to Create folder [%s]", path)).
+					      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+					      build()));
 				Response response = reqProcessor.process("/sdb/create",jsonStr,token);
-				if(response.getHttpstatus().equals(HttpStatus.NO_CONTENT))
+				if(response.getHttpstatus().equals(HttpStatus.NO_CONTENT)) {
+					log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+						      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+							  put(LogMessage.ACTION, "Create Folder").
+						      put(LogMessage.MESSAGE, "Create Folder completed").
+						      put(LogMessage.RESULT, response.getResponse()).
+						      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+						      build()));
 					return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Folder created \"]}");
+				}
 				return ResponseEntity.status(response.getHttpstatus()).body(response.getResponse());
 			//}else{
 			//	return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid safe\"]}");
 			//}
 		}else{
+			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+				      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+					  put(LogMessage.ACTION, "Create Folder").
+				      put(LogMessage.MESSAGE, "Create Folder failed").
+				      put(LogMessage.RESULT, "Invalid Path").
+				      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+				      build()));
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid path\"]}");
 		}
 		
@@ -100,11 +154,17 @@ public class SDBController {
 	
 	@PostMapping(value="/sdb/update",consumes="application/json",produces="application/json")
 	public ResponseEntity<String> updateSDB(@RequestHeader(value="vault-token" ) String token, @RequestBody String jsonStr){
-		
+		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+			      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+				  put(LogMessage.ACTION, "Update SDB").
+			      put(LogMessage.MESSAGE, String.format ("Trying to Update SDB [%s]", jsonStr)).
+			      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+			      build()));
 		Map<String, Object> requestParams = ControllerUtil.parseJson(jsonStr);
 		if (!ControllerUtil.areSDBInputsValid(requestParams)) {
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid input values\"]}");
 		}
+		jsonStr = ControllerUtil.converSDBInputsToLowerCase(jsonStr);
 		@SuppressWarnings("unchecked")
 		Map<Object,Object> data = (Map<Object,Object>)requestParams.get("data");
 		String path = requestParams.get("path").toString();
@@ -134,22 +194,50 @@ public class SDBController {
 			String metadataJson = ControllerUtil.convetToJson(requestParams) ;
 			response = reqProcessor.process("/sdb/update",metadataJson,token);
 			if(response.getHttpstatus().equals(HttpStatus.NO_CONTENT)){
+				log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+					      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+						  put(LogMessage.ACTION, "Update SDB").
+					      put(LogMessage.MESSAGE, "SDB Update Success").
+					      put(LogMessage.RESULT, response.getResponse()).
+					      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+					      build()));
 				return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"SDB updated \"]}");
 			}else{
+				log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+					      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+						  put(LogMessage.ACTION, "Update SDB").
+					      put(LogMessage.MESSAGE, "SDB Update completed").
+					      put(LogMessage.RESULT, response.getResponse()).
+					      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+					      build()));
 				return ResponseEntity.status(response.getHttpstatus()).body(response.getResponse());
 			}
 		}else{
+			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+				      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+					  put(LogMessage.ACTION, "Update SDB").
+				      put(LogMessage.MESSAGE, "SDB Update failed").
+				      put(LogMessage.RESULT, "Invalid Path").
+				      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+				      build()));
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid 'path' specified\"]}");
 		}
 	}
 	
 	@PostMapping(value="/sdb/create",consumes="application/json",produces="application/json")
 	public ResponseEntity<String> createSDB(@RequestHeader(value="vault-token" ) String token, @RequestBody String jsonStr){
-		
+
+		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+			      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+				  put(LogMessage.ACTION, "Create SDB").
+			      put(LogMessage.MESSAGE, String.format ("Trying to Create SDB [%s]", jsonStr)).
+			      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+			      build()));
 		Map<String,Object> rqstParams = ControllerUtil.parseJson(jsonStr);
 		if (!ControllerUtil.areSDBInputsValid(rqstParams)) {
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid input values\"]}");
 		}
+		jsonStr = ControllerUtil.converSDBInputsToLowerCase(jsonStr);
 		String path = rqstParams.get("path").toString();
 		if(ControllerUtil.isValidSafePath(path)){
 			Response response = reqProcessor.process("/sdb/create",jsonStr,token);
@@ -200,19 +288,58 @@ public class SDBController {
 					if(r_response.getHttpstatus().equals(HttpStatus.NO_CONTENT) && 
 							w_response.getHttpstatus().equals(HttpStatus.NO_CONTENT) &&
 									d_response.getHttpstatus().equals(HttpStatus.NO_CONTENT) ){
+						log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+							      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+								  put(LogMessage.ACTION, "Create SDB").
+							      put(LogMessage.MESSAGE, "SDB Create Success").
+							      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+							      build()));
 						return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"SDB and associated read/write/deny policies created \"]}");
 					}else{
+						log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+							      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+								  put(LogMessage.ACTION, "Create SDB").
+							      put(LogMessage.MESSAGE, "SDB Create Success").
+							      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+							      build()));
 						return ResponseEntity.status(HttpStatus.MULTI_STATUS).body("{\"messages\":[\"SDB created however one ore more policy (read/write/deny) creation failed \"]}");
 					}
 				}
-				if(isMetaDataUpdated)
+				if(isMetaDataUpdated) {
+					log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+						      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+							  put(LogMessage.ACTION, "Create SDB").
+						      put(LogMessage.MESSAGE, "SDB Create Success").
+						      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+						      build()));
 					return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"SDB created \"]}");
-				else
+				}
+				else {
+					log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+						      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+							  put(LogMessage.ACTION, "Create SDB").
+						      put(LogMessage.MESSAGE, "SDB Create Success").
+						      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+						      build()));
 					return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"SDB created however metadata update failed. Please try with sdb/update \"]}");
+				}
 			}else{
+				log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+					      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+						  put(LogMessage.ACTION, "Create SDB").
+					      put(LogMessage.MESSAGE, "SDB Create completed").
+					      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+					      build()));
 				return ResponseEntity.status(response.getHttpstatus()).body(response.getResponse());
 			}
 		}else{
+			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+				      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+					  put(LogMessage.ACTION, "Create SDB").
+				      put(LogMessage.MESSAGE, "SDB Creation failed").
+				      put(LogMessage.RESULT, "Invalid Path").
+				      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+				      build()));
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid 'path' specified\"]}");
 		}
 	}
@@ -220,7 +347,12 @@ public class SDBController {
 	@SuppressWarnings("unchecked")
 	@DeleteMapping(value="/sdb/delete",produces="application/json")
 	public ResponseEntity<String> deletesdb(@RequestHeader(value="vault-token") String token, @RequestParam("path") String path){
-		
+		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+			      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+				  put(LogMessage.ACTION, "Delete SDB").
+			      put(LogMessage.MESSAGE, String.format ("Trying to Delete SDB [%s]", path)).
+			      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+			      build()));
 		if(ControllerUtil.isValidSafePath(path) && ControllerUtil.isValidSafe(path, token)){
 			Response response = new Response(); 
 			ControllerUtil.recursivedeletesdb("{\"path\":\""+path+"\"}",token,response);
@@ -269,21 +401,52 @@ public class SDBController {
 					ControllerUtil.deleteAwsRoleOnSDBDelete(path,awsroles,token);
 				}	
 				ControllerUtil.recursivedeletesdb("{\"path\":\""+_path+"\"}",token,response);
+				log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+					      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+						  put(LogMessage.ACTION, "Delete SDB").
+					      put(LogMessage.MESSAGE, "SDB Deletion completed").
+					      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+					      build()));
 				return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"SDB deleted\"]}");
 				
 			}else{
+				log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+					      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+						  put(LogMessage.ACTION, "Delete SDB").
+					      put(LogMessage.MESSAGE, "SDB Deletion completed").
+					      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+					      build()));
 				return ResponseEntity.status(response.getHttpstatus()).body(response.getResponse());
 			}
 		}else if(ControllerUtil.isValidDataPath(path)){
 			Response response = new Response(); 
 			ControllerUtil.recursivedeletesdb("{\"path\":\""+path+"\"}",token,response);
 			if(response.getHttpstatus().equals(HttpStatus.NO_CONTENT)){
+				log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+					      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+						  put(LogMessage.ACTION, "Delete SDB").
+					      put(LogMessage.MESSAGE, "SDB Deletion completed").
+					      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+					      build()));
 				return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Folder deleted\"]}");
 			}else{
+				log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+					      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+						  put(LogMessage.ACTION, "Delete SDB").
+					      put(LogMessage.MESSAGE, "SDB Deletion completed").
+					      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+					      build()));
 				return ResponseEntity.status(response.getHttpstatus()).body(response.getResponse());
 			}
 			
 		}else{
+			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+				      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+					  put(LogMessage.ACTION, "Delete SDB").
+				      put(LogMessage.MESSAGE, "SDB Deletion failed").
+				      put(LogMessage.RESULT, "Invalid Path").
+				      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+				      build()));
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid 'path' specified\"]}");
 		}
 	}
@@ -291,7 +454,12 @@ public class SDBController {
 	@SuppressWarnings("unchecked")
 	@DeleteMapping(value="/v2/sdb/delete",produces="application/json")
 	public ResponseEntity<String> deleteFolder(@RequestHeader(value="vault-token") String token, @RequestParam("path") String path){
-		
+		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+			      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+				  put(LogMessage.ACTION, "Delete Folder").
+			      put(LogMessage.MESSAGE, String.format ("Trying to Delete folder [%s]", path)).
+			      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+			      build()));
 		if(ControllerUtil.isPathValid(path) ){
 			Response response = new Response(); 
 			ControllerUtil.recursivedeletesdb("{\"path\":\""+path+"\"}",token,response);
@@ -341,21 +509,52 @@ public class SDBController {
 					ControllerUtil.deleteAwsRoleOnSDBDelete(path,awsroles,token);
 				}	
 				ControllerUtil.recursivedeletesdb("{\"path\":\""+_path+"\"}",token,response);
+				log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+					      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+						  put(LogMessage.ACTION, "Delete Folder").
+					      put(LogMessage.MESSAGE, "SDB Folder Deletion completed").
+					      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+					      build()));
 				return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"SDB deleted\"]}");
 				
 			}else{
+				log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+					      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+						  put(LogMessage.ACTION, "Delete Folder ").
+					      put(LogMessage.MESSAGE, "SDB Folder Deletion Completed").
+					      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+					      build()));
 				return ResponseEntity.status(response.getHttpstatus()).body(response.getResponse());
 			}
 		}else if(ControllerUtil.isValidDataPath(path)){
 			Response response = new Response(); 
 			ControllerUtil.recursivedeletesdb("{\"path\":\""+path+"\"}",token,response);
 			if(response.getHttpstatus().equals(HttpStatus.NO_CONTENT)){
+				log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+					      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+						  put(LogMessage.ACTION, "Delete Folder").
+					      put(LogMessage.MESSAGE, "SDB Folder Deletion Completed").
+					      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+					      build()));
 				return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Folder deleted\"]}");
 			}else{
+				log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+					      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+						  put(LogMessage.ACTION, "Delete Folder").
+					      put(LogMessage.MESSAGE, "SDB Folder Deletion Completed").
+					      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+					      build()));
 				return ResponseEntity.status(response.getHttpstatus()).body(response.getResponse());
 			}
 			
 		}else{
+			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+				      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+					  put(LogMessage.ACTION, "Delete Folder").
+				      put(LogMessage.MESSAGE, "SDB Folder Deletion failed").
+				      put(LogMessage.RESULT, "Invalid Path").
+				      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+				      build()));
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid 'path' specified\"]}");
 		}
 	}
@@ -363,12 +562,19 @@ public class SDBController {
 
 	@PostMapping(value="/sdb/adduser",consumes="application/json",produces="application/json")
 	public ResponseEntity<String> addUsertoSDB(@RequestHeader(value="vault-token") String token, @RequestBody String jsonstr){
-		
+		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+			      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+				  put(LogMessage.ACTION, "Add User to SDB").
+			      put(LogMessage.MESSAGE, String.format ("Trying to add user to SDB folder [%s]", jsonstr)).
+			      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+			      build()));
 		Map<String,Object> requestMap = ControllerUtil.parseJson(jsonstr);
 		String userName = requestMap.get("username").toString();
 		String path = requestMap.get("path").toString();
 		String access = requestMap.get("access").toString();
-		
+		userName = (userName !=null) ? userName.toLowerCase() : userName;
+		path = (path != null) ? path.toLowerCase() : path;
+		access = (access != null) ? access.toLowerCase(): access;
 		if(ControllerUtil.isValidSafePath(path) && ControllerUtil.isValidSafe(path, token)){
 		
 			String folders[] = path.split("[/]+");
@@ -454,12 +660,24 @@ public class SDBController {
 				if(HttpStatus.NO_CONTENT.equals(metadataResponse.getHttpstatus())){
 					return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"User is successfully associated \"]}");		
 				}else{
+					log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+						      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+							  put(LogMessage.ACTION, "Add User to SDB").
+						      put(LogMessage.MESSAGE, "User configuration failed.").
+						      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+						      build()));
 					log.debug("Meta data update failed");
 					log.debug(metadataResponse.getResponse());
 					if ("userpass".equals(vaultAuthMethod)) {
 						ldapConfigresponse = ControllerUtil.configureUserpassUser(userName,currentpolicies,token);
 					}
-					else {
+					else {					log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+						      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+							  put(LogMessage.ACTION, "Add User to SDB").
+						      put(LogMessage.MESSAGE, "User configuration failed.").
+						      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+						      build()));
+
 						ldapConfigresponse = ControllerUtil.configureLDAPUser(userName,currentpolicies,groups,token);
 					}
 					if(ldapConfigresponse.getHttpstatus().equals(HttpStatus.NO_CONTENT)){
@@ -471,9 +689,22 @@ public class SDBController {
 					}
 				}		
 			}else{
+				log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+					      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+						  put(LogMessage.ACTION, "Add User to SDB").
+					      put(LogMessage.MESSAGE, "User configuration failed.").
+					      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+					      build()));
 				return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"messages\":[\"User configuration failed.Try Again\"]}");
 			}	
 		}else{
+			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+				      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+					  put(LogMessage.ACTION, "Add User to SDB").
+				      put(LogMessage.MESSAGE, "User configuration failed.").
+				      put(LogMessage.RESULT, "Invalid Path").
+				      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+				      build()));
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid 'path' specified\"]}");
 		}
 	}
@@ -486,14 +717,22 @@ public class SDBController {
 	 */
 	@PostMapping(value="/sdb/approle",consumes="application/json",produces="application/json")
 	public ResponseEntity<String>associateApproletoSDB(@RequestHeader(value="vault-token") String token, @RequestBody String jsonstr){
-		
-		log.info("Associate approle to SDB -  JSON :" + jsonstr );
+		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+			      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+				  put(LogMessage.ACTION, "Associate AppRole to SDB").
+			      put(LogMessage.MESSAGE, String.format ("Trying to associate AppRole to SDB [%s]", jsonstr)).
+			      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+			      build()));		
 		
 		Map<String,Object> requestMap = ControllerUtil.parseJson(jsonstr);
 		
 		String approle = requestMap.get("role_name").toString();
 		String path = requestMap.get("path").toString();
 		String access = requestMap.get("access").toString();
+		
+		approle = (approle !=null) ? approle.toLowerCase() : approle;
+		path = (path != null) ? path.toLowerCase() : path;
+		access = (access != null) ? access.toLowerCase(): access;
 		
 		if(ControllerUtil.isValidSafePath(path) && ControllerUtil.isValidSafe(path, token)){
 
@@ -523,16 +762,34 @@ public class SDBController {
 			if(HttpStatus.OK.equals(approleControllerResp.getHttpstatus()) || (HttpStatus.NO_CONTENT.equals(approleControllerResp.getHttpstatus()))) {
 					
 				log.info("Associate approle to SDB -  policy :" + policy + " is associated" );
-
+				log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+					      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+						  put(LogMessage.ACTION, "Associate AppRole to SDB").
+					      put(LogMessage.MESSAGE, "Association of AppRole to SDB success").
+					      put(LogMessage.RESULT, approleControllerResp.getResponse()).
+					      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+					      build()));
 				return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Approle :" + approle + " is successfully associated with SDB\"]}");		
 			
 		}else {
-
+			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+				      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+					  put(LogMessage.ACTION, "Associate AppRole to SDB").
+				      put(LogMessage.MESSAGE, "Association of AppRole to SDB failed").
+				      put(LogMessage.RESULT, approleControllerResp.getResponse()).
+				      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+				      build()));
 				log.error( "Associate Approle" +approle + "to sdb FAILED");
 				return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"messages\":[\"Approle :" + approle + " failed to be associated with SDB\"]}");		
 			}
 		} else {
-			
+			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+				      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+					  put(LogMessage.ACTION, "Associate AppRole to SDB").
+				      put(LogMessage.MESSAGE, "Association of AppRole to SDB failed").
+				      put(LogMessage.RESULT, "Invalid Path").
+				      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+				      build()));
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"messages\":[\"Approle :" + approle + " failed to be associated with SDB.. Invalid Path specified\"]}");		
 		
 		}
@@ -543,7 +800,12 @@ public class SDBController {
 	
 	@PostMapping(value="/sdb/deleteuser",consumes="application/json",produces="application/json")
 	public ResponseEntity<String> deleteUserSDB(@RequestHeader(value="vault-token") String token, @RequestBody String jsonstr){
-		
+		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+			      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+				  put(LogMessage.ACTION, "Delete User from SDB").
+			      put(LogMessage.MESSAGE, String.format ("Trying to delete user from SDB [%s]", jsonstr)).
+			      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+			      build()));
 		ObjectMapper objMapper = new ObjectMapper();
 		Map<String,String> requestMap = null;
 		try {
@@ -615,8 +877,22 @@ public class SDBController {
 					params.put("access","delete");
 					Response metadataResponse = ControllerUtil.updateMetadata(params,token);
 					if(HttpStatus.NO_CONTENT.equals(metadataResponse.getHttpstatus())){
+						log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+							      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+								  put(LogMessage.ACTION, "Delete User from SDB").
+							      put(LogMessage.MESSAGE, "Delete User from SBD Success").
+							      put(LogMessage.RESULT, "User association is removed").
+							      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+							      build()));
 						return ResponseEntity.status(HttpStatus.OK).body("{\"Message\":\"User association is removed \"}");		
 					}else{
+						log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+							      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+								  put(LogMessage.ACTION, "Delete User from SDB").
+							      put(LogMessage.MESSAGE, "Delete User from SBD failed").
+							      put(LogMessage.RESULT, metadataResponse.getResponse()).
+							      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+							      build()));
 						log.debug("Meta data update failed");
 						log.debug(metadataResponse.getResponse());
 						if ("userpass".equals(vaultAuthMethod)) {
@@ -634,6 +910,13 @@ public class SDBController {
 						}
 					}		
 				}else{
+					log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+						      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+							  put(LogMessage.ACTION, "Delete User from SDB").
+						      put(LogMessage.MESSAGE, "Delete User from SBD failed").
+						      put(LogMessage.RESULT, ldapConfigresponse.getResponse()).
+						      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+						      build()));
 					return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"messages\":[\"User configuration failed.Try Again\"]}");
 				}	
 			}else{
@@ -645,18 +928,45 @@ public class SDBController {
 				params.put("access","delete");
 				Response metadataResponse = ControllerUtil.updateMetadata(params,token);
 				if(HttpStatus.NO_CONTENT.equals(metadataResponse.getHttpstatus())){
+					log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+						      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+							  put(LogMessage.ACTION, "Delete User from SDB").
+						      put(LogMessage.MESSAGE, "Delete User from SBD Success").
+						      put(LogMessage.RESULT, "User association is removed").
+						      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+						      build()));
 					return ResponseEntity.status(HttpStatus.OK).body("{\"Message\":\"User association is removed \"}");		
 				}else{
+					log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+						      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+							  put(LogMessage.ACTION, "Delete User from SDB").
+						      put(LogMessage.MESSAGE, "Delete User from SBD failed").
+						      put(LogMessage.RESULT, userResponse.getResponse()).
+						      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+						      build()));
 					return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"messages\":[\"User configuration failed.Try again \"]}");
 				}
 			}
 		}else{
+			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+				      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+					  put(LogMessage.ACTION, "Delete User from SDB").
+				      put(LogMessage.MESSAGE, "Delete User from SBD failed").
+				      put(LogMessage.RESULT, "Invdalid Path").
+				      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+				      build()));
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid 'path' specified\"]}");
 		}
 	}
 	
 	@PostMapping(value="/sdb/deletegroup",consumes="application/json",produces="application/json")
 	public ResponseEntity<String> deleteGroupSDB(@RequestHeader(value="vault-token") String token, @RequestBody String jsonstr){
+		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+			      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+				  put(LogMessage.ACTION, "Delete group from SDB").
+			      put(LogMessage.MESSAGE, String.format ("Trying to delete group from SDB [%s]", jsonstr)).
+			      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+			      build()));
 		if ("userpass".equals(vaultAuthMethod)) {
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":\"This operation is not supported for Userpass authentication. \"}");
 		}	
@@ -740,19 +1050,45 @@ public class SDBController {
 				params.put("access","delete");
 				Response metadataResponse = ControllerUtil.updateMetadata(params,token);
 				if(HttpStatus.NO_CONTENT.equals(metadataResponse.getHttpstatus())){
+					log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+						      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+							  put(LogMessage.ACTION, "Delete group from SDB").
+						      put(LogMessage.MESSAGE, "Delete group from SBD Success").
+						      put(LogMessage.RESULT, "Group association is removed").
+						      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+						      build()));
 					return ResponseEntity.status(HttpStatus.OK).body("{\"Message\":\"Group association is removed \"}");		
 				}else{
+					log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+						      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+							  put(LogMessage.ACTION, "Delete group from SDB").
+						      put(LogMessage.MESSAGE, "Delete group from SBD failed").
+						      put(LogMessage.RESULT, userResponse.getResponse()).
+						      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+						      build()));
 					return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"messages\":[\"Group configuration failed.Try again \"]}");
 				}
 			}
 		}else{
+			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+				      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+					  put(LogMessage.ACTION, "Delete group from SDB").
+				      put(LogMessage.MESSAGE, "Delete group from SBD failed").
+				      put(LogMessage.RESULT, "Invdalid Path").
+				      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+				      build()));
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid 'path' specified\"]}");
 		}
 	}
 	
 	@PostMapping(value="/sdb/addrole",consumes="application/json",produces="application/json")
 	public ResponseEntity<String> addAwsRoletoSDB(@RequestHeader(value="vault-token") String token, @RequestBody String jsonstr){
-		
+		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+			      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+				  put(LogMessage.ACTION, "Associate AWS Role to SDB").
+			      put(LogMessage.MESSAGE, String.format ("Trying to associate AWS Role to SDB [%s]", jsonstr)).
+			      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+			      build()));
 		ObjectMapper objMapper = new ObjectMapper();
 		Map<String,String> requestMap = null;
 		try {
@@ -763,6 +1099,10 @@ public class SDBController {
 		
 		String role = requestMap.get("role");
 		String path = requestMap.get("path");
+		
+		role = (role !=null) ? role.toLowerCase() : role;
+		path = (path != null) ? path.toLowerCase() : path;
+		
 		if(ControllerUtil.isValidSafePath(path) && ControllerUtil.isValidSafe(path, token)){
 			String access = requestMap.get("access");
 			String folders[] = path.split("[/]+");
@@ -828,113 +1168,75 @@ public class SDBController {
 				params.put("access",access);
 				Response metadataResponse = ControllerUtil.updateMetadata(params,token);
 				if(HttpStatus.NO_CONTENT.equals(metadataResponse.getHttpstatus())){
+					log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+						      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+							  put(LogMessage.ACTION, "Add AWS Role To SDB").
+						      put(LogMessage.MESSAGE, "Role is successfully associated").
+						      put(LogMessage.RESULT, metadataResponse.getResponse()).
+						      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+						      build()));
 					return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Role is successfully associated \"]}");		
 				}else{
-					System.out.println("Meta data update failed");
-					System.out.println(metadataResponse.getResponse());
+					log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+						      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+							  put(LogMessage.ACTION, "Add AWS Role To SDB").
+						      put(LogMessage.MESSAGE, "Role configuration failed.").
+						      put(LogMessage.RESULT, metadataResponse.getResponse()).
+						      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+						      build()));
 					ldapConfigresponse = ControllerUtil.configureAWSRole(role,policies,token);
 					if(ldapConfigresponse.getHttpstatus().equals(HttpStatus.NO_CONTENT)){
-						System.out.println("Reverting user policy uupdate");
+						log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+							      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+								  put(LogMessage.ACTION, "Add AWS Role To SDB").
+							      put(LogMessage.MESSAGE, "Reverting user policy update failed").
+							      put(LogMessage.RESULT, metadataResponse.getResponse()).
+							      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+							      build()));
 						return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Role configuration failed.Please try again\"]}");
 					}else{
-						System.out.println("Reverting user policy update failed");
+						log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+							      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+								  put(LogMessage.ACTION, "Add AWS Role To SDB").
+							      put(LogMessage.MESSAGE, "Reverting user policy update failed").
+							      put(LogMessage.RESULT, metadataResponse.getResponse()).
+							      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+							      build()));
 						return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Role configuration failed.Contact Admin \"]}");
 					}
 				}		
 			}else{
+				log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+					      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+						  put(LogMessage.ACTION, "Add AWS Role To SDB").
+					      put(LogMessage.MESSAGE, "Role configuration failed.").
+					      put(LogMessage.RESULT, ldapConfigresponse.getResponse()).
+					      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+					      build()));
 				return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Role configuration failed.Try Again\"]}");
 			}	
 		}else{
+			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+				      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+					  put(LogMessage.ACTION, "Add AWS Role To SDB").
+				      put(LogMessage.MESSAGE, "Role configuration failed.").
+				      put(LogMessage.RESULT, "Invalid Path").
+				      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+				      build()));
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid 'path' specified\"]}");
 		}
 	}
 	
-	/* Delete the role when adb association is removed as role can't exist its own as of now. Will revisit later
-
-	@PostMapping(value="/sdb/deleterole",consumes="application/json",produces="application/json")
-	public ResponseEntity<String> deleteRoleSDB(@RequestHeader(value="vault-token") String token, @RequestBody String jsonstr){
-		
-		ObjectMapper objMapper = new ObjectMapper();
-		Map<String,String> requestMap = null;
-		try {
-			requestMap = objMapper.readValue(jsonstr, new TypeReference<Map<String,String>>() {});
-		} catch (IOException e) {
-			log.error(e);
-			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid request. please check the request json\"]}");
-		}
-		
-		String role = requestMap.get("role");
-		String path = requestMap.get("path");
-		String folders[] = path.split("[/]+");
-		
-		String r_policy = "r_"+folders[0]+"_"+folders[1];
-		String w_policy = "w_"+folders[0]+"_"+folders[1];
-		String d_policy = "d_"+folders[0]+"_"+folders[1];
-		Response userResponse = reqProcessor.process("/auth/aws/roles","{\"role\":\""+role+"\"}",token);
-		String responseJson="";
-		String policies ="";
-		String currentpolicies ="";
-		
-		if(HttpStatus.OK.equals(userResponse.getHttpstatus())){
-			responseJson = userResponse.getResponse();	
-			try {
-				JsonNode policiesArry =objMapper.readTree(responseJson).get("policies");
-				for(JsonNode policyNode : policiesArry){
-					currentpolicies =	(currentpolicies == "" ) ? currentpolicies+policyNode.asText():currentpolicies+","+policyNode.asText();
-				}
-			} catch (IOException e) {
-				log.error(e);
-			}
-			policies = currentpolicies;
-			policies = policies.replaceAll(r_policy, "");
-			policies = policies.replaceAll(w_policy, "");
-			policies = policies.replaceAll(d_policy, "");
-			Response ldapConfigresponse = ControllerUtil.configureAWSRole(role,policies,token);
-			if(ldapConfigresponse.getHttpstatus().equals(HttpStatus.NO_CONTENT)){ 
-				Map<String,String> params = new HashMap<String,String>();
-				params.put("type", "aws-roles");
-				params.put("name",role);
-				params.put("path",path);
-				params.put("access","delete");
-				Response metadataResponse = ControllerUtil.updateMetadata(params,token);
-				if(HttpStatus.NO_CONTENT.equals(metadataResponse.getHttpstatus())){
-					return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Role association is removed \"]}");		
-				}else{
-					System.out.println("Meta data update failed");
-					System.out.println(metadataResponse.getResponse());
-					ldapConfigresponse = ControllerUtil.configureAWSRole(role,currentpolicies,token);
-					if(ldapConfigresponse.getHttpstatus().equals(HttpStatus.NO_CONTENT)){
-						System.out.println("Reverting user policy update");
-						return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Role configuration failed.Please try again\"]}");
-					}else{
-						System.out.println("Reverting Group policy update failed");
-						return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Role configuration failed.Contact Admin \"]}");
-					}
-				}		
-			}else{
-				return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"User configuration failed.Try Again\"]}");
-			}	
-		}else{
-			// Trying to remove the orphan entries if exists
-			Map<String,String> params = new HashMap<String,String>();
-			params.put("type", "aws-roles");
-			params.put("name",role);
-			params.put("path",path);
-			params.put("access","delete");
-			Response metadataResponse = ControllerUtil.updateMetadata(params,token);
-			if(HttpStatus.NO_CONTENT.equals(metadataResponse.getHttpstatus())){
-				return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Role association is removed \"]}");		
-			}else{
-				return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Role configuration failed.Try again \"]}");
-			}
-		}
-	}
-	*/
 	// Update metadata and delete role
 	
 	@PostMapping(value="/sdb/deleterole",consumes="application/json",produces="application/json")
 	public ResponseEntity<String> deleteRoleSDB(@RequestHeader(value="vault-token") String token, @RequestBody String jsonstr){
-		
+		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+			      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+				  put(LogMessage.ACTION, "Delete AWS Role from SDB").
+			      put(LogMessage.MESSAGE, String.format ("Trying to delete AWS Role from SDB [%s]", jsonstr)).
+			      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+			      build()));
 		ObjectMapper objMapper = new ObjectMapper();
 		Map<String,String> requestMap = null;
 		try {
@@ -950,6 +1252,13 @@ public class SDBController {
 			
 			Response response = reqProcessor.process("/auth/aws/roles/delete","{\"role\":\""+role+"\"}",token);		
 			if(response.getHttpstatus().equals(HttpStatus.NO_CONTENT)){
+				log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+					      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+						  put(LogMessage.ACTION, "Delete AWS Role from SDB").
+					      put(LogMessage.MESSAGE, "Delete AWS Role from SDB success").
+					      put(LogMessage.RESULT, response.getResponse()).
+					      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+					      build()));
 				log.debug(role +" , AWS Role is deleted as part of detachment of role from SDB. Path "+ path );
 				Map<String,String> params = new HashMap<>();
 				params.put("type", "aws-roles");
@@ -958,22 +1267,55 @@ public class SDBController {
 				params.put("access","delete");
 				Response metadataResponse = ControllerUtil.updateMetadata(params,token);
 				if(HttpStatus.NO_CONTENT.equals(metadataResponse.getHttpstatus())){
+					log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+						      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+							  put(LogMessage.ACTION, "Delete AWS Role from SDB").
+						      put(LogMessage.MESSAGE, "Delete AWS Role from SDB success").
+						      put(LogMessage.RESULT, metadataResponse.getResponse()).
+						      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+						      build()));
 					return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Role association is removed \"]}");		
 				}else{
+					log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+						      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+							  put(LogMessage.ACTION, "Delete AWS Role from SDB").
+						      put(LogMessage.MESSAGE, "Delete AWS Role from SDB failed").
+						      put(LogMessage.RESULT, metadataResponse.getResponse()).
+						      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+						      build()));
 					return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Role configuration failed.Please try again\"]}");
 				}	
 			}else{
+				log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+					      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+						  put(LogMessage.ACTION, "Delete AWS Role from SDB").
+					      put(LogMessage.MESSAGE, String.format("AWS Role deletion as part of sdb delete failed . SDB path [%s]", path)).
+					      put(LogMessage.RESULT, response.getResponse()).
+					      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+					      build()));
 				log.debug(role +" , AWS Role deletion as part of sdb delete failed . SDB path "+ path );
 				return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Role configuration failed.Try Again\"]}");
 			}
 		}else{
+			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+				      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+					  put(LogMessage.ACTION, "Delete AWS Role from SDB").
+				      put(LogMessage.MESSAGE, "Delete AWS Role from SDB failed").
+				      put(LogMessage.RESULT, "Invalid Path").
+				      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+				      build()));
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid 'path' specified\"]}");
 		}
 	}
 	
 	@PostMapping(value="/sdb/addgroup",consumes="application/json",produces="application/json")
 	public ResponseEntity<String> addGrouptoSDB(@RequestHeader(value="vault-token") String token, @RequestBody String jsonstr){
-		
+		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+			      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+				  put(LogMessage.ACTION, "Add Group to SDB").
+			      put(LogMessage.MESSAGE, String.format ("Trying to add Group to SDB folder [%s]", jsonstr)).
+			      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+			      build()));
 		if ("userpass".equals(vaultAuthMethod)) {
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":\"This operation is not supported for Userpass authentication. \"}");
 		}	
@@ -987,8 +1329,14 @@ public class SDBController {
 		
 		String groupName = requestMap.get("groupname");
 		String path = requestMap.get("path");
+		String access = requestMap.get("access");
+		
+		groupName = (groupName !=null) ? groupName.toLowerCase() : groupName;
+		path = (path != null) ? path.toLowerCase() : path;
+		access = (access != null) ? access.toLowerCase(): access;
+		
 		if(ControllerUtil.isValidSafePath(path) && ControllerUtil.isValidSafe(path, token)){
-			String access = requestMap.get("access");
+
 			String folders[] = path.split("[/]+");
 			
 			String policyPrefix ="";
@@ -1051,16 +1399,40 @@ public class SDBController {
 				params.put("access",access);
 				Response metadataResponse = ControllerUtil.updateMetadata(params,token);
 				if(HttpStatus.NO_CONTENT.equals(metadataResponse.getHttpstatus())){
+					log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+						      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+							  put(LogMessage.ACTION, "Add Group to SDB").
+						      put(LogMessage.MESSAGE, "Group configuration Success.").
+						      put(LogMessage.RESULT, metadataResponse.getResponse()).
+						      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+						      build()));
 					return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Group is successfully associated with SDB\"]}");		
 				}else{
-					System.out.println("Meta data update failed");
-					System.out.println(metadataResponse.getResponse());
+					log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+						      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+							  put(LogMessage.ACTION, "Add Group to SDB").
+						      put(LogMessage.MESSAGE, "Group configuration failed.").
+						      put(LogMessage.RESULT, metadataResponse.getResponse()).
+						      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+						      build()));
 					ldapConfigresponse = ControllerUtil.configureLDAPGroup(groupName,currentpolicies,token);
 					if(ldapConfigresponse.getHttpstatus().equals(HttpStatus.NO_CONTENT)){
-						System.out.println("Reverting user policy uupdate");
+						log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+							      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+								  put(LogMessage.ACTION, "Add Group to SDB").
+							      put(LogMessage.MESSAGE, "Reverting user policy update failed").
+							      put(LogMessage.RESULT, metadataResponse.getResponse()).
+							      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+							      build()));
 						return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"erros\":[\"Group configuration failed.Please try again\"]}");
 					}else{
-						System.out.println("Reverting user policy update failed");
+						log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+							      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+								  put(LogMessage.ACTION, "Add Group to SDB").
+							      put(LogMessage.MESSAGE, "Reverting user policy update failed").
+							      put(LogMessage.RESULT, metadataResponse.getResponse()).
+							      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+							      build()));
 						return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Group configuration failed.Contact Admin \"]}");
 					}
 				}		
@@ -1086,8 +1458,20 @@ public class SDBController {
 		}else{
 			 _path = path;
 		}
-		
+		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+			      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+				  put(LogMessage.ACTION, "getFoldersRecursively").
+			      put(LogMessage.MESSAGE, String.format ("Trying to get fodler recursively [%s]", path)).
+			      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+			      build()));
 		Response response = reqProcessor.process("/sdb/list","{\"path\":\""+_path+"\"}",token);
+		log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+			      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+				  put(LogMessage.ACTION, "getFoldersRecursively").
+			      put(LogMessage.MESSAGE, "getFoldersRecursively completed").
+			      put(LogMessage.RESULT, response.getResponse()).
+			      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+			      build()));
 		return ResponseEntity.status(response.getHttpstatus()).body(response.getResponse());
 		
 	}
@@ -1100,14 +1484,35 @@ public class SDBController {
 	 */
 	@PostMapping(value="/v2/sdb/createfolder",produces="application/json")
 	public ResponseEntity<String> createNestedfolder(@RequestHeader(value="vault-token") String token, @RequestParam("path") String path){
-		
+		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+			      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+				  put(LogMessage.ACTION, "createNestedfolder").
+			      put(LogMessage.MESSAGE, String.format ("Trying to createNestedfolder [%s]", path)).
+			      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+			      build()));
+		path = (path != null) ? path.toLowerCase(): path;
 		if(ControllerUtil.isPathValid(path)){
 			String jsonStr ="{\"path\":\""+path +"\",\"data\":{\"default\":\"default\"}}";
-			Response response = reqProcessor.process("/sdb/create",jsonStr,token);
-			if(response.getHttpstatus().equals(HttpStatus.NO_CONTENT))
+			Response response = reqProcessor.process("/sdb/createfolder",jsonStr,token);
+			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+				      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+					  put(LogMessage.ACTION, "createNestedfolder").
+				      put(LogMessage.MESSAGE, "createNestedfolder completed").
+				      put(LogMessage.RESULT, response.getResponse()).
+				      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+				      build()));
+			if(response.getHttpstatus().equals(HttpStatus.NO_CONTENT)) {
 				return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Folder created \"]}");
+			}
 			return ResponseEntity.status(response.getHttpstatus()).body(response.getResponse());
 		}else{
+			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+				      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+					  put(LogMessage.ACTION, "createNestedfolder").
+				      put(LogMessage.MESSAGE, "createNestedfolder completed").
+				      put(LogMessage.RESULT, "Invalid Path").
+				      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+				      build()));
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid path\"]}");
 		}
 		

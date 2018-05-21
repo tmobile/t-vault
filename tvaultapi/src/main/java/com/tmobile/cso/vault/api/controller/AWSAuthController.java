@@ -104,6 +104,7 @@ public class AWSAuthController {
 		try {
 			JsonNode root = objMapper.readTree(jsonStr);
 			roleName = root.get("role").asText();
+			roleName = (roleName != null) ? roleName.toLowerCase() : roleName;
 			if(root.get("policies") != null)
 				latestPolicies = root.get("policies").asText();
 		} catch (IOException e) {

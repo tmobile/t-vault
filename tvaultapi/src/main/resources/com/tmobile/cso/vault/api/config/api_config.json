@@ -395,6 +395,15 @@
         ]
     },
      {"#":"**** Create SDB  *****",
+    	"apiEndPoint":"/sdb/createfolder",
+    	"vaultEndPoint":"/<path>",
+    	"method":"POST",
+      	"params":[
+        	{"name":"path","required":true, "appendToPath":true},
+        	{"name":"data","required":true}
+        ]
+    },
+     {"#":"**** Create SDB  *****",
     	"apiEndPoint":"/sdb/update",
     	"vaultEndPoint":"/<path>",
     	"method":"POST",

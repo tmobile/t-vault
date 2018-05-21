@@ -40,7 +40,12 @@ public class Response {
 		return success;
 	}
 	public String getResponse() {
-		return response;
+		if (response != null) {
+			return response;
+		}
+		else {
+			return "{} 	";
+		}
 	}
 
 }

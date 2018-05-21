@@ -20,6 +20,8 @@ import java.io.IOException;
 
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.util.DefaultPrettyPrinter;
+import com.fasterxml.jackson.core.util.DefaultPrettyPrinter.FixedSpaceIndenter;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 public class JSONUtil {
@@ -38,7 +40,39 @@ public class JSONUtil {
 			return "{}";
 		}
 	}
-	
+	/**
+	 * 
+	 * @param obj
+	 * @return
+	 */
+	public static String getJSONasDefaultPrettyPrint(Object obj)  {
+		ObjectMapper mapper = new ObjectMapper();
+		try {
+			return mapper.writerWithDefaultPrettyPrinter().writeValueAsString(obj);
+		} catch (JsonProcessingException e) {
+			return "{}";
+		}
+	}
+	/**
+	 * 
+	 * @param obj
+	 * @return
+	 */
+	public static String getJSONasDefaultPrettyPrintFromString(String obj)  {
+		ObjectMapper mapper = new ObjectMapper();
+		try {
+			Object json = mapper.readValue(obj, Object.class);
+			DefaultPrettyPrinter pp = new DefaultPrettyPrinter();
+			pp.indentArraysWith(DefaultPrettyPrinter.FixedSpaceIndenter.instance);
+			return mapper.writer(pp).writeValueAsString(json);
+		}
+		catch (JsonProcessingException e) {
+			return "{}";
+		}
+		catch (IOException e) {
+			return "{}";
+		}
+	}
 	/**
 	 * Creates an Object from JSON String
 	 * @param jsonStr

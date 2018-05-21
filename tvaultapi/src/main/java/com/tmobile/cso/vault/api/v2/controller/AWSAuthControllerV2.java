@@ -49,7 +49,7 @@ public class AWSAuthControllerV2 {
 	 * @param login
 	 * @return
 	 */
-	@ApiOperation(value = "${AWSAuthControllerV2.authenticateLdap.value}", notes = "${AccessControllerV2.authenticateLdap.notes}")
+	@ApiOperation(value = "${AWSAuthControllerV2.authenticateLdap.value}", notes = "${AWSAuthControllerV2.authenticateLdap.notes}")
 	@PostMapping(value="/v2/auth/aws/login",consumes="application/json",produces="application/json")
 	public ResponseEntity<String> authenticateLdap( @RequestBody AWSLogin login){
 		return awsAuthService.authenticateLdap(login);
@@ -60,7 +60,7 @@ public class AWSAuthControllerV2 {
 	 * @param awsLoginRole
 	 * @return
 	 */
-	@ApiOperation(value = "${AWSAuthControllerV2.createRole.value}", notes = "${AccessControllerV2.createRole.notes}")
+	@ApiOperation(value = "${AWSAuthControllerV2.createRole.value}", notes = "${AWSAuthControllerV2.createRole.notes}")
 	@PostMapping(value="/v2/auth/aws/role",consumes="application/json",produces="application/json")
 	public ResponseEntity<String> createRole(@RequestHeader(value="vault-token") String token, @RequestBody AWSLoginRole awsLoginRole){
 		return awsAuthService.createRole(token, awsLoginRole);
@@ -71,7 +71,7 @@ public class AWSAuthControllerV2 {
 	 * @param jsonStr
 	 * @return
 	 */
-	@ApiOperation(value = "${AWSAuthControllerV2.updateRole.value}", notes = "${AccessControllerV2.updateRole.notes}")
+	@ApiOperation(value = "${AWSAuthControllerV2.updateRole.value}", notes = "${AWSAuthControllerV2.updateRole.notes}")
 	@PutMapping(value="/v2/auth/aws/role",consumes="application/json",produces="application/json")
 	public ResponseEntity<String> updateRole(@RequestHeader(value="vault-token") String token, @RequestBody AWSLoginRole awsLoginRole){
 		return awsAuthService.updateRole(token, awsLoginRole);
@@ -83,7 +83,7 @@ public class AWSAuthControllerV2 {
 	 * @param jsonStr
 	 * @return
 	 */
-	@ApiOperation(value = "${AWSAuthControllerV2.deleteRole.value}", notes = "${AccessControllerV2.deleteRole.notes}")
+	@ApiOperation(value = "${AWSAuthControllerV2.deleteRole.value}", notes = "${AWSAuthControllerV2.deleteRole.notes}")
 	@DeleteMapping(value="/v2/auth/aws/role/{role}",produces="application/json")
 	public ResponseEntity<String> deleteRole(@RequestHeader(value="vault-token") String token, @PathVariable("role" ) String role){
 		return awsAuthService.deleteRole(token, role);
@@ -99,7 +99,7 @@ public class AWSAuthControllerV2 {
 	 * 		"policies":["default","testpolicy","testpolicy1"]
 	 * }
 	 */
-	@ApiOperation(value = "${AWSAuthControllerV2.fetchRole.value}", notes = "${AccessControllerV2.fetchRole.notes}")
+	@ApiOperation(value = "${AWSAuthControllerV2.fetchRole.value}", notes = "${AWSAuthControllerV2.fetchRole.notes}")
 	@GetMapping(value="/v2/auth/aws/role/{role}",produces="application/json")
 	public ResponseEntity<String> fetchRole(@RequestHeader(value="vault-token") String token, @PathVariable("role") String role){
 		return awsAuthService.fetchRole(token, role);
@@ -109,7 +109,7 @@ public class AWSAuthControllerV2 {
 	 * @param token
 	 * @return
 	 */
-	@ApiOperation(value = "${AWSAuthControllerV2.listRoles.value}", notes = "${AccessControllerV2.listRoles.notes}")
+	@ApiOperation(value = "${AWSAuthControllerV2.listRoles.value}", notes = "${AWSAuthControllerV2.listRoles.notes}")
 	@GetMapping(value="/roles",produces="application/json")
 	public ResponseEntity<String> listRoles(@RequestHeader(value="vault-token") String token){
 		return awsAuthService.listRoles(token);
