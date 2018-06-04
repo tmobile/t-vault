@@ -75,7 +75,7 @@ public class AccessController {
 				      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 					  put(LogMessage.ACTION, "Create Policy").
 				      put(LogMessage.MESSAGE, "Policy creation completed successfully").
-				      put(LogMessage.RESULT, response.getResponse()).
+				    //  put(LogMessage.RESULT, response.getResponse()).
 				      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 				      build()));
 			return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Access Policy created \"]}");
@@ -84,7 +84,8 @@ public class AccessController {
 			      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 				  put(LogMessage.ACTION, "Create Policy").
 			      put(LogMessage.MESSAGE, "Policy creation failed").
-			      put(LogMessage.RESULT, response.getResponse()).
+			      put(LogMessage.RESPONSE, response.getResponse()).
+			      put(LogMessage.STATUS, response.getHttpstatus().toString()).
 			      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 			      build()));
 		return ResponseEntity.status(response.getHttpstatus()).body(response.getResponse());
@@ -112,7 +113,7 @@ public class AccessController {
 				      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 					  put(LogMessage.ACTION, "Update Policy").
 				      put(LogMessage.MESSAGE, "Policy Update completed successfully").
-				      put(LogMessage.RESULT, response.getResponse()).
+				      put(LogMessage.STATUS, response.getHttpstatus().toString()).
 				      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 				      build()));
 			return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Policy updated \"]}");
@@ -121,7 +122,7 @@ public class AccessController {
 			      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 				  put(LogMessage.ACTION, "Update Policy").
 			      put(LogMessage.MESSAGE, "Policy Update failed").
-			      put(LogMessage.RESULT, response.getResponse()).
+			      put(LogMessage.RESPONSE, response.getResponse()).
 			      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 			      build()));
 		return ResponseEntity.status(response.getHttpstatus()).body(response.getResponse());
@@ -155,8 +156,7 @@ public class AccessController {
 		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 			      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 				  put(LogMessage.ACTION, "Get Policy information").
-			      put(LogMessage.MESSAGE, "Getting policy information failed").
-			      put(LogMessage.RESULT, response.getResponse()).
+				  put(LogMessage.STATUS, response.getHttpstatus().toString()).
 			      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 			      build()));
 		return ResponseEntity.status(response.getHttpstatus()).body(response.getResponse());
@@ -188,7 +188,7 @@ public class AccessController {
 				      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 					  put(LogMessage.ACTION, "Delete Policy").
 				      put(LogMessage.MESSAGE, "Policy information deleted succssfully").
-				      put(LogMessage.RESULT, response.getResponse()).
+				     // put(LogMessage.RESULT, response.getResponse()).
 				      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 				      build()));
 			return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Access is deleted\"]}");
@@ -197,7 +197,7 @@ public class AccessController {
 			      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 				  put(LogMessage.ACTION, "Delete Policy").
 			      put(LogMessage.MESSAGE, "Deletion of Policy information failed").
-			      put(LogMessage.RESULT, response.getResponse()).
+			      put(LogMessage.RESPONSE, response.getResponse()).
 			      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 			      build()));
 		return ResponseEntity.status(response.getHttpstatus()).body(response.getResponse());

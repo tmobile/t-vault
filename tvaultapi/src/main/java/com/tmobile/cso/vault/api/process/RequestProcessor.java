@@ -63,7 +63,7 @@ public class RequestProcessor {
 		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 			      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 				  put(LogMessage.ACTION, "Process Request").
-			      put(LogMessage.MESSAGE, String.format ("Processing input for [%s] for request [%s]", apiEndPoint, request)).
+			      put(LogMessage.MESSAGE, String.format ("Processing input for [%s] ", apiEndPoint)).
 			      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 			      build()));
 		Response response = new Response(); 
@@ -73,13 +73,13 @@ public class RequestProcessor {
 		}catch(NoApiConfigFoundException e){
 			response.httpstatus= HttpStatus.NOT_IMPLEMENTED;
 			response.success = false;
-			response.response= "{\"errors\":[\"End point is not not found/ configured.\"]}";
+			response.response= "{\"errors\":[\"End point is not not found/configured.\"]}";
 			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 				      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 					  put(LogMessage.ACTION, "Process Request").
-				      put(LogMessage.MESSAGE, String.format ("Processing input for [%s] for request [%s] failed", apiEndPoint, request)).
+				      put(LogMessage.MESSAGE, String.format ("Processing input for [%s] for request failed", apiEndPoint)).
 				      put(LogMessage.STACKTRACE, e.getStackTrace().toString()).
-				      put(LogMessage.RESULT, response.getResponse()).
+				      put(LogMessage.RESPONSE, response.getResponse()).
 				      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 				      build()));
 			return response;
@@ -95,7 +95,7 @@ public class RequestProcessor {
 		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 			      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 				  put(LogMessage.ACTION, "Process Request").
-			      put(LogMessage.MESSAGE, String.format ("Initiating validate for [%s] the request [%s]", apiEndPoint, request)).
+			      put(LogMessage.MESSAGE, String.format ("Initiating validate for [%s]", apiEndPoint)).
 			      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 			      build()));
 		Message msg = reqValidator.validate(apiConfig, requestParams, token);
@@ -153,8 +153,6 @@ public class RequestProcessor {
 			break;
 		}
 		
-		log.debug("Status >"+vaultResponse.getStatusCode());
-		
 		Map<String,Object > vaultResponseMap = new HashMap<String,Object >();
 
 		
@@ -210,7 +208,6 @@ public class RequestProcessor {
 					return new ObjectMapper().writeValueAsString(outputParams);
 				}
 			} catch (JsonProcessingException e) {
-				log.error(e);
 				response.success = false;
 				response.httpstatus = HttpStatus.UNPROCESSABLE_ENTITY;
 				response.response = "{\"errors\":[\"Unexpected input \"]}";
@@ -227,17 +224,32 @@ public class RequestProcessor {
 		try {
 			requestParams = new ObjectMapper().readValue(jsonString, new TypeReference<Map<String, Object>>(){});
 		} catch (JsonParseException e) {
-			log.error(e);
+			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+				      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+					  put(LogMessage.ACTION, "Parse Input Json").
+				      put(LogMessage.MESSAGE, "Invalid request. Check JSON").
+				      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+				      build()));
 			response.httpstatus= HttpStatus.BAD_REQUEST;
 			response.success = false;
 			response.response= "{\"errors\":[\"Invalid request. Check JSON \"]}";
 		} catch (JsonMappingException e) {
-			log.error(e);
+			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+				      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+					  put(LogMessage.ACTION, "Parse Input Json").
+				      put(LogMessage.MESSAGE, "Invalid request. Check JSON").
+				      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+				      build()));
 			response.httpstatus= HttpStatus.BAD_REQUEST;
 			response.success = false;
 			response.response= "{\"errors\":[\"Invalid request. Check JSON \"]}";
 		} catch (IOException e) {
-			log.error(e);
+			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+				      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+					  put(LogMessage.ACTION, "Parse Input Json").
+				      put(LogMessage.MESSAGE, "Invalid request. Check JSON").
+				      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+				      build()));
 			response.httpstatus= HttpStatus.BAD_REQUEST;
 			response.success = false;
 			response.response= "{\"errors\":[\"Invalid request. Check JSON \"]}";

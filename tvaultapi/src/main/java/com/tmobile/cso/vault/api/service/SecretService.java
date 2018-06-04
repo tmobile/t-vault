@@ -72,7 +72,7 @@ public class  SecretService {
 				      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 					  put(LogMessage.ACTION, "Read Secret").
 				      put(LogMessage.MESSAGE, String.format("Reading secret [%s] completed succssfully", path)).
-				      put(LogMessage.RESULT, response.getResponse()).
+				      put(LogMessage.STATUS, response.getHttpstatus().toString()).
 				      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 				      build()));
 			return ResponseEntity.status(response.getHttpstatus()).body(response.getResponse());
@@ -84,7 +84,7 @@ public class  SecretService {
 				      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 					  put(LogMessage.ACTION, "Read Secret").
 				      put(LogMessage.MESSAGE, String.format("Reading secret [%s] failed", path)).
-				      put(LogMessage.RESULT, "Invalid path").
+				      put(LogMessage.RESPONSE, "Invalid path").
 				      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 				      build()));
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid path\"]}");
@@ -121,7 +121,7 @@ public class  SecretService {
 					      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 						  put(LogMessage.ACTION, "Write Secret").
 					      put(LogMessage.MESSAGE, String.format("Writing secret [%s] completed succssfully", path)).
-					      put(LogMessage.RESULT, response.getResponse()).
+					      put(LogMessage.STATUS, response.getHttpstatus().toString()).
 					      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 					      build()));
 				return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Secret saved to vault\"]}");
@@ -130,7 +130,8 @@ public class  SecretService {
 				      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 					  put(LogMessage.ACTION, "Write Secret").
 				      put(LogMessage.MESSAGE, String.format("Writing secret [%s] failed", path)).
-				      put(LogMessage.RESULT, response.getResponse()).
+				      put(LogMessage.RESPONSE, response.getResponse()).
+				      put(LogMessage.STATUS, response.getHttpstatus().toString()).
 				      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 				      build()));
 			return ResponseEntity.status(response.getHttpstatus()).body(response.getResponse());
@@ -142,7 +143,7 @@ public class  SecretService {
 				      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 					  put(LogMessage.ACTION, "Write Secret").
 				      put(LogMessage.MESSAGE, String.format("Writing secret [%s] failed", path)).
-				      put(LogMessage.RESULT, "Invalid path").
+				      put(LogMessage.RESPONSE, "Invalid path").
 				      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 				      build()));
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid path\"]}");
@@ -169,7 +170,7 @@ public class  SecretService {
 						      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 							  put(LogMessage.ACTION, "Delete Secret").
 						      put(LogMessage.MESSAGE, String.format("Deleting secret [%s] completed", path)).
-						      put(LogMessage.RESULT, response.getResponse()).
+						      put(LogMessage.STATUS, response.getHttpstatus().toString()).
 						      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 						      build()));
 					return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Secrets deleted\"]}");
@@ -183,7 +184,7 @@ public class  SecretService {
 				      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 					  put(LogMessage.ACTION, "Delete Secret").
 				      put(LogMessage.MESSAGE, String.format("Deleting secret [%s] failed", path)).
-				      put(LogMessage.RESULT, "Invalid path").
+				      put(LogMessage.RESPONSE, "Invalid path").
 				      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 				      build()));
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid path\"]}");

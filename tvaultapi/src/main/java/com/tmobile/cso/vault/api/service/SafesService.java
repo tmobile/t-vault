@@ -84,7 +84,7 @@ public class  SafesService {
 			      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 				  put(LogMessage.ACTION, "Get Folders").
 			      put(LogMessage.MESSAGE, "Getting folders completed").
-			      put(LogMessage.RESULT, response.getResponse()).
+			      put(LogMessage.STATUS, response.getHttpstatus().toString()).
 			      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 			      build()));
 		return ResponseEntity.status(response.getHttpstatus()).body(response.getResponse());
@@ -108,7 +108,7 @@ public class  SafesService {
 			      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 				  put(LogMessage.ACTION, "Get Info").
 			      put(LogMessage.MESSAGE, "Getting Info completed").
-			      put(LogMessage.RESULT, response.getResponse()).
+			      put(LogMessage.STATUS, response.getHttpstatus().toString()).
 			      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 			      build()));
 		return ResponseEntity.status(response.getHttpstatus()).body(response.getResponse());
@@ -138,7 +138,7 @@ public class  SafesService {
 						      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 							  put(LogMessage.ACTION, "Create Folder").
 						      put(LogMessage.MESSAGE, "Create Folder completed").
-						      put(LogMessage.RESULT, response.getResponse()).
+						      put(LogMessage.STATUS, response.getHttpstatus().toString()).
 						      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 						      build()));
 					return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Folder created \"]}");
@@ -152,7 +152,7 @@ public class  SafesService {
 				      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 					  put(LogMessage.ACTION, "Create Folder").
 				      put(LogMessage.MESSAGE, "Create Folder failed").
-				      put(LogMessage.RESULT, "Invalid Path").
+				      put(LogMessage.RESPONSE, "Invalid Path").
 				      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 				      build()));
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid path\"]}");
@@ -232,6 +232,7 @@ public class  SafesService {
 							      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 								  put(LogMessage.ACTION, "Create SDB").
 							      put(LogMessage.MESSAGE, "SDB Create Success").
+							      put(LogMessage.STATUS, response.getHttpstatus().toString()).
 							      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 							      build()));
 						return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Safe and associated read/write/deny policies created \"]}");
@@ -240,6 +241,7 @@ public class  SafesService {
 							      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 								  put(LogMessage.ACTION, "Create SDB").
 							      put(LogMessage.MESSAGE, "SDB Create Success").
+							      put(LogMessage.STATUS, response.getHttpstatus().toString()).
 							      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 							      build()));
 						return ResponseEntity.status(HttpStatus.MULTI_STATUS).body("{\"messages\":[\"Safe created however one ore more policy (read/write/deny) creation failed \"]}");
@@ -250,6 +252,7 @@ public class  SafesService {
 						      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 							  put(LogMessage.ACTION, "Create SDB").
 						      put(LogMessage.MESSAGE, "SDB Create Success").
+						      put(LogMessage.STATUS, response.getHttpstatus().toString()).
 						      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 						      build()));
 					return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Safe created \"]}");
@@ -259,6 +262,7 @@ public class  SafesService {
 						      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 							  put(LogMessage.ACTION, "Create SDB").
 						      put(LogMessage.MESSAGE, "SDB Create Success").
+						      put(LogMessage.STATUS, response.getHttpstatus().toString()).
 						      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 						      build()));
 					return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Safe created however metadata update failed. Please try with Safe/update \"]}");
@@ -268,6 +272,7 @@ public class  SafesService {
 					      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 						  put(LogMessage.ACTION, "Create SDB").
 					      put(LogMessage.MESSAGE, "SDB Create completed").
+					      put(LogMessage.STATUS, response.getHttpstatus().toString()).
 					      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 					      build()));
 				return ResponseEntity.status(response.getHttpstatus()).body(response.getResponse());
@@ -277,7 +282,7 @@ public class  SafesService {
 				      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 					  put(LogMessage.ACTION, "Create SDB").
 				      put(LogMessage.MESSAGE, "SDB Creation failed").
-				      put(LogMessage.RESULT, "Invalid Path").
+				      put(LogMessage.RESPONSE, "Invalid Path").
 				      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 				      build()));
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid 'path' specified\"]}");
@@ -324,6 +329,7 @@ public class  SafesService {
 					      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 						  put(LogMessage.ACTION, "Delete SDB").
 					      put(LogMessage.MESSAGE, "SDB Deletion completed").
+					      put(LogMessage.STATUS, response.getHttpstatus().toString()).
 					      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 					      build()));
 				return ResponseEntity.status(response.getHttpstatus()).body(response.getResponse());
@@ -354,7 +360,7 @@ public class  SafesService {
 				      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 					  put(LogMessage.ACTION, "Delete SDB").
 				      put(LogMessage.MESSAGE, "SDB Deletion failed").
-				      put(LogMessage.RESULT, "Invalid Path").
+				      put(LogMessage.RESPONSE, "Invalid Path").
 				      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 				      build()));
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid 'path' specified\"]}");
@@ -411,7 +417,7 @@ public class  SafesService {
 					      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 						  put(LogMessage.ACTION, "Update SDB").
 					      put(LogMessage.MESSAGE, "SDB Update Success").
-					      put(LogMessage.RESULT, response.getResponse()).
+					      put(LogMessage.STATUS, response.getHttpstatus().toString()).
 					      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 					      build()));
 				return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Safe updated \"]}");
@@ -420,7 +426,8 @@ public class  SafesService {
 					      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 						  put(LogMessage.ACTION, "Update SDB").
 					      put(LogMessage.MESSAGE, "SDB Update completed").
-					      put(LogMessage.RESULT, response.getResponse()).
+					      put(LogMessage.RESPONSE, response.getResponse()).
+					      put(LogMessage.STATUS, response.getHttpstatus().toString()).
 					      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 					      build()));
 				return ResponseEntity.status(response.getHttpstatus()).body(response.getResponse());
@@ -430,7 +437,7 @@ public class  SafesService {
 				      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 					  put(LogMessage.ACTION, "Update SDB").
 				      put(LogMessage.MESSAGE, "SDB Update failed").
-				      put(LogMessage.RESULT, "Invalid Path").
+				      put(LogMessage.RESPONSE, "Invalid Path").
 				      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 				      build()));
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid 'path' specified\"]}");
@@ -803,7 +810,7 @@ public class  SafesService {
 						      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 							  put(LogMessage.ACTION, "Add Group to SDB").
 						      put(LogMessage.MESSAGE, "Group configuration Success.").
-						      put(LogMessage.RESULT, metadataResponse.getResponse()).
+						      put(LogMessage.STATUS, metadataResponse.getHttpstatus().toString()).
 						      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 						      build()));
 					return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Group is successfully associated with Safe\"]}");		
@@ -812,7 +819,8 @@ public class  SafesService {
 						      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 							  put(LogMessage.ACTION, "Add Group to SDB").
 						      put(LogMessage.MESSAGE, "Group configuration failed.").
-						      put(LogMessage.RESULT, metadataResponse.getResponse()).
+						      put(LogMessage.RESPONSE, metadataResponse.getResponse()).
+						      put(LogMessage.STATUS, metadataResponse.getHttpstatus().toString()).
 						      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 						      build()));
 					ldapConfigresponse = ControllerUtil.configureLDAPGroup(groupName,currentpolicies,token);
@@ -821,7 +829,8 @@ public class  SafesService {
 							      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 								  put(LogMessage.ACTION, "Add Group to SDB").
 							      put(LogMessage.MESSAGE, "Reverting user policy update failed").
-							      put(LogMessage.RESULT, metadataResponse.getResponse()).
+							      put(LogMessage.RESPONSE, metadataResponse.getResponse()).
+							      put(LogMessage.STATUS, metadataResponse.getHttpstatus().toString()).
 							      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 							      build()));
 						return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"erros\":[\"Group configuration failed.Please try again\"]}");
@@ -830,7 +839,8 @@ public class  SafesService {
 							      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 								  put(LogMessage.ACTION, "Add Group to SDB").
 							      put(LogMessage.MESSAGE, "Reverting user policy update failed").
-							      put(LogMessage.RESULT, metadataResponse.getResponse()).
+							      put(LogMessage.RESPONSE, metadataResponse.getResponse()).
+							      put(LogMessage.STATUS, metadataResponse.getHttpstatus().toString()).
 							      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 							      build()));
 						return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Group configuration failed.Contact Admin \"]}");

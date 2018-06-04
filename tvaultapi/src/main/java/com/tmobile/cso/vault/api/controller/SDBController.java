@@ -82,7 +82,7 @@ public class SDBController {
 			      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 				  put(LogMessage.ACTION, "Get Folders").
 			      put(LogMessage.MESSAGE, "Getting folders completed").
-			      put(LogMessage.RESULT, response.getResponse()).
+			      put(LogMessage.STATUS, response.getHttpstatus().toString()).
 			      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 			      build()));
 		return ResponseEntity.status(response.getHttpstatus()).body(response.getResponse());
@@ -104,7 +104,7 @@ public class SDBController {
 			      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 				  put(LogMessage.ACTION, "Get Info").
 			      put(LogMessage.MESSAGE, "Getting Info completed").
-			      put(LogMessage.RESULT, response.getResponse()).
+			      put(LogMessage.STATUS, response.getHttpstatus().toString()).
 			      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 			      build()));
 		return ResponseEntity.status(response.getHttpstatus()).body(response.getResponse());
@@ -130,7 +130,7 @@ public class SDBController {
 						      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 							  put(LogMessage.ACTION, "Create Folder").
 						      put(LogMessage.MESSAGE, "Create Folder completed").
-						      put(LogMessage.RESULT, response.getResponse()).
+						      put(LogMessage.STATUS, response.getHttpstatus().toString()).
 						      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 						      build()));
 					return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Folder created \"]}");
@@ -144,7 +144,7 @@ public class SDBController {
 				      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 					  put(LogMessage.ACTION, "Create Folder").
 				      put(LogMessage.MESSAGE, "Create Folder failed").
-				      put(LogMessage.RESULT, "Invalid Path").
+				      put(LogMessage.RESPONSE, "Invalid Path").
 				      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 				      build()));
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid path\"]}");
@@ -198,7 +198,7 @@ public class SDBController {
 					      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 						  put(LogMessage.ACTION, "Update SDB").
 					      put(LogMessage.MESSAGE, "SDB Update Success").
-					      put(LogMessage.RESULT, response.getResponse()).
+					      put(LogMessage.STATUS, response.getHttpstatus().toString()).
 					      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 					      build()));
 				return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"SDB updated \"]}");
@@ -207,7 +207,8 @@ public class SDBController {
 					      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 						  put(LogMessage.ACTION, "Update SDB").
 					      put(LogMessage.MESSAGE, "SDB Update completed").
-					      put(LogMessage.RESULT, response.getResponse()).
+					      put(LogMessage.RESPONSE, response.getResponse()).
+					      put(LogMessage.STATUS, response.getHttpstatus().toString()).
 					      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 					      build()));
 				return ResponseEntity.status(response.getHttpstatus()).body(response.getResponse());
@@ -217,7 +218,7 @@ public class SDBController {
 				      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 					  put(LogMessage.ACTION, "Update SDB").
 				      put(LogMessage.MESSAGE, "SDB Update failed").
-				      put(LogMessage.RESULT, "Invalid Path").
+				      put(LogMessage.RESPONSE, "Invalid Path").
 				      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 				      build()));
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid 'path' specified\"]}");
@@ -337,7 +338,7 @@ public class SDBController {
 				      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 					  put(LogMessage.ACTION, "Create SDB").
 				      put(LogMessage.MESSAGE, "SDB Creation failed").
-				      put(LogMessage.RESULT, "Invalid Path").
+				      put(LogMessage.RESPONSE, "Invalid Path").
 				      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 				      build()));
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid 'path' specified\"]}");
@@ -444,7 +445,7 @@ public class SDBController {
 				      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 					  put(LogMessage.ACTION, "Delete SDB").
 				      put(LogMessage.MESSAGE, "SDB Deletion failed").
-				      put(LogMessage.RESULT, "Invalid Path").
+				      put(LogMessage.RESPONSE, "Invalid Path").
 				      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 				      build()));
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid 'path' specified\"]}");
@@ -552,7 +553,7 @@ public class SDBController {
 				      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 					  put(LogMessage.ACTION, "Delete Folder").
 				      put(LogMessage.MESSAGE, "SDB Folder Deletion failed").
-				      put(LogMessage.RESULT, "Invalid Path").
+				      put(LogMessage.RESPONSE, "Invalid Path").
 				      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 				      build()));
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid 'path' specified\"]}");
@@ -702,7 +703,7 @@ public class SDBController {
 				      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 					  put(LogMessage.ACTION, "Add User to SDB").
 				      put(LogMessage.MESSAGE, "User configuration failed.").
-				      put(LogMessage.RESULT, "Invalid Path").
+				      put(LogMessage.RESPONSE, "Invalid Path").
 				      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 				      build()));
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid 'path' specified\"]}");
@@ -766,7 +767,7 @@ public class SDBController {
 					      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 						  put(LogMessage.ACTION, "Associate AppRole to SDB").
 					      put(LogMessage.MESSAGE, "Association of AppRole to SDB success").
-					      put(LogMessage.RESULT, approleControllerResp.getResponse()).
+					      put(LogMessage.STATUS, approleControllerResp.getHttpstatus().toString()).
 					      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 					      build()));
 				return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Approle :" + approle + " is successfully associated with SDB\"]}");		
@@ -776,7 +777,8 @@ public class SDBController {
 				      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 					  put(LogMessage.ACTION, "Associate AppRole to SDB").
 				      put(LogMessage.MESSAGE, "Association of AppRole to SDB failed").
-				      put(LogMessage.RESULT, approleControllerResp.getResponse()).
+				      put(LogMessage.RESPONSE, approleControllerResp.getResponse()).
+				      put(LogMessage.STATUS, approleControllerResp.getHttpstatus().toString()).
 				      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 				      build()));
 				log.error( "Associate Approle" +approle + "to sdb FAILED");
@@ -787,7 +789,7 @@ public class SDBController {
 				      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 					  put(LogMessage.ACTION, "Associate AppRole to SDB").
 				      put(LogMessage.MESSAGE, "Association of AppRole to SDB failed").
-				      put(LogMessage.RESULT, "Invalid Path").
+				      put(LogMessage.RESPONSE, "Invalid Path").
 				      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 				      build()));
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"messages\":[\"Approle :" + approle + " failed to be associated with SDB.. Invalid Path specified\"]}");		
@@ -881,7 +883,7 @@ public class SDBController {
 							      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 								  put(LogMessage.ACTION, "Delete User from SDB").
 							      put(LogMessage.MESSAGE, "Delete User from SBD Success").
-							      put(LogMessage.RESULT, "User association is removed").
+							      put(LogMessage.RESPONSE, "User association is removed").
 							      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 							      build()));
 						return ResponseEntity.status(HttpStatus.OK).body("{\"Message\":\"User association is removed \"}");		
@@ -890,7 +892,8 @@ public class SDBController {
 							      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 								  put(LogMessage.ACTION, "Delete User from SDB").
 							      put(LogMessage.MESSAGE, "Delete User from SBD failed").
-							      put(LogMessage.RESULT, metadataResponse.getResponse()).
+							      put(LogMessage.RESPONSE, metadataResponse.getResponse()).
+							      
 							      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 							      build()));
 						log.debug("Meta data update failed");
@@ -914,7 +917,8 @@ public class SDBController {
 						      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 							  put(LogMessage.ACTION, "Delete User from SDB").
 						      put(LogMessage.MESSAGE, "Delete User from SBD failed").
-						      put(LogMessage.RESULT, ldapConfigresponse.getResponse()).
+						      put(LogMessage.RESPONSE, ldapConfigresponse.getResponse()).
+						      put(LogMessage.STATUS, ldapConfigresponse.getHttpstatus().toString()).
 						      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 						      build()));
 					return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"messages\":[\"User configuration failed.Try Again\"]}");
@@ -932,7 +936,7 @@ public class SDBController {
 						      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 							  put(LogMessage.ACTION, "Delete User from SDB").
 						      put(LogMessage.MESSAGE, "Delete User from SBD Success").
-						      put(LogMessage.RESULT, "User association is removed").
+						      put(LogMessage.RESPONSE, "User association is removed").
 						      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 						      build()));
 					return ResponseEntity.status(HttpStatus.OK).body("{\"Message\":\"User association is removed \"}");		
@@ -941,7 +945,8 @@ public class SDBController {
 						      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 							  put(LogMessage.ACTION, "Delete User from SDB").
 						      put(LogMessage.MESSAGE, "Delete User from SBD failed").
-						      put(LogMessage.RESULT, userResponse.getResponse()).
+						      put(LogMessage.RESPONSE, userResponse.getResponse()).
+						      put(LogMessage.STATUS, userResponse.getHttpstatus().toString()).
 						      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 						      build()));
 					return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"messages\":[\"User configuration failed.Try again \"]}");
@@ -952,7 +957,7 @@ public class SDBController {
 				      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 					  put(LogMessage.ACTION, "Delete User from SDB").
 				      put(LogMessage.MESSAGE, "Delete User from SBD failed").
-				      put(LogMessage.RESULT, "Invdalid Path").
+				      put(LogMessage.RESPONSE, "Invdalid Path").
 				      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 				      build()));
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid 'path' specified\"]}");
@@ -1054,7 +1059,7 @@ public class SDBController {
 						      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 							  put(LogMessage.ACTION, "Delete group from SDB").
 						      put(LogMessage.MESSAGE, "Delete group from SBD Success").
-						      put(LogMessage.RESULT, "Group association is removed").
+						      put(LogMessage.RESPONSE,"Group association is removed").
 						      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 						      build()));
 					return ResponseEntity.status(HttpStatus.OK).body("{\"Message\":\"Group association is removed \"}");		
@@ -1063,7 +1068,8 @@ public class SDBController {
 						      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 							  put(LogMessage.ACTION, "Delete group from SDB").
 						      put(LogMessage.MESSAGE, "Delete group from SBD failed").
-						      put(LogMessage.RESULT, userResponse.getResponse()).
+						      put(LogMessage.RESPONSE, userResponse.getResponse()).
+						      put(LogMessage.STATUS, userResponse.getHttpstatus().toString()).
 						      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 						      build()));
 					return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"messages\":[\"Group configuration failed.Try again \"]}");
@@ -1074,7 +1080,7 @@ public class SDBController {
 				      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 					  put(LogMessage.ACTION, "Delete group from SDB").
 				      put(LogMessage.MESSAGE, "Delete group from SBD failed").
-				      put(LogMessage.RESULT, "Invdalid Path").
+				      put(LogMessage.RESPONSE, "Invdalid Path").
 				      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 				      build()));
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid 'path' specified\"]}");
@@ -1172,7 +1178,7 @@ public class SDBController {
 						      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 							  put(LogMessage.ACTION, "Add AWS Role To SDB").
 						      put(LogMessage.MESSAGE, "Role is successfully associated").
-						      put(LogMessage.RESULT, metadataResponse.getResponse()).
+						      put(LogMessage.STATUS, metadataResponse.getHttpstatus().toString()).
 						      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 						      build()));
 					return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Role is successfully associated \"]}");		
@@ -1181,7 +1187,8 @@ public class SDBController {
 						      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 							  put(LogMessage.ACTION, "Add AWS Role To SDB").
 						      put(LogMessage.MESSAGE, "Role configuration failed.").
-						      put(LogMessage.RESULT, metadataResponse.getResponse()).
+						      put(LogMessage.RESPONSE, metadataResponse.getResponse()).
+						      put(LogMessage.STATUS, metadataResponse.getHttpstatus().toString()).
 						      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 						      build()));
 					ldapConfigresponse = ControllerUtil.configureAWSRole(role,policies,token);
@@ -1190,7 +1197,8 @@ public class SDBController {
 							      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 								  put(LogMessage.ACTION, "Add AWS Role To SDB").
 							      put(LogMessage.MESSAGE, "Reverting user policy update failed").
-							      put(LogMessage.RESULT, metadataResponse.getResponse()).
+							      put(LogMessage.RESPONSE, metadataResponse.getResponse()).
+							      put(LogMessage.STATUS, metadataResponse.getHttpstatus().toString()).
 							      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 							      build()));
 						return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Role configuration failed.Please try again\"]}");
@@ -1199,7 +1207,8 @@ public class SDBController {
 							      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 								  put(LogMessage.ACTION, "Add AWS Role To SDB").
 							      put(LogMessage.MESSAGE, "Reverting user policy update failed").
-							      put(LogMessage.RESULT, metadataResponse.getResponse()).
+							      put(LogMessage.RESPONSE, metadataResponse.getResponse()).
+							      put(LogMessage.STATUS, metadataResponse.getHttpstatus().toString()).
 							      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 							      build()));
 						return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Role configuration failed.Contact Admin \"]}");
@@ -1210,7 +1219,8 @@ public class SDBController {
 					      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 						  put(LogMessage.ACTION, "Add AWS Role To SDB").
 					      put(LogMessage.MESSAGE, "Role configuration failed.").
-					      put(LogMessage.RESULT, ldapConfigresponse.getResponse()).
+					      put(LogMessage.RESPONSE, ldapConfigresponse.getResponse()).
+					      put(LogMessage.STATUS, ldapConfigresponse.getHttpstatus().toString()).
 					      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 					      build()));
 				return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Role configuration failed.Try Again\"]}");
@@ -1220,7 +1230,7 @@ public class SDBController {
 				      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 					  put(LogMessage.ACTION, "Add AWS Role To SDB").
 				      put(LogMessage.MESSAGE, "Role configuration failed.").
-				      put(LogMessage.RESULT, "Invalid Path").
+				      put(LogMessage.RESPONSE, "Invalid Path").
 				      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 				      build()));
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid 'path' specified\"]}");
@@ -1256,7 +1266,7 @@ public class SDBController {
 					      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 						  put(LogMessage.ACTION, "Delete AWS Role from SDB").
 					      put(LogMessage.MESSAGE, "Delete AWS Role from SDB success").
-					      put(LogMessage.RESULT, response.getResponse()).
+					      put(LogMessage.STATUS, response.getHttpstatus().toString()).
 					      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 					      build()));
 				log.debug(role +" , AWS Role is deleted as part of detachment of role from SDB. Path "+ path );
@@ -1271,7 +1281,7 @@ public class SDBController {
 						      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 							  put(LogMessage.ACTION, "Delete AWS Role from SDB").
 						      put(LogMessage.MESSAGE, "Delete AWS Role from SDB success").
-						      put(LogMessage.RESULT, metadataResponse.getResponse()).
+						      put(LogMessage.STATUS, metadataResponse.getHttpstatus().toString()).
 						      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 						      build()));
 					return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Role association is removed \"]}");		
@@ -1280,7 +1290,8 @@ public class SDBController {
 						      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 							  put(LogMessage.ACTION, "Delete AWS Role from SDB").
 						      put(LogMessage.MESSAGE, "Delete AWS Role from SDB failed").
-						      put(LogMessage.RESULT, metadataResponse.getResponse()).
+						      put(LogMessage.RESPONSE, metadataResponse.getResponse()).
+						      put(LogMessage.STATUS, metadataResponse.getHttpstatus().toString()).
 						      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 						      build()));
 					return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Role configuration failed.Please try again\"]}");
@@ -1290,7 +1301,8 @@ public class SDBController {
 					      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 						  put(LogMessage.ACTION, "Delete AWS Role from SDB").
 					      put(LogMessage.MESSAGE, String.format("AWS Role deletion as part of sdb delete failed . SDB path [%s]", path)).
-					      put(LogMessage.RESULT, response.getResponse()).
+					      put(LogMessage.RESPONSE, response.getResponse()).
+					      put(LogMessage.STATUS, response.getHttpstatus().toString()).
 					      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 					      build()));
 				log.debug(role +" , AWS Role deletion as part of sdb delete failed . SDB path "+ path );
@@ -1301,7 +1313,7 @@ public class SDBController {
 				      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 					  put(LogMessage.ACTION, "Delete AWS Role from SDB").
 				      put(LogMessage.MESSAGE, "Delete AWS Role from SDB failed").
-				      put(LogMessage.RESULT, "Invalid Path").
+				      put(LogMessage.RESPONSE, "Invalid Path").
 				      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 				      build()));
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid 'path' specified\"]}");
@@ -1403,7 +1415,7 @@ public class SDBController {
 						      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 							  put(LogMessage.ACTION, "Add Group to SDB").
 						      put(LogMessage.MESSAGE, "Group configuration Success.").
-						      put(LogMessage.RESULT, metadataResponse.getResponse()).
+						      put(LogMessage.STATUS, metadataResponse.getHttpstatus().toString()).
 						      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 						      build()));
 					return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Group is successfully associated with SDB\"]}");		
@@ -1412,7 +1424,8 @@ public class SDBController {
 						      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 							  put(LogMessage.ACTION, "Add Group to SDB").
 						      put(LogMessage.MESSAGE, "Group configuration failed.").
-						      put(LogMessage.RESULT, metadataResponse.getResponse()).
+						      put(LogMessage.RESPONSE, metadataResponse.getResponse()).
+						      put(LogMessage.STATUS, metadataResponse.getHttpstatus().toString()).
 						      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 						      build()));
 					ldapConfigresponse = ControllerUtil.configureLDAPGroup(groupName,currentpolicies,token);
@@ -1421,7 +1434,8 @@ public class SDBController {
 							      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 								  put(LogMessage.ACTION, "Add Group to SDB").
 							      put(LogMessage.MESSAGE, "Reverting user policy update failed").
-							      put(LogMessage.RESULT, metadataResponse.getResponse()).
+							      put(LogMessage.RESPONSE, metadataResponse.getResponse()).
+							      put(LogMessage.STATUS, metadataResponse.getHttpstatus().toString()).
 							      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 							      build()));
 						return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"erros\":[\"Group configuration failed.Please try again\"]}");
@@ -1430,7 +1444,8 @@ public class SDBController {
 							      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 								  put(LogMessage.ACTION, "Add Group to SDB").
 							      put(LogMessage.MESSAGE, "Reverting user policy update failed").
-							      put(LogMessage.RESULT, metadataResponse.getResponse()).
+							      put(LogMessage.RESPONSE, metadataResponse.getResponse()).
+							      put(LogMessage.STATUS, metadataResponse.getHttpstatus().toString()).
 							      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 							      build()));
 						return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Group configuration failed.Contact Admin \"]}");
@@ -1469,7 +1484,6 @@ public class SDBController {
 			      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 				  put(LogMessage.ACTION, "getFoldersRecursively").
 			      put(LogMessage.MESSAGE, "getFoldersRecursively completed").
-			      put(LogMessage.RESULT, response.getResponse()).
 			      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 			      build()));
 		return ResponseEntity.status(response.getHttpstatus()).body(response.getResponse());
@@ -1498,7 +1512,7 @@ public class SDBController {
 				      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 					  put(LogMessage.ACTION, "createNestedfolder").
 				      put(LogMessage.MESSAGE, "createNestedfolder completed").
-				      put(LogMessage.RESULT, response.getResponse()).
+				      put(LogMessage.STATUS, response.getHttpstatus().toString()).
 				      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 				      build()));
 			if(response.getHttpstatus().equals(HttpStatus.NO_CONTENT)) {
@@ -1510,7 +1524,7 @@ public class SDBController {
 				      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 					  put(LogMessage.ACTION, "createNestedfolder").
 				      put(LogMessage.MESSAGE, "createNestedfolder completed").
-				      put(LogMessage.RESULT, "Invalid Path").
+				      put(LogMessage.RESPONSE, "Invalid Path").
 				      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 				      build()));
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid path\"]}");

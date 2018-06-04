@@ -63,7 +63,7 @@ public class  UserPassService {
 				      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 					  put(LogMessage.ACTION, "Create User").
 				      put(LogMessage.MESSAGE, "Created username successfully").
-				      put(LogMessage.RESULT, response.getResponse()).
+				      put(LogMessage.STATUS, response.getHttpstatus().toString()).
 				      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 				      build()));
 			return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Username User created\"]}");
@@ -72,7 +72,8 @@ public class  UserPassService {
 			      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 				  put(LogMessage.ACTION, "Create User").
 			      put(LogMessage.MESSAGE, "Created username failed").
-			      put(LogMessage.RESULT, response.getResponse()).
+			      put(LogMessage.RESPONSE, response.getResponse()).
+			      put(LogMessage.STATUS, response.getHttpstatus().toString()).
 			      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 			      build()));
 		return ResponseEntity.status(response.getHttpstatus()).body(response.getResponse());	
@@ -95,7 +96,7 @@ public class  UserPassService {
 			      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 				  put(LogMessage.ACTION, "Read User").
 			      put(LogMessage.MESSAGE, "Reading username completed").
-			      put(LogMessage.RESULT, response.getResponse()).
+			      put(LogMessage.STATUS, response.getHttpstatus().toString()).
 			      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 			      build()));
 		return ResponseEntity.status(response.getHttpstatus()).body(response.getResponse());	
@@ -122,7 +123,7 @@ public class  UserPassService {
 				      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 					  put(LogMessage.ACTION, "Delete User").
 				      put(LogMessage.MESSAGE, "Username User deleted successfully").
-				      put(LogMessage.RESULT, response.getResponse()).
+				      put(LogMessage.STATUS, response.getHttpstatus().toString()).
 				      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 				      build()));
 			return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Username User deleted\"]}");
@@ -131,7 +132,8 @@ public class  UserPassService {
 			      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 				  put(LogMessage.ACTION, "Delete User").
 			      put(LogMessage.MESSAGE, "Username User failed").
-			      put(LogMessage.RESULT, response.getResponse()).
+			      put(LogMessage.RESPONSE, response.getResponse()).
+			      put(LogMessage.STATUS, response.getHttpstatus().toString()).
 			      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 			      build()));
 		return ResponseEntity.status(response.getHttpstatus()).body(response.getResponse());	
@@ -156,7 +158,7 @@ public class  UserPassService {
 				      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 					  put(LogMessage.ACTION, "Update Password").
 				      put(LogMessage.MESSAGE, "Users Password updated succssfully").
-				      put(LogMessage.RESULT, response.getResponse()).
+				      put(LogMessage.STATUS, response.getHttpstatus().toString()).
 				      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 				      build()));
 			return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Password for the user updated\"]}");
@@ -165,7 +167,8 @@ public class  UserPassService {
 			      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 				  put(LogMessage.ACTION, "Update Password").
 			      put(LogMessage.MESSAGE, "Users Password failed").
-			      put(LogMessage.RESULT, response.getResponse()).
+			      put(LogMessage.RESPONSE, response.getResponse()).
+			      put(LogMessage.STATUS, response.getHttpstatus().toString()).
 			      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 			      build()));
 		return ResponseEntity.status(response.getHttpstatus()).body(response.getResponse());	
@@ -187,7 +190,7 @@ public class  UserPassService {
 			      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 				  put(LogMessage.ACTION, "Users Listing").
 			      put(LogMessage.MESSAGE, "Users Listing Completed").
-			      put(LogMessage.RESULT, response.getResponse()).
+			      put(LogMessage.STATUS, response.getHttpstatus().toString()).
 			      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 			      build()));
 		return ResponseEntity.status(response.getHttpstatus()).body(response.getResponse());	
@@ -212,7 +215,7 @@ public class  UserPassService {
 				      put(LogMessage.USER, user.getUsername()).
 					  put(LogMessage.ACTION, "User Login").
 				      put(LogMessage.MESSAGE, "User Authentication Successful").
-				      put(LogMessage.RESULT, response.getResponse()).
+				      put(LogMessage.STATUS, response.getHttpstatus().toString()).
 				      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 				      build()));
 			return ResponseEntity.status(response.getHttpstatus()).body(response.getResponse());
@@ -222,7 +225,8 @@ public class  UserPassService {
 					      put(LogMessage.USER, user.getUsername()).
 						  put(LogMessage.ACTION, "User Login").
 					      put(LogMessage.MESSAGE, "User Authentication failed. Invalid username or password.").
-					      put(LogMessage.RESULT, response.getResponse()).
+					      put(LogMessage.RESPONSE, response.getResponse()).
+					      put(LogMessage.STATUS, response.getHttpstatus().toString()).
 					      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 					      build()));
 				return ResponseEntity.status(response.getHttpstatus()).body("{\"errors\": [\"User Authentication failed\", \"Invalid username or password. Please retry again after correcting username or password.\"]}");
@@ -232,7 +236,8 @@ public class  UserPassService {
 					      put(LogMessage.USER, user.getUsername()).
 						  put(LogMessage.ACTION, "User Login").
 					      put(LogMessage.MESSAGE, "User Authentication failed. Vault services could be down").
-					      put(LogMessage.RESULT, response.getResponse()).
+					      put(LogMessage.RESPONSE, response.getResponse()).
+					      put(LogMessage.STATUS, response.getHttpstatus().toString()).
 					      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 					      build()));
 				return ResponseEntity.status(response.getHttpstatus()).body("{\"errors\": [\"User Authentication failed\", \"This may be due to vault services are down or vault services are not reachable\"]}");
@@ -241,7 +246,8 @@ public class  UserPassService {
 				      put(LogMessage.USER, user.getUsername()).
 					  put(LogMessage.ACTION, "User Login").
 				      put(LogMessage.MESSAGE, "User Authentication failed.").
-				      put(LogMessage.RESULT, response.getResponse()).
+				      put(LogMessage.RESPONSE, response.getResponse()).
+				      put(LogMessage.STATUS, response.getHttpstatus().toString()).
 				      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 				      build()));
 			return ResponseEntity.status(response.getHttpstatus()).body("{\"errors\":[\"Username Authentication Failed.\"]}");

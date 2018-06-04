@@ -47,6 +47,11 @@ import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
+import com.google.common.collect.ImmutableMap;
+import com.tmobile.cso.vault.api.exception.LogMessage;
+import com.tmobile.cso.vault.api.utils.JSONUtil;
+import com.tmobile.cso.vault.api.utils.ThreadLocalContext;
+
 @Component()
 public class RestProcessor {
 	private Logger log = LogManager.getLogger(RestProcessor.class);
@@ -60,10 +65,18 @@ public class RestProcessor {
 	}
 	
 	public ResponseEntity<String> post(String endpoint,String token,String payload ){
+		
+		
+		
 		RestTemplate restTemplate = getRestTemplate(sslVerify, token);
 		String _endpoint  = formURL(endpoint);
-		log.debug(_endpoint); 
 		ResponseEntity<String> response;
+		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+			      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+				  put(LogMessage.ACTION, "Invoke Vault API").
+			      put(LogMessage.MESSAGE, String.format("Calling the vault end point [%s] using POST method", _endpoint)).
+			      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+			      build()));
 		try{
 			response= restTemplate.postForEntity(_endpoint,payload,String.class);
 		}catch(HttpStatusCodeException e){
@@ -77,9 +90,13 @@ public class RestProcessor {
 	public ResponseEntity<String> get(String endpoint,String token){
 
 		String _endpoint  = formURL(endpoint);
-		log.debug(_endpoint); 
 		RestTemplate restTemplate = getRestTemplate(sslVerify, token);
-		
+		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+			      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+				  put(LogMessage.ACTION, "Invoke Vault API").
+			      put(LogMessage.MESSAGE, String.format("Calling the vault end point [%s] using GET method", _endpoint)).
+			      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+			      build()));
 		ResponseEntity<String> response;
 		try{
 			response= restTemplate.getForEntity(_endpoint,String.class);
@@ -92,18 +109,22 @@ public class RestProcessor {
 	}
 	public ResponseEntity<String> delete(String endpoint,String token){
 		String _endpoint  = formURL(endpoint);
-		log.debug(_endpoint); 
 		RestTemplate restTemplate = getRestTemplate(sslVerify, token);
 		ResponseEntity<String> response = null;
+		
+		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+			      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+				  put(LogMessage.ACTION, "Invoke Vault API").
+			      put(LogMessage.MESSAGE, String.format("Calling the vault end point [%s] using DELETE method", _endpoint)).
+			      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+			      build()));
 		
 		try{
 			//restTemplate.delete(vaultApiUrl+endpoint);
 			response = restTemplate.exchange(_endpoint,HttpMethod.DELETE,null,String.class);
 		}catch(HttpStatusCodeException e){
-			System.out.println("Caught 1");
 			return ResponseEntity.status(e.getStatusCode()).body(e.getResponseBodyAsString());
 		}catch(RestClientException e){
-			e.printStackTrace();
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
 		}catch(Exception e){
 			e.printStackTrace();
