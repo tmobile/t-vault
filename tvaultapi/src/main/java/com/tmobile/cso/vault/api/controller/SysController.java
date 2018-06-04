@@ -70,7 +70,7 @@ public class SysController {
 				      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 					  put(LogMessage.ACTION, "Check Health").
 				      put(LogMessage.MESSAGE, "Getting Vault Health information completed successfully").
-				      put(LogMessage.RESULT, response.getResponse()).
+				      put(LogMessage.STATUS, response.getHttpstatus().toString()).
 				      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 				      build()));
 			return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Healthy.All OK\"]}");
@@ -79,7 +79,8 @@ public class SysController {
 				      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 					  put(LogMessage.ACTION, "Check Health").
 				      put(LogMessage.MESSAGE, "Getting Vault Health information failed.").
-				      put(LogMessage.RESULT, response.getResponse()).
+				      put(LogMessage.RESPONSE, response.getResponse()).
+				      put(LogMessage.STATUS, response.getHttpstatus().toString()).
 				      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 				      build()));
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"messages\":[\"Not OK \"]}");
@@ -101,7 +102,7 @@ public class SysController {
 			      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 				  put(LogMessage.ACTION, "Unseal Vault").
 			      put(LogMessage.MESSAGE, "Unsealing Vault server completed").
-			      put(LogMessage.RESULT, response.getResponse()).
+			      put(LogMessage.STATUS, response.getHttpstatus().toString()).
 			      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 			      build()));
 		return ResponseEntity.status(response.getHttpstatus()).body(response.getResponse());
@@ -120,7 +121,7 @@ public class SysController {
 			      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 				  put(LogMessage.ACTION, "Unseal Vault").
 			      put(LogMessage.MESSAGE, String.format("Unsealing Vault server completed for [%s]", serverip)).
-			      put(LogMessage.RESULT, response.getResponse()).
+			      put(LogMessage.STATUS, response.getHttpstatus().toString()).
 			      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 			      build()));
 		return ResponseEntity.status(response.getHttpstatus()).body(response.getResponse());

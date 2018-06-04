@@ -83,7 +83,7 @@ public class VaultAuthController {
 				      put(LogMessage.USER, loginObj.getUsername()).
 					  put(LogMessage.ACTION, "User Login").
 				      put(LogMessage.MESSAGE, "Authentication Successful").
-				      put(LogMessage.RESULT, "").
+				      put(LogMessage.STATUS, response.getHttpstatus().toString()).
 				      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 				      build()));
 			return ResponseEntity.status(response.getHttpstatus()).body(response.getResponse());
@@ -93,7 +93,8 @@ public class VaultAuthController {
 					      put(LogMessage.USER, loginObj.getUsername()).
 						  put(LogMessage.ACTION, "User Login").
 					      put(LogMessage.MESSAGE, "User Authentication failed. Invalid username or password.").
-					      put(LogMessage.RESULT, response.getResponse()).
+					      put(LogMessage.RESPONSE, response.getResponse()).
+					      put(LogMessage.STATUS, response.getHttpstatus().toString()).
 					      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 					      build()));
 				return ResponseEntity.status(response.getHttpstatus()).body("{\"errors\": [\"User Authentication failed\", \"Invalid username or password. Please retry again after correcting username or password.\"]}");
@@ -103,7 +104,8 @@ public class VaultAuthController {
 					      put(LogMessage.USER, loginObj.getUsername()).
 						  put(LogMessage.ACTION, "User Login").
 					      put(LogMessage.MESSAGE, "User Authentication failed. Vault Services could be down.").
-					      put(LogMessage.RESULT, response.getResponse()).
+					      put(LogMessage.RESPONSE, response.getResponse()).
+					      put(LogMessage.STATUS, response.getHttpstatus().toString()).
 					      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 					      build()));
 				return ResponseEntity.status(response.getHttpstatus()).body("{\"errors\": [\"User Authentication failed\", \"This may be due to vault services are down or vault services are not reachable\"]}");
@@ -112,7 +114,8 @@ public class VaultAuthController {
 				      put(LogMessage.USER, loginObj.getUsername()).
 					  put(LogMessage.ACTION, "User Login").
 				      put(LogMessage.MESSAGE, "User Authentication failed.").
-				      put(LogMessage.RESULT, response.getResponse()).
+				      put(LogMessage.RESPONSE, response.getResponse()).
+				      put(LogMessage.STATUS, response.getHttpstatus().toString()).
 				      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 				      build()));
 			return ResponseEntity.status(response.getHttpstatus()).body("{\"errors\":[\"Username Authentication Failed.\"]}");
@@ -138,7 +141,7 @@ public class VaultAuthController {
 				      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 					  put(LogMessage.ACTION, "Renew Token").
 				      put(LogMessage.MESSAGE, "User token renewed successfully").
-				      put(LogMessage.RESULT, response.getResponse()).
+				      put(LogMessage.STATUS, response.getHttpstatus().toString()).
 				      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 				      build()));
 			return ResponseEntity.status(response.getHttpstatus()).body(response.getResponse());
@@ -147,7 +150,8 @@ public class VaultAuthController {
 				      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 					  put(LogMessage.ACTION, "Renew Token").
 				      put(LogMessage.MESSAGE, "Renewing user token failed").
-				      put(LogMessage.RESULT, response.getResponse()).
+				      put(LogMessage.RESPONSE, response.getResponse()).
+				      put(LogMessage.STATUS, response.getHttpstatus().toString()).
 				      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 				      build()));
 			return ResponseEntity.status(response.getHttpstatus()).body("{\"errors\":[\"Self renewal of token Failed.\"]}");
@@ -174,7 +178,7 @@ public class VaultAuthController {
 				      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 					  put(LogMessage.ACTION, "Lookup Token").
 				      put(LogMessage.MESSAGE, "User token lookedup successfully").
-				      put(LogMessage.RESULT, response.getResponse()).
+				      put(LogMessage.STATUS, response.getHttpstatus().toString()).
 				      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 				      build()));
 			return ResponseEntity.status(response.getHttpstatus()).body(response.getResponse());
@@ -183,7 +187,8 @@ public class VaultAuthController {
 				      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 					  put(LogMessage.ACTION, "Lookup Token").
 				      put(LogMessage.MESSAGE, "Token Lookup Failed.").
-				      put(LogMessage.RESULT, response.getResponse()).
+				      put(LogMessage.RESPONSE, response.getResponse()).
+				      put(LogMessage.STATUS, response.getHttpstatus().toString()).
 				      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 				      build()));
 			return ResponseEntity.status(response.getHttpstatus()).body("{\"errors\":[\"Token Lookup Failed.\"]}");
@@ -211,7 +216,7 @@ public class VaultAuthController {
 				      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 					  put(LogMessage.ACTION, "Revoke Token").
 				      put(LogMessage.MESSAGE, "User token revoked successfully").
-				      put(LogMessage.RESULT, "").
+				      put(LogMessage.STATUS, response.getHttpstatus().toString()).
 				      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 				      build()));
 			return ResponseEntity.status(response.getHttpstatus()).body(response.getResponse());
@@ -220,6 +225,8 @@ public class VaultAuthController {
 				      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 					  put(LogMessage.ACTION, "Revoke Token").
 				      put(LogMessage.MESSAGE, "User Token Revoke Failed.").
+				      put(LogMessage.RESPONSE, response.getResponse()).
+				      put(LogMessage.STATUS, response.getHttpstatus().toString()).
 				      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 				      build()));
 			return ResponseEntity.status(response.getHttpstatus()).body("{\"errors\":[\"Token revoke Failed.\"]}");

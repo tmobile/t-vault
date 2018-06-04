@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Configuration monitorInterval="60">
+<Configuration monitorInterval="60" packages="com.tmobile.cso.vault.api.utils">
     <Properties>
         <Property name="TVAULT-API-LOG-PATH">/var/log/tvault</Property>
         <Property name="APP_ID">cso</Property>
@@ -10,11 +10,11 @@
         	<PatternLayout>
         		<pattern>
 {
-	"Info":"%-5level",
+	"Level":"%-5level",
 	"Date": "%d{yyyy-MM-dd HH:mm:ss.SSS}",
 	"Thread":  "[%t]",
 	"Context": "%c{1}",
-	"Message": "%msg"
+	"Log": %msg
 }%n
         		</pattern>
         	</PatternLayout>
@@ -23,11 +23,11 @@
             <PatternLayout>
                 <pattern>
 {
-	"Info":"%-5level",
+	"Level":"%-5level",
 	"Date": "%d{yyyy-MM-dd HH:mm:ss.SSS}",
 	"Thread":  "[%t]",
 	"Context": "%c{1}",
-	"Message": "%msg"
+	"Log": %msg
 }%n
                 </pattern>
             </PatternLayout>
@@ -40,11 +40,11 @@
             <PatternLayout>
                 <pattern>
 {
-	"Info":"%-5level",
+	"Level":"%-5level",
 	"Date": "%d{yyyy-MM-dd HH:mm:ss.SSS}",
 	"Thread":  "[%t]",
 	"Context": "%c{1}",
-	"Message": "%msg"
+	"Log": %msg
 }%n
                 </pattern>
             </PatternLayout>
@@ -64,21 +64,34 @@
 			</Policies>
 			<DefaultRolloverStrategy max="5"/>  
         </RollingFile>
+         <Rewrite name="Rewrite-console">
+		 	<AppenderRef ref="Console-Appender"/>
+		 	
+		 	<InjectMarkerPolicy/>
+    	</Rewrite>
+    	 <Rewrite name="Rewrite-app">
+		 	<AppenderRef ref="App-Appender"/>
+		 	<InjectMarkerPolicy/>
+    	</Rewrite>
+    	 <Rewrite name="Rewrite-spring">
+		 	<AppenderRef ref="SpringBoot-Appender"/>
+		 	<InjectMarkerPolicy/>
+    	</Rewrite>
     </Appenders>
     <Loggers>
-        <Logger name="org.springframework.web" level="info" additivity="true">
-            <AppenderRef ref="SpringBoot-Appender" />
+        <Logger name="org.springframework.web" level="info" additivity="false">
+            <AppenderRef ref="Rewrite-spring" />
         </Logger>
         <Logger name="com.tmobile.cso.vault.api" level="debug"
-            additivity="true">
-            <AppenderRef ref="App-Appender" />
+            additivity="false">
+            <AppenderRef ref="Rewrite-app" />
         </Logger>
        <Logger name="metric-logger" level="info"
-            additivity="true">
+            additivity="false">
             <AppenderRef ref="api-metric-Appender" />
         </Logger>
         <Root >
-            <AppenderRef ref="Console-Appender" />
+            <AppenderRef ref="Rewrite-console" />
         </Root>
     </Loggers>
 </Configuration>

@@ -9,7 +9,8 @@ public class LogMessage implements Serializable {
 	public static final String DATETIME="date";
 	public static final String USER="user";
 	public static final String ACTION="action";
-	public static final String RESULT="result";
+	public static final String RESPONSE="response";
+	public static final String STATUS="httpstatus";
 	public static final String MESSAGE="message";
 	public static final String STACKTRACE="stacktrace";
 	public static final String APIURL="apiurl";
