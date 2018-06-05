@@ -80,8 +80,8 @@
         }).then(function (modalData) {
           folder = {
             parentId: vm.currentFolder.fullPath,
-            id: vm.currentFolder.fullPath + '/' + modalData.inputValue,
-            name: modalData.inputValue,
+            id: vm.currentFolder.fullPath + '/' + modalData.inputValue.toLowerCase(),
+            name: modalData.inputValue.toLowerCase(),
             value: null,
             type: 'folder',
             children: []
