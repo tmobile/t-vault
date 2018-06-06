@@ -9,14 +9,14 @@
         <Console name="Console-Appender" target="SYSTEM_OUT">
         	<PatternLayout>
         		<pattern>
-					{"Level":"%-5level","Date": "%d{yyyy-MM-dd HH:mm:ss.SSS}","Thread":  "[%t]","Context": "%c{1}","Log": %msg}%n
+					{"level":"%-5level","date": "%d{yyyy-MM-dd HH:mm:ss.SSS}","thread":  "[%t]","context": "%c{1}","log": %msg}%n
         		</pattern>
         	</PatternLayout>
         </Console>
         <RollingFile name="App-Appender" fileName="${sys:TVAULT-API-LOG-PATH}/${sys:APP_ID}-${sys:VAULT_ENV}-tvault-api-app.log" filePattern="${sys:TVAULT-API-LOG-PATH}/${sys:APP_ID}-${sys:VAULT_ENV}-tvault-api-app-%i.log">
             <PatternLayout>
                 <pattern>
-					{"Level":"%-5level","Date": "%d{yyyy-MM-dd HH:mm:ss.SSS}","Thread":  "[%t]","Context": "%c{1}","Log": %msg}%n
+					{"level":"%-5level","date": "%d{yyyy-MM-dd HH:mm:ss.SSS}","thread":  "[%t]","context": "%c{1}","log": %msg}%n
                 </pattern>
             </PatternLayout>
                         <Policies>
@@ -27,7 +27,7 @@
         <RollingFile name="SpringBoot-Appender" fileName="${sys:TVAULT-API-LOG-PATH}/${sys:APP_ID}-${sys:VAULT_ENV}-tvault-api-spring.log" filePattern="${sys:TVAULT-API-LOG-PATH}/${sys:APP_ID}-${sys:VAULT_ENV}-tvault-api-spring-%i.log">
             <PatternLayout>
                 <pattern>
-					{"Level":"%-5level","Date": "%d{yyyy-MM-dd HH:mm:ss.SSS}","Thread":  "[%t]","Context": "%c{1}","Log": %msg}%n
+					{"level":"%-5level","date": "%d{yyyy-MM-dd HH:mm:ss.SSS}","thread":  "[%t]","context": "%c{1}","log": %msg}%n
                 </pattern>
             </PatternLayout>
             <Policies>
