@@ -48,9 +48,15 @@ public class SecretControllerV2 {
 	 * @return
 	 */
 	@ApiOperation(value = "${SecretControllerV2.readFromVault.value}", notes = "${SecretControllerV2.readFromVault.notes}")
-	@GetMapping(value="/v2/read",produces= "application/json")
-	public ResponseEntity<String> readFromVault(@RequestHeader(value="vault-token") String token, @RequestParam("path") String path){
-		return secretService.readFromVault(token, path);
+	@GetMapping(value="/v2/safes/folders/secrets",produces= "application/json")
+	public ResponseEntity<String> readFromVault(@RequestHeader(value="vault-token") String token, @RequestParam("path") String path,@RequestParam( name="fetchOption",required=false) FetchOption fetchOption){
+		if(fetchOption == null || fetchOption.equals(FetchOption.secrets)){
+		    return secretService.readFromVault(token, path);
+		}else if(fetchOption.equals(FetchOption.all)){
+		    return secretService.readFoldersAndSecrets(token, path);
+		}else{
+		    return secretService.readFromVaultRecursive(token, path);
+		}
 	}
 	/**
 	 * Write secrets into vault
@@ -59,7 +65,7 @@ public class SecretControllerV2 {
 	 * @return
 	 */
 	@ApiOperation(value = "${SecretControllerV2.write.value}", notes = "${SecretControllerV2.write.notes}")
-	@PostMapping(value="/v2/write",consumes="application/json",produces="application/json")
+	@PostMapping(value={"/v2/safes/folders/secrets","/v2/write"},consumes="application/json",produces="application/json")
 	public ResponseEntity<String> write(@RequestHeader(value="vault-token") String token, @RequestBody String jsonStr){
 		return secretService.write(token, jsonStr);
 	}
@@ -70,31 +76,13 @@ public class SecretControllerV2 {
 	 * @return
 	 */
 	@ApiOperation(value = "${SecretControllerV2.deleteFromVault.value}", notes = "${SecretControllerV2.deleteFromVault.notes}")
-	@DeleteMapping(value="/v2/delete",produces="application/json")
+	@DeleteMapping(value="/v2/safes/folders/secrets",produces="application/json")
 	public ResponseEntity<String> deleteFromVault(@RequestHeader(value="vault-token") String token, @RequestParam("path") String path){
 		return secretService.deleteFromVault(token, path);
 	}
-	/**
-	 * Reads the given sdb path/folder recursively
-	 * @param token
-	 * @param path
-	 * @return
-	 */
-	@ApiOperation(value = "${SecretControllerV2.readFromVaultRecursive.value}", notes = "${SecretControllerV2.readFromVaultRecursive.notes}")
-	@GetMapping(value="/v2/readfull",produces= "application/json")
-	public ResponseEntity<String> readFromVaultRecursive(@RequestHeader(value="vault-token") String token, @RequestParam("path") String path){
-		return secretService.readFromVaultRecursive(token, path);
-	}
-	/**
-	 * Reads the contents of a safe/folder, includes both folders and secrets
-	 * @param token
-	 * @param path
-	 * @return
-	 */
-	@ApiOperation(value = "${SecretControllerV2.readFoldersAndSecrets.value}", notes = "${SecretControllerV2.readFoldersAndSecrets.notes}")
-	@GetMapping(value="/v2/readAll",produces= "application/json")
-	public ResponseEntity<String> readFoldersAndSecrets(@RequestHeader(value="vault-token") String token, @RequestParam("path") String path){
-		return secretService.readFoldersAndSecrets(token, path);
-	}
+}
+
+enum FetchOption {
+     secrets,all,recursive
 }
 
