@@ -68,7 +68,7 @@ public final class ControllerUtil {
 
 	private static String vaultAuthMethod;
 	
-	@Value("${vault.secret.key.whitelistedchars:[^a-z0-9_]}")
+	@Value("${vault.secret.key.whitelistedchars:[a-z0-9_]+}")
     private String secretKeyWhitelistedCharacters;
 	
 	private static String secretKeyAllowedCharacters;
@@ -838,6 +838,27 @@ public final class ControllerUtil {
 		return !valid;
 	}
 	
+	/**
+	 * Validates one or more SecretKeys
+	 * @return
+	 */
+	public static boolean areSecretKeysValid(String jsonString) {
+		Map<String, Boolean> validationMap = new HashMap<String, Boolean>();
+		ArrayList<String> secretKeys = getSecretKeys(jsonString);
+		for (String secretKey : secretKeys) {
+			if (StringUtils.isEmpty(secretKey)) {
+				return false;
+			}
+			boolean valid = Pattern.matches(secretKeyAllowedCharacters, secretKey);
+			// Collect validation result for all.
+			validationMap.put(secretKey, valid);
+		}
+		if (validationMap.values().contains(false)) {
+			return false;
+		}
+		return true;
+	}
+	
 	private static String getSecretKey(String jsonString) {
 		String secretKey = null ;
 		String secretValue = null;
@@ -856,6 +877,24 @@ public final class ControllerUtil {
 			return secretKey;
 		} catch (IOException e) {
 			return secretKey;
+		}
+	}
+	
+	private static ArrayList<String> getSecretKeys(String jsonString) {
+		ArrayList<String> secretKeys = new ArrayList<String>() ;
+		try {
+			Map<String, Object> requestParams = new ObjectMapper().readValue(jsonString, new TypeReference<Map<String, Object>>(){});
+			LinkedHashMap<String, Object> map = (LinkedHashMap<String, Object>) requestParams.get("data");
+			for (Object key : map.keySet()) {
+				secretKeys.add((String) key);
+			  }
+			return secretKeys;
+		} catch (JsonParseException e) {
+			return secretKeys;
+		} catch (JsonMappingException e) {
+			return secretKeys;
+		} catch (IOException e) {
+			return secretKeys;
 		}
 	}
 	

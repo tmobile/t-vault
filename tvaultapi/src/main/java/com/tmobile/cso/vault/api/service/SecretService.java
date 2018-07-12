@@ -91,7 +91,7 @@ public class  SecretService {
 				      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 				      build()));
 			jsonStr = ControllerUtil.addDefaultSecretKey(jsonStr);
-			if (!ControllerUtil.isSecretKeyValid(jsonStr)) {
+			if (!ControllerUtil.areSecretKeysValid(jsonStr)) {
 				return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid request.Check json data\"]}");
 			}
 		} catch (IOException e) {
