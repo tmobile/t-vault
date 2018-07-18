@@ -19,11 +19,20 @@
 
 'use strict';
 (function(app){
-    app.controller('SignUpCtrl', function($scope, Modal, $state, Authentication, SessionStore, UtilityService, Idle){
+    app.controller('SignUpCtrl', function($scope, Modal, $state, Authentication, SessionStore, UtilityService, Idle, AppConstant){
 
         var init = function(){
             $scope.forgotPasswordLink = UtilityService.getAppConstant('FORGOT_PASSWORD_LINK');
+            // change login depending on authtype
+            $scope.authType = AppConstant.AUTH_TYPE;
+            $scope.userID = 'Username';
             Idle.unwatch();
+            if ($scope.authType.toLowerCase() === 'ldap') {
+                $scope.userID = 'Corp ID';
+            } else if ($scope.authType.toLowerCase() === 'gsm1900') {
+                $scope.userID = 'Email ID';
+            }
+            
         }
 
         var saveParametersInSessionStore = function(loginResponseData){
@@ -50,6 +59,9 @@
         $scope.login = function() {
           $scope.isLoadingData = true;
           var username  = $scope.username.toLowerCase();
+          if (username.includes('@')) {
+            username = username.substr(0, username.indexOf('@'));
+            }
           username = Authentication.formatUsernameWithoutDomain(username);
           var reqObjtobeSent = {"username":username,"password":$scope.password};
           Authentication.authenticateUser(reqObjtobeSent).then(function(response){
@@ -73,5 +85,6 @@
         init();
     })
 })(angular.module('vault.features.SignUpCtrl',[
-    'vault.services.UtilityService'
+    'vault.services.UtilityService',
+    'vault.constants.AppConstant'
 ]));

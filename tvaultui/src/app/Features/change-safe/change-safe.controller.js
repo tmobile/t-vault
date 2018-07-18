@@ -33,7 +33,6 @@
         $scope.usrRadioBtnVal = 'read';             // Keep it in lowercase
         $scope.grpRadioBtnVal = 'read';             // Keep it in lowercase
         $scope.awsRadioBtn['value'] = 'read';       // Keep it in lowercase
-
         $scope.isEmpty = UtilityService.isObjectEmpty;
         $scope.awsConfPopupObj = {
             "role": "",
@@ -103,31 +102,45 @@
 
         /************************  Functions for autosuggest start here ***************************/
         $scope.searchValue = {
-            userName: ''
+            userName: '',
+            groupName: ''
         };
-        $scope.dropDownValArray = {
-            'userNameDropdownVal': []
-        }
+        $scope.userNameDropdownVal = [];
+        $scope.groupNameDropdownVal = [];
+        
         $scope.totalDropdownVal = [];
         $rootScope.loadingDropDownData = false;
 
         var assignDropdownVal = function (variableChanged) {
-            $scope.dropDownValArray.userNameDropdownVal = [];
+            if (variableChanged === 'userName') {
+                $scope.userNameDropdownVal = [];
+            } else if (variableChanged === 'groupName') {
+                $scope.groupNameDropdownVal = [];
+            }
+           
         }
 
         $scope.$watch('searchValue', function (newVal, oldVal) {
-            if (!UtilityService.getAppConstant('AD_USERS_DATA_URL')) {
-                return;
-            }
 
             var variableChanged = '';
             if (newVal.userName != undefined && newVal.userName != oldVal.userName) {
                 variableChanged = 'userName';
+            } else if (newVal.groupName != undefined && newVal.groupName != oldVal.groupName) {
+                variableChanged = 'groupName';
             }
+             if (variableChanged === 'userName') {
+                if (!UtilityService.getAppConstant('AD_USERS_DATA_URL')) {
+                    return;
+                }
+             } else if (variableChanged === 'groupName') {
+                 if(!UtilityService.getAppConstant('AD_GROUP_DATA_URL')) {
+                    return;
+                 }
+             }
+           
 
             if (newVal[variableChanged] != undefined) {
-                var enteredVal = newVal[variableChanged].split(",");
-                var newLetter = enteredVal[enteredVal.length - 1];
+                var newLetter = newVal[variableChanged];
                 newLetter = newLetter.replace(" ", "");
 
                 if (newLetter.length === 0) {
@@ -145,9 +158,8 @@
             }
         }, true);
 
-        $scope.getDropdownDataForPermissions = function (searchFieldName, searchFieldText) {
-            var ADUsersData = JSON.parse(SessionStore.getItem('ADUsers'));
-            if ((ADUsersData === undefined) || (ADUsersData == null)) {
+        $scope.getDropdownDataForPermissions = function (searchFieldName, searchFieldText) {      
+            if (searchFieldText.length > 2) {
                 vaultUtilityService.getDropdownDataForPermissions(searchFieldName, searchFieldText).then(function (res, error) {
                     var serviceData;
                     if (res) {
@@ -155,20 +167,13 @@
                         $scope.loadingDataFrDropdown = serviceData.loadingDataFrDropdown;
                         $scope.erroredFrDropdown = serviceData.erroredFrDropdown;
                         $scope.successFrDropdown = serviceData.successFrDropdown;
-                        SessionStore.setItem('ADUsers', JSON.stringify(res));
-                        massageDataFrPermissionsDropdown(searchFieldName, searchFieldText, serviceData.dataFrmApi);
+                        massageDataFrPermissionsDropdown(searchFieldName, searchFieldText, serviceData.response.data.data.values);
                     } else {
                         serviceData = error;
                         $scope.commonErrorHandler(serviceData.error, serviceData.error || serviceData.response.data, "getDropdownData");
 
                     }
                 })
-            }
-            else {
-                var serviceData = ADUsersData;
-                if (serviceData.dataFrmApi !== undefined && serviceData.dataFrmApi !== null) {
-                    massageDataFrPermissionsDropdown(searchFieldName, searchFieldText, serviceData.dataFrmApi);
-                }
             }
         };
         $scope.commonErrorHandler = function (error, response, block) {
@@ -187,13 +192,30 @@
             }
         }
         var massageDataFrPermissionsDropdown = function (searchFieldName, searchFieldText, dataFrmApi) {
-            var serviceData = vaultUtilityService.massageDataFrPermissionsDropdown(searchFieldName, searchFieldText, dataFrmApi, $scope.dropDownValArray);
-            if (serviceData.length > 6) {
-                $scope.dropDownValArray.userNameDropdownVal = serviceData.sort().slice(0, 6);
-            } else {
-                $scope.dropDownValArray.userNameDropdownVal = serviceData;
-            }
+            var serviceData = vaultUtilityService.massageDataFrPermissionsDropdown(searchFieldName, searchFieldText, dataFrmApi);
+            
+               if (searchFieldName === 'userName') {
+                    $scope.userNameDropdownVal = serviceData.sort();
+                    initiateAutoComplete($scope.userNameDropdownVal);
+                } else if (searchFieldName === 'groupName') {
+                    $scope.groupNameDropdownVal = serviceData.sort();
+                    initiateAutoComplete( $scope.groupNameDropdownVal);
+                }
+                          
+           
             $rootScope.loadingDropDownData = false;
+        }
+
+        var initiateAutoComplete = function(data) {
+            $('#addUser').trigger("focus"); 
+            $("#addUser")
+                .autocomplete({
+                    source: data,
+                    minLength: 3
+                })
+                .focus(function() {
+                    $(this).keydown();
+                });
         }
 
 
@@ -640,7 +662,7 @@
             }
             $scope.allSafesList = JSON.parse(SessionStore.getItem("allSafes"));
             $scope.myVaultKey = SessionStore.getItem("myVaultKey");
-            $scope.getDropdownDataForPermissions('', '');
+            // $scope.getDropdownDataForPermissions('', '');
             $scope.requestDataFrChangeSafe();
             $scope.fetchUsers();
             $scope.fetchGroups();
@@ -665,6 +687,10 @@
                     var setPath = $scope.getPath();
                     var apiCallFunction = '';
                     var reqObjtobeSent = {};
+                    // extract only userId from key
+                    if (key.includes('-')) {
+                        key = key.substr(0, key.indexOf('-') - 1);
+                    }
                     if (key !== null && key !== undefined) {
                         key = UtilityService.formatName(key);
                     }

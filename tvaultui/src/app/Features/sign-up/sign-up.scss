@@ -137,3 +137,17 @@ header.signin  .user-profile {
     font-size: 12px;
     cursor: pointer;
 }
+
+.username-container {
+    position: relative;
+}
+
+.username-addon {
+    position: absolute;
+    right: 0;
+    top: 0;
+    padding: 0.9vh 1.5vh;
+    font-size: 1.6vh !important;
+    font-style: italic;
+    text-shadow: 0.33px 0;
+}

@@ -21,7 +21,7 @@
 (function(app) {
     app.directive('autoComplete', ['$rootScope', '$timeout', 'UtilityService', function($rootScope, $timeout, UtilityService) {
 
-        // getDropdownData
+    // getDropdownData
         return function(scope, iElement, iAttrs) {
             scope.$watch(iAttrs.uiItems, function(newVal, oldVal) {
 
@@ -36,31 +36,34 @@
                         })
                         .autocomplete({
                             minLength: 0,
-                            source: function(request, response) {
-                                var enteredVal = request.term.split(","); // periscopeSearch.userName
-                                enteredVal.forEach(function(inputitem) {
-                                    var newLetter = inputitem;
-                                    newLetter = newLetter.replace(" ", "");
-                                    if (newLetter != undefined) {
-                                        newVal.forEach(function(item) {
-                                            if (item === newLetter) {
-                                                var index = newVal.indexOf(newLetter);
-                                                if (index > -1) {
-                                                    newVal.splice(index, 1);
-                                                }
-                                            }
-                                        });
-                                    }
+                            source: scope[iAttrs.uiItems],
+                            /*** commented below code used for adding multiple imputs */
+                            // source: function(request, response) {
+                            //     var enteredVal = request.term.split(","); // periscopeSearch.userName
+                            //     enteredVal.forEach(function(inputitem) {
+                            //         var newLetter = inputitem;
+                            //         newLetter = newLetter.replace(" ", "");
+                            //         if (newLetter != undefined) {
+                            //             newVal.forEach(function(item) {
+                            //                 if (item === newLetter) {
+                            //                     var index = newVal.indexOf(newLetter);
+                            //                     if (index > -1) {
+                            //                         newVal.splice(index, 1);
+                            //                     }
+                            //                 }
+                            //             });
+                            //         }
 
-                                });
-                                if (request.term === "") {
-                                    newVal = [];
-                                }
-                                response($.ui.autocomplete.filter(
-                                    newVal, UtilityService.extractLast(request.term)));
-                            },
+                            //     });
+                            //     if (request.term === "") {
+                            //         newVal = [];
+                            //     }
+                            //     response($.ui.autocomplete.filter(
+                            //         newVal, UtilityService.extractLast(request.term)));
+                            // },
 
-                            focus: function() {
+                            focus: function(event, ui) {
+                                // iElement.val(ui.item);
                                 // prevent value inserted on focus
                                 return false;
                             },
@@ -70,22 +73,25 @@
                                 terms.pop();
                                 // add the selected item
                                 terms.push(ui.item.value);
-                                // add placeholder to get the comma-and-space at the end
-                                terms.push("");
-                                var joinedCommaValue = terms.join(", ");
-                                if ($(event.target).hasClass("permission-search-input")) {
-                                    this.value = joinedCommaValue.substring(0, joinedCommaValue.length - 2);
-                                } else {
-                                    this.value = joinedCommaValue;
-                                }
+                                this.value = terms;
+                                /*** commented below code used for adding multiple imputs */
+                                // add placeholder to get the comma-and-space at the end                                
+                                // terms.push("");
+                                // var joinedCommaValue = terms.join(", ");
+                                // if ($(event.target).hasClass("permission-search-input")) {
+                                //     this.value = joinedCommaValue.substring(0, joinedCommaValue.length - 2);
+                                // } else {
+                                //     this.value = joinedCommaValue;
+                                // }
                                 return false;
                             }
                         }); // end of autocomplete
-                } else if (iElement[0].value.length > 0) {
-                    iElement.autocomplete({
-                        source: ["Loading Data.. Please wait.."]
-                    });
-                }
+                } 
+                // else if (iElement[0].value.length > 2) {
+                //     iElement.autocomplete({
+                //         source: ["Loading Data.. Please wait.."]
+                //     });
+                // }
 
             });
 

@@ -22,7 +22,9 @@
     /*inject:constant*/
     app.constant('AppConstant', {
         'FORGOT_PASSWORD_LINK': '',
-        'AD_USERS_DATA_URL': ''
+        'AD_USERS_DATA_URL': 'https://10.65.45.193/vault/v2/ldap/users?UserPrincipalName=',
+        'AD_GROUP_DATA_URL': 'https://10.65.45.193/vault/v2/ldap/groups?groupName=',
+        'AUTH_TYPE': 'gsm1900'  /*'userpass' or 'ldap' or 'gsm1900' */
     });
     /*endinject*/
 })(angular.module('vault.constants.AppConstant', []));

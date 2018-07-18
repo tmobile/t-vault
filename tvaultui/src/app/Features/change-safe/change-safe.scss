@@ -551,3 +551,9 @@ md-radio-button .md-label.inactive {
 md-radio-button .md-label.inactive {
   padding: 0.8vh 0;
 }
+
+.ui-autocomplete { 
+  max-height: 20em !important; 
+  overflow-y: scroll !important; 
+  overflow-x: hidden;
+}
