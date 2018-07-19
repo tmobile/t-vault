@@ -105,7 +105,6 @@
         'vault.filters.CustomFilter'
     ]);
     angular.module( 'vault.directives', [
-        'vault.features.Autocomplete',
         'vault.features.ElementProperties',
         'vault.features.Scroll',
         'vault.directives.dateTimeFilter',
