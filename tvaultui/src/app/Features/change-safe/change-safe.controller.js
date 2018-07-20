@@ -133,14 +133,15 @@
             };
 
         })(); 
-        
+        var lastContent;
         var duplicateFilter = (function(content){
           return function(content,callback){
             content=$.trim(content);
             // callback provided for content length > 2
-            if(content.length > 2){
+            if(content !== lastContent && content.length > 2){
               callback(content);
             }
+            lastContent = content;
           };
         })();
 
@@ -151,9 +152,10 @@
                 userName: '',
                 groupName: ''
             };
+            lastContent = '';
         }
         // function call on input keyup 
-        $scope.onKeyUp = function(newVal, variableChanged) {           
+        $scope.onKeyUp = function(newVal, variableChanged) {        
             $scope.showInputLoader.show = false;
             $scope.inputSelected = false;
             if (newVal.userName && variableChanged === 'userName') {
@@ -165,11 +167,11 @@
                 $scope.groupNameDropdownVal = [];
             }
              if (variableChanged === 'userName') {
-                if (!UtilityService.getAppConstant('AD_USERS_DATA_URL')) {
+                if (!UtilityService.getAppConstant('AD_USERS_AUTOCOMPLETE') || UtilityService.getAppConstant('AD_USERS_AUTOCOMPLETE') === false ) {
                     return;
                 }
              } else if (variableChanged === 'groupName') {
-                 if(!UtilityService.getAppConstant('AD_GROUP_DATA_URL')) {
+                 if(!UtilityService.getAppConstant('AD_GROUP_AUTOCOMPLETE') || UtilityService.getAppConstant('AD_USERS_AUTOCOMPLETE') === false) {
                     return;
                  }
              }
@@ -248,8 +250,12 @@
                     source: data,
                     minLength: 3,
                     select: function(event, ui) {
-                        $scope.inputSelected = true;
+                        $scope.inputSelected = true;  
+                        $(id).blur();                     
                         $scope.$apply();
+                    },
+                    focus: function(event, ui) {
+                        event.preventDefault();
                     }
                 })
                 .focus(function() {
@@ -576,6 +582,7 @@
                                     userName: '',
                                     groupName: ''
                                 };
+                                lastContent = '';
                                 // Try-Catch block to catch errors if there is any change in object structure in the response
                                 try {
                                     $scope.isLoadingData = false;

@@ -20,16 +20,16 @@
 'use strict';
 
 angular.module('vault.services.VaultUtility', [])
-    .service('vaultUtilityService', function(fetchData, UtilityService, SessionStore, ModifyUrl, $q, $http, $rootScope) {
+    .service('vaultUtilityService', function(fetchData, UtilityService, SessionStore, ModifyUrl, $q, $http, $rootScope, RestEndpoints) {
         let canceller = {};
         this.getDropdownDataForPermissions = function(searchFieldName, searchFieldText) {          
             return new Promise(function(resolve, reject) {
                 var data = {};
                 var DataUrl;
                 if(searchFieldName === "userName") {
-                    DataUrl = UtilityService.getAppConstant('AD_USERS_DATA_URL');
+                    DataUrl = RestEndpoints.baseURL + RestEndpoints.usersGetData;
                 } else if (searchFieldName === "groupName") {
-                    DataUrl = UtilityService.getAppConstant('AD_GROUP_DATA_URL');
+                    DataUrl = RestEndpoints.baseURL + RestEndpoints.groupGetData;
                 }                                
                 DataUrl = DataUrl + searchFieldText;              
                  try {

@@ -137,15 +137,16 @@ script(src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"
                                             div.input-flex
                                                 div.input-box-style.user-input
                                                     input(type='text' class="form-control" autofocus='!showInputLoader.show' ng-keyup='onKeyUp(searchValue, "userName")' placeholder='Username - Enter min 3 characters' ng-model="userNameVal" id="addUser" ng-class="{error: (userNameValEmpty &&  (userNameVal == '' ||  userNameVal == undefined)), highlightBox: inputSelected}" ng-change="searchValue.userName = userNameVal; userNameValEmpty = false;")
-                                                div.lds-roller(ng-if='showInputLoader.show')
-                                                    div
-                                                    div
-                                                    div
-                                                    div
-                                                    div
-                                                    div
-                                                    div
-                                                    div
+                                                div.loader(ng-if='showInputLoader.show')
+                                                    div.ball-spin-fade-loader
+                                                        div
+                                                        div
+                                                        div
+                                                        div
+                                                        div
+                                                        div
+                                                        div
+                                                        div
                                                 div.input-cross(ng-if='inputSelected' ng-click="clearInputValue('addUser')")
                                                     div.delete-title
                                                         img.delete-icon(src="../../assets/images/delete.png")
@@ -198,15 +199,16 @@ script(src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"
                                            div.input-flex
                                                 div.input-box-style.user-input
                                                     input(type='text' class="form-control" autofocus='!showInputLoader.show' ng-keyup='onKeyUp(searchValue, "groupName")' placeholder='Group Name - Enter min 3 characters' ng-model="grpNameVal" id="addGroup" ng-class="{error: (grpNameValEmpty &&  (grpNameVal == '' ||  grpNameVal == undefined)), highlightBox: inputSelected}" ng-change="searchValue.groupName = grpNameVal; grpNameValEmpty = false;")
-                                                div.lds-roller(ng-if='showInputLoader.show')
-                                                    div
-                                                    div
-                                                    div
-                                                    div
-                                                    div
-                                                    div
-                                                    div
-                                                    div
+                                                 div.loader(ng-if='showInputLoader.show')
+                                                    div.ball-spin-fade-loader
+                                                        div
+                                                        div
+                                                        div
+                                                        div
+                                                        div
+                                                        div
+                                                        div
+                                                        div
                                                 div.input-cross(ng-if='inputSelected' ng-click="clearInputValue('addGroup')")
                                                     div.delete-title
                                                         img.delete-icon(src="../../assets/images/delete.png")
