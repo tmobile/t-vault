@@ -587,7 +587,7 @@
                                 try {
                                     $scope.isLoadingData = false;
                                     var object = response.data.data;
-                                    if(object && object.users && UtilityService.getAppConstant('AUTH_TYPE').toLowerCase() === "gsm1900") {
+                                    if(object && object.users && UtilityService.getAppConstant('AUTH_TYPE').toLowerCase() === "ldap1900") {
                                         var data = object.users;
                                         // get all object keys and iterate over them
                                             Object.keys(object.users).forEach(function(ele) {

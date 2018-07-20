@@ -24,7 +24,7 @@
         'FORGOT_PASSWORD_LINK': '',
         'AD_USERS_AUTOCOMPLETE': false,
         'AD_GROUP_AUTOCOMPLETE': false,
-        'AUTH_TYPE': 'userpass'  /*'userpass' or 'ldap' or 'gsm1900' */
+        'AUTH_TYPE': 'userpass'  /*'userpass' or 'ldap' or 'ldap1900' */
     });
     /*endinject*/
 })(angular.module('vault.constants.AppConstant', []));

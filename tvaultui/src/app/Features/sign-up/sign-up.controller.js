@@ -29,7 +29,7 @@
             Idle.unwatch();
             if ($scope.authType.toLowerCase() === 'ldap') {
                 $scope.userID = 'Corp ID';
-            } else if ($scope.authType.toLowerCase() === 'gsm1900') {
+            } else if ($scope.authType.toLowerCase() === 'ldap1900') {
                 $scope.userID = 'Email ID';
             }
             
