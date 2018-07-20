@@ -306,6 +306,7 @@
         $scope.deletePermission = function (type, editMode, editingPermission, key, permission) {
             if (editMode) {
                 try {
+                    key = key.replace('@T-Mobile.com', '');
                     $scope.isLoadingData = true;
                     var setPath = $scope.getPath();
                     var apiCallFunction = '';
