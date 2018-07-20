@@ -22,9 +22,9 @@
     /*inject:constant*/
     app.constant('AppConstant', {
         'FORGOT_PASSWORD_LINK': '',
-        'AD_USERS_AUTOCOMPLETE': true,
-        'AD_GROUP_AUTOCOMPLETE': true,
-        'AUTH_TYPE': 'gsm1900'  /*'userpass' or 'ldap' or 'gsm1900' */
+        'AD_USERS_AUTOCOMPLETE': false,
+        'AD_GROUP_AUTOCOMPLETE': false,
+        'AUTH_TYPE': 'userpass'  /*'userpass' or 'ldap' or 'gsm1900' */
     });
     /*endinject*/
 })(angular.module('vault.constants.AppConstant', []));
