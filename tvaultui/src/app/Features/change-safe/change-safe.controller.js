@@ -747,6 +747,12 @@
         $scope.addPermission = function (type, key, permission) {
             if ((key != '' && key != undefined) || type == 'AwsRoleConfigure') {
                 try {
+                    if (type === "users") {
+                        key = document.getElementById('addUser').value;
+                    }
+                    if (type === "groups") {
+                        key = document.getElementById('addGroup').value;
+                    }
                     Modal.close('');
                     $scope.isLoadingData = true;
                     var setPath = $scope.getPath();
