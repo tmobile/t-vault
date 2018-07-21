@@ -20,14 +20,26 @@
 'use strict';
 
 angular.module('vault.services.VaultUtility', [])
-    .service('vaultUtilityService', function(fetchData, UtilityService, SessionStore) {
-        this.getDropdownDataForPermissions = function(searchFieldName, searchFieldText) {
+    .service('vaultUtilityService', function(fetchData, UtilityService, SessionStore, ModifyUrl, $q, $http, $rootScope, RestEndpoints) {
+        let canceller = {};
+        this.getDropdownDataForPermissions = function(searchFieldName, searchFieldText) {          
             return new Promise(function(resolve, reject) {
                 var data = {};
-                var ADUsersDataUrl = UtilityService.getAppConstant('AD_USERS_DATA_URL');
+                var DataUrl;
+                if(searchFieldName === "userName") {
+                    DataUrl = RestEndpoints.baseURL + RestEndpoints.usersGetData;
+                } else if (searchFieldName === "groupName") {
+                    DataUrl = RestEndpoints.baseURL + RestEndpoints.groupGetData;
+                }                                
+                DataUrl = DataUrl + searchFieldText;              
                  try {
                      data.loadingDataFrDropdown = true;
-                     fetchData.getActionData(null, ADUsersDataUrl, null).then(
+                     // Abort pending requests before making new request
+                     if (Object.keys(canceller).length !== 0) {
+                        canceller.resolve();
+                     }
+                    fetchUsersData(DataUrl)
+                     .then(
                          function(response) {
                              try {
                                  data.response = response;
@@ -60,29 +72,77 @@ angular.module('vault.services.VaultUtility', [])
                      data.error = e;
                      reject(data.error);
                  }
-            })
+            });
         };
 
-        this.massageDataFrPermissionsDropdown = function(searchFieldName, searchText, dataFrmApi, dropDownValArray) {
+    // function to make api call to fetch users from searchtext
+        var fetchUsersData = function(url) {
+            $rootScope.showLoadingScreen = true;
+            canceller = $q.defer();
+            var request = {
+                method: "GET",
+                url: url,
+                timeout: canceller.promise
+            };
+            let promise = $http(request);
+            return promise.then(function(response){
+                $rootScope.showLoadingScreen = false;
+                var responseType = response.headers('x-response-type');
+                if (responseType === 'ERROR') {
+                    var errorData = {
+                        service: name,
+                        message: response.headers('x-response-message')
+                    };
+                    $rootScope.$broadcast('genericServiceError', errorData);
+                    return $q.reject(response);
+                }
+               return response;
+            },
+            function (response) {
+                var responseMsg = response.headers('x-response-message');
+                var errorData = {
+                    service: name,
+                    message: responseMsg
+                };
+                $rootScope.$broadcast('genericServiceError', errorData);
+                return $q.reject(response);
+            });
+        }
+
+        this.massageDataFrPermissionsDropdown = function(searchFieldName, searchText, dataFrmApi) {
             var data = [];
-            var searchFieldName = searchFieldName.toLowerCase();
             if(dataFrmApi !== undefined) {
-                var users = dataFrmApi;
-                users.forEach(function(item) {
-                    // console.log(item);
-                    var userId = item["userId"].toLowerCase();
-                    if(userId.indexOf(searchText.toLowerCase()) > -1) {
-                        // var obj = item;
-                        // obj["text"] = item["userId"];
-                        data.push(item["userId"]);
-                    }
-                });
+                if (searchFieldName === 'userName') {
+                    var users = dataFrmApi;
+                    users.forEach(function(item) {
+                        var userId = item["userId"].toLowerCase();
+                        if(userId.indexOf(searchText.toLowerCase()) > -1) {
+                            if (item["userEmail"]) {
+                                data.push(item["userId"] + ' - ' + item["userEmail"]);
+                            } else {
+                                data.push(item["userId"]);
+                            }                      
+                        }
+                    });
+                } else if (searchFieldName === 'groupName') {
+                    var group = dataFrmApi;
+                    group.forEach(function(item) {
+                        var groupId = item["groupName"].toLowerCase();
+                        if(groupId.indexOf(searchText.toLowerCase()) > -1) {
+                            if (item["email"]) {
+                                data.push(item["groupName"] + ' - ' + item["email"]);
+                            } else {
+                                data.push(item["groupName"]);
+                            }                      
+                        }
+                    });
+                }
+                
                 return data;
             }
         };
 
         this.clearAllCommas = function(strngtodelete, parentString) {
-
             var l = parentString.indexOf(strngtodelete);
             parentString = parentString.replace(strngtodelete, "");
             if (parentString[l] === "," || parentString[l] === " ,") {
@@ -90,5 +150,4 @@ angular.module('vault.services.VaultUtility', [])
             }
             return parentString;
         }
-
     });

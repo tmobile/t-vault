@@ -44,7 +44,10 @@ this.readTextFile("../apiUrls.json");
 (function(app){
     app.constant('RestEndpoints', {
         baseURL: JSON.parse(sessionStorage.getItem('ApiUrls')).baseURL,
-        //baseURL : '/vault'                                                   (URL for local testing)
+        // written below separately as request requires timeout promise 
+        usersGetData : '/v2/ldap/users?UserPrincipalName=',
+        groupGetData: '/v2/ldap/groups?groupName=',
+        //baseURL : '/vault'
         endpoints: [{
             name: 'postAction',
             url: '/postAction',
@@ -171,7 +174,7 @@ this.readTextFile("../apiUrls.json");
             url: '/unseal-progress?serverip=',
             method: 'GET'
         }]
-    } );
+    });
 })( angular.module( 'vault.constants.RestEndpoints', [
 
 ] ) );

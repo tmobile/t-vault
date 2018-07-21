@@ -33,7 +33,6 @@
         $scope.usrRadioBtnVal = 'read';             // Keep it in lowercase
         $scope.grpRadioBtnVal = 'read';             // Keep it in lowercase
         $scope.awsRadioBtn['value'] = 'read';       // Keep it in lowercase
-
         $scope.isEmpty = UtilityService.isObjectEmpty;
         $scope.awsConfPopupObj = {
             "role": "",
@@ -102,52 +101,95 @@
         };
 
         /************************  Functions for autosuggest start here ***************************/
+        //initialise values 
         $scope.searchValue = {
-            userName: ''
+            userName: '',
+            groupName: ''
         };
-        $scope.dropDownValArray = {
-            'userNameDropdownVal': []
-        }
+        $scope.userNameDropdownVal = [];
+        $scope.groupNameDropdownVal = [];
+        
         $scope.totalDropdownVal = [];
         $rootScope.loadingDropDownData = false;
-
+        
+        $scope.showInputLoader = {
+            'show':false
+        };
+        $scope.inputSelected = false;
         var assignDropdownVal = function (variableChanged) {
-            $scope.dropDownValArray.userNameDropdownVal = [];
+            if (variableChanged === 'userName') {
+                $scope.userNameDropdownVal = [];
+            } else if (variableChanged === 'groupName') {
+                $scope.groupNameDropdownVal = [];
+            }
+           
         }
 
-        $scope.$watch('searchValue', function (newVal, oldVal) {
-            if (!UtilityService.getAppConstant('AD_USERS_DATA_URL')) {
-                return;
-            }
+        var delay = (function(){
+            var timer = 0;
+            return function(callback, ms){
+              clearTimeout (timer);
+              timer = setTimeout(callback, ms);
+            };
 
-            var variableChanged = '';
-            if (newVal.userName != undefined && newVal.userName != oldVal.userName) {
-                variableChanged = 'userName';
+        })(); 
+        var lastContent;
+        var duplicateFilter = (function(content){
+          return function(content,callback){
+            content=$.trim(content);
+            // callback provided for content length > 2
+            if(content !== lastContent && content.length > 2){
+              callback(content);
             }
+            lastContent = content;
+          };
+        })();
 
-            if (newVal[variableChanged] != undefined) {
-                var enteredVal = newVal[variableChanged].split(",");
-                var newLetter = enteredVal[enteredVal.length - 1];
+        $scope.clearInputValue = function(id) {
+            document.getElementById(id).value = "";
+            $scope.inputSelected = false;
+            $scope.searchValue = {
+                userName: '',
+                groupName: ''
+            };
+            lastContent = '';
+        }
+        // function call on input keyup 
+        $scope.onKeyUp = function(newVal, variableChanged) {        
+            $scope.showInputLoader.show = false;
+            $scope.inputSelected = false;
+            if (newVal.userName && variableChanged === 'userName') {
+                newVal.groupName = "";
+                $scope.userNameDropdownVal = [];
+            } else if (newVal.groupName &&  variableChanged === 'groupName') {
+                newVal.userName = "";
+                variableChanged = 'groupName';
+                $scope.groupNameDropdownVal = [];
+            }
+             if (variableChanged === 'userName') {
+                if (!UtilityService.getAppConstant('AD_USERS_AUTOCOMPLETE') || UtilityService.getAppConstant('AD_USERS_AUTOCOMPLETE') === false ) {
+                    return;
+                }
+             } else if (variableChanged === 'groupName') {
+                 if(!UtilityService.getAppConstant('AD_GROUP_AUTOCOMPLETE') || UtilityService.getAppConstant('AD_USERS_AUTOCOMPLETE') === false) {
+                    return;
+                 }
+             }
+             var newLetter = newVal[variableChanged];
                 newLetter = newLetter.replace(" ", "");
-
-                if (newLetter.length === 0) {
-                    assignDropdownVal(variableChanged);
-                    $scope.totalDropdownVal = [];
-                    $rootScope.loadingDropDownData = true;
+                if (newLetter.length === 1) {
+                    initiateAutoComplete(variableChanged, ['loading']);
                 }
+          delay(function(){
+            duplicateFilter(newLetter,function(value){
+                $scope.showInputLoader.show = true;
+                $scope.getDropdownDataForPermissions(variableChanged, value);                
+            });
+          }, 500 ); // delay of 500ms provided before making api call
+        }
 
-                if (variableChanged === 'permission') {
-                    variableChanged = 'actionName';
-                }
-                $scope.getDropdownDataForPermissions(variableChanged, newLetter);
-            } else {
-                assignDropdownVal(variableChanged);
-            }
-        }, true);
-
-        $scope.getDropdownDataForPermissions = function (searchFieldName, searchFieldText) {
-            var ADUsersData = JSON.parse(SessionStore.getItem('ADUsers'));
-            if ((ADUsersData === undefined) || (ADUsersData == null)) {
+        $scope.getDropdownDataForPermissions = function (searchFieldName, searchFieldText) {      
+            if (searchFieldText.length > 2) {
                 vaultUtilityService.getDropdownDataForPermissions(searchFieldName, searchFieldText).then(function (res, error) {
                     var serviceData;
                     if (res) {
@@ -155,20 +197,14 @@
                         $scope.loadingDataFrDropdown = serviceData.loadingDataFrDropdown;
                         $scope.erroredFrDropdown = serviceData.erroredFrDropdown;
                         $scope.successFrDropdown = serviceData.successFrDropdown;
-                        SessionStore.setItem('ADUsers', JSON.stringify(res));
-                        massageDataFrPermissionsDropdown(searchFieldName, searchFieldText, serviceData.dataFrmApi);
+                        massageDataFrPermissionsDropdown(searchFieldName, searchFieldText, serviceData.response.data.data.values);
+                        $scope.$apply();
                     } else {
                         serviceData = error;
                         $scope.commonErrorHandler(serviceData.error, serviceData.error || serviceData.response.data, "getDropdownData");
 
                     }
                 })
-            }
-            else {
-                var serviceData = ADUsersData;
-                if (serviceData.dataFrmApi !== undefined && serviceData.dataFrmApi !== null) {
-                    massageDataFrPermissionsDropdown(searchFieldName, searchFieldText, serviceData.dataFrmApi);
-                }
             }
         };
         $scope.commonErrorHandler = function (error, response, block) {
@@ -187,13 +223,47 @@
             }
         }
         var massageDataFrPermissionsDropdown = function (searchFieldName, searchFieldText, dataFrmApi) {
-            var serviceData = vaultUtilityService.massageDataFrPermissionsDropdown(searchFieldName, searchFieldText, dataFrmApi, $scope.dropDownValArray);
-            if (serviceData.length > 6) {
-                $scope.dropDownValArray.userNameDropdownVal = serviceData.sort().slice(0, 6);
-            } else {
-                $scope.dropDownValArray.userNameDropdownVal = serviceData;
-            }
+            var serviceData = vaultUtilityService.massageDataFrPermissionsDropdown(searchFieldName, searchFieldText, dataFrmApi);
+            $scope.showInputLoader.show = false;
+               if (searchFieldName === 'userName') {
+                    $scope.userNameDropdownVal = serviceData.sort();
+                    initiateAutoComplete(searchFieldName, $scope.userNameDropdownVal);
+                } else if (searchFieldName === 'groupName') {
+                    $scope.groupNameDropdownVal = serviceData.sort();
+                    initiateAutoComplete(searchFieldName, $scope.groupNameDropdownVal);
+                }        
+           
             $rootScope.loadingDropDownData = false;
+        }
+
+        var initiateAutoComplete = function(searchFieldName, data) {
+            var id;
+            if (searchFieldName === "userName") {
+                id = '#addUser';
+            } else if (searchFieldName === "groupName") {
+                id = '#addGroup';
+            }
+            $(id).focusout();
+            $(id).trigger("focus");             
+            $(id)
+                .autocomplete({
+                    source: data,
+                    minLength: 3,
+                    select: function(event, ui) {
+                        $scope.inputSelected = true;  
+                        $(id).blur();                     
+                        $scope.$apply();
+                    },
+                    focus: function(event, ui) {
+                        event.preventDefault();
+                    }
+                })
+                .focus(function() {
+                    $(this).keydown();
+                })
+                .select(function() {
+                    $scope.inputSelected = true;
+                });
         }
 
 
@@ -236,6 +306,7 @@
         $scope.deletePermission = function (type, editMode, editingPermission, key, permission) {
             if (editMode) {
                 try {
+                    key = key.replace('@T-Mobile.com', '');
                     $scope.isLoadingData = true;
                     var setPath = $scope.getPath();
                     var apiCallFunction = '';
@@ -507,10 +578,27 @@
                                     document.getElementById('addUser').value = '';
                                     document.getElementById('addGroup').value = '';
                                 }
+                                $scope.inputSelected = false;
+                                $scope.searchValue = {
+                                    userName: '',
+                                    groupName: ''
+                                };
+                                lastContent = '';
                                 // Try-Catch block to catch errors if there is any change in object structure in the response
                                 try {
                                     $scope.isLoadingData = false;
                                     var object = response.data.data;
+                                    if(object && object.users && UtilityService.getAppConstant('AUTH_TYPE').toLowerCase() === "ldap1900") {
+                                        var data = object.users;
+                                        // get all object keys and iterate over them
+                                            Object.keys(object.users).forEach(function(ele) {
+                                                ele.replace('@T-Mobile.com', '');
+                                                var newEle = ele + "@T-Mobile.com";
+                                                data[newEle] = data[ele];
+                                                delete data[ele];
+                                            })
+                                            object.users = data;
+                                    }
                                     $scope.UsersPermissionsData = object.users;
                                     $scope.GroupsPermissionsData = object.groups;
                                     $rootScope.AwsPermissionsData = {
@@ -640,7 +728,7 @@
             }
             $scope.allSafesList = JSON.parse(SessionStore.getItem("allSafes"));
             $scope.myVaultKey = SessionStore.getItem("myVaultKey");
-            $scope.getDropdownDataForPermissions('', '');
+            // $scope.getDropdownDataForPermissions('', '');
             $scope.requestDataFrChangeSafe();
             $scope.fetchUsers();
             $scope.fetchGroups();
@@ -660,11 +748,21 @@
         $scope.addPermission = function (type, key, permission) {
             if ((key != '' && key != undefined) || type == 'AwsRoleConfigure') {
                 try {
+                    if (type === "users") {
+                        key = document.getElementById('addUser').value;
+                    }
+                    if (type === "groups") {
+                        key = document.getElementById('addGroup').value;
+                    }
                     Modal.close('');
                     $scope.isLoadingData = true;
                     var setPath = $scope.getPath();
                     var apiCallFunction = '';
                     var reqObjtobeSent = {};
+                    // extract only userId from key
+                    if (key.includes('-')) {
+                        key = key.substr(0, key.indexOf('-') - 1);
+                    }
                     if (key !== null && key !== undefined) {
                         key = UtilityService.formatName(key);
                     }

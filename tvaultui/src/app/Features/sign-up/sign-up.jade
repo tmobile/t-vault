@@ -22,13 +22,14 @@ script(type='text/ng-template', id='error.html')
                     img(src= "assets/images/signin.png")
             form(ng-show="!isLoadingData" name="authenticate" ng-submit="login()")
                 .form-group
-                    label(for="usr") Corp ID
-                    input(class="form-control input-box-style" id="usr" placeholder="Enter your Corp ID" ng-model="username" required)
+                    label(for="usr") {{userID}}
+                    div(class='username-container')
+                        input(class="form-control input-box-style" id="usr" placeholder="Enter your {{userID}}" ng-model="username" required)
                 .form-group.extra-margin-actions
                     label(for="pwd") Password
-                    //- span.input-clipper    
+                    //- span.input-clipper
 
-                    input(type="password" class="form-control input-box-style" id="pwd" placeholder="Enter your password" ng-model="password" autocomplete="new-password" required)
+                    input(type="password" class="form-control input-box-style" id="pwd" placeholder="Enter your Password" ng-model="password" autocomplete="new-password" required)
 
                 .button-container
                     button.btn.btn-primary.btn-lg.login-button(type="submit") Login
