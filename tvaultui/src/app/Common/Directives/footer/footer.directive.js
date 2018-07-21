@@ -28,4 +28,4 @@
             }
         }
     } );
-})(angular.module('vault.directives.footer',[]))
+})(angular.module('vault.directives.footer',[]));

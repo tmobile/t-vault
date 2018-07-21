@@ -70,4 +70,4 @@
             }
         }
     } );
-})(angular.module('vault.directives.tiles',[]))
+})(angular.module('vault.directives.tiles',[]));

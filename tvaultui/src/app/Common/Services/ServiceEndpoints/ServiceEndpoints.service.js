@@ -29,25 +29,16 @@
                 method: method,
                 lazy: lazy,
                 makeRequest: function (payload, vaultResourceUrl, vaultAPIKey) {
-                    // var response = {
-                    //     status: 200,
-                    //     statusText: 'OK',
-                    //     data: MockData[vaultResourceUrl] || MockData[url],
-                    //     headers: {}
-                    // };
-                    // return $q.when(response);
-
 
                     if (vaultResourceUrl != undefined && vaultResourceUrl != "") {
                         url = vaultResourceUrl
                     }
-                    ;
 
                     if (vaultAPIKey != undefined && vaultAPIKey != "") {
                         headers = vaultAPIKey;
                     } else {
                         headers = {}
-                    };
+                    }
 
                     payload = payload || {};
                     var request = {
@@ -72,16 +63,13 @@
                             return response;
                         },
                         function (response) {
-                            var responseType, responseMsg;
-                            responseType = response.headers('x-response-type');
+                            var responseMsg;
                             responseMsg = response.headers('x-response-message');
-                            //if ( responseType !== 'STEPUP' ) {
                             var errorData = {
                                 service: name,
                                 message: responseMsg
                             };
                             $rootScope.$broadcast('genericServiceError', errorData);
-                            //}
                             return $q.reject(response);
                         });
                     //array of all promises required by angular-busy
