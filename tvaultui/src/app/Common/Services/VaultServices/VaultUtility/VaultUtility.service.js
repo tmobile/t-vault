@@ -21,7 +21,7 @@
 
 angular.module('vault.services.VaultUtility', [])
     .service('vaultUtilityService', function(fetchData, UtilityService, SessionStore, ModifyUrl, $q, $http, $rootScope, RestEndpoints) {
-        this.canceller = {};
+       let canceller = {};
         this.getDropdownDataForPermissions = function(searchFieldName, searchFieldText) {          
             return new Promise(function(resolve, reject) {
                 var data = {};
@@ -35,8 +35,8 @@ angular.module('vault.services.VaultUtility', [])
                  try {
                      data.loadingDataFrDropdown = true;
                      // Abort pending requests before making new request
-                     if (Object.keys(this.canceller).length !== 0) {
-                        this.canceller.resolve();
+                     if (Object.keys(canceller).length !== 0) {
+                        canceller.resolve();
                      }
                     fetchUsersData(DataUrl)
                      .then(
@@ -78,11 +78,11 @@ angular.module('vault.services.VaultUtility', [])
     // function to make api call to fetch users from searchtext
         var fetchUsersData = function(url) {
             $rootScope.showLoadingScreen = true;
-            this.canceller = $q.defer();
+            canceller = $q.defer();
             var request = {
                 method: "GET",
                 url: url,
-                timeout: this.canceller.promise
+                timeout: canceller.promise
             };
             return $http(request).then(function(response){
                 $rootScope.showLoadingScreen = false;
