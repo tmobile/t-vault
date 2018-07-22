@@ -34,4 +34,4 @@
             $window.sessionStorage.removeItem( key );
         };
     } );
-})(angular.module('vault.services.SessionStore',[]))
+})(angular.module('vault.services.SessionStore',[]));

@@ -39,7 +39,7 @@ function readTextFile(file)
     rawFile.send(null);
 }
 
-this.readTextFile("../apiUrls.json");
+readTextFile("../apiUrls.json");
 
 (function(app){
     app.constant('RestEndpoints', {
@@ -175,6 +175,4 @@ this.readTextFile("../apiUrls.json");
             method: 'GET'
         }]
     });
-})( angular.module( 'vault.constants.RestEndpoints', [
-
-] ) );
+})( angular.module( 'vault.constants.RestEndpoints', []));
