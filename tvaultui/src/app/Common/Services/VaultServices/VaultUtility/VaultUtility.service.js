@@ -21,8 +21,9 @@
 
 angular.module('vault.services.VaultUtility', [])
     .service('vaultUtilityService', function(fetchData, UtilityService, SessionStore, ModifyUrl, $q, $http, $rootScope, RestEndpoints) {
-       let canceller = {};
-        this.getDropdownDataForPermissions = function(searchFieldName, searchFieldText) {          
+       var self = this;
+       self.canceller = {};
+       self.getDropdownDataForPermissions = function(searchFieldName, searchFieldText) {          
             return new Promise(function(resolve, reject) {
                 var data = {};
                 var DataUrl;
@@ -35,8 +36,8 @@ angular.module('vault.services.VaultUtility', [])
                  try {
                      data.loadingDataFrDropdown = true;
                      // Abort pending requests before making new request
-                     if (Object.keys(canceller).length !== 0) {
-                        canceller.resolve();
+                     if (Object.keys(self.canceller).length !== 0) {
+                        self.canceller.resolve();
                      }
                     fetchUsersData(DataUrl)
                      .then(
@@ -78,11 +79,11 @@ angular.module('vault.services.VaultUtility', [])
     // function to make api call to fetch users from searchtext
         var fetchUsersData = function(url) {
             $rootScope.showLoadingScreen = true;
-            canceller = $q.defer();
+            self.canceller = $q.defer();
             var request = {
                 method: "GET",
                 url: url,
-                timeout: canceller.promise
+                timeout: self.canceller.promise
             };
             return $http(request).then(function(response){
                 $rootScope.showLoadingScreen = false;
@@ -108,7 +109,7 @@ angular.module('vault.services.VaultUtility', [])
             });
         }
 
-        this.massageDataFrPermissionsDropdown = function(searchFieldName, searchText, dataFrmApi) {
+        self.massageDataFrPermissionsDropdown = function(searchFieldName, searchText, dataFrmApi) {
             var data = [];
             if(dataFrmApi !== undefined) {
                 if (searchFieldName === 'userName') {
@@ -141,7 +142,7 @@ angular.module('vault.services.VaultUtility', [])
             }
         };
 
-        this.clearAllCommas = function(strngtodelete, parentString) {
+        self.clearAllCommas = function(strngtodelete, parentString) {
             var l = parentString.indexOf(strngtodelete);
             parentString = parentString.replace(strngtodelete, "");
             if (parentString[l] === "," || parentString[l] === " ,") {
