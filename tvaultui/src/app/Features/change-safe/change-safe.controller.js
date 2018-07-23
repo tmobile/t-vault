@@ -341,7 +341,7 @@
                                 try {
                                     $scope.isLoadingData = false;
                                     if (editingPermission) {
-                                        $scope.addPermission(type, key, permission);  // This will be executed when we're editing permissions
+                                        $scope.addPermission(type, key, permission, true);  // This will be executed when we're editing permissions
                                     }
                                     else {
                                         $scope.requestDataFrChangeSafe();
@@ -669,10 +669,31 @@
                         AdminSafesManagement.getSafeInfo(null, updatedUrlOfEndPoint).then(
                             function (response) {
                                 if (UtilityService.ifAPIRequestSuccessful(response)) {
+                                    if ($rootScope.showDetails !== true) {
+                                        document.getElementById('addUser').value = '';
+                                        document.getElementById('addGroup').value = '';
+                                    }
+                                    $scope.inputSelected = false;
+                                    $scope.searchValue = {
+                                        userName: '',
+                                        groupName: ''
+                                    };
+                                    lastContent = '';
                                     // Try-Catch block to catch errors if there is any change in object structure in the response
                                     try {
                                         $scope.isLoadingData = false;
                                         var object = response.data.data;
+                                        if(object && object.users && UtilityService.getAppConstant('AUTH_TYPE').toLowerCase() === "ldap1900") {
+                                            var data = object.users;
+                                            // get all object keys and iterate over them
+                                                Object.keys(object.users).forEach(function(ele) {
+                                                    ele.replace('@t-mobile.com', '');
+                                                    var newEle = ele + "@t-mobile.com";
+                                                    data[newEle] = data[ele];
+                                                    delete data[ele];
+                                                })
+                                                object.users = data;
+                                        }
                                         $scope.UsersPermissionsData = object.users;
                                         $scope.GroupsPermissionsData = object.groups;
                                         $rootScope.AwsPermissionsData = {
@@ -745,13 +766,13 @@
 
         }
 
-        $scope.addPermission = function (type, key, permission) {
+        $scope.addPermission = function (type, key, permission, editingPermission) {
             if ((key != '' && key != undefined) || type == 'AwsRoleConfigure') {
                 try {
-                    if (type === "users") {
+                    if (type === "users" && !editingPermission) {
                         key = document.getElementById('addUser').value;
                     }
-                    if (type === "groups") {
+                    if (type === "groups" && !editingPermission) {
                         key = document.getElementById('addGroup').value;
                     }
                     Modal.close('');
@@ -760,8 +781,8 @@
                     var apiCallFunction = '';
                     var reqObjtobeSent = {};
                     // extract only userId from key
-                    if (key.includes('-')) {
-                        key = key.substr(0, key.indexOf('-') - 1);
+                    if (key.includes('@')) {
+                        key = key.split(' - ')[0];
                     }
                     if (key !== null && key !== undefined) {
                         key = UtilityService.formatName(key);
@@ -798,7 +819,7 @@
                                 try {
                                     $scope.isLoadingData = false;
                                     if (type === 'AwsRoleConfigure') {
-                                        $scope.addPermission('AWSPermission', $scope.awsConfPopupObj.role, permission);
+                                        $scope.addPermission('AWSPermission', $scope.awsConfPopupObj.role, permission, false);
                                     }
                                     else {
                                         $scope.requestDataFrChangeSafe();
