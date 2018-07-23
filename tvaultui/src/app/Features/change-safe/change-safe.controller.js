@@ -306,7 +306,7 @@
         $scope.deletePermission = function (type, editMode, editingPermission, key, permission) {
             if (editMode) {
                 try {
-                    key = key.replace('@T-Mobile.com', '');
+                    key = key.replace('@t-mobile.com', '');
                     $scope.isLoadingData = true;
                     var setPath = $scope.getPath();
                     var apiCallFunction = '';
@@ -592,8 +592,8 @@
                                         var data = object.users;
                                         // get all object keys and iterate over them
                                             Object.keys(object.users).forEach(function(ele) {
-                                                ele.replace('@T-Mobile.com', '');
-                                                var newEle = ele + "@T-Mobile.com";
+                                                ele.replace('@t-mobile.com', '');
+                                                var newEle = ele + "@t-mobile.com";
                                                 data[newEle] = data[ele];
                                                 delete data[ele];
                                             })
