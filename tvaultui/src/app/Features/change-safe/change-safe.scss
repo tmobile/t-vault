@@ -362,7 +362,7 @@
 }
 .permissions .row.change-safe.header .name,
 .permissions .row.change-safe.header .radio-inputs {
-  padding: 1.5vh 0;
+  margin-top: 1.5vh;
   font-size: 1.5vh;
 }
 .permissions .header .radio-inputs {
@@ -768,6 +768,19 @@ img.delete-icon {
       right: 17px;
       top: 50%;
       transform: scale(0.32);
+}
+
+.autocomplete-mismatch {
+  color: red;
+  position: absolute;
+  bottom: 0;
+  transform: translateY(105%);
+  background: rgba(255,255,255,0.23);
+  border-radius: 2px;
+  padding: 1px 4px;
+  right: 0;
+  left: 0;
+  font-size: 11px;
 }
 
 

@@ -25,6 +25,7 @@
             $scope.forgotPasswordLink = UtilityService.getAppConstant('FORGOT_PASSWORD_LINK');
             // change login depending on authtype
             $scope.authType = AppConstant.AUTH_TYPE;
+            $scope.domainName = AppConstant.DOMAIN_NAME;
             $scope.userID = 'Username';
             Idle.unwatch();
             if ($scope.authType.toLowerCase() === 'ldap') {
@@ -32,6 +33,7 @@
             } else if ($scope.authType.toLowerCase() === 'ldap1900') {
                 $scope.userID = 'Email ID';
             }
+            $scope.usernameInvalid = false;
             
         }
 
@@ -56,12 +58,23 @@
             Modal.close();
         };
 
-        $scope.login = function() {
-          $scope.isLoadingData = true;
-          var username  = $scope.username.toLowerCase();
-          if (username.includes('@')) {
-            username = username.substr(0, username.indexOf('@'));
+        $scope.$watch( 'username', function( newValue ) {
+            $scope.usernameInvalid = false;
+            if (newValue && $scope.authType === 'ldap1900') {
+                var username  = newValue.toLowerCase();
+            if (username.includes('@')) {
+                $scope.usernameInvalid = true;
+                }
             }
+            
+         });
+
+        $scope.login = function() {
+            if ($scope.usernameInvalid) {
+                return;
+            }
+            $scope.isLoadingData = true;
+          var username  = $scope.username.toLowerCase();    
           username = Authentication.formatUsernameWithoutDomain(username);
           var reqObjtobeSent = {"username":username,"password":$scope.password};
           Authentication.authenticateUser(reqObjtobeSent).then(function(response){

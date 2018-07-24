@@ -19,7 +19,7 @@
 
 'use strict';
 (function (app) {
-    app.controller('ChangeSafeCtrl', function ($scope, $rootScope, Modal, $timeout, fetchData, $http, UtilityService, Notifications, $window, $state, $stateParams, $q, SessionStore, vaultUtilityService, ModifyUrl, AdminSafesManagement) {
+    app.controller('ChangeSafeCtrl', function ($scope, $rootScope, Modal, $timeout, fetchData, $http, UtilityService, Notifications, $window, $state, $stateParams, $q, SessionStore, vaultUtilityService, ModifyUrl, AdminSafesManagement, AppConstant) {
         $scope.selectedGroupOption = '';            // Selected dropdown value to be used for filtering
         $rootScope.showDetails = true;              // Set true to show details view first
         $scope.similarSafes = 0;
@@ -101,7 +101,11 @@
         };
 
         /************************  Functions for autosuggest start here ***************************/
-        //initialise values 
+        //initialise values
+        $scope.domainName = '';
+        if (AppConstant.DOMAIN_NAME) {
+            $scope.domainName = AppConstant.DOMAIN_NAME.toLowerCase();
+        }       
         $scope.searchValue = {
             userName: '',
             groupName: ''
@@ -155,7 +159,8 @@
             lastContent = '';
         }
         // function call on input keyup 
-        $scope.onKeyUp = function(newVal, variableChanged) {        
+        $scope.onKeyUp = function(newVal, variableChanged) {
+            $scope.emptyResponse = false;        
             $scope.showInputLoader.show = false;
             $scope.inputSelected = false;
             if (newVal.userName && variableChanged === 'userName') {
@@ -197,6 +202,9 @@
                         $scope.loadingDataFrDropdown = serviceData.loadingDataFrDropdown;
                         $scope.erroredFrDropdown = serviceData.erroredFrDropdown;
                         $scope.successFrDropdown = serviceData.successFrDropdown;
+                        if (serviceData.response.data.data.values.length === 0) {
+                            $scope.emptyResponse = true;
+                        }
                         massageDataFrPermissionsDropdown(searchFieldName, searchFieldText, serviceData.response.data.data.values);
                         $scope.$apply();
                     } else {
@@ -204,6 +212,18 @@
                         $scope.commonErrorHandler(serviceData.error, serviceData.error || serviceData.response.data, "getDropdownData");
 
                     }
+                },
+                function (error) {
+                    // Error handling function
+                    console.log(error);
+                    $scope.showInputLoader.show = false;
+                    if (searchFieldName === "userName" && $scope.searchValue.userName.length > 0) {
+                        $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_AUTOCOMPLETE_USERNAME');
+                    } else if (searchFieldName === "groupName" && $scope.searchValue.groupName.length > 0) {
+                        $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_AUTOCOMPLETE_GROUPNAME');
+                    }
+                    $scope.error('md');
+
                 })
             }
         };
@@ -250,7 +270,16 @@
                     source: data,
                     minLength: 3,
                     select: function(event, ui) {
-                        $scope.inputSelected = true;  
+                        $scope.inputSelected = true;
+                        var selectedName = ui.item.value.toLowerCase();
+                        if (selectedName.includes($scope.domainName)) {
+                            event.preventDefault();
+                            if (searchFieldName === "userName") {
+                                this.value = ui.item.value.split(' - ')[1];
+                            } else if (searchFieldName === "groupName") {
+                                this.value = ui.item.value.split(' - ')[0];
+                            }                 
+                        }                        
                         $(id).blur();                     
                         $scope.$apply();
                     },
@@ -306,7 +335,7 @@
         $scope.deletePermission = function (type, editMode, editingPermission, key, permission) {
             if (editMode) {
                 try {
-                    key = key.replace('@T-Mobile.com', '');
+                    key = key.replace($scope.domainName, '');
                     $scope.isLoadingData = true;
                     var setPath = $scope.getPath();
                     var apiCallFunction = '';
@@ -341,7 +370,7 @@
                                 try {
                                     $scope.isLoadingData = false;
                                     if (editingPermission) {
-                                        $scope.addPermission(type, key, permission);  // This will be executed when we're editing permissions
+                                        $scope.addPermission(type, key, permission, true);  // This will be executed when we're editing permissions
                                     }
                                     else {
                                         $scope.requestDataFrChangeSafe();
@@ -592,8 +621,8 @@
                                         var data = object.users;
                                         // get all object keys and iterate over them
                                             Object.keys(object.users).forEach(function(ele) {
-                                                ele.replace('@T-Mobile.com', '');
-                                                var newEle = ele + "@T-Mobile.com";
+                                                ele = ele.replace($scope.domainName, '');
+                                                var newEle = ele + $scope.domainName;
                                                 data[newEle] = data[ele];
                                                 delete data[ele];
                                             })
@@ -669,10 +698,31 @@
                         AdminSafesManagement.getSafeInfo(null, updatedUrlOfEndPoint).then(
                             function (response) {
                                 if (UtilityService.ifAPIRequestSuccessful(response)) {
+                                    if ($rootScope.showDetails !== true) {
+                                        document.getElementById('addUser').value = '';
+                                        document.getElementById('addGroup').value = '';
+                                    }
+                                    $scope.inputSelected = false;
+                                    $scope.searchValue = {
+                                        userName: '',
+                                        groupName: ''
+                                    };
+                                    lastContent = '';
                                     // Try-Catch block to catch errors if there is any change in object structure in the response
                                     try {
                                         $scope.isLoadingData = false;
                                         var object = response.data.data;
+                                        if(object && object.users && UtilityService.getAppConstant('AUTH_TYPE').toLowerCase() === "ldap1900") {
+                                            var data = object.users;
+                                            // get all object keys and iterate over them
+                                                Object.keys(object.users).forEach(function(ele) {
+                                                    ele.replace($scope.domainName, '');
+                                                    var newEle = ele + $scope.domainName;
+                                                    data[newEle] = data[ele];
+                                                    delete data[ele];
+                                                })
+                                                object.users = data;
+                                        }
                                         $scope.UsersPermissionsData = object.users;
                                         $scope.GroupsPermissionsData = object.groups;
                                         $rootScope.AwsPermissionsData = {
@@ -745,23 +795,23 @@
 
         }
 
-        $scope.addPermission = function (type, key, permission) {
+        $scope.addPermission = function (type, key, permission, editingPermission) {
             if ((key != '' && key != undefined) || type == 'AwsRoleConfigure') {
                 try {
-                    if (type === "users") {
-                        key = document.getElementById('addUser').value;
+                    if (type === "users" && !editingPermission) {
+                        key = document.getElementById('addUser').value.toLowerCase();
                     }
-                    if (type === "groups") {
-                        key = document.getElementById('addGroup').value;
+                    if (type === "groups" && !editingPermission) {
+                        key = document.getElementById('addGroup').value.toLowerCase();
                     }
                     Modal.close('');
                     $scope.isLoadingData = true;
                     var setPath = $scope.getPath();
                     var apiCallFunction = '';
                     var reqObjtobeSent = {};
-                    // extract only userId from key
-                    if (key.includes('-')) {
-                        key = key.substr(0, key.indexOf('-') - 1);
+                    // extract only userId/groupId from key
+                    if (key.includes($scope.domainName)) {
+                        key = key.split('@')[0];
                     }
                     if (key !== null && key !== undefined) {
                         key = UtilityService.formatName(key);
@@ -798,7 +848,7 @@
                                 try {
                                     $scope.isLoadingData = false;
                                     if (type === 'AwsRoleConfigure') {
-                                        $scope.addPermission('AWSPermission', $scope.awsConfPopupObj.role, permission);
+                                        $scope.addPermission('AWSPermission', $scope.awsConfPopupObj.role, permission, false);
                                     }
                                     else {
                                         $scope.requestDataFrChangeSafe();
@@ -905,5 +955,6 @@
     });
 })(angular.module('vault.features.ChangeSafeCtrl', [
     'vault.services.AdminSafesManagement',
-    'vault.services.ModifyUrl'
+    'vault.services.ModifyUrl',
+    'vault.constants.AppConstant'
 ]));

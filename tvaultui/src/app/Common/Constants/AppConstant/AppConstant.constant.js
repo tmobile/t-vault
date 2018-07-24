@@ -24,7 +24,8 @@
         'FORGOT_PASSWORD_LINK': '',
         'AD_USERS_AUTOCOMPLETE': false,
         'AD_GROUP_AUTOCOMPLETE': false,
-        'AUTH_TYPE': 'userpass'  /*'userpass' or 'ldap' or 'ldap1900' */
+        'AUTH_TYPE': 'userpass',  /*'userpass' or 'ldap' or 'ldap1900' */
+        'DOMAIN_NAME': '@T-Mobile.com'
     });
     /*endinject*/
 })(angular.module('vault.constants.AppConstant', []));

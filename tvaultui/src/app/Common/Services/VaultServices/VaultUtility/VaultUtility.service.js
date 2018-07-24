@@ -115,13 +115,18 @@ angular.module('vault.services.VaultUtility', [])
                 if (searchFieldName === 'userName') {
                     var users = dataFrmApi;
                     users.forEach(function(item) {
-                        var userId = item["userId"].toLowerCase();
+                        var userId = item["displayName"].toLowerCase();
                         if(userId.indexOf(searchText.toLowerCase()) > -1) {
-                            if (item["userEmail"]) {
-                                data.push(item["userId"] + ' - ' + item["userEmail"]);
+                             // process to display name with "firstname lastname"
+                             if (item["displayName"].includes(',')) {
+                                userId = item["displayName"].split(',');
+                                userId = userId[1] + " " + userId[0];
+                             }                         
+                            if (item["userEmail"]) {                               
+                                data.push(userId + ' - ' + item["userEmail"]);
                             } else {
-                                data.push(item["userId"]);
-                            }                      
+                                data.push(userId);
+                            }                 
                         }
                     });
                 } else if (searchFieldName === 'groupName') {

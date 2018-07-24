@@ -25,6 +25,8 @@ script(type='text/ng-template', id='error.html')
                     label(for="usr") {{userID}}
                     div(class='username-container')
                         input(class="form-control input-box-style" id="usr" placeholder="Enter your {{userID}}" ng-model="username" required)
+                        div(class='username-addon' ng-if="authType == 'ldap1900'") {{domainName}}
+                        div.username-error(ng-show='authType == "ldap1900" && usernameInvalid && username.length > 0') Please enter Email Id without domain name 
                 .form-group.extra-margin-actions
                     label(for="pwd") Password
                     //- span.input-clipper
