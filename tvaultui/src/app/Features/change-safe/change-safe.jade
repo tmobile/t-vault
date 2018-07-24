@@ -148,6 +148,7 @@ script(src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"
                                                         div
                                                         div
                                                 div.input-cross(ng-if='inputSelected' ng-click="clearInputValue('addUser')")
+                                                div.autocomplete-mismatch(ng-show='emptyResponse && userNameVal.length > 0') No matching results found.
                                                     div.delete-title
                                                         img.delete-icon(src="../../assets/images/delete.png")
                                         .add-block.container.radio-inputs.col-lg-4.col-md-4.col-sm-12.col-xs-12
@@ -210,6 +211,7 @@ script(src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"
                                                         div
                                                         div
                                                 div.input-cross(ng-if='inputSelected' ng-click="clearInputValue('addGroup')")
+                                                div.autocomplete-mismatch(ng-show='emptyResponse && grpNameVal.length > 0') No matching results found.
                                                     div.delete-title
                                                         img.delete-icon(src="../../assets/images/delete.png")
                                         .add-block.container.radio-inputs.col-lg-4.col-md-4.col-sm-12.col-xs-12

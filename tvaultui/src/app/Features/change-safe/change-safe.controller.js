@@ -19,7 +19,7 @@
 
 'use strict';
 (function (app) {
-    app.controller('ChangeSafeCtrl', function ($scope, $rootScope, Modal, $timeout, fetchData, $http, UtilityService, Notifications, $window, $state, $stateParams, $q, SessionStore, vaultUtilityService, ModifyUrl, AdminSafesManagement) {
+    app.controller('ChangeSafeCtrl', function ($scope, $rootScope, Modal, $timeout, fetchData, $http, UtilityService, Notifications, $window, $state, $stateParams, $q, SessionStore, vaultUtilityService, ModifyUrl, AdminSafesManagement, AppConstant) {
         $scope.selectedGroupOption = '';            // Selected dropdown value to be used for filtering
         $rootScope.showDetails = true;              // Set true to show details view first
         $scope.similarSafes = 0;
@@ -101,7 +101,11 @@
         };
 
         /************************  Functions for autosuggest start here ***************************/
-        //initialise values 
+        //initialise values
+        $scope.domainName = '';
+        if (AppConstant.DOMAIN_NAME) {
+            $scope.domainName = AppConstant.DOMAIN_NAME.toLowerCase();
+        }       
         $scope.searchValue = {
             userName: '',
             groupName: ''
@@ -155,7 +159,8 @@
             lastContent = '';
         }
         // function call on input keyup 
-        $scope.onKeyUp = function(newVal, variableChanged) {        
+        $scope.onKeyUp = function(newVal, variableChanged) {
+            $scope.emptyResponse = false;        
             $scope.showInputLoader.show = false;
             $scope.inputSelected = false;
             if (newVal.userName && variableChanged === 'userName') {
@@ -197,6 +202,9 @@
                         $scope.loadingDataFrDropdown = serviceData.loadingDataFrDropdown;
                         $scope.erroredFrDropdown = serviceData.erroredFrDropdown;
                         $scope.successFrDropdown = serviceData.successFrDropdown;
+                        if (serviceData.response.data.data.values.length === 0) {
+                            $scope.emptyResponse = true;
+                        }
                         massageDataFrPermissionsDropdown(searchFieldName, searchFieldText, serviceData.response.data.data.values);
                         $scope.$apply();
                     } else {
@@ -204,6 +212,18 @@
                         $scope.commonErrorHandler(serviceData.error, serviceData.error || serviceData.response.data, "getDropdownData");
 
                     }
+                },
+                function (error) {
+                    // Error handling function
+                    console.log(error);
+                    $scope.showInputLoader.show = false;
+                    if (searchFieldName === "userName" && $scope.searchValue.userName.length > 0) {
+                        $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_AUTOCOMPLETE_USERNAME');
+                    } else if (searchFieldName === "groupName" && $scope.searchValue.groupName.length > 0) {
+                        $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_AUTOCOMPLETE_GROUPNAME');
+                    }
+                    $scope.error('md');
+
                 })
             }
         };
@@ -250,7 +270,16 @@
                     source: data,
                     minLength: 3,
                     select: function(event, ui) {
-                        $scope.inputSelected = true;  
+                        $scope.inputSelected = true;
+                        var selectedName = ui.item.value.toLowerCase();
+                        if (selectedName.includes($scope.domainName)) {
+                            event.preventDefault();
+                            if (searchFieldName === "userName") {
+                                this.value = ui.item.value.split(' - ')[1];
+                            } else if (searchFieldName === "groupName") {
+                                this.value = ui.item.value.split(' - ')[0];
+                            }                 
+                        }                        
                         $(id).blur();                     
                         $scope.$apply();
                     },
@@ -306,7 +335,7 @@
         $scope.deletePermission = function (type, editMode, editingPermission, key, permission) {
             if (editMode) {
                 try {
-                    key = key.replace('@t-mobile.com', '');
+                    key = key.replace($scope.domainName, '');
                     $scope.isLoadingData = true;
                     var setPath = $scope.getPath();
                     var apiCallFunction = '';
@@ -592,8 +621,8 @@
                                         var data = object.users;
                                         // get all object keys and iterate over them
                                             Object.keys(object.users).forEach(function(ele) {
-                                                ele.replace('@t-mobile.com', '');
-                                                var newEle = ele + "@t-mobile.com";
+                                                ele = ele.replace($scope.domainName, '');
+                                                var newEle = ele + $scope.domainName;
                                                 data[newEle] = data[ele];
                                                 delete data[ele];
                                             })
@@ -687,8 +716,8 @@
                                             var data = object.users;
                                             // get all object keys and iterate over them
                                                 Object.keys(object.users).forEach(function(ele) {
-                                                    ele.replace('@t-mobile.com', '');
-                                                    var newEle = ele + "@t-mobile.com";
+                                                    ele.replace($scope.domainName, '');
+                                                    var newEle = ele + $scope.domainName;
                                                     data[newEle] = data[ele];
                                                     delete data[ele];
                                                 })
@@ -770,19 +799,19 @@
             if ((key != '' && key != undefined) || type == 'AwsRoleConfigure') {
                 try {
                     if (type === "users" && !editingPermission) {
-                        key = document.getElementById('addUser').value;
+                        key = document.getElementById('addUser').value.toLowerCase();
                     }
                     if (type === "groups" && !editingPermission) {
-                        key = document.getElementById('addGroup').value;
+                        key = document.getElementById('addGroup').value.toLowerCase();
                     }
                     Modal.close('');
                     $scope.isLoadingData = true;
                     var setPath = $scope.getPath();
                     var apiCallFunction = '';
                     var reqObjtobeSent = {};
-                    // extract only userId from key
-                    if (key.includes('@')) {
-                        key = key.split(' - ')[0];
+                    // extract only userId/groupId from key
+                    if (key.includes($scope.domainName)) {
+                        key = key.split('@')[0];
                     }
                     if (key !== null && key !== undefined) {
                         key = UtilityService.formatName(key);
@@ -926,5 +955,6 @@
     });
 })(angular.module('vault.features.ChangeSafeCtrl', [
     'vault.services.AdminSafesManagement',
-    'vault.services.ModifyUrl'
+    'vault.services.ModifyUrl',
+    'vault.constants.AppConstant'
 ]));

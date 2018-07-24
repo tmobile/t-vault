@@ -25,6 +25,7 @@
             $scope.forgotPasswordLink = UtilityService.getAppConstant('FORGOT_PASSWORD_LINK');
             // change login depending on authtype
             $scope.authType = AppConstant.AUTH_TYPE;
+            $scope.domainName = AppConstant.DOMAIN_NAME;
             $scope.userID = 'Username';
             Idle.unwatch();
             if ($scope.authType.toLowerCase() === 'ldap') {
