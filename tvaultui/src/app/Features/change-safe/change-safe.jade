@@ -133,10 +133,10 @@ script(src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"
                             md-content(class="md-padding")
                                 .new-container.page-content-container
                                     .row.change-safe
-                                        .add-block.container.name.col-lg-4.col-md-4.col-sm-12.col-xs-12
+                                        .add-block.container.name.col-lg-6.col-md-6.col-sm-12.col-xs-12
                                             div.input-flex
                                                 div.input-box-style.user-input
-                                                    input(type='text' class="form-control" autofocus='!showInputLoader.show' ng-keyup='onKeyUp(searchValue, "userName")' placeholder='Username - Enter min 3 characters' ng-model="userNameVal" id="addUser" ng-class="{error: (userNameValEmpty &&  (userNameVal == '' ||  userNameVal == undefined)), highlightBox: inputSelected}" ng-change="searchValue.userName = userNameVal; userNameValEmpty = false;")
+                                                    input(type='text' class="form-control" autofocus='!showInputLoader.show' ng-keyup='onKeyUp(searchValue, "userName")' placeholder='Username - Enter min 3 characters' ng-model="userNameVal" id="addUser" ng-class="{error: (userNameValEmpty &&  (userNameVal == '' ||  userNameVal == undefined)), highlightBox: inputSelected.select}" ng-change="searchValue.userName = userNameVal; userNameValEmpty = false;")
                                                 div.loader(ng-if='showInputLoader.show')
                                                     div.ball-spin-fade-loader
                                                         div
@@ -147,13 +147,13 @@ script(src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"
                                                         div
                                                         div
                                                         div
-                                                div.input-cross(ng-if='inputSelected' ng-click="clearInputValue('addUser')")
-                                                div.autocomplete-mismatch(ng-show='emptyResponse && userNameVal.length > 0') No matching results found.
+                                                div.input-cross(ng-if='inputSelected.select' ng-click="clearInputValue('addUser')")                                                
                                                     div.delete-title
                                                         img.delete-icon(src="../../assets/images/delete.png")
-                                        .add-block.container.radio-inputs.col-lg-4.col-md-4.col-sm-12.col-xs-12
+                                                div.autocomplete-mismatch(ng-if='emptyResponse && userNameVal.length > 0') No matching results found.
+                                        .add-block.container.radio-inputs.col-lg-3.col-md-3.col-sm-12.col-xs-12
                                             radio-buttons(data="radio" value="usrRadioBtnVal" state="true")
-                                        .add-block.container.actions.col-lg-4.col-md-4.col-sm-12.col-xs-12
+                                        .add-block.container.actions.col-lg-3.col-md-3.col-sm-12.col-xs-12
                                             button.btn.btn-primary.btn-lg(ng-click="addPermission('users',userNameVal,usrRadioBtnVal, false);userNameValEmpty = true") ADD USER
                                             //- .function-text.right.link-style(ng-click="addPermission('users',userNameVal,usrRadioBtnVal);userNameValEmpty = true")
                                             //-     .add-icon-container.action-icon-wrapper.static
@@ -196,10 +196,10 @@ script(src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"
                             md-content(class="md-padding")
                                 .new-container.page-content-container
                                     .row.change-safe
-                                        .add-block.container.name.col-lg-4.col-md-4.col-sm-12.col-xs-12
+                                        .add-block.container.name.col-lg-6.col-md-6.col-sm-12.col-xs-12
                                            div.input-flex
                                                 div.input-box-style.user-input
-                                                    input(type='text' class="form-control" autofocus='!showInputLoader.show' ng-keyup='onKeyUp(searchValue, "groupName")' placeholder='Group Name - Enter min 3 characters' ng-model="grpNameVal" id="addGroup" ng-class="{error: (grpNameValEmpty &&  (grpNameVal == '' ||  grpNameVal == undefined)), highlightBox: inputSelected}" ng-change="searchValue.groupName = grpNameVal; grpNameValEmpty = false;")
+                                                    input(type='text' class="form-control" autofocus='!showInputLoader.show' ng-keyup='onKeyUp(searchValue, "groupName")' placeholder='Group Name - Enter min 3 characters' ng-model="grpNameVal" id="addGroup" ng-class="{error: (grpNameValEmpty &&  (grpNameVal == '' ||  grpNameVal == undefined)), highlightBox: inputSelected.select}" ng-change="searchValue.groupName = grpNameVal; grpNameValEmpty = false;")
                                                  div.loader(ng-if='showInputLoader.show')
                                                     div.ball-spin-fade-loader
                                                         div
@@ -210,13 +210,13 @@ script(src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"
                                                         div
                                                         div
                                                         div
-                                                div.input-cross(ng-if='inputSelected' ng-click="clearInputValue('addGroup')")
-                                                div.autocomplete-mismatch(ng-show='emptyResponse && grpNameVal.length > 0') No matching results found.
+                                                div.input-cross(ng-if='inputSelected.select' ng-click="clearInputValue('addGroup')")                                                
                                                     div.delete-title
                                                         img.delete-icon(src="../../assets/images/delete.png")
-                                        .add-block.container.radio-inputs.col-lg-4.col-md-4.col-sm-12.col-xs-12
+                                                div.autocomplete-mismatch(ng-if='emptyResponse && grpNameVal.length > 0') No matching results found.
+                                        .add-block.container.radio-inputs.col-lg-3.col-md-3.col-sm-12.col-xs-12
                                             radio-buttons(data="radio" value="grpRadioBtnVal" state="true")
-                                        .add-block.container.actions.col-lg-4.col-md-4.col-sm-12.col-xs-12
+                                        .add-block.container.actions.col-lg-3.col-md-3.col-sm-12.col-xs-12
                                             button.btn.btn-primary.btn-lg(ng-click="addPermission('groups', grpNameVal,grpRadioBtnVal, false);grpNameValEmpty = true") ADD GROUP
                                             //- .function-text.right.link-style(ng-click="addPermission('groups', grpNameVal,grpRadioBtnVal);grpNameValEmpty = true")
                                             //-     .add-icon-container.action-icon-wrapper.static

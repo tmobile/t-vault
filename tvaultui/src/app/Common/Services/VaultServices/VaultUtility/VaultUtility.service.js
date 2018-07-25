@@ -65,8 +65,7 @@ angular.module('vault.services.VaultUtility', [])
                              }
                          },
                          function(response) {
-                           data.error = response.data;
-                           reject(data.error);
+                           reject(response);
                          }
                      );
                  } catch (e) {
@@ -115,8 +114,12 @@ angular.module('vault.services.VaultUtility', [])
                 if (searchFieldName === 'userName') {
                     var users = dataFrmApi;
                     users.forEach(function(item) {
-                        var userId = item["displayName"].toLowerCase();
-                        if(userId.indexOf(searchText.toLowerCase()) > -1) {
+                        var userId = item["userId"].toLowerCase();
+                        var userEmail;
+                        if (item["userEmail"]) {
+                            userEmail = item["userEmail"].toLowerCase();
+                        }
+                        if(userId.includes(searchText.toLowerCase()) || userEmail === searchText.toLowerCase()) {
                              // process to display name with "firstname lastname"
                              if (item["displayName"].includes(',')) {
                                 userId = item["displayName"].split(',');
@@ -130,10 +133,14 @@ angular.module('vault.services.VaultUtility', [])
                         }
                     });
                 } else if (searchFieldName === 'groupName') {
-                    var group = dataFrmApi;
+                    var group = dataFrmApi;                   
                     group.forEach(function(item) {
                         var groupId = item["groupName"].toLowerCase();
-                        if(groupId.indexOf(searchText.toLowerCase()) > -1) {
+                        var groupEmail;
+                        if (item["email"]) {
+                            groupEmail = item["email"].toLowerCase();
+                        }
+                        if(groupId.includes(searchText.toLowerCase())  || groupEmail === searchText.toLowerCase()) {
                             if (item["email"]) {
                                 data.push(item["groupName"] + ' - ' + item["email"]);
                             } else {

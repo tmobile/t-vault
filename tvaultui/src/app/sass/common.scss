@@ -1315,7 +1315,6 @@ input[disabled] {
 }
 
 #toast-container > div {
-  height: 40px;
   width: 350px;
   margin: 0;
   padding: 0;
@@ -1324,7 +1323,7 @@ input[disabled] {
   box-shadow: 0 0;
   font-family: $font-regular;
   font-size: 16px;
-  padding: 0 10px;
+  padding: 5px 10px;
   display: flex;
   flex-direction: column;
   justify-content: center;
