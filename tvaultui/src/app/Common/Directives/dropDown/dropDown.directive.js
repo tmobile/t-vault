@@ -35,11 +35,13 @@
             	scope.status = {};
             	scope.status.isopen = false;
             	if (angular.isDefined(scope.dropDownOptions.options)) {
-                    scope.dropDownOptions.selectedGroupOption = {
-                    	option: 'radio',
-						type: scope.value.toUpperCase(),
-						value: scope.value
-					};
+					if (scope.value) {
+						scope.dropDownOptions.selectedGroupOption = {
+							option: 'radio',
+							type: scope.value.toUpperCase(),
+							value: scope.value
+						};
+					}                    					
             		scope.dropDownOptions.tableOptions = [];
             		scope.dropDownOptions.options.forEach(function(item) {
             			var obj = {

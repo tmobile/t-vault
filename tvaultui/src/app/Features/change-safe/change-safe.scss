@@ -575,12 +575,20 @@ md-radio-button .md-label.inactive {
   text-decoration: none;
   color: inherit;
   cursor: pointer;
-  display: inline-block;
-  position: relative;
   position: absolute;
   right: 0px;
-  transform: scale(0.7) translate(-1px, -50%);
-  top: 11px;
+  transform: scale(0.7);
+  display: flex;
+  flex: 0 1 auto;    
+  flex-direction: column;
+  flex-grow: 1;
+  align-items: center;
+  flex-basis: 25%;
+  max-width: 25%;
+  flex-shrink: 0;
+  justify-content: center;
+  top: 50%;
+  bottom: 50%;
 }
 
 .delete-title {
@@ -591,8 +599,7 @@ md-radio-button .md-label.inactive {
 }
 
 img.delete-icon {
-  width: 2em;
-  height: 2em;
+  width: 2.5em;
   cursor: pointer;
   -webkit-transition: 0.4s ease;
   transition: 0.4s ease;

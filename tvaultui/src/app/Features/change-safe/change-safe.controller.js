@@ -119,7 +119,9 @@
         $scope.showInputLoader = {
             'show':false
         };
-        $scope.inputSelected = false;
+        $scope.inputSelected = {
+            'select': false
+        }
         var assignDropdownVal = function (variableChanged) {
             if (variableChanged === 'userName') {
                 $scope.userNameDropdownVal = [];
@@ -151,7 +153,7 @@
 
         $scope.clearInputValue = function(id) {
             document.getElementById(id).value = "";
-            $scope.inputSelected = false;
+            $scope.inputSelected.select = false;
             $scope.searchValue = {
                 userName: '',
                 groupName: ''
@@ -162,21 +164,20 @@
         $scope.onKeyUp = function(newVal, variableChanged) {
             $scope.emptyResponse = false;        
             $scope.showInputLoader.show = false;
-            $scope.inputSelected = false;
+            $scope.inputSelected.select = false;
             if (newVal.userName && variableChanged === 'userName') {
-                newVal.groupName = "";
+                newVal.groupName = "";           
                 $scope.userNameDropdownVal = [];
             } else if (newVal.groupName &&  variableChanged === 'groupName') {
                 newVal.userName = "";
-                variableChanged = 'groupName';
                 $scope.groupNameDropdownVal = [];
             }
              if (variableChanged === 'userName') {
-                if (!UtilityService.getAppConstant('AD_USERS_AUTOCOMPLETE') || UtilityService.getAppConstant('AD_USERS_AUTOCOMPLETE') === false ) {
+                if (!UtilityService.getAppConstant('AD_USERS_AUTOCOMPLETE') ) {
                     return;
                 }
              } else if (variableChanged === 'groupName') {
-                 if(!UtilityService.getAppConstant('AD_GROUP_AUTOCOMPLETE') || UtilityService.getAppConstant('AD_USERS_AUTOCOMPLETE') === false) {
+                 if(!UtilityService.getAppConstant('AD_GROUP_AUTOCOMPLETE')) {
                     return;
                  }
              }
@@ -186,10 +187,10 @@
                     initiateAutoComplete(variableChanged, ['loading']);
                 }
           delay(function(){
-            duplicateFilter(newLetter,function(value){
+            duplicateFilter(newLetter, function(value){
                 $scope.showInputLoader.show = true;
                 $scope.getDropdownDataForPermissions(variableChanged, value);                
-            });
+            });          
           }, 500 ); // delay of 500ms provided before making api call
         }
 
@@ -214,16 +215,16 @@
                     }
                 },
                 function (error) {
-                    // Error handling function
-                    console.log(error);
-                    $scope.showInputLoader.show = false;
-                    if (searchFieldName === "userName" && $scope.searchValue.userName.length > 0) {
-                        $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_AUTOCOMPLETE_USERNAME');
-                    } else if (searchFieldName === "groupName" && $scope.searchValue.groupName.length > 0) {
-                        $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_AUTOCOMPLETE_GROUPNAME');
-                    }
-                    $scope.error('md');
-
+                    // Error handling function when api fails
+                    if(error.status !== 200 && (error.xhrStatus === 'error' || error.xhrStatus === 'complete')) {
+                        $scope.showInputLoader.show = false;
+                        if (searchFieldName === "userName" && $scope.searchValue.userName.length > 0) {
+                            $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_AUTOCOMPLETE_USERNAME');
+                        } else if (searchFieldName === "groupName" && $scope.searchValue.groupName.length > 0) {
+                            $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_AUTOCOMPLETE_GROUPNAME');
+                        }
+                        $scope.error('md');
+                    }                    
                 })
             }
         };
@@ -269,17 +270,17 @@
                 .autocomplete({
                     source: data,
                     minLength: 3,
-                    select: function(event, ui) {
-                        $scope.inputSelected = true;
+                    select: function(event, ui) {                        
                         var selectedName = ui.item.value.toLowerCase();
-                        if (selectedName.includes($scope.domainName)) {
+                        if (selectedName.includes(".com")) {
                             event.preventDefault();
                             if (searchFieldName === "userName") {
                                 this.value = ui.item.value.split(' - ')[1];
                             } else if (searchFieldName === "groupName") {
                                 this.value = ui.item.value.split(' - ')[0];
                             }                 
-                        }                        
+                        }
+                        $scope.inputSelected.select = true;                   
                         $(id).blur();                     
                         $scope.$apply();
                     },
@@ -291,7 +292,7 @@
                     $(this).keydown();
                 })
                 .select(function() {
-                    $scope.inputSelected = true;
+                    $scope.inputSelected.select = true;
                 });
         }
 
@@ -607,7 +608,7 @@
                                     document.getElementById('addUser').value = '';
                                     document.getElementById('addGroup').value = '';
                                 }
-                                $scope.inputSelected = false;
+                                $scope.inputSelected.select = false;
                                 $scope.searchValue = {
                                     userName: '',
                                     groupName: ''
@@ -702,7 +703,7 @@
                                         document.getElementById('addUser').value = '';
                                         document.getElementById('addGroup').value = '';
                                     }
-                                    $scope.inputSelected = false;
+                                    $scope.inputSelected.select = false;
                                     $scope.searchValue = {
                                         userName: '',
                                         groupName: ''
