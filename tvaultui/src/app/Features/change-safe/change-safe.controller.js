@@ -159,10 +159,11 @@
                 groupName: ''
             };
             lastContent = '';
+            $scope.showNoMatchingResults = false;
         }
         // function call on input keyup 
         $scope.onKeyUp = function(newVal, variableChanged) {
-            $scope.emptyResponse = false;        
+            $scope.showNoMatchingResults = false;        
             $scope.showInputLoader.show = false;
             $scope.inputSelected.select = false;
             if (newVal.userName && variableChanged === 'userName') {
@@ -183,12 +184,10 @@
              }
              var newLetter = newVal[variableChanged];
                 newLetter = newLetter.replace(" ", "");
-                if (newLetter.length === 1) {
-                    initiateAutoComplete(variableChanged, ['loading']);
-                }
           delay(function(){
             duplicateFilter(newLetter, function(value){
                 $scope.showInputLoader.show = true;
+                initiateAutoComplete(variableChanged, ['loading']);
                 $scope.getDropdownDataForPermissions(variableChanged, value);                
             });          
           }, 500 ); // delay of 500ms provided before making api call
@@ -204,7 +203,7 @@
                         $scope.erroredFrDropdown = serviceData.erroredFrDropdown;
                         $scope.successFrDropdown = serviceData.successFrDropdown;
                         if (serviceData.response.data.data.values.length === 0) {
-                            $scope.emptyResponse = true;
+                            $scope.showNoMatchingResults = true;
                         }
                         massageDataFrPermissionsDropdown(searchFieldName, searchFieldText, serviceData.response.data.data.values);
                         $scope.$apply();
@@ -280,7 +279,8 @@
                                 this.value = ui.item.value.split(' - ')[0];
                             }                 
                         }
-                        $scope.inputSelected.select = true;                   
+                        $scope.inputSelected.select = true; 
+                        $scope.showNoMatchingResults = false;                  
                         $(id).blur();                     
                         $scope.$apply();
                     },
@@ -293,6 +293,7 @@
                 })
                 .select(function() {
                     $scope.inputSelected.select = true;
+                    $scope.showNoMatchingResults = false; 
                 });
         }
 
@@ -779,7 +780,6 @@
             }
             $scope.allSafesList = JSON.parse(SessionStore.getItem("allSafes"));
             $scope.myVaultKey = SessionStore.getItem("myVaultKey");
-            // $scope.getDropdownDataForPermissions('', '');
             $scope.requestDataFrChangeSafe();
             $scope.fetchUsers();
             $scope.fetchGroups();
@@ -807,6 +807,8 @@
                     }
                     Modal.close('');
                     $scope.isLoadingData = true;
+                    $scope.showInputLoader.show = false;
+                    $scope.showNoMatchingResults = false;
                     var setPath = $scope.getPath();
                     var apiCallFunction = '';
                     var reqObjtobeSent = {};
