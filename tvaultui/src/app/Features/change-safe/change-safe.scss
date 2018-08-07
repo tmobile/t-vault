@@ -605,7 +605,7 @@ img.delete-icon {
   transition: 0.4s ease;
 }
 
-.permissions .row.change-safe .container input.highlightBox {
+input.highlightBox {
   border: 1px solid #3db340 !important;
   border-radius: 0px;
   box-shadow: 0px 0px 5px 0px rgba(0, 0, 0, 0.075);
@@ -795,6 +795,14 @@ img.delete-icon {
   position: absolute;
   font-size: 11px;
   padding: 1px 4px;
+}
+
+.loader.owner-mail {
+  top: 77%;
+}
+
+.input-cross.owner-mail {
+  top: 77%;
 }
 
 

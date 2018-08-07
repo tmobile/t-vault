@@ -87,6 +87,7 @@
                 else {
                     $rootScope.showDetails = true;
                     $rootScope.activeDetailsTab = 'details';
+                    checkOwnerEmailHasValue();
                 }
             }
             else {
@@ -161,11 +162,27 @@
             lastContent = '';
             $scope.showNoMatchingResults = false;
         }
+
+        $scope.clearOwnerEmailInputValue = function() {
+            $scope.safe.owner = '';
+            $scope.inputSelected.select = false;
+            lastContent = '';
+            $scope.showNoMatchingResults = false;
+        }
+        var checkOwnerEmailHasValue = function() {
+            if($scope.safe.owner && $scope.safe.owner.length > 0) {
+                $scope.inputSelected.select = true;
+            }
+        }
         // function call on input keyup 
-        $scope.onKeyUp = function(newVal, variableChanged) {
+        $scope.onKeyUp = function(newVal, variableChanged, forOwner) {
             $scope.showNoMatchingResults = false;        
             $scope.showInputLoader.show = false;
             $scope.inputSelected.select = false;
+            $scope.autoCompleteforOwner = false;
+            if(forOwner) {
+                $scope.autoCompleteforOwner = true;
+            }
             if (newVal.userName && variableChanged === 'userName') {
                 newVal.groupName = "";           
                 $scope.userNameDropdownVal = [];
@@ -260,6 +277,9 @@
             var id;
             if (searchFieldName === "userName") {
                 id = '#addUser';
+                if ($scope.autoCompleteforOwner) {
+                    id = "#addOwnerEmail"
+                }
             } else if (searchFieldName === "groupName") {
                 id = '#addGroup';
             }
@@ -517,7 +537,7 @@
                             // Error handling function
                             console.log(error);
                             $scope.isLoadingData = false;
-                            $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
+                            $scope.errorMessage = AdminSafesManagement.getTheRightErrorMessage(error);
                             $scope.error('md');
                         })
                 } catch (e) {
@@ -647,6 +667,7 @@
                                         'selectedGroupOption': $scope.selectedGroupOption,
                                         'tableOptions': $scope.tableOptions
                                     }
+                                    checkOwnerEmailHasValue();
                                 }
                                 catch (e) {
                                     console.log(e);
@@ -689,7 +710,7 @@
             else {
                 $scope.changeSafeHeader = "CREATE SAFE";
                 $scope.isEditSafe = false;
-
+                checkOwnerEmailHasValue();
                 // Refreshing the data while adding/deleting/editing permissions when creating safe (not edit-safe)
 
                 try {
