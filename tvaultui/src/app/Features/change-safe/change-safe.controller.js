@@ -87,7 +87,7 @@
                 else {
                     $rootScope.showDetails = true;
                     $rootScope.activeDetailsTab = 'details';
-                    checkOwnerEmailHasValue();
+                    $scope.checkOwnerEmailHasValue();
                 }
             }
             else {
@@ -169,7 +169,7 @@
             lastContent = '';
             $scope.showNoMatchingResults = false;
         }
-        var checkOwnerEmailHasValue = function() {
+        $scope.checkOwnerEmailHasValue = function() {
             if($scope.safe.owner && $scope.safe.owner.length > 0) {
                 $scope.inputSelected.select = true;
             }
@@ -667,7 +667,7 @@
                                         'selectedGroupOption': $scope.selectedGroupOption,
                                         'tableOptions': $scope.tableOptions
                                     }
-                                    checkOwnerEmailHasValue();
+                                    $scope.checkOwnerEmailHasValue();
                                 }
                                 catch (e) {
                                     console.log(e);
@@ -710,7 +710,7 @@
             else {
                 $scope.changeSafeHeader = "CREATE SAFE";
                 $scope.isEditSafe = false;
-                checkOwnerEmailHasValue();
+                $scope.checkOwnerEmailHasValue();
                 // Refreshing the data while adding/deleting/editing permissions when creating safe (not edit-safe)
 
                 try {

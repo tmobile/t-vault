@@ -78,10 +78,10 @@ script(src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"
               .left-sm-sep.left.page-header-text {{changeSafeHeader}} 
                   span.safe-in-edit {{safe.name}}
             nav-bar(active-tab="details" gotoPage="goToPage" nav-tags="detailsNavTags" ng-if="activeDetailsTab == 'details' ")
-            nav-bar(active-tab="permissions" gotoPage="goToPage" nav-tags="detailsNavTags" ng-if="activeDetailsTab == 'permissions' ")            
+            nav-bar(active-tab="permissions" gotoPage="goToPage" nav-tags="detailsNavTags" ng-if="activeDetailsTab == 'permissions' " ng-click='checkOwnerEmailHasValue()')            
       .page-content-container(ng-class="{'no-tabs-body' : showDetails}" ng-cloak="")
           .page-content-container.details(ng-if="showDetails" ng-cloak="" ng-show="showDetails")
-              form.row(name="createSafeDetails" ng-submit="goToPermissions()")
+              form.row(name="createSafeDetails" ng-submit="goToPermissions()" autocomplete="off")
                 .page-content-container
                   .clearfix.details-wrapper
                     loading-state(ng-if='isLoadingData')
@@ -108,7 +108,7 @@ script(src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"
                               .row
                                 .details-input-group.left-sm-sep.col-lg-12.col-md-12.col-sm-12.col-xs-12
                                     .common-form-label Owner
-                                    input.form-control.input-box-style(id="addOwnerEmail" ng-model="safe.owner"  autofocus='!showInputLoader.show' ng-change="searchValue.userName = safe.owner" ng-keyup='onKeyUp(searchValue, "userName", true)' ng-class="{highlightBox: inputSelected.select}" name="ownerEmail" placeholder="Email address of the safe owner" required)
+                                    input.form-control.input-box-style(id="addOwnerEmail" ng-model="safe.owner"  autofocus='!showInputLoader.show' ng-change="searchValue.userName = safe.owner" ng-keyup='onKeyUp(searchValue, "userName", true)' ng-class="{highlightBox: inputSelected.select}" name="ownerEmail" placeholder="Email address - Enter min 3 characters" required)
                                     div.loader.owner-mail(ng-if='showInputLoader.show && safe.owner.length > 0')
                                         div.ball-spin-fade-loader
                                             div
