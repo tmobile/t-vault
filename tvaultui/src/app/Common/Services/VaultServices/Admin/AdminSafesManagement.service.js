@@ -93,11 +93,19 @@
                 });
             },
             getTheRightErrorMessage : function(responseObject){
-                if(responseObject.status==='500' || responseObject.statusText==='Internal Server Error'){
+                if(responseObject.status===500 || responseObject.statusText==='Internal Server Error'){
                     return ErrorMessage.ERROR_NETWORK;
                 }
-                else if(responseObject.status==='404'){
+                else if(responseObject.status===404){
                     return ErrorMessage.ERROR_CONTENT_NOT_FOUND;    // TODO: show different messages for POST and GET methods
+                }
+                else if(responseObject.status===422){
+                    if(responseObject.data && responseObject.data.errors) {
+                        let error = responseObject.data.errors;
+                        if (error.length > 0 && error[0].toLowerCase().includes('existing safe')) {
+                            return ErrorMessage.ERROR_EXISTING_SAFE; 
+                        }
+                    }
                 }
                 else{
                     return ErrorMessage.ERROR_GENERAL;
