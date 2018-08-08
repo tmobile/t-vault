@@ -72,7 +72,7 @@ public class RequestValidator {
 						      put(LogMessage.MESSAGE, "Existing safe").
 						      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 						      build()));
-					msg.setMsgTxt("Existing safe");
+					msg.setMsgTxt("The given safe already exists.");
 					msg.setMsgType(MSG_TYPE.ERR);
 				}
 				break;

@@ -77,6 +77,24 @@ public class  DirectoryService {
 		users.setData(usersList);
 		return ResponseEntity.status(HttpStatus.OK).body(users);
 	}
+	
+	/**
+	 * 
+	 * @param UserPrincipalName
+	 * @return
+	 */
+	public ResponseEntity<DirectoryObjects> searchByCorpId(String corpId) {
+		AndFilter andFilter = new AndFilter();
+		andFilter.and(new LikeFilter("cn", corpId+"*"));
+		andFilter.and(new EqualsFilter("objectClass", "user"));
+
+		List<DirectoryUser> allPersons = getAllPersons(andFilter);
+		DirectoryObjects users = new DirectoryObjects();
+		DirectoryObjectsList usersList = new DirectoryObjectsList();
+		usersList.setValues(allPersons.toArray(new DirectoryUser[allPersons.size()]));
+		users.setData(usersList);
+		return ResponseEntity.status(HttpStatus.OK).body(users);
+	}
 
 	/**
 	 * Gets the list of users from Directory Server
