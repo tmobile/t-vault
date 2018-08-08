@@ -102,7 +102,6 @@ public class DirectoryUser implements Serializable {
 	/**
 	 * User id or name
 	 */
-	@JsonIgnore
 	private String userName;
 
 
