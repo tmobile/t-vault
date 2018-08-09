@@ -230,8 +230,11 @@
                 },
                 function (error) {
                     // Error handling function when api fails
-                    if(error.status !== 200 && (error.xhrStatus === 'error' || error.xhrStatus === 'complete')) {
-                        $scope.showInputLoader.show = false;
+                    $scope.showInputLoader.show = false;
+                    if (error.status === 500) {
+                        $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_NETWORK');
+                        $scope.error('md');
+                    } else if(error.status !== 200 && (error.xhrStatus === 'error' || error.xhrStatus === 'complete')) {                        
                         if (searchFieldName === "userName" && $scope.searchValue.userName.length > 0) {
                             $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_AUTOCOMPLETE_USERNAME');
                         } else if (searchFieldName === "groupName" && $scope.searchValue.groupName.length > 0) {
