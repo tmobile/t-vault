@@ -123,14 +123,6 @@
         $scope.inputSelected = {
             'select': false
         }
-        var assignDropdownVal = function (variableChanged) {
-            if (variableChanged === 'userName') {
-                $scope.userNameDropdownVal = [];
-            } else if (variableChanged === 'groupName') {
-                $scope.groupNameDropdownVal = [];
-            }
-           
-        }
 
         var delay = (function(){
             var timer = 0;
@@ -152,6 +144,7 @@
           };
         })();
 
+        //clear selected value on cross icon click
         $scope.clearInputValue = function(id) {
             document.getElementById(id).value = "";
             $scope.inputSelected.select = false;
@@ -163,12 +156,14 @@
             $scope.showNoMatchingResults = false;
         }
 
+        //clear selcted email id on cross icon click
         $scope.clearOwnerEmailInputValue = function() {
             $scope.safe.owner = '';
             $scope.inputSelected.select = false;
             lastContent = '';
             $scope.showNoMatchingResults = false;
         }
+        // on navigation to details page check owner email field has value, if yes highlight box. 
         $scope.checkOwnerEmailHasValue = function() {
             if($scope.safe.owner && $scope.safe.owner.length > 0) {
                 $scope.inputSelected.select = true;
@@ -180,6 +175,7 @@
             $scope.showInputLoader.show = false;
             $scope.inputSelected.select = false;
             $scope.autoCompleteforOwner = false;
+            //check autocomplete is for owner email id
             if(forOwner) {
                 $scope.autoCompleteforOwner = true;
             }
@@ -201,10 +197,12 @@
              }
              var newLetter = newVal[variableChanged];
                 newLetter = newLetter.replace(" ", "");
+                initiateAutoComplete(variableChanged, ['loading']);
+           // delay before providing api call      
           delay(function(){
+              // check for duplicate values with previous value
             duplicateFilter(newLetter, function(value){
                 $scope.showInputLoader.show = true;
-                initiateAutoComplete(variableChanged, ['loading']);
                 $scope.getDropdownDataForPermissions(variableChanged, value);                
             });          
           }, 500 ); // delay of 500ms provided before making api call
@@ -277,6 +275,7 @@
             var id;
             if (searchFieldName === "userName") {
                 id = '#addUser';
+                // for owner email id provide autocomplete
                 if ($scope.autoCompleteforOwner) {
                     id = "#addOwnerEmail"
                 }

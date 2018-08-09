@@ -96,7 +96,6 @@ script(src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"
                                 .status-text.available(ng-if = "!isEditSafe && similarSafes === 0 && safe.name.length !== 0 && !typeDropdownDisable") Available
                                 .status-text.exists(ng-if = "!isEditSafe && similarSafes !== 0 && similarSafes !== allSafesList.length") Safe Exists
                                 .existance-check(ng-repeat="item in similarSafes = ( allSafesList | filter : safe.name:true ).length") {{similarSafes}}
-                                //- span.invalid-form(ng-show="createSafeDetails.ownerName.$dirty && createSafeDetails.ownerName.$invalid && createSafeDetails.ownerName.$error.required") Please enter this field
                         .row.middle
                           .common-form-row.clearfix
                             .col-lg-5.col-md-12.col-sm-12.col-xs-12.full-row-fix
@@ -123,18 +122,11 @@ script(src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"
                                         div.delete-title
                                             img.delete-icon(src="../../assets/images/delete.png")
                                     div.autocomplete-mismatch(ng-if='showNoMatchingResults && safe.owner.length > 0') No matching results found.
-                                    //- span.invalid-form(ng-show="createSafeDetails.ownerEmail.$dirty && createSafeDetails.ownerEmail.$invalid && createSafeDetails.ownerEmail.$error.required") Please enter this field
-                                    //- span.invalid-form(ng-show="createSafeDetails.ownerEmail.$error.email || createSafeDetails.ownerEmail.$error.pattern") Invalid email address
-
-                                //-   input.form-control.input-box-style(id="addOwnerEmail" ng-model="safe.owner"  name="ownerEmail" type="email" ng-pattern='/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,4}$/' placeholder="Email address of the safe owner" required)
-                                //-   span.invalid-form(ng-show="createSafeDetails.ownerEmail.$dirty && createSafeDetails.ownerEmail.$invalid && createSafeDetails.ownerEmail.$error.required") Please enter this field
-                                //-   span.invalid-form(ng-show="createSafeDetails.ownerEmail.$error.email || createSafeDetails.ownerEmail.$error.pattern") Invalid email address
                         .row
                           .common-form-row.col-lg-12.col-md-12.col-sm-12.col-xs-12
                             .details-input-group
                               .common-form-label Description
                               textarea.form-control.input-box-style.details-textarea(ng-model="safe.description" name="description" placeholder="A description about the safe" required)
-                            //-   span.invalid-form(ng-show="createSafeDetails.ownerEmail.$dirty && createSafeDetails.ownerEmail.$invalid || createSafeDetails.description.$dirty && createSafeDetails.description.$invalid && createSafeDetails.description.$error.required") Please enter this field
                     .safe-right-content-container.col-lg-6.col-sm-7#full-height
 
                       .safe-detail-container-block
@@ -177,10 +169,6 @@ script(src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"
                                             radio-buttons(data="radio" value="usrRadioBtnVal" state="true")
                                         .add-block.container.actions.col-lg-3.col-md-3.col-sm-12.col-xs-12
                                             button.btn.btn-primary.btn-lg(ng-click="addPermission('users',userNameVal,usrRadioBtnVal, false);userNameValEmpty = true") ADD USER
-                                            //- .function-text.right.link-style(ng-click="addPermission('users',userNameVal,usrRadioBtnVal);userNameValEmpty = true")
-                                            //-     .add-icon-container.action-icon-wrapper.static
-                                            //-         .rotate.glyphicon.glyphicon-remove-circle 
-                                            //-     .text ADD USER
                                     .unavailable-text(ng-if='isEmpty(UsersPermissionsData)')
                                       | No users are given permission to access this safe,<br> add users to access the safe 
                                     .row.change-safe-table-container(ng-if='!isEmpty(UsersPermissionsData)')
@@ -240,10 +228,6 @@ script(src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"
                                             radio-buttons(data="radio" value="grpRadioBtnVal" state="true")
                                         .add-block.container.actions.col-lg-3.col-md-3.col-sm-12.col-xs-12
                                             button.btn.btn-primary.btn-lg(ng-click="addPermission('groups', grpNameVal,grpRadioBtnVal, false);grpNameValEmpty = true") ADD GROUP
-                                            //- .function-text.right.link-style(ng-click="addPermission('groups', grpNameVal,grpRadioBtnVal);grpNameValEmpty = true")
-                                            //-     .add-icon-container.action-icon-wrapper.static
-                                            //-         .rotate.glyphicon.glyphicon-remove-circle 
-                                            //-     .text ADD GROUP
                                     .unavailable-text(ng-if="isEmpty(GroupsPermissionsData)")
                                       | No groups are given permission to access this safe,<br> add groups to access the safe
                                     .row.change-safe-table-container(ng-if="!isEmpty(GroupsPermissionsData)")
