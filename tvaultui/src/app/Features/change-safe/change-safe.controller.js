@@ -87,7 +87,7 @@
                 else {
                     $rootScope.showDetails = true;
                     $rootScope.activeDetailsTab = 'details';
-                    $scope.checkOwnerEmailHasValue();
+                    $scope.checkOwnerEmailHasValue('details');
                 }
             }
             else {
@@ -164,8 +164,8 @@
             $scope.showNoMatchingResults = false;
         }
         // on navigation to details page check owner email field has value, if yes highlight box. 
-        $scope.checkOwnerEmailHasValue = function() {
-            if($scope.safe.owner && $scope.safe.owner.length > 0) {
+        $scope.checkOwnerEmailHasValue = function(navigateToDetail) {
+            if(navigateToDetail === 'details' && $scope.safe.owner && $scope.safe.owner.length > 0) {
                 $scope.inputSelected.select = true;
             }
         }
@@ -669,7 +669,10 @@
                                         'selectedGroupOption': $scope.selectedGroupOption,
                                         'tableOptions': $scope.tableOptions
                                     }
-                                    $scope.checkOwnerEmailHasValue();
+                                    if($scope.activeDetailsTab === 'details') {
+                                         $scope.checkOwnerEmailHasValue('details');
+                                    }
+                                   
                                 }
                                 catch (e) {
                                     console.log(e);
@@ -712,7 +715,7 @@
             else {
                 $scope.changeSafeHeader = "CREATE SAFE";
                 $scope.isEditSafe = false;
-                $scope.checkOwnerEmailHasValue();
+                $scope.checkOwnerEmailHasValue('details');
                 // Refreshing the data while adding/deleting/editing permissions when creating safe (not edit-safe)
 
                 try {

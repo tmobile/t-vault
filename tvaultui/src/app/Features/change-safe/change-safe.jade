@@ -78,7 +78,7 @@ script(src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"
               .left-sm-sep.left.page-header-text {{changeSafeHeader}} 
                   span.safe-in-edit {{safe.name}}
             nav-bar(active-tab="details" gotoPage="goToPage" nav-tags="detailsNavTags" ng-if="activeDetailsTab == 'details' ")
-            nav-bar(active-tab="permissions" gotoPage="goToPage" nav-tags="detailsNavTags" ng-if="activeDetailsTab == 'permissions' " ng-click='checkOwnerEmailHasValue()')            
+            nav-bar(active-tab="permissions" gotoPage="goToPage" nav-tags="detailsNavTags" ng-if="activeDetailsTab == 'permissions' " ng-click='checkOwnerEmailHasValue("details")')            
       .page-content-container(ng-class="{'no-tabs-body' : showDetails}" ng-cloak="")
           .page-content-container.details(ng-if="showDetails" ng-cloak="" ng-show="showDetails")
               form.row(name="createSafeDetails" ng-submit="goToPermissions()" autocomplete="off")
