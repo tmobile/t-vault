@@ -88,22 +88,11 @@ angular.module('vault.services.VaultUtility', [])
                 $rootScope.showLoadingScreen = false;
                 var responseType = response.headers('x-response-type');
                 if (responseType === 'ERROR') {
-                    var errorData = {
-                        service: name,
-                        message: response.headers('x-response-message')
-                    };
-                    $rootScope.$broadcast('genericServiceError', errorData);
                     return $q.reject(response);
                 }
                return response;
             },
             function (response) {
-                var responseMsg = response.headers('x-response-message');
-                var errorData = {
-                    service: name,
-                    message: responseMsg
-                };
-                $rootScope.$broadcast('genericServiceError', errorData);
                 return $q.reject(response);
             });
         }
