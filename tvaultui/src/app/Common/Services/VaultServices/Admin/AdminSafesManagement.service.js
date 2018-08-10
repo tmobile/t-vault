@@ -101,7 +101,7 @@
                 }
                 else if(responseObject.status === 422){
                     if(responseObject.data && responseObject.data.errors) {
-                        let error = responseObject.data.errors;
+                        var error = responseObject.data.errors;
                         if (error.length > 0 ) {
                             return error[0];
                         } else {
