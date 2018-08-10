@@ -240,6 +240,13 @@
                             $scope.isLoadingData = false;
                             var notification = UtilityService.getAParticularSuccessMessage('MESSAGE_SAFE_DELETE');
                             Notifications.toast(listItem.safe+notification);
+                            // remove deleted safe from session storage
+                            var currentSafesList = JSON.parse(SessionStore.getItem("allSafes"));
+                            var index = currentSafesList.indexOf(listItem.safe);
+                            if (index > -1) {
+                                currentSafesList.splice(index, 1);
+                                SessionStore.setItem('allSafes', JSON.stringify(currentSafesList));
+                            }
                             // Try-Catch block to catch errors if there is any change in object structure in the response
                             try {
                                 
@@ -305,14 +312,13 @@
             var vaultTypes = ["apps","shared","users"];
 
             var responseArray = [];
-
+            var allSafes = [];
             vaultTypes.forEach(function(currentVaultType) {
                 try{
 
                     var queryParameters = "path="+currentVaultType;
                     var updatedUrlOfEndPoint = ModifyUrl.addUrlParameteres('safesList',queryParameters);
                     $scope.isLoadingData = true;
-                    var allSafes = [];
                     AdminSafesManagement.getCompleteSafesList(null,updatedUrlOfEndPoint).then(                        
                         function(response) {
                             if(UtilityService.ifAPIRequestSuccessful(response)){ 

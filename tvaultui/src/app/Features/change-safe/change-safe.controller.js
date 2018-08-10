@@ -87,6 +87,7 @@
                 else {
                     $rootScope.showDetails = true;
                     $rootScope.activeDetailsTab = 'details';
+                    $scope.checkOwnerEmailHasValue('details');
                 }
             }
             else {
@@ -122,14 +123,6 @@
         $scope.inputSelected = {
             'select': false
         }
-        var assignDropdownVal = function (variableChanged) {
-            if (variableChanged === 'userName') {
-                $scope.userNameDropdownVal = [];
-            } else if (variableChanged === 'groupName') {
-                $scope.groupNameDropdownVal = [];
-            }
-           
-        }
 
         var delay = (function(){
             var timer = 0;
@@ -151,6 +144,7 @@
           };
         })();
 
+        //clear selected value on cross icon click
         $scope.clearInputValue = function(id) {
             document.getElementById(id).value = "";
             $scope.inputSelected.select = false;
@@ -161,11 +155,30 @@
             lastContent = '';
             $scope.showNoMatchingResults = false;
         }
+
+        //clear selcted email id on cross icon click
+        $scope.clearOwnerEmailInputValue = function() {
+            $scope.safe.owner = '';
+            $scope.inputSelected.select = false;
+            lastContent = '';
+            $scope.showNoMatchingResults = false;
+        }
+        // on navigation to details page check owner email field has value, if yes highlight box. 
+        $scope.checkOwnerEmailHasValue = function(navigateToDetail) {
+            if(navigateToDetail === 'details' && $scope.safe.owner && $scope.safe.owner.length > 0) {
+                $scope.inputSelected.select = true;
+            }
+        }
         // function call on input keyup 
-        $scope.onKeyUp = function(newVal, variableChanged) {
+        $scope.onKeyUp = function(newVal, variableChanged, forOwner) {
             $scope.showNoMatchingResults = false;        
             $scope.showInputLoader.show = false;
             $scope.inputSelected.select = false;
+            $scope.autoCompleteforOwner = false;
+            //check autocomplete is for owner email id
+            if(forOwner) {
+                $scope.autoCompleteforOwner = true;
+            }
             if (newVal.userName && variableChanged === 'userName') {
                 newVal.groupName = "";           
                 $scope.userNameDropdownVal = [];
@@ -184,10 +197,12 @@
              }
              var newLetter = newVal[variableChanged];
                 newLetter = newLetter.replace(" ", "");
+                initiateAutoComplete(variableChanged, ['loading']);
+           // delay before providing api call      
           delay(function(){
+              // check for duplicate values with previous value
             duplicateFilter(newLetter, function(value){
                 $scope.showInputLoader.show = true;
-                initiateAutoComplete(variableChanged, ['loading']);
                 $scope.getDropdownDataForPermissions(variableChanged, value);                
             });          
           }, 500 ); // delay of 500ms provided before making api call
@@ -215,8 +230,11 @@
                 },
                 function (error) {
                     // Error handling function when api fails
-                    if(error.status !== 200 && (error.xhrStatus === 'error' || error.xhrStatus === 'complete')) {
-                        $scope.showInputLoader.show = false;
+                    $scope.showInputLoader.show = false;
+                    if (error.status === 500) {
+                        $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_NETWORK');
+                        $scope.error('md');
+                    } else if(error.status !== 200 && (error.xhrStatus === 'error' || error.xhrStatus === 'complete')) {                        
                         if (searchFieldName === "userName" && $scope.searchValue.userName.length > 0) {
                             $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_AUTOCOMPLETE_USERNAME');
                         } else if (searchFieldName === "groupName" && $scope.searchValue.groupName.length > 0) {
@@ -260,6 +278,10 @@
             var id;
             if (searchFieldName === "userName") {
                 id = '#addUser';
+                // for owner email id provide autocomplete
+                if ($scope.autoCompleteforOwner) {
+                    id = "#addOwnerEmail"
+                }
             } else if (searchFieldName === "groupName") {
                 id = '#addGroup';
             }
@@ -517,7 +539,7 @@
                             // Error handling function
                             console.log(error);
                             $scope.isLoadingData = false;
-                            $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
+                            $scope.errorMessage = AdminSafesManagement.getTheRightErrorMessage(error);
                             $scope.error('md');
                         })
                 } catch (e) {
@@ -647,6 +669,10 @@
                                         'selectedGroupOption': $scope.selectedGroupOption,
                                         'tableOptions': $scope.tableOptions
                                     }
+                                    if($scope.activeDetailsTab === 'details') {
+                                         $scope.checkOwnerEmailHasValue('details');
+                                    }
+                                   
                                 }
                                 catch (e) {
                                     console.log(e);
@@ -689,7 +715,7 @@
             else {
                 $scope.changeSafeHeader = "CREATE SAFE";
                 $scope.isEditSafe = false;
-
+                $scope.checkOwnerEmailHasValue('details');
                 // Refreshing the data while adding/deleting/editing permissions when creating safe (not edit-safe)
 
                 try {

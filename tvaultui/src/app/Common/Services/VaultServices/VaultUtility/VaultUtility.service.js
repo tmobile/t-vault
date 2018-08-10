@@ -108,48 +108,58 @@ angular.module('vault.services.VaultUtility', [])
             });
         }
 
+        function massageUserNameData (data, dataFrmApi, searchText) {
+            var users = dataFrmApi;
+            users.forEach(function(item) {
+                var userId = item["userId"].toLowerCase();
+                var userEmail;
+                if (item["userEmail"]) {
+                    userEmail = item["userEmail"].toLowerCase();
+                }
+                if(userId.includes(searchText.toLowerCase()) || userEmail === searchText.toLowerCase()) {
+                        // process to display name with "firstname lastname"
+                        if (item["displayName"].includes(',')) {
+                        userId = item["displayName"].split(',');
+                        userId = userId[1] + " " + userId[0];
+                        }                         
+                    if (item["userEmail"]) {                               
+                        data.push(userId + ' - ' + item["userEmail"]);
+                    } else {
+                        data.push(userId);
+                    }                 
+                }
+            });
+            return data;
+        }
+
+        function massageGroupNameData(data, dataFrmApi, searchText) {
+            var group = dataFrmApi;                   
+            group.forEach(function(item) {
+                var groupId = item["groupName"].toLowerCase();
+                var groupEmail;
+                if (item["email"]) {
+                    groupEmail = item["email"].toLowerCase();
+                }
+                if(groupId.includes(searchText.toLowerCase())  || groupEmail === searchText.toLowerCase()) {
+                    if (item["email"]) {
+                        data.push(item["groupName"] + ' - ' + item["email"]);
+                    } else {
+                        data.push(item["groupName"]);
+                    }                      
+                }
+            });
+            return data;
+        }
+
         self.massageDataFrPermissionsDropdown = function(searchFieldName, searchText, dataFrmApi) {
             var data = [];
             if(dataFrmApi !== undefined) {
                 if (searchFieldName === 'userName') {
-                    var users = dataFrmApi;
-                    users.forEach(function(item) {
-                        var userId = item["userId"].toLowerCase();
-                        var userEmail;
-                        if (item["userEmail"]) {
-                            userEmail = item["userEmail"].toLowerCase();
-                        }
-                        if(userId.includes(searchText.toLowerCase()) || userEmail === searchText.toLowerCase()) {
-                             // process to display name with "firstname lastname"
-                             if (item["displayName"].includes(',')) {
-                                userId = item["displayName"].split(',');
-                                userId = userId[1] + " " + userId[0];
-                             }                         
-                            if (item["userEmail"]) {                               
-                                data.push(userId + ' - ' + item["userEmail"]);
-                            } else {
-                                data.push(userId);
-                            }                 
-                        }
-                    });
+                    data = massageUserNameData(data, dataFrmApi, searchText);
+                    
                 } else if (searchFieldName === 'groupName') {
-                    var group = dataFrmApi;                   
-                    group.forEach(function(item) {
-                        var groupId = item["groupName"].toLowerCase();
-                        var groupEmail;
-                        if (item["email"]) {
-                            groupEmail = item["email"].toLowerCase();
-                        }
-                        if(groupId.includes(searchText.toLowerCase())  || groupEmail === searchText.toLowerCase()) {
-                            if (item["email"]) {
-                                data.push(item["groupName"] + ' - ' + item["email"]);
-                            } else {
-                                data.push(item["groupName"]);
-                            }                      
-                        }
-                    });
-                }
-                
+                    data = massageGroupNameData(data, dataFrmApi, searchText);                    
+                }                
                 return data;
             }
         };

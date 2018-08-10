@@ -28,6 +28,6 @@
         'ERROR_PROCESSING_DATA'  : 'Error processing response data. Please try again, if the issue persists contact Vault Administrator',
         'ERROR_PROCESSING_RELOAD_PAGE' : 'Error processing. Please Reload the Page',
         'ERROR_AUTOCOMPLETE_USERNAME': 'Unable to retrieve the results. Please try again with full Username',
-        'ERROR_AUTOCOMPLETE_GROUPNAME': 'Unable to retrieve the results. Please try again with full Group name'      
+        'ERROR_AUTOCOMPLETE_GROUPNAME': 'Unable to retrieve the results. Please try again with full Group name'
     } );
 } )( angular.module( 'vault.constants.ErrorMessage', [] ) );
