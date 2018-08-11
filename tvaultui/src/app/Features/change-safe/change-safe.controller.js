@@ -171,6 +171,7 @@
         }
         // function call on input keyup 
         $scope.onKeyUp = function(newVal, variableChanged, forOwner) {
+            $scope.invalidEmail = false;
             $scope.showNoMatchingResults = false;        
             $scope.showInputLoader.show = false;
             $scope.inputSelected.select = false;
@@ -596,19 +597,27 @@
 
 
         $rootScope.goToPermissions = function () {
-            $timeout(function () {
-                if ($scope.isEditSafe) {
-                    $rootScope.showDetails = false;               // To show the 'permissions' and hide the 'details'
-                    $rootScope.activeDetailsTab = 'permissions';
-                    if(!angular.equals($scope.safePrevious, $scope.safe)){
-                        $scope.editSafe();
-                    }                        
-                }
-                else {
-                    $rootScope.noTypeSelected = false;
-                    $scope.createSafe();
-                }
-            })
+            $scope.invalidEmail = false;
+            $scope.showNoMatchingResults = false;
+            var emailPattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/;
+            var emailInput = document.getElementById('addOwnerEmail').value;
+            if (!emailPattern.test(emailInput)) {
+                $scope.invalidEmail = true;
+            } else {
+                $timeout(function () {
+                    if ($scope.isEditSafe) {
+                        $rootScope.showDetails = false;               // To show the 'permissions' and hide the 'details'
+                        $rootScope.activeDetailsTab = 'permissions';
+                        if(!angular.equals($scope.safePrevious, $scope.safe)){
+                            $scope.editSafe();
+                        }                        
+                    }
+                    else {
+                        $rootScope.noTypeSelected = false;
+                        $scope.createSafe();
+                    }
+                })
+            }
         }
 
 
