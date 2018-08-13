@@ -20,14 +20,19 @@
 'use strict';
 
 angular.module('vault.services.VaultUtility', [])
-    .service('vaultUtilityService', function(fetchData, UtilityService, SessionStore, ModifyUrl, $q, $http, $rootScope, RestEndpoints) {
+    .service('vaultUtilityService', function(fetchData, UtilityService, SessionStore, ModifyUrl, $q, $http, $rootScope, RestEndpoints, AppConstant) {
        var self = this;
        self.canceller = {};
-       self.getDropdownDataForPermissions = function(searchFieldName, searchFieldText) {          
+       self.authType = AppConstant.AUTH_TYPE;
+       self.getDropdownDataForPermissions = function(searchFieldName, searchFieldText, forOwner) {          
             return new Promise(function(resolve, reject) {
                 var data = {};
                 var DataUrl;
-                if(searchFieldName === "userName") {
+                if (forOwner) {
+                    DataUrl = RestEndpoints.baseURL + RestEndpoints.usersGetData;
+                } else if (searchFieldName === "userName" && self.authType.toLowerCase() === 'ldap') {
+                    DataUrl = RestEndpoints.baseURL + RestEndpoints.usersGetDataUsingCorpID;
+                } else if(searchFieldName === "userName" && self.authType.toLowerCase() === 'ldap1900') {
                     DataUrl = RestEndpoints.baseURL + RestEndpoints.usersGetData;
                 } else if (searchFieldName === "groupName") {
                     DataUrl = RestEndpoints.baseURL + RestEndpoints.groupGetData;
@@ -121,6 +126,37 @@ angular.module('vault.services.VaultUtility', [])
             return data;
         }
 
+        function massageUserNameDataUsingCorpID (data, dataFrmApi, searchText) {
+            var users = dataFrmApi;
+            users.forEach(function(item) {
+                var userName = item["userName"].toLowerCase();
+                if(userName.includes(searchText.toLowerCase())) {
+                    if (item["userName"]) {                               
+                        data.push(item["userName"]);
+                    }                
+                }
+            });
+            return data;
+        }
+
+
+        function massageOwnerEmailData (data, dataFrmApi, searchText) {
+            var users = dataFrmApi;
+            users.forEach(function(item) {
+                var userId = item["userId"].toLowerCase();
+                var userEmail;
+                if (item["userEmail"]) {
+                    userEmail = item["userEmail"].toLowerCase();
+                }
+                if(userId.includes(searchText.toLowerCase()) || userEmail === searchText.toLowerCase()) {                        
+                    if (item["userEmail"]) {                               
+                        data.push(item["userEmail"]);
+                    }             
+                }
+            });
+            return data;
+        }
+
         function massageGroupNameData(data, dataFrmApi, searchText) {
             var group = dataFrmApi;                   
             group.forEach(function(item) {
@@ -140,12 +176,16 @@ angular.module('vault.services.VaultUtility', [])
             return data;
         }
 
-        self.massageDataFrPermissionsDropdown = function(searchFieldName, searchText, dataFrmApi) {
+        self.massageDataFrPermissionsDropdown = function(searchFieldName, searchText, dataFrmApi, forOwner) {
             var data = [];
             if(dataFrmApi !== undefined) {
-                if (searchFieldName === 'userName') {
-                    data = massageUserNameData(data, dataFrmApi, searchText);
-                    
+                if (forOwner) {
+                    data = massageOwnerEmailData(data, dataFrmApi, searchText);
+                } else if (searchFieldName === 'userName' && self.authType.toLowerCase() === 'ldap') {
+                    // massage data for users using corp id
+                    data = massageUserNameDataUsingCorpID(data, dataFrmApi, searchText);
+                } else if (searchFieldName === 'userName' && self.authType.toLowerCase() === 'ldap1900') {
+                    data = massageUserNameData(data, dataFrmApi, searchText);                    
                 } else if (searchFieldName === 'groupName') {
                     data = massageGroupNameData(data, dataFrmApi, searchText);                    
                 }                
