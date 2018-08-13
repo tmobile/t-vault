@@ -162,6 +162,7 @@
             $scope.inputSelected.select = false;
             lastContent = '';
             $scope.showNoMatchingResults = false;
+            $scope.invalidEmail = false;
         }
         // on navigation to details page check owner email field has value, if yes highlight box. 
         $scope.checkOwnerEmailHasValue = function(navigateToDetail) {
@@ -171,6 +172,10 @@
         }
         // function call on input keyup 
         $scope.onKeyUp = function(newVal, variableChanged, forOwner) {
+            if (newVal.length === 0) {
+                return;
+            }
+            $scope.invalidEmail = false;
             $scope.showNoMatchingResults = false;        
             $scope.showInputLoader.show = false;
             $scope.inputSelected.select = false;
@@ -203,14 +208,14 @@
               // check for duplicate values with previous value
             duplicateFilter(newLetter, function(value){
                 $scope.showInputLoader.show = true;
-                $scope.getDropdownDataForPermissions(variableChanged, value);                
+                $scope.getDropdownDataForPermissions(variableChanged, value, forOwner);                
             });          
           }, 500 ); // delay of 500ms provided before making api call
         }
 
-        $scope.getDropdownDataForPermissions = function (searchFieldName, searchFieldText) {      
+        $scope.getDropdownDataForPermissions = function (searchFieldName, searchFieldText, forOwner) {      
             if (searchFieldText.length > 2) {
-                vaultUtilityService.getDropdownDataForPermissions(searchFieldName, searchFieldText).then(function (res, error) {
+                vaultUtilityService.getDropdownDataForPermissions(searchFieldName, searchFieldText, forOwner).then(function (res, error) {
                     var serviceData;
                     if (res) {
                         serviceData = res;
@@ -220,7 +225,7 @@
                         if (serviceData.response.data.data.values.length === 0) {
                             $scope.showNoMatchingResults = true;
                         }
-                        massageDataFrPermissionsDropdown(searchFieldName, searchFieldText, serviceData.response.data.data.values);
+                        massageDataFrPermissionsDropdown(searchFieldName, searchFieldText, serviceData.response.data.data.values, forOwner);
                         $scope.$apply();
                     } else {
                         serviceData = error;
@@ -260,21 +265,21 @@
                 }
             }
         }
-        var massageDataFrPermissionsDropdown = function (searchFieldName, searchFieldText, dataFrmApi) {
-            var serviceData = vaultUtilityService.massageDataFrPermissionsDropdown(searchFieldName, searchFieldText, dataFrmApi);
+        var massageDataFrPermissionsDropdown = function (searchFieldName, searchFieldText, dataFrmApi, forOwner) {
+            var serviceData = vaultUtilityService.massageDataFrPermissionsDropdown(searchFieldName, searchFieldText, dataFrmApi, forOwner);
             $scope.showInputLoader.show = false;
                if (searchFieldName === 'userName') {
                     $scope.userNameDropdownVal = serviceData.sort();
-                    initiateAutoComplete(searchFieldName, $scope.userNameDropdownVal);
+                    initiateAutoComplete(searchFieldName, $scope.userNameDropdownVal, forOwner);
                 } else if (searchFieldName === 'groupName') {
                     $scope.groupNameDropdownVal = serviceData.sort();
-                    initiateAutoComplete(searchFieldName, $scope.groupNameDropdownVal);
+                    initiateAutoComplete(searchFieldName, $scope.groupNameDropdownVal, forOwner);
                 }        
            
             $rootScope.loadingDropDownData = false;
         }
 
-        var initiateAutoComplete = function(searchFieldName, data) {
+        var initiateAutoComplete = function(searchFieldName, data, forOwner) {
             var id;
             if (searchFieldName === "userName") {
                 id = '#addUser';
@@ -295,14 +300,17 @@
                         var selectedName = ui.item.value.toLowerCase();
                         if (selectedName.includes(".com")) {
                             event.preventDefault();
-                            if (searchFieldName === "userName") {
+                            if ($scope.autoCompleteforOwner) {
+                                this.value = ui.item.value;
+                            }else if (searchFieldName === "userName") {
                                 this.value = ui.item.value.split(' - ')[1];
                             } else if (searchFieldName === "groupName") {
                                 this.value = ui.item.value.split(' - ')[0];
                             }                 
                         }
                         $scope.inputSelected.select = true; 
-                        $scope.showNoMatchingResults = false;                  
+                        $scope.showNoMatchingResults = false;  
+                        $scope.invalidEmail = false;                
                         $(id).blur();                     
                         $scope.$apply();
                     },
@@ -497,7 +505,13 @@
 
         $scope.createSafe = function () {
             if ($scope.safeCreated === true) {
-                $scope.editSafe();
+                if(!angular.equals($scope.safePrevious, $scope.safe)) {
+                    $scope.editSafe();
+                } else {                    
+                    $rootScope.showDetails = false;               // To show the 'permissions' and hide the 'details'
+                    $rootScope.activeDetailsTab = 'permissions';
+                    $scope.isLoadingData = false;
+                }
             }
             else if ($scope.dropDownOptions.selectedGroupOption.type === "Select Type") {
                 $rootScope.noTypeSelected = true;
@@ -523,6 +537,7 @@
                                     currentSafesList.push($scope.safe.name);
                                     SessionStore.setItem("allSafes", JSON.stringify(currentSafesList));
                                     Notifications.toast($scope.safe.name + ' safe' + notification);
+                                    $scope.safePrevious = angular.copy($scope.safe);
                                 } catch (e) {
                                     console.log(e);
                                     $scope.isLoadingData = false;
@@ -566,6 +581,7 @@
                                 $rootScope.activeDetailsTab = 'permissions';
                                 var notification = UtilityService.getAParticularSuccessMessage('MESSAGE_UPDATE_SUCCESS');
                                 Notifications.toast($scope.safe.name + ' safe' + notification);
+                                $scope.safePrevious = angular.copy($scope.safe);
                             } catch (e) {
                                 console.log(e);
                                 $scope.isLoadingData = false;
@@ -596,19 +612,27 @@
 
 
         $rootScope.goToPermissions = function () {
-            $timeout(function () {
-                if ($scope.isEditSafe) {
-                    $rootScope.showDetails = false;               // To show the 'permissions' and hide the 'details'
-                    $rootScope.activeDetailsTab = 'permissions';
-                    if(!angular.equals($scope.safePrevious, $scope.safe)){
-                        $scope.editSafe();
-                    }                        
-                }
-                else {
-                    $rootScope.noTypeSelected = false;
-                    $scope.createSafe();
-                }
-            })
+            $scope.invalidEmail = false;
+            $scope.showNoMatchingResults = false;
+            var emailPattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/;
+            var emailInput = document.getElementById('addOwnerEmail').value;
+            if (!emailPattern.test(emailInput)) {
+                $scope.invalidEmail = true;
+            } else {
+                $timeout(function () {
+                    if ($scope.isEditSafe) {
+                        $rootScope.showDetails = false;               // To show the 'permissions' and hide the 'details'
+                        $rootScope.activeDetailsTab = 'permissions';
+                        if(!angular.equals($scope.safePrevious, $scope.safe)){
+                            $scope.editSafe();
+                        }                        
+                    }
+                    else {
+                        $rootScope.noTypeSelected = false;
+                        $scope.createSafe();
+                    }
+                })
+            }
         }
 
 

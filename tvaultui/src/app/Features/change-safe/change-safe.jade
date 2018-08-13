@@ -80,8 +80,8 @@ script(src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"
             nav-bar(active-tab="details" gotoPage="goToPage" nav-tags="detailsNavTags" ng-if="activeDetailsTab == 'details' ")
             nav-bar(active-tab="permissions" gotoPage="goToPage" nav-tags="detailsNavTags" ng-if="activeDetailsTab == 'permissions' " ng-click='checkOwnerEmailHasValue("details")')            
       .page-content-container(ng-class="{'no-tabs-body' : showDetails}" ng-cloak="")
-          .page-content-container.details(ng-if="showDetails" ng-cloak="" ng-show="showDetails")
-              form.row(name="createSafeDetails" ng-submit="goToPermissions()" autocomplete="off")
+          .page-content-container.details(ng-if="showDetails" ng-cloak="" )
+              form.row(name="createSafeDetails" ng-submit="goToPermissions()" autocomplete="off" novalidate)
                 .page-content-container
                   .clearfix.details-wrapper
                     loading-state(ng-if='isLoadingData')
@@ -96,6 +96,7 @@ script(src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"
                                 .status-text.available(ng-if = "!isEditSafe && similarSafes === 0 && safe.name.length !== 0 && !typeDropdownDisable") Available
                                 .status-text.exists(ng-if = "!isEditSafe && similarSafes !== 0 && similarSafes !== allSafesList.length") Safe Exists
                                 .existance-check(ng-repeat="item in similarSafes = ( allSafesList | filter : safe.name:true ).length") {{similarSafes}}
+                                span.invalid-form(ng-show="createSafeDetails.ownerName.$dirty && createSafeDetails.ownerName.$invalid && createSafeDetails.ownerName.$error.required") Please enter this field
                         .row.middle
                           .common-form-row.clearfix
                             .col-lg-5.col-md-12.col-sm-12.col-xs-12.full-row-fix
@@ -122,11 +123,14 @@ script(src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"
                                         div.delete-title
                                             img.delete-icon(src="../../assets/images/delete.png")
                                     div.autocomplete-mismatch(ng-if='showNoMatchingResults && safe.owner.length > 0') No matching results found.
+                                    span.invalid-form(ng-show="createSafeDetails.ownerEmail.$dirty && createSafeDetails.ownerEmail.$invalid && createSafeDetails.ownerEmail.$error.required") Please enter this field
+                                    span.invalid-form(ng-if="invalidEmail") Please enter valid email address
                         .row
                           .common-form-row.col-lg-12.col-md-12.col-sm-12.col-xs-12
                             .details-input-group
-                              .common-form-label Description
-                              textarea.form-control.input-box-style.details-textarea(ng-model="safe.description" name="description" placeholder="A description about the safe" required)
+                                .common-form-label Description
+                                textarea.form-control.input-box-style.details-textarea(ng-model="safe.description" name="description" placeholder="A description about the safe" required)
+                                span.invalid-form(ng-show="createSafeDetails.description.$dirty && createSafeDetails.description.$invalid && createSafeDetails.description.$error.required") Please enter this field
                     .safe-right-content-container.col-lg-6.col-sm-7#full-height
 
                       .safe-detail-container-block
@@ -137,10 +141,10 @@ script(src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"
                   .clearfix.btn-section
                     .right.col-lg-6.col-md-6.col-sm-6.col-xs-12.bottom-lg-sep.top-lg-sep
                       .right
-                        button.common-btn.btn.btn-primary.btn-lg(type='submit') Next
+                        button.common-btn.btn.btn-primary.btn-lg(type='submit' ng-disabled="createSafeDetails.ownerEmail.$invalid || createSafeDetails.ownerName.$invalid || createSafeDetails.description.$invalid || createSafeDetails.dropdown.$invalid") Next
                       .right.right-sm-sepshowInputLoader
                         button.link-style.common-btn.btn.btn-default.btn-lg.col-lg-6.col-md-6.col-sm-6.col-xs-12(type='button' ng-click="goBack()") Cancel
-          .page-content-container.permissions(ng-if="!showDetails" ng-show="!showDetails" ng-cloak="")
+          .page-content-container.permissions(ng-if="!showDetails" ng-cloak="")
                 md-content
                     md-tabs(md-dynamic-height md-border-bottom)
                         md-tab(label="Users" md-on-select="clearInputValue('addUser')")
