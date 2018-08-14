@@ -17,6 +17,7 @@
 
 package com.tmobile.cso.vault.api.process;
 
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 import org.apache.logging.log4j.LogManager;
@@ -37,6 +38,7 @@ public class RequestValidator {
 	@Autowired
 	private RestProcessor restProcessor;
 	private Logger log = LogManager.getLogger(RequestValidator.class);
+	private final String[] mountPaths = {"apps","shared","users"};
 	public Message validate(final ApiConfig apiConfig,final Map<String, Object> requestParams,String token){
 		Message msg = new Message();
 		switch (apiConfig.getApiEndPoint()){
@@ -126,11 +128,15 @@ public class RequestValidator {
 	}
 	
 	private boolean checkforDuplicateSDB(Map<String, Object> requestParams,String token){	
-		if(requestParams.get("path") !=null){
-			String path = requestParams.get("path").toString().toLowerCase();
-			ResponseEntity<String> valutResponse = restProcessor.get("/metadata/"+path, token);
-			if(valutResponse.getStatusCode().equals(HttpStatus.OK)){
-				return true;
+		if(requestParams.get("data") !=null){
+			LinkedHashMap<String, Object> map = (LinkedHashMap<String, Object>) requestParams.get("data");
+			String sdbName = (String) map.get("name");
+			for (String mountPath : mountPaths) {
+				String path = mountPath + "/" + sdbName;
+				ResponseEntity<String> valutResponse = restProcessor.get("/metadata/"+path, token);
+				if(valutResponse.getStatusCode().equals(HttpStatus.OK)){
+					return true;
+				}
 			}
 			return false;
 		}
