@@ -1,20 +1,23 @@
 script(type='text/ng-template', id='text-input.modal.html')
     .modal-sep.createFolder.montserrat(ng-init="form.inputValue = config.inputValue; form.passwordValue = config.passwordValue")
         .common-header-label.text-center {{config.title}}
-    form.createFolder.left-lg-sep.right-lg-sep(ng-submit="close({inputValue: form.inputValue, passwordValue: form.passwordValue})")
+    form.createFolder.left-lg-sep.right-lg-sep(name="createForm" ng-submit="close({inputValue: form.inputValue, passwordValue: form.passwordValue})")
         .modal-inner-wrapper
             .common-form
                 .common-form-row
                     .details-input-group
                         .common-form-label {{config.inputLabel}}
-                        input.form-control.input-box-style(placeholder="{{config.placeholder}}" restrict-special-char ng-model="form.inputValue" required)
+                        input.form-control.input-box-style(placeholder="{{config.placeholder}}" name='inputValue' ng-pattern="config.inputLabel === 'Key'?'[a-z0-9_]+':''" ng-model="form.inputValue" required)
+                        div.key-acceptance-info(ng-if = 'config.inputLabel === "Key"') Key accepts lowercase alphabets, numbers and underscore only.
+                        div.invalid-form(ng-show="createForm.inputValue.$dirty && createForm.inputValue.$invalid && createForm.inputValue.$error.required") Please enter this field.
                 .common-form-row(ng-if="config.passwordLabel")
                     .details-input-group
-                        .common-form-label {{config.passwordLabel}}
-                        textarea.form-control.input-box-style(placeholder="{{config.passwordPlaceholder}}" ng-model="form.passwordValue" required)
+                        .common-form-label.password-padding {{config.passwordLabel}}
+                        textarea.form-control.input-box-style(name='passwordValue' placeholder="{{config.passwordPlaceholder}}" ng-model="form.passwordValue" required)
+                        div.invalid-form(ng-show="createForm.passwordValue.$dirty && createForm.passwordValue.$invalid && createForm.passwordValue.$error.required") Please enter this field.
         .au-modal-buttons
             .au-inline-buttons
-                button.common-btn.btn.btn-primary.btn-lg(type="submit") {{config.submitLabel}}
+                button.common-btn.btn.btn-primary.btn-lg(type="submit" ng-disabled='createForm.inputValue.$invalid || createForm.passwordValue.$invalid') {{config.submitLabel}}
                 button.link-style.common-btn.btn.btn-default.btn-lg(ng-click="dismiss()") {{config.cancelLabel || 'CANCEL'}}
 
 script(type='text/ng-template', id='stop.modal.html')

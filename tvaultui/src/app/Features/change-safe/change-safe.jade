@@ -122,7 +122,6 @@ script(src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"
                                     div.input-cross.owner-mail(ng-if='inputSelected.select && safe.owner.length > 0' ng-click="clearOwnerEmailInputValue('addOwnerEmail')")                                                
                                         div.delete-title
                                             img.delete-icon(src="../../assets/images/delete.png")
-                                    div.autocomplete-mismatch(ng-if='showNoMatchingResults && safe.owner.length > 0') No matching results found.
                                     span.invalid-form(ng-show="createSafeDetails.ownerEmail.$dirty && createSafeDetails.ownerEmail.$invalid && createSafeDetails.ownerEmail.$error.required") Please enter this field
                                     span.invalid-form(ng-if="invalidEmail") Please enter valid email address
                         .row
