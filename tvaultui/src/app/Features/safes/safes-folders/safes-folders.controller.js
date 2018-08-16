@@ -72,7 +72,7 @@
 
       function createFolder() {
         var folder;
-        return Modal.createModalWithController('text-input.modal.html', {
+        return Modal.createModalWithController('folder-text-input.modal.html', {
           title: 'Create Folder',
           inputLabel: 'Folder Name',
           placeholder: 'Enter folder name',
