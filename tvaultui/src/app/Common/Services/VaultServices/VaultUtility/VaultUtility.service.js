@@ -112,10 +112,10 @@ angular.module('vault.services.VaultUtility', [])
                 }
                 if(userId.includes(searchText.toLowerCase()) || userEmail === searchText.toLowerCase()) {
                         // process to display name with "firstname lastname"
-                        if (item["displayName"].includes(',')) {
-                        userId = item["displayName"].split(',');
-                        userId = userId[1] + " " + userId[0];
-                        }                         
+                        if (item["displayName"] && item["displayName"].includes(',')) {
+                            userId = item["displayName"].split(',');
+                            userId = userId[1] + " " + userId[0];
+                        }
                     if (item["userEmail"]) {                               
                         data.push(userId + ' - ' + item["userEmail"]);
                     } else {
