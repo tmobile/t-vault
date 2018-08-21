@@ -362,6 +362,20 @@ public final class ControllerUtil {
 		}
 		return reqProcessor.process("/auth/aws/roles/update",awsConfigJson,token);
 	}
+	
+	public static Response configureAWSIAMRole(String roleName,String policies,String token ){
+		ObjectMapper objMapper = new ObjectMapper();
+		Map<String,String>configureRoleMap = new HashMap<String,String>();
+		configureRoleMap.put("role", roleName);
+		configureRoleMap.put("policies", policies);
+		String awsConfigJson ="";
+		try {
+			awsConfigJson = objMapper.writeValueAsString(configureRoleMap);
+		} catch (JsonProcessingException e) {
+			log.error(e);
+		}
+		return reqProcessor.process("/auth/aws/iam/roles/update",awsConfigJson,token);
+	}
 
 	
 	

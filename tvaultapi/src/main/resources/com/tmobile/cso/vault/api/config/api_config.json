@@ -512,7 +512,61 @@
         ],
         "outparams":["auth/client_token","auth/policies","access"]
     },
-    
+ 	{"#" : "**** aws iam client configuration ****** ",
+ 	
+    	"apiEndPoint":"/auth/aws/config/configureclient",
+    	"vaultEndPoint":"/auth/aws/config/client",
+    	"method":"POST",
+      	"params":[
+      		{"name":"access_key","required":true},
+      		{"name":"secret_key","required":true}
+        ]
+    },
+ 	{"#" : "**** reads aws iam client configuration ****** ",
+ 	
+    	"apiEndPoint":"/auth/aws/config/readclientconfig",
+    	"vaultEndPoint":"/auth/aws/config/client",
+    	"method":"GET",
+      	"outparams":["data/access_key","data/secret_key"]
+    },
+ 	{"#" : "**** aws iam create STS Role ****** ",
+ 	
+    	"apiEndPoint":"/auth/aws/config/sts/create",
+    	"vaultEndPoint":"/auth/aws/config/sts/<account_id>",
+    	"method":"POST",
+      	"params":[
+      		{"name":"account_id","required":true,"appendToPath":true},
+        	{"name":"sts_role","required":false}
+        ]
+    },
+ 	{"#" : "**** aws iam create IAM Role tag****** ",
+ 	
+    	"apiEndPoint":"/auth/aws/iam/role/create",
+    	"vaultEndPoint":"/auth/aws/role/<role>",
+    	"method":"POST",
+      	"params":[
+      		{"name":"role","required":true,"appendToPath":true},
+        	{"name":"auth_type","required":true},
+        	{"name":"bound_iam_principal_arn","required":true},
+        	{"name":"policies"},
+        	{"name":"resolve_aws_unique_ids"}
+        ]
+    },
+ 	{"#" : "**** aws iam login ****** ",
+ 	
+    	"apiEndPoint":"/auth/aws/iam/login",
+    	"vaultEndPoint":"/auth/aws/login",
+    	"method":"POST",
+      	"params":[
+      		{"name":"iam_http_request_method","required":true},
+        	{"name":"iam_request_url","required":true},
+        	{"name":"iam_request_body","required":true},
+        	{"name":"iam_request_headers"},
+        	{"name":"role"},
+        	{"name":"resolve_aws_unique_ids"}
+        ],
+        "outparams":["auth/client_token","auth/policies","auth/lease_duration"]
+    },
     
  	{"#" : "**** aws group creation ****** ",
  	
@@ -552,10 +606,37 @@
       		{"name":"policies", "required":"true"}
         ]
     },
+     	{"#" : "**** aws role update ****** ",
+ 	
+    	"apiEndPoint":"/auth/aws/iam/roles/update",
+    	"vaultEndPoint":"/auth/aws/role/<role>",
+    	"method":"POST",
+      	"params":[
+      		{"name":"auth_type","value":"iam"},
+      		{"name":"role","required":true, "appendToPath":true},
+      		{"name":"bound_ami_id"},
+      		{"name":"bound_account_id"},
+      		{"name":"bound_region"},
+      		{"name":"bound_vpc_id"},
+      		{"name":"bound_subnet_id"},
+      		{"name":"bound_iam_role_arn"},
+      		{"name":"bound_iam_instance_profile_arn"},
+      		{"name":"policies", "required":"true"}
+        ]
+    },
     
     {"#" : "**** aws role delete ****** ",
  	
     	"apiEndPoint":"/auth/aws/roles/delete",
+    	"vaultEndPoint":"/auth/aws/role/<role>",
+    	"method":"DELETE",
+      	"params":[
+      		{"name":"role","required":true, "appendToPath":true}
+        ]
+    },
+    {"#" : "**** aws iam role delete ****** ",
+ 	
+    	"apiEndPoint":"/auth/aws/iam/roles/delete",
     	"vaultEndPoint":"/auth/aws/role/<role>",
     	"method":"DELETE",
       	"params":[
@@ -577,10 +658,30 @@
          			  "data/bound_subnet_id","data/bound_region",
          			  "data/policies"]
     },
-    
+     {"#" : "**** Fetch aws iam role info  ****** ",
+ 	
+    	"apiEndPoint":"/auth/aws/iam/roles",
+    	"vaultEndPoint":"/auth/aws/role/<role>",
+    	"method":"GET",
+      	"params":[
+      		{"name":"role","required":true, "appendToPath":true}
+        ],
+         "outparams":["data/bound_ami_id","data/role_tag","data/policies",
+         			  "data/bound_iam_principal_arn",
+         			  "data/max_ttl","data/disallow_reauthentication",
+         			  "data/allow_instance_migration"
+         			  ]
+    },
     {"#" : "**** Fetch aws roles  ****** ",
  	
     	"apiEndPoint":"/auth/aws/roles/list",
+    	"vaultEndPoint":"/auth/aws/roles?list=true",
+    	"method":"GET",
+         "outparams":["data/keys"]
+    },
+    {"#" : "**** Fetch aws iam roles  ****** ",
+ 	
+    	"apiEndPoint":"/auth/aws/iam/roles/list",
     	"vaultEndPoint":"/auth/aws/roles?list=true",
     	"method":"GET",
          "outparams":["data/keys"]
