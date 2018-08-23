@@ -16,6 +16,9 @@ public class AWSIAMRole implements Serializable {
 	private String role;
 	private String auth_type;
 	private String bound_iam_principal_arn;
+	private String inferred_entity_type;
+	private String inferred_aws_region;
+	private String bound_iam_role_arn;
 	private String[] policies;
 	private Boolean resolve_aws_unique_ids;
 
@@ -78,6 +81,42 @@ public class AWSIAMRole implements Serializable {
 	 */
 	public void setResolve_aws_unique_ids(Boolean resolve_aws_unique_ids) {
 		this.resolve_aws_unique_ids = resolve_aws_unique_ids;
+	}
+	/**
+	 * @return the bound_iam_role_arn
+	 */
+	public String getBound_iam_role_arn() {
+		return bound_iam_role_arn;
+	}
+	/**
+	 * @param bound_iam_role_arn the bound_iam_role_arn to set
+	 */
+	public void setBound_iam_role_arn(String bound_iam_role_arn) {
+		this.bound_iam_role_arn = bound_iam_role_arn;
+	}
+	/**
+	 * @return the inferred_entity_type
+	 */
+	public String getInferred_entity_type() {
+		return inferred_entity_type;
+	}
+	/**
+	 * @param inferred_entity_type the inferred_entity_type to set
+	 */
+	public void setInferred_entity_type(String inferred_entity_type) {
+		this.inferred_entity_type = inferred_entity_type;
+	}
+	/**
+	 * @return the inferred_aws_region
+	 */
+	public String getInferred_aws_region() {
+		return inferred_aws_region;
+	}
+	/**
+	 * @param inferred_aws_region the inferred_aws_region to set
+	 */
+	public void setInferred_aws_region(String inferred_aws_region) {
+		this.inferred_aws_region = inferred_aws_region;
 	}
 
 	
