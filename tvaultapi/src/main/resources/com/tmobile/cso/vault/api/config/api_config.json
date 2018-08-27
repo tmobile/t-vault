@@ -546,8 +546,8 @@
     	"method":"POST",
       	"params":[
       		{"name":"role","required":true,"appendToPath":true},
-        	{"name":"auth_type","required":true},
-        	{"name":"bound_iam_principal_arn","required":true},
+        	{"name":"auth_type"},
+        	{"name":"bound_iam_principal_arn"},
         	{"name":"bound_iam_role_arn"},
         	{"name":"inferred_entity_type"},
         	{"name":"inferred_aws_region"},
