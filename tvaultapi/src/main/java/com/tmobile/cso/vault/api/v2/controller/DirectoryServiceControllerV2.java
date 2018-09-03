@@ -36,12 +36,11 @@ import io.swagger.annotations.ApiParam;
 
 public class DirectoryServiceControllerV2 {
 
-
-
 	@Autowired
 	private DirectoryService directoryService;
 
 	@ApiOperation(value = "${DirectoryServiceControllerV2.searchByUPN.value}", notes = "${DirectoryServiceControllerV2.searchByUPN.notes}")
+	
 	@GetMapping(value="/v2/ldap/users",produces="application/json")
 	public ResponseEntity<DirectoryObjects> searchByUPN(@ApiParam(name="UserPrincipalName", defaultValue="") 
 	@RequestParam(name="UserPrincipalName", defaultValue="") String userPrincipalName ){
