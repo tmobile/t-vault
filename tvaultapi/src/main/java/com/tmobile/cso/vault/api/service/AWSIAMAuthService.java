@@ -102,7 +102,7 @@ public class AWSIAMAuthService {
 	}
 
 	/**
-	 * 
+	 * Gets the registered role
 	 * @param token
 	 * @param role
 	 * @return
@@ -113,7 +113,7 @@ public class AWSIAMAuthService {
 		return ResponseEntity.status(response.getHttpstatus()).body(response.getResponse());	
 	}
 	/**
-	 * 
+	 * Gets the list of registered roles
 	 * @param token
 	 * @return
 	 */
@@ -123,7 +123,7 @@ public class AWSIAMAuthService {
 	}
 
 	/**
-	 * 
+	 * deletes a registered role
 	 * @param token
 	 * @param role
 	 * @return
@@ -138,7 +138,7 @@ public class AWSIAMAuthService {
 		}
 	}
 	/**
-	 * 
+	 * Logs in 
 	 * @param awsiamLogin
 	 * @param token
 	 * @return
