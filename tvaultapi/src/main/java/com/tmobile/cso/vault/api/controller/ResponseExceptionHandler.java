@@ -26,6 +26,8 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.NoHandlerFoundException;
 
+import com.tmobile.cso.vault.api.exception.TVaultValidationException;
+
 @ControllerAdvice
 public class ResponseExceptionHandler {
 	 
@@ -49,7 +51,11 @@ public class ResponseExceptionHandler {
 	   	return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\""+ ex.getMessage()+"\"]}");
 	 }
 	 
-	 
+	 @ExceptionHandler(TVaultValidationException.class)
+	 protected ResponseEntity<Object> handleException(TVaultValidationException ex, WebRequest request) {
+		   	ex.printStackTrace();
+		   	return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\""+ ex.getMessage()+"\"]}");
+		 }
 	 @ExceptionHandler(Exception.class)
 	 protected ResponseEntity<Object> handleException(Exception ex, WebRequest request) {
 	   	ex.printStackTrace();

@@ -18,6 +18,7 @@
 package com.tmobile.cso.vault.api.v2.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -29,8 +30,15 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.tmobile.cso.vault.api.controller.ControllerUtil;
+import com.tmobile.cso.vault.api.exception.TVaultValidationException;
+import com.tmobile.cso.vault.api.model.AWSAuthLogin;
+import com.tmobile.cso.vault.api.model.AWSAuthType;
+import com.tmobile.cso.vault.api.model.AWSClientConfiguration;
+import com.tmobile.cso.vault.api.model.AWSIAMLogin;
 import com.tmobile.cso.vault.api.model.AWSLogin;
 import com.tmobile.cso.vault.api.model.AWSLoginRole;
+import com.tmobile.cso.vault.api.model.AWSStsRole;
 import com.tmobile.cso.vault.api.service.AWSAuthService;
 
 import io.swagger.annotations.Api;
@@ -49,10 +57,10 @@ public class AWSAuthControllerV2 {
 	 * @param login
 	 * @return
 	 */
-	@ApiOperation(value = "${AWSAuthControllerV2.authenticateLdap.value}", notes = "${AWSAuthControllerV2.authenticateLdap.notes}")
+	@ApiOperation(value = "${AWSAuthControllerV2.authenticateEC2.value}", notes = "${AWSAuthControllerV2.authenticateEC2.notes}")
 	@PostMapping(value="/v2/auth/aws/login",consumes="application/json",produces="application/json")
-	public ResponseEntity<String> authenticateLdap( @RequestBody AWSLogin login){
-		return awsAuthService.authenticateLdap(login);
+	public ResponseEntity<String> authenticateEC2( @RequestBody AWSLogin login){
+		return awsAuthService.authenticateEC2(login);
 	}
 	/**
 	 * Method to create an aws app role
@@ -62,7 +70,7 @@ public class AWSAuthControllerV2 {
 	 */
 	@ApiOperation(value = "${AWSAuthControllerV2.createRole.value}", notes = "${AWSAuthControllerV2.createRole.notes}")
 	@PostMapping(value="/v2/auth/aws/role",consumes="application/json",produces="application/json")
-	public ResponseEntity<String> createRole(@RequestHeader(value="vault-token") String token, @RequestBody AWSLoginRole awsLoginRole){
+	public ResponseEntity<String> createRole(@RequestHeader(value="vault-token") String token, @RequestBody AWSLoginRole awsLoginRole) throws TVaultValidationException {
 		return awsAuthService.createRole(token, awsLoginRole);
 	}
 	/**
@@ -73,7 +81,7 @@ public class AWSAuthControllerV2 {
 	 */
 	@ApiOperation(value = "${AWSAuthControllerV2.updateRole.value}", notes = "${AWSAuthControllerV2.updateRole.notes}")
 	@PutMapping(value="/v2/auth/aws/role",consumes="application/json",produces="application/json")
-	public ResponseEntity<String> updateRole(@RequestHeader(value="vault-token") String token, @RequestBody AWSLoginRole awsLoginRole){
+	public ResponseEntity<String> updateRole(@RequestHeader(value="vault-token") String token, @RequestBody AWSLoginRole awsLoginRole) throws TVaultValidationException {
 		return awsAuthService.updateRole(token, awsLoginRole);
 	}
 	/**
@@ -114,4 +122,62 @@ public class AWSAuthControllerV2 {
 	public ResponseEntity<String> listRoles(@RequestHeader(value="vault-token") String token){
 		return awsAuthService.listRoles(token);
 	}
+
+	/**
+	 * 
+	 * @param token
+	 * @param awsClientConfiguration
+	 * @return
+	 */
+	@ApiOperation(value = "${AWSIAMAuthControllerV2.configureClient.value}", notes = "${AWSIAMAuthControllerV2.configureClient.notes}")
+	@PostMapping(value="/v2/auth/aws/config/client",consumes="application/json",produces="application/json")
+	public ResponseEntity<String> configureClient(@RequestHeader(value="vault-token") String token, @RequestBody AWSClientConfiguration awsClientConfiguration){
+		return awsAuthService.configureClient(awsClientConfiguration, token);
+	}
+	/**
+	 * 
+	 * @param token
+	 * @return
+	 */
+	@ApiOperation(value = "${AWSIAMAuthControllerV2.readClientConfiguration.value}", notes = "${AWSIAMAuthControllerV2.readClientConfiguration.notes}")
+	@GetMapping(value="/v2/auth/aws/config/client",produces="application/json")
+	public ResponseEntity<String> readConfiguration(@RequestHeader(value="vault-token") String token){
+		return awsAuthService.readClientConfiguration(token);
+	}
+	/**
+	 * 
+	 * @param token
+	 * @param awsStsRole
+	 * @return
+	 */
+	@ApiOperation(value = "${AWSIAMAuthControllerV2.createStsRole.value}", notes = "${AWSIAMAuthControllerV2.createStsRole.notes}")
+	@PostMapping(value="/v2/auth/aws/config/sts",produces="application/json")
+	public ResponseEntity<String> createSTSRole(@RequestHeader(value="vault-token") String token, @RequestBody AWSStsRole awsStsRole){
+		return awsAuthService.createSTSRole(awsStsRole, token);
+	}
+	
+	/**
+	 * 
+	 * @param token
+	 * @param awsiamLogin
+	 * @return
+	 */
+	@ApiOperation(value = "${AWSIAMAuthControllerV2.authenticateIAM.value}", notes = "${AWSIAMAuthControllerV2.authenticateIAM.notes}")
+	@PostMapping(value="/v2/auth/aws/iam/login",produces="application/json")
+	public ResponseEntity<String> authenticateIAM(@RequestBody AWSIAMLogin awsiamLogin){
+		return awsAuthService.authenticateIAM(awsiamLogin);
+	}
+	
+	/**
+	 * 
+	 * @param token
+	 * @param awsiamLogin
+	 * @return
+	 */
+	@ApiOperation(value = "${AWSIAMAuthControllerV2.authenticateAWS.value}", notes = "${AWSIAMAuthControllerV2.authenticateAWS.notes}")
+	@PostMapping(value="/v2/auth/aws/login/{authType}",produces="application/json")
+	public ResponseEntity<String> authenticate(@PathVariable("authType" ) AWSAuthType authType, @RequestBody AWSAuthLogin awsAuthLogin){
+		return awsAuthService.authenticate(authType, awsAuthLogin);
+	}
+	
 }

@@ -29,16 +29,19 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tmobile.cso.vault.api.controller.ControllerUtil;
+import com.tmobile.cso.vault.api.exception.TVaultValidationException;
+import com.tmobile.cso.vault.api.model.AWSAuthLogin;
+import com.tmobile.cso.vault.api.model.AWSAuthType;
+import com.tmobile.cso.vault.api.model.AWSClientConfiguration;
+import com.tmobile.cso.vault.api.model.AWSIAMLogin;
 import com.tmobile.cso.vault.api.model.AWSLogin;
 import com.tmobile.cso.vault.api.model.AWSLoginRole;
+import com.tmobile.cso.vault.api.model.AWSStsRole;
 import com.tmobile.cso.vault.api.process.RequestProcessor;
 import com.tmobile.cso.vault.api.process.Response;
 import com.tmobile.cso.vault.api.utils.JSONUtil;
@@ -61,7 +64,7 @@ public class  AWSAuthService {
 	 * @param login
 	 * @return
 	 */
-	public ResponseEntity<String> authenticateLdap(AWSLogin login){
+	public ResponseEntity<String> authenticateEC2(AWSLogin login){
 		String jsonStr = JSONUtil.getJSON(login);
 		if(jsonStr.toLowerCase().contains("nonce")){
 			return ResponseEntity.badRequest().body("{\"errors\":[\"Not a valid request. Parameter 'nonce' is not expected \"]}");
@@ -87,7 +90,11 @@ public class  AWSAuthService {
 	 * @param awsLoginRole
 	 * @return
 	 */
-	public ResponseEntity<String> createRole(String token, AWSLoginRole awsLoginRole){
+	public ResponseEntity<String> createRole(String token, AWSLoginRole awsLoginRole) throws TVaultValidationException{
+		if (!ControllerUtil.areAWSEC2RoleInputsValid(awsLoginRole)) {
+			//return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid inputs for the given aws login type");
+			throw new TVaultValidationException("Invalid inputs for the given aws login type");
+		}
 		String jsonStr = JSONUtil.getJSON(awsLoginRole);
 		ObjectMapper objMapper = new ObjectMapper();
 		String currentPolicies = "";
@@ -121,7 +128,11 @@ public class  AWSAuthService {
 	 * @param awsLoginRole
 	 * @return
 	 */
-	public ResponseEntity<String> updateRole(String token, AWSLoginRole awsLoginRole){
+	public ResponseEntity<String> updateRole(String token, AWSLoginRole awsLoginRole) throws TVaultValidationException{
+		if (!ControllerUtil.areAWSEC2RoleInputsValid(awsLoginRole)) {
+			//return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid inputs for the given aws login type");
+			throw new TVaultValidationException("Invalid inputs for the given aws login type");
+		}
 		String jsonStr = JSONUtil.getJSON(awsLoginRole);
 		ObjectMapper objMapper = new ObjectMapper();
 		String currentPolicies = "";
@@ -205,5 +216,109 @@ public class  AWSAuthService {
 	public ResponseEntity<String> listRoles(String token){
 		Response response = reqProcessor.process("/auth/aws/roles/list","{}",token);
 		return ResponseEntity.status(response.getHttpstatus()).body(response.getResponse());	
+	}
+	
+	
+	/**
+	 * Configures the credentials required to perform API calls to AWS as well as custom endpoints to talk to AWS APIs.
+	 * @param awsClientConfiguration
+	 * @return
+	 */
+	public ResponseEntity<String> configureClient(AWSClientConfiguration awsClientConfiguration, String token){
+		String jsonStr = JSONUtil.getJSON(awsClientConfiguration);
+		Response response = reqProcessor.process("/auth/aws/config/configureclient",jsonStr, token);
+		if(response.getHttpstatus().equals(HttpStatus.NO_CONTENT)){
+			return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"AWS Client successfully configured \"]}");
+		}else{
+			return ResponseEntity.status(response.getHttpstatus()).body(response.getResponse());
+		}
+	}
+	/**
+	 * Returns the configured AWS client access credentials.
+	 * @param awsClientConfiguration
+	 * @return
+	 */
+	public ResponseEntity<String> readClientConfiguration(String token){
+		Response response = reqProcessor.process("/auth/aws/config/readclientconfig","{}", token);
+		return ResponseEntity.status(response.getHttpstatus()).body(response.getResponse());
+	}
+
+	/**
+	 * Allows the explicit association of STS roles to satellite AWS accounts
+	 * @param awsStsRole
+	 * @param token
+	 * @return
+	 */
+	public ResponseEntity<String> createSTSRole(AWSStsRole awsStsRole, String token){
+		String jsonStr = JSONUtil.getJSON(awsStsRole);
+		Response response = reqProcessor.process("/auth/aws/config/sts/create",jsonStr, token);
+		if(response.getHttpstatus().equals(HttpStatus.NO_CONTENT)){ 
+			return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"STS Role created successfully \"]}");
+		}else{
+			return ResponseEntity.status(response.getHttpstatus()).body(response.getResponse());
+		}
+	}
+	
+	/**
+	 * Logs in using IAM credentials
+	 * @param awsiamLogin
+	 * @param token
+	 * @return
+	 */
+	public ResponseEntity<String> authenticateIAM(AWSIAMLogin awsiamLogin){
+		String jsonStr = JSONUtil.getJSON(awsiamLogin);
+		Response response = reqProcessor.process("/auth/aws/iam/login",jsonStr,"");
+		if(HttpStatus.OK.equals(response.getHttpstatus())) {
+			return ResponseEntity.status(response.getHttpstatus()).body(response.getResponse());
+		}
+		else {
+			return ResponseEntity.status(response.getHttpstatus()).body(response.getResponse());
+		}
+	}
+	/**
+	 * 
+	 * @param authType
+	 * @param awsAuthLogin
+	 * @return
+	 */
+	public ResponseEntity<String> authenticate(AWSAuthType authType, AWSAuthLogin awsAuthLogin){
+		if (ControllerUtil.areAwsLoginInputsValid(authType, awsAuthLogin)) {
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid inputs for the given aws login type");
+		}
+		if (AWSAuthType.EC2.equals(authType) ) {
+			AWSLogin login = generateAWSEC2Login(awsAuthLogin);
+			return authenticateEC2(login);
+		}
+		else if (AWSAuthType.IAM.equals(authType)) {
+			AWSIAMLogin awsiamLogin = generateIAMLogin(awsAuthLogin);
+			return authenticateIAM(awsiamLogin);
+		}
+		else {
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid Authentication type. Authentication type has to be either ec2 or iam");
+		}
+	}
+	/**
+	 * 
+	 * @param awsAuthLogin
+	 * @return
+	 */
+	private AWSLogin generateAWSEC2Login(AWSAuthLogin awsAuthLogin) {
+		AWSLogin login = new AWSLogin();
+		login.setPkcs7(awsAuthLogin.getPkcs7());
+		login.setRole(awsAuthLogin.getRole());
+		return login;
+	}
+	/**
+	 * 
+	 * @param awsAuthLogin
+	 * @return
+	 */
+	private AWSIAMLogin generateIAMLogin(AWSAuthLogin awsAuthLogin) {
+		AWSIAMLogin awsiamLogin  = new AWSIAMLogin();
+		awsiamLogin.setIam_http_request_method(awsAuthLogin.getIam_http_request_method());
+		awsiamLogin.setIam_request_body(awsAuthLogin.getIam_request_body());
+		awsiamLogin.setIam_request_headers(awsAuthLogin.getIam_request_headers());
+		awsiamLogin.setIam_request_url(awsAuthLogin.getIam_request_url());
+		return awsiamLogin;
 	}
 }

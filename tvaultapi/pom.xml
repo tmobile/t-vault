@@ -15,8 +15,8 @@
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
 		<version>1.5.2.RELEASE</version>
-		<relativePath/> <!-- lookup parent from repository -->
-		
+		<relativePath /> <!-- lookup parent from repository -->
+
 	</parent>
 
 	<properties>
@@ -26,21 +26,19 @@
 	</properties>
 
 	<dependencies>
-	
-	
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-web</artifactId>
 			<exclusions>
-        	<exclusion>
-            	<groupId>org.springframework.boot</groupId>
-            	<artifactId>spring-boot-starter-logging</artifactId>
-        	</exclusion>
-    </exclusions>
+				<exclusion>
+					<groupId>org.springframework.boot</groupId>
+					<artifactId>spring-boot-starter-logging</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 		<dependency>
-  			<groupId>org.apache.httpcomponents</groupId>
-  			<artifactId>httpclient</artifactId>
+			<groupId>org.apache.httpcomponents</groupId>
+			<artifactId>httpclient</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
@@ -48,8 +46,8 @@
 			<scope>test</scope>
 		</dependency>
 		<dependency>
-   			 <groupId>org.springframework.boot</groupId>
-   			 <artifactId>spring-boot-starter-log4j2</artifactId>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-log4j2</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>io.springfox</groupId>
@@ -71,20 +69,25 @@
 			<artifactId>spring-data-ldap</artifactId>
 			<version>1.0.6.RELEASE</version>
 		</dependency>
+		<dependency>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-lang3</artifactId>
+			<version>3.4</version>
+		</dependency>
 	</dependencies>
-	
+
 	<build>
 		<plugins>
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
 				<configuration>
-       				 <executable>true</executable>
-       				 <finalName>tvaultapi</finalName>
-				 <addResources>true</addResources>
-   				</configuration>
+					<executable>true</executable>
+					<finalName>tvaultapi</finalName>
+					<addResources>true</addResources>
+				</configuration>
 			</plugin>
-			
+
 		</plugins>
 	</build>
 

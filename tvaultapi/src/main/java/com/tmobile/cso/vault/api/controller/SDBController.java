@@ -1187,7 +1187,7 @@ public class SDBController {
 			}
 			Response roleResponse = reqProcessor.process("/auth/aws/roles","{\"role\":\""+role+"\"}",token);
 			String responseJson="";
-		
+			String auth_type = "ec2";
 			String policies ="";
 			String currentpolicies ="";
 			
@@ -1198,6 +1198,7 @@ public class SDBController {
 						for(JsonNode policyNode : policiesArry){
 							currentpolicies =	(currentpolicies == "" ) ? currentpolicies+policyNode.asText():currentpolicies+","+policyNode.asText();
 						}
+						auth_type = objMapper.readTree(responseJson).get("auth_type").asText();
 					} catch (IOException e) {
 						log.error(e);
 					}
@@ -1209,8 +1210,13 @@ public class SDBController {
 			}else{
 				return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body("{\"errors\":[\"Non existing role name. Please configure it as first step\"]}");
 			}
-			
-			Response ldapConfigresponse = ControllerUtil.configureAWSRole(role,policies,token);
+			Response ldapConfigresponse = null;
+			if ("iam".equals(auth_type)) {
+				ldapConfigresponse = ControllerUtil.configureAWSIAMRole(role,policies,token);
+			}
+			else {
+				ldapConfigresponse = ControllerUtil.configureAWSRole(role,policies,token);
+			}
 			if(ldapConfigresponse.getHttpstatus().equals(HttpStatus.NO_CONTENT)){ 
 				Map<String,String> params = new HashMap<String,String>();
 				params.put("type", "aws-roles");

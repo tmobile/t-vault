@@ -29,9 +29,11 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Stream;
 
 import javax.annotation.PostConstruct;
 
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -48,6 +50,11 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
 import com.tmobile.cso.vault.api.exception.LogMessage;
+import com.tmobile.cso.vault.api.exception.TVaultValidationException;
+import com.tmobile.cso.vault.api.model.AWSAuthLogin;
+import com.tmobile.cso.vault.api.model.AWSAuthType;
+import com.tmobile.cso.vault.api.model.AWSIAMRole;
+import com.tmobile.cso.vault.api.model.AWSLoginRole;
 import com.tmobile.cso.vault.api.model.AppRole;
 import com.tmobile.cso.vault.api.model.AppRoleSecretData;
 import com.tmobile.cso.vault.api.model.Safe;
@@ -893,7 +900,11 @@ public final class ControllerUtil {
 			return secretKey;
 		}
 	}
-	
+	/**
+	 * 
+	 * @param jsonString
+	 * @return
+	 */
 	private static ArrayList<String> getSecretKeys(String jsonString) {
 		ArrayList<String> secretKeys = new ArrayList<String>() ;
 		try {
@@ -911,7 +922,11 @@ public final class ControllerUtil {
 			return secretKeys;
 		}
 	}
-	
+	/**
+	 * 
+	 * @param jsonString
+	 * @return
+	 */
 	public static String  addDefaultSecretKey(String jsonString) {
 		try {
 			Map<String, Object> requestParams = new ObjectMapper().readValue(jsonString, new TypeReference<Map<String, Object>>(){});
@@ -927,5 +942,87 @@ public final class ControllerUtil {
 		} catch (IOException e) {
 			return jsonString;
 		}
+	}
+	/**
+	 * Validate the AWS Login inputs
+	 * @param authType
+	 * @return
+	 */
+	public static boolean areAwsLoginInputsValid(AWSAuthType authType, AWSAuthLogin awsAuthLogin) {
+		if (awsAuthLogin == null) {
+			return false;
+		}
+		if (StringUtils.isEmpty(awsAuthLogin.getRole())) {
+			return false;
+		}
+				
+		if (AWSAuthType.EC2.equals(authType)) {
+			if (!StringUtils.isEmpty(awsAuthLogin.getPkcs7())) {
+				return true;
+			}
+		}
+		else if (AWSAuthType.IAM.equals(authType)) {
+			if (!StringUtils.isEmpty(awsAuthLogin.getIam_http_request_method()) || !StringUtils.isEmpty(awsAuthLogin.getIam_request_body())
+					|| !StringUtils.isEmpty(awsAuthLogin.getIam_request_headers()) || !StringUtils.isEmpty(awsAuthLogin.getIam_request_url())
+					) {
+				return true;
+			}
+		}
+		return false;
+	}
+	/**
+	 * validate EC2Role inputs
+	 * @param awsLoginRole
+	 * @return
+	 */
+	public static boolean areAWSEC2RoleInputsValid(AWSLoginRole awsLoginRole) throws TVaultValidationException {
+		if (awsLoginRole == null) {
+			return false;
+		}
+		if (StringUtils.isEmpty(awsLoginRole.getRole())) {
+			throw new TVaultValidationException("Role is required.");
+		}
+		else if (StringUtils.isEmpty(awsLoginRole.getAuth_type()) || !awsLoginRole.getAuth_type().equalsIgnoreCase("ec2")) {
+			throw new TVaultValidationException("auth_type is required and it should be ec2.");
+		}
+		else if (!StringUtils.isEmpty(awsLoginRole.getBound_account_id()) 
+				|| !StringUtils.isEmpty(awsLoginRole.getBound_ami_id()) 
+				|| !StringUtils.isEmpty(awsLoginRole.getBound_iam_instance_profile_arn()) 
+				|| !StringUtils.isEmpty(awsLoginRole.getBound_iam_role_arn()) 
+				|| !StringUtils.isEmpty(awsLoginRole.getBound_region()) 
+				|| !StringUtils.isEmpty(awsLoginRole.getBound_subnet_id()) 
+				|| !StringUtils.isEmpty(awsLoginRole.getBound_vpc_id()) 
+			) {
+			return true;
+		}
+		throw new TVaultValidationException("At least one bound parameter should be specified.");
+	}
+	/**
+	 * Validate IAM role inputs
+	 * @param awsiamRole
+	 * @return
+	 */
+	public static boolean areAWSIAMRoleInputsValid(AWSIAMRole awsiamRole) throws TVaultValidationException{
+		if (awsiamRole == null) {
+			return false;
+		}
+		if (StringUtils.isEmpty(awsiamRole.getRole())) {
+			throw new TVaultValidationException("Role is required.");
+		}
+		else if (StringUtils.isEmpty(awsiamRole.getAuth_type()) || !awsiamRole.getAuth_type().equalsIgnoreCase("iam")) {
+			throw new TVaultValidationException("auth_type is required and it should be iam.");
+		}
+		else if (ArrayUtils.isNotEmpty(awsiamRole.getBound_iam_principal_arn())
+			) {
+			boolean containsEmptyString = Stream.of(awsiamRole.getBound_iam_principal_arn())
+		            .anyMatch(string -> string == null || string.isEmpty());
+			if(containsEmptyString) {
+				throw new TVaultValidationException("Invalid value specified for bound_iam_principal_arn.");
+			}
+			else {
+				return true;
+			}
+		}
+		throw new TVaultValidationException("Bound parameter should be specified.");
 	}
 }

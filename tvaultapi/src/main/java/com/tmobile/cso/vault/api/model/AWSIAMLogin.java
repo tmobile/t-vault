@@ -18,7 +18,7 @@ package com.tmobile.cso.vault.api.model;
 
 import java.io.Serializable;
 
-public class AWSIAMLogin implements Serializable {
+public class AWSIAMLogin extends AWSAuthLogin implements Serializable {
 
 	/**
 	 * 
