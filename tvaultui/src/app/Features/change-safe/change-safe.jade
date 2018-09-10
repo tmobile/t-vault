@@ -18,42 +18,60 @@ script(type='text/ng-template', id='changeSafePopup.html')
 
           .left-lg-sep.right-lg-sep
             .common-form.modal-inner-wrapper.aws
+              .aws.common-form
+                .common-form-row
+                    .aws-conf.clearfix
+                        .details-input-group
+                            .control-group
+                                .common-form-label AWS Authentication Type
+                                .common-radio-group
+                                    label.control.control--radio EC2
+                                      input(type='radio' id='auth_type' value="ec2" ng-model="awsConfPopupObj.auth_type" ng-checked="awsConfPopupObj.auth_type == 'ec2'" ng-click="enableEc2Controls($event)")
+                                      .control__indicator
+                                    label.control.control--radio IAM
+                                      input(type='radio' id='auth_type' value="iam" ng-model="awsConfPopupObj.auth_type" ng-checked="awsConfPopupObj.auth_type == 'iam'" ng-click="enableIamControls($event)")
+                                      .control__indicator
+
               .common-form-row
                 .details-input-group
                     .common-form-label Role Name
                       span *
-                    input.form-control.input-box-style(value="{{awsConfPopupObj.role}}" restrict-special-char ng-model="awsConfPopupObj.role" placeholder="Role name")
+                    input.form-control.input-box-style(value="{{awsConfPopupObj.role}}" restrict-special-char ng-model="awsConfPopupObj.role" placeholder="Role name" )
               .aws-conf.clearfix
                 .font-type-normal Please fill at least one of the following
 
                 .col-lg-6.col-md-6.col-sm-12.col-xs-12.common-form-row
                   .details-input-group
                     .common-form-label Account ID
-                    input.form-control.input-box-style(value="{{awsConfPopupObj.bound_account_id}}" restrict-special-char placeholder="Account ID" ng-model="awsConfPopupObj.bound_account_id")
+                    input.form-control.input-box-style(value="{{awsConfPopupObj.bound_account_id}}" id="bound_account_id" restrict-special-char placeholder="Account ID" ng-model="awsConfPopupObj.bound_account_id" )
                 .col-lg-6.col-md-6.col-sm-12.col-xs-12.common-form-row
                   .details-input-group
                     .common-form-label Region
-                    input.form-control.input-box-style(value="{{awsConfPopupObj.region}}" restrict-special-char placeholder="Region ID" ng-model="awsConfPopupObj.region")
+                    input.form-control.input-box-style(value="{{awsConfPopupObj.region}}" id="region" restrict-special-char placeholder="Region ID" ng-model="awsConfPopupObj.region")
                 .col-lg-6.col-md-6.col-sm-12.col-xs-12.common-form-row
                   .details-input-group
                     .common-form-label VPC ID
-                    input.form-control.input-box-style(value="{{awsConfPopupObj.bound_vpc_id}}" restrict-special-char placeholder="VPC ID" ng-model="awsConfPopupObj.bound_vpc_id")
+                    input.form-control.input-box-style(value="{{awsConfPopupObj.bound_vpc_id}}" id="bound_vpc_id" restrict-special-char placeholder="VPC ID" ng-model="awsConfPopupObj.bound_vpc_id")
                 .col-lg-6.col-md-6.col-sm-12.col-xs-12.common-form-row
                   .details-input-group
                     .common-form-label Subnet ID
-                    input.form-control.input-box-style(value="{{awsConfPopupObj.bound_subnet_id}}" restrict-special-char placeholder="Subnet ID" ng-model="awsConfPopupObj.bound_subnet_id")
+                    input.form-control.input-box-style(value="{{awsConfPopupObj.bound_subnet_id}}" id="bound_subnet_id" restrict-special-char placeholder="Subnet ID" ng-model="awsConfPopupObj.bound_subnet_id")
                 .col-lg-6.col-md-6.col-sm-12.col-xs-12.common-form-row
                   .details-input-group
                     .common-form-label AMI ID
-                    input.form-control.input-box-style(value="{{awsConfPopupObj.bound_ami_id}}" restrict-special-char placeholder="AMI ID" ng-model="awsConfPopupObj.bound_ami_id")
+                    input.form-control.input-box-style(value="{{awsConfPopupObj.bound_ami_id}}" id="bound_ami_id" restrict-special-char placeholder="AMI ID" ng-model="awsConfPopupObj.bound_ami_id")
                 .col-lg-6.col-md-6.col-sm-12.col-xs-12.common-form-row
                   .details-input-group
                     .common-form-label Instance Profile ARN
-                    input.form-control.input-box-style(value="{{awsConfPopupObj.bound_iam_instance_profile_arn}}" restrict-special-char placeholder="Instance Profile ARN" ng-model="awsConfPopupObj.bound_iam_instance_profile_arn")
+                    input.form-control.input-box-style(value="{{awsConfPopupObj.bound_iam_instance_profile_arn}}" id="bound_iam_instance_profile_arn" restrict-special-char placeholder="Instance Profile ARN" ng-model="awsConfPopupObj.bound_iam_instance_profile_arn")
                 .col-lg-6.col-md-6.col-sm-12.col-xs-12.common-form-row
                   .details-input-group
                     .common-form-label IAM Role ARN
-                    input.form-control.input-box-style(value="{{awsConfPopupObj.bound_iam_role_arn}}" restrict-special-char  placeholder="IAM Role ARN" ng-model="awsConfPopupObj.bound_iam_role_arn")
+                    input.form-control.input-box-style(value="{{awsConfPopupObj.bound_iam_role_arn}}" id="bound_iam_role_arn" restrict-special-char  placeholder="IAM Role ARN" ng-model="awsConfPopupObj.bound_iam_role_arn")
+                .col-lg-6.col-md-6.col-sm-12.col-xs-12.common-form-row
+                  .details-input-group
+                    .common-form-label IAM Principal ARN
+                    input.form-control.input-box-style(value="{{awsConfPopupObj.bound_iam_principal_arn}}" id="bound_iam_principal_arn" restrict-special-char  placeholder="IAM Principal ARN" ng-model="awsConfPopupObj.bound_iam_principal_arn")
                 
               .aws.common-form
                 .common-form-row
@@ -64,7 +82,7 @@ script(type='text/ng-template', id='changeSafePopup.html')
                                 radio-buttons(data="radio" value="awsRadioBtn.value" state="true")
           .text-center.bottom-lg-sep.modal-sep.aws
             .clearfix.bottom-sm-sep
-              button.common-btn.btn.btn-primary.btn-lg(ng-click="addPermission('AwsRoleConfigure', awsConfPopupObj.role, awsRadioBtn.value, false)" ng-disabled="!(awsConfPopupObj.role.length > 0 && (awsConfPopupObj.bound_account_id.length > 0 || awsConfPopupObj.region.length > 0 || awsConfPopupObj.bound_vpc_id.length > 0 || awsConfPopupObj.bound_subnet_id.length > 0 || awsConfPopupObj.bound_ami_id.length > 0 || awsConfPopupObj.bound_iam_instance_profile_arn.length > 0 || awsConfPopupObj.bound_iam_role_arn.length > 0) )" ) {{editingAwsPermission.status == true ? "Update" : "Create"}}
+              button.common-btn.btn.btn-primary.btn-lg(ng-click="addPermission('AwsRoleConfigure', awsConfPopupObj.role, awsRadioBtn.value, false)" ng-disabled="!(awsConfPopupObj.auth_type.length > 0 && awsConfPopupObj.role.length > 0 && (awsConfPopupObj.bound_account_id.length > 0 || awsConfPopupObj.region.length > 0 || awsConfPopupObj.bound_vpc_id.length > 0 || awsConfPopupObj.bound_subnet_id.length > 0 || awsConfPopupObj.bound_ami_id.length > 0 || awsConfPopupObj.bound_iam_instance_profile_arn.length > 0 || awsConfPopupObj.bound_iam_role_arn.length > 0 || awsConfPopupObj.bound_iam_principal_arn.length > 0) )" ) {{editingAwsPermission.status == true ? "Update" : "Create"}}
             .clearfix
               button.link-style.common-btn.btn.btn-default.btn-lg(ng-click="cancel()") Cancel
 
