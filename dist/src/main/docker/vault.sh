@@ -377,13 +377,13 @@ if [[ -z "$initstat" ]]; then
   echo "This only happens once when the server is started against a new backend that has never been used with Vault before."
   echo "During initialization, the encryption keys are generated and 5 unseal keys are created."
 
-  vault init 1> $VHOME/hcorp/vault.init 2>> $INSTLOG
+  vault operator init 1> $VHOME/hcorp/vault.init 2>> $INSTLOG
 
   sleep 2
   echo "Unsealing Vault"
-  vault unseal  $(getkey 1) >> $INSTLOG
-  vault unseal  $(getkey 2) >> $INSTLOG
-  vault unseal  $(getkey 3) >> $INSTLOG
+  vault operator  unseal  $(getkey 1) >> $INSTLOG
+  vault operator  unseal  $(getkey 2) >> $INSTLOG
+  vault operator  unseal  $(getkey 3) >> $INSTLOG
 
 ################################################################################
 # Vault Configuration
@@ -415,23 +415,23 @@ if [[ -z "$initstat" ]]; then
   sleep 5s
   roottoken=$(cat $VHOME/hcorp/vault.init | grep '^Initial Root' | awk '{print $4}')
 
-  vault auth $roottoken >> $INSTLOG
+  vault login $roottoken >> $INSTLOG
 
   echo "Enabling Vault Audit..."
-  vault audit-enable file file_path=$VLOG/tvault-vault_audit.log >> $INSTLOG
+  vault audit enable file file_path=$VLOG/tvault-vault_audit.log >> $INSTLOG
 
   echo "Adding Mount paths..."
-  vault mount -path=apps generic >> $INSTLOG
-  vault mount -path=users generic >> $INSTLOG
-  vault mount -path=shared generic >> $INSTLOG
-  vault mount -path=metadata generic >> $INSTLOG
+  vault secrets enable -path=apps generic >> $INSTLOG
+  vault secrets enable -path=users generic >> $INSTLOG
+  vault secrets enable -path=shared generic >> $INSTLOG
+  vault secrets enable -path=metadata generic >> $INSTLOG
 
   echo "Configuring the Authentication Backend [$AUTH_BACKEND]..." 
   if [[ "$AUTH_BACKEND" == "ldap" ]]; then
      # LDAP...
      echo "Enabling/Configuring LDAP auth..."
-     vault auth-enable ldap >> $INSTLOG
-     vault mount-tune -default-lease-ttl=30m /auth/ldap >> $INSTLOG
+     vault auth enable ldap >> $INSTLOG
+     vault secrets tune -default-lease-ttl=30m /auth/ldap >> $INSTLOG
      if [[ "$USE_UPNDOMAIN" == "yes" ]]; then
         echo "Using UPN Domain:"
         vault write auth/ldap/config url=$LDAP_URL  groupattr=$LDAP_GROUP_ATTR_NAME userattr=$LDAP_USR_ATTR_NAME  userdn=$USER_DN   groupdn=$GROUP_DN   insecure_tls=true starttls=$TLS_ENABLED upndomain=$UPN_DOMAIN_URL >> $INSTLOG
@@ -439,8 +439,8 @@ if [[ -z "$initstat" ]]; then
         vault write auth/ldap/config url=$LDAP_URL  groupattr=$LDAP_GROUP_ATTR_NAME userattr=$LDAP_USR_ATTR_NAME  userdn=$USER_DN   groupdn=$GROUP_DN   binddn="$BIND_DN" bindpass="$BIND_DN_PASS" insecure_tls=true starttls=$TLS_ENABLED >> $INSTLOG
      fi
 
-     vault policy-write safeadmin $VHOME/hcorp/conf/safeadmin.json >> $INSTLOG
-     vault policy-write vaultadmin $VHOME/hcorp/conf/vaultadmin.json >> $INSTLOG
+     vault policy write safeadmin $VHOME/hcorp/conf/safeadmin.json >> $INSTLOG
+     vault policy write vaultadmin $VHOME/hcorp/conf/vaultadmin.json >> $INSTLOG
      vault write auth/ldap/groups/$VAULT_ADMIN_GROUP policies=vaultadmin >> $INSTLOG
      vault write auth/ldap/groups/$SAFE_ADMIN_GROUP policies=safeadmin >> $INSTLOG
 
@@ -448,12 +448,12 @@ if [[ -z "$initstat" ]]; then
      # userpass...
 
      echo "Enabling userpass auth..."
-     vault auth-enable userpass >> $INSTLOG
-     vault mount-tune -default-lease-ttl=15m /auth/userpass >> $INSTLOG
+     vault auth enable userpass >> $INSTLOG
+     vault secrets tune -default-lease-ttl=15m /auth/userpass >> $INSTLOG
 
      echo "Writing Policiesfor userpass auth..."
-     vault policy-write safeadmin $VHOME/hcorp/conf/safeadmin.json >> $INSTLOG
-     vault policy-write vaultadmin $VHOME/hcorp/conf/vaultadmin.json >> $INSTLOG
+     vault policy write safeadmin $VHOME/hcorp/conf/safeadmin.json >> $INSTLOG
+     vault policy write vaultadmin $VHOME/hcorp/conf/vaultadmin.json >> $INSTLOG
 
      echo "Assigning policies for safeadmin, vaultadmin for userpass auth..."
      vault write auth/userpass/users/safeadmin password=safeadmin policies=safeadmin
@@ -467,8 +467,8 @@ if [[ -z "$initstat" ]]; then
 
   if [[ "$ENABLE_AWS" == "yes" ]]; then
      echo "Enabling AWS auth..."
-     vault auth-enable aws >> $INSTLOG
-     vault mount-tune -default-lease-ttl=15m /auth/aws >> $INSTLOG
+     vault auth enable aws >> $INSTLOG
+     vault secrets tune -default-lease-ttl=15m /auth/aws >> $INSTLOG
   fi
 
 ################################################################################
