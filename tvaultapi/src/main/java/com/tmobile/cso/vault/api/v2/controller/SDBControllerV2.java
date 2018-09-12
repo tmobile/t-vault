@@ -176,29 +176,5 @@ public class SDBControllerV2 {
 	public ResponseEntity<String> deleteAwsRoleFromSafe(@RequestHeader(value="vault-token") String token, @RequestBody AWSRole awsRole){
 		return safesService.removeAWSRoleFromSafe(token, awsRole);
 	}
-	
-//
-//	/**
-//	 * Adds AWS IAM role to safe
-//	 * @param token
-//	 * @param awsRole
-//	 * @return
-//	 */
-//	@ApiOperation(value = "${SafesController.addAWSIAMRoleToSafe.value}", notes = "${SafesController.addAWSIAMRoleToSafe.notes}")
-//	@PostMapping (value="/v2/sdb/iamrole",consumes="application/json",produces="application/json")
-//	public ResponseEntity<String> addAwsIAMRoleToSafe(@RequestHeader(value="vault-token") String token, @RequestBody AWSRole awsRole){
-//		return safesService.addAwsIAMRoleToSafe(token, awsRole);
-//	}
-//	
-//	/**
-//	 * Removes IAM role from Safe 
-//	 * @param token
-//	 * @param awsRole
-//	 * @return
-//	 */
-//	@ApiOperation(value = "${AWSIAMAuthControllerV2.removeIamRole.value}", notes = "${AWSIAMAuthControllerV2.removeIamRole.notes}")
-//	@DeleteMapping(value="/v2/sdb/iamrole",consumes="application/json",produces="application/json")
-//	public ResponseEntity<String> removeAwsIAMRoleFromSafe(@RequestHeader(value="vault-token") String token, @RequestBody AWSRole awsRole){
-//		return safesService.removeAwsIAMRoleFromSafe(token, awsRole);
-//	}
+
 }
