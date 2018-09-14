@@ -101,7 +101,7 @@ public class SDBController {
 			      build()));
 		Response response = reqProcessor.process("/sdb","{\"path\":\""+_path+"\"}",token);
 		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
-			      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+			      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()). 
 				  put(LogMessage.ACTION, "Get Info").
 			      put(LogMessage.MESSAGE, "Getting Info completed").
 			      put(LogMessage.STATUS, response.getHttpstatus().toString()).
@@ -758,8 +758,6 @@ public class SDBController {
 			
 			//Call controller to update the policy for approle
 			Response approleControllerResp = ControllerUtil.configureApprole(approle,policy,token);
-
-		
 			if(HttpStatus.OK.equals(approleControllerResp.getHttpstatus()) || (HttpStatus.NO_CONTENT.equals(approleControllerResp.getHttpstatus()))) {
 					
 				log.info("Associate approle to SDB -  policy :" + policy + " is associated" );
@@ -770,7 +768,54 @@ public class SDBController {
 					      put(LogMessage.STATUS, approleControllerResp.getHttpstatus().toString()).
 					      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 					      build()));
-				return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Approle :" + approle + " is successfully associated with SDB\"]}");		
+				Map<String,String> params = new HashMap<String,String>();
+				params.put("type", "app-roles");
+				params.put("name",approle);
+				params.put("path",path);
+				params.put("access",access);
+				Response metadataResponse = ControllerUtil.updateMetadata(params,token);
+				if(HttpStatus.NO_CONTENT.equals(metadataResponse.getHttpstatus())){
+					log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+						      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+							  put(LogMessage.ACTION, "Add AppRole To SDB").
+						      put(LogMessage.MESSAGE, "AppRole is successfully associated").
+						      put(LogMessage.STATUS, metadataResponse.getHttpstatus().toString()).
+						      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+						      build()));
+					return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Approle :" + approle + " is successfully associated with SDB\"]}");		
+				}else{
+					log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+						      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+							  put(LogMessage.ACTION, "Add AppRole To SDB").
+						      put(LogMessage.MESSAGE, "AppRole configuration failed.").
+						      put(LogMessage.RESPONSE, metadataResponse.getResponse()).
+						      put(LogMessage.STATUS, metadataResponse.getHttpstatus().toString()).
+						      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+						      build()));
+					//Trying to revert the metadata update in case of failure
+					approleControllerResp = ControllerUtil.configureAWSRole(approle,policy,token);
+					if(approleControllerResp.getHttpstatus().equals(HttpStatus.NO_CONTENT)){
+						log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+							      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+								  put(LogMessage.ACTION, "Add AppRole To SDB").
+							      put(LogMessage.MESSAGE, "Reverting user policy update failed").
+							      put(LogMessage.RESPONSE, metadataResponse.getResponse()).
+							      put(LogMessage.STATUS, metadataResponse.getHttpstatus().toString()).
+							      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+							      build()));
+						return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Role configuration failed.Please try again\"]}");
+					}else{
+						log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+							      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+								  put(LogMessage.ACTION, "Add ARole To SDB").
+							      put(LogMessage.MESSAGE, "Reverting user policy update failed").
+							      put(LogMessage.RESPONSE, metadataResponse.getResponse()).
+							      put(LogMessage.STATUS, metadataResponse.getHttpstatus().toString()).
+							      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+							      build()));
+						return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Role configuration failed.Contact Admin \"]}");
+					}
+				}
 			
 		}else {
 			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
@@ -1142,7 +1187,7 @@ public class SDBController {
 			}
 			Response roleResponse = reqProcessor.process("/auth/aws/roles","{\"role\":\""+role+"\"}",token);
 			String responseJson="";
-		
+			String auth_type = "ec2";
 			String policies ="";
 			String currentpolicies ="";
 			
@@ -1153,6 +1198,7 @@ public class SDBController {
 						for(JsonNode policyNode : policiesArry){
 							currentpolicies =	(currentpolicies == "" ) ? currentpolicies+policyNode.asText():currentpolicies+","+policyNode.asText();
 						}
+						auth_type = objMapper.readTree(responseJson).get("auth_type").asText();
 					} catch (IOException e) {
 						log.error(e);
 					}
@@ -1164,8 +1210,13 @@ public class SDBController {
 			}else{
 				return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body("{\"errors\":[\"Non existing role name. Please configure it as first step\"]}");
 			}
-			
-			Response ldapConfigresponse = ControllerUtil.configureAWSRole(role,policies,token);
+			Response ldapConfigresponse = null;
+			if ("iam".equals(auth_type)) {
+				ldapConfigresponse = ControllerUtil.configureAWSIAMRole(role,policies,token);
+			}
+			else {
+				ldapConfigresponse = ControllerUtil.configureAWSRole(role,policies,token);
+			}
 			if(ldapConfigresponse.getHttpstatus().equals(HttpStatus.NO_CONTENT)){ 
 				Map<String,String> params = new HashMap<String,String>();
 				params.put("type", "aws-roles");

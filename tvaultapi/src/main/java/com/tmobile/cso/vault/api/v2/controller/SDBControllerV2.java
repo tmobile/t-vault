@@ -19,7 +19,6 @@ package com.tmobile.cso.vault.api.v2.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -31,12 +30,10 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.tmobile.cso.vault.api.controller.ControllerUtil;
 import com.tmobile.cso.vault.api.model.AWSRole;
 import com.tmobile.cso.vault.api.model.Safe;
 import com.tmobile.cso.vault.api.model.SafeGroup;
 import com.tmobile.cso.vault.api.model.SafeUser;
-import com.tmobile.cso.vault.api.process.Response;
 import com.tmobile.cso.vault.api.service.SafesService;
 
 import io.swagger.annotations.Api;
@@ -172,6 +169,12 @@ public class SDBControllerV2 {
 	@PostMapping (value="/v2/sdb/role",consumes="application/json",produces="application/json")
 	public ResponseEntity<String> addAwsRoleToSafe(@RequestHeader(value="vault-token") String token, @RequestBody AWSRole awsRole){
 		return safesService.addAwsRoleToSafe(token, awsRole);
+	}
+	
+	@ApiOperation(value = "${SafesController.deleteAWSRoleFromSafe.value}", notes = "${SafesController.deleteAWSRoleFromSafe.notes}")
+	@DeleteMapping (value="/v2/sdb/role",consumes="application/json",produces="application/json")
+	public ResponseEntity<String> deleteAwsRoleFromSafe(@RequestHeader(value="vault-token") String token, @RequestBody AWSRole awsRole){
+		return safesService.removeAWSRoleFromSafe(token, awsRole);
 	}
 
 }

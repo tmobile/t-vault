@@ -35,6 +35,7 @@
         $scope.awsRadioBtn['value'] = 'read';       // Keep it in lowercase
         $scope.isEmpty = UtilityService.isObjectEmpty;
         $scope.awsConfPopupObj = {
+            "auth_type":"",
             "role": "",
             "bound_account_id": "",
             "bound_region": "",
@@ -43,7 +44,9 @@
             "bound_ami_id": "",
             "bound_iam_instance_profile_arn": "",
             "bound_iam_role_arn": "",
-            "policies": ""
+            "policies": "",
+            "bound_iam_principal_arn": "",
+            "resolve_aws_unique_ids":"false"
         };
         $scope.tableOptions = [
             {
@@ -456,6 +459,7 @@
                                     // $scope.awsConfPopupObj['role'] = rolename;
                                     $scope.editingAwsPermission = {"status": true};
                                     $scope.awsConfPopupObj = {
+                                        "auth_type": response.data.auth_type,
                                         "role": rolename,
                                         "bound_account_id": response.data.bound_account_id,
                                         "bound_region": response.data.bound_region,
@@ -464,7 +468,9 @@
                                         "bound_ami_id": response.data.bound_ami_id,
                                         "bound_iam_instance_profile_arn": response.data.bound_iam_instance_profile_arn,
                                         "bound_iam_role_arn": response.data.bound_iam_role_arn,
-                                        "policies": response.data.policies
+                                        "policies": response.data.policies,
+                                        "bound_iam_principal_arn": response.data.bound_iam_principal_arn,
+                                        "resolve_aws_unique_ids": "false"
                                     };
                                     $scope.policies = response.data.policies;
                                     $scope.awsRadioBtn['value'] = $rootScope.AwsPermissionsData.data[rolename];
@@ -845,6 +851,27 @@
         $scope.fetchGroups = function () {
 
         }
+        $scope.enableEc2Controls = function (e) {
+            angular.element(document.getElementById('bound_account_id'))[0].disabled = false;
+            angular.element(document.getElementById('region'))[0].disabled = false;
+            angular.element(document.getElementById('bound_vpc_id'))[0].disabled = false;
+            angular.element(document.getElementById('bound_subnet_id'))[0].disabled = false;
+            angular.element(document.getElementById('bound_ami_id'))[0].disabled = false;
+            angular.element(document.getElementById('bound_iam_instance_profile_arn'))[0].disabled = false;
+            angular.element(document.getElementById('bound_iam_role_arn'))[0].disabled = false;
+            angular.element(document.getElementById('bound_iam_principal_arn'))[0].disabled = true;
+        }
+
+        $scope.enableIamControls = function (e) {
+            angular.element(document.getElementById('bound_account_id'))[0].disabled = true;
+            angular.element(document.getElementById('region'))[0].disabled = true;
+            angular.element(document.getElementById('bound_vpc_id'))[0].disabled = true;
+            angular.element(document.getElementById('bound_subnet_id'))[0].disabled = true;
+            angular.element(document.getElementById('bound_ami_id'))[0].disabled = true;
+            angular.element(document.getElementById('bound_iam_instance_profile_arn'))[0].disabled = true;
+            angular.element(document.getElementById('bound_iam_role_arn'))[0].disabled = true;
+            angular.element(document.getElementById('bound_iam_principal_arn'))[0].disabled = false;
+        }
 
         $scope.addPermission = function (type, key, permission, editingPermission) {
             if ((key != '' && key != undefined) || type == 'AwsRoleConfigure') {
@@ -890,6 +917,19 @@
                             if ($scope.editingAwsPermission.status == true) {
                                 apiCallFunction = AdminSafesManagement.updateAWSRole;
                             } else {
+                                // Validate the input here if requried...
+                                if ($scope.awsConfPopupObj.auth_type === 'ec2') {
+                                    $scope.awsConfPopupObj.bound_iam_principal_arn = "";
+                                }
+                                else {
+                                    $scope.awsConfPopupObj.bound_account_id = "";
+                                    $scope.awsConfPopupObj.region = "";
+                                    $scope.awsConfPopupObj.bound_vpc_id = "";
+                                    $scope.awsConfPopupObj.bound_subnet_id = "";
+                                    $scope.awsConfPopupObj.bound_ami_id = "";
+                                    $scope.awsConfPopupObj.bound_iam_instance_profile_arn = "";
+                                    $scope.awsConfPopupObj.bound_iam_role_arn = "";
+                                }
                                 apiCallFunction = AdminSafesManagement.addAWSRole;
                             }
                             reqObjtobeSent = $scope.awsConfPopupObj
@@ -943,6 +983,7 @@
             // To reset the aws configuration details object to create a new one
             $scope.editingAwsPermission = {"status": false};
             $scope.awsConfPopupObj = {
+                "auth_type":"",
                 "role": "",
                 "bound_account_id": "",
                 "bound_region": "",
@@ -951,7 +992,9 @@
                 "bound_ami_id": "",
                 "bound_iam_instance_profile_arn": "",
                 "bound_iam_role_arn": "",
-                "policies": ""
+                "policies": "",
+                "bound_iam_principal_arn": "",
+                "resolve_aws_unique_ids": "false"
             };
             $scope.open(size);
         }
