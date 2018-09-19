@@ -19,6 +19,7 @@ package com.tmobile.cso.vault.api.controller;
 
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 
 import org.apache.logging.log4j.LogManager;
@@ -286,9 +287,13 @@ public class SDBController {
 					Response d_response = reqProcessor.process("/access/update",policyRequestJson,token); 
 					
 					
-					if(r_response.getHttpstatus().equals(HttpStatus.NO_CONTENT) && 
+					if( (r_response.getHttpstatus().equals(HttpStatus.NO_CONTENT) && 
 							w_response.getHttpstatus().equals(HttpStatus.NO_CONTENT) &&
-									d_response.getHttpstatus().equals(HttpStatus.NO_CONTENT) ){
+									d_response.getHttpstatus().equals(HttpStatus.NO_CONTENT)) ||
+							(r_response.getHttpstatus().equals(HttpStatus.OK) && 
+									w_response.getHttpstatus().equals(HttpStatus.OK) &&
+											d_response.getHttpstatus().equals(HttpStatus.OK))	
+						){
 						log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 							      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 								  put(LogMessage.ACTION, "Create SDB").
@@ -626,7 +631,19 @@ public class SDBController {
 				responseJson = userResponse.getResponse();	
 				try {
 					ObjectMapper objMapper = new ObjectMapper();
-					currentpolicies =objMapper.readTree(responseJson).get("data").get("policies").asText();
+					if (objMapper.readTree(responseJson).get("data").get("policies").isContainerNode()) {
+						Iterator<JsonNode> elementsIterator = objMapper.readTree(responseJson).get("data").get("policies").elements();
+					       while (elementsIterator.hasNext()) {
+					    	   JsonNode element = elementsIterator.next();
+					           currentpolicies += element.asText()+",";
+					       }
+					}
+					else {
+						currentpolicies =objMapper.readTree(responseJson).get("data").get("policies").asText();
+					}
+					if (currentpolicies.endsWith(",")) {
+						currentpolicies = currentpolicies.substring(0, currentpolicies.length()-1);
+					}
 					if (!("userpass".equals(vaultAuthMethod))) {
 						groups =objMapper.readTree(responseJson).get("data").get("groups").asText();
 					}
