@@ -19,6 +19,7 @@ package com.tmobile.cso.vault.api.service;
 
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 
 import org.apache.logging.log4j.LogManager;
@@ -28,9 +29,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -162,6 +160,7 @@ public class  SafesService {
 		}
 
 	}
+	
 	/**
 	 * Creates Safe
 	 * @param token
@@ -654,7 +653,19 @@ public class  SafesService {
 				responseJson = userResponse.getResponse();	
 				try {
 					ObjectMapper objMapper = new ObjectMapper();
-					currentpolicies =objMapper.readTree(responseJson).get("data").get("policies").asText();
+					if (objMapper.readTree(responseJson).get("data").get("policies").isContainerNode()) {
+						Iterator<JsonNode> elementsIterator = objMapper.readTree(responseJson).get("data").get("policies").elements();
+					       while (elementsIterator.hasNext()) {
+					    	   JsonNode element = elementsIterator.next();
+					           currentpolicies += element.asText()+",";
+					       }
+					}
+					else {
+						currentpolicies =objMapper.readTree(responseJson).get("data").get("policies").asText();
+					}
+					if (currentpolicies.endsWith(",")) {
+						currentpolicies = currentpolicies.substring(0, currentpolicies.length()-1);
+					}
 					if (!("userpass".equals(vaultAuthMethod))) {
 						groups =objMapper.readTree(responseJson).get("data").get("groups").asText();
 					}
