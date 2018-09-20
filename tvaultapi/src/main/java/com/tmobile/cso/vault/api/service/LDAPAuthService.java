@@ -138,7 +138,7 @@ public class  LDAPAuthService {
 		if(HttpStatus.OK.equals(grpResponse.getHttpstatus())){
 			responseJson = grpResponse.getResponse();	
 			try {
-				currentPolicies =objMapper.readTree(responseJson).get("data").get("policies").asText();
+				currentPolicies = ControllerUtil.getPoliciesAsStringFromJson(objMapper, responseJson);
 			} catch (IOException e) {
 				log.error(e);
 			}
@@ -287,7 +287,7 @@ public class  LDAPAuthService {
 		if(HttpStatus.OK.equals(userResponse.getHttpstatus())){
 			responseJson = userResponse.getResponse();	
 			try {
-				currentPolicies =objMapper.readTree(responseJson).get("data").get("policies").asText();
+				currentPolicies = ControllerUtil.getPoliciesAsStringFromJson(objMapper, responseJson);
 			} catch (IOException e) {
 				log.error(e);
 			}
