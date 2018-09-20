@@ -519,6 +519,32 @@ public final class ControllerUtil {
 	
 		return jsonStr;
 	}
+	/**
+	 * Convenient method to get policies as comma separated String
+	 * @param objMapper
+	 * @param policyJson
+	 * @return
+	 * @throws JsonProcessingException
+	 * @throws IOException
+	 */
+	public static String getPoliciesAsStringFromJson(ObjectMapper objMapper, String policyJson) throws JsonProcessingException, IOException{
+		String currentpolicies = "";
+		JsonNode policiesNode = objMapper.readTree(policyJson).get("data").get("policies");
+		if (policiesNode.isContainerNode()) {
+			Iterator<JsonNode> elementsIterator = policiesNode.elements();
+		       while (elementsIterator.hasNext()) {
+		    	   JsonNode element = elementsIterator.next();
+		           currentpolicies += element.asText()+",";
+		       }
+		}
+		else {
+			currentpolicies = policiesNode.asText();
+		}
+		if (currentpolicies.endsWith(",")) {
+			currentpolicies = currentpolicies.substring(0, currentpolicies.length()-1);
+		}
+		return currentpolicies;
+	}
 	
 	public static void updateUserPolicyAssociationOnSDBDelete(String sdb,Map<String,String> acessInfo,String token){
 		log.debug ("updateUserPolicyAssociationOnSDBDelete...for auth method " + vaultAuthMethod);
@@ -562,7 +588,7 @@ public final class ControllerUtil {
 				if(HttpStatus.OK.equals(userResponse.getHttpstatus())){
 					responseJson = userResponse.getResponse();	
 					try {
-						currentpolicies =objMapper.readTree(responseJson).get("data").get("policies").asText();
+						currentpolicies = getPoliciesAsStringFromJson(objMapper, responseJson);
 						if (!("userpass".equals(vaultAuthMethod))) {
 							groups = objMapper.readTree(responseJson).get("data").get("groups").asText();
 						}
@@ -621,7 +647,7 @@ public final class ControllerUtil {
 				if(HttpStatus.OK.equals(response.getHttpstatus())){
 					responseJson = response.getResponse();	
 					try {
-						currentpolicies =objMapper.readTree(responseJson).get("data").get("policies").asText();
+						currentpolicies = getPoliciesAsStringFromJson(objMapper, responseJson);
 					} catch (IOException e) {
 						log.error(e);
 					}

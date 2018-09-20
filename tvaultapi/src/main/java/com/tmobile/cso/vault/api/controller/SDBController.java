@@ -631,19 +631,7 @@ public class SDBController {
 				responseJson = userResponse.getResponse();	
 				try {
 					ObjectMapper objMapper = new ObjectMapper();
-					if (objMapper.readTree(responseJson).get("data").get("policies").isContainerNode()) {
-						Iterator<JsonNode> elementsIterator = objMapper.readTree(responseJson).get("data").get("policies").elements();
-					       while (elementsIterator.hasNext()) {
-					    	   JsonNode element = elementsIterator.next();
-					           currentpolicies += element.asText()+",";
-					       }
-					}
-					else {
-						currentpolicies =objMapper.readTree(responseJson).get("data").get("policies").asText();
-					}
-					if (currentpolicies.endsWith(",")) {
-						currentpolicies = currentpolicies.substring(0, currentpolicies.length()-1);
-					}
+					currentpolicies = ControllerUtil.getPoliciesAsStringFromJson(objMapper, responseJson);
 					if (!("userpass".equals(vaultAuthMethod))) {
 						groups =objMapper.readTree(responseJson).get("data").get("groups").asText();
 					}
@@ -915,7 +903,7 @@ public class SDBController {
 			if(HttpStatus.OK.equals(userResponse.getHttpstatus())){
 				responseJson = userResponse.getResponse();	
 				try {
-					currentpolicies =objMapper.readTree(responseJson).get("data").get("policies").asText();
+					currentpolicies = ControllerUtil.getPoliciesAsStringFromJson(objMapper, responseJson);
 					if (!("userpass".equals(vaultAuthMethod))) {
 						groups =objMapper.readTree(responseJson).get("data").get("groups").asText();
 					}
@@ -1075,7 +1063,7 @@ public class SDBController {
 			if(HttpStatus.OK.equals(userResponse.getHttpstatus())){
 				responseJson = userResponse.getResponse();	
 				try {
-					currentpolicies =objMapper.readTree(responseJson).get("data").get("policies").asText();
+					currentpolicies = ControllerUtil.getPoliciesAsStringFromJson(objMapper, responseJson);
 				} catch (IOException e) {
 					log.error(e);
 				}
@@ -1455,7 +1443,7 @@ public class SDBController {
 			if(HttpStatus.OK.equals(getGrpResp.getHttpstatus())){
 					responseJson = getGrpResp.getResponse();	
 					try {
-						currentpolicies =objMapper.readTree(responseJson).get("data").get("policies").asText();
+						currentpolicies = ControllerUtil.getPoliciesAsStringFromJson(objMapper, responseJson);
 					} catch (IOException e) {
 						log.error(e);
 					}
