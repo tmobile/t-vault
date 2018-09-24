@@ -282,7 +282,7 @@ public class  AWSAuthService {
 	 * @return
 	 */
 	public ResponseEntity<String> authenticate(AWSAuthType authType, AWSAuthLogin awsAuthLogin){
-		if (ControllerUtil.areAwsLoginInputsValid(authType, awsAuthLogin)) {
+		if (!ControllerUtil.areAwsLoginInputsValid(authType, awsAuthLogin)) {
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid inputs for the given aws login type");
 		}
 		if (AWSAuthType.EC2.equals(authType) ) {
