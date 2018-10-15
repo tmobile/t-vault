@@ -91,9 +91,9 @@ public class SafeBasicDetails implements Serializable{
 	/**
 	 * @return the type
 	 */
-	@ApiModelProperty(example = "shared", allowEmptyValue=true, value="", allowableValues="shared, user, application" )
+	@ApiModelProperty(hidden=true, example = "", allowEmptyValue=true, value="" )
 	public String getType() {
-		return type;
+		return "";
 	}
 	/**
 	 * @param type the type to set
