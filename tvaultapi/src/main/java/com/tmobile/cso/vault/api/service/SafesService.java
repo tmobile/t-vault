@@ -170,6 +170,9 @@ public class  SafesService {
 	public ResponseEntity<String> createSafe(String token, Safe safe) {
 
 		String path = safe.getPath();
+		if (!StringUtils.isEmpty(path)) {
+			path = path.toLowerCase();
+		}
 		String jsonStr = ControllerUtil.converSDBInputsToLowerCase(JSONUtil.getJSON(safe));
 		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
