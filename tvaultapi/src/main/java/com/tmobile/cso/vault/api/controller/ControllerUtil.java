@@ -839,9 +839,14 @@ public final class ControllerUtil {
 	public static String convertSafeAppRoleAccessToLowerCase(String jsonstr) {
 		try {
 			SafeAppRoleAccess safeAppRoleAccess = (SafeAppRoleAccess)JSONUtil.getObj(jsonstr, SafeAppRoleAccess.class);
-			safeAppRoleAccess.setRole_name(safeAppRoleAccess.getRole_name());
+			if (!StringUtils.isEmpty(safeAppRoleAccess.getRole_name())) {
+				safeAppRoleAccess.setRole_name(safeAppRoleAccess.getRole_name().toLowerCase());
+			}
+			if (!StringUtils.isEmpty(safeAppRoleAccess.getAccess())) {
+				safeAppRoleAccess.setAccess(safeAppRoleAccess.getAccess().toLowerCase());
+			}
 			jsonstr = JSONUtil.getJSON(safeAppRoleAccess);
-			return jsonstr;
+			return jsonstr.toLowerCase();
 		} catch (Exception e) {
 			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 				      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
@@ -856,7 +861,9 @@ public final class ControllerUtil {
 	public static String convertAppRoleSecretIdToLowerCase(String jsonstr) {
 		try {
 			AppRoleSecretData appRoleSecretData = (AppRoleSecretData)JSONUtil.getObj(jsonstr, AppRoleSecretData.class);
-			appRoleSecretData.setRole_name(appRoleSecretData.getRole_name());
+			if (!StringUtils.isEmpty(appRoleSecretData.getRole_name())) {
+				appRoleSecretData.setRole_name(appRoleSecretData.getRole_name().toLowerCase());
+			}
 			jsonstr = JSONUtil.getJSON(appRoleSecretData);
 			return jsonstr;
 		} catch (Exception e) {
