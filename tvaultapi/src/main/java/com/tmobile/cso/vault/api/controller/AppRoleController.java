@@ -17,6 +17,8 @@
 
 package com.tmobile.cso.vault.api.controller;
 
+import java.util.Map;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -69,11 +71,14 @@ public class AppRoleController {
 			      put(LogMessage.MESSAGE, String.format("Trying to create AppRole [%s]", jsonStr)).
 			      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 			      build()));
+		if (!ControllerUtil.areAppRoleInputsValid(jsonStr)) {
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid input values for AppRole creation\"]}");
+		}
 		jsonStr = ControllerUtil.convertAppRoleInputsToLowerCase(jsonStr);
 		Response response = reqProcessor.process("/auth/approle/role/create", jsonStr,token);
 
 		if(response.getHttpstatus().equals(HttpStatus.NO_CONTENT)) {
-			return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"AppRole created\"]}");
+			return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"AppRole created succssfully\"]}");
 		}
 		log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 			      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).

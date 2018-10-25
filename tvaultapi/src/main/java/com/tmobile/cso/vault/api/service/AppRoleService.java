@@ -17,6 +17,7 @@
 
 package com.tmobile.cso.vault.api.service;
 
+import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.logging.log4j.LogManager;
@@ -67,10 +68,13 @@ public class  AppRoleService {
 			      put(LogMessage.MESSAGE, String.format("Trying to create AppRole [%s]", jsonStr)).
 			      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 			      build()));
+		if (!ControllerUtil.areAppRoleInputsValid(appRole)) {
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid input values for AppRole creation\"]}");
+		}
 		jsonStr = ControllerUtil.convertAppRoleInputsToLowerCase(jsonStr);
 		Response response = reqProcessor.process("/auth/approle/role/create", jsonStr,token);
 		if(response.getHttpstatus().equals(HttpStatus.NO_CONTENT)) {
-			return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"AppRole created\"]}");
+			return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"AppRole created succssfully\"]}");
 		}
 		log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 			      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
@@ -320,38 +324,128 @@ public class  AppRoleService {
 	 */
 	private ResponseEntity<String>associateApproletoSafe(String token,  SafeAppRoleAccess safeAppRoleAccess){
 		String jsonstr = JSONUtil.getJSON(safeAppRoleAccess);
-		jsonstr = ControllerUtil.convertSafeAppRoleAccessToLowerCase(jsonstr);
-		log.info("Associate approle to SDB -  JSON :" + jsonstr );
+		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+			      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+				  put(LogMessage.ACTION, "Associate AppRole to SDB").
+			      put(LogMessage.MESSAGE, String.format ("Trying to associate AppRole to SDB [%s]", jsonstr)).
+			      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+			      build()));		
+		
 		Map<String,Object> requestMap = ControllerUtil.parseJson(jsonstr);
+		
 		String approle = requestMap.get("role_name").toString();
 		String path = requestMap.get("path").toString();
 		String access = requestMap.get("access").toString();
-
+		
+		approle = (approle !=null) ? approle.toLowerCase() : approle;
+		//path = (path != null) ? path.toLowerCase() : path;
+		access = (access != null) ? access.toLowerCase(): access;
+		
 		if(ControllerUtil.isValidSafePath(path) && ControllerUtil.isValidSafe(path, token)){
+
 			log.info("Associate approle to SDB -  path :" + path + "valid" );
+
 			String folders[] = path.split("[/]+");
+			
 			String policy ="";
+			
 			switch (access){
-			case "read": policy = "r_" + folders[0] + "_" + folders[1] ; break ; 
-			case "write": policy = "w_"  + folders[0] + "_" + folders[1] ;break; 
-			case "deny": policy = "d_"  + folders[0] + "_" + folders[1] ;break; 
+				case "read": policy = "r_" + folders[0].toLowerCase() + "_" + folders[1] ; break ; 
+				case "write": policy = "w_"  + folders[0].toLowerCase() + "_" + folders[1] ;break; 
+				case "deny": policy = "d_"  + folders[0].toLowerCase() + "_" + folders[1] ;break; 
 			}
-			if("".equals(policy)) {
+			
+			if("".equals(policy)){
 				return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body("{\"errors\":[\"Incorrect access requested. Valid values are read,write,deny \"]}");
 			}
+			
+
 			log.info("Associate approle to SDB -  policy :" + policy + " is being configured" );
+			
 			//Call controller to update the policy for approle
 			Response approleControllerResp = ControllerUtil.configureApprole(approle,policy,token);
 			if(HttpStatus.OK.equals(approleControllerResp.getHttpstatus()) || (HttpStatus.NO_CONTENT.equals(approleControllerResp.getHttpstatus()))) {
+					
 				log.info("Associate approle to SDB -  policy :" + policy + " is associated" );
-				return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Approle :" + approle + " is successfully associated with SDB\"]}");		
-			} else {
+				log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+					      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+						  put(LogMessage.ACTION, "Associate AppRole to SDB").
+					      put(LogMessage.MESSAGE, "Association of AppRole to SDB success").
+					      put(LogMessage.STATUS, approleControllerResp.getHttpstatus().toString()).
+					      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+					      build()));
+				Map<String,String> params = new HashMap<String,String>();
+				params.put("type", "app-roles");
+				params.put("name",approle);
+				params.put("path",path);
+				params.put("access",access);
+				Response metadataResponse = ControllerUtil.updateMetadata(params,token);
+				if(HttpStatus.NO_CONTENT.equals(metadataResponse.getHttpstatus())){
+					log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+						      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+							  put(LogMessage.ACTION, "Add AppRole To SDB").
+						      put(LogMessage.MESSAGE, "AppRole is successfully associated").
+						      put(LogMessage.STATUS, metadataResponse.getHttpstatus().toString()).
+						      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+						      build()));
+					return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Approle :" + approle + " is successfully associated with SDB\"]}");		
+				}else{
+					log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+						      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+							  put(LogMessage.ACTION, "Add AppRole To SDB").
+						      put(LogMessage.MESSAGE, "AppRole configuration failed.").
+						      put(LogMessage.RESPONSE, metadataResponse.getResponse()).
+						      put(LogMessage.STATUS, metadataResponse.getHttpstatus().toString()).
+						      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+						      build()));
+					//Trying to revert the metadata update in case of failure
+					approleControllerResp = ControllerUtil.configureAWSRole(approle,policy,token);
+					if(approleControllerResp.getHttpstatus().equals(HttpStatus.NO_CONTENT)){
+						log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+							      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+								  put(LogMessage.ACTION, "Add AppRole To SDB").
+							      put(LogMessage.MESSAGE, "Reverting user policy update failed").
+							      put(LogMessage.RESPONSE, metadataResponse.getResponse()).
+							      put(LogMessage.STATUS, metadataResponse.getHttpstatus().toString()).
+							      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+							      build()));
+						return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Role configuration failed.Please try again\"]}");
+					}else{
+						log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+							      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+								  put(LogMessage.ACTION, "Add ARole To SDB").
+							      put(LogMessage.MESSAGE, "Reverting user policy update failed").
+							      put(LogMessage.RESPONSE, metadataResponse.getResponse()).
+							      put(LogMessage.STATUS, metadataResponse.getHttpstatus().toString()).
+							      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+							      build()));
+						return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Role configuration failed.Contact Admin \"]}");
+					}
+				}
+			
+		}else {
+			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+				      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+					  put(LogMessage.ACTION, "Associate AppRole to SDB").
+				      put(LogMessage.MESSAGE, "Association of AppRole to SDB failed").
+				      put(LogMessage.RESPONSE, approleControllerResp.getResponse()).
+				      put(LogMessage.STATUS, approleControllerResp.getHttpstatus().toString()).
+				      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+				      build()));
 				log.error( "Associate Approle" +approle + "to sdb FAILED");
 				return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"messages\":[\"Approle :" + approle + " failed to be associated with SDB\"]}");		
 			}
-		}
-		else {
+		} else {
+			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+				      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+					  put(LogMessage.ACTION, "Associate AppRole to SDB").
+				      put(LogMessage.MESSAGE, "Association of AppRole to SDB failed").
+				      put(LogMessage.RESPONSE, "Invalid Path").
+				      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+				      build()));
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"messages\":[\"Approle :" + approle + " failed to be associated with SDB.. Invalid Path specified\"]}");		
+		
 		}
 	}
+	
 }
