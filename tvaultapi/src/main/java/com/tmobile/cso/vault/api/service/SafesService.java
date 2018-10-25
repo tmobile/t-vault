@@ -391,7 +391,24 @@ public class  SafesService {
 				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 				build()));
 		if (!ControllerUtil.areSDBInputsValid(requestParams)) {
+			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+					put(LogMessage.ACTION, "Update SDB").
+					put(LogMessage.MESSAGE, String.format ("Invalid input values ")).
+					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+					build()));
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid input values\"]}");
+		}
+
+		int redundantSafeNamesCount = ControllerUtil.getCountOfSafesForGivenSafeName(safe.getSafeBasicDetails().getName(), token);
+		if (redundantSafeNamesCount > 1) {
+			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+					put(LogMessage.ACTION, "Update SDB").
+					put(LogMessage.MESSAGE, String.format ("Safe can't be updated since more than one safe name is found ")).
+					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+					build()));
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Safe can't be updated since more than one safe name is found\"]}");
 		}
 		@SuppressWarnings("unchecked")
 		Map<Object,Object> data = (Map<Object,Object>)requestParams.get("data");
@@ -603,7 +620,7 @@ public class  SafesService {
 				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 				build()));
 		userName = (userName !=null) ? userName.toLowerCase() : userName;
-		path = (path != null) ? path.toLowerCase() : path;
+//		path = (path != null) ? path.toLowerCase() : path;
 		access = (access != null) ? access.toLowerCase(): access;
 
 		if(ControllerUtil.isValidSafePath(path) && ControllerUtil.isValidSafe(path, token)){
@@ -620,7 +637,7 @@ public class  SafesService {
 				return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body("{\"errors\":[\"Incorrect access requested. Valid values are read,write,deny \"]}");
 			}
 
-			String policy = policyPrefix+folders[0]+"_"+folders[1];
+			String policy = policyPrefix+folders[0].toLowerCase()+"_"+folders[1];
 			String r_policy = "r_";
 			String w_policy = "w_";
 			String d_policy = "d_";

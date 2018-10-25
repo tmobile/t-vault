@@ -39,6 +39,7 @@ import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
@@ -78,12 +79,21 @@ public final class ControllerUtil {
 	@Value("${vault.secret.key.whitelistedchars:[a-z0-9_]+}")
     private String secretKeyWhitelistedCharacters;
 	
+	@Value("${vault.approle.name.whitelistedchars:[a-z0-9_]+}")
+	private String approleWhitelistedCharacters; 
+	
 	private static String secretKeyAllowedCharacters;
-
+	
+	private static String approleAllowedCharacters;
+	
+	private final static String[] mountPaths = {"apps","shared","users"};
+	
 	@PostConstruct     
 	private void initStatic () {
 		vaultAuthMethod = this.tvaultAuthMethod;
 		secretKeyAllowedCharacters = this.secretKeyWhitelistedCharacters;
+		approleAllowedCharacters = this.approleWhitelistedCharacters;
+		
 	}
 
 	@Autowired(required = true)
@@ -846,7 +856,7 @@ public final class ControllerUtil {
 				safeAppRoleAccess.setAccess(safeAppRoleAccess.getAccess().toLowerCase());
 			}
 			jsonstr = JSONUtil.getJSON(safeAppRoleAccess);
-			return jsonstr.toLowerCase();
+			return jsonstr;
 		} catch (Exception e) {
 			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 				      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
@@ -891,7 +901,54 @@ public final class ControllerUtil {
 		boolean valid = matcher.find();
 		return !valid;
 	}
-	
+	/**
+	 * Checks whether the given approle is valid
+	 * @param approleName
+	 * @return
+	 */
+	public static boolean isAppRoleNameValid(String approleName) {
+		boolean valid = Pattern.matches(approleAllowedCharacters, approleName);
+		return valid;
+	}
+	/**
+	 * Validates the approle inputs
+	 * @param requestParams
+	 * @return
+	 */
+	public static boolean areAppRoleInputsValid(String jsonstr) {
+		AppRole approle = getAppRoleObjFromString(jsonstr);
+		return (areAppRoleInputsValid(approle));
+	}
+	/**
+	 * Validates the approle inputs
+	 * @param approle
+	 * @return
+	 */
+	public static boolean areAppRoleInputsValid(AppRole approle) {
+		String approleName = approle.getRole_name();
+		if (StringUtils.isEmpty(approleName) || !isAppRoleNameValid(approleName)) {
+			return false;
+		}
+		return true;
+	}
+	/**
+	 * Generates AppRole object from JSON
+	 * @param jsonstr
+	 * @return
+	 */
+	public static AppRole getAppRoleObjFromString(String jsonstr) {
+		try {
+			return (AppRole)JSONUtil.getObj(jsonstr, AppRole.class);
+		} catch (Exception e) {
+			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+				      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+					  put(LogMessage.ACTION, "getAppRoleObjFromString").
+				      put(LogMessage.MESSAGE, String.format ("Failed to convert [%s] to AppRole object.", jsonstr)).
+				      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+				      build()));
+			return null;
+		}
+	}
 	/**
 	 * Validates one or more SecretKeys
 	 * @return
@@ -1057,5 +1114,46 @@ public final class ControllerUtil {
 			}
 		}
 		throw new TVaultValidationException("Bound parameter should be specified.");
+	}
+	/**
+	 * Get the map of all existing safe names.
+	 * @return
+	 */
+	public static HashMap<String, List<String>> getAllExistingSafeNames(String token) {
+		HashMap<String, List<String>> allExistingSafeNames = new HashMap<String, List<String>>();
+
+		for (String mountPath : mountPaths) {
+			String path = "metadata/" + mountPath;
+			Response response = reqProcessor.process("/sdb/list","{\"path\":\""+path+"\"}",token);
+			if(response.getHttpstatus().equals(HttpStatus.OK)){
+				try {
+					Map<String, Object> requestParams = new ObjectMapper().readValue(response.getResponse(), new TypeReference<Map<String, Object>>(){});
+					List<String> safeNamesMap = (ArrayList<String>) requestParams.get("keys");
+					allExistingSafeNames.put(mountPath, safeNamesMap);
+				} catch (Exception e) {
+					log.error("Unable to get list of safes.");
+				}
+			}
+		}
+		return allExistingSafeNames;
+	}
+	/**
+	 * Get the count of redundant safe names...
+	 * @param safeName
+	 * @return
+	 */
+	public static int getCountOfSafesForGivenSafeName(String safeName, String token) {
+		HashMap<String, List<String>> allExistingSafeNames = getAllExistingSafeNames(token);
+		int count = 0;
+		for (Map.Entry<String, List<String>> entry : allExistingSafeNames.entrySet()) {
+			List<String> existingSafeNames = entry.getValue();
+			for (String existingSafeName: existingSafeNames) {
+				// Note: SafeName is duplicate if it is found in any type (Shared/User/Apps). Hence no need to compare by prefixing with SafeType
+				if (safeName.equalsIgnoreCase(existingSafeName)) {
+					count++;
+				}
+			}
+		}
+		return count;
 	}
 }

@@ -17,7 +17,9 @@
 
 package com.tmobile.cso.vault.api.process;
 
+import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.apache.logging.log4j.LogManager;
@@ -29,6 +31,7 @@ import org.springframework.stereotype.Component;
 
 import com.google.common.collect.ImmutableMap;
 import com.tmobile.cso.vault.api.config.ApiConfig;
+import com.tmobile.cso.vault.api.controller.ControllerUtil;
 import com.tmobile.cso.vault.api.exception.LogMessage;
 import com.tmobile.cso.vault.api.utils.JSONUtil;
 import com.tmobile.cso.vault.api.utils.ThreadLocalContext;
@@ -131,14 +134,16 @@ public class RequestValidator {
 		if(requestParams.get("data") !=null){
 			LinkedHashMap<String, Object> map = (LinkedHashMap<String, Object>) requestParams.get("data");
 			String sdbName = (String) map.get("name");
-			for (String mountPath : mountPaths) {
-				String path = mountPath + "/" + sdbName;
-				ResponseEntity<String> valutResponse = restProcessor.get("/metadata/"+path, token);
-				if(valutResponse.getStatusCode().equals(HttpStatus.OK)){
-					return true;
+			HashMap<String, List<String>> allSafeNames = ControllerUtil.getAllExistingSafeNames(token);
+			for (Map.Entry<String, List<String>> entry : allSafeNames.entrySet()) {
+				List<String> safeNames = entry.getValue();
+				for (String safeName: safeNames) {
+					// Note: SafeName is duplicate if it is found in any type (Shared/User/Apps). Hence no need to compare by prefixing with SafeType
+					if (sdbName.equalsIgnoreCase(safeName)) {
+						return true;
+					}
 				}
 			}
-			return false;
 		}
 		return false;
 	}

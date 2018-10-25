@@ -22,6 +22,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -165,11 +166,25 @@ public class SDBController {
 		if (!ControllerUtil.areSDBInputsValid(requestParams)) {
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid input values\"]}");
 		}
+
 		jsonStr = ControllerUtil.converSDBInputsToLowerCase(jsonStr);
 		@SuppressWarnings("unchecked")
 		Map<Object,Object> data = (Map<Object,Object>)requestParams.get("data");
 		String path = requestParams.get("path").toString();
 		String _path = "metadata/"+path;
+		
+		String safeName = data.get("name").toString();
+		int redundantSafeNamesCount = ControllerUtil.getCountOfSafesForGivenSafeName(safeName, token);
+		if (redundantSafeNamesCount > 1) {
+			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+					put(LogMessage.ACTION, "Update SDB").
+					put(LogMessage.MESSAGE, String.format ("Safe can't be updated since more than one safe name is found ")).
+					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+					build()));
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"SDB can't be updated since more than one safe name is found\"]}");
+		}
+		
 		if(ControllerUtil.isValidSafePath(path)){
 			// Get SDB metadataInfo
 			Response response = reqProcessor.process("/read","{\"path\":\""+_path+"\"}",token);
@@ -241,6 +256,9 @@ public class SDBController {
 		}
 		jsonStr = ControllerUtil.converSDBInputsToLowerCase(jsonStr);
 		String path = rqstParams.get("path").toString();
+		if (!StringUtils.isEmpty(path)) {
+			path = path.toLowerCase();
+		}
 		if(ControllerUtil.isValidSafePath(path)){
 			Response response = reqProcessor.process("/sdb/create",jsonStr,token);
 			if(response.getHttpstatus().equals(HttpStatus.NO_CONTENT)){
@@ -578,11 +596,13 @@ public class SDBController {
 		String userName = requestMap.get("username").toString();
 		String path = requestMap.get("path").toString();
 		String access = requestMap.get("access").toString();
-		userName = (userName !=null) ? userName.toLowerCase() : userName;
-		path = (path != null) ? path.toLowerCase() : path;
-		access = (access != null) ? access.toLowerCase(): access;
-		if(ControllerUtil.isValidSafePath(path) && ControllerUtil.isValidSafe(path, token)){
 		
+		if(ControllerUtil.isValidSafePath(path) && ControllerUtil.isValidSafe(path, token)){
+			
+			userName = (userName !=null) ? userName.toLowerCase() : userName;
+			//path = (path != null) ? path.toLowerCase() : path;
+			access = (access != null) ? access.toLowerCase(): access;
+			
 			String folders[] = path.split("[/]+");
 			
 			String policyPrefix ="";
@@ -595,7 +615,7 @@ public class SDBController {
 				return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body("{\"errors\":[\"Incorrect access requested. Valid values are read,write,deny \"]}");
 			}
 			
-			String policy = policyPrefix+folders[0]+"_"+folders[1];
+			String policy = policyPrefix+folders[0].toLowerCase()+"_"+folders[1];
 			String r_policy = "r_";
 			String w_policy = "w_";
 			String d_policy = "d_";
@@ -737,7 +757,7 @@ public class SDBController {
 		String access = requestMap.get("access").toString();
 		
 		approle = (approle !=null) ? approle.toLowerCase() : approle;
-		path = (path != null) ? path.toLowerCase() : path;
+		//path = (path != null) ? path.toLowerCase() : path;
 		access = (access != null) ? access.toLowerCase(): access;
 		
 		if(ControllerUtil.isValidSafePath(path) && ControllerUtil.isValidSafe(path, token)){
@@ -749,9 +769,9 @@ public class SDBController {
 			String policy ="";
 			
 			switch (access){
-				case "read": policy = "r_" + folders[0] + "_" + folders[1] ; break ; 
-				case "write": policy = "w_"  + folders[0] + "_" + folders[1] ;break; 
-				case "deny": policy = "d_"  + folders[0] + "_" + folders[1] ;break; 
+				case "read": policy = "r_" + folders[0].toLowerCase() + "_" + folders[1] ; break ; 
+				case "write": policy = "w_"  + folders[0].toLowerCase() + "_" + folders[1] ;break; 
+				case "deny": policy = "d_"  + folders[0].toLowerCase() + "_" + folders[1] ;break; 
 			}
 			
 			if("".equals(policy)){

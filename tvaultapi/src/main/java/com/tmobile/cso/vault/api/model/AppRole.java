@@ -34,6 +34,8 @@ public class AppRole implements Serializable {
 	private String secret_id_num_uses;
 	private String secret_id_ttl;
 	private Integer token_num_uses;
+	private Integer token_ttl;
+	private Integer token_max_ttl;
 
 	public AppRole() {
 	}
@@ -47,6 +49,19 @@ public class AppRole implements Serializable {
 		this.secret_id_num_uses = secret_id_num_uses;
 		this.secret_id_ttl = secret_id_ttl;
 		this.token_num_uses = token_num_uses;
+	}
+	
+	public AppRole(String role_name, String[] policies, boolean bind_secret_id, String secret_id_num_uses,
+			String secret_id_ttl, Integer token_num_uses, Integer token_ttl, Integer token_max_ttl) {
+		super();
+		this.role_name = role_name;
+		this.policies = policies;
+		this.bind_secret_id = bind_secret_id;
+		this.secret_id_num_uses = secret_id_num_uses;
+		this.secret_id_ttl = secret_id_ttl;
+		this.token_num_uses = token_num_uses;
+		this.token_ttl = token_ttl;
+		this.token_max_ttl = token_max_ttl;
 	}
 
 	/**
@@ -140,5 +155,32 @@ public class AppRole implements Serializable {
 		this.token_num_uses = token_num_uses;
 	}
 
+	/**
+	 * @return the token_ttl
+	 */
+	public Integer getToken_ttl() {
+		return token_ttl;
+	}
+
+	/**
+	 * @return the token_max_ttl
+	 */
+	public Integer getToken_max_ttl() {
+		return token_max_ttl;
+	}
+
+	/**
+	 * @param token_ttl the token_ttl to set
+	 */
+	public void setToken_ttl(Integer token_ttl) {
+		this.token_ttl = token_ttl;
+	}
+
+	/**
+	 * @param token_max_ttl the token_max_ttl to set
+	 */
+	public void setToken_max_ttl(Integer token_max_ttl) {
+		this.token_max_ttl = token_max_ttl;
+	}
 	
 }
