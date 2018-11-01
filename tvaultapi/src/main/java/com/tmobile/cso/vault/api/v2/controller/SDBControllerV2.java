@@ -145,11 +145,22 @@ public class SDBControllerV2 {
 	 */
 	@ApiOperation(value = "${SafesController.removeUserFromSafe.value}", notes = "${SafesController.removeUserFromSafe.notes}")
 	@DeleteMapping(value="/v2/sdb/user",consumes="application/json",produces="application/json")
-	public ResponseEntity<String> deleteUserSafe(@RequestHeader(value="vault-token") String token, @RequestBody SafeUser safeUser){
+	public ResponseEntity<String> deleteUserFromSafe(@RequestHeader(value="vault-token") String token, @RequestBody SafeUser safeUser){
 		return safesService.removeUserFromSafe(token, safeUser);
 	}
 	/**
-	 * Adds a usersgroup with a safe
+	 * Adds a group to a safe
+	 * @param token
+	 * @param safeGroup
+	 * @return
+	 */
+	@ApiOperation(value = "${SafesController.addGroupToSafe.value}", notes = "${SafesController.addGroupToSafe.notes}")
+	@PostMapping(value="/v2/sdb/group",consumes="application/json",produces="application/json")
+	public ResponseEntity<String> addGrouptoSafe(@RequestHeader(value="vault-token") String token, @RequestBody SafeGroup safeGroup){
+		return safesService.addGroupToSafe(token, safeGroup);
+	}
+	/**
+	 * Removes a group from safe
 	 * @param token
 	 * @param safeGroup
 	 * @return
