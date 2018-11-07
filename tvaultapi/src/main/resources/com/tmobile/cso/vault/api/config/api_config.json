@@ -659,7 +659,7 @@
          			  "data/bound_iam_instance_profile_arn",
          			  "data/bound_iam_role_arn","data/bound_vpc_id",
          			  "data/bound_subnet_id","data/bound_region",
-         			  "data/policies"]
+         			  "data/policies", "data/auth_type"]
     },
      {"#" : "**** Fetch aws iam role info  ****** ",
  	
@@ -672,7 +672,7 @@
          "outparams":["data/bound_ami_id","data/role_tag","data/policies",
          			  "data/bound_iam_principal_arn","data/bound_iam_role_arn",
          			  "data/max_ttl","data/disallow_reauthentication",
-         			  "data/allow_instance_migration"
+         			  "data/allow_instance_migration","data/auth_type"
          			  ]
     },
     {"#" : "**** Fetch aws roles  ****** ",

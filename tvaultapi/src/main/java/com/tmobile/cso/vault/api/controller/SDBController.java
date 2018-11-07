@@ -19,7 +19,6 @@ package com.tmobile.cso.vault.api.controller;
 
 import java.io.IOException;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
@@ -38,14 +37,11 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
 import com.tmobile.cso.vault.api.exception.LogMessage;
-import com.tmobile.cso.vault.api.model.Safe;
 import com.tmobile.cso.vault.api.process.RequestProcessor;
 import com.tmobile.cso.vault.api.process.Response;
 import com.tmobile.cso.vault.api.utils.JSONUtil;
@@ -179,10 +175,10 @@ public class SDBController {
 			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 					put(LogMessage.ACTION, "Update SDB").
-					put(LogMessage.MESSAGE, String.format ("Safe can't be updated since more than one safe name is found ")).
+					put(LogMessage.MESSAGE, String.format ("SDB can't be updated since duplicate safe names are found")).
 					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 					build()));
-			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"SDB can't be updated since more than one safe name is found\"]}");
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"SDB can't be updated since duplicate safe names are found\"]}");
 		}
 		
 		if(ControllerUtil.isValidSafePath(path)){
@@ -593,11 +589,15 @@ public class SDBController {
 			      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 			      build()));
 		Map<String,Object> requestMap = ControllerUtil.parseJson(jsonstr);
+
+		if(!ControllerUtil.areSafeUserInputsValid(requestMap)) {
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid input values\"]}");
+		}
 		String userName = requestMap.get("username").toString();
 		String path = requestMap.get("path").toString();
 		String access = requestMap.get("access").toString();
-		
-		if(ControllerUtil.isValidSafePath(path) && ControllerUtil.isValidSafe(path, token)){
+		boolean canAddUser = ControllerUtil.canAddPermission(path, token);
+		if(canAddUser){
 			
 			userName = (userName !=null) ? userName.toLowerCase() : userName;
 			//path = (path != null) ? path.toLowerCase() : path;
@@ -751,7 +751,9 @@ public class SDBController {
 			      build()));		
 		
 		Map<String,Object> requestMap = ControllerUtil.parseJson(jsonstr);
-		
+		if(!ControllerUtil.areSafeAppRoleInputsValid(requestMap)) {
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid input values\"]}");
+		}
 		String approle = requestMap.get("role_name").toString();
 		String path = requestMap.get("path").toString();
 		String access = requestMap.get("access").toString();
@@ -760,7 +762,8 @@ public class SDBController {
 		//path = (path != null) ? path.toLowerCase() : path;
 		access = (access != null) ? access.toLowerCase(): access;
 		
-		if(ControllerUtil.isValidSafePath(path) && ControllerUtil.isValidSafe(path, token)){
+		boolean canAddAppRole = ControllerUtil.canAddPermission(path, token);
+		if(canAddAppRole){
 
 			log.info("Associate approle to SDB -  path :" + path + "valid" );
 
@@ -884,9 +887,19 @@ public class SDBController {
 			requestMap = objMapper.readValue(jsonstr, new TypeReference<Map<String,String>>() {});
 		} catch (IOException e) {
 			log.error(e);
+			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+					put(LogMessage.ACTION, "deleteUserSDB").
+					put(LogMessage.MESSAGE, "Exception occurred while creating requestMap from input jsonstr").
+					put(LogMessage.RESPONSE,e.getMessage()).
+					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+					build()));
 		}
 		
 		String userName = requestMap.get("username");
+		if (StringUtils.isEmpty(userName)) {
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"username can't be empty\"]}");
+		}
 		String path = requestMap.get("path");
 		if(ControllerUtil.isValidSafePath(path) && ControllerUtil.isValidSafe(path, token)){
 			String folders[] = path.split("[/]+");
@@ -950,22 +963,21 @@ public class SDBController {
 					Response metadataResponse = ControllerUtil.updateMetadata(params,token);
 					if(HttpStatus.NO_CONTENT.equals(metadataResponse.getHttpstatus())){
 						log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
-							      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
-								  put(LogMessage.ACTION, "Delete User from SDB").
-							      put(LogMessage.MESSAGE, "Delete User from SBD Success").
-							      put(LogMessage.RESPONSE, "User association is removed").
-							      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
-							      build()));
-						return ResponseEntity.status(HttpStatus.OK).body("{\"Message\":\"User association is removed \"}");		
+								put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+								put(LogMessage.ACTION, "deleteUserSDB").
+								put(LogMessage.MESSAGE, "Successfully removed user association").
+								put(LogMessage.STATUS, metadataResponse.getHttpstatus().toString()).
+								put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+								build()));	
+						return ResponseEntity.status(HttpStatus.OK).body("{\"Message\":\"User association is removed \"}");	
 					}else{
-						log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
-							      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
-								  put(LogMessage.ACTION, "Delete User from SDB").
-							      put(LogMessage.MESSAGE, "Delete User from SBD failed").
-							      put(LogMessage.RESPONSE, metadataResponse.getResponse()).
-							      
-							      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
-							      build()));
+						log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+								put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+								put(LogMessage.ACTION, "removeUserFromSafe").
+								put(LogMessage.MESSAGE, "Error occurred while removing user association").
+								put(LogMessage.STATUS, metadataResponse.getHttpstatus().toString()).
+								put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+								build()));
 						log.debug("Meta data update failed");
 						log.debug(metadataResponse.getResponse());
 						if ("userpass".equals(vaultAuthMethod)) {
@@ -975,10 +987,22 @@ public class SDBController {
 							ldapConfigresponse = ControllerUtil.configureLDAPUser(userName,currentpolicies,groups,token);
 						}
 						if(ldapConfigresponse.getHttpstatus().equals(HttpStatus.NO_CONTENT)){
-							log.debug("Reverting user policy uupdate");
+							log.debug("Reverting user policy update");
+							log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+								      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+									  put(LogMessage.ACTION, "Delete User from SDB").
+								      put(LogMessage.MESSAGE, "Reverting user policy update completed succssfully").
+								      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+								      build()));
 							return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"messages\":[\"User configuration failed.Please try again\"]}");
 						}else{
 							log.debug("Reverting user policy update failed");
+							log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+								      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+									  put(LogMessage.ACTION, "Delete User from SDB").
+								      put(LogMessage.MESSAGE, "Reverting user policy update failed").
+								      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+								      build()));
 							return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"messages\":[\"User configuration failed.Contact Admin \"]}");
 						}
 					}		
@@ -1009,7 +1033,6 @@ public class SDBController {
 						      put(LogMessage.RESPONSE, "User association is removed").
 						      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 						      build()));
-					return ResponseEntity.status(HttpStatus.OK).body("{\"Message\":\"User association is removed \"}");		
 				}else{
 					log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 						      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
@@ -1019,8 +1042,8 @@ public class SDBController {
 						      put(LogMessage.STATUS, userResponse.getHttpstatus().toString()).
 						      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 						      build()));
-					return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"messages\":[\"User configuration failed.Try again \"]}");
 				}
+				return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"messages\":[\"User configuration failed. Please try again\"]}");
 			}
 		}else{
 			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
@@ -1171,15 +1194,24 @@ public class SDBController {
 			requestMap = objMapper.readValue(jsonstr, new TypeReference<Map<String,String>>() {});
 		} catch (IOException e) {
 			log.error(e);
+			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+				      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+					  put(LogMessage.ACTION, "Associate AWS Role to SDB").
+				      put(LogMessage.MESSAGE, String.format ("Error while trying to associate AWS Role to SDB [%s]", e.getMessage())).
+				      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+				      build()));
 		}
-		
+		if(!ControllerUtil.areAWSRoleInputsValid(requestMap)) {
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid input values\"]}");
+		}
 		String role = requestMap.get("role");
 		String path = requestMap.get("path");
 		
 		role = (role !=null) ? role.toLowerCase() : role;
 		path = (path != null) ? path.toLowerCase() : path;
 		
-		if(ControllerUtil.isValidSafePath(path) && ControllerUtil.isValidSafe(path, token)){
+		boolean canAddAWSRole = ControllerUtil.canAddPermission(path, token);
+		if(canAddAWSRole){
 			String access = requestMap.get("access");
 			String folders[] = path.split("[/]+");
 			
@@ -1414,7 +1446,9 @@ public class SDBController {
 		} catch (IOException e) {
 			log.error(e);
 		}
-		
+		if(!ControllerUtil.areSafeGroupInputsValid(requestMap)) {
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid input values\"]}");
+		}
 		String groupName = requestMap.get("groupname");
 		String path = requestMap.get("path");
 		String access = requestMap.get("access");
@@ -1423,8 +1457,9 @@ public class SDBController {
 		path = (path != null) ? path.toLowerCase() : path;
 		access = (access != null) ? access.toLowerCase(): access;
 		
-		if(ControllerUtil.isValidSafePath(path) && ControllerUtil.isValidSafe(path, token)){
-
+		boolean canAddGroup = ControllerUtil.canAddPermission(path, token);
+		if(canAddGroup){
+			
 			String folders[] = path.split("[/]+");
 			
 			String policyPrefix ="";

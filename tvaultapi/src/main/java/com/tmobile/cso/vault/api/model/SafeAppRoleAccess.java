@@ -46,7 +46,7 @@ public class SafeAppRoleAccess implements Serializable{
 	/**
 	 * @return the role_name
 	 */
-	@ApiModelProperty(example="my-vault-approle", position=1)
+	@ApiModelProperty(example="myvaultapprole", position=1)
 	public String getRole_name() {
 		return role_name;
 	}
@@ -61,7 +61,7 @@ public class SafeAppRoleAccess implements Serializable{
 	/**
 	 * @return the path
 	 */
-	@ApiModelProperty(example="shares/s1", position=2)
+	@ApiModelProperty(example="shared/mysafe01", position=2)
 	public String getPath() {
 		return path;
 	}

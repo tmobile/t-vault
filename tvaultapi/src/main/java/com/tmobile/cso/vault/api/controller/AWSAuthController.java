@@ -38,6 +38,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.tmobile.cso.vault.api.exception.TVaultValidationException;
 import com.tmobile.cso.vault.api.process.RequestProcessor;
 import com.tmobile.cso.vault.api.process.Response;
 
@@ -94,7 +95,16 @@ public class AWSAuthController {
 	 */
 	@PostMapping(value="/roles/create",consumes="application/json",produces="application/json")
 	public ResponseEntity<String> createRole(@RequestHeader(value="vault-token") String token,
-																	@RequestBody String jsonStr){
+																	@RequestBody String jsonStr) {
+		boolean validInputs = false;
+		try {
+			validInputs = ControllerUtil.areAWSEC2RoleInputsValid(jsonStr);
+		} catch (TVaultValidationException e1) {
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"messages\":[\""+e1.getMessage()+ "\"]}");
+		}
+		if (!validInputs) {
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"messages\":[\"Invalid Inputs \"]}");
+		}
 		
 		ObjectMapper objMapper = new ObjectMapper();
 		String currentPolicies = "";
@@ -136,6 +146,16 @@ public class AWSAuthController {
 	@PostMapping(value="/roles/update",consumes="application/json",produces="application/json")
 	public ResponseEntity<String> updateRole(@RequestHeader(value="vault-token") String token,
 																	@RequestBody String jsonStr){
+		
+		boolean validInputs = false;
+		try {
+			validInputs = ControllerUtil.areAWSEC2RoleInputsValid(jsonStr);
+		} catch (TVaultValidationException e1) {
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"messages\":[\""+e1.getMessage()+ "\"]}");
+		}
+		if (!validInputs) {
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"messages\":[\"Invalid Inputs \"]}");
+		}
 		
 		ObjectMapper objMapper = new ObjectMapper();
 		String currentPolicies = "";
