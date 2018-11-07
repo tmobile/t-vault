@@ -28,6 +28,9 @@
             .makeRequest(reqObjtobeSent)
             .then(function (response) {
                 var leaseDuration = response.data['lease_duration'];
+				if (leaseDuration == undefined) {
+                    leaseDuration = 300;
+                }
                 Idle.setIdle(180);
                 Idle.setTimeout(leaseDuration - 180);
                 Keepalive.setInterval(leaseDuration - 60);
@@ -47,7 +50,10 @@
         return ServiceEndpoint.renewToken.makeRequest(null, null, {"vault-token": vaultAPIKey})
           .then(function (response) {
             var leaseDuration = response.data['lease_duration'];
-            Idle.setIdle(180);
+			if (leaseDuration == undefined) {
+				leaseDuration = 300;
+			}
+             Idle.setIdle(180);
             Idle.setTimeout(leaseDuration - 180);
             Keepalive.setInterval(leaseDuration - 60);
           }, function (error) {
