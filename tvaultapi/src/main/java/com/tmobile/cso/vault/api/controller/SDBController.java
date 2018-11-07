@@ -593,11 +593,11 @@ public class SDBController {
 		if(!ControllerUtil.areSafeUserInputsValid(requestMap)) {
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid input values\"]}");
 		}
-		
 		String userName = requestMap.get("username").toString();
 		String path = requestMap.get("path").toString();
 		String access = requestMap.get("access").toString();
-		if(ControllerUtil.isValidSafePath(path) && ControllerUtil.isValidSafe(path, token)){
+		boolean canAddUser = ControllerUtil.canAddPermission(path, token);
+		if(canAddUser){
 			
 			userName = (userName !=null) ? userName.toLowerCase() : userName;
 			//path = (path != null) ? path.toLowerCase() : path;
@@ -751,7 +751,9 @@ public class SDBController {
 			      build()));		
 		
 		Map<String,Object> requestMap = ControllerUtil.parseJson(jsonstr);
-
+		if(!ControllerUtil.areSafeAppRoleInputsValid(requestMap)) {
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid input values\"]}");
+		}
 		String approle = requestMap.get("role_name").toString();
 		String path = requestMap.get("path").toString();
 		String access = requestMap.get("access").toString();
@@ -760,7 +762,8 @@ public class SDBController {
 		//path = (path != null) ? path.toLowerCase() : path;
 		access = (access != null) ? access.toLowerCase(): access;
 		
-		if(ControllerUtil.isValidSafePath(path) && ControllerUtil.isValidSafe(path, token)){
+		boolean canAddAppRole = ControllerUtil.canAddPermission(path, token);
+		if(canAddAppRole){
 
 			log.info("Associate approle to SDB -  path :" + path + "valid" );
 
@@ -1207,7 +1210,8 @@ public class SDBController {
 		role = (role !=null) ? role.toLowerCase() : role;
 		path = (path != null) ? path.toLowerCase() : path;
 		
-		if(ControllerUtil.isValidSafePath(path) && ControllerUtil.isValidSafe(path, token)){
+		boolean canAddAWSRole = ControllerUtil.canAddPermission(path, token);
+		if(canAddAWSRole){
 			String access = requestMap.get("access");
 			String folders[] = path.split("[/]+");
 			
@@ -1453,8 +1457,9 @@ public class SDBController {
 		path = (path != null) ? path.toLowerCase() : path;
 		access = (access != null) ? access.toLowerCase(): access;
 		
-		if(ControllerUtil.isValidSafePath(path) && ControllerUtil.isValidSafe(path, token)){
-
+		boolean canAddGroup = ControllerUtil.canAddPermission(path, token);
+		if(canAddGroup){
+			
 			String folders[] = path.split("[/]+");
 			
 			String policyPrefix ="";

@@ -107,6 +107,7 @@ public class AppRoleController {
 			      put(LogMessage.MESSAGE, String.format("Trying to Associate AppRole [%s]", jsonStr)).
 			      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 			      build()));
+
 			jsonStr = ControllerUtil.convertSafeAppRoleAccessToLowerCase(jsonStr);
 			ResponseEntity<String> response = sdbController.associateApproletoSDB(token,jsonStr);
 
