@@ -998,8 +998,65 @@ public final class ControllerUtil {
 		String paths[] =  path.split("/");
 		return paths[0]+"/"+paths[1];
 	}
-	
-
+	/**
+	 * Gets the safe type for a given path
+	 * @param path
+	 * @return
+	 */
+	public static String getSafeType(String path){
+		String safeType = "unknown";
+		if (!StringUtils.isEmpty(path)) {
+			String paths[] =  path.split("/");
+			if (paths != null && paths.length > 0) {
+				safeType = paths[0];
+			}
+		}
+		return safeType;
+	}
+	/**
+	 * Gets the safe type for a given path
+	 * @param path
+	 * @return
+	 */
+	public static String getSafeName(String path){
+		String safeName = "";
+		if (!StringUtils.isEmpty(path)) {
+			String paths[] =  path.split("/");
+			if (paths != null && paths.length > 1) {
+				safeName = paths[1];
+			}
+		}
+		return safeName;
+	}
+	/**
+	 * Decides whether a user can be added to a safe or not
+	 * @param path
+	 * @param token
+	 * @return
+	 */
+	public static boolean canAddPermission(String path,String token) {
+		String safeType = ControllerUtil.getSafeType(path);
+		String safeName = ControllerUtil.getSafeName(path);
+		
+		List<String> existingSafeNames = getAllExistingSafeNames(safeType, token);
+		List<String> duplicateSafeNames = new ArrayList<String>();
+		int count=0;
+		for (String existingSafeName: existingSafeNames) {
+			if (existingSafeName.equalsIgnoreCase(safeName)) {
+				count++;
+				duplicateSafeNames.add(existingSafeName);
+			}
+		}
+		if (count == 1) {
+			// There is one valid safe, Hence permission can be added
+			// Exact match
+			return true;
+		}
+		else {
+			// There are no safes or more than one and hence permission can't be added
+			return false;
+		}
+	}
 	public static boolean isValidSafe(String path,String token){
 		String safePath = getSafePath(path);
 		String _path = "metadata/"+safePath;
@@ -1032,42 +1089,29 @@ public final class ControllerUtil {
 		String sdbName = (String) map.get("name");
 		String sdbOwner = (String) map.get("owner");
 		String sdbDescription = (String) map.get("description");
+		String path = (String) requestParams.get("path");
 		if (StringUtils.isEmpty(sdbName) 
 				|| StringUtils.isEmpty(sdbOwner) 
 				|| StringUtils.isEmpty(sdbDescription) 
+				|| StringUtils.isEmpty(path) 
 				) {
 			return false;
 		}
 		if (!isSdbNameValid(sdbName) || sdbName.length() > 40) {
 			return false;
 		}
+		String safeName = getSafeName(path);
+		if (!sdbName.equals(safeName)) {
+			return false;
+		}
+		
 		if (!EmailValidator.getInstance().isValid(sdbOwner)) {
 			return false;
 		}
 		return true;
 	}
 	
-	/**
-	 * Validates Safe User inputs
-	 * @param requestMap
-	 * @return
-	 */
-	public static boolean areSafeUserInputsValid(Map<String,Object> requestMap) {
-		if (MapUtils.isEmpty(requestMap)) {
-			return false;
-		}
-		if (ObjectUtils.isEmpty(requestMap.get("username"))
-				|| ObjectUtils.isEmpty(requestMap.get("path"))
-				|| ObjectUtils.isEmpty(requestMap.get("access"))
-				) {
-			return false;
-		}
-		String access = (String) requestMap.get("access");
-		if (!ArrayUtils.contains(permissions, access)) {
-			return false;
-		}
-		return true;
-	}
+
 	/**
 	 * Validates Safe Group Inputs
 	 * @param requestMap
@@ -1081,6 +1125,10 @@ public final class ControllerUtil {
 				|| ObjectUtils.isEmpty(requestMap.get("path"))
 				|| ObjectUtils.isEmpty(requestMap.get("access"))
 				) {
+			return false;
+		}
+		String path = requestMap.get("path");
+		if (!isPathValid(path)) {
 			return false;
 		}
 		String access = (String) requestMap.get("access");
@@ -1104,6 +1152,10 @@ public final class ControllerUtil {
 				) {
 			return false;
 		}
+		String path = (String) requestMap.get("path");
+		if (!isPathValid(path)) {
+			return false;
+		}
 		String access = (String) requestMap.get("access");
 		if (!ArrayUtils.contains(permissions, access)) {
 			return false;
@@ -1125,13 +1177,41 @@ public final class ControllerUtil {
 				) {
 			return false;
 		}
+		String path = safeUser.getPath();
+		if (!isPathValid(path)) {
+			return false;
+		}
 		String access = safeUser.getAccess();
 		if (!ArrayUtils.contains(permissions, access)) {
 			return false;
 		}
 		return true;
 	}
-	
+	/**
+	 * Validates Safe User inputs
+	 * @param requestMap
+	 * @return
+	 */
+	public static boolean areSafeUserInputsValid(Map<String,Object> requestMap) {
+		if (MapUtils.isEmpty(requestMap)) {
+			return false;
+		}
+		if (ObjectUtils.isEmpty(requestMap.get("username"))
+				|| ObjectUtils.isEmpty(requestMap.get("path"))
+				|| ObjectUtils.isEmpty(requestMap.get("access"))
+				) {
+			return false;
+		}
+		String path = (String) requestMap.get("path");
+		if (!isPathValid(path)) {
+			return false;
+		}
+		String access = (String) requestMap.get("access");
+		if (!ArrayUtils.contains(permissions, access)) {
+			return false;
+		}
+		return true;
+	}
 	/**
 	 * Validates Safe Group inputs
 	 * @param safeUser
@@ -1147,7 +1227,36 @@ public final class ControllerUtil {
 				) {
 			return false;
 		}
+		String path = safeGroup.getPath();
+		if (!isPathValid(path)) {
+			return false;
+		}
 		String access = safeGroup.getAccess();
+		if (!ArrayUtils.contains(permissions, access)) {
+			return false;
+		}
+		return true;
+	}
+	/**
+	 * Validates Safe User inputs for AppRole association
+	 * @param requestMap
+	 * @return
+	 */
+	public static boolean areSafeAppRoleInputsValid(Map<String,Object> requestMap) {
+		if (MapUtils.isEmpty(requestMap)) {
+			return false;
+		}
+		if (ObjectUtils.isEmpty(requestMap.get("role_name"))
+				|| ObjectUtils.isEmpty(requestMap.get("path"))
+				|| ObjectUtils.isEmpty(requestMap.get("access"))
+				) {
+			return false;
+		}
+		String path = (String) requestMap.get("path");
+		if (!isPathValid(path)) {
+			return false;
+		}
+		String access = (String) requestMap.get("access");
 		if (!ArrayUtils.contains(permissions, access)) {
 			return false;
 		}
@@ -1166,6 +1275,10 @@ public final class ControllerUtil {
 				|| ObjectUtils.isEmpty(awsRole.getAccess())
 				|| ObjectUtils.isEmpty(awsRole.getPath())
 				) {
+			return false;
+		}
+		String path = awsRole.getPath();
+		if (!isPathValid(path)) {
 			return false;
 		}
 		String access = awsRole.getAccess();
@@ -1517,27 +1630,36 @@ public final class ControllerUtil {
 	 */
 	public static HashMap<String, List<String>> getAllExistingSafeNames(String token) {
 		HashMap<String, List<String>> allExistingSafeNames = new HashMap<String, List<String>>();
-
 		for (String mountPath : mountPaths) {
-			String path = "metadata/" + mountPath;
-			Response response = reqProcessor.process("/sdb/list","{\"path\":\""+path+"\"}",token);
-			if(response.getHttpstatus().equals(HttpStatus.OK)){
-				try {
-					Map<String, Object> requestParams = new ObjectMapper().readValue(response.getResponse(), new TypeReference<Map<String, Object>>(){});
-					List<String> safeNamesMap = (ArrayList<String>) requestParams.get("keys");
-					allExistingSafeNames.put(mountPath, safeNamesMap);
-				} catch (Exception e) {
-					log.error("Unable to get list of safes.");
-					log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
-							put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
-							put(LogMessage.ACTION, "getAllExistingSafeNames").
-							put(LogMessage.MESSAGE, String.format ("Unable to get list of safes due to [%s] ",e.getMessage())).
-							put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
-							build()));
-				}
-			}
+			List<String> safeNames = getAllExistingSafeNames(mountPath, token);
+			allExistingSafeNames.put(mountPath, safeNames);
 		}
 		return allExistingSafeNames;
+	}
+	
+	/**
+	 * Get the map of all existing safe names for a given type.
+	 * @return
+	 */
+	public static List<String> getAllExistingSafeNames(String type, String token) {
+		List<String> safeNames = new ArrayList<String>();
+		String path = "metadata/" + type;
+		Response response = reqProcessor.process("/sdb/list","{\"path\":\""+path+"\"}",token);
+		if(response.getHttpstatus().equals(HttpStatus.OK)){
+			try {
+				Map<String, Object> requestParams = new ObjectMapper().readValue(response.getResponse(), new TypeReference<Map<String, Object>>(){});
+				safeNames = (ArrayList<String>) requestParams.get("keys");
+			} catch (Exception e) {
+				log.error("Unable to get list of safes.");
+				log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+						put(LogMessage.ACTION, "getAllExistingSafeNames").
+						put(LogMessage.MESSAGE, String.format ("Unable to get list of safes due to [%s] ",e.getMessage())).
+						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+						build()));
+			}
+		}
+		return safeNames;
 	}
 	/**
 	 * Get the count of redundant safe names...
@@ -1554,6 +1676,23 @@ public final class ControllerUtil {
 				if (safeName.equalsIgnoreCase(existingSafeName)) {
 					count++;
 				}
+			}
+		}
+		return count;
+	}
+	/**
+	 * Get the count of redundant safe names...
+	 * @param safeName
+	 * @param safeType
+	 * @param token
+	 * @return
+	 */
+	public static int getCountOfSafesForGivenSafeName(String safeName, String safeType, String token) {
+		List<String> existingSafeNames = getAllExistingSafeNames(safeType, token);
+		int count = 0;
+		for (String existingSafeName: existingSafeNames) {
+			if (safeName.equalsIgnoreCase(existingSafeName)) {
+				count++;
 			}
 		}
 		return count;

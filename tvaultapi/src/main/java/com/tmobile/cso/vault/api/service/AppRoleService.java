@@ -332,7 +332,9 @@ public class  AppRoleService {
 			      build()));		
 		
 		Map<String,Object> requestMap = ControllerUtil.parseJson(jsonstr);
-		
+		if(!ControllerUtil.areSafeAppRoleInputsValid(requestMap)) {
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid input values\"]}");
+		}
 		String approle = requestMap.get("role_name").toString();
 		String path = requestMap.get("path").toString();
 		String access = requestMap.get("access").toString();
@@ -341,7 +343,8 @@ public class  AppRoleService {
 		//path = (path != null) ? path.toLowerCase() : path;
 		access = (access != null) ? access.toLowerCase(): access;
 		
-		if(ControllerUtil.isValidSafePath(path) && ControllerUtil.isValidSafe(path, token)){
+		boolean canAddAppRole = ControllerUtil.canAddPermission(path, token);
+		if(canAddAppRole){
 
 			log.info("Associate approle to SDB -  path :" + path + "valid" );
 

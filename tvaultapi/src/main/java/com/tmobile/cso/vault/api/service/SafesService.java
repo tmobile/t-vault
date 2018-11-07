@@ -619,6 +619,12 @@ public class  SafesService {
 				build()));
 		
 		if(!ControllerUtil.areSafeUserInputsValid(safeUser)) {
+			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+					put(LogMessage.ACTION, "Add User to SDB").
+					put(LogMessage.MESSAGE, String.format ("Invalid user inputs [%s]", safeUser.toString())).
+					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+					build()));
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid input values\"]}");
 		}
 		
@@ -630,7 +636,8 @@ public class  SafesService {
 //		path = (path != null) ? path.toLowerCase() : path;
 		access = (access != null) ? access.toLowerCase(): access;
 
-		if(ControllerUtil.isValidSafePath(path) && ControllerUtil.isValidSafe(path, token)){
+		boolean canAddUser = ControllerUtil.canAddPermission(path, token);
+		if(canAddUser){
 
 			String folders[] = path.split("[/]+");
 
@@ -641,10 +648,22 @@ public class  SafesService {
 			case "deny": policyPrefix = "d_" ;break; 
 			}
 			if("".equals(policyPrefix)){
+				log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+						put(LogMessage.ACTION, "Add User to SDB").
+						put(LogMessage.MESSAGE, String.format ("Incorrect access requested. Valid values are read,write,deny")).
+						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+						build()));
 				return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body("{\"errors\":[\"Incorrect access requested. Valid values are read,write,deny \"]}");
 			}
 
 			String policy = policyPrefix+folders[0].toLowerCase()+"_"+folders[1];
+			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+					put(LogMessage.ACTION, "Add User to SDB").
+					put(LogMessage.MESSAGE, String.format ("policy is [%s]", policy)).
+					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+					build()));
 			String r_policy = "r_";
 			String w_policy = "w_";
 			String d_policy = "d_";
@@ -662,6 +681,12 @@ public class  SafesService {
 					}
 				}
 			}
+			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+					put(LogMessage.ACTION, "Add User to SDB").
+					put(LogMessage.MESSAGE, String.format ("Policies are, read - [%s], write - [%s], deny -[%s]", r_policy, w_policy, d_policy)).
+					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+					build()));
 			Response userResponse;
 			if ("userpass".equals(vaultAuthMethod)) {
 				userResponse = reqProcessor.process("/auth/userpass/read","{\"username\":\""+userName+"\"}",token);	
@@ -669,6 +694,14 @@ public class  SafesService {
 			else {
 				userResponse = reqProcessor.process("/auth/ldap/users","{\"username\":\""+userName+"\"}",token);
 			}
+			
+			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+					put(LogMessage.ACTION, "Add User to SDB").
+					put(LogMessage.MESSAGE, String.format ("userResponse status is [%s]", userResponse.getHttpstatus())).
+					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+					build()));
+			
 			String responseJson="";
 
 
@@ -686,6 +719,13 @@ public class  SafesService {
 					}
 				} catch (IOException e) {
 					log.error(e);
+					log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+							put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+							put(LogMessage.ACTION, "Add User to SDB").
+							put(LogMessage.MESSAGE, String.format ("Exception while creating currentpolicies or groups")).
+							put(LogMessage.STACKTRACE, e.getStackTrace().toString()).
+							put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+							build()));
 				}
 				policies = currentpolicies;
 				policies = policies.replaceAll(r_policy, "");
@@ -696,7 +736,12 @@ public class  SafesService {
 				// New user to be configured
 				policies = policy;
 			}
-
+			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+					put(LogMessage.ACTION, "Add User to SDB").
+					put(LogMessage.MESSAGE, String.format ("policies [%s] before calling configureUserpassUser/configureLDAPUser", policies)).
+					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+					build()));
 			Response ldapConfigresponse;
 			if ("userpass".equals(vaultAuthMethod)) {
 				ldapConfigresponse = ControllerUtil.configureUserpassUser(userName,policies,token);
@@ -711,6 +756,12 @@ public class  SafesService {
 				params.put("name",userName);
 				params.put("path",path);
 				params.put("access",access);
+				log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+						put(LogMessage.ACTION, "Add User to SDB").
+						put(LogMessage.MESSAGE, String.format ("Trying to update metadata [%s]", params.toString())).
+						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+						build()));
 				Response metadataResponse = ControllerUtil.updateMetadata(params,token);
 				if(HttpStatus.NO_CONTENT.equals(metadataResponse.getHttpstatus())){
 					return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"User is successfully associated \"]}");		
@@ -718,7 +769,7 @@ public class  SafesService {
 					log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 							put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 							put(LogMessage.ACTION, "Add User to SDB").
-							put(LogMessage.MESSAGE, "User configuration failed.").
+							put(LogMessage.MESSAGE, "User configuration failed. Trying to revert...").
 							put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 							build()));
 					if ("userpass".equals(vaultAuthMethod)) {
@@ -730,13 +781,31 @@ public class  SafesService {
 					}
 					if(ldapConfigresponse.getHttpstatus().equals(HttpStatus.NO_CONTENT)){
 						log.debug("Reverting user policy uupdate");
+						log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+								put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+								put(LogMessage.ACTION, "Add User to SDB").
+								put(LogMessage.MESSAGE, "User configuration failed. Trying to revert...Passed").
+								put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+								build()));
 						return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"messages\":[\"User configuration failed.Please try again\"]}");
 					}else{
 						log.debug("Reverting user policy update failed");
+						log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+								put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+								put(LogMessage.ACTION, "Add User to SDB").
+								put(LogMessage.MESSAGE, "User configuration failed. Trying to revert...failed").
+								put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+								build()));
 						return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"messages\":[\"User configuration failed.Contact Admin \"]}");
 					}
 				}		
 			}else{
+				log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+						put(LogMessage.ACTION, "Add User to SDB").
+						put(LogMessage.MESSAGE, String.format ("Trying to configureUserpassUser/configureLDAPUser failed")).
+						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+						build()));
 				return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"messages\":[\"User configuration failed.Try Again\"]}");
 			}	
 		}else{
@@ -779,7 +848,8 @@ public class  SafesService {
 		path = (path != null) ? path.toLowerCase() : path;
 		access = (access != null) ? access.toLowerCase(): access;
 
-		if(ControllerUtil.isValidSafePath(path) && ControllerUtil.isValidSafe(path, token)){
+		boolean canAddGroup = ControllerUtil.canAddPermission(path, token);
+		if(canAddGroup){
 			String folders[] = path.split("[/]+");
 
 			String policyPrefix ="";
@@ -1163,7 +1233,8 @@ public class  SafesService {
 		path = (path != null) ? path.toLowerCase() : path;
 		access = (access != null) ? access.toLowerCase(): access;
 
-		if(ControllerUtil.isValidSafePath(path) && ControllerUtil.isValidSafe(path, token)){
+		boolean canAddAWSRole = ControllerUtil.canAddPermission(path, token);
+		if(canAddAWSRole){
 			String folders[] = path.split("[/]+");
 
 			String policyPrefix ="";
