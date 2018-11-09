@@ -18,6 +18,7 @@
 package com.tmobile.cso.vault.api.service;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.apache.logging.log4j.LogManager;
@@ -339,10 +340,6 @@ public class  AppRoleService {
 		String path = requestMap.get("path").toString();
 		String access = requestMap.get("access").toString();
 		
-		approle = (approle !=null) ? approle.toLowerCase() : approle;
-		//path = (path != null) ? path.toLowerCase() : path;
-		access = (access != null) ? access.toLowerCase(): access;
-		
 		boolean canAddAppRole = ControllerUtil.canAddPermission(path, token);
 		if(canAddAppRole){
 
@@ -383,7 +380,7 @@ public class  AppRoleService {
 				params.put("path",path);
 				params.put("access",access);
 				Response metadataResponse = ControllerUtil.updateMetadata(params,token);
-				if(HttpStatus.NO_CONTENT.equals(metadataResponse.getHttpstatus())){
+				if(metadataResponse != null && HttpStatus.NO_CONTENT.equals(metadataResponse.getHttpstatus())){
 					log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 						      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 							  put(LogMessage.ACTION, "Add AppRole To SDB").
@@ -393,36 +390,65 @@ public class  AppRoleService {
 						      build()));
 					return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Approle :" + approle + " is successfully associated with SDB\"]}");		
 				}else{
-					log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
-						      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
-							  put(LogMessage.ACTION, "Add AppRole To SDB").
-						      put(LogMessage.MESSAGE, "AppRole configuration failed.").
-						      put(LogMessage.RESPONSE, metadataResponse.getResponse()).
-						      put(LogMessage.STATUS, metadataResponse.getHttpstatus().toString()).
-						      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
-						      build()));
-					//Trying to revert the metadata update in case of failure
-					approleControllerResp = ControllerUtil.configureAWSRole(approle,policy,token);
-					if(approleControllerResp.getHttpstatus().equals(HttpStatus.NO_CONTENT)){
-						log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+					String safeType = ControllerUtil.getSafeType(path);
+					String safeName = ControllerUtil.getSafeName(path);
+					List<String> safeNames = ControllerUtil.getAllExistingSafeNames(safeType, token);
+					String newPath = path;
+					if (safeNames != null ) {
+						
+						for (String existingSafeName: safeNames) {
+							if (existingSafeName.equalsIgnoreCase(safeName)) {
+								// It will come here when there is only one valid safe
+								newPath = safeType + "/" + existingSafeName;
+								break;
+							}
+						} 
+						
+					}
+					params.put("path",newPath);
+					metadataResponse = ControllerUtil.updateMetadata(params,token);
+					if(metadataResponse !=null && HttpStatus.NO_CONTENT.equals(metadataResponse.getHttpstatus())){
+						log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 							      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 								  put(LogMessage.ACTION, "Add AppRole To SDB").
-							      put(LogMessage.MESSAGE, "Reverting user policy update failed").
-							      put(LogMessage.RESPONSE, metadataResponse.getResponse()).
+							      put(LogMessage.MESSAGE, "AppRole is successfully associated").
 							      put(LogMessage.STATUS, metadataResponse.getHttpstatus().toString()).
 							      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 							      build()));
-						return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Role configuration failed.Please try again\"]}");
-					}else{
-						log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+						return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Approle :" + approle + " is successfully associated with SDB\"]}");		
+					}
+					else {
+						log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 							      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
-								  put(LogMessage.ACTION, "Add ARole To SDB").
-							      put(LogMessage.MESSAGE, "Reverting user policy update failed").
+								  put(LogMessage.ACTION, "Add AppRole To SDB").
+							      put(LogMessage.MESSAGE, "AppRole configuration failed.").
 							      put(LogMessage.RESPONSE, metadataResponse.getResponse()).
 							      put(LogMessage.STATUS, metadataResponse.getHttpstatus().toString()).
 							      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 							      build()));
-						return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Role configuration failed.Contact Admin \"]}");
+						//Trying to revert the metadata update in case of failure
+						approleControllerResp = ControllerUtil.configureApprole(approle,policy,token);
+						if(approleControllerResp.getHttpstatus().equals(HttpStatus.NO_CONTENT)){
+							log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+								      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+									  put(LogMessage.ACTION, "Add AppRole To SDB").
+								      put(LogMessage.MESSAGE, "Reverting user policy update failed").
+								      put(LogMessage.RESPONSE, metadataResponse.getResponse()).
+								      put(LogMessage.STATUS, metadataResponse.getHttpstatus().toString()).
+								      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+								      build()));
+							return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Role configuration failed.Please try again\"]}");
+						}else{
+							log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+								      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+									  put(LogMessage.ACTION, "Add AppRole To SDB").
+								      put(LogMessage.MESSAGE, "Reverting user policy update failed").
+								      put(LogMessage.RESPONSE, metadataResponse.getResponse()).
+								      put(LogMessage.STATUS, metadataResponse.getHttpstatus().toString()).
+								      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+								      build()));
+							return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Role configuration failed.Contact Admin \"]}");
+						}
 					}
 				}
 			
