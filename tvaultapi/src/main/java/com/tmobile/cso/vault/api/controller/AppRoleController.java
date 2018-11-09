@@ -17,8 +17,6 @@
 
 package com.tmobile.cso.vault.api.controller;
 
-import java.util.Map;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -108,7 +106,6 @@ public class AppRoleController {
 			      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 			      build()));
 
-			jsonStr = ControllerUtil.convertSafeAppRoleAccessToLowerCase(jsonStr);
 			ResponseEntity<String> response = sdbController.associateApproletoSDB(token,jsonStr);
 
 			if(response.getStatusCode().equals(HttpStatus.NO_CONTENT)) {

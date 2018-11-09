@@ -19,6 +19,7 @@ package com.tmobile.cso.vault.api.controller;
 
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
@@ -159,17 +160,17 @@ public class SDBController {
 			      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 			      build()));
 		Map<String, Object> requestParams = ControllerUtil.parseJson(jsonStr);
-		if (!ControllerUtil.areSDBInputsValid(requestParams)) {
+		if (!ControllerUtil.areSDBInputsValidForUpdate(requestParams)) {
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid input values\"]}");
 		}
 
-		jsonStr = ControllerUtil.converSDBInputsToLowerCase(jsonStr);
 		@SuppressWarnings("unchecked")
 		Map<Object,Object> data = (Map<Object,Object>)requestParams.get("data");
 		String path = requestParams.get("path").toString();
-		String _path = "metadata/"+path;
-		
 		String safeName = data.get("name").toString();
+		String safeNameFromPath = ControllerUtil.getSafeName(path);
+		String safeType = ControllerUtil.getSafeType(path);
+		
 		int redundantSafeNamesCount = ControllerUtil.getCountOfSafesForGivenSafeName(safeName, token);
 		if (redundantSafeNamesCount > 1) {
 			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
@@ -180,18 +181,37 @@ public class SDBController {
 					build()));
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"SDB can't be updated since duplicate safe names are found\"]}");
 		}
+		// Note: If safe was created with upper case in earlier releases, safeName will be uppercase in metadata/<safe_type>/safeName
+		// To avoid call to get metadata information, we need to create path with correct case
+		String safePath = ControllerUtil.generateSafePath(safeName, safeType);
 		
-		if(ControllerUtil.isValidSafePath(path)){
+		String _path = "metadata/"+safeType+"/"+safeNameFromPath; //Path as passed 
+		String _safePath = "metadata/"+safeType+"/"+safeName; // Path created from given safename and type
+		String pathToBeUpdated = _path;
+		if(ControllerUtil.isValidSafePath(path) || ControllerUtil.isValidSafePath(safePath)){
 			// Get SDB metadataInfo
 			Response response = reqProcessor.process("/read","{\"path\":\""+_path+"\"}",token);
 			Map<String, Object> responseMap = null;
-			if(HttpStatus.OK.equals(response.getHttpstatus())){
+			if(HttpStatus.OK.equals(response.getHttpstatus())) {
 				responseMap = ControllerUtil.parseJson(response.getResponse());
-				if(responseMap.isEmpty())
+				if(responseMap.isEmpty()) {
 					return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Error Fetching existing safe info \"]}");
-			}else{
-				log.error("Could not fetch the safe information. Possible path issue");
-				return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Error Fetching existing safe info. please check the path specified \"]}");
+				}
+				pathToBeUpdated = _path;
+			}
+			else{
+				response = reqProcessor.process("/read","{\"path\":\""+_safePath+"\"}",token);
+				if(HttpStatus.OK.equals(response.getHttpstatus())){
+					responseMap = ControllerUtil.parseJson(response.getResponse());
+					if(responseMap.isEmpty()) {
+						return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Error Fetching existing safe info \"]}");
+					}
+					pathToBeUpdated = _safePath;
+				}
+				else {
+					log.error("Could not fetch the safe information. Possible path issue");
+					return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Error Fetching existing safe info. please check the path specified \"]}");
+				}
 			}
 			
 			@SuppressWarnings("unchecked")
@@ -202,7 +222,7 @@ public class SDBController {
 			data.put("aws-roles",awsroles);
 			data.put("groups",groups);
 			data.put("users",users);
-			requestParams.put("path",_path);
+			requestParams.put("path",pathToBeUpdated);
 			String metadataJson = ControllerUtil.convetToJson(requestParams) ;
 			response = reqProcessor.process("/sdb/update",metadataJson,token);
 			if(response.getHttpstatus().equals(HttpStatus.NO_CONTENT)){
@@ -683,36 +703,61 @@ public class SDBController {
 				params.put("path",path);
 				params.put("access",access);
 				Response metadataResponse = ControllerUtil.updateMetadata(params,token);
-				if(HttpStatus.NO_CONTENT.equals(metadataResponse.getHttpstatus())){
+				
+				if(metadataResponse != null && HttpStatus.NO_CONTENT.equals(metadataResponse.getHttpstatus())){
 					return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"User is successfully associated \"]}");		
 				}else{
-					log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
-						      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
-							  put(LogMessage.ACTION, "Add User to SDB").
-						      put(LogMessage.MESSAGE, "User configuration failed.").
-						      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
-						      build()));
-					log.debug("Meta data update failed");
-					log.debug(metadataResponse.getResponse());
-					if ("userpass".equals(vaultAuthMethod)) {
-						ldapConfigresponse = ControllerUtil.configureUserpassUser(userName,currentpolicies,token);
+					String safeType = ControllerUtil.getSafeType(path);
+					String safeName = ControllerUtil.getSafeName(path);
+					List<String> safeNames = ControllerUtil.getAllExistingSafeNames(safeType, token);
+					String newPath = path;
+					if (safeNames != null ) {
+						
+						for (String existingSafeName: safeNames) {
+							if (existingSafeName.equalsIgnoreCase(safeName)) {
+								// It will come here when there is only one valid safe
+								newPath = safeType + "/" + existingSafeName;
+								break;
+							}
+						} 
+						
 					}
-					else {					log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
-						      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
-							  put(LogMessage.ACTION, "Add User to SDB").
-						      put(LogMessage.MESSAGE, "User configuration failed.").
-						      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
-						      build()));
+					params.put("path",newPath);
+					metadataResponse = ControllerUtil.updateMetadata(params,token);
+					if (metadataResponse != null && HttpStatus.NO_CONTENT.equals(metadataResponse.getHttpstatus())) {
+						return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"User is successfully associated \"]}");	
+					}
+					else {
+						log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+							      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+								  put(LogMessage.ACTION, "Add User to SDB").
+							      put(LogMessage.MESSAGE, "User configuration failed.").
+							      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+							      build()));
+						log.debug("Meta data update failed");
+						log.debug(metadataResponse.getResponse());
+						if ("userpass".equals(vaultAuthMethod)) {
+							ldapConfigresponse = ControllerUtil.configureUserpassUser(userName,currentpolicies,token);
+						}
+						else {
+							log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+							      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+								  put(LogMessage.ACTION, "Add User to SDB").
+							      put(LogMessage.MESSAGE, "User configuration failed.").
+							      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+							      build()));
 
-						ldapConfigresponse = ControllerUtil.configureLDAPUser(userName,currentpolicies,groups,token);
+							ldapConfigresponse = ControllerUtil.configureLDAPUser(userName,currentpolicies,groups,token);
+						}
+						if(ldapConfigresponse.getHttpstatus().equals(HttpStatus.NO_CONTENT)){
+							log.debug("Reverting user policy uupdate");
+							return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"messages\":[\"User configuration failed.Please try again\"]}");
+						}else{
+							log.debug("Reverting user policy update failed");
+							return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"messages\":[\"User configuration failed.Contact Admin \"]}");
+						}
 					}
-					if(ldapConfigresponse.getHttpstatus().equals(HttpStatus.NO_CONTENT)){
-						log.debug("Reverting user policy uupdate");
-						return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"messages\":[\"User configuration failed.Please try again\"]}");
-					}else{
-						log.debug("Reverting user policy update failed");
-						return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"messages\":[\"User configuration failed.Contact Admin \"]}");
-					}
+
 				}		
 			}else{
 				log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
@@ -758,10 +803,6 @@ public class SDBController {
 		String path = requestMap.get("path").toString();
 		String access = requestMap.get("access").toString();
 		
-		approle = (approle !=null) ? approle.toLowerCase() : approle;
-		//path = (path != null) ? path.toLowerCase() : path;
-		access = (access != null) ? access.toLowerCase(): access;
-		
 		boolean canAddAppRole = ControllerUtil.canAddPermission(path, token);
 		if(canAddAppRole){
 
@@ -802,7 +843,7 @@ public class SDBController {
 				params.put("path",path);
 				params.put("access",access);
 				Response metadataResponse = ControllerUtil.updateMetadata(params,token);
-				if(HttpStatus.NO_CONTENT.equals(metadataResponse.getHttpstatus())){
+				if(metadataResponse != null && HttpStatus.NO_CONTENT.equals(metadataResponse.getHttpstatus())){
 					log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 						      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 							  put(LogMessage.ACTION, "Add AppRole To SDB").
@@ -812,36 +853,65 @@ public class SDBController {
 						      build()));
 					return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Approle :" + approle + " is successfully associated with SDB\"]}");		
 				}else{
-					log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
-						      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
-							  put(LogMessage.ACTION, "Add AppRole To SDB").
-						      put(LogMessage.MESSAGE, "AppRole configuration failed.").
-						      put(LogMessage.RESPONSE, metadataResponse.getResponse()).
-						      put(LogMessage.STATUS, metadataResponse.getHttpstatus().toString()).
-						      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
-						      build()));
-					//Trying to revert the metadata update in case of failure
-					approleControllerResp = ControllerUtil.configureAWSRole(approle,policy,token);
-					if(approleControllerResp.getHttpstatus().equals(HttpStatus.NO_CONTENT)){
-						log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+					String safeType = ControllerUtil.getSafeType(path);
+					String safeName = ControllerUtil.getSafeName(path);
+					List<String> safeNames = ControllerUtil.getAllExistingSafeNames(safeType, token);
+					String newPath = path;
+					if (safeNames != null ) {
+						
+						for (String existingSafeName: safeNames) {
+							if (existingSafeName.equalsIgnoreCase(safeName)) {
+								// It will come here when there is only one valid safe
+								newPath = safeType + "/" + existingSafeName;
+								break;
+							}
+						} 
+						
+					}
+					params.put("path",newPath);
+					metadataResponse = ControllerUtil.updateMetadata(params,token);
+					if(HttpStatus.NO_CONTENT.equals(metadataResponse.getHttpstatus())){
+						log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 							      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 								  put(LogMessage.ACTION, "Add AppRole To SDB").
-							      put(LogMessage.MESSAGE, "Reverting user policy update failed").
-							      put(LogMessage.RESPONSE, metadataResponse.getResponse()).
+							      put(LogMessage.MESSAGE, "AppRole is successfully associated").
 							      put(LogMessage.STATUS, metadataResponse.getHttpstatus().toString()).
 							      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 							      build()));
-						return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Role configuration failed.Please try again\"]}");
-					}else{
-						log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+						return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Approle :" + approle + " is successfully associated with SDB\"]}");		
+					}
+					else {
+						log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 							      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
-								  put(LogMessage.ACTION, "Add ARole To SDB").
-							      put(LogMessage.MESSAGE, "Reverting user policy update failed").
+								  put(LogMessage.ACTION, "Add AppRole To SDB").
+							      put(LogMessage.MESSAGE, "AppRole configuration failed.").
 							      put(LogMessage.RESPONSE, metadataResponse.getResponse()).
 							      put(LogMessage.STATUS, metadataResponse.getHttpstatus().toString()).
 							      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 							      build()));
-						return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Role configuration failed.Contact Admin \"]}");
+						//Trying to revert the metadata update in case of failure
+						approleControllerResp = ControllerUtil.configureApprole(approle,policy,token);
+						if(approleControllerResp.getHttpstatus().equals(HttpStatus.NO_CONTENT)){
+							log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+								      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+									  put(LogMessage.ACTION, "Add AppRole To SDB").
+								      put(LogMessage.MESSAGE, "Reverting user policy update failed").
+								      put(LogMessage.RESPONSE, metadataResponse.getResponse()).
+								      put(LogMessage.STATUS, metadataResponse.getHttpstatus().toString()).
+								      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+								      build()));
+							return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Role configuration failed.Please try again\"]}");
+						}else{
+							log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+								      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+									  put(LogMessage.ACTION, "Add AppRole To SDB").
+								      put(LogMessage.MESSAGE, "Reverting user policy update failed").
+								      put(LogMessage.RESPONSE, metadataResponse.getResponse()).
+								      put(LogMessage.STATUS, metadataResponse.getHttpstatus().toString()).
+								      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+								      build()));
+							return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Role configuration failed.Contact Admin \"]}");
+						}
 					}
 				}
 			
@@ -901,7 +971,8 @@ public class SDBController {
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"username can't be empty\"]}");
 		}
 		String path = requestMap.get("path");
-		if(ControllerUtil.isValidSafePath(path) && ControllerUtil.isValidSafe(path, token)){
+		boolean canDeletePermission = ControllerUtil.canAddPermission(path, token);
+		if(ControllerUtil.isValidSafePath(path) && canDeletePermission){
 			String folders[] = path.split("[/]+");
 			
 			String r_policy = "r_";
@@ -961,7 +1032,7 @@ public class SDBController {
 					params.put("path",path);
 					params.put("access","delete");
 					Response metadataResponse = ControllerUtil.updateMetadata(params,token);
-					if(HttpStatus.NO_CONTENT.equals(metadataResponse.getHttpstatus())){
+					if(metadataResponse != null && HttpStatus.NO_CONTENT.equals(metadataResponse.getHttpstatus())){
 						log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 								put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 								put(LogMessage.ACTION, "deleteUserSDB").
@@ -971,40 +1042,71 @@ public class SDBController {
 								build()));	
 						return ResponseEntity.status(HttpStatus.OK).body("{\"Message\":\"User association is removed \"}");	
 					}else{
-						log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
-								put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
-								put(LogMessage.ACTION, "removeUserFromSafe").
-								put(LogMessage.MESSAGE, "Error occurred while removing user association").
-								put(LogMessage.STATUS, metadataResponse.getHttpstatus().toString()).
-								put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
-								build()));
-						log.debug("Meta data update failed");
-						log.debug(metadataResponse.getResponse());
-						if ("userpass".equals(vaultAuthMethod)) {
-							ldapConfigresponse = ControllerUtil.configureUserpassUser(userName,currentpolicies,token);
+						String safeType = ControllerUtil.getSafeType(path);
+						String safeName = ControllerUtil.getSafeName(path);
+						List<String> safeNames = ControllerUtil.getAllExistingSafeNames(safeType, token);
+						String newPath = path;
+						if (safeNames != null ) {
+							
+							for (String existingSafeName: safeNames) {
+								if (existingSafeName.equalsIgnoreCase(safeName)) {
+									// It will come here when there is only one valid safe
+									newPath = safeType + "/" + existingSafeName;
+									break;
+								}
+							} 
+							
+						}
+						params.put("path",newPath);
+						metadataResponse = ControllerUtil.updateMetadata(params,token);
+						if (metadataResponse != null && HttpStatus.NO_CONTENT.equals(metadataResponse.getHttpstatus())) {
+							log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+									put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+									put(LogMessage.ACTION, "deleteUserSDB").
+									put(LogMessage.MESSAGE, "Successfully removed user association").
+									put(LogMessage.STATUS, metadataResponse.getHttpstatus().toString()).
+									put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+									build()));	
+							return ResponseEntity.status(HttpStatus.OK).body("{\"Message\":\"User association is removed \"}");	
+
 						}
 						else {
-							ldapConfigresponse = ControllerUtil.configureLDAPUser(userName,currentpolicies,groups,token);
-						}
-						if(ldapConfigresponse.getHttpstatus().equals(HttpStatus.NO_CONTENT)){
-							log.debug("Reverting user policy update");
-							log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
-								      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
-									  put(LogMessage.ACTION, "Delete User from SDB").
-								      put(LogMessage.MESSAGE, "Reverting user policy update completed succssfully").
-								      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
-								      build()));
-							return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"messages\":[\"User configuration failed.Please try again\"]}");
-						}else{
-							log.debug("Reverting user policy update failed");
 							log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
-								      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
-									  put(LogMessage.ACTION, "Delete User from SDB").
-								      put(LogMessage.MESSAGE, "Reverting user policy update failed").
-								      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
-								      build()));
-							return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"messages\":[\"User configuration failed.Contact Admin \"]}");
+									put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+									put(LogMessage.ACTION, "removeUserFromSafe").
+									put(LogMessage.MESSAGE, "Error occurred while removing user association").
+									put(LogMessage.STATUS, metadataResponse.getHttpstatus().toString()).
+									put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+									build()));
+							log.debug("Meta data update failed");
+							log.debug(metadataResponse.getResponse());
+							if ("userpass".equals(vaultAuthMethod)) {
+								ldapConfigresponse = ControllerUtil.configureUserpassUser(userName,currentpolicies,token);
+							}
+							else {
+								ldapConfigresponse = ControllerUtil.configureLDAPUser(userName,currentpolicies,groups,token);
+							}
+							if(ldapConfigresponse.getHttpstatus().equals(HttpStatus.NO_CONTENT)){
+								log.debug("Reverting user policy update");
+								log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+									      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+										  put(LogMessage.ACTION, "Delete User from SDB").
+									      put(LogMessage.MESSAGE, "Reverting user policy update completed succssfully").
+									      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+									      build()));
+								return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"messages\":[\"User configuration failed.Please try again\"]}");
+							}else{
+								log.debug("Reverting user policy update failed");
+								log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+									      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+										  put(LogMessage.ACTION, "Delete User from SDB").
+									      put(LogMessage.MESSAGE, "Reverting user policy update failed").
+									      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+									      build()));
+								return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"messages\":[\"User configuration failed.Contact Admin \"]}");
+							}
 						}
+
 					}		
 				}else{
 					log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
@@ -1078,7 +1180,8 @@ public class SDBController {
 		
 		String groupName = requestMap.get("groupname");
 		String path = requestMap.get("path");
-		if(ControllerUtil.isValidSafePath(path) && ControllerUtil.isValidSafe(path, token)){
+		boolean canDeletePermission = ControllerUtil.canAddPermission(path, token);
+		if(ControllerUtil.isValidSafePath(path) && canDeletePermission ){
 			String folders[] = path.split("[/]+");
 			
 			String r_policy = "r_";
@@ -1122,18 +1225,41 @@ public class SDBController {
 					params.put("path",path);
 					params.put("access","delete");
 					Response metadataResponse = ControllerUtil.updateMetadata(params,token);
-					if(HttpStatus.NO_CONTENT.equals(metadataResponse.getHttpstatus())){
+					
+					if(metadataResponse != null && HttpStatus.NO_CONTENT.equals(metadataResponse.getHttpstatus())){
 						return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Group association is removed \"]}");		
 					}else{
-						log.debug("Meta data update failed");
-						log.debug(metadataResponse.getResponse());
-						ldapConfigresponse = ControllerUtil.configureLDAPGroup(groupName,currentpolicies,token);
-						if(ldapConfigresponse.getHttpstatus().equals(HttpStatus.NO_CONTENT)){
-							log.debug("Reverting user policy update");
-							return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"messages\":[\"Group configuration failed.Please try again\"]}");
-						}else{
-							log.debug("Reverting Group policy update failed");
-							return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"messages\":[\"Group configuration failed.Contact Admin \"]}");
+						String safeType = ControllerUtil.getSafeType(path);
+						String safeName = ControllerUtil.getSafeName(path);
+						List<String> safeNames = ControllerUtil.getAllExistingSafeNames(safeType, token);
+						String newPath = path;
+						if (safeNames != null ) {
+							
+							for (String existingSafeName: safeNames) {
+								if (existingSafeName.equalsIgnoreCase(safeName)) {
+									// It will come here when there is only one valid safe
+									newPath = safeType + "/" + existingSafeName;
+									break;
+								}
+							} 
+							
+						}
+						params.put("path",newPath);
+						metadataResponse = ControllerUtil.updateMetadata(params,token);
+						if (metadataResponse != null && HttpStatus.NO_CONTENT.equals(metadataResponse.getHttpstatus())) {
+							return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Group association is removed \"]}");	
+						}
+						else {
+							log.debug("Meta data update failed");
+							log.debug(metadataResponse.getResponse());
+							ldapConfigresponse = ControllerUtil.configureLDAPGroup(groupName,currentpolicies,token);
+							if(ldapConfigresponse.getHttpstatus().equals(HttpStatus.NO_CONTENT)){
+								log.debug("Reverting user policy update");
+								return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"messages\":[\"Group configuration failed.Please try again\"]}");
+							}else{
+								log.debug("Reverting Group policy update failed");
+								return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"messages\":[\"Group configuration failed.Contact Admin \"]}");
+							}
 						}
 					}		
 				}else{
@@ -1281,7 +1407,7 @@ public class SDBController {
 				params.put("path",path);
 				params.put("access",access);
 				Response metadataResponse = ControllerUtil.updateMetadata(params,token);
-				if(HttpStatus.NO_CONTENT.equals(metadataResponse.getHttpstatus())){
+				if(metadataResponse != null && HttpStatus.NO_CONTENT.equals(metadataResponse.getHttpstatus())){
 					log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 						      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 							  put(LogMessage.ACTION, "Add AWS Role To SDB").
@@ -1291,36 +1417,66 @@ public class SDBController {
 						      build()));
 					return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Role is successfully associated \"]}");		
 				}else{
-					log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
-						      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
-							  put(LogMessage.ACTION, "Add AWS Role To SDB").
-						      put(LogMessage.MESSAGE, "Role configuration failed.").
-						      put(LogMessage.RESPONSE, metadataResponse.getResponse()).
-						      put(LogMessage.STATUS, metadataResponse.getHttpstatus().toString()).
-						      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
-						      build()));
-					ldapConfigresponse = ControllerUtil.configureAWSRole(role,policies,token);
-					if(ldapConfigresponse.getHttpstatus().equals(HttpStatus.NO_CONTENT)){
-						log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
-							      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
-								  put(LogMessage.ACTION, "Add AWS Role To SDB").
-							      put(LogMessage.MESSAGE, "Reverting user policy update failed").
-							      put(LogMessage.RESPONSE, metadataResponse.getResponse()).
-							      put(LogMessage.STATUS, metadataResponse.getHttpstatus().toString()).
-							      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
-							      build()));
-						return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Role configuration failed.Please try again\"]}");
-					}else{
-						log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
-							      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
-								  put(LogMessage.ACTION, "Add AWS Role To SDB").
-							      put(LogMessage.MESSAGE, "Reverting user policy update failed").
-							      put(LogMessage.RESPONSE, metadataResponse.getResponse()).
-							      put(LogMessage.STATUS, metadataResponse.getHttpstatus().toString()).
-							      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
-							      build()));
-						return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Role configuration failed.Contact Admin \"]}");
+					String safeType = ControllerUtil.getSafeType(path);
+					String safeName = ControllerUtil.getSafeName(path);
+					List<String> safeNames = ControllerUtil.getAllExistingSafeNames(safeType, token);
+					String newPath = path;
+					if (safeNames != null ) {
+						
+						for (String existingSafeName: safeNames) {
+							if (existingSafeName.equalsIgnoreCase(safeName)) {
+								// It will come here when there is only one valid safe
+								newPath = safeType + "/" + existingSafeName;
+								break;
+							}
+						} 
+						
 					}
+					params.put("path",newPath);
+					metadataResponse = ControllerUtil.updateMetadata(params,token);
+					if(metadataResponse != null && HttpStatus.NO_CONTENT.equals(metadataResponse.getHttpstatus())){
+						log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+							      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+								  put(LogMessage.ACTION, "Add AWS Role To SDB").
+							      put(LogMessage.MESSAGE, "Role is successfully associated").
+							      put(LogMessage.STATUS, metadataResponse.getHttpstatus().toString()).
+							      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+							      build()));
+						return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Role is successfully associated \"]}");		
+					}
+					else {
+						log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+							      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+								  put(LogMessage.ACTION, "Add AWS Role To SDB").
+							      put(LogMessage.MESSAGE, "Role configuration failed.").
+							      put(LogMessage.RESPONSE, metadataResponse.getResponse()).
+							      put(LogMessage.STATUS, metadataResponse.getHttpstatus().toString()).
+							      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+							      build()));
+						ldapConfigresponse = ControllerUtil.configureAWSRole(role,policies,token);
+						if(ldapConfigresponse.getHttpstatus().equals(HttpStatus.NO_CONTENT)){
+							log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+								      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+									  put(LogMessage.ACTION, "Add AWS Role To SDB").
+								      put(LogMessage.MESSAGE, "Reverting user policy update failed").
+								      put(LogMessage.RESPONSE, metadataResponse.getResponse()).
+								      put(LogMessage.STATUS, metadataResponse.getHttpstatus().toString()).
+								      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+								      build()));
+							return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Role configuration failed.Please try again\"]}");
+						}else{
+							log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+								      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+									  put(LogMessage.ACTION, "Add AWS Role To SDB").
+								      put(LogMessage.MESSAGE, "Reverting user policy update failed").
+								      put(LogMessage.RESPONSE, metadataResponse.getResponse()).
+								      put(LogMessage.STATUS, metadataResponse.getHttpstatus().toString()).
+								      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+								      build()));
+							return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Role configuration failed.Contact Admin \"]}");
+						}
+					}
+
 				}		
 			}else{
 				log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
@@ -1384,7 +1540,8 @@ public class SDBController {
 				params.put("path",path);
 				params.put("access","delete");
 				Response metadataResponse = ControllerUtil.updateMetadata(params,token);
-				if(HttpStatus.NO_CONTENT.equals(metadataResponse.getHttpstatus())){
+				
+				if(metadataResponse != null && HttpStatus.NO_CONTENT.equals(metadataResponse.getHttpstatus())){
 					log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 						      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 							  put(LogMessage.ACTION, "Delete AWS Role from SDB").
@@ -1394,15 +1551,45 @@ public class SDBController {
 						      build()));
 					return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Role association is removed \"]}");		
 				}else{
-					log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
-						      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
-							  put(LogMessage.ACTION, "Delete AWS Role from SDB").
-						      put(LogMessage.MESSAGE, "Delete AWS Role from SDB failed").
-						      put(LogMessage.RESPONSE, metadataResponse.getResponse()).
-						      put(LogMessage.STATUS, metadataResponse.getHttpstatus().toString()).
-						      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
-						      build()));
-					return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Role configuration failed.Please try again\"]}");
+					String safeType = ControllerUtil.getSafeType(path);
+					String safeName = ControllerUtil.getSafeName(path);
+					List<String> safeNames = ControllerUtil.getAllExistingSafeNames(safeType, token);
+					String newPath = path;
+					if (safeNames != null ) {
+						
+						for (String existingSafeName: safeNames) {
+							if (existingSafeName.equalsIgnoreCase(safeName)) {
+								// It will come here when there is only one valid safe
+								newPath = safeType + "/" + existingSafeName;
+								break;
+							}
+						} 
+						
+					}
+					params.put("path",newPath);
+					metadataResponse = ControllerUtil.updateMetadata(params,token);
+					if(metadataResponse !=null && HttpStatus.NO_CONTENT.equals(metadataResponse.getHttpstatus())){
+						log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+							      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+								  put(LogMessage.ACTION, "Delete AWS Role from SDB").
+							      put(LogMessage.MESSAGE, "Delete AWS Role from SDB success").
+							      put(LogMessage.STATUS, metadataResponse.getHttpstatus().toString()).
+							      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+							      build()));
+						return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Role association is removed \"]}");		
+					}
+					else {
+						log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+							      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+								  put(LogMessage.ACTION, "Delete AWS Role from SDB").
+							      put(LogMessage.MESSAGE, "Delete AWS Role from SDB failed").
+							      put(LogMessage.RESPONSE, metadataResponse.getResponse()).
+							      put(LogMessage.STATUS, metadataResponse.getHttpstatus().toString()).
+							      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+							      build()));
+						return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Role configuration failed.Please try again\"]}");
+
+					}
 				}	
 			}else{
 				log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
@@ -1521,7 +1708,7 @@ public class SDBController {
 				params.put("path",path);
 				params.put("access",access);
 				Response metadataResponse = ControllerUtil.updateMetadata(params,token);
-				if(HttpStatus.NO_CONTENT.equals(metadataResponse.getHttpstatus())){
+				if(metadataResponse !=null && HttpStatus.NO_CONTENT.equals(metadataResponse.getHttpstatus())){
 					log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 						      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 							  put(LogMessage.ACTION, "Add Group to SDB").
@@ -1531,35 +1718,64 @@ public class SDBController {
 						      build()));
 					return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Group is successfully associated with SDB\"]}");		
 				}else{
-					log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
-						      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
-							  put(LogMessage.ACTION, "Add Group to SDB").
-						      put(LogMessage.MESSAGE, "Group configuration failed.").
-						      put(LogMessage.RESPONSE, metadataResponse.getResponse()).
-						      put(LogMessage.STATUS, metadataResponse.getHttpstatus().toString()).
-						      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
-						      build()));
-					ldapConfigresponse = ControllerUtil.configureLDAPGroup(groupName,currentpolicies,token);
-					if(ldapConfigresponse.getHttpstatus().equals(HttpStatus.NO_CONTENT)){
+					String safeType = ControllerUtil.getSafeType(path);
+					String safeName = ControllerUtil.getSafeName(path);
+					List<String> safeNames = ControllerUtil.getAllExistingSafeNames(safeType, token);
+					String newPath = path;
+					if (safeNames != null ) {
+						
+						for (String existingSafeName: safeNames) {
+							if (existingSafeName.equalsIgnoreCase(safeName)) {
+								// It will come here when there is only one valid safe
+								newPath = safeType + "/" + existingSafeName;
+								break;
+							}
+						} 
+						
+					}
+					params.put("path",newPath);
+					metadataResponse = ControllerUtil.updateMetadata(params,token);
+					if (metadataResponse !=null && HttpStatus.NO_CONTENT.equals(metadataResponse.getHttpstatus())) {
+						log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+							      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+								  put(LogMessage.ACTION, "Add Group to SDB").
+							      put(LogMessage.MESSAGE, "Group configuration Success.").
+							      put(LogMessage.STATUS, metadataResponse.getHttpstatus().toString()).
+							      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+							      build()));
+						return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Group is successfully associated with SDB\"]}");	
+					}
+					else {
 						log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 							      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 								  put(LogMessage.ACTION, "Add Group to SDB").
-							      put(LogMessage.MESSAGE, "Reverting user policy update failed").
+							      put(LogMessage.MESSAGE, "Group configuration failed.").
 							      put(LogMessage.RESPONSE, metadataResponse.getResponse()).
 							      put(LogMessage.STATUS, metadataResponse.getHttpstatus().toString()).
 							      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 							      build()));
-						return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"erros\":[\"Group configuration failed.Please try again\"]}");
-					}else{
-						log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
-							      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
-								  put(LogMessage.ACTION, "Add Group to SDB").
-							      put(LogMessage.MESSAGE, "Reverting user policy update failed").
-							      put(LogMessage.RESPONSE, metadataResponse.getResponse()).
-							      put(LogMessage.STATUS, metadataResponse.getHttpstatus().toString()).
-							      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
-							      build()));
-						return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Group configuration failed.Contact Admin \"]}");
+						ldapConfigresponse = ControllerUtil.configureLDAPGroup(groupName,currentpolicies,token);
+						if(ldapConfigresponse.getHttpstatus().equals(HttpStatus.NO_CONTENT)){
+							log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+								      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+									  put(LogMessage.ACTION, "Add Group to SDB").
+								      put(LogMessage.MESSAGE, "Reverting user policy update failed").
+								      put(LogMessage.RESPONSE, metadataResponse.getResponse()).
+								      put(LogMessage.STATUS, metadataResponse.getHttpstatus().toString()).
+								      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+								      build()));
+							return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"erros\":[\"Group configuration failed.Please try again\"]}");
+						}else{
+							log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+								      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+									  put(LogMessage.ACTION, "Add Group to SDB").
+								      put(LogMessage.MESSAGE, "Reverting user policy update failed").
+								      put(LogMessage.RESPONSE, metadataResponse.getResponse()).
+								      put(LogMessage.STATUS, metadataResponse.getHttpstatus().toString()).
+								      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+								      build()));
+							return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Group configuration failed.Contact Admin \"]}");
+						}
 					}
 				}		
 			}else{

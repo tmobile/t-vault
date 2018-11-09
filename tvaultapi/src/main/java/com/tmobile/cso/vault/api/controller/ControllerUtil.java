@@ -63,6 +63,7 @@ import com.tmobile.cso.vault.api.model.AppRole;
 import com.tmobile.cso.vault.api.model.AppRoleSecretData;
 import com.tmobile.cso.vault.api.model.Safe;
 import com.tmobile.cso.vault.api.model.SafeAppRoleAccess;
+import com.tmobile.cso.vault.api.model.SafeBasicDetails;
 import com.tmobile.cso.vault.api.model.SafeGroup;
 import com.tmobile.cso.vault.api.model.SafeNode;
 import com.tmobile.cso.vault.api.model.SafeUser;
@@ -87,14 +88,14 @@ public final class ControllerUtil {
 	@Value("${vault.approle.name.whitelistedchars:[a-z0-9_]+}")
 	private String approleWhitelistedCharacters;
 	
-	@Value("${vault.sdb.name.whitelistedchars:[A-Za-z0-9_]+}")
+	@Value("${vault.sdb.name.whitelistedchars:[a-z0-9_]+}")
 	private String sdbNameWhitelistedCharacters; 
 	
 	private static String secretKeyAllowedCharacters;
 	
 	private static String approleAllowedCharacters;
 	
-	private static String sdbNameAllowedCharacters="[A-Za-z0-9_]+";
+	private static String sdbNameAllowedCharacters="[a-z0-9_]+";
 	
 	private final static String[] mountPaths = {"apps","shared","users"};
 	private final static String[] permissions = {"read", "write", "deny", "sudo"};
@@ -1097,7 +1098,7 @@ public final class ControllerUtil {
 				) {
 			return false;
 		}
-		if (!isSdbNameValid(sdbName) || sdbName.length() > 40) {
+		if (!isSdbNameValid(sdbName) || sdbName.length() > 40 || !sdbName.equals(sdbName.toLowerCase())) {
 			return false;
 		}
 		String safeName = getSafeName(path);
@@ -1111,6 +1112,77 @@ public final class ControllerUtil {
 		return true;
 	}
 	
+	/**
+	 * Validates inputs values required for SDB creation
+	 * @param safe
+	 * @return
+	 */
+	public static boolean areSDBInputsValid(Safe safe) {
+		if (safe == null) {
+			return false;
+		}
+		SafeBasicDetails safeBasicDetails = safe.getSafeBasicDetails();
+		if (safeBasicDetails == null) {
+			return false;
+		}
+		String sdbName = safeBasicDetails.getName();
+		String sdbOwner = safeBasicDetails.getOwner();
+		String sdbDescription = safeBasicDetails.getDescription();
+		String path = safe.getPath();
+		if (StringUtils.isEmpty(sdbName) 
+				|| StringUtils.isEmpty(sdbOwner) 
+				|| StringUtils.isEmpty(sdbDescription) 
+				|| StringUtils.isEmpty(path) 
+				) {
+			return false;
+		}
+		if (!isSdbNameValid(sdbName) || sdbName.length() > 40 || !sdbName.equals(sdbName.toLowerCase())) {
+			return false;
+		}
+		String safeName = getSafeName(path);
+		if (!sdbName.equals(safeName)) {
+			return false;
+		}
+		
+		if (!EmailValidator.getInstance().isValid(sdbOwner)) {
+			return false;
+		}
+		return true;
+	}
+	
+	/**
+	 * Validates inputs values required for SDB creation
+	 * @param requestParams
+	 * @return
+	 */
+	public static boolean areSDBInputsValidForUpdate(Map<String, Object> requestParams) {
+		LinkedHashMap<String, Object> map = (LinkedHashMap<String, Object>) requestParams.get("data");
+		if (MapUtils.isEmpty(map)) {
+			return false;
+		}
+		String sdbName = (String) map.get("name");
+		String sdbOwner = (String) map.get("owner");
+		String sdbDescription = (String) map.get("description");
+		String path = (String) requestParams.get("path");
+		if (StringUtils.isEmpty(sdbName) 
+				|| StringUtils.isEmpty(sdbOwner) 
+				|| StringUtils.isEmpty(sdbDescription) 
+				|| StringUtils.isEmpty(path) 
+				) {
+			return false;
+		}
+		if (sdbName.length() > 40) {
+			return false;
+		}
+		String safeName = getSafeName(path);
+		if (!sdbName.equalsIgnoreCase(safeName)) {
+			return false;
+		}
+		if (!EmailValidator.getInstance().isValid(sdbOwner)) {
+			return false;
+		}
+		return true;
+	}
 
 	/**
 	 * Validates Safe Group Inputs
@@ -1302,6 +1374,23 @@ public final class ControllerUtil {
 				      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 				      build()));
 			return jsonStr;
+		}
+	}
+	/**
+	 * 
+	 * @param safe
+	 */
+	public static void converSDBInputsToLowerCase(Safe safe) {
+		try {
+			safe.getSafeBasicDetails().setName(safe.getSafeBasicDetails().getName().toLowerCase());
+			safe.setPath(safe.getPath().toLowerCase());
+		} catch (Exception e) {
+			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+				      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+					  put(LogMessage.ACTION, "converSDBInputsToLowerCase").
+				      put(LogMessage.MESSAGE, String.format ("Failed while converting safe details to lowercase.")).
+				      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+				      build()));
 		}
 	}
 	
@@ -1696,5 +1785,27 @@ public final class ControllerUtil {
 			}
 		}
 		return count;
+	}
+	
+	public  static String generateSafePath(String safeName, String safeType) {
+		String safePath = "";
+		if (StringUtils.isEmpty(safeName) || StringUtils.isEmpty(safeType)) {
+			return safePath;
+		}
+		switch (safeType) {
+		case "users": case "User Safe":
+			safePath = "users/"+safeName;
+			break;
+		case "shared": case "Shared Safe":
+			safePath = "shared/"+safeName;
+			break;
+		case "apps"	: case "Application Safe":
+			safePath = "apps/"+safeName;
+			break;
+		default:
+			
+		}
+
+		return safePath;
 	}
 }
