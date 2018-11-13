@@ -98,16 +98,16 @@
 
     function logout(withoutRevoke) {
       var url = '/#!/signup';
-      SessionStore.removeItem("myVaultKey");
-      SessionStore.removeItem("isAdmin");
-      SessionStore.removeItem("accessSafes");
-      SessionStore.removeItem("policies");
-      SessionStore.removeItem("allSafes");
       if (withoutRevoke) {
         window.location.replace(url)
       } else {
         return service.revokeAuthToken()
-          .finally(function (error) {
+            .finally(function (error) {
+            SessionStore.removeItem("myVaultKey");
+            SessionStore.removeItem("isAdmin");
+            SessionStore.removeItem("accessSafes");
+            SessionStore.removeItem("policies");
+            SessionStore.removeItem("allSafes");
             window.location.replace(url);
           });
       }
