@@ -223,6 +223,9 @@ public class SDBController {
 			data.put("groups",groups);
 			data.put("users",users);
 			requestParams.put("path",pathToBeUpdated);
+			// Do not alter the name of the safe
+			((Map<String,Object>)requestParams.get("data")).put("name",(String) metadataMap.get("name"));
+			
 			String metadataJson = ControllerUtil.convetToJson(requestParams) ;
 			response = reqProcessor.process("/sdb/update",metadataJson,token);
 			if(response.getHttpstatus().equals(HttpStatus.NO_CONTENT)){

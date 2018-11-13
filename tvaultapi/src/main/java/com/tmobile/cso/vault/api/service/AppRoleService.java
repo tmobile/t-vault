@@ -17,10 +17,12 @@
 
 package com.tmobile.cso.vault.api.service;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -73,19 +75,49 @@ public class  AppRoleService {
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid input values for AppRole creation\"]}");
 		}
 		jsonStr = ControllerUtil.convertAppRoleInputsToLowerCase(jsonStr);
-		Response response = reqProcessor.process("/auth/approle/role/create", jsonStr,token);
-		if(response.getHttpstatus().equals(HttpStatus.NO_CONTENT)) {
-			return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"AppRole created succssfully\"]}");
+		boolean isDuplicate = isAppRoleDuplicate(appRole.getRole_name().toLowerCase(), token);
+		
+		if (!isDuplicate) {
+			Response response = reqProcessor.process("/auth/approle/role/create", jsonStr,token);
+			if(response.getHttpstatus().equals(HttpStatus.NO_CONTENT)) {
+				return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"AppRole created succssfully\"]}");
+			}
+			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+				      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+					  put(LogMessage.ACTION, "Create AppRole").
+				      put(LogMessage.MESSAGE, "Creation of AppRole failed").
+				      put(LogMessage.RESPONSE, response.getResponse()).
+				      put(LogMessage.STATUS, response.getHttpstatus().toString()).
+				      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+				      build()));
+			return ResponseEntity.status(response.getHttpstatus()).body(response.getResponse());
 		}
-		log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
-			      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
-				  put(LogMessage.ACTION, "Create AppRole").
-			      put(LogMessage.MESSAGE, "Creation of AppRole failed").
-			      put(LogMessage.RESPONSE, response.getResponse()).
-			      put(LogMessage.STATUS, response.getHttpstatus().toString()).
-			      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
-			      build()));
-		return ResponseEntity.status(response.getHttpstatus()).body(response.getResponse());	
+		else {
+			return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"AppRole already exists and can't be created\"]}");
+		}
+	
+	}
+	/**
+	 * Checks for duplicated AppRole
+	 * @param jsonStr
+	 * @param token
+	 * @return
+	 */
+	private boolean isAppRoleDuplicate(String appRoleName, String token) {
+		boolean isDuplicate = false;
+		ResponseEntity<String> appRolesListResponseEntity = readAppRoles(token);
+		String appRolesListRes = appRolesListResponseEntity.getBody();
+		Map<String,Object> appRolesList = (Map<String,Object>) ControllerUtil.parseJson(appRolesListRes);
+		ArrayList<String> existingAppRoles = (ArrayList<String>) appRolesList.get("keys");
+		if (!CollectionUtils.isEmpty(existingAppRoles)) {
+			for (String existingAppRole: existingAppRoles) {
+				if (existingAppRole.equalsIgnoreCase(appRoleName)) {
+					isDuplicate = true;
+					break;
+				}
+			}
+		}
+		return isDuplicate;
 	}
 	/**
 	 * Reads approle information
@@ -105,6 +137,28 @@ public class  AppRoleService {
 			      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 				  put(LogMessage.ACTION, "Read AppRole").
 			      put(LogMessage.MESSAGE, "Reading AppRole completed").
+			      put(LogMessage.STATUS, response.getHttpstatus().toString()).
+			      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+			      build()));
+		return ResponseEntity.status(response.getHttpstatus()).body(response.getResponse());	
+	}
+	/**
+	 * Reads the list of AppRoles
+	 * @param token
+	 * @return
+	 */
+	public ResponseEntity<String> readAppRoles(String token) {
+		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+			      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+				  put(LogMessage.ACTION, "listAppRoles").
+			      put(LogMessage.MESSAGE, String.format("Trying to get list of AppRole")).
+			      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+			      build()));
+		Response response = reqProcessor.process("/auth/approle/role/list","{}",token);
+		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+			      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+				  put(LogMessage.ACTION, "listAppRoles").
+			      put(LogMessage.MESSAGE, "Reading List of AppRoles completed").
 			      put(LogMessage.STATUS, response.getHttpstatus().toString()).
 			      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 			      build()));

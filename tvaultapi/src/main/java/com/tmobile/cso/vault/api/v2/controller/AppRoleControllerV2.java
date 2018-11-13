@@ -81,6 +81,12 @@ public class AppRoleControllerV2 {
 	public ResponseEntity<String> readAppRole(@RequestHeader(value="vault-token") String token, @PathVariable("role_name" ) String rolename){
 		return appRoleService.readAppRole(token, rolename);	
 	}
+	
+	@ApiOperation(value = "${AppRoleControllerV2.listAppRoles.value}", notes = "${AppRoleControllerV2.listAppRoles.notes}")
+	@GetMapping (value="/v2/auth/approle/role",produces="application/json")
+	public ResponseEntity<String> getAppRoles(@RequestHeader(value="vault-token") String token){
+		return appRoleService.readAppRoles(token);	
+	}
 	/**
 	 * READ APPROLE ROLEID
 	 * @param token

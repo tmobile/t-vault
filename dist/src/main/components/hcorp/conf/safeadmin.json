@@ -16,6 +16,9 @@
       "auth/approle/*":{
          "policy":"write"
       },
+	  "auth/userpass/*":{
+         "policy":"write"
+      },
       "metadata/*":{
          "policy":"write"
       },

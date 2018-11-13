@@ -89,6 +89,15 @@
                 "outparams":["data"]
         
     },
+    
+      	{"#":"**** - nov'2018' - Read list of AppRoles *******",
+    
+    	"apiEndPoint":"/auth/approle/role/list",
+    	"vaultEndPoint":"/auth/approle/role?list=true",
+    	"method":"GET",
+        "outparams":["data/keys"]
+        
+    },
  
  	
   	{"#":"**** - dec'2017 - Read a AppRole RoleID*******",
@@ -193,7 +202,7 @@
     	"apiEndPoint":"/auth/tvault/lookup",
     	"vaultEndPoint":"/auth/token/lookup-self",
     	"method":"GET",
-        "outparams":["data/id","data/last_renewal_time","renewable","data/policies","data/creation_ttl"] 
+        "outparams":["data/id","data/last_renewal_time","renewable","data/policies","data/creation_ttl", "data/meta/username"] 
     },
 	{"#" : "**** - Used to revoke the token *******",
  	

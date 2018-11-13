@@ -59,6 +59,11 @@ public class RequestProcessor {
 	
 	private static Logger log = LogManager.getLogger(RequestProcessor.class);
 	
+	
+	
+	public RequestProcessor() {
+	}
+
 	public Response process(String apiEndPoint, String request, String token){
 		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 			      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
@@ -119,7 +124,6 @@ public class RequestProcessor {
 		if(vaultRequestJson == null){
 			return response;
 		}
-		
 		
 		ResponseEntity<String> vaultResponse = null;
 		

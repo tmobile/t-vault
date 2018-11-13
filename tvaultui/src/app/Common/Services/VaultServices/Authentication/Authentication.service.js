@@ -28,7 +28,7 @@
             .makeRequest(reqObjtobeSent)
             .then(function (response) {
                 var leaseDuration = response.data['lease_duration'];
-				if (leaseDuration == undefined) {
+                if (leaseDuration == undefined) {
                     leaseDuration = 300;
                 }
                 Idle.setIdle(180);
@@ -50,10 +50,10 @@
         return ServiceEndpoint.renewToken.makeRequest(null, null, {"vault-token": vaultAPIKey})
           .then(function (response) {
             var leaseDuration = response.data['lease_duration'];
-			if (leaseDuration == undefined) {
-				leaseDuration = 300;
-			}
-             Idle.setIdle(180);
+            if (leaseDuration == undefined) {
+                leaseDuration = 300;
+            }
+            Idle.setIdle(180);
             Idle.setTimeout(leaseDuration - 180);
             Keepalive.setInterval(leaseDuration - 60);
           }, function (error) {
@@ -98,6 +98,11 @@
 
     function logout(withoutRevoke) {
       var url = '/#!/signup';
+      SessionStore.removeItem("myVaultKey");
+      SessionStore.removeItem("isAdmin");
+      SessionStore.removeItem("accessSafes");
+      SessionStore.removeItem("policies");
+      SessionStore.removeItem("allSafes");
       if (withoutRevoke) {
         window.location.replace(url)
       } else {
