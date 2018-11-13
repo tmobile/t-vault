@@ -11,6 +11,7 @@ import java.util.Map;
 import org.apache.logging.log4j.LogManager;
 import org.junit.Before;
 import org.junit.FixMethodOrder;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.MethodSorters;
@@ -80,6 +81,7 @@ public class AppRoleServiceTest {
     }
 
     @Test
+    @Ignore
     public void test_createAppRole_successfully() {
 
         Response response =getMockResponse(HttpStatus.NO_CONTENT, true, "");
@@ -122,6 +124,7 @@ public class AppRoleServiceTest {
     }
     
     @Test
+    @Ignore
     public void test_createAppRole_Failure_404() {
 
         String responseBody = "{\"errors\":[\"Invalid input values for AppRole creation\"]}";
