@@ -23,12 +23,18 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import com.tmobile.cso.vault.api.filter.ApiMetricFilter;
+import com.tmobile.cso.vault.api.filter.TokenValidationFilter;
 
 @Configuration
 public class WebConfig {
 
-  @Bean
-  public Filter ApiMetricFilter() {
-    return new ApiMetricFilter();
-  }
+	@Bean
+	public Filter ApiMetricFilter() {
+		return new ApiMetricFilter();
+	}
+	@Bean
+	public Filter TokenValidationFilter() {
+		return new TokenValidationFilter();
+	}
+
 }

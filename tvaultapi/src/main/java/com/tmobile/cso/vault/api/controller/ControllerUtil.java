@@ -1058,6 +1058,13 @@ public final class ControllerUtil {
 			return false;
 		}
 	}
+	
+	/**
+	 * Checks whether a safe exists in given path
+	 * @param path
+	 * @param token
+	 * @return
+	 */
 	public static boolean isValidSafe(String path,String token){
 		String safePath = getSafePath(path);
 		String _path = "metadata/"+safePath;
@@ -1393,7 +1400,11 @@ public final class ControllerUtil {
 				      build()));
 		}
 	}
-	
+	/**
+	 * Converts the appRole Inputs to lower case
+	 * @param jsonstr
+	 * @return
+	 */
 	public static String convertAppRoleInputsToLowerCase(String jsonstr) {
 		try {
 			AppRole appRole = (AppRole)JSONUtil.getObj(jsonstr, AppRole.class);
