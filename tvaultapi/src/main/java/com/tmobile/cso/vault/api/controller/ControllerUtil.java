@@ -88,14 +88,14 @@ public final class ControllerUtil {
 	@Value("${vault.approle.name.whitelistedchars:[a-z0-9_]+}")
 	private String approleWhitelistedCharacters;
 	
-	@Value("${vault.sdb.name.whitelistedchars:[a-z0-9_]+}")
+	@Value("${vault.sdb.name.whitelistedchars:[a-z0-9_-]+}")
 	private String sdbNameWhitelistedCharacters; 
 	
 	private static String secretKeyAllowedCharacters;
 	
 	private static String approleAllowedCharacters;
 	
-	private static String sdbNameAllowedCharacters="[a-z0-9_]+";
+	private static String sdbNameAllowedCharacters="[a-z0-9_-]+";
 	
 	private final static String[] mountPaths = {"apps","shared","users"};
 	private final static String[] permissions = {"read", "write", "deny", "sudo"};

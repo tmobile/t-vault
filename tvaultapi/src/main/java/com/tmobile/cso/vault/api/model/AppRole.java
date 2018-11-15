@@ -67,7 +67,7 @@ public class AppRole implements Serializable {
 	/**
 	 * @return the role_name
 	 */
-	@ApiModelProperty(example="my-vault-approle", position=1)
+	@ApiModelProperty(example="myvaultapprole", position=1)
 	public String getRole_name() {
 		return role_name;
 	}

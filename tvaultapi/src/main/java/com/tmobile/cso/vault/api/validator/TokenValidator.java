@@ -44,7 +44,7 @@ public class TokenValidator {
 		}
 		else if(HttpStatus.FORBIDDEN.equals(response.getHttpstatus())){
 			throw new TVaultValidationException(
-					String.format("Can't perform the required operation. Possible reasons: 1. Invalid/expired clinet token or 2. Insufficient permissions. Actual Status: [%s], Reason [%s]", response.getHttpstatus(), response.getResponse()));
+					String.format("Can't perform the required operation. Possible reasons: 1. Invalid/expired client token or 2. Insufficient permissions. Actual Status: [%s], Reason [%s]", response.getHttpstatus(), response.getResponse()));
 		}
 		else {
 			throw new TVaultValidationException(
