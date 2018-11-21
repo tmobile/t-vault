@@ -60,8 +60,8 @@ readTextFile("../apiUrls.json");
         },
         {
             name: 'renewToken',
-            url: '/auth/tvault/renew',
-            method: 'POST'
+            url: '/v2/auth/tvault/renew',
+            method: 'GET'
         },
         {
             name: 'lookupToken',
@@ -96,11 +96,11 @@ readTextFile("../apiUrls.json");
 
             {/* To enable ldap insert this to "url" : '/auth/ldap/login' */
             name: 'login',
-            url: '/auth/tvault/login',
+            url: '/v2/auth/tvault/login',
             method: 'POST'
         }, { /* Get the list of full safes for Admin */
             name: 'safesList',
-            url: '/sdb/list?',
+            url: '/v2/sdb/list?',
             method: 'GET'
         }, {
             name: 'deleteSafe',
@@ -108,39 +108,39 @@ readTextFile("../apiUrls.json");
             method: 'DELETE'
         }, {
             name: 'getSafeInfo',
-            url: '/sdb?',
+            url: '/v2/sdb?',
             method: 'GET'
         }, {
             name: 'createSafe',
-            url: '/sdb/create',
+            url: '/v2/sdb',
             method: 'POST'
         }, {
             name: 'editSafe',
-            url: '/sdb/update',
-            method: 'POST'
+            url: '/v2/sdb',
+            method: 'PUT'
         }, {
             name: 'deleteUserPermission',
-            url: '/sdb/deleteuser',
-            method: 'POST'
+            url: '/v2/sdb/user',
+            method: 'DELETE'
         }, {
             name: 'deleteGroupPermission',
-            url: '/sdb/deletegroup',
-            method: 'POST'
+            url: '/v2/sdb/group',
+            method: 'DELETE'
         }, {
             name: 'deleteAWSPermission',
-            url: '/sdb/deleterole',
-            method: 'POST'
+            url: '/v2/sdb/role',
+            method: 'DELETE'
         }, {
             name: 'addUserPermission',
-            url: '/sdb/adduser',
+            url: '/v2/sdb/user',
             method: 'POST'
         }, {
             name: 'addGroupPermission',
-            url: '/sdb/addgroup',
+            url: '/v2/sdb/group',
             method: 'POST'
         }, {
             name: 'addAWSPermission',
-            url: '/sdb/addrole',
+            url: '/v2/sdb/role',
             method: 'POST'
         }, {
             name: 'getAwsConfigurationDetails',
@@ -160,7 +160,7 @@ readTextFile("../apiUrls.json");
             method: 'GET'
         }, {
             name: 'createAwsRole',
-            url: '/auth/aws/roles/create',
+            url: '/v2/auth/aws/role',
             method: 'POST'
         }, {
             name: 'updateAwsRole',
@@ -168,11 +168,11 @@ readTextFile("../apiUrls.json");
             method: 'POST'
         }, {
             name: 'unseal',
-            url: '/unseal',
+            url: '/v2/unseal',
             method: 'POST'
         }, {
             name: 'unsealProgress',
-            url: '/unseal-progress?serverip=',
+            url: '/v2/unseal-progress?serverip=',
             method: 'GET'
         }]
     });
