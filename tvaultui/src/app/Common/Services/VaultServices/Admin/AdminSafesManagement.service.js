@@ -62,6 +62,11 @@
                     return response;
                 });
             },
+            detachAWSPermissionFromSafe: function(payload, url) {
+                return ServiceEndpoint.detachAWSPermission.makeRequest(payload, url).then(function(response) {
+                    return response;
+                });
+            },
             addUserPermissionForSafe: function(payload, url) {
                 return ServiceEndpoint.addUserPermission.makeRequest(payload, url).then(function(response) {
                     return response;

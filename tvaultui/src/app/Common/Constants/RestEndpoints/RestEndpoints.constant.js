@@ -130,7 +130,11 @@ readTextFile("../apiUrls.json");
             name: 'deleteAWSPermission',
             url: '/v2/sdb/role',
             method: 'DELETE'
-        }, {
+        }, { /* To remove the aws permission in edit*/
+            name: 'detachAWSPermission',
+            url: '/v2/sdb/role',
+            method: 'PUT'
+        },{
             name: 'addUserPermission',
             url: '/v2/sdb/user',
             method: 'POST'

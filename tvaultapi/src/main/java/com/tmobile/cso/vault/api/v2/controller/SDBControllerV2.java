@@ -202,9 +202,14 @@ public class SDBControllerV2 {
 	@ApiOperation(value = "${SafesController.deleteAWSRoleFromSafe.value}", notes = "${SafesController.deleteAWSRoleFromSafe.notes}")
 	@DeleteMapping (value="/v2/sdb/role",consumes="application/json",produces="application/json")
 	public ResponseEntity<String> deleteAwsRoleFromSafe(@RequestHeader(value="vault-token") String token, @RequestBody AWSRole awsRole){
-		return safesService.removeAWSRoleFromSafe(token, awsRole);
+		return safesService.removeAWSRoleFromSafe(token, awsRole, false);
 	}
 
+	@ApiOperation(value = "${SafesController.deleteAWSPermissionFromSafe.value}", notes = "${SafesController.deleteAWSPermissionFromSafe.notes}")
+	@PutMapping (value="/v2/sdb/role",consumes="application/json",produces="application/json")
+	public ResponseEntity<String> detachAwsRoleFromSafe(@RequestHeader(value="vault-token") String token, @RequestBody AWSRole awsRole){
+		return safesService.removeAWSRoleFromSafe(token, awsRole, true);
+	}
 	/**
 	 * Reads the contents of a folder recursively
 	 * @param token
