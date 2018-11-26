@@ -47,13 +47,15 @@
     overflow: hidden;
     text-align: center;
     width: 80%;
-    height: 25%;
+    height: 38%;
     text-overflow: ellipsis;
     transform: translate(-50%,-20%);
     display: flex;
     flex-direction: column;
     justify-content: center;
     font-size: 0.9vw;
+    flex-wrap: wrap;
+    overflow-wrap: break-word;
 }
 
 .center-display {
@@ -72,11 +74,11 @@
 }
 .tile-image-wrapper {
     background: url('/assets/images/safe_tile.png') no-repeat;
-    width: 50%;
-    height: 50%;
+    width: 40%;
+    height: 40%;
     background-size: cover;
     position: absolute;
-    @include translate(50%, 30%);
+    @include translate(78%, 30%);
     transition: background 0.3s ease-in-out, color 0.3s ease-in-out, background-color 0.3s ease-in-out;
 }
 .tiles-container-block.safe-parent:hover {

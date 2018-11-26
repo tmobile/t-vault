@@ -14,7 +14,7 @@
                     .modify-safe-admin-wrapper.delete-wrapper(ng-click="$event.stopPropagation(); deleteFolder({param: item})")
                         span.icon-delete.action-icons-style.action-icon-with-text-gap
                         span.modify-safe-text Delete
-        li(ng-repeat="item in numOfTiles = ( data | filter : searchValue ).length")
+        li(ng-repeat="item in numOfTiles = ( data | filter : { safe: searchValue } ).length")
 .pagination-wrapper(ng-if="parent_admin" ng-show='hasMoreItemsToShow()')
     .pagination-count(ng-if="numOfTiles>0") Displaying {{currentshown}} of {{numOfTiles}}
     .pagination-button-wrapper(ng-click='showMoreItems()')
