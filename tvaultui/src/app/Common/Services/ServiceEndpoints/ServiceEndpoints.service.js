@@ -39,7 +39,7 @@
                     } else {
                         headers = {}
                     }
-
+                    headers ["Content-Type"] ="application/json";
                     payload = payload || {};
                     var request = {
                         method: method,

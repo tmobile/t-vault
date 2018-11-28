@@ -391,7 +391,12 @@
                             };
                             break;
                         case 'AWSPermission' :
-                            apiCallFunction = AdminSafesManagement.deleteAWSPermissionFromSafe;
+                            if (editingPermission) {
+                                apiCallFunction = AdminSafesManagement.detachAWSPermissionFromSafe;
+                            }
+                            else {
+                                apiCallFunction = AdminSafesManagement.deleteAWSPermissionFromSafe;
+                            }
                             reqObjtobeSent = {
                                 "path": setPath,
                                 "role": key

@@ -16,7 +16,7 @@
         };
 
         function getFolderContent(path) {
-            var url = RestEndpoints.baseURL + '/readAll?path=' + path;
+            var url = RestEndpoints.baseURL + '/v2/safes/folders/secrets?path=' + path + '&fetchOption=all';
             return $http({
                 method: 'GET',
                 url: url,

@@ -65,7 +65,7 @@
       revokeAuthToken: function () {
         var url = RestEndpoints.baseURL + '/auth/tvault/revoke';
         return $http({
-          method: 'POST',
+          method: 'GET',
           url: url,
           headers: {
             'vault-token': SessionStore.getItem('myVaultKey')

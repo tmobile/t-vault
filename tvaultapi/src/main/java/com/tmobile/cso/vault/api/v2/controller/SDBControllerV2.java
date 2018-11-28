@@ -17,8 +17,15 @@
 
 package com.tmobile.cso.vault.api.v2.controller;
 
+import com.google.common.collect.ImmutableMap;
+import com.tmobile.cso.vault.api.controller.ControllerUtil;
+import com.tmobile.cso.vault.api.exception.LogMessage;
+import com.tmobile.cso.vault.api.process.Response;
+import com.tmobile.cso.vault.api.utils.JSONUtil;
+import com.tmobile.cso.vault.api.utils.ThreadLocalContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -81,6 +88,16 @@ public class SDBControllerV2 {
 	@PostMapping(value="/v2/sdb/folder",produces="application/json")
 	public ResponseEntity<String> createfolder(@RequestHeader(value="vault-token") String token, @RequestParam("path") String path){
 		return safesService.createfolder(token, path);		
+	}
+	/**
+	 * Deletes a SDB folder
+	 * @param token
+	 * @param path
+	 * @return
+	 */
+	@DeleteMapping(value="/v2/sdb/delete",produces="application/json")
+	public ResponseEntity<String> deleteFolder(@RequestHeader(value="vault-token") String token, @RequestParam("path") String path){
+		return safesService.deletefolder(token, path);
 	}
 	/**
 	 * Updates a Safe
@@ -185,7 +202,45 @@ public class SDBControllerV2 {
 	@ApiOperation(value = "${SafesController.deleteAWSRoleFromSafe.value}", notes = "${SafesController.deleteAWSRoleFromSafe.notes}")
 	@DeleteMapping (value="/v2/sdb/role",consumes="application/json",produces="application/json")
 	public ResponseEntity<String> deleteAwsRoleFromSafe(@RequestHeader(value="vault-token") String token, @RequestBody AWSRole awsRole){
-		return safesService.removeAWSRoleFromSafe(token, awsRole);
+		return safesService.removeAWSRoleFromSafe(token, awsRole, false);
 	}
 
+	@ApiOperation(value = "${SafesController.deleteAWSPermissionFromSafe.value}", notes = "${SafesController.deleteAWSPermissionFromSafe.notes}")
+	@PutMapping (value="/v2/sdb/role",consumes="application/json",produces="application/json")
+	public ResponseEntity<String> detachAwsRoleFromSafe(@RequestHeader(value="vault-token") String token, @RequestBody AWSRole awsRole){
+		return safesService.removeAWSRoleFromSafe(token, awsRole, true);
+	}
+	/**
+	 * Reads the contents of a folder recursively
+	 * @param token
+	 * @param path
+	 * @return
+	 */
+	@GetMapping(value="/v2/sdb/list",produces="application/json")
+	public ResponseEntity<String> getFoldersRecursively(@RequestHeader(value="vault-token") String token, @RequestParam("path") String path) {
+		return safesService.getFoldersRecursively(token, path);
+	}
+
+	/**
+	 * Creates a sub folder for a given folder
+	 * @param token
+	 * @param path
+	 * @return
+	 */
+	@PostMapping(value="/v2/sdb/createfolder",produces="application/json")
+	public ResponseEntity<String> createNestedfolder(@RequestHeader(value="vault-token") String token, @RequestParam("path") String path){
+		return safesService.createNestedfolder(token, path);
+
+	}
+
+	/**
+	 * Associate approle to Safe
+	 * @param token
+	 * @param jsonstr
+	 * @return
+	 */
+	@PostMapping(value="/v2/sdb/approle",consumes="application/json",produces="application/json")
+	public ResponseEntity<String>associateApproletoSDB(@RequestHeader(value="vault-token") String token, @RequestBody String jsonstr) {
+		return safesService.associateApproletoSDB(token, jsonstr);
+	}
 }
