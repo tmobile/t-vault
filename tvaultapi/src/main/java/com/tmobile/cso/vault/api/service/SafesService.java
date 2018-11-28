@@ -161,117 +161,7 @@ public class  SafesService {
 		}
 
 	}
-	/**
-	 * Delete a folder
-	 * @param token
-	 * @param path
-	 * @return
-	 */
-	public ResponseEntity<String> deletefolder(String token, String path){
-		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
-				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
-				put(LogMessage.ACTION, "Delete Folder").
-				put(LogMessage.MESSAGE, String.format ("Trying to Delete folder [%s]", path)).
-				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
-				build()));
-		if(ControllerUtil.isPathValid(path) ){
-			Response response = new Response();
-			ControllerUtil.recursivedeletesdb("{\"path\":\""+path+"\"}",token,response);
-			if(response.getHttpstatus().equals(HttpStatus.NO_CONTENT)){
-				String folders[] = path.split("[/]+");
-				String r_policy = "r_";
-				String w_policy = "w_";
-				String d_policy = "d_";
-
-				if (folders.length > 0) {
-					for (int index = 0; index < folders.length; index++) {
-						if (index == folders.length -1 ) {
-							r_policy += folders[index];
-							w_policy += folders[index];
-							d_policy += folders[index];
-						}
-						else {
-							r_policy += folders[index]  +"_";
-							w_policy += folders[index] +"_";
-							d_policy += folders[index] +"_";
-						}
-					}
-				}
-
-				reqProcessor.process("/access/delete","{\"accessid\":\""+r_policy+"\"}",token);
-				reqProcessor.process("/access/delete","{\"accessid\":\""+w_policy+"\"}",token);
-				reqProcessor.process("/access/delete","{\"accessid\":\""+d_policy+"\"}",token);
-
-				String _path = "metadata/"+path;
-
-				// Get SDB metadataInfo
-				response = reqProcessor.process("/sdb","{\"path\":\""+_path+"\"}",token);
-				Map<String, Object> responseMap = null;
-				try {
-					responseMap = new ObjectMapper().readValue(response.getResponse(), new TypeReference<Map<String, Object>>(){});
-				} catch (IOException e) {
-					log.error(e);
-					return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Error Fetching existing safe info \"]}");
-				}
-				if(responseMap!=null && responseMap.get("data")!=null){
-					Map<String,Object> metadataMap = (Map<String,Object>)responseMap.get("data");
-					Map<String,String> awsroles = (Map<String, String>)metadataMap.get("aws-roles");
-					Map<String,String> groups = (Map<String, String>)metadataMap.get("groups");
-					Map<String,String> users = (Map<String, String>) metadataMap.get("users");
-					ControllerUtil.updateUserPolicyAssociationOnSDBDelete(path,users,token);
-					ControllerUtil.updateGroupPolicyAssociationOnSDBDelete(path,groups,token);
-					ControllerUtil.deleteAwsRoleOnSDBDelete(path,awsroles,token);
-				}
-				ControllerUtil.recursivedeletesdb("{\"path\":\""+_path+"\"}",token,response);
-				log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
-						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
-						put(LogMessage.ACTION, "Delete Folder").
-						put(LogMessage.MESSAGE, "SDB Folder Deletion completed").
-						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
-						build()));
-				return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"SDB deleted\"]}");
-
-			}else{
-				log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
-						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
-						put(LogMessage.ACTION, "Delete Folder ").
-						put(LogMessage.MESSAGE, "SDB Folder Deletion Completed").
-						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
-						build()));
-				return ResponseEntity.status(response.getHttpstatus()).body(response.getResponse());
-			}
-		}else if(ControllerUtil.isValidDataPath(path)){
-			Response response = new Response();
-			ControllerUtil.recursivedeletesdb("{\"path\":\""+path+"\"}",token,response);
-			if(response.getHttpstatus().equals(HttpStatus.NO_CONTENT)){
-				log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
-						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
-						put(LogMessage.ACTION, "Delete Folder").
-						put(LogMessage.MESSAGE, "SDB Folder Deletion Completed").
-						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
-						build()));
-				return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Folder deleted\"]}");
-			}else{
-				log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
-						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
-						put(LogMessage.ACTION, "Delete Folder").
-						put(LogMessage.MESSAGE, "SDB Folder Deletion Completed").
-						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
-						build()));
-				return ResponseEntity.status(response.getHttpstatus()).body(response.getResponse());
-			}
-
-		}else{
-			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
-					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
-					put(LogMessage.ACTION, "Delete Folder").
-					put(LogMessage.MESSAGE, "SDB Folder Deletion failed").
-					put(LogMessage.RESPONSE, "Invalid Path").
-					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
-					build()));
-			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid 'path' specified\"]}");
-		}
-	}
+	
 	/**
 	 * Creates Safe
 	 * @param token
@@ -1601,6 +1491,7 @@ public class  SafesService {
 	 * Removes AWS role from Safe
 	 * @param token
 	 * @param awsRole
+	 * @param detachOnly
 	 * @return
 	 */
 	public ResponseEntity<String> removeAWSRoleFromSafe(String token, AWSRole awsRole, boolean detachOnly){
@@ -1624,8 +1515,8 @@ public class  SafesService {
 		String path = requestMap.get("path");
 		if(ControllerUtil.isValidSafePath(path) && ControllerUtil.isValidSafe(path, token)){
 			if (!detachOnly) { // delete mode, delete aws role as part of detachment of role from SDB.
-				Response response = reqProcessor.process("/auth/aws/roles/delete", "{\"role\":\"" + role + "\"}", token);
-				if (response.getHttpstatus().equals(HttpStatus.NO_CONTENT)) {
+				Response response = reqProcessor.process("/auth/aws/roles/delete","{\"role\":\""+role+"\"}",token);
+				if(response.getHttpstatus().equals(HttpStatus.NO_CONTENT)) {
 					log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 							put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 							put(LogMessage.ACTION, "Delete AWS Role from SDB").
@@ -1634,8 +1525,7 @@ public class  SafesService {
 							put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 							build()));
 					log.debug(role + " , AWS Role is deleted as part of detachment of role from SDB. Path " + path);
-				}
-				else {
+				} else {
 					log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 							put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 							put(LogMessage.ACTION, "Delete AWS Role from SDB").
@@ -1712,6 +1602,255 @@ public class  SafesService {
 				      put(LogMessage.RESPONSE, "Invalid Path").
 				      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 				      build()));
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid 'path' specified\"]}");
+		}
+	}
+//	public ResponseEntity<String> addAwsIAMRoleToSafe(String token, AWSRole awsRole) {
+//		String jsonstr = JSONUtil.getJSON(awsRole);
+//		ObjectMapper objMapper = new ObjectMapper();
+//		Map<String,String> requestMap = null;
+//		try {
+//			requestMap = objMapper.readValue(jsonstr, new TypeReference<Map<String,String>>() {});
+//		} catch (IOException e) {
+//			log.error(e);
+//		}
+//
+//		String role = requestMap.get("role");
+//		String path = requestMap.get("path");
+//		String access = requestMap.get("access");
+//
+//		role = (role !=null) ? role.toLowerCase() : role;
+//		path = (path != null) ? path.toLowerCase() : path;
+//		access = (access != null) ? access.toLowerCase(): access;
+//
+//		if(ControllerUtil.isValidSafePath(path) && ControllerUtil.isValidSafe(path, token)){
+//			String folders[] = path.split("[/]+");
+//
+//			String policyPrefix ="";
+//			switch (access){
+//			case "read": policyPrefix = "r_"; break ; 
+//			case "write": policyPrefix = "w_" ;break; 
+//			case "deny": policyPrefix = "d_" ;break; 
+//			}
+//			if("".equals(policyPrefix)){
+//				return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body("{\"errors\":[\"Incorrect access requested. Valid values are read,write,deny \"]}");
+//			}
+//			String policy = policyPrefix+folders[0]+"_"+folders[1];
+//			String r_policy = "r_";
+//			String w_policy = "w_";
+//			String d_policy = "d_";
+//			if (folders.length > 0) {
+//				for (int index = 0; index < folders.length; index++) {
+//					if (index == folders.length -1 ) {
+//						r_policy += folders[index];
+//						w_policy += folders[index];
+//						d_policy += folders[index];
+//					}
+//					else {
+//						r_policy += folders[index]  +"_";
+//						w_policy += folders[index] +"_";
+//						d_policy += folders[index] +"_";
+//					}
+//				}
+//			}
+//			Response roleResponse = reqProcessor.process("/auth/aws/iam/roles","{\"role\":\""+role+"\"}",token);
+//			String responseJson="";
+//
+//			String policies ="";
+//			String currentpolicies ="";
+//
+//			if(HttpStatus.OK.equals(roleResponse.getHttpstatus())){
+//				responseJson = roleResponse.getResponse();	
+//				try {
+//					JsonNode policiesArry =objMapper.readTree(responseJson).get("policies");
+//					for(JsonNode policyNode : policiesArry){
+//						currentpolicies =	(currentpolicies == "" ) ? currentpolicies+policyNode.asText():currentpolicies+","+policyNode.asText();
+//					}
+//				} catch (IOException e) {
+//					log.error(e);
+//				}
+//				policies = currentpolicies;
+//				policies = policies.replaceAll(r_policy, "");
+//				policies = policies.replaceAll(w_policy, "");
+//				policies = policies.replaceAll(d_policy, "");
+//				policies = policies+","+policy;
+//			}else{
+//				return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body("{\"errors\":[\"Non existing role name. Please configure it as first step\"]}");
+//			}
+//
+//			Response ldapConfigresponse = ControllerUtil.configureAWSIAMRole(role,policies,token);
+//			if(ldapConfigresponse.getHttpstatus().equals(HttpStatus.NO_CONTENT)){ 
+//				Map<String,String> params = new HashMap<String,String>();
+//				params.put("type", "aws-roles");
+//				params.put("name",role);
+//				params.put("path",path);
+//				params.put("access",access);
+//				Response metadataResponse = ControllerUtil.updateMetadata(params,token);
+//				if(HttpStatus.NO_CONTENT.equals(metadataResponse.getHttpstatus())){
+//					return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Role is successfully associated \"]}");		
+//				}else{
+//					System.out.println("Meta data update failed");
+//					System.out.println(metadataResponse.getResponse());
+//					ldapConfigresponse = ControllerUtil.configureAWSRole(role,policies,token);
+//					if(ldapConfigresponse.getHttpstatus().equals(HttpStatus.NO_CONTENT)){
+//						System.out.println("Reverting user policy uupdate");
+//						return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Role configuration failed.Please try again\"]}");
+//					}else{
+//						System.out.println("Reverting user policy update failed");
+//						return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Role configuration failed.Contact Admin \"]}");
+//					}
+//				}		
+//			}else{
+//				return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Role configuration failed.Try Again\"]}");
+//			}	
+//		}else{
+//			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid 'path' specified\"]}");
+//		}
+//	}
+//	public ResponseEntity<String> removeAwsIAMRoleFromSafe( String token, AWSRole awsRole){
+//		String jsonstr = JSONUtil.getJSON(awsRole);
+//		ObjectMapper objMapper = new ObjectMapper();
+//		Map<String,String> requestMap = null;
+//		try {
+//			requestMap = objMapper.readValue(jsonstr, new TypeReference<Map<String,String>>() {});
+//		} catch (IOException e) {
+//			log.error(e);
+//			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid request. please check the request json\"]}");
+//		}
+//
+//		String role = requestMap.get("role");
+//		String path = requestMap.get("path");
+//		if(ControllerUtil.isValidSafePath(path) && ControllerUtil.isValidSafe(path, token)){
+//
+//			Response response = reqProcessor.process("/auth/aws/roles/delete","{\"role\":\""+role+"\"}",token);		
+//			if(response.getHttpstatus().equals(HttpStatus.NO_CONTENT)){
+//				Map<String,String> params = new HashMap<>();
+//				params.put("type", "aws-iam-roles");
+//				params.put("name",role);
+//				params.put("path",path);
+//				params.put("access","delete");
+//				Response metadataResponse = ControllerUtil.updateMetadata(params,token);
+//				if(HttpStatus.NO_CONTENT.equals(metadataResponse.getHttpstatus())){
+//					return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Role association is removed \"]}");		
+//				}else{
+//					return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Role configuration failed.Please try again\"]}");
+//				}	
+//			}else{
+//				return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Role configuration failed.Try Again\"]}");
+//			}
+//		}
+//		else{
+//			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid 'path' specified\"]}");
+//		}
+//	}
+
+	/**
+	 * Delete a folder
+	 * @param token
+	 * @param path
+	 * @return
+	 */
+	public ResponseEntity<String> deletefolder(String token, String path){
+		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+				put(LogMessage.ACTION, "Delete Folder").
+				put(LogMessage.MESSAGE, String.format ("Trying to Delete folder [%s]", path)).
+				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+				build()));
+		if(ControllerUtil.isPathValid(path) ){
+			Response response = new Response();
+			ControllerUtil.recursivedeletesdb("{\"path\":\""+path+"\"}",token,response);
+			if(response.getHttpstatus().equals(HttpStatus.NO_CONTENT)){
+				String folders[] = path.split("[/]+");
+				String r_policy = "r_";
+				String w_policy = "w_";
+				String d_policy = "d_";
+
+				if (folders.length > 0) {
+					for (int index = 0; index < folders.length; index++) {
+						if (index == folders.length -1 ) {
+							r_policy += folders[index];
+							w_policy += folders[index];
+							d_policy += folders[index];
+						}
+						else {
+							r_policy += folders[index]  +"_";
+							w_policy += folders[index] +"_";
+							d_policy += folders[index] +"_";
+						}
+					}
+				}
+
+				reqProcessor.process("/access/delete","{\"accessid\":\""+r_policy+"\"}",token);
+				reqProcessor.process("/access/delete","{\"accessid\":\""+w_policy+"\"}",token);
+				reqProcessor.process("/access/delete","{\"accessid\":\""+d_policy+"\"}",token);
+
+				String _path = "metadata/"+path;
+
+				// Get SDB metadataInfo
+				response = reqProcessor.process("/sdb","{\"path\":\""+_path+"\"}",token);
+				Map<String, Object> responseMap = null;
+				try {
+					responseMap = new ObjectMapper().readValue(response.getResponse(), new TypeReference<Map<String, Object>>(){});
+				} catch (IOException e) {
+					log.error(e);
+					return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Error Fetching existing safe info \"]}");
+				}
+				if(responseMap!=null && responseMap.get("data")!=null){
+					Map<String,Object> metadataMap = (Map<String,Object>)responseMap.get("data");
+					Map<String,String> awsroles = (Map<String, String>)metadataMap.get("aws-roles");
+					Map<String,String> groups = (Map<String, String>)metadataMap.get("groups");
+					Map<String,String> users = (Map<String, String>) metadataMap.get("users");
+					ControllerUtil.updateUserPolicyAssociationOnSDBDelete(path,users,token);
+					ControllerUtil.updateGroupPolicyAssociationOnSDBDelete(path,groups,token);
+					ControllerUtil.deleteAwsRoleOnSDBDelete(path,awsroles,token);
+				}
+				ControllerUtil.recursivedeletesdb("{\"path\":\""+_path+"\"}",token,response);
+				log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+						put(LogMessage.ACTION, "Delete Folder").
+						put(LogMessage.MESSAGE, "SDB Folder Deletion completed").
+						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+						build()));
+				return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"SDB deleted\"]}");
+
+			}else{
+				log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+						put(LogMessage.ACTION, "Delete Folder ").
+						put(LogMessage.MESSAGE, "SDB Folder Deletion Completed").
+						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+						build()));
+				return ResponseEntity.status(response.getHttpstatus()).body(response.getResponse());
+			}
+		}else if(ControllerUtil.isValidDataPath(path)){
+			Response response = new Response();
+			ControllerUtil.recursivedeletesdb("{\"path\":\""+path+"\"}",token,response);
+			if(response.getHttpstatus().equals(HttpStatus.NO_CONTENT)){
+				log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+						put(LogMessage.ACTION, "Delete Folder").
+						put(LogMessage.MESSAGE, "SDB Folder Deletion Completed").
+						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+						build()));
+				return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Folder deleted\"]}");
+			}else{
+				log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+						put(LogMessage.ACTION, "Delete Folder").
+						put(LogMessage.MESSAGE, "SDB Folder Deletion Completed").
+						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+						build()));
+				return ResponseEntity.status(response.getHttpstatus()).body(response.getResponse());
+			}
+		}else{
+			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+					put(LogMessage.ACTION, "Delete Folder").
+					put(LogMessage.MESSAGE, "SDB Folder Deletion failed").
+					put(LogMessage.RESPONSE, "Invalid Path").
+					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+					build()));
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid 'path' specified\"]}");
 		}
 	}
@@ -1942,143 +2081,4 @@ public class  SafesService {
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"messages\":[\"Approle :" + approle + " failed to be associated with SDB.. Invalid Path specified\"]}");
 		}
 	}
-
-//	public ResponseEntity<String> addAwsIAMRoleToSafe(String token, AWSRole awsRole) {
-//		String jsonstr = JSONUtil.getJSON(awsRole);
-//		ObjectMapper objMapper = new ObjectMapper();
-//		Map<String,String> requestMap = null;
-//		try {
-//			requestMap = objMapper.readValue(jsonstr, new TypeReference<Map<String,String>>() {});
-//		} catch (IOException e) {
-//			log.error(e);
-//		}
-//
-//		String role = requestMap.get("role");
-//		String path = requestMap.get("path");
-//		String access = requestMap.get("access");
-//
-//		role = (role !=null) ? role.toLowerCase() : role;
-//		path = (path != null) ? path.toLowerCase() : path;
-//		access = (access != null) ? access.toLowerCase(): access;
-//
-//		if(ControllerUtil.isValidSafePath(path) && ControllerUtil.isValidSafe(path, token)){
-//			String folders[] = path.split("[/]+");
-//
-//			String policyPrefix ="";
-//			switch (access){
-//			case "read": policyPrefix = "r_"; break ; 
-//			case "write": policyPrefix = "w_" ;break; 
-//			case "deny": policyPrefix = "d_" ;break; 
-//			}
-//			if("".equals(policyPrefix)){
-//				return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body("{\"errors\":[\"Incorrect access requested. Valid values are read,write,deny \"]}");
-//			}
-//			String policy = policyPrefix+folders[0]+"_"+folders[1];
-//			String r_policy = "r_";
-//			String w_policy = "w_";
-//			String d_policy = "d_";
-//			if (folders.length > 0) {
-//				for (int index = 0; index < folders.length; index++) {
-//					if (index == folders.length -1 ) {
-//						r_policy += folders[index];
-//						w_policy += folders[index];
-//						d_policy += folders[index];
-//					}
-//					else {
-//						r_policy += folders[index]  +"_";
-//						w_policy += folders[index] +"_";
-//						d_policy += folders[index] +"_";
-//					}
-//				}
-//			}
-//			Response roleResponse = reqProcessor.process("/auth/aws/iam/roles","{\"role\":\""+role+"\"}",token);
-//			String responseJson="";
-//
-//			String policies ="";
-//			String currentpolicies ="";
-//
-//			if(HttpStatus.OK.equals(roleResponse.getHttpstatus())){
-//				responseJson = roleResponse.getResponse();	
-//				try {
-//					JsonNode policiesArry =objMapper.readTree(responseJson).get("policies");
-//					for(JsonNode policyNode : policiesArry){
-//						currentpolicies =	(currentpolicies == "" ) ? currentpolicies+policyNode.asText():currentpolicies+","+policyNode.asText();
-//					}
-//				} catch (IOException e) {
-//					log.error(e);
-//				}
-//				policies = currentpolicies;
-//				policies = policies.replaceAll(r_policy, "");
-//				policies = policies.replaceAll(w_policy, "");
-//				policies = policies.replaceAll(d_policy, "");
-//				policies = policies+","+policy;
-//			}else{
-//				return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body("{\"errors\":[\"Non existing role name. Please configure it as first step\"]}");
-//			}
-//
-//			Response ldapConfigresponse = ControllerUtil.configureAWSIAMRole(role,policies,token);
-//			if(ldapConfigresponse.getHttpstatus().equals(HttpStatus.NO_CONTENT)){ 
-//				Map<String,String> params = new HashMap<String,String>();
-//				params.put("type", "aws-roles");
-//				params.put("name",role);
-//				params.put("path",path);
-//				params.put("access",access);
-//				Response metadataResponse = ControllerUtil.updateMetadata(params,token);
-//				if(HttpStatus.NO_CONTENT.equals(metadataResponse.getHttpstatus())){
-//					return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Role is successfully associated \"]}");		
-//				}else{
-//					System.out.println("Meta data update failed");
-//					System.out.println(metadataResponse.getResponse());
-//					ldapConfigresponse = ControllerUtil.configureAWSRole(role,policies,token);
-//					if(ldapConfigresponse.getHttpstatus().equals(HttpStatus.NO_CONTENT)){
-//						System.out.println("Reverting user policy uupdate");
-//						return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Role configuration failed.Please try again\"]}");
-//					}else{
-//						System.out.println("Reverting user policy update failed");
-//						return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Role configuration failed.Contact Admin \"]}");
-//					}
-//				}		
-//			}else{
-//				return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Role configuration failed.Try Again\"]}");
-//			}	
-//		}else{
-//			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid 'path' specified\"]}");
-//		}
-//	}
-//	public ResponseEntity<String> removeAwsIAMRoleFromSafe( String token, AWSRole awsRole){
-//		String jsonstr = JSONUtil.getJSON(awsRole);
-//		ObjectMapper objMapper = new ObjectMapper();
-//		Map<String,String> requestMap = null;
-//		try {
-//			requestMap = objMapper.readValue(jsonstr, new TypeReference<Map<String,String>>() {});
-//		} catch (IOException e) {
-//			log.error(e);
-//			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid request. please check the request json\"]}");
-//		}
-//
-//		String role = requestMap.get("role");
-//		String path = requestMap.get("path");
-//		if(ControllerUtil.isValidSafePath(path) && ControllerUtil.isValidSafe(path, token)){
-//
-//			Response response = reqProcessor.process("/auth/aws/roles/delete","{\"role\":\""+role+"\"}",token);		
-//			if(response.getHttpstatus().equals(HttpStatus.NO_CONTENT)){
-//				Map<String,String> params = new HashMap<>();
-//				params.put("type", "aws-iam-roles");
-//				params.put("name",role);
-//				params.put("path",path);
-//				params.put("access","delete");
-//				Response metadataResponse = ControllerUtil.updateMetadata(params,token);
-//				if(HttpStatus.NO_CONTENT.equals(metadataResponse.getHttpstatus())){
-//					return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Role association is removed \"]}");		
-//				}else{
-//					return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Role configuration failed.Please try again\"]}");
-//				}	
-//			}else{
-//				return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Role configuration failed.Try Again\"]}");
-//			}
-//		}
-//		else{
-//			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid 'path' specified\"]}");
-//		}
-//	}
 }
