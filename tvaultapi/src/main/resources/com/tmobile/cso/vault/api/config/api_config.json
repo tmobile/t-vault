@@ -580,14 +580,14 @@
         "outparams":["auth/client_token","auth/policies","auth/lease_duration"]
     },
     
- 	{"#" : "**** aws group creation ****** ",
+ 	{"#" : "**** aws role creation ****** ",
  	
     	"apiEndPoint":"/auth/aws/roles/create",
     	"vaultEndPoint":"/auth/aws/role/<role>",
     	"method":"POST",
       	"params":[
-      		{"name":"auth_type","value":"ec2"},
       		{"name":"role","required":true, "appendToPath":true},
+      		{"name":"auth_type"},
       		{"name":"bound_ami_id"},
       		{"name":"bound_account_id"},
       		{"name":"bound_region"},
@@ -595,7 +595,9 @@
       		{"name":"bound_subnet_id"},
       		{"name":"bound_iam_role_arn"},
       		{"name":"bound_iam_instance_profile_arn"},
-      		{"name":"policies" }
+      		{"name":"policies" },
+      		{"name":"bound_iam_principal_arn"},
+      		{"name":"resolve_aws_unique_ids"}
         ]
     },
     
@@ -626,14 +628,9 @@
       	"params":[
       		{"name":"auth_type","value":"iam"},
       		{"name":"role","required":true, "appendToPath":true},
-      		{"name":"bound_ami_id"},
-      		{"name":"bound_account_id"},
-      		{"name":"bound_region"},
-      		{"name":"bound_vpc_id"},
-      		{"name":"bound_subnet_id"},
-      		{"name":"bound_iam_role_arn"},
-      		{"name":"bound_iam_instance_profile_arn"},
-      		{"name":"policies", "required":"true"}
+      		{"name":"bound_iam_principal_arn"},
+      		{"name":"policies", "required":"true"},
+      		{"name":"resolve_aws_unique_ids"}
         ]
     },
     
@@ -664,11 +661,11 @@
       	"params":[
       		{"name":"role","required":true, "appendToPath":true}
         ],
-         "outparams":["data/bound_account_id","data/bound_ami_id",
-         			  "data/bound_iam_instance_profile_arn",
+         "outparams":["data/auth_type", "data/bound_account_id","data/bound_ami_id",
+         			  "data/bound_iam_instance_profile_arn","data/bound_iam_principal_arn",
          			  "data/bound_iam_role_arn","data/bound_vpc_id",
          			  "data/bound_subnet_id","data/bound_region",
-         			  "data/policies", "data/auth_type"]
+         			  "data/policies"]
     },
      {"#" : "**** Fetch aws iam role info  ****** ",
  	
@@ -678,10 +675,10 @@
       	"params":[
       		{"name":"role","required":true, "appendToPath":true}
         ],
-         "outparams":["data/bound_ami_id","data/role_tag","data/policies",
+         "outparams":["data/auth_type", "data/bound_ami_id","data/role_tag","data/policies",
          			  "data/bound_iam_principal_arn","data/bound_iam_role_arn",
          			  "data/max_ttl","data/disallow_reauthentication",
-         			  "data/allow_instance_migration","data/auth_type"
+         			  "data/allow_instance_migration","data/resolve_aws_unique_ids"
          			  ]
     },
     {"#" : "**** Fetch aws roles  ****** ",

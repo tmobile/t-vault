@@ -1,0 +1,67 @@
+header
+sideBar
+script(type='text/ng-template', id='deleteSafePopup.html')
+  loading-state(ng-if="isLoadingModalData")
+  .top-lg-sep(ng-if="!isLoadingModalData")
+    .top-lg-sep
+        .common-header-label.text-center Confirmation
+    .top-lg-sep.notification-text Are you sure you want to delete this safe?
+    .text-center.bottom-lg-sep.top-lg-sep.notification-button
+      .clearfix.bottom-sm-sep
+        button.common-btn.btn.btn-primary.btn-lg(ng-click="deleteSafe(safeToDelete)") DELETE
+      .clearfix
+        button.link-style.common-btn.btn.btn-default.btn-lg(ng-click="close()") CANCEL
+script(type='text/ng-template', id='error.html')
+    .row
+        .top-lg-sep
+            .common-header-label.text-center Error
+        .top-lg-sep.notification-text {{errorMessage}}
+    
+    .text-center.bottom-lg-sep.top-lg-sep.notification-button
+        .clearfix.bottom-sm-sep
+            button.link-style.common-btn.btn.btn-primary.btn-lg(ng-click="close()") Close
+script(type='text/ng-template', id='notify.html')
+    .row
+        .top-lg-sep
+            .common-header-label.text-center Notification
+        .top-lg-sep.notification-text Admin is not allowed to view inside safe
+    
+    .text-center.bottom-lg-sep.top-lg-sep.notification-button
+        .clearfix.bottom-sm-sep
+            button.link-style.common-btn.btn.btn-primary.btn-lg(ng-click="close()") Close
+
+
+.container-fluid
+    .container-fluid-wrapper.curved
+        .page-header-container.admin
+            .header-inner-container
+                nav-bar(active-tab="manage" gotoPage="goToPage" nav-tags="adminNavTags")
+                .page-header-text MANAGE
+        .page-content-container.admin
+            .right.search-bar-container
+                .search-bar
+                    .search-box
+                        .search-icon
+                            .icon-search
+                        .search-input-wrapper
+                            input.search-input-box(type='text' placeholder='SEARCH' ng-model="searchValue")
+            md-content.admin-content
+                md-tabs(md-dynamic-height md-border-bottom)
+                    md-tab(label="Safe Management")
+                        md-content(class="md-padding md-content-wrapper page-content-wrapper" ng-init="displayGrid")  
+                            .md-content-inner-wrapper                               
+                                div.safe-management-content
+                                    loading-state(ng-if='isLoadingData')                               
+                                    md-tabs.admin-tabs.md-dynamic-height.md-border-bottom(md-selected="vm.selectedGroupOption")
+                                        md-tab( ng-if='!isLoadingData' ng-init="numOfTiles = tab.safes.length" ng-repeat="tab in data | orderBy : '-type'" ng-attr-label="{{tab.type}} ({{numOfTiles}})")
+                                            md-content(class="md-padding md-content-wrapper")
+                                                .unavailable-text(ng-if='(tab.safes.length === 0)')
+                                                    | No Safe Available
+                                                tiles.tiles-wrapper(data="tab.safes" num-of-tiles="numOfTiles" tile-func-available="true" img="'safe.png'" search-value="searchValue" tile-details="showNotification" parent="admin" edit-folder="adminEditFolder(param)" delete-folder="deleteSafePopup(param)" loading="isLoadingData")
+                                div.create-safe-wrapper
+                                    .function-text.link-style.option.right(ng-click="goTo('change-safe')")
+                                        .action-icon-wrapper.static
+                                            .rotate.glyphicon.glyphicon-remove-circle
+                                        .create-link.middle-block.hide-in-mobile
+                                            .text CREATE NEW SAFE                    
+                                    

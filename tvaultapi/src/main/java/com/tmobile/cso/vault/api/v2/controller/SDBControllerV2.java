@@ -41,6 +41,7 @@ import com.tmobile.cso.vault.api.model.AWSRole;
 import com.tmobile.cso.vault.api.model.Safe;
 import com.tmobile.cso.vault.api.model.SafeGroup;
 import com.tmobile.cso.vault.api.model.SafeUser;
+import com.tmobile.cso.vault.api.service.SelfSupportService;
 import com.tmobile.cso.vault.api.service.SafesService;
 
 import io.swagger.annotations.Api;
@@ -56,6 +57,7 @@ public class SDBControllerV2 {
 
 	@Autowired
 	private SafesService safesService;
+	
 	/**
 	 * Gets all SDB folders
 	 * @param token
@@ -79,6 +81,7 @@ public class SDBControllerV2 {
 	public ResponseEntity<String> getInfo(@RequestHeader(value="vault-token") String token, @RequestParam("path") String path){
 		return safesService.getInfo(token, path);
 	}
+
 	/**
 	 * Creates a SDB folder
 	 * @param token
@@ -89,6 +92,7 @@ public class SDBControllerV2 {
 	public ResponseEntity<String> createfolder(@RequestHeader(value="vault-token") String token, @RequestParam("path") String path){
 		return safesService.createfolder(token, path);		
 	}
+
 	/**
 	 * Deletes a SDB folder
 	 * @param token
@@ -121,6 +125,7 @@ public class SDBControllerV2 {
 	public ResponseEntity<String> createSafe(@RequestHeader(value="vault-token" ) String token, @RequestBody Safe safe){
 		return safesService.createSafe(token, safe);
 	}
+	
 	/**
 	 * Deletes a Safe
 	 * @param token
@@ -143,6 +148,7 @@ public class SDBControllerV2 {
 	public ResponseEntity<String> getSafe(@RequestHeader(value="vault-token") String token, @RequestParam("path") String path){
 		return safesService.getSafe(token, path);
 	}
+	
 	/**
 	 * Adds user with a Safe
 	 * @param token
@@ -154,6 +160,7 @@ public class SDBControllerV2 {
 	public ResponseEntity<String> addUsertoSafe(@RequestHeader(value="vault-token") String token, @RequestBody SafeUser safeUser){
 		return safesService.addUserToSafe(token, safeUser);
 	}
+
 	/**
 	 * Removes user from Safe
 	 * @param token
@@ -165,6 +172,7 @@ public class SDBControllerV2 {
 	public ResponseEntity<String> deleteUserFromSafe(@RequestHeader(value="vault-token") String token, @RequestBody SafeUser safeUser){
 		return safesService.removeUserFromSafe(token, safeUser);
 	}
+
 	/**
 	 * Adds a group to a safe
 	 * @param token

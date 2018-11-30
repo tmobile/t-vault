@@ -17,6 +17,8 @@
 
 package com.tmobile.cso.vault.api.service;
 
+import java.util.List;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,6 +27,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
 import com.tmobile.cso.vault.api.exception.LogMessage;
 import com.tmobile.cso.vault.api.model.UserLogin;
@@ -32,6 +36,7 @@ import com.tmobile.cso.vault.api.model.UserpassUser;
 import com.tmobile.cso.vault.api.process.RequestProcessor;
 import com.tmobile.cso.vault.api.process.Response;
 import com.tmobile.cso.vault.api.utils.JSONUtil;
+import com.tmobile.cso.vault.api.utils.SafeUtils;
 import com.tmobile.cso.vault.api.utils.ThreadLocalContext;
 
 @Component
@@ -39,6 +44,9 @@ public class  UserPassService {
 	private Logger log = LogManager.getLogger(UserPassService.class);
 	@Autowired
 	private RequestProcessor reqProcessor;
+	
+	@Autowired
+	private SafeUtils safeUtils;
 
 	@Value("${vault.auth.method}")
 	private String vaultAuthMethod;
@@ -201,7 +209,7 @@ public class  UserPassService {
 	 * @param user
 	 * @return
 	 */
-	public ResponseEntity<String> login(UserLogin user){
+	public ResponseEntity<String> login(UserLogin user) {
 		String jsonStr = JSONUtil.getJSON(user);
 		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 			      put(LogMessage.USER, user.getUsername()).
@@ -210,6 +218,20 @@ public class  UserPassService {
 			      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 			      build()));
 		Response response = reqProcessor.process("/auth/userpass/login",jsonStr,"");
+		List<String> adminPolicies = null;
+		try {
+			ObjectMapper objMapper = new ObjectMapper();
+			JsonNode policiesJsonNode = objMapper.readTree(response.getResponse().toString()).get("policies");
+			adminPolicies = safeUtils.getPoliciesForManagedSafes(policiesJsonNode);
+		} catch (Exception e) {
+			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+				      put(LogMessage.USER, user.getUsername()).
+					  put(LogMessage.ACTION, "User Login").
+				      put(LogMessage.MESSAGE, "Unable to retrieve the admin (sudo) policies associated with the user").
+				      put(LogMessage.STATUS, response.getHttpstatus().toString()).
+				      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+				      build()));
+		}
 		if(HttpStatus.OK.equals(response.getHttpstatus())){
 			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 				      put(LogMessage.USER, user.getUsername()).
@@ -218,7 +240,7 @@ public class  UserPassService {
 				      put(LogMessage.STATUS, response.getHttpstatus().toString()).
 				      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 				      build()));
-			return ResponseEntity.status(response.getHttpstatus()).body(response.getResponse());
+			return ResponseEntity.status(response.getHttpstatus()).body(response.toString());
 		}else{
 			if (HttpStatus.BAD_REQUEST.equals(response.getHttpstatus())) {
 				log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().

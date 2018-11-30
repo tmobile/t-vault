@@ -25,6 +25,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.tmobile.cso.vault.api.model.UserLogin;
@@ -91,5 +92,12 @@ public class VaultAuthControllerV2 {
 	public ResponseEntity<String> revoke(@RequestHeader(value="vault-token") String token){
 		return vaultAuthService.revoke(token);
 	}
+	
+	@GetMapping(value="/auth/tvault/isauthorized",produces="application/json")
+	@ApiOperation(value = "${VaultAuthControllerV2.authorized.value}", notes = "${VaultAuthControllerV2.authorized.notes}")
+	public ResponseEntity<Boolean> isAuthorized(@RequestHeader(value="vault-token") String token, @RequestParam String safeType, @RequestParam String safeName){
+		return vaultAuthService.isAuthorized(token, safeType, safeName);
+	}
+	
 }
 

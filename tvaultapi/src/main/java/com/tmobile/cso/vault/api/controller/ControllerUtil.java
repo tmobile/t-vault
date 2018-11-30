@@ -74,8 +74,8 @@ import com.tmobile.cso.vault.api.utils.ThreadLocalContext;
 @Component
 public final class ControllerUtil {
 	
-	private static RequestProcessor reqProcessor;
-	private static Logger log = LogManager.getLogger(ControllerUtil.class);
+	public static RequestProcessor reqProcessor;
+	public static Logger log = LogManager.getLogger(ControllerUtil.class);
 
 	@Value("${vault.auth.method}")
     private String tvaultAuthMethod;

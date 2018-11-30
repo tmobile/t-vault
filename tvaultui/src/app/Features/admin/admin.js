@@ -31,6 +31,12 @@
                 url: '/admin',
                 templateUrl: 'app/Features/admin/admin.html',
                 controller: 'AdminCtrl'
-            } );
+            })
+            .state('manage', {
+                url: '/manage',
+                templateUrl: 'app/Features/admin/manage.html',
+                controller: 'AdminCtrl'
+            })
+            ;
     }
 })();

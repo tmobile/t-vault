@@ -20,6 +20,7 @@ package com.tmobile.cso.vault.api.service;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Iterator;
 import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
@@ -45,6 +46,7 @@ import com.tmobile.cso.vault.api.process.RequestProcessor;
 import com.tmobile.cso.vault.api.process.Response;
 import com.tmobile.cso.vault.api.utils.JSONUtil;
 import com.tmobile.cso.vault.api.utils.ThreadLocalContext;
+import com.tmobile.cso.vault.api.utils.TokenUtils;
 
 @Component
 public class  SafesService {
@@ -116,6 +118,7 @@ public class  SafesService {
 		return ResponseEntity.status(response.getHttpstatus()).body(response.getResponse());
 
 	}
+
 	/**
 	 * Create a folder
 	 * @param token
@@ -229,14 +232,23 @@ public class  SafesService {
 					policyRequestJson = 	ControllerUtil.convetToJson(policyMap);
 					Response d_response = reqProcessor.process("/access/update",policyRequestJson,token); 
 
+					accessMap.put(path+"/*", "sudo");
+					accessMap.put(_path+"/*", "sudo");
+					policyMap.put("accessid", "s_"+folders[0]+"_"+Safe);
+					policyRequestJson = ControllerUtil.convetToJson(policyMap);
+					Response s_response = reqProcessor.process("/access/update",policyRequestJson,token);
 
 					if( (r_response.getHttpstatus().equals(HttpStatus.NO_CONTENT) && 
 							w_response.getHttpstatus().equals(HttpStatus.NO_CONTENT) &&
-									d_response.getHttpstatus().equals(HttpStatus.NO_CONTENT)) ||
+							d_response.getHttpstatus().equals(HttpStatus.NO_CONTENT) &&
+							s_response.getHttpstatus().equals(HttpStatus.NO_CONTENT) 
+							) ||
 							(r_response.getHttpstatus().equals(HttpStatus.OK) && 
 									w_response.getHttpstatus().equals(HttpStatus.OK) &&
-											d_response.getHttpstatus().equals(HttpStatus.OK))	
+									d_response.getHttpstatus().equals(HttpStatus.OK)) &&
+							s_response.getHttpstatus().equals(HttpStatus.OK) 
 						){
+						
 						log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 								put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 								put(LogMessage.ACTION, "Create SDB").
@@ -580,72 +592,6 @@ public class  SafesService {
 
 	}
 
-	//	/**
-	//	 * Helper method to create policies to be associated with Safe
-	//	 * @param token
-	//	 * @param safe
-	//	 * @return
-	//	 */
-	//	private ResponseEntity<String> createPolicies(String token, Safe safe) {
-	//		String path = safe.getPath();
-	//		String _path = "metadata/"+path;
-	//		safe.setPath(_path);
-	//
-	//		String metadataJson = 	JSONUtil.getJSON(safe);
-	//		Response response = reqProcessor.process("/write",metadataJson,token);
-	//
-	//		boolean isMetaDataUpdated = false;
-	//
-	//		if(response.getHttpstatus().equals(HttpStatus.NO_CONTENT)){
-	//			isMetaDataUpdated = true;
-	//		}
-	//
-	//		String folders[] = path.split("[/]+");
-	//		if(folders.length==2){
-	//			String Safe = folders[1];
-	//
-	//			Response r_response = createPolicy(AccessPolicy.READ, token, path, folders[0], Safe);
-	//			Response w_response = createPolicy(AccessPolicy.WRITE, token, path, folders[0], Safe);
-	//			Response d_response = createPolicy(AccessPolicy.DENY, token, path, folders[0], Safe);
-	//
-	//			if(r_response.getHttpstatus().equals(HttpStatus.OK) && 
-	//					w_response.getHttpstatus().equals(HttpStatus.OK) &&
-	//					d_response.getHttpstatus().equals(HttpStatus.OK) ){
-	//				return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Safe and associated read/write/deny policies created \"]}");
-	//			}else{
-	//				return ResponseEntity.status(HttpStatus.MULTI_STATUS).body("{\"messages\":[\"Safe created however one ore more policy (read/write/deny) creation failed \"]}");
-	//			}
-	//		}
-	//		if(isMetaDataUpdated)
-	//			return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Safe created \"]}");
-	//		else
-	//			return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Safe created however metadata update failed. Please try with Safe/update \"]}");
-	//	}
-	//
-	//	/**
-	//	 * Helper method to create a policy
-	//	 * @param policy
-	//	 * @param token
-	//	 * @param path
-	//	 * @param folderName
-	//	 * @param secretName
-	//	 * @return
-	//	 */
-	//	private Response createPolicy(AccessPolicy policy, String token, String path, String folderName, String secretName) {
-	//		Map<String,Object> policyMap = new HashMap<String,Object>();
-	//		Map<String,String> accessMap = new HashMap<String,String>();
-	//		accessMap.put(path+"/*",policy.policyLong());
-	//
-	//		policyMap.put("accessid", policy.policyShort()+ folderName +"_"+secretName );
-	//		policyMap.put("access", accessMap);
-	//
-	//		String policyRequestJson = 	ControllerUtil.convetToJson(policyMap);
-	//
-	//		Response r_response = reqProcessor.process("/access/update",policyRequestJson,token);
-	//		return r_response;
-	//
-	//	}
-
 	/**
 	 * Adds user to a group
 	 * @param token
@@ -676,7 +622,6 @@ public class  SafesService {
 		String access = safeUser.getAccess();
 		
 		userName = (userName !=null) ? userName.toLowerCase() : userName;
-//		path = (path != null) ? path.toLowerCase() : path;
 		access = (access != null) ? access.toLowerCase(): access;
 
 		boolean canAddUser = ControllerUtil.canAddPermission(path, token);
@@ -689,6 +634,7 @@ public class  SafesService {
 			case "read": policyPrefix = "r_"; break ; 
 			case "write": policyPrefix = "w_" ;break; 
 			case "deny": policyPrefix = "d_" ;break; 
+			case "sudo": policyPrefix = "s_" ;break; 
 			}
 			if("".equals(policyPrefix)){
 				log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
@@ -710,17 +656,20 @@ public class  SafesService {
 			String r_policy = "r_";
 			String w_policy = "w_";
 			String d_policy = "d_";
+			String s_policy = "s_";
 			if (folders.length > 0) {
 				for (int index = 0; index < folders.length; index++) {
 					if (index == folders.length -1 ) {
 						r_policy += folders[index];
 						w_policy += folders[index];
 						d_policy += folders[index];
+						s_policy += folders[index];
 					}
 					else {
 						r_policy += folders[index]  +"_";
 						w_policy += folders[index] +"_";
 						d_policy += folders[index] +"_";
+						s_policy += folders[index] +"_";
 					}
 				}
 			}
@@ -774,6 +723,7 @@ public class  SafesService {
 				policies = policies.replaceAll(r_policy, "");
 				policies = policies.replaceAll(w_policy, "");
 				policies = policies.replaceAll(d_policy, "");
+				policies = policies.replaceAll(s_policy, "");
 				policies = policies+","+policy;
 			}else{
 				// New user to be configured
@@ -1096,17 +1046,20 @@ public class  SafesService {
 			String r_policy = "r_";
 			String w_policy = "w_";
 			String d_policy = "d_";
+			String s_policy = "s_";
 			if (folders.length > 0) {
 				for (int index = 0; index < folders.length; index++) {
 					if (index == folders.length -1 ) {
 						r_policy += folders[index];
 						w_policy += folders[index];
 						d_policy += folders[index];
+						s_policy += folders[index];
 					}
 					else {
-						r_policy += folders[index]  +"_";
+						r_policy += folders[index] +"_";
 						w_policy += folders[index] +"_";
 						d_policy += folders[index] +"_";
+						s_policy += folders[index] +"_";
 					}
 				}
 			}
@@ -1136,6 +1089,7 @@ public class  SafesService {
 				policies = policies.replaceAll(r_policy, "");
 				policies = policies.replaceAll(w_policy, "");
 				policies = policies.replaceAll(d_policy, "");
+				policies = policies.replaceAll(s_policy, "");
 				Response ldapConfigresponse;
 				if ("userpass".equals(vaultAuthMethod)) {
 					ldapConfigresponse = ControllerUtil.configureUserpassUser(userName,policies,token);
@@ -1605,144 +1559,7 @@ public class  SafesService {
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid 'path' specified\"]}");
 		}
 	}
-//	public ResponseEntity<String> addAwsIAMRoleToSafe(String token, AWSRole awsRole) {
-//		String jsonstr = JSONUtil.getJSON(awsRole);
-//		ObjectMapper objMapper = new ObjectMapper();
-//		Map<String,String> requestMap = null;
-//		try {
-//			requestMap = objMapper.readValue(jsonstr, new TypeReference<Map<String,String>>() {});
-//		} catch (IOException e) {
-//			log.error(e);
-//		}
-//
-//		String role = requestMap.get("role");
-//		String path = requestMap.get("path");
-//		String access = requestMap.get("access");
-//
-//		role = (role !=null) ? role.toLowerCase() : role;
-//		path = (path != null) ? path.toLowerCase() : path;
-//		access = (access != null) ? access.toLowerCase(): access;
-//
-//		if(ControllerUtil.isValidSafePath(path) && ControllerUtil.isValidSafe(path, token)){
-//			String folders[] = path.split("[/]+");
-//
-//			String policyPrefix ="";
-//			switch (access){
-//			case "read": policyPrefix = "r_"; break ; 
-//			case "write": policyPrefix = "w_" ;break; 
-//			case "deny": policyPrefix = "d_" ;break; 
-//			}
-//			if("".equals(policyPrefix)){
-//				return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body("{\"errors\":[\"Incorrect access requested. Valid values are read,write,deny \"]}");
-//			}
-//			String policy = policyPrefix+folders[0]+"_"+folders[1];
-//			String r_policy = "r_";
-//			String w_policy = "w_";
-//			String d_policy = "d_";
-//			if (folders.length > 0) {
-//				for (int index = 0; index < folders.length; index++) {
-//					if (index == folders.length -1 ) {
-//						r_policy += folders[index];
-//						w_policy += folders[index];
-//						d_policy += folders[index];
-//					}
-//					else {
-//						r_policy += folders[index]  +"_";
-//						w_policy += folders[index] +"_";
-//						d_policy += folders[index] +"_";
-//					}
-//				}
-//			}
-//			Response roleResponse = reqProcessor.process("/auth/aws/iam/roles","{\"role\":\""+role+"\"}",token);
-//			String responseJson="";
-//
-//			String policies ="";
-//			String currentpolicies ="";
-//
-//			if(HttpStatus.OK.equals(roleResponse.getHttpstatus())){
-//				responseJson = roleResponse.getResponse();	
-//				try {
-//					JsonNode policiesArry =objMapper.readTree(responseJson).get("policies");
-//					for(JsonNode policyNode : policiesArry){
-//						currentpolicies =	(currentpolicies == "" ) ? currentpolicies+policyNode.asText():currentpolicies+","+policyNode.asText();
-//					}
-//				} catch (IOException e) {
-//					log.error(e);
-//				}
-//				policies = currentpolicies;
-//				policies = policies.replaceAll(r_policy, "");
-//				policies = policies.replaceAll(w_policy, "");
-//				policies = policies.replaceAll(d_policy, "");
-//				policies = policies+","+policy;
-//			}else{
-//				return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body("{\"errors\":[\"Non existing role name. Please configure it as first step\"]}");
-//			}
-//
-//			Response ldapConfigresponse = ControllerUtil.configureAWSIAMRole(role,policies,token);
-//			if(ldapConfigresponse.getHttpstatus().equals(HttpStatus.NO_CONTENT)){ 
-//				Map<String,String> params = new HashMap<String,String>();
-//				params.put("type", "aws-roles");
-//				params.put("name",role);
-//				params.put("path",path);
-//				params.put("access",access);
-//				Response metadataResponse = ControllerUtil.updateMetadata(params,token);
-//				if(HttpStatus.NO_CONTENT.equals(metadataResponse.getHttpstatus())){
-//					return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Role is successfully associated \"]}");		
-//				}else{
-//					System.out.println("Meta data update failed");
-//					System.out.println(metadataResponse.getResponse());
-//					ldapConfigresponse = ControllerUtil.configureAWSRole(role,policies,token);
-//					if(ldapConfigresponse.getHttpstatus().equals(HttpStatus.NO_CONTENT)){
-//						System.out.println("Reverting user policy uupdate");
-//						return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Role configuration failed.Please try again\"]}");
-//					}else{
-//						System.out.println("Reverting user policy update failed");
-//						return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Role configuration failed.Contact Admin \"]}");
-//					}
-//				}		
-//			}else{
-//				return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Role configuration failed.Try Again\"]}");
-//			}	
-//		}else{
-//			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid 'path' specified\"]}");
-//		}
-//	}
-//	public ResponseEntity<String> removeAwsIAMRoleFromSafe( String token, AWSRole awsRole){
-//		String jsonstr = JSONUtil.getJSON(awsRole);
-//		ObjectMapper objMapper = new ObjectMapper();
-//		Map<String,String> requestMap = null;
-//		try {
-//			requestMap = objMapper.readValue(jsonstr, new TypeReference<Map<String,String>>() {});
-//		} catch (IOException e) {
-//			log.error(e);
-//			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid request. please check the request json\"]}");
-//		}
-//
-//		String role = requestMap.get("role");
-//		String path = requestMap.get("path");
-//		if(ControllerUtil.isValidSafePath(path) && ControllerUtil.isValidSafe(path, token)){
-//
-//			Response response = reqProcessor.process("/auth/aws/roles/delete","{\"role\":\""+role+"\"}",token);		
-//			if(response.getHttpstatus().equals(HttpStatus.NO_CONTENT)){
-//				Map<String,String> params = new HashMap<>();
-//				params.put("type", "aws-iam-roles");
-//				params.put("name",role);
-//				params.put("path",path);
-//				params.put("access","delete");
-//				Response metadataResponse = ControllerUtil.updateMetadata(params,token);
-//				if(HttpStatus.NO_CONTENT.equals(metadataResponse.getHttpstatus())){
-//					return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Role association is removed \"]}");		
-//				}else{
-//					return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Role configuration failed.Please try again\"]}");
-//				}	
-//			}else{
-//				return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Role configuration failed.Try Again\"]}");
-//			}
-//		}
-//		else{
-//			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid 'path' specified\"]}");
-//		}
-//	}
+
 
 	/**
 	 * Delete a folder
