@@ -1,0 +1,15 @@
+{
+    "name": "approle-poweruser",
+    "path":{
+        "sys/policy/*":{"policy":"write"},
+		"sys/lease/*":{"policy":"write"},
+        "auth/ldap/*":{"policy":"write"},
+        "auth/aws/*":{"policy":"write"},
+        "auth/approle/*":{"policy":"write"},
+        "auth/userpass/*":{"policy":"write"},
+        "metadata/*":{"policy":"write"},
+        "users/*":{"capabilities":["create","update","delete","list"]},
+        "apps/*":{"capabilities":["create","update","delete","list"]},
+        "shared/*":{"capabilities":["create","update","delete","list"]}
+    }
+}
