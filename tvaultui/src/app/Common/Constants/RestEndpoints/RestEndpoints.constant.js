@@ -108,7 +108,7 @@ readTextFile("../apiUrls.json");
             method: 'DELETE'
         }, {
             name: 'getSafeInfo',
-            url: '/v2/sdb?',
+            url: '/v3/sdb?',
             method: 'GET'
         }, {
             name: 'createSafe',
