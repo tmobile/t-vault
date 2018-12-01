@@ -162,6 +162,11 @@
                 addComma: false,
                 show: (JSON.parse(SessionStore.getItem("isAdmin")))
             }, {
+                displayName: 'MANAGE',
+                navigationName: 'manage',
+                addComma: false,
+                show: ((JSON.parse(SessionStore.getItem("isManager"))) && (!JSON.parse(SessionStore.getItem("isAdmin"))))
+            }, {
                 displayName: 'DOCUMENTATION',
                 navigationName: 'documentation',
                 addComma: false,
