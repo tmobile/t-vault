@@ -206,7 +206,8 @@ public class UserPassServiceTest {
 
         String responseJson = "{\"client_token\":\"1sGWOpjPOuZezcIgxVFAm1Oh\",\"admin\":\"no\",\"access\":{},\"policies\":[\"default\"],\"lease_duration\":1800000}";
         Response response = getMockResponse(HttpStatus.OK, true, responseJson);
-        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(responseJson);
+        response.setAdminPolicies(null);
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(response.toString());
 
         when(JSONUtil.getJSON(user)).thenReturn(jsonStr);
         when(reqProcessor.process("/auth/userpass/login",jsonStr,"")).thenReturn(response);

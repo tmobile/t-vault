@@ -17,11 +17,15 @@
 
 package com.tmobile.cso.vault.api.process;
 
+import java.util.List;
+
 import org.springframework.http.HttpStatus;
 
 public class Response {
 	boolean success;
 	String response;
+	List<String> adminPolicies;
+	
 	public void setSuccess(boolean success) {
 		this.success = success;
 	}
@@ -46,6 +50,26 @@ public class Response {
 		else {
 			return "{} 	";
 		}
+	}
+	/**
+	 * @return the adminPolicies
+	 */
+	public List<String> getAdminPolicies() {
+		return adminPolicies;
+	}
+	/**
+	 * @param adminPolicies the adminPolicies to set
+	 */
+	public void setAdminPolicies(List<String> adminPolicies) {
+		this.adminPolicies = adminPolicies;
+	}
+	/* (non-Javadoc)
+	 * @see java.lang.Object#toString()
+	 */
+	@Override
+	public String toString() {
+		return "Response [success=" + success + ", response=" + response + ", adminPolicies=" + adminPolicies
+				+ ", httpstatus=" + httpstatus + "]";
 	}
 
 }

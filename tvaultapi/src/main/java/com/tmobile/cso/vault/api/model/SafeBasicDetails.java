@@ -44,6 +44,11 @@ public class SafeBasicDetails implements Serializable{
 	 */
 	private String description;
 	/**
+	 * Owner user id
+	 */
+	private String ownerid;
+	
+	/**
 	 * 
 	 */
 	public SafeBasicDetails() {
@@ -61,6 +66,16 @@ public class SafeBasicDetails implements Serializable{
 		this.owner = owner;
 		this.type = type;
 		this.description = description;
+	}
+	
+	
+	public SafeBasicDetails(String name, String owner, String type, String description, String ownerid) {
+		super();
+		this.name = name;
+		this.owner = owner;
+		this.type = type;
+		this.description = description;
+		this.ownerid = ownerid;
 	}
 	/**
 	 * @return the name
@@ -113,6 +128,18 @@ public class SafeBasicDetails implements Serializable{
 	 */
 	public void setDescription(String description) {
 		this.description = description;
+	}
+	/**
+	 * @return the ownerid
+	 */
+	public String getOwnerid() {
+		return ownerid;
+	}
+	/**
+	 * @param ownerid the ownerid to set
+	 */
+	public void setOwnerid(String ownerid) {
+		this.ownerid = ownerid;
 	}
 	
 

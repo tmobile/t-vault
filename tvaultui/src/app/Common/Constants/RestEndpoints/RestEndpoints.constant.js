@@ -100,7 +100,7 @@ readTextFile("../apiUrls.json");
             method: 'POST'
         }, { /* Get the list of full safes for Admin */
             name: 'safesList',
-            url: '/v2/sdb/list?',
+            url: '/v3/sdb/list?',
             method: 'GET'
         }, {
             name: 'deleteSafe',
@@ -108,11 +108,11 @@ readTextFile("../apiUrls.json");
             method: 'DELETE'
         }, {
             name: 'getSafeInfo',
-            url: '/v2/sdb?',
+            url: '/v3/sdb?',
             method: 'GET'
         }, {
             name: 'createSafe',
-            url: '/v2/sdb',
+            url: '/v3/sdb',
             method: 'POST'
         }, {
             name: 'editSafe',
@@ -120,7 +120,7 @@ readTextFile("../apiUrls.json");
             method: 'PUT'
         }, {
             name: 'deleteUserPermission',
-            url: '/v2/sdb/user',
+            url: '/v3/sdb/user',
             method: 'DELETE'
         }, {
             name: 'deleteGroupPermission',
@@ -136,7 +136,7 @@ readTextFile("../apiUrls.json");
             method: 'PUT'
         },{
             name: 'addUserPermission',
-            url: '/v2/sdb/user',
+            url: '/v3/sdb/user',
             method: 'POST'
         }, {
             name: 'addGroupPermission',

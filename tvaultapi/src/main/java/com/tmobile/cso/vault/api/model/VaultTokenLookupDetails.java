@@ -14,7 +14,7 @@ public class VaultTokenLookupDetails implements Serializable {
 	private String token;
 	private String[] policies;
 	private boolean valid;
-	
+	private boolean admin;
 
 	public VaultTokenLookupDetails(String username, String token, String[] policies) {
 		super();
@@ -77,6 +77,20 @@ public class VaultTokenLookupDetails implements Serializable {
 	 */
 	public void setValid(boolean valid) {
 		this.valid = valid;
+	}
+
+	/**
+	 * @return the admin
+	 */
+	public boolean isAdmin() {
+		return admin;
+	}
+
+	/**
+	 * @param admin the admin to set
+	 */
+	public void setAdmin(boolean admin) {
+		this.admin = admin;
 	}
 	
 	

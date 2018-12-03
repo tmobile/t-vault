@@ -26,6 +26,7 @@ import org.springframework.stereotype.Component;
 import com.tmobile.cso.vault.api.model.UserLogin;
 import com.tmobile.cso.vault.api.process.RequestProcessor;
 import com.tmobile.cso.vault.api.process.Response;
+import com.tmobile.cso.vault.api.utils.AuthorizationUtils;
 import com.tmobile.cso.vault.api.utils.JSONUtil;
 
 @Component
@@ -33,6 +34,9 @@ public class  VaultAuthService {
 
 	@Autowired
 	private RequestProcessor reqProcessor;
+	
+	@Autowired
+	private AuthorizationUtils authorizationUtils;
 
 	@Value("${vault.auth.method}")
 	private String vaultAuthMethod;
@@ -51,6 +55,7 @@ public class  VaultAuthService {
 			// Default to userpass
 			response = reqProcessor.process("/auth/userpass/login",jsonStr,"");
 		}
+
 		if(HttpStatus.OK.equals(response.getHttpstatus())){
 			return ResponseEntity.status(response.getHttpstatus()).body(response.getResponse());
 		}else{
@@ -84,6 +89,16 @@ public class  VaultAuthService {
 		}else{
 			return ResponseEntity.status(response.getHttpstatus()).body("{\"errors\":[\"Self renewal of token Failed.\"]}");
 		}
+	}
+	
+	/**
+	 * isAuthorized
+	 * @param token
+	 * @param safeName
+	 * @return
+	 */
+	public ResponseEntity<Boolean> isAuthorized (String token, String safeType, String safeName) {
+		return ResponseEntity.status(HttpStatus.OK).body(authorizationUtils.isAuthorized(token, safeType, safeName));
 	}
 	
 	/**

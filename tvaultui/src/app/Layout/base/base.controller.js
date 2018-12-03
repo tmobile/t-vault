@@ -17,6 +17,11 @@
             addComma: false,
             show: (SessionStore.getItem("isAdmin") === 'true')
         }, {
+            displayName: 'MANAGE',
+            navigationName: 'manage',
+            addComma: false,
+            show: ((SessionStore.getItem("isManager") === 'true') && (SessionStore.getItem("isAdmin") !== 'true'))
+        }, {
             displayName: 'HEALTH',
             navigationName: 'health',
             addComma: false,

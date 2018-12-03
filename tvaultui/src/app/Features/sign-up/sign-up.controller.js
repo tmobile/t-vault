@@ -41,10 +41,12 @@
             if(loginResponseData != undefined){
                 var currentVaultKey = loginResponseData.client_token;
                 var isAdmin = loginResponseData.admin.toLowerCase() != 'no';
+                var isManager = true;
                 var accessSafes = loginResponseData.access;
                 var policies = loginResponseData.policies;
                 SessionStore.setItem("myVaultKey",currentVaultKey);
-                SessionStore.setItem("isAdmin",isAdmin);
+                SessionStore.setItem("isAdmin", isAdmin);
+                SessionStore.setItem("isManager", isManager);
                 SessionStore.setItem("accessSafes", JSON.stringify(accessSafes));
                 SessionStore.setItem("policies",policies);
                 $state.go('safes');

@@ -1,22 +1,32 @@
 package com.tmobile.cso.vault.api.validator;
 
 import java.io.IOException;
+import java.util.Arrays;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.tmobile.cso.vault.api.exception.TVaultValidationException;
 import com.tmobile.cso.vault.api.model.VaultTokenLookupDetails;
 import com.tmobile.cso.vault.api.process.RequestProcessor;
 import com.tmobile.cso.vault.api.process.Response;
+import com.tmobile.cso.vault.api.utils.AuthorizationUtils;
+import com.tmobile.cso.vault.api.utils.PolicyUtils;
 
 @Component
 public class TokenValidator {
 	
 	@Autowired
 	private RequestProcessor reqProcessor;
+	
+	@Autowired
+	private AuthorizationUtils authorizationUtils;
+	
+	@Autowired
+	private PolicyUtils policyUtils;
 	
 	public TokenValidator() {
 	}
@@ -32,12 +42,13 @@ public class TokenValidator {
 			try {
 				lookupDetails = new VaultTokenLookupDetails();
 				ObjectMapper objMapper = new ObjectMapper();
-				String username = objMapper.readTree(response.getResponse()).get("username").asText();
-				//String[] policies = PolicyUtils.getPoliciesAsArray(objMapper, response.getResponse());
-				lookupDetails.setUsername(username);
-				//lookupDetails.setPolicies(policies);
+				ObjectNode objNode = (ObjectNode) objMapper.readTree(response.getResponse());
+				lookupDetails.setUsername(objNode.get("username").asText());
+				String[] policies = policyUtils.getPoliciesAsArray(objMapper, response.getResponse());
+				lookupDetails.setPolicies(policies);
 				lookupDetails.setToken(token);
 				lookupDetails.setValid(true);
+				lookupDetails.setAdmin(authorizationUtils.containsAdminPolicies(Arrays.asList(policies),  policyUtils.getAdminPolicies()));
 			} catch (IOException e) {
 				throw new TVaultValidationException(e);
 			}
