@@ -17,13 +17,8 @@
 
 
 
-FROM centos
-RUN yum install --nogpgcheck  -y vim tar gzip wget which sudo openssl initscripts java-1.8.0-openjdk glibc-common
-RUN yum clean all
-RUN rm -rf /var/cache/yum
-RUN curl https://bootstrap.pypa.io/get-pip.py -o /tmp/get-pip.py
-RUN python /tmp/get-pip.py
-RUN pip install awscli
+FROM centos:7
+RUN yum -y install vim tar gzip wget which sudo openssl initscripts java-1.8.0-openjdk glibc-common awscli && rm -rf /var/cache/yum/*
 COPY vault_docker_install.sh /tmp/vault_install.sh
 COPY vault.tar.gz /tmp/vault.tar.gz
 COPY parameter /tmp/parameter
