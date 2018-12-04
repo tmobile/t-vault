@@ -44,6 +44,9 @@ public class  SelfSupportService {
 	private SafesService safesService;
 	
 	@Autowired
+	private VaultAuthService vaultAuthService;
+	
+	@Autowired
 	private AuthorizationUtils authorizationUtils;
 	
 	@Autowired
@@ -179,7 +182,9 @@ public class  SelfSupportService {
 			return safesService.getFoldersRecursively(token, path);
 		}
 		else {
-			String[] safes = safeUtils.getManagedSafesFromPolicies(userDetails.getPolicies(), path);
+			// List of safes based on current token
+			String[] policies = vaultAuthService.getCurrentPolicies(userDetails.getSelfSupportToken(), userDetails.getUsername());
+			String[] safes = safeUtils.getManagedSafesFromPolicies(policies, path);
 			Map<String, String[]> safesMap = new HashMap<String, String[]>();
 			safesMap.put("keys", safes);
 			return ResponseEntity.status(HttpStatus.OK).body(JSONUtil.getJSON(safesMap));

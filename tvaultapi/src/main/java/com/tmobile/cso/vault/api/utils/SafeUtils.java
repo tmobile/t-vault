@@ -24,7 +24,7 @@ import com.tmobile.cso.vault.api.model.SafeBasicDetails;
 import com.tmobile.cso.vault.api.process.Response;
 @Component
 public class SafeUtils {
-	private static Logger log = LogManager.getLogger(SafeUtils.class);
+	private Logger log = LogManager.getLogger(SafeUtils.class);
 	
 	@Autowired
 	private TokenUtils tokenUtils;
@@ -99,7 +99,7 @@ public class SafeUtils {
 	 */
 	public Safe getSafeMetaDataWithAppRoleElevation(String token, String safeType, String safeName){
 		String _path = "metadata/" + safeType + "/" + safeName;
-		ControllerUtil.log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 				put(LogMessage.ACTION, "Get Info").
 				put(LogMessage.MESSAGE, String.format ("Trying to get Info for [%s]", _path)).
@@ -125,7 +125,7 @@ public class SafeUtils {
 					      build()));			
 			}
 		}
-		ControllerUtil.log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 				put(LogMessage.ACTION, "Get Info").
 				put(LogMessage.MESSAGE, "Getting Info completed").

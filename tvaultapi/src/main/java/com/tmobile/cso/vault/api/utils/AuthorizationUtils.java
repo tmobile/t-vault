@@ -6,6 +6,8 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -13,7 +15,8 @@ import com.tmobile.cso.vault.api.model.Safe;
 import com.tmobile.cso.vault.api.model.VaultTokenLookupDetails;
 @Component
 public class AuthorizationUtils {
-
+	
+	private Logger log = LogManager.getLogger(AuthorizationUtils.class);
 	
 	@Autowired
 	private TokenUtils tokenUtils;
@@ -27,7 +30,7 @@ public class AuthorizationUtils {
 	public AuthorizationUtils() {
 		// TODO Auto-generated constructor stub
 	}
-
+	
 	/**
 	 * Checks whether the given user can edit the given safe.
 	 * @param token
@@ -49,6 +52,11 @@ public class AuthorizationUtils {
 			return authorized;
 		}
 		ArrayList<String> policiesTobeChecked = policyUtils.getPoliciesTobeCheked(safeType, safeName);
+		if (!loggedinUserLookupDetails.isAdmin()  && loggedinUserLookupDetails.getUsername().equals(targetSafeMetadata.getSafeBasicDetails().getOwnerid())) {
+			// As a owner of the safe, I am always authorized...
+			authorized = true;
+			return authorized;
+		}
 		for (String policyTobeChecked: policiesTobeChecked) {
 			String policyKeyTobeChecked = new StringBuffer().append(safeType).toString();
 			authorized = isAuthorized(loggedinUserPolicies, policyTobeChecked, policyKeyTobeChecked, powerToken);
