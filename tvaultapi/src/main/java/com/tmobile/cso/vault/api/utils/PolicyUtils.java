@@ -5,6 +5,8 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
@@ -18,9 +20,12 @@ import com.tmobile.cso.vault.api.process.Response;
 @Component
 public class PolicyUtils {
 
+	private Logger log = LogManager.getLogger(PolicyUtils.class);
+	
 	public PolicyUtils() {
 		// TODO Auto-generated constructor stub
 	}
+	
 	/**
 	 * Get the details for the given policy
 	 * @param policyName
@@ -28,7 +33,7 @@ public class PolicyUtils {
 	 * @return
 	 */
 	public LinkedHashMap<String, LinkedHashMap<String, Object>> getPolicyInfo( String policyName, String token) {
-		ControllerUtil.log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 				put(LogMessage.ACTION, "Get Policy information").
 				put(LogMessage.MESSAGE, String.format("Trying to get policy information for [%s]", policyName)).
@@ -43,7 +48,7 @@ public class PolicyUtils {
 		//TODO: Properly handle null/empty cases...
 		LinkedHashMap<String, LinkedHashMap<String, Object>> capabilitiesMap = (LinkedHashMap<String, LinkedHashMap<String, Object>>) ControllerUtil.parseJson(ControllerUtil.parseJson(policyJson).get("rules").toString()).get("path");
 		
-		ControllerUtil.log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 				put(LogMessage.ACTION, "Get Policy information").
 				put(LogMessage.MESSAGE, "Getting policy information Complete").

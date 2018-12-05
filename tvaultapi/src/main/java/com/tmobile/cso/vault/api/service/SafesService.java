@@ -20,7 +20,6 @@ package com.tmobile.cso.vault.api.service;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Iterator;
 import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
@@ -46,7 +45,6 @@ import com.tmobile.cso.vault.api.process.RequestProcessor;
 import com.tmobile.cso.vault.api.process.Response;
 import com.tmobile.cso.vault.api.utils.JSONUtil;
 import com.tmobile.cso.vault.api.utils.ThreadLocalContext;
-import com.tmobile.cso.vault.api.utils.TokenUtils;
 
 @Component
 public class  SafesService {

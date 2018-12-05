@@ -17,17 +17,26 @@
 
 package com.tmobile.cso.vault.api.service;
 
+import java.io.IOException;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.ImmutableMap;
+import com.tmobile.cso.vault.api.controller.ControllerUtil;
+import com.tmobile.cso.vault.api.exception.LogMessage;
 import com.tmobile.cso.vault.api.model.UserLogin;
 import com.tmobile.cso.vault.api.process.RequestProcessor;
 import com.tmobile.cso.vault.api.process.Response;
 import com.tmobile.cso.vault.api.utils.AuthorizationUtils;
 import com.tmobile.cso.vault.api.utils.JSONUtil;
+import com.tmobile.cso.vault.api.utils.ThreadLocalContext;
 
 @Component
 public class  VaultAuthService {
@@ -40,6 +49,8 @@ public class  VaultAuthService {
 
 	@Value("${vault.auth.method}")
 	private String vaultAuthMethod;
+	
+	private static Logger log = LogManager.getLogger(VaultAuthService.class);
 
 	/**
 	 * Logs a user in to TVault using ldap or userpass authentication methods
@@ -126,6 +137,37 @@ public class  VaultAuthService {
 		}else{
 			return ResponseEntity.status(response.getHttpstatus()).body("{\"errors\":[\"Token revoke Failed.\"]}");
 		}
-
+	}
+	/**
+	 * Gets the latest policies from Vault for the given user.
+	 * @param token
+	 * @param username
+	 * @return
+	 */
+	public String[] getCurrentPolicies(String token, String username) {
+		Response userResponse;
+		String[] policies = null;
+		if ("userpass".equals(vaultAuthMethod)) {
+			userResponse = reqProcessor.process("/auth/userpass/read","{\"username\":\""+username+"\"}",token);	
+		}
+		else {
+			userResponse = reqProcessor.process("/auth/ldap/users","{\"username\":\""+username+"\"}",token);
+		}
+		if(HttpStatus.OK.equals(userResponse.getHttpstatus())){
+			String responseJson = userResponse.getResponse();
+			try {
+				ObjectMapper objMapper = new ObjectMapper();
+				String policiesStr = ControllerUtil.getPoliciesAsStringFromJson(objMapper, responseJson);
+				policies = policiesStr.split(",");
+			} catch (IOException e) {
+				log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+					      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+						  put(LogMessage.ACTION, "getPolicies").
+					      put(LogMessage.MESSAGE, "Error while trying to list of policies for the user").
+					      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+					      build()));			
+			}
+		}
+		return policies;
 	}
 }
