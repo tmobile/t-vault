@@ -488,7 +488,7 @@
         	{"name":"access","required":false},
         	{"name":"rules"}
         ]
-    },
+     },
      { "#":"**** Fetch Policy Info  *****",
     	"apiEndPoint":"/access",
     	"vaultEndPoint":"/sys/policy/<accessid>",

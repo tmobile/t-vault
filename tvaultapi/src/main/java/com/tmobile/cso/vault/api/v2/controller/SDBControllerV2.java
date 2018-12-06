@@ -17,15 +17,8 @@
 
 package com.tmobile.cso.vault.api.v2.controller;
 
-import com.google.common.collect.ImmutableMap;
-import com.tmobile.cso.vault.api.controller.ControllerUtil;
-import com.tmobile.cso.vault.api.exception.LogMessage;
-import com.tmobile.cso.vault.api.process.Response;
-import com.tmobile.cso.vault.api.utils.JSONUtil;
-import com.tmobile.cso.vault.api.utils.ThreadLocalContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;

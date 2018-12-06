@@ -93,11 +93,5 @@ public class VaultAuthControllerV2 {
 		return vaultAuthService.revoke(token);
 	}
 	
-	@GetMapping(value="/auth/tvault/isauthorized",produces="application/json")
-	@ApiOperation(value = "${VaultAuthControllerV2.authorized.value}", notes = "${VaultAuthControllerV2.authorized.notes}")
-	public ResponseEntity<Boolean> isAuthorized(@RequestHeader(value="vault-token") String token, @RequestParam String safeType, @RequestParam String safeName){
-		return vaultAuthService.isAuthorized(token, safeType, safeName);
-	}
-	
 }
 

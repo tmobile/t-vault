@@ -1058,7 +1058,7 @@ public final class ControllerUtil {
 			return false;
 		}
 	}
-	
+
 	/**
 	 * Checks whether a safe exists in given path
 	 * @param path

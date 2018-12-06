@@ -42,7 +42,7 @@ import io.swagger.annotations.ApiOperation;
 @RestController
 @CrossOrigin
 @Api(description = "Manage Safes/SDBs", position = 21)
-public class SDBControllerV3 {
+public class SelfSupportController {
 
 	@Value("${vault.auth.method}")
 	private String vaultAuthMethod;
@@ -57,7 +57,7 @@ public class SDBControllerV3 {
 	 * @return
 	 */
 	@GetMapping(value="/v3/sdb/list",produces="application/json")
-	@ApiOperation(value = "${SDBControllerV3.getFolders.value}", notes = "${SDBControllerV3.getFolders.notes}")
+	@ApiOperation(value = "${SelfSupportController.getFolders.value}", notes = "${SelfSupportController.getFolders.notes}")
 	public ResponseEntity<String> getFoldersRecursively(HttpServletRequest request, @RequestHeader(value="vault-token") String token, @RequestParam("path") String path) {
 		UserDetails userDetails = (UserDetails) ((HttpServletRequest) request).getAttribute("UserDetails");
 		return selfSupportService.getFoldersRecursively(userDetails, token, path);
@@ -68,7 +68,7 @@ public class SDBControllerV3 {
 	 * @param path
 	 * @return
 	 */
-	@ApiOperation(value = "${SDBControllerV3.getSafeAsPowerUser.value}", notes = "${SDBControllerV3.getSafeAsPowerUser.notes}")
+	@ApiOperation(value = "${SelfSupportController.getSafeAsPowerUser.value}", notes = "${SelfSupportController.getSafeAsPowerUser.notes}")
 	@GetMapping(value="/v3/sdb",produces="application/json")
 	public ResponseEntity<String> getSafe(HttpServletRequest request, @RequestHeader(value="vault-token") String token, @RequestParam("path") String path){
 		UserDetails userDetails = (UserDetails) ((HttpServletRequest) request).getAttribute("UserDetails");
@@ -80,7 +80,7 @@ public class SDBControllerV3 {
 	 * @param safeUser
 	 * @return
 	 */
-	@ApiOperation(value = "${SDBControllerV3.addUserToSafe.value}", notes = "${SDBControllerV3.addUserToSafe.notes}")
+	@ApiOperation(value = "${SelfSupportController.addUserToSafe.value}", notes = "${SelfSupportController.addUserToSafe.notes}")
 	@PostMapping(value="/v3/sdb/user",consumes="application/json",produces="application/json")
 	public ResponseEntity<String> addUsertoSafe(HttpServletRequest request, @RequestHeader(value="vault-token") String token, @RequestBody SafeUser safeUser){
 		UserDetails userDetails = (UserDetails) ((HttpServletRequest) request).getAttribute("UserDetails");
@@ -92,7 +92,7 @@ public class SDBControllerV3 {
 	 * @param safeUser
 	 * @return
 	 */
-	@ApiOperation(value = "${SDBControllerV3.removeUserFromSafe.value}", notes = "${SDBControllerV3.removeUserFromSafeAsPowerUser.notes}")
+	@ApiOperation(value = "${SelfSupportController.removeUserFromSafe.value}", notes = "${SelfSupportController.removeUserFromSafeAsPowerUser.notes}")
 	@DeleteMapping(value="/v3/sdb/user")
 	public ResponseEntity<String> deleteUserFromSafe(HttpServletRequest request, @RequestHeader(value="vault-token") String token, @RequestBody SafeUser safeUser){
 		UserDetails userDetails = (UserDetails) ((HttpServletRequest) request).getAttribute("UserDetails");
@@ -104,7 +104,7 @@ public class SDBControllerV3 {
 	 * @param path
 	 * @return
 	 */
-	@ApiOperation(value = "${SDBControllerV3.getInfoAsPowerUser.value}", notes = "${SDBControllerV3.getInfoAsPowerUser.notes}")
+	@ApiOperation(value = "${SelfSupportController.getInfoAsPowerUser.value}", notes = "${SelfSupportController.getInfoAsPowerUser.notes}")
 	@GetMapping(value="/v3/sdb/folder/{path}",produces="application/json")
 	public ResponseEntity<String> getInfo(HttpServletRequest request, @RequestHeader(value="vault-token") String token, @RequestParam("path") String path){
 		UserDetails userDetails = (UserDetails) ((HttpServletRequest) request).getAttribute("UserDetails");
@@ -116,10 +116,23 @@ public class SDBControllerV3 {
 	 * @param safe
 	 * @return
 	 */
-	@ApiOperation(value = "${SDBControllerV3.createSafe.value}", notes = "${SDBControllerV3.createSafe.notes}")
+	@ApiOperation(value = "${SelfSupportController.createSafe.value}", notes = "${SelfSupportController.createSafe.notes}")
 	@PostMapping(value="/v3/sdb", consumes="application/json",produces="application/json")
 	public ResponseEntity<String> createSafe(HttpServletRequest request, @RequestHeader(value="vault-token" ) String token, @RequestBody Safe safe) {
 		UserDetails userDetails = (UserDetails) ((HttpServletRequest) request).getAttribute("UserDetails");
 		return selfSupportService.createSafe(userDetails, token, safe);
+	}
+	/**
+	 * 
+	 * @param request
+	 * @param token
+	 * @param path
+	 * @return
+	 */
+	@GetMapping(value="/auth/tvault/isauthorized",produces="application/json")
+	@ApiOperation(value = "${VaultAuthControllerV2.authorized.value}", notes = "${SelfSupportController.authorized.notes}")
+	public ResponseEntity<String> isAuthorized(HttpServletRequest request, @RequestHeader(value="vault-token") String token, @RequestParam("path") String path){
+		UserDetails userDetails = (UserDetails) ((HttpServletRequest) request).getAttribute("UserDetails");
+		return selfSupportService.isAuthorized(userDetails, path);
 	}
 }
