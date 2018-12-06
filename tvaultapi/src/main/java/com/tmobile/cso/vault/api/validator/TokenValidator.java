@@ -14,6 +14,7 @@ import com.tmobile.cso.vault.api.model.VaultTokenLookupDetails;
 import com.tmobile.cso.vault.api.process.RequestProcessor;
 import com.tmobile.cso.vault.api.process.Response;
 import com.tmobile.cso.vault.api.utils.AuthorizationUtils;
+import com.tmobile.cso.vault.api.utils.CommonUtils;
 import com.tmobile.cso.vault.api.utils.PolicyUtils;
 
 @Component
@@ -24,6 +25,9 @@ public class TokenValidator {
 	
 	@Autowired
 	private AuthorizationUtils authorizationUtils;
+	
+	@Autowired
+	private CommonUtils commonUtils;
 	
 	@Autowired
 	private PolicyUtils policyUtils;
@@ -44,7 +48,7 @@ public class TokenValidator {
 				ObjectMapper objMapper = new ObjectMapper();
 				ObjectNode objNode = (ObjectNode) objMapper.readTree(response.getResponse());
 				lookupDetails.setUsername(objNode.get("username").asText());
-				String[] policies = policyUtils.getPoliciesAsArray(objMapper, response.getResponse());
+				String[] policies = commonUtils.getPoliciesAsArray(objMapper, response.getResponse());
 				lookupDetails.setPolicies(policies);
 				lookupDetails.setToken(token);
 				lookupDetails.setValid(true);

@@ -2,16 +2,13 @@ package com.tmobile.cso.vault.api.utils;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
-import org.springframework.util.StringUtils;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
 import com.tmobile.cso.vault.api.controller.ControllerUtil;
@@ -22,57 +19,13 @@ public class PolicyUtils {
 
 	private Logger log = LogManager.getLogger(PolicyUtils.class);
 	
+	@Value("${vault.auth.method}")
+	private String vaultAuthMethod;
+	
 	public PolicyUtils() {
 		// TODO Auto-generated constructor stub
 	}
 	
-	/**
-	 * Get the details for the given policy
-	 * @param policyName
-	 * @param token
-	 * @return
-	 */
-	public LinkedHashMap<String, LinkedHashMap<String, Object>> getPolicyInfo( String policyName, String token) {
-		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
-				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
-				put(LogMessage.ACTION, "Get Policy information").
-				put(LogMessage.MESSAGE, String.format("Trying to get policy information for [%s]", policyName)).
-				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
-				build()));
-		if(StringUtils.isEmpty(policyName)){
-			return null;
-		}
-		
-		Response response = ControllerUtil.reqProcessor.process("/access","{\"accessid\":\""+policyName+"\"}",token);
-		String policyJson = response.getResponse().toString();
-		//TODO: Properly handle null/empty cases...
-		LinkedHashMap<String, LinkedHashMap<String, Object>> capabilitiesMap = (LinkedHashMap<String, LinkedHashMap<String, Object>>) ControllerUtil.parseJson(ControllerUtil.parseJson(policyJson).get("rules").toString()).get("path");
-		
-		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
-				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
-				put(LogMessage.ACTION, "Get Policy information").
-				put(LogMessage.MESSAGE, "Getting policy information Complete").
-				put(LogMessage.STATUS, response.getHttpstatus().toString()).
-				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
-				build()));
-		return capabilitiesMap ;
-	}
-
-	public String[] getPoliciesAsArray(ObjectMapper objMapper, String policyJson) throws JsonProcessingException, IOException{
-		ArrayList<String> policies = new ArrayList<String>();
-		JsonNode policiesNode = objMapper.readTree(policyJson).get("policies");
-		if (policiesNode.isContainerNode()) {
-			Iterator<JsonNode> elementsIterator = policiesNode.elements();
-		       while (elementsIterator.hasNext()) {
-		    	   JsonNode element = elementsIterator.next();
-		    	   policies.add(element.asText());
-		       }
-		}
-		else {
-			policies.add(policiesNode.asText());
-		}
-		return policies.toArray(new String[policies.size()]);
-	}
 	
 	/**
 	 * Gets the list of policies to be checked for a given safe
@@ -106,5 +59,37 @@ public class PolicyUtils {
 		sudoPolicies.add(new StringBuffer().append("s_").append(safeType).append("_").append(safeName).toString());
 		return sudoPolicies;
 	}
-
+	/**
+	 * Gets the latest policies from Vault for the given user. This will include added policies/exclude removed policies
+	 * after the user has logged in and obtained token
+	 * @param token
+	 * @param username
+	 * @return
+	 */
+	public String[] getCurrentPolicies(String token, String username) {
+		Response userResponse;
+		String[] policies = null;
+		if ("userpass".equals(vaultAuthMethod)) {
+			userResponse = ControllerUtil.reqProcessor.process("/auth/userpass/read","{\"username\":\""+username+"\"}",token);	
+		}
+		else {
+			userResponse = ControllerUtil.reqProcessor.process("/auth/ldap/users","{\"username\":\""+username+"\"}",token);
+		}
+		if(HttpStatus.OK.equals(userResponse.getHttpstatus())){
+			String responseJson = userResponse.getResponse();
+			try {
+				ObjectMapper objMapper = new ObjectMapper();
+				String policiesStr = ControllerUtil.getPoliciesAsStringFromJson(objMapper, responseJson);
+				policies = policiesStr.split(",");
+			} catch (IOException e) {
+				log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+					      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+						  put(LogMessage.ACTION, "getPolicies").
+					      put(LogMessage.MESSAGE, "Error while trying to list of policies for the user").
+					      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+					      build()));			
+			}
+		}
+		return policies;
+	}
 }

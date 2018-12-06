@@ -20,7 +20,7 @@ public class TokenUtils {
 	private Logger log = LogManager.getLogger(TokenUtils.class);
 	
 	@Autowired
-	private PolicyUtils policyUtils;
+	private CommonUtils commonUtils;
 	
 	public TokenUtils() {
 		// TODO Auto-generated constructor stub
@@ -62,7 +62,7 @@ public class TokenUtils {
 				lookupDetails = new VaultTokenLookupDetails();
 				ObjectMapper objMapper = new ObjectMapper();
 				String username = objMapper.readTree(response.getResponse()).get("username").asText();
-				String[] policies = policyUtils.getPoliciesAsArray(objMapper, response.getResponse());
+				String[] policies = commonUtils.getPoliciesAsArray(objMapper, response.getResponse());
 				lookupDetails.setUsername(username);
 				lookupDetails.setPolicies(policies);
 				lookupDetails.setToken(token);
@@ -107,7 +107,7 @@ public class TokenUtils {
 		if(HttpStatus.OK.equals(response.getHttpstatus())){
 			String responseJson = response.getResponse();	
 			try {
-				currentpolicies = policyUtils.getPoliciesAsArray(objMapper, responseJson);
+				currentpolicies = commonUtils.getPoliciesAsArray(objMapper, responseJson);
 			} catch (IOException e) {
 				ControllerUtil.log.error(e);
 			}

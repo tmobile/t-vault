@@ -17,9 +17,11 @@
 
 package com.tmobile.cso.vault.api.service;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,8 +36,8 @@ import com.tmobile.cso.vault.api.model.SafeUser;
 import com.tmobile.cso.vault.api.model.UserDetails;
 import com.tmobile.cso.vault.api.utils.AuthorizationUtils;
 import com.tmobile.cso.vault.api.utils.JSONUtil;
+import com.tmobile.cso.vault.api.utils.PolicyUtils;
 import com.tmobile.cso.vault.api.utils.SafeUtils;
-
 
 @Component
 public class  SelfSupportService {
@@ -44,7 +46,7 @@ public class  SelfSupportService {
 	private SafesService safesService;
 	
 	@Autowired
-	private VaultAuthService vaultAuthService;
+	private PolicyUtils policyUtils;
 	
 	@Autowired
 	private AuthorizationUtils authorizationUtils;
@@ -97,6 +99,8 @@ public class  SelfSupportService {
 			return safe_creation_response;
 		}
 	}
+	
+
 	/**
 	 * 
 	 * @param userDetails
@@ -105,13 +109,17 @@ public class  SelfSupportService {
 	 * @return
 	 */
 	public ResponseEntity<String> addUserToSafe(UserDetails userDetails, String userToken, SafeUser safeUser) {
-		String token = userDetails.getClientToken();
-		if (userDetails.isAdmin()) {
-			return safesService.addUserToSafe(token, safeUser);
+		boolean canAddUser = safeUtils.canAddUser(userDetails, safeUser);
+		if (canAddUser) {
+			if (userDetails.isAdmin()) {
+				return safesService.addUserToSafe(userDetails.getClientToken(), safeUser);
+			}
+			else {
+				return safesService.addUserToSafe(userDetails.getSelfSupportToken(), safeUser);
+			}
 		}
 		else {
-			token = userDetails.getSelfSupportToken();
-			return safesService.addUserToSafe(token, safeUser);
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Can't add user. Possible reasons: Invalid path specified, 2. Changing access/permission of safe owner is not allowed\"]}");
 		}
 	}
 	/**
@@ -144,7 +152,15 @@ public class  SelfSupportService {
 		else {
 			String safeType = ControllerUtil.getSafeType(path);
 			String safeName = ControllerUtil.getSafeName(path);
-			boolean isAuthorized = authorizationUtils.isAuthorized(token, safeType, safeName);
+			if (StringUtils.isEmpty(safeType) || StringUtils.isEmpty(safeName)) {
+				return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid path specified\"]}");
+			}
+			String powerToken = userDetails.getSelfSupportToken();
+			String username = userDetails.getUsername();
+			Safe safeMetaData = safeUtils.getSafeMetaData(powerToken, safeType, safeName);
+			String[] latestPolicies = policyUtils.getCurrentPolicies(powerToken, username);
+			ArrayList<String> policiesTobeChecked =  policyUtils.getPoliciesTobeCheked(safeType, safeName);
+			boolean isAuthorized = authorizationUtils.isAuthorized(userDetails, safeMetaData, latestPolicies, policiesTobeChecked, false);
 			if (isAuthorized) {
 				token = userDetails.getSelfSupportToken();
 				return safesService.getSafe(token, path);
@@ -182,12 +198,35 @@ public class  SelfSupportService {
 			return safesService.getFoldersRecursively(token, path);
 		}
 		else {
-			// List of safes based on current token
-			String[] policies = vaultAuthService.getCurrentPolicies(userDetails.getSelfSupportToken(), userDetails.getUsername());
+			// List of safes based on current user
+			String[] policies = policyUtils.getCurrentPolicies(userDetails.getSelfSupportToken(), userDetails.getUsername());
 			String[] safes = safeUtils.getManagedSafesFromPolicies(policies, path);
 			Map<String, String[]> safesMap = new HashMap<String, String[]>();
 			safesMap.put("keys", safes);
 			return ResponseEntity.status(HttpStatus.OK).body(JSONUtil.getJSON(safesMap));
 		}
+	}
+	/**
+	 * isAuthorized
+	 * @param token
+	 * @param safeName
+	 * @return
+	 */
+	public ResponseEntity<String> isAuthorized (UserDetails userDetails, String path) {
+		if (!ControllerUtil.isPathValid(path)) {
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid path specified\"]}");
+		}
+		String safeType = ControllerUtil.getSafeType(path);
+		String safeName = ControllerUtil.getSafeName(path);
+		if (StringUtils.isEmpty(safeType) || StringUtils.isEmpty(safeName)) {
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid path specified\"]}");
+		}
+		String powerToken = userDetails.getSelfSupportToken();
+		String username = userDetails.getUsername();
+		Safe safeMetaData = safeUtils.getSafeMetaData(powerToken, safeType, safeName);
+		String[] latestPolicies = policyUtils.getCurrentPolicies(powerToken, username);
+		ArrayList<String> policiesTobeChecked =  policyUtils.getPoliciesTobeCheked(safeType, safeName);
+		boolean isAuthorized = authorizationUtils.isAuthorized(userDetails, safeMetaData, latestPolicies, policiesTobeChecked, true);
+		return ResponseEntity.status(HttpStatus.OK).body(String.valueOf(isAuthorized));
 	}
 }
