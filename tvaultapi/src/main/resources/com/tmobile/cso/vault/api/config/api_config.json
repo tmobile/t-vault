@@ -18,6 +18,13 @@
     	"method":"GET",
     	"outparams":["type","initialized","sealed","progress","version","migration","cluster_name","cluster_id","recovery_seal"]
     },
+    {"#":"Seal Status",
+    
+    	"apiEndPoint":"/v2/seal-status",
+    	"vaultEndPoint":"https://localhost:8200/v1/sys/seal-status",
+    	"method":"GET",
+    	"outparams":["type","initialized","sealed","progress","version","migration","cluster_name","cluster_id","recovery_seal"]
+    },
     {"#":"Unseal",
     
     	"apiEndPoint":"/unseal",

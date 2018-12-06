@@ -101,19 +101,25 @@ public class  SysService {
 			      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 			      build()));
 		Response response = reqProcessor.process("/seal-status","{}","");
-		
 		if(HttpStatus.OK.equals(response.getHttpstatus())) {
 			return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":"+response.getResponse()+"}");
 		} else {
-			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
-				      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
-					  put(LogMessage.ACTION, "Check Seal-status").
-				      put(LogMessage.MESSAGE, "Getting Vault Seal-Status failed.").
-				      put(LogMessage.RESPONSE, response.getResponse()).
-				      put(LogMessage.STATUS, response.getHttpstatus().toString()).
-				      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
-				      build()));
-			return ResponseEntity.status(response.getHttpstatus()).body("{\"Error\":[\"Unable to get Seal-Status information\"]}");
+			// If no response for http, then try https
+			response = reqProcessor.process("/v2/seal-status","{}","");
+			if(HttpStatus.OK.equals(response.getHttpstatus())) {
+				return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":"+response.getResponse()+"}");
+			}
+			else {
+				log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+					      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+						  put(LogMessage.ACTION, "Check Seal-status").
+					      put(LogMessage.MESSAGE, "Getting Vault Seal-Status failed.").
+					      put(LogMessage.RESPONSE, response.getResponse()).
+					      put(LogMessage.STATUS, response.getHttpstatus().toString()).
+					      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+					      build()));
+				return ResponseEntity.status(response.getHttpstatus()).body("{\"Error\":[\"Unable to get Seal-Status information\"]}");
+			}
 		}
 	}
 	/**
