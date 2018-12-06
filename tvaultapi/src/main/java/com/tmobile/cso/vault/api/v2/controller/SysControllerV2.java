@@ -54,6 +54,15 @@ public class SysControllerV2 {
 		return sysService.checkVaultHealth();
 	}
 	/**
+	 * To check the vault seal status
+	 * @return
+	 */
+	@ApiOperation(value = "${SysControllerV2.checkSealStatus.value}", notes = "${SysControllerV2.checkSealStatus.notes}")
+	@GetMapping(value ="/v2/seal-status" ,produces="application/json")
+	public ResponseEntity<String> checkVaultSealStatus(){
+		return sysService.checkVaultSealStatus();
+	}
+	/**
 	 * To unseal
 	 * @param jsonStr
 	 * @return
