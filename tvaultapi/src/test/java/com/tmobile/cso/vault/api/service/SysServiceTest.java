@@ -98,12 +98,12 @@ public class SysServiceTest {
     public void test_checkVaultHealth_failure() {
 
         Response responseNotFound = getMockResponse(HttpStatus.NOT_FOUND, true, "");
-        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"messages\":[\"Not OK \"]}");
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.NOT_FOUND).body("{\"messages\":[\"Not OK \"]}");
         when( reqProcessor.process("/health","{}","")).thenReturn(responseNotFound);
 
         when(reqProcessor.process("/v2/health","{}","")).thenReturn(responseNotFound);
         ResponseEntity<String> responseEntity = sysService.checkVaultHealth();
-        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, responseEntity.getStatusCode());
+        assertEquals(HttpStatus.NOT_FOUND, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
     }
 
