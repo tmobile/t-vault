@@ -21,6 +21,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.tmobile.cso.vault.api.model.SafeGroup;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -228,5 +229,79 @@ public class  SelfSupportService {
 		ArrayList<String> policiesTobeChecked =  policyUtils.getPoliciesTobeCheked(safeType, safeName);
 		boolean isAuthorized = authorizationUtils.isAuthorized(userDetails, safeMetaData, latestPolicies, policiesTobeChecked, true);
 		return ResponseEntity.status(HttpStatus.OK).body(String.valueOf(isAuthorized));
+	}
+
+	/**
+	 * Update a safe by the user with least privileges, Requires an AppRole which can perform Safe updation
+	 * (Sufficient access to the paths such as shared or metadata/shared, etc)
+	 * @param userToken
+	 * @param safe
+	 * @return
+	 */
+	public ResponseEntity<String> updateSafe(UserDetails userDetails, String userToken, Safe safe) {
+		String token = userDetails.getClientToken();
+		if (userDetails.isAdmin()) {
+			return safesService.updateSafe(token, safe);
+		}
+		else {
+			token = userDetails.getSelfSupportToken();
+			ResponseEntity<String> safe_creation_response = safesService.updateSafe(token, safe);
+			return safe_creation_response;
+		}
+	}
+	/**
+	 * Delete a safe by the user with least privileges, Requires an AppRole which can perform Safe Deletion
+	 * (Sufficient access to the paths such as shared or metadata/shared, etc)
+	 * @param userDetails
+	 * @param userToken
+	 * @param path
+	 * @return
+	 */
+	public ResponseEntity<String> deletefolder(UserDetails userDetails, String userToken, String path) {
+		String token = userDetails.getClientToken();
+		if (userDetails.isAdmin()) {
+			return safesService.deletefolder(token, path);
+		}
+		else {
+			token = userDetails.getSelfSupportToken();
+			ResponseEntity<String> safe_creation_response = safesService.deletefolder(token, path);
+			return safe_creation_response;
+		}
+	}
+
+	public ResponseEntity<String> addGroupToSafe(UserDetails userDetails, String userToken, SafeGroup safeGroup) {
+		String token = userDetails.getClientToken();
+		if (userDetails.isAdmin()) {
+			return safesService.addGroupToSafe(token, safeGroup);
+		}
+		else {
+			ResponseEntity<String> isAuthorized = isAuthorized(userDetails, safeGroup.getPath());
+			if (!isAuthorized.getStatusCode().equals(HttpStatus.OK)) {
+				return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Error checking user permission\"]}");
+			}
+			if (isAuthorized.getBody().equals("false")) {
+				return ResponseEntity.status(HttpStatus.FORBIDDEN).body("{\"errors\":[\"Access denied: no permission to add group to the safe\"]}");
+			}
+			token = userDetails.getSelfSupportToken();
+			return safesService.addGroupToSafe(token, safeGroup);
+		}
+	}
+
+	public ResponseEntity<String> removeGroupFromSafe(UserDetails userDetails, String userToken, SafeGroup safeGroup) {
+		String token = userDetails.getClientToken();
+		if (userDetails.isAdmin()) {
+			return safesService.removeGroupFromSafe(token, safeGroup);
+		}
+		else {
+			ResponseEntity<String> isAuthorized = isAuthorized(userDetails, safeGroup.getPath());
+			if (!isAuthorized.getStatusCode().equals(HttpStatus.OK)) {
+				return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Error checking user permission\"]}");
+			}
+			if (isAuthorized.getBody().equals("false")) {
+				return ResponseEntity.status(HttpStatus.FORBIDDEN).body("{\"errors\":[\"Access denied: no permission to remove group from the safe\"]}");
+			}
+			token = userDetails.getSelfSupportToken();
+			return safesService.removeGroupFromSafe(token, safeGroup);
+		}
 	}
 }

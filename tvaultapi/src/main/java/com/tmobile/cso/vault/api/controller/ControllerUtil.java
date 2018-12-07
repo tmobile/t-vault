@@ -716,18 +716,21 @@ public final class ControllerUtil {
 			String r_policy = "r_";
 			String w_policy = "w_";
 			String d_policy = "d_";
-			
+			String s_policy = "s_";
+
 			if (folders.length > 0) {
 				for (int index = 0; index < folders.length; index++) {
 					if (index == folders.length -1 ) {
 						r_policy += folders[index];
 						w_policy += folders[index];
 						d_policy += folders[index];
+						s_policy += folders[index];
 					}
 					else {
 						r_policy += folders[index]  +"_";
 						w_policy += folders[index] +"_";
 						d_policy += folders[index] +"_";
+						s_policy += folders[index] +"_";
 					}
 				}
 			}	
@@ -768,6 +771,7 @@ public final class ControllerUtil {
 					policies = policies.replaceAll(r_policy, "");
 					policies = policies.replaceAll(w_policy, "");
 					policies = policies.replaceAll(d_policy, "");
+					policies = policies.replaceAll(s_policy, "");
 					log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 							put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 							put(LogMessage.ACTION, "updateUserPolicyAssociationOnSDBDelete").
