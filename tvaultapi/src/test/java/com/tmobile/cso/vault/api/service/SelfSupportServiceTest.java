@@ -154,7 +154,7 @@ public class SelfSupportServiceTest {
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"User is successfully associated \"]}");
 
         when(safeUtils.canAddUser(userDetails, safeUser)).thenReturn(true);
-        when(safesService.addUserToSafe(token, safeUser)).thenReturn(response);
+        when(safesService.addUserToSafe(token, safeUser, userDetails)).thenReturn(response);
 
         ResponseEntity<String> responseEntity = selfSupportService.addUserToSafe(userDetails, token, safeUser);
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
@@ -172,7 +172,7 @@ public class SelfSupportServiceTest {
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"User is successfully associated \"]}");
 
         when(safeUtils.canAddUser(userDetails, safeUser)).thenReturn(true);
-        when(safesService.addUserToSafe(token, safeUser)).thenReturn(response);
+        when(safesService.addUserToSafe(token, safeUser, userDetails)).thenReturn(response);
 
         ResponseEntity<String> responseEntity = selfSupportService.addUserToSafe(userDetails, token, safeUser);
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
@@ -190,7 +190,7 @@ public class SelfSupportServiceTest {
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Can't add user. Possible reasons: Invalid path specified, 2. Changing access/permission of safe owner is not allowed\"]}");
 
         when(safeUtils.canAddUser(userDetails, safeUser)).thenReturn(false);
-        when(safesService.addUserToSafe(token, safeUser)).thenReturn(response);
+        when(safesService.addUserToSafe(token, safeUser, userDetails)).thenReturn(response);
 
         ResponseEntity<String> responseEntity = selfSupportService.addUserToSafe(userDetails, token, safeUser);
         assertEquals(HttpStatus.BAD_REQUEST, responseEntity.getStatusCode());
