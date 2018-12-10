@@ -206,7 +206,7 @@ public class SelfSupportServiceTest {
         when(safeUtils.canAddOrRemoveUser(userDetails, safeUser, "addUser")).thenReturn(false);
         when(safesService.addUserToSafe(token, safeUser, userDetails)).thenReturn(response);
         when(safeUtils.canAddOrRemoveUser(userDetails, safeUser, "addUser")).thenReturn(true);
-        
+
         ResponseEntity<String> responseEntity = selfSupportService.addUserToSafe(userDetails, token, safeUser);
         assertEquals(HttpStatus.BAD_REQUEST, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
@@ -224,7 +224,7 @@ public class SelfSupportServiceTest {
 
         when(safesService.removeUserFromSafe(token, safeUser)).thenReturn(response);
         when(safeUtils.canAddOrRemoveUser(userDetails, safeUser, "removeUser")).thenReturn(true);
-        
+
         ResponseEntity<String> responseEntity = selfSupportService.removeUserFromSafe(userDetails, token, safeUser);
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
@@ -242,7 +242,7 @@ public class SelfSupportServiceTest {
 
         when(safesService.removeUserFromSafe(token, safeUser)).thenReturn(response);
         when(safeUtils.canAddOrRemoveUser(userDetails, safeUser, "removeUser")).thenReturn(true);
-        
+
         ResponseEntity<String> responseEntity = selfSupportService.removeUserFromSafe(userDetails, token, safeUser);
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
@@ -559,4 +559,106 @@ public class SelfSupportServiceTest {
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
     }
+
+    @Test
+    public void test_addAwsRoleToSafe_successfully() {
+        String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+        UserDetails userDetails = getMockUser(false);
+        AWSRole awsRole = new AWSRole("shared/mysafe01","ec2","read");
+
+        ResponseEntity<String> response = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Role is successfully associated \"]}");
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Role is successfully associated \"]}");
+
+        when(safesService.addAwsRoleToSafe(token, awsRole)).thenReturn(response);
+        mockIsAuthorized(userDetails, true);
+
+        ResponseEntity<String> responseEntity = selfSupportService.addAwsRoleToSafe(userDetails, token, awsRole);
+        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntity);
+    }
+
+    @Test
+    public void test_addAwsRoleToSafe_failure_403() {
+        String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+        UserDetails userDetails = getMockUser(false);
+        AWSRole awsRole = new AWSRole("shared/mysafe01","ec2","read");
+
+        ResponseEntity<String> response = ResponseEntity.status(HttpStatus.FORBIDDEN).body("{\"errors\":[\"Access denied: no permission to add AWS role to the safe\"]}");
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.FORBIDDEN).body("{\"errors\":[\"Access denied: no permission to add AWS role to the safe\"]}");
+
+        when(safesService.addAwsRoleToSafe(token, awsRole)).thenReturn(response);
+        mockIsAuthorized(userDetails, false);
+
+
+        ResponseEntity<String> responseEntity = selfSupportService.addAwsRoleToSafe(userDetails, token, awsRole);
+        assertEquals(HttpStatus.FORBIDDEN, responseEntity.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntity);
+    }
+
+    @Test
+    public void test_addAwsRoleToSafe_successfully_isAdmin() {
+        String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+        UserDetails userDetails = getMockUser(true);
+        AWSRole awsRole = new AWSRole("shared/mysafe01","ec2","read");
+
+        ResponseEntity<String> response = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Role is successfully associated \"]}");
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Role is successfully associated \"]}");
+
+        when(safesService.addAwsRoleToSafe(token, awsRole)).thenReturn(response);
+        ResponseEntity<String> responseEntity = selfSupportService.addAwsRoleToSafe(userDetails, token, awsRole);
+        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntity);
+    }
+
+    @Test
+    public void test_removeAWSRoleFromSafe_successfully() {
+        String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+        UserDetails userDetails = getMockUser(false);
+        AWSRole awsRole = new AWSRole("shared/mysafe01","ec2","read");
+
+        ResponseEntity<String> response = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Role association is removed \"]}");
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Role association is removed \"]}");
+
+        when(safesService.removeAWSRoleFromSafe(token, awsRole, false)).thenReturn(response);
+        mockIsAuthorized(userDetails, true);
+
+        ResponseEntity<String> responseEntity = selfSupportService.removeAWSRoleFromSafe(userDetails, token, awsRole, false);
+        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntity);
+    }
+
+    @Test
+    public void test_removeAWSRoleFromSafe_failure_403() {
+        String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+        UserDetails userDetails = getMockUser(false);
+        AWSRole awsRole = new AWSRole("shared/mysafe01","ec2","read");
+
+        ResponseEntity<String> response = ResponseEntity.status(HttpStatus.FORBIDDEN).body("{\"errors\":[\"Access denied: no permission to remove AWS role from the safe\"]}");
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.FORBIDDEN).body("{\"errors\":[\"Access denied: no permission to remove AWS role from the safe\"]}");
+
+        when(safesService.removeAWSRoleFromSafe(token, awsRole, false)).thenReturn(response);
+        mockIsAuthorized(userDetails, false);
+
+        ResponseEntity<String> responseEntity = selfSupportService.removeAWSRoleFromSafe(userDetails, token, awsRole, false);
+        assertEquals(HttpStatus.FORBIDDEN, responseEntity.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntity);
+    }
+
+    @Test
+    public void test_removeAWSRoleFromSafe_successfully_admin() {
+        String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+        UserDetails userDetails = getMockUser(true);
+        AWSRole awsRole = new AWSRole("shared/mysafe01","ec2","read");
+
+        ResponseEntity<String> response = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Role association is removed \"]}");
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Role association is removed \"]}");
+
+        when(safesService.removeAWSRoleFromSafe(token, awsRole, true)).thenReturn(response);
+
+        ResponseEntity<String> responseEntity = selfSupportService.removeAWSRoleFromSafe(userDetails, token, awsRole, true);
+        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntity);
+    }
+
+
 }
