@@ -392,4 +392,34 @@ public class  SelfSupportService {
 			return safesService.removeAWSRoleFromSafe(token, awsRole, detachOnly);
 		}
 	}
+
+	/**
+	 * Associate approle to safe
+	 * @param userDetails
+	 * @param token
+	 * @param jsonstr
+	 * @return
+	 */
+	public ResponseEntity<String> associateApproletoSDB(UserDetails userDetails, String userToken, String jsonstr) {
+		String token = userDetails.getClientToken();
+		if (userDetails.isAdmin()) {
+			return safesService.associateApproletoSDB(token, jsonstr);
+		}
+		else {
+			Map<String,Object> requestMap = ControllerUtil.parseJson(jsonstr);
+			if(!ControllerUtil.areSafeAppRoleInputsValid(requestMap)) {
+				return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid input values\"]}");
+			}
+			String path = requestMap.get("path").toString();
+			ResponseEntity<String> isAuthorized = isAuthorized(userDetails, path);
+			if (!isAuthorized.getStatusCode().equals(HttpStatus.OK)) {
+				return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Error checking user permission\"]}");
+			}
+			if (isAuthorized.getBody().equals("false")) {
+				return ResponseEntity.status(HttpStatus.FORBIDDEN).body("{\"errors\":[\"Access denied: no permission to add Approle to the safe\"]}");
+			}
+			token = userDetails.getSelfSupportToken();
+			return safesService.associateApproletoSDB(token, jsonstr);
+		}
+	}
 }

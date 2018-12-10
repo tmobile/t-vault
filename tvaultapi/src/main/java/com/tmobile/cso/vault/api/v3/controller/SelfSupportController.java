@@ -215,4 +215,16 @@ public class SelfSupportController {
 		UserDetails userDetails = (UserDetails) ((HttpServletRequest) request).getAttribute("UserDetails");
 		return selfSupportService.removeAWSRoleFromSafe(userDetails, token, awsRole, true);
 	}
+
+	/**
+	 * Associate approle to Safe
+	 * @param token
+	 * @param jsonstr
+	 * @return
+	 */
+	@PostMapping(value="/v3/sdb/approle",consumes="application/json",produces="application/json")
+	public ResponseEntity<String>associateApproletoSDB(HttpServletRequest request, @RequestHeader(value="vault-token") String token, @RequestBody String jsonstr) {
+		UserDetails userDetails = (UserDetails) ((HttpServletRequest) request).getAttribute("UserDetails");
+		return selfSupportService.associateApproletoSDB(userDetails, token, jsonstr);
+	}
 }
