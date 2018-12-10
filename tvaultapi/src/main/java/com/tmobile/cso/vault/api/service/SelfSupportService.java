@@ -21,7 +21,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.tmobile.cso.vault.api.model.SafeGroup;
+import com.tmobile.cso.vault.api.model.*;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -339,6 +339,57 @@ public class  SelfSupportService {
 			}
 			token = userDetails.getSelfSupportToken();
 			return safesService.removeGroupFromSafe(token, safeGroup);
+		}
+	}
+
+	/**
+	 * Add AWS role to safe
+	 * @param userDetails
+	 * @param userToken
+	 * @param awsRole
+	 * @return
+	 */
+	public ResponseEntity<String> addAwsRoleToSafe(UserDetails userDetails, String userToken, AWSRole awsRole) {
+		String token = userDetails.getClientToken();
+		if (userDetails.isAdmin()) {
+			return safesService.addAwsRoleToSafe(token, awsRole);
+		}
+		else {
+			ResponseEntity<String> isAuthorized = isAuthorized(userDetails, awsRole.getPath());
+			if (!isAuthorized.getStatusCode().equals(HttpStatus.OK)) {
+				return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Error checking user permission\"]}");
+			}
+			if (isAuthorized.getBody().equals("false")) {
+				return ResponseEntity.status(HttpStatus.FORBIDDEN).body("{\"errors\":[\"Access denied: no permission to add AWS role to the safe\"]}");
+			}
+			token = userDetails.getSelfSupportToken();
+			return safesService.addAwsRoleToSafe(token, awsRole);
+		}
+	}
+
+	/**
+	 * Remove or detach AWS role from safe
+	 * @param userDetails
+	 * @param userToken
+	 * @param awsRole
+	 * @param detachOnly
+	 * @return
+	 */
+	public ResponseEntity<String> removeAWSRoleFromSafe(UserDetails userDetails, String userToken, AWSRole awsRole, boolean detachOnly) {
+		String token = userDetails.getClientToken();
+		if (userDetails.isAdmin()) {
+			return safesService.removeAWSRoleFromSafe(token, awsRole, detachOnly);
+		}
+		else {
+			ResponseEntity<String> isAuthorized = isAuthorized(userDetails, awsRole.getPath());
+			if (!isAuthorized.getStatusCode().equals(HttpStatus.OK)) {
+				return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Error checking user permission\"]}");
+			}
+			if (isAuthorized.getBody().equals("false")) {
+				return ResponseEntity.status(HttpStatus.FORBIDDEN).body("{\"errors\":[\"Access denied: no permission to remove AWS role from the safe\"]}");
+			}
+			token = userDetails.getSelfSupportToken();
+			return safesService.removeAWSRoleFromSafe(token, awsRole, detachOnly);
 		}
 	}
 }

@@ -19,15 +19,12 @@ package com.tmobile.cso.vault.api.v3.controller;
 
 import javax.servlet.http.HttpServletRequest;
 
-import com.tmobile.cso.vault.api.model.SafeGroup;
+import com.tmobile.cso.vault.api.model.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import com.tmobile.cso.vault.api.model.Safe;
-import com.tmobile.cso.vault.api.model.SafeUser;
-import com.tmobile.cso.vault.api.model.UserDetails;
 import com.tmobile.cso.vault.api.service.SelfSupportService;
 
 import io.swagger.annotations.Api;
@@ -178,5 +175,44 @@ public class SelfSupportController {
 	public ResponseEntity<String> deleteGroupFromSafe(HttpServletRequest request, @RequestHeader(value="vault-token") String token, @RequestBody SafeGroup safeGroup){
 		UserDetails userDetails = (UserDetails) ((HttpServletRequest) request).getAttribute("UserDetails");
 		return selfSupportService.removeGroupFromSafe(userDetails, token, safeGroup);
+	}
+
+	/**
+	 * Adds AWS role to a Safe
+	 * @param token
+	 * @param awsRole
+	 * @return
+	 */
+	@ApiOperation(value = "${SelfSupportController.addAWSRoleToSafe.value}", notes = "${SelfSupportController.addAWSRoleToSafe.notes}")
+	@PostMapping (value="/v3/sdb/role",consumes="application/json",produces="application/json")
+	public ResponseEntity<String> addAwsRoleToSafe(HttpServletRequest request, @RequestHeader(value="vault-token") String token, @RequestBody AWSRole awsRole){
+		UserDetails userDetails = (UserDetails) ((HttpServletRequest) request).getAttribute("UserDetails");
+		return selfSupportService.addAwsRoleToSafe(userDetails, token, awsRole);
+	}
+
+	/**
+	 * Remove AWS role from Safe and delete the role
+	 * @param token
+	 * @param awsRole
+	 * @return
+	 */
+	@ApiOperation(value = "${SelfSupportController.deleteAWSRoleFromSafe.value}", notes = "${SelfSupportController.deleteAWSRoleFromSafe.notes}")
+	@DeleteMapping (value="/v3/sdb/role",consumes="application/json",produces="application/json")
+	public ResponseEntity<String> deleteAwsRoleFromSafe(HttpServletRequest request, @RequestHeader(value="vault-token") String token, @RequestBody AWSRole awsRole){
+		UserDetails userDetails = (UserDetails) ((HttpServletRequest) request).getAttribute("UserDetails");
+		return selfSupportService.removeAWSRoleFromSafe(userDetails, token, awsRole, false);
+	}
+
+	/**
+	 * Detach AWS role from safe
+	 * @param token
+	 * @param awsRole
+	 * @return
+	 */
+	@ApiOperation(value = "${SelfSupportController.deleteAWSPermissionFromSafe.value}", notes = "${SelfSupportController.deleteAWSPermissionFromSafe.notes}")
+	@PutMapping (value="/v3/sdb/role",consumes="application/json",produces="application/json")
+	public ResponseEntity<String> detachAwsRoleFromSafe(HttpServletRequest request, @RequestHeader(value="vault-token") String token, @RequestBody AWSRole awsRole) {
+		UserDetails userDetails = (UserDetails) ((HttpServletRequest) request).getAttribute("UserDetails");
+		return selfSupportService.removeAWSRoleFromSafe(userDetails, token, awsRole, true);
 	}
 }
