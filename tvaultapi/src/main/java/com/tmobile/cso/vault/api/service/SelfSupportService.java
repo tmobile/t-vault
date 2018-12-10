@@ -95,7 +95,7 @@ public class  SelfSupportService {
 				safeUser.setAccess("sudo");
 				safeUser.setPath(safe.getPath());
 				safeUser.setUsername(userDetails.getUsername());
-				safesService.addUserToSafe(token, safeUser);
+				safesService.addUserToSafe(token, safeUser, null);
 			}
 			return safe_creation_response;
 		}
@@ -113,10 +113,10 @@ public class  SelfSupportService {
 		boolean canAddUser = safeUtils.canAddUser(userDetails, safeUser);
 		if (canAddUser) {
 			if (userDetails.isAdmin()) {
-				return safesService.addUserToSafe(userDetails.getClientToken(), safeUser);
+				return safesService.addUserToSafe(userDetails.getClientToken(), safeUser, userDetails);
 			}
 			else {
-				return safesService.addUserToSafe(userDetails.getSelfSupportToken(), safeUser);
+				return safesService.addUserToSafe(userDetails.getSelfSupportToken(), safeUser, userDetails);
 			}
 		}
 		else {

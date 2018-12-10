@@ -151,7 +151,7 @@ public class SDBControllerV2 {
 	@ApiOperation(value = "${SafesController.addUserToSafe.value}", notes = "${SafesController.addUserToSafe.notes}")
 	@PostMapping(value="/v2/sdb/user",consumes="application/json",produces="application/json")
 	public ResponseEntity<String> addUsertoSafe(@RequestHeader(value="vault-token") String token, @RequestBody SafeUser safeUser){
-		return safesService.addUserToSafe(token, safeUser);
+		return safesService.addUserToSafe(token, safeUser, null);
 	}
 
 	/**

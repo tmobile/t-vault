@@ -41,9 +41,11 @@ import com.tmobile.cso.vault.api.model.AWSRole;
 import com.tmobile.cso.vault.api.model.Safe;
 import com.tmobile.cso.vault.api.model.SafeGroup;
 import com.tmobile.cso.vault.api.model.SafeUser;
+import com.tmobile.cso.vault.api.model.UserDetails;
 import com.tmobile.cso.vault.api.process.RequestProcessor;
 import com.tmobile.cso.vault.api.process.Response;
 import com.tmobile.cso.vault.api.utils.JSONUtil;
+import com.tmobile.cso.vault.api.utils.SafeUtils;
 import com.tmobile.cso.vault.api.utils.ThreadLocalContext;
 
 @Component
@@ -59,7 +61,9 @@ public class  SafesService {
 	public static final String WRITE_POLICY="write";
 	public static final String DENY_POLICY="deny";
 
-
+	@Autowired
+	private SafeUtils safeUtils;
+	
 	private static Logger log = LogManager.getLogger(SafesService.class);
 
 	/**
@@ -598,8 +602,7 @@ public class  SafesService {
 	 * @param safeUser
 	 * @return
 	 */
-	public ResponseEntity<String> addUserToSafe(String token, SafeUser safeUser) {
-
+	public ResponseEntity<String> addUserToSafe(String token, SafeUser safeUser, UserDetails userDetails) {
 		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 				put(LogMessage.ACTION, "Add User to SDB").
@@ -623,9 +626,13 @@ public class  SafesService {
 		
 		userName = (userName !=null) ? userName.toLowerCase() : userName;
 		access = (access != null) ? access.toLowerCase(): access;
+		boolean isAuthorized = true;
+		if (userDetails != null) {
+			isAuthorized = safeUtils.canAddUser(userDetails, safeUser);
+		}
 
 		boolean canAddUser = ControllerUtil.canAddPermission(path, token);
-		if(canAddUser){
+		if(isAuthorized && canAddUser){
 
 			String folders[] = path.split("[/]+");
 
@@ -723,7 +730,7 @@ public class  SafesService {
 				policies = policies.replaceAll(r_policy, "");
 				policies = policies.replaceAll(w_policy, "");
 				policies = policies.replaceAll(d_policy, "");
-				policies = policies.replaceAll(s_policy, "");
+				//policies = policies.replaceAll(s_policy, "");
 				policies = policies+","+policy;
 			}else{
 				// New user to be configured
