@@ -488,7 +488,9 @@ public class  SafesService {
 			requestParams.put("path",pathToBeUpdated);
 			// Do not alter the name of the safe
 			((Map<String,Object>)requestParams.get("data")).put("name",(String) metadataMap.get("name"));
-			
+			// Do not alter the owner of the safe
+            ((Map<String,Object>)requestParams.get("data")).put("ownerid",(String) metadataMap.get("ownerid"));
+
 			String metadataJson = ControllerUtil.convetToJson(requestParams) ;
 			response = reqProcessor.process("/sdb/update",metadataJson,token);
 			if(response.getHttpstatus().equals(HttpStatus.NO_CONTENT)){
@@ -1580,6 +1582,7 @@ public class  SafesService {
 				String r_policy = "r_";
 				String w_policy = "w_";
 				String d_policy = "d_";
+				String s_policy = "s_";
 
 				if (folders.length > 0) {
 					for (int index = 0; index < folders.length; index++) {
@@ -1587,11 +1590,13 @@ public class  SafesService {
 							r_policy += folders[index];
 							w_policy += folders[index];
 							d_policy += folders[index];
+							s_policy += folders[index];
 						}
 						else {
 							r_policy += folders[index]  +"_";
 							w_policy += folders[index] +"_";
 							d_policy += folders[index] +"_";
+							s_policy += folders[index] +"_";
 						}
 					}
 				}
@@ -1599,6 +1604,7 @@ public class  SafesService {
 				reqProcessor.process("/access/delete","{\"accessid\":\""+r_policy+"\"}",token);
 				reqProcessor.process("/access/delete","{\"accessid\":\""+w_policy+"\"}",token);
 				reqProcessor.process("/access/delete","{\"accessid\":\""+d_policy+"\"}",token);
+				reqProcessor.process("/access/delete","{\"accessid\":\""+s_policy+"\"}",token);
 
 				String _path = "metadata/"+path;
 

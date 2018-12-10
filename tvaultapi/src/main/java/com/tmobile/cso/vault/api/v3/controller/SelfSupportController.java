@@ -19,17 +19,11 @@ package com.tmobile.cso.vault.api.v3.controller;
 
 import javax.servlet.http.HttpServletRequest;
 
+import com.tmobile.cso.vault.api.model.SafeGroup;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import com.tmobile.cso.vault.api.model.Safe;
 import com.tmobile.cso.vault.api.model.SafeUser;
@@ -134,5 +128,55 @@ public class SelfSupportController {
 	public ResponseEntity<String> isAuthorized(HttpServletRequest request, @RequestHeader(value="vault-token") String token, @RequestParam("path") String path){
 		UserDetails userDetails = (UserDetails) ((HttpServletRequest) request).getAttribute("UserDetails");
 		return selfSupportService.isAuthorized(userDetails, path);
+	}
+
+	/**
+	 *
+	 * @param token
+	 * @param safe
+	 * @return
+	 */
+	@ApiOperation(value = "${SelfSupportController.updateSafe.value}", notes = "${SelfSupportController.updateSafe.notes}")
+	@PutMapping(value="/v3/sdb", consumes="application/json",produces="application/json")
+	public ResponseEntity<String> updateSafe(HttpServletRequest request, @RequestHeader(value="vault-token" ) String token, @RequestBody Safe safe) {
+		UserDetails userDetails = (UserDetails) ((HttpServletRequest) request).getAttribute("UserDetails");
+		return selfSupportService.updateSafe(userDetails, token, safe);
+	}
+	/**
+	 * Deletes a SDB folder
+	 * @param token
+	 * @param path
+	 * @return
+	 */
+	@ApiOperation(value = "${SelfSupportController.deleteSafe.value}", notes = "${SelfSupportController.deleteSafe.notes}")
+	@DeleteMapping(value="/v3/sdb/delete",produces="application/json")
+	public ResponseEntity<String> deleteFolder(HttpServletRequest request, @RequestHeader(value="vault-token") String token, @RequestParam("path") String path){
+		UserDetails userDetails = (UserDetails) ((HttpServletRequest) request).getAttribute("UserDetails");
+		return selfSupportService.deletefolder(userDetails, token, path);
+	}
+
+	/**
+	 * Adds a group to a safe
+	 * @param token
+	 * @param safeGroup
+	 * @return
+	 */
+	@ApiOperation(value = "${SelfSupportController.addGroupToSafe.value}", notes = "${SelfSupportController.addGroupToSafe.notes}")
+	@PostMapping(value="/v3/sdb/group",consumes="application/json",produces="application/json")
+	public ResponseEntity<String> addGrouptoSafe(HttpServletRequest request, @RequestHeader(value="vault-token") String token, @RequestBody SafeGroup safeGroup){
+		UserDetails userDetails = (UserDetails) ((HttpServletRequest) request).getAttribute("UserDetails");
+		return selfSupportService.addGroupToSafe(userDetails, token, safeGroup);
+	}
+	/**
+	 * Removes a group from safe
+	 * @param token
+	 * @param safeGroup
+	 * @return
+	 */
+	@ApiOperation(value = "${SelfSupportController.deleteGroupFromSafe.value}", notes = "${SelfSupportController.deleteGroupFromSafe.notes}")
+	@DeleteMapping (value="/v3/sdb/group",consumes="application/json",produces="application/json")
+	public ResponseEntity<String> deleteGroupFromSafe(HttpServletRequest request, @RequestHeader(value="vault-token") String token, @RequestBody SafeGroup safeGroup){
+		UserDetails userDetails = (UserDetails) ((HttpServletRequest) request).getAttribute("UserDetails");
+		return selfSupportService.removeGroupFromSafe(userDetails, token, safeGroup);
 	}
 }
