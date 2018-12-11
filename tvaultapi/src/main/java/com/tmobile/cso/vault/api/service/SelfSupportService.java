@@ -113,7 +113,7 @@ public class  SelfSupportService {
 		boolean canAddUser = safeUtils.canAddUser(userDetails, safeUser);
 		if (canAddUser) {
 			if (userDetails.isAdmin()) {
-				return safesService.addUserToSafe(userDetails.getClientToken(), safeUser, userDetails);
+				return safesService.addUserToSafe(userDetails.getClientToken(), safeUser, null);
 			}
 			else {
 				return safesService.addUserToSafe(userDetails.getSelfSupportToken(), safeUser, userDetails);

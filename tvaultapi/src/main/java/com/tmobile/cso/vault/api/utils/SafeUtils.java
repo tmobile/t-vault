@@ -120,10 +120,6 @@ public class SafeUtils {
 			if (userDetails.getUsername() != null && userDetails.getUsername().equals(safeOwnerid)) {
 				// This user is owner of the safe...
 				if (safeUser.getUsername().equals(safeOwnerid)) {
-					if ("read".equals(safeUser.getAccess()) || "write".equals(safeUser.getAccess())) {
-						// Allow read and write
-						return true;
-					}
 					return false;
 				}
 				return true;

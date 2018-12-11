@@ -726,6 +726,9 @@ public class  SafesService {
 							put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 							build()));
 				}
+				if (currentpolicies.contains("s_"+folders[0].toLowerCase()+"_"+folders[1])) {
+					return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Owner Permission cannot be changed\"]}");
+				}
 				policies = currentpolicies;
 				policies = policies.replaceAll(r_policy, "");
 				policies = policies.replaceAll(w_policy, "");
