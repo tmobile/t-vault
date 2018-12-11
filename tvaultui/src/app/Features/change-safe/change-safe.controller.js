@@ -378,10 +378,19 @@
                     switch (type) {
                         case 'users' :
                             apiCallFunction = AdminSafesManagement.deleteUserPermissionFromSafe;
-                            reqObjtobeSent = {
-                                "path": setPath,
-                                "username": key
-                            };
+                            if (editingPermission) {
+                								reqObjtobeSent = {
+                									"path": setPath,
+                									"username": key,
+                									"access": permission
+                								};
+                							}
+                							else {
+                								reqObjtobeSent = {
+                									"path": setPath,
+                									"username": key
+                								};
+                							}
                             break;
                         case 'groups' :
                             apiCallFunction = AdminSafesManagement.deleteGroupPermissionFromSafe;

@@ -628,7 +628,7 @@ public class  SafesService {
 		access = (access != null) ? access.toLowerCase(): access;
 		boolean isAuthorized = true;
 		if (userDetails != null) {
-			isAuthorized = safeUtils.canAddUser(userDetails, safeUser);
+			isAuthorized = safeUtils.canAddOrRemoveUser(userDetails, safeUser, "addUser");
 		}
 
 		boolean canAddUser = ControllerUtil.canAddPermission(path, token);
@@ -726,9 +726,9 @@ public class  SafesService {
 							put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 							build()));
 				}
-				if (currentpolicies.contains("s_"+folders[0].toLowerCase()+"_"+folders[1])) {
+				/*if (currentpolicies.contains("s_"+folders[0].toLowerCase()+"_"+folders[1])) {
 					return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Owner Permission cannot be changed\"]}");
-				}
+				}*/
 				policies = currentpolicies;
 				policies = policies.replaceAll(r_policy, "");
 				policies = policies.replaceAll(w_policy, "");
@@ -1099,7 +1099,7 @@ public class  SafesService {
 				policies = policies.replaceAll(r_policy, "");
 				policies = policies.replaceAll(w_policy, "");
 				policies = policies.replaceAll(d_policy, "");
-				policies = policies.replaceAll(s_policy, "");
+				//policies = policies.replaceAll(s_policy, "");
 				Response ldapConfigresponse;
 				if ("userpass".equals(vaultAuthMethod)) {
 					ldapConfigresponse = ControllerUtil.configureUserpassUser(userName,policies,token);

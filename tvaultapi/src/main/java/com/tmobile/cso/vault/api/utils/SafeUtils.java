@@ -80,7 +80,7 @@ public class SafeUtils {
 	 * @param safeUser
 	 * @return
 	 */
-	public boolean canAddUser(UserDetails userDetails, SafeUser safeUser) {
+	public boolean canAddOrRemoveUser(UserDetails userDetails, SafeUser safeUser, String action) {
 		String token = userDetails.getSelfSupportToken();
 		String path = safeUser.getPath();
 		String safeType = ControllerUtil.getSafeType(path);
@@ -106,7 +106,11 @@ public class SafeUtils {
 				// There is some owner assigned to the safe
 				if (safeOwnerid.equals(safeUser.getUsername())) {
 					// Safeadmin is trying to add the owner of the safe as some user with some permission
-					// Prevent safeadmins in removing admin access for a safe
+					// Safeadmin can add read or write permission to safeowner
+					if ("read".equals(safeUser.getAccess()) || "write".equals(safeUser.getAccess()) || (null==safeUser.getAccess() && action.equals("removeUser"))) {
+						// safeadmin or the safeowner himself can set read/write permission to the safeowner
+						return true;
+					}
 					return false;
 				}
 				else {
@@ -120,11 +124,16 @@ public class SafeUtils {
 			if (userDetails.getUsername() != null && userDetails.getUsername().equals(safeOwnerid)) {
 				// This user is owner of the safe...
 				if (safeUser.getUsername().equals(safeOwnerid)) {
+					if ("read".equals(safeUser.getAccess()) || "write".equals(safeUser.getAccess()) || (null==safeUser.getAccess() && action.equals("removeUser"))) {
+						// safeowner himself can set read/write permission to the safeowner
+						return true;
+					}
 					return false;
 				}
 				return true;
 			}
-			return true;
+			// other normal users will not have permission as they are not the owner
+			return false;
 		}
 	}
 	/**
