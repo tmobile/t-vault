@@ -110,7 +110,7 @@ public class  SelfSupportService {
 	 * @return
 	 */
 	public ResponseEntity<String> addUserToSafe(UserDetails userDetails, String userToken, SafeUser safeUser) {
-		boolean canAddUser = safeUtils.canAddUser(userDetails, safeUser);
+		boolean canAddUser = safeUtils.canAddOrRemoveUser(userDetails, safeUser, "addUser");
 		if (canAddUser) {
 			if (userDetails.isAdmin()) {
 				return safesService.addUserToSafe(userDetails.getClientToken(), safeUser, userDetails);
@@ -120,7 +120,7 @@ public class  SelfSupportService {
 			}
 		}
 		else {
-			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Can't add user. Possible reasons: Invalid path specified, 2. Changing access/permission of safe owner is not allowed\"]}");
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Can't add user. Possible reasons: Invalid path specified, 2. Changing access/permission of safe owner is not allowed, 3. Safeowner/safeadmin have are authorized to change permission of safe\"]}");
 		}
 	}
 	/**
@@ -179,6 +179,10 @@ public class  SelfSupportService {
 	 */
 	public ResponseEntity<String> removeUserFromSafe(UserDetails userDetails, String userToken, SafeUser safeUser) {
 		String token = userDetails.getClientToken();
+		boolean isAuthorized = safeUtils.canAddOrRemoveUser(userDetails, safeUser, "removeUser");
+		if (!isAuthorized) {
+			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("{\"errors\":[\"Not authorized to deny safe owner\"]}");
+		}
 		if (userDetails.isAdmin()) {
 			return safesService.removeUserFromSafe(token, safeUser);
 		}
@@ -227,7 +231,7 @@ public class  SelfSupportService {
 		Safe safeMetaData = safeUtils.getSafeMetaData(powerToken, safeType, safeName);
 		String[] latestPolicies = policyUtils.getCurrentPolicies(powerToken, username);
 		ArrayList<String> policiesTobeChecked =  policyUtils.getPoliciesTobeCheked(safeType, safeName);
-		boolean isAuthorized = authorizationUtils.isAuthorized(userDetails, safeMetaData, latestPolicies, policiesTobeChecked, true);
+		boolean isAuthorized = authorizationUtils.isAuthorized(userDetails, safeMetaData, latestPolicies, policiesTobeChecked, false);
 		return ResponseEntity.status(HttpStatus.OK).body(String.valueOf(isAuthorized));
 	}
 

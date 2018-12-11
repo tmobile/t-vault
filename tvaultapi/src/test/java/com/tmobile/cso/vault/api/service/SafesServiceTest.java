@@ -440,7 +440,7 @@ public class SafesServiceTest {
 
         when(ControllerUtil.configureLDAPUser(eq("testuser1"),Mockito.any(),Mockito.any(),eq(token))).thenReturn(idapConfigureResponse);
         when(ControllerUtil.updateMetadata(Mockito.any(),eq(token))).thenReturn(responseNoContent);
-        when(safeUtils.canAddUser(userDetails, safeUser)).thenReturn(true);
+        when(safeUtils.canAddOrRemoveUser(userDetails, safeUser, "addUser")).thenReturn(true);
         
         ResponseEntity<String> responseEntity = safesService.addUserToSafe(token, safeUser, null);
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
@@ -473,7 +473,7 @@ public class SafesServiceTest {
             e.printStackTrace();
         }
         when(ControllerUtil.configureLDAPUser(eq("testuser1"),Mockito.any(),Mockito.any(),eq(token))).thenReturn(responseNotFound);
-        when(safeUtils.canAddUser(userDetails, safeUser)).thenReturn(true);
+        when(safeUtils.canAddOrRemoveUser(userDetails, safeUser, "addUser")).thenReturn(true);
         
         ResponseEntity<String> responseEntity = safesService.addUserToSafe(token, safeUser, null);
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, responseEntity.getStatusCode());
@@ -490,7 +490,7 @@ public class SafesServiceTest {
         
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid input values\"]}");
         when(ControllerUtil.areSafeUserInputsValid(safeUser)).thenReturn(false);
-        when(safeUtils.canAddUser(userDetails, safeUser)).thenReturn(true);
+        when(safeUtils.canAddOrRemoveUser(userDetails, safeUser, "addUser")).thenReturn(true);
         
         ResponseEntity<String> responseEntity = safesService.addUserToSafe(token, safeUser, null);
         assertEquals(HttpStatus.BAD_REQUEST, responseEntity.getStatusCode());
