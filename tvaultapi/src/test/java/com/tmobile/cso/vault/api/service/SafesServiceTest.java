@@ -1,14 +1,13 @@
 package com.tmobile.cso.vault.api.service;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.collect.ImmutableMap;
-import com.tmobile.cso.vault.api.controller.ControllerUtil;
-import com.tmobile.cso.vault.api.model.*;
-import com.tmobile.cso.vault.api.process.RequestProcessor;
-import com.tmobile.cso.vault.api.process.Response;
-import com.tmobile.cso.vault.api.utils.JSONUtil;
-import com.tmobile.cso.vault.api.utils.ThreadLocalContext;
+import static org.junit.Assert.assertEquals;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.when;
+
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
+
 import org.apache.logging.log4j.LogManager;
 import org.junit.Before;
 import org.junit.FixMethodOrder;
@@ -27,13 +26,21 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
-
-import static org.junit.Assert.assertEquals;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.when;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.ImmutableMap;
+import com.tmobile.cso.vault.api.controller.ControllerUtil;
+import com.tmobile.cso.vault.api.model.AWSRole;
+import com.tmobile.cso.vault.api.model.Safe;
+import com.tmobile.cso.vault.api.model.SafeBasicDetails;
+import com.tmobile.cso.vault.api.model.SafeGroup;
+import com.tmobile.cso.vault.api.model.SafeUser;
+import com.tmobile.cso.vault.api.model.UserDetails;
+import com.tmobile.cso.vault.api.process.RequestProcessor;
+import com.tmobile.cso.vault.api.process.Response;
+import com.tmobile.cso.vault.api.utils.JSONUtil;
+import com.tmobile.cso.vault.api.utils.SafeUtils;
+import com.tmobile.cso.vault.api.utils.ThreadLocalContext;
 
 @RunWith(PowerMockRunner.class)
 @ComponentScan(basePackages={"com.tmobile.cso.vault.api"})
@@ -44,9 +51,12 @@ public class SafesServiceTest {
 
     @InjectMocks
     SafesService safesService;
-
+    
     @Mock
     RequestProcessor reqProcessor;
+    
+    @Mock
+    SafeUtils safeUtils;
 
     @Before
     public void setUp() {
@@ -406,7 +416,9 @@ public class SafesServiceTest {
         String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
         String path = "shared/mysafe01";
         SafeUser safeUser = new SafeUser(path, "testuser1","write");
-
+        UserDetails userDetails = new UserDetails();
+        userDetails.setUsername("testuser1");
+        
         Response userResponse = getMockResponse(HttpStatus.OK, true, "{\"data\":{\"bound_cidrs\":[],\"max_ttl\":0,\"policies\":[\"default\",\"w_shared_mysafe01\",\"w_shared_mysafe02\"],\"ttl\":0,\"groups\":\"admin\"}}");
         Response idapConfigureResponse = getMockResponse(HttpStatus.NO_CONTENT, true, "{\"policies\":null}");
         Response responseNoContent = getMockResponse(HttpStatus.NO_CONTENT, true, "");
@@ -428,8 +440,9 @@ public class SafesServiceTest {
 
         when(ControllerUtil.configureLDAPUser(eq("testuser1"),Mockito.any(),Mockito.any(),eq(token))).thenReturn(idapConfigureResponse);
         when(ControllerUtil.updateMetadata(Mockito.any(),eq(token))).thenReturn(responseNoContent);
-
-        ResponseEntity<String> responseEntity = safesService.addUserToSafe(token, safeUser);
+        when(safeUtils.canAddUser(userDetails, safeUser)).thenReturn(true);
+        
+        ResponseEntity<String> responseEntity = safesService.addUserToSafe(token, safeUser, null);
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
     }
@@ -439,7 +452,9 @@ public class SafesServiceTest {
         String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
         String path = "shared/mysafe01";
         SafeUser safeUser = new SafeUser(path, "testuser1","write");
-
+        UserDetails userDetails = new UserDetails();
+        userDetails.setUsername("testuser1");
+        
         Response userResponse = getMockResponse(HttpStatus.OK, true, "{\"data\":{\"bound_cidrs\":[],\"max_ttl\":0,\"policies\":[\"default\",\"w_shared_mysafe01\",\"w_shared_mysafe02\"],\"ttl\":0,\"groups\":\"admin\"}}");
         Response responseNotFound = getMockResponse(HttpStatus.NOT_FOUND, false, "");
 
@@ -458,8 +473,9 @@ public class SafesServiceTest {
             e.printStackTrace();
         }
         when(ControllerUtil.configureLDAPUser(eq("testuser1"),Mockito.any(),Mockito.any(),eq(token))).thenReturn(responseNotFound);
-
-        ResponseEntity<String> responseEntity = safesService.addUserToSafe(token, safeUser);
+        when(safeUtils.canAddUser(userDetails, safeUser)).thenReturn(true);
+        
+        ResponseEntity<String> responseEntity = safesService.addUserToSafe(token, safeUser, null);
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
     }
@@ -469,10 +485,14 @@ public class SafesServiceTest {
         String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
         String path = "shared/mysafe01";
         SafeUser safeUser = new SafeUser(path, "testuser1","write");
+        UserDetails userDetails = new UserDetails();
+        userDetails.setUsername("testuser1");
+        
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid input values\"]}");
         when(ControllerUtil.areSafeUserInputsValid(safeUser)).thenReturn(false);
-
-        ResponseEntity<String> responseEntity = safesService.addUserToSafe(token, safeUser);
+        when(safeUtils.canAddUser(userDetails, safeUser)).thenReturn(true);
+        
+        ResponseEntity<String> responseEntity = safesService.addUserToSafe(token, safeUser, null);
         assertEquals(HttpStatus.BAD_REQUEST, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
     }

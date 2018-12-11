@@ -95,7 +95,7 @@ public class  SelfSupportService {
 				safeUser.setAccess("sudo");
 				safeUser.setPath(safe.getPath());
 				safeUser.setUsername(userDetails.getUsername());
-				safesService.addUserToSafe(token, safeUser);
+				safesService.addUserToSafe(token, safeUser, null);
 			}
 			return safe_creation_response;
 		}
@@ -103,7 +103,7 @@ public class  SelfSupportService {
 	
 
 	/**
-	 * 
+	 * Adds a user to a safe
 	 * @param userDetails
 	 * @param userToken
 	 * @param safeUser
@@ -113,10 +113,10 @@ public class  SelfSupportService {
 		boolean canAddUser = safeUtils.canAddUser(userDetails, safeUser);
 		if (canAddUser) {
 			if (userDetails.isAdmin()) {
-				return safesService.addUserToSafe(userDetails.getClientToken(), safeUser);
+				return safesService.addUserToSafe(userDetails.getClientToken(), safeUser, userDetails);
 			}
 			else {
-				return safesService.addUserToSafe(userDetails.getSelfSupportToken(), safeUser);
+				return safesService.addUserToSafe(userDetails.getSelfSupportToken(), safeUser, userDetails);
 			}
 		}
 		else {
@@ -268,7 +268,13 @@ public class  SelfSupportService {
 			return safe_creation_response;
 		}
 	}
-
+	/**
+	 * Adds a group to a safe
+	 * @param userDetails
+	 * @param userToken
+	 * @param safeGroup
+	 * @return
+	 */
 	public ResponseEntity<String> addGroupToSafe(UserDetails userDetails, String userToken, SafeGroup safeGroup) {
 		String token = userDetails.getClientToken();
 		if (userDetails.isAdmin()) {
@@ -286,7 +292,13 @@ public class  SelfSupportService {
 			return safesService.addGroupToSafe(token, safeGroup);
 		}
 	}
-
+	/**
+	 * Removes a group from safe
+	 * @param userDetails
+	 * @param userToken
+	 * @param safeGroup
+	 * @return
+	 */
 	public ResponseEntity<String> removeGroupFromSafe(UserDetails userDetails, String userToken, SafeGroup safeGroup) {
 		String token = userDetails.getClientToken();
 		if (userDetails.isAdmin()) {
