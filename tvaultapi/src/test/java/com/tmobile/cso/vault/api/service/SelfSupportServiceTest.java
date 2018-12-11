@@ -168,7 +168,7 @@ public class SelfSupportServiceTest {
         SafeUser safeUser = new SafeUser(path, "testuser1","write");
         UserDetails userDetails = getMockUser(true);
 
-        ResponseEntity<String> response = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"User is successfully associated \"]}");
+        ResponseEntity<String> response =               ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"User is successfully associated \"]}");
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"User is successfully associated \"]}");
 
         when(safeUtils.canAddUser(userDetails, safeUser)).thenReturn(true);
