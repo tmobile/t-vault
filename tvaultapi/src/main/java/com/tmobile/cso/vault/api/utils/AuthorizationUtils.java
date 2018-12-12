@@ -50,7 +50,7 @@ public class AuthorizationUtils {
 				}
 			}
 		}
-		String safeType = safeMetaData.getSafeBasicDetails().getType();
+		String safeType = getSafeTypeFromPath(safeMetaData.getPath());
 		// Open each of the associated policy and check whether the user really has capability 
 		for (String policyTobeChecked: policiesTobeChecked) {
 			String policyKeyTobeChecked = new StringBuffer().append(safeType).toString();
@@ -163,5 +163,21 @@ public class AuthorizationUtils {
 				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 				build()));
 		return capabilitiesMap ;
+	}
+	
+	/**
+	 * Gets the safe type for a given path
+	 * @param path
+	 * @return
+	 */
+	private String getSafeTypeFromPath(String path){
+		String safeType = "unknown";
+		if (!StringUtils.isEmpty(path)) {
+			String paths[] =  path.split("/");
+			if (paths != null && paths.length > 0) {
+				safeType = paths[0];
+			}
+		}
+		return safeType;
 	}
 }
