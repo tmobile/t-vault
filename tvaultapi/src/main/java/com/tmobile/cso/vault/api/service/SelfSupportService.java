@@ -135,6 +135,13 @@ public class  SelfSupportService {
 			return safesService.getInfo(token, path);
 		}
 		else {
+			ResponseEntity<String> isAuthorized = isAuthorized(userDetails, path);
+			if (!isAuthorized.getStatusCode().equals(HttpStatus.OK)) {
+				return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Error checking user permission\"]}");
+			}
+			if (isAuthorized.getBody().equals("false")) {
+				return ResponseEntity.status(HttpStatus.FORBIDDEN).body("{\"errors\":[\"Access denied: no permission to get this safe info\"]}");
+			}
 			token = userDetails.getSelfSupportToken();
 			return safesService.getInfo(token, path);
 		}
@@ -181,7 +188,7 @@ public class  SelfSupportService {
 		String token = userDetails.getClientToken();
 		boolean isAuthorized = safeUtils.canAddOrRemoveUser(userDetails, safeUser, "removeUser");
 		if (!isAuthorized) {
-			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("{\"errors\":[\"Not authorized to deny safe owner\"]}");
+			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("{\"errors\":[\"Not authorized to remove users from this safe\"]}");
 		}
 		if (userDetails.isAdmin()) {
 			return safesService.removeUserFromSafe(token, safeUser);
@@ -248,6 +255,13 @@ public class  SelfSupportService {
 			return safesService.updateSafe(token, safe);
 		}
 		else {
+			ResponseEntity<String> isAuthorized = isAuthorized(userDetails, safe.getPath());
+			if (!isAuthorized.getStatusCode().equals(HttpStatus.OK)) {
+				return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Error checking user permission\"]}");
+			}
+			if (isAuthorized.getBody().equals("false")) {
+				return ResponseEntity.status(HttpStatus.FORBIDDEN).body("{\"errors\":[\"Access denied: no permission to update this safe\"]}");
+			}
 			token = userDetails.getSelfSupportToken();
 			ResponseEntity<String> safe_creation_response = safesService.updateSafe(token, safe);
 			return safe_creation_response;
@@ -267,6 +281,13 @@ public class  SelfSupportService {
 			return safesService.deletefolder(token, path);
 		}
 		else {
+			ResponseEntity<String> isAuthorized = isAuthorized(userDetails, path);
+			if (!isAuthorized.getStatusCode().equals(HttpStatus.OK)) {
+				return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Error checking user permission\"]}");
+			}
+			if (isAuthorized.getBody().equals("false")) {
+				return ResponseEntity.status(HttpStatus.FORBIDDEN).body("{\"errors\":[\"Access denied: no permission to delete this safe\"]}");
+			}
 			token = userDetails.getSelfSupportToken();
 			ResponseEntity<String> safe_creation_response = safesService.deletefolder(token, path);
 			return safe_creation_response;

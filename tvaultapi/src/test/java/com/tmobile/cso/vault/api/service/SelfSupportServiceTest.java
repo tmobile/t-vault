@@ -71,6 +71,20 @@ public class SelfSupportServiceTest {
         return userDetails;
     }
 
+    private void mockIsAuthorized(UserDetails userDetails, boolean isAuthorized) {
+        String[] policies = {"s_shared_mysafe01"};
+        ArrayList<String> policiesTobeChecked = new ArrayList<String>();
+        policiesTobeChecked.add("s_shared_mysafe01");
+        SafeBasicDetails safeBasicDetails = new SafeBasicDetails("mysafe01", "youremail@yourcompany.com", null, "My first safe");
+        Safe safe = new Safe("shared/mysafe01",safeBasicDetails);
+        when(ControllerUtil.isPathValid("shared/mysafe01")).thenReturn(true);
+        when(ControllerUtil.getSafeType("shared/mysafe01")).thenReturn("shared");
+        when(ControllerUtil.getSafeName("shared/mysafe01")).thenReturn("mysafe01");when(safeUtils.getSafeMetaData(Mockito.any(), eq("shared"), eq("mysafe01"))).thenReturn(safe);
+        when(policyUtils.getCurrentPolicies(Mockito.any(), eq("normaluser"))).thenReturn(policies);
+        when(policyUtils.getPoliciesTobeCheked("shared", "mysafe01")).thenReturn(policiesTobeChecked);
+        when(authorizationUtils.isAuthorized(userDetails, safe, policies, policiesTobeChecked, false)).thenReturn(isAuthorized);
+    }
+
     @Test
     public void test_createSafe_successfully() {
         String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
@@ -244,6 +258,7 @@ public class SelfSupportServiceTest {
         ResponseEntity<String> response = ResponseEntity.status(HttpStatus.OK).body(responseJson);
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(responseJson);
         when(safesService.getInfo(token, path)).thenReturn(response);
+        mockIsAuthorized(userDetails, true);
         ResponseEntity<String> responseEntity = selfSupportService.getInfo(userDetails, token, path);
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
@@ -261,6 +276,22 @@ public class SelfSupportServiceTest {
         when(safesService.getInfo(token, path)).thenReturn(response);
         ResponseEntity<String> responseEntity = selfSupportService.getInfo(userDetails, token, path);
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntity);
+    }
+
+    @Test
+    public void test_getInfo_failure_403() {
+
+        String path = "shared/mysafe01";
+        String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+        UserDetails userDetails = getMockUser(false);
+        String responseJson = "{\"errors\":[\"Access denied: no permission to get this safe info\"]}";
+        ResponseEntity<String> response = ResponseEntity.status(HttpStatus.FORBIDDEN).body(responseJson);
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.FORBIDDEN).body(responseJson);
+        when(safesService.getInfo(token, path)).thenReturn(response);
+        mockIsAuthorized(userDetails, false);
+        ResponseEntity<String> responseEntity = selfSupportService.getInfo(userDetails, token, path);
+        assertEquals(HttpStatus.FORBIDDEN, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
     }
 
@@ -285,7 +316,7 @@ public class SelfSupportServiceTest {
         when(safeUtils.getSafeMetaData(Mockito.any(), eq("shared"), eq("mysafe01"))).thenReturn(safe);
         when(policyUtils.getCurrentPolicies(Mockito.any(), eq("normaluser"))).thenReturn(policies);
 
-        when(authorizationUtils.isAuthorized(eq(userDetails),eq(safe),eq(policies),Mockito.any(), eq(true))).thenReturn(false);
+        when(authorizationUtils.isAuthorized(eq(userDetails),eq(safe),eq(policies),Mockito.any(), eq(false))).thenReturn(false);
         ResponseEntity<String> responseEntity = selfSupportService.getSafe(userDetails, token, path);
         assertEquals(HttpStatus.UNAUTHORIZED, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
@@ -342,7 +373,7 @@ public class SelfSupportServiceTest {
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Safe updated \"]}");
 
         when(safesService.updateSafe(token, safe)).thenReturn(readResponse);
-
+        mockIsAuthorized(userDetails, true);
         ResponseEntity<String> responseEntity = selfSupportService.updateSafe(userDetails, token, safe);
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
@@ -372,7 +403,7 @@ public class SelfSupportServiceTest {
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"SDB deleted\"]}");
         ResponseEntity<String> response = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"SDB deleted\"]}");
         when(safesService.deletefolder(token, path)).thenReturn(response);
-
+        mockIsAuthorized(userDetails, true);
         ResponseEntity<String> responseEntity = selfSupportService.deletefolder(userDetails, token, path);
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
@@ -453,7 +484,7 @@ public class SelfSupportServiceTest {
         when(ControllerUtil.getSafeName("shared/mysafe01")).thenReturn("mysafe01");when(safeUtils.getSafeMetaData(Mockito.any(), eq("shared"), eq("mysafe01"))).thenReturn(safe);
         when(policyUtils.getCurrentPolicies(Mockito.any(), eq("normaluser"))).thenReturn(policies);
         when(policyUtils.getPoliciesTobeCheked("shared", "mysafe01")).thenReturn(policiesTobeChecked);
-        when(authorizationUtils.isAuthorized(userDetails, safe, policies, policiesTobeChecked, true)).thenReturn(false);
+        when(authorizationUtils.isAuthorized(userDetails, safe, policies, policiesTobeChecked, false)).thenReturn(false);
 
         ResponseEntity<String> responseEntity = selfSupportService.addGroupToSafe(userDetails, token, safeGroup);
         assertEquals(HttpStatus.FORBIDDEN, responseEntity.getStatusCode());
@@ -507,7 +538,7 @@ public class SelfSupportServiceTest {
         when(ControllerUtil.getSafeName("shared/mysafe01")).thenReturn("mysafe01");when(safeUtils.getSafeMetaData(Mockito.any(), eq("shared"), eq("mysafe01"))).thenReturn(safe);
         when(policyUtils.getCurrentPolicies(Mockito.any(), eq("normaluser"))).thenReturn(policies);
         when(policyUtils.getPoliciesTobeCheked("shared", "mysafe01")).thenReturn(policiesTobeChecked);
-        when(authorizationUtils.isAuthorized(userDetails, safe, policies, policiesTobeChecked, true)).thenReturn(false);
+        when(authorizationUtils.isAuthorized(userDetails, safe, policies, policiesTobeChecked, false)).thenReturn(false);
 
         ResponseEntity<String> responseEntity = selfSupportService.removeGroupFromSafe(userDetails, token, safeGroup);
         assertEquals(HttpStatus.FORBIDDEN, responseEntity.getStatusCode());
