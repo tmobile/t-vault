@@ -74,9 +74,9 @@ public class TokenValidationFilter extends GenericFilterBean {
 					put(LogMessage.MESSAGE, String.format ("Generating PowerToken using AppRole Elevation for the user [%s]", vaultTokenLookupDetails.getUsername())).
 					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 					build()));
-			if (!vaultTokenLookupDetails.isAdmin()) {
-				userDetails.setSelfSupportToken(tokenUtils.generatePowerToken(clientToken));
-			}
+//			if (!vaultTokenLookupDetails.isAdmin()) {
+//				userDetails.setSelfSupportToken(tokenUtils.generatePowerToken(clientToken));
+//			}
 			userDetails.setPolicies(vaultTokenLookupDetails.getPolicies());
 			userDetails.setAdmin(vaultTokenLookupDetails.isAdmin());
 			userDetails.setSudoPolicies(null); //TODO: Pre-flight
