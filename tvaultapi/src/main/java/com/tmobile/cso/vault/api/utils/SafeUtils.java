@@ -2,6 +2,7 @@ package com.tmobile.cso.vault.api.utils;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 
@@ -67,7 +68,9 @@ public class SafeUtils {
 				if (policy.startsWith("s_")) {
 					String[] _policies = policy.split("_");
 					if (_policies[1].equals(path)) {
-						safes.add(_policies[2]);
+						String [] safeNameArray = Arrays.copyOfRange(_policies, 2, _policies.length);
+						String safeName = StringUtils.arrayToDelimitedString(safeNameArray, "_");
+						safes.add(safeName);
 					}
 				}
 			}
