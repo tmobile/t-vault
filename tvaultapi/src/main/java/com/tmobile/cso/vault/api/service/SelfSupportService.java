@@ -422,4 +422,27 @@ public class  SelfSupportService {
 			return safesService.associateApproletoSDB(token, jsonstr);
 		}
 	}
+
+	public ResponseEntity<String> deleteApproleFromSDB(UserDetails userDetails, String userToken, String jsonstr) {
+		String token = userDetails.getClientToken();
+		if (userDetails.isAdmin()) {
+			return safesService.removeApproleFromSafe(token, jsonstr);
+		}
+		else {
+			Map<String,Object> requestMap = ControllerUtil.parseJson(jsonstr);
+			if(!ControllerUtil.areSafeAppRoleInputsValid(requestMap)) {
+				return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid input values\"]}");
+			}
+			String path = requestMap.get("path").toString();
+			ResponseEntity<String> isAuthorized = isAuthorized(userDetails, path);
+			if (!isAuthorized.getStatusCode().equals(HttpStatus.OK)) {
+				return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Error checking user permission\"]}");
+			}
+			if (isAuthorized.getBody().equals("false")) {
+				return ResponseEntity.status(HttpStatus.FORBIDDEN).body("{\"errors\":[\"Access denied: no permission to remove approle from the safe\"]}");
+			}
+			token = userDetails.getSelfSupportToken();
+			return safesService.removeApproleFromSafe(token, jsonstr);
+		}
+	}
 }

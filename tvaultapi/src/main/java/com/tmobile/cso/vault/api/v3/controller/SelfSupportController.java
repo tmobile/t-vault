@@ -222,9 +222,23 @@ public class SelfSupportController {
 	 * @param jsonstr
 	 * @return
 	 */
+	@ApiOperation(value = "${SelfSupportController.associateApprole.value}", notes = "${SelfSupportController.associateApprole.notes}")
 	@PostMapping(value="/v3/sdb/approle",consumes="application/json",produces="application/json")
 	public ResponseEntity<String>associateApproletoSDB(HttpServletRequest request, @RequestHeader(value="vault-token") String token, @RequestBody String jsonstr) {
 		UserDetails userDetails = (UserDetails) ((HttpServletRequest) request).getAttribute("UserDetails");
 		return selfSupportService.associateApproletoSDB(userDetails, token, jsonstr);
+	}
+
+	/**
+	 * Delete approle from Safe
+	 * @param token
+	 * @param jsonstr
+	 * @return
+	 */
+	@ApiOperation(value = "${SelfSupportController.deleteApproleFromSafe.value}", notes = "${SelfSupportController.deleteApproleFromSafe.notes}")
+	@DeleteMapping(value="/v3/sdb/approle",consumes="application/json",produces="application/json")
+	public ResponseEntity<String>deleteApproleFromSDB(HttpServletRequest request, @RequestHeader(value="vault-token") String token, @RequestBody String jsonstr) {
+		UserDetails userDetails = (UserDetails) ((HttpServletRequest) request).getAttribute("UserDetails");
+		return selfSupportService.deleteApproleFromSDB(userDetails, token, jsonstr);
 	}
 }
