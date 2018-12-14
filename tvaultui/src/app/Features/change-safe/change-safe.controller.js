@@ -850,6 +850,9 @@
             }
             $scope.allSafesList = JSON.parse(SessionStore.getItem("allSafes"));
             $scope.myVaultKey = SessionStore.getItem("myVaultKey");
+            if(!$scope.myVaultKey){ /* Check if user is in the same session */
+                $state.go('signup');
+            }
             $scope.requestDataFrChangeSafe();
             $scope.fetchUsers();
             $scope.fetchGroups();

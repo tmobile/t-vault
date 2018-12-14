@@ -20,6 +20,10 @@
         }
 
         function init() {
+            $scope.myVaultKey = SessionStore.getItem("myVaultKey");
+            if(!$scope.myVaultKey){ /* Check if user is in the same session */
+                $state.go('signup');
+            }
             $scope.safesNavTags = safesService.getSafesNavTags();
 
             $rootScope.$on('$stateChangeStart', function (event) {
