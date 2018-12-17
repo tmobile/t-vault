@@ -171,6 +171,14 @@ readTextFile("../apiUrls.json");
             url: '/auth/aws/roles/update',
             method: 'POST'
         }, {
+            name: 'createAwsIAMRole',
+            url: '/v2/auth/aws/iam/role',
+            method: 'POST'
+        }, {
+            name: 'updateAwsIAMRole',
+            url: '/v2/auth/aws/iam/role',
+            method: 'PUT'
+        },{
             name: 'unseal',
             url: '/v2/unseal',
             method: 'POST'
