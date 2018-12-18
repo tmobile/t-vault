@@ -932,13 +932,20 @@
                         case 'AwsRoleConfigure' :
                             $scope.awsConfPopupObj['policies'] = "";   // Todo: Because of unavailability of edit service, this has been put
                             if ($scope.editingAwsPermission.status == true) {
-                                apiCallFunction = AdminSafesManagement.updateAWSRole;
+                                if ($scope.awsConfPopupObj.auth_type === 'ec2') {
+                                    apiCallFunction = AdminSafesManagement.updateAWSRole;
+                                }
+                                else {
+                                    apiCallFunction = AdminSafesManagement.updateAWSIAMRole;
+                                }
                             } else {
                                 // Validate the input here if requried...
                                 if ($scope.awsConfPopupObj.auth_type === 'ec2') {
                                     $scope.awsConfPopupObj.bound_iam_principal_arn = "";
+                                    apiCallFunction = AdminSafesManagement.addAWSRole;
                                 }
                                 else {
+                                    $scope.awsConfPopupObj['policies'] = [];
                                     $scope.awsConfPopupObj.bound_account_id = "";
                                     $scope.awsConfPopupObj.region = "";
                                     $scope.awsConfPopupObj.bound_vpc_id = "";
@@ -946,8 +953,12 @@
                                     $scope.awsConfPopupObj.bound_ami_id = "";
                                     $scope.awsConfPopupObj.bound_iam_instance_profile_arn = "";
                                     $scope.awsConfPopupObj.bound_iam_role_arn = "";
+                                    var arn = [];
+                                    arn.push($scope.awsConfPopupObj.bound_iam_principal_arn);
+                                    $scope.awsConfPopupObj.bound_iam_principal_arn = arn;
+                                    apiCallFunction = AdminSafesManagement.addAWSIAMRole;
                                 }
-                                apiCallFunction = AdminSafesManagement.addAWSRole;
+                               // apiCallFunction = AdminSafesManagement.addAWSRole;
                             }
                             reqObjtobeSent = $scope.awsConfPopupObj
                             break;

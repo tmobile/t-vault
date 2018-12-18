@@ -1,10 +1,12 @@
 package com.tmobile.cso.vault.api.service;
 
 import static org.junit.Assert.assertEquals;
+import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.when;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -17,6 +19,8 @@ import org.junit.runners.MethodSorters;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
@@ -64,7 +68,7 @@ public class SafesServiceTest {
         PowerMockito.mockStatic(JSONUtil.class);
 
         Whitebox.setInternalState(ControllerUtil.class, "log", LogManager.getLogger(ControllerUtil.class));
-        when(JSONUtil.getJSON(Mockito.any(ImmutableMap.class))).thenReturn("log");
+        when(JSONUtil.getJSON(any(ImmutableMap.class))).thenReturn("log");
 
         Map<String, String> currentMap = new HashMap<>();
         currentMap.put("apiurl", "http://localhost:8080/vault/v2/sdb");
@@ -121,7 +125,7 @@ public class SafesServiceTest {
         Response response = getMockResponse(HttpStatus.OK, true, responseJson);
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(responseJson);
 
-        when(ControllerUtil.isPathValid(Mockito.any())).thenReturn(true);
+        when(ControllerUtil.isPathValid(any())).thenReturn(true);
         when(reqProcessor.process("/sdb/createfolder",jsonStr,token)).thenReturn(response);
         ResponseEntity<String> responseEntity = safesService.createfolder(token, path);
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
@@ -138,7 +142,7 @@ public class SafesServiceTest {
         Response response = getMockResponse(HttpStatus.NO_CONTENT, true, responseJson);
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(responseJson);
 
-        when(ControllerUtil.isPathValid(Mockito.any())).thenReturn(true);
+        when(ControllerUtil.isPathValid(any())).thenReturn(true);
         when(reqProcessor.process("/sdb/createfolder",jsonStr,token)).thenReturn(response);
         ResponseEntity<String> responseEntity = safesService.createfolder(token, path);
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
@@ -153,7 +157,7 @@ public class SafesServiceTest {
         String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body(responseJson);
 
-        when(ControllerUtil.isPathValid(Mockito.any())).thenReturn(false);
+        when(ControllerUtil.isPathValid(any())).thenReturn(false);
         ResponseEntity<String> responseEntity = safesService.createfolder(token, path);
         assertEquals(HttpStatus.BAD_REQUEST, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
@@ -182,11 +186,11 @@ public class SafesServiceTest {
 
         when(ControllerUtil.areSDBInputsValid(safe)).thenReturn(true);
         when(JSONUtil.getJSON(safe)).thenReturn(jsonStr);
-        when(ControllerUtil.isValidSafePath(Mockito.any())).thenReturn(true);
+        when(ControllerUtil.isValidSafePath(any())).thenReturn(true);
         when(reqProcessor.process("/sdb/create",jsonStr,token)).thenReturn(responseNoContent);
-        when(ControllerUtil.convetToJson(Mockito.any())).thenReturn(metadatajson);
+        when(ControllerUtil.convetToJson(any())).thenReturn(metadatajson);
         when(reqProcessor.process("/write",metadatajson,token)).thenReturn(responseNoContent);
-        when(reqProcessor.process(eq("/access/update"),Mockito.any(),eq(token))).thenReturn(responseNoContent);
+        when(reqProcessor.process(eq("/access/update"),any(),eq(token))).thenReturn(responseNoContent);
 
         ResponseEntity<String> responseEntity = safesService.createSafe(token, safe);
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
@@ -217,11 +221,11 @@ public class SafesServiceTest {
 
         when(ControllerUtil.areSDBInputsValid(safe)).thenReturn(true);
         when(JSONUtil.getJSON(safe)).thenReturn(jsonStr);
-        when(ControllerUtil.isValidSafePath(Mockito.any())).thenReturn(true);
+        when(ControllerUtil.isValidSafePath(any())).thenReturn(true);
         when(reqProcessor.process("/sdb/create",jsonStr,token)).thenReturn(responseNoContent);
-        when(ControllerUtil.convetToJson(Mockito.any())).thenReturn(metadatajson);
+        when(ControllerUtil.convetToJson(any())).thenReturn(metadatajson);
         when(reqProcessor.process("/write",metadatajson,token)).thenReturn(responseNoContent);
-        when(reqProcessor.process(eq("/access/update"),Mockito.any(),eq(token))).thenReturn(responseBadRequest);
+        when(reqProcessor.process(eq("/access/update"),any(),eq(token))).thenReturn(responseBadRequest);
 
         ResponseEntity<String> responseEntity = safesService.createSafe(token, safe);
         assertEquals(HttpStatus.MULTI_STATUS, responseEntity.getStatusCode());
@@ -247,7 +251,7 @@ public class SafesServiceTest {
         when(ControllerUtil.parseJson(jsonStr)).thenReturn(reqparams);
 
         when(ControllerUtil.areSDBInputsValid(safe)).thenReturn(true);
-        when(ControllerUtil.isValidSafePath(Mockito.any())).thenReturn(false);
+        when(ControllerUtil.isValidSafePath(any())).thenReturn(false);
 
         ResponseEntity<String> responseEntity = safesService.createSafe(token, safe);
         assertEquals(HttpStatus.BAD_REQUEST, responseEntity.getStatusCode());
@@ -309,16 +313,16 @@ public class SafesServiceTest {
             e.printStackTrace();
         }
 
-        when(ControllerUtil.parseJson(Mockito.any())).thenReturn(reqparams);
+        when(ControllerUtil.parseJson(any())).thenReturn(reqparams);
         when(ControllerUtil.areSDBInputsValidForUpdate(reqparams)).thenReturn(true);
         when(ControllerUtil.getSafeName("shared/mysafe01")).thenReturn("mysafe01");
         when(ControllerUtil.getSafeType("shared/mysafe01")).thenReturn("shared");
         when(ControllerUtil.getCountOfSafesForGivenSafeName(safe.getSafeBasicDetails().getName(), token)).thenReturn(1);
         when(ControllerUtil.generateSafePath("mysafe01", "shared")).thenReturn("shared/mysafe01");
-        when(ControllerUtil.isValidSafePath(Mockito.any())).thenReturn(true);
+        when(ControllerUtil.isValidSafePath(any())).thenReturn(true);
 
         when(reqProcessor.process("/read","{\"path\":\"metadata/shared/mysafe01\"}",token)).thenReturn(readResponse);
-        when(ControllerUtil.convetToJson(Mockito.any())).thenReturn(metadatajson);
+        when(ControllerUtil.convetToJson(any())).thenReturn(metadatajson);
         when(reqProcessor.process("/sdb/update",metadatajson,token)).thenReturn(responseNoContent);
 
         ResponseEntity<String> responseEntity = safesService.updateSafe(token, safe);
@@ -342,13 +346,13 @@ public class SafesServiceTest {
             e.printStackTrace();
         }
 
-        when(ControllerUtil.parseJson(Mockito.any())).thenReturn(reqparams);
+        when(ControllerUtil.parseJson(any())).thenReturn(reqparams);
         when(ControllerUtil.areSDBInputsValidForUpdate(reqparams)).thenReturn(true);
         when(ControllerUtil.getSafeName("shared/mysafe01")).thenReturn("mysafe01");
         when(ControllerUtil.getSafeType("shared/mysafe01")).thenReturn("shared");
         when(ControllerUtil.getCountOfSafesForGivenSafeName(safe.getSafeBasicDetails().getName(), token)).thenReturn(1);
         when(ControllerUtil.generateSafePath("mysafe01", "shared")).thenReturn("shared/mysafe01");
-        when(ControllerUtil.isValidSafePath(Mockito.any())).thenReturn(false);
+        when(ControllerUtil.isValidSafePath(any())).thenReturn(false);
 
         ResponseEntity<String> responseEntity = safesService.updateSafe(token, safe);
         assertEquals(HttpStatus.BAD_REQUEST, responseEntity.getStatusCode());
@@ -372,13 +376,13 @@ public class SafesServiceTest {
             e.printStackTrace();
         }
 
-        when(ControllerUtil.parseJson(Mockito.any())).thenReturn(reqparams);
+        when(ControllerUtil.parseJson(any())).thenReturn(reqparams);
         when(ControllerUtil.areSDBInputsValidForUpdate(reqparams)).thenReturn(true);
         when(ControllerUtil.getSafeName("shared/mysafe01")).thenReturn("mysafe01");
         when(ControllerUtil.getSafeType("shared/mysafe01")).thenReturn("shared");
         when(ControllerUtil.getCountOfSafesForGivenSafeName(safe.getSafeBasicDetails().getName(), token)).thenReturn(1);
         when(ControllerUtil.generateSafePath("mysafe01", "shared")).thenReturn("shared/mysafe01");
-        when(ControllerUtil.isValidSafePath(Mockito.any())).thenReturn(true);
+        when(ControllerUtil.isValidSafePath(any())).thenReturn(true);
 
         when(reqProcessor.process("/read","{\"path\":\"metadata/shared/mysafe01\"}",token)).thenReturn(readResponse);
 
@@ -403,7 +407,7 @@ public class SafesServiceTest {
             e.printStackTrace();
         }
 
-        when(ControllerUtil.parseJson(Mockito.any())).thenReturn(reqparams);
+        when(ControllerUtil.parseJson(any())).thenReturn(reqparams);
         when(ControllerUtil.areSDBInputsValid(reqparams)).thenReturn(false);
 
         ResponseEntity<String> responseEntity = safesService.updateSafe(token, safe);
@@ -433,15 +437,66 @@ public class SafesServiceTest {
         when(reqProcessor.process("/auth/ldap/users","{\"username\":\"testuser1\"}",token)).thenReturn(userResponse);
 
         try {
-            when(ControllerUtil.getPoliciesAsStringFromJson(Mockito.any(), Mockito.any())).thenReturn("default,w_shared_mysafe01,w_shared_mysafe02");
+            when(ControllerUtil.getPoliciesAsStringFromJson(any(), any())).thenReturn("default,w_shared_mysafe01,w_shared_mysafe02");
         } catch (IOException e) {
             e.printStackTrace();
         }
 
-        when(ControllerUtil.configureLDAPUser(eq("testuser1"),Mockito.any(),Mockito.any(),eq(token))).thenReturn(idapConfigureResponse);
-        when(ControllerUtil.updateMetadata(Mockito.any(),eq(token))).thenReturn(responseNoContent);
+        when(ControllerUtil.configureLDAPUser(eq("testuser1"),any(),any(),eq(token))).thenReturn(idapConfigureResponse);
+        when(ControllerUtil.updateMetadata(any(),eq(token))).thenReturn(responseNoContent);
         when(safeUtils.canAddOrRemoveUser(userDetails, safeUser, "addUser")).thenReturn(true);
         
+        ResponseEntity<String> responseEntity = safesService.addUserToSafe(token, safeUser, null);
+        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntity);
+    }
+
+    @Test
+    public void test_addUserToSafe_successfully_all_safes() {
+        String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+        String path = "shared/mysafe01";
+        SafeUser safeUser = new SafeUser(path, "testuser1","write");
+        UserDetails userDetails = new UserDetails();
+        userDetails.setUsername("testuser1");
+
+        Response userResponse = getMockResponse(HttpStatus.OK, true, "{\"data\":{\"bound_cidrs\":[],\"max_ttl\":0,\"policies\":[\"default\",\"w_shared_mysafe01\",\"w_shared_mysafe02\"],\"ttl\":0,\"groups\":\"admin\"}}");
+        Response idapConfigureResponse = getMockResponse(HttpStatus.NO_CONTENT, true, "{\"policies\":null}");
+        Response responseNoContent = getMockResponse(HttpStatus.NO_CONTENT, true, "");
+        Response response_404 = getMockResponse(HttpStatus.NOT_FOUND, true, "");
+
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"User is successfully associated \"]}");
+
+        when(ControllerUtil.areSafeUserInputsValid(safeUser)).thenReturn(true);
+        when(ControllerUtil.canAddPermission(path, token)).thenReturn(true);
+        when(ControllerUtil.isValidSafePath(path)).thenReturn(true);
+        when(ControllerUtil.isValidSafe(path, token)).thenReturn(true);
+        when(reqProcessor.process("/auth/userpass/read","{\"username\":\"testuser1\"}",token)).thenReturn(userResponse);
+        when(reqProcessor.process("/auth/ldap/users","{\"username\":\"testuser1\"}",token)).thenReturn(userResponse);
+
+        try {
+            when(ControllerUtil.getPoliciesAsStringFromJson(any(), any())).thenReturn("default,w_shared_mysafe01,w_shared_mysafe02");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        when(ControllerUtil.configureLDAPUser(eq("testuser1"),any(),any(),eq(token))).thenReturn(idapConfigureResponse);
+        //when(ControllerUtil.updateMetadata(Mockito.any(),eq(token))).thenReturn(responseNoContent);
+        when(ControllerUtil.updateMetadata(any(),eq(token))).thenAnswer(new Answer() {
+            private int count = 0;
+
+            public Object answer(InvocationOnMock invocation) {
+                if (count++ == 1)
+                    return responseNoContent;
+
+                return response_404;
+            }
+        });
+        when(ControllerUtil.getSafeType("shared/mysafe01")).thenReturn("shared");
+        when(ControllerUtil.getSafeName("shared/mysafe01")).thenReturn("mysafe01");
+        when(ControllerUtil.getAllExistingSafeNames("shared", token)).thenReturn(Arrays.asList("mysafe02"));
+
+        when(safeUtils.canAddOrRemoveUser(userDetails, safeUser, "addUser")).thenReturn(true);
+
         ResponseEntity<String> responseEntity = safesService.addUserToSafe(token, safeUser, null);
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
@@ -468,11 +523,11 @@ public class SafesServiceTest {
         when(reqProcessor.process("/auth/ldap/users","{\"username\":\"testuser1\"}",token)).thenReturn(userResponse);
 
         try {
-            when(ControllerUtil.getPoliciesAsStringFromJson(Mockito.any(), Mockito.any())).thenReturn("default,w_shared_mysafe01,w_shared_mysafe02");
+            when(ControllerUtil.getPoliciesAsStringFromJson(any(), any())).thenReturn("default,w_shared_mysafe01,w_shared_mysafe02");
         } catch (IOException e) {
             e.printStackTrace();
         }
-        when(ControllerUtil.configureLDAPUser(eq("testuser1"),Mockito.any(),Mockito.any(),eq(token))).thenReturn(responseNotFound);
+        when(ControllerUtil.configureLDAPUser(eq("testuser1"),any(),any(),eq(token))).thenReturn(responseNotFound);
         when(safeUtils.canAddOrRemoveUser(userDetails, safeUser, "addUser")).thenReturn(true);
         
         ResponseEntity<String> responseEntity = safesService.addUserToSafe(token, safeUser, null);
@@ -515,12 +570,12 @@ public class SafesServiceTest {
 
         when(reqProcessor.process("/auth/ldap/users","{\"username\":\"testuser1\"}",token)).thenReturn(userResponse);
         try {
-            when(ControllerUtil.getPoliciesAsStringFromJson(Mockito.any(), Mockito.any())).thenReturn("default,w_shared_mysafe01,w_shared_mysafe02");
+            when(ControllerUtil.getPoliciesAsStringFromJson(any(), any())).thenReturn("default,w_shared_mysafe01,w_shared_mysafe02");
         } catch (IOException e) {
             e.printStackTrace();
         }
-        when(ControllerUtil.configureLDAPUser(eq("testuser1"),Mockito.any(),Mockito.any(),eq(token))).thenReturn(responseNoContent);
-        when(ControllerUtil.updateMetadata(Mockito.any(),eq(token))).thenReturn(responseNoContent);
+        when(ControllerUtil.configureLDAPUser(eq("testuser1"),any(),any(),eq(token))).thenReturn(responseNoContent);
+        when(ControllerUtil.updateMetadata(any(),eq(token))).thenReturn(responseNoContent);
 
         ResponseEntity<String> responseEntity = safesService.removeUserFromSafe(token, safeUser);
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
@@ -546,12 +601,12 @@ public class SafesServiceTest {
 
         when(reqProcessor.process("/auth/ldap/users","{\"username\":\"testuser1\"}",token)).thenReturn(userResponse);
         try {
-            when(ControllerUtil.getPoliciesAsStringFromJson(Mockito.any(), Mockito.any())).thenReturn("default,w_shared_mysafe01,w_shared_mysafe02");
+            when(ControllerUtil.getPoliciesAsStringFromJson(any(), any())).thenReturn("default,w_shared_mysafe01,w_shared_mysafe02");
         } catch (IOException e) {
             e.printStackTrace();
         }
-        when(ControllerUtil.configureLDAPUser(eq("testuser1"),Mockito.any(),Mockito.any(),eq(token))).thenReturn(responseNoContent);
-        when(ControllerUtil.updateMetadata(Mockito.any(),eq(token))).thenReturn(responseNotFound);
+        when(ControllerUtil.configureLDAPUser(eq("testuser1"),any(),any(),eq(token))).thenReturn(responseNoContent);
+        when(ControllerUtil.updateMetadata(any(),eq(token))).thenReturn(responseNotFound);
 
         ResponseEntity<String> responseEntity = safesService.removeUserFromSafe(token, safeUser);
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, responseEntity.getStatusCode());
@@ -574,7 +629,7 @@ public class SafesServiceTest {
         when(ControllerUtil.isValidSafe(path, token)).thenReturn(true);
         when(ControllerUtil.canAddPermission(path, token)).thenReturn(true);
         when(reqProcessor.process("/auth/ldap/users","{\"username\":\"testuser1\"}",token)).thenReturn(responseNotFound);
-        when(ControllerUtil.updateMetadata(Mockito.any(),eq(token))).thenReturn(responseNoContent);
+        when(ControllerUtil.updateMetadata(any(),eq(token))).thenReturn(responseNoContent);
         when(ControllerUtil.getSafeType(path)).thenReturn("shared");
         when(ControllerUtil.getSafeName(path)).thenReturn("mysafe01");
         when(ControllerUtil.getAllExistingSafeNames("shared", token)).thenReturn(null);
@@ -617,12 +672,12 @@ public class SafesServiceTest {
         when(ControllerUtil.isValidSafe(path, token)).thenReturn(true);
         when(reqProcessor.process("/auth/ldap/groups","{\"groupname\":\"mygroup01\"}",token)).thenReturn(userResponse);
         try {
-            when(ControllerUtil.getPoliciesAsStringFromJson(Mockito.any(), Mockito.any())).thenReturn("default,w_shared_mysafe01,w_shared_mysafe02");
+            when(ControllerUtil.getPoliciesAsStringFromJson(any(), any())).thenReturn("default,w_shared_mysafe01,w_shared_mysafe02");
         } catch (IOException e) {
             e.printStackTrace();
         }
-        when(ControllerUtil.configureLDAPGroup(Mockito.any(),Mockito.any(),Mockito.any())).thenReturn(responseNoContent);
-        when(ControllerUtil.updateMetadata(Mockito.any(),eq(token))).thenReturn(responseNoContent);
+        when(ControllerUtil.configureLDAPGroup(any(),any(),any())).thenReturn(responseNoContent);
+        when(ControllerUtil.updateMetadata(any(),eq(token))).thenReturn(responseNoContent);
 
         ResponseEntity<String> responseEntity = safesService.removeGroupFromSafe(token, safeGroup);
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
@@ -647,14 +702,133 @@ public class SafesServiceTest {
         when(ControllerUtil.isValidSafe(path, token)).thenReturn(true);
         when(reqProcessor.process("/auth/ldap/groups","{\"groupname\":\"mygroup01\"}",token)).thenReturn(userResponse);
         try {
-            when(ControllerUtil.getPoliciesAsStringFromJson(Mockito.any(), Mockito.any())).thenReturn("default,w_shared_mysafe01,w_shared_mysafe02");
+            when(ControllerUtil.getPoliciesAsStringFromJson(any(), any())).thenReturn("default,w_shared_mysafe01,w_shared_mysafe02");
         } catch (IOException e) {
             e.printStackTrace();
         }
-        when(ControllerUtil.configureLDAPGroup(Mockito.any(),Mockito.any(),Mockito.any())).thenReturn(responseNoContent);
-        when(ControllerUtil.updateMetadata(Mockito.any(),eq(token))).thenReturn(responseNotFound);
+        when(ControllerUtil.configureLDAPGroup(any(),any(),any())).thenReturn(responseNoContent);
+        when(ControllerUtil.updateMetadata(any(),eq(token))).thenReturn(responseNotFound);
 
         ResponseEntity<String> responseEntity = safesService.removeGroupFromSafe(token, safeGroup);
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, responseEntity.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntity);
+    }
+
+    @Test
+    public void test_addGroupToSafe_successfully() {
+        String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+        String path = "shared/mysafe01";
+        SafeGroup safeGroup = new SafeGroup("shared/mysafe01","mygroup01","read");
+        String jsonstr = "{  \"path\": \"shared/mysafe01\",  \"groupname\": \"mygroup01\",  \"access\": \"read\"}";
+        UserDetails userDetails = new UserDetails();
+        userDetails.setUsername("testuser1");
+
+        Response userResponse = getMockResponse(HttpStatus.OK, true, "{\"data\":{\"bound_cidrs\":[],\"max_ttl\":0,\"policies\":[\"default\",\"w_shared_mysafe01\",\"w_shared_mysafe02\"],\"ttl\":0,\"groups\":\"admin\"}}");
+        Response groupResponse = getMockResponse(HttpStatus.OK, true, "{\"data\":{\"bound_cidrs\":[],\"max_ttl\":0,\"policies\":[\"default\",\"w_shared_mysafe01\",\"w_shared_mysafe02\"],\"ttl\":0,\"groups\":\"admin\"}}");
+        Response idapConfigureResponse = getMockResponse(HttpStatus.NO_CONTENT, true, "{\"policies\":null}");
+        Response responseNoContent = getMockResponse(HttpStatus.NO_CONTENT, true, "");
+
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Group is successfully associated with Safe\"]}");
+
+        when(ControllerUtil.areSafeGroupInputsValid(safeGroup)).thenReturn(true);
+        when(JSONUtil.getJSON(safeGroup)).thenReturn(jsonstr);
+        when(ControllerUtil.canAddPermission(path, token)).thenReturn(true);
+        when(reqProcessor.process("/auth/ldap/groups","{\"groupname\":\"mygroup01\"}",token)).thenReturn(groupResponse);
+
+        try {
+            when(ControllerUtil.getPoliciesAsStringFromJson(any(), any())).thenReturn("default,w_shared_mysafe01,w_shared_mysafe02");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        when(ControllerUtil.configureLDAPGroup(any(),any(),eq(token))).thenReturn(idapConfigureResponse);
+        when(ControllerUtil.updateMetadata(any(),eq(token))).thenReturn(responseNoContent);
+
+        ResponseEntity<String> responseEntity = safesService.addGroupToSafe(token, safeGroup);
+        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntity);
+    }
+
+    @Test
+    public void test_addGroupToSafe_successfully_all_safes() {
+        String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+        String path = "shared/mysafe01";
+        SafeGroup safeGroup = new SafeGroup("shared/mysafe01","mygroup01","read");
+        String jsonstr = "{  \"path\": \"shared/mysafe01\",  \"groupname\": \"mygroup01\",  \"access\": \"read\"}";
+        UserDetails userDetails = new UserDetails();
+        userDetails.setUsername("testuser1");
+
+        Response userResponse = getMockResponse(HttpStatus.OK, true, "{\"data\":{\"bound_cidrs\":[],\"max_ttl\":0,\"policies\":[\"default\",\"w_shared_mysafe01\",\"w_shared_mysafe02\"],\"ttl\":0,\"groups\":\"admin\"}}");
+        Response groupResponse = getMockResponse(HttpStatus.OK, true, "{\"data\":{\"bound_cidrs\":[],\"max_ttl\":0,\"policies\":[\"default\",\"w_shared_mysafe01\",\"w_shared_mysafe02\"],\"ttl\":0,\"groups\":\"admin\"}}");
+        Response idapConfigureResponse = getMockResponse(HttpStatus.NO_CONTENT, true, "{\"policies\":null}");
+        Response responseNoContent = getMockResponse(HttpStatus.NO_CONTENT, true, "");
+        Response response_404 = getMockResponse(HttpStatus.NOT_FOUND, true, "");
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Group is successfully associated with Safe\"]}");
+
+        when(ControllerUtil.areSafeGroupInputsValid(safeGroup)).thenReturn(true);
+        when(JSONUtil.getJSON(safeGroup)).thenReturn(jsonstr);
+        when(ControllerUtil.canAddPermission(path, token)).thenReturn(true);
+        when(reqProcessor.process("/auth/ldap/groups","{\"groupname\":\"mygroup01\"}",token)).thenReturn(groupResponse);
+
+        try {
+            when(ControllerUtil.getPoliciesAsStringFromJson(any(), any())).thenReturn("default,w_shared_mysafe01,w_shared_mysafe02");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        when(ControllerUtil.configureLDAPGroup(any(),any(),eq(token))).thenReturn(idapConfigureResponse);
+
+        when(ControllerUtil.updateMetadata(any(),eq(token))).thenAnswer(new Answer() {
+            private int count = 0;
+
+            public Object answer(InvocationOnMock invocation) {
+                if (count++ == 1)
+                    return responseNoContent;
+
+                return response_404;
+            }
+        });
+        when(ControllerUtil.getSafeType(path)).thenReturn("shared");
+        when(ControllerUtil.getSafeName(path)).thenReturn("mysafe01");
+        when(ControllerUtil.getAllExistingSafeNames("shared", token)).thenReturn(Arrays.asList("mysafe02"));
+
+        ResponseEntity<String> responseEntity = safesService.addGroupToSafe(token, safeGroup);
+        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntity);
+    }
+
+    @Test
+    public void test_addGroupToSafe_failure() {
+        String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+        String path = "shared/mysafe01";
+        SafeGroup safeGroup = new SafeGroup("shared/mysafe01","mygroup01","read");
+        String jsonstr = "{  \"path\": \"shared/mysafe01\",  \"groupname\": \"mygroup01\",  \"access\": \"read\"}";
+        UserDetails userDetails = new UserDetails();
+        userDetails.setUsername("testuser1");
+
+        Response userResponse = getMockResponse(HttpStatus.OK, true, "{\"data\":{\"bound_cidrs\":[],\"max_ttl\":0,\"policies\":[\"default\",\"w_shared_mysafe01\",\"w_shared_mysafe02\"],\"ttl\":0,\"groups\":\"admin\"}}");
+        Response groupResponse = getMockResponse(HttpStatus.OK, true, "{\"data\":{\"bound_cidrs\":[],\"max_ttl\":0,\"policies\":[\"default\",\"w_shared_mysafe01\",\"w_shared_mysafe02\"],\"ttl\":0,\"groups\":\"admin\"}}");
+        Response idapConfigureResponse = getMockResponse(HttpStatus.NO_CONTENT, true, "{\"policies\":null}");
+        Response responseNoContent = getMockResponse(HttpStatus.NO_CONTENT, true, "");
+        Response response_404 = getMockResponse(HttpStatus.NOT_FOUND, true, "");
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"erros\":[\"Group configuration failed.Please try again\"]}");
+
+        when(ControllerUtil.areSafeGroupInputsValid(safeGroup)).thenReturn(true);
+        when(JSONUtil.getJSON(safeGroup)).thenReturn(jsonstr);
+        when(ControllerUtil.canAddPermission(path, token)).thenReturn(true);
+        when(reqProcessor.process("/auth/ldap/groups","{\"groupname\":\"mygroup01\"}",token)).thenReturn(groupResponse);
+
+        try {
+            when(ControllerUtil.getPoliciesAsStringFromJson(any(), any())).thenReturn("default,w_shared_mysafe01,w_shared_mysafe02");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        when(ControllerUtil.configureLDAPGroup(any(),any(),eq(token))).thenReturn(idapConfigureResponse);
+
+        when(ControllerUtil.updateMetadata(any(),eq(token))).thenReturn(response_404);
+        when(ControllerUtil.getSafeType(path)).thenReturn("shared");
+        when(ControllerUtil.getSafeName(path)).thenReturn("mysafe01");
+        when(ControllerUtil.getAllExistingSafeNames("shared", token)).thenReturn(Arrays.asList("mysafe02"));
+
+        ResponseEntity<String> responseEntity = safesService.addGroupToSafe(token, safeGroup);
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
     }
@@ -675,7 +849,7 @@ public class SafesServiceTest {
         when(ControllerUtil.isValidSafePath(path)).thenReturn(true);
         when(ControllerUtil.isValidSafe(path, token)).thenReturn(true);
         when(reqProcessor.process("/auth/ldap/groups","{\"groupname\":\"mygroup01\"}",token)).thenReturn(responseNotFound);
-        when(ControllerUtil.updateMetadata(Mockito.any(),eq(token))).thenReturn(responseNoContent);
+        when(ControllerUtil.updateMetadata(any(),eq(token))).thenReturn(responseNoContent);
 
         ResponseEntity<String> responseEntity = safesService.removeGroupFromSafe(token, safeGroup);
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
@@ -700,13 +874,13 @@ public class SafesServiceTest {
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Role is successfully associated \"]}");
 
         when(JSONUtil.getJSON(awsRole)).thenReturn(jsonStr);
-        when(ControllerUtil.areAWSRoleInputsValid(Mockito.any(Map.class))).thenReturn(true);
+        when(ControllerUtil.areAWSRoleInputsValid(any(Map.class))).thenReturn(true);
         when(ControllerUtil.canAddPermission(path, token)).thenReturn(true);
         when(ControllerUtil.isValidSafePath(path)).thenReturn(true);
         when(ControllerUtil.isValidSafe(path, token)).thenReturn(true);
         when(reqProcessor.process("/auth/aws/roles","{\"role\":\"iam\"}",token)).thenReturn(readResponse);
-        when(ControllerUtil.configureAWSIAMRole(eq("iam"),Mockito.any(),eq(token))).thenReturn(idapConfigureResponse);
-        when(ControllerUtil.updateMetadata(Mockito.any(),eq(token))).thenReturn(responseNoContent);
+        when(ControllerUtil.configureAWSIAMRole(eq("iam"),any(),eq(token))).thenReturn(idapConfigureResponse);
+        when(ControllerUtil.updateMetadata(any(),eq(token))).thenReturn(responseNoContent);
 
         ResponseEntity<String> responseEntity = safesService.addAwsRoleToSafe(token, awsRole);
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
@@ -731,13 +905,13 @@ public class SafesServiceTest {
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Role configuration failed.Try Again\"]}");
 
         when(JSONUtil.getJSON(awsRole)).thenReturn(jsonStr);
-        when(ControllerUtil.areAWSRoleInputsValid(Mockito.any(Map.class))).thenReturn(true);
+        when(ControllerUtil.areAWSRoleInputsValid(any(Map.class))).thenReturn(true);
         when(ControllerUtil.canAddPermission(path, token)).thenReturn(true);
         when(ControllerUtil.isValidSafePath(path)).thenReturn(true);
         when(ControllerUtil.isValidSafe(path, token)).thenReturn(true);
         when(reqProcessor.process("/auth/aws/roles","{\"role\":\"iam\"}",token)).thenReturn(readResponse);
-        when(ControllerUtil.configureAWSIAMRole(eq("iam"),Mockito.any(),eq(token))).thenReturn(responseNotFound);
-        when(ControllerUtil.updateMetadata(Mockito.any(),eq(token))).thenReturn(responseNoContent);
+        when(ControllerUtil.configureAWSIAMRole(eq("iam"),any(),eq(token))).thenReturn(responseNotFound);
+        when(ControllerUtil.updateMetadata(any(),eq(token))).thenReturn(responseNoContent);
 
         ResponseEntity<String> responseEntity = safesService.addAwsRoleToSafe(token, awsRole);
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, responseEntity.getStatusCode());
@@ -754,7 +928,7 @@ public class SafesServiceTest {
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid input values\"]}");
 
         when(JSONUtil.getJSON(awsRole)).thenReturn(jsonStr);
-        when(ControllerUtil.areAWSRoleInputsValid(Mockito.any(Map.class))).thenReturn(false);
+        when(ControllerUtil.areAWSRoleInputsValid(any(Map.class))).thenReturn(false);
         //when(ControllerUtil.canAddPermission(path, token)).thenReturn(true);
 
         ResponseEntity<String> responseEntity = safesService.addAwsRoleToSafe(token, awsRole);
@@ -782,12 +956,12 @@ public class SafesServiceTest {
         when(JSONUtil.getJSON(awsRole)).thenReturn(jsonStr);
         when(ControllerUtil.isValidSafePath(path)).thenReturn(true);
         when(ControllerUtil.isValidSafe(path, token)).thenReturn(true);
-        when(ControllerUtil.areAWSRoleInputsValid(Mockito.any(Map.class))).thenReturn(true);
+        when(ControllerUtil.areAWSRoleInputsValid(any(Map.class))).thenReturn(true);
         when(ControllerUtil.canAddPermission(path, token)).thenReturn(true);
         when(reqProcessor.process("/auth/aws/roles","{\"role\":\"iam\"}",token)).thenReturn(readResponse);
-        when(ControllerUtil.configureAWSIAMRole(eq("iam"),Mockito.any(),eq(token))).thenReturn(responseNoContent);
-        when(ControllerUtil.updateMetadata(Mockito.any(),eq(token))).thenReturn(responseNotFound);
-        when(ControllerUtil.configureAWSRole(Mockito.any(),Mockito.any(),eq(token))).thenReturn(responseNoContent);
+        when(ControllerUtil.configureAWSIAMRole(eq("iam"),any(),eq(token))).thenReturn(responseNoContent);
+        when(ControllerUtil.updateMetadata(any(),eq(token))).thenReturn(responseNotFound);
+        when(ControllerUtil.configureAWSRole(any(),any(),eq(token))).thenReturn(responseNoContent);
 
         ResponseEntity<String> responseEntity = safesService.addAwsRoleToSafe(token, awsRole);
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, responseEntity.getStatusCode());
@@ -809,7 +983,7 @@ public class SafesServiceTest {
         when(ControllerUtil.isValidSafePath(path)).thenReturn(true);
         when(ControllerUtil.isValidSafe(path, token)).thenReturn(true);
         when(reqProcessor.process("/auth/aws/roles/delete","{\"role\":\"iam\"}",token)).thenReturn(responseNoContent);
-        when(ControllerUtil.updateMetadata(Mockito.any(),eq(token))).thenReturn(responseNoContent);
+        when(ControllerUtil.updateMetadata(any(),eq(token))).thenReturn(responseNoContent);
 
         ResponseEntity<String> responseEntity = safesService.removeAWSRoleFromSafe(token, awsRole, false);
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
@@ -832,7 +1006,7 @@ public class SafesServiceTest {
         when(ControllerUtil.isValidSafePath(path)).thenReturn(true);
         when(ControllerUtil.isValidSafe(path, token)).thenReturn(true);
         when(reqProcessor.process("/auth/aws/roles/delete","{\"role\":\"iam\"}",token)).thenReturn(responseNoContent);
-        when(ControllerUtil.updateMetadata(Mockito.any(),eq(token))).thenReturn(responseNotFound);
+        when(ControllerUtil.updateMetadata(any(),eq(token))).thenReturn(responseNotFound);
 
         ResponseEntity<String> responseEntity = safesService.removeAWSRoleFromSafe(token, awsRole, false);
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, responseEntity.getStatusCode());
@@ -875,5 +1049,144 @@ public class SafesServiceTest {
         ResponseEntity<String> responseEntity = safesService.removeAWSRoleFromSafe(token, awsRole, false);
         assertEquals(HttpStatus.BAD_REQUEST, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
+    }
+
+    @Test
+    public void test_AssociateAppRole_succssfully() throws Exception {
+
+        Response response = getMockResponse(HttpStatus.OK, true, "");
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Approle :approle1 is successfully associated with SDB\"]}");
+        String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+        String jsonStr = "{\"role_name\":\"approle1\",\"path\":\"shared/mysafe01\",\"access\":\"write\"}";
+        Map<String, Object> requestMap = new ObjectMapper().readValue(jsonStr, new TypeReference<Map<String, Object>>(){});
+        Response configureAppRoleResponse = getMockResponse(HttpStatus.OK, true, "");
+        Response updateMetadataResponse = getMockResponse(HttpStatus.NO_CONTENT, true, "");
+
+        when(ControllerUtil.parseJson(Mockito.anyString())).thenReturn(requestMap);
+        when(reqProcessor.process(any(String.class),any(String.class),any(String.class))).thenReturn(response);
+        when(ControllerUtil.isValidSafePath(Mockito.anyString())).thenReturn(true);
+        when(ControllerUtil.isValidSafe(Mockito.anyString(), Mockito.anyString())).thenReturn(true);
+        when(ControllerUtil.configureApprole(Mockito.anyString(), Mockito.anyString(), Mockito.anyString())).thenReturn(configureAppRoleResponse);
+        when(ControllerUtil.areSafeAppRoleInputsValid(Mockito.anyMap())).thenReturn(true);
+        when(ControllerUtil.canAddPermission(Mockito.anyString(), Mockito.anyString())).thenReturn(true);
+        when(ControllerUtil.updateMetadata(Mockito.anyMap(),Mockito.anyString())).thenReturn(updateMetadataResponse);
+
+        ResponseEntity<String> responseEntityActual =  safesService.associateApproletoSDB(token, jsonStr);
+
+        assertEquals(HttpStatus.OK, responseEntityActual.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntityActual);
+
+    }
+
+    @Test
+    public void test_AssociateAppRole_succssfully_new_meta() throws Exception {
+
+        Response response = getMockResponse(HttpStatus.OK, true, "");
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Approle :approle1 is successfully associated with SDB\"]}");
+        String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+        String jsonStr = "{\"role_name\":\"approle1\",\"path\":\"shared/mysafe01\",\"access\":\"write\"}";
+        Map<String, Object> requestMap = new ObjectMapper().readValue(jsonStr, new TypeReference<Map<String, Object>>(){});
+        Response configureAppRoleResponse = getMockResponse(HttpStatus.OK, true, "");
+        Response updateMetadataResponse_404 = getMockResponse(HttpStatus.NOT_FOUND, true, "");
+        Response updateMetadataResponse = getMockResponse(HttpStatus.NO_CONTENT, true, "");
+
+        when(ControllerUtil.parseJson(Mockito.anyString())).thenReturn(requestMap);
+        when(reqProcessor.process(any(String.class),any(String.class),any(String.class))).thenReturn(response);
+        when(ControllerUtil.isValidSafePath(Mockito.anyString())).thenReturn(true);
+        when(ControllerUtil.isValidSafe(Mockito.anyString(), Mockito.anyString())).thenReturn(true);
+        when(ControllerUtil.configureApprole(Mockito.anyString(), Mockito.anyString(), Mockito.anyString())).thenReturn(configureAppRoleResponse);
+        when(ControllerUtil.areSafeAppRoleInputsValid(Mockito.anyMap())).thenReturn(true);
+        when(ControllerUtil.canAddPermission(Mockito.anyString(), Mockito.anyString())).thenReturn(true);
+
+        Map<String,String> params = new HashMap<String,String>();
+        params.put("type", "app-roles");
+        params.put("name","approle1");
+        params.put("path","shared/mysafe01");
+        params.put("access","write");
+
+        //when(ControllerUtil.updateMetadata(Mockito.anyMap(),eq(token))).thenReturn(updateMetadataResponse_404);
+        when(ControllerUtil.updateMetadata(Mockito.anyMap(),eq(token))).thenAnswer(new Answer() {
+            private int count = 0;
+
+            public Object answer(InvocationOnMock invocation) {
+                if (count++ == 1)
+                    return updateMetadataResponse;
+
+                return updateMetadataResponse_404;
+            }
+        });
+        when(ControllerUtil.getSafeType("shared/mysafe01")).thenReturn("shared");
+        when(ControllerUtil.getSafeName("shared/mysafe01")).thenReturn("mysafe01");
+        when(ControllerUtil.getAllExistingSafeNames("shared", token)).thenReturn(Arrays.asList("mysafe02"));
+
+        ResponseEntity<String> responseEntityActual =  safesService.associateApproletoSDB(token, jsonStr);
+
+        assertEquals(HttpStatus.OK, responseEntityActual.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntityActual);
+
+    }
+
+    @Test
+    public void test_AssociateAppRole_failed_configuration() throws Exception {
+
+        Response response = getMockResponse(HttpStatus.OK, true, "");
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Role configuration failed.Please try again\"]}");
+        String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+        String jsonStr = "{\"role_name\":\"approle1\",\"path\":\"shared/mysafe01\",\"access\":\"write\"}";
+        Map<String, Object> requestMap = new ObjectMapper().readValue(jsonStr, new TypeReference<Map<String, Object>>(){});
+        Response configureAppRoleResponse = getMockResponse(HttpStatus.NO_CONTENT, true, "");
+        Response updateMetadataResponse_404 = getMockResponse(HttpStatus.NOT_FOUND, true, "");
+        Response updateMetadataResponse = getMockResponse(HttpStatus.NO_CONTENT, true, "");
+
+        when(ControllerUtil.parseJson(Mockito.anyString())).thenReturn(requestMap);
+        when(reqProcessor.process(any(String.class),any(String.class),any(String.class))).thenReturn(response);
+        when(ControllerUtil.isValidSafePath(Mockito.anyString())).thenReturn(true);
+        when(ControllerUtil.isValidSafe(Mockito.anyString(), Mockito.anyString())).thenReturn(true);
+        when(ControllerUtil.configureApprole(Mockito.anyString(), Mockito.anyString(), Mockito.anyString())).thenReturn(configureAppRoleResponse);
+        when(ControllerUtil.areSafeAppRoleInputsValid(Mockito.anyMap())).thenReturn(true);
+        when(ControllerUtil.canAddPermission(Mockito.anyString(), Mockito.anyString())).thenReturn(true);
+
+        Map<String,String> params = new HashMap<String,String>();
+        params.put("type", "app-roles");
+        params.put("name","approle1");
+        params.put("path","shared/mysafe01");
+        params.put("access","write");
+
+        //when(ControllerUtil.updateMetadata(Mockito.anyMap(),eq(token))).thenReturn(updateMetadataResponse_404);
+        when(ControllerUtil.updateMetadata(Mockito.anyMap(),eq(token))).thenReturn(updateMetadataResponse_404);
+        when(ControllerUtil.getSafeType("shared/mysafe01")).thenReturn("shared");
+        when(ControllerUtil.getSafeName("shared/mysafe01")).thenReturn("mysafe01");
+        when(ControllerUtil.getAllExistingSafeNames("shared", token)).thenReturn(Arrays.asList("mysafe02"));
+        params.put("path","shared/mysafe02");
+        when(ControllerUtil.updateMetadata(params,token)).thenReturn(updateMetadataResponse);
+
+        ResponseEntity<String> responseEntityActual =  safesService.associateApproletoSDB(token, jsonStr);
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, responseEntityActual.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntityActual);
+    }
+
+    @Test
+    public void test_AssociateAppRole_failed() throws Exception {
+
+        Response response = getMockResponse(HttpStatus.OK, true, "");
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"messages\":[\"Approle :approle1 failed to be associated with SDB\"]}");
+        String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+        String jsonStr = "{\"role_name\":\"approle1\",\"path\":\"shared/mysafe01\",\"access\":\"write\"}";
+        Map<String, Object> requestMap = new ObjectMapper().readValue(jsonStr, new TypeReference<Map<String, Object>>(){});
+        Response configureAppRoleResponse = getMockResponse(HttpStatus.INTERNAL_SERVER_ERROR, true, "{\"errors\":[\"Internal server error\"]}");
+        Response updateMetadataResponse_404 = getMockResponse(HttpStatus.NOT_FOUND, true, "");
+        Response updateMetadataResponse = getMockResponse(HttpStatus.NO_CONTENT, true, "");
+
+        when(ControllerUtil.parseJson(Mockito.anyString())).thenReturn(requestMap);
+        when(reqProcessor.process(any(String.class),any(String.class),any(String.class))).thenReturn(response);
+        when(ControllerUtil.isValidSafePath(Mockito.anyString())).thenReturn(true);
+        when(ControllerUtil.isValidSafe(Mockito.anyString(), Mockito.anyString())).thenReturn(true);
+        when(ControllerUtil.configureApprole(Mockito.anyString(), Mockito.anyString(), Mockito.anyString())).thenReturn(configureAppRoleResponse);
+        when(ControllerUtil.areSafeAppRoleInputsValid(Mockito.anyMap())).thenReturn(true);
+        when(ControllerUtil.canAddPermission(Mockito.anyString(), Mockito.anyString())).thenReturn(true);
+
+        ResponseEntity<String> responseEntityActual =  safesService.associateApproletoSDB(token, jsonStr);
+        assertEquals(HttpStatus.BAD_REQUEST, responseEntityActual.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntityActual);
     }
 }

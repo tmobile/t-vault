@@ -1912,4 +1912,92 @@ public class  SafesService {
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"messages\":[\"Approle :" + approle + " failed to be associated with SDB.. Invalid Path specified\"]}");
 		}
 	}
+
+	public ResponseEntity<String> removeApproleFromSafe(String token, String jsonstr) {
+		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+				put(LogMessage.ACTION, "Delete Approle from Safe").
+				put(LogMessage.MESSAGE, String.format ("Trying to delete approle from SDB [%s]", jsonstr)).
+				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+				build()));
+		ObjectMapper objMapper = new ObjectMapper();
+		Map<String,String> requestMap = null;
+		try {
+			requestMap = objMapper.readValue(jsonstr, new TypeReference<Map<String,String>>() {});
+		} catch (IOException e) {
+			log.error(e);
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid request. please check the request json\"]}");
+		}
+
+		String role = requestMap.get("role_name");
+		String path = requestMap.get("path");
+		if(ControllerUtil.isValidSafePath(path) && ControllerUtil.isValidSafe(path, token)){
+			Map<String,String> params = new HashMap<>();
+			params.put("type", "app-roles");
+			params.put("name",role);
+			params.put("path",path);
+			params.put("access","delete");
+			Response metadataResponse = ControllerUtil.updateMetadata(params,token);
+			if(metadataResponse != null && HttpStatus.NO_CONTENT.equals(metadataResponse.getHttpstatus())){
+				log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+						put(LogMessage.ACTION, "Delete Approle from SDB").
+						put(LogMessage.MESSAGE, "Delete Approle from SDB success").
+						put(LogMessage.STATUS, metadataResponse.getHttpstatus().toString()).
+						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+						build()));
+				return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Role association is removed \"]}");
+			}else{
+				String safeType = ControllerUtil.getSafeType(path);
+				String safeName = ControllerUtil.getSafeName(path);
+				List<String> safeNames = ControllerUtil.getAllExistingSafeNames(safeType, token);
+				String newPath = path;
+				if (safeNames != null ) {
+
+					for (String existingSafeName: safeNames) {
+						if (existingSafeName.equalsIgnoreCase(safeName)) {
+							// It will come here when there is only one valid safe
+							newPath = safeType + "/" + existingSafeName;
+							break;
+						}
+					}
+
+				}
+				params.put("path",newPath);
+				metadataResponse = ControllerUtil.updateMetadata(params,token);
+				if(metadataResponse !=null && HttpStatus.NO_CONTENT.equals(metadataResponse.getHttpstatus())){
+					log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+							put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+							put(LogMessage.ACTION, "Delete Approle from SDB").
+							put(LogMessage.MESSAGE, "Delete Approle from SDB success").
+							put(LogMessage.STATUS, metadataResponse.getHttpstatus().toString()).
+							put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+							build()));
+					return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Role association is removed \"]}");
+				}
+				else {
+					log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+							put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+							put(LogMessage.ACTION, "Delete Approle from SDB").
+							put(LogMessage.MESSAGE, "Delete Approle from SDB failed").
+							put(LogMessage.RESPONSE, metadataResponse.getResponse()).
+							put(LogMessage.STATUS, metadataResponse.getHttpstatus().toString()).
+							put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+							build()));
+					return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Role configuration failed.Please try again\"]}");
+				}
+			}
+
+		}else{
+			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+					put(LogMessage.ACTION, "Delete Approle from SDB").
+					put(LogMessage.MESSAGE, "Delete Approle from SDB failed").
+					put(LogMessage.RESPONSE, "Invalid Path").
+					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+					build()));
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid 'path' specified\"]}");
+		}
+
+	}
 }

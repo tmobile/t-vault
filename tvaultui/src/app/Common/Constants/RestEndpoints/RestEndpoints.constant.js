@@ -128,11 +128,11 @@ readTextFile("../apiUrls.json");
             method: 'DELETE'
         }, {
             name: 'deleteAWSPermission',
-            url: '/v2/sdb/role',
+            url: '/v3/sdb/role',
             method: 'DELETE'
         }, { /* To remove the aws permission in edit*/
             name: 'detachAWSPermission',
-            url: '/v2/sdb/role',
+            url: '/v3/sdb/role',
             method: 'PUT'
         },{
             name: 'addUserPermission',
@@ -144,7 +144,7 @@ readTextFile("../apiUrls.json");
             method: 'POST'
         }, {
             name: 'addAWSPermission',
-            url: '/v2/sdb/role',
+            url: '/v3/sdb/role',
             method: 'POST'
         }, {
             name: 'getAwsConfigurationDetails',
@@ -171,6 +171,14 @@ readTextFile("../apiUrls.json");
             url: '/auth/aws/roles/update',
             method: 'POST'
         }, {
+            name: 'createAwsIAMRole',
+            url: '/v2/auth/aws/iam/role',
+            method: 'POST'
+        }, {
+            name: 'updateAwsIAMRole',
+            url: '/v2/auth/aws/iam/role',
+            method: 'PUT'
+        },{
             name: 'unseal',
             url: '/v2/unseal',
             method: 'POST'

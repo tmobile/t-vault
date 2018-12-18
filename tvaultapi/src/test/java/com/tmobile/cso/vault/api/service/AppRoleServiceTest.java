@@ -2,9 +2,11 @@ package com.tmobile.cso.vault.api.service;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.when;
 
 import java.lang.reflect.InvocationTargetException;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -18,6 +20,8 @@ import org.junit.runners.MethodSorters;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
@@ -81,10 +85,10 @@ public class AppRoleServiceTest {
     }
 
     @Test
-    @Ignore
     public void test_createAppRole_successfully() {
 
         Response response =getMockResponse(HttpStatus.NO_CONTENT, true, "");
+        Response responseList = getMockResponse(HttpStatus.OK, true, "{\"keys\": [ \"role1\" ]}");
         String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
         String [] policies = {"default"};
         AppRole appRole = new AppRole("approle1", policies, true, "1", "100m", 0);
@@ -92,6 +96,7 @@ public class AppRoleServiceTest {
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"AppRole created succssfully\"]}");
         
         when(reqProcessor.process("/auth/approle/role/create", jsonStr,token)).thenReturn(response);
+        when(reqProcessor.process("/auth/approle/role/list","{}",token)).thenReturn(responseList);
         when(ControllerUtil.areAppRoleInputsValid(appRole)).thenReturn(true);
         when(JSONUtil.getJSON(appRole)).thenReturn(jsonStr);
         when(ControllerUtil.convertAppRoleInputsToLowerCase(Mockito.any())).thenReturn(jsonStr);
@@ -124,11 +129,11 @@ public class AppRoleServiceTest {
     }
     
     @Test
-    @Ignore
     public void test_createAppRole_Failure_404() {
 
         String responseBody = "{\"errors\":[\"Invalid input values for AppRole creation\"]}";
         Response response =getMockResponse(HttpStatus.NOT_FOUND, true, responseBody);
+        Response responseList = getMockResponse(HttpStatus.OK, true, "{\"keys\": [ \"role1\" ]}");
         String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
         String [] policies = {"default"};
         AppRole appRole = new AppRole("", policies, true, "1", "100m", 0);
@@ -136,6 +141,7 @@ public class AppRoleServiceTest {
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.NOT_FOUND).body(responseBody);
         
         when(reqProcessor.process("/auth/approle/role/create", jsonStr,token)).thenReturn(response);
+        when(reqProcessor.process("/auth/approle/role/list","{}",token)).thenReturn(responseList);
         when(ControllerUtil.areAppRoleInputsValid(appRole)).thenReturn(true);
         when(JSONUtil.getJSON(appRole)).thenReturn(jsonStr);
         when(ControllerUtil.convertAppRoleInputsToLowerCase(Mockito.any())).thenReturn(jsonStr);
@@ -285,6 +291,119 @@ public class AppRoleServiceTest {
         assertEquals(HttpStatus.OK, responseEntityActual.getStatusCode());
         assertEquals(responseEntityExpected, responseEntityActual);
 
+    }
+
+    @Test
+    public void test_AssociateAppRole_succssfully_new_meta() throws Exception {
+
+        Response response = getMockResponse(HttpStatus.OK, true, "");
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Approle associated to SDB\"]}");
+        String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+        SafeAppRoleAccess safeAppRoleAccess = new SafeAppRoleAccess("approle1", "shared/mysafe01", "write");
+        String jsonStr = "{\"role_name\":\"approle1\",\"path\":\"shared/mysafe01\",\"access\":\"write\"}";
+        Map<String, Object> requestMap = new ObjectMapper().readValue(jsonStr, new TypeReference<Map<String, Object>>(){});
+        Response configureAppRoleResponse = getMockResponse(HttpStatus.OK, true, "");
+        Response updateMetadataResponse_404 = getMockResponse(HttpStatus.NOT_FOUND, true, "");
+        Response updateMetadataResponse = getMockResponse(HttpStatus.NO_CONTENT, true, "");
+
+        when(ControllerUtil.parseJson(Mockito.anyString())).thenReturn(requestMap);
+        when(reqProcessor.process(any(String.class),any(String.class),any(String.class))).thenReturn(response);
+        when(ControllerUtil.isValidSafePath(Mockito.anyString())).thenReturn(true);
+        when(ControllerUtil.isValidSafe(Mockito.anyString(), Mockito.anyString())).thenReturn(true);
+        when(ControllerUtil.configureApprole(Mockito.anyString(), Mockito.anyString(), Mockito.anyString())).thenReturn(configureAppRoleResponse);
+        when(ControllerUtil.areSafeAppRoleInputsValid(Mockito.anyMap())).thenReturn(true);
+        when(ControllerUtil.canAddPermission(Mockito.anyString(), Mockito.anyString())).thenReturn(true);
+
+        Map<String,String> params = new HashMap<String,String>();
+        params.put("type", "app-roles");
+        params.put("name","approle1");
+        params.put("path","shared/mysafe01");
+        params.put("access","write");
+
+        //when(ControllerUtil.updateMetadata(Mockito.anyMap(),eq(token))).thenReturn(updateMetadataResponse_404);
+        when(ControllerUtil.updateMetadata(Mockito.anyMap(),eq(token))).thenAnswer(new Answer() {
+            private int count = 0;
+
+            public Object answer(InvocationOnMock invocation) {
+                if (count++ == 1)
+                    return updateMetadataResponse;
+
+                return updateMetadataResponse_404;
+            }
+        });
+        when(ControllerUtil.getSafeType("shared/mysafe01")).thenReturn("shared");
+        when(ControllerUtil.getSafeName("shared/mysafe01")).thenReturn("mysafe01");
+        when(ControllerUtil.getAllExistingSafeNames("shared", token)).thenReturn(Arrays.asList("mysafe02"));
+
+        ResponseEntity<String> responseEntityActual =  appRoleService.associateApprole(token, safeAppRoleAccess);
+
+        assertEquals(HttpStatus.OK, responseEntityActual.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntityActual);
+
+    }
+
+    @Test
+    public void test_AssociateAppRole_failed_configuration() throws Exception {
+
+        Response response = getMockResponse(HttpStatus.OK, true, "");
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Role configuration failed.Contact Admin \"]}");
+        String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+        SafeAppRoleAccess safeAppRoleAccess = new SafeAppRoleAccess("approle1", "shared/mysafe01", "write");
+        String jsonStr = "{\"role_name\":\"approle1\",\"path\":\"shared/mysafe01\",\"access\":\"write\"}";
+        Map<String, Object> requestMap = new ObjectMapper().readValue(jsonStr, new TypeReference<Map<String, Object>>(){});
+        Response configureAppRoleResponse = getMockResponse(HttpStatus.NO_CONTENT, true, "");
+        Response updateMetadataResponse_404 = getMockResponse(HttpStatus.NOT_FOUND, true, "");
+        Response updateMetadataResponse = getMockResponse(HttpStatus.NO_CONTENT, true, "");
+
+        when(ControllerUtil.parseJson(Mockito.anyString())).thenReturn(requestMap);
+        when(reqProcessor.process(any(String.class),any(String.class),any(String.class))).thenReturn(response);
+        when(ControllerUtil.isValidSafePath(Mockito.anyString())).thenReturn(true);
+        when(ControllerUtil.isValidSafe(Mockito.anyString(), Mockito.anyString())).thenReturn(true);
+        when(ControllerUtil.configureApprole(Mockito.anyString(), Mockito.anyString(), Mockito.anyString())).thenReturn(configureAppRoleResponse);
+        when(ControllerUtil.areSafeAppRoleInputsValid(Mockito.anyMap())).thenReturn(true);
+        when(ControllerUtil.canAddPermission(Mockito.anyString(), Mockito.anyString())).thenReturn(true);
+
+        Map<String,String> params = new HashMap<String,String>();
+        params.put("type", "app-roles");
+        params.put("name","approle1");
+        params.put("path","shared/mysafe01");
+        params.put("access","write");
+
+        //when(ControllerUtil.updateMetadata(Mockito.anyMap(),eq(token))).thenReturn(updateMetadataResponse_404);
+        when(ControllerUtil.updateMetadata(Mockito.anyMap(),eq(token))).thenReturn(updateMetadataResponse_404);
+        when(ControllerUtil.getSafeType("shared/mysafe01")).thenReturn("shared");
+        when(ControllerUtil.getSafeName("shared/mysafe01")).thenReturn("mysafe01");
+        when(ControllerUtil.getAllExistingSafeNames("shared", token)).thenReturn(Arrays.asList("mysafe02"));
+        params.put("path","shared/mysafe02");
+        when(ControllerUtil.updateMetadata(params,token)).thenReturn(updateMetadataResponse);
+
+        ResponseEntity<String> responseEntityActual =  appRoleService.associateApprole(token, safeAppRoleAccess);
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, responseEntityActual.getStatusCode());
+    }
+
+    @Test
+    public void test_AssociateAppRole_failed() throws Exception {
+
+        Response response = getMockResponse(HttpStatus.OK, true, "");
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"messages\":[\"Approle :approle1 failed to be associated with SDB\"]}");
+        String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+        SafeAppRoleAccess safeAppRoleAccess = new SafeAppRoleAccess("approle1", "shared/mysafe01", "write");
+        String jsonStr = "{\"role_name\":\"approle1\",\"path\":\"shared/mysafe01\",\"access\":\"write\"}";
+        Map<String, Object> requestMap = new ObjectMapper().readValue(jsonStr, new TypeReference<Map<String, Object>>(){});
+        Response configureAppRoleResponse = getMockResponse(HttpStatus.INTERNAL_SERVER_ERROR, true, "{\"errors\":[\"Internal server error\"]}");
+        Response updateMetadataResponse_404 = getMockResponse(HttpStatus.NOT_FOUND, true, "");
+        Response updateMetadataResponse = getMockResponse(HttpStatus.NO_CONTENT, true, "");
+
+        when(ControllerUtil.parseJson(Mockito.anyString())).thenReturn(requestMap);
+        when(reqProcessor.process(any(String.class),any(String.class),any(String.class))).thenReturn(response);
+        when(ControllerUtil.isValidSafePath(Mockito.anyString())).thenReturn(true);
+        when(ControllerUtil.isValidSafe(Mockito.anyString(), Mockito.anyString())).thenReturn(true);
+        when(ControllerUtil.configureApprole(Mockito.anyString(), Mockito.anyString(), Mockito.anyString())).thenReturn(configureAppRoleResponse);
+        when(ControllerUtil.areSafeAppRoleInputsValid(Mockito.anyMap())).thenReturn(true);
+        when(ControllerUtil.canAddPermission(Mockito.anyString(), Mockito.anyString())).thenReturn(true);
+
+        ResponseEntity<String> responseEntityActual =  appRoleService.associateApprole(token, safeAppRoleAccess);
+        assertEquals(HttpStatus.BAD_REQUEST, responseEntityActual.getStatusCode());
     }
 
     @Test

@@ -25,6 +25,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.eq;
@@ -200,13 +202,12 @@ public class SelfSupportServiceTest {
         SafeUser safeUser = new SafeUser(path, "testuser1","write");
         UserDetails userDetails = getMockUser(true);
 
-        ResponseEntity<String> response = ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Can't add user. Possible reasons: Invalid path specified, 2. Changing access/permission of safe owner is not allowed\"]}");
-        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Can't add user. Possible reasons: Invalid path specified, 2. Changing access/permission of safe owner is not allowed\"]}");
+        ResponseEntity<String> response = ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Can't add user. Possible reasons: Invalid path specified, 2. Changing access/permission of safe owner is not allowed, 3. Safeowner/safeadmin have are authorized to change permission of safe\"]}");
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Can't add user. Possible reasons: Invalid path specified, 2. Changing access/permission of safe owner is not allowed, 3. Safeowner/safeadmin have are authorized to change permission of safe\"]}");
 
         when(safeUtils.canAddOrRemoveUser(userDetails, safeUser, "addUser")).thenReturn(false);
         when(safesService.addUserToSafe(token, safeUser, userDetails)).thenReturn(response);
-        when(safeUtils.canAddOrRemoveUser(userDetails, safeUser, "addUser")).thenReturn(true);
-        
+
         ResponseEntity<String> responseEntity = selfSupportService.addUserToSafe(userDetails, token, safeUser);
         assertEquals(HttpStatus.BAD_REQUEST, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
@@ -224,7 +225,7 @@ public class SelfSupportServiceTest {
 
         when(safesService.removeUserFromSafe(token, safeUser)).thenReturn(response);
         when(safeUtils.canAddOrRemoveUser(userDetails, safeUser, "removeUser")).thenReturn(true);
-        
+
         ResponseEntity<String> responseEntity = selfSupportService.removeUserFromSafe(userDetails, token, safeUser);
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
@@ -242,7 +243,7 @@ public class SelfSupportServiceTest {
 
         when(safesService.removeUserFromSafe(token, safeUser)).thenReturn(response);
         when(safeUtils.canAddOrRemoveUser(userDetails, safeUser, "removeUser")).thenReturn(true);
-        
+
         ResponseEntity<String> responseEntity = selfSupportService.removeUserFromSafe(userDetails, token, safeUser);
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
@@ -396,6 +397,22 @@ public class SelfSupportServiceTest {
     }
 
     @Test
+    public void test_updateSafe_failure_403() {
+        String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+        UserDetails userDetails = getMockUser(false);
+        SafeBasicDetails safeBasicDetails = new SafeBasicDetails("mysafe01", "youremail@yourcompany.com", null, "My first safe");
+        Safe safe = new Safe("shared/mysafe01",safeBasicDetails);
+
+        ResponseEntity<String> readResponse = ResponseEntity.status(HttpStatus.FORBIDDEN).body("{\"errors\":[\"Access denied: no permission to update this safe\"]}");
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.FORBIDDEN).body("{\"errors\":[\"Access denied: no permission to update this safe\"]}");
+
+        mockIsAuthorized(userDetails, false);
+        ResponseEntity<String> responseEntity = selfSupportService.updateSafe(userDetails, token, safe);
+        assertEquals(HttpStatus.FORBIDDEN, responseEntity.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntity);
+    }
+
+    @Test
     public void test_deleteSafe_successfully() {
         String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
         String path = "shared/mysafe01";
@@ -420,6 +437,19 @@ public class SelfSupportServiceTest {
 
         ResponseEntity<String> responseEntity = selfSupportService.deletefolder(userDetails, token, path);
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntity);
+    }
+
+    @Test
+    public void test_deleteSafe_failure_403() {
+        String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+        String path = "shared/mysafe01";
+        UserDetails userDetails = getMockUser(false);
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.FORBIDDEN).body("{\"errors\":[\"Access denied: no permission to delete this safe\"]}");
+
+        mockIsAuthorized(userDetails, false);
+        ResponseEntity<String> responseEntity = selfSupportService.deletefolder(userDetails, token, path);
+        assertEquals(HttpStatus.FORBIDDEN, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
     }
 
@@ -557,6 +587,265 @@ public class SelfSupportServiceTest {
         when(safesService.removeGroupFromSafe(token, safeGroup)).thenReturn(response);
         ResponseEntity<String> responseEntity = selfSupportService.removeGroupFromSafe(userDetails, token, safeGroup);
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntity);
+    }
+
+    @Test
+    public void test_addAwsRoleToSafe_successfully() {
+        String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+        UserDetails userDetails = getMockUser(false);
+        AWSRole awsRole = new AWSRole("shared/mysafe01","ec2","read");
+
+        ResponseEntity<String> response = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Role is successfully associated \"]}");
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Role is successfully associated \"]}");
+
+        when(safesService.addAwsRoleToSafe(token, awsRole)).thenReturn(response);
+        mockIsAuthorized(userDetails, true);
+
+        ResponseEntity<String> responseEntity = selfSupportService.addAwsRoleToSafe(userDetails, token, awsRole);
+        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntity);
+    }
+
+    @Test
+    public void test_addAwsRoleToSafe_failure_403() {
+        String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+        UserDetails userDetails = getMockUser(false);
+        AWSRole awsRole = new AWSRole("shared/mysafe01","ec2","read");
+
+        ResponseEntity<String> response = ResponseEntity.status(HttpStatus.FORBIDDEN).body("{\"errors\":[\"Access denied: no permission to add AWS role to the safe\"]}");
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.FORBIDDEN).body("{\"errors\":[\"Access denied: no permission to add AWS role to the safe\"]}");
+
+        when(safesService.addAwsRoleToSafe(token, awsRole)).thenReturn(response);
+        mockIsAuthorized(userDetails, false);
+
+
+        ResponseEntity<String> responseEntity = selfSupportService.addAwsRoleToSafe(userDetails, token, awsRole);
+        assertEquals(HttpStatus.FORBIDDEN, responseEntity.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntity);
+    }
+
+    @Test
+    public void test_addAwsRoleToSafe_successfully_isAdmin() {
+        String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+        UserDetails userDetails = getMockUser(true);
+        AWSRole awsRole = new AWSRole("shared/mysafe01","ec2","read");
+
+        ResponseEntity<String> response = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Role is successfully associated \"]}");
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Role is successfully associated \"]}");
+
+        when(safesService.addAwsRoleToSafe(token, awsRole)).thenReturn(response);
+        ResponseEntity<String> responseEntity = selfSupportService.addAwsRoleToSafe(userDetails, token, awsRole);
+        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntity);
+    }
+
+    @Test
+    public void test_removeAWSRoleFromSafe_successfully() {
+        String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+        UserDetails userDetails = getMockUser(false);
+        AWSRole awsRole = new AWSRole("shared/mysafe01","ec2","read");
+
+        ResponseEntity<String> response = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Role association is removed \"]}");
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Role association is removed \"]}");
+
+        when(safesService.removeAWSRoleFromSafe(token, awsRole, false)).thenReturn(response);
+        mockIsAuthorized(userDetails, true);
+
+        ResponseEntity<String> responseEntity = selfSupportService.removeAWSRoleFromSafe(userDetails, token, awsRole, false);
+        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntity);
+    }
+
+    @Test
+    public void test_removeAWSRoleFromSafe_failure_403() {
+        String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+        UserDetails userDetails = getMockUser(false);
+        AWSRole awsRole = new AWSRole("shared/mysafe01","ec2","read");
+
+        ResponseEntity<String> response = ResponseEntity.status(HttpStatus.FORBIDDEN).body("{\"errors\":[\"Access denied: no permission to remove AWS role from the safe\"]}");
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.FORBIDDEN).body("{\"errors\":[\"Access denied: no permission to remove AWS role from the safe\"]}");
+
+        when(safesService.removeAWSRoleFromSafe(token, awsRole, false)).thenReturn(response);
+        mockIsAuthorized(userDetails, false);
+
+        ResponseEntity<String> responseEntity = selfSupportService.removeAWSRoleFromSafe(userDetails, token, awsRole, false);
+        assertEquals(HttpStatus.FORBIDDEN, responseEntity.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntity);
+    }
+
+    @Test
+    public void test_removeAWSRoleFromSafe_successfully_admin() {
+        String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+        UserDetails userDetails = getMockUser(true);
+        AWSRole awsRole = new AWSRole("shared/mysafe01","ec2","read");
+
+        ResponseEntity<String> response = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Role association is removed \"]}");
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Role association is removed \"]}");
+
+        when(safesService.removeAWSRoleFromSafe(token, awsRole, true)).thenReturn(response);
+
+        ResponseEntity<String> responseEntity = selfSupportService.removeAWSRoleFromSafe(userDetails, token, awsRole, true);
+        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntity);
+    }
+
+    @Test
+    public void test_associateApproletoSDB_successfully() {
+        String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+        UserDetails userDetails = getMockUser(false);
+        String jsonStr = "{\"role_name\":\"approle1\",\"path\":\"shared/mysafe01\",\"access\":\"write\"}";
+
+        ResponseEntity<String> response = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Approle :approle1 is successfully associated with SDB\"]}");
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Approle :approle1 is successfully associated with SDB\"]}");
+
+        when(safesService.associateApproletoSDB(token, jsonStr)).thenReturn(response);
+        mockIsAuthorized(userDetails, true);
+        Map<String,Object> requestMap = new HashMap<>();
+        requestMap.put("path", "shared/mysafe01");
+        requestMap.put("role_name", "aprole1");
+        requestMap.put("access", "write");
+        when(ControllerUtil.parseJson(jsonStr)).thenReturn(requestMap);
+        when(ControllerUtil.areSafeAppRoleInputsValid(requestMap)).thenReturn(true);
+        ResponseEntity<String> responseEntity = selfSupportService.associateApproletoSDB(userDetails, token, jsonStr);
+        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntity);
+    }
+
+    @Test
+    public void test_associateApproletoSDB_successfully_admin() {
+        String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+        UserDetails userDetails = getMockUser(true);
+        String jsonStr = "{\"role_name\":\"approle1\",\"path\":\"shared/mysafe01\",\"access\":\"write\"}";
+
+        ResponseEntity<String> response = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Approle :approle1 is successfully associated with SDB\"]}");
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Approle :approle1 is successfully associated with SDB\"]}");
+
+        when(safesService.associateApproletoSDB(token, jsonStr)).thenReturn(response);
+
+        ResponseEntity<String> responseEntity = selfSupportService.associateApproletoSDB(userDetails, token, jsonStr);
+        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntity);
+    }
+
+    @Test
+    public void test_associateApproletoSDB_failure_403() {
+        String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+        UserDetails userDetails = getMockUser(false);
+        String jsonStr = "{\"role_name\":\"approle1\",\"path\":\"shared/mysafe01\",\"access\":\"write\"}";
+
+        ResponseEntity<String> response = ResponseEntity.status(HttpStatus.FORBIDDEN).body("{\"errors\":[\"Access denied: no permission to add Approle to the safe\"]}");
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.FORBIDDEN).body("{\"errors\":[\"Access denied: no permission to add Approle to the safe\"]}");
+
+        when(safesService.associateApproletoSDB(token, jsonStr)).thenReturn(response);
+        mockIsAuthorized(userDetails, false);
+        Map<String,Object> requestMap = new HashMap<>();
+        requestMap.put("path", "shared/mysafe01");
+        requestMap.put("role_name", "aprole1");
+        requestMap.put("access", "write");
+        when(ControllerUtil.parseJson(jsonStr)).thenReturn(requestMap);
+        when(ControllerUtil.areSafeAppRoleInputsValid(requestMap)).thenReturn(true);
+        ResponseEntity<String> responseEntity = selfSupportService.associateApproletoSDB(userDetails, token, jsonStr);
+        assertEquals(HttpStatus.FORBIDDEN, responseEntity.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntity);
+    }
+
+    @Test
+    public void test_associateApproletoSDB_failure_400() {
+        String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+        UserDetails userDetails = getMockUser(false);
+        String jsonStr = "{\"role_name\":\"approle1\",\"path\":\"shared/mysafe01\",\"access\":\"write\"}";
+
+        ResponseEntity<String> response = ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid input values\"]}");
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid input values\"]}");
+
+        when(safesService.associateApproletoSDB(token, jsonStr)).thenReturn(response);
+        Map<String,Object> requestMap = new HashMap<>();
+        requestMap.put("path", "shared/mysafe01");
+        requestMap.put("role_name", "aprole1");
+        requestMap.put("access", "write");
+        when(ControllerUtil.parseJson(jsonStr)).thenReturn(requestMap);
+        when(ControllerUtil.areSafeAppRoleInputsValid(requestMap)).thenReturn(false);
+        ResponseEntity<String> responseEntity = selfSupportService.associateApproletoSDB(userDetails, token, jsonStr);
+        assertEquals(HttpStatus.BAD_REQUEST, responseEntity.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntity);
+    }
+
+    @Test
+    public void test_deleteApproleFromSDB_successfully() {
+        String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+        UserDetails userDetails = getMockUser(false);
+        String jsonStr = "{\"role_name\":\"approle1\",\"path\":\"shared/mysafe01\",\"access\":\"write\"}";
+
+        ResponseEntity<String> response = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Role association is removed \"]}");
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Role association is removed \"]}");
+
+        when(safesService.removeApproleFromSafe(token, jsonStr)).thenReturn(response);
+        mockIsAuthorized(userDetails, true);
+        Map<String,Object> requestMap = new HashMap<>();
+        requestMap.put("path", "shared/mysafe01");
+        requestMap.put("role_name", "aprole1");
+        requestMap.put("access", "write");
+        when(ControllerUtil.parseJson(jsonStr)).thenReturn(requestMap);
+        when(ControllerUtil.areSafeAppRoleInputsValid(requestMap)).thenReturn(true);
+        ResponseEntity<String> responseEntity = selfSupportService.deleteApproleFromSDB(userDetails, token, jsonStr);
+        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntity);
+    }
+
+    @Test
+    public void test_deleteApproleFromSDB_successfully_admin() {
+        String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+        UserDetails userDetails = getMockUser(true);
+        String jsonStr = "{\"role_name\":\"approle1\",\"path\":\"shared/mysafe01\",\"access\":\"write\"}";
+
+        ResponseEntity<String> response = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Role association is removed \"]}");
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Role association is removed \"]}");
+
+        when(safesService.removeApproleFromSafe(token, jsonStr)).thenReturn(response);
+        ResponseEntity<String> responseEntity = selfSupportService.deleteApproleFromSDB(userDetails, token, jsonStr);
+        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntity);
+    }
+
+    @Test
+    public void test_deleteApproleFromSDB_failure_403() {
+        String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+        UserDetails userDetails = getMockUser(false);
+        String jsonStr = "{\"role_name\":\"approle1\",\"path\":\"shared/mysafe01\",\"access\":\"write\"}";
+
+        ResponseEntity<String> response = ResponseEntity.status(HttpStatus.FORBIDDEN).body("{\"errors\":[\"Access denied: no permission to remove approle from the safe\"]}");
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.FORBIDDEN).body("{\"errors\":[\"Access denied: no permission to remove approle from the safe\"]}");
+
+        mockIsAuthorized(userDetails, false);
+        Map<String,Object> requestMap = new HashMap<>();
+        requestMap.put("path", "shared/mysafe01");
+        requestMap.put("role_name", "aprole1");
+        requestMap.put("access", "write");
+        when(ControllerUtil.parseJson(jsonStr)).thenReturn(requestMap);
+        when(ControllerUtil.areSafeAppRoleInputsValid(requestMap)).thenReturn(true);
+        ResponseEntity<String> responseEntity = selfSupportService.deleteApproleFromSDB(userDetails, token, jsonStr);
+        assertEquals(HttpStatus.FORBIDDEN, responseEntity.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntity);
+    }
+
+    @Test
+    public void test_deleteApproleFromSDB_failure_400() {
+        String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+        UserDetails userDetails = getMockUser(false);
+        String jsonStr = "{\"role_name\":\"approle1\",\"path\":\"shared/mysafe01\",\"access\":\"write\"}";
+
+        ResponseEntity<String> response = ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid input values\"]}");
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid input values\"]}");
+
+        Map<String,Object> requestMap = new HashMap<>();
+        requestMap.put("path", "shared/mysafe01");
+        requestMap.put("role_name", "aprole1");
+        requestMap.put("access", "write");
+        when(ControllerUtil.parseJson(jsonStr)).thenReturn(requestMap);
+        when(ControllerUtil.areSafeAppRoleInputsValid(requestMap)).thenReturn(false);
+        ResponseEntity<String> responseEntity = selfSupportService.deleteApproleFromSDB(userDetails, token, jsonStr);
+        assertEquals(HttpStatus.BAD_REQUEST, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
     }
 }
