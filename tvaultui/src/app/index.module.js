@@ -123,7 +123,8 @@
         'vault.directives.folderContentsTable',
         'vault.directives.folderContentsRow',
         'vault.directives.searchbar',
-        'vault.directives.restrictSecretSpecialChar'
+        'vault.directives.restrictSecretSpecialChar',
+        'vault.directives.restrictArnSpecialChar'
     ]);
 
     angular.module( 'vault.factories', [
