@@ -63,15 +63,15 @@ script(type='text/ng-template', id='changeSafePopup.html')
                 .col-lg-6.col-md-6.col-sm-12.col-xs-12.common-form-row
                   .details-input-group
                     .common-form-label Instance Profile ARN
-                    input.form-control.input-box-style(value="{{awsConfPopupObj.bound_iam_instance_profile_arn}}" id="bound_iam_instance_profile_arn" restrict-special-char placeholder="Instance Profile ARN" ng-model="awsConfPopupObj.bound_iam_instance_profile_arn")
+                    input.form-control.input-box-style(value="{{awsConfPopupObj.bound_iam_instance_profile_arn}}" id="bound_iam_instance_profile_arn" restrict-arn-special-char placeholder="Instance Profile ARN" ng-model="awsConfPopupObj.bound_iam_instance_profile_arn")
                 .col-lg-6.col-md-6.col-sm-12.col-xs-12.common-form-row
                   .details-input-group
                     .common-form-label IAM Role ARN
-                    input.form-control.input-box-style(value="{{awsConfPopupObj.bound_iam_role_arn}}" id="bound_iam_role_arn" restrict-special-char  placeholder="IAM Role ARN" ng-model="awsConfPopupObj.bound_iam_role_arn")
+                    input.form-control.input-box-style(value="{{awsConfPopupObj.bound_iam_role_arn}}" id="bound_iam_role_arn" restrict-arn-special-char placeholder="IAM Role ARN" ng-model="awsConfPopupObj.bound_iam_role_arn")
                 .col-lg-6.col-md-6.col-sm-12.col-xs-12.common-form-row
                   .details-input-group
                     .common-form-label IAM Principal ARN
-                    input.form-control.input-box-style(value="{{awsConfPopupObj.bound_iam_principal_arn}}" id="bound_iam_principal_arn" restrict-special-char  placeholder="IAM Principal ARN" ng-model="awsConfPopupObj.bound_iam_principal_arn")
+                    input.form-control.input-box-style(value="{{awsConfPopupObj.bound_iam_principal_arn}}" id="bound_iam_principal_arn" restrict-arn-special-char placeholder="IAM Principal ARN" ng-model="awsConfPopupObj.bound_iam_principal_arn")
                 
               .aws.common-form
                 .common-form-row

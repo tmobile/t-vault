@@ -916,6 +916,7 @@
                     if ($scope.awsConfPopupObj.role !== null && $scope.awsConfPopupObj.role !== undefined) {
                         $scope.awsConfPopupObj.role = UtilityService.formatName($scope.awsConfPopupObj.role);
                     }
+                    var updatedUrlOfEndPoint = "";
                     switch (type) {
                         case 'users' :
                             apiCallFunction = AdminSafesManagement.addUserPermissionForSafe;
@@ -934,15 +935,18 @@
                             if ($scope.editingAwsPermission.status == true) {
                                 if ($scope.awsConfPopupObj.auth_type === 'ec2') {
                                     apiCallFunction = AdminSafesManagement.updateAWSRole;
+                                    updatedUrlOfEndPoint = ModifyUrl.addUrlParameteres('updateAwsRole',"path="+setPath);
                                 }
                                 else {
                                     apiCallFunction = AdminSafesManagement.updateAWSIAMRole;
+                                    updatedUrlOfEndPoint = ModifyUrl.addUrlParameteres('updateAwsIAMRole',"path="+setPath);
                                 }
                             } else {
                                 // Validate the input here if requried...
                                 if ($scope.awsConfPopupObj.auth_type === 'ec2') {
                                     $scope.awsConfPopupObj.bound_iam_principal_arn = "";
                                     apiCallFunction = AdminSafesManagement.addAWSRole;
+                                    updatedUrlOfEndPoint = ModifyUrl.addUrlParameteres('createAwsRole',"path="+setPath);
                                 }
                                 else {
                                     $scope.awsConfPopupObj['policies'] = [];
@@ -957,13 +961,14 @@
                                     arn.push($scope.awsConfPopupObj.bound_iam_principal_arn);
                                     $scope.awsConfPopupObj.bound_iam_principal_arn = arn;
                                     apiCallFunction = AdminSafesManagement.addAWSIAMRole;
+                                    updatedUrlOfEndPoint = ModifyUrl.addUrlParameteres('createAwsIAMRole',"path="+setPath);
                                 }
                                // apiCallFunction = AdminSafesManagement.addAWSRole;
                             }
                             reqObjtobeSent = $scope.awsConfPopupObj
                             break;
                     }
-                    apiCallFunction(reqObjtobeSent).then(function (response) {
+                    apiCallFunction(reqObjtobeSent, updatedUrlOfEndPoint).then(function (response) {
                             if (UtilityService.ifAPIRequestSuccessful(response)) {
                                 // Try-Catch block to catch errors if there is any change in object structure in the response
                                 try {

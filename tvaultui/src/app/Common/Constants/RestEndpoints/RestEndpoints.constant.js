@@ -164,7 +164,7 @@ readTextFile("../apiUrls.json");
             method: 'GET'
         }, {
             name: 'createAwsRole',
-            url: '/v2/auth/aws/role',
+            url: '/v3/auth/aws/role?',
             method: 'POST'
         }, {
             name: 'updateAwsRole',
@@ -172,7 +172,7 @@ readTextFile("../apiUrls.json");
             method: 'POST'
         }, {
             name: 'createAwsIAMRole',
-            url: '/v2/auth/aws/iam/role',
+            url: '/v3/auth/aws/iam/role?',
             method: 'POST'
         }, {
             name: 'updateAwsIAMRole',

@@ -1,6 +1,7 @@
 package com.tmobile.cso.vault.api.service;
 
 import com.tmobile.cso.vault.api.controller.ControllerUtil;
+import com.tmobile.cso.vault.api.exception.TVaultValidationException;
 import com.tmobile.cso.vault.api.model.*;
 import com.tmobile.cso.vault.api.utils.AuthorizationUtils;
 import com.tmobile.cso.vault.api.utils.JSONUtil;
@@ -56,6 +57,12 @@ public class SelfSupportServiceTest {
 
     @Mock
     VaultAuthService vaultAuthService;
+
+    @Mock
+    AWSAuthService awsAuthService;
+
+    @Mock
+    AWSIAMAuthService awsiamAuthService;
 
     @Before
     public void setUp() {
@@ -846,6 +853,176 @@ public class SelfSupportServiceTest {
         when(ControllerUtil.areSafeAppRoleInputsValid(requestMap)).thenReturn(false);
         ResponseEntity<String> responseEntity = selfSupportService.deleteApproleFromSDB(userDetails, token, jsonStr);
         assertEquals(HttpStatus.BAD_REQUEST, responseEntity.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntity);
+    }
+
+    @Test
+    public void test_createRole_successfully() throws TVaultValidationException {
+        String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+        UserDetails userDetails = getMockUser(false);
+        AWSLoginRole awsLoginRole = new AWSLoginRole("ec2", "mytestawsrole", "ami-fce3c696",
+                "1234567890123", "us-east-2", "vpc-2f09a348", "subnet-1122aabb",
+                "arn:aws:iam::8987887:role/test-role", "arn:aws:iam::877677878:instance-profile/exampleinstanceprofile",
+                "\"[prod, dev\"]");
+
+        ResponseEntity<String> response = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"AWS Role created \"]}");
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"AWS Role created \"]}");
+
+        when(awsAuthService.createRole(token, awsLoginRole)).thenReturn(response);
+        mockIsAuthorized(userDetails, true);
+
+        ResponseEntity<String> responseEntity = selfSupportService.createRole(userDetails, token, awsLoginRole,"shared/mysafe01");
+        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntity);
+    }
+
+    @Test
+    public void test_createRole_successfully_admin() throws TVaultValidationException {
+        String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+        UserDetails userDetails = getMockUser(true);
+        AWSLoginRole awsLoginRole = new AWSLoginRole("ec2", "mytestawsrole", "ami-fce3c696",
+                "1234567890123", "us-east-2", "vpc-2f09a348", "subnet-1122aabb",
+                "arn:aws:iam::8987887:role/test-role", "arn:aws:iam::877677878:instance-profile/exampleinstanceprofile",
+                "\"[prod, dev\"]");
+
+        ResponseEntity<String> response = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"AWS Role created \"]}");
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"AWS Role created \"]}");
+
+        when(awsAuthService.createRole(token, awsLoginRole)).thenReturn(response);
+        ResponseEntity<String> responseEntity = selfSupportService.createRole(userDetails, token, awsLoginRole,"shared/mysafe01");
+        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntity);
+    }
+
+    @Test
+    public void test_updateRole_successfully() throws TVaultValidationException {
+        String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+        UserDetails userDetails = getMockUser(false);
+        AWSLoginRole awsLoginRole = new AWSLoginRole("ec2", "mytestawsrole", "ami-fce3c696",
+                "1234567890123", "us-east-2", "vpc-2f09a348", "subnet-1122aabb",
+                "arn:aws:iam::8987887:role/test-role", "arn:aws:iam::877677878:instance-profile/exampleinstanceprofile",
+                "\"[prod, dev\"]");
+
+        ResponseEntity<String> response = ResponseEntity.status(HttpStatus.OK).body("{ \"messages\": [\"AWS Role updated \"]}");
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body("{ \"messages\": [\"AWS Role updated \"]}");
+
+        when(awsAuthService.updateRole(token, awsLoginRole)).thenReturn(response);
+        mockIsAuthorized(userDetails, true);
+
+        ResponseEntity<String> responseEntity = selfSupportService.updateRole(userDetails, token, awsLoginRole,"shared/mysafe01");
+        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntity);
+    }
+
+    @Test
+    public void test_updateRole_successfully_admin() throws TVaultValidationException {
+        String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+        UserDetails userDetails = getMockUser(true);
+        AWSLoginRole awsLoginRole = new AWSLoginRole("ec2", "mytestawsrole", "ami-fce3c696",
+                "1234567890123", "us-east-2", "vpc-2f09a348", "subnet-1122aabb",
+                "arn:aws:iam::8987887:role/test-role", "arn:aws:iam::877677878:instance-profile/exampleinstanceprofile",
+                "\"[prod, dev\"]");
+
+        ResponseEntity<String> response = ResponseEntity.status(HttpStatus.OK).body("{ \"messages\": [\"AWS Role updated \"]}");
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body("{ \"messages\": [\"AWS Role updated \"]}");
+
+        when(awsAuthService.updateRole(token, awsLoginRole)).thenReturn(response);
+        ResponseEntity<String> responseEntity = selfSupportService.updateRole(userDetails, token, awsLoginRole,"shared/mysafe01");
+        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntity);
+    }
+
+    @Test
+    public void test_createIAMRole_successfully() throws TVaultValidationException {
+        String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+        UserDetails userDetails = getMockUser(false);
+        AWSIAMRole awsiamRole = new AWSIAMRole();
+        awsiamRole.setAuth_type("iam");
+        String[] arns = {"arn:aws:iam::123456789012:user/tst"};
+        awsiamRole.setBound_iam_principal_arn(arns);
+        String[] policies = {"default"};
+        awsiamRole.setPolicies(policies);
+        awsiamRole.setResolve_aws_unique_ids(true);
+        awsiamRole.setRole("string");
+
+        ResponseEntity<String> response = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"AWS IAM Role created successfully \"]}");
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"AWS IAM Role created successfully \"]}");
+
+        when(awsiamAuthService.createIAMRole(awsiamRole, token)).thenReturn(response);
+        mockIsAuthorized(userDetails, true);
+
+        ResponseEntity<String> responseEntity = selfSupportService.createIAMRole(userDetails, token, awsiamRole,"shared/mysafe01");
+        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntity);
+    }
+
+    @Test
+    public void test_createIAMRole_successfully_admin() throws TVaultValidationException {
+        String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+        UserDetails userDetails = getMockUser(true);
+        AWSIAMRole awsiamRole = new AWSIAMRole();
+        awsiamRole.setAuth_type("iam");
+        String[] arns = {"arn:aws:iam::123456789012:user/tst"};
+        awsiamRole.setBound_iam_principal_arn(arns);
+        String[] policies = {"default"};
+        awsiamRole.setPolicies(policies);
+        awsiamRole.setResolve_aws_unique_ids(true);
+        awsiamRole.setRole("string");
+
+        ResponseEntity<String> response = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"AWS IAM Role created successfully \"]}");
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"AWS IAM Role created successfully \"]}");
+
+        when(awsiamAuthService.createIAMRole(awsiamRole, token)).thenReturn(response);
+
+        ResponseEntity<String> responseEntity = selfSupportService.createIAMRole(userDetails, token, awsiamRole,"shared/mysafe01");
+        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntity);
+    }
+
+    @Test
+    public void test_updateIAMRole_successfully() throws TVaultValidationException {
+        String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+        UserDetails userDetails = getMockUser(false);
+        AWSIAMRole awsiamRole = new AWSIAMRole();
+        awsiamRole.setAuth_type("iam");
+        String[] arns = {"arn:aws:iam::123456789012:user/tst"};
+        awsiamRole.setBound_iam_principal_arn(arns);
+        String[] policies = {"default"};
+        awsiamRole.setPolicies(policies);
+        awsiamRole.setResolve_aws_unique_ids(true);
+        awsiamRole.setRole("string");
+
+        ResponseEntity<String> response = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"AWS Role updated \"]}");
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"AWS Role updated \"]}");
+
+        when(awsiamAuthService.updateIAMRole(token, awsiamRole)).thenReturn(response);
+        mockIsAuthorized(userDetails, true);
+
+        ResponseEntity<String> responseEntity = selfSupportService.updateIAMRole(userDetails, token, awsiamRole,"shared/mysafe01");
+        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntity);
+    }
+
+    @Test
+    public void test_updateIAMRole_successfully_admin() throws TVaultValidationException {
+        String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+        UserDetails userDetails = getMockUser(true);
+        AWSIAMRole awsiamRole = new AWSIAMRole();
+        awsiamRole.setAuth_type("iam");
+        String[] arns = {"arn:aws:iam::123456789012:user/tst"};
+        awsiamRole.setBound_iam_principal_arn(arns);
+        String[] policies = {"default"};
+        awsiamRole.setPolicies(policies);
+        awsiamRole.setResolve_aws_unique_ids(true);
+        awsiamRole.setRole("string");
+
+        ResponseEntity<String> response = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"AWS Role updated \"]}");
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"AWS Role updated \"]}");
+
+        when(awsiamAuthService.updateIAMRole(token, awsiamRole)).thenReturn(response);
+
+        ResponseEntity<String> responseEntity = selfSupportService.updateIAMRole(userDetails, token, awsiamRole,"shared/mysafe01");
+        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
     }
 }
