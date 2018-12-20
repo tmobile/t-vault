@@ -19,6 +19,7 @@ package com.tmobile.cso.vault.api.v3.controller;
 
 import javax.servlet.http.HttpServletRequest;
 
+import com.tmobile.cso.vault.api.exception.TVaultValidationException;
 import com.tmobile.cso.vault.api.model.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -240,5 +241,58 @@ public class SelfSupportController {
 	public ResponseEntity<String>deleteApproleFromSDB(HttpServletRequest request, @RequestHeader(value="vault-token") String token, @RequestBody String jsonstr) {
 		UserDetails userDetails = (UserDetails) ((HttpServletRequest) request).getAttribute("UserDetails");
 		return selfSupportService.deleteApproleFromSDB(userDetails, token, jsonstr);
+	}
+
+	/**
+	 * Method to create an aws app role
+	 * @param token
+	 * @param awsLoginRole
+	 * @return
+	 */
+	@ApiOperation(value = "${SelfSupportController.createRole.value}", notes = "${SelfSupportController.createRole.notes}")
+	@PostMapping(value="/v3/auth/aws/role",consumes="application/json",produces="application/json")
+	public ResponseEntity<String> createRole(HttpServletRequest request, @RequestHeader(value="vault-token") String token, @RequestBody AWSLoginRole awsLoginRole, @RequestParam("path") String path) throws TVaultValidationException {
+		UserDetails userDetails = (UserDetails) ((HttpServletRequest) request).getAttribute("UserDetails");
+		return selfSupportService.createRole(userDetails, token, awsLoginRole, path);
+	}
+
+	/**
+	 * Method to update an aws app role.
+	 * @param token
+	 * @param jsonStr
+	 * @return
+	 */
+	@ApiOperation(value = "${SelfSupportController.updateRole.value}", notes = "${SelfSupportController.updateRole.notes}")
+	@PutMapping(value="/v3/auth/aws/role",consumes="application/json",produces="application/json")
+	public ResponseEntity<String> updateRole(HttpServletRequest request,@RequestHeader(value="vault-token") String token, @RequestBody AWSLoginRole awsLoginRole, @RequestParam("path") String path) throws TVaultValidationException {
+		UserDetails userDetails = (UserDetails) ((HttpServletRequest) request).getAttribute("UserDetails");
+		return selfSupportService.updateRole(userDetails, token, awsLoginRole, path);
+	}
+
+	/**
+	 * Method to create aws iam role
+	 * @param token
+	 * @param awsiamRole
+	 * @return
+	 */
+	@ApiOperation(value = "${SelfSupportController.createIamRole.value}", notes = "${SelfSupportController.createIamRole.notes}")
+	@PostMapping(value="/v3/auth/aws/iam/role",produces="application/json")
+	public ResponseEntity<String> createIAMRole(HttpServletRequest request, @RequestHeader(value="vault-token") String token, @RequestBody AWSIAMRole awsiamRole, @RequestParam("path") String path) throws TVaultValidationException{
+		UserDetails userDetails = (UserDetails) ((HttpServletRequest) request).getAttribute("UserDetails");
+		return selfSupportService.createIAMRole(userDetails, token, awsiamRole, path);
+	}
+
+	/**
+	 * method to update aws iam role
+	 * @param token
+	 * @param awsiamRole
+	 * @return
+	 * @throws TVaultValidationException
+	 */
+	@ApiOperation(value = "${SelfSupportController.updateIAMRole.value}", notes = "${SelfSupportController.updateIAMRole.notes}")
+	@PutMapping(value="/v3/auth/aws/iam/role",consumes="application/json",produces="application/json")
+	public ResponseEntity<String> updateRole(HttpServletRequest request, @RequestHeader(value="vault-token") String token, @RequestBody AWSIAMRole awsiamRole, @RequestParam("path") String path) throws TVaultValidationException {
+		UserDetails userDetails = (UserDetails) ((HttpServletRequest) request).getAttribute("UserDetails");
+		return selfSupportService.updateIAMRole(userDetails, token, awsiamRole, path);
 	}
 }
