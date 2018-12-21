@@ -1,8 +1,13 @@
 package com.tmobile.cso.vault.api.utils;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.mockito.Mockito.when;
+import static org.powermock.api.mockito.PowerMockito.whenNew;
 
+import java.lang.reflect.Field;
+import java.util.Base64;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -17,6 +22,7 @@ import org.junit.runners.MethodSorters;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
+import org.mockito.internal.util.reflection.FieldSetter;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
@@ -32,6 +38,7 @@ import com.tmobile.cso.vault.api.controller.ControllerUtil;
 import com.tmobile.cso.vault.api.model.AppRoleIdSecretId;
 import com.tmobile.cso.vault.api.process.RequestProcessor;
 import com.tmobile.cso.vault.api.process.Response;
+import org.springframework.test.util.ReflectionTestUtils;
 
 @RunWith(PowerMockRunner.class)
 @ComponentScan(basePackages={"com.tmobile.cso.vault.api"})
@@ -82,61 +89,51 @@ public class TokenUtilsTest {
 		}
 	}
 
-	@Ignore
 	@Test
-    public void test_generatePowerToken_success() {
-        
-        String roleName = "vault-power-user-role"; 
-        String jsonStr = "{\"role_name\":\""+roleName+"\"}";
-        String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
-        String role_id="123456789-0e0c-5a98-09f2-987654321";
-        String secret_id="987654321s-0e0c-5a98-09f2-123456789s";
-        LinkedHashMap<String, String> roleidMap = new LinkedHashMap<String, String>();
-        roleidMap.put("role_id", role_id);
-        LinkedHashMap<String, Object> appRoleResData = new LinkedHashMap<String, Object>();
-        appRoleResData.put("data", roleidMap);
-        
-        String appRoleResBody = getJSON(appRoleResData);
-        Response appRoleRes = getMockResponse(HttpStatus.OK, true, appRoleResBody);
-        when(response.getResponse()).thenReturn(appRoleRes.toString());
-        when(reqProcessor.process("/auth/approle/role/readRoleID",jsonStr,token)).thenReturn(appRoleRes);
-        
-        LinkedHashMap<String, Object> secidMap = new LinkedHashMap<String, Object>();
-        secidMap.put("secret_id", secret_id);
-        secidMap.put("secret_id_accessor", "987654321sa-0e0c-5a98-09f2-123456789sa");
-        LinkedHashMap<String, Object> secidData = new LinkedHashMap<String, Object>();
-        secidData.put("data", secidMap);
-        String secidResBody = getJSON(secidData);
-        Response secidRes = getMockResponse(HttpStatus.OK, true, secidResBody);
-        
-        when(reqProcessor.process("/auth/approle/secretid/lookup",jsonStr,token)).thenReturn(secidRes);
-        when(response.getResponse()).thenReturn(secidRes.toString());
-        
-        AppRoleIdSecretId appRoleIdSecretId = new AppRoleIdSecretId(role_id, secret_id);
-        jsonStr = getJSON(appRoleIdSecretId);
-        when(JSONUtil.getJSON(appRoleIdSecretId)).thenReturn(jsonStr);
-        
-        
-        LinkedHashMap<String, String> pwrTknResMap = new LinkedHashMap<String, String>();
-        String expectedToken = "s.12345678";
-        pwrTknResMap.put("client_token", expectedToken);
-        LinkedHashMap<String, Object> pwrTknResData = new LinkedHashMap<String, Object>();
-        pwrTknResData.put("auth", pwrTknResMap);
-        String pwrTknResBody = getJSON(pwrTknResData);
-        Response pwrTknRes = getMockResponse(HttpStatus.OK, true, pwrTknResBody );
-        when(JSONUtil.getJSON((AppRoleIdSecretId)Mockito.anyObject())).thenReturn(jsonStr);
-        
-        when(reqProcessor.process("/auth/approle/login",jsonStr,"")).thenReturn(pwrTknRes);
-        
-        //String generatedToken = tokenUtils.generatePowerToken(token);
-        //assertEquals(expectedToken, generatedToken);
+    public void test_getSelfServiceToken_success() throws Exception {
+
+        String jsonStr = "{\"username\":\"testadmin\",\"password\":\"testadmin\"}";
+
+        ReflectionTestUtils.setField(tokenUtils, "selfserviceUsername", "dGVzdGFkbWlu");
+        ReflectionTestUtils.setField(tokenUtils, "selfservicePassword", "dGVzdGFkbWlu");
+        ReflectionTestUtils.setField(tokenUtils, "vaultAuthMethod", "userpass");
+
+        when(JSONUtil.getJSON(Mockito.any())).thenReturn(jsonStr);
+        Response response = getMockResponse(HttpStatus.OK, true, "{\"client_token\":\"7QPMPIGiyDFlJkrK3jFykUqa\",\"admin\":\"yes\",\"access\":{},\"policies\":[\"default\",\"testadmin\"],\"lease_duration\":1800000}");
+        when(reqProcessor.process("/auth/userpass/login",jsonStr,"")).thenReturn(response);
+        String token = tokenUtils.getSelfServiceToken();
+        assertEquals("7QPMPIGiyDFlJkrK3jFykUqa", token);
     }
-    
+
+    @Test
+    public void test_getSelfServiceToken_failure() throws Exception {
+
+        String jsonStr = "{\"username\":\"testadmin\",\"password\":\"testadmin\"}";
+
+        ReflectionTestUtils.setField(tokenUtils, "selfserviceUsername", "dGVzdGFkbWlu");
+        ReflectionTestUtils.setField(tokenUtils, "selfservicePassword", "dGVzdGFkbWlu");
+        ReflectionTestUtils.setField(tokenUtils, "vaultAuthMethod", "userpass");
+
+        when(JSONUtil.getJSON(Mockito.any())).thenReturn(jsonStr);
+        Response response = getMockResponse(HttpStatus.NOT_FOUND, true, "");
+        when(reqProcessor.process("/auth/userpass/login",jsonStr,"")).thenReturn(response);
+        String token = tokenUtils.getSelfServiceToken();
+        assertNull(token);
+    }
+
     @Test
     public void test_revokePowerToken_success() {
     	String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
     	Response res = getMockResponse(HttpStatus.NO_CONTENT, true, "");
     	when(reqProcessor.process("/auth/tvault/revoke","{}", token)).thenReturn(res);
     	tokenUtils.revokePowerToken(token);
+    }
+
+    @Test
+    public void test_revokePowerToken_failure() {
+        String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+        Response res = getMockResponse(HttpStatus.NOT_FOUND, true, "");
+        when(reqProcessor.process("/auth/tvault/revoke","{}", token)).thenReturn(res);
+        tokenUtils.revokePowerToken(token);
     }
 }
