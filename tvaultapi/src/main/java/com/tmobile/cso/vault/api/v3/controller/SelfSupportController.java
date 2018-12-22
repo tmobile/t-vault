@@ -55,6 +55,18 @@ public class SelfSupportController {
 		return selfSupportService.getFoldersRecursively(userDetails, token, path);
 	}
 	/**
+	 * Gets the list of all available safe names
+	 * @param token
+	 * @param path
+	 * @return
+	 */
+	@GetMapping(value="/v3/sdb/names",produces="application/json")
+	@ApiOperation(value = "${SelfSupportController.getFolders.value}", notes = "${SelfSupportController.getFolders.notes}")
+	public ResponseEntity<String> getSafeNames(HttpServletRequest request, @RequestHeader(value="vault-token") String token) {
+		UserDetails userDetails = (UserDetails) ((HttpServletRequest) request).getAttribute("UserDetails");
+		return selfSupportService.getAllSafeNames(userDetails);
+	}
+	/**
 	 * 
 	 * @param token
 	 * @param path

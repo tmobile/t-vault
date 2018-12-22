@@ -19,10 +19,13 @@ package com.tmobile.cso.vault.api.service;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import com.tmobile.cso.vault.api.exception.TVaultValidationException;
 import com.tmobile.cso.vault.api.model.*;
+
+import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -567,5 +570,18 @@ public class  SelfSupportService {
 			return awsiamAuthService.updateIAMRole(token, awsiamRole);
 		}
 	}
-
+	/**
+	 * Gets the map of all existing safe names
+	 * @param userDetails
+	 * @return
+	 */
+	public ResponseEntity<String> getAllSafeNames(UserDetails userDetails) {
+		HashMap<String, List<String>> safeNames = ControllerUtil.getAllExistingSafeNames(userDetails.getSelfSupportToken());
+		if (MapUtils.isEmpty(safeNames)) {
+			return ResponseEntity.status(HttpStatus.OK).body("No safes are available");
+		}
+		else {
+			return ResponseEntity.status(HttpStatus.OK).body(JSONUtil.getJSON(safeNames));
+		}
+	}
 }
