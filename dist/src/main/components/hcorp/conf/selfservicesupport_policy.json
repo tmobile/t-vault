@@ -1,5 +1,5 @@
 {
-    "name": "approle-poweruser",
+    "name": "selfservicesupport",
     "path":{
         "sys/policy/*":{"policy":"write"},
 		"sys/lease/*":{"policy":"write"},
