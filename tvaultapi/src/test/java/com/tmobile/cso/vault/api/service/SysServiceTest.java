@@ -167,4 +167,43 @@ public class SysServiceTest {
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
     }
+
+    @Test
+    public void test_checkVaultSealStatus_successfully_https() {
+
+        Response response = getMockResponse(HttpStatus.OK, true, "{\"type\": \"shamir\",\"initialized\": true,\"sealed\": false,\"progress\": 0,\"version\": \"0.11.3\",\"migration\": null,\"cluster_name\": \"vault-cluster-9f404bc2\", \"cluster_id\": \"a26bf9f9-84e2-de1a-a4d3-cffec0ddf10b\", \"recovery_seal\": false}");
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":{\"type\": \"shamir\",\"initialized\": true,\"sealed\": false,\"progress\": 0,\"version\": \"0.11.3\",\"migration\": null,\"cluster_name\": \"vault-cluster-9f404bc2\", \"cluster_id\": \"a26bf9f9-84e2-de1a-a4d3-cffec0ddf10b\", \"recovery_seal\": false}}");
+        when( reqProcessor.process("/seal-status","{}","")).thenReturn(response);
+
+        ResponseEntity<String> responseEntity = sysService.checkVaultSealStatus();
+        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntity);
+    }
+
+    @Test
+    public void test_checkVaultSealStatus_successfully_http() {
+
+        Response responseNotFound = getMockResponse(HttpStatus.NOT_FOUND, true, "");
+        Response response = getMockResponse(HttpStatus.OK, true, "{\"type\": \"shamir\",\"initialized\": true,\"sealed\": false,\"progress\": 0,\"version\": \"0.11.3\",\"migration\": null,\"cluster_name\": \"vault-cluster-9f404bc2\", \"cluster_id\": \"a26bf9f9-84e2-de1a-a4d3-cffec0ddf10b\", \"recovery_seal\": false}");
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":{\"type\": \"shamir\",\"initialized\": true,\"sealed\": false,\"progress\": 0,\"version\": \"0.11.3\",\"migration\": null,\"cluster_name\": \"vault-cluster-9f404bc2\", \"cluster_id\": \"a26bf9f9-84e2-de1a-a4d3-cffec0ddf10b\", \"recovery_seal\": false}}");
+        when( reqProcessor.process("/seal-status","{}","")).thenReturn(responseNotFound);
+
+        when(reqProcessor.process("/v2/seal-status","{}","")).thenReturn(response);
+        ResponseEntity<String> responseEntity = sysService.checkVaultSealStatus();
+        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntity);
+    }
+
+    @Test
+    public void test_checkVaultSealStatus_failure() {
+
+        Response responseNotFound = getMockResponse(HttpStatus.NOT_FOUND, true, "");
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.NOT_FOUND).body("{\"Error\":[\"Unable to get Seal-Status information\"]}");
+        when( reqProcessor.process("/seal-status","{}","")).thenReturn(responseNotFound);
+
+        when(reqProcessor.process("/v2/seal-status","{}","")).thenReturn(responseNotFound);
+        ResponseEntity<String> responseEntity = sysService.checkVaultSealStatus();
+        assertEquals(HttpStatus.NOT_FOUND, responseEntity.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntity);
+    }
 }

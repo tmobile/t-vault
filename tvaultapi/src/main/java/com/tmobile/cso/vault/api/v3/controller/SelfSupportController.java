@@ -122,7 +122,7 @@ public class SelfSupportController {
 	 * @return
 	 */
 	@GetMapping(value="/auth/tvault/isauthorized",produces="application/json")
-	@ApiOperation(value = "${VaultAuthControllerV2.authorized.value}", notes = "${SelfSupportController.authorized.notes}")
+	@ApiOperation(value = "${SelfSupportController.authorized.value}", notes = "${SelfSupportController.authorized.notes}")
 	public ResponseEntity<String> isAuthorized(HttpServletRequest request, @RequestHeader(value="vault-token") String token, @RequestParam("path") String path){
 		UserDetails userDetails = (UserDetails) ((HttpServletRequest) request).getAttribute("UserDetails");
 		return selfSupportService.isAuthorized(userDetails, path);

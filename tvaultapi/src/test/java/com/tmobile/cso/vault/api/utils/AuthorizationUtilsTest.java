@@ -1,8 +1,8 @@
 package com.tmobile.cso.vault.api.utils;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.when;
-//import static org.powermock.api.support.membermodification.MemberMatcher.method;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -205,4 +205,57 @@ public class AuthorizationUtilsTest {
     	List<String> policies = Arrays.asList(policiesStr.split(","));
     	return new ArrayList<String>(policies);
     }
+
+    @Test
+    public void test_containsAdminPolicies() throws Exception {
+    	List<String> policies1= new ArrayList<>();
+		List<String> policies2= new ArrayList<>();
+		policies1.add("default");
+		policies1.add("r_users_s1");
+		policies2.add("r_users_s1");
+		policies2.add("w_users_s1");
+		policies2.add("w_users_s1");
+		boolean actual = authorizationUtils.containsAdminPolicies(policies1, policies2);
+		assertTrue(actual);
+	}
+
+	@Test
+	public void test_isAuthorized_safeOwner_withcapabilitycheck_success_list_policies() throws Exception {
+		String username = "normaluser";
+		String powerToken = "self_support_token";
+		String userToken = "ordinary_client_token";
+		boolean admin = false;
+		String safename = "mysafe01";
+		String safeType = "shared";
+		String safeOwner = "owner@someorg.com";
+		String safeOwnerId = "normaluser";
+		String path = "shared/mysafe01";
+		String latestPoliciesStr = "s_shared_mysafe01, safeadmin";
+		String policiesTobeCheckedStr = "s_shared_mysafe01";
+		boolean forceCapabilityCheck = true;
+		UserDetails userDetails = createUserDetails(username, powerToken, userToken, admin);
+		Safe safeMetaData = createSafe(safename, safeType, path, safeOwner, safeOwnerId);
+		String[] latestPolicies = createLatestPolicies(latestPoliciesStr);
+		ArrayList<String> policiesTobeChecked = createPoliciesTobeChecked(policiesTobeCheckedStr);
+
+		LinkedHashMap<String, Object> capRes = new LinkedHashMap<String, Object>();
+		LinkedHashMap<String, Object> pathsMap = new LinkedHashMap<String, Object>();
+		LinkedHashMap<String, Object> capPathMap = new  LinkedHashMap<String, Object>();
+		LinkedHashMap<String, Object> capMap = new  LinkedHashMap<String, Object>();
+		List<String> policies = new ArrayList<>();
+		policies.add("create");
+		capMap.put("policy", policies);
+		capPathMap.put("metadata/shared/s1/*", capMap);
+		capPathMap.put("shared/s1/*", capMap);
+		pathsMap.put("path", capPathMap);
+		capRes.put("name", "s_shared_s1");
+		capRes.put("rules", getJSON(pathsMap));
+		String expectedBody = getJSON(capRes);
+		Response capabilitiesResponse = getMockResponse(HttpStatus.OK, true, expectedBody);
+
+		when(reqProcessor.process("/access","{\"accessid\":\""+"s_shared_mysafe01"+"\"}",powerToken)).thenReturn(capabilitiesResponse);
+
+		boolean actual = authorizationUtils.isAuthorized(userDetails, safeMetaData, latestPolicies, policiesTobeChecked, forceCapabilityCheck);
+		assertEquals(actual, true);
+	}
 }
