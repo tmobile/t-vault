@@ -416,4 +416,18 @@ public class SelfSupportControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString(responseMessage)));
     }
+
+    @Test
+    public void test_getSafeNames() throws Exception {
+        String responseJson = "{\"shared\":[\"safe5\",\"safe6\"],\"users\":[\"safe3\",\"safe4\"],\"apps\":[\"safe1\",\"safe2\"]}";
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(responseJson);
+        UserDetails userDetails = getMockUser(false);
+        when(selfSupportService.getAllSafeNames(userDetails)).thenReturn(responseEntityExpected);
+
+        mockMvc.perform(MockMvcRequestBuilders.get("/v3/sdb/names").requestAttr("UserDetails", userDetails)
+                .header("vault-token", "5PDrOhsy4ig8L3EpsJZSLAMg")
+                .header("Content-Type", "application/json;charset=UTF-8"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString(responseJson)));
+    }
 }

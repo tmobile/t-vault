@@ -6,9 +6,7 @@ import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.when;
 
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 import org.apache.logging.log4j.LogManager;
 import org.junit.Before;
@@ -499,6 +497,58 @@ public class SafesServiceTest {
 
         ResponseEntity<String> responseEntity = safesService.addUserToSafe(token, safeUser, null);
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntity);
+    }
+
+    @Test
+    public void test_addUserToSafe_failure_all_safes() {
+        String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+        String path = "shared/mysafe01";
+        SafeUser safeUser = new SafeUser(path, "testuser1","write");
+        UserDetails userDetails = new UserDetails();
+        userDetails.setUsername("testuser1");
+
+        Response userResponse = getMockResponse(HttpStatus.OK, true, "{\"data\":{\"bound_cidrs\":[],\"max_ttl\":0,\"policies\":[\"default\",\"w_shared_mysafe01\",\"w_shared_mysafe02\"],\"ttl\":0,\"groups\":\"admin\"}}");
+        Response idapConfigureResponse = getMockResponse(HttpStatus.NO_CONTENT, true, "{\"policies\":null}");
+        Response responseNoContent = getMockResponse(HttpStatus.NO_CONTENT, true, "");
+        Response response_404 = getMockResponse(HttpStatus.NOT_FOUND, true, "");
+
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"messages\":[\"User configuration failed.Please try again\"]}");
+
+        when(ControllerUtil.areSafeUserInputsValid(safeUser)).thenReturn(true);
+        when(ControllerUtil.canAddPermission(path, token)).thenReturn(true);
+        when(ControllerUtil.isValidSafePath(path)).thenReturn(true);
+        when(ControllerUtil.isValidSafe(path, token)).thenReturn(true);
+        when(reqProcessor.process("/auth/userpass/read","{\"username\":\"testuser1\"}",token)).thenReturn(userResponse);
+        when(reqProcessor.process("/auth/ldap/users","{\"username\":\"testuser1\"}",token)).thenReturn(userResponse);
+
+        try {
+            when(ControllerUtil.getPoliciesAsStringFromJson(any(), any())).thenReturn("default,w_shared_mysafe01,w_shared_mysafe02");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        when(ControllerUtil.configureLDAPUser(eq("testuser1"),any(),any(),eq(token))).thenReturn(idapConfigureResponse);
+        //when(ControllerUtil.updateMetadata(Mockito.any(),eq(token))).thenReturn(responseNoContent);
+        when(ControllerUtil.updateMetadata(any(),eq(token))).thenAnswer(new Answer() {
+            private int count = 0;
+
+            public Object answer(InvocationOnMock invocation) {
+                if (count++ == 1)
+                    return response_404;
+
+                return response_404;
+            }
+        });
+        //ReflectionTestUtils.setField(safeUtils, "vaultAuthMethod", "userpass");
+        when(ControllerUtil.getSafeType("shared/mysafe01")).thenReturn("shared");
+        when(ControllerUtil.getSafeName("shared/mysafe01")).thenReturn("mysafe01");
+        when(ControllerUtil.getAllExistingSafeNames("shared", token)).thenReturn(Arrays.asList("mysafe02"));
+
+        when(safeUtils.canAddOrRemoveUser(userDetails, safeUser, "addUser")).thenReturn(true);
+
+        ResponseEntity<String> responseEntity = safesService.addUserToSafe(token, safeUser, null);
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
     }
 
@@ -1188,5 +1238,150 @@ public class SafesServiceTest {
         ResponseEntity<String> responseEntityActual =  safesService.associateApproletoSDB(token, jsonStr);
         assertEquals(HttpStatus.BAD_REQUEST, responseEntityActual.getStatusCode());
         assertEquals(responseEntityExpected, responseEntityActual);
+    }
+
+    @Test
+    public void test_removeApproleFromSafe_successfully() throws Exception {
+        String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+        String inputJson = "{\"role\":\"approle1\",\"path\":\"users/safe1\"}";
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Role association is removed \"]}");
+        Response response = getMockResponse(HttpStatus.NO_CONTENT, true, "");
+
+        when(ControllerUtil.isValidSafePath("users/safe1")).thenReturn(true);
+        when(ControllerUtil.isValidSafe("users/safe1", token)).thenReturn(true);
+        when(ControllerUtil.updateMetadata(Mockito.anyMap(), eq(token))).thenReturn(response);
+
+        ResponseEntity<String> responseEntityActual = safesService.removeApproleFromSafe(token, inputJson);
+        assertEquals(HttpStatus.OK, responseEntityActual.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntityActual);
+    }
+
+    @Test
+    public void test_removeApproleFromSafe_successfully_all_safes() throws Exception {
+        String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+        String inputJson = "{\"role\":\"approle1\",\"path\":\"users/safe1\"}";
+        String path = "users/safe1";
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Role association is removed \"]}");
+        Response response = getMockResponse(HttpStatus.NO_CONTENT, true, "");
+        Response response_404 = getMockResponse(HttpStatus.NOT_FOUND, true, "");
+
+        when(ControllerUtil.isValidSafePath(path)).thenReturn(true);
+        when(ControllerUtil.isValidSafe(path, token)).thenReturn(true);
+        //when(ControllerUtil.updateMetadata(Mockito.anyMap(),eq(token))).thenReturn(response);
+
+        when(ControllerUtil.updateMetadata(Mockito.anyMap(), eq(token))).thenAnswer(new Answer() {
+            private int count = 0;
+
+            public Object answer(InvocationOnMock invocation) {
+                if (count++ == 1)
+                    return response;
+
+                return response_404;
+            }
+        });
+        when(ControllerUtil.getSafeType(path)).thenReturn("users");
+        when(ControllerUtil.getSafeName(path)).thenReturn("safe1");
+        List<String> safeNames = new ArrayList<>();
+        safeNames.add("safe1");
+        when(ControllerUtil.getAllExistingSafeNames("users", token)).thenReturn(safeNames);
+
+        ResponseEntity<String> responseEntityActual = safesService.removeApproleFromSafe(token, inputJson);
+        assertEquals(HttpStatus.OK, responseEntityActual.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntityActual);
+    }
+
+    @Test
+    public void test_removeApproleFromSafe_failure() throws Exception {
+        String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+        String inputJson = "{\"role\":\"approle1\",\"path\":\"users/safe1\"}";
+        String path = "users/safe1";
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Role configuration failed.Please try again\"]}");
+        Response response_404 = getMockResponse(HttpStatus.NOT_FOUND, true, "");
+
+        when(ControllerUtil.isValidSafePath(path)).thenReturn(true);
+        when(ControllerUtil.isValidSafe(path, token)).thenReturn(true);
+        //when(ControllerUtil.updateMetadata(Mockito.anyMap(),eq(token))).thenReturn(response);
+
+        when(ControllerUtil.updateMetadata(Mockito.anyMap(), eq(token))).thenAnswer(new Answer() {
+            private int count = 0;
+
+            public Object answer(InvocationOnMock invocation) {
+                if (count++ == 1)
+                    return response_404;
+
+                return response_404;
+            }
+        });
+        when(ControllerUtil.getSafeType(path)).thenReturn("users");
+        when(ControllerUtil.getSafeName(path)).thenReturn("safe1");
+        List<String> safeNames = new ArrayList<>();
+        safeNames.add("safe1");
+        when(ControllerUtil.getAllExistingSafeNames("users", token)).thenReturn(safeNames);
+
+        ResponseEntity<String> responseEntityActual = safesService.removeApproleFromSafe(token, inputJson);
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, responseEntityActual.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntityActual);
+    }
+
+    @Test
+    public void test_removeApproleFromSafe_failure_400() throws Exception {
+        String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+        String inputJson = "{\"role\":\"approle1\",\"path\":\"users/safe1\"}";
+        String path = "users/safe1";
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid 'path' specified\"]}");
+        Response response_404 = getMockResponse(HttpStatus.NOT_FOUND, true, "");
+
+        when(ControllerUtil.isValidSafePath(path)).thenReturn(false);
+        when(ControllerUtil.isValidSafe(path, token)).thenReturn(true);
+
+        ResponseEntity<String> responseEntityActual = safesService.removeApproleFromSafe(token, inputJson);
+        assertEquals(HttpStatus.BAD_REQUEST, responseEntityActual.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntityActual);
+    }
+
+    @Test
+    public void test_createNestedfolder_successfully() {
+
+        String responseJson = "{\"messages\":[\"Folder created \"]}";
+        String path = "shared/mysafe01";
+        String jsonStr = "{\"path\":\"" + path + "\",\"data\":{\"default\":\"default\"}}";
+        String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+        Response response = getMockResponse(HttpStatus.OK, true, responseJson);
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(responseJson);
+
+        when(ControllerUtil.isPathValid(path)).thenReturn(true);
+        when(reqProcessor.process("/sdb/createfolder",jsonStr,token)).thenReturn(response);
+        ResponseEntity<String> responseEntity = safesService.createNestedfolder(token, path);
+        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
+    }
+
+    @Test
+    public void test_createNestedfolder_failure_400() {
+
+        String responseJson = "{\"errors\":[\"Invalid path\"]}";
+        String path = "shared/mysafe01";
+        String jsonStr = "{\"path\":\"" + path + "\",\"data\":{\"default\":\"default\"}}";
+        String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+        Response response = getMockResponse(HttpStatus.BAD_REQUEST, true, responseJson);
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(responseJson);
+
+        when(ControllerUtil.isPathValid(path)).thenReturn(false);
+        ResponseEntity<String> responseEntity = safesService.createNestedfolder(token, path);
+        assertEquals(HttpStatus.BAD_REQUEST, responseEntity.getStatusCode());
+    }
+
+    @Test
+    public void test_getFoldersRecursively_successfully() {
+
+        String path = "shared/mysafe01";
+        String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+        String responseJson = "{  \"keys\": [    \"mysafe01\"  ]}";
+        Response response = getMockResponse(HttpStatus.OK, true, responseJson);
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(responseJson);
+
+        when(reqProcessor.process("/sdb/list","{\"path\":\""+path+"\"}",token)).thenReturn(response);
+        ResponseEntity<String> responseEntity = safesService.getFoldersRecursively(token, path);
+        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntity);
     }
 }
