@@ -1,9 +1,9 @@
 package com.tmobile.cso.vault.api.controller;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
 import com.tmobile.cso.vault.api.exception.TVaultValidationException;
+import com.tmobile.cso.vault.api.model.*;
 import com.tmobile.cso.vault.api.process.RequestProcessor;
 import com.tmobile.cso.vault.api.process.Response;
 import com.tmobile.cso.vault.api.utils.*;
@@ -25,11 +25,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.Map;
+import java.util.*;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.when;
@@ -69,18 +68,9 @@ public class ControllerUtilTest {
         }
         return response;
     }
-    
-	private String getJSON(Object obj)  {
-		ObjectMapper mapper = new ObjectMapper();
-		try {
-			return mapper.writeValueAsString(obj);
-		} catch (JsonProcessingException e) {
-			return "{}";
-		}
-	}
 
 	@Test
-    public void test_configureLDAPUser_successfully() throws TVaultValidationException, IOException {
+    public void test_configureLDAPUser_successfully() {
         String userName = "normaluser";
         String policies = "{\"default\"}";
         String groups = "group1";
@@ -93,7 +83,7 @@ public class ControllerUtilTest {
     }
 
     @Test
-    public void test_configureApprole_successfully() throws TVaultValidationException, IOException {
+    public void test_configureApprole_successfully() {
         String roleName = "role1";
         String policies = "{\"default\"}";
         String token = "7QPMPIGiyDFlJkrK3jFykUqa";
@@ -105,7 +95,7 @@ public class ControllerUtilTest {
     }
 
     @Test
-    public void test_configureUserpassUser_successfully() throws TVaultValidationException, IOException {
+    public void test_configureUserpassUser_successfully() {
         String userName = "normaluser";
         String policies = "{\"default\"}";
         String token = "7QPMPIGiyDFlJkrK3jFykUqa";
@@ -118,7 +108,7 @@ public class ControllerUtilTest {
 
 
     @Test
-    public void test_configureLDAPGroup_successfully() throws TVaultValidationException, IOException {
+    public void test_configureLDAPGroup_successfully() {
         String groupName = "group1";
         String policies = "{\"default\"}";
         String token = "7QPMPIGiyDFlJkrK3jFykUqa";
@@ -130,7 +120,7 @@ public class ControllerUtilTest {
     }
 
     @Test
-    public void test_configureAWSRole_successfully() throws TVaultValidationException, IOException {
+    public void test_configureAWSRole_successfully() {
         String roleName = "role1";
         String policies = "{\"default\"}";
         String token = "7QPMPIGiyDFlJkrK3jFykUqa";
@@ -142,7 +132,7 @@ public class ControllerUtilTest {
     }
 
     @Test
-    public void test_configureAWSIAMRole_successfully() throws TVaultValidationException, IOException {
+    public void test_configureAWSIAMRole_successfully() {
         String roleName = "role1";
         String policies = "{\"default\"}";
         String token = "7QPMPIGiyDFlJkrK3jFykUqa";
@@ -154,7 +144,7 @@ public class ControllerUtilTest {
     }
 
     @Test
-    public void test_updateMetadata_successfully() throws TVaultValidationException, IOException {
+    public void test_updateMetadata_successfully() {
         String token = "7QPMPIGiyDFlJkrK3jFykUqa";
         String path = "users/safe01";
         Map<String,String> params = new HashMap<>();
@@ -174,7 +164,7 @@ public class ControllerUtilTest {
     }
 
     @Test
-    public void test_updateMetaDataOnConfigChanges_successfully() throws TVaultValidationException, IOException {
+    public void test_updateMetaDataOnConfigChanges_successfully() {
         String token = "7QPMPIGiyDFlJkrK3jFykUqa";
 
         Response actualResponse = ControllerUtil.updateMetaDataOnConfigChanges("role1", "roles", "", "\"[prod, dev\"]", token);
@@ -182,7 +172,7 @@ public class ControllerUtilTest {
     }
 
     @Test
-    public void test_updateMetaDataOnConfigChanges_successfully_() throws TVaultValidationException, IOException {
+    public void test_updateMetaDataOnConfigChanges_successfully_() {
         String token = "7QPMPIGiyDFlJkrK3jFykUqa";
 
         Response metaResponse = getMockResponse(HttpStatus.OK, true, "{\"data\":{\"description\":\"My first safe\",\"name\":\"safe01\",\"owner\":\"youremail@yourcompany.com\",\"ownerid\":\"normaluser\",\"type\":\"\"}}");
@@ -195,7 +185,7 @@ public class ControllerUtilTest {
     }
 
     @Test
-    public void test_updateMetaDataOnConfigChanges_successfully_existing_policies() throws TVaultValidationException, IOException {
+    public void test_updateMetaDataOnConfigChanges_successfully_existing_policies() {
         String token = "7QPMPIGiyDFlJkrK3jFykUqa";
 
         Response metaResponse = getMockResponse(HttpStatus.OK, true, "{\"data\":{\"description\":\"My first safe\",\"name\":\"safe01\",\"owner\":\"youremail@yourcompany.com\",\"ownerid\":\"normaluser\",\"type\":\"\"}}");
@@ -209,7 +199,7 @@ public class ControllerUtilTest {
     }
 
     @Test
-    public void test_parseJson_successfully() throws TVaultValidationException, IOException {
+    public void test_parseJson_successfully() {
         String jsonStr = "{\"username\":\"testuser\",\"password\":\"testuser\"}";
 
         Map<String,Object> actualResponse = ControllerUtil.parseJson(jsonStr);
@@ -218,7 +208,7 @@ public class ControllerUtilTest {
     }
 
     @Test
-    public void test_parseJson_error() throws TVaultValidationException, IOException {
+    public void test_parseJson_error() {
         String jsonStr = "{\"username\":\"testuser\",\"password\":\"testuser\",}";
 
         Map<String,Object> actualResponse = ControllerUtil.parseJson(jsonStr);
@@ -226,7 +216,7 @@ public class ControllerUtilTest {
     }
 
     @Test
-    public void test_convetToJson_successfully() throws TVaultValidationException, IOException {
+    public void test_convetToJson_successfully() {
         String jsonStr = "{\"username\":\"testuser\",\"password\":\"testuser\"}";
 
         Map<String,Object> jsonmap = new LinkedHashMap<>();
@@ -237,7 +227,7 @@ public class ControllerUtilTest {
     }
 
     @Test
-    public void test_getPoliciesAsStringFromJson_successfully() throws TVaultValidationException, IOException {
+    public void test_getPoliciesAsStringFromJson_successfully() throws IOException {
         ObjectMapper mapper = new ObjectMapper();
         String policyjson = "{\"data\":{\"policies\":[\"w_users_safe02\",\"w_users_safe01\"]}}";
         String actualResponse = ControllerUtil.getPoliciesAsStringFromJson(mapper, policyjson);
@@ -245,7 +235,7 @@ public class ControllerUtilTest {
     }
 
     @Test
-    public void test_updateUserPolicyAssociationOnSDBDelete_successfully_() throws TVaultValidationException, IOException {
+    public void test_updateUserPolicyAssociationOnSDBDelete_successfully() {
         String token = "7QPMPIGiyDFlJkrK3jFykUqa";
         String userName = "testuser1";
         Response userResponse = getMockResponse(HttpStatus.OK, true, "{\"data\":{\"bound_cidrs\":[],\"max_ttl\":0,\"policies\":[\"approle_normal_user\",\"w_users_safe01\"],\"ttl\":0}}");
@@ -260,7 +250,7 @@ public class ControllerUtilTest {
     }
 
     @Test
-    public void test_updateGroupPolicyAssociationOnSDBDelete_successfully_() throws TVaultValidationException, IOException {
+    public void test_updateGroupPolicyAssociationOnSDBDelete_successfully() {
         String token = "7QPMPIGiyDFlJkrK3jFykUqa";
         String groupName = "group1";
         Response userResponse = getMockResponse(HttpStatus.OK, true, "{\"data\":{\"bound_cidrs\":[],\"max_ttl\":0,\"policies\":[\"approle_normal_user\",\"w_users_safe01\"],\"ttl\":0}}");
@@ -274,5 +264,531 @@ public class ControllerUtilTest {
         assertTrue(true);
     }
 
+    @Test
+    public void test_updateAwsRolePolicyAssociationOnSDBDelete_successfully() {
+        String token = "7QPMPIGiyDFlJkrK3jFykUqa";
+        String role = "role1";
+        Response roleResponse = getMockResponse(HttpStatus.OK, true, "{\"policies\":[\"approle_normal_user\",\"w_users_safe01\"]}");
+        when( reqProcessor.process("/auth/aws/roles","{\"role\":\""+role+"\"}",token)).thenReturn(roleResponse);
 
+        ReflectionTestUtils.setField(ControllerUtil.class,"vaultAuthMethod", "ldap");
+        Map<String,String> acessInfo = new HashMap<>();
+        acessInfo.put("role1", "write");
+
+        ControllerUtil.updateAwsRolePolicyAssociationOnSDBDelete("users/safe01", acessInfo,  token);
+        assertTrue(true);
+    }
+
+    @Test
+    public void test_deleteAwsRoleOnSDBDelete_successfully() {
+        String token = "7QPMPIGiyDFlJkrK3jFykUqa";
+        String role = "role1";
+        Response roleResponse = getMockResponse(HttpStatus.NO_CONTENT, true, "");
+        when( reqProcessor.process("/auth/aws/roles/delete","{\"role\":\""+role+"\"}",token)).thenReturn(roleResponse);
+
+        ReflectionTestUtils.setField(ControllerUtil.class,"vaultAuthMethod", "ldap");
+        Map<String,String> acessInfo = new HashMap<>();
+        acessInfo.put("role1", "write");
+
+        ControllerUtil.deleteAwsRoleOnSDBDelete("users/safe01", acessInfo,  token);
+        assertTrue(true);
+    }
+
+    @Test
+    public void test_isValidDataPath_successfully() {
+
+        boolean valid = ControllerUtil.isValidDataPath("users/safe01/s1");
+        assertEquals(true, valid);
+    }
+
+    @Test
+    public void test_isValidDataPath_failure() {
+
+        boolean valid = ControllerUtil.isValidDataPath("test/safe01/s1");
+        assertEquals(false, valid);
+    }
+
+    @Test
+    public void test_isValidDataPath_failure_path() {
+
+        boolean valid = ControllerUtil.isValidDataPath("users/safe01");
+        assertEquals(false, valid);
+    }
+
+    @Test
+    public void test_isPathValid_successfully()  {
+
+        boolean valid = ControllerUtil.isPathValid("users/safe01");
+        assertEquals(true, valid);
+    }
+
+    @Test
+    public void test_isPathValid_failure()  {
+
+        boolean valid = ControllerUtil.isPathValid("test/safe01");
+        assertEquals(false, valid);
+    }
+
+    @Test
+    public void test_isPathValid_failure_invalid_path()  {
+
+        boolean valid = ControllerUtil.isPathValid("safe01");
+        assertEquals(false, valid);
+    }
+
+    @Test
+    public void test_isValidSafePath_successfully()  {
+
+        boolean valid = ControllerUtil.isValidSafePath("users/safe01");
+        assertEquals(true, valid);
+    }
+
+    @Test
+    public void test_isValidSafePath_failure()  {
+
+        boolean valid = ControllerUtil.isValidSafePath("test/safe01");
+        assertEquals(false, valid);
+    }
+
+    @Test
+    public void test_isValidSafePath_failure_invalid_path()  {
+
+        boolean valid = ControllerUtil.isValidSafePath("users");
+        assertEquals(false, valid);
+    }
+
+    @Test
+    public void test_getSafePath_successfully()  {
+
+        String path = ControllerUtil.getSafePath("users/safes/safe01");
+        assertEquals("users/safes", path);
+    }
+
+    @Test
+    public void test_getSafeType_successfully()  {
+
+        String safeType = ControllerUtil.getSafeType("users/safes/safe01");
+        assertEquals("users", safeType);
+    }
+
+    @Test
+    public void test_getSafeName_successfully()  {
+
+        String safeName = ControllerUtil.getSafeName("users/safes/safe01");
+        assertEquals("safes", safeName);
+    }
+
+    @Test
+    public void test_canAddPermission_successfully()  {
+
+        String path = "users/safe01";
+        String token = "7QPMPIGiyDFlJkrK3jFykUqa";
+        Response response = getMockResponse(HttpStatus.OK, true, "{\"keys\":[\"safe01\", \"safe02\"]}");
+        when(reqProcessor.process("/sdb/list","{\"path\":\"metadata/users\"}",token)).thenReturn(response);
+
+        boolean valid = ControllerUtil.canAddPermission("users/safe01", token);
+        assertTrue(valid);
+    }
+
+    @Test
+    public void test_canAddPermission_failure()  {
+
+        String path = "users/safe01";
+        String token = "7QPMPIGiyDFlJkrK3jFykUqa";
+        Response response = getMockResponse(HttpStatus.OK, true, "{\"keys\":[\"safe01\", \"safe02\"]}");
+        when(reqProcessor.process("/sdb/list","{\"path\":\"metadata/users\"}",token)).thenReturn(response);
+
+        boolean valid = ControllerUtil.canAddPermission("users/safe03", token);
+        assertFalse(valid);
+    }
+
+    @Test
+    public void test_isValidSafe_successfully()  {
+        String token = "7QPMPIGiyDFlJkrK3jFykUqa";
+        String path = "users/safe01";
+        String _path = "metadata/"+path;
+        Response response = getMockResponse(HttpStatus.OK, true, "");
+        when(reqProcessor.process("/sdb","{\"path\":\""+_path+"\"}",token)).thenReturn(response);
+        boolean valid = ControllerUtil.isValidSafe(path, token);
+        assertTrue(valid);
+    }
+
+    @Test
+    public void test_isValidSafe_failure()  {
+        String token = "7QPMPIGiyDFlJkrK3jFykUqa";
+        String path = "users/safe01";
+        String _path = "metadata/"+path;
+        Response response = getMockResponse(HttpStatus.NOT_FOUND, true, "");
+        when(reqProcessor.process("/sdb","{\"path\":\""+_path+"\"}",token)).thenReturn(response);
+        boolean valid = ControllerUtil.isValidSafe(path, token);
+        assertFalse(valid);
+    }
+
+    @Test
+    public void test_areSDBInputsValid_successfully()  {
+        Map<String, Object> requestParams = new LinkedHashMap<>();
+        Map<String, Object> dataParam = new LinkedHashMap<>();
+        dataParam.put("name", "safe01");
+        dataParam.put("owner", "normaluser@g.com");
+        dataParam.put("description", "Safe 01");
+        requestParams.put("data", dataParam);
+        requestParams.put("path", "users/safe01");
+        ReflectionTestUtils.setField(ControllerUtil.class,"sdbNameAllowedCharacters", "[a-z0-9_-]+");
+        boolean valid = ControllerUtil.areSDBInputsValid(requestParams);
+        assertTrue(valid);
+    }
+
+    @Test
+    public void test_areSDBInputsValid_safe()  {
+        SafeBasicDetails safeBasicDetails = new SafeBasicDetails("safe01", "youremail@yourcompany.com", null, "My first safe");
+        Safe safe = new Safe("shared/safe01",safeBasicDetails);
+
+        boolean valid = ControllerUtil.areSDBInputsValid(safe);
+        assertTrue(valid);
+    }
+
+    @Test
+    public void test_areSDBInputsValidForUpdate()  {
+        Map<String, Object> requestParams = new LinkedHashMap<>();
+        Map<String, Object> dataParam = new LinkedHashMap<>();
+        dataParam.put("name", "safe01");
+        dataParam.put("owner", "normaluser@g.com");
+        dataParam.put("description", "Safe 01");
+        requestParams.put("data", dataParam);
+        requestParams.put("path", "users/safe01");
+
+        boolean valid = ControllerUtil.areSDBInputsValidForUpdate(requestParams);
+        assertTrue(valid);
+    }
+
+    @Test
+    public void test_areSafeGroupInputsValid()  {
+        Map<String, String> dataParam = new LinkedHashMap<>();
+        dataParam.put("groupname", "group1");
+        dataParam.put("path", "users/safe01");
+        dataParam.put("access", "write");
+
+        boolean valid = ControllerUtil.areSafeGroupInputsValid(dataParam);
+        assertTrue(valid);
+    }
+
+    @Test
+    public void test_areAWSRoleInputsValid()  {
+        Map<String, String> dataParam = new LinkedHashMap<>();
+        dataParam.put("role", "role1");
+        dataParam.put("path", "users/safe01");
+        dataParam.put("access", "write");
+
+        boolean valid = ControllerUtil.areAWSRoleInputsValid(dataParam);
+        assertTrue(valid);
+    }
+
+    @Test
+    public void test_areSafeUserInputsValid_safeuser()  {
+        SafeUser safeUser = new SafeUser("users/safe01", "normaluser", "write");
+
+        boolean valid = ControllerUtil.areSafeUserInputsValid(safeUser);
+        assertTrue(valid);
+    }
+
+    @Test
+    public void test_areSafeUserInputsValid()  {
+        Map<String,Object> requestMap = new HashMap<>();
+        requestMap.put("path", "users/safe01");
+        requestMap.put("username", "normaluser");
+        requestMap.put("access", "write");
+        boolean valid = ControllerUtil.areSafeUserInputsValid(requestMap);
+        assertTrue(valid);
+    }
+
+    @Test
+    public void test_areSafeGroupInputsValid_safegroup()  {
+        SafeGroup safeGroup = new SafeGroup("users/safe01", "group1", "write");
+
+        boolean valid = ControllerUtil.areSafeGroupInputsValid(safeGroup);
+        assertTrue(valid);
+    }
+
+    @Test
+    public void test_areSafeAppRoleInputsValid()  {
+        Map<String,Object> requestMap = new HashMap<>();
+        requestMap.put("path", "users/safe01");
+        requestMap.put("role_name", "role1");
+        requestMap.put("access", "write");
+        boolean valid = ControllerUtil.areSafeAppRoleInputsValid(requestMap);
+        assertTrue(valid);
+    }
+
+    @Test
+    public void test_areAWSRoleInputsValid_awsrole()  {
+        AWSRole awsRole = new AWSRole("users/safe01", "role1", "write");
+
+        boolean valid = ControllerUtil.areAWSRoleInputsValid(awsRole);
+        assertTrue(valid);
+    }
+
+    @Test
+    public void test_converSDBInputsToLowerCase() throws IOException {
+        SafeBasicDetails safeBasicDetails = new SafeBasicDetails("Safe01", "youremail@yourcompany.com", null, "My first safe");
+        Safe safe = new Safe("Shared/safe01",safeBasicDetails);
+        String jsonStr = "{\"path\":\"Shared/Safe01\",\"safeBasicDetails\":{\"name\":\"Safe01\",\"ownwe\":\"youremail@yourcompany.com\", \"description\":\"My first safe\"}}";
+        String jsonStrlowercase = "{\"path\":\"shared/safe01\",\"safeBasicDetails\":{\"name\":\"safe01\",\"ownwe\":\"youremail@yourcompany.com\", \"description\":\"My first safe\"}}";
+
+        when(JSONUtil.getObj(jsonStr, Safe.class)).thenReturn(safe);
+        when(JSONUtil.getJSON(safe)).thenReturn(jsonStrlowercase);
+
+        String jsonLowerCase = ControllerUtil.converSDBInputsToLowerCase(jsonStr);
+        assertEquals(jsonStrlowercase, jsonLowerCase);
+    }
+
+    @Test
+    public void test_converSDBInputsToLowerCase_safe()  {
+        SafeBasicDetails safeBasicDetails = new SafeBasicDetails("Safe01", "youremail@yourcompany.com", null, "My first safe");
+        Safe safe = new Safe("Shared/safe01",safeBasicDetails);
+        ControllerUtil.converSDBInputsToLowerCase(safe);
+        assertEquals("shared/safe01", safe.getPath());
+        assertEquals("safe01", safe.getSafeBasicDetails().getName());
+    }
+
+    @Test
+    public void test_convertAppRoleInputsToLowerCase() throws IOException {
+        String [] policies = {"default"};
+        AppRole appRole = new AppRole("approle1", policies, true, "1", "100m", 0);
+        String jsonStr = "{\"role_name\":\"approle1\",\"policies\":[\"default\"],\"bind_secret_id\":true,\"secret_id_num_uses\":\"1\",\"secret_id_ttl\":\"100m\",\"token_num_uses\":0,\"token_ttl\":null,\"token_max_ttl\":null}";
+        when(JSONUtil.getObj(jsonStr, AppRole.class)).thenReturn(appRole);
+        when(JSONUtil.getJSON(appRole)).thenReturn(jsonStr);
+        String json = ControllerUtil.convertAppRoleInputsToLowerCase(jsonStr);
+        assertEquals(jsonStr, json);
+    }
+
+    @Test
+    public void test_convertSafeAppRoleAccessToLowerCase() throws IOException {
+        String [] policies = {"default"};
+        String jsonStr = "{\"role_name\":\"Role1\", \"path\":\"users/safe01\", \"write\"}";
+        String jsonStrLowerCase = "{\"role_name\":\"role1\", \"path\":\"users/safe01\", \"write\"}";
+        SafeAppRoleAccess safeAppRoleAccess = new SafeAppRoleAccess("Role1", "users/safe01", "write");
+        when(JSONUtil.getObj(jsonStr, SafeAppRoleAccess.class)).thenReturn(safeAppRoleAccess);
+        when(JSONUtil.getJSON(safeAppRoleAccess)).thenReturn(jsonStrLowerCase);
+        String json = ControllerUtil.convertSafeAppRoleAccessToLowerCase(jsonStr);
+        assertEquals(jsonStrLowerCase, json);
+    }
+
+    @Test
+    public void test_convertAppRoleSecretIdToLowerCase() throws IOException {
+        String [] policies = {"default"};
+        String jsonStr = "{\"role_name\":\"Approle1\",\"data\":{\"env\":\"dev\",\"appname\":\"appl\"}}";
+        String jsonStrLowerCase =  "{\"role_name\":\"approle1\",\"data\":{\"env\":\"dev\",\"appname\":\"appl\"}}";
+        AppRoleSecretData appRoleSecretData = new AppRoleSecretData("Approle1", new SecretData("dev", "appl"));
+
+        when(JSONUtil.getObj(jsonStr, AppRoleSecretData.class)).thenReturn(appRoleSecretData);
+        when(JSONUtil.getJSON(appRoleSecretData)).thenReturn(jsonStrLowerCase);
+        String json = ControllerUtil.convertAppRoleSecretIdToLowerCase(jsonStr);
+        assertEquals(jsonStrLowerCase, json);
+    }
+
+    @Test
+    public void test_areAppRoleInputsValid()  {
+        String [] policies = {"default"};
+        ReflectionTestUtils.setField(ControllerUtil.class, "approleAllowedCharacters", "[a-z0-9_-]+");
+        AppRole appRole = new AppRole("role1", policies, true, "1", "100m", 0);
+        boolean valid = ControllerUtil.areAppRoleInputsValid(appRole);
+        assertTrue(valid);
+    }
+
+    @Test
+    public void test_areAppRoleInputsValid_invalid()  {
+        String [] policies = {"default"};
+        ReflectionTestUtils.setField(ControllerUtil.class, "approleAllowedCharacters", "[a-z0-9_-]+");
+        AppRole appRole = new AppRole("", policies, true, "1", "100m", 0);
+        boolean valid = ControllerUtil.areAppRoleInputsValid(appRole);
+        assertFalse(valid);
+    }
+
+    @Test
+    public void test_getAppRoleObjFromString() throws IOException {
+        String [] policies = {"default"};
+        String jsonStr = "{\"role_name\":\"role1\",\"policies\":[\"default\"],\"bind_secret_id\":true,\"secret_id_num_uses\":\"1\",\"secret_id_ttl\":\"100m\",\"token_num_uses\":0,\"token_ttl\":null,\"token_max_ttl\":null}";
+        AppRole appRole = new AppRole("role1", policies, true, "1", "100m", 0);
+        when(JSONUtil.getObj(jsonStr, AppRole.class)).thenReturn(appRole);
+        AppRole appRoleActual = ControllerUtil.getAppRoleObjFromString(jsonStr);
+        assertEquals(appRole, appRoleActual);
+    }
+
+    @Test
+    public void test_getAppRoleObjFromString_failure() throws IOException {
+        String [] policies = {"default"};
+        String jsonStr = "{\"role_names\":\"role1\",\"policies\":[\"default\"],\"bind_secret_id\":true,\"secret_id_num_uses\":\"1\",\"secret_id_ttl\":\"100m\",\"token_num_uses\":0,\"token_ttl\":null,\"token_max_ttl\":null}";
+        when(JSONUtil.getObj(jsonStr, AppRole.class)).thenThrow(Exception.class);
+        AppRole appRoleActual = ControllerUtil.getAppRoleObjFromString(jsonStr);
+        assertEquals(null, appRoleActual);
+    }
+
+    @Test
+    public void test_areSecretKeysValid()  {
+
+
+        String jsonStr = "{\"data\": {\"key1\": \"value1\"}}";
+        ReflectionTestUtils.setField(ControllerUtil.class, "secretKeyAllowedCharacters", "[a-z0-9_-]+");
+
+        boolean valid = ControllerUtil.areSecretKeysValid(jsonStr);
+        assertTrue(valid);
+    }
+
+    @Test
+    public void test_addDefaultSecretKey()  {
+
+        Map<String, Object> requestParams = new LinkedHashMap<>();
+        Map<String, Object> dataParam = new LinkedHashMap<>();
+        requestParams.put("data", dataParam);
+
+        String jsonStr = "{\"data\": {}}";
+        String jsonStrDefault = "{\"data\": {\"default\":\"default\"}}";
+        when(JSONUtil.getJSON(Mockito.any())).thenReturn(jsonStrDefault);
+        String actualStr = ControllerUtil.addDefaultSecretKey(jsonStr);
+        assertEquals(jsonStrDefault, actualStr);
+    }
+
+    @Test
+    public void test_areAwsLoginInputsValid()  {
+
+        AWSAuthLogin awsAuthLogin = new AWSIAMLogin();
+        awsAuthLogin.setIam_http_request_method("POST");
+        awsAuthLogin.setIam_request_body("{}");
+        awsAuthLogin.setIam_request_headers("{\"token\":\"4qJC0tWjMDIKjRDDmtcUAZBt\"}");
+        awsAuthLogin.setIam_request_url("http://testurl.com");
+        awsAuthLogin.setRole("testawsrole");
+        awsAuthLogin.setPkcs7("MIIBjwYJKoZIhvcNAQcDoIIBgDCCAXwCAQAxggE4MIIBNAIBADCBnDCBlDELMAkGA1UEBhMCWkEx====");
+        boolean valid = ControllerUtil.areAwsLoginInputsValid(AWSAuthType.IAM, awsAuthLogin);
+        assertTrue(valid);
+    }
+
+    @Test
+    public void test_areAwsLoginInputsValid_EC2()  {
+
+        AWSAuthLogin awsAuthLogin = new AWSIAMLogin();
+        awsAuthLogin.setIam_http_request_method("POST");
+        awsAuthLogin.setIam_request_body("{}");
+        awsAuthLogin.setIam_request_headers("{\"token\":\"4qJC0tWjMDIKjRDDmtcUAZBt\"}");
+        awsAuthLogin.setIam_request_url("http://testurl.com");
+        awsAuthLogin.setRole("testawsrole");
+        awsAuthLogin.setPkcs7("MIIBjwYJKoZIhvcNAQcDoIIBgDCCAXwCAQAxggE4MIIBNAIBADCBnDCBlDELMAkGA1UEBhMCWkEx====");
+        boolean valid = ControllerUtil.areAwsLoginInputsValid(AWSAuthType.EC2, awsAuthLogin);
+        assertTrue(valid);
+    }
+
+    @Test
+    public void test_areAwsLoginInputsValid_invalid()  {
+
+        boolean valid = ControllerUtil.areAwsLoginInputsValid(AWSAuthType.EC2, null);
+        assertFalse(valid);
+    }
+
+    @Test
+    public void test_areAWSEC2RoleInputsValid() throws TVaultValidationException {
+
+        AWSLoginRole awsLoginRole = new AWSLoginRole("ec2", "mytestawsrole", "",
+                "", "", "vpc-2f09a348", "",
+                "", "",
+                "\"[prod, dev\"]");
+        boolean valid = ControllerUtil.areAWSEC2RoleInputsValid(awsLoginRole);
+        assertTrue(valid);
+    }
+
+    @Test
+    public void test_areAWSEC2RoleInputsValid_invalid()  {
+
+        try {
+            AWSLoginRole awsLoginRole = new AWSLoginRole("ec2", "", "",
+                    "", "", "vpc-2f09a348", "",
+                    "", "",
+                    "\"[prod, dev\"]");
+            boolean valid = ControllerUtil.areAWSEC2RoleInputsValid(awsLoginRole);
+        } catch (TVaultValidationException e) {
+            assertTrue(true);
+        }
+    }
+
+    @Test
+    public void test_areAWSEC2RoleInputsValid_invalid_authType()  {
+
+        try {
+            AWSLoginRole awsLoginRole = new AWSLoginRole("iam", "mytestawsrole", "",
+                    "", "", "vpc-2f09a348", "",
+                    "", "",
+                    "\"[prod, dev\"]");
+            boolean valid = ControllerUtil.areAWSEC2RoleInputsValid(awsLoginRole);
+        } catch (TVaultValidationException e) {
+            assertTrue(true);
+        }
+    }
+
+    @Test
+    public void test_areAWSIAMRoleInputsValid() throws TVaultValidationException {
+
+        AWSIAMRole awsiamRole = new AWSIAMRole();
+        awsiamRole.setAuth_type("iam");
+        String[] arns = {"arn:aws:iam::123456789012:user/tst"};
+        awsiamRole.setBound_iam_principal_arn(arns);
+        String[] policies = {"default"};
+        awsiamRole.setPolicies(policies);
+        awsiamRole.setResolve_aws_unique_ids(true);
+        awsiamRole.setRole("string");
+        boolean valid = ControllerUtil.areAWSIAMRoleInputsValid(awsiamRole);
+        assertTrue(valid);
+    }
+
+    @Test
+    public void test_areAWSIAMRoleInputsValid_invalid_authType()  {
+
+        AWSIAMRole awsiamRole = new AWSIAMRole();
+        awsiamRole.setAuth_type("ec2");
+        String[] arns = {"arn:aws:iam::123456789012:user/tst"};
+        awsiamRole.setBound_iam_principal_arn(arns);
+        String[] policies = {"default"};
+        awsiamRole.setPolicies(policies);
+        awsiamRole.setResolve_aws_unique_ids(true);
+        awsiamRole.setRole("string");
+        try {
+            boolean valid = ControllerUtil.areAWSIAMRoleInputsValid(awsiamRole);
+        } catch (TVaultValidationException e) {
+            assertTrue(true);
+        }
+    }
+
+    @Test
+    public void test_areAWSIAMRoleInputsValid_invalid() throws TVaultValidationException {
+
+        boolean valid = ControllerUtil.areAWSIAMRoleInputsValid(null);
+        assertFalse(valid);
+    }
+
+    @Test
+    public void test_getCountOfSafesForGivenSafeName()  {
+        String token = "7QPMPIGiyDFlJkrK3jFykUqa";
+        Response response = getMockResponse(HttpStatus.OK, true, "{\"keys\":[\"safe01\", \"safe02\"]}");
+        Response responseEmpty = getMockResponse(HttpStatus.OK, true, "{\"keys\":[]}");
+        when(reqProcessor.process("/sdb/list","{\"path\":\"metadata/apps\"}",token)).thenReturn(response);
+        when(reqProcessor.process("/sdb/list","{\"path\":\"metadata/users\"}",token)).thenReturn(responseEmpty);
+        when(reqProcessor.process("/sdb/list","{\"path\":\"metadata/shared\"}",token)).thenReturn(responseEmpty);
+        int count = ControllerUtil.getCountOfSafesForGivenSafeName("safe01", token);
+        assertEquals(1, count);
+    }
+
+    @Test
+    public void test_generateSafePath_users()  {
+        String safePath = ControllerUtil.generateSafePath("safe01", "users");
+        assertEquals("users/safe01", safePath);
+    }
+
+    @Test
+    public void test_generateSafePath_apps()  {
+        String safePath = ControllerUtil.generateSafePath("safe01", "apps");
+        assertEquals("apps/safe01", safePath);
+    }
+
+    @Test
+    public void test_generateSafePath_shared()  {
+        String safePath = ControllerUtil.generateSafePath("safe01", "shared");
+        assertEquals("shared/safe01", safePath);
+    }
 }
