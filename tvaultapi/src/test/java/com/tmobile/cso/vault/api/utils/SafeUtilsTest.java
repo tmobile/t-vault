@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
 import com.tmobile.cso.vault.api.controller.ControllerUtil;
+import com.tmobile.cso.vault.api.model.Safe;
 import com.tmobile.cso.vault.api.model.SafeUser;
 import com.tmobile.cso.vault.api.model.UserDetails;
 import com.tmobile.cso.vault.api.process.RequestProcessor;
@@ -31,9 +32,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 import static org.mockito.Mockito.when;
 
 @RunWith(PowerMockRunner.class)
@@ -69,6 +68,7 @@ public class SafeUtilsTest {
         Response response = new Response();
         response.setHttpstatus(status);
         response.setSuccess(success);
+        response.setResponse("");
         if (expectedBody!="") {
             response.setResponse(expectedBody);
         }
@@ -122,6 +122,17 @@ public class SafeUtilsTest {
         when(ControllerUtil.reqProcessor.process("/sdb","{\"path\":\"metadata/users/ert\"}","5PDrOhsy4ig8L3EpsJZSLAMg")).thenReturn(response);
         boolean canAdd = safeUtils.canAddOrRemoveUser(userDetails, safeUser, "addUser");
         assertTrue(canAdd);
+    }
+
+    @Test
+    public void test_getSafeMetaData_failure() {
+        Response response = getMockResponse(HttpStatus.OK, true, "");
+
+        when(ControllerUtil.getSafeType("users/ert")).thenReturn("users");
+        when(ControllerUtil.getSafeName("users/ert")).thenReturn("ert");
+        when(ControllerUtil.reqProcessor.process("/sdb","{\"path\":\"metadata/users/ert\"}","5PDrOhsy4ig8L3EpsJZSLAMg")).thenReturn(response);
+        Safe safe = safeUtils.getSafeMetaData("5PDrOhsy4ig8L3EpsJZSLAMg", "users", "ert");
+        assertNull(safe);
     }
 
     @Test
@@ -241,5 +252,16 @@ public class SafeUtilsTest {
         when(ControllerUtil.reqProcessor.process("/sdb","{\"path\":\"metadata/users/ert\"}","5PDrOhsy4ig8L3EpsJZSLAMg")).thenReturn(response);
         boolean canAdd = safeUtils.canAddOrRemoveUser(userDetails, safeUser, "addUser");
         assertTrue(canAdd);
+    }
+
+    @Test
+    public void test_canAddOrRemoveUser_failure_empty_safetype() {
+        UserDetails userDetails = getMockUser(false);
+        SafeUser safeUser = new SafeUser("ert", "normaluser", "write");
+
+        when(ControllerUtil.getSafeType("ert")).thenReturn("");
+        when(ControllerUtil.getSafeName("users/ert")).thenReturn("ert");
+        boolean canAdd = safeUtils.canAddOrRemoveUser(userDetails, safeUser, "addUser");
+        assertFalse(canAdd);
     }
 }

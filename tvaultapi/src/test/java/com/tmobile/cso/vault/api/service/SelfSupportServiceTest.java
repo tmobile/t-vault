@@ -27,6 +27,7 @@ import org.springframework.http.ResponseEntity;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
@@ -1110,6 +1111,47 @@ public class SelfSupportServiceTest {
         when(awsiamAuthService.updateIAMRole(token, awsiamRole)).thenReturn(response);
 
         ResponseEntity<String> responseEntity = selfSupportService.updateIAMRole(userDetails, token, awsiamRole,"shared/mysafe01");
+        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntity);
+    }
+
+    @Test
+    public void test_getAllSafeNames_successfully() {
+
+        UserDetails userDetails = getMockUser(false);
+
+        HashMap<String, List<String>> safeNames = new HashMap<>();
+        List<String> appSafes = new ArrayList<>();
+        appSafes.add("safe1");
+        appSafes.add("safe2");
+        List<String> userSafes = new ArrayList<>();
+        userSafes.add("safe3");
+        userSafes.add("safe4");
+        List<String> sharedSafes = new ArrayList<>();
+        sharedSafes.add("safe5");
+        sharedSafes.add("safe6");
+        safeNames.put("apps", appSafes);
+        safeNames.put("users", userSafes);
+        safeNames.put("shared", sharedSafes);
+        when(ControllerUtil.getAllExistingSafeNames(Mockito.any())).thenReturn(safeNames);
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(JSONUtil.getJSON(safeNames));
+
+        ResponseEntity<String> responseEntity = selfSupportService.getAllSafeNames(userDetails);
+        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntity);
+    }
+
+    @Test
+    public void test_getAllSafeNames_failure() {
+
+        UserDetails userDetails = getMockUser(false);
+
+        HashMap<String, List<String>> safeNames = new HashMap<>();
+
+        when(ControllerUtil.getAllExistingSafeNames(Mockito.any())).thenReturn(safeNames);
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body("No safes are available");
+
+        ResponseEntity<String> responseEntity = selfSupportService.getAllSafeNames(userDetails);
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
     }

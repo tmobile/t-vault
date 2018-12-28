@@ -47,6 +47,11 @@ public class TokenValidationFilter extends GenericFilterBean {
 		if (clientToken == null) {
 			clientToken = ((HttpServletRequest) request).getHeader("vault-token");
 		}
+		String requestUri = ((HttpServletRequest) request).getRequestURI();
+		// ignore the client token in the login request header
+		if (requestUri.equals("/vault/v2/auth/tvault/login")) {
+			clientToken= null;
+		}
 		VaultTokenLookupDetails  vaultTokenLookupDetails = null;
 		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).

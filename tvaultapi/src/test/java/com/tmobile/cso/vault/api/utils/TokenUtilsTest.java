@@ -106,6 +106,22 @@ public class TokenUtilsTest {
     }
 
     @Test
+    public void test_getSelfServiceToken_success_ldap() throws Exception {
+
+        String jsonStr = "{\"username\":\"testadmin\",\"password\":\"testadmin\"}";
+
+        ReflectionTestUtils.setField(tokenUtils, "selfserviceUsername", "dGVzdGFkbWlu");
+        ReflectionTestUtils.setField(tokenUtils, "selfservicePassword", "dGVzdGFkbWlu");
+        ReflectionTestUtils.setField(tokenUtils, "vaultAuthMethod", "ldap");
+
+        when(JSONUtil.getJSON(Mockito.any())).thenReturn(jsonStr);
+        Response response = getMockResponse(HttpStatus.OK, true, "{\"client_token\":\"7QPMPIGiyDFlJkrK3jFykUqa\",\"admin\":\"yes\",\"access\":{},\"policies\":[\"default\",\"testadmin\"],\"lease_duration\":1800000}");
+        when(reqProcessor.process("/auth/ldap/login",jsonStr,"")).thenReturn(response);
+        String token = tokenUtils.getSelfServiceToken();
+        assertEquals("7QPMPIGiyDFlJkrK3jFykUqa", token);
+    }
+
+    @Test
     public void test_getSelfServiceToken_failure() throws Exception {
 
         String jsonStr = "{\"username\":\"testadmin\",\"password\":\"testadmin\"}";
