@@ -3,6 +3,8 @@ package com.tmobile.cso.vault.api.utils;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.powermock.api.mockito.PowerMockito.whenNew;
 
@@ -151,5 +153,39 @@ public class TokenUtilsTest {
         Response res = getMockResponse(HttpStatus.NOT_FOUND, true, "");
         when(reqProcessor.process("/auth/tvault/revoke","{}", token)).thenReturn(res);
         tokenUtils.revokePowerToken(token);
+    }
+
+    @Test
+    public void test_getSelfServiceToken_success_approle() throws Exception {
+
+        String jsonStr = "{\"roleId\":\"a736d57a-ac97-a08d-53ab-eb5ab16d03b5\",\"secretId\":\"10884921-79d6-fde1-3f28-56af75d83616\"}";
+
+        ReflectionTestUtils.setField(tokenUtils, "selfserviceApproleUsername", "YTczNmQ1N2EtYWM5Ny1hMDhkLTUzYWItZWI1YWIxNmQwM2I1");
+        ReflectionTestUtils.setField(tokenUtils, "selfserviceApprolepassword", "MTA4ODQ5MjEtNzlkNi1mZGUxLTNmMjgtNTZhZjc1ZDgzNjE2");
+        ReflectionTestUtils.setField(tokenUtils, "vaultAuthMethod", "userpass");
+        ReflectionTestUtils.setField(tokenUtils, "selfServiceTokenGenerator", "approle");
+
+        when(JSONUtil.getJSON(Mockito.any(AppRoleIdSecretId.class))).thenReturn(jsonStr);
+        Response response = getMockResponse(HttpStatus.OK, true, "{\"auth\":{\"client_token\":\"6WcC0r5Nw9z0RILHEJnn0OCB\",\"accessor\":\"2xmlSRCSxGb0AlopA1JfQyuY\",\"policies\":[\"default\",\"selfservicesupport\"],\"token_policies\":[\"default\",\"selfservicesupport\"],\"metadata\":{\"role_name\":\"selfservicesupportrole\"},\"lease_duration\":2764800,\"renewable\":true,\"entity_id\":\"eb74b6b1-b9a0-fd59-ff33-5813be3fdbbf\"},\"data\":null,\"lease_duration\":0,\"lease_id\":\"\"}");
+        when(reqProcessor.process(eq("/auth/approle/login"),Mockito.any(),eq(""))).thenReturn(response);
+        String token = tokenUtils.getSelfServiceToken();
+        assertEquals("6WcC0r5Nw9z0RILHEJnn0OCB", token);
+    }
+
+    @Test
+    public void test_getSelfServiceToken_failure_approle() throws Exception {
+
+        String jsonStr = "{\"roleId\":\"a736d57a-ac97-a08d-53ab-eb5ab16d03b5\",\"secretId\":\"10884921-79d6-fde1-3f28-56af75d83616\"}";
+
+        ReflectionTestUtils.setField(tokenUtils, "selfserviceApproleUsername", "YTczNmQ1N2EtYWM5Ny1hMDhkLTUzYWItZWI1YWIxNmQwM2I1");
+        ReflectionTestUtils.setField(tokenUtils, "selfserviceApprolepassword", "MTA4ODQ5MjEtNzlkNi1mZGUxLTNmMjgtNTZhZjc1ZDgzNjE2");
+        ReflectionTestUtils.setField(tokenUtils, "vaultAuthMethod", "userpass");
+        ReflectionTestUtils.setField(tokenUtils, "selfServiceTokenGenerator", "approle");
+
+        when(JSONUtil.getJSON(Mockito.any())).thenReturn(jsonStr);
+        Response response = getMockResponse(HttpStatus.NOT_FOUND, true, "");
+        when(reqProcessor.process("/auth/approle/login",jsonStr,"")).thenReturn(response);
+        String token = tokenUtils.getSelfServiceToken();
+        assertNull(token);
     }
 }
