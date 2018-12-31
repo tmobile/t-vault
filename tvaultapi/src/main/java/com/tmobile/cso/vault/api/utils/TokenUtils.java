@@ -34,7 +34,15 @@ public class TokenUtils {
 	
 	@Value("${selfservice.password}")
 	private String selfservicePassword;
-	
+
+	@Value("${selfservice.tokengenerator}")
+	private String selfServiceTokenGenerator;
+
+	@Value("${selfservice.approleusername}")
+	private String selfserviceApproleUsername;
+
+	@Value("${selfservice.approlepassword}")
+	private String selfserviceApprolepassword;
 
 	public TokenUtils() {
 
@@ -47,6 +55,9 @@ public class TokenUtils {
 				put(LogMessage.MESSAGE, String.format ("Trying to generate SelfServiceToken")).
 				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 				build()));
+		if ("approle".equals(selfServiceTokenGenerator)) {
+			return getSelfServiceTokenWithAppRole();
+		}
 		String selfServiceToken = null;
 		String tvaultSelfServiceUsername = new String(Base64.getDecoder().decode(selfserviceUsername));
 		String tvaultSelfServicePassword = new String(Base64.getDecoder().decode(selfservicePassword));
@@ -83,6 +94,53 @@ public class TokenUtils {
 		}
 		return selfServiceToken;
 	}
+
+	/**
+	 * Gets the Self Service token with AppRole using role_id and secret_id
+	 * @return
+	 */
+	public String getSelfServiceTokenWithAppRole() {
+		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+				put(LogMessage.ACTION, "getSelfServiceTokenWithAppRole").
+				put(LogMessage.MESSAGE, String.format ("Trying to generate SelfServiceTokenWithAppRole")).
+				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+				build()));
+		String selfServiceToken = null;
+		String role_id = new String(Base64.getDecoder().decode(selfserviceApproleUsername));
+		String secret_id = new String(Base64.getDecoder().decode(selfserviceApprolepassword));
+		AppRoleIdSecretId approleLogin = new AppRoleIdSecretId();
+		approleLogin.setRole_id(role_id);
+		approleLogin.setSecret_id(secret_id);
+		String jsonStr = JSONUtil.getJSON(approleLogin);
+
+		Response response  = reqProcessor.process("/auth/approle/login",jsonStr,"");
+
+		if(HttpStatus.OK.equals(response.getHttpstatus())){
+			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+					put(LogMessage.ACTION, "getSelfServiceTokenWithAppRole").
+					put(LogMessage.MESSAGE, String.format ("SelfService token successfully created using AppRole")).
+					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+					build()));
+			String res = response.getResponse();
+			if (!StringUtils.isEmpty(res)) {
+				LinkedHashMap<String, Object> responseMap = (LinkedHashMap<String, Object>)ControllerUtil.parseJson(response.getResponse());
+				if (responseMap.get("auth") != null) {
+					selfServiceToken = (String)((LinkedHashMap<String, Object>) responseMap.get("auth")).get("client_token");
+				}
+			}
+		}else{
+			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+					put(LogMessage.ACTION, "getSelfServiceTokenWithAppRole").
+					put(LogMessage.MESSAGE, String.format ("SelfService token failed")).
+					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+					build()));
+		}
+		return selfServiceToken;
+	}
+
 	/**
 	 * To revoke token
 	 * @param token
