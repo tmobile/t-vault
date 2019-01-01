@@ -160,8 +160,8 @@ public class TokenUtilsTest {
 
         String jsonStr = "{\"roleId\":\"a736d57a-ac97-a08d-53ab-eb5ab16d03b5\",\"secretId\":\"10884921-79d6-fde1-3f28-56af75d83616\"}";
 
-        ReflectionTestUtils.setField(tokenUtils, "selfserviceApproleUsername", "YTczNmQ1N2EtYWM5Ny1hMDhkLTUzYWItZWI1YWIxNmQwM2I1");
-        ReflectionTestUtils.setField(tokenUtils, "selfserviceApprolepassword", "MTA4ODQ5MjEtNzlkNi1mZGUxLTNmMjgtNTZhZjc1ZDgzNjE2");
+        ReflectionTestUtils.setField(tokenUtils, "selfserviceUsername", "YTczNmQ1N2EtYWM5Ny1hMDhkLTUzYWItZWI1YWIxNmQwM2I1");
+        ReflectionTestUtils.setField(tokenUtils, "selfservicePassword", "MTA4ODQ5MjEtNzlkNi1mZGUxLTNmMjgtNTZhZjc1ZDgzNjE2");
         ReflectionTestUtils.setField(tokenUtils, "vaultAuthMethod", "userpass");
         ReflectionTestUtils.setField(tokenUtils, "selfServiceTokenGenerator", "approle");
 
@@ -177,8 +177,8 @@ public class TokenUtilsTest {
 
         String jsonStr = "{\"roleId\":\"a736d57a-ac97-a08d-53ab-eb5ab16d03b5\",\"secretId\":\"10884921-79d6-fde1-3f28-56af75d83616\"}";
 
-        ReflectionTestUtils.setField(tokenUtils, "selfserviceApproleUsername", "YTczNmQ1N2EtYWM5Ny1hMDhkLTUzYWItZWI1YWIxNmQwM2I1");
-        ReflectionTestUtils.setField(tokenUtils, "selfserviceApprolepassword", "MTA4ODQ5MjEtNzlkNi1mZGUxLTNmMjgtNTZhZjc1ZDgzNjE2");
+        ReflectionTestUtils.setField(tokenUtils, "selfserviceUsername", "YTczNmQ1N2EtYWM5Ny1hMDhkLTUzYWItZWI1YWIxNmQwM2I1");
+        ReflectionTestUtils.setField(tokenUtils, "selfservicePassword", "MTA4ODQ5MjEtNzlkNi1mZGUxLTNmMjgtNTZhZjc1ZDgzNjE2");
         ReflectionTestUtils.setField(tokenUtils, "vaultAuthMethod", "userpass");
         ReflectionTestUtils.setField(tokenUtils, "selfServiceTokenGenerator", "approle");
 

@@ -38,12 +38,6 @@ public class TokenUtils {
 	@Value("${selfservice.tokengenerator}")
 	private String selfServiceTokenGenerator;
 
-	@Value("${selfservice.approleusername}")
-	private String selfserviceApproleUsername;
-
-	@Value("${selfservice.approlepassword}")
-	private String selfserviceApprolepassword;
-
 	public TokenUtils() {
 
 	}
@@ -107,8 +101,8 @@ public class TokenUtils {
 				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 				build()));
 		String selfServiceToken = null;
-		String role_id = new String(Base64.getDecoder().decode(selfserviceApproleUsername));
-		String secret_id = new String(Base64.getDecoder().decode(selfserviceApprolepassword));
+		String role_id = new String(Base64.getDecoder().decode(selfserviceUsername));
+		String secret_id = new String(Base64.getDecoder().decode(selfservicePassword));
 		AppRoleIdSecretId approleLogin = new AppRoleIdSecretId();
 		approleLogin.setRole_id(role_id);
 		approleLogin.setSecret_id(secret_id);
