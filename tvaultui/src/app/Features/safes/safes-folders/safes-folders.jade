@@ -1,12 +1,12 @@
-md-content.au-100-height
-    md-tabs.md-dynamic-height.md-border-bottom(md-selected="vm.tabIndex")
+md-content
+    md-tabs.md-dynamic-height.md-border-bottom.height-auto(md-selected="vm.tabIndex")
         md-tab(ng-repeat="tab in vm.safeCategories" ng-attr-label="{{tab.name}}" ng-click="vm.clickSafeTab(tab)")
             md-content
                 div.invisible stand-in content
 
     md-content.au-tabs-inner
         .md-content-inner-wrapper
-            .new-container.page-content-container
+            .new-container.page-content-container.safe
                 .create-folder-container.slide-header
                     .function-text
                         .clearfix
