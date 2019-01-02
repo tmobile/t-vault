@@ -246,6 +246,9 @@ public class  SelfSupportService {
 		String powerToken = userDetails.getSelfSupportToken();
 		String username = userDetails.getUsername();
 		Safe safeMetaData = safeUtils.getSafeMetaData(powerToken, safeType, safeName);
+		if (safeMetaData == null) {
+			return ResponseEntity.status(HttpStatus.OK).body("false");
+		}
 		String[] latestPolicies = policyUtils.getCurrentPolicies(powerToken, username);
 		ArrayList<String> policiesTobeChecked =  policyUtils.getPoliciesTobeCheked(safeType, safeName);
 		boolean isAuthorized = authorizationUtils.isAuthorized(userDetails, safeMetaData, latestPolicies, policiesTobeChecked, false);
