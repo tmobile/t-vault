@@ -24,6 +24,7 @@ import org.powermock.reflect.Whitebox;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -104,11 +105,38 @@ public class SelfSupportServiceTest {
 
         ResponseEntity<String> readResponse = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Safe and associated read/write/deny policies created \"]}");
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Safe and associated read/write/deny policies created \"]}");
-
+        ReflectionTestUtils.setField(selfSupportService, "safeQuota", "2");
+        when(ControllerUtil.getSafeType("shared/mysafe01")).thenReturn("shared");
+        String [] policies = {"s_shared_s1"};
+        when(policyUtils.getCurrentPolicies(token, "normaluser")).thenReturn(policies);
+        String [] safes = {"s1"};
+        when(safeUtils.getManagedSafesFromPolicies(policies, "shared")).thenReturn(safes);
         when(safesService.createSafe(token, safe)).thenReturn(readResponse);
 
         ResponseEntity<String> responseEntity = selfSupportService.createSafe(userDetails, token, safe);
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntity);
+    }
+
+    @Test
+    public void test_createSafe_failure() {
+        String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+        UserDetails userDetails = getMockUser(false);
+        SafeBasicDetails safeBasicDetails = new SafeBasicDetails("mysafe01", "youremail@yourcompany.com", null, "My first safe");
+        Safe safe = new Safe("shared/mysafe01",safeBasicDetails);
+
+        ResponseEntity<String> readResponse = ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":\"You have reached the limit of number of allowed safes that can be created\"}");
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":\"You have reached the limit of number of allowed safes that can be created\"}");
+        ReflectionTestUtils.setField(selfSupportService, "safeQuota", "2");
+        when(ControllerUtil.getSafeType("shared/mysafe01")).thenReturn("shared");
+        String [] policies = {"s_shared_s1, s_shared_s2"};
+        when(policyUtils.getCurrentPolicies(token, "normaluser")).thenReturn(policies);
+        String [] safes = {"s1", "s2"};
+        when(safeUtils.getManagedSafesFromPolicies(policies, "shared")).thenReturn(safes);
+        when(safesService.createSafe(token, safe)).thenReturn(readResponse);
+
+        ResponseEntity<String> responseEntity = selfSupportService.createSafe(userDetails, token, safe);
+        assertEquals(HttpStatus.BAD_REQUEST, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
     }
 
@@ -121,7 +149,7 @@ public class SelfSupportServiceTest {
 
         ResponseEntity<String> readResponse = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Safe and associated read/write/deny policies created \"]}");
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Safe and associated read/write/deny policies created \"]}");
-
+        when(ControllerUtil.getSafeType("shared/mysafe01")).thenReturn("shared");
         when(safesService.createSafe(token, safe)).thenReturn(readResponse);
 
         ResponseEntity<String> responseEntity = selfSupportService.createSafe(userDetails, token, safe);

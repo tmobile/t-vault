@@ -68,6 +68,9 @@ public class  SelfSupportService {
 	@Value("${vault.auth.method}")
 	private String vaultAuthMethod;
 
+	@Value("${safe.quota}")
+	private String safeQuota;
+
 	public static final String READ_POLICY="read";
 	public static final String WRITE_POLICY="write";
 	public static final String DENY_POLICY="deny";
@@ -95,6 +98,10 @@ public class  SelfSupportService {
 			// Modify should work the same
 			// Delete safe - clean up of all items, paths, permissions, policies
 			token = userDetails.getSelfSupportToken();
+			// check the user safe limit
+			if (isSafeQuotaReached(token, userDetails.getUsername(), ControllerUtil.getSafeType(safe.getPath()))) {
+				return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":\"You have reached the limit of number of allowed safes that can be created\"}");
+			}
 			if (safe != null && safe.getSafeBasicDetails() != null) {
 				safe.getSafeBasicDetails().setOwnerid(userDetails.getUsername());
 			}
@@ -110,7 +117,23 @@ public class  SelfSupportService {
 			return safe_creation_response;
 		}
 	}
-	
+
+	/**
+	 * Check whether the user safe limit reached
+	 * @param token
+	 * @param username
+	 * @param path
+	 * @return
+	 */
+	private boolean isSafeQuotaReached(String token, String username, String path) {
+		String[] policies = policyUtils.getCurrentPolicies(token, username);
+		String[] safes = safeUtils.getManagedSafesFromPolicies(policies, path);
+		if (safes.length == Integer.parseInt(safeQuota)) {
+			return true;
+		}
+		return false;
+	}
+
 
 	/**
 	 * Adds a user to a safe

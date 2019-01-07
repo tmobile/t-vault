@@ -125,6 +125,8 @@
                     } else {
                         return ErrorMessage.ERROR_GENERAL;
                     }                    
+                } else if(responseObject.status === 400){
+                    return responseObject.data.errors;
                 }
                 else{
                     return ErrorMessage.ERROR_GENERAL;
