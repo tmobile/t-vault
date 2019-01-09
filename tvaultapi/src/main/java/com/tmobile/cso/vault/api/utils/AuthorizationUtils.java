@@ -5,6 +5,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.tmobile.cso.vault.api.common.TVaultConstants;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -110,7 +111,8 @@ public class AuthorizationUtils {
 		    		}
 		    		else if (valEntry.getValue() instanceof ArrayList<?>) {
 		    			ArrayList<Object> capabilities = (ArrayList<Object>)valEntry.getValue();
-			    		if (capabilities.contains("create")|| capabilities.contains("update") || capabilities.contains("delete") ) {
+			    		if (capabilities.contains(TVaultConstants.CREATE)|| capabilities.contains(TVaultConstants.UPDATE) || capabilities.contains(TVaultConstants.DELETE) ) {
+
 							authorized = true;
 							break;
 			    		}
@@ -171,7 +173,7 @@ public class AuthorizationUtils {
 	 * @return
 	 */
 	private String getSafeTypeFromPath(String path){
-		String safeType = "unknown";
+		String safeType = TVaultConstants.UNKNOWN;
 		if (!StringUtils.isEmpty(path)) {
 			String paths[] =  path.split("/");
 			if (paths != null && paths.length > 0) {

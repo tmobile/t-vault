@@ -6,6 +6,7 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 
+import com.tmobile.cso.vault.api.common.TVaultConstants;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.http.HttpStatus;
@@ -56,18 +57,18 @@ public class SafeUtils {
 		return adminPolicies;
 	}
 	/**
-	 * Gets the list of safes from policies for a given path
+	 * Gets the list of safes from policies for a given safeType
 	 * @param policies
-	 * @param path
+	 * @param safeType
 	 * @return
 	 */
-	public String[] getManagedSafesFromPolicies(String[] policies, String path) {
+	public String[] getManagedSafes(String[] policies, String safeType) {
 		List<String> safes = new ArrayList<String>();
 		if (policies != null) {
 			for (String policy: policies) {
 				if (policy.startsWith("s_")) {
 					String[] _policies = policy.split("_");
-					if (_policies[1].equals(path)) {
+					if (_policies[1].equals(safeType)) {
 						String [] safeNameArray = Arrays.copyOfRange(_policies, 2, _policies.length);
 						String safeName = StringUtils.arrayToDelimitedString(safeNameArray, "_");
 						safes.add(safeName);
@@ -110,7 +111,7 @@ public class SafeUtils {
 				if (safeOwnerid.equals(safeUser.getUsername())) {
 					// Safeadmin is trying to add the owner of the safe as some user with some permission
 					// Safeadmin can add read or write permission to safeowner
-					if ("read".equals(safeUser.getAccess()) || "write".equals(safeUser.getAccess()) || (null==safeUser.getAccess() && action.equals("removeUser"))) {
+					if (TVaultConstants.READ_POLICY.equals(safeUser.getAccess()) || TVaultConstants.WRITE_POLICY.equals(safeUser.getAccess()) || (null==safeUser.getAccess() && action.equals(TVaultConstants.REMOVE_USER))) {
 						// safeadmin or the safeowner himself can set read/write permission to the safeowner
 						return true;
 					}
@@ -127,7 +128,7 @@ public class SafeUtils {
 			if (userDetails.getUsername() != null && userDetails.getUsername().equals(safeOwnerid)) {
 				// This user is owner of the safe...
 				if (safeUser.getUsername().equals(safeOwnerid)) {
-					if ("read".equals(safeUser.getAccess()) || "write".equals(safeUser.getAccess()) || (null==safeUser.getAccess() && action.equals("removeUser"))) {
+					if (TVaultConstants.READ_POLICY.equals(safeUser.getAccess()) || TVaultConstants.WRITE_POLICY.equals(safeUser.getAccess()) || (null==safeUser.getAccess() && action.equals(TVaultConstants.REMOVE_USER))) {
 						// safeowner himself can set read/write permission to the safeowner
 						return true;
 					}

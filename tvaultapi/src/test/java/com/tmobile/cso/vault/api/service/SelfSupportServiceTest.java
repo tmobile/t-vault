@@ -24,6 +24,7 @@ import org.powermock.reflect.Whitebox;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -68,6 +69,7 @@ public class SelfSupportServiceTest {
     @Before
     public void setUp() {
         PowerMockito.mockStatic(ControllerUtil.class);
+        PowerMockito.mockStatic(JSONUtil.class);
         Whitebox.setInternalState(ControllerUtil.class, "log", LogManager.getLogger(ControllerUtil.class));
     }
 
@@ -104,11 +106,52 @@ public class SelfSupportServiceTest {
 
         ResponseEntity<String> readResponse = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Safe and associated read/write/deny policies created \"]}");
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Safe and associated read/write/deny policies created \"]}");
-
+        ReflectionTestUtils.setField(selfSupportService, "safeQuota", "2");
+        when(ControllerUtil.getSafeType("shared/mysafe01")).thenReturn("shared");
+        String [] policies = {"s_shared_s1"};
+        when(policyUtils.getCurrentPolicies(token, "normaluser")).thenReturn(policies);
+        String [] safes = {"s1"};
+        when(safeUtils.getManagedSafes(policies, "shared")).thenReturn(safes);
         when(safesService.createSafe(token, safe)).thenReturn(readResponse);
 
         ResponseEntity<String> responseEntity = selfSupportService.createSafe(userDetails, token, safe);
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntity);
+    }
+
+    @Test
+    public void test_createSafe_failure() {
+        String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+        UserDetails userDetails = getMockUser(false);
+        SafeBasicDetails safeBasicDetails = new SafeBasicDetails("mysafe01", "youremail@yourcompany.com", null, "My first safe");
+        Safe safe = new Safe("shared/mysafe01",safeBasicDetails);
+
+        ResponseEntity<String> readResponse = ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":\"You have reached the limit of number of allowed safes that can be created\"}");
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":\"You have reached the limit of number of allowed safes that can be created\"}");
+        ReflectionTestUtils.setField(selfSupportService, "safeQuota", "2");
+        when(ControllerUtil.getSafeType("shared/mysafe01")).thenReturn("shared");
+        String [] policies = {"s_shared_s1, s_shared_s2"};
+        when(policyUtils.getCurrentPolicies(token, "normaluser")).thenReturn(policies);
+        String [] safes = {"s1", "s2"};
+        when(safeUtils.getManagedSafes(policies, "shared")).thenReturn(safes);
+        when(safesService.createSafe(token, safe)).thenReturn(readResponse);
+
+        ResponseEntity<String> responseEntity = selfSupportService.createSafe(userDetails, token, safe);
+        assertEquals(HttpStatus.BAD_REQUEST, responseEntity.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntity);
+    }
+
+    @Test
+    public void test_createSafe_failure_400() {
+        String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+        UserDetails userDetails = getMockUser(false);
+        SafeBasicDetails safeBasicDetails = new SafeBasicDetails("mysafe01", "youremail@yourcompany.com", null, "My first safe");
+        Safe safe = new Safe("",safeBasicDetails);
+
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":\"Invalid input values\"}");
+
+        ResponseEntity<String> responseEntity = selfSupportService.createSafe(userDetails, token, safe);
+        assertEquals(HttpStatus.BAD_REQUEST, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
     }
 
@@ -121,7 +164,7 @@ public class SelfSupportServiceTest {
 
         ResponseEntity<String> readResponse = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Safe and associated read/write/deny policies created \"]}");
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Safe and associated read/write/deny policies created \"]}");
-
+        when(ControllerUtil.getSafeType("shared/mysafe01")).thenReturn("shared");
         when(safesService.createSafe(token, safe)).thenReturn(readResponse);
 
         ResponseEntity<String> responseEntity = selfSupportService.createSafe(userDetails, token, safe);
@@ -144,8 +187,9 @@ public class SelfSupportServiceTest {
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(responseJson);
 
         when(policyUtils.getCurrentPolicies(Mockito.any(), eq("normaluser"))).thenReturn(policies);
-        when(safeUtils.getManagedSafesFromPolicies(policies, path)).thenReturn(safes);
+        when(safeUtils.getManagedSafes(policies, path)).thenReturn(safes);
         when(safesService.getFoldersRecursively(token, path)).thenReturn(response);
+        when(JSONUtil.getJSON(Mockito.any(HashMap.class))).thenReturn("{\"keys\":[\"mysafe01\"]}");
         ResponseEntity<String> responseEntity = selfSupportService.getFoldersRecursively(userDetails, token, path);
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
@@ -715,7 +759,9 @@ public class SelfSupportServiceTest {
         requestMap.put("access", "write");
         when(ControllerUtil.parseJson(jsonStr)).thenReturn(requestMap);
         when(ControllerUtil.areSafeAppRoleInputsValid(requestMap)).thenReturn(true);
-        ResponseEntity<String> responseEntity = selfSupportService.associateApproletoSDB(userDetails, token, jsonStr);
+        SafeAppRoleAccess safeAppRoleAccess = new SafeAppRoleAccess("aprole1", "shared/mysafe01", "write");
+        when(JSONUtil.getJSON(Mockito.any(SafeAppRoleAccess.class))).thenReturn(jsonStr);
+        ResponseEntity<String> responseEntity = selfSupportService.associateApproletoSDB(userDetails, token, safeAppRoleAccess);
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
     }
@@ -730,8 +776,9 @@ public class SelfSupportServiceTest {
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Approle :approle1 is successfully associated with SDB\"]}");
 
         when(safesService.associateApproletoSDB(token, jsonStr)).thenReturn(response);
-
-        ResponseEntity<String> responseEntity = selfSupportService.associateApproletoSDB(userDetails, token, jsonStr);
+        SafeAppRoleAccess safeAppRoleAccess = new SafeAppRoleAccess("aprole1", "shared/mysafe01", "write");
+        when(JSONUtil.getJSON(Mockito.any(SafeAppRoleAccess.class))).thenReturn(jsonStr);
+        ResponseEntity<String> responseEntity = selfSupportService.associateApproletoSDB(userDetails, token, safeAppRoleAccess);
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
     }
@@ -753,7 +800,9 @@ public class SelfSupportServiceTest {
         requestMap.put("access", "write");
         when(ControllerUtil.parseJson(jsonStr)).thenReturn(requestMap);
         when(ControllerUtil.areSafeAppRoleInputsValid(requestMap)).thenReturn(true);
-        ResponseEntity<String> responseEntity = selfSupportService.associateApproletoSDB(userDetails, token, jsonStr);
+        SafeAppRoleAccess safeAppRoleAccess = new SafeAppRoleAccess("aprole1", "shared/mysafe01", "write");
+        when(JSONUtil.getJSON(Mockito.any(SafeAppRoleAccess.class))).thenReturn(jsonStr);
+        ResponseEntity<String> responseEntity = selfSupportService.associateApproletoSDB(userDetails, token, safeAppRoleAccess);
         assertEquals(HttpStatus.FORBIDDEN, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
     }
@@ -774,7 +823,9 @@ public class SelfSupportServiceTest {
         requestMap.put("access", "write");
         when(ControllerUtil.parseJson(jsonStr)).thenReturn(requestMap);
         when(ControllerUtil.areSafeAppRoleInputsValid(requestMap)).thenReturn(false);
-        ResponseEntity<String> responseEntity = selfSupportService.associateApproletoSDB(userDetails, token, jsonStr);
+        SafeAppRoleAccess safeAppRoleAccess = new SafeAppRoleAccess("aprole1", "shared/mysafe01", "write");
+        when(JSONUtil.getJSON(Mockito.any(SafeAppRoleAccess.class))).thenReturn(jsonStr);
+        ResponseEntity<String> responseEntity = selfSupportService.associateApproletoSDB(userDetails, token, safeAppRoleAccess);
         assertEquals(HttpStatus.BAD_REQUEST, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
     }
@@ -796,7 +847,9 @@ public class SelfSupportServiceTest {
         requestMap.put("access", "write");
         when(ControllerUtil.parseJson(jsonStr)).thenReturn(requestMap);
         when(ControllerUtil.areSafeAppRoleInputsValid(requestMap)).thenReturn(true);
-        ResponseEntity<String> responseEntity = selfSupportService.deleteApproleFromSDB(userDetails, token, jsonStr);
+        SafeAppRoleAccess safeAppRoleAccess = new SafeAppRoleAccess("aprole1", "shared/mysafe01", "write");
+        when(JSONUtil.getJSON(Mockito.any(SafeAppRoleAccess.class))).thenReturn(jsonStr);
+        ResponseEntity<String> responseEntity = selfSupportService.deleteApproleFromSDB(userDetails, token, safeAppRoleAccess);
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
     }
@@ -811,7 +864,9 @@ public class SelfSupportServiceTest {
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Role association is removed \"]}");
 
         when(safesService.removeApproleFromSafe(token, jsonStr)).thenReturn(response);
-        ResponseEntity<String> responseEntity = selfSupportService.deleteApproleFromSDB(userDetails, token, jsonStr);
+        SafeAppRoleAccess safeAppRoleAccess = new SafeAppRoleAccess("aprole1", "shared/mysafe01", "write");
+        when(JSONUtil.getJSON(Mockito.any(SafeAppRoleAccess.class))).thenReturn(jsonStr);
+        ResponseEntity<String> responseEntity = selfSupportService.deleteApproleFromSDB(userDetails, token, safeAppRoleAccess);
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
     }
@@ -832,7 +887,9 @@ public class SelfSupportServiceTest {
         requestMap.put("access", "write");
         when(ControllerUtil.parseJson(jsonStr)).thenReturn(requestMap);
         when(ControllerUtil.areSafeAppRoleInputsValid(requestMap)).thenReturn(true);
-        ResponseEntity<String> responseEntity = selfSupportService.deleteApproleFromSDB(userDetails, token, jsonStr);
+        SafeAppRoleAccess safeAppRoleAccess = new SafeAppRoleAccess("aprole1", "shared/mysafe01", "write");
+        when(JSONUtil.getJSON(Mockito.any(SafeAppRoleAccess.class))).thenReturn(jsonStr);
+        ResponseEntity<String> responseEntity = selfSupportService.deleteApproleFromSDB(userDetails, token, safeAppRoleAccess);
         assertEquals(HttpStatus.FORBIDDEN, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
     }
@@ -852,7 +909,9 @@ public class SelfSupportServiceTest {
         requestMap.put("access", "write");
         when(ControllerUtil.parseJson(jsonStr)).thenReturn(requestMap);
         when(ControllerUtil.areSafeAppRoleInputsValid(requestMap)).thenReturn(false);
-        ResponseEntity<String> responseEntity = selfSupportService.deleteApproleFromSDB(userDetails, token, jsonStr);
+        SafeAppRoleAccess safeAppRoleAccess = new SafeAppRoleAccess("aprole1", "shared/mysafe01", "write");
+        when(JSONUtil.getJSON(Mockito.any(SafeAppRoleAccess.class))).thenReturn(jsonStr);
+        ResponseEntity<String> responseEntity = selfSupportService.deleteApproleFromSDB(userDetails, token, safeAppRoleAccess);
         assertEquals(HttpStatus.BAD_REQUEST, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
     }

@@ -23,6 +23,8 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.util.DefaultPrettyPrinter;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.tmobile.cso.vault.api.common.TVaultConstants;
+
 public class JSONUtil {
 
 	/**
@@ -36,7 +38,7 @@ public class JSONUtil {
 		try {
 			return mapper.writeValueAsString(obj);
 		} catch (JsonProcessingException e) {
-			return "{}";
+			return TVaultConstants.EMPTY_JSON;
 		}
 	}
 	/**
@@ -49,7 +51,7 @@ public class JSONUtil {
 		try {
 			return mapper.writerWithDefaultPrettyPrinter().writeValueAsString(obj);
 		} catch (JsonProcessingException e) {
-			return "{}";
+			return TVaultConstants.EMPTY_JSON;
 		}
 	}
 	/**
@@ -66,10 +68,10 @@ public class JSONUtil {
 			return mapper.writer(pp).writeValueAsString(json);
 		}
 		catch (JsonProcessingException e) {
-			return "{}";
+			return TVaultConstants.EMPTY_JSON;
 		}
 		catch (IOException e) {
-			return "{}";
+			return TVaultConstants.EMPTY_JSON;
 		}
 	}
 	/**

@@ -22,6 +22,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.tmobile.cso.vault.api.common.TVaultConstants;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -404,12 +405,12 @@ public class  AppRoleService {
 			String policy ="";
 			
 			switch (access){
-				case "read": policy = "r_" + folders[0].toLowerCase() + "_" + folders[1] ; break ; 
-				case "write": policy = "w_"  + folders[0].toLowerCase() + "_" + folders[1] ;break; 
-				case "deny": policy = "d_"  + folders[0].toLowerCase() + "_" + folders[1] ;break; 
+				case TVaultConstants.READ_POLICY: policy = "r_" + folders[0].toLowerCase() + "_" + folders[1] ; break ;
+				case TVaultConstants.WRITE_POLICY: policy = "w_"  + folders[0].toLowerCase() + "_" + folders[1] ;break;
+				case TVaultConstants.DENY_POLICY: policy = "d_"  + folders[0].toLowerCase() + "_" + folders[1] ;break;
 			}
 			
-			if("".equals(policy)){
+			if(TVaultConstants.EMPTY.equals(policy)){
 				return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body("{\"errors\":[\"Incorrect access requested. Valid values are read,write,deny \"]}");
 			}
 			

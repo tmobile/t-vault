@@ -3,6 +3,7 @@ package com.tmobile.cso.vault.api.utils;
 import java.util.Base64;
 import java.util.LinkedHashMap;
 
+import com.tmobile.cso.vault.api.common.TVaultConstants;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -49,7 +50,7 @@ public class TokenUtils {
 				put(LogMessage.MESSAGE, String.format ("Trying to generate SelfServiceToken")).
 				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 				build()));
-		if ("approle".equals(selfServiceTokenGenerator)) {
+		if (TVaultConstants.APPROLE.equals(selfServiceTokenGenerator)) {
 			return getSelfServiceTokenWithAppRole();
 		}
 		String selfServiceToken = null;
@@ -59,7 +60,7 @@ public class TokenUtils {
 		UserLogin userLogin = new UserLogin(tvaultSelfServiceUsername, tvaultSelfServicePassword);
 		String jsonStr = JSONUtil.getJSON(userLogin);
 		Response response = null;
-		if ("ldap".equals(vaultAuthMethod)) {
+		if (TVaultConstants.LDAP.equals(vaultAuthMethod)) {
 			response = reqProcessor.process("/auth/ldap/login",jsonStr,"");	
 		}
 		else {
