@@ -237,9 +237,9 @@ public class SelfSupportController {
 	 */
 	@ApiOperation(value = "${SelfSupportController.associateApprole.value}", notes = "${SelfSupportController.associateApprole.notes}")
 	@PostMapping(value="/v3/sdb/approle",consumes="application/json",produces="application/json")
-	public ResponseEntity<String>associateApproletoSDB(HttpServletRequest request, @RequestHeader(value="vault-token") String token, @RequestBody String jsonstr) {
+	public ResponseEntity<String>associateApproletoSDB(HttpServletRequest request, @RequestHeader(value="vault-token") String token, @RequestBody SafeAppRoleAccess safeAppRoleAccess) {
 		UserDetails userDetails = (UserDetails) ((HttpServletRequest) request).getAttribute("UserDetails");
-		return selfSupportService.associateApproletoSDB(userDetails, token, jsonstr);
+		return selfSupportService.associateApproletoSDB(userDetails, token, safeAppRoleAccess);
 	}
 
 	/**
@@ -250,9 +250,9 @@ public class SelfSupportController {
 	 */
 	@ApiOperation(value = "${SelfSupportController.deleteApproleFromSafe.value}", notes = "${SelfSupportController.deleteApproleFromSafe.notes}")
 	@DeleteMapping(value="/v3/sdb/approle",consumes="application/json",produces="application/json")
-	public ResponseEntity<String>deleteApproleFromSDB(HttpServletRequest request, @RequestHeader(value="vault-token") String token, @RequestBody String jsonstr) {
+	public ResponseEntity<String>deleteApproleFromSDB(HttpServletRequest request, @RequestHeader(value="vault-token") String token, @RequestBody SafeAppRoleAccess safeAppRoleAccess) {
 		UserDetails userDetails = (UserDetails) ((HttpServletRequest) request).getAttribute("UserDetails");
-		return selfSupportService.deleteApproleFromSDB(userDetails, token, jsonstr);
+		return selfSupportService.deleteApproleFromSDB(userDetails, token, safeAppRoleAccess);
 	}
 
 	/**

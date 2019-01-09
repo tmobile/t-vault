@@ -444,7 +444,8 @@ public class  SelfSupportService {
 	 * @param jsonstr
 	 * @return
 	 */
-	public ResponseEntity<String> associateApproletoSDB(UserDetails userDetails, String userToken, String jsonstr) {
+	public ResponseEntity<String> associateApproletoSDB(UserDetails userDetails, String userToken, SafeAppRoleAccess safeAppRoleAccess) {
+		String jsonstr = JSONUtil.getJSON(safeAppRoleAccess);
 		String token = userDetails.getClientToken();
 		if (userDetails.isAdmin()) {
 			return safesService.associateApproletoSDB(token, jsonstr);
@@ -474,7 +475,8 @@ public class  SelfSupportService {
 	 * @param jsonstr
 	 * @return
 	 */
-	public ResponseEntity<String> deleteApproleFromSDB(UserDetails userDetails, String userToken, String jsonstr) {
+	public ResponseEntity<String> deleteApproleFromSDB(UserDetails userDetails, String userToken, SafeAppRoleAccess safeAppRoleAccess) {
+		String jsonstr = JSONUtil.getJSON(safeAppRoleAccess);
 		String token = userDetails.getClientToken();
 		if (userDetails.isAdmin()) {
 			return safesService.removeApproleFromSafe(token, jsonstr);
