@@ -19,6 +19,7 @@ package com.tmobile.cso.vault.api.service;
 
 import java.io.IOException;
 
+import com.tmobile.cso.vault.api.common.TVaultConstants;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -185,10 +186,10 @@ public class  SecretService {
 		SafeNode safeNode = new SafeNode();
 		safeNode.setId(path);
 		if (ControllerUtil.isValidSafePath(path)) {
-			safeNode.setType("safe");			
+			safeNode.setType(TVaultConstants.SAFE);
 		}
 		else {
-			safeNode.setType("folder");
+			safeNode.setType(TVaultConstants.FOLDER);
 		}
 		ControllerUtil.recursiveRead("{\"path\":\""+path+"\"}",token,response, safeNode);
 		ObjectMapper mapper = new ObjectMapper();
@@ -210,10 +211,10 @@ public class  SecretService {
 		SafeNode safeNode = new SafeNode();
 		safeNode.setId(path);
 		if (ControllerUtil.isValidSafePath(path)) {
-			safeNode.setType("safe");			
+			safeNode.setType(TVaultConstants.SAFE);
 		}
 		else {
-			safeNode.setType("folder");
+			safeNode.setType(TVaultConstants.FOLDER);
 		}
 		ControllerUtil.getFoldersAndSecrets("{\"path\":\""+path+"\"}",token,response, safeNode);
 		ObjectMapper mapper = new ObjectMapper();

@@ -22,6 +22,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.tmobile.cso.vault.api.common.TVaultConstants;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -57,10 +58,6 @@ public class  SafesService {
 	@Value("${vault.auth.method}")
 	private String vaultAuthMethod;
 
-	public static final String READ_POLICY="read";
-	public static final String WRITE_POLICY="write";
-	public static final String DENY_POLICY="deny";
-
 	@Autowired
 	private SafeUtils safeUtils;
 	
@@ -74,7 +71,7 @@ public class  SafesService {
 	 */
 	public ResponseEntity<String> getFolders( String token, String path){
 		String _path = "";
-		if( "apps".equals(path)||"shared".equals(path)||"users".equals(path)){
+		if(TVaultConstants.APPS.equals(path)||TVaultConstants.SHARED.equals(path)||TVaultConstants.USERS.equals(path)){
 			_path = "metadata/"+path;
 		}else{
 			_path = path;
@@ -213,7 +210,7 @@ public class  SafesService {
 					String Safe = folders[1];
 					Map<String,Object> policyMap = new HashMap<String,Object>();
 					Map<String,String> accessMap = new HashMap<String,String>();
-					accessMap.put(path+"/*","read");
+					accessMap.put(path+"/*", TVaultConstants.READ_POLICY);
 
 					policyMap.put("accessid", "r_"+folders[0]+"_"+Safe);
 					policyMap.put("access", accessMap);
@@ -222,20 +219,20 @@ public class  SafesService {
 
 					Response r_response = reqProcessor.process("/access/update",policyRequestJson,token);
 					//Write Policy
-					accessMap.put(path+"/*","write");
+					accessMap.put(path+"/*", TVaultConstants.WRITE_POLICY);
 					policyMap.put("accessid", "w_"+folders[0]+"_"+Safe);
 
 					policyRequestJson = 	ControllerUtil.convetToJson(policyMap);
 					Response w_response = reqProcessor.process("/access/update",policyRequestJson,token); 
 					//deny Policy
-					accessMap.put(path+"/*","deny");
+					accessMap.put(path+"/*", TVaultConstants.DENY_POLICY);
 					policyMap.put("accessid", "d_"+folders[0]+"_"+Safe);
 
 					policyRequestJson = 	ControllerUtil.convetToJson(policyMap);
 					Response d_response = reqProcessor.process("/access/update",policyRequestJson,token); 
 
-					accessMap.put(path+"/*", "sudo");
-					accessMap.put(_path+"/*", "sudo");
+					accessMap.put(path+"/*", TVaultConstants.SUDO_POLICY);
+					accessMap.put(_path+"/*", TVaultConstants.SUDO_POLICY);
 					policyMap.put("accessid", "s_"+folders[0]+"_"+Safe);
 					policyRequestJson = ControllerUtil.convetToJson(policyMap);
 					Response s_response = reqProcessor.process("/access/update",policyRequestJson,token);
@@ -322,7 +319,7 @@ public class  SafesService {
 			path = path.substring(0, path.length()-1);
 		}
 		String _path = "metadata/"+path;
-		if( "apps".equals(path)||"shared".equals(path)||"users".equals(path)){
+		if( TVaultConstants.APPS.equals(path)||TVaultConstants.SHARED.equals(path)||TVaultConstants.USERS.equals(path)){
 			Response response = reqProcessor.process("/sdb/list","{\"path\":\""+_path+"\"}",token);
 			return ResponseEntity.status(response.getHttpstatus()).body(response.getResponse());
 		}else{
@@ -483,12 +480,12 @@ public class  SafesService {
 
 			@SuppressWarnings("unchecked")
 			Map<String,Object> metadataMap = (Map<String,Object>)responseMap.get("data");
-			Object awsroles = metadataMap.get("aws-roles");
-			Object groups = metadataMap.get("groups");
-			Object users = metadataMap.get("users");
-			data.put("aws-roles",awsroles);
-			data.put("groups",groups);
-			data.put("users",users);
+			Object awsroles = metadataMap.get(TVaultConstants.AWS_ROLES);
+			Object groups = metadataMap.get(TVaultConstants.GROUPS);
+			Object users = metadataMap.get(TVaultConstants.USERS);
+			data.put(TVaultConstants.AWS_ROLES,awsroles);
+			data.put(TVaultConstants.GROUPS,groups);
+			data.put(TVaultConstants.USERS,users);
 			requestParams.put("path",pathToBeUpdated);
 			// Do not alter the name of the safe
 			((Map<String,Object>)requestParams.get("data")).put("name",(String) metadataMap.get("name"));
@@ -638,12 +635,12 @@ public class  SafesService {
 
 			String policyPrefix ="";
 			switch (access){
-			case "read": policyPrefix = "r_"; break ; 
-			case "write": policyPrefix = "w_" ;break; 
-			case "deny": policyPrefix = "d_" ;break; 
-			case "sudo": policyPrefix = "s_" ;break; 
+			case TVaultConstants.READ_POLICY: policyPrefix = "r_"; break ;
+			case TVaultConstants.WRITE_POLICY: policyPrefix = "w_" ;break;
+			case TVaultConstants.DENY_POLICY: policyPrefix = "d_" ;break;
+			case TVaultConstants.SUDO_POLICY: policyPrefix = "s_" ;break;
 			}
-			if("".equals(policyPrefix)){
+			if(TVaultConstants.EMPTY.equals(policyPrefix)){
 				log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 						put(LogMessage.ACTION, "Add User to SDB").
@@ -687,7 +684,7 @@ public class  SafesService {
 					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 					build()));
 			Response userResponse;
-			if ("userpass".equals(vaultAuthMethod)) {
+			if (TVaultConstants.USERPASS.equals(vaultAuthMethod)) {
 				userResponse = reqProcessor.process("/auth/userpass/read","{\"username\":\""+userName+"\"}",token);	
 			}
 			else {
@@ -713,7 +710,7 @@ public class  SafesService {
 				try {
 					ObjectMapper objMapper = new ObjectMapper();
 					currentpolicies = ControllerUtil.getPoliciesAsStringFromJson(objMapper, responseJson);
-					if (!("userpass".equals(vaultAuthMethod))) {
+					if (!(TVaultConstants.USERPASS.equals(vaultAuthMethod))) {
 						groups =objMapper.readTree(responseJson).get("data").get("groups").asText();
 					}
 				} catch (IOException e) {
@@ -746,7 +743,7 @@ public class  SafesService {
 					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 					build()));
 			Response ldapConfigresponse;
-			if ("userpass".equals(vaultAuthMethod)) {
+			if (TVaultConstants.USERPASS.equals(vaultAuthMethod)) {
 				ldapConfigresponse = ControllerUtil.configureUserpassUser(userName,policies,token);
 			}
 			else {
@@ -796,8 +793,7 @@ public class  SafesService {
 								put(LogMessage.MESSAGE, "User configuration failed. Trying to revert...").
 								put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 								build()));
-						if ("userpass".equals(vaultAuthMethod)) {
-
+						if (TVaultConstants.USERPASS.equals(vaultAuthMethod)) {
 							ldapConfigresponse = ControllerUtil.configureUserpassUser(userName,currentpolicies,token);
 						}
 						else {
@@ -855,7 +851,7 @@ public class  SafesService {
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid input values\"]}");
 		}
 		String jsonstr = JSONUtil.getJSON(safeGroup);
-		if ("userpass".equals(vaultAuthMethod)) {
+		if (TVaultConstants.USERPASS.equals(vaultAuthMethod)) {
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":\"This operation is not supported for Userpass authentication. \"}");
 		}	
 		ObjectMapper objMapper = new ObjectMapper();
@@ -879,11 +875,11 @@ public class  SafesService {
 
 			String policyPrefix ="";
 			switch (access){
-			case "read": policyPrefix = "r_"; break ; 
-			case "write": policyPrefix = "w_" ;break; 
-			case "deny": policyPrefix = "d_" ;break; 
+			case TVaultConstants.READ_POLICY: policyPrefix = "r_"; break ;
+			case TVaultConstants.WRITE_POLICY: policyPrefix = "w_" ;break;
+			case TVaultConstants.DENY_POLICY: policyPrefix = "d_" ;break;
 			}
-			if("".equals(policyPrefix)){
+			if(TVaultConstants.EMPTY.equals(policyPrefix)){
 				return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body("{\"errors\":[\"Incorrect access requested. Valid values are read,write,deny \"]}");
 			}
 			String policy = policyPrefix+folders[0]+"_"+folders[1];
@@ -1074,7 +1070,7 @@ public class  SafesService {
 				}
 			}
 			Response userResponse;
-			if ("userpass".equals(vaultAuthMethod)) {	
+			if (TVaultConstants.USERPASS.equals(vaultAuthMethod)) {
 				userResponse = reqProcessor.process("/auth/userpass/read","{\"username\":\""+userName+"\"}",token);
 			}
 			else {
@@ -1089,7 +1085,7 @@ public class  SafesService {
 				responseJson = userResponse.getResponse();	
 				try {
 					currentpolicies = ControllerUtil.getPoliciesAsStringFromJson(objMapper, responseJson);
-					if (!("userpass".equals(vaultAuthMethod))) {
+					if (!(TVaultConstants.USERPASS.equals(vaultAuthMethod))) {
 						groups =objMapper.readTree(responseJson).get("data").get("groups").asText();
 					}
 				} catch (IOException e) {
@@ -1101,7 +1097,7 @@ public class  SafesService {
 				policies = policies.replaceAll(d_policy, "");
 				//policies = policies.replaceAll(s_policy, "");
 				Response ldapConfigresponse;
-				if ("userpass".equals(vaultAuthMethod)) {
+				if (TVaultConstants.USERPASS.equals(vaultAuthMethod)) {
 					ldapConfigresponse = ControllerUtil.configureUserpassUser(userName,policies,token);
 				}
 				else {
@@ -1112,7 +1108,7 @@ public class  SafesService {
 					params.put("type", "users");
 					params.put("name",userName);
 					params.put("path",path);
-					params.put("access","delete");
+					params.put("access",TVaultConstants.DELETE);
 					Response metadataResponse = ControllerUtil.updateMetadata(params,token);
 					if(metadataResponse != null && HttpStatus.NO_CONTENT.equals(metadataResponse.getHttpstatus())){
 						return ResponseEntity.status(HttpStatus.OK).body("{\"Message\":\"User association is removed \"}");		
@@ -1140,7 +1136,7 @@ public class  SafesService {
 						else {
 							log.debug("Meta data update failed");
 							log.debug(metadataResponse.getResponse());
-							if ("userpass".equals(vaultAuthMethod)) {
+							if (TVaultConstants.USERPASS.equals(vaultAuthMethod)) {
 								ldapConfigresponse = ControllerUtil.configureUserpassUser(userName,currentpolicies,token);
 							}
 							else {
@@ -1164,7 +1160,7 @@ public class  SafesService {
 				params.put("type", "users");
 				params.put("name",userName);
 				params.put("path",path);
-				params.put("access","delete");
+				params.put("access",TVaultConstants.DELETE);
 				Response metadataResponse = ControllerUtil.updateMetadata(params,token);
 				if(HttpStatus.NO_CONTENT.equals(metadataResponse.getHttpstatus())){
 					log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
@@ -1197,7 +1193,7 @@ public class  SafesService {
 	 */
 	public ResponseEntity<String> removeGroupFromSafe(String token, SafeGroup safeGroup) {
 		String jsonstr = JSONUtil.getJSON(safeGroup);
-		if ("userpass".equals(vaultAuthMethod)) {
+		if (TVaultConstants.USERPASS.equals(vaultAuthMethod)) {
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":\"This operation is not supported for Userpass authentication. \"}");
 		}	
 		ObjectMapper objMapper = new ObjectMapper();
@@ -1343,9 +1339,9 @@ public class  SafesService {
 
 			String policyPrefix ="";
 			switch (access){
-			case "read": policyPrefix = "r_"; break ; 
-			case "write": policyPrefix = "w_" ;break; 
-			case "deny": policyPrefix = "d_" ;break; 
+			case TVaultConstants.READ_POLICY: policyPrefix = "r_"; break ;
+			case TVaultConstants.WRITE_POLICY: policyPrefix = "w_" ;break;
+			case TVaultConstants.DENY_POLICY: policyPrefix = "d_" ;break;
 			}
 			if("".equals(policyPrefix)){
 				return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body("{\"errors\":[\"Incorrect access requested. Valid values are read,write,deny \"]}");
@@ -1394,7 +1390,7 @@ public class  SafesService {
 				return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body("{\"errors\":[\"Non existing role name. Please configure it as first step\"]}");
 			}
 			Response ldapConfigresponse = null;
-			if ("iam".equals(auth_type)) {
+			if (TVaultConstants.IAM.equals(auth_type)) {
 				ldapConfigresponse = ControllerUtil.configureAWSIAMRole(role,policies,token);
 			}
 			else {
@@ -1694,7 +1690,7 @@ public class  SafesService {
 	 */
 	public ResponseEntity<String> getFoldersRecursively(String token, String path) {
 		String _path = "";
-		if( "apps".equals(path)||"shared".equals(path)||"users".equals(path)){
+		if( TVaultConstants.APPS.equals(path)||TVaultConstants.SHARED.equals(path)||TVaultConstants.USERS.equals(path)){
 			_path = "metadata/"+path;
 		}else{
 			_path = path;

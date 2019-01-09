@@ -103,7 +103,7 @@ public class SafeUtilsTest {
         JsonNode policiesJsonNode = objMapper.readTree(response.getResponse().toString()).get("policies");
         String[] expectedList = {"ert"};
         String[] policies = {"s_users_ert"};
-        String[] policiesRes = safeUtils.getManagedSafesFromPolicies(policies, "users");
+        String[] policiesRes = safeUtils.getManagedSafes(policies, "users");
         assertEquals(expectedList, policiesRes);
     }
 

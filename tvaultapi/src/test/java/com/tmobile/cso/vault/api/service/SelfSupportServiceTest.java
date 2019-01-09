@@ -110,7 +110,7 @@ public class SelfSupportServiceTest {
         String [] policies = {"s_shared_s1"};
         when(policyUtils.getCurrentPolicies(token, "normaluser")).thenReturn(policies);
         String [] safes = {"s1"};
-        when(safeUtils.getManagedSafesFromPolicies(policies, "shared")).thenReturn(safes);
+        when(safeUtils.getManagedSafes(policies, "shared")).thenReturn(safes);
         when(safesService.createSafe(token, safe)).thenReturn(readResponse);
 
         ResponseEntity<String> responseEntity = selfSupportService.createSafe(userDetails, token, safe);
@@ -132,8 +132,22 @@ public class SelfSupportServiceTest {
         String [] policies = {"s_shared_s1, s_shared_s2"};
         when(policyUtils.getCurrentPolicies(token, "normaluser")).thenReturn(policies);
         String [] safes = {"s1", "s2"};
-        when(safeUtils.getManagedSafesFromPolicies(policies, "shared")).thenReturn(safes);
+        when(safeUtils.getManagedSafes(policies, "shared")).thenReturn(safes);
         when(safesService.createSafe(token, safe)).thenReturn(readResponse);
+
+        ResponseEntity<String> responseEntity = selfSupportService.createSafe(userDetails, token, safe);
+        assertEquals(HttpStatus.BAD_REQUEST, responseEntity.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntity);
+    }
+
+    @Test
+    public void test_createSafe_failure_400() {
+        String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+        UserDetails userDetails = getMockUser(false);
+        SafeBasicDetails safeBasicDetails = new SafeBasicDetails("mysafe01", "youremail@yourcompany.com", null, "My first safe");
+        Safe safe = new Safe("",safeBasicDetails);
+
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":\"Invalid input values\"}");
 
         ResponseEntity<String> responseEntity = selfSupportService.createSafe(userDetails, token, safe);
         assertEquals(HttpStatus.BAD_REQUEST, responseEntity.getStatusCode());
@@ -172,7 +186,7 @@ public class SelfSupportServiceTest {
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(responseJson);
 
         when(policyUtils.getCurrentPolicies(Mockito.any(), eq("normaluser"))).thenReturn(policies);
-        when(safeUtils.getManagedSafesFromPolicies(policies, path)).thenReturn(safes);
+        when(safeUtils.getManagedSafes(policies, path)).thenReturn(safes);
         when(safesService.getFoldersRecursively(token, path)).thenReturn(response);
         ResponseEntity<String> responseEntity = selfSupportService.getFoldersRecursively(userDetails, token, path);
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());

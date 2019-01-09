@@ -22,6 +22,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.tmobile.cso.vault.api.common.TVaultConstants;
 import com.tmobile.cso.vault.api.exception.TVaultValidationException;
 import com.tmobile.cso.vault.api.model.*;
 
@@ -71,11 +72,6 @@ public class  SelfSupportService {
 	@Value("${safe.quota}")
 	private String safeQuota;
 
-	public static final String READ_POLICY="read";
-	public static final String WRITE_POLICY="write";
-	public static final String DENY_POLICY="deny";
-	public static final String SUDO_POLICY="sudo";
-	
 	private static Logger log = LogManager.getLogger(SelfSupportService.class);
 
 	/**
@@ -98,6 +94,9 @@ public class  SelfSupportService {
 			// Modify should work the same
 			// Delete safe - clean up of all items, paths, permissions, policies
 			token = userDetails.getSelfSupportToken();
+			if (!isSafeValid(safe)) {
+				return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":\"Invalid input values\"}");
+			}
 			// check the user safe limit
 			if (isSafeQuotaReached(token, userDetails.getUsername(), ControllerUtil.getSafeType(safe.getPath()))) {
 				return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":\"You have reached the limit of number of allowed safes that can be created\"}");
@@ -109,13 +108,22 @@ public class  SelfSupportService {
 			if (HttpStatus.OK.equals(safe_creation_response.getStatusCode() )) {
 				// Associate admin user to the safe...
 				SafeUser safeUser = new SafeUser();
-				safeUser.setAccess("sudo");
+				safeUser.setAccess(TVaultConstants.SUDO_POLICY);
 				safeUser.setPath(safe.getPath());
 				safeUser.setUsername(userDetails.getUsername());
 				safesService.addUserToSafe(token, safeUser, null);
 			}
 			return safe_creation_response;
 		}
+	}
+
+	/**
+	 * Check whether the safe info in request is valid
+	 * @param safe
+	 * @return
+	 */
+	private boolean isSafeValid(Safe safe) {
+		return safe != null && safe.getPath() != null && safe.getPath() != "";
 	}
 
 	/**
@@ -127,7 +135,7 @@ public class  SelfSupportService {
 	 */
 	private boolean isSafeQuotaReached(String token, String username, String path) {
 		String[] policies = policyUtils.getCurrentPolicies(token, username);
-		String[] safes = safeUtils.getManagedSafesFromPolicies(policies, path);
+		String[] safes = safeUtils.getManagedSafes(policies, path);
 		if (safes.length == Integer.parseInt(safeQuota)) {
 			return true;
 		}
@@ -143,7 +151,7 @@ public class  SelfSupportService {
 	 * @return
 	 */
 	public ResponseEntity<String> addUserToSafe(UserDetails userDetails, String userToken, SafeUser safeUser) {
-		boolean canAddUser = safeUtils.canAddOrRemoveUser(userDetails, safeUser, "addUser");
+		boolean canAddUser = safeUtils.canAddOrRemoveUser(userDetails, safeUser, TVaultConstants.ADD_USER);
 		if (canAddUser) {
 			if (userDetails.isAdmin()) {
 				return safesService.addUserToSafe(userDetails.getClientToken(), safeUser, userDetails);
@@ -172,7 +180,7 @@ public class  SelfSupportService {
 			if (!isAuthorized.getStatusCode().equals(HttpStatus.OK)) {
 				return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Error checking user permission\"]}");
 			}
-			if (isAuthorized.getBody().equals("false")) {
+			if (isAuthorized.getBody().equals(TVaultConstants.FALSE)) {
 				return ResponseEntity.status(HttpStatus.FORBIDDEN).body("{\"errors\":[\"Access denied: no permission to get this safe info\"]}");
 			}
 			token = userDetails.getSelfSupportToken();
@@ -219,7 +227,7 @@ public class  SelfSupportService {
 	 */
 	public ResponseEntity<String> removeUserFromSafe(UserDetails userDetails, String userToken, SafeUser safeUser) {
 		String token = userDetails.getClientToken();
-		boolean isAuthorized = safeUtils.canAddOrRemoveUser(userDetails, safeUser, "removeUser");
+		boolean isAuthorized = safeUtils.canAddOrRemoveUser(userDetails, safeUser, TVaultConstants.REMOVE_USER);
 		if (!isAuthorized) {
 			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("{\"errors\":[\"Not authorized to remove users from this safe\"]}");
 		}
@@ -245,7 +253,7 @@ public class  SelfSupportService {
 		else {
 			// List of safes based on current user
 			String[] policies = policyUtils.getCurrentPolicies(userDetails.getSelfSupportToken(), userDetails.getUsername());
-			String[] safes = safeUtils.getManagedSafesFromPolicies(policies, path);
+			String[] safes = safeUtils.getManagedSafes(policies, path);
 			Map<String, String[]> safesMap = new HashMap<String, String[]>();
 			safesMap.put("keys", safes);
 			return ResponseEntity.status(HttpStatus.OK).body(JSONUtil.getJSON(safesMap));
@@ -295,7 +303,7 @@ public class  SelfSupportService {
 			if (!isAuthorized.getStatusCode().equals(HttpStatus.OK)) {
 				return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Error checking user permission\"]}");
 			}
-			if (isAuthorized.getBody().equals("false")) {
+			if (isAuthorized.getBody().equals(TVaultConstants.FALSE)) {
 				return ResponseEntity.status(HttpStatus.FORBIDDEN).body("{\"errors\":[\"Access denied: no permission to update this safe\"]}");
 			}
 			token = userDetails.getSelfSupportToken();
@@ -321,7 +329,7 @@ public class  SelfSupportService {
 			if (!isAuthorized.getStatusCode().equals(HttpStatus.OK)) {
 				return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Error checking user permission\"]}");
 			}
-			if (isAuthorized.getBody().equals("false")) {
+			if (isAuthorized.getBody().equals(TVaultConstants.FALSE)) {
 				return ResponseEntity.status(HttpStatus.FORBIDDEN).body("{\"errors\":[\"Access denied: no permission to delete this safe\"]}");
 			}
 			token = userDetails.getSelfSupportToken();
@@ -346,7 +354,7 @@ public class  SelfSupportService {
 			if (!isAuthorized.getStatusCode().equals(HttpStatus.OK)) {
 				return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Error checking user permission\"]}");
 			}
-			if (isAuthorized.getBody().equals("false")) {
+			if (isAuthorized.getBody().equals(TVaultConstants.FALSE)) {
 				return ResponseEntity.status(HttpStatus.FORBIDDEN).body("{\"errors\":[\"Access denied: no permission to add group to the safe\"]}");
 			}
 			token = userDetails.getSelfSupportToken();
@@ -370,7 +378,7 @@ public class  SelfSupportService {
 			if (!isAuthorized.getStatusCode().equals(HttpStatus.OK)) {
 				return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Error checking user permission\"]}");
 			}
-			if (isAuthorized.getBody().equals("false")) {
+			if (isAuthorized.getBody().equals(TVaultConstants.FALSE)) {
 				return ResponseEntity.status(HttpStatus.FORBIDDEN).body("{\"errors\":[\"Access denied: no permission to remove group from the safe\"]}");
 			}
 			token = userDetails.getSelfSupportToken();
@@ -395,7 +403,7 @@ public class  SelfSupportService {
 			if (!isAuthorized.getStatusCode().equals(HttpStatus.OK)) {
 				return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Error checking user permission\"]}");
 			}
-			if (isAuthorized.getBody().equals("false")) {
+			if (isAuthorized.getBody().equals(TVaultConstants.FALSE)) {
 				return ResponseEntity.status(HttpStatus.FORBIDDEN).body("{\"errors\":[\"Access denied: no permission to add AWS role to the safe\"]}");
 			}
 			token = userDetails.getSelfSupportToken();
@@ -421,7 +429,7 @@ public class  SelfSupportService {
 			if (!isAuthorized.getStatusCode().equals(HttpStatus.OK)) {
 				return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Error checking user permission\"]}");
 			}
-			if (isAuthorized.getBody().equals("false")) {
+			if (isAuthorized.getBody().equals(TVaultConstants.FALSE)) {
 				return ResponseEntity.status(HttpStatus.FORBIDDEN).body("{\"errors\":[\"Access denied: no permission to remove AWS role from the safe\"]}");
 			}
 			token = userDetails.getSelfSupportToken();
@@ -451,7 +459,7 @@ public class  SelfSupportService {
 			if (!isAuthorized.getStatusCode().equals(HttpStatus.OK)) {
 				return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Error checking user permission\"]}");
 			}
-			if (isAuthorized.getBody().equals("false")) {
+			if (isAuthorized.getBody().equals(TVaultConstants.FALSE)) {
 				return ResponseEntity.status(HttpStatus.FORBIDDEN).body("{\"errors\":[\"Access denied: no permission to add Approle to the safe\"]}");
 			}
 			token = userDetails.getSelfSupportToken();
@@ -481,7 +489,7 @@ public class  SelfSupportService {
 			if (!isAuthorized.getStatusCode().equals(HttpStatus.OK)) {
 				return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Error checking user permission\"]}");
 			}
-			if (isAuthorized.getBody().equals("false")) {
+			if (isAuthorized.getBody().equals(TVaultConstants.FALSE)) {
 				return ResponseEntity.status(HttpStatus.FORBIDDEN).body("{\"errors\":[\"Access denied: no permission to remove approle from the safe\"]}");
 			}
 			token = userDetails.getSelfSupportToken();
@@ -508,7 +516,7 @@ public class  SelfSupportService {
 			if (!isAuthorized.getStatusCode().equals(HttpStatus.OK)) {
 				return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Error checking user permission\"]}");
 			}
-			if (isAuthorized.getBody().equals("false")) {
+			if (isAuthorized.getBody().equals(TVaultConstants.FALSE)) {
 				return ResponseEntity.status(HttpStatus.FORBIDDEN).body("{\"errors\":[\"Access denied: no permission to create AWS role\"]}");
 			}
 			token = userDetails.getSelfSupportToken();
@@ -535,7 +543,7 @@ public class  SelfSupportService {
 			if (!isAuthorized.getStatusCode().equals(HttpStatus.OK)) {
 				return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Error checking user permission\"]}");
 			}
-			if (isAuthorized.getBody().equals("false")) {
+			if (isAuthorized.getBody().equals(TVaultConstants.FALSE)) {
 				return ResponseEntity.status(HttpStatus.FORBIDDEN).body("{\"errors\":[\"Access denied: no permission to update AWS role\"]}");
 			}
 			token = userDetails.getSelfSupportToken();
@@ -562,7 +570,7 @@ public class  SelfSupportService {
 			if (!isAuthorized.getStatusCode().equals(HttpStatus.OK)) {
 				return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Error checking user permission\"]}");
 			}
-			if (isAuthorized.getBody().equals("false")) {
+			if (isAuthorized.getBody().equals(TVaultConstants.FALSE)) {
 				return ResponseEntity.status(HttpStatus.FORBIDDEN).body("{\"errors\":[\"Access denied: no permission to create AWS IAM role\"]}");
 			}
 			token = userDetails.getSelfSupportToken();
@@ -589,7 +597,7 @@ public class  SelfSupportService {
 			if (!isAuthorized.getStatusCode().equals(HttpStatus.OK)) {
 				return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Error checking user permission\"]}");
 			}
-			if (isAuthorized.getBody().equals("false")) {
+			if (isAuthorized.getBody().equals(TVaultConstants.FALSE)) {
 				return ResponseEntity.status(HttpStatus.FORBIDDEN).body("{\"errors\":[\"Access denied: no permission to update AWS IAM role\"]}");
 			}
 			token = userDetails.getSelfSupportToken();
