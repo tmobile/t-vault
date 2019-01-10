@@ -17,6 +17,8 @@
 
 package com.tmobile.cso.vault.api.v2.controller;
 
+import com.tmobile.cso.vault.api.model.*;
+import com.tmobile.cso.vault.api.utils.JSONUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
@@ -30,10 +32,6 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.tmobile.cso.vault.api.model.AWSRole;
-import com.tmobile.cso.vault.api.model.Safe;
-import com.tmobile.cso.vault.api.model.SafeGroup;
-import com.tmobile.cso.vault.api.model.SafeUser;
 import com.tmobile.cso.vault.api.service.SelfSupportService;
 import com.tmobile.cso.vault.api.service.SafesService;
 
@@ -237,11 +235,12 @@ public class SDBControllerV2 {
 	/**
 	 * Associate approle to Safe
 	 * @param token
-	 * @param jsonstr
+	 * @param safeAppRoleAccess
 	 * @return
 	 */
 	@PostMapping(value="/v2/sdb/approle",consumes="application/json",produces="application/json")
-	public ResponseEntity<String>associateApproletoSDB(@RequestHeader(value="vault-token") String token, @RequestBody String jsonstr) {
+	public ResponseEntity<String>associateApproletoSDB(@RequestHeader(value="vault-token") String token, @RequestBody SafeAppRoleAccess safeAppRoleAccess) {
+		String jsonstr = JSONUtil.getJSON(safeAppRoleAccess);
 		return safesService.associateApproletoSDB(token, jsonstr);
 	}
 }
