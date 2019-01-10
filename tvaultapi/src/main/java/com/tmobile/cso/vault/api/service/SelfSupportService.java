@@ -26,6 +26,7 @@ import com.tmobile.cso.vault.api.common.TVaultConstants;
 import com.tmobile.cso.vault.api.exception.TVaultValidationException;
 import com.tmobile.cso.vault.api.model.*;
 
+import com.tmobile.cso.vault.api.process.Response;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
@@ -44,6 +45,8 @@ import com.tmobile.cso.vault.api.utils.AuthorizationUtils;
 import com.tmobile.cso.vault.api.utils.JSONUtil;
 import com.tmobile.cso.vault.api.utils.PolicyUtils;
 import com.tmobile.cso.vault.api.utils.SafeUtils;
+
+import static com.tmobile.cso.vault.api.controller.ControllerUtil.reqProcessor;
 
 @Component
 public class  SelfSupportService {
@@ -65,6 +68,9 @@ public class  SelfSupportService {
 
 	@Autowired
 	private AWSIAMAuthService awsiamAuthService;
+
+	@Autowired
+	private AppRoleService appRoleService;
 
 	@Value("${vault.auth.method}")
 	private String vaultAuthMethod;
@@ -618,6 +624,17 @@ public class  SelfSupportService {
 		}
 		else {
 			return ResponseEntity.status(HttpStatus.OK).body(JSONUtil.getJSON(safeNames));
+		}
+	}
+
+	public ResponseEntity<String> createAppRole(String userToken, AppRole appRole, UserDetails userDetails) {
+		String token = userDetails.getClientToken();
+		if (userDetails.isAdmin()) {
+			return appRoleService.createAppRole(token, appRole, userDetails);
+		}
+		else {
+			token = userDetails.getSelfSupportToken();
+			return appRoleService.createAppRole(token, appRole, userDetails);
 		}
 	}
 }

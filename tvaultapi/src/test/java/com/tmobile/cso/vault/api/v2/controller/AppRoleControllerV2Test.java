@@ -51,6 +51,16 @@ public class AppRoleControllerV2Test {
         this.mockMvc = MockMvcBuilders.standaloneSetup(appRoleControllerV2).build();
     }
 
+    UserDetails getMockUser(boolean isAdmin) {
+        String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+        UserDetails userDetails = new UserDetails();
+        userDetails.setUsername("normaluser");
+        userDetails.setAdmin(isAdmin);
+        userDetails.setClientToken(token);
+        userDetails.setSelfSupportToken(token);
+        return userDetails;
+    }
+
     @Test
     public void test_createAppRole() throws Exception {
         String [] policies = {"default"};
@@ -60,9 +70,10 @@ public class AppRoleControllerV2Test {
         String responseMessage = "{\"messages\":[\"AppRole created succssfully\"]}";
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(responseMessage);
 
-        when(appRoleService.createAppRole(eq("5PDrOhsy4ig8L3EpsJZSLAMg"), Mockito.any())).thenReturn(responseEntityExpected);
+        UserDetails userDetails = getMockUser(true);
+        when(appRoleService.createAppRole(eq("5PDrOhsy4ig8L3EpsJZSLAMg"), Mockito.any(), eq(userDetails))).thenReturn(responseEntityExpected);
 
-        mockMvc.perform(MockMvcRequestBuilders.post("/v2/auth/approle/role")
+        mockMvc.perform(MockMvcRequestBuilders.post("/v2/auth/approle/role").requestAttr("UserDetails", userDetails)
                 .header("vault-token", "5PDrOhsy4ig8L3EpsJZSLAMg")
                 .header("Content-Type", "application/json;charset=UTF-8")
                 .content(inputJson))

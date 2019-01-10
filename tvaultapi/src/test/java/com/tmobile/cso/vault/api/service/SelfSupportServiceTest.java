@@ -66,6 +66,9 @@ public class SelfSupportServiceTest {
     @Mock
     AWSIAMAuthService awsiamAuthService;
 
+    @Mock
+    AppRoleService appRoleService;
+
     @Before
     public void setUp() {
         PowerMockito.mockStatic(ControllerUtil.class);
@@ -1211,6 +1214,42 @@ public class SelfSupportServiceTest {
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body("No safes are available");
 
         ResponseEntity<String> responseEntity = selfSupportService.getAllSafeNames(userDetails);
+        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntity);
+    }
+
+    @Test
+    public void test_createAppRole_successfully() throws TVaultValidationException {
+        String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+        UserDetails userDetails = getMockUser(false);
+        String [] policies = {"default"};
+        AppRole appRole = new AppRole("approle1", policies, true, "1", "100m", 0);
+
+        ResponseEntity<String> response = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"AppRole created successfully\"]}");
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"AppRole created successfully\"]}");
+
+        when(appRoleService.createAppRole(token, appRole, userDetails)).thenReturn(response);
+        mockIsAuthorized(userDetails, true);
+
+        ResponseEntity<String> responseEntity = selfSupportService.createAppRole(token, appRole, userDetails);
+        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntity);
+    }
+
+    @Test
+    public void test_createAppRole_successfully_admin() throws TVaultValidationException {
+        String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+        UserDetails userDetails = getMockUser(true);
+        String [] policies = {"default"};
+        AppRole appRole = new AppRole("approle1", policies, true, "1", "100m", 0);
+
+        ResponseEntity<String> response = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"AppRole created successfully\"]}");
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"AppRole created successfully\"]}");
+
+        when(appRoleService.createAppRole(token, appRole, userDetails)).thenReturn(response);
+        mockIsAuthorized(userDetails, true);
+
+        ResponseEntity<String> responseEntity = selfSupportService.createAppRole(token, appRole, userDetails);
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
     }

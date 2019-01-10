@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.Map;
 
 import com.tmobile.cso.vault.api.common.TVaultConstants;
+import com.tmobile.cso.vault.api.model.*;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -35,11 +36,6 @@ import org.springframework.stereotype.Component;
 import com.google.common.collect.ImmutableMap;
 import com.tmobile.cso.vault.api.controller.ControllerUtil;
 import com.tmobile.cso.vault.api.exception.LogMessage;
-import com.tmobile.cso.vault.api.model.AppRole;
-import com.tmobile.cso.vault.api.model.AppRoleIdSecretId;
-import com.tmobile.cso.vault.api.model.AppRoleNameSecretId;
-import com.tmobile.cso.vault.api.model.AppRoleSecretData;
-import com.tmobile.cso.vault.api.model.SafeAppRoleAccess;
 import com.tmobile.cso.vault.api.process.RequestProcessor;
 import com.tmobile.cso.vault.api.process.Response;
 import com.tmobile.cso.vault.api.utils.JSONUtil;
@@ -64,7 +60,7 @@ public class  AppRoleService {
 	 * @param appRole
 	 * @return
 	 */
-	public ResponseEntity<String> createAppRole(String token, AppRole appRole){
+	public ResponseEntity<String> createAppRole(String token, AppRole appRole, UserDetails userDetails){
 		String jsonStr = JSONUtil.getJSON(appRole);
 		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 			      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
@@ -81,7 +77,10 @@ public class  AppRoleService {
 		if (!isDuplicate) {
 			Response response = reqProcessor.process("/auth/approle/role/create", jsonStr,token);
 			if(response.getHttpstatus().equals(HttpStatus.NO_CONTENT)) {
-				return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"AppRole created succssfully\"]}");
+				if(createMetadata(appRole, token, userDetails)) {
+					return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"AppRole created successfully\"]}");
+				}
+				return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"AppRole created however metadata update failed. Please try with AppRole/update \"]}");
 			}
 			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 				      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
@@ -98,6 +97,52 @@ public class  AppRoleService {
 		}
 	
 	}
+
+	/**
+	 * Creates Metadata for AppRole
+	 * @param roleName
+	 * @param token
+	 * @param userDetails
+	 * @return
+	 */
+
+	private boolean createMetadata(AppRole approle, String token, UserDetails userDetails) {
+		String metadataJson = populateMetaJson(approle.getRole_name(), userDetails.getUsername());
+		Response response = reqProcessor.process("/write",metadataJson,token);
+		boolean isMetaDataUpdated = false;
+
+		if(response.getHttpstatus().equals(HttpStatus.NO_CONTENT)){
+			isMetaDataUpdated = true;
+			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+					put(LogMessage.ACTION, "createMetadata").
+					put(LogMessage.MESSAGE, "Metadata created successfully for the AppRole").
+					put(LogMessage.STATUS, response.getHttpstatus().toString()).
+					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+					build()));
+		} else {
+			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+					put(LogMessage.ACTION, "createMetadata").
+					put(LogMessage.MESSAGE, "Failed to create metadata for the AppRole").
+					put(LogMessage.STATUS, response.getHttpstatus().toString()).
+					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+					build()));
+		}
+		return isMetaDataUpdated;
+	}
+
+	private String populateMetaJson(String appRoleName, String username) {
+		String _path = TVaultConstants.APPROLE_METADATA_MOUNT_PATH + "/" + appRoleName;
+		AppRoleMetadataDetails appRoleMetadataDetails = new AppRoleMetadataDetails(appRoleName);
+		appRoleMetadataDetails.setCreatedBy(username);
+		AppRoleMetadata appRoleMetadata =  new AppRoleMetadata(_path, appRoleMetadataDetails);
+		String jsonStr = JSONUtil.getJSON(appRoleMetadata);
+		Map<String,Object> rqstParams = ControllerUtil.parseJson(jsonStr);
+		rqstParams.put("path",_path);
+		return ControllerUtil.convetToJson(rqstParams);
+	}
+
 	/**
 	 * Checks for duplicated AppRole
 	 * @param jsonStr

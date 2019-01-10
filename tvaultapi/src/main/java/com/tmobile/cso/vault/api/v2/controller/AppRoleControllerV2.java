@@ -17,6 +17,7 @@
 
 package com.tmobile.cso.vault.api.v2.controller;
 
+import com.tmobile.cso.vault.api.model.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -28,15 +29,12 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.tmobile.cso.vault.api.model.AppRole;
-import com.tmobile.cso.vault.api.model.AppRoleIdSecretId;
-import com.tmobile.cso.vault.api.model.AppRoleNameSecretId;
-import com.tmobile.cso.vault.api.model.AppRoleSecretData;
-import com.tmobile.cso.vault.api.model.SafeAppRoleAccess;
 import com.tmobile.cso.vault.api.service.AppRoleService;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
+
+import javax.servlet.http.HttpServletRequest;
 
 
 @RestController
@@ -55,8 +53,9 @@ public class AppRoleControllerV2 {
 	 */
 	@ApiOperation(value = "${AppRoleControllerV2.createAppRole.value}", notes = "${AppRoleControllerV2.createAppRole.notes}")
 	@PostMapping(value="/v2/auth/approle/role", consumes="application/json", produces="application/json")
-	public ResponseEntity<String> createAppRole(@RequestHeader(value="vault-token") String token, @RequestBody AppRole appRole){
-		return appRoleService.createAppRole(token, appRole);
+	public ResponseEntity<String> createAppRole(HttpServletRequest request, @RequestHeader(value="vault-token") String token, @RequestBody AppRole appRole){
+		UserDetails userDetails = (UserDetails) ((HttpServletRequest) request).getAttribute("UserDetails");
+		return appRoleService.createAppRole(token, appRole, userDetails);
 	}
 	
 	/**

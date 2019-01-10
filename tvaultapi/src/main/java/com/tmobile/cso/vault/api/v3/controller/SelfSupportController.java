@@ -307,4 +307,18 @@ public class SelfSupportController {
 		UserDetails userDetails = (UserDetails) ((HttpServletRequest) request).getAttribute("UserDetails");
 		return selfSupportService.updateIAMRole(userDetails, token, awsiamRole, path);
 	}
+
+	/**
+	 * Create AppRole
+	 * @param request
+	 * @param token
+	 * @param appRole
+	 * @return
+	 */
+	@ApiOperation(value = "${AppRoleControllerV3.createAppRole.value}", notes = "${AppRoleControllerV3.createAppRole.notes}")
+	@PostMapping(value="/v3/auth/approle/role", consumes="application/json", produces="application/json")
+	public ResponseEntity<String> createAppRole(HttpServletRequest request, @RequestHeader(value="vault-token") String token, @RequestBody AppRole appRole){
+		UserDetails userDetails = (UserDetails) ((HttpServletRequest) request).getAttribute("UserDetails");
+		return selfSupportService.createAppRole(token, appRole, userDetails);
+	}
 }
