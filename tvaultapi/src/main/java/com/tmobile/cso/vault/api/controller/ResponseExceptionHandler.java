@@ -16,6 +16,8 @@
 // =========================================================================
 
 package com.tmobile.cso.vault.api.controller;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.HttpMediaTypeNotSupportedException;
@@ -30,7 +32,8 @@ import com.tmobile.cso.vault.api.exception.TVaultValidationException;
 
 @ControllerAdvice
 public class ResponseExceptionHandler {
-	 
+
+	 private static Logger log = LogManager.getLogger(ResponseExceptionHandler.class);
 	 @ExceptionHandler(ServletRequestBindingException.class)
 	 protected ResponseEntity<Object> handleException(ServletRequestBindingException ex, WebRequest request) {
 	   	return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\""+ ex.getMessage()+"\"]}");
@@ -53,12 +56,12 @@ public class ResponseExceptionHandler {
 	 
 	 @ExceptionHandler(TVaultValidationException.class)
 	 protected ResponseEntity<Object> handleException(TVaultValidationException ex, WebRequest request) {
-		   	ex.printStackTrace();
+		    log.debug(ex.getMessage());
 		   	return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\""+ ex.getMessage()+"\"]}");
 		 }
 	 @ExceptionHandler(Exception.class)
 	 protected ResponseEntity<Object> handleException(Exception ex, WebRequest request) {
-	   	ex.printStackTrace();
+		 log.debug(ex.getMessage());
 	   	return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Unexpected error :"+ ex.getMessage()+"\"]}");
 	 }
 }

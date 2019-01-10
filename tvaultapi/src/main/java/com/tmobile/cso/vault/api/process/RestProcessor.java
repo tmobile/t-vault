@@ -30,6 +30,7 @@ import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.LaxRedirectStrategy;
 import org.apache.http.ssl.SSLContextBuilder;
 import org.apache.http.ssl.TrustStrategy;
+import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Value;
@@ -54,7 +55,7 @@ import com.tmobile.cso.vault.api.utils.ThreadLocalContext;
 
 @Component()
 public class RestProcessor {
-	private Logger log = LogManager.getLogger(RestProcessor.class);
+	private static Logger log = LogManager.getLogger(RestProcessor.class);
 	@Value("${vault.api.url}")
 	private String vaultApiUrl;
 	@Value("${vault.ssl.verify:true}")
@@ -127,7 +128,7 @@ public class RestProcessor {
 		}catch(RestClientException e){
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
 		}catch(Exception e){
-			e.printStackTrace();
+			log.debug(e.getMessage());
 		}
 		
 		return response;
@@ -154,7 +155,7 @@ public class RestProcessor {
 				
 		} catch (KeyManagementException | NoSuchAlgorithmException | KeyStoreException e1) {
 			// TODO Auto-generated catch block
-			e1.printStackTrace();
+			log.debug(e1.getMessage());
 		}
 		
 		RestTemplate restTemplate  = new RestTemplate();

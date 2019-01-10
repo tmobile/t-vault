@@ -22,6 +22,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -74,8 +75,7 @@ public class  AWSAuthService {
 		try {
 			nonce = new ObjectMapper().readTree(jsonStr).at("/pkcs7").toString().substring(1,50);
 		} catch (IOException e) {
-			// Log exception
-			e.printStackTrace();
+			logger.debug(e.getMessage());
 			return ResponseEntity.badRequest().body("{\"errors\":[\"Not valid request. Check params \"]}");
 		}
 		String noncejson = "{\"nonce\":\""+nonce+"\",";
@@ -108,7 +108,7 @@ public class  AWSAuthService {
 				latestPolicies = root.get("policies").asText();
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
-			e.printStackTrace();
+			logger.debug(e.getMessage());
 		}
 
 		Response response = reqProcessor.process("/auth/aws/roles/create",jsonStr,token);
@@ -146,7 +146,7 @@ public class  AWSAuthService {
 				latestPolicies = root.get("policies").asText();
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
-			e.printStackTrace();
+			logger.debug(e.getMessage());
 		}
 
 		Response awsResponse = reqProcessor.process("/auth/aws/roles","{\"role\":\""+roleName+"\"}",token);
@@ -162,7 +162,7 @@ public class  AWSAuthService {
 				currentPolicies = policies.stream().collect(Collectors.joining(",")).toString();
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
-				e.printStackTrace();
+				logger.debug(e.getMessage());
 			}
 		}else{
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"messages\":[\"Update failed . AWS Role does not exist \"]}");
@@ -268,12 +268,7 @@ public class  AWSAuthService {
 	public ResponseEntity<String> authenticateIAM(AWSIAMLogin awsiamLogin){
 		String jsonStr = JSONUtil.getJSON(awsiamLogin);
 		Response response = reqProcessor.process("/auth/aws/iam/login",jsonStr,"");
-		if(HttpStatus.OK.equals(response.getHttpstatus())) {
-			return ResponseEntity.status(response.getHttpstatus()).body(response.getResponse());
-		}
-		else {
-			return ResponseEntity.status(response.getHttpstatus()).body(response.getResponse());
-		}
+		return ResponseEntity.status(response.getHttpstatus()).body(response.getResponse());
 	}
 	/**
 	 * 

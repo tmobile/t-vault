@@ -24,10 +24,18 @@ import java.util.Map;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.type.TypeFactory;
+import com.google.common.collect.ImmutableMap;
+import com.tmobile.cso.vault.api.exception.LogMessage;
 import com.tmobile.cso.vault.api.exception.NoApiConfigFoundException;
+import com.tmobile.cso.vault.api.utils.JSONUtil;
+import com.tmobile.cso.vault.api.utils.ThreadLocalContext;
+import org.apache.logging.log4j.Level;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 public class ConfigManager {
 	protected static Map<String,ApiConfig> apiConfigMap = new HashMap<String,ApiConfig>();
+	private static Logger log = LogManager.getLogger(ConfigManager.class);
 	static {
 		try{
 			ObjectMapper objectMapper = new ObjectMapper();
@@ -38,7 +46,7 @@ public class ConfigManager {
 													apiconfig.tempVaultEndpoint= apiconfig.apiEndPoint;
 				});
 		}catch(Exception e){
-			e.printStackTrace();
+			log.debug(e.getMessage());
 		}
 	}
 	

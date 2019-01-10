@@ -549,8 +549,8 @@ public class  AppRoleService {
 							      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 								  put(LogMessage.ACTION, "Add AppRole To SDB").
 							      put(LogMessage.MESSAGE, "AppRole configuration failed.").
-							      put(LogMessage.RESPONSE, metadataResponse.getResponse()).
-							      put(LogMessage.STATUS, metadataResponse.getHttpstatus().toString()).
+							      put(LogMessage.RESPONSE, (null!=metadataResponse)?metadataResponse.getResponse():TVaultConstants.EMPTY).
+							      put(LogMessage.STATUS, (null!=metadataResponse)?metadataResponse.getHttpstatus().toString():TVaultConstants.EMPTY).
 							      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 							      build()));
 						//Trying to revert the metadata update in case of failure
@@ -560,8 +560,8 @@ public class  AppRoleService {
 								      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 									  put(LogMessage.ACTION, "Add AppRole To SDB").
 								      put(LogMessage.MESSAGE, "Reverting user policy update failed").
-								      put(LogMessage.RESPONSE, metadataResponse.getResponse()).
-								      put(LogMessage.STATUS, metadataResponse.getHttpstatus().toString()).
+								      put(LogMessage.RESPONSE, (null!=metadataResponse)?metadataResponse.getResponse():TVaultConstants.EMPTY).
+								      put(LogMessage.STATUS, (null!=metadataResponse)?metadataResponse.getHttpstatus().toString():TVaultConstants.EMPTY).
 								      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 								      build()));
 							return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Role configuration failed.Please try again\"]}");
@@ -570,8 +570,8 @@ public class  AppRoleService {
 								      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 									  put(LogMessage.ACTION, "Add AppRole To SDB").
 								      put(LogMessage.MESSAGE, "Reverting user policy update failed").
-								      put(LogMessage.RESPONSE, metadataResponse.getResponse()).
-								      put(LogMessage.STATUS, metadataResponse.getHttpstatus().toString()).
+								      put(LogMessage.RESPONSE, (null!=metadataResponse)?metadataResponse.getResponse():TVaultConstants.EMPTY).
+								      put(LogMessage.STATUS, (null!=metadataResponse)?metadataResponse.getHttpstatus().toString():TVaultConstants.EMPTY).
 								      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 								      build()));
 							return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Role configuration failed.Contact Admin \"]}");

@@ -75,7 +75,7 @@ import com.tmobile.cso.vault.api.utils.ThreadLocalContext;
 public final class ControllerUtil {
 	
 	public static RequestProcessor reqProcessor;
-	public static Logger log = LogManager.getLogger(ControllerUtil.class);
+	public static final Logger log = LogManager.getLogger(ControllerUtil.class);
 
 	@Value("${vault.auth.method}")
     private String tvaultAuthMethod;
@@ -1505,11 +1505,14 @@ public final class ControllerUtil {
 	 * @return
 	 */
 	public static boolean areAppRoleInputsValid(AppRole approle) {
-		String approleName = approle.getRole_name();
-		if (StringUtils.isEmpty(approleName) || !isAppRoleNameValid(approleName)) {
-			return false;
+		if (null!=approle) {
+			String approleName = approle.getRole_name();
+			if (StringUtils.isEmpty(approleName) || !isAppRoleNameValid(approleName)) {
+				return false;
+			}
+			return true;
 		}
-		return true;
+		return false;
 	}
 	/**
 	 * Generates AppRole object from JSON
