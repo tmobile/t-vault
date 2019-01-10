@@ -333,7 +333,14 @@ public class  AppRoleService {
 	 * @param rolename
 	 * @return
 	 */
-	public ResponseEntity<String> deleteAppRole(String token, AppRole appRole){
+	public ResponseEntity<String> deleteAppRole(String token, AppRole appRole, UserDetails userDetails){
+		if (TVaultConstants.SELF_SERVICE_APPROLE_NAME.equals(appRole.getRole_name())) {
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Not authorized to delete this ApPRole\"]}");
+		}
+		Response permissionResponse = canDeleteAppRole(appRole, token, userDetails);
+		if (HttpStatus.INTERNAL_SERVER_ERROR.equals(permissionResponse.getHttpstatus()) || HttpStatus.UNAUTHORIZED.equals(permissionResponse.getHttpstatus())) {
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\""+permissionResponse.getResponse()+"\"]}");
+		}
 		String jsonStr = JSONUtil.getJSON(appRole);
 		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 			      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
@@ -350,7 +357,14 @@ public class  AppRoleService {
 				      put(LogMessage.STATUS, response.getHttpstatus().toString()).
 				      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 				      build()));
-			return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"AppRole deleted\"]}");
+			// delete metada
+			String _path = TVaultConstants.APPROLE_METADATA_MOUNT_PATH + "/" + appRole.getRole_name();
+			String jsonstr = populateMetaJson(appRole.getRole_name(), userDetails.getUsername());
+			Response resp = reqProcessor.process("/delete",jsonstr,token);
+			if (HttpStatus.NO_CONTENT.equals(resp.getHttpstatus())) {
+				return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"AppRole deleted\"]}");
+			}
+			return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"AppRole deleted, metadata delete failed\"]}");
 		}
 		log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 			      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
@@ -360,7 +374,7 @@ public class  AppRoleService {
 			      put(LogMessage.STATUS, response.getHttpstatus().toString()).
 			      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 			      build()));
-		return ResponseEntity.status(response.getHttpstatus()).body(response.getResponse());	
+		return ResponseEntity.status(response.getHttpstatus()).body(response.getResponse());
 	}
 	/**
 	 * Login using appRole
@@ -575,6 +589,46 @@ public class  AppRoleService {
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"messages\":[\"Approle :" + approle + " failed to be associated with SDB.. Invalid Path specified\"]}");		
 		
 		}
+	}
+
+	private Response canDeleteAppRole(AppRole approle, String token, UserDetails userDetails) {
+		Response readResponse = new Response();
+		String _path = TVaultConstants.APPROLE_METADATA_MOUNT_PATH + "/" + approle.getRole_name();
+		Response response = reqProcessor.process("/read","{\"path\":\""+_path+"\"}",token);
+		Map<String, Object> responseMap = null;
+		if(HttpStatus.OK.equals(response.getHttpstatus())) {
+			responseMap = ControllerUtil.parseJson(response.getResponse());
+			if(responseMap.isEmpty()) {
+				response.setHttpstatus(HttpStatus.INTERNAL_SERVER_ERROR);
+				response.setResponse("Error reading role info");
+				response.setSuccess(false);
+				return readResponse;
+			}
+			// Safeadmin can always delete any approle
+			if (userDetails.isAdmin()) {
+				response.setHttpstatus(HttpStatus.OK);
+				response.setResponse(TVaultConstants.EMPTY);
+				response.setSuccess(true);
+				return readResponse;
+			}
+			// normal users
+			Map<String,Object> metadataMap = (Map<String,Object>)responseMap.get("data");
+			if (userDetails.getUsername().equals((String)metadataMap.get("createdBy"))) {
+				response.setHttpstatus(HttpStatus.OK);
+				response.setResponse(TVaultConstants.EMPTY);
+				response.setSuccess(true);
+				return readResponse;
+			}
+		} else if (HttpStatus.NOT_FOUND.equals(response.getHttpstatus()) && userDetails.isAdmin()) {
+			response.setHttpstatus(HttpStatus.OK);
+			response.setResponse(TVaultConstants.EMPTY);
+			response.setSuccess(true);
+			return readResponse;
+		}
+		response.setHttpstatus(HttpStatus.UNAUTHORIZED);
+		response.setResponse("Not authorized to delete this ApPRole");
+		response.setSuccess(false);
+		return response;
 	}
 	
 }

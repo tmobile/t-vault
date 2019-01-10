@@ -321,6 +321,7 @@ public class AppRoleServiceTest {
         String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
         String appRoleId = "approle1";
         Response response =getMockResponse(HttpStatus.NO_CONTENT, true, "");
+        Response responseOK =getMockResponse(HttpStatus.OK, true, "{\"createdBy\":\"safeadmin\"}");
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"AppRole deleted\"]}");
         AppRole appRole = new AppRole();
         appRole.setRole_name(appRoleId);
@@ -328,12 +329,132 @@ public class AppRoleServiceTest {
         
         when(JSONUtil.getJSON(appRole)).thenReturn(jsonStr);
         when(reqProcessor.process("/auth/approle/role/delete",jsonStr,token)).thenReturn(response);
-        
-        ResponseEntity<String> responseEntityActual = appRoleService.deleteAppRole(token, appRole);
+        UserDetails userDetails = getMockUser(true);
+        when(reqProcessor.process(eq("/read"),Mockito.any(),eq(token))).thenReturn(responseOK);
+        Map<String, Object> responseMap = new HashMap<>();
+        responseMap.put("createdBy", "safeadmin");
+        when(ControllerUtil.parseJson(Mockito.any())).thenReturn(responseMap);
+        when(reqProcessor.process(eq("/delete"),Mockito.any(),eq(token))).thenReturn(response);
+        ResponseEntity<String> responseEntityActual = appRoleService.deleteAppRole(token, appRole, userDetails);
 
         assertEquals(HttpStatus.OK, responseEntityActual.getStatusCode());
         assertEquals(responseEntityExpected, responseEntityActual);
         
+    }
+
+    @Test
+    public void test_deleteAppRole_successfully_meta_failure() {
+
+        String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+        String appRoleId = "approle1";
+        Response response =getMockResponse(HttpStatus.NO_CONTENT, true, "");
+        Response response404 =getMockResponse(HttpStatus.NOT_FOUND, true, "");
+        Response responseOK =getMockResponse(HttpStatus.OK, true, "{\"createdBy\":\"safeadmin\"}");
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"AppRole deleted, metadata delete failed\"]}");
+        AppRole appRole = new AppRole();
+        appRole.setRole_name(appRoleId);
+        String jsonStr = "{\"role_name\":\"approle1\",\"policies\":null,\"bind_secret_id\":false,\"secret_id_num_uses\":null,\"secret_id_ttl\":null,\"token_num_uses\":null,\"token_ttl\":null,\"token_max_ttl\":null}";
+
+        when(JSONUtil.getJSON(appRole)).thenReturn(jsonStr);
+        when(reqProcessor.process("/auth/approle/role/delete",jsonStr,token)).thenReturn(response);
+        UserDetails userDetails = getMockUser(true);
+        when(reqProcessor.process(eq("/read"),Mockito.any(),eq(token))).thenReturn(responseOK);
+        Map<String, Object> responseMap = new HashMap<>();
+        responseMap.put("createdBy", "safeadmin");
+        when(ControllerUtil.parseJson(Mockito.any())).thenReturn(responseMap);
+        when(reqProcessor.process(eq("/delete"),Mockito.any(),eq(token))).thenReturn(response404);
+        ResponseEntity<String> responseEntityActual = appRoleService.deleteAppRole(token, appRole, userDetails);
+
+        assertEquals(HttpStatus.OK, responseEntityActual.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntityActual);
+
+    }
+
+    @Test
+    public void test_deleteAppRole_successfully_normaluser() {
+
+        String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+        String appRoleId = "approle1";
+        Response response =getMockResponse(HttpStatus.NO_CONTENT, true, "");
+        Response responseOK =getMockResponse(HttpStatus.OK, true, "{\"data\":{\"createdBy\":\"normaluser\"}}");
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"AppRole deleted\"]}");
+        AppRole appRole = new AppRole();
+        appRole.setRole_name(appRoleId);
+        String jsonStr = "{\"role_name\":\"approle1\",\"policies\":null,\"bind_secret_id\":false,\"secret_id_num_uses\":null,\"secret_id_ttl\":null,\"token_num_uses\":null,\"token_ttl\":null,\"token_max_ttl\":null}";
+
+        when(JSONUtil.getJSON(appRole)).thenReturn(jsonStr);
+        when(reqProcessor.process("/auth/approle/role/delete",jsonStr,token)).thenReturn(response);
+        UserDetails userDetails = getMockUser(false);
+        when(reqProcessor.process(eq("/read"),Mockito.any(),eq(token))).thenReturn(responseOK);
+        Map<String, Object> responseMap = new HashMap<>();
+        Map<String, Object> data = new HashMap<>();
+        data.put("createdBy", "normaluser");
+        responseMap.put("data", data);
+        when(ControllerUtil.parseJson(Mockito.any())).thenReturn(responseMap);
+        when(reqProcessor.process(eq("/delete"),Mockito.any(),eq(token))).thenReturn(response);
+        ResponseEntity<String> responseEntityActual = appRoleService.deleteAppRole(token, appRole, userDetails);
+
+        assertEquals(HttpStatus.OK, responseEntityActual.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntityActual);
+
+    }
+
+    @Test
+    public void test_deleteAppRole_successfully_metadata404() {
+
+        String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+        String appRoleId = "approle1";
+        Response response =getMockResponse(HttpStatus.NO_CONTENT, true, "");
+        Response response404 =getMockResponse(HttpStatus.NOT_FOUND, true, "");
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"AppRole deleted\"]}");
+        AppRole appRole = new AppRole();
+        appRole.setRole_name(appRoleId);
+        String jsonStr = "{\"role_name\":\"approle1\",\"policies\":null,\"bind_secret_id\":false,\"secret_id_num_uses\":null,\"secret_id_ttl\":null,\"token_num_uses\":null,\"token_ttl\":null,\"token_max_ttl\":null}";
+
+        when(JSONUtil.getJSON(appRole)).thenReturn(jsonStr);
+        when(reqProcessor.process("/auth/approle/role/delete",jsonStr,token)).thenReturn(response);
+        UserDetails userDetails = getMockUser(true);
+        when(reqProcessor.process(eq("/read"),Mockito.any(),eq(token))).thenReturn(response404);
+        Map<String, Object> responseMap = new HashMap<>();
+        Map<String, Object> data = new HashMap<>();
+        data.put("createdBy", "normaluser");
+        responseMap.put("data", data);
+        when(ControllerUtil.parseJson(Mockito.any())).thenReturn(responseMap);
+        when(reqProcessor.process(eq("/delete"),Mockito.any(),eq(token))).thenReturn(response);
+        ResponseEntity<String> responseEntityActual = appRoleService.deleteAppRole(token, appRole, userDetails);
+
+        assertEquals(HttpStatus.OK, responseEntityActual.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntityActual);
+
+    }
+
+    @Test
+    public void test_deleteAppRole_failure_metadata_403() {
+
+        String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+        String appRoleId = "approle1";
+        Response response =getMockResponse(HttpStatus.NO_CONTENT, true, "");
+        Response response403 =getMockResponse(HttpStatus.UNAUTHORIZED, true, "");
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Not authorized to delete this ApPRole\"]}");
+        AppRole appRole = new AppRole();
+        appRole.setRole_name(appRoleId);
+        String jsonStr = "{\"role_name\":\"approle1\",\"policies\":null,\"bind_secret_id\":false,\"secret_id_num_uses\":null,\"secret_id_ttl\":null,\"token_num_uses\":null,\"token_ttl\":null,\"token_max_ttl\":null}";
+
+        when(JSONUtil.getJSON(appRole)).thenReturn(jsonStr);
+        when(reqProcessor.process("/auth/approle/role/delete",jsonStr,token)).thenReturn(response);
+        UserDetails userDetails = getMockUser(true);
+        when(reqProcessor.process(eq("/read"),Mockito.any(),eq(token))).thenReturn(response403);
+        Map<String, Object> responseMap = new HashMap<>();
+        Map<String, Object> data = new HashMap<>();
+        data.put("createdBy", "normaluser");
+        responseMap.put("data", data);
+        when(ControllerUtil.parseJson(Mockito.any())).thenReturn(responseMap);
+        when(reqProcessor.process(eq("/delete"),Mockito.any(),eq(token))).thenReturn(response);
+        ResponseEntity<String> responseEntityActual = appRoleService.deleteAppRole(token, appRole, userDetails);
+
+        assertEquals(HttpStatus.BAD_REQUEST, responseEntityActual.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntityActual);
+
     }
 
     @Test
@@ -343,6 +464,8 @@ public class AppRoleServiceTest {
         String appRoleId = "approle1";
         String responseJson = "{\"error\":[\"Internal Server Error\"]}";
         Response response =getMockResponse(HttpStatus.INTERNAL_SERVER_ERROR, true, responseJson);
+        Response responseOK =getMockResponse(HttpStatus.OK, true, "{\"createdBy\":\"safeadmin\"}");
+
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(responseJson);
         AppRole appRole = new AppRole();
         appRole.setRole_name(appRoleId);
@@ -350,10 +473,60 @@ public class AppRoleServiceTest {
 
         when(JSONUtil.getJSON(appRole)).thenReturn(jsonStr);
         when(reqProcessor.process("/auth/approle/role/delete",jsonStr,token)).thenReturn(response);
-
-        ResponseEntity<String> responseEntityActual = appRoleService.deleteAppRole(token, appRole);
+        UserDetails userDetails = getMockUser(true);
+        when(reqProcessor.process(eq("/read"),Mockito.any(),eq(token))).thenReturn(responseOK);
+        Map<String, Object> responseMap = new HashMap<>();
+        responseMap.put("createdBy", "safeadmin");
+        when(ControllerUtil.parseJson(Mockito.any())).thenReturn(responseMap);
+        when(reqProcessor.process(eq("/delete"),Mockito.any(),eq(token))).thenReturn(response);
+        ResponseEntity<String> responseEntityActual = appRoleService.deleteAppRole(token, appRole, userDetails);
 
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, responseEntityActual.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntityActual);
+
+    }
+
+    @Test
+    public void test_deleteAppRole_failure_500() {
+
+        String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+        String appRoleId = "approle1";
+        String responseJson = "{\"error\":[\"Error reading role info\"]}";
+        Response response =getMockResponse(HttpStatus.INTERNAL_SERVER_ERROR, true, responseJson);
+        Response responseOK =getMockResponse(HttpStatus.OK, true, "{\"createdBy\":\"safeadmin\"}");
+
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(responseJson);
+        AppRole appRole = new AppRole();
+        appRole.setRole_name(appRoleId);
+        String jsonStr = "{\"role_name\":\"approle1\",\"policies\":null,\"bind_secret_id\":false,\"secret_id_num_uses\":null,\"secret_id_ttl\":null,\"token_num_uses\":null,\"token_ttl\":null,\"token_max_ttl\":null}";
+
+        when(JSONUtil.getJSON(appRole)).thenReturn(jsonStr);
+        when(reqProcessor.process("/auth/approle/role/delete",jsonStr,token)).thenReturn(response);
+        UserDetails userDetails = getMockUser(true);
+        when(reqProcessor.process(eq("/read"),Mockito.any(),eq(token))).thenReturn(responseOK);
+        Map<String, Object> responseMap = new HashMap<>();
+        when(ControllerUtil.parseJson(Mockito.any())).thenReturn(responseMap);
+        when(reqProcessor.process(eq("/delete"),Mockito.any(),eq(token))).thenReturn(response);
+        ResponseEntity<String> responseEntityActual = appRoleService.deleteAppRole(token, appRole, userDetails);
+
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, responseEntityActual.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntityActual);
+    }
+
+    @Test
+    public void test_deleteAppRole_failure_403() {
+
+        String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+        String appRoleId = "vault-power-user-role";
+        String responseJson = "{\"errors\":[\"Not authorized to delete this ApPRole\"]}";
+        Response response =getMockResponse(HttpStatus.BAD_REQUEST, true, responseJson);
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body(responseJson);
+        AppRole appRole = new AppRole();
+        appRole.setRole_name(appRoleId);
+        UserDetails userDetails = getMockUser(true);
+        ResponseEntity<String> responseEntityActual = appRoleService.deleteAppRole(token, appRole, userDetails);
+
+        assertEquals(HttpStatus.BAD_REQUEST, responseEntityActual.getStatusCode());
         assertEquals(responseEntityExpected, responseEntityActual);
 
     }

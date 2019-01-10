@@ -627,6 +627,13 @@ public class  SelfSupportService {
 		}
 	}
 
+	/**
+	 * Create AppRole
+	 * @param userToken
+	 * @param appRole
+	 * @param userDetails
+	 * @return
+	 */
 	public ResponseEntity<String> createAppRole(String userToken, AppRole appRole, UserDetails userDetails) {
 		String token = userDetails.getClientToken();
 		if (userDetails.isAdmin()) {
@@ -635,6 +642,24 @@ public class  SelfSupportService {
 		else {
 			token = userDetails.getSelfSupportToken();
 			return appRoleService.createAppRole(token, appRole, userDetails);
+		}
+	}
+
+	/**
+	 * Delete AppRole
+	 * @param userToken
+	 * @param appRole
+	 * @param userDetails
+	 * @return
+	 */
+	public ResponseEntity<String> deleteAppRole(String userToken, AppRole appRole, UserDetails userDetails) {
+		String token = userDetails.getClientToken();
+		if (userDetails.isAdmin()) {
+			return appRoleService.deleteAppRole(token, appRole, userDetails);
+		}
+		else {
+			token = userDetails.getSelfSupportToken();
+			return appRoleService.deleteAppRole(token, appRole, userDetails);
 		}
 	}
 }

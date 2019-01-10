@@ -105,10 +105,11 @@ public class AppRoleControllerV2 {
 	 */
 	@ApiOperation(value = "${AppRoleControllerV2.deleteAppRole.value}", notes = "${AppRoleControllerV2.deleteAppRole.notes}")
 	@DeleteMapping(value="/v2/auth/approle/role/{role_name}",produces="application/json")
-	public ResponseEntity<String> deleteAppRole(@RequestHeader(value="vault-token") String token, @PathVariable("role_name" ) String rolename){
+	public ResponseEntity<String> deleteAppRole(HttpServletRequest request, @RequestHeader(value="vault-token") String token, @PathVariable("role_name" ) String rolename){
+		UserDetails userDetails = (UserDetails) ((HttpServletRequest) request).getAttribute("UserDetails");
 		AppRole appRole = new AppRole();
 		appRole.setRole_name(rolename);
-		return appRoleService.deleteAppRole(token, appRole);
+		return appRoleService.deleteAppRole(token, appRole, userDetails);
 	}
 	/**
 	 * CREATE SECRETID FOR APPROLE

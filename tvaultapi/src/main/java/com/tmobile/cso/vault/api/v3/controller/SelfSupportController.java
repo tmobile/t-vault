@@ -321,4 +321,20 @@ public class SelfSupportController {
 		UserDetails userDetails = (UserDetails) ((HttpServletRequest) request).getAttribute("UserDetails");
 		return selfSupportService.createAppRole(token, appRole, userDetails);
 	}
+
+	/**
+	 * Delete AppRole
+	 * @param request
+	 * @param token
+	 * @param rolename
+	 * @return
+	 */
+	@ApiOperation(value = "${AppRoleControllerV3.deleteAppRole.value}", notes = "${AppRoleControllerV3.deleteAppRole.notes}")
+	@DeleteMapping(value="/v3/auth/approle/role/{role_name}",produces="application/json")
+	public ResponseEntity<String> deleteAppRole(HttpServletRequest request, @RequestHeader(value="vault-token") String token, @PathVariable("role_name" ) String rolename){
+		UserDetails userDetails = (UserDetails) ((HttpServletRequest) request).getAttribute("UserDetails");
+		AppRole appRole = new AppRole();
+		appRole.setRole_name(rolename);
+		return selfSupportService.deleteAppRole(token, appRole, userDetails);
+	}
 }
