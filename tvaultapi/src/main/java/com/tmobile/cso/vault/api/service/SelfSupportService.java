@@ -75,7 +75,7 @@ public class  SelfSupportService {
 	@Value("${vault.auth.method}")
 	private String vaultAuthMethod;
 
-	@Value("${safe.quota}")
+	@Value("${safe.quota:20}")
 	private String safeQuota;
 
 	private static Logger log = LogManager.getLogger(SelfSupportService.class);
