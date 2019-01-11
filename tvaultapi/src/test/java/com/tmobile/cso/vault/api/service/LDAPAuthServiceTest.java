@@ -2,6 +2,8 @@ package com.tmobile.cso.vault.api.service;
 
 import com.google.common.collect.ImmutableMap;
 import com.tmobile.cso.vault.api.controller.ControllerUtil;
+import com.tmobile.cso.vault.api.model.LDAPGroup;
+import com.tmobile.cso.vault.api.model.LDAPUser;
 import com.tmobile.cso.vault.api.model.UserLogin;
 import com.tmobile.cso.vault.api.process.RequestProcessor;
 import com.tmobile.cso.vault.api.process.Response;
@@ -77,12 +79,13 @@ public class LDAPAuthServiceTest {
         Response responseNoContent = getMockResponse(HttpStatus.NO_CONTENT, true, "");
         Response responseOk = getMockResponse(HttpStatus.OK, true, "");
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"LDAP user configured\"]}");
-
+        LDAPUser ldapUser = new LDAPUser("safeadmin", "admin,default");
+        when(JSONUtil.getJSON(ldapUser)).thenReturn(jsonStr);
         when(ControllerUtil.updateMetaDataOnConfigChanges(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(responseOk);
         when(reqProcessor.process("/auth/ldap/users","{\"username\":\"safeadmin\"}",token)).thenReturn(responseNotFound);
         when(reqProcessor.process("/auth/ldap/users/configure",jsonStr,token)).thenReturn(responseNoContent);
 
-        ResponseEntity<String> responseEntity = ldapAuthService.configureLdapUser(token, jsonStr);
+        ResponseEntity<String> responseEntity = ldapAuthService.configureLdapUser(token, ldapUser);
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
     }
@@ -95,12 +98,13 @@ public class LDAPAuthServiceTest {
         Response responseNoContent = getMockResponse(HttpStatus.NO_CONTENT, true, "");
         Response responseOk = getMockResponse(HttpStatus.OK, true, "");
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"LDAP user configured\"]}");
-
+        LDAPUser ldapUser = new LDAPUser("safeadmin", "admin,default");
+        when(JSONUtil.getJSON(ldapUser)).thenReturn(jsonStr);
         when(ControllerUtil.updateMetaDataOnConfigChanges(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(responseOk);
         when(reqProcessor.process("/auth/ldap/users","{\"username\":\"safeadmin\"}",token)).thenReturn(responseUser);
         when(reqProcessor.process("/auth/ldap/users/configure",jsonStr,token)).thenReturn(responseNoContent);
 
-        ResponseEntity<String> responseEntity = ldapAuthService.configureLdapUser(token, jsonStr);
+        ResponseEntity<String> responseEntity = ldapAuthService.configureLdapUser(token, ldapUser);
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
     }
@@ -113,12 +117,13 @@ public class LDAPAuthServiceTest {
         Response responseFailure = getMockResponse(HttpStatus.INTERNAL_SERVER_ERROR, false, "{\"errors\":[\"Configuring of LDAP user failed\"]}");
         Response responseOk = getMockResponse(HttpStatus.OK, true, "");
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Configuring of LDAP user failed\"]}");
-
+        LDAPUser ldapUser = new LDAPUser("safeadmin", "admin,default");
+        when(JSONUtil.getJSON(ldapUser)).thenReturn(jsonStr);
         when(ControllerUtil.updateMetaDataOnConfigChanges(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(responseOk);
         when(reqProcessor.process("/auth/ldap/users","{\"username\":\"safeadmin\"}",token)).thenReturn(responseNotFound);
         when(reqProcessor.process("/auth/ldap/users/configure",jsonStr,token)).thenReturn(responseFailure);
 
-        ResponseEntity<String> responseEntity = ldapAuthService.configureLdapUser(token, jsonStr);
+        ResponseEntity<String> responseEntity = ldapAuthService.configureLdapUser(token, ldapUser);
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
     }
@@ -175,12 +180,13 @@ public class LDAPAuthServiceTest {
         Response responseNoContent = getMockResponse(HttpStatus.NO_CONTENT, true, "");
         Response responseOk = getMockResponse(HttpStatus.MULTI_STATUS, false, "Meta data update failed");
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.MULTI_STATUS).body("{\"messages\":[\"LDAP user configured\",\"Meta data update failed\"]}");
-
+        LDAPUser ldapUser = new LDAPUser("safeadmin", "admin,default");
+        when(JSONUtil.getJSON(ldapUser)).thenReturn(jsonStr);
         when(ControllerUtil.updateMetaDataOnConfigChanges(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(responseOk);
         when(reqProcessor.process("/auth/ldap/users","{\"username\":\"safeadmin\"}",token)).thenReturn(responseNotFound);
         when(reqProcessor.process("/auth/ldap/users/configure",jsonStr,token)).thenReturn(responseNoContent);
 
-        ResponseEntity<String> responseEntity = ldapAuthService.configureLdapUser(token, jsonStr);
+        ResponseEntity<String> responseEntity = ldapAuthService.configureLdapUser(token, ldapUser);
         assertEquals(HttpStatus.MULTI_STATUS, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
     }
@@ -193,12 +199,13 @@ public class LDAPAuthServiceTest {
         Response responseNoContent = getMockResponse(HttpStatus.NO_CONTENT, true, "");
         Response responseOk = getMockResponse(HttpStatus.OK, true, "");
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"LDAP Group configured\"]}");
-
+        LDAPGroup ldapGroup = new LDAPGroup("admin", "admin,default");
+        when(JSONUtil.getJSON(ldapGroup)).thenReturn(jsonStr);
         when(ControllerUtil.updateMetaDataOnConfigChanges(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(responseOk);
         when(reqProcessor.process("/auth/ldap/groups","{\"groupname\":\"admin\"}",token)).thenReturn(responseNotFound);
         when(reqProcessor.process("/auth/ldap/groups/configure",jsonStr,token)).thenReturn(responseNoContent);
 
-        ResponseEntity<String> responseEntity = ldapAuthService.configureLdapGroup(token, jsonStr);
+        ResponseEntity<String> responseEntity = ldapAuthService.configureLdapGroup(token, ldapGroup);
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
     }
@@ -211,12 +218,13 @@ public class LDAPAuthServiceTest {
         Response responseNoContent = getMockResponse(HttpStatus.NO_CONTENT, true, "");
         Response response = getMockResponse(HttpStatus.MULTI_STATUS, true, "Meta data update failed");
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.MULTI_STATUS).body("{\"messages\":[\"LDAP group configured\",\"Meta data update failed\"]}");
-
+        LDAPGroup ldapGroup = new LDAPGroup("admin", "admin,default");
+        when(JSONUtil.getJSON(ldapGroup)).thenReturn(jsonStr);
         when(ControllerUtil.updateMetaDataOnConfigChanges(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(response);
         when(reqProcessor.process("/auth/ldap/groups","{\"groupname\":\"admin\"}",token)).thenReturn(responseNotFound);
         when(reqProcessor.process("/auth/ldap/groups/configure",jsonStr,token)).thenReturn(responseNoContent);
 
-        ResponseEntity<String> responseEntity = ldapAuthService.configureLdapGroup(token, jsonStr);
+        ResponseEntity<String> responseEntity = ldapAuthService.configureLdapGroup(token, ldapGroup);
         assertEquals(HttpStatus.MULTI_STATUS, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
     }
@@ -229,12 +237,13 @@ public class LDAPAuthServiceTest {
         Response responseNoContent = getMockResponse(HttpStatus.NO_CONTENT, true, "");
         Response responseOk = getMockResponse(HttpStatus.OK, true, "");
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"LDAP Group configured\"]}");
-
+        LDAPGroup ldapGroup = new LDAPGroup("admin", "admin,default");
+        when(JSONUtil.getJSON(ldapGroup)).thenReturn(jsonStr);
         when(ControllerUtil.updateMetaDataOnConfigChanges(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(responseOk);
         when(reqProcessor.process("/auth/ldap/groups","{\"groupname\":\"admin\"}",token)).thenReturn(responseGroup);
         when(reqProcessor.process("/auth/ldap/groups/configure",jsonStr,token)).thenReturn(responseNoContent);
 
-        ResponseEntity<String> responseEntity = ldapAuthService.configureLdapGroup(token, jsonStr);
+        ResponseEntity<String> responseEntity = ldapAuthService.configureLdapGroup(token, ldapGroup);
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
     }
@@ -247,12 +256,13 @@ public class LDAPAuthServiceTest {
         Response responseFailure = getMockResponse(HttpStatus.INTERNAL_SERVER_ERROR, false, "{\"errors\":[\"LDAP Group configuration failed\"]}");
         Response responseOk = getMockResponse(HttpStatus.OK, true, "");
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"messages\":[\"LDAP Group configured\"]}");
-
+        LDAPGroup ldapGroup = new LDAPGroup("admin", "admin,default");
+        when(JSONUtil.getJSON(ldapGroup)).thenReturn(jsonStr);
         when(ControllerUtil.updateMetaDataOnConfigChanges(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(responseOk);
         when(reqProcessor.process("/auth/ldap/groups","{\"groupname\":\"admin\"}",token)).thenReturn(responseGroup);
         when(reqProcessor.process("/auth/ldap/groups/configure",jsonStr,token)).thenReturn(responseFailure);
 
-        ResponseEntity<String> responseEntity = ldapAuthService.configureLdapGroup(token, jsonStr);
+        ResponseEntity<String> responseEntity = ldapAuthService.configureLdapGroup(token, ldapGroup);
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, responseEntity.getStatusCode());
         //assertEquals(responseEntityExpected, responseEntity);
     }

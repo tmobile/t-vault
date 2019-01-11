@@ -19,6 +19,8 @@ package com.tmobile.cso.vault.api.service;
 
 import java.io.IOException;
 
+import com.tmobile.cso.vault.api.model.LDAPGroup;
+import com.tmobile.cso.vault.api.model.LDAPUser;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -114,7 +116,8 @@ public class  LDAPAuthService {
 	 * @param jsonStr
 	 * @return
 	 */
-	public ResponseEntity<String> configureLdapGroup(String token, String jsonStr){
+	public ResponseEntity<String> configureLdapGroup(String token, LDAPGroup ldapGroup){
+		String jsonStr = JSONUtil.getJSON(ldapGroup);
 		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 			      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 				  put(LogMessage.ACTION, "Create LDAP Group").
@@ -264,7 +267,8 @@ public class  LDAPAuthService {
 	 * @param jsonStr
 	 * @return
 	 */
-	public ResponseEntity<String> configureLdapUser(String token,  String jsonStr){
+	public ResponseEntity<String> configureLdapUser(String token, LDAPUser ldapUser){
+		String jsonStr = JSONUtil.getJSON(ldapUser);
 		ObjectMapper objMapper = new ObjectMapper();
 		String currentPolicies = "";
 		String latestPolicies = "";

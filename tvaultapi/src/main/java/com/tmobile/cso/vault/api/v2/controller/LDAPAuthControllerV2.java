@@ -17,6 +17,8 @@
 
 package com.tmobile.cso.vault.api.v2.controller;
 
+import com.tmobile.cso.vault.api.model.LDAPGroup;
+import com.tmobile.cso.vault.api.model.LDAPUser;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -65,8 +67,8 @@ public class LDAPAuthControllerV2 {
 	 */
 	@ApiOperation(value = "${LDAPAuthControllerV2.configureLdapGroup.value}", notes = "${LDAPAuthControllerV2.configureLdapGroup.notes}")
 	@PutMapping(value="/v2/auth/ldap/groups",consumes="application/json",produces="application/json")
-	public ResponseEntity<String> configureLdapGroup(@RequestHeader(value="vault-token") String token, @RequestBody String jsonStr){
-		return ldapAuthService.configureLdapGroup(token, jsonStr);
+	public ResponseEntity<String> configureLdapGroup(@RequestHeader(value="vault-token") String token, @RequestBody LDAPGroup ldapGroup){
+		return ldapAuthService.configureLdapGroup(token, ldapGroup);
 	}
 	/**
 	 * The method to return all existing LDAP Groups configured in Vault
@@ -120,8 +122,8 @@ public class LDAPAuthControllerV2 {
 	 */
 	@ApiOperation(value = "${LDAPAuthControllerV2.configureLdapUser.value}", notes = "${LDAPAuthControllerV2.configureLdapUser.notes}")
 	@PutMapping(value="/v2/auth/ldap/users",consumes="application/json",produces="application/json")
-	public ResponseEntity<String> configureLdapUser(@RequestHeader(value="vault-token") String token, @RequestBody String jsonStr){
-		return ldapAuthService.configureLdapUser(token, jsonStr);
+	public ResponseEntity<String> configureLdapUser(@RequestHeader(value="vault-token") String token, @RequestBody LDAPUser ldapUser){
+		return ldapAuthService.configureLdapUser(token, ldapUser);
 	}
 	/**
 	 * Method to list all configured LDAP Users
