@@ -121,7 +121,7 @@ public class AppRoleServiceTest {
     }
 
     @Test
-    public void test_createAppRole_successfully_metadata_failure() {
+    public void test_createAppRole_successfully_metadata_failure_reverted() {
 
         Response response =getMockResponse(HttpStatus.NO_CONTENT, true, "");
         Response response_403 =getMockResponse(HttpStatus.UNAUTHORIZED, true, "");
@@ -130,7 +130,7 @@ public class AppRoleServiceTest {
         String [] policies = {"default"};
         AppRole appRole = new AppRole("approle1", policies, true, "1", "100m", 0);
         String jsonStr = "{\"role_name\":\"approle1\",\"policies\":[\"default\"],\"bind_secret_id\":true,\"secret_id_num_uses\":\"1\",\"secret_id_ttl\":\"100m\",\"token_num_uses\":0,\"token_ttl\":null,\"token_max_ttl\":null}";
-        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"AppRole created however metadata update failed. Please try with AppRole/update \"]}");
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"AppRole creation failed.\"]}");
 
         Map<String,Object> appRolesList = new HashMap<>();
         ArrayList<String> arrayList = new ArrayList<>();
@@ -143,10 +143,44 @@ public class AppRoleServiceTest {
         when(ControllerUtil.areAppRoleInputsValid(appRole)).thenReturn(true);
         when(JSONUtil.getJSON(appRole)).thenReturn(jsonStr);
         when(ControllerUtil.convertAppRoleInputsToLowerCase(Mockito.any())).thenReturn(jsonStr);
+        when(reqProcessor.process("/auth/approle/role/delete",jsonStr,token)).thenReturn(response);
         UserDetails userDetails = getMockUser(true);
         when(reqProcessor.process(eq("/write"),Mockito.any(),eq(token))).thenReturn(response_403);
         ResponseEntity<String> responseEntityActual = appRoleService.createAppRole(token, appRole, userDetails);
-        assertEquals(HttpStatus.OK, responseEntityActual.getStatusCode());
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, responseEntityActual.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntityActual);
+
+    }
+
+    @Test
+    public void test_createAppRole_successfully_metadata_failure() {
+
+        Response response =getMockResponse(HttpStatus.NO_CONTENT, true, "");
+        Response response500 =getMockResponse(HttpStatus.NO_CONTENT, true, "");
+        Response response_403 =getMockResponse(HttpStatus.UNAUTHORIZED, true, "");
+        Response responseList = getMockResponse(HttpStatus.OK, true, "{\"keys\": [ \"role1\" ]}");
+        String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+        String [] policies = {"default"};
+        AppRole appRole = new AppRole("approle1", policies, true, "1", "100m", 0);
+        String jsonStr = "{\"role_name\":\"approle1\",\"policies\":[\"default\"],\"bind_secret_id\":true,\"secret_id_num_uses\":\"1\",\"secret_id_ttl\":\"100m\",\"token_num_uses\":0,\"token_ttl\":null,\"token_max_ttl\":null}";
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"AppRole creation failed.\"]}");
+
+        Map<String,Object> appRolesList = new HashMap<>();
+        ArrayList<String> arrayList = new ArrayList<>();
+        arrayList.add("role1");
+        appRolesList.put("keys", arrayList);
+        when(ControllerUtil.parseJson("{\"keys\": [ \"role1\" ]}")).thenReturn(appRolesList);
+
+        when(reqProcessor.process("/auth/approle/role/create", jsonStr,token)).thenReturn(response);
+        when(reqProcessor.process("/auth/approle/role/list","{}",token)).thenReturn(responseList);
+        when(ControllerUtil.areAppRoleInputsValid(appRole)).thenReturn(true);
+        when(JSONUtil.getJSON(appRole)).thenReturn(jsonStr);
+        when(ControllerUtil.convertAppRoleInputsToLowerCase(Mockito.any())).thenReturn(jsonStr);
+        when(reqProcessor.process("/auth/approle/role/delete",jsonStr,token)).thenReturn(response500);
+        UserDetails userDetails = getMockUser(true);
+        when(reqProcessor.process(eq("/write"),Mockito.any(),eq(token))).thenReturn(response_403);
+        ResponseEntity<String> responseEntityActual = appRoleService.createAppRole(token, appRole, userDetails);
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, responseEntityActual.getStatusCode());
         assertEquals(responseEntityExpected, responseEntityActual);
 
     }
@@ -517,7 +551,7 @@ public class AppRoleServiceTest {
     public void test_deleteAppRole_failure_403() {
 
         String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
-        String appRoleId = "vault-power-user-role";
+        String appRoleId = "selfservicesupportrole";
         String responseJson = "{\"errors\":[\"Not authorized to delete this ApPRole\"]}";
         Response response =getMockResponse(HttpStatus.BAD_REQUEST, true, responseJson);
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body(responseJson);

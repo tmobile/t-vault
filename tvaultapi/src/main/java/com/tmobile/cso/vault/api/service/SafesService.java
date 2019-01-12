@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.Map;
 
 import com.tmobile.cso.vault.api.common.TVaultConstants;
+import com.tmobile.cso.vault.api.model.*;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -38,11 +39,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
 import com.tmobile.cso.vault.api.controller.ControllerUtil;
 import com.tmobile.cso.vault.api.exception.LogMessage;
-import com.tmobile.cso.vault.api.model.AWSRole;
-import com.tmobile.cso.vault.api.model.Safe;
-import com.tmobile.cso.vault.api.model.SafeGroup;
-import com.tmobile.cso.vault.api.model.SafeUser;
-import com.tmobile.cso.vault.api.model.UserDetails;
 import com.tmobile.cso.vault.api.process.RequestProcessor;
 import com.tmobile.cso.vault.api.process.Response;
 import com.tmobile.cso.vault.api.utils.JSONUtil;
@@ -1757,7 +1753,8 @@ public class  SafesService {
 	 * @param jsonstr
 	 * @return
 	 */
-	public ResponseEntity<String> associateApproletoSDB(String token, String jsonstr) {
+	public ResponseEntity<String> associateApproletoSDB(String token, SafeAppRoleAccess safeAppRoleAccess) {
+		String jsonstr = JSONUtil.getJSON(safeAppRoleAccess);
 		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 				put(LogMessage.ACTION, "Associate AppRole to SDB").

@@ -454,7 +454,7 @@ public class  SelfSupportService {
 		String jsonstr = JSONUtil.getJSON(safeAppRoleAccess);
 		String token = userDetails.getClientToken();
 		if (userDetails.isAdmin()) {
-			return safesService.associateApproletoSDB(token, jsonstr);
+			return safesService.associateApproletoSDB(token, safeAppRoleAccess);
 		}
 		else {
 			Map<String,Object> requestMap = ControllerUtil.parseJson(jsonstr);
@@ -470,7 +470,7 @@ public class  SelfSupportService {
 				return ResponseEntity.status(HttpStatus.FORBIDDEN).body("{\"errors\":[\"Access denied: no permission to add Approle to the safe\"]}");
 			}
 			token = userDetails.getSelfSupportToken();
-			return safesService.associateApproletoSDB(token, jsonstr);
+			return safesService.associateApproletoSDB(token, safeAppRoleAccess);
 		}
 	}
 

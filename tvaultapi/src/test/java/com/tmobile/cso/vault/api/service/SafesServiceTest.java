@@ -8,6 +8,7 @@ import static org.mockito.Mockito.when;
 import java.io.IOException;
 import java.util.*;
 
+import com.tmobile.cso.vault.api.model.*;
 import org.apache.logging.log4j.LogManager;
 import org.junit.Before;
 import org.junit.FixMethodOrder;
@@ -32,12 +33,6 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
 import com.tmobile.cso.vault.api.controller.ControllerUtil;
-import com.tmobile.cso.vault.api.model.AWSRole;
-import com.tmobile.cso.vault.api.model.Safe;
-import com.tmobile.cso.vault.api.model.SafeBasicDetails;
-import com.tmobile.cso.vault.api.model.SafeGroup;
-import com.tmobile.cso.vault.api.model.SafeUser;
-import com.tmobile.cso.vault.api.model.UserDetails;
 import com.tmobile.cso.vault.api.process.RequestProcessor;
 import com.tmobile.cso.vault.api.process.Response;
 import com.tmobile.cso.vault.api.utils.JSONUtil;
@@ -1120,8 +1115,9 @@ public class SafesServiceTest {
         when(ControllerUtil.areSafeAppRoleInputsValid(Mockito.anyMap())).thenReturn(true);
         when(ControllerUtil.canAddPermission(Mockito.anyString(), Mockito.anyString())).thenReturn(true);
         when(ControllerUtil.updateMetadata(Mockito.anyMap(),Mockito.anyString())).thenReturn(updateMetadataResponse);
-
-        ResponseEntity<String> responseEntityActual =  safesService.associateApproletoSDB(token, jsonStr);
+        SafeAppRoleAccess safeAppRoleAccess = new SafeAppRoleAccess("approle1", "shared/mysafe01", "write");
+        when(JSONUtil.getJSON(safeAppRoleAccess)).thenReturn(jsonStr);
+        ResponseEntity<String> responseEntityActual =  safesService.associateApproletoSDB(token, safeAppRoleAccess);
 
         assertEquals(HttpStatus.OK, responseEntityActual.getStatusCode());
         assertEquals(responseEntityExpected, responseEntityActual);
@@ -1168,8 +1164,9 @@ public class SafesServiceTest {
         when(ControllerUtil.getSafeType("shared/mysafe01")).thenReturn("shared");
         when(ControllerUtil.getSafeName("shared/mysafe01")).thenReturn("mysafe01");
         when(ControllerUtil.getAllExistingSafeNames("shared", token)).thenReturn(Arrays.asList("mysafe02"));
-
-        ResponseEntity<String> responseEntityActual =  safesService.associateApproletoSDB(token, jsonStr);
+        SafeAppRoleAccess safeAppRoleAccess = new SafeAppRoleAccess("approle1", "shared/mysafe01", "write");
+        when(JSONUtil.getJSON(safeAppRoleAccess)).thenReturn(jsonStr);
+        ResponseEntity<String> responseEntityActual =  safesService.associateApproletoSDB(token, safeAppRoleAccess);
 
         assertEquals(HttpStatus.OK, responseEntityActual.getStatusCode());
         assertEquals(responseEntityExpected, responseEntityActual);
@@ -1209,8 +1206,9 @@ public class SafesServiceTest {
         when(ControllerUtil.getAllExistingSafeNames("shared", token)).thenReturn(Arrays.asList("mysafe02"));
         params.put("path","shared/mysafe02");
         when(ControllerUtil.updateMetadata(params,token)).thenReturn(updateMetadataResponse);
-
-        ResponseEntity<String> responseEntityActual =  safesService.associateApproletoSDB(token, jsonStr);
+        SafeAppRoleAccess safeAppRoleAccess = new SafeAppRoleAccess("approle1", "shared/mysafe01", "write");
+        when(JSONUtil.getJSON(safeAppRoleAccess)).thenReturn(jsonStr);
+        ResponseEntity<String> responseEntityActual =  safesService.associateApproletoSDB(token, safeAppRoleAccess);
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, responseEntityActual.getStatusCode());
         assertEquals(responseEntityExpected, responseEntityActual);
     }
@@ -1234,8 +1232,9 @@ public class SafesServiceTest {
         when(ControllerUtil.configureApprole(Mockito.anyString(), Mockito.anyString(), Mockito.anyString())).thenReturn(configureAppRoleResponse);
         when(ControllerUtil.areSafeAppRoleInputsValid(Mockito.anyMap())).thenReturn(true);
         when(ControllerUtil.canAddPermission(Mockito.anyString(), Mockito.anyString())).thenReturn(true);
-
-        ResponseEntity<String> responseEntityActual =  safesService.associateApproletoSDB(token, jsonStr);
+        SafeAppRoleAccess safeAppRoleAccess = new SafeAppRoleAccess("approle1", "shared/mysafe01", "write");
+        when(JSONUtil.getJSON(safeAppRoleAccess)).thenReturn(jsonStr);
+        ResponseEntity<String> responseEntityActual =  safesService.associateApproletoSDB(token, safeAppRoleAccess);
         assertEquals(HttpStatus.BAD_REQUEST, responseEntityActual.getStatusCode());
         assertEquals(responseEntityExpected, responseEntityActual);
     }

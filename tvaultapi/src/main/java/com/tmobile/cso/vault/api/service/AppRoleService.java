@@ -80,7 +80,14 @@ public class  AppRoleService {
 				if(createMetadata(appRole, token, userDetails)) {
 					return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"AppRole created successfully\"]}");
 				}
-				return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"AppRole created however metadata update failed. Please try with AppRole/update \"]}");
+				// revert approle creation
+				Response deleteResponse = reqProcessor.process("/auth/approle/role/delete",jsonStr,token);
+				if (deleteResponse.getHttpstatus().equals(HttpStatus.NO_CONTENT)) {
+					return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"AppRole creation failed.\"]}");
+				}
+				else {
+					return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"AppRole created however metadata update failed. Please try with AppRole/update \"]}");
+				}
 			}
 			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 				      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
@@ -132,6 +139,12 @@ public class  AppRoleService {
 		return isMetaDataUpdated;
 	}
 
+    /**
+     * Populate approle metadata json
+     * @param appRoleName
+     * @param username
+     * @return
+     */
 	private String populateMetaJson(String appRoleName, String username) {
 		String _path = TVaultConstants.APPROLE_METADATA_MOUNT_PATH + "/" + appRoleName;
 		AppRoleMetadataDetails appRoleMetadataDetails = new AppRoleMetadataDetails(appRoleName);

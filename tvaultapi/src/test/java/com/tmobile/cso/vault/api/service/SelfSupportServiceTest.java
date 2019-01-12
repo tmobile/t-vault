@@ -754,7 +754,7 @@ public class SelfSupportServiceTest {
         ResponseEntity<String> response = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Approle :approle1 is successfully associated with SDB\"]}");
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Approle :approle1 is successfully associated with SDB\"]}");
 
-        when(safesService.associateApproletoSDB(token, jsonStr)).thenReturn(response);
+        when(safesService.associateApproletoSDB(eq(token), Mockito.any())).thenReturn(response);
         mockIsAuthorized(userDetails, true);
         Map<String,Object> requestMap = new HashMap<>();
         requestMap.put("path", "shared/mysafe01");
@@ -778,7 +778,7 @@ public class SelfSupportServiceTest {
         ResponseEntity<String> response = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Approle :approle1 is successfully associated with SDB\"]}");
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Approle :approle1 is successfully associated with SDB\"]}");
 
-        when(safesService.associateApproletoSDB(token, jsonStr)).thenReturn(response);
+        when(safesService.associateApproletoSDB(eq(token), Mockito.any())).thenReturn(response);
         SafeAppRoleAccess safeAppRoleAccess = new SafeAppRoleAccess("aprole1", "shared/mysafe01", "write");
         when(JSONUtil.getJSON(Mockito.any(SafeAppRoleAccess.class))).thenReturn(jsonStr);
         ResponseEntity<String> responseEntity = selfSupportService.associateApproletoSDB(userDetails, token, safeAppRoleAccess);
@@ -795,7 +795,7 @@ public class SelfSupportServiceTest {
         ResponseEntity<String> response = ResponseEntity.status(HttpStatus.FORBIDDEN).body("{\"errors\":[\"Access denied: no permission to add Approle to the safe\"]}");
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.FORBIDDEN).body("{\"errors\":[\"Access denied: no permission to add Approle to the safe\"]}");
 
-        when(safesService.associateApproletoSDB(token, jsonStr)).thenReturn(response);
+        when(safesService.associateApproletoSDB(eq(token), Mockito.any())).thenReturn(response);
         mockIsAuthorized(userDetails, false);
         Map<String,Object> requestMap = new HashMap<>();
         requestMap.put("path", "shared/mysafe01");
@@ -819,7 +819,7 @@ public class SelfSupportServiceTest {
         ResponseEntity<String> response = ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid input values\"]}");
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid input values\"]}");
 
-        when(safesService.associateApproletoSDB(token, jsonStr)).thenReturn(response);
+        when(safesService.associateApproletoSDB(eq(token), Mockito.any())).thenReturn(response);
         Map<String,Object> requestMap = new HashMap<>();
         requestMap.put("path", "shared/mysafe01");
         requestMap.put("role_name", "aprole1");

@@ -43,5 +43,5 @@ public class TVaultConstants {
     public static final String EMPTY_JSON = "{}";
     public static final String APPROLE = "approle";
     public static final String APPROLE_METADATA_MOUNT_PATH = "metadata/approle";
-    public static final String SELF_SERVICE_APPROLE_NAME = "vault-power-user-role";
+    public static final String SELF_SERVICE_APPROLE_NAME = "selfservicesupportrole";
 }

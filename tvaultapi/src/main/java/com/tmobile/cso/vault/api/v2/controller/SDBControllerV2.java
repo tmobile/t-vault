@@ -240,7 +240,6 @@ public class SDBControllerV2 {
 	 */
 	@PostMapping(value="/v2/sdb/approle",consumes="application/json",produces="application/json")
 	public ResponseEntity<String>associateApproletoSDB(@RequestHeader(value="vault-token") String token, @RequestBody SafeAppRoleAccess safeAppRoleAccess) {
-		String jsonstr = JSONUtil.getJSON(safeAppRoleAccess);
-		return safesService.associateApproletoSDB(token, jsonstr);
+		return safesService.associateApproletoSDB(token, safeAppRoleAccess);
 	}
 }
