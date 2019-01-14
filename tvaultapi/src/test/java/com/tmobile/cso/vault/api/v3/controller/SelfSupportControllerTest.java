@@ -430,4 +430,36 @@ public class SelfSupportControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString(responseJson)));
     }
+
+    @Test
+    public void test_createAppRole() throws Exception {
+        String responseJson = "{\"messages\":[\"AppRole created successfully\"]}";
+        ResponseEntity<String> responseEntityExpected =ResponseEntity.status(HttpStatus.OK).body(responseJson);
+        UserDetails userDetails = getMockUser(false);
+        when(selfSupportService.createAppRole(eq("5PDrOhsy4ig8L3EpsJZSLAMg"), Mockito.any(AppRole.class), eq(userDetails))).thenReturn(responseEntityExpected);
+        String [] policies = {"default"};
+        AppRole appRole = new AppRole("approle1", policies, true, "1", "100m", 0);
+        String inputJson =new ObjectMapper().writeValueAsString(appRole);
+
+        mockMvc.perform(MockMvcRequestBuilders.post("/v3/auth/approle/role").requestAttr("UserDetails", userDetails)
+                .header("vault-token", "5PDrOhsy4ig8L3EpsJZSLAMg")
+                .header("Content-Type", "application/json;charset=UTF-8")
+                .content(inputJson))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString(responseJson)));
+    }
+
+    @Test
+    public void test_deleteAppRole() throws Exception {
+        String responseJson = "{\"messages\":[\"AppRole deleted\"]}";
+        ResponseEntity<String> responseEntityExpected =ResponseEntity.status(HttpStatus.OK).body(responseJson);
+        UserDetails userDetails = getMockUser(false);
+        when(selfSupportService.deleteAppRole(eq("5PDrOhsy4ig8L3EpsJZSLAMg"), Mockito.any(AppRole.class), eq(userDetails))).thenReturn(responseEntityExpected);
+
+        mockMvc.perform(MockMvcRequestBuilders.delete("/v3/auth/approle/role/approle1").requestAttr("UserDetails", userDetails)
+                .header("vault-token", "5PDrOhsy4ig8L3EpsJZSLAMg")
+                .header("Content-Type", "application/json;charset=UTF-8"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString(responseJson)));
+    }
 }

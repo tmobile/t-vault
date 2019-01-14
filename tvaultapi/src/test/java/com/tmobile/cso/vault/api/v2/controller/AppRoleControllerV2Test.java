@@ -26,6 +26,7 @@ import java.util.HashMap;
 
 import static org.hamcrest.Matchers.containsString;
 import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.validateMockitoUsage;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -51,6 +52,16 @@ public class AppRoleControllerV2Test {
         this.mockMvc = MockMvcBuilders.standaloneSetup(appRoleControllerV2).build();
     }
 
+    UserDetails getMockUser(boolean isAdmin) {
+        String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+        UserDetails userDetails = new UserDetails();
+        userDetails.setUsername("normaluser");
+        userDetails.setAdmin(isAdmin);
+        userDetails.setClientToken(token);
+        userDetails.setSelfSupportToken(token);
+        return userDetails;
+    }
+
     @Test
     public void test_createAppRole() throws Exception {
         String [] policies = {"default"};
@@ -60,9 +71,10 @@ public class AppRoleControllerV2Test {
         String responseMessage = "{\"messages\":[\"AppRole created succssfully\"]}";
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(responseMessage);
 
-        when(appRoleService.createAppRole(eq("5PDrOhsy4ig8L3EpsJZSLAMg"), Mockito.any())).thenReturn(responseEntityExpected);
+        UserDetails userDetails = getMockUser(true);
+        when(appRoleService.createAppRole(eq("5PDrOhsy4ig8L3EpsJZSLAMg"), Mockito.any(), eq(userDetails))).thenReturn(responseEntityExpected);
 
-        mockMvc.perform(MockMvcRequestBuilders.post("/v2/auth/approle/role")
+        mockMvc.perform(MockMvcRequestBuilders.post("/v2/auth/approle/role").requestAttr("UserDetails", userDetails)
                 .header("vault-token", "5PDrOhsy4ig8L3EpsJZSLAMg")
                 .header("Content-Type", "application/json;charset=UTF-8")
                 .content(inputJson))
@@ -142,10 +154,10 @@ public class AppRoleControllerV2Test {
         // Mock response
         String responseMessage = "{\"messages\":[\"AppRole deleted\"]}";
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(responseMessage);
+        UserDetails userDetails = getMockUser(false);
+        when(appRoleService.deleteAppRole(eq("5PDrOhsy4ig8L3EpsJZSLAMg"), Mockito.any(), Mockito.any())).thenReturn(responseEntityExpected);
 
-        when(appRoleService.deleteAppRole(eq("5PDrOhsy4ig8L3EpsJZSLAMg"), Mockito.any())).thenReturn(responseEntityExpected);
-
-        mockMvc.perform(MockMvcRequestBuilders.delete("/v2/auth/approle/role/approle1")
+        mockMvc.perform(MockMvcRequestBuilders.delete("/v2/auth/approle/role/approle1").requestAttr("UserDetails", userDetails)
                 .header("vault-token", "5PDrOhsy4ig8L3EpsJZSLAMg")
                 .header("Content-Type", "application/json;charset=UTF-8"))
                 .andExpect(status().isOk())

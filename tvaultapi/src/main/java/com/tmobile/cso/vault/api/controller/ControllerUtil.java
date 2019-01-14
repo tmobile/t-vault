@@ -33,6 +33,7 @@ import java.util.stream.Stream;
 
 import javax.annotation.PostConstruct;
 
+import com.tmobile.cso.vault.api.common.TVaultConstants;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.validator.routines.EmailValidator;
@@ -75,7 +76,7 @@ import com.tmobile.cso.vault.api.utils.ThreadLocalContext;
 public final class ControllerUtil {
 	
 	public static RequestProcessor reqProcessor;
-	public static Logger log = LogManager.getLogger(ControllerUtil.class);
+	public static final Logger log = LogManager.getLogger(ControllerUtil.class);
 
 	@Value("${vault.auth.method}")
     private String tvaultAuthMethod;
@@ -121,7 +122,7 @@ public final class ControllerUtil {
 				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 				build()));
 		ObjectMapper objMapper =  new ObjectMapper();
-		String path = "";
+		String path = TVaultConstants.EMPTY;
 		try {
 			path = objMapper.readTree(jsonstr).at("/path").asText();
 		} catch (IOException e) {
@@ -177,7 +178,7 @@ public final class ControllerUtil {
 	 */
 	private static String getPath(ObjectMapper objMapper, String jsonstr, Response responseVO) {
 
-		String path = "";
+		String path = TVaultConstants.EMPTY;
 		try {
 			path = objMapper.readTree(jsonstr).at("/path").asText();
 		} catch (IOException e) {
@@ -214,8 +215,8 @@ public final class ControllerUtil {
 			SafeNode sn = new SafeNode();
 			sn.setId(path);
 			sn.setValue(secresp.getResponse());
-			if (!"safe".equals(safeNode.getType())) {
-				sn.setType("secret");
+			if (!TVaultConstants.SAFE.equals(safeNode.getType())) {
+				sn.setType(TVaultConstants.SECRET);
 				sn.setParentId(safeNode.getId());
 				safeNode.addChild(sn);
 			}
@@ -243,7 +244,7 @@ public final class ControllerUtil {
 						SafeNode sn = new SafeNode();
 						sn.setId(path+"/"+node.asText());
 						sn.setValue(path+"/"+node.asText());
-						sn.setType("folder");
+						sn.setType(TVaultConstants.FOLDER);
 						sn.setParentId(safeNode.getId());
 						safeNode.addChild(sn);
 						/* Recursively read the folders for the given folder/sub folders */
@@ -297,9 +298,9 @@ public final class ControllerUtil {
 			SafeNode sn = new SafeNode();
 			sn.setId(path);
 			sn.setValue(secresp.getResponse());
-			if (!"safe".equals(safeNode.getType())) {
+			if (!TVaultConstants.SAFE.equals(safeNode.getType())) {
 				secretsExist = true;
-				sn.setType("secret");
+				sn.setType(TVaultConstants.SECRET);
 				sn.setParentId(safeNode.getId());
 				safeNode.addChild(sn);
 			}
@@ -313,8 +314,8 @@ public final class ControllerUtil {
 		if(HttpStatus.NOT_FOUND.equals(lisresp.getHttpstatus())){
 			if (!secretsExist) {
 				// No secrets and no folders
-				if ("safe".equals(safeNode.getType())) {
-					responseVO.setResponse("{}");
+				if (TVaultConstants.SAFE.equals(safeNode.getType())) {
+					responseVO.setResponse(TVaultConstants.EMPTY_JSON);
 					responseVO.setHttpstatus(HttpStatus.OK);
 				}
 				else {
@@ -336,7 +337,7 @@ public final class ControllerUtil {
 						SafeNode sn = new SafeNode();
 						sn.setId(path+"/"+node.asText());
 						sn.setValue(path+"/"+node.asText());
-						sn.setType("folder");
+						sn.setType(TVaultConstants.FOLDER);
 						sn.setParentId(safeNode.getId());
 						safeNode.addChild(sn);
 					}
@@ -404,7 +405,7 @@ public final class ControllerUtil {
 		Map<String,String>configureUserMap = new HashMap<String,String>();
 		configureUserMap.put("role_name", rolename);
 		configureUserMap.put("policies", policies);
-		String approleConfigJson ="";
+		String approleConfigJson =TVaultConstants.EMPTY;
 		
 		try {
 			approleConfigJson = objMapper.writeValueAsString(configureUserMap);
@@ -427,7 +428,7 @@ public final class ControllerUtil {
 		Map<String,String>configureUserMap = new HashMap<String,String>();
 		configureUserMap.put("username", userName);
 		configureUserMap.put("policies", policies);
-		String userpassUserConfigJson ="";
+		String userpassUserConfigJson =TVaultConstants.EMPTY;
 		try {
 			userpassUserConfigJson = objMapper.writeValueAsString(configureUserMap);
 		} catch (JsonProcessingException e) {
@@ -591,9 +592,9 @@ public final class ControllerUtil {
 			if(policyInfo.length==3){
 				String access ="" ;
 				switch(policyInfo[0]) {
-					case "r" : 	access = "read"; break;
-					case "w" : 	access = "write"; break;
-					default:	access= "deny" ;break;
+					case "r" : 	access = TVaultConstants.READ_POLICY; break;
+					case "w" : 	access = TVaultConstants.WRITE_POLICY; break;
+					default:	access= TVaultConstants.DENY_POLICY ;break;
 				}
 				String path = policyInfo[1]+"/"+policyInfo[2];
 				sdbAccessMap.put(path, access);
@@ -661,7 +662,7 @@ public final class ControllerUtil {
 	}
 	
 	public static String convetToJson (Map<String,Object> jsonMap){
-		String jsonStr = "{}";
+		String jsonStr = TVaultConstants.EMPTY_JSON;
 		try {
 			jsonStr = new ObjectMapper().writeValueAsString(jsonMap);
 		} catch (JsonProcessingException e) {
@@ -685,7 +686,7 @@ public final class ControllerUtil {
 	 * @throws IOException
 	 */
 	public static String getPoliciesAsStringFromJson(ObjectMapper objMapper, String policyJson) throws JsonProcessingException, IOException{
-		String currentpolicies = "";
+		String currentpolicies = TVaultConstants.EMPTY;
 		JsonNode policiesNode = objMapper.readTree(policyJson).get("data").get("policies");
 		if (policiesNode.isContainerNode()) {
 			Iterator<JsonNode> elementsIterator = policiesNode.elements();
@@ -739,7 +740,7 @@ public final class ControllerUtil {
 			for(String userName : users){
 				
 				Response userResponse;
-				if ("userpass".equals(vaultAuthMethod)) {
+				if (TVaultConstants.USERPASS.equals(vaultAuthMethod)) {
 					log.debug ("Inside userpass");
 					userResponse = reqProcessor.process("/auth/userpass/read","{\"username\":\""+userName+"\"}",token);
 				}
@@ -755,7 +756,7 @@ public final class ControllerUtil {
 					responseJson = userResponse.getResponse();	
 					try {
 						currentpolicies = getPoliciesAsStringFromJson(objMapper, responseJson);
-						if (!("userpass".equals(vaultAuthMethod))) {
+						if (!(TVaultConstants.USERPASS.equals(vaultAuthMethod))) {
 							groups = objMapper.readTree(responseJson).get("data").get("groups").asText();
 						}
 					} catch (IOException e) {
@@ -778,7 +779,7 @@ public final class ControllerUtil {
 							put(LogMessage.MESSAGE, String.format ("Current policies [%s]", policies )).
 							put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 							build()));
-					if ("userpass".equals(vaultAuthMethod)) {
+					if (TVaultConstants.USERPASS.equals(vaultAuthMethod)) {
 						log.debug ("Inside userpass");
 						ControllerUtil.configureUserpassUser(userName,policies,token);
 					}
@@ -798,7 +799,7 @@ public final class ControllerUtil {
 				put(LogMessage.MESSAGE, String.format ("trying updateGroupPolicyAssociationOnSDBDelete")).
 				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 				build()));
-		if ("userpass".equals(vaultAuthMethod)) {
+		if (TVaultConstants.USERPASS.equals(vaultAuthMethod)) {
 			log.debug ("Inside userpass of updateGroupPolicyAssociationOnSDBDelete...Just Returning...");
 			return;
 		}
@@ -826,9 +827,9 @@ public final class ControllerUtil {
 			ObjectMapper objMapper = new ObjectMapper();
 			for(String groupName : groups){
 				Response response = reqProcessor.process("/auth/ldap/groups","{\"groupname\":\""+groupName+"\"}",token);
-				String responseJson="";	
-				String policies ="";
-				String currentpolicies ="";
+				String responseJson=TVaultConstants.EMPTY;
+				String policies =TVaultConstants.EMPTY;
+				String currentpolicies =TVaultConstants.EMPTY;
 				if(HttpStatus.OK.equals(response.getHttpstatus())){
 					responseJson = response.getResponse();	
 					try {
@@ -890,9 +891,9 @@ public final class ControllerUtil {
 			ObjectMapper objMapper = new ObjectMapper();
 			for(String role : roles){
 				Response roleResponse = reqProcessor.process("/auth/aws/roles","{\"role\":\""+role+"\"}",token);
-				String responseJson="";
-				String policies ="";
-				String currentpolicies ="";
+				String responseJson=TVaultConstants.EMPTY;
+				String policies =TVaultConstants.EMPTY;
+				String currentpolicies =TVaultConstants.EMPTY;
 				
 				if(HttpStatus.OK.equals(roleResponse.getHttpstatus())){
 					responseJson = roleResponse.getResponse();	
@@ -933,7 +934,7 @@ public final class ControllerUtil {
 				put(LogMessage.MESSAGE, String.format ("Trying to deleteAwsRoleOnSDBDelete")).
 				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 				build()));
-		if ("userpass".equals(vaultAuthMethod)) {
+		if (TVaultConstants.USERPASS.equals(vaultAuthMethod)) {
 			log.debug ("Inside userpass of deleteAwsRoleOnSDBDelete...Just Returning...");
 			return;
 		}
@@ -965,7 +966,7 @@ public final class ControllerUtil {
 		String paths[] =  path.split("/");
 		if(paths.length==3){
 			String safeType =  paths[0];
-			if(!("apps".equals(safeType)||"shared".equals(safeType)||"users".equals(safeType))){
+			if(!(TVaultConstants.APPS.equals(safeType)||TVaultConstants.SHARED.equals(safeType)||TVaultConstants.USERS.equals(safeType))){
 				return false;
 			}
 		}else{
@@ -978,7 +979,7 @@ public final class ControllerUtil {
 		String paths[] =  path.split("/");
 		if(paths.length > 0){
 			String safeType =  paths[0];
-			if(!("apps".equals(safeType)||"shared".equals(safeType)||"users".equals(safeType))){
+			if(!(TVaultConstants.APPS.equals(safeType)||TVaultConstants.SHARED.equals(safeType)||TVaultConstants.USERS.equals(safeType))){
 				return false;
 			}
 		}else{
@@ -991,7 +992,7 @@ public final class ControllerUtil {
 		String paths[] =  path.split("/");
 		if(paths.length==2){
 			String safeType =  paths[0];
-			if(!("apps".equals(safeType)||"shared".equals(safeType)||"users".equals(safeType))){
+			if(!(TVaultConstants.APPS.equals(safeType)||TVaultConstants.SHARED.equals(safeType)||TVaultConstants.USERS.equals(safeType))){
 				return false;
 			}
 		}else{
@@ -1009,7 +1010,7 @@ public final class ControllerUtil {
 	 * @return
 	 */
 	public static String getSafeType(String path){
-		String safeType = "unknown";
+		String safeType = TVaultConstants.UNKNOWN;
 		if (!StringUtils.isEmpty(path)) {
 			String paths[] =  path.split("/");
 			if (paths != null && paths.length > 0) {
@@ -1024,7 +1025,7 @@ public final class ControllerUtil {
 	 * @return
 	 */
 	public static String getSafeName(String path){
-		String safeName = "";
+		String safeName = TVaultConstants.EMPTY;
 		if (!StringUtils.isEmpty(path)) {
 			String paths[] =  path.split("/");
 			if (paths != null && paths.length > 1) {
@@ -1505,11 +1506,14 @@ public final class ControllerUtil {
 	 * @return
 	 */
 	public static boolean areAppRoleInputsValid(AppRole approle) {
-		String approleName = approle.getRole_name();
-		if (StringUtils.isEmpty(approleName) || !isAppRoleNameValid(approleName)) {
-			return false;
+		if (null!=approle) {
+			String approleName = approle.getRole_name();
+			if (StringUtils.isEmpty(approleName) || !isAppRoleNameValid(approleName)) {
+				return false;
+			}
+			return true;
 		}
-		return true;
+		return false;
 	}
 	/**
 	 * Generates AppRole object from JSON
@@ -1808,13 +1812,13 @@ public final class ControllerUtil {
 			return safePath;
 		}
 		switch (safeType) {
-		case "users": case "User Safe":
+		case TVaultConstants.USERS: case "User Safe":
 			safePath = "users/"+safeName;
 			break;
-		case "shared": case "Shared Safe":
+		case TVaultConstants.SHARED: case "Shared Safe":
 			safePath = "shared/"+safeName;
 			break;
-		case "apps"	: case "Application Safe":
+		case TVaultConstants.APPS	: case "Application Safe":
 			safePath = "apps/"+safeName;
 			break;
 		default:

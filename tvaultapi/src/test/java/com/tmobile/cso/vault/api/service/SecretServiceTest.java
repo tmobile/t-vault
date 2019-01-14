@@ -2,6 +2,7 @@ package com.tmobile.cso.vault.api.service;
 
 import com.google.common.collect.ImmutableMap;
 import com.tmobile.cso.vault.api.controller.ControllerUtil;
+import com.tmobile.cso.vault.api.model.Secret;
 import com.tmobile.cso.vault.api.process.RequestProcessor;
 import com.tmobile.cso.vault.api.process.Response;
 import com.tmobile.cso.vault.api.utils.JSONUtil;
@@ -72,7 +73,9 @@ public class SecretServiceTest {
 
         String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
         String jsonStr = "{\"path\":\"shared/mysafe01/myfolder\",\"data\":{\"secret1\":\"value1\",\"secret2\":\"value2\"}}";
-
+        HashMap<String, String> data = new HashMap<>();
+        data.put("secret1", "value1");
+        Secret secret = new Secret("shared/mysafe01/myfolder", data);
         Response response = getMockResponse(HttpStatus.NO_CONTENT, true, "");
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Secret saved to vault\"]}");
 
@@ -80,8 +83,8 @@ public class SecretServiceTest {
         when(ControllerUtil.areSecretKeysValid(jsonStr)).thenReturn(true);
         when(ControllerUtil.isPathValid("shared/mysafe01/myfolder")).thenReturn(true);
         when(reqProcessor.process("/write",jsonStr,token)).thenReturn(response);
-
-        ResponseEntity<String> responseEntity = secretService.write(token, jsonStr);
+        when(JSONUtil.getJSON(secret)).thenReturn(jsonStr);
+        ResponseEntity<String> responseEntity = secretService.write(token, secret);
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
     }
@@ -91,14 +94,16 @@ public class SecretServiceTest {
 
         String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
         String jsonStr = "{\"path\":\"shared/mysafe01/myfolder\",\"data\":{\"secret1\":\"value1\",\"secret2\":\"value2\"}}";
-
+        HashMap<String, String> data = new HashMap<>();
+        data.put("secret1", "value1");
+        Secret secret = new Secret("shared/mysafe01/myfolder", data);
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid path\"]}");
 
         when(ControllerUtil.addDefaultSecretKey(jsonStr)).thenReturn("{\"path\":\"shared/mysafe01/myfolder\",\"data\":{\"secret1\":\"value1\",\"secret2\":\"value2\"}}");
         when(ControllerUtil.areSecretKeysValid(jsonStr)).thenReturn(true);
         when(ControllerUtil.isPathValid("shared/mysafe01/myfolder")).thenReturn(false);
-
-        ResponseEntity<String> responseEntity = secretService.write(token, jsonStr);
+        when(JSONUtil.getJSON(secret)).thenReturn(jsonStr);
+        ResponseEntity<String> responseEntity = secretService.write(token, secret);
         assertEquals(HttpStatus.BAD_REQUEST, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
     }
@@ -108,7 +113,9 @@ public class SecretServiceTest {
 
         String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
         String jsonStr = "{\"path\":\"shared/mysafe01/myfolder\",\"data\":{\"secret1\":\"value1\",\"secret2\":\"value2\"}}";
-
+        HashMap<String, String> data = new HashMap<>();
+        data.put("secret1", "value1");
+        Secret secret = new Secret("shared/mysafe01/myfolder", data);
         Response response = getMockResponse(HttpStatus.INTERNAL_SERVER_ERROR, true, "{\"errors\":[\"Writing secret failed\"]}");
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Writing secret failed\"]}");
 
@@ -116,8 +123,8 @@ public class SecretServiceTest {
         when(ControllerUtil.areSecretKeysValid(jsonStr)).thenReturn(true);
         when(ControllerUtil.isPathValid("shared/mysafe01/myfolder")).thenReturn(true);
         when(reqProcessor.process("/write",jsonStr,token)).thenReturn(response);
-
-        ResponseEntity<String> responseEntity = secretService.write(token, jsonStr);
+        when(JSONUtil.getJSON(secret)).thenReturn(jsonStr);
+        ResponseEntity<String> responseEntity = secretService.write(token, secret);
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
     }

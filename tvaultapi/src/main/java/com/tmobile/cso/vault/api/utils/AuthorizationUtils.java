@@ -1,3 +1,20 @@
+// =========================================================================
+// Copyright 2018 T-Mobile, US
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//    http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+// See the readme.txt file for additional language around disclaimer of warranties.
+// =========================================================================
+
 package com.tmobile.cso.vault.api.utils;
 
 import java.util.ArrayList;
@@ -95,33 +112,34 @@ public class AuthorizationUtils {
 		boolean authorized = false;
 		// Open the policy and check whether there is real policy entry...
 		LinkedHashMap<String, LinkedHashMap<String, Object>> capabilitiesMap = getPolicyInfo(currentPolicy, powerToken);
-		for (Map.Entry<String, LinkedHashMap<String, Object>> entry : capabilitiesMap.entrySet()) {
-		    String capKey = entry.getKey();
-		    LinkedHashMap<String, Object> value = entry.getValue();
-		    // now work with key and value...
-		    if (capKey.startsWith(lookupPolicyKey)) {
-		    	for (Map.Entry<String, Object> valEntry : value.entrySet()) {
-		    		if (valEntry.getValue() instanceof String) {
-			    		//String valKey = valEntry.getKey();
-			    		String capability = valEntry.getValue().toString();
-			    		if (capability.toLowerCase().startsWith("write") || capability.toLowerCase().startsWith("sudo")) {
-							authorized = true;
-							break;
-			    		}
-		    		}
-		    		else if (valEntry.getValue() instanceof ArrayList<?>) {
-		    			ArrayList<Object> capabilities = (ArrayList<Object>)valEntry.getValue();
-			    		if (capabilities.contains(TVaultConstants.CREATE)|| capabilities.contains(TVaultConstants.UPDATE) || capabilities.contains(TVaultConstants.DELETE) ) {
+		if (null != capabilitiesMap) {
+			for (Map.Entry<String, LinkedHashMap<String, Object>> entry : capabilitiesMap.entrySet()) {
+				String capKey = entry.getKey();
+				LinkedHashMap<String, Object> value = entry.getValue();
+				// now work with key and value...
+				if (capKey.startsWith(lookupPolicyKey)) {
+					for (Map.Entry<String, Object> valEntry : value.entrySet()) {
+						if (valEntry.getValue() instanceof String) {
+							//String valKey = valEntry.getKey();
+							String capability = valEntry.getValue().toString();
+							if (capability.toLowerCase().startsWith("write") || capability.toLowerCase().startsWith("sudo")) {
+								authorized = true;
+								break;
+							}
+						} else if (valEntry.getValue() instanceof ArrayList<?>) {
+							ArrayList<Object> capabilities = (ArrayList<Object>) valEntry.getValue();
+							if (capabilities.contains(TVaultConstants.CREATE) || capabilities.contains(TVaultConstants.UPDATE) || capabilities.contains(TVaultConstants.DELETE)) {
 
-							authorized = true;
-							break;
-			    		}
-		    		}
-		    	}
-		    }
-		    if (authorized) {
-		    	break;
-		    }
+								authorized = true;
+								break;
+							}
+						}
+					}
+				}
+				if (authorized) {
+					break;
+				}
+			}
 		}
 		return authorized;
 	}

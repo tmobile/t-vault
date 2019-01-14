@@ -26,6 +26,7 @@ import com.tmobile.cso.vault.api.common.TVaultConstants;
 import com.tmobile.cso.vault.api.exception.TVaultValidationException;
 import com.tmobile.cso.vault.api.model.*;
 
+import com.tmobile.cso.vault.api.process.Response;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
@@ -44,6 +45,8 @@ import com.tmobile.cso.vault.api.utils.AuthorizationUtils;
 import com.tmobile.cso.vault.api.utils.JSONUtil;
 import com.tmobile.cso.vault.api.utils.PolicyUtils;
 import com.tmobile.cso.vault.api.utils.SafeUtils;
+
+import static com.tmobile.cso.vault.api.controller.ControllerUtil.reqProcessor;
 
 @Component
 public class  SelfSupportService {
@@ -66,10 +69,13 @@ public class  SelfSupportService {
 	@Autowired
 	private AWSIAMAuthService awsiamAuthService;
 
+	@Autowired
+	private AppRoleService appRoleService;
+
 	@Value("${vault.auth.method}")
 	private String vaultAuthMethod;
 
-	@Value("${safe.quota}")
+	@Value("${safe.quota:20}")
 	private String safeQuota;
 
 	private static Logger log = LogManager.getLogger(SelfSupportService.class);
@@ -448,7 +454,7 @@ public class  SelfSupportService {
 		String jsonstr = JSONUtil.getJSON(safeAppRoleAccess);
 		String token = userDetails.getClientToken();
 		if (userDetails.isAdmin()) {
-			return safesService.associateApproletoSDB(token, jsonstr);
+			return safesService.associateApproletoSDB(token, safeAppRoleAccess);
 		}
 		else {
 			Map<String,Object> requestMap = ControllerUtil.parseJson(jsonstr);
@@ -464,7 +470,7 @@ public class  SelfSupportService {
 				return ResponseEntity.status(HttpStatus.FORBIDDEN).body("{\"errors\":[\"Access denied: no permission to add Approle to the safe\"]}");
 			}
 			token = userDetails.getSelfSupportToken();
-			return safesService.associateApproletoSDB(token, jsonstr);
+			return safesService.associateApproletoSDB(token, safeAppRoleAccess);
 		}
 	}
 
@@ -618,6 +624,42 @@ public class  SelfSupportService {
 		}
 		else {
 			return ResponseEntity.status(HttpStatus.OK).body(JSONUtil.getJSON(safeNames));
+		}
+	}
+
+	/**
+	 * Create AppRole
+	 * @param userToken
+	 * @param appRole
+	 * @param userDetails
+	 * @return
+	 */
+	public ResponseEntity<String> createAppRole(String userToken, AppRole appRole, UserDetails userDetails) {
+		String token = userDetails.getClientToken();
+		if (userDetails.isAdmin()) {
+			return appRoleService.createAppRole(token, appRole, userDetails);
+		}
+		else {
+			token = userDetails.getSelfSupportToken();
+			return appRoleService.createAppRole(token, appRole, userDetails);
+		}
+	}
+
+	/**
+	 * Delete AppRole
+	 * @param userToken
+	 * @param appRole
+	 * @param userDetails
+	 * @return
+	 */
+	public ResponseEntity<String> deleteAppRole(String userToken, AppRole appRole, UserDetails userDetails) {
+		String token = userDetails.getClientToken();
+		if (userDetails.isAdmin()) {
+			return appRoleService.deleteAppRole(token, appRole, userDetails);
+		}
+		else {
+			token = userDetails.getSelfSupportToken();
+			return appRoleService.deleteAppRole(token, appRole, userDetails);
 		}
 	}
 }

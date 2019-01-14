@@ -18,11 +18,13 @@
 package com.tmobile.cso.vault.api.service;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import com.tmobile.cso.vault.api.common.TVaultConstants;
+import com.tmobile.cso.vault.api.model.*;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -38,11 +40,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
 import com.tmobile.cso.vault.api.controller.ControllerUtil;
 import com.tmobile.cso.vault.api.exception.LogMessage;
-import com.tmobile.cso.vault.api.model.AWSRole;
-import com.tmobile.cso.vault.api.model.Safe;
-import com.tmobile.cso.vault.api.model.SafeGroup;
-import com.tmobile.cso.vault.api.model.SafeUser;
-import com.tmobile.cso.vault.api.model.UserDetails;
 import com.tmobile.cso.vault.api.process.RequestProcessor;
 import com.tmobile.cso.vault.api.process.Response;
 import com.tmobile.cso.vault.api.utils.JSONUtil;
@@ -719,7 +716,7 @@ public class  SafesService {
 							put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 							put(LogMessage.ACTION, "Add User to SDB").
 							put(LogMessage.MESSAGE, String.format ("Exception while creating currentpolicies or groups")).
-							put(LogMessage.STACKTRACE, e.getStackTrace().toString()).
+							put(LogMessage.STACKTRACE, Arrays.toString(e.getStackTrace())).
 							put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 							build()));
 				}
@@ -975,8 +972,8 @@ public class  SafesService {
 								put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 								put(LogMessage.ACTION, "Add Group to SDB").
 								put(LogMessage.MESSAGE, "Group configuration failed.").
-								put(LogMessage.RESPONSE, metadataResponse.getResponse()).
-								put(LogMessage.STATUS, metadataResponse.getHttpstatus().toString()).
+								put(LogMessage.RESPONSE, (null!=metadataResponse)?metadataResponse.getResponse():TVaultConstants.EMPTY).
+								put(LogMessage.STATUS, (null!=metadataResponse)?metadataResponse.getHttpstatus().toString():TVaultConstants.EMPTY).
 								put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 								build()));
 						ldapConfigresponse = ControllerUtil.configureLDAPGroup(groupName,currentpolicies,token);
@@ -985,8 +982,8 @@ public class  SafesService {
 									put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 									put(LogMessage.ACTION, "Add Group to SDB").
 									put(LogMessage.MESSAGE, "Reverting user policy update failed").
-									put(LogMessage.RESPONSE, metadataResponse.getResponse()).
-									put(LogMessage.STATUS, metadataResponse.getHttpstatus().toString()).
+									put(LogMessage.RESPONSE, (null!=metadataResponse)?metadataResponse.getResponse():TVaultConstants.EMPTY).
+									put(LogMessage.STATUS, (null!=metadataResponse)?metadataResponse.getHttpstatus().toString():TVaultConstants.EMPTY).
 									put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 									build()));
 							return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"erros\":[\"Group configuration failed.Please try again\"]}");
@@ -995,8 +992,8 @@ public class  SafesService {
 									put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 									put(LogMessage.ACTION, "Add Group to SDB").
 									put(LogMessage.MESSAGE, "Reverting user policy update failed").
-									put(LogMessage.RESPONSE, metadataResponse.getResponse()).
-									put(LogMessage.STATUS, metadataResponse.getHttpstatus().toString()).
+									put(LogMessage.RESPONSE, (null!=metadataResponse)?metadataResponse.getResponse():TVaultConstants.EMPTY).
+									put(LogMessage.STATUS, (null!=metadataResponse)?metadataResponse.getHttpstatus().toString():TVaultConstants.EMPTY).
 									put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 									build()));
 							return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Group configuration failed.Contact Admin \"]}");
@@ -1135,7 +1132,7 @@ public class  SafesService {
 						}
 						else {
 							log.debug("Meta data update failed");
-							log.debug(metadataResponse.getResponse());
+							log.debug((metadataResponse!=null)?metadataResponse.getResponse():TVaultConstants.EMPTY);
 							if (TVaultConstants.USERPASS.equals(vaultAuthMethod)) {
 								ldapConfigresponse = ControllerUtil.configureUserpassUser(userName,currentpolicies,token);
 							}
@@ -1275,7 +1272,7 @@ public class  SafesService {
 						}
 						else {
 							log.debug("Meta data update failed");
-							log.debug(metadataResponse.getResponse());
+							log.debug((null!=metadataResponse)?metadataResponse.getResponse():TVaultConstants.EMPTY);
 							ldapConfigresponse = ControllerUtil.configureLDAPGroup(groupName,currentpolicies,token);
 							if(ldapConfigresponse.getHttpstatus().equals(HttpStatus.NO_CONTENT)){
 								log.debug("Reverting user policy update");
@@ -1428,7 +1425,7 @@ public class  SafesService {
 					}
 					else {
 						System.out.println("Meta data update failed");
-						System.out.println(metadataResponse.getResponse());
+						System.out.println((null!=metadataResponse)?metadataResponse.getResponse():TVaultConstants.EMPTY);
 						ldapConfigresponse = ControllerUtil.configureAWSRole(role,policies,token);
 						if(ldapConfigresponse.getHttpstatus().equals(HttpStatus.NO_CONTENT)){
 							System.out.println("Reverting user policy uupdate");
@@ -1546,8 +1543,8 @@ public class  SafesService {
 							  put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 							  put(LogMessage.ACTION, "Delete AWS Role from SDB").
 							  put(LogMessage.MESSAGE, "Delete AWS Role from SDB failed").
-							  put(LogMessage.RESPONSE, metadataResponse.getResponse()).
-							  put(LogMessage.STATUS, metadataResponse.getHttpstatus().toString()).
+							  put(LogMessage.RESPONSE, (null!=metadataResponse)?metadataResponse.getResponse():TVaultConstants.EMPTY).
+							  put(LogMessage.STATUS, (null!=metadataResponse)?metadataResponse.getHttpstatus().toString():TVaultConstants.EMPTY).
 							  put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 							  build()));
 					return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Role configuration failed.Please try again\"]}");
@@ -1757,7 +1754,8 @@ public class  SafesService {
 	 * @param jsonstr
 	 * @return
 	 */
-	public ResponseEntity<String> associateApproletoSDB(String token, String jsonstr) {
+	public ResponseEntity<String> associateApproletoSDB(String token, SafeAppRoleAccess safeAppRoleAccess) {
+		String jsonstr = JSONUtil.getJSON(safeAppRoleAccess);
 		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 				put(LogMessage.ACTION, "Associate AppRole to SDB").
@@ -1976,8 +1974,8 @@ public class  SafesService {
 							put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 							put(LogMessage.ACTION, "Delete Approle from SDB").
 							put(LogMessage.MESSAGE, "Delete Approle from SDB failed").
-							put(LogMessage.RESPONSE, metadataResponse.getResponse()).
-							put(LogMessage.STATUS, metadataResponse.getHttpstatus().toString()).
+							put(LogMessage.RESPONSE, (null!=metadataResponse)?metadataResponse.getResponse():TVaultConstants.EMPTY).
+							put(LogMessage.STATUS, (null!=metadataResponse)?metadataResponse.getHttpstatus().toString():TVaultConstants.EMPTY).
 							put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 							build()));
 					return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Role configuration failed.Please try again\"]}");

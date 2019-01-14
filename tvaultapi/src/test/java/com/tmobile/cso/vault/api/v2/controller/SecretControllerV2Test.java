@@ -85,7 +85,7 @@ public class SecretControllerV2Test {
         String responseMessage = "{\"messages\":[\"Secret saved to vault\"]}";
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(responseMessage);
 
-        when(secretService.write(eq("5PDrOhsy4ig8L3EpsJZSLAMg"), eq(inputJson))).thenReturn(responseEntityExpected);
+        when(secretService.write(eq("5PDrOhsy4ig8L3EpsJZSLAMg"), Mockito.any())).thenReturn(responseEntityExpected);
 
         mockMvc.perform(MockMvcRequestBuilders.post("/v2/write")
                 .header("vault-token", "5PDrOhsy4ig8L3EpsJZSLAMg")

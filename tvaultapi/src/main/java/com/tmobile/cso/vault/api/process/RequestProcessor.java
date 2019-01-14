@@ -18,10 +18,7 @@
 package com.tmobile.cso.vault.api.process;
 
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -83,7 +80,7 @@ public class RequestProcessor {
 				      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 					  put(LogMessage.ACTION, "Process Request").
 				      put(LogMessage.MESSAGE, String.format ("Processing input for [%s] for request failed", apiEndPoint)).
-				      put(LogMessage.STACKTRACE, e.getStackTrace().toString()).
+				      put(LogMessage.STACKTRACE, Arrays.toString(e.getStackTrace())).
 				      put(LogMessage.RESPONSE, response.getResponse()).
 				      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 				      build()));
@@ -160,7 +157,7 @@ public class RequestProcessor {
 		Map<String,Object > vaultResponseMap = new HashMap<String,Object >();
 
 		
-		if(!HttpStatus.NO_CONTENT.equals(vaultResponse.getStatusCode())){
+		if(null!=vaultResponse && !HttpStatus.NO_CONTENT.equals(vaultResponse.getStatusCode())){
 			vaultResponseMap = parseVaultResponseJson(vaultResponse.getBody());
 		}
 		
@@ -168,7 +165,7 @@ public class RequestProcessor {
 			respTransformer.transform(apiConfig, vaultResponseMap,token);
 		}
 		response.response = createResponseJson(vaultResponseMap,apiConfig);
-		response.httpstatus= vaultResponse.getStatusCode();
+		response.httpstatus= (null!=vaultResponse)?vaultResponse.getStatusCode():HttpStatus.INTERNAL_SERVER_ERROR;
 		return response;
 	}
 		
@@ -191,7 +188,7 @@ public class RequestProcessor {
 				response.response = "{\"errors\":[\"Requried Parameter Missing : "+ param.getName()+"\"]}";
 				break;
 			}
-			if(param.isAppendToPath()){
+			if(value!=null && param.isAppendToPath()){
 				String _toReplace = "<"+param.getName()+">";
 				int _replaceLen = _toReplace.length();
 				int _starIndex = path.indexOf(_toReplace);

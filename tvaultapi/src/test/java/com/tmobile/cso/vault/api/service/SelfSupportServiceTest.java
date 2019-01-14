@@ -66,6 +66,9 @@ public class SelfSupportServiceTest {
     @Mock
     AWSIAMAuthService awsiamAuthService;
 
+    @Mock
+    AppRoleService appRoleService;
+
     @Before
     public void setUp() {
         PowerMockito.mockStatic(ControllerUtil.class);
@@ -751,7 +754,7 @@ public class SelfSupportServiceTest {
         ResponseEntity<String> response = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Approle :approle1 is successfully associated with SDB\"]}");
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Approle :approle1 is successfully associated with SDB\"]}");
 
-        when(safesService.associateApproletoSDB(token, jsonStr)).thenReturn(response);
+        when(safesService.associateApproletoSDB(eq(token), Mockito.any())).thenReturn(response);
         mockIsAuthorized(userDetails, true);
         Map<String,Object> requestMap = new HashMap<>();
         requestMap.put("path", "shared/mysafe01");
@@ -775,7 +778,7 @@ public class SelfSupportServiceTest {
         ResponseEntity<String> response = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Approle :approle1 is successfully associated with SDB\"]}");
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Approle :approle1 is successfully associated with SDB\"]}");
 
-        when(safesService.associateApproletoSDB(token, jsonStr)).thenReturn(response);
+        when(safesService.associateApproletoSDB(eq(token), Mockito.any())).thenReturn(response);
         SafeAppRoleAccess safeAppRoleAccess = new SafeAppRoleAccess("aprole1", "shared/mysafe01", "write");
         when(JSONUtil.getJSON(Mockito.any(SafeAppRoleAccess.class))).thenReturn(jsonStr);
         ResponseEntity<String> responseEntity = selfSupportService.associateApproletoSDB(userDetails, token, safeAppRoleAccess);
@@ -792,7 +795,7 @@ public class SelfSupportServiceTest {
         ResponseEntity<String> response = ResponseEntity.status(HttpStatus.FORBIDDEN).body("{\"errors\":[\"Access denied: no permission to add Approle to the safe\"]}");
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.FORBIDDEN).body("{\"errors\":[\"Access denied: no permission to add Approle to the safe\"]}");
 
-        when(safesService.associateApproletoSDB(token, jsonStr)).thenReturn(response);
+        when(safesService.associateApproletoSDB(eq(token), Mockito.any())).thenReturn(response);
         mockIsAuthorized(userDetails, false);
         Map<String,Object> requestMap = new HashMap<>();
         requestMap.put("path", "shared/mysafe01");
@@ -816,7 +819,7 @@ public class SelfSupportServiceTest {
         ResponseEntity<String> response = ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid input values\"]}");
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid input values\"]}");
 
-        when(safesService.associateApproletoSDB(token, jsonStr)).thenReturn(response);
+        when(safesService.associateApproletoSDB(eq(token), Mockito.any())).thenReturn(response);
         Map<String,Object> requestMap = new HashMap<>();
         requestMap.put("path", "shared/mysafe01");
         requestMap.put("role_name", "aprole1");
@@ -1211,6 +1214,42 @@ public class SelfSupportServiceTest {
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body("No safes are available");
 
         ResponseEntity<String> responseEntity = selfSupportService.getAllSafeNames(userDetails);
+        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntity);
+    }
+
+    @Test
+    public void test_createAppRole_successfully() throws TVaultValidationException {
+        String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+        UserDetails userDetails = getMockUser(false);
+        String [] policies = {"default"};
+        AppRole appRole = new AppRole("approle1", policies, true, "1", "100m", 0);
+
+        ResponseEntity<String> response = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"AppRole created successfully\"]}");
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"AppRole created successfully\"]}");
+
+        when(appRoleService.createAppRole(token, appRole, userDetails)).thenReturn(response);
+        mockIsAuthorized(userDetails, true);
+
+        ResponseEntity<String> responseEntity = selfSupportService.createAppRole(token, appRole, userDetails);
+        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntity);
+    }
+
+    @Test
+    public void test_createAppRole_successfully_admin() throws TVaultValidationException {
+        String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+        UserDetails userDetails = getMockUser(true);
+        String [] policies = {"default"};
+        AppRole appRole = new AppRole("approle1", policies, true, "1", "100m", 0);
+
+        ResponseEntity<String> response = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"AppRole created successfully\"]}");
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"AppRole created successfully\"]}");
+
+        when(appRoleService.createAppRole(token, appRole, userDetails)).thenReturn(response);
+        mockIsAuthorized(userDetails, true);
+
+        ResponseEntity<String> responseEntity = selfSupportService.createAppRole(token, appRole, userDetails);
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
     }

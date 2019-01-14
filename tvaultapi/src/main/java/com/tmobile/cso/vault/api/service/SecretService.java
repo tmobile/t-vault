@@ -20,6 +20,7 @@ package com.tmobile.cso.vault.api.service;
 import java.io.IOException;
 
 import com.tmobile.cso.vault.api.common.TVaultConstants;
+import com.tmobile.cso.vault.api.model.Secret;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -81,7 +82,8 @@ public class  SecretService {
 	 * @param jsonStr
 	 * @return
 	 */
-	public ResponseEntity<String> write(String token, String jsonStr){
+	public ResponseEntity<String> write(String token, Secret secret){
+		String jsonStr = JSONUtil.getJSON(secret);
 		String path="";
 		try {
 			path = new ObjectMapper().readTree(jsonStr).at("/path").asText();
