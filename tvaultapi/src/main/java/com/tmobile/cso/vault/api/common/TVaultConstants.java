@@ -44,4 +44,5 @@ public class TVaultConstants {
     public static final String APPROLE = "approle";
     public static final String APPROLE_METADATA_MOUNT_PATH = "metadata/approle";
     public static final String SELF_SERVICE_APPROLE_NAME = "selfservicesupportrole";
+    public static final String SECRET = "secret";
 }
