@@ -604,6 +604,13 @@ public class  AppRoleService {
 		}
 	}
 
+	/**
+	 * Check whether the current user can delete this AppRole
+	 * @param approle
+	 * @param token
+	 * @param userDetails
+	 * @return
+	 */
 	private Response canDeleteAppRole(AppRole approle, String token, UserDetails userDetails) {
 		Response readResponse = new Response();
 		String _path = TVaultConstants.APPROLE_METADATA_MOUNT_PATH + "/" + approle.getRole_name();
