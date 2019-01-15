@@ -22,6 +22,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import com.google.common.collect.ImmutableMap;
+import com.tmobile.cso.vault.api.exception.LogMessage;
+import com.tmobile.cso.vault.api.utils.ThreadLocalContext;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -75,7 +78,12 @@ public class  AWSAuthService {
 		try {
 			nonce = new ObjectMapper().readTree(jsonStr).at("/pkcs7").toString().substring(1,50);
 		} catch (IOException e) {
-			logger.debug(e.getMessage());
+			logger.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+					put(LogMessage.ACTION, "Authenticate EC2").
+					put(LogMessage.MESSAGE, String.format("Failed to extract pkcs7 from json [%s]", jsonStr)).
+					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+					build()));
 			return ResponseEntity.badRequest().body("{\"errors\":[\"Not valid request. Check params \"]}");
 		}
 		String noncejson = "{\"nonce\":\""+nonce+"\",";
@@ -108,7 +116,12 @@ public class  AWSAuthService {
 				latestPolicies = root.get("policies").asText();
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
-			logger.debug(e.getMessage());
+			logger.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+					put(LogMessage.ACTION, "Create AWS role").
+					put(LogMessage.MESSAGE, String.format("Failed to extract role/policies from json string [%s]", jsonStr)).
+					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+					build()));
 		}
 
 		Response response = reqProcessor.process("/auth/aws/roles/create",jsonStr,token);
@@ -146,7 +159,12 @@ public class  AWSAuthService {
 				latestPolicies = root.get("policies").asText();
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
-			logger.debug(e.getMessage());
+			logger.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+					put(LogMessage.ACTION, "Update AWS role").
+					put(LogMessage.MESSAGE, String.format("Failed to extract role/policies from json string [%s]", jsonStr)).
+					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+					build()));
 		}
 
 		Response awsResponse = reqProcessor.process("/auth/aws/roles","{\"role\":\""+roleName+"\"}",token);
@@ -162,7 +180,13 @@ public class  AWSAuthService {
 				currentPolicies = policies.stream().collect(Collectors.joining(",")).toString();
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
-				logger.debug(e.getMessage());
+				logger.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+						put(LogMessage.ACTION, "Update AWS role").
+						put(LogMessage.MESSAGE, "Failed to extract from AWS read response").
+						put(LogMessage.RESPONSE, awsResponse.getResponse()).
+						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+						build()));
 			}
 		}else{
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"messages\":[\"Update failed . AWS Role does not exist \"]}");
