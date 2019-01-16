@@ -428,7 +428,7 @@ public class  SelfSupportService {
 	public ResponseEntity<String> removeAWSRoleFromSafe(UserDetails userDetails, String userToken, AWSRole awsRole, boolean detachOnly) {
 		String token = userDetails.getClientToken();
 		if (userDetails.isAdmin()) {
-			return safesService.removeAWSRoleFromSafe(token, awsRole, detachOnly);
+			return safesService.removeAWSRoleFromSafe(token, awsRole, detachOnly, userDetails);
 		}
 		else {
 			ResponseEntity<String> isAuthorized = isAuthorized(userDetails, awsRole.getPath());
@@ -439,7 +439,7 @@ public class  SelfSupportService {
 				return ResponseEntity.status(HttpStatus.FORBIDDEN).body("{\"errors\":[\"Access denied: no permission to remove AWS role from the safe\"]}");
 			}
 			token = userDetails.getSelfSupportToken();
-			return safesService.removeAWSRoleFromSafe(token, awsRole, detachOnly);
+			return safesService.removeAWSRoleFromSafe(token, awsRole, detachOnly, userDetails);
 		}
 	}
 

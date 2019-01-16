@@ -1451,7 +1451,7 @@ public class  SafesService {
 	 * @param detachOnly
 	 * @return
 	 */
-	public ResponseEntity<String> removeAWSRoleFromSafe(String token, AWSRole awsRole, boolean detachOnly){
+	public ResponseEntity<String> removeAWSRoleFromSafe(String token, AWSRole awsRole, boolean detachOnly, UserDetails userDetails){
 		String jsonstr = JSONUtil.getJSON(awsRole);
 		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 			      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
@@ -1472,6 +1472,10 @@ public class  SafesService {
 		String path = requestMap.get("path");
 		if(ControllerUtil.isValidSafePath(path) && ControllerUtil.isValidSafe(path, token)){
 			if (!detachOnly) { // delete mode, delete aws role as part of detachment of role from SDB.
+				Response permissionResponse = ControllerUtil.canDeleteRole(awsRole.getRole(), token, userDetails, TVaultConstants.AWSROLE_METADATA_MOUNT_PATH);
+				if (HttpStatus.INTERNAL_SERVER_ERROR.equals(permissionResponse.getHttpstatus()) || HttpStatus.UNAUTHORIZED.equals(permissionResponse.getHttpstatus())) {
+					return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\""+permissionResponse.getResponse()+"\"]}");
+				}
 				Response response = reqProcessor.process("/auth/aws/roles/delete","{\"role\":\""+role+"\"}",token);
 				if(response.getHttpstatus().equals(HttpStatus.NO_CONTENT)) {
 					log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
@@ -1482,6 +1486,18 @@ public class  SafesService {
 							put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 							build()));
 					log.debug(role + " , AWS Role is deleted as part of detachment of role from SDB. Path " + path);
+					// delete metadata
+					String metaJson = ControllerUtil.populateAWSMetaJson(awsRole.getRole(), userDetails.getUsername());
+					Response resp = reqProcessor.process("/delete",metaJson,token);
+					if (HttpStatus.NO_CONTENT.equals(resp.getHttpstatus())) {
+						log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+								put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+								put(LogMessage.ACTION, "Delete AWS Role from SDB").
+								put(LogMessage.MESSAGE, "Metadata deleted").
+								put(LogMessage.STATUS, response.getHttpstatus().toString()).
+								put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+								build()));
+					}
 				} else {
 					log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 							put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).

@@ -1863,4 +1863,51 @@ public final class ControllerUtil {
 		}
 		return isMetaDataUpdated;
 	}
+
+	/**
+	 * Check whether the current user can delete a role
+	 * @param approle
+	 * @param token
+	 * @param userDetails
+	 * @return
+	 */
+	public static Response canDeleteRole(String roleName, String token, UserDetails userDetails, String metadataPath) {
+		Response response = new Response();
+		String _path = metadataPath + "/" + roleName;
+		Response readResponse = reqProcessor.process("/read","{\"path\":\""+_path+"\"}",token);
+		Map<String, Object> responseMap = null;
+		if(HttpStatus.OK.equals(readResponse.getHttpstatus())) {
+			responseMap = ControllerUtil.parseJson(readResponse.getResponse());
+			if(responseMap.isEmpty()) {
+				response.setHttpstatus(HttpStatus.INTERNAL_SERVER_ERROR);
+				response.setResponse("Error reading role info");
+				response.setSuccess(false);
+				return response;
+			}
+			// Safeadmin can always delete any role
+			if (userDetails.isAdmin()) {
+				response.setHttpstatus(HttpStatus.OK);
+				response.setResponse(TVaultConstants.EMPTY);
+				response.setSuccess(true);
+				return response;
+			}
+			// normal users
+			Map<String,Object> metadataMap = (Map<String,Object>)responseMap.get("data");
+			if (userDetails.getUsername().equals((String)metadataMap.get("createdBy"))) {
+				response.setHttpstatus(HttpStatus.OK);
+				response.setResponse(TVaultConstants.EMPTY);
+				response.setSuccess(true);
+				return response;
+			}
+		} else if (HttpStatus.NOT_FOUND.equals(readResponse.getHttpstatus()) && userDetails.isAdmin()) {
+			response.setHttpstatus(HttpStatus.OK);
+			response.setResponse(TVaultConstants.EMPTY);
+			response.setSuccess(true);
+			return response;
+		}
+		response.setHttpstatus(HttpStatus.UNAUTHORIZED);
+		response.setResponse("Access denied: no permission to remove the role");
+		response.setSuccess(false);
+		return response;
+	}
 }

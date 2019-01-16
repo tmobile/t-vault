@@ -124,7 +124,7 @@ public class AWSAuthControllerV2Test {
         String responseMessage = "{\"messages\":[\"Role deleted \"]}";
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(responseMessage);
 
-        when(awsAuthService.deleteRole(eq("5PDrOhsy4ig8L3EpsJZSLAMg"),Mockito.any())).thenReturn(responseEntityExpected);
+        when(awsAuthService.deleteRole(eq("5PDrOhsy4ig8L3EpsJZSLAMg"),Mockito.any(),Mockito.any())).thenReturn(responseEntityExpected);
 
         mockMvc.perform(MockMvcRequestBuilders.delete("/v2/auth/aws/role/role1")
                 .header("vault-token", "5PDrOhsy4ig8L3EpsJZSLAMg")

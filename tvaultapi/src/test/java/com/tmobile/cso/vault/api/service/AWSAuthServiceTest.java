@@ -1,6 +1,7 @@
 package com.tmobile.cso.vault.api.service;
 
 import com.google.common.collect.ImmutableMap;
+import com.tmobile.cso.vault.api.common.TVaultConstants;
 import com.tmobile.cso.vault.api.controller.ControllerUtil;
 import com.tmobile.cso.vault.api.exception.TVaultValidationException;
 import com.tmobile.cso.vault.api.model.*;
@@ -361,8 +362,13 @@ public class AWSAuthServiceTest {
 
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Role deleted \"]}");
         when(reqProcessor.process("/auth/aws/roles/delete", "{\"role\":\"mytestawsrole\"}", token)).thenReturn(response);
-
-        ResponseEntity<String> responseEntity = awsAuthService.deleteRole(token, "mytestawsrole");
+        UserDetails userDetails = getMockUser(false);
+        String metadatajson = "{ \"path\": \"metadata/awsrole/mytestawsrole\", \"data\": {\"createdBy\":\"normaluser\"}}";
+        when(ControllerUtil.populateAWSMetaJson("mytestawsrole", userDetails.getUsername())).thenReturn(metadatajson);
+        when(reqProcessor.process("/delete",metadatajson,token)).thenReturn(response);
+        Response permissonResponse = getMockResponse(HttpStatus.OK, true, "");
+        when(ControllerUtil.canDeleteRole("mytestawsrole", token, userDetails, TVaultConstants.AWSROLE_METADATA_MOUNT_PATH)).thenReturn(permissonResponse);
+        ResponseEntity<String> responseEntity = awsAuthService.deleteRole(token, "mytestawsrole", userDetails);
 
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);

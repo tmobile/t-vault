@@ -277,7 +277,7 @@ public class SDBControllerV2Test {
         String responseJson = "{\"messages\":[\"Role association is removed \"]}";
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(responseJson);
 
-        when(safesService.removeAWSRoleFromSafe(eq("5PDrOhsy4ig8L3EpsJZSLAMg"), Mockito.any(), eq(false))).thenReturn(responseEntityExpected);
+        when(safesService.removeAWSRoleFromSafe(eq("5PDrOhsy4ig8L3EpsJZSLAMg"), Mockito.any(), eq(false), Mockito.any())).thenReturn(responseEntityExpected);
 
         mockMvc.perform(MockMvcRequestBuilders.delete("/v2/sdb/role")
                 .header("vault-token", "5PDrOhsy4ig8L3EpsJZSLAMg")
@@ -295,7 +295,7 @@ public class SDBControllerV2Test {
         String responseJson = "{\"messages\":[\"Role association is removed \"]}";
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(responseJson);
 
-        when(safesService.removeAWSRoleFromSafe(eq("5PDrOhsy4ig8L3EpsJZSLAMg"), Mockito.any(), eq(true))).thenReturn(responseEntityExpected);
+        when(safesService.removeAWSRoleFromSafe(eq("5PDrOhsy4ig8L3EpsJZSLAMg"), Mockito.any(), eq(true), Mockito.any())).thenReturn(responseEntityExpected);
 
         mockMvc.perform(MockMvcRequestBuilders.put("/v2/sdb/role")
                 .header("vault-token", "5PDrOhsy4ig8L3EpsJZSLAMg")

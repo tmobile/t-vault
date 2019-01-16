@@ -90,8 +90,9 @@ public class AWSAuthControllerV2 {
 	 */
 	@ApiOperation(value = "${AWSAuthControllerV2.deleteRole.value}", notes = "${AWSAuthControllerV2.deleteRole.notes}")
 	@DeleteMapping(value="/v2/auth/aws/role/{role}",produces="application/json")
-	public ResponseEntity<String> deleteRole(@RequestHeader(value="vault-token") String token, @PathVariable("role" ) String role){
-		return awsAuthService.deleteRole(token, role);
+	public ResponseEntity<String> deleteRole(HttpServletRequest request, @RequestHeader(value="vault-token") String token, @PathVariable("role" ) String role){
+		UserDetails userDetails = (UserDetails) ((HttpServletRequest) request).getAttribute("UserDetails");
+		return awsAuthService.deleteRole(token, role, userDetails);
 	}
 	/**
 	 * Method to fetch information for an aws approle.

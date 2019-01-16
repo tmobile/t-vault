@@ -23,6 +23,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import com.google.common.collect.ImmutableMap;
+import com.tmobile.cso.vault.api.common.TVaultConstants;
 import com.tmobile.cso.vault.api.exception.LogMessage;
 import com.tmobile.cso.vault.api.model.*;
 import com.tmobile.cso.vault.api.utils.ThreadLocalContext;
@@ -222,10 +223,27 @@ public class  AWSAuthService {
 	 * @param role
 	 * @return
 	 */
-	public ResponseEntity<String> deleteRole(String token, String role){
+	public ResponseEntity<String> deleteRole(String token, String role, UserDetails userDetails){
+		Response permissionResponse = ControllerUtil.canDeleteRole(role, token, userDetails, TVaultConstants.AWSROLE_METADATA_MOUNT_PATH);
+		if (HttpStatus.INTERNAL_SERVER_ERROR.equals(permissionResponse.getHttpstatus()) || HttpStatus.UNAUTHORIZED.equals(permissionResponse.getHttpstatus())) {
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\""+permissionResponse.getResponse()+"\"]}");
+		}
 		Response response = reqProcessor.process("/auth/aws/roles/delete","{\"role\":\""+role+"\"}",token);
 		if(response.getHttpstatus().equals(HttpStatus.NO_CONTENT)){
-			return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Role deleted \"]}");
+			// delete metadata
+			String metaJson = ControllerUtil.populateAWSMetaJson(role, userDetails.getUsername());
+			Response resp = reqProcessor.process("/delete",metaJson,token);
+			if (HttpStatus.NO_CONTENT.equals(resp.getHttpstatus())) {
+				logger.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+						put(LogMessage.ACTION, "Delete AWS Role").
+						put(LogMessage.MESSAGE, "Metadata deleted").
+						put(LogMessage.STATUS, response.getHttpstatus().toString()).
+						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+						build()));
+				return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Role deleted \"]}");
+			}
+			return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Role deleted, metadata delete failed\"]}");
 		}else{
 			return ResponseEntity.status(response.getHttpstatus()).body(response.getResponse());
 		}
