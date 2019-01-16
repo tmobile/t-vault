@@ -2,6 +2,7 @@ package com.tmobile.cso.vault.api.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
+import com.tmobile.cso.vault.api.common.TVaultConstants;
 import com.tmobile.cso.vault.api.exception.TVaultValidationException;
 import com.tmobile.cso.vault.api.model.*;
 import com.tmobile.cso.vault.api.process.RequestProcessor;
@@ -24,6 +25,7 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.util.ReflectionTestUtils;
 
+import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.util.*;
 
@@ -67,6 +69,16 @@ public class ControllerUtilTest {
             response.setResponse(expectedBody);
         }
         return response;
+    }
+
+    UserDetails getMockUser(boolean isAdmin) {
+        String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+        UserDetails userDetails = new UserDetails();
+        userDetails.setUsername("normaluser");
+        userDetails.setAdmin(isAdmin);
+        userDetails.setClientToken(token);
+        userDetails.setSelfSupportToken(token);
+        return userDetails;
     }
 
 	@Test
@@ -790,5 +802,96 @@ public class ControllerUtilTest {
     public void test_generateSafePath_shared()  {
         String safePath = ControllerUtil.generateSafePath("safe01", "shared");
         assertEquals("shared/safe01", safePath);
+    }
+
+    @Test
+    public void test_populateAWSMetaJson()  {
+        String metaJson = ControllerUtil.populateAWSMetaJson("role1", "normaluser");
+        assertEquals("{\"path\":\"metadata/awsrole/role1\"}", metaJson);
+    }
+
+    @Test
+    public void test_createMetadata_successfully()  {
+        String metadataJson = "{\"path\":\"metadata/awsrole/role1\"}";
+        String token = "7QPMPIGiyDFlJkrK3jFykUqa";
+        Response response = getMockResponse(HttpStatus.NO_CONTENT, true, "");
+        when(reqProcessor.process("/write",metadataJson,token)).thenReturn(response);
+        boolean status = ControllerUtil.createMetadata(metadataJson, token);
+        assertEquals(true, status);
+    }
+
+    @Test
+    public void test_createMetadata_failure()  {
+        String metadataJson = "{\"path\":\"metadata/awsrole/role1\"}";
+        String token = "7QPMPIGiyDFlJkrK3jFykUqa";
+        Response response = getMockResponse(HttpStatus.INTERNAL_SERVER_ERROR, true, "");
+        when(reqProcessor.process("/write",metadataJson,token)).thenReturn(response);
+        boolean status = ControllerUtil.createMetadata(metadataJson, token);
+        assertEquals(false, status);
+    }
+
+    @Test
+    public void test_canDeleteRole_successfully()  {
+        String metadataJson = "{\"path\":\"metadata/approle/role1\"}";
+        String token = "7QPMPIGiyDFlJkrK3jFykUqa";
+        String _path = "metadata/approle/role1";
+        UserDetails userDetails = getMockUser(false);
+        Response expectedResponse = getMockResponse(HttpStatus.OK, true, "");
+        Response response = getMockResponse(HttpStatus.OK, true, "{\"data\":{\"createdBy\":\"normaluser\",\"name\":\"z1\"}}");
+        when(reqProcessor.process("/read","{\"path\":\""+_path+"\"}",token)).thenReturn(response);
+        Response actualResponse = ControllerUtil.canDeleteRole("role1", token, userDetails, TVaultConstants.APPROLE_METADATA_MOUNT_PATH);
+        assertEquals(HttpStatus.OK, actualResponse.getHttpstatus());
+    }
+
+    @Test
+    public void test_canDeleteRole_successfully_admin()  {
+        String metadataJson = "{\"path\":\"metadata/approle/role1\"}";
+        String token = "7QPMPIGiyDFlJkrK3jFykUqa";
+        String _path = "metadata/approle/role1";
+        UserDetails userDetails = getMockUser(true);
+        Response expectedResponse = getMockResponse(HttpStatus.OK, true, "");
+        Response response = getMockResponse(HttpStatus.OK, true, "{\"data\":{\"createdBy\":\"normaluser\",\"name\":\"z1\"}}");
+        when(reqProcessor.process("/read","{\"path\":\""+_path+"\"}",token)).thenReturn(response);
+        Response actualResponse = ControllerUtil.canDeleteRole("role1", token, userDetails, TVaultConstants.APPROLE_METADATA_MOUNT_PATH);
+        assertEquals(HttpStatus.OK, actualResponse.getHttpstatus());
+    }
+
+    @Test
+    public void test_canDeleteRole_successfully_admin_()  {
+        String metadataJson = "{\"path\":\"metadata/approle/role1\"}";
+        String token = "7QPMPIGiyDFlJkrK3jFykUqa";
+        String _path = "metadata/approle/role1";
+        UserDetails userDetails = getMockUser(true);
+        Response expectedResponse = getMockResponse(HttpStatus.OK, true, "");
+        Response response = getMockResponse(HttpStatus.NOT_FOUND, true, "");
+        when(reqProcessor.process("/read","{\"path\":\""+_path+"\"}",token)).thenReturn(response);
+        Response actualResponse = ControllerUtil.canDeleteRole("role1", token, userDetails, TVaultConstants.APPROLE_METADATA_MOUNT_PATH);
+        assertEquals(HttpStatus.OK, actualResponse.getHttpstatus());
+    }
+
+    @Test
+    public void test_canDeleteRole_failure()  {
+        String metadataJson = "{\"path\":\"metadata/approle/role1\"}";
+        String token = "7QPMPIGiyDFlJkrK3jFykUqa";
+        String _path = "metadata/approle/role1";
+        UserDetails userDetails = getMockUser(false);
+        Response expectedResponse = getMockResponse(HttpStatus.INTERNAL_SERVER_ERROR, true, "Error reading role info");
+        Response response = getMockResponse(HttpStatus.OK, true, "");
+        when(reqProcessor.process("/read","{\"path\":\""+_path+"\"}",token)).thenReturn(response);
+        Response actualResponse = ControllerUtil.canDeleteRole("role1", token, userDetails, TVaultConstants.APPROLE_METADATA_MOUNT_PATH);
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, actualResponse.getHttpstatus());
+    }
+
+    @Test
+    public void test_canDeleteRole_failure_403()  {
+        String metadataJson = "{\"path\":\"metadata/approle/role1\"}";
+        String token = "7QPMPIGiyDFlJkrK3jFykUqa";
+        String _path = "metadata/approle/role1";
+        UserDetails userDetails = getMockUser(false);
+        Response expectedResponse = getMockResponse(HttpStatus.OK, true, "");
+        Response response = getMockResponse(HttpStatus.UNAUTHORIZED, true, "");
+        when(reqProcessor.process("/read","{\"path\":\""+_path+"\"}",token)).thenReturn(response);
+        Response actualResponse = ControllerUtil.canDeleteRole("role1", token, userDetails, TVaultConstants.APPROLE_METADATA_MOUNT_PATH);
+        assertEquals(HttpStatus.UNAUTHORIZED, actualResponse.getHttpstatus());
     }
 }

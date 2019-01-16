@@ -17,6 +17,7 @@
 
 package com.tmobile.cso.vault.api.v2.controller;
 
+import com.tmobile.cso.vault.api.model.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -32,17 +33,12 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.tmobile.cso.vault.api.controller.ControllerUtil;
 import com.tmobile.cso.vault.api.exception.TVaultValidationException;
-import com.tmobile.cso.vault.api.model.AWSAuthLogin;
-import com.tmobile.cso.vault.api.model.AWSAuthType;
-import com.tmobile.cso.vault.api.model.AWSClientConfiguration;
-import com.tmobile.cso.vault.api.model.AWSIAMLogin;
-import com.tmobile.cso.vault.api.model.AWSLogin;
-import com.tmobile.cso.vault.api.model.AWSLoginRole;
-import com.tmobile.cso.vault.api.model.AWSStsRole;
 import com.tmobile.cso.vault.api.service.AWSAuthService;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
+
+import javax.servlet.http.HttpServletRequest;
 
 @RestController
 @CrossOrigin
@@ -70,8 +66,9 @@ public class AWSAuthControllerV2 {
 	 */
 	@ApiOperation(value = "${AWSAuthControllerV2.createRole.value}", notes = "${AWSAuthControllerV2.createRole.notes}")
 	@PostMapping(value="/v2/auth/aws/role",consumes="application/json",produces="application/json")
-	public ResponseEntity<String> createRole(@RequestHeader(value="vault-token") String token, @RequestBody AWSLoginRole awsLoginRole) throws TVaultValidationException {
-		return awsAuthService.createRole(token, awsLoginRole);
+	public ResponseEntity<String> createRole(HttpServletRequest request, @RequestHeader(value="vault-token") String token, @RequestBody AWSLoginRole awsLoginRole) throws TVaultValidationException {
+		UserDetails userDetails = (UserDetails) ((HttpServletRequest) request).getAttribute("UserDetails");
+		return awsAuthService.createRole(token, awsLoginRole, userDetails);
 	}
 	/**
 	 * Method to update an aws app role. 
@@ -93,8 +90,9 @@ public class AWSAuthControllerV2 {
 	 */
 	@ApiOperation(value = "${AWSAuthControllerV2.deleteRole.value}", notes = "${AWSAuthControllerV2.deleteRole.notes}")
 	@DeleteMapping(value="/v2/auth/aws/role/{role}",produces="application/json")
-	public ResponseEntity<String> deleteRole(@RequestHeader(value="vault-token") String token, @PathVariable("role" ) String role){
-		return awsAuthService.deleteRole(token, role);
+	public ResponseEntity<String> deleteRole(HttpServletRequest request, @RequestHeader(value="vault-token") String token, @PathVariable("role" ) String role){
+		UserDetails userDetails = (UserDetails) ((HttpServletRequest) request).getAttribute("UserDetails");
+		return awsAuthService.deleteRole(token, role, userDetails);
 	}
 	/**
 	 * Method to fetch information for an aws approle.

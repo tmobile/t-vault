@@ -24,6 +24,7 @@ import java.util.stream.Collectors;
 
 import com.google.common.collect.ImmutableMap;
 import com.tmobile.cso.vault.api.exception.LogMessage;
+import com.tmobile.cso.vault.api.model.*;
 import com.tmobile.cso.vault.api.utils.ThreadLocalContext;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
@@ -39,11 +40,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tmobile.cso.vault.api.controller.ControllerUtil;
 import com.tmobile.cso.vault.api.exception.TVaultValidationException;
-import com.tmobile.cso.vault.api.model.AWSClientConfiguration;
-import com.tmobile.cso.vault.api.model.AWSIAMLogin;
-import com.tmobile.cso.vault.api.model.AWSIAMRole;
-import com.tmobile.cso.vault.api.model.AWSLoginRole;
-import com.tmobile.cso.vault.api.model.AWSStsRole;
 import com.tmobile.cso.vault.api.process.RequestProcessor;
 import com.tmobile.cso.vault.api.process.Response;
 import com.tmobile.cso.vault.api.utils.JSONUtil;
@@ -68,15 +64,26 @@ public class AWSIAMAuthService {
 	 * @param token
 	 * @return
 	 */
-	public ResponseEntity<String> createIAMRole(AWSIAMRole awsiamRole, String token) throws TVaultValidationException{
+	public ResponseEntity<String> createIAMRole(AWSIAMRole awsiamRole, String token, UserDetails userDetails) throws TVaultValidationException{
 		if (!ControllerUtil.areAWSIAMRoleInputsValid(awsiamRole)) {
 			//return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid inputs for the given aws login type");
 			throw new TVaultValidationException("Invalid inputs for the given aws login type");
 		}
 		String jsonStr = JSONUtil.getJSON(awsiamRole);
 		Response response = reqProcessor.process("/auth/aws/iam/role/create",jsonStr, token);
-		if(response.getHttpstatus().equals(HttpStatus.NO_CONTENT)){ 
-			return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"AWS IAM Role created successfully \"]}");
+		if(response.getHttpstatus().equals(HttpStatus.NO_CONTENT)){
+			String metadataJson = ControllerUtil.populateAWSMetaJson(awsiamRole.getRole(), userDetails.getUsername());
+			if(ControllerUtil.createMetadata(metadataJson, token)) {
+				return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"AWS IAM Role created successfully \"]}");
+			}
+			// revert role creation
+			Response deleteResponse = reqProcessor.process("/auth/aws/iam/roles/delete","{\"role\":\""+awsiamRole.getRole()+"\"}",token);
+			if (deleteResponse.getHttpstatus().equals(HttpStatus.NO_CONTENT)) {
+				return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"AWS IAM role creation failed.\"]}");
+			}
+			else {
+				return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"AWS IAM role created however metadata update failed. Please try with AWS role/update \"]}");
+			}
 		}else{
 			return ResponseEntity.status(response.getHttpstatus()).body(response.getResponse());
 		}

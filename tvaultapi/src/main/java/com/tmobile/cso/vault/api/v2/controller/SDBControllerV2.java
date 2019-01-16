@@ -38,6 +38,8 @@ import com.tmobile.cso.vault.api.service.SafesService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 
+import javax.servlet.http.HttpServletRequest;
+
 @RestController
 @CrossOrigin
 @Api(description = "Manage Safes/SDBs", position = 16)
@@ -200,14 +202,16 @@ public class SDBControllerV2 {
 	
 	@ApiOperation(value = "${SafesController.deleteAWSRoleFromSafe.value}", notes = "${SafesController.deleteAWSRoleFromSafe.notes}")
 	@DeleteMapping (value="/v2/sdb/role",consumes="application/json",produces="application/json")
-	public ResponseEntity<String> deleteAwsRoleFromSafe(@RequestHeader(value="vault-token") String token, @RequestBody AWSRole awsRole){
-		return safesService.removeAWSRoleFromSafe(token, awsRole, false);
+	public ResponseEntity<String> deleteAwsRoleFromSafe(HttpServletRequest request, @RequestHeader(value="vault-token") String token, @RequestBody AWSRole awsRole){
+		UserDetails userDetails = (UserDetails) ((HttpServletRequest) request).getAttribute("UserDetails");
+		return safesService.removeAWSRoleFromSafe(token, awsRole, false, userDetails);
 	}
 
 	@ApiOperation(value = "${SafesController.deleteAWSPermissionFromSafe.value}", notes = "${SafesController.deleteAWSPermissionFromSafe.notes}")
 	@PutMapping (value="/v2/sdb/role",consumes="application/json",produces="application/json")
-	public ResponseEntity<String> detachAwsRoleFromSafe(@RequestHeader(value="vault-token") String token, @RequestBody AWSRole awsRole){
-		return safesService.removeAWSRoleFromSafe(token, awsRole, true);
+	public ResponseEntity<String> detachAwsRoleFromSafe(HttpServletRequest request, @RequestHeader(value="vault-token") String token, @RequestBody AWSRole awsRole){
+		UserDetails userDetails = (UserDetails) ((HttpServletRequest) request).getAttribute("UserDetails");
+		return safesService.removeAWSRoleFromSafe(token, awsRole, true, userDetails);
 	}
 	/**
 	 * Reads the contents of a folder recursively

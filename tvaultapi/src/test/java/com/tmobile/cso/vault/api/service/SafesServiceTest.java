@@ -8,6 +8,7 @@ import static org.mockito.Mockito.when;
 import java.io.IOException;
 import java.util.*;
 
+import com.tmobile.cso.vault.api.common.TVaultConstants;
 import com.tmobile.cso.vault.api.model.*;
 import org.apache.logging.log4j.LogManager;
 import org.junit.Before;
@@ -77,6 +78,16 @@ public class SafesServiceTest {
             response.setResponse(expectedBody);
         }
         return response;
+    }
+
+    UserDetails getMockUser(boolean isAdmin) {
+        String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+        UserDetails userDetails = new UserDetails();
+        userDetails.setUsername("normaluser");
+        userDetails.setAdmin(isAdmin);
+        userDetails.setClientToken(token);
+        userDetails.setSelfSupportToken(token);
+        return userDetails;
     }
 
     @Test
@@ -1029,8 +1040,12 @@ public class SafesServiceTest {
         when(ControllerUtil.isValidSafe(path, token)).thenReturn(true);
         when(reqProcessor.process("/auth/aws/roles/delete","{\"role\":\"iam\"}",token)).thenReturn(responseNoContent);
         when(ControllerUtil.updateMetadata(any(),eq(token))).thenReturn(responseNoContent);
-
-        ResponseEntity<String> responseEntity = safesService.removeAWSRoleFromSafe(token, awsRole, false);
+        UserDetails userDetails = getMockUser(false);
+        Response responseOk = getMockResponse(HttpStatus.OK, true, "");
+        when(ControllerUtil.canDeleteRole(awsRole.getRole(), token, userDetails, TVaultConstants.AWSROLE_METADATA_MOUNT_PATH)).thenReturn(responseOk);
+        Response deleteResponse = getMockResponse(HttpStatus.NO_CONTENT, true, "");
+        when(reqProcessor.process(eq("/delete"),Mockito.any(),eq(token))).thenReturn(deleteResponse);
+        ResponseEntity<String> responseEntity = safesService.removeAWSRoleFromSafe(token, awsRole, false, userDetails);
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
     }
@@ -1052,8 +1067,12 @@ public class SafesServiceTest {
         when(ControllerUtil.isValidSafe(path, token)).thenReturn(true);
         when(reqProcessor.process("/auth/aws/roles/delete","{\"role\":\"iam\"}",token)).thenReturn(responseNoContent);
         when(ControllerUtil.updateMetadata(any(),eq(token))).thenReturn(responseNotFound);
-
-        ResponseEntity<String> responseEntity = safesService.removeAWSRoleFromSafe(token, awsRole, false);
+        UserDetails userDetails = getMockUser(false);
+        Response responseOk = getMockResponse(HttpStatus.OK, true, "");
+        when(ControllerUtil.canDeleteRole(awsRole.getRole(), token, userDetails, TVaultConstants.AWSROLE_METADATA_MOUNT_PATH)).thenReturn(responseOk);
+        Response deleteResponse = getMockResponse(HttpStatus.NO_CONTENT, true, "");
+        when(reqProcessor.process(eq("/delete"),Mockito.any(),eq(token))).thenReturn(deleteResponse);
+        ResponseEntity<String> responseEntity = safesService.removeAWSRoleFromSafe(token, awsRole, false, userDetails);
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
     }
@@ -1073,8 +1092,10 @@ public class SafesServiceTest {
         when(ControllerUtil.isValidSafePath(path)).thenReturn(true);
         when(ControllerUtil.isValidSafe(path, token)).thenReturn(true);
         when(reqProcessor.process("/auth/aws/roles/delete","{\"role\":\"iam\"}",token)).thenReturn(responseBadRequest);
-
-        ResponseEntity<String> responseEntity = safesService.removeAWSRoleFromSafe(token, awsRole, false);
+        UserDetails userDetails = getMockUser(false);
+        Response responseOk = getMockResponse(HttpStatus.OK, true, "");
+        when(ControllerUtil.canDeleteRole(awsRole.getRole(), token, userDetails, TVaultConstants.AWSROLE_METADATA_MOUNT_PATH)).thenReturn(responseOk);
+        ResponseEntity<String> responseEntity = safesService.removeAWSRoleFromSafe(token, awsRole, false, userDetails);
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
     }
@@ -1090,8 +1111,8 @@ public class SafesServiceTest {
 
         when(JSONUtil.getJSON(awsRole)).thenReturn(jsonStr);
         when(ControllerUtil.isValidSafePath(path)).thenReturn(false);
-
-        ResponseEntity<String> responseEntity = safesService.removeAWSRoleFromSafe(token, awsRole, false);
+        UserDetails userDetails = getMockUser(false);
+        ResponseEntity<String> responseEntity = safesService.removeAWSRoleFromSafe(token, awsRole, false, userDetails);
         assertEquals(HttpStatus.BAD_REQUEST, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
     }

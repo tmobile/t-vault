@@ -49,6 +49,16 @@ public class AWSAuthControllerV2Test {
         this.mockMvc = MockMvcBuilders.standaloneSetup(awsAuthControllerV2).build();
     }
 
+    UserDetails getMockUser(boolean isAdmin) {
+        String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+        UserDetails userDetails = new UserDetails();
+        userDetails.setUsername("normaluser");
+        userDetails.setAdmin(isAdmin);
+        userDetails.setClientToken(token);
+        userDetails.setSelfSupportToken(token);
+        return userDetails;
+    }
+
     @Test
     public void test_authenticateEC2() throws Exception {
         AWSLogin awsLogin = new AWSLogin("role1", "pkcs7");
@@ -78,9 +88,9 @@ public class AWSAuthControllerV2Test {
         String responseMessage = "{\"messages\":[\"AWS Role created \"]}";
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(responseMessage);
 
-        when(awsAuthService.createRole(eq("5PDrOhsy4ig8L3EpsJZSLAMg"),Mockito.any())).thenReturn(responseEntityExpected);
-
-        mockMvc.perform(MockMvcRequestBuilders.post("/v2/auth/aws/role")
+        when(awsAuthService.createRole(eq("5PDrOhsy4ig8L3EpsJZSLAMg"),Mockito.any(), Mockito.any())).thenReturn(responseEntityExpected);
+        UserDetails userDetails = getMockUser(true);
+        mockMvc.perform(MockMvcRequestBuilders.post("/v2/auth/aws/role").requestAttr("UserDetails", userDetails)
                 .header("vault-token", "5PDrOhsy4ig8L3EpsJZSLAMg")
                 .header("Content-Type", "application/json;charset=UTF-8")
                 .content(inputJson))
@@ -114,7 +124,7 @@ public class AWSAuthControllerV2Test {
         String responseMessage = "{\"messages\":[\"Role deleted \"]}";
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(responseMessage);
 
-        when(awsAuthService.deleteRole(eq("5PDrOhsy4ig8L3EpsJZSLAMg"),Mockito.any())).thenReturn(responseEntityExpected);
+        when(awsAuthService.deleteRole(eq("5PDrOhsy4ig8L3EpsJZSLAMg"),Mockito.any(),Mockito.any())).thenReturn(responseEntityExpected);
 
         mockMvc.perform(MockMvcRequestBuilders.delete("/v2/auth/aws/role/role1")
                 .header("vault-token", "5PDrOhsy4ig8L3EpsJZSLAMg")
