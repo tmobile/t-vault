@@ -64,7 +64,7 @@ public class AWSIAMAuthControllerV2Test {
         String responseMessage = "{\"messages\":[\"AWS IAM Role created successfully \"]}";
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(responseMessage);
 
-        when(awsiamAuthService.createIAMRole(Mockito.any(), eq("5PDrOhsy4ig8L3EpsJZSLAMg"))).thenReturn(responseEntityExpected);
+        when(awsiamAuthService.createIAMRole(Mockito.any(), eq("5PDrOhsy4ig8L3EpsJZSLAMg"), Mockito.any())).thenReturn(responseEntityExpected);
 
         mockMvc.perform(MockMvcRequestBuilders.post("/v2/auth/aws/iam/role")
                 .header("vault-token", "5PDrOhsy4ig8L3EpsJZSLAMg")

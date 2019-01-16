@@ -517,7 +517,7 @@ public class  SelfSupportService {
 	public ResponseEntity<String> createRole(UserDetails userDetails, String userToken, AWSLoginRole awsLoginRole, String path) throws TVaultValidationException {
 		String token = userDetails.getClientToken();
 		if (userDetails.isAdmin()) {
-			return awsAuthService.createRole(token, awsLoginRole);
+			return awsAuthService.createRole(token, awsLoginRole, userDetails);
 		}
 		else {
 			ResponseEntity<String> isAuthorized = isAuthorized(userDetails, path);
@@ -528,7 +528,7 @@ public class  SelfSupportService {
 				return ResponseEntity.status(HttpStatus.FORBIDDEN).body("{\"errors\":[\"Access denied: no permission to create AWS role\"]}");
 			}
 			token = userDetails.getSelfSupportToken();
-			return awsAuthService.createRole(token, awsLoginRole);
+			return awsAuthService.createRole(token, awsLoginRole, userDetails);
 		}
 	}
 
@@ -571,7 +571,7 @@ public class  SelfSupportService {
 	public ResponseEntity<String> createIAMRole(UserDetails userDetails, String userToken, AWSIAMRole awsiamRole, String path) throws TVaultValidationException {
 		String token = userDetails.getClientToken();
 		if (userDetails.isAdmin()) {
-			return awsiamAuthService.createIAMRole(awsiamRole, token);
+			return awsiamAuthService.createIAMRole(awsiamRole, token, userDetails);
 		}
 		else {
 			ResponseEntity<String> isAuthorized = isAuthorized(userDetails, path);
@@ -582,7 +582,7 @@ public class  SelfSupportService {
 				return ResponseEntity.status(HttpStatus.FORBIDDEN).body("{\"errors\":[\"Access denied: no permission to create AWS IAM role\"]}");
 			}
 			token = userDetails.getSelfSupportToken();
-			return awsiamAuthService.createIAMRole(awsiamRole, token);
+			return awsiamAuthService.createIAMRole(awsiamRole, token, userDetails);
 		}
 	}
 

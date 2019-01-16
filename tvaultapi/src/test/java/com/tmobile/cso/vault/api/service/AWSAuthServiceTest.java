@@ -32,6 +32,7 @@ import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.when;
 
 @RunWith(PowerMockRunner.class)
@@ -71,6 +72,16 @@ public class AWSAuthServiceTest {
         return response;
     }
 
+    UserDetails getMockUser(boolean isAdmin) {
+        String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+        UserDetails userDetails = new UserDetails();
+        userDetails.setUsername("normaluser");
+        userDetails.setAdmin(isAdmin);
+        userDetails.setClientToken(token);
+        userDetails.setSelfSupportToken(token);
+        return userDetails;
+    }
+
     @Test
     public void test_createRole_successfully() {
 
@@ -94,11 +105,90 @@ public class AWSAuthServiceTest {
         when(reqProcessor.process("/auth/aws/roles/create", jsonStr, token)).thenReturn(responseNoContent);
         when(ControllerUtil.updateMetaDataOnConfigChanges(Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.anyString())).thenReturn(response);
         when(JSONUtil.getJSON(awsLoginRole)).thenReturn(jsonStr);
-
+        UserDetails userDetails = getMockUser(true);
+        when(ControllerUtil.createMetadata(Mockito.any(), eq(token))).thenReturn(true);
+        when(reqProcessor.process(eq("/write"),Mockito.any(),eq(token))).thenReturn(responseNoContent);
         ResponseEntity<String> responseEntity = null;
         try {
             when(ControllerUtil.areAWSEC2RoleInputsValid(awsLoginRole)).thenReturn(true);
-            responseEntity = awsAuthService.createRole(token, awsLoginRole);
+            responseEntity = awsAuthService.createRole(token, awsLoginRole, userDetails);
+        } catch (TVaultValidationException e) {
+            e.printStackTrace();
+        }
+        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntity);
+    }
+
+    @Test
+    public void test_createRole_failure_revert() {
+
+        Response response = new Response();
+        response.setHttpstatus(HttpStatus.OK);
+        Response responseNoContent = getMockResponse(HttpStatus.NO_CONTENT, true, "");
+        String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+        AWSLoginRole awsLoginRole = new AWSLoginRole("ec2", "mytestawsrole", "ami-fce3c696",
+                "1234567890123", "us-east-2", "vpc-2f09a348", "subnet-1122aabb",
+                "arn:aws:iam::8987887:role/test-role", "arn:aws:iam::877677878:instance-profile/exampleinstanceprofile",
+                "\"[prod, dev\"]");
+
+        String jsonStr = "{\"auth_type\": \"ec2\", \"role\": \"mytestawsrole\", \"bound_ami_id\": \"ami-fce3c696\", " +
+                "\"bound_account_id\": 1234567890123, \"bound_region\": \"us-east-2\",\"bound_vpc_id\": " +
+                "\"vpc-2f09a348\", \"bound_subnet_id\": \"subnet-1122aabb\", \"bound_iam_role_arn\": " +
+                "\"arn:aws:iam::8987887:role/test-role\",  \"bound_iam_instance_profile_arn\":" +
+                "\"arn:aws:iam::877677878:instance-profile/exampleinstanceprofile\",  " +
+                "\"policies\": \"\\\"[prod, dev\\\"]\"}";
+
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"AWS role creation failed.\"]}");
+        when(reqProcessor.process("/auth/aws/roles/create", jsonStr, token)).thenReturn(responseNoContent);
+        when(ControllerUtil.updateMetaDataOnConfigChanges(Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.anyString())).thenReturn(response);
+        when(JSONUtil.getJSON(awsLoginRole)).thenReturn(jsonStr);
+        UserDetails userDetails = getMockUser(true);
+        when(ControllerUtil.createMetadata(Mockito.any(), eq(token))).thenReturn(false);
+        when(reqProcessor.process("/auth/aws/roles/delete","{\"role\":\""+awsLoginRole.getRole()+"\"}",token)).thenReturn(responseNoContent);
+        when(reqProcessor.process(eq("/write"),Mockito.any(),eq(token))).thenReturn(responseNoContent);
+        ResponseEntity<String> responseEntity = null;
+        try {
+            when(ControllerUtil.areAWSEC2RoleInputsValid(awsLoginRole)).thenReturn(true);
+            responseEntity = awsAuthService.createRole(token, awsLoginRole, userDetails);
+        } catch (TVaultValidationException e) {
+            e.printStackTrace();
+        }
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, responseEntity.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntity);
+    }
+
+    @Test
+    public void test_createRole_revert_failure() {
+
+        Response response = new Response();
+        response.setHttpstatus(HttpStatus.OK);
+        Response responseNoContent = getMockResponse(HttpStatus.NO_CONTENT, true, "");
+        Response response500 = getMockResponse(HttpStatus.INTERNAL_SERVER_ERROR, true, "");
+        String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+        AWSLoginRole awsLoginRole = new AWSLoginRole("ec2", "mytestawsrole", "ami-fce3c696",
+                "1234567890123", "us-east-2", "vpc-2f09a348", "subnet-1122aabb",
+                "arn:aws:iam::8987887:role/test-role", "arn:aws:iam::877677878:instance-profile/exampleinstanceprofile",
+                "\"[prod, dev\"]");
+
+        String jsonStr = "{\"auth_type\": \"ec2\", \"role\": \"mytestawsrole\", \"bound_ami_id\": \"ami-fce3c696\", " +
+                "\"bound_account_id\": 1234567890123, \"bound_region\": \"us-east-2\",\"bound_vpc_id\": " +
+                "\"vpc-2f09a348\", \"bound_subnet_id\": \"subnet-1122aabb\", \"bound_iam_role_arn\": " +
+                "\"arn:aws:iam::8987887:role/test-role\",  \"bound_iam_instance_profile_arn\":" +
+                "\"arn:aws:iam::877677878:instance-profile/exampleinstanceprofile\",  " +
+                "\"policies\": \"\\\"[prod, dev\\\"]\"}";
+
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"AWS role created however metadata update failed. Please try with AWS role/update \"]}");
+        when(reqProcessor.process("/auth/aws/roles/create", jsonStr, token)).thenReturn(responseNoContent);
+        when(ControllerUtil.updateMetaDataOnConfigChanges(Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.anyString())).thenReturn(response);
+        when(JSONUtil.getJSON(awsLoginRole)).thenReturn(jsonStr);
+        UserDetails userDetails = getMockUser(true);
+        when(ControllerUtil.createMetadata(Mockito.any(), eq(token))).thenReturn(false);
+        when(reqProcessor.process("/auth/aws/roles/delete","{\"role\":\""+awsLoginRole.getRole()+"\"}",token)).thenReturn(response500);
+        when(reqProcessor.process(eq("/write"),Mockito.any(),eq(token))).thenReturn(responseNoContent);
+        ResponseEntity<String> responseEntity = null;
+        try {
+            when(ControllerUtil.areAWSEC2RoleInputsValid(awsLoginRole)).thenReturn(true);
+            responseEntity = awsAuthService.createRole(token, awsLoginRole, userDetails);
         } catch (TVaultValidationException e) {
             e.printStackTrace();
         }
@@ -119,7 +209,10 @@ public class AWSAuthServiceTest {
 
         ResponseEntity<String> responseEntity = null;
         when(ControllerUtil.areAWSEC2RoleInputsValid(awsLoginRole)).thenReturn(false);
-        responseEntity = awsAuthService.createRole(token, awsLoginRole);
+        Response responseNoContent = getMockResponse(HttpStatus.NO_CONTENT, true, "");
+        UserDetails userDetails = getMockUser(true);
+        when(reqProcessor.process(eq("/write"),Mockito.any(),eq(token))).thenReturn(responseNoContent);
+        responseEntity = awsAuthService.createRole(token, awsLoginRole, userDetails);
     }
 
     @Test
@@ -149,7 +242,10 @@ public class AWSAuthServiceTest {
         ResponseEntity<String> responseEntity = null;
         try {
             when(ControllerUtil.areAWSEC2RoleInputsValid(awsLoginRole)).thenReturn(true);
-            responseEntity = awsAuthService.createRole(token, awsLoginRole);
+            Response responseNoContent = getMockResponse(HttpStatus.NO_CONTENT, true, "");
+            UserDetails userDetails = getMockUser(true);
+            when(reqProcessor.process(eq("/write"),Mockito.any(),eq(token))).thenReturn(responseNoContent);
+            responseEntity = awsAuthService.createRole(token, awsLoginRole, userDetails);
         } catch (TVaultValidationException e) {
             e.printStackTrace();
         }

@@ -24,6 +24,7 @@ import java.util.stream.Collectors;
 
 import com.google.common.collect.ImmutableMap;
 import com.tmobile.cso.vault.api.exception.LogMessage;
+import com.tmobile.cso.vault.api.model.*;
 import com.tmobile.cso.vault.api.utils.ThreadLocalContext;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
@@ -39,13 +40,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tmobile.cso.vault.api.controller.ControllerUtil;
 import com.tmobile.cso.vault.api.exception.TVaultValidationException;
-import com.tmobile.cso.vault.api.model.AWSAuthLogin;
-import com.tmobile.cso.vault.api.model.AWSAuthType;
-import com.tmobile.cso.vault.api.model.AWSClientConfiguration;
-import com.tmobile.cso.vault.api.model.AWSIAMLogin;
-import com.tmobile.cso.vault.api.model.AWSLogin;
-import com.tmobile.cso.vault.api.model.AWSLoginRole;
-import com.tmobile.cso.vault.api.model.AWSStsRole;
 import com.tmobile.cso.vault.api.process.RequestProcessor;
 import com.tmobile.cso.vault.api.process.Response;
 import com.tmobile.cso.vault.api.utils.JSONUtil;
@@ -98,7 +92,7 @@ public class  AWSAuthService {
 	 * @param awsLoginRole
 	 * @return
 	 */
-	public ResponseEntity<String> createRole(String token, AWSLoginRole awsLoginRole) throws TVaultValidationException{
+	public ResponseEntity<String> createRole(String token, AWSLoginRole awsLoginRole, UserDetails userDetails) throws TVaultValidationException{
 		if (!ControllerUtil.areAWSEC2RoleInputsValid(awsLoginRole)) {
 			//return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid inputs for the given aws login type");
 			throw new TVaultValidationException("Invalid inputs for the given aws login type");
@@ -127,13 +121,28 @@ public class  AWSAuthService {
 		Response response = reqProcessor.process("/auth/aws/roles/create",jsonStr,token);
 
 		if(response.getHttpstatus().equals(HttpStatus.NO_CONTENT)){ // Role created with policies. Need to update SDB metadata too.
-			response = ControllerUtil.updateMetaDataOnConfigChanges(roleName, "roles", currentPolicies, latestPolicies, token);
-			if(!HttpStatus.OK.equals(response.getHttpstatus()))
-				return ResponseEntity.status(response.getHttpstatus()).body("{\"messages\":[\"AWS Role configured\",\""+response.getResponse()+"\"]}");
-		}else{
+			String metadataJson = ControllerUtil.populateAWSMetaJson(awsLoginRole.getRole(), userDetails.getUsername());
+			if(ControllerUtil.createMetadata(metadataJson, token)) {
+				response = ControllerUtil.updateMetaDataOnConfigChanges(roleName, "roles", currentPolicies, latestPolicies, token);
+				if(HttpStatus.OK.equals(response.getHttpstatus())) {
+					return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"AWS Role created \"]}");
+				}
+				else {
+					return ResponseEntity.status(response.getHttpstatus()).body("{\"messages\":[\"AWS Role configured\",\"" + response.getResponse() + "\"]}");
+				}
+			} else {
+				// revert role creation
+				Response deleteResponse = reqProcessor.process("/auth/aws/roles/delete","{\"role\":\""+awsLoginRole.getRole()+"\"}",token);
+				if (deleteResponse.getHttpstatus().equals(HttpStatus.NO_CONTENT)) {
+					return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"AWS role creation failed.\"]}");
+				}
+				else {
+					return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"AWS role created however metadata update failed. Please try with AWS role/update \"]}");
+				}
+			}
+		} else{
 			return ResponseEntity.status(response.getHttpstatus()).body(response.getResponse());
 		}
-		return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"AWS Role created \"]}");
 	}
 	/**
 	 * Method to update an aws app role.

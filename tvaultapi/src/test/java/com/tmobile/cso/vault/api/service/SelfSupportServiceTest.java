@@ -930,8 +930,7 @@ public class SelfSupportServiceTest {
 
         ResponseEntity<String> response = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"AWS Role created \"]}");
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"AWS Role created \"]}");
-
-        when(awsAuthService.createRole(token, awsLoginRole)).thenReturn(response);
+        when(awsAuthService.createRole(eq(token), eq(awsLoginRole), Mockito.any())).thenReturn(response);
         mockIsAuthorized(userDetails, true);
 
         ResponseEntity<String> responseEntity = selfSupportService.createRole(userDetails, token, awsLoginRole,"shared/mysafe01");
@@ -951,7 +950,7 @@ public class SelfSupportServiceTest {
         ResponseEntity<String> response = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"AWS Role created \"]}");
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"AWS Role created \"]}");
 
-        when(awsAuthService.createRole(token, awsLoginRole)).thenReturn(response);
+        when(awsAuthService.createRole(eq(token), eq(awsLoginRole), Mockito.any())).thenReturn(response);
         ResponseEntity<String> responseEntity = selfSupportService.createRole(userDetails, token, awsLoginRole,"shared/mysafe01");
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
@@ -969,7 +968,7 @@ public class SelfSupportServiceTest {
         ResponseEntity<String> response = ResponseEntity.status(HttpStatus.FORBIDDEN).body("{\"errors\":[\"Access denied: no permission to create AWS role\"]}");
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.FORBIDDEN).body("{\"errors\":[\"Access denied: no permission to create AWS role\"]}");
 
-        when(awsAuthService.createRole(token, awsLoginRole)).thenReturn(response);
+        when(awsAuthService.createRole(eq(token), eq(awsLoginRole), Mockito.any())).thenReturn(response);
         mockIsAuthorized(userDetails, false);
 
         ResponseEntity<String> responseEntity = selfSupportService.createRole(userDetails, token, awsLoginRole,"shared/mysafe01");
@@ -1050,8 +1049,8 @@ public class SelfSupportServiceTest {
 
         ResponseEntity<String> response = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"AWS IAM Role created successfully \"]}");
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"AWS IAM Role created successfully \"]}");
-
-        when(awsiamAuthService.createIAMRole(awsiamRole, token)).thenReturn(response);
+        when(ControllerUtil.createMetadata(Mockito.any(), eq(token))).thenReturn(true);
+        when(awsiamAuthService.createIAMRole(awsiamRole, token, userDetails)).thenReturn(response);
         mockIsAuthorized(userDetails, true);
 
         ResponseEntity<String> responseEntity = selfSupportService.createIAMRole(userDetails, token, awsiamRole,"shared/mysafe01");
@@ -1074,8 +1073,8 @@ public class SelfSupportServiceTest {
 
         ResponseEntity<String> response = ResponseEntity.status(HttpStatus.FORBIDDEN).body("{\"errors\":[\"Access denied: no permission to create AWS IAM role\"]}");
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.FORBIDDEN).body("{\"errors\":[\"Access denied: no permission to create AWS IAM role\"]}");
-
-        when(awsiamAuthService.createIAMRole(awsiamRole, token)).thenReturn(response);
+        when(ControllerUtil.createMetadata(Mockito.any(), eq(token))).thenReturn(true);
+        when(awsiamAuthService.createIAMRole(awsiamRole, token, userDetails)).thenReturn(response);
         mockIsAuthorized(userDetails, false);
 
         ResponseEntity<String> responseEntity = selfSupportService.createIAMRole(userDetails, token, awsiamRole,"shared/mysafe01");
@@ -1098,8 +1097,8 @@ public class SelfSupportServiceTest {
 
         ResponseEntity<String> response = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"AWS IAM Role created successfully \"]}");
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"AWS IAM Role created successfully \"]}");
-
-        when(awsiamAuthService.createIAMRole(awsiamRole, token)).thenReturn(response);
+        when(ControllerUtil.createMetadata(Mockito.any(), eq(token))).thenReturn(true);
+        when(awsiamAuthService.createIAMRole(awsiamRole, token, userDetails)).thenReturn(response);
 
         ResponseEntity<String> responseEntity = selfSupportService.createIAMRole(userDetails, token, awsiamRole,"shared/mysafe01");
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());

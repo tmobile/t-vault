@@ -17,6 +17,7 @@
 
 package com.tmobile.cso.vault.api.v2.controller;
 
+import com.tmobile.cso.vault.api.model.UserDetails;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -37,6 +38,8 @@ import com.tmobile.cso.vault.api.service.AWSIAMAuthService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 
+import javax.servlet.http.HttpServletRequest;
+
 @RestController
 @CrossOrigin
 @Api(description = "Manage AWS IAM Authentication", position = 13)
@@ -52,8 +55,9 @@ public class AWSIAMAuthControllerV2 {
 	 */
 	@ApiOperation(value = "${AWSIAMAuthControllerV2.createIamRole.value}", notes = "${AWSIAMAuthControllerV2.createIamRole.notes}")
 	@PostMapping(value="/v2/auth/aws/iam/role",produces="application/json")
-	public ResponseEntity<String> createIAMRole(@RequestHeader(value="vault-token") String token, @RequestBody AWSIAMRole awsiamRole) throws TVaultValidationException{
-		return awsIamAuthService.createIAMRole(awsiamRole, token);
+	public ResponseEntity<String> createIAMRole(HttpServletRequest request, @RequestHeader(value="vault-token") String token, @RequestBody AWSIAMRole awsiamRole) throws TVaultValidationException{
+		UserDetails userDetails = (UserDetails) ((HttpServletRequest) request).getAttribute("UserDetails");
+		return awsIamAuthService.createIAMRole(awsiamRole, token, userDetails);
 	}
 	
 	@ApiOperation(value = "${AWSIAMAuthControllerV2.updateRole.value}", notes = "${AWSIAMAuthControllerV2.updateRole.notes}")

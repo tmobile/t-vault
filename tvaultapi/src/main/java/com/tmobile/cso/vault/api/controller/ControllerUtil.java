@@ -34,6 +34,7 @@ import java.util.stream.Stream;
 import javax.annotation.PostConstruct;
 
 import com.tmobile.cso.vault.api.common.TVaultConstants;
+import com.tmobile.cso.vault.api.model.*;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.validator.routines.EmailValidator;
@@ -55,19 +56,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
 import com.tmobile.cso.vault.api.exception.LogMessage;
 import com.tmobile.cso.vault.api.exception.TVaultValidationException;
-import com.tmobile.cso.vault.api.model.AWSAuthLogin;
-import com.tmobile.cso.vault.api.model.AWSAuthType;
-import com.tmobile.cso.vault.api.model.AWSIAMRole;
-import com.tmobile.cso.vault.api.model.AWSLoginRole;
-import com.tmobile.cso.vault.api.model.AWSRole;
-import com.tmobile.cso.vault.api.model.AppRole;
-import com.tmobile.cso.vault.api.model.AppRoleSecretData;
-import com.tmobile.cso.vault.api.model.Safe;
-import com.tmobile.cso.vault.api.model.SafeAppRoleAccess;
-import com.tmobile.cso.vault.api.model.SafeBasicDetails;
-import com.tmobile.cso.vault.api.model.SafeGroup;
-import com.tmobile.cso.vault.api.model.SafeNode;
-import com.tmobile.cso.vault.api.model.SafeUser;
 import com.tmobile.cso.vault.api.process.RequestProcessor;
 import com.tmobile.cso.vault.api.process.Response;
 import com.tmobile.cso.vault.api.utils.JSONUtil;
@@ -1826,5 +1814,53 @@ public final class ControllerUtil {
 		}
 
 		return safePath;
+	}
+
+	/**
+	 * Populate aws metadata json
+	 * @param appRoleName
+	 * @param username
+	 * @return
+	 */
+	public static String populateAWSMetaJson(String appRoleName, String username) {
+		String _path = TVaultConstants.AWSROLE_METADATA_MOUNT_PATH + "/" + appRoleName;
+		AppRoleMetadataDetails appRoleMetadataDetails = new AppRoleMetadataDetails(appRoleName);
+		appRoleMetadataDetails.setCreatedBy(username);
+		AppRoleMetadata appRoleMetadata =  new AppRoleMetadata(_path, appRoleMetadataDetails);
+		String jsonStr = JSONUtil.getJSON(appRoleMetadata);
+		Map<String,Object> rqstParams = ControllerUtil.parseJson(jsonStr);
+		rqstParams.put("path",_path);
+		return ControllerUtil.convetToJson(rqstParams);
+	}
+
+	/**
+	 * Create metadata
+	 * @param metadataJson
+	 * @param token
+	 * @return
+	 */
+	public static boolean createMetadata(String metadataJson, String token) {
+		Response response = reqProcessor.process("/write",metadataJson,token);
+		boolean isMetaDataUpdated = false;
+
+		if(response.getHttpstatus().equals(HttpStatus.NO_CONTENT)){
+			isMetaDataUpdated = true;
+			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+					put(LogMessage.ACTION, "createMetadata").
+					put(LogMessage.MESSAGE, "Metadata created successfully ").
+					put(LogMessage.STATUS, response.getHttpstatus().toString()).
+					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+					build()));
+		} else {
+			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+					put(LogMessage.ACTION, "createMetadata").
+					put(LogMessage.MESSAGE, "Failed to create metadata").
+					put(LogMessage.STATUS, response.getHttpstatus().toString()).
+					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+					build()));
+		}
+		return isMetaDataUpdated;
 	}
 }
