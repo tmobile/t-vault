@@ -12,6 +12,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.tmobile.cso.vault.api.common.TVaultConstants;
 import com.tmobile.cso.vault.api.model.*;
 import org.apache.logging.log4j.LogManager;
 import org.junit.Before;
@@ -114,6 +115,7 @@ public class AppRoleServiceTest {
         when(ControllerUtil.convertAppRoleInputsToLowerCase(Mockito.any())).thenReturn(jsonStr);
         UserDetails userDetails = getMockUser(true);
         when(reqProcessor.process(eq("/write"),Mockito.any(),eq(token))).thenReturn(response);
+        when(ControllerUtil.createMetadata(Mockito.any(), eq(token))).thenReturn(true);
         ResponseEntity<String> responseEntityActual = appRoleService.createAppRole(token, appRole, userDetails);
         assertEquals(HttpStatus.OK, responseEntityActual.getStatusCode());
         assertEquals(responseEntityExpected, responseEntityActual);
@@ -360,7 +362,7 @@ public class AppRoleServiceTest {
         AppRole appRole = new AppRole();
         appRole.setRole_name(appRoleId);
         String jsonStr = "{\"role_name\":\"approle1\",\"policies\":null,\"bind_secret_id\":false,\"secret_id_num_uses\":null,\"secret_id_ttl\":null,\"token_num_uses\":null,\"token_ttl\":null,\"token_max_ttl\":null}";
-        
+
         when(JSONUtil.getJSON(appRole)).thenReturn(jsonStr);
         when(reqProcessor.process("/auth/approle/role/delete",jsonStr,token)).thenReturn(response);
         UserDetails userDetails = getMockUser(true);
@@ -369,11 +371,13 @@ public class AppRoleServiceTest {
         responseMap.put("createdBy", "safeadmin");
         when(ControllerUtil.parseJson(Mockito.any())).thenReturn(responseMap);
         when(reqProcessor.process(eq("/delete"),Mockito.any(),eq(token))).thenReturn(response);
+        Response permissionResponse =getMockResponse(HttpStatus.OK, true, "");
+        when(ControllerUtil.canDeleteRole(appRole.getRole_name(), token, userDetails, TVaultConstants.APPROLE_METADATA_MOUNT_PATH)).thenReturn(permissionResponse);
         ResponseEntity<String> responseEntityActual = appRoleService.deleteAppRole(token, appRole, userDetails);
 
         assertEquals(HttpStatus.OK, responseEntityActual.getStatusCode());
         assertEquals(responseEntityExpected, responseEntityActual);
-        
+
     }
 
     @Test
@@ -397,6 +401,8 @@ public class AppRoleServiceTest {
         responseMap.put("createdBy", "safeadmin");
         when(ControllerUtil.parseJson(Mockito.any())).thenReturn(responseMap);
         when(reqProcessor.process(eq("/delete"),Mockito.any(),eq(token))).thenReturn(response404);
+        Response permissionResponse =getMockResponse(HttpStatus.OK, true, "");
+        when(ControllerUtil.canDeleteRole(appRole.getRole_name(), token, userDetails, TVaultConstants.APPROLE_METADATA_MOUNT_PATH)).thenReturn(permissionResponse);
         ResponseEntity<String> responseEntityActual = appRoleService.deleteAppRole(token, appRole, userDetails);
 
         assertEquals(HttpStatus.OK, responseEntityActual.getStatusCode());
@@ -426,6 +432,8 @@ public class AppRoleServiceTest {
         responseMap.put("data", data);
         when(ControllerUtil.parseJson(Mockito.any())).thenReturn(responseMap);
         when(reqProcessor.process(eq("/delete"),Mockito.any(),eq(token))).thenReturn(response);
+        Response permissionResponse =getMockResponse(HttpStatus.OK, true, "");
+        when(ControllerUtil.canDeleteRole(appRole.getRole_name(), token, userDetails, TVaultConstants.APPROLE_METADATA_MOUNT_PATH)).thenReturn(permissionResponse);
         ResponseEntity<String> responseEntityActual = appRoleService.deleteAppRole(token, appRole, userDetails);
 
         assertEquals(HttpStatus.OK, responseEntityActual.getStatusCode());
@@ -455,6 +463,8 @@ public class AppRoleServiceTest {
         responseMap.put("data", data);
         when(ControllerUtil.parseJson(Mockito.any())).thenReturn(responseMap);
         when(reqProcessor.process(eq("/delete"),Mockito.any(),eq(token))).thenReturn(response);
+        Response permissionResponse =getMockResponse(HttpStatus.OK, true, "");
+        when(ControllerUtil.canDeleteRole(appRole.getRole_name(), token, userDetails, TVaultConstants.APPROLE_METADATA_MOUNT_PATH)).thenReturn(permissionResponse);
         ResponseEntity<String> responseEntityActual = appRoleService.deleteAppRole(token, appRole, userDetails);
 
         assertEquals(HttpStatus.OK, responseEntityActual.getStatusCode());
@@ -469,7 +479,7 @@ public class AppRoleServiceTest {
         String appRoleId = "approle1";
         Response response =getMockResponse(HttpStatus.NO_CONTENT, true, "");
         Response response403 =getMockResponse(HttpStatus.UNAUTHORIZED, true, "");
-        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Not authorized to delete this ApPRole\"]}");
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Access denied: no permission to remove the role\"]}");
         AppRole appRole = new AppRole();
         appRole.setRole_name(appRoleId);
         String jsonStr = "{\"role_name\":\"approle1\",\"policies\":null,\"bind_secret_id\":false,\"secret_id_num_uses\":null,\"secret_id_ttl\":null,\"token_num_uses\":null,\"token_ttl\":null,\"token_max_ttl\":null}";
@@ -484,6 +494,8 @@ public class AppRoleServiceTest {
         responseMap.put("data", data);
         when(ControllerUtil.parseJson(Mockito.any())).thenReturn(responseMap);
         when(reqProcessor.process(eq("/delete"),Mockito.any(),eq(token))).thenReturn(response);
+        Response permissionResponse =getMockResponse(HttpStatus.UNAUTHORIZED, true, "Access denied: no permission to remove the role");
+        when(ControllerUtil.canDeleteRole(appRole.getRole_name(), token, userDetails, TVaultConstants.APPROLE_METADATA_MOUNT_PATH)).thenReturn(permissionResponse);
         ResponseEntity<String> responseEntityActual = appRoleService.deleteAppRole(token, appRole, userDetails);
 
         assertEquals(HttpStatus.BAD_REQUEST, responseEntityActual.getStatusCode());
@@ -513,6 +525,8 @@ public class AppRoleServiceTest {
         responseMap.put("createdBy", "safeadmin");
         when(ControllerUtil.parseJson(Mockito.any())).thenReturn(responseMap);
         when(reqProcessor.process(eq("/delete"),Mockito.any(),eq(token))).thenReturn(response);
+        Response permissionResponse =getMockResponse(HttpStatus.OK, true, "");
+        when(ControllerUtil.canDeleteRole(appRole.getRole_name(), token, userDetails, TVaultConstants.APPROLE_METADATA_MOUNT_PATH)).thenReturn(permissionResponse);
         ResponseEntity<String> responseEntityActual = appRoleService.deleteAppRole(token, appRole, userDetails);
 
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, responseEntityActual.getStatusCode());
@@ -541,6 +555,8 @@ public class AppRoleServiceTest {
         Map<String, Object> responseMap = new HashMap<>();
         when(ControllerUtil.parseJson(Mockito.any())).thenReturn(responseMap);
         when(reqProcessor.process(eq("/delete"),Mockito.any(),eq(token))).thenReturn(response);
+        Response permissionResponse =getMockResponse(HttpStatus.OK, true, "");
+        when(ControllerUtil.canDeleteRole(appRole.getRole_name(), token, userDetails, TVaultConstants.APPROLE_METADATA_MOUNT_PATH)).thenReturn(permissionResponse);
         ResponseEntity<String> responseEntityActual = appRoleService.deleteAppRole(token, appRole, userDetails);
 
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, responseEntityActual.getStatusCode());

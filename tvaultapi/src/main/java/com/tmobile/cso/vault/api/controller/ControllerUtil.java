@@ -1910,4 +1910,21 @@ public final class ControllerUtil {
 		response.setSuccess(false);
 		return response;
 	}
+
+    /**
+     * Populate approle metadata json
+     * @param appRoleName
+     * @param username
+     * @return
+     */
+    public static  String populateAppRoleMetaJson(String appRoleName, String username) {
+        String _path = TVaultConstants.APPROLE_METADATA_MOUNT_PATH + "/" + appRoleName;
+        AppRoleMetadataDetails appRoleMetadataDetails = new AppRoleMetadataDetails(appRoleName);
+        appRoleMetadataDetails.setCreatedBy(username);
+        AppRoleMetadata appRoleMetadata =  new AppRoleMetadata(_path, appRoleMetadataDetails);
+        String jsonStr = JSONUtil.getJSON(appRoleMetadata);
+        Map<String,Object> rqstParams = ControllerUtil.parseJson(jsonStr);
+        rqstParams.put("path",_path);
+        return ControllerUtil.convetToJson(rqstParams);
+    }
 }
