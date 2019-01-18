@@ -48,7 +48,7 @@
         }
 
         function getAllowedSafes() {
-            var url = RestEndpoints.baseURL + '/v3/sdb/safes';
+            var url = RestEndpoints.baseURL + '/v2/ss/sdb/safes';
             return $http({
                 method: 'GET',
                 url: url,
