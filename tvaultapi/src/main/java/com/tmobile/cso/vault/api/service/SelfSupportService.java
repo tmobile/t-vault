@@ -17,11 +17,11 @@
 
 package com.tmobile.cso.vault.api.service;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.io.IOException;
+import java.util.*;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tmobile.cso.vault.api.common.TVaultConstants;
 import com.tmobile.cso.vault.api.exception.TVaultValidationException;
 import com.tmobile.cso.vault.api.model.*;
@@ -661,5 +661,50 @@ public class  SelfSupportService {
 			token = userDetails.getSelfSupportToken();
 			return appRoleService.deleteAppRole(token, appRole, userDetails);
 		}
+	}
+
+	/**
+	 * Get safes having read/write permission
+	 * @param userDetails
+	 * @param token
+	 * @return
+	 */
+	public ResponseEntity<String> getSafes(UserDetails userDetails, String token) {
+
+		String[] policies = policyUtils.getCurrentPolicies(token, userDetails.getUsername());
+
+		List<Map<String, String>> safeListUsers = new ArrayList<>();
+		List<Map<String, String>> safeListShared = new ArrayList<>();
+		List<Map<String, String>> safeListApps = new ArrayList<>();
+		Map<String, List<Map<String, String>>> safeList = new HashMap<>();
+		if (policies != null) {
+			for (String policy: policies) {
+				Map<String, String> safePolicy = new HashMap<>();
+				String[] _policies = policy.split("_");
+				if (_policies.length == 3) {
+					String safeName = _policies[2];
+					String safeType = _policies[1];
+
+					if (policy.startsWith("r_")) {
+						safePolicy.put(safeName, "read");
+					} else if (policy.startsWith("w_")) {
+						safePolicy.put(safeName, "write");
+					}
+					if (!safePolicy.isEmpty()) {
+						if (safeType.equals(TVaultConstants.USERS)) {
+							safeListUsers.add(safePolicy);
+						} else if (safeType.equals(TVaultConstants.SHARED)) {
+							safeListShared.add(safePolicy);
+						} else if (safeType.equals(TVaultConstants.APPS)) {
+							safeListApps.add(safePolicy);
+						}
+					}
+				}
+			}
+			safeList.put(TVaultConstants.USERS, safeListUsers);
+			safeList.put(TVaultConstants.SHARED, safeListShared);
+			safeList.put(TVaultConstants.APPS, safeListApps);
+		}
+		return ResponseEntity.status(HttpStatus.OK).body(JSONUtil.getJSON(safeList));
 	}
 }

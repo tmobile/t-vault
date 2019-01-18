@@ -38,7 +38,7 @@ import static org.mockito.Mockito.when;
 @RunWith(PowerMockRunner.class)
 @ComponentScan(basePackages={"com.tmobile.cso.vault.api"})
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
-@PrepareForTest({ControllerUtil.class, JSONUtil.class})
+@PrepareForTest({ControllerUtil.class, JSONUtil.class, PolicyUtils.class})
 @PowerMockIgnore({"javax.management.*"})
 public class SelfSupportServiceTest {
 
@@ -73,6 +73,7 @@ public class SelfSupportServiceTest {
     public void setUp() {
         PowerMockito.mockStatic(ControllerUtil.class);
         PowerMockito.mockStatic(JSONUtil.class);
+        PowerMockito.mockStatic(PolicyUtils.class);
         Whitebox.setInternalState(ControllerUtil.class, "log", LogManager.getLogger(ControllerUtil.class));
     }
 
@@ -1283,6 +1284,20 @@ public class SelfSupportServiceTest {
         mockIsAuthorized(userDetails, true);
 
         ResponseEntity<String> responseEntity = selfSupportService.deleteAppRole(token, appRole, userDetails);
+        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntity);
+    }
+
+    @Test
+    public void test_getSafes_successfully() {
+        String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+        UserDetails userDetails = getMockUser(false);
+        String [] policies = {"r_users_s1", "w_users_s2", "r_shared_s3", "w_shared_s4", "r_apps_s5", "w_apps_s6"};
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body("{\"shared\":[{\"s3\":\"read\"},{\"s4\":\"write\"}],\"users\":[{\"s1\":\"read\"},{\"s2\":\"write\"}],\"apps\":[{\"s5\":\"read\"},{\"s6\":\"write\"}]}");
+
+        when(policyUtils.getCurrentPolicies(token, userDetails.getUsername())).thenReturn(policies);
+        when(JSONUtil.getJSON(Mockito.any())).thenReturn("{\"shared\":[{\"s3\":\"read\"},{\"s4\":\"write\"}],\"users\":[{\"s1\":\"read\"},{\"s2\":\"write\"}],\"apps\":[{\"s5\":\"read\"},{\"s6\":\"write\"}]}");
+        ResponseEntity<String> responseEntity = selfSupportService.getSafes(userDetails, token);
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
     }

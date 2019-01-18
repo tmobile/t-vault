@@ -12,7 +12,8 @@
             saveFolder: saveFolder,
             deleteFolder: deleteFolder,
             getFolderContent: getFolderContent,
-            itemIsValidToSave: itemIsValidToSave
+            itemIsValidToSave: itemIsValidToSave,
+            getAllowedSafes: getAllowedSafes
         };
 
         function getFolderContent(path) {
@@ -44,6 +45,19 @@
                     response.data.children = contents;
                     return response.data;
                 }).catch(catchError);
+        }
+
+        function getAllowedSafes() {
+            var url = RestEndpoints.baseURL + '/v3/sdb/safes';
+            return $http({
+                method: 'GET',
+                url: url,
+                headers: getHeaders()
+            }).then(function (response) {
+                    SessionStore.setItem('accessSafes', JSON.stringify(response.data));
+                    return JSON.parse(JSON.stringify(response.data));
+                })
+                .catch(catchError);
         }
 
         function createFolder(path) {

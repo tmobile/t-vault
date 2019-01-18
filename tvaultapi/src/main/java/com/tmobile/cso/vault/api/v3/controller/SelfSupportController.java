@@ -337,4 +337,17 @@ public class SelfSupportController {
 		appRole.setRole_name(rolename);
 		return selfSupportService.deleteAppRole(token, appRole, userDetails);
 	}
+
+	/**
+	 * Reads the safes with read/write permission
+	 * @param request
+	 * @param token
+	 * @return
+	 */
+	@GetMapping(value="/v3/sdb/safes",produces="application/json")
+	@ApiOperation(value = "${SelfSupportController.getsafes.value}", notes = "${SelfSupportController.getsafes.notes}")
+	public ResponseEntity<String> getsafes(HttpServletRequest request, @RequestHeader(value="vault-token") String token) {
+		UserDetails userDetails = (UserDetails) ((HttpServletRequest) request).getAttribute("UserDetails");
+		return selfSupportService.getSafes(userDetails, token);
+	}
 }
