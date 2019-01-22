@@ -25,11 +25,20 @@
         url: '/safes',
         parent: 'safes-tabs',
         params: {
-          type: 'users'
+          type: 'users',
+          fromLogin: false
         },
         resolve: {
-          safes: function (SessionStore, $q, $state) {
-            return JSON.parse(SessionStore.getItem('accessSafes'));
+          safes: function (SessionStore, $q, $state, safesService, $stateParams) {
+            if ($stateParams.fromLogin === false) {
+              return safesService.getAllowedSafes()
+                  .catch(function (error) {
+                    return error;
+                  });
+            }
+            else {
+              return JSON.parse(SessionStore.getItem('accessSafes'));
+            }
           }
         },
         views: {

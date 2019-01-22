@@ -100,51 +100,51 @@ readTextFile("../apiUrls.json");
             method: 'POST'
         }, { /* Get the list of full safes for Admin */
             name: 'safesList',
-            url: '/v3/sdb/list?',
+            url: '/v2/ss/sdb/list?',
             method: 'GET'
         }, {
             name: 'deleteSafe',
-            url: '/v3/sdb/delete?',
+            url: '/v2/ss/sdb/delete?',
             method: 'DELETE'
         }, {
             name: 'getSafeInfo',
-            url: '/v3/sdb?',
+            url: '/v2/ss/sdb?',
             method: 'GET'
         }, {
             name: 'createSafe',
-            url: '/v3/sdb',
+            url: '/v2/ss/sdb',
             method: 'POST'
         }, {
             name: 'editSafe',
-            url: '/v3/sdb',
+            url: '/v2/ss/sdb',
             method: 'PUT'
         }, {
             name: 'deleteUserPermission',
-            url: '/v3/sdb/user',
+            url: '/v2/ss/sdb/user',
             method: 'DELETE'
         }, {
             name: 'deleteGroupPermission',
-            url: '/v3/sdb/group',
+            url: '/v2/ss/sdb/group',
             method: 'DELETE'
         }, {
             name: 'deleteAWSPermission',
-            url: '/v3/sdb/role',
+            url: '/v2/ss/sdb/role',
             method: 'DELETE'
         }, { /* To remove the aws permission in edit*/
             name: 'detachAWSPermission',
-            url: '/v3/sdb/role',
+            url: '/v2/ss/sdb/role',
             method: 'PUT'
         },{
             name: 'addUserPermission',
-            url: '/v3/sdb/user',
+            url: '/v2/ss/sdb/user',
             method: 'POST'
         }, {
             name: 'addGroupPermission',
-            url: '/v3/sdb/group',
+            url: '/v2/ss/sdb/group',
             method: 'POST'
         }, {
             name: 'addAWSPermission',
-            url: '/v3/sdb/role',
+            url: '/v2/ss/sdb/role',
             method: 'POST'
         }, {
             name: 'getAwsConfigurationDetails',
@@ -164,7 +164,7 @@ readTextFile("../apiUrls.json");
             method: 'GET'
         }, {
             name: 'createAwsRole',
-            url: '/v3/auth/aws/role?',
+            url: '/v2/ss/auth/aws/role?',
             method: 'POST'
         }, {
             name: 'updateAwsRole',
@@ -172,7 +172,7 @@ readTextFile("../apiUrls.json");
             method: 'POST'
         }, {
             name: 'createAwsIAMRole',
-            url: '/v3/auth/aws/iam/role?',
+            url: '/v2/ss/auth/aws/iam/role?',
             method: 'POST'
         }, {
             name: 'updateAwsIAMRole',

@@ -1,11 +1,10 @@
-package com.tmobile.cso.vault.api.v3.controller;
+package com.tmobile.cso.vault.api.v2.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tmobile.cso.vault.api.main.Application;
 import com.tmobile.cso.vault.api.model.*;
-import com.tmobile.cso.vault.api.service.SafesService;
 import com.tmobile.cso.vault.api.service.SelfSupportService;
-import com.tmobile.cso.vault.api.v2.controller.SDBControllerV2;
+import com.tmobile.cso.vault.api.v2.controller.SelfSupportController;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -66,7 +65,7 @@ public class SelfSupportControllerTest {
         UserDetails userDetails = getMockUser(false);
         when(selfSupportService.getFoldersRecursively(userDetails, "5PDrOhsy4ig8L3EpsJZSLAMg", "users/safe1")).thenReturn(responseEntityExpected);
 
-        mockMvc.perform(MockMvcRequestBuilders.get("/v3/sdb/list?path=users/safe1").requestAttr("UserDetails", userDetails)
+        mockMvc.perform(MockMvcRequestBuilders.get("/v2/ss/sdb/list?path=users/safe1").requestAttr("UserDetails", userDetails)
                 .header("vault-token", "5PDrOhsy4ig8L3EpsJZSLAMg")
                 .header("Content-Type", "application/json;charset=UTF-8"))
                 .andExpect(status().isOk())
@@ -80,7 +79,7 @@ public class SelfSupportControllerTest {
         UserDetails userDetails = getMockUser(false);
         when(selfSupportService.getSafe(userDetails, "5PDrOhsy4ig8L3EpsJZSLAMg", "users/safe1")).thenReturn(responseEntityExpected);
 
-        mockMvc.perform(MockMvcRequestBuilders.get("/v3/sdb?path=users/safe1").requestAttr("UserDetails", userDetails)
+        mockMvc.perform(MockMvcRequestBuilders.get("/v2/ss/sdb?path=users/safe1").requestAttr("UserDetails", userDetails)
                 .header("vault-token", "5PDrOhsy4ig8L3EpsJZSLAMg")
                 .header("Content-Type", "application/json;charset=UTF-8"))
                 .andExpect(status().isOk())
@@ -97,7 +96,7 @@ public class SelfSupportControllerTest {
         String inputJson =new ObjectMapper().writeValueAsString(safeUser);
         when(selfSupportService.addUserToSafe(eq(userDetails), eq("5PDrOhsy4ig8L3EpsJZSLAMg"), Mockito.any(SafeUser.class))).thenReturn(responseEntityExpected);
 
-        mockMvc.perform(MockMvcRequestBuilders.post("/v3/sdb/user").requestAttr("UserDetails", userDetails)
+        mockMvc.perform(MockMvcRequestBuilders.post("/v2/ss/sdb/user").requestAttr("UserDetails", userDetails)
                 .header("vault-token", "5PDrOhsy4ig8L3EpsJZSLAMg")
                 .header("Content-Type", "application/json;charset=UTF-8")
                 .content(inputJson))
@@ -115,7 +114,7 @@ public class SelfSupportControllerTest {
         String inputJson =new ObjectMapper().writeValueAsString(safeUser);
         when(selfSupportService.removeUserFromSafe(eq(userDetails), eq("5PDrOhsy4ig8L3EpsJZSLAMg"), Mockito.any(SafeUser.class))).thenReturn(responseEntityExpected);
 
-        mockMvc.perform(MockMvcRequestBuilders.delete("/v3/sdb/user").requestAttr("UserDetails", userDetails)
+        mockMvc.perform(MockMvcRequestBuilders.delete("/v2/ss/sdb/user").requestAttr("UserDetails", userDetails)
                 .header("vault-token", "5PDrOhsy4ig8L3EpsJZSLAMg")
                 .header("Content-Type", "application/json;charset=UTF-8")
                 .content(inputJson))
@@ -130,7 +129,7 @@ public class SelfSupportControllerTest {
         UserDetails userDetails = getMockUser(false);
         when(selfSupportService.getInfo(userDetails,"5PDrOhsy4ig8L3EpsJZSLAMg", "users")).thenReturn(responseEntityExpected);
 
-        mockMvc.perform(MockMvcRequestBuilders.get("/v3/sdb/folder/users?path=users").requestAttr("UserDetails", userDetails)
+        mockMvc.perform(MockMvcRequestBuilders.get("/v2/ss/sdb/folder/users?path=users").requestAttr("UserDetails", userDetails)
                 .header("vault-token", "5PDrOhsy4ig8L3EpsJZSLAMg")
                 .header("Content-Type", "application/json;charset=UTF-8"))
                 .andExpect(status().isOk())
@@ -148,7 +147,7 @@ public class SelfSupportControllerTest {
         UserDetails userDetails = getMockUser(false);
         when(selfSupportService.createSafe(eq(userDetails), eq("5PDrOhsy4ig8L3EpsJZSLAMg"), Mockito.any(Safe.class))).thenReturn(responseEntityExpected);
 
-        mockMvc.perform(MockMvcRequestBuilders.post("/v3/sdb").requestAttr("UserDetails", userDetails)
+        mockMvc.perform(MockMvcRequestBuilders.post("/v2/ss/sdb").requestAttr("UserDetails", userDetails)
                 .header("vault-token", "5PDrOhsy4ig8L3EpsJZSLAMg")
                 .header("Content-Type", "application/json;charset=UTF-8")
                 .content(inputJson))
@@ -181,7 +180,7 @@ public class SelfSupportControllerTest {
         UserDetails userDetails = getMockUser(false);
         when(selfSupportService.updateSafe(eq(userDetails),eq("5PDrOhsy4ig8L3EpsJZSLAMg"), Mockito.any(Safe.class))).thenReturn(responseEntityExpected);
 
-        mockMvc.perform(MockMvcRequestBuilders.put("/v3/sdb").requestAttr("UserDetails", userDetails)
+        mockMvc.perform(MockMvcRequestBuilders.put("/v2/ss/sdb").requestAttr("UserDetails", userDetails)
                 .header("vault-token", "5PDrOhsy4ig8L3EpsJZSLAMg")
                 .header("Content-Type", "application/json;charset=UTF-8")
                 .content(inputJson))
@@ -196,7 +195,7 @@ public class SelfSupportControllerTest {
         UserDetails userDetails = getMockUser(false);
         when(selfSupportService.deletefolder(userDetails,"5PDrOhsy4ig8L3EpsJZSLAMg", "users/safe1")).thenReturn(responseEntityExpected);
 
-        mockMvc.perform(MockMvcRequestBuilders.delete("/v3/sdb/delete?path=users/safe1").requestAttr("UserDetails", userDetails)
+        mockMvc.perform(MockMvcRequestBuilders.delete("/v2/ss/sdb/delete?path=users/safe1").requestAttr("UserDetails", userDetails)
                 .header("vault-token", "5PDrOhsy4ig8L3EpsJZSLAMg")
                 .header("Content-Type", "application/json;charset=UTF-8"))
                 .andExpect(status().isOk())
@@ -213,7 +212,7 @@ public class SelfSupportControllerTest {
         UserDetails userDetails = getMockUser(false);
         when(selfSupportService.addGroupToSafe(eq(userDetails), eq("5PDrOhsy4ig8L3EpsJZSLAMg"), Mockito.any(SafeGroup.class))).thenReturn(responseEntityExpected);
 
-        mockMvc.perform(MockMvcRequestBuilders.post("/v3/sdb/group").requestAttr("UserDetails", userDetails)
+        mockMvc.perform(MockMvcRequestBuilders.post("/v2/ss/sdb/group").requestAttr("UserDetails", userDetails)
                 .header("vault-token", "5PDrOhsy4ig8L3EpsJZSLAMg")
                 .header("Content-Type", "application/json;charset=UTF-8")
                 .content(inputJson))
@@ -231,7 +230,7 @@ public class SelfSupportControllerTest {
         UserDetails userDetails = getMockUser(false);
         when(selfSupportService.removeGroupFromSafe(eq(userDetails), eq("5PDrOhsy4ig8L3EpsJZSLAMg"), Mockito.any(SafeGroup.class))).thenReturn(responseEntityExpected);
 
-        mockMvc.perform(MockMvcRequestBuilders.delete("/v3/sdb/group").requestAttr("UserDetails", userDetails)
+        mockMvc.perform(MockMvcRequestBuilders.delete("/v2/ss/sdb/group").requestAttr("UserDetails", userDetails)
                 .header("vault-token", "5PDrOhsy4ig8L3EpsJZSLAMg")
                 .header("Content-Type", "application/json;charset=UTF-8")
                 .content(inputJson))
@@ -249,7 +248,7 @@ public class SelfSupportControllerTest {
         UserDetails userDetails = getMockUser(false);
         when(selfSupportService.addAwsRoleToSafe(eq(userDetails),eq("5PDrOhsy4ig8L3EpsJZSLAMg"), Mockito.any(AWSRole.class))).thenReturn(responseEntityExpected);
 
-        mockMvc.perform(MockMvcRequestBuilders.post("/v3/sdb/role").requestAttr("UserDetails", userDetails)
+        mockMvc.perform(MockMvcRequestBuilders.post("/v2/ss/sdb/role").requestAttr("UserDetails", userDetails)
                 .header("vault-token", "5PDrOhsy4ig8L3EpsJZSLAMg")
                 .header("Content-Type", "application/json;charset=UTF-8")
                 .content(inputJson))
@@ -267,7 +266,7 @@ public class SelfSupportControllerTest {
         UserDetails userDetails = getMockUser(false);
         when(selfSupportService.removeAWSRoleFromSafe(eq(userDetails), eq("5PDrOhsy4ig8L3EpsJZSLAMg"), Mockito.any(AWSRole.class), eq(false))).thenReturn(responseEntityExpected);
 
-        mockMvc.perform(MockMvcRequestBuilders.delete("/v3/sdb/role").requestAttr("UserDetails", userDetails)
+        mockMvc.perform(MockMvcRequestBuilders.delete("/v2/ss/sdb/role").requestAttr("UserDetails", userDetails)
                 .header("vault-token", "5PDrOhsy4ig8L3EpsJZSLAMg")
                 .header("Content-Type", "application/json;charset=UTF-8")
                 .content(inputJson))
@@ -285,7 +284,7 @@ public class SelfSupportControllerTest {
         UserDetails userDetails = getMockUser(false);
         when(selfSupportService.removeAWSRoleFromSafe(eq(userDetails), eq("5PDrOhsy4ig8L3EpsJZSLAMg"), Mockito.any(AWSRole.class), eq(true))).thenReturn(responseEntityExpected);
 
-        mockMvc.perform(MockMvcRequestBuilders.put("/v3/sdb/role").requestAttr("UserDetails", userDetails)
+        mockMvc.perform(MockMvcRequestBuilders.put("/v2/ss/sdb/role").requestAttr("UserDetails", userDetails)
                 .header("vault-token", "5PDrOhsy4ig8L3EpsJZSLAMg")
                 .header("Content-Type", "application/json;charset=UTF-8")
                 .content(inputJson))
@@ -301,7 +300,7 @@ public class SelfSupportControllerTest {
         UserDetails userDetails = getMockUser(false);
         when(selfSupportService.associateApproletoSDB(eq(userDetails), eq("5PDrOhsy4ig8L3EpsJZSLAMg"), Mockito.any())).thenReturn(responseEntityExpected);
 
-        mockMvc.perform(MockMvcRequestBuilders.post("/v3/sdb/approle").requestAttr("UserDetails", userDetails)
+        mockMvc.perform(MockMvcRequestBuilders.post("/v2/ss/sdb/approle").requestAttr("UserDetails", userDetails)
                 .header("vault-token", "5PDrOhsy4ig8L3EpsJZSLAMg")
                 .header("Content-Type", "application/json;charset=UTF-8")
                 .content(inputJson))
@@ -317,7 +316,7 @@ public class SelfSupportControllerTest {
         UserDetails userDetails = getMockUser(false);
         when(selfSupportService.deleteApproleFromSDB(eq(userDetails), eq("5PDrOhsy4ig8L3EpsJZSLAMg"), Mockito.any())).thenReturn(responseEntityExpected);
 
-        mockMvc.perform(MockMvcRequestBuilders.delete("/v3/sdb/approle").requestAttr("UserDetails", userDetails)
+        mockMvc.perform(MockMvcRequestBuilders.delete("/v2/ss/sdb/approle").requestAttr("UserDetails", userDetails)
                 .header("vault-token", "5PDrOhsy4ig8L3EpsJZSLAMg")
                 .header("Content-Type", "application/json;charset=UTF-8")
                 .content(inputJson))
@@ -338,7 +337,7 @@ public class SelfSupportControllerTest {
         UserDetails userDetails = getMockUser(false);
         when(selfSupportService.createRole(eq(userDetails), eq("5PDrOhsy4ig8L3EpsJZSLAMg"),Mockito.any(AWSLoginRole.class), eq("users/mysafe01"))).thenReturn(responseEntityExpected);
 
-        mockMvc.perform(MockMvcRequestBuilders.post("/v3/auth/aws/role?path=users/mysafe01").requestAttr("UserDetails", userDetails)
+        mockMvc.perform(MockMvcRequestBuilders.post("/v2/ss/auth/aws/role?path=users/mysafe01").requestAttr("UserDetails", userDetails)
                 .header("vault-token", "5PDrOhsy4ig8L3EpsJZSLAMg")
                 .header("Content-Type", "application/json;charset=UTF-8")
                 .content(inputJson))
@@ -359,7 +358,7 @@ public class SelfSupportControllerTest {
         UserDetails userDetails = getMockUser(false);
         when(selfSupportService.updateRole(eq(userDetails), eq("5PDrOhsy4ig8L3EpsJZSLAMg"),Mockito.any(AWSLoginRole.class), eq("users/mysafe01"))).thenReturn(responseEntityExpected);
 
-        mockMvc.perform(MockMvcRequestBuilders.put("/v3/auth/aws/role?path=users/mysafe01").requestAttr("UserDetails", userDetails)
+        mockMvc.perform(MockMvcRequestBuilders.put("/v2/ss/auth/aws/role?path=users/mysafe01").requestAttr("UserDetails", userDetails)
                 .header("vault-token", "5PDrOhsy4ig8L3EpsJZSLAMg")
                 .header("Content-Type", "application/json;charset=UTF-8")
                 .content(inputJson))
@@ -384,7 +383,7 @@ public class SelfSupportControllerTest {
         UserDetails userDetails = getMockUser(false);
         when(selfSupportService.createIAMRole(eq(userDetails), eq("5PDrOhsy4ig8L3EpsJZSLAMg"), Mockito.any(AWSIAMRole.class), eq("users/mysafe01"))).thenReturn(responseEntityExpected);
 
-        mockMvc.perform(MockMvcRequestBuilders.post("/v3/auth/aws/iam/role?path=users/mysafe01").requestAttr("UserDetails", userDetails)
+        mockMvc.perform(MockMvcRequestBuilders.post("/v2/ss/auth/aws/iam/role?path=users/mysafe01").requestAttr("UserDetails", userDetails)
                 .header("vault-token", "5PDrOhsy4ig8L3EpsJZSLAMg")
                 .header("Content-Type", "application/json;charset=UTF-8")
                 .content(inputJson))
@@ -409,7 +408,7 @@ public class SelfSupportControllerTest {
         UserDetails userDetails = getMockUser(false);
         when(selfSupportService.updateIAMRole(eq(userDetails), eq("5PDrOhsy4ig8L3EpsJZSLAMg"), Mockito.any(AWSIAMRole.class), eq("users/mysafe01"))).thenReturn(responseEntityExpected);
 
-        mockMvc.perform(MockMvcRequestBuilders.put("/v3/auth/aws/iam/role?path=users/mysafe01").requestAttr("UserDetails", userDetails)
+        mockMvc.perform(MockMvcRequestBuilders.put("/v2/ss/auth/aws/iam/role?path=users/mysafe01").requestAttr("UserDetails", userDetails)
                 .header("vault-token", "5PDrOhsy4ig8L3EpsJZSLAMg")
                 .header("Content-Type", "application/json;charset=UTF-8")
                 .content(inputJson))
@@ -424,7 +423,7 @@ public class SelfSupportControllerTest {
         UserDetails userDetails = getMockUser(false);
         when(selfSupportService.getAllSafeNames(userDetails)).thenReturn(responseEntityExpected);
 
-        mockMvc.perform(MockMvcRequestBuilders.get("/v3/sdb/names").requestAttr("UserDetails", userDetails)
+        mockMvc.perform(MockMvcRequestBuilders.get("/v2/ss/sdb/names").requestAttr("UserDetails", userDetails)
                 .header("vault-token", "5PDrOhsy4ig8L3EpsJZSLAMg")
                 .header("Content-Type", "application/json;charset=UTF-8"))
                 .andExpect(status().isOk())
@@ -441,7 +440,7 @@ public class SelfSupportControllerTest {
         AppRole appRole = new AppRole("approle1", policies, true, "1", "100m", 0);
         String inputJson =new ObjectMapper().writeValueAsString(appRole);
 
-        mockMvc.perform(MockMvcRequestBuilders.post("/v3/auth/approle/role").requestAttr("UserDetails", userDetails)
+        mockMvc.perform(MockMvcRequestBuilders.post("/v2/ss/auth/approle/role").requestAttr("UserDetails", userDetails)
                 .header("vault-token", "5PDrOhsy4ig8L3EpsJZSLAMg")
                 .header("Content-Type", "application/json;charset=UTF-8")
                 .content(inputJson))
@@ -456,7 +455,21 @@ public class SelfSupportControllerTest {
         UserDetails userDetails = getMockUser(false);
         when(selfSupportService.deleteAppRole(eq("5PDrOhsy4ig8L3EpsJZSLAMg"), Mockito.any(AppRole.class), eq(userDetails))).thenReturn(responseEntityExpected);
 
-        mockMvc.perform(MockMvcRequestBuilders.delete("/v3/auth/approle/role/approle1").requestAttr("UserDetails", userDetails)
+        mockMvc.perform(MockMvcRequestBuilders.delete("/v2/ss/auth/approle/role/approle1").requestAttr("UserDetails", userDetails)
+                .header("vault-token", "5PDrOhsy4ig8L3EpsJZSLAMg")
+                .header("Content-Type", "application/json;charset=UTF-8"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString(responseJson)));
+    }
+
+    @Test
+    public void test_getsafes() throws Exception {
+        String responseJson = "{\"shared\":[{\"s2\":\"read\"}],\"users\":[{\"s1\":\"read\"},{\"s5\":\"read\"}]}";
+        ResponseEntity<String> responseEntityExpected =ResponseEntity.status(HttpStatus.OK).body(responseJson);
+        UserDetails userDetails = getMockUser(false);
+        when(selfSupportService.getSafes(userDetails, "5PDrOhsy4ig8L3EpsJZSLAMg")).thenReturn(responseEntityExpected);
+
+        mockMvc.perform(MockMvcRequestBuilders.get("/v2/ss/sdb/safes").requestAttr("UserDetails", userDetails)
                 .header("vault-token", "5PDrOhsy4ig8L3EpsJZSLAMg")
                 .header("Content-Type", "application/json;charset=UTF-8"))
                 .andExpect(status().isOk())

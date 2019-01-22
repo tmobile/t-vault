@@ -49,7 +49,7 @@
                 SessionStore.setItem("isManager", isManager);
                 SessionStore.setItem("accessSafes", JSON.stringify(accessSafes));
                 SessionStore.setItem("policies",policies);
-                $state.go('safes');
+                $state.go('safes', {'fromLogin':true});
             }
         }
         var error = function (size) {
@@ -82,6 +82,9 @@
           Authentication.authenticateUser(reqObjtobeSent).then(function(response){
               $scope.isLoadingData = false;
               if(UtilityService.ifAPIRequestSuccessful(response)){
+                  if(response.data != undefined){
+                    SessionStore.setItem("username",username);
+                  }
                   saveParametersInSessionStore(response.data);
               } else if (response.data && response.data.errors){
                 var errors = response.data.errors;

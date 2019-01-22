@@ -423,6 +423,12 @@
                                     }
                                     else {
                                         $scope.requestDataFrChangeSafe();
+                                        if (type === "users" && key === SessionStore.getItem("username")) {
+                                            return Modal.createModalWithController('stop.modal.html', {
+                                                title: 'Permission changed',
+                                                message: 'Due to security reasons, you need to log out and login again for the modified permissions to take effect.'
+                                              });
+                                        }
                                         var notification = UtilityService.getAParticularSuccessMessage('MESSAGE_SAFE_DELETE');
                                         Notifications.toast(key + "'s permission" + notification);
                                     }
@@ -980,6 +986,12 @@
                                         $scope.requestDataFrChangeSafe();
                                         var notification = UtilityService.getAParticularSuccessMessage('MESSAGE_ADD_SUCCESS');
                                         if (key !== null && key !== undefined) {
+                                            if (type === "users" && key === SessionStore.getItem("username")) {
+                                                return Modal.createModalWithController('stop.modal.html', {
+                                                    title: 'Permission changed',
+                                                    message: 'Due to security reasons, you need to log out and login again for the modified permissions to take effect.'
+                                                  });
+                                            }
                                             Notifications.toast(key + "'s permission" + notification);
                                         }
                                     }
