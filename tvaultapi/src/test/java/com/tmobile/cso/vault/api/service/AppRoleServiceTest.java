@@ -568,7 +568,7 @@ public class AppRoleServiceTest {
 
         String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
         String appRoleId = "selfservicesupportrole";
-        String responseJson = "{\"errors\":[\"Not authorized to delete this ApPRole\"]}";
+        String responseJson = "{\"errors\":[\"Access denied: no permission to remove this ApPRole\"]}";
         Response response =getMockResponse(HttpStatus.BAD_REQUEST, true, responseJson);
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body(responseJson);
         AppRole appRole = new AppRole();

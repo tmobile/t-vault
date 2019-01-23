@@ -184,7 +184,7 @@ public class  SelfSupportService {
 		else {
 			ResponseEntity<String> isAuthorized = isAuthorized(userDetails, path);
 			if (!isAuthorized.getStatusCode().equals(HttpStatus.OK)) {
-				return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Error checking user permission\"]}");
+				return isAuthorized.getStatusCode().equals(HttpStatus.BAD_REQUEST)?isAuthorized:ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Error checking user permission\"]}");
 			}
 			if (isAuthorized.getBody().equals(TVaultConstants.FALSE)) {
 				return ResponseEntity.status(HttpStatus.FORBIDDEN).body("{\"errors\":[\"Access denied: no permission to get this safe info\"]}");
@@ -307,7 +307,7 @@ public class  SelfSupportService {
 		else {
 			ResponseEntity<String> isAuthorized = isAuthorized(userDetails, safe.getPath());
 			if (!isAuthorized.getStatusCode().equals(HttpStatus.OK)) {
-				return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Error checking user permission\"]}");
+				return isAuthorized.getStatusCode().equals(HttpStatus.BAD_REQUEST)?isAuthorized:ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Error checking user permission\"]}");
 			}
 			if (isAuthorized.getBody().equals(TVaultConstants.FALSE)) {
 				return ResponseEntity.status(HttpStatus.FORBIDDEN).body("{\"errors\":[\"Access denied: no permission to update this safe\"]}");
@@ -333,7 +333,7 @@ public class  SelfSupportService {
 		else {
 			ResponseEntity<String> isAuthorized = isAuthorized(userDetails, path);
 			if (!isAuthorized.getStatusCode().equals(HttpStatus.OK)) {
-				return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Error checking user permission\"]}");
+				return isAuthorized.getStatusCode().equals(HttpStatus.BAD_REQUEST)?isAuthorized:ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Error checking user permission\"]}");
 			}
 			if (isAuthorized.getBody().equals(TVaultConstants.FALSE)) {
 				return ResponseEntity.status(HttpStatus.FORBIDDEN).body("{\"errors\":[\"Access denied: no permission to delete this safe\"]}");
@@ -358,7 +358,7 @@ public class  SelfSupportService {
 		else {
 			ResponseEntity<String> isAuthorized = isAuthorized(userDetails, safeGroup.getPath());
 			if (!isAuthorized.getStatusCode().equals(HttpStatus.OK)) {
-				return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Error checking user permission\"]}");
+				return isAuthorized.getStatusCode().equals(HttpStatus.BAD_REQUEST)?isAuthorized:ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Error checking user permission\"]}");
 			}
 			if (isAuthorized.getBody().equals(TVaultConstants.FALSE)) {
 				return ResponseEntity.status(HttpStatus.FORBIDDEN).body("{\"errors\":[\"Access denied: no permission to add group to the safe\"]}");
@@ -382,7 +382,7 @@ public class  SelfSupportService {
 		else {
 			ResponseEntity<String> isAuthorized = isAuthorized(userDetails, safeGroup.getPath());
 			if (!isAuthorized.getStatusCode().equals(HttpStatus.OK)) {
-				return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Error checking user permission\"]}");
+				return isAuthorized.getStatusCode().equals(HttpStatus.BAD_REQUEST)?isAuthorized:ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Error checking user permission\"]}");
 			}
 			if (isAuthorized.getBody().equals(TVaultConstants.FALSE)) {
 				return ResponseEntity.status(HttpStatus.FORBIDDEN).body("{\"errors\":[\"Access denied: no permission to remove group from the safe\"]}");
@@ -407,7 +407,7 @@ public class  SelfSupportService {
 		else {
 			ResponseEntity<String> isAuthorized = isAuthorized(userDetails, awsRole.getPath());
 			if (!isAuthorized.getStatusCode().equals(HttpStatus.OK)) {
-				return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Error checking user permission\"]}");
+				return isAuthorized.getStatusCode().equals(HttpStatus.BAD_REQUEST)?isAuthorized:ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Error checking user permission\"]}");
 			}
 			if (isAuthorized.getBody().equals(TVaultConstants.FALSE)) {
 				return ResponseEntity.status(HttpStatus.FORBIDDEN).body("{\"errors\":[\"Access denied: no permission to add AWS role to the safe\"]}");
@@ -433,7 +433,7 @@ public class  SelfSupportService {
 		else {
 			ResponseEntity<String> isAuthorized = isAuthorized(userDetails, awsRole.getPath());
 			if (!isAuthorized.getStatusCode().equals(HttpStatus.OK)) {
-				return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Error checking user permission\"]}");
+				return isAuthorized.getStatusCode().equals(HttpStatus.BAD_REQUEST)?isAuthorized:ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Error checking user permission\"]}");
 			}
 			if (isAuthorized.getBody().equals(TVaultConstants.FALSE)) {
 				return ResponseEntity.status(HttpStatus.FORBIDDEN).body("{\"errors\":[\"Access denied: no permission to remove AWS role from the safe\"]}");
@@ -464,7 +464,7 @@ public class  SelfSupportService {
 			String path = requestMap.get("path").toString();
 			ResponseEntity<String> isAuthorized = isAuthorized(userDetails, path);
 			if (!isAuthorized.getStatusCode().equals(HttpStatus.OK)) {
-				return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Error checking user permission\"]}");
+				return isAuthorized.getStatusCode().equals(HttpStatus.BAD_REQUEST)?isAuthorized:ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Error checking user permission\"]}");
 			}
 			if (isAuthorized.getBody().equals(TVaultConstants.FALSE)) {
 				return ResponseEntity.status(HttpStatus.FORBIDDEN).body("{\"errors\":[\"Access denied: no permission to add Approle to the safe\"]}");
@@ -495,7 +495,7 @@ public class  SelfSupportService {
 			String path = requestMap.get("path").toString();
 			ResponseEntity<String> isAuthorized = isAuthorized(userDetails, path);
 			if (!isAuthorized.getStatusCode().equals(HttpStatus.OK)) {
-				return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Error checking user permission\"]}");
+				return isAuthorized.getStatusCode().equals(HttpStatus.BAD_REQUEST)?isAuthorized:ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Error checking user permission\"]}");
 			}
 			if (isAuthorized.getBody().equals(TVaultConstants.FALSE)) {
 				return ResponseEntity.status(HttpStatus.FORBIDDEN).body("{\"errors\":[\"Access denied: no permission to remove approle from the safe\"]}");
@@ -522,7 +522,7 @@ public class  SelfSupportService {
 		else {
 			ResponseEntity<String> isAuthorized = isAuthorized(userDetails, path);
 			if (!isAuthorized.getStatusCode().equals(HttpStatus.OK)) {
-				return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Error checking user permission\"]}");
+				return isAuthorized.getStatusCode().equals(HttpStatus.BAD_REQUEST)?isAuthorized:ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Error checking user permission\"]}");
 			}
 			if (isAuthorized.getBody().equals(TVaultConstants.FALSE)) {
 				return ResponseEntity.status(HttpStatus.FORBIDDEN).body("{\"errors\":[\"Access denied: no permission to create AWS role\"]}");
@@ -549,7 +549,7 @@ public class  SelfSupportService {
 		else {
 			ResponseEntity<String> isAuthorized = isAuthorized(userDetails, path);
 			if (!isAuthorized.getStatusCode().equals(HttpStatus.OK)) {
-				return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Error checking user permission\"]}");
+				return isAuthorized.getStatusCode().equals(HttpStatus.BAD_REQUEST)?isAuthorized:ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Error checking user permission\"]}");
 			}
 			if (isAuthorized.getBody().equals(TVaultConstants.FALSE)) {
 				return ResponseEntity.status(HttpStatus.FORBIDDEN).body("{\"errors\":[\"Access denied: no permission to update AWS role\"]}");
@@ -576,7 +576,7 @@ public class  SelfSupportService {
 		else {
 			ResponseEntity<String> isAuthorized = isAuthorized(userDetails, path);
 			if (!isAuthorized.getStatusCode().equals(HttpStatus.OK)) {
-				return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Error checking user permission\"]}");
+				return isAuthorized.getStatusCode().equals(HttpStatus.BAD_REQUEST)?isAuthorized:ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Error checking user permission\"]}");
 			}
 			if (isAuthorized.getBody().equals(TVaultConstants.FALSE)) {
 				return ResponseEntity.status(HttpStatus.FORBIDDEN).body("{\"errors\":[\"Access denied: no permission to create AWS IAM role\"]}");
@@ -603,7 +603,7 @@ public class  SelfSupportService {
 		else {
 			ResponseEntity<String> isAuthorized = isAuthorized(userDetails, path);
 			if (!isAuthorized.getStatusCode().equals(HttpStatus.OK)) {
-				return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Error checking user permission\"]}");
+				return isAuthorized.getStatusCode().equals(HttpStatus.BAD_REQUEST)?isAuthorized:ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Error checking user permission\"]}");
 			}
 			if (isAuthorized.getBody().equals(TVaultConstants.FALSE)) {
 				return ResponseEntity.status(HttpStatus.FORBIDDEN).body("{\"errors\":[\"Access denied: no permission to update AWS IAM role\"]}");
@@ -671,7 +671,7 @@ public class  SelfSupportService {
 	 */
 	public ResponseEntity<String> getSafes(UserDetails userDetails, String token) {
 
-		String[] policies = policyUtils.getCurrentPolicies(token, userDetails.getUsername());
+		String[] policies = policyUtils.getCurrentPolicies(userDetails.getSelfSupportToken(), userDetails.getUsername());
 
 		List<Map<String, String>> safeListUsers = new ArrayList<>();
 		List<Map<String, String>> safeListShared = new ArrayList<>();
