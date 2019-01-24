@@ -894,4 +894,10 @@ public class ControllerUtilTest {
         Response actualResponse = ControllerUtil.canDeleteRole("role1", token, userDetails, TVaultConstants.APPROLE_METADATA_MOUNT_PATH);
         assertEquals(HttpStatus.UNAUTHORIZED, actualResponse.getHttpstatus());
     }
+
+    @Test
+    public void test_populateAppRoleMetaJson()  {
+        String json = ControllerUtil.populateAppRoleMetaJson("role1", "normalsuer");
+        assertEquals("{\"path\":\"metadata/approle/role1\"}", json);
+    }
 }

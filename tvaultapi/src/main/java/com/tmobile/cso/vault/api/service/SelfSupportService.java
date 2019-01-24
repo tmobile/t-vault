@@ -142,7 +142,7 @@ public class  SelfSupportService {
 	private boolean isSafeQuotaReached(String token, String username, String path) {
 		String[] policies = policyUtils.getCurrentPolicies(token, username);
 		String[] safes = safeUtils.getManagedSafes(policies, path);
-		if (safes.length == Integer.parseInt(safeQuota)) {
+		if (safes.length >= Integer.parseInt(safeQuota)) {
 			return true;
 		}
 		return false;
@@ -669,9 +669,12 @@ public class  SelfSupportService {
 	 * @param token
 	 * @return
 	 */
-	public ResponseEntity<String> getSafes(UserDetails userDetails, String token) {
-
-		String[] policies = policyUtils.getCurrentPolicies(userDetails.getSelfSupportToken(), userDetails.getUsername());
+	public ResponseEntity<String> getSafes(UserDetails userDetails, String userToken) {
+		String token = userDetails.getClientToken();
+		if (!userDetails.isAdmin()) {
+			token = userDetails.getSelfSupportToken();
+		}
+		String[] policies = policyUtils.getCurrentPolicies(token, userDetails.getUsername());
 
 		List<Map<String, String>> safeListUsers = new ArrayList<>();
 		List<Map<String, String>> safeListShared = new ArrayList<>();
