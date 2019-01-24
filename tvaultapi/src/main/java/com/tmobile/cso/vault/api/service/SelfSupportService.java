@@ -142,7 +142,7 @@ public class  SelfSupportService {
 	private boolean isSafeQuotaReached(String token, String username, String path) {
 		String[] policies = policyUtils.getCurrentPolicies(token, username);
 		String[] safes = safeUtils.getManagedSafes(policies, path);
-		if (safes.length == Integer.parseInt(safeQuota)) {
+		if (safes.length >= Integer.parseInt(safeQuota)) {
 			return true;
 		}
 		return false;
