@@ -46,7 +46,6 @@ import com.tmobile.cso.vault.api.utils.JSONUtil;
 import com.tmobile.cso.vault.api.utils.PolicyUtils;
 import com.tmobile.cso.vault.api.utils.SafeUtils;
 
-import static com.tmobile.cso.vault.api.controller.ControllerUtil.reqProcessor;
 
 @Component
 public class  SelfSupportService {

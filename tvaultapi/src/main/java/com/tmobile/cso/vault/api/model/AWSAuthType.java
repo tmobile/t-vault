@@ -30,12 +30,6 @@ public enum AWSAuthType {
 	public String getAuth_type() {
 		return auth_type;
 	}
-	/**
-	 * @param auth_type the auth_type to set
-	 */
-	public void setAuth_type(String auth_type) {
-		this.auth_type = auth_type;
-	}
-	
+
 	
 }

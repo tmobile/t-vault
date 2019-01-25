@@ -63,7 +63,7 @@ import com.tmobile.cso.vault.api.utils.ThreadLocalContext;
 @Component
 public final class ControllerUtil {
 	
-	public static RequestProcessor reqProcessor;
+	private static RequestProcessor reqProcessor;
 	public static final Logger log = LogManager.getLogger(ControllerUtil.class);
 
 	@Value("${vault.auth.method}")
@@ -100,6 +100,14 @@ public final class ControllerUtil {
 	@Autowired(required = true)
 	public void setreqProcessor(RequestProcessor reqProcessor) {
 		ControllerUtil.reqProcessor = reqProcessor;
+	}
+
+	/**
+	 * Method to get requestProcessor
+	 * @return
+	 */
+	public static RequestProcessor getReqProcessor() {
+		return ControllerUtil.reqProcessor;
 	}
 
 	public static void recursivedeletesdb(String jsonstr,String token,  Response responseVO){

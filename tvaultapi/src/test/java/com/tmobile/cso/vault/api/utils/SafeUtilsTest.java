@@ -57,7 +57,7 @@ public class SafeUtilsTest {
         Whitebox.setInternalState(ControllerUtil.class, "log", LogManager.getLogger(ControllerUtil.class));
         Whitebox.setInternalState(ControllerUtil.class, "reqProcessor", reqProcessor);
         when(JSONUtil.getJSON(Mockito.any(ImmutableMap.class))).thenReturn("log");
-
+        when(ControllerUtil.getReqProcessor()).thenReturn(reqProcessor);
         Map<String, String> currentMap = new HashMap<>();
         currentMap.put("apiurl", "http://localhost:8080/vault/v2/sdb");
         currentMap.put("user", "");
@@ -69,7 +69,7 @@ public class SafeUtilsTest {
         response.setHttpstatus(status);
         response.setSuccess(success);
         response.setResponse("");
-        if (expectedBody!="") {
+        if (expectedBody != "") {
             response.setResponse(expectedBody);
         }
         return response;
@@ -119,7 +119,7 @@ public class SafeUtilsTest {
 
         when(ControllerUtil.getSafeType("users/ert")).thenReturn("users");
         when(ControllerUtil.getSafeName("users/ert")).thenReturn("ert");
-        when(ControllerUtil.reqProcessor.process("/sdb","{\"path\":\"metadata/users/ert\"}","5PDrOhsy4ig8L3EpsJZSLAMg")).thenReturn(response);
+        when(ControllerUtil.getReqProcessor().process("/sdb", "{\"path\":\"metadata/users/ert\"}", "5PDrOhsy4ig8L3EpsJZSLAMg")).thenReturn(response);
         boolean canAdd = safeUtils.canAddOrRemoveUser(userDetails, safeUser, "addUser");
         assertTrue(canAdd);
     }
@@ -130,7 +130,7 @@ public class SafeUtilsTest {
 
         when(ControllerUtil.getSafeType("users/ert")).thenReturn("users");
         when(ControllerUtil.getSafeName("users/ert")).thenReturn("ert");
-        when(ControllerUtil.reqProcessor.process("/sdb","{\"path\":\"metadata/users/ert\"}","5PDrOhsy4ig8L3EpsJZSLAMg")).thenReturn(response);
+        when(ControllerUtil.getReqProcessor().process("/sdb", "{\"path\":\"metadata/users/ert\"}", "5PDrOhsy4ig8L3EpsJZSLAMg")).thenReturn(response);
         Safe safe = safeUtils.getSafeMetaData("5PDrOhsy4ig8L3EpsJZSLAMg", "users", "ert");
         assertNull(safe);
     }
@@ -147,7 +147,7 @@ public class SafeUtilsTest {
 
         when(ControllerUtil.getSafeType("users/ert")).thenReturn("users");
         when(ControllerUtil.getSafeName("users/ert")).thenReturn("ert");
-        when(ControllerUtil.reqProcessor.process("/sdb","{\"path\":\"metadata/users/ert\"}","5PDrOhsy4ig8L3EpsJZSLAMg")).thenReturn(response);
+        when(ControllerUtil.getReqProcessor().process("/sdb", "{\"path\":\"metadata/users/ert\"}", "5PDrOhsy4ig8L3EpsJZSLAMg")).thenReturn(response);
         boolean canAdd = safeUtils.canAddOrRemoveUser(userDetails, safeUser, "addUser");
         assertTrue(canAdd);
     }
@@ -164,7 +164,7 @@ public class SafeUtilsTest {
 
         when(ControllerUtil.getSafeType("users/ert")).thenReturn("users");
         when(ControllerUtil.getSafeName("users/ert")).thenReturn("ert");
-        when(ControllerUtil.reqProcessor.process("/sdb","{\"path\":\"metadata/users/ert\"}","5PDrOhsy4ig8L3EpsJZSLAMg")).thenReturn(response);
+        when(ControllerUtil.getReqProcessor().process("/sdb", "{\"path\":\"metadata/users/ert\"}", "5PDrOhsy4ig8L3EpsJZSLAMg")).thenReturn(response);
         boolean canAdd = safeUtils.canAddOrRemoveUser(userDetails, safeUser, "addUser");
         assertFalse(canAdd);
     }
@@ -181,7 +181,7 @@ public class SafeUtilsTest {
 
         when(ControllerUtil.getSafeType("users/ert")).thenReturn("users");
         when(ControllerUtil.getSafeName("users/ert")).thenReturn("ert");
-        when(ControllerUtil.reqProcessor.process("/sdb","{\"path\":\"metadata/users/ert\"}","5PDrOhsy4ig8L3EpsJZSLAMg")).thenReturn(response);
+        when(ControllerUtil.getReqProcessor().process("/sdb", "{\"path\":\"metadata/users/ert\"}", "5PDrOhsy4ig8L3EpsJZSLAMg")).thenReturn(response);
         boolean canAdd = safeUtils.canAddOrRemoveUser(userDetails, safeUser, "addUser");
         assertFalse(canAdd);
     }
@@ -198,7 +198,7 @@ public class SafeUtilsTest {
 
         when(ControllerUtil.getSafeType("users/ert")).thenReturn("users");
         when(ControllerUtil.getSafeName("users/ert")).thenReturn("ert");
-        when(ControllerUtil.reqProcessor.process("/sdb","{\"path\":\"metadata/users/ert\"}","5PDrOhsy4ig8L3EpsJZSLAMg")).thenReturn(response);
+        when(ControllerUtil.getReqProcessor().process("/sdb", "{\"path\":\"metadata/users/ert\"}", "5PDrOhsy4ig8L3EpsJZSLAMg")).thenReturn(response);
         boolean canAdd = safeUtils.canAddOrRemoveUser(userDetails, safeUser, "addUser");
         assertTrue(canAdd);
     }
@@ -215,7 +215,7 @@ public class SafeUtilsTest {
 
         when(ControllerUtil.getSafeType("users/ert")).thenReturn("users");
         when(ControllerUtil.getSafeName("users/ert")).thenReturn("ert");
-        when(ControllerUtil.reqProcessor.process("/sdb","{\"path\":\"metadata/users/ert\"}","5PDrOhsy4ig8L3EpsJZSLAMg")).thenReturn(response);
+        when(ControllerUtil.getReqProcessor().process("/sdb", "{\"path\":\"metadata/users/ert\"}", "5PDrOhsy4ig8L3EpsJZSLAMg")).thenReturn(response);
         boolean canAdd = safeUtils.canAddOrRemoveUser(userDetails, safeUser, "addUser");
         assertTrue(canAdd);
     }
@@ -232,7 +232,7 @@ public class SafeUtilsTest {
 
         when(ControllerUtil.getSafeType("users/ert")).thenReturn("users");
         when(ControllerUtil.getSafeName("users/ert")).thenReturn("ert");
-        when(ControllerUtil.reqProcessor.process("/sdb","{\"path\":\"metadata/users/ert\"}","5PDrOhsy4ig8L3EpsJZSLAMg")).thenReturn(response);
+        when(ControllerUtil.getReqProcessor().process("/sdb", "{\"path\":\"metadata/users/ert\"}", "5PDrOhsy4ig8L3EpsJZSLAMg")).thenReturn(response);
         boolean canAdd = safeUtils.canAddOrRemoveUser(userDetails, safeUser, "addUser");
         assertFalse(canAdd);
     }
@@ -249,7 +249,7 @@ public class SafeUtilsTest {
 
         when(ControllerUtil.getSafeType("users/ert")).thenReturn("users");
         when(ControllerUtil.getSafeName("users/ert")).thenReturn("ert");
-        when(ControllerUtil.reqProcessor.process("/sdb","{\"path\":\"metadata/users/ert\"}","5PDrOhsy4ig8L3EpsJZSLAMg")).thenReturn(response);
+        when(ControllerUtil.getReqProcessor().process("/sdb", "{\"path\":\"metadata/users/ert\"}", "5PDrOhsy4ig8L3EpsJZSLAMg")).thenReturn(response);
         boolean canAdd = safeUtils.canAddOrRemoveUser(userDetails, safeUser, "addUser");
         assertTrue(canAdd);
     }

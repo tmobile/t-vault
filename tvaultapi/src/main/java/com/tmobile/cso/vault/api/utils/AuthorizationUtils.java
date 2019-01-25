@@ -170,7 +170,7 @@ public class AuthorizationUtils {
 			return null;
 		}
 		
-		Response response = ControllerUtil.reqProcessor.process("/access","{\"accessid\":\""+policyName+"\"}",token);
+		Response response = ControllerUtil.getReqProcessor().process("/access","{\"accessid\":\""+policyName+"\"}",token);
 		String policyJson = response.getResponse().toString();
 		//TODO: Properly handle null/empty cases...
 		LinkedHashMap<String, LinkedHashMap<String, Object>> capabilitiesMap = (LinkedHashMap<String, LinkedHashMap<String, Object>>) ControllerUtil.parseJson(ControllerUtil.parseJson(policyJson).get("rules").toString()).get("path");
