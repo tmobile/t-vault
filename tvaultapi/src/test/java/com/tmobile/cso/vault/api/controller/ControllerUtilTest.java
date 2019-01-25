@@ -900,4 +900,17 @@ public class ControllerUtilTest {
         String json = ControllerUtil.populateAppRoleMetaJson("role1", "normalsuer");
         assertEquals("{\"path\":\"metadata/approle/role1\"}", json);
     }
+
+    @Test
+    public void test_getPoliciesAsListFromJson() {
+        List<String> policyList = new ArrayList<>();;
+        List<String> expectedList = new ArrayList<>();
+        expectedList.add("s_shared_mysafe01");
+        try {
+            policyList = ControllerUtil.getPoliciesAsListFromJson(new ObjectMapper(), "{\"data\":{\"policies\":\"s_shared_mysafe01\"}}");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        assertEquals(expectedList, policyList);
+    }
 }

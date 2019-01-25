@@ -18,10 +18,7 @@
 package com.tmobile.cso.vault.api.service;
 
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import com.tmobile.cso.vault.api.common.TVaultConstants;
 import com.tmobile.cso.vault.api.model.*;
@@ -696,17 +693,16 @@ public class  SafesService {
 					build()));
 			
 			String responseJson="";
-
-
-			String policies ="";
 			String groups="";
-			String currentpolicies ="";
+			List<String> policies = new ArrayList<>();
+			List<String> currentpolicies = new ArrayList<>();
 
 			if(HttpStatus.OK.equals(userResponse.getHttpstatus())){
 				responseJson = userResponse.getResponse();	
 				try {
 					ObjectMapper objMapper = new ObjectMapper();
-					currentpolicies = ControllerUtil.getPoliciesAsStringFromJson(objMapper, responseJson);
+					//currentpolicies = ControllerUtil.getPoliciesAsStringFromJson(objMapper, responseJson);
+					currentpolicies = ControllerUtil.getPoliciesAsListFromJson(objMapper, responseJson);
 					if (!(TVaultConstants.USERPASS.equals(vaultAuthMethod))) {
 						groups =objMapper.readTree(responseJson).get("data").get("groups").asText();
 					}
@@ -723,16 +719,19 @@ public class  SafesService {
 				/*if (currentpolicies.contains("s_"+folders[0].toLowerCase()+"_"+folders[1])) {
 					return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Owner Permission cannot be changed\"]}");
 				}*/
-				policies = currentpolicies;
-				policies = policies.replaceAll(r_policy, "");
-				policies = policies.replaceAll(w_policy, "");
-				policies = policies.replaceAll(d_policy, "");
+				policies.addAll(currentpolicies);
+				policies.remove(r_policy);
+				policies.remove(w_policy);
+				policies.remove(d_policy);
 				//policies = policies.replaceAll(s_policy, "");
-				policies = policies+","+policy;
+				policies.add(policy);
 			}else{
 				// New user to be configured
-				policies = policy;
+				policies.add(policy);
 			}
+			String policiesString = StringUtils.join(policies, ",");
+			String currentpoliciesString = StringUtils.join(currentpolicies, ",");
+
 			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 					put(LogMessage.ACTION, "Add User to SDB").
@@ -741,10 +740,10 @@ public class  SafesService {
 					build()));
 			Response ldapConfigresponse;
 			if (TVaultConstants.USERPASS.equals(vaultAuthMethod)) {
-				ldapConfigresponse = ControllerUtil.configureUserpassUser(userName,policies,token);
+				ldapConfigresponse = ControllerUtil.configureUserpassUser(userName,policiesString,token);
 			}
 			else {
-				ldapConfigresponse = ControllerUtil.configureLDAPUser(userName,policies,groups,token);
+				ldapConfigresponse = ControllerUtil.configureLDAPUser(userName,policiesString,groups,token);
 			}
 
 			if(ldapConfigresponse.getHttpstatus().equals(HttpStatus.NO_CONTENT)){ 
@@ -791,10 +790,10 @@ public class  SafesService {
 								put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 								build()));
 						if (TVaultConstants.USERPASS.equals(vaultAuthMethod)) {
-							ldapConfigresponse = ControllerUtil.configureUserpassUser(userName,currentpolicies,token);
+							ldapConfigresponse = ControllerUtil.configureUserpassUser(userName,currentpoliciesString,token);
 						}
 						else {
-							ldapConfigresponse = ControllerUtil.configureLDAPUser(userName,currentpolicies,groups,token);
+							ldapConfigresponse = ControllerUtil.configureLDAPUser(userName,currentpoliciesString,groups,token);
 						}
 						if(ldapConfigresponse.getHttpstatus().equals(HttpStatus.NO_CONTENT)){
 							log.debug("Reverting user policy uupdate");
@@ -900,27 +899,29 @@ public class  SafesService {
 			Response getGrpResp = reqProcessor.process("/auth/ldap/groups","{\"groupname\":\""+groupName+"\"}",token);
 			String responseJson="";
 
-			String policies ="";
-			String currentpolicies ="";
+			List<String> policies = new ArrayList<>();
+			List<String> currentpolicies = new ArrayList<>();
 
 			if(HttpStatus.OK.equals(getGrpResp.getHttpstatus())){
 				responseJson = getGrpResp.getResponse();	
 				try {
-					currentpolicies = ControllerUtil.getPoliciesAsStringFromJson(objMapper, responseJson);
+					//currentpolicies = ControllerUtil.getPoliciesAsStringFromJson(objMapper, responseJson);
+					currentpolicies = ControllerUtil.getPoliciesAsListFromJson(objMapper, responseJson);
 				} catch (IOException e) {
 					log.error(e);
 				}
-				policies = currentpolicies;
-				policies = policies.replaceAll(r_policy, "");
-				policies = policies.replaceAll(w_policy, "");
-				policies = policies.replaceAll(d_policy, "");
-				policies = policies+","+policy;
+				policies.addAll(currentpolicies);
+				policies.remove(r_policy);
+				policies.remove(w_policy);
+				policies.remove(d_policy);
+				policies.add(policy);
 			}else{
 				// New user to be configured
-				policies = policy;
+				policies.add(policy);
 			}
-
-			Response ldapConfigresponse = ControllerUtil.configureLDAPGroup(groupName,policies,token);
+			String policiesString = StringUtils.join(policies, ",");
+			String currentpoliciesString = StringUtils.join(currentpolicies, ",");
+			Response ldapConfigresponse = ControllerUtil.configureLDAPGroup(groupName,policiesString,token);
 
 			if(ldapConfigresponse.getHttpstatus().equals(HttpStatus.NO_CONTENT)){
 				Map<String,String> params = new HashMap<String,String>();
@@ -976,7 +977,7 @@ public class  SafesService {
 								put(LogMessage.STATUS, (null!=metadataResponse)?metadataResponse.getHttpstatus().toString():TVaultConstants.EMPTY).
 								put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 								build()));
-						ldapConfigresponse = ControllerUtil.configureLDAPGroup(groupName,currentpolicies,token);
+						ldapConfigresponse = ControllerUtil.configureLDAPGroup(groupName,currentpoliciesString,token);
 						if(ldapConfigresponse.getHttpstatus().equals(HttpStatus.NO_CONTENT)){
 							log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 									put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
@@ -1074,31 +1075,36 @@ public class  SafesService {
 				userResponse = reqProcessor.process("/auth/ldap/users","{\"username\":\""+userName+"\"}",token);
 			}
 			String responseJson="";
-			String policies ="";
 			String groups="";
-			String currentpolicies ="";
+			List<String> policies = new ArrayList<>();
+			List<String> currentpolicies = new ArrayList<>();
 
 			if(HttpStatus.OK.equals(userResponse.getHttpstatus())){
 				responseJson = userResponse.getResponse();	
 				try {
-					currentpolicies = ControllerUtil.getPoliciesAsStringFromJson(objMapper, responseJson);
+					//currentpolicies = ControllerUtil.getPoliciesAsStringFromJson(objMapper, responseJson);
+					currentpolicies = ControllerUtil.getPoliciesAsListFromJson(objMapper, responseJson);
 					if (!(TVaultConstants.USERPASS.equals(vaultAuthMethod))) {
 						groups =objMapper.readTree(responseJson).get("data").get("groups").asText();
 					}
 				} catch (IOException e) {
 					log.error(e);
 				}
-				policies = currentpolicies;
-				policies = policies.replaceAll(r_policy, "");
-				policies = policies.replaceAll(w_policy, "");
-				policies = policies.replaceAll(d_policy, "");
+				policies.addAll(currentpolicies);
+				policies.remove(r_policy);
+				policies.remove(w_policy);
+				policies.remove(d_policy);
+
+				String policiesString = StringUtils.join(policies, ",");
+				String currentpoliciesString = StringUtils.join(currentpolicies, ",");
+
 				//policies = policies.replaceAll(s_policy, "");
 				Response ldapConfigresponse;
 				if (TVaultConstants.USERPASS.equals(vaultAuthMethod)) {
-					ldapConfigresponse = ControllerUtil.configureUserpassUser(userName,policies,token);
+					ldapConfigresponse = ControllerUtil.configureUserpassUser(userName,policiesString,token);
 				}
 				else {
-					ldapConfigresponse = ControllerUtil.configureLDAPUser(userName,policies,groups,token);
+					ldapConfigresponse = ControllerUtil.configureLDAPUser(userName,policiesString,groups,token);
 				}
 				if(ldapConfigresponse.getHttpstatus().equals(HttpStatus.NO_CONTENT)){
 					Map<String,String> params = new HashMap<String,String>();
@@ -1134,10 +1140,10 @@ public class  SafesService {
 							log.debug("Meta data update failed");
 							log.debug((metadataResponse!=null)?metadataResponse.getResponse():TVaultConstants.EMPTY);
 							if (TVaultConstants.USERPASS.equals(vaultAuthMethod)) {
-								ldapConfigresponse = ControllerUtil.configureUserpassUser(userName,currentpolicies,token);
+								ldapConfigresponse = ControllerUtil.configureUserpassUser(userName,currentpoliciesString,token);
 							}
 							else {
-								ldapConfigresponse = ControllerUtil.configureLDAPUser(userName,currentpolicies,groups,token);
+								ldapConfigresponse = ControllerUtil.configureLDAPUser(userName,currentpoliciesString,groups,token);
 							}
 							if(ldapConfigresponse.getHttpstatus().equals(HttpStatus.NO_CONTENT)){
 								log.debug("Reverting user policy uupdate");
@@ -1225,21 +1231,24 @@ public class  SafesService {
 			}
 			Response userResponse = reqProcessor.process("/auth/ldap/groups","{\"groupname\":\""+groupName+"\"}",token);
 			String responseJson="";
-			String policies ="";
-			String currentpolicies ="";
+			List<String> policies = new ArrayList<>();
+			List<String> currentpolicies = new ArrayList<>();
 
 			if(HttpStatus.OK.equals(userResponse.getHttpstatus())){
 				responseJson = userResponse.getResponse();	
 				try {
-					currentpolicies = ControllerUtil.getPoliciesAsStringFromJson(objMapper, responseJson);
+					//currentpolicies = ControllerUtil.getPoliciesAsStringFromJson(objMapper, responseJson);
+					currentpolicies = ControllerUtil.getPoliciesAsListFromJson(objMapper, responseJson);
 				} catch (IOException e) {
 					log.error(e);
 				}
-				policies = currentpolicies;
-				policies = policies.replaceAll(r_policy, "");
-				policies = policies.replaceAll(w_policy, "");
-				policies = policies.replaceAll(d_policy, "");
-				Response ldapConfigresponse = ControllerUtil.configureLDAPGroup(groupName,policies,token);
+				policies.addAll(currentpolicies);
+				policies.remove(r_policy);
+				policies.remove(w_policy);
+				policies.remove(d_policy);
+				String policiesString = StringUtils.join(policies, ",");
+				String currentpoliciesString = StringUtils.join(currentpolicies, ",");
+				Response ldapConfigresponse = ControllerUtil.configureLDAPGroup(groupName,policiesString,token);
 				if(ldapConfigresponse.getHttpstatus().equals(HttpStatus.NO_CONTENT)){ 
 					Map<String,String> params = new HashMap<String,String>();
 					params.put("type", "groups");
@@ -1273,7 +1282,7 @@ public class  SafesService {
 						else {
 							log.debug("Meta data update failed");
 							log.debug((null!=metadataResponse)?metadataResponse.getResponse():TVaultConstants.EMPTY);
-							ldapConfigresponse = ControllerUtil.configureLDAPGroup(groupName,currentpolicies,token);
+							ldapConfigresponse = ControllerUtil.configureLDAPGroup(groupName,currentpoliciesString,token);
 							if(ldapConfigresponse.getHttpstatus().equals(HttpStatus.NO_CONTENT)){
 								log.debug("Reverting user policy update");
 								return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"messages\":[\"Group configuration failed.Please try again\"]}");

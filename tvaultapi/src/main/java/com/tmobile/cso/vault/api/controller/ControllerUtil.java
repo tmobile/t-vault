@@ -101,7 +101,7 @@ public final class ControllerUtil {
 	public void setreqProcessor(RequestProcessor reqProcessor) {
 		ControllerUtil.reqProcessor = reqProcessor;
 	}
-	
+
 	public static void recursivedeletesdb(String jsonstr,String token,  Response responseVO){
 		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
@@ -691,7 +691,31 @@ public final class ControllerUtil {
 		}
 		return currentpolicies;
 	}
-	
+
+	/**
+	 * Convenient method to get policies as list
+	 * @param objMapper
+	 * @param policyJson
+	 * @return
+	 * @throws JsonProcessingException
+	 * @throws IOException
+	 */
+	public static List<String> getPoliciesAsListFromJson(ObjectMapper objMapper, String policyJson) throws JsonProcessingException, IOException{
+		List<String> currentpolicies = new ArrayList<>();
+		JsonNode policiesNode = objMapper.readTree(policyJson).get("data").get("policies");
+		if (policiesNode.isContainerNode()) {
+			Iterator<JsonNode> elementsIterator = policiesNode.elements();
+			while (elementsIterator.hasNext()) {
+				JsonNode element = elementsIterator.next();
+				currentpolicies.add(element.asText());
+			}
+		}
+		else {
+			currentpolicies.add(policiesNode.asText());
+		}
+		return currentpolicies;
+	}
+
 	public static void updateUserPolicyAssociationOnSDBDelete(String sdb,Map<String,String> acessInfo,String token){
 		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
@@ -736,14 +760,16 @@ public final class ControllerUtil {
 					log.debug ("Inside non - userpass");
 					userResponse = reqProcessor.process("/auth/ldap/users","{\"username\":\""+userName+"\"}",token);
 				}	
-				String responseJson="";	
-				String policies ="";
+				String responseJson="";
 				String groups="";
-				String currentpolicies ="";
+				List<String> policies = new ArrayList<>();
+				List<String> currentpolicies = new ArrayList<>();
+
 				if(HttpStatus.OK.equals(userResponse.getHttpstatus())){
 					responseJson = userResponse.getResponse();	
 					try {
-						currentpolicies = getPoliciesAsStringFromJson(objMapper, responseJson);
+						//currentpolicies = getPoliciesAsStringFromJson(objMapper, responseJson);
+						currentpolicies = ControllerUtil.getPoliciesAsListFromJson(objMapper, responseJson);
 						if (!(TVaultConstants.USERPASS.equals(vaultAuthMethod))) {
 							groups = objMapper.readTree(responseJson).get("data").get("groups").asText();
 						}
@@ -756,11 +782,14 @@ public final class ControllerUtil {
 								put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 								build()));
 					}
-					policies = currentpolicies;
-					policies = policies.replaceAll(r_policy, "");
-					policies = policies.replaceAll(w_policy, "");
-					policies = policies.replaceAll(d_policy, "");
-					policies = policies.replaceAll(s_policy, "");
+					policies.addAll(currentpolicies);
+					policies.remove(r_policy);
+					policies.remove(w_policy);
+					policies.remove(d_policy);
+					policies.remove(s_policy);
+
+					String policiesString = org.apache.commons.lang3.StringUtils.join(policies, ",");
+
 					log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 							put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 							put(LogMessage.ACTION, "updateUserPolicyAssociationOnSDBDelete").
@@ -769,11 +798,11 @@ public final class ControllerUtil {
 							build()));
 					if (TVaultConstants.USERPASS.equals(vaultAuthMethod)) {
 						log.debug ("Inside userpass");
-						ControllerUtil.configureUserpassUser(userName,policies,token);
+						ControllerUtil.configureUserpassUser(userName,policiesString,token);
 					}
 					else {
 						log.debug ("Inside non-userpass");
-						ControllerUtil.configureLDAPUser(userName,policies,groups,token);
+						ControllerUtil.configureLDAPUser(userName,policiesString,groups,token);
 					}
 				}
 				
@@ -816,12 +845,13 @@ public final class ControllerUtil {
 			for(String groupName : groups){
 				Response response = reqProcessor.process("/auth/ldap/groups","{\"groupname\":\""+groupName+"\"}",token);
 				String responseJson=TVaultConstants.EMPTY;
-				String policies =TVaultConstants.EMPTY;
-				String currentpolicies =TVaultConstants.EMPTY;
+				List<String> policies = new ArrayList<>();
+				List<String> currentpolicies = new ArrayList<>();
 				if(HttpStatus.OK.equals(response.getHttpstatus())){
 					responseJson = response.getResponse();	
 					try {
-						currentpolicies = getPoliciesAsStringFromJson(objMapper, responseJson);
+						//currentpolicies = getPoliciesAsStringFromJson(objMapper, responseJson);
+						currentpolicies = ControllerUtil.getPoliciesAsListFromJson(objMapper, responseJson);
 					} catch (IOException e) {
 						log.error(e);
 						log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
@@ -831,17 +861,18 @@ public final class ControllerUtil {
 								put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 								build()));
 					}
-					policies = currentpolicies;
-					policies = policies.replaceAll(r_policy, "");
-					policies = policies.replaceAll(w_policy, "");
-					policies = policies.replaceAll(d_policy, "");
+					policies.addAll(currentpolicies);
+					policies.remove(r_policy);
+					policies.remove(w_policy);
+					policies.remove(d_policy);
+					String policiesString = org.apache.commons.lang3.StringUtils.join(policies, ",");
 					log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 							put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 							put(LogMessage.ACTION, "updateUserPolicyAssociationOnSDBDelete").
 							put(LogMessage.MESSAGE, String.format ("Current policies [%s]", policies )).
 							put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 							build()));
-					ControllerUtil.configureLDAPGroup(groupName,policies,token);
+					ControllerUtil.configureLDAPGroup(groupName,policiesString,token);
 				}
 			}
 		}
