@@ -158,7 +158,7 @@ public class TokenUtils {
 	 * @param token
 	 */
 	public void revokePowerToken(String token) {
-		Response response = ControllerUtil.reqProcessor.process("/auth/tvault/revoke","{}", token);
+		Response response = ControllerUtil.getReqProcessor().process("/auth/tvault/revoke","{}", token);
 		if (HttpStatus.NO_CONTENT.equals(response.getHttpstatus()) || HttpStatus.OK.equals(response.getHttpstatus())) {
 			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).

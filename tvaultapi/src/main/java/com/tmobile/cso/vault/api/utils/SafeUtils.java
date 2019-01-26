@@ -174,7 +174,7 @@ public class SafeUtils {
 				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 				build()));
 		// Elevation is required in case user does not have access to the path.
-		Response response = ControllerUtil.reqProcessor.process("/sdb","{\"path\":\""+_path+"\"}",token);
+		Response response = ControllerUtil.getReqProcessor().process("/sdb","{\"path\":\""+_path+"\"}",token);
 		// Create the Safe bean
 		Safe safe = null;
 		if(HttpStatus.OK.equals(response.getHttpstatus())){

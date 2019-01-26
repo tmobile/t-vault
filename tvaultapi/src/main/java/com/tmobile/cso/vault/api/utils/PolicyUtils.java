@@ -88,10 +88,10 @@ public class PolicyUtils {
 		Response userResponse;
 		String[] policies = null;
 		if (TVaultConstants.USERPASS.equals(vaultAuthMethod)) {
-			userResponse = ControllerUtil.reqProcessor.process("/auth/userpass/read","{\"username\":\""+username+"\"}",token);	
+			userResponse = ControllerUtil.getReqProcessor().process("/auth/userpass/read","{\"username\":\""+username+"\"}",token);
 		}
 		else {
-			userResponse = ControllerUtil.reqProcessor.process("/auth/ldap/users","{\"username\":\""+username+"\"}",token);
+			userResponse = ControllerUtil.getReqProcessor().process("/auth/ldap/users","{\"username\":\""+username+"\"}",token);
 		}
 		if(HttpStatus.OK.equals(userResponse.getHttpstatus())){
 			String responseJson = userResponse.getResponse();
