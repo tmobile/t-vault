@@ -83,9 +83,13 @@
 
 
         $scope.goBack = function () {
+            var targetState = 'manage';
+            if (SessionStore.getItem("isAdmin") === 'true') {
+                targetState = 'admin';
+            }
             if ($scope.goBackToAdmin !== true) {
                 if ($rootScope.showDetails === true) {
-                    $state.go('admin');
+                    $state.go(targetState);
                 }
                 else {
                     $rootScope.showDetails = true;
@@ -97,7 +101,7 @@
                 if ($rootScope.lastVisited) {
                     $state.go($rootScope.lastVisited);
                 } else
-                    $state.go('admin');
+                    $state.go(targetState);
             }
         }
         $scope.error = function (size) {
@@ -710,7 +714,7 @@
                                     $scope.safe = {
                                         name: decodeURIComponent(object.name) || $stateParams.safeObject.safe,
                                         owner: decodeURIComponent(object.owner) || $stateParams.safeObject.owner || '',
-                                        description: decodeURIComponent(object.description) || $stateParams.safeObject.description || '',
+                                        description: object.description || $stateParams.safeObject.description || '',
                                         type: decodeURIComponent(object.type) || $stateParams.safeObject.type || $scope.dropDownOptions.selectedGroupOption.type || ''
                                     }
                                     $scope.safePrevious = angular.copy($scope.safe);
