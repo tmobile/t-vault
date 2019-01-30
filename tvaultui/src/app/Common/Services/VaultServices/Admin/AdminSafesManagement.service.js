@@ -82,6 +82,26 @@
                     return response;
                 });
             },
+            getApproles: function(payload, url) {
+                return ServiceEndpoint.getApproles.makeRequest(payload, url).then(function(response) {
+                    return response;
+                });
+            },
+            getApproleDetails: function(payload, url) {
+                return ServiceEndpoint.getApproleDetails.makeRequest(payload, url).then(function(response) {
+                    return response;
+                });
+            },
+            addAppRolePermissionForSafe: function(payload, url) {
+                return ServiceEndpoint.addApprolePermission.makeRequest(payload, url).then(function(response) {
+                    return response;
+                });
+            },
+            detachAppRolePermissionFromSafe: function(payload, url) {
+                return ServiceEndpoint.detachAppRolePermission.makeRequest(payload, url).then(function(response) {
+                    return response;
+                });
+            },
             getAWSConfigurationDetails: function(payload, url) {
                 return ServiceEndpoint.getAwsConfigurationDetails.makeRequest(payload, url).then(function(response) {
                     return response;
@@ -104,6 +124,11 @@
             },
             updateAWSIAMRole: function(payload, url) {
                 return ServiceEndpoint.updateAwsIAMRole.makeRequest(payload, url).then(function(response) {
+                    return response;
+                });
+            },
+            addAppRole: function(payload, url) {
+                return ServiceEndpoint.createAppRole.makeRequest(payload, url).then(function(response) {
                     return response;
                 });
             },

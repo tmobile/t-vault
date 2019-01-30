@@ -126,7 +126,10 @@
         'vault.directives.restrictSecretSpecialChar',
         'vault.directives.restrictArnSpecialChar',
         'vault.directives.restrictToNumbers',
-        'vault.directives.restrictConfigChar'
+        'vault.directives.restrictConfigChar',
+        'vault.directives.restrictSpecialCharAndSpace',
+        'vault.directives.restrictSpecialCharButComma',
+        'vault.directives.restrictSpecialCharForTime'
     ]);
 
     angular.module( 'vault.factories', [
