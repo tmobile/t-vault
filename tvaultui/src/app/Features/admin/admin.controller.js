@@ -128,8 +128,8 @@
                 for(var i=0; i< data.keys.length; i++) {  
 
                     newobj["safes"][i] = {};
-                    newobj["safes"][i]["safe"] = decodeURIComponent(data.keys[i]);
-                    newobj["safes"][i]["safeType"] = decodeURIComponent(currentVaultType);
+                    newobj["safes"][i]["safe"] = data.keys[i];
+                    newobj["safes"][i]["safeType"] = currentVaultType;
                 }
                 obj.push(newobj);
                 $scope.tilesData.SafesData = obj;

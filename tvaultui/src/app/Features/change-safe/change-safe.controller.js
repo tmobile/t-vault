@@ -358,7 +358,6 @@
             }
 
             var setPath = vaultType + '/' + UtilityService.formatName($scope.safe.name);
-            //   return encodeURIComponent(setPath);
             return setPath;
         }
         $scope.editPermission = function (type, editMode, user, permission) {
@@ -712,10 +711,10 @@
                                         "data": object['aws-roles']
                                     }
                                     $scope.safe = {
-                                        name: decodeURIComponent(object.name) || $stateParams.safeObject.safe,
-                                        owner: decodeURIComponent(object.owner) || $stateParams.safeObject.owner || '',
+                                        name: object.name || $stateParams.safeObject.safe,
+                                        owner: object.owner || $stateParams.safeObject.owner || '',
                                         description: object.description || $stateParams.safeObject.description || '',
-                                        type: decodeURIComponent(object.type) || $stateParams.safeObject.type || $scope.dropDownOptions.selectedGroupOption.type || ''
+                                        type: object.type || $stateParams.safeObject.type || $scope.dropDownOptions.selectedGroupOption.type || ''
                                     }
                                     $scope.safePrevious = angular.copy($scope.safe);
                                     $scope.selectedGroupOption = $scope.safe;
