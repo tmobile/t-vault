@@ -17,11 +17,14 @@
 
 package com.tmobile.cso.vault.api.service;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tmobile.cso.vault.api.common.TVaultConstants;
 import com.tmobile.cso.vault.api.model.*;
 import org.apache.commons.collections.CollectionUtils;
@@ -389,7 +392,7 @@ public class  AppRoleService {
 			return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Approle associated to SDB\"]}");
 		}
 		else {
-			return ResponseEntity.status(response.getStatusCode()).body(response.toString());	
+			return ResponseEntity.status(response.getStatusCode()).body(response.getBody());
 		}
 	}
 	
@@ -430,19 +433,45 @@ public class  AppRoleService {
 				case TVaultConstants.WRITE_POLICY: policy = "w_"  + folders[0].toLowerCase() + "_" + folders[1] ;break;
 				case TVaultConstants.DENY_POLICY: policy = "d_"  + folders[0].toLowerCase() + "_" + folders[1] ;break;
 			}
-			
+			String policyPostfix = folders[0].toLowerCase() + "_" + folders[1];
+			Response roleResponse = reqProcessor.process("/auth/approle/role/read","{\"role_name\":\""+approle+"\"}",token);
+			String responseJson="";
+			List<String> policies = new ArrayList<>();
+			List<String> currentpolicies = new ArrayList<>();
+			if(HttpStatus.OK.equals(roleResponse.getHttpstatus())){
+				responseJson = roleResponse.getResponse();
+				ObjectMapper objMapper = new ObjectMapper();
+				try {
+					JsonNode policiesArry = objMapper.readTree(responseJson).get("data").get("policies");
+					for(JsonNode policyNode : policiesArry){
+						currentpolicies.add(policyNode.asText());
+						//currentpolicies =	(currentpolicies == "" ) ? currentpolicies+policyNode.asText():currentpolicies+","+policyNode.asText();
+					}
+
+				} catch (IOException e) {
+					log.error(e);
+				}
+				policies.addAll(currentpolicies);
+
+				policies.remove("r_"+policyPostfix);
+				policies.remove("w_"+policyPostfix);
+				policies.remove("d_"+policyPostfix);
+
+			}
 			if(TVaultConstants.EMPTY.equals(policy)){
 				return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body("{\"errors\":[\"Incorrect access requested. Valid values are read,write,deny \"]}");
 			}
-			
+			policies.add(policy);
+			String policiesString = org.apache.commons.lang3.StringUtils.join(policies, ",");
+			String currentpoliciesString = org.apache.commons.lang3.StringUtils.join(currentpolicies, ",");
 
-			log.info("Associate approle to SDB -  policy :" + policy + " is being configured" );
+			log.info("Associate approle to SDB -  policy :" + policiesString + " is being configured" );
 			
 			//Call controller to update the policy for approle
-			Response approleControllerResp = ControllerUtil.configureApprole(approle,policy,token);
+			Response approleControllerResp = ControllerUtil.configureApprole(approle,policiesString,token);
 			if(HttpStatus.OK.equals(approleControllerResp.getHttpstatus()) || (HttpStatus.NO_CONTENT.equals(approleControllerResp.getHttpstatus()))) {
 					
-				log.info("Associate approle to SDB -  policy :" + policy + " is associated" );
+				log.info("Associate approle to SDB -  policy :" + policiesString + " is associated" );
 				log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 					      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 						  put(LogMessage.ACTION, "Associate AppRole to SDB").
@@ -503,7 +532,7 @@ public class  AppRoleService {
 							      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 							      build()));
 						//Trying to revert the metadata update in case of failure
-						approleControllerResp = ControllerUtil.configureApprole(approle,policy,token);
+						approleControllerResp = ControllerUtil.configureApprole(approle,currentpoliciesString,token);
 						if(approleControllerResp.getHttpstatus().equals(HttpStatus.NO_CONTENT)){
 							log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 								      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).

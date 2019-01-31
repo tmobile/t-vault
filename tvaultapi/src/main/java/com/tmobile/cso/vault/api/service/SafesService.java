@@ -1373,34 +1373,38 @@ public class  SafesService {
 			Response roleResponse = reqProcessor.process("/auth/aws/roles","{\"role\":\""+role+"\"}",token);
 			String responseJson="";
 			String auth_type = "ec2";
-			String policies ="";
-			String currentpolicies ="";
+			List<String> policies = new ArrayList<>();
+			List<String> currentpolicies = new ArrayList<>();
+			String policiesString = "";
+			String currentpoliciesString = "";
 
 			if(HttpStatus.OK.equals(roleResponse.getHttpstatus())){
 				responseJson = roleResponse.getResponse();	
 				try {
 					JsonNode policiesArry =objMapper.readTree(responseJson).get("policies");
 					for(JsonNode policyNode : policiesArry){
-						currentpolicies =	(currentpolicies == "" ) ? currentpolicies+policyNode.asText():currentpolicies+","+policyNode.asText();
+						currentpolicies.add(policyNode.asText());
 					}
 					auth_type = objMapper.readTree(responseJson).get("auth_type").asText();
 				} catch (IOException e) {
 					log.error(e);
 				}
-				policies = currentpolicies;
-				policies = policies.replaceAll(r_policy, "");
-				policies = policies.replaceAll(w_policy, "");
-				policies = policies.replaceAll(d_policy, "");
-				policies = policies+","+policy;
+				policies.addAll(currentpolicies);
+				policies.remove(r_policy);
+				policies.remove(w_policy);
+				policies.remove(d_policy);
+				policies.add(policy);
+				policiesString = org.apache.commons.lang3.StringUtils.join(policies, ",");
+				currentpoliciesString = org.apache.commons.lang3.StringUtils.join(currentpolicies, ",");
 			}else{
 				return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body("{\"errors\":[\"Non existing role name. Please configure it as first step\"]}");
 			}
 			Response ldapConfigresponse = null;
 			if (TVaultConstants.IAM.equals(auth_type)) {
-				ldapConfigresponse = ControllerUtil.configureAWSIAMRole(role,policies,token);
+				ldapConfigresponse = ControllerUtil.configureAWSIAMRole(role,policiesString,token);
 			}
 			else {
-				ldapConfigresponse = ControllerUtil.configureAWSRole(role,policies,token);
+				ldapConfigresponse = ControllerUtil.configureAWSRole(role,policiesString,token);
 			}
 			if(ldapConfigresponse.getHttpstatus().equals(HttpStatus.NO_CONTENT)){ 
 				Map<String,String> params = new HashMap<String,String>();
@@ -1435,7 +1439,7 @@ public class  SafesService {
 					else {
 						System.out.println("Meta data update failed");
 						System.out.println((null!=metadataResponse)?metadataResponse.getResponse():TVaultConstants.EMPTY);
-						ldapConfigresponse = ControllerUtil.configureAWSRole(role,policies,token);
+						ldapConfigresponse = ControllerUtil.configureAWSRole(role,currentpoliciesString,token);
 						if(ldapConfigresponse.getHttpstatus().equals(HttpStatus.NO_CONTENT)){
 							System.out.println("Reverting user policy uupdate");
 							return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Role configuration failed.Please try again\"]}");
@@ -1810,19 +1814,44 @@ public class  SafesService {
 				case "write": policy = "w_"  + folders[0].toLowerCase() + "_" + folders[1] ;break;
 				case "deny": policy = "d_"  + folders[0].toLowerCase() + "_" + folders[1] ;break;
 			}
+			String policyPostfix = folders[0].toLowerCase() + "_" + folders[1];
+			Response roleResponse = reqProcessor.process("/auth/approle/role/read","{\"role_name\":\""+approle+"\"}",token);
+			String responseJson="";
+			List<String> policies = new ArrayList<>();
+			List<String> currentpolicies = new ArrayList<>();
+			if(HttpStatus.OK.equals(roleResponse.getHttpstatus())){
+				responseJson = roleResponse.getResponse();
+				ObjectMapper objMapper = new ObjectMapper();
+				try {
+					JsonNode policiesArry = objMapper.readTree(responseJson).get("data").get("policies");
+					for(JsonNode policyNode : policiesArry){
+						currentpolicies.add(policyNode.asText());
+						//currentpolicies =	(currentpolicies == "" ) ? currentpolicies+policyNode.asText():currentpolicies+","+policyNode.asText();
+					}
 
+				} catch (IOException e) {
+					log.error(e);
+				}
+				policies.addAll(currentpolicies);
+
+				policies.remove("r_"+policyPostfix);
+				policies.remove("w_"+policyPostfix);
+				policies.remove("d_"+policyPostfix);
+
+			}
 			if("".equals(policy)){
 				return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body("{\"errors\":[\"Incorrect access requested. Valid values are read,write,deny \"]}");
 			}
-
-
-			log.info("Associate approle to SDB -  policy :" + policy + " is being configured" );
+			policies.add(policy);
+			String policiesString = org.apache.commons.lang3.StringUtils.join(policies, ",");
+			String currentpoliciesString = org.apache.commons.lang3.StringUtils.join(currentpolicies, ",");
+			log.info("Associate approle to SDB -  policy :" + policiesString + " is being configured" );
 
 			//Call controller to update the policy for approle
-			Response approleControllerResp = ControllerUtil.configureApprole(approle,policy,token);
+			Response approleControllerResp = ControllerUtil.configureApprole(approle,policiesString,token);
 			if(HttpStatus.OK.equals(approleControllerResp.getHttpstatus()) || (HttpStatus.NO_CONTENT.equals(approleControllerResp.getHttpstatus()))) {
 
-				log.info("Associate approle to SDB -  policy :" + policy + " is associated" );
+				log.info("Associate approle to SDB -  policy :" + policiesString + " is associated" );
 				log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 						put(LogMessage.ACTION, "Associate AppRole to SDB").
@@ -1883,7 +1912,7 @@ public class  SafesService {
 								put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 								build()));
 						//Trying to revert the metadata update in case of failure
-						approleControllerResp = ControllerUtil.configureApprole(approle,policy,token);
+						approleControllerResp = ControllerUtil.configureApprole(approle,currentpoliciesString,token);
 						if(approleControllerResp.getHttpstatus().equals(HttpStatus.NO_CONTENT)){
 							log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 									put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
