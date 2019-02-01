@@ -1168,6 +1168,7 @@
                 "secret_id_ttl": "",
                 "token_num_uses": ""
             };
+            $scope.roleNameSelected = false;
             $scope.roleNameTableOptions = [];
             AdminSafesManagement.getApproles().then(function (response) {
                 if (UtilityService.ifAPIRequestSuccessful(response)) {
