@@ -215,7 +215,7 @@ function genselfcert()
   openssl req -x509 -batch -nodes -newkey rsa:2048 -keyout $1/tvault.key -out $1/tvault.crt -config $2 -days 9999
   openssl pkcs12 -export -in $1/tvault.crt -inkey $1/tvault.key -out $1/tvault.p12 -name self -passout pass:$cert_pass
 }
-
+SSCRED_FILE_LOCATION="/opt/tvault/hcorp"
 ##############################################################################
 # End - Utils
 ##############################################################################
@@ -500,7 +500,7 @@ API_CONF="$VHOME/api/bin/tvaultapi.conf"
 touch API_CONF
 echo "JAVA_OPTS=\"-DTVAULT-API-LOG-PATH=$VLOG/\"" >> $API_CONF
 echo "LOG_FOLDER=$VLOG" >> $API_CONF
-echo "RUN_ARGS=\"--vault.api.url=https://127.0.0.1:8200/v1 --vault.port=8200 --vault.auth.method=$AUTH_BACKEND --vault.ssl.verify=false --server.port=8443 --server.ssl.key-store=/opt/tvault/certs/tvault.p12 --server.ssl.keyStoreType=PKCS12 --server.ssl.key-store-password=$CERT_PASSWORD\"" >> $API_CONF
+echo "RUN_ARGS=\"--vault.api.url=https://127.0.0.1:8200/v1 --selfservice.ssfilelocation=$SSCRED_FILE_LOCATION --vault.port=8200 --vault.auth.method=$AUTH_BACKEND --vault.ssl.verify=false --server.port=8443 --server.ssl.key-store=/opt/tvault/certs/tvault.p12 --server.ssl.keyStoreType=PKCS12 --server.ssl.key-store-password=$CERT_PASSWORD\"" >> $API_CONF
 
 chmod +x $VHOME/api/bin/tvaultapi.jar
 chmod +x $VHOME/web/nginx/sbin/nginx
