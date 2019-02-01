@@ -44,7 +44,7 @@ script(type='text/ng-template', id='notify.html')
                         .search-icon
                             .icon-search
                         .search-input-wrapper
-                            input.search-input-box(type='text' placeholder='SEARCH' ng-model="searchValue")
+                            input.search-input-box(type='text' placeholder='SEARCH' ng-model="searchValue" restrict-special-char minlength="3" maxlength="40")
             md-content.admin-content
                 md-tabs(md-dynamic-height md-border-bottom)
                     md-tab(label="Safe Management")

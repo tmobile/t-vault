@@ -643,7 +643,7 @@
         $rootScope.goToPermissions = function () {
             $scope.invalidEmail = false;
             $scope.showNoMatchingResults = false;
-            var emailPattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/;
+            var emailPattern = /^[a-zA-Z0-9_%+-]+[.]?[a-zA-Z0-9_%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/;
             var emailInput = document.getElementById('addOwnerEmail').value;
             if (!emailPattern.test(emailInput)) {
                 $scope.invalidEmail = true;
@@ -924,6 +924,9 @@
                     }
                     if ($scope.awsConfPopupObj.role !== null && $scope.awsConfPopupObj.role !== undefined) {
                         $scope.awsConfPopupObj.role = UtilityService.formatName($scope.awsConfPopupObj.role);
+                    }
+                    if ($scope.awsConfPopupObj.region !== null && $scope.awsConfPopupObj.region !== undefined) {
+                        $scope.awsConfPopupObj.region = UtilityService.formatName($scope.awsConfPopupObj.region);
                     }
                     var updatedUrlOfEndPoint = "";
                     switch (type) {

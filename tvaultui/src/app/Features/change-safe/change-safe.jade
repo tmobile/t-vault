@@ -36,42 +36,47 @@ script(type='text/ng-template', id='changeSafePopup.html')
                 .details-input-group
                     .common-form-label Role Name
                       span *
-                    input.form-control.input-box-style(value="{{awsConfPopupObj.role}}" restrict-special-char ng-model="awsConfPopupObj.role" placeholder="Role name" )
+                    input.form-control.input-box-style(value="{{awsConfPopupObj.role}}" minlength="3" maxlength="50" restrict-config-char ng-model="awsConfPopupObj.role" placeholder="Role name - Enter min 3 characters" required)
               .aws-conf.clearfix
                 .font-type-normal Please fill at least one of the following
 
                 .col-lg-6.col-md-6.col-sm-12.col-xs-12.common-form-row
                   .details-input-group
                     .common-form-label Account ID
-                    input.form-control.input-box-style(value="{{awsConfPopupObj.bound_account_id}}" id="bound_account_id" restrict-special-char placeholder="Account ID" ng-model="awsConfPopupObj.bound_account_id" )
+                      span *
+                    input.form-control.input-box-style(value="{{awsConfPopupObj.bound_account_id}}" id="bound_account_id" minlength="12" maxlength="15" restrict-to-numbers placeholder="Account ID" ng-model="awsConfPopupObj.bound_account_id" required)
                 .col-lg-6.col-md-6.col-sm-12.col-xs-12.common-form-row
                   .details-input-group
                     .common-form-label Region
-                    input.form-control.input-box-style(value="{{awsConfPopupObj.region}}" id="region" restrict-special-char placeholder="Region ID" ng-model="awsConfPopupObj.region")
+                      span *
+                    input.form-control.input-box-style(value="{{awsConfPopupObj.region}}" id="region" restrict-config-char maxlength="25" placeholder="Region ID" ng-model="awsConfPopupObj.region" required)
                 .col-lg-6.col-md-6.col-sm-12.col-xs-12.common-form-row
                   .details-input-group
                     .common-form-label VPC ID
-                    input.form-control.input-box-style(value="{{awsConfPopupObj.bound_vpc_id}}" id="bound_vpc_id" restrict-special-char placeholder="VPC ID" ng-model="awsConfPopupObj.bound_vpc_id")
+                      span *
+                    input.form-control.input-box-style(value="{{awsConfPopupObj.bound_vpc_id}}" id="bound_vpc_id" restrict-config-char  maxlength="256" placeholder="VPC ID" ng-model="awsConfPopupObj.bound_vpc_id" required)
                 .col-lg-6.col-md-6.col-sm-12.col-xs-12.common-form-row
                   .details-input-group
                     .common-form-label Subnet ID
-                    input.form-control.input-box-style(value="{{awsConfPopupObj.bound_subnet_id}}" id="bound_subnet_id" restrict-special-char placeholder="Subnet ID" ng-model="awsConfPopupObj.bound_subnet_id")
+                      span *
+                    input.form-control.input-box-style(value="{{awsConfPopupObj.bound_subnet_id}}" id="bound_subnet_id" restrict-config-char maxlength="256" placeholder="Subnet ID" ng-model="awsConfPopupObj.bound_subnet_id" required)
                 .col-lg-6.col-md-6.col-sm-12.col-xs-12.common-form-row
                   .details-input-group
                     .common-form-label AMI ID
-                    input.form-control.input-box-style(value="{{awsConfPopupObj.bound_ami_id}}" id="bound_ami_id" restrict-special-char placeholder="AMI ID" ng-model="awsConfPopupObj.bound_ami_id")
+                    input.form-control.input-box-style(value="{{awsConfPopupObj.bound_ami_id}}" id="bound_ami_id" restrict-config-char maxlength="256" placeholder="AMI ID" ng-model="awsConfPopupObj.bound_ami_id")
                 .col-lg-6.col-md-6.col-sm-12.col-xs-12.common-form-row
                   .details-input-group
                     .common-form-label Instance Profile ARN
-                    input.form-control.input-box-style(value="{{awsConfPopupObj.bound_iam_instance_profile_arn}}" id="bound_iam_instance_profile_arn" restrict-arn-special-char placeholder="Instance Profile ARN" ng-model="awsConfPopupObj.bound_iam_instance_profile_arn")
+                    input.form-control.input-box-style(value="{{awsConfPopupObj.bound_iam_instance_profile_arn}}" id="bound_iam_instance_profile_arn" restrict-arn-special-char minlength="20" maxlength="1024" placeholder="Instance Profile ARN" ng-model="awsConfPopupObj.bound_iam_instance_profile_arn")
                 .col-lg-6.col-md-6.col-sm-12.col-xs-12.common-form-row
                   .details-input-group
                     .common-form-label IAM Role ARN
-                    input.form-control.input-box-style(value="{{awsConfPopupObj.bound_iam_role_arn}}" id="bound_iam_role_arn" restrict-arn-special-char placeholder="IAM Role ARN" ng-model="awsConfPopupObj.bound_iam_role_arn")
+                    input.form-control.input-box-style(value="{{awsConfPopupObj.bound_iam_role_arn}}" id="bound_iam_role_arn" restrict-arn-special-char minlength="20" maxlength="1024" placeholder="IAM Role ARN" ng-model="awsConfPopupObj.bound_iam_role_arn")
                 .col-lg-6.col-md-6.col-sm-12.col-xs-12.common-form-row
                   .details-input-group
                     .common-form-label IAM Principal ARN
-                    input.form-control.input-box-style(value="{{awsConfPopupObj.bound_iam_principal_arn}}" id="bound_iam_principal_arn" restrict-arn-special-char placeholder="IAM Principal ARN" ng-model="awsConfPopupObj.bound_iam_principal_arn")
+                      span *
+                    input.form-control.input-box-style(value="{{awsConfPopupObj.bound_iam_principal_arn}}" id="bound_iam_principal_arn" restrict-arn-special-char minlength="20" maxlength="1024" placeholder="IAM Principal ARN" ng-model="awsConfPopupObj.bound_iam_principal_arn" required)
                 
               .aws.common-form
                 .common-form-row
@@ -82,7 +87,7 @@ script(type='text/ng-template', id='changeSafePopup.html')
                                 radio-buttons(data="radio" value="awsRadioBtn.value" state="true")
           .text-center.bottom-lg-sep.modal-sep.aws
             .clearfix.bottom-sm-sep
-              button.common-btn.btn.btn-primary.btn-lg(ng-click="addPermission('AwsRoleConfigure', awsConfPopupObj.role, awsRadioBtn.value, false)" ng-disabled="!(awsConfPopupObj.auth_type.length > 0 && awsConfPopupObj.role.length > 0 && (awsConfPopupObj.bound_account_id.length > 0 || awsConfPopupObj.region.length > 0 || awsConfPopupObj.bound_vpc_id.length > 0 || awsConfPopupObj.bound_subnet_id.length > 0 || awsConfPopupObj.bound_ami_id.length > 0 || awsConfPopupObj.bound_iam_instance_profile_arn.length > 0 || awsConfPopupObj.bound_iam_role_arn.length > 0 || awsConfPopupObj.bound_iam_principal_arn.length > 0) )" ) {{editingAwsPermission.status == true ? "Update" : "Create"}}
+              button.common-btn.btn.btn-primary.btn-lg(ng-click="addPermission('AwsRoleConfigure', awsConfPopupObj.role, awsRadioBtn.value, false)" ng-disabled="!(awsConfPopupObj.auth_type.length > 0 && awsConfPopupObj.role.length > 0 && ((awsConfPopupObj.bound_account_id.length > 0 && awsConfPopupObj.region.length > 0 && awsConfPopupObj.bound_vpc_id.length > 0 && awsConfPopupObj.bound_subnet_id.length > 0) || (awsConfPopupObj.bound_iam_principal_arn.length > 0)))" ) {{editingAwsPermission.status == true ? "Update" : "Create"}}
             .clearfix
               button.link-style.common-btn.btn.btn-default.btn-lg(ng-click="cancel()") Cancel
 
@@ -110,7 +115,7 @@ script(src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"
                           .common-form-row.col-lg-12.col-md-12.col-sm-12.col-xs-12
                             .details-input-group
                                 .common-form-label Name
-                                input.form-control.input-box-style(ng-model="safe.name" name="ownerName" ng-disabled="changeSafeHeader == 'EDIT SAFE' || safeCreated" ng-change="replaceSpaces()" restrict-special-char placeholder="Name of the safe" required)
+                                input.form-control.input-box-style(ng-model="safe.name" name="ownerName" ng-disabled="changeSafeHeader == 'EDIT SAFE' || safeCreated" ng-change="replaceSpaces()" minlength="3" maxlength="40" restrict-special-char placeholder="Safe name - Enter min 3 characters" required)
                                 .status-text.available(ng-if = "!isEditSafe && similarSafes === 0 && safe.name.length !== 0 && !typeDropdownDisable") Available
                                 .status-text.exists(ng-if = "!isEditSafe && similarSafes !== 0 && similarSafes !== allSafesList.length") Safe Exists
                                 .existance-check(ng-repeat="item in similarSafes = ( allSafesList | filter : safe.name:true ).length") {{similarSafes}}
@@ -146,7 +151,7 @@ script(src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"
                           .common-form-row.col-lg-12.col-md-12.col-sm-12.col-xs-12
                             .details-input-group
                                 .common-form-label Description
-                                textarea.form-control.input-box-style.details-textarea(ng-model="safe.description" name="description" placeholder="A description about the safe" required)
+                                textarea.form-control.input-box-style.details-textarea(ng-model="safe.description" name="description" placeholder="Safe description - Enter min 10 characters" minlength="10" maxlength="1024" required)
                                 span.invalid-form(ng-show="createSafeDetails.description.$dirty && createSafeDetails.description.$invalid && createSafeDetails.description.$error.required") Please enter this field
                     .safe-right-content-container.col-lg-6.col-sm-7#full-height
 
@@ -171,7 +176,7 @@ script(src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"
                                         .add-block.container.name.col-lg-6.col-md-6.col-sm-12.col-xs-12
                                             div.input-flex
                                                 div.input-box-style.user-input
-                                                    input(type='text' class="form-control" autofocus='!showInputLoader.show' ng-keyup='onKeyUp(searchValue, "userName")' placeholder='Username - Enter min 3 characters' ng-model="userNameVal" id="addUser" ng-class="{error: (userNameValEmpty &&  (userNameVal == '' ||  userNameVal == undefined)), highlightBox: inputSelected.select}" ng-change="searchValue.userName = userNameVal; userNameValEmpty = false;")
+                                                    input(type='text' class="form-control" autofocus='!showInputLoader.show' ng-keyup='onKeyUp(searchValue, "userName")' placeholder='Username' restrict-special-char minlength="1" maxlength="50" ng-model="userNameVal" id="addUser" ng-class="{error: (userNameValEmpty &&  (userNameVal == '' ||  userNameVal == undefined)), highlightBox: inputSelected.select}" ng-change="searchValue.userName = userNameVal; userNameValEmpty = false;")
                                                 div.loader(ng-if='showInputLoader.show && userNameVal.length > 0')
                                                     div.ball-spin-fade-loader
                                                         div
@@ -230,7 +235,7 @@ script(src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"
                                         .add-block.container.name.col-lg-6.col-md-6.col-sm-12.col-xs-12
                                            div.input-flex
                                                 div.input-box-style.user-input
-                                                    input(type='text' class="form-control" autofocus='!showInputLoader.show' ng-keyup='onKeyUp(searchValue, "groupName")' placeholder='Group Name - Enter min 3 characters' ng-model="grpNameVal" id="addGroup" ng-class="{error: (grpNameValEmpty &&  (grpNameVal == '' ||  grpNameVal == undefined)), highlightBox: inputSelected.select}" ng-change="searchValue.groupName = grpNameVal; grpNameValEmpty = false;")
+                                                    input(type='text' class="form-control" autofocus='!showInputLoader.show' ng-keyup='onKeyUp(searchValue, "groupName")' placeholder='Group Name' restrict-special-char minlength="1" maxlength="50" ng-model="grpNameVal" id="addGroup" ng-class="{error: (grpNameValEmpty &&  (grpNameVal == '' ||  grpNameVal == undefined)), highlightBox: inputSelected.select}" ng-change="searchValue.groupName = grpNameVal; grpNameValEmpty = false;")
                                                  div.loader(ng-if='showInputLoader.show && grpNameVal.length > 0')
                                                     div.ball-spin-fade-loader
                                                         div

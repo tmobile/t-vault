@@ -32,7 +32,7 @@
           title: 'Create Secret',
           inputValue: key || '',
           inputLabel: 'Key',
-          placeholder: 'Enter secret key',
+          placeholder: 'Secret key - Enter min 3 characters',
           passwordValue: value || '',
           passwordLabel: 'Secret',
           passwordPlaceholder: 'Enter secret value',
@@ -75,7 +75,7 @@
         return Modal.createModalWithController('folder-text-input.modal.html', {
           title: 'Create Folder',
           inputLabel: 'Folder Name',
-          placeholder: 'Enter folder name',
+          placeholder: 'Folder name - Enter min 3 characters',
           submitLabel: 'CREATE'
         }).then(function (modalData) {
           folder = {
@@ -99,7 +99,7 @@
             }).catch(catchError);
           })
           .catch(function (error) {
-            return createFolder(folder.id);
+            return createFolder();
           })
         });
       }
