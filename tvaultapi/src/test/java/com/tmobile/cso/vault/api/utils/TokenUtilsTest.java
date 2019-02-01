@@ -1,30 +1,22 @@
 package com.tmobile.cso.vault.api.utils;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
-import static org.powermock.api.mockito.PowerMockito.whenNew;
 
-import java.lang.reflect.Field;
-import java.util.Base64;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.Map;
 
 import org.apache.logging.log4j.LogManager;
 import org.junit.Before;
 import org.junit.FixMethodOrder;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.MethodSorters;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.internal.util.reflection.FieldSetter;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
@@ -32,15 +24,17 @@ import org.powermock.modules.junit4.PowerMockRunner;
 import org.powermock.reflect.Whitebox;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.http.HttpStatus;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
+import com.tmobile.cso.vault.api.common.TVaultConstants;
 import com.tmobile.cso.vault.api.controller.ControllerUtil;
 import com.tmobile.cso.vault.api.model.AppRoleIdSecretId;
+import com.tmobile.cso.vault.api.model.SSCred;
 import com.tmobile.cso.vault.api.process.RequestProcessor;
 import com.tmobile.cso.vault.api.process.Response;
-import org.springframework.test.util.ReflectionTestUtils;
 
 @RunWith(PowerMockRunner.class)
 @ComponentScan(basePackages={"com.tmobile.cso.vault.api"})
@@ -186,6 +180,115 @@ public class TokenUtilsTest {
         Response response = getMockResponse(HttpStatus.NOT_FOUND, true, "");
         when(reqProcessor.process("/auth/approle/login",jsonStr,"")).thenReturn(response);
         String token = tokenUtils.getSelfServiceToken();
+        assertNull(token);
+    }
+    
+	@Test
+    public void test_getSelfServiceTokenWithAppRole_success() throws Exception {
+
+        String jsonStr = "{\"role_id\":\"testroleid\",\"secret_id\":\"testsecretid\"}";
+
+        ReflectionTestUtils.setField(tokenUtils, "selfserviceUsername", "dGVzdGFkbWlu");
+        ReflectionTestUtils.setField(tokenUtils, "selfservicePassword", "dGVzdGFkbWlu");
+        ReflectionTestUtils.setField(tokenUtils, "vaultAuthMethod", "userpass");
+        when(JSONUtil.getJSON(Mockito.any())).thenReturn(jsonStr);
+        Response response = getMockResponse(HttpStatus.OK, true, "{\n" + 
+        		"  \"auth\": {\n" + 
+        		"    \"client_token\": \"s.6tdd9QSp50YwJwjXViRXGnMQT4\",\n" + 
+        		"    \"accessor\": \"7M3bp7PTaOHeB4u2J9zVfE9g\",\n" + 
+        		"    \"policies\": [\n" + 
+        		"      \"default\",\n" + 
+        		"      \"string\"\n" + 
+        		"    ],\n" + 
+        		"    \"token_policies\": [\n" + 
+        		"      \"default\",\n" + 
+        		"      \"string\"\n" + 
+        		"    ],\n" + 
+        		"    \"metadata\": {\n" + 
+        		"      \"role_name\": \"approle\"\n" + 
+        		"    },\n" + 
+        		"    \"lease_duration\": 2764800,\n" + 
+        		"    \"renewable\": true,\n" + 
+        		"    \"entity_id\": \"5e191de5-7b96-b9cc-71d5-d254b636308b\",\n" + 
+        		"    \"token_type\": \"service\"\n" + 
+        		"  },\n" + 
+        		"  \"data\": null,\n" + 
+        		"  \"lease_duration\": 0,\n" + 
+        		"  \"lease_id\": \"\"\n" + 
+        		"}");
+        when(reqProcessor.process("/auth/approle/login",jsonStr,"")).thenReturn(response);
+        String token = tokenUtils.getSelfServiceTokenWithAppRole();
+        assertEquals("s.6tdd9QSp50YwJwjXViRXGnMQT4", token);
+    }
+	
+	@Test
+    public void test_getSelfServiceTokenWithAppRole_sscred_success() throws Exception {
+
+		String jsonStr = "{\"role_id\":\"testroleid\",\"secret_id\":\"testsecretid\"}";
+
+        ReflectionTestUtils.setField(tokenUtils, "selfserviceUsername", "dGVzdGFkbWlu");
+        ReflectionTestUtils.setField(tokenUtils, "selfservicePassword", "dGVzdGFkbWlu");
+        ReflectionTestUtils.setField(tokenUtils, "vaultAuthMethod", "userpass");
+        
+        SSCred sscred = new SSCred();
+        sscred.setUsername("dGVzdGFkbWlu");
+        sscred.setPassword("dGVzdGFkbWlu");
+        TVaultConstants.sscred = sscred;
+        TVaultConstants.ssUsername = sscred.getUsername();
+        TVaultConstants.ssPassword = sscred.getPassword();
+        
+        when(JSONUtil.getJSON(Mockito.any())).thenReturn(jsonStr);
+        Response response = getMockResponse(HttpStatus.OK, true, "{\n" + 
+        		"  \"auth\": {\n" + 
+        		"    \"client_token\": \"s.6tdd9QSp50YwJwjXViRXGnMQT4\",\n" + 
+        		"    \"accessor\": \"7M3bp7PTaOHeB4u2J9zVfE9g\",\n" + 
+        		"    \"policies\": [\n" + 
+        		"      \"default\",\n" + 
+        		"      \"string\"\n" + 
+        		"    ],\n" + 
+        		"    \"token_policies\": [\n" + 
+        		"      \"default\",\n" + 
+        		"      \"string\"\n" + 
+        		"    ],\n" + 
+        		"    \"metadata\": {\n" + 
+        		"      \"role_name\": \"approle\"\n" + 
+        		"    },\n" + 
+        		"    \"lease_duration\": 2764800,\n" + 
+        		"    \"renewable\": true,\n" + 
+        		"    \"entity_id\": \"5e191de5-7b96-b9cc-71d5-d254b636308b\",\n" + 
+        		"    \"token_type\": \"service\"\n" + 
+        		"  },\n" + 
+        		"  \"data\": null,\n" + 
+        		"  \"lease_duration\": 0,\n" + 
+        		"  \"lease_id\": \"\"\n" + 
+        		"}");
+        when(reqProcessor.process("/auth/approle/login",jsonStr,"")).thenReturn(response);
+        String token = tokenUtils.getSelfServiceTokenWithAppRole();
+        assertEquals("s.6tdd9QSp50YwJwjXViRXGnMQT4", token);
+    }
+	
+	@Test
+    public void test_getSelfServiceTokenWithAppRole_sscred_failure() throws Exception {
+
+		String jsonStr = "{\"role_id\":\"testroleid\",\"secret_id\":\"testsecretid\"}";
+
+        ReflectionTestUtils.setField(tokenUtils, "selfserviceUsername", "dGVzdGFkbWlu");
+        ReflectionTestUtils.setField(tokenUtils, "selfservicePassword", "dGVzdGFkbWlu");
+        ReflectionTestUtils.setField(tokenUtils, "vaultAuthMethod", "userpass");
+        
+        SSCred sscred = new SSCred();
+        sscred.setUsername("dGVzdGFkbWlu");
+        sscred.setPassword("dGVzdGFkbWlu");
+        TVaultConstants.sscred = sscred;
+        TVaultConstants.ssUsername = sscred.getUsername();
+        TVaultConstants.ssPassword = sscred.getPassword();
+        
+        when(JSONUtil.getJSON(Mockito.any())).thenReturn(jsonStr);
+        Response response = getMockResponse(HttpStatus.BAD_REQUEST, true, "{\n" + 
+        		"  \"error\": \"no response from server\"\n" + 
+        		"}");
+        when(reqProcessor.process("/auth/approle/login",jsonStr,"")).thenReturn(response);
+        String token = tokenUtils.getSelfServiceTokenWithAppRole();
         assertNull(token);
     }
 }

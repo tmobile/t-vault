@@ -61,15 +61,15 @@
     	</Rewrite>
     </Appenders>
     <Loggers>
-        <Logger name="org.springframework.web" level="info" additivity="false">
+        <Logger name="org.springframework.web" level="info" additivity="true">
             <AppenderRef ref="Rewrite-spring" />
         </Logger>
         <Logger name="com.tmobile.cso.vault.api" level="debug"
-            additivity="false">
+            additivity="true">
             <AppenderRef ref="Rewrite-app" />
         </Logger>
        <Logger name="metric-logger" level="info"
-            additivity="false">
+            additivity="true">
             <AppenderRef ref="api-metric-Appender" />
         </Logger>
         <Root >

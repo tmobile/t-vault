@@ -1,17 +1,29 @@
 package com.tmobile.cso.vault.api.controller;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.collect.ImmutableMap;
-import com.tmobile.cso.vault.api.common.TVaultConstants;
-import com.tmobile.cso.vault.api.exception.TVaultValidationException;
-import com.tmobile.cso.vault.api.model.*;
-import com.tmobile.cso.vault.api.process.RequestProcessor;
-import com.tmobile.cso.vault.api.process.Response;
-import com.tmobile.cso.vault.api.utils.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.when;
+
+import java.io.File;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Scanner;
+
 import org.apache.logging.log4j.LogManager;
 import org.junit.Before;
 import org.junit.FixMethodOrder;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
 import org.junit.runners.MethodSorters;
 import org.mockito.Mock;
@@ -25,15 +37,32 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.util.ReflectionTestUtils;
 
-import javax.servlet.http.HttpServletRequest;
-import java.io.IOException;
-import java.util.*;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.ImmutableMap;
+import com.tmobile.cso.vault.api.common.TVaultConstants;
+import com.tmobile.cso.vault.api.exception.TVaultValidationException;
+import com.tmobile.cso.vault.api.model.AWSAuthLogin;
+import com.tmobile.cso.vault.api.model.AWSAuthType;
+import com.tmobile.cso.vault.api.model.AWSIAMLogin;
+import com.tmobile.cso.vault.api.model.AWSIAMRole;
+import com.tmobile.cso.vault.api.model.AWSLoginRole;
+import com.tmobile.cso.vault.api.model.AWSRole;
+import com.tmobile.cso.vault.api.model.AppRole;
+import com.tmobile.cso.vault.api.model.AppRoleSecretData;
+import com.tmobile.cso.vault.api.model.SSCred;
+import com.tmobile.cso.vault.api.model.Safe;
+import com.tmobile.cso.vault.api.model.SafeAppRoleAccess;
+import com.tmobile.cso.vault.api.model.SafeBasicDetails;
+import com.tmobile.cso.vault.api.model.SafeGroup;
+import com.tmobile.cso.vault.api.model.SafeUser;
+import com.tmobile.cso.vault.api.model.SecretData;
+import com.tmobile.cso.vault.api.model.UserDetails;
+import com.tmobile.cso.vault.api.process.RequestProcessor;
+import com.tmobile.cso.vault.api.process.Response;
+import com.tmobile.cso.vault.api.utils.JSONUtil;
+import com.tmobile.cso.vault.api.utils.ThreadLocalContext;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.when;
+import junit.framework.Assert;
 
 @RunWith(PowerMockRunner.class)
 @ComponentScan(basePackages={"com.tmobile.cso.vault.api"})
@@ -912,5 +941,38 @@ public class ControllerUtilTest {
             e.printStackTrace();
         }
         assertEquals(expectedList, policyList);
+    }
+    
+    @Test
+    public void test_readSSCredFile() throws IOException{
+    	File sscredFile = getSSCredFile();
+    	boolean isDelete = true;
+    	SSCred expected = new SSCred();
+    	expected.setUsername("c2FmZWFkbWlu");
+    	expected.setPassword("c2FmZWFkbWlu");
+    	SSCred actual = ControllerUtil.readSSCredFile(sscredFile.getParent(), isDelete);
+    	assertNotNull(actual);
+    	assertEquals(expected.getUsername(), actual.getUsername());
+    	assertEquals(expected.getPassword(), actual.getPassword());
+    }
+    
+    @Test
+    public void test_readSSCredFile_Failure() throws IOException{
+    	File sscredFile = getSSCredFile();
+    	boolean isDelete = true;
+    	SSCred expected = new SSCred();
+    	expected.setUsername("c2FmZWFkbWlu");
+    	expected.setPassword("c2FmZWFkbWlu");
+    	SSCred actual = ControllerUtil.readSSCredFile(sscredFile.getAbsolutePath(), isDelete);
+    	assertNull(actual);
+    }    
+    private File getSSCredFile() throws IOException {
+    	TemporaryFolder folder= new TemporaryFolder();
+    	folder.create();
+    	File sscredFile = folder.newFile("sscred");
+    	PrintWriter pw =  new PrintWriter(sscredFile);
+    	pw.write("username:c2FmZWFkbWlu"+ System.getProperty("line.separator") + "password:c2FmZWFkbWlu");
+    	pw.close();
+    	return sscredFile;
     }
 }
