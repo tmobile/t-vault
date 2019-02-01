@@ -2010,10 +2010,12 @@ public final class ControllerUtil {
 					if (line.startsWith("username:")) {
 						TVaultConstants.ssUsername = line.substring("username:".length(), line.length());
 						sscred.setUsername(line.substring("username:".length(), line.length()));
+						log.debug("Successfully read username: from sscred file");
 					}
 					else if (line.startsWith("password:")) {
 						TVaultConstants.ssPassword = line.substring("password:".length(), line.length());
 						sscred.setPassword(line.substring("password:".length(), line.length()));
+						log.debug("Successfully read password: from sscred file");
 					}
 				}
 				sc.close();
@@ -2024,6 +2026,7 @@ public final class ControllerUtil {
 		try {
 			if (ssFile != null && ssFile.exists() && isDelete) {
 				ssFile.delete();
+				log.debug("Successfully deleted sscred file");
 			}
 		} catch (Exception e) {
 			log.error("Unable to get read sscred file" + e.getMessage());
