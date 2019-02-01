@@ -124,7 +124,9 @@
         'vault.directives.folderContentsRow',
         'vault.directives.searchbar',
         'vault.directives.restrictSecretSpecialChar',
-        'vault.directives.restrictArnSpecialChar'
+        'vault.directives.restrictArnSpecialChar',
+        'vault.directives.restrictToNumbers',
+        'vault.directives.restrictConfigChar'
     ]);
 
     angular.module( 'vault.factories', [

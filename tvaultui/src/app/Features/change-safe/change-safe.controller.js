@@ -358,7 +358,6 @@
             }
 
             var setPath = vaultType + '/' + UtilityService.formatName($scope.safe.name);
-            //   return encodeURIComponent(setPath);
             return setPath;
         }
         $scope.editPermission = function (type, editMode, user, permission) {
@@ -644,7 +643,7 @@
         $rootScope.goToPermissions = function () {
             $scope.invalidEmail = false;
             $scope.showNoMatchingResults = false;
-            var emailPattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/;
+            var emailPattern = /^[a-zA-Z0-9_%+-]+[.]?[a-zA-Z0-9_%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/;
             var emailInput = document.getElementById('addOwnerEmail').value;
             if (!emailPattern.test(emailInput)) {
                 $scope.invalidEmail = true;
@@ -712,10 +711,10 @@
                                         "data": object['aws-roles']
                                     }
                                     $scope.safe = {
-                                        name: decodeURIComponent(object.name) || $stateParams.safeObject.safe,
-                                        owner: decodeURIComponent(object.owner) || $stateParams.safeObject.owner || '',
+                                        name: object.name || $stateParams.safeObject.safe,
+                                        owner: object.owner || $stateParams.safeObject.owner || '',
                                         description: object.description || $stateParams.safeObject.description || '',
-                                        type: decodeURIComponent(object.type) || $stateParams.safeObject.type || $scope.dropDownOptions.selectedGroupOption.type || ''
+                                        type: object.type || $stateParams.safeObject.type || $scope.dropDownOptions.selectedGroupOption.type || ''
                                     }
                                     $scope.safePrevious = angular.copy($scope.safe);
                                     $scope.selectedGroupOption = $scope.safe;
@@ -925,6 +924,9 @@
                     }
                     if ($scope.awsConfPopupObj.role !== null && $scope.awsConfPopupObj.role !== undefined) {
                         $scope.awsConfPopupObj.role = UtilityService.formatName($scope.awsConfPopupObj.role);
+                    }
+                    if ($scope.awsConfPopupObj.region !== null && $scope.awsConfPopupObj.region !== undefined) {
+                        $scope.awsConfPopupObj.region = UtilityService.formatName($scope.awsConfPopupObj.region);
                     }
                     var updatedUrlOfEndPoint = "";
                     switch (type) {
