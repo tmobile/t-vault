@@ -17,6 +17,7 @@
 
 package com.tmobile.cso.vault.api.controller;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -26,6 +27,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Scanner;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -33,8 +35,6 @@ import java.util.stream.Stream;
 
 import javax.annotation.PostConstruct;
 
-import com.tmobile.cso.vault.api.common.TVaultConstants;
-import com.tmobile.cso.vault.api.model.*;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.validator.routines.EmailValidator;
@@ -54,8 +54,26 @@ import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
+import com.tmobile.cso.vault.api.common.TVaultConstants;
 import com.tmobile.cso.vault.api.exception.LogMessage;
 import com.tmobile.cso.vault.api.exception.TVaultValidationException;
+import com.tmobile.cso.vault.api.model.AWSAuthLogin;
+import com.tmobile.cso.vault.api.model.AWSAuthType;
+import com.tmobile.cso.vault.api.model.AWSIAMRole;
+import com.tmobile.cso.vault.api.model.AWSLoginRole;
+import com.tmobile.cso.vault.api.model.AWSRole;
+import com.tmobile.cso.vault.api.model.AppRole;
+import com.tmobile.cso.vault.api.model.AppRoleMetadata;
+import com.tmobile.cso.vault.api.model.AppRoleMetadataDetails;
+import com.tmobile.cso.vault.api.model.AppRoleSecretData;
+import com.tmobile.cso.vault.api.model.SSCred;
+import com.tmobile.cso.vault.api.model.Safe;
+import com.tmobile.cso.vault.api.model.SafeAppRoleAccess;
+import com.tmobile.cso.vault.api.model.SafeBasicDetails;
+import com.tmobile.cso.vault.api.model.SafeGroup;
+import com.tmobile.cso.vault.api.model.SafeNode;
+import com.tmobile.cso.vault.api.model.SafeUser;
+import com.tmobile.cso.vault.api.model.UserDetails;
 import com.tmobile.cso.vault.api.process.RequestProcessor;
 import com.tmobile.cso.vault.api.process.Response;
 import com.tmobile.cso.vault.api.utils.JSONUtil;
@@ -89,12 +107,18 @@ public final class ControllerUtil {
 	private final static String[] mountPaths = {"apps","shared","users"};
 	private final static String[] permissions = {"read", "write", "deny", "sudo"};
 	
+	@Value("${selfservice.ssfilelocation}")
+    private String sscredLocation;
+	private static String sscredFileLocation;
+	
 	@PostConstruct     
 	private void initStatic () {
 		vaultAuthMethod = this.tvaultAuthMethod;
 		secretKeyAllowedCharacters = this.secretKeyWhitelistedCharacters;
 		approleAllowedCharacters = this.approleWhitelistedCharacters;
 		sdbNameAllowedCharacters = this.sdbNameWhitelistedCharacters;
+		sscredFileLocation = this.sscredLocation;
+		readSSCredFile(sscredFileLocation, true);
 	}
 
 	@Autowired(required = true)
@@ -1966,4 +1990,44 @@ public final class ControllerUtil {
         rqstParams.put("path",_path);
         return ControllerUtil.convetToJson(rqstParams);
     }
+	/**
+	 * Reads the SSCred from the location
+	 * @param fileLocation
+	 * @param isDelete
+	 * @return sscred 
+	 */
+	public static SSCred readSSCredFile(String fileLocation, boolean isDelete)  {
+		File ssFile = null;
+		SSCred sscred = null;
+		try {
+			ssFile = new File(fileLocation+"/sscred");
+			if (ssFile != null && ssFile.exists()) {
+				sscred = new SSCred();
+				Scanner sc = new Scanner(ssFile); 
+				while (sc.hasNextLine()) {
+					String line = sc.nextLine();
+					if (line.startsWith("username:")) {
+						TVaultConstants.ssUsername = line.substring("username:".length(), line.length());
+						sscred.setUsername(line.substring("username:".length(), line.length()));
+					}
+					else if (line.startsWith("password:")) {
+						TVaultConstants.ssPassword = line.substring("password:".length(), line.length());
+						sscred.setPassword(line.substring("password:".length(), line.length()));
+					}
+				}
+				sc.close();
+			}
+		} catch (IOException e) {
+			log.error("Unable to get read sscred file" + e.getMessage());
+		}
+		try {
+			if (ssFile != null && ssFile.exists() && isDelete) {
+				ssFile.delete();
+			}
+		} catch (Exception e) {
+			log.error("Unable to get read sscred file" + e.getMessage());
+		}
+		TVaultConstants.sscred = sscred;
+		return sscred;
+	}
 }
