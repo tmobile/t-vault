@@ -127,7 +127,6 @@
         'vault.directives.restrictArnSpecialChar',
         'vault.directives.restrictToNumbers',
         'vault.directives.restrictConfigChar',
-        'vault.directives.restrictSpecialCharAndSpace',
         'vault.directives.restrictSpecialCharButComma',
         'vault.directives.restrictSpecialCharForTime'
     ]);

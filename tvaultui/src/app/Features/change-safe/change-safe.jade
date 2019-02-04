@@ -107,7 +107,7 @@ script(type='text/ng-template', id='appRolePopup.html')
                 .details-input-group
                     .common-form-label Role Name
                       span *
-                    input.form-control.input-box-style(value="{{approleConfPopupObj.role_name}}" restrict-special-char-and-space ng-model="approleConfPopupObj.role_name" placeholder="Role name" maxlength="50" minlength="3" ng-disabled="roleNameSelected")
+                    input.form-control.input-box-style(value="{{approleConfPopupObj.role_name}}" restrict-config-char ng-model="approleConfPopupObj.role_name" placeholder="Role name" maxlength="50" minlength="3" ng-disabled="roleNameSelected")
               .aws-conf.clearfix
                 .font-type-normal Please fill the required fields
 
