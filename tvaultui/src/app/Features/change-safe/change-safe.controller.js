@@ -790,7 +790,7 @@
                                     $scope.safe = {
                                         name: object.name || $stateParams.safeObject.safe,
                                         owner: object.owner || $stateParams.safeObject.owner || '',
-                                        description: object.description || $stateParams.safeObject.description || '',
+                                        description: object.description.substr(0,1024) || $stateParams.safeObject.description.substr(0,1024) || '',
                                         type: object.type || $stateParams.safeObject.type || $scope.dropDownOptions.selectedGroupOption.type || ''
                                     }
                                     $scope.safePrevious = angular.copy($scope.safe);
