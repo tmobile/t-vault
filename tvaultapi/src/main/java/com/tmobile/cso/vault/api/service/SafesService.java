@@ -1802,6 +1802,9 @@ public class  SafesService {
 		if(!ControllerUtil.areSafeAppRoleInputsValid(requestMap)) {
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid input values\"]}");
 		}
+		if (safeAppRoleAccess.getRole_name().equals(TVaultConstants.SELF_SERVICE_APPROLE_NAME)) {
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Access denied: no permission to associate this AppRole to any safe\"]}");
+		}
 		String approle = requestMap.get("role_name").toString();
 		String path = requestMap.get("path").toString();
 		String access = requestMap.get("access").toString();

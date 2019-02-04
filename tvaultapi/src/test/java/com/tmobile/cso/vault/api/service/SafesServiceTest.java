@@ -1226,6 +1226,21 @@ public class SafesServiceTest {
     }
 
     @Test
+    public void test_AssociateAppRole_failure_400() throws Exception {
+
+
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Access denied: no permission to associate this AppRole to any safe\"]}");
+        String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+        SafeAppRoleAccess safeAppRoleAccess = new SafeAppRoleAccess("selfservicesupportrole", "shared/mysafe01", "write");
+        when(ControllerUtil.areSafeAppRoleInputsValid(Mockito.any())).thenReturn(true);
+        ResponseEntity<String> responseEntityActual =  safesService.associateApproletoSDB(token, safeAppRoleAccess);
+
+        assertEquals(HttpStatus.BAD_REQUEST, responseEntityActual.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntityActual);
+
+    }
+
+    @Test
     public void test_AssociateAppRole_succssfully_new_meta() throws Exception {
 
         Response response = getMockResponse(HttpStatus.OK, true, "");

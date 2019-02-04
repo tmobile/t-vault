@@ -108,6 +108,9 @@ public class AppRoleServiceTest {
         appRolesList.put("keys", arrayList);
         when(ControllerUtil.parseJson("{\"keys\": [ \"role1\" ]}")).thenReturn(appRolesList);
 
+        Response responseAfterHide = getMockResponse(HttpStatus.OK, true, "{\"keys\": [ \"role1\" ]}");
+        when(ControllerUtil.hideMasterAppRoleFromResponse(Mockito.any())).thenReturn(responseAfterHide);
+
         when(reqProcessor.process("/auth/approle/role/create", jsonStr,token)).thenReturn(response);
         when(reqProcessor.process("/auth/approle/role/list","{}",token)).thenReturn(responseList);
         when(ControllerUtil.areAppRoleInputsValid(appRole)).thenReturn(true);
@@ -123,11 +126,29 @@ public class AppRoleServiceTest {
     }
 
     @Test
+    public void test_createAppRole_failure_400() {
+
+        String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+        String [] policies = {"default"};
+        AppRole appRole = new AppRole("selfservicesupportrole", policies, true, "1", "100m", 0);
+        String jsonStr = "{\"role_name\":\"approle1\",\"policies\":[\"default\"],\"bind_secret_id\":true,\"secret_id_num_uses\":\"1\",\"secret_id_ttl\":\"100m\",\"token_num_uses\":0,\"token_ttl\":null,\"token_max_ttl\":null}";
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Access denied: no permission to create an approle named "+TVaultConstants.SELF_SERVICE_APPROLE_NAME+"\"]}");
+        UserDetails userDetails = getMockUser(true);
+        when(ControllerUtil.areAppRoleInputsValid(appRole)).thenReturn(true);
+        ResponseEntity<String> responseEntityActual = appRoleService.createAppRole(token, appRole, userDetails);
+        assertEquals(HttpStatus.BAD_REQUEST, responseEntityActual.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntityActual);
+
+    }
+
+    @Test
     public void test_createAppRole_successfully_metadata_failure_reverted() {
 
         Response response =getMockResponse(HttpStatus.NO_CONTENT, true, "");
         Response response_403 =getMockResponse(HttpStatus.UNAUTHORIZED, true, "");
         Response responseList = getMockResponse(HttpStatus.OK, true, "{\"keys\": [ \"role1\" ]}");
+        Response responseAfterHide = getMockResponse(HttpStatus.OK, true, "{\"keys\": [ \"role1\" ]}");
+        when(ControllerUtil.hideMasterAppRoleFromResponse(Mockito.any())).thenReturn(responseAfterHide);
         String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
         String [] policies = {"default"};
         AppRole appRole = new AppRole("approle1", policies, true, "1", "100m", 0);
@@ -161,6 +182,8 @@ public class AppRoleServiceTest {
         Response response500 =getMockResponse(HttpStatus.NO_CONTENT, true, "");
         Response response_403 =getMockResponse(HttpStatus.UNAUTHORIZED, true, "");
         Response responseList = getMockResponse(HttpStatus.OK, true, "{\"keys\": [ \"role1\" ]}");
+        Response responseAfterHide = getMockResponse(HttpStatus.OK, true, "{\"keys\": [ \"role1\" ]}");
+        when(ControllerUtil.hideMasterAppRoleFromResponse(Mockito.any())).thenReturn(responseAfterHide);
         String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
         String [] policies = {"default"};
         AppRole appRole = new AppRole("approle1", policies, true, "1", "100m", 0);
@@ -207,6 +230,10 @@ public class AppRoleServiceTest {
         when(JSONUtil.getJSON(appRole)).thenReturn(jsonStr);
         when(ControllerUtil.convertAppRoleInputsToLowerCase(Mockito.any())).thenReturn(jsonStr);
         UserDetails userDetails = getMockUser(true);
+
+        Response responseAfterHide = getMockResponse(HttpStatus.OK, true, "{\"keys\": [ \"approle1\" ]}");
+        when(ControllerUtil.hideMasterAppRoleFromResponse(Mockito.any())).thenReturn(responseAfterHide);
+
         ResponseEntity<String> responseEntityActual = appRoleService.createAppRole(token, appRole, userDetails);
         assertEquals(HttpStatus.OK, responseEntityActual.getStatusCode());
         assertEquals(responseEntityExpected, responseEntityActual);
@@ -240,6 +267,9 @@ public class AppRoleServiceTest {
         String responseBody = "{\"errors\":[\"Invalid input values for AppRole creation\"]}";
         Response response =getMockResponse(HttpStatus.NOT_FOUND, true, responseBody);
         Response responseList = getMockResponse(HttpStatus.OK, true, "{\"keys\": [ \"role1\" ]}");
+        Response responseAfterHide = getMockResponse(HttpStatus.OK, true, "{\"keys\": [ \"role1\" ]}");
+        when(ControllerUtil.hideMasterAppRoleFromResponse(Mockito.any())).thenReturn(responseAfterHide);
+
         String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
         String [] policies = {"default"};
         AppRole appRole = new AppRole("", policies, true, "1", "100m", 0);
@@ -273,6 +303,18 @@ public class AppRoleServiceTest {
         ResponseEntity<String> responseEntityActual = appRoleService.readAppRole(token, appRole);
 
         assertEquals(HttpStatus.OK, responseEntityActual.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntityActual);
+    }
+
+    @Test
+    public void test_readAppRole_failure_400() {
+
+        String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Access denied: no permission to read this AppRole\"]}");
+        String appRole = "selfservicesupportrole";
+        ResponseEntity<String> responseEntityActual = appRoleService.readAppRole(token, appRole);
+
+        assertEquals(HttpStatus.BAD_REQUEST, responseEntityActual.getStatusCode());
         assertEquals(responseEntityExpected, responseEntityActual);
     }
 
@@ -568,7 +610,7 @@ public class AppRoleServiceTest {
 
         String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
         String appRoleId = "selfservicesupportrole";
-        String responseJson = "{\"errors\":[\"Access denied: no permission to remove this ApPRole\"]}";
+        String responseJson = "{\"errors\":[\"Access denied: no permission to remove this AppRole\"]}";
         Response response =getMockResponse(HttpStatus.BAD_REQUEST, true, responseJson);
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body(responseJson);
         AppRole appRole = new AppRole();
@@ -598,6 +640,21 @@ public class AppRoleServiceTest {
         assertEquals(HttpStatus.OK, responseEntityActual.getStatusCode());
         assertEquals(responseEntityExpected, responseEntityActual);
         
+    }
+
+    @Test
+    public void test_deleteSecretId_failure_400() {
+
+        String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+        String appRoleId = "selfservicesupportrole";
+        AppRoleNameSecretId appRoleNameSecretId = new AppRoleNameSecretId(appRoleId, "5973a6de-38c1-0402-46a3-6d76e38b773c");
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Access denied: no permission to delete secretId for this approle\"]}");
+
+        ResponseEntity<String> responseEntityActual = appRoleService.deleteSecretId(token, appRoleNameSecretId);
+
+        assertEquals(HttpStatus.BAD_REQUEST, responseEntityActual.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntityActual);
+
     }
 
     @Test

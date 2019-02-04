@@ -482,6 +482,9 @@ public class  SelfSupportService {
 	 * @return
 	 */
 	public ResponseEntity<String> deleteApproleFromSDB(UserDetails userDetails, String userToken, SafeAppRoleAccess safeAppRoleAccess) {
+		if (TVaultConstants.SELF_SERVICE_APPROLE_NAME.equals(safeAppRoleAccess.getRole_name())) {
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Access denied: no permission to delete this approle\"]}");
+		}
 		String jsonstr = JSONUtil.getJSON(safeAppRoleAccess);
 		String token = userDetails.getClientToken();
 		if (userDetails.isAdmin()) {

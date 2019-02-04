@@ -993,6 +993,22 @@ public class SelfSupportServiceTest {
     }
 
     @Test
+    public void test_deleteApproleFromSDB_failure_accessDenied() {
+        String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+        UserDetails userDetails = getMockUser(false);
+        String jsonStr = "{\"role_name\":\"selfservicesupportrole\",\"path\":\"shared/mysafe01\",\"access\":\"write\"}";
+
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Access denied: no permission to delete this approle\"]}");
+
+        mockIsAuthorized(userDetails, true);
+
+        SafeAppRoleAccess safeAppRoleAccess = new SafeAppRoleAccess("selfservicesupportrole", "shared/mysafe01", "write");
+        ResponseEntity<String> responseEntity = selfSupportService.deleteApproleFromSDB(userDetails, token, safeAppRoleAccess);
+        assertEquals(HttpStatus.BAD_REQUEST, responseEntity.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntity);
+    }
+
+    @Test
     public void test_deleteApproleFromSDB_successfully_admin() {
         String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
         UserDetails userDetails = getMockUser(true);
