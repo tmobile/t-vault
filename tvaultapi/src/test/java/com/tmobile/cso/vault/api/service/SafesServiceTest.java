@@ -195,7 +195,7 @@ public class SafesServiceTest {
         when(ControllerUtil.convetToJson(any())).thenReturn(metadatajson);
         when(reqProcessor.process("/write",metadatajson,token)).thenReturn(responseNoContent);
         when(reqProcessor.process(eq("/access/update"),any(),eq(token))).thenReturn(responseNoContent);
-
+        when(ControllerUtil.getTrimmedSafeDescription("My first safe")).thenReturn("My first safe");
         ResponseEntity<String> responseEntity = safesService.createSafe(token, safe);
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
@@ -230,7 +230,7 @@ public class SafesServiceTest {
         when(ControllerUtil.convetToJson(any())).thenReturn(metadatajson);
         when(reqProcessor.process("/write",metadatajson,token)).thenReturn(responseNoContent);
         when(reqProcessor.process(eq("/access/update"),any(),eq(token))).thenReturn(responseBadRequest);
-
+        when(ControllerUtil.getTrimmedSafeDescription("My first safe")).thenReturn("My first safe");
         ResponseEntity<String> responseEntity = safesService.createSafe(token, safe);
         assertEquals(HttpStatus.MULTI_STATUS, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
@@ -256,7 +256,7 @@ public class SafesServiceTest {
 
         when(ControllerUtil.areSDBInputsValid(safe)).thenReturn(true);
         when(ControllerUtil.isValidSafePath(any())).thenReturn(false);
-
+        when(ControllerUtil.getTrimmedSafeDescription("My first safe")).thenReturn("My first safe");
         ResponseEntity<String> responseEntity = safesService.createSafe(token, safe);
         assertEquals(HttpStatus.BAD_REQUEST, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
@@ -328,7 +328,7 @@ public class SafesServiceTest {
         when(reqProcessor.process("/read","{\"path\":\"metadata/shared/mysafe01\"}",token)).thenReturn(readResponse);
         when(ControllerUtil.convetToJson(any())).thenReturn(metadatajson);
         when(reqProcessor.process("/sdb/update",metadatajson,token)).thenReturn(responseNoContent);
-
+        when(ControllerUtil.getTrimmedSafeDescription("My first safe")).thenReturn("My first safe");
         ResponseEntity<String> responseEntity = safesService.updateSafe(token, safe);
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
@@ -357,7 +357,7 @@ public class SafesServiceTest {
         when(ControllerUtil.getCountOfSafesForGivenSafeName(safe.getSafeBasicDetails().getName(), token)).thenReturn(1);
         when(ControllerUtil.generateSafePath("mysafe01", "shared")).thenReturn("shared/mysafe01");
         when(ControllerUtil.isValidSafePath(any())).thenReturn(false);
-
+        when(ControllerUtil.getTrimmedSafeDescription("My first safe")).thenReturn("My first safe");
         ResponseEntity<String> responseEntity = safesService.updateSafe(token, safe);
         assertEquals(HttpStatus.BAD_REQUEST, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
@@ -389,7 +389,7 @@ public class SafesServiceTest {
         when(ControllerUtil.isValidSafePath(any())).thenReturn(true);
 
         when(reqProcessor.process("/read","{\"path\":\"metadata/shared/mysafe01\"}",token)).thenReturn(readResponse);
-
+        when(ControllerUtil.getTrimmedSafeDescription("My first safe")).thenReturn("My first safe");
         ResponseEntity<String> responseEntity = safesService.updateSafe(token, safe);
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
@@ -413,7 +413,7 @@ public class SafesServiceTest {
 
         when(ControllerUtil.parseJson(any())).thenReturn(reqparams);
         when(ControllerUtil.areSDBInputsValid(reqparams)).thenReturn(false);
-
+        when(ControllerUtil.getTrimmedSafeDescription("My first safe")).thenReturn("My first safe");
         ResponseEntity<String> responseEntity = safesService.updateSafe(token, safe);
         assertEquals(HttpStatus.BAD_REQUEST, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);

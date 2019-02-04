@@ -165,6 +165,9 @@ public class  SafesService {
 	 * @return
 	 */
 	public ResponseEntity<String> createSafe(String token, Safe safe) {
+		String trimmedDescription = ControllerUtil.getTrimmedSafeDescription(safe.getSafeBasicDetails().getDescription());
+		safe.getSafeBasicDetails().setDescription(trimmedDescription);
+
 		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 				put(LogMessage.ACTION, "Create SDB").
@@ -407,6 +410,9 @@ public class  SafesService {
 	 * @return
 	 */
 	public ResponseEntity<String>  updateSafe(String token, Safe safe) {
+		String trimmedDescription = ControllerUtil.getTrimmedSafeDescription(safe.getSafeBasicDetails().getDescription());
+		safe.getSafeBasicDetails().setDescription(trimmedDescription);
+
 		Map<String, Object> requestParams = ControllerUtil.parseJson(JSONUtil.getJSON(safe));
 		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
