@@ -111,6 +111,10 @@ public final class ControllerUtil {
     private String sscredLocation;
 	private static String sscredFileLocation;
 
+	private static String ssUsername;
+	private static String ssPassword;
+	private static SSCred sscred = null;
+	
 	@PostConstruct     
 	private void initStatic () {
 		vaultAuthMethod = this.tvaultAuthMethod;
@@ -1998,7 +2002,6 @@ public final class ControllerUtil {
 	 */
 	public static SSCred readSSCredFile(String fileLocation, boolean isDelete)  {
 		File ssFile = null;
-		SSCred sscred = null;
 		log.debug("Trying to read sscred file");
 		try {
 			ssFile = new File(fileLocation+"/sscred");
@@ -2008,31 +2011,76 @@ public final class ControllerUtil {
 				while (sc.hasNextLine()) {
 					String line = sc.nextLine();
 					if (line.startsWith("username:")) {
-						TVaultConstants.ssUsername = line.substring("username:".length(), line.length());
+						ssUsername = line.substring("username:".length(), line.length());
 						sscred.setUsername(line.substring("username:".length(), line.length()));
-						log.debug("Successfully read username: from sscred file");
+						log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+								put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+								put(LogMessage.ACTION, "readSSCredFile").
+								put(LogMessage.MESSAGE, "Successfully read username: from sscred file").
+								put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+								build()));
 					}
 					else if (line.startsWith("password:")) {
-						TVaultConstants.ssPassword = line.substring("password:".length(), line.length());
+						ssPassword = line.substring("password:".length(), line.length());
 						sscred.setPassword(line.substring("password:".length(), line.length()));
-						log.debug("Successfully read password: from sscred file");
+						log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+								put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+								put(LogMessage.ACTION, "readSSCredFile").
+								put(LogMessage.MESSAGE, "Successfully read password: from sscred file").
+								put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+								build()));
 					}
 				}
 				sc.close();
 			}
 		} catch (IOException e) {
-			log.error("Unable to get read sscred file" + e.getMessage());
+			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+					put(LogMessage.ACTION, "readSSCredFile").
+					put(LogMessage.MESSAGE, String.format("Unable to read sscred file: [%s]", e.getMessage())).
+					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+					build()));
 		}
 		try {
 			if (ssFile != null && ssFile.exists() && isDelete) {
 				ssFile.delete();
+				log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+						put(LogMessage.ACTION, "readSSCredFile").
+						put(LogMessage.MESSAGE, "Successfully deleted sscred file").
+						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+						build()));
 				log.debug("Successfully deleted sscred file");
 			}
 		} catch (Exception e) {
-			log.error("Unable to get read sscred file" + e.getMessage());
+			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+					put(LogMessage.ACTION, "readSSCredFile").
+					put(LogMessage.MESSAGE, String.format("Unable to get delete sscred file: [%s]", e.getMessage())).
+					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+					build()));
 		}
-		TVaultConstants.sscred = sscred;
 		return sscred;
 	}
 
+	/**
+	 * @return the ssUsername
+	 */
+	public static String getSsUsername() {
+		return ssUsername;
+	}
+
+	/**
+	 * @return the ssPassword
+	 */
+	public static String getSsPassword() {
+		return ssPassword;
+	}
+
+	/**
+	 * @return the sscred
+	 */
+	public static SSCred getSscred() {
+		return sscred;
+	}
 }

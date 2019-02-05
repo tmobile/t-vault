@@ -233,9 +233,10 @@ public class TokenUtilsTest {
         SSCred sscred = new SSCred();
         sscred.setUsername("dGVzdGFkbWlu");
         sscred.setPassword("dGVzdGFkbWlu");
-        TVaultConstants.sscred = sscred;
-        TVaultConstants.ssUsername = sscred.getUsername();
-        TVaultConstants.ssPassword = sscred.getPassword();
+        
+        ReflectionTestUtils.setField(ControllerUtil.class,"sscred", sscred);
+        ReflectionTestUtils.setField(ControllerUtil.class,"ssUsername", sscred.getUsername());
+        ReflectionTestUtils.setField(ControllerUtil.class,"ssPassword", sscred.getPassword());
         
         when(JSONUtil.getJSON(Mockito.any())).thenReturn(jsonStr);
         Response response = getMockResponse(HttpStatus.OK, true, "{\n" + 
@@ -279,9 +280,9 @@ public class TokenUtilsTest {
         SSCred sscred = new SSCred();
         sscred.setUsername("dGVzdGFkbWlu");
         sscred.setPassword("dGVzdGFkbWlu");
-        TVaultConstants.sscred = sscred;
-        TVaultConstants.ssUsername = sscred.getUsername();
-        TVaultConstants.ssPassword = sscred.getPassword();
+        ReflectionTestUtils.setField(ControllerUtil.class,"sscred", sscred);
+        ReflectionTestUtils.setField(ControllerUtil.class,"ssUsername", sscred.getUsername());
+        ReflectionTestUtils.setField(ControllerUtil.class,"ssPassword", sscred.getPassword());
         
         when(JSONUtil.getJSON(Mockito.any())).thenReturn(jsonStr);
         Response response = getMockResponse(HttpStatus.BAD_REQUEST, true, "{\n" + 

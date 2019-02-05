@@ -121,9 +121,9 @@ public class TokenUtils {
 		String selfServiceToken = null;
 		String role_id = new String(Base64.getDecoder().decode(selfserviceUsername));
 		String secret_id = new String(Base64.getDecoder().decode(selfservicePassword));
-		if (TVaultConstants.sscred != null) {
-			role_id = new String(Base64.getDecoder().decode(TVaultConstants.ssUsername));
-			secret_id = new String(Base64.getDecoder().decode(TVaultConstants.ssPassword));
+		if (ControllerUtil.getSscred() != null) {
+			role_id = new String(Base64.getDecoder().decode(ControllerUtil.getSsUsername()));
+			secret_id = new String(Base64.getDecoder().decode(ControllerUtil.getSsPassword()));
 		}
 		AppRoleIdSecretId approleLogin = new AppRoleIdSecretId();
 		approleLogin.setRole_id(role_id);

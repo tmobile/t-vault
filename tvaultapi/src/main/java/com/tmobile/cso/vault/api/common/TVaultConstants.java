@@ -17,8 +17,6 @@
 
 package com.tmobile.cso.vault.api.common;
 
-import com.tmobile.cso.vault.api.model.SSCred;
-
 public class TVaultConstants {
     public static final String READ_POLICY="read";
     public static final String WRITE_POLICY="write";
@@ -48,7 +46,5 @@ public class TVaultConstants {
     public static final String AWSROLE_METADATA_MOUNT_PATH = "metadata/awsrole";
     public static final String SELF_SERVICE_APPROLE_NAME = "selfservicesupportrole";
     public static final String SECRET = "secret";
-	public static String ssUsername;
-	public static String ssPassword;
-	public static SSCred sscred = null;
+
 }
