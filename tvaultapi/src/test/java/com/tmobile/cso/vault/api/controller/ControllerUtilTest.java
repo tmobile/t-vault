@@ -16,8 +16,6 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
-import java.util.Scanner;
 
 import org.apache.logging.log4j.LogManager;
 import org.junit.Before;
@@ -62,16 +60,12 @@ import com.tmobile.cso.vault.api.process.Response;
 import com.tmobile.cso.vault.api.utils.JSONUtil;
 import com.tmobile.cso.vault.api.utils.ThreadLocalContext;
 
-import junit.framework.Assert;
-
 @RunWith(PowerMockRunner.class)
 @ComponentScan(basePackages={"com.tmobile.cso.vault.api"})
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 @PrepareForTest({ JSONUtil.class})
 @PowerMockIgnore({"javax.management.*"})
 public class ControllerUtilTest {
-
-
 
     @Mock
     RequestProcessor reqProcessor;
