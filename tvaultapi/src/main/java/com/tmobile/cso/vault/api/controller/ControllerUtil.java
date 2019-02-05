@@ -2002,7 +2002,6 @@ public final class ControllerUtil {
 	 */
 	public static SSCred readSSCredFile(String fileLocation, boolean isDelete)  {
 		File ssFile = null;
-		SSCred sscred = null;
 		log.debug("Trying to read sscred file");
 		try {
 			ssFile = new File(fileLocation+"/sscred");
