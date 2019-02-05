@@ -45,6 +45,7 @@ import com.tmobile.cso.vault.api.utils.AuthorizationUtils;
 import com.tmobile.cso.vault.api.utils.JSONUtil;
 import com.tmobile.cso.vault.api.utils.PolicyUtils;
 import com.tmobile.cso.vault.api.utils.SafeUtils;
+import org.springframework.util.ObjectUtils;
 
 
 @Component
@@ -488,8 +489,8 @@ public class  SelfSupportService {
 		}
 		else {
 			Map<String,Object> requestMap = ControllerUtil.parseJson(jsonstr);
-			if(!ControllerUtil.areSafeAppRoleInputsValid(requestMap)) {
-				return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid input values\"]}");
+			if (ObjectUtils.isEmpty(requestMap.get("role_name")) || ObjectUtils.isEmpty(requestMap.get("path"))) {
+				return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid role name or path\"]}");
 			}
 			String path = requestMap.get("path").toString();
 			ResponseEntity<String> isAuthorized = isAuthorized(userDetails, path);

@@ -110,7 +110,7 @@ public final class ControllerUtil {
 	@Value("${selfservice.ssfilelocation}")
     private String sscredLocation;
 	private static String sscredFileLocation;
-	
+
 	@PostConstruct     
 	private void initStatic () {
 		vaultAuthMethod = this.tvaultAuthMethod;
@@ -2034,4 +2034,5 @@ public final class ControllerUtil {
 		TVaultConstants.sscred = sscred;
 		return sscred;
 	}
+
 }

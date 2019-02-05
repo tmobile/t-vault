@@ -91,6 +91,80 @@ script(type='text/ng-template', id='changeSafePopup.html')
             .clearfix
               button.link-style.common-btn.btn.btn-default.btn-lg(ng-click="cancel()") Cancel
 
+script(type='text/ng-template', id='appRolePopup.html')
+          .modal-sep
+            .common-header-label.text-center Configure your app
+
+          //-   First popup of the Approle configure with multiple ID input fields
+
+          .left-lg-sep.right-lg-sep
+            .common-form.modal-inner-wrapper.aws
+              .common-form-row
+                .details-input-group
+                    .common-form-label Choose a Role Name
+                    drop-down(drop-down-options="dropDownRoleNames" name="dropdownRoles" ng-click="roleNameSelect()")
+              .common-form-row
+                .details-input-group
+                    .common-form-label Role Name
+                      span *
+                    input.form-control.input-box-style(value="{{approleConfPopupObj.role_name}}" restrict-config-char ng-model="approleConfPopupObj.role_name" placeholder="Role name" maxlength="50" minlength="3" ng-disabled="roleNameSelected")
+              .aws-conf.clearfix
+                .font-type-normal Please fill the required fields
+
+                .col-lg-6.col-md-6.col-sm-12.col-xs-12.common-form-row
+                  .details-input-group
+                    .common-form-label Token Max TTL
+                      span *
+                    input.form-control.input-box-style(ng-disabled="roleNameSelected" value="{{approleConfPopupObj.token_max_ttl}}" id="token_max_ttl" restrict-to-numbers placeholder="token_max_ttl" ng-model="approleConfPopupObj.token_max_ttl" )
+                .col-lg-6.col-md-6.col-sm-12.col-xs-12.common-form-row
+                  .details-input-group
+                    .common-form-label Token TTL
+                      span *
+                    input.form-control.input-box-style(ng-disabled="roleNameSelected" value="{{approleConfPopupObj.token_ttl}}" id="token_ttl" restrict-to-numbers placeholder="token_ttl" ng-model="approleConfPopupObj.token_ttl")
+                .col-lg-6.col-md-6.col-sm-12.col-xs-12.common-form-row
+                  .details-input-group
+                    .common-form-label Policies
+                      span *
+                    input.form-control.input-box-style(ng-disabled="roleNameSelected" value="{{approleConfPopupObj.policies}}" id="policies" placeholder="POLICIES" ng-model="approleConfPopupObj.policies" maxlength="512" restrict-special-char-but-comma)
+                .col-lg-6.col-md-6.col-sm-12.col-xs-12.common-form-row
+                  .details-input-group
+                    .common-form-label Secret Id Num Uses
+                      span *
+                    input.form-control.input-box-style(ng-disabled="roleNameSelected" value="{{approleConfPopupObj.secret_id_num_uses}}" id="secret_id_num_uses" restrict-to-numbers placeholder="secret_id_num_uses" ng-model="approleConfPopupObj.secret_id_num_uses")
+                .col-lg-6.col-md-6.col-sm-12.col-xs-12.common-form-row
+                  .details-input-group
+                    .common-form-label Token Num Uses
+                      span *
+                    input.form-control.input-box-style(ng-disabled="roleNameSelected" value="{{approleConfPopupObj.token_num_uses}}" id="token_num_uses" restrict-to-numbers placeholder="token_num_uses" ng-model="approleConfPopupObj.token_num_uses")
+                .col-lg-6.col-md-6.col-sm-12.col-xs-12.common-form-row
+                  .details-input-group
+                    .common-form-label Secret Id TTL
+                      span *
+                    input.form-control.input-box-style(ng-disabled="roleNameSelected" value="{{approleConfPopupObj.secret_id_ttl}}" id="secret_id_ttl" restrict-special-char-for-time placeholder="secret_id_ttl" ng-model="approleConfPopupObj.secret_id_ttl")
+              .common-form-row
+                .details-input-group
+                    .common-form-label Bind Secret ID
+                        span *
+                    .common-radio-group
+                        label.control.control--radio True
+                            input(ng-disabled="roleNameSelected" type='radio' id='bind_secret_id_true' value="true" ng-model="approleConfPopupObj.bind_secret_id" ng-checked="approleConfPopupObj.bind_secret_id == true")
+                            .control__indicator
+                        label.control.control--radio False
+                            input(ng-disabled="roleNameSelected" type='radio' id='bind_secret_id_false' value="false" ng-model="approleConfPopupObj.bind_secret_id" ng-checked="approleConfPopupObj.bind_secret_id == false")
+                            .control__indicator
+              .aws.common-form
+                .common-form-row
+                    .aws-conf.clearfix
+                        .details-input-group
+                            .common-form-label Permission
+                            .common-radio-group
+                                radio-buttons(data="radio" value="approleRadioBtn.value" state="true")
+          .text-center.bottom-lg-sep.modal-sep.aws
+            .clearfix.bottom-sm-sep
+              button.common-btn.btn.btn-primary.btn-lg(id="approle_create_btn" ng-click="addPermission('ApproleRoleConfigure', approleConfPopupObj.role_name, approleRadioBtn.value, false)" ng-disabled="isApproleBtnDisabled()" ) {{editingApprolePermission.status == true ? "Update" : "Create"}}
+            .clearfix
+              button.link-style.common-btn.btn.btn-default.btn-lg(ng-click="cancel()") Cancel
+
 script(src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js")
 .container-fluid.common-main-content.route-page.change-safe-wrapper
     .container-fluid-wrapper.curved
@@ -153,6 +227,7 @@ script(src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"
                                 .common-form-label Description
                                 textarea.form-control.input-box-style.details-textarea(ng-model="safe.description" name="description" placeholder="Safe description - Enter min 10 characters" minlength="10" maxlength="1024" required)
                                 span.invalid-form(ng-show="createSafeDetails.description.$dirty && createSafeDetails.description.$invalid && createSafeDetails.description.$error.required") Please enter this field
+                                span.invalid-form(ng-show='createSafeDetails.description.$invalid') Description too long
                     .safe-right-content-container.col-lg-6.col-sm-7#full-height
 
                       .safe-detail-container-block
@@ -323,6 +398,47 @@ script(src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"
                                                 .container.actions.col-lg-4.col-md-4.col-sm-4.col-xs-4
                                                     .down
                                                         .list-icon.icon-delete(ng-click = "deletePermission('AWSPermission', editPermissionItem, false, key, radioValue)" ng-class="{'inactive' : editPermissionItem == false}")                                                    
+                                                    .down.hide-in-mobile.edit
+                                                        .list-icon.icon-mode_edit(ng-click="editPermissionItem = !editPermissionItem; activeItem = !activeItem" ng-class="{'inactive' : editPermissionItem == true, 'hide-icon' : editPermissionItem == true}")
+                                                        .list-icon.icon-cross(ng-click="editPermissionItem = !editPermissionItem; activeItem = !activeItem; radioValue = value" ng-class="{'inactive' : editPermissionItem == true, 'hide-icon' : editPermissionItem == false}")
+                                                    .down.save
+                                                        .list-icon(ng-click = "editPermission('AWSPermission', editPermissionItem, key, radioValue); editPermissionItem ? editPermissionItem = !editPermissionItem : editPermissionItem = editPermissionItem" ng-class="{'inactive' : editPermissionItem == false}")  SAVE
+                        md-tab(label="AppRoles")
+                            md-content(class="md-padding")
+                                .new-container.page-content-container
+                                    .row.change-safe
+                                        .container.actions
+                                            .function-text.right.link-style(ng-click="newAppRoleConfiguration('md')")
+                                                .add-icon-container.action-icon-wrapper.static
+                                                    .rotate.glyphicon.glyphicon-remove-circle
+                                                .text ADD APPROLE CONFIGURATION
+                                    .unavailable-text(ng-if="isEmpty(AppRolePermissionsData.data)")
+                                      | No approles are given permission to access this safe,<br> add approles to access the safe
+                                    .change-safe-table-container(ng-if="!isEmpty(AppRolePermissionsData.data)")
+                                        loading-state(ng-if='isLoadingData')
+                                        .row.change-safe.header
+                                            .container.name.col-lg-4.col-md-4.col-sm-4.col-xs-4 NAME
+                                            .container.radio-inputs.col-lg-4.col-md-4.col-sm-4.col-xs-4 ACTION
+                                        .change-safe-table-data.row
+                                            .row.change-safe.item.hide-in-mobile(ng-if="!isLoadingData" ng-init="editPermissionItem = false; activeItem = false; radioValue = value" ng-class="{'grayBackground' : activeItem == true}" ng-repeat="(key, value) in AppRolePermissionsData.data")
+                                                .container.name.col-lg-4.col-md-4.col-sm-4.col-xs-4(ng-click="editAWSConfigurationDetails(editPermissionItem, key)" ng-class="{'inactive' : editPermissionItem == false, 'pink-text' : editPermissionItem == true}") {{key}}
+                                                .container.radio-inputs.col-lg-4.col-md-4.col-sm-4.col-xs-4
+                                                    radio-buttons(data="radio" value="radioValue" state="editPermissionItem")
+                                                .container.actions.col-lg-4.col-md-4.col-sm-4.col-xs-4
+                                                    .down
+                                                        .list-icon.icon-delete(ng-click = "deletePermission('AppRolePermission', true, false, key, radioValue)")
+                                                    .down.edit
+                                                        .list-icon.icon-mode_edit(ng-click="editPermissionItem = !editPermissionItem; activeItem = !activeItem" ng-class="{'inactive' : editPermissionItem == true, 'hide-icon' : editPermissionItem == true}")
+                                                        .list-icon.icon-cross(ng-click="editPermissionItem = !editPermissionItem; activeItem = !activeItem; radioValue = value" ng-class="{'inactive' : editPermissionItem == true, 'hide-icon' : editPermissionItem == false}")
+                                                    .down.save
+                                                        .list-icon(ng-click = "editPermission('AppRolePermission', editPermissionItem, key, radioValue); editPermissionItem ? editPermissionItem = !editPermissionItem : editPermissionItem = editPermissionItem" ng-class="{'inactive' : editPermissionItem == false}")  SAVE
+                                            .row.change-safe.item.hide-in-tablet-up(ng-if="!isLoadingData" ng-init="editPermissionItem = true; activeItem = false; radioValue = value" ng-class="{'grayBackground' : activeItem == true}" ng-repeat="(key, value) in AppRolePermissionsData.data")
+                                                .container.name.col-lg-4.col-md-4.col-sm-4.col-xs-4(ng-click="editAWSConfigurationDetails(editPermissionItem, key)" ng-class="{'inactive' : editPermissionItem == false, 'pink-text' : editPermissionItem == true}") {{key}}
+                                                .container.radio-inputs.col-lg-4.col-md-4.col-sm-4.col-xs-4
+                                                    drop-down(drop-down-options="radio" value="radioValue" error="noTypeSelected")
+                                                .container.actions.col-lg-4.col-md-4.col-sm-4.col-xs-4
+                                                    .down
+                                                        .list-icon.icon-delete(ng-click = "deletePermission('AppRolePermission', editPermissionItem, false, key, radioValue)" ng-class="{'inactive' : editPermissionItem == false}")
                                                     .down.hide-in-mobile.edit
                                                         .list-icon.icon-mode_edit(ng-click="editPermissionItem = !editPermissionItem; activeItem = !activeItem" ng-class="{'inactive' : editPermissionItem == true, 'hide-icon' : editPermissionItem == true}")
                                                         .list-icon.icon-cross(ng-click="editPermissionItem = !editPermissionItem; activeItem = !activeItem; radioValue = value" ng-class="{'inactive' : editPermissionItem == true, 'hide-icon' : editPermissionItem == false}")

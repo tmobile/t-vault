@@ -179,6 +179,26 @@ readTextFile("../apiUrls.json");
             url: '/v2/auth/aws/iam/role',
             method: 'PUT'
         },{
+            name: 'createAppRole',
+            url: '/v2/ss/auth/approle/role',
+            method: 'POST'
+        },{
+            name: 'addApprolePermission',
+            url: '/v2/ss/sdb/approle',
+            method: 'POST'
+        },{ /* To remove the approle permission in edit*/
+            name: 'detachAppRolePermission',
+            url: '/v2/ss/sdb/approle',
+            method: 'DELETE'
+        },{
+            name: 'getApproles',
+            url: '/v2/auth/approle/role',
+            method: 'GET'
+        },{
+            name: 'getApproleDetails',
+            url: '/v2/auth/approle/role/',
+            method: 'GET'
+        },{
             name: 'unseal',
             url: '/v2/unseal',
             method: 'POST'

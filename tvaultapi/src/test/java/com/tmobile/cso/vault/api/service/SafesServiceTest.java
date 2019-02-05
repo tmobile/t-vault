@@ -195,9 +195,29 @@ public class SafesServiceTest {
         when(ControllerUtil.convetToJson(any())).thenReturn(metadatajson);
         when(reqProcessor.process("/write",metadatajson,token)).thenReturn(responseNoContent);
         when(reqProcessor.process(eq("/access/update"),any(),eq(token))).thenReturn(responseNoContent);
-
         ResponseEntity<String> responseEntity = safesService.createSafe(token, safe);
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntity);
+    }
+
+    @Test
+    public void test_createSafe_failure_description_too_long() {
+        String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+        SafeBasicDetails safeBasicDetails = new SafeBasicDetails("mysafe01", "youremail@yourcompany.com", null, "My first safe My first safe" +
+                "My first safeMy first safeMy first safeMy first safeMy first safeMy first safeMy first safeMy first safeMy first safeMy first safeMy first safe" +
+                "My first safeMy first safeMy first safeMy first safeMy first safeMy first safeMy first safeMy first safeMy first safeMy first safeMy first safe" +
+                "My first safeMy first safeMy first safeMy first safeMy first safeMy first safeMy first safeMy first safeMy first safeMy first safeMy first safe" +
+                "My first safeMy first safeMy first safeMy first safeMy first safeMy first safeMy first safeMy first safeMy first safeMy first safeMy first safe" +
+                "My first safeMy first safeMy first safeMy first safeMy first safeMy first safeMy first safeMy first safeMy first safeMy first safeMy first safe" +
+                "My first safeMy first safeMy first safeMy first safeMy first safeMy first safeMy first safeMy first safeMy first safeMy first safeMy first safe" +
+                "My first safeMy first safeMy first safeMy first safeMy first safeMy first safeMy first safeMy first safeMy first safeMy first safeMy first safe" +
+                "My first safeMy first safeMy first safeMy first safeMy first safeMy first safeMy first safeMy first safeMy first safeMy first safeMy first safe");
+        Safe safe = new Safe("shared/mysafe01",safeBasicDetails);
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid input values: Description too long\"]}");
+        when(ControllerUtil.areSDBInputsValid(safe)).thenReturn(true);
+
+        ResponseEntity<String> responseEntity = safesService.createSafe(token, safe);
+        assertEquals(HttpStatus.BAD_REQUEST, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
     }
 
@@ -230,7 +250,6 @@ public class SafesServiceTest {
         when(ControllerUtil.convetToJson(any())).thenReturn(metadatajson);
         when(reqProcessor.process("/write",metadatajson,token)).thenReturn(responseNoContent);
         when(reqProcessor.process(eq("/access/update"),any(),eq(token))).thenReturn(responseBadRequest);
-
         ResponseEntity<String> responseEntity = safesService.createSafe(token, safe);
         assertEquals(HttpStatus.MULTI_STATUS, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
@@ -256,7 +275,6 @@ public class SafesServiceTest {
 
         when(ControllerUtil.areSDBInputsValid(safe)).thenReturn(true);
         when(ControllerUtil.isValidSafePath(any())).thenReturn(false);
-
         ResponseEntity<String> responseEntity = safesService.createSafe(token, safe);
         assertEquals(HttpStatus.BAD_REQUEST, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
@@ -328,9 +346,42 @@ public class SafesServiceTest {
         when(reqProcessor.process("/read","{\"path\":\"metadata/shared/mysafe01\"}",token)).thenReturn(readResponse);
         when(ControllerUtil.convetToJson(any())).thenReturn(metadatajson);
         when(reqProcessor.process("/sdb/update",metadatajson,token)).thenReturn(responseNoContent);
-
         ResponseEntity<String> responseEntity = safesService.updateSafe(token, safe);
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntity);
+    }
+
+
+    @Test
+    public void test_updateSafe_failure_description_too_long() {
+        String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+        SafeBasicDetails safeBasicDetails = new SafeBasicDetails("mysafe01", "youremail@yourcompany.com", null, "My first safe My first safe" +
+                "My first safeMy first safeMy first safeMy first safeMy first safeMy first safeMy first safeMy first safeMy first safeMy first safeMy first safe" +
+                "My first safeMy first safeMy first safeMy first safeMy first safeMy first safeMy first safeMy first safeMy first safeMy first safeMy first safe" +
+                "My first safeMy first safeMy first safeMy first safeMy first safeMy first safeMy first safeMy first safeMy first safeMy first safeMy first safe" +
+                "My first safeMy first safeMy first safeMy first safeMy first safeMy first safeMy first safeMy first safeMy first safeMy first safeMy first safe" +
+                "My first safeMy first safeMy first safeMy first safeMy first safeMy first safeMy first safeMy first safeMy first safeMy first safeMy first safe" +
+                "My first safeMy first safeMy first safeMy first safeMy first safeMy first safeMy first safeMy first safeMy first safeMy first safeMy first safe" +
+                "My first safeMy first safeMy first safeMy first safeMy first safeMy first safeMy first safeMy first safeMy first safeMy first safeMy first safe" +
+                "My first safeMy first safeMy first safeMy first safeMy first safeMy first safeMy first safeMy first safeMy first safeMy first safeMy first safe");
+        Safe safe = new Safe("shared/mysafe01",safeBasicDetails);
+
+        String jsonStr = "{\"path\":\"shared/mysafe01\",\"data\":{\"name\":\"mysafe01\",\"owner\":\"youremail@yourcompany.com\",\"type\":\"\",\"description\":\"My first safe\"}}";
+
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid input values: Description too long\"]}");
+
+        Map<String,Object> reqparams = null;
+        try {
+            reqparams = new ObjectMapper().readValue(jsonStr, new TypeReference<Map<String, Object>>(){});
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        when(ControllerUtil.parseJson(any())).thenReturn(reqparams);
+        when(ControllerUtil.areSDBInputsValidForUpdate(reqparams)).thenReturn(true);
+
+        ResponseEntity<String> responseEntity = safesService.updateSafe(token, safe);
+        assertEquals(HttpStatus.BAD_REQUEST, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
     }
 
@@ -357,7 +408,6 @@ public class SafesServiceTest {
         when(ControllerUtil.getCountOfSafesForGivenSafeName(safe.getSafeBasicDetails().getName(), token)).thenReturn(1);
         when(ControllerUtil.generateSafePath("mysafe01", "shared")).thenReturn("shared/mysafe01");
         when(ControllerUtil.isValidSafePath(any())).thenReturn(false);
-
         ResponseEntity<String> responseEntity = safesService.updateSafe(token, safe);
         assertEquals(HttpStatus.BAD_REQUEST, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
@@ -389,7 +439,6 @@ public class SafesServiceTest {
         when(ControllerUtil.isValidSafePath(any())).thenReturn(true);
 
         when(reqProcessor.process("/read","{\"path\":\"metadata/shared/mysafe01\"}",token)).thenReturn(readResponse);
-
         ResponseEntity<String> responseEntity = safesService.updateSafe(token, safe);
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
@@ -413,7 +462,6 @@ public class SafesServiceTest {
 
         when(ControllerUtil.parseJson(any())).thenReturn(reqparams);
         when(ControllerUtil.areSDBInputsValid(reqparams)).thenReturn(false);
-
         ResponseEntity<String> responseEntity = safesService.updateSafe(token, safe);
         assertEquals(HttpStatus.BAD_REQUEST, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
@@ -1168,6 +1216,8 @@ public class SafesServiceTest {
         when(ControllerUtil.updateMetadata(Mockito.anyMap(),Mockito.anyString())).thenReturn(updateMetadataResponse);
         SafeAppRoleAccess safeAppRoleAccess = new SafeAppRoleAccess("approle1", "shared/mysafe01", "write");
         when(JSONUtil.getJSON(safeAppRoleAccess)).thenReturn(jsonStr);
+        Response appRoleResponse = getMockResponse(HttpStatus.OK, true, "{\"data\": {\"policies\":\"w_shared_mysafe01\"}}");
+        when(reqProcessor.process("/auth/approle/role/read","{\"role_name\":\"approle1\"}",token)).thenReturn(appRoleResponse);
         ResponseEntity<String> responseEntityActual =  safesService.associateApproletoSDB(token, safeAppRoleAccess);
 
         assertEquals(HttpStatus.OK, responseEntityActual.getStatusCode());
@@ -1217,6 +1267,8 @@ public class SafesServiceTest {
         when(ControllerUtil.getAllExistingSafeNames("shared", token)).thenReturn(Arrays.asList("mysafe02"));
         SafeAppRoleAccess safeAppRoleAccess = new SafeAppRoleAccess("approle1", "shared/mysafe01", "write");
         when(JSONUtil.getJSON(safeAppRoleAccess)).thenReturn(jsonStr);
+        Response appRoleResponse = getMockResponse(HttpStatus.OK, true, "{\"data\": {\"policies\":\"w_shared_mysafe01\"}}");
+        when(reqProcessor.process("/auth/approle/role/read","{\"role_name\":\"approle1\"}",token)).thenReturn(appRoleResponse);
         ResponseEntity<String> responseEntityActual =  safesService.associateApproletoSDB(token, safeAppRoleAccess);
 
         assertEquals(HttpStatus.OK, responseEntityActual.getStatusCode());
@@ -1259,6 +1311,8 @@ public class SafesServiceTest {
         when(ControllerUtil.updateMetadata(params,token)).thenReturn(updateMetadataResponse);
         SafeAppRoleAccess safeAppRoleAccess = new SafeAppRoleAccess("approle1", "shared/mysafe01", "write");
         when(JSONUtil.getJSON(safeAppRoleAccess)).thenReturn(jsonStr);
+        Response appRoleResponse = getMockResponse(HttpStatus.OK, true, "{\"data\": {\"policies\":\"w_shared_mysafe01\"}}");
+        when(reqProcessor.process("/auth/approle/role/read","{\"role_name\":\"approle1\"}",token)).thenReturn(appRoleResponse);
         ResponseEntity<String> responseEntityActual =  safesService.associateApproletoSDB(token, safeAppRoleAccess);
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, responseEntityActual.getStatusCode());
         assertEquals(responseEntityExpected, responseEntityActual);
@@ -1285,6 +1339,8 @@ public class SafesServiceTest {
         when(ControllerUtil.canAddPermission(Mockito.anyString(), Mockito.anyString())).thenReturn(true);
         SafeAppRoleAccess safeAppRoleAccess = new SafeAppRoleAccess("approle1", "shared/mysafe01", "write");
         when(JSONUtil.getJSON(safeAppRoleAccess)).thenReturn(jsonStr);
+        Response appRoleResponse = getMockResponse(HttpStatus.OK, true, "{\"data\": {\"policies\":\"w_shared_mysafe01\"}}");
+        when(reqProcessor.process("/auth/approle/role/read","{\"role_name\":\"approle1\"}",token)).thenReturn(appRoleResponse);
         ResponseEntity<String> responseEntityActual =  safesService.associateApproletoSDB(token, safeAppRoleAccess);
         assertEquals(HttpStatus.BAD_REQUEST, responseEntityActual.getStatusCode());
         assertEquals(responseEntityExpected, responseEntityActual);
