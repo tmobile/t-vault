@@ -957,6 +957,7 @@ public class ControllerUtilTest {
     	SSCred expected = new SSCred();
     	expected.setUsername("c2FmZWFkbWlu");
     	expected.setPassword("c2FmZWFkbWlu");
+    	ReflectionTestUtils.setField(ControllerUtil.class,"sscred", null);
     	SSCred actual = ControllerUtil.readSSCredFile(sscredFile.getAbsolutePath(), isDelete);
     	assertNull(actual);
     }    
