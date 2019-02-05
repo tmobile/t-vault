@@ -165,9 +165,6 @@ public class  SafesService {
 	 * @return
 	 */
 	public ResponseEntity<String> createSafe(String token, Safe safe) {
-		String trimmedDescription = ControllerUtil.getTrimmedSafeDescription(safe.getSafeBasicDetails().getDescription());
-		safe.getSafeBasicDetails().setDescription(trimmedDescription);
-
 		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 				put(LogMessage.ACTION, "Create SDB").
@@ -177,6 +174,9 @@ public class  SafesService {
 		if (!ControllerUtil.areSDBInputsValid(safe)) {
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid input values\"]}");
 		}
+        if (safe.getSafeBasicDetails().getDescription().length() > 1024) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid input values: Description too long\"]}");
+        }
 
 		ControllerUtil.converSDBInputsToLowerCase(safe);
 		String path = safe.getPath();
@@ -410,9 +410,6 @@ public class  SafesService {
 	 * @return
 	 */
 	public ResponseEntity<String>  updateSafe(String token, Safe safe) {
-		String trimmedDescription = ControllerUtil.getTrimmedSafeDescription(safe.getSafeBasicDetails().getDescription());
-		safe.getSafeBasicDetails().setDescription(trimmedDescription);
-
 		Map<String, Object> requestParams = ControllerUtil.parseJson(JSONUtil.getJSON(safe));
 		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
@@ -429,6 +426,9 @@ public class  SafesService {
 					build()));
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid input values\"]}");
 		}
+        if (safe.getSafeBasicDetails().getDescription().length() > 1024) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid input values: Description too long\"]}");
+        }
 		@SuppressWarnings("unchecked")
 		Map<Object,Object> data = (Map<Object,Object>)requestParams.get("data");
 		String path = safe.getPath();
@@ -1400,8 +1400,8 @@ public class  SafesService {
 				policies.remove(w_policy);
 				policies.remove(d_policy);
 				policies.add(policy);
-				policiesString = org.apache.commons.lang3.StringUtils.join(policies, ",");
-				currentpoliciesString = org.apache.commons.lang3.StringUtils.join(currentpolicies, ",");
+				policiesString = StringUtils.join(policies, ",");
+				currentpoliciesString = StringUtils.join(currentpolicies, ",");
 			}else{
 				return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body("{\"errors\":[\"Non existing role name. Please configure it as first step\"]}");
 			}
@@ -1832,9 +1832,7 @@ public class  SafesService {
 					JsonNode policiesArry = objMapper.readTree(responseJson).get("data").get("policies");
 					for(JsonNode policyNode : policiesArry){
 						currentpolicies.add(policyNode.asText());
-						//currentpolicies =	(currentpolicies == "" ) ? currentpolicies+policyNode.asText():currentpolicies+","+policyNode.asText();
 					}
-
 				} catch (IOException e) {
 					log.error(e);
 				}
@@ -1849,19 +1847,22 @@ public class  SafesService {
 				return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body("{\"errors\":[\"Incorrect access requested. Valid values are read,write,deny \"]}");
 			}
 			policies.add(policy);
-			String policiesString = org.apache.commons.lang3.StringUtils.join(policies, ",");
-			String currentpoliciesString = org.apache.commons.lang3.StringUtils.join(currentpolicies, ",");
-			log.info("Associate approle to SDB -  policy :" + policiesString + " is being configured" );
-
+			String policiesString = StringUtils.join(policies, ",");
+			String currentpoliciesString = StringUtils.join(currentpolicies, ",");
+			log.info(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+					put(LogMessage.ACTION, "Associate AppRole to SDB").
+					put(LogMessage.MESSAGE, "Associate approle to SDB -  policy :" + policiesString + " is being configured" ).
+					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+					build()));
 			//Call controller to update the policy for approle
 			Response approleControllerResp = ControllerUtil.configureApprole(approle,policiesString,token);
 			if(HttpStatus.OK.equals(approleControllerResp.getHttpstatus()) || (HttpStatus.NO_CONTENT.equals(approleControllerResp.getHttpstatus()))) {
 
-				log.info("Associate approle to SDB -  policy :" + policiesString + " is associated" );
 				log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 						put(LogMessage.ACTION, "Associate AppRole to SDB").
-						put(LogMessage.MESSAGE, "Association of AppRole to SDB success").
+						put(LogMessage.MESSAGE, "Associate approle to SDB -  policy :" + policiesString + " is associated").
 						put(LogMessage.STATUS, approleControllerResp.getHttpstatus().toString()).
 						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 						build()));

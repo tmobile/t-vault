@@ -227,6 +227,7 @@ script(src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"
                                 .common-form-label Description
                                 textarea.form-control.input-box-style.details-textarea(ng-model="safe.description" name="description" placeholder="Safe description - Enter min 10 characters" minlength="10" maxlength="1024" required)
                                 span.invalid-form(ng-show="createSafeDetails.description.$dirty && createSafeDetails.description.$invalid && createSafeDetails.description.$error.required") Please enter this field
+                                span.invalid-form(ng-show='createSafeDetails.description.$invalid') Description too long
                     .safe-right-content-container.col-lg-6.col-sm-7#full-height
 
                       .safe-detail-container-block

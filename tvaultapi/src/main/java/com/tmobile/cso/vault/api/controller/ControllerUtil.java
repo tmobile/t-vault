@@ -2035,15 +2035,4 @@ public final class ControllerUtil {
 		return sscred;
 	}
 
-	/**
-	 * To restrict the description length to 1024
-	 * @param description
-	 * @return
-	 */
-	public static String getTrimmedSafeDescription(String description) {
-		if (description.length() >1024) {
-			return description.substring(0,1024);
-		}
-		return description;
-	}
 }

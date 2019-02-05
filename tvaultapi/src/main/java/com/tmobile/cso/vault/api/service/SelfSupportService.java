@@ -490,7 +490,7 @@ public class  SelfSupportService {
 		else {
 			Map<String,Object> requestMap = ControllerUtil.parseJson(jsonstr);
 			if (ObjectUtils.isEmpty(requestMap.get("role_name")) || ObjectUtils.isEmpty(requestMap.get("path"))) {
-				return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid input values\"]}");
+				return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid role name or path\"]}");
 			}
 			String path = requestMap.get("path").toString();
 			ResponseEntity<String> isAuthorized = isAuthorized(userDetails, path);

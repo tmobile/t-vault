@@ -28,6 +28,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tmobile.cso.vault.api.common.TVaultConstants;
 import com.tmobile.cso.vault.api.model.*;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -445,9 +446,7 @@ public class  AppRoleService {
 					JsonNode policiesArry = objMapper.readTree(responseJson).get("data").get("policies");
 					for(JsonNode policyNode : policiesArry){
 						currentpolicies.add(policyNode.asText());
-						//currentpolicies =	(currentpolicies == "" ) ? currentpolicies+policyNode.asText():currentpolicies+","+policyNode.asText();
 					}
-
 				} catch (IOException e) {
 					log.error(e);
 				}
@@ -462,20 +461,23 @@ public class  AppRoleService {
 				return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body("{\"errors\":[\"Incorrect access requested. Valid values are read,write,deny \"]}");
 			}
 			policies.add(policy);
-			String policiesString = org.apache.commons.lang3.StringUtils.join(policies, ",");
-			String currentpoliciesString = org.apache.commons.lang3.StringUtils.join(currentpolicies, ",");
+			String policiesString = StringUtils.join(policies, ",");
+			String currentpoliciesString = StringUtils.join(currentpolicies, ",");
 
-			log.info("Associate approle to SDB -  policy :" + policiesString + " is being configured" );
-			
+			log.info(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+					put(LogMessage.ACTION, "Associate AppRole to SDB").
+					put(LogMessage.MESSAGE, "Associate approle to SDB -  policy :" + policiesString + " is being configured" ).
+		  			put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+					build()));
 			//Call controller to update the policy for approle
 			Response approleControllerResp = ControllerUtil.configureApprole(approle,policiesString,token);
 			if(HttpStatus.OK.equals(approleControllerResp.getHttpstatus()) || (HttpStatus.NO_CONTENT.equals(approleControllerResp.getHttpstatus()))) {
-					
-				log.info("Associate approle to SDB -  policy :" + policiesString + " is associated" );
+
 				log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 					      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 						  put(LogMessage.ACTION, "Associate AppRole to SDB").
-					      put(LogMessage.MESSAGE, "Association of AppRole to SDB success").
+					      put(LogMessage.MESSAGE, "Associate approle to SDB -  policy :" + policiesString + " is associated").
 					      put(LogMessage.STATUS, approleControllerResp.getHttpstatus().toString()).
 					      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 					      build()));
