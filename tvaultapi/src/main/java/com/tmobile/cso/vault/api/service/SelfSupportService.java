@@ -710,4 +710,39 @@ public class  SelfSupportService {
 		}
 		return ResponseEntity.status(HttpStatus.OK).body(JSONUtil.getJSON(safeList));
 	}
+
+	/**
+	 * Read all approle names
+	 * @param userToken
+	 * @param userDetails
+	 * @return
+	 */
+	public ResponseEntity<String> readAppRoles(String userToken, UserDetails userDetails) {
+		String token = userDetails.getClientToken();
+		if (userDetails.isAdmin()) {
+			return appRoleService.readAppRoles(token);
+		}
+		else {
+			token = userDetails.getSelfSupportToken();
+			return appRoleService.readAppRoles(token);
+		}
+	}
+
+	/**
+	 * Read approle info
+	 * @param userToken
+	 * @param rolename
+	 * @param userDetails
+	 * @return
+	 */
+	public ResponseEntity<String> readAppRole(String userToken, String rolename, UserDetails userDetails) {
+		String token = userDetails.getClientToken();
+		if (userDetails.isAdmin()) {
+			return appRoleService.readAppRole(token, rolename);
+		}
+		else {
+			token = userDetails.getSelfSupportToken();
+			return appRoleService.readAppRole(token, rolename);
+		}
+	}
 }

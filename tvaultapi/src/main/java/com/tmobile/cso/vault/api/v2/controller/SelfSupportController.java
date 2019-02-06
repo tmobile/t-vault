@@ -350,4 +350,30 @@ public class SelfSupportController {
 		UserDetails userDetails = (UserDetails) ((HttpServletRequest) request).getAttribute("UserDetails");
 		return selfSupportService.getSafes(userDetails, token);
 	}
+
+	/**
+	 * Reads approle names
+	 * @param request
+	 * @param token
+	 * @return
+	 */
+	@ApiOperation(value = "${AppRoleControllerV2.listAppRoles.value}", notes = "${AppRoleControllerV2.listAppRoles.notes}")
+	@GetMapping (value="/v2/ss/approle/role",produces="application/json")
+	public ResponseEntity<String> getAppRoles(HttpServletRequest request, @RequestHeader(value="vault-token") String token){
+		UserDetails userDetails = (UserDetails) ((HttpServletRequest) request).getAttribute("UserDetails");
+		return selfSupportService.readAppRoles(token, userDetails);
+	}
+
+	/**
+	 * READ APPROLE
+	 * @param token
+	 * @param rolename
+	 * @return
+	 */
+	@ApiOperation(value = "${AppRoleControllerV2.readAppRole.value}", notes = "${AppRoleControllerV2.readAppRole.notes}")
+	@GetMapping(value="/v2/ss/approle/role/{role_name}",produces="application/json")
+	public ResponseEntity<String> readAppRole(HttpServletRequest request, @RequestHeader(value="vault-token") String token, @PathVariable("role_name" ) String rolename){
+		UserDetails userDetails = (UserDetails) ((HttpServletRequest) request).getAttribute("UserDetails");
+		return selfSupportService.readAppRole(token, rolename, userDetails);
+	}
 }
