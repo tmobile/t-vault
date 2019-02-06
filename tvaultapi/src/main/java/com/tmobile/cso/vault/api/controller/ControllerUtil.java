@@ -2013,60 +2013,30 @@ public final class ControllerUtil {
 					if (line.startsWith("username:")) {
 						ssUsername = line.substring("username:".length(), line.length());
 						sscred.setUsername(line.substring("username:".length(), line.length()));
-						log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
-								put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
-								put(LogMessage.ACTION, "readSSCredFile").
-								put(LogMessage.MESSAGE, "Successfully read username: from sscred file").
-								put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
-								build()));
+						log.debug("Successfully read username: from sscred file");
 					}
 					else if (line.startsWith("password:")) {
 						ssPassword = line.substring("password:".length(), line.length());
 						sscred.setPassword(line.substring("password:".length(), line.length()));
-						log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
-								put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
-								put(LogMessage.ACTION, "readSSCredFile").
-								put(LogMessage.MESSAGE, "Successfully read password: from sscred file").
-								put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
-								build()));
+						log.debug("Successfully read password: from sscred file");
 					}
 				}
 				sc.close();
 			}
 		} catch (IOException e) {
-			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
-					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
-					put(LogMessage.ACTION, "readSSCredFile").
-					put(LogMessage.MESSAGE, String.format("Unable to read sscred file: [%s]", e.getMessage())).
-					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
-					build()));
+			log.error(String.format("Unable to read sscred file: [%s]", e.getMessage()));
 		}
 		try {
 			if (ssFile != null && ssFile.exists() && isDelete) {
 				if (ssFile.delete()) {
-					log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
-							put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
-							put(LogMessage.ACTION, "readSSCredFile").
-							put(LogMessage.MESSAGE, "Successfully deleted sscred file").
-							put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
-							build()));
+					log.debug("Successfully deleted sscred file");
 				}
 				else {
-					log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
-							put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
-							put(LogMessage.ACTION, "readSSCredFile").
-							put(LogMessage.MESSAGE, "Unable to get delete sscred file").
-							put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
-							build()));
+					log.error("Unable to get delete sscred file");
 				}
 			}
 		} catch (Exception e) {
-			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
-					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
-					put(LogMessage.ACTION, "readSSCredFile").
-					put(LogMessage.MESSAGE, String.format("Unable to get delete sscred file: [%s]", e.getMessage())).
-					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
-					build()));
+			log.error(String.format("Unable to get delete sscred file: [%s]", e.getMessage()));
 		}
 		return sscred;
 	}
