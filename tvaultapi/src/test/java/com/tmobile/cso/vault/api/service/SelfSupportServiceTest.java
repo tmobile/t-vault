@@ -1538,4 +1538,65 @@ public class SelfSupportServiceTest {
         assertEquals(HttpStatus.BAD_REQUEST, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
     }
+
+    @Test
+    public void test_readAppRole_successfully() {
+
+        String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+        String responseJson = "{\"data\":{ \"bind_secret_id\": true, \"policies\": [\"test-access-policy\"]}}";
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body("{\"data\":{ \"bind_secret_id\": true, \"policies\": [\"test-access-policy\"]}}");
+        String appRole = "approle1";
+        UserDetails userDetails = getMockUser(false);
+        when(appRoleService.readAppRole(token, appRole)).thenReturn(responseEntityExpected);
+
+        ResponseEntity<String> responseEntityActual = selfSupportService.readAppRole(token, appRole, userDetails);
+
+        assertEquals(HttpStatus.OK, responseEntityActual.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntityActual);
+    }
+
+    @Test
+    public void test_readAppRole_successfully_admin() {
+
+        String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+        String responseJson = "{\"data\":{ \"bind_secret_id\": true, \"policies\": [\"test-access-policy\"]}}";
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body("{\"data\":{ \"bind_secret_id\": true, \"policies\": [\"test-access-policy\"]}}");
+        String appRole = "approle1";
+        UserDetails userDetails = getMockUser(true);
+        when(appRoleService.readAppRole(token, appRole)).thenReturn(responseEntityExpected);
+
+        ResponseEntity<String> responseEntityActual = selfSupportService.readAppRole(token, appRole, userDetails);
+
+        assertEquals(HttpStatus.OK, responseEntityActual.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntityActual);
+    }
+
+
+    @Test
+    public void test_readAppRoles_successfully() {
+
+        String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body("{\"data\":{ \"keys\": [\"role1\", \"role2\"]]}}");
+        UserDetails userDetails = getMockUser(false);
+        when(appRoleService.readAppRoles(token)).thenReturn(responseEntityExpected);
+
+        ResponseEntity<String> responseEntityActual = selfSupportService.readAppRoles(token, userDetails);
+
+        assertEquals(HttpStatus.OK, responseEntityActual.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntityActual);
+    }
+
+    @Test
+    public void test_readAppRoles_successfully_admin() {
+
+        String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body("{\"data\":{ \"keys\": [\"role1\", \"role2\"]]}}");
+        UserDetails userDetails = getMockUser(true);
+        when(appRoleService.readAppRoles(token)).thenReturn(responseEntityExpected);
+
+        ResponseEntity<String> responseEntityActual = selfSupportService.readAppRoles(token, userDetails);
+
+        assertEquals(HttpStatus.OK, responseEntityActual.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntityActual);
+    }
 }

@@ -192,11 +192,11 @@ readTextFile("../apiUrls.json");
             method: 'DELETE'
         },{
             name: 'getApproles',
-            url: '/v2/auth/approle/role',
+            url: '/v2/ss/approle/role',
             method: 'GET'
         },{
             name: 'getApproleDetails',
-            url: '/v2/auth/approle/role/',
+            url: '/v2/ss/approle/role/',
             method: 'GET'
         },{
             name: 'unseal',
