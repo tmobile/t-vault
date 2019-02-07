@@ -24,6 +24,7 @@ script(type='text/ng-template', id='changeSafePopup.html')
                         .details-input-group
                             .control-group
                                 .common-form-label AWS Authentication Type
+                                  span *
                                 .common-radio-group
                                     label.control.control--radio EC2
                                       input(type='radio' id='auth_type' value="ec2" ng-model="awsConfPopupObj.auth_type" ng-checked="awsConfPopupObj.auth_type == 'ec2'" ng-click="enableEc2Controls($event)")
@@ -83,6 +84,7 @@ script(type='text/ng-template', id='changeSafePopup.html')
                     .aws-conf.clearfix
                         .details-input-group
                             .common-form-label Permission
+                              span *
                             .common-radio-group
                                 radio-buttons(data="radio" value="awsRadioBtn.value" state="true")
           .text-center.bottom-lg-sep.modal-sep.aws
@@ -189,22 +191,26 @@ script(src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"
                           .common-form-row.col-lg-12.col-md-12.col-sm-12.col-xs-12
                             .details-input-group
                                 .common-form-label Name
-                                input.form-control.input-box-style(ng-model="safe.name" name="ownerName" ng-disabled="changeSafeHeader == 'EDIT SAFE' || safeCreated" ng-change="replaceSpaces()" minlength="3" maxlength="40" restrict-special-char placeholder="Safe name - Enter min 3 characters" required)
+                                 span *
+                                input.form-control.input-box-style(ng-model="safe.name" name="ownerName" ng-disabled="changeSafeHeader == 'EDIT SAFE' || safeCreated" ng-change="replaceSpaces()" minlength="!isEditSafe ? 3 : ''" maxlength="!isEditSafe ? 40 : ''" restrict-special-char placeholder="Safe name" required)
+                                div.key-acceptance-info(ng-if = "!isEditSafe") Please enter minimum 3 characters.
                                 .status-text.available(ng-if = "!isEditSafe && similarSafes === 0 && safe.name.length !== 0 && !typeDropdownDisable") Available
                                 .status-text.exists(ng-if = "!isEditSafe && similarSafes !== 0 && similarSafes !== allSafesList.length") Safe Exists
                                 .existance-check(ng-repeat="item in similarSafes = ( allSafesList | filter : safe.name:true ).length") {{similarSafes}}
-                                span.invalid-form(ng-show="createSafeDetails.ownerName.$dirty && createSafeDetails.ownerName.$invalid && createSafeDetails.ownerName.$error.required") Please enter this field
+                                div.invalid-form(ng-show="createSafeDetails.ownerName.$dirty && createSafeDetails.ownerName.$invalid && createSafeDetails.ownerName.$error.required") Please enter this field
                         .row.middle
                           .common-form-row.clearfix
                             .col-lg-5.col-md-12.col-sm-12.col-xs-12.full-row-fix
                               .row
                                 .details-input-group.col-lg-12.col-md-12.col-sm-12.col-xs-12
                                   .common-form-label Type
+                                    span *
                                   drop-down(drop-down-options="dropDownOptions" name="dropdown" dropdown-disable="typeDropdownDisable" error="noTypeSelected")
                             .col-lg-6.col-md-12.col-sm-12.col-xs-12.full-row-fix.col-lg-offset-1.col-lg-offset-1
                               .row
                                 .details-input-group.left-sm-sep.col-lg-12.col-md-12.col-sm-12.col-xs-12
                                     .common-form-label Owner
+                                      span *
                                     input.form-control.input-box-style(id="addOwnerEmail" ng-model="safe.owner"  autofocus='!showInputLoader.show' ng-change="searchValue.userName = safe.owner" ng-keyup='onKeyUp(searchValue, "userName", true)' ng-class="{highlightBox: inputSelected.select}" name="ownerEmail" placeholder="Email address - Enter min 3 characters" required)
                                     div.loader.owner-mail(ng-if='showInputLoader.show && safe.owner.length > 0')
                                         div.ball-spin-fade-loader
@@ -225,10 +231,11 @@ script(src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"
                           .common-form-row.col-lg-12.col-md-12.col-sm-12.col-xs-12
                             .details-input-group
                                 .common-form-label Description
-                                textarea.form-control.input-box-style.details-textarea(ng-model="safe.description" name="description" placeholder="Safe description - Enter min 10 characters" minlength="10" maxlength="1024" required)
-                                span.invalid-form(ng-show="createSafeDetails.description.$dirty && createSafeDetails.description.$invalid && createSafeDetails.description.$error.required") Please enter this field
-                                span.invalid-form(ng-show='createSafeDetails.description.$error.maxlength') Description too long
-                                span.invalid-form(ng-show='createSafeDetails.description.$error.minlength') Description too short
+                                  span *
+                                textarea.form-control.input-box-style.details-textarea(ng-model="safe.description" name="description" placeholder="Safe description" minlength="10" maxlength="1024" required)
+                                div.key-acceptance-info(ng-if = "!isEditSafe") Please enter minimum 10 characters.
+                                div.invalid-form(ng-show="createSafeDetails.description.$dirty && createSafeDetails.description.$invalid && createSafeDetails.description.$error.required") Please enter this field
+                                div.invalid-form(ng-show='isEditSafe && createSafeDetails.description.$invalid && !createSafeDetails.description.$error.required') Please enter minimum 10 characters.
                     .safe-right-content-container.col-lg-6.col-sm-7#full-height
 
                       .safe-detail-container-block
