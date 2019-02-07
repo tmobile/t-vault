@@ -116,7 +116,8 @@ public class PolicyUtilsTest {
         when(ControllerUtil.getReqProcessor().process("/auth/userpass/read","{\"username\":\"normaluser\"}",token)).thenReturn(response);
         when(ControllerUtil.getPoliciesAsStringFromJson(Mockito.any(), eq("{\"data\":{\"policies\":\"s_shared_mysafe01,s_shared_mysafe02\"}}"))).thenThrow(IOException.class);
         String[] policies = policyUtils.getCurrentPolicies(token, "normaluser");
-        assertNull(policies);
+        String[] expectedPolicies = {};
+        assertEquals(expectedPolicies, policies);
     }
 
     @Test
