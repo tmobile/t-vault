@@ -31,6 +31,7 @@ import java.util.Scanner;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import javax.annotation.PostConstruct;
@@ -114,7 +115,7 @@ public final class ControllerUtil {
 	private static String ssUsername;
 	private static String ssPassword;
 	private static SSCred sscred = null;
-	
+
 	@PostConstruct     
 	private void initStatic () {
 		vaultAuthMethod = this.tvaultAuthMethod;
@@ -2061,4 +2062,26 @@ public final class ControllerUtil {
 	public static SSCred getSscred() {
 		return sscred;
 	}
+
+    /**
+     * To hide the master approle from responses to UI
+     * @param response
+     * @return
+     */
+    public static Response hideMasterAppRoleFromResponse(Response response) {
+        ObjectMapper objMapper = new ObjectMapper();
+        String jsonStr = response.getResponse();
+        Map<String,String[]> requestMap = null;
+        try {
+            requestMap = objMapper.readValue(jsonStr, new TypeReference<Map<String,String[]>>() {});
+        } catch (IOException e) {
+            log.error(e);
+        }
+        List<String> policyList = new ArrayList<>(Arrays.asList((String[])requestMap.get("keys")));
+        policyList.remove(TVaultConstants.SELF_SERVICE_APPROLE_NAME);
+        String policies =  policyList.stream().collect(Collectors.joining("\", \""));
+
+        response.setResponse("{\"keys\": [\""+ policies +"\"]}");
+        return response;
+    }
 }

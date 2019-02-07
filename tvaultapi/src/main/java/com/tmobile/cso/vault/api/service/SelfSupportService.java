@@ -167,7 +167,7 @@ public class  SelfSupportService {
 			}
 		}
 		else {
-			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Can't add user. Possible reasons: Invalid path specified, 2. Changing access/permission of safe owner is not allowed, 3. Safeowner/safeadmin have are authorized to change permission of safe\"]}");
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Access denied: no permission to add users to this safe\"]}");
 		}
 	}
 	/**
@@ -221,7 +221,7 @@ public class  SelfSupportService {
 				return safesService.getSafe(token, path);
 			}
 			else {
-				return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("{\"errors\":[\"Not authorized to get Safe information\"]}");
+				return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("{\"errors\":[\"Access denied: no permission to read this safe information\"]}");
 			}
 		}
 	}
@@ -235,7 +235,7 @@ public class  SelfSupportService {
 		String token = userDetails.getClientToken();
 		boolean isAuthorized = safeUtils.canAddOrRemoveUser(userDetails, safeUser, TVaultConstants.REMOVE_USER);
 		if (!isAuthorized) {
-			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("{\"errors\":[\"Not authorized to remove users from this safe\"]}");
+			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("{\"errors\":[\"Access denied: no permission to remove users from this safe\"]}");
 		}
 		if (userDetails.isAdmin()) {
 			return safesService.removeUserFromSafe(token, safeUser);
@@ -482,6 +482,9 @@ public class  SelfSupportService {
 	 * @return
 	 */
 	public ResponseEntity<String> deleteApproleFromSDB(UserDetails userDetails, String userToken, SafeAppRoleAccess safeAppRoleAccess) {
+		if (TVaultConstants.SELF_SERVICE_APPROLE_NAME.equals(safeAppRoleAccess.getRole_name())) {
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Access denied: no permission to delete this approle\"]}");
+		}
 		String jsonstr = JSONUtil.getJSON(safeAppRoleAccess);
 		String token = userDetails.getClientToken();
 		if (userDetails.isAdmin()) {

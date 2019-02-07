@@ -86,7 +86,7 @@ public class PolicyUtils {
 	 */
 	public String[] getCurrentPolicies(String token, String username) {
 		Response userResponse;
-		String[] policies = null;
+		String[] policies = {};
 		if (TVaultConstants.USERPASS.equals(vaultAuthMethod)) {
 			userResponse = ControllerUtil.getReqProcessor().process("/auth/userpass/read","{\"username\":\""+username+"\"}",token);
 		}

@@ -3,7 +3,6 @@ package com.tmobile.cso.vault.api.v2.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tmobile.cso.vault.api.main.Application;
 import com.tmobile.cso.vault.api.model.*;
-import com.tmobile.cso.vault.api.service.AccessService;
 import com.tmobile.cso.vault.api.service.AppRoleService;
 import org.junit.Before;
 import org.junit.Test;

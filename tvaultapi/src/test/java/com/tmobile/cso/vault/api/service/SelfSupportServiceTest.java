@@ -258,8 +258,8 @@ public class SelfSupportServiceTest {
         SafeUser safeUser = new SafeUser(path, "testuser1","write");
         UserDetails userDetails = getMockUser(true);
 
-        ResponseEntity<String> response = ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Can't add user. Possible reasons: Invalid path specified, 2. Changing access/permission of safe owner is not allowed, 3. Safeowner/safeadmin have are authorized to change permission of safe\"]}");
-        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Can't add user. Possible reasons: Invalid path specified, 2. Changing access/permission of safe owner is not allowed, 3. Safeowner/safeadmin have are authorized to change permission of safe\"]}");
+        ResponseEntity<String> response = ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Access denied: no permission to add users to this safe\"]}");
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Access denied: no permission to add users to this safe\"]}");
 
         when(safeUtils.canAddOrRemoveUser(userDetails, safeUser, "addUser")).thenReturn(false);
         when(safesService.addUserToSafe(token, safeUser, userDetails)).thenReturn(response);
@@ -312,7 +312,7 @@ public class SelfSupportServiceTest {
         SafeUser safeUser = new SafeUser(path, "testuser1","write");
         UserDetails userDetails = getMockUser(false);
 
-        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("{\"errors\":[\"Not authorized to remove users from this safe\"]}");
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("{\"errors\":[\"Access denied: no permission to remove users from this safe\"]}");
 
         when(safeUtils.canAddOrRemoveUser(userDetails, safeUser, "removeUser")).thenReturn(false);
 
@@ -388,7 +388,7 @@ public class SelfSupportServiceTest {
         String path = "shared/mysafe01";
         String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
         UserDetails userDetails = getMockUser(false);
-        String responseJson = "{\"errors\":[\"Not authorized to get Safe information\"]}";
+        String responseJson = "{\"errors\":[\"Access denied: no permission to read this safe information\"]}";
 
         String[] policies = {"s_shared_mysafe01"};
         SafeBasicDetails safeBasicDetails = new SafeBasicDetails("mysafe01", "youremail@yourcompany.com", null, "My first safe");
@@ -989,6 +989,22 @@ public class SelfSupportServiceTest {
         when(JSONUtil.getJSON(Mockito.any(SafeAppRoleAccess.class))).thenReturn(jsonStr);
         ResponseEntity<String> responseEntity = selfSupportService.deleteApproleFromSDB(userDetails, token, safeAppRoleAccess);
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntity);
+    }
+
+    @Test
+    public void test_deleteApproleFromSDB_failure_accessDenied() {
+        String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+        UserDetails userDetails = getMockUser(false);
+        String jsonStr = "{\"role_name\":\"selfservicesupportrole\",\"path\":\"shared/mysafe01\",\"access\":\"write\"}";
+
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Access denied: no permission to delete this approle\"]}");
+
+        mockIsAuthorized(userDetails, true);
+
+        SafeAppRoleAccess safeAppRoleAccess = new SafeAppRoleAccess("selfservicesupportrole", "shared/mysafe01", "write");
+        ResponseEntity<String> responseEntity = selfSupportService.deleteApproleFromSDB(userDetails, token, safeAppRoleAccess);
+        assertEquals(HttpStatus.BAD_REQUEST, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
     }
 
