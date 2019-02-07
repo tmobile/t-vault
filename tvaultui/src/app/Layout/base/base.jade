@@ -7,12 +7,14 @@ script(type='text/ng-template', id='text-input.modal.html')
                 .common-form-row
                     .details-input-group
                         .common-form-label {{config.inputLabel}}
+                          span *
                         input.form-control.input-box-style(placeholder="{{config.placeholder}}" minlength="3" maxlength="256"  name='inputValue' restrict-secret-special-char="config.inputLabel === 'Key'" restrict-special-char ng-pattern="config.inputLabel === 'Key'?'[a-z0-9_]+':''" ng-model="form.inputValue" required)
-                        div.key-acceptance-info(ng-if = 'config.inputLabel === "Key"') Key accepts lowercase alphabets, numbers and underscore only.
+                        div.key-acceptance-info(ng-if = 'config.inputLabel === "Key"') Please enter minimum 3 characters. Key accepts lowercase alphabets, numbers and underscore only.
                         div.invalid-form(ng-show="createForm.inputValue.$dirty && createForm.inputValue.$invalid && createForm.inputValue.$error.required") Please enter this field.
                 .common-form-row(ng-if="config.passwordLabel")
                     .details-input-group
                         .common-form-label.password-padding {{config.passwordLabel}}
+                          span *
                         textarea.form-control.input-box-style(name='passwordValue' placeholder="{{config.passwordPlaceholder}}" ng-model="form.passwordValue" minlength="1" maxlength="2048" required)
                         div.invalid-form(ng-show="createForm.passwordValue.$dirty && createForm.passwordValue.$invalid && createForm.passwordValue.$error.required") Please enter this field.
         .au-modal-buttons
@@ -29,8 +31,9 @@ script(type='text/ng-template', id='folder-text-input.modal.html')
                 .common-form-row
                     .details-input-group
                         .common-form-label {{config.inputLabel}}
+                          span *
                         input.form-control.input-box-style(placeholder="{{config.placeholder}}"  name='inputValue' restrict-secret-special-char="config.inputLabel === 'Folder Name'" restrict-special-char ng-pattern="config.inputLabel === 'Folder Name'?'[a-z0-9_]+':''" minlength="3" maxlength="256" ng-model="form.inputValue" required)
-                        div.key-acceptance-info(ng-if = 'config.inputLabel === "Folder Name"') Folder Name accepts lowercase alphabets, numbers and underscore only.
+                        div.key-acceptance-info(ng-if = 'config.inputLabel === "Folder Name"') Please enter minimum 3 characters. Folder Name accepts lowercase alphabets, numbers and underscore only.
                         div.invalid-form(ng-show="createForm.inputValue.$dirty && createForm.inputValue.$invalid && createForm.inputValue.$error.required") Please enter this field.
         .au-modal-buttons
             .au-inline-buttons
