@@ -181,7 +181,7 @@ public class  AppRoleService {
 			      put(LogMessage.STATUS, response.getHttpstatus().toString()).
 			      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 			      build()));
-		if (TVaultConstants.hideMasterAppRole) {
+		if (response!= null && HttpStatus.OK.equals(response.getHttpstatus()) && TVaultConstants.hideMasterAppRole) {
 			response = ControllerUtil.hideMasterAppRoleFromResponse(response);
 		}
 		return ResponseEntity.status(response.getHttpstatus()).body(response.getResponse());
