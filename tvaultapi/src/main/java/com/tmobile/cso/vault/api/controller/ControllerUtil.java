@@ -2077,11 +2077,13 @@ public final class ControllerUtil {
         } catch (IOException e) {
             log.error(e);
         }
-        List<String> policyList = new ArrayList<>(Arrays.asList((String[])requestMap.get("keys")));
-        policyList.remove(TVaultConstants.SELF_SERVICE_APPROLE_NAME);
-        String policies =  policyList.stream().collect(Collectors.joining("\", \""));
+        if (null != requestMap.get("keys")) {
+			List<String> policyList = new ArrayList<>(Arrays.asList((String[]) requestMap.get("keys")));
+			policyList.remove(TVaultConstants.SELF_SERVICE_APPROLE_NAME);
+			String policies = policyList.stream().collect(Collectors.joining("\", \""));
 
-        response.setResponse("{\"keys\": [\""+ policies +"\"]}");
+			response.setResponse("{\"keys\": [\"" + policies + "\"]}");
+		}
         return response;
     }
 }

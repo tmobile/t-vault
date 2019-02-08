@@ -192,12 +192,11 @@ script(src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"
                             .details-input-group
                                 .common-form-label Name
                                  span *
-                                input.form-control.input-box-style(ng-model="safe.name" name="ownerName" ng-disabled="changeSafeHeader == 'EDIT SAFE' || safeCreated" ng-change="replaceSpaces()" minlength="!isEditSafe ? 3 : ''" maxlength="!isEditSafe ? 40 : ''" restrict-special-char placeholder="Safe name" required)
+                                input.form-control.input-box-style(ng-model="safe.name" name="ownerName" ng-disabled="changeSafeHeader == 'EDIT SAFE' || safeCreated" ng-change="replaceSpaces()" minlength="{{!isEditSafe?3:''}}" maxlength="{{!isEditSafe?40:''}}" restrict-special-char placeholder="Safe name" required)
                                 div.key-acceptance-info(ng-if = "!isEditSafe") Please enter minimum 3 characters.
                                 .status-text.available(ng-if = "!isEditSafe && similarSafes === 0 && safe.name.length !== 0 && !typeDropdownDisable") Available
                                 .status-text.exists(ng-if = "!isEditSafe && similarSafes !== 0 && similarSafes !== allSafesList.length") Safe Exists
                                 .existance-check(ng-repeat="item in similarSafes = ( allSafesList | filter : safe.name:true ).length") {{similarSafes}}
-                                div.invalid-form(ng-show="createSafeDetails.ownerName.$dirty && createSafeDetails.ownerName.$invalid && createSafeDetails.ownerName.$error.required") Please enter this field
                         .row.middle
                           .common-form-row.clearfix
                             .col-lg-5.col-md-12.col-sm-12.col-xs-12.full-row-fix
@@ -234,8 +233,8 @@ script(src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"
                                   span *
                                 textarea.form-control.input-box-style.details-textarea(ng-model="safe.description" name="description" placeholder="Safe description" minlength="10" maxlength="1024" required)
                                 div.key-acceptance-info(ng-if = "!isEditSafe") Please enter minimum 10 characters.
-                                div.invalid-form(ng-show="createSafeDetails.description.$dirty && createSafeDetails.description.$invalid && createSafeDetails.description.$error.required") Please enter this field
-                                div.invalid-form(ng-show='isEditSafe && createSafeDetails.description.$invalid && !createSafeDetails.description.$error.required') Please enter minimum 10 characters.
+                                div.invalid-form(ng-show='isEditSafe && createSafeDetails.description.$invalid && createSafeDetails.description.$error.minlength') Please enter minimum 10 characters.
+                                div.invalid-form(ng-show='isEditSafe && createSafeDetails.description.$error.maxlength') Description too long
                     .safe-right-content-container.col-lg-6.col-sm-7#full-height
 
                       .safe-detail-container-block

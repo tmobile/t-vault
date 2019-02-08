@@ -114,6 +114,9 @@ public class SafeUtils {
 			token = userDetails.getClientToken();
 		}
 		Safe safeMetaData = getSafeMetaData(token, safeType, safeName);
+		if (safeMetaData == null) {
+			return false;
+		}
 		String safeOwnerid = safeMetaData.getSafeBasicDetails().getOwnerid();
 		if (userDetails.isAdmin()) {
 			
