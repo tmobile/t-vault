@@ -698,6 +698,9 @@ public class  SelfSupportService {
 					} else if (policy.startsWith("w_")) {
 						safePolicy.put(safeName, "write");
 					}
+					else if (policy.startsWith("d_")) {
+						safePolicy.put(safeName, "deny");
+					}
 					if (!safePolicy.isEmpty()) {
 						if (safeType.equals(TVaultConstants.USERS)) {
 							safeListUsers.add(safePolicy);
