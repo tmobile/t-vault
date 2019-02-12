@@ -201,6 +201,20 @@ public class SafesServiceTest {
     }
 
     @Test
+    public void test_createSafe_failure_invalid_safename() {
+        String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+        SafeBasicDetails safeBasicDetails = new SafeBasicDetails("mysafe01_", "youremail@yourcompany.com", null, "My first safe");
+        Safe safe = new Safe("shared/mysafe01_",safeBasicDetails);
+
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid Safe name: unexpected character _ in the end\"]}");
+        when(ControllerUtil.areSDBInputsValid(safe)).thenReturn(true);
+
+        ResponseEntity<String> responseEntity = safesService.createSafe(token, safe);
+        assertEquals(HttpStatus.BAD_REQUEST, responseEntity.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntity);
+    }
+
+    @Test
     public void test_createSafe_failure_description_too_long() {
         String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
         SafeBasicDetails safeBasicDetails = new SafeBasicDetails("mysafe01", "youremail@yourcompany.com", null, "My first safe My first safe" +
