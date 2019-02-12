@@ -151,7 +151,12 @@
                         return ErrorMessage.ERROR_GENERAL;
                     }                    
                 } else if(responseObject.status === 400){
-                    return responseObject.data.errors;
+                    var error = responseObject.data.errors;
+                    if (error.length > 0 ) {
+                        return error[0];
+                    } else {
+                        return ErrorMessage.ERROR_GENERAL;
+                    }
                 }
                 else{
                     return ErrorMessage.ERROR_GENERAL;
