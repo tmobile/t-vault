@@ -31,6 +31,7 @@ import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.util.Strings;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -686,9 +687,10 @@ public class  SelfSupportService {
 		if (policies != null) {
 			for (String policy: policies) {
 				Map<String, String> safePolicy = new HashMap<>();
-				String[] _policies = policy.split("_");
-				if (_policies.length == 3) {
-					String safeName = _policies[2];
+				String[] _policies = policy.split("_", -1);
+				if (_policies.length >= 3) {
+					String[] policyName = Arrays.copyOfRange(_policies, 2, _policies.length);
+					String safeName = String.join("_", policyName);
 					String safeType = _policies[1];
 
 					if (policy.startsWith("r_")) {
