@@ -97,6 +97,26 @@
                     return response;
                 });
             },
+            getAccessorIDs: function(payload, url) {
+                return ServiceEndpoint.getAccessorIDs.makeRequest(payload, url).then(function(response) {
+                    return response;
+                });
+            },
+            deleteAccessorID: function(payload, url) {
+                return ServiceEndpoint.deleteAccessorID.makeRequest(payload, url).then(function(response) {
+                    return response;
+                });
+            }, 
+            readSecretID: function(payload, url) {
+                return ServiceEndpoint.readSecretID.makeRequest(payload, url).then(function(response) {
+                    return response;
+                });
+            },
+            deleteAppRole: function(payload, url) {
+                return ServiceEndpoint.deleteAppRole.makeRequest(payload, url).then(function(response) {
+                    return response;
+                });
+            },            
             detachAppRolePermissionFromSafe: function(payload, url) {
                 return ServiceEndpoint.detachAppRolePermission.makeRequest(payload, url).then(function(response) {
                     return response;
@@ -129,6 +149,11 @@
             },
             addAppRole: function(payload, url) {
                 return ServiceEndpoint.createAppRole.makeRequest(payload, url).then(function(response) {
+                    return response;
+                });
+            },
+            updateAppRole: function(payload, url) {
+                return ServiceEndpoint.updateAppRole.makeRequest(payload, url).then(function(response) {
                     return response;
                 });
             },

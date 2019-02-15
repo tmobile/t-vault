@@ -30,6 +30,136 @@ script(type='text/ng-template', id='notify.html')
         .clearfix.bottom-sm-sep
             button.link-style.common-btn.btn.btn-primary.btn-lg(ng-click="close()") Close
 
+script(type='text/ng-template', id='appRolePopup.html')
+          .modal-sep
+            .common-header-label.text-center {{editingApprole.status == true ? "Edit" : "Create"}} AppRole
+
+          //-   First popup of the Approle configure with multiple ID input fields
+
+          .left-lg-sep.right-lg-sep
+            .common-form.modal-inner-wrapper.aws
+              .common-form-row
+                .details-input-group
+                    .common-form-label Role Name 
+                      span * 
+                      span.tool-tip(uib-tooltip="Name of the AppRole" tooltip-placement="top" tooltip-popup-delay="600")
+                    input.form-control.input-box-style(value="{{approleConfPopupObj.role_name}}" restrict-config-char ng-model="approleConfPopupObj.role_name" placeholder="Role name" maxlength="50" minlength="3" ng-disabled="roleNameSelected") 
+              .aws-conf.clearfix
+                .font-type-normal Please fill the required fields
+
+                .col-lg-6.col-md-6.col-sm-12.col-xs-12.common-form-row
+                  .details-input-group
+                    .common-form-label Token Max TTL
+                      span * 
+                      span.tool-tip(uib-tooltip="Duration after which the issued token can no longer be renewed" tooltip-placement="top" tooltip-popup-delay="600")
+                    input.form-control.input-box-style(value="{{approleConfPopupObj.token_max_ttl}}" id="token_max_ttl" restrict-to-numbers placeholder="token_max_ttl" ng-model="approleConfPopupObj.token_max_ttl")
+                .col-lg-6.col-md-6.col-sm-12.col-xs-12.common-form-row
+                  .details-input-group
+                    .common-form-label Token TTL
+                      span * 
+                      span.tool-tip(uib-tooltip="Duration to set as the TTL for issued tokens and at renewal time" tooltip-placement="top" tooltip-popup-delay="600")
+                    input.form-control.input-box-style(value="{{approleConfPopupObj.token_ttl}}" id="token_ttl" restrict-to-numbers placeholder="token_ttl" ng-model="approleConfPopupObj.token_ttl")
+                .col-lg-6.col-md-6.col-sm-12.col-xs-12.common-form-row
+                  .details-input-group
+                    .common-form-label Secret Id Num Uses
+                      span * 
+                      span.tool-tip(uib-tooltip="Number of times the SecretID can be used to fetch a token from this AppRole" tooltip-placement="top" tooltip-popup-delay="600")
+                    input.form-control.input-box-style(value="{{approleConfPopupObj.secret_id_num_uses}}" id="secret_id_num_uses" restrict-to-numbers placeholder="secret_id_num_uses" ng-model="approleConfPopupObj.secret_id_num_uses")
+                .col-lg-6.col-md-6.col-sm-12.col-xs-12.common-form-row
+                  .details-input-group
+                    .common-form-label Token Num Uses
+                      span * 
+                      span.tool-tip(uib-tooltip="Number of times issued tokens can be used" tooltip-placement="top" tooltip-popup-delay="600")
+                    input.form-control.input-box-style(value="{{approleConfPopupObj.token_num_uses}}" id="token_num_uses" restrict-to-numbers placeholder="token_num_uses" ng-model="approleConfPopupObj.token_num_uses")
+                .col-lg-6.col-md-6.col-sm-12.col-xs-12.common-form-row
+                  .details-input-group
+                    .common-form-label Secret Id TTL
+                      span * 
+                      span.tool-tip(uib-tooltip="Duration after which SecretID expires" tooltip-placement="top" tooltip-trigger="click" tooltip-popup-delay="600")
+                    input.form-control.input-box-style(value="{{approleConfPopupObj.secret_id_ttl}}" id="secret_id_ttl" restrict-special-char-for-time placeholder="secret_id_ttl" ng-model="approleConfPopupObj.secret_id_ttl")
+                .col-lg-6.col-md-6.col-sm-12.col-xs-12.common-form-row(ng-if='editingApprole.status == true')
+                  .details-input-group
+                    .common-form-label Permissions
+                      span.tool-tip(uib-tooltip="Comma-separated list of policies" tooltip-placement="top" tooltip-popup-delay="600")
+                    input.form-control.input-box-style(value="{{approleConfPopupObj.policies}}" id="policies" placeholder="POLICIES" ng-disabled="true" ng-model="approleConfPopupObj.policies" maxlength="512" restrict-special-char-but-comma)
+          .text-center.bottom-lg-sep.modal-sep.aws
+            .clearfix.bottom-sm-sep
+              button.common-btn.btn.btn-primary.btn-lg(id="approle_create_btn" ng-click="createApprole()" ng-disabled="isApproleBtnDisabled()" ) {{editingApprole.status == true ? "Update" : "Create"}}
+            .clearfix
+              button.link-style.common-btn.btn.btn-default.btn-lg(ng-click="cancel()") Cancel
+script(type='text/ng-template', id='deleteAccessorPopup.html')
+  loading-state(ng-if="isLoadingModalData")
+  .top-lg-sep(ng-if="!isLoadingModalData")
+    .top-lg-sep
+        .common-header-label.text-center Confirmation
+    .top-lg-sep.notification-text Are you sure you want to delete this Accessor ID?
+    .text-center.bottom-lg-sep.top-lg-sep.notification-button
+      .clearfix.bottom-sm-sep
+        button.common-btn.btn.btn-primary.btn-lg(ng-click="deleteAccessor(accessorIDToDelete)") DELETE
+      .clearfix
+        button.link-style.common-btn.btn.btn-default.btn-lg(ng-click="deleteAccessorCancel()") CANCEL
+
+script(type='text/ng-template', id='createSecretIDPopUp.html')
+  loading-state(ng-if="isLoadingModalData")
+  .top-lg-sep(ng-if="!isLoadingModalData")
+    .top-lg-sep
+        .common-header-label.text-center Confirmation
+    .top-lg-sep.notification-text Are you sure you want to create new Secret ID for the AppRole {{createSecretIDForAppRole}} ?
+    .text-center.bottom-lg-sep.top-lg-sep.notification-button
+      .clearfix.bottom-sm-sep
+        button.common-btn.btn.btn-primary.btn-lg(ng-click="createSecretID(createSecretIDForAppRole)") CREATE
+      .clearfix
+        button.link-style.common-btn.btn.btn-default.btn-lg(ng-click="close()") CANCEL
+
+script(type='text/ng-template', id='notifySecretID.html')
+    .row
+        .top-lg-sep
+            .common-header-label.text-center Save the Secret ID and Accessor ID
+        .top-lg-sep.notification-text Secret Id   - {{showSecretId}}
+        .top-lg-sep.notification-text Accessor Id - {{showAccessorId}}
+        .top-lg-sep.download-notification-text
+            button.download-link-style(ng-click = "downloadIDs(showSecretId, showAccessorId, showApprolename)")
+            span Please click here to 
+            span.download-link(ng-click = "downloadIDs(showSecretId, showAccessorId, showApprolename)") download 
+            span Secret ID and Accessor ID
+    .text-center.bottom-lg-sep.top-lg-sep.notification-button
+        .clearfix.bottom-sm-sep
+            button.link-style.common-btn.btn.btn-primary.btn-lg(ng-click="close()") Close
+
+script(type='text/ng-template', id='deleteApprolePopUp.html')
+  loading-state(ng-if="isLoadingModalData")
+  .top-lg-sep(ng-if="!isLoadingModalData")
+    .top-lg-sep
+        .common-header-label.text-center Confirmation
+    .top-lg-sep.notification-text Are you sure you want to delete the AppRole {{appRoleToDelete}} ?
+    .text-center.bottom-lg-sep.top-lg-sep.notification-button
+      .clearfix.bottom-sm-sep
+        button.common-btn.btn.btn-primary.btn-lg(ng-click="deleteAppRole(appRoleToDelete)") CREATE
+      .clearfix
+        button.link-style.common-btn.btn.btn-default.btn-lg(ng-click="close()") CANCEL
+
+script(type='text/ng-template', id='manageSecretId.html')
+          .modal-sep
+            .common-header-label.text-center Manage Secret IDs 
+          .left-lg-sep.right-lg-sep
+            .common-form.modal-inner-wrapper.aws
+              .common-form-row
+                .details-input-group
+                    div.approle-management-content
+                        .row.change-approle.header(ng-show="!isLoadingData")
+                            .container.name Accessor IDs
+                        .change-approle-table-data.row
+                            .row.change-approle.item(ng-show="!isLoadingData && appRoleData.accessors.keys.length==0")
+                                .container.name No Secret Ids available
+                            .row.change-approle.item(ng-show="!isLoadingData"  ng-repeat="accessorvalue in appRoleData.accessors.keys")      
+                                .container.name.col-lg-10.col-md-10.col-sm-10.col-xs-10 {{accessorvalue}}                                    
+                                .container.name.col-lg-2.col-md-2.col-sm-2.col-xs-2
+                                    input(type='checkbox' value="{{accessorvalue}}" ng-click="chooseAccessor(accessorvalue)") 
+          .text-center.bottom-lg-sep.modal-sep.aws
+            .clearfix.bottom-sm-sep
+              button.common-btn.btn.btn-primary.btn-lg(ng-click="deleteAccessorPopUp()" ng-disabled="accessorListToDelete.length == 0") Delete {{accessorListToDelete.length == 0?'':accessorListToDelete.length}}
+            .clearfix
+              button.link-style.common-btn.btn.btn-default.btn-lg(ng-click="cancel()") CANCEL
 
 .container-fluid
     .container-fluid-wrapper.curved
@@ -63,5 +193,34 @@ script(type='text/ng-template', id='notify.html')
                                         .action-icon-wrapper.static
                                             .rotate.glyphicon.glyphicon-remove-circle
                                         .create-link.middle-block.hide-in-mobile
-                                            .text CREATE NEW SAFE                    
+                                            .text CREATE NEW SAFE
+                    md-tab(label="AppRole Management")
+                        md-content(class="md-padding md-content-wrapper page-content-wrapper md-approle-management" ng-init="displayGrid")
+                            .new-container.page-content-container
+                                .md-content-inner-wrapper
+                                    div.approle-management-content
+                                        .row.change-safe-table-container(ng-if='true')
+                                            loading-state(ng-if='isLoadingData')
+                                            .row.change-approle.header
+                                                .container.name.col-lg-3.col-md-3.col-sm-3.col-xs-3 APPROLE NAME
+                                                .container.action.col-lg-5.col-md-5.col-sm-5.col-xs-5 ACTION
+                                            .change-approle-table-data.row
+                                                .row.change-approle.item(ng-show="!isLoadingData" ng-class="{'grayBackground' : activeItem == true}" ng-repeat="value in appRoleData.keys")
+                                                    .container.name.col-lg-3.col-md-3.col-sm-3.col-xs-3 {{value}}
+                                                    .container.radio-inputs.col-lg-7.col-md-7.col-sm-7.col-xs-7
+                                                        .down.view
+                                                            .list-icon(ng-click = "editApprole(value, 'md')")  View/Edit AppRole
+                                                        .down.deletesecretids
+                                                            .list-icon(ng-click = "createSecretIDPopUp(value)" ) Create Secret ID
+                                                        .down.deletesecretids
+                                                            .list-icon(ng-click = "showAccessorsPopUp(value)" )  Manage Secret IDs
+                                                    .container.radio-inputs.col-lg-2.col-md-2.col-sm-2.col-xs-2
+                                                        .down
+                                                            .list-icon.icon-delete(ng-click = "deleteApprolePopUp(value)")                                                    
+                                    div.create-safe-wrapper
+                                        .function-text.link-style.option.right(ng-click="newAppRoleConfiguration('md')")
+                                            .action-icon-wrapper.static
+                                                .rotate.glyphicon.glyphicon-remove-circle
+                                            .create-link.middle-block.hide-in-mobile
+                                                .text CREATE NEW APPROLE
                                     

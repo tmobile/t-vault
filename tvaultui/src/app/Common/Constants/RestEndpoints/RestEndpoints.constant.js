@@ -192,8 +192,28 @@ readTextFile("../apiUrls.json");
             method: 'DELETE'
         },{
             name: 'getApproles',
-            url: '/v2/ss/approle/role',
+            url: '/v2/ss/approle',
             method: 'GET'
+        },{
+            name: 'getAccessorIDs',
+            url: 'v2/ss/approle/{role_name}/accessors',
+            method: 'GET'
+        },{
+            name: 'deleteAccessorID',
+            url: '/v2/ss/approle/{role_name}/secret_id',
+            method: 'DELETE'
+        },{
+            name: 'readSecretID',
+            url: '/v2/ss/auth/approle/role/{role_name}/secret_id',
+            method: 'GET'
+        },{
+            name: 'deleteAppRole',
+            url: '/v2/ss/auth/approle/role/',
+            method: 'DELETE'
+        },{
+            name: 'updateAppRole',
+            url: '/v2/ss/auth/approle/role',
+            method: 'PUT'
         },{
             name: 'getApproleDetails',
             url: '/v2/ss/approle/role/',
