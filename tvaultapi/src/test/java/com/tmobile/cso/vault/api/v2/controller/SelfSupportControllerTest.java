@@ -1,10 +1,15 @@
 package com.tmobile.cso.vault.api.v2.controller;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.tmobile.cso.vault.api.main.Application;
-import com.tmobile.cso.vault.api.model.*;
-import com.tmobile.cso.vault.api.service.SelfSupportService;
-import com.tmobile.cso.vault.api.v2.controller.SelfSupportController;
+import static org.hamcrest.Matchers.containsString;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+import java.util.ArrayList;
+
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -12,6 +17,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -22,16 +28,25 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
-import static org.hamcrest.Matchers.containsString;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.tmobile.cso.vault.api.main.Application;
+import com.tmobile.cso.vault.api.model.AWSIAMRole;
+import com.tmobile.cso.vault.api.model.AWSLoginRole;
+import com.tmobile.cso.vault.api.model.AWSRole;
+import com.tmobile.cso.vault.api.model.AppRole;
+import com.tmobile.cso.vault.api.model.AppRoleAccessorIds;
+import com.tmobile.cso.vault.api.model.Safe;
+import com.tmobile.cso.vault.api.model.SafeBasicDetails;
+import com.tmobile.cso.vault.api.model.SafeGroup;
+import com.tmobile.cso.vault.api.model.SafeUser;
+import com.tmobile.cso.vault.api.model.UserDetails;
+import com.tmobile.cso.vault.api.service.SelfSupportService;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(classes = Application.class)
 @ComponentScan(basePackages={"com.tmobile.cso.vault.api"})
 @WebAppConfiguration
+@WebMvcTest
 public class SelfSupportControllerTest {
 
     private MockMvc mockMvc;
@@ -505,5 +520,146 @@ public class SelfSupportControllerTest {
                 .header("Content-Type", "application/json;charset=UTF-8"))
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString(responseMessage)));
+    }
+    
+    @Test
+    public void test_deleteSecretIds() throws Exception {
+		ArrayList<String> failedAccessorIds = new ArrayList<String>();
+		ArrayList<String> deletedAccessorIds = new ArrayList<String>();
+		deletedAccessorIds.add("deleted01");
+		failedAccessorIds.add("failed01");
+		StringBuilder responseMessage = new StringBuilder("Deletion of secret_ids completed as: ");
+		String vaultToken = "5PDrOhsy4ig8L3EpsJZSLAMg";
+		String role_name = "testapprole01";
+		AppRoleAccessorIds appRoleAccessorIds = new AppRoleAccessorIds();
+		appRoleAccessorIds.setRole_name(role_name);
+		appRoleAccessorIds.setAccessorIds(new String[] {"deleted01", "failed01"});
+		if (!CollectionUtils.isEmpty(deletedAccessorIds)) {
+			responseMessage.append(String.format("Succssfully deleted the secret_ids for the following accessor_ids: [%s]. ",StringUtils.join(deletedAccessorIds.toArray(), ",")));
+		}
+		if (!CollectionUtils.isEmpty(failedAccessorIds)) {
+			responseMessage.append(String.format("Failed to delete the secret_ids for the following accessor_ids: [%s]",StringUtils.join(failedAccessorIds.toArray(), ",")));
+		}
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(responseMessage.toString());
+        when(selfSupportService.deleteSecretIds(eq(vaultToken), Mockito.any(), Mockito.any())).thenReturn(responseEntityExpected);
+        mockMvc.perform(MockMvcRequestBuilders.delete("/v2/ss/approle/"+role_name+"/secret_id").content(new ObjectMapper().writeValueAsString(appRoleAccessorIds))
+                .header("vault-token", vaultToken)
+                .header("Content-Type", "application/json;charset=UTF-8"))
+        		.andExpect(status().isOk())
+        		.andExpect(content().string(containsString(responseMessage.toString())));
+    }
+    
+    @Test
+    public void test_readAppRoleRoleId() throws Exception {
+		String role_name = "testapprole01";
+		String vaultToken = "5PDrOhsy4ig8L3EpsJZSLAMg";
+    	String role_id_response = "{\n" + 
+    			"  \"data\": {\n" + 
+    			"    \"role_id\": \"generated-role-id\"\n" + 
+    			"  }\n" + 
+    			"}";
+    	StringBuilder responseMessage = new StringBuilder(role_id_response);
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(responseMessage.toString());
+        when(selfSupportService.readAppRoleRoleId(eq(vaultToken), Mockito.any(), Mockito.any())).thenReturn(responseEntityExpected);
+        mockMvc.perform(MockMvcRequestBuilders.get("/v2/ss/approle/"+role_name+"/role_id")
+                .header("vault-token", vaultToken)
+                .header("Content-Type", "application/json;charset=UTF-8"))
+        		.andExpect(status().isOk())
+        		.andExpect(content().string(containsString(responseMessage.toString())));
+    }
+    @Test
+    public void test_readAppRoleSecretId() throws Exception {
+		String role_name = "testapprole01";
+		String vaultToken = "5PDrOhsy4ig8L3EpsJZSLAMg";
+    	String role_id_response = "{\n" + 
+    			"  \"data\": {\n" + 
+    			"    \"secret_id\": \"generated-role-id\",\n" + 
+    			"    \"secret_id_accessor\": \"accesssor-for-generated-role-id\"\n" + 
+    			"  }\n" + 
+    			"}";
+    	StringBuilder responseMessage = new StringBuilder(role_id_response);
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(responseMessage.toString());
+        when(selfSupportService.readAppRoleSecretId(eq(vaultToken), Mockito.any(), Mockito.any())).thenReturn(responseEntityExpected);
+        mockMvc.perform(MockMvcRequestBuilders.get("/v2/ss/approle/"+role_name+"/secret_id")
+                .header("vault-token", vaultToken)
+                .header("Content-Type", "application/json;charset=UTF-8"))
+        		.andExpect(status().isOk())
+        		.andExpect(content().string(containsString(responseMessage.toString())));
+    }
+    
+    @Test
+    public void test_readAppRoleDetails() throws Exception {
+		String role_name = "testapprole01";
+		String vaultToken = "5PDrOhsy4ig8L3EpsJZSLAMg";
+    	String role_id_response = "{\n" + 
+    			"  \"appRole\": {\n" + 
+    			"    \"role_name\": \"testapprole01\",\n" + 
+    			"    \"policies\": [\n" + 
+    			"      \"string\"\n" + 
+    			"    ],\n" + 
+    			"    \"bind_secret_id\": true,\n" + 
+    			"    \"secret_id_num_uses\": \"0\",\n" + 
+    			"    \"secret_id_ttl\": \"0\",\n" + 
+    			"    \"token_num_uses\": 0,\n" + 
+    			"    \"token_ttl\": 0,\n" + 
+    			"    \"token_max_ttl\": 0\n" + 
+    			"  },\n" + 
+    			"  \"role_id\": \"generated_role_id\",\n" + 
+    			"  \"accessorIds\": [\n" + 
+    			"    \"accesssor-for-generated-role-id\"\n" + 
+    			"  ],\n" + 
+    			"  \"appRoleMetadata\": {\n" + 
+    			"    \"path\": \"metadata/approle/testapprole01\",\n" + 
+    			"    \"data\": {\n" + 
+    			"      \"name\": \"myvaultapprole\",\n" + 
+    			"      \"createdBy\": \"testuser1\"\n" + 
+    			"    }\n" + 
+    			"  }\n" + 
+    			"}";
+    	StringBuilder responseMessage = new StringBuilder(role_id_response);
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(responseMessage.toString());
+        when(selfSupportService.readAppRoleDetails(eq(vaultToken), Mockito.any(), Mockito.any())).thenReturn(responseEntityExpected);
+        mockMvc.perform(MockMvcRequestBuilders.get("/v2/ss/approle/"+role_name)
+                .header("vault-token", vaultToken)
+                .header("Content-Type", "application/json;charset=UTF-8"))
+        		.andExpect(status().isOk())
+        		.andExpect(content().string(containsString(responseMessage.toString())));
+    }
+    
+    @Test
+    public void test_readSecretIdAccessors() throws Exception {
+		String role_name = "testapprole01";
+		String vaultToken = "5PDrOhsy4ig8L3EpsJZSLAMg";
+    	String role_id_response = "{\n" + 
+    			"  \"keys\": [\n" + 
+    			"    \"accesssor-for-generated-role-id\"\n" + 
+    			"  ]\n" + 
+    			"}";
+    	StringBuilder responseMessage = new StringBuilder(role_id_response);
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(responseMessage.toString());
+        when(selfSupportService.readSecretIdAccessors(eq(vaultToken), Mockito.any(), Mockito.any())).thenReturn(responseEntityExpected);
+        mockMvc.perform(MockMvcRequestBuilders.get("/v2/ss/approle/"+role_name+"/accessors")
+                .header("vault-token", vaultToken)
+                .header("Content-Type", "application/json;charset=UTF-8"))
+        		.andExpect(status().isOk())
+        		.andExpect(content().string(containsString(responseMessage.toString())));
+    }
+    
+    @Test
+    public void test_listAppRoles() throws Exception {
+		String vaultToken = "5PDrOhsy4ig8L3EpsJZSLAMg";
+    	String role_id_response = "{\n" + 
+    			"  \"keys\": [\n" + 
+    			"    \"testapprole01\"\n" + 
+    			"  ]\n" + 
+    			"}";
+    	StringBuilder responseMessage = new StringBuilder(role_id_response);
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(responseMessage.toString());
+        when(selfSupportService.listAppRoles(eq(vaultToken), Mockito.any())).thenReturn(responseEntityExpected);
+        mockMvc.perform(MockMvcRequestBuilders.get("/v2/ss/approle")
+                .header("vault-token", vaultToken)
+                .header("Content-Type", "application/json;charset=UTF-8"))
+        		.andExpect(status().isOk())
+        		.andExpect(content().string(containsString(responseMessage.toString())));
     }
 }

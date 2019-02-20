@@ -925,6 +925,12 @@ public class ControllerUtilTest {
     }
 
     @Test
+    public void test_populateUserMetaJson()  {
+        String json = ControllerUtil.populateUserMetaJson("role1", "normalsuer");
+        assertEquals("{\"path\":\"metadata/approle_users/normalsuer/role1\"}", json);
+    }
+    
+    @Test
     public void test_getPoliciesAsListFromJson() {
         List<String> policyList = new ArrayList<>();;
         List<String> expectedList = new ArrayList<>();

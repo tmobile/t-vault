@@ -206,7 +206,7 @@ public class AppRoleControllerV2Test {
         String responseMessage = "sample response";
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(responseMessage);
 
-        when(appRoleService.readSecretId(eq("5PDrOhsy4ig8L3EpsJZSLAMg"), Mockito.any())).thenReturn(responseEntityExpected);
+        when(appRoleService.readAppRoleSecretId(eq("5PDrOhsy4ig8L3EpsJZSLAMg"), Mockito.any())).thenReturn(responseEntityExpected);
 
         mockMvc.perform(MockMvcRequestBuilders.get("/v2/auth/approle/role/approle1/secret_id")
                 .header("vault-token", "5PDrOhsy4ig8L3EpsJZSLAMg")

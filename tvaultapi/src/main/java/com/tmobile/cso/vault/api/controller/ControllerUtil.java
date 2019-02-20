@@ -1995,6 +1995,22 @@ public final class ControllerUtil {
         rqstParams.put("path",_path);
         return ControllerUtil.convetToJson(rqstParams);
     }
+    /**
+     * Populate approle metadata json with the user information
+     * @param appRoleName
+     * @param username
+     * @return
+     */
+    public static  String populateUserMetaJson(String appRoleName, String username) {
+        String _path = TVaultConstants.APPROLE_USERS_METADATA_MOUNT_PATH + "/" + username +"/" + appRoleName;
+        AppRoleMetadataDetails appRoleMetadataDetails = new AppRoleMetadataDetails(appRoleName);
+        appRoleMetadataDetails.setCreatedBy(username);
+        AppRoleMetadata appRoleMetadata =  new AppRoleMetadata(_path, appRoleMetadataDetails);
+        String jsonStr = JSONUtil.getJSON(appRoleMetadata);
+        Map<String,Object> rqstParams = ControllerUtil.parseJson(jsonStr);
+        rqstParams.put("path",_path);
+        return ControllerUtil.convetToJson(rqstParams);
+    }
 	/**
 	 * Reads the SSCred from the location
 	 * @param fileLocation
