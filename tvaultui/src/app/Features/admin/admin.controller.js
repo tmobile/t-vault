@@ -657,7 +657,7 @@
         $scope.downloadIDs = function (showSecretId, showAccessorId, approlename) {
             var pom = document.createElement('a');
             
-            var text = "Approle,nOwner,nSecretID,nAccessorID\r\n"+ approlename+ ","+ SessionStore.getItem("username") +","+ showSecretId + ","+showAccessorId; 
+            var text = "Approle,Owner,SecretID,AccessorID\r\n"+ approlename+ ","+ SessionStore.getItem("username") +","+ showSecretId + ","+showAccessorId; 
             pom.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text));
             pom.setAttribute('download', approlename+'_'+showAccessorId+'.csv');
         
