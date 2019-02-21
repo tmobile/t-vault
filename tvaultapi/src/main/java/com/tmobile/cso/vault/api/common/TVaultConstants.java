@@ -43,8 +43,12 @@ public class TVaultConstants {
     public static final String EMPTY_JSON = "{}";
     public static final String APPROLE = "approle";
     public static final String APPROLE_METADATA_MOUNT_PATH = "metadata/approle";
+    public static final String APPROLE_USERS_METADATA_MOUNT_PATH = "metadata/approle_users";
     public static final String AWSROLE_METADATA_MOUNT_PATH = "metadata/awsrole";
     public static final String SELF_SERVICE_APPROLE_NAME = "selfservicesupportrole";
     public static final String SECRET = "secret";
     public static final boolean hideMasterAppRole = true;
+    public static final String APPROLE_DELETE_OPERATION="DELETE";
+    public static final String APPROLE_READ_OPERATION="READ";
+    public static final String APPROLE_UPDATE_OPERATION="UPDATE";
 }

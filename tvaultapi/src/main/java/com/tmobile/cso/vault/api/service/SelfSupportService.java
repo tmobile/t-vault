@@ -17,36 +17,40 @@
 
 package com.tmobile.cso.vault.api.service;
 
-import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.tmobile.cso.vault.api.common.TVaultConstants;
-import com.tmobile.cso.vault.api.exception.TVaultValidationException;
-import com.tmobile.cso.vault.api.model.*;
-
-import com.tmobile.cso.vault.api.process.Response;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.apache.logging.log4j.util.Strings;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
+import org.springframework.util.ObjectUtils;
 
+import com.tmobile.cso.vault.api.common.TVaultConstants;
 import com.tmobile.cso.vault.api.controller.ControllerUtil;
+import com.tmobile.cso.vault.api.exception.TVaultValidationException;
+import com.tmobile.cso.vault.api.model.AWSIAMRole;
+import com.tmobile.cso.vault.api.model.AWSLoginRole;
+import com.tmobile.cso.vault.api.model.AWSRole;
+import com.tmobile.cso.vault.api.model.AppRole;
+import com.tmobile.cso.vault.api.model.AppRoleAccessorIds;
 import com.tmobile.cso.vault.api.model.Safe;
+import com.tmobile.cso.vault.api.model.SafeAppRoleAccess;
+import com.tmobile.cso.vault.api.model.SafeGroup;
 import com.tmobile.cso.vault.api.model.SafeUser;
 import com.tmobile.cso.vault.api.model.UserDetails;
 import com.tmobile.cso.vault.api.utils.AuthorizationUtils;
 import com.tmobile.cso.vault.api.utils.JSONUtil;
 import com.tmobile.cso.vault.api.utils.PolicyUtils;
 import com.tmobile.cso.vault.api.utils.SafeUtils;
-import org.springframework.util.ObjectUtils;
 
 
 @Component
@@ -666,7 +670,7 @@ public class  SelfSupportService {
 			return appRoleService.deleteAppRole(token, appRole, userDetails);
 		}
 	}
-
+	
 	/**
 	 * Get safes having read/write permission
 	 * @param userDetails
@@ -735,6 +739,16 @@ public class  SelfSupportService {
 			return appRoleService.readAppRoles(token);
 		}
 	}
+	
+	/**
+	 * List all approle names
+	 * @param userToken
+	 * @param userDetails
+	 * @return
+	 */
+	public ResponseEntity<String> listAppRoles(String userToken, UserDetails userDetails) {
+		return appRoleService.listAppRoles(userToken, userDetails);
+	}
 
 	/**
 	 * Read approle info
@@ -752,5 +766,59 @@ public class  SelfSupportService {
 			token = userDetails.getSelfSupportToken();
 			return appRoleService.readAppRole(token, rolename);
 		}
+	}
+	/**
+	 * Read role_id for a given AppRole
+	 * @param userToken
+	 * @param appRole
+	 * @param userDetails
+	 * @return
+	 */
+	public ResponseEntity<String> readAppRoleRoleId(String userToken, String rolename, UserDetails userDetails) {
+		return appRoleService.readAppRoleRoleId(userToken, rolename, userDetails);
+	}
+	/**
+	 * Read secret_id for a given AppRole
+	 * @param userToken
+	 * @param appRole
+	 * @param userDetails
+	 * @return
+	 */
+	public ResponseEntity<String> readAppRoleSecretId(String userToken, String rolename, UserDetails userDetails) {
+		String token = userDetails.getClientToken();
+		if (!userDetails.isAdmin()) {
+			token = userDetails.getSelfSupportToken();
+		}
+		return appRoleService.readAppRoleSecretId(token, rolename, userDetails);
+	}
+	/**
+	 * Read approle details
+	 * @param userToken
+	 * @param rolename
+	 * @param userDetails
+	 * @return
+	 */
+	public ResponseEntity<String> readAppRoleDetails(String userToken, String rolename, UserDetails userDetails) {
+		return appRoleService.readAppRoleDetails(userToken, rolename, userDetails);
+	}
+	/**
+	 * To get/read Accessors of all SecretIds issued against an AppRole
+	 * @param userToken
+	 * @param rolename
+	 * @param userDetails
+	 * @return
+	 */
+	public ResponseEntity<String> readSecretIdAccessors(String userToken, String rolename, UserDetails userDetails) {
+		return appRoleService.readSecretIdAccessors(userToken, rolename, userDetails);
+	}
+	/**
+	 * Delete SecretIds for a given AppRole
+	 * @param userToken
+	 * @param appRole
+	 * @param userDetails
+	 * @return
+	 */
+	public ResponseEntity<String> deleteSecretIds(String userToken, AppRoleAccessorIds appRoleAccessorIds, UserDetails userDetails) {
+		return appRoleService.deleteSecretIds(userToken, appRoleAccessorIds, userDetails);
 	}
 }

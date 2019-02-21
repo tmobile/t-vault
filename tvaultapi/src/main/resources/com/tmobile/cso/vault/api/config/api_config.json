@@ -103,8 +103,7 @@
                 "outparams":["data"]
         
     },
-    
-      	{"#":"**** - nov'2018' - Read list of AppRoles *******",
+	{"#":"**** - nov'2018' - Read list of AppRoles *******",
     
     	"apiEndPoint":"/auth/approle/role/list",
     	"vaultEndPoint":"/auth/approle/role?list=true",
@@ -112,8 +111,6 @@
         "outparams":["data/keys"]
         
     },
- 
- 	
   	{"#":"**** - dec'2017 - Read a AppRole RoleID*******",
     
     	"apiEndPoint":"/auth/approle/role/readRoleID",
@@ -708,7 +705,36 @@
     	"vaultEndPoint":"/auth/aws/roles?list=true",
     	"method":"GET",
          "outparams":["data/keys"]
+    },
+    {"#" : "**** - Delete Secret_Ids for a given AppRole '****** ",
+ 	
+    	"apiEndPoint":"/auth/approle/role/delete/secretids",
+    	"vaultEndPoint":"/auth/approle/role/<role_name>/secret-id-accessor/destroy",
+    	"method":"POST",
+      	"params":[
+        		{"name":"role_name", "appendToPath":true},
+        		{"name":"secret_id_accessor","required":true}
+ 	    ]
+    },
+    {"#" : "**** - Read accessors of all the SecretIDs issued against the AppRole '****** ",
+ 	
+    	"apiEndPoint":"/auth/approle/role/accessors/list",
+    	"vaultEndPoint":"/auth/approle/role/<role_name>/secret-id?list=true",
+    	"method":"GET",
+      	"params":[
+        		{"name":"role_name", "required":true, "appendToPath":true}
+ 	    ],
+ 	    "outparams":["data/keys"]
+    },
+    {"#":"**** - Read list of AppRoles created by a user *******",
+    
+    	"apiEndPoint":"/auth/approles/rolesbyuser/list",
+    	"vaultEndPoint":"/<path>?list=true",
+    	"method":"GET",
+    	"params":[
+        	{"name":"path","required":true, "appendToPath":true}
+        ],
+        "outparams":["data/keys"]
+        
     }
-    
-    
 ]

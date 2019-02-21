@@ -56,8 +56,6 @@ public class RequestProcessor {
 	
 	private static Logger log = LogManager.getLogger(RequestProcessor.class);
 	
-	
-	
 	public RequestProcessor() {
 	}
 
@@ -86,8 +84,6 @@ public class RequestProcessor {
 				      build()));
 			return response;
 		}
-		
-	
 		
 		Map<String, Object> requestParams = parseInputJson (request,response);
 		

@@ -142,7 +142,7 @@ public class AppRoleControllerV2 {
 	@ApiOperation(value = "${AppRoleControllerV2.readSecretId.value}", notes = "${AppRoleControllerV2.readSecretId.notes}")
 	@GetMapping(value="/v2/auth/approle/role/{role_name}/secret_id",produces="application/json")
 	public ResponseEntity<String> readSecretId(@RequestHeader(value="vault-token") String token, @PathVariable("role_name" ) String rolename){
-		return appRoleService.readSecretId(token, rolename);
+		return appRoleService.readAppRoleSecretId(token, rolename);
 	}
 	/**
 	 * Login using AppRole
