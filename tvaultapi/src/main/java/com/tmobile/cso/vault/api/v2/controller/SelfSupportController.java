@@ -448,7 +448,7 @@ public class SelfSupportController {
 	 * @param rolename
 	 * @return
 	 */
-	@ApiOperation(value = "${SelfSupportController.readAppRole.value}", notes = "${SelfSupportController.readAppRole.notes}")
+	@ApiOperation(value = "${SelfSupportController.readAppRole.value}", notes = "${SelfSupportController.readAppRole.notes}", hidden=true)
 	@GetMapping(value="/v2/ss/approle/role/{role_name}",produces="application/json")
 	public ResponseEntity<String> readAppRole(HttpServletRequest request, @RequestHeader(value="vault-token") String token, @PathVariable("role_name" ) String rolename){
 		UserDetails userDetails = (UserDetails) ((HttpServletRequest) request).getAttribute("UserDetails");

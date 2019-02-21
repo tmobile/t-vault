@@ -1285,23 +1285,46 @@ public class AppRoleServiceTest {
     public void test_readAppRoleRoleId_WithUserDetails_successfully() throws Exception {
 
         String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+        UserDetails userDetails = getMockUser("testuser1", false);
+        String role_name = "approle1";
+        String username = userDetails.getUsername();
+        String path = TVaultConstants.APPROLE_METADATA_MOUNT_PATH + "/" + role_name;
+        
+        // START - AppRole exists
+        ArrayList<String> policiesList = new ArrayList<String>();
+        policiesList.add("r_shared_safe01");
+        String[] policies = policiesList.toArray(new String[policiesList.size()]);
+        AppRole appRole = new AppRole(role_name, policies, true, "0", "0", 0);
+        String appRoleResponseJson = new ObjectMapper().writeValueAsString(appRole);
+        Response appRoleResponse = getMockResponse(HttpStatus.OK, true, appRoleResponseJson);
+        Map<String, Object> appRoleResponseMap = new HashMap<>();
+        Map<String, Object> dataMap = new HashMap<>();
+        appRoleResponseMap.put("data", dataMap);
+        dataMap.put("policies",policiesList);
+        dataMap.put("bind_secret_id",new Boolean(true));
+        dataMap.put("secret_id_num_uses", new Integer(0));
+        dataMap.put("secret_id_ttl", new Integer(0));
+        dataMap.put("token_num_uses", new Integer(0));
+        dataMap.put("token_ttl", new Integer(0));
+        dataMap.put("token_max_ttl", new Integer(0));
+        when(reqProcessor.process("/auth/approle/role/read", "{\"role_name\":\""+role_name+"\"}",userDetails.getSelfSupportToken())).thenReturn(appRoleResponse);
+        when(ControllerUtil.parseJson(appRoleResponseJson)).thenReturn(appRoleResponseMap);
+        // END - AppRole exists
+        // START - isAllowed
+        String approleusername=username;
+        Response approleMetadataResponse = getMockResponse(HttpStatus.OK, true, getAppRoleMetadataJSON(path, approleusername, role_name));
+        when(reqProcessor.process("/read","{\"path\":\""+path+"\"}",userDetails.getSelfSupportToken())).thenReturn(approleMetadataResponse);
+        // END - isAllowed
+        
         String responseJson = "{\r\n" + 
         		"  \"data\": {\r\n" + 
         		"    \"role_id\": \"generated-role-id\"\r\n" + 
         		"  }\r\n" + 
         		"}";
         Response response =getMockResponse(HttpStatus.OK, true, responseJson);
-        UserDetails userDetails = getMockUser("testuser1", false);
-        String role_name = "approle1";
-        String username = userDetails.getUsername();
-        String path = TVaultConstants.APPROLE_METADATA_MOUNT_PATH + "/" + role_name;
-
-        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(responseJson);
-        
         when(reqProcessor.process("/auth/approle/role/readRoleID","{\"role_name\":\""+role_name+"\"}",userDetails.getSelfSupportToken())).thenReturn(response);
-        
-        Response approleMetadataResponse = getMockResponse(HttpStatus.OK, true, getAppRoleMetadataJSON(path, username, role_name));
-        when(reqProcessor.process("/read","{\"path\":\""+path+"\"}",userDetails.getSelfSupportToken())).thenReturn(approleMetadataResponse);
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(response.getResponse());
+
         Map<String, Object> responseMap = new HashMap<>();
         Map<String,Object> roleIdDataMap = new HashMap<>();
         roleIdDataMap.put("role_id", "generated-id");
@@ -1313,60 +1336,67 @@ public class AppRoleServiceTest {
         assertEquals(HttpStatus.OK, responseEntityActual.getStatusCode());
         assertEquals(responseEntityExpected, responseEntityActual);
 
+    }
+    @Test
+    public void test_readAppRoleRoleId_WithUserDetails_failure_BAD_REQUEST() throws Exception {
+        String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+        UserDetails userDetails = getMockUser("testuser1", false);
+        String role_name = "approle1";
+        String username = userDetails.getUsername();
+        String path = TVaultConstants.APPROLE_METADATA_MOUNT_PATH + "/" + role_name;
+        
+        // START - AppRole exists
+        ArrayList<String> policiesList = new ArrayList<String>();
+        policiesList.add("r_shared_safe01");
+        String[] policies = policiesList.toArray(new String[policiesList.size()]);
+        AppRole appRole = new AppRole(role_name, policies, true, "0", "0", 0);
+        String appRoleResponseJson = new ObjectMapper().writeValueAsString(appRole);
+        Response appRoleResponse = getMockResponse(HttpStatus.OK, true, appRoleResponseJson);
+        Map<String, Object> appRoleResponseMap = new HashMap<>();
+        Map<String, Object> dataMap = new HashMap<>();
+        appRoleResponseMap.put("data", dataMap);
+        dataMap.put("policies",policiesList);
+        dataMap.put("bind_secret_id",new Boolean(true));
+        dataMap.put("secret_id_num_uses", new Integer(0));
+        dataMap.put("secret_id_ttl", new Integer(0));
+        dataMap.put("token_num_uses", new Integer(0));
+        dataMap.put("token_ttl", new Integer(0));
+        dataMap.put("token_max_ttl", new Integer(0));
+        when(reqProcessor.process("/auth/approle/role/read", "{\"role_name\":\""+role_name+"\"}",userDetails.getSelfSupportToken())).thenReturn(appRoleResponse);
+        when(ControllerUtil.parseJson(appRoleResponseJson)).thenReturn(appRoleResponseMap);
+        // END - AppRole exists
+        // START - isAllowed
+        String approleusername="nonexisting";
+        Response approleMetadataResponse = getMockResponse(HttpStatus.BAD_REQUEST, true, getAppRoleMetadataJSON(path, approleusername, role_name));
+        when(reqProcessor.process("/read","{\"path\":\""+path+"\"}",userDetails.getSelfSupportToken())).thenReturn(approleMetadataResponse);
+        // END - isAllowed
+        
+        String responseJson = "{\"errors\":[\"Access denied: You don't have enough permission to read the role_id associated with the AppRole\"]}";
+        Response response =getMockResponse(HttpStatus.BAD_REQUEST, true, responseJson);
+        when(reqProcessor.process("/auth/approle/role/readRoleID","{\"role_name\":\""+role_name+"\"}",userDetails.getSelfSupportToken())).thenReturn(response);
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response.getResponse());
+
+        Map<String, Object> responseMap = new HashMap<>();
+        Map<String,Object> roleIdDataMap = new HashMap<>();
+        roleIdDataMap.put("role_id", "generated-id");
+        roleIdDataMap.put("createdBy", username);
+        responseMap.put("data", roleIdDataMap);
+        when(ControllerUtil.parseJson("{\"path\":\""+path+"\",\"data\":{\"name\":\""+role_name+"\",\"createdBy\":\""+username+"\"}}")).thenReturn(responseMap);
+        ResponseEntity<String> responseEntityActual = appRoleService.readAppRoleRoleId(token, role_name, userDetails);
+
+        assertEquals(HttpStatus.BAD_REQUEST, responseEntityActual.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntityActual);
     }
     @Test
     public void test_readAppRoleRoleId_WithUserDetails_failure() throws Exception {
         String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
-        String responseJson = "{\r\n" + 
-        		"  \"keys\": [\r\n" + 
-        		"  ]\r\n" + 
-        		"}";
-        Response response =getMockResponse(HttpStatus.OK, true, responseJson);
         UserDetails userDetails = getMockUser("testuser1", false);
-        String role_name = "approle1";
-        String username = userDetails.getUsername();
-        String path = TVaultConstants.APPROLE_METADATA_MOUNT_PATH + "/" + role_name;
-
-        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(responseJson);
-        
-        when(reqProcessor.process("/auth/approle/role/readRoleID","{\"role_name\":\""+role_name+"\"}",userDetails.getSelfSupportToken())).thenReturn(response);
-        
-        Response approleMetadataResponse = getMockResponse(HttpStatus.OK, true, getAppRoleMetadataJSON(path, username, role_name));
-        when(reqProcessor.process("/read","{\"path\":\""+path+"\"}",userDetails.getSelfSupportToken())).thenReturn(approleMetadataResponse);
-        Map<String, Object> responseMap = new HashMap<>();
-        Map<String,Object> roleIdDataMap = new HashMap<>();
-        roleIdDataMap.put("role_id", "generated-id");
-        roleIdDataMap.put("createdBy", username);
-        responseMap.put("data", roleIdDataMap);
-        when(ControllerUtil.parseJson("{\"path\":\""+path+"\",\"data\":{\"name\":\""+role_name+"\",\"createdBy\":\""+username+"\"}}")).thenReturn(responseMap);
-        ResponseEntity<String> responseEntityActual = appRoleService.readAppRoleRoleId(token, role_name, userDetails);
-
-        assertEquals(HttpStatus.OK, responseEntityActual.getStatusCode());
-        assertEquals(responseEntityExpected, responseEntityActual);
-    }
-    @Test
-    public void test_readAppRoleRoleId_WithUserDetails_failure_BAD_REQUEST() throws Exception {
-
-        String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+        String role_name = "selfservicesupportrole";
         String responseJson = "{\"errors\":[\"Access denied: You don't have enough permission to read the role_id associated with the AppRole\"]}";
-        Response response =getMockResponse(HttpStatus.OK, true, responseJson);
-        UserDetails userDetails = getMockUser("testuser1", false);
-        String role_name = "approle1";
-        String username = userDetails.getUsername();
-        String path = TVaultConstants.APPROLE_METADATA_MOUNT_PATH + "/" + role_name;
-
-        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body(responseJson);
-        
+        Response response =getMockResponse(HttpStatus.BAD_REQUEST, true, responseJson);
         when(reqProcessor.process("/auth/approle/role/readRoleID","{\"role_name\":\""+role_name+"\"}",userDetails.getSelfSupportToken())).thenReturn(response);
-        
-        Response approleMetadataResponse = getMockResponse(HttpStatus.OK, true, getAppRoleMetadataJSON(path, username, role_name));
-        when(reqProcessor.process("/read","{\"path\":\""+path+"\"}",userDetails.getSelfSupportToken())).thenReturn(approleMetadataResponse);
-        Map<String, Object> responseMap = new HashMap<>();
-        Map<String,Object> roleIdDataMap = new HashMap<>();
-        roleIdDataMap.put("role_id", "generated-id");
-        roleIdDataMap.put("createdBy", "testuser2");
-        responseMap.put("data", roleIdDataMap);
-        when(ControllerUtil.parseJson("{\"path\":\""+path+"\",\"data\":{\"name\":\""+role_name+"\",\"createdBy\":\""+username+"\"}}")).thenReturn(responseMap);
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response.getResponse());
+
         ResponseEntity<String> responseEntityActual = appRoleService.readAppRoleRoleId(token, role_name, userDetails);
 
         assertEquals(HttpStatus.BAD_REQUEST, responseEntityActual.getStatusCode());
@@ -1374,65 +1404,121 @@ public class AppRoleServiceTest {
 
     }
     @Test
+    public void test_readAppRoleRoleId_WithUserDetails_failure_NonExistingRole() throws Exception {
+        String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+        UserDetails userDetails = getMockUser("testuser1", false);
+        String role_name = "approle1x";
+        String username = userDetails.getUsername();
+        String path = TVaultConstants.APPROLE_METADATA_MOUNT_PATH + "/" + role_name;
+        
+        // START - AppRole exists
+
+        AppRole appRole = null;
+        String appRoleResponseJson = new ObjectMapper().writeValueAsString(appRole);
+        Response appRoleResponse = getMockResponse(HttpStatus.NOT_FOUND, true, appRoleResponseJson);
+        Map<String, Object> appRoleResponseMap = new HashMap<>();
+        Map<String, Object> dataMap = new HashMap<>();
+        appRoleResponseMap.put("data", dataMap);
+        dataMap.put("policies",null);
+        dataMap.put("bind_secret_id",new Boolean(true));
+        dataMap.put("secret_id_num_uses", new Integer(0));
+        dataMap.put("secret_id_ttl", new Integer(0));
+        dataMap.put("token_num_uses", new Integer(0));
+        dataMap.put("token_ttl", new Integer(0));
+        dataMap.put("token_max_ttl", new Integer(0));
+        when(reqProcessor.process("/auth/approle/role/read", "{\"role_name\":\""+role_name+"\"}",userDetails.getSelfSupportToken())).thenReturn(appRoleResponse);
+        when(ControllerUtil.parseJson(appRoleResponseJson)).thenReturn(appRoleResponseMap);
+        // END - AppRole exists
+        // START - isAllowed
+        String approleusername=username;
+        Response approleMetadataResponse = getMockResponse(HttpStatus.BAD_REQUEST, true, getAppRoleMetadataJSON(path, approleusername, role_name));
+        when(reqProcessor.process("/read","{\"path\":\""+path+"\"}",userDetails.getSelfSupportToken())).thenReturn(approleMetadataResponse);
+        // END - isAllowed
+        
+        String responseJson = "{\"errors\":[\"AppRole doesn't exist\"]}";
+        Response response =getMockResponse(HttpStatus.OK, true, responseJson);
+        when(reqProcessor.process("/auth/approle/role/readRoleID","{\"role_name\":\""+role_name+"\"}",userDetails.getSelfSupportToken())).thenReturn(response);
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(response.getResponse());
+
+        Map<String, Object> responseMap = new HashMap<>();
+        Map<String,Object> roleIdDataMap = new HashMap<>();
+        roleIdDataMap.put("role_id", "generated-id");
+        roleIdDataMap.put("createdBy", username);
+        responseMap.put("data", roleIdDataMap);
+        when(ControllerUtil.parseJson("{\"path\":\""+path+"\",\"data\":{\"name\":\""+role_name+"\",\"createdBy\":\""+username+"\"}}")).thenReturn(responseMap);
+        ResponseEntity<String> responseEntityActual = appRoleService.readAppRoleRoleId(token, role_name, userDetails);
+
+        assertEquals(HttpStatus.OK, responseEntityActual.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntityActual);
+    }
+    @Test
+    public void test_readAppRoleSecretId_WithUserDetails_failure() throws Exception {
+    	
+        String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+        UserDetails userDetails = getMockUser("testuser1", false);
+        String role_name = "selfservicesupportrole";
+        String responseJson = "{\"errors\":[\"Access denied: You don't have enough permission to read the secret_id associated with the AppRole\"]}";
+        
+        Response response =getMockResponse(HttpStatus.BAD_REQUEST, true, responseJson);
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response.getResponse());
+        ResponseEntity<String> responseEntityActual = appRoleService.readAppRoleSecretId(token, role_name, userDetails);
+        assertEquals(HttpStatus.BAD_REQUEST, responseEntityActual.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntityActual);
+
+    }
+    
+    @Test
     public void test_readAppRoleSecretId_WithUserDetails_successfully() throws Exception {
 
         String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+        UserDetails userDetails = getMockUser("testuser1", false);
+        String role_name = "approle1";
+        String username = userDetails.getUsername();
+        String path = TVaultConstants.APPROLE_METADATA_MOUNT_PATH + "/" + role_name;
+        
+        // START - AppRole exists
+        ArrayList<String> policiesList = new ArrayList<String>();
+        policiesList.add("r_shared_safe01");
+        String[] policies = policiesList.toArray(new String[policiesList.size()]);
+        AppRole appRole = new AppRole(role_name, policies, true, "0", "0", 0);
+        String appRoleResponseJson = new ObjectMapper().writeValueAsString(appRole);
+        Response appRoleResponse = getMockResponse(HttpStatus.OK, true, appRoleResponseJson);
+        Map<String, Object> appRoleResponseMap = new HashMap<>();
+        Map<String, Object> dataMap = new HashMap<>();
+        appRoleResponseMap.put("data", dataMap);
+        dataMap.put("policies",policiesList);
+        dataMap.put("bind_secret_id",new Boolean(true));
+        dataMap.put("secret_id_num_uses", new Integer(0));
+        dataMap.put("secret_id_ttl", new Integer(0));
+        dataMap.put("token_num_uses", new Integer(0));
+        dataMap.put("token_ttl", new Integer(0));
+        dataMap.put("token_max_ttl", new Integer(0));
+        when(reqProcessor.process("/auth/approle/role/read", "{\"role_name\":\""+role_name+"\"}",userDetails.getSelfSupportToken())).thenReturn(appRoleResponse);
+        when(ControllerUtil.parseJson(appRoleResponseJson)).thenReturn(appRoleResponseMap);
+        // END - AppRole exists
+        // START - isAllowed
+        String approleusername=username;
+        Response approleMetadataResponse = getMockResponse(HttpStatus.OK, true, getAppRoleMetadataJSON(path, approleusername, role_name));
+        when(reqProcessor.process("/read","{\"path\":\""+path+"\"}",userDetails.getSelfSupportToken())).thenReturn(approleMetadataResponse);
+        // END - isAllowed
+        
         String responseJson = "{\r\n" + 
         		"  \"data\": {\r\n" + 
         		"    \"secret_id\": \"generated-secret-id\",\r\n" + 
         		"    \"secret_id_accessor\": \"generated-accessor-id\"\r\n" + 
         		"  }\r\n" + 
         		"}";
+        
         Response response =getMockResponse(HttpStatus.OK, true, responseJson);
-        UserDetails userDetails = getMockUser("testuser1", false);
-        String role_name = "approle1";
-        String username = userDetails.getUsername();
-        String path = TVaultConstants.APPROLE_METADATA_MOUNT_PATH + "/" + role_name;
-
-        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(responseJson);
-        
         when(reqProcessor.process("/auth/approle/secretid/lookup","{\"role_name\":\""+role_name+"\"}",userDetails.getSelfSupportToken())).thenReturn(response);
-        
-        Response approleMetadataResponse = getMockResponse(HttpStatus.OK, true, getAppRoleMetadataJSON(path, username, role_name));
-        when(reqProcessor.process("/read","{\"path\":\""+path+"\"}",userDetails.getSelfSupportToken())).thenReturn(approleMetadataResponse);
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(response.getResponse());
         Map<String, Object> responseMap = new HashMap<>();
         Map<String,Object> roleIdDataMap = new HashMap<>();
         roleIdDataMap.put("role_id", "generated-id");
         roleIdDataMap.put("createdBy", username);
         responseMap.put("data", roleIdDataMap);
         when(ControllerUtil.parseJson("{\"path\":\""+path+"\",\"data\":{\"name\":\""+role_name+"\",\"createdBy\":\""+username+"\"}}")).thenReturn(responseMap);
-        ResponseEntity<String> responseEntityActual = appRoleService.readAppRoleSecretId(token, role_name, userDetails);
 
-        assertEquals(HttpStatus.OK, responseEntityActual.getStatusCode());
-        assertEquals(responseEntityExpected, responseEntityActual);
-
-    }
-    
-    @Test
-    public void test_readAppRoleSecretId_WithUserDetails_failure() throws Exception {
-        String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
-        String responseJson = "{\r\n" + 
-        		"  \"keys\": [\r\n" + 
-        		"  ]\r\n" + 
-        		"}";
-        Response response =getMockResponse(HttpStatus.OK, true, responseJson);
-        UserDetails userDetails = getMockUser("testuser1", false);
-        String role_name = "approle1";
-        String username = userDetails.getUsername();
-        String path = TVaultConstants.APPROLE_METADATA_MOUNT_PATH + "/" + role_name;
-
-        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(responseJson);
-        
-        when(reqProcessor.process("/auth/approle/secretid/lookup","{\"role_name\":\""+role_name+"\"}",userDetails.getSelfSupportToken())).thenReturn(response);
-        
-        Response approleMetadataResponse = getMockResponse(HttpStatus.OK, true, getAppRoleMetadataJSON(path, username, role_name));
-        when(reqProcessor.process("/read","{\"path\":\""+path+"\"}",userDetails.getSelfSupportToken())).thenReturn(approleMetadataResponse);
-        Map<String, Object> responseMap = new HashMap<>();
-        Map<String,Object> roleIdDataMap = new HashMap<>();
-        roleIdDataMap.put("role_id", "generated-id");
-        roleIdDataMap.put("createdBy", username);
-        responseMap.put("data", roleIdDataMap);
-        when(ControllerUtil.parseJson("{\"path\":\""+path+"\",\"data\":{\"name\":\""+role_name+"\",\"createdBy\":\""+username+"\"}}")).thenReturn(responseMap);
         ResponseEntity<String> responseEntityActual = appRoleService.readAppRoleSecretId(token, role_name, userDetails);
 
         assertEquals(HttpStatus.OK, responseEntityActual.getStatusCode());
@@ -1441,27 +1527,50 @@ public class AppRoleServiceTest {
     
     @Test
     public void test_readAppRoleSecretId_WithUserDetails_failure_BAD_REQUEST() throws Exception {
-
         String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
-        String responseJson = "{\"errors\":[\"Access denied: You don't have enough permission to read the secret_id associated with the AppRole\"]}";
-        Response response =getMockResponse(HttpStatus.OK, true, responseJson);
         UserDetails userDetails = getMockUser("testuser1", false);
         String role_name = "approle1";
         String username = userDetails.getUsername();
         String path = TVaultConstants.APPROLE_METADATA_MOUNT_PATH + "/" + role_name;
-
-        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body(responseJson);
         
-        when(reqProcessor.process("/auth/approle/secretid/lookup","{\"role_name\":\""+role_name+"\"}",userDetails.getSelfSupportToken())).thenReturn(response);
-        
-        Response approleMetadataResponse = getMockResponse(HttpStatus.OK, true, getAppRoleMetadataJSON(path, username, role_name));
+        // START - AppRole exists
+        ArrayList<String> policiesList = new ArrayList<String>();
+        policiesList.add("r_shared_safe01");
+        String[] policies = policiesList.toArray(new String[policiesList.size()]);
+        AppRole appRole = new AppRole(role_name, policies, true, "0", "0", 0);
+        String appRoleResponseJson = new ObjectMapper().writeValueAsString(appRole);
+        Response appRoleResponse = getMockResponse(HttpStatus.OK, true, appRoleResponseJson);
+        Map<String, Object> appRoleResponseMap = new HashMap<>();
+        Map<String, Object> dataMap = new HashMap<>();
+        appRoleResponseMap.put("data", dataMap);
+        dataMap.put("policies",policiesList);
+        dataMap.put("bind_secret_id",new Boolean(true));
+        dataMap.put("secret_id_num_uses", new Integer(0));
+        dataMap.put("secret_id_ttl", new Integer(0));
+        dataMap.put("token_num_uses", new Integer(0));
+        dataMap.put("token_ttl", new Integer(0));
+        dataMap.put("token_max_ttl", new Integer(0));
+        when(reqProcessor.process("/auth/approle/role/read", "{\"role_name\":\""+role_name+"\"}",userDetails.getSelfSupportToken())).thenReturn(appRoleResponse);
+        when(ControllerUtil.parseJson(appRoleResponseJson)).thenReturn(appRoleResponseMap);
+        // END - AppRole exists
+        // START - isAllowed
+        String approleusername="nonexisting";
+        Response approleMetadataResponse = getMockResponse(HttpStatus.OK, true, getAppRoleMetadataJSON(path, approleusername, role_name));
         when(reqProcessor.process("/read","{\"path\":\""+path+"\"}",userDetails.getSelfSupportToken())).thenReturn(approleMetadataResponse);
+        // END - isAllowed
+        
+        String responseJson = "{\"errors\":[\"Access denied: You don't have enough permission to read the secret_id associated with the AppRole\"]}";
+        
+        Response response =getMockResponse(HttpStatus.BAD_REQUEST, true, responseJson);
+        when(reqProcessor.process("/auth/approle/secretid/lookup","{\"role_name\":\""+role_name+"\"}",userDetails.getSelfSupportToken())).thenReturn(response);
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response.getResponse());
         Map<String, Object> responseMap = new HashMap<>();
         Map<String,Object> roleIdDataMap = new HashMap<>();
         roleIdDataMap.put("role_id", "generated-id");
-        roleIdDataMap.put("createdBy", "testuser2");
+        roleIdDataMap.put("createdBy", username);
         responseMap.put("data", roleIdDataMap);
         when(ControllerUtil.parseJson("{\"path\":\""+path+"\",\"data\":{\"name\":\""+role_name+"\",\"createdBy\":\""+username+"\"}}")).thenReturn(responseMap);
+
         ResponseEntity<String> responseEntityActual = appRoleService.readAppRoleSecretId(token, role_name, userDetails);
 
         assertEquals(HttpStatus.BAD_REQUEST, responseEntityActual.getStatusCode());
@@ -1479,23 +1588,33 @@ public class AppRoleServiceTest {
         		"    \"generated-accessor-id2\"\r\n" + 
         		"  ]\r\n" + 
         		"}";
+    	String role_id_response = "{\n" + 
+    			"  \"data\": {\n" + 
+    			"    \"role_id\": \"generated-role-id\"\n" + 
+    			"  }\n" + 
+    			"}";
         Response response =getMockResponse(HttpStatus.OK, true, responseJson);
         UserDetails userDetails = getMockUser("testuser1", false);
         String role_name = "approle1";
         String username = userDetails.getUsername();
         String path = TVaultConstants.APPROLE_METADATA_MOUNT_PATH + "/" + role_name;
-
-        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(responseJson);
         
-        when(reqProcessor.process("/auth/approle/role/accessors/list","{\"role_name\":\""+role_name+"\"}",userDetails.getSelfSupportToken())).thenReturn(response);
-        
-        Response approleMetadataResponse = getMockResponse(HttpStatus.OK, true, getAppRoleMetadataJSON(path, username, role_name));
-        when(reqProcessor.process("/read","{\"path\":\""+path+"\"}",userDetails.getSelfSupportToken())).thenReturn(approleMetadataResponse);
         Map<String, Object> responseMap = new HashMap<>();
         Map<String,Object> roleIdDataMap = new HashMap<>();
         roleIdDataMap.put("role_id", "generated-id");
         roleIdDataMap.put("createdBy", username);
         responseMap.put("data", roleIdDataMap);
+        
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(responseJson);
+        
+        when(reqProcessor.process("/auth/approle/role/accessors/list","{\"role_name\":\""+role_name+"\"}",userDetails.getSelfSupportToken())).thenReturn(response);
+        when(reqProcessor.process("/auth/approle/role/readRoleID","{\"role_name\":\""+role_name+"\"}",userDetails.getSelfSupportToken())).thenReturn
+        (getMockResponse(HttpStatus.OK, true, role_id_response));
+        when(ControllerUtil.parseJson(role_id_response)).thenReturn(responseMap);
+        
+        Response approleMetadataResponse = getMockResponse(HttpStatus.OK, true, getAppRoleMetadataJSON(path, username, role_name));
+        when(reqProcessor.process("/read","{\"path\":\""+path+"\"}",userDetails.getSelfSupportToken())).thenReturn(approleMetadataResponse);
+
         when(ControllerUtil.parseJson("{\"path\":\""+path+"\",\"data\":{\"name\":\""+role_name+"\",\"createdBy\":\""+username+"\"}}")).thenReturn(responseMap);
         ResponseEntity<String> responseEntityActual = appRoleService.readSecretIdAccessors(token, role_name, userDetails);
 
@@ -1508,10 +1627,7 @@ public class AppRoleServiceTest {
     public void test_readSecretIdAccessors_WithUserDetails_failure() throws Exception {
 
         String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
-        String responseJson = "{\r\n" + 
-        		"  \"error\": [\r\n" + 
-        		"  ]\r\n" + 
-        		"}";
+        String responseJson = "{\"errors\":[\"Unable to read AppRole. AppRole does not exist.\"]}";
         Response response =getMockResponse(HttpStatus.OK, true, responseJson);
         UserDetails userDetails = getMockUser("testuser1", false);
         String role_name = "approle1";
@@ -1521,7 +1637,8 @@ public class AppRoleServiceTest {
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(responseJson);
         
         when(reqProcessor.process("/auth/approle/role/accessors/list","{\"role_name\":\""+role_name+"\"}",userDetails.getSelfSupportToken())).thenReturn(response);
-        
+        when(reqProcessor.process("/auth/approle/role/readRoleID","{\"role_name\":\""+role_name+"\"}",userDetails.getSelfSupportToken())).thenReturn
+        (getMockResponse(HttpStatus.NOT_FOUND, true, responseJson));
         Response approleMetadataResponse = getMockResponse(HttpStatus.OK, true, getAppRoleMetadataJSON(path, username, role_name));
         when(reqProcessor.process("/read","{\"path\":\""+path+"\"}",userDetails.getSelfSupportToken())).thenReturn(approleMetadataResponse);
         Map<String, Object> responseMap = new HashMap<>();
@@ -1540,25 +1657,36 @@ public class AppRoleServiceTest {
     public void test_readSecretIdAccessors_WithUserDetails_BAD_REQUEST() throws Exception {
 
         String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
-        String responseJson = "{\"errors\":[\"Access denied: You don't have enough permission to read the accessors of SecretIds associated with the AppRole\"]}";
-        Response response =getMockResponse(HttpStatus.OK, true, responseJson);
         UserDetails userDetails = getMockUser("testuser1", false);
         String role_name = "approle1";
         String username = userDetails.getUsername();
         String path = TVaultConstants.APPROLE_METADATA_MOUNT_PATH + "/" + role_name;
 
-        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body(responseJson);
-        
-        when(reqProcessor.process("/auth/approle/role/accessors/list","{\"role_name\":\""+role_name+"\"}",userDetails.getSelfSupportToken())).thenReturn(response);
+    	String role_id_response = "{\n" + 
+    			"  \"data\": {\n" + 
+    			"    \"role_id\": \"generated-role-id\"\n" + 
+    			"  }\n" + 
+    			"}";
+        Map<String, Object> roleIdResponseMap = new HashMap<>();
+        Map<String,Object> roleIdDataMap = new HashMap<>();
+        roleIdDataMap.put("role_id", "generated-id");
+        roleIdDataMap.put("createdBy", username);
+        roleIdResponseMap.put("data", roleIdDataMap);
+        when(reqProcessor.process("/auth/approle/role/readRoleID","{\"role_name\":\""+role_name+"\"}",userDetails.getSelfSupportToken())).thenReturn(getMockResponse(HttpStatus.OK, true, role_id_response));
+        when(ControllerUtil.parseJson(role_id_response)).thenReturn(roleIdResponseMap);
         
         Response approleMetadataResponse = getMockResponse(HttpStatus.OK, true, getAppRoleMetadataJSON(path, username, role_name));
         when(reqProcessor.process("/read","{\"path\":\""+path+"\"}",userDetails.getSelfSupportToken())).thenReturn(approleMetadataResponse);
         Map<String, Object> responseMap = new HashMap<>();
-        Map<String,Object> roleIdDataMap = new HashMap<>();
+        roleIdDataMap = new HashMap<>();
         roleIdDataMap.put("role_id", "generated-id");
         roleIdDataMap.put("createdBy", "testuser2");
         responseMap.put("data", roleIdDataMap);
         when(ControllerUtil.parseJson("{\"path\":\""+path+"\",\"data\":{\"name\":\""+role_name+"\",\"createdBy\":\""+username+"\"}}")).thenReturn(responseMap);
+
+        String responseJson = "{\"errors\":[\"Access denied: You don't have enough permission to read the accessors of SecretIds associated with the AppRole\"]}";
+        Response response =getMockResponse(HttpStatus.OK, true, responseJson);
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body(responseJson);
         ResponseEntity<String> responseEntityActual = appRoleService.readSecretIdAccessors(token, role_name, userDetails);
 
         assertEquals(HttpStatus.BAD_REQUEST, responseEntityActual.getStatusCode());
