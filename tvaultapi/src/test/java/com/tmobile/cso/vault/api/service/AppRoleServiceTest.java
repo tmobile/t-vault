@@ -139,7 +139,7 @@ public class AppRoleServiceTest {
         Response responseList = getMockResponse(HttpStatus.OK, true, "{\"keys\": [ \"role1\" ]}");
         String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
         String [] policies = {"default"};
-        AppRole appRole = new AppRole("approle1", policies, true, "1", "100m", 0);
+        AppRole appRole = new AppRole("approle1", policies, true, 1, 100, 0);
         String jsonStr = "{\"role_name\":\"approle1\",\"policies\":[\"default\"],\"bind_secret_id\":true,\"secret_id_num_uses\":\"1\",\"secret_id_ttl\":\"100m\",\"token_num_uses\":0,\"token_ttl\":null,\"token_max_ttl\":null}";
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"AppRole created successfully\"]}");
 
@@ -171,7 +171,7 @@ public class AppRoleServiceTest {
 
         String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
         String [] policies = {"default"};
-        AppRole appRole = new AppRole("selfservicesupportrole", policies, true, "1", "100m", 0);
+        AppRole appRole = new AppRole("selfservicesupportrole", policies, true, 1, 100, 0);
         String jsonStr = "{\"role_name\":\"approle1\",\"policies\":[\"default\"],\"bind_secret_id\":true,\"secret_id_num_uses\":\"1\",\"secret_id_ttl\":\"100m\",\"token_num_uses\":0,\"token_ttl\":null,\"token_max_ttl\":null}";
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Access denied: no permission to create an approle named "+TVaultConstants.SELF_SERVICE_APPROLE_NAME+"\"]}");
         UserDetails userDetails = getMockUser(true);
@@ -192,7 +192,7 @@ public class AppRoleServiceTest {
         when(ControllerUtil.hideMasterAppRoleFromResponse(Mockito.any())).thenReturn(responseAfterHide);
         String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
         String [] policies = {"default"};
-        AppRole appRole = new AppRole("approle1", policies, true, "1", "100m", 0);
+        AppRole appRole = new AppRole("approle1", policies, true, 1, 100, 0);
         String jsonStr = "{\"role_name\":\"approle1\",\"policies\":[\"default\"],\"bind_secret_id\":true,\"secret_id_num_uses\":\"1\",\"secret_id_ttl\":\"100m\",\"token_num_uses\":0,\"token_ttl\":null,\"token_max_ttl\":null}";
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"AppRole creation failed.\"]}");
 
@@ -227,7 +227,7 @@ public class AppRoleServiceTest {
         when(ControllerUtil.hideMasterAppRoleFromResponse(Mockito.any())).thenReturn(responseAfterHide);
         String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
         String [] policies = {"default"};
-        AppRole appRole = new AppRole("approle1", policies, true, "1", "100m", 0);
+        AppRole appRole = new AppRole("approle1", policies, true, 1, 100, 0);
         String jsonStr = "{\"role_name\":\"approle1\",\"policies\":[\"default\"],\"bind_secret_id\":true,\"secret_id_num_uses\":\"1\",\"secret_id_ttl\":\"100m\",\"token_num_uses\":0,\"token_ttl\":null,\"token_max_ttl\":null}";
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"AppRole creation failed.\"]}");
 
@@ -257,7 +257,7 @@ public class AppRoleServiceTest {
         Response responseList = getMockResponse(HttpStatus.OK, true, "{\"keys\": [ \"approle1\" ]}");
         String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
         String [] policies = {"default"};
-        AppRole appRole = new AppRole("approle1", policies, true, "1", "100m", 0);
+        AppRole appRole = new AppRole("approle1", policies, true, 1, 100, 0);
         String jsonStr = "{\"role_name\":\"approle1\",\"policies\":[\"default\"],\"bind_secret_id\":true,\"secret_id_num_uses\":\"1\",\"secret_id_ttl\":\"100m\",\"token_num_uses\":0,\"token_ttl\":null,\"token_max_ttl\":null}";
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"messages\":[\"AppRole already exists and can't be created\"]}");
 
@@ -287,7 +287,7 @@ public class AppRoleServiceTest {
         Response response =getMockResponse(HttpStatus.BAD_REQUEST, true, "");
         String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
         String [] policies = {"default"};
-        AppRole appRole = new AppRole("", policies, true, "1", "100m", 0);
+        AppRole appRole = new AppRole("", policies, true, 1, 100, 0);
         String jsonStr = "{\"role_name\":\"\",\"policies\":[\"default\"],\"bind_secret_id\":true,\"secret_id_num_uses\":\"1\",\"secret_id_ttl\":\"100m\",\"token_num_uses\":0,\"token_ttl\":null,\"token_max_ttl\":null}";
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid input values for AppRole creation\"]}");
         
@@ -313,7 +313,7 @@ public class AppRoleServiceTest {
 
         String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
         String [] policies = {"default"};
-        AppRole appRole = new AppRole("", policies, true, "1", "100m", 0);
+        AppRole appRole = new AppRole("", policies, true, 1, 100, 0);
         String jsonStr = "{\"role_name\":\"\",\"policies\":[\"default\"],\"bind_secret_id\":true,\"secret_id_num_uses\":\"1\",\"secret_id_ttl\":\"100m\",\"token_num_uses\":0,\"token_ttl\":null,\"token_max_ttl\":null}";
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.NOT_FOUND).body(responseBody);
         
@@ -435,7 +435,7 @@ public class AppRoleServiceTest {
     }
 
     @Test
-    public void test_deleteAppRole_successfully() {
+    public void test_deleteAppRole_successfully() throws Exception{
 
         String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
         String appRoleId = "approle1";
@@ -454,6 +454,19 @@ public class AppRoleServiceTest {
         responseMap.put("createdBy", "safeadmin");
         when(ControllerUtil.parseJson(Mockito.any())).thenReturn(responseMap);
         when(reqProcessor.process(eq("/delete"),Mockito.any(),eq(token))).thenReturn(response);
+        // START - isAllowed
+        String approleusername="safeadmin";
+        String role_name=appRole.getRole_name();
+        String path = TVaultConstants.APPROLE_METADATA_MOUNT_PATH + "/" + role_name;
+        Response approleMetadataResponse = getMockResponse(HttpStatus.OK, true, getAppRoleMetadataJSON(path, approleusername, role_name));
+        when(reqProcessor.process("/read","{\"path\":\""+path+"\"}",userDetails.getSelfSupportToken())).thenReturn(approleMetadataResponse);
+    	String appRoleResponseJspn = "{\"path\":\"metadata/approle/approle1\",\"data\":{\"name\":\"approle1\",\"createdBy\":\"safeadmin\"}}";
+        Map<String, Object> appRoleResponseMap = new HashMap<>();
+        Map<String, Object> appRoleMetadataMap = new HashMap<>();
+        appRoleMetadataMap.put("createdBy",approleusername);
+        appRoleResponseMap.put ("data", appRoleMetadataMap);
+        when(ControllerUtil.parseJson(appRoleResponseJspn)).thenReturn(appRoleResponseMap);
+        // END - isAllowed
         Response permissionResponse =getMockResponse(HttpStatus.OK, true, "");
         when(ControllerUtil.canDeleteRole(appRole.getRole_name(), token, userDetails, TVaultConstants.APPROLE_METADATA_MOUNT_PATH)).thenReturn(permissionResponse);
         ResponseEntity<String> responseEntityActual = appRoleService.deleteAppRole(token, appRole, userDetails);
@@ -464,7 +477,7 @@ public class AppRoleServiceTest {
     }
 
     @Test
-    public void test_deleteAppRole_successfully_meta_failure() {
+    public void test_deleteAppRole_successfully_meta_failure() throws Exception {
 
         String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
         String appRoleId = "approle1";
@@ -484,6 +497,19 @@ public class AppRoleServiceTest {
         responseMap.put("createdBy", "safeadmin");
         when(ControllerUtil.parseJson(Mockito.any())).thenReturn(responseMap);
         when(reqProcessor.process(eq("/delete"),Mockito.any(),eq(token))).thenReturn(response404);
+        // START - isAllowed
+        String approleusername="safeadmin";
+        String role_name=appRole.getRole_name();
+        String path = TVaultConstants.APPROLE_METADATA_MOUNT_PATH + "/" + role_name;
+        Response approleMetadataResponse = getMockResponse(HttpStatus.OK, true, getAppRoleMetadataJSON(path, approleusername, role_name));
+        when(reqProcessor.process("/read","{\"path\":\""+path+"\"}",userDetails.getSelfSupportToken())).thenReturn(approleMetadataResponse);
+    	String appRoleResponseJspn = "{\"path\":\"metadata/approle/approle1\",\"data\":{\"name\":\"approle1\",\"createdBy\":\"safeadmin\"}}";
+        Map<String, Object> appRoleResponseMap = new HashMap<>();
+        Map<String, Object> appRoleMetadataMap = new HashMap<>();
+        appRoleMetadataMap.put("createdBy",approleusername);
+        appRoleResponseMap.put ("data", appRoleMetadataMap);
+        when(ControllerUtil.parseJson(appRoleResponseJspn)).thenReturn(appRoleResponseMap);
+        // END - isAllowed
         Response permissionResponse =getMockResponse(HttpStatus.OK, true, "");
         when(ControllerUtil.canDeleteRole(appRole.getRole_name(), token, userDetails, TVaultConstants.APPROLE_METADATA_MOUNT_PATH)).thenReturn(permissionResponse);
         ResponseEntity<String> responseEntityActual = appRoleService.deleteAppRole(token, appRole, userDetails);
@@ -525,7 +551,7 @@ public class AppRoleServiceTest {
     }
 
     @Test
-    public void test_deleteAppRole_successfully_metadata404() {
+    public void test_deleteAppRole_successfully_metadata404() throws Exception{
 
         String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
         String appRoleId = "approle1";
@@ -546,6 +572,13 @@ public class AppRoleServiceTest {
         responseMap.put("data", data);
         when(ControllerUtil.parseJson(Mockito.any())).thenReturn(responseMap);
         when(reqProcessor.process(eq("/delete"),Mockito.any(),eq(token))).thenReturn(response);
+        // START - isAllowed
+        String approleusername="safeadmin";
+        String role_name=appRole.getRole_name();
+        String path = TVaultConstants.APPROLE_METADATA_MOUNT_PATH + "/" + role_name;
+        Response approleMetadataResponse = getMockResponse(HttpStatus.OK, true, getAppRoleMetadataJSON(path, approleusername, role_name));
+        when(reqProcessor.process("/read","{\"path\":\""+path+"\"}",userDetails.getSelfSupportToken())).thenReturn(approleMetadataResponse);
+        // END - isAllowed
         Response permissionResponse =getMockResponse(HttpStatus.OK, true, "");
         when(ControllerUtil.canDeleteRole(appRole.getRole_name(), token, userDetails, TVaultConstants.APPROLE_METADATA_MOUNT_PATH)).thenReturn(permissionResponse);
         ResponseEntity<String> responseEntityActual = appRoleService.deleteAppRole(token, appRole, userDetails);
@@ -587,7 +620,7 @@ public class AppRoleServiceTest {
     }
 
     @Test
-    public void test_deleteAppRole_failure() {
+    public void test_deleteAppRole_failure() throws Exception{
 
         String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
         String appRoleId = "approle1";
@@ -608,6 +641,19 @@ public class AppRoleServiceTest {
         responseMap.put("createdBy", "safeadmin");
         when(ControllerUtil.parseJson(Mockito.any())).thenReturn(responseMap);
         when(reqProcessor.process(eq("/delete"),Mockito.any(),eq(token))).thenReturn(response);
+        // START - isAllowed
+        String approleusername="safeadmin";
+        String role_name=appRole.getRole_name();
+        String path = TVaultConstants.APPROLE_METADATA_MOUNT_PATH + "/" + role_name;
+        Response approleMetadataResponse = getMockResponse(HttpStatus.OK, true, getAppRoleMetadataJSON(path, approleusername, role_name));
+        when(reqProcessor.process("/read","{\"path\":\""+path+"\"}",userDetails.getSelfSupportToken())).thenReturn(approleMetadataResponse);
+    	String appRoleResponseJspn = "{\"path\":\"metadata/approle/approle1\",\"data\":{\"name\":\"approle1\",\"createdBy\":\"safeadmin\"}}";
+        Map<String, Object> appRoleResponseMap = new HashMap<>();
+        Map<String, Object> appRoleMetadataMap = new HashMap<>();
+        appRoleMetadataMap.put("createdBy",approleusername);
+        appRoleResponseMap.put ("data", appRoleMetadataMap);
+        when(ControllerUtil.parseJson(appRoleResponseJspn)).thenReturn(appRoleResponseMap);
+        // END - isAllowed
         Response permissionResponse =getMockResponse(HttpStatus.OK, true, "");
         when(ControllerUtil.canDeleteRole(appRole.getRole_name(), token, userDetails, TVaultConstants.APPROLE_METADATA_MOUNT_PATH)).thenReturn(permissionResponse);
         ResponseEntity<String> responseEntityActual = appRoleService.deleteAppRole(token, appRole, userDetails);
@@ -618,7 +664,7 @@ public class AppRoleServiceTest {
     }
 
     @Test
-    public void test_deleteAppRole_failure_500() {
+    public void test_deleteAppRole_failure_500() throws Exception{
 
         String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
         String appRoleId = "approle1";
@@ -638,6 +684,19 @@ public class AppRoleServiceTest {
         Map<String, Object> responseMap = new HashMap<>();
         when(ControllerUtil.parseJson(Mockito.any())).thenReturn(responseMap);
         when(reqProcessor.process(eq("/delete"),Mockito.any(),eq(token))).thenReturn(response);
+        // START - isAllowed
+        String approleusername="safeadmin";
+        String role_name=appRole.getRole_name();
+        String path = TVaultConstants.APPROLE_METADATA_MOUNT_PATH + "/" + role_name;
+        Response approleMetadataResponse = getMockResponse(HttpStatus.OK, true, getAppRoleMetadataJSON(path, approleusername, role_name));
+        when(reqProcessor.process("/read","{\"path\":\""+path+"\"}",userDetails.getSelfSupportToken())).thenReturn(approleMetadataResponse);
+    	String appRoleResponseJspn = "{\"path\":\"metadata/approle/approle1\",\"data\":{\"name\":\"approle1\",\"createdBy\":\"safeadmin\"}}";
+        Map<String, Object> appRoleResponseMap = new HashMap<>();
+        Map<String, Object> appRoleMetadataMap = new HashMap<>();
+        appRoleMetadataMap.put("createdBy",approleusername);
+        appRoleResponseMap.put ("data", appRoleMetadataMap);
+        when(ControllerUtil.parseJson(appRoleResponseJspn)).thenReturn(appRoleResponseMap);
+        // END - isAllowed
         Response permissionResponse =getMockResponse(HttpStatus.OK, true, "");
         when(ControllerUtil.canDeleteRole(appRole.getRole_name(), token, userDetails, TVaultConstants.APPROLE_METADATA_MOUNT_PATH)).thenReturn(permissionResponse);
         ResponseEntity<String> responseEntityActual = appRoleService.deleteAppRole(token, appRole, userDetails);
@@ -1133,7 +1192,7 @@ public class AppRoleServiceTest {
         policiesList.add("r_shared_safe01");
         String[] policies = policiesList.toArray(new String[policiesList.size()]);
         
-        AppRole appRoleExpected = new AppRole(role_name, policies, true, "0", "0", 0);
+        AppRole appRoleExpected = new AppRole(role_name, policies, true, 0, 0, 0);
         
         String responseJson = new ObjectMapper().writeValueAsString(appRoleExpected);
         Response response = getMockResponse(HttpStatus.OK, true, responseJson);
@@ -1166,7 +1225,7 @@ public class AppRoleServiceTest {
         policiesList.add("r_shared_safe01");
         String[] policies = policiesList.toArray(new String[policiesList.size()]);
         
-        AppRole appRoleExpected = new AppRole(role_name, policies, true, "0", "0", 0);
+        AppRole appRoleExpected = new AppRole(role_name, policies, true, 0, 0, 0);
         
         String responseJson = new ObjectMapper().writeValueAsString(appRoleExpected);
         Response response = getMockResponse(HttpStatus.NOT_FOUND, true, responseJson);
@@ -1294,7 +1353,7 @@ public class AppRoleServiceTest {
         ArrayList<String> policiesList = new ArrayList<String>();
         policiesList.add("r_shared_safe01");
         String[] policies = policiesList.toArray(new String[policiesList.size()]);
-        AppRole appRole = new AppRole(role_name, policies, true, "0", "0", 0);
+        AppRole appRole = new AppRole(role_name, policies, true, 0, 0, 0);
         String appRoleResponseJson = new ObjectMapper().writeValueAsString(appRole);
         Response appRoleResponse = getMockResponse(HttpStatus.OK, true, appRoleResponseJson);
         Map<String, Object> appRoleResponseMap = new HashMap<>();
@@ -1349,7 +1408,7 @@ public class AppRoleServiceTest {
         ArrayList<String> policiesList = new ArrayList<String>();
         policiesList.add("r_shared_safe01");
         String[] policies = policiesList.toArray(new String[policiesList.size()]);
-        AppRole appRole = new AppRole(role_name, policies, true, "0", "0", 0);
+        AppRole appRole = new AppRole(role_name, policies, true, 0, 0, 0);
         String appRoleResponseJson = new ObjectMapper().writeValueAsString(appRole);
         Response appRoleResponse = getMockResponse(HttpStatus.OK, true, appRoleResponseJson);
         Map<String, Object> appRoleResponseMap = new HashMap<>();
@@ -1480,7 +1539,7 @@ public class AppRoleServiceTest {
         ArrayList<String> policiesList = new ArrayList<String>();
         policiesList.add("r_shared_safe01");
         String[] policies = policiesList.toArray(new String[policiesList.size()]);
-        AppRole appRole = new AppRole(role_name, policies, true, "0", "0", 0);
+        AppRole appRole = new AppRole(role_name, policies, true, 0, 0, 0);
         String appRoleResponseJson = new ObjectMapper().writeValueAsString(appRole);
         Response appRoleResponse = getMockResponse(HttpStatus.OK, true, appRoleResponseJson);
         Map<String, Object> appRoleResponseMap = new HashMap<>();
@@ -1537,7 +1596,7 @@ public class AppRoleServiceTest {
         ArrayList<String> policiesList = new ArrayList<String>();
         policiesList.add("r_shared_safe01");
         String[] policies = policiesList.toArray(new String[policiesList.size()]);
-        AppRole appRole = new AppRole(role_name, policies, true, "0", "0", 0);
+        AppRole appRole = new AppRole(role_name, policies, true, 0, 0, 0);
         String appRoleResponseJson = new ObjectMapper().writeValueAsString(appRole);
         Response appRoleResponse = getMockResponse(HttpStatus.OK, true, appRoleResponseJson);
         Map<String, Object> appRoleResponseMap = new HashMap<>();
@@ -1709,7 +1768,7 @@ public class AppRoleServiceTest {
         ArrayList<String> policiesList = new ArrayList<String>();
         policiesList.add("r_shared_safe01");
         String[] policies = policiesList.toArray(new String[policiesList.size()]);
-        AppRole appRole = new AppRole(role_name, policies, true, "0", "0", 0);
+        AppRole appRole = new AppRole(role_name, policies, true, 0, 0, 0);
         
         String appRoleResponseJson = new ObjectMapper().writeValueAsString(appRole);
         Response appRoleResponse = getMockResponse(HttpStatus.OK, true, appRoleResponseJson);
@@ -1806,7 +1865,7 @@ public class AppRoleServiceTest {
         ArrayList<String> policiesList = new ArrayList<String>();
         policiesList.add("r_shared_safe01");
         String[] policies = policiesList.toArray(new String[policiesList.size()]);
-        AppRole appRole = new AppRole(role_name, policies, true, "0", "0", 0);
+        AppRole appRole = new AppRole(role_name, policies, true, 0, 0, 0);
         
         String appRoleResponseJson = new ObjectMapper().writeValueAsString(appRole);
         Response appRoleResponse = getMockResponse(HttpStatus.OK, true, appRoleResponseJson);
@@ -1903,7 +1962,7 @@ public class AppRoleServiceTest {
         ArrayList<String> policiesList = new ArrayList<String>();
         policiesList.add("r_shared_safe01");
         String[] policies = policiesList.toArray(new String[policiesList.size()]);
-        AppRole appRole = new AppRole(role_name, policies, true, "0", "0", 0);
+        AppRole appRole = new AppRole(role_name, policies, true, 0, 0, 0);
         
         String appRoleResponseJson = new ObjectMapper().writeValueAsString(appRole);
         Response appRoleResponse = getMockResponse(HttpStatus.OK, true, appRoleResponseJson);

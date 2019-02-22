@@ -80,7 +80,7 @@ public class AppRoleControllerV2Test {
     @Test
     public void test_createAppRole() throws Exception {
         String [] policies = {"default"};
-        AppRole appRole = new AppRole("approle1", policies, true, "1", "100m", 0);
+        AppRole appRole = new AppRole("approle1", policies, true, 1, 100, 0);
 
         String inputJson =new ObjectMapper().writeValueAsString(appRole);
         String responseMessage = "{\"messages\":[\"AppRole created succssfully\"]}";

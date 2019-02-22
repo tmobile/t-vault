@@ -821,4 +821,14 @@ public class  SelfSupportService {
 	public ResponseEntity<String> deleteSecretIds(String userToken, AppRoleAccessorIds appRoleAccessorIds, UserDetails userDetails) {
 		return appRoleService.deleteSecretIds(userToken, appRoleAccessorIds, userDetails);
 	}
+	/**
+	 * Update AppRole
+	 * @param userToken
+	 * @param appRole
+	 * @param userDetails
+	 * @return
+	 */
+	public ResponseEntity<String> updateAppRole(String userToken, AppRole appRole, UserDetails userDetails) {
+		return appRoleService.updateAppRole(userToken, appRole, userDetails);
+	}
 }

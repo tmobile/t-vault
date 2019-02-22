@@ -1469,7 +1469,7 @@ public class SelfSupportServiceTest {
         String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
         UserDetails userDetails = getMockUser(false);
         String [] policies = {"default"};
-        AppRole appRole = new AppRole("approle1", policies, true, "1", "100m", 0);
+        AppRole appRole = new AppRole("approle1", policies, true, 1, 100, 0);
 
         ResponseEntity<String> response = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"AppRole created successfully\"]}");
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"AppRole created successfully\"]}");
@@ -1487,7 +1487,7 @@ public class SelfSupportServiceTest {
         String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
         UserDetails userDetails = getMockUser(true);
         String [] policies = {"default"};
-        AppRole appRole = new AppRole("approle1", policies, true, "1", "100m", 0);
+        AppRole appRole = new AppRole("approle1", policies, true, 1, 100, 0);
 
         ResponseEntity<String> response = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"AppRole created successfully\"]}");
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"AppRole created successfully\"]}");
@@ -1505,7 +1505,7 @@ public class SelfSupportServiceTest {
         String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
         UserDetails userDetails = getMockUser(false);
         String [] policies = {"default"};
-        AppRole appRole = new AppRole("approle1", policies, true, "1", "100m", 0);
+        AppRole appRole = new AppRole("approle1", policies, true, 1, 100, 0);
         ResponseEntity<String> response = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"AppRole deleted\"]}");
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"AppRole deleted\"]}");
 
@@ -1522,7 +1522,7 @@ public class SelfSupportServiceTest {
         String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
         UserDetails userDetails = getMockUser(true);
         String [] policies = {"default"};
-        AppRole appRole = new AppRole("approle1", policies, true, "1", "100m", 0);
+        AppRole appRole = new AppRole("approle1", policies, true, 1, 100, 0);
         ResponseEntity<String> response = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"AppRole deleted\"]}");
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"AppRole deleted\"]}");
 
