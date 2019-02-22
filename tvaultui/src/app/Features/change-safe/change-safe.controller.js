@@ -103,14 +103,8 @@
         }];
 
         $scope.isApproleBtnDisabled = function() {
-            if ($scope.approleConfPopupObj.token_max_ttl !='' && $scope.approleConfPopupObj.token_ttl !='' 
-                && $scope.approleConfPopupObj.role_name.length > 0 && $scope.approleConfPopupObj.secret_id_num_uses !='' 
-                && $scope.approleConfPopupObj.secret_id_ttl !=''&& ($scope.approleConfPopupObj.token_num_uses !='' 
-                || $scope.approleConfPopupObj.token_num_uses.length !='')) {
+            if ($scope.roleNameSelected){
                     return false;
-            }
-            else if ($scope.roleNameSelected){
-                return false;
             }
             return true;
         }
@@ -140,45 +134,8 @@
 
         $scope.roleNameSelect = function() {
             var queryParameters = $scope.dropDownRoleNames.selectedGroupOption.type;
-            if (queryParameters === "Create New") {
-                $scope.approleConfPopupObj.role_name = "";
-                $scope.approleConfPopupObj.token_max_ttl = "";
-                $scope.approleConfPopupObj.token_ttl = "";
-                $scope.approleConfPopupObj.secret_id_num_uses = "";
-                $scope.approleConfPopupObj.policies = "";
-                $scope.approleConfPopupObj.secret_id_ttl = "";
-                $scope.approleConfPopupObj.token_num_uses = "";
-                $scope.approleConfPopupObj.bind_secret_id = "";
-                $scope.roleNameSelected = false;
-            }
-            else {
-                var updatedUrlOfEndPoint = ModifyUrl.addUrlParameteres('getApproleDetails', queryParameters);
-                AdminSafesManagement.getApproleDetails(null, updatedUrlOfEndPoint).then(function (response) {
-                    if (UtilityService.ifAPIRequestSuccessful(response)) {
-                    var data = response.data.data;
-                    $scope.approleConfPopupObj.role_name = queryParameters;
-                    $scope.approleConfPopupObj.token_max_ttl = data.token_max_ttl;
-                    $scope.approleConfPopupObj.token_ttl = data.token_ttl;
-                    $scope.approleConfPopupObj.secret_id_num_uses = data.secret_id_num_uses;
-                    $scope.approleConfPopupObj.policies = data.policies;
-                    $scope.approleConfPopupObj.secret_id_ttl = data.secret_id_ttl;
-                    $scope.approleConfPopupObj.token_num_uses = data.token_num_uses;
-                    $scope.approleConfPopupObj.bind_secret_id = data.bind_secret_id;
-                    $scope.roleNameSelected = true;
-                    }
-                    else {
-                        $scope.errorMessage = AdminSafesManagement.getTheRightErrorMessage(response);
-                        error('md');
-                    }
-                },
-                function (error) {
-                    // Error handling function
-                    console.log(error);
-                    $scope.isLoadingData = false;
-                    $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
-                    $scope.error('md');
-                })
-            }
+            $scope.roleNameSelected = true;
+            $scope.approleConfPopupObj.role_name = queryParameters;
         }
 
         $scope.error = function (size) {
@@ -1076,24 +1033,7 @@
                             apiCallFunction = AdminSafesManagement.addAppRolePermissionForSafe;
                             reqObjtobeSent = {"path": setPath, "role_name": key, "access": permission.toLowerCase()};
                             break;
-                        case 'ApproleRoleConfigure' :
-                            if ($scope.editingApprolePermission.status == true) {
-                                // editing not enabled
-                            } else {
-                                if ($scope.roleNameSelected == true) {
-                                    // Selected an already configured approle. add permission only
-                                    apiCallFunction = AdminSafesManagement.addAppRolePermissionForSafe;
-                                    reqObjtobeSent = {"path": setPath, "role_name": $scope.approleConfPopupObj.role_name, "access": permission.toLowerCase()};
                                 }
-                                else {
-                                    var policy_array = $scope.approleConfPopupObj.policies.split(','); 
-                                    $scope.approleConfPopupObj.policies = policy_array;
-                                    apiCallFunction = AdminSafesManagement.addAppRole;
-                                    reqObjtobeSent = $scope.approleConfPopupObj
-                                }
-                            }
-                            break;
-                    }
                     apiCallFunction(reqObjtobeSent, updatedUrlOfEndPoint).then(function (response) {
                             if (UtilityService.ifAPIRequestSuccessful(response)) {
                                 // Try-Catch block to catch errors if there is any change in object structure in the response
@@ -1101,9 +1041,6 @@
                                     $scope.isLoadingData = false;
                                     if (type === 'AwsRoleConfigure') {
                                         $scope.addPermission('AWSPermission', $scope.awsConfPopupObj.role, permission, false);
-                                    }
-                                    else if (type === 'ApproleRoleConfigure') {
-                                        $scope.addPermission('AppRolePermission', $scope.approleConfPopupObj.role_name, permission, false);
                                     }
                                     else {
                                         $scope.requestDataFrChangeSafe();
@@ -1168,7 +1105,7 @@
             $scope.open(size);
         }
 
-        $scope.newAppRoleConfiguration = function (size) {
+        $scope.addApproleToSafe = function (size) {
             // To reset the aws configuration details object to create a new one
             $scope.editingApprolePermission = {"status": false};
             $scope.approleConfPopupObj = {
@@ -1183,7 +1120,6 @@
             };
             $scope.roleNameSelected = false;
             $scope.roleNameTableOptions = [];
-            $scope.roleNameTableOptions.push({"type": "Create New"});
             AdminSafesManagement.getApproles().then(function (response) {
                 if (UtilityService.ifAPIRequestSuccessful(response)) {
                     var keys = response.data.keys +'';

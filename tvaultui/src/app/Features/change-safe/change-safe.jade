@@ -95,7 +95,7 @@ script(type='text/ng-template', id='changeSafePopup.html')
 
 script(type='text/ng-template', id='appRolePopup.html')
           .modal-sep
-            .common-header-label.text-center Configure your app
+            .common-header-label.text-center Add your app
 
           //-   First popup of the Approle configure with multiple ID input fields
 
@@ -104,56 +104,7 @@ script(type='text/ng-template', id='appRolePopup.html')
               .common-form-row
                 .details-input-group
                     .common-form-label Choose a Role Name
-                    drop-down(drop-down-options="dropDownRoleNames" name="dropdownRoles" ng-click="roleNameSelect()")
-              .common-form-row
-                .details-input-group
-                    .common-form-label Role Name
-                      span *
-                    input.form-control.input-box-style(value="{{approleConfPopupObj.role_name}}" restrict-config-char ng-model="approleConfPopupObj.role_name" placeholder="Role name" maxlength="50" minlength="3" ng-disabled="roleNameSelected")
-              .aws-conf.clearfix
-                .font-type-normal Please fill the required fields
-
-                .col-lg-6.col-md-6.col-sm-12.col-xs-12.common-form-row
-                  .details-input-group
-                    .common-form-label Token Max TTL
-                      span *
-                    input.form-control.input-box-style(ng-disabled="roleNameSelected" value="{{approleConfPopupObj.token_max_ttl}}" id="token_max_ttl" restrict-to-numbers placeholder="token_max_ttl" ng-model="approleConfPopupObj.token_max_ttl" )
-                .col-lg-6.col-md-6.col-sm-12.col-xs-12.common-form-row
-                  .details-input-group
-                    .common-form-label Token TTL
-                      span *
-                    input.form-control.input-box-style(ng-disabled="roleNameSelected" value="{{approleConfPopupObj.token_ttl}}" id="token_ttl" restrict-to-numbers placeholder="token_ttl" ng-model="approleConfPopupObj.token_ttl")
-                .col-lg-6.col-md-6.col-sm-12.col-xs-12.common-form-row
-                  .details-input-group
-                    .common-form-label Policies
-                      span *
-                    input.form-control.input-box-style(ng-disabled="roleNameSelected" value="{{approleConfPopupObj.policies}}" id="policies" placeholder="POLICIES" ng-model="approleConfPopupObj.policies" maxlength="512" restrict-special-char-but-comma)
-                .col-lg-6.col-md-6.col-sm-12.col-xs-12.common-form-row
-                  .details-input-group
-                    .common-form-label Secret Id Num Uses
-                      span *
-                    input.form-control.input-box-style(ng-disabled="roleNameSelected" value="{{approleConfPopupObj.secret_id_num_uses}}" id="secret_id_num_uses" restrict-to-numbers placeholder="secret_id_num_uses" ng-model="approleConfPopupObj.secret_id_num_uses")
-                .col-lg-6.col-md-6.col-sm-12.col-xs-12.common-form-row
-                  .details-input-group
-                    .common-form-label Token Num Uses
-                      span *
-                    input.form-control.input-box-style(ng-disabled="roleNameSelected" value="{{approleConfPopupObj.token_num_uses}}" id="token_num_uses" restrict-to-numbers placeholder="token_num_uses" ng-model="approleConfPopupObj.token_num_uses")
-                .col-lg-6.col-md-6.col-sm-12.col-xs-12.common-form-row
-                  .details-input-group
-                    .common-form-label Secret Id TTL
-                      span *
-                    input.form-control.input-box-style(ng-disabled="roleNameSelected" value="{{approleConfPopupObj.secret_id_ttl}}" id="secret_id_ttl" restrict-special-char-for-time placeholder="secret_id_ttl" ng-model="approleConfPopupObj.secret_id_ttl")
-              .common-form-row
-                .details-input-group
-                    .common-form-label Bind Secret ID
-                        span *
-                    .common-radio-group
-                        label.control.control--radio True
-                            input(ng-disabled="roleNameSelected" type='radio' id='bind_secret_id_true' value="true" ng-model="approleConfPopupObj.bind_secret_id" ng-checked="approleConfPopupObj.bind_secret_id == true")
-                            .control__indicator
-                        label.control.control--radio False
-                            input(ng-disabled="roleNameSelected" type='radio' id='bind_secret_id_false' value="false" ng-model="approleConfPopupObj.bind_secret_id" ng-checked="approleConfPopupObj.bind_secret_id == false")
-                            .control__indicator
+                    drop-down(drop-down-options="dropDownRoleNames" name="dropdownRoles" ng-click="roleNameSelect()")              
               .aws.common-form
                 .common-form-row
                     .aws-conf.clearfix
@@ -163,7 +114,7 @@ script(type='text/ng-template', id='appRolePopup.html')
                                 radio-buttons(data="radio" value="approleRadioBtn.value" state="true")
           .text-center.bottom-lg-sep.modal-sep.aws
             .clearfix.bottom-sm-sep
-              button.common-btn.btn.btn-primary.btn-lg(id="approle_create_btn" ng-click="addPermission('ApproleRoleConfigure', approleConfPopupObj.role_name, approleRadioBtn.value, false)" ng-disabled="isApproleBtnDisabled()" ) {{editingApprolePermission.status == true ? "Update" : "Create"}}
+              button.common-btn.btn.btn-primary.btn-lg(id="approle_create_btn" ng-click="addPermission('AppRolePermission', approleConfPopupObj.role_name, approleRadioBtn.value, false)" ng-disabled="isApproleBtnDisabled()" ) Add
             .clearfix
               button.link-style.common-btn.btn.btn-default.btn-lg(ng-click="cancel()") Cancel
 
@@ -415,10 +366,10 @@ script(src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"
                                 .new-container.page-content-container
                                     .row.change-safe
                                         .container.actions
-                                            .function-text.right.link-style(ng-click="newAppRoleConfiguration('md')")
+                                            .function-text.right.link-style(ng-click="addApproleToSafe('md')")
                                                 .add-icon-container.action-icon-wrapper.static
                                                     .rotate.glyphicon.glyphicon-remove-circle
-                                                .text ADD APPROLE CONFIGURATION
+                                                .text ADD APPROLE TO SAFE
                                     .unavailable-text(ng-if="isEmpty(AppRolePermissionsData.data)")
                                       | No approles are given permission to access this safe,<br> add approles to access the safe
                                     .change-safe-table-container(ng-if="!isEmpty(AppRolePermissionsData.data)")

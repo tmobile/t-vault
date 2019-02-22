@@ -124,6 +124,10 @@
     right: 0em;
 }
 
+.create-accessor-wrapper{
+    right: 0em;
+}
+
 @media #{$small-only}{
   .admin.slim-container .dropdown-wrapper {
     width: 70%;
@@ -180,4 +184,164 @@
 
 .admin-content {
     margin-top: 1vh;
+}
+
+.approle-management-content md-tabs md-tabs-wrapper{
+    box-shadow: 0 0 0 0 #fff !important;
+}
+
+.approle-management-content md-tab-item.md-tab.ng-scope.ng-isolate-scope.md-ink-ripple{
+    color: gray !important;
+}
+
+.approle-management-content md-tab-item.md-tab.ng-scope.ng-isolate-scope.md-ink-ripple.md-active {
+    color: #f6006e !important;
+}
+
+.approle-management-content .row.change-approle.header {
+    border-bottom: 1px solid $gray-dark;
+}
+.approle-management-content .row.change-approle.header .name,
+.approle-management-content .row.change-approle.header .action {
+    padding: 1.5vh 0;
+    font-size: 1.6vh;    
+    color: #333;
+}
+.approle-management-content .row.change-approle.header .action {
+    padding-left: 15px;
+}
+.approle-management-content .change-safe-table-container .row.change-approle.header,
+.approle-management-content .change-safe-table-container .row.change-approle.item {
+    padding-left: 1rem !important;
+}
+
+.approle-management-content .change-approle-table-data {
+    height: 300px;
+    overflow-y: scroll;
+}
+
+.approle-management-content .change-safe-table-container .item {
+    border-bottom: 1px solid #ccc;
+}
+
+.approle-management-content .row.change-approle .container.name {
+    height: 6vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    color: #333;
+}
+
+.approle-management-content .change-safe-table-container .item .name {
+    // padding: 1rem 5% 1rem 0;
+    // overflow: hidden;
+    padding: 1.4vh 5% 1.4vh 0;
+    font-size: 1.7vh;
+    color: #333!important;
+    //width: 31.5% !important;
+    font-weight: bold;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.approle-management-content .change-safe-table-container .item .down {
+    height: 6vh;
+    width: 4vw;
+}
+
+.approle-management-content .change-safe-table-container .item .down .list-icon {
+    padding: 1vh 3vh 1vh 0.3vw;
+    font-size: 3vh;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.approle-management-content .change-safe-table-container .item .down .list-icon.icon-delete {
+  padding: 1.5vh 2vh 1.5vh 0.3vw;
+}
+
+.approle-management-content .change-safe-table-container .item .down:first-child {
+    margin-left: 0vw;
+    float: right;
+}
+
+.approle-management-content .change-safe-table-container .item .down.view,
+.approle-management-content .change-safe-table-container .item .down.deletesecretids {
+    width: 4vw;
+    float: left;
+}
+
+.approle-management-content .change-safe-table-container .item:hover {
+    background: #f6f6f6 !important;
+}
+.approle-management-content .change-safe-table-container .item .down.view .list-icon,
+.approle-management-content .change-safe-table-container .item .down.deletesecretids .list-icon {
+    font-size: 1.7vh;
+    font-family: montserrat;
+    font-weight: bold;
+    letter-spacing: 0.1rem;
+    padding: 1.3vh 3vh 1.3vh 0;
+    display: flex;
+    height: 100%;
+    flex-direction: column;
+    justify-content: center;
+}
+.md-approle-management {
+    width: 96% !important;
+}
+
+.list-download {
+    font-size: 12px;
+    color: #333 !important;
+    transition: 0s ease-in-out color;
+    margin-top: 10px;
+}
+
+.change-approle-table-data.row.secretids {
+    max-height: 300px;
+    overflow-y: scroll;
+}
+
+.common-form input[type='checkbox'] {
+    width:auto!important;
+}
+
+.approle-management-content .row.change-approle .container.checkbox {
+    height: 6vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    color: #333;
+    width:auto;
+}
+.download-link {
+    color: #e20074!important;
+    cursor: pointer;
+    text-decoration: underline;
+}
+.download-notification-text {
+    padding: 5% 5% 0% 5%!important;
+    font-size: 1.9vh;
+    color: #666;
+    text-align: center;
+}
+
+.download-link-style {
+    background: url(../assets/images/download.png) no-repeat center;
+    background-size: contain;
+    padding: 2% 5%;
+    width:20px;
+    height:20px;
+    border: none;
+}
+
+.tool-tip {
+    padding-left: 5px;
+    background: url(../assets/images/question.png) no-repeat right;
+    background-size: contain;
+    width:14px;
+    height:14px;
+    display: inline-block;
 }

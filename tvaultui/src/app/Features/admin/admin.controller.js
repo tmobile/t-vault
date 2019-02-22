@@ -19,7 +19,7 @@
 
 'use strict';
 (function(app){
-    app.controller('AdminCtrl', function($scope, $rootScope, Modal, fetchData, $http, $window, $state, SessionStore, AdminSafesManagement, ModifyUrl, UtilityService, Notifications, safesService){
+    app.controller('AdminCtrl', function($scope, $rootScope, Modal, fetchData, $http, $window, $state, SessionStore, AdminSafesManagement, ModifyUrl, UtilityService, Notifications, safesService, RestEndpoints){
 
         $scope.filterValue = '';            // Initial search filter value kept empty
         $scope.isLoadingData = false;       // Variable to set the loader on
@@ -48,7 +48,16 @@
                 "value": "Application Safe"
             }
         ];
-
+        $scope.approleConfPopupObj = {
+            "token_max_ttl":"",
+            "token_ttl": "",
+            "role_name": "",
+            "policies": "",
+            "bind_secret_id": "",
+            "secret_id_num_uses": "",
+            "secret_id_ttl": "",
+            "token_num_uses": ""
+        };
         
         $scope.adminNavTags = safesService.getSafesNavTags();
 
@@ -82,6 +91,10 @@
             ]
         };
 
+        $scope.viewSecretIdAccessors = {"status": false, "value": ""};
+        $rootScope.showSecretId = "";
+        $rootScope.showAccessorId = "";
+        $scope.accessorListToDelete = [];
         var init = function () {
 
             $scope.myVaultKey = SessionStore.getItem("myVaultKey");
@@ -305,6 +318,10 @@
             Modal.close();
         };
 
+        $rootScope.deleteAccessorCancel = function () {
+            Modal.close();
+            $scope.showAccessorsPopUp($scope.approleToShow);
+        };
         // Fetching Data
 
         $scope.requestDataFrAdmin = function () {
@@ -358,8 +375,386 @@
 
                 }
             });
-            
+            $scope.appRoleData = {"keys": []};
+            AdminSafesManagement.getApproles().then(function (response) {                
+                if (UtilityService.ifAPIRequestSuccessful(response)) {
+                    $scope.appRoleData = response.data;
+                }
+                else {
+                    $scope.errorMessage = AdminSafesManagement.getTheRightErrorMessage(response);
+                    error('md');
+                }
+            },
+            function (error) {
+                // Error handling function
+                console.log(error);
+                $scope.isLoadingData = false;
+                $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
+                $scope.error('md');
+            });
         };
+
+        $scope.newAppRoleConfiguration = function (size) {
+            // To reset the aws configuration details object to create a new one
+            $scope.editingApprole = {"status": false};
+            $scope.roleNameSelected = false;
+            $scope.approleConfPopupObj = {
+                "token_max_ttl":"",
+                "token_ttl": "",
+                "role_name": "",
+                "policies": "",
+                "bind_secret_id": "",
+                "secret_id_num_uses": "",
+                "secret_id_ttl": "",
+                "token_num_uses": ""
+            };
+            $scope.openApprole(size);
+        }
+
+        $scope.createApprole = function () {
+            try {
+                Modal.close('');
+                $scope.isLoadingData = true;
+                var apiCallFunction = '';
+                var reqObjtobeSent = {};
+                if ($scope.editingApprole.status == true) {
+                    $scope.approleConfPopupObj.policies = [];
+                    $scope.approleConfPopupObj.bind_secret_id = true;
+                    apiCallFunction = AdminSafesManagement.updateAppRole;
+                    reqObjtobeSent = $scope.approleConfPopupObj;
+                } else {
+                    $scope.approleConfPopupObj.policies = [];
+                    $scope.approleConfPopupObj.bind_secret_id = true;
+                    apiCallFunction = AdminSafesManagement.addAppRole;
+                    reqObjtobeSent = $scope.approleConfPopupObj;
+                }
+                var updatedUrlOfEndPoint = "";
+                apiCallFunction(reqObjtobeSent, updatedUrlOfEndPoint).then(function (response) {
+                    if (UtilityService.ifAPIRequestSuccessful(response)) {
+                        // Try-Catch block to catch errors if there is any change in object structure in the response
+                        try {
+                            $scope.isLoadingData = false;
+                            if ($scope.editingApprole.status == true) {
+                                var notification = UtilityService.getAParticularSuccessMessage('MESSAGE_UPDATE_SUCCESS');
+                            }
+                            else {
+                                $scope.appRoleData.keys.push($scope.approleConfPopupObj.role_name);
+                                $scope.appRoleData.keys.sort();
+                                var notification = UtilityService.getAParticularSuccessMessage('MESSAGE_CREATE_SUCCESS');
+                            }
+                            Notifications.toast('Approle '+notification);
+                        } catch (e) {
+                            console.log(e);
+                            $scope.isLoadingData = false;
+                            $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_PROCESSING_DATA');
+                            $scope.error('md');
+                        }
+                    }
+                    else {
+                        $scope.errorMessage = AdminSafesManagement.getTheRightErrorMessage(response);
+                        error('md');
+                    }
+                    $scope.roleNameSelected = false;
+                },
+                function (error) {
+                    // Error handling function
+                    console.log(error);
+                    $scope.isLoadingData = false;
+                    $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
+                    $scope.error('md');
+                })
+            } catch (e) {
+                // To handle errors while calling 'fetchData' function
+                $scope.isLoadingData = false;
+                console.log(e);
+                $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
+                $scope.error('md');
+            }
+            
+        }
+
+        /* TODO: What is open, functon name should be more descriptive */
+        $scope.openApprole = function (size) {
+            Modal.createModal(size, 'appRolePopup.html', 'AdminCtrl', $scope);
+        };
+
+        $scope.isApproleBtnDisabled = function() {
+            if ($scope.approleConfPopupObj.token_max_ttl !='' && $scope.approleConfPopupObj.token_ttl !='' 
+                && $scope.approleConfPopupObj.role_name.length > 0 && $scope.approleConfPopupObj.secret_id_num_uses !='' 
+                && $scope.approleConfPopupObj.secret_id_ttl !=''&& ($scope.approleConfPopupObj.token_num_uses !='' 
+                || $scope.approleConfPopupObj.token_num_uses.length !='')) {
+                    return false;
+            }
+            else if ($scope.roleNameSelected){
+                return false;
+            }
+            return true;
+        }
+
+        $scope.deleteAccessorPopUp = function() {
+            Modal.createModal('md', 'deleteAccessorPopup.html', 'AdminCtrl', $scope);
+        };
+
+        $scope.deleteAccessor = function() {
+            try {
+                if ($scope.accessorListToDelete.length >0) {
+                    $scope.isLoadingData = true;
+                    Modal.close();
+                    var approlename = $scope.approleToShow;
+                    $scope.approleToShow = '';
+                    var updatedUrlOfEndPoint = RestEndpoints.baseURL+ "/v2/ss/approle/"+approlename+"/secret_id";
+                    var reqObjtobeSent = {"accessorIds": $scope.accessorListToDelete, "role_name": approlename};
+                    AdminSafesManagement.deleteAccessorID(reqObjtobeSent, updatedUrlOfEndPoint).then(function (response) {
+                        $scope.isLoadingData = false;  
+                        if (UtilityService.ifAPIRequestSuccessful(response)) {        
+                            var notification = UtilityService.getAParticularSuccessMessage('MESSAGE_ACCESSOR_DELETE');
+                            Notifications.toast(notification);
+                            $scope.showAccessorsPopUp(approlename);
+                            
+                        } else {
+                            console.log(error);
+                            $scope.isLoadingData = false;
+                            $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
+                            $scope.error('md');
+                        }
+                    },
+                    function (error) {
+                        // Error handling function
+                        console.log(error);
+                        $scope.isLoadingData = false;
+                        $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
+                        $scope.error('md');
+                    })
+                }
+            } catch(e) {
+                console.log(e);
+                $scope.isLoadingData = false;
+                $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
+                $scope.error('md');
+
+            }
+        }
+
+        $scope.chooseAccessor = function(chooseAccessor) {
+            if($scope.accessorListToDelete.indexOf(chooseAccessor) !== -1) {
+                var index = $scope.accessorListToDelete.indexOf(chooseAccessor);
+                $scope.accessorListToDelete.splice(index, 1);
+            }
+            else {
+                $scope.accessorListToDelete.push(chooseAccessor);
+            }          
+        }
+        $scope.createSecretIDPopUp = function(approlename) {
+            $rootScope.createSecretIDForAppRole = approlename;
+            $rootScope.showSecretId = "";
+            $rootScope.showAccessorId = "";
+            Modal.createModal('md', 'createSecretIDPopUp.html', 'AdminCtrl', $scope);
+        }
+
+        $scope.createSecretID = function(approlename) {
+            if($rootScope.createSecretIDForAppRole !== null && $rootScope.createSecretIDForAppRole !== undefined) {
+                approlename = $rootScope.createSecretIDForAppRole;
+            }     
+            $rootScope.createSecretIDForAppRole = null;
+            try {                
+                $scope.isLoadingData = true;
+                Modal.close();
+                var updatedUrlOfEndPoint = RestEndpoints.baseURL+ "/v2/ss/approle/"+approlename+"/secret_id";
+                AdminSafesManagement.readSecretID(null, updatedUrlOfEndPoint).then(function (response) {
+                    $scope.isLoadingData = false;  
+                    if (UtilityService.ifAPIRequestSuccessful(response)) {        
+                        var notification = UtilityService.getAParticularSuccessMessage('MESSAGE_CREATE_SUCCESS');
+                        Notifications.toast("Secret ID "+notification);
+                        var secretId = response.data.data.secret_id_accessor;
+                        var accessorId = response.data.data.secret_id_accessor;
+                        if (secretId !="" && secretId!=undefined && accessorId!="" && accessorId!==undefined) {
+                            saveSecretIDPopUp(response.data.data.secret_id, response.data.data.secret_id_accessor, approlename);     
+                        }
+                        else {
+                            console.log(error);
+                            $scope.isLoadingData = false;
+                            $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
+                            $scope.error('md');
+                        }
+                    } else {
+                        console.log(error);
+                        $scope.isLoadingData = false;
+                        $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
+                        $scope.error('md');
+                    }
+                },
+                function (error) {
+                    // Error handling function
+                    console.log(error);
+                    $scope.isLoadingData = false;
+                    $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
+                    $scope.error('md');
+                })
+            } catch(e) {
+                console.log(e);
+                $scope.isLoadingData = false;
+                $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
+                $scope.error('md');
+
+            }
+        }
+        
+        var saveSecretIDPopUp = function(secretId, accessorId, approlename) {
+            $rootScope.showSecretId = secretId;
+            $rootScope.showAccessorId = accessorId;
+            $rootScope.showApprolename = approlename;
+            Modal.createModal('md', 'notifySecretID.html', 'AdminCtrl', $scope);
+        }
+
+        $scope.deleteApprolePopUp = function(approlename) {
+            $rootScope.appRoleToDelete = approlename;
+            Modal.createModal('md', 'deleteApprolePopUp.html', 'AdminCtrl', $scope);
+        }
+
+        $scope.deleteAppRole = function (approlename) {
+            if($rootScope.appRoleToDelete !== null && $rootScope.appRoleToDelete !== undefined) {
+                approlename = $rootScope.appRoleToDelete;
+            }     
+            $rootScope.appRoleToDelete = null;
+            try {                
+                $scope.isLoadingData = true;
+                Modal.close();
+                var updatedUrlOfEndPoint = ModifyUrl.addUrlParameteres('deleteAppRole', approlename);
+                AdminSafesManagement.deleteAppRole(null, updatedUrlOfEndPoint).then(function (response) {
+                    $scope.isLoadingData = false;  
+                    if (UtilityService.ifAPIRequestSuccessful(response)) {        
+                        var notification = UtilityService.getAParticularSuccessMessage('MESSAGE_DELETE_SUCCESS');
+                        Notifications.toast(approlename+notification);
+                        var currentApproleList = $scope.appRoleData.keys;
+                        var index = currentApproleList.indexOf(approlename);
+                        if (index > -1) {
+                            currentApproleList.splice(index, 1);
+                            $scope.appRoleData.keys = currentApproleList;
+                        }
+                    } else {
+                        console.log(error);
+                        $scope.isLoadingData = false;
+                        $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
+                        $scope.error('md');
+                    }
+                },
+                function (error) {
+                    // Error handling function
+                    console.log(error);
+                    $scope.isLoadingData = false;
+                    $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
+                    $scope.error('md');
+                })
+            } catch(e) {
+                console.log(e);
+                $scope.isLoadingData = false;
+                $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
+                $scope.error('md');
+
+            }
+        }
+
+        $scope.downloadIDs = function (showSecretId, showAccessorId, approlename) {
+            var pom = document.createElement('a');
+            
+            var text = "Approle,Owner,SecretID,AccessorID\r\n"+ approlename+ ","+ SessionStore.getItem("username") +","+ showSecretId + ","+showAccessorId; 
+            pom.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text));
+            pom.setAttribute('download', approlename+'_'+showAccessorId+'.csv');
+        
+            if (document.createEvent) {
+                var event = document.createEvent('MouseEvents');
+                event.initEvent('click', true, true);
+                pom.dispatchEvent(event);
+            }
+            else {
+                pom.click();
+            }
+        }
+
+        $scope.showAccessorsPopUp = function(approleName) {
+            try {
+                $scope.accessorListToDelete= [];
+                $scope.isLoadingData = true;
+                var updatedUrlOfEndPoint = RestEndpoints.baseURL+ "/v2/ss/approle/"+approleName+"/accessors";
+                AdminSafesManagement.getAccessorIDs(null, updatedUrlOfEndPoint).then(function (response) {
+                    $scope.isLoadingData = false;
+                    $scope.approleToShow = approleName;                     
+                    if (UtilityService.ifAPIRequestSuccessful(response)) {        
+                        $scope.appRoleData.accessors = response.data;     
+                        Modal.createModal('md', 'manageSecretId.html', 'AdminCtrl', $scope);                   
+                    } else if (response.status == 404) {
+                        $scope.appRoleData.accessors.keys = []; 
+                        Modal.createModal('md', 'manageSecretId.html', 'AdminCtrl', $scope);
+                    }
+                    
+                },
+                function (error) {
+                    // Error handling function
+                    console.log(error);
+                    $scope.isLoadingData = false;
+                    $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
+                    $scope.error('md');
+                })
+                 
+            } catch(e) {
+                console.log(e);
+                $scope.isLoadingData = false;
+                $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
+                $scope.error('md');
+
+            }
+            
+        }
+
+        $scope.editApprole = function(approleName, size) {
+            $scope.approleConfPopupObj.role_name = "";
+            $scope.approleConfPopupObj.token_max_ttl = "";
+            $scope.approleConfPopupObj.token_ttl = "";
+            $scope.approleConfPopupObj.secret_id_num_uses = "";
+            $scope.approleConfPopupObj.secret_id_ttl = "";
+            $scope.approleConfPopupObj.token_num_uses = "";
+            $scope.approleConfPopupObj.bind_secret_id = "";
+            $scope.approleConfPopupObj.policies = [];
+            var updatedUrlOfEndPoint = ModifyUrl.addUrlParameteres('getApproleDetails', approleName);
+                AdminSafesManagement.getApproleDetails(null, updatedUrlOfEndPoint).then(function (response) {
+                    if (UtilityService.ifAPIRequestSuccessful(response)) {
+                        var data = response.data.data;
+                        $scope.approleConfPopupObj.role_name = approleName;
+                        $scope.approleConfPopupObj.token_max_ttl = data.token_max_ttl;
+                        $scope.approleConfPopupObj.token_ttl = data.token_ttl;
+                        $scope.approleConfPopupObj.secret_id_num_uses = data.secret_id_num_uses;
+                        var policy_array = data.policies;
+                        var policies = [];
+                        for (var index = 0;index<policy_array.length;index++) {
+                            var policyName = policy_array[index].split("_", -1);
+                            if (policyName.length>=3) {
+                                policies.push(policyName.slice(2, policyName.length).join("_"));
+                            } else {
+                                policies.push(policyName);
+                            }
+                        }
+                        $scope.approleConfPopupObj.policies = policies;
+                       // $scope.approleConfPopupObj.policies = data.policies;
+                        $scope.approleConfPopupObj.secret_id_ttl = data.secret_id_ttl;
+                        $scope.approleConfPopupObj.token_num_uses = data.token_num_uses;
+                        $scope.approleConfPopupObj.bind_secret_id = data.bind_secret_id;
+                        $scope.roleNameSelected = true;
+                    }
+                    else {
+                        $scope.errorMessage = AdminSafesManagement.getTheRightErrorMessage(response);
+                        error('md');
+                    }
+                },
+                function (error) {
+                    // Error handling function
+                    console.log(error);
+                    $scope.isLoadingData = false;
+                    $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
+                    $scope.error('md');
+                })
+            $scope.editingApprole = {"status": true};
+            $scope.openApprole(size);
+        }
 
         init();
         
@@ -367,5 +762,6 @@
 })(angular.module('vault.features.AdminCtrl',[
     'vault.services.fetchData',
     'vault.services.ModifyUrl',
-    'vault.services.Notifications'
+    'vault.services.Notifications',
+    'vault.constants.RestEndpoints'
 ]));

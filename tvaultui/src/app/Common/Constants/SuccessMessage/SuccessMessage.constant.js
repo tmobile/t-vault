@@ -25,6 +25,8 @@
         'MESSAGE_CREATE_SUCCESS'   : ' created successfully!',
         'MESSAGE_UPDATE_SUCCESS'   : ' updated successfully!',
         'COPY_TO_CLIPBOARD'        : 'Secret copied to clipboard',
-        'COPY_KEY_TO_CLIPBOARD'    : 'Key copied to clipboard'
+        'COPY_KEY_TO_CLIPBOARD'    : 'Key copied to clipboard',
+        'MESSAGE_ACCESSOR_DELETE'  : 'Accessor ID deleted Successfully',
+        'MESSAGE_DELETE_SUCCESS'   : ' deleted Successfully'
     } );
 } )( angular.module( 'vault.constants.SuccessMessage', [] ) );
