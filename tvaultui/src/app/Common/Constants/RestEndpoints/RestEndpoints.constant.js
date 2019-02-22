@@ -212,7 +212,7 @@ readTextFile("../apiUrls.json");
             method: 'DELETE'
         },{
             name: 'updateAppRole',
-            url: '/v2/ss/auth/approle/role',
+            url: '/v2/ss/approle',
             method: 'PUT'
         },{
             name: 'getApproleDetails',
