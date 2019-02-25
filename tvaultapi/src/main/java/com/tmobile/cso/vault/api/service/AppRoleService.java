@@ -122,7 +122,7 @@ public class  AppRoleService {
 			return ResponseEntity.status(response.getHttpstatus()).body(response.getResponse());
 		}
 		else {
-			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"messages\":[\"AppRole already exists and can't be created\"]}");
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"AppRole already exists and can't be created\"]}");
 		}
 	
 	}
@@ -752,7 +752,7 @@ public class  AppRoleService {
 				      put(LogMessage.MESSAGE, String.format("Unable to read AppRole information. AppRole [%s] doesn't exist", rolename)).
 				      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 				      build()));
-			return ResponseEntity.status(HttpStatus.OK).body("{\"errors\":[\"AppRole doesn't exist\"]}");
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"AppRole doesn't exist\"]}");
 
 		}
 		boolean isAllowed = isAllowed(rolename, userDetails, TVaultConstants.APPROLE_READ_OPERATION);
