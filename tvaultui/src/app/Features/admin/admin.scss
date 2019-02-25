@@ -230,7 +230,10 @@
     flex-direction: column;
     justify-content: center;
     color: #333;
-    overflow: auto;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    display: inline-block;
 }
 
 .approle-management-content .change-safe-table-container .item .name {
