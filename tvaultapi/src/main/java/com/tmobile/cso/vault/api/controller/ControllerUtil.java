@@ -2097,8 +2097,12 @@ public final class ControllerUtil {
 			List<String> policyList = new ArrayList<>(Arrays.asList((String[]) requestMap.get("keys")));
 			policyList.remove(TVaultConstants.SELF_SERVICE_APPROLE_NAME);
 			String policies = policyList.stream().collect(Collectors.joining("\", \""));
-
-			response.setResponse("{\"keys\": [\"" + policies + "\"]}");
+			if (StringUtils.isEmpty(policies)) {
+				response.setResponse("{\"keys\": []}");
+			}
+			else {
+				response.setResponse("{\"keys\": [\"" + policies + "\"]}");
+			}
 		}
         return response;
     }

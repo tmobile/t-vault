@@ -95,6 +95,7 @@
         $rootScope.showSecretId = "";
         $rootScope.showAccessorId = "";
         $scope.accessorListToDelete = [];
+        $scope.rolenameExists = false;
         var init = function () {
 
             $scope.myVaultKey = SessionStore.getItem("myVaultKey");
@@ -460,7 +461,7 @@
                     // Error handling function
                     console.log(error);
                     $scope.isLoadingData = false;
-                    $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
+                    $scope.errorMessage = AdminSafesManagement.getTheRightErrorMessage(error);
                     $scope.error('md');
                 })
             } catch (e) {
@@ -754,6 +755,13 @@
                 })
             $scope.editingApprole = {"status": true};
             $scope.openApprole(size);
+        }
+
+        $scope.checkRoleExists = function() {
+            $scope.rolenameExists = false;
+            if ($scope.appRoleData.keys.includes($scope.approleConfPopupObj.role_name)) {
+               $scope.rolenameExists = true;
+            }
         }
 
         init();

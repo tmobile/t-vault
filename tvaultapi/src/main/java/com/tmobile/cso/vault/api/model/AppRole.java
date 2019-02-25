@@ -31,8 +31,8 @@ public class AppRole implements Serializable {
 	private String role_name;
 	private String[] policies;
 	private boolean bind_secret_id;
-	private String secret_id_num_uses;
-	private String secret_id_ttl;
+	private Integer secret_id_num_uses;
+	private Integer secret_id_ttl;
 	private Integer token_num_uses;
 	private Integer token_ttl;
 	private Integer token_max_ttl;
@@ -40,8 +40,8 @@ public class AppRole implements Serializable {
 	public AppRole() {
 	}
 
-	public AppRole(String role_name, String[] policies, boolean bind_secret_id, String secret_id_num_uses,
-			String secret_id_ttl, Integer token_num_uses) {
+	public AppRole(String role_name, String[] policies, boolean bind_secret_id, Integer secret_id_num_uses,
+			Integer secret_id_ttl, Integer token_num_uses) {
 		super();
 		this.role_name = role_name;
 		this.policies = policies;
@@ -51,8 +51,8 @@ public class AppRole implements Serializable {
 		this.token_num_uses = token_num_uses;
 	}
 	
-	public AppRole(String role_name, String[] policies, boolean bind_secret_id, String secret_id_num_uses,
-			String secret_id_ttl, Integer token_num_uses, Integer token_ttl, Integer token_max_ttl) {
+	public AppRole(String role_name, String[] policies, boolean bind_secret_id, Integer secret_id_num_uses,
+			Integer secret_id_ttl, Integer token_num_uses, Integer token_ttl, Integer token_max_ttl) {
 		super();
 		this.role_name = role_name;
 		this.policies = policies;
@@ -83,7 +83,7 @@ public class AppRole implements Serializable {
 	/**
 	 * @return the policies
 	 */
-	@ApiModelProperty(position=3)
+	@ApiModelProperty(hidden=true, position=3)
 	public String[] getPolicies() {
 		return policies;
 	}
@@ -98,7 +98,7 @@ public class AppRole implements Serializable {
 	/**
 	 * @return the bind_secret_id
 	 */
-	@ApiModelProperty(example="true", position=4)
+	@ApiModelProperty(hidden=true, example="true", position=4)
 	public boolean isBind_secret_id() {
 		return bind_secret_id;
 	}
@@ -114,29 +114,29 @@ public class AppRole implements Serializable {
 	 * @return the secret_id_num_uses
 	 */
 	@ApiModelProperty(example="1", position=5)
-	public String getSecret_id_num_uses() {
+	public Integer getSecret_id_num_uses() {
 		return secret_id_num_uses;
 	}
 
 	/**
 	 * @param secret_id_num_uses the secret_id_num_uses to set
 	 */
-	public void setSecret_id_num_uses(String secret_id_num_uses) {
+	public void setSecret_id_num_uses(Integer secret_id_num_uses) {
 		this.secret_id_num_uses = secret_id_num_uses;
 	}
 
 	/**
 	 * @return the secret_id_ttl
 	 */
-	@ApiModelProperty(example="100m", position=6)
-	public String getSecret_id_ttl() {
+	@ApiModelProperty(example="900", position=6)
+	public Integer getSecret_id_ttl() {
 		return secret_id_ttl;
 	}
 
 	/**
 	 * @param secret_id_ttl the secret_id_ttl to set
 	 */
-	public void setSecret_id_ttl(String secret_id_ttl) {
+	public void setSecret_id_ttl(Integer secret_id_ttl) {
 		this.secret_id_ttl = secret_id_ttl;
 	}
 
@@ -158,6 +158,7 @@ public class AppRole implements Serializable {
 	/**
 	 * @return the token_ttl
 	 */
+	@ApiModelProperty(example="60", position=8)
 	public Integer getToken_ttl() {
 		return token_ttl;
 	}
@@ -165,6 +166,7 @@ public class AppRole implements Serializable {
 	/**
 	 * @return the token_max_ttl
 	 */
+	@ApiModelProperty(example="900", position=9)
 	public Integer getToken_max_ttl() {
 		return token_max_ttl;
 	}

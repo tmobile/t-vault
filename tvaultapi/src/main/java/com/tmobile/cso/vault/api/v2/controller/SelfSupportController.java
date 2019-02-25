@@ -454,4 +454,18 @@ public class SelfSupportController {
 		UserDetails userDetails = (UserDetails) ((HttpServletRequest) request).getAttribute("UserDetails");
 		return selfSupportService.readAppRole(token, rolename, userDetails);
 	}
+	
+	/**
+	 * Create AppRole
+	 * @param request
+	 * @param token
+	 * @param appRole
+	 * @return
+	 */
+	@ApiOperation(value = "${SelfSupportController.updateAppRole.value}", notes = "${SelfSupportController.updateAppRole.notes}")
+	@PutMapping(value="/v2/ss/approle", consumes="application/json", produces="application/json")
+	public ResponseEntity<String> updateAppRole(HttpServletRequest request, @RequestHeader(value="vault-token") String token, @RequestBody AppRole appRole){
+		UserDetails userDetails = (UserDetails) ((HttpServletRequest) request).getAttribute("UserDetails");
+		return selfSupportService.updateAppRole(token, appRole, userDetails);
+	}
 }
