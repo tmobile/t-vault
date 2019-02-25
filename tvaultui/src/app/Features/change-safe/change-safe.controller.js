@@ -607,7 +607,12 @@
                                     $scope.typeDropdownDisable = true;
                                     var notification = UtilityService.getAParticularSuccessMessage('MESSAGE_CREATE_SUCCESS');
                                     var currentSafesList = JSON.parse(SessionStore.getItem("allSafes"));
-                                    currentSafesList.push($scope.safe.name);
+                                    if (currentSafesList!=null) {
+                                        currentSafesList.push($scope.safe.name);
+                                    }
+                                    else {
+                                        currentSafesList = [];
+                                    }
                                     SessionStore.setItem("allSafes", JSON.stringify(currentSafesList));
                                     Notifications.toast($scope.safe.name + ' safe' + notification);
                                     $scope.safePrevious = angular.copy($scope.safe);
