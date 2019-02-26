@@ -363,5 +363,6 @@
 }
 
 .notification-text {
-    overflow: auto;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }

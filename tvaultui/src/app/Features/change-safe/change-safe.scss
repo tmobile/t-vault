@@ -388,7 +388,9 @@
   //width: 31.5% !important;
   font-weight: bold;
   white-space: nowrap;
+  overflow: hidden;
   text-overflow: ellipsis;
+  display: inline-block!important;
 
 }
 .permissions .change-safe-table-container .item .down {
@@ -805,4 +807,9 @@ input.highlightBox {
   top: 77%;
 }
 
+.dropdown-menu li a,
+.dropdown-toggle button {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
 
