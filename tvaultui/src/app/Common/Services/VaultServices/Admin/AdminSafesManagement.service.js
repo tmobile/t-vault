@@ -112,6 +112,11 @@
                     return response;
                 });
             },
+            readRoleID: function(payload, url) {
+                return ServiceEndpoint.readRoleID.makeRequest(payload, url).then(function(response) {
+                    return response;
+                });
+            },
             deleteAppRole: function(payload, url) {
                 return ServiceEndpoint.deleteAppRole.makeRequest(payload, url).then(function(response) {
                     return response;
