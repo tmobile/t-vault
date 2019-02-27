@@ -94,7 +94,7 @@ public class  AppRoleService {
 		
 		if (!isDuplicate) {
 			Response response = reqProcessor.process("/auth/approle/role/create", jsonStr,token);
-			if(response.getHttpstatus().equals(HttpStatus.NO_CONTENT)) {
+			if(response.getHttpstatus().equals(HttpStatus.NO_CONTENT) || response.getHttpstatus().equals(HttpStatus.OK)) {
 				String metadataJson = ControllerUtil.populateAppRoleMetaJson(appRole.getRole_name(), userDetails.getUsername());
 				boolean appRoleMetaDataCreationStatus = ControllerUtil.createMetadata(metadataJson, token);
 				String appRoleUsermetadataJson = ControllerUtil.populateUserMetaJson(appRole.getRole_name(), userDetails.getUsername());
@@ -1312,7 +1312,7 @@ public class  AppRoleService {
 		String jsonStr = JSONUtil.getJSON(appRole);
 
 		Response response = reqProcessor.process("/auth/approle/role/create", jsonStr,token);
-		if(response.getHttpstatus().equals(HttpStatus.NO_CONTENT)) {
+		if(response.getHttpstatus().equals(HttpStatus.NO_CONTENT) || response.getHttpstatus().equals(HttpStatus.OK)) {
 			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 				      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 					  put(LogMessage.ACTION, "updateAppRole").

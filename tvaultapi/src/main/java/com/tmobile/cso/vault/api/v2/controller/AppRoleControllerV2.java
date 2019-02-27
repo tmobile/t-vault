@@ -35,6 +35,7 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.validation.Valid;
 
 
 @RestController
@@ -53,7 +54,7 @@ public class AppRoleControllerV2 {
 	 */
 	@ApiOperation(value = "${AppRoleControllerV2.createAppRole.value}", notes = "${AppRoleControllerV2.createAppRole.notes}")
 	@PostMapping(value="/v2/auth/approle/role", consumes="application/json", produces="application/json")
-	public ResponseEntity<String> createAppRole(HttpServletRequest request, @RequestHeader(value="vault-token") String token, @RequestBody AppRole appRole){
+	public ResponseEntity<String> createAppRole(HttpServletRequest request, @RequestHeader(value="vault-token") String token, @Valid @RequestBody AppRole appRole){
 		UserDetails userDetails = (UserDetails) ((HttpServletRequest) request).getAttribute("UserDetails");
 		return appRoleService.createAppRole(token, appRole, userDetails);
 	}

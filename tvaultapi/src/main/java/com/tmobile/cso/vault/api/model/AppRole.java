@@ -21,6 +21,9 @@ import java.io.Serializable;
 
 import io.swagger.annotations.ApiModelProperty;
 
+import javax.validation.constraints.Max;
+import javax.validation.constraints.Min;
+
 public class AppRole implements Serializable {
 
 	/**
@@ -31,10 +34,20 @@ public class AppRole implements Serializable {
 	private String role_name;
 	private String[] policies;
 	private boolean bind_secret_id;
+	@Min(0)
+	@Max(999999999)
 	private Integer secret_id_num_uses;
+	@Min(0)
+	@Max(999999999)
 	private Integer secret_id_ttl;
+	@Min(0)
+	@Max(999999999)
 	private Integer token_num_uses;
+	@Min(0)
+	@Max(999999999)
 	private Integer token_ttl;
+	@Min(0)
+	@Max(999999999)
 	private Integer token_max_ttl;
 
 	public AppRole() {
