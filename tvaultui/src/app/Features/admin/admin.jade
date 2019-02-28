@@ -118,12 +118,12 @@ script(type='text/ng-template', id='notifySecretID.html')
     .row
         .top-lg-sep
             .common-header-label.text-center Save the Secret ID and Accessor ID
-        .top-lg-sep.notification-text Secret Id   - {{showSecretId}}
-        .top-lg-sep.notification-text Accessor Id - {{showAccessorId}}
+        .top-lg-sep.notification-text Secret Id   - {{secretId}}
+        .top-lg-sep.notification-text Accessor Id - {{accessorId}}
         .top-lg-sep.download-notification-text
-            button.download-link-style(ng-click = "downloadIDs(showSecretId, showAccessorId, showApprolename)")
+            button.download-link-style(ng-click = "downloadIDs(secretId, accessorId, approlename)")
             span Please click here to 
-            span.download-link(ng-click = "downloadIDs(showSecretId, showAccessorId, showApprolename)") download 
+            span.download-link(ng-click = "downloadIDs(secretId, accessorId, approlename)") download 
             span Secret ID and Accessor ID
     .text-center.bottom-lg-sep.top-lg-sep.notification-button
         .clearfix.bottom-sm-sep

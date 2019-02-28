@@ -92,8 +92,8 @@
         };
 
         $scope.viewSecretIdAccessors = {"status": false, "value": ""};
-        $rootScope.showSecretId = "";
-        $rootScope.showAccessorId = "";
+        $rootScope.secretId = "";
+        $rootScope.accessorId = "";
         $scope.accessorListToDelete = [];
         $scope.rolenameExists = false;
         var init = function () {
@@ -547,8 +547,8 @@
         }
         $scope.createSecretIDPopUp = function(approlename) {
             $rootScope.createSecretIDForAppRole = approlename;
-            $rootScope.showSecretId = "";
-            $rootScope.showAccessorId = "";
+            $rootScope.secretId = "";
+            $rootScope.accessorId = "";
             Modal.createModal('md', 'createSecretIDPopUp.html', 'AdminCtrl', $scope);
         }
 
@@ -601,9 +601,9 @@
         }
         
         var saveSecretIDPopUp = function(secretId, accessorId, approlename) {
-            $rootScope.showSecretId = secretId;
-            $rootScope.showAccessorId = accessorId;
-            $rootScope.showApprolename = approlename;
+            $rootScope.secretId = secretId;
+            $rootScope.accessorId = accessorId;
+            $rootScope.approlename = approlename;
             Modal.createModal('md', 'notifySecretID.html', 'AdminCtrl', $scope);
         }
 
@@ -655,13 +655,13 @@
             }
         }
 
-        $scope.downloadIDs = function (showSecretId, showAccessorId, approlename) {
+        $scope.downloadIDs = function (secretId, showAccessorId, approlename) {
             var updatedUrlOfEndPoint = RestEndpoints.baseURL+ "/v2/ss/approle/"+approlename+"/role_id";
                 AdminSafesManagement.readRoleID(null, updatedUrlOfEndPoint).then(function (response) {
                     if (UtilityService.ifAPIRequestSuccessful(response)) {
-                        var showRoleId = response.data.data.role_id;
+                        var roleId = response.data.data.role_id;
                         var pom = document.createElement('a');
-                        var text = "Approle,RoleID,Owner,SecretID,AccessorID\r\n"+ approlename+ ","+showRoleId+ ","+ SessionStore.getItem("username") +","+ showSecretId + ","+showAccessorId; 
+                        var text = "Approle,RoleID,Owner,SecretID,AccessorID\r\n"+ approlename+ ","+roleId+ ","+ SessionStore.getItem("username") +","+ secretId + ","+showAccessorId; 
                         pom.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text));
                         pom.setAttribute('download', approlename+'_'+showAccessorId+'.csv');
                         if (document.createEvent) {
