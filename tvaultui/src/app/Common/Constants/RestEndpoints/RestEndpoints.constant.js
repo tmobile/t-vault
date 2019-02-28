@@ -207,6 +207,10 @@ readTextFile("../apiUrls.json");
             url: '/v2/ss/auth/approle/role/{role_name}/secret_id',
             method: 'GET'
         },{
+            name: 'readRoleID',
+            url: '/v2/ss/approle/{role_name}/role_id',
+            method: 'GET'
+        },{
             name: 'deleteAppRole',
             url: '/v2/ss/auth/approle/role/',
             method: 'DELETE'

@@ -55,31 +55,31 @@ script(type='text/ng-template', id='appRolePopup.html')
                     .common-form-label Token Max TTL
                       span * 
                       span.tool-tip(uib-tooltip="Duration in seconds after which the issued token can no longer be renewed" tooltip-placement="top" tooltip-popup-delay="600")
-                    input.form-control.input-box-style(value="{{approleConfPopupObj.token_max_ttl}}" id="token_max_ttl" restrict-to-numbers placeholder="token_max_ttl" ng-model="approleConfPopupObj.token_max_ttl" minlength="1" maxlength="5")
+                    input.form-control.input-box-style(value="{{approleConfPopupObj.token_max_ttl}}" id="token_max_ttl" restrict-to-numbers placeholder="token_max_ttl" ng-model="approleConfPopupObj.token_max_ttl" minlength="1" maxlength="9")
                 .col-lg-6.col-md-6.col-sm-12.col-xs-12.common-form-row
                   .details-input-group
                     .common-form-label Token TTL
                       span * 
                       span.tool-tip(uib-tooltip="Duration in seconds to set as the TTL for issued tokens and at renewal time" tooltip-placement="top" tooltip-popup-delay="600")
-                    input.form-control.input-box-style(value="{{approleConfPopupObj.token_ttl}}" id="token_ttl" restrict-to-numbers placeholder="token_ttl" ng-model="approleConfPopupObj.token_ttl" minlength="1" maxlength="5")
+                    input.form-control.input-box-style(value="{{approleConfPopupObj.token_ttl}}" id="token_ttl" restrict-to-numbers placeholder="token_ttl" ng-model="approleConfPopupObj.token_ttl" minlength="1" maxlength="9")
                 .col-lg-6.col-md-6.col-sm-12.col-xs-12.common-form-row
                   .details-input-group
                     .common-form-label Secret Id Num Uses
                       span * 
                       span.tool-tip(uib-tooltip="Number of times the SecretID can be used to fetch a token from this AppRole" tooltip-placement="top" tooltip-popup-delay="600")
-                    input.form-control.input-box-style(value="{{approleConfPopupObj.secret_id_num_uses}}" id="secret_id_num_uses" restrict-to-numbers placeholder="secret_id_num_uses" ng-model="approleConfPopupObj.secret_id_num_uses" minlength="1" maxlength="5")
+                    input.form-control.input-box-style(value="{{approleConfPopupObj.secret_id_num_uses}}" id="secret_id_num_uses" restrict-to-numbers placeholder="secret_id_num_uses" ng-model="approleConfPopupObj.secret_id_num_uses" minlength="1" maxlength="9")
                 .col-lg-6.col-md-6.col-sm-12.col-xs-12.common-form-row
                   .details-input-group
                     .common-form-label Token Num Uses
                       span * 
                       span.tool-tip(uib-tooltip="Number of times issued tokens can be used" tooltip-placement="top" tooltip-popup-delay="600")
-                    input.form-control.input-box-style(value="{{approleConfPopupObj.token_num_uses}}" id="token_num_uses" restrict-to-numbers placeholder="token_num_uses" ng-model="approleConfPopupObj.token_num_uses" minlength="1" maxlength="5")
+                    input.form-control.input-box-style(value="{{approleConfPopupObj.token_num_uses}}" id="token_num_uses" restrict-to-numbers placeholder="token_num_uses" ng-model="approleConfPopupObj.token_num_uses" minlength="1" maxlength="9")
                 .col-lg-6.col-md-6.col-sm-12.col-xs-12.common-form-row
                   .details-input-group
                     .common-form-label Secret Id TTL
                       span * 
                       span.tool-tip(uib-tooltip="Duration in seconds after which SecretID expires" tooltip-placement="top" tooltip-popup-delay="600")
-                    input.form-control.input-box-style(value="{{approleConfPopupObj.secret_id_ttl}}" id="secret_id_ttl" restrict-to-numbers placeholder="secret_id_ttl" ng-model="approleConfPopupObj.secret_id_ttl" minlength="1" maxlength="5")
+                    input.form-control.input-box-style(value="{{approleConfPopupObj.secret_id_ttl}}" id="secret_id_ttl" restrict-to-numbers placeholder="secret_id_ttl" ng-model="approleConfPopupObj.secret_id_ttl" minlength="1" maxlength="9")
                 .col-lg-6.col-md-6.col-sm-12.col-xs-12.common-form-row(ng-if='editingApprole.status == true')
                   .details-input-group
                     .common-form-label Permissions
@@ -118,12 +118,12 @@ script(type='text/ng-template', id='notifySecretID.html')
     .row
         .top-lg-sep
             .common-header-label.text-center Save the Secret ID and Accessor ID
-        .top-lg-sep.notification-text Secret Id   - {{showSecretId}}
-        .top-lg-sep.notification-text Accessor Id - {{showAccessorId}}
+        .top-lg-sep.notification-text Secret Id   - {{secretId}}
+        .top-lg-sep.notification-text Accessor Id - {{accessorId}}
         .top-lg-sep.download-notification-text
-            button.download-link-style(ng-click = "downloadIDs(showSecretId, showAccessorId, showApprolename)")
+            button.download-link-style(ng-click = "downloadIDs(secretId, accessorId, approlename)")
             span Please click here to 
-            span.download-link(ng-click = "downloadIDs(showSecretId, showAccessorId, showApprolename)") download 
+            span.download-link(ng-click = "downloadIDs(secretId, accessorId, approlename)") download 
             span Secret ID and Accessor ID
     .text-center.bottom-lg-sep.top-lg-sep.notification-button
         .clearfix.bottom-sm-sep

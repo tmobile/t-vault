@@ -20,8 +20,10 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.HttpMediaTypeNotSupportedException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.ServletRequestBindingException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -59,9 +61,24 @@ public class ResponseExceptionHandler {
 		    log.debug(ex.getMessage());
 		   	return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\""+ ex.getMessage()+"\"]}");
 		 }
+
+	 @ExceptionHandler(MethodArgumentNotValidException.class)
+	 protected ResponseEntity<Object> handleException(MethodArgumentNotValidException ex, WebRequest request) {
+		log.debug(ex.getMessage());
+		return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid input values\"]}");
+	 }
+
+	@ExceptionHandler(HttpMessageNotReadableException.class)
+	protected ResponseEntity<Object> handleException(HttpMessageNotReadableException ex, WebRequest request) {
+		log.debug(ex.getMessage());
+		return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid input values\"]}");
+	}
+
 	 @ExceptionHandler(Exception.class)
 	 protected ResponseEntity<Object> handleException(Exception ex, WebRequest request) {
 		 log.debug(ex.getMessage());
 	   	return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Unexpected error :"+ ex.getMessage()+"\"]}");
 	 }
+
+
 }

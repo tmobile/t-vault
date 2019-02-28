@@ -18,6 +18,7 @@
 package com.tmobile.cso.vault.api.v2.controller;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.validation.Valid;
 
 import com.tmobile.cso.vault.api.exception.TVaultValidationException;
 import com.tmobile.cso.vault.api.model.*;
@@ -317,7 +318,7 @@ public class SelfSupportController {
 	 */
 	@ApiOperation(value = "${AppRoleControllerV3.createAppRole.value}", notes = "${AppRoleControllerV3.createAppRole.notes}")
 	@PostMapping(value="/v2/ss/auth/approle/role", consumes="application/json", produces="application/json")
-	public ResponseEntity<String> createAppRole(HttpServletRequest request, @RequestHeader(value="vault-token") String token, @RequestBody AppRole appRole){
+	public ResponseEntity<String> createAppRole(HttpServletRequest request, @RequestHeader(value="vault-token") String token, @Valid @RequestBody AppRole appRole){
 		UserDetails userDetails = (UserDetails) ((HttpServletRequest) request).getAttribute("UserDetails");
 		return selfSupportService.createAppRole(token, appRole, userDetails);
 	}
@@ -464,7 +465,7 @@ public class SelfSupportController {
 	 */
 	@ApiOperation(value = "${SelfSupportController.updateAppRole.value}", notes = "${SelfSupportController.updateAppRole.notes}")
 	@PutMapping(value="/v2/ss/approle", consumes="application/json", produces="application/json")
-	public ResponseEntity<String> updateAppRole(HttpServletRequest request, @RequestHeader(value="vault-token") String token, @RequestBody AppRole appRole){
+	public ResponseEntity<String> updateAppRole(HttpServletRequest request, @RequestHeader(value="vault-token") String token, @Valid @RequestBody AppRole appRole){
 		UserDetails userDetails = (UserDetails) ((HttpServletRequest) request).getAttribute("UserDetails");
 		return selfSupportService.updateAppRole(token, appRole, userDetails);
 	}
