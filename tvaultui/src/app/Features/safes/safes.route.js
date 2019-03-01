@@ -26,7 +26,7 @@
         parent: 'safes-tabs',
         params: {
           type: 'users',
-          fromLogin: false
+          fromLogin: true
         },
         resolve: {
           safes: function (SessionStore, $q, $state, safesService, $stateParams) {
