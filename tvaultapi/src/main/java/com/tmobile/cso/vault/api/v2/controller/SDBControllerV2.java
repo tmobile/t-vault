@@ -231,8 +231,9 @@ public class SDBControllerV2 {
 	 * @return
 	 */
 	@PostMapping(value="/v2/sdb/createfolder",produces="application/json")
-	public ResponseEntity<String> createNestedfolder(@RequestHeader(value="vault-token") String token, @RequestParam("path") String path){
-		return safesService.createNestedfolder(token, path);
+	public ResponseEntity<String> createNestedfolder(HttpServletRequest request, @RequestHeader(value="vault-token") String token, @RequestParam("path") String path){
+		UserDetails userDetails = (UserDetails) ((HttpServletRequest) request).getAttribute("UserDetails");
+		return safesService.createNestedfolder(token, path, userDetails);
 
 	}
 

@@ -1486,7 +1486,9 @@ public class SafesServiceTest {
 
         when(ControllerUtil.isPathValid(path)).thenReturn(true);
         when(reqProcessor.process("/sdb/createfolder",jsonStr,token)).thenReturn(response);
-        ResponseEntity<String> responseEntity = safesService.createNestedfolder(token, path);
+        UserDetails userDetails = getMockUser(false);
+        when(ControllerUtil.isValidSafe(path, token)).thenReturn(true);
+        ResponseEntity<String> responseEntity = safesService.createNestedfolder(token, path, userDetails);
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
     }
 
@@ -1501,7 +1503,9 @@ public class SafesServiceTest {
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(responseJson);
 
         when(ControllerUtil.isPathValid(path)).thenReturn(false);
-        ResponseEntity<String> responseEntity = safesService.createNestedfolder(token, path);
+        UserDetails userDetails = getMockUser(false);
+        when(ControllerUtil.isValidSafe(path, token)).thenReturn(true);
+        ResponseEntity<String> responseEntity = safesService.createNestedfolder(token, path, userDetails);
         assertEquals(HttpStatus.BAD_REQUEST, responseEntity.getStatusCode());
     }
 

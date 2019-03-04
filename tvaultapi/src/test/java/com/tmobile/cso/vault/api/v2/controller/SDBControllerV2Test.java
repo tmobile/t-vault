@@ -323,7 +323,7 @@ public class SDBControllerV2Test {
         String responseJson = "{\"messages\":[\"Folder created \"]}";
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(responseJson);
 
-        when(safesService.createNestedfolder(eq("5PDrOhsy4ig8L3EpsJZSLAMg"), Mockito.any())).thenReturn(responseEntityExpected);
+        when(safesService.createNestedfolder(eq("5PDrOhsy4ig8L3EpsJZSLAMg"), Mockito.any(), Mockito.any())).thenReturn(responseEntityExpected);
 
         mockMvc.perform(MockMvcRequestBuilders.post("/v2/sdb/createfolder?path=users/safe1")
                 .header("vault-token", "5PDrOhsy4ig8L3EpsJZSLAMg")

@@ -1752,7 +1752,7 @@ public class  SafesService {
 	 * @param path
 	 * @return
 	 */
-	public ResponseEntity<String> createNestedfolder(String token, String path) {
+	public ResponseEntity<String> createNestedfolder(String token, String path, UserDetails userDetails) {
 		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 				put(LogMessage.ACTION, "createNestedfolder").
@@ -1760,7 +1760,8 @@ public class  SafesService {
 				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 				build()));
 		path = (path != null) ? path.toLowerCase(): path;
-		if(ControllerUtil.isPathValid(path)){
+
+		if(ControllerUtil.isPathValid(path) && 	isValidSafe(token, path, userDetails)){
 			String jsonStr ="{\"path\":\""+path +"\",\"data\":{\"default\":\"default\"}}";
 			Response response = reqProcessor.process("/sdb/createfolder",jsonStr,token);
 			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
@@ -2060,5 +2061,19 @@ public class  SafesService {
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid 'path' specified\"]}");
 		}
 
+	}
+
+	/**
+	 * Get check if the safe exists or not
+	 * @param userToken
+	 * @param path
+	 * @param userDetails
+	 * @return
+	 */
+	private boolean isValidSafe(String userToken, String path, UserDetails userDetails) {
+		if (!userDetails.isAdmin()) {
+			userToken = userDetails.getSelfSupportToken();
+		}
+		return ControllerUtil.isValidSafe(path, userToken);
 	}
 }
