@@ -472,26 +472,23 @@ if [[ -z "$initstat" ]]; then
      vault secrets tune -default-lease-ttl=15m /auth/aws >> $INSTLOG
   fi
   
-  	if [[ "$ENABLE_APPROLE" == "yes" ]]; then
-		 # Enable APPROLE
-		 echo "Enabling APPROLE auth..."
-		 vault auth enable approle >> $INSTLOG
-		 vault secrets tune -default-lease-ttl=15m /auth/aws >> $INSTLOG
-		 # Create Required Policies and roles for Self-support service
-		 echo "Creating the policy selfservicesupport..." >> $INSTLOG
-		 vault policy write selfservicesupport $VHOME/hcorp/conf/selfservicesupport_policy.json >> $INSTLOG
-		 echo "Creating the role selfservicesupportrole..." >> $INSTLOG
-		 vault write auth/approle/role/selfservicesupportrole secret_id_ttl=0 token_num_uses=0 token_max_ttl=0  secret_id_num_uses=0 policies=selfservicesupport >> $INSTLOG
-		 # Generate role_id and secret_id and save it to the file so that it can be used for self-support service
-		 echo "Generating sscred file..." >> $INSTLOG
-		 (echo -n 'username:'; vault read  auth/approle/role/selfservicesupportrole/role-id | grep -i 'role_id' | awk '{print $2}' | base64 ; echo -n 'password:'; vault write -f auth/approle/role/selfservicesupportrole/secret-id secret_id_ttl=0 token_num_uses=0  token_max_ttl=0  secret_id_num_uses=0 policies=selfservicesupport | grep -w 'secret_id' | awk '{print $2}' | base64 ) > $SSCRED_FILE_LOCATION/sscred
-		 if [ -f "$SSCRED_FILE_LOCATION/sscred" ]; then
-			  echo "Successfully generated the sscred file..." >> $INSTLOG
-		 else
-			  echo "Unable to generate the sscred file..." >> $INSTLOG
-		 fi
-	fi
-
+  # Enable APPROLE
+  echo "Enabling APPROLE auth..."
+  vault auth enable approle >> $INSTLOG
+  vault secrets tune -default-lease-ttl=15m /auth/aws >> $INSTLOG
+  # Create Required Policies and roles for Self-support service
+  echo "Creating the policy selfservicesupport..." >> $INSTLOG
+  vault policy write selfservicesupport $VHOME/hcorp/conf/selfservicesupport_policy.json >> $INSTLOG
+  echo "Creating the role selfservicesupportrole..." >> $INSTLOG
+  vault write auth/approle/role/selfservicesupportrole secret_id_ttl=0 token_num_uses=0 token_max_ttl=0  secret_id_num_uses=0 policies=selfservicesupport >> $INSTLOG
+  # Generate role_id and secret_id and save it to the file so that it can be used for self-support service
+  echo "Generating sscred file..." >> $INSTLOG
+  (echo -n 'username:'; vault read  auth/approle/role/selfservicesupportrole/role-id | grep -i 'role_id' | awk '{print $2}' | base64 ; echo -n 'password:'; vault write -f auth/approle/role/selfservicesupportrole/secret-id secret_id_ttl=0 token_num_uses=0  token_max_ttl=0  secret_id_num_uses=0 policies=selfservicesupport | grep -w 'secret_id' | awk '{print $2}' | base64 ) > $SSCRED_FILE_LOCATION/sscred
+  if [ -f "$SSCRED_FILE_LOCATION/sscred" ]; then
+    echo "Successfully generated the sscred file..." >> $INSTLOG
+  else
+    echo "Unable to generate the sscred file..." >> $INSTLOG
+  fi
 
 ################################################################################
 # End - Vault Configuration                                               
