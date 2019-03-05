@@ -341,14 +341,6 @@
     border: none;
 }
 
-.tool-tip {
-    padding-left: 5px;
-    background: url(../assets/images/question.png) no-repeat right;
-    background-size: contain;
-    width:14px;
-    height:14px;
-    display: inline-block;
-}
 .details-input-group .role-status-text {
     display: inline-block;
     font-weight: bold;
@@ -365,4 +357,8 @@
 .notification-text {
     overflow: hidden;
     text-overflow: ellipsis;
+}
+
+.approle-management-content .row.change-safe-table-container .change-approle-table-data.row {
+    height: 100%;
 }

@@ -1,3 +1,19 @@
+// =========================================================================
+// Copyright 2019 T-Mobile, US
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//    http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+// See the readme.txt file for additional language around disclaimer of warranties.
+// =========================================================================
 package com.tmobile.cso.vault.api.service;
 
 import static org.junit.Assert.assertEquals;
@@ -1486,7 +1502,9 @@ public class SafesServiceTest {
 
         when(ControllerUtil.isPathValid(path)).thenReturn(true);
         when(reqProcessor.process("/sdb/createfolder",jsonStr,token)).thenReturn(response);
-        ResponseEntity<String> responseEntity = safesService.createNestedfolder(token, path);
+        UserDetails userDetails = getMockUser(false);
+        when(ControllerUtil.isValidSafe(path, token)).thenReturn(true);
+        ResponseEntity<String> responseEntity = safesService.createNestedfolder(token, path, userDetails);
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
     }
 
@@ -1501,7 +1519,9 @@ public class SafesServiceTest {
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(responseJson);
 
         when(ControllerUtil.isPathValid(path)).thenReturn(false);
-        ResponseEntity<String> responseEntity = safesService.createNestedfolder(token, path);
+        UserDetails userDetails = getMockUser(false);
+        when(ControllerUtil.isValidSafe(path, token)).thenReturn(true);
+        ResponseEntity<String> responseEntity = safesService.createNestedfolder(token, path, userDetails);
         assertEquals(HttpStatus.BAD_REQUEST, responseEntity.getStatusCode());
     }
 

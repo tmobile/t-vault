@@ -42,8 +42,7 @@ script(type='text/ng-template', id='appRolePopup.html')
                 .details-input-group
                     .common-form-label Role Name 
                       span * 
-                      span.tool-tip(uib-tooltip="Name of the AppRole" tooltip-placement="top" tooltip-popup-delay="600")
-                    input.form-control.input-box-style(value="{{approleConfPopupObj.role_name}}" ng-change="checkRoleExists()" restrict-config-char ng-model="approleConfPopupObj.role_name" placeholder="Role name" maxlength="50" minlength="3" ng-disabled="roleNameSelected") 
+                    input.form-control.input-box-style(value="{{approleConfPopupObj.role_name}}" ng-change="checkRoleExists()" restrict-config-char ng-model="approleConfPopupObj.role_name" placeholder="Role name" maxlength="50" minlength="3" ng-disabled="roleNameSelected" uib-tooltip="Name of the AppRole" tooltip-placement="top" tooltip-popup-delay="600") 
                     div.key-acceptance-info(ng-if = "!editingApprole.status") Please enter minimum 3 characters.
                         .role-status-text.available(ng-if = "!rolenameExists && approleConfPopupObj.role_name.length>2") Available
                         .role-status-text.exists(ng-if = "rolenameExists && approleConfPopupObj.role_name.length>2") AppRole Exists
@@ -54,37 +53,31 @@ script(type='text/ng-template', id='appRolePopup.html')
                   .details-input-group
                     .common-form-label Token Max TTL
                       span * 
-                      span.tool-tip(uib-tooltip="Duration in seconds after which the issued token can no longer be renewed" tooltip-placement="top" tooltip-popup-delay="600")
-                    input.form-control.input-box-style(value="{{approleConfPopupObj.token_max_ttl}}" id="token_max_ttl" restrict-to-numbers placeholder="token_max_ttl" ng-model="approleConfPopupObj.token_max_ttl" minlength="1" maxlength="9")
+                    input.form-control.input-box-style(value="{{approleConfPopupObj.token_max_ttl}}" id="token_max_ttl" restrict-to-numbers placeholder="token_max_ttl" ng-model="approleConfPopupObj.token_max_ttl" minlength="1" maxlength="9" uib-tooltip="Duration in seconds after which the issued token can no longer be renewed" tooltip-placement="top" tooltip-popup-delay="600")
                 .col-lg-6.col-md-6.col-sm-12.col-xs-12.common-form-row
                   .details-input-group
                     .common-form-label Token TTL
                       span * 
-                      span.tool-tip(uib-tooltip="Duration in seconds to set as the TTL for issued tokens and at renewal time" tooltip-placement="top" tooltip-popup-delay="600")
-                    input.form-control.input-box-style(value="{{approleConfPopupObj.token_ttl}}" id="token_ttl" restrict-to-numbers placeholder="token_ttl" ng-model="approleConfPopupObj.token_ttl" minlength="1" maxlength="9")
+                    input.form-control.input-box-style(value="{{approleConfPopupObj.token_ttl}}" id="token_ttl" restrict-to-numbers placeholder="token_ttl" ng-model="approleConfPopupObj.token_ttl" minlength="1" maxlength="9" uib-tooltip="Duration in seconds to set as the TTL for issued tokens and at renewal time" tooltip-placement="top" tooltip-popup-delay="600")
                 .col-lg-6.col-md-6.col-sm-12.col-xs-12.common-form-row
                   .details-input-group
                     .common-form-label Secret Id Num Uses
                       span * 
-                      span.tool-tip(uib-tooltip="Number of times the SecretID can be used to fetch a token from this AppRole" tooltip-placement="top" tooltip-popup-delay="600")
-                    input.form-control.input-box-style(value="{{approleConfPopupObj.secret_id_num_uses}}" id="secret_id_num_uses" restrict-to-numbers placeholder="secret_id_num_uses" ng-model="approleConfPopupObj.secret_id_num_uses" minlength="1" maxlength="9")
+                    input.form-control.input-box-style(value="{{approleConfPopupObj.secret_id_num_uses}}" id="secret_id_num_uses" restrict-to-numbers placeholder="secret_id_num_uses" ng-model="approleConfPopupObj.secret_id_num_uses" minlength="1" maxlength="9" uib-tooltip="Number of times the SecretID can be used to fetch a token from this AppRole" tooltip-placement="top" tooltip-popup-delay="600")
                 .col-lg-6.col-md-6.col-sm-12.col-xs-12.common-form-row
                   .details-input-group
                     .common-form-label Token Num Uses
                       span * 
-                      span.tool-tip(uib-tooltip="Number of times issued tokens can be used" tooltip-placement="top" tooltip-popup-delay="600")
-                    input.form-control.input-box-style(value="{{approleConfPopupObj.token_num_uses}}" id="token_num_uses" restrict-to-numbers placeholder="token_num_uses" ng-model="approleConfPopupObj.token_num_uses" minlength="1" maxlength="9")
+                    input.form-control.input-box-style(value="{{approleConfPopupObj.token_num_uses}}" id="token_num_uses" restrict-to-numbers placeholder="token_num_uses" ng-model="approleConfPopupObj.token_num_uses" minlength="1" maxlength="9" uib-tooltip="Number of times issued tokens can be used" tooltip-placement="top" tooltip-popup-delay="600")
                 .col-lg-6.col-md-6.col-sm-12.col-xs-12.common-form-row
                   .details-input-group
                     .common-form-label Secret Id TTL
                       span * 
-                      span.tool-tip(uib-tooltip="Duration in seconds after which SecretID expires" tooltip-placement="top" tooltip-popup-delay="600")
-                    input.form-control.input-box-style(value="{{approleConfPopupObj.secret_id_ttl}}" id="secret_id_ttl" restrict-to-numbers placeholder="secret_id_ttl" ng-model="approleConfPopupObj.secret_id_ttl" minlength="1" maxlength="9")
+                    input.form-control.input-box-style(value="{{approleConfPopupObj.secret_id_ttl}}" id="secret_id_ttl" restrict-to-numbers placeholder="secret_id_ttl" ng-model="approleConfPopupObj.secret_id_ttl" minlength="1" maxlength="9" uib-tooltip="Duration in seconds after which SecretID expires" tooltip-placement="top" tooltip-popup-delay="600")
                 .col-lg-6.col-md-6.col-sm-12.col-xs-12.common-form-row(ng-if='editingApprole.status == true')
                   .details-input-group
                     .common-form-label Permissions
-                      span.tool-tip(uib-tooltip="Comma-separated list of policies" tooltip-placement="top" tooltip-popup-delay="600")
-                    input.form-control.input-box-style(value="{{approleConfPopupObj.policies}}" id="policies" placeholder="PERMISSIONS" ng-disabled="true" ng-model="approleConfPopupObj.policies" maxlength="512" restrict-special-char-but-comma)
+                    input.form-control.input-box-style(value="{{approleConfPopupObj.policies}}" id="policies" placeholder="PERMISSIONS" ng-disabled="true" ng-model="approleConfPopupObj.policies" maxlength="512" restrict-special-char-but-comma uib-tooltip="Comma-separated list of policies" tooltip-placement="top" tooltip-popup-delay="600")
           .text-center.bottom-lg-sep.modal-sep.aws
             .clearfix.bottom-sm-sep
               button.common-btn.btn.btn-primary.btn-lg(id="approle_create_btn" ng-click="createApprole()" ng-disabled="isApproleBtnDisabled()" ) {{editingApprole.status == true ? "Update" : "Create"}}
@@ -212,7 +205,7 @@ script(type='text/ng-template', id='manageSecretId.html')
                                                 .unavailable-text(ng-show="!isLoadingData && appRoleData.keys.length==0")
                                                     .container.name No AppRoles Available
                                                 .row.change-approle.item(ng-show="!isLoadingData" ng-class="{'grayBackground' : activeItem == true}" ng-repeat="value in appRoleData.keys")
-                                                    .container.name.col-lg-3.col-md-3.col-sm-3.col-xs-3 {{value}}
+                                                    .container.name.col-lg-3.col-md-3.col-sm-3.col-xs-3(title="{{value}}") {{value}}
                                                     .container.radio-inputs.col-lg-7.col-md-7.col-sm-7.col-xs-7
                                                         .down.view
                                                             .list-icon(ng-click = "editApprole(value, 'md')")  View/Edit AppRole
