@@ -586,6 +586,11 @@ public class  SafesService {
 			Map<String,String> awsroles = (Map<String, String>)metadataMap.get("aws-roles");
 			Map<String,String> groups = (Map<String, String>)metadataMap.get("groups");
 			Map<String,String> users = (Map<String, String>) metadataMap.get("users");
+			// always add safeowner to the users list whose policy should be updated
+			String onwerId = (String) metadataMap.get("ownerid");
+			if (!StringUtils.isEmpty(onwerId)) {
+				users.put(onwerId, "sudo");
+			}
 			ControllerUtil.updateUserPolicyAssociationOnSDBDelete(path,users,token);
 			ControllerUtil.updateGroupPolicyAssociationOnSDBDelete(path,groups,token);
 			ControllerUtil.deleteAwsRoleOnSDBDelete(path,awsroles,token);
@@ -1663,6 +1668,11 @@ public class  SafesService {
 					Map<String,String> awsroles = (Map<String, String>)metadataMap.get("aws-roles");
 					Map<String,String> groups = (Map<String, String>)metadataMap.get("groups");
 					Map<String,String> users = (Map<String, String>) metadataMap.get("users");
+					// always add safeowner to the users list whose policy should be updated
+					String onwerId = (String) metadataMap.get("ownerid");
+					if (!StringUtils.isEmpty(onwerId)) {
+						users.put(onwerId, "sudo");
+					}
 					ControllerUtil.updateUserPolicyAssociationOnSDBDelete(path,users,token);
 					ControllerUtil.updateGroupPolicyAssociationOnSDBDelete(path,groups,token);
 					ControllerUtil.deleteAwsRoleOnSDBDelete(path,awsroles,token);
