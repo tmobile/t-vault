@@ -62,7 +62,7 @@ public class SelfSupportController {
 	 * @return
 	 */
 	@GetMapping(value="/v2/ss/sdb/names",produces="application/json")
-	@ApiOperation(value = "${SelfSupportController.getFolders.value}", notes = "${SelfSupportController.getFolders.notes}")
+	@ApiOperation(value = "${SelfSupportController.getFolders.value}", notes = "${SelfSupportController.getFolders.notes}", hidden=true)
 	public ResponseEntity<String> getSafeNames(HttpServletRequest request, @RequestHeader(value="vault-token") String token) {
 		UserDetails userDetails = (UserDetails) ((HttpServletRequest) request).getAttribute("UserDetails");
 		return selfSupportService.getAllSafeNames(userDetails);
