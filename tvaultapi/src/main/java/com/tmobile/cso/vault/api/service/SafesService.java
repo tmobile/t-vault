@@ -862,7 +862,7 @@ public class  SafesService {
 		}
 		String jsonstr = JSONUtil.getJSON(safeGroup);
 		if (TVaultConstants.USERPASS.equals(vaultAuthMethod)) {
-			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":\"This operation is not supported for Userpass authentication. \"}");
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"This operation is not supported for Userpass authentication. \"]}");
 		}	
 		ObjectMapper objMapper = new ObjectMapper();
 		Map<String,String> requestMap = null;
@@ -1211,7 +1211,7 @@ public class  SafesService {
 	public ResponseEntity<String> removeGroupFromSafe(String token, SafeGroup safeGroup) {
 		String jsonstr = JSONUtil.getJSON(safeGroup);
 		if (TVaultConstants.USERPASS.equals(vaultAuthMethod)) {
-			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":\"This operation is not supported for Userpass authentication. \"}");
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"This operation is not supported for Userpass authentication. \"]}");
 		}	
 		ObjectMapper objMapper = new ObjectMapper();
 		Map<String,String> requestMap = null;

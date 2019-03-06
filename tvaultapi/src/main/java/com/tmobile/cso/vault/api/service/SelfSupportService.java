@@ -106,11 +106,11 @@ public class  SelfSupportService {
 			// Delete safe - clean up of all items, paths, permissions, policies
 			token = userDetails.getSelfSupportToken();
 			if (!isSafeValid(safe)) {
-				return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":\"Invalid input values\"}");
+				return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid input values\"]}");
 			}
 			// check the user safe limit
 			if (isSafeQuotaReached(token, userDetails.getUsername(), ControllerUtil.getSafeType(safe.getPath()))) {
-				return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":\"You have reached the limit of number of allowed safes that can be created\"}");
+				return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"You have reached the limit of number of allowed safes that can be created\"]}");
 			}
 			if (safe != null && safe.getSafeBasicDetails() != null) {
 				safe.getSafeBasicDetails().setOwnerid(userDetails.getUsername());
