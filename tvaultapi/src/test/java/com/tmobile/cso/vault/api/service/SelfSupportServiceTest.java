@@ -147,8 +147,8 @@ public class SelfSupportServiceTest {
         SafeBasicDetails safeBasicDetails = new SafeBasicDetails("mysafe01", "youremail@yourcompany.com", null, "My first safe");
         Safe safe = new Safe("shared/mysafe01",safeBasicDetails);
 
-        ResponseEntity<String> readResponse = ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":\"You have reached the limit of number of allowed safes that can be created\"}");
-        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":\"You have reached the limit of number of allowed safes that can be created\"}");
+        ResponseEntity<String> readResponse = ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"You have reached the limit of number of allowed safes that can be created\"]}");
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"You have reached the limit of number of allowed safes that can be created\"]}");
         ReflectionTestUtils.setField(selfSupportService, "safeQuota", "2");
         when(ControllerUtil.getSafeType("shared/mysafe01")).thenReturn("shared");
         String [] policies = {"s_shared_s1, s_shared_s2"};
@@ -169,7 +169,7 @@ public class SelfSupportServiceTest {
         SafeBasicDetails safeBasicDetails = new SafeBasicDetails("mysafe01", "youremail@yourcompany.com", null, "My first safe");
         Safe safe = new Safe("",safeBasicDetails);
 
-        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":\"Invalid input values\"}");
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid input values\"]}");
 
         ResponseEntity<String> responseEntity = selfSupportService.createSafe(userDetails, token, safe);
         assertEquals(HttpStatus.BAD_REQUEST, responseEntity.getStatusCode());

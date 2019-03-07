@@ -586,6 +586,11 @@ public class  SafesService {
 			Map<String,String> awsroles = (Map<String, String>)metadataMap.get("aws-roles");
 			Map<String,String> groups = (Map<String, String>)metadataMap.get("groups");
 			Map<String,String> users = (Map<String, String>) metadataMap.get("users");
+			// always add safeowner to the users list whose policy should be updated
+			String onwerId = (String) metadataMap.get("ownerid");
+			if (!StringUtils.isEmpty(onwerId)) {
+				users.put(onwerId, "sudo");
+			}
 			ControllerUtil.updateUserPolicyAssociationOnSDBDelete(path,users,token);
 			ControllerUtil.updateGroupPolicyAssociationOnSDBDelete(path,groups,token);
 			ControllerUtil.deleteAwsRoleOnSDBDelete(path,awsroles,token);
@@ -857,7 +862,7 @@ public class  SafesService {
 		}
 		String jsonstr = JSONUtil.getJSON(safeGroup);
 		if (TVaultConstants.USERPASS.equals(vaultAuthMethod)) {
-			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":\"This operation is not supported for Userpass authentication. \"}");
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"This operation is not supported for Userpass authentication. \"]}");
 		}	
 		ObjectMapper objMapper = new ObjectMapper();
 		Map<String,String> requestMap = null;
@@ -1206,7 +1211,7 @@ public class  SafesService {
 	public ResponseEntity<String> removeGroupFromSafe(String token, SafeGroup safeGroup) {
 		String jsonstr = JSONUtil.getJSON(safeGroup);
 		if (TVaultConstants.USERPASS.equals(vaultAuthMethod)) {
-			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":\"This operation is not supported for Userpass authentication. \"}");
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"This operation is not supported for Userpass authentication. \"]}");
 		}	
 		ObjectMapper objMapper = new ObjectMapper();
 		Map<String,String> requestMap = null;
@@ -1663,6 +1668,11 @@ public class  SafesService {
 					Map<String,String> awsroles = (Map<String, String>)metadataMap.get("aws-roles");
 					Map<String,String> groups = (Map<String, String>)metadataMap.get("groups");
 					Map<String,String> users = (Map<String, String>) metadataMap.get("users");
+					// always add safeowner to the users list whose policy should be updated
+					String onwerId = (String) metadataMap.get("ownerid");
+					if (!StringUtils.isEmpty(onwerId)) {
+						users.put(onwerId, "sudo");
+					}
 					ControllerUtil.updateUserPolicyAssociationOnSDBDelete(path,users,token);
 					ControllerUtil.updateGroupPolicyAssociationOnSDBDelete(path,groups,token);
 					ControllerUtil.deleteAwsRoleOnSDBDelete(path,awsroles,token);

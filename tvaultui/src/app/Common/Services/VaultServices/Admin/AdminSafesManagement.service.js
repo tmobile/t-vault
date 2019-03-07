@@ -172,8 +172,10 @@
                 else if(responseObject.status === 422){
                     if(responseObject.data && responseObject.data.errors) {
                         var error = responseObject.data.errors;
-                        if (error.length > 0 ) {
+                        if (error instanceof Array && error.length > 0 ) {
                             return error[0];
+                        } else if (error.length > 0) {
+                            return error;
                         } else {
                             return ErrorMessage.ERROR_GENERAL;
                         }
@@ -182,8 +184,10 @@
                     }                    
                 } else if(responseObject.status === 400){
                     var error = responseObject.data.errors;
-                    if (error.length > 0 ) {
+                    if (error instanceof Array && error.length > 0 ) {
                         return error[0];
+                    } else if (error.length > 0) {
+                        return error;
                     } else {
                         return ErrorMessage.ERROR_GENERAL;
                     }

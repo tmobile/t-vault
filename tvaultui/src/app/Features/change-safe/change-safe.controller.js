@@ -934,7 +934,7 @@
         }
         $scope.enableEc2Controls = function (e) {
             angular.element(document.getElementById('bound_account_id'))[0].disabled = false;
-            angular.element(document.getElementById('region'))[0].disabled = false;
+            angular.element(document.getElementById('bound_region'))[0].disabled = false;
             angular.element(document.getElementById('bound_vpc_id'))[0].disabled = false;
             angular.element(document.getElementById('bound_subnet_id'))[0].disabled = false;
             angular.element(document.getElementById('bound_ami_id'))[0].disabled = false;
@@ -945,7 +945,7 @@
 
         $scope.enableIamControls = function (e) {
             angular.element(document.getElementById('bound_account_id'))[0].disabled = true;
-            angular.element(document.getElementById('region'))[0].disabled = true;
+            angular.element(document.getElementById('bound_region'))[0].disabled = true;
             angular.element(document.getElementById('bound_vpc_id'))[0].disabled = true;
             angular.element(document.getElementById('bound_subnet_id'))[0].disabled = true;
             angular.element(document.getElementById('bound_ami_id'))[0].disabled = true;
@@ -980,8 +980,8 @@
                     if ($scope.awsConfPopupObj.role !== null && $scope.awsConfPopupObj.role !== undefined) {
                         $scope.awsConfPopupObj.role = UtilityService.formatName($scope.awsConfPopupObj.role);
                     }
-                    if ($scope.awsConfPopupObj.region !== null && $scope.awsConfPopupObj.region !== undefined) {
-                        $scope.awsConfPopupObj.region = UtilityService.formatName($scope.awsConfPopupObj.region);
+                    if ($scope.awsConfPopupObj.bound_region !== null && $scope.awsConfPopupObj.bound_region !== undefined) {
+                        $scope.awsConfPopupObj.bound_region = UtilityService.formatName($scope.awsConfPopupObj.bound_region);
                     }
                     var updatedUrlOfEndPoint = "";
                     switch (type) {
@@ -1018,7 +1018,7 @@
                                 else {
                                     $scope.awsConfPopupObj['policies'] = [];
                                     $scope.awsConfPopupObj.bound_account_id = "";
-                                    $scope.awsConfPopupObj.region = "";
+                                    $scope.awsConfPopupObj.bound_region = "";
                                     $scope.awsConfPopupObj.bound_vpc_id = "";
                                     $scope.awsConfPopupObj.bound_subnet_id = "";
                                     $scope.awsConfPopupObj.bound_ami_id = "";
