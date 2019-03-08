@@ -16,6 +16,8 @@
 // =========================================================================
 package com.tmobile.cso.vault.api.service;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
 import com.tmobile.cso.vault.api.controller.ControllerUtil;
 import com.tmobile.cso.vault.api.model.UserLogin;
@@ -41,6 +43,7 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -89,13 +92,20 @@ public class VaultAuthServiceTest {
 
         String jsonStr = "{  \"username\": \"safeadmin\",  \"password\": \"safeadmin\"}";
         UserLogin userLogin = new UserLogin("safeadmin", "safeadmin");
-        String responseJson = "{  \"client_token\": \"8766fdhjSAtH2a4MdvMyzWid\",\"admin\": \"yes\",\"access\": {},\"policies\": [\"default\",\"safeadmin\"],\"lease_duration\": 1800000}";
+        String responseJson = "{  \"client_token\": \"8766fdhjSAtH2a4MdvMyzWid\",\"admin\": \"yes\",\"access\": {\"users\":[{\"safe1\":\"read\"}]},\"policies\": [\"default\",\"safeadmin\"],\"lease_duration\": 1800000}";
 
         Response response = getMockResponse(HttpStatus.OK, true, responseJson);
+        Map<String, Object> responseMap = null;
+        try {
+            responseMap = new ObjectMapper().readValue(response.getResponse(), new TypeReference<Map<String, Object>>(){});
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(responseJson);
-
         when(JSONUtil.getJSON(Mockito.any(UserLogin.class))).thenReturn(jsonStr);
+        when(JSONUtil.getJSON(responseMap)).thenReturn(responseJson);
         when(reqProcessor.process("/auth/userpass/login",jsonStr,"")).thenReturn(response);
+
         ResponseEntity<String> responseEntity = vaultAuthService.login(userLogin);
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
