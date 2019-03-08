@@ -1,6 +1,6 @@
 /*
 * =========================================================================
-* Copyright 2018 T-Mobile, US
+* Copyright 2019 T-Mobile, US
 * 
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -103,7 +103,7 @@
                 "url" : "/sdb/addgroup",
                 "methodType" : "POST",
                 "description" : " ",
-                "sampleRequest" : '{"path":"apps/app1","groupname":"pacman-admin","access":"write"}',
+                "sampleRequest" : '{"path":"apps/app1","groupname":"vault-admin","access":"write"}',
                 "sampleResponse" : '{success: 200} {"Message":"Group is successfully associated with SDB"}'
             },
             {
@@ -127,12 +127,12 @@
                 "url" : "/sdb/deletegroup",
                 "methodType" : "POST",
                 "description" : " ",
-                "sampleRequest" : '{"path":"apps/app1","groupname":"pacman-admin"}',
+                "sampleRequest" : '{"path":"apps/app1","groupname":"vault-admin"}',
                 "sampleResponse" : '{success: 200} {"Message":"Group association is removed "}'
             },
             {
                 "title" : "Removing AWS-Role association to safe",
-                "url" : "/sdb/ deleterole",
+                "url" : "/sdb/deleterole",
                 "methodType" : "POST",
                 "description" : " ",
                 "sampleRequest" : '{"path":"apps/app1","role":"1_a04f33f6-74ad-b7ad"}',
@@ -148,7 +148,7 @@
             },
             {
                 "title" : "Write Secret",
-                "url" : " /write",
+                "url" : "/write",
                 "methodType" : "POST",
                 "description" : " ",
                 "sampleRequest" : '{"path":"apps/app1/secrets","data": {"key1":"value1","key2":"value2"}}',
@@ -156,4 +156,4 @@
             }
         ]
     } );
-} )( angular.module( 'pacman.constants.ListOfApi', [] ) );
+} )( angular.module( 'vault.constants.ListOfApi', [] ) );

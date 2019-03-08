@@ -1,5 +1,5 @@
 // =========================================================================
-// Copyright 2018 T-Mobile, US
+// Copyright 2019 T-Mobile, US
 // 
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -16,19 +16,26 @@
 // =========================================================================
 
 package com.tmobile.cso.vault.api.controller;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.HttpMediaTypeNotSupportedException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.ServletRequestBindingException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.NoHandlerFoundException;
 
+import com.tmobile.cso.vault.api.exception.TVaultValidationException;
+
 @ControllerAdvice
 public class ResponseExceptionHandler {
-	 
+
+	 private static Logger log = LogManager.getLogger(ResponseExceptionHandler.class);
 	 @ExceptionHandler(ServletRequestBindingException.class)
 	 protected ResponseEntity<Object> handleException(ServletRequestBindingException ex, WebRequest request) {
 	   	return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\""+ ex.getMessage()+"\"]}");
@@ -49,10 +56,29 @@ public class ResponseExceptionHandler {
 	   	return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\""+ ex.getMessage()+"\"]}");
 	 }
 	 
-	 
+	 @ExceptionHandler(TVaultValidationException.class)
+	 protected ResponseEntity<Object> handleException(TVaultValidationException ex, WebRequest request) {
+		    log.debug(ex.getMessage());
+		   	return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\""+ ex.getMessage()+"\"]}");
+		 }
+
+	 @ExceptionHandler(MethodArgumentNotValidException.class)
+	 protected ResponseEntity<Object> handleException(MethodArgumentNotValidException ex, WebRequest request) {
+		log.debug(ex.getMessage());
+		return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid input values\"]}");
+	 }
+
+	@ExceptionHandler(HttpMessageNotReadableException.class)
+	protected ResponseEntity<Object> handleException(HttpMessageNotReadableException ex, WebRequest request) {
+		log.debug(ex.getMessage());
+		return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid input values\"]}");
+	}
+
 	 @ExceptionHandler(Exception.class)
 	 protected ResponseEntity<Object> handleException(Exception ex, WebRequest request) {
-	   	ex.printStackTrace();
+		 log.debug(ex.getMessage());
 	   	return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Unexpected error :"+ ex.getMessage()+"\"]}");
 	 }
+
+
 }

@@ -1,6 +1,6 @@
 /*
 * =========================================================================
-* Copyright 2018 T-Mobile, US
+* Copyright 2019 T-Mobile, US
 * 
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -18,28 +18,28 @@
 */
 
 'use strict';
-(function(app) {
-    app.factory( 'ServiceEndpoint', function(RestEndpoints, $http, $q, $rootScope ) {
+(function (app) {
+    app.factory('ServiceEndpoint', function (RestEndpoints, $http, $q, $rootScope, MockData) {
         var endpoints = {};
 
-        function defineEndpoint( name, url, method, lazy ) {
-            endpoints[ name ] = {
+        function defineEndpoint(name, url, method, lazy) {
+            endpoints[name] = {
                 name: name,
                 url: url,
                 method: method,
                 lazy: lazy,
-                makeRequest: function( payload, pacmanResourceUrl, pacmanApiKey ) {
+                makeRequest: function (payload, vaultResourceUrl, vaultAPIKey) {
 
-                    if ( pacmanResourceUrl != undefined && pacmanResourceUrl != "" ) {
-                        url = pacmanResourceUrl
-                    };
+                    if (vaultResourceUrl != undefined && vaultResourceUrl != "") {
+                        url = vaultResourceUrl
+                    }
 
-                    if ( pacmanApiKey != undefined && pacmanApiKey != "" ) {
-                        headers = pacmanApiKey;
+                    if (vaultAPIKey != undefined && vaultAPIKey != "") {
+                        headers = vaultAPIKey;
                     } else {
                         headers = {}
-                    };                    
-
+                    }
+                    headers ["Content-Type"] ="application/json";
                     payload = payload || {};
                     var request = {
                         method: method,
@@ -49,34 +49,31 @@
                         headers: headers,
                     };
                     $rootScope.showLoadingScreen = true;
-                    var promise = $http( request ).then( function( response ) {
+                    var promise = $http(request).then(function (response) {
                             $rootScope.showLoadingScreen = false;
-                            var responseType = response.headers( 'x-response-type' );
-                            if ( responseType === 'ERROR' ) {
+                            var responseType = response.headers('x-response-type');
+                            if (responseType === 'ERROR') {
                                 var errorData = {
                                     service: name,
-                                    message: response.headers( 'x-response-message' )
+                                    message: response.headers('x-response-message')
                                 };
-                                $rootScope.$broadcast( 'genericServiceError', errorData );
-                                return $q.reject( response );
+                                $rootScope.$broadcast('genericServiceError', errorData);
+                                return $q.reject(response);
                             }
                             return response;
                         },
-                        function( response ) {
-                            var responseType, responseMsg;
-                            responseType = response.headers( 'x-response-type' );
-                            responseMsg = response.headers( 'x-response-message' );
-                            //if ( responseType !== 'STEPUP' ) {
+                        function (response) {
+                            var responseMsg;
+                            responseMsg = response.headers('x-response-message');
                             var errorData = {
                                 service: name,
                                 message: responseMsg
                             };
-                            $rootScope.$broadcast( 'genericServiceError', errorData );
-                            //}
-                            return $q.reject( response );
-                        } );
+                            $rootScope.$broadcast('genericServiceError', errorData);
+                            return $q.reject(response);
+                        });
                     //array of all promises required by angular-busy
-                    if ( !lazy ) {
+                    if (!lazy) {
                         $rootScope.showLoadingScreen = false;
                     }
                     return promise;
@@ -84,28 +81,23 @@
             };
         }
 
-        endpoints.adhockEndpoint = function( name, url, method, lazy ) {
-            defineEndpoint( name, url, method, lazy );
-            return endpoints[ name ];
+        endpoints.adhockEndpoint = function (name, url, method, lazy) {
+            defineEndpoint(name, url, method, lazy);
+            return endpoints[name];
         };
         //define end point for all entries in RestEndpoints
         var baseURL = RestEndpoints.baseURL;
 
         var apiKey = RestEndpoints.apiKey;
         var headers = {};
-        if ( apiKey != undefined ) {
-            headers = {
-                "x-api-key": UtilityService.getAppConstant('X-API-KEY')
-            }
-        }
 
         var serviceEndpointsList = RestEndpoints.endpoints;
-        for ( var i = serviceEndpointsList.length - 1; i >= 0; i-- ) {
-            defineEndpoint( serviceEndpointsList[ i ].name, baseURL + serviceEndpointsList[ i ].url,
-                serviceEndpointsList[ i ].method, serviceEndpointsList[ i ].lazy );
+        for (var i = serviceEndpointsList.length - 1; i >= 0; i--) {
+            defineEndpoint(serviceEndpointsList[i].name, baseURL + serviceEndpointsList[i].url,
+                serviceEndpointsList[i].method, serviceEndpointsList[i].lazy);
         }
         return endpoints;
-    } );
-})(angular.module('pacman.services.ServiceEndpoint',[
-    'pacman.constants.RestEndpoints'
+    });
+})(angular.module('vault.services.ServiceEndpoint', [
+    'vault.constants.RestEndpoints'
 ]));

@@ -1,7 +1,7 @@
 #! /bin/bash
 #set -x
 # =========================================================================		
-# Copyright 2018 T-Mobile, US		
+# Copyright 2019 T-Mobile, US
 # 		
 # Licensed under the Apache License, Version 2.0 (the "License");		
 # you may not use this file except in compliance with the License.		
@@ -215,7 +215,7 @@ function genselfcert()
   openssl req -x509 -batch -nodes -newkey rsa:2048 -keyout $1/tvault.key -out $1/tvault.crt -config $2 -days 9999
   openssl pkcs12 -export -in $1/tvault.crt -inkey $1/tvault.key -out $1/tvault.p12 -name self -passout pass:$cert_pass
 }
-
+SSCRED_FILE_LOCATION="/opt/tvault/hcorp"
 ##############################################################################
 # End - Utils
 ##############################################################################
@@ -333,6 +333,7 @@ ln -sf $VHOME/hcorp/bin/tvault /etc/init.d/tvault
 export PATH=$PATH:$VHOME/hcorp/bin:$VHOME/api/bin
 echo "Path is $PATH"
 export VAULT_ADDR="https://127.0.0.1:8200"
+export SSCRED_FILE_LOCATION="/opt/tvault/hcorp"
 
 #sudo setcap cap_ipc_lock=+ep $(readlink -f $(which vault)) 
 sudo setcap cap_ipc_lock=+ep $VHOME/hcorp/bin/vault
@@ -377,13 +378,13 @@ if [[ -z "$initstat" ]]; then
   echo "This only happens once when the server is started against a new backend that has never been used with Vault before."
   echo "During initialization, the encryption keys are generated and 5 unseal keys are created."
 
-  vault init 1> $VHOME/hcorp/vault.init 2>> $INSTLOG
+  vault operator init 1> $VHOME/hcorp/vault.init 2>> $INSTLOG
 
   sleep 2
   echo "Unsealing Vault"
-  vault unseal  $(getkey 1) >> $INSTLOG
-  vault unseal  $(getkey 2) >> $INSTLOG
-  vault unseal  $(getkey 3) >> $INSTLOG
+  vault operator  unseal  $(getkey 1) >> $INSTLOG
+  vault operator  unseal  $(getkey 2) >> $INSTLOG
+  vault operator  unseal  $(getkey 3) >> $INSTLOG
 
 ################################################################################
 # Vault Configuration
@@ -415,23 +416,23 @@ if [[ -z "$initstat" ]]; then
   sleep 5s
   roottoken=$(cat $VHOME/hcorp/vault.init | grep '^Initial Root' | awk '{print $4}')
 
-  vault auth $roottoken >> $INSTLOG
+  vault login $roottoken >> $INSTLOG
 
   echo "Enabling Vault Audit..."
-  vault audit-enable file file_path=$VLOG/tvault-vault_audit.log >> $INSTLOG
+  vault audit enable file file_path=$VLOG/tvault-vault_audit.log >> $INSTLOG
 
   echo "Adding Mount paths..."
-  vault mount -path=apps generic >> $INSTLOG
-  vault mount -path=users generic >> $INSTLOG
-  vault mount -path=shared generic >> $INSTLOG
-  vault mount -path=metadata generic >> $INSTLOG
+  vault secrets enable -path=apps generic >> $INSTLOG
+  vault secrets enable -path=users generic >> $INSTLOG
+  vault secrets enable -path=shared generic >> $INSTLOG
+  vault secrets enable -path=metadata generic >> $INSTLOG
 
   echo "Configuring the Authentication Backend [$AUTH_BACKEND]..." 
   if [[ "$AUTH_BACKEND" == "ldap" ]]; then
      # LDAP...
      echo "Enabling/Configuring LDAP auth..."
-     vault auth-enable ldap >> $INSTLOG
-     vault mount-tune -default-lease-ttl=30m /auth/ldap >> $INSTLOG
+     vault auth enable ldap >> $INSTLOG
+     vault secrets tune -default-lease-ttl=30m /auth/ldap >> $INSTLOG
      if [[ "$USE_UPNDOMAIN" == "yes" ]]; then
         echo "Using UPN Domain:"
         vault write auth/ldap/config url=$LDAP_URL  groupattr=$LDAP_GROUP_ATTR_NAME userattr=$LDAP_USR_ATTR_NAME  userdn=$USER_DN   groupdn=$GROUP_DN   insecure_tls=true starttls=$TLS_ENABLED upndomain=$UPN_DOMAIN_URL >> $INSTLOG
@@ -439,8 +440,8 @@ if [[ -z "$initstat" ]]; then
         vault write auth/ldap/config url=$LDAP_URL  groupattr=$LDAP_GROUP_ATTR_NAME userattr=$LDAP_USR_ATTR_NAME  userdn=$USER_DN   groupdn=$GROUP_DN   binddn="$BIND_DN" bindpass="$BIND_DN_PASS" insecure_tls=true starttls=$TLS_ENABLED >> $INSTLOG
      fi
 
-     vault policy-write safeadmin $VHOME/hcorp/conf/safeadmin.json >> $INSTLOG
-     vault policy-write vaultadmin $VHOME/hcorp/conf/vaultadmin.json >> $INSTLOG
+     vault policy write safeadmin $VHOME/hcorp/conf/safeadmin.json >> $INSTLOG
+     vault policy write vaultadmin $VHOME/hcorp/conf/vaultadmin.json >> $INSTLOG
      vault write auth/ldap/groups/$VAULT_ADMIN_GROUP policies=vaultadmin >> $INSTLOG
      vault write auth/ldap/groups/$SAFE_ADMIN_GROUP policies=safeadmin >> $INSTLOG
 
@@ -448,12 +449,12 @@ if [[ -z "$initstat" ]]; then
      # userpass...
 
      echo "Enabling userpass auth..."
-     vault auth-enable userpass >> $INSTLOG
-     vault mount-tune -default-lease-ttl=15m /auth/userpass >> $INSTLOG
+     vault auth enable userpass >> $INSTLOG
+     vault secrets tune -default-lease-ttl=15m /auth/userpass >> $INSTLOG
 
      echo "Writing Policiesfor userpass auth..."
-     vault policy-write safeadmin $VHOME/hcorp/conf/safeadmin.json >> $INSTLOG
-     vault policy-write vaultadmin $VHOME/hcorp/conf/vaultadmin.json >> $INSTLOG
+     vault policy write safeadmin $VHOME/hcorp/conf/safeadmin.json >> $INSTLOG
+     vault policy write vaultadmin $VHOME/hcorp/conf/vaultadmin.json >> $INSTLOG
 
      echo "Assigning policies for safeadmin, vaultadmin for userpass auth..."
      vault write auth/userpass/users/safeadmin password=safeadmin policies=safeadmin
@@ -467,8 +468,26 @@ if [[ -z "$initstat" ]]; then
 
   if [[ "$ENABLE_AWS" == "yes" ]]; then
      echo "Enabling AWS auth..."
-     vault auth-enable aws >> $INSTLOG
-     vault mount-tune -default-lease-ttl=15m /auth/aws >> $INSTLOG
+     vault auth enable aws >> $INSTLOG
+     vault secrets tune -default-lease-ttl=15m /auth/aws >> $INSTLOG
+  fi
+  
+  # Enable APPROLE
+  echo "Enabling APPROLE auth..."
+  vault auth enable approle >> $INSTLOG
+  vault secrets tune -default-lease-ttl=15m /auth/aws >> $INSTLOG
+  # Create Required Policies and roles for Self-support service
+  echo "Creating the policy selfservicesupport..." >> $INSTLOG
+  vault policy write selfservicesupport $VHOME/hcorp/conf/selfservicesupport_policy.json >> $INSTLOG
+  echo "Creating the role selfservicesupportrole..." >> $INSTLOG
+  vault write auth/approle/role/selfservicesupportrole secret_id_ttl=0 token_num_uses=0 token_max_ttl=0  secret_id_num_uses=0 policies=selfservicesupport >> $INSTLOG
+  # Generate role_id and secret_id and save it to the file so that it can be used for self-support service
+  echo "Generating sscred file..." >> $INSTLOG
+  (echo -n 'username:'; vault read  auth/approle/role/selfservicesupportrole/role-id | grep -i 'role_id' | awk '{print $2}' | base64 ; echo -n 'password:'; vault write -f auth/approle/role/selfservicesupportrole/secret-id secret_id_ttl=0 token_num_uses=0  token_max_ttl=0  secret_id_num_uses=0 policies=selfservicesupport | grep -w 'secret_id' | awk '{print $2}' | base64 ) > $SSCRED_FILE_LOCATION/sscred
+  if [ -f "$SSCRED_FILE_LOCATION/sscred" ]; then
+    echo "Successfully generated the sscred file..." >> $INSTLOG
+  else
+    echo "Unable to generate the sscred file..." >> $INSTLOG
   fi
 
 ################################################################################
@@ -500,7 +519,7 @@ API_CONF="$VHOME/api/bin/tvaultapi.conf"
 touch API_CONF
 echo "JAVA_OPTS=\"-DTVAULT-API-LOG-PATH=$VLOG/\"" >> $API_CONF
 echo "LOG_FOLDER=$VLOG" >> $API_CONF
-echo "RUN_ARGS=\"--vault.api.url=https://127.0.0.1:8200/v1 --vault.port=8200 --vault.auth.method=$AUTH_BACKEND --vault.ssl.verify=false --server.port=8443 --server.ssl.key-store=/opt/tvault/certs/tvault.p12 --server.ssl.keyStoreType=PKCS12 --server.ssl.key-store-password=$CERT_PASSWORD\"" >> $API_CONF
+echo "RUN_ARGS=\"--vault.api.url=https://127.0.0.1:8200/v1 --selfservice.ssfilelocation=$SSCRED_FILE_LOCATION --vault.port=8200 --vault.auth.method=$AUTH_BACKEND --vault.ssl.verify=false --server.port=8443 --server.ssl.key-store=/opt/tvault/certs/tvault.p12 --server.ssl.keyStoreType=PKCS12 --server.ssl.key-store-password=$CERT_PASSWORD\"" >> $API_CONF
 
 chmod +x $VHOME/api/bin/tvaultapi.jar
 chmod +x $VHOME/web/nginx/sbin/nginx

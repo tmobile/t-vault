@@ -1,6 +1,6 @@
 /*
 * =========================================================================
-* Copyright 2018 T-Mobile, US
+* Copyright 2019 T-Mobile, US
 * 
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -39,12 +39,16 @@ function readTextFile(file)
     rawFile.send(null);
 }
 
-this.readTextFile("../apiUrls.json");
+readTextFile("../apiUrls.json");
 
 (function(app){
     app.constant('RestEndpoints', {
         baseURL: JSON.parse(sessionStorage.getItem('ApiUrls')).baseURL,
-        //baseURL : '/vault'                                                   (URL for local testing)
+        // written below separately as request requires timeout promise 
+        usersGetData : '/v2/ldap/users?UserPrincipalName=',
+        groupGetData: '/v2/ldap/groups?groupName=',
+        usersGetDataUsingCorpID: '/v2/ldap/corpusers?CorpId=', 
+        //baseURL : '/vault'
         endpoints: [{
             name: 'postAction',
             url: '/postAction',
@@ -53,57 +57,94 @@ this.readTextFile("../apiUrls.json");
             name: 'getAction',
             url: '/getAction',
             method: 'GET'
-        }, {/* To enable ldap insert this to "url" : '/auth/ldap/login' */
+        },
+        {
+            name: 'renewToken',
+            url: '/v2/auth/tvault/renew',
+            method: 'GET'
+        },
+        {
+            name: 'lookupToken',
+            url: '/auth/tvault/lookup',
+            method: 'POST'
+        },
+        {
+            name: 'revokeToken',
+            url: '/auth/tvault/revoke',
+            method: 'POST'
+        },
+            {
+                name: 'writeSecretV2',
+                url: '/v2/write',
+                method: 'POST'
+            },
+            {
+                name: 'createFolderV2',
+                url: '/v2/sdb/createfolder',
+                method: 'POST'
+            },
+            {
+                name: 'readAllContents',
+                url: '/readAll',
+                method: 'GET'
+            },
+            {
+                name: 'readAllContentsRecursive',
+                url: '/readfull',
+                method: 'GET'
+            },
+
+            {/* To enable ldap insert this to "url" : '/auth/ldap/login' */
             name: 'login',
-            url: '/auth/tvault/login',
+            url: '/v2/auth/tvault/login',
             method: 'POST'
         }, { /* Get the list of full safes for Admin */
             name: 'safesList',
-            url: '/sdb/list?',
-            method: 'GET'
-        }, {
-            name: 'periscopeList',
-            url: '/periscope/list',
+            url: '/v2/ss/sdb/list?',
             method: 'GET'
         }, {
             name: 'deleteSafe',
-            url: '/sdb/delete?',
+            url: '/v2/ss/sdb/delete?',
             method: 'DELETE'
         }, {
             name: 'getSafeInfo',
-            url: '/sdb?',
+            url: '/v2/ss/sdb?',
             method: 'GET'
         }, {
             name: 'createSafe',
-            url: '/sdb/create',
+            url: '/v2/ss/sdb',
             method: 'POST'
         }, {
             name: 'editSafe',
-            url: '/sdb/update',
-            method: 'POST'
+            url: '/v2/ss/sdb',
+            method: 'PUT'
         }, {
             name: 'deleteUserPermission',
-            url: '/sdb/deleteuser',
-            method: 'POST'
+            url: '/v2/ss/sdb/user',
+            method: 'DELETE'
         }, {
             name: 'deleteGroupPermission',
-            url: '/sdb/deletegroup',
-            method: 'POST'
+            url: '/v2/ss/sdb/group',
+            method: 'DELETE'
         }, {
             name: 'deleteAWSPermission',
-            url: '/sdb/deleterole',
-            method: 'POST'
-        }, {
+            url: '/v2/ss/sdb/role',
+            method: 'DELETE'
+        }, { /* To remove the aws permission in edit*/
+            name: 'detachAWSPermission',
+            url: '/v2/ss/sdb/role',
+            method: 'PUT'
+        },{
             name: 'addUserPermission',
-            url: '/sdb/adduser',
+            url: '/v2/ss/sdb/user',
             method: 'POST'
         }, {
             name: 'addGroupPermission',
-            url: '/sdb/addgroup',
+            url: '/v2/ss/sdb/group',
             method: 'POST'
         }, {
             name: 'addAWSPermission',
-            url: '/sdb/addrole',
+            url: '/v2/ss/sdb/role',
             method: 'POST'
         }, {
             name: 'getAwsConfigurationDetails',
@@ -123,25 +164,72 @@ this.readTextFile("../apiUrls.json");
             method: 'GET'
         }, {
             name: 'createAwsRole',
-            url: '/auth/aws/roles/create',
+            url: '/v2/ss/auth/aws/role?',
             method: 'POST'
         }, {
             name: 'updateAwsRole',
             url: '/auth/aws/roles/update',
             method: 'POST'
         }, {
+            name: 'createAwsIAMRole',
+            url: '/v2/ss/auth/aws/iam/role?',
+            method: 'POST'
+        }, {
+            name: 'updateAwsIAMRole',
+            url: '/v2/auth/aws/iam/role',
+            method: 'PUT'
+        },{
+            name: 'createAppRole',
+            url: '/v2/ss/auth/approle/role',
+            method: 'POST'
+        },{
+            name: 'addApprolePermission',
+            url: '/v2/ss/sdb/approle',
+            method: 'POST'
+        },{ /* To remove the approle permission in edit*/
+            name: 'detachAppRolePermission',
+            url: '/v2/ss/sdb/approle',
+            method: 'DELETE'
+        },{
+            name: 'getApproles',
+            url: '/v2/ss/approle',
+            method: 'GET'
+        },{
+            name: 'getAccessorIDs',
+            url: 'v2/ss/approle/{role_name}/accessors',
+            method: 'GET'
+        },{
+            name: 'deleteAccessorID',
+            url: '/v2/ss/approle/{role_name}/secret_id',
+            method: 'DELETE'
+        },{
+            name: 'readSecretID',
+            url: '/v2/ss/auth/approle/role/{role_name}/secret_id',
+            method: 'GET'
+        },{
+            name: 'readRoleID',
+            url: '/v2/ss/approle/{role_name}/role_id',
+            method: 'GET'
+        },{
+            name: 'deleteAppRole',
+            url: '/v2/ss/auth/approle/role/',
+            method: 'DELETE'
+        },{
+            name: 'updateAppRole',
+            url: '/v2/ss/approle',
+            method: 'PUT'
+        },{
+            name: 'getApproleDetails',
+            url: '/v2/ss/approle/role/',
+            method: 'GET'
+        },{
             name: 'unseal',
-            url: '/unseal',
+            url: '/v2/unseal',
             method: 'POST'
         }, {
             name: 'unsealProgress',
-            url: '/unseal-progress?serverip=',
+            url: '/v2/unseal-progress?serverip=',
             method: 'GET'
-        }
-
-        ]
-    } );
-})( angular.module( 'pacman.constants.RestEndpoints', [
-
-] ) );
-/* TODO: Periscope services to be put in a new Rest End point file*/
+        }]
+    });
+})( angular.module( 'vault.constants.RestEndpoints', []));

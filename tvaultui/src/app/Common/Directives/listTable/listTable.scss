@@ -94,9 +94,6 @@
     text-overflow: ellipsis;
     font-family: montserratbold;
 }
-.folder-keys .row {
-    height: 4.2vh;
-}
 .accordion-table-data .accordion-expand-block .block-2 {
     padding: 0;
 }
@@ -174,8 +171,7 @@
 .accordion-table-data .accordian-list-item:hover {
     background-color: #fafafa;
 }
-.accordion-list-main .list-icon.icon-delete,
-.accordion-list-main .list-icon.icon-mode_edit {
+.accordion-list-main .list-icon {
     display: inline-block;
     position: relative;
     padding-right: 1vw;
@@ -274,15 +270,12 @@ button:disabled {
     white-space: nowrap;
     text-overflow: ellipsis;
     overflow: hidden;
+    position: relative;
 }
 .secrets-accordion-wrapper{
     height: 70%;
     overflow-y: auto;
     padding-bottom: 1%;
-}
-.key-input-box{
-    //border-right: 0 !important;
-    width: 90%;
 }
 .cell.folder-key-input {
     //border: 1px solid #ccc;
@@ -291,9 +284,21 @@ button:disabled {
 }
 .cell.folder-key-input .list-icon.icon-views {
     position: absolute;
-    color: #666 !important;
     display: inline-block;
     top: 1.2vh;
     font-size: 2vh;
     right: 1vw;
 }
+
+.accordion-list-main.adjustment {
+  height: inherit;
+  padding: 10px;
+}
+
+.folder-key {
+    width: 80%;
+    display: inline-block;
+    white-space: normal;
+    word-break: break-all;
+}
+

@@ -1,0 +1,15 @@
+.right.search-bar-container
+                .search-bar
+                    .search-box
+                        .search-icon
+                            .icon-search
+                        .search-input-wrapper
+                            input.search-input-box(type='text' placeholder='SEARCH' ng-model="searchValue" restrict-special-char minlength="3" maxlength="40")
+md-content.au-100-height
+    md-tabs.au-100-height.md-border-bottom.md-dynamic-height(md-selected="vm.tabIndex")
+        md-tab(ng-repeat="tab in vm.safeCategories" ng-attr-label="{{tab.name}}")
+            md-content.au-tabs-inner(ng-init="safeList = vm.tiles[tab.id]")
+                    tiles(data="safeList" tile-func-available="true" img="'safe_tile.png'" search-value="searchValue" tile-details="vm.goToFolders")
+                    .unavailable-text(ng-if='!safeList.length') No safes available
+
+

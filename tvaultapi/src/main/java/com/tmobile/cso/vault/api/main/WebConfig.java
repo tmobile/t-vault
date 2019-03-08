@@ -1,5 +1,5 @@
 // =========================================================================
-// Copyright 2018 T-Mobile, US
+// Copyright 2019 T-Mobile, US
 // 
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -23,12 +23,18 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import com.tmobile.cso.vault.api.filter.ApiMetricFilter;
+import com.tmobile.cso.vault.api.filter.TokenValidationFilter;
 
 @Configuration
 public class WebConfig {
 
-  @Bean
-  public Filter ApiMetricFilter() {
-    return new ApiMetricFilter();
-  }
+	@Bean
+	public Filter ApiMetricFilter() {
+		return new ApiMetricFilter();
+	}
+	@Bean
+	public Filter TokenValidationFilter() {
+		return new TokenValidationFilter();
+	}
+
 }

@@ -1,6 +1,6 @@
 /*
 * =========================================================================
-* Copyright 2018 T-Mobile, US
+* Copyright 2019 T-Mobile, US
 * 
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -20,21 +20,23 @@
 'use strict';
 
 (function( app ) {
-    app.service( 'Notifications', function( toastr ) {
-
+    app.service( 'Notifications', function( toastr, toastrConfig ) {
+        
+        toastrConfig.containerId = 'toast-container';
+        toastrConfig.iconClass = 'toast';
+        toastrConfig.tapToDismiss = false;
+        toastrConfig.timeOut = 1000;
+        toastrConfig.positionClass = 'custom-toast';
+        toastrConfig.newestOnTop = true;
+        toastrConfig.preventDuplicates = false;
+        toastrConfig.preventOpenDuplicates = true;
+        toastrConfig.progressBar = false;
+        toastrConfig.maxOpened = 1;
+        toastrConfig.templates.toast = 'directives/toast/toast.html';
+        
         return {
             toast : function( message ) {
-                toastr.info( message, '', {
-                    containerId: 'toast-container',
-                    iconClass : 'toast',
-                    tapToDismiss : false,
-                    timeOut : 1000,
-                    positionClass : 'custom-toast',
-                    newestOnTop : true,
-                    preventDuplicates: false,
-                    preventOpenDuplicates: false,
-                    progressBar : false
-                } );
+                toastr.info( message, '');
             },
             toastError : function( message ) {
                 toastr.info( message, '', {
@@ -51,6 +53,6 @@
             }
         };
     } );
-})( angular.module( 'pacman.services.Notifications', [
+})( angular.module( 'vault.services.Notifications', [
     'toastr'
 ] ) );

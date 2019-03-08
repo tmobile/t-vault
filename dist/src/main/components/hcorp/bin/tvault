@@ -9,7 +9,7 @@
 # pidfile: /opt/tvault/consul/consul.pid
 
 # =========================================================================		
-# Copyright 2018 T-Mobile, US		
+# Copyright 2019 T-Mobile, US
 # 		
 # Licensed under the Apache License, Version 2.0 (the "License");		
 # you may not use this file except in compliance with the License.		
@@ -117,7 +117,7 @@ status()
 seal-status()
 {
      export VAULT_ADDR="https://127.0.0.1:8200"
-     $exe status -tls-skip-verify | grep -i Sealed | cut -d: -f2 | tr -d ' '
+     $exe status -tls-skip-verify | grep -i Sealed | awk {'print $2'}
 }
 unseal()
 {

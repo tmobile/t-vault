@@ -1,6 +1,6 @@
 /*
 * =========================================================================
-* Copyright 2018 T-Mobile, US
+* Copyright 2019 T-Mobile, US
 * 
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -24,6 +24,9 @@
         'MESSAGE_SAFE_DELETE'      : ' deleted successfully!',
         'MESSAGE_CREATE_SUCCESS'   : ' created successfully!',
         'MESSAGE_UPDATE_SUCCESS'   : ' updated successfully!',
-        'COPY_TO_CLIPBOARD'        : 'Secret copied to clipboard'
+        'COPY_TO_CLIPBOARD'        : 'Secret copied to clipboard',
+        'COPY_KEY_TO_CLIPBOARD'    : 'Key copied to clipboard',
+        'MESSAGE_ACCESSOR_DELETE'  : 'Accessor ID deleted Successfully',
+        'MESSAGE_DELETE_SUCCESS'   : ' deleted Successfully'
     } );
-} )( angular.module( 'pacman.constants.SuccessMessage', [] ) );
+} )( angular.module( 'vault.constants.SuccessMessage', [] ) );

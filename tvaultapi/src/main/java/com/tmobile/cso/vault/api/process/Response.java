@@ -1,5 +1,5 @@
 // =========================================================================
-// Copyright 2018 T-Mobile, US
+// Copyright 2019 T-Mobile, US
 // 
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -17,11 +17,15 @@
 
 package com.tmobile.cso.vault.api.process;
 
+import java.util.List;
+
 import org.springframework.http.HttpStatus;
 
 public class Response {
 	boolean success;
 	String response;
+	List<String> adminPolicies;
+	
 	public void setSuccess(boolean success) {
 		this.success = success;
 	}
@@ -40,7 +44,32 @@ public class Response {
 		return success;
 	}
 	public String getResponse() {
-		return response;
+		if (response != null) {
+			return response;
+		}
+		else {
+			return "{} 	";
+		}
+	}
+	/**
+	 * @return the adminPolicies
+	 */
+	public List<String> getAdminPolicies() {
+		return adminPolicies;
+	}
+	/**
+	 * @param adminPolicies the adminPolicies to set
+	 */
+	public void setAdminPolicies(List<String> adminPolicies) {
+		this.adminPolicies = adminPolicies;
+	}
+	/* (non-Javadoc)
+	 * @see java.lang.Object#toString()
+	 */
+	@Override
+	public String toString() {
+		return "Response [success=" + success + ", response=" + response + ", adminPolicies=" + adminPolicies
+				+ ", httpstatus=" + httpstatus + "]";
 	}
 
 }

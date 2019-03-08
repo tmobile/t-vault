@@ -1,15 +1,12 @@
-
 .tiles-wrapper
     .loader-wrapper(ng-show="loading" ng-cloak="")
         .gif-wrp
             img(src="assets/images/loading.gif" class="loading-state-img")
     ul(ng-show="!loading" class="row" ng-cloak="")
-        li(class="tiles-container col-lg-3 col-md-3 col-sm-4 col-xs-6" ng-repeat="item in data | filter : searchValue " ng-click="parent != 'admin' && tileClicked($event, item)")
+        li(class="tiles-container col-lg-3 col-md-3 col-sm-4 col-xs-6" ng-repeat="item in data | filter : searchValue | limitTo: paginationLimit()" ng-click="parent != 'admin' && tileClicked($event, item)")
             .tiles-container-block(class="padded" md-whiteframe="{{height}}" ng-init="height = 3" ng-mouseenter="height = 12" ng-mouseleave="height = 3" ng-class="{'admin-parent' : parent === 'admin', 'safe-parent': parent != 'admin'}")
                 .tile-image-wrapper
                 .tile-label {{item.safe}}
-                //.icon-mode_edit.edit-icon(ng-if="parent === 'admin'" ng-click="$event.stopPropagation(); editFolder({param: item})")
-                //.icon-delete.delete-icon(ng-if="parent === 'admin'" ng-click="$event.stopPropagation(); deleteFolder({param: item})")
                 .admin-tile-overlay(ng-if="parent === 'admin'")
                     .modify-safe-admin-wrapper.edit-wrapper(ng-click="$event.stopPropagation(); editFolder({param: item})")
                         span.icon-mode_edit.action-icons-style.action-icon-with-text-gap
@@ -17,4 +14,11 @@
                     .modify-safe-admin-wrapper.delete-wrapper(ng-click="$event.stopPropagation(); deleteFolder({param: item})")
                         span.icon-delete.action-icons-style.action-icon-with-text-gap
                         span.modify-safe-text Delete
-        li(ng-repeat="item in numOfTiles = ( data | filter : searchValue ).length")        
+        li(ng-repeat="item in numOfTiles = ( data | filter : { safe: searchValue } ).length")
+.pagination-wrapper(ng-show='hasMoreItemsToShow()')
+    .pagination-count(ng-if="numOfTiles>0") Displaying {{currentshown}} of {{numOfTiles}}
+    .pagination-button-wrapper(ng-click='showMoreItems()')
+        button.show-more-btn VIEW MORE
+        span
+            img(src="assets/icons/front-arrow.svg")
+    

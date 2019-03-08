@@ -2,15 +2,15 @@
     margin: 0 auto;
     width: 100%;
     position: relative;
+    overflow-y: scroll;
 }
 .tiles-wrapper ul {
     padding: 0rem !important;
 }
 .tiles-wrapper ul li {
-    // width: 24%;
     width: auto;
     height: auto;
-    padding: 1.5vw 2.5vw;
+    padding: 1.5vw 0 1.5vw 4vw;
 }
 
 .tiles-container-block {
@@ -47,14 +47,15 @@
     overflow: hidden;
     text-align: center;
     width: 80%;
-    height: 25%;
+    height: 38%;
     text-overflow: ellipsis;
     transform: translate(-50%,-20%);
     display: flex;
     flex-direction: column;
     justify-content: center;
-    // font-size: $base-font-size-medium;
     font-size: 0.9vw;
+    flex-wrap: wrap;
+    overflow-wrap: break-word;
 }
 
 .center-display {
@@ -63,9 +64,6 @@
 }
 
 @media only screen and (max-width: 426px){
-    .tiles-container {
-      // padding: 0 5px !important;
-    }
     .tiles-wrapper ul {
       text-align: center;
     }
@@ -76,11 +74,11 @@
 }
 .tile-image-wrapper {
     background: url('/assets/images/safe_tile.png') no-repeat;
-    width: 50%;
-    height: 50%;
+    width: 40%;
+    height: 40%;
     background-size: cover;
     position: absolute;
-    @include translate(50%, 30%);
+    @include translate(78%, 30%);
     transition: background 0.3s ease-in-out, color 0.3s ease-in-out, background-color 0.3s ease-in-out;
 }
 .tiles-container-block.safe-parent:hover {
@@ -109,7 +107,6 @@
 }
 .tiles-container-block.admin-parent:hover{
     .admin-tile-overlay{
-        // display: block;
         pointer-events: initial;
         background: $hover-color;
         opacity: 0.9;        
@@ -134,7 +131,6 @@
 }
 .modify-safe-text{
     font-weight: 700;
-    // font-size:$base-font-size;
     font-size: 1.1vw;
     font-family: montserrat;
     display: table-cell;
@@ -152,3 +148,51 @@
         color: #e20074;
     }
 }
+
+.pagination-wrapper{
+    text-align: center;   
+    margin: 1em auto;
+    width: 100%;
+    position: relative;
+    bottom: 15px;    
+}
+.show-more-btn{
+    padding: 0;
+    background-color: #e20074;
+    border-color: transparent;
+    font-size: 1.5vh;
+}
+.pagination-button-wrapper{
+    border: none;
+    box-shadow: none;
+    border-radius: 100px;
+    background-color: #e20074;
+    color: #fff;
+    display: inline-flex;
+    padding: 0.7em 2.5em;
+    letter-spacing: .1em;
+    font-size: 1.5vh;
+    text-transform: uppercase;
+    cursor: pointer;
+    min-height: 2.8em;
+    min-width: 9em;
+    text-align: center;
+    transition: all .5s ease;
+    line-height: 1;
+}
+
+.pagination-count {    
+    font-size: 1.9vh;    
+    text-align: center;
+    bottom: 0;
+    padding: 0;
+    margin: 1em;
+    align-self: center;
+}
+
+.pagination-button-wrapper img {
+    transform: rotate(-90deg);
+    width: 0.9em;
+    margin-left: 1em;
+}
+

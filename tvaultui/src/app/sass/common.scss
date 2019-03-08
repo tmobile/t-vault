@@ -252,8 +252,8 @@ button{
   margin: 2px 10px;
   border-top: 7px solid $tertiary_color;
 }
-.pacman-bg{
-  background: url(../assets/images/pacman_bg.jpg) no-repeat 0 0;
+.vault-background {
+  background: url(../assets/images/vault-background.jpg) no-repeat 0 0;
   background-size: cover;
   background-attachment: fixed;
 }
@@ -471,9 +471,9 @@ button{
     display: inline-block;
 }
 .search-icon {
-  outline: 1px solid #ed0295;
+  outline: 1px solid #f6006e;
   display: inline-block;
-  background-color: #ed0295;
+  background-color: #f6006e;
   height: 100%;
   color: #fff;
   position: relative;
@@ -493,12 +493,12 @@ button{
 .search-bar{
     float: right;
     padding: 0;
-    min-width: 18vw;
+    min-width: 16vw;
     height: 100% !important;
 }
 
 .search-bar input {
-    font-size: 1.7vh !important;
+    font-size: 1.4vh !important;
     // height: 3.8vh;
     height: 100% !important;
     padding-left: 5% !important;
@@ -824,25 +824,28 @@ input[type='radio']:checked:before {
 .right.search-bar-container {
     position: absolute;
     // right: 4rem;
-    right: 2.8vw !important;
-    top: -1vh;
+    right: 3.4vw !important;
+    top: -1.7vh;
     z-index: 10;
     height: 4vh;
 }
 .right.search-bar-container .search-box {
     width: 100%;
     position: relative;
+    border: 0;
 }
 .right.search-bar-container .search-box .search-icon {
     position: absolute;
     right: 0;
-    width: 2.3vw;
+    width: 3rem;
 }
 .right.search-bar-container .search-box .search-input-wrapper {
-    width: 15vw;
+    width: calc(100% - 3rem);
 }
 .search-input-box{
-  height: 100%;
+    height: 100%;
+    border: 1px solid #aaa !important;
+    border-right: 0 !important;
 }
 @media only screen and (min-width: 919px){
     /*.form-wrapper{
@@ -1159,11 +1162,9 @@ input[type='radio']:checked:before {
 
 .modal-content .top-lg-sep.notification-text {
     padding: 0% 11% !important;
-    // font-size: 16px;
     font-size: 1.9vh;
     color: #666;
     text-align: center;
-    font-weight: bold;
 }
 .modal-content .common-form.modal-inner-wrapper input[type='text'] {
     box-shadow: none !important;
@@ -1286,6 +1287,8 @@ md-tab-item.md-tab.ng-scope.ng-isolate-scope.md-ink-ripple.md-active {
     width: 100%;
     overflow-y: auto !important;
     overflow-x: hidden !important;
+    width: 80vw;
+    margin: 0 auto;
 }
 .page-content-container md-tabs {
     overflow: hidden !important;
@@ -1302,22 +1305,18 @@ input[disabled] {
 
 /* Toast message - Notifications */
 
-.toast {
+// .toast {
   #toast-container > .toast-info {
-    background-image: none;
+    background-image: none !important;
     text-align: center;
-    height: 60px;
-    background: brown;
-    padding-top: 25px;
   }
-}
+// }
 
 #toast-container > div {
   display: inline-block;
 }
 
 #toast-container > div {
-  height: 40px;
   width: 350px;
   margin: 0;
   padding: 0;
@@ -1326,7 +1325,7 @@ input[disabled] {
   box-shadow: 0 0;
   font-family: $font-regular;
   font-size: 16px;
-  padding: 0 10px;
+  padding: 5px 10px;
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -1476,3 +1475,46 @@ button.btn-primary:hover{
     font-size: 1.7vh !important;
     padding-left: 0.7vw;
 }
+
+.input-disabled-text-wrapper {
+    display: inline-block !important;
+    width: 70% !important;
+}
+.folder-row-key-wrapper {    
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;    
+}
+
+.folder-row-secret-wrapper{
+    width:60% !important;
+}
+
+.vertical-sub-align {
+    vertical-align: sub;
+}
+
+.key-acceptance-info {
+    padding: 1px 4px;
+    font-size: 11px;
+    color: rgb(197,17,98);
+}
+
+.invalid-form {
+    color: red;
+    font-size: 11px;
+    padding: 1px 4px;
+}
+
+.password-padding {
+    padding: 26px 0 10px 0;
+}
+
+.md-dynamic-height.md-border-bottom.height-auto.height-auto {
+    height: auto !important;
+}
+
+.new-container.page-content-container.safe {
+    height: auto !important;
+}
+

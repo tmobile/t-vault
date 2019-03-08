@@ -1,6 +1,6 @@
 /*
 * =========================================================================
-* Copyright 2018 T-Mobile, US
+* Copyright 2019 T-Mobile, US
 * 
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -28,7 +28,12 @@
                 navTags:"="
 	        },
 	        link: function (scope, elem, attr) {     
-		        scope.goTo=function(tab){ 
+		        scope.goTo=function(navTag){
+		            var tab = navTag.navigationName;
+		            if(navTag.redirectTo) {
+		                return navTag.redirectTo();
+                    }
+
                     if(tab !== 'details' && tab !== 'permissions') {
                         try {
                             $state.go(tab);
@@ -54,4 +59,4 @@
 		    }
         }
     } );
-})(angular.module('pacman.directives.navBar',[]))
+})(angular.module('vault.directives.navBar',[]));

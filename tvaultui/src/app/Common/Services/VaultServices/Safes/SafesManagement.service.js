@@ -1,6 +1,6 @@
 /*
 * =========================================================================
-* Copyright 2018 T-Mobile, US
+* Copyright 2019 T-Mobile, US
 * 
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -19,7 +19,7 @@
 
 'use strict';
 (function(app){
-    app.service( 'SafesManagement', function( ServiceEndpoint, $q, DataCache, fetchData, $rootScope, ModifyUrl, ErrorMessage ) {
+    app.service( 'SafesManagement', function( $http, SessionStore, ServiceEndpoint, $q, DataCache, fetchData, $rootScope, ModifyUrl, ErrorMessage, UtilityService, Modal ) {
 
         this.saveNewFolder = function(payload, path) {
             var url = ModifyUrl.addUrlParameteres('saveNewFolder', path);
@@ -82,4 +82,4 @@
             }
         };
     } );
-})(angular.module('pacman.services.SafesManagement',[]));
+})(angular.module('vault.services.SafesManagement',[]));

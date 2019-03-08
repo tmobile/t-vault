@@ -1,0 +1,69 @@
+script(type='text/ng-template', id='text-input.modal.html')
+    .modal-sep.createFolder.montserrat(ng-init="form.inputValue = config.inputValue; form.passwordValue = config.passwordValue")
+        .common-header-label.text-center {{config.title}}
+    form.createFolder.left-lg-sep.right-lg-sep(name="createForm" ng-submit="close({inputValue: form.inputValue, passwordValue: form.passwordValue})")
+        .modal-inner-wrapper
+            .common-form
+                .common-form-row
+                    .details-input-group
+                        .common-form-label {{config.inputLabel}}
+                          span *
+                        input.form-control.input-box-style(placeholder="{{config.placeholder}}" minlength="3" maxlength="256"  name='inputValue' restrict-secret-special-char="config.inputLabel === 'Key'" restrict-special-char ng-pattern="config.inputLabel === 'Key'?'[a-z0-9_]+':''" ng-model="form.inputValue" required)
+                        div.key-acceptance-info(ng-if = 'config.inputLabel === "Key"') Please enter minimum 3 characters. Key accepts lowercase alphabets, numbers and underscore only.
+                        div.invalid-form(ng-show="createForm.inputValue.$dirty && createForm.inputValue.$invalid && createForm.inputValue.$error.required") Please enter this field.
+                .common-form-row(ng-if="config.passwordLabel")
+                    .details-input-group
+                        .common-form-label.password-padding {{config.passwordLabel}}
+                          span *
+                        textarea.form-control.input-box-style(name='passwordValue' placeholder="{{config.passwordPlaceholder}}" ng-model="form.passwordValue" minlength="1" maxlength="2048" required)
+                        div.invalid-form(ng-show="createForm.passwordValue.$dirty && createForm.passwordValue.$invalid && createForm.passwordValue.$error.required") Please enter this field.
+        .au-modal-buttons
+            .au-inline-buttons
+                button.common-btn.btn.btn-primary.btn-lg(type="submit" ng-disabled='createForm.inputValue.$invalid || createForm.passwordValue.$invalid') {{config.submitLabel}}
+                button.link-style.common-btn.btn.btn-default.btn-lg(ng-click="dismiss()") {{config.cancelLabel || 'CANCEL'}}
+
+script(type='text/ng-template', id='folder-text-input.modal.html')
+    .modal-sep.createFolder.montserrat(ng-init="form.inputValue = config.inputValue; form.passwordValue = config.passwordValue")
+        .common-header-label.text-center {{config.title}}
+    form.createFolder.left-lg-sep.right-lg-sep(name="createForm" ng-submit="close({inputValue: form.inputValue, passwordValue: form.passwordValue})")
+        .modal-inner-wrapper
+            .common-form
+                .common-form-row
+                    .details-input-group
+                        .common-form-label {{config.inputLabel}}
+                          span *
+                        input.form-control.input-box-style(placeholder="{{config.placeholder}}"  name='inputValue' restrict-secret-special-char="config.inputLabel === 'Folder Name'" restrict-special-char ng-pattern="config.inputLabel === 'Folder Name'?'[a-z0-9_]+':''" minlength="3" maxlength="256" ng-model="form.inputValue" required)
+                        div.key-acceptance-info(ng-if = 'config.inputLabel === "Folder Name"') Please enter minimum 3 characters. Folder Name accepts lowercase alphabets, numbers and underscore only.
+                        div.invalid-form(ng-show="createForm.inputValue.$dirty && createForm.inputValue.$invalid && createForm.inputValue.$error.required") Please enter this field.
+        .au-modal-buttons
+            .au-inline-buttons
+                button.common-btn.btn.btn-primary.btn-lg(type="submit" ng-disabled='createForm.inputValue.$invalid || createForm.passwordValue.$invalid') {{config.submitLabel}}
+                button.link-style.common-btn.btn.btn-default.btn-lg(ng-click="dismiss()") {{config.cancelLabel || 'CANCEL'}}
+
+
+script(type='text/ng-template', id='stop.modal.html')
+    .row.montserrat
+        .top-lg-sep
+            .common-header-label.text-center {{config.title}}
+        .top-lg-sep.notification-text {{config.message}}
+
+    .text-center.bottom-lg-sep.top-lg-sep.notification-button
+        .clearfix.bottom-sm-sep
+            button.link-style.common-btn.btn.btn-primary.btn-lg(ng-click="dismiss()") Close
+
+script(type='text/ng-template', id='confirm.modal.html')
+    .row.montserrat
+        .top-lg-sep
+            .common-header-label.text-center {{config.title}}
+        .top-lg-sep.notification-text {{config.message}}
+    form.createFolder.left-lg-sep.right-lg-sep
+        .au-modal-buttons
+            .au-inline-buttons
+                button.common-btn.btn.btn-primary.btn-lg(ng-click="close({inputValue: form.inputValue, passwordValue: form.passwordValue})") {{config.submitLabel}}
+                button.link-style.common-btn.btn.btn-default.btn-lg(ng-click="dismiss()") {{config.cancelLabel || 'CANCEL'}}
+
+
+header
+sideBar
+
+div.container-fluid(ui-view="content")

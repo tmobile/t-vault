@@ -1,6 +1,6 @@
 /*
 * =========================================================================
-* Copyright 2018 T-Mobile, US
+* Copyright 2019 T-Mobile, US
 * 
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -27,8 +27,8 @@
             scope: {
                 data: '=',                             // Input data
                 img: '=',                              // Name of the image to be used as tile (no need of url)
-                tileFuncAvailable: '=',                // Set to True if function is available to handle click on tile
-                numOfTiles: '=?',   
+                tileFuncAvailable: '=',
+                numOfTiles: '=?',
                 loading: '=',
                 searchValue: '=',                      // Filter string
                 tileDetails : '&',     
@@ -38,6 +38,7 @@
             },
             link: function( scope, element, attrs ) {
               // console.log(scope);
+                scope.parent_admin = false;
                 scope.imgSource = 'assets/images/' + scope.img;
                 scope.tileClicked = function(e, item) {
                     if(scope.tileFuncAvailable) {
@@ -45,7 +46,28 @@
                     }
                     e.stopPropagation();
                 }
+                //show more functionality
+                if (scope.parent == 'admin'){
+                    scope.parent_admin = true;
+                }
+			var pagesShown = 1;
+		    var pageSize = 20;
+		    
+		    scope.paginationLimit = function(data) {
+                scope.currentshown = pageSize * pagesShown;
+                if(scope.currentshown >= scope.numOfTiles){
+                    scope.currentshown = scope.numOfTiles;
+                }
+		        return scope.currentshown;
+		    };
+		    scope.hasMoreItemsToShow = function() {             
+		        return pagesShown < (scope.numOfTiles / pageSize);
+		    };
+		    scope.showMoreItems = function() {
+		        pagesShown = pagesShown + 1;       
+		    };	
+
             }
         }
     } );
-})(angular.module('pacman.directives.tiles',[]))
+})(angular.module('vault.directives.tiles',[]));

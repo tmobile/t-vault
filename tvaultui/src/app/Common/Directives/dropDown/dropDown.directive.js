@@ -1,6 +1,6 @@
 /*
 * =========================================================================
-* Copyright 2018 T-Mobile, US
+* Copyright 2019 T-Mobile, US
 * 
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -35,11 +35,13 @@
             	scope.status = {};
             	scope.status.isopen = false;
             	if (angular.isDefined(scope.dropDownOptions.options)) {
-                    scope.dropDownOptions.selectedGroupOption = {
-                    	option: 'radio',
-						type: scope.value.toUpperCase(),
-						value: scope.value
-					};
+					if (scope.value) {
+						scope.dropDownOptions.selectedGroupOption = {
+							option: 'radio',
+							type: scope.value.toUpperCase(),
+							value: scope.value
+						};
+					}                    					
             		scope.dropDownOptions.tableOptions = [];
             		scope.dropDownOptions.options.forEach(function(item) {
             			var obj = {
@@ -93,4 +95,4 @@
 		    }
         }
     } );
-})(angular.module('pacman.directives.dropDown',[]))
+})(angular.module('vault.directives.dropDown',[]));

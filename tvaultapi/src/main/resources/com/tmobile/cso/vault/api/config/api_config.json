@@ -1,14 +1,47 @@
 [
-  {"#":"Health Check ",
+    {"#":"Health Check ",
     
     	"apiEndPoint":"/health",
-    	"vaultEndPoint":"https://localhost:8200/v1/sys/health",
+    	"vaultEndPoint":"https://localhost:8200/v1/sys/health?standbycode=200&sealedcode=200&uninitcode=200&drsecondarycode=200&performancestandbycode=200",
     	"method":"GET"
+    },
+    {"#":"Health Check ",
+    
+    	"apiEndPoint":"/v2/health",
+    	"vaultEndPoint":"http://localhost:8200/v1/sys/health?standbycode=200&sealedcode=200&uninitcode=200&drsecondarycode=200&performancestandbycode=200",
+    	"method":"GET"
+    },
+    {"#":"Seal Status",
+    
+    	"apiEndPoint":"/seal-status",
+    	"vaultEndPoint":"http://localhost:8200/v1/sys/seal-status",
+    	"method":"GET",
+    	"outparams":["type","initialized","sealed","progress","version","migration","cluster_name","cluster_id","recovery_seal"]
+    },
+    {"#":"Seal Status",
+    
+    	"apiEndPoint":"/v2/seal-status",
+    	"vaultEndPoint":"https://localhost:8200/v1/sys/seal-status",
+    	"method":"GET",
+    	"outparams":["type","initialized","sealed","progress","version","migration","cluster_name","cluster_id","recovery_seal"]
     },
     {"#":"Unseal",
     
     	"apiEndPoint":"/unseal",
     	"vaultEndPoint":"https://<serverip>:<port>/v1/sys/unseal",
+    	"method":"POST",
+    	"params":[
+        	{"name":"serverip","required":true,"appendToPath":true},
+        	{"name":"port","required":true,"appendToPath":true},
+        	{"name":"key","required":true},
+        	{"name":"reset"}
+        ],
+      	"outparams":["sealed","progress"]
+    },
+    {"#":"Unseal",
+    
+    	"apiEndPoint":"/v2/unseal",
+    	"vaultEndPoint":"http://<serverip>:<port>/v1/sys/unseal",
     	"method":"POST",
     	"params":[
         	{"name":"serverip","required":true,"appendToPath":true},
@@ -29,7 +62,17 @@
         ],
       	"outparams":["sealed","progress"]
     },
+    {"#":"Unseal Progress",
     
+    	"apiEndPoint":"/v2/unseal-progress",
+    	"vaultEndPoint":"http://<serverip>:<port>/v1/sys/seal-status",
+    	"method":"GET",
+    	"params":[
+        	{"name":"serverip","required":true,"appendToPath":true},
+        	{"name":"port","required":true,"appendToPath":true}
+        ],
+      	"outparams":["sealed","progress"]
+    },
     	
 	
 	{"#" : "**** - dec'2017 - AppRole Create *****",
@@ -41,11 +84,12 @@
       		{"name":"policies" },
       		{"name":"bind_secret_id","value":"true"},
       		{"name":"bound_cidr_list"},
-      		{"name":"secret_id_num_uses "},
+      		{"name":"secret_id_num_uses"},
       		{"name":"secret_id_ttl"},
-      		{"name":"token_num_uses", "value":"0"}
+      		{"name":"token_num_uses"},
+      		{"name":"token_ttl"},
+      		{"name":"token_max_ttl"}
         ]
-        
     },
     
   	
@@ -60,8 +104,14 @@
                 "outparams":["data"]
         
     },
- 
- 	
+	{"#":"**** - nov'2018' - Read list of AppRoles *******",
+    
+    	"apiEndPoint":"/auth/approle/role/list",
+    	"vaultEndPoint":"/auth/approle/role?list=true",
+    	"method":"GET",
+        "outparams":["data/keys"]
+        
+    },
   	{"#":"**** - dec'2017 - Read a AppRole RoleID*******",
     
     	"apiEndPoint":"/auth/approle/role/readRoleID",
@@ -148,9 +198,30 @@
         		{"name":"username", "required":true,"appendToPath":true}, 
     	  		{"name":"password","required":true}
  	    ],
-       "outparams":["auth/client_token","admin","access","auth/policies"] 
+       "outparams":["auth/client_token","admin","access","auth/policies","auth/lease_duration"] 
     },
 
+	{"#" : "**** - Used to renew the token *******",
+ 	
+    	"apiEndPoint":"/auth/tvault/renew",
+    	"vaultEndPoint":"/auth/token/renew-self",
+    	"method":"POST",
+        "outparams":["auth/client_token", "auth/policies","auth/lease_duration"] 
+    },
+    
+	{"#" : "**** - Used to lookup the token *******",
+ 	
+    	"apiEndPoint":"/auth/tvault/lookup",
+    	"vaultEndPoint":"/auth/token/lookup-self",
+    	"method":"GET",
+        "outparams":["data/id","data/last_renewal_time","renewable","data/policies","data/creation_ttl", "data/meta/username"] 
+    },
+	{"#" : "**** - Used to revoke the token *******",
+ 	
+    	"apiEndPoint":"/auth/tvault/revoke",
+    	"vaultEndPoint":"/auth/token/revoke-self",
+    	"method":"POST"
+    },
    
      {"#":"**** - dec'2017 - Create / Update a USER *******",
     
@@ -233,7 +304,7 @@
         	{"name":"username","required":true,"appendToPath":true},
         	{"name":"password","required":true}
         ],
-        "outparams":["auth/client_token","admin","access","auth/policies"]
+        "outparams":["auth/client_token","admin","access","auth/policies","auth/lease_duration"]
 	},
 	
 	{"#":"Configuring LDAP Group",
@@ -345,6 +416,15 @@
         ]
     },
      {"#":"**** Create SDB  *****",
+    	"apiEndPoint":"/sdb/createfolder",
+    	"vaultEndPoint":"/<path>",
+    	"method":"POST",
+      	"params":[
+        	{"name":"path","required":true, "appendToPath":true},
+        	{"name":"data","required":true}
+        ]
+    },
+     {"#":"**** Create SDB  *****",
     	"apiEndPoint":"/sdb/update",
     	"vaultEndPoint":"/<path>",
     	"method":"POST",
@@ -420,7 +500,7 @@
         	{"name":"access","required":false},
         	{"name":"rules"}
         ]
-    },
+     },
      { "#":"**** Fetch Policy Info  *****",
     	"apiEndPoint":"/access",
     	"vaultEndPoint":"/sys/policy/<accessid>",
@@ -453,16 +533,73 @@
         ],
         "outparams":["auth/client_token","auth/policies","access"]
     },
+ 	{"#" : "**** aws iam client configuration ****** ",
+ 	
+    	"apiEndPoint":"/auth/aws/config/configureclient",
+    	"vaultEndPoint":"/auth/aws/config/client",
+    	"method":"POST",
+      	"params":[
+      		{"name":"access_key","required":true},
+      		{"name":"secret_key","required":true}
+        ]
+    },
+ 	{"#" : "**** reads aws iam client configuration ****** ",
+ 	
+    	"apiEndPoint":"/auth/aws/config/readclientconfig",
+    	"vaultEndPoint":"/auth/aws/config/client",
+    	"method":"GET",
+      	"outparams":["data/access_key","data/secret_key"]
+    },
+ 	{"#" : "**** aws iam create STS Role ****** ",
+ 	
+    	"apiEndPoint":"/auth/aws/config/sts/create",
+    	"vaultEndPoint":"/auth/aws/config/sts/<account_id>",
+    	"method":"POST",
+      	"params":[
+      		{"name":"account_id","required":true,"appendToPath":true},
+        	{"name":"sts_role","required":false}
+        ]
+    },
+ 	{"#" : "**** aws iam create IAM Role tag****** ",
+ 	
+    	"apiEndPoint":"/auth/aws/iam/role/create",
+    	"vaultEndPoint":"/auth/aws/role/<role>",
+    	"method":"POST",
+      	"params":[
+      		{"name":"role","required":true,"appendToPath":true},
+        	{"name":"auth_type"},
+        	{"name":"bound_iam_principal_arn"},
+        	{"name":"bound_iam_role_arn"},
+        	{"name":"inferred_entity_type"},
+        	{"name":"inferred_aws_region"},
+        	{"name":"policies"},
+        	{"name":"resolve_aws_unique_ids"}
+        ]
+    },
+ 	{"#" : "**** aws iam login ****** ",
+ 	
+    	"apiEndPoint":"/auth/aws/iam/login",
+    	"vaultEndPoint":"/auth/aws/login",
+    	"method":"POST",
+      	"params":[
+      		{"name":"iam_http_request_method","required":true},
+        	{"name":"iam_request_url","required":true},
+        	{"name":"iam_request_body","required":true},
+        	{"name":"iam_request_headers"},
+        	{"name":"role"},
+        	{"name":"resolve_aws_unique_ids"}
+        ],
+        "outparams":["auth/client_token","auth/policies","auth/lease_duration"]
+    },
     
-    
- 	{"#" : "**** aws group creation ****** ",
+ 	{"#" : "**** aws role creation ****** ",
  	
     	"apiEndPoint":"/auth/aws/roles/create",
     	"vaultEndPoint":"/auth/aws/role/<role>",
     	"method":"POST",
       	"params":[
-      		{"name":"auth_type","value":"ec2"},
       		{"name":"role","required":true, "appendToPath":true},
+      		{"name":"auth_type"},
       		{"name":"bound_ami_id"},
       		{"name":"bound_account_id"},
       		{"name":"bound_region"},
@@ -470,7 +607,9 @@
       		{"name":"bound_subnet_id"},
       		{"name":"bound_iam_role_arn"},
       		{"name":"bound_iam_instance_profile_arn"},
-      		{"name":"policies" }
+      		{"name":"policies" },
+      		{"name":"bound_iam_principal_arn"},
+      		{"name":"resolve_aws_unique_ids"}
         ]
     },
     
@@ -493,10 +632,32 @@
       		{"name":"policies", "required":"true"}
         ]
     },
+     	{"#" : "**** aws role update ****** ",
+ 	
+    	"apiEndPoint":"/auth/aws/iam/roles/update",
+    	"vaultEndPoint":"/auth/aws/role/<role>",
+    	"method":"POST",
+      	"params":[
+      		{"name":"auth_type","value":"iam"},
+      		{"name":"role","required":true, "appendToPath":true},
+      		{"name":"bound_iam_principal_arn"},
+      		{"name":"policies", "required":"true"},
+      		{"name":"resolve_aws_unique_ids"}
+        ]
+    },
     
     {"#" : "**** aws role delete ****** ",
  	
     	"apiEndPoint":"/auth/aws/roles/delete",
+    	"vaultEndPoint":"/auth/aws/role/<role>",
+    	"method":"DELETE",
+      	"params":[
+      		{"name":"role","required":true, "appendToPath":true}
+        ]
+    },
+    {"#" : "**** aws iam role delete ****** ",
+ 	
+    	"apiEndPoint":"/auth/aws/iam/roles/delete",
     	"vaultEndPoint":"/auth/aws/role/<role>",
     	"method":"DELETE",
       	"params":[
@@ -512,20 +673,69 @@
       	"params":[
       		{"name":"role","required":true, "appendToPath":true}
         ],
-         "outparams":["data/bound_account_id","data/bound_ami_id",
-         			  "data/bound_iam_instance_profile_arn",
+         "outparams":["data/auth_type", "data/bound_account_id","data/bound_ami_id",
+         			  "data/bound_iam_instance_profile_arn","data/bound_iam_principal_arn",
          			  "data/bound_iam_role_arn","data/bound_vpc_id",
          			  "data/bound_subnet_id","data/bound_region",
          			  "data/policies"]
     },
-    
+     {"#" : "**** Fetch aws iam role info  ****** ",
+ 	
+    	"apiEndPoint":"/auth/aws/iam/roles",
+    	"vaultEndPoint":"/auth/aws/role/<role>",
+    	"method":"GET",
+      	"params":[
+      		{"name":"role","required":true, "appendToPath":true}
+        ],
+         "outparams":["data/auth_type", "data/bound_ami_id","data/role_tag","data/policies",
+         			  "data/bound_iam_principal_arn","data/bound_iam_role_arn",
+         			  "data/max_ttl","data/disallow_reauthentication",
+         			  "data/allow_instance_migration","data/resolve_aws_unique_ids"
+         			  ]
+    },
     {"#" : "**** Fetch aws roles  ****** ",
  	
     	"apiEndPoint":"/auth/aws/roles/list",
     	"vaultEndPoint":"/auth/aws/roles?list=true",
     	"method":"GET",
          "outparams":["data/keys"]
+    },
+    {"#" : "**** Fetch aws iam roles  ****** ",
+ 	
+    	"apiEndPoint":"/auth/aws/iam/roles/list",
+    	"vaultEndPoint":"/auth/aws/roles?list=true",
+    	"method":"GET",
+         "outparams":["data/keys"]
+    },
+    {"#" : "**** - Delete Secret_Ids for a given AppRole '****** ",
+ 	
+    	"apiEndPoint":"/auth/approle/role/delete/secretids",
+    	"vaultEndPoint":"/auth/approle/role/<role_name>/secret-id-accessor/destroy",
+    	"method":"POST",
+      	"params":[
+        		{"name":"role_name", "appendToPath":true},
+        		{"name":"secret_id_accessor","required":true}
+ 	    ]
+    },
+    {"#" : "**** - Read accessors of all the SecretIDs issued against the AppRole '****** ",
+ 	
+    	"apiEndPoint":"/auth/approle/role/accessors/list",
+    	"vaultEndPoint":"/auth/approle/role/<role_name>/secret-id?list=true",
+    	"method":"GET",
+      	"params":[
+        		{"name":"role_name", "required":true, "appendToPath":true}
+ 	    ],
+ 	    "outparams":["data/keys"]
+    },
+    {"#":"**** - Read list of AppRoles created by a user *******",
+    
+    	"apiEndPoint":"/auth/approles/rolesbyuser/list",
+    	"vaultEndPoint":"/<path>?list=true",
+    	"method":"GET",
+    	"params":[
+        	{"name":"path","required":true, "appendToPath":true}
+        ],
+        "outparams":["data/keys"]
+        
     }
-    
-    
 ]

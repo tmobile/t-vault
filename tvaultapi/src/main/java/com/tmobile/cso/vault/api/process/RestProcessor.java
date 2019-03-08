@@ -1,5 +1,5 @@
 // =========================================================================
-// Copyright 2018 T-Mobile, US
+// Copyright 2019 T-Mobile, US
 // 
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -30,6 +30,7 @@ import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.LaxRedirectStrategy;
 import org.apache.http.ssl.SSLContextBuilder;
 import org.apache.http.ssl.TrustStrategy;
+import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Value;
@@ -47,9 +48,14 @@ import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
+import com.google.common.collect.ImmutableMap;
+import com.tmobile.cso.vault.api.exception.LogMessage;
+import com.tmobile.cso.vault.api.utils.JSONUtil;
+import com.tmobile.cso.vault.api.utils.ThreadLocalContext;
+
 @Component()
 public class RestProcessor {
-	private Logger log = LogManager.getLogger(RestProcessor.class);
+	private static Logger log = LogManager.getLogger(RestProcessor.class);
 	@Value("${vault.api.url}")
 	private String vaultApiUrl;
 	@Value("${vault.ssl.verify:true}")
@@ -60,17 +66,18 @@ public class RestProcessor {
 	}
 	
 	public ResponseEntity<String> post(String endpoint,String token,String payload ){
+		
+		
+		
 		RestTemplate restTemplate = getRestTemplate(sslVerify, token);
-		
-		String _endpoint ;
-		if(!endpoint.contains("http")){
-			_endpoint = vaultApiUrl+endpoint ;
-		}else{
-			_endpoint = endpoint ;
-		}
-		
-		log.debug(_endpoint); 
+		String _endpoint  = formURL(endpoint);
 		ResponseEntity<String> response;
+		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+			      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+				  put(LogMessage.ACTION, "Invoke Vault API").
+			      put(LogMessage.MESSAGE, String.format("Calling the vault end point [%s] using POST method", _endpoint)).
+			      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+			      build()));
 		try{
 			response= restTemplate.postForEntity(_endpoint,payload,String.class);
 		}catch(HttpStatusCodeException e){
@@ -83,16 +90,14 @@ public class RestProcessor {
 	}
 	public ResponseEntity<String> get(String endpoint,String token){
 
-		String _endpoint ;
-		if(!endpoint.contains("http")){
-			_endpoint = vaultApiUrl+endpoint ;
-		}else{
-			_endpoint = endpoint ;
-		}
-		
-		log.debug(_endpoint); 
+		String _endpoint  = formURL(endpoint);
 		RestTemplate restTemplate = getRestTemplate(sslVerify, token);
-		
+		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+			      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+				  put(LogMessage.ACTION, "Invoke Vault API").
+			      put(LogMessage.MESSAGE, String.format("Calling the vault end point [%s] using GET method", _endpoint)).
+			      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+			      build()));
 		ResponseEntity<String> response;
 		try{
 			response= restTemplate.getForEntity(_endpoint,String.class);
@@ -104,22 +109,26 @@ public class RestProcessor {
 		return response;
 	}
 	public ResponseEntity<String> delete(String endpoint,String token){
-		log.debug(vaultApiUrl+endpoint);
-		
+		String _endpoint  = formURL(endpoint);
 		RestTemplate restTemplate = getRestTemplate(sslVerify, token);
 		ResponseEntity<String> response = null;
 		
+		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+			      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+				  put(LogMessage.ACTION, "Invoke Vault API").
+			      put(LogMessage.MESSAGE, String.format("Calling the vault end point [%s] using DELETE method", _endpoint)).
+			      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+			      build()));
+		
 		try{
 			//restTemplate.delete(vaultApiUrl+endpoint);
-			response = restTemplate.exchange(vaultApiUrl+endpoint,HttpMethod.DELETE,null,String.class);
+			response = restTemplate.exchange(_endpoint,HttpMethod.DELETE,null,String.class);
 		}catch(HttpStatusCodeException e){
-			System.out.println("Caught 1");
 			return ResponseEntity.status(e.getStatusCode()).body(e.getResponseBodyAsString());
 		}catch(RestClientException e){
-			e.printStackTrace();
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
 		}catch(Exception e){
-			e.printStackTrace();
+			log.debug(e.getMessage());
 		}
 		
 		return response;
@@ -146,7 +155,7 @@ public class RestProcessor {
 				
 		} catch (KeyManagementException | NoSuchAlgorithmException | KeyStoreException e1) {
 			// TODO Auto-generated catch block
-			e1.printStackTrace();
+			log.debug(e1.getMessage());
 		}
 		
 		RestTemplate restTemplate  = new RestTemplate();
@@ -157,6 +166,17 @@ public class RestProcessor {
 				token );
 		restTemplate.getInterceptors().add(interceptor);
 		return restTemplate;
+	}
+	
+	private  String formURL(String endpoint){
+		
+		String _endpoint ;
+		if(endpoint.startsWith("http")){
+			_endpoint = endpoint ;
+		}else{
+			_endpoint = vaultApiUrl+endpoint ;
+		}
+		return _endpoint;
 	}
 	
 }

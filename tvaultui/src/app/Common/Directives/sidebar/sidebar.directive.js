@@ -1,6 +1,6 @@
 /*
 * =========================================================================
-* Copyright 2018 T-Mobile, US
+* Copyright 2019 T-Mobile, US
 * 
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -29,4 +29,4 @@
             }
         }
     } );
-})(angular.module('pacman.directives.sidebar',[]))
+})(angular.module('vault.directives.sidebar',[]));

@@ -1,6 +1,6 @@
 /*
 * =========================================================================
-* Copyright 2018 T-Mobile, US
+* Copyright 2019 T-Mobile, US
 * 
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -19,7 +19,7 @@
 
 ( function() {
     'use strict';
-    angular.module( 'pacman', [
+    angular.module('vault', [
         'ngAnimate',
         'ngCookies',
         'ngTouch',
@@ -33,77 +33,105 @@
         'ngMaterial',
         'ngTable',
         'ui.select',
-        'pacman.features',
-        'pacman.services',
-        'pacman.constants',
-        'pacman.directives',
-        'pacman.factories'
+        'vault.features',
+        'vault.services',
+        'vault.constants',
+        'vault.directives',
+        'vault.factories',
+        'vault.layout',
+        'vault.core',
+        'ngIdle'
     ]);
 
+    angular.module('vault.core', [
+        'ngAnimate',
+        'ngCookies',
+        'ngTouch',
+        'ngSanitize',
+        'ngMessages',
+        'ngResource',
+        'ui.router',
+        'ui.bootstrap',
+        'toastr',
+        'counter',
+        'ngMaterial',
+        'ngTable',
+        'ui.select',
+        'ngIdle',
+        'vault.directives'
+    ]);
 
     // Module names categorized for better understanding and to
     // track the modules being used in the code
 
 
-    angular.module( 'pacman.features', [
-        'pacman.features.SignUpCtrl',
-        'pacman.features.SafesCtrl',
-        'pacman.features.AdminCtrl',
-        'pacman.features.PeriscopeCtrl',
-        'pacman.features.ChangeSafeCtrl',
-        'pacman.features.DocumentationCtrl',
-        'pacman.features.UnsealCtrl'
+    angular.module( 'vault.features', [
+        'vault.features.SignUpCtrl',
+        'vault.features.AdminCtrl',
+        'vault.features.ChangeSafeCtrl',
+        'vault.features.UnsealCtrl',
+        'vault.features.safes'
     ]);
-    angular.module( 'pacman.services', [
-        'pacman.services.CopyToClipboard',
-        'pacman.services.DataCache',
-        'pacman.services.DeviceDetector',
-        'pacman.services.Modal',
-        'pacman.services.RefreshHandler',
-        'pacman.services.ServiceEndpoint',
-        'pacman.services.SessionStore',
-        'pacman.services.fetchData',
-        'pacman.services.SafesManagement',
-        'pacman.services.UtilityService',
-        'pacman.services.Authentication',
-        'pacman.services.AdminSafesManagement',
-        'pacman.services.ModifyUrl',
-        'pacman.services.ArrayFilter',
-        'pacman.services.httpInterceptor',
-        'pacman.services.Notifications',
-        'pacman.services.Unseal'
-    ]);
-
-    angular.module( 'pacman.constants', [
-        'pacman.constants.RestEndpoints',
-        'pacman.constants.AppConstant',
-        'pacman.constants.ErrorMessage',
-        'pacman.constants.ListOfApi'
-    ]);
-    angular.module( 'pacman.filters', [
-        'pacman.filters.ToArray',
-        'pacman.filters.CustomFilter'
-    ]);
-    angular.module( 'pacman.directives', [
-        'pacman.features.Autocomplete',
-        'pacman.features.ElementProperties',
-        'pacman.features.Scroll',
-        'pacman.directives.dateTimeFilter',
-        'pacman.directives.dropDown',
-        'pacman.directives.footer',
-        'pacman.directives.header',
-        'pacman.directives.listtable',
-        'pacman.directives.loadingState',
-        'pacman.directives.resize',
-        'pacman.directives.sidebar',
-        'pacman.directives.tiles',
-        'pacman.directives.radioButtons',
-        'pacman.directives.restrictSpecialChar',
-        'pacman.directives.dropDown',
-        'pacman.directives.navBar'
+    angular.module( 'vault.services', [
+        'vault.services.CopyToClipboard',
+        'vault.services.DataCache',
+        'vault.services.DeviceDetector',
+        'vault.services.Modal',
+        'vault.services.RefreshHandler',
+        'vault.services.ServiceEndpoint',
+        'vault.services.SessionStore',
+        'vault.services.fetchData',
+        'vault.services.SafesManagement',
+        'vault.services.UtilityService',
+        'vault.services.Authentication',
+        'vault.services.AdminSafesManagement',
+        'vault.services.ModifyUrl',
+        'vault.services.ArrayFilter',
+        'vault.services.httpInterceptor',
+        'vault.services.Notifications',
+        'vault.services.Unseal',
+        'vault.services.VaultUtility'
     ]);
 
-    angular.module( 'pacman.factories', [
+    angular.module( 'vault.constants', [
+        'vault.constants.RestEndpoints',
+        'vault.constants.AppConstant',
+        'vault.constants.ErrorMessage',
+        'vault.constants.ListOfApi',
+        'vault.constants.MockData'
+    ]);
+    angular.module( 'vault.filters', [
+        'vault.filters.ToArray',
+        'vault.filters.CustomFilter'
+    ]);
+    angular.module( 'vault.directives', [
+        'vault.features.ElementProperties',
+        'vault.features.Scroll',
+        'vault.directives.dateTimeFilter',
+        'vault.directives.dropDown',
+        'vault.directives.footer',
+        'vault.directives.header',
+        'vault.directives.listtable',
+        'vault.directives.loadingState',
+        'vault.directives.resize',
+        'vault.directives.sidebar',
+        'vault.directives.tiles',
+        'vault.directives.radioButtons',
+        'vault.directives.restrictSpecialChar',
+        'vault.directives.dropDown',
+        'vault.directives.navBar',
+        'vault.directives.folderContentsTable',
+        'vault.directives.folderContentsRow',
+        'vault.directives.searchbar',
+        'vault.directives.restrictSecretSpecialChar',
+        'vault.directives.restrictArnSpecialChar',
+        'vault.directives.restrictToNumbers',
+        'vault.directives.restrictConfigChar',
+        'vault.directives.restrictSpecialCharButComma',
+        'vault.directives.restrictSpecialCharForTime'
+    ]);
+
+    angular.module( 'vault.factories', [
     ]);
 
 } )();

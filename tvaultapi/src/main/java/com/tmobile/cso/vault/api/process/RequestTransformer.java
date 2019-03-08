@@ -1,5 +1,5 @@
 // =========================================================================
-// Copyright 2018 T-Mobile, US
+// Copyright 2019 T-Mobile, US
 // 
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -59,8 +59,7 @@ public  class RequestTransformer {
 		pathPolicyMap.forEach((path,policy)-> {
 			Map<String,String> policyMap = new HashMap<String,String>();
 			policyMap.put("policy",policy);
-			pathMap.put(path, policyMap);
-			
+			pathMap.put(path.toLowerCase(), policyMap);
 		});
 				
 		Map<String,Object> pathsMap = new HashMap<String,Object> ();

@@ -1,6 +1,6 @@
 /*
 * =========================================================================
-* Copyright 2018 T-Mobile, US
+* Copyright 2019 T-Mobile, US
 * 
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -20,15 +20,27 @@
 (function() {
   'use strict';
   angular
-    .module('pacman')
+    .module('vault')
       .config(function($httpProvider){
           $httpProvider.interceptors.push( 'httpInterceptor' );
       })
     .run(runBlock);
 
   /** @ngInject */
-  function runBlock($log) {
+  function runBlock($log, Idle, $rootScope, $state, Keepalive, SessionStore, Authentication) {
+      $rootScope.$on('IdleTimeout', function () {
+          Authentication.logout();
+      });
 
+      $rootScope.$on('Keepalive', function () {
+          var vaultAPIKey = SessionStore.getItem('myVaultKey');
+          if(vaultAPIKey) {
+                return Authentication.renewAuthToken(vaultAPIKey);
+            }
+      });
+
+      Idle.watch();
+      Keepalive.ping();
     $log.debug('runBlock end');
   }
 

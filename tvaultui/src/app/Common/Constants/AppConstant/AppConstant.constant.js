@@ -1,6 +1,6 @@
 /*
 * =========================================================================
-* Copyright 2018 T-Mobile, US
+* Copyright 2019 T-Mobile, US
 * 
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -16,17 +16,16 @@
 * See the readme.txt file for additional language around disclaimer of warranties.
 * =========================================================================
 */
+
 'use strict';
-( function( app ) {
-    app.constant( 'AppConstant', {
-        //  TO-BE-UPDATED : Link to be updated once the functionality is decided 
-        'FORGOT_PASSWORD_LINK'     : '',
-        'PERISCOPE_LINK'           : '',
-        'PERISCOPE_GET_ROLES_LINK' : '',
-        'PERISCOPE_GET_ROLES_KEY'  : '',
-        'PERISCOPE_GET_USERS_LINK' : '',
-        'PERISCOPE_GET_USERS_KEY'  : '',
-        'PERISCOPE_KEY'            : '',
-        'X-API-KEY'                : ''
-    } );
-} )( angular.module( 'pacman.constants.AppConstant', [] ) );
+(function (app) {
+    /*inject:constant*/
+    app.constant('AppConstant', {
+        'FORGOT_PASSWORD_LINK': '',
+        'AD_USERS_AUTOCOMPLETE': false,
+        'AD_GROUP_AUTOCOMPLETE': false,
+        'AUTH_TYPE': 'userpass',  /*'userpass' or 'ldap' or 'ldap1900' */
+        'DOMAIN_NAME': '@T-Mobile.com'
+    });
+    /*endinject*/
+})(angular.module('vault.constants.AppConstant', []));

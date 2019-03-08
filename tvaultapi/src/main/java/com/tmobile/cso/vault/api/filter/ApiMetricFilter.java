@@ -1,5 +1,5 @@
 // =========================================================================
-// Copyright 2018 T-Mobile, US
+// Copyright 2019 T-Mobile, US
 // 
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -35,6 +35,8 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.tmobile.cso.vault.api.exception.LogMessage;
+import com.tmobile.cso.vault.api.utils.ThreadLocalContext;
 
 public class ApiMetricFilter implements Filter {
 	
@@ -43,6 +45,10 @@ public class ApiMetricFilter implements Filter {
     @Override
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) 
       throws java.io.IOException, ServletException {
+    	
+    	ThreadLocalContext.getCurrentMap().put(LogMessage.APIURL, ((HttpServletRequest) request).getRequestURL().toString());
+    	ThreadLocalContext.getCurrentMap().put(LogMessage.USER, "");
+ 
     	
     	Map<String,Object> metricmap = new LinkedHashMap<String,Object>();
     	metricmap.put("invokedat", LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS")));

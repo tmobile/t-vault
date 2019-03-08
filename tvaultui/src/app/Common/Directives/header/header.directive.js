@@ -1,6 +1,6 @@
 /*
 * =========================================================================
-* Copyright 2018 T-Mobile, US
+* Copyright 2019 T-Mobile, US
 * 
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -19,7 +19,7 @@
 
 'use strict';
 (function(app) {
-    app.directive( 'header', function($state, SessionStore) {
+    app.directive( 'header', function($state, SessionStore, Authentication) {
         return {
             restrict: 'E',
             templateUrl: 'app/Common/Directives/header/header.html',
@@ -27,12 +27,11 @@
                 scope.showingDropdown = false;
                 scope.showDropdown = function() {
                     scope.showingDropdown = !scope.showingDropdown;
-                } 
+                };
                 scope.logout = function() {
-                    SessionStore.clear();
-                    $state.go('signup');
+                    Authentication.logout();
                 }               
             }
         }
     } );
-})(angular.module('pacman.directives.header',[]))
+})(angular.module('vault.directives.header',[]));

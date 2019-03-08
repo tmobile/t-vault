@@ -1,7 +1,7 @@
 #!/bin/bash
 #set -x
 # =========================================================================
-# Copyright 2018 T-Mobile, US
+# Copyright 2019 T-Mobile, US
 # 
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -128,7 +128,7 @@ if [[ "$APPS_TO_BUILD" == "UI_ONLY"  || "$APPS_TO_BUILD" == "ALL" ]]; then
    # check for gulp
    # check for Bower
    if [ "$(exists node)" == "0" ] ; then
-      echo "Java is not installed/not available in the path. Please correct it and try again later"
+      echo "Node is not installed/not available in the path. Please correct it and try again later"
       exit 1  
    fi
    if [ "$(exists bower)" == "0" ] ; then
@@ -158,6 +158,7 @@ if [[ "$APPS_TO_BUILD" == "UI_ONLY"  || "$APPS_TO_BUILD" == "ALL" ]]; then
    gulp build
    UI_DESTINATION_DIR=$COMPONENTS_DIR/web/nginx/html
    echo "Copying Vault UI to $UI_DESTINATION_DIR"
+   rm -rf $COMPONENTS_DIR/web/nginx/html/*
    cp -rf $UI_DIR/app/* $UI_DESTINATION_DIR/.
 
    mkdir -p $UI_DESTINATION_DIR/styles/sass/components/
@@ -171,7 +172,6 @@ if [[  "$APPS_TO_BUILD" == "API_ONLY" || "$APPS_TO_BUILD" == "ALL" ]]; then
    echo "-----------------------------------------------------"
    echo "Building TVault API"
    echo "-----------------------------------------------------"
-   # Check for JAVA
    # Check for JAVA
    if [ "$(exists java)" == "0" ] ; then
       echo "Java is not installed/not available in the path. Please correct it and try again later"

@@ -1,5 +1,5 @@
 // =========================================================================
-// Copyright 2018 T-Mobile, US
+// Copyright 2019 T-Mobile, US
 // 
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -18,10 +18,7 @@
 package com.tmobile.cso.vault.api.process;
 
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -36,10 +33,14 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.ImmutableMap;
 import com.tmobile.cso.vault.api.config.ApiConfig;
 import com.tmobile.cso.vault.api.config.ConfigManager;
 import com.tmobile.cso.vault.api.config.Param;
+import com.tmobile.cso.vault.api.exception.LogMessage;
 import com.tmobile.cso.vault.api.exception.NoApiConfigFoundException;
+import com.tmobile.cso.vault.api.utils.JSONUtil;
+import com.tmobile.cso.vault.api.utils.ThreadLocalContext;
 
 
 @Component
@@ -55,27 +56,46 @@ public class RequestProcessor {
 	
 	private static Logger log = LogManager.getLogger(RequestProcessor.class);
 	
+	public RequestProcessor() {
+	}
+
 	public Response process(String apiEndPoint, String request, String token){
+		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+			      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+				  put(LogMessage.ACTION, "Process Request").
+			      put(LogMessage.MESSAGE, String.format ("Processing input for [%s] ", apiEndPoint)).
+			      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+			      build()));
 		Response response = new Response(); 
 		ApiConfig apiConfig = null ;
 		try{
 			apiConfig = ConfigManager.lookUpApiConfig(apiEndPoint);
 		}catch(NoApiConfigFoundException e){
-			log.error(e);
 			response.httpstatus= HttpStatus.NOT_IMPLEMENTED;
 			response.success = false;
-			response.response= "{\"errors\":[\"End point is not not found/ configured.\"]}";
+			response.response= "{\"errors\":[\"End point is not not found/configured.\"]}";
+			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+				      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+					  put(LogMessage.ACTION, "Process Request").
+				      put(LogMessage.MESSAGE, String.format ("Processing input for [%s] for request failed", apiEndPoint)).
+				      put(LogMessage.STACKTRACE, Arrays.toString(e.getStackTrace())).
+				      put(LogMessage.RESPONSE, response.getResponse()).
+				      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+				      build()));
 			return response;
 		}
-		
-	
 		
 		Map<String, Object> requestParams = parseInputJson (request,response);
 		
 		if(requestParams == null){
 			return response;
 		}
-		
+		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+			      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+				  put(LogMessage.ACTION, "Process Request").
+			      put(LogMessage.MESSAGE, String.format ("Initiating validate for [%s]", apiEndPoint)).
+			      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+			      build()));
 		Message msg = reqValidator.validate(apiConfig, requestParams, token);
 		if(MSG_TYPE.ERR.equals(msg.getMsgType())){
 			response.httpstatus= HttpStatus.UNPROCESSABLE_ENTITY;
@@ -83,7 +103,12 @@ public class RequestProcessor {
 			response.response= "{\"errors\":[\""+msg.getMsgTxt()+"\"]}";
 			return response;
 		}
-		
+		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+			      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+				  put(LogMessage.ACTION, "Process Request").
+			      put(LogMessage.MESSAGE, "Transforming the request").
+			      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+			      build()));
 		reqTransformer.transform(apiConfig, requestParams);
 		
 		StringBuffer vaultEndponint = new StringBuffer(apiConfig.getVaultEndPoint());
@@ -93,35 +118,50 @@ public class RequestProcessor {
 			return response;
 		}
 		
-		
 		ResponseEntity<String> vaultResponse = null;
 		
 		switch (apiConfig.getMethod()) {
 		case "POST":
+			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+				      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+					  put(LogMessage.ACTION, "Process Request").
+				      put(LogMessage.MESSAGE, String.format("Calling the vault end point [%s] using post method", vaultEndponint.toString())).
+				      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+				      build()));
 			vaultResponse = restprocessor.post(vaultEndponint.toString(), token, vaultRequestJson);
 			break;
 		case "GET":
+			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+				      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+					  put(LogMessage.ACTION, "Process Request").
+				      put(LogMessage.MESSAGE, String.format("Calling the vault end point [%s] using get method", vaultEndponint.toString())).
+				      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+				      build()));
 			vaultResponse = restprocessor.get(vaultEndponint.toString(), token);
 			break;
 		case "DELETE":
+			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+				      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+					  put(LogMessage.ACTION, "Process Request").
+				      put(LogMessage.MESSAGE, String.format("Calling the vault end point [%s] using delete method", vaultEndponint.toString())).
+				      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+				      build()));
 			vaultResponse = restprocessor.delete(vaultEndponint.toString(), token);
 			break;
 		}
 		
-		log.debug("Status >"+vaultResponse.getStatusCode());
-		
 		Map<String,Object > vaultResponseMap = new HashMap<String,Object >();
 
 		
-		if(!HttpStatus.NO_CONTENT.equals(vaultResponse.getStatusCode())){
+		if(null!=vaultResponse && !HttpStatus.NO_CONTENT.equals(vaultResponse.getStatusCode())){
 			vaultResponseMap = parseVaultResponseJson(vaultResponse.getBody());
 		}
 		
-		if(!(vaultResponseMap.containsKey("errors") || vaultResponseMap.size() == 0))
+		if(!(vaultResponseMap.containsKey("errors") || vaultResponseMap.size() == 0)) {
 			respTransformer.transform(apiConfig, vaultResponseMap,token);
-		
+		}
 		response.response = createResponseJson(vaultResponseMap,apiConfig);
-		response.httpstatus= vaultResponse.getStatusCode();
+		response.httpstatus= (null!=vaultResponse)?vaultResponse.getStatusCode():HttpStatus.INTERNAL_SERVER_ERROR;
 		return response;
 	}
 		
@@ -144,7 +184,7 @@ public class RequestProcessor {
 				response.response = "{\"errors\":[\"Requried Parameter Missing : "+ param.getName()+"\"]}";
 				break;
 			}
-			if(param.isAppendToPath()){
+			if(value!=null && param.isAppendToPath()){
 				String _toReplace = "<"+param.getName()+">";
 				int _replaceLen = _toReplace.length();
 				int _starIndex = path.indexOf(_toReplace);
@@ -165,7 +205,6 @@ public class RequestProcessor {
 					return new ObjectMapper().writeValueAsString(outputParams);
 				}
 			} catch (JsonProcessingException e) {
-				log.error(e);
 				response.success = false;
 				response.httpstatus = HttpStatus.UNPROCESSABLE_ENTITY;
 				response.response = "{\"errors\":[\"Unexpected input \"]}";
@@ -182,17 +221,32 @@ public class RequestProcessor {
 		try {
 			requestParams = new ObjectMapper().readValue(jsonString, new TypeReference<Map<String, Object>>(){});
 		} catch (JsonParseException e) {
-			log.error(e);
+			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+				      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+					  put(LogMessage.ACTION, "Parse Input Json").
+				      put(LogMessage.MESSAGE, "Invalid request. Check JSON").
+				      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+				      build()));
 			response.httpstatus= HttpStatus.BAD_REQUEST;
 			response.success = false;
 			response.response= "{\"errors\":[\"Invalid request. Check JSON \"]}";
 		} catch (JsonMappingException e) {
-			log.error(e);
+			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+				      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+					  put(LogMessage.ACTION, "Parse Input Json").
+				      put(LogMessage.MESSAGE, "Invalid request. Check JSON").
+				      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+				      build()));
 			response.httpstatus= HttpStatus.BAD_REQUEST;
 			response.success = false;
 			response.response= "{\"errors\":[\"Invalid request. Check JSON \"]}";
 		} catch (IOException e) {
-			log.error(e);
+			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+				      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+					  put(LogMessage.ACTION, "Parse Input Json").
+				      put(LogMessage.MESSAGE, "Invalid request. Check JSON").
+				      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+				      build()));
 			response.httpstatus= HttpStatus.BAD_REQUEST;
 			response.success = false;
 			response.response= "{\"errors\":[\"Invalid request. Check JSON \"]}";

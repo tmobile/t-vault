@@ -12,6 +12,7 @@
 }
 .function-text .static {
     // padding: 0.3vh $icon-action-link-padding 0.3vh 0;
+    // padding: 0.3vh $icon-action-link-padding 0.3vh 0;
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -67,8 +68,7 @@ form.modal-wrapper .modal-body {
   background: #fff;
 }
 .common-form .common-form-row {
-//   padding-bottom: 1rem;
-  padding-bottom: 1.3vh;
+  padding-bottom: 2vh;
 }
 
 #aws {
@@ -185,4 +185,13 @@ form.createFolder {
 }
 .modal-content .createFolder .text-center.bottom-lg-sep.modal-sep.aws button {
     width: 8vw;
+}
+
+.folder-link {
+  color: $pink
+};
+
+button.save-button {
+  width: 50%;
+  display: inline-block;
 }
