@@ -171,6 +171,11 @@
                 addComma: false,
                 show: true
             }, {
+                displayName: 'SERVICE ACCOUNTS',
+                navigationName: 'service-accounts',
+                addComma: false,
+                show: true
+            }, {
                 displayName: 'ADMIN',
                 navigationName: 'admin',
                 addComma: false,

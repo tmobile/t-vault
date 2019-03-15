@@ -287,6 +287,14 @@ readTextFile("../apiUrls.json");
             url: '/v2/ss/svc/auth/aws/iam/role',
             method: 'POST'
         },{
+            name: 'getMyServiceAccounts',
+            url: '/v2/ss/svc/myaccounts',
+            method: 'GET'
+        },{
+            name: 'getSecretForSvc',
+            url: '/v2/ss/svc/secret/',
+            method: 'GET'
+        },{
             name: 'unseal',
             url: '/v2/unseal',
             method: 'POST'
