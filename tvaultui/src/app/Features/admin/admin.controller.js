@@ -59,6 +59,12 @@
             "token_num_uses": ""
         };
         
+        $scope.onBoardADObj = {
+            "service_account_name":"",
+            "auto_rotation": "",
+            "password_ttl": ""
+        };
+
         $scope.adminNavTags = safesService.getSafesNavTags();
 
         $scope.showNotification = function() {
@@ -97,7 +103,10 @@
         $scope.accessorListToDelete = [];
         $scope.rolenameExists = false;
         var init = function () {
-
+            $scope.selectedIndex = 0; 
+            if ($rootScope.lastVisited == "change-service-account") {
+                $scope.selectedIndex = 2; 
+            }
             $scope.myVaultKey = SessionStore.getItem("myVaultKey");
             if(!$scope.myVaultKey){ /* Check if user is in the same session */
                 $state.go('signup');
@@ -393,6 +402,35 @@
                 $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
                 $scope.error('md');
             });
+
+            $scope.svcOnboardedData = {"keys": []};
+            AdminSafesManagement.getOnboardedServiceAccounts().then(function (response) {                
+                if (UtilityService.ifAPIRequestSuccessful(response)) {
+                    $scope.svcOnboardedData = response.data;
+                    for(var i=0; i < $scope.svcOnboardedData.keys.length ; i++){
+                        var svc = $scope.svcOnboardedData.keys[i];
+                        var expiry = new Date(svc.expiry); 
+                        var dayDif = (expiry - new Date())/1000/60/60/24;
+                        if (dayDif >= 0) {
+                            svc.expiry = Math.floor(dayDif) + " days";
+                        } else {
+                            svc.expiry = "Expired";
+                        }                        
+                        $scope.svcOnboardedData.keys[i] = svc;
+                    }
+                }
+                else {
+                    $scope.errorMessage = AdminSafesManagement.getTheRightErrorMessage(response);
+                    error('md');
+                }
+            },
+            function (error) {
+                // Error handling function
+                console.log(error);
+                $scope.isLoadingData = false;
+                $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
+                $scope.error('md');
+            });
         };
 
         $scope.newAppRoleConfiguration = function (size) {
@@ -410,6 +448,50 @@
                 "token_num_uses": ""
             };
             $scope.openApprole(size);
+        }
+
+        $scope.editSvcPasswordRotation = function (name, size) {
+            var obj = "svcData";
+            var fullObj = {};
+            fullObj[obj] = {"name":name};
+            fullObj["svcList"] = {"keys":[name]};
+            $state.go('change-service-account', fullObj);
+        }
+
+        $scope.onboardSvcAccount = function (size) {
+            var obj = "svcList";
+            var fullObj = {};
+            fullObj[obj] = [];
+            AdminSafesManagement.getServiceAccounts().then(
+                function(response) {
+                    if(UtilityService.ifAPIRequestSuccessful(response)){
+                        // Try-Catch block to catch errors if there is any change in object structure in the response
+                        try {
+                            $scope.isLoadingData = false;
+                            fullObj[obj] = response.data.keys;
+                            $state.go('change-service-account', fullObj);
+                        }
+                        catch(e) {
+                            console.log(e);
+                            $scope.isLoadingData = false;
+                            $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_CONTENT_NOT_FOUND');
+                            $scope.error('md');
+                        }
+                    }
+                    else {
+                        $scope.isLoadingData = false;
+                        $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_CONTENT_NOT_FOUND');
+                        $scope.error('md');
+                    }
+                },
+                function(error) {
+                    // Error handling function
+                    console.log(error);
+                    $scope.isLoadingData = false;
+                    $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_CONTENT_NOT_FOUND');
+                    $scope.error('md');
+
+            })  
         }
 
         $scope.createApprole = function () {
@@ -478,6 +560,14 @@
         $scope.openApprole = function (size) {
             Modal.createModal(size, 'appRolePopup.html', 'AdminCtrl', $scope);
         };
+
+        $scope.enableTTL = function (e) {
+            angular.element(document.getElementById('password_ttl'))[0].disabled = false;
+        }
+
+        $scope.disableTTL = function (e) {
+            angular.element(document.getElementById('password_ttl'))[0].disabled = true;
+        }
 
         $scope.isApproleBtnDisabled = function() {
             if ($scope.approleConfPopupObj.token_max_ttl !='' && $scope.approleConfPopupObj.token_ttl !='' 
