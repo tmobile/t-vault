@@ -252,6 +252,16 @@
                     return response;
                 });
             },
+            resetSecretForSvc: function(payload, url) {
+                return ServiceEndpoint.resetSecretForSvc.makeRequest(payload, url).then(function(response) {
+                    return response;
+                });
+            },
+            offboardSvc: function(payload, url) {
+                return ServiceEndpoint.offboardSvc.makeRequest(payload, url).then(function(response) {
+                    return response;
+                });
+            },
             getTheRightErrorMessage : function(responseObject){
                 if(responseObject.status===500 || responseObject.statusText==='Internal Server Error'){
                     return ErrorMessage.ERROR_NETWORK;

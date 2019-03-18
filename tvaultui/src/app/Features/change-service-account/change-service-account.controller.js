@@ -29,6 +29,8 @@
         $scope.awsRadioBtn = {};                    // Made an object instead of single variable, to have two way binding between
         $scope.approleRadioBtn = {};                                    // modal and controller
         $scope.isCollapsed = true;
+        $scope.isSvcExpired = false;
+        $scope.expiredNote = '';
 
         $scope.usrRadioBtnVal = 'read';             // Keep it in lowercase
         $scope.grpRadioBtnVal = 'read';             // Keep it in lowercase
@@ -448,7 +450,7 @@
                                         $scope.addPermission(type, key, permission, true);  // This will be executed when we're editing permissions
                                     }
                                     else {
-                                        $scope.requestDataFrChangeSafe();
+                                        $scope.requestDataFrChangeSvc();
                                         if (type === "users" && key === SessionStore.getItem("username")) {
                                             return Modal.createModalWithController('stop.modal.html', {
                                                 title: 'Permission changed',
@@ -674,6 +676,8 @@
 
         var getSvcInfo = function (svcName) {
             $scope.isLoadingData = true;
+            $scope.isSvcExpired = false;
+            $scope.expiredNote = '';
             var queryParameters = "name=" + svcName;
             var updatedUrlOfEndPoint = ModifyUrl.addUrlParameteres('getSvcInfo', queryParameters);
             AdminSafesManagement.getSvcInfo(null, updatedUrlOfEndPoint).then(
@@ -727,6 +731,11 @@
                             }
                             $scope.pwdRotation = $scope.svc.pwdRotation;
                             $scope.svcPrevious = angular.copy($scope.svc);
+                            if ($scope.svc.accExpiry == "expired") {
+                                $scope.isSvcExpired = true;
+                                $scope.expiredNote = "(Expired)";
+                            }
+                            
                             $scope.dropDownOptions = {
                                 'selectedGroupOption': $scope.svc.name,       
                                 'tableOptions': $scope.svcList.keys
@@ -759,11 +768,11 @@
             })
         }
 
-        $scope.requestDataFrChangeSafe = function () {
+        $scope.requestDataFrChangeSvc = function () {
             $scope.isLoadingData = true;
             if ($stateParams.svcData) {
                 // Prefilled values when editing
-                $scope.changeSvcHeader = "EDIT PASSWORD ROTATION FOR SERVICE ACCOUNT";
+                $scope.changeSvcHeader = "EDIT SERVICE ACCOUNT";
                 $scope.isEditSvc = true;
                 try {
                     getSvcInfo($stateParams.svcData.name);
@@ -838,7 +847,7 @@
             if(!$scope.myVaultKey){ /* Check if user is in the same session */
                 $state.go('signup');
             }
-            $scope.requestDataFrChangeSafe();
+            $scope.requestDataFrChangeSvc();
             $scope.fetchUsers();
             $scope.fetchGroups();
         }
@@ -960,7 +969,7 @@
                                         $scope.addPermission('AWSPermission', $scope.awsConfPopupObj.role, permission, false);
                                     }
                                     else {
-                                        $scope.requestDataFrChangeSafe();
+                                        $scope.requestDataFrChangeSvc();
                                         var notification = UtilityService.getAParticularSuccessMessage('MESSAGE_ADD_SUCCESS');
                                         if (key !== null && key !== undefined) {
                                             if (type === "users" && key === SessionStore.getItem("username")) {

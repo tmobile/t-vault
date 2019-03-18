@@ -27,6 +27,8 @@
         'COPY_TO_CLIPBOARD'        : 'Secret copied to clipboard',
         'COPY_KEY_TO_CLIPBOARD'    : 'Key copied to clipboard',
         'MESSAGE_ACCESSOR_DELETE'  : 'Accessor ID deleted Successfully',
-        'MESSAGE_DELETE_SUCCESS'   : ' deleted Successfully'
+        'MESSAGE_DELETE_SUCCESS'   : ' deleted Successfully',
+        'MESSAGE_RESET_SUCCESS'   : ' reset Successfully',
+        'MESSAGE_OFFBOARD_SUCCESS'   : ' offboarded Successfully'
     } );
 } )( angular.module( 'vault.constants.SuccessMessage', [] ) );

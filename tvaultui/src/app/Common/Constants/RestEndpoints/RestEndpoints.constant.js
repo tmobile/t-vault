@@ -295,6 +295,14 @@ readTextFile("../apiUrls.json");
             url: '/v2/ss/svc/secret/',
             method: 'GET'
         },{
+            name: 'resetSecretForSvc',
+            url: '/v2/ss/svc/reset/',
+            method: 'POST'
+        },{
+            name: 'offboardSvc',
+            url: '/v2/ss/svc/offboard/',
+            method: 'POST'
+        },{
             name: 'unseal',
             url: '/v2/unseal',
             method: 'POST'

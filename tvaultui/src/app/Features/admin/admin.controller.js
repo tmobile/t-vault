@@ -27,7 +27,7 @@
         $scope.dataForTable = [];           // Array of data after massaging, to be used for table display
         $scope.tilesData = {};
         $scope.tilesData["SafesData"] = [];
-
+        $scope.svcToOffboard = '';
         // Type of safe to be filtered from the rest
 
         $scope.safeType = {
@@ -462,6 +462,7 @@
             var obj = "svcList";
             var fullObj = {};
             fullObj[obj] = [];
+            $scope.isLoadingData = true;
             AdminSafesManagement.getServiceAccounts().then(
                 function(response) {
                     if(UtilityService.ifAPIRequestSuccessful(response)){
@@ -474,13 +475,13 @@
                         catch(e) {
                             console.log(e);
                             $scope.isLoadingData = false;
-                            $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_CONTENT_NOT_FOUND');
+                            $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
                             $scope.error('md');
                         }
                     }
                     else {
                         $scope.isLoadingData = false;
-                        $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_CONTENT_NOT_FOUND');
+                        $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
                         $scope.error('md');
                     }
                 },
@@ -488,10 +489,75 @@
                     // Error handling function
                     console.log(error);
                     $scope.isLoadingData = false;
-                    $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_CONTENT_NOT_FOUND');
+                    $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
                     $scope.error('md');
 
             })  
+        }
+
+        $scope.offboardSvcPopUp = function(svcname) {
+            $scope.svcToOffboard = svcname;
+            Modal.createModal('md', 'offboardSvcPopUp.html', 'AdminCtrl', $scope);
+        };
+
+        $scope.offboardSvc = function(svcname) {
+            $scope.isLoadingData = true;            
+            if (svcname != '') {
+                var queryParameters = svcname;
+                var updatedUrlOfEndPoint = ModifyUrl.addUrlParameteres('offboardSvc',queryParameters);
+                AdminSafesManagement.offboardSvc(null, updatedUrlOfEndPoint).then(
+                    function(response) {
+                        if(UtilityService.ifAPIRequestSuccessful(response)){
+                            try {
+                                Modal.close();
+                                $scope.isLoadingData = false;
+                                var notification = UtilityService.getAParticularSuccessMessage("MESSAGE_OFFBOARD_SUCCESS");
+                                Notifications.toast(svcname + notification);
+                                var currentOnboardList = $scope.svcOnboardedData.keys;
+                                for(var i=0; i < currentOnboardList.length ; i++){
+                                    if (currentOnboardList[i].name == svcname) {
+                                        currentOnboardList.splice(i, 1);
+                                        $scope.svcOnboardedData.keys = currentOnboardList;
+                                        break;
+                                    }
+                                }
+                                $scope.svcToOffboard = '';
+                            }
+                            catch(e) {
+                                console.log(e);
+                                $scope.svcToOffboard = '';
+                                $scope.isLoadingData = false;
+                                $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
+                                $scope.error('md');
+                            }
+                        }
+                        else {
+                            $scope.isLoadingData = false;
+                            $scope.svcToOffboard = '';
+                            $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
+                            $scope.error('md');
+                        }
+                    },
+                    function(error) {
+                        // Error handling function
+                        console.log(error);
+                        $scope.isLoadingData = false;
+                        $scope.svcToOffboard = '';
+                        $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
+                        $scope.error('md');
+
+                })  
+            }
+            else {
+                $scope.isLoadingData = false;
+                $scope.svcToOffboard = '';
+                $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
+                $scope.error('md');
+            }
+        }
+
+        $scope.tabChangeForAdmin = function() {
+            $scope.searchValue = '';
         }
 
         $scope.createApprole = function () {

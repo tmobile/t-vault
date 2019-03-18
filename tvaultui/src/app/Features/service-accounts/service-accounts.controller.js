@@ -21,7 +21,6 @@
 (function(app){
     app.controller('ServiceAccountsCtrl', function($scope, $rootScope, Modal, fetchData, $http, $window, $state, SessionStore, AdminSafesManagement, ModifyUrl, UtilityService, Notifications, safesService, RestEndpoints, CopyToClipboard){
 
-        $scope.filterValue = '';            // Initial search filter value kept empty
         $scope.isLoadingData = false;       // Variable to set the loader on
         $scope.adminNavTags = safesService.getSafesNavTags();
         $scope.viewPassword = false;
@@ -29,6 +28,8 @@
         $scope.anyRegex = /.|\s/g;
         $scope.showPassword = false;
         $scope.write = false;
+        $scope.svcToReset = '';
+        $scope.searchValueSvc = "";
         var init = function () {
             
             $scope.myVaultKey = SessionStore.getItem("myVaultKey");
@@ -42,8 +43,12 @@
         };
 
         // Fetching Data
+        $scope.filterSvc = function(searchValueSvc) {
+            $scope.searchValueSvc = searchValueSvc;
+        }
 
-        $scope.requestDataFrMyAccounts = function () {      
+        $scope.requestDataFrMyAccounts = function () {  
+            $scope.isLoadingData = true;    
             $scope.svcOnboardedData = {"keys": []};
             AdminSafesManagement.getMyServiceAccounts().then(function (response) {                
                 if (UtilityService.ifAPIRequestSuccessful(response)) {
@@ -59,8 +64,10 @@
                         }                        
                         $scope.svcOnboardedData.keys[i] = svc;
                     }
+                    $scope.isLoadingData = false;
                 }
                 else {
+                    $scope.isLoadingData = false;
                     $scope.errorMessage = AdminSafesManagement.getTheRightErrorMessage(response);
                     error('md');
                 }
@@ -111,6 +118,48 @@
             Notifications.toast(notification);
             CopyToClipboard.copy(copyValue);
         }
+
+        $scope.resetPasswordForSvc = function() {           
+            if ($scope.svcToReset != '') {
+                $scope.isLoadingData = true;
+                Modal.close();
+                var queryParameters = $scope.svcToReset;
+                var updatedUrlOfEndPoint = ModifyUrl.addUrlParameteres('resetSecretForSvc',queryParameters);
+                AdminSafesManagement.resetSecretForSvc(null, updatedUrlOfEndPoint).then(function (response) {                
+                    if (UtilityService.ifAPIRequestSuccessful(response)) {
+                        $scope.isLoadingData = false;
+                        var notification = UtilityService.getAParticularSuccessMessage("MESSAGE_RESET_SUCCESS");
+                        Notifications.toast("Password "+notification);
+                        $scope.svcToReset = '';
+                    }
+                    else {
+                        $scope.isLoadingData = false;
+                        $scope.svcToReset = '';
+                        $scope.errorMessage = AdminSafesManagement.getTheRightErrorMessage(response);
+                        error('md');
+                    }
+                },
+                function (error) {
+                    // Error handling function
+                    console.log(error);
+                    $scope.isLoadingData = false;
+                    $scope.svcToReset = '';
+                    $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
+                    $scope.error('md');
+                });    
+            } else {
+                $scope.isLoadingData = false;
+                $scope.svcToReset = '';
+                $scope.errorMessage = AdminSafesManagement.getTheRightErrorMessage('ERROR_GENERAL');
+                error('md');
+            }
+        }
+
+        $scope.resetPasswordPopup = function(svcname) {
+            $scope.fetchDataError = false;
+            $scope.svcToReset = svcname;
+            Modal.createModal('md', 'resetPopup.html', 'ServiceAccountsCtrl', $scope);
+        };
 
         $scope.goToMyServiceAccounts = function() {
             $scope.viewPassword = false;

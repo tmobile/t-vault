@@ -169,6 +169,18 @@ script(type='text/ng-template', id='deleteApprolePopUp.html')
       .clearfix
         button.link-style.common-btn.btn.btn-default.btn-lg(ng-click="close()") CANCEL
 
+script(type='text/ng-template', id='offboardSvcPopUp.html')
+  loading-state(ng-if="isLoadingModalData")
+  .top-lg-sep(ng-if="!isLoadingModalData")
+    .top-lg-sep
+        .common-header-label.text-center Confirmation
+    .top-lg-sep.notification-text Are you sure you want to offboard this Service Account?
+    .text-center.bottom-lg-sep.top-lg-sep.notification-button
+      .clearfix.bottom-sm-sep
+        button.common-btn.btn.btn-primary.btn-lg(ng-click="offboardSvc(svcToOffboard)") DELETE
+      .clearfix
+        button.link-style.common-btn.btn.btn-default.btn-lg(ng-click="close()") CANCEL
+
 script(type='text/ng-template', id='manageSecretId.html')
           .modal-sep
             .common-header-label.text-center Manage Secret IDs 
@@ -208,7 +220,7 @@ script(type='text/ng-template', id='manageSecretId.html')
                             input.search-input-box(type='text' placeholder='SEARCH' ng-model="searchValue" restrict-special-char minlength="3" maxlength="40")
             md-content.admin-content
                 md-tabs(md-dynamic-height md-border-bottom md-selected="selectedIndex")
-                    md-tab(label="Safe Management")
+                    md-tab(label="Safe Management" md-on-select="tabChangeForAdmin()")
                         md-content(class="md-padding md-content-wrapper page-content-wrapper" ng-init="displayGrid")  
                             .md-content-inner-wrapper                               
                                 div.safe-management-content
@@ -225,7 +237,7 @@ script(type='text/ng-template', id='manageSecretId.html')
                                             .rotate.glyphicon.glyphicon-remove-circle
                                         .create-link.middle-block.hide-in-mobile
                                             .text CREATE NEW SAFE
-                    md-tab(label="AppRole Management")
+                    md-tab(label="AppRole Management" md-on-select="tabChangeForAdmin()")
                         md-content(class="md-padding md-content-wrapper page-content-wrapper md-approle-management" ng-init="displayGrid")
                             .new-container.page-content-container
                                 .md-content-inner-wrapper
@@ -256,21 +268,21 @@ script(type='text/ng-template', id='manageSecretId.html')
                                                 .rotate.glyphicon.glyphicon-remove-circle
                                             .create-link.middle-block.hide-in-mobile
                                                 .text CREATE NEW APPROLE
-                    md-tab(label="Service Account Management")
+                    md-tab(label="Service Account Management" md-on-select="tabChangeForAdmin()")
                         md-content(class="md-padding md-content-wrapper page-content-wrapper md-approle-management" ng-init="displayGrid")
                             .new-container.page-content-container
                                 .md-content-inner-wrapper
                                     div.data-management-content
                                         .row.change-safe-table-container(ng-if='true')
                                             loading-state(ng-if='isLoadingData')
-                                            .row.change-data.header(ng-show="!isLoadingData && svcOnboardedData.keys.length>0")
+                                            .row.change-data.header.svc-header(ng-show="!isLoadingData && svcOnboardedData.keys.length>0")
                                                 .container.name.col-lg-2.col-md-2.col-sm-2.col-xs-2 ACCOUNT NAME
                                                 .container.name.col-lg-2.col-md-2.col-sm-2.col-xs-2 AUTO PASSWORD ROTATION
                                                 .container.name.col-lg-2.col-md-2.col-sm-2.col-xs-2 EXPIRY
                                             .change-list-table-data.row
                                                 .unavailable-text(ng-show="!isLoadingData && svcOnboardedData.keys.length==0")
                                                     .container.name No Service Accounts Available
-                                                .row.change-data.item(ng-show="!isLoadingData" ng-class="{'grayBackground' : activeItem == true}" ng-repeat="value in svcOnboardedData.keys")
+                                                .row.change-data.item(ng-show="!isLoadingData" ng-class="{'grayBackground' : activeItem == true}" ng-repeat="value in svcOnboardedData.keys | filter:searchValue")
                                                     .container.name.col-lg-2.col-md-2.col-sm-2.col-xs-2(title="{{value.name}}") {{value.name}}
                                                     .container.name.col-lg-2.col-md-2.col-sm-2.col-xs-2 {{value.rotation=='true'?"Enabled":"Disabled"}}
                                                     .container.name.col-lg-2.col-md-2.col-sm-2.col-xs-2  {{value.expiry}}
@@ -279,7 +291,7 @@ script(type='text/ng-template', id='manageSecretId.html')
                                                             .list-icon(ng-click = "editSvcPasswordRotation(value.name, 'md')")  View/Edit
                                                     .container.radio-inputs.col-lg-2.col-md-2.col-sm-2.col-xs-2
                                                         .down
-                                                            .list-icon.icon-delete(ng-click = "deleteOnboardSvc(value.name)")                                                            
+                                                            .list-icon.icon-delete(ng-click = "offboardSvcPopUp(value.name)")                                                            
                                     div.create-safe-wrapper
                                         .function-text.link-style.option.right(ng-click="onboardSvcAccount('md')")
                                             .action-icon-wrapper.static
