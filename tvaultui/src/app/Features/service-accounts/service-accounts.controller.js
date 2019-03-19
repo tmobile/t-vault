@@ -64,6 +64,7 @@
                         }                        
                         $scope.svcOnboardedData.keys[i] = svc;
                     }
+                    $scope.numOfSvcs = $scope.svcOnboardedData.keys.length;
                     $scope.isLoadingData = false;
                 }
                 else {
@@ -164,7 +165,24 @@
         $scope.goToMyServiceAccounts = function() {
             $scope.viewPassword = false;
         }
-
+        var pagesShown = 1;
+        var pageSize = 8;
+        $scope.paginationLimit = function(data) {
+            $scope.currentshown = pageSize * pagesShown;
+            if($scope.searchValueSvc.length>2 || $scope.currentshown >= $scope.numOfSvcs){
+                $scope.currentshown = $scope.numOfSvcs;
+            }
+            return $scope.currentshown;
+        };
+        $scope.hasMoreItemsToShow = function() {
+            if ($scope.searchValueSvc.length<3) {
+                return pagesShown < ($scope.numOfSvcs / pageSize);
+            }
+            return false;
+        };
+        $scope.showMoreItems = function() {
+            pagesShown = pagesShown + 1;
+        };
         $scope.error = function (size) {
             Modal.createModal(size, 'error.html', 'ServiceAccountsCtrl', $scope);
         };

@@ -29,42 +29,7 @@ script(type='text/ng-template', id='notify.html')
     .text-center.bottom-lg-sep.top-lg-sep.notification-button
         .clearfix.bottom-sm-sep
             button.link-style.common-btn.btn.btn-primary.btn-lg(ng-click="close()") Close
-script(type='text/ng-template', id='onboardAD.html')
-          .modal-sep
-            .common-header-label.text-center Onboard Service Account
 
-          //-   First popup of the Approle configure with multiple ID input fields
-
-          .left-lg-sep.right-lg-sep
-            .common-form.modal-inner-wrapper.aws
-              .common-form-row
-                .details-input-group
-                    .common-form-label Service Account Name
-                      span * 
-                    input.form-control.input-box-style(value="{{onBoardADObj.service_account_name}}" ng-change="" restrict-config-char ng-model="onBoardADObj.service_account_name" placeholder="Service Account Name" maxlength="50" minlength="3" ng-disabled="false" uib-tooltip="Name of the Service Account" tooltip-placement="top" tooltip-popup-delay="600") 
-                    div.key-acceptance-info(ng-if = "!editingServiceAccount") Please enter minimum 3 characters.
-                        .role-status-text.available(ng-if = "onBoardADObj.service_account_name.length>2") Available
-                        .role-status-text.exists(ng-if = "onBoardADObj.service_account_name.length>2") Service Account Exists
-                .details-input-group
-                    .control-group
-                        .common-form-label Password Rotation
-                            span *
-                        .common-radio-group
-                            label.control.control--radio Enable
-                                input(type='radio' id='password_rotation' value="enable" ng-model="onBoardADObj.auto_rotation" ng-checked="onBoardADObj.auto_rotation == 'enable' && true" ng-click="enableTTL($event)")
-                                .control__indicator
-                            label.control.control--radio Disable
-                                input(type='radio' id='password_rotation' value="disable" ng-model="onBoardADObj.auto_rotation" ng-checked="onBoardADObj.auto_rotation == 'disable'" ng-click="disableTTL($event)")
-                                .control__indicator
-                .details-input-group
-                    .common-form-label Password TTL
-                      span * 
-                    input.form-control.input-box-style(value="{{onBoardADObj.password_ttl}}" id="password_ttl" ng-change="" ng-disabled="true" restrict-config-char ng-model="onBoardADObj.password_ttl" placeholder="Password TTL" maxlength="50" minlength="1" restrict-to-numbers uib-tooltip="Password TTL" tooltip-placement="top" tooltip-popup-delay="600") 
-          .text-center.bottom-lg-sep.modal-sep.aws
-            .clearfix.bottom-sm-sep
-              button.common-btn.btn.btn-primary.btn-lg(id="onboard_btn" ng-click="onboardAD()") {{editingServiceAccount == true ? "Update" : "ONBOARD"}}
-            .clearfix
-              button.link-style.common-btn.btn.btn-default.btn-lg(ng-click="cancel()") Cancel
 script(type='text/ng-template', id='appRolePopup.html')
           .modal-sep
             .common-header-label.text-center {{editingApprole.status == true ? "Edit" : "Create"}} AppRole
@@ -244,9 +209,9 @@ script(type='text/ng-template', id='manageSecretId.html')
                                     div.data-management-content
                                         .row.change-safe-table-container(ng-if='true')
                                             loading-state(ng-if='isLoadingData')
-                                            .row.change-data.header(ng-show="!isLoadingData && appRoleData.keys.length>0")
+                                            .row.change-data.header.solid-header(ng-show="!isLoadingData && appRoleData.keys.length>0")
                                                 .container.name.col-lg-3.col-md-3.col-sm-3.col-xs-3 APPROLE NAME
-                                                .container.action.col-lg-5.col-md-5.col-sm-5.col-xs-5 ACTION
+                                                .container.name.action.col-lg-5.col-md-5.col-sm-5.col-xs-5 ACTION
                                             .change-list-table-data.row
                                                 .unavailable-text(ng-show="!isLoadingData && appRoleData.keys.length==0")
                                                     .container.name No AppRoles Available
@@ -261,7 +226,7 @@ script(type='text/ng-template', id='manageSecretId.html')
                                                             .list-icon(ng-click = "showAccessorsPopUp(value)" )  Manage Secret IDs
                                                     .container.radio-inputs.col-lg-2.col-md-2.col-sm-2.col-xs-2
                                                         .down
-                                                            .list-icon.icon-delete(ng-click = "deleteApprolePopUp(value)")                                                    
+                                                            .list-icon.icon-delete(ng-click = "deleteApprolePopUp(value)")
                                     div.create-safe-wrapper
                                         .function-text.link-style.option.right(ng-click="newAppRoleConfiguration('md')")
                                             .action-icon-wrapper.static
@@ -275,14 +240,14 @@ script(type='text/ng-template', id='manageSecretId.html')
                                     div.data-management-content
                                         .row.change-safe-table-container(ng-if='true')
                                             loading-state(ng-if='isLoadingData')
-                                            .row.change-data.header.svc-header(ng-show="!isLoadingData && svcOnboardedData.keys.length>0")
-                                                .container.name.col-lg-2.col-md-2.col-sm-2.col-xs-2 ACCOUNT NAME
-                                                .container.name.col-lg-2.col-md-2.col-sm-2.col-xs-2 AUTO PASSWORD ROTATION
-                                                .container.name.col-lg-2.col-md-2.col-sm-2.col-xs-2 EXPIRY
+                                            .row.change-data.header.solid-header(ng-show="!isLoadingData && svcOnboardedData.keys.length>0")
+                                                .container.name.col-lg-2.col-md-2.col-sm-2.col-xs-2(title="ACCOUNT NAME") ACCOUNT NAME
+                                                .container.name.col-lg-2.col-md-2.col-sm-2.col-xs-2(title="AUTO PASSWORD ROTATION") AUTO PASSWORD ROTATION
+                                                .container.name.col-lg-2.col-md-2.col-sm-2.col-xs-2(title="EXPIRY") EXPIRY
                                             .change-list-table-data.row
                                                 .unavailable-text(ng-show="!isLoadingData && svcOnboardedData.keys.length==0")
                                                     .container.name No Service Accounts Available
-                                                .row.change-data.item(ng-show="!isLoadingData" ng-class="{'grayBackground' : activeItem == true}" ng-repeat="value in svcOnboardedData.keys | filter:searchValue")
+                                                .row.change-data.item(ng-show="!isLoadingData" ng-class="{'grayBackground' : activeItem == true}" ng-repeat="value in svcOnboardedData.keys | filter:searchValue | limitTo: paginationLimit()")
                                                     .container.name.col-lg-2.col-md-2.col-sm-2.col-xs-2(title="{{value.name}}") {{value.name}}
                                                     .container.name.col-lg-2.col-md-2.col-sm-2.col-xs-2 {{value.rotation=='true'?"Enabled":"Disabled"}}
                                                     .container.name.col-lg-2.col-md-2.col-sm-2.col-xs-2  {{value.expiry}}
@@ -291,11 +256,16 @@ script(type='text/ng-template', id='manageSecretId.html')
                                                             .list-icon(ng-click = "editSvcPasswordRotation(value.name, 'md')")  View/Edit
                                                     .container.radio-inputs.col-lg-2.col-md-2.col-sm-2.col-xs-2
                                                         .down
-                                                            .list-icon.icon-delete(ng-click = "offboardSvcPopUp(value.name)")                                                            
+                                                            .list-icon.icon-delete(ng-click = "offboardSvcPopUp(value.name)")
+                                            .pagination-wrapper(ng-show='hasMoreItemsToShow()')
+                                                .pagination-count(ng-if="numOfSvcs>0") Displaying {{currentshown}} of {{numOfSvcs}}
+                                                .pagination-button-wrapper(ng-click='showMoreItems()')
+                                                    button.show-more-btn VIEW MORE
+                                                    span
+                                                        img(src="assets/icons/front-arrow.svg")
                                     div.create-safe-wrapper
                                         .function-text.link-style.option.right(ng-click="onboardSvcAccount('md')")
                                             .action-icon-wrapper.static
                                                 .rotate.glyphicon.glyphicon-remove-circle
                                             .create-link.middle-block.hide-in-mobile
                                                 .text ONBOARD NEW SERVICE ACCOUNT
-                                    

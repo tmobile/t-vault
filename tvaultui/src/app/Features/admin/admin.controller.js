@@ -402,7 +402,7 @@
                 $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
                 $scope.error('md');
             });
-
+            $scope.numOfSvcs = 0;
             $scope.svcOnboardedData = {"keys": []};
             AdminSafesManagement.getOnboardedServiceAccounts().then(function (response) {                
                 if (UtilityService.ifAPIRequestSuccessful(response)) {
@@ -418,6 +418,7 @@
                         }                        
                         $scope.svcOnboardedData.keys[i] = svc;
                     }
+                    $scope.numOfSvcs = $scope.svcOnboardedData.keys.length;
                 }
                 else {
                     $scope.errorMessage = AdminSafesManagement.getTheRightErrorMessage(response);
@@ -559,6 +560,25 @@
         $scope.tabChangeForAdmin = function() {
             $scope.searchValue = '';
         }
+        var pagesShown = 1;
+        var pageSize = 8;
+
+        $scope.paginationLimit = function(data) {
+            $scope.currentshown = pageSize * pagesShown;
+            if($scope.searchValue.length>2 || $scope.currentshown >= $scope.numOfSvcs){
+                $scope.currentshown = $scope.numOfSvcs;
+            }
+            return $scope.currentshown;
+        };
+        $scope.hasMoreItemsToShow = function() {
+            if ($scope.searchValue.length<3) {
+                return pagesShown < ($scope.numOfSvcs / pageSize);
+            }
+            return false;
+        };
+        $scope.showMoreItems = function() {
+            pagesShown = pagesShown + 1;
+        };
 
         $scope.createApprole = function () {
             try {

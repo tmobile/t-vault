@@ -764,7 +764,6 @@
                 $scope.isLoadingData = false;
                 $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
                 $scope.error('md');
-
             })
         }
 
@@ -786,7 +785,6 @@
                     $scope.isLoadingData = false;
                     $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
                     $scope.error('md');
-
                 }
 
             }
