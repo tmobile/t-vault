@@ -180,7 +180,12 @@ public class  SafesService {
         if (safe.getSafeBasicDetails().getDescription().length() > 1024) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid input values: Description too long\"]}");
         }
-
+		if (safe.getSafeBasicDetails().getDescription().length() <10) {
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid Description: Please enter minimum 10 characters\"]}");
+		}
+		if (safe.getSafeBasicDetails().getName().length() <3) {
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid Safe name: Please enter minimum 3 characters\"]}");
+		}
 		ControllerUtil.converSDBInputsToLowerCase(safe);
 		String path = safe.getPath();
 		String jsonStr = JSONUtil.getJSON(safe);
@@ -432,6 +437,9 @@ public class  SafesService {
         if (safe.getSafeBasicDetails().getDescription().length() > 1024) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid input values: Description too long\"]}");
         }
+		if (safe.getSafeBasicDetails().getDescription().length() <10) {
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid Description: Please enter minimum 10 characters\"]}");
+		}
 		@SuppressWarnings("unchecked")
 		Map<Object,Object> data = (Map<Object,Object>)requestParams.get("data");
 		String path = safe.getPath();
