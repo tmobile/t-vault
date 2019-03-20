@@ -47,10 +47,21 @@
             $scope.searchValueSvc = searchValueSvc;
         }
 
-        $scope.requestDataFrMyAccounts = function () {  
-            $scope.isLoadingData = true;    
+        $scope.requestDataFrMyAccounts = function () {               
             $scope.svcOnboardedData = {"keys": []};
-            AdminSafesManagement.getMyServiceAccounts().then(function (response) {                
+            var accessSafes = JSON.parse(SessionStore.getItem("accessSafes"));
+            alert(JSON.stringify(accessSafes));
+            if (accessSafes.svcacct) {
+                $scope.svcOnboardedData.keys = accessSafes.svcacct.map(function (safeObject) {
+                    var entry = Object.entries(safeObject);
+                    return {
+                        svcname: entry[0][0],
+                        permission: entry[0][1]
+                    }
+                });
+            }
+            
+            /*AdminSafesManagement.getMyServiceAccounts().then(function (response) {                
                 if (UtilityService.ifAPIRequestSuccessful(response)) {
                     $scope.svcOnboardedData = response.data;
                     for(var i=0; i < $scope.svcOnboardedData.keys.length ; i++){
@@ -79,7 +90,7 @@
                 $scope.isLoadingData = false;
                 $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
                 $scope.error('md');
-            });
+            });*/
         };
 
         $scope.viewSecret = function (svcname) {

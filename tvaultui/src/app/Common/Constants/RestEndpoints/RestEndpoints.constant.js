@@ -224,15 +224,15 @@ readTextFile("../apiUrls.json");
             method: 'GET'
         },{
             name: 'getOnboardedServiceAccounts',
-            url: '/v2/ss/svc/onboard',
+            url: '/v2/serviceaccounts',
             method: 'GET'
         },{
             name: 'getServiceAccounts',
-            url: '/v2/ss/svc/list',
+            url: '/v2/ad/serviceaccounts?serviceAccountName=',
             method: 'GET'
         },{
             name: 'getSvcInfo',
-            url: '/v2/ss/svc?',
+            url: '/v2/ad/serviceaccounts?serviceAccountName=',
             method: 'GET'
         },{
             name: 'editSvc',
@@ -240,15 +240,15 @@ readTextFile("../apiUrls.json");
             method: 'PUT'
         },{
             name: 'onboardSvc',
-            url: '/v2/ss/svc/',
+            url: '/v2/serviceaccounts/onboard',
             method: 'POST'
         },{
             name: 'addUserPermissionForSvc',
-            url: '/v2/ss/svc/user',
+            url: '/v2/serviceaccounts/user',
             method: 'POST'
         },{
             name: 'deleteUserPermissionFromSvc',
-            url: '/v2/ss/svc/user',
+            url: '/v2/serviceaccounts/user',
             method: 'DELETE'
         },{
             name: 'addGroupPermissionForSvc',
@@ -287,10 +287,6 @@ readTextFile("../apiUrls.json");
             url: '/v2/ss/svc/auth/aws/iam/role',
             method: 'POST'
         },{
-            name: 'getMyServiceAccounts',
-            url: '/v2/ss/svc/myaccounts',
-            method: 'GET'
-        },{
             name: 'getSecretForSvc',
             url: '/v2/ss/svc/secret/',
             method: 'GET'
@@ -300,7 +296,7 @@ readTextFile("../apiUrls.json");
             method: 'POST'
         },{
             name: 'offboardSvc',
-            url: '/v2/ss/svc/offboard/',
+            url: '/v2/serviceaccounts/offboard',
             method: 'POST'
         },{
             name: 'unseal',

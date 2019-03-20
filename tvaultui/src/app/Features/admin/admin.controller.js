@@ -28,6 +28,7 @@
         $scope.tilesData = {};
         $scope.tilesData["SafesData"] = [];
         $scope.svcToOffboard = '';
+        $scope.searchValue = '';
         // Type of safe to be filtered from the rest
 
         $scope.safeType = {
@@ -409,14 +410,14 @@
                     $scope.svcOnboardedData = response.data;
                     for(var i=0; i < $scope.svcOnboardedData.keys.length ; i++){
                         var svc = $scope.svcOnboardedData.keys[i];
-                        var expiry = new Date(svc.expiry); 
-                        var dayDif = (expiry - new Date())/1000/60/60/24;
-                        if (dayDif >= 0) {
+                        //var expiry = new Date(svc.expiry); 
+                        //var dayDif = (expiry - new Date())/1000/60/60/24;
+                        /*if (dayDif >= 0) {
                             svc.expiry = Math.floor(dayDif) + " days";
                         } else {
                             svc.expiry = "Expired";
-                        }                        
-                        $scope.svcOnboardedData.keys[i] = svc;
+                        }   */                     
+                        //$scope.svcOnboardedData.keys[i] = svc;
                     }
                     $scope.numOfSvcs = $scope.svcOnboardedData.keys.length;
                 }
@@ -451,11 +452,11 @@
             $scope.openApprole(size);
         }
 
-        $scope.editSvcPasswordRotation = function (name, size) {
+        $scope.editSvcPasswordRotation = function (userId, size) {
             var obj = "svcData";
             var fullObj = {};
-            fullObj[obj] = {"name":name};
-            fullObj["svcList"] = {"keys":[name]};
+            fullObj[obj] = {"userId":userId};
+            //fullObj["svcList"] = {"keys":[userId]};
             $state.go('change-service-account', fullObj);
         }
 
@@ -470,7 +471,7 @@
                         // Try-Catch block to catch errors if there is any change in object structure in the response
                         try {
                             $scope.isLoadingData = false;
-                            fullObj[obj] = response.data.keys;
+                            fullObj[obj] = response.data.data.values;
                             $state.go('change-service-account', fullObj);
                         }
                         catch(e) {
@@ -501,53 +502,87 @@
             Modal.createModal('md', 'offboardSvcPopUp.html', 'AdminCtrl', $scope);
         };
 
-        $scope.offboardSvc = function(svcname) {
-            $scope.isLoadingData = true;            
-            if (svcname != '') {
-                var queryParameters = svcname;
-                var updatedUrlOfEndPoint = ModifyUrl.addUrlParameteres('offboardSvc',queryParameters);
-                AdminSafesManagement.offboardSvc(null, updatedUrlOfEndPoint).then(
-                    function(response) {
-                        if(UtilityService.ifAPIRequestSuccessful(response)){
+        $scope.offboardSvc = function(svcUserId) {
+            if (svcUserId != '') {
+                Modal.close();
+                $scope.isLoadingData = true;
+                var queryParameters = svcUserId;
+                var updatedUrlOfEndPoint = ModifyUrl.addUrlParameteres('getSvcInfo', queryParameters);
+                AdminSafesManagement.getSvcInfo(null, updatedUrlOfEndPoint).then(
+                    function (response) {
+                        if (UtilityService.ifAPIRequestSuccessful(response)) {                       
                             try {
-                                Modal.close();
-                                $scope.isLoadingData = false;
-                                var notification = UtilityService.getAParticularSuccessMessage("MESSAGE_OFFBOARD_SUCCESS");
-                                Notifications.toast(svcname + notification);
-                                var currentOnboardList = $scope.svcOnboardedData.keys;
-                                for(var i=0; i < currentOnboardList.length ; i++){
-                                    if (currentOnboardList[i].name == svcname) {
-                                        currentOnboardList.splice(i, 1);
-                                        $scope.svcOnboardedData.keys = currentOnboardList;
-                                        break;
+                                if (response.data.data.values.length >0) {
+                                    var object = response.data.data.values[0];
+                                    var offboardPayload = {
+                                        "owner": object.owner,
+                                        "name": object.userId
                                     }
+                                    AdminSafesManagement.offboardSvc(offboardPayload, '').then(
+                                        function(response) {
+                                            if(UtilityService.ifAPIRequestSuccessful(response)){
+                                                try {                                                    
+                                                    $scope.isLoadingData = false;
+                                                    var notification = UtilityService.getAParticularSuccessMessage("MESSAGE_OFFBOARD_SUCCESS");
+                                                    Notifications.toast(svcUserId + notification);
+                                                    var currentOnboardList = $scope.svcOnboardedData.keys;                                                    
+                                                    for(var i=0; i < currentOnboardList.length ; i++){
+                                                        if (currentOnboardList[i] == svcUserId) {
+                                                            currentOnboardList.splice(i, 1);
+                                                            $scope.svcOnboardedData.keys = currentOnboardList;
+                                                            break;
+                                                        }
+                                                    }
+                                                    $scope.svcToOffboard = '';
+                                                }
+                                                catch(e) {
+                                                    console.log(e);
+                                                    $scope.svcToOffboard = '';
+                                                    $scope.isLoadingData = false;
+                                                    $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
+                                                    $scope.error('md');
+                                                }
+                                            }
+                                            else {
+                                                $scope.isLoadingData = false;
+                                                $scope.svcToOffboard = '';
+                                                $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
+                                                $scope.error('md');
+                                            }
+                                        },
+                                        function(error) {
+                                            // Error handling function
+                                            console.log(error);
+                                            $scope.isLoadingData = false;
+                                            $scope.svcToOffboard = '';
+                                            $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
+                                            $scope.error('md');
+                
+                                    });
                                 }
-                                $scope.svcToOffboard = '';
                             }
-                            catch(e) {
+                            catch (e) {
                                 console.log(e);
-                                $scope.svcToOffboard = '';
                                 $scope.isLoadingData = false;
-                                $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
+                                $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_PROCESSING_DATA');
                                 $scope.error('md');
                             }
                         }
                         else {
-                            $scope.isLoadingData = false;
-                            $scope.svcToOffboard = '';
-                            $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
-                            $scope.error('md');
+                            $scope.errorMessage = AdminSafesManagement.getTheRightErrorMessage(response);
+                            error('md');
                         }
-                    },
-                    function(error) {
-                        // Error handling function
-                        console.log(error);
-                        $scope.isLoadingData = false;
-                        $scope.svcToOffboard = '';
-                        $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
-                        $scope.error('md');
-
-                })  
+                },
+                function (error) {
+                    // Error handling function
+                    console.log(error);
+                    $scope.isLoadingData = false;
+                    $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
+                    $scope.error('md');
+                })
+                if ($scope.svc) {
+                    
+                }
             }
             else {
                 $scope.isLoadingData = false;

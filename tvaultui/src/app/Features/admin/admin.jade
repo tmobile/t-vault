@@ -248,15 +248,15 @@ script(type='text/ng-template', id='manageSecretId.html')
                                                 .unavailable-text(ng-show="!isLoadingData && svcOnboardedData.keys.length==0")
                                                     .container.name No Service Accounts Available
                                                 .row.change-data.item(ng-show="!isLoadingData" ng-class="{'grayBackground' : activeItem == true}" ng-repeat="value in svcOnboardedData.keys | filter:searchValue | limitTo: paginationLimit()")
-                                                    .container.name.col-lg-2.col-md-2.col-sm-2.col-xs-2(title="{{value.name}}") {{value.name}}
+                                                    .container.name.col-lg-2.col-md-2.col-sm-2.col-xs-2(title="{{value}}") {{value}}
                                                     .container.name.col-lg-2.col-md-2.col-sm-2.col-xs-2 {{value.rotation=='true'?"Enabled":"Disabled"}}
                                                     .container.name.col-lg-2.col-md-2.col-sm-2.col-xs-2  {{value.expiry}}
                                                     .container.radio-inputs.col-lg-4.col-md-4.col-sm-4.col-xs-4
                                                         .down.view
-                                                            .list-icon(ng-click = "editSvcPasswordRotation(value.name, 'md')")  View/Edit
+                                                            .list-icon(ng-click = "editSvcPasswordRotation(value, 'md')")  View/Edit
                                                     .container.radio-inputs.col-lg-2.col-md-2.col-sm-2.col-xs-2
                                                         .down
-                                                            .list-icon.icon-delete(ng-click = "offboardSvcPopUp(value.name)")
+                                                            .list-icon.icon-delete(ng-click = "offboardSvcPopUp(value)")
                                             .pagination-wrapper(ng-show='hasMoreItemsToShow()')
                                                 .pagination-count(ng-if="numOfSvcs>0") Displaying {{currentshown}} of {{numOfSvcs}}
                                                 .pagination-button-wrapper(ng-click='showMoreItems()')
