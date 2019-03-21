@@ -17,11 +17,19 @@
 
 package com.tmobile.cso.vault.api.common;
 
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+
+import org.apache.commons.collections.bidimap.DualHashBidiMap;
+
 public class TVaultConstants {
     public static final String READ_POLICY="read";
     public static final String WRITE_POLICY="write";
     public static final String DENY_POLICY="deny";
+    public static final String OWNER_POLICY="owner";
     public static final String SUDO_POLICY="sudo";
+    public static final String CREATE_POLICY="create";
     public static final String ADD_USER = "addUser";
     public static final String FALSE = "false";
     public static final String REMOVE_USER = "removeUser";
@@ -51,4 +59,16 @@ public class TVaultConstants {
     public static final String APPROLE_DELETE_OPERATION="DELETE";
     public static final String APPROLE_READ_OPERATION="READ";
     public static final String APPROLE_UPDATE_OPERATION="UPDATE";
+    public static final String SVC_ACC_PATH_PREFIX="svcacct";
+    //public static final String[] SVC_ACC_POLICIES = {TVaultConstants.READ_POLICY, TVaultConstants.WRITE_POLICY, TVaultConstants.OWNER_POLICY, TVaultConstants.DENY_POLICY};
+    public static final Map<String, String> SVC_ACC_POLICIES = Collections.synchronizedMap(new HashMap<String, String>());
+    public static final DualHashBidiMap SVC_ACC_POLICIES_PREFIXES ;
+    static {
+    	SVC_ACC_POLICIES.put("r_", TVaultConstants.READ_POLICY);
+    	SVC_ACC_POLICIES.put("w_", TVaultConstants.WRITE_POLICY);
+    	SVC_ACC_POLICIES.put("o_", TVaultConstants.SUDO_POLICY);
+    	SVC_ACC_POLICIES.put("d_", TVaultConstants.DENY_POLICY);
+    	SVC_ACC_POLICIES_PREFIXES = new DualHashBidiMap(SVC_ACC_POLICIES);
+    }
+    public static final String SVC_ACC_CREDS_PATH="ad/creds/";
 }
