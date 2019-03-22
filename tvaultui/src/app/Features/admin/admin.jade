@@ -241,17 +241,14 @@ script(type='text/ng-template', id='manageSecretId.html')
                                         .row.change-safe-table-container(ng-if='true')
                                             loading-state(ng-if='isLoadingData')
                                             .row.change-data.header.solid-header(ng-show="!isLoadingData && svcOnboardedData.keys.length>0")
-                                                .container.name.col-lg-2.col-md-2.col-sm-2.col-xs-2(title="ACCOUNT NAME") ACCOUNT NAME
-                                                .container.name.col-lg-2.col-md-2.col-sm-2.col-xs-2(title="AUTO PASSWORD ROTATION") AUTO PASSWORD ROTATION
-                                                .container.name.col-lg-2.col-md-2.col-sm-2.col-xs-2(title="EXPIRY") EXPIRY
+                                                .container.name.col-lg-4.col-md-4.col-sm-4.col-xs-4(title="ACCOUNT NAME") ACCOUNT NAME
+                                                .container.name.cell.col-lg-6.col-md-6.col-sm-6.col-xs-6 ACTION
                                             .change-list-table-data.row
                                                 .unavailable-text(ng-show="!isLoadingData && svcOnboardedData.keys.length==0")
                                                     .container.name No Service Accounts Available
                                                 .row.change-data.item(ng-show="!isLoadingData" ng-class="{'grayBackground' : activeItem == true}" ng-repeat="value in svcOnboardedData.keys | filter:searchValue | limitTo: paginationLimit()")
-                                                    .container.name.col-lg-2.col-md-2.col-sm-2.col-xs-2(title="{{value}}") {{value}}
-                                                    .container.name.col-lg-2.col-md-2.col-sm-2.col-xs-2 {{value.rotation=='true'?"Enabled":"Disabled"}}
-                                                    .container.name.col-lg-2.col-md-2.col-sm-2.col-xs-2  {{value.expiry}}
-                                                    .container.radio-inputs.col-lg-4.col-md-4.col-sm-4.col-xs-4
+                                                    .container.name.cell.col-lg-4.col-md-4.col-sm-4.col-xs-4(title="{{value}}") {{value}}
+                                                    .container.radio-inputs.cell.col-lg-6.col-md-6.col-sm-6.col-xs-6
                                                         .down.view
                                                             .list-icon(ng-click = "editSvcPasswordRotation(value, 'md')")  View/Edit
                                                     .container.radio-inputs.col-lg-2.col-md-2.col-sm-2.col-xs-2

@@ -174,14 +174,6 @@
             $scope.showNoMatchingResults = false;
         }
 
-        //clear selcted email id on cross icon click
-        $scope.clearOwnerEmailInputValue = function() {
-            $scope.safe.owner = '';
-            $scope.inputSelected.select = false;
-            lastContent = '';
-            $scope.showNoMatchingResults = false;
-            $scope.invalidEmail = false;
-        }
         // function call on input keyup 
         $scope.onKeyUp = function(newVal, variableChanged, forOwner) {
             if (newVal.length === 0) {
@@ -198,17 +190,11 @@
             }
             if (newVal.userName && variableChanged === 'userName') {
                 newVal.groupName = "";    
-                newVal.svc = "";       
                 $scope.userNameDropdownVal = [];
             } else if (newVal.groupName &&  variableChanged === 'groupName') {
                 newVal.userName = "";
-                newVal.svc = "";
                 $scope.groupNameDropdownVal = [];
-            } else if (newVal.svc &&  variableChanged === 'svc') {
-                newVal.userName = "";
-                newVal.groupName = ""; 
-                $scope.svcDropdownVal = [];
-            }
+            } 
              if (variableChanged === 'userName') {
                 if (!UtilityService.getAppConstant('AD_USERS_AUTOCOMPLETE') ) {
                     return;
@@ -351,24 +337,7 @@
         $scope.svcDone = function () {
             $state.go('admin');
         }
-        $scope.getPath = function () {
-            var vaultType = '';
 
-            switch ($scope.dropDownOptions.selectedGroupOption.type) {
-                case "Application Safe":
-                    vaultType = 'apps';
-                    break;
-                case "User Safe":
-                    vaultType = 'users';
-                    break;
-                case "Shared Safe":
-                    vaultType = 'shared';
-                    break;
-            }
-
-            var setPath = vaultType + '/' + UtilityService.formatName($scope.safe.name);
-            return setPath;
-        }
         $scope.editPermission = function (type, editMode, user, permission) {
             if (permission === "reset") {
                 permission = "write";
@@ -377,9 +346,6 @@
                 var editingPermission = true;
                 $scope.deletePermission(type, editMode, editingPermission, user, permission);
             }
-        }
-        $scope.replaceSpaces = function () {
-            $scope.safe.name = UtilityService.formatName($scope.safe.name);
         }
 
         $scope.deletePermission = function (type, editMode, editingPermission, key, permission) {
@@ -390,7 +356,7 @@
                 try {
                     key = key.replace($scope.domainName, '');
                     $scope.isLoadingData = true;
-                    var svcname = $scope.svc.userId;
+                    var svcname = $scope.svc.svcId;
                     var apiCallFunction = '';
                     var reqObjtobeSent = {};
                     switch (type) {
@@ -495,7 +461,6 @@
             if (editMode) {
                 try {
                     $scope.isLoadingData = true;
-                    var setPath = $scope.getPath();
                     var queryParameters = rolename;
                     var updatedUrlOfEndPoint = ModifyUrl.addUrlParameteres('getAwsConfigurationDetails', queryParameters);
                     AdminSafesManagement.getAWSConfigurationDetails(null, updatedUrlOfEndPoint).then(
@@ -570,11 +535,11 @@
                     $scope.isLoadingData = true;
                     
                     var onboardPayload = {
-                        "name": $scope.svc.userId,
+                        "name": $scope.svc.svcId,
                         "autoRotate": $scope.svc.autoRotate,
                         "ttl": $scope.svc.ttl,
                         "max_ttl": $scope.svc.ttl,
-                        "owner":  $scope.svc.owner || 'safeadmin'
+                        "owner":  $scope.svc.owner || ''
                     }
                     AdminSafesManagement.onboardSvc(onboardPayload, '').then(function (response) {
                         if (UtilityService.ifAPIRequestSuccessful(response)) {
@@ -584,8 +549,8 @@
                                 $rootScope.showDetails = false;
                                 $rootScope.activeDetailsTab = 'permissions';
                                 $scope.svcOnboarded = true;
-                                var notification = UtilityService.getAParticularSuccessMessage('MESSAGE_CREATE_SUCCESS');
-                                Notifications.toast($scope.svc.userId + ' Service Account' + notification);
+                                var notification = UtilityService.getAParticularSuccessMessage('MESSAGE_ONBOARD_SUCCESS');
+                                Notifications.toast($scope.svc.svcId + ' Service Account' + notification);
                                 $scope.svcPrevious = angular.copy($scope.svc);
                             } catch (e) {
                                 console.log(e);
@@ -593,10 +558,7 @@
                                 $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_PROCESSING_DATA');
                                 $scope.error('md');
                             }
-                        } 
-                        else if (response.status === "207" || response.status === 207){
-
-                        }
+                        }                        
                         else {
                             $scope.errorMessage = AdminSafesManagement.getTheRightErrorMessage(response);
                             error('md');
@@ -683,84 +645,75 @@
             $scope.isLoadingData = true;
             $scope.isSvcExpired = false;
             $scope.expiredNote = '';
-            var queryParameters = svcId;
+            var queryParameters = "serviceAccountName="+svcId+"&excludeOnboarded=false";
             var updatedUrlOfEndPoint = ModifyUrl.addUrlParameteres('getSvcInfo', queryParameters);
             AdminSafesManagement.getSvcInfo(null, updatedUrlOfEndPoint).then(
                 function (response) {
                     if (UtilityService.ifAPIRequestSuccessful(response)) {
-                        if ($rootScope.showDetails !== true) {
-                            document.getElementById('addUser').value = '';
-                            document.getElementById('addGroup').value = '';
-                        }
-                        $scope.inputSelected.select = false;
-                        $scope.searchValue = {
-                            userName: '',
-                            groupName: ''
-                        };
-                        lastContent = '';
-                        // Try-Catch block to catch errors if there is any change in object structure in the response
-                        try {
-                            $scope.isLoadingData = false;                            
-                            if (response.data.data.values.length >0) {
-                                var object = response.data.data.values[0];
-                                /*if(object && object.users && UtilityService.getAppConstant('AUTH_TYPE').toLowerCase() === "ldap1900") {
-                                    var data = object.users;
-                                    // get all object keys and iterate over them
-                                        Object.keys(object.users).forEach(function(ele) {
-                                            ele = ele.replace($scope.domainName, '');
-                                            var newEle = ele + $scope.domainName;
-                                            data[newEle] = data[ele];
-                                            delete data[ele];
-                                        })
-                                        object.users = data;
+                        
+                        var updatedUrlOfEndPoint = ModifyUrl.addUrlParameteres('getSvcOnboardInfo', svcId);
+                        AdminSafesManagement.getSvcOnboardInfo(null, updatedUrlOfEndPoint).then(
+                            function (onboardResponse) {
+                                var onboardInfo = onboardResponse.data;
+
+                                if ($rootScope.showDetails !== true) {
+                                    document.getElementById('addUser').value = '';
+                                    document.getElementById('addGroup').value = '';
                                 }
-                                $scope.UsersPermissionsData = object.users;
-                                $scope.GroupsPermissionsData = object.groups;
-                                $rootScope.AwsPermissionsData = {
-                                    "data": object['aws-roles']
+                                $scope.inputSelected.select = false;
+                                $scope.searchValue = {
+                                    userName: '',
+                                    groupName: ''
+                                };
+                                lastContent = '';
+                                try {
+                                    $scope.isLoadingData = false;                            
+                                    if (response.data.data.values.length >0) {
+                                        var object = response.data.data.values[0];
+                                        
+                                        $scope.svc = {
+                                            svcId: object.userId || '',
+                                            userEmail: object.userEmail || '',
+                                            displayName: object.displayName || '',
+                                            givenName: object.givenName || '',
+                                            userName: object.userName || '',
+                                            accountExpires: object.accountExpires || '',
+                                            pwdLastSet: object.pwdLastSet || '',
+                                            maxPwdAge: object.maxPwdAge || '',
+                                            managedBy: object.managedBy || onboardInfo.owner || '',
+                                            passwordExpiry: object.passwordExpiry || '',
+                                            accountStatus: object.accountStatus || '',
+                                            lockStatus: object.lockStatus || '',
+                                            creationDate: object.creationDate || '',               
+                                            purpose: object.purpose || '',
+                                            autoRotate: false,
+                                            ttl: onboardInfo.ttl || '' ,    
+                                            max_ttl: '',      
+                                        };   
+                                        if (onboardInfo.ttl && onboardInfo.ttl != null) {
+                                            $scope.svc.autoRotate = true;
+                                        }
+                                        $scope.autoRotate = $scope.svc.autoRotate;
+                                        $scope.svcPrevious = angular.copy($scope.svc);
+                                        if ($scope.svc.accountExpires == "expired") {
+                                            $scope.isSvcExpired = true;
+                                            $scope.expiredNote = "(Expired)";
+                                        }                                
+                                    }
                                 }
-                                $rootScope.AppRolePermissionsData = {
-                                    "data": object['app-roles']
-                                }*/
-                                // todo :get the autorotate, ttl, maxttl from metadata
-                                $scope.svc = {
-                                    userId: object.userId || '',
-                                    userEmail: object.userEmail || '',
-                                    displayName: object.displayName || '',
-                                    givenName: object.givenName || '',
-                                    userName: object.userName || '',
-                                    accountExpires: object.accountExpires || '',
-                                    pwdLastSet: object.pwdLastSet || '',
-                                    maxPwdAge: object.maxPwdAge || '',
-                                    owner: object.owner || '',
-                                    passwordExpiry: object.passwordExpiry || '',
-                                    accountStatus: object.accountStatus || '',
-                                    lockStatus: object.lockStatus || '',
-                                    creationDate: object.creationDate || '',               
-                                    purpose: object.purpose || '',
-                                    autoRotate: false,
-                                    ttl: '' ,    
-                                    max_ttl: '',      
-                                };   
-                                $scope.autoRotate = $scope.svc.autoRotate;
-                                $scope.svcPrevious = angular.copy($scope.svc);
-                               /* if ($scope.svc.accountExpires == "expired") {
-                                    $scope.isSvcExpired = true;
-                                    $scope.expiredNote = "(Expired)";
+                                catch (e) {
+                                    console.log(e);
+                                    $scope.isLoadingData = false;
+                                    $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_PROCESSING_DATA');
+                                    $scope.error('md');
                                 }
-                                
-                                $scope.dropDownOptions = {
-                                    'selectedGroupOption': $scope.svc.name,       
-                                    'tableOptions': $scope.svcList.keys
-                                }*/
-                            }
-                        }
-                        catch (e) {
-                            console.log(e);
-                            $scope.isLoadingData = false;
-                            $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_PROCESSING_DATA');
-                            $scope.error('md');
-                        }
+                            },
+                            function (error) {
+                                  console.log(error);
+                                $scope.isLoadingData = false;
+                                $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
+                                $scope.error('md');
+                            })                        
                     }
                     else {
                         $scope.errorMessage = AdminSafesManagement.getTheRightErrorMessage(response);
@@ -792,7 +745,7 @@
                 // Prefilled values when editing
                 $scope.changeSvcHeader = "EDIT SERVICE ACCOUNT";
                 $scope.isEditSvc = true;
-                try {
+                try {                    
                     getSvcInfo($stateParams.svcData.userId);
                 } catch (e) {
                     // To handle errors while calling 'fetchData' function
@@ -826,7 +779,9 @@
         }
 
         $scope.getSvcInfo = function (svcObj) {
-            $scope.svc = svcObj;            
+            $scope.svc = svcObj;
+            $scope.svc.svcId = svcObj.userId;  
+            $scope.isCollapsed = false;
         }
 
         $scope.collapseADDetails = function() {
@@ -838,7 +793,7 @@
                 $scope.svcList = $stateParams.svcList;     
             }
             $scope.svc = {
-                userId: '',
+                svcId: '',
                 userEmail: '',
                 displayName: '',
                 givenName: '',
@@ -846,7 +801,7 @@
                 accountExpires: '',
                 pwdLastSet: '',
                 maxPwdAge: '',
-                owner: '',
+                managedBy: '',
                 passwordExpiry: '',
                 accountStatus: '',
                 lockStatus: '',
@@ -856,10 +811,6 @@
                 ttl: '' ,    
                 max_ttl: '',      
             };
-            /*$scope.dropDownOptions = {
-                'selectedGroupOption': "Select Service Account",       // As initial placeholder
-                'tableOptions': $scope.svcList.keys
-            }*/
             $scope.myVaultKey = SessionStore.getItem("myVaultKey");
             if(!$scope.myVaultKey){ /* Check if user is in the same session */
                 $state.go('signup');
@@ -917,7 +868,7 @@
                     $scope.isLoadingData = true;
                     $scope.showInputLoader.show = false;
                     $scope.showNoMatchingResults = false;
-                    var svcname = $scope.svc.userId;
+                    var svcname = $scope.svc.svcId;
                     var apiCallFunction = '';
                     var reqObjtobeSent = {};
                     // extract only userId/groupId from key
@@ -989,14 +940,17 @@
                                         $scope.requestDataFrChangeSvc();
                                         var notification = UtilityService.getAParticularSuccessMessage('MESSAGE_ADD_SUCCESS');
                                         if (key !== null && key !== undefined) {
+                                            document.getElementById('addUser').value = '';
+                                            document.getElementById('addGroup').value = '';
                                             if (type === "users" && key === SessionStore.getItem("username")) {
                                                 return Modal.createModalWithController('stop.modal.html', {
                                                     title: 'Permission changed',
                                                     message: 'For security reasons, if you add or modify permission to yourself, you need to log out and log in again for the added or modified permissions to take effect.'
                                                   });
                                             }
-                                            Notifications.toast(key + "'s permission" + notification);
+                                            Notifications.toast(key + "'s permission" + notification);                                            
                                         }
+                                        
                                     }
                                 } catch (e) {
                                     console.log(e);

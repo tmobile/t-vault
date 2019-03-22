@@ -177,6 +177,11 @@
                     return response;
                 });
             },
+            getSvcOnboardInfo: function(payload, url) {
+                return ServiceEndpoint.getSvcOnboardInfo.makeRequest(payload, url).then(function(response) {
+                    return response;
+                });
+            },
             editSvc: function(payload, url) {
                 return ServiceEndpoint.editSvc.makeRequest(payload, url).then(function(response) {
                     return response;
@@ -242,18 +247,13 @@
                     return response;
                 });
             },
-            getMyServiceAccounts: function(payload, url) {
-                return ServiceEndpoint.getMyServiceAccounts.makeRequest(payload, url).then(function(response) {
-                    return response;
-                });
-            },
             getSecretForSvc: function(payload, url) {
                 return ServiceEndpoint.getSecretForSvc.makeRequest(payload, url).then(function(response) {
                     return response;
                 });
             },
-            resetSecretForSvc: function(payload, url) {
-                return ServiceEndpoint.resetSecretForSvc.makeRequest(payload, url).then(function(response) {
+            resetPasswordForSvc: function(payload, url) {
+                return ServiceEndpoint.resetPasswordForSvc.makeRequest(payload, url).then(function(response) {
                     return response;
                 });
             },

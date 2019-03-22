@@ -50,7 +50,6 @@
         $scope.requestDataFrMyAccounts = function () {               
             $scope.svcOnboardedData = {"keys": []};
             var accessSafes = JSON.parse(SessionStore.getItem("accessSafes"));
-            alert(JSON.stringify(accessSafes));
             if (accessSafes.svcacct) {
                 $scope.svcOnboardedData.keys = accessSafes.svcacct.map(function (safeObject) {
                     var entry = Object.entries(safeObject);
@@ -60,37 +59,7 @@
                     }
                 });
             }
-            
-            /*AdminSafesManagement.getMyServiceAccounts().then(function (response) {                
-                if (UtilityService.ifAPIRequestSuccessful(response)) {
-                    $scope.svcOnboardedData = response.data;
-                    for(var i=0; i < $scope.svcOnboardedData.keys.length ; i++){
-                        var svc = $scope.svcOnboardedData.keys[i];
-                        var expiry = new Date(svc.expiry); 
-                        var dayDif = (expiry - new Date())/1000/60/60/24;
-                        if (dayDif >= 0) {
-                            svc.expiry = Math.floor(dayDif) + " days";
-                        } else {
-                            svc.expiry = "Expired";
-                        }                        
-                        $scope.svcOnboardedData.keys[i] = svc;
-                    }
-                    $scope.numOfSvcs = $scope.svcOnboardedData.keys.length;
-                    $scope.isLoadingData = false;
-                }
-                else {
-                    $scope.isLoadingData = false;
-                    $scope.errorMessage = AdminSafesManagement.getTheRightErrorMessage(response);
-                    error('md');
-                }
-            },
-            function (error) {
-                // Error handling function
-                console.log(error);
-                $scope.isLoadingData = false;
-                $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
-                $scope.error('md');
-            });*/
+            $scope.numOfSvcs=$scope.svcOnboardedData.keys.length;
         };
 
         $scope.viewSecret = function (svcname) {
@@ -136,8 +105,8 @@
                 $scope.isLoadingData = true;
                 Modal.close();
                 var queryParameters = $scope.svcToReset;
-                var updatedUrlOfEndPoint = ModifyUrl.addUrlParameteres('resetSecretForSvc',queryParameters);
-                AdminSafesManagement.resetSecretForSvc(null, updatedUrlOfEndPoint).then(function (response) {                
+                var updatedUrlOfEndPoint = ModifyUrl.addUrlParameteres('resetPasswordForSvc',queryParameters);
+                AdminSafesManagement.resetPasswordForSvc(null, updatedUrlOfEndPoint).then(function (response) {                
                     if (UtilityService.ifAPIRequestSuccessful(response)) {
                         $scope.isLoadingData = false;
                         var notification = UtilityService.getAParticularSuccessMessage("MESSAGE_RESET_SUCCESS");
@@ -177,7 +146,7 @@
             $scope.viewPassword = false;
         }
         var pagesShown = 1;
-        var pageSize = 8;
+        var pageSize = 20;
         $scope.paginationLimit = function(data) {
             $scope.currentshown = pageSize * pagesShown;
             if($scope.searchValueSvc.length>2 || $scope.currentshown >= $scope.numOfSvcs){

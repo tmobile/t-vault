@@ -465,7 +465,9 @@
             var fullObj = {};
             fullObj[obj] = [];
             $scope.isLoadingData = true;
-            AdminSafesManagement.getServiceAccounts().then(
+            var queryParameters = "serviceAccountName=svc&excludeOnboarded=true";
+            var updatedUrlOfEndPoint = ModifyUrl.addUrlParameteres('getServiceAccounts', queryParameters);
+            AdminSafesManagement.getServiceAccounts(null, updatedUrlOfEndPoint).then(
                 function(response) {
                     if(UtilityService.ifAPIRequestSuccessful(response)){
                         // Try-Catch block to catch errors if there is any change in object structure in the response
@@ -507,16 +509,16 @@
                 Modal.close();
                 $scope.isLoadingData = true;
                 var queryParameters = svcUserId;
-                var updatedUrlOfEndPoint = ModifyUrl.addUrlParameteres('getSvcInfo', queryParameters);
-                AdminSafesManagement.getSvcInfo(null, updatedUrlOfEndPoint).then(
+                var updatedUrlOfEndPoint = ModifyUrl.addUrlParameteres('getSvcOnboardInfo', queryParameters);
+                AdminSafesManagement.getSvcOnboardInfo(null, updatedUrlOfEndPoint).then(
                     function (response) {
                         if (UtilityService.ifAPIRequestSuccessful(response)) {                       
                             try {
-                                if (response.data.data.values.length >0) {
-                                    var object = response.data.data.values[0];
+                                if (response.data) {
+                                    var object = response.data;
                                     var offboardPayload = {
                                         "owner": object.owner,
-                                        "name": object.userId
+                                        "name": svcUserId
                                     }
                                     AdminSafesManagement.offboardSvc(offboardPayload, '').then(
                                         function(response) {

@@ -228,11 +228,15 @@ readTextFile("../apiUrls.json");
             method: 'GET'
         },{
             name: 'getServiceAccounts',
-            url: '/v2/ad/serviceaccounts?serviceAccountName=',
+            url: '/v2/ad/serviceaccounts?',
             method: 'GET'
         },{
             name: 'getSvcInfo',
-            url: '/v2/ad/serviceaccounts?serviceAccountName=',
+            url: '/v2/ad/serviceaccounts?',
+            method: 'GET'
+        },{
+            name: 'getSvcOnboardInfo',
+            url: '/v2/serviceaccounts/',
             method: 'GET'
         },{
             name: 'editSvc',
@@ -291,7 +295,7 @@ readTextFile("../apiUrls.json");
             url: '/v2/ss/svc/secret/',
             method: 'GET'
         },{
-            name: 'resetSecretForSvc',
+            name: '/v2/serviceaccounts/password/reset?serviceAccountName=',
             url: '/v2/ss/svc/reset/',
             method: 'POST'
         },{
