@@ -51,7 +51,8 @@
             "create",
             "update",
             "delete",
-            "list"
+            "list",
+			"read"
          ]
       }
    } 

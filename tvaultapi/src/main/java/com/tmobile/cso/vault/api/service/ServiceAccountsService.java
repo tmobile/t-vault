@@ -27,7 +27,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.naming.NamingException;
 import javax.naming.directory.Attributes;
@@ -49,6 +51,7 @@ import org.springframework.ldap.filter.NotFilter;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
 import com.tmobile.cso.vault.api.common.TVaultConstants;
@@ -60,6 +63,7 @@ import com.tmobile.cso.vault.api.model.ADServiceAccountObjectsList;
 import com.tmobile.cso.vault.api.model.AccessPolicy;
 import com.tmobile.cso.vault.api.model.AppRole;
 import com.tmobile.cso.vault.api.model.OnboardedServiceAccount;
+import com.tmobile.cso.vault.api.model.OnboardedServiceAccountDetails;
 import com.tmobile.cso.vault.api.model.ServiceAccount;
 import com.tmobile.cso.vault.api.model.ServiceAccountTTL;
 import com.tmobile.cso.vault.api.model.ServiceAccountUser;
@@ -106,12 +110,33 @@ public class  ServiceAccountsService {
 	 * @param UserPrincipalName
 	 * @return
 	 */
-	public ResponseEntity<ADServiceAccountObjects> getADServiceAccounts(String UserPrincipalName) {
+	public ResponseEntity<ADServiceAccountObjects> getADServiceAccounts(String token, UserDetails userDetails, String UserPrincipalName, boolean excludeOnboarded) {
 		AndFilter andFilter = new AndFilter();
 		andFilter.and(new LikeFilter("userPrincipalName", UserPrincipalName+"*"));
 		andFilter.and(new EqualsFilter("objectClass", "user"));
 		andFilter.and(new NotFilter(new EqualsFilter("CN", adMasterServiveAccount)));
-
+		if (excludeOnboarded) {
+			ResponseEntity<String> responseEntity = getOnboardedServiceAccounts(token, userDetails);
+			if (HttpStatus.OK.equals(responseEntity.getStatusCode())) {
+				String response = responseEntity.getBody();
+				List<String> onboardedSvcAccs = new ArrayList<String>();
+				try {
+					Map<String, Object> requestParams = new ObjectMapper().readValue(response, new TypeReference<Map<String, Object>>(){});
+					onboardedSvcAccs = (ArrayList<String>) requestParams.get("keys");
+				}
+				catch(Exception ex) {
+					log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+							put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+							put(LogMessage.ACTION, "getADServiceAccounts").
+							put(LogMessage.MESSAGE, String.format("There are no service accounts currently onboarded or error in retrieving onboarded service accounts")).
+							put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+							build()));
+				}
+				for (String onboardedSvcAcc: onboardedSvcAccs) {
+					andFilter.and(new NotFilter(new EqualsFilter("CN", onboardedSvcAcc)));
+				}
+			}
+		}
 		List<ADServiceAccount> allServiceAccounts = getADServiceAccounts(andFilter);
 		ADServiceAccountObjects adServiceAccountObjects = new ADServiceAccountObjects();
 		ADServiceAccountObjectsList adServiceAccountObjectsList = new ADServiceAccountObjectsList();
@@ -756,6 +781,76 @@ public class  ServiceAccountsService {
 		return ResponseEntity.status(response.getHttpstatus()).body(response.getResponse());
 	}
 	/**
+	 * Gets the details of a service account that is already onboarded into TVault
+	 * @param token
+	 * @param svcAccName
+	 * @param userDetails
+	 * @return
+	 */
+	public ResponseEntity<String> getOnboarderdServiceAccount(String token, String svcAccName, UserDetails userDetails){
+		OnboardedServiceAccountDetails onbSvcAccDtls = getOnboarderdServiceAccountDetails(token, svcAccName);
+		if (onbSvcAccDtls != null) {
+			String onbSvcAccDtlsJson = JSONUtil.getJSON(onbSvcAccDtls);
+			return ResponseEntity.status(HttpStatus.OK).body(onbSvcAccDtlsJson);
+		}
+		else {
+			return ResponseEntity.status(HttpStatus.NOT_FOUND).body("{\"errors\":[\"Either Service Account is not onbaorderd or you don't have enough permission to read\"]}");
+		}
+	}
+	/**
+	 * Gets the details of an onboarded service account
+	 * @return
+	 */
+	public OnboardedServiceAccountDetails getOnboarderdServiceAccountDetails(String token, String svcAccName) {
+		OnboardedServiceAccountDetails onbSvcAccDtls = null;
+		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+			      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+				  put(LogMessage.ACTION, "getOnboardedServiceAccountDetails").
+			      put(LogMessage.MESSAGE, String.format("Trying to get onboaded service account details")).
+			      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+			      build()));
+		Response svcAccDtlsresponse = reqProcessor.process("/ad/serviceaccount/details","{\"role_name\":\""+svcAccName+"\"}",token);
+		if (HttpStatus.OK.equals(svcAccDtlsresponse.getHttpstatus())) {
+			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+				      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+					  put(LogMessage.ACTION, "getOnboardedServiceAccountDetails").
+				      put(LogMessage.MESSAGE, "Successfully retrieved the Service Account details").
+				      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+				      build()));
+			try {
+				String response = svcAccDtlsresponse.getResponse();
+				Map<String, Object> requestParams = new ObjectMapper().readValue(response, new TypeReference<Map<String, Object>>(){});
+				//{current_password=null, last_password=null, service_account_name=svc_vault_test2@clouddev.corporate.t-mobile.com, ttl=7776000}
+				
+				String accName =  (String) requestParams.get("service_account_name");
+				Integer accTTL = (Integer)requestParams.get("ttl");
+				String accLastPwdRotation = (String) requestParams.get("last_vault_rotation");
+				String accLastPwd = (String) requestParams.get("last_password");
+				onbSvcAccDtls = new OnboardedServiceAccountDetails();
+				onbSvcAccDtls.setName(accName);
+				try {
+					onbSvcAccDtls.setTtl(new Long(accTTL));
+				} catch (Exception e) {
+				}
+				onbSvcAccDtls.setLastVaultRotation(accLastPwdRotation);
+				onbSvcAccDtls.setPasswordLastSet(accLastPwd);
+			}
+			catch(Exception ex) {
+				log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+						put(LogMessage.ACTION, "getADServiceAccounts").
+						put(LogMessage.MESSAGE, String.format("There are no service accounts currently onboarded or error in retrieving onboarded service accounts")).
+						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+						build()));
+				
+			}
+			return onbSvcAccDtls;
+		}
+		else {
+			return onbSvcAccDtls;
+		}
+	}
+	/**
 	 * 
 	 * @param userDetails
 	 * @param serviceAccountUser
@@ -772,7 +867,7 @@ public class  ServiceAccountsService {
 	 * @param userDetails
 	 * @return
 	 */
-	public ResponseEntity<String> getServiceAccounts(String token,  UserDetails userDetails) {
+	public ResponseEntity<String> getOnboardedServiceAccounts(String token,  UserDetails userDetails) {
 		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 			      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 				  put(LogMessage.ACTION, "listOnboardedServiceAccounts").

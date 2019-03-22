@@ -24,6 +24,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
@@ -50,15 +51,22 @@ public class ServiceAccountsControllerV2 {
 	
 	@ApiOperation(value = "${ServiceAccountsControllerV2.getADServiceAccounts.value}", notes = "${ServiceAccountsControllerV2.getADServiceAccounts.notes}")
 	@GetMapping(value="/v2/ad/serviceaccounts", produces="application/json")
-	public ResponseEntity<ADServiceAccountObjects> getADServiceAccounts(@RequestParam("serviceAccountName" ) String serviceAccountName ){
-		return serviceAccountsService.getADServiceAccounts(serviceAccountName);
+	public ResponseEntity<ADServiceAccountObjects> getADServiceAccounts(HttpServletRequest request, @RequestHeader(value="vault-token") String token, @RequestParam("serviceAccountName" ) String serviceAccountName ){
+		UserDetails userDetails = (UserDetails) ((HttpServletRequest) request).getAttribute("UserDetails");
+		return serviceAccountsService.getADServiceAccounts(token, userDetails, serviceAccountName, true);
 	}
 	
 	@ApiOperation(value = "${ServiceAccountsControllerV2.getServiceAccounts.value}", notes = "${ServiceAccountsControllerV2.getServiceAccounts.notes}")
 	@GetMapping(value="/v2/serviceaccounts", produces="application/json")
 	public ResponseEntity<String> getServiceAccounts(HttpServletRequest request, @RequestHeader(value="vault-token") String token){
 		UserDetails userDetails = (UserDetails) ((HttpServletRequest) request).getAttribute("UserDetails");
-		return serviceAccountsService.getServiceAccounts(token, userDetails);
+		return serviceAccountsService.getOnboardedServiceAccounts(token, userDetails);
+	}
+	@ApiOperation(value = "${ServiceAccountsControllerV2.getServiceAccountDetails.value}", notes = "${ServiceAccountsControllerV2.getServiceAccountDetails.notes}")
+	@GetMapping(value="/v2/serviceaccounts/{service_account_name}", produces="application/json")
+	public ResponseEntity<String> getServiceAccounts(HttpServletRequest request, @RequestHeader(value="vault-token") String token, @PathVariable("service_account_name" ) String svcAccName){
+		UserDetails userDetails = (UserDetails) ((HttpServletRequest) request).getAttribute("UserDetails");
+		return serviceAccountsService.getOnboarderdServiceAccount(token, svcAccName, userDetails);
 	}
 	
 	@ApiOperation(value = "${ServiceAccountsControllerV2.onboardServiceAccount.value}", notes = "${ServiceAccountsControllerV2.onboardServiceAccount.notes}")

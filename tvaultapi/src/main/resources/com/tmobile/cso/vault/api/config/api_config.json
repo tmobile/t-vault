@@ -774,5 +774,15 @@
       		{"name":"role_name","required":true, "appendToPath":true}
   		],
       	"outparams":["data/current_password", "data/last_password", "data/username"]
+    },
+	{"#" : "**** Get Onboarded Service Account details ****** ",
+ 	
+    	"apiEndPoint":"/ad/serviceaccount/details",
+    	"vaultEndPoint":"/ad/roles/<role_name>",
+    	"method":"GET",
+      	"params":[
+      		{"name":"role_name","required":true, "appendToPath":true}
+        ],
+      	"outparams":["data/current_password", "data/last_password", "data/service_account_name", "data/ttl", "data/last_vault_rotation"]
     }
 ]
