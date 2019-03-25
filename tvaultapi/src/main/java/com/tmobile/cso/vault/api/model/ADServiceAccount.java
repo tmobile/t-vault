@@ -73,6 +73,9 @@ public class ADServiceAccount implements Serializable {
 	
 	private String lockStatus;
 	
+	private String purpose;
+	
+	
 	//private String owner;
 	
 	/**
@@ -263,13 +266,28 @@ public class ADServiceAccount implements Serializable {
 	public void setMaxPwdAge(int maxPwdAge) {
 		this.maxPwdAge = maxPwdAge;
 	}
+
+	/**
+	 * @return the purpose
+	 */
+	public String getPurpose() {
+		return purpose;
+	}
+	/**
+	 * @param purpose the purpose to set
+	 */
+	public void setPurpose(String purpose) {
+		this.purpose = purpose;
+	}
 	@Override
 	public String toString() {
 		return "ADServiceAccount [userId=" + userId + ", userEmail=" + userEmail + ", displayName=" + displayName
 				+ ", givenName=" + givenName + ", userName=" + userName + ", whenCreated=" + whenCreated
-				+ ", accountExpires=" + accountExpires + ", passwordExpiry=" + passwordExpiry + ", accountStatus="
-				+ accountStatus + ", lockStatus=" + lockStatus  + "]";
+				+ ", accountExpires=" + accountExpires + ", pwdLastSet=" + pwdLastSet + ", maxPwdAge=" + maxPwdAge
+				+ ", managedBy=" + managedBy + ", passwordExpiry=" + passwordExpiry + ", accountStatus=" + accountStatus
+				+ ", lockStatus=" + lockStatus + ", purpose=" + purpose + "]";
 	}
+
 
 	
 }

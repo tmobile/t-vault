@@ -27,7 +27,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -79,7 +78,6 @@ public class  ServiceAccountsService {
 	@Value("${vault.port}")
 	private String vaultPort;
 
-
 	private static Logger log = LogManager.getLogger(ServiceAccountsService.class);
 
 	@Autowired
@@ -90,9 +88,6 @@ public class  ServiceAccountsService {
 	@Autowired
 	private AccessService accessService;
 
-	@Autowired
-	private SecretService secretService;
-	
 	@Autowired
 	private RequestProcessor reqProcessor;
 
@@ -226,6 +221,9 @@ public class  ServiceAccountsService {
 					adServiceAccount.setAccountStatus("active");
 					adServiceAccount.setLockStatus("active");
 					adServiceAccount.setPasswordExpiry("2019-05-18 11:59:59");
+					if (attr.get("description") != null) {
+						adServiceAccount.setPurpose((String) attr.get("description").get());
+					}
 				}
 				return adServiceAccount;
 			}

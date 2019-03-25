@@ -28,9 +28,13 @@ public class OnboardedServiceAccountDetails implements Serializable {
 	private String name;
 
 	private String owner;
-	
+	/**
+	 * Datetime when the password was rotated by Vault last time
+	 */
 	private String lastVaultRotation;
-	
+	/**
+	 * Datetime when the password was last set
+	 */
 	private String passwordLastSet;
 	
 	private long ttl;
