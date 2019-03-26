@@ -186,45 +186,45 @@
     margin-top: 1vh;
 }
 
-.approle-management-content md-tabs md-tabs-wrapper{
+.data-management-content md-tabs md-tabs-wrapper{
     box-shadow: 0 0 0 0 #fff !important;
 }
 
-.approle-management-content md-tab-item.md-tab.ng-scope.ng-isolate-scope.md-ink-ripple{
+.data-management-content md-tab-item.md-tab.ng-scope.ng-isolate-scope.md-ink-ripple{
     color: gray !important;
 }
 
-.approle-management-content md-tab-item.md-tab.ng-scope.ng-isolate-scope.md-ink-ripple.md-active {
+.data-management-content md-tab-item.md-tab.ng-scope.ng-isolate-scope.md-ink-ripple.md-active {
     color: #f6006e !important;
 }
 
-.approle-management-content .row.change-approle.header {
+.data-management-content .row.change-data.header {
     border-bottom: 1px solid $gray-dark;
 }
-.approle-management-content .row.change-approle.header .name,
-.approle-management-content .row.change-approle.header .action {
+.data-management-content .row.change-data.header .name,
+.data-management-content .row.change-data.header .action {
     padding: 1.5vh 0;
     font-size: 1.6vh;    
     color: #333;
 }
-.approle-management-content .row.change-approle.header .action {
+.data-management-content .row.change-data.header .action {
     padding-left: 15px;
 }
-.approle-management-content .change-safe-table-container .row.change-approle.header,
-.approle-management-content .change-safe-table-container .row.change-approle.item {
+.data-management-content .change-safe-table-container .row.change-data.header,
+.data-management-content .change-safe-table-container .row.change-data.item {
     padding-left: 1rem !important;
 }
 
-.approle-management-content .change-approle-table-data {
+.data-management-content .change-list-table-data {
     height: 300px;
     overflow-y: scroll;
 }
 
-.approle-management-content .change-safe-table-container .item {
+.data-management-content .change-safe-table-container .item {
     border-bottom: 1px solid #ccc;
 }
 
-.approle-management-content .row.change-approle .container.name {
+.data-management-content .row.change-data .container.name {
     height: 6vh;
     display: flex;
     flex-direction: column;
@@ -236,7 +236,7 @@
     display: inline-block;
 }
 
-.approle-management-content .change-safe-table-container .item .name {
+.data-management-content .change-safe-table-container .item .name {
     // padding: 1rem 5% 1rem 0;
     // overflow: hidden;
     padding: 1.4vh 5% 1.4vh 0;
@@ -248,12 +248,12 @@
     text-overflow: ellipsis;
 }
 
-.approle-management-content .change-safe-table-container .item .down {
+.data-management-content .change-safe-table-container .item .down {
     height: 6vh;
     width: 4vw;
 }
 
-.approle-management-content .change-safe-table-container .item .down .list-icon {
+.data-management-content .change-safe-table-container .item .down .list-icon {
     padding: 1vh 3vh 1vh 0.3vw;
     font-size: 3vh;
     height: 100%;
@@ -262,26 +262,26 @@
     justify-content: center;
 }
 
-.approle-management-content .change-safe-table-container .item .down .list-icon.icon-delete {
+.data-management-content .change-safe-table-container .item .down .list-icon.icon-delete {
   padding: 1.5vh 2vh 1.5vh 0.3vw;
 }
 
-.approle-management-content .change-safe-table-container .item .down:first-child {
+.data-management-content .change-safe-table-container .item .down:first-child {
     margin-left: 0vw;
     float: right;
 }
 
-.approle-management-content .change-safe-table-container .item .down.view,
-.approle-management-content .change-safe-table-container .item .down.deletesecretids {
+.data-management-content .change-safe-table-container .item .down.view,
+.data-management-content .change-safe-table-container .item .down.deletesecretids {
     width: 4vw;
     float: left;
 }
 
-.approle-management-content .change-safe-table-container .item:hover {
+.data-management-content .change-safe-table-container .item:hover {
     background: #f6f6f6 !important;
 }
-.approle-management-content .change-safe-table-container .item .down.view .list-icon,
-.approle-management-content .change-safe-table-container .item .down.deletesecretids .list-icon {
+.data-management-content .change-safe-table-container .item .down.view .list-icon,
+.data-management-content .change-safe-table-container .item .down.deletesecretids .list-icon {
     font-size: 1.7vh;
     font-family: montserrat;
     font-weight: bold;
@@ -303,7 +303,7 @@
     margin-top: 10px;
 }
 
-.change-approle-table-data.row.secretids {
+.change-list-table-data.row.secretids {
     max-height: 300px;
     overflow-y: scroll;
 }
@@ -312,7 +312,7 @@
     width:auto!important;
 }
 
-.approle-management-content .row.change-approle .container.checkbox {
+.data-management-content .row.change-approle .container.checkbox {
     height: 6vh;
     display: flex;
     flex-direction: column;
@@ -359,6 +359,17 @@
     text-overflow: ellipsis;
 }
 
-.approle-management-content .row.change-safe-table-container .change-approle-table-data.row {
+.data-management-content .row.change-safe-table-container .change-list-table-data.row {
     height: 100%;
+}
+
+.solid-header .container.name {
+    font-weight: lighter!important;
+    font-family: montserrat!important;
+    padding-right: 2%!important;
+    font-size: 1.7vh!important;
+}
+
+.pagination-wrapper {
+    position: unset!important;
 }

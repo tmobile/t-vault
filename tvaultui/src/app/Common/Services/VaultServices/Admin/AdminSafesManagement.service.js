@@ -162,6 +162,106 @@
                     return response;
                 });
             },
+            getOnboardedServiceAccounts: function(payload, url) {
+                return ServiceEndpoint.getOnboardedServiceAccounts.makeRequest(payload, url).then(function(response) {
+                    return response;
+                });
+            },
+            getServiceAccounts: function(payload, url) {
+                return ServiceEndpoint.getServiceAccounts.makeRequest(payload, url).then(function(response) {
+                    return response;
+                });
+            },
+            getSvcInfo: function(payload, url) {
+                return ServiceEndpoint.getSvcInfo.makeRequest(payload, url).then(function(response) {
+                    return response;
+                });
+            },
+            getSvcOnboardInfo: function(payload, url) {
+                return ServiceEndpoint.getSvcOnboardInfo.makeRequest(payload, url).then(function(response) {
+                    return response;
+                });
+            },
+            editSvc: function(payload, url) {
+                return ServiceEndpoint.editSvc.makeRequest(payload, url).then(function(response) {
+                    return response;
+                });
+            },
+            onboardSvc: function(payload, url) {
+                return ServiceEndpoint.onboardSvc.makeRequest(payload, url).then(function(response) {
+                    return response;
+                });
+            },
+            addUserPermissionForSvc: function(payload, url) {
+                return ServiceEndpoint.addUserPermissionForSvc.makeRequest(payload, url).then(function(response) {
+                    return response;
+                });
+            },
+            deleteUserPermissionFromSvc: function(payload, url) {
+                return ServiceEndpoint.deleteUserPermissionFromSvc.makeRequest(payload, url).then(function(response) {
+                    return response;
+                });
+            },
+            addGroupPermissionForSvc: function(payload, url) {
+                return ServiceEndpoint.addGroupPermissionForSvc.makeRequest(payload, url).then(function(response) {
+                    return response;
+                });
+            },
+            deleteGroupPermissionFromSvc: function(payload, url) {
+                return ServiceEndpoint.deleteGroupPermissionFromSvc.makeRequest(payload, url).then(function(response) {
+                    return response;
+                });
+            },
+            addAWSPermissionForSvc: function(payload, url) {
+                return ServiceEndpoint.addAWSPermissionForSvc.makeRequest(payload, url).then(function(response) {
+                    return response;
+                });
+            },
+            detachAWSPermissionFromSvc: function(payload, url) {
+                return ServiceEndpoint.detachAWSPermissionFromSvc.makeRequest(payload, url).then(function(response) {
+                    return response;
+                });
+            },
+            deleteAWSPermissionFromSvc: function(payload, url) {
+                return ServiceEndpoint.deleteAWSPermissionFromSvc.makeRequest(payload, url).then(function(response) {
+                    return response;
+                });
+            },
+            addAppRolePermissionForSvc: function(payload, url) {
+                return ServiceEndpoint.addAppRolePermissionForSvc.makeRequest(payload, url).then(function(response) {
+                    return response;
+                });
+            },
+            detachAppRolePermissionFromSvc: function(payload, url) {
+                return ServiceEndpoint.detachAppRolePermissionFromSvc.makeRequest(payload, url).then(function(response) {
+                    return response;
+                });
+            },
+            createAwsRoleSvc: function(payload, url) {
+                return ServiceEndpoint.createAwsRoleSvc.makeRequest(payload, url).then(function(response) {
+                    return response;
+                });
+            },
+            createAwsIAMRoleSvc: function(payload, url) {
+                return ServiceEndpoint.createAwsIAMRoleSvc.makeRequest(payload, url).then(function(response) {
+                    return response;
+                });
+            },
+            getSecretForSvc: function(payload, url) {
+                return ServiceEndpoint.getSecretForSvc.makeRequest(payload, url).then(function(response) {
+                    return response;
+                });
+            },
+            resetPasswordForSvc: function(payload, url) {
+                return ServiceEndpoint.resetPasswordForSvc.makeRequest(payload, url).then(function(response) {
+                    return response;
+                });
+            },
+            offboardSvc: function(payload, url) {
+                return ServiceEndpoint.offboardSvc.makeRequest(payload, url).then(function(response) {
+                    return response;
+                });
+            },
             getTheRightErrorMessage : function(responseObject){
                 if(responseObject.status===500 || responseObject.statusText==='Internal Server Error'){
                     return ErrorMessage.ERROR_NETWORK;
