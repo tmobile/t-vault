@@ -19,6 +19,7 @@ package com.tmobile.cso.vault.api.v2.controller;
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 
+import com.tmobile.cso.vault.api.model.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -31,11 +32,6 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.tmobile.cso.vault.api.model.ADServiceAccountObjects;
-import com.tmobile.cso.vault.api.model.OnboardedServiceAccount;
-import com.tmobile.cso.vault.api.model.ServiceAccount;
-import com.tmobile.cso.vault.api.model.ServiceAccountUser;
-import com.tmobile.cso.vault.api.model.UserDetails;
 import com.tmobile.cso.vault.api.service.ServiceAccountsService;
 
 import io.swagger.annotations.Api;
@@ -102,5 +98,12 @@ public class ServiceAccountsControllerV2 {
 	public ResponseEntity<String> offboardServiceAccount( HttpServletRequest request, @RequestHeader(value="vault-token") String token, @RequestBody OnboardedServiceAccount serviceAccount ){
 		UserDetails userDetails = (UserDetails) ((HttpServletRequest) request).getAttribute("UserDetails");
 		return serviceAccountsService.offboardServiceAccount(token, serviceAccount, userDetails);
+	}
+
+	@ApiOperation(value = "${ServiceAccountsControllerV2.addUserToServiceAccount.value}", notes = "${ServiceAccountsControllerV2.addUserToServiceAccount.notes}")
+	@PostMapping(value="/v2/serviceaccounts/user", produces="application/json")
+	public ResponseEntity<String> addGroupToSvcAcc( HttpServletRequest request, @RequestHeader(value="vault-token") String token, @RequestBody ServiceAccountGroup serviceAccountGroup ){
+		UserDetails userDetails = (UserDetails) ((HttpServletRequest) request).getAttribute("UserDetails");
+		return serviceAccountsService.addGroupToServiceAccount(token, serviceAccountGroup, userDetails);
 	}
 }

@@ -33,6 +33,7 @@ import java.util.Map;
 import javax.naming.NamingException;
 import javax.naming.directory.Attributes;
 
+import com.tmobile.cso.vault.api.model.*;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -57,17 +58,6 @@ import com.google.common.collect.ImmutableMap;
 import com.tmobile.cso.vault.api.common.TVaultConstants;
 import com.tmobile.cso.vault.api.controller.ControllerUtil;
 import com.tmobile.cso.vault.api.exception.LogMessage;
-import com.tmobile.cso.vault.api.model.ADServiceAccount;
-import com.tmobile.cso.vault.api.model.ADServiceAccountObjects;
-import com.tmobile.cso.vault.api.model.ADServiceAccountObjectsList;
-import com.tmobile.cso.vault.api.model.AccessPolicy;
-import com.tmobile.cso.vault.api.model.AppRole;
-import com.tmobile.cso.vault.api.model.OnboardedServiceAccount;
-import com.tmobile.cso.vault.api.model.OnboardedServiceAccountDetails;
-import com.tmobile.cso.vault.api.model.ServiceAccount;
-import com.tmobile.cso.vault.api.model.ServiceAccountTTL;
-import com.tmobile.cso.vault.api.model.ServiceAccountUser;
-import com.tmobile.cso.vault.api.model.UserDetails;
 import com.tmobile.cso.vault.api.process.RequestProcessor;
 import com.tmobile.cso.vault.api.process.Response;
 import com.tmobile.cso.vault.api.utils.JSONUtil;
@@ -880,5 +870,120 @@ public class  ServiceAccountsService {
 			return ResponseEntity.status(HttpStatus.OK).body("{\"keys\":[]}");
 		}
 		return ResponseEntity.status(response.getHttpstatus()).body(response.getResponse());
+	}
+
+	public boolean canAddOrRemoveGroup(UserDetails userDetails, ServiceAccountGroup serviceAccountGroup, String action) {
+		//TODO: Implementation to be completed...
+		return true;
+	}
+
+	public ResponseEntity<String> addGroupToServiceAccount(String token, ServiceAccountGroup serviceAccountGroup, UserDetails userDetails) {
+
+		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+				put(LogMessage.ACTION, "Add Group to Service Account").
+				put(LogMessage.MESSAGE, String.format ("Trying to add Group to Service Account")).
+				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+				build()));
+
+		//TODO: Validations
+
+		String groupName = serviceAccountGroup.getGroupname();
+		String svcAccName = serviceAccountGroup.getSvcAccName();
+		String access = serviceAccountGroup.getAccess();
+
+
+		String jsonstr = JSONUtil.getJSON(serviceAccountGroup);
+		if (TVaultConstants.USERPASS.equals(vaultAuthMethod)) {
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"This operation is not supported for Userpass authentication. \"]}");
+		}
+
+		groupName = (groupName !=null) ? groupName.toLowerCase() : groupName;
+		access = (access != null) ? access.toLowerCase(): access;
+
+		boolean canAddGroup = canAddOrRemoveGroup(userDetails, serviceAccountGroup, TVaultConstants.ADD_GROUP);
+		if(canAddGroup){
+
+			String policy = TVaultConstants.EMPTY;
+			//for (String policyPrefix : TVaultConstants.SVC_ACC_POLICIES.keySet()) {
+			policy = new StringBuffer().append(TVaultConstants.SVC_ACC_POLICIES_PREFIXES.getKey(access)).append(TVaultConstants.SVC_ACC_PATH_PREFIX).append("_").append(svcAccName).toString();
+			//}
+			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+					put(LogMessage.ACTION, "Add Group to Service Account").
+					put(LogMessage.MESSAGE, String.format ("policy is [%s]", policy)).
+					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+					build()));
+			String r_policy = new StringBuffer().append(TVaultConstants.SVC_ACC_POLICIES_PREFIXES.getKey(TVaultConstants.READ_POLICY)).append(TVaultConstants.SVC_ACC_PATH_PREFIX).append("_").append(svcAccName).toString();
+			String w_policy = new StringBuffer().append(TVaultConstants.SVC_ACC_POLICIES_PREFIXES.getKey(TVaultConstants.WRITE_POLICY)).append(TVaultConstants.SVC_ACC_PATH_PREFIX).append("_").append(svcAccName).toString();
+			String d_policy = new StringBuffer().append(TVaultConstants.SVC_ACC_POLICIES_PREFIXES.getKey(TVaultConstants.DENY_POLICY)).append(TVaultConstants.SVC_ACC_PATH_PREFIX).append("_").append(svcAccName).toString();
+			String o_policy = new StringBuffer().append(TVaultConstants.SVC_ACC_POLICIES_PREFIXES.getKey(TVaultConstants.SUDO_POLICY)).append(TVaultConstants.SVC_ACC_PATH_PREFIX).append("_").append(svcAccName).toString();
+
+			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+					put(LogMessage.ACTION, "Add Group to Service Account").
+					put(LogMessage.MESSAGE, String.format ("Policies are, read - [%s], write - [%s], deny -[%s], owner - [%s]", r_policy, w_policy, d_policy, o_policy)).
+					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+					build()));
+
+			Response groupResp = reqProcessor.process("/auth/ldap/groups","{\"groupname\":\""+groupName+"\"}",token);
+
+			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+					put(LogMessage.ACTION, "Add Group to ServiceAccount").
+					put(LogMessage.MESSAGE, String.format ("userResponse status is [%s]", groupResp.getHttpstatus())).
+					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+					build()));
+
+			String responseJson="";
+			String groups="";
+			List<String> policies = new ArrayList<>();
+			List<String> currentpolicies = new ArrayList<>();
+
+			if(HttpStatus.OK.equals(groupResp.getHttpstatus())){
+				responseJson = groupResp.getResponse();
+				try {
+					ObjectMapper objMapper = new ObjectMapper();
+					currentpolicies = ControllerUtil.getPoliciesAsListFromJson(objMapper, responseJson);
+				} catch (IOException e) {
+					log.error(e);
+					log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+							put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+							put(LogMessage.ACTION, "Add Group to ServiceAccount").
+							put(LogMessage.MESSAGE, String.format ("Exception while creating currentpolicies")).
+							put(LogMessage.STACKTRACE, Arrays.toString(e.getStackTrace())).
+							put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+							build()));
+				}
+
+				policies.addAll(currentpolicies);
+				policies.remove(r_policy);
+				policies.remove(w_policy);
+				policies.remove(d_policy);
+				policies.add(policy);
+			}else{
+				// New group to be configured
+				policies.add(policy);
+			}
+			String policiesString = org.apache.commons.lang3.StringUtils.join(policies, ",");
+
+			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+					put(LogMessage.ACTION, "Add Group to ServiceAccount").
+					put(LogMessage.MESSAGE, String.format ("policies [%s] before calling configureLDAPGroup", policies)).
+					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+					build()));
+
+			Response ldapConfigresponse = ControllerUtil.configureLDAPGroup(groupName,policiesString,token);
+
+			if(ldapConfigresponse.getHttpstatus().equals(HttpStatus.NO_CONTENT) || ldapConfigresponse.getHttpstatus().equals(HttpStatus.OK)){
+				return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Successfully added group to the Service Account\"]}");
+			}
+			else {
+				return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Failed to add group to the Service Account\"]}");
+			}
+		}else{
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid 'path' specified\"]}");
+		}
 	}
 }

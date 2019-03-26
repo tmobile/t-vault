@@ -77,5 +77,6 @@ public class TVaultConstants {
 	public static Map<String, String> getSvcAccPolicies() {
 		return SVC_ACC_POLICIES;
 	}
-    
+
+    public static final String ADD_GROUP = "addGroup";
 }
