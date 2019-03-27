@@ -737,5 +737,52 @@
         ],
         "outparams":["data/keys"]
         
+    },
+	{"#" : "**** Onboard AD Service Account ****** ",
+ 	
+    	"apiEndPoint":"/ad/serviceaccount/onboard",
+    	"vaultEndPoint":"/ad/roles/<role_name>",
+    	"method":"POST",
+      	"params":[
+      		{"name":"role_name","required":true, "appendToPath":true},
+      		{"name":"service_account_name"},
+      		{"name":"ttl"}
+        ]
+    },
+	{"#" : "**** To get list of onboarded service accounts ****** ",
+ 	
+    	"apiEndPoint":"/ad/serviceaccount/onboardedlist",
+    	"vaultEndPoint":"/ad/roles?list=true",
+    	"method":"GET",
+		"outparams":["data/keys"]
+    },
+	{"#" : "**** Onboard AD Service Account ****** ",
+ 	
+    	"apiEndPoint":"/ad/serviceaccount/offboard",
+    	"vaultEndPoint":"/ad/roles/<role_name>",
+    	"method":"DELETE",
+      	"params":[
+      		{"name":"role_name","required":true, "appendToPath":true}
+        ]
+    },
+	{"#" : "**** Reset Service Account Password****** ",
+ 	
+    	"apiEndPoint":"/ad/serviceaccount/reset",
+    	"vaultEndPoint":"/ad/creds/<role_name>",
+    	"method":"GET",
+    	"params":[
+      		{"name":"role_name","required":true, "appendToPath":true}
+  		],
+      	"outparams":["data/current_password", "data/last_password", "data/username"]
+    },
+	{"#" : "**** Get Onboarded Service Account details ****** ",
+ 	
+    	"apiEndPoint":"/ad/serviceaccount/details",
+    	"vaultEndPoint":"/ad/roles/<role_name>",
+    	"method":"GET",
+      	"params":[
+      		{"name":"role_name","required":true, "appendToPath":true}
+        ],
+      	"outparams":["data/current_password", "data/last_password", "data/service_account_name", "data/ttl", "data/last_vault_rotation"]
     }
 ]

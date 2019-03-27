@@ -37,37 +37,35 @@ import org.springframework.ldap.transaction.compensating.manager.TransactionAwar
 @PropertySource("classpath:application.properties")
 @ComponentScan(basePackages = {"com.tmobile.cso.vault.api.*"})
 @EnableLdapRepositories(basePackages = "com.tmobile.cso.vault.api.**")
-public class DirectoryConfiguration {
+public class ServiceAccountsConfiguration {
 
     @Autowired
     private Environment env;
 
     @Bean
-    public LdapContextSource contextSource() {
+    public LdapContextSource svcAccContextSource() {
         LdapContextSource contextSource = new LdapContextSource();
-        contextSource.setUrl(env.getRequiredProperty("ldap.url"));
-        contextSource.setBase(env.getRequiredProperty("ldap.base"));
-        contextSource.setUserDn(env.getRequiredProperty("ldap.username")+","+env.getRequiredProperty("ldap.userdn"));
-        contextSource.setPassword(new String(Base64.getDecoder().decode(env.getRequiredProperty("ldap.password"))));
-
+        contextSource.setUrl(env.getRequiredProperty("ad.url"));
+        contextSource.setBase(env.getRequiredProperty("ad.base"));
+        contextSource.setUserDn("CN="+env.getRequiredProperty("ad.username")+","+env.getRequiredProperty("ad.userdn"));
+        contextSource.setPassword(new String(Base64.getDecoder().decode(env.getRequiredProperty("ad.password"))));
         return contextSource;
     }
     @Bean
     public ContextSource poolingLdapContextSource() {
         PoolingContextSource poolingContextSource = new PoolingContextSource();
         poolingContextSource.setDirContextValidator(new DefaultDirContextValidator());
-        poolingContextSource.setContextSource(contextSource());
+        poolingContextSource.setContextSource(svcAccContextSource());
         poolingContextSource.setTestOnBorrow(true);
         poolingContextSource.setTestWhileIdle(true);
 
         TransactionAwareContextSourceProxy proxy = new TransactionAwareContextSourceProxy(poolingContextSource);
         return proxy;
     }
-    @Bean
-    public LdapTemplate ldapTemplate() {
+    @Bean(name="svcAccLdapTemplate")
+    public LdapTemplate svcAccLdapTemplate() {
 		LdapTemplate ldapTemplate = new LdapTemplate(poolingLdapContextSource());
 		ldapTemplate.setIgnorePartialResultException(true);
-		ldapTemplate.setContextSource(poolingLdapContextSource());
 		return ldapTemplate;
     }
 }

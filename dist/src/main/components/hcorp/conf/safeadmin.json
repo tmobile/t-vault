@@ -45,6 +45,15 @@
             "delete",
             "list"
          ]
+      },
+      "ad/roles/*":{
+         "capabilities":[
+            "create",
+            "update",
+            "delete",
+            "list",
+			"read"
+         ]
       }
    } 
 }

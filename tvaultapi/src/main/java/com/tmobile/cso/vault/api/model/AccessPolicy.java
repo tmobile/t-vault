@@ -19,7 +19,6 @@ package com.tmobile.cso.vault.api.model;
 
 import java.io.Serializable;
 import java.util.HashMap;
-import java.util.Map;
 
 import io.swagger.annotations.ApiModelProperty;
 
