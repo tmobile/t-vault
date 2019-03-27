@@ -28,8 +28,8 @@
         $scope.anyRegex = /.|\s/g;
         $scope.showPassword = false;
         $scope.write = false;
-        $scope.svcToReset = '';
-        $scope.searchValueSvc = "";
+        $scope.svcaccToReset = '';
+        $scope.searchValueSvcacc = "";
         var init = function () {
             
             $scope.myVaultKey = SessionStore.getItem("myVaultKey");
@@ -43,38 +43,38 @@
         };
 
         // Fetching Data
-        $scope.filterSvc = function(searchValueSvc) {
-            $scope.searchValueSvc = searchValueSvc;
+        $scope.filterSvcacc = function(searchValueSvcacc) {
+            $scope.searchValueSvcacc = searchValueSvcacc;
         }
 
         $scope.requestDataFrMyAccounts = function () {               
-            $scope.svcOnboardedData = {"keys": []};
+            $scope.svcaccOnboardedData = {"keys": []};
             var accessSafes = JSON.parse(SessionStore.getItem("accessSafes"));
             if (accessSafes.svcacct) {
-                $scope.svcOnboardedData.keys = accessSafes.svcacct.map(function (safeObject) {
+                $scope.svcaccOnboardedData.keys = accessSafes.svcacct.map(function (safeObject) {
                     var entry = Object.entries(safeObject);
                     return {
-                        svcname: entry[0][0],
+                        svcaccname: entry[0][0],
                         permission: entry[0][1]
                     }
                 });
             }
-            $scope.numOfSvcs=$scope.svcOnboardedData.keys.length;
+            $scope.numOfSvcaccs=$scope.svcaccOnboardedData.keys.length;
         };
 
-        $scope.viewSecret = function (svcname) {
+        $scope.viewSecret = function (svcaccname) {
             $scope.isLoadingData = true;
             $scope.write = false;
-            $scope.svcSecretData = {"secret":"", "svcname":svcname, "permission":""};
-            var queryParameters = svcname;
-            var updatedUrlOfEndPoint = ModifyUrl.addUrlParameteres('getSecretForSvc',queryParameters);
-            AdminSafesManagement.getSecretForSvc(null, updatedUrlOfEndPoint).then(function (response) {                
+            $scope.svcaccSecretData = {"secret":"", "svcaccname":svcaccname, "permission":""};
+            var queryParameters = svcaccname;
+            var updatedUrlOfEndPoint = ModifyUrl.addUrlParameteres('getSecretForSvcacc',queryParameters);
+            AdminSafesManagement.getSecretForSvcacc(null, updatedUrlOfEndPoint).then(function (response) {                
                 if (UtilityService.ifAPIRequestSuccessful(response)) {
                     $scope.isLoadingData = false;
                     $scope.viewPassword = true;
                     $scope.ifSecret = true;
-                    $scope.svcSecretData.secret = response.data.secret;  
-                    if ($scope.svcSecretData.secret.permission == "write") {
+                    $scope.svcaccSecretData.secret = response.data.secret;  
+                    if ($scope.svcaccSecretData.secret.permission == "write") {
                         $scope.write = true;
                     }
                 }
@@ -100,22 +100,22 @@
             CopyToClipboard.copy(copyValue);
         }
 
-        $scope.resetPasswordForSvc = function() {           
-            if ($scope.svcToReset != '') {
+        $scope.resetPasswordForSvcacc = function() {           
+            if ($scope.svcaccToReset != '') {
                 $scope.isLoadingData = true;
                 Modal.close();
-                var queryParameters = $scope.svcToReset;
-                var updatedUrlOfEndPoint = ModifyUrl.addUrlParameteres('resetPasswordForSvc',queryParameters);
-                AdminSafesManagement.resetPasswordForSvc(null, updatedUrlOfEndPoint).then(function (response) {                
+                var queryParameters = $scope.svcaccToReset;
+                var updatedUrlOfEndPoint = ModifyUrl.addUrlParameteres('resetPasswordForSvcacc',queryParameters);
+                AdminSafesManagement.resetPasswordForSvcacc(null, updatedUrlOfEndPoint).then(function (response) {                
                     if (UtilityService.ifAPIRequestSuccessful(response)) {
                         $scope.isLoadingData = false;
                         var notification = UtilityService.getAParticularSuccessMessage("MESSAGE_RESET_SUCCESS");
                         Notifications.toast("Password "+notification);
-                        $scope.svcToReset = '';
+                        $scope.svcaccToReset = '';
                     }
                     else {
                         $scope.isLoadingData = false;
-                        $scope.svcToReset = '';
+                        $scope.svcaccToReset = '';
                         $scope.errorMessage = AdminSafesManagement.getTheRightErrorMessage(response);
                         error('md');
                     }
@@ -124,21 +124,21 @@
                     // Error handling function
                     console.log(error);
                     $scope.isLoadingData = false;
-                    $scope.svcToReset = '';
+                    $scope.svcaccToReset = '';
                     $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
                     $scope.error('md');
                 });    
             } else {
                 $scope.isLoadingData = false;
-                $scope.svcToReset = '';
+                $scope.svcaccToReset = '';
                 $scope.errorMessage = AdminSafesManagement.getTheRightErrorMessage('ERROR_GENERAL');
                 error('md');
             }
         }
 
-        $scope.resetPasswordPopup = function(svcname) {
+        $scope.resetPasswordPopup = function(svcaccname) {
             $scope.fetchDataError = false;
-            $scope.svcToReset = svcname;
+            $scope.svcaccToReset = svcaccname;
             Modal.createModal('md', 'resetPopup.html', 'ServiceAccountsCtrl', $scope);
         };
 
@@ -149,14 +149,14 @@
         var pageSize = 20;
         $scope.paginationLimit = function(data) {
             $scope.currentshown = pageSize * pagesShown;
-            if($scope.searchValueSvc.length>2 || $scope.currentshown >= $scope.numOfSvcs){
-                $scope.currentshown = $scope.numOfSvcs;
+            if($scope.searchValueSvcacc.length>2 || $scope.currentshown >= $scope.numOfSvcaccs){
+                $scope.currentshown = $scope.numOfSvcaccs;
             }
             return $scope.currentshown;
         };
         $scope.hasMoreItemsToShow = function() {
-            if ($scope.searchValueSvc.length<3) {
-                return pagesShown < ($scope.numOfSvcs / pageSize);
+            if ($scope.searchValueSvcacc.length<3) {
+                return pagesShown < ($scope.numOfSvcaccs / pageSize);
             }
             return false;
         };

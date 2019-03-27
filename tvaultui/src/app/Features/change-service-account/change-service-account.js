@@ -29,7 +29,7 @@
         $stateProvider
             .state( 'change-service-account', {
                 url: '/change-service-account/',
-                params: { "svcData": null, "svcList":[]},
+                params: { "svcaccData": null, "svcaccList":[]},
                 templateUrl: 'app/Features/change-service-account/change-service-account.html',
                 controller: 'ChangeServiceAccountCtrl'
             } );

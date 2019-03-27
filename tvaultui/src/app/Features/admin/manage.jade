@@ -229,19 +229,19 @@ script(type='text/ng-template', id='manageSecretId.html')
                                     div.data-management-content
                                         .row.change-safe-table-container(ng-if='true')
                                             loading-state(ng-if='isLoadingData')
-                                            .row.change-data.header.solid-header(ng-show="!isLoadingData && svcOnboardedData.keys.length>0")
+                                            .row.change-data.header.solid-header(ng-show="!isLoadingData && svcaccOnboardedData.keys.length>0")
                                                 .container.name.col-lg-4.col-md-4.col-sm-4.col-xs-4(title="ACCOUNT NAME") ACCOUNT NAME
                                                 .container.name.cell.col-lg-6.col-md-6.col-sm-6.col-xs-6 ACTION
                                             .change-list-table-data.row
-                                                .unavailable-text(ng-show="!isLoadingData && svcOnboardedData.keys.length==0")
+                                                .unavailable-text(ng-show="!isLoadingData && svcaccOnboardedData.keys.length==0")
                                                     .container.name No Service Accounts Available
-                                                .row.change-data.item(ng-show="!isLoadingData" ng-class="{'grayBackground' : activeItem == true}" ng-repeat="value in svcOnboardedData.keys | filter:searchValue | limitTo: paginationLimit()")
+                                                .row.change-data.item(ng-show="!isLoadingData" ng-class="{'grayBackground' : activeItem == true}" ng-repeat="value in svcaccOnboardedData.keys | filter:searchValue | limitTo: paginationLimit()")
                                                     .container.name.cell.col-lg-4.col-md-4.col-sm-4.col-xs-4(title="{{value.name}}") {{value.name}}
                                                     .container.radio-inputs.col-lg-6.col-md-6.col-sm-6.col-xs-6
                                                         .down.view
-                                                            .list-icon(ng-click = "editSvcPasswordRotation(value.name, 'md')")  View/Edit
+                                                            .list-icon(ng-click = "editOnboardedSvcacc(value.name, 'md')")  View/Edit
                                             .pagination-wrapper(ng-show='hasMoreItemsToShow()')
-                                                .pagination-count(ng-if="numOfSvcs>0") Displaying {{currentshown}} of {{numOfSvcs}}
+                                                .pagination-count(ng-if="numOfSvcaccs>0") Displaying {{currentshown}} of {{numOfSvcaccs}}
                                                 .pagination-button-wrapper(ng-click='showMoreItems()')
                                                     button.show-more-btn VIEW MORE
                                                     span

@@ -134,15 +134,15 @@ script(type='text/ng-template', id='deleteApprolePopUp.html')
       .clearfix
         button.link-style.common-btn.btn.btn-default.btn-lg(ng-click="close()") CANCEL
 
-script(type='text/ng-template', id='offboardSvcPopUp.html')
+script(type='text/ng-template', id='offboardSvcaccPopUp.html')
   loading-state(ng-if="isLoadingModalData")
   .top-lg-sep(ng-if="!isLoadingModalData")
     .top-lg-sep
         .common-header-label.text-center Confirmation
-    .top-lg-sep.notification-text Are you sure you want to offboard this Service Account?
+    .top-lg-sep.notification-text Are you sure you want to offboard this Service Account? This will not delete the Service Account From AD server.
     .text-center.bottom-lg-sep.top-lg-sep.notification-button
       .clearfix.bottom-sm-sep
-        button.common-btn.btn.btn-primary.btn-lg(ng-click="offboardSvc(svcToOffboard)") DELETE
+        button.common-btn.btn.btn-primary.btn-lg(ng-click="offboardSvcacc(svcaccToOffboard)") DELETE
       .clearfix
         button.link-style.common-btn.btn.btn-default.btn-lg(ng-click="close()") CANCEL
 
@@ -240,28 +240,28 @@ script(type='text/ng-template', id='manageSecretId.html')
                                     div.data-management-content
                                         .row.change-safe-table-container(ng-if='true')
                                             loading-state(ng-if='isLoadingData')
-                                            .row.change-data.header.solid-header(ng-show="!isLoadingData && svcOnboardedData.keys.length>0")
+                                            .row.change-data.header.solid-header(ng-show="!isLoadingData && svcaccOnboardedData.keys.length>0")
                                                 .container.name.col-lg-4.col-md-4.col-sm-4.col-xs-4(title="ACCOUNT NAME") ACCOUNT NAME
                                                 .container.name.cell.col-lg-6.col-md-6.col-sm-6.col-xs-6 ACTION
                                             .change-list-table-data.row
-                                                .unavailable-text(ng-show="!isLoadingData && svcOnboardedData.keys.length==0")
+                                                .unavailable-text(ng-show="!isLoadingData && svcaccOnboardedData.keys.length==0")
                                                     .container.name No Service Accounts Available
-                                                .row.change-data.item(ng-show="!isLoadingData" ng-class="{'grayBackground' : activeItem == true}" ng-repeat="value in svcOnboardedData.keys | filter:searchValue | limitTo: paginationLimit()")
+                                                .row.change-data.item(ng-show="!isLoadingData" ng-class="{'grayBackground' : activeItem == true}" ng-repeat="value in svcaccOnboardedData.keys | filter:searchValue | limitTo: paginationLimit()")
                                                     .container.name.cell.col-lg-4.col-md-4.col-sm-4.col-xs-4(title="{{value}}") {{value}}
                                                     .container.radio-inputs.cell.col-lg-6.col-md-6.col-sm-6.col-xs-6
                                                         .down.view
-                                                            .list-icon(ng-click = "editSvcPasswordRotation(value, 'md')")  View/Edit
+                                                            .list-icon(ng-click = "editOnboardedSvcacc(value, 'md')")  View/Edit
                                                     .container.radio-inputs.col-lg-2.col-md-2.col-sm-2.col-xs-2
                                                         .down
-                                                            .list-icon.icon-delete(ng-click = "offboardSvcPopUp(value)")
+                                                            .list-icon.icon-delete(ng-click = "offboardSvcaccPopUp(value)")
                                             .pagination-wrapper(ng-show='hasMoreItemsToShow()')
-                                                .pagination-count(ng-if="numOfSvcs>0") Displaying {{currentshown}} of {{numOfSvcs}}
+                                                .pagination-count(ng-if="numOfSvcaccs>0") Displaying {{currentshown}} of {{numOfSvcaccs}}
                                                 .pagination-button-wrapper(ng-click='showMoreItems()')
                                                     button.show-more-btn VIEW MORE
                                                     span
                                                         img(src="assets/icons/front-arrow.svg")
                                     div.create-safe-wrapper
-                                        .function-text.link-style.option.right(ng-click="onboardSvcAccount('md')")
+                                        .function-text.link-style.option.right(ng-click="onboardSvcaccAccount('md')")
                                             .action-icon-wrapper.static
                                                 .rotate.glyphicon.glyphicon-remove-circle
                                             .create-link.middle-block.hide-in-mobile
