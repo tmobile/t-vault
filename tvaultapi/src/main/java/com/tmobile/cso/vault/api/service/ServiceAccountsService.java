@@ -195,7 +195,7 @@ public class  ServiceAccountsService {
 						String managedByStr = (String) attr.get("manager").get();
 						String managedBy= managedByStr.substring(3, managedByStr.indexOf(","));
 						adServiceAccount.setManagedBy(managedBy);
-						adServiceAccount.setOwner(managedBy);
+						adServiceAccount.setOwner(managedBy.toLowerCase());
 					}
 					if (attr.get("accountExpires") != null) {
 						String rawExpDateTime = (String) attr.get("accountExpires").get();
