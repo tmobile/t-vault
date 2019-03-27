@@ -53,7 +53,7 @@ public class ServiceAccount implements Serializable {
 	private String formatter;
 
 	@Pattern(regexp = "^$|^[a-z0-9_-]+$", message = "Owner can have alphabets, numbers, _ and - characters only")
-	private String owner = "snagara14";
+	private String owner ;
 
 	public ServiceAccount() {
 
