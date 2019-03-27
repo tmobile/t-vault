@@ -41,6 +41,7 @@ public class ADServiceAccount implements Serializable {
 	/**
 	 * Email Id
 	 */
+	@JsonIgnore
 	private String userEmail;
 	/**
 	 * Display Name
@@ -74,9 +75,8 @@ public class ADServiceAccount implements Serializable {
 	private String lockStatus;
 	
 	private String purpose;
-	
-	
-	//private String owner;
+
+	private String owner;
 	
 	/**
 	 * @return the userId
@@ -88,7 +88,7 @@ public class ADServiceAccount implements Serializable {
 	/**
 	 * @return the userEmail
 	 */
-	@ApiModelProperty(example="myfirstname.mylastname@myorganization.com", position=2)
+	@ApiModelProperty(example="myfirstname.mylastname@myorganization.com", position=2, hidden=true)
 	public String getUserEmail() {
 		return userEmail;
 	}
@@ -186,12 +186,12 @@ public class ADServiceAccount implements Serializable {
 	public String getLockStatus() {
 		return lockStatus;
 	}
-//	/**
-//	 * @return the owner
-//	 */
-//	public String getOwner() {
-//		return owner;
-//	}
+	/**
+	 * @return the owner
+	 */
+	public String getOwner() {
+		return owner;
+	}
 	/**
 	 * @param whenCreated the whenCreated to set
 	 */
@@ -222,12 +222,12 @@ public class ADServiceAccount implements Serializable {
 	public void setLockStatus(String lockStatus) {
 		this.lockStatus = lockStatus;
 	}
-//	/**
-//	 * @param owner the owner to set
-//	 */
-//	public void setOwner(String owner) {
-//		this.owner = owner;
-//	}
+	/**
+	 * @param owner the owner to set
+	 */
+	public void setOwner(String owner) {
+		this.owner = owner;
+	}
 
 	/**
 	 * @return the pwdLastSet

@@ -192,9 +192,10 @@ public class  ServiceAccountsService {
 						adServiceAccount.setWhenCreated(instant);
 					}
 					if (attr.get("manager") != null) {
-						//TODO: Parse if this is not accurate and based on CN, get the manager name, email, etc from AD
-						// Might need to have an object
-						adServiceAccount.setManagedBy((String) attr.get("manager").get());
+						String managedByStr = (String) attr.get("manager").get();
+						String managedBy= managedByStr.substring(3, managedByStr.indexOf(","));
+						adServiceAccount.setManagedBy(managedBy);
+						adServiceAccount.setOwner(managedBy);
 					}
 					if (attr.get("accountExpires") != null) {
 						String rawExpDateTime = (String) attr.get("accountExpires").get();
@@ -213,8 +214,19 @@ public class  ServiceAccountsService {
 					}
 					
 					if (attr.get("pwdLastSet") != null) {
-						String sPwdLastSet = (String) attr.get("pwdLastSet").get();
-						adServiceAccount.setPwdLastSet(sPwdLastSet);
+						String pwdLastSetRaw = (String) attr.get("pwdLastSet").get();
+						String pwsLastSet = null;
+						try {
+							long lpwdLastSetRaw = Long.parseLong(pwdLastSetRaw);
+							long timeAdjust=9223372036854775807L;
+							Date pwdSet = new Date(lpwdLastSetRaw/10000-timeAdjust);
+							DateFormat mydate = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+							pwsLastSet = mydate.format(pwdSet);
+						}
+						catch(Exception ex) {
+							//TODO
+						}
+						adServiceAccount.setPwdLastSet(pwsLastSet);
 					}
 					//TODO: The below values are to be calculated
 					adServiceAccount.setMaxPwdAge(getPasswordMaxAge());
@@ -726,15 +738,11 @@ public class  ServiceAccountsService {
 				}
 
 				policies.addAll(currentpolicies);
-//				policies.remove(r_policy);
-//				policies.remove(w_policy);
-//				policies.remove(d_policy);
+
 				policies.remove(policy);
 			}
 			String policiesString = org.apache.commons.lang3.StringUtils.join(policies, ",");
-//			String currentpoliciesString = org.apache.commons.lang3.StringUtils.join(currentpolicies, ",");
 
-			//policies = policies.replaceAll(s_policy, "");
 			Response ldapConfigresponse;
 			if (TVaultConstants.USERPASS.equals(vaultAuthMethod)) {
 				ldapConfigresponse = ControllerUtil.configureUserpassUser(userName,policiesString,token);
@@ -767,7 +775,6 @@ public class  ServiceAccountsService {
 				put(LogMessage.MESSAGE, String.format("Trying to read service account password [%s]", svcAccName)).
 				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 				build()));
-		//String svcAccCredsPath=new StringBuffer().append(TVaultConstants.SVC_ACC_CREDS_PATH).append(svcAccName).toString();
 		Response response = reqProcessor.process("/ad/serviceaccount/reset","{\"role_name\":\""+svcAccName+"\"}",token);
 		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
@@ -818,7 +825,6 @@ public class  ServiceAccountsService {
 			try {
 				String response = svcAccDtlsresponse.getResponse();
 				Map<String, Object> requestParams = new ObjectMapper().readValue(response, new TypeReference<Map<String, Object>>(){});
-				//{current_password=null, last_password=null, service_account_name=svc_vault_test2@clouddev.corporate.t-mobile.com, ttl=7776000}
 				
 				String accName =  (String) requestParams.get("service_account_name");
 				Integer accTTL = (Integer)requestParams.get("ttl");

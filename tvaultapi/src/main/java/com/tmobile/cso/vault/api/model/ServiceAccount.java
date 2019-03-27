@@ -35,10 +35,10 @@ public class ServiceAccount implements Serializable {
 	 */
 	private static final long serialVersionUID = -9011756132661399159L;
 	@NotNull
-	@Size(min = 3, max = 60, message="Name specified should be minimum 3 chanracters and maximum 60 characters only")
-	@Pattern( regexp = "^[a-z0-9_-]+$", message="Name can have alphabets, numbers, _ and - characters only")
+	@Size(min = 3, max = 60, message = "Name specified should be minimum 3 chanracters and maximum 60 characters only")
+	@Pattern(regexp = "^[a-z0-9_-]+$", message = "Name can have alphabets, numbers, _ and - characters only")
 	private String name;
-	
+
 	private boolean autoRotate;
 	@Min(0)
 	@Max(9999999999999999L)
@@ -52,13 +52,15 @@ public class ServiceAccount implements Serializable {
 	@JsonIgnore
 	private String formatter;
 
-	@Pattern( regexp = "^$|^[a-z0-9_-]+$", message="Owner can have alphabets, numbers, _ and - characters only")
-	private String owner="snagara14";
-	
+	@Pattern(regexp = "^$|^[a-z0-9_-]+$", message = "Owner can have alphabets, numbers, _ and - characters only")
+	private String owner = "snagara14";
+
 	public ServiceAccount() {
-		
+
 	}
-	public ServiceAccount(String name, boolean autoRotate, Long ttl, Long max_ttl, String length, String formatter, String owner) {
+
+	public ServiceAccount(String name, boolean autoRotate, Long ttl, Long max_ttl, String length, String formatter,
+			String owner) {
 		super();
 		this.name = name;
 		this.autoRotate = autoRotate;
@@ -67,93 +69,114 @@ public class ServiceAccount implements Serializable {
 		this.length = length;
 		this.formatter = formatter;
 	}
+
 	/**
 	 * @return the name
 	 */
-	@ApiModelProperty(example="svc_vault_test2", position=1)
+	@ApiModelProperty(example = "svc_vault_test2", position = 1)
 	public String getName() {
 		return name;
 	}
+
 	/**
 	 * @return the autoRotate
 	 */
-	@ApiModelProperty(example="false", position=3)
+	@ApiModelProperty(example = "false", position = 3)
 	public boolean isAutoRotate() {
 		return autoRotate;
 	}
+
 	/**
 	 * @return the ttl
 	 */
-	@ApiModelProperty(example="7776000", position=4)
+	@ApiModelProperty(example = "7776000", position = 4)
 	public Long getTtl() {
 		return ttl;
 	}
+
 	/**
 	 * @return the max_ttl
 	 */
-	@ApiModelProperty(example="7776000", position=5)
+	@ApiModelProperty(example = "7776000", position = 5)
 	public Long getMax_ttl() {
 		return max_ttl;
 	}
+
 	/**
 	 * @return the length
 	 */
-	@ApiModelProperty(example="64", position=6, hidden=true)
+	@ApiModelProperty(example = "64", position = 6, hidden = true)
 	public String getLength() {
 		return length;
 	}
+
 	/**
 	 * @return the formatter
 	 */
-	@ApiModelProperty(example="Prefix{{password}}", position=7, hidden=true)
+	@ApiModelProperty(example = "Prefix{{password}}", position = 7, hidden = true)
 	public String getFormatter() {
 		return formatter;
 	}
+
 	/**
 	 * @return the owner
 	 */
-	@ApiModelProperty(example="testuser1", position=8)
+	@ApiModelProperty(example = "testuser1", position = 8)
 	public String getOwner() {
 		return owner;
 	}
+
 	/**
-	 * @param name the name to set
+	 * @param name
+	 *            the name to set
 	 */
 	public void setName(String name) {
 		this.name = name;
 	}
+
 	/**
-	 * @param autoRotate the autoRotate to set
+	 * @param autoRotate
+	 *            the autoRotate to set
 	 */
 	public void setAutoRotate(boolean autoRotate) {
 		this.autoRotate = autoRotate;
 	}
+
 	/**
-	 * @param ttl the ttl to set
+	 * @param ttl
+	 *            the ttl to set
 	 */
 	public void setTtl(Long ttl) {
 		this.ttl = ttl;
 	}
+
 	/**
-	 * @param max_ttl the max_ttl to set
+	 * @param max_ttl
+	 *            the max_ttl to set
 	 */
 	public void setMax_ttl(Long max_ttl) {
 		this.max_ttl = max_ttl;
 	}
+
 	/**
-	 * @param length the length to set
+	 * @param length
+	 *            the length to set
 	 */
 	public void setLength(String length) {
 		this.length = length;
 	}
+
 	/**
-	 * @param formatter the formatter to set
+	 * @param formatter
+	 *            the formatter to set
 	 */
 	public void setFormatter(String formatter) {
 		this.formatter = formatter;
 	}
+
 	/**
-	 * @param owner the owner to set
+	 * @param owner
+	 *            the owner to set
 	 */
 	public void setOwner(String owner) {
 		this.owner = owner;
@@ -164,6 +187,5 @@ public class ServiceAccount implements Serializable {
 		return "ServiceAccount [name=" + name + ", autoRotate=" + autoRotate + ", ttl=" + ttl + ", max_ttl=" + max_ttl
 				+ ", length=" + length + ", formatter=" + formatter + ", owner=" + owner + "]";
 	}
-
 
 }
