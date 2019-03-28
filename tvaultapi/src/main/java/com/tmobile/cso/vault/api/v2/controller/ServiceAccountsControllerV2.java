@@ -100,10 +100,17 @@ public class ServiceAccountsControllerV2 {
 		return serviceAccountsService.offboardServiceAccount(token, serviceAccount, userDetails);
 	}
 
-	@ApiOperation(value = "${ServiceAccountsControllerV2.addUserToServiceAccount.value}", notes = "${ServiceAccountsControllerV2.addUserToServiceAccount.notes}")
-	@PostMapping(value="/v2/serviceaccounts/user", produces="application/json")
+	@ApiOperation(value = "${ServiceAccountsControllerV2.addGroupToServiceAccount.value}", notes = "${ServiceAccountsControllerV2.addGroupToServiceAccount.notes}")
+	@PostMapping(value="/v2/serviceaccounts/group", produces="application/json")
 	public ResponseEntity<String> addGroupToSvcAcc( HttpServletRequest request, @RequestHeader(value="vault-token") String token, @RequestBody ServiceAccountGroup serviceAccountGroup ){
 		UserDetails userDetails = (UserDetails) ((HttpServletRequest) request).getAttribute("UserDetails");
 		return serviceAccountsService.addGroupToServiceAccount(token, serviceAccountGroup, userDetails);
 	}
+
+    @ApiOperation(value = "${ServiceAccountsControllerV2.removeGroupFromServiceAccount.value}", notes = "${ServiceAccountsControllerV2.removeGroupFromServiceAccount.notes}")
+    @DeleteMapping(value="/v2/serviceaccounts/group", produces="application/json")
+    public ResponseEntity<String> removeGroupFromSvcAcc( HttpServletRequest request, @RequestHeader(value="vault-token") String token, @RequestBody ServiceAccountGroup serviceAccountGroup ){
+        UserDetails userDetails = (UserDetails) ((HttpServletRequest) request).getAttribute("UserDetails");
+        return serviceAccountsService.removeGroupFromServiceAccount(token, serviceAccountGroup, userDetails);
+    }
 }

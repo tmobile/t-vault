@@ -30,7 +30,6 @@
         $scope.isCollapsed = true;
         $scope.isSvcaccExpired = false;
         $scope.expiredNote = '';
-        $scope.showInputLoader = false;
         $scope.svcInputSelected = false;
 
         $scope.usrRadioBtnVal = 'read';             // Keep it in lowercase
@@ -817,18 +816,18 @@
         $scope.getSvcaccList = function(searchVal) {
             $scope.svcInputSelected = false;
             if (searchVal.length >2) {
-                $scope.showInputLoader = true;
+                $scope.showInputLoader.show = true;
                 var queryParameters = "serviceAccountName=svc";
                 var updatedUrlOfEndPoint = ModifyUrl.addUrlParameteres('getServiceAccounts', queryParameters);
                 return AdminSafesManagement.getServiceAccounts(null, updatedUrlOfEndPoint).then(
                     function(response) {
                         if(UtilityService.ifAPIRequestSuccessful(response)){
                             $scope.svcaccList = response.data.data.values;
-                            $scope.showInputLoader = false;
+                            $scope.showInputLoader.show = false;
                             return orderByFilter(filterFilter($scope.svcaccList, searchVal), 'userId', true);
                         }
                         else {
-                            $scope.showInputLoader = false;
+                            $scope.showInputLoader.show = false;
                             $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
                             $scope.error('md');
                         }
@@ -836,7 +835,7 @@
                     function(error) {
                         // Error handling function
                         console.log(error);
-                        $scope.showInputLoader = false;
+                        $scope.showInputLoader.show = false;
                         $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
                         $scope.error('md');
                 });

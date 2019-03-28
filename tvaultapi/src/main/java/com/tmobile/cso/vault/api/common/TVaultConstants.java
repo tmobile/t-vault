@@ -79,4 +79,5 @@ public class TVaultConstants {
 	}
 
     public static final String ADD_GROUP = "addGroup";
+    public static final String REMOVE_GROUP = "removeGroup";
 }

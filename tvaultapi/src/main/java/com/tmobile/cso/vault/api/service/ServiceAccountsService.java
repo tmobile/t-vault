@@ -35,6 +35,8 @@ import javax.naming.directory.Attributes;
 
 import com.tmobile.cso.vault.api.model.*;
 import org.apache.commons.collections.CollectionUtils;
+import com.tmobile.cso.vault.api.utils.PolicyUtils;
+import org.apache.commons.lang.ArrayUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -81,6 +83,9 @@ public class  ServiceAccountsService {
 
 	@Autowired
 	private RequestProcessor reqProcessor;
+
+	@Autowired
+	private PolicyUtils policyUtils;
 
 	@Value("${ad.svc.acc.suffix:clouddev.corporate.t-mobile.com}")
 	private String serviceAccountSuffix;
@@ -872,9 +877,17 @@ public class  ServiceAccountsService {
 		return ResponseEntity.status(response.getHttpstatus()).body(response.getResponse());
 	}
 
-	public boolean canAddOrRemoveGroup(UserDetails userDetails, ServiceAccountGroup serviceAccountGroup, String action) {
-		//TODO: Implementation to be completed...
-		return true;
+	public boolean canAddOrRemoveGroup(UserDetails userDetails, ServiceAccountGroup serviceAccountGroup, String action, String token) {
+        // Owner of the service account or admin user can add/remove group to service account
+        if (userDetails.isAdmin()) {
+            return true;
+        }
+		String o_policy = new StringBuffer().append(TVaultConstants.SVC_ACC_POLICIES_PREFIXES.getKey(TVaultConstants.SUDO_POLICY)).append(TVaultConstants.SVC_ACC_PATH_PREFIX).append("_").append(serviceAccountGroup.getSvcAccName()).toString();
+		String [] policies = policyUtils.getCurrentPolicies(token, userDetails.getUsername());
+		if (ArrayUtils.contains(policies, o_policy)) {
+			return true;
+		}
+		return false;
 	}
 
 	public ResponseEntity<String> addGroupToServiceAccount(String token, ServiceAccountGroup serviceAccountGroup, UserDetails userDetails) {
@@ -886,7 +899,9 @@ public class  ServiceAccountsService {
 				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 				build()));
 
-		//TODO: Validations
+        if(!ControllerUtil.areSvcaccGroupInputsValid(serviceAccountGroup)) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid input values\"]}");
+        }
 
 		String groupName = serviceAccountGroup.getGroupname();
 		String svcAccName = serviceAccountGroup.getSvcAccName();
@@ -901,7 +916,7 @@ public class  ServiceAccountsService {
 		groupName = (groupName !=null) ? groupName.toLowerCase() : groupName;
 		access = (access != null) ? access.toLowerCase(): access;
 
-		boolean canAddGroup = canAddOrRemoveGroup(userDetails, serviceAccountGroup, TVaultConstants.ADD_GROUP);
+		boolean canAddGroup = canAddOrRemoveGroup(userDetails, serviceAccountGroup, TVaultConstants.ADD_GROUP, token);
 		if(canAddGroup){
 
 			String policy = TVaultConstants.EMPTY;
@@ -936,7 +951,6 @@ public class  ServiceAccountsService {
 					build()));
 
 			String responseJson="";
-			String groups="";
 			List<String> policies = new ArrayList<>();
 			List<String> currentpolicies = new ArrayList<>();
 
@@ -977,13 +991,131 @@ public class  ServiceAccountsService {
 			Response ldapConfigresponse = ControllerUtil.configureLDAPGroup(groupName,policiesString,token);
 
 			if(ldapConfigresponse.getHttpstatus().equals(HttpStatus.NO_CONTENT) || ldapConfigresponse.getHttpstatus().equals(HttpStatus.OK)){
-				return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Successfully added group to the Service Account\"]}");
+				Map<String,String> params = new HashMap<String,String>();
+				params.put("type", "groups");
+				params.put("name",groupName);
+				params.put("path","ad/"+svcAccName);
+				params.put("access",access);
+				Response metadataResponse = ControllerUtil.updateMetadataForSvcacc(params,token);
+				if(metadataResponse !=null && HttpStatus.NO_CONTENT.equals(metadataResponse.getHttpstatus())){
+					log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+							put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+							put(LogMessage.ACTION, "Add Group to Service Account").
+							put(LogMessage.MESSAGE, "Group configuration Success.").
+							put(LogMessage.STATUS, metadataResponse.getHttpstatus().toString()).
+							put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+							build()));
+					return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Group is successfully associated with Service Account\"]}");
+				}
+                return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Successfully added group to the Service Account, but metadata update failed\"]}");
 			}
 			else {
 				return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Failed to add group to the Service Account\"]}");
 			}
 		}else{
-			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid 'path' specified\"]}");
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Access denied: No permission to add groups to this service account\"]}");
 		}
 	}
+
+    public ResponseEntity<String> removeGroupFromServiceAccount(String token, ServiceAccountGroup serviceAccountGroup, UserDetails userDetails) {
+        log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+                put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+                put(LogMessage.ACTION, "Remove Group from Service Account").
+                put(LogMessage.MESSAGE, String.format ("Trying to remove Group from Service Account")).
+                put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+                build()));
+
+        if(!ControllerUtil.areSvcaccGroupInputsValid(serviceAccountGroup)) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid input values\"]}");
+        }
+
+        String groupName = serviceAccountGroup.getGroupname();
+        String svcAccName = serviceAccountGroup.getSvcAccName();
+        String access = serviceAccountGroup.getAccess();
+
+
+        boolean isAuthorized = true;
+        if (userDetails != null) {
+            isAuthorized = canAddOrRemoveGroup(userDetails, serviceAccountGroup, TVaultConstants.REMOVE_USER, token);
+        }
+
+        if(isAuthorized){
+
+            String r_policy = new StringBuffer().append(TVaultConstants.SVC_ACC_POLICIES_PREFIXES.getKey(TVaultConstants.READ_POLICY)).append(TVaultConstants.SVC_ACC_PATH_PREFIX).append("_").append(svcAccName).toString();
+            String w_policy = new StringBuffer().append(TVaultConstants.SVC_ACC_POLICIES_PREFIXES.getKey(TVaultConstants.WRITE_POLICY)).append(TVaultConstants.SVC_ACC_PATH_PREFIX).append("_").append(svcAccName).toString();
+            String d_policy = new StringBuffer().append(TVaultConstants.SVC_ACC_POLICIES_PREFIXES.getKey(TVaultConstants.DENY_POLICY)).append(TVaultConstants.SVC_ACC_PATH_PREFIX).append("_").append(svcAccName).toString();
+            String o_policy = new StringBuffer().append(TVaultConstants.SVC_ACC_POLICIES_PREFIXES.getKey(TVaultConstants.SUDO_POLICY)).append(TVaultConstants.SVC_ACC_PATH_PREFIX).append("_").append(svcAccName).toString();
+
+            log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+                    put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+                    put(LogMessage.ACTION, "Remove group from Service Account").
+                    put(LogMessage.MESSAGE, String.format ("Policies are, read - [%s], write - [%s], deny -[%s], owner - [%s]", r_policy, w_policy, d_policy, o_policy)).
+                    put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+                    build()));
+            Response groupResp = reqProcessor.process("/auth/ldap/groups","{\"groupname\":\""+groupName+"\"}",token);
+
+            log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+                    put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+                    put(LogMessage.ACTION, "Remove group from ServiceAccount").
+                    put(LogMessage.MESSAGE, String.format ("userResponse status is [%s]", groupResp.getHttpstatus())).
+                    put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+                    build()));
+
+            String responseJson="";
+            String groups="";
+            List<String> policies = new ArrayList<>();
+            List<String> currentpolicies = new ArrayList<>();
+            String policy = new StringBuffer().append(TVaultConstants.SVC_ACC_POLICIES_PREFIXES.getKey(access)).append(TVaultConstants.SVC_ACC_PATH_PREFIX).append("_").append(svcAccName).toString();
+
+            if(HttpStatus.OK.equals(groupResp.getHttpstatus())){
+                responseJson = groupResp.getResponse();
+                try {
+                    ObjectMapper objMapper = new ObjectMapper();
+                    currentpolicies = ControllerUtil.getPoliciesAsListFromJson(objMapper, responseJson);
+                } catch (IOException e) {
+                    log.error(e);
+                    log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+                            put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+                            put(LogMessage.ACTION, "Remove group from ServiceAccount").
+                            put(LogMessage.MESSAGE, String.format ("Exception while creating currentpolicies or groups")).
+                            put(LogMessage.STACKTRACE, Arrays.toString(e.getStackTrace())).
+                            put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+                            build()));
+                }
+
+                policies.addAll(currentpolicies);
+                policies.remove(policy);
+            }
+            String policiesString = org.apache.commons.lang3.StringUtils.join(policies, ",");
+
+            Response ldapConfigresponse = ControllerUtil.configureLDAPGroup(groupName,policiesString,token);
+
+            if(ldapConfigresponse.getHttpstatus().equals(HttpStatus.NO_CONTENT) || ldapConfigresponse.getHttpstatus().equals(HttpStatus.OK)){
+				Map<String,String> params = new HashMap<String,String>();
+				params.put("type", "groups");
+				params.put("name",groupName);
+				params.put("path","ad/"+svcAccName);
+				params.put("access","delete");
+				Response metadataResponse = ControllerUtil.updateMetadataForSvcacc(params,token);
+				if(metadataResponse !=null && HttpStatus.NO_CONTENT.equals(metadataResponse.getHttpstatus())){
+					log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+							put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+							put(LogMessage.ACTION, "Remove Group to Service Account").
+							put(LogMessage.MESSAGE, "Group configuration Success.").
+							put(LogMessage.STATUS, metadataResponse.getHttpstatus().toString()).
+							put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+							build()));
+					return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Group is successfully removed from Service Account\"]}");
+				}
+                return ResponseEntity.status(HttpStatus.OK).body("{\"errors\":[\"Successfully removed group from Service Account, but metadata update failed\"]}");
+            }
+            else {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Failed to remove the group from the Service Account\"]}");
+            }
+        }
+        else {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Access denied: No permission to add groups to this service account\"]}");
+        }
+
+    }
 }
