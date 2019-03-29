@@ -454,20 +454,20 @@ public class  ServiceAccountsService {
 	 */
 	private  ResponseEntity<String> createServiceAccountPolicies(String token, String svcAccName) {
 		int succssCount = 0;
-		for (String policyPrefix : TVaultConstants.SVC_ACC_POLICIES.keySet()) {
+		for (String policyPrefix : TVaultConstants.getSvcAccPolicies().keySet()) {
 			AccessPolicy accessPolicy = new AccessPolicy();
 			String accessId = new StringBuffer().append(policyPrefix).append(TVaultConstants.SVC_ACC_PATH_PREFIX).append("_").append(svcAccName).toString();
 			accessPolicy.setAccessid(accessId);
 			HashMap<String,String> accessMap = new HashMap<String,String>();
 			String svcAccCredsPath=new StringBuffer().append(TVaultConstants.SVC_ACC_CREDS_PATH).append(svcAccName).toString();
-			accessMap.put(svcAccCredsPath, TVaultConstants.SVC_ACC_POLICIES.get(policyPrefix));
+			accessMap.put(svcAccCredsPath, TVaultConstants.getSvcAccPolicies().get(policyPrefix));
 			accessPolicy.setAccess(accessMap);
 			ResponseEntity<String> policyCreationStatus = accessService.createPolicy(token, accessPolicy);
 			if (HttpStatus.OK.equals(policyCreationStatus.getStatusCode())) {
 				succssCount++;
 			}
 		}
-		if (succssCount == TVaultConstants.SVC_ACC_POLICIES.size()) {
+		if (succssCount == TVaultConstants.getSvcAccPolicies().size()) {
 			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 					put(LogMessage.ACTION, "createServiceAccountPolicies").
@@ -492,14 +492,14 @@ public class  ServiceAccountsService {
 	 */
 	private  ResponseEntity<String> deleteServiceAccountPolicies(String token, String svcAccName) {
 		int succssCount = 0;
-		for (String policyPrefix : TVaultConstants.SVC_ACC_POLICIES.keySet()) {
+		for (String policyPrefix : TVaultConstants.getSvcAccPolicies().keySet()) {
 			String accessId = new StringBuffer().append(policyPrefix).append(TVaultConstants.SVC_ACC_PATH_PREFIX).append("_").append(svcAccName).toString();
 			ResponseEntity<String> policyCreationStatus = accessService.deletePolicyInfo(token, accessId);
 			if (HttpStatus.OK.equals(policyCreationStatus.getStatusCode())) {
 				succssCount++;
 			}
 		}
-		if (succssCount == TVaultConstants.SVC_ACC_POLICIES.size()) {
+		if (succssCount == TVaultConstants.getSvcAccPolicies().size()) {
 			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 					put(LogMessage.ACTION, "deleteServiceAccountPolicies").
