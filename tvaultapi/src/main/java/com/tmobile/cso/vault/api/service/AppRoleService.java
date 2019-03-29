@@ -156,7 +156,7 @@ public class  AppRoleService {
 	 * @return
 	 */
 	public ResponseEntity<String> readAppRole(String token, String rolename){
-		if (TVaultConstants.hideMasterAppRole && rolename.equals(TVaultConstants.SELF_SERVICE_APPROLE_NAME)) {
+		if (TVaultConstants.HIDEMASTERAPPROLE && rolename.equals(TVaultConstants.SELF_SERVICE_APPROLE_NAME)) {
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Access denied: no permission to read this AppRole\"]}");
 		}
 		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
@@ -217,7 +217,7 @@ public class  AppRoleService {
 			      put(LogMessage.STATUS, response.getHttpstatus().toString()).
 			      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 			      build()));
-		if (response!= null && HttpStatus.OK.equals(response.getHttpstatus()) && TVaultConstants.hideMasterAppRole) {
+		if (response!= null && HttpStatus.OK.equals(response.getHttpstatus()) && TVaultConstants.HIDEMASTERAPPROLE) {
 			response = ControllerUtil.hideMasterAppRoleFromResponse(response);
 		}
 		return ResponseEntity.status(response.getHttpstatus()).body(response.getResponse());
@@ -250,7 +250,7 @@ public class  AppRoleService {
 			      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 			      build()));
 		if (HttpStatus.OK.equals(response.getHttpstatus())) {
-			if (TVaultConstants.hideMasterAppRole) {
+			if (TVaultConstants.HIDEMASTERAPPROLE) {
 				response = ControllerUtil.hideMasterAppRoleFromResponse(response);
 			}
 			return ResponseEntity.status(response.getHttpstatus()).body(response.getResponse());
@@ -445,7 +445,7 @@ public class  AppRoleService {
 	 */
 	public AppRole readAppRoleBasicDetails(String token, String rolename) {
 		AppRole appRole = null;
-		if (TVaultConstants.hideMasterAppRole && rolename.equals(TVaultConstants.SELF_SERVICE_APPROLE_NAME)) {
+		if (TVaultConstants.HIDEMASTERAPPROLE && rolename.equals(TVaultConstants.SELF_SERVICE_APPROLE_NAME)) {
 			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 				      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 					  put(LogMessage.ACTION, "getAppRole").
