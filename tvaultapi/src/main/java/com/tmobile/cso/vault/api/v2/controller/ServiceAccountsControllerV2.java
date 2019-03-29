@@ -100,6 +100,13 @@ public class ServiceAccountsControllerV2 {
 		return serviceAccountsService.offboardServiceAccount(token, serviceAccount, userDetails);
 	}
 
+    /**
+     * Add group to Service Account
+     * @param request
+     * @param token
+     * @param serviceAccountGroup
+     * @return
+     */
 	@ApiOperation(value = "${ServiceAccountsControllerV2.addGroupToServiceAccount.value}", notes = "${ServiceAccountsControllerV2.addGroupToServiceAccount.notes}")
 	@PostMapping(value="/v2/serviceaccounts/group", produces="application/json")
 	public ResponseEntity<String> addGroupToSvcAcc( HttpServletRequest request, @RequestHeader(value="vault-token") String token, @RequestBody ServiceAccountGroup serviceAccountGroup ){
@@ -107,10 +114,31 @@ public class ServiceAccountsControllerV2 {
 		return serviceAccountsService.addGroupToServiceAccount(token, serviceAccountGroup, userDetails);
 	}
 
+    /**
+     * Remove group from Service Account
+     * @param request
+     * @param token
+     * @param serviceAccountGroup
+     * @return
+     */
     @ApiOperation(value = "${ServiceAccountsControllerV2.removeGroupFromServiceAccount.value}", notes = "${ServiceAccountsControllerV2.removeGroupFromServiceAccount.notes}")
     @DeleteMapping(value="/v2/serviceaccounts/group", produces="application/json")
     public ResponseEntity<String> removeGroupFromSvcAcc( HttpServletRequest request, @RequestHeader(value="vault-token") String token, @RequestBody ServiceAccountGroup serviceAccountGroup ){
         UserDetails userDetails = (UserDetails) ((HttpServletRequest) request).getAttribute("UserDetails");
         return serviceAccountsService.removeGroupFromServiceAccount(token, serviceAccountGroup, userDetails);
+    }
+
+    /**
+     * Add approle to Service Account
+     * @param request
+     * @param token
+     * @param serviceAccountApprole
+     * @return
+     */
+    @ApiOperation(value = "${ServiceAccountsControllerV2.associateApprole.value}", notes = "${ServiceAccountsControllerV2.associateApprole.notes}")
+    @PostMapping(value="/v2/serviceaccounts/approle",consumes="application/json",produces="application/json")
+    public ResponseEntity<String>associateApproletoSDB(HttpServletRequest request, @RequestHeader(value="vault-token") String token, @RequestBody ServiceAccountApprole serviceAccountApprole) {
+        UserDetails userDetails = (UserDetails) ((HttpServletRequest) request).getAttribute("UserDetails");
+        return serviceAccountsService.associateApproletoSvcAcc(userDetails, token, serviceAccountApprole);
     }
 }

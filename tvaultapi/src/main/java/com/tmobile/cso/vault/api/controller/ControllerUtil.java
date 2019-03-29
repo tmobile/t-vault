@@ -2181,4 +2181,28 @@ public final class ControllerUtil {
 		}
 		return null;
 	}
+
+	/**
+	 * Validate Service Account Approle inputs
+	 * @param serviceAccountApprole
+	 * @return
+	 */
+	public static boolean areSvcaccApproleInputsValid(ServiceAccountApprole serviceAccountApprole) {
+		if (ObjectUtils.isEmpty(serviceAccountApprole)) {
+			return false;
+		}
+		if (ObjectUtils.isEmpty(serviceAccountApprole.getApprolename())
+				|| ObjectUtils.isEmpty(serviceAccountApprole.getAccess())
+				|| ObjectUtils.isEmpty(serviceAccountApprole.getSvcAccName())
+				) {
+			return false;
+		}
+		String access = serviceAccountApprole.getAccess();
+		if (!ArrayUtils.contains(permissions, access)) {
+			return false;
+		}
+		return true;
+	}
+
+
 }

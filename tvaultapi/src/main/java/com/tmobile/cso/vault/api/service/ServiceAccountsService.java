@@ -33,6 +33,7 @@ import java.util.Map;
 import javax.naming.NamingException;
 import javax.naming.directory.Attributes;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.tmobile.cso.vault.api.model.*;
 import org.apache.commons.collections.CollectionUtils;
 import com.tmobile.cso.vault.api.utils.PolicyUtils;
@@ -877,19 +878,33 @@ public class  ServiceAccountsService {
 		return ResponseEntity.status(response.getHttpstatus()).body(response.getResponse());
 	}
 
-	public boolean canAddOrRemoveGroup(UserDetails userDetails, ServiceAccountGroup serviceAccountGroup, String action, String token) {
+    /**
+     * Check if user has the permission to add user/group/awsrole/approles to the Service Account
+     * @param userDetails
+     * @param action
+     * @param token
+     * @return
+     */
+    public boolean hasAddOrRemovePermission(UserDetails userDetails, String serviceAccount, String token) {
         // Owner of the service account or admin user can add/remove group to service account
         if (userDetails.isAdmin()) {
             return true;
         }
-		String o_policy = new StringBuffer().append(TVaultConstants.SVC_ACC_POLICIES_PREFIXES.getKey(TVaultConstants.SUDO_POLICY)).append(TVaultConstants.SVC_ACC_PATH_PREFIX).append("_").append(serviceAccountGroup.getSvcAccName()).toString();
-		String [] policies = policyUtils.getCurrentPolicies(token, userDetails.getUsername());
-		if (ArrayUtils.contains(policies, o_policy)) {
-			return true;
-		}
-		return false;
-	}
+        String o_policy = new StringBuffer().append(TVaultConstants.SVC_ACC_POLICIES_PREFIXES.getKey(TVaultConstants.SUDO_POLICY)).append(TVaultConstants.SVC_ACC_PATH_PREFIX).append("_").append(serviceAccount).toString();
+        String [] policies = policyUtils.getCurrentPolicies(token, userDetails.getUsername());
+        if (ArrayUtils.contains(policies, o_policy)) {
+            return true;
+        }
+        return false;
+    }
 
+    /**
+     * Add Group to Service Account
+     * @param token
+     * @param serviceAccountGroup
+     * @param userDetails
+     * @return
+     */
 	public ResponseEntity<String> addGroupToServiceAccount(String token, ServiceAccountGroup serviceAccountGroup, UserDetails userDetails) {
 
 		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
@@ -914,7 +929,7 @@ public class  ServiceAccountsService {
 		groupName = (groupName !=null) ? groupName.toLowerCase() : groupName;
 		access = (access != null) ? access.toLowerCase(): access;
 
-		boolean canAddGroup = canAddOrRemoveGroup(userDetails, serviceAccountGroup, TVaultConstants.ADD_GROUP, token);
+		boolean canAddGroup = hasAddOrRemovePermission(userDetails, svcAccName, token);
 		if(canAddGroup){
 
 			String policy = TVaultConstants.EMPTY;
@@ -1036,6 +1051,13 @@ public class  ServiceAccountsService {
 		}
 	}
 
+    /**
+     * Remove Group Service Account
+     * @param token
+     * @param serviceAccountGroup
+     * @param userDetails
+     * @return
+     */
     public ResponseEntity<String> removeGroupFromServiceAccount(String token, ServiceAccountGroup serviceAccountGroup, UserDetails userDetails) {
         log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
                 put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
@@ -1055,7 +1077,7 @@ public class  ServiceAccountsService {
 
         boolean isAuthorized = true;
         if (userDetails != null) {
-            isAuthorized = canAddOrRemoveGroup(userDetails, serviceAccountGroup, TVaultConstants.REMOVE_USER, token);
+            isAuthorized = hasAddOrRemovePermission(userDetails, svcAccName, token);
         }
 
         if(isAuthorized){
@@ -1156,5 +1178,158 @@ public class  ServiceAccountsService {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Access denied: No permission to add groups to this service account\"]}");
         }
 
+    }
+
+    /**
+     * Associate Approle to Service Account
+     * @param userDetails
+     * @param token
+     * @param serviceAccountApprole
+     * @return
+     */
+    public ResponseEntity<String> associateApproletoSvcAcc(UserDetails userDetails, String token, ServiceAccountApprole serviceAccountApprole) {
+        log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+                put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+                put(LogMessage.ACTION, "Add Approle to Service Account").
+                put(LogMessage.MESSAGE, String.format ("Trying to add Approle to Service Account")).
+                put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+                build()));
+
+        if(!ControllerUtil.areSvcaccApproleInputsValid(serviceAccountApprole)) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid input values\"]}");
+        }
+
+        String approleName = serviceAccountApprole.getApprolename();
+        String svcAccName = serviceAccountApprole.getSvcAccName();
+        String access = serviceAccountApprole.getAccess();
+
+        if (TVaultConstants.USERPASS.equals(vaultAuthMethod)) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"This operation is not supported for Userpass authentication. \"]}");
+        }
+        if (serviceAccountApprole.getApprolename().equals(TVaultConstants.SELF_SERVICE_APPROLE_NAME)) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Access denied: no permission to associate this AppRole to any Service Account\"]}");
+        }
+        approleName = (approleName !=null) ? approleName.toLowerCase() : approleName;
+        access = (access != null) ? access.toLowerCase(): access;
+
+        boolean isAuthorized = hasAddOrRemovePermission(userDetails, svcAccName, token);
+        if(isAuthorized){
+
+            String policy = TVaultConstants.EMPTY;
+            policy = new StringBuffer().append(TVaultConstants.SVC_ACC_POLICIES_PREFIXES.getKey(access)).append(TVaultConstants.SVC_ACC_PATH_PREFIX).append("_").append(svcAccName).toString();
+
+            log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+                    put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+                    put(LogMessage.ACTION, "Add Approle to Service Account").
+                    put(LogMessage.MESSAGE, String.format ("policy is [%s]", policy)).
+                    put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+                    build()));
+            String r_policy = new StringBuffer().append(TVaultConstants.SVC_ACC_POLICIES_PREFIXES.getKey(TVaultConstants.READ_POLICY)).append(TVaultConstants.SVC_ACC_PATH_PREFIX).append("_").append(svcAccName).toString();
+            String w_policy = new StringBuffer().append(TVaultConstants.SVC_ACC_POLICIES_PREFIXES.getKey(TVaultConstants.WRITE_POLICY)).append(TVaultConstants.SVC_ACC_PATH_PREFIX).append("_").append(svcAccName).toString();
+            String d_policy = new StringBuffer().append(TVaultConstants.SVC_ACC_POLICIES_PREFIXES.getKey(TVaultConstants.DENY_POLICY)).append(TVaultConstants.SVC_ACC_PATH_PREFIX).append("_").append(svcAccName).toString();
+            String o_policy = new StringBuffer().append(TVaultConstants.SVC_ACC_POLICIES_PREFIXES.getKey(TVaultConstants.SUDO_POLICY)).append(TVaultConstants.SVC_ACC_PATH_PREFIX).append("_").append(svcAccName).toString();
+
+            log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+                    put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+                    put(LogMessage.ACTION, "Add Approle to Service Account").
+                    put(LogMessage.MESSAGE, String.format ("Policies are, read - [%s], write - [%s], deny -[%s], owner - [%s]", r_policy, w_policy, d_policy, o_policy)).
+                    put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+                    build()));
+
+            Response roleResponse = reqProcessor.process("/auth/approle/role/read","{\"role_name\":\""+approleName+"\"}",token);
+
+            log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+                    put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+                    put(LogMessage.ACTION, "Add Approle to ServiceAccount").
+                    put(LogMessage.MESSAGE, String.format ("roleResponse status is [%s]", roleResponse.getHttpstatus())).
+                    put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+                    build()));
+
+            String responseJson="";
+            List<String> policies = new ArrayList<>();
+            List<String> currentpolicies = new ArrayList<>();
+
+            if(HttpStatus.OK.equals(roleResponse.getHttpstatus())) {
+				responseJson = roleResponse.getResponse();
+				ObjectMapper objMapper = new ObjectMapper();
+				try {
+					JsonNode policiesArry = objMapper.readTree(responseJson).get("data").get("policies");
+					for (JsonNode policyNode : policiesArry) {
+						currentpolicies.add(policyNode.asText());
+					}
+				} catch (IOException e) {
+					log.error(e);
+					log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+							put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+							put(LogMessage.ACTION, "Add Approle to ServiceAccount").
+							put(LogMessage.MESSAGE, String.format("Exception while creating currentpolicies")).
+							put(LogMessage.STACKTRACE, Arrays.toString(e.getStackTrace())).
+							put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+							build()));
+				}
+				policies.addAll(currentpolicies);
+				policies.remove(r_policy);
+				policies.remove(w_policy);
+				policies.remove(d_policy);
+				policies.add(policy);
+			}
+			String policiesString = org.apache.commons.lang3.StringUtils.join(policies, ",");
+			String currentpoliciesString = org.apache.commons.lang3.StringUtils.join(currentpolicies, ",");
+
+			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+					put(LogMessage.ACTION, "Add Approle to ServiceAccount").
+					put(LogMessage.MESSAGE, String.format ("policies [%s] before calling configureApprole", policies)).
+					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+					build()));
+
+			Response approleControllerResp = ControllerUtil.configureApprole(approleName,policiesString,token);
+
+			if(approleControllerResp.getHttpstatus().equals(HttpStatus.NO_CONTENT) || approleControllerResp.getHttpstatus().equals(HttpStatus.OK)){
+				Map<String,String> params = new HashMap<String,String>();
+				params.put("type", "app-roles");
+				params.put("name",approleName);
+				params.put("path","ad/"+svcAccName);
+				params.put("access",access);
+				Response metadataResponse = ControllerUtil.updateMetadataForSvcacc(params,token);
+				if(metadataResponse !=null && HttpStatus.NO_CONTENT.equals(metadataResponse.getHttpstatus())){
+					log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+							put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+							put(LogMessage.ACTION, "Add Approle to Service Account").
+							put(LogMessage.MESSAGE, "Approle configuration Success.").
+							put(LogMessage.STATUS, metadataResponse.getHttpstatus().toString()).
+							put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+							build()));
+					return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Approle successfully associated with Service Account\"]}");
+				}
+				approleControllerResp = ControllerUtil.configureApprole(approleName,currentpoliciesString,token);
+				if(approleControllerResp.getHttpstatus().equals(HttpStatus.NO_CONTENT)){
+					log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+							put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+							put(LogMessage.ACTION, "Add Approle to Service Account").
+							put(LogMessage.MESSAGE, "Reverting, Approle policy update success").
+							put(LogMessage.RESPONSE, (null!=metadataResponse)?metadataResponse.getResponse():TVaultConstants.EMPTY).
+							put(LogMessage.STATUS, (null!=metadataResponse)?metadataResponse.getHttpstatus().toString():TVaultConstants.EMPTY).
+							put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+							build()));
+					return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Approle configuration failed.Please try again\"]}");
+				}else{
+					log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+							put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+							put(LogMessage.ACTION, "Add Approle to Service Account").
+							put(LogMessage.MESSAGE, "Reverting Approle policy update failed").
+							put(LogMessage.RESPONSE, (null!=metadataResponse)?metadataResponse.getResponse():TVaultConstants.EMPTY).
+							put(LogMessage.STATUS, (null!=metadataResponse)?metadataResponse.getHttpstatus().toString():TVaultConstants.EMPTY).
+							put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+							build()));
+					return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Approle configuration failed.Contact Admin \"]}");
+				}
+			}
+			else {
+				return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Failed to add Approle to the Service Account\"]}");
+			}
+        }else{
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Access denied: No permission to add Approle to this service account\"]}");
+        }
     }
 }

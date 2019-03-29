@@ -21,34 +21,29 @@ import io.swagger.annotations.ApiModelProperty;
 
 import java.io.Serializable;
 
-public class ServiceAccountGroup implements Serializable {
+public class ServiceAccountApprole implements Serializable {
 
 
-	/**
-	 *
-	 */
-	private static final long serialVersionUID = 1971216743215122094L;
+
+	private static final long serialVersionUID = -768319598064659321L;
 	private String svcAccName;
-	private String groupname;
+	private String approlename;
 	private String access;
 
-	/**
-	 *
-	 */
-	public ServiceAccountGroup() {
+	public ServiceAccountApprole() {
 		super();
 	}
 
 
 	/**
 	 * @param svcAccName
-	 * @param groupname
+	 * @param approlename
 	 * @param access
 	 */
-	public ServiceAccountGroup(String svcAccName, String groupname, String access) {
+	public ServiceAccountApprole(String svcAccName, String approlename, String access) {
 		super();
 		this.svcAccName = svcAccName;
-		this.groupname = groupname;
+		this.approlename = approlename;
 		this.access = access;
 	}
 
@@ -73,17 +68,17 @@ public class ServiceAccountGroup implements Serializable {
 	/**
 	 * @return the groupname
 	 */
-	@ApiModelProperty(example="group1", position=2)
-	public String getGroupname() {
-		return groupname;
+	@ApiModelProperty(example="role1", position=2)
+	public String getApprolename() {
+		return approlename;
 	}
 
 
 	/**
-	 * @param groupname the username to set
+	 * @param approlename the username to set
 	 */
-	public void setGroupname(String groupname) {
-		this.groupname = groupname;
+	public void setApprolename(String approlename) {
+		this.approlename = approlename;
 	}
 
 
