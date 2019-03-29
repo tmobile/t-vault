@@ -60,10 +60,10 @@ public class TVaultConstants {
     public static final String APPROLE_READ_OPERATION="READ";
     public static final String APPROLE_UPDATE_OPERATION="UPDATE";
     public static final String SVC_ACC_PATH_PREFIX="svcacct";
-    //public static final String[] SVC_ACC_POLICIES = {TVaultConstants.READ_POLICY, TVaultConstants.WRITE_POLICY, TVaultConstants.OWNER_POLICY, TVaultConstants.DENY_POLICY};
-    public static final Map<String, String> SVC_ACC_POLICIES = Collections.synchronizedMap(new HashMap<String, String>());
+    public static final Map<String, String> SVC_ACC_POLICIES;
     public static final DualHashBidiMap SVC_ACC_POLICIES_PREFIXES ;
     static {
+    	SVC_ACC_POLICIES = Collections.synchronizedMap(new HashMap<String, String>());
     	SVC_ACC_POLICIES.put("r_", TVaultConstants.READ_POLICY);
     	SVC_ACC_POLICIES.put("w_", TVaultConstants.WRITE_POLICY);
     	SVC_ACC_POLICIES.put("o_", TVaultConstants.SUDO_POLICY);
