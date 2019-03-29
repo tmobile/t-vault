@@ -27,6 +27,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.tmobile.cso.vault.api.model.*;
+import com.tmobile.cso.vault.api.utils.PolicyUtils;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.logging.log4j.LogManager;
 import org.junit.Before;
@@ -54,15 +56,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
 import com.tmobile.cso.vault.api.common.TVaultConstants;
 import com.tmobile.cso.vault.api.controller.ControllerUtil;
-import com.tmobile.cso.vault.api.model.ADServiceAccount;
-import com.tmobile.cso.vault.api.model.ADServiceAccountObjects;
-import com.tmobile.cso.vault.api.model.ADServiceAccountObjectsList;
-import com.tmobile.cso.vault.api.model.OnboardedServiceAccount;
-import com.tmobile.cso.vault.api.model.OnboardedServiceAccountDetails;
-import com.tmobile.cso.vault.api.model.ServiceAccount;
-import com.tmobile.cso.vault.api.model.ServiceAccountTTL;
-import com.tmobile.cso.vault.api.model.ServiceAccountUser;
-import com.tmobile.cso.vault.api.model.UserDetails;
 import com.tmobile.cso.vault.api.process.RequestProcessor;
 import com.tmobile.cso.vault.api.process.Response;
 import com.tmobile.cso.vault.api.utils.JSONUtil;
@@ -87,6 +80,10 @@ public class ServiceAccountsServiceTest {
     @Mock
     LdapTemplate ldapTemplate;
 
+    @Mock
+    PolicyUtils policyUtils;
+
+
     @Before
     public void setUp() {
         PowerMockito.mockStatic(ControllerUtil.class);
@@ -97,6 +94,11 @@ public class ServiceAccountsServiceTest {
 
         Map<String, String> currentMap = new HashMap<>();
         currentMap.put("apiurl", "http://localhost:8080/vault/v2/ad");
+        PowerMockito.mockStatic(PolicyUtils.class);
+        ReflectionTestUtils.setField(serviceAccountsService, "vaultAuthMethod", "ldap");
+        Whitebox.setInternalState(ControllerUtil.class, "log", LogManager.getLogger(ControllerUtil.class));
+        when(JSONUtil.getJSON(any(ImmutableMap.class))).thenReturn("log");
+
         currentMap.put("user", "");
         ThreadLocalContext.setCurrentMap(currentMap);
     }
@@ -120,7 +122,7 @@ public class ServiceAccountsServiceTest {
         userDetails.setSelfSupportToken(token);
         return userDetails;
     }
-    
+
     private ADServiceAccount generateADServiceAccount(String  userid) {
         ADServiceAccount adServiceAccount = new ADServiceAccount();
         adServiceAccount.setDisplayName("testacc");
@@ -947,4 +949,279 @@ public class ServiceAccountsServiceTest {
     	assertEquals(responseEntityExpected, responseEntity);
     	
     }
+
+    @Test
+    public void test_addGroupToServiceAccount_successfully() {
+        String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+        String path = "shared/mysafe01";
+        ServiceAccountGroup serviceAccountGroup = new ServiceAccountGroup("svc_vault_test7", "group1", "write");
+        UserDetails userDetails = getMockUser(false);
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Group is successfully associated with Service Account\"]}");
+        ResponseEntity<String> response = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Group is successfully associated with Service Account\"]}");
+        Response responseNoContent = getMockResponse(HttpStatus.NO_CONTENT, true, "");
+
+        when(ControllerUtil.areSvcaccGroupInputsValid(serviceAccountGroup)).thenReturn(true);
+        String [] policies = {"o_svcacct_svc_vault_test7"};
+        when(policyUtils.getCurrentPolicies(token, userDetails.getUsername())).thenReturn(policies);
+        Response groupResp = getMockResponse(HttpStatus.OK, true, "{\"data\":{\"bound_cidrs\":[],\"max_ttl\":0,\"policies\":[\"default\",\"w_shared_mysafe01\",\"w_shared_mysafe02\"],\"ttl\":0,\"groups\":\"admin\"}}");
+        when(reqProcessor.process("/auth/ldap/groups","{\"groupname\":\"group1\"}",token)).thenReturn(groupResp);
+        ObjectMapper objMapper = new ObjectMapper();
+        String responseJson = groupResp.getResponse();
+        try {
+            List<String> resList = new ArrayList<>();
+            resList.add("default");
+            resList.add("w_shared_mysafe01");
+            resList.add("w_shared_mysafe02");
+            when(ControllerUtil.getPoliciesAsListFromJson(objMapper, responseJson)).thenReturn(resList);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        when(ControllerUtil.configureLDAPGroup(any(),any(),any())).thenReturn(responseNoContent);
+        when(ControllerUtil.updateMetadataForSvcacc(any(),eq(token))).thenReturn(responseNoContent);
+
+        ResponseEntity<String> responseEntity = serviceAccountsService.addGroupToServiceAccount(token, serviceAccountGroup, userDetails);
+        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntity);
+    }
+
+    @Test
+    public void test_addGroupToServiceAccount_metadata_failure() {
+        String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+        String path = "shared/mysafe01";
+        ServiceAccountGroup serviceAccountGroup = new ServiceAccountGroup("svc_vault_test7", "group1", "write");
+        UserDetails userDetails = getMockUser(false);
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Group configuration failed.Please try again\"]}");
+        ResponseEntity<String> response = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Group configuration failed.Please try again\"]}");
+        Response responseNoContent = getMockResponse(HttpStatus.NO_CONTENT, true, "");
+        Response response404 = getMockResponse(HttpStatus.NOT_FOUND, true, "");
+
+        when(ControllerUtil.areSvcaccGroupInputsValid(serviceAccountGroup)).thenReturn(true);
+        String [] policies = {"o_svcacct_svc_vault_test7"};
+        when(policyUtils.getCurrentPolicies(token, userDetails.getUsername())).thenReturn(policies);
+        Response groupResp = getMockResponse(HttpStatus.OK, true, "{\"data\":{\"bound_cidrs\":[],\"max_ttl\":0,\"policies\":[\"default\",\"w_shared_mysafe01\",\"w_shared_mysafe02\"],\"ttl\":0,\"groups\":\"admin\"}}");
+        when(reqProcessor.process("/auth/ldap/groups","{\"groupname\":\"group1\"}",token)).thenReturn(groupResp);
+        ObjectMapper objMapper = new ObjectMapper();
+        String responseJson = groupResp.getResponse();
+        try {
+            List<String> resList = new ArrayList<>();
+            resList.add("default");
+            resList.add("w_shared_mysafe01");
+            resList.add("w_shared_mysafe02");
+            when(ControllerUtil.getPoliciesAsListFromJson(objMapper, responseJson)).thenReturn(resList);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        when(ControllerUtil.configureLDAPGroup(any(),any(),any())).thenReturn(responseNoContent);
+        when(ControllerUtil.updateMetadataForSvcacc(any(),eq(token))).thenReturn(response404);
+
+        ResponseEntity<String> responseEntity = serviceAccountsService.addGroupToServiceAccount(token, serviceAccountGroup, userDetails);
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, responseEntity.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntity);
+    }
+
+    @Test
+    public void test_addGroupToServiceAccount_failure() {
+        String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+        String path = "shared/mysafe01";
+        ServiceAccountGroup serviceAccountGroup = new ServiceAccountGroup("svc_vault_test7", "group1", "write");
+        UserDetails userDetails = getMockUser(true);
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Failed to add group to the Service Account\"]}");
+        ResponseEntity<String> response = ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Failed to add group to the Service Account\"]}");
+        Response responseNoContent = getMockResponse(HttpStatus.NO_CONTENT, true, "");
+        Response response404 = getMockResponse(HttpStatus.NOT_FOUND, true, "");
+
+        when(ControllerUtil.areSvcaccGroupInputsValid(serviceAccountGroup)).thenReturn(true);
+        Response groupResp = getMockResponse(HttpStatus.OK, true, "{\"data\":{\"bound_cidrs\":[],\"max_ttl\":0,\"policies\":[\"default\",\"w_shared_mysafe01\",\"w_shared_mysafe02\"],\"ttl\":0,\"groups\":\"admin\"}}");
+        when(reqProcessor.process("/auth/ldap/groups","{\"groupname\":\"group1\"}",token)).thenReturn(groupResp);
+        ObjectMapper objMapper = new ObjectMapper();
+        String responseJson = groupResp.getResponse();
+        try {
+            List<String> resList = new ArrayList<>();
+            resList.add("default");
+            resList.add("w_shared_mysafe01");
+            resList.add("w_shared_mysafe02");
+            when(ControllerUtil.getPoliciesAsListFromJson(objMapper, responseJson)).thenReturn(resList);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        when(ControllerUtil.configureLDAPGroup(any(),any(),any())).thenReturn(response404);
+
+        ResponseEntity<String> responseEntity = serviceAccountsService.addGroupToServiceAccount(token, serviceAccountGroup, userDetails);
+        assertEquals(HttpStatus.BAD_REQUEST, responseEntity.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntity);
+    }
+
+    @Test
+    public void test_addGroupToServiceAccount_failure_403() {
+        String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+        String path = "shared/mysafe01";
+        ServiceAccountGroup serviceAccountGroup = new ServiceAccountGroup("svc_vault_test7", "group1", "write");
+        UserDetails userDetails = getMockUser(false);
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Access denied: No permission to add groups to this service account\"]}");
+        ResponseEntity<String> response = ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Access denied: No permission to add groups to this service account\"]}");
+        Response responseNoContent = getMockResponse(HttpStatus.NO_CONTENT, true, "");
+        Response response404 = getMockResponse(HttpStatus.NOT_FOUND, true, "");
+
+        when(ControllerUtil.areSvcaccGroupInputsValid(serviceAccountGroup)).thenReturn(true);
+        String [] policies = {"w_svcacct_svc_vault_test7"};
+        when(policyUtils.getCurrentPolicies(token, userDetails.getUsername())).thenReturn(policies);
+        Response groupResp = getMockResponse(HttpStatus.OK, true, "{\"data\":{\"bound_cidrs\":[],\"max_ttl\":0,\"policies\":[\"default\",\"w_shared_mysafe01\",\"w_shared_mysafe02\"],\"ttl\":0,\"groups\":\"admin\"}}");
+        when(reqProcessor.process("/auth/ldap/groups","{\"groupname\":\"group1\"}",token)).thenReturn(groupResp);
+        ObjectMapper objMapper = new ObjectMapper();
+        String responseJson = groupResp.getResponse();
+        try {
+            List<String> resList = new ArrayList<>();
+            resList.add("default");
+            resList.add("w_shared_mysafe01");
+            resList.add("w_shared_mysafe02");
+            when(ControllerUtil.getPoliciesAsListFromJson(objMapper, responseJson)).thenReturn(resList);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        when(ControllerUtil.configureLDAPGroup(any(),any(),any())).thenReturn(response404);
+
+        ResponseEntity<String> responseEntity = serviceAccountsService.addGroupToServiceAccount(token, serviceAccountGroup, userDetails);
+        assertEquals(HttpStatus.BAD_REQUEST, responseEntity.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntity);
+    }
+
+
+    @Test
+    public void test_removeGroupToServiceAccount_successfully() {
+        String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+        String path = "shared/mysafe01";
+        ServiceAccountGroup serviceAccountGroup = new ServiceAccountGroup("svc_vault_test7", "group1", "write");
+        UserDetails userDetails = getMockUser(false);
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Group is successfully removed from Service Account\"]}");
+        ResponseEntity<String> response = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Group is successfully removed from Service Account\"]}");
+        Response responseNoContent = getMockResponse(HttpStatus.NO_CONTENT, true, "");
+
+        when(ControllerUtil.areSvcaccGroupInputsValid(serviceAccountGroup)).thenReturn(true);
+        String [] policies = {"o_svcacct_svc_vault_test7"};
+        when(policyUtils.getCurrentPolicies(token, userDetails.getUsername())).thenReturn(policies);
+        Response groupResp = getMockResponse(HttpStatus.OK, true, "{\"data\":{\"bound_cidrs\":[],\"max_ttl\":0,\"policies\":[\"default\",\"w_shared_mysafe01\",\"w_shared_mysafe02\"],\"ttl\":0,\"groups\":\"admin\"}}");
+        when(reqProcessor.process("/auth/ldap/groups","{\"groupname\":\"group1\"}",token)).thenReturn(groupResp);
+        ObjectMapper objMapper = new ObjectMapper();
+        String responseJson = groupResp.getResponse();
+        try {
+            List<String> resList = new ArrayList<>();
+            resList.add("default");
+            resList.add("w_shared_mysafe01");
+            resList.add("w_shared_mysafe02");
+            when(ControllerUtil.getPoliciesAsListFromJson(objMapper, responseJson)).thenReturn(resList);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        when(ControllerUtil.configureLDAPGroup(any(),any(),any())).thenReturn(responseNoContent);
+        when(ControllerUtil.updateMetadataForSvcacc(any(),eq(token))).thenReturn(responseNoContent);
+
+        ResponseEntity<String> responseEntity = serviceAccountsService.removeGroupFromServiceAccount(token, serviceAccountGroup, userDetails);
+        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntity);
+    }
+
+    @Test
+    public void test_removeGroupToServiceAccount_metadata_failure() {
+        String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+        String path = "shared/mysafe01";
+        ServiceAccountGroup serviceAccountGroup = new ServiceAccountGroup("svc_vault_test7", "group1", "write");
+        UserDetails userDetails = getMockUser(false);
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Group configuration failed.Please try again\"]}");
+        ResponseEntity<String> response = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Group configuration failed.Please try again\"]}");
+        Response responseNoContent = getMockResponse(HttpStatus.NO_CONTENT, true, "");
+        Response response404 = getMockResponse(HttpStatus.NOT_FOUND, true, "");
+
+        when(ControllerUtil.areSvcaccGroupInputsValid(serviceAccountGroup)).thenReturn(true);
+        String [] policies = {"o_svcacct_svc_vault_test7"};
+        when(policyUtils.getCurrentPolicies(token, userDetails.getUsername())).thenReturn(policies);
+        Response groupResp = getMockResponse(HttpStatus.OK, true, "{\"data\":{\"bound_cidrs\":[],\"max_ttl\":0,\"policies\":[\"default\",\"w_shared_mysafe01\",\"w_shared_mysafe02\"],\"ttl\":0,\"groups\":\"admin\"}}");
+        when(reqProcessor.process("/auth/ldap/groups","{\"groupname\":\"group1\"}",token)).thenReturn(groupResp);
+        ObjectMapper objMapper = new ObjectMapper();
+        String responseJson = groupResp.getResponse();
+        try {
+            List<String> resList = new ArrayList<>();
+            resList.add("default");
+            resList.add("w_shared_mysafe01");
+            resList.add("w_shared_mysafe02");
+            when(ControllerUtil.getPoliciesAsListFromJson(objMapper, responseJson)).thenReturn(resList);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        when(ControllerUtil.configureLDAPGroup(any(),any(),any())).thenReturn(responseNoContent);
+        when(ControllerUtil.updateMetadataForSvcacc(any(),eq(token))).thenReturn(response404);
+
+        ResponseEntity<String> responseEntity = serviceAccountsService.removeGroupFromServiceAccount(token, serviceAccountGroup, userDetails);
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, responseEntity.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntity);
+    }
+
+    @Test
+    public void test_removeGroupToServiceAccount_failure() {
+        String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+        String path = "shared/mysafe01";
+        ServiceAccountGroup serviceAccountGroup = new ServiceAccountGroup("svc_vault_test7", "group1", "write");
+        UserDetails userDetails = getMockUser(true);
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Failed to remove the group from the Service Account\"]}");
+        ResponseEntity<String> response = ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Failed to remove the group from the Service Account\"]}");
+        Response responseNoContent = getMockResponse(HttpStatus.NO_CONTENT, true, "");
+        Response response404 = getMockResponse(HttpStatus.NOT_FOUND, true, "");
+
+        when(ControllerUtil.areSvcaccGroupInputsValid(serviceAccountGroup)).thenReturn(true);
+        Response groupResp = getMockResponse(HttpStatus.OK, true, "{\"data\":{\"bound_cidrs\":[],\"max_ttl\":0,\"policies\":[\"default\",\"w_shared_mysafe01\",\"w_shared_mysafe02\"],\"ttl\":0,\"groups\":\"admin\"}}");
+        when(reqProcessor.process("/auth/ldap/groups","{\"groupname\":\"group1\"}",token)).thenReturn(groupResp);
+        ObjectMapper objMapper = new ObjectMapper();
+        String responseJson = groupResp.getResponse();
+        try {
+            List<String> resList = new ArrayList<>();
+            resList.add("default");
+            resList.add("w_shared_mysafe01");
+            resList.add("w_shared_mysafe02");
+            when(ControllerUtil.getPoliciesAsListFromJson(objMapper, responseJson)).thenReturn(resList);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        when(ControllerUtil.configureLDAPGroup(any(),any(),any())).thenReturn(response404);
+
+        ResponseEntity<String> responseEntity = serviceAccountsService.removeGroupFromServiceAccount(token, serviceAccountGroup, userDetails);
+        assertEquals(HttpStatus.BAD_REQUEST, responseEntity.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntity);
+    }
+
+    @Test
+    public void test_removeGroupToServiceAccount_failure_403() {
+        String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+        String path = "shared/mysafe01";
+        ServiceAccountGroup serviceAccountGroup = new ServiceAccountGroup("svc_vault_test7", "group1", "write");
+        UserDetails userDetails = getMockUser(false);
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Access denied: No permission to add groups to this service account\"]}");
+        ResponseEntity<String> response = ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Access denied: No permission to add groups to this service account\"]}");
+        Response responseNoContent = getMockResponse(HttpStatus.NO_CONTENT, true, "");
+        Response response404 = getMockResponse(HttpStatus.NOT_FOUND, true, "");
+
+        when(ControllerUtil.areSvcaccGroupInputsValid(serviceAccountGroup)).thenReturn(true);
+        String [] policies = {"w_svcacct_svc_vault_test7"};
+        when(policyUtils.getCurrentPolicies(token, userDetails.getUsername())).thenReturn(policies);
+        Response groupResp = getMockResponse(HttpStatus.OK, true, "{\"data\":{\"bound_cidrs\":[],\"max_ttl\":0,\"policies\":[\"default\",\"w_shared_mysafe01\",\"w_shared_mysafe02\"],\"ttl\":0,\"groups\":\"admin\"}}");
+        when(reqProcessor.process("/auth/ldap/groups","{\"groupname\":\"group1\"}",token)).thenReturn(groupResp);
+        ObjectMapper objMapper = new ObjectMapper();
+        String responseJson = groupResp.getResponse();
+        try {
+            List<String> resList = new ArrayList<>();
+            resList.add("default");
+            resList.add("w_shared_mysafe01");
+            resList.add("w_shared_mysafe02");
+            when(ControllerUtil.getPoliciesAsListFromJson(objMapper, responseJson)).thenReturn(resList);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        when(ControllerUtil.configureLDAPGroup(any(),any(),any())).thenReturn(response404);
+
+        ResponseEntity<String> responseEntity = serviceAccountsService.removeGroupFromServiceAccount(token, serviceAccountGroup, userDetails);
+        assertEquals(HttpStatus.BAD_REQUEST, responseEntity.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntity);
+    }
+
+
+
+
 }

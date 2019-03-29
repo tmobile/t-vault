@@ -907,8 +907,6 @@ public class  ServiceAccountsService {
 		String svcAccName = serviceAccountGroup.getSvcAccName();
 		String access = serviceAccountGroup.getAccess();
 
-
-		String jsonstr = JSONUtil.getJSON(serviceAccountGroup);
 		if (TVaultConstants.USERPASS.equals(vaultAuthMethod)) {
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"This operation is not supported for Userpass authentication. \"]}");
 		}
@@ -920,9 +918,8 @@ public class  ServiceAccountsService {
 		if(canAddGroup){
 
 			String policy = TVaultConstants.EMPTY;
-			//for (String policyPrefix : TVaultConstants.SVC_ACC_POLICIES.keySet()) {
 			policy = new StringBuffer().append(TVaultConstants.SVC_ACC_POLICIES_PREFIXES.getKey(access)).append(TVaultConstants.SVC_ACC_PATH_PREFIX).append("_").append(svcAccName).toString();
-			//}
+
 			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 					put(LogMessage.ACTION, "Add Group to Service Account").
@@ -980,6 +977,7 @@ public class  ServiceAccountsService {
 				policies.add(policy);
 			}
 			String policiesString = org.apache.commons.lang3.StringUtils.join(policies, ",");
+			String currentpoliciesString = org.apache.commons.lang3.StringUtils.join(currentpolicies, ",");
 
 			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
@@ -1007,7 +1005,28 @@ public class  ServiceAccountsService {
 							build()));
 					return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Group is successfully associated with Service Account\"]}");
 				}
-                return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Successfully added group to the Service Account, but metadata update failed\"]}");
+				ldapConfigresponse = ControllerUtil.configureLDAPGroup(groupName,currentpoliciesString,token);
+				if(ldapConfigresponse.getHttpstatus().equals(HttpStatus.NO_CONTENT)){
+					log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+							put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+							put(LogMessage.ACTION, "Add Group to Service Account").
+							put(LogMessage.MESSAGE, "Reverting, group policy update success").
+							put(LogMessage.RESPONSE, (null!=metadataResponse)?metadataResponse.getResponse():TVaultConstants.EMPTY).
+							put(LogMessage.STATUS, (null!=metadataResponse)?metadataResponse.getHttpstatus().toString():TVaultConstants.EMPTY).
+							put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+							build()));
+					return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Group configuration failed.Please try again\"]}");
+				}else{
+					log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+							put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+							put(LogMessage.ACTION, "Add Group to Service Account").
+							put(LogMessage.MESSAGE, "Reverting group policy update failed").
+							put(LogMessage.RESPONSE, (null!=metadataResponse)?metadataResponse.getResponse():TVaultConstants.EMPTY).
+							put(LogMessage.STATUS, (null!=metadataResponse)?metadataResponse.getHttpstatus().toString():TVaultConstants.EMPTY).
+							put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+							build()));
+					return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Group configuration failed.Contact Admin \"]}");
+				}
 			}
 			else {
 				return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Failed to add group to the Service Account\"]}");
@@ -1062,7 +1081,6 @@ public class  ServiceAccountsService {
                     build()));
 
             String responseJson="";
-            String groups="";
             List<String> policies = new ArrayList<>();
             List<String> currentpolicies = new ArrayList<>();
             String policy = new StringBuffer().append(TVaultConstants.SVC_ACC_POLICIES_PREFIXES.getKey(access)).append(TVaultConstants.SVC_ACC_PATH_PREFIX).append("_").append(svcAccName).toString();
@@ -1087,7 +1105,7 @@ public class  ServiceAccountsService {
                 policies.remove(policy);
             }
             String policiesString = org.apache.commons.lang3.StringUtils.join(policies, ",");
-
+			String currentpoliciesString = org.apache.commons.lang3.StringUtils.join(currentpolicies, ",");
             Response ldapConfigresponse = ControllerUtil.configureLDAPGroup(groupName,policiesString,token);
 
             if(ldapConfigresponse.getHttpstatus().equals(HttpStatus.NO_CONTENT) || ldapConfigresponse.getHttpstatus().equals(HttpStatus.OK)){
@@ -1107,7 +1125,28 @@ public class  ServiceAccountsService {
 							build()));
 					return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Group is successfully removed from Service Account\"]}");
 				}
-                return ResponseEntity.status(HttpStatus.OK).body("{\"errors\":[\"Successfully removed group from Service Account, but metadata update failed\"]}");
+				ldapConfigresponse = ControllerUtil.configureLDAPGroup(groupName,currentpoliciesString,token);
+				if(ldapConfigresponse.getHttpstatus().equals(HttpStatus.NO_CONTENT)){
+					log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+							put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+							put(LogMessage.ACTION, "Add Group to Service Account").
+							put(LogMessage.MESSAGE, "Reverting, group policy update success").
+							put(LogMessage.RESPONSE, (null!=metadataResponse)?metadataResponse.getResponse():TVaultConstants.EMPTY).
+							put(LogMessage.STATUS, (null!=metadataResponse)?metadataResponse.getHttpstatus().toString():TVaultConstants.EMPTY).
+							put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+							build()));
+					return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Group configuration failed.Please try again\"]}");
+				}else{
+					log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+							put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+							put(LogMessage.ACTION, "Add Group to Service Account").
+							put(LogMessage.MESSAGE, "Reverting group policy update failed").
+							put(LogMessage.RESPONSE, (null!=metadataResponse)?metadataResponse.getResponse():TVaultConstants.EMPTY).
+							put(LogMessage.STATUS, (null!=metadataResponse)?metadataResponse.getHttpstatus().toString():TVaultConstants.EMPTY).
+							put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+							build()));
+					return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Group configuration failed.Contact Admin \"]}");
+				}
             }
             else {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Failed to remove the group from the Service Account\"]}");
