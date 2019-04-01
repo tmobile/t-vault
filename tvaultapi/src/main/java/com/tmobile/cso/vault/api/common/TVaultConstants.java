@@ -55,15 +55,15 @@ public class TVaultConstants {
     public static final String AWSROLE_METADATA_MOUNT_PATH = "metadata/awsrole";
     public static final String SELF_SERVICE_APPROLE_NAME = "selfservicesupportrole";
     public static final String SECRET = "secret";
-    public static final boolean hideMasterAppRole = true;
+    public static final boolean HIDEMASTERAPPROLE = true;
     public static final String APPROLE_DELETE_OPERATION="DELETE";
     public static final String APPROLE_READ_OPERATION="READ";
     public static final String APPROLE_UPDATE_OPERATION="UPDATE";
     public static final String SVC_ACC_PATH_PREFIX="svcacct";
-    //public static final String[] SVC_ACC_POLICIES = {TVaultConstants.READ_POLICY, TVaultConstants.WRITE_POLICY, TVaultConstants.OWNER_POLICY, TVaultConstants.DENY_POLICY};
-    public static final Map<String, String> SVC_ACC_POLICIES = Collections.synchronizedMap(new HashMap<String, String>());
+    protected static final Map<String, String> SVC_ACC_POLICIES;
     public static final DualHashBidiMap SVC_ACC_POLICIES_PREFIXES ;
     static {
+    	SVC_ACC_POLICIES = Collections.synchronizedMap(new HashMap<String, String>());
     	SVC_ACC_POLICIES.put("r_", TVaultConstants.READ_POLICY);
     	SVC_ACC_POLICIES.put("w_", TVaultConstants.WRITE_POLICY);
     	SVC_ACC_POLICIES.put("o_", TVaultConstants.SUDO_POLICY);
@@ -71,4 +71,11 @@ public class TVaultConstants {
     	SVC_ACC_POLICIES_PREFIXES = new DualHashBidiMap(SVC_ACC_POLICIES);
     }
     public static final String SVC_ACC_CREDS_PATH="ad/creds/";
+	/**
+	 * @return the svcAccPolicies
+	 */
+	public static Map<String, String> getSvcAccPolicies() {
+		return SVC_ACC_POLICIES;
+	}
+    
 }

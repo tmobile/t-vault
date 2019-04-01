@@ -67,6 +67,13 @@ public class OnboardedServiceAccount implements Serializable {
 	public void setName(String name) {
 		this.name = name;
 	}
+	
+	/**
+	 * @param owner the owner to set
+	 */
+	public void setOwner(String owner) {
+		this.owner = owner;
+	}
 
 	@Override
 	public String toString() {

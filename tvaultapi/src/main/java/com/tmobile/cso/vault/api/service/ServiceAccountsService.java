@@ -33,6 +33,7 @@ import java.util.Map;
 import javax.naming.NamingException;
 import javax.naming.directory.Attributes;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -135,7 +136,11 @@ public class  ServiceAccountsService {
 		List<ADServiceAccount> allServiceAccounts = getADServiceAccounts(andFilter);
 		ADServiceAccountObjects adServiceAccountObjects = new ADServiceAccountObjects();
 		ADServiceAccountObjectsList adServiceAccountObjectsList = new ADServiceAccountObjectsList();
-		adServiceAccountObjectsList.setValues(allServiceAccounts.toArray(new ADServiceAccount[allServiceAccounts.size()]));
+		Object[] values = new Object[] {};
+		if (!CollectionUtils.isEmpty(allServiceAccounts)) {
+			values = allServiceAccounts.toArray(new ADServiceAccount[allServiceAccounts.size()]);
+		}
+		adServiceAccountObjectsList.setValues(values);
 		adServiceAccountObjects.setData(adServiceAccountObjectsList);
 		return ResponseEntity.status(HttpStatus.OK).body(adServiceAccountObjects);
 	}
@@ -157,10 +162,6 @@ public class  ServiceAccountsService {
 			public ADServiceAccount mapFromAttributes(Attributes attr) throws NamingException {
 				ADServiceAccount adServiceAccount = new ADServiceAccount();
 				if (attr != null) {
-//					NamingEnumeration<? extends Attribute> attrs = attr.getAll();
-//					while (attrs.hasMoreElements()) {
-//						System.out.println(attrs.nextElement());
-//					}
 					String mail = ""; 
 					if(attr.get("mail") != null) {
 						mail = ((String) attr.get("mail").get());
@@ -444,23 +445,6 @@ public class  ServiceAccountsService {
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Failed to delete service account role.\"]}");
 		}
 	}
-	/**
-	 * Creates an AppRole that can be used to rotate the password
-	 * @param token
-	 * @param serviceAccount
-	 * @param userDetails
-	 * @return
-	 */
-	private ResponseEntity<String> createAppRole(String token, ServiceAccount serviceAccount, UserDetails userDetails) {
-		AppRole appRole = new AppRole();
-		appRole.setRole_name(serviceAccount.getName());
-		appRole.setSecret_id_num_uses(0);
-		appRole.setSecret_id_ttl(0);
-		appRole.setToken_max_ttl(0);
-		appRole.setToken_num_uses(0);
-		appRole.setToken_ttl(0);
-		return appRoleService.createAppRole(token, appRole, userDetails);
-	}
 
 	/**
 	 * Create policies for service account
@@ -470,20 +454,20 @@ public class  ServiceAccountsService {
 	 */
 	private  ResponseEntity<String> createServiceAccountPolicies(String token, String svcAccName) {
 		int succssCount = 0;
-		for (String policyPrefix : TVaultConstants.SVC_ACC_POLICIES.keySet()) {
+		for (String policyPrefix : TVaultConstants.getSvcAccPolicies().keySet()) {
 			AccessPolicy accessPolicy = new AccessPolicy();
 			String accessId = new StringBuffer().append(policyPrefix).append(TVaultConstants.SVC_ACC_PATH_PREFIX).append("_").append(svcAccName).toString();
 			accessPolicy.setAccessid(accessId);
 			HashMap<String,String> accessMap = new HashMap<String,String>();
 			String svcAccCredsPath=new StringBuffer().append(TVaultConstants.SVC_ACC_CREDS_PATH).append(svcAccName).toString();
-			accessMap.put(svcAccCredsPath, TVaultConstants.SVC_ACC_POLICIES.get(policyPrefix));
+			accessMap.put(svcAccCredsPath, TVaultConstants.getSvcAccPolicies().get(policyPrefix));
 			accessPolicy.setAccess(accessMap);
 			ResponseEntity<String> policyCreationStatus = accessService.createPolicy(token, accessPolicy);
 			if (HttpStatus.OK.equals(policyCreationStatus.getStatusCode())) {
 				succssCount++;
 			}
 		}
-		if (succssCount == TVaultConstants.SVC_ACC_POLICIES.size()) {
+		if (succssCount == TVaultConstants.getSvcAccPolicies().size()) {
 			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 					put(LogMessage.ACTION, "createServiceAccountPolicies").
@@ -508,21 +492,21 @@ public class  ServiceAccountsService {
 	 */
 	private  ResponseEntity<String> deleteServiceAccountPolicies(String token, String svcAccName) {
 		int succssCount = 0;
-		for (String policyPrefix : TVaultConstants.SVC_ACC_POLICIES.keySet()) {
+		for (String policyPrefix : TVaultConstants.getSvcAccPolicies().keySet()) {
 			String accessId = new StringBuffer().append(policyPrefix).append(TVaultConstants.SVC_ACC_PATH_PREFIX).append("_").append(svcAccName).toString();
 			ResponseEntity<String> policyCreationStatus = accessService.deletePolicyInfo(token, accessId);
 			if (HttpStatus.OK.equals(policyCreationStatus.getStatusCode())) {
 				succssCount++;
 			}
 		}
-		if (succssCount == TVaultConstants.SVC_ACC_POLICIES.size()) {
+		if (succssCount == TVaultConstants.getSvcAccPolicies().size()) {
 			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 					put(LogMessage.ACTION, "deleteServiceAccountPolicies").
 					put(LogMessage.MESSAGE, String.format ("Successfully created policies for service account.")).
 					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 					build()));
-			return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Successfully created policies for service account\"]}");
+			return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Successfully removed policies for service account\"]}");
 		}
 		log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
@@ -573,9 +557,7 @@ public class  ServiceAccountsService {
 
 		if(isAuthorized){
 			String policy = TVaultConstants.EMPTY;
-			//for (String policyPrefix : TVaultConstants.SVC_ACC_POLICIES.keySet()) {
-				policy = new StringBuffer().append(TVaultConstants.SVC_ACC_POLICIES_PREFIXES.getKey(access)).append(TVaultConstants.SVC_ACC_PATH_PREFIX).append("_").append(svcAccName).toString();
-			//}
+			policy = new StringBuffer().append(TVaultConstants.SVC_ACC_POLICIES_PREFIXES.getKey(access)).append(TVaultConstants.SVC_ACC_PATH_PREFIX).append("_").append(svcAccName).toString();
 			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 					put(LogMessage.ACTION, "Add User to Service Account").
@@ -600,13 +582,6 @@ public class  ServiceAccountsService {
 			else {
 				userResponse = reqProcessor.process("/auth/ldap/users","{\"username\":\""+userName+"\"}",token);
 			}
-
-			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
-					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
-					put(LogMessage.ACTION, "Add User to ServiceAccount").
-					put(LogMessage.MESSAGE, String.format ("userResponse status is [%s]", userResponse.getHttpstatus())).
-					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
-					build()));
 
 			String responseJson="";
 			String groups="";
@@ -642,7 +617,6 @@ public class  ServiceAccountsService {
 				policies.add(policy);
 			}
 			String policiesString = org.apache.commons.lang3.StringUtils.join(policies, ",");
-//			String currentpoliciesString = org.apache.commons.lang3.StringUtils.join(currentpolicies, ",");
 
 			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
@@ -736,9 +710,7 @@ public class  ServiceAccountsService {
 							put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 							build()));
 				}
-
 				policies.addAll(currentpolicies);
-
 				policies.remove(policy);
 			}
 			String policiesString = org.apache.commons.lang3.StringUtils.join(policies, ",");
@@ -751,7 +723,7 @@ public class  ServiceAccountsService {
 				ldapConfigresponse = ControllerUtil.configureLDAPUser(userName,policiesString,groups,token);
 			}
 			if(ldapConfigresponse.getHttpstatus().equals(HttpStatus.NO_CONTENT) || ldapConfigresponse.getHttpstatus().equals(HttpStatus.OK)){ 
-				return ResponseEntity.status(HttpStatus.OK).body("{\"errors\":[\"Successfully removed user from the Service Account\"]}");
+				return ResponseEntity.status(HttpStatus.OK).body("{\"message\":[\"Successfully removed user from the Service Account\"]}");
 			}
 			else {
 				return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Failed to remvoe the user from the Service Account\"]}");
@@ -806,7 +778,7 @@ public class  ServiceAccountsService {
 	 * Gets the details of an onboarded service account
 	 * @return
 	 */
-	public OnboardedServiceAccountDetails getOnboarderdServiceAccountDetails(String token, String svcAccName) {
+	private OnboardedServiceAccountDetails getOnboarderdServiceAccountDetails(String token, String svcAccName) {
 		OnboardedServiceAccountDetails onbSvcAccDtls = null;
 		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 			      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
@@ -862,8 +834,17 @@ public class  ServiceAccountsService {
 	 * @return
 	 */
 	public boolean canAddOrRemoveUser(UserDetails userDetails, ServiceAccountUser serviceAccountUser, String action) {
-		//TODO: Implementation to be completed...
-		return true;
+		if (userDetails != null && userDetails.isAdmin()) {
+			// Admin is always authorized to add/remove user
+			return true;
+		}
+		else {
+			//TODO: Implementation to be completed...
+			// Get the policies for the current users
+			// Get the serviceAccountName from serviceAccountUser
+			// If there is owner policy for the serviceAccountName, then this owner can add/remove user
+			return false;
+		}
 	}
 	/**
 	 * To get list of service accounts
