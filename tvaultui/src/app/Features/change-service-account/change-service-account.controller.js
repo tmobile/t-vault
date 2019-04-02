@@ -660,7 +660,6 @@
                                     document.getElementById('addUser').value = '';
                                     document.getElementById('addGroup').value = '';
                                 }
-                                $scope.inputSelected.select = false;
                                 $scope.searchValue = {
                                     userName: '',
                                     groupName: ''
