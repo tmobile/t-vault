@@ -464,16 +464,20 @@
             if (svcaccUserId != '') {
                 Modal.close();
                 $scope.isLoadingData = true;
-                var queryParameters = svcaccUserId;
-                var updatedUrlOfEndPoint = ModifyUrl.addUrlParameteres('getSvcaccOnboardInfo', queryParameters);
-                AdminSafesManagement.getSvcaccOnboardInfo(null, updatedUrlOfEndPoint).then(
+                //var queryParameters = svcaccUserId;
+                var queryParameters = "serviceAccountName="+svcaccUserId+"&excludeOnboarded=false";
+                var updatedUrlOfEndPoint = ModifyUrl.addUrlParameteres('getSvcaccInfo', queryParameters);
+                //var updatedUrlOfEndPoint = ModifyUrl.addUrlParameteres('getSvcaccOnboardInfo', queryParameters);
+                //AdminSafesManagement.getSvcaccOnboardInfo(null, updatedUrlOfEndPoint).then(
+                AdminSafesManagement.getSvcaccInfo(null, updatedUrlOfEndPoint).then(
                     function (response) {
                         if (UtilityService.ifAPIRequestSuccessful(response)) {                       
                             try {
-                                if (response.data) {
-                                    var object = response.data;
+                                if (response.data.data.values.length>0) {
+                                    //var object = response.data;
+                                    var object = response.data.data.values[0];
                                     var offboardPayload = {
-                                        "owner": object.owner,
+                                        "owner": object.managedBy,
                                         "name": svcaccUserId
                                     }
                                     AdminSafesManagement.offboardSvcacc(offboardPayload, '').then(
@@ -517,6 +521,12 @@
                                             $scope.error('md');
                 
                                     });
+                                } else {
+                                    console.log(error);
+                                    $scope.isLoadingData = false;
+                                    $scope.svcaccToOffboard = '';
+                                    $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
+                                    $scope.error('md');
                                 }
                             }
                             catch (e) {

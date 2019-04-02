@@ -645,7 +645,7 @@
             $scope.isLoadingData = true;
             $scope.isSvcaccExpired = false;
             $scope.expiredNote = '';
-            var queryParameters = "serviceAccountName="+svcaccId;
+            var queryParameters = "serviceAccountName="+svcaccId+"&excludeonboarded=false";
             var updatedUrlOfEndPoint = ModifyUrl.addUrlParameteres('getSvcaccInfo', queryParameters);
             AdminSafesManagement.getSvcaccInfo(null, updatedUrlOfEndPoint).then(
                 function (response) {
@@ -734,7 +734,7 @@
 
         $scope.pwdRotationChange = function() {
             $scope.autoRotate = !$scope.autoRotate;
-            $scope.svcacc.autoRotate = !$scope.svcacc.autoRotate;
+            $scope.svcacc.autoRotate = $scope.autoRotate;
             $scope.svcacc.ttl = '';
         }
 
@@ -782,6 +782,7 @@
             $scope.svcacc.svcaccId = svcaccObj.userId;  
             $scope.svcInputSelected = true;
             $scope.isCollapsed = false;
+            $scope.autoRotate = false;
         }
 
         $scope.collapseADDetails = function() {
@@ -808,6 +809,7 @@
                 ttl: '' ,
                 max_ttl: '',
             };
+            $scope.autoRotate = false;
             $scope.svcInputSelected = false;
             $scope.isCollapsed = true;
         }
