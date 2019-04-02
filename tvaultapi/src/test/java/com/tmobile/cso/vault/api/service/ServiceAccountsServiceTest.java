@@ -97,7 +97,6 @@ public class ServiceAccountsServiceTest {
 
         Map<String, String> currentMap = new HashMap<>();
         currentMap.put("apiurl", "http://localhost:8080/vault/v2/ad");
-        PowerMockito.mockStatic(PolicyUtils.class);
         ReflectionTestUtils.setField(serviceAccountsService, "vaultAuthMethod", "ldap");
         Whitebox.setInternalState(ControllerUtil.class, "log", LogManager.getLogger(ControllerUtil.class));
         when(JSONUtil.getJSON(any(ImmutableMap.class))).thenReturn("log");
