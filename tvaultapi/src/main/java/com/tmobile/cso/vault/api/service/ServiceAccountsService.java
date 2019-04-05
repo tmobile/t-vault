@@ -439,9 +439,7 @@ public class  ServiceAccountsService {
 		String svcAccName = serviceAccount.getName();
 		ServiceAccountUser serviceAccountUser = new ServiceAccountUser(svcAccName, serviceAccount.getOwner(), TVaultConstants.SUDO_POLICY);
 		// Remove the owner association (owner policy)
-		//TODO: Get the owner from the Service Account. For now use the passed value...
 		ResponseEntity<String> removeUserFromServiceAccountResponse = removeUserFromServiceAccount(token, serviceAccountUser, userDetails);
-		// TODO: How to remove other users?
 		if (!HttpStatus.OK.equals(removeUserFromServiceAccountResponse.getStatusCode())) {
 			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
@@ -458,6 +456,32 @@ public class  ServiceAccountsService {
 					put(LogMessage.MESSAGE, String.format ("Failed to delete some of the policies for service account")).
 					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 					build()));
+		}
+		// delete users,groups,aws-roles,app-roles from service account
+		String _path = TVaultConstants.SVC_ACC_ROLES_METADATA_MOUNT_PATH + "/" + svcAccName;
+		Response metaResponse = reqProcessor.process("/sdb","{\"path\":\""+_path+"\"}",token);
+		Map<String, Object> responseMap = null;
+		try {
+			responseMap = new ObjectMapper().readValue(metaResponse.getResponse(), new TypeReference<Map<String, Object>>(){});
+		} catch (IOException e) {
+			log.error(e);
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Error Fetching existing service account info \"]}");
+		}
+		if(responseMap!=null && responseMap.get("data")!=null){
+			Map<String,Object> metadataMap = (Map<String,Object>)responseMap.get("data");
+			Map<String,String> awsroles = (Map<String, String>)metadataMap.get("aws-roles");
+			Map<String,String> approles = (Map<String, String>)metadataMap.get("app-roles");
+			Map<String,String> groups = (Map<String, String>)metadataMap.get("groups");
+			Map<String,String> users = (Map<String, String>) metadataMap.get("users");
+			// always add owner to the users list whose policy should be updated
+			String managedBy = (String) metadataMap.get("managedBy");
+			if (!org.apache.commons.lang3.StringUtils.isEmpty(managedBy)) {
+				users.put(managedBy, "sudo");
+			}
+			ControllerUtil.updateUserPolicyAssociationOnSvcaccDelete(svcAccName,users,token);
+			ControllerUtil.updateGroupPolicyAssociationOnSvcaccDelete(svcAccName,groups,token);
+			//ControllerUtil.deleteAwsRoleAssociateionOnSvcaccDelete(path,awsroles,token);
+			//ControllerUtil.updateApprolePolicyAssociationOnSvcaccDelete(path,groups,token);
 		}
 		ResponseEntity<String> accountRoleDeletionResponse = deleteAccountRole(token, serviceAccount);
 		if (HttpStatus.OK.equals(accountRoleDeletionResponse.getStatusCode())) {
@@ -642,11 +666,13 @@ public class  ServiceAccountsService {
 				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 				build()));
 
-		//TODO: Validations
-
 		String userName = serviceAccountUser.getUsername();
 		String svcAccName = serviceAccountUser.getSvcAccName();
 		String access = serviceAccountUser.getAccess();
+
+		if(!ControllerUtil.areSvcUserInputsValid(serviceAccountUser)) {
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid input values\"]}");
+		}
 
 		// TODO: Validation for String expectedPath = TVaultConstants.SVC_ACC_CREDS_PATH+svcAccName;
 
@@ -786,10 +812,13 @@ public class  ServiceAccountsService {
 	 * @return
 	 */
 	public ResponseEntity<String> removeUserFromServiceAccount(String token, ServiceAccountUser serviceAccountUser, UserDetails userDetails) {
-		//TODO: Validations
 		String userName = serviceAccountUser.getUsername();
 		String svcAccName = serviceAccountUser.getSvcAccName();
 		String access = serviceAccountUser.getAccess();
+
+		if(!ControllerUtil.areSvcUserInputsValid(serviceAccountUser)) {
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid input values\"]}");
+		}
 
 		boolean isAuthorized = true;
 		if (userDetails != null) {
@@ -849,14 +878,6 @@ public class  ServiceAccountsService {
 				}
 				policies.addAll(currentpolicies);
 				policies.remove(policy);
-				if (TVaultConstants.SUDO_POLICY.equals(access)) {
-					policy = new StringBuffer().append(TVaultConstants.SVC_ACC_POLICIES_PREFIXES.getKey(TVaultConstants.READ_POLICY)).append(TVaultConstants.SVC_ACC_PATH_PREFIX).append("_").append(svcAccName).toString();
-					policies.remove(policy);
-					policy = new StringBuffer().append(TVaultConstants.SVC_ACC_POLICIES_PREFIXES.getKey(TVaultConstants.WRITE_POLICY)).append(TVaultConstants.SVC_ACC_PATH_PREFIX).append("_").append(svcAccName).toString();
-					policies.remove(policy);
-					policy = new StringBuffer().append(TVaultConstants.SVC_ACC_POLICIES_PREFIXES.getKey(TVaultConstants.DENY_POLICY)).append(TVaultConstants.SVC_ACC_PATH_PREFIX).append("_").append(svcAccName).toString();
-					policies.remove(policy);
-				}
 			}
 			String policiesString = org.apache.commons.lang3.StringUtils.join(policies, ",");
 

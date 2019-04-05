@@ -372,7 +372,8 @@
                             else {
                                 reqObjtobeSent = {
                                     "svcAccName": svcaccname,
-                                    "username": key
+                                    "username": key,
+                                    "access": permission
                                 };
                             }
                             break;
@@ -393,7 +394,8 @@
                             }
                             reqObjtobeSent = {
                                 "svcAccName": svcaccname,
-                                "role": key
+                                "role": key,
+                                "access": permission
                             };
                             break;
                         case 'AppRolePermission' :
