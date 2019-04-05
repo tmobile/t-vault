@@ -380,7 +380,8 @@
                             apiCallFunction = AdminSafesManagement.deleteGroupPermissionFromSvcacc;
                             reqObjtobeSent = {
                                 "svcAccName": svcaccname,
-                                "groupname": key
+                                "groupname": key,
+                                "access": permission
                             };
                             break;
                         case 'AWSPermission' :
@@ -399,7 +400,8 @@
                             apiCallFunction = AdminSafesManagement.detachAppRolePermissionFromSvcacc;
                             reqObjtobeSent = {
                                 "svcAccName": svcaccname,
-                                "role_name": key
+                                "approlename": key,
+                                "access": permission
                             };
                             break;
                     }
@@ -413,7 +415,7 @@
                                         $scope.addPermission(type, key, permission, true);  // This will be executed when we're editing permissions
                                     }
                                     else {
-                                        $scope.requestDataFrChangeSvcacc();
+                                        getMetadata(svcaccname); 
                                         if (type === "users" && key === SessionStore.getItem("username")) {
                                             return Modal.createModalWithController('stop.modal.html', {
                                                 title: 'Permission changed',
@@ -468,8 +470,6 @@
                             if (UtilityService.ifAPIRequestSuccessful(response)) {
                                 // Try-Catch block to catch errors if there is any change in object structure in the response
                                 try {
-                                    // $scope.awsConfPopupObj = response.data;
-                                    // $scope.awsConfPopupObj['role'] = rolename;
                                     $scope.editingAwsPermission = {"status": true};
                                     $scope.awsConfPopupObj = {
                                         "auth_type": response.data.auth_type,
@@ -626,12 +626,56 @@
         }
 
 
+        var getMetadata = function(svcaccId) {
+            $scope.isLoadingData = true;
+            var queryParameters = "path=ad/roles/"+svcaccId;
+            var updatedUrlOfEndPoint = ModifyUrl.addUrlParameteres('getSvcaccMetadata', queryParameters);
+            AdminSafesManagement.getSvcaccMetadata(null, updatedUrlOfEndPoint).then(function (response) {
+                    if (UtilityService.ifAPIRequestSuccessful(response)) {
+                        // Try-Catch block to catch errors if there is any change in object structure in the response
+                        try {
+                            $scope.isLoadingData = false;
+                            if (response.data.data) {
+                                var object = response.data.data;
+                                $scope.permissionData.UsersPermissionsData =  object.users || '';
+
+                                $scope.permissionData.GroupsPermissionsData =  object.groups ||'';
+
+                                $scope.permissionData.AwsPermissionsData = {
+                                    "data": object['aws-roles']
+                                }
+                                $scope.permissionData.AppRolePermissionsData = {
+                                    "data": object['app-roles']
+                                }
+                            }
+
+                        } catch (e) {
+                            console.log(e);
+                            $scope.isLoadingData = false;
+                            $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_PROCESSING_DATA');
+                            $scope.error('md');
+                        }
+                    }
+                    else {
+                        $scope.errorMessage = AdminSafesManagement.getTheRightErrorMessage(response);
+                        error('md');
+                    }
+                },
+                function (error) {
+                    // Error handling function
+                    console.log(error);
+                    $scope.isLoadingData = false;
+                    $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
+                    $scope.error('md');
+                })
+        }
+
         $rootScope.goToPermissions = function () {
             $timeout(function () {
                 if ($scope.isEditSvcacc) {
                     if(!angular.equals($scope.svcaccPrevious, $scope.svcacc)){
                         $scope.editSvcaccOnboard();
-                    } 
+                    }
                     $rootScope.showDetails = false;               // To show the 'permissions' and hide the 'details'
                     $rootScope.activeDetailsTab = 'permissions';                                           
                 }
@@ -645,7 +689,7 @@
             $scope.isLoadingData = true;
             $scope.isSvcaccExpired = false;
             $scope.expiredNote = '';
-            var queryParameters = "serviceAccountName="+svcaccId+"&excludeonboarded=false";
+            var queryParameters = "serviceAccountName="+svcaccId+"&excludeOnboarded=false";
             var updatedUrlOfEndPoint = ModifyUrl.addUrlParameteres('getSvcaccInfo', queryParameters);
             AdminSafesManagement.getSvcaccInfo(null, updatedUrlOfEndPoint).then(
                 function (response) {
@@ -697,7 +741,8 @@
                                         if ($scope.svcacc.accountExpires == "expired") {
                                             $scope.isSvcaccExpired = true;
                                             $scope.expiredNote = "(Expired)";
-                                        }                                
+                                        }
+                                        getMetadata($stateParams.svcaccData.userId);
                                     }
                                 }
                                 catch (e) {
@@ -739,7 +784,7 @@
         }
 
         $scope.requestDataFrChangeSvcacc = function () {
-            $scope.isLoadingData = true;            
+            $scope.isLoadingData = true;
             if ($stateParams.svcaccData) {
                 // Prefilled values when editing
                 $scope.changeSvcaccHeader = "EDIT SERVICE ACCOUNT";
@@ -863,6 +908,12 @@
                 ttl: '' ,    
                 max_ttl: '',      
             };
+            $scope.permissionData = {
+                UsersPermissionsData: '',
+                GroupsPermissionsData: '',
+                AwsPermissionsData: '',
+                AppRolePermissionsData: ''
+            }
             $scope.myVaultKey = SessionStore.getItem("myVaultKey");
             if(!$scope.myVaultKey){ /* Check if user is in the same session */
                 $state.go('signup');
@@ -977,7 +1028,7 @@
                             break;
                         case 'AppRolePermission' :
                             apiCallFunction = AdminSafesManagement.addAppRolePermissionForSvcacc;
-                            reqObjtobeSent = {"svcaccname": svcaccname, "role_name": key, "access": permission.toLowerCase()};
+                            reqObjtobeSent = {"svcAccName": svcaccname, "approlename": key, "access": permission.toLowerCase()};
                             break;
                                 }
                     apiCallFunction(reqObjtobeSent, updatedUrlOfEndPoint).then(function (response) {
@@ -989,7 +1040,7 @@
                                         $scope.addPermission('AWSPermission', $scope.awsConfPopupObj.role, permission, false);
                                     }
                                     else {
-                                        $scope.requestDataFrChangeSvcacc();
+                                        getMetadata(svcaccname);
                                         var notification = UtilityService.getAParticularSuccessMessage('MESSAGE_ADD_SUCCESS');
                                         if (key !== null && key !== undefined) {
                                             document.getElementById('addUser').value = '';

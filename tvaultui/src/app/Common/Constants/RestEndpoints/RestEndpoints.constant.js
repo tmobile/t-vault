@@ -247,6 +247,10 @@ readTextFile("../apiUrls.json");
             url: '/v2/serviceaccounts/onboard',
             method: 'POST'
         },{
+            name: 'getSvcaccMetadata',
+            url: '/v2/serviceaccounts/meta?',
+            method: 'GET'
+        },{
             name: 'addUserPermissionForSvcacc',
             url: '/v2/serviceaccounts/user',
             method: 'POST'

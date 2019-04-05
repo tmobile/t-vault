@@ -47,9 +47,9 @@ public class ServiceAccountsControllerV2 {
 	
 	@ApiOperation(value = "${ServiceAccountsControllerV2.getADServiceAccounts.value}", notes = "${ServiceAccountsControllerV2.getADServiceAccounts.notes}")
 	@GetMapping(value="/v2/ad/serviceaccounts", produces="application/json")
-	public ResponseEntity<ADServiceAccountObjects> getADServiceAccounts(HttpServletRequest request, @RequestHeader(value="vault-token") String token, @RequestParam("serviceAccountName" ) String serviceAccountName ){
+	public ResponseEntity<ADServiceAccountObjects> getADServiceAccounts(HttpServletRequest request, @RequestHeader(value="vault-token") String token, @RequestParam("serviceAccountName" ) String serviceAccountName, @RequestParam(value="excludeOnboarded", defaultValue="true") boolean excludeOnboarded ){
 		UserDetails userDetails = (UserDetails) ((HttpServletRequest) request).getAttribute("UserDetails");
-		return serviceAccountsService.getADServiceAccounts(token, userDetails, serviceAccountName, true);
+		return serviceAccountsService.getADServiceAccounts(token, userDetails, serviceAccountName, excludeOnboarded);
 	}
 	
 	@ApiOperation(value = "${ServiceAccountsControllerV2.getServiceAccounts.value}", notes = "${ServiceAccountsControllerV2.getServiceAccounts.notes}")
@@ -141,4 +141,18 @@ public class ServiceAccountsControllerV2 {
         UserDetails userDetails = (UserDetails) ((HttpServletRequest) request).getAttribute("UserDetails");
         return serviceAccountsService.associateApproletoSvcAcc(userDetails, token, serviceAccountApprole);
     }
+
+	/**
+	 * Get metadata for service account
+	 * @param request
+	 * @param token
+	 * @param path
+	 * @return
+	 */
+	@ApiOperation(value = "${ServiceAccountsControllerV2.getServiceAccountsMeta.value}", notes = "${ServiceAccountsControllerV2.getServiceAccountsMeta.notes}")
+	@GetMapping(value="/v2/serviceaccounts/meta", produces="application/json")
+	public ResponseEntity<String> getServiceAccountMeta(HttpServletRequest request, @RequestHeader(value="vault-token") String token, @RequestParam("path" ) String path){
+		UserDetails userDetails = (UserDetails) ((HttpServletRequest) request).getAttribute("UserDetails");
+		return serviceAccountsService.getServiceAccountMeta(token, userDetails, path);
+	}
 }

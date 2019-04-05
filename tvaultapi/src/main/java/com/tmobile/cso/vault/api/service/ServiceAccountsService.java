@@ -78,7 +78,6 @@ public class  ServiceAccountsService {
 	@Qualifier(value = "svcAccLdapTemplate")
 	private LdapTemplate ldapTemplate;
 	
-	private AppRoleService appRoleService;
 	@Autowired
 	private AccessService accessService;
 
@@ -267,7 +266,16 @@ public class  ServiceAccountsService {
 						put(LogMessage.MESSAGE, String.format ("TTL is [%s] is greater the MAX_TTL [%s]", serviceAccount.getTtl(), serviceAccount.getMax_ttl())).
 						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 						build()));
-				return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"ttl can't be more than max_ttl\"]}");
+				return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Password TTL can't be more than MAX_TTL\"]}");
+			}
+			if (serviceAccount.getTtl() > TVaultConstants.PASSWORD_AUTOROTATE_TTL_MAX_VALUE) {
+				log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+						put(LogMessage.ACTION, "onboardServiceAccount").
+						put(LogMessage.MESSAGE, String.format ("TTL is [%s] is greater the Maximum allowed [%s]", serviceAccount.getTtl(), TVaultConstants.PASSWORD_AUTOROTATE_TTL_MAX_VALUE)).
+						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+						build()));
+				return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Password TTL can't be more than "+TVaultConstants.PASSWORD_AUTOROTATE_TTL_MAX_VALUE+" seconds\"]}");
 			}
 		}
 		else {
@@ -281,6 +289,25 @@ public class  ServiceAccountsService {
 		}
 		ResponseEntity<String> accountRoleCreationResponse = createAccountRole(token, serviceAccount);
 		if(accountRoleCreationResponse.getStatusCode().equals(HttpStatus.OK)) {
+			// Create Metadata
+			ResponseEntity<String> metadataCreationResponse = createMetadata(token, serviceAccount);
+			if (HttpStatus.OK.equals(metadataCreationResponse.getStatusCode())) {
+				log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+						put(LogMessage.ACTION, "onboardServiceAccount").
+						put(LogMessage.MESSAGE, String.format ("Successfully created Metadata for the Service Account")).
+						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+						build()));
+			}
+			else {
+				log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+						put(LogMessage.ACTION, "onboardServiceAccount").
+						put(LogMessage.MESSAGE, String.format ("Successfully created Service Account Role. However creation of Metadata failed.")).
+						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+						build()));
+				return ResponseEntity.status(HttpStatus.MULTI_STATUS).body("{\"errors\":[\"Successfully created Service Account Role. However creation of Metadata failed.\"]}");
+			}
 			String svcAccName = serviceAccount.getName();
 			ResponseEntity<String> svcAccPolicyCreationResponse = createServiceAccountPolicies(token, svcAccName);
 			if (HttpStatus.OK.equals(svcAccPolicyCreationResponse.getStatusCode())) {
@@ -302,7 +329,7 @@ public class  ServiceAccountsService {
 							put(LogMessage.MESSAGE, String.format ("Successfully created Service Account Role and policies. However the association of owner information failed.")).
 							put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 							build()));
-					return ResponseEntity.status(HttpStatus.MULTI_STATUS).body("{\"errors\":[\"Successfully created Service Account Role and policies. However the association of owner information failed.\"]}");
+					return ResponseEntity.status(HttpStatus.MULTI_STATUS).body("{\"messages\":[\"Successfully created Service Account Role and policies. However the association of owner information failed.\"]}");
 				}
 			}
 			else {
@@ -326,6 +353,81 @@ public class  ServiceAccountsService {
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Failed to onboard AD service account into TVault for password rotation.\"]}");
 		}
 	}
+
+	/**
+	 * To create Metadata for the Service Account
+	 * @param token
+	 * @param serviceAccount
+	 * @return
+	 */
+	private ResponseEntity<String> createMetadata(String token, ServiceAccount serviceAccount) {
+		String svcAccMetaDataJson = populateSvcAccMetaJson(serviceAccount.getName(), serviceAccount.getOwner());
+		boolean svcAccMetaDataCreationStatus = ControllerUtil.createMetadata(svcAccMetaDataJson, token);
+		if(svcAccMetaDataCreationStatus){
+			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+					put(LogMessage.ACTION, "createMetadata").
+					put(LogMessage.MESSAGE, String.format("Successfully created metadata for the Service Account [%s]", serviceAccount.getName())).
+					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+					build()));
+			return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Successfully created Metadata for the Service Account\"]}");
+		}
+		else {
+			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+					put(LogMessage.ACTION, "createAccountRole").
+					put(LogMessage.MESSAGE, "Unable to create Metadata for the Service Account").
+					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+					build()));
+		}
+		return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Failed to create Metadata for the Service Account\"]}");
+	}
+	/**
+	 * To delete metadata for the service account
+	 * @param token
+	 * @param serviceAccount
+	 * @return
+	 */
+	private ResponseEntity<String> deleteMetadata(String token, OnboardedServiceAccount serviceAccount) {
+		String svcAccMetaDataJson = populateSvcAccMetaJson(serviceAccount.getName(), serviceAccount.getOwner());
+		Response svcAccMetaDataJsonDeletionResponse = reqProcessor.process("/delete",svcAccMetaDataJson,token);
+		if(HttpStatus.OK.equals(svcAccMetaDataJsonDeletionResponse.getHttpstatus()) || HttpStatus.NO_CONTENT.equals(svcAccMetaDataJsonDeletionResponse.getHttpstatus())){
+			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+					put(LogMessage.ACTION, "deleteMetadata").
+					put(LogMessage.MESSAGE, String.format("Successfully deleted metadata for the Service Account [%s]", serviceAccount.getName())).
+					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+					build()));
+			return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Successfully deleted Metadata for the Service Account\"]}");
+		}
+		else {
+			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+					put(LogMessage.ACTION, "deleteMetadata").
+					put(LogMessage.MESSAGE, "Unable to delete Metadata for the Service Account").
+					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+					build()));
+		}
+		return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Failed to delete Metadata for the Service Account\"]}");
+	}
+
+	/**
+	 * Helper to generate input JSON for Service Account metadata
+	 * @param svcAccName
+	 * @param username
+	 * @return
+	 */
+	private String populateSvcAccMetaJson(String svcAccName, String username) {
+		String _path = TVaultConstants.SVC_ACC_ROLES_METADATA_MOUNT_PATH + "/" + svcAccName;
+		ServiceAccountMetadataDetails serviceAccountMetadataDetails = new ServiceAccountMetadataDetails(svcAccName);
+		serviceAccountMetadataDetails.setManagedBy(username);
+		ServiceAccountMetadata serviceAccountMetadata =  new ServiceAccountMetadata(_path, serviceAccountMetadataDetails);
+		String jsonStr = JSONUtil.getJSON(serviceAccountMetadata);
+		Map<String,Object> rqstParams = ControllerUtil.parseJson(jsonStr);
+		rqstParams.put("path",_path);
+		return ControllerUtil.convetToJson(rqstParams);
+	}
+
 	/**
 	 * Offboards an AD service account from TVault for password rotation
 	 * @param token
@@ -359,13 +461,26 @@ public class  ServiceAccountsService {
 		}
 		ResponseEntity<String> accountRoleDeletionResponse = deleteAccountRole(token, serviceAccount);
 		if (HttpStatus.OK.equals(accountRoleDeletionResponse.getStatusCode())) {
-			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
-					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
-					put(LogMessage.ACTION, "offboardServiceAccount").
-					put(LogMessage.MESSAGE, String.format ("Successfully completed offboarding of AD service account from TVault for password rotation.")).
-					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
-					build()));
-			return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Successfully completed offboarding of AD service account from TVault for password rotation.\"]}");
+			// Remove metadata...
+			ResponseEntity<String> metadataUpdateResponse =  deleteMetadata(token, serviceAccount);
+			if (HttpStatus.OK.equals(metadataUpdateResponse.getStatusCode())) {
+				log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+						put(LogMessage.ACTION, "offboardServiceAccount").
+						put(LogMessage.MESSAGE, String.format ("Successfully completed offboarding of AD service account from TVault for password rotation.")).
+						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+						build()));
+				return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Successfully completed offboarding of AD service account from TVault for password rotation.\"]}");
+			}
+			else {
+				log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+						put(LogMessage.ACTION, "offboardServiceAccount").
+						put(LogMessage.MESSAGE, String.format ("Unable to delete Metadata for the Service Account")).
+						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+						build()));
+				return ResponseEntity.status(HttpStatus.MULTI_STATUS).body("{\"errors\":[\"Failed to offboard AD service account from TVault for password rotation.\"]}");
+			}
 		}
 		else {
 			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
@@ -627,8 +742,34 @@ public class  ServiceAccountsService {
 			else {
 				ldapConfigresponse = ControllerUtil.configureLDAPUser(userName,policiesString,groups,token);
 			}
-			if(ldapConfigresponse.getHttpstatus().equals(HttpStatus.NO_CONTENT) || ldapConfigresponse.getHttpstatus().equals(HttpStatus.OK)){ 
-				return ResponseEntity.status(HttpStatus.OK).body("{\"errors\":[\"Successfully added user to the Service Account\"]}");
+			if(ldapConfigresponse.getHttpstatus().equals(HttpStatus.NO_CONTENT) || ldapConfigresponse.getHttpstatus().equals(HttpStatus.OK)){
+				// User has been associated with Service Account. Now metadata has to be created
+				String path = new StringBuffer(TVaultConstants.SVC_ACC_ROLES_PATH).append("/").append(svcAccName).toString();
+				Map<String,String> params = new HashMap<String,String>();
+				params.put("type", "users");
+				params.put("name",serviceAccountUser.getUsername());
+				params.put("path",path);
+				params.put("access",access);
+				Response metadataResponse = ControllerUtil.updateMetadata(params,token);
+				if(metadataResponse != null && HttpStatus.NO_CONTENT.equals(metadataResponse.getHttpstatus()) || HttpStatus.OK.equals(metadataResponse.getHttpstatus())){
+					log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+							put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+							put(LogMessage.ACTION, "Add User to ServiceAccount").
+							put(LogMessage.MESSAGE, "User is successfully associated with Service Account").
+							put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+							build()));
+					return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Successfully added user to the Service Account\"]}");
+				} else{
+					//Revert the user association...
+					// TODO: Revert the user association without metadata update...
+					log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+							put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+							put(LogMessage.ACTION, "Add User to ServiceAccount").
+							put(LogMessage.MESSAGE, "Metadata creation for user association with service account failed").
+							put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+							build()));
+					return removeUserFromServiceAccount(token, serviceAccountUser, userDetails);
+				}
 			}
 			else {
 				return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Failed to add user to the Service Account\"]}");
@@ -708,6 +849,14 @@ public class  ServiceAccountsService {
 				}
 				policies.addAll(currentpolicies);
 				policies.remove(policy);
+				if (TVaultConstants.SUDO_POLICY.equals(access)) {
+					policy = new StringBuffer().append(TVaultConstants.SVC_ACC_POLICIES_PREFIXES.getKey(TVaultConstants.READ_POLICY)).append(TVaultConstants.SVC_ACC_PATH_PREFIX).append("_").append(svcAccName).toString();
+					policies.remove(policy);
+					policy = new StringBuffer().append(TVaultConstants.SVC_ACC_POLICIES_PREFIXES.getKey(TVaultConstants.WRITE_POLICY)).append(TVaultConstants.SVC_ACC_PATH_PREFIX).append("_").append(svcAccName).toString();
+					policies.remove(policy);
+					policy = new StringBuffer().append(TVaultConstants.SVC_ACC_POLICIES_PREFIXES.getKey(TVaultConstants.DENY_POLICY)).append(TVaultConstants.SVC_ACC_PATH_PREFIX).append("_").append(svcAccName).toString();
+					policies.remove(policy);
+				}
 			}
 			String policiesString = org.apache.commons.lang3.StringUtils.join(policies, ",");
 
@@ -718,8 +867,25 @@ public class  ServiceAccountsService {
 			else {
 				ldapConfigresponse = ControllerUtil.configureLDAPUser(userName,policiesString,groups,token);
 			}
-			if(ldapConfigresponse.getHttpstatus().equals(HttpStatus.NO_CONTENT) || ldapConfigresponse.getHttpstatus().equals(HttpStatus.OK)){ 
-				return ResponseEntity.status(HttpStatus.OK).body("{\"message\":[\"Successfully removed user from the Service Account\"]}");
+			if(ldapConfigresponse.getHttpstatus().equals(HttpStatus.NO_CONTENT) || ldapConfigresponse.getHttpstatus().equals(HttpStatus.OK)){
+				// User has been associated with Service Account. Now metadata has to be deleted
+				String path = new StringBuffer(TVaultConstants.SVC_ACC_ROLES_PATH).append("/").append(svcAccName).toString();
+				Map<String,String> params = new HashMap<String,String>();
+				params.put("type", "users");
+				params.put("name",serviceAccountUser.getUsername());
+				params.put("path",path);
+				params.put("access","delete");
+				Response metadataResponse = ControllerUtil.updateMetadata(params,token);
+				if(metadataResponse != null && HttpStatus.NO_CONTENT.equals(metadataResponse.getHttpstatus()) || HttpStatus.OK.equals(metadataResponse.getHttpstatus())){
+					log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+							put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+							put(LogMessage.ACTION, "Remove User to ServiceAccount").
+							put(LogMessage.MESSAGE, "User is successfully Removed from Service Account").
+							put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+							build()));
+					return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Successfully removed user from the Service Account\"]}");
+				}
+				return ResponseEntity.status(HttpStatus.OK).body("{\"message\":[\"Successfully removed user from the Service Account. Meta data update failed.\"]}");
 			}
 			else {
 				return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Failed to remvoe the user from the Service Account\"]}");
@@ -1004,12 +1170,14 @@ public class  ServiceAccountsService {
 			Response ldapConfigresponse = ControllerUtil.configureLDAPGroup(groupName,policiesString,token);
 
 			if(ldapConfigresponse.getHttpstatus().equals(HttpStatus.NO_CONTENT) || ldapConfigresponse.getHttpstatus().equals(HttpStatus.OK)){
+				String path = new StringBuffer(TVaultConstants.SVC_ACC_ROLES_PATH).append("/").append(svcAccName).toString();
 				Map<String,String> params = new HashMap<String,String>();
 				params.put("type", "groups");
 				params.put("name",groupName);
-				params.put("path","ad/"+svcAccName);
+				params.put("path",path);
 				params.put("access",access);
-				Response metadataResponse = ControllerUtil.updateMetadataForSvcacc(params,token);
+
+				Response metadataResponse = ControllerUtil.updateMetadata(params,token);
 				if(metadataResponse !=null && HttpStatus.NO_CONTENT.equals(metadataResponse.getHttpstatus())){
 					log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 							put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
@@ -1131,12 +1299,13 @@ public class  ServiceAccountsService {
             Response ldapConfigresponse = ControllerUtil.configureLDAPGroup(groupName,policiesString,token);
 
             if(ldapConfigresponse.getHttpstatus().equals(HttpStatus.NO_CONTENT) || ldapConfigresponse.getHttpstatus().equals(HttpStatus.OK)){
+				String path = new StringBuffer(TVaultConstants.SVC_ACC_ROLES_PATH).append("/").append(svcAccName).toString();
 				Map<String,String> params = new HashMap<String,String>();
 				params.put("type", "groups");
 				params.put("name",groupName);
-				params.put("path","ad/"+svcAccName);
+				params.put("path",path);
 				params.put("access","delete");
-				Response metadataResponse = ControllerUtil.updateMetadataForSvcacc(params,token);
+				Response metadataResponse = ControllerUtil.updateMetadata(params,token);
 				if(metadataResponse !=null && HttpStatus.NO_CONTENT.equals(metadataResponse.getHttpstatus())){
 					log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 							put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
@@ -1286,12 +1455,13 @@ public class  ServiceAccountsService {
 			Response approleControllerResp = ControllerUtil.configureApprole(approleName,policiesString,token);
 
 			if(approleControllerResp.getHttpstatus().equals(HttpStatus.NO_CONTENT) || approleControllerResp.getHttpstatus().equals(HttpStatus.OK)){
+				String path = new StringBuffer(TVaultConstants.SVC_ACC_ROLES_PATH).append("/").append(svcAccName).toString();
 				Map<String,String> params = new HashMap<String,String>();
 				params.put("type", "app-roles");
 				params.put("name",approleName);
-				params.put("path","ad/"+svcAccName);
+				params.put("path",path);
 				params.put("access",access);
-				Response metadataResponse = ControllerUtil.updateMetadataForSvcacc(params,token);
+				Response metadataResponse = ControllerUtil.updateMetadata(params,token);
 				if(metadataResponse !=null && HttpStatus.NO_CONTENT.equals(metadataResponse.getHttpstatus())){
 					log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 							put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
@@ -1332,4 +1502,22 @@ public class  ServiceAccountsService {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Access denied: No permission to add Approle to this service account\"]}");
         }
     }
+
+	public ResponseEntity<String> getServiceAccountMeta(String token, UserDetails userDetails, String path) {
+		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+				put(LogMessage.ACTION, "Get metadata for Service Account").
+				put(LogMessage.MESSAGE, String.format ("Trying to get metadata for Service Account")).
+				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+				build()));
+		if (path != null && path.startsWith("/")) {
+			path = path.substring(1, path.length());
+		}
+		if (path != null && path.endsWith("/")) {
+			path = path.substring(0, path.length()-1);
+		}
+		String _path = "metadata/"+path;
+		Response response = reqProcessor.process("/sdb","{\"path\":\""+_path+"\"}",token);
+		return ResponseEntity.status(response.getHttpstatus()).body(response.getResponse());
+	}
 }
