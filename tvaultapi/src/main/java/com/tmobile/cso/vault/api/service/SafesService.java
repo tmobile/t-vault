@@ -437,9 +437,7 @@ public class  SafesService {
         if (safe.getSafeBasicDetails().getDescription().length() > 1024) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid input values: Description too long\"]}");
         }
-		if (safe.getSafeBasicDetails().getDescription().length() <10) {
-			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid Description: Please enter minimum 10 characters\"]}");
-		}
+
 		@SuppressWarnings("unchecked")
 		Map<Object,Object> data = (Map<Object,Object>)requestParams.get("data");
 		String path = safe.getPath();

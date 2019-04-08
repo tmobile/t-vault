@@ -231,75 +231,79 @@ readTextFile("../apiUrls.json");
             url: '/v2/ad/serviceaccounts?',
             method: 'GET'
         },{
-            name: 'getSvcInfo',
+            name: 'getSvcaccInfo',
             url: '/v2/ad/serviceaccounts?',
             method: 'GET'
         },{
-            name: 'getSvcOnboardInfo',
+            name: 'getSvcaccOnboardInfo',
             url: '/v2/serviceaccounts/',
             method: 'GET'
         },{
-            name: 'editSvc',
-            url: '/v2/ss/svc/',
+            name: 'editSvcacc',
+            url: '/v2/serviceaccounts/edit/',
             method: 'PUT'
         },{
-            name: 'onboardSvc',
+            name: 'onboardSvcacc',
             url: '/v2/serviceaccounts/onboard',
             method: 'POST'
         },{
-            name: 'addUserPermissionForSvc',
-            url: '/v2/serviceaccounts/user',
-            method: 'POST'
-        },{
-            name: 'deleteUserPermissionFromSvc',
-            url: '/v2/serviceaccounts/user',
-            method: 'DELETE'
-        },{
-            name: 'addGroupPermissionForSvc',
-            url: '/v2/ss/svc/group',
-            method: 'POST'
-        },{
-            name: 'deleteGroupPermissionFromSvc',
-            url: '/v2/ss/svc/group',
-            method: 'DELETE'
-        },{
-            name: 'addAWSPermissionForSvc',
-            url: '/v2/ss/svc/role',
-            method: 'POST'
-        },{
-            name: 'detachAWSPermissionFromSvc',
-            url: '/v2/ss/svc/role',
-            method: 'PUT'
-        },{
-            name: 'deleteAWSPermissionFromSvc',
-            url: '/v2/ss/svc/role',
-            method: 'DELETE'
-        },{
-            name: 'addAppRolePermissionForSvc',
-            url: '/v2/ss/svc/approle',
-            method: 'POST'
-        },{
-            name: 'detachAppRolePermissionFromSvc',
-            url: '/v2/ss/svc/approle',
-            method: 'DELETE'
-        },{
-            name: 'createAwsRoleSvc',
-            url: '/v2/ss/svc/auth/aws/role',
-            method: 'POST'
-        },{
-            name: 'createAwsIAMRoleSvc',
-            url: '/v2/ss/svc/auth/aws/iam/role',
-            method: 'POST'
-        },{
-            name: 'getSecretForSvc',
-            url: '/v2/ss/svc/secret/',
+            name: 'getSvcaccMetadata',
+            url: '/v2/serviceaccounts/meta?',
             method: 'GET'
         },{
-            name: '/v2/serviceaccounts/password/reset?serviceAccountName=',
-            url: '/v2/ss/svc/reset/',
+            name: 'addUserPermissionForSvcacc',
+            url: '/v2/serviceaccounts/user',
             method: 'POST'
         },{
-            name: 'offboardSvc',
+            name: 'deleteUserPermissionFromSvcacc',
+            url: '/v2/serviceaccounts/user',
+            method: 'DELETE'
+        },{
+            name: 'addGroupPermissionForSvcacc',
+            url: '/v2/serviceaccounts/group',
+            method: 'POST'
+        },{
+            name: 'deleteGroupPermissionFromSvcacc',
+            url: '/v2/serviceaccounts/group',
+            method: 'DELETE'
+        },{
+            name: 'addAWSPermissionForSvcacc',
+            url: '/v2/serviceaccounts/role',
+            method: 'POST'
+        },{
+            name: 'detachAWSPermissionFromSvcacc',
+            url: '/v2/serviceaccounts/role',
+            method: 'PUT'
+        },{
+            name: 'deleteAWSPermissionFromSvcacc',
+            url: '/v2/serviceaccounts/role',
+            method: 'DELETE'
+        },{
+            name: 'addAppRolePermissionForSvcacc',
+            url: '/v2/serviceaccounts/approle',
+            method: 'POST'
+        },{
+            name: 'detachAppRolePermissionFromSvcacc',
+            url: '/v2/serviceaccounts/approle',
+            method: 'DELETE'
+        },{
+            name: 'createAwsRoleSvcacc',
+            url: '/v2/serviceaccounts/auth/aws/role',
+            method: 'POST'
+        },{
+            name: 'createAwsIAMRoleSvcacc',
+            url: '/v2/serviceaccounts/auth/aws/iam/role',
+            method: 'POST'
+        },{
+            name: 'getSecretForSvcacc',
+            url: '/v2/serviceaccounts/secret/',
+            method: 'GET'
+        },{
+            name: 'resetPasswordForSvcacc',
+            url: '/v2/serviceaccounts/password/reset',
+            method: 'POST'
+        },{
+            name: 'offboardSvcacc',
             url: '/v2/serviceaccounts/offboard',
             method: 'POST'
         },{

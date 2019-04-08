@@ -77,5 +77,10 @@ public class TVaultConstants {
 	public static Map<String, String> getSvcAccPolicies() {
 		return SVC_ACC_POLICIES;
 	}
-    
+
+    public static final String ADD_GROUP = "addGroup";
+    public static final String REMOVE_GROUP = "removeGroup";
+    public static final String SVC_ACC_ROLES_METADATA_MOUNT_PATH = "metadata/ad/roles";
+    public static final String SVC_ACC_ROLES_PATH = "ad/roles";
+    public static final Long PASSWORD_AUTOROTATE_TTL_MAX_VALUE = 1590897977L;
 }

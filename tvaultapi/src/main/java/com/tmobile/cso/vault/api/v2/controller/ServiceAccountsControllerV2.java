@@ -19,6 +19,7 @@ package com.tmobile.cso.vault.api.v2.controller;
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 
+import com.tmobile.cso.vault.api.model.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -31,11 +32,6 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.tmobile.cso.vault.api.model.ADServiceAccountObjects;
-import com.tmobile.cso.vault.api.model.OnboardedServiceAccount;
-import com.tmobile.cso.vault.api.model.ServiceAccount;
-import com.tmobile.cso.vault.api.model.ServiceAccountUser;
-import com.tmobile.cso.vault.api.model.UserDetails;
 import com.tmobile.cso.vault.api.service.ServiceAccountsService;
 
 import io.swagger.annotations.Api;
@@ -51,9 +47,9 @@ public class ServiceAccountsControllerV2 {
 	
 	@ApiOperation(value = "${ServiceAccountsControllerV2.getADServiceAccounts.value}", notes = "${ServiceAccountsControllerV2.getADServiceAccounts.notes}")
 	@GetMapping(value="/v2/ad/serviceaccounts", produces="application/json")
-	public ResponseEntity<ADServiceAccountObjects> getADServiceAccounts(HttpServletRequest request, @RequestHeader(value="vault-token") String token, @RequestParam("serviceAccountName" ) String serviceAccountName ){
+	public ResponseEntity<ADServiceAccountObjects> getADServiceAccounts(HttpServletRequest request, @RequestHeader(value="vault-token") String token, @RequestParam("serviceAccountName" ) String serviceAccountName, @RequestParam(value="excludeOnboarded", defaultValue="true") boolean excludeOnboarded ){
 		UserDetails userDetails = (UserDetails) ((HttpServletRequest) request).getAttribute("UserDetails");
-		return serviceAccountsService.getADServiceAccounts(token, userDetails, serviceAccountName, true);
+		return serviceAccountsService.getADServiceAccounts(token, userDetails, serviceAccountName, excludeOnboarded);
 	}
 	
 	@ApiOperation(value = "${ServiceAccountsControllerV2.getServiceAccounts.value}", notes = "${ServiceAccountsControllerV2.getServiceAccounts.notes}")
@@ -102,5 +98,61 @@ public class ServiceAccountsControllerV2 {
 	public ResponseEntity<String> offboardServiceAccount( HttpServletRequest request, @RequestHeader(value="vault-token") String token, @RequestBody OnboardedServiceAccount serviceAccount ){
 		UserDetails userDetails = (UserDetails) ((HttpServletRequest) request).getAttribute("UserDetails");
 		return serviceAccountsService.offboardServiceAccount(token, serviceAccount, userDetails);
+	}
+
+    /**
+     * Add group to Service Account
+     * @param request
+     * @param token
+     * @param serviceAccountGroup
+     * @return
+     */
+	@ApiOperation(value = "${ServiceAccountsControllerV2.addGroupToServiceAccount.value}", notes = "${ServiceAccountsControllerV2.addGroupToServiceAccount.notes}")
+	@PostMapping(value="/v2/serviceaccounts/group", produces="application/json")
+	public ResponseEntity<String> addGroupToSvcAcc( HttpServletRequest request, @RequestHeader(value="vault-token") String token, @RequestBody ServiceAccountGroup serviceAccountGroup ){
+		UserDetails userDetails = (UserDetails) ((HttpServletRequest) request).getAttribute("UserDetails");
+		return serviceAccountsService.addGroupToServiceAccount(token, serviceAccountGroup, userDetails);
+	}
+
+    /**
+     * Remove group from Service Account
+     * @param request
+     * @param token
+     * @param serviceAccountGroup
+     * @return
+     */
+    @ApiOperation(value = "${ServiceAccountsControllerV2.removeGroupFromServiceAccount.value}", notes = "${ServiceAccountsControllerV2.removeGroupFromServiceAccount.notes}")
+    @DeleteMapping(value="/v2/serviceaccounts/group", produces="application/json")
+    public ResponseEntity<String> removeGroupFromSvcAcc( HttpServletRequest request, @RequestHeader(value="vault-token") String token, @RequestBody ServiceAccountGroup serviceAccountGroup ){
+        UserDetails userDetails = (UserDetails) ((HttpServletRequest) request).getAttribute("UserDetails");
+        return serviceAccountsService.removeGroupFromServiceAccount(token, serviceAccountGroup, userDetails);
+    }
+
+    /**
+     * Add approle to Service Account
+     * @param request
+     * @param token
+     * @param serviceAccountApprole
+     * @return
+     */
+    @ApiOperation(value = "${ServiceAccountsControllerV2.associateApprole.value}", notes = "${ServiceAccountsControllerV2.associateApprole.notes}")
+    @PostMapping(value="/v2/serviceaccounts/approle",consumes="application/json",produces="application/json")
+    public ResponseEntity<String>associateApproletoSDB(HttpServletRequest request, @RequestHeader(value="vault-token") String token, @RequestBody ServiceAccountApprole serviceAccountApprole) {
+        UserDetails userDetails = (UserDetails) ((HttpServletRequest) request).getAttribute("UserDetails");
+        return serviceAccountsService.associateApproletoSvcAcc(userDetails, token, serviceAccountApprole);
+    }
+
+	/**
+	 * Get metadata for service account
+	 * @param request
+	 * @param token
+	 * @param path
+	 * @return
+	 */
+	@ApiOperation(value = "${ServiceAccountsControllerV2.getServiceAccountsMeta.value}", notes = "${ServiceAccountsControllerV2.getServiceAccountsMeta.notes}")
+	@GetMapping(value="/v2/serviceaccounts/meta", produces="application/json")
+	public ResponseEntity<String> getServiceAccountMeta(HttpServletRequest request, @RequestHeader(value="vault-token") String token, @RequestParam("path" ) String path){
+		UserDetails userDetails = (UserDetails) ((HttpServletRequest) request).getAttribute("UserDetails");
+		return serviceAccountsService.getServiceAccountMeta(token, userDetails, path);
 	}
 }

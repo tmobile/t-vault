@@ -526,29 +526,6 @@ public class SafesServiceTest {
     }
 
     @Test
-    public void test_updateSafe_failure_description_too_short() {
-        String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
-        SafeBasicDetails safeBasicDetails = new SafeBasicDetails("mysafe01", "youremail@yourcompany.com", null, "My safe");
-        Safe safe = new Safe("shared/mysafe01",safeBasicDetails);
-
-        String jsonStr = "{\"path\":\"shared/mysafe01\",\"data\":{\"name\":\"mysafe01\",\"owner\":\"youremail@yourcompany.com\",\"type\":\"\",\"description\":\"My safe\"}}";
-        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid Description: Please enter minimum 10 characters\"]}");
-
-        Map<String,Object> reqparams = null;
-        try {
-            reqparams = new ObjectMapper().readValue(jsonStr, new TypeReference<Map<String, Object>>(){});
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        when(ControllerUtil.parseJson(any())).thenReturn(reqparams);
-        when(ControllerUtil.areSDBInputsValidForUpdate(Mockito.anyMap())).thenReturn(true);
-        ResponseEntity<String> responseEntity = safesService.updateSafe(token, safe);
-        assertEquals(HttpStatus.BAD_REQUEST, responseEntity.getStatusCode());
-        assertEquals(responseEntityExpected, responseEntity);
-    }
-
-    @Test
     public void test_addUserToSafe_successfully() {
         String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
         String path = "shared/mysafe01";

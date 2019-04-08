@@ -172,93 +172,98 @@
                     return response;
                 });
             },
-            getSvcInfo: function(payload, url) {
-                return ServiceEndpoint.getSvcInfo.makeRequest(payload, url).then(function(response) {
+            getSvcaccInfo: function(payload, url) {
+                return ServiceEndpoint.getSvcaccInfo.makeRequest(payload, url).then(function(response) {
                     return response;
                 });
             },
-            getSvcOnboardInfo: function(payload, url) {
-                return ServiceEndpoint.getSvcOnboardInfo.makeRequest(payload, url).then(function(response) {
+            getSvcaccOnboardInfo: function(payload, url) {
+                return ServiceEndpoint.getSvcaccOnboardInfo.makeRequest(payload, url).then(function(response) {
                     return response;
                 });
             },
-            editSvc: function(payload, url) {
-                return ServiceEndpoint.editSvc.makeRequest(payload, url).then(function(response) {
+            editSvcacc: function(payload, url) {
+                return ServiceEndpoint.editSvcacc.makeRequest(payload, url).then(function(response) {
                     return response;
                 });
             },
-            onboardSvc: function(payload, url) {
-                return ServiceEndpoint.onboardSvc.makeRequest(payload, url).then(function(response) {
+            onboardSvcacc: function(payload, url) {
+                return ServiceEndpoint.onboardSvcacc.makeRequest(payload, url).then(function(response) {
                     return response;
                 });
             },
-            addUserPermissionForSvc: function(payload, url) {
-                return ServiceEndpoint.addUserPermissionForSvc.makeRequest(payload, url).then(function(response) {
+            addUserPermissionForSvcacc: function(payload, url) {
+                return ServiceEndpoint.addUserPermissionForSvcacc.makeRequest(payload, url).then(function(response) {
                     return response;
                 });
             },
-            deleteUserPermissionFromSvc: function(payload, url) {
-                return ServiceEndpoint.deleteUserPermissionFromSvc.makeRequest(payload, url).then(function(response) {
+            deleteUserPermissionFromSvcacc: function(payload, url) {
+                return ServiceEndpoint.deleteUserPermissionFromSvcacc.makeRequest(payload, url).then(function(response) {
                     return response;
                 });
             },
-            addGroupPermissionForSvc: function(payload, url) {
-                return ServiceEndpoint.addGroupPermissionForSvc.makeRequest(payload, url).then(function(response) {
+            addGroupPermissionForSvcacc: function(payload, url) {
+                return ServiceEndpoint.addGroupPermissionForSvcacc.makeRequest(payload, url).then(function(response) {
                     return response;
                 });
             },
-            deleteGroupPermissionFromSvc: function(payload, url) {
-                return ServiceEndpoint.deleteGroupPermissionFromSvc.makeRequest(payload, url).then(function(response) {
+            deleteGroupPermissionFromSvcacc: function(payload, url) {
+                return ServiceEndpoint.deleteGroupPermissionFromSvcacc.makeRequest(payload, url).then(function(response) {
                     return response;
                 });
             },
-            addAWSPermissionForSvc: function(payload, url) {
-                return ServiceEndpoint.addAWSPermissionForSvc.makeRequest(payload, url).then(function(response) {
+            addAWSPermissionForSvcacc: function(payload, url) {
+                return ServiceEndpoint.addAWSPermissionForSvcacc.makeRequest(payload, url).then(function(response) {
                     return response;
                 });
             },
-            detachAWSPermissionFromSvc: function(payload, url) {
-                return ServiceEndpoint.detachAWSPermissionFromSvc.makeRequest(payload, url).then(function(response) {
+            detachAWSPermissionFromSvcacc: function(payload, url) {
+                return ServiceEndpoint.detachAWSPermissionFromSvcacc.makeRequest(payload, url).then(function(response) {
                     return response;
                 });
             },
-            deleteAWSPermissionFromSvc: function(payload, url) {
-                return ServiceEndpoint.deleteAWSPermissionFromSvc.makeRequest(payload, url).then(function(response) {
+            deleteAWSPermissionFromSvcacc: function(payload, url) {
+                return ServiceEndpoint.deleteAWSPermissionFromSvcacc.makeRequest(payload, url).then(function(response) {
                     return response;
                 });
             },
-            addAppRolePermissionForSvc: function(payload, url) {
-                return ServiceEndpoint.addAppRolePermissionForSvc.makeRequest(payload, url).then(function(response) {
+            addAppRolePermissionForSvcacc: function(payload, url) {
+                return ServiceEndpoint.addAppRolePermissionForSvcacc.makeRequest(payload, url).then(function(response) {
                     return response;
                 });
             },
-            detachAppRolePermissionFromSvc: function(payload, url) {
-                return ServiceEndpoint.detachAppRolePermissionFromSvc.makeRequest(payload, url).then(function(response) {
+            detachAppRolePermissionFromSvcacc: function(payload, url) {
+                return ServiceEndpoint.detachAppRolePermissionFromSvcacc.makeRequest(payload, url).then(function(response) {
                     return response;
                 });
             },
-            createAwsRoleSvc: function(payload, url) {
-                return ServiceEndpoint.createAwsRoleSvc.makeRequest(payload, url).then(function(response) {
+            createAwsRoleSvcacc: function(payload, url) {
+                return ServiceEndpoint.createAwsRoleSvcacc.makeRequest(payload, url).then(function(response) {
                     return response;
                 });
             },
-            createAwsIAMRoleSvc: function(payload, url) {
-                return ServiceEndpoint.createAwsIAMRoleSvc.makeRequest(payload, url).then(function(response) {
+            createAwsIAMRoleSvcacc: function(payload, url) {
+                return ServiceEndpoint.createAwsIAMRoleSvcacc.makeRequest(payload, url).then(function(response) {
                     return response;
                 });
             },
-            getSecretForSvc: function(payload, url) {
-                return ServiceEndpoint.getSecretForSvc.makeRequest(payload, url).then(function(response) {
+            getSecretForSvcacc: function(payload, url) {
+                return ServiceEndpoint.getSecretForSvcacc.makeRequest(payload, url).then(function(response) {
                     return response;
                 });
             },
-            resetPasswordForSvc: function(payload, url) {
-                return ServiceEndpoint.resetPasswordForSvc.makeRequest(payload, url).then(function(response) {
+            resetPasswordForSvcacc: function(payload, url) {
+                return ServiceEndpoint.resetPasswordForSvcacc.makeRequest(payload, url).then(function(response) {
                     return response;
                 });
             },
-            offboardSvc: function(payload, url) {
-                return ServiceEndpoint.offboardSvc.makeRequest(payload, url).then(function(response) {
+            offboardSvcacc: function(payload, url) {
+                return ServiceEndpoint.offboardSvcacc.makeRequest(payload, url).then(function(response) {
+                    return response;
+                });
+            },
+            getSvcaccMetadata: function(payload, url) {
+                return ServiceEndpoint.getSvcaccMetadata.makeRequest(payload, url).then(function(response) {
                     return response;
                 });
             },
