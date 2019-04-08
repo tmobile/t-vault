@@ -23,12 +23,7 @@ import java.text.SimpleDateFormat;
 import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import javax.naming.NamingException;
 import javax.naming.directory.Attributes;
@@ -268,15 +263,6 @@ public class  ServiceAccountsService {
 						build()));
 				return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Password TTL can't be more than MAX_TTL\"]}");
 			}
-			if (serviceAccount.getTtl() > TVaultConstants.PASSWORD_AUTOROTATE_TTL_MAX_VALUE) {
-				log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
-						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
-						put(LogMessage.ACTION, "onboardServiceAccount").
-						put(LogMessage.MESSAGE, String.format ("TTL is [%s] is greater the Maximum allowed [%s]", serviceAccount.getTtl(), TVaultConstants.PASSWORD_AUTOROTATE_TTL_MAX_VALUE)).
-						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
-						build()));
-				return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Password TTL can't be more than "+TVaultConstants.PASSWORD_AUTOROTATE_TTL_MAX_VALUE+" seconds\"]}");
-			}
 		}
 		else {
 			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
@@ -339,8 +325,13 @@ public class  ServiceAccountsService {
 						put(LogMessage.MESSAGE, String.format ("Failed to onboard AD service account into TVault for password rotation.")).
 						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 						build()));
-				// TODO: Revert the ServiceAccountRole creation...
-				return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Failed to onboard AD service account into TVault for password rotation.\"]}");
+				OnboardedServiceAccount serviceAccountToRevert = new OnboardedServiceAccount(serviceAccount.getName(),serviceAccount.getOwner());
+				ResponseEntity<String> accountRoleDeletionResponse = deleteAccountRole(token, serviceAccountToRevert);
+				if (accountRoleDeletionResponse!=null && HttpStatus.OK.equals(accountRoleDeletionResponse.getStatusCode())) {
+					return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Failed to onboard AD service account into TVault for password rotation.\"]}");
+				} else {
+					return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Failed to create Service Account policies. Revert service account role creation failed.\"]}");
+				}
 			}
 		}
 		else {
@@ -478,8 +469,8 @@ public class  ServiceAccountsService {
 			if (!org.apache.commons.lang3.StringUtils.isEmpty(managedBy)) {
 				users.put(managedBy, "sudo");
 			}
-			ControllerUtil.updateUserPolicyAssociationOnSvcaccDelete(svcAccName,users,token);
-			ControllerUtil.updateGroupPolicyAssociationOnSvcaccDelete(svcAccName,groups,token);
+			updateUserPolicyAssociationOnSvcaccDelete(svcAccName,users,token);
+			updateGroupPolicyAssociationOnSvcaccDelete(svcAccName,groups,token);
 			//ControllerUtil.deleteAwsRoleAssociateionOnSvcaccDelete(path,awsroles,token);
 			//ControllerUtil.updateApprolePolicyAssociationOnSvcaccDelete(path,groups,token);
 		}
@@ -671,7 +662,7 @@ public class  ServiceAccountsService {
 		String access = serviceAccountUser.getAccess();
 
 		if(!ControllerUtil.areSvcUserInputsValid(serviceAccountUser)) {
-			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid input values\"]}");
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid value specified for access\"]}");
 		}
 
 		// TODO: Validation for String expectedPath = TVaultConstants.SVC_ACC_CREDS_PATH+svcAccName;
@@ -754,6 +745,7 @@ public class  ServiceAccountsService {
 				policies.add(policy);
 			}
 			String policiesString = org.apache.commons.lang3.StringUtils.join(policies, ",");
+			String currentpoliciesString = org.apache.commons.lang3.StringUtils.join(currentpolicies, ",");
 
 			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
@@ -777,7 +769,7 @@ public class  ServiceAccountsService {
 				params.put("path",path);
 				params.put("access",access);
 				Response metadataResponse = ControllerUtil.updateMetadata(params,token);
-				if(metadataResponse != null && HttpStatus.NO_CONTENT.equals(metadataResponse.getHttpstatus()) || HttpStatus.OK.equals(metadataResponse.getHttpstatus())){
+				if(metadataResponse != null && (HttpStatus.NO_CONTENT.equals(metadataResponse.getHttpstatus()) || HttpStatus.OK.equals(metadataResponse.getHttpstatus()))){
 					log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 							put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 							put(LogMessage.ACTION, "Add User to ServiceAccount").
@@ -787,18 +779,27 @@ public class  ServiceAccountsService {
 					return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Successfully added user to the Service Account\"]}");
 				} else{
 					//Revert the user association...
-					// TODO: Revert the user association without metadata update...
 					log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 							put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 							put(LogMessage.ACTION, "Add User to ServiceAccount").
 							put(LogMessage.MESSAGE, "Metadata creation for user association with service account failed").
 							put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 							build()));
-					return removeUserFromServiceAccount(token, serviceAccountUser, userDetails);
+					if (TVaultConstants.USERPASS.equals(vaultAuthMethod)) {
+						ldapConfigresponse = ControllerUtil.configureUserpassUser(userName,currentpoliciesString,token);
+					}
+					else {
+						ldapConfigresponse = ControllerUtil.configureLDAPUser(userName,currentpoliciesString,groups,token);
+					}
+					if(ldapConfigresponse.getHttpstatus().equals(HttpStatus.NO_CONTENT) || ldapConfigresponse.getHttpstatus().equals(HttpStatus.OK)) {
+						return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"messages\":[\"Failed to add user to the Service Account. Metadata update failed\"]}");
+					} else {
+						return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"messages\":[\"Failed to revert user association on Service Account\"]}");
+					}
 				}
 			}
 			else {
-				return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Failed to add user to the Service Account\"]}");
+				return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Failed to add user to the Service Account\"]}");
 			}
 			
 		}else{
@@ -817,7 +818,7 @@ public class  ServiceAccountsService {
 		String access = serviceAccountUser.getAccess();
 
 		if(!ControllerUtil.areSvcUserInputsValid(serviceAccountUser)) {
-			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid input values\"]}");
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid value specified for access\"]}");
 		}
 
 		boolean isAuthorized = true;
@@ -880,7 +881,7 @@ public class  ServiceAccountsService {
 				policies.remove(policy);
 			}
 			String policiesString = org.apache.commons.lang3.StringUtils.join(policies, ",");
-
+			String currentpoliciesString = org.apache.commons.lang3.StringUtils.join(currentpolicies, ",");
 			Response ldapConfigresponse;
 			if (TVaultConstants.USERPASS.equals(vaultAuthMethod)) {
 				ldapConfigresponse = ControllerUtil.configureUserpassUser(userName,policiesString,token);
@@ -897,7 +898,7 @@ public class  ServiceAccountsService {
 				params.put("path",path);
 				params.put("access","delete");
 				Response metadataResponse = ControllerUtil.updateMetadata(params,token);
-				if(metadataResponse != null && HttpStatus.NO_CONTENT.equals(metadataResponse.getHttpstatus()) || HttpStatus.OK.equals(metadataResponse.getHttpstatus())){
+				if(metadataResponse != null && (HttpStatus.NO_CONTENT.equals(metadataResponse.getHttpstatus()) || HttpStatus.OK.equals(metadataResponse.getHttpstatus()))){
 					log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 							put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 							put(LogMessage.ACTION, "Remove User to ServiceAccount").
@@ -905,11 +906,22 @@ public class  ServiceAccountsService {
 							put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 							build()));
 					return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Successfully removed user from the Service Account\"]}");
+				} else {
+					if (TVaultConstants.USERPASS.equals(vaultAuthMethod)) {
+						ldapConfigresponse = ControllerUtil.configureUserpassUser(userName,currentpoliciesString,token);
+					}
+					else {
+						ldapConfigresponse = ControllerUtil.configureLDAPUser(userName,currentpoliciesString,groups,token);
+					}
+					if(ldapConfigresponse.getHttpstatus().equals(HttpStatus.NO_CONTENT) || ldapConfigresponse.getHttpstatus().equals(HttpStatus.OK)) {
+						return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Failed to remove the user from the Service Account. Metadata update failed\"]}");
+					} else {
+						return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Failed to revert user association on Service Account\"]}");
+					}
 				}
-				return ResponseEntity.status(HttpStatus.OK).body("{\"message\":[\"Successfully removed user from the Service Account. Meta data update failed.\"]}");
 			}
 			else {
-				return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Failed to remvoe the user from the Service Account\"]}");
+				return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Failed to remvoe the user from the Service Account\"]}");
 			}	
 		}
 		else {
@@ -1102,7 +1114,7 @@ public class  ServiceAccountsService {
 				build()));
 
         if(!ControllerUtil.areSvcaccGroupInputsValid(serviceAccountGroup)) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid input values\"]}");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid value specified for access\"]}");
         }
 
 		String groupName = serviceAccountGroup.getGroupname();
@@ -1199,7 +1211,7 @@ public class  ServiceAccountsService {
 				params.put("access",access);
 
 				Response metadataResponse = ControllerUtil.updateMetadata(params,token);
-				if(metadataResponse !=null && HttpStatus.NO_CONTENT.equals(metadataResponse.getHttpstatus())){
+				if(metadataResponse !=null && (HttpStatus.NO_CONTENT.equals(metadataResponse.getHttpstatus()) || HttpStatus.OK.equals(metadataResponse.getHttpstatus()))){
 					log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 							put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 							put(LogMessage.ACTION, "Add Group to Service Account").
@@ -1233,7 +1245,7 @@ public class  ServiceAccountsService {
 				}
 			}
 			else {
-				return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Failed to add group to the Service Account\"]}");
+				return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Failed to add group to the Service Account\"]}");
 			}
 		}else{
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Access denied: No permission to add groups to this service account\"]}");
@@ -1256,7 +1268,7 @@ public class  ServiceAccountsService {
                 build()));
 
         if(!ControllerUtil.areSvcaccGroupInputsValid(serviceAccountGroup)) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid input values\"]}");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid value specified for access\"]}");
         }
 
         String groupName = serviceAccountGroup.getGroupname();
@@ -1327,7 +1339,7 @@ public class  ServiceAccountsService {
 				params.put("path",path);
 				params.put("access","delete");
 				Response metadataResponse = ControllerUtil.updateMetadata(params,token);
-				if(metadataResponse !=null && HttpStatus.NO_CONTENT.equals(metadataResponse.getHttpstatus())){
+				if(metadataResponse !=null && (HttpStatus.NO_CONTENT.equals(metadataResponse.getHttpstatus()) || HttpStatus.OK.equals(metadataResponse.getHttpstatus()))){
 					log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 							put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 							put(LogMessage.ACTION, "Remove Group to Service Account").
@@ -1361,7 +1373,7 @@ public class  ServiceAccountsService {
 				}
             }
             else {
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Failed to remove the group from the Service Account\"]}");
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Failed to remove the group from the Service Account\"]}");
             }
         }
         else {
@@ -1386,7 +1398,7 @@ public class  ServiceAccountsService {
                 build()));
 
         if(!ControllerUtil.areSvcaccApproleInputsValid(serviceAccountApprole)) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid input values\"]}");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid value specified for access\"]}");
         }
 
         String approleName = serviceAccountApprole.getApprolename();
@@ -1483,7 +1495,7 @@ public class  ServiceAccountsService {
 				params.put("path",path);
 				params.put("access",access);
 				Response metadataResponse = ControllerUtil.updateMetadata(params,token);
-				if(metadataResponse !=null && HttpStatus.NO_CONTENT.equals(metadataResponse.getHttpstatus())){
+				if(metadataResponse !=null && (HttpStatus.NO_CONTENT.equals(metadataResponse.getHttpstatus()) || HttpStatus.OK.equals(metadataResponse.getHttpstatus()))){
 					log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 							put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 							put(LogMessage.ACTION, "Add Approle to Service Account").
@@ -1517,7 +1529,7 @@ public class  ServiceAccountsService {
 				}
 			}
 			else {
-				return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Failed to add Approle to the Service Account\"]}");
+				return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Failed to add Approle to the Service Account\"]}");
 			}
         }else{
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Access denied: No permission to add Approle to this service account\"]}");
@@ -1540,5 +1552,146 @@ public class  ServiceAccountsService {
 		String _path = "metadata/"+path;
 		Response response = reqProcessor.process("/sdb","{\"path\":\""+_path+"\"}",token);
 		return ResponseEntity.status(response.getHttpstatus()).body(response.getResponse());
+	}
+
+	/**
+	 * Update User policy on Service account offboarding
+	 * @param svcAccName
+	 * @param acessInfo
+	 * @param token
+	 */
+	private void updateUserPolicyAssociationOnSvcaccDelete(String svcAccName,Map<String,String> acessInfo,String token){
+		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+				put(LogMessage.ACTION, "updateUserPolicyAssociationOnSvcaccDelete").
+				put(LogMessage.MESSAGE, String.format ("trying updateUserPolicyAssociationOnSvcaccDelete")).
+				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+				build()));
+		log.debug ("updateUserPolicyAssociationOnSvcaccDelete...for auth method " + vaultAuthMethod);
+		if(acessInfo!=null){
+			String r_policy = new StringBuffer().append(TVaultConstants.SVC_ACC_POLICIES_PREFIXES.getKey(TVaultConstants.READ_POLICY)).append(TVaultConstants.SVC_ACC_PATH_PREFIX).append("_").append(svcAccName).toString();
+			String w_policy = new StringBuffer().append(TVaultConstants.SVC_ACC_POLICIES_PREFIXES.getKey(TVaultConstants.WRITE_POLICY)).append(TVaultConstants.SVC_ACC_PATH_PREFIX).append("_").append(svcAccName).toString();
+			String d_policy = new StringBuffer().append(TVaultConstants.SVC_ACC_POLICIES_PREFIXES.getKey(TVaultConstants.DENY_POLICY)).append(TVaultConstants.SVC_ACC_PATH_PREFIX).append("_").append(svcAccName).toString();
+			String o_policy = new StringBuffer().append(TVaultConstants.SVC_ACC_POLICIES_PREFIXES.getKey(TVaultConstants.SUDO_POLICY)).append(TVaultConstants.SVC_ACC_PATH_PREFIX).append("_").append(svcAccName).toString();
+
+			Set<String> users = acessInfo.keySet();
+			ObjectMapper objMapper = new ObjectMapper();
+			for(String userName : users){
+
+				Response userResponse;
+				if (TVaultConstants.USERPASS.equals(vaultAuthMethod)) {
+					log.debug ("Inside userpass");
+					userResponse = reqProcessor.process("/auth/userpass/read","{\"username\":\""+userName+"\"}",token);
+				}
+				else {
+					log.debug ("Inside non - userpass");
+					userResponse = reqProcessor.process("/auth/ldap/users","{\"username\":\""+userName+"\"}",token);
+				}
+				String responseJson="";
+				String groups="";
+				List<String> policies = new ArrayList<>();
+				List<String> currentpolicies = new ArrayList<>();
+
+				if(HttpStatus.OK.equals(userResponse.getHttpstatus())){
+					responseJson = userResponse.getResponse();
+					try {
+						currentpolicies = ControllerUtil.getPoliciesAsListFromJson(objMapper, responseJson);
+						if (!(TVaultConstants.USERPASS.equals(vaultAuthMethod))) {
+							groups = objMapper.readTree(responseJson).get("data").get("groups").asText();
+						}
+					} catch (IOException e) {
+						log.error(e);
+						log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+								put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+								put(LogMessage.ACTION, "updateUserPolicyAssociationOnSvcaccDelete").
+								put(LogMessage.MESSAGE, String.format ("updateUserPolicyAssociationOnSvcaccDelete failed [%s]", e.getMessage())).
+								put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+								build()));
+					}
+					policies.addAll(currentpolicies);
+					policies.remove(r_policy);
+					policies.remove(w_policy);
+					policies.remove(d_policy);
+					policies.remove(o_policy);
+
+					String policiesString = org.apache.commons.lang3.StringUtils.join(policies, ",");
+
+					log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+							put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+							put(LogMessage.ACTION, "updateUserPolicyAssociationOnSDBDelete").
+							put(LogMessage.MESSAGE, String.format ("Current policies [%s]", policies )).
+							put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+							build()));
+					if (TVaultConstants.USERPASS.equals(vaultAuthMethod)) {
+						log.debug ("Inside userpass");
+						ControllerUtil.configureUserpassUser(userName,policiesString,token);
+					}
+					else {
+						log.debug ("Inside non-userpass");
+						ControllerUtil.configureLDAPUser(userName,policiesString,groups,token);
+					}
+				}
+			}
+		}
+	}
+
+	/**
+	 * Update Group policy on Service account offboarding
+	 * @param svcAccName
+	 * @param acessInfo
+	 * @param token
+	 */
+	private void updateGroupPolicyAssociationOnSvcaccDelete(String svcAccName,Map<String,String> acessInfo,String token){
+		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+				put(LogMessage.ACTION, "updateGroupPolicyAssociationOnSvcaccDelete").
+				put(LogMessage.MESSAGE, String.format ("trying updateGroupPolicyAssociationOnSvcaccDelete")).
+				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+				build()));
+		if (TVaultConstants.USERPASS.equals(vaultAuthMethod)) {
+			log.debug ("Inside userpass of updateGroupPolicyAssociationOnSvcaccDelete...Just Returning...");
+			return;
+		}
+		if(acessInfo!=null){
+			String r_policy = new StringBuffer().append(TVaultConstants.SVC_ACC_POLICIES_PREFIXES.getKey(TVaultConstants.READ_POLICY)).append(TVaultConstants.SVC_ACC_PATH_PREFIX).append("_").append(svcAccName).toString();
+			String w_policy = new StringBuffer().append(TVaultConstants.SVC_ACC_POLICIES_PREFIXES.getKey(TVaultConstants.WRITE_POLICY)).append(TVaultConstants.SVC_ACC_PATH_PREFIX).append("_").append(svcAccName).toString();
+			String d_policy = new StringBuffer().append(TVaultConstants.SVC_ACC_POLICIES_PREFIXES.getKey(TVaultConstants.DENY_POLICY)).append(TVaultConstants.SVC_ACC_PATH_PREFIX).append("_").append(svcAccName).toString();
+
+			Set<String> groups = acessInfo.keySet();
+			ObjectMapper objMapper = new ObjectMapper();
+			for(String groupName : groups){
+				Response response = reqProcessor.process("/auth/ldap/groups","{\"groupname\":\""+groupName+"\"}",token);
+				String responseJson=TVaultConstants.EMPTY;
+				List<String> policies = new ArrayList<>();
+				List<String> currentpolicies = new ArrayList<>();
+				if(HttpStatus.OK.equals(response.getHttpstatus())){
+					responseJson = response.getResponse();
+					try {
+						//currentpolicies = getPoliciesAsStringFromJson(objMapper, responseJson);
+						currentpolicies = ControllerUtil.getPoliciesAsListFromJson(objMapper, responseJson);
+					} catch (IOException e) {
+						log.error(e);
+						log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+								put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+								put(LogMessage.ACTION, "updateGroupPolicyAssociationOnSvcaccDelete").
+								put(LogMessage.MESSAGE, String.format ("updateGroupPolicyAssociationOnSvcaccDelete failed [%s]", e.getMessage())).
+								put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+								build()));
+					}
+					policies.addAll(currentpolicies);
+					policies.remove(r_policy);
+					policies.remove(w_policy);
+					policies.remove(d_policy);
+					String policiesString = org.apache.commons.lang3.StringUtils.join(policies, ",");
+					log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+							put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+							put(LogMessage.ACTION, "updateGroupPolicyAssociationOnSvcaccDelete").
+							put(LogMessage.MESSAGE, String.format ("Current policies [%s]", policies )).
+							put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+							build()));
+					ControllerUtil.configureLDAPGroup(groupName,policiesString,token);
+				}
+			}
+		}
 	}
 }

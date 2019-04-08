@@ -405,12 +405,15 @@
             });
             $scope.numOfSvcaccs = 0;
             $scope.svcaccOnboardedData = {"keys": []};
+            $scope.isLoadingData = true;
             AdminSafesManagement.getOnboardedServiceAccounts().then(function (response) {                
                 if (UtilityService.ifAPIRequestSuccessful(response)) {
+                    $scope.isLoadingData = false;
                     $scope.svcaccOnboardedData = response.data;
                     $scope.numOfSvcaccs = $scope.svcaccOnboardedData.keys.length;
                 }
                 else {
+                    $scope.isLoadingData = false;
                     $scope.errorMessage = AdminSafesManagement.getTheRightErrorMessage(response);
                     error('md');
                 }

@@ -21,6 +21,8 @@ import java.io.Serializable;
 
 import io.swagger.annotations.ApiModelProperty;
 
+import javax.validation.constraints.NotNull;
+
 public class ServiceAccountUser implements Serializable {
 
 
@@ -28,8 +30,11 @@ public class ServiceAccountUser implements Serializable {
 	 * 
 	 */
 	private static final long serialVersionUID = -1393713049746840536L;
+	@NotNull
 	private String svcAccName;
+	@NotNull
 	private String username;
+	@NotNull
 	private String access;
 	
 	/**
