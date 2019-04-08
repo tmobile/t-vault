@@ -19,6 +19,7 @@ package com.tmobile.cso.vault.api.model;
 
 import io.swagger.annotations.ApiModelProperty;
 
+import javax.validation.constraints.NotNull;
 import java.io.Serializable;
 
 public class ServiceAccountGroup implements Serializable {
@@ -28,8 +29,11 @@ public class ServiceAccountGroup implements Serializable {
 	 *
 	 */
 	private static final long serialVersionUID = 1971216743215122094L;
+	@NotNull
 	private String svcAccName;
+	@NotNull
 	private String groupname;
+	@NotNull
 	private String access;
 
 	/**

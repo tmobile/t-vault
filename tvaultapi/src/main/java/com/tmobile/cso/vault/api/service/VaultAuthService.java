@@ -86,6 +86,7 @@ public class  VaultAuthService {
 			if(responseMap!=null && responseMap.get("access")!=null) {
 				Map<String,Object> access = (Map<String,Object>)responseMap.get("access");
 				access = filterDuplicateSafePermissions(access);
+				access = filterDuplicateSvcaccPermissions(access);
 				responseMap.put("access", access);
 				response.setResponse(JSONUtil.getJSON(responseMap));
 			}
@@ -133,6 +134,36 @@ public class  VaultAuthService {
 		}
 		return access;
 	}
+
+	/**
+	 * To filter the duplicate Service account permissions
+	 * @param access
+	 * @return
+	 */
+	private Map<String,Object> filterDuplicateSvcaccPermissions(Map<String,Object> access) {
+		if (!MapUtils.isEmpty(access)) {
+			List<Map<String,String>> svcaccPermissions = (List<Map<String,String>>)access.get(TVaultConstants.SVC_ACC_PATH_PREFIX);
+			if (svcaccPermissions != null) {
+				//map to check duplicate permission
+				Map<String,String> filteredPermissions = Collections.synchronizedMap(new HashMap());
+				List<Map<String,String>> updatedPermissionList = new ArrayList<>();
+				for (Map<String,String> permissionMap: svcaccPermissions) {
+					Set<String> keys = permissionMap.keySet();
+					String key = keys.stream().findFirst().orElse("");
+
+					if (key !="" && !filteredPermissions.containsKey(key)) {
+						filteredPermissions.put(key, permissionMap.get(key));
+						Map<String,String> permission = Collections.synchronizedMap(new HashMap());
+						permission.put(key, permissionMap.get(key));
+						updatedPermissionList.add(permission);
+					}
+				}
+				access.put(TVaultConstants.SVC_ACC_PATH_PREFIX, updatedPermissionList);
+			}
+		}
+		return access;
+	}
+
 	/**
 	 * Logs a user in to TVault using ldap or userpass authentication methods
 	 * @param user

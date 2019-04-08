@@ -1066,7 +1066,7 @@ public class ServiceAccountsServiceTest {
         String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
         ServiceAccountGroup serviceAccountGroup = new ServiceAccountGroup("svc_vault_test7", "group1", "write");
         UserDetails userDetails = getMockUser(true);
-        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Failed to add group to the Service Account\"]}");
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Failed to add group to the Service Account\"]}");
         Response response404 = getMockResponse(HttpStatus.NOT_FOUND, true, "");
 
         when(ControllerUtil.areSvcaccGroupInputsValid(serviceAccountGroup)).thenReturn(true);
@@ -1086,7 +1086,7 @@ public class ServiceAccountsServiceTest {
         when(ControllerUtil.configureLDAPGroup(any(),any(),any())).thenReturn(response404);
 
         ResponseEntity<String> responseEntity = serviceAccountsService.addGroupToServiceAccount(token, serviceAccountGroup, userDetails);
-        assertEquals(HttpStatus.BAD_REQUEST, responseEntity.getStatusCode());
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
     }
 
@@ -1194,7 +1194,7 @@ public class ServiceAccountsServiceTest {
         String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
         ServiceAccountGroup serviceAccountGroup = new ServiceAccountGroup("svc_vault_test7", "group1", "write");
         UserDetails userDetails = getMockUser(true);
-        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Failed to remove the group from the Service Account\"]}");
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Failed to remove the group from the Service Account\"]}");
         Response response404 = getMockResponse(HttpStatus.NOT_FOUND, true, "");
 
         when(ControllerUtil.areSvcaccGroupInputsValid(serviceAccountGroup)).thenReturn(true);
@@ -1214,7 +1214,7 @@ public class ServiceAccountsServiceTest {
         when(ControllerUtil.configureLDAPGroup(any(),any(),any())).thenReturn(response404);
 
         ResponseEntity<String> responseEntity = serviceAccountsService.removeGroupFromServiceAccount(token, serviceAccountGroup, userDetails);
-        assertEquals(HttpStatus.BAD_REQUEST, responseEntity.getStatusCode());
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
     }
 
@@ -1278,7 +1278,7 @@ public class ServiceAccountsServiceTest {
     @Test
     public void test_AssociateAppRole_failure_400() throws Exception {
 
-        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid input values\"]}");
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid value specified for access\"]}");
         String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
         UserDetails userDetails = getMockUser(false);
         ServiceAccountApprole serviceAccountApprole = new ServiceAccountApprole("svc_vault_test7", "role1", "write");
@@ -1310,7 +1310,7 @@ public class ServiceAccountsServiceTest {
     @Test
     public void test_AssociateAppRole_failure() throws Exception {
 
-        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Failed to add Approle to the Service Account\"]}");
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Failed to add Approle to the Service Account\"]}");
         String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
         UserDetails userDetails = getMockUser(false);
         ServiceAccountApprole serviceAccountApprole = new ServiceAccountApprole("svc_vault_test7", "role1", "write");
@@ -1324,7 +1324,7 @@ public class ServiceAccountsServiceTest {
         when(ControllerUtil.configureApprole(Mockito.anyString(), Mockito.anyString(), Mockito.anyString())).thenReturn(configureAppRoleResponse);
         ResponseEntity<String> responseEntityActual =  serviceAccountsService.associateApproletoSvcAcc(userDetails, token, serviceAccountApprole);
 
-        assertEquals(HttpStatus.BAD_REQUEST, responseEntityActual.getStatusCode());
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, responseEntityActual.getStatusCode());
         assertEquals(responseEntityExpected, responseEntityActual);
 
     }

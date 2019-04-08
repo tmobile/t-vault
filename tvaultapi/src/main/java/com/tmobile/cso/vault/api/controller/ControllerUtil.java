@@ -774,11 +774,9 @@ public final class ControllerUtil {
 				
 				Response userResponse;
 				if (TVaultConstants.USERPASS.equals(vaultAuthMethod)) {
-					log.debug ("Inside userpass");
 					userResponse = reqProcessor.process("/auth/userpass/read","{\"username\":\""+userName+"\"}",token);
 				}
 				else {
-					log.debug ("Inside non - userpass");
 					userResponse = reqProcessor.process("/auth/ldap/users","{\"username\":\""+userName+"\"}",token);
 				}	
 				String responseJson="";
@@ -2097,15 +2095,6 @@ public final class ControllerUtil {
 	 * @return
 	 */
 	public static boolean areSvcUserInputsValid(ServiceAccountUser serviceAccountUser) {
-		if (ObjectUtils.isEmpty(serviceAccountUser)) {
-			return false;
-		}
-		if (ObjectUtils.isEmpty(serviceAccountUser.getUsername())
-				|| ObjectUtils.isEmpty(serviceAccountUser.getAccess())
-				|| ObjectUtils.isEmpty(serviceAccountUser.getSvcAccName())
-				) {
-			return false;
-		}
 		String access = serviceAccountUser.getAccess();
 		if (!ArrayUtils.contains(permissions, access)) {
 			return false;
@@ -2119,15 +2108,6 @@ public final class ControllerUtil {
 	 * @return
 	 */
 	public static boolean areSvcaccGroupInputsValid(ServiceAccountGroup serviceAccountGroup) {
-		if (ObjectUtils.isEmpty(serviceAccountGroup)) {
-			return false;
-		}
-		if (ObjectUtils.isEmpty(serviceAccountGroup.getGroupname())
-				|| ObjectUtils.isEmpty(serviceAccountGroup.getAccess())
-				|| ObjectUtils.isEmpty(serviceAccountGroup.getSvcAccName())
-				) {
-			return false;
-		}
 		String access = serviceAccountGroup.getAccess();
 		if (!ArrayUtils.contains(permissions, access)) {
 			return false;
@@ -2142,15 +2122,6 @@ public final class ControllerUtil {
 	 * @return
 	 */
 	public static boolean areSvcaccApproleInputsValid(ServiceAccountApprole serviceAccountApprole) {
-		if (ObjectUtils.isEmpty(serviceAccountApprole)) {
-			return false;
-		}
-		if (ObjectUtils.isEmpty(serviceAccountApprole.getApprolename())
-				|| ObjectUtils.isEmpty(serviceAccountApprole.getAccess())
-				|| ObjectUtils.isEmpty(serviceAccountApprole.getSvcAccName())
-				) {
-			return false;
-		}
 		String access = serviceAccountApprole.getAccess();
 		if (!ArrayUtils.contains(permissions, access)) {
 			return false;
@@ -2159,144 +2130,5 @@ public final class ControllerUtil {
 	}
 
 
-	/**
-	 * Update User policy on Service account offboarding
-	 * @param svcAccName
-	 * @param acessInfo
-	 * @param token
-	 */
-	public static void updateUserPolicyAssociationOnSvcaccDelete(String svcAccName,Map<String,String> acessInfo,String token){
-		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
-				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
-				put(LogMessage.ACTION, "updateUserPolicyAssociationOnSvcaccDelete").
-				put(LogMessage.MESSAGE, String.format ("trying updateUserPolicyAssociationOnSvcaccDelete")).
-				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
-				build()));
-		log.debug ("updateUserPolicyAssociationOnSvcaccDelete...for auth method " + vaultAuthMethod);
-		if(acessInfo!=null){
-			String r_policy = new StringBuffer().append(TVaultConstants.SVC_ACC_POLICIES_PREFIXES.getKey(TVaultConstants.READ_POLICY)).append(TVaultConstants.SVC_ACC_PATH_PREFIX).append("_").append(svcAccName).toString();
-			String w_policy = new StringBuffer().append(TVaultConstants.SVC_ACC_POLICIES_PREFIXES.getKey(TVaultConstants.WRITE_POLICY)).append(TVaultConstants.SVC_ACC_PATH_PREFIX).append("_").append(svcAccName).toString();
-			String d_policy = new StringBuffer().append(TVaultConstants.SVC_ACC_POLICIES_PREFIXES.getKey(TVaultConstants.DENY_POLICY)).append(TVaultConstants.SVC_ACC_PATH_PREFIX).append("_").append(svcAccName).toString();
-			String o_policy = new StringBuffer().append(TVaultConstants.SVC_ACC_POLICIES_PREFIXES.getKey(TVaultConstants.SUDO_POLICY)).append(TVaultConstants.SVC_ACC_PATH_PREFIX).append("_").append(svcAccName).toString();
 
-			Set<String> users = acessInfo.keySet();
-			ObjectMapper objMapper = new ObjectMapper();
-			for(String userName : users){
-
-				Response userResponse;
-				if (TVaultConstants.USERPASS.equals(vaultAuthMethod)) {
-					log.debug ("Inside userpass");
-					userResponse = reqProcessor.process("/auth/userpass/read","{\"username\":\""+userName+"\"}",token);
-				}
-				else {
-					log.debug ("Inside non - userpass");
-					userResponse = reqProcessor.process("/auth/ldap/users","{\"username\":\""+userName+"\"}",token);
-				}
-				String responseJson="";
-				String groups="";
-				List<String> policies = new ArrayList<>();
-				List<String> currentpolicies = new ArrayList<>();
-
-				if(HttpStatus.OK.equals(userResponse.getHttpstatus())){
-					responseJson = userResponse.getResponse();
-					try {
-						currentpolicies = ControllerUtil.getPoliciesAsListFromJson(objMapper, responseJson);
-						if (!(TVaultConstants.USERPASS.equals(vaultAuthMethod))) {
-							groups = objMapper.readTree(responseJson).get("data").get("groups").asText();
-						}
-					} catch (IOException e) {
-						log.error(e);
-						log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
-								put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
-								put(LogMessage.ACTION, "updateUserPolicyAssociationOnSvcaccDelete").
-								put(LogMessage.MESSAGE, String.format ("updateUserPolicyAssociationOnSvcaccDelete failed [%s]", e.getMessage())).
-								put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
-								build()));
-					}
-					policies.addAll(currentpolicies);
-					policies.remove(r_policy);
-					policies.remove(w_policy);
-					policies.remove(d_policy);
-					policies.remove(o_policy);
-
-					String policiesString = org.apache.commons.lang3.StringUtils.join(policies, ",");
-
-					log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
-							put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
-							put(LogMessage.ACTION, "updateUserPolicyAssociationOnSDBDelete").
-							put(LogMessage.MESSAGE, String.format ("Current policies [%s]", policies )).
-							put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
-							build()));
-					if (TVaultConstants.USERPASS.equals(vaultAuthMethod)) {
-						log.debug ("Inside userpass");
-						ControllerUtil.configureUserpassUser(userName,policiesString,token);
-					}
-					else {
-						log.debug ("Inside non-userpass");
-						ControllerUtil.configureLDAPUser(userName,policiesString,groups,token);
-					}
-				}
-			}
-		}
-	}
-
-	/**
-	 * Update Group policy on Service account offboarding
-	 * @param svcAccName
-	 * @param acessInfo
-	 * @param token
-	 */
-	public static void updateGroupPolicyAssociationOnSvcaccDelete(String svcAccName,Map<String,String> acessInfo,String token){
-		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
-				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
-				put(LogMessage.ACTION, "updateGroupPolicyAssociationOnSvcaccDelete").
-				put(LogMessage.MESSAGE, String.format ("trying updateGroupPolicyAssociationOnSvcaccDelete")).
-				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
-				build()));
-		if (TVaultConstants.USERPASS.equals(vaultAuthMethod)) {
-			log.debug ("Inside userpass of updateGroupPolicyAssociationOnSvcaccDelete...Just Returning...");
-			return;
-		}
-		if(acessInfo!=null){
-			String r_policy = new StringBuffer().append(TVaultConstants.SVC_ACC_POLICIES_PREFIXES.getKey(TVaultConstants.READ_POLICY)).append(TVaultConstants.SVC_ACC_PATH_PREFIX).append("_").append(svcAccName).toString();
-			String w_policy = new StringBuffer().append(TVaultConstants.SVC_ACC_POLICIES_PREFIXES.getKey(TVaultConstants.WRITE_POLICY)).append(TVaultConstants.SVC_ACC_PATH_PREFIX).append("_").append(svcAccName).toString();
-			String d_policy = new StringBuffer().append(TVaultConstants.SVC_ACC_POLICIES_PREFIXES.getKey(TVaultConstants.DENY_POLICY)).append(TVaultConstants.SVC_ACC_PATH_PREFIX).append("_").append(svcAccName).toString();
-
-			Set<String> groups = acessInfo.keySet();
-			ObjectMapper objMapper = new ObjectMapper();
-			for(String groupName : groups){
-				Response response = reqProcessor.process("/auth/ldap/groups","{\"groupname\":\""+groupName+"\"}",token);
-				String responseJson=TVaultConstants.EMPTY;
-				List<String> policies = new ArrayList<>();
-				List<String> currentpolicies = new ArrayList<>();
-				if(HttpStatus.OK.equals(response.getHttpstatus())){
-					responseJson = response.getResponse();
-					try {
-						//currentpolicies = getPoliciesAsStringFromJson(objMapper, responseJson);
-						currentpolicies = ControllerUtil.getPoliciesAsListFromJson(objMapper, responseJson);
-					} catch (IOException e) {
-						log.error(e);
-						log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
-								put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
-								put(LogMessage.ACTION, "updateGroupPolicyAssociationOnSvcaccDelete").
-								put(LogMessage.MESSAGE, String.format ("updateGroupPolicyAssociationOnSvcaccDelete failed [%s]", e.getMessage())).
-								put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
-								build()));
-					}
-					policies.addAll(currentpolicies);
-					policies.remove(r_policy);
-					policies.remove(w_policy);
-					policies.remove(d_policy);
-					String policiesString = org.apache.commons.lang3.StringUtils.join(policies, ",");
-					log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
-							put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
-							put(LogMessage.ACTION, "updateGroupPolicyAssociationOnSvcaccDelete").
-							put(LogMessage.MESSAGE, String.format ("Current policies [%s]", policies )).
-							put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
-							build()));
-					ControllerUtil.configureLDAPGroup(groupName,policiesString,token);
-				}
-			}
-		}
-	}
 }
