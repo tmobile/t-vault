@@ -427,13 +427,13 @@ public class ServiceAccountsServiceTest {
         when(ControllerUtil.convetToJson(rqstParams)).thenReturn(getJSON(rqstParams));
         when(ControllerUtil.createMetadata(Mockito.any(), Mockito.anyString())).thenReturn(true);
         when(ControllerUtil.updateMetadata(Mockito.any(), Mockito.anyString())).thenReturn(getMockResponse(HttpStatus.OK, true,"{}"));
-
+        when(reqProcessor.process("/ad/serviceaccount/offboard", svc_account_payload, token)).thenReturn(getMockResponse(HttpStatus.NO_CONTENT, true,"{}"));
         // System under test
     	String expectedResponse = "{\"errors\":[\"Failed to onboard AD service account into TVault for password rotation.\"]}";
-        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body(expectedResponse);
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(expectedResponse);
 
         ResponseEntity<String> responseEntity = serviceAccountsService.onboardServiceAccount(token, serviceAccount, userDetails);
-        assertEquals(HttpStatus.BAD_REQUEST, responseEntity.getStatusCode());
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
     }
 

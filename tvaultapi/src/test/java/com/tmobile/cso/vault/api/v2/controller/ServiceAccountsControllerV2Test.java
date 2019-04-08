@@ -16,8 +16,11 @@
 // =========================================================================
 package com.tmobile.cso.vault.api.v2.controller;
 
+import static org.hamcrest.Matchers.containsString;
 import static org.junit.Assert.assertEquals;
+import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.util.ArrayList;
@@ -25,6 +28,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.tmobile.cso.vault.api.model.*;
 import org.apache.commons.collections.CollectionUtils;
 import org.junit.Before;
 import org.junit.Test;
@@ -48,13 +52,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tmobile.cso.vault.api.common.TVaultConstants;
 import com.tmobile.cso.vault.api.main.Application;
-import com.tmobile.cso.vault.api.model.ADServiceAccount;
-import com.tmobile.cso.vault.api.model.ADServiceAccountObjects;
-import com.tmobile.cso.vault.api.model.ADServiceAccountObjectsList;
-import com.tmobile.cso.vault.api.model.OnboardedServiceAccountDetails;
-import com.tmobile.cso.vault.api.model.ServiceAccount;
-import com.tmobile.cso.vault.api.model.ServiceAccountUser;
-import com.tmobile.cso.vault.api.model.UserDetails;
 import com.tmobile.cso.vault.api.process.Response;
 import com.tmobile.cso.vault.api.service.ServiceAccountsService;
 
@@ -329,5 +326,59 @@ public class ServiceAccountsControllerV2Test {
         String actual = result.getResponse().getContentAsString();
         assertEquals(expected, actual);
         
+    }
+
+    @Test
+    public void test_addGroupToSafe() throws Exception {
+        ServiceAccountGroup serviceAccountGroup = new ServiceAccountGroup("svc_vault_test7", "group1","write");
+
+        String inputJson =new ObjectMapper().writeValueAsString(serviceAccountGroup);
+        String responseJson = "{\"messages\":[\"Group is successfully associated with Service Account\"]}";
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(responseJson);
+        UserDetails userDetails = getMockUser(false);
+        when(serviceAccountsService.addGroupToServiceAccount(eq("5PDrOhsy4ig8L3EpsJZSLAMg"), Mockito.any(ServiceAccountGroup.class), eq(userDetails))).thenReturn(responseEntityExpected);
+
+        mockMvc.perform(MockMvcRequestBuilders.post("/v2/serviceaccounts/group").requestAttr("UserDetails", userDetails)
+                .header("vault-token", "5PDrOhsy4ig8L3EpsJZSLAMg")
+                .header("Content-Type", "application/json;charset=UTF-8")
+                .content(inputJson))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString(responseJson)));
+    }
+
+    @Test
+    public void test_removeGroupFromSafe() throws Exception {
+        ServiceAccountGroup serviceAccountGroup = new ServiceAccountGroup("svc_vault_test7", "group1","write");
+
+        String inputJson =new ObjectMapper().writeValueAsString(serviceAccountGroup);
+        String responseJson = "{\"messages\":[\"Group is successfully removed from Service Account\"]}";
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(responseJson);
+        UserDetails userDetails = getMockUser(false);
+        when(serviceAccountsService.removeGroupFromServiceAccount(eq("5PDrOhsy4ig8L3EpsJZSLAMg"), Mockito.any(ServiceAccountGroup.class), eq(userDetails))).thenReturn(responseEntityExpected);
+
+        mockMvc.perform(MockMvcRequestBuilders.delete("/v2/serviceaccounts/group").requestAttr("UserDetails", userDetails)
+                .header("vault-token", "5PDrOhsy4ig8L3EpsJZSLAMg")
+                .header("Content-Type", "application/json;charset=UTF-8")
+                .content(inputJson))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString(responseJson)));
+    }
+
+    @Test
+    public void test_associateApproletoSvcAcc() throws Exception {
+        ServiceAccountApprole serviceAccountApprole = new ServiceAccountApprole("svc_vault_test7", "role1","write");
+
+        String inputJson =new ObjectMapper().writeValueAsString(serviceAccountApprole);
+        String responseJson = "{\"messages\":[\"Approle is successfully associated with Service Account\"]}";
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(responseJson);
+        UserDetails userDetails = getMockUser(false);
+        when(serviceAccountsService.associateApproletoSvcAcc(eq(userDetails), eq("5PDrOhsy4ig8L3EpsJZSLAMg"), Mockito.any(ServiceAccountApprole.class))).thenReturn(responseEntityExpected);
+
+        mockMvc.perform(MockMvcRequestBuilders.post("/v2/serviceaccounts/approle").requestAttr("UserDetails", userDetails)
+                .header("vault-token", "5PDrOhsy4ig8L3EpsJZSLAMg")
+                .header("Content-Type", "application/json;charset=UTF-8")
+                .content(inputJson))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString(responseJson)));
     }
 }

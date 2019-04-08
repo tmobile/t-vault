@@ -41,10 +41,10 @@ public class ServiceAccount implements Serializable {
 
 	private boolean autoRotate;
 	@Min(0)
-	@Max(9999999999999999L)
+	@Max(1590897977L)
 	private Long ttl;
 	@Min(0)
-	@Max(9999999999999999L)
+	@Max(1590897977L)
 
 	private Long max_ttl;
 	@JsonIgnore
