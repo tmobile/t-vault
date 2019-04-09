@@ -2,6 +2,7 @@ storage "consul" {
   address = "CONSUL_STORAGE_ADDRESS"
   path    = "CONSUL_STORAGE_PATH"
   service = "CONSUL_STORAGE_SERVICE_NAME"
+  disable_registration = "true"
 }
 
 listener "tcp" {
