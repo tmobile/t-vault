@@ -627,6 +627,20 @@
             }
         }
 
+        var hideUserSudoPolicy = function() {
+            $scope.hideSudoPolicy = false;
+            var flg = false;
+            var count=0;
+            Object.keys($scope.permissionData.UsersPermissionsData).forEach(function(key) {
+                if ($scope.permissionData.UsersPermissionsData[key] == "sudo") {
+                    flg = true;
+                }
+                count++;
+            });
+            if (count==1 && flg == true) {
+                $scope.hideSudoPolicy = true;
+            }
+        }
 
         var getMetadata = function(svcaccId) {
             $scope.isLoadingData = true;
@@ -649,6 +663,7 @@
                                 $scope.permissionData.AppRolePermissionsData = {
                                     "data": object['app-roles']
                                 }
+                                hideUserSudoPolicy();
                             }
 
                         } catch (e) {
@@ -916,6 +931,7 @@
                 AwsPermissionsData: '',
                 AppRolePermissionsData: ''
             }
+            $scope.hideSudoPolicy = false;
             $scope.myVaultKey = SessionStore.getItem("myVaultKey");
             if(!$scope.myVaultKey){ /* Check if user is in the same session */
                 $state.go('signup');
