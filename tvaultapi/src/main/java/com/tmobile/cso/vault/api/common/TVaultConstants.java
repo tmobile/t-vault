@@ -83,4 +83,6 @@ public class TVaultConstants {
     public static final String SVC_ACC_ROLES_METADATA_MOUNT_PATH = "metadata/ad/roles";
     public static final String SVC_ACC_ROLES_PATH = "ad/roles";
     public static final Long PASSWORD_AUTOROTATE_TTL_MAX_VALUE = 1590897977L;
+    public static final String SVC_ACC_NAME_PREFIX="svc";
+    public static final String SVC_AD_USERDN = "OU=Production,OU=Users,OU=Accounts,DC=clouddev,DC=corporate,DC=t-mobile,DC=com";
 }

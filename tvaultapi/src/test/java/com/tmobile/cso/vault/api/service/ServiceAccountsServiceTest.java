@@ -1411,4 +1411,31 @@ public class ServiceAccountsServiceTest {
         assertEquals(responseEntityExpected, responseEntityActual);
 
     }
+
+    @Test
+    public void test_getManagedServiceAccounts_success() {
+        UserDetails userDetails = getMockUser(true);
+        String token = userDetails.getClientToken();
+        String userPrincipalName = "test";
+        String managedBy = "user11";
+        String expected = "{ \"keys\": [\"testacc01\"]}";
+
+        String encodedFilter = "(&(userPrincipalName=test*)(objectClass=user)(!(CN=null))((manager:CN=testacc02)))";
+        List<ADServiceAccount> allServiceAccounts = generateADSerivceAccounts();
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(expected);
+
+        when(ldapTemplate.search(Mockito.anyString(), Mockito.eq(encodedFilter), Mockito.any(AttributesMapper.class))).thenReturn(allServiceAccounts);
+
+        when(JSONUtil.getJSON(Mockito.any(List.class))).thenReturn("[\"testacc01\"]");
+        Response response = getMockResponse(HttpStatus.OK, true, "{\"keys\":[\"testacc02\"]}");
+        when(reqProcessor.process("/ad/serviceaccount/onboardedlist","{}",token)).thenReturn(response);
+
+        ResponseEntity<String> responseEntity = serviceAccountsService.getManagedServiceAccounts(token, userDetails, managedBy);
+
+
+        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntity);
+
+    }
+
 }

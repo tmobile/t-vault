@@ -37,6 +37,8 @@ import com.tmobile.cso.vault.api.service.ServiceAccountsService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 
+import java.util.List;
+
 @RestController
 @CrossOrigin
 @Api( description = "Manage Service Accounts Passwords", position = 13)
@@ -155,4 +157,18 @@ public class ServiceAccountsControllerV2 {
 		UserDetails userDetails = (UserDetails) ((HttpServletRequest) request).getAttribute("UserDetails");
 		return serviceAccountsService.getServiceAccountMeta(token, userDetails, path);
 	}
+
+    /**
+     * Get service accounts managed by non admins
+     * @param request
+     * @param token
+     * @param managedBy
+     * @return
+     */
+    @ApiOperation(value = "${ServiceAccountsControllerV2.getServiceAccountsMeta.value}", notes = "${ServiceAccountsControllerV2.getServiceAccountsMeta.notes}")
+    @GetMapping(value="/v2/ad/serviceaccounts/{managed_by}", produces="application/json")
+    public ResponseEntity<String> getManagedServiceAccounts(HttpServletRequest request, @RequestHeader(value="vault-token") String token, @PathVariable("managed_by" ) String managedBy){
+        UserDetails userDetails = (UserDetails) ((HttpServletRequest) request).getAttribute("UserDetails");
+        return serviceAccountsService.getManagedServiceAccounts(token, userDetails, managedBy);
+    }
 }

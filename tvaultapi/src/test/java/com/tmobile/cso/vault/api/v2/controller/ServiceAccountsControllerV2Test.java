@@ -381,4 +381,26 @@ public class ServiceAccountsControllerV2Test {
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString(responseJson)));
     }
+
+    @Test
+    public void test_getManagedServiceAccounts_success() throws Exception {
+        UserDetails userDetails = getMockUser(false);
+        String token = userDetails.getClientToken();
+        String managedBy = "user11";
+
+        String expected = "{\n" +
+                "  \"keys\": [\n" +
+                "    \"testacc01\"\n" +
+                "  ]\n" +
+                "}";
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(expected);
+        when(serviceAccountsService.getManagedServiceAccounts(token, userDetails, managedBy)).thenReturn(responseEntityExpected);
+
+        mockMvc.perform(MockMvcRequestBuilders.get("/v2/ad/serviceaccounts/user11").requestAttr("UserDetails", userDetails)
+                .header("vault-token", "5PDrOhsy4ig8L3EpsJZSLAMg")
+                .header("Content-Type", "application/json;charset=UTF-8"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString(expected)));
+
+    }
 }
