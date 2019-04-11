@@ -1422,10 +1422,12 @@ public class SafesServiceTest {
     @Test
     public void test_removeApproleFromSafe_successfully() throws Exception {
         String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
-        String inputJson = "{\"role\":\"approle1\",\"path\":\"users/safe1\"}";
+        String inputJson = "{\"role_name\":\"approle1\",\"path\":\"users/safe1\",\"access\":\"read\"}";
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Role association is removed \"]}");
         Response response = getMockResponse(HttpStatus.NO_CONTENT, true, "");
-
+        Response appRoleResponse = getMockResponse(HttpStatus.OK, true, "{\"data\": {\"policies\":\"w_shared_mysafe01\"}}");
+        when(reqProcessor.process("/auth/approle/role/read","{\"role_name\":\"approle1\"}",token)).thenReturn(appRoleResponse);
+        when(ControllerUtil.configureApprole(Mockito.any(),Mockito.any(),Mockito.any())).thenReturn(response);
         when(ControllerUtil.isValidSafePath("users/safe1")).thenReturn(true);
         when(ControllerUtil.isValidSafe("users/safe1", token)).thenReturn(true);
         when(ControllerUtil.updateMetadata(Mockito.anyMap(), eq(token))).thenReturn(response);
@@ -1438,7 +1440,7 @@ public class SafesServiceTest {
     @Test
     public void test_removeApproleFromSafe_successfully_all_safes() throws Exception {
         String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
-        String inputJson = "{\"role\":\"approle1\",\"path\":\"users/safe1\"}";
+
         String path = "users/safe1";
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Role association is removed \"]}");
         Response response = getMockResponse(HttpStatus.NO_CONTENT, true, "");
@@ -1447,6 +1449,10 @@ public class SafesServiceTest {
         when(ControllerUtil.isValidSafePath(path)).thenReturn(true);
         when(ControllerUtil.isValidSafe(path, token)).thenReturn(true);
         //when(ControllerUtil.updateMetadata(Mockito.anyMap(),eq(token))).thenReturn(response);
+        String inputJson = "{\"role_name\":\"approle1\",\"path\":\"users/safe1\",\"access\":\"read\"}";
+        Response appRoleResponse = getMockResponse(HttpStatus.OK, true, "{\"data\": {\"policies\":\"w_shared_mysafe01\"}}");
+        when(reqProcessor.process("/auth/approle/role/read","{\"role_name\":\"approle1\"}",token)).thenReturn(appRoleResponse);
+        when(ControllerUtil.configureApprole(Mockito.any(),Mockito.any(),Mockito.any())).thenReturn(response);
 
         when(ControllerUtil.updateMetadata(Mockito.anyMap(), eq(token))).thenAnswer(new Answer() {
             private int count = 0;
@@ -1472,15 +1478,18 @@ public class SafesServiceTest {
     @Test
     public void test_removeApproleFromSafe_failure() throws Exception {
         String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
-        String inputJson = "{\"role\":\"approle1\",\"path\":\"users/safe1\"}";
+        String inputJson = "{\"role_name\":\"approle1\",\"path\":\"users/safe1\",\"access\":\"read\"}";
+
         String path = "users/safe1";
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Role configuration failed.Please try again\"]}");
         Response response_404 = getMockResponse(HttpStatus.NOT_FOUND, true, "");
-
+        Response response = getMockResponse(HttpStatus.NO_CONTENT, true, "");
         when(ControllerUtil.isValidSafePath(path)).thenReturn(true);
         when(ControllerUtil.isValidSafe(path, token)).thenReturn(true);
         //when(ControllerUtil.updateMetadata(Mockito.anyMap(),eq(token))).thenReturn(response);
-
+        Response appRoleResponse = getMockResponse(HttpStatus.OK, true, "{\"data\": {\"policies\":\"w_shared_mysafe01\"}}");
+        when(reqProcessor.process("/auth/approle/role/read","{\"role_name\":\"approle1\"}",token)).thenReturn(appRoleResponse);
+        when(ControllerUtil.configureApprole(Mockito.any(),Mockito.any(),Mockito.any())).thenReturn(response);
         when(ControllerUtil.updateMetadata(Mockito.anyMap(), eq(token))).thenAnswer(new Answer() {
             private int count = 0;
 
