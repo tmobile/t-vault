@@ -428,17 +428,6 @@ public class  ServiceAccountsService {
 	 */
 	public ResponseEntity<String> offboardServiceAccount(String token, OnboardedServiceAccount serviceAccount, UserDetails userDetails) {
 		String svcAccName = serviceAccount.getName();
-		ServiceAccountUser serviceAccountUser = new ServiceAccountUser(svcAccName, serviceAccount.getOwner(), TVaultConstants.SUDO_POLICY);
-		// Remove the owner association (owner policy)
-		ResponseEntity<String> removeUserFromServiceAccountResponse = removeUserFromServiceAccount(token, serviceAccountUser, userDetails);
-		if (!HttpStatus.OK.equals(removeUserFromServiceAccountResponse.getStatusCode())) {
-			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
-					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
-					put(LogMessage.ACTION, "offboardServiceAccount").
-					put(LogMessage.MESSAGE, String.format ("Failed to remove the user from the Service Account")).
-					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
-					build()));
-		}
 		ResponseEntity<String> svcAccPolicyDeletionResponse = deleteServiceAccountPolicies(token, svcAccName);
 		if (!HttpStatus.OK.equals(svcAccPolicyDeletionResponse.getStatusCode())) {
 			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
@@ -680,7 +669,7 @@ public class  ServiceAccountsService {
 		}
 		boolean isAuthorized = true;
 		if (userDetails != null) {
-			isAuthorized = canAddOrRemoveUser(userDetails, serviceAccountUser, TVaultConstants.ADD_USER);
+			isAuthorized = hasAddOrRemovePermission(userDetails, serviceAccountUser.getSvcAccName(), token);
 		}
 
 		if(isAuthorized){
@@ -823,7 +812,7 @@ public class  ServiceAccountsService {
 
 		boolean isAuthorized = true;
 		if (userDetails != null) {
-			isAuthorized = canAddOrRemoveUser(userDetails, serviceAccountUser, TVaultConstants.REMOVE_USER);
+			isAuthorized = hasAddOrRemovePermission(userDetails, serviceAccountUser.getSvcAccName(), token);
 		}
 
 		if(isAuthorized){
@@ -901,7 +890,7 @@ public class  ServiceAccountsService {
 				if(metadataResponse != null && (HttpStatus.NO_CONTENT.equals(metadataResponse.getHttpstatus()) || HttpStatus.OK.equals(metadataResponse.getHttpstatus()))){
 					log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 							put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
-							put(LogMessage.ACTION, "Remove User to ServiceAccount").
+							put(LogMessage.ACTION, "Remove User from ServiceAccount").
 							put(LogMessage.MESSAGE, "User is successfully Removed from Service Account").
 							put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 							build()));
@@ -1577,11 +1566,9 @@ public class  ServiceAccountsService {
 
 				Response userResponse;
 				if (TVaultConstants.USERPASS.equals(vaultAuthMethod)) {
-					log.debug ("Inside userpass");
 					userResponse = reqProcessor.process("/auth/userpass/read","{\"username\":\""+userName+"\"}",token);
 				}
 				else {
-					log.debug ("Inside non - userpass");
 					userResponse = reqProcessor.process("/auth/ldap/users","{\"username\":\""+userName+"\"}",token);
 				}
 				String responseJson="";
@@ -1620,11 +1607,21 @@ public class  ServiceAccountsService {
 							put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 							build()));
 					if (TVaultConstants.USERPASS.equals(vaultAuthMethod)) {
-						log.debug ("Inside userpass");
+						log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+								put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+								put(LogMessage.ACTION, "updateUserPolicyAssociationOnSvcaccDelete").
+								put(LogMessage.MESSAGE, String.format ("Current policies userpass [%s]", policies )).
+								put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+								build()));
 						ControllerUtil.configureUserpassUser(userName,policiesString,token);
 					}
 					else {
-						log.debug ("Inside non-userpass");
+						log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+								put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+								put(LogMessage.ACTION, "updateUserPolicyAssociationOnSvcaccDelete").
+								put(LogMessage.MESSAGE, String.format ("Current policies ldap [%s]", policies )).
+								put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+								build()));
 						ControllerUtil.configureLDAPUser(userName,policiesString,groups,token);
 					}
 				}
@@ -1779,7 +1776,9 @@ public class  ServiceAccountsService {
 		}
 		approleName = (approleName !=null) ? approleName.toLowerCase() : approleName;
 		access = (access != null) ? access.toLowerCase(): access;
-
+		if(StringUtils.isEmpty(access)){
+			return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body("{\"errors\":[\"Incorrect access. Valid values are read,write,deny \"]}");
+		}
 		boolean isAuthorized = hasAddOrRemovePermission(userDetails, svcAccName, token);
 
 		if (isAuthorized) {
@@ -1815,9 +1814,7 @@ public class  ServiceAccountsService {
 				policies.remove(policy);
 
 			}
-			if("".equals(policy)){
-				return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body("{\"errors\":[\"Incorrect access. Valid values are read,write,deny \"]}");
-			}
+
 			String policiesString = org.apache.commons.lang3.StringUtils.join(policies, ",");
 			String currentpoliciesString = org.apache.commons.lang3.StringUtils.join(currentpolicies, ",");
 			log.info(JSONUtil.getJSON(ImmutableMap.<String, String>builder().

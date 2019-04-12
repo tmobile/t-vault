@@ -383,6 +383,51 @@ public class ServiceAccountsControllerV2Test {
     }
 
     @Test
+    public void test_removeApproleFromSvcAcc() throws Exception {
+        ServiceAccountApprole serviceAccountApprole = new ServiceAccountApprole("svc_vault_test7", "role1","write");
+
+        String inputJson =new ObjectMapper().writeValueAsString(serviceAccountApprole);
+        String responseJson = "{\"messages\":[\"Approle is successfully removed from Service Account\"]}";
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(responseJson);
+        UserDetails userDetails = getMockUser(false);
+        when(serviceAccountsService.removeApproleFromSvcAcc(eq(userDetails), eq("5PDrOhsy4ig8L3EpsJZSLAMg"), Mockito.any(ServiceAccountApprole.class))).thenReturn(responseEntityExpected);
+
+        mockMvc.perform(MockMvcRequestBuilders.delete("/v2/serviceaccounts/approle").requestAttr("UserDetails", userDetails)
+                .header("vault-token", "5PDrOhsy4ig8L3EpsJZSLAMg")
+                .header("Content-Type", "application/json;charset=UTF-8")
+                .content(inputJson))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString(responseJson)));
+    }
+
+    @Test
+    public void test_getServiceAccountMeta_success() throws Exception {
+        UserDetails userDetails = getMockUser(false);
+        String token = userDetails.getClientToken();
+        String path = "ad/roles/testacc01";
+
+        String expected = "{\n" +
+                "  \"app-roles\": {\n" +
+                "    \"role1\": \"read\"\n" +
+                "  },\n" +
+                "  \"managedBy\": \"user11\",\n" +
+                "  \"name\": \"testacc01\",\n" +
+                "  \"users\": {\n" +
+                "    \"user11\": \"sudo\"\n" +
+                "  }\n" +
+                "}";
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(expected);
+        when(serviceAccountsService.getServiceAccountMeta(token, userDetails, path)).thenReturn(responseEntityExpected);
+
+        mockMvc.perform(MockMvcRequestBuilders.get("/v2/serviceaccounts/meta?path=ad/roles/testacc01").requestAttr("UserDetails", userDetails)
+                .header("vault-token", "5PDrOhsy4ig8L3EpsJZSLAMg")
+                .header("Content-Type", "application/json;charset=UTF-8"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString(expected)));
+
+    }
+
+    @Test
     public void test_getManagedServiceAccounts_success() throws Exception {
         UserDetails userDetails = getMockUser(false);
         String token = userDetails.getClientToken();
