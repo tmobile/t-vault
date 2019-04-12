@@ -139,10 +139,24 @@ public class ServiceAccountsControllerV2 {
      */
     @ApiOperation(value = "${ServiceAccountsControllerV2.associateApprole.value}", notes = "${ServiceAccountsControllerV2.associateApprole.notes}")
     @PostMapping(value="/v2/serviceaccounts/approle",consumes="application/json",produces="application/json")
-    public ResponseEntity<String>associateApproletoSDB(HttpServletRequest request, @RequestHeader(value="vault-token") String token, @Valid @RequestBody ServiceAccountApprole serviceAccountApprole) {
+    public ResponseEntity<String>associateApproletoSvcAcc(HttpServletRequest request, @RequestHeader(value="vault-token") String token, @Valid @RequestBody ServiceAccountApprole serviceAccountApprole) {
         UserDetails userDetails = (UserDetails) ((HttpServletRequest) request).getAttribute("UserDetails");
         return serviceAccountsService.associateApproletoSvcAcc(userDetails, token, serviceAccountApprole);
     }
+
+	/**
+	 * Remove approle from Service Account
+	 * @param request
+	 * @param token
+	 * @param serviceAccountApprole
+	 * @return
+	 */
+	@ApiOperation(value = "${ServiceAccountsControllerV2.associateApprole.value}", notes = "${ServiceAccountsControllerV2.associateApprole.notes}")
+	@DeleteMapping(value="/v2/serviceaccounts/approle",consumes="application/json",produces="application/json")
+	public ResponseEntity<String>removeApproleFromSvcAcc(HttpServletRequest request, @RequestHeader(value="vault-token") String token, @Valid @RequestBody ServiceAccountApprole serviceAccountApprole) {
+		UserDetails userDetails = (UserDetails) ((HttpServletRequest) request).getAttribute("UserDetails");
+		return serviceAccountsService.removeApproleFromSvcAcc(userDetails, token, serviceAccountApprole);
+	}
 
 	/**
 	 * Get metadata for service account
