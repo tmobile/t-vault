@@ -434,12 +434,13 @@ public class ServiceAccountsControllerV2Test {
         String managedBy = "user11";
 
         String expected = "{\n" +
-                "  \"keys\": [\n" +
-                "    \"testacc01\"\n" +
-                "  ]\n" +
+                "  \"keys\": {\n" +
+                "    \"mail\": \"user11@abc.com\",\n" +
+                "    \"displayname\": \"user user11\"\n" +
+                "  }\n" +
                 "}";
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(expected);
-        when(serviceAccountsService.getManagedServiceAccounts(token, userDetails, managedBy)).thenReturn(responseEntityExpected);
+        when(serviceAccountsService.getServiceAccountManagerDetails(token, userDetails, managedBy)).thenReturn(responseEntityExpected);
 
         mockMvc.perform(MockMvcRequestBuilders.get("/v2/ad/serviceaccounts/user11").requestAttr("UserDetails", userDetails)
                 .header("vault-token", "5PDrOhsy4ig8L3EpsJZSLAMg")

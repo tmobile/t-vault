@@ -72,7 +72,11 @@ public class  ServiceAccountsService {
 	@Autowired
 	@Qualifier(value = "svcAccLdapTemplate")
 	private LdapTemplate ldapTemplate;
-	
+
+	@Autowired
+	@Qualifier(value = "userLdapTemplate")
+	private LdapTemplate userLdapTemplate;
+
 	@Autowired
 	private AccessService accessService;
 
@@ -1690,65 +1694,49 @@ public class  ServiceAccountsService {
 	}
 
     /**
-     * Get managed service accounts for non admins.
+     * Get Manager details for service account
      * @param token
      * @param userDetails
-     * @param managedBy
+     * @param owner
      * @return
      */
-    public ResponseEntity<String> getManagedServiceAccounts(String token, UserDetails userDetails, String managedBy) {
+    public ResponseEntity<String> getServiceAccountManagerDetails(String token, UserDetails userDetails, String owner) {
         AndFilter andFilter = new AndFilter();
-        andFilter.and(new LikeFilter("userPrincipalName", TVaultConstants.SVC_ACC_NAME_PREFIX+"*"));
+		andFilter.and(new EqualsFilter("cn", owner));
         andFilter.and(new EqualsFilter("objectClass", "user"));
-        andFilter.and(new NotFilter(new EqualsFilter("CN", adMasterServiveAccount)));
-        andFilter.and(new EqualsFilter("manager", "CN="+managedBy+","+TVaultConstants.SVC_AD_USERDN));
-
-        List<String> managedServiceAccounts = new ArrayList<>();
-
-        ResponseEntity<String> responseEntity = getOnboardedServiceAccounts(token, userDetails);
-        if (HttpStatus.OK.equals(responseEntity.getStatusCode())) {
-            String response = responseEntity.getBody();
-            List<String> onboardedSvcAccs = new ArrayList<String>();
-            try {
-                Map<String, Object> requestParams = new ObjectMapper().readValue(response, new TypeReference<Map<String, Object>>(){});
-                onboardedSvcAccs = (ArrayList<String>) requestParams.get("keys");
-            }
-            catch(Exception ex) {
-                log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
-                        put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
-                        put(LogMessage.ACTION, "getADServiceAccounts").
-                        put(LogMessage.MESSAGE, String.format("There are no service accounts currently onboarded or error in retrieving onboarded service accounts")).
-                        put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
-                        build()));
-            }
-            if (!onboardedSvcAccs.isEmpty()) {
-                managedServiceAccounts.addAll(getManagedADServiceAccounts(andFilter));
-                managedServiceAccounts.retainAll(onboardedSvcAccs);
-            }
-        }
-        return ResponseEntity.status(HttpStatus.OK).body("{ \"keys\": "+ JSONUtil.getJSON(managedServiceAccounts)+"}");
+        List<String> managedServiceAccounts = getServiceAccountManagerDetails(andFilter);
+        return ResponseEntity.status(HttpStatus.OK).body("{ \"keys\": "+ managedServiceAccounts.get(0)+"}");
     }
 
     /**
-     * Get managed service accounts.
+     * Get Manager details for service account
      * @param filter
      * @return
      */
-    private List<String> getManagedADServiceAccounts(Filter filter) {
+    private List<String> getServiceAccountManagerDetails(Filter filter) {
         log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
                 put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
-                put(LogMessage.ACTION, "getAllAccounts").
-                put(LogMessage.MESSAGE, String.format("Trying to get list of user accounts from AD server")).
+                put(LogMessage.ACTION, "getServiceAccountManagerDetails").
+                put(LogMessage.MESSAGE, String.format("Trying to get manager details")).
                 put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
                 build()));
-        return ldapTemplate.search("", filter.encode(), new AttributesMapper<String>() {
+        return userLdapTemplate.search("", filter.encode(), new AttributesMapper<String>() {
             @Override
             public String mapFromAttributes(Attributes attr) throws NamingException {
-                String serviceAccounts="";
+				Map<String, String> managerDetails = new HashMap<>();
                 if (attr != null) {
-                    serviceAccounts = ((String) attr.get("name").get());
+					String mail = "";
+					if(attr.get("mail") != null) {
+						mail = ((String) attr.get("mail").get());
+					}
+					String displayname = "";
+					if (attr.get("displayname") != null) {
+						displayname = ((String) attr.get("displayname").get());
+					}
+					managerDetails.put("displayname", displayname);
+					managerDetails.put("mail", mail);
                 }
-                return serviceAccounts;
+                return JSONUtil.getJSON(managerDetails);
             }
         });
     }

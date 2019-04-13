@@ -715,58 +715,69 @@
                         var updatedUrlOfEndPoint = ModifyUrl.addUrlParameteres('getSvcaccOnboardInfo', svcaccId);
                         AdminSafesManagement.getSvcaccOnboardInfo(null, updatedUrlOfEndPoint).then(
                             function (onboardResponse) {
-                                var onboardInfo = onboardResponse.data;
+                                if (UtilityService.ifAPIRequestSuccessful(response)) {
+                                    var onboardInfo = onboardResponse.data;
+                                    if ($rootScope.showDetails !== true) {
+                                        document.getElementById('addUser').value = '';
+                                        document.getElementById('addGroup').value = '';
+                                    }
+                                    $scope.searchValue = {
+                                        userName: '',
+                                        groupName: ''
+                                    };
+                                    var managedBy = '';
+                                    lastContent = '';
+                                    try {
+                                        $scope.isLoadingData = false;
+                                        if (response.data.data.values.length >0) {
+                                            var object = response.data.data.values[0];
 
-                                if ($rootScope.showDetails !== true) {
-                                    document.getElementById('addUser').value = '';
-                                    document.getElementById('addGroup').value = '';
-                                }
-                                $scope.searchValue = {
-                                    userName: '',
-                                    groupName: ''
-                                };
-                                lastContent = '';
-                                try {
-                                    $scope.isLoadingData = false;                            
-                                    if (response.data.data.values.length >0) {
-                                        var object = response.data.data.values[0];
-                                        
-                                        $scope.svcacc = {
-                                            svcaccId: object.userId || '',
-                                            userEmail: object.userEmail || '',
-                                            displayName: object.displayName || '',
-                                            givenName: object.givenName || '',
-                                            userName: object.userName || '',
-                                            accountExpires: object.accountExpires || '',
-                                            pwdLastSet: object.pwdLastSet || '',
-                                            maxPwdAge: object.maxPwdAge || '',
-                                            managedBy: object.managedBy || onboardInfo.owner || '',
-                                            passwordExpiry: object.passwordExpiry || '',
-                                            accountStatus: object.accountStatus || '',
-                                            lockStatus: object.lockStatus || '',
-                                            creationDate: object.creationDate || '',               
-                                            purpose: object.purpose || '',
-                                            autoRotate: false,
-                                            ttl: onboardInfo.ttl || '' ,    
-                                            max_ttl: '',      
-                                        };   
-                                        if (onboardInfo.ttl && onboardInfo.ttl != null) {
-                                            $scope.svcacc.autoRotate = true;
+                                            $scope.svcacc = {
+                                                svcaccId: object.userId || '',
+                                                userEmail: object.userEmail || '',
+                                                displayName: object.displayName || '',
+                                                givenName: object.givenName || '',
+                                                userName: object.userName || '',
+                                                accountExpires: object.accountExpires || '',
+                                                pwdLastSet: object.pwdLastSet || '',
+                                                maxPwdAge: object.maxPwdAge || '',
+                                                managedByName: object.managedBy|| '',
+                                                managedByEmail: '',
+                                                passwordExpiry: object.passwordExpiry || '',
+                                                accountStatus: object.accountStatus || '',
+                                                lockStatus: object.lockStatus || '',
+                                                creationDate: object.creationDate || '',
+                                                purpose: object.purpose || '',
+                                                autoRotate: false,
+                                                ttl: onboardInfo.ttl || '' ,
+                                                max_ttl: '',
+                                            };
+                                            managedBy = object.managedBy;
+                                            if (onboardInfo.ttl && onboardInfo.ttl != null) {
+                                                $scope.svcacc.autoRotate = true;
+                                            }
+                                            $scope.autoRotate = $scope.svcacc.autoRotate;
+                                            $scope.svcaccPrevious = angular.copy($scope.svcacc);
+                                            if ($scope.svcacc.accountExpires == "expired") {
+                                                $scope.isSvcaccExpired = true;
+                                                $scope.expiredNote = "(Expired)";
+                                            }
+                                            if (managedBy!= '') {
+                                                getManagerDetails(managedBy);
+                                            }
+                                            getMetadata($stateParams.svcaccData.userId);
                                         }
-                                        $scope.autoRotate = $scope.svcacc.autoRotate;
-                                        $scope.svcaccPrevious = angular.copy($scope.svcacc);
-                                        if ($scope.svcacc.accountExpires == "expired") {
-                                            $scope.isSvcaccExpired = true;
-                                            $scope.expiredNote = "(Expired)";
-                                        }
-                                        getMetadata($stateParams.svcaccData.userId);
+                                    }
+                                    catch (e) {
+                                        console.log(e);
+                                        $scope.isLoadingData = false;
+                                        $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_PROCESSING_DATA');
+                                        $scope.error('md');
                                     }
                                 }
-                                catch (e) {
-                                    console.log(e);
-                                    $scope.isLoadingData = false;
-                                    $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_PROCESSING_DATA');
-                                    $scope.error('md');
+                                else {
+                                    $scope.errorMessage = AdminSafesManagement.getTheRightErrorMessage(response);
+                                    error('md');
                                 }
                             },
                             function (error) {
@@ -787,6 +798,41 @@
                     document.getElementById('addUser').value = '';
                     document.getElementById('addGroup').value = '';
                 }
+                console.log(error);
+                $scope.isLoadingData = false;
+                $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
+                $scope.error('md');
+            })
+        }
+
+        var getManagerDetails = function(svcaccId) {
+            $scope.isLoadingData = true;
+            var queryParameters = svcaccId;
+            var updatedUrlOfEndPoint = ModifyUrl.addUrlParameteres('getSvcaccManagerDetails', queryParameters);
+            AdminSafesManagement.getSvcaccManagerDetails(null, updatedUrlOfEndPoint).then(function (response) {
+                if (UtilityService.ifAPIRequestSuccessful(response)) {
+                    try {
+                        $scope.isLoadingData = false;
+                        if (response.data) {
+                            var object = response.data.keys;
+                            $scope.svcacc.managedByName = object.displayname || '';
+                            $scope.svcacc.managedByEmail = object.mail || '';
+                        }
+
+                    } catch (e) {
+                        console.log(e);
+                        $scope.isLoadingData = false;
+                        $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_PROCESSING_DATA');
+                        $scope.error('md');
+                    }
+                }
+                else {
+                    $scope.errorMessage = AdminSafesManagement.getTheRightErrorMessage(response);
+                    error('md');
+                }
+            },
+            function (error) {
+                // Error handling function
                 console.log(error);
                 $scope.isLoadingData = false;
                 $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
@@ -842,6 +888,7 @@
         $scope.getSvcaccInfo = function (svcaccObj) {
             $scope.svcacc = svcaccObj;
             $scope.svcacc.svcaccId = svcaccObj.userId;  
+            getManagerDetails($scope.svcacc.managedBy);
             $scope.svcInputSelected = true;
             $scope.isCollapsed = false;
             $scope.autoRotate = false;
@@ -861,7 +908,8 @@
                 accountExpires: '',
                 pwdLastSet: '',
                 maxPwdAge: '',
-                managedBy: '',
+                managedByName: '',
+                managedByEmail: '',
                 passwordExpiry: '',
                 accountStatus: '',
                 lockStatus: '',
@@ -915,7 +963,8 @@
                 accountExpires: '',
                 pwdLastSet: '',
                 maxPwdAge: '',
-                managedBy: '',
+                managedByName: '',
+                managedByEmail: '',
                 passwordExpiry: '',
                 accountStatus: '',
                 lockStatus: '',

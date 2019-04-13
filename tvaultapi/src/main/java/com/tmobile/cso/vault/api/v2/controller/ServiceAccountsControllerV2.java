@@ -173,16 +173,16 @@ public class ServiceAccountsControllerV2 {
 	}
 
     /**
-     * Get service accounts managed by non admins
+     * Get Manager details for the service account
      * @param request
      * @param token
-     * @param managedBy
+     * @param owner
      * @return
      */
     @ApiOperation(value = "${ServiceAccountsControllerV2.getServiceAccountsMeta.value}", notes = "${ServiceAccountsControllerV2.getServiceAccountsMeta.notes}")
-    @GetMapping(value="/v2/ad/serviceaccounts/{managed_by}", produces="application/json")
-    public ResponseEntity<String> getManagedServiceAccounts(HttpServletRequest request, @RequestHeader(value="vault-token") String token, @PathVariable("managed_by" ) String managedBy){
+    @GetMapping(value="/v2/ad/serviceaccounts/{owner}", produces="application/json")
+    public ResponseEntity<String> getServiceAccountManagerDetails(HttpServletRequest request, @RequestHeader(value="vault-token") String token, @PathVariable("owner" ) String owner){
         UserDetails userDetails = (UserDetails) ((HttpServletRequest) request).getAttribute("UserDetails");
-        return serviceAccountsService.getManagedServiceAccounts(token, userDetails, managedBy);
+        return serviceAccountsService.getServiceAccountManagerDetails(token, userDetails, owner);
     }
 }

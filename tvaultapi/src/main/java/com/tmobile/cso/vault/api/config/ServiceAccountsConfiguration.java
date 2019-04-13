@@ -52,7 +52,7 @@ public class ServiceAccountsConfiguration {
         return contextSource;
     }
     @Bean
-    public ContextSource poolingLdapContextSource() {
+    public ContextSource poolingLdapSvcAccContextSource() {
         PoolingContextSource poolingContextSource = new PoolingContextSource();
         poolingContextSource.setDirContextValidator(new DefaultDirContextValidator());
         poolingContextSource.setContextSource(svcAccContextSource());
@@ -64,7 +64,7 @@ public class ServiceAccountsConfiguration {
     }
     @Bean(name="svcAccLdapTemplate")
     public LdapTemplate svcAccLdapTemplate() {
-		LdapTemplate ldapTemplate = new LdapTemplate(poolingLdapContextSource());
+		LdapTemplate ldapTemplate = new LdapTemplate(poolingLdapSvcAccContextSource());
 		ldapTemplate.setIgnorePartialResultException(true);
 		return ldapTemplate;
     }
