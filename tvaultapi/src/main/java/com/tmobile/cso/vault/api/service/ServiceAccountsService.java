@@ -24,6 +24,7 @@ import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import javax.naming.NamingException;
 import javax.naming.directory.Attributes;
@@ -42,11 +43,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.ldap.core.AttributesMapper;
 import org.springframework.ldap.core.LdapTemplate;
-import org.springframework.ldap.filter.AndFilter;
-import org.springframework.ldap.filter.EqualsFilter;
-import org.springframework.ldap.filter.Filter;
-import org.springframework.ldap.filter.LikeFilter;
-import org.springframework.ldap.filter.NotFilter;
+import org.springframework.ldap.filter.*;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
@@ -128,6 +125,32 @@ public class  ServiceAccountsService {
 			}
 		}
 		List<ADServiceAccount> allServiceAccounts = getADServiceAccounts(andFilter);
+
+		// get the managed_by details
+		if (allServiceAccounts != null && !allServiceAccounts.isEmpty()) {
+			List<String> ownerlist = allServiceAccounts.stream().map(m -> m.getManagedBy().getUserName()).collect(Collectors.toList());
+			// remove duplicate usernames
+			ownerlist = new ArrayList<>(new HashSet<>(ownerlist));
+
+			// build the search query
+			StringBuffer filterQuery = new StringBuffer();
+			filterQuery.append("(&(objectclass=user)(|");
+			for (String owner : ownerlist) {
+				filterQuery.append("(cn=" + owner + ")");
+			}
+			filterQuery.append("))");
+			List<ADUserAccount> managedServiceAccounts = getServiceAccountManagerDetails(filterQuery.toString());
+
+			// Update the managedBy withe ADUserAccount object
+			for (ADServiceAccount adServiceAccount : allServiceAccounts) {
+				if (!StringUtils.isEmpty(adServiceAccount.getManagedBy().getUserName())) {
+					List<ADUserAccount> adUserAccount = managedServiceAccounts.stream().filter(f -> f.getUserName().equalsIgnoreCase(adServiceAccount.getManagedBy().getUserName())).collect(Collectors.toList());
+					if (!adUserAccount.isEmpty()) {
+						adServiceAccount.setManagedBy(adUserAccount.get(0));
+					}
+				}
+			}
+		}
 		ADServiceAccountObjects adServiceAccountObjects = new ADServiceAccountObjects();
 		ADServiceAccountObjectsList adServiceAccountObjectsList = new ADServiceAccountObjectsList();
 		Object[] values = new Object[] {};
@@ -187,9 +210,11 @@ public class  ServiceAccountsService {
 						adServiceAccount.setWhenCreated(instant);
 					}
 					if (attr.get("manager") != null) {
+						ADUserAccount adUserAccount = new ADUserAccount();
 						String managedByStr = (String) attr.get("manager").get();
 						String managedBy= managedByStr.substring(3, managedByStr.indexOf(","));
-						adServiceAccount.setManagedBy(managedBy);
+						adUserAccount.setUserName(managedBy);
+						adServiceAccount.setManagedBy(adUserAccount);
 						adServiceAccount.setOwner(managedBy.toLowerCase());
 					}
 					if (attr.get("accountExpires") != null) {
@@ -1695,48 +1720,47 @@ public class  ServiceAccountsService {
 
     /**
      * Get Manager details for service account
-     * @param token
-     * @param userDetails
-     * @param owner
-     * @return
-     */
-    public ResponseEntity<String> getServiceAccountManagerDetails(String token, UserDetails userDetails, String owner) {
-        AndFilter andFilter = new AndFilter();
-		andFilter.and(new EqualsFilter("cn", owner));
-        andFilter.and(new EqualsFilter("objectClass", "user"));
-        List<String> managedServiceAccounts = getServiceAccountManagerDetails(andFilter);
-        return ResponseEntity.status(HttpStatus.OK).body("{ \"keys\": "+ managedServiceAccounts.get(0)+"}");
-    }
-
-    /**
-     * Get Manager details for service account
      * @param filter
      * @return
      */
-    private List<String> getServiceAccountManagerDetails(Filter filter) {
+    private List<ADUserAccount> getServiceAccountManagerDetails(String filter) {
         log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
                 put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
                 put(LogMessage.ACTION, "getServiceAccountManagerDetails").
                 put(LogMessage.MESSAGE, String.format("Trying to get manager details")).
                 put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
                 build()));
-        return userLdapTemplate.search("", filter.encode(), new AttributesMapper<String>() {
+        return userLdapTemplate.search("", filter, new AttributesMapper<ADUserAccount>() {
             @Override
-            public String mapFromAttributes(Attributes attr) throws NamingException {
-				Map<String, String> managerDetails = new HashMap<>();
-                if (attr != null) {
+            public ADUserAccount mapFromAttributes(Attributes attr) throws NamingException {
+				ADUserAccount person = new ADUserAccount();
+				if (attr != null) {
 					String mail = "";
 					if(attr.get("mail") != null) {
 						mail = ((String) attr.get("mail").get());
 					}
-					String displayname = "";
-					if (attr.get("displayname") != null) {
-						displayname = ((String) attr.get("displayname").get());
+					String userId = ((String) attr.get("name").get());
+					// Assign first part of the email id for use with UPN authentication
+					if (!StringUtils.isEmpty(mail)) {
+						userId = mail.substring(0, mail.indexOf("@"));
 					}
-					managerDetails.put("displayname", displayname);
-					managerDetails.put("mail", mail);
-                }
-                return JSONUtil.getJSON(managerDetails);
+					person.setUserId(userId);
+					if (attr.get("displayname") != null) {
+						person.setDisplayName(((String) attr.get("displayname").get()));
+					}
+					if (attr.get("givenname") != null) {
+						person.setGivenName(((String) attr.get("givenname").get()));
+					}
+
+					if (attr.get("mail") != null) {
+						person.setUserEmail(((String) attr.get("mail").get()));
+					}
+
+					if (attr.get("name") != null) {
+						person.setUserName(((String) attr.get("name").get()));
+					}
+				}
+				return person;
             }
         });
     }
@@ -1751,8 +1775,8 @@ public class  ServiceAccountsService {
 	public ResponseEntity<String> removeApproleFromSvcAcc(UserDetails userDetails, String token, ServiceAccountApprole serviceAccountApprole) {
 		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
-				put(LogMessage.ACTION, "Delete Approle from Service Account").
-				put(LogMessage.MESSAGE, String.format ("Trying to delete approle from Service Account [%s]", serviceAccountApprole.getApprolename())).
+				put(LogMessage.ACTION, "Remove Approle from Service Account").
+				put(LogMessage.MESSAGE, String.format ("Trying to remove approle from Service Account [%s]", serviceAccountApprole.getApprolename())).
 				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 				build()));
 		String approleName = serviceAccountApprole.getApprolename();
@@ -1760,7 +1784,7 @@ public class  ServiceAccountsService {
 		String access = serviceAccountApprole.getAccess();
 
 		if (serviceAccountApprole.getApprolename().equals(TVaultConstants.SELF_SERVICE_APPROLE_NAME)) {
-			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Access denied: no permission to associate this AppRole to any Service Account\"]}");
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Access denied: no permission to associate/remove this AppRole to any Service Account\"]}");
 		}
 		approleName = (approleName !=null) ? approleName.toLowerCase() : approleName;
 		access = (access != null) ? access.toLowerCase(): access;
@@ -1858,7 +1882,7 @@ public class  ServiceAccountsService {
 				return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Failed to remove approle from the Service Account\"]}");
 			}
 		} else {
-			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Access denied: No permission to add approle to Service Account\"]}");
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Access denied: No permission to remove approle from Service Account\"]}");
 		}
 	}
 }

@@ -266,10 +266,6 @@
                 return ServiceEndpoint.getSvcaccMetadata.makeRequest(payload, url).then(function(response) {
                     return response;
                 });
-            },getSvcaccManagerDetails: function(payload, url) {
-                return ServiceEndpoint.getSvcaccManagerDetails.makeRequest(payload, url).then(function(response) {
-                    return response;
-                });
             },
             getTheRightErrorMessage : function(responseObject){
                 if(responseObject.status===500 || responseObject.statusText==='Internal Server Error'){

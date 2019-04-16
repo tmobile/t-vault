@@ -46,7 +46,7 @@ public class UserConfiguration {
     public LdapContextSource userContextSource() {
         LdapContextSource contextSource = new LdapContextSource();
         contextSource.setUrl(env.getRequiredProperty("ad.url"));
-        contextSource.setBase(env.getRequiredProperty("ad.baseusr"));
+        contextSource.setBase(env.getRequiredProperty("ad.managerbase"));
         contextSource.setUserDn("CN="+env.getRequiredProperty("ad.username")+","+env.getRequiredProperty("ad.userdn"));
         contextSource.setPassword(new String(Base64.getDecoder().decode(env.getRequiredProperty("ad.password"))));
         return contextSource;

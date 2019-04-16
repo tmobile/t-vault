@@ -251,10 +251,6 @@ readTextFile("../apiUrls.json");
             url: '/v2/serviceaccounts/meta?',
             method: 'GET'
         },{
-            name: 'getSvcaccManagerDetails',
-            url: '/v2/ad/serviceaccounts/',
-            method: 'GET'
-        },{
             name: 'addUserPermissionForSvcacc',
             url: '/v2/serviceaccounts/user',
             method: 'POST'

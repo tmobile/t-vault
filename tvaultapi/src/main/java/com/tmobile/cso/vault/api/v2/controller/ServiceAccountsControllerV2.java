@@ -171,18 +171,4 @@ public class ServiceAccountsControllerV2 {
 		UserDetails userDetails = (UserDetails) ((HttpServletRequest) request).getAttribute("UserDetails");
 		return serviceAccountsService.getServiceAccountMeta(token, userDetails, path);
 	}
-
-    /**
-     * Get Manager details for the service account
-     * @param request
-     * @param token
-     * @param owner
-     * @return
-     */
-    @ApiOperation(value = "${ServiceAccountsControllerV2.getServiceAccountsMeta.value}", notes = "${ServiceAccountsControllerV2.getServiceAccountsMeta.notes}")
-    @GetMapping(value="/v2/ad/serviceaccounts/{owner}", produces="application/json")
-    public ResponseEntity<String> getServiceAccountManagerDetails(HttpServletRequest request, @RequestHeader(value="vault-token") String token, @PathVariable("owner" ) String owner){
-        UserDetails userDetails = (UserDetails) ((HttpServletRequest) request).getAttribute("UserDetails");
-        return serviceAccountsService.getServiceAccountManagerDetails(token, userDetails, owner);
-    }
 }

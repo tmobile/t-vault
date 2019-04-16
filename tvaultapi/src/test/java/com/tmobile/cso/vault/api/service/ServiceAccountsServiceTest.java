@@ -135,6 +135,9 @@ public class ServiceAccountsServiceTest {
         adServiceAccount.setPurpose("This is a test user account");
         adServiceAccount.setAccountExpires("292239827-01-08 11:35:09");
         adServiceAccount.setMaxPwdAge(90);
+        ADUserAccount adUserAccount = new ADUserAccount();
+        adUserAccount.setUserName("user11");
+        adServiceAccount.setManagedBy(adUserAccount);
         adServiceAccount.setAccountStatus("active");
         adServiceAccount.setLockStatus("active");
         return adServiceAccount;
@@ -165,6 +168,17 @@ public class ServiceAccountsServiceTest {
         List<ADServiceAccount> allServiceAccounts = generateADSerivceAccounts();
         ResponseEntity<ADServiceAccountObjects> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(generateADServiceAccountObjects(allServiceAccounts));
 
+        List<ADUserAccount> list = new ArrayList<>();
+        ADUserAccount adUserAccount = new ADUserAccount();
+        adUserAccount.setUserId("user.user11");
+        adUserAccount.setUserName("user11");
+        adUserAccount.setDisplayName("user user11");
+        adUserAccount.setGivenName("user11");
+        adUserAccount.setUserEmail("user11@abc.com");
+        list.add(adUserAccount);
+
+        when(ldapTemplate.search(Mockito.anyString(), Mockito.anyString(), Mockito.any(AttributesMapper.class))).thenReturn(list);
+        ReflectionTestUtils.setField(serviceAccountsService, "userLdapTemplate", ldapTemplate);
         when(ldapTemplate.search(Mockito.anyString(), Mockito.eq(encodedFilter), Mockito.any(AttributesMapper.class))).thenReturn(allServiceAccounts);
 
         Response response = getMockResponse(HttpStatus.OK, true, "{\"keys\":[\"testacc02\"]}");
@@ -210,7 +224,17 @@ public class ServiceAccountsServiceTest {
         List<ADServiceAccount> allServiceAccounts = generateADSerivceAccounts();
         allServiceAccounts.add(generateADServiceAccount("testacc02"));
         ResponseEntity<ADServiceAccountObjects> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(generateADServiceAccountObjects(allServiceAccounts));
+        List<ADUserAccount> list = new ArrayList<>();
+        ADUserAccount adUserAccount = new ADUserAccount();
+        adUserAccount.setUserId("user.user11");
+        adUserAccount.setUserName("user11");
+        adUserAccount.setDisplayName("user user11");
+        adUserAccount.setGivenName("user11");
+        adUserAccount.setUserEmail("user11@abc.com");
+        list.add(adUserAccount);
 
+        when(ldapTemplate.search(Mockito.anyString(), Mockito.anyString(), Mockito.any(AttributesMapper.class))).thenReturn(list);
+        ReflectionTestUtils.setField(serviceAccountsService, "userLdapTemplate", ldapTemplate);
         when(ldapTemplate.search(Mockito.anyString(), Mockito.eq(encodedFilter), Mockito.any(AttributesMapper.class))).thenReturn(allServiceAccounts);
         String expectedMsg = "{\"errors\":[\"TO BE IMPLEMENTED for non admin user\"]}";
         Response response = getMockResponse(HttpStatus.BAD_REQUEST, true, expectedMsg);
@@ -232,7 +256,17 @@ public class ServiceAccountsServiceTest {
         allServiceAccounts.add(generateADServiceAccount("testacc02"));
         allServiceAccounts.add(generateADServiceAccount("testacc03"));
         ResponseEntity<ADServiceAccountObjects> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(generateADServiceAccountObjects(allServiceAccounts));
+        List<ADUserAccount> list = new ArrayList<>();
+        ADUserAccount adUserAccount = new ADUserAccount();
+        adUserAccount.setUserId("user.user11");
+        adUserAccount.setUserName("user11");
+        adUserAccount.setDisplayName("user user11");
+        adUserAccount.setGivenName("user11");
+        adUserAccount.setUserEmail("user11@abc.com");
+        list.add(adUserAccount);
 
+        when(ldapTemplate.search(Mockito.anyString(), Mockito.anyString(), Mockito.any(AttributesMapper.class))).thenReturn(list);
+        ReflectionTestUtils.setField(serviceAccountsService, "userLdapTemplate", ldapTemplate);
         when(ldapTemplate.search(Mockito.anyString(), Mockito.eq(encodedFilter), Mockito.any(AttributesMapper.class))).thenReturn(allServiceAccounts);
 
         Response response = getMockResponse(HttpStatus.NOT_FOUND, true, "{\"keys\":[]}");
@@ -251,8 +285,18 @@ public class ServiceAccountsServiceTest {
     	boolean excludeOnboarded = false;
         List<ADServiceAccount> allServiceAccounts = null;
         ResponseEntity<ADServiceAccountObjects> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(generateADServiceAccountObjects(allServiceAccounts));
-
-        when(ldapTemplate.search(Mockito.anyString(), Mockito.anyString(), Mockito.any(AttributesMapper.class))).thenReturn(allServiceAccounts);
+        List<ADUserAccount> list = new ArrayList<>();
+        ADUserAccount adUserAccount = new ADUserAccount();
+        adUserAccount.setUserId("user.user11");
+        adUserAccount.setUserName("user11");
+        adUserAccount.setDisplayName("user user11");
+        adUserAccount.setGivenName("user11");
+        adUserAccount.setUserEmail("user11@abc.com");
+        list.add(adUserAccount);
+        String encodedFilter = "(&(userPrincipalName=test*)(objectClass=user)(!(CN=null)))";
+        when(ldapTemplate.search(Mockito.anyString(), Mockito.anyString(), Mockito.any(AttributesMapper.class))).thenReturn(list);
+        ReflectionTestUtils.setField(serviceAccountsService, "userLdapTemplate", ldapTemplate);
+        when(ldapTemplate.search(Mockito.anyString(), Mockito.eq(encodedFilter), Mockito.any(AttributesMapper.class))).thenReturn(allServiceAccounts);
         ResponseEntity<ADServiceAccountObjects> responseEntity = serviceAccountsService.getADServiceAccounts(token, userDetails, userPrincipalName, excludeOnboarded);
 
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
@@ -268,8 +312,18 @@ public class ServiceAccountsServiceTest {
     	boolean excludeOnboarded = false;
         List<ADServiceAccount> allServiceAccounts = generateADSerivceAccounts();
         ResponseEntity<ADServiceAccountObjects> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(generateADServiceAccountObjects(allServiceAccounts));
-
-        when(ldapTemplate.search(Mockito.anyString(), Mockito.anyString(), Mockito.any(AttributesMapper.class))).thenReturn(allServiceAccounts);
+        List<ADUserAccount> list = new ArrayList<>();
+        ADUserAccount adUserAccount = new ADUserAccount();
+        adUserAccount.setUserId("user.user11");
+        adUserAccount.setUserName("user11");
+        adUserAccount.setDisplayName("user user11");
+        adUserAccount.setGivenName("user11");
+        adUserAccount.setUserEmail("user11@abc.com");
+        list.add(adUserAccount);
+        String encodedFilter = "(&(userPrincipalName=test*)(objectClass=user)(!(CN=null)))";
+        when(ldapTemplate.search(Mockito.anyString(), Mockito.anyString(), Mockito.any(AttributesMapper.class))).thenReturn(list);
+        ReflectionTestUtils.setField(serviceAccountsService, "userLdapTemplate", ldapTemplate);
+        when(ldapTemplate.search(Mockito.anyString(), Mockito.eq(encodedFilter), Mockito.any(AttributesMapper.class))).thenReturn(allServiceAccounts);
         ResponseEntity<ADServiceAccountObjects> responseEntity = serviceAccountsService.getADServiceAccounts(token, userDetails, userPrincipalName, excludeOnboarded);
 
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
@@ -1718,7 +1772,7 @@ public class ServiceAccountsServiceTest {
     @Test
     public void test_removeApproleFromSvcAcc_failure_403() throws Exception {
 
-        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Access denied: No permission to add approle to Service Account\"]}");
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Access denied: No permission to remove approle from Service Account\"]}");
         String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
         UserDetails userDetails = getMockUser(false);
         ServiceAccountApprole serviceAccountApprole = new ServiceAccountApprole("testsvcname", "role1", "write");
@@ -1780,26 +1834,5 @@ public class ServiceAccountsServiceTest {
         assertEquals(responseEntityExpected, responseEntity);
 
     }
-
-    @Test
-    public void test_getServiceAccountManagerDetails_success() {
-        UserDetails userDetails = getMockUser(true);
-        String token = userDetails.getClientToken();
-        String managedBy = "user11";
-        String expected = "{ \"keys\": {\"mail\": \"user11@abc.com\",\"displayname\": \"user user11\"}}";
-        List<String> list = new ArrayList<>();
-        list.add("{\"mail\": \"user11@abc.com\",\"displayname\": \"user user11\"}");
-        String encodedFilter = "(&(cn=user11)(objectClass=user))";
-        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(expected);
-
-        when(ldapTemplate.search(Mockito.anyString(), Mockito.eq(encodedFilter), Mockito.any(AttributesMapper.class))).thenReturn(list);
-        ReflectionTestUtils.setField(serviceAccountsService, "userLdapTemplate", ldapTemplate);
-        ResponseEntity<String> responseEntity = serviceAccountsService.getServiceAccountManagerDetails(token, userDetails, managedBy);
-
-        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
-        assertEquals(responseEntityExpected, responseEntity);
-
-    }
-
 
 }

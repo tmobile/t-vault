@@ -741,8 +741,7 @@
                                                 accountExpires: object.accountExpires || '',
                                                 pwdLastSet: object.pwdLastSet || '',
                                                 maxPwdAge: object.maxPwdAge || '',
-                                                managedByName: object.managedBy|| '',
-                                                managedByEmail: '',
+                                                managedBy: object.managedBy|| '',
                                                 passwordExpiry: object.passwordExpiry || '',
                                                 accountStatus: object.accountStatus || '',
                                                 lockStatus: object.lockStatus || '',
@@ -761,9 +760,6 @@
                                             if ($scope.svcacc.accountExpires == "expired") {
                                                 $scope.isSvcaccExpired = true;
                                                 $scope.expiredNote = "(Expired)";
-                                            }
-                                            if (managedBy!= '') {
-                                                getManagerDetails(managedBy);
                                             }
                                             getMetadata($stateParams.svcaccData.userId);
                                         }
@@ -804,42 +800,7 @@
                 $scope.error('md');
             })
         }
-
-        var getManagerDetails = function(svcaccId) {
-            $scope.isLoadingData = true;
-            var queryParameters = svcaccId;
-            var updatedUrlOfEndPoint = ModifyUrl.addUrlParameteres('getSvcaccManagerDetails', queryParameters);
-            AdminSafesManagement.getSvcaccManagerDetails(null, updatedUrlOfEndPoint).then(function (response) {
-                if (UtilityService.ifAPIRequestSuccessful(response)) {
-                    try {
-                        $scope.isLoadingData = false;
-                        if (response.data) {
-                            var object = response.data.keys;
-                            $scope.svcacc.managedByName = object.displayname || '';
-                            $scope.svcacc.managedByEmail = object.mail || '';
-                        }
-
-                    } catch (e) {
-                        console.log(e);
-                        $scope.isLoadingData = false;
-                        $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_PROCESSING_DATA');
-                        $scope.error('md');
-                    }
-                }
-                else {
-                    $scope.errorMessage = AdminSafesManagement.getTheRightErrorMessage(response);
-                    error('md');
-                }
-            },
-            function (error) {
-                // Error handling function
-                console.log(error);
-                $scope.isLoadingData = false;
-                $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
-                $scope.error('md');
-            })
-        }
-
+        
         $scope.pwdRotationChange = function() {
             $scope.autoRotate = !$scope.autoRotate;
             $scope.svcacc.autoRotate = $scope.autoRotate;
@@ -888,7 +849,6 @@
         $scope.getSvcaccInfo = function (svcaccObj) {
             $scope.svcacc = svcaccObj;
             $scope.svcacc.svcaccId = svcaccObj.userId;  
-            getManagerDetails($scope.svcacc.managedBy);
             $scope.svcInputSelected = true;
             $scope.isCollapsed = false;
             $scope.autoRotate = false;
@@ -908,8 +868,7 @@
                 accountExpires: '',
                 pwdLastSet: '',
                 maxPwdAge: '',
-                managedByName: '',
-                managedByEmail: '',
+                managedBy: {},
                 passwordExpiry: '',
                 accountStatus: '',
                 lockStatus: '',
@@ -963,8 +922,7 @@
                 accountExpires: '',
                 pwdLastSet: '',
                 maxPwdAge: '',
-                managedByName: '',
-                managedByEmail: '',
+                managedBy: {},
                 passwordExpiry: '',
                 accountStatus: '',
                 lockStatus: '',
