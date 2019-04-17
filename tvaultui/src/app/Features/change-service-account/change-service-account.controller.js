@@ -405,15 +405,10 @@
                             };
                             break;
                         case 'AWSPermission' :
-                            if (editingPermission) {
-                                apiCallFunction = AdminSafesManagement.detachAWSPermissionFromSvcacc;
-                            }
-                            else {
-                                apiCallFunction = AdminSafesManagement.deleteAWSPermissionFromSvcacc;
-                            }
+                            apiCallFunction = AdminSafesManagement.detachAWSPermissionFromSvcacc;
                             reqObjtobeSent = {
                                 "svcAccName": svcaccname,
-                                "role": key,
+                                "rolename": key,
                                 "access": permission
                             };
                             break;
@@ -1044,7 +1039,7 @@
                             break;
                         case 'AWSPermission' :
                             apiCallFunction = AdminSafesManagement.addAWSPermissionForSvcacc;
-                            reqObjtobeSent = {"svcAccName": svcaccname, "role": key, "access": permission.toLowerCase()};
+                            reqObjtobeSent = {"svcAccName": svcaccname, "rolename": key, "access": permission.toLowerCase()};
                             break;
                         case 'AwsRoleConfigure' :
                             $scope.awsConfPopupObj['policies'] = "";   // Todo: Because of unavailability of edit service, this has been put
@@ -1067,8 +1062,6 @@
                                 $scope.awsConfPopupObj.bound_iam_principal_arn = arn;
                                 apiCallFunction = AdminSafesManagement.createAwsIAMRoleSvcacc;
                             }
-                            // apiCallFunction = AdminSafesManagement.addAWSRole;
-                        
                             reqObjtobeSent = $scope.awsConfPopupObj
                             break;
                         case 'AppRolePermission' :

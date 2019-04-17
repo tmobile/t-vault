@@ -19,6 +19,7 @@ package com.tmobile.cso.vault.api.v2.controller;
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 
+import com.tmobile.cso.vault.api.exception.TVaultValidationException;
 import com.tmobile.cso.vault.api.model.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -170,5 +171,57 @@ public class ServiceAccountsControllerV2 {
 	public ResponseEntity<String> getServiceAccountMeta(HttpServletRequest request, @RequestHeader(value="vault-token") String token, @RequestParam("path" ) String path){
 		UserDetails userDetails = (UserDetails) ((HttpServletRequest) request).getAttribute("UserDetails");
 		return serviceAccountsService.getServiceAccountMeta(token, userDetails, path);
+	}
+
+	/**
+	 * Method to create an aws app role
+	 * @param token
+	 * @param awsLoginRole
+	 * @return
+	 */
+	@ApiOperation(value = "${ServiceAccountsControllerV2.createRole.value}", notes = "${ServiceAccountsControllerV2.createRole.notes}")
+	@PostMapping(value="/v2/serviceaccounts/aws/role",consumes="application/json",produces="application/json")
+	public ResponseEntity<String> createRole(HttpServletRequest request, @RequestHeader(value="vault-token") String token, @RequestBody AWSLoginRole awsLoginRole) throws TVaultValidationException {
+		UserDetails userDetails = (UserDetails) ((HttpServletRequest) request).getAttribute("UserDetails");
+		return serviceAccountsService.createRole(userDetails, token, awsLoginRole);
+	}
+
+	/**
+	 * Method to create aws iam role
+	 * @param token
+	 * @param awsiamRole
+	 * @return
+	 */
+	@ApiOperation(value = "${SelfSupportController.createIamRole.value}", notes = "${SelfSupportController.createIamRole.notes}")
+	@PostMapping(value="/v2/serviceaccounts/aws/iam/role",produces="application/json")
+	public ResponseEntity<String> createIAMRole(HttpServletRequest request, @RequestHeader(value="vault-token") String token, @RequestBody AWSIAMRole awsiamRole) throws TVaultValidationException{
+		UserDetails userDetails = (UserDetails) ((HttpServletRequest) request).getAttribute("UserDetails");
+		return serviceAccountsService.createIAMRole(userDetails, token, awsiamRole);
+	}
+
+	/**
+	 * Adds AWS role to Service Account
+	 * @param token
+	 * @param serviceAccountAWSRole
+	 * @return
+	 */
+	@ApiOperation(value = "${ServiceAccountsControllerV2.addAWSRole.value}", notes = "${ServiceAccountsControllerV2.addAWSRole.notes}")
+	@PostMapping (value="/v2/serviceaccounts/role",consumes="application/json",produces="application/json")
+	public ResponseEntity<String> addAwsRoleToSvcacc(HttpServletRequest request, @RequestHeader(value="vault-token") String token, @RequestBody ServiceAccountAWSRole serviceAccountAWSRole){
+		UserDetails userDetails = (UserDetails) ((HttpServletRequest) request).getAttribute("UserDetails");
+		return serviceAccountsService.addAwsRoleToSvcacc(userDetails, token, serviceAccountAWSRole);
+	}
+
+	/**
+	 * Remove AWS role from Safe and delete the role
+	 * @param token
+	 * @param serviceAccountAWSRole
+	 * @return
+	 */
+	@ApiOperation(value = "${ServiceAccountsControllerV2.removeAWSRole.value}", notes = "${ServiceAccountsControllerV2.removeAWSRole.notes}")
+	@DeleteMapping (value="/v2/serviceaccounts/role",consumes="application/json",produces="application/json")
+	public ResponseEntity<String> removeAWSRoleFromSvcacc(HttpServletRequest request, @RequestHeader(value="vault-token") String token, @RequestBody ServiceAccountAWSRole serviceAccountAWSRole){
+		UserDetails userDetails = (UserDetails) ((HttpServletRequest) request).getAttribute("UserDetails");
+		return serviceAccountsService.removeAWSRoleFromSvcacc(userDetails, token, serviceAccountAWSRole);
 	}
 }

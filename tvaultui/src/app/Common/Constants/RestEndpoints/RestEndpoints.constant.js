@@ -273,10 +273,6 @@ readTextFile("../apiUrls.json");
         },{
             name: 'detachAWSPermissionFromSvcacc',
             url: '/v2/serviceaccounts/role',
-            method: 'PUT'
-        },{
-            name: 'deleteAWSPermissionFromSvcacc',
-            url: '/v2/serviceaccounts/role',
             method: 'DELETE'
         },{
             name: 'addAppRolePermissionForSvcacc',
@@ -288,11 +284,11 @@ readTextFile("../apiUrls.json");
             method: 'DELETE'
         },{
             name: 'createAwsRoleSvcacc',
-            url: '/v2/serviceaccounts/auth/aws/role',
+            url: '/v2/serviceaccounts/aws/role',
             method: 'POST'
         },{
             name: 'createAwsIAMRoleSvcacc',
-            url: '/v2/serviceaccounts/auth/aws/iam/role',
+            url: '/v2/serviceaccounts/aws/iam/role',
             method: 'POST'
         },{
             name: 'getSecretForSvcacc',

@@ -82,6 +82,12 @@ public class ServiceAccountsServiceTest {
     AppRoleService appRoleService;
 
     @Mock
+    AWSAuthService awsAuthService;
+
+    @Mock
+    AWSIAMAuthService awsiamAuthService;
+
+    @Mock
     RequestProcessor reqProcessor;
 
     @Mock
@@ -1812,4 +1818,323 @@ public class ServiceAccountsServiceTest {
 
     }
 
+    @Test
+    public void test_addAwsRoleToSvcacc_succssfully_iam() throws Exception {
+
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"AWS Role successfully associated with Service Account\"]}");
+        String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+        UserDetails userDetails = getMockUser(false);
+        ServiceAccountAWSRole serviceAccountAWSRole = new ServiceAccountAWSRole("testsvcname", "role1", "write");
+
+        String [] policies = {"o_svcacct_testsvcname"};
+        when(policyUtils.getCurrentPolicies(token, userDetails.getUsername())).thenReturn(policies);
+        String responseBody = "{ \"bound_account_id\": [ \"1234567890123\"],\"bound_ami_id\": [\"ami-fce3c696\" ], \"bound_iam_instance_profile_arn\": [\n" +
+                "  \"arn:aws:iam::877677878:instance-profile/exampleinstanceprofile\" ], \"bound_iam_role_arn\": [\"arn:aws:iam::8987887:role/test-role\" ], " +
+                "\"bound_vpc_id\": [    \"vpc-2f09a348\"], \"bound_subnet_id\": [ \"subnet-1122aabb\"],\"bound_region\": [\"us-east-2\"],\"policies\":" +
+                " [ \"\\\"[prod\",\"dev\\\"]\" ], \"auth_type\":\"iam\"}";
+        Response awsRoleResponse = getMockResponse(HttpStatus.OK, true, responseBody);
+        when(reqProcessor.process("/auth/aws/roles","{\"role\":\"role1\"}",token)).thenReturn(awsRoleResponse);
+        Response configureAWSRoleResponse = getMockResponse(HttpStatus.OK, true, "");
+        when(ControllerUtil.configureAWSIAMRole(Mockito.anyString(), Mockito.anyString(), Mockito.anyString())).thenReturn(configureAWSRoleResponse);
+        Response updateMetadataResponse = getMockResponse(HttpStatus.NO_CONTENT, true, "");
+        when(ControllerUtil.updateMetadata(Mockito.anyMap(),Mockito.anyString())).thenReturn(updateMetadataResponse);
+
+
+        ResponseEntity<String> responseEntityActual =  serviceAccountsService.addAwsRoleToSvcacc(userDetails, token, serviceAccountAWSRole);
+
+        assertEquals(HttpStatus.OK, responseEntityActual.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntityActual);
+
+    }
+
+    @Test
+    public void test_addAwsRoleToSvcacc_succssfully_ec2() throws Exception {
+
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"AWS Role successfully associated with Service Account\"]}");
+        String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+        UserDetails userDetails = getMockUser(false);
+        ServiceAccountAWSRole serviceAccountAWSRole = new ServiceAccountAWSRole("testsvcname", "role1", "write");
+
+        String [] policies = {"o_svcacct_testsvcname"};
+        when(policyUtils.getCurrentPolicies(token, userDetails.getUsername())).thenReturn(policies);
+        String responseBody = "{ \"bound_account_id\": [ \"1234567890123\"],\"bound_ami_id\": [\"ami-fce3c696\" ], \"bound_iam_instance_profile_arn\": [\n" +
+                "  \"arn:aws:iam::877677878:instance-profile/exampleinstanceprofile\" ], \"bound_iam_role_arn\": [\"arn:aws:iam::8987887:role/test-role\" ], " +
+                "\"bound_vpc_id\": [    \"vpc-2f09a348\"], \"bound_subnet_id\": [ \"subnet-1122aabb\"],\"bound_region\": [\"us-east-2\"],\"policies\":" +
+                " [ \"\\\"[prod\",\"dev\\\"]\" ], \"auth_type\":\"ec2\"}";
+        Response awsRoleResponse = getMockResponse(HttpStatus.OK, true, responseBody);
+        when(reqProcessor.process("/auth/aws/roles","{\"role\":\"role1\"}",token)).thenReturn(awsRoleResponse);
+        Response configureAWSRoleResponse = getMockResponse(HttpStatus.OK, true, "");
+        when(ControllerUtil.configureAWSRole(Mockito.anyString(), Mockito.anyString(), Mockito.anyString())).thenReturn(configureAWSRoleResponse);
+        Response updateMetadataResponse = getMockResponse(HttpStatus.NO_CONTENT, true, "");
+        when(ControllerUtil.updateMetadata(Mockito.anyMap(),Mockito.anyString())).thenReturn(updateMetadataResponse);
+
+
+        ResponseEntity<String> responseEntityActual =  serviceAccountsService.addAwsRoleToSvcacc(userDetails, token, serviceAccountAWSRole);
+
+        assertEquals(HttpStatus.OK, responseEntityActual.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntityActual);
+
+    }
+
+    @Test
+    public void test_addAwsRoleToSvcacc_ec2_metadata_failure() throws Exception {
+
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"AWS Role configuration failed.Please try again\"]}");
+        String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+        UserDetails userDetails = getMockUser(false);
+        ServiceAccountAWSRole serviceAccountAWSRole = new ServiceAccountAWSRole("testsvcname", "role1", "write");
+
+        String [] policies = {"o_svcacct_testsvcname"};
+        when(policyUtils.getCurrentPolicies(token, userDetails.getUsername())).thenReturn(policies);
+        String responseBody = "{ \"bound_account_id\": [ \"1234567890123\"],\"bound_ami_id\": [\"ami-fce3c696\" ], \"bound_iam_instance_profile_arn\": [\n" +
+                "  \"arn:aws:iam::877677878:instance-profile/exampleinstanceprofile\" ], \"bound_iam_role_arn\": [\"arn:aws:iam::8987887:role/test-role\" ], " +
+                "\"bound_vpc_id\": [    \"vpc-2f09a348\"], \"bound_subnet_id\": [ \"subnet-1122aabb\"],\"bound_region\": [\"us-east-2\"],\"policies\":" +
+                " [ \"\\\"[prod\",\"dev\\\"]\" ], \"auth_type\":\"ec2\"}";
+        Response awsRoleResponse = getMockResponse(HttpStatus.OK, true, responseBody);
+        when(reqProcessor.process("/auth/aws/roles","{\"role\":\"role1\"}",token)).thenReturn(awsRoleResponse);
+        Response configureAWSRoleResponse = getMockResponse(HttpStatus.NO_CONTENT, true, "");
+        when(ControllerUtil.configureAWSRole(Mockito.anyString(), Mockito.anyString(), Mockito.anyString())).thenReturn(configureAWSRoleResponse);
+        Response updateMetadataResponse = getMockResponse(HttpStatus.BAD_REQUEST, true, "");
+        when(ControllerUtil.updateMetadata(Mockito.anyMap(),Mockito.anyString())).thenReturn(updateMetadataResponse);
+
+
+        ResponseEntity<String> responseEntityActual =  serviceAccountsService.addAwsRoleToSvcacc(userDetails, token, serviceAccountAWSRole);
+
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, responseEntityActual.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntityActual);
+
+    }
+
+    @Test
+    public void test_addAwsRoleToSvcacc_iam_metadata_failure() throws Exception {
+
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"AWS Role configuration failed.Please try again\"]}");
+        String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+        UserDetails userDetails = getMockUser(false);
+        ServiceAccountAWSRole serviceAccountAWSRole = new ServiceAccountAWSRole("testsvcname", "role1", "write");
+
+        String [] policies = {"o_svcacct_testsvcname"};
+        when(policyUtils.getCurrentPolicies(token, userDetails.getUsername())).thenReturn(policies);
+        String responseBody = "{ \"bound_account_id\": [ \"1234567890123\"],\"bound_ami_id\": [\"ami-fce3c696\" ], \"bound_iam_instance_profile_arn\": [\n" +
+                "  \"arn:aws:iam::877677878:instance-profile/exampleinstanceprofile\" ], \"bound_iam_role_arn\": [\"arn:aws:iam::8987887:role/test-role\" ], " +
+                "\"bound_vpc_id\": [    \"vpc-2f09a348\"], \"bound_subnet_id\": [ \"subnet-1122aabb\"],\"bound_region\": [\"us-east-2\"],\"policies\":" +
+                " [ \"\\\"[prod\",\"dev\\\"]\" ], \"auth_type\":\"iam\"}";
+        Response awsRoleResponse = getMockResponse(HttpStatus.OK, true, responseBody);
+        when(reqProcessor.process("/auth/aws/roles","{\"role\":\"role1\"}",token)).thenReturn(awsRoleResponse);
+        Response configureAWSRoleResponse = getMockResponse(HttpStatus.NO_CONTENT, true, "");
+        when(ControllerUtil.configureAWSIAMRole(Mockito.anyString(), Mockito.anyString(), Mockito.anyString())).thenReturn(configureAWSRoleResponse);
+        Response updateMetadataResponse = getMockResponse(HttpStatus.BAD_REQUEST, true, "");
+        when(ControllerUtil.updateMetadata(Mockito.anyMap(),Mockito.anyString())).thenReturn(updateMetadataResponse);
+
+
+        ResponseEntity<String> responseEntityActual =  serviceAccountsService.addAwsRoleToSvcacc(userDetails, token, serviceAccountAWSRole);
+
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, responseEntityActual.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntityActual);
+
+    }
+
+    @Test
+    public void test_addAwsRoleToSvcacc_failure() throws Exception {
+
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Role configuration failed.Try Again\"]}");
+        String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+        UserDetails userDetails = getMockUser(false);
+        ServiceAccountAWSRole serviceAccountAWSRole = new ServiceAccountAWSRole("testsvcname", "role1", "write");
+
+        String [] policies = {"o_svcacct_testsvcname"};
+        when(policyUtils.getCurrentPolicies(token, userDetails.getUsername())).thenReturn(policies);
+        String responseBody = "{ \"bound_account_id\": [ \"1234567890123\"],\"bound_ami_id\": [\"ami-fce3c696\" ], \"bound_iam_instance_profile_arn\": [\n" +
+                "  \"arn:aws:iam::877677878:instance-profile/exampleinstanceprofile\" ], \"bound_iam_role_arn\": [\"arn:aws:iam::8987887:role/test-role\" ], " +
+                "\"bound_vpc_id\": [    \"vpc-2f09a348\"], \"bound_subnet_id\": [ \"subnet-1122aabb\"],\"bound_region\": [\"us-east-2\"],\"policies\":" +
+                " [ \"\\\"[prod\",\"dev\\\"]\" ], \"auth_type\":\"iam\"}";
+        Response awsRoleResponse = getMockResponse(HttpStatus.OK, true, responseBody);
+        when(reqProcessor.process("/auth/aws/roles","{\"role\":\"role1\"}",token)).thenReturn(awsRoleResponse);
+        Response configureAWSRoleResponse = getMockResponse(HttpStatus.BAD_REQUEST, true, "");
+        when(ControllerUtil.configureAWSIAMRole(Mockito.anyString(), Mockito.anyString(), Mockito.anyString())).thenReturn(configureAWSRoleResponse);
+
+        ResponseEntity<String> responseEntityActual =  serviceAccountsService.addAwsRoleToSvcacc(userDetails, token, serviceAccountAWSRole);
+
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, responseEntityActual.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntityActual);
+
+    }
+
+    @Test
+    public void test_addAwsRoleToSvcacc_failure_403() throws Exception {
+
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Access denied: No permission to add AWS Role to this service account\"]}");
+        String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+        UserDetails userDetails = getMockUser(false);
+        ServiceAccountAWSRole serviceAccountAWSRole = new ServiceAccountAWSRole("testsvcname", "role1", "write");
+
+        ResponseEntity<String> responseEntityActual =  serviceAccountsService.addAwsRoleToSvcacc(userDetails, token, serviceAccountAWSRole);
+
+        assertEquals(HttpStatus.BAD_REQUEST, responseEntityActual.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntityActual);
+
+    }
+
+    @Test
+    public void test_removeAWSRoleFromSvcacc_succssfully_iam() throws Exception {
+
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"AWS Role is successfully removed from Service Account\"]}");
+        String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+        UserDetails userDetails = getMockUser(false);
+        ServiceAccountAWSRole serviceAccountAWSRole = new ServiceAccountAWSRole("testsvcname", "role1", "write");
+
+        String [] policies = {"o_svcacct_testsvcname"};
+        when(policyUtils.getCurrentPolicies(token, userDetails.getUsername())).thenReturn(policies);
+        String responseBody = "{ \"bound_account_id\": [ \"1234567890123\"],\"bound_ami_id\": [\"ami-fce3c696\" ], \"bound_iam_instance_profile_arn\": [\n" +
+                "  \"arn:aws:iam::877677878:instance-profile/exampleinstanceprofile\" ], \"bound_iam_role_arn\": [\"arn:aws:iam::8987887:role/test-role\" ], " +
+                "\"bound_vpc_id\": [    \"vpc-2f09a348\"], \"bound_subnet_id\": [ \"subnet-1122aabb\"],\"bound_region\": [\"us-east-2\"],\"policies\":" +
+                " [ \"w_svcacct_testsvcname\" ], \"auth_type\":\"iam\"}";
+        Response awsRoleResponse = getMockResponse(HttpStatus.OK, true, responseBody);
+        when(reqProcessor.process("/auth/aws/roles","{\"role\":\"role1\"}",token)).thenReturn(awsRoleResponse);
+        Response configureAWSRoleResponse = getMockResponse(HttpStatus.OK, true, "");
+        when(ControllerUtil.configureAWSIAMRole(Mockito.anyString(), Mockito.anyString(), Mockito.anyString())).thenReturn(configureAWSRoleResponse);
+        Response updateMetadataResponse = getMockResponse(HttpStatus.NO_CONTENT, true, "");
+        when(ControllerUtil.updateMetadata(Mockito.anyMap(),Mockito.anyString())).thenReturn(updateMetadataResponse);
+
+
+        ResponseEntity<String> responseEntityActual =  serviceAccountsService.removeAWSRoleFromSvcacc(userDetails, token, serviceAccountAWSRole);
+
+        assertEquals(HttpStatus.OK, responseEntityActual.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntityActual);
+
+    }
+
+    @Test
+    public void test_removeAWSRoleFromSvcacc_succssfully_ec2() throws Exception {
+
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"AWS Role is successfully removed from Service Account\"]}");
+        String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+        UserDetails userDetails = getMockUser(false);
+        ServiceAccountAWSRole serviceAccountAWSRole = new ServiceAccountAWSRole("testsvcname", "role1", "write");
+
+        String [] policies = {"o_svcacct_testsvcname"};
+        when(policyUtils.getCurrentPolicies(token, userDetails.getUsername())).thenReturn(policies);
+        String responseBody = "{ \"bound_account_id\": [ \"1234567890123\"],\"bound_ami_id\": [\"ami-fce3c696\" ], \"bound_iam_instance_profile_arn\": [\n" +
+                "  \"arn:aws:iam::877677878:instance-profile/exampleinstanceprofile\" ], \"bound_iam_role_arn\": [\"arn:aws:iam::8987887:role/test-role\" ], " +
+                "\"bound_vpc_id\": [    \"vpc-2f09a348\"], \"bound_subnet_id\": [ \"subnet-1122aabb\"],\"bound_region\": [\"us-east-2\"],\"policies\":" +
+                " [ \"w_svcacct_testsvcname\" ], \"auth_type\":\"ec2\"}";
+        Response awsRoleResponse = getMockResponse(HttpStatus.OK, true, responseBody);
+        when(reqProcessor.process("/auth/aws/roles","{\"role\":\"role1\"}",token)).thenReturn(awsRoleResponse);
+        Response configureAWSRoleResponse = getMockResponse(HttpStatus.OK, true, "");
+        when(ControllerUtil.configureAWSRole(Mockito.anyString(), Mockito.anyString(), Mockito.anyString())).thenReturn(configureAWSRoleResponse);
+        Response updateMetadataResponse = getMockResponse(HttpStatus.NO_CONTENT, true, "");
+        when(ControllerUtil.updateMetadata(Mockito.anyMap(),Mockito.anyString())).thenReturn(updateMetadataResponse);
+
+
+        ResponseEntity<String> responseEntityActual =  serviceAccountsService.removeAWSRoleFromSvcacc(userDetails, token, serviceAccountAWSRole);
+
+        assertEquals(HttpStatus.OK, responseEntityActual.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntityActual);
+
+    }
+
+    @Test
+    public void test_removeAWSRoleFromSvcacc_metadata_failure() throws Exception {
+
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"AWS Role configuration failed.Please try again\"]}");
+        String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+        UserDetails userDetails = getMockUser(false);
+        ServiceAccountAWSRole serviceAccountAWSRole = new ServiceAccountAWSRole("testsvcname", "role1", "write");
+
+        String [] policies = {"o_svcacct_testsvcname"};
+        when(policyUtils.getCurrentPolicies(token, userDetails.getUsername())).thenReturn(policies);
+        String responseBody = "{ \"bound_account_id\": [ \"1234567890123\"],\"bound_ami_id\": [\"ami-fce3c696\" ], \"bound_iam_instance_profile_arn\": [\n" +
+                "  \"arn:aws:iam::877677878:instance-profile/exampleinstanceprofile\" ], \"bound_iam_role_arn\": [\"arn:aws:iam::8987887:role/test-role\" ], " +
+                "\"bound_vpc_id\": [    \"vpc-2f09a348\"], \"bound_subnet_id\": [ \"subnet-1122aabb\"],\"bound_region\": [\"us-east-2\"],\"policies\":" +
+                " [ \"w_svcacct_testsvcname\" ], \"auth_type\":\"ec2\"}";
+        Response awsRoleResponse = getMockResponse(HttpStatus.OK, true, responseBody);
+        when(reqProcessor.process("/auth/aws/roles","{\"role\":\"role1\"}",token)).thenReturn(awsRoleResponse);
+        Response configureAWSRoleResponse = getMockResponse(HttpStatus.NO_CONTENT, true, "");
+        when(ControllerUtil.configureAWSRole(Mockito.anyString(), Mockito.anyString(), Mockito.anyString())).thenReturn(configureAWSRoleResponse);
+        Response updateMetadataResponse = getMockResponse(HttpStatus.BAD_REQUEST, true, "");
+        when(ControllerUtil.updateMetadata(Mockito.anyMap(),Mockito.anyString())).thenReturn(updateMetadataResponse);
+
+
+        ResponseEntity<String> responseEntityActual =  serviceAccountsService.removeAWSRoleFromSvcacc(userDetails, token, serviceAccountAWSRole);
+
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, responseEntityActual.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntityActual);
+    }
+
+    @Test
+    public void test_removeAWSRoleFromSvcacc_failure() throws Exception {
+
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Failed to remove AWS Role from the Service Account\"]}");
+        String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+        UserDetails userDetails = getMockUser(false);
+        ServiceAccountAWSRole serviceAccountAWSRole = new ServiceAccountAWSRole("testsvcname", "role1", "write");
+
+        String [] policies = {"o_svcacct_testsvcname"};
+        when(policyUtils.getCurrentPolicies(token, userDetails.getUsername())).thenReturn(policies);
+        String responseBody = "{ \"bound_account_id\": [ \"1234567890123\"],\"bound_ami_id\": [\"ami-fce3c696\" ], \"bound_iam_instance_profile_arn\": [\n" +
+                "  \"arn:aws:iam::877677878:instance-profile/exampleinstanceprofile\" ], \"bound_iam_role_arn\": [\"arn:aws:iam::8987887:role/test-role\" ], " +
+                "\"bound_vpc_id\": [    \"vpc-2f09a348\"], \"bound_subnet_id\": [ \"subnet-1122aabb\"],\"bound_region\": [\"us-east-2\"],\"policies\":" +
+                " [ \"w_svcacct_testsvcname\" ], \"auth_type\":\"ec2\"}";
+        Response awsRoleResponse = getMockResponse(HttpStatus.OK, true, responseBody);
+        when(reqProcessor.process("/auth/aws/roles","{\"role\":\"role1\"}",token)).thenReturn(awsRoleResponse);
+        Response configureAWSRoleResponse = getMockResponse(HttpStatus.BAD_REQUEST, true, "");
+        when(ControllerUtil.configureAWSRole(Mockito.anyString(), Mockito.anyString(), Mockito.anyString())).thenReturn(configureAWSRoleResponse);
+
+        ResponseEntity<String> responseEntityActual =  serviceAccountsService.removeAWSRoleFromSvcacc(userDetails, token, serviceAccountAWSRole);
+
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, responseEntityActual.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntityActual);
+    }
+
+    @Test
+    public void test_removeAWSRoleFromSvcacc_failure_403() throws Exception {
+
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid value specified for access\"]}");
+        String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+        UserDetails userDetails = getMockUser(false);
+        ServiceAccountAWSRole serviceAccountAWSRole = new ServiceAccountAWSRole("testsvcname", "role1", "writes");
+
+        ResponseEntity<String> responseEntityActual =  serviceAccountsService.removeAWSRoleFromSvcacc(userDetails, token, serviceAccountAWSRole);
+
+        assertEquals(HttpStatus.BAD_REQUEST, responseEntityActual.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntityActual);
+    }
+
+    @Test
+    public void test_createRole_success() throws Exception {
+
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"AWS Role created \"]}");
+        String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+        UserDetails userDetails = getMockUser(false);
+        AWSLoginRole awsLoginRole = new AWSLoginRole("ec2", "mytestawsrole", "ami-fce3c696",
+                "1234567890123", "us-east-2", "vpc-2f09a348", "subnet-1122aabb",
+                "arn:aws:iam::8987887:role/test-role", "arn:aws:iam::877677878:instance-profile/exampleinstanceprofile",
+                "\"[prod, dev\"]");
+        when(awsAuthService.createRole(token, awsLoginRole, userDetails)).thenReturn(responseEntityExpected);
+        ResponseEntity<String> responseEntityActual =  serviceAccountsService.createRole(userDetails, token, awsLoginRole);
+
+        assertEquals(HttpStatus.OK, responseEntityActual.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntityActual);
+    }
+
+    @Test
+    public void test_createIAMRole_success() throws Exception {
+
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"AWS Role created \"]}");
+        String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+        UserDetails userDetails = getMockUser(false);
+        AWSIAMRole awsiamRole = new AWSIAMRole();
+        awsiamRole.setAuth_type("iam");
+        String[] arns = {"arn:aws:iam::123456789012:user/tst"};
+        awsiamRole.setBound_iam_principal_arn(arns);
+        String[] policies = {"default"};
+        awsiamRole.setPolicies(policies);
+        awsiamRole.setResolve_aws_unique_ids(true);
+        awsiamRole.setRole("string");
+        when(awsiamAuthService.createIAMRole(awsiamRole, token, userDetails)).thenReturn(responseEntityExpected);
+        ResponseEntity<String> responseEntityActual =  serviceAccountsService.createIAMRole(userDetails, token, awsiamRole);
+
+        assertEquals(HttpStatus.OK, responseEntityActual.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntityActual);
+    }
 }

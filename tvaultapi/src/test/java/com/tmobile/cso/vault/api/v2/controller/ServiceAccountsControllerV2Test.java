@@ -330,7 +330,7 @@ public class ServiceAccountsControllerV2Test {
 
     @Test
     public void test_addGroupToSafe() throws Exception {
-        ServiceAccountGroup serviceAccountGroup = new ServiceAccountGroup("svc_vault_test7", "group1","write");
+        ServiceAccountGroup serviceAccountGroup = new ServiceAccountGroup("testacc02", "group1","write");
 
         String inputJson =new ObjectMapper().writeValueAsString(serviceAccountGroup);
         String responseJson = "{\"messages\":[\"Group is successfully associated with Service Account\"]}";
@@ -348,7 +348,7 @@ public class ServiceAccountsControllerV2Test {
 
     @Test
     public void test_removeGroupFromSafe() throws Exception {
-        ServiceAccountGroup serviceAccountGroup = new ServiceAccountGroup("svc_vault_test7", "group1","write");
+        ServiceAccountGroup serviceAccountGroup = new ServiceAccountGroup("testacc02", "group1","write");
 
         String inputJson =new ObjectMapper().writeValueAsString(serviceAccountGroup);
         String responseJson = "{\"messages\":[\"Group is successfully removed from Service Account\"]}";
@@ -366,7 +366,7 @@ public class ServiceAccountsControllerV2Test {
 
     @Test
     public void test_associateApproletoSvcAcc() throws Exception {
-        ServiceAccountApprole serviceAccountApprole = new ServiceAccountApprole("svc_vault_test7", "role1","write");
+        ServiceAccountApprole serviceAccountApprole = new ServiceAccountApprole("testacc02", "role1","write");
 
         String inputJson =new ObjectMapper().writeValueAsString(serviceAccountApprole);
         String responseJson = "{\"messages\":[\"Approle is successfully associated with Service Account\"]}";
@@ -384,7 +384,7 @@ public class ServiceAccountsControllerV2Test {
 
     @Test
     public void test_removeApproleFromSvcAcc() throws Exception {
-        ServiceAccountApprole serviceAccountApprole = new ServiceAccountApprole("svc_vault_test7", "role1","write");
+        ServiceAccountApprole serviceAccountApprole = new ServiceAccountApprole("testacc02", "role1","write");
 
         String inputJson =new ObjectMapper().writeValueAsString(serviceAccountApprole);
         String responseJson = "{\"messages\":[\"Approle is successfully removed from Service Account\"]}";
@@ -425,5 +425,77 @@ public class ServiceAccountsControllerV2Test {
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString(expected)));
 
+    }
+
+    @Test
+    public void test_associateAWSroletoSvcAcc() throws Exception {
+        ServiceAccountApprole serviceAccountApprole = new ServiceAccountApprole("testacc02", "role1","write");
+
+        String inputJson =new ObjectMapper().writeValueAsString(serviceAccountApprole);
+        String responseJson = "{\"messages\":[\"AWS Role successfully associated with Service Account\"]}";
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(responseJson);
+        UserDetails userDetails = getMockUser(false);
+        when(serviceAccountsService.addAwsRoleToSvcacc(eq(userDetails), eq("5PDrOhsy4ig8L3EpsJZSLAMg"), Mockito.any(ServiceAccountAWSRole.class))).thenReturn(responseEntityExpected);
+
+        mockMvc.perform(MockMvcRequestBuilders.post("/v2/serviceaccounts/role").requestAttr("UserDetails", userDetails)
+                .header("vault-token", "5PDrOhsy4ig8L3EpsJZSLAMg")
+                .header("Content-Type", "application/json;charset=UTF-8")
+                .content(inputJson))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString(responseJson)));
+    }
+
+    @Test
+    public void test_removeAWSRoleFromSvcacc() throws Exception {
+        ServiceAccountApprole serviceAccountApprole = new ServiceAccountApprole("testacc02", "role1","write");
+
+        String inputJson =new ObjectMapper().writeValueAsString(serviceAccountApprole);
+        String responseJson = "{\"messages\":[\"AWS Role is successfully removed from Service Account\"]}";
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(responseJson);
+        UserDetails userDetails = getMockUser(false);
+        when(serviceAccountsService.removeAWSRoleFromSvcacc(eq(userDetails), eq("5PDrOhsy4ig8L3EpsJZSLAMg"), Mockito.any(ServiceAccountAWSRole.class))).thenReturn(responseEntityExpected);
+
+        mockMvc.perform(MockMvcRequestBuilders.delete("/v2/serviceaccounts/role").requestAttr("UserDetails", userDetails)
+                .header("vault-token", "5PDrOhsy4ig8L3EpsJZSLAMg")
+                .header("Content-Type", "application/json;charset=UTF-8")
+                .content(inputJson))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString(responseJson)));
+    }
+
+    @Test
+    public void test_createRole() throws Exception {
+        ServiceAccountApprole serviceAccountApprole = new ServiceAccountApprole("testacc02", "role1","write");
+
+        String inputJson =new ObjectMapper().writeValueAsString(serviceAccountApprole);
+        String responseJson = "{\"messages\":[\"AWS Role created \"]}";
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(responseJson);
+        UserDetails userDetails = getMockUser(false);
+        when(serviceAccountsService.createRole(eq(userDetails), eq("5PDrOhsy4ig8L3EpsJZSLAMg"), Mockito.any(AWSLoginRole.class))).thenReturn(responseEntityExpected);
+
+        mockMvc.perform(MockMvcRequestBuilders.post("/v2/serviceaccounts/aws/role").requestAttr("UserDetails", userDetails)
+                .header("vault-token", "5PDrOhsy4ig8L3EpsJZSLAMg")
+                .header("Content-Type", "application/json;charset=UTF-8")
+                .content(inputJson))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString(responseJson)));
+    }
+
+    @Test
+    public void test_createIAMRole() throws Exception {
+        ServiceAccountApprole serviceAccountApprole = new ServiceAccountApprole("testacc02", "role1","write");
+
+        String inputJson =new ObjectMapper().writeValueAsString(serviceAccountApprole);
+        String responseJson = "{\"messages\":[\"AWS Role created \"]}";
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(responseJson);
+        UserDetails userDetails = getMockUser(false);
+        when(serviceAccountsService.createIAMRole(eq(userDetails), eq("5PDrOhsy4ig8L3EpsJZSLAMg"), Mockito.any(AWSIAMRole.class))).thenReturn(responseEntityExpected);
+
+        mockMvc.perform(MockMvcRequestBuilders.post("/v2/serviceaccounts/aws/iam/role").requestAttr("UserDetails", userDetails)
+                .header("vault-token", "5PDrOhsy4ig8L3EpsJZSLAMg")
+                .header("Content-Type", "application/json;charset=UTF-8")
+                .content(inputJson))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString(responseJson)));
     }
 }
