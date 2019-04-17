@@ -54,6 +54,9 @@ public class  SafesService {
 
 	@Autowired
 	private SafeUtils safeUtils;
+
+	@Autowired
+	private AppRoleService appRoleService;
 	
 	private static Logger log = LogManager.getLogger(SafesService.class);
 
@@ -1879,7 +1882,7 @@ public class  SafesService {
 					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 					build()));
 			//Call controller to update the policy for approle
-			Response approleControllerResp = ControllerUtil.configureApprole(approle,policiesString,token);
+			Response approleControllerResp = appRoleService.configureApprole(approle,policiesString,token);
 			if(HttpStatus.OK.equals(approleControllerResp.getHttpstatus()) || (HttpStatus.NO_CONTENT.equals(approleControllerResp.getHttpstatus()))) {
 
 				log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
@@ -1942,7 +1945,7 @@ public class  SafesService {
 								put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 								build()));
 						//Trying to revert the metadata update in case of failure
-						approleControllerResp = ControllerUtil.configureApprole(approle,currentpoliciesString,token);
+						approleControllerResp = appRoleService.configureApprole(approle,currentpoliciesString,token);
 						if(approleControllerResp.getHttpstatus().equals(HttpStatus.NO_CONTENT)){
 							log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 									put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
@@ -2042,7 +2045,7 @@ public class  SafesService {
 					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 					build()));
 			//Call controller to update the policy for approle
-			Response approleControllerResp = ControllerUtil.configureApprole(role,policiesString,token);
+			Response approleControllerResp = appRoleService.configureApprole(role,policiesString,token);
 			if(HttpStatus.OK.equals(approleControllerResp.getHttpstatus()) || (HttpStatus.NO_CONTENT.equals(approleControllerResp.getHttpstatus()))) {
 
 				log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
@@ -2096,7 +2099,7 @@ public class  SafesService {
 									build()));
 							return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Role association is removed \"]}");
 						} else {
-							approleControllerResp = ControllerUtil.configureApprole(role,currentpoliciesString,token);
+							approleControllerResp = appRoleService.configureApprole(role,currentpoliciesString,token);
 							if(HttpStatus.OK.equals(approleControllerResp.getHttpstatus()) || (HttpStatus.NO_CONTENT.equals(approleControllerResp.getHttpstatus()))) {
 								log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 										put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).

@@ -65,6 +65,7 @@ public class  ServiceAccountsService {
 	private String vaultPort;
 
 	private static Logger log = LogManager.getLogger(ServiceAccountsService.class);
+	private final static String[] permissions = {"read", "write", "deny", "sudo"};
 
 	@Autowired
 	@Qualifier(value = "svcAccLdapTemplate")
@@ -79,6 +80,9 @@ public class  ServiceAccountsService {
 
 	@Autowired
 	private RequestProcessor reqProcessor;
+
+	@Autowired
+	private AppRoleService appRoleService;
 
 	@Autowired
 	private PolicyUtils policyUtils;
@@ -679,7 +683,7 @@ public class  ServiceAccountsService {
 		String svcAccName = serviceAccountUser.getSvcAccName();
 		String access = serviceAccountUser.getAccess();
 
-		if(!ControllerUtil.areSvcUserInputsValid(serviceAccountUser)) {
+		if(!isSvcaccPermissionInputValid(serviceAccountUser.getAccess())) {
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid value specified for access\"]}");
 		}
 
@@ -835,7 +839,7 @@ public class  ServiceAccountsService {
 		String svcAccName = serviceAccountUser.getSvcAccName();
 		String access = serviceAccountUser.getAccess();
 
-		if(!ControllerUtil.areSvcUserInputsValid(serviceAccountUser)) {
+		if(!isSvcaccPermissionInputValid(serviceAccountUser.getAccess())) {
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid value specified for access\"]}");
 		}
 
@@ -1115,6 +1119,18 @@ public class  ServiceAccountsService {
         return false;
     }
 
+	/**
+	 * Validates Service Account permission inputs
+	 * @param access
+	 * @return
+	 */
+	public static boolean isSvcaccPermissionInputValid(String access) {
+		if (!org.apache.commons.lang3.ArrayUtils.contains(permissions, access)) {
+			return false;
+		}
+		return true;
+	}
+
     /**
      * Add Group to Service Account
      * @param token
@@ -1131,7 +1147,7 @@ public class  ServiceAccountsService {
 				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 				build()));
 
-        if(!ControllerUtil.areSvcaccGroupInputsValid(serviceAccountGroup)) {
+        if(!isSvcaccPermissionInputValid(serviceAccountGroup.getAccess())) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid value specified for access\"]}");
         }
 
@@ -1285,7 +1301,7 @@ public class  ServiceAccountsService {
                 put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
                 build()));
 
-        if(!ControllerUtil.areSvcaccGroupInputsValid(serviceAccountGroup)) {
+        if(!isSvcaccPermissionInputValid(serviceAccountGroup.getAccess())) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid value specified for access\"]}");
         }
 
@@ -1415,7 +1431,7 @@ public class  ServiceAccountsService {
                 put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
                 build()));
 
-        if(!ControllerUtil.areSvcaccApproleInputsValid(serviceAccountApprole)) {
+        if(!isSvcaccPermissionInputValid(serviceAccountApprole.getAccess())) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid value specified for access\"]}");
         }
 
@@ -1500,7 +1516,7 @@ public class  ServiceAccountsService {
 					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 					build()));
 
-			Response approleControllerResp = ControllerUtil.configureApprole(approleName,policiesString,token);
+			Response approleControllerResp = appRoleService.configureApprole(approleName,policiesString,token);
 
 			if(approleControllerResp.getHttpstatus().equals(HttpStatus.NO_CONTENT) || approleControllerResp.getHttpstatus().equals(HttpStatus.OK)){
 				String path = new StringBuffer(TVaultConstants.SVC_ACC_ROLES_PATH).append("/").append(svcAccName).toString();
@@ -1520,7 +1536,7 @@ public class  ServiceAccountsService {
 							build()));
 					return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Approle successfully associated with Service Account\"]}");
 				}
-				approleControllerResp = ControllerUtil.configureApprole(approleName,currentpoliciesString,token);
+				approleControllerResp = appRoleService.configureApprole(approleName,currentpoliciesString,token);
 				if(approleControllerResp.getHttpstatus().equals(HttpStatus.NO_CONTENT)){
 					log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 							put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
@@ -1836,7 +1852,7 @@ public class  ServiceAccountsService {
 					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 					build()));
 			//Call controller to update the policy for approle
-			Response approleControllerResp = ControllerUtil.configureApprole(approleName,policiesString,token);
+			Response approleControllerResp = appRoleService.configureApprole(approleName,policiesString,token);
 			if(approleControllerResp.getHttpstatus().equals(HttpStatus.NO_CONTENT) || approleControllerResp.getHttpstatus().equals(HttpStatus.OK)){
 				String path = new StringBuffer(TVaultConstants.SVC_ACC_ROLES_PATH).append("/").append(svcAccName).toString();
 				Map<String,String> params = new HashMap<String,String>();
@@ -1855,7 +1871,7 @@ public class  ServiceAccountsService {
 							build()));
 					return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Approle is successfully removed from Service Account\"]}");
 				}
-				approleControllerResp = ControllerUtil.configureApprole(approleName,currentpoliciesString,token);
+				approleControllerResp = appRoleService.configureApprole(approleName,currentpoliciesString,token);
 				if(approleControllerResp.getHttpstatus().equals(HttpStatus.NO_CONTENT)){
 					log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 							put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).

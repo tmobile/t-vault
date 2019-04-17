@@ -65,7 +65,10 @@ public class SafesServiceTest {
 
     @InjectMocks
     SafesService safesService;
-    
+
+    @Mock
+    AppRoleService appRoleService;
+
     @Mock
     RequestProcessor reqProcessor;
     
@@ -1268,7 +1271,7 @@ public class SafesServiceTest {
         when(reqProcessor.process(any(String.class),any(String.class),any(String.class))).thenReturn(response);
         when(ControllerUtil.isValidSafePath(Mockito.anyString())).thenReturn(true);
         when(ControllerUtil.isValidSafe(Mockito.anyString(), Mockito.anyString())).thenReturn(true);
-        when(ControllerUtil.configureApprole(Mockito.anyString(), Mockito.anyString(), Mockito.anyString())).thenReturn(configureAppRoleResponse);
+        when(appRoleService.configureApprole(Mockito.anyString(), Mockito.anyString(), Mockito.anyString())).thenReturn(configureAppRoleResponse);
         when(ControllerUtil.areSafeAppRoleInputsValid(Mockito.anyMap())).thenReturn(true);
         when(ControllerUtil.canAddPermission(Mockito.anyString(), Mockito.anyString())).thenReturn(true);
         when(ControllerUtil.updateMetadata(Mockito.anyMap(),Mockito.anyString())).thenReturn(updateMetadataResponse);
@@ -1314,7 +1317,7 @@ public class SafesServiceTest {
         when(reqProcessor.process(any(String.class),any(String.class),any(String.class))).thenReturn(response);
         when(ControllerUtil.isValidSafePath(Mockito.anyString())).thenReturn(true);
         when(ControllerUtil.isValidSafe(Mockito.anyString(), Mockito.anyString())).thenReturn(true);
-        when(ControllerUtil.configureApprole(Mockito.anyString(), Mockito.anyString(), Mockito.anyString())).thenReturn(configureAppRoleResponse);
+        when(appRoleService.configureApprole(Mockito.anyString(), Mockito.anyString(), Mockito.anyString())).thenReturn(configureAppRoleResponse);
         when(ControllerUtil.areSafeAppRoleInputsValid(Mockito.anyMap())).thenReturn(true);
         when(ControllerUtil.canAddPermission(Mockito.anyString(), Mockito.anyString())).thenReturn(true);
 
@@ -1365,7 +1368,7 @@ public class SafesServiceTest {
         when(reqProcessor.process(any(String.class),any(String.class),any(String.class))).thenReturn(response);
         when(ControllerUtil.isValidSafePath(Mockito.anyString())).thenReturn(true);
         when(ControllerUtil.isValidSafe(Mockito.anyString(), Mockito.anyString())).thenReturn(true);
-        when(ControllerUtil.configureApprole(Mockito.anyString(), Mockito.anyString(), Mockito.anyString())).thenReturn(configureAppRoleResponse);
+        when(appRoleService.configureApprole(Mockito.anyString(), Mockito.anyString(), Mockito.anyString())).thenReturn(configureAppRoleResponse);
         when(ControllerUtil.areSafeAppRoleInputsValid(Mockito.anyMap())).thenReturn(true);
         when(ControllerUtil.canAddPermission(Mockito.anyString(), Mockito.anyString())).thenReturn(true);
 
@@ -1407,7 +1410,7 @@ public class SafesServiceTest {
         when(reqProcessor.process(any(String.class),any(String.class),any(String.class))).thenReturn(response);
         when(ControllerUtil.isValidSafePath(Mockito.anyString())).thenReturn(true);
         when(ControllerUtil.isValidSafe(Mockito.anyString(), Mockito.anyString())).thenReturn(true);
-        when(ControllerUtil.configureApprole(Mockito.anyString(), Mockito.anyString(), Mockito.anyString())).thenReturn(configureAppRoleResponse);
+        when(appRoleService.configureApprole(Mockito.anyString(), Mockito.anyString(), Mockito.anyString())).thenReturn(configureAppRoleResponse);
         when(ControllerUtil.areSafeAppRoleInputsValid(Mockito.anyMap())).thenReturn(true);
         when(ControllerUtil.canAddPermission(Mockito.anyString(), Mockito.anyString())).thenReturn(true);
         SafeAppRoleAccess safeAppRoleAccess = new SafeAppRoleAccess("approle1", "shared/mysafe01", "write");
@@ -1427,7 +1430,7 @@ public class SafesServiceTest {
         Response response = getMockResponse(HttpStatus.NO_CONTENT, true, "");
         Response appRoleResponse = getMockResponse(HttpStatus.OK, true, "{\"data\": {\"policies\":\"w_shared_mysafe01\"}}");
         when(reqProcessor.process("/auth/approle/role/read","{\"role_name\":\"approle1\"}",token)).thenReturn(appRoleResponse);
-        when(ControllerUtil.configureApprole(Mockito.any(),Mockito.any(),Mockito.any())).thenReturn(response);
+        when(appRoleService.configureApprole(Mockito.any(),Mockito.any(),Mockito.any())).thenReturn(response);
         when(ControllerUtil.isValidSafePath("users/safe1")).thenReturn(true);
         when(ControllerUtil.isValidSafe("users/safe1", token)).thenReturn(true);
         when(ControllerUtil.updateMetadata(Mockito.anyMap(), eq(token))).thenReturn(response);
@@ -1452,7 +1455,7 @@ public class SafesServiceTest {
         String inputJson = "{\"role_name\":\"approle1\",\"path\":\"users/safe1\",\"access\":\"read\"}";
         Response appRoleResponse = getMockResponse(HttpStatus.OK, true, "{\"data\": {\"policies\":\"w_shared_mysafe01\"}}");
         when(reqProcessor.process("/auth/approle/role/read","{\"role_name\":\"approle1\"}",token)).thenReturn(appRoleResponse);
-        when(ControllerUtil.configureApprole(Mockito.any(),Mockito.any(),Mockito.any())).thenReturn(response);
+        when(appRoleService.configureApprole(Mockito.any(),Mockito.any(),Mockito.any())).thenReturn(response);
 
         when(ControllerUtil.updateMetadata(Mockito.anyMap(), eq(token))).thenAnswer(new Answer() {
             private int count = 0;
@@ -1489,7 +1492,7 @@ public class SafesServiceTest {
         //when(ControllerUtil.updateMetadata(Mockito.anyMap(),eq(token))).thenReturn(response);
         Response appRoleResponse = getMockResponse(HttpStatus.OK, true, "{\"data\": {\"policies\":\"w_shared_mysafe01\"}}");
         when(reqProcessor.process("/auth/approle/role/read","{\"role_name\":\"approle1\"}",token)).thenReturn(appRoleResponse);
-        when(ControllerUtil.configureApprole(Mockito.any(),Mockito.any(),Mockito.any())).thenReturn(response);
+        when(appRoleService.configureApprole(Mockito.any(),Mockito.any(),Mockito.any())).thenReturn(response);
         when(ControllerUtil.updateMetadata(Mockito.anyMap(), eq(token))).thenAnswer(new Answer() {
             private int count = 0;
 
