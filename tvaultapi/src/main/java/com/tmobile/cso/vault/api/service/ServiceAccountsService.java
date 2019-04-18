@@ -1522,7 +1522,9 @@ public class  ServiceAccountsService {
 				policies.remove(w_policy);
 				policies.remove(d_policy);
 				policies.add(policy);
-			}
+			} else {
+                return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body("{\"errors\":[\"Non existing role name. Please configure approle as first step\"]}");
+            }
 			String policiesString = org.apache.commons.lang3.StringUtils.join(policies, ",");
 			String currentpoliciesString = org.apache.commons.lang3.StringUtils.join(currentpolicies, ",");
 

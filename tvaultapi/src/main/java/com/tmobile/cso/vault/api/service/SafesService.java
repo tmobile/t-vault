@@ -1868,6 +1868,8 @@ public class  SafesService {
 				policies.remove("w_"+policyPostfix);
 				policies.remove("d_"+policyPostfix);
 
+			} else {
+				return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body("{\"errors\":[\"Non existing role name. Please configure approle as first step\"]}");
 			}
 			if("".equals(policy)){
 				return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body("{\"errors\":[\"Incorrect access requested. Valid values are read,write,deny \"]}");
