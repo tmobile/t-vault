@@ -106,7 +106,25 @@
         }
 
         $scope.goBack = function () {
-            $state.go('admin');
+            var targetState = 'manage';
+            if (SessionStore.getItem("isAdmin") === 'true') {
+                targetState = 'admin';
+            }
+            if ($scope.goBackToAdmin !== true) {
+                if ($rootScope.showDetails === true) {
+                    $state.go(targetState);
+                }
+                else {
+                    $rootScope.showDetails = true;
+                    $rootScope.activeDetailsTab = 'details';
+                }
+            }
+            else {
+                if ($rootScope.lastVisited) {
+                    $state.go($rootScope.lastVisited);
+                } else
+                    $state.go(targetState);
+            }
         }
 
         $scope.roleNameSelect = function() {
@@ -335,7 +353,8 @@
         /***************************************  Functions for autosuggest end here **********************************************/
 
         $scope.svcaccDone = function () {
-            $state.go('admin');
+            $scope.goBackToAdmin = true;
+            $scope.goBack();
         }
 
         $scope.editPermission = function (type, editMode, user, permission) {
@@ -525,7 +544,7 @@
         }
 
         $scope.onboardSvcacc = function () {
-            if ($scope.svcOnboarded === true) {
+            if ($scope.svcaccOnboarded === true) {
                 if(!angular.equals($scope.svcaccPrevious, $scope.svcacc)) {
                     $scope.editSvcaccOnboard();
                 } else {                    
@@ -554,6 +573,7 @@
                                 var notification = UtilityService.getAParticularSuccessMessage('MESSAGE_ONBOARD_SUCCESS');
                                 Notifications.toast($scope.svcacc.svcaccId + ' Service Account' + notification);
                                 $scope.svcaccPrevious = angular.copy($scope.svcacc);
+
                             } catch (e) {
                                 console.log(e);
                                 $scope.isLoadingData = false;

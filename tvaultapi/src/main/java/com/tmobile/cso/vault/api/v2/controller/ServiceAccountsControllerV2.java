@@ -151,7 +151,7 @@ public class ServiceAccountsControllerV2 {
 	 * @param serviceAccountApprole
 	 * @return
 	 */
-	@ApiOperation(value = "${ServiceAccountsControllerV2.associateApprole.value}", notes = "${ServiceAccountsControllerV2.associateApprole.notes}")
+	@ApiOperation(value = "${ServiceAccountsControllerV2.removeApprole.value}", notes = "${ServiceAccountsControllerV2.removeApprole.notes}")
 	@DeleteMapping(value="/v2/serviceaccounts/approle",consumes="application/json",produces="application/json")
 	public ResponseEntity<String>removeApproleFromSvcAcc(HttpServletRequest request, @RequestHeader(value="vault-token") String token, @Valid @RequestBody ServiceAccountApprole serviceAccountApprole) {
 		UserDetails userDetails = (UserDetails) ((HttpServletRequest) request).getAttribute("UserDetails");

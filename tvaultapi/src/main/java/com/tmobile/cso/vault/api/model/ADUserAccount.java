@@ -118,7 +118,7 @@ public class ADUserAccount implements Serializable {
 	 */
 	@Override
 	public String toString() {
-		return "DirectoryUser [userId=" + userId + ", userEmail=" + userEmail + ", displayName=" + displayName
+		return "ADUserAccount [userId=" + userId + ", userEmail=" + userEmail + ", displayName=" + displayName
 				+ ", givenName=" + givenName + "]";
 	}
 	

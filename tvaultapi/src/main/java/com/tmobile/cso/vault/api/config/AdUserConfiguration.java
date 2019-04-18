@@ -37,7 +37,7 @@ import java.util.Base64;
 @PropertySource("classpath:application.properties")
 @ComponentScan(basePackages = {"com.tmobile.cso.vault.api.*"})
 @EnableLdapRepositories(basePackages = "com.tmobile.cso.vault.api.**")
-public class UserConfiguration {
+public class AdUserConfiguration {
 
     @Autowired
     private Environment env;
@@ -62,8 +62,8 @@ public class UserConfiguration {
         TransactionAwareContextSourceProxy proxy = new TransactionAwareContextSourceProxy(poolingContextSource);
         return proxy;
     }
-    @Bean(name="userLdapTemplate")
-    public LdapTemplate userLdapTemplate() {
+    @Bean(name="adUserLdapTemplate")
+    public LdapTemplate adUserLdapTemplate() {
 		LdapTemplate ldapTemplate = new LdapTemplate(poolingLdapUsrContextSource());
 		ldapTemplate.setIgnorePartialResultException(true);
 		return ldapTemplate;

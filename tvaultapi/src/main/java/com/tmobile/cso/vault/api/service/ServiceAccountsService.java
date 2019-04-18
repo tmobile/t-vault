@@ -72,8 +72,8 @@ public class  ServiceAccountsService {
 	private LdapTemplate ldapTemplate;
 
 	@Autowired
-	@Qualifier(value = "userLdapTemplate")
-	private LdapTemplate userLdapTemplate;
+	@Qualifier(value = "adUserLdapTemplate")
+	private LdapTemplate adUserLdapTemplate;
 
 	@Autowired
 	private AccessService accessService;
@@ -136,21 +136,27 @@ public class  ServiceAccountsService {
 			// remove duplicate usernames
 			ownerlist = new ArrayList<>(new HashSet<>(ownerlist));
 
-			// build the search query
-			StringBuffer filterQuery = new StringBuffer();
-			filterQuery.append("(&(objectclass=user)(|");
-			for (String owner : ownerlist) {
-				filterQuery.append("(cn=" + owner + ")");
-			}
-			filterQuery.append("))");
-			List<ADUserAccount> managedServiceAccounts = getServiceAccountManagerDetails(filterQuery.toString());
+			// remove empty manager names if any
+            ownerlist.removeAll(Collections.singleton(TVaultConstants.EMPTY));
+            ownerlist.removeAll(Collections.singleton(null));
 
-			// Update the managedBy withe ADUserAccount object
-			for (ADServiceAccount adServiceAccount : allServiceAccounts) {
-				if (!StringUtils.isEmpty(adServiceAccount.getManagedBy().getUserName())) {
-					List<ADUserAccount> adUserAccount = managedServiceAccounts.stream().filter(f -> f.getUserName().equalsIgnoreCase(adServiceAccount.getManagedBy().getUserName())).collect(Collectors.toList());
-					if (!adUserAccount.isEmpty()) {
-						adServiceAccount.setManagedBy(adUserAccount.get(0));
+			// build the search query
+			if (!ownerlist.isEmpty()) {
+				StringBuffer filterQuery = new StringBuffer();
+				filterQuery.append("(&(objectclass=user)(|");
+				for (String owner : ownerlist) {
+					filterQuery.append("(cn=" + owner + ")");
+				}
+				filterQuery.append("))");
+				List<ADUserAccount> managedServiceAccounts = getServiceAccountManagerDetails(filterQuery.toString());
+
+				// Update the managedBy withe ADUserAccount object
+				for (ADServiceAccount adServiceAccount : allServiceAccounts) {
+					if (!StringUtils.isEmpty(adServiceAccount.getManagedBy().getUserName())) {
+						List<ADUserAccount> adUserAccount = managedServiceAccounts.stream().filter(f -> (f.getUserName()!=null && f.getUserName().equalsIgnoreCase(adServiceAccount.getManagedBy().getUserName()))).collect(Collectors.toList());
+						if (!adUserAccount.isEmpty()) {
+							adServiceAccount.setManagedBy(adUserAccount.get(0));
+						}
 					}
 				}
 			}
@@ -213,12 +219,16 @@ public class  ServiceAccountsService {
 						Instant instant = odt.toInstant();
 						adServiceAccount.setWhenCreated(instant);
 					}
+                    ADUserAccount adUserAccount = new ADUserAccount();
+					adServiceAccount.setManagedBy(adUserAccount);
+                    adServiceAccount.setOwner(null);
 					if (attr.get("manager") != null) {
-						ADUserAccount adUserAccount = new ADUserAccount();
+                        String managedBy = "";
 						String managedByStr = (String) attr.get("manager").get();
-						String managedBy= managedByStr.substring(3, managedByStr.indexOf(","));
-						adUserAccount.setUserName(managedBy);
-						adServiceAccount.setManagedBy(adUserAccount);
+						if (!StringUtils.isEmpty(managedByStr)) {
+                            managedBy= managedByStr.substring(3, managedByStr.indexOf(","));
+                        }
+                        adUserAccount.setUserName(managedBy);
 						adServiceAccount.setOwner(managedBy.toLowerCase());
 					}
 					if (attr.get("accountExpires") != null) {
@@ -1530,7 +1540,7 @@ public class  ServiceAccountsService {
 					log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 							put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 							put(LogMessage.ACTION, "Add Approle to Service Account").
-							put(LogMessage.MESSAGE, "Approle configuration Success.").
+							put(LogMessage.MESSAGE, "Approle successfully associated with Service Account").
 							put(LogMessage.STATUS, metadataResponse.getHttpstatus().toString()).
 							put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 							build()));
@@ -1546,7 +1556,7 @@ public class  ServiceAccountsService {
 							put(LogMessage.STATUS, (null!=metadataResponse)?metadataResponse.getHttpstatus().toString():TVaultConstants.EMPTY).
 							put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 							build()));
-					return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Approle configuration failed.Please try again\"]}");
+					return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Approle configuration failed. Please try again\"]}");
 				}else{
 					log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 							put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
@@ -1556,11 +1566,11 @@ public class  ServiceAccountsService {
 							put(LogMessage.STATUS, (null!=metadataResponse)?metadataResponse.getHttpstatus().toString():TVaultConstants.EMPTY).
 							put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 							build()));
-					return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Approle configuration failed.Contact Admin \"]}");
+					return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Approle configuration failed. Contact Admin \"]}");
 				}
 			}
 			else {
-				return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Failed to add Approle to the Service Account\"]}");
+				return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Failed to add Approle to the Service Account\"]}");
 			}
         }else{
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Access denied: No permission to add Approle to this service account\"]}");
@@ -1746,7 +1756,7 @@ public class  ServiceAccountsService {
                 put(LogMessage.MESSAGE, String.format("Trying to get manager details")).
                 put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
                 build()));
-        return userLdapTemplate.search("", filter, new AttributesMapper<ADUserAccount>() {
+        return adUserLdapTemplate.search("", filter, new AttributesMapper<ADUserAccount>() {
             @Override
             public ADUserAccount mapFromAttributes(Attributes attr) throws NamingException {
 				ADUserAccount person = new ADUserAccount();
@@ -1800,7 +1810,7 @@ public class  ServiceAccountsService {
 		String access = serviceAccountApprole.getAccess();
 
 		if (serviceAccountApprole.getApprolename().equals(TVaultConstants.SELF_SERVICE_APPROLE_NAME)) {
-			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Access denied: no permission to associate/remove this AppRole to any Service Account\"]}");
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Access denied: no permission to remove this AppRole to any Service Account\"]}");
 		}
 		approleName = (approleName !=null) ? approleName.toLowerCase() : approleName;
 		access = (access != null) ? access.toLowerCase(): access;
@@ -1851,7 +1861,7 @@ public class  ServiceAccountsService {
 					put(LogMessage.MESSAGE, "Remove approle from Service account -  policy :" + policiesString + " is being configured" ).
 					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 					build()));
-			//Call controller to update the policy for approle
+			//Update the policy for approle
 			Response approleControllerResp = appRoleService.configureApprole(approleName,policiesString,token);
 			if(approleControllerResp.getHttpstatus().equals(HttpStatus.NO_CONTENT) || approleControllerResp.getHttpstatus().equals(HttpStatus.OK)){
 				String path = new StringBuffer(TVaultConstants.SVC_ACC_ROLES_PATH).append("/").append(svcAccName).toString();
@@ -1864,8 +1874,8 @@ public class  ServiceAccountsService {
 				if(metadataResponse !=null && (HttpStatus.NO_CONTENT.equals(metadataResponse.getHttpstatus()) || HttpStatus.OK.equals(metadataResponse.getHttpstatus()))){
 					log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 							put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
-							put(LogMessage.ACTION, "Remove AppRole to Service Account").
-							put(LogMessage.MESSAGE, "AppRole configuration Success.").
+							put(LogMessage.ACTION, "Remove AppRole from Service Account").
+							put(LogMessage.MESSAGE, "Approle is successfully removed from Service Account").
 							put(LogMessage.STATUS, metadataResponse.getHttpstatus().toString()).
 							put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 							build()));
@@ -1881,7 +1891,7 @@ public class  ServiceAccountsService {
 							put(LogMessage.STATUS, (null!=metadataResponse)?metadataResponse.getHttpstatus().toString():TVaultConstants.EMPTY).
 							put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 							build()));
-					return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Approle configuration failed.Please try again\"]}");
+					return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Approle configuration failed. Please try again\"]}");
 				}else{
 					log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 							put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
@@ -1891,11 +1901,11 @@ public class  ServiceAccountsService {
 							put(LogMessage.STATUS, (null!=metadataResponse)?metadataResponse.getHttpstatus().toString():TVaultConstants.EMPTY).
 							put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 							build()));
-					return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Approle configuration failed.Contact Admin \"]}");
+					return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Approle configuration failed. Contact Admin \"]}");
 				}
 			}
 			else {
-				return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Failed to remove approle from the Service Account\"]}");
+				return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Failed to remove approle from the Service Account\"]}");
 			}
 		} else {
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Access denied: No permission to remove approle from Service Account\"]}");
