@@ -1468,7 +1468,7 @@ public class ServiceAccountsServiceTest {
         String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
         ServiceAccountGroup serviceAccountGroup = new ServiceAccountGroup("svc_vault_test7", "group1", "write");
         UserDetails userDetails = getMockUser(false);
-        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Access denied: No permission to add groups to this service account\"]}");
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Access denied: No permission to remove groups from this service account\"]}");
         Response response404 = getMockResponse(HttpStatus.NOT_FOUND, true, "");
 
         String [] policies = {"w_svcacct_svc_vault_test7"};

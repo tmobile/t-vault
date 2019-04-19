@@ -1124,7 +1124,7 @@ public class  ServiceAccountsService {
      * @return
      */
     public boolean hasAddOrRemovePermission(UserDetails userDetails, String serviceAccount, String token) {
-        // Owner of the service account or admin user can add/remove group to service account
+        // Owner of the service account or admin user can add/remove users, groups, aws roles and approles to service account
         if (userDetails.isAdmin()) {
             return true;
         }
@@ -1428,7 +1428,7 @@ public class  ServiceAccountsService {
             }
         }
         else {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Access denied: No permission to add groups to this service account\"]}");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Access denied: No permission to remove groups from this service account\"]}");
         }
 
     }
