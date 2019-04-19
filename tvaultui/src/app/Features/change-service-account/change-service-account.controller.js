@@ -106,7 +106,25 @@
         }
 
         $scope.goBack = function () {
-            $state.go('admin');
+            var targetState = 'manage';
+            if (SessionStore.getItem("isAdmin") === 'true') {
+                targetState = 'admin';
+            }
+            if ($scope.goBackToAdmin !== true) {
+                if ($rootScope.showDetails === true) {
+                    $state.go(targetState);
+                }
+                else {
+                    $rootScope.showDetails = true;
+                    $rootScope.activeDetailsTab = 'details';
+                }
+            }
+            else {
+                if ($rootScope.lastVisited) {
+                    $state.go($rootScope.lastVisited);
+                } else
+                    $state.go(targetState);
+            }
         }
 
         $scope.roleNameSelect = function() {
@@ -335,7 +353,8 @@
         /***************************************  Functions for autosuggest end here **********************************************/
 
         $scope.svcaccDone = function () {
-            $state.go('admin');
+            $scope.goBackToAdmin = true;
+            $scope.goBack();
         }
 
         $scope.editPermission = function (type, editMode, user, permission) {
@@ -525,7 +544,7 @@
         }
 
         $scope.onboardSvcacc = function () {
-            if ($scope.svcOnboarded === true) {
+            if ($scope.svcaccOnboarded === true) {
                 if(!angular.equals($scope.svcaccPrevious, $scope.svcacc)) {
                     $scope.editSvcaccOnboard();
                 } else {                    
@@ -554,6 +573,7 @@
                                 var notification = UtilityService.getAParticularSuccessMessage('MESSAGE_ONBOARD_SUCCESS');
                                 Notifications.toast($scope.svcacc.svcaccId + ' Service Account' + notification);
                                 $scope.svcaccPrevious = angular.copy($scope.svcacc);
+
                             } catch (e) {
                                 console.log(e);
                                 $scope.isLoadingData = false;
@@ -627,6 +647,20 @@
             }
         }
 
+        var hideUserSudoPolicy = function() {
+            $scope.hideSudoPolicy = false;
+            var flg = false;
+            var count=0;
+            Object.keys($scope.permissionData.UsersPermissionsData).forEach(function(key) {
+                if ($scope.permissionData.UsersPermissionsData[key] == "sudo") {
+                    flg = true;
+                }
+                count++;
+            });
+            if (count==1 && flg == true) {
+                $scope.hideSudoPolicy = true;
+            }
+        }
 
         var getMetadata = function(svcaccId) {
             $scope.isLoadingData = true;
@@ -649,6 +683,7 @@
                                 $scope.permissionData.AppRolePermissionsData = {
                                     "data": object['app-roles']
                                 }
+                                hideUserSudoPolicy();
                             }
 
                         } catch (e) {
@@ -700,58 +735,65 @@
                         var updatedUrlOfEndPoint = ModifyUrl.addUrlParameteres('getSvcaccOnboardInfo', svcaccId);
                         AdminSafesManagement.getSvcaccOnboardInfo(null, updatedUrlOfEndPoint).then(
                             function (onboardResponse) {
-                                var onboardInfo = onboardResponse.data;
+                                if (UtilityService.ifAPIRequestSuccessful(response)) {
+                                    var onboardInfo = onboardResponse.data;
+                                    if ($rootScope.showDetails !== true) {
+                                        document.getElementById('addUser').value = '';
+                                        document.getElementById('addGroup').value = '';
+                                    }
+                                    $scope.searchValue = {
+                                        userName: '',
+                                        groupName: ''
+                                    };
+                                    var managedBy = '';
+                                    lastContent = '';
+                                    try {
+                                        $scope.isLoadingData = false;
+                                        if (response.data.data.values.length >0) {
+                                            var object = response.data.data.values[0];
 
-                                if ($rootScope.showDetails !== true) {
-                                    document.getElementById('addUser').value = '';
-                                    document.getElementById('addGroup').value = '';
-                                }
-                                $scope.searchValue = {
-                                    userName: '',
-                                    groupName: ''
-                                };
-                                lastContent = '';
-                                try {
-                                    $scope.isLoadingData = false;                            
-                                    if (response.data.data.values.length >0) {
-                                        var object = response.data.data.values[0];
-                                        
-                                        $scope.svcacc = {
-                                            svcaccId: object.userId || '',
-                                            userEmail: object.userEmail || '',
-                                            displayName: object.displayName || '',
-                                            givenName: object.givenName || '',
-                                            userName: object.userName || '',
-                                            accountExpires: object.accountExpires || '',
-                                            pwdLastSet: object.pwdLastSet || '',
-                                            maxPwdAge: object.maxPwdAge || '',
-                                            managedBy: object.managedBy || onboardInfo.owner || '',
-                                            passwordExpiry: object.passwordExpiry || '',
-                                            accountStatus: object.accountStatus || '',
-                                            lockStatus: object.lockStatus || '',
-                                            creationDate: object.creationDate || '',               
-                                            purpose: object.purpose || '',
-                                            autoRotate: false,
-                                            ttl: onboardInfo.ttl || '' ,    
-                                            max_ttl: '',      
-                                        };   
-                                        if (onboardInfo.ttl && onboardInfo.ttl != null) {
-                                            $scope.svcacc.autoRotate = true;
+                                            $scope.svcacc = {
+                                                svcaccId: object.userId || '',
+                                                userEmail: object.userEmail || '',
+                                                displayName: object.displayName || '',
+                                                givenName: object.givenName || '',
+                                                userName: object.userName || '',
+                                                accountExpires: object.accountExpires || '',
+                                                pwdLastSet: object.pwdLastSet || '',
+                                                maxPwdAge: object.maxPwdAge || '',
+                                                managedBy: object.managedBy|| '',
+                                                passwordExpiry: object.passwordExpiry || '',
+                                                accountStatus: object.accountStatus || '',
+                                                lockStatus: object.lockStatus || '',
+                                                creationDate: object.creationDate || '',
+                                                purpose: object.purpose || '',
+                                                autoRotate: false,
+                                                ttl: onboardInfo.ttl || '' ,
+                                                max_ttl: '',
+                                            };
+                                            managedBy = object.managedBy;
+                                            if (onboardInfo.ttl && onboardInfo.ttl != null) {
+                                                $scope.svcacc.autoRotate = true;
+                                            }
+                                            $scope.autoRotate = $scope.svcacc.autoRotate;
+                                            $scope.svcaccPrevious = angular.copy($scope.svcacc);
+                                            if ($scope.svcacc.accountExpires == "expired") {
+                                                $scope.isSvcaccExpired = true;
+                                                $scope.expiredNote = "(Expired)";
+                                            }
+                                            getMetadata($stateParams.svcaccData.userId);
                                         }
-                                        $scope.autoRotate = $scope.svcacc.autoRotate;
-                                        $scope.svcaccPrevious = angular.copy($scope.svcacc);
-                                        if ($scope.svcacc.accountExpires == "expired") {
-                                            $scope.isSvcaccExpired = true;
-                                            $scope.expiredNote = "(Expired)";
-                                        }
-                                        getMetadata($stateParams.svcaccData.userId);
+                                    }
+                                    catch (e) {
+                                        console.log(e);
+                                        $scope.isLoadingData = false;
+                                        $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_PROCESSING_DATA');
+                                        $scope.error('md');
                                     }
                                 }
-                                catch (e) {
-                                    console.log(e);
-                                    $scope.isLoadingData = false;
-                                    $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_PROCESSING_DATA');
-                                    $scope.error('md');
+                                else {
+                                    $scope.errorMessage = AdminSafesManagement.getTheRightErrorMessage(response);
+                                    error('md');
                                 }
                             },
                             function (error) {
@@ -778,7 +820,7 @@
                 $scope.error('md');
             })
         }
-
+        
         $scope.pwdRotationChange = function() {
             $scope.autoRotate = !$scope.autoRotate;
             $scope.svcacc.autoRotate = $scope.autoRotate;
@@ -846,7 +888,7 @@
                 accountExpires: '',
                 pwdLastSet: '',
                 maxPwdAge: '',
-                managedBy: '',
+                managedBy: {},
                 passwordExpiry: '',
                 accountStatus: '',
                 lockStatus: '',
@@ -900,7 +942,7 @@
                 accountExpires: '',
                 pwdLastSet: '',
                 maxPwdAge: '',
-                managedBy: '',
+                managedBy: {},
                 passwordExpiry: '',
                 accountStatus: '',
                 lockStatus: '',
@@ -916,6 +958,7 @@
                 AwsPermissionsData: '',
                 AppRolePermissionsData: ''
             }
+            $scope.hideSudoPolicy = false;
             $scope.myVaultKey = SessionStore.getItem("myVaultKey");
             if(!$scope.myVaultKey){ /* Check if user is in the same session */
                 $state.go('signup');

@@ -54,6 +54,9 @@ public class  SafesService {
 
 	@Autowired
 	private SafeUtils safeUtils;
+
+	@Autowired
+	private AppRoleService appRoleService;
 	
 	private static Logger log = LogManager.getLogger(SafesService.class);
 
@@ -1879,7 +1882,7 @@ public class  SafesService {
 					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 					build()));
 			//Call controller to update the policy for approle
-			Response approleControllerResp = ControllerUtil.configureApprole(approle,policiesString,token);
+			Response approleControllerResp = appRoleService.configureApprole(approle,policiesString,token);
 			if(HttpStatus.OK.equals(approleControllerResp.getHttpstatus()) || (HttpStatus.NO_CONTENT.equals(approleControllerResp.getHttpstatus()))) {
 
 				log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
@@ -1942,7 +1945,7 @@ public class  SafesService {
 								put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 								build()));
 						//Trying to revert the metadata update in case of failure
-						approleControllerResp = ControllerUtil.configureApprole(approle,currentpoliciesString,token);
+						approleControllerResp = appRoleService.configureApprole(approle,currentpoliciesString,token);
 						if(approleControllerResp.getHttpstatus().equals(HttpStatus.NO_CONTENT)){
 							log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 									put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
@@ -1994,7 +1997,7 @@ public class  SafesService {
 	public ResponseEntity<String> removeApproleFromSafe(String token, String jsonstr) {
 		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
-				put(LogMessage.ACTION, "Delete Approle from Safe").
+				put(LogMessage.ACTION, "Remove Approle from Safe").
 				put(LogMessage.MESSAGE, String.format ("Trying to delete approle from SDB [%s]", jsonstr)).
 				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 				build()));
@@ -2009,68 +2012,124 @@ public class  SafesService {
 
 		String role = requestMap.get("role_name");
 		String path = requestMap.get("path");
-		if(ControllerUtil.isValidSafePath(path) && ControllerUtil.isValidSafe(path, token)){
-			Map<String,String> params = new HashMap<>();
-			params.put("type", "app-roles");
-			params.put("name",role);
-			params.put("path",path);
-			params.put("access","delete");
-			Response metadataResponse = ControllerUtil.updateMetadata(params,token);
-			if(metadataResponse != null && HttpStatus.NO_CONTENT.equals(metadataResponse.getHttpstatus())){
-				log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
-						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
-						put(LogMessage.ACTION, "Delete Approle from SDB").
-						put(LogMessage.MESSAGE, "Delete Approle from SDB success").
-						put(LogMessage.STATUS, metadataResponse.getHttpstatus().toString()).
-						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
-						build()));
-				return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Role association is removed \"]}");
-			}else{
-				String safeType = ControllerUtil.getSafeType(path);
-				String safeName = ControllerUtil.getSafeName(path);
-				List<String> safeNames = ControllerUtil.getAllExistingSafeNames(safeType, token);
-				String newPath = path;
-				if (safeNames != null ) {
 
-					for (String existingSafeName: safeNames) {
-						if (existingSafeName.equalsIgnoreCase(safeName)) {
-							// It will come here when there is only one valid safe
-							newPath = safeType + "/" + existingSafeName;
-							break;
-						}
+		if (ControllerUtil.isValidSafePath(path) && ControllerUtil.isValidSafe(path, token)) {
+			String folders[] = path.split("[/]+");
+			String policyPostfix = folders[0].toLowerCase() + "_" + folders[1];
+			Response roleResponse = reqProcessor.process("/auth/approle/role/read","{\"role_name\":\""+role+"\"}",token);
+			String responseJson="";
+			List<String> policies = new ArrayList<>();
+			List<String> currentpolicies = new ArrayList<>();
+			if(HttpStatus.OK.equals(roleResponse.getHttpstatus())){
+				responseJson = roleResponse.getResponse();
+				try {
+					JsonNode policiesArry = objMapper.readTree(responseJson).get("data").get("policies");
+					for(JsonNode policyNode : policiesArry){
+						currentpolicies.add(policyNode.asText());
 					}
-
+				} catch (IOException e) {
+					log.error(e);
 				}
-				params.put("path",newPath);
-				metadataResponse = ControllerUtil.updateMetadata(params,token);
-				if(metadataResponse !=null && HttpStatus.NO_CONTENT.equals(metadataResponse.getHttpstatus())){
-					log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
-							put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
-							put(LogMessage.ACTION, "Delete Approle from SDB").
-							put(LogMessage.MESSAGE, "Delete Approle from SDB success").
-							put(LogMessage.STATUS, metadataResponse.getHttpstatus().toString()).
-							put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
-							build()));
-					return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Role association is removed \"]}");
-				}
-				else {
-					log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
-							put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
-							put(LogMessage.ACTION, "Delete Approle from SDB").
-							put(LogMessage.MESSAGE, "Delete Approle from SDB failed").
-							put(LogMessage.RESPONSE, (null!=metadataResponse)?metadataResponse.getResponse():TVaultConstants.EMPTY).
-							put(LogMessage.STATUS, (null!=metadataResponse)?metadataResponse.getHttpstatus().toString():TVaultConstants.EMPTY).
-							put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
-							build()));
-					return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Role configuration failed.Please try again\"]}");
-				}
+				policies.addAll(currentpolicies);
+				policies.remove("r_"+policyPostfix);
+				policies.remove("w_"+policyPostfix);
+				policies.remove("d_"+policyPostfix);
 			}
 
-		}else{
+			String policiesString = StringUtils.join(policies, ",");
+			String currentpoliciesString = StringUtils.join(currentpolicies, ",");
+			log.info(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+					put(LogMessage.ACTION, "Remove AppRole from SDB").
+					put(LogMessage.MESSAGE, "Remove approle from SDB -  policy :" + policiesString + " is being configured" ).
+					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+					build()));
+			//Call controller to update the policy for approle
+			Response approleControllerResp = appRoleService.configureApprole(role,policiesString,token);
+			if(HttpStatus.OK.equals(approleControllerResp.getHttpstatus()) || (HttpStatus.NO_CONTENT.equals(approleControllerResp.getHttpstatus()))) {
+
+				log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+						put(LogMessage.ACTION, "Remove AppRole from SDB").
+						put(LogMessage.MESSAGE, "Removed approle from SDB -  policy :" + policiesString).
+						put(LogMessage.STATUS, approleControllerResp.getHttpstatus().toString()).
+						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+						build()));
+
+					Map<String, String> params = new HashMap<>();
+					params.put("type", "app-roles");
+					params.put("name", role);
+					params.put("path", path);
+					params.put("access", "delete");
+					Response metadataResponse = ControllerUtil.updateMetadata(params, token);
+					if (metadataResponse != null && HttpStatus.NO_CONTENT.equals(metadataResponse.getHttpstatus())) {
+						log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+								put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+								put(LogMessage.ACTION, "Remove Approle from SDB").
+								put(LogMessage.MESSAGE, "Remove Approle from SDB success").
+								put(LogMessage.STATUS, metadataResponse.getHttpstatus().toString()).
+								put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+								build()));
+						return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Role association is removed \"]}");
+					} else {
+						String safeType = ControllerUtil.getSafeType(path);
+						String safeName = ControllerUtil.getSafeName(path);
+						List<String> safeNames = ControllerUtil.getAllExistingSafeNames(safeType, token);
+						String newPath = path;
+						if (safeNames != null) {
+
+							for (String existingSafeName : safeNames) {
+								if (existingSafeName.equalsIgnoreCase(safeName)) {
+									// It will come here when there is only one valid safe
+									newPath = safeType + "/" + existingSafeName;
+									break;
+								}
+							}
+
+						}
+						params.put("path", newPath);
+						metadataResponse = ControllerUtil.updateMetadata(params, token);
+						if (metadataResponse != null && HttpStatus.NO_CONTENT.equals(metadataResponse.getHttpstatus())) {
+							log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+									put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+									put(LogMessage.ACTION, "Remove Approle from SDB").
+									put(LogMessage.MESSAGE, "Remove Approle from SDB success").
+									put(LogMessage.STATUS, metadataResponse.getHttpstatus().toString()).
+									put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+									build()));
+							return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Role association is removed \"]}");
+						} else {
+							approleControllerResp = appRoleService.configureApprole(role,currentpoliciesString,token);
+							if(HttpStatus.OK.equals(approleControllerResp.getHttpstatus()) || (HttpStatus.NO_CONTENT.equals(approleControllerResp.getHttpstatus()))) {
+								log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+										put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+										put(LogMessage.ACTION, "Remove Approle from SDB").
+										put(LogMessage.MESSAGE, "Remove Approle from SDB failed").
+										put(LogMessage.RESPONSE, (null != metadataResponse) ? metadataResponse.getResponse() : TVaultConstants.EMPTY).
+										put(LogMessage.STATUS, (null != metadataResponse) ? metadataResponse.getHttpstatus().toString() : TVaultConstants.EMPTY).
+										put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+										build()));
+								return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Role configuration failed.Please try again\"]}");
+							}
+							return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Role configuration revoke failed.Please try again\"]}");
+						}
+					}
+			}
+			else {
+				log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+						put(LogMessage.ACTION, "Remove Approle from SDB").
+						put(LogMessage.MESSAGE, "Remove Approle from SDB failed").
+						put(LogMessage.RESPONSE, "Role configuration failed.Please try again").
+						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+						build()));
+				return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Role configuration failed.Please try again\"]}");
+			}
+		} else {
 			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
-					put(LogMessage.ACTION, "Delete Approle from SDB").
-					put(LogMessage.MESSAGE, "Delete Approle from SDB failed").
+					put(LogMessage.ACTION, "Remove Approle from SDB").
+					put(LogMessage.MESSAGE, "Remove Approle from SDB failed").
 					put(LogMessage.RESPONSE, "Invalid Path").
 					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 					build()));

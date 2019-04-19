@@ -135,18 +135,6 @@ public class ControllerUtilTest {
     }
 
     @Test
-    public void test_configureApprole_successfully() {
-        String roleName = "role1";
-        String policies = "{\"default\"}";
-        String token = "7QPMPIGiyDFlJkrK3jFykUqa";
-
-        Response responsemock = getMockResponse(HttpStatus.NO_CONTENT, true, "");
-        when(reqProcessor.process(eq("/auth/approle/role/create"),Mockito.any(),eq(token))).thenReturn(responsemock);
-        Response response = ControllerUtil.configureApprole(roleName, policies, token);
-        assertEquals(HttpStatus.NO_CONTENT, response.getHttpstatus());
-    }
-
-    @Test
     public void test_configureUserpassUser_successfully() {
         String userName = "normaluser";
         String policies = "{\"default\"}";

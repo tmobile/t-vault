@@ -24,6 +24,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
@@ -1150,7 +1151,7 @@ public class  AppRoleService {
 		  			put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 					build()));
 			//Call controller to update the policy for approle
-			Response approleControllerResp = ControllerUtil.configureApprole(approle,policiesString,token);
+			Response approleControllerResp = configureApprole(approle,policiesString,token);
 			if(HttpStatus.OK.equals(approleControllerResp.getHttpstatus()) || (HttpStatus.NO_CONTENT.equals(approleControllerResp.getHttpstatus()))) {
 
 				log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
@@ -1213,7 +1214,7 @@ public class  AppRoleService {
 							      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 							      build()));
 						//Trying to revert the metadata update in case of failure
-						approleControllerResp = ControllerUtil.configureApprole(approle,currentpoliciesString,token);
+						approleControllerResp = configureApprole(approle,currentpoliciesString,token);
 						if(approleControllerResp.getHttpstatus().equals(HttpStatus.NO_CONTENT)){
 							log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 								      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
@@ -1332,5 +1333,32 @@ public class  AppRoleService {
 		return ResponseEntity.status(response.getHttpstatus()).body(response.getResponse());
 	
 	}
-	
+
+	/**
+	 * Configure approle
+	 * @param rolename
+	 * @param policies
+	 * @param token
+	 * @return
+	 */
+	public Response configureApprole(String rolename,String policies,String token ){
+		ObjectMapper objMapper = new ObjectMapper();
+		Map<String,String>configureUserMap = new HashMap<String,String>();
+		configureUserMap.put("role_name", rolename);
+		configureUserMap.put("policies", policies);
+		String approleConfigJson =TVaultConstants.EMPTY;
+
+		try {
+			approleConfigJson = objMapper.writeValueAsString(configureUserMap);
+		} catch (JsonProcessingException e) {
+			log.error(e);
+			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+					put(LogMessage.ACTION, "configureApprole").
+					put(LogMessage.MESSAGE, String.format ("Unable to create approleConfigJson  [%s] with rolename [%s] policies [%s] ", e.getMessage(), rolename, policies)).
+					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+					build()));
+		}
+		return reqProcessor.process("/auth/approle/role/create",approleConfigJson,token);
+	}
 }

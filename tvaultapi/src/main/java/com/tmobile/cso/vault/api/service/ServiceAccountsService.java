@@ -24,6 +24,7 @@ import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import javax.naming.NamingException;
 import javax.naming.directory.Attributes;
@@ -42,11 +43,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.ldap.core.AttributesMapper;
 import org.springframework.ldap.core.LdapTemplate;
-import org.springframework.ldap.filter.AndFilter;
-import org.springframework.ldap.filter.EqualsFilter;
-import org.springframework.ldap.filter.Filter;
-import org.springframework.ldap.filter.LikeFilter;
-import org.springframework.ldap.filter.NotFilter;
+import org.springframework.ldap.filter.*;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
@@ -68,16 +65,24 @@ public class  ServiceAccountsService {
 	private String vaultPort;
 
 	private static Logger log = LogManager.getLogger(ServiceAccountsService.class);
+	private final static String[] permissions = {"read", "write", "deny", "sudo"};
 
 	@Autowired
 	@Qualifier(value = "svcAccLdapTemplate")
 	private LdapTemplate ldapTemplate;
-	
+
+	@Autowired
+	@Qualifier(value = "adUserLdapTemplate")
+	private LdapTemplate adUserLdapTemplate;
+
 	@Autowired
 	private AccessService accessService;
 
 	@Autowired
 	private RequestProcessor reqProcessor;
+
+	@Autowired
+	private AppRoleService appRoleService;
 
 	@Autowired
 	private PolicyUtils policyUtils;
@@ -124,6 +129,38 @@ public class  ServiceAccountsService {
 			}
 		}
 		List<ADServiceAccount> allServiceAccounts = getADServiceAccounts(andFilter);
+
+		// get the managed_by details
+		if (allServiceAccounts != null && !allServiceAccounts.isEmpty()) {
+			List<String> ownerlist = allServiceAccounts.stream().map(m -> m.getManagedBy().getUserName()).collect(Collectors.toList());
+			// remove duplicate usernames
+			ownerlist = new ArrayList<>(new HashSet<>(ownerlist));
+
+			// remove empty manager names if any
+            ownerlist.removeAll(Collections.singleton(TVaultConstants.EMPTY));
+            ownerlist.removeAll(Collections.singleton(null));
+
+			// build the search query
+			if (!ownerlist.isEmpty()) {
+				StringBuffer filterQuery = new StringBuffer();
+				filterQuery.append("(&(objectclass=user)(|");
+				for (String owner : ownerlist) {
+					filterQuery.append("(cn=" + owner + ")");
+				}
+				filterQuery.append("))");
+				List<ADUserAccount> managedServiceAccounts = getServiceAccountManagerDetails(filterQuery.toString());
+
+				// Update the managedBy withe ADUserAccount object
+				for (ADServiceAccount adServiceAccount : allServiceAccounts) {
+					if (!StringUtils.isEmpty(adServiceAccount.getManagedBy().getUserName())) {
+						List<ADUserAccount> adUserAccount = managedServiceAccounts.stream().filter(f -> (f.getUserName()!=null && f.getUserName().equalsIgnoreCase(adServiceAccount.getManagedBy().getUserName()))).collect(Collectors.toList());
+						if (!adUserAccount.isEmpty()) {
+							adServiceAccount.setManagedBy(adUserAccount.get(0));
+						}
+					}
+				}
+			}
+		}
 		ADServiceAccountObjects adServiceAccountObjects = new ADServiceAccountObjects();
 		ADServiceAccountObjectsList adServiceAccountObjectsList = new ADServiceAccountObjectsList();
 		Object[] values = new Object[] {};
@@ -182,10 +219,16 @@ public class  ServiceAccountsService {
 						Instant instant = odt.toInstant();
 						adServiceAccount.setWhenCreated(instant);
 					}
+                    ADUserAccount adUserAccount = new ADUserAccount();
+					adServiceAccount.setManagedBy(adUserAccount);
+                    adServiceAccount.setOwner(null);
 					if (attr.get("manager") != null) {
+                        String managedBy = "";
 						String managedByStr = (String) attr.get("manager").get();
-						String managedBy= managedByStr.substring(3, managedByStr.indexOf(","));
-						adServiceAccount.setManagedBy(managedBy);
+						if (!StringUtils.isEmpty(managedByStr)) {
+                            managedBy= managedByStr.substring(3, managedByStr.indexOf(","));
+                        }
+                        adUserAccount.setUserName(managedBy);
 						adServiceAccount.setOwner(managedBy.toLowerCase());
 					}
 					if (attr.get("accountExpires") != null) {
@@ -428,17 +471,6 @@ public class  ServiceAccountsService {
 	 */
 	public ResponseEntity<String> offboardServiceAccount(String token, OnboardedServiceAccount serviceAccount, UserDetails userDetails) {
 		String svcAccName = serviceAccount.getName();
-		ServiceAccountUser serviceAccountUser = new ServiceAccountUser(svcAccName, serviceAccount.getOwner(), TVaultConstants.SUDO_POLICY);
-		// Remove the owner association (owner policy)
-		ResponseEntity<String> removeUserFromServiceAccountResponse = removeUserFromServiceAccount(token, serviceAccountUser, userDetails);
-		if (!HttpStatus.OK.equals(removeUserFromServiceAccountResponse.getStatusCode())) {
-			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
-					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
-					put(LogMessage.ACTION, "offboardServiceAccount").
-					put(LogMessage.MESSAGE, String.format ("Failed to remove the user from the Service Account")).
-					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
-					build()));
-		}
 		ResponseEntity<String> svcAccPolicyDeletionResponse = deleteServiceAccountPolicies(token, svcAccName);
 		if (!HttpStatus.OK.equals(svcAccPolicyDeletionResponse.getStatusCode())) {
 			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
@@ -661,7 +693,7 @@ public class  ServiceAccountsService {
 		String svcAccName = serviceAccountUser.getSvcAccName();
 		String access = serviceAccountUser.getAccess();
 
-		if(!ControllerUtil.areSvcUserInputsValid(serviceAccountUser)) {
+		if(!isSvcaccPermissionInputValid(serviceAccountUser.getAccess())) {
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid value specified for access\"]}");
 		}
 
@@ -680,7 +712,7 @@ public class  ServiceAccountsService {
 		}
 		boolean isAuthorized = true;
 		if (userDetails != null) {
-			isAuthorized = canAddOrRemoveUser(userDetails, serviceAccountUser, TVaultConstants.ADD_USER);
+			isAuthorized = hasAddOrRemovePermission(userDetails, serviceAccountUser.getSvcAccName(), token);
 		}
 
 		if(isAuthorized){
@@ -817,13 +849,13 @@ public class  ServiceAccountsService {
 		String svcAccName = serviceAccountUser.getSvcAccName();
 		String access = serviceAccountUser.getAccess();
 
-		if(!ControllerUtil.areSvcUserInputsValid(serviceAccountUser)) {
+		if(!isSvcaccPermissionInputValid(serviceAccountUser.getAccess())) {
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid value specified for access\"]}");
 		}
 
 		boolean isAuthorized = true;
 		if (userDetails != null) {
-			isAuthorized = canAddOrRemoveUser(userDetails, serviceAccountUser, TVaultConstants.REMOVE_USER);
+			isAuthorized = hasAddOrRemovePermission(userDetails, serviceAccountUser.getSvcAccName(), token);
 		}
 
 		if(isAuthorized){
@@ -901,7 +933,7 @@ public class  ServiceAccountsService {
 				if(metadataResponse != null && (HttpStatus.NO_CONTENT.equals(metadataResponse.getHttpstatus()) || HttpStatus.OK.equals(metadataResponse.getHttpstatus()))){
 					log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 							put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
-							put(LogMessage.ACTION, "Remove User to ServiceAccount").
+							put(LogMessage.ACTION, "Remove User from ServiceAccount").
 							put(LogMessage.MESSAGE, "User is successfully Removed from Service Account").
 							put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 							build()));
@@ -1097,6 +1129,18 @@ public class  ServiceAccountsService {
         return false;
     }
 
+	/**
+	 * Validates Service Account permission inputs
+	 * @param access
+	 * @return
+	 */
+	public static boolean isSvcaccPermissionInputValid(String access) {
+		if (!org.apache.commons.lang3.ArrayUtils.contains(permissions, access)) {
+			return false;
+		}
+		return true;
+	}
+
     /**
      * Add Group to Service Account
      * @param token
@@ -1113,7 +1157,7 @@ public class  ServiceAccountsService {
 				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 				build()));
 
-        if(!ControllerUtil.areSvcaccGroupInputsValid(serviceAccountGroup)) {
+        if(!isSvcaccPermissionInputValid(serviceAccountGroup.getAccess())) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid value specified for access\"]}");
         }
 
@@ -1267,7 +1311,7 @@ public class  ServiceAccountsService {
                 put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
                 build()));
 
-        if(!ControllerUtil.areSvcaccGroupInputsValid(serviceAccountGroup)) {
+        if(!isSvcaccPermissionInputValid(serviceAccountGroup.getAccess())) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid value specified for access\"]}");
         }
 
@@ -1397,7 +1441,7 @@ public class  ServiceAccountsService {
                 put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
                 build()));
 
-        if(!ControllerUtil.areSvcaccApproleInputsValid(serviceAccountApprole)) {
+        if(!isSvcaccPermissionInputValid(serviceAccountApprole.getAccess())) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid value specified for access\"]}");
         }
 
@@ -1405,9 +1449,6 @@ public class  ServiceAccountsService {
         String svcAccName = serviceAccountApprole.getSvcAccName();
         String access = serviceAccountApprole.getAccess();
 
-        if (TVaultConstants.USERPASS.equals(vaultAuthMethod)) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"This operation is not supported for Userpass authentication. \"]}");
-        }
         if (serviceAccountApprole.getApprolename().equals(TVaultConstants.SELF_SERVICE_APPROLE_NAME)) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Access denied: no permission to associate this AppRole to any Service Account\"]}");
         }
@@ -1485,7 +1526,7 @@ public class  ServiceAccountsService {
 					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 					build()));
 
-			Response approleControllerResp = ControllerUtil.configureApprole(approleName,policiesString,token);
+			Response approleControllerResp = appRoleService.configureApprole(approleName,policiesString,token);
 
 			if(approleControllerResp.getHttpstatus().equals(HttpStatus.NO_CONTENT) || approleControllerResp.getHttpstatus().equals(HttpStatus.OK)){
 				String path = new StringBuffer(TVaultConstants.SVC_ACC_ROLES_PATH).append("/").append(svcAccName).toString();
@@ -1499,13 +1540,13 @@ public class  ServiceAccountsService {
 					log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 							put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 							put(LogMessage.ACTION, "Add Approle to Service Account").
-							put(LogMessage.MESSAGE, "Approle configuration Success.").
+							put(LogMessage.MESSAGE, "Approle successfully associated with Service Account").
 							put(LogMessage.STATUS, metadataResponse.getHttpstatus().toString()).
 							put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 							build()));
 					return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Approle successfully associated with Service Account\"]}");
 				}
-				approleControllerResp = ControllerUtil.configureApprole(approleName,currentpoliciesString,token);
+				approleControllerResp = appRoleService.configureApprole(approleName,currentpoliciesString,token);
 				if(approleControllerResp.getHttpstatus().equals(HttpStatus.NO_CONTENT)){
 					log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 							put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
@@ -1515,7 +1556,7 @@ public class  ServiceAccountsService {
 							put(LogMessage.STATUS, (null!=metadataResponse)?metadataResponse.getHttpstatus().toString():TVaultConstants.EMPTY).
 							put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 							build()));
-					return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Approle configuration failed.Please try again\"]}");
+					return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Approle configuration failed. Please try again\"]}");
 				}else{
 					log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 							put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
@@ -1525,11 +1566,11 @@ public class  ServiceAccountsService {
 							put(LogMessage.STATUS, (null!=metadataResponse)?metadataResponse.getHttpstatus().toString():TVaultConstants.EMPTY).
 							put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 							build()));
-					return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Approle configuration failed.Contact Admin \"]}");
+					return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Approle configuration failed. Contact Admin \"]}");
 				}
 			}
 			else {
-				return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Failed to add Approle to the Service Account\"]}");
+				return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Failed to add Approle to the Service Account\"]}");
 			}
         }else{
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Access denied: No permission to add Approle to this service account\"]}");
@@ -1580,11 +1621,9 @@ public class  ServiceAccountsService {
 
 				Response userResponse;
 				if (TVaultConstants.USERPASS.equals(vaultAuthMethod)) {
-					log.debug ("Inside userpass");
 					userResponse = reqProcessor.process("/auth/userpass/read","{\"username\":\""+userName+"\"}",token);
 				}
 				else {
-					log.debug ("Inside non - userpass");
 					userResponse = reqProcessor.process("/auth/ldap/users","{\"username\":\""+userName+"\"}",token);
 				}
 				String responseJson="";
@@ -1623,11 +1662,21 @@ public class  ServiceAccountsService {
 							put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 							build()));
 					if (TVaultConstants.USERPASS.equals(vaultAuthMethod)) {
-						log.debug ("Inside userpass");
+						log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+								put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+								put(LogMessage.ACTION, "updateUserPolicyAssociationOnSvcaccDelete").
+								put(LogMessage.MESSAGE, String.format ("Current policies userpass [%s]", policies )).
+								put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+								build()));
 						ControllerUtil.configureUserpassUser(userName,policiesString,token);
 					}
 					else {
-						log.debug ("Inside non-userpass");
+						log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+								put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+								put(LogMessage.ACTION, "updateUserPolicyAssociationOnSvcaccDelete").
+								put(LogMessage.MESSAGE, String.format ("Current policies ldap [%s]", policies )).
+								put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+								build()));
 						ControllerUtil.configureLDAPUser(userName,policiesString,groups,token);
 					}
 				}
@@ -1692,6 +1741,174 @@ public class  ServiceAccountsService {
 					ControllerUtil.configureLDAPGroup(groupName,policiesString,token);
 				}
 			}
+		}
+	}
+
+    /**
+     * Get Manager details for service account
+     * @param filter
+     * @return
+     */
+    private List<ADUserAccount> getServiceAccountManagerDetails(String filter) {
+        log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+                put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+                put(LogMessage.ACTION, "getServiceAccountManagerDetails").
+                put(LogMessage.MESSAGE, String.format("Trying to get manager details")).
+                put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+                build()));
+        return adUserLdapTemplate.search("", filter, new AttributesMapper<ADUserAccount>() {
+            @Override
+            public ADUserAccount mapFromAttributes(Attributes attr) throws NamingException {
+				ADUserAccount person = new ADUserAccount();
+				if (attr != null) {
+					String mail = "";
+					if(attr.get("mail") != null) {
+						mail = ((String) attr.get("mail").get());
+					}
+					String userId = ((String) attr.get("name").get());
+					// Assign first part of the email id for use with UPN authentication
+					if (!StringUtils.isEmpty(mail)) {
+						userId = mail.substring(0, mail.indexOf("@"));
+					}
+					person.setUserId(userId);
+					if (attr.get("displayname") != null) {
+						person.setDisplayName(((String) attr.get("displayname").get()));
+					}
+					if (attr.get("givenname") != null) {
+						person.setGivenName(((String) attr.get("givenname").get()));
+					}
+
+					if (attr.get("mail") != null) {
+						person.setUserEmail(((String) attr.get("mail").get()));
+					}
+
+					if (attr.get("name") != null) {
+						person.setUserName(((String) attr.get("name").get()));
+					}
+				}
+				return person;
+            }
+        });
+    }
+
+	/**
+	 * Remove approle from service account
+	 * @param userDetails
+	 * @param token
+	 * @param serviceAccountApprole
+	 * @return
+	 */
+	public ResponseEntity<String> removeApproleFromSvcAcc(UserDetails userDetails, String token, ServiceAccountApprole serviceAccountApprole) {
+		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+				put(LogMessage.ACTION, "Remove Approle from Service Account").
+				put(LogMessage.MESSAGE, String.format ("Trying to remove approle from Service Account [%s]", serviceAccountApprole.getApprolename())).
+				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+				build()));
+		String approleName = serviceAccountApprole.getApprolename();
+		String svcAccName = serviceAccountApprole.getSvcAccName();
+		String access = serviceAccountApprole.getAccess();
+
+		if (serviceAccountApprole.getApprolename().equals(TVaultConstants.SELF_SERVICE_APPROLE_NAME)) {
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Access denied: no permission to remove this AppRole to any Service Account\"]}");
+		}
+		approleName = (approleName !=null) ? approleName.toLowerCase() : approleName;
+		access = (access != null) ? access.toLowerCase(): access;
+		if(StringUtils.isEmpty(access)){
+			return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body("{\"errors\":[\"Incorrect access. Valid values are read,write,deny \"]}");
+		}
+		boolean isAuthorized = hasAddOrRemovePermission(userDetails, svcAccName, token);
+
+		if (isAuthorized) {
+			String r_policy = new StringBuffer().append(TVaultConstants.SVC_ACC_POLICIES_PREFIXES.getKey(TVaultConstants.READ_POLICY)).append(TVaultConstants.SVC_ACC_PATH_PREFIX).append("_").append(svcAccName).toString();
+			String w_policy = new StringBuffer().append(TVaultConstants.SVC_ACC_POLICIES_PREFIXES.getKey(TVaultConstants.WRITE_POLICY)).append(TVaultConstants.SVC_ACC_PATH_PREFIX).append("_").append(svcAccName).toString();
+			String d_policy = new StringBuffer().append(TVaultConstants.SVC_ACC_POLICIES_PREFIXES.getKey(TVaultConstants.DENY_POLICY)).append(TVaultConstants.SVC_ACC_PATH_PREFIX).append("_").append(svcAccName).toString();
+			String o_policy = new StringBuffer().append(TVaultConstants.SVC_ACC_POLICIES_PREFIXES.getKey(TVaultConstants.SUDO_POLICY)).append(TVaultConstants.SVC_ACC_PATH_PREFIX).append("_").append(svcAccName).toString();
+
+			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+					put(LogMessage.ACTION, "Remove approle from Service Account").
+					put(LogMessage.MESSAGE, String.format ("Policies are, read - [%s], write - [%s], deny -[%s], owner - [%s]", r_policy, w_policy, d_policy, o_policy)).
+					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+					build()));
+			String policy = new StringBuffer().append(TVaultConstants.SVC_ACC_POLICIES_PREFIXES.getKey(access)).append(TVaultConstants.SVC_ACC_PATH_PREFIX).append("_").append(svcAccName).toString();
+
+			Response roleResponse = reqProcessor.process("/auth/approle/role/read","{\"role_name\":\""+approleName+"\"}",token);
+			String responseJson="";
+			List<String> policies = new ArrayList<>();
+			List<String> currentpolicies = new ArrayList<>();
+			if(HttpStatus.OK.equals(roleResponse.getHttpstatus())){
+				responseJson = roleResponse.getResponse();
+				ObjectMapper objMapper = new ObjectMapper();
+				try {
+					JsonNode policiesArry = objMapper.readTree(responseJson).get("data").get("policies");
+					for(JsonNode policyNode : policiesArry){
+						currentpolicies.add(policyNode.asText());
+					}
+				} catch (IOException e) {
+					log.error(e);
+				}
+				policies.addAll(currentpolicies);
+				policies.remove(policy);
+
+			}
+
+			String policiesString = org.apache.commons.lang3.StringUtils.join(policies, ",");
+			String currentpoliciesString = org.apache.commons.lang3.StringUtils.join(currentpolicies, ",");
+			log.info(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+					put(LogMessage.ACTION, "Remove AppRole from Service account").
+					put(LogMessage.MESSAGE, "Remove approle from Service account -  policy :" + policiesString + " is being configured" ).
+					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+					build()));
+			//Update the policy for approle
+			Response approleControllerResp = appRoleService.configureApprole(approleName,policiesString,token);
+			if(approleControllerResp.getHttpstatus().equals(HttpStatus.NO_CONTENT) || approleControllerResp.getHttpstatus().equals(HttpStatus.OK)){
+				String path = new StringBuffer(TVaultConstants.SVC_ACC_ROLES_PATH).append("/").append(svcAccName).toString();
+				Map<String,String> params = new HashMap<String,String>();
+				params.put("type", "app-roles");
+				params.put("name",approleName);
+				params.put("path",path);
+				params.put("access","delete");
+				Response metadataResponse = ControllerUtil.updateMetadata(params,token);
+				if(metadataResponse !=null && (HttpStatus.NO_CONTENT.equals(metadataResponse.getHttpstatus()) || HttpStatus.OK.equals(metadataResponse.getHttpstatus()))){
+					log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+							put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+							put(LogMessage.ACTION, "Remove AppRole from Service Account").
+							put(LogMessage.MESSAGE, "Approle is successfully removed from Service Account").
+							put(LogMessage.STATUS, metadataResponse.getHttpstatus().toString()).
+							put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+							build()));
+					return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Approle is successfully removed from Service Account\"]}");
+				}
+				approleControllerResp = appRoleService.configureApprole(approleName,currentpoliciesString,token);
+				if(approleControllerResp.getHttpstatus().equals(HttpStatus.NO_CONTENT)){
+					log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+							put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+							put(LogMessage.ACTION, "Remove AppRole from Service Account").
+							put(LogMessage.MESSAGE, "Reverting, approle policy update success").
+							put(LogMessage.RESPONSE, (null!=metadataResponse)?metadataResponse.getResponse():TVaultConstants.EMPTY).
+							put(LogMessage.STATUS, (null!=metadataResponse)?metadataResponse.getHttpstatus().toString():TVaultConstants.EMPTY).
+							put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+							build()));
+					return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Approle configuration failed. Please try again\"]}");
+				}else{
+					log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+							put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+							put(LogMessage.ACTION, "Remove AppRole from Service Account").
+							put(LogMessage.MESSAGE, "Reverting approle policy update failed").
+							put(LogMessage.RESPONSE, (null!=metadataResponse)?metadataResponse.getResponse():TVaultConstants.EMPTY).
+							put(LogMessage.STATUS, (null!=metadataResponse)?metadataResponse.getHttpstatus().toString():TVaultConstants.EMPTY).
+							put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+							build()));
+					return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Approle configuration failed. Contact Admin \"]}");
+				}
+			}
+			else {
+				return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Failed to remove approle from the Service Account\"]}");
+			}
+		} else {
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Access denied: No permission to remove approle from Service Account\"]}");
 		}
 	}
 }

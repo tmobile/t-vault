@@ -66,7 +66,7 @@ public class ADServiceAccount implements Serializable {
 	
 	private int maxPwdAge;
 	
-	private String managedBy;
+	private ADUserAccount managedBy;
 	
 	private String passwordExpiry;
 	
@@ -238,7 +238,7 @@ public class ADServiceAccount implements Serializable {
 	/**
 	 * @return the managedBy
 	 */
-	public String getManagedBy() {
+	public ADUserAccount getManagedBy() {
 		return managedBy;
 	}
 	/**
@@ -250,7 +250,7 @@ public class ADServiceAccount implements Serializable {
 	/**
 	 * @param managedBy the managedBy to set
 	 */
-	public void setManagedBy(String managedBy) {
+	public void setManagedBy(ADUserAccount managedBy) {
 		this.managedBy = managedBy;
 	}
 	

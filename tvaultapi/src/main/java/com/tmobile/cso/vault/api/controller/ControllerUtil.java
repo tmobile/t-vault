@@ -406,31 +406,6 @@ public final class ControllerUtil {
 		}
 		return reqProcessor.process("/auth/ldap/users/configure",ldapUserConfigJson,token);
 	}
-	
-	
-	
-	public static Response configureApprole(String rolename,String policies,String token ){
-		ObjectMapper objMapper = new ObjectMapper();
-		Map<String,String>configureUserMap = new HashMap<String,String>();
-		configureUserMap.put("role_name", rolename);
-		configureUserMap.put("policies", policies);
-		String approleConfigJson =TVaultConstants.EMPTY;
-		
-		try {
-			approleConfigJson = objMapper.writeValueAsString(configureUserMap);
-		} catch (JsonProcessingException e) {
-			log.error(e);
-			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
-					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
-					put(LogMessage.ACTION, "configureApprole").
-					put(LogMessage.MESSAGE, String.format ("Unable to create approleConfigJson  [%s] with rolename [%s] policies [%s] ", e.getMessage(), rolename, policies)).
-					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
-					build()));
-		}
-		return reqProcessor.process("/auth/approle/role/create",approleConfigJson,token);
-	}
-	
-
 
 	public static Response configureUserpassUser(String userName,String policies,String token ){
 		ObjectMapper objMapper = new ObjectMapper();
@@ -2088,47 +2063,5 @@ public final class ControllerUtil {
 		}
         return response;
     }
-
-	/**
-	 * Validates Servoce Account User inputs
-	 * @param serviceAccountUser
-	 * @return
-	 */
-	public static boolean areSvcUserInputsValid(ServiceAccountUser serviceAccountUser) {
-		String access = serviceAccountUser.getAccess();
-		if (!ArrayUtils.contains(permissions, access)) {
-			return false;
-		}
-		return true;
-	}
-
-	/**
-	 * Validates Service Account Group inputs
-	 * @param serviceAccountGroup
-	 * @return
-	 */
-	public static boolean areSvcaccGroupInputsValid(ServiceAccountGroup serviceAccountGroup) {
-		String access = serviceAccountGroup.getAccess();
-		if (!ArrayUtils.contains(permissions, access)) {
-			return false;
-		}
-		return true;
-	}
-
-
-	/**
-	 * Validate Service Account Approle inputs
-	 * @param serviceAccountApprole
-	 * @return
-	 */
-	public static boolean areSvcaccApproleInputsValid(ServiceAccountApprole serviceAccountApprole) {
-		String access = serviceAccountApprole.getAccess();
-		if (!ArrayUtils.contains(permissions, access)) {
-			return false;
-		}
-		return true;
-	}
-
-
 
 }
