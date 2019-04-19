@@ -477,10 +477,9 @@
                         if (UtilityService.ifAPIRequestSuccessful(response)) {                       
                             try {
                                 if (response.data.data.values.length>0) {
-                                    //var object = response.data;
                                     var object = response.data.data.values[0];
                                     var offboardPayload = {
-                                        "owner": object.managedBy,
+                                        "owner": object.managedBy.userName,
                                         "name": svcaccUserId
                                     }
                                     AdminSafesManagement.offboardSvcacc(offboardPayload, '').then(
