@@ -701,7 +701,7 @@ public class  ServiceAccountsService {
 		String access = serviceAccountUser.getAccess();
 
 		if(!isSvcaccPermissionInputValid(serviceAccountUser.getAccess())) {
-			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid value specified for access\"]}");
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid value specified for access. Valid values are read, write, deny\"]}");
 		}
 
 		// TODO: Validation for String expectedPath = TVaultConstants.SVC_ACC_CREDS_PATH+svcAccName;
@@ -857,7 +857,7 @@ public class  ServiceAccountsService {
 		String access = serviceAccountUser.getAccess();
 
 		if(!isSvcaccPermissionInputValid(serviceAccountUser.getAccess())) {
-			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid value specified for access\"]}");
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid value specified for access. Valid values are read, write, deny\"]}");
 		}
 
 		boolean isAuthorized = true;
@@ -1165,7 +1165,7 @@ public class  ServiceAccountsService {
 				build()));
 
         if(!isSvcaccPermissionInputValid(serviceAccountGroup.getAccess())) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid value specified for access\"]}");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid value specified for access. Valid values are read, write, deny\"]}");
         }
 
 		String groupName = serviceAccountGroup.getGroupname();
@@ -1282,7 +1282,7 @@ public class  ServiceAccountsService {
 							put(LogMessage.STATUS, (null!=metadataResponse)?metadataResponse.getHttpstatus().toString():TVaultConstants.EMPTY).
 							put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 							build()));
-					return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Group configuration failed.Please try again\"]}");
+					return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Group configuration failed. Please try again\"]}");
 				}else{
 					log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 							put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
@@ -1292,7 +1292,7 @@ public class  ServiceAccountsService {
 							put(LogMessage.STATUS, (null!=metadataResponse)?metadataResponse.getHttpstatus().toString():TVaultConstants.EMPTY).
 							put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 							build()));
-					return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Group configuration failed.Contact Admin \"]}");
+					return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Group configuration failed. Contact Admin \"]}");
 				}
 			}
 			else {
@@ -1319,7 +1319,7 @@ public class  ServiceAccountsService {
                 build()));
 
         if(!isSvcaccPermissionInputValid(serviceAccountGroup.getAccess())) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid value specified for access\"]}");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid value specified for access. Valid values are read, write, deny\"]}");
         }
 
         String groupName = serviceAccountGroup.getGroupname();
@@ -1410,7 +1410,7 @@ public class  ServiceAccountsService {
 							put(LogMessage.STATUS, (null!=metadataResponse)?metadataResponse.getHttpstatus().toString():TVaultConstants.EMPTY).
 							put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 							build()));
-					return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Group configuration failed.Please try again\"]}");
+					return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Group configuration failed. Please try again\"]}");
 				}else{
 					log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 							put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
@@ -1420,7 +1420,7 @@ public class  ServiceAccountsService {
 							put(LogMessage.STATUS, (null!=metadataResponse)?metadataResponse.getHttpstatus().toString():TVaultConstants.EMPTY).
 							put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 							build()));
-					return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Group configuration failed.Contact Admin \"]}");
+					return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Group configuration failed. Contact Admin \"]}");
 				}
             }
             else {
@@ -1449,7 +1449,7 @@ public class  ServiceAccountsService {
                 build()));
 
         if(!isSvcaccPermissionInputValid(serviceAccountApprole.getAccess())) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid value specified for access\"]}");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid value specified for access. Valid values are read, write, deny\"]}");
         }
 
         String approleName = serviceAccountApprole.getApprolename();
@@ -1932,7 +1932,7 @@ public class  ServiceAccountsService {
 		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 				put(LogMessage.ACTION, "Add AWS Role to Service Account").
-				put(LogMessage.MESSAGE, String.format ("Trying to add AWS Role to Service Account")).
+				put(LogMessage.MESSAGE, "Trying to add AWS Role to Service Account").
 				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 				build()));
 
@@ -1940,7 +1940,7 @@ public class  ServiceAccountsService {
 		String svcAccName = serviceAccountAWSRole.getSvcAccName();
 		String access = serviceAccountAWSRole.getAccess();
 		if(!isSvcaccPermissionInputValid(access)) {
-			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid value specified for access\"]}");
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid value specified for access. Valid values are read, write, deny\"]}");
 		}
 
 		roleName = (roleName !=null) ? roleName.toLowerCase() : roleName;
@@ -1971,7 +1971,7 @@ public class  ServiceAccountsService {
 
 			Response roleResponse = reqProcessor.process("/auth/aws/roles","{\"role\":\""+roleName+"\"}",token);
 			String responseJson="";
-			String auth_type = "ec2";
+			String auth_type = TVaultConstants.EC2;
 			List<String> policies = new ArrayList<>();
 			List<String> currentpolicies = new ArrayList<>();
 			String policiesString = "";
@@ -2006,10 +2006,10 @@ public class  ServiceAccountsService {
 			}
 			Response awsRoleConfigresponse = null;
 			if (TVaultConstants.IAM.equals(auth_type)) {
-				awsRoleConfigresponse = ControllerUtil.configureAWSIAMRole(roleName,policiesString,token);
+				awsRoleConfigresponse = awsiamAuthService.configureAWSIAMRole(roleName,policiesString,token);
 			}
 			else {
-				awsRoleConfigresponse = ControllerUtil.configureAWSRole(roleName,policiesString,token);
+				awsRoleConfigresponse = awsAuthService.configureAWSRole(roleName,policiesString,token);
 			}
 			if(awsRoleConfigresponse.getHttpstatus().equals(HttpStatus.NO_CONTENT) || awsRoleConfigresponse.getHttpstatus().equals(HttpStatus.OK)){
 				String path = new StringBuffer(TVaultConstants.SVC_ACC_ROLES_PATH).append("/").append(svcAccName).toString();
@@ -2030,10 +2030,10 @@ public class  ServiceAccountsService {
 					return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"AWS Role successfully associated with Service Account\"]}");
 				}
 				if (TVaultConstants.IAM.equals(auth_type)) {
-					awsRoleConfigresponse = ControllerUtil.configureAWSIAMRole(roleName,currentpoliciesString,token);
+					awsRoleConfigresponse = awsiamAuthService.configureAWSIAMRole(roleName,currentpoliciesString,token);
 				}
 				else {
-					awsRoleConfigresponse = ControllerUtil.configureAWSRole(roleName,currentpoliciesString,token);
+					awsRoleConfigresponse = awsAuthService.configureAWSRole(roleName,currentpoliciesString,token);
 				}
 				if(awsRoleConfigresponse.getHttpstatus().equals(HttpStatus.NO_CONTENT)){
 					log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
@@ -2044,7 +2044,7 @@ public class  ServiceAccountsService {
 							put(LogMessage.STATUS, (null!=metadataResponse)?metadataResponse.getHttpstatus().toString():TVaultConstants.EMPTY).
 							put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 							build()));
-					return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"AWS Role configuration failed.Please try again\"]}");
+					return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"AWS Role configuration failed. Please try again\"]}");
 				} else{
 					log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 							put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
@@ -2054,10 +2054,10 @@ public class  ServiceAccountsService {
 							put(LogMessage.STATUS, (null!=metadataResponse)?metadataResponse.getHttpstatus().toString():TVaultConstants.EMPTY).
 							put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 							build()));
-					return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"AWS Role configuration failed.Contact Admin \"]}");
+					return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"AWS Role configuration failed. Contact Admin \"]}");
 				}
 			} else{
-				return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Role configuration failed.Try Again\"]}");
+				return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Role configuration failed. Try Again\"]}");
 			}
 		} else{
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Access denied: No permission to add AWS Role to this service account\"]}");
@@ -2083,7 +2083,7 @@ public class  ServiceAccountsService {
 		String svcAccName = serviceAccountAWSRole.getSvcAccName();
 		String access = serviceAccountAWSRole.getAccess();
 		if(!isSvcaccPermissionInputValid(access)) {
-			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid value specified for access\"]}");
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid value specified for access. Valid values are read, write, deny\"]}");
 		}
 		roleName = (roleName !=null) ? roleName.toLowerCase() : roleName;
 		access = (access != null) ? access.toLowerCase(): access;
@@ -2107,7 +2107,7 @@ public class  ServiceAccountsService {
 
 			Response roleResponse = reqProcessor.process("/auth/aws/roles","{\"role\":\""+roleName+"\"}",token);
 			String responseJson="";
-			String auth_type = "ec2";
+			String auth_type = TVaultConstants.EC2;
 			List<String> policies = new ArrayList<>();
 			List<String> currentpolicies = new ArrayList<>();
 
@@ -2146,10 +2146,10 @@ public class  ServiceAccountsService {
 					build()));
 			Response awsRoleConfigresponse = null;
 			if (TVaultConstants.IAM.equals(auth_type)) {
-				awsRoleConfigresponse = ControllerUtil.configureAWSIAMRole(roleName,policiesString,token);
+				awsRoleConfigresponse = awsiamAuthService.configureAWSIAMRole(roleName,policiesString,token);
 			}
 			else {
-				awsRoleConfigresponse = ControllerUtil.configureAWSRole(roleName,policiesString,token);
+				awsRoleConfigresponse = awsAuthService.configureAWSRole(roleName,policiesString,token);
 			}
 			if(awsRoleConfigresponse.getHttpstatus().equals(HttpStatus.NO_CONTENT) || awsRoleConfigresponse.getHttpstatus().equals(HttpStatus.OK)){
 				String path = new StringBuffer(TVaultConstants.SVC_ACC_ROLES_PATH).append("/").append(svcAccName).toString();
@@ -2170,10 +2170,10 @@ public class  ServiceAccountsService {
 					return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"AWS Role is successfully removed from Service Account\"]}");
 				}
 				if (TVaultConstants.IAM.equals(auth_type)) {
-					awsRoleConfigresponse = ControllerUtil.configureAWSIAMRole(roleName,currentpoliciesString,token);
+					awsRoleConfigresponse = awsiamAuthService.configureAWSIAMRole(roleName,currentpoliciesString,token);
 				}
 				else {
-					awsRoleConfigresponse = ControllerUtil.configureAWSRole(roleName,currentpoliciesString,token);
+					awsRoleConfigresponse = awsAuthService.configureAWSRole(roleName,currentpoliciesString,token);
 				}
 				if(awsRoleConfigresponse.getHttpstatus().equals(HttpStatus.NO_CONTENT)){
 					log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
@@ -2184,7 +2184,7 @@ public class  ServiceAccountsService {
 							put(LogMessage.STATUS, (null!=metadataResponse)?metadataResponse.getHttpstatus().toString():TVaultConstants.EMPTY).
 							put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 							build()));
-					return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"AWS Role configuration failed.Please try again\"]}");
+					return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"AWS Role configuration failed. Please try again\"]}");
 				}else{
 					log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 							put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
@@ -2194,7 +2194,7 @@ public class  ServiceAccountsService {
 							put(LogMessage.STATUS, (null!=metadataResponse)?metadataResponse.getHttpstatus().toString():TVaultConstants.EMPTY).
 							put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 							build()));
-					return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"AWS Role configuration failed.Contact Admin \"]}");
+					return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"AWS Role configuration failed. Contact Admin \"]}");
 				}
 			}
 			else {

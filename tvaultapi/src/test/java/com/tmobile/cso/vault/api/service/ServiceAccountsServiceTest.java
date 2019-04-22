@@ -1075,7 +1075,7 @@ public class ServiceAccountsServiceTest {
         String token = userDetails.getClientToken();
         ServiceAccountUser serviceAccountUser = new ServiceAccountUser("testacc02", "testacc01", "reads");
         // System under test
-        String expectedResponse = "{\"errors\":[\"Invalid value specified for access\"]}";
+        String expectedResponse = "{\"errors\":[\"Invalid value specified for access. Valid values are read, write, deny\"]}";
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body(expectedResponse);
         ResponseEntity<String> responseEntity = serviceAccountsService.removeUserFromServiceAccount(token, serviceAccountUser, userDetails);
         assertEquals(HttpStatus.BAD_REQUEST, responseEntity.getStatusCode());
@@ -1284,7 +1284,7 @@ public class ServiceAccountsServiceTest {
         String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
         ServiceAccountGroup serviceAccountGroup = new ServiceAccountGroup("svc_vault_test7", "group1", "write");
         UserDetails userDetails = getMockUser(false);
-        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Group configuration failed.Please try again\"]}");
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Group configuration failed. Please try again\"]}");
         Response responseNoContent = getMockResponse(HttpStatus.NO_CONTENT, true, "");
         Response response404 = getMockResponse(HttpStatus.NOT_FOUND, true, "");
 
@@ -1407,8 +1407,8 @@ public class ServiceAccountsServiceTest {
         String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
         ServiceAccountGroup serviceAccountGroup = new ServiceAccountGroup("svc_vault_test7", "group1", "write");
         UserDetails userDetails = getMockUser(false);
-        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Group configuration failed.Please try again\"]}");
-        ResponseEntity<String> response = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Group configuration failed.Please try again\"]}");
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Group configuration failed. Please try again\"]}");
+        ResponseEntity<String> response = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Group configuration failed. Please try again\"]}");
         Response responseNoContent = getMockResponse(HttpStatus.NO_CONTENT, true, "");
         Response response404 = getMockResponse(HttpStatus.NOT_FOUND, true, "");
 
@@ -1521,7 +1521,7 @@ public class ServiceAccountsServiceTest {
     @Test
     public void test_AssociateAppRole_failure_400() throws Exception {
 
-        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid value specified for access\"]}");
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid value specified for access. Valid values are read, write, deny\"]}");
         String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
         UserDetails userDetails = getMockUser(false);
         ServiceAccountApprole serviceAccountApprole = new ServiceAccountApprole("testsvcname", "role1", "writes");
@@ -1835,7 +1835,7 @@ public class ServiceAccountsServiceTest {
         Response awsRoleResponse = getMockResponse(HttpStatus.OK, true, responseBody);
         when(reqProcessor.process("/auth/aws/roles","{\"role\":\"role1\"}",token)).thenReturn(awsRoleResponse);
         Response configureAWSRoleResponse = getMockResponse(HttpStatus.OK, true, "");
-        when(ControllerUtil.configureAWSIAMRole(Mockito.anyString(), Mockito.anyString(), Mockito.anyString())).thenReturn(configureAWSRoleResponse);
+        when(awsiamAuthService.configureAWSIAMRole(Mockito.anyString(), Mockito.anyString(), Mockito.anyString())).thenReturn(configureAWSRoleResponse);
         Response updateMetadataResponse = getMockResponse(HttpStatus.NO_CONTENT, true, "");
         when(ControllerUtil.updateMetadata(Mockito.anyMap(),Mockito.anyString())).thenReturn(updateMetadataResponse);
 
@@ -1864,7 +1864,7 @@ public class ServiceAccountsServiceTest {
         Response awsRoleResponse = getMockResponse(HttpStatus.OK, true, responseBody);
         when(reqProcessor.process("/auth/aws/roles","{\"role\":\"role1\"}",token)).thenReturn(awsRoleResponse);
         Response configureAWSRoleResponse = getMockResponse(HttpStatus.OK, true, "");
-        when(ControllerUtil.configureAWSRole(Mockito.anyString(), Mockito.anyString(), Mockito.anyString())).thenReturn(configureAWSRoleResponse);
+        when(awsAuthService.configureAWSRole(Mockito.anyString(), Mockito.anyString(), Mockito.anyString())).thenReturn(configureAWSRoleResponse);
         Response updateMetadataResponse = getMockResponse(HttpStatus.NO_CONTENT, true, "");
         when(ControllerUtil.updateMetadata(Mockito.anyMap(),Mockito.anyString())).thenReturn(updateMetadataResponse);
 
@@ -1879,7 +1879,7 @@ public class ServiceAccountsServiceTest {
     @Test
     public void test_addAwsRoleToSvcacc_ec2_metadata_failure() throws Exception {
 
-        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"AWS Role configuration failed.Please try again\"]}");
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"AWS Role configuration failed. Please try again\"]}");
         String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
         UserDetails userDetails = getMockUser(false);
         ServiceAccountAWSRole serviceAccountAWSRole = new ServiceAccountAWSRole("testsvcname", "role1", "write");
@@ -1893,7 +1893,7 @@ public class ServiceAccountsServiceTest {
         Response awsRoleResponse = getMockResponse(HttpStatus.OK, true, responseBody);
         when(reqProcessor.process("/auth/aws/roles","{\"role\":\"role1\"}",token)).thenReturn(awsRoleResponse);
         Response configureAWSRoleResponse = getMockResponse(HttpStatus.NO_CONTENT, true, "");
-        when(ControllerUtil.configureAWSRole(Mockito.anyString(), Mockito.anyString(), Mockito.anyString())).thenReturn(configureAWSRoleResponse);
+        when(awsAuthService.configureAWSRole(Mockito.anyString(), Mockito.anyString(), Mockito.anyString())).thenReturn(configureAWSRoleResponse);
         Response updateMetadataResponse = getMockResponse(HttpStatus.BAD_REQUEST, true, "");
         when(ControllerUtil.updateMetadata(Mockito.anyMap(),Mockito.anyString())).thenReturn(updateMetadataResponse);
 
@@ -1908,7 +1908,7 @@ public class ServiceAccountsServiceTest {
     @Test
     public void test_addAwsRoleToSvcacc_iam_metadata_failure() throws Exception {
 
-        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"AWS Role configuration failed.Please try again\"]}");
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"AWS Role configuration failed. Please try again\"]}");
         String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
         UserDetails userDetails = getMockUser(false);
         ServiceAccountAWSRole serviceAccountAWSRole = new ServiceAccountAWSRole("testsvcname", "role1", "write");
@@ -1922,7 +1922,7 @@ public class ServiceAccountsServiceTest {
         Response awsRoleResponse = getMockResponse(HttpStatus.OK, true, responseBody);
         when(reqProcessor.process("/auth/aws/roles","{\"role\":\"role1\"}",token)).thenReturn(awsRoleResponse);
         Response configureAWSRoleResponse = getMockResponse(HttpStatus.NO_CONTENT, true, "");
-        when(ControllerUtil.configureAWSIAMRole(Mockito.anyString(), Mockito.anyString(), Mockito.anyString())).thenReturn(configureAWSRoleResponse);
+        when(awsiamAuthService.configureAWSIAMRole(Mockito.anyString(), Mockito.anyString(), Mockito.anyString())).thenReturn(configureAWSRoleResponse);
         Response updateMetadataResponse = getMockResponse(HttpStatus.BAD_REQUEST, true, "");
         when(ControllerUtil.updateMetadata(Mockito.anyMap(),Mockito.anyString())).thenReturn(updateMetadataResponse);
 
@@ -1937,7 +1937,7 @@ public class ServiceAccountsServiceTest {
     @Test
     public void test_addAwsRoleToSvcacc_failure() throws Exception {
 
-        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Role configuration failed.Try Again\"]}");
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Role configuration failed. Try Again\"]}");
         String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
         UserDetails userDetails = getMockUser(false);
         ServiceAccountAWSRole serviceAccountAWSRole = new ServiceAccountAWSRole("testsvcname", "role1", "write");
@@ -1951,7 +1951,7 @@ public class ServiceAccountsServiceTest {
         Response awsRoleResponse = getMockResponse(HttpStatus.OK, true, responseBody);
         when(reqProcessor.process("/auth/aws/roles","{\"role\":\"role1\"}",token)).thenReturn(awsRoleResponse);
         Response configureAWSRoleResponse = getMockResponse(HttpStatus.BAD_REQUEST, true, "");
-        when(ControllerUtil.configureAWSIAMRole(Mockito.anyString(), Mockito.anyString(), Mockito.anyString())).thenReturn(configureAWSRoleResponse);
+        when(awsiamAuthService.configureAWSIAMRole(Mockito.anyString(), Mockito.anyString(), Mockito.anyString())).thenReturn(configureAWSRoleResponse);
 
         ResponseEntity<String> responseEntityActual =  serviceAccountsService.addAwsRoleToSvcacc(userDetails, token, serviceAccountAWSRole);
 
@@ -1992,7 +1992,7 @@ public class ServiceAccountsServiceTest {
         Response awsRoleResponse = getMockResponse(HttpStatus.OK, true, responseBody);
         when(reqProcessor.process("/auth/aws/roles","{\"role\":\"role1\"}",token)).thenReturn(awsRoleResponse);
         Response configureAWSRoleResponse = getMockResponse(HttpStatus.OK, true, "");
-        when(ControllerUtil.configureAWSIAMRole(Mockito.anyString(), Mockito.anyString(), Mockito.anyString())).thenReturn(configureAWSRoleResponse);
+        when(awsiamAuthService.configureAWSIAMRole(Mockito.anyString(), Mockito.anyString(), Mockito.anyString())).thenReturn(configureAWSRoleResponse);
         Response updateMetadataResponse = getMockResponse(HttpStatus.NO_CONTENT, true, "");
         when(ControllerUtil.updateMetadata(Mockito.anyMap(),Mockito.anyString())).thenReturn(updateMetadataResponse);
 
@@ -2021,7 +2021,7 @@ public class ServiceAccountsServiceTest {
         Response awsRoleResponse = getMockResponse(HttpStatus.OK, true, responseBody);
         when(reqProcessor.process("/auth/aws/roles","{\"role\":\"role1\"}",token)).thenReturn(awsRoleResponse);
         Response configureAWSRoleResponse = getMockResponse(HttpStatus.OK, true, "");
-        when(ControllerUtil.configureAWSRole(Mockito.anyString(), Mockito.anyString(), Mockito.anyString())).thenReturn(configureAWSRoleResponse);
+        when(awsAuthService.configureAWSRole(Mockito.anyString(), Mockito.anyString(), Mockito.anyString())).thenReturn(configureAWSRoleResponse);
         Response updateMetadataResponse = getMockResponse(HttpStatus.NO_CONTENT, true, "");
         when(ControllerUtil.updateMetadata(Mockito.anyMap(),Mockito.anyString())).thenReturn(updateMetadataResponse);
 
@@ -2036,7 +2036,7 @@ public class ServiceAccountsServiceTest {
     @Test
     public void test_removeAWSRoleFromSvcacc_metadata_failure() throws Exception {
 
-        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"AWS Role configuration failed.Please try again\"]}");
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"AWS Role configuration failed. Please try again\"]}");
         String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
         UserDetails userDetails = getMockUser(false);
         ServiceAccountAWSRole serviceAccountAWSRole = new ServiceAccountAWSRole("testsvcname", "role1", "write");
@@ -2050,7 +2050,7 @@ public class ServiceAccountsServiceTest {
         Response awsRoleResponse = getMockResponse(HttpStatus.OK, true, responseBody);
         when(reqProcessor.process("/auth/aws/roles","{\"role\":\"role1\"}",token)).thenReturn(awsRoleResponse);
         Response configureAWSRoleResponse = getMockResponse(HttpStatus.NO_CONTENT, true, "");
-        when(ControllerUtil.configureAWSRole(Mockito.anyString(), Mockito.anyString(), Mockito.anyString())).thenReturn(configureAWSRoleResponse);
+        when(awsAuthService.configureAWSRole(Mockito.anyString(), Mockito.anyString(), Mockito.anyString())).thenReturn(configureAWSRoleResponse);
         Response updateMetadataResponse = getMockResponse(HttpStatus.BAD_REQUEST, true, "");
         when(ControllerUtil.updateMetadata(Mockito.anyMap(),Mockito.anyString())).thenReturn(updateMetadataResponse);
 
@@ -2078,7 +2078,7 @@ public class ServiceAccountsServiceTest {
         Response awsRoleResponse = getMockResponse(HttpStatus.OK, true, responseBody);
         when(reqProcessor.process("/auth/aws/roles","{\"role\":\"role1\"}",token)).thenReturn(awsRoleResponse);
         Response configureAWSRoleResponse = getMockResponse(HttpStatus.BAD_REQUEST, true, "");
-        when(ControllerUtil.configureAWSRole(Mockito.anyString(), Mockito.anyString(), Mockito.anyString())).thenReturn(configureAWSRoleResponse);
+        when(awsAuthService.configureAWSRole(Mockito.anyString(), Mockito.anyString(), Mockito.anyString())).thenReturn(configureAWSRoleResponse);
 
         ResponseEntity<String> responseEntityActual =  serviceAccountsService.removeAWSRoleFromSvcacc(userDetails, token, serviceAccountAWSRole);
 
@@ -2089,7 +2089,7 @@ public class ServiceAccountsServiceTest {
     @Test
     public void test_removeAWSRoleFromSvcacc_failure_403() throws Exception {
 
-        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid value specified for access\"]}");
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid value specified for access. Valid values are read, write, deny\"]}");
         String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
         UserDetails userDetails = getMockUser(false);
         ServiceAccountAWSRole serviceAccountAWSRole = new ServiceAccountAWSRole("testsvcname", "role1", "writes");
