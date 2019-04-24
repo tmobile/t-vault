@@ -808,10 +808,10 @@ public class AppRoleServiceTest {
     }
 
     @Test
-    public void test_AssociateAppRole_succssfully_nocontent() throws Exception {
+    public void test_AssociateAppRole_failure_approle_not_exists() throws Exception {
 
         Response response = getMockResponse(HttpStatus.NO_CONTENT, true, "");
-        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Approle associated to SDB\"]}");
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body("{\"errors\":[\"Non existing role name. Please configure approle as first step\"]}");
         String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
         SafeAppRoleAccess safeAppRoleAccess = new SafeAppRoleAccess("approle1", "shared/mysafe01", "write");
         String jsonStr = "{\"role_name\":\"approle1\",\"path\":\"shared/mysafe01\",\"access\":\"write\"}";
@@ -830,7 +830,7 @@ public class AppRoleServiceTest {
 
         ResponseEntity<String> responseEntityActual =  appRoleService.associateApprole(token, safeAppRoleAccess);
 
-        assertEquals(HttpStatus.OK, responseEntityActual.getStatusCode());
+        assertEquals(HttpStatus.UNPROCESSABLE_ENTITY, responseEntityActual.getStatusCode());
         assertEquals(responseEntityExpected, responseEntityActual);
 
     }

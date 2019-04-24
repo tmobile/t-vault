@@ -57,6 +57,12 @@ public class  SafesService {
 
 	@Autowired
 	private AppRoleService appRoleService;
+
+	@Autowired
+	private AWSAuthService awsAuthService;
+
+	@Autowired
+	private AWSIAMAuthService awsiamAuthService;
 	
 	private static Logger log = LogManager.getLogger(SafesService.class);
 
@@ -1424,10 +1430,10 @@ public class  SafesService {
 			}
 			Response ldapConfigresponse = null;
 			if (TVaultConstants.IAM.equals(auth_type)) {
-				ldapConfigresponse = ControllerUtil.configureAWSIAMRole(role,policiesString,token);
+				ldapConfigresponse = awsiamAuthService.configureAWSIAMRole(role,policiesString,token);
 			}
 			else {
-				ldapConfigresponse = ControllerUtil.configureAWSRole(role,policiesString,token);
+				ldapConfigresponse = awsAuthService.configureAWSRole(role,policiesString,token);
 			}
 			if(ldapConfigresponse.getHttpstatus().equals(HttpStatus.NO_CONTENT)){ 
 				Map<String,String> params = new HashMap<String,String>();
@@ -1462,7 +1468,7 @@ public class  SafesService {
 					else {
 						System.out.println("Meta data update failed");
 						System.out.println((null!=metadataResponse)?metadataResponse.getResponse():TVaultConstants.EMPTY);
-						ldapConfigresponse = ControllerUtil.configureAWSRole(role,currentpoliciesString,token);
+						ldapConfigresponse = awsAuthService.configureAWSRole(role,currentpoliciesString,token);
 						if(ldapConfigresponse.getHttpstatus().equals(HttpStatus.NO_CONTENT)){
 							System.out.println("Reverting user policy uupdate");
 							return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Role configuration failed.Please try again\"]}");
@@ -1868,6 +1874,8 @@ public class  SafesService {
 				policies.remove("w_"+policyPostfix);
 				policies.remove("d_"+policyPostfix);
 
+			} else {
+				return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body("{\"errors\":[\"Non existing role name. Please configure approle as first step\"]}");
 			}
 			if("".equals(policy)){
 				return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body("{\"errors\":[\"Incorrect access requested. Valid values are read,write,deny \"]}");

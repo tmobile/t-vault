@@ -18,10 +18,12 @@
 package com.tmobile.cso.vault.api.service;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.common.collect.ImmutableMap;
 import com.tmobile.cso.vault.api.common.TVaultConstants;
 import com.tmobile.cso.vault.api.exception.LogMessage;
@@ -366,5 +368,31 @@ public class  AWSAuthService {
 		awsiamLogin.setIam_request_headers(awsAuthLogin.getIam_request_headers());
 		awsiamLogin.setIam_request_url(awsAuthLogin.getIam_request_url());
 		return awsiamLogin;
+	}
+
+	/**
+	 * To configure AWS role
+	 * @param roleName
+	 * @param policies
+	 * @param token
+	 * @return
+	 */
+	public Response configureAWSRole(String roleName,String policies,String token ){
+		ObjectMapper objMapper = new ObjectMapper();
+		Map<String,String>configureRoleMap = new HashMap<String,String>();
+		configureRoleMap.put("role", roleName);
+		configureRoleMap.put("policies", policies);
+		String awsConfigJson ="";
+		try {
+			awsConfigJson = objMapper.writeValueAsString(configureRoleMap);
+		} catch (JsonProcessingException e) {
+			logger.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+					put(LogMessage.ACTION, "configureAWSRole").
+					put(LogMessage.MESSAGE, String.format ("Unable to create awsConfigJson [%s] with roleName [%s] policies [%s] ", e.getMessage(), roleName, policies)).
+					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+					build()));
+		}
+		return reqProcessor.process("/auth/aws/roles/update",awsConfigJson,token);
 	}
 }

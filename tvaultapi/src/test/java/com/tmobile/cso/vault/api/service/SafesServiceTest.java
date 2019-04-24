@@ -70,6 +70,12 @@ public class SafesServiceTest {
     AppRoleService appRoleService;
 
     @Mock
+    AWSIAMAuthService awsiamAuthService;
+
+    @Mock
+    AWSAuthService awsAuthService;
+
+    @Mock
     RequestProcessor reqProcessor;
     
     @Mock
@@ -1074,7 +1080,7 @@ public class SafesServiceTest {
         when(ControllerUtil.isValidSafePath(path)).thenReturn(true);
         when(ControllerUtil.isValidSafe(path, token)).thenReturn(true);
         when(reqProcessor.process("/auth/aws/roles","{\"role\":\"iam\"}",token)).thenReturn(readResponse);
-        when(ControllerUtil.configureAWSIAMRole(eq("iam"),any(),eq(token))).thenReturn(idapConfigureResponse);
+        when(awsiamAuthService.configureAWSIAMRole(eq("iam"),any(),eq(token))).thenReturn(idapConfigureResponse);
         when(ControllerUtil.updateMetadata(any(),eq(token))).thenReturn(responseNoContent);
 
         ResponseEntity<String> responseEntity = safesService.addAwsRoleToSafe(token, awsRole);
@@ -1105,7 +1111,7 @@ public class SafesServiceTest {
         when(ControllerUtil.isValidSafePath(path)).thenReturn(true);
         when(ControllerUtil.isValidSafe(path, token)).thenReturn(true);
         when(reqProcessor.process("/auth/aws/roles","{\"role\":\"iam\"}",token)).thenReturn(readResponse);
-        when(ControllerUtil.configureAWSIAMRole(eq("iam"),any(),eq(token))).thenReturn(responseNotFound);
+        when(awsiamAuthService.configureAWSIAMRole(eq("iam"),any(),eq(token))).thenReturn(responseNotFound);
         when(ControllerUtil.updateMetadata(any(),eq(token))).thenReturn(responseNoContent);
 
         ResponseEntity<String> responseEntity = safesService.addAwsRoleToSafe(token, awsRole);
@@ -1154,9 +1160,9 @@ public class SafesServiceTest {
         when(ControllerUtil.areAWSRoleInputsValid(any(Map.class))).thenReturn(true);
         when(ControllerUtil.canAddPermission(path, token)).thenReturn(true);
         when(reqProcessor.process("/auth/aws/roles","{\"role\":\"iam\"}",token)).thenReturn(readResponse);
-        when(ControllerUtil.configureAWSIAMRole(eq("iam"),any(),eq(token))).thenReturn(responseNoContent);
+        when(awsiamAuthService.configureAWSIAMRole(eq("iam"),any(),eq(token))).thenReturn(responseNoContent);
         when(ControllerUtil.updateMetadata(any(),eq(token))).thenReturn(responseNotFound);
-        when(ControllerUtil.configureAWSRole(any(),any(),eq(token))).thenReturn(responseNoContent);
+        when(awsAuthService.configureAWSRole(any(),any(),eq(token))).thenReturn(responseNoContent);
 
         ResponseEntity<String> responseEntity = safesService.addAwsRoleToSafe(token, awsRole);
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, responseEntity.getStatusCode());

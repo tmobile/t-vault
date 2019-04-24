@@ -222,11 +222,6 @@
                     return response;
                 });
             },
-            deleteAWSPermissionFromSvcacc: function(payload, url) {
-                return ServiceEndpoint.deleteAWSPermissionFromSvcacc.makeRequest(payload, url).then(function(response) {
-                    return response;
-                });
-            },
             addAppRolePermissionForSvcacc: function(payload, url) {
                 return ServiceEndpoint.addAppRolePermissionForSvcacc.makeRequest(payload, url).then(function(response) {
                     return response;
