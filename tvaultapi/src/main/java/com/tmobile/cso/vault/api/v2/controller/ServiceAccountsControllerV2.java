@@ -179,11 +179,11 @@ public class ServiceAccountsControllerV2 {
 	 * @param awsLoginRole
 	 * @return
 	 */
-	@ApiOperation(value = "${ServiceAccountsControllerV2.createRole.value}", notes = "${ServiceAccountsControllerV2.createRole.notes}")
+	@ApiOperation(value = "${ServiceAccountsControllerV2.createAWSRole.value}", notes = "${ServiceAccountsControllerV2.createAWSRole.notes}")
 	@PostMapping(value="/v2/serviceaccounts/aws/role",consumes="application/json",produces="application/json")
-	public ResponseEntity<String> createRole(HttpServletRequest request, @RequestHeader(value="vault-token") String token, @RequestBody AWSLoginRole awsLoginRole) throws TVaultValidationException {
+	public ResponseEntity<String> createAWSRole(HttpServletRequest request, @RequestHeader(value="vault-token") String token, @RequestBody AWSLoginRole awsLoginRole) throws TVaultValidationException {
 		UserDetails userDetails = (UserDetails) ((HttpServletRequest) request).getAttribute("UserDetails");
-		return serviceAccountsService.createRole(userDetails, token, awsLoginRole);
+		return serviceAccountsService.createAWSRole(userDetails, token, awsLoginRole);
 	}
 
 	/**
@@ -192,7 +192,7 @@ public class ServiceAccountsControllerV2 {
 	 * @param awsiamRole
 	 * @return
 	 */
-	@ApiOperation(value = "${SelfSupportController.createIamRole.value}", notes = "${SelfSupportController.createIamRole.notes}")
+	@ApiOperation(value = "${ServiceAccountsControllerV2.createIamRole.value}", notes = "${ServiceAccountsControllerV2.createIamRole.notes}")
 	@PostMapping(value="/v2/serviceaccounts/aws/iam/role",produces="application/json")
 	public ResponseEntity<String> createIAMRole(HttpServletRequest request, @RequestHeader(value="vault-token") String token, @RequestBody AWSIAMRole awsiamRole) throws TVaultValidationException{
 		UserDetails userDetails = (UserDetails) ((HttpServletRequest) request).getAttribute("UserDetails");

@@ -701,22 +701,14 @@ public class  ServiceAccountsService {
 		String access = serviceAccountUser.getAccess();
 
 		if(!isSvcaccPermissionInputValid(serviceAccountUser.getAccess())) {
-			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid value specified for access. Valid values are read, write, deny\"]}");
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid value specified for access. Valid values are read, reset, deny\"]}");
 		}
 
 		// TODO: Validation for String expectedPath = TVaultConstants.SVC_ACC_CREDS_PATH+svcAccName;
 
 		userName = (userName !=null) ? userName.toLowerCase() : userName;
 		access = (access != null) ? access.toLowerCase(): access;
-		if(!TVaultConstants.SVC_ACC_POLICIES_PREFIXES.containsValue(access)){
-			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
-					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
-					put(LogMessage.ACTION, "Add User to Service Account").
-					put(LogMessage.MESSAGE, String.format ("Incorrect access requested. Valid values are read,write,deny,owner")).
-					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
-					build()));
-			return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body("{\"errors\":[\"Incorrect access requested. Valid values are read,write,deny,owner \"]}");
-		}
+
 		boolean isAuthorized = true;
 		if (userDetails != null) {
 			isAuthorized = hasAddOrRemovePermission(userDetails, serviceAccountUser.getSvcAccName(), token);
@@ -857,7 +849,7 @@ public class  ServiceAccountsService {
 		String access = serviceAccountUser.getAccess();
 
 		if(!isSvcaccPermissionInputValid(serviceAccountUser.getAccess())) {
-			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid value specified for access. Valid values are read, write, deny\"]}");
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid value specified for access. Valid values are read, reset, deny\"]}");
 		}
 
 		boolean isAuthorized = true;
@@ -1165,7 +1157,7 @@ public class  ServiceAccountsService {
 				build()));
 
         if(!isSvcaccPermissionInputValid(serviceAccountGroup.getAccess())) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid value specified for access. Valid values are read, write, deny\"]}");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid value specified for access. Valid values are read, reset, deny\"]}");
         }
 
 		String groupName = serviceAccountGroup.getGroupname();
@@ -1319,7 +1311,7 @@ public class  ServiceAccountsService {
                 build()));
 
         if(!isSvcaccPermissionInputValid(serviceAccountGroup.getAccess())) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid value specified for access. Valid values are read, write, deny\"]}");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid value specified for access. Valid values are read, reset, deny\"]}");
         }
 
         String groupName = serviceAccountGroup.getGroupname();
@@ -1449,7 +1441,7 @@ public class  ServiceAccountsService {
                 build()));
 
         if(!isSvcaccPermissionInputValid(serviceAccountApprole.getAccess())) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid value specified for access. Valid values are read, write, deny\"]}");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid value specified for access. Valid values are read, reset, deny\"]}");
         }
 
         String approleName = serviceAccountApprole.getApprolename();
@@ -1824,7 +1816,7 @@ public class  ServiceAccountsService {
 		approleName = (approleName !=null) ? approleName.toLowerCase() : approleName;
 		access = (access != null) ? access.toLowerCase(): access;
 		if(StringUtils.isEmpty(access)){
-			return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body("{\"errors\":[\"Incorrect access. Valid values are read,write,deny \"]}");
+			return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body("{\"errors\":[\"Incorrect access. Valid values are read, reset, deny \"]}");
 		}
 		boolean isAuthorized = hasAddOrRemovePermission(userDetails, svcAccName, token);
 
@@ -1940,7 +1932,7 @@ public class  ServiceAccountsService {
 		String svcAccName = serviceAccountAWSRole.getSvcAccName();
 		String access = serviceAccountAWSRole.getAccess();
 		if(!isSvcaccPermissionInputValid(access)) {
-			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid value specified for access. Valid values are read, write, deny\"]}");
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid value specified for access. Valid values are read, reset, deny\"]}");
 		}
 
 		roleName = (roleName !=null) ? roleName.toLowerCase() : roleName;
@@ -2002,7 +1994,7 @@ public class  ServiceAccountsService {
 				policiesString = org.apache.commons.lang3.StringUtils.join(policies, ",");
 				currentpoliciesString = org.apache.commons.lang3.StringUtils.join(currentpolicies, ",");
 			} else{
-				return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body("{\"errors\":[\"Non existing role name. Please configure it as first step\"]}");
+				return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body("{\"errors\":[\"AWS role '"+roleName+"' does not exist. Please create the role and try again!\"]}");
 			}
 			Response awsRoleConfigresponse = null;
 			if (TVaultConstants.IAM.equals(auth_type)) {
@@ -2083,13 +2075,10 @@ public class  ServiceAccountsService {
 		String svcAccName = serviceAccountAWSRole.getSvcAccName();
 		String access = serviceAccountAWSRole.getAccess();
 		if(!isSvcaccPermissionInputValid(access)) {
-			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid value specified for access. Valid values are read, write, deny\"]}");
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid value specified for access. Valid values are read, reset, deny\"]}");
 		}
 		roleName = (roleName !=null) ? roleName.toLowerCase() : roleName;
 		access = (access != null) ? access.toLowerCase(): access;
-		if(StringUtils.isEmpty(access)){
-			return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body("{\"errors\":[\"Incorrect access. Valid values are read,write,deny \"]}");
-		}
 		boolean isAuthorized = hasAddOrRemovePermission(userDetails, svcAccName, token);
 
 		if (isAuthorized) {
@@ -2213,7 +2202,7 @@ public class  ServiceAccountsService {
 	 * @return
 	 * @throws TVaultValidationException
 	 */
-	public ResponseEntity<String> createRole(UserDetails userDetails, String token, AWSLoginRole awsLoginRole) throws TVaultValidationException {
+	public ResponseEntity<String> createAWSRole(UserDetails userDetails, String token, AWSLoginRole awsLoginRole) throws TVaultValidationException {
 		return awsAuthService.createRole(token, awsLoginRole, userDetails);
 	}
 

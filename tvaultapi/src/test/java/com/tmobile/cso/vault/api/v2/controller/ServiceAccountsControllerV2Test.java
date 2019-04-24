@@ -471,7 +471,7 @@ public class ServiceAccountsControllerV2Test {
         String responseJson = "{\"messages\":[\"AWS Role created \"]}";
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(responseJson);
         UserDetails userDetails = getMockUser(false);
-        when(serviceAccountsService.createRole(eq(userDetails), eq("5PDrOhsy4ig8L3EpsJZSLAMg"), Mockito.any(AWSLoginRole.class))).thenReturn(responseEntityExpected);
+        when(serviceAccountsService.createAWSRole(eq(userDetails), eq("5PDrOhsy4ig8L3EpsJZSLAMg"), Mockito.any(AWSLoginRole.class))).thenReturn(responseEntityExpected);
 
         mockMvc.perform(MockMvcRequestBuilders.post("/v2/serviceaccounts/aws/role").requestAttr("UserDetails", userDetails)
                 .header("vault-token", "5PDrOhsy4ig8L3EpsJZSLAMg")

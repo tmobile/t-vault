@@ -596,4 +596,16 @@ public class AWSAuthServiceTest {
         assertEquals(responseEntityExpected, responseEntity);
 
     }
+
+    @Test
+    public void test_configureAWSRole_successfully() {
+        String roleName = "role1";
+        String policies = "{\"default\"}";
+        String token = "7QPMPIGiyDFlJkrK3jFykUqa";
+
+        Response responsemock = getMockResponse(HttpStatus.NO_CONTENT, true, "");
+        when(reqProcessor.process(eq("/auth/aws/roles/update"),Mockito.any(),eq(token))).thenReturn(responsemock);
+        Response response = awsAuthService.configureAWSRole(roleName, policies, token);
+        assertEquals(HttpStatus.NO_CONTENT, response.getHttpstatus());
+    }
 }

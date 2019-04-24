@@ -1075,7 +1075,7 @@ public class ServiceAccountsServiceTest {
         String token = userDetails.getClientToken();
         ServiceAccountUser serviceAccountUser = new ServiceAccountUser("testacc02", "testacc01", "reads");
         // System under test
-        String expectedResponse = "{\"errors\":[\"Invalid value specified for access. Valid values are read, write, deny\"]}";
+        String expectedResponse = "{\"errors\":[\"Invalid value specified for access. Valid values are read, reset, deny\"]}";
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body(expectedResponse);
         ResponseEntity<String> responseEntity = serviceAccountsService.removeUserFromServiceAccount(token, serviceAccountUser, userDetails);
         assertEquals(HttpStatus.BAD_REQUEST, responseEntity.getStatusCode());
@@ -1521,7 +1521,7 @@ public class ServiceAccountsServiceTest {
     @Test
     public void test_AssociateAppRole_failure_400() throws Exception {
 
-        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid value specified for access. Valid values are read, write, deny\"]}");
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid value specified for access. Valid values are read, reset, deny\"]}");
         String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
         UserDetails userDetails = getMockUser(false);
         ServiceAccountApprole serviceAccountApprole = new ServiceAccountApprole("testsvcname", "role1", "writes");
@@ -1676,7 +1676,7 @@ public class ServiceAccountsServiceTest {
     @Test
     public void test_removeApproleFromSvcAcc_failure_422() throws Exception {
 
-        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body("{\"errors\":[\"Incorrect access. Valid values are read,write,deny \"]}");
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body("{\"errors\":[\"Incorrect access. Valid values are read, reset, deny \"]}");
         String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
         UserDetails userDetails = getMockUser(false);
         ServiceAccountApprole serviceAccountApprole = new ServiceAccountApprole("testsvcname", "role1", "");
@@ -2089,7 +2089,7 @@ public class ServiceAccountsServiceTest {
     @Test
     public void test_removeAWSRoleFromSvcacc_failure_403() throws Exception {
 
-        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid value specified for access. Valid values are read, write, deny\"]}");
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid value specified for access. Valid values are read, reset, deny\"]}");
         String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
         UserDetails userDetails = getMockUser(false);
         ServiceAccountAWSRole serviceAccountAWSRole = new ServiceAccountAWSRole("testsvcname", "role1", "writes");
@@ -2111,7 +2111,7 @@ public class ServiceAccountsServiceTest {
                 "arn:aws:iam::8987887:role/test-role", "arn:aws:iam::877677878:instance-profile/exampleinstanceprofile",
                 "\"[prod, dev\"]");
         when(awsAuthService.createRole(token, awsLoginRole, userDetails)).thenReturn(responseEntityExpected);
-        ResponseEntity<String> responseEntityActual =  serviceAccountsService.createRole(userDetails, token, awsLoginRole);
+        ResponseEntity<String> responseEntityActual =  serviceAccountsService.createAWSRole(userDetails, token, awsLoginRole);
 
         assertEquals(HttpStatus.OK, responseEntityActual.getStatusCode());
         assertEquals(responseEntityExpected, responseEntityActual);

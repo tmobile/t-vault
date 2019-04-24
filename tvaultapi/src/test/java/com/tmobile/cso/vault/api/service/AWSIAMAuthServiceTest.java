@@ -348,4 +348,16 @@ public class AWSIAMAuthServiceTest {
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
     }
+
+    @Test
+    public void test_configureAWSIAMRole_successfully() {
+        String roleName = "role1";
+        String policies = "{\"default\"}";
+        String token = "7QPMPIGiyDFlJkrK3jFykUqa";
+
+        Response responsemock = getMockResponse(HttpStatus.NO_CONTENT, true, "");
+        when(reqProcessor.process(eq("/auth/aws/iam/roles/update"),Mockito.any(),eq(token))).thenReturn(responsemock);
+        Response response = awsIamAuthService.configureAWSIAMRole(roleName, policies, token);
+        assertEquals(HttpStatus.NO_CONTENT, response.getHttpstatus());
+    }
 }
