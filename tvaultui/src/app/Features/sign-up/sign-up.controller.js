@@ -49,6 +49,7 @@
                 SessionStore.setItem("isManager", isManager);
                 SessionStore.setItem("accessSafes", JSON.stringify(accessSafes));
                 SessionStore.setItem("policies",policies);
+                SessionStore.setItem("feature",JSON.stringify(loginResponseData.feature));
                 $state.go('safes', {'fromLogin':true});
             }
         }

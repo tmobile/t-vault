@@ -84,4 +84,6 @@ public class TVaultConstants {
     public static final String SVC_ACC_ROLES_PATH = "ad/roles";
     public static final Long PASSWORD_AUTOROTATE_TTL_MAX_VALUE = 1590897977L;
     public static final String EC2 = "ec2";
+    public static final String SELFSERVICE = "selfservice";
+    public static final String ADPWDROTATION = "adpwdrotation";
 }

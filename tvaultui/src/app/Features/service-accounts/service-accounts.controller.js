@@ -38,6 +38,10 @@
             }
             else{
                 $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
+                var feature = JSON.parse(SessionStore.getItem("feature"));
+                if (feature.adpwdrotation == false) {
+                    $state.go('safes', {'fromLogin':true});
+                }
                 $scope.requestDataFrMyAccounts();
             }
         };

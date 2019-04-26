@@ -20,6 +20,7 @@ package com.tmobile.cso.vault.api.config;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
@@ -32,6 +33,7 @@ import springfox.documentation.service.Contact;
 import springfox.documentation.service.StringVendorExtension;
 import springfox.documentation.service.VendorExtension;
 import springfox.documentation.spi.DocumentationType;
+import springfox.documentation.spring.web.plugins.ApiSelectorBuilder;
 import springfox.documentation.spring.web.plugins.Docket;
 import springfox.documentation.swagger2.annotations.EnableSwagger2;
 
@@ -41,14 +43,27 @@ import springfox.documentation.swagger2.annotations.EnableSwagger2;
 @ComponentScan(basePackages="com.tmobile.cso.vault.api.*")
 public class SwaggerConfig {
 
+	@Value("${selfservice.enable}")
+	private boolean isSSEnabled;
+
+	@Value("${ad.passwordrotation.enable}")
+	private boolean isAdPswdRotationEnabled;
+
 	@Bean
 	public Docket tvaultapi() {
-		return new Docket(DocumentationType.SWAGGER_2).select()                                  
-				.apis(RequestHandlerSelectors.any())              
-				.paths(PathSelectors.any())                      
-				.build()
-				.pathMapping("/")
-				.apiInfo(metadata());
+
+		Docket docket = new Docket(DocumentationType.SWAGGER_2);
+		ApiSelectorBuilder apiSelectorBuilder = new ApiSelectorBuilder(docket);
+		apiSelectorBuilder.apis(RequestHandlerSelectors.any());
+		apiSelectorBuilder.paths(PathSelectors.any());
+		if (!isSSEnabled) {
+			apiSelectorBuilder.paths(PathSelectors.regex("(?!/v2/ss).+"));
+		}
+		if (!isAdPswdRotationEnabled) {
+			apiSelectorBuilder.paths(PathSelectors.regex("(?!/v2/ad).+"));
+			apiSelectorBuilder.paths(PathSelectors.regex("(?!/v2/serviceaccounts).+"));
+		}
+		return apiSelectorBuilder.build().pathMapping("/").apiInfo(metadata());
 	}
 	/**
 	 * TODO: Values to be corrected later

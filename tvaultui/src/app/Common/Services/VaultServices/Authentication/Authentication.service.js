@@ -108,6 +108,7 @@
             SessionStore.removeItem("accessSafes");
             SessionStore.removeItem("policies");
             SessionStore.removeItem("allSafes");
+            SessionStore.removeItem("feature");
             window.location.replace(url);
           });
       }

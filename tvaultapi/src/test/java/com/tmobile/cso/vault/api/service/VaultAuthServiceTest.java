@@ -92,8 +92,7 @@ public class VaultAuthServiceTest {
 
         String jsonStr = "{  \"username\": \"safeadmin\",  \"password\": \"safeadmin\"}";
         UserLogin userLogin = new UserLogin("safeadmin", "safeadmin");
-        String responseJson = "{  \"client_token\": \"8766fdhjSAtH2a4MdvMyzWid\",\"admin\": \"yes\",\"access\": {\"users\":[{\"safe1\":\"read\"}]},\"policies\": [\"default\",\"safeadmin\"],\"lease_duration\": 1800000}";
-
+        String responseJson = "{  \"client_token\": \"8766fdhjSAtH2a4MdvMyzWid\",\"admin\": \"yes\",\"access\": {\"users\":[{\"safe1\":\"read\"}]},\"policies\": [\"default\",\"safeadmin\"],\"lease_duration\": 1800000, \"feature\": {\"adpwdrotation\": \"true\", \"serviceaccount\":\"true\"}}";
         Response response = getMockResponse(HttpStatus.OK, true, responseJson);
         Map<String, Object> responseMap = null;
         try {
@@ -102,8 +101,8 @@ public class VaultAuthServiceTest {
             e.printStackTrace();
         }
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(responseJson);
-        when(JSONUtil.getJSON(Mockito.any(UserLogin.class))).thenReturn(jsonStr);
-        when(JSONUtil.getJSON(responseMap)).thenReturn(responseJson);
+        when(JSONUtil.getJSON(Mockito.any())).thenReturn(responseJson);
+        when(JSONUtil.getJSON(userLogin)).thenReturn(jsonStr);
         when(reqProcessor.process("/auth/userpass/login",jsonStr,"")).thenReturn(response);
 
         ResponseEntity<String> responseEntity = vaultAuthService.login(userLogin);

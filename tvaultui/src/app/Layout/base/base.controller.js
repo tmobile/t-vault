@@ -6,6 +6,7 @@
     function baseController(SessionStore) {
         var vm = this;
         vm.baseLoading = false;
+        var feature = JSON.parse(SessionStore.getItem("feature"));
         vm.safesNavTags = [{
             displayName: 'SAFES',
             navigationName: 'safes',
@@ -15,7 +16,7 @@
             displayName: 'SERVICE ACCOUNTS',
             navigationName: 'service-accounts',
             addComma: false,
-            show: true
+            show: feature.adpwdrotation
         }, {
             displayName: 'ADMIN',
             navigationName: 'admin',

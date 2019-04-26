@@ -935,6 +935,10 @@
         }
 
         $scope.init = function () {
+            var feature = JSON.parse(SessionStore.getItem("feature"));
+            if (feature.adpwdrotation == false) {
+                $state.go('admin');
+            }
             $scope.svcacc = {
                 svcaccId: '',
                 userEmail: '',

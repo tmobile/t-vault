@@ -233,7 +233,7 @@ script(type='text/ng-template', id='manageSecretId.html')
                                                 .rotate.glyphicon.glyphicon-remove-circle
                                             .create-link.middle-block.hide-in-mobile
                                                 .text CREATE NEW APPROLE
-                    md-tab(label="Service Account Management" md-on-select="tabChangeForAdmin()")
+                    md-tab(label="Service Account Management" md-on-select="tabChangeForAdmin()" ng-if="enableSvcacc")
                         md-content(class="md-padding md-content-wrapper page-content-wrapper md-approle-management" ng-init="displayGrid")
                             .new-container.page-content-container
                                 .md-content-inner-wrapper

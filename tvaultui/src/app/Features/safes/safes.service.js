@@ -165,6 +165,7 @@
         }
 
         function getSafesNavTags() {
+            var feature = JSON.parse(SessionStore.getItem("feature"));
             return [{
                 displayName: 'SAFES',
                 navigationName: 'safes',
@@ -174,7 +175,7 @@
                 displayName: 'SERVICE ACCOUNTS',
                 navigationName: 'service-accounts',
                 addComma: false,
-                show: true
+                show: feature.adpwdrotation
             }, {
                 displayName: 'ADMIN',
                 navigationName: 'admin',
