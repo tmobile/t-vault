@@ -362,15 +362,61 @@ public class ServiceAccountsServiceTest {
     	return serviceAccount;
     }
     @Test
-    public void test_onboardServiceAccount_succss_autorotate_off_Bad_Request() {
-		UserDetails userDetails = getMockUser(true);
-    	String token = userDetails.getClientToken();
-    	ServiceAccount serviceAccount = generateServiceAccount("testacc02","testacc01");
-    	serviceAccount.setAutoRotate(false);
-    	String expectedResponse = "{\"errors\":[\"TO BE IMPLEMENTED: Auto-Rotate of password has been turned off and this is yet to be implemented\"]}";
-        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body(expectedResponse);
+    public void test_onboardServiceAccount_succss_autorotate_off() {
+        UserDetails userDetails = getMockUser(true);
+        String token = userDetails.getClientToken();
+        ServiceAccount serviceAccount = generateServiceAccount("testacc02","testacc01");
+        serviceAccount.setAutoRotate(false);
+
+        // CreateRole
+        ServiceAccountTTL serviceAccountTTL = new ServiceAccountTTL();
+        serviceAccountTTL.setRole_name(serviceAccount.getName());
+        serviceAccountTTL.setService_account_name(serviceAccount.getName() + "@aaa.bbb.ccc.com") ;
+        serviceAccountTTL.setTtl(serviceAccount.getTtl());
+        String svc_account_payload = getJSON(serviceAccountTTL);
+        when(JSONUtil.getJSON(Mockito.any(ServiceAccountTTL.class))).thenReturn(svc_account_payload);
+        Response onboardResponse = getMockResponse(HttpStatus.OK, true, "{\"messages\":[\"Successfully created service account role.\"]}");
+        when(reqProcessor.process("/ad/serviceaccount/onboard", svc_account_payload, token)).thenReturn(onboardResponse);
+
+        //create metadata
+        ServiceAccountMetadataDetails serviceAccountMetadataDetails = new ServiceAccountMetadataDetails("testacc02");
+        serviceAccountMetadataDetails.setManagedBy("testacc01");
+        String _path = TVaultConstants.SVC_ACC_ROLES_METADATA_MOUNT_PATH + "/testacc02";
+        ServiceAccountMetadata serviceAccountMetadata =  new ServiceAccountMetadata(_path, serviceAccountMetadataDetails);
+        when(JSONUtil.getJSON(serviceAccountMetadata)).thenReturn("{\"name\":\"testacc02\", \"managedBy\":\"testacc01\"}");
+        Map<String,Object> rqstParams = new HashMap<>();
+        rqstParams.put("name", "testacc02");
+        rqstParams.put("managedBy", "testacc01");
+        when(ControllerUtil.parseJson(any())).thenReturn(rqstParams);
+        when(ControllerUtil.convetToJson(rqstParams)).thenReturn("{\"name\":\"testacc02\", \"managedBy\":\"testacc01\", \"path\":"+_path+"}");
+        when( ControllerUtil.createMetadata(any(), eq(token))).thenReturn(true);
+        when(ControllerUtil.updateMetadata(Mockito.any(), Mockito.anyString())).thenReturn(getMockResponse(HttpStatus.OK, true,"{}"));
+        //CreateServiceAccountPolicies
+        ResponseEntity<String> createPolicyResponse = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Successfully created policies for service account\"]}");
+        when(accessService.createPolicy(Mockito.anyString(), Mockito.any())).thenReturn(createPolicyResponse);
+
+        // Add User to Service Account
+        Response userResponse = getMockResponse(HttpStatus.OK, true, "{\"data\":{\"bound_cidrs\":[],\"max_ttl\":0,\"policies\":[\"default\"],\"ttl\":0,\"groups\":\"admin\"}}");
+        Response ldapConfigureResponse = getMockResponse(HttpStatus.NO_CONTENT, true, "{\"policies\":null}");
+        when(reqProcessor.process("/auth/ldap/users","{\"username\":\"testacc01\"}",token)).thenReturn(userResponse);
+
+        try {
+            List<String> resList = new ArrayList<>();
+            resList.add("default");
+            when(ControllerUtil.getPoliciesAsListFromJson(any(), any())).thenReturn(resList);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        when(ControllerUtil.configureLDAPUser(eq("testacc01"),any(),any(),eq(token))).thenReturn(ldapConfigureResponse);
+
+
+
+        // System under test
+        String expectedResponse = "{\"messages\":[\"Successfully completed onboarding of AD service account into TVault for password rotation.\"]}";
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(expectedResponse);
+
         ResponseEntity<String> responseEntity = serviceAccountsService.onboardServiceAccount(token, serviceAccount, userDetails);
-        assertEquals(HttpStatus.BAD_REQUEST, responseEntity.getStatusCode());
+        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
     }
     @Test
@@ -382,6 +428,22 @@ public class ServiceAccountsServiceTest {
     	serviceAccount.setTtl(1112L);
     	serviceAccount.setMax_ttl(1111L);
     	String expectedResponse = "{\"errors\":[\"Password TTL can't be more than MAX_TTL\"]}";
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body(expectedResponse);
+
+
+        ResponseEntity<String> responseEntity = serviceAccountsService.onboardServiceAccount(token, serviceAccount, userDetails);
+        assertEquals(HttpStatus.BAD_REQUEST, responseEntity.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntity);
+    }
+    @Test
+    public void test_onboardServiceAccount_succss_autorotate_on_ttl_biggerthan_maxallowed() {
+        UserDetails userDetails = getMockUser(true);
+        String token = userDetails.getClientToken();
+        ServiceAccount serviceAccount = generateServiceAccount("testacc02","testacc01");
+        serviceAccount.setAutoRotate(true);
+        serviceAccount.setTtl(1590897977L);
+        serviceAccount.setMax_ttl(1590897977L);
+        String expectedResponse = "{\"errors\":[\"Invalid input value for Password TTL. Maximum allowed value is 1590897976\"]}";
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body(expectedResponse);
 
 
@@ -2141,15 +2203,13 @@ public class ServiceAccountsServiceTest {
     @Test
     public void test_updateOnboardedServiceAccount_success() throws Exception {
 
-        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Successfully updated TTL for the Service Account.\"]}");
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Successfully updated onboarded Service Account.\"]}");
         String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
         UserDetails userDetails = getMockUser(true);
         ServiceAccount serviceAccount = generateServiceAccount("testacc02", "testacc01");
 
         Response response = getMockResponse(HttpStatus.OK, true, "{\"keys\":[\"testacc02\"]}");
         when(reqProcessor.process("/ad/serviceaccount/onboardedlist","{}",token)).thenReturn(response);
-
-        when(reqProcessor.process(eq("/ad/serviceaccount/offboard"), Mockito.any(), eq(token))).thenReturn(getMockResponse(HttpStatus.NO_CONTENT, true,"{}"));
 
         Response onboardResponse = getMockResponse(HttpStatus.OK, true, "{\"messages\":[\"Successfully created service account role.\"]}");
         when(reqProcessor.process(eq("/ad/serviceaccount/onboard"), Mockito.any(), eq(token))).thenReturn(onboardResponse);
@@ -2163,7 +2223,7 @@ public class ServiceAccountsServiceTest {
     @Test
     public void test_updateOnboardedServiceAccount_failure_not_onboarded() throws Exception {
 
-        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Failed to update TTL for the Service Account. Please onboard this Service Account first and try again.\"]}");
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Failed to update onboarded Service Account. Please onboard this Service Account first and try again.\"]}");
         String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
         UserDetails userDetails = getMockUser(true);
         ServiceAccount serviceAccount = generateServiceAccount("testacc02", "testacc01");
@@ -2180,38 +2240,16 @@ public class ServiceAccountsServiceTest {
     @Test
     public void test_updateOnboardedServiceAccount_createrole_failure() throws Exception {
 
-        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.MULTI_STATUS).body("{\"errors\":[\"Failed to update TTL for the Service Account.\"]}");
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.MULTI_STATUS).body("{\"errors\":[\"Failed to update onboarded Service Account.\"]}");
         String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
         UserDetails userDetails = getMockUser(true);
         ServiceAccount serviceAccount = generateServiceAccount("testacc02", "testacc01");
 
         Response response = getMockResponse(HttpStatus.OK, true, "{\"keys\":[\"testacc02\"]}");
         when(reqProcessor.process("/ad/serviceaccount/onboardedlist","{}",token)).thenReturn(response);
-
-        when(reqProcessor.process(eq("/ad/serviceaccount/offboard"), Mockito.any(), eq(token))).thenReturn(getMockResponse(HttpStatus.NO_CONTENT, true,"{}"));
 
         Response onboardResponse = getMockResponse(HttpStatus.BAD_REQUEST, true, "{}");
         when(reqProcessor.process(eq("/ad/serviceaccount/onboard"), Mockito.any(), eq(token))).thenReturn(onboardResponse);
-
-        ResponseEntity<String> responseEntityActual =  serviceAccountsService.updateOnboardedServiceAccount(token, serviceAccount, userDetails);
-
-        assertEquals(HttpStatus.MULTI_STATUS, responseEntityActual.getStatusCode());
-        assertEquals(responseEntityExpected, responseEntityActual);
-    }
-
-    @Test
-    public void test_updateOnboardedServiceAccount_deleterole_failure() throws Exception {
-
-        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.MULTI_STATUS).body("{\"errors\":[\"Failed to update TTL for the Service Account.\"]}");
-        String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
-        UserDetails userDetails = getMockUser(true);
-        ServiceAccount serviceAccount = generateServiceAccount("testacc02", "testacc01");
-
-        Response response = getMockResponse(HttpStatus.OK, true, "{\"keys\":[\"testacc02\"]}");
-        when(reqProcessor.process("/ad/serviceaccount/onboardedlist","{}",token)).thenReturn(response);
-
-        when(reqProcessor.process(eq("/ad/serviceaccount/offboard"), Mockito.any(), eq(token))).thenReturn(getMockResponse(HttpStatus.BAD_REQUEST, true,"{}"));
-
 
         ResponseEntity<String> responseEntityActual =  serviceAccountsService.updateOnboardedServiceAccount(token, serviceAccount, userDetails);
 

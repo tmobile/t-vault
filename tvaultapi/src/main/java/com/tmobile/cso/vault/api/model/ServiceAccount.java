@@ -26,6 +26,7 @@ import javax.validation.constraints.Size;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
+import com.tmobile.cso.vault.api.common.TVaultConstants;
 import io.swagger.annotations.ApiModelProperty;
 
 public class ServiceAccount implements Serializable {
@@ -40,10 +41,9 @@ public class ServiceAccount implements Serializable {
 	private String name;
 
 	private boolean autoRotate;
-	@Min(0)
-	@Max(1590897977L)
+	@Min(1)
 	private Long ttl;
-	@Min(0)
+	@Min(1)
 	@Max(1590897977L)
 
 	private Long max_ttl;
