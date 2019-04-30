@@ -23,15 +23,7 @@ import com.tmobile.cso.vault.api.exception.TVaultValidationException;
 import com.tmobile.cso.vault.api.model.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import com.tmobile.cso.vault.api.service.ServiceAccountsService;
 
@@ -223,5 +215,19 @@ public class ServiceAccountsControllerV2 {
 	public ResponseEntity<String> removeAWSRoleFromSvcacc(HttpServletRequest request, @RequestHeader(value="vault-token") String token, @RequestBody ServiceAccountAWSRole serviceAccountAWSRole){
 		UserDetails userDetails = (UserDetails) ((HttpServletRequest) request).getAttribute("UserDetails");
 		return serviceAccountsService.removeAWSRoleFromSvcacc(userDetails, token, serviceAccountAWSRole);
+	}
+
+	/**
+	 * Update onboarded service account
+	 * @param request
+	 * @param token
+	 * @param serviceAccount
+	 * @return
+	 */
+	@ApiOperation(value = "${ServiceAccountsControllerV2.updateOnboardServiceAccount.value}", notes = "${ServiceAccountsControllerV2.updateOnboardServiceAccount.notes}")
+	@PutMapping(value="/v2/serviceaccounts/onboard", produces="application/json")
+	public ResponseEntity<String> updateOnboardedServiceAccount( HttpServletRequest request, @RequestHeader(value="vault-token") String token, @RequestBody @Valid ServiceAccount serviceAccount ){
+		UserDetails userDetails = (UserDetails) ((HttpServletRequest) request).getAttribute("UserDetails");
+		return serviceAccountsService.updateOnboardedServiceAccount(token, serviceAccount, userDetails);
 	}
 }

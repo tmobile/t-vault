@@ -498,4 +498,22 @@ public class ServiceAccountsControllerV2Test {
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString(responseJson)));
     }
+
+    @Test
+    public void test_updateOnboardedServiceAccount() throws Exception {
+        ServiceAccount serviceAccount = generateServiceAccount("testacc02", "testacc01");
+
+        String inputJson =new ObjectMapper().writeValueAsString(serviceAccount);
+        String responseJson = "{\"messages\":[\"Successfully updated TTL for the Service Account.\"]}";
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(responseJson);
+        UserDetails userDetails = getMockUser(false);
+        when(serviceAccountsService.updateOnboardedServiceAccount(Mockito.anyString(), Mockito.any(), Mockito.any())).thenReturn(responseEntityExpected);
+
+        mockMvc.perform(MockMvcRequestBuilders.put("/v2/serviceaccounts/onboard").requestAttr("UserDetails", userDetails)
+                .header("vault-token", "5PDrOhsy4ig8L3EpsJZSLAMg")
+                .header("Content-Type", "application/json;charset=UTF-8")
+                .content(inputJson))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString(responseJson)));
+    }
 }

@@ -240,7 +240,7 @@ readTextFile("../apiUrls.json");
             method: 'GET'
         },{
             name: 'editSvcacc',
-            url: '/v2/serviceaccounts/edit/',
+            url: '/v2/serviceaccounts/onboard',
             method: 'PUT'
         },{
             name: 'onboardSvcacc',

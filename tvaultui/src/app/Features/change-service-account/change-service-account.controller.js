@@ -555,7 +555,7 @@
                         "autoRotate": $scope.svcacc.autoRotate,
                         "ttl": $scope.svcacc.ttl,
                         "max_ttl": $scope.svcacc.ttl,
-                        "owner":  $scope.svcacc.owner || 'safeadmin'
+                        "owner":  $scope.svcacc.owner
                     }
                     AdminSafesManagement.onboardSvcacc(onboardPayload, '').then(function (response) {
                         if (UtilityService.ifAPIRequestSuccessful(response)) {
@@ -601,18 +601,22 @@
         $scope.editSvcaccOnboard = function () {
             try {
                 $scope.isLoadingData = true;
-                var queryParameters = $scope.svcacc.name;
-                var payload = {"data": $scope.svcacc};
-                var updatedUrlOfEndPoint = ModifyUrl.addUrlParameteres('editSvcacc', queryParameters);
-                AdminSafesManagement.editSvcacc(payload, updatedUrlOfEndPoint).then(function (response) {
+                var onboardPayload = {
+                    "name": $scope.svcaccPrevious.svcaccId,
+                    "autoRotate": $scope.svcacc.autoRotate,
+                    "ttl": $scope.svcacc.ttl,
+                    "max_ttl": $scope.svcaccPrevious.ttl,
+                    "owner":  $scope.svcaccPrevious.owner
+                }
+                AdminSafesManagement.editSvcacc(onboardPayload, '').then(function (response) {
                         if (UtilityService.ifAPIRequestSuccessful(response)) {
-                            // Try-Catch block to catch errors if there is any change in object structure in the response
                             try {
                                 $scope.isLoadingData = false;
-                                $rootScope.showDetails = false;               // To show the 'permissions' and hide the 'details'
+                                $rootScope.showDetails = false;
                                 $rootScope.activeDetailsTab = 'permissions';
+                                $scope.svcaccOnboarded = true;
                                 var notification = UtilityService.getAParticularSuccessMessage('MESSAGE_UPDATE_SUCCESS');
-                                Notifications.toast($scope.svcacc.name + ' Service account' + notification);
+                                Notifications.toast('TTL for Service Account ' + $scope.svcacc.svcaccId + notification);
                                 $scope.svcaccPrevious = angular.copy($scope.svcacc);
                             } catch (e) {
                                 console.log(e);
@@ -622,6 +626,7 @@
                             }
                         }
                         else {
+                            $scope.isLoadingData = false;
                             $scope.errorMessage = AdminSafesManagement.getTheRightErrorMessage(response);
                             error('md');
                         }
@@ -708,8 +713,10 @@
                     if(!angular.equals($scope.svcaccPrevious, $scope.svcacc)){
                         $scope.editSvcaccOnboard();
                     }
-                    $rootScope.showDetails = false;               // To show the 'permissions' and hide the 'details'
-                    $rootScope.activeDetailsTab = 'permissions';                                           
+                    else {
+                        $rootScope.showDetails = false;
+                        $rootScope.activeDetailsTab = 'permissions';
+                    }
                 }
                 else {
                     $scope.onboardSvcacc();
