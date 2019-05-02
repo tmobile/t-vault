@@ -105,6 +105,7 @@
         $scope.rolenameExists = false;
         var init = function () {
             $scope.enableSvcacc = true;
+            $scope.enableSelfService = true;
             $scope.selectedIndex = 0; 
             if ($rootScope.lastVisited == "change-service-account") {
                 $scope.selectedIndex = 2; 
@@ -117,6 +118,9 @@
                 var feature = JSON.parse(SessionStore.getItem("feature"));
                 if (feature.adpwdrotation == false) {
                     $scope.enableSvcacc = false;
+                }
+                if (feature.selfservice == false) {
+                    $scope.enableSelfService = false;
                 }
                 $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
                 $scope.requestDataFrAdmin();

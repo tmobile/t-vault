@@ -874,6 +874,9 @@
 
             }
             else {
+                if (JSON.parse(SessionStore.getItem("isAdmin")) == false) {
+                    $state.go('manage');
+                }
                 $scope.changeSvcaccHeader = "ONBOARD SERVICE ACCOUNT";
                 $scope.isEditSvcacc = false;
                 try {
@@ -958,9 +961,15 @@
         }
 
         $scope.init = function () {
+
             var feature = JSON.parse(SessionStore.getItem("feature"));
             if (feature.adpwdrotation == false) {
-                $state.go('admin');
+                if (JSON.parse(SessionStore.getItem("isAdmin")) == false) {
+                    $state.go('manage');
+                }
+                else {
+                    $state.go('admin');
+                }
             }
             $scope.svcacc = {
                 svcaccId: '',
