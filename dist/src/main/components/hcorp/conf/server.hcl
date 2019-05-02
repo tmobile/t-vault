@@ -1,3 +1,4 @@
+ui = true
 storage "file" {
   path = "/opt/tvault/hcorp/data"
 }
