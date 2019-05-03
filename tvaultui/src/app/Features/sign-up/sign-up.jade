@@ -38,3 +38,5 @@ script(type='text/ng-template', id='error.html')
 
             .center-text.forgot-pwd
                 a.link-style(href='{{forgotPasswordLink}}' target="_blank" ng-if="!!forgotPasswordLink") Forgot Password?
+            .center-text.message
+                div(ng-if="instanceMessage!=''") {{instanceMessage}}

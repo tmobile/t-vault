@@ -19,13 +19,21 @@
 
 'use strict';
 (function(app){
-    app.controller('SignUpCtrl', function($scope, Modal, $state, Authentication, SessionStore, UtilityService, Idle, AppConstant){
+    app.controller('SignUpCtrl', function($scope, Modal, $state, Authentication, SessionStore, UtilityService, Idle, AppConstant, $http){
 
         var init = function(){
             $scope.forgotPasswordLink = UtilityService.getAppConstant('FORGOT_PASSWORD_LINK');
             // change login depending on authtype
             $scope.authType = AppConstant.AUTH_TYPE;
             $scope.domainName = AppConstant.DOMAIN_NAME;
+
+            $scope.instanceMessage = '';
+            $http.get('/app/uimessages.properties').then(function (response) {
+                if (response != undefined && response.data !='') {
+                    $scope.instanceMessage = response.data.login_message;
+                }
+            });
+
             $scope.userID = 'Username';
             Idle.unwatch();
             if ($scope.authType.toLowerCase() === 'ldap') {
