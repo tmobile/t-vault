@@ -902,6 +902,10 @@
         }
 
         $scope.init = function () {
+            var feature = JSON.parse(SessionStore.getItem("feature"));
+            if (feature.selfservice == false && JSON.parse(SessionStore.getItem("isAdmin")) == false) {
+                $state.go('manage');
+            }
             $scope.safe = {
                 name: '',
                 owner: '',

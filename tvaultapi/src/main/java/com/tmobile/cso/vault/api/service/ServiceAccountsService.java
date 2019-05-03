@@ -304,7 +304,16 @@ public class  ServiceAccountsService {
 					put(LogMessage.MESSAGE, String.format ("Auto-Rotate of password has been turned on")).
 					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 					build()));
-			if (serviceAccount.getTtl() > serviceAccount.getMax_ttl()) {
+			if (serviceAccount.getTtl() >= (TVaultConstants.PASSWORD_AUTOROTATE_TTL_MAX_VALUE)) {
+				log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+						put(LogMessage.ACTION, "onboardServiceAccount").
+						put(LogMessage.MESSAGE, String.format ("TTL is [%s] is greater the MAX_TTL [%s]", serviceAccount.getTtl(), TVaultConstants.PASSWORD_AUTOROTATE_TTL_MAX_VALUE-1)).
+						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+						build()));
+				return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid input value for Password TTL. Maximum allowed value is "+(TVaultConstants.PASSWORD_AUTOROTATE_TTL_MAX_VALUE-1)+"\"]}");
+			}
+			if (serviceAccount.getTtl() >= serviceAccount.getMax_ttl()) {
 				log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 						put(LogMessage.ACTION, "onboardServiceAccount").
@@ -321,7 +330,8 @@ public class  ServiceAccountsService {
 					put(LogMessage.MESSAGE, String.format ("Auto-Rotate of password has been turned off")).
 					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 					build()));
-			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"TO BE IMPLEMENTED: Auto-Rotate of password has been turned off and this is yet to be implemented\"]}");
+			serviceAccount.setTtl(TVaultConstants.PASSWORD_AUTOROTATE_TTL_MAX_VALUE);
+			serviceAccount.setMax_ttl(TVaultConstants.PASSWORD_AUTOROTATE_TTL_MAX_VALUE);
 		}
 		ResponseEntity<String> accountRoleCreationResponse = createAccountRole(token, serviceAccount);
 		if(accountRoleCreationResponse.getStatusCode().equals(HttpStatus.OK)) {
@@ -2240,7 +2250,7 @@ public class  ServiceAccountsService {
 		} catch (IOException e) {
 			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
-					put(LogMessage.ACTION, "Update TTL for Service Account").
+					put(LogMessage.ACTION, "Update onboarded Service Account").
 					put(LogMessage.MESSAGE, String.format ("Error creating onboarded list [%s]", e.getMessage())).
 					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 					build()));
@@ -2249,53 +2259,36 @@ public class  ServiceAccountsService {
 		if (!onboardedList.contains(serviceAccount.getName())) {
 			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
-					put(LogMessage.ACTION, "Update TTL for Service Account").
-					put(LogMessage.MESSAGE, "Failed to update TTL for Service Account. Service account not onboarded").
+					put(LogMessage.ACTION, "Update onboarded Service Account").
+					put(LogMessage.MESSAGE, "Failed to update onboarded Service Account. Service account not onboarded").
 					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 					build()));
-			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Failed to update TTL for the Service Account. Please onboard this Service Account first and try again.\"]}");
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Failed to update onboarded Service Account. Please onboard this Service Account first and try again.\"]}");
 		}
 
-		OnboardedServiceAccount serviceAccountToRevert = new OnboardedServiceAccount(serviceAccount.getName(),serviceAccount.getOwner());
 		log.info(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
-				put(LogMessage.ACTION, "Update TTL for Service Account").
-				put(LogMessage.MESSAGE, String.format("Update TTL for Service Account [%s]", serviceAccount.getName())).
+				put(LogMessage.ACTION, "Update onboarded Service Account").
+				put(LogMessage.MESSAGE, String.format("Update onboarded Service Account [%s]", serviceAccount.getName())).
 				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 				build()));
-		ResponseEntity<String> accountRoleDeletionResponse = deleteAccountRole(token, serviceAccountToRevert);
 
+		if (!serviceAccount.isAutoRotate()) {
+			serviceAccount.setTtl(0L);
+		}
+		ResponseEntity<String> accountRoleDeletionResponse = createAccountRole(token, serviceAccount);
 		if (accountRoleDeletionResponse!=null && HttpStatus.OK.equals(accountRoleDeletionResponse.getStatusCode())) {
-			ResponseEntity<String> accountRoleCreationResponse = createAccountRole(token, serviceAccount);
-			if(accountRoleCreationResponse.getStatusCode().equals(HttpStatus.OK)) {
-				log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
-						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
-						put(LogMessage.ACTION, "Update TTL for Service Account").
-						put(LogMessage.MESSAGE, "Update TTL for Service Account Success.").
-						put(LogMessage.STATUS, accountRoleCreationResponse.getStatusCode().toString()).
-						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
-						build()));
-				return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Successfully updated TTL for the Service Account.\"]}");
-			}
-			else {
-				log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
-						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
-						put(LogMessage.ACTION, "Update TTL for Service Account").
-						put(LogMessage.MESSAGE, "Failed to update TTL for Service Account.").
-						put(LogMessage.STATUS, accountRoleCreationResponse.getStatusCode().toString()).
-						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
-						build()));
-				return ResponseEntity.status(HttpStatus.MULTI_STATUS).body("{\"errors\":[\"Failed to update TTL for the Service Account.\"]}");
-			}
+			return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Successfully updated onboarded Service Account.\"]}");
+
 		} else {
 			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
-					put(LogMessage.ACTION, "Update TTL for Service Account").
-					put(LogMessage.MESSAGE, "Failed to update TTL for Service Account.").
+					put(LogMessage.ACTION, "Update onboarded Service Account").
+					put(LogMessage.MESSAGE, "Failed onboarded Service Account.").
 					put(LogMessage.STATUS, accountRoleDeletionResponse.getStatusCode().toString()).
 					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 					build()));
-			return ResponseEntity.status(HttpStatus.MULTI_STATUS).body("{\"errors\":[\"Failed to update TTL for the Service Account.\"]}");
+			return ResponseEntity.status(HttpStatus.MULTI_STATUS).body("{\"errors\":[\"Failed to update onboarded Service Account.\"]}");
 		}
 	}
 }

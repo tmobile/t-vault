@@ -134,7 +134,7 @@
         }
 
         $scope.error = function (size) {
-            Modal.createModal(size, 'error.html', 'ChangeSafeCtrl', $scope);
+            Modal.createModal(size, 'error.html', 'ChangeServiceAccountCtrl', $scope);
         };
 
         /************************  Functions for autosuggest start here ***************************/
@@ -538,7 +538,7 @@
             }
         }
 
-        $scope.onboardSvcacc = function () {
+        $scope.onboardSvcacc = function (size) {
             if ($scope.svcaccOnboarded === true) {
                 if(!angular.equals($scope.svcaccPrevious, $scope.svcacc)) {
                     $scope.editSvcaccOnboard();
@@ -547,66 +547,86 @@
                     $rootScope.activeDetailsTab = 'permissions';                    
                 }
             } else {
-                try {
-                    $scope.isLoadingData = true;
-                    
-                    var onboardPayload = {
-                        "name": $scope.svcacc.svcaccId,
-                        "autoRotate": $scope.svcacc.autoRotate,
-                        "ttl": $scope.svcacc.ttl,
-                        "max_ttl": $scope.svcacc.ttl,
-                        "owner":  $scope.svcacc.owner
-                    }
-                    AdminSafesManagement.onboardSvcacc(onboardPayload, '').then(function (response) {
-                        if (UtilityService.ifAPIRequestSuccessful(response)) {
-                            // Try-Catch block to catch errors if there is any change in object structure in the response
-                            try {
-                                $scope.isLoadingData = false;
-                                $rootScope.showDetails = false;
-                                $rootScope.activeDetailsTab = 'permissions';
-                                $scope.svcaccOnboarded = true;
-                                var notification = UtilityService.getAParticularSuccessMessage('MESSAGE_ONBOARD_SUCCESS');
-                                Notifications.toast($scope.svcacc.svcaccId + ' Service Account' + notification);
-                                $scope.svcaccPrevious = angular.copy($scope.svcacc);
-
-                            } catch (e) {
-                                console.log(e);
-                                $scope.isLoadingData = false;
-                                $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_PROCESSING_DATA');
-                                $scope.error('md');
-                            }
-                        }                        
-                        else {
-                            $scope.errorMessage = AdminSafesManagement.getTheRightErrorMessage(response);
-                            error('md');
-                        }
-                    },
-                    function (error) {
-                        // Error handling function
-                        console.log(error);
-                        $scope.isLoadingData = false;
-                        $scope.errorMessage = AdminSafesManagement.getTheRightErrorMessage(error);
-                        $scope.error('md');
-                    })
-                } catch (e) {
-                    // To handle errors while calling 'fetchData' function
-                    console.log(e);
-                    $scope.isLoadingData = false;
-                    $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
-                    $scope.error('md');
+                if ($scope.svcacc.autoRotate == undefined || $scope.svcacc.autoRotate == false) {
+                    $scope.openSvcAccWarning(size);
+                }
+                else {
+                    $scope.onboardSvcAccount();
                 }
             }
         }
 
-        $scope.editSvcaccOnboard = function () {
+        $scope.onboardSvcAccount = function() {
             try {
                 $scope.isLoadingData = true;
+                Modal.close();
                 var onboardPayload = {
-                    "name": $scope.svcaccPrevious.svcaccId,
+                    "name": $scope.svcacc.svcaccId,
                     "autoRotate": $scope.svcacc.autoRotate,
                     "ttl": $scope.svcacc.ttl,
-                    "max_ttl": $scope.svcaccPrevious.ttl,
-                    "owner":  $scope.svcaccPrevious.owner
+                    "max_ttl": AppConstant.AD_PASSWORD_MAX_TTL,
+                    "owner":  $scope.svcacc.owner
+                }
+                AdminSafesManagement.onboardSvcacc(onboardPayload, '').then(function (response) {
+                    if (UtilityService.ifAPIRequestSuccessful(response)) {
+                        // Try-Catch block to catch errors if there is any change in object structure in the response
+                        try {
+                            $scope.isLoadingData = false;
+                            $rootScope.showDetails = false;
+                            $rootScope.activeDetailsTab = 'permissions';
+                            $scope.svcaccOnboarded = true;
+                            var notification = UtilityService.getAParticularSuccessMessage('MESSAGE_ONBOARD_SUCCESS');
+                            Notifications.toast($scope.svcacc.svcaccId + ' Service Account' + notification);
+                            $scope.svcaccPrevious = angular.copy($scope.svcacc);
+
+                        } catch (e) {
+                            console.log(e);
+                            $scope.isLoadingData = false;
+                            $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_PROCESSING_DATA');
+                            $scope.error('md');
+                        }
+                    }
+                    else {
+                        $scope.isLoadingData = false;
+                        $scope.errorMessage = AdminSafesManagement.getTheRightErrorMessage(response);
+                        error('md');
+                    }
+                },
+                function (error) {
+                    // Error handling function
+                    console.log(error);
+                    $scope.isLoadingData = false;
+                    $scope.errorMessage = AdminSafesManagement.getTheRightErrorMessage(error);
+                    $scope.error('md');
+                })
+            } catch (e) {
+                // To handle errors while calling 'fetchData' function
+                console.log(e);
+                $scope.isLoadingData = false;
+                $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
+                $scope.error('md');
+            }
+        }
+
+        $scope.editSvcaccOnboard = function (size) {
+            if ($scope.svcacc.autoRotate == false) {
+                $scope.openSvcAccEditWarning(size);
+            }
+            else {
+                $scope.editSvcaccountOnboard();
+            }
+        }
+
+        $scope.editSvcaccountOnboard = function () {
+            try {
+                $scope.isLoadingData = true;
+                Modal.close();
+                var onboardPayload = {
+                    "name": $scope.svcacc.svcaccId,
+                    "autoRotate": $scope.svcacc.autoRotate,
+                    "ttl": $scope.svcacc.ttl,
+                    "max_ttl": AppConstant.AD_PASSWORD_MAX_TTL,
+                    "owner":  $scope.svcacc.owner
                 }
                 AdminSafesManagement.editSvcacc(onboardPayload, '').then(function (response) {
                         if (UtilityService.ifAPIRequestSuccessful(response)) {
@@ -635,7 +655,7 @@
                         // Error handling function
                         console.log(error);
                         $scope.isLoadingData = false;
-                        $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
+                        $scope.errorMessage = AdminSafesManagement.getTheRightErrorMessage(error);
                         $scope.error('md');
                     })
             } catch (e) {
@@ -774,8 +794,11 @@
                                                 max_ttl: '',
                                             };
                                             managedBy = object.managedBy;
-                                            if (onboardInfo.ttl && onboardInfo.ttl != null) {
+                                            if (onboardInfo.ttl && onboardInfo.ttl != null && onboardInfo.ttl < AppConstant.AD_PASSWORD_MAX_TTL) {
                                                 $scope.svcacc.autoRotate = true;
+                                            }
+                                            if (onboardInfo.ttl == AppConstant.AD_PASSWORD_MAX_TTL) {
+                                                $scope.svcacc.ttl = '';
                                             }
                                             $scope.autoRotate = $scope.svcacc.autoRotate;
                                             $scope.svcaccPrevious = angular.copy($scope.svcacc);
@@ -851,6 +874,9 @@
 
             }
             else {
+                if (JSON.parse(SessionStore.getItem("isAdmin")) == false) {
+                    $state.go('manage');
+                }
                 $scope.changeSvcaccHeader = "ONBOARD SERVICE ACCOUNT";
                 $scope.isEditSvcacc = false;
                 try {
@@ -935,6 +961,16 @@
         }
 
         $scope.init = function () {
+
+            var feature = JSON.parse(SessionStore.getItem("feature"));
+            if (feature.adpwdrotation == false) {
+                if (JSON.parse(SessionStore.getItem("isAdmin")) == false) {
+                    $state.go('manage');
+                }
+                else {
+                    $state.go('admin');
+                }
+            }
             $scope.svcacc = {
                 svcaccId: '',
                 userEmail: '',
@@ -1195,12 +1231,20 @@
 
         /* TODO: What is open, functon name should be more descriptive */
         $scope.open = function (size) {
-            Modal.createModal(size, 'changeSafePopup.html', 'ChangeSafeCtrl', $scope);
+            Modal.createModal(size, 'changeSafePopup.html', 'ChangeServiceAccountCtrl', $scope);
         };
 
         /* TODO: What is open, functon name should be more descriptive */
         $scope.openApprole = function (size) {
-            Modal.createModal(size, 'appRolePopup.html', 'ChangeSafeCtrl', $scope);
+            Modal.createModal(size, 'appRolePopup.html', 'ChangeServiceAccountCtrl', $scope);
+        };
+
+        $scope.openSvcAccWarning = function (size) {
+            Modal.createModal(size, 'svcAccWarning.html', 'ChangeServiceAccountCtrl', $scope);
+        };
+
+        $scope.openSvcAccEditWarning = function (size) {
+            Modal.createModal(size, 'svcAccEditWarning.html', 'ChangeServiceAccountCtrl', $scope);
         };
 
         /* TODO: What is ok, functon name should be more descriptive */

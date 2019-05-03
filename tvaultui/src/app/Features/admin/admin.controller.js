@@ -104,6 +104,8 @@
         $scope.accessorListToDelete = [];
         $scope.rolenameExists = false;
         var init = function () {
+            $scope.enableSvcacc = true;
+            $scope.enableSelfService = true;
             $scope.selectedIndex = 0; 
             if ($rootScope.lastVisited == "change-service-account") {
                 $scope.selectedIndex = 2; 
@@ -113,6 +115,13 @@
                 $state.go('signup');
             }
             else{
+                var feature = JSON.parse(SessionStore.getItem("feature"));
+                if (feature.adpwdrotation == false) {
+                    $scope.enableSvcacc = false;
+                }
+                if (feature.selfservice == false) {
+                    $scope.enableSelfService = false;
+                }
                 $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
                 $scope.requestDataFrAdmin();
             }
@@ -403,28 +412,30 @@
                 $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
                 $scope.error('md');
             });
-            $scope.numOfSvcaccs = 0;
-            $scope.svcaccOnboardedData = {"keys": []};
-            $scope.isLoadingData = true;
-            AdminSafesManagement.getOnboardedServiceAccounts().then(function (response) {                
-                if (UtilityService.ifAPIRequestSuccessful(response)) {
+            if ($scope.enableSvcacc == true) {
+                $scope.numOfSvcaccs = 0;
+                $scope.svcaccOnboardedData = {"keys": []};
+                $scope.isLoadingData = true;
+                AdminSafesManagement.getOnboardedServiceAccounts().then(function (response) {                
+                    if (UtilityService.ifAPIRequestSuccessful(response)) {
+                        $scope.isLoadingData = false;
+                        $scope.svcaccOnboardedData = response.data;
+                        $scope.numOfSvcaccs = $scope.svcaccOnboardedData.keys.length;
+                    }
+                    else {
+                        $scope.isLoadingData = false;
+                        $scope.errorMessage = AdminSafesManagement.getTheRightErrorMessage(response);
+                        error('md');
+                    }
+                },
+                function (error) {
+                    // Error handling function
+                    console.log(error);
                     $scope.isLoadingData = false;
-                    $scope.svcaccOnboardedData = response.data;
-                    $scope.numOfSvcaccs = $scope.svcaccOnboardedData.keys.length;
-                }
-                else {
-                    $scope.isLoadingData = false;
-                    $scope.errorMessage = AdminSafesManagement.getTheRightErrorMessage(response);
-                    error('md');
-                }
-            },
-            function (error) {
-                // Error handling function
-                console.log(error);
-                $scope.isLoadingData = false;
-                $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
-                $scope.error('md');
-            });
+                    $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
+                    $scope.error('md');
+                });
+            }
         };
 
         $scope.newAppRoleConfiguration = function (size) {

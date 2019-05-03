@@ -52,7 +52,13 @@ public class  VaultAuthService {
 
 	@Value("${vault.auth.method}")
 	private String vaultAuthMethod;
-	
+
+	@Value("${selfservice.enable}")
+	private boolean isSSEnabled;
+
+	@Value("${ad.passwordrotation.enable}")
+	private boolean isAdPswdRotationEnabled;
+
 	private static Logger log = LogManager.getLogger(VaultAuthService.class);
 
 	/**
@@ -88,6 +94,11 @@ public class  VaultAuthService {
 				access = filterDuplicateSafePermissions(access);
 				access = filterDuplicateSvcaccPermissions(access);
 				responseMap.put("access", access);
+				// set SS, AD password rotation enable status
+				Map<String,Object> feature = new HashMap<>();
+				feature.put(TVaultConstants.SELFSERVICE, isSSEnabled);
+				feature.put(TVaultConstants.ADPWDROTATION, isAdPswdRotationEnabled);
+				responseMap.put("feature", feature);
 				response.setResponse(JSONUtil.getJSON(responseMap));
 			}
 
