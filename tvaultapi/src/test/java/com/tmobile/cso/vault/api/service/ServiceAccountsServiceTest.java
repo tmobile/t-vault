@@ -443,7 +443,7 @@ public class ServiceAccountsServiceTest {
         serviceAccount.setAutoRotate(true);
         serviceAccount.setTtl(1590897977L);
         serviceAccount.setMax_ttl(1590897977L);
-        String expectedResponse = "{\"errors\":[\"Invalid input value for Password TTL. Maximum allowed value is 1590897976\"]}";
+        String expectedResponse = "{\"errors\":[\"Invalid value provided for TTL. TTL can't be more than 1590897976\"]}";
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body(expectedResponse);
 
 
