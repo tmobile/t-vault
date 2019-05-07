@@ -331,7 +331,6 @@ public class  ServiceAccountsService {
 					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 					build()));
 			serviceAccount.setTtl(TVaultConstants.PASSWORD_AUTOROTATE_TTL_MAX_VALUE);
-			serviceAccount.setMax_ttl(TVaultConstants.PASSWORD_AUTOROTATE_TTL_MAX_VALUE);
 		}
 		ResponseEntity<String> accountRoleCreationResponse = createAccountRole(token, serviceAccount);
 		if(accountRoleCreationResponse.getStatusCode().equals(HttpStatus.OK)) {
@@ -2273,6 +2272,24 @@ public class  ServiceAccountsService {
 				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 				build()));
 
+		if (serviceAccount.getTtl() >= (TVaultConstants.PASSWORD_AUTOROTATE_TTL_MAX_VALUE)) {
+			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+					put(LogMessage.ACTION, "Update onboarded Service Account").
+					put(LogMessage.MESSAGE, String.format ("TTL is [%s] is greater the MAX_TTL [%s]", serviceAccount.getTtl(), TVaultConstants.PASSWORD_AUTOROTATE_TTL_MAX_VALUE-1)).
+					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+					build()));
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid value provided for TTL. TTL can't be more than "+(TVaultConstants.PASSWORD_AUTOROTATE_TTL_MAX_VALUE-1)+"\"]}");
+		}
+		if (serviceAccount.getTtl() >= serviceAccount.getMax_ttl()) {
+			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+					put(LogMessage.ACTION, "Update onboarded Service Account").
+					put(LogMessage.MESSAGE, String.format ("TTL is [%s] is greater the MAX_TTL [%s]", serviceAccount.getTtl(), serviceAccount.getMax_ttl())).
+					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+					build()));
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Password TTL must be less than MAX_TTL\"]}");
+		}
 		if (!serviceAccount.isAutoRotate()) {
 			serviceAccount.setTtl(TVaultConstants.PASSWORD_AUTOROTATE_TTL_MAX_VALUE);
 		}

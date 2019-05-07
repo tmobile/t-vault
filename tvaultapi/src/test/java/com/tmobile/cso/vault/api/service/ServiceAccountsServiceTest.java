@@ -2238,6 +2238,50 @@ public class ServiceAccountsServiceTest {
     }
 
     @Test
+    public void test_updateOnboardedServiceAccount_failure_invalid_ttl() throws Exception {
+
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid value provided for TTL. TTL can't be more than 1590897976\"]}");
+        String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+        UserDetails userDetails = getMockUser(true);
+        ServiceAccount serviceAccount = new ServiceAccount();
+        serviceAccount.setName("testacc02");
+        serviceAccount.setAutoRotate(true);
+        serviceAccount.setTtl(TVaultConstants.PASSWORD_AUTOROTATE_TTL_MAX_VALUE);
+        serviceAccount.setMax_ttl(TVaultConstants.PASSWORD_AUTOROTATE_TTL_MAX_VALUE);
+        serviceAccount.setOwner("testacc0`");
+
+        Response response = getMockResponse(HttpStatus.OK, true, "{\"keys\":[\"testacc02\"]}");
+        when(reqProcessor.process("/ad/serviceaccount/onboardedlist","{}",token)).thenReturn(response);
+
+        ResponseEntity<String> responseEntityActual =  serviceAccountsService.updateOnboardedServiceAccount(token, serviceAccount, userDetails);
+
+        assertEquals(HttpStatus.BAD_REQUEST, responseEntityActual.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntityActual);
+    }
+
+    @Test
+    public void test_updateOnboardedServiceAccount_failure_ttl_greaterthan_max() throws Exception {
+
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Password TTL must be less than MAX_TTL\"]}");
+        String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+        UserDetails userDetails = getMockUser(true);
+        ServiceAccount serviceAccount = new ServiceAccount();
+        serviceAccount.setName("testacc02");
+        serviceAccount.setAutoRotate(true);
+        serviceAccount.setTtl(123L);
+        serviceAccount.setMax_ttl(123L);
+        serviceAccount.setOwner("testacc0`");
+
+        Response response = getMockResponse(HttpStatus.OK, true, "{\"keys\":[\"testacc02\"]}");
+        when(reqProcessor.process("/ad/serviceaccount/onboardedlist","{}",token)).thenReturn(response);
+
+        ResponseEntity<String> responseEntityActual =  serviceAccountsService.updateOnboardedServiceAccount(token, serviceAccount, userDetails);
+
+        assertEquals(HttpStatus.BAD_REQUEST, responseEntityActual.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntityActual);
+    }
+
+    @Test
     public void test_updateOnboardedServiceAccount_createrole_failure() throws Exception {
 
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.MULTI_STATUS).body("{\"errors\":[\"Failed to update onboarded Service Account.\"]}");
