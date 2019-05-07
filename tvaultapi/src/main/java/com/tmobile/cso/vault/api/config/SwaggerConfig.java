@@ -20,6 +20,12 @@ package com.tmobile.cso.vault.api.config;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.google.common.collect.ImmutableMap;
+import com.tmobile.cso.vault.api.exception.LogMessage;
+import com.tmobile.cso.vault.api.utils.JSONUtil;
+import com.tmobile.cso.vault.api.utils.ThreadLocalContext;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.context.annotation.Bean;
@@ -43,11 +49,13 @@ import springfox.documentation.swagger2.annotations.EnableSwagger2;
 @ComponentScan(basePackages="com.tmobile.cso.vault.api.*")
 public class SwaggerConfig {
 
-	@Value("${selfservice.enable}")
-	private boolean isSSEnabled;
+	@Value("${selfservice.enable:true}")
+	private boolean isSelfServiceEnabled;
 
-	@Value("${ad.passwordrotation.enable}")
+	@Value("${ad.passwordrotation.enable:true}")
 	private boolean isAdPswdRotationEnabled;
+
+	private static Logger log = LogManager.getLogger(SwaggerConfig.class);
 
 	@Bean
 	public Docket tvaultapi() {
@@ -56,10 +64,13 @@ public class SwaggerConfig {
 		ApiSelectorBuilder apiSelectorBuilder = new ApiSelectorBuilder(docket);
 		apiSelectorBuilder.apis(RequestHandlerSelectors.any());
 		apiSelectorBuilder.paths(PathSelectors.any());
-		if (!isSSEnabled) {
+		log.debug("Checking enable/disable status for features");
+		if (!isSelfServiceEnabled) {
+			log.debug("Self Service is disabled");
 			apiSelectorBuilder.paths(PathSelectors.regex("(?!/v2/ss).+"));
 		}
 		if (!isAdPswdRotationEnabled) {
+			log.debug("AD Password rotation is disabled");
 			apiSelectorBuilder.paths(PathSelectors.regex("(?!/v2/ad).+"));
 			apiSelectorBuilder.paths(PathSelectors.regex("(?!/v2/serviceaccounts).+"));
 		}
