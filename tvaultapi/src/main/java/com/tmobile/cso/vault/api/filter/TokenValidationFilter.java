@@ -30,6 +30,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.filter.GenericFilterBean;
 
 import com.google.common.collect.ImmutableMap;
@@ -53,6 +54,12 @@ public class TokenValidationFilter extends GenericFilterBean {
 	@Autowired
 	private TokenUtils tokenUtils;
 
+	@Value("${selfservice.enable:true}")
+	private boolean isSelfServiceEnabled;
+
+	@Value("${ad.passwordrotation.enable:true}")
+	private boolean isAdPswdRotationEnabled;
+
 	public TokenValidationFilter() {
 	}
 
@@ -68,6 +75,19 @@ public class TokenValidationFilter extends GenericFilterBean {
 		// ignore the client token in the login request header
 		if (requestUri.equals("/vault/v2/auth/tvault/login")) {
 			clientToken= null;
+		}
+		// Skip the request if requested feature is disabled
+		if (!isSelfServiceEnabled && requestUri.startsWith("/vault/v2/ss/")) {
+			HttpServletResponse httpResponse = (HttpServletResponse) response;
+			httpResponse.setContentType("application/json");
+			httpResponse.sendError(HttpServletResponse.SC_BAD_REQUEST, "Can't perform the required operation. Self Service feature is disabled");
+			return;
+		}
+		if (!isAdPswdRotationEnabled && (requestUri.startsWith("/vault/v2/ad") || requestUri.startsWith("/vault/v2/serviceaccounts"))) {
+			HttpServletResponse httpResponse = (HttpServletResponse) response;
+			httpResponse.setContentType("application/json");
+			httpResponse.sendError(HttpServletResponse.SC_BAD_REQUEST, "Can't perform the required operation. Service Account feature is disabled");
+			return;
 		}
 		VaultTokenLookupDetails  vaultTokenLookupDetails = null;
 		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
