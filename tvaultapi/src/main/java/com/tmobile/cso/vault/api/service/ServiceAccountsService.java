@@ -297,6 +297,16 @@ public class  ServiceAccountsService {
 	 * @return
 	 */
 	public ResponseEntity<String> onboardServiceAccount(String token, ServiceAccount serviceAccount, UserDetails userDetails) {
+		List<String> onboardedList = getOnboardedServiceAccountList(token, userDetails);
+		if (onboardedList.contains(serviceAccount.getName())) {
+			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+					put(LogMessage.ACTION, "onboardServiceAccount").
+					put(LogMessage.MESSAGE, "Failed to onboard Service Account. Service account is already onboarded").
+					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+					build()));
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Failed to onboard Service Account. Service account is already onboarded\"]}");
+		}
 		if (serviceAccount.isAutoRotate()) {
 			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
@@ -2236,24 +2246,7 @@ public class  ServiceAccountsService {
 	 */
 	public ResponseEntity<String> updateOnboardedServiceAccount(String token, ServiceAccount serviceAccount, UserDetails userDetails) {
 
-		ResponseEntity<String> onboardedResponse = getOnboardedServiceAccounts(token, userDetails);
-
-		ObjectMapper objMapper = new ObjectMapper();
-		List<String> onboardedList = new ArrayList<>();
-		Map<String,String[]> requestMap = null;
-		try {
-			requestMap = objMapper.readValue(onboardedResponse.getBody(), new TypeReference<Map<String,String[]>>() {});
-			if (requestMap != null && null != requestMap.get("keys")) {
-				onboardedList = new ArrayList<>(Arrays.asList((String[]) requestMap.get("keys")));
-			}
-		} catch (IOException e) {
-			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
-					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
-					put(LogMessage.ACTION, "Update onboarded Service Account").
-					put(LogMessage.MESSAGE, String.format ("Error creating onboarded list [%s]", e.getMessage())).
-					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
-					build()));
-		}
+		List<String> onboardedList = getOnboardedServiceAccountList(token, userDetails);
 
 		if (!onboardedList.contains(serviceAccount.getName())) {
 			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
@@ -2307,5 +2300,33 @@ public class  ServiceAccountsService {
 					build()));
 			return ResponseEntity.status(HttpStatus.MULTI_STATUS).body("{\"errors\":[\"Failed to update onboarded Service Account.\"]}");
 		}
+	}
+
+	/**
+	 * Get onboarded service account list
+	 * @param token
+	 * @param userDetails
+	 * @return
+	 */
+	private List<String> getOnboardedServiceAccountList(String token, UserDetails userDetails) {
+		ResponseEntity<String> onboardedResponse = getOnboardedServiceAccounts(token, userDetails);
+
+		ObjectMapper objMapper = new ObjectMapper();
+		List<String> onboardedList = new ArrayList<>();
+		Map<String,String[]> requestMap = null;
+		try {
+			requestMap = objMapper.readValue(onboardedResponse.getBody(), new TypeReference<Map<String,String[]>>() {});
+			if (requestMap != null && null != requestMap.get("keys")) {
+				onboardedList = new ArrayList<>(Arrays.asList((String[]) requestMap.get("keys")));
+			}
+		} catch (IOException e) {
+			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+					put(LogMessage.ACTION, "Update onboarded Service Account").
+					put(LogMessage.MESSAGE, String.format ("Error creating onboarded list [%s]", e.getMessage())).
+					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+					build()));
+		}
+		return onboardedList;
 	}
 }
