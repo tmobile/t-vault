@@ -297,6 +297,16 @@ public class  ServiceAccountsService {
 	 * @return
 	 */
 	public ResponseEntity<String> onboardServiceAccount(String token, ServiceAccount serviceAccount, UserDetails userDetails) {
+		List<String> onboardedList = getOnboardedServiceAccountList(token, userDetails);
+		if (onboardedList.contains(serviceAccount.getName())) {
+			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+					put(LogMessage.ACTION, "onboardServiceAccount").
+					put(LogMessage.MESSAGE, "Failed to onboard Service Account. Service account is already onboarded").
+					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+					build()));
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Failed to onboard Service Account. Service account is already onboarded\"]}");
+		}
 		if (serviceAccount.isAutoRotate()) {
 			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
@@ -304,6 +314,9 @@ public class  ServiceAccountsService {
 					put(LogMessage.MESSAGE, String.format ("Auto-Rotate of password has been turned on")).
 					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 					build()));
+            if (null == serviceAccount.getTtl() || null == serviceAccount.getMax_ttl()) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid value provided for TTL or MAX_TTL\"]}");
+            }
 			if (serviceAccount.getTtl() >= (TVaultConstants.PASSWORD_AUTOROTATE_TTL_MAX_VALUE)) {
 				log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
@@ -515,12 +528,15 @@ public class  ServiceAccountsService {
 			// always add owner to the users list whose policy should be updated
 			String managedBy = (String) metadataMap.get("managedBy");
 			if (!org.apache.commons.lang3.StringUtils.isEmpty(managedBy)) {
+                if (null == users) {
+                    users = new HashMap<>();
+                }
 				users.put(managedBy, "sudo");
 			}
 			updateUserPolicyAssociationOnSvcaccDelete(svcAccName,users,token);
 			updateGroupPolicyAssociationOnSvcaccDelete(svcAccName,groups,token);
-			//ControllerUtil.deleteAwsRoleAssociateionOnSvcaccDelete(path,awsroles,token);
-			//ControllerUtil.updateApprolePolicyAssociationOnSvcaccDelete(path,groups,token);
+            deleteAwsRoleonOnSvcaccDelete(svcAccName,awsroles,token);
+            updateApprolePolicyAssociationOnSvcaccDelete(svcAccName,approles,token);
 		}
 		ResponseEntity<String> accountRoleDeletionResponse = deleteAccountRole(token, serviceAccount);
 		if (HttpStatus.OK.equals(accountRoleDeletionResponse.getStatusCode())) {
@@ -1649,7 +1665,6 @@ public class  ServiceAccountsService {
 							groups = objMapper.readTree(responseJson).get("data").get("groups").asText();
 						}
 					} catch (IOException e) {
-						log.error(e);
 						log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 								put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 								put(LogMessage.ACTION, "updateUserPolicyAssociationOnSvcaccDelete").
@@ -1667,7 +1682,7 @@ public class  ServiceAccountsService {
 
 					log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 							put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
-							put(LogMessage.ACTION, "updateUserPolicyAssociationOnSDBDelete").
+							put(LogMessage.ACTION, "updateUserPolicyAssociationOnSvcaccDelete").
 							put(LogMessage.MESSAGE, String.format ("Current policies [%s]", policies )).
 							put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 							build()));
@@ -1753,6 +1768,100 @@ public class  ServiceAccountsService {
 			}
 		}
 	}
+
+    /**
+     * Aws role deletion as part of Offboarding
+     * @param svcAccName
+     * @param acessInfo
+     * @param token
+     */
+    private void deleteAwsRoleonOnSvcaccDelete(String svcAccName, Map<String,String> acessInfo, String token) {
+        log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+                put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+                put(LogMessage.ACTION, "deleteAwsRoleAssociateionOnSvcaccDelete").
+                put(LogMessage.MESSAGE, String.format ("Trying to deleteAwsRoleAssociateionOnSvcaccDelete")).
+                put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+                build()));
+        if(acessInfo!=null){
+            Set<String> roles = acessInfo.keySet();
+            for(String role : roles){
+                Response response = reqProcessor.process("/auth/aws/roles/delete","{\"role\":\""+role+"\"}",token);
+                if(response.getHttpstatus().equals(HttpStatus.NO_CONTENT)){
+                    log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+                            put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+                            put(LogMessage.ACTION, "deleteAwsRoleAssociateionOnSvcaccDelete").
+                            put(LogMessage.MESSAGE, String.format ("%s, AWS Role is deleted as part of offboarding Service account.", role)).
+                            put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+                            build()));
+                }else{
+                    log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+                            put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+                            put(LogMessage.ACTION, "deleteAwsRoleAssociateionOnSvcaccDelete").
+                            put(LogMessage.MESSAGE, String.format ("%s, AWS Role deletion as part of offboarding Service account failed.", role)).
+                            put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+                            build()));
+                }
+            }
+        }
+    }
+
+    /**
+     * Approle policy update as part of offboarding
+     * @param svcAccName
+     * @param acessInfo
+     * @param token
+     */
+    private void updateApprolePolicyAssociationOnSvcaccDelete(String svcAccName, Map<String,String> acessInfo, String token) {
+        log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+                put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+                put(LogMessage.ACTION, "updateApprolePolicyAssociationOnSvcaccDelete").
+                put(LogMessage.MESSAGE, String.format ("trying updateApprolePolicyAssociationOnSvcaccDelete")).
+                put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+                build()));
+        if(acessInfo!=null) {
+            String r_policy = new StringBuffer().append(TVaultConstants.SVC_ACC_POLICIES_PREFIXES.getKey(TVaultConstants.READ_POLICY)).append(TVaultConstants.SVC_ACC_PATH_PREFIX).append("_").append(svcAccName).toString();
+            String w_policy = new StringBuffer().append(TVaultConstants.SVC_ACC_POLICIES_PREFIXES.getKey(TVaultConstants.WRITE_POLICY)).append(TVaultConstants.SVC_ACC_PATH_PREFIX).append("_").append(svcAccName).toString();
+            String d_policy = new StringBuffer().append(TVaultConstants.SVC_ACC_POLICIES_PREFIXES.getKey(TVaultConstants.DENY_POLICY)).append(TVaultConstants.SVC_ACC_PATH_PREFIX).append("_").append(svcAccName).toString();
+
+            Set<String> approles = acessInfo.keySet();
+            ObjectMapper objMapper = new ObjectMapper();
+            for(String approleName : approles) {
+                Response roleResponse = reqProcessor.process("/auth/approle/role/read", "{\"role_name\":\"" + approleName + "\"}", token);
+                String responseJson = "";
+                List<String> policies = new ArrayList<>();
+                List<String> currentpolicies = new ArrayList<>();
+                if (HttpStatus.OK.equals(roleResponse.getHttpstatus())) {
+                    responseJson = roleResponse.getResponse();
+                    try {
+                        JsonNode policiesArry = objMapper.readTree(responseJson).get("data").get("policies");
+                        for (JsonNode policyNode : policiesArry) {
+                            currentpolicies.add(policyNode.asText());
+                        }
+                    } catch (IOException e) {
+						log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+								put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+								put(LogMessage.ACTION, "updateApprolePolicyAssociationOnSvcaccDelete").
+								put(LogMessage.MESSAGE, String.format ("%s, Approle removal as part of offboarding Service account failed.", approleName)).
+								put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+								build()));
+                    }
+                    policies.addAll(currentpolicies);
+                    policies.remove(r_policy);
+                    policies.remove(w_policy);
+                    policies.remove(d_policy);
+
+                    String policiesString = org.apache.commons.lang3.StringUtils.join(policies, ",");
+                    log.info(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+                            put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+                            put(LogMessage.ACTION, "updateApprolePolicyAssociationOnSvcaccDelete").
+                            put(LogMessage.MESSAGE, "Current policies :" + policiesString + " is being configured").
+                            put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+                            build()));
+                    appRoleService.configureApprole(approleName, policiesString, token);
+                }
+            }
+        }
+    }
 
     /**
      * Get Manager details for service account
@@ -2236,6 +2345,73 @@ public class  ServiceAccountsService {
 	 */
 	public ResponseEntity<String> updateOnboardedServiceAccount(String token, ServiceAccount serviceAccount, UserDetails userDetails) {
 
+		List<String> onboardedList = getOnboardedServiceAccountList(token, userDetails);
+
+		if (!onboardedList.contains(serviceAccount.getName())) {
+			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+					put(LogMessage.ACTION, "Update onboarded Service Account").
+					put(LogMessage.MESSAGE, "Failed to update onboarded Service Account. Service account not onboarded").
+					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+					build()));
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Failed to update onboarded Service Account. Please onboard this Service Account first and try again.\"]}");
+		}
+
+		log.info(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+				put(LogMessage.ACTION, "Update onboarded Service Account").
+				put(LogMessage.MESSAGE, String.format("Update onboarded Service Account [%s]", serviceAccount.getName())).
+				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+				build()));
+        if (serviceAccount.isAutoRotate()) {
+            if (null == serviceAccount.getTtl() || null == serviceAccount.getMax_ttl()) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid value provided for TTL or MAX_TTL\"]}");
+            }
+            if (serviceAccount.getTtl() >= (TVaultConstants.PASSWORD_AUTOROTATE_TTL_MAX_VALUE)) {
+                log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+                        put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+                        put(LogMessage.ACTION, "Update onboarded Service Account").
+                        put(LogMessage.MESSAGE, String.format ("TTL is [%s] is greater the MAX_TTL [%s]", serviceAccount.getTtl(), TVaultConstants.PASSWORD_AUTOROTATE_TTL_MAX_VALUE-1)).
+                        put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+                        build()));
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid value provided for TTL. TTL can't be more than "+(TVaultConstants.PASSWORD_AUTOROTATE_TTL_MAX_VALUE-1)+"\"]}");
+            }
+            if (serviceAccount.getTtl() >= serviceAccount.getMax_ttl()) {
+                log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+                        put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+                        put(LogMessage.ACTION, "Update onboarded Service Account").
+                        put(LogMessage.MESSAGE, String.format ("TTL is [%s] is greater the MAX_TTL [%s]", serviceAccount.getTtl(), serviceAccount.getMax_ttl())).
+                        put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+                        build()));
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Password TTL must be less than MAX_TTL\"]}");
+            }
+        }
+		if (!serviceAccount.isAutoRotate()) {
+			serviceAccount.setTtl(TVaultConstants.PASSWORD_AUTOROTATE_TTL_MAX_VALUE);
+		}
+		ResponseEntity<String> accountRoleDeletionResponse = createAccountRole(token, serviceAccount);
+		if (accountRoleDeletionResponse!=null && HttpStatus.OK.equals(accountRoleDeletionResponse.getStatusCode())) {
+			return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Successfully updated onboarded Service Account.\"]}");
+
+		} else {
+			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+					put(LogMessage.ACTION, "Update onboarded Service Account").
+					put(LogMessage.MESSAGE, "Failed to update onboarded Service Account.").
+					put(LogMessage.STATUS, accountRoleDeletionResponse.getStatusCode().toString()).
+					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+					build()));
+			return ResponseEntity.status(HttpStatus.MULTI_STATUS).body("{\"errors\":[\"Failed to update onboarded Service Account.\"]}");
+		}
+	}
+
+	/**
+	 * Get onboarded service account list
+	 * @param token
+	 * @param userDetails
+	 * @return
+	 */
+	private List<String> getOnboardedServiceAccountList(String token, UserDetails userDetails) {
 		ResponseEntity<String> onboardedResponse = getOnboardedServiceAccounts(token, userDetails);
 
 		ObjectMapper objMapper = new ObjectMapper();
@@ -2254,58 +2430,6 @@ public class  ServiceAccountsService {
 					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 					build()));
 		}
-
-		if (!onboardedList.contains(serviceAccount.getName())) {
-			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
-					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
-					put(LogMessage.ACTION, "Update onboarded Service Account").
-					put(LogMessage.MESSAGE, "Failed to update onboarded Service Account. Service account not onboarded").
-					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
-					build()));
-			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Failed to update onboarded Service Account. Please onboard this Service Account first and try again.\"]}");
-		}
-
-		log.info(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
-				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
-				put(LogMessage.ACTION, "Update onboarded Service Account").
-				put(LogMessage.MESSAGE, String.format("Update onboarded Service Account [%s]", serviceAccount.getName())).
-				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
-				build()));
-
-		if (serviceAccount.getTtl() >= (TVaultConstants.PASSWORD_AUTOROTATE_TTL_MAX_VALUE)) {
-			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
-					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
-					put(LogMessage.ACTION, "Update onboarded Service Account").
-					put(LogMessage.MESSAGE, String.format ("TTL is [%s] is greater the MAX_TTL [%s]", serviceAccount.getTtl(), TVaultConstants.PASSWORD_AUTOROTATE_TTL_MAX_VALUE-1)).
-					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
-					build()));
-			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid value provided for TTL. TTL can't be more than "+(TVaultConstants.PASSWORD_AUTOROTATE_TTL_MAX_VALUE-1)+"\"]}");
-		}
-		if (serviceAccount.getTtl() >= serviceAccount.getMax_ttl()) {
-			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
-					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
-					put(LogMessage.ACTION, "Update onboarded Service Account").
-					put(LogMessage.MESSAGE, String.format ("TTL is [%s] is greater the MAX_TTL [%s]", serviceAccount.getTtl(), serviceAccount.getMax_ttl())).
-					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
-					build()));
-			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Password TTL must be less than MAX_TTL\"]}");
-		}
-		if (!serviceAccount.isAutoRotate()) {
-			serviceAccount.setTtl(TVaultConstants.PASSWORD_AUTOROTATE_TTL_MAX_VALUE);
-		}
-		ResponseEntity<String> accountRoleDeletionResponse = createAccountRole(token, serviceAccount);
-		if (accountRoleDeletionResponse!=null && HttpStatus.OK.equals(accountRoleDeletionResponse.getStatusCode())) {
-			return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Successfully updated onboarded Service Account.\"]}");
-
-		} else {
-			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
-					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
-					put(LogMessage.ACTION, "Update onboarded Service Account").
-					put(LogMessage.MESSAGE, "Failed to updated onboarded Service Account.").
-					put(LogMessage.STATUS, accountRoleDeletionResponse.getStatusCode().toString()).
-					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
-					build()));
-			return ResponseEntity.status(HttpStatus.MULTI_STATUS).body("{\"errors\":[\"Failed to update onboarded Service Account.\"]}");
-		}
+		return onboardedList;
 	}
 }

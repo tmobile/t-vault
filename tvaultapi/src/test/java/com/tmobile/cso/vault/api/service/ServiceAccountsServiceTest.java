@@ -367,7 +367,8 @@ public class ServiceAccountsServiceTest {
         String token = userDetails.getClientToken();
         ServiceAccount serviceAccount = generateServiceAccount("testacc02","testacc01");
         serviceAccount.setAutoRotate(false);
-
+        Response response = getMockResponse(HttpStatus.OK, true, "{\"keys\":[\"testacc03\"]}");
+        when(reqProcessor.process("/ad/serviceaccount/onboardedlist","{}",token)).thenReturn(response);
         // CreateRole
         ServiceAccountTTL serviceAccountTTL = new ServiceAccountTTL();
         serviceAccountTTL.setRole_name(serviceAccount.getName());
@@ -420,6 +421,25 @@ public class ServiceAccountsServiceTest {
         assertEquals(responseEntityExpected, responseEntity);
     }
     @Test
+    public void test_onboardServiceAccount_failure_already_onboarded() {
+        UserDetails userDetails = getMockUser(true);
+        String token = userDetails.getClientToken();
+        ServiceAccount serviceAccount = generateServiceAccount("testacc02","testacc01");
+        serviceAccount.setAutoRotate(true);
+        serviceAccount.setTtl(1112L);
+        serviceAccount.setMax_ttl(1111L);
+
+        Response response = getMockResponse(HttpStatus.OK, true, "{\"keys\":[\"testacc02\"]}");
+        when(reqProcessor.process("/ad/serviceaccount/onboardedlist","{}",token)).thenReturn(response);
+
+        String expectedResponse = "{\"errors\":[\"Failed to onboard Service Account. Service account is already onboarded\"]}";
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body(expectedResponse);
+
+        ResponseEntity<String> responseEntity = serviceAccountsService.onboardServiceAccount(token, serviceAccount, userDetails);
+        assertEquals(HttpStatus.BAD_REQUEST, responseEntity.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntity);
+    }
+    @Test
     public void test_onboardServiceAccount_succss_autorotate_on_ttl_biggerthan_maxttl() {
 		UserDetails userDetails = getMockUser(true);
     	String token = userDetails.getClientToken();
@@ -429,8 +449,25 @@ public class ServiceAccountsServiceTest {
     	serviceAccount.setMax_ttl(1111L);
     	String expectedResponse = "{\"errors\":[\"Password TTL can't be more than MAX_TTL\"]}";
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body(expectedResponse);
+        Response response = getMockResponse(HttpStatus.OK, true, "{\"keys\":[\"testacc03\"]}");
+        when(reqProcessor.process("/ad/serviceaccount/onboardedlist","{}",token)).thenReturn(response);
 
-
+        ResponseEntity<String> responseEntity = serviceAccountsService.onboardServiceAccount(token, serviceAccount, userDetails);
+        assertEquals(HttpStatus.BAD_REQUEST, responseEntity.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntity);
+    }
+    @Test
+    public void test_onboardServiceAccount_failure_invalid_ttl() {
+        UserDetails userDetails = getMockUser(true);
+        String token = userDetails.getClientToken();
+        ServiceAccount serviceAccount = new ServiceAccount();
+        serviceAccount.setName("testacc02");
+        serviceAccount.setAutoRotate(true);
+        serviceAccount.setOwner("testacc01");
+        String expectedResponse = "{\"errors\":[\"Invalid value provided for TTL or MAX_TTL\"]}";
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body(expectedResponse);
+        Response response = getMockResponse(HttpStatus.OK, true, "{\"keys\":[\"testacc03\"]}");
+        when(reqProcessor.process("/ad/serviceaccount/onboardedlist","{}",token)).thenReturn(response);
         ResponseEntity<String> responseEntity = serviceAccountsService.onboardServiceAccount(token, serviceAccount, userDetails);
         assertEquals(HttpStatus.BAD_REQUEST, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
@@ -446,7 +483,8 @@ public class ServiceAccountsServiceTest {
         String expectedResponse = "{\"errors\":[\"Invalid value provided for TTL. TTL can't be more than 1590897976\"]}";
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body(expectedResponse);
 
-
+        Response response = getMockResponse(HttpStatus.OK, true, "{\"keys\":[\"testacc03\"]}");
+        when(reqProcessor.process("/ad/serviceaccount/onboardedlist","{}",token)).thenReturn(response);
         ResponseEntity<String> responseEntity = serviceAccountsService.onboardServiceAccount(token, serviceAccount, userDetails);
         assertEquals(HttpStatus.BAD_REQUEST, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
@@ -457,7 +495,8 @@ public class ServiceAccountsServiceTest {
     	String token = userDetails.getClientToken();
     	ServiceAccount serviceAccount = generateServiceAccount("testacc02","testacc01");
     	serviceAccount.setAutoRotate(true);
-
+        Response response = getMockResponse(HttpStatus.OK, true, "{\"keys\":[\"testacc03\"]}");
+        when(reqProcessor.process("/ad/serviceaccount/onboardedlist","{}",token)).thenReturn(response);
         // CreateRole
 		ServiceAccountTTL serviceAccountTTL = new ServiceAccountTTL();
 		serviceAccountTTL.setRole_name(serviceAccount.getName());
@@ -516,7 +555,8 @@ public class ServiceAccountsServiceTest {
         String token = userDetails.getClientToken();
         ServiceAccount serviceAccount = generateServiceAccount("testacc02","testacc01");
         serviceAccount.setAutoRotate(true);
-
+        Response response = getMockResponse(HttpStatus.OK, true, "{\"keys\":[\"testacc03\"]}");
+        when(reqProcessor.process("/ad/serviceaccount/onboardedlist","{}",token)).thenReturn(response);
         // CreateRole
         ServiceAccountTTL serviceAccountTTL = new ServiceAccountTTL();
         serviceAccountTTL.setRole_name(serviceAccount.getName());
@@ -555,7 +595,8 @@ public class ServiceAccountsServiceTest {
     	String token = userDetails.getClientToken();
     	ServiceAccount serviceAccount = generateServiceAccount("testacc02","testacc01");
     	serviceAccount.setAutoRotate(true);
-
+        Response response = getMockResponse(HttpStatus.OK, true, "{\"keys\":[\"testacc03\"]}");
+        when(reqProcessor.process("/ad/serviceaccount/onboardedlist","{}",token)).thenReturn(response);
         // CreateRole
 		ServiceAccountTTL serviceAccountTTL = new ServiceAccountTTL();
 		serviceAccountTTL.setRole_name(serviceAccount.getName());
@@ -580,7 +621,8 @@ public class ServiceAccountsServiceTest {
     	String token = userDetails.getClientToken();
     	ServiceAccount serviceAccount = generateServiceAccount("testacc02","testacc01");
     	serviceAccount.setAutoRotate(true);
-
+        Response response = getMockResponse(HttpStatus.OK, true, "{\"keys\":[\"testacc03\"]}");
+        when(reqProcessor.process("/ad/serviceaccount/onboardedlist","{}",token)).thenReturn(response);
         // CreateRole
 		ServiceAccountTTL serviceAccountTTL = new ServiceAccountTTL();
 		serviceAccountTTL.setRole_name(serviceAccount.getName());
@@ -616,7 +658,8 @@ public class ServiceAccountsServiceTest {
     	String token = userDetails.getClientToken();
     	ServiceAccount serviceAccount = generateServiceAccount("testacc02","testacc01");
     	serviceAccount.setAutoRotate(true);
-
+        Response response = getMockResponse(HttpStatus.OK, true, "{\"keys\":[\"testacc03\"]}");
+        when(reqProcessor.process("/ad/serviceaccount/onboardedlist","{}",token)).thenReturn(response);
         // CreateRole
 		ServiceAccountTTL serviceAccountTTL = new ServiceAccountTTL();
 		serviceAccountTTL.setRole_name(serviceAccount.getName());
@@ -710,6 +753,12 @@ public class ServiceAccountsServiceTest {
                 "  \"groups\": {\n" +
                 "    \"group1\": \"read\"\n" +
                 "  },\n" +
+                "  \"aws-roles\": {\n" +
+                "    \"role1\": \"read\"\n" +
+                "  },\n" +
+                "  \"app-roles\": {\n" +
+                "    \"role2\": \"read\"\n" +
+                "  },\n" +
                 "  \"managedBy\": \"user2\",\n" +
                 "  \"name\": \"testacc02\",\n" +
                 "  \"users\": {\n" +
@@ -717,7 +766,11 @@ public class ServiceAccountsServiceTest {
                 "  }\n" +
                 "}}");
         when(reqProcessor.process("/sdb","{\"path\":\""+_path+"\"}",token)).thenReturn(metaResponse);
-
+        Response response_no_content = getMockResponse(HttpStatus.NO_CONTENT, true, "");
+        when(reqProcessor.process("/auth/aws/roles/delete","{\"role\":\"role1\"}",token)).thenReturn(response_no_content);
+        Response appRoleResponse = getMockResponse(HttpStatus.OK, true, "{\"data\": {\"policies\":\"r_svcacct_testacc02\"}}");
+        when(reqProcessor.process("/auth/approle/role/read", "{\"role_name\":\"role2\"}", token)).thenReturn(appRoleResponse);
+        when(appRoleService.configureApprole(Mockito.any(),Mockito.any(),Mockito.any())).thenReturn(response_no_content);
         //Delete Account Role...
 		ServiceAccountTTL serviceAccountTTL = new ServiceAccountTTL();
 		serviceAccountTTL.setRole_name(onboardedServiceAccount.getName());
@@ -2259,6 +2312,25 @@ public class ServiceAccountsServiceTest {
         assertEquals(responseEntityExpected, responseEntityActual);
     }
 
+    @Test
+    public void test_updateOnboardedServiceAccount_failure_invalid_ttl_or_maxttl() throws Exception {
+
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid value provided for TTL or MAX_TTL\"]}");
+        String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+        UserDetails userDetails = getMockUser(true);
+        ServiceAccount serviceAccount = new ServiceAccount();
+        serviceAccount.setName("testacc02");
+        serviceAccount.setAutoRotate(true);
+        serviceAccount.setOwner("testacc0`");
+
+        Response response = getMockResponse(HttpStatus.OK, true, "{\"keys\":[\"testacc02\"]}");
+        when(reqProcessor.process("/ad/serviceaccount/onboardedlist","{}",token)).thenReturn(response);
+
+        ResponseEntity<String> responseEntityActual =  serviceAccountsService.updateOnboardedServiceAccount(token, serviceAccount, userDetails);
+
+        assertEquals(HttpStatus.BAD_REQUEST, responseEntityActual.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntityActual);
+    }
     @Test
     public void test_updateOnboardedServiceAccount_failure_ttl_greaterthan_max() throws Exception {
 

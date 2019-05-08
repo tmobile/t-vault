@@ -30,6 +30,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.filter.GenericFilterBean;
 
 import com.google.common.collect.ImmutableMap;
@@ -52,6 +53,12 @@ public class TokenValidationFilter extends GenericFilterBean {
 	
 	@Autowired
 	private TokenUtils tokenUtils;
+
+	@Value("${selfservice.enable:true}")
+	private boolean isSelfServiceEnabled;
+
+	@Value("${ad.passwordrotation.enable:true}")
+	private boolean isAdPswdRotationEnabled;
 
 	public TokenValidationFilter() {
 	}
@@ -96,7 +103,7 @@ public class TokenValidationFilter extends GenericFilterBean {
 					put(LogMessage.MESSAGE, String.format ("Generating SelfService token for the user [%s]", vaultTokenLookupDetails.getUsername())).
 					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 					build()));
-			if (!vaultTokenLookupDetails.isAdmin()) {
+			if (!vaultTokenLookupDetails.isAdmin() && isSelfServiceEnabled) {
 				userDetails.setSelfSupportToken(tokenUtils.getSelfServiceToken());
 			}
 			userDetails.setPolicies(vaultTokenLookupDetails.getPolicies());
@@ -105,6 +112,19 @@ public class TokenValidationFilter extends GenericFilterBean {
 			userDetails.setUsername(vaultTokenLookupDetails.getUsername());
 			userDetails.setLeaseDuration(null); //TODO: Pre-flight
 			((HttpServletRequest) request).setAttribute("UserDetails", userDetails);
+		}
+		// Skip the request if requested feature is disabled
+		if (!isSelfServiceEnabled && requestUri.startsWith("/vault/v2/ss/") && userDetails!=null && !userDetails.isAdmin()) {
+			HttpServletResponse httpResponse = (HttpServletResponse) response;
+			httpResponse.setContentType("application/json");
+			httpResponse.sendError(HttpServletResponse.SC_BAD_REQUEST, "Can't perform the required operation. Self Service feature is disabled");
+			return;
+		}
+		if (!isAdPswdRotationEnabled && (requestUri.startsWith("/vault/v2/ad") || requestUri.startsWith("/vault/v2/serviceaccounts"))) {
+			HttpServletResponse httpResponse = (HttpServletResponse) response;
+			httpResponse.setContentType("application/json");
+			httpResponse.sendError(HttpServletResponse.SC_BAD_REQUEST, "Can't perform the required operation. Service Account feature is disabled");
+			return;
 		}
 		chain.doFilter(request, response);
 		if (userDetails != null && userDetails.getSelfSupportToken() != null) {
