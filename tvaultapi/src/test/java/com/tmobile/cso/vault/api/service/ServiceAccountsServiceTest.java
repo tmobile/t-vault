@@ -457,6 +457,22 @@ public class ServiceAccountsServiceTest {
         assertEquals(responseEntityExpected, responseEntity);
     }
     @Test
+    public void test_onboardServiceAccount_failure_invalid_ttl() {
+        UserDetails userDetails = getMockUser(true);
+        String token = userDetails.getClientToken();
+        ServiceAccount serviceAccount = new ServiceAccount();
+        serviceAccount.setName("testacc02");
+        serviceAccount.setAutoRotate(true);
+        serviceAccount.setOwner("testacc01");
+        String expectedResponse = "{\"errors\":[\"Invalid value provided for TTL or MAX_TTL\"]}";
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body(expectedResponse);
+        Response response = getMockResponse(HttpStatus.OK, true, "{\"keys\":[\"testacc03\"]}");
+        when(reqProcessor.process("/ad/serviceaccount/onboardedlist","{}",token)).thenReturn(response);
+        ResponseEntity<String> responseEntity = serviceAccountsService.onboardServiceAccount(token, serviceAccount, userDetails);
+        assertEquals(HttpStatus.BAD_REQUEST, responseEntity.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntity);
+    }
+    @Test
     public void test_onboardServiceAccount_succss_autorotate_on_ttl_biggerthan_maxallowed() {
         UserDetails userDetails = getMockUser(true);
         String token = userDetails.getClientToken();
@@ -2296,6 +2312,25 @@ public class ServiceAccountsServiceTest {
         assertEquals(responseEntityExpected, responseEntityActual);
     }
 
+    @Test
+    public void test_updateOnboardedServiceAccount_failure_invalid_ttl_or_maxttl() throws Exception {
+
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid value provided for TTL or MAX_TTL\"]}");
+        String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+        UserDetails userDetails = getMockUser(true);
+        ServiceAccount serviceAccount = new ServiceAccount();
+        serviceAccount.setName("testacc02");
+        serviceAccount.setAutoRotate(true);
+        serviceAccount.setOwner("testacc0`");
+
+        Response response = getMockResponse(HttpStatus.OK, true, "{\"keys\":[\"testacc02\"]}");
+        when(reqProcessor.process("/ad/serviceaccount/onboardedlist","{}",token)).thenReturn(response);
+
+        ResponseEntity<String> responseEntityActual =  serviceAccountsService.updateOnboardedServiceAccount(token, serviceAccount, userDetails);
+
+        assertEquals(HttpStatus.BAD_REQUEST, responseEntityActual.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntityActual);
+    }
     @Test
     public void test_updateOnboardedServiceAccount_failure_ttl_greaterthan_max() throws Exception {
 

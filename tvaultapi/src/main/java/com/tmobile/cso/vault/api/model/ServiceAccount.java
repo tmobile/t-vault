@@ -97,7 +97,7 @@ public class ServiceAccount implements Serializable {
 	/**
 	 * @return the max_ttl
 	 */
-	@ApiModelProperty(example = "7776000", position = 5)
+	@ApiModelProperty(example = "7776001", position = 5)
 	public Long getMax_ttl() {
 		return max_ttl;
 	}
