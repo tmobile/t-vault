@@ -737,6 +737,12 @@ public class ServiceAccountsServiceTest {
                 "  \"groups\": {\n" +
                 "    \"group1\": \"read\"\n" +
                 "  },\n" +
+                "  \"aws-roles\": {\n" +
+                "    \"role1\": \"read\"\n" +
+                "  },\n" +
+                "  \"app-roles\": {\n" +
+                "    \"role2\": \"read\"\n" +
+                "  },\n" +
                 "  \"managedBy\": \"user2\",\n" +
                 "  \"name\": \"testacc02\",\n" +
                 "  \"users\": {\n" +
@@ -744,7 +750,11 @@ public class ServiceAccountsServiceTest {
                 "  }\n" +
                 "}}");
         when(reqProcessor.process("/sdb","{\"path\":\""+_path+"\"}",token)).thenReturn(metaResponse);
-
+        Response response_no_content = getMockResponse(HttpStatus.NO_CONTENT, true, "");
+        when(reqProcessor.process("/auth/aws/roles/delete","{\"role\":\"role1\"}",token)).thenReturn(response_no_content);
+        Response appRoleResponse = getMockResponse(HttpStatus.OK, true, "{\"data\": {\"policies\":\"r_svcacct_testacc02\"}}");
+        when(reqProcessor.process("/auth/approle/role/read", "{\"role_name\":\"role2\"}", token)).thenReturn(appRoleResponse);
+        when(appRoleService.configureApprole(Mockito.any(),Mockito.any(),Mockito.any())).thenReturn(response_no_content);
         //Delete Account Role...
 		ServiceAccountTTL serviceAccountTTL = new ServiceAccountTTL();
 		serviceAccountTTL.setRole_name(onboardedServiceAccount.getName());
