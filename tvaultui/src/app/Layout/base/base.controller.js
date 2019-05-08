@@ -26,7 +26,7 @@
             displayName: 'MANAGE',
             navigationName: 'manage',
             addComma: false,
-            show: ((SessionStore.getItem("isManager") === 'true') && (SessionStore.getItem("isAdmin") !== 'true'))
+            show: ((SessionStore.getItem("isManager") === 'true') && (SessionStore.getItem("isAdmin") !== 'true') && (feature.selfservice || feature.adpwdrotation))
         }, {
             displayName: 'HEALTH',
             navigationName: 'health',

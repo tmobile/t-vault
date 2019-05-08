@@ -185,7 +185,7 @@
                 displayName: 'MANAGE',
                 navigationName: 'manage',
                 addComma: false,
-                show: ((JSON.parse(SessionStore.getItem("isManager"))) && (!JSON.parse(SessionStore.getItem("isAdmin"))))
+                show: ((JSON.parse(SessionStore.getItem("isManager"))) && (!JSON.parse(SessionStore.getItem("isAdmin"))) && (feature.selfservice || feature.adpwdrotation))
             }, {
                 displayName: 'DOCUMENTATION',
                 navigationName: 'documentation',
