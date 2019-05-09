@@ -32,9 +32,9 @@
         $scope.searchValueSvcacc = "";
         var init = function () {
             
-            $scope.myVaultKey = SessionStore.getItem("myVaultKey");
-            if(!$scope.myVaultKey){ /* Check if user is in the same session */
+            if(!SessionStore.getItem("myVaultKey")){ /* Check if user is in the same session */
                 $state.go('signup');
+                return;
             }
             else{
                 $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');

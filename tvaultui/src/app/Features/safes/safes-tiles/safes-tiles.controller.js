@@ -3,7 +3,7 @@
     angular.module('vault.features.safes')
         .controller('safesTilesController', safesTilesController);
 
-    function safesTilesController(safesService, safes, SAFES_CONSTANTS, $stateParams, $state, $rootScope) {
+    function safesTilesController(safesService, safes, SAFES_CONSTANTS, $stateParams, $state, $rootScope, SessionStore) {
         var vm = this;
         vm.safeCategories = safesService.getSafeTabs();
         vm.searchValue = '';
@@ -18,6 +18,10 @@
         }
 
         function init() {
+            if(!SessionStore.getItem("myVaultKey")){ /* Check if user is in the same session */
+                $state.go('signup');
+                return;
+            }
             $rootScope.$on('search', function (event, searchValue) {
                 vm.searchValue = searchValue;
             });

@@ -3,7 +3,7 @@
     angular.module('vault.features.safes')
       .controller('safesFoldersController', safesFoldersController);
 
-    function safesFoldersController(folderContent, writeAccess, safesService, SAFES_CONSTANTS, $state, $rootScope, Modal, Notifications) {
+    function safesFoldersController(folderContent, writeAccess, safesService, SAFES_CONSTANTS, $state, $rootScope, Modal, Notifications, SessionStore) {
       var vm = this;
       vm.safeCategories = safesService.getSafeTabs();
       vm.search = '';
@@ -117,6 +117,10 @@
       }
 
       function init() {
+        if(!SessionStore.getItem("myVaultKey")){ /* Check if user is in the same session */
+            $state.go('signup');
+            return;
+        }
         if (!folderContent.id) {
           Modal.createModalWithController('stop.modal.html', {
             title: 'Error',

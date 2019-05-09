@@ -104,6 +104,10 @@
         $scope.accessorListToDelete = [];
         $scope.rolenameExists = false;
         var init = function () {
+            if(!SessionStore.getItem("myVaultKey")){ /* Check if user is in the same session */
+                $state.go('signup');
+                return;
+            }
             $scope.enableSvcacc = true;
             $scope.enableSelfService = true;
             $scope.selectedIndex = 0;
@@ -118,25 +122,21 @@
             if ($rootScope.lastVisited == "change-service-account") {
                 $scope.selectedIndex = 2; 
             }
-            $scope.myVaultKey = SessionStore.getItem("myVaultKey");
-            if(!$scope.myVaultKey){ /* Check if user is in the same session */
-                $state.go('signup');
+
+            var feature = JSON.parse(SessionStore.getItem("feature"));
+            if (feature.adpwdrotation == false) {
+                $scope.enableSvcacc = false;
             }
-            else{
-                var feature = JSON.parse(SessionStore.getItem("feature"));
-                if (feature.adpwdrotation == false) {
-                    $scope.enableSvcacc = false;
-                }
-                if (feature.selfservice == false) {
-                    $scope.enableSelfService = false;
-                }
-                $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
-                if ($scope.enableSvcacc == false && $scope.enableSelfService == false && JSON.parse(SessionStore.getItem("isAdmin")) == false) {
-                    $state.go('safes');
-                    return;
-                }
-                $scope.requestDataFrAdmin();
+            if (feature.selfservice == false) {
+                $scope.enableSelfService = false;
             }
+            $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
+            if ($scope.enableSvcacc == false && $scope.enableSelfService == false && JSON.parse(SessionStore.getItem("isAdmin")) == false) {
+                $state.go('safes');
+                return;
+            }
+            $scope.requestDataFrAdmin();
+
         };
 
         // Updating the data based on type of safe, by clicking dropdown
