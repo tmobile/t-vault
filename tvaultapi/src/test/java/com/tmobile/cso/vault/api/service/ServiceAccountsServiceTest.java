@@ -437,7 +437,7 @@ public class ServiceAccountsServiceTest {
         serviceAccount.setName("testacc02");
         serviceAccount.setAutoRotate(true);
         serviceAccount.setOwner("testacc01");
-        String expectedResponse = "{\"errors\":[\"Invalid value provided for TTL or MAX_TTL\"]}";
+        String expectedResponse = "{\"errors\":[\"Invalid or no value has been provided for TTL or MAX_TTL\"]}";
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body(expectedResponse);
         Response response = getMockResponse(HttpStatus.OK, true, "{\"keys\":[\"testacc03\"]}");
         when(reqProcessor.process("/ad/serviceaccount/onboardedlist","{}",token)).thenReturn(response);
@@ -2296,7 +2296,7 @@ public class ServiceAccountsServiceTest {
     @Test
     public void test_updateOnboardedServiceAccount_failure_invalid_ttl_or_maxttl() throws Exception {
 
-        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid value provided for TTL or MAX_TTL\"]}");
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid or no value has been provided for TTL or MAX_TTL\"]}");
         String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
         UserDetails userDetails = getMockUser(true);
         ServiceAccount serviceAccount = new ServiceAccount();

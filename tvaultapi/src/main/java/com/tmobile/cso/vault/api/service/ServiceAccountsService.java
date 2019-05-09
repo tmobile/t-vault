@@ -318,7 +318,7 @@ public class  ServiceAccountsService {
 					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 					build()));
             if (null == serviceAccount.getTtl() || null == serviceAccount.getMax_ttl()) {
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid value provided for TTL or MAX_TTL\"]}");
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid or no value has been provided for TTL or MAX_TTL\"]}");
             }
 			if (serviceAccount.getTtl() >= (TVaultConstants.PASSWORD_AUTOROTATE_TTL_MAX_VALUE)) {
 				log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
@@ -1811,7 +1811,7 @@ public class  ServiceAccountsService {
         log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
                 put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
                 put(LogMessage.ACTION, "deleteAwsRoleAssociateionOnSvcaccDelete").
-                put(LogMessage.MESSAGE, String.format ("Trying to deleteAwsRoleAssociateionOnSvcaccDelete")).
+                put(LogMessage.MESSAGE, String.format ("Trying to delete AwsRole On Service Account offboarding")).
                 put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
                 build()));
         if(acessInfo!=null){
@@ -2411,7 +2411,7 @@ public class  ServiceAccountsService {
 				build()));
         if (serviceAccount.isAutoRotate()) {
             if (null == serviceAccount.getTtl() || null == serviceAccount.getMax_ttl()) {
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid value provided for TTL or MAX_TTL\"]}");
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid or no value has been provided for TTL or MAX_TTL\"]}");
             }
             if (serviceAccount.getTtl() >= (TVaultConstants.PASSWORD_AUTOROTATE_TTL_MAX_VALUE)) {
                 log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
