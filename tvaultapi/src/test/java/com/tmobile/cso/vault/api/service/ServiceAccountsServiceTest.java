@@ -34,6 +34,7 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.logging.log4j.LogManager;
 import org.junit.Before;
 import org.junit.FixMethodOrder;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.MethodSorters;
@@ -1175,18 +1176,49 @@ public class ServiceAccountsServiceTest {
 
     @Test
     public void test_resetSvcAccPassword_success() {
-		UserDetails userDetails = getMockUser(true);
-    	String token = userDetails.getClientToken();
-    	String svcAccName = "testacc02";
+        UserDetails userDetails = getMockUser(true);
+        String token = userDetails.getClientToken();
+        String svcAccName = "testacc03";
+
+        // for createAccountRole
+        ServiceAccount serviceAccount = generateServiceAccount("testacc02","testacc01");
+        serviceAccount.setAutoRotate(true);
+        ServiceAccountTTL serviceAccountTTL = new ServiceAccountTTL();
+        serviceAccountTTL.setRole_name(serviceAccount.getName());
+        serviceAccountTTL.setService_account_name(serviceAccount.getName() + "@aaa.bbb.ccc.com") ;
+        serviceAccountTTL.setTtl(serviceAccount.getTtl());
+        String svc_account_payload = getJSON(serviceAccountTTL);
+        when(JSONUtil.getJSON(Mockito.any(ServiceAccount.class))).thenReturn(svc_account_payload);
+        Response onboardResponse = getMockResponse(HttpStatus.OK, true, "{\"messages\":[\"Successfully created service account role.\"]}");
+        when(reqProcessor.process(Mockito.eq("/ad/serviceaccount/onboard"), Mockito.anyString(), Mockito.eq(token))).thenReturn(onboardResponse);
+        //
+
+        // for getOnboarderdServiceAccountDetails
+        Map<String,Object> rqstParams = new HashMap<>();
+
+        rqstParams.put("service_account_name",svcAccName);
+        rqstParams.put("ttl", 10);
+        rqstParams.put("last_vault_rotation", "2018-05-24T17:14:38.677370855Z");
+        rqstParams.put("password_last_set","2018-05-24T17:14:38.6038495Z");
+        Response svcAccDetailsRes = getMockResponse(HttpStatus.OK, true, getJSON(rqstParams));
+
+        when(reqProcessor.process("/ad/serviceaccount/details","{\"role_name\":\""+svcAccName+"\"}",token)).thenReturn(svcAccDetailsRes);
+        // end getOnboarderdServiceAccountDetails
 
         // System under test
-    	String expectedOutput = "{\n" +
-    			"  \"current_password\": \"?@09AZkLfqgzr0AS6r2DwTo4E5r/VNCqWWqAs2AlCGdnkinuq9OKXkeXW6D4oVGc\",\n" +
-    			"  \"last_password\": null,\n" +
-    			"  \"username\": \"testacc02\"\n" +
-    			"}";
-    	Response pwdResetResponse = getMockResponse(HttpStatus.OK, true, expectedOutput);
-    	when(reqProcessor.process("/ad/serviceaccount/reset","{\"role_name\":\""+svcAccName+"\"}",token)).thenReturn(pwdResetResponse);
+        String pwdResetOutput = "{\"errors\":[\"Unable to reset password details for the given service account. Failed to read the updated password after setting ttl to 1 second.\"]}";
+        Response pwdResetResponse = getMockResponse(HttpStatus.OK, true, pwdResetOutput);
+        when(reqProcessor.process(Mockito.eq("/ad/serviceaccount/resetpwd"),Mockito.anyString(),Mockito.eq(token))).thenReturn(pwdResetResponse);
+
+        ADServiceAccountCreds adServiceAccountCreds = new ADServiceAccountCreds();
+        adServiceAccountCreds.setCurrent_password("current_password");
+        adServiceAccountCreds.setLast_password("last_password");
+        adServiceAccountCreds.setUsername(svcAccName);
+        String expectedOutput = getJSON(adServiceAccountCreds);
+        Response pwdReadResponse = getMockResponse(HttpStatus.OK, true,expectedOutput);
+        when(JSONUtil.getJSON(Mockito.any(ADServiceAccountCreds.class))).thenReturn(expectedOutput);
+        when(reqProcessor.process(Mockito.eq("/ad/serviceaccount/readpwd"),Mockito.anyString(),Mockito.eq(token))).thenReturn(pwdReadResponse);
+
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(expectedOutput);
         ResponseEntity<String> responseEntity = serviceAccountsService.resetSvcAccPassword(token, svcAccName, userDetails);
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
@@ -1194,25 +1226,227 @@ public class ServiceAccountsServiceTest {
     }
 
     @Test
-    public void test_resetSvcAccPassword_permission_denied() {
+    public void test_resetSvcAccPassword_bad_request() {
+        UserDetails userDetails = getMockUser(true);
+        String token = userDetails.getClientToken();
+        String svcAccName = "testacc03";
+
+        // for createAccountRole
+        ServiceAccount serviceAccount = generateServiceAccount("testacc02","testacc01");
+        serviceAccount.setAutoRotate(true);
+        ServiceAccountTTL serviceAccountTTL = new ServiceAccountTTL();
+        serviceAccountTTL.setRole_name(serviceAccount.getName());
+        serviceAccountTTL.setService_account_name(serviceAccount.getName() + "@aaa.bbb.ccc.com") ;
+        serviceAccountTTL.setTtl(serviceAccount.getTtl());
+        String svc_account_payload = getJSON(serviceAccountTTL);
+        when(JSONUtil.getJSON(Mockito.any(ServiceAccountTTL.class))).thenReturn(svc_account_payload);
+        Response onboardResponse = getMockResponse(HttpStatus.OK, true, "{\"messages\":[\"Successfully created service account role.\"]}");
+        when(reqProcessor.process("/ad/serviceaccount/onboard", svc_account_payload, token)).thenReturn(onboardResponse);
+        //
+
+        // for getOnboarderdServiceAccountDetails
+        Map<String,Object> rqstParams = new HashMap<>();
+
+        rqstParams.put("service_account_name",svcAccName);
+        rqstParams.put("ttl", 10);
+        rqstParams.put("last_vault_rotation", "2018-05-24T17:14:38.677370855Z");
+        rqstParams.put("password_last_set","2018-05-24T17:14:38.6038495Z");
+        Response svcAccDetailsRes = getMockResponse(HttpStatus.OK, true, getJSON(rqstParams));
+
+        when(reqProcessor.process("/ad/serviceaccount/details","{\"role_name\":\""+svcAccName+"\"}",token)).thenReturn(svcAccDetailsRes);
+        // end getOnboarderdServiceAccountDetails
+
+        // System under test
+        String expectedOutput = "{\"errors\":[\"Unable to reset password details for the given service account. Failed to read the updated password after setting ttl to 1 second.\"]}";
+        Response pwdResetResponse = getMockResponse(HttpStatus.BAD_REQUEST, true, expectedOutput);
+        when(reqProcessor.process("/ad/serviceaccount/resetpwd","{\"role_name\":\""+svcAccName+"\"}",token)).thenReturn(pwdResetResponse);
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body(expectedOutput);
+        ResponseEntity<String> responseEntity = serviceAccountsService.resetSvcAccPassword(token, svcAccName, userDetails);
+        assertEquals(HttpStatus.BAD_REQUEST, responseEntity.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntity);
+    }
+
+    @Test
+    public void test_resetSvcAccPassword_service_account_not_onboarded() {
     	UserDetails userDetails = getMockUser(true);
     	String token = userDetails.getClientToken();
     	String svcAccName = "testacc03";
+        Response svcAccDetailsRes = getMockResponse(HttpStatus.NOT_FOUND, true, "");
+        when(reqProcessor.process("/ad/serviceaccount/details","{\"role_name\":\""+svcAccName+"\"}",token)).thenReturn(svcAccDetailsRes);
 
-    	// System under test
-    	String expectedOutput = "{\n" +
-    			"    \"errors\": [\n" +
-    			"               \"1 error occurred:\\n\\t* permission denied\\n\\n\"\n" +
-    			"             ]\n" +
-    			"           }";
-    	Response pwdResetResponse = getMockResponse(HttpStatus.FORBIDDEN, true, expectedOutput);
-    	when(reqProcessor.process("/ad/serviceaccount/reset","{\"role_name\":\""+svcAccName+"\"}",token)).thenReturn(pwdResetResponse);
-    	ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.FORBIDDEN).body(expectedOutput);
+    	ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Unable to reset password details for the given service account\"]}");
     	ResponseEntity<String> responseEntity = serviceAccountsService.resetSvcAccPassword(token, svcAccName, userDetails);
-    	assertEquals(HttpStatus.FORBIDDEN, responseEntity.getStatusCode());
+    	assertEquals(HttpStatus.BAD_REQUEST, responseEntity.getStatusCode());
     	assertEquals(responseEntityExpected, responseEntity);
     }
 
+    @Test
+    public void test_resetSvcAccPassword_reset_failure() {
+        UserDetails userDetails = getMockUser(true);
+        String token = userDetails.getClientToken();
+        String svcAccName = "testacc03";
+        // for createAccountRole
+        ServiceAccount serviceAccount = generateServiceAccount("testacc02","testacc01");
+        serviceAccount.setAutoRotate(true);
+        ServiceAccountTTL serviceAccountTTL = new ServiceAccountTTL();
+        serviceAccountTTL.setRole_name(serviceAccount.getName());
+        serviceAccountTTL.setService_account_name(serviceAccount.getName() + "@aaa.bbb.ccc.com") ;
+        serviceAccountTTL.setTtl(serviceAccount.getTtl());
+        String svc_account_payload = getJSON(serviceAccountTTL);
+        when(JSONUtil.getJSON(Mockito.any(ServiceAccount.class))).thenReturn(svc_account_payload);
+        Response onboardResponse = getMockResponse(HttpStatus.OK, true, "{\"messages\":[\"Successfully created service account role.\"]}");
+        when(reqProcessor.process(Mockito.eq("/ad/serviceaccount/onboard"), Mockito.anyString(), Mockito.eq(token))).thenReturn(onboardResponse);
+        // for getOnboarderdServiceAccountDetails
+        Map<String,Object> rqstParams = new HashMap<>();
+
+        rqstParams.put("service_account_name",svcAccName);
+        rqstParams.put("ttl", 10);
+        rqstParams.put("last_vault_rotation", "2018-05-24T17:14:38.677370855Z");
+        rqstParams.put("password_last_set","2018-05-24T17:14:38.6038495Z");
+        Response svcAccDetailsRes = getMockResponse(HttpStatus.OK, true, getJSON(rqstParams));
+        when(reqProcessor.process("/ad/serviceaccount/details","{\"role_name\":\""+svcAccName+"\"}",token)).thenReturn(svcAccDetailsRes);
+
+        String pwdResetOutput = "{\"errors\":[\"Unable to reset password details for the given service account. Failed to read the updated password.\"]}";
+        Response pwdResetResponse = getMockResponse(HttpStatus.BAD_REQUEST, true, "");
+        when(reqProcessor.process(Mockito.eq("/ad/serviceaccount/resetpwd"),Mockito.anyString(),Mockito.eq(token))).thenReturn(pwdResetResponse);
+
+
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Unable to reset password details for the given service account. Failed to read the updated password after setting ttl to 1 second.\"]}");
+        ResponseEntity<String> responseEntity = serviceAccountsService.resetSvcAccPassword(token, svcAccName, userDetails);
+        assertEquals(HttpStatus.BAD_REQUEST, responseEntity.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntity);
+    }
+
+    @Test
+    public void test_resetSvcAccPassword_createrole_failure() {
+        UserDetails userDetails = getMockUser(true);
+        String token = userDetails.getClientToken();
+        String svcAccName = "testacc03";
+        // for createAccountRole
+        ServiceAccount serviceAccount = generateServiceAccount("testacc02","testacc01");
+        serviceAccount.setAutoRotate(true);
+        ServiceAccountTTL serviceAccountTTL = new ServiceAccountTTL();
+        serviceAccountTTL.setRole_name(serviceAccount.getName());
+        serviceAccountTTL.setService_account_name(serviceAccount.getName() + "@aaa.bbb.ccc.com") ;
+        serviceAccountTTL.setTtl(serviceAccount.getTtl());
+        String svc_account_payload = getJSON(serviceAccountTTL);
+        when(JSONUtil.getJSON(Mockito.any(ServiceAccount.class))).thenReturn(svc_account_payload);
+        Response onboardResponse = getMockResponse(HttpStatus.BAD_REQUEST, true, "");
+        when(reqProcessor.process(Mockito.eq("/ad/serviceaccount/onboard"), Mockito.anyString(), Mockito.eq(token))).thenReturn(onboardResponse);
+        // for getOnboarderdServiceAccountDetails
+        Map<String,Object> rqstParams = new HashMap<>();
+
+        rqstParams.put("service_account_name",svcAccName);
+        rqstParams.put("ttl", 10);
+        rqstParams.put("last_vault_rotation", "2018-05-24T17:14:38.677370855Z");
+        rqstParams.put("password_last_set","2018-05-24T17:14:38.6038495Z");
+        Response svcAccDetailsRes = getMockResponse(HttpStatus.OK, true, getJSON(rqstParams));
+        when(reqProcessor.process("/ad/serviceaccount/details","{\"role_name\":\""+svcAccName+"\"}",token)).thenReturn(svcAccDetailsRes);
+
+
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Unable to reset password details for the given service account\"]}");
+        ResponseEntity<String> responseEntity = serviceAccountsService.resetSvcAccPassword(token, svcAccName, userDetails);
+        assertEquals(HttpStatus.BAD_REQUEST, responseEntity.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntity);
+    }
+    @Test
+    public void test_resetSvcAccPassword_read_failure() {
+        UserDetails userDetails = getMockUser(true);
+        String token = userDetails.getClientToken();
+        String svcAccName = "testacc03";
+
+        // for createAccountRole
+        ServiceAccount serviceAccount = generateServiceAccount("testacc02","testacc01");
+        serviceAccount.setAutoRotate(true);
+        ServiceAccountTTL serviceAccountTTL = new ServiceAccountTTL();
+        serviceAccountTTL.setRole_name(serviceAccount.getName());
+        serviceAccountTTL.setService_account_name(serviceAccount.getName() + "@aaa.bbb.ccc.com") ;
+        serviceAccountTTL.setTtl(serviceAccount.getTtl());
+        String svc_account_payload = getJSON(serviceAccountTTL);
+        when(JSONUtil.getJSON(Mockito.any(ServiceAccount.class))).thenReturn(svc_account_payload);
+        Response onboardResponse = getMockResponse(HttpStatus.OK, true, "{\"messages\":[\"Successfully created service account role.\"]}");
+        when(reqProcessor.process(Mockito.eq("/ad/serviceaccount/onboard"), Mockito.anyString(), Mockito.eq(token))).thenReturn(onboardResponse);
+        //
+
+        // for getOnboarderdServiceAccountDetails
+        Map<String,Object> rqstParams = new HashMap<>();
+
+        rqstParams.put("service_account_name",svcAccName);
+        rqstParams.put("ttl", 10);
+        rqstParams.put("last_vault_rotation", "2018-05-24T17:14:38.677370855Z");
+        rqstParams.put("password_last_set","2018-05-24T17:14:38.6038495Z");
+        Response svcAccDetailsRes = getMockResponse(HttpStatus.OK, true, getJSON(rqstParams));
+
+        when(reqProcessor.process("/ad/serviceaccount/details","{\"role_name\":\""+svcAccName+"\"}",token)).thenReturn(svcAccDetailsRes);
+        // end getOnboarderdServiceAccountDetails
+
+        // System under test
+        String pwdResetOutput = "{\"errors\":[\"Unable to reset password details for the given service account. Failed to read the updated password after setting ttl to 1 second.\"]}";
+        Response pwdResetResponse = getMockResponse(HttpStatus.OK, true, pwdResetOutput);
+        when(reqProcessor.process(Mockito.eq("/ad/serviceaccount/resetpwd"),Mockito.anyString(),Mockito.eq(token))).thenReturn(pwdResetResponse);
+
+
+        String expectedOutput = "{\"errors\":[\"Unable to reset password details for the given service account. Failed to read the updated password.\"]}";
+        Response pwdReadResponse = getMockResponse(HttpStatus.BAD_REQUEST, true,"");
+        when(reqProcessor.process(Mockito.eq("/ad/serviceaccount/readpwd"),Mockito.anyString(),Mockito.eq(token))).thenReturn(pwdReadResponse);
+
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body(expectedOutput);
+        ResponseEntity<String> responseEntity = serviceAccountsService.resetSvcAccPassword(token, svcAccName, userDetails);
+        assertEquals(HttpStatus.BAD_REQUEST, responseEntity.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntity);
+    }
+    @Test
+    public void test_resetSvcAccPassword_reset_role_failure() {
+        UserDetails userDetails = getMockUser(true);
+        String token = userDetails.getClientToken();
+        String svcAccName = "testacc03";
+
+        // for createAccountRole
+        ServiceAccount serviceAccount = generateServiceAccount("testacc02","testacc01");
+        serviceAccount.setAutoRotate(true);
+        ServiceAccountTTL serviceAccountTTL = new ServiceAccountTTL();
+        serviceAccountTTL.setRole_name(serviceAccount.getName());
+        serviceAccountTTL.setService_account_name(serviceAccount.getName() + "@aaa.bbb.ccc.com") ;
+        serviceAccountTTL.setTtl(serviceAccount.getTtl());
+        String svc_account_payload = getJSON(serviceAccountTTL);
+        when(JSONUtil.getJSON(Mockito.any(ServiceAccount.class))).thenReturn(svc_account_payload);
+        Response onboardResponse = getMockResponse(HttpStatus.OK, true, "{\"messages\":[\"Successfully created service account role.\"]}");
+        when(reqProcessor.process(Mockito.eq("/ad/serviceaccount/onboard"), Mockito.anyString(), Mockito.eq(token))).thenAnswer(new Answer() {
+            private int count = 0;
+
+            public Object answer(InvocationOnMock invocation) {
+                if (count++ == 1)
+                    return getMockResponse(HttpStatus.BAD_REQUEST, false, "");
+
+                return onboardResponse;
+            }
+        });
+
+        // for getOnboarderdServiceAccountDetails
+        Map<String,Object> rqstParams = new HashMap<>();
+
+        rqstParams.put("service_account_name",svcAccName);
+        rqstParams.put("ttl", 10);
+        rqstParams.put("last_vault_rotation", "2018-05-24T17:14:38.677370855Z");
+        rqstParams.put("password_last_set","2018-05-24T17:14:38.6038495Z");
+        Response svcAccDetailsRes = getMockResponse(HttpStatus.OK, true, getJSON(rqstParams));
+
+        when(reqProcessor.process("/ad/serviceaccount/details","{\"role_name\":\""+svcAccName+"\"}",token)).thenReturn(svcAccDetailsRes);
+        // end getOnboarderdServiceAccountDetails
+
+        // System under test
+        String pwdResetOutput = "{\"errors\":[\"Unable to reset password details for the given service account. Failed to read the updated password after setting ttl to 1 second.\"]}";
+        Response pwdResetResponse = getMockResponse(HttpStatus.OK, true, pwdResetOutput);
+        when(reqProcessor.process(Mockito.eq("/ad/serviceaccount/resetpwd"),Mockito.anyString(),Mockito.eq(token))).thenReturn(pwdResetResponse);
+
+
+        String expectedOutput = "{\"errors\":[\"Unable to reset password details for the given service account. Failed to reset the service account with original ttl.\"]}";
+
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body(expectedOutput);
+        ResponseEntity<String> responseEntity = serviceAccountsService.resetSvcAccPassword(token, svcAccName, userDetails);
+        assertEquals(HttpStatus.BAD_REQUEST, responseEntity.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntity);
+    }
     @Test
     public void test_getOnboarderdServiceAccount_success() {
     	UserDetails userDetails = getMockUser(true);
