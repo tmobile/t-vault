@@ -26,6 +26,7 @@ import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import com.tmobile.cso.vault.api.common.TVaultConstants;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -114,13 +115,13 @@ public class TokenValidationFilter extends GenericFilterBean {
 			((HttpServletRequest) request).setAttribute("UserDetails", userDetails);
 		}
 		// Skip the request if requested feature is disabled
-		if (!isSelfServiceEnabled && requestUri.startsWith("/vault/v2/ss/") && userDetails!=null && !userDetails.isAdmin()) {
+		if (!isSelfServiceEnabled && requestUri.startsWith(TVaultConstants.SELFSERVICE_URI_PREFIX) && userDetails!=null && !userDetails.isAdmin()) {
 			HttpServletResponse httpResponse = (HttpServletResponse) response;
 			httpResponse.setContentType("application/json");
 			httpResponse.sendError(HttpServletResponse.SC_BAD_REQUEST, "Can't perform the required operation. Self Service feature is disabled");
 			return;
 		}
-		if (!isAdPswdRotationEnabled && (requestUri.startsWith("/vault/v2/ad") || requestUri.startsWith("/vault/v2/serviceaccounts"))) {
+		if (!isAdPswdRotationEnabled && (requestUri.startsWith(TVaultConstants.SVC_ACC_AD_URI_PREFIX) || requestUri.startsWith(TVaultConstants.SVC_ACC_URI_PREFIX))) {
 			HttpServletResponse httpResponse = (HttpServletResponse) response;
 			httpResponse.setContentType("application/json");
 			httpResponse.sendError(HttpServletResponse.SC_BAD_REQUEST, "Can't perform the required operation. Service Account feature is disabled");

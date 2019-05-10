@@ -29,6 +29,7 @@ import java.util.Map;
 
 import com.tmobile.cso.vault.api.model.*;
 import com.tmobile.cso.vault.api.utils.PolicyUtils;
+import com.tmobile.cso.vault.api.utils.TokenUtils;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.logging.log4j.LogManager;
 import org.junit.Before;
@@ -95,6 +96,9 @@ public class ServiceAccountsServiceTest {
 
     @Mock
     PolicyUtils policyUtils;
+
+    @Mock
+    TokenUtils tokenUtils;
 
 
     @Before
@@ -222,37 +226,6 @@ public class ServiceAccountsServiceTest {
         ResponseEntity<ADServiceAccountObjects> responseEntity = serviceAccountsService.getADServiceAccounts(token, userDetails, userPrincipalName, excludeOnboarded);
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
         assertEquals(0, responseEntity.getBody().getData().getValues().length);
-
-    }
-
-    @Test
-    public void test_getADServiceAccounts_excluded_success_BadRequest_Onboarded() {
-		UserDetails userDetails = getMockUser(false);
-    	String token = userDetails.getClientToken();
-    	String userPrincipalName = "test";
-    	boolean excludeOnboarded = true;
-    	String encodedFilter = "(&(userPrincipalName=test*)(objectClass=user)(!(CN=null)))";
-        List<ADServiceAccount> allServiceAccounts = generateADSerivceAccounts();
-        allServiceAccounts.add(generateADServiceAccount("testacc02"));
-        ResponseEntity<ADServiceAccountObjects> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(generateADServiceAccountObjects(allServiceAccounts));
-        List<ADUserAccount> list = new ArrayList<>();
-        ADUserAccount adUserAccount = new ADUserAccount();
-        adUserAccount.setUserId("user.user11");
-        adUserAccount.setUserName("user11");
-        adUserAccount.setDisplayName("user user11");
-        adUserAccount.setGivenName("user11");
-        adUserAccount.setUserEmail("user11@abc.com");
-        list.add(adUserAccount);
-        ReflectionTestUtils.setField(serviceAccountsService, "ldapTemplate", ldapTemplate);
-        when(ldapTemplate.search(Mockito.anyString(), Mockito.anyString(), Mockito.any(AttributesMapper.class))).thenReturn(list);
-        ReflectionTestUtils.setField(serviceAccountsService, "adUserLdapTemplate", ldapTemplate);
-        when(ldapTemplate.search(Mockito.anyString(), Mockito.eq(encodedFilter), Mockito.any(AttributesMapper.class))).thenReturn(allServiceAccounts);
-        String expectedMsg = "{\"errors\":[\"TO BE IMPLEMENTED for non admin user\"]}";
-        Response response = getMockResponse(HttpStatus.BAD_REQUEST, true, expectedMsg);
-        when(reqProcessor.process("/ad/serviceaccount/onboardedlist","{}",token)).thenReturn(response);
-        ResponseEntity<ADServiceAccountObjects> responseEntity = serviceAccountsService.getADServiceAccounts(token, userDetails, userPrincipalName, excludeOnboarded);
-        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
-        assertEquals(2, responseEntity.getBody().getData().getValues().length);
 
     }
 
@@ -464,7 +437,7 @@ public class ServiceAccountsServiceTest {
         serviceAccount.setName("testacc02");
         serviceAccount.setAutoRotate(true);
         serviceAccount.setOwner("testacc01");
-        String expectedResponse = "{\"errors\":[\"Invalid value provided for TTL or MAX_TTL\"]}";
+        String expectedResponse = "{\"errors\":[\"Invalid or no value has been provided for TTL or MAX_TTL\"]}";
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body(expectedResponse);
         Response response = getMockResponse(HttpStatus.OK, true, "{\"keys\":[\"testacc03\"]}");
         when(reqProcessor.process("/ad/serviceaccount/onboardedlist","{}",token)).thenReturn(response);
@@ -1078,6 +1051,7 @@ public class ServiceAccountsServiceTest {
         when(ControllerUtil.configureUserpassUser(eq("testacc01"),any(),eq(token))).thenReturn(ldapConfigureResponse);
         // System under test
     	String expectedResponse = "{\"errors\":[\"Not authorized to perform\"]}";
+        when(tokenUtils.getSelfServiceToken()).thenReturn(token);
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body(expectedResponse);
         ResponseEntity<String> responseEntity = serviceAccountsService.addUserToServiceAccount(token, serviceAccountUser, userDetails);
         assertEquals(HttpStatus.BAD_REQUEST, responseEntity.getStatusCode());
@@ -1176,6 +1150,7 @@ public class ServiceAccountsServiceTest {
         } catch (IOException e) {
             e.printStackTrace();
         }
+        when(tokenUtils.getSelfServiceToken()).thenReturn(token);
         // System under test
     	String expectedResponse = "{\"errors\":[\"Not authorized to perform\"]}";
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body(expectedResponse);
@@ -1192,6 +1167,7 @@ public class ServiceAccountsServiceTest {
         // System under test
         String expectedResponse = "{\"errors\":[\"Invalid value specified for access. Valid values are read, reset, deny\"]}";
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body(expectedResponse);
+        when(tokenUtils.getSelfServiceToken()).thenReturn(token);
         ResponseEntity<String> responseEntity = serviceAccountsService.removeUserFromServiceAccount(token, serviceAccountUser, userDetails);
         assertEquals(HttpStatus.BAD_REQUEST, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
@@ -1350,15 +1326,14 @@ public class ServiceAccountsServiceTest {
     public void test_getOnboardedServiceAccounts_nonadmin_notfound() {
     	UserDetails userDetails = getMockUser(false);
     	String token = userDetails.getClientToken();
-    	// Bevavior setup
-    	String expectedOutput = "{\"errors\":[\"TO BE IMPLEMENTED for non admin user\"]}";
-    	Response onboardedSvsAccsResponse = getMockResponse(HttpStatus.NOT_FOUND, true, expectedOutput);
-    	when(reqProcessor.process("/ad/serviceaccount/onboardedlist","{}",token)).thenReturn(onboardedSvsAccsResponse);
-
+        String expectedOutput = "{\"keys\":[\"acc1\",\"acc2\"]}";
+        String[] latestPolicies = {"o_svcacc_acc1", "o_svcacc_acc2"};
+        when(JSONUtil.getJSON(Mockito.any(List.class))).thenReturn("[\"acc1\",\"acc2\"]");
+        when(policyUtils.getCurrentPolicies(userDetails.getSelfSupportToken(), userDetails.getUsername())).thenReturn(latestPolicies);
     	// System under test
-    	ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body(expectedOutput);
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(expectedOutput);
     	ResponseEntity<String> responseEntity = serviceAccountsService.getOnboardedServiceAccounts(token, userDetails);
-    	assertEquals(HttpStatus.BAD_REQUEST, responseEntity.getStatusCode());
+        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
     	assertEquals(responseEntityExpected, responseEntity);
 
     }
@@ -1388,7 +1363,7 @@ public class ServiceAccountsServiceTest {
         }
         when(ControllerUtil.configureLDAPGroup(any(),any(),any())).thenReturn(responseNoContent);
         when(ControllerUtil.updateMetadata(any(),eq(token))).thenReturn(responseNoContent);
-
+        when(tokenUtils.getSelfServiceToken()).thenReturn(token);
         ResponseEntity<String> responseEntity = serviceAccountsService.addGroupToServiceAccount(token, serviceAccountGroup, userDetails);
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
@@ -1420,7 +1395,7 @@ public class ServiceAccountsServiceTest {
         }
         when(ControllerUtil.configureLDAPGroup(any(),any(),any())).thenReturn(responseNoContent);
         when(ControllerUtil.updateMetadata(any(),eq(token))).thenReturn(response404);
-
+        when(tokenUtils.getSelfServiceToken()).thenReturn(token);
         ResponseEntity<String> responseEntity = serviceAccountsService.addGroupToServiceAccount(token, serviceAccountGroup, userDetails);
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
@@ -1478,7 +1453,7 @@ public class ServiceAccountsServiceTest {
             e.printStackTrace();
         }
         when(ControllerUtil.configureLDAPGroup(any(),any(),any())).thenReturn(response404);
-
+        when(tokenUtils.getSelfServiceToken()).thenReturn(token);
         ResponseEntity<String> responseEntity = serviceAccountsService.addGroupToServiceAccount(token, serviceAccountGroup, userDetails);
         assertEquals(HttpStatus.BAD_REQUEST, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
@@ -1511,7 +1486,7 @@ public class ServiceAccountsServiceTest {
         }
         when(ControllerUtil.configureLDAPGroup(any(),any(),any())).thenReturn(responseNoContent);
         when(ControllerUtil.updateMetadata(any(),eq(token))).thenReturn(responseNoContent);
-
+        when(tokenUtils.getSelfServiceToken()).thenReturn(token);
         ResponseEntity<String> responseEntity = serviceAccountsService.removeGroupFromServiceAccount(token, serviceAccountGroup, userDetails);
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
@@ -1544,7 +1519,7 @@ public class ServiceAccountsServiceTest {
         }
         when(ControllerUtil.configureLDAPGroup(any(),any(),any())).thenReturn(responseNoContent);
         when(ControllerUtil.updateMetadata(any(),eq(token))).thenReturn(response404);
-
+        when(tokenUtils.getSelfServiceToken()).thenReturn(token);
         ResponseEntity<String> responseEntity = serviceAccountsService.removeGroupFromServiceAccount(token, serviceAccountGroup, userDetails);
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
@@ -1602,7 +1577,7 @@ public class ServiceAccountsServiceTest {
             e.printStackTrace();
         }
         when(ControllerUtil.configureLDAPGroup(any(),any(),any())).thenReturn(response404);
-
+        when(tokenUtils.getSelfServiceToken()).thenReturn(token);
         ResponseEntity<String> responseEntity = serviceAccountsService.removeGroupFromServiceAccount(token, serviceAccountGroup, userDetails);
         assertEquals(HttpStatus.BAD_REQUEST, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
@@ -1625,7 +1600,7 @@ public class ServiceAccountsServiceTest {
         Response updateMetadataResponse = getMockResponse(HttpStatus.NO_CONTENT, true, "");
         when(ControllerUtil.updateMetadata(Mockito.anyMap(),Mockito.anyString())).thenReturn(updateMetadataResponse);
 
-
+        when(tokenUtils.getSelfServiceToken()).thenReturn(token);
         ResponseEntity<String> responseEntityActual =  serviceAccountsService.associateApproletoSvcAcc(userDetails, token, serviceAccountApprole);
 
         assertEquals(HttpStatus.OK, responseEntityActual.getStatusCode());
@@ -1640,7 +1615,7 @@ public class ServiceAccountsServiceTest {
         String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
         UserDetails userDetails = getMockUser(false);
         ServiceAccountApprole serviceAccountApprole = new ServiceAccountApprole("testsvcname", "role1", "writes");
-
+        when(tokenUtils.getSelfServiceToken()).thenReturn(token);
         ResponseEntity<String> responseEntityActual =  serviceAccountsService.associateApproletoSvcAcc(userDetails, token, serviceAccountApprole);
 
         assertEquals(HttpStatus.BAD_REQUEST, responseEntityActual.getStatusCode());
@@ -1655,7 +1630,7 @@ public class ServiceAccountsServiceTest {
         String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
         UserDetails userDetails = getMockUser(false);
         ServiceAccountApprole serviceAccountApprole = new ServiceAccountApprole("testsvcname", "selfservicesupportrole", "write");
-
+        when(tokenUtils.getSelfServiceToken()).thenReturn(token);
         ResponseEntity<String> responseEntityActual =  serviceAccountsService.associateApproletoSvcAcc(userDetails, token, serviceAccountApprole);
 
         assertEquals(HttpStatus.BAD_REQUEST, responseEntityActual.getStatusCode());
@@ -1677,6 +1652,7 @@ public class ServiceAccountsServiceTest {
         when(reqProcessor.process("/auth/approle/role/read","{\"role_name\":\"role1\"}",token)).thenReturn(appRoleResponse);
         Response configureAppRoleResponse = getMockResponse(HttpStatus.NOT_FOUND, true, "");
         when(appRoleService.configureApprole(Mockito.anyString(), Mockito.anyString(), Mockito.anyString())).thenReturn(configureAppRoleResponse);
+        when(tokenUtils.getSelfServiceToken()).thenReturn(token);
         ResponseEntity<String> responseEntityActual =  serviceAccountsService.associateApproletoSvcAcc(userDetails, token, serviceAccountApprole);
 
         assertEquals(HttpStatus.BAD_REQUEST, responseEntityActual.getStatusCode());
@@ -1694,7 +1670,7 @@ public class ServiceAccountsServiceTest {
 
         String [] policies = {"r_svcacct_testsvcname"};
         when(policyUtils.getCurrentPolicies(token, userDetails.getUsername())).thenReturn(policies);
-
+        when(tokenUtils.getSelfServiceToken()).thenReturn(token);
         ResponseEntity<String> responseEntityActual =  serviceAccountsService.associateApproletoSvcAcc(userDetails, token, serviceAccountApprole);
 
         assertEquals(HttpStatus.BAD_REQUEST, responseEntityActual.getStatusCode());
@@ -1719,7 +1695,7 @@ public class ServiceAccountsServiceTest {
         Response updateMetadataResponse = getMockResponse(HttpStatus.NOT_FOUND, true, "");
         when(ControllerUtil.updateMetadata(Mockito.anyMap(),Mockito.anyString())).thenReturn(updateMetadataResponse);
 
-
+        when(tokenUtils.getSelfServiceToken()).thenReturn(token);
         ResponseEntity<String> responseEntityActual =  serviceAccountsService.associateApproletoSvcAcc(userDetails, token, serviceAccountApprole);
 
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, responseEntityActual.getStatusCode());
@@ -1755,7 +1731,7 @@ public class ServiceAccountsServiceTest {
         Response updateMetadataResponse = getMockResponse(HttpStatus.NOT_FOUND, true, "");
         when(ControllerUtil.updateMetadata(Mockito.anyMap(),Mockito.anyString())).thenReturn(updateMetadataResponse);
 
-
+        when(tokenUtils.getSelfServiceToken()).thenReturn(token);
         ResponseEntity<String> responseEntityActual =  serviceAccountsService.associateApproletoSvcAcc(userDetails, token, serviceAccountApprole);
 
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, responseEntityActual.getStatusCode());
@@ -1780,7 +1756,7 @@ public class ServiceAccountsServiceTest {
         Response updateMetadataResponse = getMockResponse(HttpStatus.NO_CONTENT, true, "");
         when(ControllerUtil.updateMetadata(Mockito.anyMap(),Mockito.anyString())).thenReturn(updateMetadataResponse);
 
-
+        when(tokenUtils.getSelfServiceToken()).thenReturn(token);
         ResponseEntity<String> responseEntityActual =  serviceAccountsService.removeApproleFromSvcAcc(userDetails, token, serviceAccountApprole);
 
         assertEquals(HttpStatus.OK, responseEntityActual.getStatusCode());
@@ -1799,6 +1775,7 @@ public class ServiceAccountsServiceTest {
         when(policyUtils.getCurrentPolicies(token, userDetails.getUsername())).thenReturn(policies);
         Response appRoleResponse = getMockResponse(HttpStatus.OK, true, "{\"data\": {\"policies\":\"w_shared_mysafe01\"}}");
         when(reqProcessor.process("/auth/approle/role/read","{\"role_name\":\"role1\"}",token)).thenReturn(appRoleResponse);
+        when(tokenUtils.getSelfServiceToken()).thenReturn(token);
         ResponseEntity<String> responseEntityActual =  serviceAccountsService.removeApproleFromSvcAcc(userDetails, token, serviceAccountApprole);
 
         assertEquals(HttpStatus.UNPROCESSABLE_ENTITY, responseEntityActual.getStatusCode());
@@ -1823,7 +1800,7 @@ public class ServiceAccountsServiceTest {
         Response updateMetadataResponse = getMockResponse(HttpStatus.NOT_FOUND, true, "");
         when(ControllerUtil.updateMetadata(Mockito.anyMap(),Mockito.anyString())).thenReturn(updateMetadataResponse);
 
-
+        when(tokenUtils.getSelfServiceToken()).thenReturn(token);
         ResponseEntity<String> responseEntityActual =  serviceAccountsService.removeApproleFromSvcAcc(userDetails, token, serviceAccountApprole);
 
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, responseEntityActual.getStatusCode());
@@ -1859,7 +1836,7 @@ public class ServiceAccountsServiceTest {
         Response updateMetadataResponse = getMockResponse(HttpStatus.NOT_FOUND, true, "");
         when(ControllerUtil.updateMetadata(Mockito.anyMap(),Mockito.anyString())).thenReturn(updateMetadataResponse);
 
-
+        when(tokenUtils.getSelfServiceToken()).thenReturn(token);
         ResponseEntity<String> responseEntityActual =  serviceAccountsService.removeApproleFromSvcAcc(userDetails, token, serviceAccountApprole);
 
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, responseEntityActual.getStatusCode());
@@ -1874,6 +1851,7 @@ public class ServiceAccountsServiceTest {
         String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
         UserDetails userDetails = getMockUser(false);
         ServiceAccountApprole serviceAccountApprole = new ServiceAccountApprole("testsvcname", "role1", "write");
+        when(tokenUtils.getSelfServiceToken()).thenReturn(token);
         ResponseEntity<String> responseEntityActual =  serviceAccountsService.removeApproleFromSvcAcc(userDetails, token, serviceAccountApprole);
 
         assertEquals(HttpStatus.BAD_REQUEST, responseEntityActual.getStatusCode());
@@ -1894,6 +1872,7 @@ public class ServiceAccountsServiceTest {
         when(appRoleService.configureApprole(Mockito.anyString(), Mockito.anyString(), Mockito.anyString())).thenReturn(configureAppRoleResponse_404);
         Response appRoleResponse = getMockResponse(HttpStatus.OK, true, "{\"data\": {\"policies\":\"w_shared_mysafe01\"}}");
         when(reqProcessor.process("/auth/approle/role/read","{\"role_name\":\"role1\"}",token)).thenReturn(appRoleResponse);
+        when(tokenUtils.getSelfServiceToken()).thenReturn(token);
         ResponseEntity<String> responseEntityActual =  serviceAccountsService.removeApproleFromSvcAcc(userDetails, token, serviceAccountApprole);
 
         assertEquals(HttpStatus.BAD_REQUEST, responseEntityActual.getStatusCode());
@@ -1954,7 +1933,7 @@ public class ServiceAccountsServiceTest {
         Response updateMetadataResponse = getMockResponse(HttpStatus.NO_CONTENT, true, "");
         when(ControllerUtil.updateMetadata(Mockito.anyMap(),Mockito.anyString())).thenReturn(updateMetadataResponse);
 
-
+        when(tokenUtils.getSelfServiceToken()).thenReturn(token);
         ResponseEntity<String> responseEntityActual =  serviceAccountsService.addAwsRoleToSvcacc(userDetails, token, serviceAccountAWSRole);
 
         assertEquals(HttpStatus.OK, responseEntityActual.getStatusCode());
@@ -1983,7 +1962,7 @@ public class ServiceAccountsServiceTest {
         Response updateMetadataResponse = getMockResponse(HttpStatus.NO_CONTENT, true, "");
         when(ControllerUtil.updateMetadata(Mockito.anyMap(),Mockito.anyString())).thenReturn(updateMetadataResponse);
 
-
+        when(tokenUtils.getSelfServiceToken()).thenReturn(token);
         ResponseEntity<String> responseEntityActual =  serviceAccountsService.addAwsRoleToSvcacc(userDetails, token, serviceAccountAWSRole);
 
         assertEquals(HttpStatus.OK, responseEntityActual.getStatusCode());
@@ -2012,7 +1991,7 @@ public class ServiceAccountsServiceTest {
         Response updateMetadataResponse = getMockResponse(HttpStatus.BAD_REQUEST, true, "");
         when(ControllerUtil.updateMetadata(Mockito.anyMap(),Mockito.anyString())).thenReturn(updateMetadataResponse);
 
-
+        when(tokenUtils.getSelfServiceToken()).thenReturn(token);
         ResponseEntity<String> responseEntityActual =  serviceAccountsService.addAwsRoleToSvcacc(userDetails, token, serviceAccountAWSRole);
 
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, responseEntityActual.getStatusCode());
@@ -2041,7 +2020,7 @@ public class ServiceAccountsServiceTest {
         Response updateMetadataResponse = getMockResponse(HttpStatus.BAD_REQUEST, true, "");
         when(ControllerUtil.updateMetadata(Mockito.anyMap(),Mockito.anyString())).thenReturn(updateMetadataResponse);
 
-
+        when(tokenUtils.getSelfServiceToken()).thenReturn(token);
         ResponseEntity<String> responseEntityActual =  serviceAccountsService.addAwsRoleToSvcacc(userDetails, token, serviceAccountAWSRole);
 
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, responseEntityActual.getStatusCode());
@@ -2067,7 +2046,7 @@ public class ServiceAccountsServiceTest {
         when(reqProcessor.process("/auth/aws/roles","{\"role\":\"role1\"}",token)).thenReturn(awsRoleResponse);
         Response configureAWSRoleResponse = getMockResponse(HttpStatus.BAD_REQUEST, true, "");
         when(awsiamAuthService.configureAWSIAMRole(Mockito.anyString(), Mockito.anyString(), Mockito.anyString())).thenReturn(configureAWSRoleResponse);
-
+        when(tokenUtils.getSelfServiceToken()).thenReturn(token);
         ResponseEntity<String> responseEntityActual =  serviceAccountsService.addAwsRoleToSvcacc(userDetails, token, serviceAccountAWSRole);
 
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, responseEntityActual.getStatusCode());
@@ -2082,7 +2061,7 @@ public class ServiceAccountsServiceTest {
         String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
         UserDetails userDetails = getMockUser(false);
         ServiceAccountAWSRole serviceAccountAWSRole = new ServiceAccountAWSRole("testsvcname", "role1", "write");
-
+        when(tokenUtils.getSelfServiceToken()).thenReturn(token);
         ResponseEntity<String> responseEntityActual =  serviceAccountsService.addAwsRoleToSvcacc(userDetails, token, serviceAccountAWSRole);
 
         assertEquals(HttpStatus.BAD_REQUEST, responseEntityActual.getStatusCode());
@@ -2110,7 +2089,7 @@ public class ServiceAccountsServiceTest {
         when(awsiamAuthService.configureAWSIAMRole(Mockito.anyString(), Mockito.anyString(), Mockito.anyString())).thenReturn(configureAWSRoleResponse);
         Response updateMetadataResponse = getMockResponse(HttpStatus.NO_CONTENT, true, "");
         when(ControllerUtil.updateMetadata(Mockito.anyMap(),Mockito.anyString())).thenReturn(updateMetadataResponse);
-
+        when(tokenUtils.getSelfServiceToken()).thenReturn(token);
 
         ResponseEntity<String> responseEntityActual =  serviceAccountsService.removeAWSRoleFromSvcacc(userDetails, token, serviceAccountAWSRole);
 
@@ -2139,7 +2118,7 @@ public class ServiceAccountsServiceTest {
         when(awsAuthService.configureAWSRole(Mockito.anyString(), Mockito.anyString(), Mockito.anyString())).thenReturn(configureAWSRoleResponse);
         Response updateMetadataResponse = getMockResponse(HttpStatus.NO_CONTENT, true, "");
         when(ControllerUtil.updateMetadata(Mockito.anyMap(),Mockito.anyString())).thenReturn(updateMetadataResponse);
-
+        when(tokenUtils.getSelfServiceToken()).thenReturn(token);
 
         ResponseEntity<String> responseEntityActual =  serviceAccountsService.removeAWSRoleFromSvcacc(userDetails, token, serviceAccountAWSRole);
 
@@ -2169,7 +2148,7 @@ public class ServiceAccountsServiceTest {
         Response updateMetadataResponse = getMockResponse(HttpStatus.BAD_REQUEST, true, "");
         when(ControllerUtil.updateMetadata(Mockito.anyMap(),Mockito.anyString())).thenReturn(updateMetadataResponse);
 
-
+        when(tokenUtils.getSelfServiceToken()).thenReturn(token);
         ResponseEntity<String> responseEntityActual =  serviceAccountsService.removeAWSRoleFromSvcacc(userDetails, token, serviceAccountAWSRole);
 
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, responseEntityActual.getStatusCode());
@@ -2194,7 +2173,7 @@ public class ServiceAccountsServiceTest {
         when(reqProcessor.process("/auth/aws/roles","{\"role\":\"role1\"}",token)).thenReturn(awsRoleResponse);
         Response configureAWSRoleResponse = getMockResponse(HttpStatus.BAD_REQUEST, true, "");
         when(awsAuthService.configureAWSRole(Mockito.anyString(), Mockito.anyString(), Mockito.anyString())).thenReturn(configureAWSRoleResponse);
-
+        when(tokenUtils.getSelfServiceToken()).thenReturn(token);
         ResponseEntity<String> responseEntityActual =  serviceAccountsService.removeAWSRoleFromSvcacc(userDetails, token, serviceAccountAWSRole);
 
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, responseEntityActual.getStatusCode());
@@ -2208,7 +2187,7 @@ public class ServiceAccountsServiceTest {
         String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
         UserDetails userDetails = getMockUser(false);
         ServiceAccountAWSRole serviceAccountAWSRole = new ServiceAccountAWSRole("testsvcname", "role1", "writes");
-
+        when(tokenUtils.getSelfServiceToken()).thenReturn(token);
         ResponseEntity<String> responseEntityActual =  serviceAccountsService.removeAWSRoleFromSvcacc(userDetails, token, serviceAccountAWSRole);
 
         assertEquals(HttpStatus.BAD_REQUEST, responseEntityActual.getStatusCode());
@@ -2226,6 +2205,7 @@ public class ServiceAccountsServiceTest {
                 "arn:aws:iam::8987887:role/test-role", "arn:aws:iam::877677878:instance-profile/exampleinstanceprofile",
                 "\"[prod, dev\"]");
         when(awsAuthService.createRole(token, awsLoginRole, userDetails)).thenReturn(responseEntityExpected);
+        when(tokenUtils.getSelfServiceToken()).thenReturn(token);
         ResponseEntity<String> responseEntityActual =  serviceAccountsService.createAWSRole(userDetails, token, awsLoginRole);
 
         assertEquals(HttpStatus.OK, responseEntityActual.getStatusCode());
@@ -2247,6 +2227,7 @@ public class ServiceAccountsServiceTest {
         awsiamRole.setResolve_aws_unique_ids(true);
         awsiamRole.setRole("string");
         when(awsiamAuthService.createIAMRole(awsiamRole, token, userDetails)).thenReturn(responseEntityExpected);
+        when(tokenUtils.getSelfServiceToken()).thenReturn(token);
         ResponseEntity<String> responseEntityActual =  serviceAccountsService.createIAMRole(userDetails, token, awsiamRole);
 
         assertEquals(HttpStatus.OK, responseEntityActual.getStatusCode());
@@ -2315,7 +2296,7 @@ public class ServiceAccountsServiceTest {
     @Test
     public void test_updateOnboardedServiceAccount_failure_invalid_ttl_or_maxttl() throws Exception {
 
-        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid value provided for TTL or MAX_TTL\"]}");
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid or no value has been provided for TTL or MAX_TTL\"]}");
         String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
         UserDetails userDetails = getMockUser(true);
         ServiceAccount serviceAccount = new ServiceAccount();

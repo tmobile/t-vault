@@ -106,7 +106,15 @@
         var init = function () {
             $scope.enableSvcacc = true;
             $scope.enableSelfService = true;
-            $scope.selectedIndex = 0; 
+            $scope.selectedIndex = 0;
+            if ($state.current.name == "manage" && JSON.parse(SessionStore.getItem("isAdmin")) == true) {
+                $state.go('admin');
+                return;
+            }
+            if ($state.current.name == "admin" &&  JSON.parse(SessionStore.getItem("isAdmin")) == false) {
+                $state.go('manage');
+                return;
+            }
             if ($rootScope.lastVisited == "change-service-account") {
                 $scope.selectedIndex = 2; 
             }
@@ -123,6 +131,10 @@
                     $scope.enableSelfService = false;
                 }
                 $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
+                if ($scope.enableSvcacc == false && $scope.enableSelfService == false && JSON.parse(SessionStore.getItem("isAdmin")) == false) {
+                    $state.go('safes');
+                    return;
+                }
                 $scope.requestDataFrAdmin();
             }
         };
@@ -167,7 +179,9 @@
                 obj.push(newobj);
                 $scope.tilesData.SafesData = obj;
                 if($scope.tilesData.SafesData.length === 3){
-                    $scope.isLoadingData = false;
+                    if ($scope.enableSvcacc == false) {
+                        $scope.isLoadingData = false;
+                    }
                     $scope.data = $scope.tilesData.SafesData;
                     $scope.massageData($scope.data);
                 }
@@ -175,7 +189,9 @@
 
                 // To handle errors while massaging data
                 console.log(e);
-                $rootScope.isLoadingData = false;
+                if ($scope.enableSvcacc == false) {
+                    $rootScope.isLoadingData = false;
+                }
                 $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_PROCESSING_DATA');
                 $scope.error('md');
 
@@ -345,78 +361,85 @@
         // Fetching Data
 
         $scope.requestDataFrAdmin = function () {
+            if ($scope.enableSelfService == true || JSON.parse(SessionStore.getItem("isAdmin")) == true) {
+                var vaultTypes = ["apps","shared","users"];
 
-            var vaultTypes = ["apps","shared","users"];
+                var responseArray = [];
+                var allSafes = [];
+                vaultTypes.forEach(function(currentVaultType) {
+                    try{
 
-            var responseArray = [];
-            var allSafes = [];
-            vaultTypes.forEach(function(currentVaultType) {
-                try{
-
-                    var queryParameters = "path="+currentVaultType;
-                    var updatedUrlOfEndPoint = ModifyUrl.addUrlParameteres('safesList',queryParameters);
-                    $scope.isLoadingData = true;
-                    AdminSafesManagement.getCompleteSafesList(null,updatedUrlOfEndPoint).then(                        
-                        function(response) {
-                            if(UtilityService.ifAPIRequestSuccessful(response)){ 
-                                $scope.isLoadingData = false;
-                                // Try-Catch block to catch errors if there is any change in object structure in the response
-                                try {
-                                    allSafes = allSafes.concat(response.data.keys);
-                                    SessionStore.setItem('allSafes', JSON.stringify(allSafes));
-                                    $scope.massageDataForTiles(response.data,currentVaultType);
+                        var queryParameters = "path="+currentVaultType;
+                        var updatedUrlOfEndPoint = ModifyUrl.addUrlParameteres('safesList',queryParameters);
+                        $scope.isLoadingData = true;
+                        AdminSafesManagement.getCompleteSafesList(null,updatedUrlOfEndPoint).then(
+                            function(response) {
+                                if(UtilityService.ifAPIRequestSuccessful(response)){
+                                    if ($scope.enableSvcacc == false) {
+                                        $scope.isLoadingData = false;
+                                    }
+                                    // Try-Catch block to catch errors if there is any change in object structure in the response
+                                    try {
+                                        allSafes = allSafes.concat(response.data.keys);
+                                        SessionStore.setItem('allSafes', JSON.stringify(allSafes));
+                                        $scope.massageDataForTiles(response.data,currentVaultType);
+                                    }
+                                    catch(e) {
+                                        console.log(e);
+                                        $scope.error('md');
+                                    }
                                 }
-                                catch(e) {
-                                    console.log(e);
+                                else {
+                                    $scope.errorMessage = AdminSafesManagement.getTheRightErrorMessage(response);
                                     $scope.error('md');
                                 }
-                            }
-                            else {
-                                $scope.errorMessage = AdminSafesManagement.getTheRightErrorMessage(response);
-                                $scope.error('md');
-                            }                             
-                        }, 
-                        function(error) {
-                            // Error handling function
-                            if(error.status !== 404) {
-                                $scope.isLoadingData = false;
-                                $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
-                                $scope.error('md');
-                            }   
-                            else {
-                                $scope.massageDataForTiles([], currentVaultType);
-                            }
-                    })
-                } catch(e) {
-                    // To handle errors while calling 'fetchData' function
+                            }, 
+                            function(error) {
+                                // Error handling function
+                                if(error.status !== 404) {
+                                    if ($scope.enableSvcacc == false) {
+                                        $scope.isLoadingData = false;
+                                    }
+                                    $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
+                                    $scope.error('md');
+                                }
+                                else {
+                                    $scope.massageDataForTiles([], currentVaultType);
+                                }
+                        })
+                    } catch(e) {
+                        // To handle errors while calling 'fetchData' function
+                        if ($scope.enableSvcacc == false) {
+                            $scope.isLoadingData = false;
+                        }
+                        $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
+                        $scope.error('md');
+
+                    }
+                });
+                $scope.appRoleData = {"keys": []};
+                AdminSafesManagement.getApproles().then(function (response) {
+                    if (UtilityService.ifAPIRequestSuccessful(response)) {
+                        $scope.appRoleData = response.data;
+                    }
+                    else {
+                        $scope.errorMessage = AdminSafesManagement.getTheRightErrorMessage(response);
+                        error('md');
+                    }
+                },
+                function (error) {
+                    // Error handling function
+                    console.log(error);
                     $scope.isLoadingData = false;
                     $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
                     $scope.error('md');
-
-                }
-            });
-            $scope.appRoleData = {"keys": []};
-            AdminSafesManagement.getApproles().then(function (response) {                
-                if (UtilityService.ifAPIRequestSuccessful(response)) {
-                    $scope.appRoleData = response.data;
-                }
-                else {
-                    $scope.errorMessage = AdminSafesManagement.getTheRightErrorMessage(response);
-                    error('md');
-                }
-            },
-            function (error) {
-                // Error handling function
-                console.log(error);
-                $scope.isLoadingData = false;
-                $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
-                $scope.error('md');
-            });
+                });
+            }
             if ($scope.enableSvcacc == true) {
                 $scope.numOfSvcaccs = 0;
                 $scope.svcaccOnboardedData = {"keys": []};
                 $scope.isLoadingData = true;
-                AdminSafesManagement.getOnboardedServiceAccounts().then(function (response) {                
+                AdminSafesManagement.getOnboardedServiceAccounts().then(function (response) {
                     if (UtilityService.ifAPIRequestSuccessful(response)) {
                         $scope.isLoadingData = false;
                         $scope.svcaccOnboardedData = response.data;

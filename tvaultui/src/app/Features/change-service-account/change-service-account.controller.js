@@ -453,7 +453,7 @@
                             }
                             else {
                                 $scope.errorMessage = AdminSafesManagement.getTheRightErrorMessage(response);
-                                error('md');
+                                $scope.error('md');
                             }
                         },
                         function (error) {
@@ -514,7 +514,7 @@
                             }
                             else {
                                 $scope.errorMessage = AdminSafesManagement.getTheRightErrorMessage(response);
-                                error('md');
+                                $scope.error('md');
                             }
                         },
                         function (error) {
@@ -589,7 +589,7 @@
                     else {
                         $scope.isLoadingData = false;
                         $scope.errorMessage = AdminSafesManagement.getTheRightErrorMessage(response);
-                        error('md');
+                        $scope.error('md');
                     }
                 },
                 function (error) {
@@ -648,7 +648,7 @@
                         else {
                             $scope.isLoadingData = false;
                             $scope.errorMessage = AdminSafesManagement.getTheRightErrorMessage(response);
-                            error('md');
+                            $scope.error('md');
                         }
                     },
                     function (error) {
@@ -715,7 +715,7 @@
                     }
                     else {
                         $scope.errorMessage = AdminSafesManagement.getTheRightErrorMessage(response);
-                        error('md');
+                        $scope.error('md');
                     }
                 },
                 function (error) {
@@ -818,7 +818,7 @@
                                 }
                                 else {
                                     $scope.errorMessage = AdminSafesManagement.getTheRightErrorMessage(response);
-                                    error('md');
+                                    $scope.error('md');
                                 }
                             },
                             function (error) {
@@ -830,7 +830,7 @@
                     }
                     else {
                         $scope.errorMessage = AdminSafesManagement.getTheRightErrorMessage(response);
-                        error('md');
+                        $scope.error('md');
                     }
             },
             function (error) {
@@ -1145,7 +1145,7 @@
                             }
                             else {
                                 $scope.errorMessage = AdminSafesManagement.getTheRightErrorMessage(response);
-                                error('md');
+                                $scope.error('md');
                             }
                             $scope.roleNameSelected = false;
                         },
@@ -1211,7 +1211,7 @@
                 }
                 else {
                     $scope.errorMessage = AdminSafesManagement.getTheRightErrorMessage(response);
-                    error('md');
+                    $scope.error('md');
                 }
             },
             function (error) {

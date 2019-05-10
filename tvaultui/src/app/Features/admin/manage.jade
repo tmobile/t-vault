@@ -141,13 +141,13 @@ script(type='text/ng-template', id='manageSecretId.html')
             .common-form.modal-inner-wrapper.aws
               .common-form-row
                 .details-input-group
-                    div.approle-management-content
-                        .row.change-approle.header(ng-show="!isLoadingData")
+                    div.data-management-content
+                        .row.change-data.header(ng-show="!isLoadingData")
                             .container.name Accessor IDs
-                        .change-approle-table-data.row
-                            .row.change-approle.item(ng-show="!isLoadingData && appRoleData.accessors.keys.length==0")
+                        .change-list-table-data.row
+                            .row.change-data.item(ng-show="!isLoadingData && appRoleData.accessors.keys.length==0")
                                 .container.name No Secret Ids available
-                            .row.change-approle.item(ng-show="!isLoadingData"  ng-repeat="accessorvalue in appRoleData.accessors.keys")      
+                            .row.change-data.item(ng-show="!isLoadingData"  ng-repeat="accessorvalue in appRoleData.accessors.keys")
                                 .container.name.col-lg-10.col-md-10.col-sm-10.col-xs-10 {{accessorvalue}}                                    
                                 .container.name.col-lg-2.col-md-2.col-sm-2.col-xs-2
                                     input(type='checkbox' value="{{accessorvalue}}" ng-click="chooseAccessor(accessorvalue)") 
@@ -236,10 +236,10 @@ script(type='text/ng-template', id='manageSecretId.html')
                                                 .unavailable-text(ng-show="!isLoadingData && svcaccOnboardedData.keys.length==0")
                                                     .container.name No Service Accounts Available
                                                 .row.change-data.item(ng-show="!isLoadingData" ng-class="{'grayBackground' : activeItem == true}" ng-repeat="value in svcaccOnboardedData.keys | filter:searchValue | limitTo: paginationLimit()")
-                                                    .container.name.cell.col-lg-4.col-md-4.col-sm-4.col-xs-4(title="{{value.name}}") {{value.name}}
-                                                    .container.radio-inputs.col-lg-6.col-md-6.col-sm-6.col-xs-6
+                                                    .container.name.cell.col-lg-4.col-md-4.col-sm-4.col-xs-4(title="{{value}}") {{value}}
+                                                    .container.radio-inputs.cell.col-lg-6.col-md-6.col-sm-6.col-xs-6
                                                         .down.view
-                                                            .list-icon(ng-click = "editOnboardedSvcacc(value.name, 'md')")  View/Edit
+                                                            .list-icon(ng-click = "editOnboardedSvcacc(value, 'md')")  View/Edit
                                             .pagination-wrapper(ng-show='hasMoreItemsToShow()')
                                                 .pagination-count(ng-if="numOfSvcaccs>0") Displaying {{currentshown}} of {{numOfSvcaccs}}
                                                 .pagination-button-wrapper(ng-click='showMoreItems()')

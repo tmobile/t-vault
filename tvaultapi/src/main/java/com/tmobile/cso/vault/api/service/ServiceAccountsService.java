@@ -32,6 +32,7 @@ import javax.naming.directory.Attributes;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.tmobile.cso.vault.api.exception.TVaultValidationException;
 import com.tmobile.cso.vault.api.model.*;
+import com.tmobile.cso.vault.api.utils.TokenUtils;
 import org.apache.commons.collections.CollectionUtils;
 import com.tmobile.cso.vault.api.utils.PolicyUtils;
 import org.apache.commons.lang.ArrayUtils;
@@ -102,7 +103,9 @@ public class  ServiceAccountsService {
 	
 	@Value("${ad.username}")
 	private String adMasterServiveAccount;
-	
+
+    @Autowired
+    private TokenUtils tokenUtils;
 	/**
 	 * Gets the list of users from Directory Server based on UPN
 	 * @param UserPrincipalName
@@ -315,7 +318,7 @@ public class  ServiceAccountsService {
 					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 					build()));
             if (null == serviceAccount.getTtl() || null == serviceAccount.getMax_ttl()) {
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid value provided for TTL or MAX_TTL\"]}");
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid or no value has been provided for TTL or MAX_TTL\"]}");
             }
 			if (serviceAccount.getTtl() >= (TVaultConstants.PASSWORD_AUTOROTATE_TTL_MAX_VALUE)) {
 				log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
@@ -481,7 +484,7 @@ public class  ServiceAccountsService {
 	 * @return
 	 */
 	private String populateSvcAccMetaJson(String svcAccName, String username) {
-		String _path = TVaultConstants.SVC_ACC_ROLES_METADATA_MOUNT_PATH + "/" + svcAccName;
+		String _path = TVaultConstants.SVC_ACC_ROLES_METADATA_MOUNT_PATH + svcAccName;
 		ServiceAccountMetadataDetails serviceAccountMetadataDetails = new ServiceAccountMetadataDetails(svcAccName);
 		serviceAccountMetadataDetails.setManagedBy(username);
 		ServiceAccountMetadata serviceAccountMetadata =  new ServiceAccountMetadata(_path, serviceAccountMetadataDetails);
@@ -651,6 +654,10 @@ public class  ServiceAccountsService {
 			HashMap<String,String> accessMap = new HashMap<String,String>();
 			String svcAccCredsPath=new StringBuffer().append(TVaultConstants.SVC_ACC_CREDS_PATH).append(svcAccName).toString();
 			accessMap.put(svcAccCredsPath, TVaultConstants.getSvcAccPolicies().get(policyPrefix));
+			// Attaching the required permissions for owner
+			if (TVaultConstants.getSvcAccPolicies().get(policyPrefix).equals(TVaultConstants.SUDO_POLICY)) {
+				accessMap.put(TVaultConstants.SVC_ACC_ROLES_PATH + svcAccName, TVaultConstants.READ_POLICY);
+			}
 			accessPolicy.setAccess(accessMap);
 			ResponseEntity<String> policyCreationStatus = accessService.createPolicy(token, accessPolicy);
 			if (HttpStatus.OK.equals(policyCreationStatus.getStatusCode())) {
@@ -714,6 +721,9 @@ public class  ServiceAccountsService {
 	 * @return
 	 */
 	public ResponseEntity<String> addUserToServiceAccount(String token, ServiceAccountUser serviceAccountUser, UserDetails userDetails) {
+        if (!userDetails.isAdmin()) {
+            token = tokenUtils.getSelfServiceToken();
+        }
 		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 				put(LogMessage.ACTION, "Add User to ServiceAccount").
@@ -818,7 +828,7 @@ public class  ServiceAccountsService {
 			}
 			if(ldapConfigresponse.getHttpstatus().equals(HttpStatus.NO_CONTENT) || ldapConfigresponse.getHttpstatus().equals(HttpStatus.OK)){
 				// User has been associated with Service Account. Now metadata has to be created
-				String path = new StringBuffer(TVaultConstants.SVC_ACC_ROLES_PATH).append("/").append(svcAccName).toString();
+				String path = new StringBuffer(TVaultConstants.SVC_ACC_ROLES_PATH).append(svcAccName).toString();
 				Map<String,String> params = new HashMap<String,String>();
 				params.put("type", "users");
 				params.put("name",serviceAccountUser.getUsername());
@@ -869,6 +879,9 @@ public class  ServiceAccountsService {
 	 * @return
 	 */
 	public ResponseEntity<String> removeUserFromServiceAccount(String token, ServiceAccountUser serviceAccountUser, UserDetails userDetails) {
+        if (!userDetails.isAdmin()) {
+            token = tokenUtils.getSelfServiceToken();
+        }
 		String userName = serviceAccountUser.getUsername();
 		String svcAccName = serviceAccountUser.getSvcAccName();
 		String access = serviceAccountUser.getAccess();
@@ -947,7 +960,7 @@ public class  ServiceAccountsService {
 			}
 			if(ldapConfigresponse.getHttpstatus().equals(HttpStatus.NO_CONTENT) || ldapConfigresponse.getHttpstatus().equals(HttpStatus.OK)){
 				// User has been associated with Service Account. Now metadata has to be deleted
-				String path = new StringBuffer(TVaultConstants.SVC_ACC_ROLES_PATH).append("/").append(svcAccName).toString();
+				String path = new StringBuffer(TVaultConstants.SVC_ACC_ROLES_PATH).append(svcAccName).toString();
 				Map<String,String> params = new HashMap<String,String>();
 				params.put("type", "users");
 				params.put("name",serviceAccountUser.getUsername());
@@ -1115,7 +1128,17 @@ public class  ServiceAccountsService {
 			response = reqProcessor.process("/ad/serviceaccount/onboardedlist","{}",token);
 		}
 		else {
-			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"TO BE IMPLEMENTED for non admin user\"]}");
+			String[] latestPolicies = policyUtils.getCurrentPolicies(userDetails.getSelfSupportToken(), userDetails.getUsername());
+			List<String> onboardedlist = new ArrayList<>();
+			for (String policy: latestPolicies) {
+				if (policy.startsWith("o_")) {
+					onboardedlist.add(policy.substring(10));
+				}
+			}
+			response = new Response();
+			response.setHttpstatus(HttpStatus.OK);
+			response.setSuccess(true);
+			response.setResponse("{\"keys\":"+JSONUtil.getJSON(onboardedlist)+"}");
 		}
 
 		if (HttpStatus.OK.equals(response.getHttpstatus())) {
@@ -1180,7 +1203,9 @@ public class  ServiceAccountsService {
 				put(LogMessage.MESSAGE, String.format ("Trying to add Group to Service Account")).
 				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 				build()));
-
+        if (!userDetails.isAdmin()) {
+            token = tokenUtils.getSelfServiceToken();
+        }
         if(!isSvcaccPermissionInputValid(serviceAccountGroup.getAccess())) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid value specified for access. Valid values are read, reset, deny\"]}");
         }
@@ -1271,7 +1296,7 @@ public class  ServiceAccountsService {
 			Response ldapConfigresponse = ControllerUtil.configureLDAPGroup(groupName,policiesString,token);
 
 			if(ldapConfigresponse.getHttpstatus().equals(HttpStatus.NO_CONTENT) || ldapConfigresponse.getHttpstatus().equals(HttpStatus.OK)){
-				String path = new StringBuffer(TVaultConstants.SVC_ACC_ROLES_PATH).append("/").append(svcAccName).toString();
+				String path = new StringBuffer(TVaultConstants.SVC_ACC_ROLES_PATH).append(svcAccName).toString();
 				Map<String,String> params = new HashMap<String,String>();
 				params.put("type", "groups");
 				params.put("name",groupName);
@@ -1334,7 +1359,9 @@ public class  ServiceAccountsService {
                 put(LogMessage.MESSAGE, String.format ("Trying to remove Group from Service Account")).
                 put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
                 build()));
-
+        if (!userDetails.isAdmin()) {
+            token = tokenUtils.getSelfServiceToken();
+        }
         if(!isSvcaccPermissionInputValid(serviceAccountGroup.getAccess())) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid value specified for access. Valid values are read, reset, deny\"]}");
         }
@@ -1400,7 +1427,7 @@ public class  ServiceAccountsService {
             Response ldapConfigresponse = ControllerUtil.configureLDAPGroup(groupName,policiesString,token);
 
             if(ldapConfigresponse.getHttpstatus().equals(HttpStatus.NO_CONTENT) || ldapConfigresponse.getHttpstatus().equals(HttpStatus.OK)){
-				String path = new StringBuffer(TVaultConstants.SVC_ACC_ROLES_PATH).append("/").append(svcAccName).toString();
+				String path = new StringBuffer(TVaultConstants.SVC_ACC_ROLES_PATH).append(svcAccName).toString();
 				Map<String,String> params = new HashMap<String,String>();
 				params.put("type", "groups");
 				params.put("name",groupName);
@@ -1464,7 +1491,9 @@ public class  ServiceAccountsService {
                 put(LogMessage.MESSAGE, String.format ("Trying to add Approle to Service Account")).
                 put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
                 build()));
-
+        if (!userDetails.isAdmin()) {
+            token = tokenUtils.getSelfServiceToken();
+        }
         if(!isSvcaccPermissionInputValid(serviceAccountApprole.getAccess())) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid value specified for access. Valid values are read, reset, deny\"]}");
         }
@@ -1555,7 +1584,7 @@ public class  ServiceAccountsService {
 			Response approleControllerResp = appRoleService.configureApprole(approleName,policiesString,token);
 
 			if(approleControllerResp.getHttpstatus().equals(HttpStatus.NO_CONTENT) || approleControllerResp.getHttpstatus().equals(HttpStatus.OK)){
-				String path = new StringBuffer(TVaultConstants.SVC_ACC_ROLES_PATH).append("/").append(svcAccName).toString();
+				String path = new StringBuffer(TVaultConstants.SVC_ACC_ROLES_PATH).append(svcAccName).toString();
 				Map<String,String> params = new HashMap<String,String>();
 				params.put("type", "app-roles");
 				params.put("name",approleName);
@@ -1610,6 +1639,9 @@ public class  ServiceAccountsService {
 				put(LogMessage.MESSAGE, String.format ("Trying to get metadata for Service Account")).
 				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 				build()));
+        if (!userDetails.isAdmin()) {
+            token = tokenUtils.getSelfServiceToken();
+        }
 		if (path != null && path.startsWith("/")) {
 			path = path.substring(1, path.length());
 		}
@@ -1779,7 +1811,7 @@ public class  ServiceAccountsService {
         log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
                 put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
                 put(LogMessage.ACTION, "deleteAwsRoleAssociateionOnSvcaccDelete").
-                put(LogMessage.MESSAGE, String.format ("Trying to deleteAwsRoleAssociateionOnSvcaccDelete")).
+                put(LogMessage.MESSAGE, String.format ("Trying to delete AwsRole On Service Account offboarding")).
                 put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
                 build()));
         if(acessInfo!=null){
@@ -1924,6 +1956,9 @@ public class  ServiceAccountsService {
 				put(LogMessage.MESSAGE, String.format ("Trying to remove approle from Service Account [%s]", serviceAccountApprole.getApprolename())).
 				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 				build()));
+        if (!userDetails.isAdmin()) {
+            token = tokenUtils.getSelfServiceToken();
+        }
 		String approleName = serviceAccountApprole.getApprolename();
 		String svcAccName = serviceAccountApprole.getSvcAccName();
 		String access = serviceAccountApprole.getAccess();
@@ -1983,7 +2018,7 @@ public class  ServiceAccountsService {
 			//Update the policy for approle
 			Response approleControllerResp = appRoleService.configureApprole(approleName,policiesString,token);
 			if(approleControllerResp.getHttpstatus().equals(HttpStatus.NO_CONTENT) || approleControllerResp.getHttpstatus().equals(HttpStatus.OK)){
-				String path = new StringBuffer(TVaultConstants.SVC_ACC_ROLES_PATH).append("/").append(svcAccName).toString();
+				String path = new StringBuffer(TVaultConstants.SVC_ACC_ROLES_PATH).append(svcAccName).toString();
 				Map<String,String> params = new HashMap<String,String>();
 				params.put("type", "app-roles");
 				params.put("name",approleName);
@@ -2045,7 +2080,9 @@ public class  ServiceAccountsService {
 				put(LogMessage.MESSAGE, "Trying to add AWS Role to Service Account").
 				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 				build()));
-
+        if (!userDetails.isAdmin()) {
+            token = tokenUtils.getSelfServiceToken();
+        }
 		String roleName = serviceAccountAWSRole.getRolename();
 		String svcAccName = serviceAccountAWSRole.getSvcAccName();
 		String access = serviceAccountAWSRole.getAccess();
@@ -2122,7 +2159,7 @@ public class  ServiceAccountsService {
 				awsRoleConfigresponse = awsAuthService.configureAWSRole(roleName,policiesString,token);
 			}
 			if(awsRoleConfigresponse.getHttpstatus().equals(HttpStatus.NO_CONTENT) || awsRoleConfigresponse.getHttpstatus().equals(HttpStatus.OK)){
-				String path = new StringBuffer(TVaultConstants.SVC_ACC_ROLES_PATH).append("/").append(svcAccName).toString();
+				String path = new StringBuffer(TVaultConstants.SVC_ACC_ROLES_PATH).append(svcAccName).toString();
 				Map<String,String> params = new HashMap<String,String>();
 				params.put("type", "aws-roles");
 				params.put("name",roleName);
@@ -2189,6 +2226,9 @@ public class  ServiceAccountsService {
 				put(LogMessage.MESSAGE, String.format ("Trying to remove AWS Role from Service Account [%s]", serviceAccountAWSRole.getRolename())).
 				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 				build()));
+        if (!userDetails.isAdmin()) {
+            token = tokenUtils.getSelfServiceToken();
+        }
 		String roleName = serviceAccountAWSRole.getRolename();
 		String svcAccName = serviceAccountAWSRole.getSvcAccName();
 		String access = serviceAccountAWSRole.getAccess();
@@ -2259,7 +2299,7 @@ public class  ServiceAccountsService {
 				awsRoleConfigresponse = awsAuthService.configureAWSRole(roleName,policiesString,token);
 			}
 			if(awsRoleConfigresponse.getHttpstatus().equals(HttpStatus.NO_CONTENT) || awsRoleConfigresponse.getHttpstatus().equals(HttpStatus.OK)){
-				String path = new StringBuffer(TVaultConstants.SVC_ACC_ROLES_PATH).append("/").append(svcAccName).toString();
+				String path = new StringBuffer(TVaultConstants.SVC_ACC_ROLES_PATH).append(svcAccName).toString();
 				Map<String,String> params = new HashMap<String,String>();
 				params.put("type", "aws-roles");
 				params.put("name",roleName);
@@ -2321,6 +2361,9 @@ public class  ServiceAccountsService {
 	 * @throws TVaultValidationException
 	 */
 	public ResponseEntity<String> createAWSRole(UserDetails userDetails, String token, AWSLoginRole awsLoginRole) throws TVaultValidationException {
+        if (!userDetails.isAdmin()) {
+            token = tokenUtils.getSelfServiceToken();
+        }
 		return awsAuthService.createRole(token, awsLoginRole, userDetails);
 	}
 
@@ -2333,6 +2376,9 @@ public class  ServiceAccountsService {
 	 * @throws TVaultValidationException
 	 */
 	public ResponseEntity<String> createIAMRole(UserDetails userDetails, String token, AWSIAMRole awsiamRole) throws TVaultValidationException {
+        if (!userDetails.isAdmin()) {
+            token = tokenUtils.getSelfServiceToken();
+        }
 		return awsiamAuthService.createIAMRole(awsiamRole, token, userDetails);
 	}
 
@@ -2365,7 +2411,7 @@ public class  ServiceAccountsService {
 				build()));
         if (serviceAccount.isAutoRotate()) {
             if (null == serviceAccount.getTtl() || null == serviceAccount.getMax_ttl()) {
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid value provided for TTL or MAX_TTL\"]}");
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid or no value has been provided for TTL or MAX_TTL\"]}");
             }
             if (serviceAccount.getTtl() >= (TVaultConstants.PASSWORD_AUTOROTATE_TTL_MAX_VALUE)) {
                 log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
