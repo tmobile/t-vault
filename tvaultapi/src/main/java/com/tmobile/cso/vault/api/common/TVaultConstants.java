@@ -89,4 +89,11 @@ public class TVaultConstants {
     public static final String SELFSERVICE_URI_PREFIX = "/vault/v2/ss/";
     public static final String SVC_ACC_AD_URI_PREFIX = "/vault/v2/ad/";
     public static final String SVC_ACC_URI_PREFIX = "/vault/v2/serviceaccounts";
+    public static final String SVC_ACC_EXCEPTION = "r_adds_svcacct_exception";
+    public static final String SVC_ACC_STANDARD = "r_adds_svcacct_standard";
+    public static final Integer SVC_ACC_EXCEPTION_MAXLIFE = 90;
+    public static final Integer SVC_ACC_STANDARD_MAXLIFE = 365;
+    public static final Long SVC_ACC_NEVER_EXPIRE_VALUE = 9223372036854775807L;
+    public static final Long FILETIME_EPOCH_DIFF = 11644473600000L;
+    public static final long DAY_IN_MILLISECONDS = 86400000L;
 }

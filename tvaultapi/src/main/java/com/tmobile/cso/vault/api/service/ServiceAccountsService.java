@@ -19,11 +19,13 @@ package com.tmobile.cso.vault.api.service;
 
 import java.io.IOException;
 import java.text.DateFormat;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import javax.naming.NamingException;
@@ -241,42 +243,105 @@ public class  ServiceAccountsService {
                         adUserAccount.setUserName(managedBy);
 						adServiceAccount.setOwner(managedBy.toLowerCase());
 					}
+					DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 					if (attr.get("accountExpires") != null) {
 						String rawExpDateTime = (String) attr.get("accountExpires").get();
 						String sAccountExpiration = "Never";
 						try {
 							long lAccountExpiration = Long.parseLong(rawExpDateTime);
-							long timeAdjust=9223372036854775807L;
-							Date pwdSet = new Date(lAccountExpiration/10000-timeAdjust);
-							DateFormat mydate = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-							sAccountExpiration = mydate.format(pwdSet);
+							// Check if account never expires
+							if (TVaultConstants.SVC_ACC_NEVER_EXPIRE_VALUE != lAccountExpiration && lAccountExpiration != 0) {
+								Date accountExpires = new Date(lAccountExpiration/10000-TVaultConstants.FILETIME_EPOCH_DIFF);
+								sAccountExpiration = dateFormat.format(accountExpires);
+							}
 						}
 						catch(Exception ex) {
-							//TODO
+                            sAccountExpiration = "Unknown";
 						}
 						adServiceAccount.setAccountExpires(sAccountExpiration);
 					}
 					
 					if (attr.get("pwdLastSet") != null) {
 						String pwdLastSetRaw = (String) attr.get("pwdLastSet").get();
-						String pwsLastSet = null;
-						try {
-							long lpwdLastSetRaw = Long.parseLong(pwdLastSetRaw);
-							long timeAdjust=9223372036854775807L;
-							Date pwdSet = new Date(lpwdLastSetRaw/10000-timeAdjust);
-							DateFormat mydate = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-							pwsLastSet = mydate.format(pwdSet);
-						}
-						catch(Exception ex) {
-							//TODO
+						String pwsLastSet = "";
+						// value "0" - password needs to reset on next login
+						if (!pwdLastSetRaw.equals("0")) {
+							try {
+								long lpwdLastSetRaw = Long.parseLong(pwdLastSetRaw);
+								Date pwdSet = new Date(lpwdLastSetRaw/10000-TVaultConstants.FILETIME_EPOCH_DIFF);
+								pwsLastSet = dateFormat.format(pwdSet);
+							}
+							catch(Exception ex) {
+                                pwsLastSet = "Unknown";
+							}
 						}
 						adServiceAccount.setPwdLastSet(pwsLastSet);
 					}
-					//TODO: The below values are to be calculated
-					adServiceAccount.setMaxPwdAge(getPasswordMaxAge());
-					adServiceAccount.setAccountStatus("active");
+					// set passwordExpiry expiry and maxPwdAge
+					if (attr.get("memberof") != null) {
+						int maxLife = 0;
+						adServiceAccount.setPasswordExpiry("expired");
+
+                        String memberOfStr = (String) attr.get("memberof").get();
+                        if (!StringUtils.isEmpty(memberOfStr)) {
+
+                            if (memberOfStr.contains(TVaultConstants.SVC_ACC_EXCEPTION)) {
+                                maxLife = TVaultConstants.SVC_ACC_EXCEPTION_MAXLIFE;
+                            }
+                            else {
+                                maxLife = TVaultConstants.SVC_ACC_STANDARD_MAXLIFE;
+                            }
+                            adServiceAccount.setMaxPwdAge((int)TimeUnit.DAYS.toSeconds(maxLife));
+                            Calendar c = Calendar.getInstance();
+                            try{
+                                c.setTime(dateFormat.parse(adServiceAccount.getPwdLastSet()));
+                                c.add(Calendar.DAY_OF_MONTH, maxLife);
+                                if (c.getTime().before(new Date())) {
+                                    adServiceAccount.setPasswordExpiry("expired");
+                                }
+                                else {
+                                    String passwordExpiry = dateFormat.format(c.getTime());
+                                    // find days to expire
+                                    long difference = c.getTime().getTime() - new Date().getTime();
+                                    String daysToExpire;
+                                    if (difference >= TVaultConstants.DAY_IN_MILLISECONDS) { //more than one day
+                                        daysToExpire = TimeUnit.DAYS.convert(difference, TimeUnit.MILLISECONDS) + " days";
+                                    }
+                                    else { // less than one day
+                                        daysToExpire = TimeUnit.HOURS.convert(difference, TimeUnit.MILLISECONDS) + " hours";
+                                    }
+                                    adServiceAccount.setPasswordExpiry(passwordExpiry +" ("+daysToExpire+")");
+                                }
+                            }catch(ParseException e){
+                                adServiceAccount.setPasswordExpiry("Unknown");
+                            }
+                        }
+					}
+					// account status
+					if (adServiceAccount.getAccountExpires().equals("Never")) {
+                        adServiceAccount.setAccountStatus("active");
+                    }
+					else if (!adServiceAccount.getAccountExpires().equals("Unknown")) {
+						try {
+                            adServiceAccount.setAccountStatus("active");
+							boolean expired = dateFormat.parse(adServiceAccount.getAccountExpires()).before(new Date());
+							if (expired) {
+								adServiceAccount.setAccountStatus("expired");
+							}
+						} catch (ParseException e) {
+                            adServiceAccount.setAccountStatus("Unknown");
+						}
+					} else {
+                        adServiceAccount.setAccountStatus("Unknown");
+                    }
+                    // lock status
 					adServiceAccount.setLockStatus("active");
-					adServiceAccount.setPasswordExpiry("2019-05-18 11:59:59");
+					if (attr.get("lockedout") != null) {
+						boolean lockedOut = (boolean) attr.get("lockedout").get();
+						if (lockedOut) {
+							adServiceAccount.setLockStatus("inactive");
+						}
+					}
 					if (attr.get("description") != null) {
 						adServiceAccount.setPurpose((String) attr.get("description").get());
 					}
@@ -285,15 +350,7 @@ public class  ServiceAccountsService {
 			}
 		});
 	}
-	/**
-	 * Gets the Max Password Age from AD Password policy
-	 * @return
-	 */
-	private int getPasswordMaxAge() {
-		//TODO Actual implementation should be based on AD Password policy
-		int pwdMaxAge = 90;
-		return pwdMaxAge;
-	}
+
 	/**
 	 * Onboards an AD service account into TVault for password rotation
 	 * @param serviceAccount
@@ -643,7 +700,6 @@ public class  ServiceAccountsService {
 	 * Create policies for service account
 	 * @param token
 	 * @param svcAccName
-	 * @param admin
 	 * @return
 	 */
 	private  ResponseEntity<String> createServiceAccountPolicies(String token, String svcAccName) {
