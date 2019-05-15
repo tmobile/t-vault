@@ -295,7 +295,7 @@ public class ServiceAccountsControllerV2Test {
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(expected);
         when(serviceAccountsService.resetSvcAccPassword(token, svcAccName, userDetails)).thenReturn(responseEntityExpected);
         
-        MvcResult result = mockMvc.perform(MockMvcRequestBuilders.get("/v2/serviceaccounts/password/reset")
+        MvcResult result = mockMvc.perform(MockMvcRequestBuilders.put("/v2/serviceaccounts/password")
                 .header("vault-token", token)
                 .header("Content-Type", "application/json;charset=UTF-8")
                 .requestAttr("UserDetails", userDetails)

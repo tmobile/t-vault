@@ -175,7 +175,7 @@
                 displayName: 'SERVICE ACCOUNTS',
                 navigationName: 'service-accounts',
                 addComma: false,
-                show: feature.adpwdrotation
+                show: feature && feature.adpwdrotation
             }, {
                 displayName: 'ADMIN',
                 navigationName: 'admin',
@@ -185,7 +185,7 @@
                 displayName: 'MANAGE',
                 navigationName: 'manage',
                 addComma: false,
-                show: ((JSON.parse(SessionStore.getItem("isManager"))) && (!JSON.parse(SessionStore.getItem("isAdmin"))) && (feature.selfservice || feature.adpwdrotation))
+                show: ((JSON.parse(SessionStore.getItem("isManager"))) && (!JSON.parse(SessionStore.getItem("isAdmin"))) && feature && (feature.selfservice || feature.adpwdrotation))
             }, {
                 displayName: 'DOCUMENTATION',
                 navigationName: 'documentation',

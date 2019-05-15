@@ -961,7 +961,10 @@
         }
 
         $scope.init = function () {
-
+            if(!SessionStore.getItem("myVaultKey")){ /* Check if user is in the same session */
+                $state.go('signup');
+                return;
+            }
             var feature = JSON.parse(SessionStore.getItem("feature"));
             if (feature.adpwdrotation == false) {
                 if (JSON.parse(SessionStore.getItem("isAdmin")) == false) {

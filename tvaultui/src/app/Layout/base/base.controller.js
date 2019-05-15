@@ -16,7 +16,7 @@
             displayName: 'SERVICE ACCOUNTS',
             navigationName: 'service-accounts',
             addComma: false,
-            show: feature.adpwdrotation
+            show: feature && feature.adpwdrotation
         }, {
             displayName: 'ADMIN',
             navigationName: 'admin',
@@ -26,7 +26,7 @@
             displayName: 'MANAGE',
             navigationName: 'manage',
             addComma: false,
-            show: ((SessionStore.getItem("isManager") === 'true') && (SessionStore.getItem("isAdmin") !== 'true') && (feature.selfservice || feature.adpwdrotation))
+            show: ((SessionStore.getItem("isManager") === 'true') && (SessionStore.getItem("isAdmin") !== 'true') && feature && (feature.selfservice || feature.adpwdrotation))
         }, {
             displayName: 'HEALTH',
             navigationName: 'health',

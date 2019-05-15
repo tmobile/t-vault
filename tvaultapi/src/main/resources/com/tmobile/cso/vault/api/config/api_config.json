@@ -767,7 +767,7 @@
     },
 	{"#" : "**** Reset Service Account Password****** ",
  	
-    	"apiEndPoint":"/ad/serviceaccount/reset",
+		"apiEndPoint":"/ad/serviceaccount/resetpwd",
     	"vaultEndPoint":"/ad/creds/<role_name>",
     	"method":"GET",
     	"params":[
@@ -775,6 +775,16 @@
   		],
       	"outparams":["data/current_password", "data/last_password", "data/username"]
     },
+	{"#" : "**** Read Service Account Password****** ",
+
+		"apiEndPoint":"/ad/serviceaccount/readpwd",
+		"vaultEndPoint":"/ad/creds/<role_name>",
+		"method":"GET",
+		"params":[
+			{"name":"role_name","required":true, "appendToPath":true}
+		],
+		"outparams":["data/current_password", "data/last_password", "data/username"]
+	},
 	{"#" : "**** Get Onboarded Service Account details ****** ",
  	
     	"apiEndPoint":"/ad/serviceaccount/details",

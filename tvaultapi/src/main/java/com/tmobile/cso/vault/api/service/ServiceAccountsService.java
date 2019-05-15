@@ -643,6 +643,7 @@ public class  ServiceAccountsService {
 	 * Create policies for service account
 	 * @param token
 	 * @param svcAccName
+	 * @param admin
 	 * @return
 	 */
 	private  ResponseEntity<String> createServiceAccountPolicies(String token, String svcAccName) {
@@ -654,9 +655,9 @@ public class  ServiceAccountsService {
 			HashMap<String,String> accessMap = new HashMap<String,String>();
 			String svcAccCredsPath=new StringBuffer().append(TVaultConstants.SVC_ACC_CREDS_PATH).append(svcAccName).toString();
 			accessMap.put(svcAccCredsPath, TVaultConstants.getSvcAccPolicies().get(policyPrefix));
-			// Attaching the required permissions for owner
+			// Attaching write permissions for owner
 			if (TVaultConstants.getSvcAccPolicies().get(policyPrefix).equals(TVaultConstants.SUDO_POLICY)) {
-				accessMap.put(TVaultConstants.SVC_ACC_ROLES_PATH + svcAccName, TVaultConstants.READ_POLICY);
+				accessMap.put(TVaultConstants.SVC_ACC_ROLES_PATH + svcAccName, TVaultConstants.WRITE_POLICY);
 			}
 			accessPolicy.setAccess(accessMap);
 			ResponseEntity<String> policyCreationStatus = accessService.createPolicy(token, accessPolicy);
@@ -998,28 +999,128 @@ public class  ServiceAccountsService {
 		}
 	}
 	/**
+	 * Temporarily sleep for a second
+	 */
+	private void sleep() {
+		try {
+			Thread.sleep(1000);
+		}
+		catch(InterruptedException ex) {
+			Thread.currentThread().interrupt();
+		}
+	}
+
+	/**
 	 * To reset Service Account Password
 	 * @param token
 	 * @param svcAccName
-	 * @param resetPassword
+	 * @param userDetails
 	 * @return
 	 */
 	public ResponseEntity<String> resetSvcAccPassword(String token, String svcAccName, UserDetails userDetails){
 		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
-				put(LogMessage.ACTION, "readSvcAccPassword").
-				put(LogMessage.MESSAGE, String.format("Trying to read service account password [%s]", svcAccName)).
+				put(LogMessage.ACTION, "resetSvcAccPassword").
+				put(LogMessage.MESSAGE, String.format("Trying to reset service account password [%s]", svcAccName)).
 				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 				build()));
-		Response response = reqProcessor.process("/ad/serviceaccount/reset","{\"role_name\":\""+svcAccName+"\"}",token);
-		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+		OnboardedServiceAccountDetails onbSvcAccDtls = getOnboarderdServiceAccountDetails(token, svcAccName);
+		if (onbSvcAccDtls == null) {
+			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+					put(LogMessage.ACTION, "resetSvcAccPassword").
+					put(LogMessage.MESSAGE, String.format("Unable to reset password for [%s]", svcAccName)).
+					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+					build()));
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Unable to reset password details for the given service account\"]}");
+		}
+		long ttl = onbSvcAccDtls.getTtl();
+		ServiceAccount serviceAccount = new ServiceAccount();
+		serviceAccount.setName(svcAccName);
+		serviceAccount.setAutoRotate(true);
+		serviceAccount.setTtl(1L); // set ttl to 1 second to temporarily so that it can be rotated immediately
+
+		ResponseEntity<String> roleCreationResetResponse = createAccountRole(token, serviceAccount);
+		if(roleCreationResetResponse.getStatusCode().equals(HttpStatus.OK)) {
+			sleep();
+			//Reset the password now...
+			Response resetResponse = reqProcessor.process("/ad/serviceaccount/resetpwd","{\"role_name\":\""+svcAccName+"\"}",token);
+			if(HttpStatus.OK.equals(resetResponse.getHttpstatus())) {
+				//Reset ttl to 90 days (or based on password policy) long ttl = 7776000L; // 90 days...
+				serviceAccount.setTtl(ttl);
+				ResponseEntity<String> roleCreationResponse = createAccountRole(token, serviceAccount);
+				if(roleCreationResponse.getStatusCode().equals(HttpStatus.OK)) {
+					// Read the password to get the updated one.
+					Response response = reqProcessor.process("/ad/serviceaccount/readpwd","{\"role_name\":\""+svcAccName+"\"}",token);
+					if(HttpStatus.OK.equals(response.getHttpstatus())) {
+						log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+								put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+								put(LogMessage.ACTION, "resetSvcAccPassword").
+								put(LogMessage.MESSAGE, String.format("Successfully reset service account password for [%s]", svcAccName)).
+								put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+								build()));
+						try {
+							ADServiceAccountCreds adServiceAccountCreds = new ADServiceAccountCreds();
+							Map<String, Object> requestParams = new ObjectMapper().readValue(response.getResponse(), new TypeReference<Map<String, Object>>(){});
+							if (requestParams.get("current_password") != null) {
+								adServiceAccountCreds.setCurrent_password((String) requestParams.get("current_password"));
+							}
+							if (requestParams.get("username") != null) {
+								adServiceAccountCreds.setUsername((String) requestParams.get("username"));
+							}
+							if (requestParams.get("last_password") != null ) {
+								adServiceAccountCreds.setLast_password((String) requestParams.get("last_password"));
+							}
+							return ResponseEntity.status(HttpStatus.OK).body(JSONUtil.getJSON(adServiceAccountCreds));
+						}
+						catch(Exception ex) {
+							log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+									put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+									put(LogMessage.ACTION, "readSvcAccPassword").
+									put(LogMessage.MESSAGE, String.format("There are no service accounts currently onboarded or error in retrieving credentials for the onboarded service account")).
+									put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+									build()));
+
+						}
+						return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Unable to get password details for the given service account\"]}");
+					}
+					else {
+						log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+								put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+								put(LogMessage.ACTION, "resetSvcAccPassword").
+								put(LogMessage.MESSAGE, String.format("Unable to reset password for [%s]", svcAccName)).
+								put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+								build()));
+						return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Unable to reset password details for the given service account. Failed to read the updated password.\"]}");
+					}
+				}
+				else {
+					log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+							put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+							put(LogMessage.ACTION, "resetSvcAccPassword").
+							put(LogMessage.MESSAGE, String.format("Unable to reset password for [%s]", svcAccName)).
+							put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+							build()));
+					return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Unable to reset password details for the given service account. Failed to reset the service account with original ttl.\"]}");
+				}
+			}
+			else {
+				log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+						put(LogMessage.ACTION, "resetSvcAccPassword").
+						put(LogMessage.MESSAGE, String.format("Unable to reset password for [%s]", svcAccName)).
+						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+						build()));
+				return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Unable to reset password details for the given service account. Failed to read the updated password after setting ttl to 1 second.\"]}");
+			}
+		}
+		log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
-				put(LogMessage.ACTION, "Read Secret").
-				put(LogMessage.MESSAGE, String.format("Successfully read  service account password for [%s]", svcAccName)).
-				put(LogMessage.STATUS, response.getHttpstatus().toString()).
+				put(LogMessage.ACTION, "resetSvcAccPassword").
+				put(LogMessage.MESSAGE, String.format("Unable to reset password for [%s]", svcAccName)).
 				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 				build()));
-		return ResponseEntity.status(response.getHttpstatus()).body(response.getResponse());
+		return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Unable to reset password details for the given service account\"]}");
 	}
 	/**
 	 * Gets the details of a service account that is already onboarded into TVault
@@ -1065,7 +1166,7 @@ public class  ServiceAccountsService {
 				String accName =  (String) requestParams.get("service_account_name");
 				Integer accTTL = (Integer)requestParams.get("ttl");
 				String accLastPwdRotation = (String) requestParams.get("last_vault_rotation");
-				String accLastPwd = (String) requestParams.get("last_password");
+				String accLastPwd = (String) requestParams.get("password_last_set");
 				onbSvcAccDtls = new OnboardedServiceAccountDetails();
 				onbSvcAccDtls.setName(accName);
 				try {
