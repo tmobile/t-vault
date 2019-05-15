@@ -121,7 +121,7 @@ public class ServiceAccount implements Serializable {
 	/**
 	 * @return the owner
 	 */
-	@ApiModelProperty(example = "testuser1", position = 8)
+	@ApiModelProperty(example = "testuser1", position = 8, hidden = true)
 	public String getOwner() {
 		return owner;
 	}

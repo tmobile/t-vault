@@ -371,7 +371,7 @@ public class ServiceAccountsServiceTest {
         // Add User to Service Account
         Response userResponse = getMockResponse(HttpStatus.OK, true, "{\"data\":{\"bound_cidrs\":[],\"max_ttl\":0,\"policies\":[\"default\"],\"ttl\":0,\"groups\":\"admin\"}}");
         Response ldapConfigureResponse = getMockResponse(HttpStatus.NO_CONTENT, true, "{\"policies\":null}");
-        when(reqProcessor.process("/auth/ldap/users","{\"username\":\"testacc01\"}",token)).thenReturn(userResponse);
+        when(reqProcessor.process("/auth/ldap/users","{\"username\":\"user11\"}",token)).thenReturn(userResponse);
 
         try {
             List<String> resList = new ArrayList<>();
@@ -380,7 +380,7 @@ public class ServiceAccountsServiceTest {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        when(ControllerUtil.configureLDAPUser(eq("testacc01"),any(),any(),eq(token))).thenReturn(ldapConfigureResponse);
+        when(ControllerUtil.configureLDAPUser(eq("user11"),any(),any(),eq(token))).thenReturn(ldapConfigureResponse);
 
 
 
@@ -544,7 +544,7 @@ public class ServiceAccountsServiceTest {
         // Add User to Service Account
         Response userResponse = getMockResponse(HttpStatus.OK, true, "{\"data\":{\"bound_cidrs\":[],\"max_ttl\":0,\"policies\":[\"default\"],\"ttl\":0,\"groups\":\"admin\"}}");
         Response ldapConfigureResponse = getMockResponse(HttpStatus.NO_CONTENT, true, "{\"policies\":null}");
-        when(reqProcessor.process("/auth/ldap/users","{\"username\":\"testacc01\"}",token)).thenReturn(userResponse);
+        when(reqProcessor.process("/auth/ldap/users","{\"username\":\"user11\"}",token)).thenReturn(userResponse);
 
         try {
             List<String> resList = new ArrayList<>();
@@ -553,7 +553,7 @@ public class ServiceAccountsServiceTest {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        when(ControllerUtil.configureLDAPUser(eq("testacc01"),any(),any(),eq(token))).thenReturn(ldapConfigureResponse);
+        when(ControllerUtil.configureLDAPUser(eq("user11"),any(),any(),eq(token))).thenReturn(ldapConfigureResponse);
 
 
 
@@ -711,7 +711,7 @@ public class ServiceAccountsServiceTest {
 
         // Add User to Service Account
         Response userResponse = getMockResponse(HttpStatus.OK, true, "{\"data\":{\"bound_cidrs\":[],\"max_ttl\":0,\"policies\":[\"default\"],\"ttl\":0,\"groups\":\"admin\"}}");
-        when(reqProcessor.process("/auth/ldap/users","{\"username\":\"testacc01\"}",token)).thenReturn(userResponse);
+        when(reqProcessor.process("/auth/ldap/users","{\"username\":\"user11\"}",token)).thenReturn(userResponse);
 
         try {
             List<String> resList = new ArrayList<>();
@@ -721,7 +721,7 @@ public class ServiceAccountsServiceTest {
             e.printStackTrace();
         }
         Response ldapConfigureResponse = getMockResponse(HttpStatus.BAD_REQUEST, true, "{\"errors\":[\"Failed to add user to the Service Account\"]}");
-        when(ControllerUtil.configureLDAPUser(eq("testacc01"),any(),any(),eq(token))).thenReturn(ldapConfigureResponse);
+        when(ControllerUtil.configureLDAPUser(eq("user11"),any(),any(),eq(token))).thenReturn(ldapConfigureResponse);
         // Metadata
         String path="metadata/ad/roles/"+serviceAccount.getName();
         Map<String,Object> rqstParams = new HashMap<>();

@@ -298,6 +298,7 @@ public class  ServiceAccountsService {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Failed to onboard Service Account. Unable to read Service account details\"]}");
         }
         int maxPwdAge = allServiceAccounts.get(0).getMaxPwdAge();
+		serviceAccount.setOwner(allServiceAccounts.get(0).getOwner());
 		if (serviceAccount.isAutoRotate()) {
 			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
