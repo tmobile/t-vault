@@ -292,6 +292,12 @@ public class  ServiceAccountsService {
 					build()));
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Failed to onboard Service Account. Service account is already onboarded\"]}");
 		}
+        // get the maxPwdAge for this service account
+        List<ADServiceAccount> allServiceAccounts = getADServiceAccount(serviceAccount.getName());
+        if (allServiceAccounts == null || allServiceAccounts.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Failed to onboard Service Account. Unable to read Service account details\"]}");
+        }
+        int maxPwdAge = allServiceAccounts.get(0).getMaxPwdAge();
 		if (serviceAccount.isAutoRotate()) {
 			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
@@ -302,15 +308,15 @@ public class  ServiceAccountsService {
             if (null == serviceAccount.getTtl() || null == serviceAccount.getMax_ttl()) {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid or no value has been provided for TTL or MAX_TTL\"]}");
             }
-			if (serviceAccount.getTtl() >= (TVaultConstants.PASSWORD_AUTOROTATE_TTL_MAX_VALUE)) {
+			if (serviceAccount.getTtl() >= maxPwdAge) {
 				log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 						put(LogMessage.ACTION, "onboardServiceAccount").
-						put(LogMessage.MESSAGE, String.format ("TTL is [%s] is greater the MAX_TTL [%s]", serviceAccount.getTtl(), TVaultConstants.PASSWORD_AUTOROTATE_TTL_MAX_VALUE-1)).
+						put(LogMessage.MESSAGE, String.format ("TTL is [%s] is greater the MAX_TTL [%s]", serviceAccount.getTtl(), maxPwdAge-1)).
 						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 						build()));
-				return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid value provided for TTL. TTL can't be more than "+(TVaultConstants.PASSWORD_AUTOROTATE_TTL_MAX_VALUE-1)+"\"]}");
-			}
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid value provided for TTL. TTL can't be more than "+(maxPwdAge-1)+" ("+ (maxPwdAge-1)/86400+" days)"+" for this Service Account\"]}");
+            }
 			if (serviceAccount.getTtl() >= serviceAccount.getMax_ttl()) {
 				log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
@@ -328,7 +334,7 @@ public class  ServiceAccountsService {
 					put(LogMessage.MESSAGE, String.format ("Auto-Rotate of password has been turned off")).
 					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 					build()));
-			serviceAccount.setTtl(TVaultConstants.PASSWORD_AUTOROTATE_TTL_MAX_VALUE);
+			serviceAccount.setTtl((long)maxPwdAge);
 		}
 		ResponseEntity<String> accountRoleCreationResponse = createAccountRole(token, serviceAccount);
 		if(accountRoleCreationResponse.getStatusCode().equals(HttpStatus.OK)) {
@@ -401,6 +407,19 @@ public class  ServiceAccountsService {
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Failed to onboard AD service account into TVault for password rotation.\"]}");
 		}
 	}
+
+    /**
+     * Get the AD details for a given service account
+     * @param serviceAccount
+     * @return
+     */
+    private List<ADServiceAccount> getADServiceAccount(String serviceAccount) {
+        AndFilter andFilter = new AndFilter();
+        andFilter.and(new LikeFilter("userPrincipalName", serviceAccount+"*"));
+        andFilter.and(new EqualsFilter("objectClass", "user"));
+        andFilter.and(new NotFilter(new EqualsFilter("CN", adMasterServiveAccount)));
+        return getADServiceAccounts(andFilter);
+    }
 
 	/**
 	 * To create Metadata for the Service Account
@@ -2491,18 +2510,24 @@ public class  ServiceAccountsService {
 				put(LogMessage.MESSAGE, String.format("Update onboarded Service Account [%s]", serviceAccount.getName())).
 				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 				build()));
+		// get the maxPwdAge for this service account
+		List<ADServiceAccount> allServiceAccounts = getADServiceAccount(serviceAccount.getName());
+		if (allServiceAccounts == null || allServiceAccounts.isEmpty()) {
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Failed to update onboarded Service Account. Unable to read Service account details\"]}");
+		}
+		int maxPwdAge = allServiceAccounts.get(0).getMaxPwdAge();
         if (serviceAccount.isAutoRotate()) {
             if (null == serviceAccount.getTtl() || null == serviceAccount.getMax_ttl()) {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid or no value has been provided for TTL or MAX_TTL\"]}");
             }
-            if (serviceAccount.getTtl() >= (TVaultConstants.PASSWORD_AUTOROTATE_TTL_MAX_VALUE)) {
+            if (serviceAccount.getTtl() >= maxPwdAge) {
                 log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
                         put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
                         put(LogMessage.ACTION, "Update onboarded Service Account").
-                        put(LogMessage.MESSAGE, String.format ("TTL is [%s] is greater the MAX_TTL [%s]", serviceAccount.getTtl(), TVaultConstants.PASSWORD_AUTOROTATE_TTL_MAX_VALUE-1)).
+                        put(LogMessage.MESSAGE, String.format ("TTL is [%s] is greater the MAX_TTL [%s]", serviceAccount.getTtl(), maxPwdAge-1)).
                         put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
                         build()));
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid value provided for TTL. TTL can't be more than "+(TVaultConstants.PASSWORD_AUTOROTATE_TTL_MAX_VALUE-1)+"\"]}");
+				return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid value provided for TTL. TTL can't be more than "+(maxPwdAge-1)+" ("+ (maxPwdAge-1)/86400+" days)"+" for this Service Account\"]}");
             }
             if (serviceAccount.getTtl() >= serviceAccount.getMax_ttl()) {
                 log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
@@ -2515,7 +2540,7 @@ public class  ServiceAccountsService {
             }
         }
 		if (!serviceAccount.isAutoRotate()) {
-			serviceAccount.setTtl(TVaultConstants.PASSWORD_AUTOROTATE_TTL_MAX_VALUE);
+			serviceAccount.setTtl((long)maxPwdAge);
 		}
 		ResponseEntity<String> accountRoleDeletionResponse = createAccountRole(token, serviceAccount);
 		if (accountRoleDeletionResponse!=null && HttpStatus.OK.equals(accountRoleDeletionResponse.getStatusCode())) {

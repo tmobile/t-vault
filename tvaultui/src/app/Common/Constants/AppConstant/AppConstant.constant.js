@@ -25,8 +25,7 @@
         'AD_USERS_AUTOCOMPLETE': false,
         'AD_GROUP_AUTOCOMPLETE': false,
         'AUTH_TYPE': 'userpass',  /*'userpass' or 'ldap' or 'ldap1900' */
-        'DOMAIN_NAME': '@T-Mobile.com',
-        'AD_PASSWORD_MAX_TTL': 1590897977
+        'DOMAIN_NAME': '@T-Mobile.com'
     });
     /*endinject*/
 })(angular.module('vault.constants.AppConstant', []));

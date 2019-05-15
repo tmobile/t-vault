@@ -564,7 +564,7 @@
                     "name": $scope.svcacc.svcaccId,
                     "autoRotate": $scope.svcacc.autoRotate,
                     "ttl": $scope.svcacc.ttl,
-                    "max_ttl": AppConstant.AD_PASSWORD_MAX_TTL,
+                    "max_ttl": $scope.svcacc.maxPwdAge,
                     "owner":  $scope.svcacc.owner
                 }
                 AdminSafesManagement.onboardSvcacc(onboardPayload, '').then(function (response) {
@@ -625,7 +625,7 @@
                     "name": $scope.svcacc.svcaccId,
                     "autoRotate": $scope.svcacc.autoRotate,
                     "ttl": $scope.svcacc.ttl,
-                    "max_ttl": AppConstant.AD_PASSWORD_MAX_TTL,
+                    "max_ttl": $scope.svcacc.maxPwdAge,
                     "owner":  $scope.svcacc.owner
                 }
                 AdminSafesManagement.editSvcacc(onboardPayload, '').then(function (response) {
@@ -794,10 +794,10 @@
                                                 max_ttl: '',
                                             };
                                             managedBy = object.managedBy;
-                                            if (onboardInfo.ttl && onboardInfo.ttl != null && onboardInfo.ttl < AppConstant.AD_PASSWORD_MAX_TTL) {
+                                            if (onboardInfo.ttl && onboardInfo.ttl != null && onboardInfo.ttl < $scope.svcacc.maxPwdAge) {
                                                 $scope.svcacc.autoRotate = true;
                                             }
-                                            if (onboardInfo.ttl == AppConstant.AD_PASSWORD_MAX_TTL) {
+                                            if (onboardInfo.ttl == $scope.svcacc.maxPwdAge) {
                                                 $scope.svcacc.ttl = '';
                                             }
                                             $scope.autoRotate = $scope.svcacc.autoRotate;
@@ -806,6 +806,7 @@
                                                 $scope.isSvcaccExpired = true;
                                                 $scope.expiredNote = "(Expired)";
                                             }
+                                            document.getElementById('ttl').placeholder="Password TTL in seconds (Max: "+($scope.svcacc.maxPwdAge-1)+")";
                                             getMetadata($stateParams.svcaccData.userId);
                                         }
                                     }
@@ -900,6 +901,7 @@
             $scope.svcInputSelected = true;
             $scope.isCollapsed = false;
             $scope.autoRotate = false;
+            document.getElementById('ttl').placeholder="Password TTL in seconds (Max: "+($scope.svcacc.maxPwdAge-1)+")";
             $scope.isSvcaccExpired = false;
             $scope.expiredNote = "";
             if ($scope.svcacc.accountStatus.toLowerCase() == "expired") {
@@ -935,6 +937,7 @@
             $scope.autoRotate = false;
             $scope.svcInputSelected = false;
             $scope.isCollapsed = true;
+            document.getElementById('ttl').placeholder="Password TTL in seconds";
             $scope.expiredNote = "";
             $scope.isSvcaccExpired = false;
         }
