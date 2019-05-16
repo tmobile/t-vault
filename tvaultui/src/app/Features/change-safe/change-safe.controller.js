@@ -377,8 +377,7 @@
             $scope.goBack();
         }
         $scope.getPath = function () {
-            var vaultType = '';
-
+            var vaultType = $scope.dropDownOptions.selectedGroupOption.type;
             switch ($scope.dropDownOptions.selectedGroupOption.type) {
                 case "Application Safe":
                     vaultType = 'apps';
