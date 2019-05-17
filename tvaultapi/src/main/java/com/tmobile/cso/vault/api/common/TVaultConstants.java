@@ -96,4 +96,8 @@ public class TVaultConstants {
     public static final Long SVC_ACC_NEVER_EXPIRE_VALUE = 9223372036854775807L;
     public static final Long FILETIME_EPOCH_DIFF = 11644473600000L;
     public static final long DAY_IN_MILLISECONDS = 86400000L;
+    public static final String TIME_ZONE_PDT = "America/Los_Angeles";
+    public static final String ACCOUNT_EXPIRES = "accountExpires";
+    public static final String NEVER_EXPIRE = "Never";
+    public static final String EXPIRED = "Expired";
 }

@@ -140,8 +140,18 @@ public class  ServiceAccountsService {
 				}
 			}
 		}
-		List<ADServiceAccount> allServiceAccounts = getADServiceAccounts(andFilter);
-
+		List<Attributes> rawAttributes = getADServiceAccounts(andFilter);
+		List<ADServiceAccount> allServiceAccounts = null;
+		try {
+			allServiceAccounts = getFormattedAdAttributes(rawAttributes);
+		} catch (NamingException e) {
+			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+					put(LogMessage.ACTION, "getADServiceAccounts").
+					put(LogMessage.MESSAGE, "Failed to format the raw attributes to ADServiceAccount").
+					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+					build()));
+		}
 		// get the managed_by details
 		if (allServiceAccounts != null && !allServiceAccounts.isEmpty()) {
 			List<String> ownerlist = allServiceAccounts.stream().map(m -> m.getManagedBy().getUserName()).collect(Collectors.toList());
@@ -183,25 +193,39 @@ public class  ServiceAccountsService {
 		adServiceAccountObjects.setData(adServiceAccountObjectsList);
 		return ResponseEntity.status(HttpStatus.OK).body(adServiceAccountObjects);
 	}
-	
+
 	/**
 	 * Gets the list of ADAccounts from AD Server
 	 * @param filter
 	 * @return
 	 */
-	private List<ADServiceAccount> getADServiceAccounts(Filter filter) {
+	private List<Attributes> getADServiceAccounts(Filter filter) {
 		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 				put(LogMessage.ACTION, "getAllAccounts").
 				put(LogMessage.MESSAGE, String.format("Trying to get list of user accounts from AD server")).
 				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 				build()));
-		return ldapTemplate.search("", filter.encode(), new AttributesMapper<ADServiceAccount>() {
+		return ldapTemplate.search("", filter.encode(), new AttributesMapper<Attributes>() {
 			@Override
-			public ADServiceAccount mapFromAttributes(Attributes attr) throws NamingException {
-				ADServiceAccount adServiceAccount = new ADServiceAccount();
+			public Attributes mapFromAttributes(Attributes attr) throws NamingException {
+				return attr;
+			}
+		});
+	}
+
+	/**
+	 * Get formatted AD attributes
+	 * @param allServiceAccounts
+	 * @return
+	 */
+	private List<ADServiceAccount> getFormattedAdAttributes(List<Attributes> allServiceAccounts) throws NamingException {
+		List<ADServiceAccount> adServiceAccounts = new ArrayList<>();
+		if (allServiceAccounts !=null) {
+			for (Attributes attr: allServiceAccounts) {
 				if (attr != null) {
-					String mail = ""; 
+					ADServiceAccount adServiceAccount = new ADServiceAccount();
+					String mail = "";
 					if(attr.get("mail") != null) {
 						mail = ((String) attr.get("mail").get());
 					}
@@ -217,7 +241,6 @@ public class  ServiceAccountsService {
 					if (attr.get("givenname") != null) {
 						adServiceAccount.setGivenName(((String) attr.get("givenname").get()));
 					}
-
 					if (attr.get("mail") != null) {
 						adServiceAccount.setUserEmail(((String) attr.get("mail").get()));
 					}
@@ -231,22 +254,25 @@ public class  ServiceAccountsService {
 						Instant instant = odt.toInstant();
 						adServiceAccount.setWhenCreated(instant);
 					}
-                    ADUserAccount adUserAccount = new ADUserAccount();
+					ADUserAccount adUserAccount = new ADUserAccount();
 					adServiceAccount.setManagedBy(adUserAccount);
-                    adServiceAccount.setOwner(null);
+					adServiceAccount.setOwner(null);
 					if (attr.get("manager") != null) {
-                        String managedBy = "";
+						String managedBy = "";
 						String managedByStr = (String) attr.get("manager").get();
 						if (!StringUtils.isEmpty(managedByStr)) {
-                            managedBy= managedByStr.substring(3, managedByStr.indexOf(","));
-                        }
-                        adUserAccount.setUserName(managedBy);
+							managedBy= managedByStr.substring(3, managedByStr.indexOf(","));
+						}
+						adUserAccount.setUserName(managedBy);
 						adServiceAccount.setOwner(managedBy.toLowerCase());
 					}
+
 					DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-					if (attr.get("accountExpires") != null) {
-						String rawExpDateTime = (String) attr.get("accountExpires").get();
-						String sAccountExpiration = "Never";
+					TimeZone timeZonePST = TimeZone.getTimeZone(TVaultConstants.TIME_ZONE_PDT);
+					dateFormat.setTimeZone(timeZonePST);
+					if (attr.get(TVaultConstants.ACCOUNT_EXPIRES) != null) {
+						String rawExpDateTime = (String) attr.get(TVaultConstants.ACCOUNT_EXPIRES).get();
+						String sAccountExpiration = TVaultConstants.NEVER_EXPIRE;
 						try {
 							long lAccountExpiration = Long.parseLong(rawExpDateTime);
 							// Check if account never expires
@@ -256,11 +282,26 @@ public class  ServiceAccountsService {
 							}
 						}
 						catch(Exception ex) {
-                            sAccountExpiration = "Unknown";
+							// Default TTL
+							sAccountExpiration = TVaultConstants.NEVER_EXPIRE;
 						}
 						adServiceAccount.setAccountExpires(sAccountExpiration);
 					}
-					
+					// account status
+					if (attr.get(TVaultConstants.ACCOUNT_EXPIRES) == null || adServiceAccount.getAccountExpires().equals(TVaultConstants.NEVER_EXPIRE)) {
+						adServiceAccount.setAccountStatus("active");
+					}
+					else {
+						try {
+							adServiceAccount.setAccountStatus("active");
+							boolean expired = dateFormat.parse(adServiceAccount.getAccountExpires()).before(new Date());
+							if (expired) {
+								adServiceAccount.setAccountStatus(TVaultConstants.EXPIRED);
+							}
+						} catch (ParseException e) {
+							adServiceAccount.setAccountStatus("Unknown");
+						}
+					}
 					if (attr.get("pwdLastSet") != null) {
 						String pwdLastSetRaw = (String) attr.get("pwdLastSet").get();
 						String pwsLastSet = "";
@@ -272,7 +313,7 @@ public class  ServiceAccountsService {
 								pwsLastSet = dateFormat.format(pwdSet);
 							}
 							catch(Exception ex) {
-                                pwsLastSet = "Unknown";
+								pwsLastSet = "";
 							}
 						}
 						adServiceAccount.setPwdLastSet(pwsLastSet);
@@ -280,75 +321,61 @@ public class  ServiceAccountsService {
 					// set passwordExpiry expiry and maxPwdAge
 					if (attr.get("memberof") != null) {
 						int maxLife = 0;
-						adServiceAccount.setPasswordExpiry("expired");
+						adServiceAccount.setPasswordExpiry(TVaultConstants.EXPIRED);
 
-                        String memberOfStr = (String) attr.get("memberof").get();
-                        if (!StringUtils.isEmpty(memberOfStr)) {
+						String memberOfStr = (String) attr.get("memberof").get();
+						if (!StringUtils.isEmpty(memberOfStr)) {
 
-                            if (memberOfStr.contains(TVaultConstants.SVC_ACC_EXCEPTION)) {
-                                maxLife = TVaultConstants.SVC_ACC_EXCEPTION_MAXLIFE;
-                            }
-                            else {
-                                maxLife = TVaultConstants.SVC_ACC_STANDARD_MAXLIFE;
-                            }
-                            adServiceAccount.setMaxPwdAge((int)TimeUnit.DAYS.toSeconds(maxLife));
-                            Calendar c = Calendar.getInstance();
-                            try{
-                                c.setTime(dateFormat.parse(adServiceAccount.getPwdLastSet()));
-                                c.add(Calendar.DAY_OF_MONTH, maxLife);
-                                if (c.getTime().before(new Date())) {
-                                    adServiceAccount.setPasswordExpiry("expired");
-                                }
-                                else {
-                                    String passwordExpiry = dateFormat.format(c.getTime());
-                                    // find days to expire
-                                    long difference = c.getTime().getTime() - new Date().getTime();
-                                    String daysToExpire;
-                                    if (difference >= TVaultConstants.DAY_IN_MILLISECONDS) { //more than one day
-                                        daysToExpire = TimeUnit.DAYS.convert(difference, TimeUnit.MILLISECONDS) + " days";
-                                    }
-                                    else { // less than one day
-                                        daysToExpire = TimeUnit.HOURS.convert(difference, TimeUnit.MILLISECONDS) + " hours";
-                                    }
-                                    adServiceAccount.setPasswordExpiry(passwordExpiry +" ("+daysToExpire+")");
-                                }
-                            }catch(ParseException e){
-                                adServiceAccount.setPasswordExpiry("Unknown");
-                            }
-                        }
-					}
-					// account status
-					if (adServiceAccount.getAccountExpires().equals("Never")) {
-                        adServiceAccount.setAccountStatus("active");
-                    }
-					else if (!adServiceAccount.getAccountExpires().equals("Unknown")) {
-						try {
-                            adServiceAccount.setAccountStatus("active");
-							boolean expired = dateFormat.parse(adServiceAccount.getAccountExpires()).before(new Date());
-							if (expired) {
-								adServiceAccount.setAccountStatus("expired");
+							if (memberOfStr.contains(TVaultConstants.SVC_ACC_EXCEPTION)) {
+								maxLife = TVaultConstants.SVC_ACC_EXCEPTION_MAXLIFE;
 							}
-						} catch (ParseException e) {
-                            adServiceAccount.setAccountStatus("Unknown");
+							else {
+								maxLife = TVaultConstants.SVC_ACC_STANDARD_MAXLIFE;
+							}
+							adServiceAccount.setMaxPwdAge((int)TimeUnit.DAYS.toSeconds(maxLife));
+							Calendar c = Calendar.getInstance();
+							if (!StringUtils.isEmpty(adServiceAccount.getPwdLastSet())) {
+								try{
+									c.setTime(dateFormat.parse(adServiceAccount.getPwdLastSet()));
+									c.add(Calendar.DAY_OF_MONTH, maxLife);
+									if (c.getTime().before(new Date())) {
+										adServiceAccount.setPasswordExpiry(TVaultConstants.EXPIRED);
+									}
+									else {
+										String passwordExpiry = dateFormat.format(c.getTime());
+										// find days to expire
+										long difference = c.getTime().getTime() - new Date().getTime();
+										String daysToExpire;
+										if (difference >= TVaultConstants.DAY_IN_MILLISECONDS) { //more than one day
+											daysToExpire = TimeUnit.DAYS.convert(difference, TimeUnit.MILLISECONDS) + " days";
+										}
+										else { // less than one day
+											daysToExpire = TimeUnit.HOURS.convert(difference, TimeUnit.MILLISECONDS) + " hours";
+										}
+										adServiceAccount.setPasswordExpiry(passwordExpiry +" ("+daysToExpire+")");
+									}
+								}catch(ParseException e){
+									adServiceAccount.setPasswordExpiry("");
+								}
+							}
 						}
-					} else {
-                        adServiceAccount.setAccountStatus("Unknown");
-                    }
-                    // lock status
-					adServiceAccount.setLockStatus("active");
+					}
+					// lock status
+					adServiceAccount.setLockStatus("unlocked");
 					if (attr.get("lockedout") != null) {
 						boolean lockedOut = (boolean) attr.get("lockedout").get();
 						if (lockedOut) {
-							adServiceAccount.setLockStatus("inactive");
+							adServiceAccount.setLockStatus("locked");
 						}
 					}
 					if (attr.get("description") != null) {
 						adServiceAccount.setPurpose((String) attr.get("description").get());
 					}
+					adServiceAccounts.add(adServiceAccount);
 				}
-				return adServiceAccount;
 			}
-		});
+		}
+		return adServiceAccounts;
 	}
 
 	/**

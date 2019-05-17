@@ -22,10 +22,7 @@ import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.when;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import com.tmobile.cso.vault.api.model.*;
 import com.tmobile.cso.vault.api.utils.PolicyUtils;
@@ -34,13 +31,11 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.logging.log4j.LogManager;
 import org.junit.Before;
 import org.junit.FixMethodOrder;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.MethodSorters;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
@@ -49,7 +44,6 @@ import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.powermock.reflect.Whitebox;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -66,6 +60,10 @@ import com.tmobile.cso.vault.api.process.RequestProcessor;
 import com.tmobile.cso.vault.api.process.Response;
 import com.tmobile.cso.vault.api.utils.JSONUtil;
 import com.tmobile.cso.vault.api.utils.ThreadLocalContext;
+
+import javax.naming.directory.Attributes;
+import javax.naming.directory.BasicAttributes;
+
 
 @RunWith(PowerMockRunner.class)
 @ComponentScan(basePackages={"com.tmobile.cso.vault.api"})
@@ -144,17 +142,19 @@ public class ServiceAccountsServiceTest {
         ADServiceAccount adServiceAccount = new ADServiceAccount();
         adServiceAccount.setDisplayName("testacc");
         adServiceAccount.setGivenName("testacc");
-        adServiceAccount.setUserEmail("testacc@t-mobile.com");
+        adServiceAccount.setUserEmail("testacc01@t-mobile.com");
         adServiceAccount.setUserId(userid);
         adServiceAccount.setUserName("testaccr");
         adServiceAccount.setPurpose("This is a test user account");
-        adServiceAccount.setAccountExpires("292239827-01-08 11:35:09");
-        adServiceAccount.setMaxPwdAge(90);
+        adServiceAccount.setAccountExpires("Never");
+        adServiceAccount.setPwdLastSet("2019-05-14 07:09:32");
+        adServiceAccount.setMaxPwdAge(31536000);
+        adServiceAccount.setPasswordExpiry("2020-05-13 07:09:32 (358 days)");
         ADUserAccount adUserAccount = new ADUserAccount();
         adUserAccount.setUserName("user11");
         adServiceAccount.setManagedBy(adUserAccount);
         adServiceAccount.setAccountStatus("active");
-        adServiceAccount.setLockStatus("active");
+        adServiceAccount.setLockStatus("unlocked");
         return adServiceAccount;
     }
     private List<ADServiceAccount> generateADSerivceAccounts() {
@@ -195,7 +195,8 @@ public class ServiceAccountsServiceTest {
         ReflectionTestUtils.setField(serviceAccountsService, "ldapTemplate", ldapTemplate);
         when(ldapTemplate.search(Mockito.anyString(), Mockito.anyString(), Mockito.any(AttributesMapper.class))).thenReturn(list);
         ReflectionTestUtils.setField(serviceAccountsService, "adUserLdapTemplate", ldapTemplate);
-        when(ldapTemplate.search(Mockito.anyString(), Mockito.eq(encodedFilter), Mockito.any(AttributesMapper.class))).thenReturn(allServiceAccounts);
+        List<Attributes> attributes = generateADSerivceAccountsRaw("testacc01");
+        when(ldapTemplate.search(Mockito.anyString(), Mockito.eq(encodedFilter), Mockito.any(AttributesMapper.class))).thenReturn(attributes);
 
         Response response = getMockResponse(HttpStatus.OK, true, "{\"keys\":[\"testacc02\"]}");
         when(reqProcessor.process("/ad/serviceaccount/onboardedlist","{}",token)).thenReturn(response);
@@ -252,7 +253,10 @@ public class ServiceAccountsServiceTest {
         ReflectionTestUtils.setField(serviceAccountsService, "ldapTemplate", ldapTemplate);
         when(ldapTemplate.search(Mockito.anyString(), Mockito.anyString(), Mockito.any(AttributesMapper.class))).thenReturn(list);
         ReflectionTestUtils.setField(serviceAccountsService, "adUserLdapTemplate", ldapTemplate);
-        when(ldapTemplate.search(Mockito.anyString(), Mockito.eq(encodedFilter), Mockito.any(AttributesMapper.class))).thenReturn(allServiceAccounts);
+        List<Attributes> attributes = generateADSerivceAccountsRaw("testacc01");
+        attributes.addAll(generateADSerivceAccountsRaw("testacc02"));
+        attributes.addAll(generateADSerivceAccountsRaw("testacc03"));
+        when(ldapTemplate.search(Mockito.anyString(), Mockito.eq(encodedFilter), Mockito.any(AttributesMapper.class))).thenReturn(attributes);
 
         Response response = getMockResponse(HttpStatus.NOT_FOUND, true, "{\"keys\":[]}");
         when(reqProcessor.process("/ad/serviceaccount/onboardedlist","{}",token)).thenReturn(response);
@@ -282,7 +286,7 @@ public class ServiceAccountsServiceTest {
         ReflectionTestUtils.setField(serviceAccountsService, "ldapTemplate", ldapTemplate);
         when(ldapTemplate.search(Mockito.anyString(), Mockito.anyString(), Mockito.any(AttributesMapper.class))).thenReturn(list);
         ReflectionTestUtils.setField(serviceAccountsService, "adUserLdapTemplate", ldapTemplate);
-        when(ldapTemplate.search(Mockito.anyString(), Mockito.eq(encodedFilter), Mockito.any(AttributesMapper.class))).thenReturn(allServiceAccounts);
+        when(ldapTemplate.search(Mockito.anyString(), Mockito.eq(encodedFilter), Mockito.any(AttributesMapper.class))).thenReturn(null);
         ResponseEntity<ADServiceAccountObjects> responseEntity = serviceAccountsService.getADServiceAccounts(token, userDetails, userPrincipalName, excludeOnboarded);
 
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
@@ -310,15 +314,35 @@ public class ServiceAccountsServiceTest {
         ReflectionTestUtils.setField(serviceAccountsService, "ldapTemplate", ldapTemplate);
         when(ldapTemplate.search(Mockito.anyString(), Mockito.anyString(), Mockito.any(AttributesMapper.class))).thenReturn(list);
         ReflectionTestUtils.setField(serviceAccountsService, "adUserLdapTemplate", ldapTemplate);
-        when(ldapTemplate.search(Mockito.anyString(), Mockito.eq(encodedFilter), Mockito.any(AttributesMapper.class))).thenReturn(allServiceAccounts);
+        List<Attributes> attributes = generateADSerivceAccountsRaw("testacc01");
+        when(ldapTemplate.search(Mockito.anyString(), Mockito.eq(encodedFilter), Mockito.any(AttributesMapper.class))).thenReturn(attributes);
+
         ResponseEntity<ADServiceAccountObjects> responseEntity = serviceAccountsService.getADServiceAccounts(token, userDetails, userPrincipalName, excludeOnboarded);
 
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
-        assertEquals(responseEntityExpected.getBody().getData().getValues()[0], responseEntity.getBody().getData().getValues()[0]);
+        assertEquals(responseEntityExpected.getBody().getData().getValues()[0].toString(), responseEntity.getBody().getData().getValues()[0].toString());
 
     }
 
-	public String getJSON(Object obj)  {
+    private List<Attributes> generateADSerivceAccountsRaw(String name) {
+        BasicAttributes attributes = new BasicAttributes();
+        attributes.put("userid", name);
+        attributes.put("name", "testaccr");
+        attributes.put("mail", "testacc01@t-mobile.com");
+        attributes.put("displayname", "testacc");
+        attributes.put("givenname", "testacc");
+        attributes.put("accountExpires", "9223372036854775807");
+        attributes.put("pwdLastSet", "132023165725126698");
+        attributes.put("manager", "CN=user1,OU=Production,OU=Users,OU=Accounts,DC=temp,DC=abc,DC=def,DC=com");
+        attributes.put("description", "This is a test user account");
+        attributes.put("memberof", "CN=group,OU=Roles,OU=Security,OU=Groups,DC=temp,DC=abc,DC=def,DC=com");
+
+        List<Attributes> list = new ArrayList<>();
+        list.add(attributes);
+        return list;
+    }
+
+    public String getJSON(Object obj)  {
 		ObjectMapper mapper = new ObjectMapper();
 		try {
 			return mapper.writeValueAsString(obj);
