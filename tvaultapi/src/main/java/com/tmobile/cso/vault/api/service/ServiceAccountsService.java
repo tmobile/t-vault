@@ -419,7 +419,19 @@ public class  ServiceAccountsService {
         andFilter.and(new LikeFilter("userPrincipalName", serviceAccount+"*"));
         andFilter.and(new EqualsFilter("objectClass", "user"));
         andFilter.and(new NotFilter(new EqualsFilter("CN", adMasterServiveAccount)));
-        return getADServiceAccounts(andFilter);
+		List<Attributes> rawAttributes = getADServiceAccounts(andFilter);
+		List<ADServiceAccount> allServiceAccounts = null;
+		try {
+			allServiceAccounts = getFormattedAdAttributes(rawAttributes);
+		} catch (NamingException e) {
+			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+					put(LogMessage.ACTION, "getADServiceAccount").
+					put(LogMessage.MESSAGE, "Failed to format the raw attributes to ADServiceAccount").
+					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+					build()));
+		}
+        return allServiceAccounts;
     }
 
 	/**

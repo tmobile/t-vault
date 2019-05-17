@@ -148,7 +148,7 @@ public class ServiceAccountsServiceTest {
         adServiceAccount.setMaxPwdAge(31536000);
         adServiceAccount.setPasswordExpiry("2020-05-13 07:09:32 (358 days)");
         ADUserAccount adUserAccount = new ADUserAccount();
-        adUserAccount.setUserName("user11");
+        adUserAccount.setUserName(userid);
         adServiceAccount.setManagedBy(adUserAccount);
         adServiceAccount.setAccountStatus("active");
         adServiceAccount.setLockStatus("unlocked");
@@ -491,7 +491,7 @@ public class ServiceAccountsServiceTest {
         serviceAccount.setAutoRotate(true);
         serviceAccount.setTtl(1590897977L);
         serviceAccount.setMax_ttl(1590897977L);
-        String expectedResponse = "{\"errors\":[\"Invalid value provided for TTL. TTL can't be more than 7775999 (89 days) for this Service Account\"]}";
+        String expectedResponse = "{\"errors\":[\"Invalid value provided for TTL. TTL can't be more than 31535999 (364 days) for this Service Account\"]}";
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body(expectedResponse);
 
         Response response = getMockResponse(HttpStatus.OK, true, "{\"keys\":[\"testacc03\"]}");
@@ -544,7 +544,7 @@ public class ServiceAccountsServiceTest {
         // Add User to Service Account
         Response userResponse = getMockResponse(HttpStatus.OK, true, "{\"data\":{\"bound_cidrs\":[],\"max_ttl\":0,\"policies\":[\"default\"],\"ttl\":0,\"groups\":\"admin\"}}");
         Response ldapConfigureResponse = getMockResponse(HttpStatus.NO_CONTENT, true, "{\"policies\":null}");
-        when(reqProcessor.process("/auth/ldap/users","{\"username\":\"user11\"}",token)).thenReturn(userResponse);
+        when(reqProcessor.process("/auth/ldap/users","{\"username\":\"testacc01\"}",token)).thenReturn(userResponse);
 
         try {
             List<String> resList = new ArrayList<>();
@@ -553,7 +553,7 @@ public class ServiceAccountsServiceTest {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        when(ControllerUtil.configureLDAPUser(eq("user11"),any(),any(),eq(token))).thenReturn(ldapConfigureResponse);
+        when(ControllerUtil.configureLDAPUser(eq("testacc01"),any(),any(),eq(token))).thenReturn(ldapConfigureResponse);
 
 
 
@@ -711,7 +711,7 @@ public class ServiceAccountsServiceTest {
 
         // Add User to Service Account
         Response userResponse = getMockResponse(HttpStatus.OK, true, "{\"data\":{\"bound_cidrs\":[],\"max_ttl\":0,\"policies\":[\"default\"],\"ttl\":0,\"groups\":\"admin\"}}");
-        when(reqProcessor.process("/auth/ldap/users","{\"username\":\"user11\"}",token)).thenReturn(userResponse);
+        when(reqProcessor.process("/auth/ldap/users","{\"username\":\"testacc01\"}",token)).thenReturn(userResponse);
 
         try {
             List<String> resList = new ArrayList<>();
@@ -721,7 +721,7 @@ public class ServiceAccountsServiceTest {
             e.printStackTrace();
         }
         Response ldapConfigureResponse = getMockResponse(HttpStatus.BAD_REQUEST, true, "{\"errors\":[\"Failed to add user to the Service Account\"]}");
-        when(ControllerUtil.configureLDAPUser(eq("user11"),any(),any(),eq(token))).thenReturn(ldapConfigureResponse);
+        when(ControllerUtil.configureLDAPUser(eq("testacc01"),any(),any(),eq(token))).thenReturn(ldapConfigureResponse);
         // Metadata
         String path="metadata/ad/roles/"+serviceAccount.getName();
         Map<String,Object> rqstParams = new HashMap<>();
@@ -2598,7 +2598,7 @@ public class ServiceAccountsServiceTest {
     @Test
     public void test_updateOnboardedServiceAccount_failure_invalid_ttl() throws Exception {
 
-        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid value provided for TTL. TTL can't be more than 7775999 (89 days) for this Service Account\"]}");
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid value provided for TTL. TTL can't be more than 31535999 (364 days) for this Service Account\"]}");
         String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
         UserDetails userDetails = getMockUser(true);
         ServiceAccount serviceAccount = new ServiceAccount();
