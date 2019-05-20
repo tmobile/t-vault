@@ -19,13 +19,18 @@
 
 ( function() {
     'use strict';
-
+    
     angular
         .module('vault' )
         .config( routerConfig );
 
     /** @ngInject */
-    function routerConfig( $stateProvider, $urlRouterProvider ) {
-        $urlRouterProvider.otherwise( '/' );
+    function routerConfig( $stateProvider ) {
+        $stateProvider
+            .state( '/', {
+                url: '/',
+                templateUrl: 'app/Features/home/home.html',
+                controller: 'HomeCtrl'
+            } );
     }
 } )();

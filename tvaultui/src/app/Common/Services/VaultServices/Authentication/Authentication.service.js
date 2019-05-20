@@ -97,7 +97,7 @@
     };
 
     function logout(withoutRevoke) {
-      var url = '/#!/signup';
+      var url = '/#!/';
       if (withoutRevoke) {
         window.location.replace(url)
       } else {

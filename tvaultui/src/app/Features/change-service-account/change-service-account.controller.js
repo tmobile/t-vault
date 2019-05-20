@@ -973,7 +973,7 @@
 
         $scope.init = function () {
             if(!SessionStore.getItem("myVaultKey")){ /* Check if user is in the same session */
-                $state.go('signup');
+                $state.go('/');
                 return;
             }
             var feature = JSON.parse(SessionStore.getItem("feature"));
@@ -1013,7 +1013,7 @@
             $scope.hideSudoPolicy = false;
             $scope.myVaultKey = SessionStore.getItem("myVaultKey");
             if(!$scope.myVaultKey){ /* Check if user is in the same session */
-                $state.go('signup');
+                $state.go('/');
             }
             $scope.requestDataFrChangeSvcacc();
             $scope.fetchUsers();

@@ -19,7 +19,7 @@
 
         function init() {
             if(!SessionStore.getItem("myVaultKey")){ /* Check if user is in the same session */
-                $state.go('signup');
+                $state.go('/');
                 return;
             }
             $rootScope.$on('search', function (event, searchValue) {
