@@ -152,6 +152,8 @@ public class ServiceAccountsServiceTest {
         adServiceAccount.setManagedBy(adUserAccount);
         adServiceAccount.setAccountStatus("active");
         adServiceAccount.setLockStatus("unlocked");
+        adServiceAccount.setMemberOf("CN=r_adds_svcacct_standard,OU=Roles,OU=Security,OU=Groups,DC=abc,DC=def,DC=ghi,DC=com");
+        adServiceAccount.setOwner("testacc01");
         return adServiceAccount;
     }
     private List<ADServiceAccount> generateADSerivceAccounts() {
@@ -371,7 +373,7 @@ public class ServiceAccountsServiceTest {
         // Add User to Service Account
         Response userResponse = getMockResponse(HttpStatus.OK, true, "{\"data\":{\"bound_cidrs\":[],\"max_ttl\":0,\"policies\":[\"default\"],\"ttl\":0,\"groups\":\"admin\"}}");
         Response ldapConfigureResponse = getMockResponse(HttpStatus.NO_CONTENT, true, "{\"policies\":null}");
-        when(reqProcessor.process("/auth/ldap/users","{\"username\":\"user11\"}",token)).thenReturn(userResponse);
+        when(reqProcessor.process("/auth/ldap/users","{\"username\":\"testacc01\"}",token)).thenReturn(userResponse);
 
         try {
             List<String> resList = new ArrayList<>();
@@ -380,7 +382,7 @@ public class ServiceAccountsServiceTest {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        when(ControllerUtil.configureLDAPUser(eq("user11"),any(),any(),eq(token))).thenReturn(ldapConfigureResponse);
+        when(ControllerUtil.configureLDAPUser(eq("testacc01"),any(),any(),eq(token))).thenReturn(ldapConfigureResponse);
 
 
 
