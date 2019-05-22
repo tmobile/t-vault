@@ -74,7 +74,7 @@ public class ADServiceAccount implements Serializable {
 
 	private String pwdLastSet;
     private String pwdLastSetFormatted;
-	
+
 	private int maxPwdAge;
 	
 	private ADUserAccount managedBy;
