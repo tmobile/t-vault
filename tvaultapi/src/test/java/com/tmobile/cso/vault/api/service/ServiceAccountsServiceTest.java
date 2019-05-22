@@ -61,9 +61,6 @@ import com.tmobile.cso.vault.api.process.Response;
 import com.tmobile.cso.vault.api.utils.JSONUtil;
 import com.tmobile.cso.vault.api.utils.ThreadLocalContext;
 
-import javax.naming.directory.Attributes;
-import javax.naming.directory.BasicAttributes;
-
 
 @RunWith(PowerMockRunner.class)
 @ComponentScan(basePackages={"com.tmobile.cso.vault.api"})
@@ -195,8 +192,7 @@ public class ServiceAccountsServiceTest {
         ReflectionTestUtils.setField(serviceAccountsService, "ldapTemplate", ldapTemplate);
         when(ldapTemplate.search(Mockito.anyString(), Mockito.anyString(), Mockito.any(AttributesMapper.class))).thenReturn(list);
         ReflectionTestUtils.setField(serviceAccountsService, "adUserLdapTemplate", ldapTemplate);
-        List<Attributes> attributes = generateADSerivceAccountsRaw("testacc01");
-        when(ldapTemplate.search(Mockito.anyString(), Mockito.eq(encodedFilter), Mockito.any(AttributesMapper.class))).thenReturn(attributes);
+        when(ldapTemplate.search(Mockito.anyString(), Mockito.eq(encodedFilter), Mockito.any(AttributesMapper.class))).thenReturn(allServiceAccounts);
 
         Response response = getMockResponse(HttpStatus.OK, true, "{\"keys\":[\"testacc02\"]}");
         when(reqProcessor.process("/ad/serviceaccount/onboardedlist","{}",token)).thenReturn(response);
@@ -253,10 +249,7 @@ public class ServiceAccountsServiceTest {
         ReflectionTestUtils.setField(serviceAccountsService, "ldapTemplate", ldapTemplate);
         when(ldapTemplate.search(Mockito.anyString(), Mockito.anyString(), Mockito.any(AttributesMapper.class))).thenReturn(list);
         ReflectionTestUtils.setField(serviceAccountsService, "adUserLdapTemplate", ldapTemplate);
-        List<Attributes> attributes = generateADSerivceAccountsRaw("testacc01");
-        attributes.addAll(generateADSerivceAccountsRaw("testacc02"));
-        attributes.addAll(generateADSerivceAccountsRaw("testacc03"));
-        when(ldapTemplate.search(Mockito.anyString(), Mockito.eq(encodedFilter), Mockito.any(AttributesMapper.class))).thenReturn(attributes);
+        when(ldapTemplate.search(Mockito.anyString(), Mockito.eq(encodedFilter), Mockito.any(AttributesMapper.class))).thenReturn(allServiceAccounts);
 
         Response response = getMockResponse(HttpStatus.NOT_FOUND, true, "{\"keys\":[]}");
         when(reqProcessor.process("/ad/serviceaccount/onboardedlist","{}",token)).thenReturn(response);
@@ -314,32 +307,13 @@ public class ServiceAccountsServiceTest {
         ReflectionTestUtils.setField(serviceAccountsService, "ldapTemplate", ldapTemplate);
         when(ldapTemplate.search(Mockito.anyString(), Mockito.anyString(), Mockito.any(AttributesMapper.class))).thenReturn(list);
         ReflectionTestUtils.setField(serviceAccountsService, "adUserLdapTemplate", ldapTemplate);
-        List<Attributes> attributes = generateADSerivceAccountsRaw("testacc01");
-        when(ldapTemplate.search(Mockito.anyString(), Mockito.eq(encodedFilter), Mockito.any(AttributesMapper.class))).thenReturn(attributes);
+        when(ldapTemplate.search(Mockito.anyString(), Mockito.eq(encodedFilter), Mockito.any(AttributesMapper.class))).thenReturn(allServiceAccounts);
 
         ResponseEntity<ADServiceAccountObjects> responseEntity = serviceAccountsService.getADServiceAccounts(token, userDetails, userPrincipalName, excludeOnboarded);
 
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected.getBody().getData().getValues()[0].toString(), responseEntity.getBody().getData().getValues()[0].toString());
 
-    }
-
-    private List<Attributes> generateADSerivceAccountsRaw(String name) {
-        BasicAttributes attributes = new BasicAttributes();
-        attributes.put("userid", name);
-        attributes.put("name", "testaccr");
-        attributes.put("mail", "testacc01@t-mobile.com");
-        attributes.put("displayname", "testacc");
-        attributes.put("givenname", "testacc");
-        attributes.put("accountExpires", "9223372036854775807");
-        attributes.put("pwdLastSet", "132023165725126698");
-        attributes.put("manager", "CN=user1,OU=Production,OU=Users,OU=Accounts,DC=temp,DC=abc,DC=def,DC=com");
-        attributes.put("description", "This is a test user account");
-        attributes.put("memberof", "CN=group,OU=Roles,OU=Security,OU=Groups,DC=temp,DC=abc,DC=def,DC=com");
-
-        List<Attributes> list = new ArrayList<>();
-        list.add(attributes);
-        return list;
     }
 
     public String getJSON(Object obj)  {

@@ -140,18 +140,7 @@ public class  ServiceAccountsService {
 				}
 			}
 		}
-		List<Attributes> rawAttributes = getADServiceAccounts(andFilter);
-		List<ADServiceAccount> allServiceAccounts = null;
-		try {
-			allServiceAccounts = getFormattedAdAttributes(rawAttributes);
-		} catch (NamingException e) {
-			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
-					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
-					put(LogMessage.ACTION, "getADServiceAccounts").
-					put(LogMessage.MESSAGE, "Failed to format the raw attributes to ADServiceAccount").
-					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
-					build()));
-		}
+		List<ADServiceAccount> allServiceAccounts = getADServiceAccounts(andFilter);
 		// get the managed_by details
 		if (allServiceAccounts != null && !allServiceAccounts.isEmpty()) {
 			List<String> ownerlist = allServiceAccounts.stream().map(m -> m.getManagedBy().getUserName()).collect(Collectors.toList());
@@ -199,32 +188,18 @@ public class  ServiceAccountsService {
 	 * @param filter
 	 * @return
 	 */
-	private List<Attributes> getADServiceAccounts(Filter filter) {
+	private List<ADServiceAccount> getADServiceAccounts(Filter filter) {
 		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 				put(LogMessage.ACTION, "getAllAccounts").
 				put(LogMessage.MESSAGE, String.format("Trying to get list of user accounts from AD server")).
 				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 				build()));
-		return ldapTemplate.search("", filter.encode(), new AttributesMapper<Attributes>() {
+		return ldapTemplate.search("", filter.encode(), new AttributesMapper<ADServiceAccount>() {
 			@Override
-			public Attributes mapFromAttributes(Attributes attr) throws NamingException {
-				return attr;
-			}
-		});
-	}
-
-	/**
-	 * Get formatted AD attributes
-	 * @param allServiceAccounts
-	 * @return
-	 */
-	private List<ADServiceAccount> getFormattedAdAttributes(List<Attributes> allServiceAccounts) throws NamingException {
-		List<ADServiceAccount> adServiceAccounts = new ArrayList<>();
-		if (allServiceAccounts !=null) {
-			for (Attributes attr: allServiceAccounts) {
+			public ADServiceAccount mapFromAttributes(Attributes attr) throws NamingException {
+				ADServiceAccount adServiceAccount = new ADServiceAccount();
 				if (attr != null) {
-					ADServiceAccount adServiceAccount = new ADServiceAccount();
 					String mail = "";
 					if(attr.get("mail") != null) {
 						mail = ((String) attr.get("mail").get());
@@ -241,6 +216,7 @@ public class  ServiceAccountsService {
 					if (attr.get("givenname") != null) {
 						adServiceAccount.setGivenName(((String) attr.get("givenname").get()));
 					}
+
 					if (attr.get("mail") != null) {
 						adServiceAccount.setUserEmail(((String) attr.get("mail").get()));
 					}
@@ -266,99 +242,22 @@ public class  ServiceAccountsService {
 						adUserAccount.setUserName(managedBy);
 						adServiceAccount.setOwner(managedBy.toLowerCase());
 					}
-
-					DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-					TimeZone timeZonePST = TimeZone.getTimeZone(TVaultConstants.TIME_ZONE_PDT);
-					dateFormat.setTimeZone(timeZonePST);
-					if (attr.get(TVaultConstants.ACCOUNT_EXPIRES) != null) {
-						String rawExpDateTime = (String) attr.get(TVaultConstants.ACCOUNT_EXPIRES).get();
-						String sAccountExpiration = TVaultConstants.NEVER_EXPIRE;
-						try {
-							long lAccountExpiration = Long.parseLong(rawExpDateTime);
-							// Check if account never expires
-							if (TVaultConstants.SVC_ACC_NEVER_EXPIRE_VALUE != lAccountExpiration && lAccountExpiration != 0) {
-								Date accountExpires = new Date(lAccountExpiration/10000-TVaultConstants.FILETIME_EPOCH_DIFF);
-								sAccountExpiration = dateFormat.format(accountExpires);
-							}
-						}
-						catch(Exception ex) {
-							// Default TTL
-							sAccountExpiration = TVaultConstants.NEVER_EXPIRE;
-						}
-						adServiceAccount.setAccountExpires(sAccountExpiration);
-					}
-					// account status
-					if (attr.get(TVaultConstants.ACCOUNT_EXPIRES) == null || adServiceAccount.getAccountExpires().equals(TVaultConstants.NEVER_EXPIRE)) {
-						adServiceAccount.setAccountStatus("active");
-					}
-					else {
-						try {
-							adServiceAccount.setAccountStatus("active");
-							boolean expired = dateFormat.parse(adServiceAccount.getAccountExpires()).before(new Date());
-							if (expired) {
-								adServiceAccount.setAccountStatus(TVaultConstants.EXPIRED);
-							}
-						} catch (ParseException e) {
-							adServiceAccount.setAccountStatus("Unknown");
-						}
+					if (attr.get("accountExpires") != null) {
+						String rawExpDateTime = (String) attr.get("accountExpires").get();
+						adServiceAccount.setAccountExpires(rawExpDateTime);
 					}
 					if (attr.get("pwdLastSet") != null) {
-						String pwdLastSetRaw = (String) attr.get("pwdLastSet").get();
-						String pwsLastSet = "";
-						// value "0" - password needs to reset on next login
-						if (!pwdLastSetRaw.equals("0")) {
-							try {
-								long lpwdLastSetRaw = Long.parseLong(pwdLastSetRaw);
-								Date pwdSet = new Date(lpwdLastSetRaw/10000-TVaultConstants.FILETIME_EPOCH_DIFF);
-								pwsLastSet = dateFormat.format(pwdSet);
-							}
-							catch(Exception ex) {
-								pwsLastSet = "";
-							}
-						}
-						adServiceAccount.setPwdLastSet(pwsLastSet);
+						String pwdLastSet = (String) attr.get("pwdLastSet").get();
+						adServiceAccount.setPwdLastSet(pwdLastSet);
 					}
-					// set passwordExpiry expiry and maxPwdAge
 					if (attr.get("memberof") != null) {
-						int maxLife = 0;
-						adServiceAccount.setPasswordExpiry(TVaultConstants.EXPIRED);
+						String memberof = (String) attr.get("memberof").get();
+						adServiceAccount.setMemberOf(memberof);
+					}
 
-						String memberOfStr = (String) attr.get("memberof").get();
-						if (!StringUtils.isEmpty(memberOfStr)) {
-
-							if (memberOfStr.contains(TVaultConstants.SVC_ACC_EXCEPTION)) {
-								maxLife = TVaultConstants.SVC_ACC_EXCEPTION_MAXLIFE;
-							}
-							else {
-								maxLife = TVaultConstants.SVC_ACC_STANDARD_MAXLIFE;
-							}
-							adServiceAccount.setMaxPwdAge((int)TimeUnit.DAYS.toSeconds(maxLife));
-							Calendar c = Calendar.getInstance();
-							if (!StringUtils.isEmpty(adServiceAccount.getPwdLastSet())) {
-								try{
-									c.setTime(dateFormat.parse(adServiceAccount.getPwdLastSet()));
-									c.add(Calendar.DAY_OF_MONTH, maxLife);
-									if (c.getTime().before(new Date())) {
-										adServiceAccount.setPasswordExpiry(TVaultConstants.EXPIRED);
-									}
-									else {
-										String passwordExpiry = dateFormat.format(c.getTime());
-										// find days to expire
-										long difference = c.getTime().getTime() - new Date().getTime();
-										String daysToExpire;
-										if (difference >= TVaultConstants.DAY_IN_MILLISECONDS) { //more than one day
-											daysToExpire = TimeUnit.DAYS.convert(difference, TimeUnit.MILLISECONDS) + " days";
-										}
-										else { // less than one day
-											daysToExpire = TimeUnit.HOURS.convert(difference, TimeUnit.MILLISECONDS) + " hours";
-										}
-										adServiceAccount.setPasswordExpiry(passwordExpiry +" ("+daysToExpire+")");
-									}
-								}catch(ParseException e){
-									adServiceAccount.setPasswordExpiry("");
-								}
-							}
-						}
+					if (attr.get("lockedout") != null) {
+						String memberof = (String) attr.get("lockedout").get();
+						adServiceAccount.setMemberOf(memberof);
 					}
 					// lock status
 					adServiceAccount.setLockStatus("unlocked");
@@ -371,11 +270,10 @@ public class  ServiceAccountsService {
 					if (attr.get("description") != null) {
 						adServiceAccount.setPurpose((String) attr.get("description").get());
 					}
-					adServiceAccounts.add(adServiceAccount);
 				}
+				return adServiceAccount;
 			}
-		}
-		return adServiceAccounts;
+		});
 	}
 
 	/**
