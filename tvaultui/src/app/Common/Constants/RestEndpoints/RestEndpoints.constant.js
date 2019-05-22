@@ -292,12 +292,12 @@ readTextFile("../apiUrls.json");
             method: 'POST'
         },{
             name: 'getSecretForSvcacc',
-            url: '/v2/serviceaccounts/secret/',
+            url: '/v2/serviceaccounts/password?',
             method: 'GET'
         },{
             name: 'resetPasswordForSvcacc',
-            url: '/v2/serviceaccounts/password/reset',
-            method: 'POST'
+            url: '/v2/serviceaccounts/password?',
+            method: 'PUT'
         },{
             name: 'offboardSvcacc',
             url: '/v2/serviceaccounts/offboard',
