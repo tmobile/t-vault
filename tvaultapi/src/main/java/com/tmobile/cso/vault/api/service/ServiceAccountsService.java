@@ -489,6 +489,7 @@ public class  ServiceAccountsService {
 		String _path = TVaultConstants.SVC_ACC_ROLES_METADATA_MOUNT_PATH + svcAccName;
 		ServiceAccountMetadataDetails serviceAccountMetadataDetails = new ServiceAccountMetadataDetails(svcAccName);
 		serviceAccountMetadataDetails.setManagedBy(username);
+		serviceAccountMetadataDetails.setInitialPasswordReset(false);
 		ServiceAccountMetadata serviceAccountMetadata =  new ServiceAccountMetadata(_path, serviceAccountMetadataDetails);
 		String jsonStr = JSONUtil.getJSON(serviceAccountMetadata);
 		Map<String,Object> rqstParams = ControllerUtil.parseJson(jsonStr);
@@ -661,6 +662,7 @@ public class  ServiceAccountsService {
 			// Attaching write permissions for owner
 			if (TVaultConstants.getSvcAccPolicies().get(policyPrefix).equals(TVaultConstants.SUDO_POLICY)) {
 				accessMap.put(TVaultConstants.SVC_ACC_ROLES_PATH + svcAccName, TVaultConstants.WRITE_POLICY);
+				accessMap.put(TVaultConstants.SVC_ACC_ROLES_METADATA_MOUNT_PATH + svcAccName, TVaultConstants.WRITE_POLICY);
 			}
 			accessPolicy.setAccess(accessMap);
 			ResponseEntity<String> policyCreationStatus = accessService.createPolicy(token, accessPolicy);
@@ -725,6 +727,15 @@ public class  ServiceAccountsService {
 	 * @return
 	 */
 	public ResponseEntity<String> addUserToServiceAccount(String token, ServiceAccountUser serviceAccountUser, UserDetails userDetails) {
+		if (!checkInitialPwdResetStatus(token, userDetails, serviceAccountUser.getSvcAccName()) && !TVaultConstants.SUDO_POLICY.equals(serviceAccountUser.getAccess())) {
+			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+					put(LogMessage.ACTION, "Add User to ServiceAccount").
+					put(LogMessage.MESSAGE, "Failed to add permission to Service account. Initial password reset is pending for this Service Account.").
+					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+					build()));
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Failed to add permission to Service account. Initial password reset is pending for this Service Account. Please reset the password and try again.\"]}");
+		}
         if (!userDetails.isAdmin()) {
             token = tokenUtils.getSelfServiceToken();
         }
@@ -876,6 +887,34 @@ public class  ServiceAccountsService {
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Not authorized to perform\"]}");
 		}
 	}
+
+    /**
+     * To check the initial password reset status
+     * @param token
+     * @param userDetails
+     * @param svcAccName
+     * @return
+     */
+	private boolean checkInitialPwdResetStatus(String token, UserDetails userDetails, String svcAccName) {
+		String _path = TVaultConstants.SVC_ACC_ROLES_PATH + svcAccName;
+		boolean initialResetStatus = false;
+		Response metaResponse = getMetadata(token, userDetails, _path);
+		try {
+            JsonNode resetStatus = new ObjectMapper().readTree(metaResponse.getResponse()).get("data").get("initialPasswordReset");
+            if (resetStatus != null) {
+                initialResetStatus = Boolean.parseBoolean(resetStatus.asText());
+            }
+		} catch (IOException e) {
+			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+					put(LogMessage.ACTION, "checkInitialPwdResetStatus").
+					put(LogMessage.MESSAGE, String.format ("Failed to get Initial password status for the Service account [%s]", svcAccName)).
+					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+					build()));
+		}
+		return initialResetStatus;
+	}
+
 	/**
 	 * Removes user from service account
 	 * @param token
@@ -1074,6 +1113,31 @@ public class  ServiceAccountsService {
 							if (requestParams.get("last_password") != null ) {
 								adServiceAccountCreds.setLast_password((String) requestParams.get("last_password"));
 							}
+							// update metadata for initial password reset
+							String path = new StringBuffer(TVaultConstants.SVC_ACC_ROLES_PATH).append(svcAccName).toString();
+							Map<String,String> params = new HashMap<String,String>();
+							params.put("type", "initialPasswordReset");
+							params.put("path",path);
+							params.put("value","true");
+							Response metadataResponse = ControllerUtil.updateMetadataOnSvcaccPwdReset(params,token);
+							if(metadataResponse !=null && (HttpStatus.NO_CONTENT.equals(metadataResponse.getHttpstatus()) || HttpStatus.OK.equals(metadataResponse.getHttpstatus()))){
+								log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+										put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+										put(LogMessage.ACTION, "Update metadata on password reset").
+										put(LogMessage.MESSAGE, "Metadata update Success.").
+										put(LogMessage.STATUS, metadataResponse.getHttpstatus().toString()).
+										put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+										build()));
+							}
+							else {
+								log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+										put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+										put(LogMessage.ACTION, "Update metadata on password reset").
+										put(LogMessage.MESSAGE, "Metadata update failed.").
+										put(LogMessage.STATUS, metadataResponse.getHttpstatus().toString()).
+										put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+										build()));
+							}
 							return ResponseEntity.status(HttpStatus.OK).body(JSONUtil.getJSON(adServiceAccountCreds));
 						}
 						catch(Exception ex) {
@@ -1114,7 +1178,23 @@ public class  ServiceAccountsService {
 						put(LogMessage.MESSAGE, String.format("Unable to reset password for [%s]", svcAccName)).
 						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 						build()));
-				return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Unable to reset password details for the given service account. Failed to read the updated password after setting ttl to 1 second.\"]}");
+				//Reset ttl to 90 days (or based on password policy) long ttl = 7776000L; // 90 days...
+				serviceAccount.setTtl(ttl);
+				ResponseEntity<String> roleCreationResponse = createAccountRole(token, serviceAccount);
+				if(roleCreationResponse.getStatusCode().equals(HttpStatus.OK)) {
+					log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+							put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+							put(LogMessage.ACTION, "resetSvcAccPassword").
+							put(LogMessage.MESSAGE, String.format("Unable to reset password for [%s]. Role updated back to the correct ttl", svcAccName)).
+							put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+							build()));
+				}
+				if (HttpStatus.FORBIDDEN.equals(resetResponse.getHttpstatus())) {
+					return ResponseEntity.status(HttpStatus.FORBIDDEN).body("{\"errors\":[\"Access denied: Unable to reset password details for the given service account.\"]}");
+				}
+				else {
+					return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Unable to reset password details for the given service account. Failed to read the updated password after setting ttl to 1 second.\"]}");
+				}
 			}
 		}
 		log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
@@ -1371,6 +1451,15 @@ public class  ServiceAccountsService {
 				put(LogMessage.MESSAGE, String.format ("Trying to add Group to Service Account")).
 				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 				build()));
+		if (!checkInitialPwdResetStatus(token, userDetails, serviceAccountGroup.getSvcAccName())) {
+			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+					put(LogMessage.ACTION, "Add Group to ServiceAccount").
+					put(LogMessage.MESSAGE, "Failed to add permission to Service account. Initial password reset is pending for this Service Account.").
+					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+					build()));
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Failed to add permission to Service account. Initial password reset is pending for this Service Account. Please reset the password and try again.\"]}");
+		}
         if (!userDetails.isAdmin()) {
             token = tokenUtils.getSelfServiceToken();
         }
@@ -1659,6 +1748,15 @@ public class  ServiceAccountsService {
                 put(LogMessage.MESSAGE, String.format ("Trying to add Approle to Service Account")).
                 put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
                 build()));
+		if (!checkInitialPwdResetStatus(token, userDetails, serviceAccountApprole.getSvcAccName())) {
+			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+					put(LogMessage.ACTION, "Add approle to ServiceAccount").
+					put(LogMessage.MESSAGE, "Failed to add permission to Service account. Initial password reset is pending for this Service Account.").
+					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+					build()));
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Failed to add permission to Service account. Initial password reset is pending for this Service Account. Please reset the password and try again.\"]}");
+		}
         if (!userDetails.isAdmin()) {
             token = tokenUtils.getSelfServiceToken();
         }
@@ -1807,9 +1905,21 @@ public class  ServiceAccountsService {
 				put(LogMessage.MESSAGE, String.format ("Trying to get metadata for Service Account")).
 				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 				build()));
-        if (!userDetails.isAdmin()) {
-            token = tokenUtils.getSelfServiceToken();
-        }
+		Response response = getMetadata(token, userDetails, path);
+		return ResponseEntity.status(response.getHttpstatus()).body(response.getResponse());
+	}
+
+	/**
+	 * Get metadata for service account
+	 * @param token
+	 * @param userDetails
+	 * @param path
+	 * @return
+	 */
+	private Response getMetadata(String token, UserDetails userDetails, String path) {
+		if (!userDetails.isAdmin()) {
+			token = tokenUtils.getSelfServiceToken();
+		}
 		if (path != null && path.startsWith("/")) {
 			path = path.substring(1, path.length());
 		}
@@ -1817,8 +1927,7 @@ public class  ServiceAccountsService {
 			path = path.substring(0, path.length()-1);
 		}
 		String _path = "metadata/"+path;
-		Response response = reqProcessor.process("/sdb","{\"path\":\""+_path+"\"}",token);
-		return ResponseEntity.status(response.getHttpstatus()).body(response.getResponse());
+		return reqProcessor.process("/sdb","{\"path\":\""+_path+"\"}",token);
 	}
 
 	/**
@@ -2248,6 +2357,15 @@ public class  ServiceAccountsService {
 				put(LogMessage.MESSAGE, "Trying to add AWS Role to Service Account").
 				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 				build()));
+		if (!checkInitialPwdResetStatus(token, userDetails, serviceAccountAWSRole.getSvcAccName())) {
+			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+					put(LogMessage.ACTION, "Add AWS Role to Service Account").
+					put(LogMessage.MESSAGE, "Failed to add permission to Service account. Initial password reset is pending for this Service Account.").
+					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+					build()));
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Failed to add permission to Service account. Initial password reset is pending for this Service Account. Please reset the password and try again.\"]}");
+		}
         if (!userDetails.isAdmin()) {
             token = tokenUtils.getSelfServiceToken();
         }

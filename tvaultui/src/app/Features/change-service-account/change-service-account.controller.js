@@ -19,7 +19,7 @@
 
 'use strict';
 (function (app) {
-    app.controller('ChangeServiceAccountCtrl', function ($scope, $rootScope, Modal, $timeout, fetchData, $http, UtilityService, Notifications, $window, $state, $stateParams, $q, SessionStore, vaultUtilityService, ModifyUrl, AdminSafesManagement, AppConstant, $filter, filterFilter, orderByFilter) {
+    app.controller('ChangeServiceAccountCtrl', function ($scope, $rootScope, Modal, $timeout, fetchData, $http, UtilityService, Notifications, $window, $state, $stateParams, $q, SessionStore, vaultUtilityService, ModifyUrl, AdminSafesManagement, AppConstant, $filter, filterFilter, orderByFilter, CopyToClipboard) {
         $scope.selectedGroupOption = '';            // Selected dropdown value to be used for filtering
         $rootScope.showDetails = true;              // Set true to show details view first
         $rootScope.activeDetailsTab = 'details';
@@ -575,6 +575,7 @@
                             $rootScope.showDetails = false;
                             $rootScope.activeDetailsTab = 'permissions';
                             $scope.svcaccOnboarded = true;
+                            $scope.initialPwdResetRequired = true;
                             var notification = UtilityService.getAParticularSuccessMessage('MESSAGE_ONBOARD_SUCCESS');
                             Notifications.toast($scope.svcacc.svcaccId + ' Service Account' + notification);
                             $scope.svcaccPrevious = angular.copy($scope.svcacc);
@@ -635,6 +636,9 @@
                                 $rootScope.showDetails = false;
                                 $rootScope.activeDetailsTab = 'permissions';
                                 $scope.svcaccOnboarded = true;
+                                if ($scope.initialPasswordReset == "false" || $scope.initialPasswordReset == "") {
+                                    $scope.initialPwdResetRequired = true;
+                                }
                                 var notification = UtilityService.getAParticularSuccessMessage('MESSAGE_UPDATE_SUCCESS');
                                 Notifications.toast('TTL for Service Account ' + $scope.svcacc.svcaccId + notification);
                                 $scope.svcaccPrevious = angular.copy($scope.svcacc);
@@ -703,6 +707,7 @@
                                 $scope.permissionData.AppRolePermissionsData = {
                                     "data": object['app-roles']
                                 }
+                                $scope.initialPasswordReset = object.initialPasswordReset || '';
                                 hideUserSudoPolicy();
                             }
 
@@ -727,6 +732,51 @@
                 })
         }
 
+        $scope.oneTimeReset = function() {
+            $scope.resetButtonDisable = true;
+            $scope.isLoadingData = true;
+            var queryParameters = "serviceAccountName="+$scope.svcacc.svcaccId;
+            var updatedUrlOfEndPoint = ModifyUrl.addUrlParameteres('resetPasswordForSvcacc',queryParameters);
+            AdminSafesManagement.resetPasswordForSvcacc(null, updatedUrlOfEndPoint).then(function (response) {                
+                if (UtilityService.ifAPIRequestSuccessful(response)) {
+                    $scope.isLoadingData = false;
+                    $scope.newPassword = response.data.current_password;
+                    $scope.resetMessage = "Password for Service account "+$scope.svcacc.svcaccId+" reset successfully!"
+                    $rootScope.showDetails = false;
+                    $scope.initialPwdResetRequired = false;
+                    $scope.initialPasswordReset = "true";
+                    $rootScope.activeDetailsTab = 'permissions';
+                    $scope.openResetStatus();
+                }
+                else {
+                    $scope.isLoadingData = false;
+                    $scope.newPassword = '';
+                    $scope.errorMessage = AdminSafesManagement.getTheRightErrorMessage(response);
+                    error('md');
+                }
+            },
+            function (error) {
+                // Error handling function
+                console.log(error);
+                $scope.isLoadingData = false;
+                if (error.status === '403' || error.status === 403) {
+                    $scope.newPassword = '';
+                    $scope.openInitialResetWarning();
+                }
+                else {
+                    $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
+                    $scope.error('md');
+                }
+            });  
+        }
+
+        $scope.copyToClipboard = function ($event, copyValue, messageKey) {
+            $event.stopPropagation();
+            var notification = UtilityService.getAParticularSuccessMessage(messageKey);
+            Notifications.toast(notification);
+            CopyToClipboard.copy(copyValue);
+        }
+
         $rootScope.goToPermissions = function () {
             $timeout(function () {
                 if ($scope.isEditSvcacc) {
@@ -735,6 +785,9 @@
                     }
                     else {
                         $rootScope.showDetails = false;
+                        if ($scope.initialPasswordReset == "false" || $scope.initialPasswordReset == "") {
+                            $scope.initialPwdResetRequired = true;
+                        }
                         $rootScope.activeDetailsTab = 'permissions';
                     }
                 }
@@ -1011,6 +1064,8 @@
                 AwsPermissionsData: '',
                 AppRolePermissionsData: ''
             }
+            $scope.newPassword = '';
+            $scope.resetButtonDisable = false;
             $scope.hideSudoPolicy = false;
             $scope.myVaultKey = SessionStore.getItem("myVaultKey");
             if(!$scope.myVaultKey){ /* Check if user is in the same session */
@@ -1262,6 +1317,14 @@
             Modal.createModal(size, 'svcAccEditWarning.html', 'ChangeServiceAccountCtrl', $scope);
         };
 
+        $scope.openResetStatus = function (size) {
+            Modal.createModal(size, 'resetStatus.html', 'ChangeServiceAccountCtrl', $scope);
+        };
+
+        $scope.openInitialResetWarning = function (size) {
+            Modal.createModal(size, 'initialResetWarning.html', 'ChangeServiceAccountCtrl', $scope);
+        };
+
         /* TODO: What is ok, functon name should be more descriptive */
         $scope.ok = function () {
             Modal.close('ok');
@@ -1280,8 +1343,6 @@
             Modal.close('close');
             $scope.isLoadingData = false;
         };
-
-        
 
         $scope.init();
 

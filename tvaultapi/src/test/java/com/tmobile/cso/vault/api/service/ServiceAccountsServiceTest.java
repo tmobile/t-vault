@@ -393,7 +393,7 @@ public class ServiceAccountsServiceTest {
         allServiceAccounts.add(generateADServiceAccount("testacc02"));
         ReflectionTestUtils.setField(serviceAccountsService, "ldapTemplate", ldapTemplate);
         when(ldapTemplate.search(Mockito.anyString(), Mockito.any(), Mockito.any(AttributesMapper.class))).thenReturn(allServiceAccounts);
-
+        when(reqProcessor.process(eq("/sdb"),Mockito.any(),eq(token))).thenReturn(getMockResponse(HttpStatus.OK, true, "{\"data\":{\"initialPasswordReset\":true,\"managedBy\":\"smohan11\",\"name\":\"svc_vault_test5\",\"users\":{\"smohan11\":\"sudo\"}}}"));
         ResponseEntity<String> responseEntity = serviceAccountsService.onboardServiceAccount(token, serviceAccount, userDetails);
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
@@ -566,7 +566,7 @@ public class ServiceAccountsServiceTest {
         allServiceAccounts.add(generateADServiceAccount("testacc02"));
         ReflectionTestUtils.setField(serviceAccountsService, "ldapTemplate", ldapTemplate);
         when(ldapTemplate.search(Mockito.anyString(), Mockito.any(), Mockito.any(AttributesMapper.class))).thenReturn(allServiceAccounts);
-
+        when(reqProcessor.process(eq("/sdb"),Mockito.any(),eq(token))).thenReturn(getMockResponse(HttpStatus.OK, true, "{\"data\":{\"initialPasswordReset\":true,\"managedBy\":\"smohan11\",\"name\":\"svc_vault_test5\",\"users\":{\"smohan11\":\"sudo\"}}}"));
         ResponseEntity<String> responseEntity = serviceAccountsService.onboardServiceAccount(token, serviceAccount, userDetails);
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
@@ -739,6 +739,7 @@ public class ServiceAccountsServiceTest {
         allServiceAccounts.add(generateADServiceAccount("testacc02"));
         ReflectionTestUtils.setField(serviceAccountsService, "ldapTemplate", ldapTemplate);
         when(ldapTemplate.search(Mockito.anyString(), Mockito.any(), Mockito.any(AttributesMapper.class))).thenReturn(allServiceAccounts);
+        when(reqProcessor.process(eq("/sdb"),Mockito.any(),eq(token))).thenReturn(getMockResponse(HttpStatus.OK, true, "{\"data\":{\"initialPasswordReset\":true,\"managedBy\":\"smohan11\",\"name\":\"svc_vault_test5\",\"users\":{\"smohan11\":\"sudo\"}}}"));
         ResponseEntity<String> responseEntity = serviceAccountsService.onboardServiceAccount(token, serviceAccount, userDetails);
         assertEquals(HttpStatus.MULTI_STATUS, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
@@ -1070,6 +1071,7 @@ public class ServiceAccountsServiceTest {
         // System under test
     	String expectedResponse = "{\"messages\":[\"Successfully added user to the Service Account\"]}";
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(expectedResponse);
+        when(reqProcessor.process(eq("/sdb"),Mockito.any(),eq(token))).thenReturn(getMockResponse(HttpStatus.OK, true, "{\"data\":{\"initialPasswordReset\":true,\"managedBy\":\"smohan11\",\"name\":\"svc_vault_test5\",\"users\":{\"smohan11\":\"sudo\"}}}"));
         ResponseEntity<String> responseEntity = serviceAccountsService.addUserToServiceAccount(token, serviceAccountUser, userDetails);
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
@@ -1095,6 +1097,7 @@ public class ServiceAccountsServiceTest {
         // System under test
     	String expectedResponse = "{\"messages\":[\"Successfully added user to the Service Account\"]}";
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(expectedResponse);
+        when(reqProcessor.process(eq("/sdb"),Mockito.any(),eq(token))).thenReturn(getMockResponse(HttpStatus.OK, true, "{\"data\":{\"initialPasswordReset\":true,\"managedBy\":\"smohan11\",\"name\":\"svc_vault_test5\",\"users\":{\"smohan11\":\"sudo\"}}}"));
         ResponseEntity<String> responseEntity = serviceAccountsService.addUserToServiceAccount(token, serviceAccountUser, userDetails);
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
@@ -1121,6 +1124,7 @@ public class ServiceAccountsServiceTest {
     	String expectedResponse = "{\"errors\":[\"Not authorized to perform\"]}";
         when(tokenUtils.getSelfServiceToken()).thenReturn(token);
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body(expectedResponse);
+        when(reqProcessor.process(eq("/sdb"),Mockito.any(),eq(token))).thenReturn(getMockResponse(HttpStatus.OK, true, "{\"data\":{\"initialPasswordReset\":true,\"managedBy\":\"smohan11\",\"name\":\"svc_vault_test5\",\"users\":{\"smohan11\":\"sudo\"}}}"));
         ResponseEntity<String> responseEntity = serviceAccountsService.addUserToServiceAccount(token, serviceAccountUser, userDetails);
         assertEquals(HttpStatus.BAD_REQUEST, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
@@ -1147,8 +1151,23 @@ public class ServiceAccountsServiceTest {
         // System under test
         String expectedResponse = "{\"messages\":[\"Failed to add user to the Service Account. Metadata update failed\"]}";
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(expectedResponse);
+        when(reqProcessor.process(eq("/sdb"),Mockito.any(),eq(token))).thenReturn(getMockResponse(HttpStatus.OK, true, "{\"data\":{\"initialPasswordReset\":true,\"managedBy\":\"smohan11\",\"name\":\"svc_vault_test5\",\"users\":{\"smohan11\":\"sudo\"}}}"));
         ResponseEntity<String> responseEntity = serviceAccountsService.addUserToServiceAccount(token, serviceAccountUser, userDetails);
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, responseEntity.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntity);
+    }
+
+    @Test
+    public void test_addUserToServiceAccount_failure_initialreset() {
+        UserDetails userDetails = getMockUser(true);
+        String token = userDetails.getClientToken();
+        ServiceAccountUser serviceAccountUser = new ServiceAccountUser("testacc02", "testacc01", "read");
+
+        String expectedResponse = "{\"errors\":[\"Failed to add permission to Service account. Initial password reset is pending for this Service Account. Please reset the password and try again.\"]}";
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body(expectedResponse);
+        when(reqProcessor.process(eq("/sdb"),Mockito.any(),eq(token))).thenReturn(getMockResponse(HttpStatus.OK, true, "{\"data\":{\"initialPasswordReset\":false,\"managedBy\":\"smohan11\",\"name\":\"svc_vault_test5\",\"users\":{\"smohan11\":\"sudo\"}}}"));
+        ResponseEntity<String> responseEntity = serviceAccountsService.addUserToServiceAccount(token, serviceAccountUser, userDetails);
+        assertEquals(HttpStatus.BAD_REQUEST, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
     }
 
@@ -1284,7 +1303,7 @@ public class ServiceAccountsServiceTest {
         when(reqProcessor.process(Mockito.eq("/ad/serviceaccount/resetpwd"),Mockito.anyString(),Mockito.eq(token))).thenReturn(pwdResetResponse);
 
         when(reqProcessor.process(Mockito.eq("/ad/serviceaccount/readpwd"),Mockito.anyString(),Mockito.eq(token))).thenReturn(pwdReadResponse);
-
+        when(ControllerUtil.updateMetadataOnSvcaccPwdReset(Mockito.any(),eq(token))).thenReturn(getMockResponse(HttpStatus.OK, true,expectedOutput));
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(expectedOutput);
         ResponseEntity<String> responseEntity = serviceAccountsService.resetSvcAccPassword(token, svcAccName, userDetails);
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
@@ -1718,6 +1737,7 @@ public class ServiceAccountsServiceTest {
         when(ControllerUtil.configureLDAPGroup(any(),any(),any())).thenReturn(responseNoContent);
         when(ControllerUtil.updateMetadata(any(),eq(token))).thenReturn(responseNoContent);
         when(tokenUtils.getSelfServiceToken()).thenReturn(token);
+        when(reqProcessor.process(eq("/sdb"),Mockito.any(),eq(token))).thenReturn(getMockResponse(HttpStatus.OK, true, "{\"data\":{\"initialPasswordReset\":true,\"managedBy\":\"smohan11\",\"name\":\"svc_vault_test5\",\"users\":{\"smohan11\":\"sudo\"}}}"));
         ResponseEntity<String> responseEntity = serviceAccountsService.addGroupToServiceAccount(token, serviceAccountGroup, userDetails);
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
@@ -1749,6 +1769,7 @@ public class ServiceAccountsServiceTest {
         }
         when(ControllerUtil.configureLDAPGroup(any(),any(),any())).thenReturn(responseNoContent);
         when(ControllerUtil.updateMetadata(any(),eq(token))).thenReturn(response404);
+        when(reqProcessor.process(eq("/sdb"),Mockito.any(),eq(token))).thenReturn(getMockResponse(HttpStatus.OK, true, "{\"data\":{\"initialPasswordReset\":true,\"managedBy\":\"smohan11\",\"name\":\"svc_vault_test5\",\"users\":{\"smohan11\":\"sudo\"}}}"));
         when(tokenUtils.getSelfServiceToken()).thenReturn(token);
         ResponseEntity<String> responseEntity = serviceAccountsService.addGroupToServiceAccount(token, serviceAccountGroup, userDetails);
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, responseEntity.getStatusCode());
@@ -1777,7 +1798,7 @@ public class ServiceAccountsServiceTest {
             e.printStackTrace();
         }
         when(ControllerUtil.configureLDAPGroup(any(),any(),any())).thenReturn(response404);
-
+        when(reqProcessor.process(eq("/sdb"),Mockito.any(),eq(token))).thenReturn(getMockResponse(HttpStatus.OK, true, "{\"data\":{\"initialPasswordReset\":true,\"managedBy\":\"smohan11\",\"name\":\"svc_vault_test5\",\"users\":{\"smohan11\":\"sudo\"}}}"));
         ResponseEntity<String> responseEntity = serviceAccountsService.addGroupToServiceAccount(token, serviceAccountGroup, userDetails);
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
@@ -1808,11 +1829,24 @@ public class ServiceAccountsServiceTest {
         }
         when(ControllerUtil.configureLDAPGroup(any(),any(),any())).thenReturn(response404);
         when(tokenUtils.getSelfServiceToken()).thenReturn(token);
+        when(reqProcessor.process(eq("/sdb"),Mockito.any(),eq(token))).thenReturn(getMockResponse(HttpStatus.OK, true, "{\"data\":{\"initialPasswordReset\":true,\"managedBy\":\"smohan11\",\"name\":\"svc_vault_test5\",\"users\":{\"smohan11\":\"sudo\"}}}"));
         ResponseEntity<String> responseEntity = serviceAccountsService.addGroupToServiceAccount(token, serviceAccountGroup, userDetails);
         assertEquals(HttpStatus.BAD_REQUEST, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
     }
 
+    @Test
+    public void test_addGroupToServiceAccount_failure_initialreset() {
+        String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+        ServiceAccountGroup serviceAccountGroup = new ServiceAccountGroup("svc_vault_test7", "group1", "write");
+        UserDetails userDetails = getMockUser(false);
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Failed to add permission to Service account. Initial password reset is pending for this Service Account. Please reset the password and try again.\"]}");
+        when(tokenUtils.getSelfServiceToken()).thenReturn("5PDrOhsy4ig8L3EpsJZSLAMg");
+        when(reqProcessor.process(eq("/sdb"),Mockito.any(),eq(token))).thenReturn(getMockResponse(HttpStatus.OK, true, "{\"data\":{\"initialPasswordReset\":false,\"managedBy\":\"smohan11\",\"name\":\"svc_vault_test5\",\"users\":{\"smohan11\":\"sudo\"}}}"));
+        ResponseEntity<String> responseEntity = serviceAccountsService.addGroupToServiceAccount(token, serviceAccountGroup, userDetails);
+        assertEquals(HttpStatus.BAD_REQUEST, responseEntity.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntity);
+    }
 
     @Test
     public void test_removeGroupFromServiceAccount_successfully() {
@@ -1955,6 +1989,7 @@ public class ServiceAccountsServiceTest {
         when(ControllerUtil.updateMetadata(Mockito.anyMap(),Mockito.anyString())).thenReturn(updateMetadataResponse);
 
         when(tokenUtils.getSelfServiceToken()).thenReturn(token);
+        when(reqProcessor.process(eq("/sdb"),Mockito.any(),eq(token))).thenReturn(getMockResponse(HttpStatus.OK, true, "{\"data\":{\"initialPasswordReset\":true,\"managedBy\":\"smohan11\",\"name\":\"svc_vault_test5\",\"users\":{\"smohan11\":\"sudo\"}}}"));
         ResponseEntity<String> responseEntityActual =  serviceAccountsService.associateApproletoSvcAcc(userDetails, token, serviceAccountApprole);
 
         assertEquals(HttpStatus.OK, responseEntityActual.getStatusCode());
@@ -1970,6 +2005,7 @@ public class ServiceAccountsServiceTest {
         UserDetails userDetails = getMockUser(false);
         ServiceAccountApprole serviceAccountApprole = new ServiceAccountApprole("testsvcname", "role1", "writes");
         when(tokenUtils.getSelfServiceToken()).thenReturn(token);
+        when(reqProcessor.process(eq("/sdb"),Mockito.any(),eq(token))).thenReturn(getMockResponse(HttpStatus.OK, true, "{\"data\":{\"initialPasswordReset\":true,\"managedBy\":\"smohan11\",\"name\":\"svc_vault_test5\",\"users\":{\"smohan11\":\"sudo\"}}}"));
         ResponseEntity<String> responseEntityActual =  serviceAccountsService.associateApproletoSvcAcc(userDetails, token, serviceAccountApprole);
 
         assertEquals(HttpStatus.BAD_REQUEST, responseEntityActual.getStatusCode());
@@ -1985,6 +2021,7 @@ public class ServiceAccountsServiceTest {
         UserDetails userDetails = getMockUser(false);
         ServiceAccountApprole serviceAccountApprole = new ServiceAccountApprole("testsvcname", "selfservicesupportrole", "write");
         when(tokenUtils.getSelfServiceToken()).thenReturn(token);
+        when(reqProcessor.process(eq("/sdb"),Mockito.any(),eq(token))).thenReturn(getMockResponse(HttpStatus.OK, true, "{\"data\":{\"initialPasswordReset\":true,\"managedBy\":\"smohan11\",\"name\":\"svc_vault_test5\",\"users\":{\"smohan11\":\"sudo\"}}}"));
         ResponseEntity<String> responseEntityActual =  serviceAccountsService.associateApproletoSvcAcc(userDetails, token, serviceAccountApprole);
 
         assertEquals(HttpStatus.BAD_REQUEST, responseEntityActual.getStatusCode());
@@ -2007,6 +2044,7 @@ public class ServiceAccountsServiceTest {
         Response configureAppRoleResponse = getMockResponse(HttpStatus.NOT_FOUND, true, "");
         when(appRoleService.configureApprole(Mockito.anyString(), Mockito.anyString(), Mockito.anyString())).thenReturn(configureAppRoleResponse);
         when(tokenUtils.getSelfServiceToken()).thenReturn(token);
+        when(reqProcessor.process(eq("/sdb"),Mockito.any(),eq(token))).thenReturn(getMockResponse(HttpStatus.OK, true, "{\"data\":{\"initialPasswordReset\":true,\"managedBy\":\"smohan11\",\"name\":\"svc_vault_test5\",\"users\":{\"smohan11\":\"sudo\"}}}"));
         ResponseEntity<String> responseEntityActual =  serviceAccountsService.associateApproletoSvcAcc(userDetails, token, serviceAccountApprole);
 
         assertEquals(HttpStatus.BAD_REQUEST, responseEntityActual.getStatusCode());
@@ -2025,6 +2063,7 @@ public class ServiceAccountsServiceTest {
         String [] policies = {"r_svcacct_testsvcname"};
         when(policyUtils.getCurrentPolicies(token, userDetails.getUsername())).thenReturn(policies);
         when(tokenUtils.getSelfServiceToken()).thenReturn(token);
+        when(reqProcessor.process(eq("/sdb"),Mockito.any(),eq(token))).thenReturn(getMockResponse(HttpStatus.OK, true, "{\"data\":{\"initialPasswordReset\":true,\"managedBy\":\"smohan11\",\"name\":\"svc_vault_test5\",\"users\":{\"smohan11\":\"sudo\"}}}"));
         ResponseEntity<String> responseEntityActual =  serviceAccountsService.associateApproletoSvcAcc(userDetails, token, serviceAccountApprole);
 
         assertEquals(HttpStatus.BAD_REQUEST, responseEntityActual.getStatusCode());
@@ -2050,6 +2089,7 @@ public class ServiceAccountsServiceTest {
         when(ControllerUtil.updateMetadata(Mockito.anyMap(),Mockito.anyString())).thenReturn(updateMetadataResponse);
 
         when(tokenUtils.getSelfServiceToken()).thenReturn(token);
+        when(reqProcessor.process(eq("/sdb"),Mockito.any(),eq(token))).thenReturn(getMockResponse(HttpStatus.OK, true, "{\"data\":{\"initialPasswordReset\":true,\"managedBy\":\"smohan11\",\"name\":\"svc_vault_test5\",\"users\":{\"smohan11\":\"sudo\"}}}"));
         ResponseEntity<String> responseEntityActual =  serviceAccountsService.associateApproletoSvcAcc(userDetails, token, serviceAccountApprole);
 
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, responseEntityActual.getStatusCode());
@@ -2086,9 +2126,27 @@ public class ServiceAccountsServiceTest {
         when(ControllerUtil.updateMetadata(Mockito.anyMap(),Mockito.anyString())).thenReturn(updateMetadataResponse);
 
         when(tokenUtils.getSelfServiceToken()).thenReturn(token);
+        when(reqProcessor.process(eq("/sdb"),Mockito.any(),eq(token))).thenReturn(getMockResponse(HttpStatus.OK, true, "{\"data\":{\"initialPasswordReset\":true,\"managedBy\":\"smohan11\",\"name\":\"svc_vault_test5\",\"users\":{\"smohan11\":\"sudo\"}}}"));
         ResponseEntity<String> responseEntityActual =  serviceAccountsService.associateApproletoSvcAcc(userDetails, token, serviceAccountApprole);
 
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, responseEntityActual.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntityActual);
+
+    }
+
+    @Test
+    public void test_AssociateAppRole_failure_initialreset() throws Exception {
+
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Failed to add permission to Service account. Initial password reset is pending for this Service Account. Please reset the password and try again.\"]}");
+        String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+        UserDetails userDetails = getMockUser(false);
+        ServiceAccountApprole serviceAccountApprole = new ServiceAccountApprole("testsvcname", "role1", "write");
+
+        when(tokenUtils.getSelfServiceToken()).thenReturn("5PDrOhsy4ig8L3EpsJZSLAMg");
+        when(reqProcessor.process(eq("/sdb"),Mockito.any(),eq(token))).thenReturn(getMockResponse(HttpStatus.OK, true, "{\"data\":{\"initialPasswordReset\":false,\"managedBy\":\"smohan11\",\"name\":\"svc_vault_test5\",\"users\":{\"smohan11\":\"sudo\"}}}"));
+        ResponseEntity<String> responseEntityActual =  serviceAccountsService.associateApproletoSvcAcc(userDetails, token, serviceAccountApprole);
+
+        assertEquals(HttpStatus.BAD_REQUEST, responseEntityActual.getStatusCode());
         assertEquals(responseEntityExpected, responseEntityActual);
 
     }
@@ -2288,6 +2346,7 @@ public class ServiceAccountsServiceTest {
         when(ControllerUtil.updateMetadata(Mockito.anyMap(),Mockito.anyString())).thenReturn(updateMetadataResponse);
 
         when(tokenUtils.getSelfServiceToken()).thenReturn(token);
+        when(reqProcessor.process(eq("/sdb"),Mockito.any(),eq(token))).thenReturn(getMockResponse(HttpStatus.OK, true, "{\"data\":{\"initialPasswordReset\":true,\"managedBy\":\"smohan11\",\"name\":\"svc_vault_test5\",\"users\":{\"smohan11\":\"sudo\"}}}"));
         ResponseEntity<String> responseEntityActual =  serviceAccountsService.addAwsRoleToSvcacc(userDetails, token, serviceAccountAWSRole);
 
         assertEquals(HttpStatus.OK, responseEntityActual.getStatusCode());
@@ -2317,6 +2376,7 @@ public class ServiceAccountsServiceTest {
         when(ControllerUtil.updateMetadata(Mockito.anyMap(),Mockito.anyString())).thenReturn(updateMetadataResponse);
 
         when(tokenUtils.getSelfServiceToken()).thenReturn(token);
+        when(reqProcessor.process(eq("/sdb"),Mockito.any(),eq(token))).thenReturn(getMockResponse(HttpStatus.OK, true, "{\"data\":{\"initialPasswordReset\":true,\"managedBy\":\"smohan11\",\"name\":\"svc_vault_test5\",\"users\":{\"smohan11\":\"sudo\"}}}"));
         ResponseEntity<String> responseEntityActual =  serviceAccountsService.addAwsRoleToSvcacc(userDetails, token, serviceAccountAWSRole);
 
         assertEquals(HttpStatus.OK, responseEntityActual.getStatusCode());
@@ -2346,6 +2406,7 @@ public class ServiceAccountsServiceTest {
         when(ControllerUtil.updateMetadata(Mockito.anyMap(),Mockito.anyString())).thenReturn(updateMetadataResponse);
 
         when(tokenUtils.getSelfServiceToken()).thenReturn(token);
+        when(reqProcessor.process(eq("/sdb"),Mockito.any(),eq(token))).thenReturn(getMockResponse(HttpStatus.OK, true, "{\"data\":{\"initialPasswordReset\":true,\"managedBy\":\"smohan11\",\"name\":\"svc_vault_test5\",\"users\":{\"smohan11\":\"sudo\"}}}"));
         ResponseEntity<String> responseEntityActual =  serviceAccountsService.addAwsRoleToSvcacc(userDetails, token, serviceAccountAWSRole);
 
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, responseEntityActual.getStatusCode());
@@ -2375,6 +2436,7 @@ public class ServiceAccountsServiceTest {
         when(ControllerUtil.updateMetadata(Mockito.anyMap(),Mockito.anyString())).thenReturn(updateMetadataResponse);
 
         when(tokenUtils.getSelfServiceToken()).thenReturn(token);
+        when(reqProcessor.process(eq("/sdb"),Mockito.any(),eq(token))).thenReturn(getMockResponse(HttpStatus.OK, true, "{\"data\":{\"initialPasswordReset\":true,\"managedBy\":\"smohan11\",\"name\":\"svc_vault_test5\",\"users\":{\"smohan11\":\"sudo\"}}}"));
         ResponseEntity<String> responseEntityActual =  serviceAccountsService.addAwsRoleToSvcacc(userDetails, token, serviceAccountAWSRole);
 
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, responseEntityActual.getStatusCode());
@@ -2401,6 +2463,7 @@ public class ServiceAccountsServiceTest {
         Response configureAWSRoleResponse = getMockResponse(HttpStatus.BAD_REQUEST, true, "");
         when(awsiamAuthService.configureAWSIAMRole(Mockito.anyString(), Mockito.anyString(), Mockito.anyString())).thenReturn(configureAWSRoleResponse);
         when(tokenUtils.getSelfServiceToken()).thenReturn(token);
+        when(reqProcessor.process(eq("/sdb"),Mockito.any(),eq(token))).thenReturn(getMockResponse(HttpStatus.OK, true, "{\"data\":{\"initialPasswordReset\":true,\"managedBy\":\"smohan11\",\"name\":\"svc_vault_test5\",\"users\":{\"smohan11\":\"sudo\"}}}"));
         ResponseEntity<String> responseEntityActual =  serviceAccountsService.addAwsRoleToSvcacc(userDetails, token, serviceAccountAWSRole);
 
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, responseEntityActual.getStatusCode());
@@ -2416,11 +2479,27 @@ public class ServiceAccountsServiceTest {
         UserDetails userDetails = getMockUser(false);
         ServiceAccountAWSRole serviceAccountAWSRole = new ServiceAccountAWSRole("testsvcname", "role1", "write");
         when(tokenUtils.getSelfServiceToken()).thenReturn(token);
+        when(reqProcessor.process(eq("/sdb"),Mockito.any(),eq(token))).thenReturn(getMockResponse(HttpStatus.OK, true, "{\"data\":{\"initialPasswordReset\":true,\"managedBy\":\"smohan11\",\"name\":\"svc_vault_test5\",\"users\":{\"smohan11\":\"sudo\"}}}"));
         ResponseEntity<String> responseEntityActual =  serviceAccountsService.addAwsRoleToSvcacc(userDetails, token, serviceAccountAWSRole);
 
         assertEquals(HttpStatus.BAD_REQUEST, responseEntityActual.getStatusCode());
         assertEquals(responseEntityExpected, responseEntityActual);
 
+    }
+
+    @Test
+    public void test_addAwsRoleToSvcacc_failure_initialreset() throws Exception {
+
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Failed to add permission to Service account. Initial password reset is pending for this Service Account. Please reset the password and try again.\"]}");
+        String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+        UserDetails userDetails = getMockUser(false);
+        ServiceAccountAWSRole serviceAccountAWSRole = new ServiceAccountAWSRole("testsvcname", "role1", "write");
+        when(tokenUtils.getSelfServiceToken()).thenReturn("5PDrOhsy4ig8L3EpsJZSLAMg");
+        when(reqProcessor.process(eq("/sdb"),Mockito.any(),eq(token))).thenReturn(getMockResponse(HttpStatus.OK, true, "{\"data\":{\"initialPasswordReset\":false,\"managedBy\":\"smohan11\",\"name\":\"svc_vault_test5\",\"users\":{\"smohan11\":\"sudo\"}}}"));
+        ResponseEntity<String> responseEntityActual =  serviceAccountsService.addAwsRoleToSvcacc(userDetails, token, serviceAccountAWSRole);
+
+        assertEquals(HttpStatus.BAD_REQUEST, responseEntityActual.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntityActual);
     }
 
     @Test
