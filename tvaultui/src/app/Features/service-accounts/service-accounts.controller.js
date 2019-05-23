@@ -33,7 +33,7 @@
         var init = function () {
             
             if(!SessionStore.getItem("myVaultKey")){ /* Check if user is in the same session */
-                $state.go('signup');
+                $state.go('/');
                 return;
             }
             else{

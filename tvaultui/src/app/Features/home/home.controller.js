@@ -19,12 +19,11 @@
 
 'use strict';
 (function(app){
-    app.controller('SignUpCtrl', function($scope, Modal, $state, Authentication, SessionStore, UtilityService, Idle, AppConstant){
+    app.controller('HomeCtrl', function($scope, Modal, $state, Authentication, SessionStore, UtilityService, Idle, AppConstant){
 
         var init = function(){
-            // redirecting to new homepage
-            $state.go('/');
-            return;
+            $scope.slackLink = AppConstant.SLACK_LINK;
+            $scope.emailLink = AppConstant.EMAIL_LINK;    
             $scope.forgotPasswordLink = UtilityService.getAppConstant('FORGOT_PASSWORD_LINK');
             // change login depending on authtype
             $scope.authType = AppConstant.AUTH_TYPE;
@@ -37,9 +36,30 @@
                 $scope.userID = 'Email ID';
             }
             $scope.usernameInvalid = false;
-            
-        }
+            $scope.loginPopupObj = {
+                'username': '',
+                'password': '',
+                'userID': $scope.userID,
+                'domainName': $scope.domainName,
+                'authType': $scope.authType,
+                'usernameInvalid': $scope.usernameInvalid,
+                'forgotPasswordLink': $scope.forgotPasswordLink
+            }
 
+        }       
+
+        $scope.goToLogin = function(size) {
+            $scope.loginPopupObj = {
+                'username': '',
+                'password': '',
+                'userID': $scope.userID,
+                'domainName': $scope.domainName,
+                'authType': $scope.authType,
+                'usernameInvalid': $scope.usernameInvalid,
+                'forgotPasswordLink': $scope.forgotPasswordLink
+            }
+            return Modal.createModal(size, 'login.html', 'HomeCtrl', $scope);
+        }
         var saveParametersInSessionStore = function(loginResponseData){
             if(loginResponseData != undefined){
                 var currentVaultKey = loginResponseData.client_token;
@@ -57,7 +77,7 @@
             }
         }
         var error = function (size) {
-            Modal.createModal(size, 'error.html', 'SignUpCtrl', $scope);
+            Modal.createModal(size, 'error.html', 'HomeCtrl', $scope);
         };
 
         $scope.close = function () {
@@ -79,34 +99,35 @@
             if ($scope.usernameInvalid) {
                 return;
             }
+            Modal.close('');
             $scope.isLoadingData = true;
-          var username  = $scope.username.toLowerCase();    
-          username = Authentication.formatUsernameWithoutDomain(username);
-          var reqObjtobeSent = {"username":username,"password":$scope.password};
-          Authentication.authenticateUser(reqObjtobeSent).then(function(response){
-              $scope.isLoadingData = false;
-              if(UtilityService.ifAPIRequestSuccessful(response)){
-                  if(response.data != undefined){
-                    SessionStore.setItem("username",username);
-                  }
-                  saveParametersInSessionStore(response.data);
-              } else if (response.data && response.data.errors){
-                var errors = response.data.errors;
-                return Modal.createModalWithController('error.html', {
-                  shortMessage: errors[0] || 'There was an error. Please try again, if the problem persists contact an administrator',
-                  longMessage: errors[1]
-                  });
-              } else {
-                return Modal.createModalWithController('error.html', {
-                  shortMessage: 'Something went wrong, please try again later.'
-                })
-              }
-          })
+            var username  = $scope.loginPopupObj.username.toLowerCase();    
+            username = Authentication.formatUsernameWithoutDomain(username);
+            var reqObjtobeSent = {"username":username,"password":$scope.loginPopupObj.password};
+            Authentication.authenticateUser(reqObjtobeSent).then(function(response){
+                $scope.isLoadingData = false;
+                if(UtilityService.ifAPIRequestSuccessful(response)){
+                    if(response.data != undefined){
+                        SessionStore.setItem("username",username);
+                    }
+                    saveParametersInSessionStore(response.data);
+                } else if (response.data && response.data.errors){
+                    var errors = response.data.errors;
+                    return Modal.createModalWithController('error.html', {
+                    shortMessage: errors[0] || 'There was an error. Please try again, if the problem persists contact an administrator',
+                    longMessage: errors[1]
+                    });
+                } else {
+                    return Modal.createModalWithController('error.html', {
+                    shortMessage: 'Something went wrong, please try again later.'
+                    })
+                }
+            })
         };
 
         init();
     })
-})(angular.module('vault.features.SignUpCtrl',[
+})(angular.module('vault.features.HomeCtrl',[
     'vault.services.UtilityService',
     'vault.constants.AppConstant'
 ]));

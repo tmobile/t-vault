@@ -197,6 +197,8 @@ public class  SafesService {
 		}
 		ControllerUtil.converSDBInputsToLowerCase(safe);
 		String path = safe.getPath();
+		// Safe type
+		safe.getSafeBasicDetails().setType(ControllerUtil.getSafeType(path));
 		String jsonStr = JSONUtil.getJSON(safe);
 		Map<String,Object> rqstParams = ControllerUtil.parseJson(jsonStr);
 		
@@ -427,6 +429,8 @@ public class  SafesService {
 	 * @return
 	 */
 	public ResponseEntity<String>  updateSafe(String token, Safe safe) {
+		// Safe type
+		safe.getSafeBasicDetails().setType(ControllerUtil.getSafeType(safe.getPath()));
 		Map<String, Object> requestParams = ControllerUtil.parseJson(JSONUtil.getJSON(safe));
 		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).

@@ -148,10 +148,12 @@ public class ServiceAccountsServiceTest {
         adServiceAccount.setMaxPwdAge(31536000);
         adServiceAccount.setPasswordExpiry("2020-05-13 07:09:32 (358 days)");
         ADUserAccount adUserAccount = new ADUserAccount();
-        adUserAccount.setUserName("user11");
+        adUserAccount.setUserName(userid);
         adServiceAccount.setManagedBy(adUserAccount);
         adServiceAccount.setAccountStatus("active");
         adServiceAccount.setLockStatus("unlocked");
+        adServiceAccount.setMemberOf("CN=r_adds_svcacct_standard,OU=Roles,OU=Security,OU=Groups,DC=abc,DC=def,DC=ghi,DC=com");
+        adServiceAccount.setOwner("testacc01");
         return adServiceAccount;
     }
     private List<ADServiceAccount> generateADSerivceAccounts() {
@@ -328,8 +330,8 @@ public class ServiceAccountsServiceTest {
     	ServiceAccount serviceAccount = new ServiceAccount();
     	serviceAccount.setName(svcAccName);
     	serviceAccount.setAutoRotate(true);
-    	serviceAccount.setTtl(1234L);
-    	serviceAccount.setMax_ttl(12345L);
+        serviceAccount.setTtl(89L);
+        serviceAccount.setMax_ttl(90L);
     	serviceAccount.setOwner(owner);
     	return serviceAccount;
     }
@@ -387,6 +389,10 @@ public class ServiceAccountsServiceTest {
         // System under test
         String expectedResponse = "{\"messages\":[\"Successfully completed onboarding of AD service account into TVault for password rotation.\"]}";
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(expectedResponse);
+        List<ADServiceAccount> allServiceAccounts = new ArrayList<>();
+        allServiceAccounts.add(generateADServiceAccount("testacc02"));
+        ReflectionTestUtils.setField(serviceAccountsService, "ldapTemplate", ldapTemplate);
+        when(ldapTemplate.search(Mockito.anyString(), Mockito.any(), Mockito.any(AttributesMapper.class))).thenReturn(allServiceAccounts);
 
         ResponseEntity<String> responseEntity = serviceAccountsService.onboardServiceAccount(token, serviceAccount, userDetails);
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
@@ -398,14 +404,38 @@ public class ServiceAccountsServiceTest {
         String token = userDetails.getClientToken();
         ServiceAccount serviceAccount = generateServiceAccount("testacc02","testacc01");
         serviceAccount.setAutoRotate(true);
-        serviceAccount.setTtl(1112L);
-        serviceAccount.setMax_ttl(1111L);
+        serviceAccount.setTtl(89L);
+        serviceAccount.setMax_ttl(90L);
 
         Response response = getMockResponse(HttpStatus.OK, true, "{\"keys\":[\"testacc02\"]}");
         when(reqProcessor.process("/ad/serviceaccount/onboardedlist","{}",token)).thenReturn(response);
 
         String expectedResponse = "{\"errors\":[\"Failed to onboard Service Account. Service account is already onboarded\"]}";
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body(expectedResponse);
+
+        List<ADServiceAccount> allServiceAccounts = new ArrayList<>();
+        allServiceAccounts.add(generateADServiceAccount("testacc02"));
+        ReflectionTestUtils.setField(serviceAccountsService, "ldapTemplate", ldapTemplate);
+        when(ldapTemplate.search(Mockito.anyString(), Mockito.any(), Mockito.any(AttributesMapper.class))).thenReturn(null);
+
+        ResponseEntity<String> responseEntity = serviceAccountsService.onboardServiceAccount(token, serviceAccount, userDetails);
+        assertEquals(HttpStatus.BAD_REQUEST, responseEntity.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntity);
+    }
+    @Test
+    public void test_onboardServiceAccount_failure_to_read_ad_details() {
+        UserDetails userDetails = getMockUser(true);
+        String token = userDetails.getClientToken();
+        ServiceAccount serviceAccount = generateServiceAccount("testacc02","testacc01");
+
+        Response response = getMockResponse(HttpStatus.OK, true, "{\"keys\":[\"testacc03\"]}");
+        when(reqProcessor.process("/ad/serviceaccount/onboardedlist","{}",token)).thenReturn(response);
+
+        String expectedResponse = "{\"errors\":[\"Failed to onboard Service Account. Unable to read Service account details\"]}";
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body(expectedResponse);
+
+        ReflectionTestUtils.setField(serviceAccountsService, "ldapTemplate", ldapTemplate);
+        when(ldapTemplate.search(Mockito.anyString(), Mockito.any(), Mockito.any(AttributesMapper.class))).thenReturn(null);
 
         ResponseEntity<String> responseEntity = serviceAccountsService.onboardServiceAccount(token, serviceAccount, userDetails);
         assertEquals(HttpStatus.BAD_REQUEST, responseEntity.getStatusCode());
@@ -417,12 +447,17 @@ public class ServiceAccountsServiceTest {
     	String token = userDetails.getClientToken();
     	ServiceAccount serviceAccount = generateServiceAccount("testacc02","testacc01");
     	serviceAccount.setAutoRotate(true);
-    	serviceAccount.setTtl(1112L);
-    	serviceAccount.setMax_ttl(1111L);
+        serviceAccount.setTtl(89L);
+        serviceAccount.setMax_ttl(89L);
     	String expectedResponse = "{\"errors\":[\"Password TTL can't be more than MAX_TTL\"]}";
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body(expectedResponse);
         Response response = getMockResponse(HttpStatus.OK, true, "{\"keys\":[\"testacc03\"]}");
         when(reqProcessor.process("/ad/serviceaccount/onboardedlist","{}",token)).thenReturn(response);
+
+        List<ADServiceAccount> allServiceAccounts = new ArrayList<>();
+        allServiceAccounts.add(generateADServiceAccount("testacc02"));
+        ReflectionTestUtils.setField(serviceAccountsService, "ldapTemplate", ldapTemplate);
+        when(ldapTemplate.search(Mockito.anyString(), Mockito.any(), Mockito.any(AttributesMapper.class))).thenReturn(allServiceAccounts);
 
         ResponseEntity<String> responseEntity = serviceAccountsService.onboardServiceAccount(token, serviceAccount, userDetails);
         assertEquals(HttpStatus.BAD_REQUEST, responseEntity.getStatusCode());
@@ -440,6 +475,12 @@ public class ServiceAccountsServiceTest {
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body(expectedResponse);
         Response response = getMockResponse(HttpStatus.OK, true, "{\"keys\":[\"testacc03\"]}");
         when(reqProcessor.process("/ad/serviceaccount/onboardedlist","{}",token)).thenReturn(response);
+
+        List<ADServiceAccount> allServiceAccounts = new ArrayList<>();
+        allServiceAccounts.add(generateADServiceAccount("testacc02"));
+        ReflectionTestUtils.setField(serviceAccountsService, "ldapTemplate", ldapTemplate);
+        when(ldapTemplate.search(Mockito.anyString(), Mockito.any(), Mockito.any(AttributesMapper.class))).thenReturn(allServiceAccounts);
+
         ResponseEntity<String> responseEntity = serviceAccountsService.onboardServiceAccount(token, serviceAccount, userDetails);
         assertEquals(HttpStatus.BAD_REQUEST, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
@@ -452,11 +493,17 @@ public class ServiceAccountsServiceTest {
         serviceAccount.setAutoRotate(true);
         serviceAccount.setTtl(1590897977L);
         serviceAccount.setMax_ttl(1590897977L);
-        String expectedResponse = "{\"errors\":[\"Invalid value provided for TTL. TTL can't be more than 1590897976\"]}";
+        String expectedResponse = "{\"errors\":[\"Invalid value provided for TTL. TTL can't be more than 31535999 (364 days) for this Service Account\"]}";
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body(expectedResponse);
 
         Response response = getMockResponse(HttpStatus.OK, true, "{\"keys\":[\"testacc03\"]}");
         when(reqProcessor.process("/ad/serviceaccount/onboardedlist","{}",token)).thenReturn(response);
+
+        List<ADServiceAccount> allServiceAccounts = new ArrayList<>();
+        allServiceAccounts.add(generateADServiceAccount("testacc02"));
+        ReflectionTestUtils.setField(serviceAccountsService, "ldapTemplate", ldapTemplate);
+        when(ldapTemplate.search(Mockito.anyString(), Mockito.any(), Mockito.any(AttributesMapper.class))).thenReturn(allServiceAccounts);
+
         ResponseEntity<String> responseEntity = serviceAccountsService.onboardServiceAccount(token, serviceAccount, userDetails);
         assertEquals(HttpStatus.BAD_REQUEST, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
@@ -515,6 +562,10 @@ public class ServiceAccountsServiceTest {
         // System under test
     	String expectedResponse = "{\"messages\":[\"Successfully completed onboarding of AD service account into TVault for password rotation.\"]}";
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(expectedResponse);
+        List<ADServiceAccount> allServiceAccounts = new ArrayList<>();
+        allServiceAccounts.add(generateADServiceAccount("testacc02"));
+        ReflectionTestUtils.setField(serviceAccountsService, "ldapTemplate", ldapTemplate);
+        when(ldapTemplate.search(Mockito.anyString(), Mockito.any(), Mockito.any(AttributesMapper.class))).thenReturn(allServiceAccounts);
 
         ResponseEntity<String> responseEntity = serviceAccountsService.onboardServiceAccount(token, serviceAccount, userDetails);
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
@@ -555,6 +606,10 @@ public class ServiceAccountsServiceTest {
         // System under test
         String expectedResponse = "{\"errors\":[\"Successfully created Service Account Role. However creation of Metadata failed.\"]}";
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.MULTI_STATUS).body(expectedResponse);
+        List<ADServiceAccount> allServiceAccounts = new ArrayList<>();
+        allServiceAccounts.add(generateADServiceAccount("testacc02"));
+        ReflectionTestUtils.setField(serviceAccountsService, "ldapTemplate", ldapTemplate);
+        when(ldapTemplate.search(Mockito.anyString(), Mockito.any(), Mockito.any(AttributesMapper.class))).thenReturn(allServiceAccounts);
 
         ResponseEntity<String> responseEntity = serviceAccountsService.onboardServiceAccount(token, serviceAccount, userDetails);
         assertEquals(HttpStatus.MULTI_STATUS, responseEntity.getStatusCode());
@@ -569,6 +624,12 @@ public class ServiceAccountsServiceTest {
     	serviceAccount.setAutoRotate(true);
         Response response = getMockResponse(HttpStatus.OK, true, "{\"keys\":[\"testacc03\"]}");
         when(reqProcessor.process("/ad/serviceaccount/onboardedlist","{}",token)).thenReturn(response);
+
+        List<ADServiceAccount> allServiceAccounts = new ArrayList<>();
+        allServiceAccounts.add(generateADServiceAccount("testacc02"));
+        ReflectionTestUtils.setField(serviceAccountsService, "ldapTemplate", ldapTemplate);
+        when(ldapTemplate.search(Mockito.anyString(), Mockito.any(), Mockito.any(AttributesMapper.class))).thenReturn(allServiceAccounts);
+
         // CreateRole
 		ServiceAccountTTL serviceAccountTTL = new ServiceAccountTTL();
 		serviceAccountTTL.setRole_name(serviceAccount.getName());
@@ -618,6 +679,11 @@ public class ServiceAccountsServiceTest {
         // System under test
     	String expectedResponse = "{\"errors\":[\"Failed to onboard AD service account into TVault for password rotation.\"]}";
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(expectedResponse);
+
+        List<ADServiceAccount> allServiceAccounts = new ArrayList<>();
+        allServiceAccounts.add(generateADServiceAccount("testacc02"));
+        ReflectionTestUtils.setField(serviceAccountsService, "ldapTemplate", ldapTemplate);
+        when(ldapTemplate.search(Mockito.anyString(), Mockito.any(), Mockito.any(AttributesMapper.class))).thenReturn(allServiceAccounts);
 
         ResponseEntity<String> responseEntity = serviceAccountsService.onboardServiceAccount(token, serviceAccount, userDetails);
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, responseEntity.getStatusCode());
@@ -669,7 +735,10 @@ public class ServiceAccountsServiceTest {
         // System under test
         String expectedResponse = "{\"messages\":[\"Successfully created Service Account Role and policies. However the association of owner information failed.\"]}";
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.MULTI_STATUS).body(expectedResponse);
-
+        List<ADServiceAccount> allServiceAccounts = new ArrayList<>();
+        allServiceAccounts.add(generateADServiceAccount("testacc02"));
+        ReflectionTestUtils.setField(serviceAccountsService, "ldapTemplate", ldapTemplate);
+        when(ldapTemplate.search(Mockito.anyString(), Mockito.any(), Mockito.any(AttributesMapper.class))).thenReturn(allServiceAccounts);
         ResponseEntity<String> responseEntity = serviceAccountsService.onboardServiceAccount(token, serviceAccount, userDetails);
         assertEquals(HttpStatus.MULTI_STATUS, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
@@ -2480,6 +2549,11 @@ public class ServiceAccountsServiceTest {
         Response onboardResponse = getMockResponse(HttpStatus.OK, true, "{\"messages\":[\"Successfully created service account role.\"]}");
         when(reqProcessor.process(eq("/ad/serviceaccount/onboard"), Mockito.any(), eq(token))).thenReturn(onboardResponse);
 
+        List<ADServiceAccount> allServiceAccounts = new ArrayList<>();
+        allServiceAccounts.add(generateADServiceAccount("testacc02"));
+        ReflectionTestUtils.setField(serviceAccountsService, "ldapTemplate", ldapTemplate);
+        when(ldapTemplate.search(Mockito.anyString(), Mockito.any(), Mockito.any(AttributesMapper.class))).thenReturn(allServiceAccounts);
+
         ResponseEntity<String> responseEntityActual =  serviceAccountsService.updateOnboardedServiceAccount(token, serviceAccount, userDetails);
 
         assertEquals(HttpStatus.OK, responseEntityActual.getStatusCode());
@@ -2504,9 +2578,29 @@ public class ServiceAccountsServiceTest {
     }
 
     @Test
+    public void test_updateOnboardedServiceAccount_failure_to_read_ad_details() {
+        UserDetails userDetails = getMockUser(true);
+        String token = userDetails.getClientToken();
+        ServiceAccount serviceAccount = generateServiceAccount("testacc02","testacc01");
+
+        Response response = getMockResponse(HttpStatus.OK, true, "{\"keys\":[\"testacc02\"]}");
+        when(reqProcessor.process("/ad/serviceaccount/onboardedlist","{}",token)).thenReturn(response);
+
+        String expectedResponse = "{\"errors\":[\"Failed to update onboarded Service Account. Unable to read Service account details\"]}";
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body(expectedResponse);
+
+        ReflectionTestUtils.setField(serviceAccountsService, "ldapTemplate", ldapTemplate);
+        when(ldapTemplate.search(Mockito.anyString(), Mockito.any(), Mockito.any(AttributesMapper.class))).thenReturn(null);
+
+        ResponseEntity<String> responseEntity = serviceAccountsService.updateOnboardedServiceAccount(token, serviceAccount, userDetails);
+        assertEquals(HttpStatus.BAD_REQUEST, responseEntity.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntity);
+    }
+
+    @Test
     public void test_updateOnboardedServiceAccount_failure_invalid_ttl() throws Exception {
 
-        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid value provided for TTL. TTL can't be more than 1590897976\"]}");
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid value provided for TTL. TTL can't be more than 31535999 (364 days) for this Service Account\"]}");
         String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
         UserDetails userDetails = getMockUser(true);
         ServiceAccount serviceAccount = new ServiceAccount();
@@ -2518,7 +2612,10 @@ public class ServiceAccountsServiceTest {
 
         Response response = getMockResponse(HttpStatus.OK, true, "{\"keys\":[\"testacc02\"]}");
         when(reqProcessor.process("/ad/serviceaccount/onboardedlist","{}",token)).thenReturn(response);
-
+        List<ADServiceAccount> allServiceAccounts = new ArrayList<>();
+        allServiceAccounts.add(generateADServiceAccount("testacc02"));
+        ReflectionTestUtils.setField(serviceAccountsService, "ldapTemplate", ldapTemplate);
+        when(ldapTemplate.search(Mockito.anyString(), Mockito.any(), Mockito.any(AttributesMapper.class))).thenReturn(allServiceAccounts);
         ResponseEntity<String> responseEntityActual =  serviceAccountsService.updateOnboardedServiceAccount(token, serviceAccount, userDetails);
 
         assertEquals(HttpStatus.BAD_REQUEST, responseEntityActual.getStatusCode());
@@ -2538,7 +2635,10 @@ public class ServiceAccountsServiceTest {
 
         Response response = getMockResponse(HttpStatus.OK, true, "{\"keys\":[\"testacc02\"]}");
         when(reqProcessor.process("/ad/serviceaccount/onboardedlist","{}",token)).thenReturn(response);
-
+        List<ADServiceAccount> allServiceAccounts = new ArrayList<>();
+        allServiceAccounts.add(generateADServiceAccount("testacc02"));
+        ReflectionTestUtils.setField(serviceAccountsService, "ldapTemplate", ldapTemplate);
+        when(ldapTemplate.search(Mockito.anyString(), Mockito.any(), Mockito.any(AttributesMapper.class))).thenReturn(allServiceAccounts);
         ResponseEntity<String> responseEntityActual =  serviceAccountsService.updateOnboardedServiceAccount(token, serviceAccount, userDetails);
 
         assertEquals(HttpStatus.BAD_REQUEST, responseEntityActual.getStatusCode());
@@ -2553,13 +2653,16 @@ public class ServiceAccountsServiceTest {
         ServiceAccount serviceAccount = new ServiceAccount();
         serviceAccount.setName("testacc02");
         serviceAccount.setAutoRotate(true);
-        serviceAccount.setTtl(123L);
-        serviceAccount.setMax_ttl(123L);
+        serviceAccount.setTtl(89L);
+        serviceAccount.setMax_ttl(89L);
         serviceAccount.setOwner("testacc0`");
 
         Response response = getMockResponse(HttpStatus.OK, true, "{\"keys\":[\"testacc02\"]}");
         when(reqProcessor.process("/ad/serviceaccount/onboardedlist","{}",token)).thenReturn(response);
-
+        List<ADServiceAccount> allServiceAccounts = new ArrayList<>();
+        allServiceAccounts.add(generateADServiceAccount("testacc02"));
+        ReflectionTestUtils.setField(serviceAccountsService, "ldapTemplate", ldapTemplate);
+        when(ldapTemplate.search(Mockito.anyString(), Mockito.any(), Mockito.any(AttributesMapper.class))).thenReturn(allServiceAccounts);
         ResponseEntity<String> responseEntityActual =  serviceAccountsService.updateOnboardedServiceAccount(token, serviceAccount, userDetails);
 
         assertEquals(HttpStatus.BAD_REQUEST, responseEntityActual.getStatusCode());
@@ -2579,7 +2682,10 @@ public class ServiceAccountsServiceTest {
 
         Response onboardResponse = getMockResponse(HttpStatus.BAD_REQUEST, true, "{}");
         when(reqProcessor.process(eq("/ad/serviceaccount/onboard"), Mockito.any(), eq(token))).thenReturn(onboardResponse);
-
+        List<ADServiceAccount> allServiceAccounts = new ArrayList<>();
+        allServiceAccounts.add(generateADServiceAccount("testacc02"));
+        ReflectionTestUtils.setField(serviceAccountsService, "ldapTemplate", ldapTemplate);
+        when(ldapTemplate.search(Mockito.anyString(), Mockito.any(), Mockito.any(AttributesMapper.class))).thenReturn(allServiceAccounts);
         ResponseEntity<String> responseEntityActual =  serviceAccountsService.updateOnboardedServiceAccount(token, serviceAccount, userDetails);
 
         assertEquals(HttpStatus.MULTI_STATUS, responseEntityActual.getStatusCode());

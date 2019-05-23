@@ -1,0 +1,71 @@
+header.signin
+sideBar
+script(type='text/ng-template', id='error.html')
+    .row
+        .top-lg-sep
+            .common-header-label.text-center Error
+        .top-lg-sep.notification-text {{config.shortMessage}}
+
+    .text-center.md-margin(ng-if="config.showMore") {{config.longMessage}}
+    .text-center.md-margin(ng-if="config.longMessage")
+        a.pointer(ng-click="config.showMore = !config.showMore") {{'Show ' + (config.showMore ? 'Less' : 'More') }}
+    .text-center.bottom-lg-sep.top-lg-sep.notification-button
+        .clearfix.bottom-sm-sep
+            button.common-btn.btn.btn-primary.btn-lg(ng-click="dismiss()") Close
+script(type='text/ng-template', id='login.html')
+    .container-fluid.welcome
+        .container-fluid-wrapper.container-fluid-wrapper-signin                
+            .form-wrapper
+                .sign-in-icon-container.clearfix
+                    .sign-in-image.login
+                        img.popup(src= "assets/images/signin.png")
+                form(name="authenticate" ng-submit="login()")
+                    .form-group
+                        label(for="usr") {{loginPopupObj.userID}}
+                        div(class='username-container')
+                            input(class="form-control input-box-style" id="usr" placeholder="Enter your {{loginPopupObj.userID}}" ng-model="loginPopupObj.username" required)
+                            div(class='username-addon' ng-if="loginPopupObj.authType == 'ldap1900'") {{domainName}}
+                            div.username-error(ng-show='loginPopupObj.authType == "ldap1900" && loginPopupObj.usernameInvalid && loginPopupObj.username.length > 0') Please enter Email Id without domain name
+                    .form-group.extra-margin-actions
+                        label(for="pwd") Password
+                        //- span.input-clipper
+
+                        input(type="password" class="form-control input-box-style" id="pwd" placeholder="Enter your Password" ng-model="loginPopupObj.password" autocomplete="new-password" required)
+
+                    .button-container
+                        button.btn.btn-primary.btn-lg.login-button(type="submit") Login
+
+                .center-text.forgot-pwd
+                    a.link-style(href='{{loginPopupObj.forgotPasswordLink}}' target="_blank" ng-if="!!loginPopupObj.forgotPasswordLink") Forgot Password?
+
+.container-fluid.sign-in
+    .container-fluid-wrapper.container-fluid-wrapper-welcome    
+        loading-state(ng-show="isLoadingData" ng-cloak="")    
+        div.home.center-text-home.header.clearfix
+            h2 Welcome to T-Vault
+            .description T-Vault is a simplified and centralized secrets management solution for securely storing, distributing and tightly controlling access to passwords, certificates, encryption keys, tokens for protecting secrets and other sensitive data using a UI, HTTP API.
+        div.home.center-text-home.columns.clearfix
+            .column.first
+                img.welcome-image(src= "assets/images/store.png")
+                .column-title Store
+                .column-details Centrally store, access, and distribute secrets like API keys, AWS IAM/STS credentials, SQL/NoSQL databases, X.509 certificates, SSH credentials, and more.
+            .column
+                img.welcome-image(src= "assets/images/access.png")
+                .column-title Access
+                .column-details Centrally store, access, and distribute secrets like API keys, AWS IAM/STS credentials, SQL/NoSQL databases, X.509 certificates, SSH credentials, and more.
+            .column
+                img.welcome-image(src= "assets/images/distribute.png")
+                .column-title Distribute
+                .column-details Centrally store, access, and distribute secrets like API keys, AWS IAM/STS credentials, SQL/NoSQL databases, X.509 certificates, SSH credentials, and more.
+        div.button-row.clearfix
+            .button-container
+                button.btn.btn-primary.btn-lg.goto-login-button(ng-click="goToLogin()") Go to Login
+        div.footer.clearfix
+            .footer-row Developed by Cloud Team
+            .footer-row 
+                span Contact us on 
+                span.span-link 
+                    a(href='{{slackLink}}' target="_blank") Slack 
+                span or shoot us an 
+                span.span-link 
+                    a(href='{{emailLink}}' target="_top") email

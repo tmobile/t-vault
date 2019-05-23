@@ -72,7 +72,8 @@
         'vault.features.UnsealCtrl',
         'vault.features.safes',
         'vault.features.ChangeServiceAccountCtrl',
-        'vault.features.ServiceAccountsCtrl'
+        'vault.features.ServiceAccountsCtrl',
+        'vault.features.HomeCtrl'
     ]);
     angular.module( 'vault.services', [
         'vault.services.CopyToClipboard',
