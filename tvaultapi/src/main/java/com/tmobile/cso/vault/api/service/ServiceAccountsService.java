@@ -316,7 +316,7 @@ public class  ServiceAccountsService {
 						put(LogMessage.MESSAGE, String.format ("TTL is [%s] is greater the MAX_TTL [%s]", serviceAccount.getTtl(), maxPwdAge-1)).
 						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 						build()));
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid value provided for TTL. TTL can't be more than "+(maxPwdAge-1)+" ("+ (maxPwdAge-1)/86400+" days)"+" for this Service Account\"]}");
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid value provided for TTL. TTL can't be more than "+(maxPwdAge-86400)+" ("+ (maxPwdAge-86400)/86400+" days)"+" for this Service Account\"]}");
             }
 			if (serviceAccount.getTtl() >= serviceAccount.getMax_ttl()) {
 				log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
@@ -2528,7 +2528,7 @@ public class  ServiceAccountsService {
                         put(LogMessage.MESSAGE, String.format ("TTL is [%s] is greater the MAX_TTL [%s]", serviceAccount.getTtl(), maxPwdAge-1)).
                         put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
                         build()));
-				return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid value provided for TTL. TTL can't be more than "+(maxPwdAge-1)+" ("+ (maxPwdAge-1)/86400+" days)"+" for this Service Account\"]}");
+				return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid value provided for TTL. TTL can't be more than "+(maxPwdAge-86400)+" ("+ (maxPwdAge-86400)/86400+" days)"+" for this Service Account\"]}");
             }
             if (serviceAccount.getTtl() >= serviceAccount.getMax_ttl()) {
                 log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
