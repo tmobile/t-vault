@@ -202,6 +202,11 @@ public class ADServiceAccount implements Serializable {
      * @return the accountExpiresFormatted
      */
     public String getAccountExpiresFormatted() {
+		/*
+		   accountExpires can have values { 0, 9223372036854775807, valid Win32 filetime }, where the first 2 indicates account never expires
+		   For a valid Win32 filetime, the date is calculated using the below calculation
+		   Date accountExpires = new Date(accountExpiration/10000-TVaultConstants.FILETIME_EPOCH_DIFF); // FILETIME_EPOCH_DIFF:  Difference between Filetime epoch and Unix epoch = 11644473600000L
+		 */
         String sAccountExpiration = TVaultConstants.NEVER_EXPIRE;
         try {
             dateFormat.setTimeZone(timeZonePST);
@@ -222,6 +227,9 @@ public class ADServiceAccount implements Serializable {
 	 * @return the passwordExpiry
 	 */
 	public String getPasswordExpiry() {
+		/*
+			passwordExpiry  = pwdLastSet + maxlife. If passwordExpiry  in past then password expired
+		*/
 		int maxLife = (int)TimeUnit.SECONDS.toDays(maxPwdAge);
 		String pwdExpiryDateTime = TVaultConstants.EXPIRED;
 
@@ -259,6 +267,9 @@ public class ADServiceAccount implements Serializable {
 	 * @return the accountStatus
 	 */
 	public String getAccountStatus() {
+		/*
+			If accountExpires not in past, then accountStatus = active
+		 */
 		if (accountExpiresFormatted == null || accountExpiresFormatted.equals(TVaultConstants.NEVER_EXPIRE)) {
 			accountStatus = "active";
 		}
@@ -335,6 +346,10 @@ public class ADServiceAccount implements Serializable {
      * @return the pwdLastSetFormatted
      */
     public String getPwdLastSetFormatted() {
+    	/*
+    		pwdLastSet uses the same calculation:
+    		Date pwdSet = new Date(pwdLastSet/10000-TVaultConstants.FILETIME_EPOCH_DIFF);
+    	 */
         String pwdLastSetDateTime = "";
         if (pwdLastSet!= null && !pwdLastSet.equals("0")) {
             try {
