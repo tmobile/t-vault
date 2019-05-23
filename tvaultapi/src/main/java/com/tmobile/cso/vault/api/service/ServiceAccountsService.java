@@ -19,11 +19,13 @@ package com.tmobile.cso.vault.api.service;
 
 import java.io.IOException;
 import java.text.DateFormat;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import javax.naming.NamingException;
@@ -139,7 +141,6 @@ public class  ServiceAccountsService {
 			}
 		}
 		List<ADServiceAccount> allServiceAccounts = getADServiceAccounts(andFilter);
-
 		// get the managed_by details
 		if (allServiceAccounts != null && !allServiceAccounts.isEmpty()) {
 			List<String> ownerlist = allServiceAccounts.stream().map(m -> m.getManagedBy().getUserName()).collect(Collectors.toList());
@@ -181,7 +182,7 @@ public class  ServiceAccountsService {
 		adServiceAccountObjects.setData(adServiceAccountObjectsList);
 		return ResponseEntity.status(HttpStatus.OK).body(adServiceAccountObjects);
 	}
-	
+
 	/**
 	 * Gets the list of ADAccounts from AD Server
 	 * @param filter
@@ -199,7 +200,7 @@ public class  ServiceAccountsService {
 			public ADServiceAccount mapFromAttributes(Attributes attr) throws NamingException {
 				ADServiceAccount adServiceAccount = new ADServiceAccount();
 				if (attr != null) {
-					String mail = ""; 
+					String mail = "";
 					if(attr.get("mail") != null) {
 						mail = ((String) attr.get("mail").get());
 					}
@@ -229,54 +230,43 @@ public class  ServiceAccountsService {
 						Instant instant = odt.toInstant();
 						adServiceAccount.setWhenCreated(instant);
 					}
-                    ADUserAccount adUserAccount = new ADUserAccount();
+					ADUserAccount adUserAccount = new ADUserAccount();
 					adServiceAccount.setManagedBy(adUserAccount);
-                    adServiceAccount.setOwner(null);
+					adServiceAccount.setOwner(null);
 					if (attr.get("manager") != null) {
-                        String managedBy = "";
+						String managedBy = "";
 						String managedByStr = (String) attr.get("manager").get();
 						if (!StringUtils.isEmpty(managedByStr)) {
-                            managedBy= managedByStr.substring(3, managedByStr.indexOf(","));
-                        }
-                        adUserAccount.setUserName(managedBy);
+							managedBy= managedByStr.substring(3, managedByStr.indexOf(","));
+						}
+						adUserAccount.setUserName(managedBy);
 						adServiceAccount.setOwner(managedBy.toLowerCase());
 					}
 					if (attr.get("accountExpires") != null) {
 						String rawExpDateTime = (String) attr.get("accountExpires").get();
-						String sAccountExpiration = "Never";
-						try {
-							long lAccountExpiration = Long.parseLong(rawExpDateTime);
-							long timeAdjust=9223372036854775807L;
-							Date pwdSet = new Date(lAccountExpiration/10000-timeAdjust);
-							DateFormat mydate = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-							sAccountExpiration = mydate.format(pwdSet);
-						}
-						catch(Exception ex) {
-							//TODO
-						}
-						adServiceAccount.setAccountExpires(sAccountExpiration);
+						adServiceAccount.setAccountExpires(rawExpDateTime);
 					}
-					
 					if (attr.get("pwdLastSet") != null) {
-						String pwdLastSetRaw = (String) attr.get("pwdLastSet").get();
-						String pwsLastSet = null;
-						try {
-							long lpwdLastSetRaw = Long.parseLong(pwdLastSetRaw);
-							long timeAdjust=9223372036854775807L;
-							Date pwdSet = new Date(lpwdLastSetRaw/10000-timeAdjust);
-							DateFormat mydate = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-							pwsLastSet = mydate.format(pwdSet);
-						}
-						catch(Exception ex) {
-							//TODO
-						}
-						adServiceAccount.setPwdLastSet(pwsLastSet);
+						String pwdLastSet = (String) attr.get("pwdLastSet").get();
+						adServiceAccount.setPwdLastSet(pwdLastSet);
 					}
-					//TODO: The below values are to be calculated
-					adServiceAccount.setMaxPwdAge(getPasswordMaxAge());
-					adServiceAccount.setAccountStatus("active");
-					adServiceAccount.setLockStatus("active");
-					adServiceAccount.setPasswordExpiry("2019-05-18 11:59:59");
+					if (attr.get("memberof") != null) {
+						String memberof = (String) attr.get("memberof").get();
+						adServiceAccount.setMemberOf(memberof);
+					}
+
+					if (attr.get("lockedout") != null) {
+						String memberof = (String) attr.get("lockedout").get();
+						adServiceAccount.setMemberOf(memberof);
+					}
+					// lock status
+					adServiceAccount.setLockStatus("unlocked");
+					if (attr.get("lockedout") != null) {
+						boolean lockedOut = (boolean) attr.get("lockedout").get();
+						if (lockedOut) {
+							adServiceAccount.setLockStatus("locked");
+						}
+					}
 					if (attr.get("description") != null) {
 						adServiceAccount.setPurpose((String) attr.get("description").get());
 					}
@@ -285,15 +275,7 @@ public class  ServiceAccountsService {
 			}
 		});
 	}
-	/**
-	 * Gets the Max Password Age from AD Password policy
-	 * @return
-	 */
-	private int getPasswordMaxAge() {
-		//TODO Actual implementation should be based on AD Password policy
-		int pwdMaxAge = 90;
-		return pwdMaxAge;
-	}
+
 	/**
 	 * Onboards an AD service account into TVault for password rotation
 	 * @param serviceAccount
@@ -643,7 +625,6 @@ public class  ServiceAccountsService {
 	 * Create policies for service account
 	 * @param token
 	 * @param svcAccName
-	 * @param admin
 	 * @return
 	 */
 	private  ResponseEntity<String> createServiceAccountPolicies(String token, String svcAccName) {

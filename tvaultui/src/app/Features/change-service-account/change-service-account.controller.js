@@ -802,7 +802,7 @@
                                             }
                                             $scope.autoRotate = $scope.svcacc.autoRotate;
                                             $scope.svcaccPrevious = angular.copy($scope.svcacc);
-                                            if ($scope.svcacc.accountExpires == "expired") {
+                                            if ($scope.svcacc.accountStatus.toLowerCase() == "expired") {
                                                 $scope.isSvcaccExpired = true;
                                                 $scope.expiredNote = "(Expired)";
                                             }
@@ -900,6 +900,12 @@
             $scope.svcInputSelected = true;
             $scope.isCollapsed = false;
             $scope.autoRotate = false;
+            $scope.isSvcaccExpired = false;
+            $scope.expiredNote = "";
+            if ($scope.svcacc.accountStatus.toLowerCase() == "expired") {
+                $scope.isSvcaccExpired = true;
+                $scope.expiredNote = "(Expired)";
+            }
         }
 
         $scope.collapseADDetails = function() {
@@ -929,6 +935,8 @@
             $scope.autoRotate = false;
             $scope.svcInputSelected = false;
             $scope.isCollapsed = true;
+            $scope.expiredNote = "";
+            $scope.isSvcaccExpired = false;
         }
 
         $scope.getSvcaccList = function(searchVal) {

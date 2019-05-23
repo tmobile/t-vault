@@ -17,15 +17,24 @@
 package com.tmobile.cso.vault.api.model;
 
 import java.io.Serializable;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.time.DateTimeException;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.TimeZone;
+import java.util.concurrent.TimeUnit;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
+import com.tmobile.cso.vault.api.common.TVaultConstants;
 import io.swagger.annotations.ApiModelProperty;
+import org.springframework.util.StringUtils;
 
 public class ADServiceAccount implements Serializable {
 	
@@ -61,23 +70,30 @@ public class ADServiceAccount implements Serializable {
 	private Instant whenCreated;
 
 	private String accountExpires;
-	
+    private String accountExpiresFormatted;
+
 	private String pwdLastSet;
+    private String pwdLastSetFormatted;
 	
 	private int maxPwdAge;
 	
 	private ADUserAccount managedBy;
 	
 	private String passwordExpiry;
-	
+
 	private String accountStatus;
-	
+
 	private String lockStatus;
 	
 	private String purpose;
 
 	private String owner;
-	
+
+	private String memberOf;
+
+	private final DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+	private final TimeZone timeZonePST = TimeZone.getTimeZone(TVaultConstants.TIME_ZONE_PDT);
+
 	/**
 	 * @return the userId
 	 */
@@ -143,8 +159,22 @@ public class ADServiceAccount implements Serializable {
 	public void setUserName(String userName) {
 		this.userName = userName;
 	}
-	
-	
+
+    /**
+     *
+     * @param accountExpiresFormatted the accountExpiresFormatted to set
+     */
+    public void setAccountExpiresFormatted(String accountExpiresFormatted) {
+        this.accountExpiresFormatted = accountExpiresFormatted;
+    }
+
+    /**
+     *
+     * @param pwdLastSetFormatted the pwdLastSetFormatted to set
+     */
+    public void setPwdLastSetFormatted(String pwdLastSetFormatted) {
+        this.pwdLastSetFormatted = pwdLastSetFormatted;
+    }
 	/**
 	 * @return the whenCreated
 	 */
@@ -168,16 +198,82 @@ public class ADServiceAccount implements Serializable {
 	public String getAccountExpires() {
 		return accountExpires;
 	}
+    /**
+     * @return the accountExpiresFormatted
+     */
+    public String getAccountExpiresFormatted() {
+        String sAccountExpiration = TVaultConstants.NEVER_EXPIRE;
+        try {
+            dateFormat.setTimeZone(timeZonePST);
+            long lAccountExpiration = Long.parseLong(accountExpires);
+            // Check if account never expires
+            if (TVaultConstants.SVC_ACC_NEVER_EXPIRE_VALUE != lAccountExpiration && lAccountExpiration != 0) {
+                Date accountExpiresDate = new Date(lAccountExpiration/10000-TVaultConstants.FILETIME_EPOCH_DIFF);
+                sAccountExpiration = dateFormat.format(accountExpiresDate);
+            }
+        }
+        catch(Exception ex) {
+            // Default TTL
+            sAccountExpiration = TVaultConstants.NEVER_EXPIRE;
+        }
+        return accountExpiresFormatted = sAccountExpiration;
+    }
 	/**
 	 * @return the passwordExpiry
 	 */
 	public String getPasswordExpiry() {
-		return passwordExpiry;
+		int maxLife = (int)TimeUnit.SECONDS.toDays(maxPwdAge);
+		String pwdExpiryDateTime = TVaultConstants.EXPIRED;
+
+		String memberOfStr = memberOf;
+		if (!StringUtils.isEmpty(memberOfStr)) {
+			Calendar c = Calendar.getInstance();
+			if (!StringUtils.isEmpty(pwdLastSetFormatted)) {
+				try{
+					c.setTime(dateFormat.parse(pwdLastSetFormatted));
+					c.add(Calendar.DAY_OF_MONTH, maxLife);
+					if (c.getTime().before(new Date())) {
+						pwdExpiryDateTime = TVaultConstants.EXPIRED;
+					}
+					else {
+						String passwordExpiry = dateFormat.format(c.getTime());
+						// find days to expire
+						long difference = c.getTime().getTime() - new Date().getTime();
+						String daysToExpire;
+						if (difference >= TVaultConstants.DAY_IN_MILLISECONDS) { //more than one day
+							daysToExpire = TimeUnit.DAYS.convert(difference, TimeUnit.MILLISECONDS) + " days";
+						}
+						else { // less than one day
+							daysToExpire = TimeUnit.HOURS.convert(difference, TimeUnit.MILLISECONDS) + " hours";
+						}
+						pwdExpiryDateTime = passwordExpiry +" ("+daysToExpire+")";
+					}
+				}catch(ParseException e){
+					pwdExpiryDateTime = "";
+				}
+			}
+		}
+		return passwordExpiry = pwdExpiryDateTime;
 	}
 	/**
 	 * @return the accountStatus
 	 */
 	public String getAccountStatus() {
+		if (accountExpiresFormatted == null || accountExpiresFormatted.equals(TVaultConstants.NEVER_EXPIRE)) {
+			accountStatus = "active";
+		}
+		else {
+			try {
+				dateFormat.setTimeZone(timeZonePST);
+				accountStatus = "active";
+				boolean expired = dateFormat.parse(accountExpiresFormatted).before(new Date());
+				if (expired) {
+					accountStatus = TVaultConstants.EXPIRED;
+				}
+			} catch (ParseException e) {
+				accountStatus = "Unknown";
+			}
+		}
 		return accountStatus;
 	}
 	/**
@@ -235,6 +331,24 @@ public class ADServiceAccount implements Serializable {
 	public String getPwdLastSet() {
 		return pwdLastSet;
 	}
+    /**
+     * @return the pwdLastSetFormatted
+     */
+    public String getPwdLastSetFormatted() {
+        String pwdLastSetDateTime = "";
+        if (pwdLastSet!= null && !pwdLastSet.equals("0")) {
+            try {
+                dateFormat.setTimeZone(timeZonePST);
+                long lpwdLastSetRaw = Long.parseLong(pwdLastSet);
+                Date pwdSet = new Date(lpwdLastSetRaw/10000-TVaultConstants.FILETIME_EPOCH_DIFF);
+                pwdLastSetDateTime = dateFormat.format(pwdSet);
+            }
+            catch(Exception ex) {
+                pwdLastSetDateTime = "";
+            }
+        }
+        return pwdLastSetFormatted = pwdLastSetDateTime;
+    }
 	/**
 	 * @return the managedBy
 	 */
@@ -258,13 +372,29 @@ public class ADServiceAccount implements Serializable {
 	 * @return the maxPwdAge
 	 */
 	public int getMaxPwdAge() {
-		return maxPwdAge;
+		int maxLife = 0;
+		if (!StringUtils.isEmpty(memberOf)) {
+
+			if (memberOf.contains(TVaultConstants.SVC_ACC_EXCEPTION)) {
+				maxLife = TVaultConstants.SVC_ACC_EXCEPTION_MAXLIFE;
+			} else {
+				maxLife = TVaultConstants.SVC_ACC_STANDARD_MAXLIFE;
+			}
+		}
+		return maxPwdAge = (int)TimeUnit.DAYS.toSeconds(maxLife);
 	}
 	/**
 	 * @param maxPwdAge the maxPwdAge to set
 	 */
 	public void setMaxPwdAge(int maxPwdAge) {
 		this.maxPwdAge = maxPwdAge;
+	}
+	public String getMemberOf() {
+		return memberOf;
+	}
+
+	public void setMemberOf(String memberOf) {
+		this.memberOf = memberOf;
 	}
 
 	/**
