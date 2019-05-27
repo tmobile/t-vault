@@ -504,6 +504,7 @@ public class  ServiceAccountsService {
 	 * @return
 	 */
 	public ResponseEntity<String> offboardServiceAccount(String token, OnboardedServiceAccount serviceAccount, UserDetails userDetails) {
+		String managedBy = "";
 		String svcAccName = serviceAccount.getName();
 		ResponseEntity<String> svcAccPolicyDeletionResponse = deleteServiceAccountPolicies(token, svcAccName);
 		if (!HttpStatus.OK.equals(svcAccPolicyDeletionResponse.getStatusCode())) {
@@ -531,7 +532,7 @@ public class  ServiceAccountsService {
 			Map<String,String> groups = (Map<String, String>)metadataMap.get("groups");
 			Map<String,String> users = (Map<String, String>) metadataMap.get("users");
 			// always add owner to the users list whose policy should be updated
-			String managedBy = (String) metadataMap.get("managedBy");
+			managedBy = (String) metadataMap.get("managedBy");
 			if (!org.apache.commons.lang3.StringUtils.isEmpty(managedBy)) {
                 if (null == users) {
                     users = new HashMap<>();
@@ -546,6 +547,7 @@ public class  ServiceAccountsService {
 		ResponseEntity<String> accountRoleDeletionResponse = deleteAccountRole(token, serviceAccount);
 		if (HttpStatus.OK.equals(accountRoleDeletionResponse.getStatusCode())) {
 			// Remove metadata...
+			serviceAccount.setOwner(managedBy);
 			ResponseEntity<String> metadataUpdateResponse =  deleteMetadata(token, serviceAccount);
 			if (HttpStatus.OK.equals(metadataUpdateResponse.getStatusCode())) {
 				log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().

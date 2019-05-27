@@ -57,7 +57,7 @@ public class OnboardedServiceAccount implements Serializable {
 	/**
 	 * @return the owner
 	 */
-	@ApiModelProperty(example="", position=2, required=false, allowEmptyValue=true)
+	@ApiModelProperty(example="", position=2, required=false, allowEmptyValue=true, hidden=true)
 	public String getOwner() {
 		return owner;
 	}
