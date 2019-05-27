@@ -780,7 +780,7 @@
                                                 displayName: object.displayName || '',
                                                 givenName: object.givenName || '',
                                                 userName: object.userName || '',
-                                                accountExpires: object.accountExpires || '',
+                                                accountExpires: object.accountExpiresFormatted || '',
                                                 pwdLastSet: object.pwdLastSet || '',
                                                 maxPwdAge: object.maxPwdAge || '',
                                                 managedBy: object.managedBy|| '',
