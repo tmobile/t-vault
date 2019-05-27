@@ -1278,9 +1278,10 @@ public class ServiceAccountsServiceTest {
         adServiceAccountCreds.setUsername(svcAccName);
         String expectedOutput = getJSON(adServiceAccountCreds);
         Response pwdReadResponse = getMockResponse(HttpStatus.OK, true,expectedOutput);
+        Response pwdResetResponse = getMockResponse(HttpStatus.OK, true,expectedOutput);
         when(JSONUtil.getJSON(Mockito.any(ADServiceAccountCreds.class))).thenReturn(expectedOutput);
 
-        when(reqProcessor.process(Mockito.eq("/ad/serviceaccount/resetpwd"),Mockito.anyString(),Mockito.eq(token))).thenReturn(pwdReadResponse);
+        when(reqProcessor.process(Mockito.eq("/ad/serviceaccount/resetpwd"),Mockito.anyString(),Mockito.eq(token))).thenReturn(pwdResetResponse);
 
         when(reqProcessor.process(Mockito.eq("/ad/serviceaccount/readpwd"),Mockito.anyString(),Mockito.eq(token))).thenReturn(pwdReadResponse);
 

@@ -1078,7 +1078,7 @@ public class  ServiceAccountsService {
 							log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 									put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 									put(LogMessage.ACTION, "readSvcAccPassword").
-									put(LogMessage.MESSAGE, String.format("There are no service accounts currently onboarded or error in retrieving credentials for the onboarded service account")).
+									put(LogMessage.MESSAGE, String.format("There are no service accounts currently onboarded or error in retrieving credentials for the onboarded service account [%s]", svcAccName)).
 									put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 									build()));
 
@@ -1138,7 +1138,7 @@ public class  ServiceAccountsService {
 			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 					put(LogMessage.ACTION, "readSvcAccPassword").
-					put(LogMessage.MESSAGE, "Successfully read the password details for the service account").
+					put(LogMessage.MESSAGE, String.format("Successfully read the password details for the service account [%s]", svcAccName)).
 					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 					build()));
 			try {
@@ -1159,7 +1159,7 @@ public class  ServiceAccountsService {
 				log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 						put(LogMessage.ACTION, "readSvcAccPassword").
-						put(LogMessage.MESSAGE, String.format("There are no service accounts currently onboarded or error in retrieving credentials for the onboarded service account")).
+						put(LogMessage.MESSAGE, String.format("There are no service accounts currently onboarded or error in retrieving credentials for the onboarded service account [%s]", svcAccName)).
 						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 						build()));
 
