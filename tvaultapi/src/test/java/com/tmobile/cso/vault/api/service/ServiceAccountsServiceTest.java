@@ -1272,18 +1272,17 @@ public class ServiceAccountsServiceTest {
         when(reqProcessor.process("/ad/serviceaccount/details","{\"role_name\":\""+svcAccName+"\"}",token)).thenReturn(svcAccDetailsRes);
         // end getOnboarderdServiceAccountDetails
 
-        // System under test
-        String pwdResetOutput = "{\"errors\":[\"Unable to reset password details for the given service account. Failed to read the updated password after setting ttl to 1 second.\"]}";
-        Response pwdResetResponse = getMockResponse(HttpStatus.OK, true, pwdResetOutput);
-        when(reqProcessor.process(Mockito.eq("/ad/serviceaccount/resetpwd"),Mockito.anyString(),Mockito.eq(token))).thenReturn(pwdResetResponse);
-
         ADServiceAccountCreds adServiceAccountCreds = new ADServiceAccountCreds();
         adServiceAccountCreds.setCurrent_password("current_password");
         adServiceAccountCreds.setLast_password("last_password");
         adServiceAccountCreds.setUsername(svcAccName);
         String expectedOutput = getJSON(adServiceAccountCreds);
         Response pwdReadResponse = getMockResponse(HttpStatus.OK, true,expectedOutput);
+        Response pwdResetResponse = getMockResponse(HttpStatus.OK, true,expectedOutput);
         when(JSONUtil.getJSON(Mockito.any(ADServiceAccountCreds.class))).thenReturn(expectedOutput);
+
+        when(reqProcessor.process(Mockito.eq("/ad/serviceaccount/resetpwd"),Mockito.anyString(),Mockito.eq(token))).thenReturn(pwdResetResponse);
+
         when(reqProcessor.process(Mockito.eq("/ad/serviceaccount/readpwd"),Mockito.anyString(),Mockito.eq(token))).thenReturn(pwdReadResponse);
 
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(expectedOutput);
@@ -1514,6 +1513,60 @@ public class ServiceAccountsServiceTest {
         assertEquals(HttpStatus.BAD_REQUEST, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
     }
+
+    @Test
+    public void test_readSvcAccPassword_success() {
+        UserDetails userDetails = getMockUser(true);
+        String token = userDetails.getClientToken();
+        String svcAccName = "testacc03";
+
+        ADServiceAccountCreds adServiceAccountCreds = new ADServiceAccountCreds();
+        adServiceAccountCreds.setCurrent_password("current_password");
+        adServiceAccountCreds.setLast_password("last_password");
+        adServiceAccountCreds.setUsername(svcAccName);
+        String expectedOutput = getJSON(adServiceAccountCreds);
+        Response pwdReadResponse = getMockResponse(HttpStatus.OK, true,expectedOutput);
+        when(JSONUtil.getJSON(Mockito.any(ADServiceAccountCreds.class))).thenReturn(expectedOutput);
+        when(reqProcessor.process("/ad/serviceaccount/readpwd","{\"role_name\":\""+svcAccName+"\"}",token)).thenReturn(pwdReadResponse);
+        when(JSONUtil.getJSON(Mockito.any(ADServiceAccountCreds.class))).thenReturn(expectedOutput);
+
+
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(expectedOutput);
+        ResponseEntity<String> responseEntity = serviceAccountsService.readSvcAccPassword(token, svcAccName, userDetails);
+        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntity);
+    }
+
+    @Test
+    public void test_readSvcAccPassword_403() {
+        UserDetails userDetails = getMockUser(true);
+        String token = userDetails.getClientToken();
+        String svcAccName = "testacc03";
+
+        Response pwdReadResponse = getMockResponse(HttpStatus.FORBIDDEN, true,"");
+        when(reqProcessor.process("/ad/serviceaccount/readpwd","{\"role_name\":\""+svcAccName+"\"}",token)).thenReturn(pwdReadResponse);
+
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.FORBIDDEN).body("{\"errors\":[\"Permission Denied. Unable to get password details for the given service account\"]}");
+        ResponseEntity<String> responseEntity = serviceAccountsService.readSvcAccPassword(token, svcAccName, userDetails);
+        assertEquals(HttpStatus.FORBIDDEN, responseEntity.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntity);
+    }
+
+    @Test
+    public void test_readSvcAccPassword_400() {
+        UserDetails userDetails = getMockUser(true);
+        String token = userDetails.getClientToken();
+        String svcAccName = "testacc03";
+
+        Response pwdReadResponse = getMockResponse(HttpStatus.BAD_REQUEST, true,"");
+        when(reqProcessor.process("/ad/serviceaccount/readpwd","{\"role_name\":\""+svcAccName+"\"}",token)).thenReturn(pwdReadResponse);
+
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Unable to get password details for the given service account\"]}");
+        ResponseEntity<String> responseEntity = serviceAccountsService.readSvcAccPassword(token, svcAccName, userDetails);
+        assertEquals(HttpStatus.BAD_REQUEST, responseEntity.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntity);
+    }
+
     @Test
     public void test_getOnboarderdServiceAccount_success() {
     	UserDetails userDetails = getMockUser(true);

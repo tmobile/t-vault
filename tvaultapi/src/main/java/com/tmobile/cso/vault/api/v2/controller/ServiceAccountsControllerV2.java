@@ -131,6 +131,19 @@ public class ServiceAccountsControllerV2 {
 		return serviceAccountsService.resetSvcAccPassword(token, serviceAccountName, userDetails);
 	}
 	/**
+	 * To read service account password
+	 * @param request
+	 * @param token
+	 * @param serviceAccountName
+	 * @return
+	 */
+	@ApiOperation(value = "${ServiceAccountsControllerV2.readPassword.value}", notes = "${ServiceAccountsControllerV2.readPassword.notes}")
+	@GetMapping(value="/v2/serviceaccounts/password", produces="application/json")
+	public ResponseEntity<String> readSvcAccPwd( HttpServletRequest request, @RequestHeader(value="vault-token") String token, @RequestParam("serviceAccountName" ) String serviceAccountName ){
+		UserDetails userDetails = (UserDetails) ((HttpServletRequest) request).getAttribute("UserDetails");
+		return serviceAccountsService.readSvcAccPassword(token, serviceAccountName, userDetails);
+	}
+	/**
 	 * Offboard a service account from password rotation
 	 * @param request
 	 * @param token

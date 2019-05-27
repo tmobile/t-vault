@@ -305,6 +305,31 @@ public class ServiceAccountsControllerV2Test {
         String actual = result.getResponse().getContentAsString();
         assertEquals(expected, actual);
     }
+
+    @Test
+    public void test_readSvcAccPwd_success() throws Exception {
+        UserDetails userDetails = getMockUser(false);
+        String token = userDetails.getClientToken();
+        String svcAccName = "testacc02";
+
+        String expected = "{\n" +
+                "  \"current_password\": \"?@09AZGdnkinuq9OKXkeXW6D4oVGc\",\n" +
+                "  \"last_password\": null,\n" +
+                "  \"username\": \"testacc02\"\n" +
+                "}";
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(expected);
+        when(serviceAccountsService.readSvcAccPassword(token, svcAccName, userDetails)).thenReturn(responseEntityExpected);
+
+        MvcResult result = mockMvc.perform(MockMvcRequestBuilders.get("/v2/serviceaccounts/password")
+                .header("vault-token", token)
+                .header("Content-Type", "application/json;charset=UTF-8")
+                .requestAttr("UserDetails", userDetails)
+                .param("serviceAccountName", svcAccName))
+                .andExpect(status().isOk()).andReturn();
+
+        String actual = result.getResponse().getContentAsString();
+        assertEquals(expected, actual);
+    }
     
     @Test
     public void test_offboardServiceAccount_success() throws Exception{

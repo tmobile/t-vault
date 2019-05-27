@@ -504,6 +504,7 @@ public class  ServiceAccountsService {
 	 * @return
 	 */
 	public ResponseEntity<String> offboardServiceAccount(String token, OnboardedServiceAccount serviceAccount, UserDetails userDetails) {
+		String managedBy = "";
 		String svcAccName = serviceAccount.getName();
 		ResponseEntity<String> svcAccPolicyDeletionResponse = deleteServiceAccountPolicies(token, svcAccName);
 		if (!HttpStatus.OK.equals(svcAccPolicyDeletionResponse.getStatusCode())) {
@@ -531,7 +532,7 @@ public class  ServiceAccountsService {
 			Map<String,String> groups = (Map<String, String>)metadataMap.get("groups");
 			Map<String,String> users = (Map<String, String>) metadataMap.get("users");
 			// always add owner to the users list whose policy should be updated
-			String managedBy = (String) metadataMap.get("managedBy");
+			managedBy = (String) metadataMap.get("managedBy");
 			if (!org.apache.commons.lang3.StringUtils.isEmpty(managedBy)) {
                 if (null == users) {
                     users = new HashMap<>();
@@ -546,6 +547,7 @@ public class  ServiceAccountsService {
 		ResponseEntity<String> accountRoleDeletionResponse = deleteAccountRole(token, serviceAccount);
 		if (HttpStatus.OK.equals(accountRoleDeletionResponse.getStatusCode())) {
 			// Remove metadata...
+			serviceAccount.setOwner(managedBy);
 			ResponseEntity<String> metadataUpdateResponse =  deleteMetadata(token, serviceAccount);
 			if (HttpStatus.OK.equals(metadataUpdateResponse.getStatusCode())) {
 				log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
@@ -1078,7 +1080,7 @@ public class  ServiceAccountsService {
 							log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 									put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 									put(LogMessage.ACTION, "readSvcAccPassword").
-									put(LogMessage.MESSAGE, String.format("There are no service accounts currently onboarded or error in retrieving credentials for the onboarded service account")).
+									put(LogMessage.MESSAGE, String.format("There are no service accounts currently onboarded or error in retrieving credentials for the onboarded service account [%s]", svcAccName)).
 									put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 									build()));
 
@@ -1123,6 +1125,70 @@ public class  ServiceAccountsService {
 				build()));
 		return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Unable to reset password details for the given service account\"]}");
 	}
+
+	/**
+	 * Gets service account password
+	 * @param token
+	 * @param svcAccName
+	 * @param userDetails
+	 * @return
+	 */
+	public ResponseEntity<String> readSvcAccPassword(String token, String svcAccName, UserDetails userDetails){
+		Response response = reqProcessor.process("/ad/serviceaccount/readpwd","{\"role_name\":\""+svcAccName+"\"}",token);
+		ADServiceAccountCreds adServiceAccountCreds = null;
+		if (HttpStatus.OK.equals(response.getHttpstatus())) {
+			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+					put(LogMessage.ACTION, "readSvcAccPassword").
+					put(LogMessage.MESSAGE, String.format("Successfully read the password details for the service account [%s]", svcAccName)).
+					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+					build()));
+			try {
+				adServiceAccountCreds = new ADServiceAccountCreds();
+				Map<String, Object> requestParams = new ObjectMapper().readValue(response.getResponse(), new TypeReference<Map<String, Object>>(){});
+				if (requestParams.get("current_password") != null) {
+					adServiceAccountCreds.setCurrent_password((String) requestParams.get("current_password"));
+				}
+				if (requestParams.get("username") != null) {
+					adServiceAccountCreds.setUsername((String) requestParams.get("username"));
+				}
+				if (requestParams.get("last_password") != null ) {
+					adServiceAccountCreds.setLast_password((String) requestParams.get("last_password"));
+				}
+				return ResponseEntity.status(HttpStatus.OK).body(JSONUtil.getJSON(adServiceAccountCreds));
+			}
+			catch(Exception ex) {
+				log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+						put(LogMessage.ACTION, "readSvcAccPassword").
+						put(LogMessage.MESSAGE, String.format("There are no service accounts currently onboarded or error in retrieving credentials for the onboarded service account [%s]", svcAccName)).
+						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+						build()));
+
+			}
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Unable to get password details for the given service account\"]}");
+		}
+		else if (HttpStatus.FORBIDDEN.equals(response.getHttpstatus())) {
+			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+					put(LogMessage.ACTION, "readSvcAccPassword").
+					put(LogMessage.MESSAGE, String.format("Permission denied to read password for [%s]", svcAccName)).
+					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+					build()));
+			return ResponseEntity.status(HttpStatus.FORBIDDEN).body("{\"errors\":[\"Permission Denied. Unable to get password details for the given service account\"]}");
+
+		}
+		else {
+			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+					put(LogMessage.ACTION, "readSvcAccPassword").
+					put(LogMessage.MESSAGE, String.format("Unable to read password for [%s]", svcAccName)).
+					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+					build()));
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Unable to get password details for the given service account\"]}");
+		}
+	}
+
 	/**
 	 * Gets the details of a service account that is already onboarded into TVault
 	 * @param token
