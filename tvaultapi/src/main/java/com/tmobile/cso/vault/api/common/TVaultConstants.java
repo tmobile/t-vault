@@ -85,7 +85,7 @@ public class TVaultConstants {
     public static final Long PASSWORD_AUTOROTATE_TTL_MAX_VALUE = 1590897977L;
     public static final String EC2 = "ec2";
     public static final String SELFSERVICE = "selfservice";
-    public static final String ADPWDROTATION = "adpwdrotation";
+    public static final String ADAUTOROTATION = "adpwdrotation";
     public static final String SELFSERVICE_URI_PREFIX = "/vault/v2/ss/";
     public static final String SVC_ACC_AD_URI_PREFIX = "/vault/v2/ad/";
     public static final String SVC_ACC_URI_PREFIX = "/vault/v2/serviceaccounts";

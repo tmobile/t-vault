@@ -175,7 +175,7 @@ public class  ServiceAccountsService {
 		ADServiceAccountObjects adServiceAccountObjects = new ADServiceAccountObjects();
 		ADServiceAccountObjectsList adServiceAccountObjectsList = new ADServiceAccountObjectsList();
 		Object[] values = new Object[] {};
-		if (!CollectionUtils.isEmpty(allServiceAccounts)) {
+		if (allServiceAccounts !=null && !CollectionUtils.isEmpty(allServiceAccounts)) {
 			values = allServiceAccounts.toArray(new ADServiceAccount[allServiceAccounts.size()]);
 		}
 		adServiceAccountObjectsList.setValues(values);
@@ -2618,7 +2618,7 @@ public class  ServiceAccountsService {
 					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 					put(LogMessage.ACTION, "Update onboarded Service Account").
 					put(LogMessage.MESSAGE, "Failed to update onboarded Service Account.").
-					put(LogMessage.STATUS, accountRoleDeletionResponse.getStatusCode().toString()).
+					put(LogMessage.STATUS, accountRoleDeletionResponse!=null?accountRoleDeletionResponse.getStatusCode().toString():HttpStatus.MULTI_STATUS.toString()).
 					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 					build()));
 			return ResponseEntity.status(HttpStatus.MULTI_STATUS).body("{\"errors\":[\"Failed to update onboarded Service Account.\"]}");
