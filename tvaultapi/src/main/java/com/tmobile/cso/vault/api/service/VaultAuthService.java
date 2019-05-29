@@ -97,7 +97,7 @@ public class  VaultAuthService {
 				// set SS, AD password rotation enable status
 				Map<String,Object> feature = new HashMap<>();
 				feature.put(TVaultConstants.SELFSERVICE, isSSEnabled);
-				feature.put(TVaultConstants.ADPWDROTATION, isAdPswdRotationEnabled);
+				feature.put(TVaultConstants.ADAUTOROTATION, isAdPswdRotationEnabled);
 				responseMap.put("feature", feature);
 				response.setResponse(JSONUtil.getJSON(responseMap));
 			}

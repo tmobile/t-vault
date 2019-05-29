@@ -257,7 +257,7 @@ public class ADServiceAccount implements Serializable {
 						pwdExpiryDateTime = passwordExpiry +" ("+daysToExpire+")";
 					}
 				}catch(ParseException e){
-					pwdExpiryDateTime = "";
+					pwdExpiryDateTime = TVaultConstants.EMPTY;
 				}
 			}
 		}
@@ -350,7 +350,7 @@ public class ADServiceAccount implements Serializable {
     		pwdLastSet uses the same calculation:
     		Date pwdSet = new Date(pwdLastSet/10000-TVaultConstants.FILETIME_EPOCH_DIFF);
     	 */
-        String pwdLastSetDateTime = "";
+        String pwdLastSetDateTime = TVaultConstants.EMPTY;
         if (pwdLastSet!= null && !pwdLastSet.equals("0")) {
             try {
                 dateFormat.setTimeZone(timeZonePST);
@@ -359,7 +359,7 @@ public class ADServiceAccount implements Serializable {
                 pwdLastSetDateTime = dateFormat.format(pwdSet);
             }
             catch(Exception ex) {
-                pwdLastSetDateTime = "";
+                pwdLastSetDateTime = TVaultConstants.EMPTY;
             }
         }
         return pwdLastSetFormatted = pwdLastSetDateTime;
