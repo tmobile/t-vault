@@ -884,7 +884,7 @@ public class  ServiceAccountsService {
 			}
 			
 		}else{
-			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Access denied: No permission to users groups to this service account\"]}");
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Access denied: No permission to users to this service account\"]}");
 		}
 	}
 
