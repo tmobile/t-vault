@@ -607,7 +607,7 @@ public class  SafesService {
 			Map<String,String> users = (Map<String, String>) metadataMap.get("users");
 			// always add safeowner to the users list whose policy should be updated
 			String onwerId = (String) metadataMap.get("ownerid");
-			if (!StringUtils.isEmpty(onwerId)) {
+			if (!StringUtils.isEmpty(onwerId) && users !=null) {
 				users.put(onwerId, "sudo");
 			}
 			ControllerUtil.updateUserPolicyAssociationOnSDBDelete(path,users,token);
@@ -1689,7 +1689,7 @@ public class  SafesService {
 					Map<String,String> users = (Map<String, String>) metadataMap.get("users");
 					// always add safeowner to the users list whose policy should be updated
 					String onwerId = (String) metadataMap.get("ownerid");
-					if (!StringUtils.isEmpty(onwerId)) {
+					if (!StringUtils.isEmpty(onwerId) && users !=null) {
 						users.put(onwerId, "sudo");
 					}
 					ControllerUtil.updateUserPolicyAssociationOnSDBDelete(path,users,token);

@@ -898,6 +898,7 @@
         $scope.getSvcaccInfo = function (svcaccObj) {
             $scope.svcacc = svcaccObj;
             $scope.svcacc.svcaccId = svcaccObj.userId;  
+            $scope.svcacc.accountExpires = $scope.svcacc.accountExpiresFormatted;
             $scope.svcInputSelected = true;
             $scope.isCollapsed = false;
             $scope.autoRotate = false;
