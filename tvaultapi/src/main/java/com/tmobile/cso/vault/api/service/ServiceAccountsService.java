@@ -362,7 +362,7 @@ public class  ServiceAccountsService {
 			ResponseEntity<String> svcAccPolicyCreationResponse = createServiceAccountPolicies(token, svcAccName);
 			if (HttpStatus.OK.equals(svcAccPolicyCreationResponse.getStatusCode())) {
 				ServiceAccountUser serviceAccountUser = new ServiceAccountUser(svcAccName, serviceAccount.getOwner(), TVaultConstants.SUDO_POLICY);
-				ResponseEntity<String> addUserToServiceAccountResponse = addUserToServiceAccount(token, serviceAccountUser, userDetails);
+				ResponseEntity<String> addUserToServiceAccountResponse = addUserToServiceAccount(token, serviceAccountUser, userDetails, true);
 				if (HttpStatus.OK.equals(addUserToServiceAccountResponse.getStatusCode())) {
 					log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 							put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
@@ -726,7 +726,7 @@ public class  ServiceAccountsService {
 	 * @param userDetails
 	 * @return
 	 */
-	public ResponseEntity<String> addUserToServiceAccount(String token, ServiceAccountUser serviceAccountUser, UserDetails userDetails) {
+	public ResponseEntity<String> addUserToServiceAccount(String token, ServiceAccountUser serviceAccountUser, UserDetails userDetails, boolean isPartOfSvcAccOnboard) {
 		if (!checkInitialPwdResetStatus(token, userDetails, serviceAccountUser.getSvcAccName()) && !TVaultConstants.SUDO_POLICY.equals(serviceAccountUser.getAccess())) {
 			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
@@ -761,7 +761,7 @@ public class  ServiceAccountsService {
 
 		boolean isAuthorized = true;
 		if (userDetails != null) {
-			isAuthorized = hasAddOrRemovePermission(userDetails, serviceAccountUser.getSvcAccName(), token);
+			isAuthorized = hasAddUserPermission(userDetails, svcAccName, token, isPartOfSvcAccOnboard);
 		}
 
 		if(isAuthorized){
@@ -884,7 +884,7 @@ public class  ServiceAccountsService {
 			}
 			
 		}else{
-			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Not authorized to perform\"]}");
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Access denied: No permission to users groups to this service account\"]}");
 		}
 	}
 
@@ -934,6 +934,7 @@ public class  ServiceAccountsService {
 		}
 
 		boolean isAuthorized = true;
+		isAuthorized = hasAddOrRemovePermission(userDetails, serviceAccountUser.getSvcAccName(), token);
 		if (userDetails != null) {
 			isAuthorized = hasAddOrRemovePermission(userDetails, serviceAccountUser.getSvcAccName(), token);
 		}
@@ -1412,10 +1413,7 @@ public class  ServiceAccountsService {
      * @return
      */
     public boolean hasAddOrRemovePermission(UserDetails userDetails, String serviceAccount, String token) {
-        // Owner of the service account or admin user can add/remove users, groups, aws roles and approles to service account
-        if (userDetails.isAdmin()) {
-            return true;
-        }
+		// Owner of the service account can add/remove users, groups, aws roles and approles to service account
         String o_policy = new StringBuffer().append(TVaultConstants.SVC_ACC_POLICIES_PREFIXES.getKey(TVaultConstants.SUDO_POLICY)).append(TVaultConstants.SVC_ACC_PATH_PREFIX).append("_").append(serviceAccount).toString();
         String [] policies = policyUtils.getCurrentPolicies(token, userDetails.getUsername());
         if (ArrayUtils.contains(policies, o_policy)) {
@@ -1424,6 +1422,27 @@ public class  ServiceAccountsService {
         return false;
     }
 
+	/**
+	 * Check if user has the permission to add user to the Service Account
+	 * @param userDetails
+	 * @param serviceAccount
+	 * @param access
+	 * @param token
+	 * @return
+	 */
+	public boolean hasAddUserPermission(UserDetails userDetails, String serviceAccount, String token, boolean isPartOfSvcAccOnboard) {
+		// Admin user can add sudo policy for owner while onboarding the service account
+		if (userDetails.isAdmin() && isPartOfSvcAccOnboard) {
+			return true;
+		}
+		// Owner of the service account can add/remove users, groups, aws roles and approles to service account
+		String o_policy = new StringBuffer().append(TVaultConstants.SVC_ACC_POLICIES_PREFIXES.getKey(TVaultConstants.SUDO_POLICY)).append(TVaultConstants.SVC_ACC_PATH_PREFIX).append("_").append(serviceAccount).toString();
+		String [] policies = policyUtils.getCurrentPolicies(token, userDetails.getUsername());
+		if (ArrayUtils.contains(policies, o_policy)) {
+			return true;
+		}
+		return false;
+	}
 	/**
 	 * Validates Service Account permission inputs
 	 * @param access

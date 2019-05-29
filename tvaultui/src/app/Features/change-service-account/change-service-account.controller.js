@@ -564,8 +564,7 @@
                     "name": $scope.svcacc.svcaccId,
                     "autoRotate": $scope.svcacc.autoRotate,
                     "ttl": $scope.svcacc.ttl,
-                    "max_ttl": $scope.svcacc.maxPwdAge,
-                    "owner":  $scope.svcacc.owner
+                    "max_ttl": $scope.svcacc.maxPwdAge
                 }
                 AdminSafesManagement.onboardSvcacc(onboardPayload, '').then(function (response) {
                     if (UtilityService.ifAPIRequestSuccessful(response)) {
@@ -575,10 +574,17 @@
                             $rootScope.showDetails = false;
                             $rootScope.activeDetailsTab = 'permissions';
                             $scope.svcaccOnboarded = true;
-                            $scope.initialPwdResetRequired = true;
                             var notification = UtilityService.getAParticularSuccessMessage('MESSAGE_ONBOARD_SUCCESS');
                             Notifications.toast($scope.svcacc.svcaccId + ' Service Account' + notification);
                             $scope.svcaccPrevious = angular.copy($scope.svcacc);
+                            if ($scope.svcacc.managedBy.userName.toLowerCase() == SessionStore.getItem("username")) {
+                                $scope.initialPwdResetRequired = true;
+                                $scope.resetButtonDisable = true;
+                                $scope.openResetPermissionWarning();
+                            }
+                            else {
+                                $scope.svcaccDone();
+                            }
 
                         } catch (e) {
                             console.log(e);
@@ -626,8 +632,7 @@
                     "name": $scope.svcacc.svcaccId,
                     "autoRotate": $scope.svcacc.autoRotate,
                     "ttl": $scope.svcacc.ttl,
-                    "max_ttl": $scope.svcacc.maxPwdAge,
-                    "owner":  $scope.svcacc.owner
+                    "max_ttl": $scope.svcacc.maxPwdAge
                 }
                 AdminSafesManagement.editSvcacc(onboardPayload, '').then(function (response) {
                         if (UtilityService.ifAPIRequestSuccessful(response)) {
@@ -636,12 +641,17 @@
                                 $rootScope.showDetails = false;
                                 $rootScope.activeDetailsTab = 'permissions';
                                 $scope.svcaccOnboarded = true;
-                                if ($scope.initialPasswordReset == "false" || $scope.initialPasswordReset == "") {
-                                    $scope.initialPwdResetRequired = true;
-                                }
                                 var notification = UtilityService.getAParticularSuccessMessage('MESSAGE_UPDATE_SUCCESS');
                                 Notifications.toast('TTL for Service Account ' + $scope.svcacc.svcaccId + notification);
                                 $scope.svcaccPrevious = angular.copy($scope.svcacc);
+                                if ($scope.svcacc.managedBy.userName.toLowerCase() == SessionStore.getItem("username")) {
+                                    if ($scope.svcacc.initialPasswordReset == "false" || $scope.initialPasswordReset == "") {
+                                        $scope.initialPwdResetRequired = true;
+                                    }
+                                }
+                                else {
+                                    $scope.svcaccDone();
+                                }
                             } catch (e) {
                                 console.log(e);
                                 $scope.isLoadingData = false;
@@ -760,8 +770,15 @@
                 console.log(error);
                 $scope.isLoadingData = false;
                 if (error.status === '403' || error.status === 403) {
-                    $scope.newPassword = '';
-                    $scope.openInitialResetWarning();
+                    var errorData = error.data.errors;
+                        if (errorData instanceof Array && errorData.length > 0 ) {
+                            $scope.errorMessage = errorData[0];
+                        } else if (errorData.length > 0) {
+                            $scope.errorMessage = errorData;
+                        } else {
+                            $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
+                        }
+                    $scope.error('md');
                 }
                 else {
                     $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
@@ -785,10 +802,16 @@
                     }
                     else {
                         $rootScope.showDetails = false;
-                        if ($scope.initialPasswordReset == "false" || $scope.initialPasswordReset == "") {
-                            $scope.initialPwdResetRequired = true;
-                        }
                         $rootScope.activeDetailsTab = 'permissions';
+                        if ($scope.svcacc.managedBy.userName.toLowerCase() == SessionStore.getItem("username")) {
+                            if ($scope.svcacc.initialPasswordReset == "false" || $scope.initialPasswordReset == "") {
+                                $scope.initialPwdResetRequired = true;
+                            }
+                        }
+                        else {
+                            Notifications.toast('No changes made');
+                            $scope.svcaccDone();
+                        }
                     }
                 }
                 else {
@@ -1321,8 +1344,8 @@
             Modal.createModal(size, 'resetStatus.html', 'ChangeServiceAccountCtrl', $scope);
         };
 
-        $scope.openInitialResetWarning = function (size) {
-            Modal.createModal(size, 'initialResetWarning.html', 'ChangeServiceAccountCtrl', $scope);
+        $scope.openResetPermissionWarning = function (size) {
+            Modal.createModal(size, 'resetPermissionWarning.html', 'ChangeServiceAccountCtrl', $scope);
         };
 
         /* TODO: What is ok, functon name should be more descriptive */
