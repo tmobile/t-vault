@@ -727,10 +727,10 @@ public class  ServiceAccountsService {
 			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 					put(LogMessage.ACTION, "Add User to ServiceAccount").
-					put(LogMessage.MESSAGE, "Failed to add permission to Service account. Initial password reset is pending for this Service Account.").
+					put(LogMessage.MESSAGE, "Failed to add user permission to Service account. Initial password reset is pending for this Service Account.").
 					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 					build()));
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Failed to add permission to Service account. Initial password reset is pending for this Service Account. Please reset the password and try again.\"]}");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Failed to add user permission to Service account. Initial password reset is pending for this Service Account. Please reset the password and try again.\"]}");
 		}
         if (!userDetails.isAdmin()) {
             token = tokenUtils.getSelfServiceToken();
@@ -918,7 +918,16 @@ public class  ServiceAccountsService {
 	 * @return
 	 */
 	public ResponseEntity<String> removeUserFromServiceAccount(String token, ServiceAccountUser serviceAccountUser, UserDetails userDetails) {
-        if (!userDetails.isAdmin()) {
+		if (!checkInitialPwdResetStatus(token, userDetails, serviceAccountUser.getSvcAccName())) {
+			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+					put(LogMessage.ACTION, "Remove User from ServiceAccount").
+					put(LogMessage.MESSAGE, "Failed to remove user permission from Service account. Initial password reset is pending for this Service Account.").
+					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+					build()));
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Failed to remove user permission from Service account. Initial password reset is pending for this Service Account. Please reset the password and try again.\"]}");
+		}
+		if (!userDetails.isAdmin()) {
             token = tokenUtils.getSelfServiceToken();
         }
 		String userName = serviceAccountUser.getUsername();
@@ -930,7 +939,6 @@ public class  ServiceAccountsService {
 		}
 
 		boolean isAuthorized = true;
-		isAuthorized = hasAddOrRemovePermission(userDetails, serviceAccountUser.getSvcAccName(), token);
 		if (userDetails != null) {
 			isAuthorized = hasAddOrRemovePermission(userDetails, serviceAccountUser.getSvcAccName(), token);
 		}
@@ -1034,7 +1042,7 @@ public class  ServiceAccountsService {
 			}	
 		}
 		else {
-			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Not authorized to perform\"]}");
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Access denied: No permission to remove user from this service account\"]}");
 		}
 	}
 	/**
@@ -1470,10 +1478,10 @@ public class  ServiceAccountsService {
 			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 					put(LogMessage.ACTION, "Add Group to ServiceAccount").
-					put(LogMessage.MESSAGE, "Failed to add permission to Service account. Initial password reset is pending for this Service Account.").
+					put(LogMessage.MESSAGE, "Failed to add group permission to Service account. Initial password reset is pending for this Service Account.").
 					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 					build()));
-			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Failed to add permission to Service account. Initial password reset is pending for this Service Account. Please reset the password and try again.\"]}");
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Failed to add group permission to Service account. Initial password reset is pending for this Service Account. Please reset the password and try again.\"]}");
 		}
         if (!userDetails.isAdmin()) {
             token = tokenUtils.getSelfServiceToken();
@@ -1631,6 +1639,15 @@ public class  ServiceAccountsService {
                 put(LogMessage.MESSAGE, String.format ("Trying to remove Group from Service Account")).
                 put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
                 build()));
+		if (!checkInitialPwdResetStatus(token, userDetails, serviceAccountGroup.getSvcAccName())) {
+			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+					put(LogMessage.ACTION, "Remove Group from ServiceAccount").
+					put(LogMessage.MESSAGE, "Failed to remove group permission from Service account. Initial password reset is pending for this Service Account.").
+					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+					build()));
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Failed to remove group permission from Service account. Initial password reset is pending for this Service Account. Please reset the password and try again.\"]}");
+		}
         if (!userDetails.isAdmin()) {
             token = tokenUtils.getSelfServiceToken();
         }
@@ -1767,10 +1784,10 @@ public class  ServiceAccountsService {
 			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 					put(LogMessage.ACTION, "Add approle to ServiceAccount").
-					put(LogMessage.MESSAGE, "Failed to add permission to Service account. Initial password reset is pending for this Service Account.").
+					put(LogMessage.MESSAGE, "Failed to add approle permission to Service account. Initial password reset is pending for this Service Account.").
 					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 					build()));
-			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Failed to add permission to Service account. Initial password reset is pending for this Service Account. Please reset the password and try again.\"]}");
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Failed to add approle permission to Service account. Initial password reset is pending for this Service Account. Please reset the password and try again.\"]}");
 		}
         if (!userDetails.isAdmin()) {
             token = tokenUtils.getSelfServiceToken();
@@ -2248,7 +2265,16 @@ public class  ServiceAccountsService {
 				put(LogMessage.MESSAGE, String.format ("Trying to remove approle from Service Account [%s]", serviceAccountApprole.getApprolename())).
 				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 				build()));
-        if (!userDetails.isAdmin()) {
+		if (!checkInitialPwdResetStatus(token, userDetails, serviceAccountApprole.getSvcAccName())) {
+			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+					put(LogMessage.ACTION, "Remove Approle from ServiceAccount").
+					put(LogMessage.MESSAGE, "Failed to remove approle permission from Service account. Initial password reset is pending for this Service Account.").
+					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+					build()));
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Failed to remove approle permission from Service account. Initial password reset is pending for this Service Account. Please reset the password and try again.\"]}");
+		}
+		if (!userDetails.isAdmin()) {
             token = tokenUtils.getSelfServiceToken();
         }
 		String approleName = serviceAccountApprole.getApprolename();
@@ -2376,10 +2402,10 @@ public class  ServiceAccountsService {
 			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 					put(LogMessage.ACTION, "Add AWS Role to Service Account").
-					put(LogMessage.MESSAGE, "Failed to add permission to Service account. Initial password reset is pending for this Service Account.").
+					put(LogMessage.MESSAGE, "Failed to add awsrole permission to Service account. Initial password reset is pending for this Service Account.").
 					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 					build()));
-			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Failed to add permission to Service account. Initial password reset is pending for this Service Account. Please reset the password and try again.\"]}");
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Failed to add awsrole permission to Service account. Initial password reset is pending for this Service Account. Please reset the password and try again.\"]}");
 		}
         if (!userDetails.isAdmin()) {
             token = tokenUtils.getSelfServiceToken();
@@ -2527,6 +2553,15 @@ public class  ServiceAccountsService {
 				put(LogMessage.MESSAGE, String.format ("Trying to remove AWS Role from Service Account [%s]", serviceAccountAWSRole.getRolename())).
 				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 				build()));
+		if (!checkInitialPwdResetStatus(token, userDetails, serviceAccountAWSRole.getSvcAccName())) {
+			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+					put(LogMessage.ACTION, "Remove AWSRole from ServiceAccount").
+					put(LogMessage.MESSAGE, "Failed to remove awsrole permission from Service account. Initial password reset is pending for this Service Account.").
+					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+					build()));
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Failed to remove awsrole permission from Service account. Initial password reset is pending for this Service Account. Please reset the password and try again.\"]}");
+		}
         if (!userDetails.isAdmin()) {
             token = tokenUtils.getSelfServiceToken();
         }

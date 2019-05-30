@@ -1267,7 +1267,7 @@ public class ServiceAccountsServiceTest {
         }
         when(tokenUtils.getSelfServiceToken()).thenReturn(token);
         // System under test
-    	String expectedResponse = "{\"errors\":[\"Not authorized to perform\"]}";
+        String expectedResponse = "{\"errors\":[\"Access denied: No permission to remove user from this service account\"]}";
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body(expectedResponse);
         when(reqProcessor.process(eq("/sdb"),Mockito.any(),eq(token))).thenReturn(getMockResponse(HttpStatus.OK, true, "{\"data\":{\"initialPasswordReset\":true,\"managedBy\":\"smohan11\",\"name\":\"svc_vault_test5\",\"users\":{\"smohan11\":\"sudo\"}}}"));
 
