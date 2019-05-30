@@ -1983,7 +1983,7 @@ public final class ControllerUtil {
 			}
 			// normal users
 			Map<String,Object> metadataMap = (Map<String,Object>)responseMap.get("data");
-			if (userDetails.getUsername().equals((String)metadataMap.get("createdBy"))) {
+			if (userDetails.getUsername().equalsIgnoreCase((String)metadataMap.get("createdBy"))) {
 				response.setHttpstatus(HttpStatus.OK);
 				response.setResponse(TVaultConstants.EMPTY);
 				response.setSuccess(true);

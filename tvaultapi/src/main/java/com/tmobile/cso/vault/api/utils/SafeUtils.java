@@ -145,7 +145,7 @@ public class SafeUtils {
 		}
 		else {
 			// Prevent the owner of the safe to be denied...
-			if (userDetails.getUsername() != null && userDetails.getUsername().equals(safeOwnerid)) {
+			if (userDetails.getUsername() != null && userDetails.getUsername().equalsIgnoreCase(safeOwnerid)) {
 				// This user is owner of the safe...
 				if (safeUser.getUsername().equals(safeOwnerid)) {
 					if (TVaultConstants.READ_POLICY.equals(safeUser.getAccess()) || TVaultConstants.WRITE_POLICY.equals(safeUser.getAccess()) || (null==safeUser.getAccess() && action.equals(TVaultConstants.REMOVE_USER))) {
