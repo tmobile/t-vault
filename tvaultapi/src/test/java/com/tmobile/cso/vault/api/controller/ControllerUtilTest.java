@@ -239,6 +239,38 @@ public class ControllerUtilTest {
     }
 
     @Test
+    public void test_updateMetadataOnSvcaccPwdReset_successfully_update_initialResetStatus() {
+        String token = "7QPMPIGiyDFlJkrK3jFykUqa";
+        Map<String,String> params = new HashMap<String,String>();
+        params.put("type", "initialPasswordReset");
+        params.put("path",new StringBuffer(TVaultConstants.SVC_ACC_ROLES_PATH).append("testacc02").toString());
+        params.put("value","true");
+        Response metaResponse = getMockResponse(HttpStatus.OK, true, "{\"data\":{ \"initialPasswordReset\": false,\"managedBy\": \"snagara14\",\"name\": \"svc_vault_test2\",\"users\": {\"snagara14\": \"sudo\"}}}");
+        when(reqProcessor.process(eq("/read"),Mockito.any(),eq(token))).thenReturn(metaResponse);
+        Response response = getMockResponse(HttpStatus.OK, true, "");
+        when(reqProcessor.process(eq("/write"),Mockito.any(),eq(token))).thenReturn(response);
+
+        Response actualResponse = ControllerUtil.updateMetadataOnSvcaccPwdReset(params, token);
+        assertEquals(HttpStatus.OK, actualResponse.getHttpstatus());
+        assertEquals(response, actualResponse);
+    }
+
+    @Test
+    public void test_updateMetadataOnSvcaccPwdReset_successfully() {
+        String token = "7QPMPIGiyDFlJkrK3jFykUqa";
+        Map<String,String> params = new HashMap<String,String>();
+        params.put("type", "initialPasswordReset");
+        params.put("path",new StringBuffer(TVaultConstants.SVC_ACC_ROLES_PATH).append("testacc02").toString());
+        params.put("value","true");
+        Response metaResponse = getMockResponse(HttpStatus.OK, true, "{\"data\":{ \"initialPasswordReset\": true,\"managedBy\": \"snagara14\",\"name\": \"svc_vault_test2\",\"users\": {\"snagara14\": \"sudo\"}}}");
+        when(reqProcessor.process(eq("/read"),Mockito.any(),eq(token))).thenReturn(metaResponse);
+
+        Response actualResponse = ControllerUtil.updateMetadataOnSvcaccPwdReset(params, token);
+        assertEquals(HttpStatus.OK, actualResponse.getHttpstatus());
+        assertEquals(metaResponse, actualResponse);
+    }
+
+    @Test
     public void test_parseJson_successfully() {
         String jsonStr = "{\"username\":\"testuser\",\"password\":\"testuser\"}";
 

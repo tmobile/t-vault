@@ -19,7 +19,7 @@
 
 'use strict';
 (function (app) {
-    app.controller('ChangeServiceAccountCtrl', function ($scope, $rootScope, Modal, $timeout, fetchData, $http, UtilityService, Notifications, $window, $state, $stateParams, $q, SessionStore, vaultUtilityService, ModifyUrl, AdminSafesManagement, AppConstant, $filter, filterFilter, orderByFilter) {
+    app.controller('ChangeServiceAccountCtrl', function ($scope, $rootScope, Modal, $timeout, fetchData, $http, UtilityService, Notifications, $window, $state, $stateParams, $q, SessionStore, vaultUtilityService, ModifyUrl, AdminSafesManagement, AppConstant, $filter, filterFilter, orderByFilter, CopyToClipboard) {
         $scope.selectedGroupOption = '';            // Selected dropdown value to be used for filtering
         $rootScope.showDetails = true;              // Set true to show details view first
         $rootScope.activeDetailsTab = 'details';
@@ -564,8 +564,7 @@
                     "name": $scope.svcacc.svcaccId,
                     "autoRotate": $scope.svcacc.autoRotate,
                     "ttl": $scope.svcacc.ttl,
-                    "max_ttl": $scope.svcacc.maxPwdAge,
-                    "owner":  $scope.svcacc.owner
+                    "max_ttl": $scope.svcacc.maxPwdAge
                 }
                 AdminSafesManagement.onboardSvcacc(onboardPayload, '').then(function (response) {
                     if (UtilityService.ifAPIRequestSuccessful(response)) {
@@ -578,6 +577,14 @@
                             var notification = UtilityService.getAParticularSuccessMessage('MESSAGE_ONBOARD_SUCCESS');
                             Notifications.toast($scope.svcacc.svcaccId + ' Service Account' + notification);
                             $scope.svcaccPrevious = angular.copy($scope.svcacc);
+                            if ($scope.svcacc.managedBy.userName.toLowerCase() == SessionStore.getItem("username")) {
+                                $scope.initialPwdResetRequired = true;
+                                $scope.resetButtonDisable = true;
+                                $scope.openResetPermissionWarning();
+                            }
+                            else {
+                                $scope.svcaccDone();
+                            }
 
                         } catch (e) {
                             console.log(e);
@@ -625,8 +632,7 @@
                     "name": $scope.svcacc.svcaccId,
                     "autoRotate": $scope.svcacc.autoRotate,
                     "ttl": $scope.svcacc.ttl,
-                    "max_ttl": $scope.svcacc.maxPwdAge,
-                    "owner":  $scope.svcacc.owner
+                    "max_ttl": $scope.svcacc.maxPwdAge
                 }
                 AdminSafesManagement.editSvcacc(onboardPayload, '').then(function (response) {
                         if (UtilityService.ifAPIRequestSuccessful(response)) {
@@ -638,6 +644,14 @@
                                 var notification = UtilityService.getAParticularSuccessMessage('MESSAGE_UPDATE_SUCCESS');
                                 Notifications.toast('TTL for Service Account ' + $scope.svcacc.svcaccId + notification);
                                 $scope.svcaccPrevious = angular.copy($scope.svcacc);
+                                if ($scope.svcacc.managedBy.userName.toLowerCase() == SessionStore.getItem("username")) {
+                                    if ($scope.svcacc.initialPasswordReset == "false" || $scope.initialPasswordReset == "") {
+                                        $scope.initialPwdResetRequired = true;
+                                    }
+                                }
+                                else {
+                                    $scope.svcaccDone();
+                                }
                             } catch (e) {
                                 console.log(e);
                                 $scope.isLoadingData = false;
@@ -703,6 +717,7 @@
                                 $scope.permissionData.AppRolePermissionsData = {
                                     "data": object['app-roles']
                                 }
+                                $scope.initialPasswordReset = object.initialPasswordReset || '';
                                 hideUserSudoPolicy();
                             }
 
@@ -727,6 +742,58 @@
                 })
         }
 
+        $scope.oneTimeReset = function() {
+            $scope.resetButtonDisable = true;
+            $scope.isLoadingData = true;
+            var queryParameters = "serviceAccountName="+$scope.svcacc.svcaccId;
+            var updatedUrlOfEndPoint = ModifyUrl.addUrlParameteres('resetPasswordForSvcacc',queryParameters);
+            AdminSafesManagement.resetPasswordForSvcacc(null, updatedUrlOfEndPoint).then(function (response) {                
+                if (UtilityService.ifAPIRequestSuccessful(response)) {
+                    $scope.isLoadingData = false;
+                    $scope.newPassword = response.data.current_password;
+                    $scope.resetMessage = "Password for Service account "+$scope.svcacc.svcaccId+" reset successfully!"
+                    $rootScope.showDetails = false;
+                    $scope.initialPwdResetRequired = false;
+                    $scope.initialPasswordReset = "true";
+                    $rootScope.activeDetailsTab = 'permissions';
+                    $scope.openResetStatus();
+                }
+                else {
+                    $scope.isLoadingData = false;
+                    $scope.newPassword = '';
+                    $scope.errorMessage = AdminSafesManagement.getTheRightErrorMessage(response);
+                    error('md');
+                }
+            },
+            function (error) {
+                // Error handling function
+                console.log(error);
+                $scope.isLoadingData = false;
+                if (error.status === '403' || error.status === 403) {
+                    var errorData = error.data.errors;
+                        if (errorData instanceof Array && errorData.length > 0 ) {
+                            $scope.errorMessage = errorData[0];
+                        } else if (errorData.length > 0) {
+                            $scope.errorMessage = errorData;
+                        } else {
+                            $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
+                        }
+                    $scope.error('md');
+                }
+                else {
+                    $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
+                    $scope.error('md');
+                }
+            });  
+        }
+
+        $scope.copyToClipboard = function ($event, copyValue, messageKey) {
+            $event.stopPropagation();
+            var notification = UtilityService.getAParticularSuccessMessage(messageKey);
+            Notifications.toast(notification);
+            CopyToClipboard.copy(copyValue);
+        }
+
         $rootScope.goToPermissions = function () {
             $timeout(function () {
                 if ($scope.isEditSvcacc) {
@@ -736,6 +803,15 @@
                     else {
                         $rootScope.showDetails = false;
                         $rootScope.activeDetailsTab = 'permissions';
+                        if ($scope.svcacc.managedBy.userName.toLowerCase() == SessionStore.getItem("username")) {
+                            if ($scope.svcacc.initialPasswordReset == "false" || $scope.initialPasswordReset == "") {
+                                $scope.initialPwdResetRequired = true;
+                            }
+                        }
+                        else {
+                            Notifications.toast('No changes made');
+                            $scope.svcaccDone();
+                        }
                     }
                 }
                 else {
@@ -806,7 +882,7 @@
                                                 $scope.isSvcaccExpired = true;
                                                 $scope.expiredNote = "(Expired)";
                                             }
-                                            document.getElementById('ttl').placeholder="Password TTL in seconds (Max: "+($scope.svcacc.maxPwdAge-86400)+")";
+                                            document.getElementById('ttl').placeholder="TTL in seconds (Max: "+($scope.svcacc.maxPwdAge-1)+")";
                                             getMetadata($stateParams.svcaccData.userId);
                                         }
                                     }
@@ -902,7 +978,7 @@
             $scope.svcInputSelected = true;
             $scope.isCollapsed = false;
             $scope.autoRotate = false;
-            document.getElementById('ttl').placeholder="Password TTL in seconds (Max: "+($scope.svcacc.maxPwdAge-86400)+")";
+            document.getElementById('ttl').placeholder="TTL in seconds (Max: "+($scope.svcacc.maxPwdAge-1)+")";
             $scope.isSvcaccExpired = false;
             $scope.expiredNote = "";
             if ($scope.svcacc.accountStatus.toLowerCase() == "expired") {
@@ -1011,6 +1087,8 @@
                 AwsPermissionsData: '',
                 AppRolePermissionsData: ''
             }
+            $scope.newPassword = '';
+            $scope.resetButtonDisable = false;
             $scope.hideSudoPolicy = false;
             $scope.myVaultKey = SessionStore.getItem("myVaultKey");
             if(!$scope.myVaultKey){ /* Check if user is in the same session */
@@ -1262,6 +1340,14 @@
             Modal.createModal(size, 'svcAccEditWarning.html', 'ChangeServiceAccountCtrl', $scope);
         };
 
+        $scope.openResetStatus = function (size) {
+            Modal.createModal(size, 'resetStatus.html', 'ChangeServiceAccountCtrl', $scope);
+        };
+
+        $scope.openResetPermissionWarning = function (size) {
+            Modal.createModal(size, 'resetPermissionWarning.html', 'ChangeServiceAccountCtrl', $scope);
+        };
+
         /* TODO: What is ok, functon name should be more descriptive */
         $scope.ok = function () {
             Modal.close('ok');
@@ -1280,8 +1366,6 @@
             Modal.close('close');
             $scope.isLoadingData = false;
         };
-
-        
 
         $scope.init();
 

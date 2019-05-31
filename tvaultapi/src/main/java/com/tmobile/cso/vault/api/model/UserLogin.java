@@ -54,7 +54,7 @@ public class UserLogin implements Serializable {
 	 */
 	@ApiModelProperty(example="safeadmin", position=1)
 	public String getUsername() {
-		return username;
+		return username.toLowerCase();
 	}
 
 	/**

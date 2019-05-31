@@ -102,7 +102,7 @@ public class ServiceAccountsControllerV2 {
 	@PostMapping(value="/v2/serviceaccounts/user", produces="application/json")
 	public ResponseEntity<String> addUserToSvcAcc( HttpServletRequest request, @RequestHeader(value="vault-token") String token, @Valid @RequestBody ServiceAccountUser serviceAccountUser ){
 		UserDetails userDetails = (UserDetails) ((HttpServletRequest) request).getAttribute("UserDetails");
-		return serviceAccountsService.addUserToServiceAccount(token, serviceAccountUser, userDetails);
+		return serviceAccountsService.addUserToServiceAccount(token, serviceAccountUser, userDetails, false);
 	}
 	/**
 	 * Removes permission for a user from the service account

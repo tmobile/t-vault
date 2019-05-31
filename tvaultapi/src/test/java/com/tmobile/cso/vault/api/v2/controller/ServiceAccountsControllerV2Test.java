@@ -247,7 +247,7 @@ public class ServiceAccountsControllerV2Test {
    	
         String expected = "{\"errors\":[\"Successfully added user to the Service Account\"]}";
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(expected);
-        when(serviceAccountsService.addUserToServiceAccount(Mockito.anyString(), Mockito.any(), Mockito.any())).thenReturn(responseEntityExpected);
+        when(serviceAccountsService.addUserToServiceAccount(Mockito.anyString(), Mockito.any(), Mockito.any(), eq(false))).thenReturn(responseEntityExpected);
         String inputJson = getJSON(serviceAccountUser);
         MvcResult result = mockMvc.perform(MockMvcRequestBuilders.post("/v2/serviceaccounts/user")
                 .header("vault-token", token)

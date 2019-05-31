@@ -31,6 +31,8 @@ public class ServiceAccountMetadataDetails implements Serializable {
 
     private String managedBy;
 
+    private boolean initialPasswordReset;
+
     /**
      *
      */
@@ -69,5 +71,18 @@ public class ServiceAccountMetadataDetails implements Serializable {
     public void setManagedBy(String managedBy) {
         this.managedBy = managedBy;
     }
-
+    /**
+     *
+     * @return the initialPasswordReset
+     */
+    public boolean getInitialPasswordReset() {
+        return initialPasswordReset;
+    }
+    /**
+     *
+     * @param initialPasswordReset the initialPasswordReset to set
+     */
+    public void setInitialPasswordReset(boolean initialPasswordReset) {
+        this.initialPasswordReset = initialPasswordReset;
+    }
 }

@@ -61,7 +61,7 @@ public class AuthorizationUtils {
 		}
 		else {
 			// Non Admins
-			if (userDetails.getUsername() != null && userDetails.getUsername().equals(safeMetaData.getSafeBasicDetails().getOwnerid())) {
+			if (userDetails.getUsername() != null && userDetails.getUsername().equalsIgnoreCase(safeMetaData.getSafeBasicDetails().getOwnerid())) {
 				// As a owner of the safe, I am always authorized...
 				if (!forceCapabilityCheck) {
 					// Little lenient authorization (To be used carefully) 
