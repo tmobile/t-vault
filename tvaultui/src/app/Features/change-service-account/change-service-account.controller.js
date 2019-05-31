@@ -882,7 +882,7 @@
                                                 $scope.isSvcaccExpired = true;
                                                 $scope.expiredNote = "(Expired)";
                                             }
-                                            document.getElementById('ttl').placeholder="Password TTL in seconds (Max: "+($scope.svcacc.maxPwdAge-86400)+")";
+                                            document.getElementById('ttl').placeholder="TTL in seconds (Max: "+($scope.svcacc.maxPwdAge-1)+")";
                                             getMetadata($stateParams.svcaccData.userId);
                                         }
                                     }
@@ -978,7 +978,7 @@
             $scope.svcInputSelected = true;
             $scope.isCollapsed = false;
             $scope.autoRotate = false;
-            document.getElementById('ttl').placeholder="Password TTL in seconds (Max: "+($scope.svcacc.maxPwdAge-86400)+")";
+            document.getElementById('ttl').placeholder="TTL in seconds (Max: "+($scope.svcacc.maxPwdAge-1)+")";
             $scope.isSvcaccExpired = false;
             $scope.expiredNote = "";
             if ($scope.svcacc.accountStatus.toLowerCase() == "expired") {
