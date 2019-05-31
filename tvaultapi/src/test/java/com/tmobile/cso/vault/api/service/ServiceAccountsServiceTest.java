@@ -493,7 +493,7 @@ public class ServiceAccountsServiceTest {
         serviceAccount.setAutoRotate(true);
         serviceAccount.setTtl(1590897977L);
         serviceAccount.setMax_ttl(1590897977L);
-        String expectedResponse = "{\"errors\":[\"Invalid value provided for TTL. TTL can't be more than 31449600 (364 days) for this Service Account\"]}";
+        String expectedResponse = "{\"errors\":[\"Invalid value provided for TTL. TTL can't be more than 31535999 for this Service Account\"]}";
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body(expectedResponse);
 
         Response response = getMockResponse(HttpStatus.OK, true, "{\"keys\":[\"testacc03\"]}");
@@ -1172,6 +1172,8 @@ public class ServiceAccountsServiceTest {
         String expectedResponse = "{\"errors\":[\"Failed to add user permission to Service account. Initial password reset is pending for this Service Account. Please reset the password and try again.\"]}";
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body(expectedResponse);
         when(reqProcessor.process(eq("/sdb"),Mockito.any(),eq(token))).thenReturn(getMockResponse(HttpStatus.OK, true, "{\"data\":{\"initialPasswordReset\":false,\"managedBy\":\"smohan11\",\"name\":\"svc_vault_test5\",\"users\":{\"smohan11\":\"sudo\"}}}"));
+        String[] latestPolicies = {"o_svcacct_testacc02"};
+        when(policyUtils.getCurrentPolicies(userDetails.getSelfSupportToken(), userDetails.getUsername())).thenReturn(latestPolicies);
         ResponseEntity<String> responseEntity = serviceAccountsService.addUserToServiceAccount(token, serviceAccountUser, userDetails, false);
         assertEquals(HttpStatus.BAD_REQUEST, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
@@ -1215,7 +1217,8 @@ public class ServiceAccountsServiceTest {
         String expectedResponse = "{\"errors\":[\"Failed to remove user permission from Service account. Initial password reset is pending for this Service Account. Please reset the password and try again.\"]}";
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body(expectedResponse);
         when(reqProcessor.process(eq("/sdb"),Mockito.any(),eq(token))).thenReturn(getMockResponse(HttpStatus.OK, true, "{\"data\":{\"initialPasswordReset\":false,\"managedBy\":\"smohan11\",\"name\":\"svc_vault_test5\",\"users\":{\"smohan11\":\"sudo\"}}}"));
-
+        String[] latestPolicies = {"o_svcacct_testacc02"};
+        when(policyUtils.getCurrentPolicies(userDetails.getSelfSupportToken(), userDetails.getUsername())).thenReturn(latestPolicies);
         ResponseEntity<String> responseEntity = serviceAccountsService.removeUserFromServiceAccount(token, serviceAccountUser, userDetails);
         assertEquals(HttpStatus.BAD_REQUEST, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
@@ -1927,6 +1930,8 @@ public class ServiceAccountsServiceTest {
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Failed to add group permission to Service account. Initial password reset is pending for this Service Account. Please reset the password and try again.\"]}");
         when(tokenUtils.getSelfServiceToken()).thenReturn("5PDrOhsy4ig8L3EpsJZSLAMg");
         when(reqProcessor.process(eq("/sdb"),Mockito.any(),eq(token))).thenReturn(getMockResponse(HttpStatus.OK, true, "{\"data\":{\"initialPasswordReset\":false,\"managedBy\":\"smohan11\",\"name\":\"svc_vault_test5\",\"users\":{\"smohan11\":\"sudo\"}}}"));
+        String[] latestPolicies = {"o_svcacct_svc_vault_test7"};
+        when(policyUtils.getCurrentPolicies(userDetails.getSelfSupportToken(), userDetails.getUsername())).thenReturn(latestPolicies);
         ResponseEntity<String> responseEntity = serviceAccountsService.addGroupToServiceAccount(token, serviceAccountGroup, userDetails);
         assertEquals(HttpStatus.BAD_REQUEST, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
@@ -1974,6 +1979,8 @@ public class ServiceAccountsServiceTest {
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Failed to remove group permission from Service account. Initial password reset is pending for this Service Account. Please reset the password and try again.\"]}");
         when(tokenUtils.getSelfServiceToken()).thenReturn("5PDrOhsy4ig8L3EpsJZSLAMg");
         when(reqProcessor.process(eq("/sdb"),Mockito.any(),eq(token))).thenReturn(getMockResponse(HttpStatus.OK, true, "{\"data\":{\"initialPasswordReset\":false,\"managedBy\":\"smohan11\",\"name\":\"svc_vault_test5\",\"users\":{\"smohan11\":\"sudo\"}}}"));
+        String[] latestPolicies = {"o_svcacct_svc_vault_test7"};
+        when(policyUtils.getCurrentPolicies(userDetails.getSelfSupportToken(), userDetails.getUsername())).thenReturn(latestPolicies);
         ResponseEntity<String> responseEntity = serviceAccountsService.removeGroupFromServiceAccount(token, serviceAccountGroup, userDetails);
         assertEquals(HttpStatus.BAD_REQUEST, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
@@ -2250,6 +2257,8 @@ public class ServiceAccountsServiceTest {
 
         when(tokenUtils.getSelfServiceToken()).thenReturn("5PDrOhsy4ig8L3EpsJZSLAMg");
         when(reqProcessor.process(eq("/sdb"),Mockito.any(),eq(token))).thenReturn(getMockResponse(HttpStatus.OK, true, "{\"data\":{\"initialPasswordReset\":false,\"managedBy\":\"smohan11\",\"name\":\"svc_vault_test5\",\"users\":{\"smohan11\":\"sudo\"}}}"));
+        String[] latestPolicies = {"o_svcacct_testsvcname"};
+        when(policyUtils.getCurrentPolicies(userDetails.getSelfSupportToken(), userDetails.getUsername())).thenReturn(latestPolicies);
         ResponseEntity<String> responseEntityActual =  serviceAccountsService.associateApproletoSvcAcc(userDetails, token, serviceAccountApprole);
 
         assertEquals(HttpStatus.BAD_REQUEST, responseEntityActual.getStatusCode());
@@ -2294,6 +2303,8 @@ public class ServiceAccountsServiceTest {
 
         when(tokenUtils.getSelfServiceToken()).thenReturn("5PDrOhsy4ig8L3EpsJZSLAMg");
         when(reqProcessor.process(eq("/sdb"),Mockito.any(),eq(token))).thenReturn(getMockResponse(HttpStatus.OK, true, "{\"data\":{\"initialPasswordReset\":false,\"managedBy\":\"smohan11\",\"name\":\"svc_vault_test5\",\"users\":{\"smohan11\":\"sudo\"}}}"));
+        String[] latestPolicies = {"o_svcacct_testsvcname"};
+        when(policyUtils.getCurrentPolicies(userDetails.getSelfSupportToken(), userDetails.getUsername())).thenReturn(latestPolicies);
         ResponseEntity<String> responseEntityActual =  serviceAccountsService.removeApproleFromSvcAcc(userDetails, token, serviceAccountApprole);
 
         assertEquals(HttpStatus.BAD_REQUEST, responseEntityActual.getStatusCode());
@@ -2631,6 +2642,8 @@ public class ServiceAccountsServiceTest {
         ServiceAccountAWSRole serviceAccountAWSRole = new ServiceAccountAWSRole("testsvcname", "role1", "write");
         when(tokenUtils.getSelfServiceToken()).thenReturn("5PDrOhsy4ig8L3EpsJZSLAMg");
         when(reqProcessor.process(eq("/sdb"),Mockito.any(),eq(token))).thenReturn(getMockResponse(HttpStatus.OK, true, "{\"data\":{\"initialPasswordReset\":false,\"managedBy\":\"smohan11\",\"name\":\"svc_vault_test5\",\"users\":{\"smohan11\":\"sudo\"}}}"));
+        String[] latestPolicies = {"o_svcacct_testsvcname"};
+        when(policyUtils.getCurrentPolicies(userDetails.getSelfSupportToken(), userDetails.getUsername())).thenReturn(latestPolicies);
         ResponseEntity<String> responseEntityActual =  serviceAccountsService.addAwsRoleToSvcacc(userDetails, token, serviceAccountAWSRole);
 
         assertEquals(HttpStatus.BAD_REQUEST, responseEntityActual.getStatusCode());
@@ -2676,6 +2689,8 @@ public class ServiceAccountsServiceTest {
         ServiceAccountAWSRole serviceAccountAWSRole = new ServiceAccountAWSRole("testsvcname", "role1", "write");
         when(tokenUtils.getSelfServiceToken()).thenReturn("5PDrOhsy4ig8L3EpsJZSLAMg");
         when(reqProcessor.process(eq("/sdb"),Mockito.any(),eq(token))).thenReturn(getMockResponse(HttpStatus.OK, true, "{\"data\":{\"initialPasswordReset\":false,\"managedBy\":\"smohan11\",\"name\":\"svc_vault_test5\",\"users\":{\"smohan11\":\"sudo\"}}}"));
+        String[] latestPolicies = {"o_svcacct_testsvcname"};
+        when(policyUtils.getCurrentPolicies(userDetails.getSelfSupportToken(), userDetails.getUsername())).thenReturn(latestPolicies);
         ResponseEntity<String> responseEntityActual =  serviceAccountsService.removeAWSRoleFromSvcacc(userDetails, token, serviceAccountAWSRole);
 
         assertEquals(HttpStatus.BAD_REQUEST, responseEntityActual.getStatusCode());
@@ -2890,7 +2905,7 @@ public class ServiceAccountsServiceTest {
     @Test
     public void test_updateOnboardedServiceAccount_failure_invalid_ttl() throws Exception {
 
-        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid value provided for TTL. TTL can't be more than 31449600 (364 days) for this Service Account\"]}");
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid value provided for TTL. TTL can't be more than 31535999 for this Service Account\"]}");
         String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
         UserDetails userDetails = getMockUser(true);
         ServiceAccount serviceAccount = new ServiceAccount();
