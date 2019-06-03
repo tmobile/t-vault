@@ -1,0 +1,64 @@
+.header-container {
+    //@include safe-rem(height, 56);
+    color: white;
+    max-width: 100% !important;
+    font-family: Montserrat;
+    height: 5rem!important;
+}
+.header-content {
+    height: 100%;
+}
+.icon-user:before {
+  content: "\e91f";
+}
+
+.header-overlay {
+    background-color: #2a2a2a;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    right: 0;
+    opacity: 0.9;
+}
+
+.muncher-icon-con {
+    height: 100%;
+}
+.muncher-icon-wrap {
+    display: table;
+    /*height: 5rem;
+    width: 5rem; rem not required */
+    height: 100%;
+    //@include safe-rem(font-size, 46);
+    .table-cell {
+        vertical-align: middle;
+    }
+}
+.header-muncher {
+    position: absolute;
+    text-align: center;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    right: 0;
+}
+
+.muncher-icon{
+  background: url(../assets/images/vault.png) no-repeat 50% 50%;
+  //width: 3rem; /* Rem not required for the icon */
+    width: 4vw;
+  background-size: 65%;
+}
+
+.header-right-docs {
+    margin: 2vh;
+    text-align: right;
+    font-size: 2vh;
+    position: absolute;
+    right: 0;
+}
+
+.header-right-docs span {
+    margin-right: 2vh;
+    cursor: pointer;
+}

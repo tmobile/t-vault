@@ -1,0 +1,14 @@
+.header-container.relative
+	.header-overlay.absolute
+	.header-content.relative.clearfix
+		.header-muncher.center-aligned
+			.muncher-icon-con.inline-block
+				.muncher-icon-wrap
+					.muncher-icon.table-cell
+		.header-right-docs
+			span(ng-if="swaggerLink!=''") 
+				a(href='{{swaggerLink}}' target="_blank") API
+			span(ng-if="documentationLink!=''") 
+				a(href='{{documentationLink}}' target="_blank") DOCS
+
+

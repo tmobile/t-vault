@@ -1,4 +1,4 @@
-header.signin
+header-home
 sideBar
 script(type='text/ng-template', id='error.html')
     .row
@@ -72,3 +72,6 @@ script(type='text/ng-template', id='login.html')
                 span or shoot us an 
                 span.span-link 
                     a(href='{{emailLink}}' target="_top") email
+            .footer-row(ng-if="repoLink!=''")
+                span
+                    a(href='{{repoLink}}' target="_blank") Help
