@@ -1650,7 +1650,7 @@ public class ServiceAccountsServiceTest {
         Response pwdReadResponse = getMockResponse(HttpStatus.FORBIDDEN, true,"");
         when(reqProcessor.process("/ad/serviceaccount/readpwd","{\"role_name\":\""+svcAccName+"\"}",token)).thenReturn(pwdReadResponse);
 
-        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.FORBIDDEN).body("{\"errors\":[\"Permission Denied. Unable to get password details for the given service account\"]}");
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.FORBIDDEN).body("{\"errors\":[\"Access denied: no permission to read the password details for the given service account\"]}");
         ResponseEntity<String> responseEntity = serviceAccountsService.readSvcAccPassword(token, svcAccName, userDetails);
         assertEquals(HttpStatus.FORBIDDEN, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);

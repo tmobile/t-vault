@@ -1262,7 +1262,7 @@ public class  ServiceAccountsService {
 					put(LogMessage.MESSAGE, String.format("Permission denied to read password for [%s]", svcAccName)).
 					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 					build()));
-			return ResponseEntity.status(HttpStatus.FORBIDDEN).body("{\"errors\":[\"Permission Denied. Unable to get password details for the given service account\"]}");
+			return ResponseEntity.status(HttpStatus.FORBIDDEN).body("{\"errors\":[\"Access denied: no permission to read the password details for the given service account\"]}");
 
 		}
 		else {

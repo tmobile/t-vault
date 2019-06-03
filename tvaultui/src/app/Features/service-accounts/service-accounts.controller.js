@@ -105,7 +105,13 @@
                 // Error handling function
                 console.log(error);
                 $scope.isLoadingData = false;
-                $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
+                if (error.status == 403 || error.status == "403") {
+                    var errorMsg = error.data.errors;
+                    $scope.errorMessage = errorMsg[0];
+                }
+                else {
+                    $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
+                }
                 $scope.error('md');
             });            
         }
