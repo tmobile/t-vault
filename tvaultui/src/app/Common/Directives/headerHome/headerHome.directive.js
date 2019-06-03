@@ -18,19 +18,15 @@
 */
 
 'use strict';
-(function (app) {
-    /*inject:constant*/
-    app.constant('AppConstant', {
-        'FORGOT_PASSWORD_LINK': '',
-        'AD_USERS_AUTOCOMPLETE': false,
-        'AD_GROUP_AUTOCOMPLETE': false,
-        'AUTH_TYPE': 'userpass',  /*'userpass' or 'ldap' or 'ldap1900' */
-        'DOMAIN_NAME': '@T-Mobile.com',
-        'SLACK_LINK' : '',
-        'EMAIL_LINK' : '',
-        'SIGN_UP_LINK' : '',
-        'DOCS_LINK' : '',
-        'REPO_LINK' : 'https://github.com/tmobile/t-vault/blob/master/README.md'
-    });
-    /*endinject*/
-})(angular.module('vault.constants.AppConstant', []));
+(function(app) {
+    app.directive( 'headerHome', function($state, SessionStore, Authentication, RestEndpoints, AppConstant) {
+        return {
+            restrict: 'E',
+            templateUrl: 'app/Common/Directives/headerHome/headerHome.html',
+            link: function( scope ) {
+                scope.swaggerLink = RestEndpoints.baseURL + '/swagger-ui.html';
+                scope.documentationLink = AppConstant.DOCS_LINK;
+            }
+        }
+    } );
+})(angular.module('vault.directives.headerHome',[]));

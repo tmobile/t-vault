@@ -131,7 +131,8 @@
         'vault.directives.restrictToNumbers',
         'vault.directives.restrictConfigChar',
         'vault.directives.restrictSpecialCharButComma',
-        'vault.directives.restrictSpecialCharForTime'
+        'vault.directives.restrictSpecialCharForTime',
+        'vault.directives.headerHome'
     ]);
 
     angular.module( 'vault.factories', [
