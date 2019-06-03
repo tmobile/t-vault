@@ -27,7 +27,8 @@
         'AUTH_TYPE': 'userpass',  /*'userpass' or 'ldap' or 'ldap1900' */
         'DOMAIN_NAME': '@T-Mobile.com',
         'SLACK_LINK' : '',
-        'EMAIL_LINK' : ''
+        'EMAIL_LINK' : '',
+        'SIGN_UP_LINK' : ''
     });
     /*endinject*/
 })(angular.module('vault.constants.AppConstant', []));

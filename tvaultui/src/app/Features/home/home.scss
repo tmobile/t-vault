@@ -86,7 +86,7 @@
 }
 
 .container-fluid-wrapper-welcome .button-row {
-    padding-top: 7vh;
+    padding-top: 3vh;
     width: 20%;
     min-width: 200px;
     margin: 0 auto;
@@ -273,4 +273,9 @@ header.signin  .user-profile {
     right: 0;
     left: 0;
     font-size: 11px;
+}
+
+.sign-up-link {
+    text-align: center;
+    font-weight: bold;
 }

@@ -24,6 +24,7 @@
         var init = function(){
             $scope.slackLink = AppConstant.SLACK_LINK;
             $scope.emailLink = AppConstant.EMAIL_LINK;    
+            $scope.signUpLink = AppConstant.SIGN_UP_LINK;
             $scope.forgotPasswordLink = UtilityService.getAppConstant('FORGOT_PASSWORD_LINK');
             // change login depending on authtype
             $scope.authType = AppConstant.AUTH_TYPE;
