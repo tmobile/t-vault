@@ -65,7 +65,7 @@ public class  ServiceAccountsService {
 	private String vaultPort;
 
 	private static Logger log = LogManager.getLogger(ServiceAccountsService.class);
-	private final static String[] permissions = {"read", "write", "deny", "sudo"};
+	private final static String[] permissions = {"read", "reset", "deny", "sudo"};
 
 	@Autowired
 	@Qualifier(value = "svcAccLdapTemplate")
@@ -737,13 +737,16 @@ public class  ServiceAccountsService {
 				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 				build()));
 
-		String userName = serviceAccountUser.getUsername();
-		String svcAccName = serviceAccountUser.getSvcAccName();
-		String access = serviceAccountUser.getAccess();
-
 		if(!isSvcaccPermissionInputValid(serviceAccountUser.getAccess())) {
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid value specified for access. Valid values are read, reset, deny\"]}");
 		}
+		if (serviceAccountUser.getAccess().equalsIgnoreCase("reset")) {
+			serviceAccountUser.setAccess(TVaultConstants.WRITE_POLICY);
+		}
+
+		String userName = serviceAccountUser.getUsername();
+		String svcAccName = serviceAccountUser.getSvcAccName();
+		String access = serviceAccountUser.getAccess();
 
 		// TODO: Validation for String expectedPath = TVaultConstants.SVC_ACC_CREDS_PATH+svcAccName;
 
@@ -925,13 +928,15 @@ public class  ServiceAccountsService {
 		if (!userDetails.isAdmin()) {
             token = tokenUtils.getSelfServiceToken();
         }
-		String userName = serviceAccountUser.getUsername();
-		String svcAccName = serviceAccountUser.getSvcAccName();
-		String access = serviceAccountUser.getAccess();
-
 		if(!isSvcaccPermissionInputValid(serviceAccountUser.getAccess())) {
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid value specified for access. Valid values are read, reset, deny\"]}");
 		}
+		if (serviceAccountUser.getAccess().equalsIgnoreCase("reset")) {
+			serviceAccountUser.setAccess(TVaultConstants.WRITE_POLICY);
+		}
+		String userName = serviceAccountUser.getUsername();
+		String svcAccName = serviceAccountUser.getSvcAccName();
+		String access = serviceAccountUser.getAccess();
 
 		boolean isAuthorized = true;
 		if (userDetails != null) {
@@ -1482,7 +1487,9 @@ public class  ServiceAccountsService {
         if(!isSvcaccPermissionInputValid(serviceAccountGroup.getAccess())) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid value specified for access. Valid values are read, reset, deny\"]}");
         }
-
+		if (serviceAccountGroup.getAccess().equalsIgnoreCase("reset")) {
+			serviceAccountGroup.setAccess(TVaultConstants.WRITE_POLICY);
+		}
 		String groupName = serviceAccountGroup.getGroupname();
 		String svcAccName = serviceAccountGroup.getSvcAccName();
 		String access = serviceAccountGroup.getAccess();
@@ -1646,7 +1653,9 @@ public class  ServiceAccountsService {
         if(!isSvcaccPermissionInputValid(serviceAccountGroup.getAccess())) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid value specified for access. Valid values are read, reset, deny\"]}");
         }
-
+		if (serviceAccountGroup.getAccess().equalsIgnoreCase("reset")) {
+			serviceAccountGroup.setAccess(TVaultConstants.WRITE_POLICY);
+		}
         String groupName = serviceAccountGroup.getGroupname();
         String svcAccName = serviceAccountGroup.getSvcAccName();
         String access = serviceAccountGroup.getAccess();
@@ -1786,7 +1795,9 @@ public class  ServiceAccountsService {
         if(!isSvcaccPermissionInputValid(serviceAccountApprole.getAccess())) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid value specified for access. Valid values are read, reset, deny\"]}");
         }
-
+		if (serviceAccountApprole.getAccess().equalsIgnoreCase("reset")) {
+			serviceAccountApprole.setAccess(TVaultConstants.WRITE_POLICY);
+		}
         String approleName = serviceAccountApprole.getApprolename();
         String svcAccName = serviceAccountApprole.getSvcAccName();
         String access = serviceAccountApprole.getAccess();
@@ -2267,6 +2278,9 @@ public class  ServiceAccountsService {
 		if (!userDetails.isAdmin()) {
             token = tokenUtils.getSelfServiceToken();
         }
+		if (serviceAccountApprole.getAccess().equalsIgnoreCase("reset")) {
+			serviceAccountApprole.setAccess(TVaultConstants.WRITE_POLICY);
+		}
 		String approleName = serviceAccountApprole.getApprolename();
 		String svcAccName = serviceAccountApprole.getSvcAccName();
 		String access = serviceAccountApprole.getAccess();
@@ -2400,12 +2414,15 @@ public class  ServiceAccountsService {
         if (!userDetails.isAdmin()) {
             token = tokenUtils.getSelfServiceToken();
         }
+		if(!isSvcaccPermissionInputValid(serviceAccountAWSRole.getAccess())) {
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid value specified for access. Valid values are read, reset, deny\"]}");
+		}
+		if (serviceAccountAWSRole.getAccess().equalsIgnoreCase("reset")) {
+			serviceAccountAWSRole.setAccess(TVaultConstants.WRITE_POLICY);
+		}
 		String roleName = serviceAccountAWSRole.getRolename();
 		String svcAccName = serviceAccountAWSRole.getSvcAccName();
 		String access = serviceAccountAWSRole.getAccess();
-		if(!isSvcaccPermissionInputValid(access)) {
-			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid value specified for access. Valid values are read, reset, deny\"]}");
-		}
 
 		roleName = (roleName !=null) ? roleName.toLowerCase() : roleName;
 		access = (access != null) ? access.toLowerCase(): access;
@@ -2555,12 +2572,16 @@ public class  ServiceAccountsService {
         if (!userDetails.isAdmin()) {
             token = tokenUtils.getSelfServiceToken();
         }
+		if(!isSvcaccPermissionInputValid(serviceAccountAWSRole.getAccess())) {
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid value specified for access. Valid values are read, reset, deny\"]}");
+		}
+		if (serviceAccountAWSRole.getAccess().equalsIgnoreCase("reset")) {
+			serviceAccountAWSRole.setAccess(TVaultConstants.WRITE_POLICY);
+		}
 		String roleName = serviceAccountAWSRole.getRolename();
 		String svcAccName = serviceAccountAWSRole.getSvcAccName();
 		String access = serviceAccountAWSRole.getAccess();
-		if(!isSvcaccPermissionInputValid(access)) {
-			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid value specified for access. Valid values are read, reset, deny\"]}");
-		}
+
 		roleName = (roleName !=null) ? roleName.toLowerCase() : roleName;
 		access = (access != null) ? access.toLowerCase(): access;
 		boolean isAuthorized = hasAddOrRemovePermission(userDetails, svcAccName, token);
