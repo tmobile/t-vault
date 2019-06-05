@@ -132,7 +132,7 @@ public class SafeBasicDetails implements Serializable{
 	/**
 	 * @return the ownerid
 	 */
-	@ApiModelProperty(example="normaluser")
+	@ApiModelProperty(example="normaluser", hidden=true)
 	public String getOwnerid() {
 		return ownerid;
 	}

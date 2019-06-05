@@ -358,9 +358,6 @@
         }
 
         $scope.editPermission = function (type, editMode, user, permission) {
-            if (permission === "reset") {
-                permission = "write";
-            }
             if (editMode) {
                 var editingPermission = true;
                 $scope.deletePermission(type, editMode, editingPermission, user, permission);
@@ -368,9 +365,6 @@
         }
 
         $scope.deletePermission = function (type, editMode, editingPermission, key, permission) {
-            if (permission === "reset") {
-                permission = "write";
-            }
             if (editMode) {
                 try {
                     key = key.replace($scope.domainName, '');
@@ -1132,9 +1126,6 @@
         }
 
         $scope.addPermission = function (type, key, permission, editingPermission) {
-            if (permission === "reset") {
-                permission = "write";
-            }
             if ((key != '' && key != undefined) || type == 'AwsRoleConfigure') {
                 try {
                     if (type === "users" && !editingPermission) {
