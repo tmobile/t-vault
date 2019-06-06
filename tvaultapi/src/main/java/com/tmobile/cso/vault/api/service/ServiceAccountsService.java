@@ -1146,7 +1146,7 @@ public class  ServiceAccountsService {
 										put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 										put(LogMessage.ACTION, "Update metadata on password reset").
 										put(LogMessage.MESSAGE, "Metadata update failed.").
-										put(LogMessage.STATUS, metadataResponse.getHttpstatus().toString()).
+										put(LogMessage.STATUS, metadataResponse!=null?metadataResponse.getHttpstatus().toString():HttpStatus.BAD_REQUEST.toString()).
 										put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 										build()));
 							}
