@@ -14,7 +14,12 @@
 
         function goToFolders(data) {
             var currentSafeType = SAFES_CONSTANTS.SAFE_TYPES[vm.tabIndex].key;
-            $state.go('safes-folders', {path: currentSafeType + '/' + data.safe});
+            if (data.auth == "write-only") {
+                $state.go('wo-safes-folders', {path: currentSafeType + '/' + data.safe, auth: data.auth});
+            }
+            else {
+                $state.go('safes-folders', {path: currentSafeType + '/' + data.safe});
+            }
         }
 
         function init() {

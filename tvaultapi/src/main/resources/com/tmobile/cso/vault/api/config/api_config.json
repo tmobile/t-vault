@@ -501,6 +501,16 @@
         	{"name":"rules"}
         ]
      },
+	{
+		"#":"****  Update Policy with capability*****",
+		"apiEndPoint":"/access/capability/update",
+		"vaultEndPoint":"/sys/policy/<accessid>",
+		"method":"POST",
+		"params":[
+			{"name":"accessid","required":true,"appendToPath":true},
+			{"name":"rules","required":true}
+		]
+	},
      { "#":"**** Fetch Policy Info  *****",
     	"apiEndPoint":"/access",
     	"vaultEndPoint":"/sys/policy/<accessid>",

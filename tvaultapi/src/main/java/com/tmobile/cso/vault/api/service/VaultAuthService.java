@@ -23,7 +23,9 @@ import com.google.common.collect.ImmutableMap;
 import com.tmobile.cso.vault.api.common.TVaultConstants;
 import com.tmobile.cso.vault.api.exception.LogMessage;
 import com.tmobile.cso.vault.api.utils.ThreadLocalContext;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,6 +42,7 @@ import com.tmobile.cso.vault.api.utils.JSONUtil;
 
 import java.io.IOException;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Component
 public class  VaultAuthService {
@@ -91,6 +94,30 @@ public class  VaultAuthService {
 			}
 			if(responseMap!=null && responseMap.get("access")!=null) {
 				Map<String,Object> access = (Map<String,Object>)responseMap.get("access");
+                // checking for write-only permission
+                List<String> policies = (List<String>)responseMap.get("policies");
+                if (!CollectionUtils.isEmpty(policies)) {
+                    List<String> writeOnlyPolicies = policies.stream().filter(p->p.startsWith(TVaultConstants.WRITE_ONLY_PREFIX)).collect(Collectors.toList());
+                    if (!CollectionUtils.isEmpty(writeOnlyPolicies)) {
+                        for (String policy: writeOnlyPolicies) {
+                            String policyInfo[] = policy.split("_");
+                            if (policyInfo.length >=3) {
+                                String safeType = policyInfo[1];
+                                String safeNameArr[] = Arrays.copyOfRange(policyInfo, 2, policyInfo.length);
+                                Map<String, String> newAccess = new HashMap<>();
+                                newAccess.put(StringUtils.join(safeNameArr, "_"), TVaultConstants.WRITEONLY_POLICY);
+
+                                List<Map<String,String>> safePermissions = (List<Map<String,String>>)access.get(safeType);
+                                if (safePermissions ==null || safePermissions.isEmpty()) {
+                                    safePermissions = new ArrayList<>();
+                                }
+                                safePermissions.add(newAccess);
+                                access.put(safeType, safePermissions);
+                            }
+                        }
+                    }
+                }
+
 				access = filterDuplicateSafePermissions(access);
 				access = filterDuplicateSvcaccPermissions(access);
 				responseMap.put("access", access);
@@ -99,6 +126,8 @@ public class  VaultAuthService {
 				feature.put(TVaultConstants.SELFSERVICE, isSSEnabled);
 				feature.put(TVaultConstants.ADAUTOROTATION, isAdPswdRotationEnabled);
 				responseMap.put("feature", feature);
+
+
 				response.setResponse(JSONUtil.getJSON(responseMap));
 			}
 
