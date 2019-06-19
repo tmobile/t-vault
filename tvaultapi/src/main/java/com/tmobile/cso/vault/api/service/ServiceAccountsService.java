@@ -293,8 +293,27 @@ public class  ServiceAccountsService {
         if (allServiceAccounts == null || allServiceAccounts.isEmpty()) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Failed to onboard Service Account. Unable to read Service account details\"]}");
         }
-        int maxPwdAge = allServiceAccounts.get(0).getMaxPwdAge();
 		serviceAccount.setOwner(allServiceAccounts.get(0).getOwner());
+		// get the managed_by details
+		String ownerName = allServiceAccounts.get(0).getManagedBy().getUserName();
+		// build the search query
+		if (!StringUtils.isEmpty(ownerName)) {
+			String filterQuery = "(&(objectclass=user)(|(cn="+ ownerName + ")))";
+			List<ADUserAccount> managedServiceAccounts = getServiceAccountManagerDetails(filterQuery);
+
+			// Update the managedBy withe ADUserAccount object
+
+			List<ADUserAccount> adUserAccount = managedServiceAccounts.stream().filter(f -> (f.getUserName()!=null && f.getUserName().equalsIgnoreCase(ownerName))).collect(Collectors.toList());
+			if (!adUserAccount.isEmpty()) {
+				allServiceAccounts.get(0).setManagedBy(adUserAccount.get(0));
+				if (allServiceAccounts.get(0).getManagedBy().getUserId() != null) {
+					serviceAccount.setOwner(allServiceAccounts.get(0).getManagedBy().getUserId().toLowerCase());
+				}
+			}
+		}
+
+        int maxPwdAge = allServiceAccounts.get(0).getMaxPwdAge();
+
 		if (serviceAccount.isAutoRotate()) {
 			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
