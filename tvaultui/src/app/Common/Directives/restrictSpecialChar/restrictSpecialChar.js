@@ -27,7 +27,7 @@
         modelCtrl.$parsers.push(function(inputValue) {
           if (inputValue == null)
             return ''
-          var cleanInputValue = inputValue.replace(/[^-\w\s]/gi, ''); // '\w' refers to all word characters a-z A-Z 0-9, '\s' refers to whitespace
+          var cleanInputValue = inputValue.replace(/[^-\w\s.]/gi, ''); // '\w' refers to all word characters a-z A-Z 0-9, '\s' refers to whitespace
                                                                       // '^' refers to NOT, so its like not(a-z A-Z 0-9 ' ') replace with '' 
                                                                       // Remove '\s' if you don't want to ignore the spaces in the input field
           if (cleanInputValue != inputValue) {

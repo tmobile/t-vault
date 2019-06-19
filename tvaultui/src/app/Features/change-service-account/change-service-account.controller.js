@@ -571,7 +571,7 @@
                             var notification = UtilityService.getAParticularSuccessMessage('MESSAGE_ONBOARD_SUCCESS');
                             Notifications.toast($scope.svcacc.svcaccId + ' Service Account' + notification);
                             $scope.svcaccPrevious = angular.copy($scope.svcacc);
-                            if ($scope.svcacc.managedBy.userName.toLowerCase() == SessionStore.getItem("username")) {
+                            if ($scope.svcacc.managedBy.userId.toLowerCase() == SessionStore.getItem("username")) {
                                 $scope.initialPwdResetRequired = true;
                                 $scope.resetButtonDisable = true;
                                 $scope.openResetPermissionWarning();
@@ -638,7 +638,7 @@
                                 var notification = UtilityService.getAParticularSuccessMessage('MESSAGE_UPDATE_SUCCESS');
                                 Notifications.toast('TTL for Service Account ' + $scope.svcacc.svcaccId + notification);
                                 $scope.svcaccPrevious = angular.copy($scope.svcacc);
-                                if ($scope.svcacc.managedBy.userName.toLowerCase() == SessionStore.getItem("username")) {
+                                if ($scope.svcacc.managedBy.userId.toLowerCase() == SessionStore.getItem("username")) {
                                     if ($scope.svcacc.initialPasswordReset == "false" || $scope.initialPasswordReset == "") {
                                         $scope.initialPwdResetRequired = true;
                                     }
@@ -797,7 +797,7 @@
                     else {
                         $rootScope.showDetails = false;
                         $rootScope.activeDetailsTab = 'permissions';
-                        if ($scope.svcacc.managedBy.userName.toLowerCase() == SessionStore.getItem("username")) {
+                        if ($scope.svcacc.managedBy.userId.toLowerCase() == SessionStore.getItem("username")) {
                             if ($scope.svcacc.initialPasswordReset == "false" || $scope.initialPasswordReset == "") {
                                 $scope.initialPwdResetRequired = true;
                             }
