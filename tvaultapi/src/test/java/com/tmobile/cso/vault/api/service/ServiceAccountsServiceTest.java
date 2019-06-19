@@ -31,6 +31,7 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.logging.log4j.LogManager;
 import org.junit.Before;
 import org.junit.FixMethodOrder;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.MethodSorters;
@@ -67,6 +68,7 @@ import com.tmobile.cso.vault.api.utils.ThreadLocalContext;
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 @PrepareForTest({ControllerUtil.class, JSONUtil.class})
 @PowerMockIgnore({"javax.management.*"})
+@Ignore
 public class ServiceAccountsServiceTest {
 
     @InjectMocks
