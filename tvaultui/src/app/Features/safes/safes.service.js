@@ -10,6 +10,7 @@
             parseSafes: parseSafes,
             createFolder: createFolder,
             saveFolder: saveFolder,
+            saveFolderWO: saveFolderWO,
             deleteFolder: deleteFolder,
             getFolderContent: getFolderContent,
             itemIsValidToSave: itemIsValidToSave,
@@ -98,6 +99,24 @@
                 url: url,
                 data: {
                     path: folderContent.id,
+                    data: data
+                },
+                headers: getHeaders()
+            }).catch(catchError);
+        }
+
+        function saveFolderWO(folderContent, newSecret, path) {
+            var url = RestEndpoints.baseURL + '/v2/write?path=' + path;
+            var content = [];
+            if (newSecret) {
+                content.push(newSecret);
+            }
+            var data = parseFolderContentToSecrets(content);
+            return $http({
+                method: 'POST',
+                url: url,
+                data: {
+                    path: path,
                     data: data
                 },
                 headers: getHeaders()

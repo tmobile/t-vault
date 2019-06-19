@@ -17,13 +17,7 @@ md-content
                                     span(ng-click="vm.goToFolder(folder.fullPath)" ng-class="{'folder-link': !$last}") {{folder.folderName}}
                                     span(ng-if="!$last") {{' / '}}
 
-                    .function-text.link-style.option.right(ng-click="vm.createFolder()" ng-if="vm.writeAccess == 'write' || vm.writeAccess == 'write-only'")
-                        .action-icon-wrapper.static
-                            .rotate.glyphicon.glyphicon-remove-circle
-                        .create-link.middle-block
-                            .text.hide-in-mobile CREATE NEW FOLDER
-
-                    .function-text.link-style.option.right(ng-click="vm.createSecret()" ng-if="vm.userViewingFolder && vm.writeAccess == 'write' || vm.writeAccess == 'write-only'")
+                    .function-text.link-style.option.right(ng-click="vm.createSecretWO()" ng-if="vm.writeAccess == 'write-only'")
                         .action-icon-wrapper.static
                             .rotate.glyphicon.glyphicon-remove-circle
                         .create-link.middle-block
@@ -31,7 +25,7 @@ md-content
             .au-loader(ng-if="vm.loadingFlag")
                 loading-state
 
-            folder-contents-table(folder-content="vm.folderContent" loading="vm.loading" write="vm.writeAccess == 'write' || vm.writeAccess == 'write-only'" ng-if="!vm.loadingFlag")
+            folder-wo-contents-table(folder-content="vm.folderContent" loading="vm.loading" write="vm.writeAccess == 'write' || vm.writeAccess == 'write-only'" ng-if="!vm.loadingFlag")
 
 
 

@@ -66,7 +66,7 @@
             var writeAccess = safesOfType.find(function (safeObj) {
               return safeObj[safeName];
             })[safeName];
-            return (writeAccess === 'write');
+            return (writeAccess);
           }
         },
         params: {
@@ -76,6 +76,38 @@
           'content@safes-tabs': {
             templateUrl: 'app/Features/safes/safes-folders/safes-folders.html',
             controller: 'safesFoldersController as vm'
+          }
+        }
+      })
+      .state('wo-safes-folders', {
+        url: '/wosafes/folders/:path',
+        parent: 'safes-tabs',
+        resolve: {
+          folderContent: function (safesService, SafesManagement, $state, $stateParams, $q, $timeout) {
+            if ($stateParams.auth == "write-only") {
+              var folderData = { "id":$stateParams.path, "children":[] }
+              return folderData;
+            }
+          },
+          writeAccess: function (folderContent, SessionStore) {
+            if(!folderContent.id) return;
+            var safeType = folderContent.id.split('/')[0];
+            var safeName = folderContent.id.split('/')[1];
+            var safesOfType = JSON.parse(SessionStore.getItem('accessSafes'))[safeType];
+            var writeAccess = safesOfType.find(function (safeObj) {
+              return safeObj[safeName];
+            })[safeName];
+            return (writeAccess);
+          }
+        },
+        params: {
+          path: '',
+          auth: ''
+        },
+        views: {
+          'content@safes-tabs': {
+            templateUrl: 'app/Features/safes/wo-safes-folders/wo-safes-folders.html',
+            controller: 'woSafesFoldersController as vm'
           }
         }
       })

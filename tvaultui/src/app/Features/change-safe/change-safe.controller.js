@@ -77,6 +77,8 @@
             }, {
                 'text': 'write'
             }, {
+                'text': 'write-only'
+            },{
                 'text': 'deny'
             }]
         };

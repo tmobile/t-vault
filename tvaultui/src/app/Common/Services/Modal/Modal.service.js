@@ -75,6 +75,26 @@
                 });
 
                 return modal.result;
+            },
+            createWOModalWithController: function (templateUrl, config) {
+                //Modals are stored in app/Layout/base/base.jade
+                var modal = $uibModal.open({
+                    templateUrl: templateUrl,
+                    animationsEnabled: animationsEnabled,
+                    size: config.size || 'md',
+                    controller: function ($scope, $uibModalInstance) {
+                        $scope.dismiss = $uibModalInstance.dismiss;
+                        $scope.close = $uibModalInstance.close;
+                        $scope.config = config;
+                        $scope.form = {
+                            pathValue: '',
+                            inputValue: '',
+                            passwordValue: ''
+                        }
+                    }
+                });
+
+                return modal.result;
             }
 
         };

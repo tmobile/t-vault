@@ -90,7 +90,7 @@ public final class ControllerUtil {
 	private static String sdbNameAllowedCharacters="[a-z0-9_-]+";
 	
 	private final static String[] mountPaths = {"apps","shared","users"};
-	private final static String[] permissions = {"read", "write", "deny", "sudo"};
+	private final static String[] permissions = {"read", "write", "deny", "sudo", "write-only"};
 	
 	@Value("${selfservice.ssfilelocation}")
     private String sscredLocation;
@@ -791,6 +791,7 @@ public final class ControllerUtil {
 			String w_policy = "w_";
 			String d_policy = "d_";
 			String s_policy = "s_";
+			String wo_policy = "wo_";
 
 			if (folders.length > 0) {
 				for (int index = 0; index < folders.length; index++) {
@@ -799,12 +800,14 @@ public final class ControllerUtil {
 						w_policy += folders[index];
 						d_policy += folders[index];
 						s_policy += folders[index];
+						wo_policy += folders[index];
 					}
 					else {
 						r_policy += folders[index]  +"_";
 						w_policy += folders[index] +"_";
 						d_policy += folders[index] +"_";
 						s_policy += folders[index] +"_";
+						wo_policy += folders[index] +"_";
 					}
 				}
 			}	
@@ -846,6 +849,7 @@ public final class ControllerUtil {
 					policies.remove(w_policy);
 					policies.remove(d_policy);
 					policies.remove(s_policy);
+					policies.remove(wo_policy);
 
 					String policiesString = org.apache.commons.lang3.StringUtils.join(policies, ",");
 

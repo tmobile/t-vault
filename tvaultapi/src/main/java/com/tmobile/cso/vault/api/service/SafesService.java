@@ -22,6 +22,7 @@ import java.util.*;
 
 import com.tmobile.cso.vault.api.common.TVaultConstants;
 import com.tmobile.cso.vault.api.model.*;
+import org.apache.commons.collections.map.HashedMap;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -42,6 +43,7 @@ import com.tmobile.cso.vault.api.process.Response;
 import com.tmobile.cso.vault.api.utils.JSONUtil;
 import com.tmobile.cso.vault.api.utils.SafeUtils;
 import com.tmobile.cso.vault.api.utils.ThreadLocalContext;
+import sun.security.x509.AttributeNameEnumeration;
 
 @Component
 public class  SafesService {
@@ -253,15 +255,21 @@ public class  SafesService {
 					policyRequestJson = ControllerUtil.convetToJson(policyMap);
 					Response s_response = reqProcessor.process("/access/update",policyRequestJson,token);
 
+
+					policyRequestJson = "{\"accessid\":\""+"wo_"+folders[0]+"_"+Safe+"\",\"rules\":\"{\\\"path\\\":{\\\""+path+"/*"+"\\\":{\\\"capabilities\\\":[\\\"update\\\",\\\"create\\\"]}}}}\"}";
+					Response wo_response = reqProcessor.process("/access/capability/update",policyRequestJson,token);
+
 					if( (r_response.getHttpstatus().equals(HttpStatus.NO_CONTENT) && 
 							w_response.getHttpstatus().equals(HttpStatus.NO_CONTENT) &&
 							d_response.getHttpstatus().equals(HttpStatus.NO_CONTENT) &&
-							s_response.getHttpstatus().equals(HttpStatus.NO_CONTENT) 
+							s_response.getHttpstatus().equals(HttpStatus.NO_CONTENT) &&
+							wo_response.getHttpstatus().equals(HttpStatus.NO_CONTENT)
 							) ||
 							(r_response.getHttpstatus().equals(HttpStatus.OK) && 
 									w_response.getHttpstatus().equals(HttpStatus.OK) &&
 									d_response.getHttpstatus().equals(HttpStatus.OK)) &&
-							s_response.getHttpstatus().equals(HttpStatus.OK) 
+							s_response.getHttpstatus().equals(HttpStatus.OK) &&
+									wo_response.getHttpstatus().equals(HttpStatus.OK)
 						){
 						
 						log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
@@ -666,15 +674,16 @@ public class  SafesService {
 			case TVaultConstants.WRITE_POLICY: policyPrefix = "w_" ;break;
 			case TVaultConstants.DENY_POLICY: policyPrefix = "d_" ;break;
 			case TVaultConstants.SUDO_POLICY: policyPrefix = "s_" ;break;
+			case TVaultConstants.WRITEONLY_POLICY: policyPrefix = "wo_" ;break;
 			}
 			if(TVaultConstants.EMPTY.equals(policyPrefix)){
 				log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 						put(LogMessage.ACTION, "Add User to SDB").
-						put(LogMessage.MESSAGE, String.format ("Incorrect access requested. Valid values are read,write,deny")).
+						put(LogMessage.MESSAGE, String.format ("Incorrect access requested. Valid values are read,write,deny, write-only")).
 						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 						build()));
-				return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body("{\"errors\":[\"Incorrect access requested. Valid values are read,write,deny \"]}");
+				return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body("{\"errors\":[\"Incorrect access requested. Valid values are read,write,deny,write-only \"]}");
 			}
 
 			String policy = policyPrefix+folders[0].toLowerCase()+"_"+folders[1];
@@ -688,6 +697,7 @@ public class  SafesService {
 			String w_policy = "w_";
 			String d_policy = "d_";
 			String s_policy = "s_";
+			String wo_policy = "wo_";
 			if (folders.length > 0) {
 				for (int index = 0; index < folders.length; index++) {
 					if (index == folders.length -1 ) {
@@ -695,19 +705,21 @@ public class  SafesService {
 						w_policy += folders[index];
 						d_policy += folders[index];
 						s_policy += folders[index];
+						wo_policy += folders[index];
 					}
 					else {
 						r_policy += folders[index]  +"_";
 						w_policy += folders[index] +"_";
 						d_policy += folders[index] +"_";
 						s_policy += folders[index] +"_";
+						wo_policy += folders[index] +"_";
 					}
 				}
 			}
 			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 					put(LogMessage.ACTION, "Add User to SDB").
-					put(LogMessage.MESSAGE, String.format ("Policies are, read - [%s], write - [%s], deny -[%s]", r_policy, w_policy, d_policy)).
+					put(LogMessage.MESSAGE, String.format ("Policies are, read - [%s], write - [%s], deny -[%s], write-only -[%s]", r_policy, w_policy, d_policy, wo_policy)).
 					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 					build()));
 			Response userResponse;
@@ -756,6 +768,7 @@ public class  SafesService {
 				policies.remove(r_policy);
 				policies.remove(w_policy);
 				policies.remove(d_policy);
+				policies.remove(wo_policy);
 				//policies = policies.replaceAll(s_policy, "");
 				policies.add(policy);
 			}else{
@@ -907,25 +920,29 @@ public class  SafesService {
 			case TVaultConstants.READ_POLICY: policyPrefix = "r_"; break ;
 			case TVaultConstants.WRITE_POLICY: policyPrefix = "w_" ;break;
 			case TVaultConstants.DENY_POLICY: policyPrefix = "d_" ;break;
+			case TVaultConstants.WRITEONLY_POLICY: policyPrefix = "wo_" ;break;
 			}
 			if(TVaultConstants.EMPTY.equals(policyPrefix)){
-				return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body("{\"errors\":[\"Incorrect access requested. Valid values are read,write,deny \"]}");
+				return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body("{\"errors\":[\"Incorrect access requested. Valid values are read,write,deny,write-only \"]}");
 			}
 			String policy = policyPrefix+folders[0]+"_"+folders[1];
 			String r_policy = "r_";
 			String w_policy = "w_";
 			String d_policy = "d_";
+			String wo_policy = "wo_";
 			if (folders.length > 0) {
 				for (int index = 0; index < folders.length; index++) {
 					if (index == folders.length -1 ) {
 						r_policy += folders[index];
 						w_policy += folders[index];
 						d_policy += folders[index];
+						wo_policy += folders[index];
 					}
 					else {
 						r_policy += folders[index]  +"_";
 						w_policy += folders[index] +"_";
 						d_policy += folders[index] +"_";
+						wo_policy += folders[index] +"_";
 					}
 				}
 			}
@@ -947,6 +964,7 @@ public class  SafesService {
 				policies.remove(r_policy);
 				policies.remove(w_policy);
 				policies.remove(d_policy);
+				policies.remove(wo_policy);
 				policies.add(policy);
 			}else{
 				// New user to be configured
@@ -1084,6 +1102,7 @@ public class  SafesService {
 			String w_policy = "w_";
 			String d_policy = "d_";
 			String s_policy = "s_";
+			String wo_policy = "wo_";
 			if (folders.length > 0) {
 				for (int index = 0; index < folders.length; index++) {
 					if (index == folders.length -1 ) {
@@ -1091,12 +1110,14 @@ public class  SafesService {
 						w_policy += folders[index];
 						d_policy += folders[index];
 						s_policy += folders[index];
+						wo_policy += folders[index];
 					}
 					else {
 						r_policy += folders[index] +"_";
 						w_policy += folders[index] +"_";
 						d_policy += folders[index] +"_";
 						s_policy += folders[index] +"_";
+						wo_policy += folders[index] +"_";
 					}
 				}
 			}
@@ -1127,6 +1148,7 @@ public class  SafesService {
 				policies.remove(r_policy);
 				policies.remove(w_policy);
 				policies.remove(d_policy);
+				policies.remove(wo_policy);
 
 				String policiesString = StringUtils.join(policies, ",");
 				String currentpoliciesString = StringUtils.join(currentpolicies, ",");
@@ -1248,17 +1270,20 @@ public class  SafesService {
 			String r_policy = "r_";
 			String w_policy = "w_";
 			String d_policy = "d_";
+			String wo_policy = "wo_";
 			if (folders.length > 0) {
 				for (int index = 0; index < folders.length; index++) {
 					if (index == folders.length -1 ) {
 						r_policy += folders[index];
 						w_policy += folders[index];
 						d_policy += folders[index];
+						wo_policy += folders[index];
 					}
 					else {
 						r_policy += folders[index]  +"_";
 						w_policy += folders[index] +"_";
 						d_policy += folders[index] +"_";
+						wo_policy += folders[index] +"_";
 					}
 				}
 			}
@@ -1279,6 +1304,7 @@ public class  SafesService {
 				policies.remove(r_policy);
 				policies.remove(w_policy);
 				policies.remove(d_policy);
+				policies.remove(wo_policy);
 				String policiesString = StringUtils.join(policies, ",");
 				String currentpoliciesString = StringUtils.join(currentpolicies, ",");
 				Response ldapConfigresponse = ControllerUtil.configureLDAPGroup(groupName,policiesString,token);
@@ -1381,25 +1407,29 @@ public class  SafesService {
 			case TVaultConstants.READ_POLICY: policyPrefix = "r_"; break ;
 			case TVaultConstants.WRITE_POLICY: policyPrefix = "w_" ;break;
 			case TVaultConstants.DENY_POLICY: policyPrefix = "d_" ;break;
+			case TVaultConstants.WRITEONLY_POLICY: policyPrefix = "wo_" ;break;
 			}
 			if("".equals(policyPrefix)){
-				return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body("{\"errors\":[\"Incorrect access requested. Valid values are read,write,deny \"]}");
+				return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body("{\"errors\":[\"Incorrect access requested. Valid values are read,write,deny,write-only \"]}");
 			}
 			String policy = policyPrefix+folders[0]+"_"+folders[1];
 			String r_policy = "r_";
 			String w_policy = "w_";
 			String d_policy = "d_";
+			String wo_policy = "wo_";
 			if (folders.length > 0) {
 				for (int index = 0; index < folders.length; index++) {
 					if (index == folders.length -1 ) {
 						r_policy += folders[index];
 						w_policy += folders[index];
 						d_policy += folders[index];
+						wo_policy += folders[index];
 					}
 					else {
 						r_policy += folders[index]  +"_";
 						w_policy += folders[index] +"_";
 						d_policy += folders[index] +"_";
+						wo_policy += folders[index] +"_";
 					}
 				}
 			}
@@ -1426,6 +1456,7 @@ public class  SafesService {
 				policies.remove(r_policy);
 				policies.remove(w_policy);
 				policies.remove(d_policy);
+				policies.remove(wo_policy);
 				policies.add(policy);
 				policiesString = StringUtils.join(policies, ",");
 				currentpoliciesString = StringUtils.join(currentpolicies, ",");
@@ -1648,6 +1679,7 @@ public class  SafesService {
 				String w_policy = "w_";
 				String d_policy = "d_";
 				String s_policy = "s_";
+				String wo_policy = "wo_";
 
 				if (folders.length > 0) {
 					for (int index = 0; index < folders.length; index++) {
@@ -1656,12 +1688,14 @@ public class  SafesService {
 							w_policy += folders[index];
 							d_policy += folders[index];
 							s_policy += folders[index];
+							wo_policy += folders[index];
 						}
 						else {
 							r_policy += folders[index]  +"_";
 							w_policy += folders[index] +"_";
 							d_policy += folders[index] +"_";
 							s_policy += folders[index] +"_";
+							wo_policy += folders[index] +"_";
 						}
 					}
 				}
@@ -1670,6 +1704,7 @@ public class  SafesService {
 				reqProcessor.process("/access/delete","{\"accessid\":\""+w_policy+"\"}",token);
 				reqProcessor.process("/access/delete","{\"accessid\":\""+d_policy+"\"}",token);
 				reqProcessor.process("/access/delete","{\"accessid\":\""+s_policy+"\"}",token);
+				reqProcessor.process("/access/delete","{\"accessid\":\""+wo_policy+"\"}",token);
 
 				String _path = "metadata/"+path;
 
@@ -1852,9 +1887,10 @@ public class  SafesService {
 			String policy ="";
 
 			switch (access){
-				case "read": policy = "r_" + folders[0].toLowerCase() + "_" + folders[1] ; break ;
-				case "write": policy = "w_"  + folders[0].toLowerCase() + "_" + folders[1] ;break;
-				case "deny": policy = "d_"  + folders[0].toLowerCase() + "_" + folders[1] ;break;
+				case TVaultConstants.READ_POLICY: policy = "r_" + folders[0].toLowerCase() + "_" + folders[1] ; break ;
+				case TVaultConstants.WRITE_POLICY: policy = "w_"  + folders[0].toLowerCase() + "_" + folders[1] ;break;
+				case TVaultConstants.DENY_POLICY: policy = "d_"  + folders[0].toLowerCase() + "_" + folders[1] ;break;
+				case TVaultConstants.WRITEONLY_POLICY: policy = "wo_"  + folders[0].toLowerCase() + "_" + folders[1] ;break;
 			}
 			String policyPostfix = folders[0].toLowerCase() + "_" + folders[1];
 			Response roleResponse = reqProcessor.process("/auth/approle/role/read","{\"role_name\":\""+approle+"\"}",token);
@@ -1877,12 +1913,13 @@ public class  SafesService {
 				policies.remove("r_"+policyPostfix);
 				policies.remove("w_"+policyPostfix);
 				policies.remove("d_"+policyPostfix);
+				policies.remove("wo_"+policyPostfix);
 
 			} else {
 				return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body("{\"errors\":[\"Non existing role name. Please configure approle as first step\"]}");
 			}
 			if("".equals(policy)){
-				return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body("{\"errors\":[\"Incorrect access requested. Valid values are read,write,deny \"]}");
+				return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body("{\"errors\":[\"Incorrect access requested. Valid values are read,write,deny,write-only \"]}");
 			}
 			policies.add(policy);
 			String policiesString = StringUtils.join(policies, ",");
@@ -2046,6 +2083,7 @@ public class  SafesService {
 				policies.remove("r_"+policyPostfix);
 				policies.remove("w_"+policyPostfix);
 				policies.remove("d_"+policyPostfix);
+				policies.remove("wo_"+policyPostfix);
 			}
 
 			String policiesString = StringUtils.join(policies, ",");
