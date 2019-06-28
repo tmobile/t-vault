@@ -804,5 +804,36 @@
       		{"name":"role_name","required":true, "appendToPath":true}
         ],
       	"outparams":["data/current_password", "data/last_password", "data/service_account_name", "data/ttl", "data/last_vault_rotation"]
-    }
+    },
+	{"#" : "**** aws role creation with policy document****** ",
+
+		"apiEndPoint":"/aws/roles/",
+		"vaultEndPoint":"/aws/roles/<name>",
+		"method":"POST",
+		"params":[
+			{"name":"name","required":true, "appendToPath":true},
+			{"name":"credential_type", "required": true},
+			{"name":"policy_document", "required": true}
+		]
+	},
+	{"#" : "**** get temporary credentials****** ",
+
+		"apiEndPoint":"/aws/creds/",
+		"vaultEndPoint":"/aws/creds/<role_name>",
+		"method":"GET",
+		"params":[
+			{"name":"role_name","required":true, "appendToPath":true}
+		],
+		"outparams":["lease_id", "lease_duration", "lease_renewable", "data/access_key", "data/secret_key", "data/security_token"]
+	},
+	{"#" : "**** Delete aws role****** ",
+
+		"apiEndPoint":"/aws/roles/",
+		"vaultEndPoint":"/aws/roles/<role_name>",
+		"method":"DELETE",
+		"params":[
+			{"name":"role_name","required":true, "appendToPath":true}
+		]
+	}
+
 ]
