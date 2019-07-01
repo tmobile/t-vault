@@ -46,6 +46,9 @@ public class AWSSecretService {
 
 	public ResponseEntity<String> createAWSRole(AWSDynamicRoleRequest awsDynamicRoleRequest, String token, UserDetails userDetails) {
 
+		if (!userDetails.isAdmin()) {
+			token = userDetails.getSelfSupportToken();
+		}
 		AWSTempRole awsTempRole = new AWSTempRole();
 		awsTempRole.setName(awsDynamicRoleRequest.getName());
 		awsTempRole.setCredential_type("iam_user");
@@ -127,6 +130,9 @@ public class AWSSecretService {
 	}
 
 	public ResponseEntity<String> deleteAWSRole(String role_name, String token, UserDetails userDetails) {
+		if (!userDetails.isAdmin()) {
+			token = userDetails.getSelfSupportToken();
+		}
 		Response response = reqProcessor.process("/aws/roles/","{\"role_name\":\""+role_name+"\"}",token);
 		String userName = userDetails.getUsername();
 		String accessId = "r_awscreds_"+role_name;
