@@ -54,6 +54,9 @@
             "list",
 			"read"
          ]
+      },
+      "aws/roles/*":{
+         "policy":"write"
       }
    } 
 }
