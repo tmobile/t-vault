@@ -25,7 +25,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import javax.validation.Valid;
+import javax.servlet.http.HttpServletRequest;
 
 
 @RestController
@@ -44,14 +44,16 @@ public class AWSSecretController {
 	 */
 	@ApiOperation(value = "${AWSAuthControllerV2.authenticateEC2.value}", notes = "${AWSAuthControllerV2.authenticateEC2.notes}")
 	@PostMapping(value="/v2/aws/role",consumes="application/json",produces="application/json")
-	public ResponseEntity<String> createAWSRole(@RequestHeader(value="vault-token") String token, @RequestBody AWSDynamicRoleRequest awsDynamicRoleRequest){
-		return awsSecretService.createAWSRole(awsDynamicRoleRequest, token);
+	public ResponseEntity<String> createAWSRole(HttpServletRequest request, @RequestHeader(value="vault-token") String token, @RequestBody AWSDynamicRoleRequest awsDynamicRoleRequest){
+		UserDetails userDetails = (UserDetails) ((HttpServletRequest) request).getAttribute("UserDetails");
+		return awsSecretService.createAWSRole(awsDynamicRoleRequest, token, userDetails);
 	}
 
 	@ApiOperation(value = "${AWSAuthControllerV2.authenticateEC2.value}", notes = "${AWSAuthControllerV2.authenticateEC2.notes}")
 	@DeleteMapping(value="/v2/aws/role/{role_name}",produces="application/json")
-	public ResponseEntity<String> deleteAWSRole(@RequestHeader(value="vault-token") String token, @PathVariable String role_name){
-		return awsSecretService.deleteAWSRole(role_name, token);
+	public ResponseEntity<String> deleteAWSRole(HttpServletRequest request, @RequestHeader(value="vault-token") String token, @PathVariable String role_name){
+		UserDetails userDetails = (UserDetails) ((HttpServletRequest) request).getAttribute("UserDetails");
+		return awsSecretService.deleteAWSRole(role_name, token, userDetails);
 	}
 
 

@@ -17,45 +17,34 @@
 
 package com.tmobile.cso.vault.api.service;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.collect.ImmutableMap;
 import com.tmobile.cso.vault.api.common.TVaultConstants;
 import com.tmobile.cso.vault.api.controller.ControllerUtil;
-import com.tmobile.cso.vault.api.exception.LogMessage;
-import com.tmobile.cso.vault.api.exception.TVaultValidationException;
 import com.tmobile.cso.vault.api.model.*;
 import com.tmobile.cso.vault.api.process.RequestProcessor;
 import com.tmobile.cso.vault.api.process.Response;
 import com.tmobile.cso.vault.api.utils.JSONUtil;
-import com.tmobile.cso.vault.api.utils.ThreadLocalContext;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
-import org.springframework.util.StringUtils;
 
-import javax.swing.text.html.HTML;
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
+import java.util.*;
 
 @Component
 public class AWSSecretService {
 
 	@Autowired
-	private RequestProcessor reqProcessor;
+	private AccessService accessService;
 
+	@Autowired
+	private RequestProcessor reqProcessor;
 	private static Logger logger = LogManager.getLogger(AWSSecretService.class);
 
-	public ResponseEntity<String> createAWSRole(AWSDynamicRoleRequest awsDynamicRoleRequest, String token) {
+	public ResponseEntity<String> createAWSRole(AWSDynamicRoleRequest awsDynamicRoleRequest, String token, UserDetails userDetails) {
 
 		AWSTempRole awsTempRole = new AWSTempRole();
 		awsTempRole.setName(awsDynamicRoleRequest.getName());
@@ -71,12 +60,64 @@ public class AWSSecretService {
 
 		String roleString = JSONUtil.getJSON(awsTempRole);
 
-		Response response = reqProcessor.process("/aws/roles/",roleString,token);
+		Response response = reqProcessor.process("/aws/roles/create",roleString,token);
 		if (HttpStatus.OK.equals(response.getHttpstatus()) || HttpStatus.NO_CONTENT.equals(response.getHttpstatus())) {
-			// @todo create policy
-			return ResponseEntity.status(response.getHttpstatus()).body("{\"messages\":[\"Vault AWS Role created successfully\"]}");
+			createPoliciesForTempCredentials(userDetails, token, awsDynamicRoleRequest.getName());
+			return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Vault AWS Role created successfully\"]}");
 		}
 		return ResponseEntity.status(response.getHttpstatus()).body(response.getResponse());
+	}
+
+	private Response createPoliciesForTempCredentials(UserDetails userDetails, String token,String roleName) {
+
+		AccessPolicy accessPolicy = new AccessPolicy();
+		String accessId = "r_awscreds_"+roleName;
+		accessPolicy.setAccessid(accessId);
+		HashMap<String,String> accessMap = new HashMap<String,String>();
+		String svcAccCredsPath= "aws/creds/"+roleName;
+		accessMap.put(svcAccCredsPath, TVaultConstants.READ_POLICY);
+		accessPolicy.setAccess(accessMap);
+		ResponseEntity<String> policyCreationStatus = accessService.createPolicy(token, accessPolicy);
+		if (HttpStatus.UNPROCESSABLE_ENTITY.equals(policyCreationStatus.getStatusCode())) {
+			policyCreationStatus = accessService.updatePolicy(token, accessPolicy);
+		}
+		Response response = new Response();
+		if (!HttpStatus.OK.equals(policyCreationStatus.getStatusCode())) {
+			response.setHttpstatus(HttpStatus.UNPROCESSABLE_ENTITY);
+			response.setResponse("{\"errors\":[\"Failed to create policies\"]}");
+			return response;
+		}
+
+		String userName = userDetails.getUsername();
+		Response userResponse = reqProcessor.process("/auth/ldap/users","{\"username\":\""+userName+"\"}",token);
+		String r_policy = accessId;
+
+		String responseJson="";
+		String groups="";
+		List<String> policies = new ArrayList<>();
+		List<String> currentpolicies = new ArrayList<>();
+
+		if(HttpStatus.OK.equals(userResponse.getHttpstatus())){
+			responseJson = userResponse.getResponse();
+			try {
+				ObjectMapper objMapper = new ObjectMapper();
+				currentpolicies = ControllerUtil.getPoliciesAsListFromJson(objMapper, responseJson);
+			} catch (IOException e) {
+				logger.error(e);
+			}
+
+			policies.addAll(currentpolicies);
+			if (!currentpolicies.contains(r_policy)) {
+				policies.add(r_policy);
+			}
+		}else{
+			// New user to be configured
+			policies.add(r_policy);
+		}
+		String policiesString = org.apache.commons.lang3.StringUtils.join(policies, ",");
+
+		response = ControllerUtil.configureLDAPUser(userName,policiesString,groups,token);
+		return response;
 	}
 
 	public ResponseEntity<String> getTemporaryCredentials(String role_name, String token) {
@@ -85,9 +126,35 @@ public class AWSSecretService {
 		return ResponseEntity.status(response.getHttpstatus()).body(response.getResponse());
 	}
 
-	public ResponseEntity<String> deleteAWSRole(String role_name, String token) {
+	public ResponseEntity<String> deleteAWSRole(String role_name, String token, UserDetails userDetails) {
 		Response response = reqProcessor.process("/aws/roles/","{\"role_name\":\""+role_name+"\"}",token);
-		// @todo delete policy
+		String userName = userDetails.getUsername();
+		String accessId = "r_awscreds_"+role_name;
+		ResponseEntity<String> policyDeleteStatus = accessService.deletePolicyInfo(token, accessId);
+		if (!HttpStatus.OK.equals(policyDeleteStatus.getStatusCode())) {
+			return ResponseEntity.status(HttpStatus.OK).body("{\"errors\":[\"Failed to remove policy\"]}");
+		}
+		Response userResponse = reqProcessor.process("/auth/ldap/users","{\"username\":\""+userName+"\"}",token);
+
+		String responseJson="";
+		String groups="";
+		List<String> policies = new ArrayList<>();
+		List<String> currentpolicies = new ArrayList<>();
+
+		if(HttpStatus.OK.equals(userResponse.getHttpstatus())){
+			responseJson = userResponse.getResponse();
+			try {
+				ObjectMapper objMapper = new ObjectMapper();
+				currentpolicies = ControllerUtil.getPoliciesAsListFromJson(objMapper, responseJson);
+			} catch (IOException e) {
+				logger.error(e);
+			}
+			policies.addAll(currentpolicies);
+			policies.remove(accessId);
+		}
+		String policiesString = org.apache.commons.lang3.StringUtils.join(policies, ",");
+
+		ControllerUtil.configureLDAPUser(userName,policiesString,groups,token);
 		return ResponseEntity.status(response.getHttpstatus()).body(response.getResponse());
 	}
 }

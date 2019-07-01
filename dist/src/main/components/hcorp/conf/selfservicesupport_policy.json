@@ -10,6 +10,7 @@
         "metadata/*":{"policy":"write"},
         "users/*":{"capabilities":["create","update","delete","list"]},
         "apps/*":{"capabilities":["create","update","delete","list"]},
-        "shared/*":{"capabilities":["create","update","delete","list"]}
+        "shared/*":{"capabilities":["create","update","delete","list"]},
+        "aws/roles/*":{"policy":"write"}
     }
 }

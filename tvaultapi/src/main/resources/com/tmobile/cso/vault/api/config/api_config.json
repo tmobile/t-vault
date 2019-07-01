@@ -807,7 +807,7 @@
     },
 	{"#" : "**** aws role creation with policy document****** ",
 
-		"apiEndPoint":"/aws/roles/",
+		"apiEndPoint":"/aws/roles/create",
 		"vaultEndPoint":"/aws/roles/<name>",
 		"method":"POST",
 		"params":[
