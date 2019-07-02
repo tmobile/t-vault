@@ -42,14 +42,14 @@ public class AWSSecretController {
 	 * @param awsDynamicRoleRequest
 	 * @return
 	 */
-	@ApiOperation(value = "${AWSAuthControllerV2.authenticateEC2.value}", notes = "${AWSAuthControllerV2.authenticateEC2.notes}")
+	@ApiOperation(value = "${AWSSecretController.createAWSRole.value}", notes = "${AWSSecretController.createAWSRole.notes}")
 	@PostMapping(value="/v2/aws/role",consumes="application/json",produces="application/json")
 	public ResponseEntity<String> createAWSRole(HttpServletRequest request, @RequestHeader(value="vault-token") String token, @RequestBody AWSDynamicRoleRequest awsDynamicRoleRequest){
 		UserDetails userDetails = (UserDetails) ((HttpServletRequest) request).getAttribute("UserDetails");
 		return awsSecretService.createAWSRole(awsDynamicRoleRequest, token, userDetails);
 	}
 
-	@ApiOperation(value = "${AWSAuthControllerV2.authenticateEC2.value}", notes = "${AWSAuthControllerV2.authenticateEC2.notes}")
+	@ApiOperation(value = "${AWSSecretController.deleteAWSRole.value}", notes = "${AWSSecretController.deleteAWSRole.notes}")
 	@DeleteMapping(value="/v2/aws/role/{role_name}",produces="application/json")
 	public ResponseEntity<String> deleteAWSRole(HttpServletRequest request, @RequestHeader(value="vault-token") String token, @PathVariable String role_name){
 		UserDetails userDetails = (UserDetails) ((HttpServletRequest) request).getAttribute("UserDetails");
@@ -57,7 +57,7 @@ public class AWSSecretController {
 	}
 
 
-	@ApiOperation(value = "${AWSAuthControllerV2.authenticateEC2.value}", notes = "${AWSAuthControllerV2.authenticateEC2.notes}")
+	@ApiOperation(value = "${AWSSecretController.getTemporaryCredentials.value}", notes = "${AWSSecretController.getTemporaryCredentials.notes}")
 	@GetMapping(value="/v2/aws/role/credentials/{role_name}",produces="application/json")
 	public ResponseEntity<String> getTemporaryCredentials(@RequestHeader(value="vault-token") String token, @PathVariable String role_name){
 		return awsSecretService.getTemporaryCredentials(role_name, token);
