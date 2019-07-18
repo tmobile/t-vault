@@ -1,0 +1,8 @@
+{
+  "name": "gitlabapprolepolicy",
+  "path":{
+    "aws/roles/*":{"policy":"write"},
+    "auth/approle/*":{"policy":"write"},
+    "sys/policy/*":{"policy":"write"}
+  }
+}

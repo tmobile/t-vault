@@ -1,0 +1,11 @@
+{
+  "name":"gitlab",
+  "path":{
+    "auth/approle/role/gitlabrole/secret-id":{
+      "capabilities": ["read","create","update"]
+    },
+    "/auth/approle/role/gitlabrole/role-id": {
+      "capabilities": ["read"]
+    }
+  }
+}

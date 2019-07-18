@@ -17,6 +17,7 @@
 
 package com.tmobile.cso.vault.api.service;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tmobile.cso.vault.api.common.TVaultConstants;
 import com.tmobile.cso.vault.api.controller.ControllerUtil;
@@ -41,14 +42,14 @@ public class AWSSecretService {
 	private AccessService accessService;
 
 	@Autowired
+	private AppRoleService appRoleService;
+
+	@Autowired
 	private RequestProcessor reqProcessor;
 	private static Logger logger = LogManager.getLogger(AWSSecretService.class);
 
 	public ResponseEntity<String> createAWSRole(AWSDynamicRoleRequest awsDynamicRoleRequest, String token, UserDetails userDetails) {
 
-		if (!userDetails.isAdmin()) {
-			token = userDetails.getSelfSupportToken();
-		}
 		AWSTempRole awsTempRole = new AWSTempRole();
 		awsTempRole.setName(awsDynamicRoleRequest.getName());
 		awsTempRole.setCredential_type("iam_user");
@@ -65,10 +66,59 @@ public class AWSSecretService {
 
 		Response response = reqProcessor.process("/aws/roles/create",roleString,token);
 		if (HttpStatus.OK.equals(response.getHttpstatus()) || HttpStatus.NO_CONTENT.equals(response.getHttpstatus())) {
-			createPoliciesForTempCredentials(userDetails, token, awsDynamicRoleRequest.getName());
+			createPoliciesForTempCredentialsAWS(userDetails, token, awsDynamicRoleRequest.getName(), "gitlabrole");
 			return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Vault AWS Role created successfully\"]}");
 		}
 		return ResponseEntity.status(response.getHttpstatus()).body(response.getResponse());
+	}
+
+	private Response createPoliciesForTempCredentialsAWS(UserDetails userDetails, String token,String roleName, String approle_name) {
+
+		AccessPolicy accessPolicy = new AccessPolicy();
+		String accessId = "r_awscreds_"+roleName;
+		accessPolicy.setAccessid(accessId);
+		HashMap<String,String> accessMap = new HashMap<String,String>();
+		String svcAccCredsPath= "aws/creds/"+roleName;
+		accessMap.put(svcAccCredsPath, TVaultConstants.READ_POLICY);
+		accessPolicy.setAccess(accessMap);
+		ResponseEntity<String> policyCreationStatus = accessService.createPolicy(token, accessPolicy);
+		if (HttpStatus.UNPROCESSABLE_ENTITY.equals(policyCreationStatus.getStatusCode())) {
+			policyCreationStatus = accessService.updatePolicy(token, accessPolicy);
+		}
+		Response response = new Response();
+		if (!HttpStatus.OK.equals(policyCreationStatus.getStatusCode())) {
+			response.setHttpstatus(HttpStatus.UNPROCESSABLE_ENTITY);
+			response.setResponse("{\"errors\":[\"Failed to create policies\"]}");
+			return response;
+		}
+		String r_policy = accessId;
+		String approleName = approle_name;
+		Response roleResponse = reqProcessor.process("/auth/approle/role/read","{\"role_name\":\""+approleName+"\"}",token);
+		String responseJson="";
+		List<String> policies = new ArrayList<>();
+		List<String> currentpolicies = new ArrayList<>();
+		if(HttpStatus.OK.equals(roleResponse.getHttpstatus())){
+			responseJson = roleResponse.getResponse();
+			ObjectMapper objMapper = new ObjectMapper();
+			try {
+				JsonNode policiesArry = objMapper.readTree(responseJson).get("data").get("policies");
+				for(JsonNode policyNode : policiesArry){
+					currentpolicies.add(policyNode.asText());
+				}
+			} catch (IOException e) {
+				logger.error(e);
+			}
+			policies.addAll(currentpolicies);
+			policies.addAll(currentpolicies);
+			if (!currentpolicies.contains(r_policy)) {
+				policies.add(r_policy);
+			}
+		}
+
+		String policiesString = org.apache.commons.lang3.StringUtils.join(policies, ",");
+
+		Response approleControllerResp = appRoleService.configureApprole(approleName,policiesString,token);
+		return approleControllerResp;
 	}
 
 	private Response createPoliciesForTempCredentials(UserDetails userDetails, String token,String roleName) {
