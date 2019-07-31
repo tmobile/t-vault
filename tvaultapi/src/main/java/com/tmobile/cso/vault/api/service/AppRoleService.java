@@ -1124,8 +1124,10 @@ public class  AppRoleService {
 				ObjectMapper objMapper = new ObjectMapper();
 				try {
 					JsonNode policiesArry = objMapper.readTree(responseJson).get("data").get("policies");
-					for(JsonNode policyNode : policiesArry){
-						currentpolicies.add(policyNode.asText());
+					if (null != policiesArry) {
+						for (JsonNode policyNode : policiesArry) {
+							currentpolicies.add(policyNode.asText());
+						}
 					}
 				} catch (IOException e) {
 					log.error(e);

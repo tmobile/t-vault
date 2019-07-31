@@ -27,6 +27,7 @@
 
 
 TVHOME="/opt/tvault/hcorp"
+unzip $TVHOME/bin/vault.zip -d $TVHOME/bin
 exe="$TVHOME/bin/vault"
 prog=${exe##*/}
 

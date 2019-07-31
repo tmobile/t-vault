@@ -1858,8 +1858,10 @@ public class  ServiceAccountsService {
 				ObjectMapper objMapper = new ObjectMapper();
 				try {
 					JsonNode policiesArry = objMapper.readTree(responseJson).get("data").get("policies");
-					for (JsonNode policyNode : policiesArry) {
-						currentpolicies.add(policyNode.asText());
+					if (null != policiesArry) {
+						for (JsonNode policyNode : policiesArry) {
+							currentpolicies.add(policyNode.asText());
+						}
 					}
 				} catch (IOException e) {
 					log.error(e);
@@ -2185,9 +2187,11 @@ public class  ServiceAccountsService {
                     responseJson = roleResponse.getResponse();
                     try {
                         JsonNode policiesArry = objMapper.readTree(responseJson).get("data").get("policies");
-                        for (JsonNode policyNode : policiesArry) {
-                            currentpolicies.add(policyNode.asText());
-                        }
+						if (null != policiesArry) {
+							for (JsonNode policyNode : policiesArry) {
+								currentpolicies.add(policyNode.asText());
+							}
+						}
                     } catch (IOException e) {
 						log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 								put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
@@ -2327,8 +2331,10 @@ public class  ServiceAccountsService {
 				ObjectMapper objMapper = new ObjectMapper();
 				try {
 					JsonNode policiesArry = objMapper.readTree(responseJson).get("data").get("policies");
-					for(JsonNode policyNode : policiesArry){
-						currentpolicies.add(policyNode.asText());
+					if (null != policiesArry) {
+						for (JsonNode policyNode : policiesArry) {
+							currentpolicies.add(policyNode.asText());
+						}
 					}
 				} catch (IOException e) {
 					log.error(e);
