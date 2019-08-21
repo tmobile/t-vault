@@ -202,7 +202,11 @@ function genselfcert()
     return 1
   fi
 
-  IP=$(hostname -I | cut -d' ' -f1)
+  if [[ "$SKIP_SETCAP" == "true" ]]; then
+    IP=0.0.0.0
+  else
+    IP=$(hostname -I | cut -d' ' -f1)
+  fi
 
   if valid_ip $IP; then 
     echo "IP.1 = $IP" >> $2
@@ -227,8 +231,11 @@ SSCRED_FILE_LOCATION="/opt/tvault/hcorp"
 ##############################################################################
 
 VCONF="$VHOME/hcorp/conf/vault.conf"
-
-IP=$(hostname -I | cut -d' ' -f1)
+if [[ "$SKIP_SETCAP" == "true" ]]; then
+  IP=0.0.0.0
+else
+  IP=$(hostname -I | cut -d' ' -f1)
+fi
 
 if valid_ip $IP; then 
   echo "IP address is : $IP"
@@ -336,8 +343,11 @@ export VAULT_ADDR="https://127.0.0.1:8200"
 export SSCRED_FILE_LOCATION="/opt/tvault/hcorp"
 
 #sudo setcap cap_ipc_lock=+ep $(readlink -f $(which vault)) 
-sudo setcap cap_ipc_lock=+ep $VHOME/hcorp/bin/vault
-#vault server -config=$VSERVERCONF >> $VLOG/tvault-vault-server.log &
+sudo setcap cap_ipc_lock=ep $VHOME/hcorp/bin/vault
+if [[ "$SKIP_SETCAP" == "true" ]]; then
+  sudo setcap cap_ipc_lock=-ep $(readlink -f $(which vault))
+  vault server -config=$VSERVERCONF >> $VLOG/tvault-vault-server.log &
+fi
 
 echo "Vault server starting... "
 service tvault start >> $INSTLOG
@@ -377,13 +387,24 @@ if [[ -z "$initstat" ]]; then
   echo "Initializing Vault..."
   echo "This only happens once when the server is started against a new backend that has never been used with Vault before."
   echo "During initialization, the encryption keys are generated and 5 unseal keys are created."
-
+  if [[ "$SKIP_SETCAP" == "true" ]]; then
+    sudo setcap cap_ipc_lock=-ep $(readlink -f $(which vault))
+  fi
   vault operator init 1> $VHOME/hcorp/vault.init 2>> $INSTLOG
 
   sleep 2
   echo "Unsealing Vault"
+  if [[ "$SKIP_SETCAP" == "true" ]]; then
+    sudo setcap cap_ipc_lock=-ep $(readlink -f $(which vault))
+  fi
   vault operator  unseal  $(getkey 1) >> $INSTLOG
+  if [[ "$SKIP_SETCAP" == "true" ]]; then
+    sudo setcap cap_ipc_lock=-ep $(readlink -f $(which vault))
+  fi
   vault operator  unseal  $(getkey 2) >> $INSTLOG
+  if [[ "$SKIP_SETCAP" == "true" ]]; then
+    sudo setcap cap_ipc_lock=-ep $(readlink -f $(which vault))
+  fi
   vault operator  unseal  $(getkey 3) >> $INSTLOG
 
 ################################################################################
@@ -520,6 +541,10 @@ touch API_CONF
 echo "JAVA_OPTS=\"-DTVAULT-API-LOG-PATH=$VLOG/\"" >> $API_CONF
 echo "LOG_FOLDER=$VLOG" >> $API_CONF
 echo "RUN_ARGS=\"--vault.api.url=https://127.0.0.1:8200/v1 --selfservice.ssfilelocation=$SSCRED_FILE_LOCATION --vault.port=8200 --vault.auth.method=$AUTH_BACKEND --vault.ssl.verify=false --server.port=8443 --server.ssl.key-store=/opt/tvault/certs/tvault.p12 --server.ssl.keyStoreType=PKCS12 --server.ssl.key-store-password=$CERT_PASSWORD\"" >> $API_CONF
+
+if [[ "$SKIP_SETCAP" == "true" ]]; then
+    sed -i "s/#daemon.*.$/daemon off;/g" $VHOME/web/nginx/conf/nginx.conf
+fi
 
 chmod +x $VHOME/api/bin/tvaultapi.jar
 chmod +x $VHOME/web/nginx/sbin/nginx
