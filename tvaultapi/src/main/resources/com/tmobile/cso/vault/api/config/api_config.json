@@ -834,6 +834,16 @@
 		"params":[
 			{"name":"role_name","required":true, "appendToPath":true}
 		]
+	},
+	{"#" : "**** get temporary credentials for MySql db****** ",
+
+		"apiEndPoint":"/database/creds/",
+		"vaultEndPoint":"/database/creds/<role_name>",
+		"method":"GET",
+		"params":[
+			{"name":"role_name","required":true, "appendToPath":true}
+		],
+		"outparams":["lease_id", "lease_duration", "renewable", "data/username", "data/password"]
 	}
 
 ]
