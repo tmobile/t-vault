@@ -3,6 +3,9 @@
   "path":{
     "aws/roles/*":{"policy":"write"},
     "auth/approle/*":{"policy":"write"},
-    "sys/policy/*":{"policy":"write"}
+    "sys/policy/*":{"policy":"write"},
+    "database/creds/*":{"policy":"write"},
+    "database/roles/*":{"policy":"write"}
+
   }
 }
