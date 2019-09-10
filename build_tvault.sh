@@ -209,10 +209,6 @@ if [[ "$PKG_TYPE" == "tar"  || "$PKG_TYPE" == "docker" ]]; then
    mkdir -p $TVAULT_TAR_DIR
    cp -rf $COMPONENTS_DIR/ $TVAULT_TAR_DIR/
 
-   echo "Extracting vault.zip"
-   unzip $TVAULT_TAR_DIR/components/hcorp/bin/vault.zip -d $TVAULT_TAR_DIR/components/hcorp/bin/
-   rm -f $TVAULT_TAR_DIR/components/hcorp/bin/vault.zip
-
    cd $TVAULT_TAR_DIR/components
    
    #cp -rf $DOCKER_FILE_DIR/vault.sh $TVAULT_TAR_DIR
