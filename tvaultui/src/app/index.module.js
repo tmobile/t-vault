@@ -132,7 +132,8 @@
         'vault.directives.restrictConfigChar',
         'vault.directives.restrictSpecialCharButComma',
         'vault.directives.restrictSpecialCharForTime',
-        'vault.directives.headerHome'
+        'vault.directives.headerHome',
+        'vault.directives.restrictConfigCharApprole',
     ]);
 
     angular.module( 'vault.factories', [
