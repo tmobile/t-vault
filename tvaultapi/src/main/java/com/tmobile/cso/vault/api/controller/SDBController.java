@@ -286,9 +286,14 @@ public class SDBController {
 					Response d_response = reqProcessor.process("/access/update",policyRequestJson,token); 
 					
 					
-					if(r_response.getHttpstatus().equals(HttpStatus.NO_CONTENT) && 
+					if( (r_response.getHttpstatus().equals(HttpStatus.NO_CONTENT) && 
 							w_response.getHttpstatus().equals(HttpStatus.NO_CONTENT) &&
-									d_response.getHttpstatus().equals(HttpStatus.NO_CONTENT) ){
+							d_response.getHttpstatus().equals(HttpStatus.NO_CONTENT)  
+							) ||
+							(r_response.getHttpstatus().equals(HttpStatus.OK) && 
+									w_response.getHttpstatus().equals(HttpStatus.OK) &&
+									d_response.getHttpstatus().equals(HttpStatus.OK))
+						){
 						log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 							      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 								  put(LogMessage.ACTION, "Create SDB").
