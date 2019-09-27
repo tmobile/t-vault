@@ -21,7 +21,10 @@ import java.io.IOException;
 import java.util.*;
 
 import com.tmobile.cso.vault.api.common.TVaultConstants;
+import com.tmobile.cso.vault.api.exception.TVaultValidationException;
 import com.tmobile.cso.vault.api.model.*;
+import com.tmobile.cso.vault.api.validator.TokenValidator;
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -48,6 +51,9 @@ public class  SafesService {
 
 	@Autowired
 	private RequestProcessor reqProcessor;
+
+	@Autowired
+	private TokenValidator tokenValidator;
 
 	@Value("${vault.auth.method}")
 	private String vaultAuthMethod;
@@ -2162,9 +2168,18 @@ public class  SafesService {
 	 * @return
 	 */
 	private boolean isValidSafe(String userToken, String path, UserDetails userDetails) {
-		if (!userDetails.isAdmin()) {
-			userToken = userDetails.getSelfSupportToken();
+		try {
+			String w_policy = "w_"+ ControllerUtil.getSafeType(path) + "_" + ControllerUtil.getSafeName(path);
+			VaultTokenLookupDetails  vaultTokenLookupDetails = tokenValidator.getVaultTokenLookupDetails(userToken);
+			String[] policies = vaultTokenLookupDetails.getPolicies();
+			if (ArrayUtils.isNotEmpty(policies) && Arrays.asList(policies).contains(w_policy)) {
+				return true;
+			}
+			return false;
+		} catch (TVaultValidationException e) {
+			e.printStackTrace();
+			return false;
 		}
-		return ControllerUtil.isValidSafe(path, userToken);
+
 	}
 }
