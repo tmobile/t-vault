@@ -844,6 +844,18 @@
 			{"name":"role_name","required":true, "appendToPath":true}
 		],
 		"outparams":["lease_id", "lease_duration", "renewable", "data/username", "data/password"]
+	},
+
+	{"#":"Okta Login ",
+
+		"apiEndPoint":"/auth/okta/login",
+		"vaultEndPoint":"/auth/okta/login/<username>",
+		"method":"POST",
+		"params":[
+			{"name":"username","required":true,"appendToPath":true},
+			{"name":"password","required":true}
+		],
+		"outparams":["auth/client_token","admin","access","auth/policies","auth/lease_duration"]
 	}
 
 ]
