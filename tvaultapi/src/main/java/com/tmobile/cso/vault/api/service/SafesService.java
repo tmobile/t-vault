@@ -20,6 +20,7 @@ package com.tmobile.cso.vault.api.service;
 import java.io.IOException;
 import java.util.*;
 
+import com.tmobile.cso.vault.api.VaultAuthFactory.VaultAuthFactory;
 import com.tmobile.cso.vault.api.common.TVaultConstants;
 import com.tmobile.cso.vault.api.model.*;
 import org.apache.commons.collections.map.HashedMap;
@@ -65,6 +66,9 @@ public class  SafesService {
 
 	@Autowired
 	private AWSIAMAuthService awsiamAuthService;
+
+	@Autowired
+	private VaultAuthFactory vaultAuthFactory;
 	
 	private static Logger log = LogManager.getLogger(SafesService.class);
 
@@ -722,14 +726,8 @@ public class  SafesService {
 					put(LogMessage.MESSAGE, String.format ("Policies are, read - [%s], write - [%s], deny -[%s], write-only -[%s]", r_policy, w_policy, d_policy, wo_policy)).
 					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 					build()));
-			Response userResponse;
-			if (TVaultConstants.USERPASS.equals(vaultAuthMethod)) {
-				userResponse = reqProcessor.process("/auth/userpass/read","{\"username\":\""+userName+"\"}",token);	
-			}
-			else {
-				userResponse = reqProcessor.process("/auth/ldap/users","{\"username\":\""+userName+"\"}",token);
-			}
-			
+			Response userResponse = vaultAuthFactory.readUser(userName, token);
+
 			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 					put(LogMessage.ACTION, "Add User to SDB").
@@ -784,13 +782,7 @@ public class  SafesService {
 					put(LogMessage.MESSAGE, String.format ("policies [%s] before calling configureUserpassUser/configureLDAPUser", policies)).
 					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 					build()));
-			Response ldapConfigresponse;
-			if (TVaultConstants.USERPASS.equals(vaultAuthMethod)) {
-				ldapConfigresponse = ControllerUtil.configureUserpassUser(userName,policiesString,token);
-			}
-			else {
-				ldapConfigresponse = ControllerUtil.configureLDAPUser(userName,policiesString,groups,token);
-			}
+			Response ldapConfigresponse = vaultAuthFactory.configureUser(userName,policiesString,groups,token);
 
 			if(ldapConfigresponse.getHttpstatus().equals(HttpStatus.NO_CONTENT)){ 
 				Map<String,String> params = new HashMap<String,String>();

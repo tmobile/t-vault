@@ -365,7 +365,7 @@
     	"method":"GET",
       	"outparams":["data/keys"]
 	},
-	
+
 	{"#":"**** Fetch details of a configured LDAP user *****",
 	
     	"apiEndPoint":"/auth/ldap/users",
@@ -856,6 +856,30 @@
 			{"name":"password","required":true}
 		],
 		"outparams":["auth/client_token","admin","access","auth/policies","auth/lease_duration"]
+	},
+
+	{"#":"**** Fetch details of a configured Okta user *****",
+
+		"apiEndPoint":"/auth/okta/users",
+		"vaultEndPoint":"/auth/okta/users/<username>",
+		"method":"GET",
+		"params":[
+			{"name":"username","required":true, "appendToPath":true}
+		],
+		"outparams":["data"]
+	},
+
+	{"#" : "**** - UPDATE POLICIES for a USER Okta'****** ",
+
+		"apiEndPoint":"/auth/okta/users/configure",
+		"vaultEndPoint":"/auth/okta/users/<username>",
+		"method":"POST",
+		"params":[
+			{"name":"username", "appendToPath":true},
+			{"name":"policies","required":true}
+		],
+		"outparams":["policies"]
+
 	}
 
 ]

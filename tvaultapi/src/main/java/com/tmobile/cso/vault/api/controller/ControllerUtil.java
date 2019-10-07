@@ -407,6 +407,33 @@ public final class ControllerUtil {
 		return reqProcessor.process("/auth/ldap/users/configure",ldapUserConfigJson,token);
 	}
 
+	public static Response configureOktaUser(String userName,String policies,String groups,String token ){
+		log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+				put(LogMessage.ACTION, "configureOktaUser").
+				put(LogMessage.MESSAGE, String.format ("Trying configureOktaUser with username [%s] policies [%s] and groups [%s] ", userName, policies, groups)).
+				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+				build()));
+		ObjectMapper objMapper = new ObjectMapper();
+		Map<String,String>configureUserMap = new HashMap<String,String>();
+		configureUserMap.put("username", userName);
+		configureUserMap.put("policies", policies);
+		configureUserMap.put("groups", groups);
+		String oktaUserConfigJson ="";
+		try {
+			oktaUserConfigJson = objMapper.writeValueAsString(configureUserMap);
+		} catch (JsonProcessingException e) {
+			log.error(e);
+			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+					put(LogMessage.ACTION, "configureLDAPUser").
+					put(LogMessage.MESSAGE, String.format ("Unable to create oktaUserConfigJson [%s] with username [%s] policies [%s] and groups [%s] ", e.getMessage(), userName, policies, groups)).
+					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+					build()));
+		}
+		return reqProcessor.process("/auth/okta/users/configure",oktaUserConfigJson,token);
+	}
+
 	public static Response configureUserpassUser(String userName,String policies,String token ){
 		ObjectMapper objMapper = new ObjectMapper();
 		Map<String,String>configureUserMap = new HashMap<String,String>();

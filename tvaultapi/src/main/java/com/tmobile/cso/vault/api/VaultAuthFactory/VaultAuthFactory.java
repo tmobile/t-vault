@@ -20,7 +20,7 @@ public class VaultAuthFactory {
     @Autowired
     OktaAuth oktaAuth;
 
-    public Response login(String jsonStr) {
+    private VaultAuth getAuth() {
         VaultAuth vaultAuth;
         switch (vaultAuthMethod) {
             case "ldap":
@@ -33,6 +33,19 @@ public class VaultAuthFactory {
                 vaultAuth = userPassAuth;
                 break;
         }
-        return vaultAuth.vaultLogin(jsonStr);
+        return vaultAuth;
+    }
+
+    public Response login(String jsonStr) {
+        return getAuth().vaultLogin(jsonStr);
+    }
+
+    public Response readUser(String userName, String token) {
+        String jsonStr = "{\"username\":\""+userName+"\"}";
+        return getAuth().readUser(jsonStr, token);
+    }
+
+    public Response configureUser(String userName, String policiesString, String groups, String token) {
+        return getAuth().configureUser(userName,policiesString,groups,token);
     }
 }

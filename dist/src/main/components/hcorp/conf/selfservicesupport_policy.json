@@ -4,6 +4,7 @@
         "sys/policy/*":{"policy":"write"},
 		"sys/lease/*":{"policy":"write"},
         "auth/ldap/*":{"policy":"write"},
+        "auth/okta/*":{"policy":"write"},
         "auth/aws/*":{"policy":"write"},
         "auth/approle/*":{"policy":"write"},
         "auth/userpass/*":{"policy":"write"},

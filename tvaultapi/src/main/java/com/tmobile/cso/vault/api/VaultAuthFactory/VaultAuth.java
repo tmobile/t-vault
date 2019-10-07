@@ -16,4 +16,6 @@ public abstract class VaultAuth {
     }
 
     public abstract Response vaultLogin(String jsonStr);
+    public abstract Response readUser(String jsonStr, String token);
+    public abstract Response configureUser(String userName, String policiesString, String groups, String token);
 }
