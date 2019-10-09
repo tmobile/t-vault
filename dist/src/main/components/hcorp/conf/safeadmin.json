@@ -10,6 +10,9 @@
       "auth/ldap/*":{
          "policy":"write"
       },
+      "auth/okta/*":{
+         "policy":"write"
+      },
       "auth/aws/*":{
          "policy":"write"
       },

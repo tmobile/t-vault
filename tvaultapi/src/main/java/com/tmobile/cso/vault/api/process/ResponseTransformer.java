@@ -38,7 +38,8 @@ public  class ResponseTransformer {
 			case "/auth/ldap/login":
 			case "/auth/userpass/login":
 			case "/auth/approle/login":
-			case "/auth/aws/login":{
+			case "/auth/aws/login":
+			case "/auth/okta/login":{
 				fetchSDBPaths(responseparams,token);
 				break;
 			}
@@ -95,7 +96,7 @@ public  class ResponseTransformer {
 			}
 		}
 		responseparams.put("access", accessMap);
-		if(policies.contains("safeadmin")){
+		if(policies.contains("safeadmin") || policies.contains("safeadmin_okta")){
 			responseparams.put("admin", "yes");
 		}else{
 			responseparams.put("admin", "no");

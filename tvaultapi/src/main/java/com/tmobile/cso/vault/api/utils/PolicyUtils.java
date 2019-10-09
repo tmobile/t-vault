@@ -20,9 +20,11 @@ package com.tmobile.cso.vault.api.utils;
 import java.io.IOException;
 import java.util.ArrayList;
 
+import com.tmobile.cso.vault.api.authentication.VaultAuthFactory;
 import com.tmobile.cso.vault.api.common.TVaultConstants;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
@@ -39,6 +41,9 @@ public class PolicyUtils {
 	
 	@Value("${vault.auth.method}")
 	private String vaultAuthMethod;
+
+	@Autowired
+	private VaultAuthFactory vaultAuthFactory;
 	
 	public PolicyUtils() {
 		// TODO Auto-generated constructor stub
@@ -87,12 +92,8 @@ public class PolicyUtils {
 	public String[] getCurrentPolicies(String token, String username) {
 		Response userResponse;
 		String[] policies = {};
-		if (TVaultConstants.USERPASS.equals(vaultAuthMethod)) {
-			userResponse = ControllerUtil.getReqProcessor().process("/auth/userpass/read","{\"username\":\""+username+"\"}",token);
-		}
-		else {
-			userResponse = ControllerUtil.getReqProcessor().process("/auth/ldap/users","{\"username\":\""+username+"\"}",token);
-		}
+		userResponse = vaultAuthFactory.readUser(username, token);
+
 		if(HttpStatus.OK.equals(userResponse.getHttpstatus())){
 			String responseJson = userResponse.getResponse();
 			try {

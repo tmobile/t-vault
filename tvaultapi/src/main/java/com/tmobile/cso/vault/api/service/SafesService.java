@@ -20,9 +20,9 @@ package com.tmobile.cso.vault.api.service;
 import java.io.IOException;
 import java.util.*;
 
+import com.tmobile.cso.vault.api.authentication.VaultAuthFactory;
 import com.tmobile.cso.vault.api.common.TVaultConstants;
 import com.tmobile.cso.vault.api.model.*;
-import org.apache.commons.collections.map.HashedMap;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -43,7 +43,6 @@ import com.tmobile.cso.vault.api.process.Response;
 import com.tmobile.cso.vault.api.utils.JSONUtil;
 import com.tmobile.cso.vault.api.utils.SafeUtils;
 import com.tmobile.cso.vault.api.utils.ThreadLocalContext;
-import sun.security.x509.AttributeNameEnumeration;
 
 @Component
 public class  SafesService {
@@ -65,6 +64,9 @@ public class  SafesService {
 
 	@Autowired
 	private AWSIAMAuthService awsiamAuthService;
+
+	@Autowired
+	private VaultAuthFactory vaultAuthFactory;
 	
 	private static Logger log = LogManager.getLogger(SafesService.class);
 
@@ -722,14 +724,8 @@ public class  SafesService {
 					put(LogMessage.MESSAGE, String.format ("Policies are, read - [%s], write - [%s], deny -[%s], write-only -[%s]", r_policy, w_policy, d_policy, wo_policy)).
 					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 					build()));
-			Response userResponse;
-			if (TVaultConstants.USERPASS.equals(vaultAuthMethod)) {
-				userResponse = reqProcessor.process("/auth/userpass/read","{\"username\":\""+userName+"\"}",token);	
-			}
-			else {
-				userResponse = reqProcessor.process("/auth/ldap/users","{\"username\":\""+userName+"\"}",token);
-			}
-			
+			Response userResponse = vaultAuthFactory.readUser(userName, token);
+
 			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 					put(LogMessage.ACTION, "Add User to SDB").
@@ -784,13 +780,7 @@ public class  SafesService {
 					put(LogMessage.MESSAGE, String.format ("policies [%s] before calling configureUserpassUser/configureLDAPUser", policies)).
 					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 					build()));
-			Response ldapConfigresponse;
-			if (TVaultConstants.USERPASS.equals(vaultAuthMethod)) {
-				ldapConfigresponse = ControllerUtil.configureUserpassUser(userName,policiesString,token);
-			}
-			else {
-				ldapConfigresponse = ControllerUtil.configureLDAPUser(userName,policiesString,groups,token);
-			}
+			Response ldapConfigresponse = vaultAuthFactory.configureUser(userName,policiesString,groups,token);
 
 			if(ldapConfigresponse.getHttpstatus().equals(HttpStatus.NO_CONTENT)){ 
 				Map<String,String> params = new HashMap<String,String>();
@@ -835,12 +825,8 @@ public class  SafesService {
 								put(LogMessage.MESSAGE, "User configuration failed. Trying to revert...").
 								put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 								build()));
-						if (TVaultConstants.USERPASS.equals(vaultAuthMethod)) {
-							ldapConfigresponse = ControllerUtil.configureUserpassUser(userName,currentpoliciesString,token);
-						}
-						else {
-							ldapConfigresponse = ControllerUtil.configureLDAPUser(userName,currentpoliciesString,groups,token);
-						}
+						ldapConfigresponse = vaultAuthFactory.configureUser(userName, currentpoliciesString, groups, token);
+
 						if(ldapConfigresponse.getHttpstatus().equals(HttpStatus.NO_CONTENT)){
 							log.debug("Reverting user policy uupdate");
 							log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
@@ -1121,13 +1107,8 @@ public class  SafesService {
 					}
 				}
 			}
-			Response userResponse;
-			if (TVaultConstants.USERPASS.equals(vaultAuthMethod)) {
-				userResponse = reqProcessor.process("/auth/userpass/read","{\"username\":\""+userName+"\"}",token);
-			}
-			else {
-				userResponse = reqProcessor.process("/auth/ldap/users","{\"username\":\""+userName+"\"}",token);
-			}
+			Response userResponse = vaultAuthFactory.readUser(userName, token);
+
 			String responseJson="";
 			String groups="";
 			List<String> policies = new ArrayList<>();
@@ -1154,13 +1135,8 @@ public class  SafesService {
 				String currentpoliciesString = StringUtils.join(currentpolicies, ",");
 
 				//policies = policies.replaceAll(s_policy, "");
-				Response ldapConfigresponse;
-				if (TVaultConstants.USERPASS.equals(vaultAuthMethod)) {
-					ldapConfigresponse = ControllerUtil.configureUserpassUser(userName,policiesString,token);
-				}
-				else {
-					ldapConfigresponse = ControllerUtil.configureLDAPUser(userName,policiesString,groups,token);
-				}
+				Response ldapConfigresponse = vaultAuthFactory.configureUser(userName, policiesString, groups, token);;
+
 				if(ldapConfigresponse.getHttpstatus().equals(HttpStatus.NO_CONTENT)){
 					Map<String,String> params = new HashMap<String,String>();
 					params.put("type", "users");
@@ -1194,12 +1170,8 @@ public class  SafesService {
 						else {
 							log.debug("Meta data update failed");
 							log.debug((metadataResponse!=null)?metadataResponse.getResponse():TVaultConstants.EMPTY);
-							if (TVaultConstants.USERPASS.equals(vaultAuthMethod)) {
-								ldapConfigresponse = ControllerUtil.configureUserpassUser(userName,currentpoliciesString,token);
-							}
-							else {
-								ldapConfigresponse = ControllerUtil.configureLDAPUser(userName,currentpoliciesString,groups,token);
-							}
+							ldapConfigresponse =vaultAuthFactory.configureUser(userName, currentpoliciesString, groups, token);
+
 							if(ldapConfigresponse.getHttpstatus().equals(HttpStatus.NO_CONTENT)){
 								log.debug("Reverting user policy uupdate");
 								return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"messages\":[\"User configuration failed.Please try again\"]}");

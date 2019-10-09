@@ -28,6 +28,7 @@ import javax.naming.NamingException;
 import javax.naming.directory.Attributes;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.tmobile.cso.vault.api.authentication.VaultAuthFactory;
 import com.tmobile.cso.vault.api.exception.TVaultValidationException;
 import com.tmobile.cso.vault.api.model.*;
 import com.tmobile.cso.vault.api.utils.TokenUtils;
@@ -104,6 +105,9 @@ public class  ServiceAccountsService {
 
     @Autowired
     private TokenUtils tokenUtils;
+
+	@Autowired
+	private VaultAuthFactory vaultAuthFactory;
 	/**
 	 * Gets the list of users from Directory Server based on UPN
 	 * @param UserPrincipalName
@@ -806,13 +810,7 @@ public class  ServiceAccountsService {
 					put(LogMessage.MESSAGE, String.format ("Policies are, read - [%s], write - [%s], deny -[%s], owner - [%s]", r_policy, w_policy, d_policy, o_policy)).
 					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 					build()));
-			Response userResponse;
-			if (TVaultConstants.USERPASS.equals(vaultAuthMethod)) {
-				userResponse = reqProcessor.process("/auth/userpass/read","{\"username\":\""+userName+"\"}",token);	
-			}
-			else {
-				userResponse = reqProcessor.process("/auth/ldap/users","{\"username\":\""+userName+"\"}",token);
-			}
+			Response userResponse = vaultAuthFactory.readUser(userName, token);
 
 			String responseJson="";
 			String groups="";
@@ -856,13 +854,8 @@ public class  ServiceAccountsService {
 					put(LogMessage.MESSAGE, String.format ("policies [%s] before calling configureUserpassUser/configureLDAPUser", policies)).
 					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 					build()));
-			Response ldapConfigresponse;
-			if (TVaultConstants.USERPASS.equals(vaultAuthMethod)) {
-				ldapConfigresponse = ControllerUtil.configureUserpassUser(userName,policiesString,token);
-			}
-			else {
-				ldapConfigresponse = ControllerUtil.configureLDAPUser(userName,policiesString,groups,token);
-			}
+			Response ldapConfigresponse = vaultAuthFactory.configureUser(userName,policiesString,groups,token);
+
 			if(ldapConfigresponse.getHttpstatus().equals(HttpStatus.NO_CONTENT) || ldapConfigresponse.getHttpstatus().equals(HttpStatus.OK)){
 				// User has been associated with Service Account. Now metadata has to be created
 				String path = new StringBuffer(TVaultConstants.SVC_ACC_ROLES_PATH).append(svcAccName).toString();
@@ -888,12 +881,8 @@ public class  ServiceAccountsService {
 							put(LogMessage.MESSAGE, "Metadata creation for user association with service account failed").
 							put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 							build()));
-					if (TVaultConstants.USERPASS.equals(vaultAuthMethod)) {
-						ldapConfigresponse = ControllerUtil.configureUserpassUser(userName,currentpoliciesString,token);
-					}
-					else {
-						ldapConfigresponse = ControllerUtil.configureLDAPUser(userName,currentpoliciesString,groups,token);
-					}
+					ldapConfigresponse = vaultAuthFactory.configureUser(userName, currentpoliciesString,groups,token);
+
 					if(ldapConfigresponse.getHttpstatus().equals(HttpStatus.NO_CONTENT) || ldapConfigresponse.getHttpstatus().equals(HttpStatus.OK)) {
 						return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"messages\":[\"Failed to add user to the Service Account. Metadata update failed\"]}");
 					} else {
@@ -982,13 +971,7 @@ public class  ServiceAccountsService {
 					put(LogMessage.MESSAGE, String.format ("Policies are, read - [%s], write - [%s], deny -[%s], owner - [%s]", r_policy, w_policy, d_policy, o_policy)).
 					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 					build()));
-			Response userResponse;
-			if (TVaultConstants.USERPASS.equals(vaultAuthMethod)) {
-				userResponse = reqProcessor.process("/auth/userpass/read","{\"username\":\""+userName+"\"}",token);	
-			}
-			else {
-				userResponse = reqProcessor.process("/auth/ldap/users","{\"username\":\""+userName+"\"}",token);
-			}
+			Response userResponse = vaultAuthFactory.readUser(userName, token);
 
 			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
@@ -1026,12 +1009,8 @@ public class  ServiceAccountsService {
 			String policiesString = org.apache.commons.lang3.StringUtils.join(policies, ",");
 			String currentpoliciesString = org.apache.commons.lang3.StringUtils.join(currentpolicies, ",");
 			Response ldapConfigresponse;
-			if (TVaultConstants.USERPASS.equals(vaultAuthMethod)) {
-				ldapConfigresponse = ControllerUtil.configureUserpassUser(userName,policiesString,token);
-			}
-			else {
-				ldapConfigresponse = ControllerUtil.configureLDAPUser(userName,policiesString,groups,token);
-			}
+			ldapConfigresponse = vaultAuthFactory.configureUser(userName,policiesString,groups,token);
+
 			if(ldapConfigresponse.getHttpstatus().equals(HttpStatus.NO_CONTENT) || ldapConfigresponse.getHttpstatus().equals(HttpStatus.OK)){
 				// User has been associated with Service Account. Now metadata has to be deleted
 				String path = new StringBuffer(TVaultConstants.SVC_ACC_ROLES_PATH).append(svcAccName).toString();
@@ -1050,12 +1029,8 @@ public class  ServiceAccountsService {
 							build()));
 					return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Successfully removed user from the Service Account\"]}");
 				} else {
-					if (TVaultConstants.USERPASS.equals(vaultAuthMethod)) {
-						ldapConfigresponse = ControllerUtil.configureUserpassUser(userName,currentpoliciesString,token);
-					}
-					else {
-						ldapConfigresponse = ControllerUtil.configureLDAPUser(userName,currentpoliciesString,groups,token);
-					}
+					ldapConfigresponse = vaultAuthFactory.configureUser(userName,currentpoliciesString,groups,token);
+
 					if(ldapConfigresponse.getHttpstatus().equals(HttpStatus.NO_CONTENT) || ldapConfigresponse.getHttpstatus().equals(HttpStatus.OK)) {
 						return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Failed to remove the user from the Service Account. Metadata update failed\"]}");
 					} else {
@@ -2015,13 +1990,8 @@ public class  ServiceAccountsService {
 			ObjectMapper objMapper = new ObjectMapper();
 			for(String userName : users){
 
-				Response userResponse;
-				if (TVaultConstants.USERPASS.equals(vaultAuthMethod)) {
-					userResponse = reqProcessor.process("/auth/userpass/read","{\"username\":\""+userName+"\"}",token);
-				}
-				else {
-					userResponse = reqProcessor.process("/auth/ldap/users","{\"username\":\""+userName+"\"}",token);
-				}
+				Response userResponse = vaultAuthFactory.readUser(userName, token);
+
 				String responseJson="";
 				String groups="";
 				List<String> policies = new ArrayList<>();
@@ -2056,24 +2026,14 @@ public class  ServiceAccountsService {
 							put(LogMessage.MESSAGE, String.format ("Current policies [%s]", policies )).
 							put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 							build()));
-					if (TVaultConstants.USERPASS.equals(vaultAuthMethod)) {
-						log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
-								put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
-								put(LogMessage.ACTION, "updateUserPolicyAssociationOnSvcaccDelete").
-								put(LogMessage.MESSAGE, String.format ("Current policies userpass [%s]", policies )).
-								put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
-								build()));
-						ControllerUtil.configureUserpassUser(userName,policiesString,token);
-					}
-					else {
-						log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
-								put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
-								put(LogMessage.ACTION, "updateUserPolicyAssociationOnSvcaccDelete").
-								put(LogMessage.MESSAGE, String.format ("Current policies ldap [%s]", policies )).
-								put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
-								build()));
-						ControllerUtil.configureLDAPUser(userName,policiesString,groups,token);
-					}
+
+					log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+							put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+							put(LogMessage.ACTION, "updateUserPolicyAssociationOnSvcaccDelete").
+							put(LogMessage.MESSAGE, String.format ("Current policies [%s] [%s]", vaultAuthMethod, policies )).
+							put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+							build()));
+					vaultAuthFactory.configureUser(userName, policiesString, groups, token);
 				}
 			}
 		}

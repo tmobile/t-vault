@@ -20,6 +20,7 @@ package com.tmobile.cso.vault.api.service;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
+import com.tmobile.cso.vault.api.authentication.VaultAuthFactory;
 import com.tmobile.cso.vault.api.common.TVaultConstants;
 import com.tmobile.cso.vault.api.exception.LogMessage;
 import com.tmobile.cso.vault.api.utils.ThreadLocalContext;
@@ -53,6 +54,9 @@ public class  VaultAuthService {
 	@Autowired
 	private AuthorizationUtils authorizationUtils;
 
+	@Autowired
+	private VaultAuthFactory vaultAuthFactory;
+
 	@Value("${vault.auth.method}")
 	private String vaultAuthMethod;
 
@@ -70,14 +74,7 @@ public class  VaultAuthService {
 	 * @return
 	 */
 	private ResponseEntity<String> login(String jsonStr) {
-		Response response = null;
-		if ("ldap".equals(vaultAuthMethod)) {
-			response = reqProcessor.process("/auth/ldap/login",jsonStr,"");	
-		}
-		else {
-			// Default to userpass
-			response = reqProcessor.process("/auth/userpass/login",jsonStr,"");
-		}
+		Response response = vaultAuthFactory.login(jsonStr);
 
 		if(HttpStatus.OK.equals(response.getHttpstatus())){
 			Map<String, Object> responseMap = null;
@@ -138,6 +135,9 @@ public class  VaultAuthService {
 			}
 			else if (HttpStatus.INTERNAL_SERVER_ERROR.equals(response.getHttpstatus())) {
 				return ResponseEntity.status(response.getHttpstatus()).body("{\"errors\": [\"User Authentication failed\", \"This may be due to vault services are down or vault services are not reachable\"]}");
+			}
+			else if (HttpStatus.UNPROCESSABLE_ENTITY.equals(response.getHttpstatus())) {
+				return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response.getResponse());
 			}
 			return ResponseEntity.status(response.getHttpstatus()).body("{\"errors\":[\"Username Authentication Failed.\"]}");
 		}
