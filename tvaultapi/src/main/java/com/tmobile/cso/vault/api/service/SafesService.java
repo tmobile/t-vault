@@ -1838,7 +1838,7 @@ public class  SafesService {
 		if (safeAppRoleAccess.getRole_name().equals(TVaultConstants.SELF_SERVICE_APPROLE_NAME)) {
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Access denied: no permission to associate this AppRole to any safe\"]}");
 		}
-		String approle = requestMap.get("role_name").toString();
+		String approle = requestMap.get("role_name").toString().toLowerCase();
 		String path = requestMap.get("path").toString();
 		String access = requestMap.get("access").toString();
 
@@ -1866,8 +1866,10 @@ public class  SafesService {
 				ObjectMapper objMapper = new ObjectMapper();
 				try {
 					JsonNode policiesArry = objMapper.readTree(responseJson).get("data").get("policies");
-					for(JsonNode policyNode : policiesArry){
-						currentpolicies.add(policyNode.asText());
+					if (null != policiesArry) {
+						for(JsonNode policyNode : policiesArry){
+							currentpolicies.add(policyNode.asText());
+						}
 					}
 				} catch (IOException e) {
 					log.error(e);
@@ -2036,8 +2038,10 @@ public class  SafesService {
 				responseJson = roleResponse.getResponse();
 				try {
 					JsonNode policiesArry = objMapper.readTree(responseJson).get("data").get("policies");
-					for(JsonNode policyNode : policiesArry){
-						currentpolicies.add(policyNode.asText());
+					if (null != policiesArry) {
+						for (JsonNode policyNode : policiesArry) {
+							currentpolicies.add(policyNode.asText());
+						}
 					}
 				} catch (IOException e) {
 					log.error(e);
