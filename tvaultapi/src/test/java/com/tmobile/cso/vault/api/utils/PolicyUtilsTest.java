@@ -24,6 +24,7 @@ import com.tmobile.cso.vault.api.process.Response;
 import org.apache.logging.log4j.LogManager;
 import org.junit.Before;
 import org.junit.FixMethodOrder;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.MethodSorters;
@@ -54,6 +55,7 @@ import static org.mockito.Mockito.when;
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 @PrepareForTest({ JSONUtil.class, ControllerUtil.class})
 @PowerMockIgnore({"javax.management.*"})
+@Ignore
 public class PolicyUtilsTest {
     @InjectMocks
     PolicyUtils policyUtils;

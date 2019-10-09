@@ -1,4 +1,4 @@
-package com.tmobile.cso.vault.api.VaultAuthFactory;
+package com.tmobile.cso.vault.api.authentication;
 
 import com.tmobile.cso.vault.api.process.RequestProcessor;
 import com.tmobile.cso.vault.api.process.Response;
@@ -15,7 +15,28 @@ public abstract class VaultAuth {
         return reqProcessor;
     }
 
-    public abstract Response vaultLogin(String jsonStr);
+    /**
+     * Vault login
+     * @param jsonStr
+     * @return
+     */
+    public abstract Response login(String jsonStr);
+
+    /**
+     * Read user details
+     * @param jsonStr
+     * @param token
+     * @return
+     */
     public abstract Response readUser(String jsonStr, String token);
+
+    /**
+     * Configure user with policies
+     * @param userName
+     * @param policiesString
+     * @param groups
+     * @param token
+     * @return
+     */
     public abstract Response configureUser(String userName, String policiesString, String groups, String token);
 }

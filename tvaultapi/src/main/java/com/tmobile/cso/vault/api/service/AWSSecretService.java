@@ -19,6 +19,7 @@ package com.tmobile.cso.vault.api.service;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.tmobile.cso.vault.api.authentication.VaultAuthFactory;
 import com.tmobile.cso.vault.api.common.TVaultConstants;
 import com.tmobile.cso.vault.api.controller.ControllerUtil;
 import com.tmobile.cso.vault.api.model.*;
@@ -46,6 +47,10 @@ public class AWSSecretService {
 
 	@Autowired
 	private RequestProcessor reqProcessor;
+
+	@Autowired
+	private VaultAuthFactory vaultAuthFactory;
+
 	private static Logger logger = LogManager.getLogger(AWSSecretService.class);
 
 	public ResponseEntity<String> createAWSRole(AWSDynamicRoleRequest awsDynamicRoleRequest, String token, UserDetails userDetails) {
@@ -190,7 +195,7 @@ public class AWSSecretService {
 		if (!HttpStatus.OK.equals(policyDeleteStatus.getStatusCode())) {
 			return ResponseEntity.status(HttpStatus.OK).body("{\"errors\":[\"Failed to remove policy\"]}");
 		}
-		Response userResponse = reqProcessor.process("/auth/ldap/users","{\"username\":\""+userName+"\"}",token);
+		Response userResponse = vaultAuthFactory.readUser(userName, token);
 
 		String responseJson="";
 		String groups="";
@@ -210,7 +215,7 @@ public class AWSSecretService {
 		}
 		String policiesString = org.apache.commons.lang3.StringUtils.join(policies, ",");
 
-		ControllerUtil.configureLDAPUser(userName,policiesString,groups,token);
+		vaultAuthFactory.configureUser(userName, policiesString, groups, token);
 		return ResponseEntity.status(response.getHttpstatus()).body(response.getResponse());
 	}
 }

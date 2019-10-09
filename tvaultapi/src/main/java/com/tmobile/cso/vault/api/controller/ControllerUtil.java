@@ -36,6 +36,7 @@ import java.util.stream.Stream;
 
 import javax.annotation.PostConstruct;
 
+import com.tmobile.cso.vault.api.authentication.VaultAuthFactory;
 import com.tmobile.cso.vault.api.model.*;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.ArrayUtils;
@@ -113,6 +114,13 @@ public final class ControllerUtil {
 	@Autowired(required = true)
 	public void setreqProcessor(RequestProcessor reqProcessor) {
 		ControllerUtil.reqProcessor = reqProcessor;
+	}
+
+	private static VaultAuthFactory vaultAuthFactory;
+
+	@Autowired(required = true)
+	public void setTvaultAuthFactory(VaultAuthFactory vaultAuthFactory) {
+		ControllerUtil.vaultAuthFactory = vaultAuthFactory;
 	}
 
 	/**
@@ -842,13 +850,8 @@ public final class ControllerUtil {
 			ObjectMapper objMapper = new ObjectMapper();
 			for(String userName : users){
 				
-				Response userResponse;
-				if (TVaultConstants.USERPASS.equals(vaultAuthMethod)) {
-					userResponse = reqProcessor.process("/auth/userpass/read","{\"username\":\""+userName+"\"}",token);
-				}
-				else {
-					userResponse = reqProcessor.process("/auth/ldap/users","{\"username\":\""+userName+"\"}",token);
-				}	
+				Response userResponse = vaultAuthFactory.readUser(userName, token);
+
 				String responseJson="";
 				String groups="";
 				List<String> policies = new ArrayList<>();
@@ -886,14 +889,7 @@ public final class ControllerUtil {
 							put(LogMessage.MESSAGE, String.format ("Current policies [%s]", policies )).
 							put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 							build()));
-					if (TVaultConstants.USERPASS.equals(vaultAuthMethod)) {
-						log.debug ("Inside userpass");
-						ControllerUtil.configureUserpassUser(userName,policiesString,token);
-					}
-					else {
-						log.debug ("Inside non-userpass");
-						ControllerUtil.configureLDAPUser(userName,policiesString,groups,token);
-					}
+					vaultAuthFactory.configureUser(userName,policiesString,groups,token);
 				}
 				
 			}

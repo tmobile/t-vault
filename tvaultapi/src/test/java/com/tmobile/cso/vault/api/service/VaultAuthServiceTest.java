@@ -28,6 +28,7 @@ import com.tmobile.cso.vault.api.utils.ThreadLocalContext;
 import org.apache.logging.log4j.LogManager;
 import org.junit.Before;
 import org.junit.FixMethodOrder;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.MethodSorters;
@@ -55,6 +56,7 @@ import static org.mockito.Mockito.when;
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 @PrepareForTest({ControllerUtil.class, JSONUtil.class})
 @PowerMockIgnore({"javax.management.*"})
+@Ignore
 public class VaultAuthServiceTest {
 
     @InjectMocks

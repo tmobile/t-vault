@@ -1,4 +1,4 @@
-package com.tmobile.cso.vault.api.VaultAuthFactory;
+package com.tmobile.cso.vault.api.authentication;
 
 import com.tmobile.cso.vault.api.process.Response;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,6 +20,10 @@ public class VaultAuthFactory {
     @Autowired
     OktaAuth oktaAuth;
 
+    /**
+     * Get vault auth method
+     * @return
+     */
     private VaultAuth getAuth() {
         VaultAuth vaultAuth;
         switch (vaultAuthMethod) {
@@ -36,15 +40,34 @@ public class VaultAuthFactory {
         return vaultAuth;
     }
 
+    /**
+     * Perform login for all auth backend
+     * @param jsonStr
+     * @return
+     */
     public Response login(String jsonStr) {
-        return getAuth().vaultLogin(jsonStr);
+        return getAuth().login(jsonStr);
     }
 
+    /**
+     * Read user details
+     * @param userName
+     * @param token
+     * @return
+     */
     public Response readUser(String userName, String token) {
         String jsonStr = "{\"username\":\""+userName+"\"}";
         return getAuth().readUser(jsonStr, token);
     }
 
+    /**
+     * Configure user with policies
+     * @param userName
+     * @param policiesString
+     * @param groups
+     * @param token
+     * @return
+     */
     public Response configureUser(String userName, String policiesString, String groups, String token) {
         return getAuth().configureUser(userName,policiesString,groups,token);
     }
