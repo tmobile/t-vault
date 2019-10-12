@@ -15,6 +15,9 @@
 # See the readme.txt file for additional language around disclaimer of warranties.
 # =========================================================================			
 
+# To run docker without --privileged, use 'true' else 'false'
+SKIP_SETCAP='false'
+
 ###########################################################################
 #                            Auth Backend                                 #
 ###########################################################################
