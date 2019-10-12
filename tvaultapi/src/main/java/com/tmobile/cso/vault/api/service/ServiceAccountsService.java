@@ -934,7 +934,7 @@ public class  ServiceAccountsService {
 		if (serviceAccountUser.getAccess().equalsIgnoreCase("reset")) {
 			serviceAccountUser.setAccess(TVaultConstants.WRITE_POLICY);
 		}
-		String userName = serviceAccountUser.getUsername();
+		String userName = serviceAccountUser.getUsername().toLowerCase();
 		String svcAccName = serviceAccountUser.getSvcAccName();
 		String access = serviceAccountUser.getAccess();
 
@@ -1002,7 +1002,10 @@ public class  ServiceAccountsService {
 							build()));
 				}
 				policies.addAll(currentpolicies);
-				policies.remove(policy);
+				//policies.remove(policy);
+				policies.remove(r_policy);
+				policies.remove(w_policy);
+				policies.remove(d_policy);
 			}
 			String policiesString = org.apache.commons.lang3.StringUtils.join(policies, ",");
 			String currentpoliciesString = org.apache.commons.lang3.StringUtils.join(currentpolicies, ",");
@@ -1018,7 +1021,7 @@ public class  ServiceAccountsService {
 				String path = new StringBuffer(TVaultConstants.SVC_ACC_ROLES_PATH).append(svcAccName).toString();
 				Map<String,String> params = new HashMap<String,String>();
 				params.put("type", "users");
-				params.put("name",serviceAccountUser.getUsername());
+				params.put("name",userName);
 				params.put("path",path);
 				params.put("access","delete");
 				Response metadataResponse = ControllerUtil.updateMetadata(params,token);
@@ -1656,7 +1659,7 @@ public class  ServiceAccountsService {
 		if (serviceAccountGroup.getAccess().equalsIgnoreCase("reset")) {
 			serviceAccountGroup.setAccess(TVaultConstants.WRITE_POLICY);
 		}
-        String groupName = serviceAccountGroup.getGroupname();
+        String groupName = serviceAccountGroup.getGroupname().toLowerCase();
         String svcAccName = serviceAccountGroup.getSvcAccName();
         String access = serviceAccountGroup.getAccess();
 
@@ -1718,7 +1721,10 @@ public class  ServiceAccountsService {
                 }
 
                 policies.addAll(currentpolicies);
-                policies.remove(policy);
+                //policies.remove(policy);
+				policies.remove(r_policy);
+				policies.remove(w_policy);
+				policies.remove(d_policy);
             }
             String policiesString = org.apache.commons.lang3.StringUtils.join(policies, ",");
 			String currentpoliciesString = org.apache.commons.lang3.StringUtils.join(currentpolicies, ",");
@@ -2340,7 +2346,10 @@ public class  ServiceAccountsService {
 					log.error(e);
 				}
 				policies.addAll(currentpolicies);
-				policies.remove(policy);
+				//policies.remove(policy);
+				policies.remove(r_policy);
+				policies.remove(w_policy);
+				policies.remove(d_policy);
 
 			}
 

@@ -25,7 +25,9 @@ import java.io.IOException;
 import java.util.*;
 
 import com.tmobile.cso.vault.api.common.TVaultConstants;
+import com.tmobile.cso.vault.api.exception.TVaultValidationException;
 import com.tmobile.cso.vault.api.model.*;
+import com.tmobile.cso.vault.api.validator.TokenValidator;
 import org.apache.logging.log4j.LogManager;
 import org.junit.Before;
 import org.junit.FixMethodOrder;
@@ -68,6 +70,9 @@ public class SafesServiceTest {
 
     @Mock
     AppRoleService appRoleService;
+
+    @Mock
+    TokenValidator tokenValidator;
 
     @Mock
     AWSIAMAuthService awsiamAuthService;
@@ -1549,7 +1554,13 @@ public class SafesServiceTest {
         when(ControllerUtil.isPathValid(path)).thenReturn(true);
         when(reqProcessor.process("/sdb/createfolder",jsonStr,token)).thenReturn(response);
         UserDetails userDetails = getMockUser(false);
-        when(ControllerUtil.isValidSafe(path, token)).thenReturn(true);
+        VaultTokenLookupDetails  vaultTokenLookupDetails = new VaultTokenLookupDetails();
+        vaultTokenLookupDetails.setPolicies(new String[] {"w_shared_mysafe01"});
+        when(ControllerUtil.getSafeType(path)).thenReturn("shared");
+        when(ControllerUtil.getSafeName(path)).thenReturn("mysafe01");
+        try {
+            when(tokenValidator.getVaultTokenLookupDetails(token)).thenReturn(vaultTokenLookupDetails);
+        } catch (TVaultValidationException e) {}
         ResponseEntity<String> responseEntity = safesService.createNestedfolder(token, path, userDetails);
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
     }

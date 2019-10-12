@@ -42,7 +42,7 @@ script(type='text/ng-template', id='appRolePopup.html')
                 .details-input-group
                     .common-form-label Role Name 
                       span * 
-                    input.form-control.input-box-style(value="{{approleConfPopupObj.role_name}}" ng-change="checkRoleExists()" restrict-config-char ng-model="approleConfPopupObj.role_name" placeholder="Role name" maxlength="50" minlength="3" ng-disabled="roleNameSelected" uib-tooltip="Name of the AppRole" tooltip-placement="top" tooltip-popup-delay="600") 
+                    input.form-control.input-box-style(value="{{approleConfPopupObj.role_name}}" ng-change="checkRoleExists()" restrict-config-char-approle ng-model="approleConfPopupObj.role_name" placeholder="Role name" maxlength="50" minlength="3" ng-disabled="roleNameSelected" uib-tooltip="Name of the AppRole" tooltip-placement="top" tooltip-popup-delay="600") 
                     div.key-acceptance-info(ng-if = "!editingApprole.status") Please enter minimum 3 characters.
                         .role-status-text.available(ng-if = "!rolenameExists && approleConfPopupObj.role_name.length>2") Available
                         .role-status-text.exists(ng-if = "rolenameExists && approleConfPopupObj.role_name.length>2") AppRole Exists
