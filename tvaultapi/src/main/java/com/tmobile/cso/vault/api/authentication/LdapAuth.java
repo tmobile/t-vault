@@ -43,4 +43,29 @@ public class LdapAuth extends VaultAuth {
     public Response configureUser(String userName, String policiesString, String groups, String token) {
         return ControllerUtil.configureLDAPUser(userName,policiesString,groups,token);
     }
+
+
+    /**
+     * Read group details
+     * @param jsonStr
+     * @param token
+     * @return
+     */
+    @Override
+    public Response readGroup(String jsonStr, String token) {
+        RequestProcessor requestProcessor = getReqProcessor();
+        return requestProcessor.process("/auth/ldap/groups",jsonStr,token);
+    }
+
+    /**
+     * Configure group with policies
+     * @param groupName
+     * @param policiesString
+     * @param token
+     * @return
+     */
+    public Response configureGroup(String groupName, String policiesString, String token) {
+        return ControllerUtil.configureLDAPGroup(groupName, policiesString, token);
+    }
+
 }
