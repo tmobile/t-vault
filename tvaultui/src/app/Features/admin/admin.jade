@@ -195,7 +195,7 @@ script(type='text/ng-template', id='manageSecretId.html')
                                             md-content(class="md-padding md-content-wrapper")
                                                 .unavailable-text(ng-if='(tab.safes.length === 0)')
                                                     | No Safe Available
-                                                tiles.tiles-wrapper(data="tab.safes" num-of-tiles="numOfTiles" tile-func-available="true" img="'safe.png'" search-value="searchValue" tile-details="showNotification" parent="admin" edit-folder="adminEditFolder(param)" delete-folder="deleteSafePopup(param)" loading="isLoadingData")
+                                                tiles(data="tab.safes" num-of-tiles="numOfTiles" tile-func-available="true" img="'safe.png'" search-value="searchValue" tile-details="showNotification" parent="admin" edit-folder="adminEditFolder(param)" delete-folder="deleteSafePopup(param)" loading="isLoadingData")
                                 div.create-safe-wrapper
                                     .function-text.link-style.option.right(ng-click="goTo('change-safe')")
                                         .action-icon-wrapper.static
