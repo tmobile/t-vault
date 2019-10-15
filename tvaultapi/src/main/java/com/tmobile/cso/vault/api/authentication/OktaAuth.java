@@ -43,4 +43,27 @@ public class OktaAuth extends VaultAuth {
     public Response configureUser(String userName, String policiesString, String groups, String token) {
         return ControllerUtil.configureOktaUser(userName,policiesString,groups,token);
     }
+
+    /**
+     * Read group details
+     * @param jsonStr
+     * @param token
+     * @return
+     */
+    @Override
+    public Response readGroup(String jsonStr, String token) {
+        RequestProcessor requestProcessor = getReqProcessor();
+        return requestProcessor.process("/auth/okta/groups",jsonStr,token);
+    }
+
+    /**
+     * Configure group with policies
+     * @param groupName
+     * @param policiesString
+     * @param token
+     * @return
+     */
+    public Response configureGroup(String groupName, String policiesString, String token) {
+        return ControllerUtil.configureOktaGroup(groupName, policiesString, token);
+    }
 }

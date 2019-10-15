@@ -880,6 +880,27 @@
 		],
 		"outparams":["policies"]
 
+	},
+
+	{"#":"**** Fetch details of a configured Okta group *****",
+
+		"apiEndPoint":"/auth/okta/groups",
+		"vaultEndPoint":"/auth/okta/groups/<groupname>",
+		"method":"GET",
+		"params":[
+			{"name":"groupname","required":true, "appendToPath":true}
+		],
+		"outparams":["data"]
+	},
+	{"#":"Configuring Okta Group",
+
+		"apiEndPoint":"/auth/okta/groups/configure",
+		"vaultEndPoint":"/auth/okta/groups/<groupname>",
+		"method":"POST",
+		"params":[
+			{"name":"groupname","required":true,"appendToPath":true},
+			{"name":"policies","required":true}
+		]
 	}
 
 ]

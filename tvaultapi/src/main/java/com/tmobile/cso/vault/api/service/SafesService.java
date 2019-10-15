@@ -932,7 +932,7 @@ public class  SafesService {
 					}
 				}
 			}
-			Response getGrpResp = reqProcessor.process("/auth/ldap/groups","{\"groupname\":\""+groupName+"\"}",token);
+			Response getGrpResp = vaultAuthFactory.readGroup(groupName, token);
 			String responseJson="";
 
 			List<String> policies = new ArrayList<>();
@@ -958,9 +958,9 @@ public class  SafesService {
 			}
 			String policiesString = StringUtils.join(policies, ",");
 			String currentpoliciesString = StringUtils.join(currentpolicies, ",");
-			Response ldapConfigresponse = ControllerUtil.configureLDAPGroup(groupName,policiesString,token);
+			Response groupConfigresponse = vaultAuthFactory.configureGroup(groupName,policiesString,token);
 
-			if(ldapConfigresponse.getHttpstatus().equals(HttpStatus.NO_CONTENT)){
+			if(groupConfigresponse.getHttpstatus().equals(HttpStatus.NO_CONTENT)){
 				Map<String,String> params = new HashMap<String,String>();
 				params.put("type", "groups");
 				params.put("name",groupName);
@@ -1014,8 +1014,8 @@ public class  SafesService {
 								put(LogMessage.STATUS, (null!=metadataResponse)?metadataResponse.getHttpstatus().toString():TVaultConstants.EMPTY).
 								put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 								build()));
-						ldapConfigresponse = ControllerUtil.configureLDAPGroup(groupName,currentpoliciesString,token);
-						if(ldapConfigresponse.getHttpstatus().equals(HttpStatus.NO_CONTENT)){
+						groupConfigresponse = vaultAuthFactory.configureGroup(groupName,currentpoliciesString,token);
+						if(groupConfigresponse.getHttpstatus().equals(HttpStatus.NO_CONTENT)){
 							log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 									put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 									put(LogMessage.ACTION, "Add Group to SDB").
@@ -1039,7 +1039,6 @@ public class  SafesService {
 					}
 				}		
 			}else{
-				ldapConfigresponse.getResponse();
 				return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Group configuration failed.Try Again\"]}");
 			}	
 		}else{
@@ -1259,13 +1258,13 @@ public class  SafesService {
 					}
 				}
 			}
-			Response userResponse = reqProcessor.process("/auth/ldap/groups","{\"groupname\":\""+groupName+"\"}",token);
+			Response getGrpResp = vaultAuthFactory.readGroup(groupName, token);
 			String responseJson="";
 			List<String> policies = new ArrayList<>();
 			List<String> currentpolicies = new ArrayList<>();
 
-			if(HttpStatus.OK.equals(userResponse.getHttpstatus())){
-				responseJson = userResponse.getResponse();	
+			if(HttpStatus.OK.equals(getGrpResp.getHttpstatus())){
+				responseJson = getGrpResp.getResponse();
 				try {
 					//currentpolicies = ControllerUtil.getPoliciesAsStringFromJson(objMapper, responseJson);
 					currentpolicies = ControllerUtil.getPoliciesAsListFromJson(objMapper, responseJson);
@@ -1279,8 +1278,8 @@ public class  SafesService {
 				policies.remove(wo_policy);
 				String policiesString = StringUtils.join(policies, ",");
 				String currentpoliciesString = StringUtils.join(currentpolicies, ",");
-				Response ldapConfigresponse = ControllerUtil.configureLDAPGroup(groupName,policiesString,token);
-				if(ldapConfigresponse.getHttpstatus().equals(HttpStatus.NO_CONTENT)){ 
+				Response groupConfigresponse = vaultAuthFactory.configureGroup(groupName,policiesString,token);
+				if(groupConfigresponse.getHttpstatus().equals(HttpStatus.NO_CONTENT)){
 					Map<String,String> params = new HashMap<String,String>();
 					params.put("type", "groups");
 					params.put("name",groupName);
@@ -1313,8 +1312,8 @@ public class  SafesService {
 						else {
 							log.debug("Meta data update failed");
 							log.debug((null!=metadataResponse)?metadataResponse.getResponse():TVaultConstants.EMPTY);
-							ldapConfigresponse = ControllerUtil.configureLDAPGroup(groupName,currentpoliciesString,token);
-							if(ldapConfigresponse.getHttpstatus().equals(HttpStatus.NO_CONTENT)){
+							groupConfigresponse = vaultAuthFactory.configureGroup(groupName,currentpoliciesString,token);
+							if(groupConfigresponse.getHttpstatus().equals(HttpStatus.NO_CONTENT)){
 								log.debug("Reverting user policy update");
 								return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"messages\":[\"Group configuration failed.Please try again\"]}");
 							}else{

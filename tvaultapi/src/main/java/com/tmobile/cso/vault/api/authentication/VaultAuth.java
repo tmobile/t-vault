@@ -39,4 +39,21 @@ public abstract class VaultAuth {
      * @return
      */
     public abstract Response configureUser(String userName, String policiesString, String groups, String token);
+
+    /**
+     * Read group details
+     * @param jsonStr
+     * @param token
+     * @return
+     */
+    public abstract Response readGroup(String jsonStr, String token);
+
+    /**
+     * Configure group with policies
+     * @param groupName
+     * @param policiesString
+     * @param token
+     * @return
+     */
+    public abstract Response configureGroup(String groupName, String policiesString, String token);
 }

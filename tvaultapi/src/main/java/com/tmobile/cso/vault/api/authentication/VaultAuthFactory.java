@@ -71,4 +71,19 @@ public class VaultAuthFactory {
     public Response configureUser(String userName, String policiesString, String groups, String token) {
         return getAuth().configureUser(userName,policiesString,groups,token);
     }
+
+    /**
+     * Read group details
+     * @param groupName
+     * @param token
+     * @return
+     */
+    public Response readGroup(String groupName, String token) {
+        String jsonStr = "{\"groupname\":\""+groupName+"\"}";
+        return getAuth().readGroup(jsonStr, token);
+    }
+
+    public Response configureGroup(String groupName, String policiesString, String token) {
+        return getAuth().configureGroup(groupName, policiesString, token);
+    }
 }

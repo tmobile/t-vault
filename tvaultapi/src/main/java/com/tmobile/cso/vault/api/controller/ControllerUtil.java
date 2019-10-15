@@ -481,6 +481,26 @@ public final class ControllerUtil {
 		}
 		return reqProcessor.process("/auth/ldap/groups/configure",ldapConfigJson,token);
 	}
+
+	public static Response configureOktaGroup(String groupName,String policies,String token ){
+		ObjectMapper objMapper = new ObjectMapper();
+		Map<String,String>configureGrouMap = new HashMap<String,String>();
+		configureGrouMap.put("groupname", groupName);
+		configureGrouMap.put("policies", policies);
+		String oktaConfigJson ="";
+		try {
+			oktaConfigJson = objMapper.writeValueAsString(configureGrouMap);
+		} catch (JsonProcessingException e) {
+			log.error(e);
+			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+					put(LogMessage.ACTION, "configureOktaGroup").
+					put(LogMessage.MESSAGE, String.format ("Unable to create oktaConfigJson [%s] with groupName [%s] policies [%s] ", e.getMessage(), groupName, policies)).
+					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+					build()));
+		}
+		return reqProcessor.process("/auth/okta/groups/configure",oktaConfigJson,token);
+	}
 	
 	public static Response configureAWSRole(String roleName,String policies,String token ){
 		ObjectMapper objMapper = new ObjectMapper();
@@ -929,7 +949,7 @@ public final class ControllerUtil {
 			Set<String> groups = acessInfo.keySet();
 			ObjectMapper objMapper = new ObjectMapper();
 			for(String groupName : groups){
-				Response response = reqProcessor.process("/auth/ldap/groups","{\"groupname\":\""+groupName+"\"}",token);
+				Response response = vaultAuthFactory.readGroup(groupName, token);
 				String responseJson=TVaultConstants.EMPTY;
 				List<String> policies = new ArrayList<>();
 				List<String> currentpolicies = new ArrayList<>();
@@ -958,7 +978,7 @@ public final class ControllerUtil {
 							put(LogMessage.MESSAGE, String.format ("Current policies [%s]", policies )).
 							put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 							build()));
-					ControllerUtil.configureLDAPGroup(groupName,policiesString,token);
+					vaultAuthFactory.configureGroup(groupName,policiesString,token);
 				}
 			}
 		}

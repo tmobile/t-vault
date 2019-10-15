@@ -1527,7 +1527,7 @@ public class  ServiceAccountsService {
 					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 					build()));
 
-			Response groupResp = reqProcessor.process("/auth/ldap/groups","{\"groupname\":\""+groupName+"\"}",token);
+			Response groupResp = vaultAuthFactory.readGroup(groupName, token);
 
 			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
@@ -1575,7 +1575,7 @@ public class  ServiceAccountsService {
 					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 					build()));
 
-			Response ldapConfigresponse = ControllerUtil.configureLDAPGroup(groupName,policiesString,token);
+			Response ldapConfigresponse = vaultAuthFactory.configureGroup(groupName,policiesString,token);
 
 			if(ldapConfigresponse.getHttpstatus().equals(HttpStatus.NO_CONTENT) || ldapConfigresponse.getHttpstatus().equals(HttpStatus.OK)){
 				String path = new StringBuffer(TVaultConstants.SVC_ACC_ROLES_PATH).append(svcAccName).toString();
@@ -1596,7 +1596,7 @@ public class  ServiceAccountsService {
 							build()));
 					return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Group is successfully associated with Service Account\"]}");
 				}
-				ldapConfigresponse = ControllerUtil.configureLDAPGroup(groupName,currentpoliciesString,token);
+				ldapConfigresponse = vaultAuthFactory.configureGroup(groupName,currentpoliciesString,token);
 				if(ldapConfigresponse.getHttpstatus().equals(HttpStatus.NO_CONTENT)){
 					log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 							put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
@@ -1681,7 +1681,7 @@ public class  ServiceAccountsService {
                     put(LogMessage.MESSAGE, String.format ("Policies are, read - [%s], write - [%s], deny -[%s], owner - [%s]", r_policy, w_policy, d_policy, o_policy)).
                     put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
                     build()));
-            Response groupResp = reqProcessor.process("/auth/ldap/groups","{\"groupname\":\""+groupName+"\"}",token);
+            Response groupResp = vaultAuthFactory.readGroup(groupName, token);
 
             log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
                     put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
@@ -1716,7 +1716,7 @@ public class  ServiceAccountsService {
             }
             String policiesString = org.apache.commons.lang3.StringUtils.join(policies, ",");
 			String currentpoliciesString = org.apache.commons.lang3.StringUtils.join(currentpolicies, ",");
-            Response ldapConfigresponse = ControllerUtil.configureLDAPGroup(groupName,policiesString,token);
+            Response ldapConfigresponse = vaultAuthFactory.configureGroup(groupName,policiesString,token);
 
             if(ldapConfigresponse.getHttpstatus().equals(HttpStatus.NO_CONTENT) || ldapConfigresponse.getHttpstatus().equals(HttpStatus.OK)){
 				String path = new StringBuffer(TVaultConstants.SVC_ACC_ROLES_PATH).append(svcAccName).toString();
@@ -1736,7 +1736,7 @@ public class  ServiceAccountsService {
 							build()));
 					return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Group is successfully removed from Service Account\"]}");
 				}
-				ldapConfigresponse = ControllerUtil.configureLDAPGroup(groupName,currentpoliciesString,token);
+				ldapConfigresponse = vaultAuthFactory.configureGroup(groupName,currentpoliciesString,token);
 				if(ldapConfigresponse.getHttpstatus().equals(HttpStatus.NO_CONTENT)){
 					log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 							put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
@@ -2064,7 +2064,7 @@ public class  ServiceAccountsService {
 			Set<String> groups = acessInfo.keySet();
 			ObjectMapper objMapper = new ObjectMapper();
 			for(String groupName : groups){
-				Response response = reqProcessor.process("/auth/ldap/groups","{\"groupname\":\""+groupName+"\"}",token);
+				Response response = vaultAuthFactory.readGroup(groupName, token);
 				String responseJson=TVaultConstants.EMPTY;
 				List<String> policies = new ArrayList<>();
 				List<String> currentpolicies = new ArrayList<>();
@@ -2093,7 +2093,7 @@ public class  ServiceAccountsService {
 							put(LogMessage.MESSAGE, String.format ("Current policies [%s]", policies )).
 							put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 							build()));
-					ControllerUtil.configureLDAPGroup(groupName,policiesString,token);
+					vaultAuthFactory.configureGroup(groupName,policiesString,token);
 				}
 			}
 		}
