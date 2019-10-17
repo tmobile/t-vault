@@ -797,7 +797,7 @@
                     else {
                         $rootScope.showDetails = false;
                         $rootScope.activeDetailsTab = 'permissions';
-                        if ($scope.svcacc.managedBy.userId.toLowerCase() == SessionStore.getItem("username")) {
+                        if ($scope.svcacc.managedBy.userName.toLowerCase() == SessionStore.getItem("username")) {
                             if ($scope.svcacc.initialPasswordReset == "false" || $scope.initialPasswordReset == "") {
                                 $scope.initialPwdResetRequired = true;
                             }

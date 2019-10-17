@@ -311,7 +311,8 @@ public class  ServiceAccountsService {
 			if (!adUserAccount.isEmpty()) {
 				allServiceAccounts.get(0).setManagedBy(adUserAccount.get(0));
 				if (allServiceAccounts.get(0).getManagedBy().getUserId() != null) {
-					serviceAccount.setOwner(allServiceAccounts.get(0).getManagedBy().getUserId().toLowerCase());
+					// For okta authentication user name is required instead of user id
+					serviceAccount.setOwner(allServiceAccounts.get(0).getManagedBy().getUserName().toLowerCase());
 				}
 			}
 		}
