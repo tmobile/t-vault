@@ -313,6 +313,10 @@ public class  ServiceAccountsService {
 				if (allServiceAccounts.get(0).getManagedBy().getUserId() != null) {
 					// For okta authentication user name is required instead of user id
 					serviceAccount.setOwner(allServiceAccounts.get(0).getManagedBy().getUserName().toLowerCase());
+					if (!vaultAuthMethod.equals("okta")) {
+						// for ldap, userid is taken as owner info
+						serviceAccount.setOwner(allServiceAccounts.get(0).getManagedBy().getUserId().toLowerCase());
+					}
 				}
 			}
 		}
