@@ -949,12 +949,14 @@
                         $scope.approleConfPopupObj.secret_id_num_uses = data.secret_id_num_uses;
                         var policy_array = data.policies;
                         var policies = [];
-                        for (var index = 0;index<policy_array.length;index++) {
-                            var policyName = policy_array[index].split("_", -1);
-                            if (policyName.length>=3) {
-                                policies.push(policyName.slice(2, policyName.length).join("_"));
-                            } else {
-                                policies.push(policyName);
+                        if (policy_array != undefined && policy_array != null) {
+                            for (var index = 0;index<policy_array.length;index++) {
+                                var policyName = policy_array[index].split("_", -1);
+                                if (policyName.length>=3) {
+                                    policies.push(policyName.slice(2, policyName.length).join("_"));
+                                } else {
+                                    policies.push(policyName);
+                                }
                             }
                         }
                         $scope.approleConfPopupObj.policies = policies;

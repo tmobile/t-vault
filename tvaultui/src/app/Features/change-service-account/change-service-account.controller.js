@@ -1126,7 +1126,26 @@
         }
 
         $scope.addPermission = function (type, key, permission, editingPermission) {
-            if ((key != '' && key != undefined) || type == 'AwsRoleConfigure') {
+            var duplicate = false;
+            if (!editingPermission && key != '' && key != undefined) {
+                if (type === "users" && $scope.permissionData.UsersPermissionsData!= null && $scope.permissionData.UsersPermissionsData.hasOwnProperty(key.toLowerCase())) {
+                    duplicate = true;
+                }
+                if (type === "groups" && $scope.permissionData.GroupsPermissionsData!= null && $scope.permissionData.GroupsPermissionsData.hasOwnProperty(key.toLowerCase())) {
+                    duplicate = true;
+                }
+                if (type === "AWSPermission" && $scope.permissionData.AwsPermissionsData.data!= null && $scope.permissionData.AwsPermissionsData.data.hasOwnProperty(key.toLowerCase())) {
+                    duplicate = true;
+                }
+                if (type === "AppRolePermission" && $scope.permissionData.AppRolePermissionsData.data!= null && $scope.permissionData.AppRolePermissionsData.data.hasOwnProperty(key.toLowerCase())) {
+                    duplicate = true;
+                }
+            }
+            if (duplicate) {
+                $scope.errorMessage = 'Permission already exists! Select edit icon for update';
+                $scope.error('md');
+            }
+            else if ((key != '' && key != undefined) || type == 'AwsRoleConfigure') {
                 try {
                     if (type === "users" && !editingPermission) {
                         key = document.getElementById('addUser').value.toLowerCase();
