@@ -293,6 +293,9 @@ public class  ServiceAccountsService {
         if (allServiceAccounts == null || allServiceAccounts.isEmpty()) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Failed to onboard Service Account. Unable to read Service account details\"]}");
         }
+        if (TVaultConstants.EXPIRED.toLowerCase().equals(allServiceAccounts.get(0).getAccountStatus().toLowerCase())) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Failed to onboard Service Account. Service account expired\"]}");
+        }
         int maxPwdAge = allServiceAccounts.get(0).getMaxPwdAge();
 		serviceAccount.setOwner(allServiceAccounts.get(0).getOwner());
 		if (serviceAccount.isAutoRotate()) {

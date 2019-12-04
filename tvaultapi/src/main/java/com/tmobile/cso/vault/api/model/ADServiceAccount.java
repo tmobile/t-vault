@@ -270,6 +270,7 @@ public class ADServiceAccount implements Serializable {
 		/*
 			If accountExpires not in past, then accountStatus = active
 		 */
+		accountExpiresFormatted = getAccountExpiresFormatted();
 		if (accountExpiresFormatted == null || accountExpiresFormatted.equals(TVaultConstants.NEVER_EXPIRE)) {
 			accountStatus = "active";
 		}
