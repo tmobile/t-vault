@@ -134,6 +134,7 @@
         'vault.directives.restrictSpecialCharForTime',
         'vault.directives.headerHome',
         'vault.directives.restrictConfigCharApprole',
+        'vault.directives.restrictSpecialCharWithSpace',
     ]);
 
     angular.module( 'vault.factories', [

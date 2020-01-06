@@ -213,7 +213,7 @@ script(src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"
                                             div.input-flex
                                                 div.input-box-style.user-input
 
-                                                    input(type='text' class="form-control" autofocus='!showInputLoader.show' ng-keyup='onKeyUp(searchValue, "userName")' placeholder='Username' restrict-special-char minlength="1" maxlength="50" ng-model="inputValue.userNameVal" id="addUser" ng-class="{error: (inputValue.userNameValEmpty &&  (inputValue.userNameVal == '' ||  inputValue.userNameVal == undefined)), highlightBox: inputSelected.select}" ng-change="searchValue.userName = inputValue.userNameVal; inputValue.userNameValEmpty = false;")
+                                                    input(type='text' class="form-control" autofocus='!showInputLoader.show' ng-keyup='onKeyUp(searchValue, "userName")' placeholder='Username' restrict-special-char-with-space minlength="1" maxlength="50" ng-model="inputValue.userNameVal" id="addUser" ng-class="{error: (inputValue.userNameValEmpty &&  (inputValue.userNameVal == '' ||  inputValue.userNameVal == undefined)), highlightBox: inputSelected.select}" ng-change="searchValue.userName = inputValue.userNameVal; inputValue.userNameValEmpty = false;")
                                                 div.loader(ng-if='showInputLoader.show && inputValue.userNameVal.length > 0')
                                                     div.ball-spin-fade-loader
                                                         div
@@ -272,7 +272,7 @@ script(src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"
                                         .add-block.container.name.col-lg-6.col-md-6.col-sm-12.col-xs-12
                                            div.input-flex
                                                 div.input-box-style.user-input
-                                                    input(type='text' class="form-control" autofocus='!showInputLoader.show' ng-keyup='onKeyUp(searchValue, "groupName")' placeholder='Group Name' restrict-special-char minlength="1" maxlength="50" ng-model="inputValue.grpNameVal" id="addGroup" ng-class="{error: (inputValue.grpNameValEmpty &&  (inputValue.grpNameVal == '' ||  inputValue.grpNameVal == undefined)), highlightBox: inputSelected.select}" ng-change="searchValue.groupName = inputValue.grpNameVal; inputValue.grpNameValEmpty = false;")
+                                                    input(type='text' class="form-control" autofocus='!showInputLoader.show' ng-keyup='onKeyUp(searchValue, "groupName")' placeholder='Group Name' restrict-special-char-with-space minlength="1" maxlength="50" ng-model="inputValue.grpNameVal" id="addGroup" ng-class="{error: (inputValue.grpNameValEmpty &&  (inputValue.grpNameVal == '' ||  inputValue.grpNameVal == undefined)), highlightBox: inputSelected.select}" ng-change="searchValue.groupName = inputValue.grpNameVal; inputValue.grpNameValEmpty = false;")
                                                  div.loader(ng-if='showInputLoader.show && inputValue.grpNameVal.length > 0')
                                                     div.ball-spin-fade-loader
                                                         div
