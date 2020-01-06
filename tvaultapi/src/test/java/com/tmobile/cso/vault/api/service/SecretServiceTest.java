@@ -19,6 +19,7 @@ package com.tmobile.cso.vault.api.service;
 import com.google.common.collect.ImmutableMap;
 import com.tmobile.cso.vault.api.controller.ControllerUtil;
 import com.tmobile.cso.vault.api.model.Secret;
+import com.tmobile.cso.vault.api.model.UserDetails;
 import com.tmobile.cso.vault.api.process.RequestProcessor;
 import com.tmobile.cso.vault.api.process.Response;
 import com.tmobile.cso.vault.api.utils.JSONUtil;
@@ -41,10 +42,14 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
+import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
+import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.when;
 
 @RunWith(PowerMockRunner.class)
@@ -84,6 +89,16 @@ public class SecretServiceTest {
         return response;
     }
 
+    UserDetails getMockUser(boolean isAdmin) {
+        String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+        UserDetails userDetails = new UserDetails();
+        userDetails.setUsername("normaluser");
+        userDetails.setAdmin(isAdmin);
+        userDetails.setClientToken(token);
+        userDetails.setSelfSupportToken(token);
+        return userDetails;
+    }
+
     @Test
     public void test_write_successfully() {
 
@@ -99,9 +114,62 @@ public class SecretServiceTest {
         when(ControllerUtil.areSecretKeysValid(jsonStr)).thenReturn(true);
         when(ControllerUtil.isPathValid("shared/mysafe01/myfolder")).thenReturn(true);
         when(reqProcessor.process("/write",jsonStr,token)).thenReturn(response);
+
+        Response userResponse = getMockResponse(HttpStatus.OK, true, "{\"data\":{\"bound_cidrs\":[],\"max_ttl\":0,\"policies\":[\"default\",\"w_shared_mysafe01\",\"w_shared_mysafe01\"],\"ttl\":0,\"groups\":\"admin\"}}");
+        List<String> resList = new ArrayList<>();
+        resList.add("default");
+        resList.add("w_shared_mysafe01");
+        resList.add("w_shared_mysafe02");
+        try {
+            when(ControllerUtil.getPoliciesAsListFromJson(any(), any())).thenReturn(resList);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        String path ="shared/mysafe01/myfolder";
+        when(ControllerUtil.getSafeType(path)).thenReturn("shared");
+        when(ControllerUtil.getSafeName(path)).thenReturn("mysafe01");
+        when(reqProcessor.process("/auth/ldap/users","{\"username\":\"normaluser\"}",token)).thenReturn(userResponse);
+
         when(JSONUtil.getJSON(secret)).thenReturn(jsonStr);
-        ResponseEntity<String> responseEntity = secretService.write(token, secret);
+        ResponseEntity<String> responseEntity = secretService.write(token, secret, getMockUser(false));
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntity);
+    }
+
+    @Test
+    public void test_write_failure_no_explicit_permission() {
+
+        String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+        String jsonStr = "{\"path\":\"shared/mysafe01/myfolder\",\"data\":{\"secret1\":\"value1\",\"secret2\":\"value2\"}}";
+        HashMap<String, String> data = new HashMap<>();
+        data.put("secret1", "value1");
+        Secret secret = new Secret("shared/mysafe01/myfolder", data);
+        Response response = getMockResponse(HttpStatus.NO_CONTENT, true, "");
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"No permisison to write secret in this safe\"]}");
+
+        when(ControllerUtil.addDefaultSecretKey(jsonStr)).thenReturn("{\"path\":\"shared/mysafe01/myfolder\",\"data\":{\"secret1\":\"value1\",\"secret2\":\"value2\"}}");
+        when(ControllerUtil.areSecretKeysValid(jsonStr)).thenReturn(true);
+        when(ControllerUtil.isPathValid("shared/mysafe01/myfolder")).thenReturn(true);
+        when(reqProcessor.process("/write",jsonStr,token)).thenReturn(response);
+
+        Response userResponse = getMockResponse(HttpStatus.OK, true, "{\"data\":{\"bound_cidrs\":[],\"max_ttl\":0,\"policies\":[\"default\",\"w_shared_mysafe03\",\"w_shared_mysafe01\"],\"ttl\":0,\"groups\":\"admin\"}}");
+        List<String> resList = new ArrayList<>();
+        resList.add("default");
+        resList.add("w_shared_mysafe03");
+        resList.add("w_shared_mysafe02");
+        try {
+            when(ControllerUtil.getPoliciesAsListFromJson(any(), any())).thenReturn(resList);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        String path ="shared/mysafe01/myfolder";
+        when(ControllerUtil.getSafeType(path)).thenReturn("shared");
+        when(ControllerUtil.getSafeName(path)).thenReturn("mysafe01");
+        when(reqProcessor.process("/auth/ldap/users","{\"username\":\"normaluser\"}",token)).thenReturn(userResponse);
+
+        when(JSONUtil.getJSON(secret)).thenReturn(jsonStr);
+        ResponseEntity<String> responseEntity = secretService.write(token, secret, getMockUser(false));
+        assertEquals(HttpStatus.BAD_REQUEST, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
     }
 
@@ -119,7 +187,7 @@ public class SecretServiceTest {
         when(ControllerUtil.areSecretKeysValid(jsonStr)).thenReturn(true);
         when(ControllerUtil.isPathValid("shared/mysafe01/myfolder")).thenReturn(false);
         when(JSONUtil.getJSON(secret)).thenReturn(jsonStr);
-        ResponseEntity<String> responseEntity = secretService.write(token, secret);
+        ResponseEntity<String> responseEntity = secretService.write(token, secret, getMockUser(false));
         assertEquals(HttpStatus.BAD_REQUEST, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
     }
@@ -140,7 +208,23 @@ public class SecretServiceTest {
         when(ControllerUtil.isPathValid("shared/mysafe01/myfolder")).thenReturn(true);
         when(reqProcessor.process("/write",jsonStr,token)).thenReturn(response);
         when(JSONUtil.getJSON(secret)).thenReturn(jsonStr);
-        ResponseEntity<String> responseEntity = secretService.write(token, secret);
+
+        Response userResponse = getMockResponse(HttpStatus.OK, true, "{\"data\":{\"bound_cidrs\":[],\"max_ttl\":0,\"policies\":[\"default\",\"w_shared_mysafe01\",\"w_shared_mysafe01\"],\"ttl\":0,\"groups\":\"admin\"}}");
+        List<String> resList = new ArrayList<>();
+        resList.add("default");
+        resList.add("w_shared_mysafe01");
+        resList.add("w_shared_mysafe02");
+        try {
+            when(ControllerUtil.getPoliciesAsListFromJson(any(), any())).thenReturn(resList);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        String path ="shared/mysafe01/myfolder";
+        when(ControllerUtil.getSafeType(path)).thenReturn("shared");
+        when(ControllerUtil.getSafeName(path)).thenReturn("mysafe01");
+        when(reqProcessor.process("/auth/ldap/users","{\"username\":\"normaluser\"}",token)).thenReturn(userResponse);
+
+        ResponseEntity<String> responseEntity = secretService.write(token, secret, getMockUser(false));
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
     }

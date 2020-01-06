@@ -16,10 +16,7 @@
 // =========================================================================
 package com.tmobile.cso.vault.api.v2.controller;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tmobile.cso.vault.api.main.Application;
-import com.tmobile.cso.vault.api.model.UserLogin;
-import com.tmobile.cso.vault.api.service.LDAPAuthService;
 import com.tmobile.cso.vault.api.service.SecretService;
 import org.junit.Before;
 import org.junit.Test;
@@ -101,7 +98,7 @@ public class SecretControllerV2Test {
         String responseMessage = "{\"messages\":[\"Secret saved to vault\"]}";
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(responseMessage);
 
-        when(secretService.write(eq("5PDrOhsy4ig8L3EpsJZSLAMg"), Mockito.any())).thenReturn(responseEntityExpected);
+        when(secretService.write(eq("5PDrOhsy4ig8L3EpsJZSLAMg"), Mockito.any(), Mockito.any())).thenReturn(responseEntityExpected);
 
         mockMvc.perform(MockMvcRequestBuilders.post("/v2/write")
                 .header("vault-token", "5PDrOhsy4ig8L3EpsJZSLAMg")
