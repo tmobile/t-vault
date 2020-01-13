@@ -123,7 +123,6 @@ public class SecretServiceTest {
         try {
             when(ControllerUtil.getPoliciesAsListFromJson(any(), any())).thenReturn(resList);
         } catch (IOException e) {
-            e.printStackTrace();
         }
         String path ="shared/mysafe01/myfolder";
         when(ControllerUtil.getSafeType(path)).thenReturn("shared");
@@ -160,7 +159,6 @@ public class SecretServiceTest {
         try {
             when(ControllerUtil.getPoliciesAsListFromJson(any(), any())).thenReturn(resList);
         } catch (IOException e) {
-            e.printStackTrace();
         }
         String path ="shared/mysafe01/myfolder";
         when(ControllerUtil.getSafeType(path)).thenReturn("shared");
@@ -217,7 +215,6 @@ public class SecretServiceTest {
         try {
             when(ControllerUtil.getPoliciesAsListFromJson(any(), any())).thenReturn(resList);
         } catch (IOException e) {
-            e.printStackTrace();
         }
         String path ="shared/mysafe01/myfolder";
         when(ControllerUtil.getSafeType(path)).thenReturn("shared");
