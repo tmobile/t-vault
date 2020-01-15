@@ -980,7 +980,9 @@
             var duplicate = false;
             if (!editingPermission && key != '' && key != undefined) {
                 if (type === "users" && $scope.UsersPermissionsData!= null && $scope.UsersPermissionsData.hasOwnProperty(key.toLowerCase())) {
-                    duplicate = true;
+                    if ($scope.UsersPermissionsData[key.toLowerCase()] != "sudo") {
+                        duplicate = true;
+                    }
                 }
                 if (type === "groups" && $scope.GroupsPermissionsData!= null && $scope.GroupsPermissionsData.hasOwnProperty(key.toLowerCase())) {
                     duplicate = true;

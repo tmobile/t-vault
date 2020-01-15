@@ -18,9 +18,11 @@
 package com.tmobile.cso.vault.api.service;
 
 import java.io.IOException;
+import java.util.List;
 
 import com.tmobile.cso.vault.api.common.TVaultConstants;
 import com.tmobile.cso.vault.api.model.Secret;
+import com.tmobile.cso.vault.api.model.UserDetails;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -79,10 +81,11 @@ public class  SecretService {
 	/**
 	 * Write a secret into vault
 	 * @param token
-	 * @param jsonStr
+	 * @param secret
+	 * @param userDetails
 	 * @return
 	 */
-	public ResponseEntity<String> write(String token, Secret secret){
+	public ResponseEntity<String> write(String token, Secret secret, UserDetails userDetails){
 		String jsonStr = JSONUtil.getJSON(secret);
 		String path="";
 		try {
@@ -101,7 +104,17 @@ public class  SecretService {
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid request.Check json data\"]}");
 		}
 		if(ControllerUtil.isPathValid(path)){
-			//if(ControllerUtil.isValidSafe(path,token)){
+		    // Check if the user has explicit write permission. Safe owners (implicit write permission) will be denied from write operation
+			if (!hasExplicitWritePermission(token, userDetails.getUsername(), secret.getPath())) {
+				log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+						put(LogMessage.ACTION, "Write Secret").
+						put(LogMessage.MESSAGE, String.format("Writing secret [%s] failed", path)).
+						put(LogMessage.RESPONSE, "No permisison to write secret in this safe").
+						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+						build()));
+				return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"No permisison to write secret in this safe\"]}");
+			}
 			Response response = reqProcessor.process("/write",jsonStr,token);
 			if(response.getHttpstatus().equals(HttpStatus.NO_CONTENT)) {
 				log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
@@ -122,9 +135,6 @@ public class  SecretService {
 				      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 				      build()));
 			return ResponseEntity.status(response.getHttpstatus()).body(response.getResponse());
-			//}else{
-			//	return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid safe\"]}");
-			//}
 		}else{
 			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 				      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
@@ -136,6 +146,38 @@ public class  SecretService {
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid path\"]}");
 		}
 	}
+
+	/**
+	 * To check if user has explicit write permission
+	 * @param token
+	 * @param userName
+	 * @param path
+	 * @return
+	 */
+	private boolean hasExplicitWritePermission(String token, String userName, String path) {
+		Response userResponse;
+		if (TVaultConstants.USERPASS.equals(vaultAuthMethod)) {
+			userResponse = reqProcessor.process("/auth/userpass/read","{\"username\":\""+userName+"\"}",token);
+		}
+		else {
+			userResponse = reqProcessor.process("/auth/ldap/users","{\"username\":\""+userName+"\"}",token);
+		}
+
+		String policy = "w_"+ ControllerUtil.getSafeType(path) + "_" + ControllerUtil.getSafeName(path);
+		ObjectMapper objMapper = new ObjectMapper();
+		if(userResponse != null && HttpStatus.OK.equals(userResponse.getHttpstatus())) {
+			try {
+				List<String> currentpolicies = ControllerUtil.getPoliciesAsListFromJson(objMapper, userResponse.getResponse());
+				if (currentpolicies.contains(policy)) {
+					return true;
+				}
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+		return false;
+	}
+
 	/**
 	 * Delete secret from vault
 	 * @param token

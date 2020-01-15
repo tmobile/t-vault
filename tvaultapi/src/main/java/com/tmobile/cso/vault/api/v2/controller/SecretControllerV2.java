@@ -18,6 +18,7 @@
 package com.tmobile.cso.vault.api.v2.controller;
 
 import com.tmobile.cso.vault.api.model.Secret;
+import com.tmobile.cso.vault.api.model.UserDetails;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -33,6 +34,8 @@ import com.tmobile.cso.vault.api.service.SecretService;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
+
+import javax.servlet.http.HttpServletRequest;
 
 
 @RestController
@@ -67,8 +70,9 @@ public class SecretControllerV2 {
 	 */
 	@ApiOperation(value = "${SecretControllerV2.write.value}", notes = "${SecretControllerV2.write.notes}")
 	@PostMapping(value={"/v2/safes/folders/secrets","/v2/write"},consumes="application/json",produces="application/json")
-	public ResponseEntity<String> write(@RequestHeader(value="vault-token") String token, @RequestBody Secret secret){
-		return secretService.write(token, secret);
+	public ResponseEntity<String> write(HttpServletRequest request, @RequestHeader(value="vault-token") String token, @RequestBody Secret secret){
+		UserDetails userDetails = (UserDetails) ((HttpServletRequest) request).getAttribute("UserDetails");
+		return secretService.write(token, secret, userDetails);
 	}
 	/**
 	 * Delete secrets from vault
