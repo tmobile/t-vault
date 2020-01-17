@@ -1017,7 +1017,7 @@
             $scope.svcInputSelected = false;
             if (searchVal.length >2) {
                 $scope.showInputLoader.show = true;
-                var queryParameters = "serviceAccountName=svc";
+                var queryParameters = "serviceAccountName=" + searchVal;
                 var updatedUrlOfEndPoint = ModifyUrl.addUrlParameteres('getServiceAccounts', queryParameters);
                 return AdminSafesManagement.getServiceAccounts(null, updatedUrlOfEndPoint).then(
                     function(response) {
