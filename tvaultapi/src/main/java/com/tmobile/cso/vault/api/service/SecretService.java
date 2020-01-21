@@ -105,7 +105,7 @@ public class  SecretService {
 		}
 		if(ControllerUtil.isPathValid(path)){
 		    // Check if the user has explicit write permission. Safe owners (implicit write permission) will be denied from write operation
-			if (!hasExplicitWritePermission(token, userDetails.getUsername(), secret.getPath())) {
+			if (!hasExplicitWritePermission(token, userDetails, secret.getPath())) {
 				log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 						put(LogMessage.ACTION, "Write Secret").
@@ -154,7 +154,11 @@ public class  SecretService {
 	 * @param path
 	 * @return
 	 */
-	private boolean hasExplicitWritePermission(String token, String userName, String path) {
+	private boolean hasExplicitWritePermission(String token, UserDetails userDetails, String path) {
+		String userName = userDetails.getUsername();
+		if (!userDetails.isAdmin()) {
+			token = userDetails.getSelfSupportToken();
+		}
 		Response userResponse;
 		if (TVaultConstants.USERPASS.equals(vaultAuthMethod)) {
 			userResponse = reqProcessor.process("/auth/userpass/read","{\"username\":\""+userName+"\"}",token);
