@@ -98,6 +98,22 @@
             show: true
         }];
 
+        $scope.inputValue = {
+            "userNameVal": '',
+            "grpNameVal": '',
+            "userNameValEmpty": false,
+            "grpNameValEmpty": false
+        }
+
+        var clearInputPermissionData = function () {
+            $scope.inputValue = {
+                "userNameVal": '',
+                "grpNameVal": '',
+                "userNameValEmpty": false,
+                "grpNameValEmpty": false
+            }
+        }
+
         $scope.isApproleBtnDisabled = function() {
             if ($scope.roleNameSelected){
                     return false;
@@ -1144,6 +1160,7 @@
                 }
             }
             if (duplicate) {
+                clearInputPermissionData();
                 $scope.errorMessage = 'Permission already exists! Select edit icon for update';
                 $scope.error('md');
             }
@@ -1232,6 +1249,7 @@
                                             document.getElementById('addUser').value = '';
                                             document.getElementById('addGroup').value = '';
                                             if (type === "users" && key === SessionStore.getItem("username")) {
+                                                clearInputPermissionData();
                                                 return Modal.createModalWithController('stop.modal.html', {
                                                     title: 'Permission changed',
                                                     message: 'For security reasons, if you add or modify permission to yourself, you need to log out and log in again for the added or modified permissions to take effect.'
@@ -1252,11 +1270,13 @@
                                 $scope.errorMessage = AdminSafesManagement.getTheRightErrorMessage(response);
                                 $scope.error('md');
                             }
+                            clearInputPermissionData();
                             $scope.roleNameSelected = false;
                         },
                         function (error) {
                             // Error handling function
                             console.log(error);
+                            clearInputPermissionData();
                             $scope.isLoadingData = false;
                             $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
                             $scope.error('md');
@@ -1264,6 +1284,7 @@
                 } catch (e) {
                     // To handle errors while calling 'fetchData' function
                     $scope.isLoadingData = false;
+                    clearInputPermissionData();
                     console.log(e);
                     $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
                     $scope.error('md');
