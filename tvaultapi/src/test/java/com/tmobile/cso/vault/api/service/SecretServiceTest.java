@@ -137,7 +137,7 @@ public class SecretServiceTest {
         data.put("secret1", "value1");
         Secret secret = new Secret("shared/mysafe01/myfolder", data);
         Response response = getMockResponse(HttpStatus.NO_CONTENT, true, "");
-        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"No permisison to write secret in this safe\"]}");
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.FORBIDDEN).body("{\"errors\":[\"No permisison to write secret in this safe\"]}");
 
         when(ControllerUtil.addDefaultSecretKey(jsonStr)).thenReturn("{\"path\":\"shared/mysafe01/myfolder\",\"data\":{\"secret1\":\"value1\",\"secret2\":\"value2\"}}");
         when(ControllerUtil.areSecretKeysValid(jsonStr)).thenReturn(true);
@@ -153,7 +153,7 @@ public class SecretServiceTest {
 
         when(JSONUtil.getJSON(secret)).thenReturn(jsonStr);
         ResponseEntity<String> responseEntity = secretService.write(token, secret, userDetails);
-        assertEquals(HttpStatus.BAD_REQUEST, responseEntity.getStatusCode());
+        assertEquals(HttpStatus.FORBIDDEN, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
     }
 

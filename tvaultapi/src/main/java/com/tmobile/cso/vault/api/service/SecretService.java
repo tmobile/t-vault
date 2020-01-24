@@ -114,7 +114,7 @@ public class  SecretService {
 						put(LogMessage.RESPONSE, "No permisison to write secret in this safe").
 						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 						build()));
-				return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"No permisison to write secret in this safe\"]}");
+				return ResponseEntity.status(HttpStatus.FORBIDDEN).body("{\"errors\":[\"No permisison to write secret in this safe\"]}");
 			}
 			Response response = reqProcessor.process("/write",jsonStr,token);
 			if(response.getHttpstatus().equals(HttpStatus.NO_CONTENT)) {
