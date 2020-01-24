@@ -18,6 +18,7 @@
 package com.tmobile.cso.vault.api.service;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.List;
 
 import com.tmobile.cso.vault.api.common.TVaultConstants;
@@ -155,29 +156,9 @@ public class  SecretService {
 	 * @return
 	 */
 	private boolean hasExplicitWritePermission(String token, UserDetails userDetails, String path) {
-		String userName = userDetails.getUsername();
-		if (!userDetails.isAdmin()) {
-			token = userDetails.getSelfSupportToken();
-		}
-		Response userResponse;
-		if (TVaultConstants.USERPASS.equals(vaultAuthMethod)) {
-			userResponse = reqProcessor.process("/auth/userpass/read","{\"username\":\""+userName+"\"}",token);
-		}
-		else {
-			userResponse = reqProcessor.process("/auth/ldap/users","{\"username\":\""+userName+"\"}",token);
-		}
-
 		String policy = "w_"+ ControllerUtil.getSafeType(path) + "_" + ControllerUtil.getSafeName(path);
-		ObjectMapper objMapper = new ObjectMapper();
-		if(userResponse != null && HttpStatus.OK.equals(userResponse.getHttpstatus())) {
-			try {
-				List<String> currentpolicies = ControllerUtil.getPoliciesAsListFromJson(objMapper, userResponse.getResponse());
-				if (currentpolicies.contains(policy)) {
-					return true;
-				}
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
+		if (Arrays.stream(userDetails.getPolicies()).anyMatch(policy::equals)) {
+			return true;
 		}
 		return false;
 	}
