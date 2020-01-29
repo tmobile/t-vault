@@ -30,6 +30,16 @@ script(type='text/ng-template', id='notify.html')
         .clearfix.bottom-sm-sep
             button.link-style.common-btn.btn.btn-primary.btn-lg(ng-click="close()") Close
 
+script(type='text/ng-template', id='offboardWarning.html')
+  loading-state(ng-if="isLoadingModalData")
+  .top-lg-sep(ng-if="!isLoadingModalData")
+    .top-lg-sep
+        .common-header-label.text-center Permission changed!
+    .top-lg-sep.notification-text For security reasons, you need to log out and log in order for the changes to effect.
+    .text-center.bottom-lg-sep.top-lg-sep.notification-button
+      .clearfix.bottom-sm-sep
+        button.link-style.common-btn.btn.btn-primary.btn-lg(ng-click="cancel()") CLOSE
+
 script(type='text/ng-template', id='appRolePopup.html')
           .modal-sep
             .common-header-label.text-center {{editingApprole.status == true ? "Edit" : "Create"}} AppRole
