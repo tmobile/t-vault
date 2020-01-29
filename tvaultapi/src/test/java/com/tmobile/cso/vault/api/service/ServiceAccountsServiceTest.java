@@ -341,6 +341,7 @@ public class ServiceAccountsServiceTest {
         String token = userDetails.getClientToken();
         ServiceAccount serviceAccount = generateServiceAccount("testacc02","testacc01");
         serviceAccount.setAutoRotate(false);
+        serviceAccount.setTtl(0L);
         Response response = getMockResponse(HttpStatus.OK, true, "{\"keys\":[\"testacc03\"]}");
         when(reqProcessor.process("/ad/serviceaccount/onboardedlist","{}",token)).thenReturn(response);
         // CreateRole
