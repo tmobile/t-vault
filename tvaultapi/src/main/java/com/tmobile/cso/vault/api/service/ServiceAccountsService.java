@@ -306,7 +306,7 @@ public class  ServiceAccountsService {
 					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 					build()));
             if (null == serviceAccount.getMax_ttl()) {
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid or no value has been provided for TTL or MAX_TTL\"]}");
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid or no value has been provided for MAX_TTL\"]}");
             }
             if (null == serviceAccount.getTtl()) {
 				serviceAccount.setTtl(maxPwdAge - 1L);
@@ -2796,9 +2796,12 @@ public class  ServiceAccountsService {
 		}
 		int maxPwdAge = allServiceAccounts.get(0).getMaxPwdAge();
         if (serviceAccount.isAutoRotate()) {
-            if (null == serviceAccount.getTtl() || null == serviceAccount.getMax_ttl()) {
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid or no value has been provided for TTL or MAX_TTL\"]}");
+            if (null == serviceAccount.getMax_ttl()) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid or no value has been provided for MAX_TTL\"]}");
             }
+			if (null == serviceAccount.getTtl()) {
+				serviceAccount.setTtl(maxPwdAge - 1L);
+			}
             if (serviceAccount.getTtl() >= maxPwdAge) {
                 log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
                         put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
@@ -2819,7 +2822,7 @@ public class  ServiceAccountsService {
             }
         }
 		if (!serviceAccount.isAutoRotate()) {
-			serviceAccount.setTtl((long)maxPwdAge);
+			serviceAccount.setTtl(1590897977L);
 		}
 		ResponseEntity<String> accountRoleDeletionResponse = createAccountRole(token, serviceAccount);
 		if (accountRoleDeletionResponse!=null && HttpStatus.OK.equals(accountRoleDeletionResponse.getStatusCode())) {
