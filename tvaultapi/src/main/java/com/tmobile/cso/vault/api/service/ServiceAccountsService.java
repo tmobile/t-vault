@@ -305,9 +305,12 @@ public class  ServiceAccountsService {
 					put(LogMessage.MESSAGE, String.format ("Auto-Rotate of password has been turned on")).
 					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 					build()));
-            if (null == serviceAccount.getTtl() || null == serviceAccount.getMax_ttl()) {
+            if (null == serviceAccount.getMax_ttl()) {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid or no value has been provided for TTL or MAX_TTL\"]}");
             }
+            if (null == serviceAccount.getTtl()) {
+				serviceAccount.setTtl(maxPwdAge - 1L);
+			}
 			if (serviceAccount.getTtl() >= maxPwdAge) {
 				log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
@@ -335,7 +338,7 @@ public class  ServiceAccountsService {
 					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 					build()));
 			// ttl defaults to configuration ttl
-			serviceAccount.setTtl(0L);
+			serviceAccount.setTtl(1590897977L);
 		}
 		ResponseEntity<String> accountRoleCreationResponse = createAccountRole(token, serviceAccount);
 		if(accountRoleCreationResponse.getStatusCode().equals(HttpStatus.OK)) {

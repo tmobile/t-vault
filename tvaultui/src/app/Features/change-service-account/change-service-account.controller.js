@@ -558,7 +558,10 @@
                 }
             } else {
                 if ($scope.svcacc.autoRotate == undefined || $scope.svcacc.autoRotate == false) {
-                    $scope.openSvcAccWarning(size);
+                    $scope.openSvcAccNoRotationWarning(size);
+                }
+                else if ($scope.svcacc.autoRotate == true && ($scope.svcacc.ttl == undefined || $scope.svcacc.ttl == '')) {
+                    $scope.openSvcAccDefaultWarning(size);
                 }
                 else {
                     $scope.onboardSvcAccount();
@@ -570,10 +573,14 @@
             try {
                 $scope.isLoadingData = true;
                 Modal.close();
+                var ttl = $scope.svcacc.maxPwdAge - 1;
+                if ($scope.svcacc.ttl != '') {
+                    ttl = $scope.svcacc.ttl;
+                }
                 var onboardPayload = {
                     "name": $scope.svcacc.svcaccId,
                     "autoRotate": $scope.svcacc.autoRotate,
-                    "ttl": $scope.svcacc.ttl,
+                    "ttl": ttl,
                     "max_ttl": $scope.svcacc.maxPwdAge
                 }
                 AdminSafesManagement.onboardSvcacc(onboardPayload, '').then(function (response) {
@@ -1365,8 +1372,12 @@
             Modal.createModal(size, 'appRolePopup.html', 'ChangeServiceAccountCtrl', $scope);
         };
 
-        $scope.openSvcAccWarning = function (size) {
-            Modal.createModal(size, 'svcAccWarning.html', 'ChangeServiceAccountCtrl', $scope);
+        $scope.openSvcAccDefaultWarning = function (size) {
+            Modal.createModal(size, 'openSvcAccDefaultWarning.html', 'ChangeServiceAccountCtrl', $scope);
+        };
+
+        $scope.openSvcAccNoRotationWarning = function (size) {
+            Modal.createModal(size, 'openSvcAccNoRotationWarning.html', 'ChangeServiceAccountCtrl', $scope);
         };
 
         $scope.openSvcAccEditWarning = function (size) {
