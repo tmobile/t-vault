@@ -305,9 +305,12 @@ public class  ServiceAccountsService {
 					put(LogMessage.MESSAGE, String.format ("Auto-Rotate of password has been turned on")).
 					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 					build()));
-            if (null == serviceAccount.getTtl() || null == serviceAccount.getMax_ttl()) {
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid or no value has been provided for TTL or MAX_TTL\"]}");
+            if (null == serviceAccount.getMax_ttl()) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid or no value has been provided for MAX_TTL\"]}");
             }
+            if (null == serviceAccount.getTtl()) {
+				serviceAccount.setTtl(maxPwdAge - 1L);
+			}
 			if (serviceAccount.getTtl() >= maxPwdAge) {
 				log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
@@ -334,7 +337,8 @@ public class  ServiceAccountsService {
 					put(LogMessage.MESSAGE, String.format ("Auto-Rotate of password has been turned off")).
 					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 					build()));
-			serviceAccount.setTtl((long)maxPwdAge);
+			// ttl defaults to configuration ttl
+			serviceAccount.setTtl(1590897977L);
 		}
 		ResponseEntity<String> accountRoleCreationResponse = createAccountRole(token, serviceAccount);
 		if(accountRoleCreationResponse.getStatusCode().equals(HttpStatus.OK)) {
@@ -1094,10 +1098,7 @@ public class  ServiceAccountsService {
 					build()));
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Unable to reset password details for the given service account\"]}");
 		}
-		String userPermission = getUserPermissionFromMeta(token, userDetails, svcAccName);
-		if (userPermission.equals(TVaultConstants.EMPTY) || userPermission.equals(TVaultConstants.READ_POLICY) || userPermission.equals(TVaultConstants.DENY_POLICY)) {
-			return ResponseEntity.status(HttpStatus.FORBIDDEN).body("{\"errors\":[\"Access denied: no permission to reset the password details for the given service account\"]}");
-		}
+
 		long ttl = onbSvcAccDtls.getTtl();
 		ServiceAccount serviceAccount = new ServiceAccount();
 		serviceAccount.setName(svcAccName);
@@ -1237,10 +1238,6 @@ public class  ServiceAccountsService {
 	 */
 	public ResponseEntity<String> readSvcAccPassword(String token, String svcAccName, UserDetails userDetails){
 
-		String userPermission = getUserPermissionFromMeta(token, userDetails, svcAccName);
-		if (userPermission.equals(TVaultConstants.EMPTY) || userPermission.equals(TVaultConstants.DENY_POLICY)) {
-			return ResponseEntity.status(HttpStatus.FORBIDDEN).body("{\"errors\":[\"Access denied: no permission to read the password details for the given service account\"]}");
-		}
 		Response response = reqProcessor.process("/ad/serviceaccount/readpwd","{\"role_name\":\""+svcAccName+"\"}",token);
 		ADServiceAccountCreds adServiceAccountCreds = null;
 		if (HttpStatus.OK.equals(response.getHttpstatus())) {
@@ -1294,35 +1291,6 @@ public class  ServiceAccountsService {
 					build()));
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Unable to get password details for the given service account\"]}");
 		}
-	}
-
-	/**
-	 * To read sercice account permission from Metadata
-	 * @param token
-	 * @param userDetails
-	 * @param svcAccName
-	 * @return
-	 */
-	private String getUserPermissionFromMeta(String token, UserDetails userDetails, String svcAccName) {
-		Response metaResponse = getMetadata(token, userDetails, "ad/roles/" + svcAccName);
-		String userPermission = TVaultConstants.EMPTY;
-		if (HttpStatus.OK.equals(metaResponse.getHttpstatus())) {
-			try {
-				JsonNode usersNode = new ObjectMapper().readTree(metaResponse.getResponse()).get("data").get("users");
-				if (usersNode != null) {
-					usersNode = new ObjectMapper().readTree(metaResponse.getResponse()).get("data").get("users").get(userDetails.getUsername().toLowerCase());
-					userPermission = (usersNode!=null)?usersNode.asText():TVaultConstants.EMPTY;
-				}
-			} catch (IOException e) {
-				log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
-						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
-						put(LogMessage.ACTION, "readSvcAccPassword").
-						put(LogMessage.MESSAGE, String.format ("Failed to read metadata for the given service account [%s]", svcAccName)).
-						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
-						build()));
-			}
-		}
-		return userPermission;
 	}
 
 	/**
@@ -2828,9 +2796,12 @@ public class  ServiceAccountsService {
 		}
 		int maxPwdAge = allServiceAccounts.get(0).getMaxPwdAge();
         if (serviceAccount.isAutoRotate()) {
-            if (null == serviceAccount.getTtl() || null == serviceAccount.getMax_ttl()) {
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid or no value has been provided for TTL or MAX_TTL\"]}");
+            if (null == serviceAccount.getMax_ttl()) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid or no value has been provided for MAX_TTL\"]}");
             }
+			if (null == serviceAccount.getTtl()) {
+				serviceAccount.setTtl(maxPwdAge - 1L);
+			}
             if (serviceAccount.getTtl() >= maxPwdAge) {
                 log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
                         put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
@@ -2851,7 +2822,7 @@ public class  ServiceAccountsService {
             }
         }
 		if (!serviceAccount.isAutoRotate()) {
-			serviceAccount.setTtl((long)maxPwdAge);
+			serviceAccount.setTtl(1590897977L);
 		}
 		ResponseEntity<String> accountRoleDeletionResponse = createAccountRole(token, serviceAccount);
 		if (accountRoleDeletionResponse!=null && HttpStatus.OK.equals(accountRoleDeletionResponse.getStatusCode())) {

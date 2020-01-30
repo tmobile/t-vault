@@ -532,6 +532,7 @@
                                                         }
                                                     }
                                                     $scope.svcaccToOffboard = '';
+                                                    Modal.createModal('md', 'offboardWarning.html', 'AdminCtrl', $scope);
                                                 }
                                                 catch(e) {
                                                     console.log(e);
