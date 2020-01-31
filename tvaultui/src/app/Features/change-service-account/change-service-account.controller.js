@@ -1002,13 +1002,14 @@
             $scope.svcInputSelected = true;
             $scope.isCollapsed = false;
             $scope.autoRotate = false;
-            document.getElementById('ttl').placeholder="TTL in seconds (Max: "+($scope.svcacc.maxPwdAge-1)+")";
+            document.getElementById('ttl').placeholder="TTL in seconds (Max: "+$scope.svcacc.maxPwdAge+")";
             $scope.isSvcaccExpired = false;
             $scope.expiredNote = "";
             if ($scope.svcacc.accountStatus.toLowerCase() == "expired") {
                 $scope.isSvcaccExpired = true;
                 $scope.expiredNote = "(Expired)";
             }
+            $scope.ttlToolip = "This value needs to be between 1 and " + $scope.svcacc.maxPwdAge;
         }
 
         $scope.collapseADDetails = function() {
@@ -1041,6 +1042,7 @@
             document.getElementById('ttl').placeholder="Password TTL in seconds";
             $scope.expiredNote = "";
             $scope.isSvcaccExpired = false;
+            $scope.ttlToolip = '';
         }
 
         $scope.getSvcaccList = function(searchVal) {
@@ -1114,6 +1116,7 @@
             $scope.newPassword = '';
             $scope.resetButtonDisable = false;
             $scope.hideSudoPolicy = false;
+            $scope.ttlToolip = '';
             $scope.myVaultKey = SessionStore.getItem("myVaultKey");
             if(!$scope.myVaultKey){ /* Check if user is in the same session */
                 $state.go('/');

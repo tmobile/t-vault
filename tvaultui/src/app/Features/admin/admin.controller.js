@@ -110,6 +110,7 @@
             }
             $scope.enableSvcacc = true;
             $scope.enableSelfService = true;
+            $scope.isCollapsed = true;
             $scope.selectedIndex = 0;
             if ($state.current.name == "manage" && JSON.parse(SessionStore.getItem("isAdmin")) == true) {
                 $state.go('admin');
@@ -988,6 +989,10 @@
             if ($scope.appRoleData.keys.includes($scope.approleConfPopupObj.role_name)) {
                $scope.rolenameExists = true;
             }
+        }
+
+        $scope.collapseNote = function() {
+            $scope.isCollapsed = !$scope.isCollapsed;
         }
 
         init();

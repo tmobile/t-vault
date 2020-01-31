@@ -380,14 +380,33 @@
     height: auto!important;
 }
 
-.notes {
+.svcnotes {
     margin-bottom: 10px;
+    font-size: 15px;
+    font-weight: bold;
 }
 
-.description {
+.svcdescription {
     padding-top: 10px;
 }
 
 .onboard-link {
-    top: 5px;
+    width: 100%;
+    float:right;
 }
+
+.weighted {
+    font-weight: bold;
+}
+
+.svc-collapse-link {
+    color:#f6006e;
+    text-orientation: mixed;
+    writing-mode: vertical-rl;
+  }
+
+  .svccollapsible {
+      border-top: 1px solid #000;
+      border-bottom: 1px solid #000;
+      padding-bottom:10px;
+  }
