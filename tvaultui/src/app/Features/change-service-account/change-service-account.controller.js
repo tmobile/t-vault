@@ -1483,11 +1483,11 @@
                 else if ($scope.svcacc.ttl > 86400) {
                     actualTTL = Math.round($scope.svcacc.ttl * 1.0/ 3600 / 24)+ ' days';
                 }
-                $scope.svceditnotes = 'The account has been configured for password rotation at every ' + actualTTL+ '. You can override it with new values by changing "Password Expiration Time". To complete the activation process, please click “Activate Service Account”. When the activation is complete, you will get an option to copy the initial password. You can copy the same if required.';
+                $scope.svceditnotes = 'The account has been configured for password rotation at every ' + actualTTL+ '. You can override it with new values by changing "Password Expiration Time". To complete the activation process, please click “Activate Service Account”. When the activation is complete, you will get an option to copy the initial password and then you can proceed to grant permissions to users and groups to read and/or reset the Password.';
 
             }
             else {
-                $scope.svceditnotes = 'The account is not enabled for password rotation. You can override it with new values by changing "Password Expiration Time". To complete the activation process, please click “Activate Service Account”. When the activation is complete, you will get an option to copy the initial password. You can copy the same if required.';
+                $scope.svceditnotes = 'The account is not enabled for password rotation. You can override it with new values by changing "Password Expiration Time". To complete the activation process, please click “Activate Service Account”. When the activation is complete, you will get an option to copy the initial password and then you can proceed to grant permissions to users and groups to read and/or reset the Password.';
             }
         }
 
