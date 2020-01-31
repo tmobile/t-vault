@@ -34,8 +34,8 @@ script(type='text/ng-template', id='offboardWarning.html')
   loading-state(ng-if="isLoadingModalData")
   .top-lg-sep(ng-if="!isLoadingModalData")
     .top-lg-sep
-        .common-header-label.text-center Permission changed!
-    .top-lg-sep.notification-text For security reasons, you need to log out and log in order for the changes to effect.
+        .common-header-label.text-center Offboarding Successfull!
+    .top-lg-sep.notification-text.notification-justify Offboarding of Service Account has been completed successfully. For security reasons, you need to log out and log in order for the changes to effect.
     .text-center.bottom-lg-sep.top-lg-sep.notification-button
       .clearfix.bottom-sm-sep
         button.link-style.common-btn.btn.btn-primary.btn-lg(ng-click="cancel()") CLOSE
@@ -212,7 +212,7 @@ script(type='text/ng-template', id='manageSecretId.html')
                                             .rotate.glyphicon.glyphicon-remove-circle
                                         .create-link.middle-block.hide-in-mobile
                                             .text CREATE NEW SAFE
-                    md-tab(label="AppRole Management" md-on-select="tabChangeForAdmin()")
+                    md-tab(label="Vault AppRole Management" md-on-select="tabChangeForAdmin()")
                         md-content(class="md-padding md-content-wrapper page-content-wrapper md-approle-management" ng-init="displayGrid")
                             .new-container.page-content-container
                                 .md-content-inner-wrapper
@@ -247,8 +247,30 @@ script(type='text/ng-template', id='manageSecretId.html')
                         md-content(class="md-padding md-content-wrapper page-content-wrapper md-approle-management" ng-init="displayGrid")
                             .new-container.page-content-container
                                 .md-content-inner-wrapper
-                                    div.notes TVault supports password rotation of Service Accounts either automatically or on need-basis. Click "ONBOARD SERVICE ACCOUNT" for onboarding new service account to TVault.
-                                    div.description List of Service accounts ({{svcaccOnboardedData.keys.length}}) onboarded in TVault:
+                                    div.svcnotes T-Vault Service Accounts are nothing but abstract representation of Corporate Service Accounts and used to manage the life of service account passwords such as password expiry, password resets, etc. In order to this, service account needs to be onboarded into T-Vault and activated by service account owner. Click here for more information
+                                      span.svc-collapse-link(ng-click="collapseNote()") >>
+                                    div.svccollapsible(uib-collapse="isCollapsed")
+                                      div.svcdescription In order the manage the service account password, the following steps to be performed
+                                      div.svcdescription
+                                        text.weighted Step 1: On-boarding:
+                                        text On-boarding a service account means making T-Vault aware of service account whose password needs to be managed. This step is simply bringing the Service account under T-Vault’s management so that the password of the same can be read, reset by T-Vault. This is a one-time operation done by T-Vault admins when a service account is created.
+                                      div.svcdescription
+                                        text.weighted Step 2: Service Account Activation:
+                                        text Activating a Service account means the owner of the Service account will need to rotate the password first-time through T-Vault after is has been successfully on-boarded by T-Vault admin. This will make sure the passwords in T-Vault and AD are in sync with each other. 
+                                      div.svcdescription
+                                        text.weighted Step 3: Granting Permission:
+                                        text Once the service account has been activated in T-Vault, the account owner of the service account can grant the relevant permissions to users or groups with read or reset permissions as applicable. From this point on, a special container called “Service Accounts” can be used to read/reset passwords from/into Vault. Any user granted with appropriate permission such as read/reset can either read the password or reset the password from the container “Service Account”
+                                      div.svcdescription
+                                          text.weighted Note:
+                                          text T-Vault rotate the Passwords lazily based on preset TTLs. ie. A passord is configured with a TTL of 1 hour will get expire after 1 hour, but the rotation will happen only when it is first requested after the expiry.
+
+                                    div.onboard-link
+                                        .function-text.link-style.option.right(ng-click="onboardSvcaccAccount('md')")
+                                            .action-icon-wrapper.static
+                                                .rotate.glyphicon.glyphicon-remove-circle
+                                            .create-link.middle-block.hide-in-mobile
+                                                .text(uib-tooltip="Onboard new Service Account") ONBOARD NEW SERVICE ACCOUNT
+                                    div.svcdescription The following are list of Service Accounts managed by T-Vault. Click View/Edit link to Activate the Service account or grant permissions.
                                     div.data-management-content
                                         .row.change-safe-table-container(ng-if='true')
                                             loading-state(ng-if='isLoadingData')
@@ -272,9 +294,3 @@ script(type='text/ng-template', id='manageSecretId.html')
                                                     button.show-more-btn VIEW MORE
                                                     span
                                                         img(src="assets/icons/front-arrow.svg")
-                                    div.create-safe-wrapper.onboard-link
-                                        .function-text.link-style.option.right(ng-click="onboardSvcaccAccount('md')")
-                                            .action-icon-wrapper.static
-                                                .rotate.glyphicon.glyphicon-remove-circle
-                                            .create-link.middle-block.hide-in-mobile
-                                                .text(uib-tooltip="Onboard new Service Account") ONBOARD NEW SERVICE ACCOUNT

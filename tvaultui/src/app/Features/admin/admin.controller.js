@@ -110,6 +110,7 @@
             }
             $scope.enableSvcacc = true;
             $scope.enableSelfService = true;
+            $scope.isCollapsed = true;
             $scope.selectedIndex = 0;
             if ($state.current.name == "manage" && JSON.parse(SessionStore.getItem("isAdmin")) == true) {
                 $state.go('admin');
@@ -521,8 +522,6 @@
                                             if(UtilityService.ifAPIRequestSuccessful(response)){
                                                 try {                                                    
                                                     $scope.isLoadingData = false;
-                                                    var notification = UtilityService.getAParticularSuccessMessage("MESSAGE_OFFBOARD_SUCCESS");
-                                                    Notifications.toast(svcaccUserId + notification);
                                                     var currentOnboardList = $scope.svcaccOnboardedData.keys;                                                    
                                                     for(var i=0; i < currentOnboardList.length ; i++){
                                                         if (currentOnboardList[i] == svcaccUserId) {
@@ -988,6 +987,10 @@
             if ($scope.appRoleData.keys.includes($scope.approleConfPopupObj.role_name)) {
                $scope.rolenameExists = true;
             }
+        }
+
+        $scope.collapseNote = function() {
+            $scope.isCollapsed = !$scope.isCollapsed;
         }
 
         init();

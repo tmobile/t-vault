@@ -573,7 +573,7 @@
             try {
                 $scope.isLoadingData = true;
                 Modal.close();
-                var ttl = $scope.svcacc.maxPwdAge - 1;
+                var ttl = $scope.svcacc.maxPwdAge;
                 if ($scope.svcacc.ttl != '') {
                     ttl = $scope.svcacc.ttl;
                 }
@@ -588,16 +588,15 @@
                         // Try-Catch block to catch errors if there is any change in object structure in the response
                         try {
                             $scope.isLoadingData = false;
-                            $rootScope.showDetails = false;
-                            $rootScope.activeDetailsTab = 'permissions';
                             $scope.svcaccOnboarded = true;
-                            var notification = UtilityService.getAParticularSuccessMessage('MESSAGE_ONBOARD_SUCCESS');
-                            Notifications.toast($scope.svcacc.svcaccId + ' Service Account' + notification);
                             $scope.svcaccPrevious = angular.copy($scope.svcacc);
                             if ($scope.svcacc.managedBy.userName.toLowerCase() == SessionStore.getItem("username")) {
                                 $scope.initialPwdResetRequired = true;
                                 $scope.resetButtonDisable = true;
-                                $scope.openResetPermissionWarning();
+                                $scope.changeSvcaccHeader = "EDIT SERVICE ACCOUNT";
+                                $scope.isEditSvcacc = true;
+                                getSvcaccInfo($scope.svcacc.svcaccId);
+                                $scope.openOnboardSuccessMessage();
                             }
                             else {
                                 $scope.svcaccDone();
@@ -648,7 +647,7 @@
             try {
                 $scope.isLoadingData = true;
                 Modal.close();
-                var ttl = $scope.svcacc.maxPwdAge - 1;
+                var ttl = $scope.svcacc.maxPwdAge;
                 if ($scope.svcacc.ttl != '') {
                     ttl = $scope.svcacc.ttl;
                 }
@@ -662,19 +661,27 @@
                         if (UtilityService.ifAPIRequestSuccessful(response)) {
                             try {
                                 $scope.isLoadingData = false;
-                                $rootScope.showDetails = false;
-                                $rootScope.activeDetailsTab = 'permissions';
                                 $scope.svcaccOnboarded = true;
-                                var notification = UtilityService.getAParticularSuccessMessage('MESSAGE_UPDATE_SUCCESS');
-                                Notifications.toast('TTL for Service Account ' + $scope.svcacc.svcaccId + notification);
                                 $scope.svcaccPrevious = angular.copy($scope.svcacc);
+                                if ($scope.svcacc.autoRotate != undefined && $scope.svcacc.autoRotate != false) {
+                                    $scope.svcacc.ttl = ttl;
+                                }
+                                else {
+                                    $scope.svcacc.ttl = null;
+                                }
+                                getActualTTL();
+                                $scope.isCollapsed = true;
                                 if ($scope.svcacc.managedBy.userName.toLowerCase() == SessionStore.getItem("username")) {
                                     if ($scope.svcacc.initialPasswordReset == "false" || $scope.initialPasswordReset == "") {
                                         $scope.initialPwdResetRequired = true;
+                                        $scope.openUpdateResetRequiredMessage();
+                                    }
+                                    else {
+                                        $scope.openUpdateSuccessMessage();
                                     }
                                 }
                                 else {
-                                    $scope.svcaccDone();
+                                    $scope.openUpdateSuccessMessage();
                                 }
                             } catch (e) {
                                 console.log(e);
@@ -741,7 +748,14 @@
                                 $scope.permissionData.AppRolePermissionsData = {
                                     "data": object['app-roles']
                                 }
-                                $scope.initialPasswordReset = object.initialPasswordReset || '';
+                                $scope.initialPasswordReset = object.initialPasswordReset;
+                                if ($scope.svcacc.managedBy.userName.toLowerCase() == SessionStore.getItem("username")) {
+                                    if ($scope.initialPasswordReset == "false" || $scope.initialPasswordReset == "") {
+                                        $scope.initialPwdResetRequired = true;
+                                    }
+                                    $scope.isOwner = true;
+                                }
+                                $scope.isCollapsed = true;
                                 hideUserSudoPolicy();
                             }
 
@@ -775,11 +789,11 @@
                 if (UtilityService.ifAPIRequestSuccessful(response)) {
                     $scope.isLoadingData = false;
                     $scope.newPassword = response.data.current_password;
-                    $scope.resetMessage = "Password for Service account "+$scope.svcacc.svcaccId+" reset successfully!"
-                    $rootScope.showDetails = false;
+                    $scope.resetMessage = "Service account "+$scope.svcacc.svcaccId+" has been activated successfully!"
+                    //$rootScope.showDetails = false;
                     $scope.initialPwdResetRequired = false;
                     $scope.initialPasswordReset = "true";
-                    $rootScope.activeDetailsTab = 'permissions';
+                    //$rootScope.activeDetailsTab = 'permissions';
                     $scope.openResetStatus();
                 }
                 else {
@@ -818,24 +832,15 @@
             CopyToClipboard.copy(copyValue);
         }
 
-        $rootScope.goToPermissions = function () {
+        $rootScope.saveSvcAccount = function () {
             $timeout(function () {
                 if ($scope.isEditSvcacc) {
                     if(!angular.equals($scope.svcaccPrevious, $scope.svcacc)){
                         $scope.editSvcaccOnboard();
                     }
                     else {
-                        $rootScope.showDetails = false;
-                        $rootScope.activeDetailsTab = 'permissions';
-                        if ($scope.svcacc.managedBy.userName.toLowerCase() == SessionStore.getItem("username")) {
-                            if ($scope.svcacc.initialPasswordReset == "false" || $scope.initialPasswordReset == "") {
-                                $scope.initialPwdResetRequired = true;
-                            }
-                        }
-                        else {
-                            Notifications.toast('No changes made');
-                            $scope.svcaccDone();
-                        }
+                        Notifications.toast('No changes made');
+                        $scope.svcaccDone();
                     }
                 }
                 else {
@@ -894,7 +899,7 @@
                                                 max_ttl: '',
                                             };
                                             managedBy = object.managedBy;
-                                            if (onboardInfo.ttl && onboardInfo.ttl != null && onboardInfo.ttl < $scope.svcacc.maxPwdAge) {
+                                            if (onboardInfo.ttl && onboardInfo.ttl != null && onboardInfo.ttl <= $scope.svcacc.maxPwdAge) {
                                                 $scope.svcacc.autoRotate = true;
                                             }
                                             if (onboardInfo.ttl > $scope.svcacc.maxPwdAge) {
@@ -906,8 +911,10 @@
                                                 $scope.isSvcaccExpired = true;
                                                 $scope.expiredNote = "(Expired)";
                                             }
-                                            document.getElementById('ttl').placeholder="TTL in seconds (Max: "+($scope.svcacc.maxPwdAge-1)+")";
-                                            getMetadata($stateParams.svcaccData.userId);
+                                            document.getElementById('ttl').placeholder="TTL in seconds (Max: "+$scope.svcacc.maxPwdAge+")";
+                                            getDefaultTTL();
+                                            getUserDetails();
+                                            getMetadata(svcaccId);
                                         }
                                     }
                                     catch (e) {
@@ -1002,13 +1009,15 @@
             $scope.svcInputSelected = true;
             $scope.isCollapsed = false;
             $scope.autoRotate = false;
-            document.getElementById('ttl').placeholder="TTL in seconds (Max: "+($scope.svcacc.maxPwdAge-1)+")";
+            document.getElementById('ttl').placeholder="TTL in seconds (Max: "+$scope.svcacc.maxPwdAge+")";
             $scope.isSvcaccExpired = false;
             $scope.expiredNote = "";
             if ($scope.svcacc.accountStatus.toLowerCase() == "expired") {
                 $scope.isSvcaccExpired = true;
                 $scope.expiredNote = "(Expired)";
             }
+            getDefaultTTL();
+            getUserDetails();
         }
 
         $scope.collapseADDetails = function() {
@@ -1041,6 +1050,13 @@
             document.getElementById('ttl').placeholder="Password TTL in seconds";
             $scope.expiredNote = "";
             $scope.isSvcaccExpired = false;
+            $scope.ttlToolip = '';
+            $scope.defatulTTL = '';
+            $scope.actualTTL = '';
+            $scope.isOwner = false;
+            $scope.ownerName = '';
+            $scope.ownerEmail = '';
+            $scope.svceditnotes = '';
         }
 
         $scope.getSvcaccList = function(searchVal) {
@@ -1114,6 +1130,13 @@
             $scope.newPassword = '';
             $scope.resetButtonDisable = false;
             $scope.hideSudoPolicy = false;
+            $scope.ttlToolip = '';
+            $scope.defatulTTL = '';
+            $scope.ownerName = '';
+            $scope.ownerEmail = '';
+            $scope.actualTTL = '';
+            $scope.isOwner = false;
+            $scope.svceditnotes = '';
             $scope.myVaultKey = SessionStore.getItem("myVaultKey");
             if(!$scope.myVaultKey){ /* Check if user is in the same session */
                 $state.go('/');
@@ -1399,8 +1422,16 @@
             Modal.createModal(size, 'resetStatus.html', 'ChangeServiceAccountCtrl', $scope);
         };
 
-        $scope.openResetPermissionWarning = function (size) {
-            Modal.createModal(size, 'resetPermissionWarning.html', 'ChangeServiceAccountCtrl', $scope);
+        $scope.openOnboardSuccessMessage = function (size) {
+            Modal.createModal(size, 'openOnboardSuccessMessage.html', 'ChangeServiceAccountCtrl', $scope);
+        };
+
+        $scope.openUpdateSuccessMessage = function (size) {
+            Modal.createModal(size, 'openUpdateSuccessMessage.html', 'ChangeServiceAccountCtrl', $scope);
+        };
+
+        $scope.openUpdateResetRequiredMessage = function (size) {
+            Modal.createModal(size, 'openUpdateResetRequiredMessage.html', 'ChangeServiceAccountCtrl', $scope);
         };
 
         /* TODO: What is ok, functon name should be more descriptive */
@@ -1421,6 +1452,54 @@
             Modal.close('close');
             $scope.isLoadingData = false;
         };
+
+        $scope.onboardingDone = function () {
+            Modal.close('close');
+        }
+
+        var getDefaultTTL = function () {
+            getActualTTL();
+            $scope.ttlToolip = "This value needs to be between 1 and " + $scope.svcacc.maxPwdAge;
+            if ($scope.svcacc.maxPwdAge == 7776000) {
+                $scope.defatulTTL = '90 days';
+            }
+            else if ($scope.svcacc.maxPwdAge == 31536000) {
+                $scope.defatulTTL = '365 days';
+            }
+        }
+
+        var getActualTTL = function () {
+            var actualTTL = '';
+            if ($scope.svcacc.ttl !=null && $scope.svcacc.ttl !='') {
+                if ($scope.svcacc.ttl < 60) {
+                    actualTTL = $scope.svcacc.ttl + ' seconds';
+                }
+                else if ($scope.svcacc.ttl < 3600) {
+                    actualTTL = Math.round($scope.svcacc.ttl * 1.0/ 60)+ ' minutes';
+                }
+                else if ($scope.svcacc.ttl < 86400) {
+                    actualTTL = Math.round($scope.svcacc.ttl * 1.0/ 3600)+ ' hours';
+                }
+                else if ($scope.svcacc.ttl > 86400) {
+                    actualTTL = Math.round($scope.svcacc.ttl * 1.0/ 3600 / 24)+ ' days';
+                }
+                $scope.svceditnotes = 'The account has been configured for password rotation at every ' + actualTTL+ '. You can override it with new values by changing "Password Expiration Time". To complete the activation process, please click “Activate Service Account”. When the activation is complete, you will get an option to copy the initial password. You can copy the same if required.';
+
+            }
+            else {
+                $scope.svceditnotes = 'The account is not enabled for password rotation. You can override it with new values by changing "Password Expiration Time". To complete the activation process, please click “Activate Service Account”. When the activation is complete, you will get an option to copy the initial password. You can copy the same if required.';
+            }
+        }
+
+        var getUserDetails = function () {
+            $scope.ownerName = $scope.svcacc.managedBy.displayName;
+            $scope.ownerEmail = $scope.svcacc.managedBy.userEmail;
+        }
+
+        $scope.grantPermission = function ()  {
+            $rootScope.showDetails = false;
+            $rootScope.activeDetailsTab = 'permissions';
+        }
 
         $scope.init();
 
