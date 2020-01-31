@@ -666,6 +666,10 @@
                                 if ($scope.svcacc.autoRotate != undefined && $scope.svcacc.autoRotate != false) {
                                     $scope.svcacc.ttl = ttl;
                                 }
+                                else {
+                                    $scope.svcacc.ttl = null;
+                                }
+                                getActualTTL();
                                 $scope.isCollapsed = true;
                                 if ($scope.svcacc.managedBy.userName.toLowerCase() == SessionStore.getItem("username")) {
                                     if ($scope.svcacc.initialPasswordReset == "false" || $scope.initialPasswordReset == "") {
@@ -751,6 +755,7 @@
                                     }
                                     $scope.isOwner = true;
                                 }
+                                $scope.isCollapsed = true;
                                 hideUserSudoPolicy();
                             }
 
@@ -1051,6 +1056,7 @@
             $scope.isOwner = false;
             $scope.ownerName = '';
             $scope.ownerEmail = '';
+            $scope.svceditnotes = '';
         }
 
         $scope.getSvcaccList = function(searchVal) {
@@ -1130,6 +1136,7 @@
             $scope.ownerEmail = '';
             $scope.actualTTL = '';
             $scope.isOwner = false;
+            $scope.svceditnotes = '';
             $scope.myVaultKey = SessionStore.getItem("myVaultKey");
             if(!$scope.myVaultKey){ /* Check if user is in the same session */
                 $state.go('/');
@@ -1451,26 +1458,36 @@
         }
 
         var getDefaultTTL = function () {
-            if ($scope.svcacc.ttl !=null) {
-                if ($scope.svcacc.ttl < 60) {
-                    $scope.actualTTL = $scope.svcacc.ttl + ' seconds';
-                }
-                else if ($scope.svcacc.ttl < 3600) {
-                    $scope.actualTTL = Math.round($scope.svcacc.ttl * 1.0/ 60)+ ' minutes';
-                }
-                else if ($scope.svcacc.ttl < 86400) {
-                    $scope.actualTTL = Math.round($scope.svcacc.ttl * 1.0/ 3600)+ ' hours';
-                }
-                else if ($scope.svcacc.ttl > 86400) {
-                    $scope.actualTTL = Math.round($scope.svcacc.ttl * 1.0/ 3600 / 24)+ ' days';
-                }
-            }
+            getActualTTL();
             $scope.ttlToolip = "This value needs to be between 1 and " + $scope.svcacc.maxPwdAge;
             if ($scope.svcacc.maxPwdAge == 7776000) {
                 $scope.defatulTTL = '90 days';
             }
             else if ($scope.svcacc.maxPwdAge == 31536000) {
                 $scope.defatulTTL = '365 days';
+            }
+        }
+
+        var getActualTTL = function () {
+            var actualTTL = '';
+            if ($scope.svcacc.ttl !=null && $scope.svcacc.ttl !='') {
+                if ($scope.svcacc.ttl < 60) {
+                    actualTTL = $scope.svcacc.ttl + ' seconds';
+                }
+                else if ($scope.svcacc.ttl < 3600) {
+                    actualTTL = Math.round($scope.svcacc.ttl * 1.0/ 60)+ ' minutes';
+                }
+                else if ($scope.svcacc.ttl < 86400) {
+                    actualTTL = Math.round($scope.svcacc.ttl * 1.0/ 3600)+ ' hours';
+                }
+                else if ($scope.svcacc.ttl > 86400) {
+                    actualTTL = Math.round($scope.svcacc.ttl * 1.0/ 3600 / 24)+ ' days';
+                }
+                $scope.svceditnotes = 'The account has been configured for password rotation at every ' + actualTTL+ '. You can override it with new values by changing "Password Expiration Time". To complete the activation process, please click “Activate Service Account”. When the activation is complete, you will get an option to copy the initial password. You can copy the same if required.';
+
+            }
+            else {
+                $scope.svceditnotes = 'The account is not enabled for password rotation. You can override it with new values by changing "Password Expiration Time". To complete the activation process, please click “Activate Service Account”. When the activation is complete, you will get an option to copy the initial password. You can copy the same if required.';
             }
         }
 
