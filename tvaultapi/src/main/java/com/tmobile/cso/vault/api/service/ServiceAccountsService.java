@@ -311,7 +311,7 @@ public class  ServiceAccountsService {
             if (null == serviceAccount.getTtl()) {
 				serviceAccount.setTtl(maxPwdAge - 1L);
 			}
-			if (serviceAccount.getTtl() >= maxPwdAge) {
+			if (serviceAccount.getTtl() > maxPwdAge) {
 				log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 						put(LogMessage.ACTION, "onboardServiceAccount").
@@ -320,7 +320,7 @@ public class  ServiceAccountsService {
 						build()));
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid value provided for TTL. TTL can't be more than "+(maxPwdAge-1)+" for this Service Account\"]}");
             }
-			if (serviceAccount.getTtl() >= serviceAccount.getMax_ttl()) {
+			if (serviceAccount.getTtl() > serviceAccount.getMax_ttl()) {
 				log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 						put(LogMessage.ACTION, "onboardServiceAccount").
@@ -2800,9 +2800,9 @@ public class  ServiceAccountsService {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid or no value has been provided for MAX_TTL\"]}");
             }
 			if (null == serviceAccount.getTtl()) {
-				serviceAccount.setTtl(maxPwdAge - 1L);
+				serviceAccount.setTtl(maxPwdAge-0L);
 			}
-            if (serviceAccount.getTtl() >= maxPwdAge) {
+            if (serviceAccount.getTtl() > maxPwdAge) {
                 log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
                         put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
                         put(LogMessage.ACTION, "Update onboarded Service Account").
@@ -2811,7 +2811,7 @@ public class  ServiceAccountsService {
                         build()));
 				return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid value provided for TTL. TTL can't be more than "+(maxPwdAge-1)+" for this Service Account\"]}");
             }
-            if (serviceAccount.getTtl() >= serviceAccount.getMax_ttl()) {
+            if (serviceAccount.getTtl() > serviceAccount.getMax_ttl()) {
                 log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
                         put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
                         put(LogMessage.ACTION, "Update onboarded Service Account").
