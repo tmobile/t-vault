@@ -522,8 +522,6 @@
                                             if(UtilityService.ifAPIRequestSuccessful(response)){
                                                 try {                                                    
                                                     $scope.isLoadingData = false;
-                                                    var notification = UtilityService.getAParticularSuccessMessage("MESSAGE_OFFBOARD_SUCCESS");
-                                                    Notifications.toast(svcaccUserId + notification);
                                                     var currentOnboardList = $scope.svcaccOnboardedData.keys;                                                    
                                                     for(var i=0; i < currentOnboardList.length ; i++){
                                                         if (currentOnboardList[i] == svcaccUserId) {
