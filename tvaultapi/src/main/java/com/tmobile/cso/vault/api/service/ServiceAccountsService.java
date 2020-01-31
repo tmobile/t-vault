@@ -338,7 +338,7 @@ public class  ServiceAccountsService {
 					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 					build()));
 			// ttl defaults to configuration ttl
-			serviceAccount.setTtl(1590897977L);
+			serviceAccount.setTtl(TVaultConstants.MAX_TTL);
 		}
 		ResponseEntity<String> accountRoleCreationResponse = createAccountRole(token, serviceAccount);
 		if(accountRoleCreationResponse.getStatusCode().equals(HttpStatus.OK)) {
@@ -2822,7 +2822,7 @@ public class  ServiceAccountsService {
             }
         }
 		if (!serviceAccount.isAutoRotate()) {
-			serviceAccount.setTtl(1590897977L);
+			serviceAccount.setTtl(TVaultConstants.MAX_TTL);
 		}
 		ResponseEntity<String> accountRoleDeletionResponse = createAccountRole(token, serviceAccount);
 		if (accountRoleDeletionResponse!=null && HttpStatus.OK.equals(accountRoleDeletionResponse.getStatusCode())) {

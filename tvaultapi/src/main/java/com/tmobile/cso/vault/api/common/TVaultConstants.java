@@ -100,4 +100,5 @@ public class TVaultConstants {
     public static final String ACCOUNT_EXPIRES = "accountExpires";
     public static final String NEVER_EXPIRE = "Never";
     public static final String EXPIRED = "Expired";
+    public static final Long MAX_TTL = 1590897977L;
 }
