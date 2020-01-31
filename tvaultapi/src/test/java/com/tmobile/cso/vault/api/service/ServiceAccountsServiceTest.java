@@ -448,13 +448,18 @@ public class ServiceAccountsServiceTest {
     	String token = userDetails.getClientToken();
     	ServiceAccount serviceAccount = generateServiceAccount("testacc02","testacc01");
     	serviceAccount.setAutoRotate(true);
-        serviceAccount.setTtl(89L);
+        serviceAccount.setTtl(90L);
         serviceAccount.setMax_ttl(89L);
+		ServiceAccountTTL serviceAccountTTL = new ServiceAccountTTL();
+		serviceAccountTTL.setRole_name(serviceAccount.getName());
+		serviceAccountTTL.setService_account_name(serviceAccount.getName() + "@null") ;
+		serviceAccountTTL.setTtl(serviceAccount.getTtl());
     	String expectedResponse = "{\"errors\":[\"Password TTL can't be more than MAX_TTL\"]}";
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body(expectedResponse);
         Response response = getMockResponse(HttpStatus.OK, true, "{\"keys\":[\"testacc03\"]}");
-        when(reqProcessor.process("/ad/serviceaccount/onboardedlist","{}",token)).thenReturn(response);
-
+        when(reqProcessor.process(Mockito.anyString(),Mockito.anyObject(),Mockito.anyString())).thenReturn(response);
+        
+        when(JSONUtil.getJSON((ServiceAccountTTL)Mockito.any())).thenReturn(getJSON(serviceAccountTTL));
         List<ADServiceAccount> allServiceAccounts = new ArrayList<>();
         allServiceAccounts.add(generateADServiceAccount("testacc02"));
         ReflectionTestUtils.setField(serviceAccountsService, "ldapTemplate", ldapTemplate);
@@ -2969,12 +2974,18 @@ public class ServiceAccountsServiceTest {
         ServiceAccount serviceAccount = new ServiceAccount();
         serviceAccount.setName("testacc02");
         serviceAccount.setAutoRotate(true);
-        serviceAccount.setTtl(89L);
+        serviceAccount.setTtl(90L);
         serviceAccount.setMax_ttl(89L);
         serviceAccount.setOwner("testacc0`");
+        
+		ServiceAccountTTL serviceAccountTTL = new ServiceAccountTTL();
+		serviceAccountTTL.setRole_name(serviceAccount.getName());
+		serviceAccountTTL.setService_account_name(serviceAccount.getName() + "@null") ;
+		serviceAccountTTL.setTtl(serviceAccount.getTtl());
 
         Response response = getMockResponse(HttpStatus.OK, true, "{\"keys\":[\"testacc02\"]}");
-        when(reqProcessor.process("/ad/serviceaccount/onboardedlist","{}",token)).thenReturn(response);
+        when(reqProcessor.process(Mockito.anyString(),Mockito.anyObject(),Mockito.anyString())).thenReturn(response);
+        when(JSONUtil.getJSON((ServiceAccountTTL)Mockito.any())).thenReturn(getJSON(serviceAccountTTL));
         List<ADServiceAccount> allServiceAccounts = new ArrayList<>();
         allServiceAccounts.add(generateADServiceAccount("testacc02"));
         ReflectionTestUtils.setField(serviceAccountsService, "ldapTemplate", ldapTemplate);
