@@ -894,7 +894,7 @@
                                                 max_ttl: '',
                                             };
                                             managedBy = object.managedBy;
-                                            if (onboardInfo.ttl && onboardInfo.ttl != null && onboardInfo.ttl < $scope.svcacc.maxPwdAge) {
+                                            if (onboardInfo.ttl && onboardInfo.ttl != null && onboardInfo.ttl <= $scope.svcacc.maxPwdAge) {
                                                 $scope.svcacc.autoRotate = true;
                                             }
                                             if (onboardInfo.ttl > $scope.svcacc.maxPwdAge) {
