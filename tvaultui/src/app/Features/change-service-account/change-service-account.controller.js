@@ -799,15 +799,7 @@
                 console.log(error);
                 $scope.isLoadingData = false;
                 if (error.status === '403' || error.status === 403) {
-                    var errorData = error.data.errors;
-                        if (errorData instanceof Array && errorData.length > 0 ) {
-                            $scope.errorMessage = errorData[0];
-                        } else if (errorData.length > 0) {
-                            $scope.errorMessage = errorData;
-                        } else {
-                            $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
-                        }
-                    $scope.error('md');
+                    $scope.openOneTimeResetFailedMessage();
                 }
                 else {
                     $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
@@ -1422,6 +1414,10 @@
 
         $scope.openUpdateResetRequiredMessage = function (size) {
             Modal.createModal(size, 'openUpdateResetRequiredMessage.html', 'ChangeServiceAccountCtrl', $scope);
+        };
+
+        $scope.openOneTimeResetFailedMessage = function (size) {
+            Modal.createModal(size, 'openOneTimeResetFailedMessage.html', 'ChangeServiceAccountCtrl', $scope);
         };
 
         /* TODO: What is ok, functon name should be more descriptive */
