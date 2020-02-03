@@ -95,7 +95,7 @@
             displayName: 'PERMISSIONS',
             navigationName: 'permissions',
             addComma: false,
-            show: true
+            show: false
         }];
 
         $scope.inputValue = {
@@ -592,15 +592,11 @@
                             $scope.svcaccPrevious = angular.copy($scope.svcacc);
                             if ($scope.svcacc.managedBy.userName.toLowerCase() == SessionStore.getItem("username")) {
                                 $scope.initialPwdResetRequired = true;
-                                $scope.resetButtonDisable = true;
-                                $scope.changeSvcaccHeader = "EDIT SERVICE ACCOUNT";
-                                $scope.isEditSvcacc = true;
-                                getSvcaccInfo($scope.svcacc.svcaccId);
-                                $scope.openOnboardSuccessMessage();
                             }
-                            else {
-                                $scope.svcaccDone();
-                            }
+                            $scope.changeSvcaccHeader = "EDIT SERVICE ACCOUNT";
+                            $scope.isEditSvcacc = true;
+                            getSvcaccInfo($scope.svcacc.svcaccId);
+                            $scope.openOnboardSuccessMessage();
 
                         } catch (e) {
                             console.log(e);
@@ -660,17 +656,11 @@
                 AdminSafesManagement.editSvcacc(onboardPayload, '').then(function (response) {
                         if (UtilityService.ifAPIRequestSuccessful(response)) {
                             try {
-                                $scope.isLoadingData = false;
                                 $scope.svcaccOnboarded = true;
                                 $scope.svcaccPrevious = angular.copy($scope.svcacc);
-                                if ($scope.svcacc.autoRotate != undefined && $scope.svcacc.autoRotate != false) {
-                                    $scope.svcacc.ttl = ttl;
-                                }
-                                else {
-                                    $scope.svcacc.ttl = null;
-                                }
-                                getActualTTL();
-                                $scope.isCollapsed = true;
+                                $scope.changeSvcaccHeader = "EDIT SERVICE ACCOUNT";
+                                $scope.isEditSvcacc = true;
+                                getSvcaccInfo($scope.svcacc.svcaccId);
                                 if ($scope.svcacc.managedBy.userName.toLowerCase() == SessionStore.getItem("username")) {
                                     if ($scope.svcacc.initialPasswordReset == "false" || $scope.initialPasswordReset == "") {
                                         $scope.initialPwdResetRequired = true;
@@ -752,6 +742,8 @@
                                 if ($scope.svcacc.managedBy.userName.toLowerCase() == SessionStore.getItem("username")) {
                                     if ($scope.initialPasswordReset == "false" || $scope.initialPasswordReset == "") {
                                         $scope.initialPwdResetRequired = true;
+                                    } else {
+                                        $scope.detailsNavTags[1].show = true;
                                     }
                                     $scope.isOwner = true;
                                 }
@@ -781,7 +773,6 @@
         }
 
         $scope.oneTimeReset = function() {
-            $scope.resetButtonDisable = true;
             $scope.isLoadingData = true;
             var queryParameters = "serviceAccountName="+$scope.svcacc.svcaccId;
             var updatedUrlOfEndPoint = ModifyUrl.addUrlParameteres('resetPasswordForSvcacc',queryParameters);
@@ -790,10 +781,9 @@
                     $scope.isLoadingData = false;
                     $scope.newPassword = response.data.current_password;
                     $scope.resetMessage = "Service account "+$scope.svcacc.svcaccId+" has been activated successfully!"
-                    //$rootScope.showDetails = false;
                     $scope.initialPwdResetRequired = false;
                     $scope.initialPasswordReset = "true";
-                    //$rootScope.activeDetailsTab = 'permissions';
+                    $scope.detailsNavTags[1].show = true;
                     $scope.openResetStatus();
                 }
                 else {
@@ -808,15 +798,7 @@
                 console.log(error);
                 $scope.isLoadingData = false;
                 if (error.status === '403' || error.status === 403) {
-                    var errorData = error.data.errors;
-                        if (errorData instanceof Array && errorData.length > 0 ) {
-                            $scope.errorMessage = errorData[0];
-                        } else if (errorData.length > 0) {
-                            $scope.errorMessage = errorData;
-                        } else {
-                            $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
-                        }
-                    $scope.error('md');
+                    $scope.openOneTimeResetFailedMessage();
                 }
                 else {
                     $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
@@ -1128,7 +1110,6 @@
                 AppRolePermissionsData: ''
             }
             $scope.newPassword = '';
-            $scope.resetButtonDisable = false;
             $scope.hideSudoPolicy = false;
             $scope.ttlToolip = '';
             $scope.defatulTTL = '';
@@ -1434,6 +1415,10 @@
             Modal.createModal(size, 'openUpdateResetRequiredMessage.html', 'ChangeServiceAccountCtrl', $scope);
         };
 
+        $scope.openOneTimeResetFailedMessage = function (size) {
+            Modal.createModal(size, 'openOneTimeResetFailedMessage.html', 'ChangeServiceAccountCtrl', $scope);
+        };
+
         /* TODO: What is ok, functon name should be more descriptive */
         $scope.ok = function () {
             Modal.close('ok');
@@ -1455,6 +1440,9 @@
 
         $scope.onboardingDone = function () {
             Modal.close('close');
+            if ($scope.isLoadingData == true) {
+                Notifications.toast("Loading Service Account Details..");
+            }
         }
 
         var getDefaultTTL = function () {
@@ -1480,7 +1468,7 @@
                 else if ($scope.svcacc.ttl < 86400) {
                     actualTTL = Math.round($scope.svcacc.ttl * 1.0/ 3600)+ ' hours';
                 }
-                else if ($scope.svcacc.ttl > 86400) {
+                else if ($scope.svcacc.ttl >= 86400) {
                     actualTTL = Math.round($scope.svcacc.ttl * 1.0/ 3600 / 24)+ ' days';
                 }
                 $scope.svceditnotes = 'The account has been configured for password rotation at every ' + actualTTL+ '. You can override it with new values by changing "Password Expiration Time". To complete the activation process, please click “Activate Service Account”. When the activation is complete, you will get an option to copy the initial password and then you can proceed to grant permissions to users and groups to read and/or reset the Password.';

@@ -315,10 +315,10 @@ public class  ServiceAccountsService {
 				log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 						put(LogMessage.ACTION, "onboardServiceAccount").
-						put(LogMessage.MESSAGE, String.format ("TTL is [%s] is greater the MAX_TTL [%s]", serviceAccount.getTtl(), maxPwdAge-1)).
+						put(LogMessage.MESSAGE, String.format ("TTL is [%s] is greater the MAX_TTL [%s]", serviceAccount.getTtl(), maxPwdAge)).
 						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 						build()));
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid value provided for TTL. TTL can't be more than "+(maxPwdAge-1)+" for this Service Account\"]}");
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid value provided for TTL. TTL can't be more than "+maxPwdAge+" for this Service Account\"]}");
             }
 			if (serviceAccount.getTtl() > serviceAccount.getMax_ttl()) {
 				log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
@@ -2806,10 +2806,10 @@ public class  ServiceAccountsService {
                 log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
                         put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
                         put(LogMessage.ACTION, "Update onboarded Service Account").
-                        put(LogMessage.MESSAGE, String.format ("TTL is [%s] is greater the MAX_TTL [%s]", serviceAccount.getTtl(), maxPwdAge-1)).
+                        put(LogMessage.MESSAGE, String.format ("TTL is [%s] is greater the MAX_TTL [%s]", serviceAccount.getTtl(), maxPwdAge)).
                         put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
                         build()));
-				return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid value provided for TTL. TTL can't be more than "+(maxPwdAge-1)+" for this Service Account\"]}");
+				return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid value provided for TTL. TTL can't be more than "+maxPwdAge+" for this Service Account\"]}");
             }
             if (serviceAccount.getTtl() > serviceAccount.getMax_ttl()) {
                 log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
