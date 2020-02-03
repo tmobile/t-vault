@@ -592,7 +592,6 @@
                             $scope.svcaccPrevious = angular.copy($scope.svcacc);
                             if ($scope.svcacc.managedBy.userName.toLowerCase() == SessionStore.getItem("username")) {
                                 $scope.initialPwdResetRequired = true;
-                                $scope.resetButtonDisable = true;
                             }
                             $scope.changeSvcaccHeader = "EDIT SERVICE ACCOUNT";
                             $scope.isEditSvcacc = true;
@@ -775,7 +774,6 @@
         }
 
         $scope.oneTimeReset = function() {
-            $scope.resetButtonDisable = true;
             $scope.isLoadingData = true;
             var queryParameters = "serviceAccountName="+$scope.svcacc.svcaccId;
             var updatedUrlOfEndPoint = ModifyUrl.addUrlParameteres('resetPasswordForSvcacc',queryParameters);
@@ -1121,7 +1119,6 @@
                 AppRolePermissionsData: ''
             }
             $scope.newPassword = '';
-            $scope.resetButtonDisable = false;
             $scope.hideSudoPolicy = false;
             $scope.ttlToolip = '';
             $scope.defatulTTL = '';
@@ -1448,6 +1445,9 @@
 
         $scope.onboardingDone = function () {
             Modal.close('close');
+            if ($scope.isLoadingData == true) {
+                Notifications.toast("Loading Service Acccount Details..");
+            }
         }
 
         var getDefaultTTL = function () {
