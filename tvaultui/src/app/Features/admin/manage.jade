@@ -241,10 +241,10 @@ script(type='text/ng-template', id='manageSecretId.html')
                                         text When a service account is activated in T-Vault, the account owner can grant specific permissions to other users and groups allowing others to read and/or reset the password for the service account as well through T-Vault.
                                       div.svcdescription
                                           text.weighted Note:
-                                          text T-Vault will rotate the Passwords lazily based on preset password expiration time (known as TTL). ie. A passord is configured with a TTL of 1 hour will get expire after 1 hour, but the rotation will happen only when it is first requested after the expiry.
+                                          text T-Vault will rotate the Passwords lazily based on password expiration time (known as TTL). ie. A password is configured with a TTL of 1 hour will get expire after 1 hour, but the rotation will happen only when it is first requested after the expiry.
 
                                     div.data-management-content
-                                        div.svcdescription The following are list of Service Accounts managed by T-Vault. You can click View/Edit link to either activate the Service account for password rotation or grant permissions for users and groups.
+                                        div.svcdescription(ng-show="!isLoadingData && svcaccOnboardedData.keys.length>0") The following are list of Service Accounts managed by T-Vault. You can click View/Edit link to either activate the Service account for password rotation or grant permissions for users and groups.
                                         .row.change-safe-table-container(ng-if='true')
                                             loading-state(ng-if='isLoadingData')
                                             .row.change-data.header.solid-header(ng-show="!isLoadingData && svcaccOnboardedData.keys.length>0")
