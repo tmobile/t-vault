@@ -248,7 +248,7 @@ script(type='text/ng-template', id='manageSecretId.html')
                                         .row.change-safe-table-container(ng-if='true')
                                             loading-state(ng-if='isLoadingData')
                                             .row.change-data.header.solid-header(ng-show="!isLoadingData && svcaccOnboardedData.keys.length>0")
-                                                .container.name.col-lg-4.col-md-4.col-sm-4.col-xs-4(title="ACCOUNT NAME") ACCOUNT NAME
+                                                .container.name.col-lg-4.col-md-4.col-sm-4.col-xs-4(uib-tooltip="SERVICE ACCOUNT NAME") ACCOUNT NAME
                                                 .container.name.cell.col-lg-6.col-md-6.col-sm-6.col-xs-6 ACTION
                                             .change-list-table-data.row
                                                 .unavailable-text(ng-show="!isLoadingData && svcaccOnboardedData.keys.length==0")
