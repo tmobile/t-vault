@@ -95,7 +95,7 @@
             displayName: 'PERMISSIONS',
             navigationName: 'permissions',
             addComma: false,
-            show: true
+            show: false
         }];
 
         $scope.inputValue = {
@@ -742,11 +742,10 @@
                                 if ($scope.svcacc.managedBy.userName.toLowerCase() == SessionStore.getItem("username")) {
                                     if ($scope.initialPasswordReset == "false" || $scope.initialPasswordReset == "") {
                                         $scope.initialPwdResetRequired = true;
-                                        $scope.detailsNavTags[1].show = false;
+                                    } else {
+                                        $scope.detailsNavTags[1].show = true;
                                     }
                                     $scope.isOwner = true;
-                                } else {
-                                    $scope.detailsNavTags[1].show = false;
                                 }
                                 $scope.isCollapsed = true;
                                 hideUserSudoPolicy();
@@ -1442,7 +1441,7 @@
         $scope.onboardingDone = function () {
             Modal.close('close');
             if ($scope.isLoadingData == true) {
-                Notifications.toast("Loading Service Acccount Details..");
+                Notifications.toast("Loading Service Account Details..");
             }
         }
 
