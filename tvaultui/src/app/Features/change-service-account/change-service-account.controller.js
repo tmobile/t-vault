@@ -593,14 +593,11 @@
                             if ($scope.svcacc.managedBy.userName.toLowerCase() == SessionStore.getItem("username")) {
                                 $scope.initialPwdResetRequired = true;
                                 $scope.resetButtonDisable = true;
-                                $scope.changeSvcaccHeader = "EDIT SERVICE ACCOUNT";
-                                $scope.isEditSvcacc = true;
-                                getSvcaccInfo($scope.svcacc.svcaccId);
-                                $scope.openOnboardSuccessMessage();
                             }
-                            else {
-                                $scope.svcaccDone();
-                            }
+                            $scope.changeSvcaccHeader = "EDIT SERVICE ACCOUNT";
+                            $scope.isEditSvcacc = true;
+                            getSvcaccInfo($scope.svcacc.svcaccId);
+                            $scope.openOnboardSuccessMessage();
 
                         } catch (e) {
                             console.log(e);
@@ -660,17 +657,11 @@
                 AdminSafesManagement.editSvcacc(onboardPayload, '').then(function (response) {
                         if (UtilityService.ifAPIRequestSuccessful(response)) {
                             try {
-                                $scope.isLoadingData = false;
                                 $scope.svcaccOnboarded = true;
                                 $scope.svcaccPrevious = angular.copy($scope.svcacc);
-                                if ($scope.svcacc.autoRotate != undefined && $scope.svcacc.autoRotate != false) {
-                                    $scope.svcacc.ttl = ttl;
-                                }
-                                else {
-                                    $scope.svcacc.ttl = null;
-                                }
-                                getActualTTL();
-                                $scope.isCollapsed = true;
+                                $scope.changeSvcaccHeader = "EDIT SERVICE ACCOUNT";
+                                $scope.isEditSvcacc = true;
+                                getSvcaccInfo($scope.svcacc.svcaccId);
                                 if ($scope.svcacc.managedBy.userName.toLowerCase() == SessionStore.getItem("username")) {
                                     if ($scope.svcacc.initialPasswordReset == "false" || $scope.initialPasswordReset == "") {
                                         $scope.initialPwdResetRequired = true;
@@ -752,8 +743,11 @@
                                 if ($scope.svcacc.managedBy.userName.toLowerCase() == SessionStore.getItem("username")) {
                                     if ($scope.initialPasswordReset == "false" || $scope.initialPasswordReset == "") {
                                         $scope.initialPwdResetRequired = true;
+                                        $scope.detailsNavTags[1].show = false;
                                     }
                                     $scope.isOwner = true;
+                                } else {
+                                    $scope.detailsNavTags[1].show = false;
                                 }
                                 $scope.isCollapsed = true;
                                 hideUserSudoPolicy();
@@ -790,10 +784,9 @@
                     $scope.isLoadingData = false;
                     $scope.newPassword = response.data.current_password;
                     $scope.resetMessage = "Service account "+$scope.svcacc.svcaccId+" has been activated successfully!"
-                    //$rootScope.showDetails = false;
                     $scope.initialPwdResetRequired = false;
                     $scope.initialPasswordReset = "true";
-                    //$rootScope.activeDetailsTab = 'permissions';
+                    $scope.detailsNavTags[1].show = true;
                     $scope.openResetStatus();
                 }
                 else {
@@ -1480,7 +1473,7 @@
                 else if ($scope.svcacc.ttl < 86400) {
                     actualTTL = Math.round($scope.svcacc.ttl * 1.0/ 3600)+ ' hours';
                 }
-                else if ($scope.svcacc.ttl > 86400) {
+                else if ($scope.svcacc.ttl >= 86400) {
                     actualTTL = Math.round($scope.svcacc.ttl * 1.0/ 3600 / 24)+ ' days';
                 }
                 $scope.svceditnotes = 'The account has been configured for password rotation at every ' + actualTTL+ '. You can override it with new values by changing "Password Expiration Time". To complete the activation process, please click “Activate Service Account”. When the activation is complete, you will get an option to copy the initial password and then you can proceed to grant permissions to users and groups to read and/or reset the Password.';
