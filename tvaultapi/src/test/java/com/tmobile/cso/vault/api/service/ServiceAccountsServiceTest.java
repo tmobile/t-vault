@@ -454,7 +454,7 @@ public class ServiceAccountsServiceTest {
 		serviceAccountTTL.setRole_name(serviceAccount.getName());
 		serviceAccountTTL.setService_account_name(serviceAccount.getName() + "@null") ;
 		serviceAccountTTL.setTtl(serviceAccount.getTtl());
-    	String expectedResponse = "{\"errors\":[\"Password TTL can't be more than MAX_TTL\"]}";
+        String expectedResponse = "{\"errors\":[\"Password Expiration Time can't be more than Maximum expiration time (MAX_TTL) for this Service Account\"]}";
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body(expectedResponse);
         Response response = getMockResponse(HttpStatus.OK, true, "{\"keys\":[\"testacc03\"]}");
         when(reqProcessor.process(Mockito.anyString(),Mockito.anyObject(),Mockito.anyString())).thenReturn(response);
@@ -499,7 +499,7 @@ public class ServiceAccountsServiceTest {
         serviceAccount.setAutoRotate(true);
         serviceAccount.setTtl(1590897977L);
         serviceAccount.setMax_ttl(1590897977L);
-        String expectedResponse = "{\"errors\":[\"Invalid value provided for TTL. TTL can't be more than 31536000 for this Service Account\"]}";
+        String expectedResponse = "{\"errors\":[\"Invalid value provided for Password Expiration Time. This can't be more than 31536000 for this Service Account\"]}";
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body(expectedResponse);
 
         Response response = getMockResponse(HttpStatus.OK, true, "{\"keys\":[\"testacc03\"]}");
@@ -2921,7 +2921,7 @@ public class ServiceAccountsServiceTest {
     @Test
     public void test_updateOnboardedServiceAccount_failure_invalid_ttl() throws Exception {
 
-        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid value provided for TTL. TTL can't be more than 31536000 for this Service Account\"]}");
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid value provided for Password Expiration Time. This can't be more than 31536000 for this Service Account\"]}");
         String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
         UserDetails userDetails = getMockUser(true);
         ServiceAccount serviceAccount = new ServiceAccount();
@@ -2968,7 +2968,7 @@ public class ServiceAccountsServiceTest {
     @Test
     public void test_updateOnboardedServiceAccount_failure_ttl_greaterthan_max() throws Exception {
 
-        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Password TTL must be less than MAX_TTL\"]}");
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Password Expiration Time must be less than Maximum expiration time (MAX_TTL) for this Service Account\"]}");
         String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
         UserDetails userDetails = getMockUser(true);
         ServiceAccount serviceAccount = new ServiceAccount();

@@ -315,19 +315,19 @@ public class  ServiceAccountsService {
 				log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 						put(LogMessage.ACTION, "onboardServiceAccount").
-						put(LogMessage.MESSAGE, String.format ("TTL is [%s] is greater the MAX_TTL [%s]", serviceAccount.getTtl(), maxPwdAge)).
+						put(LogMessage.MESSAGE, String.format ("Password Expiration Time [%s] is greater the Maximum expiration time (MAX_TTL) [%s]", serviceAccount.getTtl(), maxPwdAge)).
 						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 						build()));
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid value provided for TTL. TTL can't be more than "+maxPwdAge+" for this Service Account\"]}");
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid value provided for Password Expiration Time. This can't be more than "+maxPwdAge+" for this Service Account\"]}");
             }
 			if (serviceAccount.getTtl() > serviceAccount.getMax_ttl()) {
 				log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 						put(LogMessage.ACTION, "onboardServiceAccount").
-						put(LogMessage.MESSAGE, String.format ("TTL is [%s] is greater the MAX_TTL [%s]", serviceAccount.getTtl(), serviceAccount.getMax_ttl())).
+						put(LogMessage.MESSAGE, String.format ("Password Expiration Time [%s] is greater the Maximum expiration time (MAX_TTL) [%s]", serviceAccount.getTtl(), serviceAccount.getMax_ttl())).
 						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 						build()));
-				return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Password TTL can't be more than MAX_TTL\"]}");
+				return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Password Expiration Time can't be more than Maximum expiration time (MAX_TTL) for this Service Account\"]}");
 			}
 		}
 		else {
@@ -2806,19 +2806,19 @@ public class  ServiceAccountsService {
                 log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
                         put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
                         put(LogMessage.ACTION, "Update onboarded Service Account").
-                        put(LogMessage.MESSAGE, String.format ("TTL is [%s] is greater the MAX_TTL [%s]", serviceAccount.getTtl(), maxPwdAge)).
+                        put(LogMessage.MESSAGE, String.format ("Password Expiration Time [%s] is greater the Maximum expiration time (MAX_TTL) [%s]", serviceAccount.getTtl(), maxPwdAge)).
                         put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
                         build()));
-				return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid value provided for TTL. TTL can't be more than "+maxPwdAge+" for this Service Account\"]}");
+				return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid value provided for Password Expiration Time. This can't be more than "+maxPwdAge+" for this Service Account\"]}");
             }
             if (serviceAccount.getTtl() > serviceAccount.getMax_ttl()) {
                 log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
                         put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
                         put(LogMessage.ACTION, "Update onboarded Service Account").
-                        put(LogMessage.MESSAGE, String.format ("TTL is [%s] is greater the MAX_TTL [%s]", serviceAccount.getTtl(), serviceAccount.getMax_ttl())).
+                        put(LogMessage.MESSAGE, String.format ("Password Expiration Time [%s] is greater the Maximum expiration time (MAX_TTL) [%s]", serviceAccount.getTtl(), serviceAccount.getMax_ttl())).
                         put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
                         build()));
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Password TTL must be less than MAX_TTL\"]}");
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Password Expiration Time must be less than Maximum expiration time (MAX_TTL) for this Service Account\"]}");
             }
         }
 		if (!serviceAccount.isAutoRotate()) {
