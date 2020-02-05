@@ -31,6 +31,7 @@
         $scope.isSvcaccExpired = false;
         $scope.expiredNote = '';
         $scope.svcInputSelected = false;
+        $scope.customTTL = '';
 
         $scope.usrRadioBtnVal = 'read';             // Keep it in lowercase
         $scope.grpRadioBtnVal = 'read';             // Keep it in lowercase
@@ -564,7 +565,8 @@
                     $scope.openSvcAccDefaultWarning(size);
                 }
                 else {
-                    $scope.onboardSvcAccount();
+                    getActualTTL();
+                    $scope.openSvcAccCustomTTLWarning(size);
                 }
             }
         }
@@ -774,6 +776,7 @@
 
         $scope.oneTimeReset = function() {
             $scope.isLoadingData = true;
+            Modal.close();
             var queryParameters = "serviceAccountName="+$scope.svcacc.svcaccId;
             var updatedUrlOfEndPoint = ModifyUrl.addUrlParameteres('resetPasswordForSvcacc',queryParameters);
             AdminSafesManagement.resetPasswordForSvcacc(null, updatedUrlOfEndPoint).then(function (response) {                
@@ -1034,7 +1037,7 @@
             $scope.isSvcaccExpired = false;
             $scope.ttlToolip = '';
             $scope.defatulTTL = '';
-            $scope.actualTTL = '';
+            $scope.customTTL = '';
             $scope.isOwner = false;
             $scope.ownerName = '';
             $scope.ownerEmail = '';
@@ -1115,7 +1118,7 @@
             $scope.defatulTTL = '';
             $scope.ownerName = '';
             $scope.ownerEmail = '';
-            $scope.actualTTL = '';
+            $scope.customTTL = '';
             $scope.isOwner = false;
             $scope.svceditnotes = '';
             $scope.myVaultKey = SessionStore.getItem("myVaultKey");
@@ -1419,6 +1422,14 @@
             Modal.createModal(size, 'openOneTimeResetFailedMessage.html', 'ChangeServiceAccountCtrl', $scope);
         };
 
+        $scope.openSvcAccCustomTTLWarning = function (size) {
+            Modal.createModal(size, 'openSvcAccCustomTTLWarning.html', 'ChangeServiceAccountCtrl', $scope);
+        };
+
+        $scope.oneTimeResetConfirmation = function (size) {
+            Modal.createModal(size, 'oneTimeResetConfirmation.html', 'ChangeServiceAccountCtrl', $scope);
+        }
+        
         /* TODO: What is ok, functon name should be more descriptive */
         $scope.ok = function () {
             Modal.close('ok');
@@ -1471,6 +1482,7 @@
                 else if ($scope.svcacc.ttl >= 86400) {
                     actualTTL = Math.round($scope.svcacc.ttl * 1.0/ 3600 / 24)+ ' days';
                 }
+                $scope.customTTL = actualTTL;
                 $scope.svceditnotes = 'The account has been configured for password rotation at every ' + actualTTL+ '. You can override it with new values by changing "Password Expiration Time". To complete the activation process, please click “Activate Service Account”. When the activation is complete, you will get an option to copy the initial password and then you can proceed to grant permissions to users and groups to read and/or reset the Password.';
 
             }
