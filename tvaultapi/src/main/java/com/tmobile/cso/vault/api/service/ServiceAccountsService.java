@@ -1136,28 +1136,65 @@ public class  ServiceAccountsService {
 							if (requestParams.get("last_password") != null ) {
 								adServiceAccountCreds.setLast_password((String) requestParams.get("last_password"));
 							}
-							// update metadata for initial password reset
-							String path = new StringBuffer(TVaultConstants.SVC_ACC_ROLES_PATH).append(svcAccName).toString();
-							Map<String,String> params = new HashMap<String,String>();
-							params.put("type", "initialPasswordReset");
-							params.put("path",path);
-							params.put("value","true");
-							Response metadataResponse = ControllerUtil.updateMetadataOnSvcaccPwdReset(params,token);
-							if(metadataResponse !=null && (HttpStatus.NO_CONTENT.equals(metadataResponse.getHttpstatus()) || HttpStatus.OK.equals(metadataResponse.getHttpstatus()))){
-								log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+
+							// Check metadata to get the owner information
+							Response getMetaResponse = getMetadata(token, userDetails, TVaultConstants.SVC_ACC_ROLES_PATH + svcAccName);
+							try {
+								JsonNode metaNode = new ObjectMapper().readTree(getMetaResponse.getResponse()).get("data").get("initialPasswordReset");
+								if (metaNode != null) {
+									boolean initialResetStatus = false;
+									if (metaNode != null) {
+										 initialResetStatus = Boolean.parseBoolean(metaNode.asText());
+										 if (!initialResetStatus) {
+
+											 // update metadata for initial password reset
+											 String path = new StringBuffer(TVaultConstants.SVC_ACC_ROLES_PATH).append(svcAccName).toString();
+											 Map<String,String> params = new HashMap<String,String>();
+											 params.put("type", "initialPasswordReset");
+											 params.put("path",path);
+											 params.put("value","true");
+											 Response metadataResponse = ControllerUtil.updateMetadataOnSvcaccPwdReset(params,token);
+											 if(metadataResponse !=null && (HttpStatus.NO_CONTENT.equals(metadataResponse.getHttpstatus()) || HttpStatus.OK.equals(metadataResponse.getHttpstatus()))){
+												 log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+														 put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+														 put(LogMessage.ACTION, "Update metadata on password reset").
+														 put(LogMessage.MESSAGE, "Metadata update Success.").
+														 put(LogMessage.STATUS, metadataResponse.getHttpstatus().toString()).
+														 put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+														 build()));
+											 }
+											 else {
+												 log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+														 put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+														 put(LogMessage.ACTION, "Update metadata on password reset").
+														 put(LogMessage.MESSAGE, "Metadata update failed.").
+														 put(LogMessage.STATUS, metadataResponse!=null?metadataResponse.getHttpstatus().toString():HttpStatus.BAD_REQUEST.toString()).
+														 put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+														 build()));
+											 }
+
+											 metaNode = new ObjectMapper().readTree(getMetaResponse.getResponse()).get("data").get("managedBy");
+											 String svcOwner = metaNode.asText();
+											 // Adding read and reset permisison to Service account by default. (At the time of initial password reset)
+											 ServiceAccountUser serviceAccountOwner = new ServiceAccountUser(svcAccName, svcOwner, TVaultConstants.RESET_POLICY);
+											 ResponseEntity<String> addOwnerWriteToServiceAccountResponse = addUserToServiceAccount(token, serviceAccountOwner, userDetails, false);
+											 if (addOwnerWriteToServiceAccountResponse!= null && HttpStatus.NO_CONTENT.equals(addOwnerWriteToServiceAccountResponse.getStatusCode())) {
+												 log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+														 put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+														 put(LogMessage.ACTION, "readSvcAccPassword").
+														 put(LogMessage.MESSAGE, "Updated write permission to Service account owner as part of initial reset.").
+														 put(LogMessage.STATUS, metadataResponse.getHttpstatus().toString()).
+														 put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+														 build()));
+											 }
+										 }
+									}
+								}
+							} catch (IOException e) {
+								log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 										put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
-										put(LogMessage.ACTION, "Update metadata on password reset").
-										put(LogMessage.MESSAGE, "Metadata update Success.").
-										put(LogMessage.STATUS, metadataResponse.getHttpstatus().toString()).
-										put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
-										build()));
-							}
-							else {
-								log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
-										put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
-										put(LogMessage.ACTION, "Update metadata on password reset").
-										put(LogMessage.MESSAGE, "Metadata update failed.").
-										put(LogMessage.STATUS, metadataResponse!=null?metadataResponse.getHttpstatus().toString():HttpStatus.BAD_REQUEST.toString()).
+										put(LogMessage.ACTION, "resetSvcAccPassword").
+										put(LogMessage.MESSAGE, String.format ("Failed to get metadata for the Service account [%s]", svcAccName)).
 										put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 										build()));
 							}

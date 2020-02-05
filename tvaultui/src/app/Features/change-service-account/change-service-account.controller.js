@@ -1484,7 +1484,8 @@
             $scope.ownerEmail = $scope.svcacc.managedBy.userEmail;
         }
 
-        $scope.grantPermission = function ()  {
+        $scope.grantPermission = function (svcaccname)  {
+            getMetadata(svcaccname);
             $rootScope.showDetails = false;
             $rootScope.activeDetailsTab = 'permissions';
         }

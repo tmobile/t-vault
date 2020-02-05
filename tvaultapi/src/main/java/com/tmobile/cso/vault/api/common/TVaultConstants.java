@@ -27,6 +27,7 @@ public class TVaultConstants {
     public static final String READ_POLICY="read";
     public static final String WRITE_POLICY="write";
     public static final String DENY_POLICY="deny";
+    public static final String RESET_POLICY="reset";
     public static final String OWNER_POLICY="owner";
     public static final String SUDO_POLICY="sudo";
     public static final String CREATE_POLICY="create";
