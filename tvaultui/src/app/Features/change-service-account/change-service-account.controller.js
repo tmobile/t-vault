@@ -1483,7 +1483,7 @@
                     actualTTL = Math.round($scope.svcacc.ttl * 1.0/ 3600 / 24)+ ' days';
                 }
                 $scope.customTTL = actualTTL;
-                $scope.svceditnotes = 'The account has been configured for password rotation at every ' + actualTTL+ '. You can override it with new values by changing "Password Expiration Time". To complete the activation process, please click “Activate Service Account”. When the activation is complete, you will get an option to copy the initial password and then you can proceed to grant permissions to users and groups to read and/or reset the Password.';
+                $scope.svceditnotes = 'You are in step 2 of 3 - Service Account Activation. The account has been configured for password rotation at every ' + actualTTL+ '. You can override it with new values by changing "Password Expiration Time". To complete the activation process, please click “Activate Service Account”. When the activation is complete, you will get an option to copy the initial password and then you can proceed to grant permissions to users and groups to read and/or reset the Password.';
 
             }
             else {
