@@ -573,7 +573,7 @@
                     $scope.openSvcAccDefaultWarning(size);
                 }
                 else {
-                    getActualTTL();
+                    getCustomTTL();
                     $scope.openSvcAccCustomTTLWarning(size);
                 }
             }
@@ -645,7 +645,8 @@
                 $scope.openSvcAccDefaultEditWarning(size);
             }
             else {
-                $scope.editSvcaccountOnboard();
+                getCustomTTL();
+                $scope.openSvcAccCustomTTLEditWarning(size);
             }
         }
 
@@ -1439,6 +1440,10 @@
             Modal.createModal(size, 'openSvcAccCustomTTLWarning.html', 'ChangeServiceAccountCtrl', $scope);
         };
 
+        $scope.openSvcAccCustomTTLEditWarning = function (size) {
+            Modal.createModal(size, 'openSvcAccCustomTTLEditWarning.html', 'ChangeServiceAccountCtrl', $scope);
+        };
+
         $scope.oneTimeResetConfirmation = function (size) {
             Modal.createModal(size, 'oneTimeResetConfirmation.html', 'ChangeServiceAccountCtrl', $scope);
         }
@@ -1481,6 +1486,16 @@
         }
 
         var getActualTTL = function () {
+            var actualTTL = getCustomTTL();
+            if (actualTTL !='') {
+                $scope.svceditnotes = 'You are in step 2 of 3 - Service Account Activation. The account has been configured for password rotation at every ' + actualTTL+ '. You can override it with new values by changing "Password Expiration Time". To complete the activation process, please click “Activate Service Account”. When the activation is complete, you will get an option to copy the initial password and then you can proceed to grant permissions to users and groups to read and/or reset the Password.';
+            }
+            else {
+                $scope.svceditnotes = 'You are in step 2 of 3 - Service Account Activation. The account is not enabled for password rotation. You can override it with new values by changing "Password Expiration Time". To complete the activation process, please click “Activate Service Account”. When the activation is complete, you will get an option to copy the initial password and then you can proceed to grant permissions to users and groups to read and/or reset the Password.';
+            }
+        }
+
+        var getCustomTTL = function () {
             var actualTTL = '';
             if ($scope.svcacc.ttl !=null && $scope.svcacc.ttl !='') {
                 if ($scope.svcacc.ttl < 60) {
@@ -1496,12 +1511,8 @@
                     actualTTL = Math.round($scope.svcacc.ttl * 1.0/ 3600 / 24)+ ' days';
                 }
                 $scope.customTTL = actualTTL;
-                $scope.svceditnotes = 'You are in step 2 of 3 - Service Account Activation. The account has been configured for password rotation at every ' + actualTTL+ '. You can override it with new values by changing "Password Expiration Time". To complete the activation process, please click “Activate Service Account”. When the activation is complete, you will get an option to copy the initial password and then you can proceed to grant permissions to users and groups to read and/or reset the Password.';
-
             }
-            else {
-                $scope.svceditnotes = 'You are in step 2 of 3 - Service Account Activation. The account is not enabled for password rotation. You can override it with new values by changing "Password Expiration Time". To complete the activation process, please click “Activate Service Account”. When the activation is complete, you will get an option to copy the initial password and then you can proceed to grant permissions to users and groups to read and/or reset the Password.';
-            }
+            return actualTTL;
         }
 
         var getUserDetails = function () {
