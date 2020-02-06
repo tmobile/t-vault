@@ -32,6 +32,7 @@
         $scope.expiredNote = '';
         $scope.svcInputSelected = false;
         $scope.customTTL = '';
+        $scope.permissionChangeInProgress = false;
 
         $scope.usrRadioBtnVal = 'read';             // Keep it in lowercase
         $scope.grpRadioBtnVal = 'read';             // Keep it in lowercase
@@ -113,6 +114,7 @@
                 "userNameValEmpty": false,
                 "grpNameValEmpty": false
             }
+            $scope.permissionChangeInProgress = false;
         }
 
         $scope.isApproleBtnDisabled = function() {
@@ -382,6 +384,7 @@
         }
 
         $scope.deletePermission = function (type, editMode, editingPermission, key, permission) {
+            $scope.permissionChangeInProgress = true;
             if (editMode) {
                 try {
                     key = key.replace($scope.domainName, '');
@@ -438,6 +441,7 @@
                                 // Try-Catch block to catch errors if there is any change in object structure in the response
                                 try {
                                     $scope.isLoadingData = false;
+                                    $scope.permissionChangeInProgress = false;
                                     if (editingPermission) {
                                         $scope.addPermission(type, key, permission, true);  // This will be executed when we're editing permissions
                                     }
@@ -458,11 +462,13 @@
                                 }
                                 catch (e) {
                                     console.log(e);
+                                    $scope.permissionChangeInProgress = false;
                                     $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_PROCESSING_DATA');
                                     $scope.error('md');
                                 }
                             }
                             else {
+                                $scope.permissionChangeInProgress = false;
                                 $scope.errorMessage = AdminSafesManagement.getTheRightErrorMessage(response);
                                 $scope.error('md');
                             }
@@ -471,6 +477,7 @@
 
                             // Error handling function
                             console.log(error);
+                            $scope.permissionChangeInProgress = false;
                             $scope.isLoadingData = false;
                             $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
                             $scope.error('md');
@@ -480,6 +487,7 @@
 
                     console.log(e);
                     $scope.isLoadingData = false;
+                    $scope.permissionChangeInProgress = false;
                     $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
                     $scope.error('md');
 
@@ -565,7 +573,7 @@
                     $scope.openSvcAccDefaultWarning(size);
                 }
                 else {
-                    getActualTTL();
+                    getCustomTTL();
                     $scope.openSvcAccCustomTTLWarning(size);
                 }
             }
@@ -637,7 +645,8 @@
                 $scope.openSvcAccDefaultEditWarning(size);
             }
             else {
-                $scope.editSvcaccountOnboard();
+                getCustomTTL();
+                $scope.openSvcAccCustomTTLEditWarning(size);
             }
         }
 
@@ -776,7 +785,9 @@
 
         $scope.oneTimeReset = function() {
             $scope.isLoadingData = true;
+            $scope.isActivating = true;
             Modal.close();
+            Notifications.toast('Activating Service account. Please wait..');
             var queryParameters = "serviceAccountName="+$scope.svcacc.svcaccId;
             var updatedUrlOfEndPoint = ModifyUrl.addUrlParameteres('resetPasswordForSvcacc',queryParameters);
             AdminSafesManagement.resetPasswordForSvcacc(null, updatedUrlOfEndPoint).then(function (response) {                
@@ -787,10 +798,12 @@
                     $scope.initialPwdResetRequired = false;
                     $scope.initialPasswordReset = "true";
                     $scope.detailsNavTags[1].show = true;
+                    $scope.isActivating = false;
                     $scope.openResetStatus();
                 }
                 else {
                     $scope.isLoadingData = false;
+                    $scope.isActivating = false;
                     $scope.newPassword = '';
                     $scope.errorMessage = AdminSafesManagement.getTheRightErrorMessage(response);
                     error('md');
@@ -800,6 +813,7 @@
                 // Error handling function
                 console.log(error);
                 $scope.isLoadingData = false;
+                $scope.isActivating = false;
                 if (error.status === '403' || error.status === 403) {
                     $scope.openOneTimeResetFailedMessage();
                 }
@@ -1042,6 +1056,7 @@
             $scope.ownerName = '';
             $scope.ownerEmail = '';
             $scope.svceditnotes = '';
+            $scope.isActivating = false;
         }
 
         $scope.getSvcaccList = function(searchVal) {
@@ -1121,6 +1136,8 @@
             $scope.customTTL = '';
             $scope.isOwner = false;
             $scope.svceditnotes = '';
+            $scope.permissionChangeInProgress = false;
+            $scope.isActivating = false;
             $scope.myVaultKey = SessionStore.getItem("myVaultKey");
             if(!$scope.myVaultKey){ /* Check if user is in the same session */
                 $state.go('/');
@@ -1164,6 +1181,7 @@
 
         $scope.addPermission = function (type, key, permission, editingPermission) {
             var duplicate = false;
+            $scope.permissionChangeInProgress = true;
             if (!editingPermission && key != '' && key != undefined) {
                 if (type === "users" && $scope.permissionData.UsersPermissionsData!= null && $scope.permissionData.UsersPermissionsData.hasOwnProperty(key.toLowerCase())) {
                     if ($scope.permissionData.UsersPermissionsData[key.toLowerCase()] != "sudo") {
@@ -1266,6 +1284,7 @@
                                     else {
                                         getMetadata(svcaccname);
                                         var notification = UtilityService.getAParticularSuccessMessage('MESSAGE_ADD_SUCCESS');
+                                        $scope.permissionChangeInProgress = false;
                                         if (key !== null && key !== undefined) {
                                             document.getElementById('addUser').value = '';
                                             document.getElementById('addGroup').value = '';
@@ -1283,6 +1302,7 @@
                                 } catch (e) {
                                     console.log(e);
                                     $scope.isLoadingData = false;
+                                    $scope.permissionChangeInProgress = false;
                                     $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_PROCESSING_DATA');
                                     $scope.error('md');
                                 }
@@ -1426,6 +1446,10 @@
             Modal.createModal(size, 'openSvcAccCustomTTLWarning.html', 'ChangeServiceAccountCtrl', $scope);
         };
 
+        $scope.openSvcAccCustomTTLEditWarning = function (size) {
+            Modal.createModal(size, 'openSvcAccCustomTTLEditWarning.html', 'ChangeServiceAccountCtrl', $scope);
+        };
+
         $scope.oneTimeResetConfirmation = function (size) {
             Modal.createModal(size, 'oneTimeResetConfirmation.html', 'ChangeServiceAccountCtrl', $scope);
         }
@@ -1468,6 +1492,16 @@
         }
 
         var getActualTTL = function () {
+            var actualTTL = getCustomTTL();
+            if (actualTTL !='') {
+                $scope.svceditnotes = 'You are in step 2 of 3 - Service Account Activation. The account has been configured for password rotation at every ' + actualTTL+ '. You can override it with new values by changing "Password Expiration Time". To complete the activation process, please click “Activate Service Account”. When the activation is complete, you will get an option to copy the initial password and then you can proceed to grant permissions to users and groups to read and/or reset the Password.';
+            }
+            else {
+                $scope.svceditnotes = 'You are in step 2 of 3 - Service Account Activation. The account is not enabled for password rotation. You can override it with new values by changing "Password Expiration Time". To complete the activation process, please click “Activate Service Account”. When the activation is complete, you will get an option to copy the initial password and then you can proceed to grant permissions to users and groups to read and/or reset the Password.';
+            }
+        }
+
+        var getCustomTTL = function () {
             var actualTTL = '';
             if ($scope.svcacc.ttl !=null && $scope.svcacc.ttl !='') {
                 if ($scope.svcacc.ttl < 60) {
@@ -1483,12 +1517,8 @@
                     actualTTL = Math.round($scope.svcacc.ttl * 1.0/ 3600 / 24)+ ' days';
                 }
                 $scope.customTTL = actualTTL;
-                $scope.svceditnotes = 'You are in step 2 of 3 - Service Account Activation. The account has been configured for password rotation at every ' + actualTTL+ '. You can override it with new values by changing "Password Expiration Time". To complete the activation process, please click “Activate Service Account”. When the activation is complete, you will get an option to copy the initial password and then you can proceed to grant permissions to users and groups to read and/or reset the Password.';
-
             }
-            else {
-                $scope.svceditnotes = 'The account is not enabled for password rotation. You can override it with new values by changing "Password Expiration Time". To complete the activation process, please click “Activate Service Account”. When the activation is complete, you will get an option to copy the initial password and then you can proceed to grant permissions to users and groups to read and/or reset the Password.';
-            }
+            return actualTTL;
         }
 
         var getUserDetails = function () {
