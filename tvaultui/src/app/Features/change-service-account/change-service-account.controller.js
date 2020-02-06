@@ -785,6 +785,7 @@
 
         $scope.oneTimeReset = function() {
             $scope.isLoadingData = true;
+            $scope.isActivating = true;
             Modal.close();
             Notifications.toast('Activating Service account. Please wait..');
             var queryParameters = "serviceAccountName="+$scope.svcacc.svcaccId;
@@ -797,10 +798,12 @@
                     $scope.initialPwdResetRequired = false;
                     $scope.initialPasswordReset = "true";
                     $scope.detailsNavTags[1].show = true;
+                    $scope.isActivating = false;
                     $scope.openResetStatus();
                 }
                 else {
                     $scope.isLoadingData = false;
+                    $scope.isActivating = false;
                     $scope.newPassword = '';
                     $scope.errorMessage = AdminSafesManagement.getTheRightErrorMessage(response);
                     error('md');
@@ -810,6 +813,7 @@
                 // Error handling function
                 console.log(error);
                 $scope.isLoadingData = false;
+                $scope.isActivating = false;
                 if (error.status === '403' || error.status === 403) {
                     $scope.openOneTimeResetFailedMessage();
                 }
@@ -1052,6 +1056,7 @@
             $scope.ownerName = '';
             $scope.ownerEmail = '';
             $scope.svceditnotes = '';
+            $scope.isActivating = false;
         }
 
         $scope.getSvcaccList = function(searchVal) {
@@ -1132,6 +1137,7 @@
             $scope.isOwner = false;
             $scope.svceditnotes = '';
             $scope.permissionChangeInProgress = false;
+            $scope.isActivating = false;
             $scope.myVaultKey = SessionStore.getItem("myVaultKey");
             if(!$scope.myVaultKey){ /* Check if user is in the same session */
                 $state.go('/');
