@@ -19,8 +19,11 @@ package com.tmobile.cso.vault.api.main;
 
 import javax.servlet.Filter;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.JavaMailSenderImpl;
 
 import com.tmobile.cso.vault.api.filter.ApiMetricFilter;
 import com.tmobile.cso.vault.api.filter.TokenValidationFilter;
@@ -28,6 +31,12 @@ import com.tmobile.cso.vault.api.filter.TokenValidationFilter;
 @Configuration
 public class WebConfig {
 
+	@Value("${spring.mail.host}")
+	private String emailHost;
+
+	@Value("${spring.mail.port}")
+	private Integer emailPort;
+	
 	@Bean
 	public Filter ApiMetricFilter() {
 		return new ApiMetricFilter();
@@ -36,5 +45,11 @@ public class WebConfig {
 	public Filter TokenValidationFilter() {
 		return new TokenValidationFilter();
 	}
-
+	@Bean
+	public JavaMailSender getJavaMailSender() {
+	    JavaMailSenderImpl mailSender = new JavaMailSenderImpl();
+	    mailSender.setHost(emailHost);
+	    mailSender.setPort(emailPort);
+	    return mailSender;
+	}
 }
