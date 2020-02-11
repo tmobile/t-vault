@@ -30,9 +30,8 @@ import javax.naming.directory.Attributes;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.tmobile.cso.vault.api.exception.TVaultValidationException;
 import com.tmobile.cso.vault.api.model.*;
-import com.tmobile.cso.vault.api.utils.TokenUtils;
+import com.tmobile.cso.vault.api.utils.*;
 import org.apache.commons.collections.CollectionUtils;
-import com.tmobile.cso.vault.api.utils.PolicyUtils;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -55,14 +54,24 @@ import com.tmobile.cso.vault.api.controller.ControllerUtil;
 import com.tmobile.cso.vault.api.exception.LogMessage;
 import com.tmobile.cso.vault.api.process.RequestProcessor;
 import com.tmobile.cso.vault.api.process.Response;
-import com.tmobile.cso.vault.api.utils.JSONUtil;
-import com.tmobile.cso.vault.api.utils.ThreadLocalContext;
 
 @Component
 public class  ServiceAccountsService {
 
 	@Value("${vault.port}")
 	private String vaultPort;
+
+	@Value("${ad.notification.fromemail}")
+	private String supportEmail;
+
+	@Value("${ad.notification.mail.subject}")
+	private String subject;
+
+	@Value("${ad.notification.mail.body}")
+	private String mailbody;
+
+	@Value("${ad.notification.mail.signature}")
+	private String signature;
 
 	private static Logger log = LogManager.getLogger(ServiceAccountsService.class);
 	private final static String[] permissions = {"read", "reset", "deny", "sudo"};
@@ -104,6 +113,9 @@ public class  ServiceAccountsService {
 
     @Autowired
     private TokenUtils tokenUtils;
+
+    @Autowired
+	private EmailUtils emailUtils;
 	/**
 	 * Gets the list of users from Directory Server based on UPN
 	 * @param UserPrincipalName
@@ -373,6 +385,23 @@ public class  ServiceAccountsService {
 							put(LogMessage.MESSAGE, String.format ("Successfully completed onboarding of AD service account into TVault for password rotation.")).
 							put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 							build()));
+
+					// send email notification to service account owner
+					// get service account owner email
+					String filterQuery = "(&(objectclass=user)(|(cn=" + serviceAccount.getOwner() + ")))";
+					List<ADUserAccount> managerDetails = getServiceAccountManagerDetails(filterQuery);
+					if (!managerDetails.isEmpty()) {
+
+						List<String> to = new ArrayList<>();
+						to.add(managerDetails.get(0).getUserEmail());
+						StringBuffer mailBody = new StringBuffer();
+						mailBody.append(String.format(mailbody, managerDetails.get(0).getDisplayName()));
+						if (serviceAccount.getAdGroup()!=null && serviceAccount.getAdGroup() != "") {
+							mailBody.append("\r\n\nAfter completing the activation, please add the AD group '"+ serviceAccount.getAdGroup() +"' with read/reset permission so that the members of this group is given appropriate permission to access the Service Account Password   ");
+						}
+						mailBody.append(signature);
+						emailUtils.sendPlainTextEmail(supportEmail, to, subject, mailBody.toString());
+					}
 					return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Successfully completed onboarding of AD service account into TVault for password rotation.\"]}");
 				}
 				else {
@@ -432,7 +461,7 @@ public class  ServiceAccountsService {
 	 * @return
 	 */
 	private ResponseEntity<String> createMetadata(String token, ServiceAccount serviceAccount) {
-		String svcAccMetaDataJson = populateSvcAccMetaJson(serviceAccount.getName(), serviceAccount.getOwner());
+		String svcAccMetaDataJson = populateSvcAccMetaJson(serviceAccount);
 		boolean svcAccMetaDataCreationStatus = ControllerUtil.createMetadata(svcAccMetaDataJson, token);
 		if(svcAccMetaDataCreationStatus){
 			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
@@ -493,10 +522,32 @@ public class  ServiceAccountsService {
 		ServiceAccountMetadataDetails serviceAccountMetadataDetails = new ServiceAccountMetadataDetails(svcAccName);
 		serviceAccountMetadataDetails.setManagedBy(username);
 		serviceAccountMetadataDetails.setInitialPasswordReset(false);
-		ServiceAccountMetadata serviceAccountMetadata =  new ServiceAccountMetadata(_path, serviceAccountMetadataDetails);
+		return populateSvcAccJsonString(_path, serviceAccountMetadataDetails);
+	}
+
+	/**
+	 * Helper to generate input JSON for Service Account metadata
+	 * @param serviceAccount
+	 * @return
+	 */
+	private String populateSvcAccMetaJson(ServiceAccount serviceAccount) {
+		String _path = TVaultConstants.SVC_ACC_ROLES_METADATA_MOUNT_PATH + serviceAccount.getName();
+		ServiceAccountMetadataDetails serviceAccountMetadataDetails = new ServiceAccountMetadataDetails(serviceAccount.getName());
+		serviceAccountMetadataDetails.setManagedBy(serviceAccount.getOwner());
+		serviceAccountMetadataDetails.setInitialPasswordReset(false);
+		serviceAccountMetadataDetails.setAdGroup(serviceAccount.getAdGroup());
+		return populateSvcAccJsonString(_path, serviceAccountMetadataDetails);
+	}
+
+	/**
+	 * To generate json string for service account metadata
+	 * @return
+	 */
+	String populateSvcAccJsonString(String path, ServiceAccountMetadataDetails serviceAccountMetadataDetails) {
+		ServiceAccountMetadata serviceAccountMetadata =  new ServiceAccountMetadata(path, serviceAccountMetadataDetails);
 		String jsonStr = JSONUtil.getJSON(serviceAccountMetadata);
 		Map<String,Object> rqstParams = ControllerUtil.parseJson(jsonStr);
-		rqstParams.put("path",_path);
+		rqstParams.put("path",path);
 		return ControllerUtil.convetToJson(rqstParams);
 	}
 
@@ -1184,7 +1235,7 @@ public class  ServiceAccountsService {
 														put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 														put(LogMessage.ACTION, "readSvcAccPassword").
 														put(LogMessage.MESSAGE, "Updated write permission to Service account owner as part of initial reset.").
-														put(LogMessage.STATUS, metadataResponse.getHttpstatus().toString()).
+														put(LogMessage.STATUS, addOwnerWriteToServiceAccountResponse.getStatusCode().toString()).
 														put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 														build()));
 											}
@@ -2873,7 +2924,23 @@ public class  ServiceAccountsService {
 		}
 		ResponseEntity<String> accountRoleDeletionResponse = createAccountRole(token, serviceAccount);
 		if (accountRoleDeletionResponse!=null && HttpStatus.OK.equals(accountRoleDeletionResponse.getStatusCode())) {
-			return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Successfully updated onboarded Service Account.\"]}");
+
+			String path = new StringBuffer(TVaultConstants.SVC_ACC_ROLES_PATH).append(serviceAccount.getName()).toString();
+			Map<String,String> params = new Hashtable<>();
+			params.put("type", "adGroup");
+			params.put("path",path);
+			params.put("value",serviceAccount.getAdGroup());
+			Response metadataResponse = ControllerUtil.updateMetadaOnSvcUpdate(params,token);
+			if(metadataResponse != null && (HttpStatus.NO_CONTENT.equals(metadataResponse.getHttpstatus()) || HttpStatus.OK.equals(metadataResponse.getHttpstatus()))){
+				log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+						put(LogMessage.ACTION, "pdate onboarded Service Account").
+						put(LogMessage.MESSAGE, "Successfully updated onboarded Service Account.").
+						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+						build()));
+				return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Successfully updated onboarded Service Account.\"]}");
+			}
+			return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Successfully updated onboarded Service Account. However metadata update failed\"]}");
 
 		} else {
 			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().

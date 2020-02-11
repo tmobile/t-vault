@@ -625,6 +625,59 @@ public final class ControllerUtil {
 	}
 
 	/**
+	 * Update metadata on service account update
+	 * @param params
+	 * @param token
+	 * @return
+	 */
+	public static Response updateMetadaOnSvcUpdate(Map<String, String> params, String token) {
+		String path = "metadata/" + params.get("path");
+		String _type = params.get("type");
+		String value = params.get("value");
+		ObjectMapper objMapper = new ObjectMapper();
+		String pathjson ="{\"path\":\""+path+"\"}";
+
+		Response metadataResponse = reqProcessor.process("/read",pathjson,token);
+		Map<String,Object> _metadataMap = null;
+		if(HttpStatus.OK.equals(metadataResponse.getHttpstatus())){
+			try {
+				_metadataMap = objMapper.readValue(metadataResponse.getResponse(), new TypeReference<Map<String,Object>>() {});
+			} catch (IOException e) {
+				log.error(e);
+				log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+						put(LogMessage.ACTION, "updateMetadata").
+						put(LogMessage.MESSAGE, String.format ("Error creating _metadataMap for type [%s], name [%s], access [%s] and path [%s] message [%s]", _type, path, e.getMessage())).
+						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+						build()));
+			}
+
+			@SuppressWarnings("unchecked")
+			Map<String,Object> metadataMap = (Map<String,Object>) _metadataMap.get("data");
+
+			metadataMap.put(_type, value);
+			String metadataJson = "";
+			try {
+				metadataJson = objMapper.writeValueAsString(metadataMap);
+			} catch (JsonProcessingException e) {
+				log.error(e);
+				log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+						put(LogMessage.ACTION, "updateMetadata").
+						put(LogMessage.MESSAGE, String.format ("Error in creating metadataJson for type [%s], name [%s], access [%s] and path [%s] with message [%s]", _type, path, e.getMessage())).
+						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+						build()));
+			}
+
+			String writeJson =  "{\"path\":\""+path+"\",\"data\":"+ metadataJson +"}";
+			metadataResponse = reqProcessor.process("/write",writeJson,token);
+			return metadataResponse;
+		}
+		return null;
+
+	}
+
+	/**
 	 * Update metadata for the service account on password reset
 	 * @param params
 	 * @param token

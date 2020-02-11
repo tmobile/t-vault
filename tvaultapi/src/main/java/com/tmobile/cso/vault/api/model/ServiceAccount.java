@@ -55,12 +55,14 @@ public class ServiceAccount implements Serializable {
 	@Pattern(regexp = "^$|^[a-z0-9_-]+$", message = "Owner can have alphabets, numbers, _ and - characters only")
 	private String owner ;
 
+	private String adGroup;
+
 	public ServiceAccount() {
 
 	}
 
 	public ServiceAccount(String name, boolean autoRotate, Long ttl, Long max_ttl, String length, String formatter,
-			String owner) {
+			String owner, String adGroup) {
 		super();
 		this.name = name;
 		this.autoRotate = autoRotate;
@@ -68,6 +70,7 @@ public class ServiceAccount implements Serializable {
 		this.max_ttl = max_ttl;
 		this.length = length;
 		this.formatter = formatter;
+		this.adGroup = adGroup;
 	}
 
 	/**
@@ -182,10 +185,27 @@ public class ServiceAccount implements Serializable {
 		this.owner = owner;
 	}
 
+	/**
+	 *
+	 * @return adGroup
+	 */
+	@ApiModelProperty(example = "group1", position = 9)
+	public String getAdGroup() {
+		return adGroup;
+	}
+
+	/**
+	 *
+	 * @param adGroup
+	 */
+	public void setAdGroup(String adGroup) {
+		this.adGroup = adGroup;
+	}
+
 	@Override
 	public String toString() {
 		return "ServiceAccount [name=" + name + ", autoRotate=" + autoRotate + ", ttl=" + ttl + ", max_ttl=" + max_ttl
-				+ ", length=" + length + ", formatter=" + formatter + ", owner=" + owner + "]";
+				+ ", length=" + length + ", formatter=" + formatter + ", owner=" + owner + ", adGroup=" + adGroup + "]";
 	}
 
 }

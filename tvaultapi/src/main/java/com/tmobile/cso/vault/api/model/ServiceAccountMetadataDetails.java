@@ -33,6 +33,8 @@ public class ServiceAccountMetadataDetails implements Serializable {
 
     private boolean initialPasswordReset;
 
+    private String adGroup;
+
     /**
      *
      */
@@ -84,5 +86,21 @@ public class ServiceAccountMetadataDetails implements Serializable {
      */
     public void setInitialPasswordReset(boolean initialPasswordReset) {
         this.initialPasswordReset = initialPasswordReset;
+    }
+
+    /**
+     *
+     * @return the adGroup
+     */
+    public String getAdGroup() {
+        return adGroup;
+    }
+
+    /**
+     *
+     * @param adGroup the adGroup to set
+     */
+    public void setAdGroup(String adGroup) {
+        this.adGroup = adGroup;
     }
 }
