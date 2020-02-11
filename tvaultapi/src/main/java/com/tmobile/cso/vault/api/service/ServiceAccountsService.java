@@ -67,9 +67,12 @@ public class  ServiceAccountsService {
 	@Value("${ad.notification.mail.subject}")
 	private String subject;
 
-	@Value("${ad.notification.mail.body}")
+	@Value("${ad.notification.mail.body.part1}")
 	private String mailbody;
 
+	@Value("${ad.notification.mail.body.part2}")
+	private String mailbodyPart2;
+	
 	@Value("${ad.notification.mail.signature}")
 	private String signature;
 
@@ -394,13 +397,18 @@ public class  ServiceAccountsService {
 
 						List<String> to = new ArrayList<>();
 						to.add(managerDetails.get(0).getUserEmail());
+						String mailSubject = String.format(subject, svcAccName);
 						StringBuffer mailBody = new StringBuffer();
-						mailBody.append(String.format(mailbody, managerDetails.get(0).getDisplayName()));
+						mailBody.append(String.format(mailbody, managerDetails.get(0).getDisplayName(), svcAccName));
 						if (serviceAccount.getAdGroup()!=null && serviceAccount.getAdGroup() != "") {
 							mailBody.append("\r\n\nAfter completing the activation, please add the AD group '"+ serviceAccount.getAdGroup() +"' with read/reset permission so that the members of this group is given appropriate permission to access the Service Account Password   ");
 						}
+						else {
+							mailBody.append("\r\n\nAfter completing the activation, please add the appropriate AD group with required permission to grant appropriate permission to the members of the group");
+						}
+						mailBody.append(mailbodyPart2);
 						mailBody.append(signature);
-						emailUtils.sendPlainTextEmail(supportEmail, to, subject, mailBody.toString());
+						emailUtils.sendPlainTextEmail(supportEmail, to, mailSubject, mailBody.toString());
 					}
 					return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Successfully completed onboarding of AD service account into TVault for password rotation.\"]}");
 				}

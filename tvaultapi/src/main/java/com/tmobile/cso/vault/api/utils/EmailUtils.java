@@ -25,7 +25,7 @@ public class EmailUtils {
 	 *
 	 * @param from
 	 * @param to
-	 * @param subject
+	 * @param subjectst0
 	 * @param mailBody
 	 */
 	public void sendPlainTextEmail(String from, List<String> to, String subject, String mailBody) {
