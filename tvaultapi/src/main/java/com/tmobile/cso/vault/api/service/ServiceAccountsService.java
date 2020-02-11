@@ -432,7 +432,7 @@ public class  ServiceAccountsService {
 	 * @return
 	 */
 	private ResponseEntity<String> createMetadata(String token, ServiceAccount serviceAccount) {
-		String svcAccMetaDataJson = populateSvcAccMetaJson(serviceAccount.getName(), serviceAccount.getOwner());
+		String svcAccMetaDataJson = populateSvcAccMetaJson(serviceAccount);
 		boolean svcAccMetaDataCreationStatus = ControllerUtil.createMetadata(svcAccMetaDataJson, token);
 		if(svcAccMetaDataCreationStatus){
 			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
@@ -493,10 +493,32 @@ public class  ServiceAccountsService {
 		ServiceAccountMetadataDetails serviceAccountMetadataDetails = new ServiceAccountMetadataDetails(svcAccName);
 		serviceAccountMetadataDetails.setManagedBy(username);
 		serviceAccountMetadataDetails.setInitialPasswordReset(false);
-		ServiceAccountMetadata serviceAccountMetadata =  new ServiceAccountMetadata(_path, serviceAccountMetadataDetails);
+		return populateSvcAccJsonString(_path, serviceAccountMetadataDetails);
+	}
+
+	/**
+	 * Helper to generate input JSON for Service Account metadata
+	 * @param serviceAccount
+	 * @return
+	 */
+	private String populateSvcAccMetaJson(ServiceAccount serviceAccount) {
+		String _path = TVaultConstants.SVC_ACC_ROLES_METADATA_MOUNT_PATH + serviceAccount.getName();
+		ServiceAccountMetadataDetails serviceAccountMetadataDetails = new ServiceAccountMetadataDetails(serviceAccount.getName());
+		serviceAccountMetadataDetails.setManagedBy(serviceAccount.getOwner());
+		serviceAccountMetadataDetails.setInitialPasswordReset(false);
+		serviceAccountMetadataDetails.setAdGroup(serviceAccount.getAdGroup());
+		return populateSvcAccJsonString(_path, serviceAccountMetadataDetails);
+	}
+
+	/**
+	 * To generate json string for service account metadata
+	 * @return
+	 */
+	String populateSvcAccJsonString(String path, ServiceAccountMetadataDetails serviceAccountMetadataDetails) {
+		ServiceAccountMetadata serviceAccountMetadata =  new ServiceAccountMetadata(path, serviceAccountMetadataDetails);
 		String jsonStr = JSONUtil.getJSON(serviceAccountMetadata);
 		Map<String,Object> rqstParams = ControllerUtil.parseJson(jsonStr);
-		rqstParams.put("path",_path);
+		rqstParams.put("path",path);
 		return ControllerUtil.convetToJson(rqstParams);
 	}
 
@@ -2873,7 +2895,23 @@ public class  ServiceAccountsService {
 		}
 		ResponseEntity<String> accountRoleDeletionResponse = createAccountRole(token, serviceAccount);
 		if (accountRoleDeletionResponse!=null && HttpStatus.OK.equals(accountRoleDeletionResponse.getStatusCode())) {
-			return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Successfully updated onboarded Service Account.\"]}");
+
+			String path = new StringBuffer(TVaultConstants.SVC_ACC_ROLES_PATH).append(serviceAccount.getName()).toString();
+			Map<String,String> params = new Hashtable<>();
+			params.put("type", "adGroup");
+			params.put("path",path);
+			params.put("value",serviceAccount.getAdGroup());
+			Response metadataResponse = ControllerUtil.updateMetadaOnSvcUpdate(params,token);
+			if(metadataResponse != null && (HttpStatus.NO_CONTENT.equals(metadataResponse.getHttpstatus()) || HttpStatus.OK.equals(metadataResponse.getHttpstatus()))){
+				log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+						put(LogMessage.ACTION, "pdate onboarded Service Account").
+						put(LogMessage.MESSAGE, "Successfully updated onboarded Service Account.").
+						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+						build()));
+				return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Successfully updated onboarded Service Account.\"]}");
+			}
+			return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Successfully updated onboarded Service Account. However metadata update failed\"]}");
 
 		} else {
 			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().

@@ -587,11 +587,16 @@
                 if ($scope.svcacc.ttl != '') {
                     ttl = $scope.svcacc.ttl;
                 }
+                var adGroup = '';
+                if ($scope.svcacc.adGroup != undefined && $scope.svcacc.adGroup != '') {
+                    adGroup = $scope.svcacc.adGroup;
+                }
                 var onboardPayload = {
                     "name": $scope.svcacc.svcaccId,
                     "autoRotate": $scope.svcacc.autoRotate,
                     "ttl": ttl,
-                    "max_ttl": $scope.svcacc.maxPwdAge
+                    "max_ttl": $scope.svcacc.maxPwdAge,
+                    "adGroup": adGroup
                 }
                 AdminSafesManagement.onboardSvcacc(onboardPayload, '').then(function (response) {
                     if (UtilityService.ifAPIRequestSuccessful(response)) {
@@ -638,6 +643,7 @@
         }
 
         $scope.editSvcaccOnboard = function (size) {
+            $scope.adGroupName = '';
             if ($scope.svcacc.autoRotate == false) {
                 $scope.openSvcAccNoRotationEditWarning(size);
             }
@@ -658,11 +664,16 @@
                 if ($scope.svcacc.ttl != '') {
                     ttl = $scope.svcacc.ttl;
                 }
+                var adGroup = '';
+                if ($scope.svcacc.adGroup != undefined && $scope.svcacc.adGroup != '') {
+                    adGroup = $scope.svcacc.adGroup;
+                }
                 var onboardPayload = {
                     "name": $scope.svcacc.svcaccId,
                     "autoRotate": $scope.svcacc.autoRotate,
                     "ttl": ttl,
-                    "max_ttl": $scope.svcacc.maxPwdAge
+                    "max_ttl": $scope.svcacc.maxPwdAge,
+                    "adGroup": adGroup
                 }
                 AdminSafesManagement.editSvcacc(onboardPayload, '').then(function (response) {
                         if (UtilityService.ifAPIRequestSuccessful(response)) {
@@ -758,6 +769,7 @@
                                     }
                                     $scope.isOwner = true;
                                 }
+                                $scope.svcacc.adGroup = object.adGroup;
                                 $scope.isCollapsed = true;
                                 hideUserSudoPolicy();
                             }
@@ -786,6 +798,7 @@
         $scope.oneTimeReset = function() {
             $scope.isLoadingData = true;
             $scope.isActivating = true;
+            $scope.adGroupName = document.getElementById('adGroup').value;
             Modal.close();
             Notifications.toast('Activating Service account. Please wait..');
             var queryParameters = "serviceAccountName="+$scope.svcacc.svcaccId;
@@ -1042,6 +1055,7 @@
                 autoRotate: false,
                 ttl: '' ,
                 max_ttl: '',
+                adGroup: '',
             };
             $scope.autoRotate = false;
             $scope.svcInputSelected = false;
@@ -1119,7 +1133,8 @@
                 purpose: '',
                 autoRotate: false,
                 ttl: '' ,    
-                max_ttl: '',      
+                max_ttl: '',
+                adGroup: '',
             };
             $scope.permissionData = {
                 UsersPermissionsData: '',
@@ -1138,6 +1153,7 @@
             $scope.svceditnotes = '';
             $scope.permissionChangeInProgress = false;
             $scope.isActivating = false;
+            $scope.adGroupName = '';
             $scope.myVaultKey = SessionStore.getItem("myVaultKey");
             if(!$scope.myVaultKey){ /* Check if user is in the same session */
                 $state.go('/');
