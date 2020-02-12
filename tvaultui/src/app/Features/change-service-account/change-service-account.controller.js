@@ -604,7 +604,7 @@
                 var appName = '';
                 var appID = '';
                 var appTag = '';
-                if ($scope.svcacc.appName != '' && $scope.svcacc.adGroup != undefined && $scope.svcacc.adGroup != "Select AppName") {
+                if ($scope.svcacc.appName != '' && $scope.svcacc.appName != undefined && $scope.svcacc.appName != "Select AppName" && $scope.svcacc.appName != "Loading AppNames..") {
                     var selectedApp = $scope.svcacc.appName.split(" - ");
                     appName = selectedApp[0];
                     appID = selectedApp[1];
@@ -693,7 +693,7 @@
                 var appName = '';
                 var appID = '';
                 var appTag = '';
-                if ($scope.svcacc.appName != '' && $scope.svcacc.adGroup != undefined && $scope.svcacc.adGroup != "Select AppName") {
+                if ($scope.svcacc.appName != '' && $scope.svcacc.appName != undefined && $scope.svcacc.appName != "Select AppName"  && $scope.svcacc.appName != "Loading AppNames..") {
                     var selectedApp = $scope.svcacc.appName.split(" - ");
                     appName = selectedApp[0];
                     appID = selectedApp[1];
@@ -804,10 +804,33 @@
                                     $scope.isOwner = true;
                                 }
                                 $scope.svcacc.adGroup = object.adGroup;
-                                $scope.svcacc.appName = object.appName + " - " + object.appID + " - "+ object.appTag;
-                                $scope.appNameTableOptions = [];
+                                $scope.svcacc.appName = '';
+                                if (object.appName!=null && object.appName != '' && object.appName != undefined) {
+                                    $scope.svcacc.appName = object.appName;
+                                }
+                                if (object.appID!=null && object.appID != '' && object.appID != undefined) {
+                                    if ($scope.svcacc.appName =='') {
+                                        $scope.svcacc.appName = object.appID;
+                                    }
+                                    else {
+                                        $scope.svcacc.appName = $scope.svcacc.appName + " - " + object.appID;
+                                    }
+                                }
+                                if (object.appTag!=null && object.appTag != '' && object.appTag != undefined) {
+                                    if ($scope.svcacc.appName == '') {
+                                        $scope.svcacc.appName = object.appTag;
+                                    }
+                                    else {
+                                        $scope.svcacc.appName = $scope.svcacc.appName + " - " + object.appTag;
+                                    }
+                                }
+                                var selectedValue = "Select AppName";
+                                $scope.appNameTableOptions = [{"type": "Loading AppNames.."}];
+                                if ($scope.svcacc.appName != '') {
+                                    selectedValue = $scope.svcacc.appName;
+                                }
                                 $scope.dropDownAppNames = {
-                                    'selectedGroupOption': {"type": $scope.svcacc.appName},
+                                    'selectedGroupOption': {"type": selectedValue},
                                     'tableOptions': $scope.appNameTableOptions
                                 }
                                 $scope.isCollapsed = true;
@@ -1202,30 +1225,48 @@
             if(!$scope.myVaultKey){ /* Check if user is in the same session */
                 $state.go('/');
             }
+            $scope.appNameTableOptions = [];
+            $scope.dropDownAppNames = {
+                'selectedGroupOption': {"type": "Loading AppNames.."},
+                'tableOptions': $scope.appNameTableOptions
+            }
             $scope.requestDataFrChangeSvcacc();
             $scope.fetchUsers();
             $scope.fetchGroups();
         }
 
         var getAppNames = function () {
-            $scope.isLoadingData = true;
+            //$scope.isLoadingData = true;
             AdminSafesManagement.getApprolesFromCwm().then(function (response) {
                 if (UtilityService.ifAPIRequestSuccessful(response)) {
-                    $scope.isLoadingData = false;
+                    //$scope.isLoadingData = false;
                     var data = response.data;
                     $scope.appNameTableOptions = [];
                      for (var index = 0;index<data.length;index++) {
-                         var value = data[index].appName;
-                         if (data[index].appID !='' && data[index].appID != undefined) {
-                             value = value + " - "+data[index].appID;
-                         }
-                         if (data[index].appTag !='' && data[index].appTag != undefined) {
-                             value = value + " - "+data[index].appTag;
-                         }
+                        var value = '';
+                        if (data[index].appName !='' && data[index].appName != null && data[index].appName != undefined) {
+                            value = data[index].appName;
+                        }
+                        if (data[index].appID !='' && data[index].appID != null && data[index].appID != undefined) {
+                            if (value == '') {
+                                value = data[index].appID;
+                            }
+                            else {
+                                value = value + " - "+data[index].appID;
+                            }
+                        }
+                        if (data[index].appTag !='' && data[index].appTag != null && data[index].appTag != undefined) {
+                            if (value == '') {
+                                value = data[index].appTag;
+                            }
+                            else {
+                                value = value + " - "+data[index].appTag;
+                            }
+                        }
                         $scope.appNameTableOptions.push({"type":value});
                     }
                     var selectedValue = "Select AppName";
-                    if ($scope.svcacc.appName !='') {
+                    if ($scope.svcacc.appName !='' && $scope.svcacc.appName !=undefined && $scope.svcacc.appName != "Loading AppNames..") {
                         selectedValue = $scope.svcacc.appName;
                     }
                     $scope.dropDownAppNames = {
@@ -1234,7 +1275,7 @@
                     }
                 }
                 else {
-                    $scope.isLoadingData = false;
+                    //$scope.isLoadingData = false;
                     $scope.errorMessage = AdminSafesManagement.getTheRightErrorMessage(response);
                     $scope.error('md');
                 }
@@ -1242,7 +1283,7 @@
             function (error) {
                 // Error handling function
                 console.log(error);
-                $scope.isLoadingData = false;
+                //$scope.isLoadingData = false;
                 $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
                 $scope.error('md');
             })
