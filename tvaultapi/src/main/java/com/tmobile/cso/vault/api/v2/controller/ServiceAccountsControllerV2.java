@@ -292,4 +292,17 @@ public class ServiceAccountsControllerV2 {
 		UserDetails userDetails = (UserDetails) ((HttpServletRequest) request).getAttribute("UserDetails");
 		return serviceAccountsService.updateOnboardedServiceAccount(token, serviceAccount, userDetails);
 	}
+
+	/**
+	 * To get approle list from CWM api
+	 * @param request
+	 * @param token
+	 * @return
+	 */
+	@ApiOperation(value = "${ServiceAccountsControllerV2.getApprolesFromCwm.value}", notes = "${ServiceAccountsControllerV2.getApprolesFromCwm.notes}")
+	@GetMapping(value="/v2/serviceaccounts/cwm/approles", produces="application/json")
+	public ResponseEntity<String> getApprolesFromCwm(HttpServletRequest request, @RequestHeader(value="vault-token") String token){
+		UserDetails userDetails = (UserDetails) ((HttpServletRequest) request).getAttribute("UserDetails");
+		return serviceAccountsService.getApprolesFromCwm(token, userDetails);
+	}
 }

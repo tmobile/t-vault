@@ -79,6 +79,12 @@
             }]
         };
 
+        $scope.appNameTableOptions = [];
+        $scope.dropDownAppNames = {
+            'selectedGroupOption': {"type": "Select AppName"},
+            'tableOptions': $scope.appNameTableOptions
+        }
+
         $scope.bindSecretRadio = {
             value: 'false',
             options: [{
@@ -150,6 +156,10 @@
             var queryParameters = $scope.dropDownRoleNames.selectedGroupOption.type;
             $scope.roleNameSelected = true;
             $scope.approleConfPopupObj.role_name = queryParameters;
+        }
+
+        $scope.selectAppName = function () {
+            $scope.svcacc.appName = $scope.dropDownAppNames.selectedGroupOption.type;
         }
 
         $scope.error = function (size) {
@@ -591,12 +601,24 @@
                 if ($scope.svcacc.adGroup != undefined && $scope.svcacc.adGroup != '') {
                     adGroup = $scope.svcacc.adGroup;
                 }
+                var appName = '';
+                var appID = '';
+                var appTag = '';
+                if ($scope.svcacc.appName != '' && $scope.svcacc.appName != undefined && $scope.svcacc.appName != "Select AppName" && $scope.svcacc.appName != "Loading AppNames..") {
+                    var selectedApp = $scope.svcacc.appName.split(" - ");
+                    appName = selectedApp[0];
+                    appID = selectedApp[1];
+                    appTag = selectedApp[2];
+                }
                 var onboardPayload = {
                     "name": $scope.svcacc.svcaccId,
                     "autoRotate": $scope.svcacc.autoRotate,
                     "ttl": ttl,
                     "max_ttl": $scope.svcacc.maxPwdAge,
-                    "adGroup": adGroup
+                    "adGroup": adGroup,
+                    "appName": appName,
+                    "appID": appID,
+                    "appTag": appTag
                 }
                 AdminSafesManagement.onboardSvcacc(onboardPayload, '').then(function (response) {
                     if (UtilityService.ifAPIRequestSuccessful(response)) {
@@ -668,12 +690,24 @@
                 if ($scope.svcacc.adGroup != undefined && $scope.svcacc.adGroup != '') {
                     adGroup = $scope.svcacc.adGroup;
                 }
+                var appName = '';
+                var appID = '';
+                var appTag = '';
+                if ($scope.svcacc.appName != '' && $scope.svcacc.appName != undefined && $scope.svcacc.appName != "Select AppName"  && $scope.svcacc.appName != "Loading AppNames..") {
+                    var selectedApp = $scope.svcacc.appName.split(" - ");
+                    appName = selectedApp[0];
+                    appID = selectedApp[1];
+                    appTag = selectedApp[2];
+                }
                 var onboardPayload = {
                     "name": $scope.svcacc.svcaccId,
                     "autoRotate": $scope.svcacc.autoRotate,
                     "ttl": ttl,
                     "max_ttl": $scope.svcacc.maxPwdAge,
-                    "adGroup": adGroup
+                    "adGroup": adGroup,
+                    "appName": appName,
+                    "appID": appID,
+                    "appTag": appTag
                 }
                 AdminSafesManagement.editSvcacc(onboardPayload, '').then(function (response) {
                         if (UtilityService.ifAPIRequestSuccessful(response)) {
@@ -770,6 +804,35 @@
                                     $scope.isOwner = true;
                                 }
                                 $scope.svcacc.adGroup = object.adGroup;
+                                $scope.svcacc.appName = '';
+                                if (object.appName!=null && object.appName != '' && object.appName != undefined) {
+                                    $scope.svcacc.appName = object.appName;
+                                }
+                                if (object.appID!=null && object.appID != '' && object.appID != undefined) {
+                                    if ($scope.svcacc.appName =='') {
+                                        $scope.svcacc.appName = object.appID;
+                                    }
+                                    else {
+                                        $scope.svcacc.appName = $scope.svcacc.appName + " - " + object.appID;
+                                    }
+                                }
+                                if (object.appTag!=null && object.appTag != '' && object.appTag != undefined) {
+                                    if ($scope.svcacc.appName == '') {
+                                        $scope.svcacc.appName = object.appTag;
+                                    }
+                                    else {
+                                        $scope.svcacc.appName = $scope.svcacc.appName + " - " + object.appTag;
+                                    }
+                                }
+                                var selectedValue = "Select AppName";
+                                $scope.appNameTableOptions = [{"type": "Loading AppNames.."}];
+                                if ($scope.svcacc.appName != '') {
+                                    selectedValue = $scope.svcacc.appName;
+                                }
+                                $scope.dropDownAppNames = {
+                                    'selectedGroupOption': {"type": selectedValue},
+                                    'tableOptions': $scope.appNameTableOptions
+                                }
                                 $scope.isCollapsed = true;
                                 hideUserSudoPolicy();
                             }
@@ -927,6 +990,7 @@
                                             getDefaultTTL();
                                             getUserDetails();
                                             getMetadata(svcaccId);
+                                            getAppNames();
                                         }
                                     }
                                     catch (e) {
@@ -1003,6 +1067,7 @@
                     $rootScope.AwsPermissionsData = {}
                     $rootScope.AppRolePermissionsData = {}
                     $scope.isLoadingData = false;
+                    getAppNames();
                 } catch (e) {
                     // To handle errors while calling 'fetchData' function
                     console.log(e);
@@ -1056,6 +1121,7 @@
                 ttl: '' ,
                 max_ttl: '',
                 adGroup: '',
+                appName: '',
             };
             $scope.autoRotate = false;
             $scope.svcInputSelected = false;
@@ -1135,6 +1201,7 @@
                 ttl: '' ,    
                 max_ttl: '',
                 adGroup: '',
+                appName: '',
             };
             $scope.permissionData = {
                 UsersPermissionsData: '',
@@ -1158,9 +1225,68 @@
             if(!$scope.myVaultKey){ /* Check if user is in the same session */
                 $state.go('/');
             }
+            $scope.appNameTableOptions = [];
+            $scope.dropDownAppNames = {
+                'selectedGroupOption': {"type": "Loading AppNames.."},
+                'tableOptions': $scope.appNameTableOptions
+            }
             $scope.requestDataFrChangeSvcacc();
             $scope.fetchUsers();
             $scope.fetchGroups();
+        }
+
+        var getAppNames = function () {
+            //$scope.isLoadingData = true;
+            AdminSafesManagement.getApprolesFromCwm().then(function (response) {
+                if (UtilityService.ifAPIRequestSuccessful(response)) {
+                    //$scope.isLoadingData = false;
+                    var data = response.data;
+                    $scope.appNameTableOptions = [];
+                     for (var index = 0;index<data.length;index++) {
+                        var value = '';
+                        if (data[index].appName !='' && data[index].appName != null && data[index].appName != undefined) {
+                            value = data[index].appName;
+                        }
+                        if (data[index].appID !='' && data[index].appID != null && data[index].appID != undefined) {
+                            if (value == '') {
+                                value = data[index].appID;
+                            }
+                            else {
+                                value = value + " - "+data[index].appID;
+                            }
+                        }
+                        if (data[index].appTag !='' && data[index].appTag != null && data[index].appTag != undefined) {
+                            if (value == '') {
+                                value = data[index].appTag;
+                            }
+                            else {
+                                value = value + " - "+data[index].appTag;
+                            }
+                        }
+                        $scope.appNameTableOptions.push({"type":value});
+                    }
+                    var selectedValue = "Select AppName";
+                    if ($scope.svcacc.appName !='' && $scope.svcacc.appName !=undefined && $scope.svcacc.appName != "Loading AppNames..") {
+                        selectedValue = $scope.svcacc.appName;
+                    }
+                    $scope.dropDownAppNames = {
+                        'selectedGroupOption': {"type": selectedValue},
+                        'tableOptions': $scope.appNameTableOptions
+                    }
+                }
+                else {
+                    //$scope.isLoadingData = false;
+                    $scope.errorMessage = AdminSafesManagement.getTheRightErrorMessage(response);
+                    $scope.error('md');
+                }
+            },
+            function (error) {
+                // Error handling function
+                console.log(error);
+                //$scope.isLoadingData = false;
+                $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
+                $scope.error('md');
+            })
         }
 
         $scope.userNameValEmpty = false;

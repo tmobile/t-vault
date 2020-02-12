@@ -338,7 +338,6 @@ public class ServiceAccountsServiceTest {
     	return serviceAccount;
     }
     @Test
-    @Ignore
     public void test_onboardServiceAccount_succss_autorotate_off() {
         UserDetails userDetails = getMockUser(true);
         String token = userDetails.getClientToken();
@@ -413,6 +412,7 @@ public class ServiceAccountsServiceTest {
         ReflectionTestUtils.setField(serviceAccountsService, "mailbodyPart2", "\\r\\nGranting Permission: \\r\\nPlease follow below steps to grant permission to any user or group:   \\r\\n1. Login to T-Vault   \\r\\n2. Go to Admin or Manage Tab in T-Vault UI   \\r\\n3. Click View/Edit link corresponding to Service Account Name   \\r\\n4. Click the \"Grant Permission\" button link.\\r\\n5. Navigate to Groups Tab.\\r\\n6. Provide the group name and click \"Add Group\" button");
         ReflectionTestUtils.setField(serviceAccountsService, "signature", "\\r\\n\\nThanks, \\r\\nCloud Support team");
         ReflectionTestUtils.setField(serviceAccountsService, "supportEmail", "support@abc.com");
+        ReflectionTestUtils.setField(serviceAccountsService, "subject", "Onboarding Service account testacc02 is successful");
         Mockito.doNothing().when(emailUtils).sendPlainTextEmail(Mockito.any(),Mockito.any(),Mockito.any(),Mockito.any());
 
         ResponseEntity<String> responseEntity = serviceAccountsService.onboardServiceAccount(token, serviceAccount, userDetails);
@@ -535,7 +535,6 @@ public class ServiceAccountsServiceTest {
         assertEquals(responseEntityExpected, responseEntity);
     }
     @Test
-    @Ignore
     public void test_onboardServiceAccount_success() {
 		UserDetails userDetails = getMockUser(true);
     	String token = userDetails.getClientToken();
@@ -607,6 +606,7 @@ public class ServiceAccountsServiceTest {
         ReflectionTestUtils.setField(serviceAccountsService, "mailbody", "Dear %s, \\r\\n\\nOnboarding of Service Account has been completed successfully. \\r\\nTo proceed further, the Service Account needs to be activated. Please complete the activation by following the below steps:   \\r\\n1. Login to T-Vault   \\r\\n2. Go to Admin or Manage Tab in T-Vault UI   \\r\\n3. Click View/Edit link corresponding to Service Account Name   \\r\\n4. Update any information if required   \\r\\n5. Click the Activate Service Account Link");
         ReflectionTestUtils.setField(serviceAccountsService, "signature", "\\r\\n\\nThanks, \\r\\nCloud Support team");
         ReflectionTestUtils.setField(serviceAccountsService, "supportEmail", "support@abc.com");
+        ReflectionTestUtils.setField(serviceAccountsService, "subject", "Onboarding Service account testacc02 is successful");
         Mockito.doNothing().when(emailUtils).sendPlainTextEmail(Mockito.any(),Mockito.any(),Mockito.any(),Mockito.any());
 
         when(reqProcessor.process(eq("/sdb"),Mockito.any(),eq(token))).thenReturn(getMockResponse(HttpStatus.OK, true, "{\"data\":{\"initialPasswordReset\":true,\"managedBy\":\"smohan11\",\"name\":\"svc_vault_test5\",\"users\":{\"smohan11\":\"sudo\"}}}"));
@@ -1383,7 +1383,27 @@ public class ServiceAccountsServiceTest {
         when(reqProcessor.process(Mockito.eq("/ad/serviceaccount/readpwd"),Mockito.anyString(),Mockito.eq(token))).thenReturn(pwdReadResponse);
         when(ControllerUtil.updateMetadataOnSvcaccPwdReset(Mockito.any(),eq(token))).thenReturn(getMockResponse(HttpStatus.OK, true,expectedOutput));
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(expectedOutput);
-        when(reqProcessor.process(eq("/sdb"),Mockito.any(),eq(token))).thenReturn(getMockResponse(HttpStatus.OK, true, "{\"data\":{\"initialPasswordReset\":true,\"managedBy\":\"normaluser\",\"name\":\"svc_vault_test5\",\"users\":{\"normaluser\":\"sudo\"}}}"));
+        when(reqProcessor.process(eq("/sdb"),Mockito.any(),eq(token))).thenReturn(getMockResponse(HttpStatus.OK, true, "{\"data\":{\"initialPasswordReset\":false,\"managedBy\":\"normaluser\",\"name\":\"svc_vault_test5\",\"users\":{\"normaluser\":\"sudo\"}}}"));
+
+        Response userResponse = getMockResponse(HttpStatus.OK, true, "{\"data\":{\"bound_cidrs\":[],\"max_ttl\":0,\"policies\":[\"default\"],\"ttl\":0,\"groups\":\"admin\"}}");
+        Response responseNoContent = getMockResponse(HttpStatus.NO_CONTENT, true, "{\"policies\":null}");
+        when(reqProcessor.process("/auth/ldap/users","{\"username\":\"testacc01\"}",token)).thenReturn(userResponse);
+        try {
+            List<String> resList = new ArrayList<>();
+            resList.add("default");
+            when(ControllerUtil.getPoliciesAsListFromJson(any(), any())).thenReturn(resList);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        when(ControllerUtil.configureLDAPUser(eq("testacc01"),any(),any(),eq(token))).thenReturn(responseNoContent);
+        when(ControllerUtil.updateMetadata(any(),any())).thenReturn(responseNoContent);
+        // System under test
+        String expectedResponse = "{\"messages\":[\"Successfully added user to the Service Account\"]}";
+        when(reqProcessor.process(eq("/sdb"),Mockito.any(),eq(token))).thenReturn(getMockResponse(HttpStatus.OK, true, "{\"data\":{\"initialPasswordReset\":false,\"managedBy\":\"smohan11\",\"name\":\"svc_vault_test5\",\"users\":{\"smohan11\":\"sudo\"}}}"));
+        String[] latestPolicies = {"o_svcacct_testacc02"};
+        when(policyUtils.getCurrentPolicies(userDetails.getSelfSupportToken(), userDetails.getUsername())).thenReturn(latestPolicies);
+
+
         ResponseEntity<String> responseEntity = serviceAccountsService.resetSvcAccPassword(token, svcAccName, userDetails);
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
@@ -2980,7 +3000,7 @@ public class ServiceAccountsServiceTest {
         allServiceAccounts.add(generateADServiceAccount("testacc02"));
         ReflectionTestUtils.setField(serviceAccountsService, "ldapTemplate", ldapTemplate);
         when(ldapTemplate.search(Mockito.anyString(), Mockito.any(), Mockito.any(AttributesMapper.class))).thenReturn(allServiceAccounts);
-        when(ControllerUtil.updateMetadaOnSvcUpdate(Mockito.any(), Mockito.anyString())).thenReturn(getMockResponse(HttpStatus.OK, true,"{}"));
+        when(ControllerUtil.updateMetadaOnSvcUpdate(Mockito.anyString(), Mockito.any(), Mockito.anyString())).thenReturn(getMockResponse(HttpStatus.OK, true,"{}"));
 
         ResponseEntity<String> responseEntityActual =  serviceAccountsService.updateOnboardedServiceAccount(token, serviceAccount, userDetails);
 
