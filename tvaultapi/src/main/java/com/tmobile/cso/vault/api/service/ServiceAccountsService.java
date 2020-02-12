@@ -404,7 +404,7 @@ public class  ServiceAccountsService {
 							mailBody.append("\r\n\nAfter completing the activation, please add the AD group '"+ serviceAccount.getAdGroup() +"' with read/reset permission so that the members of this group is given appropriate permission to access the Service Account Password   ");
 						}
 						else {
-							mailBody.append("\r\n\nAfter completing the activation, please add the appropriate AD group with required permission to grant appropriate permission to the members of the group");
+							mailBody.append("\r\n\nAfter completing the activation, please add the appropriate AD group with required permission to grant appropriate permission to the members of the group   ");
 						}
 						mailBody.append(mailbodyPart2);
 						mailBody.append(signature);
