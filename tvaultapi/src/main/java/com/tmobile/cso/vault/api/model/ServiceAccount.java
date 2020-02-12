@@ -56,13 +56,16 @@ public class ServiceAccount implements Serializable {
 	private String owner ;
 
 	private String adGroup;
+	private String appName;
+	private String appID;
+	private String appTag;
 
 	public ServiceAccount() {
 
 	}
 
 	public ServiceAccount(String name, boolean autoRotate, Long ttl, Long max_ttl, String length, String formatter,
-			String owner, String adGroup) {
+			String owner, String adGroup, String appName, String appID, String appTag) {
 		super();
 		this.name = name;
 		this.autoRotate = autoRotate;
@@ -71,6 +74,9 @@ public class ServiceAccount implements Serializable {
 		this.length = length;
 		this.formatter = formatter;
 		this.adGroup = adGroup;
+		this.appName = appName;
+		this.appID = appID;
+		this.appTag = appTag;
 	}
 
 	/**
@@ -202,10 +208,72 @@ public class ServiceAccount implements Serializable {
 		this.adGroup = adGroup;
 	}
 
+	/**
+	 *
+	 * @return appName
+	 */
+	@ApiModelProperty(example = "app1", position = 10)
+	public String getAppName() {
+		return appName;
+	}
+
+	/**
+	 *
+	 * @param appName
+	 */
+	public void setAppName(String appName) {
+		this.appName = appName;
+	}
+
+	/**
+	 *
+	 * @return appID
+	 */
+	@ApiModelProperty(example = "ABC", position = 11)
+	public String getAppID() {
+		return appID;
+	}
+
+	/**
+	 *
+	 * @param appID
+	 */
+	public void setAppID(String appID) {
+		this.appID = appID;
+	}
+
+	/**
+	 *
+	 * @return appTag
+	 */
+	@ApiModelProperty(example = "TAG1", position = 12)
+	public String getAppTag() {
+		return appTag;
+	}
+
+	/**
+	 *
+	 * @param appTag
+	 */
+	public void setAppTag(String appTag) {
+		this.appTag = appTag;
+	}
+
 	@Override
 	public String toString() {
-		return "ServiceAccount [name=" + name + ", autoRotate=" + autoRotate + ", ttl=" + ttl + ", max_ttl=" + max_ttl
-				+ ", length=" + length + ", formatter=" + formatter + ", owner=" + owner + ", adGroup=" + adGroup + "]";
+		return "ServiceAccount{" +
+				"name='" + name + '\'' +
+				", autoRotate=" + autoRotate +
+				", ttl=" + ttl +
+				", max_ttl=" + max_ttl +
+				", length='" + length + '\'' +
+				", formatter='" + formatter + '\'' +
+				", owner='" + owner + '\'' +
+				", adGroup='" + adGroup + '\'' +
+				", appName='" + appName + '\'' +
+				", appID='" + appID + '\'' +
+				", appTag='" + appTag + '\'' +
+				'}';
 	}
 
 }

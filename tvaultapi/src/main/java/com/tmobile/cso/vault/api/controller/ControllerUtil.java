@@ -19,16 +19,8 @@ package com.tmobile.cso.vault.api.controller;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.Scanner;
-import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -630,12 +622,10 @@ public final class ControllerUtil {
 	 * @param token
 	 * @return
 	 */
-	public static Response updateMetadaOnSvcUpdate(Map<String, String> params, String token) {
-		String path = "metadata/" + params.get("path");
-		String _type = params.get("type");
-		String value = params.get("value");
+	public static Response updateMetadaOnSvcUpdate(String path, ServiceAccount serviceAccount, String token) {
+		String _path = "metadata/" + path;
 		ObjectMapper objMapper = new ObjectMapper();
-		String pathjson ="{\"path\":\""+path+"\"}";
+		String pathjson ="{\"path\":\""+_path+"\"}";
 
 		Response metadataResponse = reqProcessor.process("/read",pathjson,token);
 		Map<String,Object> _metadataMap = null;
@@ -647,7 +637,7 @@ public final class ControllerUtil {
 				log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 						put(LogMessage.ACTION, "updateMetadata").
-						put(LogMessage.MESSAGE, String.format ("Error creating _metadataMap for type [%s], name [%s], access [%s] and path [%s] message [%s]", _type, path, e.getMessage())).
+						put(LogMessage.MESSAGE, String.format ("Error creating _metadataMap for type service account update, name [%s], and path [%s] message [%s]", serviceAccount.getName(), _path, e.getMessage())).
 						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 						build()));
 			}
@@ -655,7 +645,10 @@ public final class ControllerUtil {
 			@SuppressWarnings("unchecked")
 			Map<String,Object> metadataMap = (Map<String,Object>) _metadataMap.get("data");
 
-			metadataMap.put(_type, value);
+			metadataMap.put("adGroup", serviceAccount.getAdGroup());
+			metadataMap.put("appName", serviceAccount.getAppName());
+			metadataMap.put("appID", serviceAccount.getAppID());
+			metadataMap.put("appTag", serviceAccount.getAppTag());
 			String metadataJson = "";
 			try {
 				metadataJson = objMapper.writeValueAsString(metadataMap);
@@ -664,12 +657,12 @@ public final class ControllerUtil {
 				log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 						put(LogMessage.ACTION, "updateMetadata").
-						put(LogMessage.MESSAGE, String.format ("Error in creating metadataJson for type [%s], name [%s], access [%s] and path [%s] with message [%s]", _type, path, e.getMessage())).
+						put(LogMessage.MESSAGE, String.format ("Error creating _metadataMap for type service account update, name [%s], and path [%s] message [%s]", serviceAccount.getName(), _path, e.getMessage())).
 						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 						build()));
 			}
 
-			String writeJson =  "{\"path\":\""+path+"\",\"data\":"+ metadataJson +"}";
+			String writeJson =  "{\"path\":\""+_path+"\",\"data\":"+ metadataJson +"}";
 			metadataResponse = reqProcessor.process("/write",writeJson,token);
 			return metadataResponse;
 		}

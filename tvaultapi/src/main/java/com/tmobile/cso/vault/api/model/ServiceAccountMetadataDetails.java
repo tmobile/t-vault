@@ -34,6 +34,9 @@ public class ServiceAccountMetadataDetails implements Serializable {
     private boolean initialPasswordReset;
 
     private String adGroup;
+    private String appName;
+    private String appID;
+    private String appTag;
 
     /**
      *
@@ -102,5 +105,53 @@ public class ServiceAccountMetadataDetails implements Serializable {
      */
     public void setAdGroup(String adGroup) {
         this.adGroup = adGroup;
+    }
+
+    /**
+     *
+     * @return appName
+     */
+    public String getAppName() {
+        return appName;
+    }
+
+    /**
+     *
+     * @param appName
+     */
+    public void setAppName(String appName) {
+        this.appName = appName;
+    }
+
+    /**
+     *
+     * @return appID
+     */
+    public String getAppID() {
+        return appID;
+    }
+
+    /**
+     *
+     * @param appID
+     */
+    public void setAppID(String appID) {
+        this.appID = appID;
+    }
+
+    /**
+     *
+     * @return appTag
+     */
+    public String getAppTag() {
+        return appTag;
+    }
+
+    /**
+     *
+     * @param appTag
+     */
+    public void setAppTag(String appTag) {
+        this.appTag = appTag;
     }
 }

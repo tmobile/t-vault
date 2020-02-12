@@ -303,6 +303,10 @@ readTextFile("../apiUrls.json");
             url: '/v2/serviceaccounts/offboard',
             method: 'POST'
         },{
+            name: 'getApprolesFromCwm',
+            url: '/v2/serviceaccounts/cwm/approles',
+            method: 'GET'
+        },{
             name: 'unseal',
             url: '/v2/unseal',
             method: 'POST'

@@ -17,7 +17,9 @@
 
 package com.tmobile.cso.vault.api.service;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
@@ -28,11 +30,17 @@ import javax.naming.NamingException;
 import javax.naming.directory.Attributes;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.google.gson.*;
 import com.tmobile.cso.vault.api.exception.TVaultValidationException;
 import com.tmobile.cso.vault.api.model.*;
 import com.tmobile.cso.vault.api.utils.*;
+import com.unboundid.util.json.JSONObject;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.ArrayUtils;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -543,6 +551,9 @@ public class  ServiceAccountsService {
 		serviceAccountMetadataDetails.setManagedBy(serviceAccount.getOwner());
 		serviceAccountMetadataDetails.setInitialPasswordReset(false);
 		serviceAccountMetadataDetails.setAdGroup(serviceAccount.getAdGroup());
+		serviceAccountMetadataDetails.setAppName(serviceAccount.getAppName());
+		serviceAccountMetadataDetails.setAppID(serviceAccount.getAppID());
+		serviceAccountMetadataDetails.setAppTag(serviceAccount.getAppTag());
 		return populateSvcAccJsonString(_path, serviceAccountMetadataDetails);
 	}
 
@@ -2933,11 +2944,7 @@ public class  ServiceAccountsService {
 		if (accountRoleDeletionResponse!=null && HttpStatus.OK.equals(accountRoleDeletionResponse.getStatusCode())) {
 
 			String path = new StringBuffer(TVaultConstants.SVC_ACC_ROLES_PATH).append(serviceAccount.getName()).toString();
-			Map<String,String> params = new Hashtable<>();
-			params.put("type", "adGroup");
-			params.put("path",path);
-			params.put("value",serviceAccount.getAdGroup());
-			Response metadataResponse = ControllerUtil.updateMetadaOnSvcUpdate(params,token);
+			Response metadataResponse = ControllerUtil.updateMetadaOnSvcUpdate(path, serviceAccount,token);
 			if(metadataResponse != null && (HttpStatus.NO_CONTENT.equals(metadataResponse.getHttpstatus()) || HttpStatus.OK.equals(metadataResponse.getHttpstatus()))){
 				log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
@@ -2987,5 +2994,84 @@ public class  ServiceAccountsService {
 					build()));
 		}
 		return onboardedList;
+	}
+
+
+	/**
+	 * To get approle list from CWM api
+	 * @param token
+	 * @param userDetails
+	 * @return
+	 */
+	public ResponseEntity<String> getApprolesFromCwm(String token, UserDetails userDetails) {
+		String api = "https://cloud-api.corporate.t-mobile.com/api/cloud/workloads";
+		List<WorkloadApprole> workloadApproles = new ArrayList<>();
+
+		// get first response
+		JsonObject response = getApiResponse(api);
+		JsonArray results = response.getAsJsonObject("data").getAsJsonArray("summary");
+		String pagination = response.getAsJsonObject("data").get("paginationURL").getAsString();
+		Integer total = response.getAsJsonObject("data").get("total").getAsInt();
+		Integer maxResults = response.getAsJsonObject("data").get("maxResults").getAsInt();
+
+		// call each pagination and populate results json
+		if (total > maxResults) {
+			for (int index = 1; index <= (total / maxResults); index++) {
+				response = getApiResponse(api + "?" + pagination);
+				results.addAll(response.getAsJsonObject("data").getAsJsonArray("summary"));
+				if (results.size() < total)	{
+					pagination = response.getAsJsonObject("data").get("paginationURL").getAsString();
+				}
+			}
+		}
+
+		// iterate json array to populate WorkloadApprole list
+		for(JsonElement jsonElement: results) {
+			JsonObject summary = jsonElement.getAsJsonObject();
+			WorkloadApprole workloadApprole = new WorkloadApprole();
+			workloadApprole.setAppID((summary.get("appID").isJsonNull()?"":summary.get("appID").getAsString()));
+			workloadApprole.setAppName((summary.get("appName").isJsonNull()?"":summary.get("appName").getAsString()));
+			workloadApprole.setAppTag((summary.get("appTag").isJsonNull()?"":summary.get("appTag").getAsString()));
+			workloadApproles.add(workloadApprole);
+		}
+
+		return ResponseEntity.status(HttpStatus.OK).body(JSONUtil.getJSON(workloadApproles));
+	}
+
+	/**
+	 * To get response from CWM api
+	 * @param api
+	 * @return
+	 */
+	private JsonObject getApiResponse(String api) {
+		JsonParser jsonParser = new JsonParser();
+		Gson gson = new Gson();
+		HttpClient httpClient = HttpClientBuilder.create().build();
+		HttpGet getRequest = new HttpGet(api);
+		getRequest.addHeader("accept", "application/json");
+
+		String output = "";
+		StringBuffer jsonResponse = new StringBuffer();
+
+		try {
+			HttpResponse apiResponse = apiResponse = httpClient.execute(getRequest);
+			if (apiResponse.getStatusLine().getStatusCode() != 200) {
+				return null;
+			}
+
+			BufferedReader br = new BufferedReader(new InputStreamReader((apiResponse.getEntity().getContent())));
+			while ((output = br.readLine()) != null) {
+				jsonResponse.append(output);
+			}
+			return (JsonObject) jsonParser.parse(jsonResponse.toString());
+		} catch (IOException e) {
+			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+					put(LogMessage.ACTION, "getApprolesFromCwm").
+					put(LogMessage.MESSAGE, String.format ("Failed to parse CWM api response")).
+					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+					build()));
+		}
+		return null;
 	}
 }
