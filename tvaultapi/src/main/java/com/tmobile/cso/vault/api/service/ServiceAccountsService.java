@@ -393,8 +393,7 @@ public class  ServiceAccountsService {
 					// get service account owner email
 					String filterQuery = "(&(objectclass=user)(|(cn=" + serviceAccount.getOwner() + ")))";
 					List<ADUserAccount> managerDetails = getServiceAccountManagerDetails(filterQuery);
-					if (!managerDetails.isEmpty()) {
-
+					if (!managerDetails.isEmpty() && !StringUtils.isEmpty(managerDetails.get(0).getUserEmail())) {
 						List<String> to = new ArrayList<>();
 						to.add(managerDetails.get(0).getUserEmail());
 						String mailSubject = String.format(subject, svcAccName);
