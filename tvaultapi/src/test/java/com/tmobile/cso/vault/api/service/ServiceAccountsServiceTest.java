@@ -413,7 +413,7 @@ public class ServiceAccountsServiceTest {
         ReflectionTestUtils.setField(serviceAccountsService, "signature", "\\r\\n\\nThanks, \\r\\nCloud Support team");
         ReflectionTestUtils.setField(serviceAccountsService, "supportEmail", "support@abc.com");
         ReflectionTestUtils.setField(serviceAccountsService, "subject", "Onboarding Service account testacc02 is successful");
-        Mockito.doNothing().when(emailUtils).sendPlainTextEmail(Mockito.any(),Mockito.any(),Mockito.any(),Mockito.any());
+        Mockito.doNothing().when(emailUtils).sendPlainTextEmail(Mockito.any(),Mockito.any(),Mockito.any(),Mockito.any(), Mockito.any());
 
         ResponseEntity<String> responseEntity = serviceAccountsService.onboardServiceAccount(token, serviceAccount, userDetails);
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
@@ -607,7 +607,7 @@ public class ServiceAccountsServiceTest {
         ReflectionTestUtils.setField(serviceAccountsService, "signature", "\\r\\n\\nThanks, \\r\\nCloud Support team");
         ReflectionTestUtils.setField(serviceAccountsService, "supportEmail", "support@abc.com");
         ReflectionTestUtils.setField(serviceAccountsService, "subject", "Onboarding Service account testacc02 is successful");
-        Mockito.doNothing().when(emailUtils).sendPlainTextEmail(Mockito.any(),Mockito.any(),Mockito.any(),Mockito.any());
+        Mockito.doNothing().when(emailUtils).sendPlainTextEmail(Mockito.any(),Mockito.any(),Mockito.any(),Mockito.any(), Mockito.any());
 
         when(reqProcessor.process(eq("/sdb"),Mockito.any(),eq(token))).thenReturn(getMockResponse(HttpStatus.OK, true, "{\"data\":{\"initialPasswordReset\":true,\"managedBy\":\"smohan11\",\"name\":\"svc_vault_test5\",\"users\":{\"smohan11\":\"sudo\"}}}"));
         ResponseEntity<String> responseEntity = serviceAccountsService.onboardServiceAccount(token, serviceAccount, userDetails);
@@ -3000,7 +3000,7 @@ public class ServiceAccountsServiceTest {
         allServiceAccounts.add(generateADServiceAccount("testacc02"));
         ReflectionTestUtils.setField(serviceAccountsService, "ldapTemplate", ldapTemplate);
         when(ldapTemplate.search(Mockito.anyString(), Mockito.any(), Mockito.any(AttributesMapper.class))).thenReturn(allServiceAccounts);
-        when(ControllerUtil.updateMetadaOnSvcUpdate(Mockito.anyString(), Mockito.any(), Mockito.anyString())).thenReturn(getMockResponse(HttpStatus.OK, true,"{}"));
+        when(ControllerUtil.updateMetadataOnSvcUpdate(Mockito.anyString(), Mockito.any(), Mockito.anyString())).thenReturn(getMockResponse(HttpStatus.OK, true,"{}"));
 
         ResponseEntity<String> responseEntityActual =  serviceAccountsService.updateOnboardedServiceAccount(token, serviceAccount, userDetails);
 

@@ -267,6 +267,11 @@
                     return response;
                 });
             },
+            transferSvcaccOwner: function(payload, url) {
+                return ServiceEndpoint.transferSvcaccOwner.makeRequest(payload, url).then(function(response) {
+                    return response;
+                });
+            },
             getTheRightErrorMessage : function(responseObject){
                 if(responseObject.status===500 || responseObject.statusText==='Internal Server Error'){
                     return ErrorMessage.ERROR_NETWORK;

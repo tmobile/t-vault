@@ -34,7 +34,6 @@ import com.google.gson.*;
 import com.tmobile.cso.vault.api.exception.TVaultValidationException;
 import com.tmobile.cso.vault.api.model.*;
 import com.tmobile.cso.vault.api.utils.*;
-import com.unboundid.util.json.JSONObject;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.http.HttpResponse;
@@ -415,7 +414,7 @@ public class  ServiceAccountsService {
 						}
 						mailBody.append(mailbodyPart2);
 						mailBody.append(signature);
-						emailUtils.sendPlainTextEmail(supportEmail, to, mailSubject, mailBody.toString());
+						emailUtils.sendPlainTextEmail(supportEmail, to, mailSubject, mailBody.toString(), svcAccName);
 					}
 					return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Successfully completed onboarding of AD service account into TVault for password rotation.\"]}");
 				}
@@ -2944,7 +2943,7 @@ public class  ServiceAccountsService {
 		if (accountRoleDeletionResponse!=null && HttpStatus.OK.equals(accountRoleDeletionResponse.getStatusCode())) {
 
 			String path = new StringBuffer(TVaultConstants.SVC_ACC_ROLES_PATH).append(serviceAccount.getName()).toString();
-			Response metadataResponse = ControllerUtil.updateMetadaOnSvcUpdate(path, serviceAccount,token);
+			Response metadataResponse = ControllerUtil.updateMetadataOnSvcUpdate(path, serviceAccount,token);
 			if(metadataResponse != null && (HttpStatus.NO_CONTENT.equals(metadataResponse.getHttpstatus()) || HttpStatus.OK.equals(metadataResponse.getHttpstatus()))){
 				log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
@@ -2996,82 +2995,240 @@ public class  ServiceAccountsService {
 		return onboardedList;
 	}
 
-
 	/**
-	 * To get approle list from CWM api
+	 * Change service account owner
 	 * @param token
-	 * @param userDetails
+	 * @param serviceAccountName
 	 * @return
 	 */
-	public ResponseEntity<String> getApprolesFromCwm(String token, UserDetails userDetails) {
-		String api = "https://cloud-api.corporate.t-mobile.com/api/cloud/workloads";
-		List<WorkloadApprole> workloadApproles = new ArrayList<>();
-
-		// get first response
-		JsonObject response = getApiResponse(api);
-		JsonArray results = response.getAsJsonObject("data").getAsJsonArray("summary");
-		String pagination = response.getAsJsonObject("data").get("paginationURL").getAsString();
-		Integer total = response.getAsJsonObject("data").get("total").getAsInt();
-		Integer maxResults = response.getAsJsonObject("data").get("maxResults").getAsInt();
-
-		// call each pagination and populate results json
-		if (total > maxResults) {
-			for (int index = 1; index <= (total / maxResults); index++) {
-				response = getApiResponse(api + "?" + pagination);
-				results.addAll(response.getAsJsonObject("data").getAsJsonArray("summary"));
-				if (results.size() < total)	{
-					pagination = response.getAsJsonObject("data").get("paginationURL").getAsString();
+	public ResponseEntity<String> transferSvcAccountOwner(UserDetails userDetails, String token, String svcAccName) {
+		if (!userDetails.isAdmin()) {
+			return ResponseEntity.status(HttpStatus.FORBIDDEN).body("{\"errors\":[\"Access denied. No permission to transfer service account.\"]}");
+		}
+		boolean isSvcAccOwnerChanged = false;
+		ServiceAccountMetadataDetails serviceAccountMetadataDetails = getServiceAccountMetadataDetails(token, userDetails, svcAccName);
+		OnboardedServiceAccountDetails onbSvcAccDtls = getOnboarderdServiceAccountDetails(token, svcAccName);
+		String oldOwner = serviceAccountMetadataDetails.getManagedBy();
+		ADServiceAccount adServiceAccount = null;
+		if (onbSvcAccDtls != null) {
+			List<ADServiceAccount> allServiceAccounts = getADServiceAccount(svcAccName);
+			if (!CollectionUtils.isEmpty(allServiceAccounts)) {
+				adServiceAccount = allServiceAccounts.get(0);
+				if (!oldOwner.equals(adServiceAccount.getOwner())) {
+					isSvcAccOwnerChanged=true;
 				}
 			}
-		}
+			else {
+					return ResponseEntity.status(HttpStatus.MULTI_STATUS).body("{\"errors\":[\"Failed to tranfer service account ownership. Unable to read Service account details\"]}");
+			}
+			if (isSvcAccOwnerChanged) {
+				String svcOwner = adServiceAccount.getOwner();
 
-		// iterate json array to populate WorkloadApprole list
-		for(JsonElement jsonElement: results) {
-			JsonObject summary = jsonElement.getAsJsonObject();
-			WorkloadApprole workloadApprole = new WorkloadApprole();
-			workloadApprole.setAppID((summary.get("appID").isJsonNull()?"":summary.get("appID").getAsString()));
-			workloadApprole.setAppName((summary.get("appName").isJsonNull()?"":summary.get("appName").getAsString()));
-			workloadApprole.setAppTag((summary.get("appTag").isJsonNull()?"":summary.get("appTag").getAsString()));
-			workloadApproles.add(workloadApprole);
-		}
+				ServiceAccount serviceAccount = new ServiceAccount();
+				serviceAccount.setName(svcAccName);
+				serviceAccount.setTtl(onbSvcAccDtls.getTtl());
+				serviceAccount.setMax_ttl(adServiceAccount.getMaxPwdAge()+0L);
+				boolean autoRotate = false;
+				if (onbSvcAccDtls.getTtl() <= adServiceAccount.getMaxPwdAge()) {
+					autoRotate =  true;
+				}
+				serviceAccount.setAutoRotate(autoRotate);
 
-		return ResponseEntity.status(HttpStatus.OK).body(JSONUtil.getJSON(workloadApproles));
+
+				serviceAccount.setAdGroup(serviceAccountMetadataDetails.getAdGroup());
+				serviceAccount.setAppName(serviceAccountMetadataDetails.getAppName());
+				serviceAccount.setAppID(serviceAccountMetadataDetails.getAppID());
+				serviceAccount.setAppTag(serviceAccountMetadataDetails.getAppTag());
+
+				serviceAccount.setOwner(svcOwner);
+
+				ResponseEntity<String> svcAccOwnerUpdateResponse = updateOnboardedServiceAccount(token, serviceAccount, userDetails);
+				if (HttpStatus.OK.equals(svcAccOwnerUpdateResponse.getStatusCode())) {
+					// Add sudo permission to new owner
+					ServiceAccountUser serviceAccountNewOwner = new ServiceAccountUser(svcAccName, svcOwner, TVaultConstants.SUDO_POLICY);
+					ResponseEntity<String> addOwnerSudoToServiceAccountResponse = addUserToServiceAccount(token, serviceAccountNewOwner, userDetails, true);
+
+					// Add default reset permission to new owner. If initial password reset is not done, then reset permission will be added during initial reset.
+					if (serviceAccountMetadataDetails.getInitialPasswordReset()) {
+						serviceAccountNewOwner = new ServiceAccountUser(svcAccName, svcOwner, TVaultConstants.RESET_POLICY);
+						ResponseEntity<String> addOwnerWriteToServiceAccountResponse = addUserToServiceAccount(token, serviceAccountNewOwner, userDetails, true);
+					}
+
+					removeOldUserPermissions(oldOwner, token, svcAccName);
+
+					if (HttpStatus.OK.equals(addOwnerSudoToServiceAccountResponse.getStatusCode())) {
+						return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Service account ownership transferred successfully.\"]}");
+					}
+					else {
+						return ResponseEntity.status(HttpStatus.MULTI_STATUS).body("{\"messages\":[\"Failed to transfer service account ownership. Adding new user to service account failed\"]}");
+					}
+				}
+				else {
+					return ResponseEntity.status(HttpStatus.MULTI_STATUS).body("{\"messages\":[\"Failed to tranfer service account ownership. Update service account failed\"]}");
+				}
+			}
+			else {
+				return ResponseEntity.status(HttpStatus.MULTI_STATUS).body("{\"messages\":[\"Onwership transfer not required.\"]}");
+			}
+		}
+		else {
+			return ResponseEntity.status(HttpStatus.MULTI_STATUS).body("{\"messages\":[\"Failed to get service account details. Service account is not onboarded.\"]}");
+		}
 	}
 
+
 	/**
-	 * To get response from CWM api
-	 * @param api
-	 * @return
+	 * To remove old owner permissions and metadata
+	 * @param userName
+	 * @param token
+	 * @param svcAccName
 	 */
-	private JsonObject getApiResponse(String api) {
-		JsonParser jsonParser = new JsonParser();
-		Gson gson = new Gson();
-		HttpClient httpClient = HttpClientBuilder.create().build();
-		HttpGet getRequest = new HttpGet(api);
-		getRequest.addHeader("accept", "application/json");
+	private void removeOldUserPermissions(String userName, String token, String svcAccName) {
 
-		String output = "";
-		StringBuffer jsonResponse = new StringBuffer();
-
-		try {
-			HttpResponse apiResponse = apiResponse = httpClient.execute(getRequest);
-			if (apiResponse.getStatusLine().getStatusCode() != 200) {
-				return null;
-			}
-
-			BufferedReader br = new BufferedReader(new InputStreamReader((apiResponse.getEntity().getContent())));
-			while ((output = br.readLine()) != null) {
-				jsonResponse.append(output);
-			}
-			return (JsonObject) jsonParser.parse(jsonResponse.toString());
-		} catch (IOException e) {
-			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+		// Remove metadata directly as removeUserFromServiceAccount() will need refreshed token
+		String path = new StringBuffer(TVaultConstants.SVC_ACC_ROLES_PATH).append(svcAccName).toString();
+		Map<String,String> params = new HashMap<String,String>();
+		params.put("type", "users");
+		params.put("name", userName);
+		params.put("path",path);
+		params.put("access", "delete");
+		Response metadataResponse = ControllerUtil.updateMetadata(params,token);
+		if(metadataResponse != null && (HttpStatus.NO_CONTENT.equals(metadataResponse.getHttpstatus()) || HttpStatus.OK.equals(metadataResponse.getHttpstatus()))){
+			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
-					put(LogMessage.ACTION, "getApprolesFromCwm").
-					put(LogMessage.MESSAGE, String.format ("Failed to parse CWM api response")).
+					put(LogMessage.ACTION, "Remove old owner from ServiceAccount").
+					put(LogMessage.MESSAGE, String.format("Owner %s is successfully removed from Service Account %s", userName, svcAccName)).
 					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 					build()));
 		}
-		return null;
+		else {
+			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+					put(LogMessage.ACTION, "Remove old owner from ServiceAccount").
+					put(LogMessage.MESSAGE,String.format("Failed to remove Owner %s from Service Account %s", userName, svcAccName)).
+					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+					build()));
+		}
+
+		// Remove old owner sudo and reset permissions
+		ObjectMapper objMapper = new ObjectMapper();
+
+		Response userResponse;
+		if (TVaultConstants.USERPASS.equals(vaultAuthMethod)) {
+			userResponse = reqProcessor.process("/auth/userpass/read", "{\"username\":\"" + userName + "\"}", token);
+		} else {
+			userResponse = reqProcessor.process("/auth/ldap/users", "{\"username\":\"" + userName + "\"}", token);
+		}
+		String responseJson = "";
+		String groups = "";
+		List<String> policies = new ArrayList<>();
+		List<String> currentpolicies = new ArrayList<>();
+
+		if (HttpStatus.OK.equals(userResponse.getHttpstatus())) {
+			responseJson = userResponse.getResponse();
+			try {
+				currentpolicies = ControllerUtil.getPoliciesAsListFromJson(objMapper, responseJson);
+				if (!(TVaultConstants.USERPASS.equals(vaultAuthMethod))) {
+					groups = objMapper.readTree(responseJson).get("data").get("groups").asText();
+				}
+			} catch (IOException e) {
+				log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+						put(LogMessage.ACTION, "updateUserPolicyAssociationOnSvcaccDelete").
+						put(LogMessage.MESSAGE, String.format("updateUserPolicyAssociationOnSvcaccDelete failed [%s]", e.getMessage())).
+						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+						build()));
+			}
+			policies.addAll(currentpolicies);
+			String r_policy = new StringBuffer().append(TVaultConstants.SVC_ACC_POLICIES_PREFIXES.getKey(TVaultConstants.READ_POLICY)).append(TVaultConstants.SVC_ACC_PATH_PREFIX).append("_").append(svcAccName).toString();
+			String w_policy = new StringBuffer().append(TVaultConstants.SVC_ACC_POLICIES_PREFIXES.getKey(TVaultConstants.WRITE_POLICY)).append(TVaultConstants.SVC_ACC_PATH_PREFIX).append("_").append(svcAccName).toString();
+			String d_policy = new StringBuffer().append(TVaultConstants.SVC_ACC_POLICIES_PREFIXES.getKey(TVaultConstants.DENY_POLICY)).append(TVaultConstants.SVC_ACC_PATH_PREFIX).append("_").append(svcAccName).toString();
+			String o_policy = new StringBuffer().append(TVaultConstants.SVC_ACC_POLICIES_PREFIXES.getKey(TVaultConstants.SUDO_POLICY)).append(TVaultConstants.SVC_ACC_PATH_PREFIX).append("_").append(svcAccName).toString();
+
+			policies.remove(r_policy);
+			policies.remove(w_policy);
+			policies.remove(d_policy);
+			policies.remove(o_policy);
+
+			String policiesString = org.apache.commons.lang3.StringUtils.join(policies, ",");
+
+			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+					put(LogMessage.ACTION, "removeOldUserPermissions").
+					put(LogMessage.MESSAGE, String.format("Current policies [%s]", policies)).
+					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+					build()));
+			if (TVaultConstants.USERPASS.equals(vaultAuthMethod)) {
+				log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+						put(LogMessage.ACTION, "removeOldUserPermissions").
+						put(LogMessage.MESSAGE, String.format("Current policies userpass [%s]", policies)).
+						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+						build()));
+				ControllerUtil.configureUserpassUser(userName, policiesString, token);
+			} else {
+				log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+						put(LogMessage.ACTION, "removeOldUserPermissions").
+						put(LogMessage.MESSAGE, String.format("Current policies ldap [%s]", policies)).
+						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+						build()));
+				ControllerUtil.configureLDAPUser(userName, policiesString, groups, token);
+			}
+		}
+	}
+
+	/**
+	 * To get ServiceAccountMetadataDetails
+	 *
+	 * @param token
+	 * @param userDetails
+	 * @param svcAccName
+	 * @return
+	 */
+	private ServiceAccountMetadataDetails getServiceAccountMetadataDetails(String token, UserDetails userDetails, String svcAccName) {
+		String _path = TVaultConstants.SVC_ACC_ROLES_PATH + svcAccName;
+		Response metaResponse = getMetadata(token, userDetails, _path);
+		ServiceAccountMetadataDetails serviceAccountMetadataDetails = new ServiceAccountMetadataDetails();
+		if (metaResponse !=null && metaResponse.getHttpstatus().equals(HttpStatus.OK)) {
+			try {
+				JsonNode jsonNode = new ObjectMapper().readTree(metaResponse.getResponse()).get("data").get("adGroup");
+				if (jsonNode != null) {
+					serviceAccountMetadataDetails.setAdGroup(jsonNode.asText());
+				}
+				jsonNode = new ObjectMapper().readTree(metaResponse.getResponse()).get("data").get("appID");
+				if (jsonNode != null) {
+					serviceAccountMetadataDetails.setAppID(jsonNode.asText());
+				}
+				jsonNode = new ObjectMapper().readTree(metaResponse.getResponse()).get("data").get("appName");
+				if (jsonNode != null) {
+					serviceAccountMetadataDetails.setAppName(jsonNode.asText());
+				}
+				jsonNode = new ObjectMapper().readTree(metaResponse.getResponse()).get("data").get("appTag");
+				if (jsonNode != null) {
+					serviceAccountMetadataDetails.setAppTag(jsonNode.asText());
+				}
+				jsonNode = new ObjectMapper().readTree(metaResponse.getResponse()).get("data").get("managedBy");
+				if (jsonNode != null) {
+					serviceAccountMetadataDetails.setManagedBy(jsonNode.asText());
+				}
+				jsonNode = new ObjectMapper().readTree(metaResponse.getResponse()).get("data").get("initialPasswordReset");
+				if (jsonNode != null) {
+					serviceAccountMetadataDetails.setInitialPasswordReset(Boolean.parseBoolean(jsonNode.asText()));
+				}
+				jsonNode = new ObjectMapper().readTree(metaResponse.getResponse()).get("data").get("name");
+				if (jsonNode != null) {
+					serviceAccountMetadataDetails.setName(jsonNode.asText());
+				}
+			} catch (IOException e) {
+				log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+						put(LogMessage.ACTION, "getServiceAccountMetadataDetails").
+						put(LogMessage.MESSAGE, String.format ("Failed to parse service account metadata [%s]", svcAccName)).
+						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+						build()));
+			}
+		}
+		return serviceAccountMetadataDetails;
 	}
 }

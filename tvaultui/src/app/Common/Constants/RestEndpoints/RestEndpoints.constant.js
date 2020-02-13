@@ -307,6 +307,10 @@ readTextFile("../apiUrls.json");
             url: '/v2/serviceaccounts/cwm/approles',
             method: 'GET'
         },{
+            name: 'transferSvcaccOwner',
+            url: '/v2/serviceaccounts/transfer?',
+            method: 'POST'
+        },{
             name: 'unseal',
             url: '/v2/unseal',
             method: 'POST'

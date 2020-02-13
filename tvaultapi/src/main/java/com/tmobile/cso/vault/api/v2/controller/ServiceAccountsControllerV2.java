@@ -294,15 +294,17 @@ public class ServiceAccountsControllerV2 {
 	}
 
 	/**
-	 * To get approle list from CWM api
-	 * @param request
+	 * Change service account owner
 	 * @param token
+	 * @param serviceAccountName
 	 * @return
 	 */
-	@ApiOperation(value = "${ServiceAccountsControllerV2.getApprolesFromCwm.value}", notes = "${ServiceAccountsControllerV2.getApprolesFromCwm.notes}")
-	@GetMapping(value="/v2/serviceaccounts/cwm/approles", produces="application/json")
-	public ResponseEntity<String> getApprolesFromCwm(HttpServletRequest request, @RequestHeader(value="vault-token") String token){
+	@ApiOperation(value = "${ServiceAccountsControllerV2.transferSvcAccountOwner.value}", notes = "${ServiceAccountsControllerV2.transferSvcAccountOwner.notes}")
+	@PostMapping (value="/v2/serviceaccounts/transfer",produces="application/json")
+	public ResponseEntity<String> transferSvcAccountOwner(HttpServletRequest request, @RequestHeader(value="vault-token") String token, @RequestParam("serviceAccountName" ) String serviceAccountName){
 		UserDetails userDetails = (UserDetails) ((HttpServletRequest) request).getAttribute("UserDetails");
-		return serviceAccountsService.getApprolesFromCwm(token, userDetails);
+		return serviceAccountsService.transferSvcAccountOwner(userDetails, token, serviceAccountName);
 	}
+
+
 }

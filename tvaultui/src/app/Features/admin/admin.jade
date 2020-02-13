@@ -40,6 +40,39 @@ script(type='text/ng-template', id='offboardWarning.html')
       .clearfix.bottom-sm-sep
         button.link-style.common-btn.btn.btn-primary.btn-lg(ng-click="cancel()") CLOSE
 
+script(type='text/ng-template', id='transferSvcaccPopUp.html')
+  loading-state(ng-if="isLoadingModalData")
+  .top-lg-sep(ng-if="!isLoadingModalData")
+    .top-lg-sep
+        .common-header-label.text-center Transfer service account owner
+    .top-lg-sep.notification-text Are you sure you want to transfer service account owner?
+    .text-center.bottom-lg-sep.top-lg-sep.notification-button
+      .clearfix.bottom-sm-sep
+        button.common-btn.btn.btn-primary.btn-lg(ng-click="transferSvcacc(svcaccToTransfer)") TRANSFER
+      .clearfix
+        button.link-style.common-btn.btn.btn-default.btn-lg(ng-click="close()") CANCEL
+
+script(type='text/ng-template', id='transferSuccessPopUp.html')
+  loading-state(ng-if="isLoadingModalData")
+  .top-lg-sep(ng-if="!isLoadingModalData")
+    .top-lg-sep
+        .common-header-label.text-center Tranfer service account sucessful!
+    .top-lg-sep.notification-text.notification-justify Service Account has been transferred successfully. If you are the new owner, you need to log out and log in order for the changes to effect.
+    .text-center.bottom-lg-sep.top-lg-sep.notification-button
+      .clearfix.bottom-sm-sep
+        button.link-style.common-btn.btn.btn-primary.btn-lg(ng-click="cancel()") CLOSE
+
+script(type='text/ng-template', id='transferFailedPopUp.html')
+  loading-state(ng-if="isLoadingModalData")
+  .top-lg-sep(ng-if="!isLoadingModalData")
+    .top-lg-sep
+        .common-header-label.text-center Tranfer service account failed!
+    .top-lg-sep.notification-text {{ transferFailedMessage }}
+    .text-center.bottom-lg-sep.top-lg-sep.notification-button
+      .clearfix.bottom-sm-sep
+        button.link-style.common-btn.btn.btn-primary.btn-lg(ng-click="cancel()") CLOSE
+
+
 script(type='text/ng-template', id='appRolePopup.html')
           .modal-sep
             .common-header-label.text-center {{editingApprole.status == true ? "Edit" : "Create"}} AppRole
@@ -287,9 +320,11 @@ script(type='text/ng-template', id='manageSecretId.html')
                                                     .container.name No Service Accounts enabled for Password Rotation
                                                 .row.change-data.item(ng-show="!isLoadingData" ng-class="{'grayBackground' : activeItem == true}" ng-repeat="value in svcaccOnboardedData.keys | filter:searchValue | limitTo: paginationLimit()")
                                                     .container.name.cell.col-lg-4.col-md-4.col-sm-4.col-xs-4(uib-tooltip="{{value}}") {{value}}
-                                                    .container.radio-inputs.cell.col-lg-6.col-md-6.col-sm-6.col-xs-6
+                                                    .container.radio-inputs.cell.col-lg-6.col-md-.col-sm-6.col-xs-6
                                                         .down.view
                                                             .list-icon(ng-click = "editOnboardedSvcacc(value, 'md')" uib-tooltip="View/Edit Service Account password rotation configuration")  View/Edit
+                                                        .down.view
+                                                            .list-icon(ng-click = "transferOwnerPopUp(value, 'md')" uib-tooltip="Transfer owner")  Transfer owner
                                                     .container.radio-inputs.col-lg-2.col-md-2.col-sm-2.col-xs-2
                                                         .down
                                                             .list-icon.icon-delete(ng-click = "offboardSvcaccPopUp(value)" uib-tooltip="Offboard Service Account")
