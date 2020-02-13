@@ -320,10 +320,9 @@ script(type='text/ng-template', id='manageSecretId.html')
                                                     .container.name No Service Accounts enabled for Password Rotation
                                                 .row.change-data.item(ng-show="!isLoadingData" ng-class="{'grayBackground' : activeItem == true}" ng-repeat="value in svcaccOnboardedData.keys | filter:searchValue | limitTo: paginationLimit()")
                                                     .container.name.cell.col-lg-4.col-md-4.col-sm-4.col-xs-4(uib-tooltip="{{value}}") {{value}}
-                                                    .container.radio-inputs.cell.col-lg-3.col-md-.col-sm-3.col-xs-3
+                                                    .container.radio-inputs.cell.col-lg-6.col-md-.col-sm-6.col-xs-6
                                                         .down.view
                                                             .list-icon(ng-click = "editOnboardedSvcacc(value, 'md')" uib-tooltip="View/Edit Service Account password rotation configuration")  View/Edit
-                                                    .container.radio-inputs.cell.col-lg-3.col-md-.col-sm-3.col-xs-3
                                                         .down.view
                                                             .list-icon(ng-click = "transferOwnerPopUp(value, 'md')" uib-tooltip="Transfer owner")  Transfer owner
                                                     .container.radio-inputs.col-lg-2.col-md-2.col-sm-2.col-xs-2

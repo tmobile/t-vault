@@ -3054,7 +3054,6 @@ public class  ServiceAccountsService {
 						ResponseEntity<String> addOwnerWriteToServiceAccountResponse = addUserToServiceAccount(token, serviceAccountNewOwner, userDetails, true);
 					}
 
-
 					removeOldUserPermissions(oldOwner, token, svcAccName);
 
 					if (HttpStatus.OK.equals(addOwnerSudoToServiceAccountResponse.getStatusCode())) {
