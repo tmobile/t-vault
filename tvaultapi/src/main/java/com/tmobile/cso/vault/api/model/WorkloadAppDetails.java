@@ -20,7 +20,7 @@ package com.tmobile.cso.vault.api.model;
 import java.io.Serializable;
 
 
-public class WorkloadApprole implements Serializable {
+public class WorkloadAppDetails implements Serializable {
 
 	/**
 	 *
@@ -33,7 +33,7 @@ public class WorkloadApprole implements Serializable {
 	/**
 	 *
 	 */
-	public WorkloadApprole() {
+	public WorkloadAppDetails() {
 		
 	}
 

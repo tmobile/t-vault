@@ -31,11 +31,11 @@ public class EmailUtils {
 	 * @param subject
 	 * @param mailBody
 	 */
-	public void sendPlainTextEmail(String from, List<String> to, String subject, String mailBody) {
+	public void sendPlainTextEmail(String from, List<String> to, String subject, String mailBody, String svcAccName) {
 		log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 				put(LogMessage.ACTION, "sendPlainTextEmail").
-				put(LogMessage.MESSAGE, String.format ("Sending email notification to Service account owner on successful onboarding.")).
+				put(LogMessage.MESSAGE, String.format ("Sending email notification to Service account owner %s on successful onboarding of %s.", to.get(0), svcAccName)).
 				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 				build()));
         SimpleMailMessage msg = new SimpleMailMessage();
@@ -49,7 +49,7 @@ public class EmailUtils {
 			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 					put(LogMessage.ACTION, "sendPlainTextEmail").
-					put(LogMessage.MESSAGE, String.format ("Failed to send email notification to Service account owner.")).
+					put(LogMessage.MESSAGE, String.format ("Failed to send email notification to Service account owner %s for service account %s", to.get(0), svcAccName)).
 					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 					build()));
 		}
