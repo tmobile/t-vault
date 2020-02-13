@@ -3000,7 +3000,7 @@ public class ServiceAccountsServiceTest {
         allServiceAccounts.add(generateADServiceAccount("testacc02"));
         ReflectionTestUtils.setField(serviceAccountsService, "ldapTemplate", ldapTemplate);
         when(ldapTemplate.search(Mockito.anyString(), Mockito.any(), Mockito.any(AttributesMapper.class))).thenReturn(allServiceAccounts);
-        when(ControllerUtil.updateMetadaOnSvcUpdate(Mockito.anyString(), Mockito.any(), Mockito.anyString())).thenReturn(getMockResponse(HttpStatus.OK, true,"{}"));
+        when(ControllerUtil.updateMetadataOnSvcUpdate(Mockito.anyString(), Mockito.any(), Mockito.anyString())).thenReturn(getMockResponse(HttpStatus.OK, true,"{}"));
 
         ResponseEntity<String> responseEntityActual =  serviceAccountsService.updateOnboardedServiceAccount(token, serviceAccount, userDetails);
 

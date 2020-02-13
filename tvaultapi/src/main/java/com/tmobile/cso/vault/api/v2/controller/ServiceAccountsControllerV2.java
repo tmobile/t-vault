@@ -292,4 +292,19 @@ public class ServiceAccountsControllerV2 {
 		UserDetails userDetails = (UserDetails) ((HttpServletRequest) request).getAttribute("UserDetails");
 		return serviceAccountsService.updateOnboardedServiceAccount(token, serviceAccount, userDetails);
 	}
+
+	/**
+	 * Change service account owner
+	 * @param token
+	 * @param serviceAccountName
+	 * @return
+	 */
+	@ApiOperation(value = "${ServiceAccountsControllerV2.transferSvcAccountOwner.value}", notes = "${ServiceAccountsControllerV2.transferSvcAccountOwner.notes}")
+	@PostMapping (value="/v2/serviceaccounts/transfer",produces="application/json")
+	public ResponseEntity<String> transferSvcAccountOwner(HttpServletRequest request, @RequestHeader(value="vault-token") String token, @RequestParam("serviceAccountName" ) String serviceAccountName){
+		UserDetails userDetails = (UserDetails) ((HttpServletRequest) request).getAttribute("UserDetails");
+		return serviceAccountsService.transferSvcAccountOwner(userDetails, token, serviceAccountName);
+	}
+
+
 }

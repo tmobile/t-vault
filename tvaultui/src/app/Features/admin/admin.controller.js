@@ -28,6 +28,7 @@
         $scope.tilesData = {};
         $scope.tilesData["SafesData"] = [];
         $scope.svcaccToOffboard = '';
+        $scope.svcaccToTransfer = '';
         $scope.searchValue = '';
         // Type of safe to be filtered from the rest
 
@@ -111,6 +112,7 @@
             $scope.enableSvcacc = true;
             $scope.enableSelfService = true;
             $scope.isCollapsed = true;
+            $scope.transferFailedMessage = '';
             $scope.selectedIndex = 0;
             if ($state.current.name == "manage" && JSON.parse(SessionStore.getItem("isAdmin")) == true) {
                 $state.go('admin');
@@ -991,6 +993,49 @@
 
         $scope.collapseNote = function() {
             $scope.isCollapsed = !$scope.isCollapsed;
+        }
+
+        $scope.transferOwnerPopUp = function(svcaccname) {
+            $scope.svcaccToTransfer = svcaccname;
+            Modal.createModal('md', 'transferSvcaccPopUp.html', 'AdminCtrl', $scope);
+        };
+
+        $scope.transferSuccessPopUp = function(svcaccname) {
+            Modal.createModal('md', 'transferSuccessPopUp.html', 'AdminCtrl', $scope);
+        };
+
+        $scope.transferFailedPopUp = function(svcaccname) {
+            Modal.createModal('md', 'transferFailedPopUp.html', 'AdminCtrl', $scope);
+        };
+
+        $scope.transferSvcacc =  function (svcaccToTransfer) {
+            $scope.transferFailedMessage = '';
+            $scope.isLoadingData = true;
+            Modal.close();
+            Notifications.toast('Transferring Service account owner. Please wait..');
+            var queryParameters = "serviceAccountName="+svcaccToTransfer;
+            var updatedUrlOfEndPoint = ModifyUrl.addUrlParameteres('transferSvcaccOwner',queryParameters);
+            AdminSafesManagement.transferSvcaccOwner(null, updatedUrlOfEndPoint).then(function (response) {
+                if (UtilityService.ifAPIRequestSuccessful(response)) {
+                    $scope.isLoadingData = false;
+                    $scope.svcaccToTransfer = '';
+                    $scope.transferSuccessPopUp();
+                }
+                else {
+                    $scope.isLoadingData = false;
+                    $scope.svcaccToTransfer = '';
+                    $scope.transferFailedMessage = response.data.messages[0];
+                    $scope.transferFailedPopUp();
+                }
+            },
+            function (error) {
+                // Error handling function
+                console.log(error);
+                $scope.isLoadingData = false;
+                $scope.svcaccToTransfer = '';
+                $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
+                $scope.error('md');
+            });
         }
 
         init();

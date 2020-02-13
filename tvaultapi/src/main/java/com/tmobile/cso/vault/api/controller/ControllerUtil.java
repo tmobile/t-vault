@@ -622,7 +622,7 @@ public final class ControllerUtil {
 	 * @param token
 	 * @return
 	 */
-	public static Response updateMetadaOnSvcUpdate(String path, ServiceAccount serviceAccount, String token) {
+	public static Response updateMetadataOnSvcUpdate(String path, ServiceAccount serviceAccount, String token) {
 		String _path = "metadata/" + path;
 		ObjectMapper objMapper = new ObjectMapper();
 		String pathjson ="{\"path\":\""+_path+"\"}";
@@ -649,6 +649,9 @@ public final class ControllerUtil {
 			metadataMap.put("appName", serviceAccount.getAppName());
 			metadataMap.put("appID", serviceAccount.getAppID());
 			metadataMap.put("appTag", serviceAccount.getAppTag());
+			if (serviceAccount.getOwner() != null && !serviceAccount.getOwner().equals(TVaultConstants.EMPTY) && !metadataMap.get("managedBy").equals(serviceAccount.getOwner())) {
+				metadataMap.put("managedBy", serviceAccount.getOwner());
+			}
 			String metadataJson = "";
 			try {
 				metadataJson = objMapper.writeValueAsString(metadataMap);
