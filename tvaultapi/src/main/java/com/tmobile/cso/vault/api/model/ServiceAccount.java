@@ -56,6 +56,7 @@ public class ServiceAccount implements Serializable {
 	private String owner ;
 
 	private String adGroup;
+	@NotNull
 	private String appName;
 	private String appID;
 	private String appTag;
