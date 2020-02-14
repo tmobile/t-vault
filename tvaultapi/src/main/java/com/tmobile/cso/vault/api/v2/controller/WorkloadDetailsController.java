@@ -35,7 +35,7 @@ public class WorkloadDetailsController {
 	private WorkloadDetailsService workloadDetailsService;
 
 	/**
-	 * To get approle list from CWM api
+	 * To get application list from Workload endpoint
 	 * @param request
 	 * @param token
 	 * @return

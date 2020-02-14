@@ -28,6 +28,7 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
@@ -40,16 +41,19 @@ import java.util.*;
 @Component
 public class WorkloadDetailsService {
 
+	@Value("${workload.endpoint}")
+	private String workloadEndpoint;
+
 	private static Logger log = LogManager.getLogger(WorkloadDetailsService.class);
 
 	/**
-	 * To get approle list from CWM api
+	 * To get application list from Workload endpoint
 	 * @param token
 	 * @param userDetails
 	 * @return
 	 */
 	public ResponseEntity<String> getWorkloadDetails(String token, UserDetails userDetails) {
-		String api = "https://cloud-api.corporate.t-mobile.com/api/cloud/workloads";
+		String api = workloadEndpoint;
 		List<WorkloadAppDetails> workloadAppDetailsList = new ArrayList<>();
 
 		// get first response
@@ -84,7 +88,7 @@ public class WorkloadDetailsService {
 	}
 
 	/**
-	 * To get response from CWM api
+	 * To get response from Workload endpoint
 	 * @param api
 	 * @return
 	 */
