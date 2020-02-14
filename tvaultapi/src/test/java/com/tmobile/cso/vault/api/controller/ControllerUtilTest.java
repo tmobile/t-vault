@@ -34,6 +34,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.tmobile.cso.vault.api.model.*;
 import org.apache.logging.log4j.LogManager;
 import org.junit.Before;
 import org.junit.FixMethodOrder;
@@ -56,26 +57,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
 import com.tmobile.cso.vault.api.common.TVaultConstants;
 import com.tmobile.cso.vault.api.exception.TVaultValidationException;
-import com.tmobile.cso.vault.api.model.AWSAuthLogin;
-import com.tmobile.cso.vault.api.model.AWSAuthType;
-import com.tmobile.cso.vault.api.model.AWSIAMLogin;
-import com.tmobile.cso.vault.api.model.AWSIAMRole;
-import com.tmobile.cso.vault.api.model.AWSLoginRole;
-import com.tmobile.cso.vault.api.model.AWSRole;
-import com.tmobile.cso.vault.api.model.AppRole;
-import com.tmobile.cso.vault.api.model.AppRoleSecretData;
-import com.tmobile.cso.vault.api.model.SSCred;
-import com.tmobile.cso.vault.api.model.Safe;
-import com.tmobile.cso.vault.api.model.SafeAppRoleAccess;
-import com.tmobile.cso.vault.api.model.SafeBasicDetails;
-import com.tmobile.cso.vault.api.model.SafeGroup;
-import com.tmobile.cso.vault.api.model.SafeUser;
-import com.tmobile.cso.vault.api.model.SecretData;
-import com.tmobile.cso.vault.api.model.UserDetails;
 import com.tmobile.cso.vault.api.process.RequestProcessor;
 import com.tmobile.cso.vault.api.process.Response;
 import com.tmobile.cso.vault.api.utils.JSONUtil;
 import com.tmobile.cso.vault.api.utils.ThreadLocalContext;
+
+import javax.xml.ws.Service;
 
 @RunWith(PowerMockRunner.class)
 @ComponentScan(basePackages={"com.tmobile.cso.vault.api"})
@@ -1014,4 +1001,26 @@ public class ControllerUtilTest {
     	return sscredFile;
     }
 
+    @Test
+    public void test_updateMetadataOnSvcUpdate_successfully() {
+        String token = "7QPMPIGiyDFlJkrK3jFykUqa";
+        Map<String,String> params = new HashMap<String,String>();
+        params.put("type", "initialPasswordReset");
+        params.put("path",new StringBuffer(TVaultConstants.SVC_ACC_ROLES_PATH).append("testacc02").toString());
+        params.put("value","true");
+        String path = TVaultConstants.SVC_ACC_ROLES_PATH + "testacc02";
+        ServiceAccount serviceAccount = new ServiceAccount();
+        serviceAccount.setName("svc_vault_test2");
+        serviceAccount.setAutoRotate(true);
+        serviceAccount.setTtl(1234L);
+        serviceAccount.setMax_ttl(12345L);
+        serviceAccount.setOwner("svcuser1");
+        serviceAccount.setAppName("app1");
+
+        Response metaResponse = getMockResponse(HttpStatus.OK, true, "{\"data\":{ \"initialPasswordReset\": false,\"managedBy\": \"svcuser2\",\"name\": \"svc_vault_test2\",\"users\": {\"svcuser1\": \"sudo\"}}}");
+        when(reqProcessor.process(eq("/read"),Mockito.any(),eq(token))).thenReturn(metaResponse);
+        when(reqProcessor.process(eq("/write"),Mockito.any(),eq(token))).thenReturn(getMockResponse(HttpStatus.NO_CONTENT, true, ""));
+        Response actualResponse = ControllerUtil.updateMetadataOnSvcUpdate(path, serviceAccount, token);
+        assertEquals(HttpStatus.NO_CONTENT, actualResponse.getHttpstatus());
+    }
 }
