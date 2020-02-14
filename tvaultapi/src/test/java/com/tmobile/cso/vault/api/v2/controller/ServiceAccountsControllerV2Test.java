@@ -543,4 +543,22 @@ public class ServiceAccountsControllerV2Test {
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString(responseJson)));
     }
+
+    @Test
+    public void test_transferSvcAccountOwner() throws Exception {
+        ServiceAccount serviceAccount = generateServiceAccount("testacc02", "testacc01");
+
+        String inputJson =new ObjectMapper().writeValueAsString(serviceAccount);
+        String responseJson = "{\"messages\":[\"Service account ownership transferred successfully from testacc01 to testacc03\"]}";
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(responseJson);
+        UserDetails userDetails = getMockUser(false);
+        when(serviceAccountsService.updateOnboardedServiceAccount(Mockito.anyString(), Mockito.any(), Mockito.any())).thenReturn(responseEntityExpected);
+
+        MvcResult result = mockMvc.perform(MockMvcRequestBuilders.post("/v2/serviceaccounts/transfer")
+                .header("vault-token", "5PDrOhsy4ig8L3EpsJZSLAMg")
+                .header("Content-Type", "application/json;charset=UTF-8")
+                .requestAttr("UserDetails", userDetails)
+                .param("serviceAccountName", "testacc02"))
+                .andExpect(status().isOk()).andReturn();
+    }
 }

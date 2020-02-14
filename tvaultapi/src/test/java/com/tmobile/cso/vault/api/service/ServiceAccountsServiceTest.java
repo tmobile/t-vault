@@ -3142,4 +3142,169 @@ public class ServiceAccountsServiceTest {
         assertEquals(HttpStatus.MULTI_STATUS, responseEntityActual.getStatusCode());
         assertEquals(responseEntityExpected, responseEntityActual);
     }
+
+    @Test
+    public void test_transferSvcAccountOwner_transferSvcAccountOwner_success() throws Exception {
+        String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+        UserDetails userDetails = getMockUser(true);
+        String svcAccName = "testacc02";
+        String _path = TVaultConstants.SVC_ACC_ROLES_PATH + svcAccName;
+        Response metaResponse = getMockResponse(HttpStatus.OK, true, "{\"data\":{\n" +
+                "  \"groups\": {\n" +
+                "    \"group1\": \"read\"\n" +
+                "  },\n" +
+                "  \"aws-roles\": {\n" +
+                "    \"role1\": \"read\"\n" +
+                "  },\n" +
+                "  \"app-roles\": {\n" +
+                "    \"role2\": \"read\"\n" +
+                "  },\n" +
+                "  \"managedBy\": \"user2\",\n" +
+                "  \"name\": \"testacc02\",\n" +
+                "  \"adGroup\": \"gp1\",\n" +
+                "  \"appID\": \"appid1\",\n" +
+                "  \"appName\": \"appname1\",\n" +
+                "  \"appTag\": \"tag1\",\n" +
+                "  \"initialPasswordReset\": \"true\",\n" +
+                "  \"users\": {\n" +
+                "    \"user2\": \"write\"\n" +
+                "  }\n" +
+                "}}");
+        when(reqProcessor.process("/sdb","{\"path\":\""+_path+"\"}",token)).thenReturn(metaResponse);
+        Map<String,Object> rqstParams = new HashMap<>();
+
+        rqstParams.put("service_account_name",svcAccName);
+        rqstParams.put("ttl", 10);
+        rqstParams.put("last_vault_rotation", "2018-05-24T17:14:38.677370855Z");
+        rqstParams.put("password_last_set","2018-05-24T17:14:38.6038495Z");
+        Response svcAccDetailsRes = getMockResponse(HttpStatus.OK, true, getJSON(rqstParams));
+
+        when(reqProcessor.process("/ad/serviceaccount/details","{\"role_name\":\""+svcAccName+"\"}",token)).thenReturn(svcAccDetailsRes);
+
+        String encodedFilter = "(&(userPrincipalName=test*)(objectClass=user)(!(CN=null)))";
+        List<ADServiceAccount> allServiceAccounts = generateADSerivceAccounts();
+        allServiceAccounts.add(generateADServiceAccount("testacc02"));
+        allServiceAccounts.add(generateADServiceAccount("testacc03"));
+        List<ADUserAccount> list = new ArrayList<>();
+        ADUserAccount adUserAccount = new ADUserAccount();
+        adUserAccount.setUserId("user.user11");
+        adUserAccount.setUserName("user11");
+        adUserAccount.setDisplayName("user user11");
+        adUserAccount.setGivenName("user11");
+        adUserAccount.setUserEmail("user11@abc.com");
+        list.add(adUserAccount);
+        ReflectionTestUtils.setField(serviceAccountsService, "ldapTemplate", ldapTemplate);
+        when(ldapTemplate.search(Mockito.anyString(), Mockito.anyString(), Mockito.any(AttributesMapper.class))).thenReturn(list);
+
+        Response response = getMockResponse(HttpStatus.OK, true, "{\"keys\":[\"testacc02\"]}");
+        when(reqProcessor.process("/ad/serviceaccount/onboardedlist","{}",token)).thenReturn(response);
+
+        Response onboardResponse = getMockResponse(HttpStatus.OK, true, "{\"messages\":[\"Successfully created service account role.\"]}");
+        when(reqProcessor.process(eq("/ad/serviceaccount/onboard"), Mockito.any(), eq(token))).thenReturn(onboardResponse);
+
+        ReflectionTestUtils.setField(serviceAccountsService, "ldapTemplate", ldapTemplate);
+        when(ldapTemplate.search(Mockito.anyString(), Mockito.any(), Mockito.any(AttributesMapper.class))).thenReturn(allServiceAccounts);
+        when(ControllerUtil.updateMetadataOnSvcUpdate(Mockito.anyString(), Mockito.any(), Mockito.anyString())).thenReturn(getMockResponse(HttpStatus.OK, true,"{}"));
+
+        Response userResponse = getMockResponse(HttpStatus.OK, true, "{\"data\":{\"bound_cidrs\":[],\"max_ttl\":0,\"policies\":[\"default\"],\"ttl\":0,\"groups\":\"admin\"}}");
+        Response responseNoContent = getMockResponse(HttpStatus.NO_CONTENT, true, "{\"policies\":null}");
+        when(reqProcessor.process(eq("/auth/ldap/users"),Mockito.any(),eq(token))).thenReturn(userResponse);
+        try {
+            List<String> resList = new ArrayList<>();
+            resList.add("default");
+            when(ControllerUtil.getPoliciesAsListFromJson(any(), any())).thenReturn(resList);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        when(ControllerUtil.configureLDAPUser(eq("testacc01"),any(),any(),eq(token))).thenReturn(responseNoContent);
+        when(ControllerUtil.updateMetadata(any(),any())).thenReturn(responseNoContent);
+        when(reqProcessor.process(eq("/sdb"),Mockito.any(),eq(token))).thenReturn(getMockResponse(HttpStatus.OK, true, "{\"data\":{\"initialPasswordReset\":true,\"managedBy\":\"testacc02\",\"name\":\"svc_vault_test5\",\"users\":{\"smohan11\":\"sudo\"}}}"));
+        String[] latestPolicies = {"o_svcacct_testacc02"};
+        when(policyUtils.getCurrentPolicies(userDetails.getSelfSupportToken(), userDetails.getUsername())).thenReturn(latestPolicies);
+
+        when(reqProcessor.process("/auth/ldap/users","{\"username\":\"testacc01\"}",token)).thenReturn(userResponse);
+        try {
+            List<String> resList = new ArrayList<>();
+            resList.add("default");
+            when(ControllerUtil.getPoliciesAsListFromJson(any(), any())).thenReturn(resList);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        when (ControllerUtil.updateMetadata(Mockito.any(),Mockito.any())).thenReturn(getMockResponse(HttpStatus.NO_CONTENT, true, ""));
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Service account ownership transferred successfully from testacc02 to testacc01.\"]}");
+        ResponseEntity<String> responseEntityActual =  serviceAccountsService.transferSvcAccountOwner(userDetails, token, svcAccName);
+        assertEquals(HttpStatus.OK, responseEntityActual.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntityActual);
+    }
+
+    @Test
+    public void test_transferSvcAccountOwner_transferSvcAccountOwner_failed_nonadmin() throws Exception {
+
+        String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+        UserDetails userDetails = getMockUser(false);
+        String svcAccName = "testacc02";
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.FORBIDDEN).body("{\"errors\":[\"Access denied. No permission to transfer service account.\"]}");
+
+        ResponseEntity<String> responseEntityActual =  serviceAccountsService.transferSvcAccountOwner(userDetails, token, svcAccName);
+        assertEquals(HttpStatus.FORBIDDEN, responseEntityActual.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntityActual);
+    }
+
+    @Test
+    public void test_transferSvcAccountOwner_transferSvcAccountOwner_failed_get_svc_details() throws Exception {
+        String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+        UserDetails userDetails = getMockUser(true);
+        String svcAccName = "testacc02";
+        String _path = TVaultConstants.SVC_ACC_ROLES_PATH + svcAccName;
+        Response metaResponse = getMockResponse(HttpStatus.OK, true, "{\"data\":{\n" +
+                "  \"groups\": {\n" +
+                "    \"group1\": \"read\"\n" +
+                "  },\n" +
+                "  \"aws-roles\": {\n" +
+                "    \"role1\": \"read\"\n" +
+                "  },\n" +
+                "  \"app-roles\": {\n" +
+                "    \"role2\": \"read\"\n" +
+                "  },\n" +
+                "  \"managedBy\": \"user2\",\n" +
+                "  \"name\": \"testacc02\",\n" +
+                "  \"adGroup\": \"gp1\",\n" +
+                "  \"appID\": \"appid1\",\n" +
+                "  \"appName\": \"appname1\",\n" +
+                "  \"appTag\": \"tag1\",\n" +
+                "  \"initialPasswordReset\": \"true\",\n" +
+                "  \"users\": {\n" +
+                "    \"user2\": \"write\"\n" +
+                "  }\n" +
+                "}}");
+        when(reqProcessor.process("/sdb", "{\"path\":\"" + _path + "\"}", token)).thenReturn(metaResponse);
+        Map<String, Object> rqstParams = new HashMap<>();
+
+        rqstParams.put("service_account_name", svcAccName);
+        rqstParams.put("ttl", 10);
+        rqstParams.put("last_vault_rotation", "2018-05-24T17:14:38.677370855Z");
+        rqstParams.put("password_last_set", "2018-05-24T17:14:38.6038495Z");
+        Response svcAccDetailsRes = getMockResponse(HttpStatus.OK, true, getJSON(rqstParams));
+
+        when(reqProcessor.process("/ad/serviceaccount/details", "{\"role_name\":\"" + svcAccName + "\"}", token)).thenReturn(svcAccDetailsRes);
+
+        String encodedFilter = "(&(userPrincipalName=test*)(objectClass=user)(!(CN=null)))";
+        List<ADUserAccount> list = new ArrayList<>();
+        ADUserAccount adUserAccount = new ADUserAccount();
+        adUserAccount.setUserId("user.user11");
+        adUserAccount.setUserName("user11");
+        adUserAccount.setDisplayName("user user11");
+        adUserAccount.setGivenName("user11");
+        adUserAccount.setUserEmail("user11@abc.com");
+        list.add(adUserAccount);
+        ReflectionTestUtils.setField(serviceAccountsService, "ldapTemplate", ldapTemplate);
+        when(ldapTemplate.search(Mockito.anyString(), Mockito.anyString(), Mockito.any(AttributesMapper.class))).thenReturn(null);
+
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.MULTI_STATUS).body("{\"errors\":[\"Failed to transfer service account ownership. Unable to read Service account details\"]}");
+
+        ResponseEntity<String> responseEntityActual =  serviceAccountsService.transferSvcAccountOwner(userDetails, token, svcAccName);
+        assertEquals(HttpStatus.MULTI_STATUS, responseEntityActual.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntityActual);
+
+    }
 }
