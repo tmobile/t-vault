@@ -2986,8 +2986,9 @@ public class  ServiceAccountsService {
 
 	/**
 	 * Change service account owner
+	 * @param userDetails
 	 * @param token
-	 * @param serviceAccountName
+	 * @param svcAccName
 	 * @return
 	 */
 	public ResponseEntity<String> transferSvcAccountOwner(UserDetails userDetails, String token, String svcAccName) {
@@ -3008,7 +3009,7 @@ public class  ServiceAccountsService {
 				}
 			}
 			else {
-					return ResponseEntity.status(HttpStatus.MULTI_STATUS).body("{\"errors\":[\"Failed to tranfer service account ownership. Unable to read Service account details\"]}");
+					return ResponseEntity.status(HttpStatus.MULTI_STATUS).body("{\"errors\":[\"Failed to transfer service account ownership. Unable to read Service account details\"]}");
 			}
 			if (isSvcAccOwnerChanged) {
 				String svcOwner = adServiceAccount.getOwner();
@@ -3046,18 +3047,18 @@ public class  ServiceAccountsService {
 					removeOldUserPermissions(oldOwner, token, svcAccName);
 
 					if (HttpStatus.OK.equals(addOwnerSudoToServiceAccountResponse.getStatusCode())) {
-						return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Service account ownership transferred successfully.\"]}");
+						return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Service account ownership transferred successfully from " + oldOwner + " to " + svcOwner + ".\"]}");
 					}
 					else {
 						return ResponseEntity.status(HttpStatus.MULTI_STATUS).body("{\"messages\":[\"Failed to transfer service account ownership. Adding new user to service account failed\"]}");
 					}
 				}
 				else {
-					return ResponseEntity.status(HttpStatus.MULTI_STATUS).body("{\"messages\":[\"Failed to tranfer service account ownership. Update service account failed\"]}");
+					return ResponseEntity.status(HttpStatus.MULTI_STATUS).body("{\"messages\":[\"Failed to transfer service account ownership. Update service account failed\"]}");
 				}
 			}
 			else {
-				return ResponseEntity.status(HttpStatus.MULTI_STATUS).body("{\"messages\":[\"Onwership transfer not required.\"]}");
+				return ResponseEntity.status(HttpStatus.MULTI_STATUS).body("{\"messages\":[\"Ownership transfer not required for this service account.\"]}");
 			}
 		}
 		else {
