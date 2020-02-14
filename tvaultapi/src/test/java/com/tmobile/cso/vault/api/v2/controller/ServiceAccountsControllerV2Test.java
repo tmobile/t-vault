@@ -216,9 +216,9 @@ public class ServiceAccountsControllerV2Test {
     	serviceAccount.setTtl(1234L);
     	serviceAccount.setMax_ttl(12345L);
     	serviceAccount.setOwner(owner);
+        serviceAccount.setAppName("app1");
     	return serviceAccount;
     }
-    @Ignore
     @Test
     public void test_onboardServiceAccount_success() throws Exception{
         UserDetails userDetails = getMockUser(false);
@@ -526,7 +526,6 @@ public class ServiceAccountsControllerV2Test {
                 .andExpect(content().string(containsString(responseJson)));
     }
 
-    @Ignore
     @Test
     public void test_updateOnboardedServiceAccount() throws Exception {
         ServiceAccount serviceAccount = generateServiceAccount("testacc02", "testacc01");
