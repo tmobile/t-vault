@@ -19,6 +19,7 @@ package com.tmobile.cso.vault.api.main;
 
 import javax.servlet.Filter;
 
+import com.tmobile.cso.vault.api.common.TVaultConstants;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -27,6 +28,9 @@ import org.springframework.mail.javamail.JavaMailSenderImpl;
 
 import com.tmobile.cso.vault.api.filter.ApiMetricFilter;
 import com.tmobile.cso.vault.api.filter.TokenValidationFilter;
+import org.thymeleaf.TemplateEngine;
+import org.thymeleaf.templateresolver.ClassLoaderTemplateResolver;
+import org.thymeleaf.templateresolver.ITemplateResolver;
 
 @Configuration
 public class WebConfig {
@@ -36,7 +40,10 @@ public class WebConfig {
 
 	@Value("${spring.mail.port}")
 	private Integer emailPort;
-	
+
+	@Value("${ad.notification.mail.template.mode}")
+	private String templateMode;
+
 	@Bean
 	public Filter ApiMetricFilter() {
 		return new ApiMetricFilter();
@@ -51,5 +58,19 @@ public class WebConfig {
 	    mailSender.setHost(emailHost);
 	    mailSender.setPort(emailPort);
 	    return mailSender;
+	}
+	@Bean
+	public ITemplateResolver templateResolver()	{
+		ClassLoaderTemplateResolver templateResolver = new ClassLoaderTemplateResolver();
+		templateResolver.setPrefix(TVaultConstants.EMAIL_TEMPLATE_PREFIX);
+		templateResolver.setSuffix(TVaultConstants.EMAIL_TEMPLATE_SUFFIX);
+		templateResolver.setTemplateMode(templateMode);
+		return templateResolver;
+	}
+	@Bean
+	public TemplateEngine templateEngine() {
+		TemplateEngine templateEngine = new TemplateEngine();
+		templateEngine.setTemplateResolver(this.templateResolver());
+		return templateEngine;
 	}
 }

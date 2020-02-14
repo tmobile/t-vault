@@ -17,9 +17,7 @@
 
 package com.tmobile.cso.vault.api.service;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
@@ -30,16 +28,11 @@ import javax.naming.NamingException;
 import javax.naming.directory.Attributes;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.google.gson.*;
 import com.tmobile.cso.vault.api.exception.TVaultValidationException;
 import com.tmobile.cso.vault.api.model.*;
 import com.tmobile.cso.vault.api.utils.*;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.ArrayUtils;
-import org.apache.http.HttpResponse;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -74,14 +67,8 @@ public class  ServiceAccountsService {
 	@Value("${ad.notification.mail.subject}")
 	private String subject;
 
-	@Value("${ad.notification.mail.body.part1}")
-	private String mailbody;
-
-	@Value("${ad.notification.mail.body.part2}")
-	private String mailbodyPart2;
-	
-	@Value("${ad.notification.mail.signature}")
-	private String signature;
+	@Value("${ad.notification.mail.body.groupcontent}")
+	private String mailAdGroupContent;
 
 	private static Logger log = LogManager.getLogger(ServiceAccountsService.class);
 	private final static String[] permissions = {"read", "reset", "deny", "sudo"};
@@ -401,20 +388,22 @@ public class  ServiceAccountsService {
 					String filterQuery = "(&(objectclass=user)(|(cn=" + serviceAccount.getOwner() + ")))";
 					List<ADUserAccount> managerDetails = getServiceAccountManagerDetails(filterQuery);
 					if (!managerDetails.isEmpty() && !StringUtils.isEmpty(managerDetails.get(0).getUserEmail())) {
+						String from = supportEmail;
 						List<String> to = new ArrayList<>();
 						to.add(managerDetails.get(0).getUserEmail());
 						String mailSubject = String.format(subject, svcAccName);
-						StringBuffer mailBody = new StringBuffer();
-						mailBody.append(String.format(mailbody, managerDetails.get(0).getDisplayName(), svcAccName));
-						if (serviceAccount.getAdGroup()!=null && serviceAccount.getAdGroup() != "") {
-							mailBody.append("\r\n\nAfter completing the activation, please add the AD group '"+ serviceAccount.getAdGroup() +"' with read/reset permission so that the members of this group is given appropriate permission to access the Service Account Password   ");
+						String groupContent = TVaultConstants.EMPTY;
+
+						// set template variables
+						Map<String, String> mailTemplateVariables = new Hashtable<>();
+						mailTemplateVariables.put("name", managerDetails.get(0).getDisplayName());
+						mailTemplateVariables.put("svcAccName", svcAccName);
+						if (serviceAccount.getAdGroup() != null && serviceAccount.getAdGroup() != "") {
+							groupContent = String.format(mailAdGroupContent, serviceAccount.getAdGroup());
 						}
-						else {
-							mailBody.append("\r\n\nAfter completing the activation, please add the appropriate AD group with required permission to grant appropriate permission to the members of the group   ");
-						}
-						mailBody.append(mailbodyPart2);
-						mailBody.append(signature);
-						emailUtils.sendPlainTextEmail(supportEmail, to, mailSubject, mailBody.toString(), svcAccName);
+						mailTemplateVariables.put("groupContent", groupContent);
+						mailTemplateVariables.put("contactLink", supportEmail);
+						emailUtils.sendHtmlEmalFromTemplate(from, to, mailSubject, mailTemplateVariables);
 					}
 					return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Successfully completed onboarding of AD service account into TVault for password rotation.\"]}");
 				}

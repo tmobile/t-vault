@@ -102,4 +102,22 @@ public class TVaultConstants {
     public static final String NEVER_EXPIRE = "Never";
     public static final String EXPIRED = "Expired";
     public static final Long MAX_TTL = 1590897977L;
+    public static final String EMAIL_TEMPLATE_PREFIX = "templates/";
+    public static final String EMAIL_TEMPLATE_SUFFIX = ".html";
+    public static final String EMAIL_TEMPLATE_NAME = "emailtemplate";
+    public static final String IMAGE_FORMAT_PNG = "png";
+    public static final String IMAGE_TYPE_PNG = "image/png";
+
+    public static final Map<String, String> EMAIL_TEMPLATE_IMAGE_IDS;
+    static {
+        EMAIL_TEMPLATE_IMAGE_IDS = Collections.synchronizedMap(new HashMap<String, String>());
+        EMAIL_TEMPLATE_IMAGE_IDS.put("managetab", "templates/images/managetab.png");
+        EMAIL_TEMPLATE_IMAGE_IDS.put("viewlink", "templates/images/viewlink.png");
+        EMAIL_TEMPLATE_IMAGE_IDS.put("update", "templates/images/update.png");
+        EMAIL_TEMPLATE_IMAGE_IDS.put("activate", "templates/images/activate.png");
+        EMAIL_TEMPLATE_IMAGE_IDS.put("permission", "templates/images/permission.png");
+        EMAIL_TEMPLATE_IMAGE_IDS.put("permissiontab", "templates/images/permissiontab.png");
+        EMAIL_TEMPLATE_IMAGE_IDS.put("adduser", "templates/images/adduser.png");
+    }
+
 }

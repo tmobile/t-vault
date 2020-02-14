@@ -408,12 +408,10 @@ public class ServiceAccountsServiceTest {
         list.add(adUserAccount);
         ReflectionTestUtils.setField(serviceAccountsService, "adUserLdapTemplate", ldapTemplate);
         when(ldapTemplate.search(Mockito.anyString(), Mockito.eq("(&(objectclass=user)(|(cn=testacc01)))"), Mockito.any(AttributesMapper.class))).thenReturn(list);
-        ReflectionTestUtils.setField(serviceAccountsService, "mailbody", "Dear %s, \\r\\n\\nOnboarding of Service Account has been completed successfully. \\r\\nTo proceed further, the Service Account needs to be activated. Please complete the activation by following the below steps:   \\r\\n1. Login to T-Vault   \\r\\n2. Go to Admin or Manage Tab in T-Vault UI   \\r\\n3. Click View/Edit link corresponding to Service Account Name   \\r\\n4. Update any information if required   \\r\\n5. Click the Activate Service Account Link");
-        ReflectionTestUtils.setField(serviceAccountsService, "mailbodyPart2", "\\r\\nGranting Permission: \\r\\nPlease follow below steps to grant permission to any user or group:   \\r\\n1. Login to T-Vault   \\r\\n2. Go to Admin or Manage Tab in T-Vault UI   \\r\\n3. Click View/Edit link corresponding to Service Account Name   \\r\\n4. Click the \"Grant Permission\" button link.\\r\\n5. Navigate to Groups Tab.\\r\\n6. Provide the group name and click \"Add Group\" button");
-        ReflectionTestUtils.setField(serviceAccountsService, "signature", "\\r\\n\\nThanks, \\r\\nCloud Support team");
         ReflectionTestUtils.setField(serviceAccountsService, "supportEmail", "support@abc.com");
         ReflectionTestUtils.setField(serviceAccountsService, "subject", "Onboarding Service account testacc02 is successful");
-        Mockito.doNothing().when(emailUtils).sendPlainTextEmail(Mockito.any(),Mockito.any(),Mockito.any(),Mockito.any(), Mockito.any());
+        ReflectionTestUtils.setField(serviceAccountsService, "mailAdGroupContent", "");
+        Mockito.doNothing().when(emailUtils).sendHtmlEmalFromTemplate(Mockito.any(),Mockito.any(),Mockito.any(),Mockito.any());
 
         ResponseEntity<String> responseEntity = serviceAccountsService.onboardServiceAccount(token, serviceAccount, userDetails);
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
@@ -603,11 +601,10 @@ public class ServiceAccountsServiceTest {
         list.add(adUserAccount);
         ReflectionTestUtils.setField(serviceAccountsService, "adUserLdapTemplate", ldapTemplate);
         when(ldapTemplate.search(Mockito.anyString(), Mockito.eq("(&(objectclass=user)(|(cn=testacc01)))"), Mockito.any(AttributesMapper.class))).thenReturn(list);
-        ReflectionTestUtils.setField(serviceAccountsService, "mailbody", "Dear %s, \\r\\n\\nOnboarding of Service Account has been completed successfully. \\r\\nTo proceed further, the Service Account needs to be activated. Please complete the activation by following the below steps:   \\r\\n1. Login to T-Vault   \\r\\n2. Go to Admin or Manage Tab in T-Vault UI   \\r\\n3. Click View/Edit link corresponding to Service Account Name   \\r\\n4. Update any information if required   \\r\\n5. Click the Activate Service Account Link");
-        ReflectionTestUtils.setField(serviceAccountsService, "signature", "\\r\\n\\nThanks, \\r\\nCloud Support team");
         ReflectionTestUtils.setField(serviceAccountsService, "supportEmail", "support@abc.com");
         ReflectionTestUtils.setField(serviceAccountsService, "subject", "Onboarding Service account testacc02 is successful");
-        Mockito.doNothing().when(emailUtils).sendPlainTextEmail(Mockito.any(),Mockito.any(),Mockito.any(),Mockito.any(), Mockito.any());
+        ReflectionTestUtils.setField(serviceAccountsService, "mailAdGroupContent", "");
+        Mockito.doNothing().when(emailUtils).sendHtmlEmalFromTemplate(Mockito.any(),Mockito.any(),Mockito.any(), Mockito.any());
 
         when(reqProcessor.process(eq("/sdb"),Mockito.any(),eq(token))).thenReturn(getMockResponse(HttpStatus.OK, true, "{\"data\":{\"initialPasswordReset\":true,\"managedBy\":\"smohan11\",\"name\":\"svc_vault_test5\",\"users\":{\"smohan11\":\"sudo\"}}}"));
         ResponseEntity<String> responseEntity = serviceAccountsService.onboardServiceAccount(token, serviceAccount, userDetails);
