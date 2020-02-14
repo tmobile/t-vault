@@ -47,7 +47,7 @@ public class WorkloadDetailsService {
 	private static Logger log = LogManager.getLogger(WorkloadDetailsService.class);
 
 	/**
-	 * To get approle list from CWM api
+	 * To get application list from Workload endpoint
 	 * @param token
 	 * @param userDetails
 	 * @return
@@ -88,7 +88,7 @@ public class WorkloadDetailsService {
 	}
 
 	/**
-	 * To get response from CWM api
+	 * To get response from Workload endpoint
 	 * @param api
 	 * @return
 	 */
