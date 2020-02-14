@@ -2,13 +2,16 @@ package com.tmobile.cso.vault.api.utils;
 
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
-import java.io.File;
 import java.io.IOException;
-import java.util.*;
+import java.io.InputStream;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 
-import com.google.common.collect.ImmutableMap;
-import com.tmobile.cso.vault.api.common.TVaultConstants;
-import com.tmobile.cso.vault.api.exception.LogMessage;
+import javax.imageio.ImageIO;
+import javax.mail.MessagingException;
+import javax.mail.internet.MimeMessage;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,9 +22,9 @@ import org.springframework.stereotype.Component;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
 
-import javax.imageio.ImageIO;
-import javax.mail.MessagingException;
-import javax.mail.internet.MimeMessage;
+import com.google.common.collect.ImmutableMap;
+import com.tmobile.cso.vault.api.common.TVaultConstants;
+import com.tmobile.cso.vault.api.exception.LogMessage;
 
 @Component
 public class EmailUtils {
@@ -92,8 +95,9 @@ public class EmailUtils {
 	 * @throws IOException
 	 */
 	private ByteArrayResource getImageByteArray(String imagePath) throws IOException {
-		File file = new File(getClass().getClassLoader().getResource(imagePath).getFile());
-		BufferedImage bImage = ImageIO.read(file);
+		ClassLoader classloader = Thread.currentThread().getContextClassLoader();
+		InputStream is = classloader.getResourceAsStream(imagePath);
+		BufferedImage bImage = ImageIO.read(is);
 		ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
 		ImageIO.write(bImage, TVaultConstants.IMAGE_FORMAT_PNG, byteArrayOutputStream);
 		return new ByteArrayResource(byteArrayOutputStream.toByteArray());
