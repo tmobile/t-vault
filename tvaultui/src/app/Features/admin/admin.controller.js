@@ -1019,6 +1019,7 @@
                 if (UtilityService.ifAPIRequestSuccessful(response)) {
                     $scope.isLoadingData = false;
                     $scope.svcaccToTransfer = '';
+                    $scope.transferFailedMessage = response.data.messages[0];
                     $scope.transferSuccessPopUp();
                 }
                 else {
