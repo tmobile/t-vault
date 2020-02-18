@@ -83,7 +83,8 @@ public class WorkloadDetailsService {
 			workloadAppDetails.setAppTag((summary.get("appTag").isJsonNull()?"":summary.get("appTag").getAsString()));
 			workloadAppDetailsList.add(workloadAppDetails);
 		}
-
+		// Add a default
+		workloadAppDetailsList.add(new WorkloadAppDetails(WorkloadAppDetails.APP_NAME_OTHER, WorkloadAppDetails.APP_TAG_OTHER, WorkloadAppDetails.APP_ID_OTHER));
 		return ResponseEntity.status(HttpStatus.OK).body(JSONUtil.getJSON(workloadAppDetailsList));
 	}
 
