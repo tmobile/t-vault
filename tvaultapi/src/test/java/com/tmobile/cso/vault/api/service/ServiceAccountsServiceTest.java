@@ -1779,6 +1779,25 @@ public class ServiceAccountsServiceTest {
     }
 
     @Test
+    public void test_readSvcAccPassword_failed_activation_pending() {
+        UserDetails userDetails = getMockUser(true);
+        String token = userDetails.getClientToken();
+        String svcAccName = "testacc03";
+
+        when(reqProcessor.process(eq("/sdb"),Mockito.any(),eq(token))).thenReturn(getMockResponse(HttpStatus.OK, true, "{\"data\":{\"initialPasswordReset\":true,\"managedBy\":\"smohan11\",\"name\":\"svc_vault_test5\",\"users\":{\"smohan11\":\"sudo\"}}}"));
+
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Failed to read service account password. Initial password reset is pending for this Service Account. Please reset the password and try again.\"]}");
+        when(reqProcessor.process(eq("/sdb"),Mockito.any(),eq(token))).thenReturn(getMockResponse(HttpStatus.OK, true, "{\"data\":{\"initialPasswordReset\":false,\"managedBy\":\"normaluser\",\"name\":\"svc_vault_test5\",\"users\":{\"normaluser\":\"sudo\"}}}"));
+
+        Response response = getMockResponse(HttpStatus.OK, true, "{\"data\":{\"initialPasswordReset\":false,\"managedBy\":\"normaluser\",\"name\":\"svc_vault_test5\",\"users\":{\"normaluser\":\"sudo\"}}}");
+        String _path = TVaultConstants.SVC_ACC_ROLES_PATH + svcAccName;
+        when(reqProcessor.process("/sdb","{\"path\":\""+_path+"\"}",token)).thenReturn(response);
+        ResponseEntity<String> responseEntity = serviceAccountsService.readSvcAccPassword(token, svcAccName, userDetails);
+        assertEquals(HttpStatus.BAD_REQUEST, responseEntity.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntity);
+    }
+
+    @Test
     public void test_readSvcAccPassword_403() {
         UserDetails userDetails = getMockUser(true);
         String token = userDetails.getClientToken();
