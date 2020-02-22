@@ -28,7 +28,7 @@ import javax.servlet.http.HttpServletRequest;
 
 @RestController
 @CrossOrigin
-@Api( description = "Get Workload details", position = 14, hidden = true)
+@Api( description = "Get Workload details", position = 14)
 public class WorkloadDetailsController {
 
 	@Autowired
@@ -40,7 +40,7 @@ public class WorkloadDetailsController {
 	 * @param token
 	 * @return
 	 */
-	@ApiOperation(value = "${WorkloadDetailsController.getApprolesFromCwm.value}", notes = "${WorkloadDetailsController.getApprolesFromCwm.notes}", hidden = true)
+	@ApiOperation(value = "${WorkloadDetailsController.getApprolesFromCwm.value}", notes = "${WorkloadDetailsController.getApprolesFromCwm.notes}")
 	@GetMapping(value="/v2/serviceaccounts/cwm/approles", produces="application/json")
 	public ResponseEntity<String> getWorkloadDetails(HttpServletRequest request, @RequestHeader(value="vault-token") String token){
 		UserDetails userDetails = (UserDetails) ((HttpServletRequest) request).getAttribute("UserDetails");
