@@ -203,7 +203,7 @@ if [[ "$PKG_TYPE" == "tar"  || "$PKG_TYPE" == "docker" ]]; then
    cd $BASEDIR
    
    echo "Extracting vault.zip"
-   unzip $COMPONENTS_DIR/hcorp/bin/vault.zip -d $COMPONENTS_DIR/hcorp/bin/
+   unzip -o $COMPONENTS_DIR/hcorp/bin/vault.zip -d $COMPONENTS_DIR/hcorp/bin/
    rm -f $COMPONENTS_DIR/hcorp/bin/vault.zip
    
    mkdir -p $TVAULT_TAR_DIR
