@@ -173,13 +173,13 @@
         var pageSize = 20;
         $scope.paginationLimit = function(data) {
             $scope.currentshown = pageSize * pagesShown;
-            if($scope.searchValueSvcacc.length>2 || $scope.currentshown >= $scope.numOfSvcaccs){
+            if(($scope.searchValueSvcacc != '' && $scope.searchValueSvcacc!= undefined && $scope.searchValueSvcacc.length>2) || $scope.currentshown >= $scope.numOfSvcaccs){
                 $scope.currentshown = $scope.numOfSvcaccs;
             }
             return $scope.currentshown;
         };
         $scope.hasMoreItemsToShow = function() {
-            if ($scope.searchValueSvcacc.length<3) {
+            if ($scope.searchValueSvcacc != '' && $scope.searchValueSvcacc!= undefined && $scope.searchValueSvcacc.length<3) {
                 return pagesShown < ($scope.numOfSvcaccs / pageSize);
             }
             return false;
