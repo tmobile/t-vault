@@ -780,7 +780,7 @@
                                         name: object.name || $stateParams.safeObject.safe,
                                         owner: object.owner || $stateParams.safeObject.owner || '',
                                         description: object.description || $stateParams.safeObject.description || '',
-                                        type: object.type || $stateParams.safeObject.type || $scope.dropDownOptions.selectedGroupOption.type || ''
+                                        type: $stateParams.safeObject.type || object.type ||$scope.dropDownOptions.selectedGroupOption.type || ''
                                     }
                                     $scope.safePrevious = angular.copy($scope.safe);
                                     $scope.selectedGroupOption = $scope.safe;
