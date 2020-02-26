@@ -603,13 +603,13 @@
 
         $scope.paginationLimit = function(data) {
             $scope.currentshown = pageSize * pagesShown;
-            if($scope.searchValue.length>2 || $scope.currentshown >= $scope.numOfSvcaccs){
+            if(($scope.searchValue !='' && $scope.searchValue != undefined && $scope.searchValue.length>2) || $scope.currentshown >= $scope.numOfSvcaccs){
                 $scope.currentshown = $scope.numOfSvcaccs;
             }
             return $scope.currentshown;
         };
         $scope.hasMoreItemsToShow = function() {
-            if ($scope.searchValue.length<3) {
+            if ($scope.searchValue !='' && $scope.searchValue != undefined && $scope.searchValue.length<3) {
                 return pagesShown < ($scope.numOfSvcaccs / pageSize);
             }
             return false;
