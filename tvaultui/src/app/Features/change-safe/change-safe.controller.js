@@ -367,6 +367,7 @@
                         $scope.inputSelected.select = true; 
                         $scope.showNoMatchingResults = false;  
                         $scope.invalidEmail = false;                
+                        $(id).trigger('change');
                         $(id).blur();                     
                         $scope.$apply();
                     },
