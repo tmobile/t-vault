@@ -206,6 +206,7 @@ script(src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"
                 md-content
                     md-tabs(md-dynamic-height md-border-bottom)
                         md-tab(label="Users" md-on-select="clearInputValue('addUser')")
+                            loading-state(ng-if='isLoadingData')
                             md-content(class="md-padding")
                                 .new-container.page-content-container
                                     .row.change-safe
@@ -235,7 +236,6 @@ script(src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"
                                     .unavailable-text(ng-if='isEmpty(UsersPermissionsData)')
                                       | No users are given permission to access this safe,<br> add users to access the safe 
                                     .row.change-safe-table-container(ng-if='!isEmpty(UsersPermissionsData)')
-                                        loading-state(ng-if='isLoadingData')
                                         .row.change-safe.header
                                             .container.name.col-lg-4.col-md-4.col-sm-4.col-xs-4 USERNAME  
                                             .container.radio-inputs.col-lg-4.col-md-4.col-sm-4.col-xs-4 ACTION
@@ -266,6 +266,7 @@ script(src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"
                                                         .list-icon(ng-click = "editPermission('users', editPermissionItem, key, radioValue); editPermissionItem ? editPermissionItem = !editPermissionItem : editPermissionItem = editPermissionItem" ng-class="{'inactive' : editPermissionItem == false}")  SAVE                                                    
                                                                     
                         md-tab(label="Groups" md-on-select="clearInputValue('addGroup')")
+                            loading-state(ng-if='isLoadingData')
                             md-content(class="md-padding")
                                 .new-container.page-content-container
                                     .row.change-safe
@@ -294,7 +295,6 @@ script(src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"
                                     .unavailable-text(ng-if="isEmpty(GroupsPermissionsData)")
                                       | No groups are given permission to access this safe,<br> add groups to access the safe
                                     .row.change-safe-table-container(ng-if="!isEmpty(GroupsPermissionsData)")
-                                        loading-state(ng-if='isLoadingData')
                                         .row.change-safe.header
                                             .container.name.col-lg-4.col-md-4.col-sm-4.col-xs-4 NAME
                                             .container.radio-inputs.col-lg-4.col-md-4.col-sm-4.col-xs-4 ACTION
@@ -324,6 +324,7 @@ script(src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"
                                                     .down.save
                                                         .list-icon(ng-click = "editPermission('groups', editPermissionItem, key, radioValue); editPermissionItem ? editPermissionItem = !editPermissionItem : editPermissionItem = editPermissionItem" ng-class="{'inactive' : editPermissionItem == false}")  SAVE                                                    
                         md-tab(label="AWS Applications")
+                            loading-state(ng-if='isLoadingData')
                             md-content(class="md-padding")
                                 .new-container.page-content-container
                                     .row.change-safe
@@ -335,7 +336,6 @@ script(src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"
                                     .unavailable-text(ng-if="isEmpty(AwsPermissionsData.data)")
                                       | No applications are given permission to access this safe,<br> add applications to access the safe
                                     .change-safe-table-container(ng-if="!isEmpty(AwsPermissionsData.data)")
-                                        loading-state(ng-if='isLoadingData')
                                         .row.change-safe.header
                                             .container.name.col-lg-4.col-md-4.col-sm-4.col-xs-4 NAME 
                                             .container.radio-inputs.col-lg-4.col-md-4.col-sm-4.col-xs-4 ACTION
@@ -365,6 +365,7 @@ script(src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"
                                                     .down.save
                                                         .list-icon(ng-click = "editPermission('AWSPermission', editPermissionItem, key, radioValue); editPermissionItem ? editPermissionItem = !editPermissionItem : editPermissionItem = editPermissionItem" ng-class="{'inactive' : editPermissionItem == false}")  SAVE
                         md-tab(label="AppRoles")
+                            loading-state(ng-if='isLoadingData')
                             md-content(class="md-padding")
                                 .new-container.page-content-container
                                     .row.change-safe
@@ -376,7 +377,6 @@ script(src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"
                                     .unavailable-text(ng-if="isEmpty(AppRolePermissionsData.data)")
                                       | No approles are given permission to access this safe,<br> add approles to access the safe
                                     .change-safe-table-container(ng-if="!isEmpty(AppRolePermissionsData.data)")
-                                        loading-state(ng-if='isLoadingData')
                                         .row.change-safe.header
                                             .container.name.col-lg-4.col-md-4.col-sm-4.col-xs-4 NAME
                                             .container.radio-inputs.col-lg-4.col-md-4.col-sm-4.col-xs-4 ACTION
