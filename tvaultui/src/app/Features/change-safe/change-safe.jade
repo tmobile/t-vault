@@ -240,7 +240,7 @@ script(src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"
                                             .container.name.col-lg-4.col-md-4.col-sm-4.col-xs-4 USERNAME  
                                             .container.radio-inputs.col-lg-4.col-md-4.col-sm-4.col-xs-4 ACTION
                                         .change-safe-table-data.row
-                                            .row.change-safe.item.hide-in-mobile(ng-show="!isLoadingData && radioValue != 'sudo'" ng-init="editPermissionItem = false; activeItem = false; radioValue = value" ng-class="{'grayBackground' : activeItem == true}" ng-repeat="(key, value) in UsersPermissionsData")
+                                            .row.change-safe.item.hide-in-mobile(ng-if="!isLoadingData && radioValue != 'sudo'" ng-init="editPermissionItem = false; activeItem = false; radioValue = value" ng-class="{'grayBackground' : activeItem == true}" ng-repeat="(key, value) in UsersPermissionsData")
                                                 .container.name.col-lg-4.col-md-4.col-sm-4.col-xs-4(ng-class="{'inactive' : editPermissionItem == false}") {{key}}
                                                 .container.radio-inputs.col-lg-4.col-md-4.col-sm-4.col-xs-4
                                                     radio-buttons(data="radio" value="radioValue" state="editPermissionItem")
@@ -252,7 +252,7 @@ script(src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"
                                                         .list-icon.icon-cross(ng-click="editPermissionItem = !editPermissionItem; activeItem = !activeItem; radioValue = value" ng-class="{'inactive' : editPermissionItem == true, 'hide-icon' : editPermissionItem == false}")
                                                     .down.save
                                                         .list-icon(ng-click = "editPermission('users', editPermissionItem, key, radioValue); editPermissionItem ? editPermissionItem = !editPermissionItem : editPermissionItem = editPermissionItem" ng-class="{'inactive' : editPermissionItem == false}")  SAVE
-                                            .row.change-safe.item.hide-in-tablet-up(ng-show="!isLoadingData" ng-init="editPermissionItem = true; activeItem = false; radioValue = value" ng-class="{'grayBackground' : activeItem == true}" ng-repeat="(key, value) in UsersPermissionsData")
+                                            .row.change-safe.item.hide-in-tablet-up(ng-if="!isLoadingData" ng-init="editPermissionItem = true; activeItem = false; radioValue = value" ng-class="{'grayBackground' : activeItem == true}" ng-repeat="(key, value) in UsersPermissionsData")
                                                 .container.name.col-lg-4.col-md-4.col-sm-4.col-xs-4(ng-class="{'inactive' : editPermissionItem == false}") {{key}}
                                                 .container.radio-inputs.col-lg-4.col-md-4.col-sm-4.col-xs-4
                                                     drop-down(drop-down-options="radio" value="radioValue" error="noTypeSelected")
@@ -299,7 +299,7 @@ script(src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"
                                             .container.name.col-lg-4.col-md-4.col-sm-4.col-xs-4 NAME
                                             .container.radio-inputs.col-lg-4.col-md-4.col-sm-4.col-xs-4 ACTION
                                         .change-safe-table-data.row
-                                            .row.change-safe.item.hide-in-mobile(ng-show="!isLoadingData" ng-init="editPermissionItem = false; activeItem = false; radioValue = value" ng-class="{'grayBackground' : activeItem == true}" ng-repeat="(key, value) in GroupsPermissionsData")
+                                            .row.change-safe.item.hide-in-mobile(ng-if="!isLoadingData" ng-init="editPermissionItem = false; activeItem = false; radioValue = value" ng-class="{'grayBackground' : activeItem == true}" ng-repeat="(key, value) in GroupsPermissionsData")
                                                 .container.name.col-lg-4.col-md-4.col-sm-4.col-xs-4(ng-class="{'inactive' : editPermissionItem == false}") {{key}}
                                                 .container.radio-inputs.col-lg-4.col-md-4.col-sm-4.col-xs-4
                                                     radio-buttons(data="radio" value="radioValue" state="editPermissionItem")
@@ -311,7 +311,7 @@ script(src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"
                                                         .list-icon.icon-cross(ng-click="editPermissionItem = !editPermissionItem; activeItem = !activeItem; radioValue = value" ng-class="{'inactive' : editPermissionItem == true, 'hide-icon' : editPermissionItem == false}")
                                                     .down.save
                                                         .list-icon(ng-click = "editPermission('groups', editPermissionItem, key, radioValue); editPermissionItem ? editPermissionItem = !editPermissionItem : editPermissionItem = editPermissionItem" ng-class="{'inactive' : editPermissionItem == false}")  SAVE
-                                            .row.change-safe.item.hide-in-tablet-up(ng-show="!isLoadingData" ng-init="editPermissionItem = true; activeItem = false; radioValue = value" ng-class="{'grayBackground' : activeItem == true}" ng-repeat="(key, value) in GroupsPermissionsData")
+                                            .row.change-safe.item.hide-in-tablet-up(ng-if="!isLoadingData" ng-init="editPermissionItem = true; activeItem = false; radioValue = value" ng-class="{'grayBackground' : activeItem == true}" ng-repeat="(key, value) in GroupsPermissionsData")
                                                 .container.name.col-lg-4.col-md-4.col-sm-4.col-xs-4(ng-class="{'inactive' : editPermissionItem == false}") {{key}}
                                                 .container.radio-inputs.col-lg-4.col-md-4.col-sm-4.col-xs-4
                                                     drop-down(drop-down-options="radio" value="radioValue" error="noTypeSelected")
