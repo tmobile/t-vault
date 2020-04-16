@@ -211,9 +211,9 @@ public class  ServiceAccountsService {
 					}
 					String userId = ((String) attr.get("name").get());
 					// Assign first part of the email id for use with UPN authentication
-					if (!StringUtils.isEmpty(mail)) {
+					/*if (!StringUtils.isEmpty(mail)) {
 						userId = mail.substring(0, mail.indexOf("@"));
-					}
+					}*/
 					adServiceAccount.setUserId(userId);
 					if (attr.get("displayname") != null) {
 						adServiceAccount.setDisplayName(((String) attr.get("displayname").get()));
@@ -2372,9 +2372,9 @@ public class  ServiceAccountsService {
 					}
 					String userId = ((String) attr.get("name").get());
 					// Assign first part of the email id for use with UPN authentication
-					if (!StringUtils.isEmpty(mail)) {
+					/*if (!StringUtils.isEmpty(mail)) {
 						userId = mail.substring(0, mail.indexOf("@"));
-					}
+					}*/
 					person.setUserId(userId);
 					if (attr.get("displayname") != null) {
 						person.setDisplayName(((String) attr.get("displayname").get()));
