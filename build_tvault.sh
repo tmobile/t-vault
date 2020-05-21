@@ -236,7 +236,7 @@ if [[ "$PKG_TYPE" == "docker" ]]; then
    echo "Creating Docker Container"
    echo "-----------------------------------------------------"
    cp $BASEDIR/tvault_all.tar.gz $DOCKER_FILE_DIR/
-   cd $BASEDIR
+   cd $BASEDIR   
 fi 
 
 echo "-----------------------------------------------------"
