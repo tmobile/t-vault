@@ -116,7 +116,7 @@ public class SSLCertificateServiceTest {
 	private AppRoleService appRoleService;
 
     @Mock
-    ObjectMapper obj;    
+    ObjectMapper obj;
 
     @Mock
     EmailUtils emailUtils;
@@ -5805,7 +5805,7 @@ public class SSLCertificateServiceTest {
 		assertEquals(HttpStatus.BAD_REQUEST, enrollResponse.getStatusCode());
 		assertEquals(responseEntityExpected, enrollResponse);
 	}
-	
+
 	@Test
 	public void testdeleteCertDetailsSuccess() throws Exception {
 		String jsonStr = "{  \"username\": \"testusername1\",  \"password\": \"testpassword1\"}";
@@ -5813,7 +5813,7 @@ public class SSLCertificateServiceTest {
 		String jsonStr2 = "{\"certificates\":[{\"sortedSubjectName\": \"CN=certificatename.t-mobile.com, C=US, "
 				+ "ST=Washington, " + "L=Bellevue, O=T-Mobile USA, Inc\","
 				+ "\"certificateId\":57258,\"certificateStatus\":\"Active\","
-				+ "\"containerName\":\"cont_12345\",\"NotAfter\":\"2021-06-15T04:35:58-07:00\"}]}";		
+				+ "\"containerName\":\"cont_12345\",\"NotAfter\":\"2021-06-15T04:35:58-07:00\"}]}";
 		String jsonStr3 = "{\"data\": [ ],  \"href\": \"\",\"limit\": 50, \"offset\": 0, \"totalCount\": 1}";
 		SSLCertificateMetadataDetails certificateMetadata = getSSLCertificateMetadataDetails();
 		UserDetails userDetail = getMockUser(true);
@@ -5867,38 +5867,38 @@ public class SSLCertificateServiceTest {
 		String certName = "certificatename.t-mobile.com";
 		when(ControllerUtil.updateMetaData(any(), any(), eq(token))).thenReturn(true);
 		when(certificateUtils.getCertificateMetaData(token, certName, certType)).thenReturn(certificateMetadata);
-		
+
 		CertResponse unassignCertResponse = new CertResponse();
 		unassignCertResponse.setHttpstatus(HttpStatus.OK);
 		unassignCertResponse.setResponse(jsonStr3);
 		unassignCertResponse.setSuccess(true);
 		when(reqProcessor.processCert(eq("/certificates/services/assigned"), anyObject(), anyString(), anyString()))
 				.thenReturn(unassignCertResponse);
-		
+
 		CertResponse deleteCertResponse = new CertResponse();
 		deleteCertResponse.setHttpstatus(HttpStatus.NO_CONTENT);
 		deleteCertResponse.setResponse(null);
 		deleteCertResponse.setSuccess(true);
 		when(reqProcessor.processCert(eq("/certificates"), anyObject(), anyString(), anyString()))
 				.thenReturn(deleteCertResponse);
-		
+
 		Response metadataDeleteResponse = new Response();
 		metadataDeleteResponse.setHttpstatus(HttpStatus.OK);
 		metadataDeleteResponse.setResponse(null);
 		metadataDeleteResponse.setSuccess(true);
 		when(reqProcessor.process(eq("/delete"), anyObject(), anyString())).thenReturn(metadataDeleteResponse);
-		
+
 		Response metadataPathDeleteResponse = new Response();
 		metadataPathDeleteResponse.setHttpstatus(HttpStatus.OK);
 		metadataPathDeleteResponse.setResponse(null);
 		metadataPathDeleteResponse.setSuccess(true);
 		when(reqProcessor.process(eq("/delete"), anyObject(), anyString())).thenReturn(metadataPathDeleteResponse);
-		
+
 		ResponseEntity<?> enrollResponse = sSLCertificateService
 				.deleteCertificate(token, certType, certName, userDetail);
-		assertNotNull(enrollResponse);		
+		assertNotNull(enrollResponse);
 	}
-	
+
 	 @Test
 	    public void getALLCertificate_Succes()throws Exception{
 	    	 String token = "12345";

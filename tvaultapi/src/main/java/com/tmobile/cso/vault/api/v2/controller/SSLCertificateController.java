@@ -36,7 +36,7 @@ public class SSLCertificateController {
 
 	@Autowired
 	private SSLCertificateService sslCertificateService;
-	
+
 	public static final String USER_DETAILS_STRING="UserDetails";
 
 	/**
@@ -61,7 +61,7 @@ public class SSLCertificateController {
 		UserDetails userDetails = (UserDetails) request.getAttribute(USER_DETAILS_STRING);
 		return sslCertificateService.generateSSLCertificate(sslCertificateRequest,userDetails,token);
 	}
-	
+
 	/**
 	 * To get list of certificates in a container
 	 * @param request
@@ -75,10 +75,10 @@ public class SSLCertificateController {
 		UserDetails userDetails = (UserDetails) request.getAttribute(USER_DETAILS_STRING);
 		return sslCertificateService.getServiceCertificates(token, userDetails, certName, limit, offset,certType);
      }
-	
+
 	/**
 	 * To Get list of revocation reasons
-	 * 
+	 *
 	 * @param request
 	 * @param token
 	 * @param certificateId
@@ -90,10 +90,10 @@ public class SSLCertificateController {
 			@RequestHeader(value = "vault-token") String token, @PathVariable("certificateId") Integer certificateId) {
 		return sslCertificateService.getRevocationReasons(certificateId, token);
 	}
-	
+
 	/**
 	 * Issue a revocation request for certificate
-	 * 
+	 *
 	 * @param request
 	 * @param token
 	 * @param certificateId
@@ -108,7 +108,7 @@ public class SSLCertificateController {
 		UserDetails userDetails = (UserDetails) request.getAttribute(USER_DETAILS_STRING);
 		return sslCertificateService.issueRevocationRequest(certType,certName, userDetails, token, revocationRequest);
 	}
-	
+
 	/**
 	 * Adds user with a read permission to a certificate
 	 * @param token
@@ -237,7 +237,7 @@ public class SSLCertificateController {
 		UserDetails userDetails = (UserDetails) request.getAttribute(USER_DETAILS_STRING);
 		return sslCertificateService.renewCertificate(certType, certName, userDetails, token);
 	}
-	
+
 	/**
 	 * Removes permission for a user from the certificate
 	 * @param request
@@ -251,7 +251,7 @@ public class SSLCertificateController {
 		UserDetails userDetails = (UserDetails) request.getAttribute(USER_DETAILS_STRING);
 		return sslCertificateService.removeUserFromCertificate(certificateUser, userDetails);
 	}
-	
+
 	/**
      * Remove group from certificate
      * @param request
@@ -265,10 +265,10 @@ public class SSLCertificateController {
         UserDetails userDetails = (UserDetails) request.getAttribute(USER_DETAILS_STRING);
         return sslCertificateService.removeGroupFromCertificate(certificateGroup, userDetails);
     }
-    
+
 	/**
 	 * Get List Of Certificates
-	 * 
+	 *
 	 * @param request
 	 * @param token
 	 * @param certificateType
@@ -281,10 +281,10 @@ public class SSLCertificateController {
 			@PathVariable("certificate_type") String certificateType) {
 		return sslCertificateService.getListOfCertificates(token, certificateType);
 	}
-	
+
 	/**
 	 * Transfer the ownership Of Certificates
-	 * 
+	 *
 	 * @param request
 	 * @param token
 	 * @param certificateType
@@ -297,10 +297,10 @@ public class SSLCertificateController {
 		UserDetails userDetails = (UserDetails) request.getAttribute("UserDetails");
 		return sslCertificateService.updateCertOwner(token, certType,certName,certOwnerEmailId, userDetails);
 	}
-	
+
 	/**
 	 * Transfer the ownership Of Certificates
-	 * 
+	 *
 	 * @param request
 	 * @param token
 	 * @param certificateType
@@ -330,7 +330,7 @@ public class SSLCertificateController {
 		return sslCertificateService.validateApprovalStatusAndGetCertificateDetails(certificateName, certificateType,
 				userDetails);
 	}
-	
+
 	/**
 	 * To get list of internal certificates.
 	 * @param request

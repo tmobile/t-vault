@@ -183,13 +183,13 @@ public class CertRestProcessor {
 	 * @param endpoint
 	 * @param token
 	 * @return
-	 */	
+	 */
 	public ResponseEntity<String> deleteWithPayload(String endpoint,String token,Object payload ){
 
 		RestTemplate restTemplate = getRestTemplate(sslVerify, token);
 		HttpHeaders headers = new HttpHeaders();
 		headers.add("X-HTTP-Method-Override", "DELETE");
-		HttpEntity<String> request  = new HttpEntity<String>(payload.toString(),headers);		
+		HttpEntity<String> request  = new HttpEntity<String>(payload.toString(),headers);
 		ResponseEntity<String> response;
 		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
@@ -197,7 +197,7 @@ public class CertRestProcessor {
 				put(LogMessage.MESSAGE, String.format("Calling the Cert end point [%s] using DELETE method", endpoint)).
 				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 				build()));
-		try{			
+		try{
 			response= restTemplate.exchange(endpoint, HttpMethod.DELETE, request, String.class);
 		}catch(HttpStatusCodeException e){
 			return ResponseEntity.status(e.getStatusCode()).body(e.getResponseBodyAsString());
@@ -207,8 +207,8 @@ public class CertRestProcessor {
 		return response;
 
 	}
-	
-	
+
+
 	/**
 	 * Get the rest template
 	 * @param sslVerify

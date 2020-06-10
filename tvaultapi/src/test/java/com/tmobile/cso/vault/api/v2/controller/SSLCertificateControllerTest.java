@@ -47,10 +47,10 @@ public class SSLCertificateControllerTest {
 
     @Mock
     private SSLCertificateRequest sSLCertificateRequest;
-    
+
     @Mock
     private SSLCertificateMetadataDetails sSLCertificateMetadataRequest;
-    
+
     @Mock
     private RevocationRequest revocationRequest;
     @Mock
@@ -159,21 +159,21 @@ public class SSLCertificateControllerTest {
                 sslCertificateService.generateSSLCertificate(sSLCertificateRequest,userDetails,token).getStatusCode());
 
     }
-    
+
     @Test
     public void test_getCertificates() throws Exception {
-        // Mock response        
+        // Mock response
         when(sslCertificateService.getServiceCertificates("5PDrOhsy4ig8L3EpsJZSLAMg", userDetails, "",1,0,"internal")).thenReturn(new ResponseEntity<>(HttpStatus.OK));
         assertEquals(HttpStatus.OK, sslCertificateService.getServiceCertificates("5PDrOhsy4ig8L3EpsJZSLAMg",userDetails,"",1,0,"internal").getStatusCode());
     }
-    
+
     @Test
     public void test_getCertificates_external() throws Exception {
-        // Mock response        
+        // Mock response
         when(sslCertificateService.getServiceCertificates("5PDrOhsy4ig8L3EpsJZSLAMg", userDetails, "",1,0,"external")).thenReturn(new ResponseEntity<>(HttpStatus.OK));
         assertEquals(HttpStatus.OK, sslCertificateService.getServiceCertificates("5PDrOhsy4ig8L3EpsJZSLAMg",userDetails,"",1,0,"external").getStatusCode());
     }
-    
+
 	@Test
 	public void test_getRevocationReasons_Success() {
 		Integer certifcateId = 56123;
@@ -184,7 +184,7 @@ public class SSLCertificateControllerTest {
 				SslCertificateController.getRevocationReasons(httpServletRequest, token, certifcateId).getStatusCode());
 
 	}
-	
+
 	@Test
 	public void test_issueRevocationRequest_Success() {
 		String certName = "test@t-mobile.com";
@@ -197,11 +197,11 @@ public class SSLCertificateControllerTest {
 				SslCertificateController.issueRevocationRequest(httpServletRequest, token, certficateType,certName, revocationRequest).getStatusCode());
 
 	}
-       
+
 	@Test
     public void testAddUsertoCertificate() throws Exception {
         String responseJson = "{\"messages\":[\"User is successfully associated \"]}";
-        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(responseJson);       
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(responseJson);
         CertificateUser certUser = new CertificateUser("testuser1","read", "certificatename.t-mobile.com", "internal");
 
         String inputJson =new ObjectMapper().writeValueAsString(certUser);
@@ -275,10 +275,10 @@ public class SSLCertificateControllerTest {
                 .header("Content-Type", "application/json;charset=UTF-8"))
                 .andExpect(status().isOk());
     }
-    
+
     @Test
     public void testRemoveUserFromCertificate() throws Exception {
-        CertificateUser certUser = new CertificateUser("testuser1","read", "certificatename.t-mobile.com", "internal");   	
+        CertificateUser certUser = new CertificateUser("testuser1","read", "certificatename.t-mobile.com", "internal");
         String expected = "{\"message\":[\"Successfully removed user from the certificate\"]}";
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(expected);
         when(sslCertificateService.removeUserFromCertificate(Mockito.any(), Mockito.any())).thenReturn(responseEntityExpected);
@@ -293,10 +293,10 @@ public class SSLCertificateControllerTest {
         String actual = result.getResponse().getContentAsString();
         assertEquals(expected, actual);
     }
-    
+
     @Test
     public void testRemoveGroupFromCertificate() throws Exception {
-    	CertificateGroup certGroup = new CertificateGroup("certificatename.t-mobile.com", "testgroup","read", "internal");   	
+    	CertificateGroup certGroup = new CertificateGroup("certificatename.t-mobile.com", "testgroup","read", "internal");
         String expected = "{\"message\":[\"Group is successfully removed from certificate\"]}";
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(expected);
         when(sslCertificateService.removeGroupFromCertificate(Mockito.any(), Mockito.any())).thenReturn(responseEntityExpected);
@@ -311,7 +311,7 @@ public class SSLCertificateControllerTest {
         String actual = result.getResponse().getContentAsString();
         assertEquals(expected, actual);
     }
-    
+
     private String getJSON(Object obj)  {
 		ObjectMapper mapper = new ObjectMapper();
 		try {
@@ -323,7 +323,7 @@ public class SSLCertificateControllerTest {
 
 	@Test
 	public void test_renewCertificate_Success() {
-		String certName = "test@t-mobile.com";		
+		String certName = "test@t-mobile.com";
 		String certficateType = "internal";
 		when(sslCertificateService.renewCertificate(certficateType, certName, userDetails, token))
 				.thenReturn(new ResponseEntity<>(HttpStatus.OK));
@@ -345,17 +345,17 @@ public class SSLCertificateControllerTest {
 	                .header("Content-Type", "application/json;charset=UTF-8")
 	                .content(inputJson));
 	}
-	
+
 	@Test
     public void test_getListOfCertificates() throws Exception {
-        // Mock response        
+        // Mock response
         when(sslCertificateService.getListOfCertificates("5PDrOhsy4ig8L3EpsJZSLAMg","internal")).thenReturn(new ResponseEntity<>(HttpStatus.OK));
         assertEquals(HttpStatus.OK, sslCertificateService.getListOfCertificates("5PDrOhsy4ig8L3EpsJZSLAMg","internal").getStatusCode());
     }
-	
+
 	@Test
     public void updateCertOwner() throws Exception {
-        // Mock response     
+        // Mock response
 		TargetSystem targetSystem = new TargetSystem();
         targetSystem.setAddress("Target System address");
         targetSystem.setDescription("Target System Description");
@@ -389,10 +389,10 @@ public class SSLCertificateControllerTest {
 		String actual = result.getResponse().getContentAsString();
 		assertEquals(expected, actual);
 	}
-	
+
 	@Test
 	public void testdeleteCertificate_Success() {
-		String certName = "test@t-mobile.com";		
+		String certName = "test@t-mobile.com";
 		String certficateType = "internal";
 		when(sslCertificateService.deleteCertificate(token,certficateType, certName, userDetails ))
 				.thenReturn(new ResponseEntity<>(HttpStatus.OK));

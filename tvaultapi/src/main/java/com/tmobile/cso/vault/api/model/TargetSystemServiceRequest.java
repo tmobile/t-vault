@@ -19,10 +19,10 @@ public class TargetSystemServiceRequest {
     @NotNull
     @NotEmpty
     private String name;
-    
+
     @ApiModelProperty(hidden = true)
     private boolean monitoringEnabled;
-    
+
     @ApiModelProperty(hidden = true)
     private boolean multiIpMonitoringEnabled;
 

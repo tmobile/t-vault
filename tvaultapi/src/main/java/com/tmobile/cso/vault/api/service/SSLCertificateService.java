@@ -1,6 +1,6 @@
 // =========================================================================
 // Copyright 2020 T-Mobile, US
-// 
+//
 // Licensed under the Apache License, Version 2.0 (the "License")
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
@@ -95,7 +95,7 @@ public class SSLCertificateService {
 
     @Autowired
     private WorkloadDetailsService workloadDetailsService;
-    
+
     @Autowired
 	private CertificateUtils certificateUtils;
 
@@ -112,7 +112,7 @@ public class SSLCertificateService {
 	private AppRoleService appRoleService;
 
     @Autowired
-    private TokenValidator tokenValidator;  
+    private TokenValidator tokenValidator;
 
     @Value("${vault.auth.method}")
     private String vaultAuthMethod;
@@ -1077,7 +1077,7 @@ public class SSLCertificateService {
 
     /**
 	 * Method to provide sudo permission to certificate owner
-	 * 
+	 *
 	 * @param sslCertificateRequest
 	 * @param userDetails
 	 * @param token
@@ -1094,9 +1094,9 @@ public class SSLCertificateService {
 		certificateUser.setAccess(TVaultConstants.SUDO_POLICY);
 		certificateUser.setCertificateName(sslCertificateRequest.getCertificateName());
 		certificateUser.setCertType(sslCertificateRequest.getCertType());
-		
+
 		ResponseEntity<String> addUserresponse = addUserToCertificate(certificateUser, userDetails, true);
-		
+
 		if(HttpStatus.OK.equals(addUserresponse.getStatusCode())){
 			certificateUser.setAccess(TVaultConstants.WRITE_POLICY);
 			ResponseEntity<String> addReadPolicyResponse = addUserToCertificate(certificateUser, userDetails, true);
@@ -1315,12 +1315,12 @@ public class SSLCertificateService {
 	 */
 	private String populateSSLCertificateMetadata(SSLCertificateRequest sslCertificateRequest, UserDetails userDetails,
             CertManagerLogin certManagerLogin,int actionId) throws Exception {
-		
+
 		String metaDataPath = (sslCertificateRequest.getCertType().equalsIgnoreCase("internal"))?
 	            SSLCertificateConstants.SSL_CERT_PATH :SSLCertificateConstants.SSL_EXTERNAL_CERT_PATH;
 	    int containerId = getContainerId(sslCertificateRequest);
-	    
-	    String certMetadataPath = metaDataPath + '/' + sslCertificateRequest.getCertificateName();		
+
+	    String certMetadataPath = metaDataPath + '/' + sslCertificateRequest.getCertificateName();
 
         SSLCertificateMetadataDetails sslCertificateMetadataDetails = new SSLCertificateMetadataDetails();
 
@@ -1539,7 +1539,7 @@ public class SSLCertificateService {
         Map<String, Object> policyMap = new HashMap<>();
         Map<String, String> accessMap = new HashMap<>();
         String certificateName = sslCertificateRequest.getCertificateName();
-        
+
         String metaDataPath = (sslCertificateRequest.getCertType().equalsIgnoreCase("internal"))?
                 SSLCertificateConstants.SSL_CERT_PATH :SSLCertificateConstants.SSL_EXTERNAL_CERT_PATH;
 
@@ -1548,7 +1548,7 @@ public class SSLCertificateService {
 
         String policyValue=(sslCertificateRequest.getCertType().equalsIgnoreCase("internal"))?
                 SSLCertificateConstants.INTERNAL_POLICY_NAME :SSLCertificateConstants.EXTERNAL_POLICY_NAME;
-        
+
         String certMetadataPath = metaDataPath +'/' +certificateName;
         String certPath = certPathVal + certificateName;
 
@@ -1703,20 +1703,20 @@ public class SSLCertificateService {
         }
         return null;
     }
-    
+
     /**
-     * Get targetSystemServiceIds 
+     * Get targetSystemServiceIds
      * @param certData
      * @return
      */
     private List<Integer> getTargetSystemServiceIds(JsonArray jArray){
-    List<Integer> listdata = new ArrayList<Integer>(); 
-    
-    if (jArray != null) { 
-       for (int i=0;i<jArray.size();i++){ 
+    List<Integer> listdata = new ArrayList<Integer>();
+
+    if (jArray != null) {
+       for (int i=0;i<jArray.size();i++){
         listdata.add(jArray.get(i).getAsInt());
-       } 
-    } 
+       }
+    }
     return listdata;
     }
     /**
@@ -2055,8 +2055,8 @@ public class SSLCertificateService {
         targetSystemServiceRequest.setDescription(targetSysServiceRequest.getDescription());
         targetSystemServiceRequest.setName(targetSysServiceRequest.getName());
         targetSystemServiceRequest.setHostname(targetSysServiceRequest.getHostname());
-        
-        targetSystemServiceRequest.setMonitoringEnabled(Boolean.TRUE); 
+
+        targetSystemServiceRequest.setMonitoringEnabled(Boolean.TRUE);
         targetSystemServiceRequest.setMultiIpMonitoringEnabled(Boolean.TRUE);
 
         return targetSystemServiceRequest;
@@ -2239,12 +2239,12 @@ public class SSLCertificateService {
    		JsonObject metadataJsonObj=new JsonObject();
         JsonObject jsonObject = (JsonObject) jsonParser.parse(certificateResponse);
    		JsonArray jsonArray = jsonObject.getAsJsonObject("data").getAsJsonArray("keys");
-   		List<String> certNames = geMatchCertificates(jsonArray,certName); 		
+   		List<String> certNames = geMatchCertificates(jsonArray,certName);
    		if(limit == null || offset ==null) {
    			limit = certNames.size();
    			offset = 0;
    		}
-   		
+
 		if (!userDetails.isAdmin()) {
 			responseArray = getMetadataForUser(certNames, userDetails,path,limit,offset);
 		} else {
@@ -2268,7 +2268,7 @@ public class SSLCertificateService {
  	   			      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
  	   			      build()));
    		}
-   		metadataJsonObj.add("keys", responseArray);   		
+   		metadataJsonObj.add("keys", responseArray);
    		metadataJsonObj.addProperty("offset", offset);
    		return metadataJsonObj.toString();
    	}
@@ -2296,7 +2296,7 @@ public class SSLCertificateService {
 		}
 		return list;
 	}
-   	
+
    	/**
    	 * To Get the metadata details for user
    	 * @param certNames
@@ -2485,10 +2485,10 @@ public class SSLCertificateService {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Failed to get Target system service list from NCLM\"]}");
 
     }
-  	
+
 	/**
 	 * Get Revocation Reasons.
-	 * 
+	 *
 	 * @param certificateId
 	 * @param token
 	 * @return
@@ -2530,7 +2530,7 @@ public class SSLCertificateService {
 		} catch (Exception e) {
 			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
 					.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString())
-					.put(LogMessage.ACTION, String.format("Inside  Exception = [%s] =  Message [%s]", 
+					.put(LogMessage.ACTION, String.format("Inside  Exception = [%s] =  Message [%s]",
 							Arrays.toString(e.getStackTrace()), e.getMessage()))
 					.build()));
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -2579,7 +2579,7 @@ public class SSLCertificateService {
 		} catch (Exception e) {
 			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
 					.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString())
-					.put(LogMessage.ACTION, String.format("Exception = [%s] =  Message [%s]", 
+					.put(LogMessage.ACTION, String.format("Exception = [%s] =  Message [%s]",
 							Arrays.toString(e.getStackTrace()), response.getResponse()))
 					.build()));
 			return ResponseEntity.status(response.getHttpstatus())
@@ -2659,7 +2659,7 @@ public class SSLCertificateService {
 		} catch (TVaultValidationException error) {
 			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
 					.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString())
-					.put(LogMessage.ACTION, String.format("Inside  TVaultValidationException  = [%s] =  Message [%s]", 
+					.put(LogMessage.ACTION, String.format("Inside  TVaultValidationException  = [%s] =  Message [%s]",
 							Arrays.toString(error.getStackTrace()), error.getMessage()))
 					.build()));
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"" + error.getMessage() + "\"]}");
@@ -2673,19 +2673,19 @@ public class SSLCertificateService {
 					.body("{\"errors\":[\"" + e.getMessage() + "\"]}");
 		}
 	}
-	
-	/**		
+
+	/**
 	 * Get Current Date and Time.
-	 * 
+	 *
 	 * @return
 	 */
 	public String getCurrentLocalDateTimeStamp() {
 		return LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"));
 	}
-	
+
 	/**
 	 * Validate Permission for Non-admin User.
-	 * 
+	 *
 	 * @param userDetails
 	 * @param certificateName
 	 * @return
@@ -2712,7 +2712,7 @@ public class SSLCertificateService {
 
 		return isPermission;
 	}
-	
+
     /**
    	 * Adds permission to user for a certificate
    	 * @param token
@@ -2726,7 +2726,7 @@ public class SSLCertificateService {
    				put(LogMessage.MESSAGE, "Trying to add user to Certificate folder ").
    				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
    				build()));
-   		
+
    		if(!areCertificateUserInputsValid(certificateUser)) {
    			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
    					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
@@ -2736,26 +2736,26 @@ public class SSLCertificateService {
    					build()));
    			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid input values\"]}");
    		}
-   		
+
    		String userName = certificateUser.getUsername().toLowerCase();
    		String certificateName = certificateUser.getCertificateName().toLowerCase();
-   		String access = certificateUser.getAccess().toLowerCase();   
+   		String access = certificateUser.getAccess().toLowerCase();
    		String certificateType = certificateUser.getCertType();
    		String authToken = null;
-   		
+
    		boolean isAuthorized = true;
    		if (!ObjectUtils.isEmpty(userDetails)) {
    			if (userDetails.isAdmin()) {
-   				authToken = userDetails.getClientToken();   	            
+   				authToken = userDetails.getClientToken();
    	        }else {
    	        	authToken = userDetails.getSelfSupportToken();
    	        }
    			SSLCertificateMetadataDetails certificateMetaData = certificateUtils.getCertificateMetaData(authToken, certificateName, certificateType);
-   			
+
    			if(!addSudoPermission){
    				isAuthorized = certificateUtils.hasAddOrRemovePermission(userDetails, certificateMetaData);
    			}
-   			
+
    			if((!addSudoPermission) && (isAuthorized) && (userName.equalsIgnoreCase(certificateMetaData.getCertOwnerNtid()))) {
    				log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
    	   					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
@@ -2763,7 +2763,7 @@ public class SSLCertificateService {
    	   					put(LogMessage.MESSAGE, "Certificate owner cannot be added as a user to the certificate owned by him").
    	   					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
    	   					build()));
-   				
+
    				return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Certificate owner cannot be added as a user to the certificate owned by him\"]}");
    			}
    		}else {
@@ -2773,12 +2773,12 @@ public class SSLCertificateService {
    					put(LogMessage.MESSAGE, "Access denied: No permission to add users to this certificate").
    					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
    					build()));
-   			
+
    			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Access denied: No permission to add users to this certificate\"]}");
    		}
-   		
-   		if(isAuthorized){   			
-   			return checkUserDetailsAndAddCertificateToUser(authToken, userName, certificateName, access, certificateType);	
+
+   		if(isAuthorized){
+   			return checkUserDetailsAndAddCertificateToUser(authToken, userName, certificateName, access, certificateType);
    		}else{
    			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
    					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
@@ -2786,7 +2786,7 @@ public class SSLCertificateService {
    					put(LogMessage.MESSAGE, "Access denied: No permission to add users to this certificate").
    					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
    					build()));
-   			
+
    			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Access denied: No permission to add users to this certificate\"]}");
    		}
    	}
@@ -2801,14 +2801,14 @@ public class SSLCertificateService {
 	 */
 	private ResponseEntity<String> checkUserDetailsAndAddCertificateToUser(String token, String userName,
 			String certificateName, String access, String certificateType) {
-		
+
 		String policyPrefix = getCertificatePolicyPrefix(access, certificateType);
-		
+
 		String metaDataPath = (certificateType.equalsIgnoreCase("internal"))?
 	            SSLCertificateConstants.SSL_CERT_PATH_VALUE :SSLCertificateConstants.SSL_CERT_PATH_VALUE_EXT;
-		
+
 		String certificatePath = metaDataPath + certificateName;
-		
+
 		if(TVaultConstants.EMPTY.equals(policyPrefix)){
 			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
@@ -2820,7 +2820,7 @@ public class SSLCertificateService {
 		}
 
 		String policy = policyPrefix + certificateName;
-		
+
 		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
 				put(LogMessage.ACTION, SSLCertificateConstants.ADD_USER_TO_CERT_MSG).
@@ -2829,11 +2829,11 @@ public class SSLCertificateService {
 				build()));
 		String certPrefix=(certificateType.equalsIgnoreCase("internal"))?
                 SSLCertificateConstants.INTERNAL_POLICY_NAME :SSLCertificateConstants.EXTERNAL_POLICY_NAME;
-		
+
 		String readPolicy = SSLCertificateConstants.READ_CERT_POLICY_PREFIX+certPrefix+"_"+certificateName;
 		String writePolicy = SSLCertificateConstants.WRITE_CERT_POLICY_PREFIX+certPrefix+"_"+certificateName;
 		String denyPolicy = SSLCertificateConstants.DENY_CERT_POLICY_PREFIX+certPrefix+"_"+certificateName;
-		
+
 		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
 				put(LogMessage.ACTION, SSLCertificateConstants.ADD_USER_TO_CERT_MSG).
@@ -2842,28 +2842,28 @@ public class SSLCertificateService {
 				build()));
 		Response userResponse;
 		if (TVaultConstants.USERPASS.equals(vaultAuthMethod)) {
-			userResponse = reqProcessor.process("/auth/userpass/read","{\"username\":\""+userName+"\"}",token);	
+			userResponse = reqProcessor.process("/auth/userpass/read","{\"username\":\""+userName+"\"}",token);
 		}
 		else {
 			userResponse = reqProcessor.process("/auth/ldap/users","{\"username\":\""+userName+"\"}",token);
 		}
-		
+
 		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
 				put(LogMessage.ACTION, SSLCertificateConstants.ADD_USER_TO_CERT_MSG).
 				put(LogMessage.MESSAGE, String.format ("userResponse status is [%s]", userResponse.getHttpstatus())).
 				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 				build()));
-		
+
 		String responseJson="";
 		String groups="";
 		List<String> policies = new ArrayList<>();
 		List<String> currentpolicies = new ArrayList<>();
 
 		if(HttpStatus.OK.equals(userResponse.getHttpstatus())){
-			responseJson = userResponse.getResponse();	
+			responseJson = userResponse.getResponse();
 			try {
-				ObjectMapper objMapper = new ObjectMapper();					
+				ObjectMapper objMapper = new ObjectMapper();
 				currentpolicies = ControllerUtil.getPoliciesAsListFromJson(objMapper, responseJson);
 				if (!(TVaultConstants.USERPASS.equals(vaultAuthMethod))) {
 					groups =objMapper.readTree(responseJson).get("data").get("groups").asText();
@@ -2878,18 +2878,18 @@ public class SSLCertificateService {
 						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 						build()));
 			}
-			
+
 			policies.addAll(currentpolicies);
 			policies.remove(readPolicy);
 			policies.remove(writePolicy);
 			policies.remove(denyPolicy);
-			
+
 			policies.add(policy);
 		}else{
 			// New user to be configured
 			policies.add(policy);
 		}
-		
+
 		String policiesString = org.apache.commons.lang3.StringUtils.join(policies, ",");
 		String currentpoliciesString = org.apache.commons.lang3.StringUtils.join(currentpolicies, ",");
 
@@ -2901,13 +2901,13 @@ public class SSLCertificateService {
 				build()));
 		return configureUserpassOrLDAPUserToUpdateMetadata(token, userName, certificatePath, access, groups,
 				policiesString, currentpoliciesString);
-		
+
 	}
 
 	private String getCertificatePolicyPrefix(String access, String certificateType) {
 		String policyPrefix ="";
 		String certPrefix=(certificateType.equalsIgnoreCase("internal"))?
-                SSLCertificateConstants.INTERNAL_POLICY_NAME :SSLCertificateConstants.EXTERNAL_POLICY_NAME;		
+                SSLCertificateConstants.INTERNAL_POLICY_NAME :SSLCertificateConstants.EXTERNAL_POLICY_NAME;
 		switch (access){
 			case TVaultConstants.READ_POLICY: policyPrefix = SSLCertificateConstants.READ_CERT_POLICY_PREFIX+certPrefix+"_"; break ;
 			case TVaultConstants.WRITE_POLICY: policyPrefix = SSLCertificateConstants.WRITE_CERT_POLICY_PREFIX+certPrefix+"_"; break;
@@ -2940,9 +2940,9 @@ public class SSLCertificateService {
 			ldapConfigresponse = ControllerUtil.configureLDAPUser(userName,policiesString,groups,token);
 		}
 
-		if(ldapConfigresponse.getHttpstatus().equals(HttpStatus.NO_CONTENT)){ 
+		if(ldapConfigresponse.getHttpstatus().equals(HttpStatus.NO_CONTENT)){
 			return updateMetadataForAddUserToCertificate(token, userName, certificatePath, access, groups,
-					currentpoliciesString);		
+					currentpoliciesString);
 		}else{
 			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
@@ -2966,7 +2966,7 @@ public class SSLCertificateService {
 	 */
 	private ResponseEntity<String> updateMetadataForAddUserToCertificate(String token, String userName,
 			String certificatePath, String access, String groups, String currentpoliciesString) {
-		Response ldapConfigresponse;		
+		Response ldapConfigresponse;
 		Map<String,String> params = new HashMap<>();
 		params.put("type", "users");
 		params.put("name",userName);
@@ -2986,8 +2986,8 @@ public class SSLCertificateService {
 					put(LogMessage.MESSAGE, String.format ("User is successfully associated with Certificate [%s] - User [%s]", certificatePath, userName)).
 					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 					build()));
-			
-			return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"User is successfully associated \"]}");		
+
+			return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"User is successfully associated \"]}");
 		}else{
 			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
@@ -3021,15 +3021,15 @@ public class SSLCertificateService {
 				return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"messages\":[\"User configuration failed.Contact Admin \"]}");
 			}
 		}
-	} 
-	
+	}
+
 	/**
 	 * Validates Certificate User inputs
 	 * @param certificateUser
 	 * @return boolean
 	 */
 	private boolean areCertificateUserInputsValid(CertificateUser certificateUser) {
-		
+
 		if (ObjectUtils.isEmpty(certificateUser)) {
 			return false;
 		}
@@ -3069,7 +3069,7 @@ public class SSLCertificateService {
 	   					put(LogMessage.MESSAGE, "Invalid input values").
 	   					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 	   					build()));
-   			
+
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid input values\"]}");
 		}
    		if (!ObjectUtils.isEmpty(userDetails)) {
@@ -3130,19 +3130,19 @@ public class SSLCertificateService {
 				put(LogMessage.ACTION, SSLCertificateConstants.ADD_GROUP_TO_CERT_MSG).
 				put(LogMessage.MESSAGE, "Trying to add Group to certificate").
 				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
-				build()));		
+				build()));
 
 		//checking whether auth method is userpass or ldap//
 		//we should set vaultAuthMethod=ldap//
 		if (TVaultConstants.USERPASS.equals(vaultAuthMethod)) {
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"This operation is not supported for Userpass authentication. \"]}");
-		} 		
+		}
 		ObjectMapper objMapper = new ObjectMapper();
 		String groupName = certificateGroup.getGroupname().toLowerCase();
 		String certificateName = certificateGroup.getCertificateName().toLowerCase();
-		String access = certificateGroup.getAccess().toLowerCase();		
+		String access = certificateGroup.getAccess().toLowerCase();
 		String certType = certificateGroup.getCertType().toLowerCase();
-		
+
 		String metaDataPath = (certType.equalsIgnoreCase("internal"))?
                 SSLCertificateConstants.SSL_CERT_PATH :SSLCertificateConstants.SSL_EXTERNAL_CERT_PATH;
 
@@ -3151,18 +3151,18 @@ public class SSLCertificateService {
 
         String policyValue=(certType.equalsIgnoreCase("internal"))?
                 SSLCertificateConstants.INTERNAL_POLICY_NAME :SSLCertificateConstants.EXTERNAL_POLICY_NAME;
-        
+
         String certPath = certPathVal + certificateName;
-		
+
 		boolean canAddGroup = ControllerUtil.canAddCertPermission(metaDataPath, certificateName, token);
 		String policyPrefix = getCertificatePolicyPrefix(access, certType);
 		if(canAddGroup){
 			String policy = policyPrefix + certificateName;
-			
+
 			String readPolicy = SSLCertificateConstants.READ_CERT_POLICY_PREFIX+policyValue+"_"+certificateName;
 			String writePolicy = SSLCertificateConstants.WRITE_CERT_POLICY_PREFIX+policyValue+"_"+certificateName;
 			String denyPolicy = SSLCertificateConstants.DENY_CERT_POLICY_PREFIX+policyValue+"_"+certificateName;
-			
+
 			Response getGrpResp = reqProcessor.process("/auth/ldap/groups","{\"groupname\":\""+groupName+"\"}",token);
 			String responseJson="";
 
@@ -3225,7 +3225,7 @@ public class SSLCertificateService {
 	 * @return
 	 */
 	private ResponseEntity<String> updateMetadataForAddGroupToCertificate(String token, String groupName,
-			String certificateName, String access, String certPath, String currentpoliciesString) {		
+			String certificateName, String access, String certPath, String currentpoliciesString) {
 		Map<String,String> params = new HashMap<>();
 		params.put("type", "groups");
 		params.put("name",groupName);
@@ -3287,7 +3287,7 @@ public class SSLCertificateService {
      * @param certificateApprole
      * @return
      */
-    public ResponseEntity<String> associateApproletoCertificate(CertificateApprole certificateApprole, UserDetails userDetails) {        
+    public ResponseEntity<String> associateApproletoCertificate(CertificateApprole certificateApprole, UserDetails userDetails) {
         String authToken = null;
         boolean isAuthorized = true;
         if(!areCertificateApproleInputsValid(certificateApprole)) {
@@ -3299,7 +3299,7 @@ public class SSLCertificateService {
    					build()));
    			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid input values\"]}");
         }
-        
+
         log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
                 put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
                 put(LogMessage.ACTION, SSLCertificateConstants.ADD_APPROLE_TO_CERT_MSG).
@@ -3362,10 +3362,10 @@ public class SSLCertificateService {
 	private ResponseEntity<String> createPoliciesAndConfigureApproleToCertificate(String authToken, String approleName,
 			String certificateName, String access, String certType) {
 		String policyPrefix = getCertificatePolicyPrefix(access, certType);
-		
+
 		String metaDataPath = (certType.equalsIgnoreCase("internal"))?
 	            SSLCertificateConstants.SSL_CERT_PATH_VALUE :SSLCertificateConstants.SSL_CERT_PATH_VALUE_EXT;
-		
+
 		String certificatePath = metaDataPath + certificateName;
 
 		if(TVaultConstants.EMPTY.equals(policyPrefix)){
@@ -3386,7 +3386,7 @@ public class SSLCertificateService {
 				put(LogMessage.MESSAGE, String.format ("policy is [%s]", policy)).
 				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 				build()));
-		
+
 		String certPrefix=(certType.equalsIgnoreCase("internal"))?
                 SSLCertificateConstants.INTERNAL_POLICY_NAME :SSLCertificateConstants.EXTERNAL_POLICY_NAME;
 
@@ -3502,7 +3502,7 @@ public class SSLCertificateService {
 	 * @return
 	 */
 	private ResponseEntity<String> updateApproleMetadataForCertificate(String authToken, String approleName,
-			String certificatePath, String access, String currentpoliciesString) {		
+			String certificatePath, String access, String currentpoliciesString) {
 		Map<String,String> params = new HashMap<>();
 		params.put("type", "app-roles");
 		params.put("name",approleName);
@@ -3594,7 +3594,7 @@ public class SSLCertificateService {
      */
 	public boolean hasDownloadPermission(String certificateName, UserDetails userDetails, String certType) {
 		String certPrefix=(certType.equalsIgnoreCase("internal"))?
-                SSLCertificateConstants.INTERNAL_POLICY_NAME :SSLCertificateConstants.EXTERNAL_POLICY_NAME;	
+                SSLCertificateConstants.INTERNAL_POLICY_NAME :SSLCertificateConstants.EXTERNAL_POLICY_NAME;
         String readPolicy = SSLCertificateConstants.READ_CERT_POLICY_PREFIX +certPrefix+"_" + certificateName;
         String sudoPolicy = SSLCertificateConstants.SUDO_CERT_POLICY_PREFIX +certPrefix+"_" + certificateName;
         String renewRevokePolicy = SSLCertificateConstants.WRITE_CERT_POLICY_PREFIX +certPrefix+"_" + certificateName;
@@ -3870,7 +3870,7 @@ public class SSLCertificateService {
 
 	/**
 	 * Get certificate details.
-	 * 
+	 *
 	 * @param token
 	 * @param certificateName
 	 * @return
@@ -3885,10 +3885,10 @@ public class SSLCertificateService {
 		return ResponseEntity.status(HttpStatus.FORBIDDEN)
 				.body("{\"errors\":[\"Access denied: Unable to read certificate details.\"]}");
 	}
-    
+
     /**
 	 * Renew SSL Certificate and update metadata
-	 * 
+	 *
 	 * @param certificateId
 	 * @param token
 	 * @return
@@ -3948,13 +3948,13 @@ public class SSLCertificateService {
 		}
 		JsonParser jsonParser = new JsonParser();
 		JsonObject object = ((JsonObject) jsonParser.parse(response.getResponse())).getAsJsonObject("data");
-		metaDataParams = new Gson().fromJson(object.toString(), Map.class);		
-		
+		metaDataParams = new Gson().fromJson(object.toString(), Map.class);
+
 		String certID = object.get("certificateId").getAsString();
 		int containerId = object.get("containerId").getAsInt();
         float value = Float.valueOf(certID);
 		int certificateId = (int) value;
-		
+
 		CertResponse renewResponse = new CertResponse();
 		try {
 			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String> builder()
@@ -3982,12 +3982,12 @@ public class SSLCertificateService {
 									.put(LogMessage.APIURL,
 											ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString())
 									.build()));
-			
+
 			//if renewed get new certificate details and update metadata
 			if (renewResponse!=null && (HttpStatus.OK.equals(renewResponse.getHttpstatus()) || HttpStatus.ACCEPTED.equals(renewResponse.getHttpstatus())) ) {
-			CertificateData certData = getLatestCertificate(certificateName,nclmAccessToken, containerId);			
-			boolean sslMetaDataUpdationStatus=true;		
-			if(!ObjectUtils.isEmpty(certData)) {	
+			CertificateData certData = getLatestCertificate(certificateName,nclmAccessToken, containerId);
+			boolean sslMetaDataUpdationStatus=true;
+			if(!ObjectUtils.isEmpty(certData)) {
             int actionId=0;
 			if(certType.equalsIgnoreCase("external")) {
 				CertManagerLogin certManagerLogin = new CertManagerLogin();
@@ -4004,13 +4004,13 @@ public class SSLCertificateService {
                             build()));
                 }
 			}
-                metaDataParams.put("requestStatus", SSLCertificateConstants.RENEW_PENDING); 
+                metaDataParams.put("requestStatus", SSLCertificateConstants.RENEW_PENDING);
                 metaDataParams.put("actionId",String.valueOf(actionId));
 			}else {
 				metaDataParams.put("certificateId",((Integer)certData.getCertificateId()).toString()!=null?
 						((Integer)certData.getCertificateId()).toString():String.valueOf(certificateId));
 				metaDataParams.put("createDate", certData.getCreateDate()!=null?certData.getCreateDate():object.get("createDate").getAsString());
-				metaDataParams.put("expiryDate", certData.getExpiryDate()!=null?certData.getExpiryDate():object.get("expiryDate").getAsString());			
+				metaDataParams.put("expiryDate", certData.getExpiryDate()!=null?certData.getExpiryDate():object.get("expiryDate").getAsString());
 				metaDataParams.put("certificateStatus", certData.getCertificateStatus()!=null?certData.getCertificateStatus():
 					object.get("certificateStatus").getAsString());
 			}
@@ -4103,10 +4103,10 @@ public class SSLCertificateService {
      * @throws Exception
      */
     private CertificateData getLatestCertificate(String certName, String accessToken, int containerId) throws Exception {
-        CertificateData certificateData=new CertificateData(); 
+        CertificateData certificateData=new CertificateData();
         String findCertificateEndpoint = "/certmanager/findCertificate";
         String targetEndpoint = findCertificate.replace("certname", String.valueOf(certName)).replace("cid", String.valueOf(containerId));
-        CertResponse response = reqProcessor.processCert(findCertificateEndpoint, "", accessToken, getCertmanagerEndPoint(targetEndpoint));        
+        CertResponse response = reqProcessor.processCert(findCertificateEndpoint, "", accessToken, getCertmanagerEndPoint(targetEndpoint));
         Map<String, Object> responseMap = ControllerUtil.parseJson(response.getResponse());
         if (!MapUtils.isEmpty(responseMap) && (ControllerUtil.parseJson(response.getResponse()).get(SSLCertificateConstants.CERTIFICATES) != null)) {
             JsonParser jsonParser = new JsonParser();
@@ -4128,17 +4128,17 @@ public class SSLCertificateService {
                         certificateData= new CertificateData();
                         certificateData.setCertificateId(Integer.parseInt(jsonElement.get("certificateId").getAsString()));
                         certificateData.setExpiryDate(validateString(jsonElement.get("NotAfter")));
-                        certificateData.setCreateDate(validateString(jsonElement.get("NotBefore")));                       
+                        certificateData.setCreateDate(validateString(jsonElement.get("NotBefore")));
                         certificateData.setCertificateStatus(validateString(jsonElement.get(SSLCertificateConstants.CERTIFICATE_STATUS)));
                         certificateData.setCertificateName(certName);
-                        certificateData.setDeployStatus(getTargetSystemServiceIds(jsonElement.getAsJsonArray("targetSystemServiceIds")));                      
+                        certificateData.setDeployStatus(getTargetSystemServiceIds(jsonElement.getAsJsonArray("targetSystemServiceIds")));
                     	}
                     }
-                }                
+                }
             }
         }
         return certificateData;
-    }    
+    }
 
 	/**
 	 * Removes user from certificate
@@ -4147,7 +4147,7 @@ public class SSLCertificateService {
 	 * @return
 	 */
 	public ResponseEntity<String> removeUserFromCertificate(CertificateUser certificateUser, UserDetails userDetails) {
-		
+
 		if(!areCertificateUserInputsValid(certificateUser)) {
    			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
    					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
@@ -4157,22 +4157,22 @@ public class SSLCertificateService {
    					build()));
    			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid input values\"]}");
    		}
-		
+
 		String userName = certificateUser.getUsername().toLowerCase();
-   		String certificateName = certificateUser.getCertificateName().toLowerCase(); 
+   		String certificateName = certificateUser.getCertificateName().toLowerCase();
    		String certificateType = certificateUser.getCertType();
-   		String authToken = null;   		
+   		String authToken = null;
    		boolean isAuthorized = true;
-   		
+
    		if (!ObjectUtils.isEmpty(userDetails)) {
    			if (userDetails.isAdmin()) {
-   				authToken = userDetails.getClientToken();   	            
+   				authToken = userDetails.getClientToken();
    	        }else {
    	        	authToken = userDetails.getSelfSupportToken();
    	        }
    			SSLCertificateMetadataDetails certificateMetaData = certificateUtils.getCertificateMetaData(authToken, certificateName, certificateType);
-   			
-   			isAuthorized = certificateUtils.hasAddOrRemovePermission(userDetails, certificateMetaData); 
+
+   			isAuthorized = certificateUtils.hasAddOrRemovePermission(userDetails, certificateMetaData);
    		}else {
    			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
    					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
@@ -4180,12 +4180,12 @@ public class SSLCertificateService {
    					put(LogMessage.MESSAGE, "Access denied: No permission to remove user from this certificate").
    					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
    					build()));
-   			
+
    			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Access denied: No permission to remove user from this certificate\"]}");
    		}
-		
+
 		if(isAuthorized){
-			return checkUserPolicyAndRemoveFromCertificate(userName, certificateName, authToken, certificateType);	
+			return checkUserPolicyAndRemoveFromCertificate(userName, certificateName, authToken, certificateType);
 		} else {
 			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
@@ -4205,30 +4205,30 @@ public class SSLCertificateService {
 	 */
 	private ResponseEntity<String> checkUserPolicyAndRemoveFromCertificate(String userName, String certificateName,
 			String authToken, String certificateType) {
-		
+
 		String certPrefix=(certificateType.equalsIgnoreCase("internal"))?
                 SSLCertificateConstants.INTERNAL_POLICY_NAME :SSLCertificateConstants.EXTERNAL_POLICY_NAME;
-		
+
 		String metaDataPath = (certificateType.equalsIgnoreCase("internal"))?
 	            SSLCertificateConstants.SSL_CERT_PATH_VALUE :SSLCertificateConstants.SSL_CERT_PATH_VALUE_EXT;
-		
+
 		String certificatePath = metaDataPath + certificateName;
-		
+
 		String readPolicy = SSLCertificateConstants.READ_CERT_POLICY_PREFIX+certPrefix+"_"+certificateName;
 		String writePolicy = SSLCertificateConstants.WRITE_CERT_POLICY_PREFIX+certPrefix+"_"+certificateName;
 		String denyPolicy = SSLCertificateConstants.DENY_CERT_POLICY_PREFIX+certPrefix+"_"+certificateName;
 		String sudoPolicy = SSLCertificateConstants.SUDO_CERT_POLICY_PREFIX+certPrefix+"_"+certificateName;
-				
+
 		log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
 				put(LogMessage.ACTION, SSLCertificateConstants.REMOVE_USER_FROM_CERT_MSG).
 				put(LogMessage.MESSAGE, String.format ("Policies are, read - [%s], write - [%s], deny -[%s], owner - [%s]", readPolicy, writePolicy, denyPolicy, sudoPolicy)).
 				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 				build()));
-		
+
 		Response userResponse;
 		if (TVaultConstants.USERPASS.equals(vaultAuthMethod)) {
-			userResponse = reqProcessor.process("/auth/userpass/read","{\"username\":\""+userName+"\"}", authToken);	
+			userResponse = reqProcessor.process("/auth/userpass/read","{\"username\":\""+userName+"\"}", authToken);
 		}
 		else {
 			userResponse = reqProcessor.process("/auth/ldap/users","{\"username\":\""+userName+"\"}", authToken);
@@ -4245,9 +4245,9 @@ public class SSLCertificateService {
 		String groups="";
 		List<String> policies = new ArrayList<>();
 		List<String> currentpolicies = new ArrayList<>();
-		
+
 		if(HttpStatus.OK.equals(userResponse.getHttpstatus())){
-			responseJson = userResponse.getResponse();	
+			responseJson = userResponse.getResponse();
 			try {
 				ObjectMapper objMapper = new ObjectMapper();
 				currentpolicies = ControllerUtil.getPoliciesAsListFromJson(objMapper, responseJson);
@@ -4264,8 +4264,8 @@ public class SSLCertificateService {
 						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 						build()));
 			}
-			
-			policies.addAll(currentpolicies);				
+
+			policies.addAll(currentpolicies);
 			policies.remove(readPolicy);
 			policies.remove(writePolicy);
 			policies.remove(denyPolicy);
@@ -4310,7 +4310,7 @@ public class SSLCertificateService {
 		params.put("name",userName);
 		params.put("path",certificatePath);
 		params.put("access","delete");
-		
+
 		Response metadataResponse = ControllerUtil.updateMetadata(params, authToken);
 		if(metadataResponse != null && (HttpStatus.NO_CONTENT.equals(metadataResponse.getHttpstatus()) || HttpStatus.OK.equals(metadataResponse.getHttpstatus()))){
 			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
@@ -4346,7 +4346,7 @@ public class SSLCertificateService {
 			}
 		}
 	}
-	
+
 	/**
      * Remove Group from certificate
      * @param certificateGroup
@@ -4354,7 +4354,7 @@ public class SSLCertificateService {
      * @return
      */
     public ResponseEntity<String> removeGroupFromCertificate(CertificateGroup certificateGroup, UserDetails userDetails) {
-    	
+
     	if(!areCertificateGroupInputsValid(certificateGroup)) {
    			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
    					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
@@ -4364,31 +4364,31 @@ public class SSLCertificateService {
    					build()));
    			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid input values\"]}");
    		}
-    	
+
         log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
                 put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
                 put(LogMessage.ACTION, SSLCertificateConstants.REMOVE_GROUP_FROM_CERT_MSG).
                 put(LogMessage.MESSAGE, String.format("Trying to remove Group from certificate - [%s]", certificateGroup.toString())).
                 put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
                 build()));
-        
+
         String groupName = certificateGroup.getGroupname().toLowerCase();
    		String certificateName = certificateGroup.getCertificateName().toLowerCase();
    		String certificateType = certificateGroup.getCertType();
    		String authToken = null;
-   		
+
    		boolean isAuthorized = true;
-   		
+
    		if (!ObjectUtils.isEmpty(userDetails)) {
    			if (userDetails.isAdmin()) {
-   				authToken = userDetails.getClientToken();   	            
+   				authToken = userDetails.getClientToken();
    	        }else {
    	        	authToken = userDetails.getSelfSupportToken();
    	        }
    			SSLCertificateMetadataDetails certificateMetaData = certificateUtils.getCertificateMetaData(authToken, certificateName, certificateType);
-   			
+
    			isAuthorized = certificateUtils.hasAddOrRemovePermission(userDetails, certificateMetaData);
-   			
+
    		}else {
    			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
    					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
@@ -4396,11 +4396,11 @@ public class SSLCertificateService {
    					put(LogMessage.MESSAGE, "Access denied: No permission to remove group from this certificate").
    					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
    					build()));
-   			
+
    			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Access denied: No permission to remove group from this certificate\"]}");
-   		} 
-   		
-        if(isAuthorized){        	
+   		}
+
+        if(isAuthorized){
         	return checkPolicyDetailsAndRemoveGroupFromCertificate(groupName, certificateName, authToken, certificateType);
         } else {
         	log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
@@ -4425,24 +4425,24 @@ public class SSLCertificateService {
 			String certificateName, String authToken, String certificateType) {
 		String certPrefix=(certificateType.equalsIgnoreCase("internal"))?
                 SSLCertificateConstants.INTERNAL_POLICY_NAME :SSLCertificateConstants.EXTERNAL_POLICY_NAME;
-		
+
 		String metaDataPath = (certificateType.equalsIgnoreCase("internal"))?
 	            SSLCertificateConstants.SSL_CERT_PATH_VALUE :SSLCertificateConstants.SSL_CERT_PATH_VALUE_EXT;
-		
+
 		String certificatePath = metaDataPath + certificateName;
-		
+
 		String readPolicy = SSLCertificateConstants.READ_CERT_POLICY_PREFIX+certPrefix+"_"+certificateName;
 		String writePolicy = SSLCertificateConstants.WRITE_CERT_POLICY_PREFIX+certPrefix+"_"+certificateName;
 		String denyPolicy = SSLCertificateConstants.DENY_CERT_POLICY_PREFIX+certPrefix+"_"+certificateName;
 		String sudoPolicy = SSLCertificateConstants.SUDO_CERT_POLICY_PREFIX+certPrefix+"_"+certificateName;
-		
+
 		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
 				put(LogMessage.ACTION, SSLCertificateConstants.REMOVE_USER_FROM_CERT_MSG).
 				put(LogMessage.MESSAGE, String.format ("Policies are, read - [%s], write - [%s], deny -[%s], owner - [%s]", readPolicy, writePolicy, denyPolicy, sudoPolicy)).
 				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 				build()));
-		
+
 		Response groupResp = reqProcessor.process("/auth/ldap/groups","{\"groupname\":\""+groupName+"\"}", authToken);
 
 		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
@@ -4455,7 +4455,7 @@ public class SSLCertificateService {
 		String responseJson="";
 		List<String> policies = new ArrayList<>();
 		List<String> currentpolicies = new ArrayList<>();
-		
+
 		if(HttpStatus.OK.equals(groupResp.getHttpstatus())){
 		    responseJson = groupResp.getResponse();
 		    try {
@@ -4479,7 +4479,7 @@ public class SSLCertificateService {
 		}
 		String policiesString = org.apache.commons.lang3.StringUtils.join(policies, ",");
 		String currentpoliciesString = org.apache.commons.lang3.StringUtils.join(currentpolicies, ",");
-		
+
 		Response ldapConfigresponse = ControllerUtil.configureLDAPGroup(groupName, policiesString, authToken);
 
 		if(ldapConfigresponse.getHttpstatus().equals(HttpStatus.NO_CONTENT) || ldapConfigresponse.getHttpstatus().equals(HttpStatus.OK)){
@@ -4512,9 +4512,9 @@ public class SSLCertificateService {
 		params.put("name", groupName);
 		params.put("path",certificatePath);
 		params.put("access","delete");
-		
+
 		Response metadataResponse = ControllerUtil.updateMetadata(params, authToken);
-		
+
 		if(metadataResponse !=null && (HttpStatus.NO_CONTENT.equals(metadataResponse.getHttpstatus()) || HttpStatus.OK.equals(metadataResponse.getHttpstatus()))){
 			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
@@ -4524,7 +4524,7 @@ public class SSLCertificateService {
 					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 					build()));
 			return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Group is successfully removed from certificate\"]}");
-		}else {				
+		}else {
 			return revertGroupPolicyIfMetadataUpdateFailed(groupName, authToken, currentpoliciesString,
 					metadataResponse);
 		}
@@ -4541,7 +4541,7 @@ public class SSLCertificateService {
 	private ResponseEntity<String> revertGroupPolicyIfMetadataUpdateFailed(String groupName, String authToken,
 			String currentpoliciesString, Response metadataResponse) {
 		Response ldapConfigresponse = ControllerUtil.configureLDAPGroup(groupName, currentpoliciesString, authToken);
-		
+
 		if(ldapConfigresponse.getHttpstatus().equals(HttpStatus.NO_CONTENT)){
 			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
@@ -4565,14 +4565,14 @@ public class SSLCertificateService {
 		}
 	}
 
-    
+
 	/**
 	 * Validates Certificate group inputs
 	 * @param certificateUser
 	 * @return boolean
 	 */
 	private boolean areCertificateGroupInputsValid(CertificateGroup certificateGroup) {
-		
+
 		if (ObjectUtils.isEmpty(certificateGroup)) {
 			return false;
 		}
@@ -4598,7 +4598,7 @@ public class SSLCertificateService {
 
 	/**
 	 * Get List Of internal or external certificates
-	 * 
+	 *
 	 * @param token
 	 * @param certificateType
 	 * @return
@@ -4641,7 +4641,7 @@ public class SSLCertificateService {
 			return ResponseEntity.status(response.getHttpstatus()).body(response.getResponse());
 		}
 	}
-	
+
 	/**
      * To update the owner of an existing certificate.
      * @param token
@@ -4672,8 +4672,8 @@ public class SSLCertificateService {
     		 dirUser = (DirectoryUser) users[0];
     		 certOwnerNtId = dirUser.getUserName();
     		 }
-    	}   
-    	
+    	}
+
     	if(certOwnerNtId==""){
     		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
 					.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
@@ -4682,11 +4682,11 @@ public class SSLCertificateService {
 					.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"User unavailable\"]}");
     	}
-       
-		String endPoint = certName;	
-		CertResponse enrollResponse = new CertResponse();		
+
+		String endPoint = certName;
+		CertResponse enrollResponse = new CertResponse();
 		String metaDataPath = (certType.equalsIgnoreCase("internal"))?
-                SSLCertificateConstants.SSL_CERT_PATH + "/" + endPoint :SSLCertificateConstants.SSL_EXTERNAL_CERT_PATH + "/" + endPoint;		
+                SSLCertificateConstants.SSL_CERT_PATH + "/" + endPoint :SSLCertificateConstants.SSL_EXTERNAL_CERT_PATH + "/" + endPoint;
 		String permissionMetaDataPath = (certType.equalsIgnoreCase("internal"))?
                 SSLCertificateConstants.SSL_CERT_PATH_VALUE  + endPoint :SSLCertificateConstants.SSL_CERT_PATH_VALUE_EXT  + endPoint;
 		Response response = new Response();
@@ -4732,38 +4732,38 @@ public class SSLCertificateService {
 		ObjectMapper objMapper = new ObjectMapper();
 		JsonObject object = ((JsonObject) jsonParser.parse(response.getResponse())).getAsJsonObject("data");
 		JsonObject dataObject = ((JsonObject) jsonParser.parse(dataResponse.getResponse())).getAsJsonObject("data");
-		metaDataParams = new Gson().fromJson(object.toString(), Map.class);	
-		
+		metaDataParams = new Gson().fromJson(object.toString(), Map.class);
+
 		if(certOwnerEmailId.equalsIgnoreCase(metaDataParams.get("certOwnerEmailId")))	{
 			isValidEmail=false;
 		}
-				
+
 		if(dataObject!=null) {
-		dataMetaDataParams = new Gson().fromJson(dataObject.toString(), Map.class);	
+		dataMetaDataParams = new Gson().fromJson(dataObject.toString(), Map.class);
 		if(certOwnerEmailId.equalsIgnoreCase(dataMetaDataParams.get("certOwnerEmailId")))	{
 			isValidEmail=false;
 		}
 		dataMetaDataParams.put("certOwnerNtid", certOwnerNtId);
 		dataMetaDataParams.put("certOwnerEmailId", certOwnerEmailId);
 		}
-		
+
 		if(!isValidEmail) {
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST)
 					.body("{\"errors\":[\""
 							+ "New owner email id should not be same as owner email id"
 							+ "\"]}");
-		}		
-		
+		}
+
 		String certificateUser = metaDataParams.get("certOwnerNtid");
-		boolean sslMetaDataUpdationStatus;			
+		boolean sslMetaDataUpdationStatus;
 		metaDataParams.put("certOwnerEmailId", certOwnerEmailId);
 		metaDataParams.put("certOwnerNtid", certOwnerNtId);
-		
+
 		certificateRequest.setCertificateName(certName);
 		certificateRequest.setCertType(certType);
 		certificateRequest.setCertOwnerEmailId(certOwnerEmailId);
 		certificateRequest.setCertOwnerNtid(certOwnerNtId);
-		
+
 		try {
 		if (userDetails.isAdmin()) {
 			sslMetaDataUpdationStatus = ControllerUtil.updateMetaData(metaDataPath, metaDataParams, token);
@@ -4772,15 +4772,15 @@ public class SSLCertificateService {
 			}
 		} else {
 			sslMetaDataUpdationStatus = ControllerUtil.updateMetaData(metaDataPath, metaDataParams,
-					userDetails.getSelfSupportToken());	
+					userDetails.getSelfSupportToken());
 			if(dataObject!=null) {
 				sslMetaDataUpdationStatus = ControllerUtil.updateMetaData(permissionMetaDataPath, dataMetaDataParams, userDetails.getSelfSupportToken());
 				}
 		}
 		if (sslMetaDataUpdationStatus) {
-			boolean isPoliciesCreated=true;	
+			boolean isPoliciesCreated=true;
 			removeSudoPermissionForPreviousOwner( certificateUser.toLowerCase(), certName,userDetails,certType);
-			addSudoPermissionToCertificateOwner(certificateRequest, userDetails, enrollResponse, isPoliciesCreated, true,token,"transfer");		
+			addSudoPermissionToCertificateOwner(certificateRequest, userDetails, enrollResponse, isPoliciesCreated, true,token,"transfer");
             sendTransferEmail(metaDataParams,certificateRequest.getCertOwnerNtid(),certificateUser);
             log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
                     put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
@@ -4791,7 +4791,7 @@ public class SSLCertificateService {
                             , metaDataParams.get("certificateName"),java.time.LocalDateTime.now())).
                     put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
                     build()));
-			
+
 			return ResponseEntity.status(HttpStatus.OK)
 					.body("{\"messages\":[\"" + "Certificate owner Transferred Successfully" + "\"]}");
 		} else {
@@ -4805,7 +4805,7 @@ public class SSLCertificateService {
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST)
 					.body("{\"errors\":[\"" + "Certificate owner Transfer failed" + "\"]}");
 		}
-	
+
 	} catch (Exception e) {
 		log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
 				.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString())
@@ -5833,5 +5833,5 @@ public class SSLCertificateService {
 		Matcher matcher = pattern.matcher(email);
 		return matcher.matches();
 	}
-    
+
 }

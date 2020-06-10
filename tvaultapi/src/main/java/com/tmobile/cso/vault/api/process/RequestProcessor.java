@@ -56,7 +56,7 @@ public class RequestProcessor {
 
     @Autowired
     private CertRestProcessor certRestprocessor;
-    
+
     private static Logger log = LogManager.getLogger(RequestProcessor.class);
 
     public RequestProcessor() {
@@ -404,7 +404,7 @@ public class RequestProcessor {
             String errorMessage= (!StringUtils.isEmpty(certManagerResponseMap.get("error_description"))) ?
             certManagerResponseMap.get("error_description").toString() :
                     certManagerResponseMap.get("message").toString();
-            
+
             throw new TVaultValidationException(errorMessage);
         }
 
@@ -424,5 +424,5 @@ public class RequestProcessor {
                 build()));
         return response;
     }
-    
+
 }
