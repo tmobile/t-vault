@@ -217,55 +217,20 @@ public class SSLCertificateService {
                             sslCertificateRequest.toString())).
                     build()));
 
+            String decodeUsername;
+            String decodePassword;
 
-            log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
-                    put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
-                    put(LogMessage.ACTION, String.format("Printing the credentials")).build()));
-
-            log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
-                    put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
-                    put(LogMessage.ACTION, String.format("certManagerUsername  [%s] = certManagerPassword [%s]",
-                            certManagerUsername,certManagerPassword)).build()));
-
-
-          /*  if (ControllerUtil.getSscred() != null) {
-                log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
-                        put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
-                        put(LogMessage.ACTION, String.format("ControllerUtil.getSscred()  [%s] = ",
-                                ControllerUtil.getSscred())).build()));
-
-                certManagerUsername = new String(Base64.getDecoder().decode(ControllerUtil.getNclmUsername()));
-                certManagerPassword = new String(Base64.getDecoder().decode(ControllerUtil.getNclmPassword()));
+            if (ControllerUtil.getSscred() != null) {
+                decodeUsername = new String(Base64.getDecoder().decode(ControllerUtil.getNclmUsername()));
+                decodePassword = new String(Base64.getDecoder().decode(ControllerUtil.getNclmPassword()));
             } else {
 
-                log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
-                        put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
-                        put(LogMessage.ACTION, String.format("certManagerUsername(inside Else) [%s] = " +
-                                        "certManagerPassword = [%s]",
-                                certManagerUsername,certManagerPassword)).
-                        build()));
+                decodeUsername = new String(Base64.getDecoder().decode(certManagerUsername));
+                decodePassword = new String(Base64.getDecoder().decode(certManagerPassword));
+            }
 
-                certManagerUsername = new String(Base64.getDecoder().decode(certManagerUsername));
-                certManagerPassword = new String(Base64.getDecoder().decode(certManagerPassword));
-            }*/
-
-            certManagerUsername = new String(Base64.getDecoder().decode(certManagerUsername));
-            certManagerPassword = new String(Base64.getDecoder().decode(certManagerPassword));
-
-            log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
-                    put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
-                    put(LogMessage.ACTION, String.format("certManagerUsername(after Else) [%s] = " +
-                                    "certManagerPassword = [%s]",
-                            certManagerUsername,certManagerPassword)).
-                    build()));
-
-            log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
-                    put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
-                    put(LogMessage.ACTION, String.format("certManagerUsername(After) [%s] = certManagerPassword = [%s]",
-                            certManagerUsername,certManagerPassword)).
-                    build()));
             //Step-1 : Authenticate
-            CertManagerLoginRequest certManagerLoginRequest = new CertManagerLoginRequest(certManagerUsername, certManagerPassword);
+            CertManagerLoginRequest certManagerLoginRequest = new CertManagerLoginRequest(decodeUsername, decodePassword);
             CertManagerLogin certManagerLogin = login(certManagerLoginRequest);
 
             SSLCertTypeConfig sslCertTypeConfig = prepareSSLConfigObject(sslCertificateRequest);
@@ -412,6 +377,12 @@ public class SSLCertificateService {
                     put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
                     put(LogMessage.ACTION, String.format("Exception ->Error While creating certificate  [%s]",
                             e.getMessage())).build()));
+
+            log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+                    put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+                    put(LogMessage.ACTION, String.format("Exception ->Error While creating certificate(Stack Trace)  " +
+                                    "[%s] = [%s]",
+                            e.getStackTrace(),e)).build()));
             enrollResponse.setResponse(e.getMessage());
             enrollResponse.setHttpstatus(HttpStatus.INTERNAL_SERVER_ERROR);
             return new ResponseEntity<>(enrollResponse, enrollResponse.getHttpstatus());
