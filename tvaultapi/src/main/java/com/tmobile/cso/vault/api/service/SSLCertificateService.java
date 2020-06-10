@@ -219,7 +219,7 @@ public class SSLCertificateService {
 
             log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
                     put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
-                    put(LogMessage.ACTION, String.format("BEFORE GETTING USER DETAILS   [%s]")).
+                    put(LogMessage.ACTION, String.format("BEFORE GETTING USER DETAILS ")).
                     build()));
 
 
