@@ -217,34 +217,42 @@ public class SSLCertificateService {
                             sslCertificateRequest.toString())).
                     build()));
 
-            String decodeUsername;
-            String decodePassword;
-
-            if (ControllerUtil.getSscred() != null) {
-                log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
-                        put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
-                        put(LogMessage.ACTION, String.format("Inside if loop [%s]",
-                                ControllerUtil.getSscred())).
-                        build()));
-                decodeUsername = new String(Base64.getDecoder().decode(ControllerUtil.getNclmUsername()));
-                decodePassword = new String(Base64.getDecoder().decode(ControllerUtil.getNclmPassword()));
-            } else {
-                log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
-                        put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
-                        put(LogMessage.ACTION, String.format("Inside if else [%s]",
-                                ControllerUtil.getSscred())).
-                        build()));
-                decodeUsername = new String(Base64.getDecoder().decode(certManagerUsername));
-                decodePassword = new String(Base64.getDecoder().decode(certManagerPassword));
-            }
             log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
                     put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
-                    put(LogMessage.ACTION, String.format("Inside if loop [%s] = [%s]",
-                            decodeUsername,decodePassword)).
+                    put(LogMessage.ACTION, String.format("BEFORE GETTING USER DETAILS   [%s]")).
                     build()));
 
-            decodeUsername = new String(Base64.getDecoder().decode(certManagerUsername));
-            decodePassword = new String(Base64.getDecoder().decode(certManagerPassword));
+
+            log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+                    put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+                    put(LogMessage.ACTION, String.format("NCLM  USER NAME   [%s]",
+                            Objects.nonNull(ControllerUtil.getNclmUsername()))).
+                    build()));
+            log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+                    put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+                    put(LogMessage.ACTION, String.format("NCLM  PASS WORD  NAME   [%s]",
+                            Objects.nonNull(ControllerUtil.getNclmPassword()))).
+                    build()));
+
+            log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+                    put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+                    put(LogMessage.ACTION, String.format("USER NAME   [%s]== password [%s]",
+                            certManagerUsername,certManagerPassword)).
+                    build()));
+
+            String decodeUsername = (Objects.nonNull(ControllerUtil.getNclmUsername())) ?
+                    (new String(Base64.getDecoder().decode(ControllerUtil.getNclmUsername()))) :
+                    (new String(Base64.getDecoder().decode(certManagerUsername)));
+
+            String decodePassword = (Objects.nonNull(ControllerUtil.getNclmPassword())) ?
+                    (new String(Base64.getDecoder().decode(ControllerUtil.getNclmPassword()))) :
+                    (new String(Base64.getDecoder().decode(certManagerPassword)));
+
+            log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+                    put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+                    put(LogMessage.ACTION, String.format("Input Details [%s] = [%s]",
+                            decodeUsername, decodePassword)).
+                    build()));
 
             //Step-1 : Authenticate
             CertManagerLoginRequest certManagerLoginRequest = new CertManagerLoginRequest(decodeUsername, decodePassword);
