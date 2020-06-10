@@ -81,6 +81,9 @@ public class SSLCertificateServiceTest {
         ReflectionTestUtils.setField(sSLCertificateService, "enrollUpdateCSRUrl", "policy/csr?entityRef=SERVICE&entityId=entityid&allowedOnly=true&enroll=true");
         ReflectionTestUtils.setField(sSLCertificateService, "findCertificate", "certificates?freeText=certname&containerId=cid");
 
+        ReflectionTestUtils.setField(sSLCertificateService, "certManagerUsername", "VWtvdGh1cjE=");
+        ReflectionTestUtils.setField(sSLCertificateService, "certManagerPassword", "RG9scGhpbjg1NTVf");
+
 
     }
 
