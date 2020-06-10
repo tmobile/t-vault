@@ -410,3 +410,38 @@
       border-bottom: 1px solid #000;
       padding-bottom:10px;
   }
+
+  .cert-conf {
+    padding-top: 15px;
+  }
+
+  .cert-col {
+      padding-left: 10px !important;
+  }
+
+  .active-cert {
+    background-color: #5cb85c;
+    border-radius: 2px;
+    padding: 4px;
+    color: #fff!important;
+    font-weight: normal;
+    font-size: x-small;
+  }
+
+  .expired-cert {
+    background-color: #f33;
+    border-radius: 2px;
+    padding: 4px;
+    color: #fff!important;
+    font-weight: normal;
+    font-size: x-small;
+  }
+
+  .target-note {
+      color: #000!important;
+      font-weight: bold !important;
+  }
+
+.cert-management-content md-tabs md-tabs-wrapper {
+    box-shadow: 0 0 0 0 #fff !important;
+}

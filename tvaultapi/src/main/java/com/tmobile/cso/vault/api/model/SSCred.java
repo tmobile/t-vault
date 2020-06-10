@@ -36,15 +36,42 @@ public class SSCred implements Serializable {
      * Password
      */
     private String password;
-	
+
+	/**
+	 * Username
+	 */
+	private String nclmusername;
+	/**
+	 * Password
+	 */
+	private String nclmpassword;
+
 	public SSCred() {
 
 	}
 
-	public SSCred(String username, String password) {
+	public SSCred(String username, String password,String nclmusername,String nclmpassword) {
 		super();
 		this.username = username;
 		this.password = password;
+		this.nclmusername=nclmusername;
+		this.nclmpassword=nclmpassword;
+	}
+
+	public String getNclmusername() {
+		return nclmusername;
+	}
+
+	public void setNclmusername(String nclmusername) {
+		this.nclmusername = nclmusername;
+	}
+
+	public String getNclmpassword() {
+		return nclmpassword;
+	}
+
+	public void setNclmpassword(String nclmpassword) {
+		this.nclmpassword = nclmpassword;
 	}
 
 	/**

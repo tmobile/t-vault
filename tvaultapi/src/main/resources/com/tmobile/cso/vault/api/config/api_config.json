@@ -795,6 +795,134 @@
         ],
       	"outparams":["data/current_password", "data/last_password", "data/service_account_name", "data/ttl", "data/last_vault_rotation"]
     },
+    {"#" : "**** - CertManager Login  '****** ",
+
+    	"apiEndPoint":"/auth/certmanager/login",
+    	"vaultEndPoint":"/token?grant_type=client_credentials",
+    	"method":"POST",
+      	"params":[
+        		{"name":"username", "required":true},
+    	  		{"name":"password","required":true}
+ 	    ],
+        "outparams":["access_token","token_type"]
+    },
+	{"#" : "**** - Find Certificate in TargetSystem  '****** ",
+
+		"apiEndPoint":"/certmanager/targetsystem/find",
+		"vaultEndPoint":"certificates/",
+		"method":"GET",
+		"outparams":["certificate/allowedOperations"]
+	},
+	{"#" : "**** - Create TargetSystem  '****** ",
+
+		"apiEndPoint":"/certmanager/targetsystem/create",
+		"vaultEndPoint":"targetsystemgroups/",
+		"method":"POST",
+		"params":[
+			{"name":"name", "required":true},
+			{"name":"description","required":true},
+			{"name":"address","required":true}
+		],
+		"outparams":["targetSystemID","name","description","address"]
+	},
+	{"#" : "**** - Enroll Certificate '****** ",
+
+		"apiEndPoint":"/certmanager/enroll",
+		"vaultEndPoint":"enroll/",
+		"method":"POST"
+	},
+	{"#" : "**** - GET Enroll CA  '****** ",
+
+		"apiEndPoint":"/certmanager/getEnrollCA",
+		"vaultEndPoint":"/policy/ca/",
+		"method":"GET",
+		"outparams":["ca"]
+	},
+	{"#" : "**** - GET Enroll CA  '****** ",
+
+		"apiEndPoint":"/certmanager/putEnrollCA",
+		"vaultEndPoint":"/policy/ca/",
+		"method":"PUT",
+		"outparams":["ca/selectedId"]
+	},
+	{"#" : "**** - GET Enroll  Templates '****** ",
+
+		"apiEndPoint":"/certmanager/getEnrollTemplates",
+		"vaultEndPoint":"/policy/ca/",
+		"method":"GET",
+		"outparams":["template"]
+	},
+	{"#" : "**** - Put  Enroll Templates '****** ",
+
+		"apiEndPoint":"/certmanager/putEnrollTemplates",
+		"vaultEndPoint":"/policy/ca/",
+		"method":"PUT",
+		"outparams":["template/selectedId"]
+	},
+	{"#" : "**** - GET Enroll  Keys '****** ",
+
+		"apiEndPoint":"/certmanager/getEnrollkeys",
+		"vaultEndPoint":"policy/keytype",
+		"method":"GET",
+		"outparams":["keyType"]
+	},
+	{"#" : "**** - Put  Enroll Keys '****** ",
+
+		"apiEndPoint":"/certmanager/putEnrollKeys",
+		"vaultEndPoint":"policy/keytype",
+		"method":"PUT",
+		"outparams":["keyType/selectedId"]
+	},
+	{"#" : "**** - Get  Enroll CSR '****** ",
+
+		"apiEndPoint":"/certmanager/getEnrollCSR",
+		"vaultEndPoint":"policy/csr",
+		"method":"GET",
+		"outparams":["subject","subjectAlternativeName","keyUsage","extendedKeyUsage","extension","subjectOptions"]
+	},
+	{"#" : "**** - Put  Enroll CSR '****** ",
+
+		"apiEndPoint":"/certmanager/putEnrollCSR",
+		"vaultEndPoint":"policy/csr",
+		"method":"PUT",
+		"outparams":["subject"]
+	},
+	{"#" : "**** - Get  Target System '****** ",
+
+		"apiEndPoint":"/certmanager/findTargetSystem",
+		"vaultEndPoint":"targetsystemgroups",
+		"method":"GET",
+		"outparams":["targetSystems"]
+	},
+
+	{"#" : "**** - Get  Target System Service****** ",
+
+		"apiEndPoint":"/certmanager/findTargetSystemService",
+		"vaultEndPoint":"targetsystems",
+		"method":"GET",
+		"outparams":["targetsystemservices"]
+	},
+
+	{"#" : "**** - Find Certificate****** ",
+
+		"apiEndPoint":"/certmanager/findCertificate",
+		"vaultEndPoint":"certificates",
+		"method":"GET",
+		"outparams":["certificates"]
+	},
+	{"#" : "**** - Create TargetSystem Service '****** ",
+
+    	"apiEndPoint":"/certmanager/targetsystemservice/create",
+    	"vaultEndPoint":"targetsystems/",
+    	"method":"POST",
+      	"params":[
+        		{"name":"port", "required":true},
+    	  		{"name":"name","required":true},
+    	  		{"name":"description","required":true},
+				{"name":"hostname","required":true}
+ 	    ],
+        "outparams":["targetSystemID","name","port","targetSystemGroupId","targetSystemId","targetSystemServiceId","hostname"]
+    },
 	{
 
 		"apiEndPoint":"/auth/oidc/oidc/auth_url",

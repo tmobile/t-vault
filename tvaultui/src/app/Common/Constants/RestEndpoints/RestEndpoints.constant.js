@@ -310,7 +310,19 @@ readTextFile("../apiUrls.json");
             name: 'transferSvcaccOwner',
             url: '/v2/serviceaccounts/transfer?',
             method: 'POST'
-        },{
+        }, {
+            name: 'getCertificates',
+            url: '/v2/nclm/certificates?',
+            method: 'GET'
+        }, {
+            name: 'getTargetSystems',
+            url: '/v2/nclm/targetsystems?',
+            method: 'GET'
+        }, {
+            name: 'getTargetSystemsServices',
+            url: '/v2/nclm/services?',
+            method: 'GET'
+        }, {
             name: 'unseal',
             url: '/v2/unseal',
             method: 'POST'
@@ -318,6 +330,10 @@ readTextFile("../apiUrls.json");
             name: 'unsealProgress',
             url: '/v2/unseal-progress?serverip=',
             method: 'GET'
+        }, {
+            name: 'createSslCertificates',
+            url: '/v2/sslcert',
+            method: 'POST'
         }, {
             name: 'getAuthUrl',
             url: '/v2/auth/oidc/auth_url',

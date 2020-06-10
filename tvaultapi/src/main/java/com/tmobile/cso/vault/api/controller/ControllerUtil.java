@@ -91,7 +91,12 @@ public final class ControllerUtil {
 
 	private static String ssUsername;
 	private static String ssPassword;
+
 	private static SSCred sscred = null;
+
+	//NCLM Details
+	private static String nclmUsername;
+	private static String nclmPassword;
 
 	private static String oidcClientName;
 	private static String oidcClientId;
@@ -100,10 +105,10 @@ public final class ControllerUtil {
 	private static String oidcDiscoveryUrl;
 	private static String oidcADLoginUrl;
 	private static OIDCCred oidcCred = null;
-	
+
 	private static OIDCUtil oidcUtil;
 
-	@PostConstruct     
+	@PostConstruct
 	private void initStatic () {
 		vaultAuthMethod = this.tvaultAuthMethod;
 		secretKeyAllowedCharacters = this.secretKeyWhitelistedCharacters;
@@ -130,7 +135,7 @@ public final class ControllerUtil {
 	public static OIDCUtil getOidcUtil() {
 		return ControllerUtil.oidcUtil;
 	}
-	
+
 	@Autowired(required = true)
 	public void setOidcUtil(OIDCUtil oidcUtil) {
 		ControllerUtil.oidcUtil = oidcUtil;
@@ -224,7 +229,7 @@ public final class ControllerUtil {
 	 * @param jsonstr
 	 * @param token
 	 * @param responseVO
-	 * @param secretMap
+	 * @param safeNode
 	 */
 	public static void recursiveRead(String jsonstr,String token,  Response responseVO, SafeNode safeNode){
 		ObjectMapper objMapper =  new ObjectMapper();
@@ -306,7 +311,7 @@ public final class ControllerUtil {
 	 * @param jsonstr
 	 * @param token
 	 * @param responseVO
-	 * @param secretMap
+	 * @param safeNode
 	 */
 	public static void getFoldersAndSecrets(String jsonstr,String token,  Response responseVO, SafeNode safeNode){
 		ObjectMapper objMapper =  new ObjectMapper();
@@ -912,7 +917,7 @@ public final class ControllerUtil {
 					oidcEntityResponse.setPolicies(responseEntity.getBody().getPolicies());
 					userResponse.setResponse(oidcEntityResponse.getPolicies().toString());
 					userResponse.setHttpstatus(responseEntity.getStatusCode());
-				}	
+				}
 				String responseJson="";
 				String groups="";
 				List<String> policies = new ArrayList<>();
@@ -1035,7 +1040,7 @@ public final class ControllerUtil {
 						response.setHttpstatus(HttpStatus.BAD_REQUEST);
 					}
 				}
-				 
+
 				String responseJson=TVaultConstants.EMPTY;
 				List<String> policies = new ArrayList<>();
 				List<String> currentpolicies = new ArrayList<>();
@@ -1074,7 +1079,7 @@ public final class ControllerUtil {
 						oidcUtil.updateGroupPolicies(token, groupName, policies, currentpolicies, oidcGroup.getId());
 						oidcUtil.renewUserToken(userDetails.getClientToken());
 					}
-					
+
 				}
 			}
 		}
@@ -2189,7 +2194,8 @@ public final class ControllerUtil {
 			ssFile = new File(fileLocation+"/sscred");
 			if (ssFile != null && ssFile.exists()) {
 				sscred = new SSCred();
-				Scanner sc = new Scanner(ssFile); 
+				setSscred(sscred);
+				Scanner sc = new Scanner(ssFile);
 				while (sc.hasNextLine()) {
 					String line = sc.nextLine();
 					if (line.startsWith("username:")) {
@@ -2201,6 +2207,16 @@ public final class ControllerUtil {
 						ssPassword = line.substring("password:".length(), line.length());
 						sscred.setPassword(line.substring("password:".length(), line.length()));
 						log.debug("Successfully read password: from sscred file");
+					}
+					else if (line.startsWith("nclmusername:")) {
+						nclmUsername = line.substring("nclmusername:".length(), line.length());
+						sscred.setNclmusername(line.substring("nclmusername:".length(), line.length()));
+						log.debug("Successfully read nclm username: from sscred file");
+					}
+					else if (line.startsWith("nclmpassword:")) {
+						nclmPassword = line.substring("nclmpassword:".length(), line.length());
+						sscred.setNclmpassword(line.substring("nclmpassword:".length(), line.length()));
+						log.debug("Successfully read nclmpassword: from sscred file");
 					}
 				}
 				sc.close();
@@ -2223,11 +2239,25 @@ public final class ControllerUtil {
 		return sscred;
 	}
 
+	public static String getNclmUsername() {
+		return nclmUsername;
+	}
+
+
+	public static String getNclmPassword() {
+		return nclmPassword;
+	}
+
 	/**
 	 * @return the ssUsername
 	 */
 	public static String getSsUsername() {
 		return ssUsername;
+	}
+
+
+	public static void setSscred(SSCred sscred) {
+		ControllerUtil.sscred = sscred;
 	}
 
 	/**

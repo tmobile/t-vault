@@ -43,7 +43,8 @@
                  templateUrl: template,              // template of the current modal window
                  // controller: controller,          // the controller to control the current instance of the modal
                  size: size,                         // size of the modal, 'sm', 'md', 'lg'
-                 scope: scope
+                 scope: scope,
+                 backdrop: 'static'
                  });
             },
 
@@ -63,6 +64,7 @@
                     templateUrl: templateUrl,
                     animationsEnabled: animationsEnabled,
                     size: config.size || 'md',
+                    backdrop: 'static',
                     controller: function ($scope, $uibModalInstance) {
                         $scope.dismiss = $uibModalInstance.dismiss;
                         $scope.close = $uibModalInstance.close;
