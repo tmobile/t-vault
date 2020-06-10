@@ -217,12 +217,30 @@ public class SSLCertificateService {
                             sslCertificateRequest.toString())).
                     build()));
             if (ControllerUtil.getSscred() != null) {
+                log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+                        put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+                        put(LogMessage.ACTION, String.format("ControllerUtil.getSscred()  [%s] = ",
+                                ControllerUtil.getSscred())).build()));
+                
                 certManagerUsername = new String(Base64.getDecoder().decode(ControllerUtil.getNclmUsername()));
                 certManagerPassword = new String(Base64.getDecoder().decode(ControllerUtil.getNclmPassword()));
             } else {
+
+                log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+                        put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+                        put(LogMessage.ACTION, String.format("certManagerUsername(inside Else) [%s] = " +
+                                        "certManagerPassword = [%s]",
+                                certManagerUsername,certManagerPassword)).
+                        build()));
+
                 certManagerUsername = new String(Base64.getDecoder().decode(certManagerUsername));
                 certManagerPassword = new String(Base64.getDecoder().decode(certManagerPassword));
             }
+            log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+                    put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+                    put(LogMessage.ACTION, String.format("certManagerUsername(After) [%s] = certManagerPassword = [%s]",
+                            certManagerUsername,certManagerPassword)).
+                    build()));
             //Step-1 : Authenticate
             CertManagerLoginRequest certManagerLoginRequest = new CertManagerLoginRequest(certManagerUsername, certManagerPassword);
             CertManagerLogin certManagerLogin = login(certManagerLoginRequest);
