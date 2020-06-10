@@ -2,26 +2,26 @@
     {"#":"Health Check ",
     
     	"apiEndPoint":"/health",
-    	"vaultEndPoint":"https://localhost:8200/v1/sys/health?standbycode=200&sealedcode=200&uninitcode=200&drsecondarycode=200&performancestandbycode=200",
+		"vaultEndPoint":"/sys/health?standbycode=200&sealedcode=200&uninitcode=200&drsecondarycode=200&performancestandbycode=200",
     	"method":"GET"
     },
     {"#":"Health Check ",
     
     	"apiEndPoint":"/v2/health",
-    	"vaultEndPoint":"http://localhost:8200/v1/sys/health?standbycode=200&sealedcode=200&uninitcode=200&drsecondarycode=200&performancestandbycode=200",
+		"vaultEndPoint":"/sys/health?standbycode=200&sealedcode=200&uninitcode=200&drsecondarycode=200&performancestandbycode=200",
     	"method":"GET"
     },
     {"#":"Seal Status",
     
     	"apiEndPoint":"/seal-status",
-    	"vaultEndPoint":"http://localhost:8200/v1/sys/seal-status",
+		"vaultEndPoint":"/sys/seal-status",
     	"method":"GET",
     	"outparams":["type","initialized","sealed","progress","version","migration","cluster_name","cluster_id","recovery_seal"]
     },
     {"#":"Seal Status",
     
     	"apiEndPoint":"/v2/seal-status",
-    	"vaultEndPoint":"https://localhost:8200/v1/sys/seal-status",
+		"vaultEndPoint":"/sys/seal-status",
     	"method":"GET",
     	"outparams":["type","initialized","sealed","progress","version","migration","cluster_name","cluster_id","recovery_seal"]
     },
