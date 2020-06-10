@@ -54,7 +54,7 @@ import com.tmobile.cso.vault.api.utils.ThreadLocalContext;
 @Component()
 public class CertRestProcessor {
 	private static Logger log = LogManager.getLogger(CertRestProcessor.class);
-	
+
 //	@Value("${vault.api.url}")
 //	private String vaultApiUrl;
 
