@@ -1287,17 +1287,18 @@
         }
         $scope.certificateCreationMessage = '';
         var url = '';
+		$scope.isLoadingData = true;
         AdminSafesManagement.sslCertificateCreation(reqObjtobeSent, url).then(function(response){
             
             $scope.isLoadingData = false;
             if(UtilityService.ifAPIRequestSuccessful(response)){
-                $scope.certificateCreationMessage = response.data.messages[0];
+                $scope.certificateCreationMessage = response.data.response;
                 $scope.certificateCreationPopUp();
             
             }
         } ,
         function (error) {
-            $scope.certificateCreationMessage = error.data.messages[0];
+            $scope.certificateCreationMessage = error.data.response;
             $scope.certificateCreationFailedPopUp();
             $scope.isLoadingData = false;
             console.log(error);
