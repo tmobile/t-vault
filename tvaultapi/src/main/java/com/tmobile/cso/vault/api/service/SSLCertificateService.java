@@ -217,30 +217,7 @@ public class SSLCertificateService {
                             sslCertificateRequest.toString())).
                     build()));
 
-            log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
-                    put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
-                    put(LogMessage.ACTION, String.format("BEFORE GETTING USER DETAILS ")).
-                    build()));
-
-
-            log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
-                    put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
-                    put(LogMessage.ACTION, String.format("NCLM  USER NAME   [%s]",
-                            Objects.nonNull(ControllerUtil.getNclmUsername()))).
-                    build()));
-            log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
-                    put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
-                    put(LogMessage.ACTION, String.format("NCLM  PASS WORD  NAME   [%s]",
-                            Objects.nonNull(ControllerUtil.getNclmPassword()))).
-                    build()));
-
-            log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
-                    put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
-                    put(LogMessage.ACTION, String.format("USER NAME   [%s]== password [%s]",
-                            certManagerUsername,certManagerPassword)).
-                    build()));
-
-            String decodeUsername = (Objects.nonNull(ControllerUtil.getNclmUsername())) ?
+           String decodeUsername = (Objects.nonNull(ControllerUtil.getNclmUsername())) ?
                     (new String(Base64.getDecoder().decode(ControllerUtil.getNclmUsername()))) :
                     (new String(Base64.getDecoder().decode(certManagerUsername)));
 
@@ -248,11 +225,6 @@ public class SSLCertificateService {
                     (new String(Base64.getDecoder().decode(ControllerUtil.getNclmPassword()))) :
                     (new String(Base64.getDecoder().decode(certManagerPassword)));
 
-            log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
-                    put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
-                    put(LogMessage.ACTION, String.format("Input Details [%s] = [%s]",
-                            decodeUsername, decodePassword)).
-                    build()));
 
             //Step-1 : Authenticate
             CertManagerLoginRequest certManagerLoginRequest = new CertManagerLoginRequest(decodeUsername, decodePassword);
@@ -416,6 +388,13 @@ public class SSLCertificateService {
         return new ResponseEntity<>(enrollResponse, HttpStatus.OK);
     }
 
+    /**
+     * THis method will be responsible to check the whether given certificate exists or not
+     * @param sslCertificateRequest
+     * @param certManagerLogin
+     * @return
+     * @throws Exception
+     */
     private boolean getCertificate(SSLCertificateRequest sslCertificateRequest, CertManagerLogin certManagerLogin) throws Exception {
         boolean isCertificateExists = false;
         String certName = sslCertificateRequest.getCertificateName();
@@ -444,6 +423,14 @@ public class SSLCertificateService {
     }
 
 
+    /**
+     * This method will be responsible for get the id of given Target System Service if exists
+     * @param sslCertificateRequest
+     * @param targetSystemId
+     * @param certManagerLogin
+     * @return
+     * @throws Exception
+     */
     private int getTargetSystemServiceId(SSLCertificateRequest sslCertificateRequest, int targetSystemId, CertManagerLogin certManagerLogin) throws Exception {
         int targetSystemServiceID = 0;
         String targetSystemName = sslCertificateRequest.getTargetSystemServiceRequest().getName();
@@ -473,6 +460,13 @@ public class SSLCertificateService {
     }
 
 
+    /**
+     * This method will be responsible for get the id of given Target System  if exists
+     * @param sslCertificateRequest
+     * @param certManagerLogin
+     * @return
+     * @throws Exception
+     */
     private int getTargetStstem(SSLCertificateRequest sslCertificateRequest, CertManagerLogin certManagerLogin) throws Exception {
         int targetSystemID = 0;
         String targetSystemName = sslCertificateRequest.getTargetSystem().getName();
@@ -498,6 +492,15 @@ public class SSLCertificateService {
 
     //Get Enroll CSR
 
+    /**
+     * Get the enroll csr details
+     * @param certManagerLogin
+     * @param entityid
+     * @param templateid
+     * @param sslCertificateRequest
+     * @return
+     * @throws Exception
+     */
     private String getEnrollCSR(CertManagerLogin certManagerLogin, int entityid, int templateid, SSLCertificateRequest sslCertificateRequest) throws Exception {
         String enrollEndPoint = "/certmanager/getEnrollCSR";
         String enrollTemplateCA = enrollCSRUrl.replace("templateId", String.valueOf(templateid)).replace("entityid", String.valueOf(entityid));
@@ -507,6 +510,13 @@ public class SSLCertificateService {
     }
 
     //Update request with certificate name
+
+    /**
+     * This method will be responsible for updating request with certificate name
+     * @param jsonString
+     * @param sslCertificateRequest
+     * @return
+     */
     private String getUpdatedRequestWithCName(String jsonString, SSLCertificateRequest sslCertificateRequest) {
         Gson gson = new Gson();
         JsonParser jsonParser = new JsonParser();
@@ -535,6 +545,15 @@ public class SSLCertificateService {
 
 
     //petEnrollCSR
+
+    /**
+     * Update the CSR details
+     * @param certManagerLogin
+     * @param entityid
+     * @param updatedRequest
+     * @return
+     * @throws Exception
+     */
     private CertResponse putEnrollCSR(CertManagerLogin certManagerLogin, int entityid, String updatedRequest) throws Exception {
         int enrollKeyId = 0;
         String enrollEndPoint = "/certmanager/putEnrollCSR";
@@ -542,6 +561,15 @@ public class SSLCertificateService {
         return reqProcessor.processCert(enrollEndPoint, updatedRequest, certManagerLogin.getAccess_token(), getCertmanagerEndPoint(enrollTemplateCA));
     }
 
+    /**
+     * Update the enroll keys
+     * @param certManagerLogin
+     * @param entityid
+     * @param response
+     * @param templateid
+     * @return
+     * @throws Exception
+     */
     private int putEnrollKeys(CertManagerLogin certManagerLogin, int entityid, CertResponse response, int templateid) throws Exception {
         int enrollKeyId = 0;
         String enrollEndPoint = "/certmanager/putEnrollKeys";
@@ -554,6 +582,14 @@ public class SSLCertificateService {
         return enrollKeyId;
     }
 
+    /**
+     * Get the enroll keys
+     * @param certManagerLogin
+     * @param entityid
+     * @param templateid
+     * @return
+     * @throws Exception
+     */
     private CertResponse getEnrollKeys(CertManagerLogin certManagerLogin, int entityid, int templateid) throws Exception {
         String enrollEndPoint = "/certmanager/getEnrollkeys";
         String enrollTemplateCA = enrollKeysUrl.replace("templateId", String.valueOf(templateid)).replace("entityid", String.valueOf(entityid));
@@ -562,6 +598,16 @@ public class SSLCertificateService {
 
 
     //putEnrollTemplates
+
+    /**
+     * update the enroll templates
+     * @param certManagerLogin
+     * @param entityid
+     * @param response
+     * @param caId
+     * @return
+     * @throws Exception
+     */
     private int putEnrollTemplates(CertManagerLogin certManagerLogin, int entityid, CertResponse response, int caId) throws Exception {
         int enrollTemlateId = 0;
         String enrollEndPoint = "/certmanager/putEnrollTemplates";
@@ -575,6 +621,15 @@ public class SSLCertificateService {
     }
 
     //getEnrollTemplate
+
+    /**
+     * Get the enroll templates
+     * @param certManagerLogin
+     * @param entityid
+     * @param caId
+     * @return
+     * @throws Exception
+     */
     private CertResponse getEnrollTemplates(CertManagerLogin certManagerLogin, int entityid, int caId) throws Exception {
         String enrollEndPoint = "/certmanager/getEnrollTemplates";
         String enrollTemplateCA = enrollTemplateUrl.replace("caid", String.valueOf(caId)).replace("entityid", String.valueOf(entityid));
@@ -582,6 +637,15 @@ public class SSLCertificateService {
     }
 
     //Update the CA
+
+    /**
+     * Update the enroll CA
+     * @param certManagerLogin
+     * @param entityid
+     * @param response
+     * @return
+     * @throws Exception
+     */
     private int putEnrollCA(CertManagerLogin certManagerLogin, int entityid, CertResponse response) throws Exception {
         int selectedId = 0;
         String enrollEndPoint = "/certmanager/putEnrollCA";
@@ -596,6 +660,14 @@ public class SSLCertificateService {
 
 
     //Get the Enroll CA
+
+    /**
+     * Update the enroll CA
+     * @param certManagerLogin
+     * @param entityid
+     * @return
+     * @throws Exception
+     */
     private CertResponse getEnrollCA(CertManagerLogin certManagerLogin, int entityid) throws Exception {
         int selectedId = 0;
         String enrollEndPoint = "/certmanager/getEnrollCA";
@@ -605,6 +677,14 @@ public class SSLCertificateService {
 
 
     //Enroll Certificate
+
+    /**
+     * This method will be responsible to create certificate
+     * @param certManagerLogin
+     * @param entityId
+     * @return
+     * @throws Exception
+     */
     private CertResponse enrollCertificate(CertManagerLogin certManagerLogin, int entityId) throws Exception {
         String enrollEndPoint = "/certmanager/enroll";
         String targetSystemEndPoint = enrollUrl.replace("entityid", String.valueOf(entityId));
@@ -612,6 +692,15 @@ public class SSLCertificateService {
     }
 
     //Create Target System Service
+
+    /**
+     * This method will be responsible to create target system service
+     * @param targetSystemServiceRequest
+     * @param targetSystemId
+     * @param certManagerLogin
+     * @return
+     * @throws Exception
+     */
     private TargetSystemService createTargetSystemService(TargetSystemServiceRequest targetSystemServiceRequest, int targetSystemId,
                                                           CertManagerLogin certManagerLogin) throws Exception {
         TargetSystemService targetSystemService = null;
@@ -663,6 +752,12 @@ public class SSLCertificateService {
 
 
     //Build TargetSystem Service
+
+    /**
+     * Prepare the request for target system service
+     * @param sslCertificateRequest
+     * @return
+     */
     private TargetSystemServiceRequest prepareTargetSystemServiceRequest(SSLCertificateRequest sslCertificateRequest) {
         TargetSystemServiceRequest targetSysServiceRequest = sslCertificateRequest.getTargetSystemServiceRequest();
         TargetSystemServiceRequest targetSystemServiceRequest = new TargetSystemServiceRequest();
@@ -681,6 +776,12 @@ public class SSLCertificateService {
     }
 
     //Prepare SSL config Object
+
+    /**
+     * Prepare the SSL config Object
+     * @param sslCertificateRequest
+     * @return
+     */
     private SSLCertTypeConfig prepareSSLConfigObject(SSLCertificateRequest sslCertificateRequest) {
         SSLCertTypeConfig sslCertTypeConfig = new SSLCertTypeConfig();
         SSLCertType sslCertType = SSLCertType.valueOf(sslCertificateRequest.getSSLCertType());
@@ -742,14 +843,6 @@ public class SSLCertificateService {
         }
     }
 
-    private CertResponse prepareErrorResponse(CertResponse response) {
-        CertResponse certResponse = new CertResponse();
-        certResponse.setHttpstatus(response.getHttpstatus());
-        certResponse.setSuccess(response.isSuccess());
-        certResponse.setResponse(response.getResponse());
-        return certResponse;
-    }
-
     /**
      * @param certManagerAPIEndpoint
      * @return
@@ -763,6 +856,11 @@ public class SSLCertificateService {
         return "";
     }
 
+    /**
+     * Get the target System Group ID
+     * @param sslCertType
+     * @return
+     */
     private int getTargetSystemGroupId(SSLCertType sslCertType) {
         int ts_gp_id = private_single_san_ts_gp_id;
         switch (sslCertType) {
