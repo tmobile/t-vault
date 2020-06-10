@@ -220,15 +220,12 @@ public class SSLCertificateService {
 
             log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
                     put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
-                    put(LogMessage.ACTION, String.format("ControllerUtil.getSscred()  [%s] = ",
-                            ControllerUtil.getSscred())).build()));
+                    put(LogMessage.ACTION, String.format("Printing the credentials")).build()));
 
             log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
                     put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
-                    put(LogMessage.ACTION, String.format("ControllerUtil.getSscred(step-1)  [%s] = check [%s], " +
-                                    "username=[%s], userpass=[%s]",
-                            ControllerUtil.getSscred(),(ControllerUtil.getSscred() != null),
-                            ControllerUtil.getNclmUsername(),ControllerUtil.getNclmPassword())).build()));
+                    put(LogMessage.ACTION, String.format("certManagerUsername  [%s] = certManagerPassword [%s]",
+                            certManagerUsername,certManagerPassword)).build()));
 
 
           /*  if (ControllerUtil.getSscred() != null) {
