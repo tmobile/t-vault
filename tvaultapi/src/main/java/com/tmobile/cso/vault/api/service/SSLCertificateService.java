@@ -221,13 +221,30 @@ public class SSLCertificateService {
             String decodePassword;
 
             if (ControllerUtil.getSscred() != null) {
+                log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+                        put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+                        put(LogMessage.ACTION, String.format("Inside if loop [%s]",
+                                ControllerUtil.getSscred())).
+                        build()));
                 decodeUsername = new String(Base64.getDecoder().decode(ControllerUtil.getNclmUsername()));
                 decodePassword = new String(Base64.getDecoder().decode(ControllerUtil.getNclmPassword()));
             } else {
-
+                log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+                        put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+                        put(LogMessage.ACTION, String.format("Inside if else [%s]",
+                                ControllerUtil.getSscred())).
+                        build()));
                 decodeUsername = new String(Base64.getDecoder().decode(certManagerUsername));
                 decodePassword = new String(Base64.getDecoder().decode(certManagerPassword));
             }
+            log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+                    put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+                    put(LogMessage.ACTION, String.format("Inside if loop [%s] = [%s]",
+                            decodeUsername,decodePassword)).
+                    build()));
+
+            decodeUsername = new String(Base64.getDecoder().decode(certManagerUsername));
+            decodePassword = new String(Base64.getDecoder().decode(certManagerPassword));
 
             //Step-1 : Authenticate
             CertManagerLoginRequest certManagerLoginRequest = new CertManagerLoginRequest(decodeUsername, decodePassword);
