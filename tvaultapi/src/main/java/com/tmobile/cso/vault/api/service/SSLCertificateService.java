@@ -200,21 +200,21 @@ public class SSLCertificateService {
     private int retrycount;
 
     @Value("${certificate.delay.time.millsec}")
-    private int delayTime;    
-    
+    private int delayTime;
+
     @Value("${SSLCertificateController.certificatename.text}")
     private String certificateNameTailText;
-    
+
     @Value("${sslcertmanager.endpoint.renewCertificate}")
-	private String renewCertificateEndpoint;  
+	private String renewCertificateEndpoint;
 
     @Value("${sslcertmanager.endpoint.unassignCertificate}")
 	private String unassignCertificateEndpoint;
-    
+
     @Value("${sslcertmanager.endpoint.deleteCertificate}")
 	private String deleteCertificateEndpoint;
 
-    
+
     @Value("${certificate.renew.delay.time.millsec}")
     private int renewDelayTime;
     @Value("${sslcertmanager.external.certificate.telephonenumber}")
@@ -5320,7 +5320,7 @@ public class SSLCertificateService {
 		        certificateData.setAuthority((!StringUtils.isEmpty(jsonElement.get("enrollServiceInfo")) ?
 		                 validateString(jsonElement.get("enrollServiceInfo").getAsJsonObject().get("name")) :
 		                 null));
-				certificateData.setPreviousCertId((!ObjectUtils.isEmpty(jsonElement.get("previous")) ? 
+				certificateData.setPreviousCertId((!ObjectUtils.isEmpty(jsonElement.get("previous")) ?
 						Integer.parseInt(jsonElement.get("previous").getAsString()) : null));
 				if(Objects.nonNull(jsonElement.getAsJsonObject("subjectAltName"))){
                     JsonObject subjectAltNameObject = jsonElement.getAsJsonObject("subjectAltName");
@@ -5359,7 +5359,7 @@ public class SSLCertificateService {
 		return isValid;
 	}
 
-    
+
     /**
 	 * @param userName
 	 * @param certificateName
@@ -5368,34 +5368,34 @@ public class SSLCertificateService {
 	 */
 	private ResponseEntity<String> removeSudoPermissionForPreviousOwner(String userName, String certificateName,
 			UserDetails userDetails, String certificateType) {
-		String authToken = ""; 
+		String authToken = "";
 		String certPrefix=(certificateType.equalsIgnoreCase("internal"))?
                 SSLCertificateConstants.INTERNAL_POLICY_NAME :SSLCertificateConstants.EXTERNAL_POLICY_NAME;
-		
+
 		String metaDataPath = (certificateType.equalsIgnoreCase("internal"))?
 	            SSLCertificateConstants.SSL_CERT_PATH_VALUE :SSLCertificateConstants.SSL_CERT_PATH_VALUE_EXT;
 		if (userDetails.isAdmin()) {
-				authToken = userDetails.getClientToken();   	            
+				authToken = userDetails.getClientToken();
 	        }else {
 	        	authToken = userDetails.getSelfSupportToken();
 	        }
 		String certificatePath = metaDataPath + certificateName;
-		
+
 		String readPolicy = SSLCertificateConstants.READ_CERT_POLICY_PREFIX+certPrefix+"_"+certificateName;
 		String writePolicy = SSLCertificateConstants.WRITE_CERT_POLICY_PREFIX+certPrefix+"_"+certificateName;
 		String denyPolicy = SSLCertificateConstants.DENY_CERT_POLICY_PREFIX+certPrefix+"_"+certificateName;
 		String sudoPolicy = SSLCertificateConstants.SUDO_CERT_POLICY_PREFIX+certPrefix+"_"+certificateName;
-				
+
 		log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
 				put(LogMessage.ACTION, SSLCertificateConstants.REMOVE_USER_FROM_CERT_MSG).
 				put(LogMessage.MESSAGE, String.format ("Policies are, read - [%s], write - [%s], deny -[%s], owner - [%s]", readPolicy, writePolicy, denyPolicy, sudoPolicy)).
 				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 				build()));
-		
+
 		Response userResponse;
 		if (TVaultConstants.USERPASS.equals(vaultAuthMethod)) {
-			userResponse = reqProcessor.process("/auth/userpass/read","{\"username\":\""+userName+"\"}", authToken);	
+			userResponse = reqProcessor.process("/auth/userpass/read","{\"username\":\""+userName+"\"}", authToken);
 		}
 		else {
 			userResponse = reqProcessor.process("/auth/ldap/users","{\"username\":\""+userName+"\"}", authToken);
@@ -5412,9 +5412,9 @@ public class SSLCertificateService {
 		String groups="";
 		List<String> policies = new ArrayList<>();
 		List<String> currentpolicies = new ArrayList<>();
-		
+
 		if(HttpStatus.OK.equals(userResponse.getHttpstatus())){
-			responseJson = userResponse.getResponse();	
+			responseJson = userResponse.getResponse();
 			try {
 				ObjectMapper objMapper = new ObjectMapper();
 				currentpolicies = ControllerUtil.getPoliciesAsListFromJson(objMapper, responseJson);
@@ -5431,11 +5431,11 @@ public class SSLCertificateService {
 						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 						build()));
 			}
-			
-			policies.addAll(currentpolicies);			
+
+			policies.addAll(currentpolicies);
 			policies.remove(writePolicy);
 			policies.remove(sudoPolicy);
-			
+
 		}
 		String policiesString = org.apache.commons.lang3.StringUtils.join(policies, ",");
 		String currentpoliciesString = org.apache.commons.lang3.StringUtils.join(currentpolicies, ",");
@@ -5459,10 +5459,10 @@ public class SSLCertificateService {
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Failed to remvoe the user from the certificate\"]}");
 		}
 	}
-	
+
 	 /**
 	 * Delete SSL Certificate and update metadata
-	 * 
+	 *
 	 * @param certificateId
 	 * @param token
 	 * @return
@@ -5482,12 +5482,12 @@ public class SSLCertificateService {
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid input values\"]}");
 		}
 		Map<String, String> metaDataParams = new HashMap<String, String>();
-		String endPoint =certificateName;	
+		String endPoint =certificateName;
 		String metaDataPath = (certType.equalsIgnoreCase("internal"))?
                 SSLCertificateConstants.SSL_CERT_PATH + "/" + endPoint :SSLCertificateConstants.SSL_EXTERNAL_CERT_PATH + "/" + endPoint;
 		String permissionMetaDataPath = (certType.equalsIgnoreCase("internal"))?
                 SSLCertificateConstants.SSL_CERT_PATH_VALUE + "/" + endPoint :SSLCertificateConstants.SSL_CERT_PATH_VALUE_EXT + "/" + endPoint;
-		
+
 		Response response = new Response();
 		Response metadataResponse = new Response();
 		CertResponse unAssignResponse = new CertResponse();
@@ -5526,16 +5526,16 @@ public class SSLCertificateService {
 			return ResponseEntity.status(response.getHttpstatus())
 					.body("{\"errors\":[\"" + "Certificate unavailable" + "\"]}");
 		}
-		
+
 		JsonParser jsonParser = new JsonParser();
-		JsonObject object = ((JsonObject) jsonParser.parse(response.getResponse())).getAsJsonObject("data");				
-		
-		int certID = object.get("certificateId").getAsInt();	
+		JsonObject object = ((JsonObject) jsonParser.parse(response.getResponse())).getAsJsonObject("data");
+
+		int certID = object.get("certificateId").getAsInt();
 		int containerId = object.get("containerId").getAsInt();
 		try {
-		metaDataParams = new Gson().fromJson(object.toString(), Map.class);	
+		metaDataParams = new Gson().fromJson(object.toString(), Map.class);
 		String certificateUserId = metaDataParams.get("certOwnerNtid");
-		
+
 		//remove user permissions
 		CertificateUser certificateUser = new CertificateUser();
 		Map<String, String> userParams = new HashMap<String, String>();
@@ -5550,9 +5550,9 @@ public class SSLCertificateService {
 			certificateUser.setAccess(entry.getValue());
 			removeUserFromCertificate( certificateUser,  userDetails);
 		 }
-		}	
 		}
-		
+		}
+
 			//remove group permissions
 				CertificateGroup certificateGroup = new CertificateGroup();
 				Map<String, String> groupParams = new HashMap<String, String>();
@@ -5569,26 +5569,26 @@ public class SSLCertificateService {
 				 }
 				}
 		}
-		
+
 			removeSudoPermissionForPreviousOwner( certificateUserId.toLowerCase(), certificateName,userDetails,certType);
 			String nclmAccessToken = getNclmToken();
-			
+
 			//find certificates
-			CertificateData certData = getLatestCertificate(certificateName,nclmAccessToken, containerId);		
+			CertificateData certData = getLatestCertificate(certificateName,nclmAccessToken, containerId);
 			if(certData!=null) {
 			//Unassign certificate from target system
 			JsonObject jo = new JsonObject();
 	        jo.add("targetSystemServiceIds", new GsonBuilder().create().toJsonTree(certData.getDeployStatus()));
 			String nclmApiAssignEndpoint = unassignCertificateEndpoint.replace("certID", String.valueOf(certID));
 			unAssignResponse = reqProcessor.processCert("/certificates/services/assigned",  jo,
-					nclmAccessToken, getCertmanagerEndPoint(nclmApiAssignEndpoint));	
+					nclmAccessToken, getCertmanagerEndPoint(nclmApiAssignEndpoint));
 			if (unAssignResponse!=null && HttpStatus.OK.equals(unAssignResponse.getHttpstatus())) {
 				//delete the certiicate
 				String nclmApiDeleteEndpoint = deleteCertificateEndpoint.replace("certID", String.valueOf(certID));
 				unAssignResponse = reqProcessor.processCert("/certificates", "",
-						nclmAccessToken, getCertmanagerEndPoint(nclmApiDeleteEndpoint));	
+						nclmAccessToken, getCertmanagerEndPoint(nclmApiDeleteEndpoint));
 			}
-			
+
 			if (unAssignResponse!=null && (HttpStatus.OK.equals(unAssignResponse.getHttpstatus())|| (HttpStatus.NO_CONTENT.equals(unAssignResponse.getHttpstatus())))) {
 				try {
 					if (userDetails.isAdmin()) {
@@ -5636,7 +5636,7 @@ public class SSLCertificateService {
 										.build()));
 				return ResponseEntity.status(HttpStatus.BAD_REQUEST)
 						.body("{\"errors\":[\"" + "Certificate Deletion Failed" + "\"]}");
-			}	
+			}
 			}else {
 				log.error(
 						JSONUtil.getJSON(
@@ -5651,7 +5651,7 @@ public class SSLCertificateService {
 										.build()));
 				return ResponseEntity.status(HttpStatus.FORBIDDEN).body("{\"errors\":[\"" + "Certificate unavailable in NCLM." + "\"]}");
 			}
-			
+
 	} catch (Exception e) {
 		log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
 				.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString())
@@ -5662,29 +5662,29 @@ public class SSLCertificateService {
 				.body("{\"errors\":[\"" + e.getMessage() + "\"]}");
 	}
 	}
-	
+
 	/**
      * Validate input data
      * @param sslCertificateRequest
      * @return
      */
-	
+
     private boolean validateTransferData(SSLCertificateMetadataDetails sslCertificateRequest){
         boolean isValid=true;
-        if(sslCertificateRequest.getCertificateName().contains(" ") || 
+        if(sslCertificateRequest.getCertificateName().contains(" ") ||
                 sslCertificateRequest.getCertOwnerEmailId().contains(" ") ||  sslCertificateRequest.getCertType().contains(" ") ||
-                (!sslCertificateRequest.getCertificateName().endsWith(certificateNameTailText)) ||                
+                (!sslCertificateRequest.getCertificateName().endsWith(certificateNameTailText)) ||
                 (sslCertificateRequest.getCertificateName().contains(".-")) ||
                 (sslCertificateRequest.getCertificateName().contains("-.")) ||
                 (!sslCertificateRequest.getCertType().matches(SSLCertificateConstants.CERT_TYPE_MATCH_STRING))){
             isValid= false;
-        }       
+        }
         return isValid;
     }
-    
+
     /**
 	 * Validate Permission for Non-admin User.
-	 * 
+	 *
 	 * @param userDetails
 	 * @param certificateName
 	 * @return
@@ -5712,7 +5712,7 @@ public class SSLCertificateService {
 
 		return isPermission;
 	}
-	
+
 	/**
      * To get all certificate metadata details.
      * @param token
@@ -5727,32 +5727,32 @@ public class SSLCertificateService {
                 put(LogMessage.ACTION, "getAllCertificates").
                 put(LogMessage.MESSAGE, "Trying to get all certificates").
                 put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
-                build()));       
-        String path = SSLCertificateConstants.SSL_CERT_PATH ;        
-        String extPath = SSLCertificateConstants.SSL_EXTERNAL_CERT_PATH ;        
+                build()));
+        String path = SSLCertificateConstants.SSL_CERT_PATH ;
+        String extPath = SSLCertificateConstants.SSL_EXTERNAL_CERT_PATH ;
 
         Response response;
         String certListStr = "";
 
-        response = getMetadata(token, path);        
+        response = getMetadata(token, path);
         if (HttpStatus.OK.equals(response.getHttpstatus())) {
             String pathStr= "";
             String endPoint = "";
             Response metadataResponse = new Response();
             JsonParser jsonParser = new JsonParser();
             JsonArray responseArray = new JsonArray();
-            JsonObject metadataJsonObj=new JsonObject();            
+            JsonObject metadataJsonObj=new JsonObject();
             JsonObject jsonObject = (JsonObject) jsonParser.parse(response.getResponse());
             JsonArray jsonArray = jsonObject.getAsJsonObject("data").getAsJsonArray("keys");
-            List<String> certNames = geMatchCertificates(jsonArray,certName);            
-            
+            List<String> certNames = geMatchCertificates(jsonArray,certName);
+
             response = getMetadata(token, extPath);
             JsonObject jsonObjectExt = (JsonObject) jsonParser.parse(response.getResponse());
             JsonArray jsonArrayExt = jsonObjectExt.getAsJsonObject("data").getAsJsonArray("keys");
-            List<String> certNamesExt = geMatchCertificates(jsonArrayExt,certName);            
+            List<String> certNamesExt = geMatchCertificates(jsonArrayExt,certName);
             certNames.addAll(certNamesExt);
             Collections.sort(certNames);
-            
+
             if(limit == null) {
                 limit = certNames.size();
             }
@@ -5761,10 +5761,10 @@ public class SSLCertificateService {
             }
 
             int maxVal = certNames.size()> (limit+offset)?limit+offset : certNames.size();
-            for (int i = offset; i < maxVal; i++) {            	
+            for (int i = offset; i < maxVal; i++) {
                 endPoint = certNames.get(i).replaceAll("^\"+|\"+$", "");
-                if(certNamesExt.contains(certNames.get(i))) {  
-                	pathStr = extPath + TVaultConstants.PATH_DELIMITER + endPoint;                
+                if(certNamesExt.contains(certNames.get(i))) {
+                	pathStr = extPath + TVaultConstants.PATH_DELIMITER + endPoint;
                 }else{
                 	pathStr = path + TVaultConstants.PATH_DELIMITER + endPoint;
                 }
@@ -5818,7 +5818,7 @@ public class SSLCertificateService {
                 build()));
 
         return ResponseEntity.status(response.getHttpstatus()).body(certListStr);
-    }   
+    }
     /**
 	 * Method to validate the certificate name
 	 *
