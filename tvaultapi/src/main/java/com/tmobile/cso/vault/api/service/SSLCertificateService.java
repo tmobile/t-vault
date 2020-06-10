@@ -219,6 +219,9 @@ public class SSLCertificateService {
             if (ControllerUtil.getSscred() != null) {
                 certManagerUsername = new String(Base64.getDecoder().decode(ControllerUtil.getNclmUsername()));
                 certManagerPassword = new String(Base64.getDecoder().decode(ControllerUtil.getNclmPassword()));
+            } else {
+                certManagerUsername = new String(Base64.getDecoder().decode(certManagerUsername));
+                certManagerPassword = new String(Base64.getDecoder().decode(certManagerPassword));
             }
             //Step-1 : Authenticate
             CertManagerLoginRequest certManagerLoginRequest = new CertManagerLoginRequest(certManagerUsername, certManagerPassword);
