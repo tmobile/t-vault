@@ -65,7 +65,7 @@ public class SSLCertificateServiceTest {
         currentMap.put("user", "");
         ThreadLocalContext.setCurrentMap(currentMap);
         ReflectionTestUtils.setField(sSLCertificateService, "vaultAuthMethod", "userpass");
-        ReflectionTestUtils.setField(sSLCertificateService, "certManagerDomain", "https://nclm.t-mobile.com:3004/");
+        ReflectionTestUtils.setField(sSLCertificateService, "certManagerDomain", "https://mobile.com:3004/");
         ReflectionTestUtils.setField(sSLCertificateService, "tokenGenerator", "token?grant_type=client_credentials");
         ReflectionTestUtils.setField(sSLCertificateService, "targetSystemGroups", "targetsystemgroups/");
         ReflectionTestUtils.setField(sSLCertificateService, "certificateEndpoint", "certificates/");
@@ -80,7 +80,6 @@ public class SSLCertificateServiceTest {
         ReflectionTestUtils.setField(sSLCertificateService, "findTargetSystemService", "targetsystems/tsgid/targetsystemservices");
         ReflectionTestUtils.setField(sSLCertificateService, "enrollUpdateCSRUrl", "policy/csr?entityRef=SERVICE&entityId=entityid&allowedOnly=true&enroll=true");
         ReflectionTestUtils.setField(sSLCertificateService, "findCertificate", "certificates?freeText=certname&containerId=cid");
-
         ReflectionTestUtils.setField(sSLCertificateService, "certManagerUsername", "VWtvdGh1cjE=");
         ReflectionTestUtils.setField(sSLCertificateService, "certManagerPassword", "RG9scGhpbjg1NTVf");
 
@@ -97,7 +96,8 @@ public class SSLCertificateServiceTest {
         CertManagerLoginRequest certManagerLoginRequest = new CertManagerLoginRequest("testusername", "testpassword");
         when(JSONUtil.getJSON(Mockito.any())).thenReturn(jsonStr);
         when(reqProcessor.processCert(Mockito.anyString(), Mockito.anyObject(), Mockito.anyString(), Mockito.anyString())).thenReturn(response);
-        assertEquals(sSLCertificateService.authenticate(certManagerLoginRequest).getStatusCode(), HttpStatus.OK);
+        ResponseEntity<String> responseEntity = sSLCertificateService.authenticate(certManagerLoginRequest);
+        assertEquals(responseEntity.getStatusCode(), HttpStatus.OK);
     }
 
     @Test
@@ -110,7 +110,9 @@ public class SSLCertificateServiceTest {
         CertManagerLoginRequest certManagerLoginRequest = new CertManagerLoginRequest("testusername", "testpassword");
         when(JSONUtil.getJSON(Mockito.any())).thenReturn(jsonStr);
         when(reqProcessor.processCert(Mockito.anyString(), Mockito.anyObject(), Mockito.anyString(), Mockito.anyString())).thenReturn(response);
-        assertEquals(sSLCertificateService.authenticate(certManagerLoginRequest).getStatusCode(), HttpStatus.UNAUTHORIZED);
+        ResponseEntity<String> responseEntity = sSLCertificateService.authenticate(certManagerLoginRequest);
+        assertEquals(responseEntity.getStatusCode(), HttpStatus.UNAUTHORIZED);
+
     }
 
     @Test
@@ -212,7 +214,6 @@ public class SSLCertificateServiceTest {
         //Assert
         assertNotNull(enrollResponse);
         assertEquals(HttpStatus.OK, enrollResponse.getStatusCode());
-        assertEquals(enrollResponse.getStatusCode(), HttpStatus.OK);
     }
 
 

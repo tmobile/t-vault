@@ -33,6 +33,14 @@ public class SSLCertificateRequest implements Serializable {
 	private TargetSystem targetSystem;
 	private String certificateName;
 
+
+	public SSLCertificateRequest() {
+	}
+
+	public TargetSystemServiceRequest getTargetSystemServiceRequest() {
+		return targetSystemServiceRequest;
+	}
+
 	public String getCertificateName() {
 		return certificateName;
 	}
@@ -41,18 +49,9 @@ public class SSLCertificateRequest implements Serializable {
 		this.certificateName = certificateName;
 	}
 
-	public TargetSystemServiceRequest getTargetSystemServiceRequest() {
-		return targetSystemServiceRequest;
-	}
-
 	public void setTargetSystemServiceRequest(TargetSystemServiceRequest targetSystemServiceRequest) {
 		this.targetSystemServiceRequest = targetSystemServiceRequest;
 	}
-
-
-	public SSLCertificateRequest() {
-	}
-
 	/**
 	 * @return the targetSystem
 	 */
