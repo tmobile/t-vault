@@ -1,8 +1,6 @@
 package com.tmobile.cso.vault.api.model;
 
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-
 public class TargetSystemServiceRequest {
     private int port;
     private String hostname;

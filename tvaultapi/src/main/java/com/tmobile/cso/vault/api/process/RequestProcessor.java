@@ -1,5 +1,5 @@
 // =========================================================================
-// Copyright 2019 T-Mobile, US
+// Copyright 2020 T-Mobile, US
 // 
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -38,6 +38,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 
 import java.io.IOException;
 import java.util.*;
@@ -307,7 +308,7 @@ public class RequestProcessor {
     public CertResponse processCert(String apiEndPoint, Object request, String accessToken, String certManagerEndPoint) throws Exception {
         log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
                 put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
-                put(LogMessage.ACTION, "Process Request").
+                put(LogMessage.ACTION, "processCert").
                 put(LogMessage.MESSAGE, String.format("Processing input for [%s] ", certManagerEndPoint)).
                 put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
                 build()));
@@ -386,13 +387,19 @@ public class RequestProcessor {
             certManagerResponseMap = parseVaultResponseJson(certManagerResponse.getBody());
         }
 
+        if (null != certManagerResponse && (!HttpStatus.OK.equals(certManagerResponse.getStatusCode()))
+                && ((!HttpStatus.NO_CONTENT.equals(certManagerResponse.getStatusCode())))) {
+            String errorMessage= (!StringUtils.isEmpty(certManagerResponseMap.get("error_description"))) ?
+            certManagerResponseMap.get("error_description").toString() :
+                    certManagerResponseMap.get("message").toString();
+
+            throw new GenericRestException(certManagerResponse.getStatusCode(), errorMessage);
+        }
+
         if (!(certManagerResponseMap.containsKey("errors") || certManagerResponseMap.size() == 0)) {
             respTransformer.transform(apiConfig, certManagerResponseMap, accessToken);
         }
 
-        if (Objects.nonNull(certManagerResponseMap.get("status")) && (certManagerResponseMap.get("status") != HttpStatus.OK)) {
-            throw new GenericRestException(certManagerResponse.getStatusCode(), certManagerResponseMap.get("message").toString());
-        }
 
         response.setResponse(createResponseJson(certManagerResponseMap, apiConfig));
         response.setHttpstatus((null != certManagerResponse) ? certManagerResponse.getStatusCode() : HttpStatus.INTERNAL_SERVER_ERROR);
