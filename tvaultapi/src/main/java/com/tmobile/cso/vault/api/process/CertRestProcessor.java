@@ -1,5 +1,5 @@
 // =========================================================================
-// Copyright 2019 T-Mobile, US
+// Copyright 2020 T-Mobile, US
 // 
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -55,8 +55,6 @@ import com.tmobile.cso.vault.api.utils.ThreadLocalContext;
 public class CertRestProcessor {
 	private static Logger log = LogManager.getLogger(CertRestProcessor.class);
 
-//	@Value("${vault.api.url}")
-//	private String vaultApiUrl;
 
 	@Value("${vault.ssl.verify:true}")
 	private boolean sslVerify;
@@ -64,9 +62,15 @@ public class CertRestProcessor {
 	public CertRestProcessor(){
 		
 	}
-	
-	public ResponseEntity<String> post(String endpoint,String token,Object payload ){
 
+	/**
+	 * Perform the post rest call
+	 * @param endpoint
+	 * @param token
+	 * @param payload
+	 * @return
+	 */
+	public ResponseEntity<String> post(String endpoint,String token,Object payload ){
 		RestTemplate restTemplate = getRestTemplate(sslVerify, token);
 		ResponseEntity<String> response;
 		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
@@ -83,8 +87,16 @@ public class CertRestProcessor {
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
 		}
 		return response;
-		
-	}
+		}
+
+
+	/**
+	 * Put the Post rest call
+ 	 * @param endpoint
+	 * @param token
+	 * @param payload
+	 * @return
+	 */
 	public ResponseEntity<String> put(String endpoint,String token,Object payload ){
 
 		RestTemplate restTemplate = getRestTemplate(sslVerify, token);
@@ -107,7 +119,12 @@ public class CertRestProcessor {
 	}
 
 
-
+	/**
+	 * Peform the Get Rest Call
+	 * @param endpoint
+	 * @param token
+	 * @return
+	 */
 	public ResponseEntity<String> get(String endpoint,String token){
 		RestTemplate restTemplate = getRestTemplate(sslVerify, token);
 		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
@@ -126,6 +143,13 @@ public class CertRestProcessor {
 		}
 		return response;
 	}
+
+	/**
+	 * Perform the delete rest call
+	 * @param endpoint
+	 * @param token
+	 * @return
+	 */
 	public ResponseEntity<String> delete(String endpoint,String token){
 		RestTemplate restTemplate = getRestTemplate(sslVerify, token);
 		ResponseEntity<String> response = null;
@@ -149,7 +173,13 @@ public class CertRestProcessor {
 		
 		return response;
 	}
-	
+
+	/**
+	 * Get the rest template
+	 * @param sslVerify
+	 * @param token
+	 * @return
+	 */
 	private static RestTemplate getRestTemplate(boolean sslVerify,String token){
 		
 		HttpClient httpClient =null;
@@ -181,6 +211,7 @@ public class CertRestProcessor {
 		return restTemplate;
 	}
 }
+
 
 class HttpCertRequestInterceptor implements ClientHttpRequestInterceptor {
 	  private String token;
