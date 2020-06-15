@@ -2,24 +2,19 @@ package com.tmobile.cso.vault.api.utils;
 
 import org.springframework.http.HttpStatus;
 
-public class GenericRestException extends RuntimeException {
+public class TVaultSSLCertificateException extends Throwable {
 
     private HttpStatus errorCode;
     private String errorMessage;
 
-    public GenericRestException() {
+    public TVaultSSLCertificateException() {
         super();
     }
 
 
-    public GenericRestException(String message) {
-        super(message);
-    }
-
-    public GenericRestException(HttpStatus mbcErrorCode, String mbcErrorMessage) {
-        super(mbcErrorCode + "," + mbcErrorMessage);
-        this.errorCode = mbcErrorCode;
-        this.errorMessage = mbcErrorMessage;
+    public TVaultSSLCertificateException(HttpStatus errorCodeStatus, String errorMessageDetails) {
+        this.errorCode = errorCodeStatus;
+        this.errorMessage = errorMessageDetails;
     }
 
 
@@ -41,7 +36,7 @@ public class GenericRestException extends RuntimeException {
 
     @Override
     public String toString() {
-        return "GenericRestException{" +
+        return "TVaultSSLCertificateException{" +
                 "errorCode='" + errorCode + '\'' +
                 ", errorMessage='" + errorMessage + '\'' +
                 '}';

@@ -29,7 +29,7 @@ import com.tmobile.cso.vault.api.config.ConfigManager;
 import com.tmobile.cso.vault.api.config.Param;
 import com.tmobile.cso.vault.api.exception.LogMessage;
 import com.tmobile.cso.vault.api.exception.NoApiConfigFoundException;
-import com.tmobile.cso.vault.api.utils.GenericRestException;
+import com.tmobile.cso.vault.api.utils.TVaultSSLCertificateException;
 import com.tmobile.cso.vault.api.utils.JSONUtil;
 import com.tmobile.cso.vault.api.utils.ThreadLocalContext;
 import org.apache.logging.log4j.LogManager;
@@ -305,7 +305,7 @@ public class RequestProcessor {
      * @param accessToken
      * @return
      */
-    public CertResponse processCert(String apiEndPoint, Object request, String accessToken, String certManagerEndPoint) throws Exception {
+    public CertResponse processCert(String apiEndPoint, Object request, String accessToken, String certManagerEndPoint) throws Exception, TVaultSSLCertificateException {
         log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
                 put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
                 put(LogMessage.ACTION, "processCert").
@@ -387,13 +387,13 @@ public class RequestProcessor {
             certManagerResponseMap = parseVaultResponseJson(certManagerResponse.getBody());
         }
 
-        if (null != certManagerResponse && (!HttpStatus.OK.equals(certManagerResponse.getStatusCode()))
+       if (null != certManagerResponse && (!HttpStatus.OK.equals(certManagerResponse.getStatusCode()))
                 && ((!HttpStatus.NO_CONTENT.equals(certManagerResponse.getStatusCode())))) {
             String errorMessage= (!StringUtils.isEmpty(certManagerResponseMap.get("error_description"))) ?
             certManagerResponseMap.get("error_description").toString() :
                     certManagerResponseMap.get("message").toString();
 
-            throw new GenericRestException(certManagerResponse.getStatusCode(), errorMessage);
+            throw new TVaultSSLCertificateException(certManagerResponse.getStatusCode(), errorMessage);
         }
 
         if (!(certManagerResponseMap.containsKey("errors") || certManagerResponseMap.size() == 0)) {
