@@ -272,6 +272,26 @@
                     return response;
                 });
             },
+            getCertificates: function (payload, url) {
+                return ServiceEndpoint.getCertificates.makeRequest(payload, url).then(function(response) {
+                    return response;
+                });
+            },
+            getTargetSystems:function (payload, url) {
+                return ServiceEndpoint.getTargetSystems.makeRequest(payload, url).then(function(response) {
+                    return response;
+                });
+            },
+            getTargetSystemsServices: function (payload, url) {
+                return ServiceEndpoint.getTargetSystemsServices.makeRequest(payload, url).then(function(response) {
+                    return response;
+                });
+            },
+            sslCertificateCreation: function (payload, url) {
+                return ServiceEndpoint.createSslCertificates.makeRequest(payload, url).then(function(response) {
+                    return response;
+                });
+            },
             getTheRightErrorMessage : function(responseObject){
                 if(responseObject.status===500 || responseObject.statusText==='Internal Server Error'){
                     return ErrorMessage.ERROR_NETWORK;

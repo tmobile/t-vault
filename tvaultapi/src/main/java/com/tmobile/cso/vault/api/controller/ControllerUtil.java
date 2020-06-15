@@ -1,5 +1,5 @@
 // =========================================================================
-// Copyright 2019 T-Mobile, US
+// Copyright 2020 T-Mobile, US
 // 
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -28,6 +28,7 @@ import java.util.stream.Stream;
 
 import javax.annotation.PostConstruct;
 
+import com.tmobile.cso.vault.api.common.SSLCertificateConstants;
 import com.tmobile.cso.vault.api.model.*;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.ArrayUtils;
@@ -90,9 +91,17 @@ public final class ControllerUtil {
 
 	private static String ssUsername;
 	private static String ssPassword;
+
+
 	private static SSCred sscred = null;
 
-	@PostConstruct     
+	//NCLM Details
+	private static String nclmUsername;
+	private static String nclmPassword;
+
+
+
+	@PostConstruct
 	private void initStatic () {
 		vaultAuthMethod = this.tvaultAuthMethod;
 		secretKeyAllowedCharacters = this.secretKeyWhitelistedCharacters;
@@ -203,7 +212,7 @@ public final class ControllerUtil {
 	 * @param jsonstr
 	 * @param token
 	 * @param responseVO
-	 * @param secretMap
+	 * @param safeNode
 	 */
 	public static void recursiveRead(String jsonstr,String token,  Response responseVO, SafeNode safeNode){
 		ObjectMapper objMapper =  new ObjectMapper();
@@ -285,7 +294,7 @@ public final class ControllerUtil {
 	 * @param jsonstr
 	 * @param token
 	 * @param responseVO
-	 * @param secretMap
+	 * @param safeNode
 	 */
 	public static void getFoldersAndSecrets(String jsonstr,String token,  Response responseVO, SafeNode safeNode){
 		ObjectMapper objMapper =  new ObjectMapper();
@@ -2004,6 +2013,34 @@ public final class ControllerUtil {
 	}
 
 	/**
+	 * createSSLCertificateMetadata
+	 * @param sslCertificateRequest
+	 * @param userDetails
+	 * @param token
+	 * @return boolean
+	 */
+	public static String populateSSLCertificateMetadata(SSLCertificateRequest sslCertificateRequest,
+														UserDetails userDetails, String token) {
+		String _path = SSLCertificateConstants.SSL_CERT_PATH + "/" + sslCertificateRequest.getCertificateName();
+		SSLCertificateMetadataDetails sslCertificateMetadataDetails = new SSLCertificateMetadataDetails();
+		sslCertificateMetadataDetails.setName(sslCertificateRequest.getCertificateName());
+		sslCertificateMetadataDetails.setId("");//TODO need to find out the way to get this
+		sslCertificateMetadataDetails.setDescription(""); //TODO need to find out the way to get this
+		sslCertificateMetadataDetails.setOwnerId(userDetails.getUsername()); //TODO need to find out the way to get this
+		sslCertificateMetadataDetails.setOwnerEmail("Owner Email");//TODO need to find out the way to get this- from
+		sslCertificateMetadataDetails.setExpiry("Expiry");//TODO need to find out the way to get this
+
+		SSLCertMetadata sslCertMetadata = new SSLCertMetadata(_path, sslCertificateMetadataDetails);
+		String jsonStr = JSONUtil.getJSON(sslCertMetadata);
+
+		Map<String, Object> rqstParams = ControllerUtil.parseJson(jsonStr);
+		rqstParams.put("path", _path);
+		return ControllerUtil.convetToJson(rqstParams);
+	}
+
+
+
+	/**
 	 * Check whether the current user can delete a role
 	 * @param approle
 	 * @param token
@@ -2095,6 +2132,7 @@ public final class ControllerUtil {
 			ssFile = new File(fileLocation+"/sscred");
 			if (ssFile != null && ssFile.exists()) {
 				sscred = new SSCred();
+				setSscred(sscred);
 				Scanner sc = new Scanner(ssFile); 
 				while (sc.hasNextLine()) {
 					String line = sc.nextLine();
@@ -2107,6 +2145,16 @@ public final class ControllerUtil {
 						ssPassword = line.substring("password:".length(), line.length());
 						sscred.setPassword(line.substring("password:".length(), line.length()));
 						log.debug("Successfully read password: from sscred file");
+					}
+					else if (line.startsWith("nclmusername:")) {
+						nclmUsername = line.substring("nclmusername:".length(), line.length());
+						sscred.setNclmusername(line.substring("nclmusername:".length(), line.length()));
+						log.debug("Successfully read nclm username: from sscred file");
+					}
+					else if (line.startsWith("nclmpassword:")) {
+						nclmPassword = line.substring("nclmpassword:".length(), line.length());
+						sscred.setNclmpassword(line.substring("nclmpassword:".length(), line.length()));
+						log.debug("Successfully read nclmpassword: from sscred file");
 					}
 				}
 				sc.close();
@@ -2129,11 +2177,25 @@ public final class ControllerUtil {
 		return sscred;
 	}
 
+	public static String getNclmUsername() {
+		return nclmUsername;
+	}
+
+
+	public static String getNclmPassword() {
+		return nclmPassword;
+	}
+
 	/**
 	 * @return the ssUsername
 	 */
-	public static String getSsUsername() {
+		public static String getSsUsername() {
 		return ssUsername;
+	}
+
+
+	public static void setSscred(SSCred sscred) {
+		ControllerUtil.sscred = sscred;
 	}
 
 	/**
