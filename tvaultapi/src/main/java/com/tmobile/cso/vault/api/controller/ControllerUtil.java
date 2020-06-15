@@ -28,6 +28,7 @@ import java.util.stream.Stream;
 
 import javax.annotation.PostConstruct;
 
+import com.tmobile.cso.vault.api.common.SSLCertificateConstants;
 import com.tmobile.cso.vault.api.model.*;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.ArrayUtils;
@@ -2010,6 +2011,34 @@ public final class ControllerUtil {
 		}
 		return isMetaDataUpdated;
 	}
+
+	/**
+	 * createSSLCertificateMetadata
+	 * @param sslCertificateRequest
+	 * @param userDetails
+	 * @param token
+	 * @return boolean
+	 */
+	public static String populateSSLCertificateMetadata(SSLCertificateRequest sslCertificateRequest,
+														UserDetails userDetails, String token) {
+		String _path = SSLCertificateConstants.SSL_CERT_PATH + "/" + sslCertificateRequest.getCertificateName();
+		SSLCertificateMetadataDetails sslCertificateMetadataDetails = new SSLCertificateMetadataDetails();
+		sslCertificateMetadataDetails.setName(sslCertificateRequest.getCertificateName());
+		sslCertificateMetadataDetails.setId("");//TODO need to find out the way to get this
+		sslCertificateMetadataDetails.setDescription(""); //TODO need to find out the way to get this
+		sslCertificateMetadataDetails.setOwnerId(userDetails.getUsername()); //TODO need to find out the way to get this
+		sslCertificateMetadataDetails.setOwnerEmail("Owner Email");//TODO need to find out the way to get this- from
+		sslCertificateMetadataDetails.setExpiry("Expiry");//TODO need to find out the way to get this
+
+		SSLCertMetadata sslCertMetadata = new SSLCertMetadata(_path, sslCertificateMetadataDetails);
+		String jsonStr = JSONUtil.getJSON(sslCertMetadata);
+
+		Map<String, Object> rqstParams = ControllerUtil.parseJson(jsonStr);
+		rqstParams.put("path", _path);
+		return ControllerUtil.convetToJson(rqstParams);
+	}
+
+
 
 	/**
 	 * Check whether the current user can delete a role

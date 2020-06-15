@@ -77,17 +77,17 @@ script(type='text/ng-template', id='certificateCreationPopUp.html')
   .top-lg-sep(ng-if="!isLoadingModalData")
     .top-lg-sep
         .common-header-label.text-center Certificate Creation Successful!
-    .top-lg-sep.notification-text.notification-justify  {{ certificateCreationMessage }}
+      .top-lg-sep.notification-text  {{ certificateCreationMessage }}
     .text-center.bottom-lg-sep.top-lg-sep.notification-button
       .clearfix.bottom-sm-sep
         button.link-style.common-btn.btn.btn-primary.btn-lg(ng-click="cancel()") CLOSE  
-
+S
 script(type='text/ng-template', id='certificateCreationFailedPopUp.html')
   loading-state(ng-if="isLoadingModalData")
   .top-lg-sep(ng-if="!isLoadingModalData")
     .top-lg-sep
         .common-header-label.text-center Certificate Creation Failed!
-    .top-lg-sep.notification-text.notification-justify  {{ certificateCreationMessage }}
+      .top-lg-sep.notification-text  {{ certificateCreationMessage }}
     .text-center.bottom-lg-sep.top-lg-sep.notification-button
       .clearfix.bottom-sm-sep
         button.link-style.common-btn.btn.btn-primary.btn-lg(ng-click="cancel()") CLOSE         
@@ -130,7 +130,7 @@ script(type='text/ng-template', id='certificatePopup.html')
                         input.form-control.input-box-style(id="tarSystemDesc" ng-model="certObj.targetSystem.description")
                     .col-lg-11.col-md-11.col-sm-11.col-xs-11.common-form-row()
                       .details-input-group 
-                        .common-form-label Hostname/IP Address11*
+                        .common-form-label Hostname/IP Address*
                         input.form-control.input-box-style(id="tarSystemAddress" ng-model="certObj.targetSystem.address" ng-required="true")
                   .font-type-normal(ng-if="existingTargetSystem")
                     .col-lg-12.col-md-12.col-sm-12.col-xs-12.common-form-row()
