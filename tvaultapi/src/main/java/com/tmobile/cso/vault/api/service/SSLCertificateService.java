@@ -1,7 +1,7 @@
 // =========================================================================
 // Copyright 2020 T-Mobile, US
 // 
-// Licensed under the Apache License, Version 2.0 (the "License");
+// Licensed under the Apache License, Version 2.0 (the "License")
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
 //
@@ -20,12 +20,14 @@ package com.tmobile.cso.vault.api.service;
 import com.google.common.collect.ImmutableMap;
 import com.google.gson.*;
 import com.tmobile.cso.vault.api.common.SSLCertificateConstants;
+import com.tmobile.cso.vault.api.common.TVaultConstants;
 import com.tmobile.cso.vault.api.controller.ControllerUtil;
 import com.tmobile.cso.vault.api.exception.LogMessage;
 import com.tmobile.cso.vault.api.model.*;
 import com.tmobile.cso.vault.api.process.CertResponse;
 import com.tmobile.cso.vault.api.process.RequestProcessor;
-import com.tmobile.cso.vault.api.utils.GenericRestException;
+import com.tmobile.cso.vault.api.process.Response;
+import com.tmobile.cso.vault.api.utils.TVaultSSLCertificateException;
 import com.tmobile.cso.vault.api.utils.JSONUtil;
 import com.tmobile.cso.vault.api.utils.ThreadLocalContext;
 import org.apache.commons.collections.MapUtils;
@@ -38,9 +40,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
-import java.util.Base64;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 
 @Component
 public class SSLCertificateService {
@@ -124,7 +124,7 @@ public class SSLCertificateService {
      * @param certManagerLoginRequest
      * @return
      */
-    public ResponseEntity<String> authenticate(CertManagerLoginRequest certManagerLoginRequest) throws Exception {
+    public ResponseEntity<String> authenticate(CertManagerLoginRequest certManagerLoginRequest) throws Exception, TVaultSSLCertificateException {
         String certManagerAPIEndpoint = "/auth/certmanager/login";
         log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
                 put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
@@ -160,7 +160,7 @@ public class SSLCertificateService {
      * @param certManagerLoginRequest
      * @return
      */
-    public CertManagerLogin login(CertManagerLoginRequest certManagerLoginRequest) throws Exception {
+    public CertManagerLogin login(CertManagerLoginRequest certManagerLoginRequest) throws Exception, TVaultSSLCertificateException {
         CertManagerLogin certManagerLogin = null;
         String certManagerAPIEndpoint = "/auth/certmanager/login";
         log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
@@ -202,12 +202,15 @@ public class SSLCertificateService {
         }
     }
 
+
     /**
      * @param sslCertificateRequest
      * @return
      */
-    public ResponseEntity<CertResponse> generateSSLCertificate(SSLCertificateRequest sslCertificateRequest) {
+    public ResponseEntity<CertResponse> generateSSLCertificate(SSLCertificateRequest sslCertificateRequest,
+                                                               UserDetails userDetails ,String token) {
         CertResponse enrollResponse = new CertResponse();
+
         try {
             log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
                     put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
@@ -224,6 +227,7 @@ public class SSLCertificateService {
             String password = (Objects.nonNull(ControllerUtil.getNclmPassword())) ?
                     (new String(Base64.getDecoder().decode(ControllerUtil.getNclmPassword()))) :
                     (new String(Base64.getDecoder().decode(certManagerPassword)));
+
 
             //Step-1 : Authenticate
             CertManagerLoginRequest certManagerLoginRequest = new CertManagerLoginRequest(username, password);
@@ -250,6 +254,11 @@ public class SSLCertificateService {
                             build()));
                     if (Objects.nonNull(targetSystem)) {
                         targetSystemId = targetSystem.getTargetSystemID();
+                    }  else {
+                        enrollResponse.setResponse("Target System Creation Failed");
+                        enrollResponse.setHttpstatus(HttpStatus.INTERNAL_SERVER_ERROR);
+                        enrollResponse.setSuccess(Boolean.FALSE);
+                        return new ResponseEntity<>(enrollResponse, enrollResponse.getHttpstatus());
                     }
                 }
 
@@ -261,22 +270,21 @@ public class SSLCertificateService {
                 if (targetSystemServiceId == 0) {
                     TargetSystemServiceRequest targetSystemServiceRequest = prepareTargetSystemServiceRequest(sslCertificateRequest);
                     TargetSystemService targetSystemService = createTargetSystemService(targetSystemServiceRequest, targetSystemId, certManagerLogin);
+
+                    if (Objects.nonNull(targetSystemService)) {
+                        targetSystemServiceId = targetSystemService.getTargetSystemServiceId();
+                    } else {
+                        enrollResponse.setResponse("Target System Service Creation Failed");
+                        enrollResponse.setHttpstatus(HttpStatus.INTERNAL_SERVER_ERROR);
+                        enrollResponse.setSuccess(Boolean.FALSE);
+                        return new ResponseEntity<>(enrollResponse, enrollResponse.getHttpstatus());
+                    }
                     log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
                             put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
                             put(LogMessage.ACTION, String.format("createTargetSystem Service  Completed Successfully [%s]", targetSystemService)).
                             put(LogMessage.MESSAGE, String.format("Target System Service ID  [%s]", targetSystemService.getTargetSystemServiceId())).
                             build()));
-
-                    targetSystemServiceId = targetSystemService.getTargetSystemServiceId();
                 }
-                //if(isCertificateExist){
-                log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
-                        put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
-                        put(LogMessage.ACTION, "Given Certificate already available Under " +
-                                "TargetSystem/Target System Service").
-                        build()));
-                //}
-
 
                 //Step-7 - Enroll Configuration
                 //getEnrollCA
@@ -346,9 +354,34 @@ public class SSLCertificateService {
                         put(LogMessage.ACTION, String.format("Enroll Certificate response Completed Successfully [%s]", enrollResponse.getResponse())).
                         build()));
                 if (HttpStatus.OK.equals(response.getHttpstatus())) {
-                    enrollResponse.setHttpstatus(HttpStatus.OK);
-                    enrollResponse.setResponse("Certificate Created Successfully In NCLM");
-                    enrollResponse.setSuccess(Boolean.TRUE);
+            //Policy Creation
+                    boolean isPoliciesCreated = createPolicies(sslCertificateRequest, token);
+                    log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+                            put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+                            put(LogMessage.ACTION, String.format("Policies are created for SSL certificate [%s]",
+                                    sslCertificateRequest.getCertificateName())).
+                            build()));
+
+
+                    //Metadata creation
+                    String metadataJson = ControllerUtil.populateSSLCertificateMetadata(sslCertificateRequest, userDetails, token);
+                    boolean sslMetaDataCreationStatus = ControllerUtil.createMetadata(metadataJson, token);
+                    log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+                            put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+                            put(LogMessage.ACTION, String.format("Metadata created for SSL certificate [%s]",
+                                    sslCertificateRequest.getCertificateName())).
+                            build()));
+
+                    if ((!isPoliciesCreated) || (!sslMetaDataCreationStatus)) {
+                        enrollResponse.setResponse(SSLCertificateConstants.SSL_CREATE_EXCEPTION);
+                        enrollResponse.setHttpstatus(HttpStatus.INTERNAL_SERVER_ERROR);
+                        enrollResponse.setSuccess(Boolean.FALSE);
+                    } else {
+                        enrollResponse.setResponse(SSLCertificateConstants.SSL_CERT_SUCCESS);
+                        enrollResponse.setHttpstatus(HttpStatus.OK);
+                        enrollResponse.setSuccess(Boolean.TRUE);
+                    }
+                    return new ResponseEntity<>(enrollResponse, enrollResponse.getHttpstatus());
                 }
             } else {
                 enrollResponse.setSuccess(Boolean.FALSE);
@@ -361,15 +394,7 @@ public class SSLCertificateService {
                         build()));
                 return new ResponseEntity<>(enrollResponse, HttpStatus.BAD_REQUEST);
             }
-        } catch (GenericRestException ge) {
-            log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
-                    put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
-                    put(LogMessage.ACTION, String.format("GenericRestException -> Error While creating certificate  " +
-                            "[%s]", ge.getMessage())).build()));
-            enrollResponse.setResponse(ge.getErrorMessage());
-            enrollResponse.setHttpstatus(ge.getErrorCode());
-            return new ResponseEntity<>(enrollResponse, enrollResponse.getHttpstatus());
-        } catch (Exception e) {
+        } catch (Exception | TVaultSSLCertificateException e) {
             log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
                     put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
                     put(LogMessage.ACTION, String.format("Exception ->Error While creating certificate  [%s]",
@@ -379,13 +404,93 @@ public class SSLCertificateService {
                     put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
                     put(LogMessage.ACTION, String.format("Exception ->Error While creating certificate(Stack Trace)  " +
                                     "[%s] = [%s]",
-                            e.getStackTrace(),e)).build()));
-            enrollResponse.setResponse(e.getMessage());
-            enrollResponse.setHttpstatus(HttpStatus.INTERNAL_SERVER_ERROR);
+                            Arrays.toString(e.getStackTrace()),e)).build()));
+
+            if (e instanceof TVaultSSLCertificateException) {
+                enrollResponse.setResponse(((TVaultSSLCertificateException) e).getErrorMessage());
+            } else{
+                enrollResponse.setResponse((!StringUtils.isEmpty(e.getMessage())? e.getMessage():
+                        SSLCertificateConstants.SSL_CREATE_EXCEPTION));
+            }
+            if (e instanceof TVaultSSLCertificateException) {
+                enrollResponse.setHttpstatus(((TVaultSSLCertificateException) e).getErrorCode());
+            }else{
+                enrollResponse.setHttpstatus(HttpStatus.INTERNAL_SERVER_ERROR);
+            }
             return new ResponseEntity<>(enrollResponse, enrollResponse.getHttpstatus());
         }
 
         return new ResponseEntity<>(enrollResponse, HttpStatus.OK);
+    }
+
+
+
+    /**
+     * To create r/w/o/d policies
+     * @param sslCertificateRequest
+     * @param token
+     * @return
+     */
+
+    private boolean createPolicies(SSLCertificateRequest sslCertificateRequest, String token) {
+        boolean policiesCreated = false;
+        Map<String, Object> policyMap = new HashMap<String, Object>();
+        Map<String, String> accessMap = new HashMap<String, String>();
+        String certificateName = sslCertificateRequest.getCertificateName();
+        String path = SSLCertificateConstants.SSL_CERT_PATH + sslCertificateRequest.getCertificateName();
+
+        //Read Policy
+        accessMap.put(path + "/*", TVaultConstants.READ_POLICY);
+        policyMap.put("accessid", "r_cert_" + certificateName);
+        policyMap.put("access", accessMap);
+
+        String policyRequestJson = ControllerUtil.convetToJson(policyMap);
+        Response r_response = reqProcessor.process("/access/update", policyRequestJson, token);
+
+        //Write Policy
+        accessMap.put(path + "/*", TVaultConstants.WRITE_POLICY);
+        policyMap.put("accessid", "w_cert_" + certificateName);
+        policyRequestJson = ControllerUtil.convetToJson(policyMap);
+        Response w_response = reqProcessor.process("/access/update", policyRequestJson, token);
+
+        //Deny Policy
+        accessMap.put(path + "/*", TVaultConstants.DENY_POLICY);
+        policyMap.put("accessid", "d_cert_" + certificateName);
+        policyRequestJson = ControllerUtil.convetToJson(policyMap);
+        Response d_response = reqProcessor.process("/access/update", policyRequestJson, token);
+
+        //Owner Policy
+        accessMap.put(path + "/*", TVaultConstants.SUDO_POLICY);
+        policyMap.put("accessid", "o_cert_" + certificateName);
+        policyRequestJson = ControllerUtil.convetToJson(policyMap);
+        Response s_response = reqProcessor.process("/access/update", policyRequestJson, token);
+
+        if ((r_response.getHttpstatus().equals(HttpStatus.NO_CONTENT) &&
+                w_response.getHttpstatus().equals(HttpStatus.NO_CONTENT) &&
+                d_response.getHttpstatus().equals(HttpStatus.NO_CONTENT)
+                &&  s_response.getHttpstatus().equals(HttpStatus.NO_CONTENT)
+        ) ||
+                (r_response.getHttpstatus().equals(HttpStatus.OK) &&
+                        w_response.getHttpstatus().equals(HttpStatus.OK) &&
+                        d_response.getHttpstatus().equals(HttpStatus.OK))
+              && s_response.getHttpstatus().equals(HttpStatus.OK)
+        ) {
+            log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+                    put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+                    put(LogMessage.ACTION, "Policies Creation").
+                    put(LogMessage.MESSAGE, "SSL Certificate Policies Creation Success").
+                    put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+                    build()));
+            policiesCreated = true;
+        } else {
+            log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+                    put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+                    put(LogMessage.ACTION, "createPolicies").
+                    put(LogMessage.MESSAGE, "SSL Certificate  policies creation failed").
+                    put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+                    build()));
+        }
+        return policiesCreated;
     }
 
     /**
@@ -395,7 +500,7 @@ public class SSLCertificateService {
      * @return
      * @throws Exception
      */
-    private boolean getCertificate(SSLCertificateRequest sslCertificateRequest, CertManagerLogin certManagerLogin) throws Exception {
+    private boolean getCertificate(SSLCertificateRequest sslCertificateRequest, CertManagerLogin certManagerLogin) throws Exception, TVaultSSLCertificateException {
         boolean isCertificateExists = false;
         String certName = sslCertificateRequest.getCertificateName();
         int containerId = sslCertificateRequest.getTargetSystem().getTargetSystemID();
@@ -412,7 +517,7 @@ public class SSLCertificateService {
                 for (int i = 0; i < jsonArray.size(); i++) {
                     JsonObject jsonElement = jsonArray.get(i).getAsJsonObject();
                     if (jsonElement.get(SSLCertificateConstants.CERTIFICATE_STATUS).getAsString().equalsIgnoreCase(SSLCertificateConstants.ACTIVE)) {
-                        isCertificateExists = true;
+                       isCertificateExists = true;
                         break;
                     }
 
@@ -431,7 +536,7 @@ public class SSLCertificateService {
      * @return
      * @throws Exception
      */
-    private int getTargetSystemServiceId(SSLCertificateRequest sslCertificateRequest, int targetSystemId, CertManagerLogin certManagerLogin) throws Exception {
+    private int getTargetSystemServiceId(SSLCertificateRequest sslCertificateRequest, int targetSystemId, CertManagerLogin certManagerLogin) throws Exception, TVaultSSLCertificateException {
         int targetSystemServiceID = 0;
         String targetSystemName = sslCertificateRequest.getTargetSystemServiceRequest().getName();
         String getTargetSystemServiceEndpoint = "/certmanager/findTargetSystemService";
@@ -467,7 +572,7 @@ public class SSLCertificateService {
      * @return
      * @throws Exception
      */
-    private int getTargetStstem(SSLCertificateRequest sslCertificateRequest, CertManagerLogin certManagerLogin) throws Exception {
+    private int getTargetStstem(SSLCertificateRequest sslCertificateRequest, CertManagerLogin certManagerLogin) throws Exception, TVaultSSLCertificateException {
         int targetSystemID = 0;
         String targetSystemName = sslCertificateRequest.getTargetSystem().getName();
         String getTargetSystemEndpoint = "/certmanager/findTargetSystem";
@@ -501,7 +606,7 @@ public class SSLCertificateService {
      * @return
      * @throws Exception
      */
-    private String getEnrollCSR(CertManagerLogin certManagerLogin, int entityid, int templateid, SSLCertificateRequest sslCertificateRequest) throws Exception {
+    private String getEnrollCSR(CertManagerLogin certManagerLogin, int entityid, int templateid, SSLCertificateRequest sslCertificateRequest) throws Exception, TVaultSSLCertificateException {
         String enrollEndPoint = "/certmanager/getEnrollCSR";
         String enrollTemplateCA = enrollCSRUrl.replace("templateId", String.valueOf(templateid)).replace("entityid", String.valueOf(entityid));
         CertResponse response = reqProcessor.processCert(enrollEndPoint, "", certManagerLogin.getAccess_token(), getCertmanagerEndPoint(enrollTemplateCA));
@@ -552,7 +657,7 @@ public class SSLCertificateService {
      * @return
      * @throws Exception
      */
-    private CertResponse putEnrollCSR(CertManagerLogin certManagerLogin, int entityid, String updatedRequest) throws Exception {
+    private CertResponse putEnrollCSR(CertManagerLogin certManagerLogin, int entityid, String updatedRequest) throws Exception, TVaultSSLCertificateException {
         int enrollKeyId = 0;
         String enrollEndPoint = "/certmanager/putEnrollCSR";
         String enrollTemplateCA = enrollUpdateCSRUrl.replace("entityid", String.valueOf(entityid));
@@ -568,7 +673,7 @@ public class SSLCertificateService {
      * @return
      * @throws Exception
      */
-    private int putEnrollKeys(CertManagerLogin certManagerLogin, int entityid, CertResponse response, int templateid) throws Exception {
+    private int putEnrollKeys(CertManagerLogin certManagerLogin, int entityid, CertResponse response, int templateid) throws Exception, TVaultSSLCertificateException {
         int enrollKeyId = 0;
         String enrollEndPoint = "/certmanager/putEnrollKeys";
         String enrollTemplateCA = enrollKeysUrl.replace("templateId", String.valueOf(templateid)).replace("entityid", String.valueOf(entityid));
@@ -588,7 +693,7 @@ public class SSLCertificateService {
      * @return
      * @throws Exception
      */
-    private CertResponse getEnrollKeys(CertManagerLogin certManagerLogin, int entityid, int templateid) throws Exception {
+    private CertResponse getEnrollKeys(CertManagerLogin certManagerLogin, int entityid, int templateid) throws Exception, TVaultSSLCertificateException {
         String enrollEndPoint = "/certmanager/getEnrollkeys";
         String enrollTemplateCA = enrollKeysUrl.replace("templateId", String.valueOf(templateid)).replace("entityid", String.valueOf(entityid));
         return reqProcessor.processCert(enrollEndPoint, "", certManagerLogin.getAccess_token(), getCertmanagerEndPoint(enrollTemplateCA));
@@ -606,7 +711,7 @@ public class SSLCertificateService {
      * @return
      * @throws Exception
      */
-    private int putEnrollTemplates(CertManagerLogin certManagerLogin, int entityid, CertResponse response, int caId) throws Exception {
+    private int putEnrollTemplates(CertManagerLogin certManagerLogin, int entityid, CertResponse response, int caId) throws Exception, TVaultSSLCertificateException {
         int enrollTemlateId = 0;
         String enrollEndPoint = "/certmanager/putEnrollTemplates";
         String enrollTempletEndpoint = enrollTemplateUrl.replace("caid", String.valueOf(caId)).replace("entityid", String.valueOf(entityid));
@@ -628,7 +733,7 @@ public class SSLCertificateService {
      * @return
      * @throws Exception
      */
-    private CertResponse getEnrollTemplates(CertManagerLogin certManagerLogin, int entityid, int caId) throws Exception {
+    private CertResponse getEnrollTemplates(CertManagerLogin certManagerLogin, int entityid, int caId) throws Exception, TVaultSSLCertificateException {
         String enrollEndPoint = "/certmanager/getEnrollTemplates";
         String enrollTemplateCA = enrollTemplateUrl.replace("caid", String.valueOf(caId)).replace("entityid", String.valueOf(entityid));
         return reqProcessor.processCert(enrollEndPoint, "", certManagerLogin.getAccess_token(), getCertmanagerEndPoint(enrollTemplateCA));
@@ -644,7 +749,7 @@ public class SSLCertificateService {
      * @return
      * @throws Exception
      */
-    private int putEnrollCA(CertManagerLogin certManagerLogin, int entityid, CertResponse response) throws Exception {
+    private int putEnrollCA(CertManagerLogin certManagerLogin, int entityid, CertResponse response) throws Exception, TVaultSSLCertificateException {
         int selectedId = 0;
         String enrollEndPoint = "/certmanager/putEnrollCA";
         String enrollCA = enrollCAUrl.replace("entityid", String.valueOf(entityid));
@@ -666,7 +771,7 @@ public class SSLCertificateService {
      * @return
      * @throws Exception
      */
-    private CertResponse getEnrollCA(CertManagerLogin certManagerLogin, int entityid) throws Exception {
+    private CertResponse getEnrollCA(CertManagerLogin certManagerLogin, int entityid) throws Exception, TVaultSSLCertificateException {
         int selectedId = 0;
         String enrollEndPoint = "/certmanager/getEnrollCA";
         String enrollCA = enrollCAUrl.replace("entityid", String.valueOf(entityid));
@@ -683,7 +788,7 @@ public class SSLCertificateService {
      * @return
      * @throws Exception
      */
-    private CertResponse enrollCertificate(CertManagerLogin certManagerLogin, int entityId) throws Exception {
+    private CertResponse enrollCertificate(CertManagerLogin certManagerLogin, int entityId) throws Exception, TVaultSSLCertificateException {
         String enrollEndPoint = "/certmanager/enroll";
         String targetSystemEndPoint = enrollUrl.replace("entityid", String.valueOf(entityId));
         return reqProcessor.processCert(enrollEndPoint, "", certManagerLogin.getAccess_token(), getCertmanagerEndPoint(targetSystemEndPoint));
@@ -700,7 +805,7 @@ public class SSLCertificateService {
      * @throws Exception
      */
     private TargetSystemService createTargetSystemService(TargetSystemServiceRequest targetSystemServiceRequest, int targetSystemId,
-                                                          CertManagerLogin certManagerLogin) throws Exception {
+                                                          CertManagerLogin certManagerLogin) throws Exception, TVaultSSLCertificateException {
         TargetSystemService targetSystemService = null;
         String createTargetSystemEndPoint = "/certmanager/targetsystemservice/create";
         String targetSystemAPIEndpoint = new StringBuffer().append(targetSystems).append("/").
@@ -795,7 +900,7 @@ public class SSLCertificateService {
      * @param certManagerLogin
      * @return
      */
-    private TargetSystem createTargetSystem(TargetSystem targetSystemRequest, CertManagerLogin certManagerLogin, SSLCertTypeConfig sslCertTypeConfig) throws Exception {
+    private TargetSystem createTargetSystem(TargetSystem targetSystemRequest, CertManagerLogin certManagerLogin, SSLCertTypeConfig sslCertTypeConfig) throws Exception, TVaultSSLCertificateException {
         TargetSystem targetSystem = null;
         String createTargetSystemEndPoint = "/certmanager/targetsystem/create";
         String targetSystemAPIEndpoint = new StringBuffer().append(targetSystemGroups).
