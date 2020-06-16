@@ -10,28 +10,11 @@ public class SSLCertMetadata  implements Serializable {
 
     @JsonProperty("data")
     private SSLCertificateMetadataDetails sslCertificateMetadataDetails;
-    public SSLCertMetadata() {
-        super();
-    }
+
     public SSLCertMetadata(String path, SSLCertificateMetadataDetails sslMetadataDetails) {
         super();
         this.path = path;
         this.sslCertificateMetadataDetails = sslMetadataDetails;
     }
 
-    public String getPath() {
-        return path;
-    }
-
-    public void setPath(String path) {
-        this.path = path;
-    }
-
-    public SSLCertificateMetadataDetails getSslCertificateMetadataDetails() {
-        return sslCertificateMetadataDetails;
-    }
-
-    public void setSslCertificateMetadataDetails(SSLCertificateMetadataDetails sslCertificateMetadataDetails) {
-        this.sslCertificateMetadataDetails = sslCertificateMetadataDetails;
-    }
 }

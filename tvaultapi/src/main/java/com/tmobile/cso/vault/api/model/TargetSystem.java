@@ -28,7 +28,6 @@ public class TargetSystem implements Serializable {
     private String name;
     private String description;
     private String address;
-    private int targetSystemID;
 
 
     public TargetSystem() {
@@ -36,24 +35,9 @@ public class TargetSystem implements Serializable {
 
     public TargetSystem(int targetSystemID, String name, String description, String address) {
         super();
-        this.targetSystemID = targetSystemID;
         this.name = name;
         this.description = description;
         this.address = address;
-    }
-
-    /**
-     * @return the targetSystemID
-     */
-    public int getTargetSystemID() {
-        return targetSystemID;
-    }
-
-    /**
-     * @param targetSystemID the targetSystemID to set
-     */
-    public void setTargetSystemID(int targetSystemID) {
-        this.targetSystemID = targetSystemID;
     }
 
     /**
@@ -105,8 +89,10 @@ public class TargetSystem implements Serializable {
 
     @Override
     public String toString() {
-        return "TargetSystem [name=" + name + ", description=" + description + ", address=" + address
-                + ", targetSystemID=" + targetSystemID + "]";
+        return "TargetSystem{" +
+                "name='" + name + '\'' +
+                ", description='" + description + '\'' +
+                ", address='" + address + '\'' +
+                '}';
     }
-
 }
