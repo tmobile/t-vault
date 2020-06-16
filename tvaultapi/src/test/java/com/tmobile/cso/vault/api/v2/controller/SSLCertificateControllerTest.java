@@ -78,7 +78,6 @@ public class SSLCertificateControllerTest {
         targetSystem.setAddress("Target System address");
         targetSystem.setDescription("Target System Description");
         targetSystem.setName("Target Name");
-        targetSystem.setTargetSystemID(29);
 
         TargetSystemServiceRequest targetSystemServiceRequest = new TargetSystemServiceRequest();
         targetSystemServiceRequest.setHostname("Target System Service Host name");
@@ -104,7 +103,7 @@ public class SSLCertificateControllerTest {
         targetSystem.setAddress("Target System address");
         targetSystem.setDescription("Target System Description");
         targetSystem.setName("Target Name");
-        targetSystem.setTargetSystemID(29);
+        //targetSystem.setTargetSystemID(29);
 
         TargetSystemServiceRequest targetSystemServiceRequest = new TargetSystemServiceRequest();
         targetSystemServiceRequest.setHostname("Target System Service Host name");
@@ -126,24 +125,12 @@ public class SSLCertificateControllerTest {
     }
 
 
-
-    Response getMockResponse(HttpStatus status, boolean success, String expectedBody) {
-        Response response = new Response();
-        response.setHttpstatus(status);
-        response.setSuccess(success);
-        if (expectedBody != "") {
-            response.setResponse(expectedBody);
-        }
-        return response;
-    }
-
     @Test
     public void test_generateSSLCertificate_Error() {
         TargetSystem targetSystem = new TargetSystem();
         targetSystem.setAddress("Target System address");
         targetSystem.setDescription("Target System Description");
         targetSystem.setName("Target Name");
-        targetSystem.setTargetSystemID(29);
 
         TargetSystemServiceRequest targetSystemServiceRequest = new TargetSystemServiceRequest();
         targetSystemServiceRequest.setHostname("Target System Service Host name");
