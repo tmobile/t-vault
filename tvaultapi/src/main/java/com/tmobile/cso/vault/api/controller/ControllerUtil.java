@@ -99,6 +99,8 @@ public final class ControllerUtil {
 	private static String nclmUsername;
 	private static String nclmPassword;
 
+	//Workload token
+	private static String cwmToken;
 	private static String oidcClientName;
 	private static String oidcClientId;
 	private static String oidcClientSecret;
@@ -2229,6 +2231,12 @@ public final class ControllerUtil {
 						sscred.setNclmpassword(line.substring("nclmpassword:".length(), line.length()));
 						log.debug("Successfully read nclmpassword: from sscred file");
 					}
+					else if (line.startsWith("cwmToken:")) {
+						cwmToken = line.substring("cwmToken:".length(), line.length());
+						sscred.setCwmToken(line.substring("cwmToken:".length(), line.length()));
+						log.debug("Successfully read cwmToken: from sscred file");
+					}
+
 				}
 				sc.close();
 			}
@@ -2257,6 +2265,10 @@ public final class ControllerUtil {
 
 	public static String getNclmPassword() {
 		return nclmPassword;
+	}
+
+	public static String getCwmToken() {
+		return cwmToken;
 	}
 
 	/**
