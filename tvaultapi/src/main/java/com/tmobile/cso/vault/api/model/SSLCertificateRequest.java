@@ -28,7 +28,6 @@ public class SSLCertificateRequest implements Serializable {
 	 * 
 	 */
 	private static final long serialVersionUID = -2386135857129157386L;
-	private String SSLCertType;
 	private TargetSystemServiceRequest targetSystemServiceRequest;
 	private TargetSystem targetSystem;
 	private String certificateName;
@@ -66,26 +65,12 @@ public class SSLCertificateRequest implements Serializable {
 		this.targetSystem = targetSystem;
 	}
 
-	/**
-	 * @return the sSLCertTypeConfig
-	 */
-	public String getSSLCertType() {
-		return SSLCertType;
-	}
-
-	/**
-	 * @param sSLCertType the sSLCertType to set
-	 */
-	public void setSSLCertType(String sSLCertType) {
-		SSLCertType = sSLCertType;
-	}
 
 
 	@Override
 	public String toString() {
 		return "SSLCertificateRequest{" +
-				"SSLCertType='" + SSLCertType + '\'' +
-				", targetSystemServiceRequest=" + targetSystemServiceRequest +
+				"targetSystemServiceRequest=" + targetSystemServiceRequest +
 				", targetSystem=" + targetSystem +
 				", certificateName='" + certificateName + '\'' +
 				'}';
