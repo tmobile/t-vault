@@ -17,6 +17,7 @@
 
 package com.tmobile.cso.vault.api.model;
 
+import javax.validation.constraints.NotNull;
 import java.io.Serializable;
 
 public class TargetSystem implements Serializable {
@@ -25,8 +26,10 @@ public class TargetSystem implements Serializable {
      *
      */
     private static final long serialVersionUID = 5517417657503144127L;
+    @NotNull
     private String name;
     private String description;
+    @NotNull
     private String address;
 
 
