@@ -1006,7 +1006,6 @@ public class SSLCertificateServiceTest {
         targetSystemServiceRequest.setMultiIpMonitoringEnabled(true);
 
         sSLCertificateRequest.setCertificateName("CertificateName");
-        sSLCertificateRequest.setSSLCertType(SSLCertType.PRIVATE_MULTI_SAN.name());
         sSLCertificateRequest.setTargetSystem(targetSystem);
         sSLCertificateRequest.setTargetSystemServiceRequest(targetSystemServiceRequest);
         return sSLCertificateRequest;

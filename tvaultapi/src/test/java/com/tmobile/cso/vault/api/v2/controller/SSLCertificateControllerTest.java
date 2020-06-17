@@ -88,7 +88,6 @@ public class SSLCertificateControllerTest {
         targetSystemServiceRequest.setDescription("Target Service Description");
 
         sSLCertificateRequest.setCertificateName("CertificateName");
-        sSLCertificateRequest.setSSLCertType(SSLCertType.PRIVATE_MULTI_SAN.name());
         sSLCertificateRequest.setTargetSystem(targetSystem);
         sSLCertificateRequest.setTargetSystemServiceRequest(targetSystemServiceRequest);
 
@@ -103,7 +102,6 @@ public class SSLCertificateControllerTest {
         targetSystem.setAddress("Target System address");
         targetSystem.setDescription("Target System Description");
         targetSystem.setName("Target Name");
-        //targetSystem.setTargetSystemID(29);
 
         TargetSystemServiceRequest targetSystemServiceRequest = new TargetSystemServiceRequest();
         targetSystemServiceRequest.setHostname("Target System Service Host name");
@@ -114,7 +112,6 @@ public class SSLCertificateControllerTest {
         targetSystemServiceRequest.setDescription("Target Service Description");
 
         sSLCertificateRequest.setCertificateName("CertificateName");
-        sSLCertificateRequest.setSSLCertType(SSLCertType.PRIVATE_MULTI_SAN.name());
         sSLCertificateRequest.setTargetSystem(targetSystem);
         sSLCertificateRequest.setTargetSystemServiceRequest(targetSystemServiceRequest);
 
@@ -141,7 +138,6 @@ public class SSLCertificateControllerTest {
         targetSystemServiceRequest.setDescription("Target Service Description");
 
         sSLCertificateRequest.setCertificateName("CertificateName");
-        sSLCertificateRequest.setSSLCertType(SSLCertType.PRIVATE_MULTI_SAN.name());
         sSLCertificateRequest.setTargetSystem(targetSystem);
         sSLCertificateRequest.setTargetSystemServiceRequest(targetSystemServiceRequest);
 
