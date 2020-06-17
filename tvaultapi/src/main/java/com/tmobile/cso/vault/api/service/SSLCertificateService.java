@@ -118,6 +118,10 @@ public class SSLCertificateService {
 
     private static Logger log = LogManager.getLogger(SSLCertificateService.class);
 
+
+    @Autowired
+    private VaultAuthService vaultAuthService;
+
     /**
      * Login using CertManager
      *
@@ -209,8 +213,13 @@ public class SSLCertificateService {
      */
     public ResponseEntity<CertResponse> generateSSLCertificate(SSLCertificateRequest sslCertificateRequest,
                                                                UserDetails userDetails ,String token) {
-        CertResponse enrollResponse = new CertResponse();
 
+        //Validate input data
+        CertResponse responseData = validateInputData(sslCertificateRequest,token);
+        if(Objects.nonNull(responseData)){
+            return new ResponseEntity<>(responseData, responseData.getHttpstatus());
+        }
+        CertResponse enrollResponse = new CertResponse();
         try {
             log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
                     put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
@@ -235,26 +244,25 @@ public class SSLCertificateService {
 
             SSLCertTypeConfig sslCertTypeConfig = prepareSSLConfigObject(sslCertificateRequest);
 
-            boolean isCertificateExist = getCertificate(sslCertificateRequest, certManagerLogin);
+
+            CertificateData certificateDetails = getCertificate(sslCertificateRequest, certManagerLogin);
             log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
                     put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
                     put(LogMessage.ACTION, String.format("Certificate name =[%s] = isCertificateExist [%s]",
-                            sslCertificateRequest.getCertificateName(), isCertificateExist)).
+                            sslCertificateRequest.getCertificateName(), certificateDetails)).
                     build()));
-            if (!isCertificateExist) {
+            if (Objects.isNull(certificateDetails)) {
                 //Step-2 Validate targetSystem
-                int targetSystemId = getTargetStstem(sslCertificateRequest, certManagerLogin);
+                int targetSystemId = getTargetSystem(sslCertificateRequest, certManagerLogin);
 
                 //Step-3:  CreateTargetSystem
                 if (targetSystemId == 0) {
-                    TargetSystem targetSystem = createTargetSystem(sslCertificateRequest.getTargetSystem(), certManagerLogin, sslCertTypeConfig);
+                    targetSystemId  = createTargetSystem(sslCertificateRequest.getTargetSystem(), certManagerLogin, sslCertTypeConfig);
                     log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
                             put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
-                            put(LogMessage.ACTION, String.format("createTargetSystem Completed Successfully [%s]", targetSystem)).
+                            put(LogMessage.ACTION, String.format("createTargetSystem Completed Successfully [%s]", targetSystemId)).
                             build()));
-                    if (Objects.nonNull(targetSystem)) {
-                        targetSystemId = targetSystem.getTargetSystemID();
-                    }  else {
+                    if (targetSystemId == 0){
                         enrollResponse.setResponse("Target System Creation Failed");
                         enrollResponse.setHttpstatus(HttpStatus.INTERNAL_SERVER_ERROR);
                         enrollResponse.setSuccess(Boolean.FALSE);
@@ -364,7 +372,10 @@ public class SSLCertificateService {
 
 
                     //Metadata creation
-                    String metadataJson = ControllerUtil.populateSSLCertificateMetadata(sslCertificateRequest, userDetails, token);
+                    //Thread.sleep(10000); //TODO-adding delay to make sure certificate created successfully
+                    CertificateData certDetails = getCertificate(sslCertificateRequest, certManagerLogin);
+                    String metadataJson = ControllerUtil.populateSSLCertificateMetadata(sslCertificateRequest,
+                            userDetails, token,certDetails);
                     boolean sslMetaDataCreationStatus = ControllerUtil.createMetadata(metadataJson, token);
                     log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
                             put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
@@ -424,6 +435,51 @@ public class SSLCertificateService {
     }
 
 
+    private CertResponse validateInputData(SSLCertificateRequest sslCertificateRequest,String token) {
+        CertResponse certResponse =null;
+        String errorMessage = null;
+
+        //Token Validation
+        ResponseEntity<String> responseEntity = vaultAuthService.lookup(token);
+        if (responseEntity.getStatusCode() != HttpStatus.OK) {
+            errorMessage = "Input Token is not Valid";
+            log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+                    put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+                    put(LogMessage.ACTION, "Input Token is not Valid").
+                    build()));
+        } else {
+            log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+                    put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+                    put(LogMessage.ACTION, "Token has been validated successfully.").
+                    build()));
+        }
+
+        //Input Data validation
+        if (StringUtils.isEmpty(sslCertificateRequest.getCertificateName())) {
+            errorMessage = "Certificate name should not be null/empty";
+        }  else if (Objects.isNull(sslCertificateRequest.getTargetSystem())) {
+            errorMessage = "Target System details should not be not null";
+        } else if (StringUtils.isEmpty(sslCertificateRequest.getTargetSystem().getName())) {
+            errorMessage = "Target System name should not be null/empty";
+        } else if (StringUtils.isEmpty(sslCertificateRequest.getTargetSystem().getAddress())) {
+            errorMessage = "Target System address should not be null/empty";
+        } else if (Objects.isNull(sslCertificateRequest.getTargetSystemServiceRequest())) {
+            errorMessage = "Target System Service should not be null/empty";
+        } else if (StringUtils.isEmpty(sslCertificateRequest.getTargetSystemServiceRequest().getName())) {
+            errorMessage = "Target System Service name should not be null/empty";
+        } else if (StringUtils.isEmpty(sslCertificateRequest.getTargetSystemServiceRequest().getPort())) {
+            errorMessage = "Target System Service Port  should not be null/empty";
+        }
+
+        if(!StringUtils.isEmpty(errorMessage)) {
+            certResponse = new CertResponse();
+            certResponse.setResponse(errorMessage);
+            certResponse.setHttpstatus(HttpStatus.BAD_REQUEST);
+            certResponse.setSuccess(Boolean.FALSE);
+        }
+
+        return certResponse;
+    }
 
     /**
      * To create r/w/o/d policies
@@ -500,16 +556,16 @@ public class SSLCertificateService {
      * @return
      * @throws Exception
      */
-    private boolean getCertificate(SSLCertificateRequest sslCertificateRequest, CertManagerLogin certManagerLogin) throws Exception, TVaultSSLCertificateException {
+    private CertificateData getCertificate(SSLCertificateRequest sslCertificateRequest, CertManagerLogin certManagerLogin) throws Exception, TVaultSSLCertificateException {
         boolean isCertificateExists = false;
+        CertificateData certificateData=null;
         String certName = sslCertificateRequest.getCertificateName();
-        int containerId = sslCertificateRequest.getTargetSystem().getTargetSystemID();
+        int containerId = getTargetSystemGroupId(SSLCertType.valueOf("PRIVATE_SINGLE_SAN"));//sslCertificateRequest
         String findCertificateEndpoint = "/certmanager/findCertificate";
         String targetEndpoint = findCertificate.replace("certname", String.valueOf(certName)).replace("cid", String.valueOf(containerId));
         CertResponse response = reqProcessor.processCert(findCertificateEndpoint, "", certManagerLogin.getAccess_token(), getCertmanagerEndPoint(targetEndpoint));
         Map<String, Object> responseMap = ControllerUtil.parseJson(response.getResponse());
         if (!MapUtils.isEmpty(responseMap) && (ControllerUtil.parseJson(response.getResponse()).get(SSLCertificateConstants.CERTIFICATES) != null)) {
-            Gson gson = new Gson();
             JsonParser jsonParser = new JsonParser();
             JsonObject jsonObject = (JsonObject) jsonParser.parse(response.getResponse());
             if (jsonObject != null) {
@@ -517,14 +573,18 @@ public class SSLCertificateService {
                 for (int i = 0; i < jsonArray.size(); i++) {
                     JsonObject jsonElement = jsonArray.get(i).getAsJsonObject();
                     if (jsonElement.get(SSLCertificateConstants.CERTIFICATE_STATUS).getAsString().equalsIgnoreCase(SSLCertificateConstants.ACTIVE)) {
-                       isCertificateExists = true;
+                        certificateData= new CertificateData();
+                        certificateData.setCertificateId(Integer.parseInt(jsonElement.get("certificateId").getAsString()));
+                        certificateData.setExpiryData(jsonElement.get("NotAfter").getAsString());
+                        certificateData.setContainerName(jsonElement.get("containerName").getAsString());
+                        certificateData.setCertificateName(jsonElement.get("certificateStatus").getAsString());
                         break;
                     }
 
                 }
             }
         }
-        return isCertificateExists;
+        return certificateData;
     }
 
 
@@ -572,14 +632,13 @@ public class SSLCertificateService {
      * @return
      * @throws Exception
      */
-    private int getTargetStstem(SSLCertificateRequest sslCertificateRequest, CertManagerLogin certManagerLogin) throws Exception, TVaultSSLCertificateException {
+    private int getTargetSystem(SSLCertificateRequest sslCertificateRequest, CertManagerLogin certManagerLogin) throws Exception, TVaultSSLCertificateException {
         int targetSystemID = 0;
         String targetSystemName = sslCertificateRequest.getTargetSystem().getName();
         String getTargetSystemEndpoint = "/certmanager/findTargetSystem";
         String findTargetSystemEndpoint = findTargetSystem.replace("tsgid",
-                String.valueOf(sslCertificateRequest.getTargetSystem().getTargetSystemID()));
+                String.valueOf(getTargetSystemGroupId(SSLCertType.valueOf("PRIVATE_SINGLE_SAN"))));
         CertResponse response = reqProcessor.processCert(getTargetSystemEndpoint, "", certManagerLogin.getAccess_token(), getCertmanagerEndPoint(findTargetSystemEndpoint));
-        Gson gson = new Gson();
         JsonParser jsonParser = new JsonParser();
         JsonObject jsonObject = (JsonObject) jsonParser.parse(response.getResponse());
         JsonArray jsonArray = jsonObject.getAsJsonArray(SSLCertificateConstants.TARGETSYSTEMS);
@@ -886,7 +945,7 @@ public class SSLCertificateService {
      */
     private SSLCertTypeConfig prepareSSLConfigObject(SSLCertificateRequest sslCertificateRequest) {
         SSLCertTypeConfig sslCertTypeConfig = new SSLCertTypeConfig();
-        SSLCertType sslCertType = SSLCertType.valueOf(sslCertificateRequest.getSSLCertType());
+        SSLCertType sslCertType = SSLCertType.valueOf("PRIVATE_SINGLE_SAN");
         sslCertTypeConfig.setSslCertType(sslCertType);
         sslCertTypeConfig.setTargetSystemGroupId(getTargetSystemGroupId(sslCertType));
         return sslCertTypeConfig;
@@ -900,8 +959,9 @@ public class SSLCertificateService {
      * @param certManagerLogin
      * @return
      */
-    private TargetSystem createTargetSystem(TargetSystem targetSystemRequest, CertManagerLogin certManagerLogin, SSLCertTypeConfig sslCertTypeConfig) throws Exception, TVaultSSLCertificateException {
-        TargetSystem targetSystem = null;
+    private int createTargetSystem(TargetSystem targetSystemRequest, CertManagerLogin certManagerLogin,
+                                 SSLCertTypeConfig sslCertTypeConfig) throws Exception, TVaultSSLCertificateException {
+        int  targetSystemId = 0;
         String createTargetSystemEndPoint = "/certmanager/targetsystem/create";
         String targetSystemAPIEndpoint = new StringBuffer().append(targetSystemGroups).
                 append(sslCertTypeConfig.getTargetSystemGroupId()).
@@ -924,13 +984,9 @@ public class SSLCertificateService {
                     build()));
             Map<String, Object> responseMap = ControllerUtil.parseJson(response.getResponse());
             if (!MapUtils.isEmpty(responseMap)) {
-                int ts_id = ((Integer) responseMap.get("targetSystemID")).intValue();
-                String ts_name = (String) responseMap.get("name");
-                String ts_description = (String) responseMap.get("description");
-                String ts_address = (String) responseMap.get("address");
-                targetSystem = new TargetSystem(ts_id, ts_name, ts_description, ts_address);
+                 targetSystemId = (Integer) responseMap.get("targetSystemID");
             }
-            return targetSystem;
+            return targetSystemId;
         } else {
             log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
                     put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
@@ -940,7 +996,7 @@ public class SSLCertificateService {
                     put(LogMessage.STATUS, response.getHttpstatus().toString()).
                     put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
                     build()));
-            return targetSystem;
+            return targetSystemId;
         }
     }
 

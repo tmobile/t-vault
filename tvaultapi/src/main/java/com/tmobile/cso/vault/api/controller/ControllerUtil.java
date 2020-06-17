@@ -2020,19 +2020,26 @@ public final class ControllerUtil {
 	 * @return boolean
 	 */
 	public static String populateSSLCertificateMetadata(SSLCertificateRequest sslCertificateRequest,
-														UserDetails userDetails, String token) {
+														UserDetails userDetails, String token,CertificateData certDetails) {
 		String _path = SSLCertificateConstants.SSL_CERT_PATH + "/" + sslCertificateRequest.getCertificateName();
 		SSLCertificateMetadataDetails sslCertificateMetadataDetails = new SSLCertificateMetadataDetails();
 		sslCertificateMetadataDetails.setName(sslCertificateRequest.getCertificateName());
-		sslCertificateMetadataDetails.setId("");//TODO need to find out the way to get this
+		if(Objects.nonNull(certDetails)) {
+			sslCertificateMetadataDetails.setId(certDetails.getCertificateId());
+			sslCertificateMetadataDetails.setExpiry(certDetails.getExpiryData());
+		} else {
+			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+					put(LogMessage.ACTION, String.format("Certificate Details are not retrieved for Certificate name " +
+									"[%s]",
+							sslCertificateRequest.getCertificateName())).
+					build()));
+		}
 		sslCertificateMetadataDetails.setDescription(""); //TODO need to find out the way to get this
-		sslCertificateMetadataDetails.setOwnerId(userDetails.getUsername()); //TODO need to find out the way to get this
+		sslCertificateMetadataDetails.setOwnerId(userDetails.getUsername());
 		sslCertificateMetadataDetails.setOwnerEmail("Owner Email");//TODO need to find out the way to get this- from
-		sslCertificateMetadataDetails.setExpiry("Expiry");//TODO need to find out the way to get this
-
 		SSLCertMetadata sslCertMetadata = new SSLCertMetadata(_path, sslCertificateMetadataDetails);
 		String jsonStr = JSONUtil.getJSON(sslCertMetadata);
-
 		Map<String, Object> rqstParams = ControllerUtil.parseJson(jsonStr);
 		rqstParams.put("path", _path);
 		return ControllerUtil.convetToJson(rqstParams);

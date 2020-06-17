@@ -56,6 +56,9 @@ public class SSLCertificateServiceTest {
     @Mock
     UserDetails userDetails;
 
+    @Mock
+    VaultAuthService vaultAuthService;
+
     String token;
 
     @Before
@@ -94,6 +97,7 @@ public class SSLCertificateServiceTest {
         userDetails.setAdmin(true);
         userDetails.setClientToken(token);
         userDetails.setSelfSupportToken(token);
+        when(vaultAuthService.lookup(anyString())).thenReturn(new ResponseEntity<>(HttpStatus.OK));
     }
 
     Response getMockResponse(HttpStatus status, boolean success, String expectedBody) {
@@ -184,7 +188,8 @@ public class SSLCertificateServiceTest {
 
         //Create Target System Validation
         when(reqProcessor.processCert(eq("/certmanager/findTargetSystem"), anyObject(), anyString(), anyString())).thenReturn(response1);
-        String createTargetSystemResponse = "{  \"name\": \"TARGET SYSTEM1\",  \"password\": \"testpassword1\"}";
+        String createTargetSystemResponse = "{  \"name\": \"TARGET SYSTEM1\",  \"password\": \"testpassword1\"," +
+                "\"targetSystemID\": \"29\"}";
         response1.setResponse(createTargetSystemResponse);
         Map<String, Object> createTargetSystemMap = new HashMap<>();
         createTargetSystemMap.put("targetSystemID", 29);
@@ -402,7 +407,8 @@ public class SSLCertificateServiceTest {
     @Test
     public void generateSSLCertificate_Certificate_Already_Exists() throws Exception, TVaultSSLCertificateException {
         String jsonStr = "{  \"username\": \"testusername1\",  \"password\": \"testpassword1\"}";
-        String jsonStr1 = "{\"certificates\":[{\"certificateId\":57258,\"certificateStatus\":\"Active\"}]}";
+        String jsonStr1 = "{\"certificates\":[{\"certificateId\":57258,\"certificateStatus\":\"Active\"," +
+                "\"containerName\":\"VenafiBin_12345\",\"NotAfter\":\"2021-06-15T04:35:58-07:00\"}]}";
         CertManagerLoginRequest certManagerLoginRequest = getCertManagerLoginRequest();
         certManagerLoginRequest.setUsername("username");
         certManagerLoginRequest.setPassword("password");
@@ -429,7 +435,7 @@ public class SSLCertificateServiceTest {
         response.setSuccess(true);
 
         CertResponse response1 = new CertResponse();
-        response1.setHttpstatus(HttpStatus.OK);
+        response1.setHttpstatus(HttpStatus.BAD_REQUEST);
         response1.setResponse(jsonStr1);
         response1.setSuccess(true);
         when(reqProcessor.processCert(eq("/auth/certmanager/login"), anyObject(), anyString(), anyString())).thenReturn(response);
@@ -988,7 +994,6 @@ public class SSLCertificateServiceTest {
         targetSystem.setAddress("Target System address");
         targetSystem.setDescription("Target System Description");
         targetSystem.setName("Target Name");
-        targetSystem.setTargetSystemID(29);
 
         TargetSystemServiceRequest targetSystemServiceRequest = new TargetSystemServiceRequest();
         targetSystemServiceRequest.setHostname("Target System Service Host name");
@@ -1001,7 +1006,6 @@ public class SSLCertificateServiceTest {
         targetSystemServiceRequest.setMultiIpMonitoringEnabled(true);
 
         sSLCertificateRequest.setCertificateName("CertificateName");
-        sSLCertificateRequest.setSSLCertType(SSLCertType.PRIVATE_MULTI_SAN.name());
         sSLCertificateRequest.setTargetSystem(targetSystem);
         sSLCertificateRequest.setTargetSystemServiceRequest(targetSystemServiceRequest);
         return sSLCertificateRequest;
