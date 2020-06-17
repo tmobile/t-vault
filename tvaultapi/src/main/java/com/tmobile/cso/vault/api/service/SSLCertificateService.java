@@ -213,12 +213,6 @@ public class SSLCertificateService {
      */
     public ResponseEntity<CertResponse> generateSSLCertificate(SSLCertificateRequest sslCertificateRequest,
                                                                UserDetails userDetails ,String token) {
-
-        //Validate input data
-        CertResponse responseData = validateInputData(sslCertificateRequest,token);
-        if(Objects.nonNull(responseData)){
-            return new ResponseEntity<>(responseData, responseData.getHttpstatus());
-        }
         CertResponse enrollResponse = new CertResponse();
         try {
             log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
@@ -434,52 +428,6 @@ public class SSLCertificateService {
         return new ResponseEntity<>(enrollResponse, HttpStatus.OK);
     }
 
-
-    private CertResponse validateInputData(SSLCertificateRequest sslCertificateRequest,String token) {
-        CertResponse certResponse =null;
-        String errorMessage = null;
-
-        //Token Validation
-        ResponseEntity<String> responseEntity = vaultAuthService.lookup(token);
-        if (responseEntity.getStatusCode() != HttpStatus.OK) {
-            errorMessage = "Input Token is not Valid";
-            log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
-                    put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
-                    put(LogMessage.ACTION, "Input Token is not Valid").
-                    build()));
-        } else {
-            log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
-                    put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
-                    put(LogMessage.ACTION, "Token has been validated successfully.").
-                    build()));
-        }
-
-        //Input Data validation
-        if (StringUtils.isEmpty(sslCertificateRequest.getCertificateName())) {
-            errorMessage = "Certificate name should not be null/empty";
-        }  else if (Objects.isNull(sslCertificateRequest.getTargetSystem())) {
-            errorMessage = "Target System details should not be not null";
-        } else if (StringUtils.isEmpty(sslCertificateRequest.getTargetSystem().getName())) {
-            errorMessage = "Target System name should not be null/empty";
-        } else if (StringUtils.isEmpty(sslCertificateRequest.getTargetSystem().getAddress())) {
-            errorMessage = "Target System address should not be null/empty";
-        } else if (Objects.isNull(sslCertificateRequest.getTargetSystemServiceRequest())) {
-            errorMessage = "Target System Service should not be null/empty";
-        } else if (StringUtils.isEmpty(sslCertificateRequest.getTargetSystemServiceRequest().getName())) {
-            errorMessage = "Target System Service name should not be null/empty";
-        } else if (StringUtils.isEmpty(sslCertificateRequest.getTargetSystemServiceRequest().getPort())) {
-            errorMessage = "Target System Service Port  should not be null/empty";
-        }
-
-        if(!StringUtils.isEmpty(errorMessage)) {
-            certResponse = new CertResponse();
-            certResponse.setResponse(errorMessage);
-            certResponse.setHttpstatus(HttpStatus.BAD_REQUEST);
-            certResponse.setSuccess(Boolean.FALSE);
-        }
-
-        return certResponse;
-    }
 
     /**
      * To create r/w/o/d policies

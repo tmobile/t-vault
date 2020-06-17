@@ -30,6 +30,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.validation.Valid;
 
 @RestController
 @CrossOrigin
@@ -57,7 +58,7 @@ public class SSLCertificateController {
 	@ApiOperation(value = "${SSLCertificateController.sslcreate.value}", notes = "${SSLCertificateController.sslcreate.notes}")
 	@PostMapping(value="/v2/sslcert",consumes="application/json",produces="application/json")
 	public ResponseEntity<CertResponse> generateSSLCertificate(HttpServletRequest request, @RequestHeader(value=
-			"vault-token") String token,@RequestBody SSLCertificateRequest sslCertificateRequest)  {
+			"vault-token") String token,@Valid @RequestBody SSLCertificateRequest sslCertificateRequest)  {
 		UserDetails userDetails = (UserDetails) ((HttpServletRequest) request).getAttribute("UserDetails");
 		return sslCertificateService.generateSSLCertificate(sslCertificateRequest,userDetails,token);
 	}
