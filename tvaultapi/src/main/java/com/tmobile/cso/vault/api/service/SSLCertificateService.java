@@ -445,21 +445,19 @@ public class SSLCertificateService {
             errorMessage = "Input Token is not Valid";
             log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
                     put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
-                    put(LogMessage.ACTION, String.format("Input Token is not Valid]")).
+                    put(LogMessage.ACTION, "Input Token is not Valid").
                     build()));
         } else {
             log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
                     put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
-                    put(LogMessage.ACTION, String.format("Token has been validated successfully.")).
+                    put(LogMessage.ACTION, "Token has been validated successfully.").
                     build()));
         }
 
         //Input Data validation
         if (StringUtils.isEmpty(sslCertificateRequest.getCertificateName())) {
             errorMessage = "Certificate name should not be null/empty";
-        } else if (StringUtils.isEmpty(sslCertificateRequest.getSSLCertType())) {
-            errorMessage = "sslcertType value should not be null/empty";
-        } else if (Objects.isNull(sslCertificateRequest.getTargetSystem())) {
+        }  else if (Objects.isNull(sslCertificateRequest.getTargetSystem())) {
             errorMessage = "Target System details should not be not null";
         } else if (StringUtils.isEmpty(sslCertificateRequest.getTargetSystem().getName())) {
             errorMessage = "Target System name should not be null/empty";
@@ -947,7 +945,7 @@ public class SSLCertificateService {
      */
     private SSLCertTypeConfig prepareSSLConfigObject(SSLCertificateRequest sslCertificateRequest) {
         SSLCertTypeConfig sslCertTypeConfig = new SSLCertTypeConfig();
-        SSLCertType sslCertType = SSLCertType.valueOf(sslCertificateRequest.getSSLCertType());
+        SSLCertType sslCertType = SSLCertType.valueOf("PRIVATE_SINGLE_SAN");
         sslCertTypeConfig.setSslCertType(sslCertType);
         sslCertTypeConfig.setTargetSystemGroupId(getTargetSystemGroupId(sslCertType));
         return sslCertTypeConfig;
