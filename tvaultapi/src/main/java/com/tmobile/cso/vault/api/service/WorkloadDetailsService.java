@@ -68,7 +68,7 @@ public class WorkloadDetailsService {
 	private String workloadEndpoint;
 	@Value("${workload.endpoint.token}")
 	private String workloadEndpointToken;
-	
+
 	@Autowired
 	RestProcessor restprocessor;
 	

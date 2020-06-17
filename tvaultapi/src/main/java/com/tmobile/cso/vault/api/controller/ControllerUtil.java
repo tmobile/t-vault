@@ -96,6 +96,8 @@ public final class ControllerUtil {
 
 	private static SSCred sscred = null;
 
+	//Workload token
+	private static String cwmToken;
 	private static String oidcClientName;
 	private static String oidcClientId;
 	private static String oidcClientSecret;
