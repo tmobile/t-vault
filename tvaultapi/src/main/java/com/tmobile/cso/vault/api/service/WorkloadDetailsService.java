@@ -28,6 +28,7 @@ import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.tmobile.cso.vault.api.controller.ControllerUtil;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
@@ -56,6 +57,7 @@ import com.tmobile.cso.vault.api.model.WorkloadAppDetails;
 import com.tmobile.cso.vault.api.process.RestProcessor;
 import com.tmobile.cso.vault.api.utils.JSONUtil;
 import com.tmobile.cso.vault.api.utils.ThreadLocalContext;
+import org.springframework.util.StringUtils;
 
 @Component
 public class WorkloadDetailsService {
@@ -63,9 +65,6 @@ public class WorkloadDetailsService {
 	@Value("${workload.endpoint}")
 	private String workloadEndpoint;
 	
-	@Value("${workload.endpoint.token}")
-	private String workloadEndpointToken;
-
 	@Autowired
 	RestProcessor restprocessor;
 	
@@ -113,6 +112,17 @@ public class WorkloadDetailsService {
 	 * @return
 	 */
 	private JsonObject getApiResponse(String api)  {
+		String workloadEndpointToken = ControllerUtil.getCwmToken();
+		if (StringUtils.isEmpty(workloadEndpointToken)) {
+			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+					put(LogMessage.ACTION, "getApiResponse").
+					put(LogMessage.MESSAGE, String.format ("Invalid workload token")).
+					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+					build()));
+			return null;
+		}
+
 		JsonParser jsonParser = new JsonParser();
 		Gson gson = new Gson();
 		HttpClient httpClient =null;
@@ -131,8 +141,12 @@ public class WorkloadDetailsService {
 
 				
 		} catch (KeyManagementException | NoSuchAlgorithmException | KeyStoreException e1) {
-			// TODO Auto-generated catch block
-			log.debug(e1.getMessage());
+			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+					put(LogMessage.ACTION, "getApiResponse").
+					put(LogMessage.MESSAGE, String.format ("Faile to create httpClient")).
+					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+					build()));
 		}
 
 		//HttpClient httpClient = HttpClientBuilder.create().build();
