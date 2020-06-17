@@ -70,8 +70,7 @@ public class ResponseExceptionHandler {
 		log.debug(ex.getMessage());
 		StringBuilder errorMessage = new StringBuilder();
 		if(Objects.nonNull(ex.getBindingResult())){
-			errorMessage.append(ex.getBindingResult().getFieldErrors().get(0).getField());
-			errorMessage.append(" ");
+			errorMessage.append(ex.getBindingResult().getFieldErrors().get(0).getField()).append(" ");
 			errorMessage.append(ex.getBindingResult().getAllErrors().get(0).getDefaultMessage());
 		} else {
 			errorMessage.append("Invalid input values");
