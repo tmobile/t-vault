@@ -64,7 +64,7 @@ public class RequestProcessor {
         log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
                 put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
                 put(LogMessage.ACTION, "Process Request").
-                put(LogMessage.MESSAGE, String.format("Processing input for [%s] ", apiEndPoint)).
+                put(LogMessage.MESSAGE, String.format("Processing input for [%s] = [%s] ", apiEndPoint,request)).
                 put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
                 build()));
         Response response = new Response();
