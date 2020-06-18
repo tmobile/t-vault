@@ -17,6 +17,8 @@
 
 package com.tmobile.cso.vault.api.model;
 
+import org.hibernate.validator.constraints.NotEmpty;
+
 import javax.validation.constraints.NotNull;
 import java.io.Serializable;
 
@@ -27,9 +29,11 @@ public class TargetSystem implements Serializable {
      */
     private static final long serialVersionUID = 5517417657503144127L;
     @NotNull
+    @NotEmpty
     private String name;
     private String description;
     @NotNull
+    @NotEmpty
     private String address;
 
 
