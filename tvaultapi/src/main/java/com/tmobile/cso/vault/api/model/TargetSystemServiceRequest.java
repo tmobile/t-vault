@@ -1,10 +1,20 @@
 package com.tmobile.cso.vault.api.model;
 
 
+import org.hibernate.validator.constraints.NotEmpty;
+
+import javax.validation.constraints.Max;
+import javax.validation.constraints.Min;
+import javax.validation.constraints.NotNull;
+
 public class TargetSystemServiceRequest {
+    @Min(value = 1, message = "can't be less than 1 or bigger than 999999")
+    @Max(999999)
     private int port;
     private String hostname;
     private String description;
+    @NotNull
+    @NotEmpty
     private String name;
     private boolean monitoringEnabled;
     private boolean multiIpMonitoringEnabled;

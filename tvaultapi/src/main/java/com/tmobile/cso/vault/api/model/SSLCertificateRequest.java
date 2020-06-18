@@ -17,10 +17,11 @@
 
 package com.tmobile.cso.vault.api.model;
 
-import java.io.Serializable;
+import org.hibernate.validator.constraints.NotEmpty;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import io.swagger.annotations.ApiModelProperty;
+import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
+import java.io.Serializable;
 
 public class SSLCertificateRequest implements Serializable {
 
@@ -28,8 +29,16 @@ public class SSLCertificateRequest implements Serializable {
 	 * 
 	 */
 	private static final long serialVersionUID = -2386135857129157386L;
+	@NotNull
+	@Valid
 	private TargetSystemServiceRequest targetSystemServiceRequest;
+
+	@NotNull
+	@Valid
 	private TargetSystem targetSystem;
+
+	@NotNull
+	@NotEmpty
 	private String certificateName;
 
 
