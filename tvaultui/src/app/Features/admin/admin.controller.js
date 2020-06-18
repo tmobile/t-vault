@@ -1221,8 +1221,7 @@
                 && $scope.certObj.targetSystemServiceRequest != undefined 
                 && $scope.certObj.targetSystemServiceRequest.name != undefined
                 && $scope.certObj.targetSystemServiceRequest.port != undefined
-				&& $scope.certObj.certName != undefined
-                && $scope.certObj.certName !='') {
+				&& $scope.certObj.certName != undefined) {
                     return false;
             }
             return true;

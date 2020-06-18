@@ -30,6 +30,7 @@ import com.tmobile.cso.vault.api.process.Response;
 import com.tmobile.cso.vault.api.utils.TVaultSSLCertificateException;
 import com.tmobile.cso.vault.api.utils.JSONUtil;
 import com.tmobile.cso.vault.api.utils.ThreadLocalContext;
+
 import org.apache.commons.collections.MapUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -117,10 +118,6 @@ public class SSLCertificateService {
     private int public_multi_san_ts_gp_id;
 
     private static Logger log = LogManager.getLogger(SSLCertificateService.class);
-
-
-    @Autowired
-    private VaultAuthService vaultAuthService;
 
     /**
      * Login using CertManager
@@ -370,7 +367,17 @@ public class SSLCertificateService {
                     CertificateData certDetails = getCertificate(sslCertificateRequest, certManagerLogin);
                     String metadataJson = ControllerUtil.populateSSLCertificateMetadata(sslCertificateRequest,
                             userDetails, token,certDetails);
-                    boolean sslMetaDataCreationStatus = ControllerUtil.createMetadata(metadataJson, token);
+                    
+					boolean sslMetaDataCreationStatus = false;
+
+					if (userDetails.isAdmin()) {
+						sslMetaDataCreationStatus = ControllerUtil.createMetadata(metadataJson, token);
+					} else {
+						sslMetaDataCreationStatus = ControllerUtil.createMetadata(metadataJson,
+								userDetails.getSelfSupportToken());
+					}
+                    
+					
                     log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
                             put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
                             put(LogMessage.ACTION, String.format("Metadata created for SSL certificate [%s]",

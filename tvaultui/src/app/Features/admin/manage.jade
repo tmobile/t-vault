@@ -30,6 +30,146 @@ script(type='text/ng-template', id='notify.html')
         .clearfix.bottom-sm-sep
             button.link-style.common-btn.btn.btn-primary.btn-lg(ng-click="close()") Close
 
+ script(type='text/ng-template', id='certificateCreationPopUp.html')
+  loading-state(ng-if="isLoadingModalData")
+  .top-lg-sep(ng-if="!isLoadingModalData")
+    .top-lg-sep
+        .common-header-label.text-center Certificate Creation Successful!
+    .top-lg-sep.notification-text  {{ certificateCreationMessage }}
+    .text-center.bottom-lg-sep.top-lg-sep.notification-button
+      .clearfix.bottom-sm-sep
+        button.link-style.common-btn.btn.btn-primary.btn-lg(ng-click="cancel()") CLOSE  
+
+script(type='text/ng-template', id='certificateCreationFailedPopUp.html')
+  loading-state(ng-if="isLoadingModalData")
+  .top-lg-sep(ng-if="!isLoadingModalData")
+    .top-lg-sep
+        .common-header-label.text-center Certificate Creation Failed!
+    .top-lg-sep.notification-text  {{ certificateCreationMessage }}
+    .text-center.bottom-lg-sep.top-lg-sep.notification-button
+      .clearfix.bottom-sm-sep
+        button.link-style.common-btn.btn.btn-primary.btn-lg(ng-click="cancel()") CLOSE   
+
+script(type='text/ng-template', id='certificatePopup.html')
+          .modal-sep
+            .common-header-label.text-center {{editingApprole.status == true ? "Edit" : "Create"}} Certificate
+
+          .left-lg-sep.right-lg-sep
+            .common-form.modal-inner-wrapper.aws
+              .common-form-row
+                .details-input-group
+                    .common-form-label Container
+                    input.form-control.input-box-style(value="VenafiBin_12345" uib-tooltip="" tooltip-placement="top" tooltip-popup-delay="600" ng-disabled="true")  
+              .cert-conf.clearfix
+                .font-type-normal.collapse-link(ng-click="collapseADDetails()") * Please fill the Target system details 
+                  span.svc-collapse-link(ng-if="isCollapsed") >> 
+                  span.collapse-link(ng-if="!isCollapsed") >> 
+                  span.target-note(ng-if="targetSystemSelected") {{cert.targetSystem.name}}
+                .font-type-normal(uib-collapse="!isCollapsed")
+                  .col-lg-12.col-md-12.col-sm-12.col-xs-12.common-form-row()
+                    .details-input-group
+                      label.common-form-label Existing target system
+                        input(type='radio' id='target_type' value="existing" ng-model="targetSystem.type" ng-checked="targetSystem.type == 'existing'" ng-click="openExistingTargetSystem($event)")
+                      label.common-form-label New target System
+                        input(type='radio' id='target_type' value="new" ng-model="targetSystem.type" ng-checked="targetSystem.type == 'new'" ng-click="openNewTargetSystem($event)")
+                  .font-type-normal(ng-if="!existingTargetSystem")
+                  .col-lg-12.col-md-12.col-sm-12.col-xs-12.common-form-row()
+                      .details-input-group
+                        .common-form-label Certificate Name
+                          span * 
+                        input.form-control.input-box-style( id="certName" ng-model="certObj.certName"  minlength="1" ng-required="true")
+                    .col-lg-12.col-md-12.col-sm-12.col-xs-12.common-form-row()
+                      .details-input-group
+                        .common-form-label Name
+                          span * 
+                        input.form-control.input-box-style( id="tarSystemName" ng-model="certObj.targetSystem.name"  ng-required="true")
+                    .col-lg-12.col-md-12.col-sm-12.col-xs-12.common-form-row()
+                      .details-input-group
+                        .common-form-label Description
+                        input.form-control.input-box-style(id="tarSystemDesc" ng-model="certObj.targetSystem.description")
+                    .col-lg-12.col-md-12.col-sm-12.col-xs-12.common-form-row()
+                      .details-input-group
+                        .common-form-label Hostname/IP Address
+                          span * 
+                        input.form-control.input-box-style(id="tarSystemAddress" ng-model="certObj.targetSystem.address" ng-required="true")
+                  .font-type-normal(ng-if="existingTargetSystem")
+                    .col-lg-12.col-md-12.col-sm-12.col-xs-12.common-form-row()
+                      .details-input-group
+                        .common-form-label Choose Target system
+                          span *
+                        input.form-control.input-box-style(ng-model="cert.targetSystem" typeahead-min-length="3" name="targetSystem" uib-typeahead="key as key.name for key in getTargetSystems($viewValue) | limitTo: 8" typeahead-wait-ms="500" typeahead-on-select="selectTargetSystem(cert.targetSystem)" placeholder="Select the Target system" minlength="3" uib-tooltip="Please input a target system")
+                        div.loader.svcaccid(ng-if='showInputLoader.show && cert.targetSystem.length > 2')
+                          div.ball-spin-fade-loader
+                              div
+                              div
+                              div
+                              div
+                              div
+                              div
+                              div
+                              div
+
+              .cert-conf.clearfix
+                .font-type-normal.collapse-link(ng-click="collapseADDetails()") * Please fill the Service details 
+                  span.svc-collapse-link(ng-if="!isCollapsed") >> 
+                  span.collapse-link(ng-if="isCollapsed") >> 
+                  span.target-note(ng-if="targetSystemServiceSelected") {{cert.targetSystemService.name}}
+                .font-type-normal(uib-collapse="isCollapsed")
+                  .col-lg-12.col-md-12.col-sm-12.col-xs-12.common-form-row()
+                    .details-input-group
+                      label.common-form-label Existing service
+                        input(type='radio' id='service_type' value="existing" ng-model="targetSystemService.type" ng-checked="targetSystemService.type == 'existing'" ng-click="openExistingService($event)")
+                      label.common-form-label New service
+                        input(type='radio' id='service_type' value="new" ng-model="targetSystemService.type" ng-checked="targetSystemService.type == 'new'" ng-click="openNewService($event)")
+                  .font-type-normal(ng-if="!existingService")
+                    .col-lg-12.col-md-12.col-sm-12.col-xs-12.common-form-row()
+                      .details-input-group
+                        .common-form-label Name
+                          span * 
+                        input.form-control.input-box-style(id="tarSysServiceReqName" ng-model="certObj.targetSystemServiceRequest.name"  ng-required="true")
+                    .col-lg-12.col-md-12.col-sm-12.col-xs-12.common-form-row()
+                      .details-input-group
+                        .common-form-label Description
+                         input.form-control.input-box-style(id="tarSysServiceReqDesc" ng-model="certObj.targetSystemServiceRequest.description")
+                     .col-lg-12.col-md-12.col-sm-12.col-xs-12.common-form-row()
+                      .details-input-group
+                        .common-form-label Port *
+                       input.form-control.input-box-style(id="tarSysServiceReqPort" restrict-to-numbers ng-model="certObj.targetSystemServiceRequest.port"  ng-required="true")
+                    .col-lg-5.col-md-5.col-sm-5.col-xs-5.common-form-row()
+                      .details-input-group
+                        .common-form-label Enable monitoring
+                        input(type='checkbox' id="enableMonitoring" ng-model="certObj.targetSystemServiceRequest.monitoringEnabled")
+                    .col-lg-5.col-md-5.col-sm-5.col-xs-5.common-form-row()
+                      .details-input-group
+                        .common-form-label Enable multi-IP monitoring
+                        input(type='checkbox' id="enableMultiIpMonitoring" ng-model="certObj.targetSystemServiceRequest.multiIpMonitoringEnabled")
+                    .col-lg-12.col-md-12.col-sm-12.col-xs-12.common-form-row()
+                      .details-input-group
+                        .common-form-label Hostname for SNI
+                      input.form-control(id="hostName" ng-model="certObj.targetSystemServiceRequest.hostname")
+                  .font-type-normal(ng-if="existingService")
+                    .col-lg-12.col-md-12.col-sm-12.col-xs-12.common-form-row()
+                      .details-input-group
+                        .common-form-label Choose a Service
+                          span *
+                        input.form-control.input-box-style(ng-model="cert.targetSystemService" typeahead-min-length="3" name="targetSystemService" uib-typeahead="key as key.name for key in getTargetSystemService($viewValue) | limitTo: 8" typeahead-wait-ms="500" typeahead-on-select="selectTargetSystemService(cert.targetSystemService)" placeholder="Select the Target system service" minlength="3" uib-tooltip="Please select a target system service")
+                        div.loader.svcaccid(ng-if='showServiceInputLoader.show && cert.targetSystemService.length > 2')
+                          div.ball-spin-fade-loader
+                              div
+                              div
+                              div
+                              div
+                              div
+                              div
+                              div
+                              div
+          .text-center.bottom-lg-sep.modal-sep.aws
+            .clearfix.bottom-sm-sep
+              button.common-btn.btn.btn-primary.btn-lg(id="cert_create_btn" ng-click="createCert()" ng-disabled="isCreateCertBtnDisabled()" ) {{editingApprole.status == true ? "Create" : "Create"}}
+            .clearfix
+              button.link-style.common-btn.btn.btn-default.btn-lg(ng-click="cancel()") Cancel
+
+
 script(type='text/ng-template', id='appRolePopup.html')
           .modal-sep
             .common-header-label.text-center {{editingApprole.status == true ? "Edit" : "Create"}} AppRole
@@ -264,4 +404,52 @@ script(type='text/ng-template', id='manageSecretId.html')
                                                     button.show-more-btn VIEW MORE
                                                     span
                                                         img(src="assets/icons/front-arrow.svg")
-                                    
+                    md-tab(label="Certificate Management" md-on-select="tabChangeForAdminCert()")
+                        md-content(class="md-padding md-content-wrapper page-content-wrapper md-approle-management" ng-init="displayGrid")
+                          .md-content-inner-wrapper
+                              div.onboard-link(ng-show="!isLoadingData && certificateData.certificates.length==0")
+                                  .function-text.link-style.option.right(ng-click="newCertificateConfiguration('lg')")
+                                      .action-icon-wrapper.static
+                                          .rotate.glyphicon.glyphicon-remove-circle
+                                      .create-link.middle-block.hide-in-mobile
+                                          .text CREATE NEW CERTIFICATE
+                              div.cert-management-content
+                                loading-state(ng-if='isLoadingData')                               
+                                div.data-management-content
+                                  .row.change-safe-table-container(ng-if='true')
+                                    loading-state(ng-if='isLoadingData')
+                                    .row.change-data.header.solid-header(ng-show="!isLoadingData && certificateData.certificates.length>0")
+                                        .container.name.col-lg-4.col-md-4.col-sm-3.col-xs-3 CERTIFICATE
+                                        .container.name.action.col-lg-2.col-md-2.col-sm-2.col-xs-2 STATUS
+                                        .container.name.action.col-lg-2.col-md-2.col-sm-2.col-xs-2 ACTION
+                                        div.onboard-link
+                                          .function-text.link-style.option.right(ng-click="newCertificateConfiguration('lg')")
+                                            .action-icon-wrapper.static
+                                                .rotate.glyphicon.glyphicon-remove-circle
+                                            .create-link.middle-block.hide-in-mobile
+                                                .text CREATE NEW CERTIFICATE
+                                    .change-list-table-data.row
+                                        .unavailable-text(ng-show="!isLoadingData && certificateData.certificates.length==0")
+                                            .container.name No Certificates Available
+                                        .row.change-data.item(ng-show="!isLoadingData" ng-class="{'grayBackground' : activeItem == true}" ng-repeat="value in certificateData.certificates | filter: searchCert()")
+                                            .container.name.col-lg-4.col-md-4.col-sm-3.col-xs-3(title="{{ getCertSubjectName(value) }}") {{ getCertSubjectName(value) }}
+                                            .container.radio-inputs.col-lg-2.col-md-2.col-sm-2.col-xs-2
+                                                .down.view
+                                                    .list-icon(ng-if="value.certificateStatus=='Active'")
+                                                      label.active-cert {{ value.certificateStatus}}
+                                                    .list-icon(ng-if="value.certificateStatus=='Expired'")
+                                                      label.expired-cert {{ value.certificateStatus}}
+                                            .container.radio-inputs.col-lg-6.col-md-6.col-sm-6.col-xs-6
+                                                .down.view
+                                                    .list-icon()  Onboard
+                                                .down.view
+                                                    .list-icon()  Renew certificate
+                                                .down.deletesecretids
+                                                    .list-icon(ng-click = "createSecretIDPopUp(value.certificateId)" ) Revoke certificate
+                                            .container.radio-inputs.col-lg-2.col-md-2.col-sm-2.col-xs-2
+                                    .pagination-wrapper(ng-show='certificateData.next')
+                                        .pagination-count(ng-if="numOfCertificates>0") Displaying {{certificateData.limit+certificateData.offset}} of {{certificateData.totalCount}}
+                                        .pagination-button-wrapper(ng-click='showMoreCert()')
+                                            button.show-more-btn VIEW MORE
+                                            span
+                                                img(src="assets/icons/front-arrow.svg")
