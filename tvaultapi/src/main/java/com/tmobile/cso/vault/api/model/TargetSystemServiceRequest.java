@@ -1,6 +1,8 @@
 package com.tmobile.cso.vault.api.model;
 
 
+import org.hibernate.validator.constraints.NotEmpty;
+
 import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
@@ -12,6 +14,7 @@ public class TargetSystemServiceRequest {
     private String hostname;
     private String description;
     @NotNull
+    @NotEmpty
     private String name;
     private boolean monitoringEnabled;
     private boolean multiIpMonitoringEnabled;
