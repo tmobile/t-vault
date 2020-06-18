@@ -68,14 +68,7 @@ public class ResponseExceptionHandler {
 	@ExceptionHandler(MethodArgumentNotValidException.class)
 	protected ResponseEntity<Object> handleException(MethodArgumentNotValidException ex, WebRequest request) {
 		log.debug(ex.getMessage());
-		StringBuilder errorMessage = new StringBuilder();
-		if(Objects.nonNull(ex.getBindingResult())){
-			errorMessage.append(ex.getBindingResult().getFieldErrors().get(0).getField()).append(" ");
-			errorMessage.append(ex.getBindingResult().getAllErrors().get(0).getDefaultMessage());
-		} else {
-			errorMessage.append("Invalid input values");
-		}
-		return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"" + errorMessage+ "\"]}");
+		return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid input values\"]}");
 	}
 
 
