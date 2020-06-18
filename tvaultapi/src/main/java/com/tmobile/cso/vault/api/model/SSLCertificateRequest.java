@@ -17,6 +17,8 @@
 
 package com.tmobile.cso.vault.api.model;
 
+import org.hibernate.validator.constraints.NotEmpty;
+
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import java.io.Serializable;
@@ -36,6 +38,7 @@ public class SSLCertificateRequest implements Serializable {
 	private TargetSystem targetSystem;
 
 	@NotNull
+	@NotEmpty
 	private String certificateName;
 
 
