@@ -98,7 +98,6 @@ public class WorkloadDetailsService {
 						workloadAppDetails.setAppTag((spec.get("id").isJsonNull()?"":spec.get("id").getAsString()));
 						workloadAppDetailsList.add(workloadAppDetails);
 					}
-					
 				}
 			}
 		}
@@ -125,7 +124,6 @@ public class WorkloadDetailsService {
 		}
 
 		JsonParser jsonParser = new JsonParser();
-		Gson gson = new Gson();
 		HttpClient httpClient =null;
 		try {
 
@@ -150,7 +148,6 @@ public class WorkloadDetailsService {
 					build()));
 		}
 
-		//HttpClient httpClient = HttpClientBuilder.create().build();
 		HttpGet getRequest = new HttpGet(api);
 		getRequest.addHeader("accept", "application/json");
 		getRequest.addHeader("Authorization",workloadEndpointToken);
@@ -158,7 +155,7 @@ public class WorkloadDetailsService {
 		StringBuffer jsonResponse = new StringBuffer();
 
 		try {
-			HttpResponse apiResponse = apiResponse = httpClient.execute(getRequest);
+			HttpResponse apiResponse = httpClient.execute(getRequest);
 			if (apiResponse.getStatusLine().getStatusCode() != 200) {
 				return null;
 			}
