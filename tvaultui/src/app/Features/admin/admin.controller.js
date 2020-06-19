@@ -1214,6 +1214,23 @@
             'port': ''
         }
 
+        $scope.replaceSpacesCertName = function(){
+            if ($scope.certObj.certName !== null && $scope.certObj.certName !== undefined) {
+                return $scope.certObj.certName = $scope.certObj.certName.replace(/[ ]/g, '');
+            }
+        }
+
+        $scope.replaceSpacesTargetAddr = function(){
+            if ($scope.certObj.targetSystem.address !== null && $scope.certObj.targetSystem.address !== undefined) {
+                return $scope.certObj.targetSystem.address = $scope.certObj.targetSystem.address.replace(/[ ]/g, '');
+            }
+        }
+        $scope.replaceSpacesHostName = function(){
+            if ($scope.certObj.targetSystemServiceRequest.hostname !== null && $scope.certObj.targetSystemServiceRequest.hostname !== undefined) {
+                return $scope.certObj.targetSystemServiceRequest.hostname = $scope.certObj.targetSystemServiceRequest.hostname.replace(/[ ]/g, '');
+            }
+        }
+
         $scope.isCreateCertBtnDisabled = function() {
             if ($scope.certObj.targetSystem != undefined 
                 && $scope.certObj.targetSystem.name != undefined
@@ -1249,13 +1266,14 @@
             
             $scope.isLoadingData = false;
             if(UtilityService.ifAPIRequestSuccessful(response)){
-                $scope.certificateCreationMessage = response.data.response;
+                $scope.certificateCreationMessage = response.data.messages[0];
                 $scope.certificateCreationPopUp();
             
             }
         } ,
         function (error) {
-            $scope.certificateCreationMessage = error.data.response;
+            var errors = response.data.errors;
+            $scope.certificateCreationMessage = errors[0];
             $scope.certificateCreationFailedPopUp();
             $scope.isLoadingData = false;
             console.log(error);
