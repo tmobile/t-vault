@@ -352,9 +352,15 @@ public class SSLCertificateService {
                         put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
                         put(LogMessage.ACTION, String.format("Enroll Certificate response Completed Successfully [%s]", enrollResponse.getResponse())).
                         build()));
-                if (HttpStatus.OK.equals(response.getHttpstatus())) {
-            //Policy Creation
-                    boolean isPoliciesCreated = createPolicies(sslCertificateRequest, token);
+				if (HttpStatus.OK.equals(response.getHttpstatus())) {
+					// Policy Creation
+					boolean isPoliciesCreated = false;
+
+					if (userDetails.isAdmin()) {
+						isPoliciesCreated = createPolicies(sslCertificateRequest, token);
+					} else {
+						isPoliciesCreated = createPolicies(sslCertificateRequest, userDetails.getSelfSupportToken());
+					}
                     log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
                             put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
                             put(LogMessage.ACTION, String.format("Policies are created for SSL certificate [%s]",
@@ -376,22 +382,33 @@ public class SSLCertificateService {
 						sslMetaDataCreationStatus = ControllerUtil.createMetadata(metadataJson,
 								userDetails.getSelfSupportToken());
 					}
-                    
-					
-                    log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
-                            put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
-                            put(LogMessage.ACTION, String.format("Metadata created for SSL certificate [%s]",
-                                    sslCertificateRequest.getCertificateName())).
-                            build()));
 
                     if ((!isPoliciesCreated) || (!sslMetaDataCreationStatus)) {
                         enrollResponse.setResponse(SSLCertificateConstants.SSL_CREATE_EXCEPTION);
                         enrollResponse.setHttpstatus(HttpStatus.INTERNAL_SERVER_ERROR);
                         enrollResponse.setSuccess(Boolean.FALSE);
+						log.error(JSONUtil.getJSON(ImmutableMap.<String, String> builder()
+								.put(LogMessage.USER,
+										ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString())
+								.put(LogMessage.ACTION,
+										String.format(
+												"Metadata or Policies failed for SSL certificate [%s] - metaDataStatus[%s] - policyStatus[%s]",
+												sslCertificateRequest.getCertificateName(), sslMetaDataCreationStatus,
+												isPoliciesCreated))
+								.build()));
                     } else {
-                        enrollResponse.setResponse(SSLCertificateConstants.SSL_CERT_SUCCESS);
-                        enrollResponse.setHttpstatus(HttpStatus.OK);
-                        enrollResponse.setSuccess(Boolean.TRUE);
+						enrollResponse.setResponse(SSLCertificateConstants.SSL_CERT_SUCCESS);
+						enrollResponse.setHttpstatus(HttpStatus.OK);
+						enrollResponse.setSuccess(Boolean.TRUE);
+						log.debug(JSONUtil.getJSON(ImmutableMap.<String, String> builder()
+								.put(LogMessage.USER,
+										ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString())
+								.put(LogMessage.ACTION,
+										String.format(
+												"Metadata or Policies created for SSL certificate [%s] - metaDataStatus [%s] - policyStatus [%s]",
+												sslCertificateRequest.getCertificateName(), sslMetaDataCreationStatus,
+												isPoliciesCreated))
+								.build()));
                     }
                     return new ResponseEntity<>(enrollResponse, enrollResponse.getHttpstatus());
                 }
@@ -494,7 +511,7 @@ public class SSLCertificateService {
                     build()));
             policiesCreated = true;
         } else {
-            log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+            log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
                     put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
                     put(LogMessage.ACTION, "createPolicies").
                     put(LogMessage.MESSAGE, "SSL Certificate  policies creation failed").
@@ -991,4 +1008,5 @@ public class SSLCertificateService {
         }
         return ts_gp_id;
     }
+    
 }
