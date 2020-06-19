@@ -2,9 +2,7 @@ package com.tmobile.cso.vault.api.v2.controller;
 
 import com.tmobile.cso.vault.api.model.*;
 import com.tmobile.cso.vault.api.process.RequestProcessor;
-import com.tmobile.cso.vault.api.process.Response;
 import com.tmobile.cso.vault.api.service.SSLCertificateService;
-import com.tmobile.cso.vault.api.utils.TVaultSSLCertificateException;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -59,14 +57,14 @@ public class SSLCertificateControllerTest {
 
 
     @Test
-    public void test_authenticate_successful() throws Exception, TVaultSSLCertificateException {
+    public void test_authenticate_successful() throws Exception {
         CertManagerLoginRequest certManagerLoginRequest = new CertManagerLoginRequest("testusername", "testpassword");
         when(sslCertificateService.authenticate(certManagerLoginRequest)).thenReturn(new ResponseEntity<>(HttpStatus.OK));
         assertEquals(HttpStatus.OK, SslCertificateController.authenticate(certManagerLoginRequest).getStatusCode());
     }
 
     @Test
-    public void test_authenticate_Unauthorized() throws Exception, TVaultSSLCertificateException {
+    public void test_authenticate_Unauthorized() throws Exception {
         CertManagerLoginRequest certManagerLoginRequest = new CertManagerLoginRequest("testusername1", "testpassword1");
         when(sslCertificateService.authenticate(certManagerLoginRequest)).thenReturn(new ResponseEntity<>(HttpStatus.UNAUTHORIZED));
         assertEquals(HttpStatus.UNAUTHORIZED, SslCertificateController.authenticate(certManagerLoginRequest).getStatusCode());
