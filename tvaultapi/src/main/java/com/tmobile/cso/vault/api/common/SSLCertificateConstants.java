@@ -1,7 +1,5 @@
 package com.tmobile.cso.vault.api.common;
 
-import java.util.SplittableRandom;
-
 /**
  * SSLCertificate Constants
  */
