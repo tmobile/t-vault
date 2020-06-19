@@ -2,12 +2,12 @@ package com.tmobile.cso.vault.api.service;
 
 import com.google.common.collect.ImmutableMap;
 import com.tmobile.cso.vault.api.controller.ControllerUtil;
+import com.tmobile.cso.vault.api.exception.TVaultValidationException;
 import com.tmobile.cso.vault.api.model.*;
 import com.tmobile.cso.vault.api.process.CertResponse;
 import com.tmobile.cso.vault.api.process.RequestProcessor;
 import com.tmobile.cso.vault.api.process.Response;
 import com.tmobile.cso.vault.api.utils.JSONUtil;
-import com.tmobile.cso.vault.api.utils.TVaultSSLCertificateException;
 import com.tmobile.cso.vault.api.utils.ThreadLocalContext;
 import org.apache.logging.log4j.LogManager;
 import org.junit.Before;
@@ -112,7 +112,7 @@ public class SSLCertificateServiceTest {
 
 
     @Test
-    public void login_failure() throws Exception, TVaultSSLCertificateException {
+    public void login_failure() throws Exception {
         CertResponse response = new CertResponse();
         response.setHttpstatus(HttpStatus.INTERNAL_SERVER_ERROR);
         response.setResponse("Success");
@@ -126,7 +126,7 @@ public class SSLCertificateServiceTest {
 
 
     @Test
-    public void test_authenticate_success() throws Exception, TVaultSSLCertificateException {
+    public void test_authenticate_success() throws Exception {
         String jsonStr = "{  \"username\": \"testusername\",  \"password\": \"testpassword\"}";
         CertResponse response = new CertResponse();
         response.setHttpstatus(HttpStatus.OK);
@@ -140,7 +140,7 @@ public class SSLCertificateServiceTest {
     }
 
     @Test
-    public void test_authenticate_Unauthorized() throws Exception, TVaultSSLCertificateException {
+    public void test_authenticate_Unauthorized() throws Exception {
         String jsonStr = "{  \"username\": \"testusername1\",  \"password\": \"testpassword1\"}";
         CertResponse response = new CertResponse();
         response.setHttpstatus(HttpStatus.UNAUTHORIZED);
@@ -155,7 +155,7 @@ public class SSLCertificateServiceTest {
     }
 
     @Test
-    public void generateSSLCertificate_Success() throws Exception, TVaultSSLCertificateException {
+    public void generateSSLCertificate_Success() throws Exception {
         String jsonStr = "{  \"username\": \"testusername1\",  \"password\": \"testpassword1\"}";
         CertManagerLoginRequest certManagerLoginRequest = getCertManagerLoginRequest();
         certManagerLoginRequest.setUsername("username");
@@ -216,7 +216,7 @@ public class SSLCertificateServiceTest {
         response2.setResponse(createTargetSystemServiceResponse);
         Map<String, Object> createTargetSystemServiceMap = new HashMap<>();
         createTargetSystemServiceMap.put("targetSystemServiceId", 40);
-        createTargetSystemServiceMap.put("hostname", "TARGET SYSTEM SERVICE HOST");
+        createTargetSystemServiceMap.put("hostname", "TARGETSYSTEMSERVICEHOST");
         createTargetSystemServiceMap.put("name", "TARGET SYSTEM SERVICE");
         createTargetSystemServiceMap.put("port", 443);
         createTargetSystemServiceMap.put("targetSystemGroupId", 11);
@@ -256,7 +256,7 @@ public class SSLCertificateServiceTest {
         //enroll
         when(reqProcessor.processCert(eq("/certmanager/enroll"), anyObject(), anyString(), anyString())).thenReturn(getEnrollResonse());
 
-        ResponseEntity<CertResponse> enrollResponse =
+        ResponseEntity<?> enrollResponse =
                 sSLCertificateService.generateSSLCertificate(sslCertificateRequest,userDetails,token);
 
         //Assert
@@ -268,7 +268,7 @@ public class SSLCertificateServiceTest {
 
 
     @Test
-    public void generateSSLCertificate_With_Target_System_Failure() throws Exception, TVaultSSLCertificateException {
+    public void generateSSLCertificate_With_Target_System_Failure() throws Exception {
         String jsonStr = "{  \"username\": \"testusername1\",  \"password\": \"testpassword1\"}";
         CertManagerLoginRequest certManagerLoginRequest = getCertManagerLoginRequest();
         certManagerLoginRequest.setUsername("username");
@@ -317,7 +317,7 @@ public class SSLCertificateServiceTest {
         when(ControllerUtil.parseJson(createTargetSystemResponse)).thenReturn(createTargetSystemMap);
         when(reqProcessor.processCert(eq("/certmanager/targetsystem/create"), anyObject(), anyString(), anyString())).thenReturn(response2);
 
-        ResponseEntity<CertResponse> enrollResponse =
+        ResponseEntity<?> enrollResponse =
                 sSLCertificateService.generateSSLCertificate(sslCertificateRequest,userDetails,token);
 
         //Assert
@@ -327,8 +327,7 @@ public class SSLCertificateServiceTest {
 
 
     @Test
-    public void generateSSLCertificate_With_Target_System_Service_Failure() throws Exception,
-            TVaultSSLCertificateException {
+    public void generateSSLCertificate_With_Target_System_Service_Failure() throws Exception   {
         String jsonStr = "{  \"username\": \"testusername1\",  \"password\": \"testpassword1\"}";
         CertManagerLoginRequest certManagerLoginRequest = getCertManagerLoginRequest();
         certManagerLoginRequest.setUsername("username");
@@ -385,7 +384,7 @@ public class SSLCertificateServiceTest {
         response2.setResponse(createTargetSystemServiceResponse);
         Map<String, Object> createTargetSystemServiceMap = new HashMap<>();
         createTargetSystemServiceMap.put("targetSystemServiceId", 40);
-        createTargetSystemServiceMap.put("hostname", "TARGET SYSTEM SERVICE HOST");
+        createTargetSystemServiceMap.put("hostname", "TARGETSYSTEMSERVICEHOST");
         createTargetSystemServiceMap.put("name", "TARGET SYSTEM SERVICE");
         createTargetSystemServiceMap.put("port", 443);
         createTargetSystemServiceMap.put("targetSystemGroupId", 11);
@@ -399,7 +398,7 @@ public class SSLCertificateServiceTest {
         when(reqProcessor.processCert(eq("/certmanager/targetsystemservice/create"), anyObject(), anyString(), anyString())).thenReturn(response2);
 
 
-        ResponseEntity<CertResponse> enrollResponse =
+        ResponseEntity<?> enrollResponse =
                 sSLCertificateService.generateSSLCertificate(sslCertificateRequest,userDetails,token);
 
         //Assert
@@ -408,9 +407,9 @@ public class SSLCertificateServiceTest {
     }
 
     @Test
-    public void generateSSLCertificate_Certificate_Already_Exists() throws Exception, TVaultSSLCertificateException {
-        String jsonStr = "{  \"username\": \"testusername1\",  \"password\": \"testpassword1\"}";
-        String jsonStr1 = "{\"certificates\":[{\"certificateId\":57258,\"certificateStatus\":\"Active\"," +
+    public void generateSSLCertificate_Certificate_Already_Exists() throws Exception {
+        String jsonStr = "{ \"username\": \"testusername1\",  \"password\": \"testpassword1\"}";
+        String jsonStr1 = "{\"certificates\":[{\"sortedSubjectName\": \"CN=CertificateName.t-mobile.com, C=US, ST=Washington, L=Bellevue, O=T-Mobile USA, Inc\",\"certificateId\":57258,\"certificateStatus\":\"Active\"," +
                 "\"containerName\":\"VenafiBin_12345\",\"NotAfter\":\"2021-06-15T04:35:58-07:00\"}]}";
         CertManagerLoginRequest certManagerLoginRequest = getCertManagerLoginRequest();
         certManagerLoginRequest.setUsername("username");
@@ -445,7 +444,7 @@ public class SSLCertificateServiceTest {
 
         when(reqProcessor.processCert(eq("/certmanager/findCertificate"), anyObject(), anyString(), anyString())).thenReturn(response1);
 
-        ResponseEntity<CertResponse> enrollResponse =
+        ResponseEntity<?> enrollResponse =
                 sSLCertificateService.generateSSLCertificate(sslCertificateRequest,userDetails,token);
 
         //Assert
@@ -456,7 +455,7 @@ public class SSLCertificateServiceTest {
 
 
     @Test
-    public void generateSSLCertificate_With_PolicyFailure() throws Exception, TVaultSSLCertificateException {
+    public void generateSSLCertificate_With_PolicyFailure() throws Exception {
 
         String jsonStr = "{  \"username\": \"testusername1\",  \"password\": \"testpassword1\"}";
         CertManagerLoginRequest certManagerLoginRequest = getCertManagerLoginRequest();
@@ -494,8 +493,8 @@ public class SSLCertificateServiceTest {
         response1.setResponse(createTargetSystemResponse);
         Map<String, Object> createTargetSystemMap = new HashMap<>();
         createTargetSystemMap.put("targetSystemID", 29);
-        createTargetSystemMap.put("name", "TARGET SYSTEM1");
-        createTargetSystemMap.put("description", "TARGET SYSTEM1");
+        createTargetSystemMap.put("name", "TARGETSYSTEM1");
+        createTargetSystemMap.put("description", "TARGETSYSTEM1");
         createTargetSystemMap.put("address", "address");
         when(ControllerUtil.parseJson(createTargetSystemResponse)).thenReturn(createTargetSystemMap);
         when(reqProcessor.processCert(eq("/certmanager/targetsystem/create"), anyObject(), anyString(), anyString())).thenReturn(response1);
@@ -510,12 +509,12 @@ public class SSLCertificateServiceTest {
         response2.setSuccess(true);
         when(reqProcessor.processCert(eq("/certmanager/findTargetSystemService"), anyObject(), anyString(), anyString())).thenReturn(response2);
         String createTargetSystemServiceResponse =
-                "{  \"name\": \"TARGET SYSTEM Service\",  \"password\": , \"testpassword1\"}";
+                "{  \"name\": \"TARGETSYSTEMService\",  \"password\": , \"testpassword1\"}";
         response2.setResponse(createTargetSystemServiceResponse);
         Map<String, Object> createTargetSystemServiceMap = new HashMap<>();
         createTargetSystemServiceMap.put("targetSystemServiceId", 40);
-        createTargetSystemServiceMap.put("hostname", "TARGET SYSTEM SERVICE HOST");
-        createTargetSystemServiceMap.put("name", "TARGET SYSTEM SERVICE");
+        createTargetSystemServiceMap.put("hostname", "TARGETSYSTEMSERVICEHOST");
+        createTargetSystemServiceMap.put("name", "TARGETSYSTEMSERVICE");
         createTargetSystemServiceMap.put("port", 443);
         createTargetSystemServiceMap.put("targetSystemGroupId", 11);
         createTargetSystemServiceMap.put("targetSystemId", 12);
@@ -554,7 +553,7 @@ public class SSLCertificateServiceTest {
         //enroll
         when(reqProcessor.processCert(eq("/certmanager/enroll"), anyObject(), anyString(), anyString())).thenReturn(getEnrollResonse());
 
-        ResponseEntity<CertResponse> enrollResponse =
+        ResponseEntity<?> enrollResponse =
                 sSLCertificateService.generateSSLCertificate(sslCertificateRequest,userDetails,token);
 
         //Assert
@@ -563,7 +562,7 @@ public class SSLCertificateServiceTest {
     }
 
     @Test
-    public void generateSSLCertificate_With_existing_target_system() throws Exception, TVaultSSLCertificateException {
+    public void generateSSLCertificate_With_existing_target_system() throws Exception {
         String jsonStr = "{  \"username\": \"testusername1\",  \"password\": \"testpassword1\"}";
 
         CertManagerLoginRequest certManagerLoginRequest = getCertManagerLoginRequest();
@@ -606,7 +605,7 @@ public class SSLCertificateServiceTest {
         Map<String, Object> requestMap1= new HashMap<>();
         requestMap1.put("targetSystems", "targetSystems");
         requestMap1.put("name", "Target Name");
-        requestMap1.put("targetSystemID", "29");
+        requestMap1.put("targetSystemID", 29);
         when(ControllerUtil.parseJson(jsonStr1)).thenReturn(requestMap1);
 
         when(reqProcessor.processCert(eq("/certmanager/targetsystem/create"), anyObject(), anyString(), anyString())).thenReturn(response1);
@@ -623,7 +622,7 @@ public class SSLCertificateServiceTest {
         response2.setResponse(createTargetSystemServiceResponse);
         Map<String, Object> createTargetSystemServiceMap = new HashMap<>();
         createTargetSystemServiceMap.put("targetSystemServiceId", 40);
-        createTargetSystemServiceMap.put("hostname", "TARGET SYSTEM SERVICE HOST");
+        createTargetSystemServiceMap.put("hostname", "TARGETSYSTEMSERVICEHOST");
         createTargetSystemServiceMap.put("name", "TARGET SYSTEM SERVICE");
         createTargetSystemServiceMap.put("port", 443);
         createTargetSystemServiceMap.put("targetSystemGroupId", 11);
@@ -663,7 +662,7 @@ public class SSLCertificateServiceTest {
         //enroll
         when(reqProcessor.processCert(eq("/certmanager/enroll"), anyObject(), anyString(), anyString())).thenReturn(getEnrollResonse());
 
-        ResponseEntity<CertResponse> enrollResponse =
+        ResponseEntity<?> enrollResponse =
                 sSLCertificateService.generateSSLCertificate(sslCertificateRequest,userDetails,token);
         //Assert
         assertNotNull(enrollResponse);
@@ -672,8 +671,7 @@ public class SSLCertificateServiceTest {
 
 
     @Test
-    public void generateSSLCertificate_With_existing_target_Service_system() throws Exception,
-            TVaultSSLCertificateException {
+    public void generateSSLCertificate_With_existing_target_Service_system() throws Exception {
         String jsonStr = "{  \"username\": \"testusername1\",  \"password\": \"testpassword1\"}";
 
         CertManagerLoginRequest certManagerLoginRequest = getCertManagerLoginRequest();
@@ -716,7 +714,7 @@ public class SSLCertificateServiceTest {
         Map<String, Object> requestMap1= new HashMap<>();
         requestMap1.put("targetSystems", "targetSystems");
         requestMap1.put("name", "Target Name");
-        requestMap1.put("targetSystemID", "29");
+        requestMap1.put("targetSystemID", 29);
         when(ControllerUtil.parseJson(jsonStr1)).thenReturn(requestMap1);
 
         when(reqProcessor.processCert(eq("/certmanager/targetsystem/create"), anyObject(), anyString(), anyString())).thenReturn(response1);
@@ -776,7 +774,7 @@ public class SSLCertificateServiceTest {
         //enroll
         when(reqProcessor.processCert(eq("/certmanager/enroll"), anyObject(), anyString(), anyString())).thenReturn(getEnrollResonse());
 
-        ResponseEntity<CertResponse> enrollResponse =
+        ResponseEntity<?> enrollResponse =
                 sSLCertificateService.generateSSLCertificate(sslCertificateRequest,userDetails,token);
         //Assert
         assertNotNull(enrollResponse);
@@ -784,7 +782,7 @@ public class SSLCertificateServiceTest {
     }
 
     @Test
-    public void generateSSLCertificate_With_MetaDataFailure() throws Exception, TVaultSSLCertificateException {
+    public void generateSSLCertificate_With_MetaDataFailure() throws Exception {
 
         String jsonStr = "{  \"username\": \"testusername1\",  \"password\": \"testpassword1\"}";
         CertManagerLoginRequest certManagerLoginRequest = getCertManagerLoginRequest();
@@ -838,12 +836,12 @@ public class SSLCertificateServiceTest {
         response2.setSuccess(true);
         when(reqProcessor.processCert(eq("/certmanager/findTargetSystemService"), anyObject(), anyString(), anyString())).thenReturn(response2);
         String createTargetSystemServiceResponse =
-                "{  \"name\": \"TARGET SYSTEM Service\",  \"password\": , \"testpassword1\"}";
+                "{  \"name\": \"TARGETSYSTEMService\",  \"password\": , \"testpassword1\"}";
         response2.setResponse(createTargetSystemServiceResponse);
         Map<String, Object> createTargetSystemServiceMap = new HashMap<>();
         createTargetSystemServiceMap.put("targetSystemServiceId", 40);
-        createTargetSystemServiceMap.put("hostname", "TARGET SYSTEM SERVICE HOST");
-        createTargetSystemServiceMap.put("name", "TARGET SYSTEM SERVICE");
+        createTargetSystemServiceMap.put("hostname", "TARGETSYSTEMSERVICEHOST");
+        createTargetSystemServiceMap.put("name", "TARGETSYSTEMSERVICE");
         createTargetSystemServiceMap.put("port", 443);
         createTargetSystemServiceMap.put("targetSystemGroupId", 11);
         createTargetSystemServiceMap.put("targetSystemId", 12);
@@ -882,7 +880,7 @@ public class SSLCertificateServiceTest {
         //enroll
         when(reqProcessor.processCert(eq("/certmanager/enroll"), anyObject(), anyString(), anyString())).thenReturn(getEnrollResonse());
 
-        ResponseEntity<CertResponse> enrollResponse =
+        ResponseEntity<?> enrollResponse =
                 sSLCertificateService.generateSSLCertificate(sslCertificateRequest,userDetails,token);
 
         //Assert
@@ -896,7 +894,7 @@ public class SSLCertificateServiceTest {
 
 
     @Test
-    public void generateSSLCertificate_Failure() throws Exception, TVaultSSLCertificateException {
+    public void generateSSLCertificate_Failure() throws Exception {
         String jsonStr = "{  \"username\": \"testusername1\",  \"password\": \"testpassword1\"}";
         CertManagerLoginRequest certManagerLoginRequest = getCertManagerLoginRequest();
         certManagerLoginRequest.setUsername("username");
@@ -916,9 +914,10 @@ public class SSLCertificateServiceTest {
         response.setHttpstatus(HttpStatus.INTERNAL_SERVER_ERROR);
         response.setResponse(jsonStr);
         response.setSuccess(true);
-       doThrow(new TVaultSSLCertificateException(HttpStatus.INTERNAL_SERVER_ERROR, "Exception while creating certificate"))
+       doThrow(new TVaultValidationException("Exception while creating certificate"))
                 .when(reqProcessor).processCert(anyString(), anyObject(), anyString(), anyString());
-        ResponseEntity<CertResponse> enrollResponse = sSLCertificateService.generateSSLCertificate(sslCertificateRequest,userDetails,token);
+        ResponseEntity<?> enrollResponse = sSLCertificateService.generateSSLCertificate(sslCertificateRequest,
+                userDetails,token);
 
         //Assert
         assertNotNull(enrollResponse);
@@ -928,7 +927,7 @@ public class SSLCertificateServiceTest {
 
     private CertResponse getEnrollResonse() {
         CertResponse enrollResponse = new CertResponse();
-        enrollResponse.setHttpstatus(HttpStatus.OK);
+        enrollResponse.setHttpstatus(HttpStatus.NO_CONTENT);
         enrollResponse.setResponse("Certificate Created Successfully In NCLM");
         enrollResponse.setSuccess(Boolean.TRUE);
 
@@ -1002,21 +1001,21 @@ public class SSLCertificateServiceTest {
     private SSLCertificateRequest getSSLCertificateRequest() {
         SSLCertificateRequest sSLCertificateRequest = new SSLCertificateRequest();
         TargetSystem targetSystem = new TargetSystem();
-        targetSystem.setAddress("Target System address");
-        targetSystem.setDescription("Target System Description");
-        targetSystem.setName("Target Name");
+        targetSystem.setAddress("TargetSystemaddress");
+        targetSystem.setDescription("TargetSystemDescription");
+        targetSystem.setName("TargetName");
 
         TargetSystemServiceRequest targetSystemServiceRequest = new TargetSystemServiceRequest();
-        targetSystemServiceRequest.setHostname("Target System Service Host name");
+        targetSystemServiceRequest.setHostname("TargetSystemServiceHostname");
         targetSystemServiceRequest.setName("Target System Service Name");
         targetSystemServiceRequest.setPort(443);
         targetSystemServiceRequest.setMultiIpMonitoringEnabled(false);
         targetSystemServiceRequest.setMonitoringEnabled(false);
-        targetSystemServiceRequest.setDescription("Target Service Description");
+        targetSystemServiceRequest.setDescription("TargetServiceDescription");
         targetSystemServiceRequest.setMonitoringEnabled(true);
         targetSystemServiceRequest.setMultiIpMonitoringEnabled(true);
 
-        sSLCertificateRequest.setCertificateName("CertificateName");
+        sSLCertificateRequest.setCertificateName("CertificateName.t-mobile.com");
         sSLCertificateRequest.setTargetSystem(targetSystem);
         sSLCertificateRequest.setTargetSystemServiceRequest(targetSystemServiceRequest);
         return sSLCertificateRequest;
