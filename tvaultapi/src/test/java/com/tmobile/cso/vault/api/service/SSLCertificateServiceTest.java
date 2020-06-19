@@ -160,6 +160,9 @@ public class SSLCertificateServiceTest {
         CertManagerLoginRequest certManagerLoginRequest = getCertManagerLoginRequest();
         certManagerLoginRequest.setUsername("username");
         certManagerLoginRequest.setPassword("password");
+        UserDetails userDetails = new UserDetails();
+        userDetails.setSelfSupportToken("tokentTest");
+        String userDetailToken = userDetails.getSelfSupportToken();
 
         SSLCertificateRequest sslCertificateRequest = getSSLCertificateRequest();
         Map<String, Object> requestMap = new HashMap<>();
@@ -221,7 +224,7 @@ public class SSLCertificateServiceTest {
 
         Response responseNoContent = getMockResponse(HttpStatus.NO_CONTENT, true, "");
         when(ControllerUtil.createMetadata(Mockito.any(), any())).thenReturn(true);
-        when(reqProcessor.process(eq("/access/update"),any(),eq(token))).thenReturn(responseNoContent);
+        when(reqProcessor.process(eq("/access/update"),any(),eq(userDetailToken))).thenReturn(responseNoContent);
 
         when(ControllerUtil.parseJson(createTargetSystemServiceResponse)).thenReturn(createTargetSystemServiceMap);
         when(reqProcessor.processCert(eq("/certmanager/targetsystemservice/create"), anyObject(), anyString(), anyString())).thenReturn(response2);
@@ -566,6 +569,10 @@ public class SSLCertificateServiceTest {
         CertManagerLoginRequest certManagerLoginRequest = getCertManagerLoginRequest();
         certManagerLoginRequest.setUsername("username");
         certManagerLoginRequest.setPassword("password");
+        
+        UserDetails userDetails = new UserDetails();
+        userDetails.setSelfSupportToken("tokentTest");
+        String userDetailToken = userDetails.getSelfSupportToken();
 
         SSLCertificateRequest sslCertificateRequest = getSSLCertificateRequest();
         Map<String, Object> requestMap = new HashMap<>();
@@ -624,7 +631,7 @@ public class SSLCertificateServiceTest {
 
         Response responseNoContent = getMockResponse(HttpStatus.NO_CONTENT, true, "");
         when(ControllerUtil.createMetadata(Mockito.any(), any())).thenReturn(true);
-        when(reqProcessor.process(eq("/access/update"),any(),eq(token))).thenReturn(responseNoContent);
+        when(reqProcessor.process(eq("/access/update"),any(),eq(userDetailToken))).thenReturn(responseNoContent);
 
         when(ControllerUtil.parseJson(createTargetSystemServiceResponse)).thenReturn(createTargetSystemServiceMap);
         when(reqProcessor.processCert(eq("/certmanager/targetsystemservice/create"), anyObject(), anyString(), anyString())).thenReturn(response2);
@@ -672,6 +679,10 @@ public class SSLCertificateServiceTest {
         CertManagerLoginRequest certManagerLoginRequest = getCertManagerLoginRequest();
         certManagerLoginRequest.setUsername("username");
         certManagerLoginRequest.setPassword("password");
+        
+        UserDetails userDetails = new UserDetails();
+        userDetails.setSelfSupportToken("tokentTest");
+        String userDetailToken = userDetails.getSelfSupportToken();
 
         SSLCertificateRequest sslCertificateRequest = getSSLCertificateRequest();
         Map<String, Object> requestMap = new HashMap<>();
@@ -733,7 +744,7 @@ public class SSLCertificateServiceTest {
 
         Response responseNoContent = getMockResponse(HttpStatus.NO_CONTENT, true, "");
         when(ControllerUtil.createMetadata(Mockito.any(), any())).thenReturn(true);
-        when(reqProcessor.process(eq("/access/update"),any(),eq(token))).thenReturn(responseNoContent);
+        when(reqProcessor.process(eq("/access/update"),any(),eq(userDetailToken))).thenReturn(responseNoContent);
 
         when(ControllerUtil.parseJson(createTargetSystemServiceResponse)).thenReturn(createTargetSystemServiceMap);
         when(reqProcessor.processCert(eq("/certmanager/targetsystemservice/create"), anyObject(), anyString(), anyString())).thenReturn(response2);
