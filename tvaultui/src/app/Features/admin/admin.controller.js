@@ -1272,7 +1272,7 @@
             }
         } ,
         function (error) {
-            var errors = response.data.errors;
+            var errors = error.data.errors;
             $scope.certificateCreationMessage = errors[0];
             $scope.certificateCreationFailedPopUp();
             $scope.isLoadingData = false;
