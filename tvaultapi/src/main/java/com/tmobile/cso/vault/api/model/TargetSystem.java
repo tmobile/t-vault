@@ -20,6 +20,8 @@ package com.tmobile.cso.vault.api.model;
 import org.hibernate.validator.constraints.NotEmpty;
 
 import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Pattern;
+
 import java.io.Serializable;
 
 public class TargetSystem implements Serializable {
@@ -34,6 +36,7 @@ public class TargetSystem implements Serializable {
     private String description;
     @NotNull
     @NotEmpty
+    @Pattern(regexp = "^[a-zA-Z0-9.-]+$", message = "Address can have alphabets, numbers, . and - characters only")
     private String address;
 
 
