@@ -6,11 +6,13 @@ import org.hibernate.validator.constraints.NotEmpty;
 import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Pattern;
 
 public class TargetSystemServiceRequest {
-    @Min(value = 1, message = "can't be less than 1 or bigger than 999999")
+    @Min(value = 1, message = "Please enter value between 0 and 65536")
     @Max(65535)
     private int port;
+    @Pattern(regexp = "^[a-zA-Z0-9.-]+$", message = "HostName can have alphabets, numbers, . and - characters only")
     private String hostname;
     private String description;
     @NotNull
