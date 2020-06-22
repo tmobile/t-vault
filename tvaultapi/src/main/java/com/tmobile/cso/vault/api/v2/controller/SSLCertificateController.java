@@ -20,9 +20,7 @@ package com.tmobile.cso.vault.api.v2.controller;
 import com.tmobile.cso.vault.api.model.CertManagerLoginRequest;
 import com.tmobile.cso.vault.api.model.SSLCertificateRequest;
 import com.tmobile.cso.vault.api.model.UserDetails;
-import com.tmobile.cso.vault.api.process.CertResponse;
 import com.tmobile.cso.vault.api.service.SSLCertificateService;
-import com.tmobile.cso.vault.api.utils.TVaultSSLCertificateException;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,7 +45,7 @@ public class SSLCertificateController {
 	 */
 	@ApiOperation(value = "${SSLCertificateController.login.value}", notes = "${SSLCertificateController.login.notes}")
 	@PostMapping(value="/v2/auth/sslcert/login",produces="application/json")
-	public ResponseEntity<String> authenticate(@RequestBody CertManagerLoginRequest certManagetLoginRequest) throws Exception, TVaultSSLCertificateException {
+	public ResponseEntity<String> authenticate(@RequestBody CertManagerLoginRequest certManagetLoginRequest) throws Exception {
 		return sslCertificateService.authenticate(certManagetLoginRequest);
 	}
 	/**
@@ -57,7 +55,7 @@ public class SSLCertificateController {
 	 */
 	@ApiOperation(value = "${SSLCertificateController.sslcreate.value}", notes = "${SSLCertificateController.sslcreate.notes}")
 	@PostMapping(value="/v2/sslcert",consumes="application/json",produces="application/json")
-	public ResponseEntity<CertResponse> generateSSLCertificate(HttpServletRequest request, @RequestHeader(value=
+	public ResponseEntity<String> generateSSLCertificate(HttpServletRequest request, @RequestHeader(value=
 			"vault-token") String token,@Valid @RequestBody SSLCertificateRequest sslCertificateRequest)  {
 		UserDetails userDetails = (UserDetails) ((HttpServletRequest) request).getAttribute("UserDetails");
 		return sslCertificateService.generateSSLCertificate(sslCertificateRequest,userDetails,token);

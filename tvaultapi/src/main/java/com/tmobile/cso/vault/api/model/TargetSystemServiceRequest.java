@@ -9,7 +9,7 @@ import javax.validation.constraints.NotNull;
 
 public class TargetSystemServiceRequest {
     @Min(value = 1, message = "can't be less than 1 or bigger than 999999")
-    @Max(999999)
+    @Max(65535)
     private int port;
     private String hostname;
     private String description;

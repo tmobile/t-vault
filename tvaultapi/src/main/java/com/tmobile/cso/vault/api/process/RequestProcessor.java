@@ -29,7 +29,7 @@ import com.tmobile.cso.vault.api.config.ConfigManager;
 import com.tmobile.cso.vault.api.config.Param;
 import com.tmobile.cso.vault.api.exception.LogMessage;
 import com.tmobile.cso.vault.api.exception.NoApiConfigFoundException;
-import com.tmobile.cso.vault.api.utils.TVaultSSLCertificateException;
+import com.tmobile.cso.vault.api.exception.TVaultValidationException;
 import com.tmobile.cso.vault.api.utils.JSONUtil;
 import com.tmobile.cso.vault.api.utils.ThreadLocalContext;
 import org.apache.logging.log4j.LogManager;
@@ -305,7 +305,7 @@ public class RequestProcessor {
      * @param accessToken
      * @return
      */
-    public CertResponse processCert(String apiEndPoint, Object request, String accessToken, String certManagerEndPoint) throws Exception, TVaultSSLCertificateException {
+    public CertResponse processCert(String apiEndPoint, Object request, String accessToken, String certManagerEndPoint) throws Exception {
         log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
                 put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
                 put(LogMessage.ACTION, "processCert").
@@ -393,7 +393,7 @@ public class RequestProcessor {
             certManagerResponseMap.get("error_description").toString() :
                     certManagerResponseMap.get("message").toString();
 
-            throw new TVaultSSLCertificateException(certManagerResponse.getStatusCode(), errorMessage);
+            throw new TVaultValidationException(errorMessage);
         }
 
         if (!(certManagerResponseMap.containsKey("errors") || certManagerResponseMap.size() == 0)) {
