@@ -21,6 +21,8 @@ import org.hibernate.validator.constraints.NotEmpty;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Pattern;
+
 import java.io.Serializable;
 
 public class SSLCertificateRequest implements Serializable {
@@ -39,6 +41,7 @@ public class SSLCertificateRequest implements Serializable {
 
 	@NotNull
 	@NotEmpty
+	@Pattern(regexp = "^[a-zA-Z0-9.-]+$", message = "certificateName can have alphabets, numbers, . and - characters only")
 	private String certificateName;
 
 
