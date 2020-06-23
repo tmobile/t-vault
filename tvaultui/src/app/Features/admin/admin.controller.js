@@ -1198,6 +1198,10 @@
                 "targetSystem": '',
                 "targetSystemService": ''
             }
+            $scope.hostNameErrorMessage = '';
+            $scope.certNameErrorMessage = '';
+            $scope.targetAddrErrorMessage = '';
+            $scope.portErrorMessage = '';
             Modal.createModal(size, 'certificatePopup.html', 'AdminCtrl', $scope);
         }
 
@@ -1252,9 +1256,10 @@
         }
 
         $scope.targetAddrPatternValidation = function () {
-            $scope.targetAddrErrorMessage = '';
+            $scope.targetAddrErrorMessage = "";
             $scope.addrInValid = false;
-            if ($scope.certObj.targetSystem.address != null && $scope.certObj.targetSystem.address != undefined) {
+            if ($scope.certObj.targetSystem.address != null && $scope.certObj.targetSystem.address != undefined
+                && $scope.certObj.targetSystem.address != "") {
                 var reg = new RegExp("^[a-zA-Z0-9.-]+$")
                 if (!reg.test($scope.certObj.targetSystem.address)) {
                     $scope.targetAddrErrorMessage = "IP Address can have alphabets, numbers, . and - characters only."
@@ -1266,7 +1271,8 @@
         $scope.hostNamePatternValidation = function () {
             $scope.hostNameErrorMessage = '';
             $scope.hostNameInValid = false;
-            if ($scope.certObj.targetSystemServiceRequest.hostname != null && $scope.certObj.targetSystemServiceRequest.hostname != undefined &&  $scope.certObj.targetSystemServiceRequest.hostname != "") {
+            if ($scope.certObj.targetSystemServiceRequest.hostname != null && $scope.certObj.targetSystemServiceRequest.hostname != undefined
+                && $scope.certObj.targetSystemServiceRequest.hostname != "") {
                 var reg = new RegExp("^[a-zA-Z0-9.-]+$")
                 if (!reg.test($scope.certObj.targetSystemServiceRequest.hostname)) {
                     $scope.hostNameErrorMessage = "HostName can have alphabets, numbers, . and - characters only."
@@ -1325,10 +1331,12 @@
             if ($scope.certObj.targetSystem != undefined
                 && $scope.certObj.targetSystem.name != undefined
                 && $scope.certObj.targetSystem.address != undefined
+                && $scope.certObj.targetSystem.address != ""
                 && $scope.certObj.targetSystemServiceRequest != undefined
                 && $scope.certObj.targetSystemServiceRequest.name != undefined
                 && $scope.certObj.targetSystemServiceRequest.port != undefined
-                && $scope.certObj.certDetails.certName != undefined
+                && $scope.certObj.certName != undefined
+                && $scope.certObj.certName != ""
                 && !$scope.certInValid
                 && !$scope.addrInValid
                 && !$scope.portInValid                
@@ -1342,7 +1350,7 @@
             return true;
         }
 
-        $scope.selectAppName = function (applicationObj) {  
+        $scope.selectAppName = function (applicationObj) {
             $scope.applicationName = applicationObj;
             $scope.svcacc.appName = applicationObj.type;
             $scope.appNameSelected = true;
@@ -1377,7 +1385,7 @@
                         value = value + " (AppID: "+ appID + ", AppTag: " + appTag + ")";
                         $scope.appNameTableOptions.push({"type":value, "name": name, "tag": appTag, "id": appID});
                     }
-                    if ($scope.certObj.certDetails.applicationName =="" || $scope.certObj.certDetails.applicationName ==null 
+                    if ($scope.certObj.certDetails.applicationName =="" || $scope.certObj.certDetails.applicationName ==null
                     || $scope.certObj.certDetails.applicationName == undefined) {
                         document.getElementById('applicationName').value = '';
                         document.getElementById('applicationName').placeholder="Search application name";
@@ -1405,7 +1413,7 @@
                 var sslcertType = 'PRIVATE_SINGLE_SAN';
                 $scope.certObj.sslcertType = sslcertType;
                 $scope.certObj.targetSystem.targetSystemID = targetSystemID;
-                var reqObjtobeSent =  {                    
+                var reqObjtobeSent =  {
                     "sslcertType": $scope.certObj.sslcertType,
                     "targetSystem": $scope.certObj.targetSystem,
                     "targetSystemServiceRequest": $scope.certObj.targetSystemServiceRequest,
@@ -1461,7 +1469,7 @@
                 $scope.isTargetCollapsed = true;
                 $scope.isTargetServiceCollapsed = true;
                 $scope.isCertCollapsed = false;
-            } 
+            }
         }
 
         $scope.openExistingTargetSystem = function (e) {
