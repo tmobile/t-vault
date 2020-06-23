@@ -162,14 +162,14 @@ script(type='text/ng-template', id='certificatePopup.html')
                       .details-input-group
                         .common-form-label Name*
                         input.form-control.input-box-style( id="tarSystemName" ng-model="certObj.targetSystem.name" ng-required="true")
-                    .col-lg-11.col-md-11.col-sm-11.col-xs-11.common-form-row()
+                    .col-lg-12.col-md-12.col-sm-12.col-xs-12.common-form-row()
                       .details-input-group
                         .common-form-label Description 
                         input.form-control.input-box-style(id="tarSystemDesc" ng-model="certObj.targetSystem.description")
-                    .col-lg-11.col-md-11.col-sm-11.col-xs-11.common-form-row()
+                    .col-lg-12.col-md-12.col-sm-12.col-xs-12.common-form-row()
                       .details-input-group 
                         .common-form-label Hostname/IP Address*
-                        input.form-control.input-box-style(id="tarSystemAddress" ng-model="certObj.targetSystem.address" ng-change="replaceSpacesTargetAddr()"  ng-required="true")
+                        input.form-control.input-box-style(id="tarSystemAddress"  ng-change="replaceSpacesTargetAddr()" ng-model="certObj.targetSystem.address")
                   div.key-acceptance-info() {{ targetAddrErrorMessage }}
                   .font-type-normal(ng-if="existingTargetSystem")
                     .col-lg-12.col-md-12.col-sm-12.col-xs-12.common-form-row()
@@ -201,15 +201,15 @@ script(type='text/ng-template', id='certificatePopup.html')
                       label.common-form-label New service
                         input(type='radio' id='service_type' value="new" ng-model="targetSystemService.type" ng-checked="targetSystemService.type == 'new'" ng-click="openNewService($event)")
                   .font-type-normal(ng-if="!existingService")
-                    .col-lg-11.col-md-11.col-sm-11.col-xs-11.common-form-row()
+                    .col-lg-12.col-md-12.col-sm-12.col-xs-12.common-form-row()
                       .details-input-group
                         .common-form-label Name*
                         input.form-control.input-box-style(id="tarSysServiceReqName" ng-model="certObj.targetSystemServiceRequest.name"  ng-required="true")
-                    .col-lg-11.col-md-11.col-sm-11.col-xs-11.common-form-row()
+                    .col-lg-12.col-md-12.col-sm-12.col-xs-12.common-form-row()
                       .details-input-group
                         .common-form-label Description
                         input.form-control.input-box-style(id="tarSysServiceReqDesc" ng-model="certObj.targetSystemServiceRequest.description")
-                    .col-lg-11.col-md-11.col-sm-11.col-xs-11.common-form-row()
+                    .col-lg-12.col-md-12.col-sm-12.col-xs-12.common-form-row()
                       .details-input-group
                         .common-form-label Port*
                         input.form-control.input-box-style(id="tarSysServiceReqPort"  restrict-to-numbers ng-model="certObj.targetSystemServiceRequest.port" minlength="1" maxlength="5" ng-change="portNumValidation()" ng-required="true")
@@ -222,7 +222,7 @@ script(type='text/ng-template', id='certificatePopup.html')
                       .details-input-group
                         .common-form-label Enable multi-IP monitoring
                         input(type='checkbox' id="enableMultiIpMonitoring" ng-model="certObj.targetSystemServiceRequest.multiIpMonitoringEnabled")
-                    .col-lg-11.col-md-11.col-sm-11.col-xs-11.common-form-row()
+                    .col-lg-12.col-md-12.col-sm-12.col-xs-12.common-form-row()
                       .details-input-group
                         .common-form-label Hostname for SNI
                       input.form-control(id="hostName" ng-change="replaceSpacesHostName()" ng-model="certObj.targetSystemServiceRequest.hostname")

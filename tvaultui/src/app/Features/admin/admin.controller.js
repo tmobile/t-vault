@@ -1198,6 +1198,10 @@
                 "targetSystem": '',
                 "targetSystemService": ''
             }
+            $scope.hostNameErrorMessage = '';
+            $scope.certNameErrorMessage = '';
+            $scope.targetAddrErrorMessage = '';
+            $scope.portErrorMessage = '';
             Modal.createModal(size, 'certificatePopup.html', 'AdminCtrl', $scope);
         }
 
@@ -1252,9 +1256,10 @@
         }
 
         $scope.targetAddrPatternValidation = function () {
-            $scope.targetAddrErrorMessage = '';
+            $scope.targetAddrErrorMessage = "";
             $scope.addrInValid = false;
-            if ($scope.certObj.targetSystem.address != null && $scope.certObj.targetSystem.address != undefined) {
+            if ($scope.certObj.targetSystem.address != null && $scope.certObj.targetSystem.address != undefined
+                && $scope.certObj.targetSystem.address != "") {
                 var reg = new RegExp("^[a-zA-Z0-9.-]+$")
                 if (!reg.test($scope.certObj.targetSystem.address)) {
                     $scope.targetAddrErrorMessage = "IP Address can have alphabets, numbers, . and - characters only."
@@ -1266,7 +1271,8 @@
         $scope.hostNamePatternValidation = function () {
             $scope.hostNameErrorMessage = '';
             $scope.hostNameInValid = false;
-            if ($scope.certObj.targetSystemServiceRequest.hostname != null && $scope.certObj.targetSystemServiceRequest.hostname != undefined &&  $scope.certObj.targetSystemServiceRequest.hostname != "") {
+            if ($scope.certObj.targetSystemServiceRequest.hostname != null && $scope.certObj.targetSystemServiceRequest.hostname != undefined 
+                && $scope.certObj.targetSystemServiceRequest.hostname != "") {
                 var reg = new RegExp("^[a-zA-Z0-9.-]+$")
                 if (!reg.test($scope.certObj.targetSystemServiceRequest.hostname)) {
                     $scope.hostNameErrorMessage = "HostName can have alphabets, numbers, . and - characters only."
@@ -1325,6 +1331,7 @@
             if ($scope.certObj.targetSystem != undefined
                 && $scope.certObj.targetSystem.name != undefined
                 && $scope.certObj.targetSystem.address != undefined
+                && $scope.certObj.targetSystem.address != ""
                 && $scope.certObj.targetSystemServiceRequest != undefined
                 && $scope.certObj.targetSystemServiceRequest.name != undefined
                 && $scope.certObj.targetSystemServiceRequest.port != undefined
