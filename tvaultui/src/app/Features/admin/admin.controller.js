@@ -1256,15 +1256,13 @@
         $scope.hostNamePatternValidation = function () {
             $scope.hostNameErrorMessage = '';
             $scope.hostNameInValid = false;
-            if ($scope.certObj.targetSystemServiceRequest.hostname != null && $scope.certObj.targetSystemServiceRequest.hostname != undefined) {
+            if ($scope.certObj.targetSystemServiceRequest.hostname != null && $scope.certObj.targetSystemServiceRequest.hostname != undefined &&  $scope.certObj.targetSystemServiceRequest.hostname != "") {
                 var reg = new RegExp("^[a-zA-Z0-9.-]+$")
                 if (!reg.test($scope.certObj.targetSystemServiceRequest.hostname)) {
                     $scope.hostNameErrorMessage = "HostName can have alphabets, numbers, . and - characters only."
                     $scope.hostNameInValid = true;
                 }
-            } else {
-                $scope.hostNameInValid = true;
-            }
+            } 
         }
 
         $scope.replaceSpacesTargetAddr = function () {
@@ -1302,7 +1300,7 @@
                 && $scope.certObj.certName != undefined
                 && !$scope.certInValid
                 && !$scope.addrInValid
-                && !$scope.addrInValid
+                && !$scope.portInValid                
                 && !$scope.hostNameInValid) {
                 return false;
             }
