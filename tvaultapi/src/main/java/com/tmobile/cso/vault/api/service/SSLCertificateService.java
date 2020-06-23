@@ -436,7 +436,8 @@ public class SSLCertificateService {
                         put(LogMessage.ACTION, String.format("Certificate Already Available in  NCLM with Active Status " +
                                 "[%s]", enrollResponse.toString())).
                         build()));
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"messages\":[\""+enrollResponse.getResponse()+ "\"]}");
+                return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\""+enrollResponse.getResponse()+
+                        "\"]}");
             }
         } catch (TVaultValidationException tex) {
             log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
