@@ -24,12 +24,8 @@ public final class SSLCertificateConstants {
     public static final String SSL_CERT_PATH = "metadata/sslcerts";
     public static final String SSL_CREATE_EXCEPTION="SSL Certificate creation failed";
     public static final String SSL_CERT_SUCCESS="Certificate Created Successfully In NCLM";
-    public static final String SSL_CERT_SUCCESS_POLICY_FAILED="Certificate Created Successfully In NCLM ,however " +
-            "policies creation failed.";
-    public static final String SSL_CERT_SUCCESS_METADATA_FAILED= "Certificate Created Successfully In NCLM ,however " +
-            "metadata creation failed.";
-    public static  final String TMOBILE_DOMAIN_NAME=".t-mobile.com";
     public static final String CUSTOMER_LOGIN="CertManager Login";
+    public static final String ACCESS_ID="accessid";
 
 
 
