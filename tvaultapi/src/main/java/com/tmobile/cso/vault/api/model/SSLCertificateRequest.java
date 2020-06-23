@@ -17,6 +17,9 @@
 
 package com.tmobile.cso.vault.api.model;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import io.swagger.annotations.ApiModelProperty;
+import org.hibernate.validator.constraints.Email;
 import org.hibernate.validator.constraints.NotEmpty;
 
 import javax.validation.Valid;
@@ -24,7 +27,7 @@ import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
 
 import java.io.Serializable;
-
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class SSLCertificateRequest implements Serializable {
 
 	/**
@@ -44,8 +47,37 @@ public class SSLCertificateRequest implements Serializable {
 	@Pattern(regexp = "^[a-zA-Z0-9.-]+$", message = "certificateName can have alphabets, numbers, . and - characters only")
 	private String certificateName;
 
+	@NotNull
+	@NotEmpty
+	private String appName;
 
+	@NotNull
+	@NotEmpty
+	@Email
+	private String certOwnerEmailId;
+	@NotNull
+	@NotEmpty
+	@ApiModelProperty(example="internal", position=2)
+	private String certType;
 	public SSLCertificateRequest() {
+	}
+	public String getAppName() {
+		return appName;
+	}
+	public void setAppName(String appName) {
+		this.appName = appName;
+	}
+	public String getCertOwnerEmailId() {
+		return certOwnerEmailId;
+	}
+	public void setCertOwnerEmailId(String certOwnerEmailId) {
+		this.certOwnerEmailId = certOwnerEmailId;
+	}
+	public String getCertType() {
+		return certType;
+	}
+	public void setCertType(String certType) {
+		this.certType = certType;
 	}
 
 	public TargetSystemServiceRequest getTargetSystemServiceRequest() {
