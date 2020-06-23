@@ -449,7 +449,7 @@ public class SSLCertificateServiceTest {
 
         //Assert
         assertNotNull(enrollResponse);
-        assertEquals(HttpStatus.OK, enrollResponse.getStatusCode());
+        assertEquals(HttpStatus.BAD_REQUEST, enrollResponse.getStatusCode());
     }
 
 
