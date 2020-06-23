@@ -1358,7 +1358,7 @@
                 if (UtilityService.ifAPIRequestSuccessful(response)) {
                     $scope.isApplicationsLoading = false;
                     var data = response.data;
-                    $scope.appNameTableOptions;
+                    $scope.appNameTableOptions=[];
                      for (var index = 0;index<data.length;index++) {
                         var value = '';
                         var appTag = '';
@@ -1376,9 +1376,9 @@
                         }
                         value = value + " (AppID: "+ appID + ", AppTag: " + appTag + ")";
                         $scope.appNameTableOptions.push({"type":value, "name": name, "tag": appTag, "id": appID});
-                        $scope.appNameTableOptions.applicationName=appTag;
                     }
-                    if ($scope.applicationName =="" || $scope.applicationName ==null || $scope.applicationName == undefined) {
+                    if ($scope.certObj.certDetails.applicationName =="" || $scope.certObj.certDetails.applicationName ==null 
+                    || $scope.certObj.certDetails.applicationName == undefined) {
                         document.getElementById('applicationName').value = '';
                         document.getElementById('applicationName').placeholder="Search application name";
                     }
@@ -1405,12 +1405,11 @@
                 var sslcertType = 'PRIVATE_SINGLE_SAN';
                 $scope.certObj.sslcertType = sslcertType;
                 $scope.certObj.targetSystem.targetSystemID = targetSystemID;
-                var reqObjtobeSent =
-                {
+                var reqObjtobeSent =  {                    
                     "sslcertType": $scope.certObj.sslcertType,
                     "targetSystem": $scope.certObj.targetSystem,
                     "targetSystemServiceRequest": $scope.certObj.targetSystemServiceRequest,
-                    "appName":$scope.certObj.certDetails.applicationName,
+                    "appName":$scope.certObj.certDetails.applicationName.tag,
                     "certificateName":$scope.certObj.certDetails.certName,
                     "certType":$scope.certObj.certDetails.certType,
                     "certOwnerEmailId":$scope.certObj.certDetails.ownerEmail
