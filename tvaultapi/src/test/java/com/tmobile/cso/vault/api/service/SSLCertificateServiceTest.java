@@ -2572,7 +2572,7 @@ public class SSLCertificateServiceTest {
         assertEquals(HttpStatus.OK, responseEntityActual.getStatusCode());
         assertEquals(responseEntityExpected.getBody(), responseEntityActual.getBody());
     }
-    
+
     @Test
     public void test_getgetTargetSystemList_External_success()throws Exception{
         String token = "12345";
@@ -4121,7 +4121,7 @@ public class SSLCertificateServiceTest {
         //Assert
         assertNotNull(renewCertResponse);
     }
-    
+
     @Test
     public void renewCertificate_Non_Admin_External_Success() throws Exception {
     	String certficateName = "testCert.t-mobile.com";
@@ -4694,7 +4694,7 @@ public class SSLCertificateServiceTest {
 
          assertEquals(HttpStatus.OK, responseEntityActual.getStatusCode());
     }
-    
+
     @Test
     public void transferSSLCertificate_Success() throws Exception {
     	String jsonStr = "{  \"username\": \"testusername1\",  \"password\": \"testpassword1\"}";
@@ -4735,11 +4735,11 @@ public class SSLCertificateServiceTest {
         certResponse.setSuccess(true);
         when(reqProcessor.processCert(eq("/auth/certmanager/login"), anyObject(), anyString(), anyString())).thenReturn(certResponse);
 
-        
+
         when(ControllerUtil.updateMetaData(anyString(), anyMap(), anyString())).thenReturn(Boolean.TRUE);
 
         when(reqProcessor.process("/auth/userpass/read","{\"username\":\"testuser2\"}",token)).thenReturn(userResponse);
-        
+
         DirectoryObjects obj =new DirectoryObjects();
         DirectoryObjectsList objList = new DirectoryObjectsList();
         DirectoryUser user = new DirectoryUser();
@@ -4748,15 +4748,15 @@ public class SSLCertificateServiceTest {
         Object[] values = null;
         objList.setValues(values);
         obj.setData(objList);
-        
+
         when(directoryService.searchByUPN(anyString())).
                 thenReturn(ResponseEntity.status(HttpStatus.OK).body(obj));
-        
+
         ResponseEntity<?> transferCertResponse =
                 sSLCertificateService.updateCertOwner(token,"internal","certificatename.t-mobile.com","owneremail@test.com",userDetails);
 
         //Assert
-        assertNotNull(transferCertResponse);        
+        assertNotNull(transferCertResponse);
     }
 
     @Test
@@ -4875,7 +4875,7 @@ public class SSLCertificateServiceTest {
         certResponse.setSuccess(true);
         when(reqProcessor.processCert(eq("/auth/certmanager/login"), anyObject(), anyString(), anyString())).thenReturn(certResponse);
 
-        
+
         when(ControllerUtil.updateMetaData(anyString(), anyMap(), anyString())).thenReturn(Boolean.TRUE);
         DirectoryObjects obj =new DirectoryObjects();
         DirectoryObjectsList objList = new DirectoryObjectsList();
@@ -4885,7 +4885,7 @@ public class SSLCertificateServiceTest {
         Object[] values = null;
         objList.setValues(values);
         obj.setData(objList);
-        
+
         when(directoryService.searchByUPN(anyString())).
                 thenReturn(ResponseEntity.status(HttpStatus.OK).body(obj));
 
@@ -4893,10 +4893,10 @@ public class SSLCertificateServiceTest {
                 sSLCertificateService.updateCertOwner(token,"internal","certificatename.t-mobile.com","owneremail@test.com",userDetails);
 
         //Assert
-        assertNotNull(transferCertResponse);   
+        assertNotNull(transferCertResponse);
         assertEquals(HttpStatus.BAD_REQUEST, transferCertResponse.getStatusCode());
     }
-    
+
     @Test
     public void transferSSLCertificate_External_Failure() throws Exception {
     	String jsonStr = "{  \"username\": \"testusername1\",  \"password\": \"testpassword1\"}";
@@ -4936,7 +4936,7 @@ public class SSLCertificateServiceTest {
         certResponse.setSuccess(true);
         when(reqProcessor.processCert(eq("/auth/certmanager/login"), anyObject(), anyString(), anyString())).thenReturn(certResponse);
 
-        
+
         when(ControllerUtil.updateMetaData(anyString(), anyMap(), anyString())).thenReturn(Boolean.TRUE);
         DirectoryObjects obj =new DirectoryObjects();
         DirectoryObjectsList objList = new DirectoryObjectsList();
@@ -4946,7 +4946,7 @@ public class SSLCertificateServiceTest {
         Object[] values = null;
         objList.setValues(values);
         obj.setData(objList);
-        
+
         when(directoryService.searchByUPN(anyString())).
                 thenReturn(ResponseEntity.status(HttpStatus.OK).body(obj));
 
@@ -4954,10 +4954,10 @@ public class SSLCertificateServiceTest {
                 sSLCertificateService.updateCertOwner(token,"external","certificatename.t-mobile.com","owneremail@test.com",userDetails);
 
         //Assert
-        assertNotNull(transferCertResponse);   
+        assertNotNull(transferCertResponse);
         assertEquals(HttpStatus.BAD_REQUEST, transferCertResponse.getStatusCode());
     }
-    
+
     private CertResponse getTemplateParametersResponse(){
         String enrollCSRResponse = "{\"templateParameters\":{\"templateId\":47,\"typeName\":\"META_TEMPLATE\"," +
                 "\"items\":[{\"id\":86586,\"parameterId\":105,\"displayName\":\"Client ID\",\"name\":\"clientid\",\"value\":\"1\",\"required\":true,\"hidden\":false,\"disabled\":false,\"owner\":{\"entityRef\":\"GLOBAL\",\"entityId\":0,\"displayName\":\"Global policy\"}},{\"id\":86589,\"parameterId\":95,\"displayName\":\"Requester Name\",\"name\":\"appname\",\"value\":\"\",\"required\":true,\"hidden\":false,\"disabled\":false,\"owner\":{\"entityRef\":\"GLOBAL\",\"entityId\":0,\"displayName\":\"Global policy\"}},{\"id\":86590,\"parameterId\":94,\"displayName\":\"Requester email\",\"name\":\"appemail\",\"value\":\"\",\"required\":true,\"hidden\":false,\"disabled\":false,\"owner\":{\"entityRef\":\"GLOBAL\",\"entityId\":0,\"displayName\":\"Global policy\"}},{\"id\":86588,\"parameterId\":96,\"displayName\":\"Requester telephone number\",\"name\":\"apptelephone\",\"value\":\"\",\"required\":true,\"hidden\":false,\"disabled\":false,\"owner\":{\"entityRef\":\"GLOBAL\",\"entityId\":0,\"displayName\":\"Global policy\"}},{\"id\":86584,\"parameterId\":104,\"displayName\":\"The lifetime of the certificate in years\",\"name\":\"certyears\",\"value\":\"\",\"required\":true,\"hidden\":false,\"disabled\":false,\"owner\":{\"entityRef\":\"GLOBAL\",\"entityId\":0,\"displayName\":\"Global policy\"}},{\"id\":86599,\"parameterId\":93,\"displayName\":\"Additional emails\",\"name\":\"additionalemails\",\"value\":\"\",\"required\":false,\"hidden\":false,\"disabled\":false,\"owner\":{\"entityRef\":\"GLOBAL\",\"entityId\":0,\"displayName\":\"Global policy\"}}]}}";

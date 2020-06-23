@@ -4,7 +4,7 @@ package com.tmobile.cso.vault.api.common;
  * SSLCertificate Constants
  */
 public final class SSLCertificateConstants {
-	
+
 	private SSLCertificateConstants() {}
 
     public static final String ACCESS_TOKEN = "access_token";

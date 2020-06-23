@@ -20,10 +20,10 @@ public class CertificateData {
     public List<String> getDnsNames() {
         return dnsNames;
     }
-    
+
     public void setDnsNames(List<String> dnsNames) {
         this.dnsNames = dnsNames;
-    }    
+    }
 
     public List<Integer> getDeployStatus() {
 		return deployStatus;

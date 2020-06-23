@@ -21,8 +21,8 @@ script(type='text/ng-template', id='renewCertPopup.html')
       .clearfix.bottom-sm-sep
         button.common-btn.btn.btn-primary.btn-lg(ng-click="renewCertificate(certDetails)") RENEW
       .clearfix
-        button.link-style.common-btn.btn.btn-default.btn-lg(ng-click="close()") CANCEL       
-        
+        button.link-style.common-btn.btn.btn-default.btn-lg(ng-click="close()") CANCEL
+
 script(type='text/ng-template', id='error.html')
     .row
         .top-lg-sep
@@ -79,7 +79,7 @@ script(type='text/ng-template', id='renewCertificateFailedPopUp.html')
       .top-lg-sep.notification-text  {{ renewMessage }}
     .text-center.bottom-lg-sep.top-lg-sep.notification-button
       .clearfix.bottom-sm-sep
-        button.link-style.common-btn.btn.btn-primary.btn-lg(ng-click="cancel()") CLOSE 
+        button.link-style.common-btn.btn.btn-primary.btn-lg(ng-click="cancel()") CLOSE
 script(type='text/ng-template', id='revocationPopUp.html')
   loading-state(ng-if="isLoadingModalData")
   .top-lg-sep(ng-if="!isLoadingModalData")
@@ -88,7 +88,7 @@ script(type='text/ng-template', id='revocationPopUp.html')
       .top-lg-sep.notification-text  {{ revocationMessage }}
     .text-center.bottom-lg-sep.top-lg-sep.notification-button
       .clearfix.bottom-sm-sep
-        button.link-style.common-btn.btn.btn-primary.btn-lg(ng-click="cancelRevoke()") CLOSE   
+        button.link-style.common-btn.btn.btn-primary.btn-lg(ng-click="cancelRevoke()") CLOSE
 
 script(type='text/ng-template', id='revokeReasonsPopUp.html')
           .modal-sep
@@ -104,12 +104,12 @@ script(type='text/ng-template', id='revokeReasonsPopUp.html')
             .clearfix.bottom-sm-sep
               button.common-btn.btn.btn-primary.btn-lg(ng-click="revoke()") REVOKE
             .clearfix
-              button.link-style.common-btn.btn.btn-default.btn-lg(ng-click="cancelRevoke()") Cancel       
+              button.link-style.common-btn.btn.btn-default.btn-lg(ng-click="cancelRevoke()") Cancel
 
 script(type='text/ng-template', id='transferCertPopup.html')
           .modal-sep
             .common-header-label.text-center Transfer certificate owner
-            
+
           .left-lg-sep.right-lg-sep
             .common-form.modal-inner-wrapper.aws
               .common-form-row
@@ -166,7 +166,7 @@ script(type='text/ng-template', id='transferCertSuccessPopup.html')
     .text-center.bottom-lg-sep.top-lg-sep.notification-button
       .clearfix.bottom-sm-sep
         button.link-style.common-btn.btn.btn-primary.btn-lg(ng-click="successCancel()") CLOSE
-              
+
 script(type='text/ng-template', id='transferCertFailedPopup.html')
   loading-state(ng-if="isLoadingModalData")
   .top-lg-sep(ng-if="!isLoadingModalData")
@@ -175,7 +175,7 @@ script(type='text/ng-template', id='transferCertFailedPopup.html')
       .top-lg-sep.notification-text  {{ transferMessage }}
     .text-center.bottom-lg-sep.top-lg-sep.notification-button
       .clearfix.bottom-sm-sep
-        button.link-style.common-btn.btn.btn-primary.btn-lg(ng-click="cancel()") CLOSE               
+        button.link-style.common-btn.btn.btn-primary.btn-lg(ng-click="cancel()") CLOSE
 
 script(type='text/ng-template', id='validateCertificateDetailPopUp.html')
   loading-state(ng-if="isLoadingModalData")
@@ -198,9 +198,9 @@ script(type='text/ng-template', id='certificatePopup.html')
                     .certificate-form-label Container
                     input.form-control.input-box-style(value="VenafiBin_12345" uib-tooltip="" tooltip-placement="top" tooltip-popup-delay="600" ng-disabled="true")  
               .cert-conf.clearfix
-                .font-type-normal.collapse-link(ng-click="collapseCertDetails(3)") Step 1/3: Please fill the Certificate details 
-                  span.collapse-link(ng-if="!isCertCollapsed") >> 
-                  span.collapse-link(ng-if="isCertCollapsed") >> 
+                .font-type-normal.collapse-link(ng-click="collapseCertDetails(3)") Step 1/3: Please fill the Certificate details
+                  span.collapse-link(ng-if="!isCertCollapsed") >>
+                  span.collapse-link(ng-if="isCertCollapsed") >>
                 .font-type-normal(uib-collapse="isCertCollapsed" )
                     .col-lg-12.col-md-12.col-sm-12.col-xs-12.common-form-row()
                       .details-input-group
@@ -247,9 +247,9 @@ script(type='text/ng-template', id='certificatePopup.html')
                             button.common-btn.dns-add-btn(ng-click="addDns(multiSanDnsName)" ng-disabled="dnsInvalid") Add DNS
                         div.form-control.input-box-style.dns-list(id="dnslist")
               .cert-conf.clearfix
-                .font-type-normal.collapse-link(ng-click="collapseCertDetails(1)") Step 2/3: Please fill the Target system details 
-                  span.collapse-link(ng-if="!isTargetCollapsed") >> 
-                  span.collapse-link(ng-if="isTargetCollapsed") >> 
+                .font-type-normal.collapse-link(ng-click="collapseCertDetails(1)") Step 2/3: Please fill the Target system details
+                  span.collapse-link(ng-if="!isTargetCollapsed") >>
+                  span.collapse-link(ng-if="isTargetCollapsed") >>
                 .font-type-normal(uib-collapse="isTargetCollapsed")
                   .col-lg-12.col-md-12.col-sm-12.col-xs-12.common-form-row()
                     .details-input-group
@@ -265,10 +265,10 @@ script(type='text/ng-template', id='certificatePopup.html')
                         div.key-acceptance-info() {{ targetSysErrorMessage }}
                     .col-lg-12.col-md-12.col-sm-12.col-xs-12.common-form-row()
                       .details-input-group
-                        .certificate-form-label(uib-tooltip="What this system does") Description 
+                        .certificate-form-label(uib-tooltip="What this system does") Description
                         input.form-control.input-box-style(id="tarSystemDesc" ng-model="certObj.targetSystem.description")
                     .col-lg-12.col-md-12.col-sm-12.col-xs-12.common-form-row()
-                      .details-input-group 
+                      .details-input-group
                         .certificate-form-label(uib-tooltip="This is used for monitoring the deployment of your certificate") Hostname/IP Address*
                         input.form-control.input-box-style(id="tarSystemAddress"  ng-change="replaceSpacesTargetAddr()" ng-model="certObj.targetSystem.address")
                   div.key-acceptance-info() {{ targetAddrErrorMessage }}
@@ -290,9 +290,9 @@ script(type='text/ng-template', id='certificatePopup.html')
                               div
 
               .cert-conf.clearfix
-                .font-type-normal.collapse-link(ng-click="collapseCertDetails(2)") Step 3/3: Please fill the Service details 
-                  span.collapse-link(ng-if="!isTargetServiceCollapsed") >> 
-                  span.collapse-link(ng-if="isTargetServiceCollapsed") >> 
+                .font-type-normal.collapse-link(ng-click="collapseCertDetails(2)") Step 3/3: Please fill the Service details
+                  span.collapse-link(ng-if="!isTargetServiceCollapsed") >>
+                  span.collapse-link(ng-if="isTargetServiceCollapsed") >>
                 .font-type-normal(uib-collapse="isTargetServiceCollapsed")
                   .col-lg-12.col-md-12.col-sm-12.col-xs-12.common-form-row()
                     .details-input-group
@@ -310,11 +310,11 @@ script(type='text/ng-template', id='certificatePopup.html')
                       .details-input-group
                         .certificate-form-label(uib-tooltip="Description of the service") Description
                         input.form-control.input-box-style(id="tarSysServiceReqDesc" ng-model="certObj.targetSystemServiceRequest.description")
-                    .col-lg-12.col-md-12.col-sm-12.col-xs-12.common-form-row()
+                     .col-lg-12.col-md-12.col-sm-12.col-xs-12.common-form-row()
                       .details-input-group
                         .certificate-form-label(uib-tooltip="The port that monitoring will look for the certificate on") Port*
                         input.form-control.input-box-style(id="tarSysServiceReqPort"  restrict-to-numbers ng-model="certObj.targetSystemServiceRequest.port" minlength="1" maxlength="5" ng-change="portNumValidation()" ng-required="true")
-                     div.key-acceptance-info() {{ portErrorMessage }} 
+                     div.key-acceptance-info() {{ portErrorMessage }}
                     .col-lg-6.col-md-6.col-sm-6.col-xs-6.common-form-row()
                       .details-input-group
                         .certificate-form-label Enable monitoring
@@ -605,7 +605,7 @@ script(type='text/ng-template', id='manageSecretId.html')
                                                       .action-icon-wrapper.static
                                                           .rotate.glyphicon.glyphicon-remove-circle
                                                       .create-link.middle-block.hide-in-mobile
-                                                          .text CREATE NEW CERTIFICATE                                              
+                                                          .text CREATE NEW CERTIFICATE
                                                   .row.change-data.item(ng-show="!isLoadingData" ng-class="{'grayBackground' : activeItem == true}" ng-repeat="value in certificateData.certificates |  filter:searchValue | limitTo: certpaginationLimit()")
                                                       .container.name.col-lg-3.col-md-3.col-sm-2.col-xs-2(title="{{ getCertSubjectName(value) }}") {{ getCertSubjectName(value) }}
                                                       .container.name.col-lg-3.col-md-2.col-sm-1.col-xs-2(title="{{ getCertExpirationDate(value) }}") {{ getCertExpirationDate(value) }}
@@ -614,12 +614,12 @@ script(type='text/ng-template', id='manageSecretId.html')
                                                               .list-icon(ng-if="value.certificateStatus=='Active'")
                                                                 label.active-cert {{ value.certificateStatus}}
                                                               .list-icon(ng-if="value.certificateStatus=='Revoked'")
-                                                                label.revoked-cert {{ value.certificateStatus}}  
+                                                                label.revoked-cert {{ value.certificateStatus}}
                                                               .list-icon(ng-if="value.certificateStatus=='Expired'")
                                                                 label.expired-cert {{ value.certificateStatus}}
                                                       .container.radio-inputs.col-lg-5.col-md-6.col-sm-6.col-xs-6
                                                           .down.view
-                                                              .list-icon(ng-click="goToAddPermissions(value)")  View/Edit                                                           
+                                                              .list-icon(ng-click="goToAddPermissions(value)")  View/Edit
                                                           .down.view
                                                               .list-icon(ng-click="transferCertPopup(value)") Transfer Owner
                                               .pagination-wrapper(ng-show='hasMoreCertsToShow()')
@@ -628,8 +628,8 @@ script(type='text/ng-template', id='manageSecretId.html')
                                                       button.show-more-btn VIEW MORE
                                                       span
                                                           img(src="assets/icons/front-arrow.svg")
-                                                          
-                                                         
+
+
                                     md-tab( md-on-select="getExtCertificates()" ng-attr-label="External certificates" )
                                         md-content(class="md-padding md-content-wrapper" ng-if="!isExternalCert")
                                             md-content(class="md-content-wrapper")
@@ -640,7 +640,7 @@ script(type='text/ng-template', id='manageSecretId.html')
                                                   .unavailable-text(ng-show="!isLoadingData && finalFilterCertResults.length==0")
                                                       .container.name No Certificates Available
                                               .row.change-data.header.solid-header(ng-show="!isLoadingData && (certificateData.certificates.length>0 && finalFilterCertResults.length != '0')")
-                                                  .container.name.col-lg-4.col-md-4.col-sm-3.col-xs-3 CERTIFICATE                                                  
+                                                  .container.name.col-lg-4.col-md-4.col-sm-3.col-xs-3 CERTIFICATE
                                                   .container.name.action.col-lg-4.col-md-4.col-sm-4.col-xs-4 ACTION
                                                   div.create-certificate-link
                                                     .function-text.link-style.option.right(ng-click="newCertificateConfiguration('lg')")
@@ -648,15 +648,15 @@ script(type='text/ng-template', id='manageSecretId.html')
                                                           .rotate.glyphicon.glyphicon-remove-circle
                                                       .create-link.middle-block.hide-in-mobile
                                                           .text CREATE NEW CERTIFICATE
-                                              
+
                                                   .row.change-data.item(ng-show="!isLoadingData" ng-class="{'grayBackground' : activeItem == true}" ng-repeat="value in certificateData.certificates |  filter:searchValue | limitTo: certpaginationLimit()")
-                                                      .container.name.col-lg-4.col-md-4.col-sm-3.col-xs-3(title="{{ getCertSubjectName(value) }}") {{ getCertSubjectName(value) }}                                                      
+                                                      .container.name.col-lg-4.col-md-4.col-sm-3.col-xs-3(title="{{ getCertSubjectName(value) }}") {{ getCertSubjectName(value) }}
                                                       .container.radio-inputs.col-lg-6.col-md-6.col-sm-6.col-xs-6
                                                           .down.view
-                                                              .list-icon(ng-click="goToAddPermissions(value)")  View/Edit                                                           
+                                                              .list-icon(ng-click="goToAddPermissions(value)")  View/Edit
                                                           .down.view
-                                                              .list-icon(ng-click="transferCertPopup(value)") Transfer Owner     
-                                                              
+                                                              .list-icon(ng-click="transferCertPopup(value)") Transfer Owner
+
                                                       .container.radio-inputs.col-lg-2.col-md-2.col-sm-2.col-xs-2
                                               .pagination-wrapper(ng-show='hasMoreCertsToShow()')
                                                   .pagination-count(ng-if="numOfCertificates>0") Displaying {{certcurrentshown}} of {{numOfCertificates}}

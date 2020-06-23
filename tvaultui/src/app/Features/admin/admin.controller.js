@@ -1857,7 +1857,7 @@
 
         }
 
-        $scope.collapseADDetails = function() {
+        $scope.collapseADDetails = function () {
             $scope.isCollapsed = !$scope.isCollapsed;
         }
 
