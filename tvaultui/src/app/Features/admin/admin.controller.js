@@ -37,6 +37,10 @@
         $scope.isTargetCollapsed = true;
         $scope.isTargetServiceCollapsed = true;
         $scope.dnsInvalid = true;
+        $scope.isCertificatePreview = false;
+        $scope.isCertificateManagePreview = false;
+        $scope.certificateDetails = [];
+        $scope.appName = '';
         // Type of safe to be filtered from the rest
 
         $scope.safeType = {
@@ -111,14 +115,7 @@
         $rootScope.accessorId = "";
         $scope.accessorListToDelete = [];
         $scope.rolenameExists = false;
-        var setTargetSystemServiceList = function (message, data) {
-            $scope.serviceListTableOptions = data;
-            $scope.dropDownServiceList = {
-                'selectedGroupOption': {"type": message},
-                'tableOptions': $scope.serviceListTableOptions
-            }
-        }
-
+        
         var init = function () {
             if (!SessionStore.getItem("myVaultKey")) { /* Check if user is in the same session */
                 $state.go('/');
@@ -147,36 +144,17 @@
             $scope.serviceListTableOptions = [];
             $scope.userSearchList = [];
             $scope.isUserSearchLoading = false;
-            $scope.isOwnerSelected = false;
-            setTargetSystemServiceList("No target system selected", []);
+            $scope.isOwnerSelected = false;            
             $scope.certificateData.certificates = [];
             $scope.multiSan = [];
             $scope.selectedMultiSan = [];
             $scope.multiSanDnsName = { name:""};
-
-            $scope.targetSystem = {
-                'description': '',
-                'address': '',
-                'targetSystemID': '',
-                'name': ''
-            }
-
-            $scope.targetSystemServiceRequest = {
-                'description': '',
-                'hostname': '',
-                'monitoringEnabled': '',
-                'multiIpMonitoringEnabled': '',
-                'name': '',
-                'port': ''
-            }
+            $scope.isCertificatePreview = false;
+            $scope.isCertificateManagePreview = false;            
             $scope.certObj = {
                 'sslcertType': 'PRIVATE_SINGLE_SAN',
                 'certDetails': {"certType":"internal"},
-                'certName': '',
-                'targetSystemType':  { "type": "new" },
-                'targetSystemServiceRequestType':  { "type": "new" },
-                "targetSystem": $scope.targetSystem,
-                "targetSystemService": ''
+                'certName': ''
             }
 
             $scope.showInputLoader = {
@@ -220,36 +198,19 @@
         };
 
         var resetCert = function () {
-            $scope.targetSystem = {
-                'description': undefined,
-                'address': undefined,
-                'targetSystemID': undefined,
-                'name': undefined
-            }
-            $scope.targetSystemServiceRequest = {
-                'description': undefined,
-                'hostname': undefined,
-                'name': undefined,
-                'port': undefined
-            }
             $scope.certObj = {
                 'sslcertType': 'PRIVATE_SINGLE_SAN',
                 'certDetails': {"certType":"internal"},
-                'certName': '',
-                'targetSystemType':  { "type": "new" },
-                'targetSystemServiceRequestType':  { "type": "new" },
-                "targetSystem": $scope.targetSystem,
-                "targetSystemService": ''
+                'certName': ''
             }
             $scope.isCertCollapsed = false;
             $scope.isTargetCollapsed = true;
             $scope.isTargetServiceCollapsed = true;
             $scope.existingTargetSystem = false;
             $scope.existingService = false;
-            $scope.targetSystemServicesList = [];
-            $scope.serviceListTableOptions = [];
-            setTargetSystemServiceList("No target system selected", []);
             $scope.certObj.certDetails.ownerEmail = "";
+            $scope.isCertificatePreview = false;
+            $scope.isCertificateManagePreview = false;
         }
 
         // Updating the data based on type of safe, by clicking dropdown
@@ -668,7 +629,6 @@
             }
         }
 
-
         $scope.getCertSubjectName = function (cert) {
             var certName = "";
             if (cert.subjectAltName && cert.subjectAltName.dns && cert.subjectAltName.dns.length > 0) {
@@ -719,148 +679,6 @@
             var offset = $scope.certificateData.offset;
             var limit = $scope.certificateData.limit;
             getCertificates($scope.certSearchValue, limit, limit + offset,"internal");
-        }
-
-        $scope.getTargetSystems = function () {     
-            $scope.targetSystemList = [];
-            $scope.targetSystemSelected = false;
-            $scope.showInputLoader.show = true;
-            $scope.isTargetSystemListLoading = true;
-            var certType = $scope.certObj.certDetails.certType;
-            //Clearing target system and service fields when we switch internal to external
-            $scope.existingTargetSystem = false;
-            $scope.targetSystemType = { "type": "new" };
-            clearTargetSystemServiceFields();
-            if(angular.isDefined($scope.certObj.targetSystem) && $scope.certObj.targetSystem != null && typeof $scope.certObj.targetSystem == 'object'){
-                $scope.certObj.targetSystem.name=undefined;
-                $scope.certObj.targetSystem.description=undefined;
-                $scope.certObj.targetSystem.address=undefined;
-                $scope.targetSysErrorMessage='';
-                $scope.targetAddrErrorMessage='';                
-            } 
-            var updatedUrlOfEndPoint = RestEndpoints.baseURL + "/v2/sslcert/" + certType + "/targetsystems";
-            return AdminSafesManagement.getTargetSystems(null, updatedUrlOfEndPoint).then(function (response) {
-                if (UtilityService.ifAPIRequestSuccessful(response)) {
-                    $scope.targetSystemList = response.data.data;
-                    $scope.showInputLoader.show = false;
-                    $scope.targetSystemSelected = true;
-                }
-                else {
-                    $scope.showInputLoader.show = false;
-                    $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
-                    $scope.error('md');
-                }                
-                $scope.isTargetSystemListLoading = false;
-            },
-            function (error) {
-                // Error handling function
-                console.log(error);
-                $scope.showInputLoader.show = false;
-                $scope.isTargetSystemListLoading = false;
-                $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
-                $scope.error('md');
-            });
-        }
-        $scope.searchTargetSystems = function (searchVal) {
-            if ($scope.targetSystemList.length > 0 && searchVal.length > 2) {
-                $scope.certObj.targetSystemServiceRequest = undefined;
-                $scope.serviceListTableOptions = [];
-                $scope.targetSystemSelected = false;
-                return orderByFilter(filterFilter($scope.targetSystemList, searchVal), 'name', true);
-            }
-        }
-
-        $scope.getTargetSystemService = function () {
-            $scope.targetSystemServicesList = [];
-            setTargetSystemServiceList("Loading services..", []);            
-            var currentServicesList = [];
-            $scope.isLoadingserviceData = true;
-            $scope.targetSystemServiceSelected = false;
-            if ($scope.targetSystemSelected == true) {
-                var targetSystemId = $scope.certObj.targetSystem.targetSystemID;                
-                $scope.showServiceInputLoader.show = true;
-                var updatedUrlOfEndPoint = RestEndpoints.baseURL + "/v2/sslcert/targetsystems/" + targetSystemId + "/targetsystemservices";
-                return AdminSafesManagement.getTargetSystemsServices(null, updatedUrlOfEndPoint).then(function (response) {
-                    if (UtilityService.ifAPIRequestSuccessful(response)) {
-                        $scope.targetSystemServicesList = response.data.data;
-
-                        for (var index = 0;index<$scope.targetSystemServicesList.length;index++) {
-                            currentServicesList.push({"type":$scope.targetSystemServicesList[index].name, "index":index});
-                        }
-                        if ($scope.targetSystemSelected == true) {
-                            if (currentServicesList.length >0) {
-                                setTargetSystemServiceList("Select service", currentServicesList);
-                            }
-                            else {
-                                setTargetSystemServiceList("No service available", []);
-                            }
-                        }
-                        else {
-                            setTargetSystemServiceList("No target system selected", []);
-                        }
-                        $scope.showServiceInputLoader.show = false;
-                        $scope.isLoadingserviceData=false;
-                        $scope.targetSystemServiceValidation();
-                    }
-                    else {
-                        $scope.showServiceInputLoader.show = false;
-                        $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
-                        $scope.error('md');
-                    }
-                },
-                function (error) {
-                    // Error handling function
-                    console.log(error);
-                    $scope.showServiceInputLoader.show = false;
-                    $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
-                    $scope.error('md');
-                });
-            }
-        }
-
-        $scope.searchTargetSystemService = function (searchVal) {
-            if ($scope.targetSystemServicesList.length > 0 && searchVal.length > 2) {
-                $scope.targetSystemServiceSelected = false;
-                return orderByFilter(filterFilter($scope.targetSystemServicesList, searchVal), 'name', true);
-            }
-        }
-
-        $scope.selectTargetSystem = function (targetSystem) {
-            $scope.ifTargetSystemExisting=true;
-            $scope.certObj.targetSystem = {
-                "name": targetSystem.name,
-                "description": targetSystem.description,
-                "address": targetSystem.address,
-                "targetSystemID": targetSystem.targetSystemID
-            }
-            $scope.targetSystemSelected = true;
-            $scope.getTargetSystemService();
-        }
-        $scope.targetSystemCheck = function (targetSystem) {
-            if(targetSystem ==" " ||targetSystem== null ||targetSystem==undefined ){
-            $scope.targetSystemIsAvailable=true; 
-            }
-            else{
-                $scope.targetSystemIsAvailable=false;
-            }
-            $scope.getTargetSystemService();
-        }
-        $scope.selectTargetService = function () {
-            $scope.ifTargetServiceExisting=true;
-            var index = $scope.dropDownServiceList.selectedGroupOption.index;
-            $scope.certObj.targetSystemServiceRequest = {
-                "name": $scope.targetSystemServicesList[index].name,
-                "description": $scope.targetSystemServicesList[index].description,
-                "port": $scope.targetSystemServicesList[index].port,
-                "hostname": $scope.targetSystemServicesList[index].hostname
-            };
-            $scope.targetSystemServiceSelected = true;
-        }
-
-        $scope.selectTargetSystemService = function (targetSystemService) {
-            // for live search
-            $scope.certObj.targetSystemServiceRequest = targetSystemService;
-            $scope.targetSystemServiceSelected = true;
         }
 
         $scope.newAppRoleConfiguration = function (size) {
@@ -1517,9 +1335,6 @@
             $scope.portErrorMessage = '';
             $scope.ownerEmailErrorMessage='';
             Modal.createModal(size, 'certificatePopup.html', 'AdminCtrl', $scope);
-            $scope.targetSystemType = { "type": "new" };
-            $scope.targetSystemServiceType = { "type": "new" };
-            $scope.getTargetSystems();
             $scope.multiSanDnsName.name='';
             $scope.certDnsErrorMessage='';
             $scope.multiSan=[];
@@ -1596,53 +1411,7 @@
                 $scope.certObj.targetSystemServiceRequest.hostname = $scope.certObj.targetSystemServiceRequest.hostname.replace(/[ ]/g, '');
                 return $scope.hostNamePatternValidation();
             }
-        }        
-        
-        $scope.targetSystemAvailable = function(){        	
-        	if($scope.targetSystemType.type=="new"){ 
-        		$scope.targetSystemServicesList=null;
-        		return $scope.targetSystemValidation();
-        	}
-        	if($scope.targetSystemType.type=="existing"){        		
-        		$scope.targetSystemIsAvailable = false;
-        	} 
-            }
-        
-        $scope.targetSystemValidation = function(){  
-        	$scope.targetSysErrorMessage="";        	
-        	$scope.targetSystemIsAvailable = false;
-        	var targetSysName = $scope.certObj.targetSystem.name;       	
-        	angular.forEach($scope.targetSystemList, function(item){                 
-                if(item.name == targetSysName){
-                	$scope.targetSysErrorMessage="Entered target system is available";
-                	$scope.targetSystemIsAvailable = true;
-                }
-            })              
-            }
-        
-        $scope.targetSystemServiceAvailable = function(){
-        	if($scope.targetSystemServiceType.type=="new"){
-        		return $scope.targetSystemServiceValidation();
-        	}      	
-            }
-        
-        $scope.targetSystemServiceValidation = function(){  
-        	$scope.targetSysServiceErrorMessage="";
-        	var targetSysServiceName = "";
-        	
-        	$scope.targetSystemServiceIsAvailable = false;
-        	if($scope.certObj.targetSystemServiceRequest!=undefined){
-        	targetSysServiceName = $scope.certObj.targetSystemServiceRequest.name;
-        	}       	
-        	if($scope.targetSystemServicesList !=null) {   	
-        	angular.forEach($scope.targetSystemServicesList, function(item){
-                if(item.name == targetSysServiceName){
-                	$scope.targetSysServiceErrorMessage="Entered target system service is available";
-                	$scope.targetSystemServiceIsAvailable = true;                	
-                }                
-            })              
-            }
-    }
+        }
 
         $scope.portNumValidation = function () {
             $scope.portErrorMessage = '';
@@ -1657,14 +1426,7 @@
         }
 
         $scope.isCreateCertBtnDisabled = function () {         	
-            if ($scope.certObj.targetSystem != undefined
-                && $scope.certObj.targetSystem.name != undefined
-                && $scope.certObj.targetSystem.address != undefined
-                && $scope.certObj.targetSystem.address != ""
-                && $scope.certObj.targetSystemServiceRequest != undefined
-                && $scope.certObj.targetSystemServiceRequest.name != undefined
-                && $scope.certObj.targetSystemServiceRequest.port != undefined
-                && $scope.certObj.certDetails.certName != undefined
+            if ($scope.certObj.certDetails.certName != undefined
 	        	&& $scope.certObj.certDetails.certName != ""
                 && !$scope.certInValid
                 && !$scope.addrInValid
@@ -1673,16 +1435,14 @@
                 && $scope.certObj.certDetails.certType != undefined
                 && $scope.certObj.certDetails.applicationName != undefined
                 && $scope.isOwnerSelected == true
-                && $scope.appNameSelected == true
-                && !$scope.targetSystemIsAvailable 
-                && !$scope.targetSystemServiceIsAvailable
-                && !$scope.hostNameInValid) {
+                && $scope.appNameSelected == true) {
                 return false;
             }
             return true;
         }
         $scope.selectAppName = function (applicationObj) {  
             $scope.certObj.certDetails.applicationName = applicationObj.tag;
+            $scope.appName = applicationObj.name;
             $scope.appNameSelected = true;
             $scope.isOwnerSelected = true
         }
@@ -1735,9 +1495,36 @@
             })
         }
 
+        $scope.createCertPreview = function () {
+            $scope.isCertificatePreview = true;
+            $scope.isCertificateManagePreview = true;
+            var multiSanDnsPreview = [];
+            $scope.multiSan.forEach(function (dns) {
+                multiSanDnsPreview.push(dns.name+".t-mobile.com");
+            });
+            var certificateTypeVal = $scope.certObj.certDetails.certType;
+            var certificateTypeName = '';
+            if(certificateTypeVal.toLowerCase() === "external") {
+                certificateTypeName = 'External';
+            }else if(certificateTypeVal.toLowerCase() === "internal"){
+                certificateTypeName = 'Internal';
+            }
+            $scope.certificateDetails = {
+                certificateName: $scope.certObj.certDetails.certName+".t-mobile.com",
+                certOwnerEmailId: $scope.certObj.certDetails.ownerEmail,
+                applicationName: $scope.appName,
+                certType: certificateTypeName,
+                dnsList: multiSanDnsPreview
+            }
+        }
+
+        $scope.backToEdit = function () {
+            $scope.isCertificatePreview = false;
+            $scope.isCertificateManagePreview = false;
+        }
+
         $scope.createCert = function () {
-            try {       
-            	$scope.targetSystemServiceValidation();
+            try {
                 Modal.close('');
                 var sslcertType = 'PRIVATE_SINGLE_SAN';
                 $scope.appNameTagValue=$scope.certObj.certDetails.applicationName;
@@ -1746,9 +1533,7 @@
                 $scope.multiSan.forEach(function (dns) {
                     multiSanDns.push(dns.name);
                 });
-                var reqObjtobeSent =  {                   
-                    "targetSystem": $scope.certObj.targetSystem,
-                    "targetSystemServiceRequest": $scope.certObj.targetSystemServiceRequest,
+                var reqObjtobeSent =  { 
                     "appName": $scope.appNameTagValue,
                     "certificateName":$scope.certObj.certDetails.certName,
                     "certType":$scope.certObj.certDetails.certType,
@@ -1803,59 +1588,6 @@
               getCertificates("", null, null,"internal");
               }
         };
-
-        $scope.collapseCertDetails = function (index) {
-            if(index == 1 ) {
-                $scope.isTargetCollapsed = false;
-                $scope.isTargetServiceCollapsed = true;
-                $scope.isCertCollapsed = true;
-                if ($scope.multiSanDnsName.name !== null && $scope.multiSanDnsName.name !== undefined 
-                    && $scope.multiSanDnsName.name != "") {
-                        $scope.multiSanDnsName.name ="";       
-                           if($scope.certDnsErrorMessage!== null)    {
-                            $scope.certDnsErrorMessage = "";
-                        }
-                }
-        
-    
-            } else if (index == 2 ) {
-                $scope.isTargetCollapsed = true;
-                $scope.isTargetServiceCollapsed = false;
-                $scope.isCertCollapsed = true;
-                $scope.targetSystemServiceType = { "type": "new" };
-                $scope.existingService = false;
-                clearTargetSystemServiceFields();
-                if ($scope.multiSanDnsName.name !== null && $scope.multiSanDnsName.name !== undefined 
-                    && $scope.multiSanDnsName.name != "") {
-                        $scope.multiSanDnsName.name ="";
-                        if($scope.certDnsErrorMessage!== null)    {
-                            $scope.certDnsErrorMessage = "";
-                        }
-                }
-                if ($scope.serviceListTableOptions.length >0) {
-                    setTargetSystemServiceList("Select service", $scope.serviceListTableOptions);
-                }
-                else {
-                    if ($scope.showServiceInputLoader.show == true) {
-                        setTargetSystemServiceList("Loading services..", []);
-                    }
-                    else {
-                        if ($scope.targetSystemSelected == false) {
-                            setTargetSystemServiceList("No target system selected", []);
-                        }
-                        else {
-                            setTargetSystemServiceList("No service available", []);
-                        }
-                    }
-                }
-
-            } else if (index == 3 ) {
-                $scope.isTargetCollapsed = true;
-                $scope.isTargetServiceCollapsed = true;
-                $scope.isCertCollapsed = false;
-            } 
-
-        }
 
         $scope.collapseADDetails = function() {
             $scope.isCollapsed = !$scope.isCollapsed;
@@ -1963,125 +1695,7 @@
                 console.log(e);
             }   
         }
-
-        $scope.openExistingTargetSystem = function (e) {
-            $scope.existingTargetSystem = true;
-            $scope.existingService = true; 
-            $scope.targetSystemIsAvailable = false;
-            $scope.targetSysErrorMessage = '';
-
-            if(angular.isDefined($scope.certObj.targetSystem) && $scope.certObj.targetSystem != null && typeof $scope.certObj.targetSystem == 'object'){
-                $scope.certObj.targetSystem.name=undefined;
-                $scope.certObj.targetSystem.description=undefined;
-                $scope.certObj.targetSystem.address=undefined;
-            }
-            else {
-                $scope.certObj.targetSystem = "";
-            }
-            setTargetSystemServiceList("No target system selected", []);
-            $scope.targetSystemSelected = false;
-        }
-
-
-        $scope.openNewTargetSystem = function (e) {
-            $scope.existingTargetSystem = false;
-            $scope.existingService = false;
-            $scope.targetSystemType = { "type": "new" };
-            $scope.targetSystemServiceType = { "type": "new" };
-
-            if($scope.ifTargetSystemExisting == true){  
-                clearTargetSystemFields ();	
-                $scope.ifTargetSystemExisting = false;
-                if($scope.ifTargetServiceExisting == true){
-                clearTargetSystemServiceFields ();	
-                $scope.ifTargetServiceExisting = false;
-                }
-             }
-
-            $scope.targetSystemSelected = false;
-        }
-
-        $scope.openExistingService = function () {
-            $scope.existingService = true;
-            $scope.existingTargetSystem = true;
-            $scope.targetSystemServiceIsAvailable = false;
-            $scope.targetSysServiceErrorMessage="";
-
-            if(angular.isDefined($scope.certObj.targetSystemServiceRequest) && $scope.certObj.targetSystemServiceRequest != null && typeof $scope.certObj.targetSystemServiceRequest == 'object' ){
-                $scope.certObj.targetSystemServiceRequest.name=undefined;
-                $scope.certObj.targetSystemServiceRequest.description=undefined;
-                $scope.certObj.targetSystemServiceRequest.port=undefined;
-                $scope.certObj.targetSystemServiceRequest.hostname=undefined;
-            }
-            else {
-                $scope.certObj.targetSystemServiceRequest = "";
-            }
-            $scope.targetSystemServiceSelected = false;
-            }	
-        	
-        $scope.openNewService = function () {	
-                $scope.existingService = false;	
-                
-            if($scope.ifTargetServiceExisting == true){ 	
-                clearTargetSystemServiceFields ();	
-                $scope.ifTargetServiceExisting = false;	
-            }	
-
-            if ($scope.serviceListTableOptions.length >0) {	
-                setTargetSystemServiceList("Select service", $scope.serviceListTableOptions);	
-            }	
-            else {	
-                if ($scope.showServiceInputLoader.show == true) {	
-                    setTargetSystemServiceList("Loading services..", []);	
-                }	
-                else {	
-                if ($scope.targetSystemSelected == false) {	
-                    setTargetSystemServiceList("No target system selected", []);	
-                    }	
-                else {	
-                    setTargetSystemServiceList("No service available", []);	
-                    }	
-                }   	
-            }	
-            $scope.targetSystemServiceSelected = false;	
-        }   
-
-        var clearTargetSystemServiceFields = function () {
-            if(angular.isDefined($scope.certObj.targetSystemServiceRequest) && $scope.certObj.targetSystemServiceRequest != null && typeof $scope.certObj.targetSystemServiceRequest == 'object'){  
-                $scope.certObj.targetSystemServiceRequest.name=undefined;
-                $scope.certObj.targetSystemServiceRequest.description=undefined;
-                $scope.certObj.targetSystemServiceRequest.port=undefined;
-                $scope.certObj.targetSystemServiceRequest.hostname=undefined;
-                $scope.targetSysServiceErrorMessage="";
-                $scope.hostNameErrorMessage="";
-            }
-            else {
-                $scope.targetSystemServiceRequest = {
-                    'description': undefined,
-                    'hostname': undefined,
-                    'name': undefined,
-                    'port': undefined
-                }
-            }
-        }
-
-         var clearTargetSystemFields = function () {
-            if(angular.isDefined($scope.certObj.targetSystem) && $scope.certObj.targetSystem != null && typeof $scope.certObj.targetSystem == 'object'){
-                $scope.certObj.targetSystem.name=undefined;
-                $scope.certObj.targetSystem.description=undefined;
-                $scope.certObj.targetSystem.address=undefined;
-                $scope.certObj.targetSystem.targetSystemID=undefined;
-                $scope.targetSysServiceErrorMessage="";
-            }
-            else {
-                $scope.certObj.targetSystem = {
-                    "name": undefined,	
-                    "description": undefined,	
-                    "address": undefined,	
-                    "targetSystemID": undefined
-                }
-            }
-        }
+        
         $scope.addEmail = function () {        	
                 try {
                     var userSearchList = [];
