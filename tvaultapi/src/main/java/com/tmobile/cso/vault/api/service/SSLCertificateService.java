@@ -1429,4 +1429,54 @@ public class SSLCertificateService {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Failed to get Target system list from NCLM\"]}");
 
     }
+
+    /**
+     * Get service list from a target system.
+     * @param token
+     * @param userDetails
+     * @param targetSystemId
+     * @return
+     */
+    public ResponseEntity<String> getTargetSystemServiceList(String token, UserDetails userDetails, String targetSystemId) throws Exception {
+        String getTargetSystemEndpoint = "/certmanager/targetsystemservicelist";
+        String findTargetSystemEndpoint = findTargetSystemService.replace("tsgid", targetSystemId);
+
+        List<TargetSystemServiceDetails> targetSystemServiceDetails = new ArrayList<>();
+        CertResponse response = reqProcessor.processCert(getTargetSystemEndpoint, "", getNclmToken(),
+                getCertmanagerEndPoint(findTargetSystemEndpoint));
+
+        if (HttpStatus.OK.equals(response.getHttpstatus())) {
+            JsonParser jsonParser = new JsonParser();
+            JsonObject jsonObject = (JsonObject) jsonParser.parse(response.getResponse());
+            JsonArray jsonArray = jsonObject.getAsJsonArray(SSLCertificateConstants.TARGETSYSTEM_SERVICES);
+
+            if (Objects.nonNull(jsonArray)) {
+                for (int i = 0; i < jsonArray.size(); i++) {
+                    JsonObject jsonElement = jsonArray.get(i).getAsJsonObject();
+                    targetSystemServiceDetails.add(new TargetSystemServiceDetails(jsonElement.get(SSLCertificateConstants.NAME).getAsString(),
+                            jsonElement.get(SSLCertificateConstants.DESCRIPTION).getAsString(),
+                            jsonElement.get(SSLCertificateConstants.TARGETSYSTEM_SERVICE_ID).getAsString(),
+                            jsonElement.get(SSLCertificateConstants.HOSTNAME).getAsString(),
+                            jsonElement.get(SSLCertificateConstants.MONITORINGENABLED).getAsBoolean(),
+                            jsonElement.get(SSLCertificateConstants.MULTIIPMONITORINGENABLED).getAsBoolean(),
+                            jsonElement.get(SSLCertificateConstants.PORT).getAsInt()));
+                }
+            }
+            log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+                    put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+                    put(LogMessage.ACTION, "getTargetSystemServiceList").
+                    put(LogMessage.MESSAGE, "Successfully retrieved target system service list from NCLM").
+                    put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+                    build()));
+            return ResponseEntity.status(HttpStatus.OK).body("{\"data\": "+JSONUtil.getJSONasDefaultPrettyPrint(targetSystemServiceDetails)+"}");
+        }
+        log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+                put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+                put(LogMessage.ACTION, "getTargetSystemServiceList").
+                put(LogMessage.MESSAGE, String.format("Failed to get Target system service list from NCLM for the target system [%s]", targetSystemId)).
+                put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+                build()));
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Failed to get Target system service list from NCLM\"]}");
+
+    }
 }
