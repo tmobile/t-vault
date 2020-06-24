@@ -81,7 +81,6 @@ script(type='text/ng-template', id='certificateCreationPopUp.html')
     .text-center.bottom-lg-sep.top-lg-sep.notification-button
       .clearfix.bottom-sm-sep
         button.link-style.common-btn.btn.btn-primary.btn-lg(ng-click="cancel()") CLOSE  
-S
 script(type='text/ng-template', id='certificateCreationFailedPopUp.html')
   loading-state(ng-if="isLoadingModalData")
   .top-lg-sep(ng-if="!isLoadingModalData")
@@ -104,11 +103,54 @@ script(type='text/ng-template', id='certificatePopup.html')
                     .common-form-label Container
                     input.form-control.input-box-style(value="VenafiBin_12345" uib-tooltip="" tooltip-placement="top" tooltip-popup-delay="600" ng-disabled="true")  
               .cert-conf.clearfix
-                .font-type-normal.collapse-link(ng-click="collapseADDetails()") * Please fill the Target system details 
-                  span.svc-collapse-link(ng-if="isCollapsed") >> 
-                  span.collapse-link(ng-if="!isCollapsed") >> 
+                .font-type-normal.collapse-link(ng-click="collapseADDetails(3)") Step 1/3: Please fill the Certificate details 
+                  span.svc-collapse-link(ng-if="!isCertCollapsed") >> 
+                  span.collapse-link(ng-if="isCertCollapsed") >> 
+                  span.target-note(ng-if="certDetailsSelected") {{cert.certDetails.name}}
+                .font-type-normal(uib-collapse="isCertCollapsed" )
+                    .col-lg-12.col-md-12.col-sm-12.col-xs-12.common-form-row()
+                      .details-input-group 
+                        .common-form-label Certificate Type*
+                        label.common-form-label internal
+                          input(type='radio' id='cert_type' value="internal" ng-model="certObj.certDetails.certType" ng-checked="certObj.certDetails.certType == 'internal'" )
+                        label.common-form-label external
+                          input(type='radio' id='cert_type' value="external" ng-model="certObj.certDetails.certType" ng-checked="certObj.certDetails.certType == 'external'" )
+                    .col-lg-12.col-md-12.col-sm-12.col-xs-12.common-form-row()
+                      .details-input-group
+                        .common-form-label Certificate Name*
+                        input.form-control.input-box-style(id="certReqName" ng-model="certObj.certDetails.certName"  ng-change="replaceSpacesCertName()")
+                     div.key-acceptance-info() {{ certNameErrorMessage }}
+                    .col-lg-12.col-md-12.col-sm-12.col-xs-12.common-form-row()
+                      .details-input-group
+                        .common-form-label Application Name*
+                        input.form-control.input-box-style(ng-model="certObj.certDetails.applicationName" id="applicationName" typeahead-min-length="2" name="appName" uib-typeahead="key as key.type for key in getAppName($viewValue) | limitTo: 5" typeahead-wait-ms="500" typeahead-on-select="selectAppName(applicationName)" ng-disabled="isApplicationsLoading")
+                        div.loader.svcaccid(ng-if='isApplicationsLoading')
+                    .col-lg-12.col-md-12.col-sm-12.col-xs-12.common-form-row()
+                      .details-input-group
+                        .common-form-label Owner EmailId*
+                        input.form-control.input-box-style(id="certReqOwnerEmail"  ng-model="certObj.certDetails.ownerEmail" ng-change="replaceSpacesCertOwnerEmail()")
+                    div.key-acceptance-info() {{ ownerEmailErrorMessage }}
+                        div.loader.owner-mail(ng-if='showInputLoader.show && certObj.certDetails.ownerEmail > 0')
+                            div.ball-spin-fade-loader
+                                div
+                                div
+                                div
+                                div
+                                div
+                                div
+                                div
+                                div
+                        div.input-cross.owner-mail(ng-if='inputSelected.select && certObj.certDetails.ownerEmail > 0' ng-click="clearOwnerEmailInputValue('addOwnerEmail')")                                                
+                            div.delete-title
+                                img.delete-icon(src="../../assets/images/delete.png")
+                        span.invalid-form(ng-show="certObj.certDetails.ownerEmail.$dirty && certObj.certDetails.ownerEmail.$invalid && certObj.certDetails.ownerEmail.$error.required") Please enter this field
+                        span.invalid-form(ng-if="invalidEmail") Please enter valid email address
+              .cert-conf.clearfix
+                .font-type-normal.collapse-link(ng-click="collapseADDetails(1)") Step 2/3: Please fill the Target system details 
+                  span.svc-collapse-link(ng-if="!isTargetCollapsed") >> 
+                  span.collapse-link(ng-if="isTargetCollapsed") >> 
                   span.target-note(ng-if="targetSystemSelected") {{cert.targetSystem.name}}
-                .font-type-normal(uib-collapse="!isCollapsed")
+                .font-type-normal(uib-collapse="isTargetCollapsed")
                   .col-lg-12.col-md-12.col-sm-12.col-xs-12.common-form-row()
                     .details-input-group
                       label.common-form-label Existing target system
@@ -116,11 +158,6 @@ script(type='text/ng-template', id='certificatePopup.html')
                       label.common-form-label New target System
                         input(type='radio' id='target_type' value="new" ng-model="targetSystem.type" ng-checked="targetSystem.type == 'new'" ng-click="openNewTargetSystem($event)")
                   .font-type-normal(ng-if="!existingTargetSystem")
-                  .col-lg-12.col-md-12.col-sm-12.col-xs-12.common-form-row()
-                      .details-input-group
-                        .common-form-label Certificate Name*
-                        input.form-control.input-box-style( id="certName" ng-model="certObj.certName" ng-change="replaceSpacesCertName()")
-                  div.key-acceptance-info() {{ certNameErrorMessage }}
                     .col-lg-12.col-md-12.col-sm-12.col-xs-12.common-form-row()
                       .details-input-group
                         .common-form-label Name*
@@ -152,11 +189,11 @@ script(type='text/ng-template', id='certificatePopup.html')
                               div
 
               .cert-conf.clearfix
-                .font-type-normal.collapse-link(ng-click="collapseADDetails()") * Please fill the Service details 
-                  span.svc-collapse-link(ng-if="!isCollapsed") >> 
-                  span.collapse-link(ng-if="isCollapsed") >> 
+                .font-type-normal.collapse-link(ng-click="collapseADDetails(2)") Step 3/3: Please fill the Service details 
+                  span.svc-collapse-link(ng-if="!isTargetServiceCollapsed") >> 
+                  span.collapse-link(ng-if="isTargetServiceCollapsed") >> 
                   span.target-note(ng-if="targetSystemServiceSelected") {{cert.targetSystemService.name}}
-                .font-type-normal(uib-collapse="isCollapsed")
+                .font-type-normal(uib-collapse="isTargetServiceCollapsed")
                   .col-lg-12.col-md-12.col-sm-12.col-xs-12.common-form-row()
                     .details-input-group
                       label.common-form-label Existing service
@@ -210,7 +247,7 @@ script(type='text/ng-template', id='certificatePopup.html')
             .clearfix.bottom-sm-sep
               button.common-btn.btn.btn-primary.btn-lg(id="cert_create_btn" ng-click="createCert()" ng-disabled="isCreateCertBtnDisabled()" ) {{editingApprole.status == true ? "Create" : "Create"}}
             .clearfix
-              button.link-style.common-btn.btn.btn-default.btn-lg(ng-click="cancel()") Cancel
+              button.link-style.common-btn.btn.btn-default.btn-lg(ng-click="cancelCert()") Cancel
 
 script(type='text/ng-template', id='appRolePopup.html')
           .modal-sep

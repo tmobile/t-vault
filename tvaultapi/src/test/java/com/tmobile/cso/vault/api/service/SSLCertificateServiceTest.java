@@ -9,6 +9,13 @@ import com.tmobile.cso.vault.api.process.RequestProcessor;
 import com.tmobile.cso.vault.api.process.Response;
 import com.tmobile.cso.vault.api.utils.JSONUtil;
 import com.tmobile.cso.vault.api.utils.ThreadLocalContext;
+import org.apache.http.HttpEntity;
+import org.apache.http.StatusLine;
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.conn.ssl.NoopHostnameVerifier;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.util.EntityUtils;
 import org.apache.logging.log4j.LogManager;
 import org.junit.Before;
 import org.junit.FixMethodOrder;
@@ -29,11 +36,12 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.*;
 import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
@@ -41,8 +49,8 @@ import static org.mockito.Mockito.when;
 @RunWith(PowerMockRunner.class)
 @ComponentScan(basePackages = {"com.tmobile.cso.vault.api"})
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
-@PrepareForTest({ControllerUtil.class, JSONUtil.class})
-@PowerMockIgnore({"javax.management.*"})
+@PrepareForTest({ControllerUtil.class, JSONUtil.class,EntityUtils.class,HttpClientBuilder.class})
+@PowerMockIgnore({"javax.management.*", "javax.net.ssl.*"})
 public class SSLCertificateServiceTest {
 
     private MockMvc mockMvc;
@@ -61,10 +69,31 @@ public class SSLCertificateServiceTest {
 
     String token;
 
+    @Mock
+    CloseableHttpResponse httpResponse;
+
+    @Mock
+    HttpClientBuilder httpClientBuilder;
+
+    @Mock
+    StatusLine statusLine;
+
+    @Mock
+    HttpEntity mockHttpEntity;
+
+    @Mock
+    CloseableHttpClient httpClient1;
+
+    @Mock
+    CertificateData certificateData;
+
     @Before
-    public void setUp() {
+    public void setUp() throws Exception {
         PowerMockito.mockStatic(ControllerUtil.class);
         PowerMockito.mockStatic(JSONUtil.class);
+        PowerMockito.mockStatic(HttpClientBuilder.class);
+        PowerMockito.mockStatic(EntityUtils.class);
+
 
         Whitebox.setInternalState(ControllerUtil.class, "log", LogManager.getLogger(ControllerUtil.class));
         when(JSONUtil.getJSON(any(ImmutableMap.class))).thenReturn("log");
@@ -91,6 +120,7 @@ public class SSLCertificateServiceTest {
         ReflectionTestUtils.setField(sSLCertificateService, "findCertificate", "certificates?freeText=certname&containerId=cid");
         ReflectionTestUtils.setField(sSLCertificateService, "certManagerUsername", "dGVzdGluZw==");
         ReflectionTestUtils.setField(sSLCertificateService, "certManagerPassword", "dGVzdGluZw==");
+        ReflectionTestUtils.setField(sSLCertificateService, "retrycount", 1);
 
         token = "5PDrOhsy4ig8L3EpsJZSLAMg";
         userDetails.setUsername("normaluser");
@@ -98,6 +128,28 @@ public class SSLCertificateServiceTest {
         userDetails.setClientToken(token);
         userDetails.setSelfSupportToken(token);
         when(vaultAuthService.lookup(anyString())).thenReturn(new ResponseEntity<>(HttpStatus.OK));
+
+
+        ReflectionTestUtils.setField(sSLCertificateService, "workloadEndpoint", "http://appdetails.com");
+       // when(ControllerUtil.getCwmToken()).thenReturn("dG9rZW4=");
+        when(HttpClientBuilder.create()).thenReturn(httpClientBuilder);
+        when(httpClientBuilder.setSSLHostnameVerifier(NoopHostnameVerifier.INSTANCE)).thenReturn(httpClientBuilder);
+        when(httpClientBuilder.setSSLContext(any())).thenReturn(httpClientBuilder);
+        when(httpClientBuilder.setRedirectStrategy(any())).thenReturn(httpClientBuilder);
+        when(httpClientBuilder.build()).thenReturn(httpClient1);
+        when(httpClient1.execute(any())).thenReturn(httpResponse);
+        String responseStr = "{\"spec\":{\"akmid\":\"103001\",\"brtContactEmail\":\" contacteops@email.com\",\"businessUnit\":\"\"," +
+                "\"classification\":\"\",\"directorEmail\":\"john.mathew@email.com\",\"directorName\":\"test jin\",\"executiveSponsor\":" +
+                "\"robert sam\",\"executiveSponsorEmail\":\"kim.tim@email.com\",\"id\":\"tvt\"," +
+                "\"intakeDate\":\"2018-01-01\",\"opsContactEmail\":\"abc.def@gmail.com\",\"projectLeadEmail\":\"abc.def@gmail.com\"," +
+                "\"tag\":\"T-Vault\",\"tier\":\"Tier II\",\"workflowStatus\":\"Open_CCP\",\"workload\":\"Adaptive Security\"}}";
+        when(httpResponse.getStatusLine()).thenReturn(statusLine);
+        when(statusLine.getStatusCode()).thenReturn(200);
+        when(httpResponse.getEntity()).thenReturn(mockHttpEntity);
+        InputStream inputStream = new ByteArrayInputStream(responseStr.getBytes());
+        when(mockHttpEntity.getContent()).thenReturn(inputStream);
+
+
     }
 
     Response getMockResponse(HttpStatus status, boolean success, String expectedBody) {
@@ -121,7 +173,51 @@ public class SSLCertificateServiceTest {
         when(reqProcessor.processCert(Mockito.anyString(), Mockito.anyObject(), Mockito.anyString(),
                 Mockito.anyString())).thenReturn(response);
         CertManagerLogin  certManagerLogin= sSLCertificateService.login(certManagerLoginRequest);
-        assertEquals(certManagerLogin,null);
+        assertNull(certManagerLogin);
+    }
+
+    @Test
+    public void login_success() throws Exception {
+        String jsonStr = "{  \"username\": \"testusername1\",  \"password\": \"testpassword1\"}";
+
+        CertResponse response = new CertResponse();
+        response.setHttpstatus(HttpStatus.OK);
+        response.setResponse(jsonStr);
+        response.setSuccess(true);
+        Map<String, Object> requestMap = new HashMap<>();
+        requestMap.put("access_token", "12345");
+        requestMap.put("token_type", "type");
+        when(ControllerUtil.parseJson(jsonStr)).thenReturn(requestMap);
+
+        CertManagerLoginRequest certManagerLoginRequest = new CertManagerLoginRequest("testusername", "testpassword");
+        when(reqProcessor.processCert(Mockito.anyString(), Mockito.anyObject(), Mockito.anyString(),
+                Mockito.anyString())).thenReturn(response);
+        CertManagerLogin  certManagerLogin= sSLCertificateService.login(certManagerLoginRequest);
+        assertNotNull(certManagerLogin);
+        assertEquals(certManagerLogin.getAccess_token(),"12345");
+    }
+
+
+    @Test
+    public void test_validateInputData(){
+        SSLCertificateRequest sslCertificateRequest = getSSLCertificateRequest();
+        sslCertificateRequest.setCertificateName("qeqeqwe");
+        ResponseEntity<?> enrollResponse = sSLCertificateService.generateSSLCertificate(sslCertificateRequest,userDetails,token);
+        assertEquals(HttpStatus.BAD_REQUEST, enrollResponse.getStatusCode());
+
+        sslCertificateRequest.setCertificateName("abc.t-mobile.com");
+        sslCertificateRequest.getTargetSystem().setAddress("abc def");
+        ResponseEntity<?> enrollResponse1= sSLCertificateService.generateSSLCertificate(sslCertificateRequest,
+                userDetails,token);
+        assertEquals(HttpStatus.BAD_REQUEST, enrollResponse1.getStatusCode());
+
+
+        sslCertificateRequest.setCertificateName("qeqeqwe.t-mobile.com");
+        sslCertificateRequest.getTargetSystem().setAddress("abcdef");
+        sslCertificateRequest.getTargetSystemServiceRequest().setHostname("abc abc");
+        ResponseEntity<?> enrollResponse2= sSLCertificateService.generateSSLCertificate(sslCertificateRequest,
+                userDetails,token);
+        assertEquals(HttpStatus.BAD_REQUEST, enrollResponse2.getStatusCode());
     }
 
 
@@ -136,7 +232,7 @@ public class SSLCertificateServiceTest {
         when(JSONUtil.getJSON(Mockito.any())).thenReturn(jsonStr);
         when(reqProcessor.processCert(Mockito.anyString(), Mockito.anyObject(), Mockito.anyString(), Mockito.anyString())).thenReturn(response);
         ResponseEntity<String> responseEntity = sSLCertificateService.authenticate(certManagerLoginRequest);
-        assertEquals(responseEntity.getStatusCode(), HttpStatus.OK);
+        assertEquals(HttpStatus.OK,responseEntity.getStatusCode());
     }
 
     @Test
@@ -150,13 +246,20 @@ public class SSLCertificateServiceTest {
         when(JSONUtil.getJSON(Mockito.any())).thenReturn(jsonStr);
         when(reqProcessor.processCert(Mockito.anyString(), Mockito.anyObject(), Mockito.anyString(), Mockito.anyString())).thenReturn(response);
         ResponseEntity<String> responseEntity = sSLCertificateService.authenticate(certManagerLoginRequest);
-        assertEquals(responseEntity.getStatusCode(), HttpStatus.UNAUTHORIZED);
+        assertEquals(HttpStatus.UNAUTHORIZED,responseEntity.getStatusCode());
 
     }
 
     @Test
     public void generateSSLCertificate_Success() throws Exception {
         String jsonStr = "{  \"username\": \"testusername1\",  \"password\": \"testpassword1\"}";
+
+        String jsonStr2 = "{\"certificates\":[{\"sortedSubjectName\": \"CN=CertificateName.t-mobile.com, C=US, " +
+                "ST=Washington, " +
+                "L=Bellevue, O=T-Mobile USA, Inc\"," +
+                "\"certificateId\":57258,\"certificateStatus\":\"Active\"," +
+                "\"containerName\":\"cont_12345\",\"NotAfter\":\"2021-06-15T04:35:58-07:00\"}]}";
+
         CertManagerLoginRequest certManagerLoginRequest = getCertManagerLoginRequest();
         certManagerLoginRequest.setUsername("username");
         certManagerLoginRequest.setPassword("password");
@@ -178,11 +281,15 @@ public class SSLCertificateServiceTest {
         response.setHttpstatus(HttpStatus.OK);
         response.setResponse(jsonStr);
         response.setSuccess(true);
-
         when(reqProcessor.processCert(eq("/auth/certmanager/login"), anyObject(), anyString(), anyString())).thenReturn(response);
 
 
-        when(reqProcessor.processCert(eq("/certmanager/findCertificate"), anyObject(), anyString(), anyString())).thenReturn(response);
+
+        CertResponse findCertResponse = new CertResponse();
+        findCertResponse.setHttpstatus(HttpStatus.OK);
+        findCertResponse.setResponse(jsonStr2);
+        findCertResponse.setSuccess(true);
+        when(reqProcessor.processCert(eq("/certmanager/findCertificate"), anyObject(), anyString(), anyString())).thenReturn(findCertResponse);
 
         CertResponse response1 = new CertResponse();
         response1.setHttpstatus(HttpStatus.OK);
@@ -409,8 +516,11 @@ public class SSLCertificateServiceTest {
     @Test
     public void generateSSLCertificate_Certificate_Already_Exists() throws Exception {
         String jsonStr = "{ \"username\": \"testusername1\",  \"password\": \"testpassword1\"}";
-        String jsonStr1 = "{\"certificates\":[{\"sortedSubjectName\": \"CN=CertificateName.t-mobile.com, C=US, ST=Washington, L=Bellevue, O=T-Mobile USA, Inc\",\"certificateId\":57258,\"certificateStatus\":\"Active\"," +
-                "\"containerName\":\"VenafiBin_12345\",\"NotAfter\":\"2021-06-15T04:35:58-07:00\"}]}";
+        String jsonStr1 = "{\"certificates\":[{\"sortedSubjectName\": \"CN=CertificateName.t-mobile.com, C=US, " +
+                "ST=Washington, " +
+                "L=Bellevue, O=T-Mobile USA, Inc\"," +
+                "\"certificateId\":57258,\"certificateStatus\":\"Active\"," +
+                "\"containerName\":\"cont_12345\",\"NotAfter\":\"2021-06-15T04:35:58-07:00\"}]}";
         CertManagerLoginRequest certManagerLoginRequest = getCertManagerLoginRequest();
         certManagerLoginRequest.setUsername("username");
         certManagerLoginRequest.setPassword("password");
@@ -519,6 +629,13 @@ public class SSLCertificateServiceTest {
         createTargetSystemServiceMap.put("targetSystemGroupId", 11);
         createTargetSystemServiceMap.put("targetSystemId", 12);
 
+        UserDetails userDetails1 = new UserDetails();
+        token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+        userDetails1.setUsername("admin");
+        userDetails1.setAdmin(true);
+        userDetails1.setClientToken(token);
+        userDetails1.setSelfSupportToken(token);
+
         Response responseNoContent = getMockResponse(HttpStatus.INTERNAL_SERVER_ERROR, true, "");
         when(ControllerUtil.createMetadata(Mockito.any(), any())).thenReturn(true);
         when(reqProcessor.process(eq("/access/update"),any(),eq(token))).thenReturn(responseNoContent);
@@ -554,7 +671,7 @@ public class SSLCertificateServiceTest {
         when(reqProcessor.processCert(eq("/certmanager/enroll"), anyObject(), anyString(), anyString())).thenReturn(getEnrollResonse());
 
         ResponseEntity<?> enrollResponse =
-                sSLCertificateService.generateSSLCertificate(sslCertificateRequest,userDetails,token);
+                sSLCertificateService.generateSSLCertificate(sslCertificateRequest,userDetails1,token);
 
         //Assert
         assertNotNull(enrollResponse);
@@ -628,7 +745,7 @@ public class SSLCertificateServiceTest {
         createTargetSystemServiceMap.put("targetSystemGroupId", 11);
         createTargetSystemServiceMap.put("targetSystemId", 12);
 
-        Response responseNoContent = getMockResponse(HttpStatus.NO_CONTENT, true, "");
+        Response responseNoContent = getMockResponse(HttpStatus.OK, true, "");
         when(ControllerUtil.createMetadata(Mockito.any(), any())).thenReturn(true);
         when(reqProcessor.process(eq("/access/update"),any(),eq(userDetailToken))).thenReturn(responseNoContent);
 
@@ -668,6 +785,7 @@ public class SSLCertificateServiceTest {
         assertNotNull(enrollResponse);
         assertEquals(HttpStatus.OK, enrollResponse.getStatusCode());
     }
+
 
 
     @Test
@@ -1016,10 +1134,33 @@ public class SSLCertificateServiceTest {
         targetSystemServiceRequest.setMultiIpMonitoringEnabled(true);
 
         sSLCertificateRequest.setCertificateName("CertificateName.t-mobile.com");
+        sSLCertificateRequest.setAppName("xyz");
+        sSLCertificateRequest.setCertOwnerEmailId("testing@mail.com");
+        sSLCertificateRequest.setCertType("internal");
         sSLCertificateRequest.setTargetSystem(targetSystem);
         sSLCertificateRequest.setTargetSystemServiceRequest(targetSystemServiceRequest);
         return sSLCertificateRequest;
     }
 
+    @Test
+    public void get_sslCertificateMetadataDetails(){
+        SSLCertificateMetadataDetails ssCertificateMetadataDetails = new SSLCertificateMetadataDetails();
+        ssCertificateMetadataDetails.setContainerName("containername");
+        ssCertificateMetadataDetails.setCertificateStatus("active");
+        ssCertificateMetadataDetails.setCertType("internal");
+        ssCertificateMetadataDetails.setApplicationName("abc");
+        ssCertificateMetadataDetails.setCertOwnerEmailId("owneremail@test.com");
+        ssCertificateMetadataDetails.setApplicationTag("tag");
+        ssCertificateMetadataDetails.setProjectLeadEmailId("project@email.com");
+        ssCertificateMetadataDetails.setAkamid("12345");
+        ssCertificateMetadataDetails.setCertCreatedBy("rob");
+        ssCertificateMetadataDetails.setAuthority("authority");
+        ssCertificateMetadataDetails.setCreateDate("10-20-2020");
+        ssCertificateMetadataDetails.setCertificateName("testcert.com");
+        ssCertificateMetadataDetails.setCertificateId(111);
+        ssCertificateMetadataDetails.setExpiryDate("10-20-2030");
+        ssCertificateMetadataDetails.setApplicationOwnerEmailId("abcdef@mail.com");
+        assertNotNull(ssCertificateMetadataDetails);
+    }
 
 }

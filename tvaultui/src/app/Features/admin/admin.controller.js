@@ -33,6 +33,9 @@
         $scope.isCollapsed = true;
         $scope.existingTargetSystem = false;
         $scope.existingService = false;
+        $scope.isCertCollapsed = false;
+        $scope.isTargetCollapsed = true;
+        $scope.isTargetServiceCollapsed = true;
         // Type of safe to be filtered from the rest
 
         $scope.safeType = {
@@ -156,6 +159,7 @@
                 return;
             }
             $scope.requestDataFrAdmin();
+            getWorkloadDetails();
 
         };
 
@@ -371,6 +375,13 @@
         };
 
         $rootScope.cancel = function () {
+            Modal.close();
+        };
+        $rootScope.cancelCert = function () {
+            $scope.isCertCollapsed = false;
+            $scope.isTargetCollapsed = true;
+            $scope.isTargetServiceCollapsed = true;
+            $scope.certObj = {};
             Modal.close();
         };
 
@@ -1192,6 +1203,7 @@
             $scope.certNameErrorMessage = '';
             $scope.targetAddrErrorMessage = '';
             $scope.portErrorMessage = '';
+            $scope.ownerEmailErrorMessage='';
             Modal.createModal(size, 'certificatePopup.html', 'AdminCtrl', $scope);
         }
 
@@ -1219,8 +1231,8 @@
         }
 
         $scope.replaceSpacesCertName = function () {
-            if ($scope.certObj.certName !== null && $scope.certObj.certName !== undefined) {
-                $scope.certObj.certName = $scope.certObj.certName.replace(/[ ]/g, '');
+            if ($scope.certObj.certDetails.certName !== null && $scope.certObj.certDetails.certName !== undefined) {
+                $scope.certObj.certDetails.certName = $scope.certObj.certDetails.certName.replace(/[ ]/g, '');
                 return $scope.certificatePatternValidation();
             }
         }
@@ -1228,14 +1240,14 @@
         $scope.certificatePatternValidation = function () {
             $scope.certNameErrorMessage = '';
             $scope.certInValid = false;
-            if ($scope.certObj.certName != null && $scope.certObj.certName != undefined
-                && $scope.certObj.certName != "") {
+            if ($scope.certObj.certDetails.certName != null && $scope.certObj.certDetails.certName != undefined
+                && $scope.certObj.certDetails.certName != "") {
                 var reg = new RegExp("^[a-zA-Z0-9.-]+$")
-                if (!reg.test($scope.certObj.certName)) {
+                if (!reg.test($scope.certObj.certDetails.certName)) {
                     $scope.certNameErrorMessage = "Certificate Name can have alphabets, numbers, . and - characters only."
                     $scope.certInValid = true;
                 } else {
-                    var certName = $scope.certObj.certName.toLowerCase();
+                    var certName = $scope.certObj.certDetails.certName.toLowerCase();
                     if (!certName.endsWith(".t-mobile.com")) {
                         $scope.certNameErrorMessage = "Certificate name should end with .t-mobile.com"
                         $scope.certInValid = true;
@@ -1265,7 +1277,7 @@
                 && $scope.certObj.targetSystemServiceRequest.hostname != "") {
                 var reg = new RegExp("^[a-zA-Z0-9.-]+$")
                 if (!reg.test($scope.certObj.targetSystemServiceRequest.hostname)) {
-                    $scope.hostNameErrorMessage = "HostName can have alphabets, numbers, . and - characters only."
+                    $scope.hostNameErrorMessage = "Hostname can have alphabets, numbers, . and - characters only."
                     $scope.hostNameInValid = true;
                 }
             } 
@@ -1296,6 +1308,26 @@
             }
         }
 
+        $scope.ownerEmailPatternValidation = function () {
+            $scope.ownerEmailErrorMessage = '';
+            $scope.ownerEmailInValid = false;
+            if ($scope.certObj.certDetails.ownerEmail != null && $scope.certObj.certDetails.ownerEmail != undefined 
+                &&  $scope.certObj.certDetails.ownerEmail != "") {
+                var reg =  /^[a-zA-Z0-9_%+-]+[.]?[a-zA-Z0-9_%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/;
+                if (!reg.test($scope.certObj.certDetails.ownerEmail)) {
+                    $scope.ownerEmailErrorMessage = "Please enter a valid email address."
+                    $scope.ownerEmailInValid = true;
+                }
+            } 
+        }
+
+        $scope.replaceSpacesCertOwnerEmail = function(){
+            if ($scope.certObj.certDetails.ownerEmail !== null && $scope.certObj.certDetails.ownerEmail !== undefined) {
+                $scope.certObj.certDetails.ownerEmail = $scope.certObj.certDetails.ownerEmail.replace(/[ ]/g, '');
+                return $scope.ownerEmailPatternValidation();
+            }
+        }
+
         $scope.isCreateCertBtnDisabled = function () {
             if ($scope.certObj.targetSystem != undefined
                 && $scope.certObj.targetSystem.name != undefined
@@ -1304,16 +1336,75 @@
                 && $scope.certObj.targetSystemServiceRequest != undefined
                 && $scope.certObj.targetSystemServiceRequest.name != undefined
                 && $scope.certObj.targetSystemServiceRequest.port != undefined
-                && $scope.certObj.certName != undefined
-                && $scope.certObj.certName != ""
+                && $scope.certObj.certDetails.certName != undefined
+		&& $scope.certObj.certDetails.certName != ""
                 && !$scope.certInValid
                 && !$scope.addrInValid
                 && !$scope.portInValid                
+                && !$scope.ownerEmailInValid
+                && $scope.certObj.certDetails.certType != undefined
+                && $scope.certObj.certDetails.applicationName != undefined
+                && $scope.certObj.certDetails.ownerEmail != undefined
                 && !$scope.hostNameInValid) {
                 return false;
             }
             return true;
         }
+
+        $scope.selectAppName = function (applicationObj) {  
+            $scope.applicationName = applicationObj;
+            $scope.svcacc.appName = applicationObj.type;
+            $scope.appNameSelected = true;
+        }
+
+        $scope.getAppName = function (searchName) {
+            return orderByFilter(filterFilter($scope.appNameTableOptions, searchName), 'name', true);
+        }
+
+        var getWorkloadDetails = function () {
+            $scope.isApplicationsLoading = true;
+            AdminSafesManagement.getApprolesFromCwm().then(function (response) {
+                if (UtilityService.ifAPIRequestSuccessful(response)) {
+                    $scope.isApplicationsLoading = false;
+                    var data = response.data;
+                    $scope.appNameTableOptions=[];
+                     for (var index = 0;index<data.length;index++) {
+                        var value = '';
+                        var appTag = '';
+                        var appID = '';
+                        var name = '';
+                        if (data[index].appName !='' && data[index].appName != null && data[index].appName != undefined) {
+                            value = data[index].appName;
+                            name = value;
+                        }
+                        if (data[index].appID !='' && data[index].appID != null && data[index].appID != undefined) {
+                            appID = data[index].appID;
+                        }
+                        if (data[index].appTag !='' && data[index].appTag != null && data[index].appTag != undefined) {
+                            appTag = data[index].appTag;
+                        }
+                       
+                        $scope.appNameTableOptions.push({"type":value, "name": name, "tag": appTag, "id": appID});
+                    }
+                    if ($scope.certObj.certDetails.applicationName =="" || $scope.certObj.certDetails.applicationName ==null 
+                    || $scope.certObj.certDetails.applicationName == undefined) {
+                        document.getElementById('applicationName').value = '';
+                        document.getElementById('applicationName').placeholder="Search application name";
+                    }
+                }
+                else {
+                    $scope.errorMessage = AdminSafesManagement.getTheRightErrorMessage(response);
+                    $scope.error('md');
+                }
+            },
+            function (error) {
+                // Error handling function
+                console.log(error);
+                $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
+                $scope.error('md');
+            })
+        }
+
 
 
         $scope.createCert = function () {
@@ -1323,12 +1414,15 @@
                 var sslcertType = 'PRIVATE_SINGLE_SAN';
                 $scope.certObj.sslcertType = sslcertType;
                 $scope.certObj.targetSystem.targetSystemID = targetSystemID;
-                var reqObjtobeSent =
-                {
-                    "certificateName": $scope.certObj.certName,
+                var reqObjtobeSent =  {                    
                     "sslcertType": $scope.certObj.sslcertType,
                     "targetSystem": $scope.certObj.targetSystem,
-                    "targetSystemServiceRequest": $scope.certObj.targetSystemServiceRequest
+                    "targetSystemServiceRequest": $scope.certObj.targetSystemServiceRequest,
+                    "appName":$scope.certObj.certDetails.applicationName.tag,
+                    "certificateName":$scope.certObj.certDetails.certName,
+                    "certType":$scope.certObj.certDetails.certType,
+                    "certOwnerEmailId":$scope.certObj.certDetails.ownerEmail
+
                 }
                 $scope.certificateCreationMessage = '';
                 var url = '';
@@ -1362,8 +1456,21 @@
             Modal.close('');
         };
 
-        $scope.collapseADDetails = function () {
+        $scope.collapseADDetails = function(index) {
             $scope.isCollapsed = !$scope.isCollapsed;
+            if(index == 1 ) {
+                $scope.isTargetCollapsed = false;
+                $scope.isTargetServiceCollapsed = true;
+                $scope.isCertCollapsed = true;
+            } else if (index == 2 ) {
+                $scope.isTargetCollapsed = true;
+                $scope.isTargetServiceCollapsed = false;
+                $scope.isCertCollapsed = true;
+            } else if (index == 3 ) {
+                $scope.isTargetCollapsed = true;
+                $scope.isTargetServiceCollapsed = true;
+                $scope.isCertCollapsed = false;
+            } 
         }
 
         $scope.openExistingTargetSystem = function (e) {

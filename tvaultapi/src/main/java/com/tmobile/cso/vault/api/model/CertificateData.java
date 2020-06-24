@@ -1,13 +1,22 @@
 package com.tmobile.cso.vault.api.model;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class CertificateData {
 
     private int certificateId;
     private String certificateStatus;
-    private String expiryData;
+    private String expiryDate;
     private String createDate;
     private String containerName;
     private String certificateName;
+    private String authority;
+    public String getAuthority() {
+        return authority;
+    }
+    public void setAuthority(String authority) {
+        this.authority = authority;
+    }
 
     public int getCertificateId() {
         return certificateId;
@@ -25,12 +34,12 @@ public class CertificateData {
         this.certificateStatus = certificateStatus;
     }
 
-    public String getExpiryData() {
-        return expiryData;
+    public String getExpiryDate() {
+        return expiryDate;
     }
 
-    public void setExpiryData(String expiryData) {
-        this.expiryData = expiryData;
+    public void setExpiryDate(String expiryDate) {
+        this.expiryDate = expiryDate;
     }
 
     public String getCreateDate() {
@@ -62,7 +71,7 @@ public class CertificateData {
         return "CertificateData{" +
                 "certificateId=" + certificateId +
                 ", certificateStatus='" + certificateStatus + '\'' +
-                ", expiryData='" + expiryData + '\'' +
+                ", expiryData='" + expiryDate + '\'' +
                 ", createDate='" + createDate + '\'' +
                 ", containerName='" + containerName + '\'' +
                 ", certificateName='" + certificateName + '\'' +

@@ -31,6 +31,14 @@ import com.tmobile.cso.vault.api.process.Response;
 import com.tmobile.cso.vault.api.utils.JSONUtil;
 import com.tmobile.cso.vault.api.utils.ThreadLocalContext;
 import org.apache.commons.collections.MapUtils;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.conn.ssl.NoopHostnameVerifier;
+import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.impl.client.LaxRedirectStrategy;
+import org.apache.http.ssl.SSLContextBuilder;
+import org.apache.http.ssl.TrustStrategy;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,6 +48,14 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.security.KeyManagementException;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
 import java.util.*;
 
 @Component
@@ -115,6 +131,18 @@ public class SSLCertificateService {
 
     @Value("${sslcertmanager.targetsystemgroup.public_multi_san.ts_gp_id}")
     private int public_multi_san_ts_gp_id;
+
+    @Value("${workload.endpoint}")
+    private String workloadEndpoint;
+
+    @Value("${workload.endpoint.token}")
+    private String cwmEndpointToken;
+
+    @Value("${certificate.retry.count}")
+    private int retrycount;
+
+    @Value("${certificate.delay.time.millsec}")
+    private int delayTime;
 
     private static Logger log = LogManager.getLogger(SSLCertificateService.class);
 
@@ -372,12 +400,9 @@ public class SSLCertificateService {
                                 build()));
                     }
 
+                    String metadataJson = populateSSLCertificateMetadata(sslCertificateRequest, userDetails,
+                            certManagerLogin);
 
-                    //Metadata creation
-                    CertificateData certDetails = getCertificate(sslCertificateRequest, certManagerLogin);
-                    String metadataJson = ControllerUtil.populateSSLCertificateMetadata(sslCertificateRequest,
-                            userDetails, token,certDetails);
-                    
 					boolean sslMetaDataCreationStatus;
 
 					if (userDetails.isAdmin()) {
@@ -459,6 +484,140 @@ public class SSLCertificateService {
         return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\""+SSLCertificateConstants.SSL_CERT_SUCCESS+"\"]}");
     }
 
+
+    private String populateSSLCertificateMetadata(SSLCertificateRequest sslCertificateRequest, UserDetails userDetails,
+                                                  CertManagerLogin certManagerLogin) throws Exception {
+        String _path = SSLCertificateConstants.SSL_CERT_PATH + "/" + sslCertificateRequest.getCertificateName();
+        SSLCertificateMetadataDetails sslCertificateMetadataDetails = new SSLCertificateMetadataDetails();
+
+        //Get Application details
+        String applicationName = sslCertificateRequest.getAppName();
+        JsonObject response = getApplicationDetails(workloadEndpoint + "/" + applicationName);
+        JsonObject jsonElement = null;
+        if (Objects.nonNull(response)) {
+            jsonElement = response.get("spec").getAsJsonObject();
+            if (Objects.nonNull(jsonElement)) {
+                String applicationTag = jsonElement.get("tag").getAsString();
+                String projectLeadEmail = jsonElement.get("projectLeadEmail").getAsString();
+                String appOwnerEmail = jsonElement.get("brtContactEmail").getAsString();
+                String akmid = jsonElement.get("akmid").getAsString();
+                log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+                        put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+                        put(LogMessage.ACTION,"Populate Application details in SSL Certificate Metadata").
+                        put(LogMessage.MESSAGE, String.format("Application Details  for an " +
+                                        "applicationName = [%s] , applicationTag = [%s], " +
+                                        "projectLeadEmail =  [%s],appOwnerEmail =  [%s], akmid = [%s]", applicationName,
+                                applicationTag, projectLeadEmail, appOwnerEmail, akmid)).build()));
+
+                sslCertificateMetadataDetails.setAkamid(akmid);
+                sslCertificateMetadataDetails.setProjectLeadEmailId(projectLeadEmail);
+                sslCertificateMetadataDetails.setApplicationOwnerEmailId(appOwnerEmail);
+                sslCertificateMetadataDetails.setApplicationTag(applicationTag);
+                sslCertificateMetadataDetails.setApplicationName(applicationName);
+            }
+        }
+
+        CertificateData certDetails = null;
+        //Get Certificate Details
+        for (int i = 1; i <= retrycount; i++) {
+            Thread.sleep(delayTime);
+            certDetails = getCertificate(sslCertificateRequest, certManagerLogin);
+            log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+                    put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+                    put(LogMessage.ACTION, "Populate Certificate Details in SSL Certificate MetaData").
+                    put(LogMessage.MESSAGE, String.format("Fetching certificate details count = [%s] and status = [%s]"
+                            , i, Objects.nonNull(certDetails))).build()));
+            if (Objects.nonNull(certDetails)) {
+                break;
+            }
+        }
+        if (Objects.nonNull(certDetails)) {
+            sslCertificateMetadataDetails.setCertificateId(certDetails.getCertificateId());
+            sslCertificateMetadataDetails.setCertificateName(certDetails.getCertificateName());
+            sslCertificateMetadataDetails.setCreateDate(certDetails.getCreateDate());
+            sslCertificateMetadataDetails.setExpiryDate(certDetails.getExpiryDate());
+            sslCertificateMetadataDetails.setAuthority(certDetails.getAuthority());
+            sslCertificateMetadataDetails.setCertificateStatus(certDetails.getCertificateStatus());
+            sslCertificateMetadataDetails.setContainerName(certDetails.getContainerName());
+
+        } else {
+            log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+                    put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+                    put(LogMessage.ACTION, String.format("Certificate Details to  not available for given " +
+                            "certificate = [%s]", sslCertificateRequest.getCertificateName())).
+                    build()));
+        }
+        sslCertificateMetadataDetails.setCertCreatedBy(userDetails.getUsername());
+        sslCertificateMetadataDetails.setCertOwnerEmailId(sslCertificateRequest.getCertOwnerEmailId());
+        sslCertificateMetadataDetails.setCertType(sslCertificateRequest.getCertType());
+
+        log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+                put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+                put(LogMessage.ACTION, String.format("MetaData info details = [%s]", sslCertificateMetadataDetails)).
+                build()));
+
+
+        SSLCertMetadata sslCertMetadata = new SSLCertMetadata(_path, sslCertificateMetadataDetails);
+        String jsonStr = JSONUtil.getJSON(sslCertMetadata);
+        Map<String, Object> rqstParams = ControllerUtil.parseJson(jsonStr);
+        rqstParams.put("path", _path);
+        return ControllerUtil.convetToJson(rqstParams);
+    }
+
+
+    /**
+     * get Application Details
+     * @param api
+     * @return
+     */
+    public  JsonObject getApplicationDetails(String api)  {
+        JsonParser jsonParserObj= new JsonParser();
+        HttpClient httpClient =null;
+        try {
+
+            httpClient = HttpClientBuilder.create().setSSLHostnameVerifier(
+                    NoopHostnameVerifier.INSTANCE).
+                    setSSLContext(
+                            new SSLContextBuilder().loadTrustMaterial(null,new TrustStrategy() {
+                                @Override
+                                public boolean isTrusted(X509Certificate[] arg0, String arg1) throws CertificateException {
+                                    return true;
+                                }
+                            }).build()
+                    ).setRedirectStrategy(new LaxRedirectStrategy()).build();
+
+
+        } catch (KeyManagementException | NoSuchAlgorithmException | KeyStoreException e1) {
+            log.debug(e1.getMessage());
+        }
+        HttpGet getRequest = new HttpGet(api);
+        getRequest.addHeader("accept", "application/json");
+        getRequest.addHeader("Authorization", cwmEndpointToken);
+        String output = "";
+        StringBuilder jsonResponse = new StringBuilder();
+
+        try {
+            HttpResponse apiResponseDetails =  Objects.requireNonNull(httpClient).execute(getRequest);
+            if (apiResponseDetails.getStatusLine().getStatusCode() != 200) {
+                return null;
+            }
+            BufferedReader bufferedReader = new BufferedReader(new InputStreamReader((apiResponseDetails.getEntity().getContent())));
+            while ((output = bufferedReader.readLine()) != null) {
+                jsonResponse.append(output);
+            }
+            return (JsonObject) jsonParserObj.parse(jsonResponse.toString());
+        } catch (IOException e) {
+            log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+                    put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+                    put(LogMessage.ACTION, "get Application Details from CWM").
+                    put(LogMessage.MESSAGE, "Failed to parse CWM api response details").
+                    put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+                    build()));
+        }
+        return null;
+    }
+
+
     /**
      * Validate input data
      * @param sslCertificateRequest
@@ -466,8 +625,9 @@ public class SSLCertificateService {
      */
     private boolean validateInputData(SSLCertificateRequest sslCertificateRequest){
         boolean isValid=true;
-        if(sslCertificateRequest.getCertificateName().contains(" ") ||
-                (!sslCertificateRequest.getCertificateName().endsWith(SSLCertificateConstants.TMOBILE_DOMAIN_NAME)) ||
+        if(sslCertificateRequest.getCertificateName().contains(" ") || sslCertificateRequest.getAppName().contains(" ") ||
+                sslCertificateRequest.getCertOwnerEmailId().contains(" ") ||  sslCertificateRequest.getCertType().contains(" ") ||
+                (!sslCertificateRequest.getCertificateName().endsWith(".t-mobile.com")) ||
                 sslCertificateRequest.getTargetSystem().getAddress().contains(" ") ||
                 (!StringUtils.isEmpty(sslCertificateRequest.getTargetSystemServiceRequest().getHostname()) &&
                         sslCertificateRequest.getTargetSystemServiceRequest().getHostname().contains(" "))){
@@ -494,7 +654,7 @@ public class SSLCertificateService {
 
         //Read Policy
         accessMap.put(path + "/*", TVaultConstants.READ_POLICY);
-        policyMap.put("accessid", "r_cert_" + certificateName);
+        policyMap.put(SSLCertificateConstants.ACCESS_ID, "r_cert_" + certificateName);
         policyMap.put("access", accessMap);
 
         String policyRequestJson = ControllerUtil.convetToJson(policyMap);
@@ -502,19 +662,19 @@ public class SSLCertificateService {
 
         //Write Policy
         accessMap.put(path + "/*", TVaultConstants.WRITE_POLICY);
-        policyMap.put("accessid", "w_cert_" + certificateName);
+        policyMap.put(SSLCertificateConstants.ACCESS_ID, "w_cert_" + certificateName);
         policyRequestJson = ControllerUtil.convetToJson(policyMap);
         Response w_response = reqProcessor.process("/access/update", policyRequestJson, token);
 
         //Deny Policy
         accessMap.put(path + "/*", TVaultConstants.DENY_POLICY);
-        policyMap.put("accessid", "d_cert_" + certificateName);
+        policyMap.put(SSLCertificateConstants.ACCESS_ID, "d_cert_" + certificateName);
         policyRequestJson = ControllerUtil.convetToJson(policyMap);
         Response d_response = reqProcessor.process("/access/update", policyRequestJson, token);
 
         //Owner Policy
         accessMap.put(path + "/*", TVaultConstants.SUDO_POLICY);
-        policyMap.put("accessid", "o_cert_" + certificateName);
+        policyMap.put(SSLCertificateConstants.ACCESS_ID, "o_cert_" + certificateName);
         policyRequestJson = ControllerUtil.convetToJson(policyMap);
         Response s_response = reqProcessor.process("/access/update", policyRequestJson, token);
 
@@ -554,10 +714,9 @@ public class SSLCertificateService {
      * @throws Exception
      */
     private CertificateData getCertificate(SSLCertificateRequest sslCertificateRequest, CertManagerLogin certManagerLogin) throws Exception {
-        boolean isCertificateExists = false;
         CertificateData certificateData=null;
         String certName = sslCertificateRequest.getCertificateName();
-        int containerId = getTargetSystemGroupId(SSLCertType.valueOf("PRIVATE_SINGLE_SAN"));//sslCertificateRequest
+        int containerId = getTargetSystemGroupId(SSLCertType.valueOf("PRIVATE_SINGLE_SAN"));
         String findCertificateEndpoint = "/certmanager/findCertificate";
         String targetEndpoint = findCertificate.replace("certname", String.valueOf(certName)).replace("cid", String.valueOf(containerId));
         CertResponse response = reqProcessor.processCert(findCertificateEndpoint, "", certManagerLogin.getAccess_token(), getCertmanagerEndPoint(targetEndpoint));
@@ -572,12 +731,16 @@ public class SSLCertificateService {
                     if ((Objects.equals(getCertficateName(jsonElement.get("sortedSubjectName").getAsString()), certName))
                             && jsonElement.get(SSLCertificateConstants.CERTIFICATE_STATUS).getAsString().
                             equalsIgnoreCase(SSLCertificateConstants.ACTIVE)) {
-
                         certificateData= new CertificateData();
                         certificateData.setCertificateId(Integer.parseInt(jsonElement.get("certificateId").getAsString()));
-                        certificateData.setExpiryData(jsonElement.get("NotAfter").getAsString());
-                        certificateData.setContainerName(jsonElement.get("containerName").getAsString());
-                        certificateData.setCertificateName(jsonElement.get("certificateStatus").getAsString());
+                        certificateData.setExpiryDate(validateString(jsonElement.get("NotAfter")));
+                        certificateData.setCreateDate(validateString(jsonElement.get("NotBefore")));
+                        certificateData.setContainerName(validateString(jsonElement.get("containerName")));
+                        certificateData.setCertificateStatus(validateString(jsonElement.get(SSLCertificateConstants.CERTIFICATE_STATUS)));
+                        certificateData.setCertificateName(certName);
+                        certificateData.setAuthority((!StringUtils.isEmpty(jsonElement.get("enrollServiceInfo")) ?
+                                 validateString(jsonElement.get("enrollServiceInfo").getAsJsonObject().get("name")) :
+                                 null));
                         break;
                     }
 
@@ -587,6 +750,9 @@ public class SSLCertificateService {
         return certificateData;
     }
 
+    private String validateString(JsonElement jsonElement){
+        return (!StringUtils.isEmpty(jsonElement) ? (jsonElement.getAsString()):null);
+    }
 
     /**
      * Get Certificate name
@@ -620,7 +786,6 @@ public class SSLCertificateService {
 
         Map<String, Object> responseMap = ControllerUtil.parseJson(response.getResponse());
         if (!MapUtils.isEmpty(responseMap) && (ControllerUtil.parseJson(response.getResponse()).get(SSLCertificateConstants.TARGETSYSTEM_SERVICES) != null)) {
-            Gson gson = new Gson();
             JsonParser jsonParser = new JsonParser();
             JsonObject jsonObject = (JsonObject) jsonParser.parse(response.getResponse());
             if (jsonObject != null) {
@@ -696,7 +861,6 @@ public class SSLCertificateService {
      * @return
      */
     private String updatedRequestWithCN(String jsonString, SSLCertificateRequest sslCertificateRequest) {
-        Gson gson = new Gson();
         JsonParser jsonParser = new JsonParser();
         JsonObject jsonObject = (JsonObject) jsonParser.parse(jsonString);
         JsonObject jsonObject1 = jsonObject.getAsJsonObject(SSLCertificateConstants.SUBJECT);
@@ -1037,15 +1201,6 @@ public class SSLCertificateService {
         switch (sslCertType) {
             case PRIVATE_SINGLE_SAN:
                 ts_gp_id = private_single_san_ts_gp_id;
-                break;
-            case PRIVATE_MULTI_SAN:
-                ts_gp_id = private_multi_san_ts_gp_id;
-                break;
-            case PUBLIC_SINGLE_SAN:
-                ts_gp_id = public_single_san_ts_gp_id;
-                break;
-            case PUBLIC_MULTI_SAN:
-                ts_gp_id = public_multi_san_ts_gp_id;
                 break;
         }
         return ts_gp_id;
