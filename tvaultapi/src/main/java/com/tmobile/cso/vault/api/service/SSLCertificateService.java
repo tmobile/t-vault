@@ -1401,6 +1401,9 @@ public class SSLCertificateService {
         if (HttpStatus.OK.equals(response.getHttpstatus())) {
             JsonParser jsonParser = new JsonParser();
             JsonObject jsonObject = (JsonObject) jsonParser.parse(response.getResponse());
+            if (jsonObject.isJsonNull() || jsonObject.get(SSLCertificateConstants.TARGETSYSTEMS).isJsonNull() || jsonObject.get(SSLCertificateConstants.TARGETSYSTEMS).toString().equalsIgnoreCase("null"))  {
+                return ResponseEntity.status(HttpStatus.OK).body("{\"data\": "+JSONUtil.getJSONasDefaultPrettyPrint(targetSystemDetails)+"}");
+            }
             JsonArray jsonArray = jsonObject.getAsJsonArray(SSLCertificateConstants.TARGETSYSTEMS);
 
             if (Objects.nonNull(jsonArray)) {
@@ -1448,6 +1451,9 @@ public class SSLCertificateService {
         if (HttpStatus.OK.equals(response.getHttpstatus())) {
             JsonParser jsonParser = new JsonParser();
             JsonObject jsonObject = (JsonObject) jsonParser.parse(response.getResponse());
+            if (jsonObject.isJsonNull() || jsonObject.get(SSLCertificateConstants.TARGETSYSTEM_SERVICES).isJsonNull() || jsonObject.get(SSLCertificateConstants.TARGETSYSTEM_SERVICES).toString().equalsIgnoreCase("null"))  {
+                return ResponseEntity.status(HttpStatus.OK).body("{\"data\": "+JSONUtil.getJSONasDefaultPrettyPrint(targetSystemServiceDetails)+"}");
+            }
             JsonArray jsonArray = jsonObject.getAsJsonArray(SSLCertificateConstants.TARGETSYSTEM_SERVICES);
 
             if (Objects.nonNull(jsonArray)) {
