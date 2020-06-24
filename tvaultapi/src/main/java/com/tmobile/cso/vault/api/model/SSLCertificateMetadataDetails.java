@@ -16,7 +16,7 @@ public class SSLCertificateMetadataDetails implements Serializable {
     private String applicationName;
     private String projectLeadEmailId;
     private String applicationOwnerEmailId;
-    private String akamid;
+    private String akmid;
     private String certType;
     private String certCreatedBy;
     private String certOwnerEmailId;
@@ -97,11 +97,11 @@ public class SSLCertificateMetadataDetails implements Serializable {
         this.applicationOwnerEmailId = applicationOwnerEmailId;
     }
 
-    public String getAkamid() {
-        return akamid;
+    public String getAkmid() {
+        return akmid;
     }
-    public void setAkamid(String akamid) {
-        this.akamid = akamid;
+    public void setAkmid(String akmid) {
+        this.akmid = akmid;
     }
     public String getCertType() {
         return certType;
