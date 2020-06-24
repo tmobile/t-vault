@@ -312,7 +312,7 @@ readTextFile("../apiUrls.json");
             method: 'POST'
         }, {
             name: 'getCertificates',
-            url: '/v2/nclm/certificates?',
+            url: '/v2/sslcert?',
             method: 'GET'
         }, {
             name: 'getTargetSystems',

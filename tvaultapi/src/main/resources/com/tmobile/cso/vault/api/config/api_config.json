@@ -922,6 +922,17 @@
 				{"name":"hostname","required":true}
  	    ],
         "outparams":["targetSystemID","name","port","targetSystemGroupId","targetSystemId","targetSystemServiceId","hostname"]
+    }
+ ,
+    {"#":"Getting certificate Info",
+
+    	"apiEndPoint":"/sslcert",
+    	"vaultEndPoint":"/<path>",
+    	"method":"GET",
+      	"params":[
+        	{"name":"path","required":true, "appendToPath":true}
+        ],
+        "outparams":["data"]
     },
 	{
 
