@@ -54,6 +54,7 @@ public class SSLCertificateRequest implements Serializable {
 	@NotNull
 	@NotEmpty
 	@Email
+	@ApiModelProperty(example="example@email.com", position=1)
 	private String certOwnerEmailId;
 	@NotNull
 	@NotEmpty

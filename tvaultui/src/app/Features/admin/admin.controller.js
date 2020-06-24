@@ -381,6 +381,7 @@
             $scope.isCertCollapsed = false;
             $scope.isTargetCollapsed = true;
             $scope.isTargetServiceCollapsed = true;
+            $scope.certObj = {};
             Modal.close();
         };
 
@@ -1202,6 +1203,7 @@
             $scope.certNameErrorMessage = '';
             $scope.targetAddrErrorMessage = '';
             $scope.portErrorMessage = '';
+            $scope.ownerEmailErrorMessage='';
             Modal.createModal(size, 'certificatePopup.html', 'AdminCtrl', $scope);
         }
 
@@ -1275,7 +1277,7 @@
                 && $scope.certObj.targetSystemServiceRequest.hostname != "") {
                 var reg = new RegExp("^[a-zA-Z0-9.-]+$")
                 if (!reg.test($scope.certObj.targetSystemServiceRequest.hostname)) {
-                    $scope.hostNameErrorMessage = "HostName can have alphabets, numbers, . and - characters only."
+                    $scope.hostNameErrorMessage = "Hostname can have alphabets, numbers, . and - characters only."
                     $scope.hostNameInValid = true;
                 }
             } 
@@ -1309,14 +1311,13 @@
         $scope.ownerEmailPatternValidation = function () {
             $scope.ownerEmailErrorMessage = '';
             $scope.ownerEmailInValid = false;
-            if ($scope.certObj.certDetails.ownerEmail != null && $scope.certObj.certDetails.ownerEmail != undefined) {
+            if ($scope.certObj.certDetails.ownerEmail != null && $scope.certObj.certDetails.ownerEmail != undefined
+                &&  $scope.certObj.certDetails.ownerEmail != "") {
                 var reg =  /^[a-zA-Z0-9_%+-]+[.]?[a-zA-Z0-9_%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/;
                 if (!reg.test($scope.certObj.certDetails.ownerEmail)) {
                     $scope.ownerEmailErrorMessage = "Please enter a valid email address."
                     $scope.ownerEmailInValid = true;
                 }
-            } else {
-                $scope.ownerEmailInValid = true;
             }
         }
 
@@ -1335,8 +1336,8 @@
                 && $scope.certObj.targetSystemServiceRequest != undefined
                 && $scope.certObj.targetSystemServiceRequest.name != undefined
                 && $scope.certObj.targetSystemServiceRequest.port != undefined
-                && $scope.certObj.certName != undefined
-                && $scope.certObj.certName != ""
+                && $scope.certObj.certDetails.certName != undefined
+		&& $scope.certObj.certDetails.certName != ""
                 && !$scope.certInValid
                 && !$scope.addrInValid
                 && !$scope.portInValid                
@@ -1382,7 +1383,7 @@
                         if (data[index].appTag !='' && data[index].appTag != null && data[index].appTag != undefined) {
                             appTag = data[index].appTag;
                         }
-                        value = value + " (AppID: "+ appID + ", AppTag: " + appTag + ")";
+
                         $scope.appNameTableOptions.push({"type":value, "name": name, "tag": appTag, "id": appID});
                     }
                     if ($scope.certObj.certDetails.applicationName =="" || $scope.certObj.certDetails.applicationName ==null
