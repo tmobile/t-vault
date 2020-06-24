@@ -939,6 +939,13 @@
 		"vaultEndPoint":"targetsystemgroups",
 		"method":"GET",
 		"outparams":["targetSystems"]
+	},
+	{"#" : "**** - Get  Target System service list'****** ",
+
+		"apiEndPoint":"/certmanager/targetsystemservicelist",
+		"vaultEndPoint":"targetsystemservices",
+		"method":"GET",
+		"outparams":["targetsystemservices"]
 	}
 
 
