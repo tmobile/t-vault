@@ -356,4 +356,18 @@ public class SSLCertificateController {
 		return sslCertificateService.getAllCertificates(token, certName, limit, offset);
 	}
 
+	/**
+	 * Get target system list.
+	 * @param request
+	 * @param token
+	 * @return
+	 * @throws Exception
+	 */
+	@ApiOperation(value = "${CertificateController.getTargetSystemList.value}", notes = "${CertificateController.getTargetSystemList.notes}")
+	@GetMapping(value = "/sslcert/targetsystems", produces = "application/json")
+	public ResponseEntity<String> getTargetSystemList(HttpServletRequest request, @RequestHeader(value = "vault-token") String token) throws Exception {
+		UserDetails userDetails = (UserDetails) ((HttpServletRequest) request).getAttribute("UserDetails");
+		return sslCertificateService.getTargetSystemList(token, userDetails);
+	}
+
 }
