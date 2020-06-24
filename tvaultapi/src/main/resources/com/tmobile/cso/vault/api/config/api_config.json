@@ -922,10 +922,9 @@
 				{"name":"hostname","required":true}
  	    ],
         "outparams":["targetSystemID","name","port","targetSystemGroupId","targetSystemId","targetSystemServiceId","hostname"]
-    }
- ,
+    },
     {"#":"Getting certificate Info",
-    
+
     	"apiEndPoint":"/sslcert",
     	"vaultEndPoint":"/<path>",
     	"method":"GET",
@@ -933,6 +932,14 @@
         	{"name":"path","required":true, "appendToPath":true}
         ],
         "outparams":["data"]
-    }
+    },
+	{"#" : "**** - Get  Target System list'****** ",
+
+		"apiEndPoint":"/certmanager/targetsystemlist",
+		"vaultEndPoint":"targetsystemgroups",
+		"method":"GET",
+		"outparams":["targetSystems"]
+	}
+
 
 ]
