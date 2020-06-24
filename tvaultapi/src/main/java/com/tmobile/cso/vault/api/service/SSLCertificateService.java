@@ -33,6 +33,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
+import com.tmobile.cso.vault.api.model.*;
 import org.apache.commons.collections.MapUtils;
 import org.springframework.util.ObjectUtils;
 import org.apache.http.HttpResponse;
@@ -62,17 +63,6 @@ import com.tmobile.cso.vault.api.common.TVaultConstants;
 import com.tmobile.cso.vault.api.controller.ControllerUtil;
 import com.tmobile.cso.vault.api.exception.LogMessage;
 import com.tmobile.cso.vault.api.exception.TVaultValidationException;
-import com.tmobile.cso.vault.api.model.CertManagerLogin;
-import com.tmobile.cso.vault.api.model.CertManagerLoginRequest;
-import com.tmobile.cso.vault.api.model.CertificateData;
-import com.tmobile.cso.vault.api.model.SSLCertMetadata;
-import com.tmobile.cso.vault.api.model.SSLCertType;
-import com.tmobile.cso.vault.api.model.SSLCertTypeConfig;
-import com.tmobile.cso.vault.api.model.SSLCertificateMetadataDetails;
-import com.tmobile.cso.vault.api.model.SSLCertificateRequest;
-import com.tmobile.cso.vault.api.model.TargetSystem;
-import com.tmobile.cso.vault.api.model.TargetSystemServiceRequest;
-import com.tmobile.cso.vault.api.model.UserDetails;
 import com.tmobile.cso.vault.api.process.CertResponse;
 import com.tmobile.cso.vault.api.process.RequestProcessor;
 import com.tmobile.cso.vault.api.process.Response;
@@ -1226,7 +1216,7 @@ public class SSLCertificateService {
         }
         return ts_gp_id;
     }
- 
+
         /**
          * Get ssl certificate metadata list
          * @param token
@@ -1235,7 +1225,7 @@ public class SSLCertificateService {
          * @return
          * @throws Exception
          */
-       
+
        public ResponseEntity<String> getServiceCertificates(String token, UserDetails userDetails, String certName) throws Exception {
        	log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
    			      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
@@ -1247,10 +1237,10 @@ public class SSLCertificateService {
        	Response response = new Response();
        	String certListStr = "";
        	String tokenValue= (userDetails.isAdmin())? token :userDetails.getSelfSupportToken();
-   		
+
    			response = getMetadata(tokenValue, _path);
    			if(!ObjectUtils.isEmpty(response.getResponse())) {
-   			certListStr = getsslmetadatalist(response.getResponse(),tokenValue,userDetails,certName);		
+   			certListStr = getsslmetadatalist(response.getResponse(),tokenValue,userDetails,certName);
    			}
    			else {
    				log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
@@ -1268,11 +1258,11 @@ public class SSLCertificateService {
    			      put(LogMessage.STATUS, response.getHttpstatus().toString()).
    			      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
    			      build()));
-   		
+
    		return ResponseEntity.status(response.getHttpstatus()).body(certListStr);
    	}
-       
-       
+
+
        /**
    	 * Get  for ssl certificate names
    	 * @param token
@@ -1280,12 +1270,12 @@ public class SSLCertificateService {
    	 * @param path
    	 * @return
    	 */
-   	private Response getMetadata(String token, String path) {	
-   		
+   	private Response getMetadata(String token, String path) {
+
    		String _path = path+"?list=true";
    		return reqProcessor.process("/sslcert","{\"path\":\""+_path+"\"}",token);
    	}
-     
+
     /**
    	 * Get metadata for each certificate
    	 * @param token
@@ -1294,7 +1284,7 @@ public class SSLCertificateService {
    	 * @return
    	 */
    	private String getsslmetadatalist(String certificateResponse, String token, UserDetails userDetails, String certName) {
-   		String path = SSLCertificateConstants.SSL_CERT_PATH  ;   		
+   		String path = SSLCertificateConstants.SSL_CERT_PATH  ;
    		String _path= "";
    		String endPoint = "";
    		Response response = null;
@@ -1302,30 +1292,30 @@ public class SSLCertificateService {
    		JsonArray responseArray = new JsonArray();
    		JsonObject metadataJsonObj=new JsonObject();
         JsonObject jsonObject = (JsonObject) jsonParser.parse(certificateResponse);
-   		JsonArray jsonArray = jsonObject.getAsJsonObject("data").getAsJsonArray("keys"); 
+   		JsonArray jsonArray = jsonObject.getAsJsonObject("data").getAsJsonArray("keys");
    		List<String> certNames = geMatchCertificates(jsonArray,certName);
    		for (int i = 0; i < certNames.size(); i++)
    		{
    			endPoint = certNames.get(i).toString(). replaceAll("^\"+|\"+$", "");
    			_path = path+"/"+endPoint;
-   			
-   			if (!userDetails.isAdmin()) {	
+
+   			if (!userDetails.isAdmin()) {
    				response = reqProcessor.process("/sslcert","{\"path\":\""+_path+"\"}",userDetails.getSelfSupportToken());
    				if(!ObjectUtils.isEmpty(response.getResponse())) {
-   				JsonObject object = ((JsonObject) jsonParser.parse(response.getResponse())).getAsJsonObject("data");   				
-   				if(userDetails.getUsername().equalsIgnoreCase((object.get("certCreatedBy")!=null? object.get("certCreatedBy").getAsString() : ""))) {   					
+   				JsonObject object = ((JsonObject) jsonParser.parse(response.getResponse())).getAsJsonObject("data");
+   				if(userDetails.getUsername().equalsIgnoreCase((object.get("certCreatedBy")!=null? object.get("certCreatedBy").getAsString() : ""))) {
    					responseArray.add(object);
    				}
-   				
+
    			}
    			}else {
    				response = reqProcessor.process("/sslcert","{\"path\":\""+_path+"\"}",token);
    				if(!ObjectUtils.isEmpty(response.getResponse())) {
    				responseArray.add(((JsonObject) jsonParser.parse(response.getResponse())).getAsJsonObject("data"));
    				}
-   			}   			
+   			}
    		}
-   		
+
    		if(ObjectUtils.isEmpty(responseArray)) {
    			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
  	   			      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
@@ -1338,7 +1328,7 @@ public class SSLCertificateService {
    		metadataJsonObj.add("keys", responseArray);
    		return metadataJsonObj.toString();
    	}
-     
+
    	/**
    	 * Get the certificate names matches the search keyword
    	 * @param jsonArray
@@ -1358,11 +1348,85 @@ public class SSLCertificateService {
    			for(int i = 0; i < jsonArray.size(); i++){
    			 list.add(jsonArray.get(i).toString());
    	   	   	}
-   			}  
+   			}
    		}
    	 return list;
    	}
-   	
-         
-   
+
+    /**
+     * To get nclm token
+     * @return
+     */
+    public String getNclmToken() {
+        String username = (Objects.nonNull(ControllerUtil.getNclmUsername())) ?
+                (new String(Base64.getDecoder().decode(ControllerUtil.getNclmUsername()))) :
+                (new String(Base64.getDecoder().decode(certManagerUsername)));
+
+        String password = (Objects.nonNull(ControllerUtil.getNclmPassword())) ?
+                (new String(Base64.getDecoder().decode(ControllerUtil.getNclmPassword()))) :
+                (new String(Base64.getDecoder().decode(certManagerPassword)));
+
+        CertManagerLoginRequest certManagerLoginRequest = new CertManagerLoginRequest(username, password);
+        try {
+            CertManagerLogin certManagerLogin = login(certManagerLoginRequest);
+            return certManagerLogin.getAccess_token();
+        } catch (Exception e) {
+            log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+                    put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+                    put(LogMessage.ACTION, "getNclmToken").
+                    put(LogMessage.MESSAGE, "Failed to get nclm token").
+                    put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+                    build()));
+
+        }
+        return null;
+    }
+
+    /**
+     * To get the list of target systems in a target system group.
+     * @param token
+     * @param userDetails
+     * @return
+     * @throws Exception
+     */
+    public ResponseEntity<String> getTargetSystemList(String token, UserDetails userDetails) throws Exception {
+        String getTargetSystemEndpoint = "/certmanager/findTargetSystem";
+        String findTargetSystemEndpoint = findTargetSystem.replace("tsgid",
+                String.valueOf(getTargetSystemGroupId(SSLCertType.valueOf("PRIVATE_SINGLE_SAN"))));
+
+        List<TargetSystemDetails> targetSystemDetails = new ArrayList<>();
+        CertResponse response = reqProcessor.processCert(getTargetSystemEndpoint, "", getNclmToken(),
+                getCertmanagerEndPoint(findTargetSystemEndpoint));
+
+        if (HttpStatus.OK.equals(response.getHttpstatus())) {
+            JsonParser jsonParser = new JsonParser();
+            JsonObject jsonObject = (JsonObject) jsonParser.parse(response.getResponse());
+            JsonArray jsonArray = jsonObject.getAsJsonArray(SSLCertificateConstants.TARGETSYSTEMS);
+
+            if (Objects.nonNull(jsonArray)) {
+                for (int i = 0; i < jsonArray.size(); i++) {
+                    JsonObject jsonElement = jsonArray.get(i).getAsJsonObject();
+                    targetSystemDetails.add(new TargetSystemDetails(jsonElement.get(SSLCertificateConstants.NAME).getAsString(),
+                            jsonElement.get(SSLCertificateConstants.DESCRIPTION).getAsString(),
+                            jsonElement.get(SSLCertificateConstants.ADDRESS).getAsString(),
+                            jsonElement.get(SSLCertificateConstants.TARGETSYSTEM_ID).getAsString()));
+                }
+            }
+            log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+                    put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+                    put(LogMessage.ACTION, "getTargetSystemList").
+                    put(LogMessage.MESSAGE, "Successfully retrieved target system list from NCLM").
+                    put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+                    build()));
+            return ResponseEntity.status(HttpStatus.OK).body("{\"data\": "+JSONUtil.getJSONasDefaultPrettyPrint(targetSystemDetails)+"}");
+        }
+        log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+                put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+                put(LogMessage.ACTION, "getTargetSystemList").
+                put(LogMessage.MESSAGE, "Failed to get Target system list from NCLM").
+                put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+                build()));
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Failed to get Target system list from NCLM\"]}");
+
+    }
 }

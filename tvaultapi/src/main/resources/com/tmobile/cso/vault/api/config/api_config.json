@@ -922,8 +922,7 @@
 				{"name":"hostname","required":true}
  	    ],
         "outparams":["targetSystemID","name","port","targetSystemGroupId","targetSystemId","targetSystemServiceId","hostname"]
-    }
- ,
+    },
     {"#":"Getting certificate Info",
 
     	"apiEndPoint":"/sslcert",
@@ -934,6 +933,13 @@
         ],
         "outparams":["data"]
     },
+	{"#" : "**** - Get  Target System list'****** ",
+
+		"apiEndPoint":"/certmanager/targetsystemlist",
+		"vaultEndPoint":"targetsystemgroups",
+		"method":"GET",
+		"outparams":["targetSystems"]
+	},
 	{
 
 		"apiEndPoint":"/auth/oidc/oidc/auth_url",
