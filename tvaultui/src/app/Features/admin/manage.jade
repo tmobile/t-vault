@@ -69,9 +69,9 @@ script(type='text/ng-template', id='certificatePopup.html')
                     .col-lg-12.col-md-12.col-sm-12.col-xs-12.common-form-row()
                       .details-input-group
                         .common-form-label Certificate Type*
-                        label.common-form-label internal
+                        label.common-form-label Internal
                           input(type='radio' id='cert_type' value="internal" ng-model="certObj.certDetails.certType" ng-checked="certObj.certDetails.certType == 'internal'" )
-                        label.common-form-label external
+                        label.common-form-label External
                           input(type='radio' id='cert_type' value="external" ng-model="certObj.certDetails.certType" ng-checked="certObj.certDetails.certType == 'external'" )
                     .col-lg-12.col-md-12.col-sm-12.col-xs-12.common-form-row()
                       .details-input-group
@@ -81,7 +81,7 @@ script(type='text/ng-template', id='certificatePopup.html')
                     .col-lg-12.col-md-12.col-sm-12.col-xs-12.common-form-row()
                       .details-input-group
                         .common-form-label Application Name*
-                        input.form-control.input-box-style(ng-model="certObj.certDetails.applicationName" id="applicationName" typeahead-min-length="2" name="appName" uib-typeahead="key as key.type for key in getAppName($viewValue) | limitTo: 5" typeahead-wait-ms="500" typeahead-on-select="selectAppName(applicationName)" placeholder="Loading application names. Please wait.." ng-disabled="isApplicationsLoading")
+                        input.form-control.input-box-style(ng-model="certObj.certDetails.applicationName" id="applicationName" typeahead-min-length="2" name="appName" uib-typeahead="key as key.type for key in getAppName($viewValue) | limitTo: 5" typeahead-wait-ms="500" typeahead-on-select="selectAppName(applicationName)" ng-disabled="isApplicationsLoading" ng-required="true")
                         div.loader.svcaccid(ng-if='isApplicationsLoading')
                     .col-lg-12.col-md-12.col-sm-12.col-xs-12.common-form-row()
                       .details-input-group
@@ -127,7 +127,7 @@ script(type='text/ng-template', id='certificatePopup.html')
                     .col-lg-12.col-md-12.col-sm-12.col-xs-12.common-form-row()
                       .details-input-group
                         .common-form-label Hostname/IP Address*
-                        input.form-control.input-box-style(id="tarSystemAddress" ng-model="certObj.targetSystem.address" ng-change="replaceSpacesTargetAddr()")
+                        input.form-control.input-box-style(id="tarSystemAddress"  ng-change="replaceSpacesTargetAddr()" ng-model="certObj.targetSystem.address")
                   div.key-acceptance-info() {{ targetAddrErrorMessage }}
                   .font-type-normal(ng-if="existingTargetSystem")
                     .col-lg-12.col-md-12.col-sm-12.col-xs-12.common-form-row()
@@ -159,15 +159,15 @@ script(type='text/ng-template', id='certificatePopup.html')
                       label.common-form-label New service
                         input(type='radio' id='service_type' value="new" ng-model="targetSystemService.type" ng-checked="targetSystemService.type == 'new'" ng-click="openNewService($event)")
                   .font-type-normal(ng-if="!existingService")
-                    .col-lg-11.col-md-11.col-sm-11.col-xs-11.common-form-row()
+                    .col-lg-12.col-md-12.col-sm-12.col-xs-12.common-form-row()
                       .details-input-group
                         .common-form-label Name*
                         input.form-control.input-box-style(id="tarSysServiceReqName" ng-model="certObj.targetSystemServiceRequest.name"  ng-required="true")
-                    .col-lg-11.col-md-11.col-sm-11.col-xs-11.common-form-row()
+                    .col-lg-12.col-md-12.col-sm-12.col-xs-12.common-form-row()
                       .details-input-group
                         .common-form-label Description
                         input.form-control.input-box-style(id="tarSysServiceReqDesc" ng-model="certObj.targetSystemServiceRequest.description")
-                    .col-lg-11.col-md-11.col-sm-11.col-xs-11.common-form-row()
+                    .col-lg-12.col-md-12.col-sm-12.col-xs-12.common-form-row()
                       .details-input-group
                         .common-form-label Port*
                         input.form-control.input-box-style(id="tarSysServiceReqPort"  restrict-to-numbers ng-model="certObj.targetSystemServiceRequest.port" minlength="1" maxlength="5" ng-change="portNumValidation()" ng-required="true")
@@ -180,7 +180,7 @@ script(type='text/ng-template', id='certificatePopup.html')
                       .details-input-group
                         .common-form-label Enable multi-IP monitoring
                         input(type='checkbox' id="enableMultiIpMonitoring" ng-model="certObj.targetSystemServiceRequest.multiIpMonitoringEnabled")
-                    .col-lg-11.col-md-11.col-sm-11.col-xs-11.common-form-row()
+                    .col-lg-12.col-md-12.col-sm-12.col-xs-12.common-form-row()
                       .details-input-group
                         .common-form-label Hostname for SNI
                       input.form-control(id="hostName" ng-change="replaceSpacesHostName()" ng-model="certObj.targetSystemServiceRequest.hostname")
