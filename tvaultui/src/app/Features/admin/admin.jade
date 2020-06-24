@@ -103,7 +103,7 @@ script(type='text/ng-template', id='certificatePopup.html')
                     .common-form-label Container
                     input.form-control.input-box-style(value="VenafiBin_12345" uib-tooltip="" tooltip-placement="top" tooltip-popup-delay="600" ng-disabled="true")  
               .cert-conf.clearfix
-                .font-type-normal.collapse-link(ng-click="collapseADDetails(3)") * Step 1/3: Please fill the Certificate details 
+                .font-type-normal.collapse-link(ng-click="collapseADDetails(3)") Step 1/3: Please fill the Certificate details 
                   span.svc-collapse-link(ng-if="!isCertCollapsed") >> 
                   span.collapse-link(ng-if="isCertCollapsed") >> 
                   span.target-note(ng-if="certDetailsSelected") {{cert.certDetails.name}}
@@ -118,17 +118,17 @@ script(type='text/ng-template', id='certificatePopup.html')
                     .col-lg-12.col-md-12.col-sm-12.col-xs-12.common-form-row()
                       .details-input-group
                         .common-form-label Certificate Name*
-                        input.form-control.input-box-style(id="certReqName" ng-model="certObj.certDetails.certName"  ng-change="replaceSpacesCertName()" ng-required="true")
+                        input.form-control.input-box-style(id="certReqName" ng-model="certObj.certDetails.certName"  ng-change="replaceSpacesCertName()")
                      div.key-acceptance-info() {{ certNameErrorMessage }}
                     .col-lg-12.col-md-12.col-sm-12.col-xs-12.common-form-row()
                       .details-input-group
                         .common-form-label Application Name*
-                        input.form-control.input-box-style(ng-model="certObj.certDetails.applicationName" id="applicationName" typeahead-min-length="2" name="appName" uib-typeahead="key as key.type for key in getAppName($viewValue) | limitTo: 5" typeahead-wait-ms="500" typeahead-on-select="selectAppName(applicationName)" placeholder="Loading application names. Please wait.." ng-disabled="isApplicationsLoading")
+                        input.form-control.input-box-style(ng-model="certObj.certDetails.applicationName" id="applicationName" typeahead-min-length="2" name="appName" uib-typeahead="key as key.type for key in getAppName($viewValue) | limitTo: 5" typeahead-wait-ms="500" typeahead-on-select="selectAppName(applicationName)" ng-disabled="isApplicationsLoading")
                         div.loader.svcaccid(ng-if='isApplicationsLoading')
                     .col-lg-12.col-md-12.col-sm-12.col-xs-12.common-form-row()
                       .details-input-group
                         .common-form-label Owner EmailId*
-                        input.form-control.input-box-style(id="certReqOwnerEmail"  ng-model="certObj.certDetails.ownerEmail" ng-change="replaceSpacesCertOwnerEmail()"  ng-required="true")
+                        input.form-control.input-box-style(id="certReqOwnerEmail"  ng-model="certObj.certDetails.ownerEmail" ng-change="replaceSpacesCertOwnerEmail()")
                     div.key-acceptance-info() {{ ownerEmailErrorMessage }}
                         div.loader.owner-mail(ng-if='showInputLoader.show && certObj.certDetails.ownerEmail > 0')
                             div.ball-spin-fade-loader
@@ -158,7 +158,7 @@ script(type='text/ng-template', id='certificatePopup.html')
                       label.common-form-label New target System
                         input(type='radio' id='target_type' value="new" ng-model="targetSystem.type" ng-checked="targetSystem.type == 'new'" ng-click="openNewTargetSystem($event)")
                   .font-type-normal(ng-if="!existingTargetSystem")
-                    .col-lg-11.col-md-11.col-sm-11.col-xs-11.common-form-row()
+                    .col-lg-12.col-md-12.col-sm-12.col-xs-12.common-form-row()
                       .details-input-group
                         .common-form-label Name*
                         input.form-control.input-box-style( id="tarSystemName" ng-model="certObj.targetSystem.name" ng-required="true")
