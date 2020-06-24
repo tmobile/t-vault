@@ -429,6 +429,7 @@
         };
         $rootScope.cancelCert = function () {
             resetCert();
+            $scope.certObj = {};
             Modal.close();
         };
 
@@ -1424,7 +1425,7 @@
                 }
             }
         }
-
+        
         $scope.isCreateCertBtnDisabled = function () {         	
             if ($scope.certObj.certDetails.certName != undefined
 	        	&& $scope.certObj.certDetails.certName != ""
