@@ -503,7 +503,8 @@ public class SSLCertificateService {
                 String akmid = jsonElement.get("akmid").getAsString();
                 log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
                         put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
-                        put(LogMessage.ACTION, String.format("Application Details  for an " +
+                        put(LogMessage.ACTION,"Populate Application details in SSL Certificate Metadata").
+                        put(LogMessage.MESSAGE, String.format("Application Details  for an " +
                                         "applicationName = [%s] , applicationTag = [%s], " +
                                         "projectLeadEmail =  [%s],appOwnerEmail =  [%s], akmid = [%s]", applicationName,
                                 applicationTag, projectLeadEmail, appOwnerEmail, akmid)).build()));
@@ -523,7 +524,8 @@ public class SSLCertificateService {
             certDetails = getCertificate(sslCertificateRequest, certManagerLogin);
             log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
                     put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
-                    put(LogMessage.ACTION, String.format("Fetching certificate details count = [%s] and status = [%s]"
+                    put(LogMessage.ACTION, "Populate Certificate Details in SSL Certificate MetaData").
+                    put(LogMessage.MESSAGE, String.format("Fetching certificate details count = [%s] and status = [%s]"
                             , i, Objects.nonNull(certDetails))).build()));
             if (Objects.nonNull(certDetails)) {
                 break;
