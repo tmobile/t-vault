@@ -128,6 +128,7 @@
             $scope.targetSystem = { "type": "new" };
             $scope.targetSystemService = { "type": "new" };
             $scope.targetSystemSelected = false;
+            $scope.certObj.certDetails = {"certType":"internal"};
             $scope.showInputLoader = {
                 'show': false
             };
@@ -1205,6 +1206,8 @@
             $scope.portErrorMessage = '';
             $scope.ownerEmailErrorMessage='';
             Modal.createModal(size, 'certificatePopup.html', 'AdminCtrl', $scope);
+            $scope.targetSystem = { "type": "new" };
+            $scope.targetSystemService = { "type": "new" };
         }
 
         $scope.certObj = {
@@ -1337,7 +1340,7 @@
                 && $scope.certObj.targetSystemServiceRequest.name != undefined
                 && $scope.certObj.targetSystemServiceRequest.port != undefined
                 && $scope.certObj.certDetails.certName != undefined
-		&& $scope.certObj.certDetails.certName != ""
+	        	&& $scope.certObj.certDetails.certName != ""
                 && !$scope.certInValid
                 && !$scope.addrInValid
                 && !$scope.portInValid                
@@ -1345,6 +1348,7 @@
                 && $scope.certObj.certDetails.certType != undefined
                 && $scope.certObj.certDetails.applicationName != undefined
                 && $scope.certObj.certDetails.ownerEmail != undefined
+                && $scope.certObj.certDetails.ownerEmail != ""
                 && !$scope.hostNameInValid) {
                 return false;
             }
@@ -1353,7 +1357,6 @@
 
         $scope.selectAppName = function (applicationObj) {  
             $scope.applicationName = applicationObj;
-            $scope.svcacc.appName = applicationObj.type;
             $scope.appNameSelected = true;
         }
 
@@ -1385,11 +1388,6 @@
                         }
                        
                         $scope.appNameTableOptions.push({"type":value, "name": name, "tag": appTag, "id": appID});
-                    }
-                    if ($scope.certObj.certDetails.applicationName =="" || $scope.certObj.certDetails.applicationName ==null 
-                    || $scope.certObj.certDetails.applicationName == undefined) {
-                        document.getElementById('applicationName').value = '';
-                        document.getElementById('applicationName').placeholder="Search application name";
                     }
                 }
                 else {
@@ -1471,12 +1469,14 @@
                 $scope.isTargetServiceCollapsed = true;
                 $scope.isCertCollapsed = false;
             } 
+         
         }
 
         $scope.openExistingTargetSystem = function (e) {
             $scope.existingTargetSystem = true;
             $scope.existingService = true;
             $scope.targetSystemService = { "type": "existing" };
+            
         }
         $scope.openNewTargetSystem = function (e) {
             $scope.existingTargetSystem = false;
@@ -1486,6 +1486,13 @@
                 "targetSystem": '',
                 "targetSystemService": ''
             }
+            $scope.certObj.targetSystem.name='';
+            $scope.certObj.targetSystem.description='';
+            $scope.certObj.targetSystem.address='';
+
+
+
+            
         }
 
         $scope.openExistingService = function () {
@@ -1495,7 +1502,13 @@
             $scope.existingService = false;
             $scope.cert = {
                 "targetSystemService": ''
-            }
+            }            
+            $scope.certObj.targetSystemServiceRequest.name='';
+            $scope.certObj.targetSystemServiceRequest.description='';
+            $scope.certObj.targetSystemServiceRequest.port='';
+            $scope.certObj.targetSystemServiceRequest.hostname='';
+            $scope.certObj.targetSystemServiceRequest.monitoringEnabled='';
+            $scope.certObj.targetSystemServiceRequest.multiIpMonitoringEnabled='';
         }
 
         init();

@@ -111,9 +111,9 @@ script(type='text/ng-template', id='certificatePopup.html')
                     .col-lg-12.col-md-12.col-sm-12.col-xs-12.common-form-row()
                       .details-input-group 
                         .common-form-label Certificate Type*
-                        label.common-form-label internal
+                        label.common-form-label Internal
                           input(type='radio' id='cert_type' value="internal" ng-model="certObj.certDetails.certType" ng-checked="certObj.certDetails.certType == 'internal'" )
-                        label.common-form-label external
+                        label.common-form-label External
                           input(type='radio' id='cert_type' value="external" ng-model="certObj.certDetails.certType" ng-checked="certObj.certDetails.certType == 'external'" )
                     .col-lg-12.col-md-12.col-sm-12.col-xs-12.common-form-row()
                       .details-input-group
@@ -123,11 +123,11 @@ script(type='text/ng-template', id='certificatePopup.html')
                     .col-lg-12.col-md-12.col-sm-12.col-xs-12.common-form-row()
                       .details-input-group
                         .common-form-label Application Name*
-                        input.form-control.input-box-style(ng-model="certObj.certDetails.applicationName" id="applicationName" typeahead-min-length="2" name="appName" uib-typeahead="key as key.type for key in getAppName($viewValue) | limitTo: 5" typeahead-wait-ms="500" typeahead-on-select="selectAppName(applicationName)" ng-disabled="isApplicationsLoading")
+                        input.form-control.input-box-style(ng-model="certObj.certDetails.applicationName" id="applicationName" typeahead-min-length="2" name="appName" uib-typeahead="key as key.type for key in getAppName($viewValue) | limitTo: 5" typeahead-wait-ms="500" typeahead-on-select="selectAppName(applicationName)" ng-disabled="isApplicationsLoading" ng-required="true")
                         div.loader.svcaccid(ng-if='isApplicationsLoading')
                     .col-lg-12.col-md-12.col-sm-12.col-xs-12.common-form-row()
                       .details-input-group
-                        .common-form-label Owner EmailId*
+                        .common-form-label Owner Email Id*
                         input.form-control.input-box-style(id="certReqOwnerEmail"  ng-model="certObj.certDetails.ownerEmail" ng-change="replaceSpacesCertOwnerEmail()")
                     div.key-acceptance-info() {{ ownerEmailErrorMessage }}
                         div.loader.owner-mail(ng-if='showInputLoader.show && certObj.certDetails.ownerEmail > 0')
