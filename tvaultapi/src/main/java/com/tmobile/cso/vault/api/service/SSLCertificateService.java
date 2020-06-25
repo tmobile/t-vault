@@ -25,9 +25,11 @@ import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Base64;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
@@ -1224,7 +1226,14 @@ public class SSLCertificateService {
         return ts_gp_id;
     }
  
-        
+        /**
+         * Get ssl certificate metadata list
+         * @param token
+         * @param userDetails
+         * @param certName
+         * @return
+         * @throws Exception
+         */
        
        public ResponseEntity<String> getServiceCertificates(String token, UserDetails userDetails, String certName) throws Exception {
        	log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
@@ -1237,12 +1246,12 @@ public class SSLCertificateService {
        	Response response = null;
        	String certListStr = "";
    		if (userDetails.isAdmin()) {
-   			response = getMetadata(token, _path,certName);
-   			certListStr = getsslmetadatalist(response.getResponse(),token,userDetails);
+   			response = getMetadata(token, _path);
+   			certListStr = getsslmetadatalist(response.getResponse(),token,userDetails,certName);
 		}
 		else {
-			response = getMetadata(userDetails.getSelfSupportToken(), _path,certName);
-			certListStr = getsslmetadatalist(response.getResponse(),userDetails.getSelfSupportToken(),userDetails);
+			response = getMetadata(userDetails.getSelfSupportToken(), _path);
+			certListStr = getsslmetadatalist(response.getResponse(),userDetails.getSelfSupportToken(),userDetails,certName);
 		}
        	
    		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
@@ -1258,13 +1267,13 @@ public class SSLCertificateService {
        
        
        /**
-   	 * Get metadata for ssl certificate
+   	 * Get  for ssl certificate names
    	 * @param token
    	 * @param userDetails
    	 * @param path
    	 * @return
    	 */
-   	private Response getMetadata(String token, String path, String certName) {
+   	private Response getMetadata(String token, String path) {
    		
    		if (path != null && path.startsWith("/")) {
    			path = path.substring(1, path.length());
@@ -1283,7 +1292,7 @@ public class SSLCertificateService {
    	 * @param path
    	 * @return
    	 */
-   	private String getsslmetadatalist(String certificateResponse, String token, UserDetails userDetails) {
+   	private String getsslmetadatalist(String certificateResponse, String token, UserDetails userDetails, String certName) {
    		String path = SSLCertificateConstants.SSL_CERT_PATH  ;
    		if (path != null && path.startsWith("/")) {
    			path = path.substring(1, path.length());
@@ -1299,10 +1308,10 @@ public class SSLCertificateService {
    		JsonObject metadataJsonObj=new JsonObject();
         JsonObject jsonObject = (JsonObject) jsonParser.parse(certificateResponse);
    		JsonArray jsonArray = jsonObject.getAsJsonObject("data").getAsJsonArray("keys"); 
-   		
-   		for (int i = 0; i < jsonArray.size(); i++)
+   		List<String> certNames = geMatchCertificates(jsonArray,certName);
+   		for (int i = 0; i < certNames.size(); i++)
    		{
-   			endPoint = jsonArray.get(i).toString(). replaceAll("^\"+|\"+$", "");
+   			endPoint = certNames.get(i).toString(). replaceAll("^\"+|\"+$", "");
    			_path = path+"/"+endPoint;
    			
    			if (!userDetails.isAdmin()) {	
@@ -1320,6 +1329,28 @@ public class SSLCertificateService {
    		return metadataJsonObj.toString();
    	}
      
-              
+   	/**
+   	 * Get the cert names matches the search keyword
+   	 * @param jsonArray
+   	 * @param searchText
+   	 * @return
+   	 */
+   	private List<String> geMatchCertificates(JsonArray jsonArray, String searchText) {
+   		List<String> list = new ArrayList<String>();
+   		if(searchText!="") {
+   	   	for(int i = 0; i < jsonArray.size(); i++){
+   	   	if(jsonArray.get(i).toString().toUpperCase().contains(searchText.toUpperCase())){
+   	   	    list.add(jsonArray.get(i).toString());
+   	   	}
+   	   	}
+   		}else {
+   			for(int i = 0; i < jsonArray.size(); i++){
+   			 list.add(jsonArray.get(i).toString());
+   	   	   	}
+   			}   		
+   	 return list;
+   	}
+   	
+         
    
 }
