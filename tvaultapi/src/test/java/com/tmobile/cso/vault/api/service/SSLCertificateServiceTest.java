@@ -1041,6 +1041,68 @@ public class SSLCertificateServiceTest {
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, enrollResponse.getStatusCode());
 
     }
+    
+    @Test
+    public void getSSLCertificate_Succes()throws Exception{
+    	 String token = "12345";    
+                  
+         Response response =getMockResponse(HttpStatus.OK, true, "{  \"keys\": [    {      \"akamid\": \"102463\",      \"applicationName\": \"tvs\", "
+          		+ "     \"applicationOwnerEmailId\": \"abcdef@mail.com\",      \"applicationTag\": \"TVS\",  "
+          		+ "    \"authority\": \"T-Mobile Issuing CA 01 - SHA2\",      \"certCreatedBy\": \"rob\",     "
+          		+ " \"certOwnerEmailId\": \"ntest@gmail.com\",      \"certType\": \"internal\",     "
+          		+ " \"certificateId\": 59480,      \"certificateName\": \"CertificateName.t-mobile.com\",   "
+          		+ "   \"certificateStatus\": \"Active\",      \"containerName\": \"VenafiBin_12345\",    "
+          		+ "  \"createDate\": \"2020-06-24T03:16:29-07:00\",      \"expiryDate\": \"2021-06-24T03:16:29-07:00\",  "
+          		+ "    \"projectLeadEmailId\": \"project@email.com\"    }  ]}");
+         Response certResponse =getMockResponse(HttpStatus.OK, true, "{  \"data\": {  \"keys\": [    \"CertificateName.t-mobile.com\"    ]  }}");
+         
+         token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+         UserDetails user1 = new UserDetails();
+         user1.setUsername("normaluser");
+         user1.setAdmin(true);
+         user1.setClientToken(token);
+         user1.setSelfSupportToken(token);         
+         
+         
+         when(reqProcessor.process(Mockito.eq("/sslcert"),Mockito.anyString(),Mockito.eq(token))).thenReturn(certResponse);         
+         
+         when(reqProcessor.process("/sslcert", "{\"path\":\"metadata/sslcerts/CertificateName.t-mobile.com\"}",token)).thenReturn(response);
+         
+         ResponseEntity<String> responseEntityActual = sSLCertificateService.getServiceCertificates(token, user1, "");
+
+         assertEquals(HttpStatus.OK, responseEntityActual.getStatusCode());
+    }
+    
+    @Test
+    public void getSSLCertificate_Failure()throws Exception{
+    	 String token = "12345";    
+                  
+         Response response =getMockResponse(HttpStatus.INTERNAL_SERVER_ERROR, true, "{  \"keys\": [    {      \"akamid\": \"102463\",      \"applicationName\": \"tvs\", "
+          		+ "     \"applicationOwnerEmailId\": \"abcdef@mail.com\",      \"applicationTag\": \"TVS\",  "
+          		+ "    \"authority\": \"T-Mobile Issuing CA 01 - SHA2\",      \"certCreatedBy\": \"rob\",     "
+          		+ " \"certOwnerEmailId\": \"ntest@gmail.com\",      \"certType\": \"internal\",     "
+          		+ " \"certificateId\": 59480,      \"certificateName\": \"CertificateName.t-mobile.com\",   "
+          		+ "   \"certificateStatus\": \"Active\",      \"containerName\": \"VenafiBin_12345\",    "
+          		+ "  \"createDate\": \"2020-06-24T03:16:29-07:00\",      \"expiryDate\": \"2021-06-24T03:16:29-07:00\",  "
+          		+ "    \"projectLeadEmailId\": \"project@email.com\"    }  ]}");
+         Response certResponse =getMockResponse(HttpStatus.INTERNAL_SERVER_ERROR, true, "{  \"data\": {  \"keys\": [    \"CertificateName.t-mobile.com\"    ]  }}");
+         
+         token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+         UserDetails user1 = new UserDetails();
+         user1.setUsername("normaluser");
+         user1.setAdmin(true);
+         user1.setClientToken(token);
+         user1.setSelfSupportToken(token);         
+         
+         
+         when(reqProcessor.process(Mockito.eq("/sslcert"),Mockito.anyString(),Mockito.eq(token))).thenReturn(certResponse);         
+         
+         when(reqProcessor.process("/sslcert", "{\"path\":\"metadata/sslcerts/CertificateName.t-mobile.com\"}",token)).thenReturn(response);
+         
+         ResponseEntity<String> responseEntityActual = sSLCertificateService.getServiceCertificates(token, user1, "");
+
+         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, responseEntityActual.getStatusCode());
+    }
 
     private CertResponse getEnrollResonse() {
         CertResponse enrollResponse = new CertResponse();

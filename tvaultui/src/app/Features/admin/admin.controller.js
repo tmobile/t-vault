@@ -514,13 +514,9 @@
             	 
                 if (UtilityService.ifAPIRequestSuccessful(response)) {
                 	
-                	$scope.isLoadingData = false;
-                    console.log("response = "+response);
-                    $scope.certificateData.certificates = response.data.data.keys;
-                    console.log("key = "+response.data.data.keys);                    
-                    $scope.numOfCertificates = $scope.certificateData.certificates.length;
-                    console.log("certificate = "+$scope.certificateData.certificates.length);
-                    console.log("certificate size = "+$scope.numOfCertificates);
+                	$scope.isLoadingData = false;                    
+                    $scope.certificateData.certificates = response.data.keys;                                     
+                    $scope.numOfCertificates = $scope.certificateData.certificates.length;                    
                     $scope.certificatesLoaded =  true;
                 }
                 else {
@@ -549,17 +545,15 @@
 
 
         $scope.getCertSubjectName = function (cert) {
+        	
             var certName = "";
             if (cert.subjectAltName && cert.subjectAltName.dns && cert.subjectAltName.dns.length > 0) {
                 certName = cert.subjectAltName.dns[0];
             }
             if (certName == "" || certName == undefined) {
-                var names = cert.sortedSubjectName.split(',');
-                if (names.length > 0) {
-                    certName = names[0].substr(3)
-                }
-
-            console.log("certName = "+certName);
+            	certName = cert.certificateName
+            }
+            
             return certName;
         }
 
