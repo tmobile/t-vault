@@ -8,6 +8,7 @@ import com.tmobile.cso.vault.api.model.*;
 import com.tmobile.cso.vault.api.process.CertResponse;
 import com.tmobile.cso.vault.api.process.RequestProcessor;
 import com.tmobile.cso.vault.api.process.Response;
+import com.tmobile.cso.vault.api.utils.CertificateUtils;
 import com.tmobile.cso.vault.api.utils.JSONUtil;
 import com.tmobile.cso.vault.api.utils.ThreadLocalContext;
 import org.apache.http.HttpEntity;
@@ -20,12 +21,15 @@ import org.apache.http.util.EntityUtils;
 import org.apache.logging.log4j.LogManager;
 import org.junit.Before;
 import org.junit.FixMethodOrder;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.MethodSorters;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
@@ -38,8 +42,11 @@ import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import static org.junit.Assert.*;
@@ -87,8 +94,12 @@ public class SSLCertificateServiceTest {
 
     @Mock
     CertificateData certificateData;
+
     @Mock
     private WorkloadDetailsService workloadDetailsService;
+    
+    @Mock
+    CertificateUtils certificateUtils;
 
     @Before
     public void setUp() throws Exception {
@@ -1472,6 +1483,125 @@ public class SSLCertificateServiceTest {
         assertEquals(HttpStatus.BAD_REQUEST, revocResponse.getStatusCode());
     }
 
+    @Test
+    public void test_addUserToCertificate_successfully() {        
+        CertificateUser certUser = new CertificateUser("testuser1","read", "CertificateName");        
+        userDetails.setUsername("testuser1");
+        
+        Response userResponse = getMockResponse(HttpStatus.OK, true, "{\"data\":{\"bound_cidrs\":[],\"max_ttl\":0,\"policies\":[\"default\",\"w_cert_certtest250630.t-mobile.com\"],\"ttl\":0,\"groups\":\"admin\"}}");
+        Response idapConfigureResponse = getMockResponse(HttpStatus.NO_CONTENT, true, "{\"policies\":null}");
+        Response responseNoContent = getMockResponse(HttpStatus.NO_CONTENT, true, "");
+
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"User is successfully associated \"]}");
+
+        when(ControllerUtil.areCertificateUserInputsValid(certUser)).thenReturn(true);
+        when(reqProcessor.process("/auth/userpass/read","{\"username\":\"testuser1\"}",token)).thenReturn(userResponse);
+        when(reqProcessor.process("/auth/ldap/users","{\"username\":\"testuser1\"}",token)).thenReturn(userResponse);
+
+        try {           
+            List<String> resList = new ArrayList<>();
+            resList.add("default");
+            resList.add("w_cert_certtest250630.t-mobile.com");
+            when(ControllerUtil.getPoliciesAsListFromJson(any(), any())).thenReturn(resList);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        when(ControllerUtil.configureLDAPUser(eq("testuser1"),any(),any(),eq(token))).thenReturn(idapConfigureResponse);
+        when(ControllerUtil.configureUserpassUser(eq("testuser1"),any(),eq(token))).thenReturn(idapConfigureResponse);
+        when(ControllerUtil.updateMetadata(any(),eq(token))).thenReturn(responseNoContent);
+        when(certificateUtils.canAddOrRemoveUser(userDetails, certUser, "addUser")).thenReturn(true);
+        
+        ResponseEntity<String> responseEntity = sSLCertificateService.addUserToCertificate(token, certUser, null);
+        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntity);
+    }    
+    
+    @Test
+    public void test_addUserToCertificate_failure_all_certs() {       
+        CertificateUser certUser = new CertificateUser("testuser1","read", "CertificateName");        
+        userDetails.setUsername("testuser1");
+
+        Response userResponse = getMockResponse(HttpStatus.OK, true, "{\"data\":{\"bound_cidrs\":[],\"max_ttl\":0,\"policies\":[\"default\",\"w_cert_certtest250630.t-mobile.com\"],\"ttl\":0,\"groups\":\"admin\"}}");
+        Response idapConfigureResponse = getMockResponse(HttpStatus.NO_CONTENT, true, "{\"policies\":null}");
+        Response response_404 = getMockResponse(HttpStatus.NOT_FOUND, true, "");
+
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"messages\":[\"User configuration failed.Please try again\"]}");
+
+        when(ControllerUtil.areCertificateUserInputsValid(certUser)).thenReturn(true);
+        when(reqProcessor.process("/auth/userpass/read","{\"username\":\"testuser1\"}",token)).thenReturn(userResponse);
+        when(reqProcessor.process("/auth/ldap/users","{\"username\":\"testuser1\"}",token)).thenReturn(userResponse);
+
+        try {
+            when(ControllerUtil.getPoliciesAsStringFromJson(any(), any())).thenReturn("default,w_cert_certtest250630.t-mobile.com");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        when(ControllerUtil.configureLDAPUser(eq("testuser1"),any(),any(),eq(token))).thenReturn(idapConfigureResponse);
+        when(ControllerUtil.configureUserpassUser(eq("testuser1"),any(),eq(token))).thenReturn(idapConfigureResponse);
+        when(ControllerUtil.updateMetadata(any(),eq(token))).thenAnswer(new Answer() {
+            private int count = 0;
+
+            public Object answer(InvocationOnMock invocation) {
+                if (count++ == 1)
+                    return response_404;
+
+                return response_404;
+            }
+        });
+
+        when(certificateUtils.canAddOrRemoveUser(userDetails, certUser, "addUser")).thenReturn(true);
+
+        ResponseEntity<String> responseEntity = sSLCertificateService.addUserToCertificate(token, certUser, null);
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, responseEntity.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntity);
+    }
+    
+    @Test
+    public void test_addUserToCertificate_failure() {
+        CertificateUser certUser = new CertificateUser("testuser1","write", "CertificateName");        
+        userDetails.setUsername("testuser1");
+        
+        Response userResponse = getMockResponse(HttpStatus.OK, true, "{\"data\":{\"bound_cidrs\":[],\"max_ttl\":0,\"policies\":[\"default\",\"w_cert_certtest250630.t-mobile.com\"],\"ttl\":0,\"groups\":\"admin\"}}");
+        Response responseNotFound = getMockResponse(HttpStatus.NOT_FOUND, false, "");
+
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"messages\":[\"User configuration failed.Try Again\"]}");
+
+        when(ControllerUtil.areCertificateUserInputsValid(certUser)).thenReturn(true);
+        when(reqProcessor.process("/auth/userpass/read","{\"username\":\"testuser1\"}",token)).thenReturn(userResponse);
+        when(reqProcessor.process("/auth/ldap/users","{\"username\":\"testuser1\"}",token)).thenReturn(userResponse);
+
+        try {
+            List<String> resList = new ArrayList<>();
+            resList.add("default");
+            resList.add("w_cert_certtest250630.t-mobile.com");
+            when(ControllerUtil.getPoliciesAsListFromJson(any(), any())).thenReturn(resList);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        when(ControllerUtil.configureLDAPUser(eq("testuser1"),any(),any(),eq(token))).thenReturn(responseNotFound);
+        when(ControllerUtil.configureUserpassUser(eq("testuser1"),any(),eq(token))).thenReturn(responseNotFound);
+        when(certificateUtils.canAddOrRemoveUser(userDetails, certUser, "addUser")).thenReturn(true);
+        
+        ResponseEntity<String> responseEntity = sSLCertificateService.addUserToCertificate(token, certUser, null);
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, responseEntity.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntity);
+    }
+
+    @Test
+    public void test_addUserToCertificate_failure_400() {        
+        CertificateUser certUser = new CertificateUser("testuser1","write", "CertificateName");       
+        userDetails.setUsername("testuser1");
+        
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid input values\"]}");
+        when(ControllerUtil.areCertificateUserInputsValid(certUser)).thenReturn(false);
+        when(certificateUtils.canAddOrRemoveUser(userDetails, certUser, "addUser")).thenReturn(true);
+        
+        ResponseEntity<String> responseEntity = sSLCertificateService.addUserToCertificate(token, certUser, null);
+        assertEquals(HttpStatus.BAD_REQUEST, responseEntity.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntity);
+    }
 
     @Test
     public void test_getgetTargetSystemList_success()throws Exception{
