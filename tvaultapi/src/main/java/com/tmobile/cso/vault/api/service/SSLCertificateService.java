@@ -509,7 +509,7 @@ public class SSLCertificateService {
                                         "projectLeadEmail =  [%s],appOwnerEmail =  [%s], akmid = [%s]", applicationName,
                                 applicationTag, projectLeadEmail, appOwnerEmail, akmid)).build()));
 
-                sslCertificateMetadataDetails.setAkamid(akmid);
+                sslCertificateMetadataDetails.setAkmid(akmid);
                 sslCertificateMetadataDetails.setProjectLeadEmailId(projectLeadEmail);
                 sslCertificateMetadataDetails.setApplicationOwnerEmailId(appOwnerEmail);
                 sslCertificateMetadataDetails.setApplicationTag(applicationTag);

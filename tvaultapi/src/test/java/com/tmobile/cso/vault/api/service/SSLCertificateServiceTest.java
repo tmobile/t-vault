@@ -179,7 +179,6 @@ public class SSLCertificateServiceTest {
     @Test
     public void login_success() throws Exception {
         String jsonStr = "{  \"username\": \"testusername1\",  \"password\": \"testpassword1\"}";
-
         CertResponse response = new CertResponse();
         response.setHttpstatus(HttpStatus.OK);
         response.setResponse(jsonStr);
@@ -1152,7 +1151,7 @@ public class SSLCertificateServiceTest {
         ssCertificateMetadataDetails.setCertOwnerEmailId("owneremail@test.com");
         ssCertificateMetadataDetails.setApplicationTag("tag");
         ssCertificateMetadataDetails.setProjectLeadEmailId("project@email.com");
-        ssCertificateMetadataDetails.setAkamid("12345");
+        ssCertificateMetadataDetails.setAkmid("12345");
         ssCertificateMetadataDetails.setCertCreatedBy("rob");
         ssCertificateMetadataDetails.setAuthority("authority");
         ssCertificateMetadataDetails.setCreateDate("10-20-2020");

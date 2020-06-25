@@ -54,12 +54,14 @@ public class SSLCertificateRequest implements Serializable {
 	@NotNull
 	@NotEmpty
 	@Email
-	@ApiModelProperty(example="example@email.com", position=1)
+	@ApiModelProperty(example="example@email.com")
 	private String certOwnerEmailId;
 	@NotNull
 	@NotEmpty
-	@ApiModelProperty(example="internal", position=2)
+	@ApiModelProperty(example="internal")
 	private String certType;
+
+
 	public SSLCertificateRequest() {
 	}
 	public String getAppName() {
