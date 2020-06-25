@@ -2494,6 +2494,32 @@ public final class ControllerUtil {
 					build()));
 		}
 		return isMetaDataUpdated;
+    }
+    
+    /**
+	 * Validates Certificate User inputs
+	 * @param certificateUser
+	 * @return boolean
+	 */
+	public static boolean areCertificateUserInputsValid(CertificateUser certificateUser) {
+		
+		if (ObjectUtils.isEmpty(certificateUser)) {
+			return false;
+		}
+		if (ObjectUtils.isEmpty(certificateUser.getUsername())
+				|| ObjectUtils.isEmpty(certificateUser.getAccess())
+				|| ObjectUtils.isEmpty(certificateUser.getCertificateName())
+				|| certificateUser.getCertificateName().contains(" ")
+                || (!certificateUser.getCertificateName().endsWith(".t-mobile.com"))
+				) {
+			return false;
+		}
+		boolean isValid = true;
+		String access = certificateUser.getAccess();
+		if (!ArrayUtils.contains(permissions, access)) {
+			isValid = false;
+		}
+		return isValid;
 	}
 
     /**

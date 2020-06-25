@@ -28,7 +28,7 @@ public class CertificateUser implements Serializable {
 	private String username;
 	private String access;
 	private String certificateName;	
-	private String certType;	
+	private String certType;
 	
 	/**
 	 * 

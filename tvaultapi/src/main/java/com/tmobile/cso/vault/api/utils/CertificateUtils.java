@@ -50,11 +50,11 @@ public class CertificateUtils {
 	 * @param safeUser
 	 * @return
 	 */
-	public boolean hasAddOrRemovePermission(UserDetails userDetails, SSLCertificateMetadataDetails certificateMetaData) {			
+	public boolean hasAddOrRemovePermission(UserDetails userDetails, SSLCertificateMetadataDetails certificateMetaData) {
 		if (ObjectUtils.isEmpty(certificateMetaData)) {
 			return false;
-		}		
-		if (userDetails.isAdmin()) {			
+		}
+		if (userDetails.isAdmin()) {
 			return checkIfCertificateAdmin(userDetails, certificateMetaData);
 		}
 		else {
@@ -73,7 +73,7 @@ public class CertificateUtils {
 	private boolean checkIfNonCertificateAdmin(UserDetails userDetails, SSLCertificateMetadataDetails certificateMetaData) {
 		boolean hasAccess = true;
 		if (userDetails.getUsername() != null && userDetails.getUsername().equalsIgnoreCase(certificateMetaData.getCertOwnerNtid())) {
-			hasAccess = true;			
+			hasAccess = true;
 		}else {
 			// other normal users will not have permission as they are not the owner
 			hasAccess = false;
@@ -98,7 +98,7 @@ public class CertificateUtils {
 		else {
 			// There is some owner assigned to the certificate
 			if (certificateMetaData.getCertOwnerNtid().equalsIgnoreCase(userDetails.getUsername())) {
-				hasAccess = true;				
+				hasAccess = true;
 			}
 			else {
 				hasAccess = false;
@@ -117,14 +117,14 @@ public class CertificateUtils {
 	public SSLCertificateMetadataDetails getCertificateMetaData(String token, String certificateName, String certificateType){
 		String metaDataPath = (certificateType.equalsIgnoreCase("internal"))?
 	            SSLCertificateConstants.SSL_CERT_PATH :SSLCertificateConstants.SSL_EXTERNAL_CERT_PATH;
-		
+
 		String certificatePath = metaDataPath + '/' + certificateName;
 		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
 				put(LogMessage.ACTION, "Get Certificate Info").
 				put(LogMessage.MESSAGE, String.format ("Trying to get Info for [%s]", certificatePath)).
 				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
-				build()));		
+				build()));
 		Response response = ControllerUtil.getReqProcessor().process("/certmanager","{\"path\":\""+certificatePath+"\"}",token);
 		// Create the Certificate bean
 		SSLCertificateMetadataDetails certificateMetadataDetails = null;
@@ -262,6 +262,6 @@ public class CertificateUtils {
 				certificate.setDnsNames(Collections.singletonList(dataNode.get("dnsNames").toString()));
 			}
 		}
-	}	
+	}
 	
 }
