@@ -45,7 +45,6 @@ public class SSLCertificateRequest implements Serializable {
 	@NotNull
 	@NotEmpty
 	@Pattern(regexp = "^[a-zA-Z0-9.-]+$", message = "certificateName can have alphabets, numbers, . and - characters only")
-	@ApiModelProperty(example="cert.t-mobile.com")
 	private String certificateName;
 
 	@NotNull
