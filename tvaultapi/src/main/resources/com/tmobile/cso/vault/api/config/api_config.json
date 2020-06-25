@@ -923,6 +923,16 @@
  	    ],
         "outparams":["targetSystemID","name","port","targetSystemGroupId","targetSystemId","targetSystemServiceId","hostname"]
     },
+    {"#":"Getting certificate metadata Info",
+    
+    	"apiEndPoint":"/certmanager",
+    	"vaultEndPoint":"/<path>",
+    	"method":"GET",
+      	"params":[
+        	{"name":"path","required":true, "appendToPath":true}
+        ],
+        "outparams":["data"]
+    },
     {"#":"Getting certificate Info",
 
     	"apiEndPoint":"/sslcert",

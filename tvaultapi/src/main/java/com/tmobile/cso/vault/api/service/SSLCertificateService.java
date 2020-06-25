@@ -17,26 +17,13 @@
 
 package com.tmobile.cso.vault.api.service;
 
+
+import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Base64;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
 
 import org.apache.commons.collections.MapUtils;
 import org.springframework.util.ObjectUtils;
-import org.apache.http.HttpResponse;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.conn.ssl.NoopHostnameVerifier;
-import org.apache.http.impl.client.HttpClientBuilder;
-import org.apache.http.impl.client.LaxRedirectStrategy;
-import org.apache.http.ssl.SSLContextBuilder;
-import org.apache.http.ssl.TrustStrategy;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,6 +32,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
+
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
@@ -75,10 +63,11 @@ import com.tmobile.cso.vault.api.model.UserDetails;
 import com.tmobile.cso.vault.api.process.CertResponse;
 import com.tmobile.cso.vault.api.process.RequestProcessor;
 import com.tmobile.cso.vault.api.process.Response;
+import com.tmobile.cso.vault.api.utils.CertificateUtils;
 import com.tmobile.cso.vault.api.utils.JSONUtil;
 import com.tmobile.cso.vault.api.utils.ThreadLocalContext;
-
 import java.util.*;
+
 @Component
 public class SSLCertificateService {
 
@@ -87,8 +76,12 @@ public class SSLCertificateService {
 
     @Autowired
     private RequestProcessor reqProcessor;
+
     @Autowired
     private WorkloadDetailsService workloadDetailsService;
+    
+    @Autowired
+	private CertificateUtils certificateUtils;
 
     @Value("${vault.auth.method}")
     private String vaultAuthMethod;
@@ -1349,7 +1342,7 @@ public class SSLCertificateService {
    			}
    		}
    	 return list;
-   	}
+   	} 
 
     /**
      * To get nclm token
@@ -1483,6 +1476,7 @@ public class SSLCertificateService {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Failed to get Target system service list from NCLM\"]}");
 
     }
+
    	
 	/**
 	 * Get Revocation Reasons.
@@ -1663,7 +1657,7 @@ public class SSLCertificateService {
 			log.error(
 					JSONUtil.getJSON(ImmutableMap.<String, String> builder()
 							.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString())
-							.put(LogMessage.ACTION, String.format("Inside  TVaultValidationException =  Message [%s]",
+							.put(LogMessage.ACTION, String.format("Inside  TVaultValidationException  = [%s] =  Message [%s]",
 									Arrays.toString(error.getStackTrace()), error.getMessage()))
 							.build()));
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"" + error.getMessage() + "\"]}");
@@ -1677,8 +1671,8 @@ public class SSLCertificateService {
 					.body("{\"errors\":[\"" + e.getMessage() + "\"]}");
 		}
 	}
-
-	/**
+		
+	/**		
 	 * Get Current Date and Time.
 	 * 
 	 * @return
@@ -1728,5 +1722,271 @@ public class SSLCertificateService {
 		}
 		return isPermission;
 	}
+	
+    /**
+   	 * Adds permission to user for a certificate
+   	 * @param token
+   	 * @param safeUser
+   	 * @return
+   	 */
+   	public ResponseEntity<String> addUserToCertificate(String token, CertificateUser certificateUser, UserDetails userDetails) {
+   		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+   				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+   				put(LogMessage.ACTION, SSLCertificateConstants.ADD_USER_TO_CERT_MSG).
+   				put(LogMessage.MESSAGE, "Trying to add user to Certificate folder ").
+   				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+   				build()));
+   		
+   		if(!ControllerUtil.areCertificateUserInputsValid(certificateUser)) {
+   			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+   					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+   					put(LogMessage.ACTION, SSLCertificateConstants.ADD_USER_TO_CERT_MSG).
+   					put(LogMessage.MESSAGE, String.format ("Invalid user inputs [%s]", certificateUser.toString())).
+   					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+   					build()));
+   			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid input values\"]}");
+   		}
+   		
+   		String userName = certificateUser.getUsername();
+   		String certificateName = certificateUser.getCertificateName();
+   		String access = certificateUser.getAccess();
+   		
+   		userName = (userName !=null) ? userName.toLowerCase() : userName;
+   		access = (access != null) ? access.toLowerCase(): access;
+   		boolean isAuthorized = true;
+   		if (userDetails != null) {
+   			isAuthorized = certificateUtils.canAddOrRemoveUser(userDetails, certificateUser, "addUser");
+   		}
+   		
+   		if(isAuthorized){   			
+   			return checkUserDetailsAndAddCertificateToUser(token, userName, certificateName, access);	
+   		}else{
+   			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid 'path' specified\"]}");
+   		}
+   	}
+
+	/**
+	 * Method to check the user details and add access policy to certificate
+	 * @param token
+	 * @param userName
+	 * @param certificateName
+	 * @param access
+	 * @return
+	 */
+	private ResponseEntity<String> checkUserDetailsAndAddCertificateToUser(String token, String userName,
+			String certificateName, String access) {
+		String policyPrefix ="";
+		
+		switch (access){
+			case TVaultConstants.READ_POLICY: policyPrefix = "r_cert_"; break ;
+			case TVaultConstants.WRITE_POLICY: policyPrefix = "w_cert_" ;break;
+			case TVaultConstants.DENY_POLICY: policyPrefix = "d_cert_" ;break;
+			case TVaultConstants.SUDO_POLICY: policyPrefix = "o_cert_" ;break;
+			default: log.error(SSLCertificateConstants.ERROR_INVALID_ACCESS_POLICY_MSG); break;
+		}
+		
+		if(TVaultConstants.EMPTY.equals(policyPrefix)){
+			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+					put(LogMessage.ACTION, SSLCertificateConstants.ADD_USER_TO_CERT_MSG).
+					put(LogMessage.MESSAGE, "Incorrect access requested. Valid values are read, write, deny").
+					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+					build()));
+			return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body("{\"errors\":[\"Incorrect access requested. Valid values are read,write,deny \"]}");
+		}
+
+		String policy = policyPrefix + certificateName;
+		
+		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+				put(LogMessage.ACTION, SSLCertificateConstants.ADD_USER_TO_CERT_MSG).
+				put(LogMessage.MESSAGE, String.format ("policy is [%s]", policy)).
+				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+				build()));
+		String readPolicy = "r_cert_"+certificateName;
+		String writePolicy = "w_cert_"+certificateName;
+		String denyPolicy = "d_cert_"+certificateName;
+		
+		log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+				put(LogMessage.ACTION, SSLCertificateConstants.ADD_USER_TO_CERT_MSG).
+				put(LogMessage.MESSAGE, String.format ("Policies are, read - [%s], write - [%s], deny -[%s]", readPolicy, writePolicy, denyPolicy)).
+				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+				build()));
+		Response userResponse;
+		if (TVaultConstants.USERPASS.equals(vaultAuthMethod)) {
+			userResponse = reqProcessor.process("/auth/userpass/read","{\"username\":\""+userName+"\"}",token);	
+		}
+		else {
+			userResponse = reqProcessor.process("/auth/ldap/users","{\"username\":\""+userName+"\"}",token);
+		}
+		
+		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+				put(LogMessage.ACTION, SSLCertificateConstants.ADD_USER_TO_CERT_MSG).
+				put(LogMessage.MESSAGE, String.format ("userResponse status is [%s]", userResponse.getHttpstatus())).
+				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+				build()));
+		
+		String responseJson="";
+		String groups="";
+		List<String> policies = new ArrayList<>();
+		List<String> currentpolicies = new ArrayList<>();
+
+		if(HttpStatus.OK.equals(userResponse.getHttpstatus())){
+			responseJson = userResponse.getResponse();	
+			try {
+				ObjectMapper objMapper = new ObjectMapper();					
+				currentpolicies = ControllerUtil.getPoliciesAsListFromJson(objMapper, responseJson);
+				if (!(TVaultConstants.USERPASS.equals(vaultAuthMethod))) {
+					groups =objMapper.readTree(responseJson).get("data").get("groups").asText();
+				}
+			} catch (IOException e) {
+				log.error(e);
+				log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+						put(LogMessage.ACTION, SSLCertificateConstants.ADD_USER_TO_CERT_MSG).
+						put(LogMessage.MESSAGE, "Exception while creating currentpolicies or groups").
+						put(LogMessage.STACKTRACE, Arrays.toString(e.getStackTrace())).
+						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+						build()));
+			}
+			
+			policies.addAll(currentpolicies);
+			policies.remove(readPolicy);
+			policies.remove(writePolicy);
+			policies.remove(denyPolicy);
+			
+			policies.add(policy);
+		
+			String policiesString = org.apache.commons.lang3.StringUtils.join(policies, ",");
+			String currentpoliciesString = org.apache.commons.lang3.StringUtils.join(currentpolicies, ",");
+	
+			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+					put(LogMessage.ACTION, SSLCertificateConstants.ADD_USER_TO_CERT_MSG).
+					put(LogMessage.MESSAGE, String.format ("policies [%s] before calling configureUserpassUser/configureLDAPUser", policies)).
+					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+					build()));
+			return configureUserpassOrLDAPUserToUpdateMetadata(token, userName, certificateName, access, groups,
+					policiesString, currentpoliciesString);
+		}else {
+			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+					put(LogMessage.ACTION, SSLCertificateConstants.ADD_USER_TO_CERT_MSG).
+					put(LogMessage.MESSAGE, "Getting the user details failed").
+					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+					build()));
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"messages\":[\"Getting the user details failed.Try with valid user\"]}");
+
+		}
+	}
+
+	
+	/**
+	 * Method to configure the Userpass or ldap users and update metadata for add user to certificate
+	 * @param token
+	 * @param userName
+	 * @param certificateName
+	 * @param access
+	 * @param groups
+	 * @param policiesString
+	 * @param currentpoliciesString
+	 * @return
+	 */
+	private ResponseEntity<String> configureUserpassOrLDAPUserToUpdateMetadata(String token, String userName,
+			String certificateName, String access, String groups, String policiesString, String currentpoliciesString) {
+		Response ldapConfigresponse;
+		if (TVaultConstants.USERPASS.equals(vaultAuthMethod)) {
+			ldapConfigresponse = ControllerUtil.configureUserpassUser(userName,policiesString,token);
+		}
+		else {
+			ldapConfigresponse = ControllerUtil.configureLDAPUser(userName,policiesString,groups,token);
+		}
+
+		if(ldapConfigresponse.getHttpstatus().equals(HttpStatus.NO_CONTENT)){ 
+			return updateMetadataForAddUserToCertificate(token, userName, certificateName, access, groups,
+					currentpoliciesString);		
+		}else{
+			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+					put(LogMessage.ACTION, SSLCertificateConstants.ADD_USER_TO_CERT_MSG).
+					put(LogMessage.MESSAGE, "Trying to configureUserpassUser/configureLDAPUser failed").
+					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+					build()));
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"messages\":[\"User configuration failed.Try Again\"]}");
+		}
+	}
+
+	/**
+	 * Method to update the metadata for user to add the certificate access policies
+	 * @param token
+	 * @param userName
+	 * @param certificateName
+	 * @param access
+	 * @param groups
+	 * @param currentpoliciesString
+	 * @return
+	 */
+	private ResponseEntity<String> updateMetadataForAddUserToCertificate(String token, String userName,
+			String certificateName, String access, String groups, String currentpoliciesString) {
+		Response ldapConfigresponse;
+		String certificatePath = SSLCertificateConstants.SSL_CERT_PATH_VALUE + certificateName;
+		Map<String,String> params = new HashMap<>();
+		params.put("type", "users");
+		params.put("name",userName);
+		params.put("path",certificatePath);
+		params.put("access",access);
+		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+				put(LogMessage.ACTION, SSLCertificateConstants.ADD_USER_TO_CERT_MSG).
+				put(LogMessage.MESSAGE, String.format ("Trying to update metadata [%s]", params.toString())).
+				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+				build()));
+		Response metadataResponse = ControllerUtil.updateMetadata(params,token);
+		if(metadataResponse != null && HttpStatus.NO_CONTENT.equals(metadataResponse.getHttpstatus())){
+			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+					put(LogMessage.ACTION, SSLCertificateConstants.ADD_USER_TO_CERT_MSG).
+					put(LogMessage.MESSAGE, "User is successfully associated with Certificate").
+					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+					build()));
+			
+			return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"User is successfully associated \"]}");		
+		}else{
+			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+					put(LogMessage.ACTION, SSLCertificateConstants.ADD_USER_TO_CERT_MSG).
+					put(LogMessage.MESSAGE, "User configuration failed. Trying to revert...").
+					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+					build()));
+			if (TVaultConstants.USERPASS.equals(vaultAuthMethod)) {
+				ldapConfigresponse = ControllerUtil.configureUserpassUser(userName,currentpoliciesString,token);
+			}
+			else {
+				ldapConfigresponse = ControllerUtil.configureLDAPUser(userName,currentpoliciesString,groups,token);
+			}
+			if(ldapConfigresponse.getHttpstatus().equals(HttpStatus.NO_CONTENT)){
+				log.debug("Reverting user policy update");
+				log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+						put(LogMessage.ACTION, SSLCertificateConstants.ADD_USER_TO_CERT_MSG).
+						put(LogMessage.MESSAGE, "User configuration failed. Trying to revert...Passed").
+						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+						build()));
+				return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"messages\":[\"User configuration failed.Please try again\"]}");
+			}else{
+				log.debug("Reverting user policy update failed");
+				log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+						put(LogMessage.ACTION, SSLCertificateConstants.ADD_USER_TO_CERT_MSG).
+						put(LogMessage.MESSAGE, "User configuration failed. Trying to revert...failed").
+						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+						build()));
+				return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"messages\":[\"User configuration failed.Contact Admin \"]}");
+			}
+		}
+	} 
+
 
 }
