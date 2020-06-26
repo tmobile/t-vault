@@ -316,11 +316,11 @@ readTextFile("../apiUrls.json");
             method: 'GET'
         }, {
             name: 'getTargetSystems',
-            url: '/sslcert/targetsystems',
+            url: '/v2/sslcert/targetsystems',
             method: 'GET'
         }, {
             name: 'getTargetSystemsServices',
-            url: '/sslcert/targetsystems/{targetsystem_id}/targetsystemservices',
+            url: '/v2/sslcert/targetsystems/{targetsystem_id}/targetsystemservices',
             method: 'GET'
         }, {
             name: 'unseal',

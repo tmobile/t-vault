@@ -448,3 +448,26 @@
 .collapse-link {
     color:#f6006e!important;
 }
+
+.service-dropdown li a {
+    color: #000!important;
+    text-decoration: none!important;
+    background-image: none!important;
+    background-color: transparent!important;
+}
+
+#serviceDropdown li a:focus {
+    color: #fff!important;
+    color: #fff!important;
+    text-decoration: none!important;
+    background-color: #f6006e!important;
+    outline: 0!important;
+}
+
+#serviceDropdown li a:hover {
+    color: #fff!important;
+    color: #fff!important;
+    text-decoration: none!important;
+    background-color: #f6006e!important;
+    outline: 0!important;
+}

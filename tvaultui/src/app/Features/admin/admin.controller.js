@@ -128,7 +128,6 @@
             $scope.isCollapsed = true;
             $scope.transferFailedMessage = '';
             $scope.selectedIndex = 0;
-            $scope.isCollapsed = true;
             $scope.existingTargetSystem = false;
             $scope.existingService = false;
             $scope.certSearchValue = "";
@@ -136,10 +135,36 @@
             $scope.targetSystemType = { "type": "new" };
             $scope.targetSystemServiceType = { "type": "new" };
             $scope.targetSystemSelected = false;
-            $scope.certObj.certDetails = {"certType":"internal"};
+            $scope.isTargetSystemListLoading = false;
+
             $scope.targetSystemServiceSelected = false;
             $scope.serviceListTableOptions = [];
             setTargetSystemServiceList("No target system selected", []);
+
+            $scope.targetSystem = {
+                'description': '',
+                'address': '',
+                'targetSystemID': '',
+                'name': ''
+            }
+
+            $scope.targetSystemServiceRequest = {
+                'description': '',
+                'hostname': '',
+                'monitoringEnabled': '',
+                'multiIpMonitoringEnabled': '',
+                'name': '',
+                'port': ''
+            }
+            $scope.certObj = {
+                'sslcertType': 'PRIVATE_SINGLE_SAN',
+                'certDetails': {"certType":"internal"},
+                'certName': '',
+                'targetSystemType':  { "type": "new" },
+                'targetSystemServiceRequestType':  { "type": "new" },
+                "targetSystem": $scope.targetSystem,
+                "targetSystemService": ''
+            }
 
             $scope.showInputLoader = {
                 'show': false
@@ -173,18 +198,32 @@
             }
             $scope.requestDataFrAdmin();
             getWorkloadDetails();
-            $scope.getTargetSystems();
+            resetCert();
 
         };
 
         var resetCert = function () {
+            $scope.targetSystem = {
+                'description': '',
+                'address': '',
+                'targetSystemID': '',
+                'name': ''
+            }
+            $scope.targetSystemServiceRequest = {
+                'description': '',
+                'hostname': '',
+                'monitoringEnabled': '',
+                'multiIpMonitoringEnabled': '',
+                'name': '',
+                'port': ''
+            }
             $scope.certObj = {
                 'sslcertType': 'PRIVATE_SINGLE_SAN',
                 'certDetails': {"certType":"internal"},
                 'certName': '',
                 'targetSystemType':  { "type": "new" },
                 'targetSystemServiceRequestType':  { "type": "new" },
-                "targetSystem": '',
+                "targetSystem": $scope.targetSystem,
                 "targetSystemService": ''
             }
             $scope.isCertCollapsed = false;
@@ -193,6 +232,8 @@
             $scope.existingTargetSystem = false;
             $scope.existingService = false;
             $scope.targetSystemServicesList = [];
+            $scope.serviceListTableOptions = [];
+            setTargetSystemServiceList("No target system selected", []);
         }
 
         // Updating the data based on type of safe, by clicking dropdown
@@ -606,6 +647,7 @@
             $scope.targetSystemList = [];
             $scope.targetSystemSelected = false;
             $scope.showInputLoader.show = true;
+            $scope.isTargetSystemListLoading = true;
             return AdminSafesManagement.getTargetSystems().then(function (response) {
                 if (UtilityService.ifAPIRequestSuccessful(response)) {
                     $scope.targetSystemList = response.data.data;
@@ -616,11 +658,13 @@
                     $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
                     $scope.error('md');
                 }
+                $scope.isTargetSystemListLoading = false;
             },
             function (error) {
                 // Error handling function
                 console.log(error);
                 $scope.showInputLoader.show = false;
+                $scope.isTargetSystemListLoading = false;
                 $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
                 $scope.error('md');
             });
@@ -643,7 +687,7 @@
             if ($scope.targetSystemSelected == true) {
                 var targetSystemId = $scope.certObj.targetSystem.targetSystemID;
                 $scope.showServiceInputLoader.show = true;
-                var updatedUrlOfEndPoint = RestEndpoints.baseURL + "/sslcert/targetsystems/" + targetSystemId + "/targetsystemservices";
+                var updatedUrlOfEndPoint = RestEndpoints.baseURL + "/v2/sslcert/targetsystems/" + targetSystemId + "/targetsystemservices";
                 return AdminSafesManagement.getTargetSystemsServices(null, updatedUrlOfEndPoint).then(function (response) {
                     if (UtilityService.ifAPIRequestSuccessful(response)) {
                         $scope.targetSystemServicesList = response.data.data;
@@ -685,7 +729,6 @@
         $scope.selectTargetSystem = function (targetSystem) {
             $scope.certObj.targetSystem = targetSystem;
             $scope.targetSystemSelected = true;
-            $scope.isCollapsed = !$scope.isCollapsed;
             $scope.getTargetSystemService();
         }
 
@@ -1303,24 +1346,7 @@
             Modal.createModal(size, 'certificatePopup.html', 'AdminCtrl', $scope);
             $scope.targetSystemType = { "type": "new" };
             $scope.targetSystemServiceType = { "type": "new" };
-        }
-
-        resetCert();
-
-        $scope.targetSystem = {
-            'description': '',
-            'address': '',
-            'targetSystemID': '',
-            'name': ''
-        }
-
-        $scope.targetSystemServiceRequest = {
-            'description': '',
-            'hostname': '',
-            'monitoringEnabled': '',
-            'multiIpMonitoringEnabled': '',
-            'name': '',
-            'port': ''
+            $scope.getTargetSystems();
         }
 
         $scope.replaceSpacesCertName = function () {
@@ -1510,10 +1536,10 @@
 
                 try {
                     Modal.close('');
-                    var targetSystemID = 29;
+                    //var targetSystemID = 29;
                     var sslcertType = 'PRIVATE_SINGLE_SAN';
                     $scope.certObj.sslcertType = sslcertType;
-                    $scope.certObj.targetSystem.targetSystemID = targetSystemID;
+                    //$scope.certObj.targetSystem.targetSystemID = targetSystemID;
                     var reqObjtobeSent =  {
                         "sslcertType": $scope.certObj.sslcertType,
                         "targetSystem": $scope.certObj.targetSystem,
@@ -1532,18 +1558,18 @@
                         $scope.isLoadingData = false;
                         if (UtilityService.ifAPIRequestSuccessful(response)) {
                             $scope.certificateCreationMessage = response.data.messages[0];
+                            resetCert();
                             $scope.certificateCreationPopUp();
-
                         }
                     },
                     function (error) {
+                        resetCert();
                         var errors = error.data.errors;
                         $scope.certificateCreationMessage = errors[0];
                         $scope.certificateCreationFailedPopUp();
                         $scope.isLoadingData = false;
                         console.log(error);
                     })
-                    resetCert();
                 } catch (e) {
                     resetCert();
                     $scope.isLoadingData = false;
