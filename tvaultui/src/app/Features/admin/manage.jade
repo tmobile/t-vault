@@ -483,7 +483,7 @@ script(type='text/ng-template', id='manageSecretId.html')
                                                 .down.view
                                                     .list-icon()  Renew certificate
                                                 .down.deletesecretids
-                                                    .list-icon(ng-click = "createSecretIDPopUp(value.certificateId)" ) Revoke certificate
+                                                    .list-icon() Revoke certificate
                                             .container.radio-inputs.col-lg-2.col-md-2.col-sm-2.col-xs-2
                                     .pagination-wrapper(ng-show='certificateData.next')
                                         .pagination-count(ng-if="numOfCertificates>0") Displaying {{certificateData.limit+certificateData.offset}} of {{certificateData.totalCount}}
