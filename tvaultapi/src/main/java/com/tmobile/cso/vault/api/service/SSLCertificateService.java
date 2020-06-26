@@ -34,6 +34,7 @@ import java.util.Map;
 import java.util.Objects;
 
 import org.apache.commons.collections.MapUtils;
+import org.springframework.util.ObjectUtils;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
@@ -1238,25 +1239,31 @@ public class SSLCertificateService {
        public ResponseEntity<String> getServiceCertificates(String token, UserDetails userDetails, String certName) throws Exception {
        	log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
    			      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
-   				  put(LogMessage.ACTION, "listsslcerts").
+   				  put(LogMessage.ACTION, "list sslcertificate names from metadata").
    			      put(LogMessage.MESSAGE, String.format("Trying to get list of Sslcets")).
    			      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
    			      build()));
        		String _path = SSLCertificateConstants.SSL_CERT_PATH  ;
-       	Response response = null;
+       	Response response = new Response();
        	String certListStr = "";
-   		if (userDetails.isAdmin()) {
-   			response = getMetadata(token, _path);
-   			certListStr = getsslmetadatalist(response.getResponse(),token,userDetails,certName);
-		}
-		else {
-			response = getMetadata(userDetails.getSelfSupportToken(), _path);
-			certListStr = getsslmetadatalist(response.getResponse(),userDetails.getSelfSupportToken(),userDetails,certName);
-		}
-       	
+       	String tokenValue= (userDetails.isAdmin())? token :userDetails.getSelfSupportToken();
+   		
+   			response = getMetadata(tokenValue, _path);
+   			if(!ObjectUtils.isEmpty(response.getResponse())) {
+   			certListStr = getsslmetadatalist(response.getResponse(),tokenValue,userDetails,certName);		
+   			}
+   			else {
+   				log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+   	   			      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+   	   				  put(LogMessage.ACTION, "list sslcertificate names from metadata").
+   	   			      put(LogMessage.MESSAGE, "No certificates available").
+   	   			      put(LogMessage.STATUS, response.getHttpstatus().toString()).
+   	   			      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+   	   			      build()));
+   			}
    		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
    			      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
-   				  put(LogMessage.ACTION, "listsslcerts").
+   				  put(LogMessage.ACTION, "list sslcertificate names from metadata").
    			      put(LogMessage.MESSAGE, "Reading List of sslcerts completed").
    			      put(LogMessage.STATUS, response.getHttpstatus().toString()).
    			      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
@@ -1273,14 +1280,8 @@ public class SSLCertificateService {
    	 * @param path
    	 * @return
    	 */
-   	private Response getMetadata(String token, String path) {
+   	private Response getMetadata(String token, String path) {	
    		
-   		if (path != null && path.startsWith("/")) {
-   			path = path.substring(1, path.length());
-   		}
-   		if (path != null && path.endsWith("/")) {
-   			path = path.substring(0, path.length()-1);
-   		}
    		String _path = path+"?list=true";
    		return reqProcessor.process("/sslcert","{\"path\":\""+_path+"\"}",token);
    	}
@@ -1293,13 +1294,7 @@ public class SSLCertificateService {
    	 * @return
    	 */
    	private String getsslmetadatalist(String certificateResponse, String token, UserDetails userDetails, String certName) {
-   		String path = SSLCertificateConstants.SSL_CERT_PATH  ;
-   		if (path != null && path.startsWith("/")) {
-   			path = path.substring(1, path.length());
-   		}
-   		if (path != null && path.endsWith("/")) {
-   			path = path.substring(0, path.length()-1);
-   		}
+   		String path = SSLCertificateConstants.SSL_CERT_PATH  ;   		
    		String _path= "";
    		String endPoint = "";
    		Response response = null;
@@ -1316,28 +1311,44 @@ public class SSLCertificateService {
    			
    			if (!userDetails.isAdmin()) {	
    				response = reqProcessor.process("/sslcert","{\"path\":\""+_path+"\"}",userDetails.getSelfSupportToken());
-   				JsonObject object = ((JsonObject) jsonParser.parse(response.getResponse())).getAsJsonObject("data");
-   				if(userDetails.getUsername().equalsIgnoreCase((object.get("certCreatedBy").toString(). replaceAll("^\"+|\"+$", "")))) {
-   					responseArray.add(((JsonObject) jsonParser.parse(response.getResponse())).getAsJsonObject("data"));
+   				if(!ObjectUtils.isEmpty(response.getResponse())) {
+   				JsonObject object = ((JsonObject) jsonParser.parse(response.getResponse())).getAsJsonObject("data");   				
+   				if(userDetails.getUsername().equalsIgnoreCase((object.get("certCreatedBy")!=null? object.get("certCreatedBy").getAsString() : ""))) {   					
+   					responseArray.add(object);
    				}
+   				
+   			}
    			}else {
    				response = reqProcessor.process("/sslcert","{\"path\":\""+_path+"\"}",token);
+   				if(!ObjectUtils.isEmpty(response.getResponse())) {
    				responseArray.add(((JsonObject) jsonParser.parse(response.getResponse())).getAsJsonObject("data"));
-   			}
+   				}
+   			}   			
+   		}
+   		
+   		if(ObjectUtils.isEmpty(responseArray)) {
+   			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+ 	   			      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+ 	   				  put(LogMessage.ACTION, "get ssl metadata").
+ 	   			      put(LogMessage.MESSAGE, "Certificates metadata is not available").
+ 	   			      put(LogMessage.STATUS, response.getHttpstatus().toString()).
+ 	   			      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+ 	   			      build()));
    		}
    		metadataJsonObj.add("keys", responseArray);
    		return metadataJsonObj.toString();
    	}
      
    	/**
-   	 * Get the cert names matches the search keyword
+   	 * Get the certificate names matches the search keyword
    	 * @param jsonArray
    	 * @param searchText
    	 * @return
    	 */
    	private List<String> geMatchCertificates(JsonArray jsonArray, String searchText) {
    		List<String> list = new ArrayList<String>();
-   		if(searchText!="") {
+   		if(!ObjectUtils.isEmpty(jsonArray)) {
+   		if(!StringUtils.isEmpty(searchText)) {
    	   	for(int i = 0; i < jsonArray.size(); i++){
    	   	if(jsonArray.get(i).toString().toUpperCase().contains(searchText.toUpperCase())){
    	   	    list.add(jsonArray.get(i).toString());
@@ -1347,7 +1358,8 @@ public class SSLCertificateService {
    			for(int i = 0; i < jsonArray.size(); i++){
    			 list.add(jsonArray.get(i).toString());
    	   	   	}
-   			}   		
+   			}  
+   		}
    	 return list;
    	}
    	

@@ -509,7 +509,7 @@
                 offsetQuery= "&offset="+offset;
             }
 //            var updatedUrlOfEndPoint = ModifyUrl.addUrlParameteres('getCertificates',"freeText="+searchCert + limitQuery + offsetQuery);
-            var updatedUrlOfEndPoint = ModifyUrl.addUrlParameteres('getCertificates',"freeText="+searchCert );
+            var updatedUrlOfEndPoint = ModifyUrl.addUrlParameteres('getCertificates',"certificateName="+searchCert );
             AdminSafesManagement.getCertificates(null, updatedUrlOfEndPoint).then(function (response) {
             	 
                 if (UtilityService.ifAPIRequestSuccessful(response)) {
