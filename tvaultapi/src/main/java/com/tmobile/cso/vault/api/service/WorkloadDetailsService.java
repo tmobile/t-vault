@@ -65,6 +65,8 @@ public class WorkloadDetailsService {
 
 	@Value("${workload.endpoint}")
 	private String workloadEndpoint;
+	@Value("${workload.endpoint.token}")
+	private String workloadEndpointToken;
 	
 	@Autowired
 	RestProcessor restprocessor;
@@ -112,7 +114,7 @@ public class WorkloadDetailsService {
 	 * @return
 	 */
 	private JsonObject getApiResponse(String api)  {
-		String workloadEndpointToken = new String(Base64.getDecoder().decode(ControllerUtil.getCwmToken()));
+		//String workloadEndpointToken = new String(Base64.getDecoder().decode(ControllerUtil.getCwmToken()));
 		if (StringUtils.isEmpty(workloadEndpointToken)) {
 			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
