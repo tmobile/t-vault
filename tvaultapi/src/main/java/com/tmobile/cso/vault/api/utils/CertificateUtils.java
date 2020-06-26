@@ -1,5 +1,5 @@
 /** *******************************************************************************
-*  Copyright 2019 T-Mobile, US
+*  Copyright 2020 T-Mobile, US
 *   
 *  Licensed under the Apache License, Version 2.0 (the "License");
 *  you may not use this file except in compliance with the License.
@@ -50,11 +50,8 @@ public class CertificateUtils {
 	 */
 	public boolean canAddOrRemoveUser(UserDetails userDetails, CertificateUser certificateUser, String action) {
 		String token = userDetails.getSelfSupportToken();
-		String certificateName = certificateUser.getCertificateName();
+		String certificateName = certificateUser.getCertificateName();		
 		
-		if (StringUtils.isEmpty(certificateName)) {
-			return false;
-		}
 		if (userDetails.isAdmin()) {
 			token = userDetails.getClientToken();
 		}
@@ -148,10 +145,9 @@ public class CertificateUtils {
 				put(LogMessage.ACTION, "Get Certificate Info").
 				put(LogMessage.MESSAGE, String.format ("Trying to get Info for [%s]", certificatePath)).
 				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
-				build()));
-		// Elevation is required in case user does not have access to the path.
+				build()));		
 		Response response = ControllerUtil.getReqProcessor().process("/certmanager","{\"path\":\""+certificatePath+"\"}",token);
-		// Create the Safe bean
+		// Create the Certificate bean
 		SSLCertificateMetadataDetails certificateMetadataDetails = null;
 		if(HttpStatus.OK.equals(response.getHttpstatus())){
 			try {
@@ -166,6 +162,13 @@ public class CertificateUtils {
 					      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 					      build()));			
 			}
+		}else {
+			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+				      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+					  put(LogMessage.ACTION, "getCertificateMetaData").
+				      put(LogMessage.MESSAGE, "Error while trying to get certificate metadata").
+				      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+				      build()));
 		}
 		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).

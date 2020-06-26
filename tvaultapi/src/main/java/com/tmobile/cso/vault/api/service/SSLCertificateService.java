@@ -1747,12 +1747,10 @@ public class SSLCertificateService {
    			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid input values\"]}");
    		}
    		
-   		String userName = certificateUser.getUsername();
+   		String userName = certificateUser.getUsername().toLowerCase();
    		String certificateName = certificateUser.getCertificateName();
-   		String access = certificateUser.getAccess();
+   		String access = certificateUser.getAccess().toLowerCase();
    		
-   		userName = (userName !=null) ? userName.toLowerCase() : userName;
-   		access = (access != null) ? access.toLowerCase(): access;
    		boolean isAuthorized = true;
    		if (userDetails != null) {
    			isAuthorized = certificateUtils.canAddOrRemoveUser(userDetails, certificateUser, "addUser");
