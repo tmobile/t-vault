@@ -60,5 +60,18 @@ public class SSLCertificateController {
 		UserDetails userDetails = (UserDetails) ((HttpServletRequest) request).getAttribute("UserDetails");
 		return sslCertificateService.generateSSLCertificate(sslCertificateRequest,userDetails,token);
 	}
+	
+	/**
+	 * To get list of certificates in a container
+	 * @param request
+	 * @param token
+	 * @return
+	 */
+	@ApiOperation(value = "${SSLCertificateController.getssl.value}", notes = "${SSLCertificateController.getssl.notes}")
+	@GetMapping(value="/v2/sslcert", produces="application/json")
+	public ResponseEntity<String> getCertificates(HttpServletRequest request, @RequestHeader(value="vault-token") String token, @RequestParam(name="certificateName", required = false) String certName)throws Exception{
+		UserDetails userDetails = (UserDetails) ((HttpServletRequest) request).getAttribute("UserDetails");
+		return sslCertificateService.getServiceCertificates(token, userDetails, certName);
+	}
 
 }

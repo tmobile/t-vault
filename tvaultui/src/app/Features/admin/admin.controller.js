@@ -491,10 +491,50 @@
                         $scope.error('md');
                     });
             }
-
+            getCertificates("", null, null);
         };
 
-
+        //Get ssl certificate
+        var getCertificates =  function (searchCert, limit, offset) {
+            $scope.numOfCertificates = 0;
+            $scope.certificatesLoaded = false;
+            $scope.certificateData = {"certificates": []};
+            $scope.isLoadingData = true;
+            var limitQuery = "";
+            var offsetQuery= "";
+            if (limit !=null) {
+                limitQuery = "&limit="+limit;
+            }
+            if (offset!=null) {
+                offsetQuery= "&offset="+offset;
+            }
+//            var updatedUrlOfEndPoint = ModifyUrl.addUrlParameteres('getCertificates',"freeText="+searchCert + limitQuery + offsetQuery);
+            var updatedUrlOfEndPoint = ModifyUrl.addUrlParameteres('getCertificates',"certificateName="+searchCert );
+            AdminSafesManagement.getCertificates(null, updatedUrlOfEndPoint).then(function (response) {
+            	 
+                if (UtilityService.ifAPIRequestSuccessful(response)) {
+                	
+                	$scope.isLoadingData = false;                    
+                    $scope.certificateData.certificates = response.data.keys;                                     
+                    $scope.numOfCertificates = $scope.certificateData.certificates.length;                    
+                    $scope.certificatesLoaded =  true;
+                }
+                else {
+                    $scope.isLoadingData = false;
+                    $scope.certificatesLoaded =  true;
+                    $scope.errorMessage = AdminSafesManagement.getTheRightErrorMessage(response);
+                    error('md');
+                }
+            },
+            function (error) {
+                // Error handling function
+                console.log(error);
+                $scope.isLoadingData = false;
+                $scope.certificatesLoaded =  true;
+                $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
+                $scope.error('md');
+            });
+        }
 
         $scope.tabChangeForAdminCert = function () {
             $scope.searchValue = '';
@@ -503,17 +543,17 @@
             }
         }
 
+
         $scope.getCertSubjectName = function (cert) {
+        	
             var certName = "";
             if (cert.subjectAltName && cert.subjectAltName.dns && cert.subjectAltName.dns.length > 0) {
                 certName = cert.subjectAltName.dns[0];
             }
             if (certName == "" || certName == undefined) {
-                var names = cert.sortedSubjectName.split(',');
-                if (names.length > 0) {
-                    certName = names[0].substr(3)
-                }
+            	certName = cert.certificateName
             }
+            
             return certName;
         }
 

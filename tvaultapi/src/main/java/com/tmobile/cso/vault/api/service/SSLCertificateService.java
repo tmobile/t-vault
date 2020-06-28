@@ -17,20 +17,24 @@
 
 package com.tmobile.cso.vault.api.service;
 
-import com.google.common.collect.ImmutableMap;
-import com.google.gson.*;
-import com.tmobile.cso.vault.api.common.SSLCertificateConstants;
-import com.tmobile.cso.vault.api.common.TVaultConstants;
-import com.tmobile.cso.vault.api.controller.ControllerUtil;
-import com.tmobile.cso.vault.api.exception.LogMessage;
-import com.tmobile.cso.vault.api.exception.TVaultValidationException;
-import com.tmobile.cso.vault.api.model.*;
-import com.tmobile.cso.vault.api.process.CertResponse;
-import com.tmobile.cso.vault.api.process.RequestProcessor;
-import com.tmobile.cso.vault.api.process.Response;
-import com.tmobile.cso.vault.api.utils.JSONUtil;
-import com.tmobile.cso.vault.api.utils.ThreadLocalContext;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.security.KeyManagementException;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Base64;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+
 import org.apache.commons.collections.MapUtils;
+import org.springframework.util.ObjectUtils;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
@@ -48,15 +52,32 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.security.KeyManagementException;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.cert.CertificateException;
-import java.security.cert.X509Certificate;
-import java.util.*;
+import com.google.common.collect.ImmutableMap;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import com.tmobile.cso.vault.api.common.SSLCertificateConstants;
+import com.tmobile.cso.vault.api.common.TVaultConstants;
+import com.tmobile.cso.vault.api.controller.ControllerUtil;
+import com.tmobile.cso.vault.api.exception.LogMessage;
+import com.tmobile.cso.vault.api.exception.TVaultValidationException;
+import com.tmobile.cso.vault.api.model.CertManagerLogin;
+import com.tmobile.cso.vault.api.model.CertManagerLoginRequest;
+import com.tmobile.cso.vault.api.model.CertificateData;
+import com.tmobile.cso.vault.api.model.SSLCertMetadata;
+import com.tmobile.cso.vault.api.model.SSLCertType;
+import com.tmobile.cso.vault.api.model.SSLCertTypeConfig;
+import com.tmobile.cso.vault.api.model.SSLCertificateMetadataDetails;
+import com.tmobile.cso.vault.api.model.SSLCertificateRequest;
+import com.tmobile.cso.vault.api.model.TargetSystem;
+import com.tmobile.cso.vault.api.model.TargetSystemServiceRequest;
+import com.tmobile.cso.vault.api.model.UserDetails;
+import com.tmobile.cso.vault.api.process.CertResponse;
+import com.tmobile.cso.vault.api.process.RequestProcessor;
+import com.tmobile.cso.vault.api.process.Response;
+import com.tmobile.cso.vault.api.utils.JSONUtil;
+import com.tmobile.cso.vault.api.utils.ThreadLocalContext;
 
 @Component
 public class SSLCertificateService {
@@ -1205,5 +1226,143 @@ public class SSLCertificateService {
         }
         return ts_gp_id;
     }
-    
+ 
+        /**
+         * Get ssl certificate metadata list
+         * @param token
+         * @param userDetails
+         * @param certName
+         * @return
+         * @throws Exception
+         */
+       
+       public ResponseEntity<String> getServiceCertificates(String token, UserDetails userDetails, String certName) throws Exception {
+       	log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+   			      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+   				  put(LogMessage.ACTION, "list sslcertificate names from metadata").
+   			      put(LogMessage.MESSAGE, String.format("Trying to get list of Sslcets")).
+   			      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+   			      build()));
+       		String _path = SSLCertificateConstants.SSL_CERT_PATH  ;
+       	Response response = new Response();
+       	String certListStr = "";
+       	String tokenValue= (userDetails.isAdmin())? token :userDetails.getSelfSupportToken();
+   		
+   			response = getMetadata(tokenValue, _path);
+   			if(!ObjectUtils.isEmpty(response.getResponse())) {
+   			certListStr = getsslmetadatalist(response.getResponse(),tokenValue,userDetails,certName);		
+   			}
+   			else {
+   				log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+   	   			      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+   	   				  put(LogMessage.ACTION, "list sslcertificate names from metadata").
+   	   			      put(LogMessage.MESSAGE, "No certificates available").
+   	   			      put(LogMessage.STATUS, response.getHttpstatus().toString()).
+   	   			      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+   	   			      build()));
+   			}
+   		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+   			      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+   				  put(LogMessage.ACTION, "list sslcertificate names from metadata").
+   			      put(LogMessage.MESSAGE, "Reading List of sslcerts completed").
+   			      put(LogMessage.STATUS, response.getHttpstatus().toString()).
+   			      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+   			      build()));
+   		
+   		return ResponseEntity.status(response.getHttpstatus()).body(certListStr);
+   	}
+       
+       
+       /**
+   	 * Get  for ssl certificate names
+   	 * @param token
+   	 * @param userDetails
+   	 * @param path
+   	 * @return
+   	 */
+   	private Response getMetadata(String token, String path) {	
+   		
+   		String _path = path+"?list=true";
+   		return reqProcessor.process("/sslcert","{\"path\":\""+_path+"\"}",token);
+   	}
+     
+    /**
+   	 * Get metadata for each certificate
+   	 * @param token
+   	 * @param userDetails
+   	 * @param path
+   	 * @return
+   	 */
+   	private String getsslmetadatalist(String certificateResponse, String token, UserDetails userDetails, String certName) {
+   		String path = SSLCertificateConstants.SSL_CERT_PATH  ;   		
+   		String _path= "";
+   		String endPoint = "";
+   		Response response = null;
+   		JsonParser jsonParser = new JsonParser();
+   		JsonArray responseArray = new JsonArray();
+   		JsonObject metadataJsonObj=new JsonObject();
+        JsonObject jsonObject = (JsonObject) jsonParser.parse(certificateResponse);
+   		JsonArray jsonArray = jsonObject.getAsJsonObject("data").getAsJsonArray("keys"); 
+   		List<String> certNames = geMatchCertificates(jsonArray,certName);
+   		for (int i = 0; i < certNames.size(); i++)
+   		{
+   			endPoint = certNames.get(i).toString(). replaceAll("^\"+|\"+$", "");
+   			_path = path+"/"+endPoint;
+   			
+   			if (!userDetails.isAdmin()) {	
+   				response = reqProcessor.process("/sslcert","{\"path\":\""+_path+"\"}",userDetails.getSelfSupportToken());
+   				if(!ObjectUtils.isEmpty(response.getResponse())) {
+   				JsonObject object = ((JsonObject) jsonParser.parse(response.getResponse())).getAsJsonObject("data");   				
+   				if(userDetails.getUsername().equalsIgnoreCase((object.get("certCreatedBy")!=null? object.get("certCreatedBy").getAsString() : ""))) {   					
+   					responseArray.add(object);
+   				}
+   				
+   			}
+   			}else {
+   				response = reqProcessor.process("/sslcert","{\"path\":\""+_path+"\"}",token);
+   				if(!ObjectUtils.isEmpty(response.getResponse())) {
+   				responseArray.add(((JsonObject) jsonParser.parse(response.getResponse())).getAsJsonObject("data"));
+   				}
+   			}   			
+   		}
+   		
+   		if(ObjectUtils.isEmpty(responseArray)) {
+   			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+ 	   			      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+ 	   				  put(LogMessage.ACTION, "get ssl metadata").
+ 	   			      put(LogMessage.MESSAGE, "Certificates metadata is not available").
+ 	   			      put(LogMessage.STATUS, response.getHttpstatus().toString()).
+ 	   			      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+ 	   			      build()));
+   		}
+   		metadataJsonObj.add("keys", responseArray);
+   		return metadataJsonObj.toString();
+   	}
+     
+   	/**
+   	 * Get the certificate names matches the search keyword
+   	 * @param jsonArray
+   	 * @param searchText
+   	 * @return
+   	 */
+   	private List<String> geMatchCertificates(JsonArray jsonArray, String searchText) {
+   		List<String> list = new ArrayList<String>();
+   		if(!ObjectUtils.isEmpty(jsonArray)) {
+   		if(!StringUtils.isEmpty(searchText)) {
+   	   	for(int i = 0; i < jsonArray.size(); i++){
+   	   	if(jsonArray.get(i).toString().toUpperCase().contains(searchText.toUpperCase())){
+   	   	    list.add(jsonArray.get(i).toString());
+   	   	}
+   	   	}
+   		}else {
+   			for(int i = 0; i < jsonArray.size(); i++){
+   			 list.add(jsonArray.get(i).toString());
+   	   	   	}
+   			}  
+   		}
+   	 return list;
+   	}
+   	
+         
+   
 }
