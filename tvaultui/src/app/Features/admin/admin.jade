@@ -80,7 +80,7 @@ script(type='text/ng-template', id='certificateCreationPopUp.html')
       .top-lg-sep.notification-text  {{ certificateCreationMessage }}
     .text-center.bottom-lg-sep.top-lg-sep.notification-button
       .clearfix.bottom-sm-sep
-        button.link-style.common-btn.btn.btn-primary.btn-lg(ng-click="cancel()") CLOSE  
+        button.link-style.common-btn.btn.btn-primary.btn-lg(ng-click="successCancel()") CLOSE
 script(type='text/ng-template', id='certificateCreationFailedPopUp.html')
   loading-state(ng-if="isLoadingModalData")
   .top-lg-sep(ng-if="!isLoadingModalData")
