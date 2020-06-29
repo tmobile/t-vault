@@ -504,7 +504,7 @@ script(type='text/ng-template', id='manageSecretId.html')
                     md-tab(label="Certificate Management" md-on-select="tabChangeForAdminCert()")
                         md-content(class="md-padding md-content-wrapper page-content-wrapper md-approle-management" ng-init="displayGrid")
                           .md-content-inner-wrapper
-                              div.onboard-link(ng-show="!isLoadingData && certificateData.certificates.length==0")
+                              div.create-certificate-link(ng-show="!isLoadingData && certificateData.certificates.length==0")
                                   .function-text.link-style.option.right(ng-click="newCertificateConfiguration('lg')")
                                       .action-icon-wrapper.static
                                           .rotate.glyphicon.glyphicon-remove-circle
@@ -522,7 +522,7 @@ script(type='text/ng-template', id='manageSecretId.html')
                                                   .container.name.col-lg-4.col-md-4.col-sm-3.col-xs-3 CERTIFICATE
                                                   .container.name.action.col-lg-2.col-md-2.col-sm-2.col-xs-2 STATUS
                                                   .container.name.action.col-lg-2.col-md-2.col-sm-2.col-xs-2 ACTION
-                                                  div.onboard-link
+                                                  div.create-certificate-link
                                                     .function-text.link-style.option.right(ng-click="newCertificateConfiguration('lg')")
                                                       .action-icon-wrapper.static
                                                           .rotate.glyphicon.glyphicon-remove-circle
