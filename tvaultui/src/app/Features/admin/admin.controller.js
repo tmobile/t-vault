@@ -1570,6 +1570,11 @@
             Modal.close('');
         };
 
+        $scope.successCancel = function () {
+            Modal.close('');
+            getCertificates("", null, null);
+        };
+
         $scope.collapseCertDetails = function (index) {
             if(index == 1 ) {
                 $scope.isTargetCollapsed = false;
