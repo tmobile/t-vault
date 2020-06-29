@@ -334,6 +334,10 @@ readTextFile("../apiUrls.json");
             name: 'createSslCertificates',
             url: '/v2/sslcert',
             method: 'POST'
+        }, {
+            name: 'usersGetData',
+            url: '/v2/ldap/users?UserPrincipalName=',
+            method: 'GET'
         }
     ]
     });
