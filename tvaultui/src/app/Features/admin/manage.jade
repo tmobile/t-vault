@@ -86,9 +86,8 @@ script(type='text/ng-template', id='certificatePopup.html')
                     .col-lg-12.col-md-12.col-sm-12.col-xs-12.common-form-row()
                       .details-input-group
                         .common-form-label Owner Email Id*
-                        input.form-control.input-box-style(id="certReqOwnerEmail"  ng-model="certObj.certDetails.ownerEmail" ng-change="replaceSpacesCertOwnerEmail()")
-                    div.key-acceptance-info() {{ ownerEmailErrorMessage }}
-                        div.loader.owner-mail(ng-if='showInputLoader.show && certObj.certDetails.ownerEmail > 0')
+                        input.form-control.input-box-style(id="certReqOwnerEmail"  ng-model="certObj.certDetails.ownerEmail" typeahead-min-length="3" uib-typeahead="key as key.userEmail for key in searchEmail($viewValue) | limitTo: 8" typeahead-wait-ms="500" typeahead-on-select="selectOwner(certObj.certDetails.ownerEmail)")
+                        div.loader.svcaccid(ng-if='isUserSearchLoading && certObj.certDetails.ownerEmail.length > 2')
                             div.ball-spin-fade-loader
                                 div
                                 div
@@ -98,11 +97,9 @@ script(type='text/ng-template', id='certificatePopup.html')
                                 div
                                 div
                                 div
-                        div.input-cross.owner-mail(ng-if='inputSelected.select && certObj.certDetails.ownerEmail > 0' ng-click="clearOwnerEmailInputValue('addOwnerEmail')")
+                          div.input-cross.svcaccid(ng-if='!isUserSearchLoading && certObj.certDetails.ownerEmail.length > 2' ng-click="clearOwnerEmail()")
                             div.delete-title
                                 img.delete-icon(src="../../assets/images/delete.png")
-                        span.invalid-form(ng-show="certObj.certDetails.ownerEmail.$dirty && certObj.certDetails.ownerEmail.$invalid && certObj.certDetails.ownerEmail.$error.required") Please enter this field
-                        span.invalid-form(ng-if="invalidEmail") Please enter valid email address
               .cert-conf.clearfix
                 .font-type-normal.collapse-link(ng-click="collapseCertDetails(1)") Step 2/3: Please fill the Target system details
                   span.svc-collapse-link(ng-if="!isTargetCollapsed") >> 
