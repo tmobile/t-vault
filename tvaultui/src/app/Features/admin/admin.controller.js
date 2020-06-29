@@ -139,6 +139,9 @@
 
             $scope.targetSystemServiceSelected = false;
             $scope.serviceListTableOptions = [];
+            $scope.userSearchList = [];
+            $scope.isUserSearchLoading = false;
+            $scope.isOwnerSelected = false;
             setTargetSystemServiceList("No target system selected", []);
 
             $scope.targetSystem = {
@@ -1427,26 +1430,6 @@
             }
         }
 
-        $scope.ownerEmailPatternValidation = function () {
-            $scope.ownerEmailErrorMessage = '';
-            $scope.ownerEmailInValid = false;
-            if ($scope.certObj.certDetails.ownerEmail != null && $scope.certObj.certDetails.ownerEmail != undefined
-                &&  $scope.certObj.certDetails.ownerEmail != "") {
-                var reg =  /^[a-zA-Z0-9_%+-]+[.]?[a-zA-Z0-9_%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/;
-                if (!reg.test($scope.certObj.certDetails.ownerEmail)) {
-                    $scope.ownerEmailErrorMessage = "Please enter a valid email address."
-                    $scope.ownerEmailInValid = true;
-                }
-            }
-        }
-
-        $scope.replaceSpacesCertOwnerEmail = function(){
-            if ($scope.certObj.certDetails.ownerEmail !== null && $scope.certObj.certDetails.ownerEmail !== undefined) {
-                $scope.certObj.certDetails.ownerEmail = $scope.certObj.certDetails.ownerEmail.replace(/[ ]/g, '');
-                return $scope.ownerEmailPatternValidation();
-            }
-        }
-
         $scope.isCreateCertBtnDisabled = function () {
             if ($scope.certObj.targetSystem != undefined
                 && $scope.certObj.targetSystem.name != undefined
@@ -1463,8 +1446,7 @@
                 && !$scope.ownerEmailInValid
                 && $scope.certObj.certDetails.certType != undefined
                 && $scope.certObj.certDetails.applicationName != undefined
-                && $scope.certObj.certDetails.ownerEmail != undefined
-                && $scope.certObj.certDetails.ownerEmail != ""
+                && $scope.isOwnerSelected == true
                 && !$scope.hostNameInValid) {
                 return false;
             }
@@ -1547,8 +1529,8 @@
                         "appName":$scope.certObj.certDetails.applicationName.tag,
                         "certificateName":$scope.certObj.certDetails.certName,
                         "certType":$scope.certObj.certDetails.certType,
-                        "certOwnerEmailId":$scope.certObj.certDetails.ownerEmail
-
+                        "certOwnerEmailId":$scope.certObj.certDetails.ownerEmail,
+                        "certOwnerNtid":$scope.certObj.certDetails.ownerNtId
                     }
                     $scope.certificateCreationMessage = '';
                     var url = '';
@@ -1612,9 +1594,9 @@
         $scope.openExistingTargetSystem = function (e) {
             $scope.existingTargetSystem = true;
             $scope.existingService = true;
-            $scope.targetSystemServiceType = { "type": "existing" };
-
+            $scope.existingService = false;
         }
+
         $scope.openNewTargetSystem = function (e) {
             $scope.existingTargetSystem = false;
             $scope.existingService = false;
@@ -1627,10 +1609,6 @@
             $scope.certObj.targetSystem.name='';
             $scope.certObj.targetSystem.description='';
             $scope.certObj.targetSystem.address='';
-
-
-
-
         }
 
         $scope.openExistingService = function () {
@@ -1647,6 +1625,55 @@
             $scope.certObj.targetSystemServiceRequest.hostname='';
             $scope.certObj.targetSystemServiceRequest.monitoringEnabled='';
             $scope.certObj.targetSystemServiceRequest.multiIpMonitoringEnabled='';
+        }
+
+        $scope.searchEmail = function (searchVal) {
+            if (searchVal.length > 2) {
+                $scope.isUserSearchLoading = true;
+                try {
+                    $scope.userSearchList = [];
+
+                    var queryParameters = $scope.certObj.certDetails.ownerEmail;
+                    var updatedUrlOfEndPoint = ModifyUrl.addUrlParameteres('usersGetData', queryParameters);
+                    return AdminSafesManagement.usersGetData(null, updatedUrlOfEndPoint).then(
+                        function(response) {
+                            $scope.isUserSearchLoading = false;
+                            if (UtilityService.ifAPIRequestSuccessful(response)) {
+                                $scope.userSearchList = response.data.data.values;
+                                return orderByFilter(filterFilter($scope.userSearchList, searchVal), 'userEmail', true);
+                            } else {
+                                $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
+                                $scope.error('md');
+                            }
+                        },
+                        function(error) {
+                            // Error handling function
+                            console.log(error);
+                            $scope.isUserSearchLoading = false;
+                            $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
+                            $scope.error('md');
+                    });
+                } catch (e) {
+                    console.log(e);
+                    $scope.isUserSearchLoading = false;
+                    $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
+                    $scope.error('md');
+                }
+            }
+        }
+
+        $scope.selectOwner = function (ownerEmail) {
+            if (ownerEmail != null) {
+                $scope.certObj.certDetails.ownerEmail = ownerEmail.userEmail;
+                $scope.certObj.certDetails.ownerNtId = ownerEmail.userName;
+                $scope.isOwnerSelected = true;
+            }
+        }
+
+        $scope.clearOwnerEmail = function () {
+            $scope.certObj.certDetails.ownerEmail = "";
+            $scope.certObj.certDetails.ownerNtId = "";
+            $scope.isOwnerSelected = false;
         }
 
         init();

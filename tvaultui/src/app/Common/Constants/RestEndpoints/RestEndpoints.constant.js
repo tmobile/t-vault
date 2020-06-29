@@ -335,6 +335,10 @@ readTextFile("../apiUrls.json");
             url: '/v2/sslcert',
             method: 'POST'
         }, {
+            name: 'usersGetData',
+            url: '/v2/ldap/users?UserPrincipalName=',
+            method: 'GET'
+        }, {
             name: 'getAuthUrl',
             url: '/v2/auth/oidc/auth_url',
             method: 'POST'

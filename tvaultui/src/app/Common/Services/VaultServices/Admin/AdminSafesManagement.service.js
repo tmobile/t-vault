@@ -292,13 +292,8 @@
                     return response;
                 });
             },
-            getAuthUrl: function (payload, url) {
-                return ServiceEndpoint.getAuthUrl.makeRequest(payload, url).then(function(response) {
-                    return response;
-                });
-            },
-            getCallback: function (payload, url) {
-                return ServiceEndpoint.getCallback.makeRequest(payload, url).then(function(response) {
+            usersGetData: function (payload, url) {
+                return ServiceEndpoint.usersGetData.makeRequest(payload, url).then(function(response) {
                     return response;
                 });
             },
