@@ -18,6 +18,9 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import static org.hamcrest.CoreMatchers.containsString;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
+import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -68,4 +71,11 @@ public class WorkloadDetailsControllerTest {
 
     }
 
+    @Test
+    public void test_getWorkloadDetailsByAPIName(){
+        String responseMessage = "[{\"appName\":\"app1\",\"appTag\":\"app1\",\"appID\":\"app\"},{\"appName\":\"app2\",\"appTag\":\"app2\",\"appID\":\"ap2\"}]";
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(responseMessage);
+        when(workloadDetailsService.getWorkloadDetailsByAppName(anyString())).thenReturn(ResponseEntity.status(HttpStatus.OK).body(responseMessage));
+        assertEquals(workloadDetailsService.getWorkloadDetailsByAppName(anyString()),responseEntityExpected);
+    }
 }

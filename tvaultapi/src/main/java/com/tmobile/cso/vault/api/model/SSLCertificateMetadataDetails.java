@@ -20,6 +20,16 @@ public class SSLCertificateMetadataDetails implements Serializable {
     private String certType;
     private String certCreatedBy;
     private String certOwnerEmailId;
+    private String certOwnerNtid;
+
+    public String getCertOwnerNtid() {
+        return certOwnerNtid;
+    }
+
+    public void setCertOwnerNtid(String certOwnerNtid) {
+        this.certOwnerNtid = certOwnerNtid;
+    }
+
     public int getCertificateId() {
         return certificateId;
     }

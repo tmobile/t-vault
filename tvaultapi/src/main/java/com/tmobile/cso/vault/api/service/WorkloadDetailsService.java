@@ -28,6 +28,7 @@ import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
+import java.util.Objects;
 
 import com.tmobile.cso.vault.api.controller.ControllerUtil;
 import org.apache.http.HttpResponse;
@@ -175,5 +176,20 @@ public class WorkloadDetailsService {
 					build()));
 		}
 		return null;
+	}
+
+	public ResponseEntity<String> getWorkloadDetailsByAppName(String appName){
+		JsonObject response = getApiResponse(workloadEndpoint + "/" + appName);
+		if(Objects.isNull(response)){
+			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+					put(LogMessage.ACTION, "Getting Application Details by app name ").
+					put(LogMessage.MESSAGE, String.format("For an application name  = [%s]",appName)).
+					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+					build()));
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Application name doesn't " +
+					"exist\"]}");
+		}
+		return ResponseEntity.status(HttpStatus.OK).body(response.toString());
 	}
 }

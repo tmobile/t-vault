@@ -1513,19 +1513,21 @@
 
                 try {
                     Modal.close('');
-                    //var targetSystemID = 29;
                     var sslcertType = 'PRIVATE_SINGLE_SAN';
+                    $scope.appNameTagValue=$scope.certObj.certDetails.applicationName.tag;
                     $scope.certObj.sslcertType = sslcertType;
-                    //$scope.certObj.targetSystem.targetSystemID = targetSystemID;
+                    if($scope.appNameTagValue == undefined){
+                        $scope.appNameTagValue=$scope.certObj.certDetails.applicationName
+                    }
                     var reqObjtobeSent =  {
                         "sslcertType": $scope.certObj.sslcertType,
                         "targetSystem": $scope.certObj.targetSystem,
                         "targetSystemServiceRequest": $scope.certObj.targetSystemServiceRequest,
-                        "appName":$scope.certObj.certDetails.applicationName.tag,
+                        "appName": $scope.appNameTagValue,
                         "certificateName":$scope.certObj.certDetails.certName,
                         "certType":$scope.certObj.certDetails.certType,
                         "certOwnerEmailId":$scope.certObj.certDetails.ownerEmail,
-                        "certOwnerNtid":$scope.certObj.certDetails.ownerNtId
+                        "certOwnerNTId":$scope.certObj.certDetails.ownerNtId
                     }
                     $scope.certificateCreationMessage = '';
                     var url = '';
@@ -1606,9 +1608,11 @@
                 "targetSystem": '',
                 "targetSystemService": ''
             }
-            $scope.certObj.targetSystem.name='';
-            $scope.certObj.targetSystem.description='';
-            $scope.certObj.targetSystem.address='';
+            if(angular.isDefined($scope.certObj.targetSystem)){
+                $scope.certObj.targetSystem.name='';
+                $scope.certObj.targetSystem.description='';
+                $scope.certObj.targetSystem.address='';
+              }
         }
 
         $scope.openExistingService = function () {
