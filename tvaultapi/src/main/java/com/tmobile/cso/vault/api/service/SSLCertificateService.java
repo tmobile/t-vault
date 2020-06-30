@@ -1530,13 +1530,16 @@ public class SSLCertificateService {
 							.build()));
 			return ResponseEntity.status(HttpStatus.FORBIDDEN).body("{\"errors\":[\"" + "Certificate unavailable in NCLM." + "\"]}");
 		} catch (Exception e) {
-			log.error(JSONUtil.getJSON(ImmutableMap.<String, String> builder()
-					.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString())
-					.put(LogMessage.ACTION, String.format("Inside  Exception " + "Exception = [%s] =  Message [%s]",
-							Arrays.toString(e.getStackTrace()), e.getMessage()))
-					.build()));
+			log.error(
+					JSONUtil.getJSON(
+							ImmutableMap.<String, String> builder()
+									.put(LogMessage.USER,
+											ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString())
+									.put(LogMessage.ACTION, String.format("Inside  Exception = [%s] =  Message [%s]",
+											Arrays.toString(e.getStackTrace()), e.getMessage()))
+									.build()));
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-					.body("{\"errors\":[\"" + SSLCertificateConstants.SSL_CERTFICATE_REASONS + "\"]}");
+					.body("{\"errors\":[\"" + SSLCertificateConstants.SSL_CERTFICATE_REASONS_FAILED + "\"]}");
 		}
 
 	}
@@ -1559,17 +1562,8 @@ public class SSLCertificateService {
 
 		Map<String, String> metaDataParams = new HashMap<String, String>();
 
-		String path = SSLCertificateConstants.SSL_CERT_PATH;
-		if (path != null && path.startsWith("/")) {
-			path = path.substring(1, path.length());
-		}
-		if (path != null && path.endsWith("/")) {
-			path = path.substring(0, path.length() - 1);
-		}
-		String _path = "";
-
 		String endPoint = certificateName;
-		_path = path + "/" + endPoint;
+		String _path = SSLCertificateConstants.SSL_CERT_PATH + "/" + endPoint;
 		Response response = null;
 		try {
 			if (userDetails.isAdmin()) {
@@ -1605,7 +1599,7 @@ public class SSLCertificateService {
 
 			if (!isPermission) {
 				return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("{\"errors\":[\""
-						+ "User has no permission to revoke the certifcate :" + certificateName + "\"]}");
+						+ "User has no permission to revoke the certifcate " + certificateName + "\"]}");
 			}
 		}
         String certID = object.get("certificateId").toString();
@@ -1650,6 +1644,17 @@ public class SSLCertificateService {
 				return ResponseEntity.status(revocationResponse.getHttpstatus())
 						.body("{\"messages\":[\"" + "Certificate revoked successfully." + "\"]}");
 			} else {
+				log.error(
+						JSONUtil.getJSON(
+								ImmutableMap.<String, String> builder()
+										.put(LogMessage.USER,
+												ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString())
+										.put(LogMessage.ACTION, "Revocation Request Failed")
+										.put(LogMessage.MESSAGE, "Revocation Request failed for CertificateID")
+										.put(LogMessage.STATUS, revocationResponse.getHttpstatus().toString())
+										.put(LogMessage.APIURL,
+												ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString())
+										.build()));
 				return ResponseEntity.status(HttpStatus.BAD_REQUEST)
 						.body("{\"errors\":[\"" + "Certificate revocation failed." + "\"]}");
 			}
@@ -1658,10 +1663,8 @@ public class SSLCertificateService {
 			log.error(
 					JSONUtil.getJSON(ImmutableMap.<String, String> builder()
 							.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString())
-							.put(LogMessage.ACTION,
-									String.format(
-											"Inside  TVaultValidationException =  Message [%s]",
-											Arrays.toString(error.getStackTrace()), error.getMessage()))
+							.put(LogMessage.ACTION, String.format("Inside  TVaultValidationException =  Message [%s]",
+									Arrays.toString(error.getStackTrace()), error.getMessage()))
 							.build()));
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"" + error.getMessage() + "\"]}");
 		} catch (Exception e) {
@@ -1671,7 +1674,7 @@ public class SSLCertificateService {
 							Arrays.toString(e.getStackTrace()), e.getMessage()))
 					.build()));
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-					.body("{\"errors\":[\"" + SSLCertificateConstants.SSL_CERTFICATE_REASONS + "\"]}");
+					.body("{\"errors\":[\"" + e.getMessage() + "\"]}");
 		}
 	}
 
@@ -1695,19 +1698,26 @@ public class SSLCertificateService {
 	public Boolean validateWritePermissionForUser(JsonObject object, UserDetails userDetails, String certificateName) {
 		ObjectMapper mapper = new ObjectMapper();
 		String permission = "";
-		String writePermission = object.get("users").toString();
-		Boolean isPermission = true;
-		try {
-			Map<String, String> usersMap = mapper.readValue(writePermission, Map.class);
-			for (Map.Entry user : usersMap.entrySet()) {
-				if (user.getKey().toString().equalsIgnoreCase(userDetails.getUsername())) {
-					permission = user.getValue().toString();
-					break;
+		Boolean isPermission = false;
+		if (object.get("users") != null) {
+			String writePermission = object.get("users").toString();
+
+			try {
+				Map<String, String> usersMap = mapper.readValue(writePermission, Map.class);
+				for (Map.Entry user : usersMap.entrySet()) {
+					if (user.getKey().toString().equalsIgnoreCase(userDetails.getUsername())) {
+						permission = user.getValue().toString();
+						isPermission = true;
+						break;
+					}
 				}
+			} catch (Exception e) {
+				log.error(JSONUtil.getJSON(ImmutableMap.<String, String> builder()
+						.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString())
+						.put(LogMessage.ACTION, String.format("Message [%s]", e.getStackTrace().toString())).build()));
+				e.printStackTrace();
 			}
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
+		} 
 
 		if (permission != "" && !permission.equals(SSLCertificateConstants.SSL_CERTFICATE_WRITE_PERMISSION)) {
 			isPermission = false;
