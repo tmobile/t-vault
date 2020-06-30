@@ -35,6 +35,7 @@ import com.tmobile.cso.vault.api.utils.ThreadLocalContext;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
@@ -55,6 +56,7 @@ public class RequestProcessor {
 
     @Autowired
     private CertRestProcessor certRestprocessor;
+    
     private static Logger log = LogManager.getLogger(RequestProcessor.class);
 
     public RequestProcessor() {
@@ -392,7 +394,7 @@ public class RequestProcessor {
             String errorMessage= (!StringUtils.isEmpty(certManagerResponseMap.get("error_description"))) ?
             certManagerResponseMap.get("error_description").toString() :
                     certManagerResponseMap.get("message").toString();
-
+            
             throw new TVaultValidationException(errorMessage);
         }
 
@@ -400,7 +402,7 @@ public class RequestProcessor {
             respTransformer.transform(apiConfig, certManagerResponseMap, accessToken);
         }
 
-
+        response.setSuccess(Boolean.TRUE);
         response.setResponse(createResponseJson(certManagerResponseMap, apiConfig));
         response.setHttpstatus((null != certManagerResponse) ? certManagerResponse.getStatusCode() : HttpStatus.INTERNAL_SERVER_ERROR);
 
@@ -412,6 +414,5 @@ public class RequestProcessor {
                 build()));
         return response;
     }
-
-
+    
 }

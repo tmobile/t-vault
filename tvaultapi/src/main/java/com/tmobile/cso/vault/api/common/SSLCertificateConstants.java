@@ -32,6 +32,8 @@ public final class SSLCertificateConstants {
     public static final String MONITORINGENABLED="monitoringEnabled";
     public static final String MULTIIPMONITORINGENABLED="multiIpMonitoringEnabled";
     public static final String PORT="port";
+    public static final String SSL_CERTFICATE_REASONS="SSL Get Certificate reasons failed";
+    public static final String SSL_CERTFICATE_WRITE_PERMISSION="write";
 
 
 }
