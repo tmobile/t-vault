@@ -119,12 +119,12 @@ public class TokenUtils {
 				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 				build()));
 		String selfServiceToken = null;
-		String role_id = "17d1cc1d-e67f-9bfb-a0d8-b6e0f40ac467";
-		String secret_id = "5b264e4f-6f27-ffea-52c5-0daaa0278647";
-//		if (ControllerUtil.getSscred() != null) {
-//			role_id = new String(Base64.getDecoder().decode(ControllerUtil.getSsUsername()));
-//			secret_id = new String(Base64.getDecoder().decode(ControllerUtil.getSsPassword()));
-//		}
+		String role_id = new String(Base64.getDecoder().decode(selfserviceUsername));
+		String secret_id = new String(Base64.getDecoder().decode(selfservicePassword));
+		if (ControllerUtil.getSscred() != null) {
+			role_id = new String(Base64.getDecoder().decode(ControllerUtil.getSsUsername()));
+			secret_id = new String(Base64.getDecoder().decode(ControllerUtil.getSsPassword()));
+		}
 		AppRoleIdSecretId approleLogin = new AppRoleIdSecretId();
 		approleLogin.setRole_id(role_id);
 		approleLogin.setSecret_id(secret_id);
