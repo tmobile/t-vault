@@ -14,18 +14,12 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import javax.servlet.http.HttpServletRequest;
 
-import static org.hamcrest.Matchers.containsString;
 import static org.junit.Assert.assertEquals;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @WebAppConfiguration
@@ -43,6 +37,9 @@ public class SSLCertificateControllerTest {
 
     @Mock
     private SSLCertificateRequest sSLCertificateRequest;
+    
+    @Mock
+    private RevocationRequest revocationRequest;
     @Mock
     UserDetails userDetails;
 
@@ -156,8 +153,33 @@ public class SSLCertificateControllerTest {
     public void test_getCertificates() throws Exception {
         // Mock response        
         when(sslCertificateService.getServiceCertificates("5PDrOhsy4ig8L3EpsJZSLAMg", userDetails, "")).thenReturn(new ResponseEntity<>(HttpStatus.OK));
-
         assertEquals(HttpStatus.OK, sslCertificateService.getServiceCertificates("5PDrOhsy4ig8L3EpsJZSLAMg",userDetails,"").getStatusCode());
     }
+    
+    
+	@Test
+	public void test_getRevocationReasons_Success() {
+		Integer certifcateId = 56123;
+
+		when(sslCertificateService.getRevocationReasons(certifcateId, token))
+				.thenReturn(new ResponseEntity<>(HttpStatus.OK));
+		assertEquals(HttpStatus.OK,
+				SslCertificateController.getRevocationReasons(httpServletRequest, token, certifcateId).getStatusCode());
+
+	}
+	
+	@Test
+	public void test_issueRevocationRequest_Success() {
+		String certName = "test@t-mobile.com";
+		
+		revocationRequest.setReason("unspecified");
+		when(sslCertificateService.issueRevocationRequest(certName, userDetails, token, revocationRequest))
+				.thenReturn(new ResponseEntity<>(HttpStatus.OK));
+		when(httpServletRequest.getAttribute("UserDetails")).thenReturn(userDetails);
+		assertEquals(HttpStatus.OK,
+				SslCertificateController.issueRevocationRequest(httpServletRequest, token, certName, revocationRequest).getStatusCode());
+
+	}
+       
     
 }

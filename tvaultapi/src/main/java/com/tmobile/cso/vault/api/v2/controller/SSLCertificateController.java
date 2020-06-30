@@ -18,6 +18,7 @@ package com.tmobile.cso.vault.api.v2.controller;
 
 
 import com.tmobile.cso.vault.api.model.CertManagerLoginRequest;
+import com.tmobile.cso.vault.api.model.RevocationRequest;
 import com.tmobile.cso.vault.api.model.SSLCertificateRequest;
 import com.tmobile.cso.vault.api.model.UserDetails;
 import com.tmobile.cso.vault.api.service.SSLCertificateService;
@@ -72,6 +73,39 @@ public class SSLCertificateController {
 	public ResponseEntity<String> getCertificates(HttpServletRequest request, @RequestHeader(value="vault-token") String token, @RequestParam(name="certificateName", required = false) String certName)throws Exception{
 		UserDetails userDetails = (UserDetails) ((HttpServletRequest) request).getAttribute("UserDetails");
 		return sslCertificateService.getServiceCertificates(token, userDetails, certName);
+     }
+	
+	/**
+	 * To Get list of revocation reasons
+	 * 
+	 * @param request
+	 * @param token
+	 * @param certificateId
+	 * @return
+	 */
+	@ApiOperation(value = "${SSLCertificateController.getRevocationReasons.value}", notes = "${SSLCertificateController.getRevocationReasons.notes}")
+	@GetMapping(value = "/v2/certificates/{certificateId}/revocationreasons", produces = "application/json")
+	public ResponseEntity<String> getRevocationReasons(HttpServletRequest request,
+			@RequestHeader(value = "vault-token") String token, @PathVariable("certificateId") Integer certificateId) {
+		return sslCertificateService.getRevocationReasons(certificateId, token);
+	}
+	
+	/**
+	 * Issue a revocation request for certificate
+	 * 
+	 * @param request
+	 * @param token
+	 * @param certificateId
+	 * @param revocationRequest
+	 * @return
+	 */
+	@ApiOperation(value = "${SSLCertificateController.issueRevocationRequest.value}", notes = "${SSLCertificateController.issueRevocationRequest.notes}")
+	@PostMapping(value = "/v2/certificates/{certName}/revocationrequest", produces = "application/json")
+	public ResponseEntity<String> issueRevocationRequest(HttpServletRequest request,
+			@RequestHeader(value = "vault-token") String token, @PathVariable("certName") String certName,
+			@Valid @RequestBody RevocationRequest revocationRequest) {
+		UserDetails userDetails = (UserDetails) ((HttpServletRequest) request).getAttribute("UserDetails");
+		return sslCertificateService.issueRevocationRequest(certName, userDetails, token, revocationRequest);
 	}
 
 	/**
