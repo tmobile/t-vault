@@ -46,6 +46,11 @@ public class SSCred implements Serializable {
 	 */
 	private String nclmpassword;
 
+	/**
+	 * Workload token.
+	 */
+	private String cwmToken;
+
 	public SSCred() {
 
 	}
@@ -102,4 +107,19 @@ public class SSCred implements Serializable {
 		this.password = password;
 	}
 
+	/**
+	 *
+	 * @return cwmToken
+	 */
+	public String getCwmToken() {
+		return cwmToken;
+	}
+
+	/**
+	 *
+	 * @param cwmToken
+	 */
+	public void setCwmToken(String cwmToken) {
+		this.cwmToken = cwmToken;
+	}
 }

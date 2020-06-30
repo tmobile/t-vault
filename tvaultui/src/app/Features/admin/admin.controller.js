@@ -110,6 +110,14 @@
         $rootScope.accessorId = "";
         $scope.accessorListToDelete = [];
         $scope.rolenameExists = false;
+        var setTargetSystemServiceList = function (message, data) {
+            $scope.serviceListTableOptions = data;
+            $scope.dropDownServiceList = {
+                'selectedGroupOption': {"type": message},
+                'tableOptions': $scope.serviceListTableOptions
+            }
+        }
+
         var init = function () {
             if (!SessionStore.getItem("myVaultKey")) { /* Check if user is in the same session */
                 $state.go('/');
@@ -120,15 +128,47 @@
             $scope.isCollapsed = true;
             $scope.transferFailedMessage = '';
             $scope.selectedIndex = 0;
-            $scope.isCollapsed = true;
             $scope.existingTargetSystem = false;
             $scope.existingService = false;
             $scope.certSearchValue = "";
             $scope.certificateData = { "certificates": [] };
-            $scope.targetSystem = { "type": "new" };
-            $scope.targetSystemService = { "type": "new" };
+            $scope.targetSystemType = { "type": "new" };
+            $scope.targetSystemServiceType = { "type": "new" };
             $scope.targetSystemSelected = false;
-            $scope.certObj.certDetails = {"certType":"internal"};
+            $scope.isTargetSystemListLoading = false;
+
+            $scope.targetSystemServiceSelected = false;
+            $scope.serviceListTableOptions = [];
+            $scope.userSearchList = [];
+            $scope.isUserSearchLoading = false;
+            $scope.isOwnerSelected = false;
+            setTargetSystemServiceList("No target system selected", []);
+
+            $scope.targetSystem = {
+                'description': '',
+                'address': '',
+                'targetSystemID': '',
+                'name': ''
+            }
+
+            $scope.targetSystemServiceRequest = {
+                'description': '',
+                'hostname': '',
+                'monitoringEnabled': '',
+                'multiIpMonitoringEnabled': '',
+                'name': '',
+                'port': ''
+            }
+            $scope.certObj = {
+                'sslcertType': 'PRIVATE_SINGLE_SAN',
+                'certDetails': {"certType":"internal"},
+                'certName': '',
+                'targetSystemType':  { "type": "new" },
+                'targetSystemServiceRequestType':  { "type": "new" },
+                "targetSystem": $scope.targetSystem,
+                "targetSystemService": ''
+            }
+
             $scope.showInputLoader = {
                 'show': false
             };
@@ -161,8 +201,43 @@
             }
             $scope.requestDataFrAdmin();
             getWorkloadDetails();
+            resetCert();
 
         };
+
+        var resetCert = function () {
+            $scope.targetSystem = {
+                'description': '',
+                'address': '',
+                'targetSystemID': '',
+                'name': ''
+            }
+            $scope.targetSystemServiceRequest = {
+                'description': '',
+                'hostname': '',
+                'monitoringEnabled': '',
+                'multiIpMonitoringEnabled': '',
+                'name': '',
+                'port': ''
+            }
+            $scope.certObj = {
+                'sslcertType': 'PRIVATE_SINGLE_SAN',
+                'certDetails': {"certType":"internal"},
+                'certName': '',
+                'targetSystemType':  { "type": "new" },
+                'targetSystemServiceRequestType':  { "type": "new" },
+                "targetSystem": $scope.targetSystem,
+                "targetSystemService": ''
+            }
+            $scope.isCertCollapsed = false;
+            $scope.isTargetCollapsed = true;
+            $scope.isTargetServiceCollapsed = true;
+            $scope.existingTargetSystem = false;
+            $scope.existingService = false;
+            $scope.targetSystemServicesList = [];
+            $scope.serviceListTableOptions = [];
+            setTargetSystemServiceList("No target system selected", []);
+        }
 
         // Updating the data based on type of safe, by clicking dropdown
         $scope.filterUpdate = function (option) {
@@ -379,10 +454,7 @@
             Modal.close();
         };
         $rootScope.cancelCert = function () {
-            $scope.isCertCollapsed = false;
-            $scope.isTargetCollapsed = true;
-            $scope.isTargetServiceCollapsed = true;
-            $scope.certObj = {};
+            resetCert();
             Modal.close();
         };
 
@@ -574,75 +646,104 @@
             getCertificates($scope.certSearchValue, limit, limit + offset);
         }
 
-        $scope.getTargetSystems = function (searchVal) {
+        $scope.getTargetSystems = function () {
             $scope.targetSystemList = [];
             $scope.targetSystemSelected = false;
-            var queryParameters = "freeText=" + searchVal;
-            if (searchVal.length > 2) {
-                $scope.showInputLoader.show = true;
-                var updatedUrlOfEndPoint = ModifyUrl.addUrlParameteres('getTargetSystems', queryParameters);
-                return AdminSafesManagement.getTargetSystems(null, updatedUrlOfEndPoint).then(function (response) {
+            $scope.showInputLoader.show = true;
+            $scope.isTargetSystemListLoading = true;
+            return AdminSafesManagement.getTargetSystems().then(function (response) {
+                if (UtilityService.ifAPIRequestSuccessful(response)) {
+                    $scope.targetSystemList = response.data.data;
+                    $scope.showInputLoader.show = false;
+                }
+                else {
+                    $scope.showInputLoader.show = false;
+                    $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
+                    $scope.error('md');
+                }
+                $scope.isTargetSystemListLoading = false;
+            },
+            function (error) {
+                // Error handling function
+                console.log(error);
+                $scope.showInputLoader.show = false;
+                $scope.isTargetSystemListLoading = false;
+                $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
+                $scope.error('md');
+            });
+        }
+
+        $scope.searchTargetSystems = function (searchVal) {
+            if ($scope.targetSystemList.length > 0 && searchVal.length > 2) {
+                $scope.certObj.targetSystemServiceRequest = null;
+                $scope.serviceListTableOptions = [];
+                $scope.targetSystemSelected = false;
+                return orderByFilter(filterFilter($scope.targetSystemList, searchVal), 'name', true);
+            }
+        }
+
+        $scope.getTargetSystemService = function () {
+            $scope.targetSystemServicesList = [];
+            setTargetSystemServiceList("Loading services..", []);
+            var currentServicesList = [];
+            $scope.targetSystemServiceSelected = false;
+            if ($scope.targetSystemSelected == true) {
+                var targetSystemId = $scope.certObj.targetSystem.targetSystemID;
+                $scope.showServiceInputLoader.show = true;
+                var updatedUrlOfEndPoint = RestEndpoints.baseURL + "/v2/sslcert/targetsystems/" + targetSystemId + "/targetsystemservices";
+                return AdminSafesManagement.getTargetSystemsServices(null, updatedUrlOfEndPoint).then(function (response) {
                     if (UtilityService.ifAPIRequestSuccessful(response)) {
-                        $scope.targetSystemList = response.data.targetSystems;
-                        $scope.showInputLoader.show = false;
-                        return orderByFilter(filterFilter($scope.targetSystemList, searchVal), 'name', true);
+                        $scope.targetSystemServicesList = response.data.data;
+
+                        for (var index = 0;index<$scope.targetSystemServicesList.length;index++) {
+                            currentServicesList.push({"type":$scope.targetSystemServicesList[index].name, "index":index});
+                        }
+                        if (currentServicesList.length >0) {
+                            setTargetSystemServiceList("Select service", currentServicesList);
+                        }
+                        else {
+                            setTargetSystemServiceList("No service available", currentServicesList);
+                        }
+                        $scope.showServiceInputLoader.show = false;
                     }
                     else {
-                        $scope.showInputLoader.show = false;
+                        $scope.showServiceInputLoader.show = false;
                         $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
                         $scope.error('md');
                     }
                 },
-                    function (error) {
-                        // Error handling function
-                        console.log(error);
-                        $scope.showInputLoader.show = false;
-                        $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
-                        $scope.error('md');
-                    });
+                function (error) {
+                    // Error handling function
+                    console.log(error);
+                    $scope.showServiceInputLoader.show = false;
+                    $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
+                    $scope.error('md');
+                });
             }
         }
 
-        $scope.getTargetSystemService = function (searchVal) {
-            $scope.targetSystemList = [];
-            $scope.targetSystemServiceSelected = false;
-            if ($scope.targetSystemSelected == true) {
-                var targetSystemId = $scope.cert.targetSystem.targetSystemID;
-                var queryParameters = "targetSystemId=" + targetSystemId + "&freeText=" + searchVal;
-                if (searchVal.length > 2) {
-                    $scope.showServiceInputLoader.show = true;
-                    var updatedUrlOfEndPoint = ModifyUrl.addUrlParameteres('getTargetSystemsServices', queryParameters);
-                    return AdminSafesManagement.getTargetSystemsServices(null, updatedUrlOfEndPoint).then(function (response) {
-                        if (UtilityService.ifAPIRequestSuccessful(response)) {
-                            $scope.targetSystemServicesList = response.data.targetsystemservices;
-                            $scope.showServiceInputLoader.show = false;
-                            return orderByFilter(filterFilter($scope.targetSystemServicesList, searchVal), 'name', true);
-                        }
-                        else {
-                            $scope.showServiceInputLoader.show = false;
-                            $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
-                            $scope.error('md');
-                        }
-                    },
-                        function (error) {
-                            // Error handling function
-                            console.log(error);
-                            $scope.showServiceInputLoader.show = false;
-                            $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
-                            $scope.error('md');
-                        });
-                }
+        $scope.searchTargetSystemService = function (searchVal) {
+            if ($scope.targetSystemServicesList.length > 0 && searchVal.length > 2) {
+                $scope.targetSystemServiceSelected = false;
+                return orderByFilter(filterFilter($scope.targetSystemServicesList, searchVal), 'name', true);
             }
         }
 
         $scope.selectTargetSystem = function (targetSystem) {
-            $scope.cert["targetSystem"] = targetSystem;
+            $scope.certObj.targetSystem = targetSystem;
             $scope.targetSystemSelected = true;
-            $scope.isCollapsed = !$scope.isCollapsed;
+            $scope.getTargetSystemService();
+        }
+
+        $scope.selectTargetService = function () {
+            var index = $scope.dropDownServiceList.selectedGroupOption.index;
+            $scope.certObj.targetSystemServiceRequest = $scope.targetSystemServicesList[index];
+            $scope.targetSystemServiceSelected = true;
         }
 
         $scope.selectTargetSystemService = function (targetSystemService) {
-            $scope.cert["targetSystemService"] = targetSystemService;
+            // for live search
+            $scope.certObj.targetSystemServiceRequest = targetSystemService;
             $scope.targetSystemServiceSelected = true;
         }
 
@@ -1246,31 +1347,9 @@
             $scope.portErrorMessage = '';
             $scope.ownerEmailErrorMessage='';
             Modal.createModal(size, 'certificatePopup.html', 'AdminCtrl', $scope);
-            $scope.targetSystem = { "type": "new" };
-            $scope.targetSystemService = { "type": "new" };
-        }
-
-        $scope.certObj = {
-            'sslcertType': 'PRIVATE_SINGLE_SAN',
-            'certName': '',
-            'targetSystem': $scope.targetSystem,
-            'targetSystemServiceRequest': $scope.domainName
-        }
-
-        $scope.targetSystem = {
-            'description': '',
-            'address': '',
-            'targetSystemID': '',
-            'name': ''
-        }
-
-        $scope.targetSystemServiceRequest = {
-            'description': '',
-            'hostname': '',
-            'monitoringEnabled': '',
-            'multiIpMonitoringEnabled': '',
-            'name': '',
-            'port': ''
+            $scope.targetSystemType = { "type": "new" };
+            $scope.targetSystemServiceType = { "type": "new" };
+            $scope.getTargetSystems();
         }
 
         $scope.replaceSpacesCertName = function () {
@@ -1351,26 +1430,6 @@
             }
         }
 
-        $scope.ownerEmailPatternValidation = function () {
-            $scope.ownerEmailErrorMessage = '';
-            $scope.ownerEmailInValid = false;
-            if ($scope.certObj.certDetails.ownerEmail != null && $scope.certObj.certDetails.ownerEmail != undefined 
-                &&  $scope.certObj.certDetails.ownerEmail != "") {
-                var reg =  /^[a-zA-Z0-9_%+-]+[.]?[a-zA-Z0-9_%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/;
-                if (!reg.test($scope.certObj.certDetails.ownerEmail)) {
-                    $scope.ownerEmailErrorMessage = "Please enter a valid email address."
-                    $scope.ownerEmailInValid = true;
-                }
-            } 
-        }
-
-        $scope.replaceSpacesCertOwnerEmail = function(){
-            if ($scope.certObj.certDetails.ownerEmail !== null && $scope.certObj.certDetails.ownerEmail !== undefined) {
-                $scope.certObj.certDetails.ownerEmail = $scope.certObj.certDetails.ownerEmail.replace(/[ ]/g, '');
-                return $scope.ownerEmailPatternValidation();
-            }
-        }
-
         $scope.isCreateCertBtnDisabled = function () {
             if ($scope.certObj.targetSystem != undefined
                 && $scope.certObj.targetSystem.name != undefined
@@ -1387,8 +1446,7 @@
                 && !$scope.ownerEmailInValid
                 && $scope.certObj.certDetails.certType != undefined
                 && $scope.certObj.certDetails.applicationName != undefined
-                && $scope.certObj.certDetails.ownerEmail != undefined
-                && $scope.certObj.certDetails.ownerEmail != ""
+                && $scope.isOwnerSelected == true
                 && !$scope.hostNameInValid) {
                 return false;
             }
@@ -1443,59 +1501,78 @@
             })
         }
 
-
+        var isExistingServiceDetailsValid = function () {
+            if ($scope.targetSystemServiceSelected === true && ($scope.certObj.targetSystemServiceRequest.hostname == undefined || $scope.certObj.targetSystemServiceRequest.hostname == "")) {
+                return false;
+            }
+            return true;
+        }
 
         $scope.createCert = function () {
-            try {
-                Modal.close('');
-                var targetSystemID = 29;
-                var sslcertType = 'PRIVATE_SINGLE_SAN';
-                $scope.certObj.sslcertType = sslcertType;
-                $scope.certObj.targetSystem.targetSystemID = targetSystemID;
-                var reqObjtobeSent =  {                    
-                    "sslcertType": $scope.certObj.sslcertType,
-                    "targetSystem": $scope.certObj.targetSystem,
-                    "targetSystemServiceRequest": $scope.certObj.targetSystemServiceRequest,
-                    "appName":$scope.certObj.certDetails.applicationName.tag,
-                    "certificateName":$scope.certObj.certDetails.certName,
-                    "certType":$scope.certObj.certDetails.certType,
-                    "certOwnerEmailId":$scope.certObj.certDetails.ownerEmail
+            if (isExistingServiceDetailsValid()) {
 
-                }
-                $scope.certificateCreationMessage = '';
-                var url = '';
-                $scope.isLoadingData = true;
-                AdminSafesManagement.sslCertificateCreation(reqObjtobeSent, url).then(function (response) {
-
-                    $scope.isLoadingData = false;
-                    if (UtilityService.ifAPIRequestSuccessful(response)) {
-                        $scope.certificateCreationMessage = response.data.messages[0];
-                        $scope.certificateCreationPopUp();
-
+                try {
+                    Modal.close('');
+                    var sslcertType = 'PRIVATE_SINGLE_SAN';
+                    $scope.appNameTagValue=$scope.certObj.certDetails.applicationName.tag;
+                    $scope.certObj.sslcertType = sslcertType;
+                    if($scope.appNameTagValue == undefined){
+                        $scope.appNameTagValue=$scope.certObj.certDetails.applicationName
                     }
-                },
+                    var reqObjtobeSent =  {
+                        "sslcertType": $scope.certObj.sslcertType,
+                        "targetSystem": $scope.certObj.targetSystem,
+                        "targetSystemServiceRequest": $scope.certObj.targetSystemServiceRequest,
+                        "appName": $scope.appNameTagValue,
+                        "certificateName":$scope.certObj.certDetails.certName,
+                        "certType":$scope.certObj.certDetails.certType,
+                        "certOwnerEmailId":$scope.certObj.certDetails.ownerEmail,
+                        "certOwnerNTId":$scope.certObj.certDetails.ownerNtId
+                    }
+                    $scope.certificateCreationMessage = '';
+                    var url = '';
+                    $scope.isLoadingData = true;
+                    AdminSafesManagement.sslCertificateCreation(reqObjtobeSent, url).then(function (response) {
+
+                        $scope.isLoadingData = false;
+                        if (UtilityService.ifAPIRequestSuccessful(response)) {
+                            $scope.certificateCreationMessage = response.data.messages[0];
+                            resetCert();
+                            $scope.certificateCreationPopUp();
+                        }
+                    },
                     function (error) {
+                        resetCert();
                         var errors = error.data.errors;
                         $scope.certificateCreationMessage = errors[0];
                         $scope.certificateCreationFailedPopUp();
                         $scope.isLoadingData = false;
                         console.log(error);
                     })
-                $scope.certObj = {};
-            } catch (e) {
-                $scope.certObj = {};
-                $scope.isLoadingData = false;
-                console.log(e);
+                } catch (e) {
+                    resetCert();
+                    $scope.isLoadingData = false;
+                    console.log(e);
+                }
             }
+            else {
+                $scope.certificateCreationMessage = "Invalid Target system service details";
+                $scope.certificateCreationFailedPopUp();
+                $scope.isLoadingData = false;
+            }
+            resetCert();
         };
 
         $scope.cancel = function () {
-            $scope.certObj = {};
             Modal.close('');
         };
 
-        $scope.collapseADDetails = function(index) {
-            $scope.isCollapsed = !$scope.isCollapsed;
+        $scope.successCancel = function () {
+            Modal.close('');
+            getCertificates("", null, null);
+        };
+
+        $scope.collapseCertDetails = function (index) {
             if(index == 1 ) {
                 $scope.isTargetCollapsed = false;
                 $scope.isTargetServiceCollapsed = true;
@@ -1509,30 +1586,33 @@
                 $scope.isTargetServiceCollapsed = true;
                 $scope.isCertCollapsed = false;
             } 
-         
+
+        }
+
+        $scope.collapseADDetails = function() {
+            $scope.isCollapsed = !$scope.isCollapsed;
         }
 
         $scope.openExistingTargetSystem = function (e) {
             $scope.existingTargetSystem = true;
             $scope.existingService = true;
-            $scope.targetSystemService = { "type": "existing" };
-            
+            $scope.existingService = false;
         }
+
         $scope.openNewTargetSystem = function (e) {
             $scope.existingTargetSystem = false;
             $scope.existingService = false;
-            $scope.targetSystemService = { "type": "new" };
+            $scope.targetSystemType = { "type": "new" };
+            $scope.targetSystemServiceType = { "type": "new" };
             $scope.cert = {
                 "targetSystem": '',
                 "targetSystemService": ''
             }
-            $scope.certObj.targetSystem.name='';
-            $scope.certObj.targetSystem.description='';
-            $scope.certObj.targetSystem.address='';
-
-
-
-            
+            if(angular.isDefined($scope.certObj.targetSystem)){
+                $scope.certObj.targetSystem.name='';
+                $scope.certObj.targetSystem.description='';
+                $scope.certObj.targetSystem.address='';
+              }
         }
 
         $scope.openExistingService = function () {
@@ -1542,13 +1622,62 @@
             $scope.existingService = false;
             $scope.cert = {
                 "targetSystemService": ''
-            }            
+            }
             $scope.certObj.targetSystemServiceRequest.name='';
             $scope.certObj.targetSystemServiceRequest.description='';
             $scope.certObj.targetSystemServiceRequest.port='';
             $scope.certObj.targetSystemServiceRequest.hostname='';
             $scope.certObj.targetSystemServiceRequest.monitoringEnabled='';
             $scope.certObj.targetSystemServiceRequest.multiIpMonitoringEnabled='';
+        }
+
+        $scope.searchEmail = function (searchVal) {
+            if (searchVal.length > 2) {
+                $scope.isUserSearchLoading = true;
+                try {
+                    $scope.userSearchList = [];
+
+                    var queryParameters = $scope.certObj.certDetails.ownerEmail;
+                    var updatedUrlOfEndPoint = ModifyUrl.addUrlParameteres('usersGetData', queryParameters);
+                    return AdminSafesManagement.usersGetData(null, updatedUrlOfEndPoint).then(
+                        function(response) {
+                            $scope.isUserSearchLoading = false;
+                            if (UtilityService.ifAPIRequestSuccessful(response)) {
+                                $scope.userSearchList = response.data.data.values;
+                                return orderByFilter(filterFilter($scope.userSearchList, searchVal), 'userEmail', true);
+                            } else {
+                                $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
+                                $scope.error('md');
+                            }
+                        },
+                        function(error) {
+                            // Error handling function
+                            console.log(error);
+                            $scope.isUserSearchLoading = false;
+                            $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
+                            $scope.error('md');
+                    });
+                } catch (e) {
+                    console.log(e);
+                    $scope.isUserSearchLoading = false;
+                    $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
+                    $scope.error('md');
+                }
+            }
+        }
+
+        $scope.selectOwner = function (ownerEmail) {
+            if (ownerEmail != null) {
+                $scope.certObj.certDetails.ownerEmail = ownerEmail.userEmail;
+                $scope.certObj.certDetails.ownerNtId = ownerEmail.userName;
+                $scope.isOwnerSelected = true;
+            }
+        }
+
+        $scope.clearOwnerEmail = function () {
+            $scope.certObj.certDetails.ownerEmail = "";
+            $scope.certObj.certDetails.ownerNtId = "";
+            $scope.isOwnerSelected = false;
         }
 
         init();

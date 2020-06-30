@@ -26,7 +26,12 @@ public final class SSLCertificateConstants {
     public static final String SSL_CERT_SUCCESS="Certificate Created Successfully In NCLM";
     public static final String CUSTOMER_LOGIN="CertManager Login";
     public static final String ACCESS_ID="accessid";
-
+    public static final String ADDRESS="address";
+    public static final String DESCRIPTION="description";
+    public static final String HOSTNAME="hostname";
+    public static final String MONITORINGENABLED="monitoringEnabled";
+    public static final String MULTIIPMONITORINGENABLED="multiIpMonitoringEnabled";
+    public static final String PORT="port";
 
 
 }

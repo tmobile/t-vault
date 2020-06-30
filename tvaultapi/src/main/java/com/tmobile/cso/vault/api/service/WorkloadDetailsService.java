@@ -26,8 +26,11 @@ import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.List;
+import java.util.Objects;
 
+import com.tmobile.cso.vault.api.controller.ControllerUtil;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
@@ -56,16 +59,16 @@ import com.tmobile.cso.vault.api.model.WorkloadAppDetails;
 import com.tmobile.cso.vault.api.process.RestProcessor;
 import com.tmobile.cso.vault.api.utils.JSONUtil;
 import com.tmobile.cso.vault.api.utils.ThreadLocalContext;
+import org.springframework.util.StringUtils;
 
 @Component
 public class WorkloadDetailsService {
 
 	@Value("${workload.endpoint}")
 	private String workloadEndpoint;
-	
 	@Value("${workload.endpoint.token}")
 	private String workloadEndpointToken;
-
+	
 	@Autowired
 	RestProcessor restprocessor;
 	
@@ -98,7 +101,6 @@ public class WorkloadDetailsService {
 						workloadAppDetails.setAppTag((spec.get("id").isJsonNull()?"":spec.get("id").getAsString()));
 						workloadAppDetailsList.add(workloadAppDetails);
 					}
-					
 				}
 			}
 		}
@@ -113,8 +115,18 @@ public class WorkloadDetailsService {
 	 * @return
 	 */
 	private JsonObject getApiResponse(String api)  {
+		//String workloadEndpointToken = new String(Base64.getDecoder().decode(ControllerUtil.getCwmToken()));
+		if (StringUtils.isEmpty(workloadEndpointToken)) {
+			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+					put(LogMessage.ACTION, "getApiResponse").
+					put(LogMessage.MESSAGE, String.format ("Invalid workload token")).
+					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+					build()));
+			return null;
+		}
+
 		JsonParser jsonParser = new JsonParser();
-		Gson gson = new Gson();
 		HttpClient httpClient =null;
 		try {
 
@@ -131,11 +143,14 @@ public class WorkloadDetailsService {
 
 				
 		} catch (KeyManagementException | NoSuchAlgorithmException | KeyStoreException e1) {
-			// TODO Auto-generated catch block
-			log.debug(e1.getMessage());
+			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+					put(LogMessage.ACTION, "getApiResponse").
+					put(LogMessage.MESSAGE, String.format ("Faile to create httpClient")).
+					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+					build()));
 		}
 
-		//HttpClient httpClient = HttpClientBuilder.create().build();
 		HttpGet getRequest = new HttpGet(api);
 		getRequest.addHeader("accept", "application/json");
 		getRequest.addHeader("Authorization",workloadEndpointToken);
@@ -143,7 +158,7 @@ public class WorkloadDetailsService {
 		StringBuffer jsonResponse = new StringBuffer();
 
 		try {
-			HttpResponse apiResponse = apiResponse = httpClient.execute(getRequest);
+			HttpResponse apiResponse = httpClient.execute(getRequest);
 			if (apiResponse.getStatusLine().getStatusCode() != 200) {
 				return null;
 			}
@@ -161,5 +176,20 @@ public class WorkloadDetailsService {
 					build()));
 		}
 		return null;
+	}
+
+	public ResponseEntity<String> getWorkloadDetailsByAppName(String appName){
+		JsonObject response = getApiResponse(workloadEndpoint + "/" + appName);
+		if(Objects.isNull(response)){
+			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+					put(LogMessage.ACTION, "Getting Application Details by app name ").
+					put(LogMessage.MESSAGE, String.format("For an application name  = [%s]",appName)).
+					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+					build()));
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Application name doesn't " +
+					"exist\"]}");
+		}
+		return ResponseEntity.status(HttpStatus.OK).body(response.toString());
 	}
 }

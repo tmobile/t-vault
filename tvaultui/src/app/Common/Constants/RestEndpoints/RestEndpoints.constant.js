@@ -316,11 +316,11 @@ readTextFile("../apiUrls.json");
             method: 'GET'
         }, {
             name: 'getTargetSystems',
-            url: '/v2/nclm/targetsystems?',
+            url: '/v2/sslcert/targetsystems',
             method: 'GET'
         }, {
             name: 'getTargetSystemsServices',
-            url: '/v2/nclm/services?',
+            url: '/v2/sslcert/targetsystems/{targetsystem_id}/targetsystemservices',
             method: 'GET'
         }, {
             name: 'unseal',
@@ -334,6 +334,10 @@ readTextFile("../apiUrls.json");
             name: 'createSslCertificates',
             url: '/v2/sslcert',
             method: 'POST'
+        }, {
+            name: 'usersGetData',
+            url: '/v2/ldap/users?UserPrincipalName=',
+            method: 'GET'
         }
     ]
     });
