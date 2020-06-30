@@ -2452,6 +2452,49 @@ public final class ControllerUtil {
 		}
         return response;
     }
+    
+    /**
+     * Update MetaData
+     * @param params
+     * @param token
+     * @return
+     * @throws JsonProcessingException 
+     */
+    public static boolean updateMetaData(String path, Map<String,String> params,String token) throws JsonProcessingException {
+    	
+    	log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+				put(LogMessage.ACTION, "updateMetadata").
+				put(LogMessage.MESSAGE, String.format ("Trying to upate metadata with params")).
+				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+				build()));
+    	
+    	ObjectMapper objMapper = new ObjectMapper();
+    	String metadataJson = objMapper.writeValueAsString(params);
+    	String writeJson =  "{\"path\":\""+path+"\",\"data\":"+ metadataJson +"}";
+		Response response = reqProcessor.process("/write", writeJson, token);
+		boolean isMetaDataUpdated = false;
+
+		if(response.getHttpstatus().equals(HttpStatus.NO_CONTENT)){
+			isMetaDataUpdated = true;
+			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+					put(LogMessage.ACTION, "createMetadata").
+					put(LogMessage.MESSAGE, "Metadata created successfully ").
+					put(LogMessage.STATUS, response.getHttpstatus().toString()).
+					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+					build()));
+		} else {
+			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+					put(LogMessage.ACTION, "createMetadata").
+					put(LogMessage.MESSAGE, "Failed to create metadata").
+					put(LogMessage.STATUS, response.getHttpstatus().toString()).
+					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+					build()));
+		}
+		return isMetaDataUpdated;
+	}
 
     /**
      * Update MetaData

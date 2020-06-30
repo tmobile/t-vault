@@ -395,6 +395,14 @@ readTextFile("../apiUrls.json");
             url: '/v2/certificates/{certName}/{certType}',
             method: 'DELETE'
         }, {
+            name: 'getRevocationReasons',
+            url: '/v2/certificates/{certificateId}/revocationreasons',
+            method: 'GET'
+        }, {
+            name: 'issueRevocationRequest',
+            url: '/v2/certificates/{certName}/revocationrequest',
+            method: 'POST'
+        }, {
             name: 'getAuthUrl',
             url: '/v2/auth/oidc/auth_url',
             method: 'POST'

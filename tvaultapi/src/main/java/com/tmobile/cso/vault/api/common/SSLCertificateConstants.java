@@ -52,6 +52,7 @@ public final class SSLCertificateConstants {
     public static final String INTERNAL_POLICY_NAME="cert";
     public static final String EXTERNAL_POLICY_NAME="externalcerts";
     public static final String SSL_CERT_PATH_VALUE_EXT="externalcerts/";
+    public static final String SSL_CERTFICATE_REASONS="SSL Get Certificate reasons failed";
 
     public static final String READ_CERT_POLICY_PREFIX="r_";
     public static final String WRITE_CERT_POLICY_PREFIX="w_";

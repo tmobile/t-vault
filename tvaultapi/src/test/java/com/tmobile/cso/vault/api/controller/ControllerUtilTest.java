@@ -1151,14 +1151,14 @@ public class ControllerUtilTest {
         Response actualResponse = ControllerUtil.updateMetadataOnSvcUpdate(path, serviceAccount, token);
         assertEquals(HttpStatus.NO_CONTENT, actualResponse.getHttpstatus());
     }
-    
+
     @Test
     public void test_updateMetadata1_successfully() throws JsonProcessingException {
         String token = "7QPMPIGiyDFlJkrK3jFykUqa";
         Map<String,String> params = new HashMap<String,String>();
         params.put("status", "Revoked");
         String path = SSLCertificateConstants.SSL_CERT_PATH + "/testCert";
-       
+
 
         Response response = getMockResponse(HttpStatus.NO_CONTENT, true, "");
         when(reqProcessor.process(eq("/write"),Mockito.any(),eq(token))).thenReturn(response);
@@ -1166,14 +1166,14 @@ public class ControllerUtilTest {
         Boolean isUpdated = ControllerUtil.updateMetaData(path, params, token);
         assertEquals(Boolean.TRUE, isUpdated);
     }
-    
+
     @Test
     public void test_updateMetadata1_failed() throws JsonProcessingException {
         String token = "7QPMPIGiyDFlJkrK3jFykUqa";
         Map<String,String> params = new HashMap<String,String>();
         params.put("status", "Revoked");
         String path = SSLCertificateConstants.SSL_CERT_PATH + "/testCert";
-       
+
 
         Response response = getMockResponse(HttpStatus.BAD_REQUEST, false, "");
         when(reqProcessor.process(eq("/write"),Mockito.any(),eq(token))).thenReturn(response);
