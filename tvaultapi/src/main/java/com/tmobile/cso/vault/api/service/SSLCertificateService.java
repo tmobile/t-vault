@@ -1297,7 +1297,7 @@ public class SSLCertificateService {
    		String path = SSLCertificateConstants.SSL_CERT_PATH  ;   		
    		String _path= "";
    		String endPoint = "";
-   		Response response = null;
+   		Response response = new Response();
    		JsonParser jsonParser = new JsonParser();
    		JsonArray responseArray = new JsonArray();
    		JsonObject metadataJsonObj=new JsonObject();
