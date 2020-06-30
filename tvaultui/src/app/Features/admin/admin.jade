@@ -89,7 +89,32 @@ script(type='text/ng-template', id='certificateCreationFailedPopUp.html')
       .top-lg-sep.notification-text  {{ certificateCreationMessage }}
     .text-center.bottom-lg-sep.top-lg-sep.notification-button
       .clearfix.bottom-sm-sep
-        button.link-style.common-btn.btn.btn-primary.btn-lg(ng-click="cancel()") CLOSE         
+        button.link-style.common-btn.btn.btn-primary.btn-lg(ng-click="cancel()") CLOSE 
+
+script(type='text/ng-template', id='revocationPopUp.html')
+  loading-state(ng-if="isLoadingModalData")
+  .top-lg-sep(ng-if="!isLoadingModalData")
+    .top-lg-sep
+        .common-header-label.text-center {{ revocationStatusMessage }}
+      .top-lg-sep.notification-text  {{ revocationMessage }}
+    .text-center.bottom-lg-sep.top-lg-sep.notification-button
+      .clearfix.bottom-sm-sep
+        button.link-style.common-btn.btn.btn-primary.btn-lg(ng-click="cancelRevoke()") CLOSE   
+
+script(type='text/ng-template', id='revokeReasonsPopUp.html')
+  loading-state(ng-if="isLoadingModalData")
+  .top-lg-sep.revocationBorder(ng-if="!isLoadingModalData")
+    .left-lg-sep
+        .common-header-label.text-center Revocation reasons
+         .common-form-row
+                .details-input-group
+        .common-form-label.revocationStyle
+                    drop-down(drop-down-options="dropdownRevocationReasons" name="dropdownRoles" id="dropdownRevocationReason"  ng-click="revocationReasonSelect()")              
+    .text-center.bottom-lg-sep.top-lg-sep.notification-button
+     .clearfix.bottom-sm-sep
+        button.common-btn.btn.btn-primary.btn-lg(ng-click="revoke()") REVOKE
+      .clearfix
+        button.link-style.common-btn.btn.btn-default.btn-lg(ng-click="cancelRevoke()") CANCEL         
 
 
 script(type='text/ng-template', id='certificatePopup.html')
@@ -542,7 +567,7 @@ script(type='text/ng-template', id='manageSecretId.html')
                                                           .down.view
                                                               .list-icon()  Renew certificate
                                                           .down.deletesecretids
-                                                              .list-icon() Revoke certificate
+                                                              .list-icon(ng-click="revokeCertificate(value)") Revoke certificate 
                                                       .container.radio-inputs.col-lg-2.col-md-2.col-sm-2.col-xs-2
                                               .pagination-wrapper(ng-show='certificateData.next')
                                                   .pagination-count(ng-if="numOfCertificates>0") Displaying {{certificateData.limit+certificateData.offset}} of {{certificateData.totalCount}}

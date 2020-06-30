@@ -53,16 +53,16 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.util.ReflectionTestUtils;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
+import com.tmobile.cso.vault.api.common.SSLCertificateConstants;
 import com.tmobile.cso.vault.api.common.TVaultConstants;
 import com.tmobile.cso.vault.api.exception.TVaultValidationException;
 import com.tmobile.cso.vault.api.process.RequestProcessor;
 import com.tmobile.cso.vault.api.process.Response;
 import com.tmobile.cso.vault.api.utils.JSONUtil;
 import com.tmobile.cso.vault.api.utils.ThreadLocalContext;
-
-import javax.xml.ws.Service;
 
 @RunWith(PowerMockRunner.class)
 @ComponentScan(basePackages={"com.tmobile.cso.vault.api"})
@@ -1022,5 +1022,35 @@ public class ControllerUtilTest {
         when(reqProcessor.process(eq("/write"),Mockito.any(),eq(token))).thenReturn(getMockResponse(HttpStatus.NO_CONTENT, true, ""));
         Response actualResponse = ControllerUtil.updateMetadataOnSvcUpdate(path, serviceAccount, token);
         assertEquals(HttpStatus.NO_CONTENT, actualResponse.getHttpstatus());
+    }
+    
+    @Test
+    public void test_updateMetadata1_successfully() throws JsonProcessingException {
+        String token = "7QPMPIGiyDFlJkrK3jFykUqa";
+        Map<String,String> params = new HashMap<String,String>();
+        params.put("status", "Revoked");
+        String path = SSLCertificateConstants.SSL_CERT_PATH + "/testCert";
+       
+
+        Response response = getMockResponse(HttpStatus.NO_CONTENT, true, "");
+        when(reqProcessor.process(eq("/write"),Mockito.any(),eq(token))).thenReturn(response);
+
+        Boolean isUpdated = ControllerUtil.updateMetaData(path, params, token);
+        assertEquals(Boolean.TRUE, isUpdated);
+    }
+    
+    @Test
+    public void test_updateMetadata1_failed() throws JsonProcessingException {
+        String token = "7QPMPIGiyDFlJkrK3jFykUqa";
+        Map<String,String> params = new HashMap<String,String>();
+        params.put("status", "Revoked");
+        String path = SSLCertificateConstants.SSL_CERT_PATH + "/testCert";
+       
+
+        Response response = getMockResponse(HttpStatus.BAD_REQUEST, false, "");
+        when(reqProcessor.process(eq("/write"),Mockito.any(),eq(token))).thenReturn(response);
+
+        Boolean isUpdated = ControllerUtil.updateMetaData(path, params, token);
+        assertEquals(Boolean.FALSE, isUpdated);
     }
 }

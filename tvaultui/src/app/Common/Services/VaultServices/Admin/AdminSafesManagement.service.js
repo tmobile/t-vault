@@ -277,6 +277,11 @@
                     return response;
                 });
             },
+            getRevocationReasons: function (payload, url) {
+                return ServiceEndpoint.getRevocationReasons.makeRequest(payload, url).then(function(response) {
+                    return response;
+                });
+            },
             getTargetSystems:function (payload, url) {
                 return ServiceEndpoint.getTargetSystems.makeRequest(payload, url).then(function(response) {
                     return response;
@@ -294,6 +299,11 @@
             },
             usersGetData: function (payload, url) {
                 return ServiceEndpoint.usersGetData.makeRequest(payload, url).then(function(response) {
+                    return response;
+                });
+            },
+            issueRevocationRequest: function (payload, url) {
+                return ServiceEndpoint.issueRevocationRequest.makeRequest(payload, url).then(function(response) {
                     return response;
                 });
             },

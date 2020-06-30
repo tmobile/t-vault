@@ -124,7 +124,10 @@ public class SSLCertificateServiceTest {
         ReflectionTestUtils.setField(sSLCertificateService, "certManagerUsername", "dGVzdGluZw==");
         ReflectionTestUtils.setField(sSLCertificateService, "certManagerPassword", "dGVzdGluZw==");
         ReflectionTestUtils.setField(sSLCertificateService, "retrycount", 1);
-
+        ReflectionTestUtils.setField(sSLCertificateService, "getCertifcateReasons", "certificates/certID/revocationreasons");
+        ReflectionTestUtils.setField(sSLCertificateService, "issueRevocationRequest", "certificates/certID/revocationrequest");
+        
+        
         token = "5PDrOhsy4ig8L3EpsJZSLAMg";
         userDetails.setUsername("normaluser");
         userDetails.setAdmin(true);
@@ -1233,6 +1236,242 @@ public class SSLCertificateServiceTest {
         ssCertificateMetadataDetails.setApplicationOwnerEmailId("abcdef@mail.com");
         assertNotNull(ssCertificateMetadataDetails);
     }
+    
+    @Test
+    public void getRevocationReasons_Success() throws Exception {
+    	Integer certficateId = 123;
+    	String token = "FSR&&%S*";
+    	String jsonStr = "{  \"username\": \"testusername1\",  \"password\": \"testpassword1\"}";
+    	
+        Map<String, Object> requestMap = new HashMap<>();
+        requestMap.put("access_token", "12345");
+        requestMap.put("token_type", "type");
+        when(ControllerUtil.parseJson(jsonStr)).thenReturn(requestMap);
+
+        CertManagerLogin certManagerLogin = new CertManagerLogin();
+        certManagerLogin.setToken_type("token type");
+        certManagerLogin.setAccess_token("1234");
+
+        CertResponse response = new CertResponse();
+        response.setHttpstatus(HttpStatus.OK);
+        response.setResponse(jsonStr);
+        response.setSuccess(true);
+        when(reqProcessor.processCert(eq("/auth/certmanager/login"), anyObject(), anyString(), anyString())).thenReturn(response);
+        String jsonStr2 ="{\"time_enabled\":false,\"details_enabled\":false,\"reasons\":[{\"reason\":\"unspecified\",\"displayName\":\"Unspecified\"},{\"reason\":\"keyCompromise\",\"displayName\":\"Key compromise\"},{\"reason\":\"cACompromise\",\"displayName\":\"CA compromise\"},{\"reason\":\"affiliationChanged\",\"displayName\":\"Affiliation changed\"},{\"reason\":\"superseded\",\"displayName\":\"Superseded\"},{\"reason\":\"cessationOfOperation\",\"displayName\":\"Cessation of operation\"},{\"reason\":\"certificateHold\",\"displayName\":\"Certificate hold\"}]}";
+        CertResponse revocationResponse = new CertResponse();
+        revocationResponse.setHttpstatus(HttpStatus.OK);
+        revocationResponse.setResponse(jsonStr2);
+        revocationResponse.setSuccess(true);
+        when(reqProcessor.processCert(eq("/certificates​/revocationreasons"), anyObject(), anyString(), anyString())).thenReturn(revocationResponse);
+        
+        ResponseEntity<?> enrollResponse =
+                sSLCertificateService.getRevocationReasons(certficateId, token);
+
+        //Assert
+        assertNotNull(enrollResponse);
+        assertEquals(HttpStatus.OK, enrollResponse.getStatusCode());
+    }
+    
+    @Test
+    public void getRevocationReasons_Failure() throws Exception {
+    	Integer certficateId = 123;
+    	String token = "FSR&&%S*";
+    	String jsonStr = "{  \"username\": \"testusername1\",  \"password\": \"testpassword1\"}";
+ 
+        Map<String, Object> requestMap = new HashMap<>();
+        requestMap.put("access_token", "12345");
+        requestMap.put("token_type", "type");
+        when(ControllerUtil.parseJson(jsonStr)).thenReturn(requestMap);
+
+        CertManagerLogin certManagerLogin = new CertManagerLogin();
+        certManagerLogin.setToken_type("token type");
+        certManagerLogin.setAccess_token("1234");
+
+        CertResponse response = new CertResponse();
+        response.setHttpstatus(HttpStatus.OK);
+        response.setResponse(jsonStr);
+        response.setSuccess(true);
+        when(reqProcessor.processCert(eq("/auth/certmanager/login"), anyObject(), anyString(), anyString())).thenReturn(response);
+        String errorJson ="{\"errors\":[\"Forbidden\"]}";
+        CertResponse revocationResponse = new CertResponse();
+        revocationResponse.setHttpstatus(HttpStatus.FORBIDDEN);
+        revocationResponse.setResponse(errorJson);
+        revocationResponse.setSuccess(false);
+        when(reqProcessor.processCert(eq("/certificates​/revocationreasons"), anyObject(), anyString(), anyString())).thenReturn(revocationResponse);
+        
+        ResponseEntity<?> revocResponse =
+                sSLCertificateService.getRevocationReasons(certficateId, token);
+
+        //Assert
+        assertNotNull(revocResponse);
+        assertEquals(HttpStatus.FORBIDDEN, revocResponse.getStatusCode());
+    }
+    
+    @Test
+    public void issueRevocationRequest_Success() throws Exception {
+    	String certficateName = "testCert@t-mobile.com";
+    	String token = "FSR&&%S*";
+    	String jsonStr = "{  \"username\": \"testusername1\",  \"password\": \"testpassword1\"}";
+    	
+    	RevocationRequest revocationRequest = new RevocationRequest();
+    	revocationRequest.setReason("unspecified");
+    	
+    	 UserDetails userDetails = new UserDetails();
+         userDetails.setSelfSupportToken("tokentTest");
+         userDetails.setUsername("normaluser");
+         userDetails.setAdmin(true);
+         userDetails.setClientToken(token);
+         userDetails.setSelfSupportToken(token);
+ 
+        Map<String, Object> requestMap = new HashMap<>();
+        requestMap.put("access_token", "12345");
+        requestMap.put("token_type", "type");
+        when(ControllerUtil.parseJson(jsonStr)).thenReturn(requestMap);
+
+        CertManagerLogin certManagerLogin = new CertManagerLogin();
+        certManagerLogin.setToken_type("token type");
+        certManagerLogin.setAccess_token("1234");
+        String metaDataJson = "{\"data\":{\"akmid\":\"102463\",\"applicationName\":\"tvs\",\"applicationOwnerEmailId\":\"SpectrumClearingTools@T-Mobile.com\",\"applicationTag\":\"TVS\",\"authority\":\"T-Mobile Issuing CA 01 - SHA2\",\"certCreatedBy\":\"nnazeer1\",\"certOwnerEmailId\":\"ltest@smail.com\",\"certType\":\"internal\",\"certificateId\":59880,\"certificateName\":\"certtest260630.t-mobile.com\",\"certificateStatus\":\"Revoked\",\"containerName\":\"VenafiBin_12345\",\"createDate\":\"2020-06-26T05:10:41-07:00\",\"expiryDate\":\"2021-06-26T05:10:41-07:00\",\"projectLeadEmailId\":\"Daniel.Urrutia@T-Mobile.Com\",\"users\":{\"normaluser\":\"write\",\"certuser\":\"read\",\"safeadmin\":\"deny\",\"testsafeuser\":\"write\",\"testuser1\":\"deny\",\"testuser2\":\"read\"}}}";
+        Response response = new Response();
+        response.setHttpstatus(HttpStatus.OK);
+        response.setResponse(metaDataJson);
+        response.setSuccess(true);
+        
+        when(reqProcessor.process(eq("/read"), anyObject(), anyString())).thenReturn(response);
+
+        
+
+        CertResponse certResponse = new CertResponse();
+        certResponse.setHttpstatus(HttpStatus.OK);
+        certResponse.setResponse(jsonStr);
+        certResponse.setSuccess(true);
+        when(reqProcessor.processCert(eq("/auth/certmanager/login"), anyObject(), anyString(), anyString())).thenReturn(certResponse);
+        CertResponse revocationResponse = new CertResponse();
+        revocationResponse.setHttpstatus(HttpStatus.OK);
+        revocationResponse.setResponse(null);
+        revocationResponse.setSuccess(true);
+        when(reqProcessor.processCert(eq("/certificates/revocationrequest"), anyObject(), anyString(), anyString())).thenReturn(revocationResponse);
+        
+        when(ControllerUtil.updateMetaData(anyString(), anyMap(), anyString())).thenReturn(Boolean.TRUE);
+        
+        ResponseEntity<?> revocResponse =
+                sSLCertificateService.issueRevocationRequest(certficateName, userDetails, token, revocationRequest);
+
+        //Assert
+        assertNotNull(revocResponse);
+        assertEquals(HttpStatus.OK, revocResponse.getStatusCode());
+    }
+    
+    @Test
+    public void issueRevocationRequest_Non_Admin_Success() throws Exception {
+    	String certficateName = "testCert@t-mobile.com";
+    	String token = "FSR&&%S*";
+    	String jsonStr = "{  \"username\": \"testusername1\",  \"password\": \"testpassword1\"}";
+    	
+    	RevocationRequest revocationRequest = new RevocationRequest();
+    	revocationRequest.setReason("unspecified");
+    	
+    	 UserDetails userDetails = new UserDetails();
+         userDetails.setSelfSupportToken("tokentTest");
+         userDetails.setUsername("normaluser");
+         userDetails.setAdmin(false);
+         userDetails.setClientToken(token);
+         userDetails.setSelfSupportToken(token);
+ 
+        Map<String, Object> requestMap = new HashMap<>();
+        requestMap.put("access_token", "12345");
+        requestMap.put("token_type", "type");
+        when(ControllerUtil.parseJson(jsonStr)).thenReturn(requestMap);
+
+        CertManagerLogin certManagerLogin = new CertManagerLogin();
+        certManagerLogin.setToken_type("token type");
+        certManagerLogin.setAccess_token("1234");
+        String metaDataJson = "{\"data\":{\"akmid\":\"102463\",\"applicationName\":\"tvs\",\"applicationOwnerEmailId\":\"SpectrumClearingTools@T-Mobile.com\",\"applicationTag\":\"TVS\",\"authority\":\"T-Mobile Issuing CA 01 - SHA2\",\"certCreatedBy\":\"nnazeer1\",\"certOwnerEmailId\":\"ltest@smail.com\",\"certType\":\"internal\",\"certificateId\":59880,\"certificateName\":\"certtest260630.t-mobile.com\",\"certificateStatus\":\"Revoked\",\"containerName\":\"VenafiBin_12345\",\"createDate\":\"2020-06-26T05:10:41-07:00\",\"expiryDate\":\"2021-06-26T05:10:41-07:00\",\"projectLeadEmailId\":\"Daniel.Urrutia@T-Mobile.Com\",\"users\":{\"normaluser\":\"write\",\"certuser\":\"read\",\"safeadmin\":\"deny\",\"testsafeuser\":\"write\",\"testuser1\":\"deny\",\"testuser2\":\"read\"}}}";
+        Response response = new Response();
+        response.setHttpstatus(HttpStatus.OK);
+        response.setResponse(metaDataJson);
+        response.setSuccess(true);
+        
+        when(reqProcessor.process(eq("/read"), anyObject(), anyString())).thenReturn(response);
+
+        
+
+        CertResponse certResponse = new CertResponse();
+        certResponse.setHttpstatus(HttpStatus.OK);
+        certResponse.setResponse(jsonStr);
+        certResponse.setSuccess(true);
+        when(reqProcessor.processCert(eq("/auth/certmanager/login"), anyObject(), anyString(), anyString())).thenReturn(certResponse);
+        CertResponse revocationResponse = new CertResponse();
+        revocationResponse.setHttpstatus(HttpStatus.OK);
+        revocationResponse.setResponse(null);
+        revocationResponse.setSuccess(true);
+        when(reqProcessor.processCert(eq("/certificates/revocationrequest"), anyObject(), anyString(), anyString())).thenReturn(revocationResponse);
+        
+        when(ControllerUtil.updateMetaData(anyString(), anyMap(), anyString())).thenReturn(Boolean.TRUE);
+        
+        ResponseEntity<?> revocResponse =
+                sSLCertificateService.issueRevocationRequest(certficateName, userDetails, token, revocationRequest);
+
+        //Assert
+        assertNotNull(revocResponse);
+        assertEquals(HttpStatus.OK, revocResponse.getStatusCode());
+    }
+    
+    @Test
+    public void issueRevocationRequest_Admin_Failure() throws Exception {
+    	String certficateName = "testCert@t-mobile.com";
+    	String token = "FSR&&%S*";
+    	String jsonStr = "{  \"username\": \"testusername1\",  \"password\": \"testpassword1\"}";
+    	
+    	RevocationRequest revocationRequest = new RevocationRequest();
+    	revocationRequest.setReason("unspecified");
+    	
+    	 UserDetails userDetails = new UserDetails();
+         userDetails.setSelfSupportToken("tokentTest");
+         userDetails.setUsername("normaluser");
+         userDetails.setAdmin(false);
+         userDetails.setClientToken(token);
+         userDetails.setSelfSupportToken(token);
+ 
+        Map<String, Object> requestMap = new HashMap<>();
+        requestMap.put("access_token", "12345");
+        requestMap.put("token_type", "type");
+        when(ControllerUtil.parseJson(jsonStr)).thenReturn(requestMap);
+
+        CertManagerLogin certManagerLogin = new CertManagerLogin();
+        certManagerLogin.setToken_type("token type");
+        certManagerLogin.setAccess_token("1234");
+        String metaDataJsonError = "{\"data\":{\"akmid\":\"102463\",\"applicationName\":\"tvs\",\"applicationOwnerEmailId\":\"SpectrumClearingTools@T-Mobile.com\",\"applicationTag\":\"TVS\",\"authority\":\"T-Mobile Issuing CA 01 - SHA2\",\"certCreatedBy\":\"nnazeer1\",\"certOwnerEmailId\":\"ltest@smail.com\",\"certType\":\"internal\",\"certificateId\":59880,\"certificateName\":\"certtest260630.t-mobile.com\",\"certificateStatus\":\"Revoked\",\"containerName\":\"VenafiBin_12345\",\"createDate\":\"2020-06-26T05:10:41-07:00\",\"expiryDate\":\"2021-06-26T05:10:41-07:00\",\"projectLeadEmailId\":\"Daniel.Urrutia@T-Mobile.Com\",\"users\":{\"normaluser\":\"write\",\"certuser\":\"read\",\"safeadmin\":\"deny\",\"testsafeuser\":\"write\",\"testuser1\":\"deny\",\"testuser2\":\"read\"}}}";
+        Response response = new Response();
+        response.setHttpstatus(HttpStatus.BAD_REQUEST);
+        response.setResponse(metaDataJsonError);
+        response.setSuccess(false);
+        
+        when(reqProcessor.process(eq("/read"), anyObject(), anyString())).thenReturn(response);
+
+        
+
+        CertResponse certResponse = new CertResponse();
+        certResponse.setHttpstatus(HttpStatus.OK);
+        certResponse.setResponse(jsonStr);
+        certResponse.setSuccess(true);
+        when(reqProcessor.processCert(eq("/auth/certmanager/login"), anyObject(), anyString(), anyString())).thenReturn(certResponse);
+        CertResponse revocationResponse = new CertResponse();
+        revocationResponse.setHttpstatus(HttpStatus.OK);
+        revocationResponse.setResponse(null);
+        revocationResponse.setSuccess(true);
+        when(reqProcessor.processCert(eq("/certificates/revocationrequest"), anyObject(), anyString(), anyString())).thenReturn(revocationResponse);
+        
+        when(ControllerUtil.updateMetaData(anyString(), anyMap(), anyString())).thenReturn(Boolean.TRUE);
+        
+        ResponseEntity<?> revocResponse =
+                sSLCertificateService.issueRevocationRequest(certficateName, userDetails, token, revocationRequest);
+
+        //Assert
+        assertNotNull(revocResponse);
+        assertEquals(HttpStatus.BAD_REQUEST, revocResponse.getStatusCode());
+    }
+
 
     @Test
     public void test_getgetTargetSystemList_success()throws Exception{
