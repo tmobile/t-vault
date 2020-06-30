@@ -1,6 +1,7 @@
 package com.tmobile.cso.vault.api.service;
 
 import com.google.common.collect.ImmutableMap;
+import com.google.gson.JsonObject;
 import com.tmobile.cso.vault.api.controller.ControllerUtil;
 import com.tmobile.cso.vault.api.exception.TVaultValidationException;
 import com.tmobile.cso.vault.api.model.*;
@@ -86,6 +87,8 @@ public class SSLCertificateServiceTest {
 
     @Mock
     CertificateData certificateData;
+    @Mock
+    private WorkloadDetailsService workloadDetailsService;
 
     @Before
     public void setUp() throws Exception {
@@ -149,6 +152,13 @@ public class SSLCertificateServiceTest {
         InputStream inputStream = new ByteArrayInputStream(responseStr.getBytes());
         when(mockHttpEntity.getContent()).thenReturn(inputStream);
 
+        String workloadApiResponse = "{\"kind\":\"Application\",\"spec\":{\"akmid\":\"103001\",\"brtContactEmail\":\"" +
+                " testspec@mail.com\",\"businessUnit\":\"\",\"classification\":\"\",\"directorEmail\":\"abc.joe@mail.com\"," +
+                "\"directorName\":\"abc amith\",\"executiveSponsor\":\"Dar Web\",\"opsContactEmail\":\"rick.nick@test.com\"," +
+                "\"organizationalUnits\":[\"tvt\"],\"projectLeadEmail\":\"rick.nick@test.com\",\"scope\":\"Production\",\"summary\":" +
+                "\"T-Vault\",\"tag\":\"T-Vault\",\"tier\":\"Tier II\",\"workflowStatus\":\"Open_CCP\",\"workload\":\"Adaptive Security\"}}";
+        when(workloadDetailsService.getWorkloadDetailsByAppName(anyString())).
+                thenReturn(ResponseEntity.status(HttpStatus.OK).body(workloadApiResponse));
 
     }
 

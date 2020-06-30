@@ -18,6 +18,7 @@
 package com.tmobile.cso.vault.api.model;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.annotations.ApiModelProperty;
 import org.hibernate.validator.constraints.Email;
 import org.hibernate.validator.constraints.NotEmpty;
@@ -54,13 +55,25 @@ public class SSLCertificateRequest implements Serializable {
 	@NotNull
 	@NotEmpty
 	@Email
-	@ApiModelProperty(example="example@email.com")
+	@ApiModelProperty(example="youremail@yourcompany.com")
 	private String certOwnerEmailId;
 	@NotNull
 	@NotEmpty
 	@ApiModelProperty(example="internal")
 	private String certType;
 
+	@NotNull
+	@NotEmpty
+	@JsonProperty("certOwnerNTId")
+	private String certOwnerNtid;
+
+	public String getCertOwnerNtid() {
+		return certOwnerNtid;
+	}
+
+	public void setCertOwnerNtid(String certOwnerNtid) {
+		this.certOwnerNtid = certOwnerNtid;
+	}
 
 	public SSLCertificateRequest() {
 	}
