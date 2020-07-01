@@ -1599,7 +1599,7 @@ public class SSLCertificateService {
 
 			if (!isPermission) {
 				return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("{\"errors\":[\""
-						+ "User has no permission to revoke the certifcate " + certificateName + "\"]}");
+						+ "User has no permission to revoke the certificate " + certificateName + "\"]}");
 			}
 		}
         String certID = object.get("certificateId").toString();
@@ -1702,7 +1702,7 @@ public class SSLCertificateService {
 		String certificateOwner = object.get("certOwnerNtid").toString().replaceAll("^\"|\"$", "");
 		//checking if the login non-admin user itself created the certificate or not
 		//By using the certOwnerNtid field from the metadata
-		if (certificateOwner.equals(userDetails.getUsername())) {
+		if (certificateOwner.equalsIgnoreCase(userDetails.getUsername())) {
 			return isPermission = true;
 		}
 		if (object.get("users") != null) {

@@ -1649,11 +1649,17 @@
 
         $scope.revoke = function(){
             try {
+                $scope.revocationMessage = ''
+                if ($scope.dropdownRevocationReasons.selectedGroupOption.type == 'Select Revocation Reasons') {
+                    $scope.revocationStatusMessage = 'Revocation failed';
+                    $scope.revocationMessage = "Invalid input value";
+                    return $scope.revocationPopUp();
+                }
                 Modal.close('');
                 var reqObjtobeSent =  {                    
                     "reason": $scope.dropdownRevocationReasons.selectedGroupOption.type
                 }
-                $scope.revocationMessage = ''
+               
                 var url = RestEndpoints.baseURL + "/v2/certificates/" + $scope.certificateNameForRevoke + "/revocationrequest";
                 $scope.isLoadingData = true;
                 AdminSafesManagement.issueRevocationRequest(reqObjtobeSent, url).then(function (response) {
@@ -1663,7 +1669,7 @@
                         $scope.revocationStatusMessage = 'Revocation done successfully';
                         $scope.revocationMessage = response.data.messages[0];
                         $scope.revocationPopUp();
-
+                        $scope.requestDataFrAdmin();
                     }
                 },
                     function (error) {
