@@ -187,6 +187,10 @@
                 $scope.selectedIndex = 2;
             }
 
+            if ($rootScope.lastVisited == "change-certificate") {
+                $scope.selectedIndex = 3;
+            }
+
             var feature = JSON.parse(SessionStore.getItem("feature"));
             if (feature.adpwdrotation == false) {
                 $scope.enableSvcacc = false;
@@ -1784,6 +1788,23 @@
             $scope.certObj.certDetails.ownerNtId = "";
             $scope.isOwnerSelected = false;
         }
+
+        $scope.goToAddPermissions = function (certificateDetails) {            
+            var obj = "certificateObject";
+            var myobj = certificateDetails;
+            var fullObj = {};
+            fullObj[obj] = myobj;
+            try {       
+                $scope.isLoadingData = true;
+                $scope.ispermissionData = true;               // To show the 'permissions' and hide the 'details'
+                $scope.UsersPermissionsData = [];
+                $state.go('change-certificate', fullObj);
+                $scope.isLoadingData = false;
+            } catch (e) {  
+                $scope.isLoadingData = false;              
+                console.log(e);
+            }
+        };
 
         init();
 
