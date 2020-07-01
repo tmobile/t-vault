@@ -946,7 +946,29 @@
 		"vaultEndPoint":"targetsystemservices",
 		"method":"GET",
 		"outparams":["targetsystemservices"]
-	}
+	},
+    {"#" : "**** - Get Revocation Reasons ****** ",
 
+		"apiEndPoint":"/certificates​/revocationreasons",
+		"vaultEndPoint":"certificates/<certID>/revocationreasons", 
+		"method":"GET",
+		"params":[
+      		{"name":"certID", "required":true, "appendToPath":true}
+        ],
+        "outparams":["time_enabled","details_enabled","reasons"]
+        
+        
+	},
+    {"#" : "**** - Issue Revocation Request ****** ",
+
+		"apiEndPoint":"/certificates/revocationrequest",
+		"vaultEndPoint":"certificates/{certName}/revocationrequest", 
+		"method":"POST",
+		"params":[
+      		{"name":"certName", "required":true, "appendToPath":true},
+      		{"name":"reason", "required":true},
+      		{"name":"time"}
+        ]
+	}
 
 ]

@@ -17,7 +17,38 @@
 
 package com.tmobile.cso.vault.api.service;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Base64;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+
+import org.apache.commons.collections.MapUtils;
+import org.springframework.util.ObjectUtils;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.conn.ssl.NoopHostnameVerifier;
+import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.impl.client.LaxRedirectStrategy;
+import org.apache.http.ssl.SSLContextBuilder;
+import org.apache.http.ssl.TrustStrategy;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
+import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -28,21 +59,24 @@ import com.tmobile.cso.vault.api.controller.ControllerUtil;
 import com.tmobile.cso.vault.api.exception.LogMessage;
 import com.tmobile.cso.vault.api.exception.TVaultValidationException;
 import com.tmobile.cso.vault.api.model.*;
+
+import com.tmobile.cso.vault.api.model.CertManagerLogin;
+import com.tmobile.cso.vault.api.model.CertManagerLoginRequest;
+import com.tmobile.cso.vault.api.model.CertificateData;
+import com.tmobile.cso.vault.api.model.RevocationRequest;
+import com.tmobile.cso.vault.api.model.SSLCertMetadata;
+import com.tmobile.cso.vault.api.model.SSLCertType;
+import com.tmobile.cso.vault.api.model.SSLCertTypeConfig;
+import com.tmobile.cso.vault.api.model.SSLCertificateMetadataDetails;
+import com.tmobile.cso.vault.api.model.SSLCertificateRequest;
+import com.tmobile.cso.vault.api.model.TargetSystem;
+import com.tmobile.cso.vault.api.model.TargetSystemServiceRequest;
+import com.tmobile.cso.vault.api.model.UserDetails;
 import com.tmobile.cso.vault.api.process.CertResponse;
 import com.tmobile.cso.vault.api.process.RequestProcessor;
 import com.tmobile.cso.vault.api.process.Response;
 import com.tmobile.cso.vault.api.utils.JSONUtil;
 import com.tmobile.cso.vault.api.utils.ThreadLocalContext;
-import org.apache.commons.collections.MapUtils;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Component;
-import org.springframework.util.ObjectUtils;
-import org.springframework.util.StringUtils;
 
 import java.util.*;
 @Component
@@ -121,6 +155,11 @@ public class SSLCertificateService {
     @Value("${sslcertmanager.targetsystemgroup.public_multi_san.ts_gp_id}")
     private int public_multi_san_ts_gp_id;
 
+	@Value("${sslcertmanager.endpoint.getCertifcateReasons}")
+	private String getCertifcateReasons;
+
+	@Value("${sslcertmanager.endpoint.issueRevocationRequest}")
+	private String issueRevocationRequest;
     @Value("${workload.endpoint}")
     private String workloadEndpoint;
 
@@ -1444,4 +1483,250 @@ public class SSLCertificateService {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Failed to get Target system service list from NCLM\"]}");
 
     }
+   	
+	/**
+	 * Get Revocation Reasons.
+	 * 
+	 * @param certificateId
+	 * @param token
+	 * @return
+	 */
+	public ResponseEntity<String> getRevocationReasons(Integer certificateId, String token) {
+		CertResponse revocationReasons = new CertResponse();
+		try {
+			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String> builder()
+					.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString())
+					.put(LogMessage.ACTION, "Fetch Revocation Reasons")
+					.put(LogMessage.MESSAGE,
+							String.format("Trying to fetch Revocation Reasons for [%s]", certificateId))
+					.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString())
+					.build()));
+
+			String nclmAccessToken = getNclmToken();
+
+			String nclmGetCertificateReasonsEndpoint = getCertifcateReasons.replace("certID", certificateId.toString());
+			revocationReasons = reqProcessor.processCert("/certificates​/revocationreasons", certificateId,
+					nclmAccessToken, getCertmanagerEndPoint(nclmGetCertificateReasonsEndpoint));
+			log.debug(
+					JSONUtil.getJSON(
+							ImmutableMap.<String, String> builder()
+									.put(LogMessage.USER,
+											ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString())
+									.put(LogMessage.ACTION, "Fetch Revocation Reasons")
+									.put(LogMessage.MESSAGE, "Fetch Revocation Reasons for CertificateID")
+									.put(LogMessage.STATUS, revocationReasons.getHttpstatus().toString())
+									.put(LogMessage.APIURL,
+											ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString())
+									.build()));
+			return ResponseEntity.status(revocationReasons.getHttpstatus()).body(revocationReasons.getResponse());
+		} catch (TVaultValidationException error) {
+			log.error(
+					JSONUtil.getJSON(ImmutableMap.<String, String> builder()
+							.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString())
+							.put(LogMessage.ACTION,
+									String.format(
+											"Inside  TVaultValidationException " + "Exception = [%s] =  Message [%s]",
+											Arrays.toString(error.getStackTrace()), error.getMessage()))
+							.build()));
+			return ResponseEntity.status(HttpStatus.FORBIDDEN).body("{\"errors\":[\"" + "Certificate unavailable in NCLM." + "\"]}");
+		} catch (Exception e) {
+			log.error(
+					JSONUtil.getJSON(
+							ImmutableMap.<String, String> builder()
+									.put(LogMessage.USER,
+											ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString())
+									.put(LogMessage.ACTION, String.format("Inside  Exception = [%s] =  Message [%s]",
+											Arrays.toString(e.getStackTrace()), e.getMessage()))
+									.build()));
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+					.body("{\"errors\":[\"" + SSLCertificateConstants.SSL_CERTFICATE_REASONS_FAILED + "\"]}");
+		}
+
+	}
+
+	/**
+	 * Issue a revocation request for certificate
+	 * 
+	 * @param certificateId
+	 * @param token
+	 * @param revocationRequest
+	 * @return
+	 * @throws IOException
+	 * @throws JsonMappingException
+	 * @throws JsonParseException
+	 */
+	public ResponseEntity<String> issueRevocationRequest(String certificateName, UserDetails userDetails, String token,
+			RevocationRequest revocationRequest) {
+		
+		revocationRequest.setTime(getCurrentLocalDateTimeStamp());
+
+		Map<String, String> metaDataParams = new HashMap<String, String>();
+
+		String endPoint = certificateName;
+		String _path = SSLCertificateConstants.SSL_CERT_PATH + "/" + endPoint;
+		Response response = null;
+		try {
+			if (userDetails.isAdmin()) {
+				response = reqProcessor.process("/read", "{\"path\":\"" + _path + "\"}", token);
+			} else {
+				response = reqProcessor.process("/read", "{\"path\":\"" + _path + "\"}",
+						userDetails.getSelfSupportToken());
+			}
+		} catch (Exception e) {
+			log.error(
+					JSONUtil.getJSON(
+							ImmutableMap.<String, String> builder()
+									.put(LogMessage.USER,
+											ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString())
+									.put(LogMessage.ACTION,
+											String.format("Exception = [%s] =  Message [%s]",
+													Arrays.toString(e.getStackTrace()), response.getResponse()))
+									.build()));
+			return ResponseEntity.status(response.getHttpstatus())
+					.body("{\"messages\":[\"" + "Certficate unavailable." + "\"]}");
+		}
+		if (!HttpStatus.OK.equals(response.getHttpstatus())) {
+			return ResponseEntity.status(response.getHttpstatus())
+					.body("{\"errors\":[\"" + " Certficate unavailable. " + "\"]}");
+		}
+		JsonParser jsonParser = new JsonParser();
+		JsonObject object = ((JsonObject) jsonParser.parse(response.getResponse())).getAsJsonObject("data");
+		metaDataParams = new Gson().fromJson(object.toString(), Map.class);
+
+		if (!userDetails.isAdmin()) {
+
+			Boolean isPermission = validateWritePermissionForUser(object, userDetails, certificateName);
+
+			if (!isPermission) {
+				return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("{\"errors\":[\""
+						+ "User has no permission to revoke the certifcate " + certificateName + "\"]}");
+			}
+		}
+        String certID = object.get("certificateId").toString();
+        float value = Float.valueOf(certID);
+		int certificateId = (int) value;
+		CertResponse revocationResponse = new CertResponse();
+		try {
+			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String> builder()
+					.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString())
+					.put(LogMessage.ACTION, "Issue Revocation Request")
+					.put(LogMessage.MESSAGE,
+							String.format("Trying to issue Revocation Request for [%s]", certificateId))
+					.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString())
+					.build()));
+
+			String nclmAccessToken = getNclmToken();
+
+			String nclmApiIssueRevocationEndpoint = issueRevocationRequest.replace("certID", String.valueOf(certificateId));
+			revocationResponse = reqProcessor.processCert("/certificates/revocationrequest", revocationRequest,
+					nclmAccessToken, getCertmanagerEndPoint(nclmApiIssueRevocationEndpoint));
+			log.debug(
+					JSONUtil.getJSON(
+							ImmutableMap.<String, String> builder()
+									.put(LogMessage.USER,
+											ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString())
+									.put(LogMessage.ACTION, "Issue Revocation Request")
+									.put(LogMessage.MESSAGE, "Issue Revocation Request for CertificateID")
+									.put(LogMessage.STATUS, revocationResponse.getHttpstatus().toString())
+									.put(LogMessage.APIURL,
+											ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString())
+									.build()));
+
+			boolean sslMetaDataUpdationStatus;
+			metaDataParams.put("certificateStatus", "Revoked");
+			if (userDetails.isAdmin()) {
+				sslMetaDataUpdationStatus = ControllerUtil.updateMetaData(_path, metaDataParams, token);
+			} else {
+				sslMetaDataUpdationStatus = ControllerUtil.updateMetaData(_path, metaDataParams,
+						userDetails.getSelfSupportToken());
+			}
+			if (sslMetaDataUpdationStatus) {
+				return ResponseEntity.status(revocationResponse.getHttpstatus())
+						.body("{\"messages\":[\"" + "Certificate revoked successfully." + "\"]}");
+			} else {
+				log.error(
+						JSONUtil.getJSON(
+								ImmutableMap.<String, String> builder()
+										.put(LogMessage.USER,
+												ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString())
+										.put(LogMessage.ACTION, "Revocation Request Failed")
+										.put(LogMessage.MESSAGE, "Revocation Request failed for CertificateID")
+										.put(LogMessage.STATUS, revocationResponse.getHttpstatus().toString())
+										.put(LogMessage.APIURL,
+												ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString())
+										.build()));
+				return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+						.body("{\"errors\":[\"" + "Certificate revocation failed." + "\"]}");
+			}
+
+		} catch (TVaultValidationException error) {
+			log.error(
+					JSONUtil.getJSON(ImmutableMap.<String, String> builder()
+							.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString())
+							.put(LogMessage.ACTION, String.format("Inside  TVaultValidationException =  Message [%s]",
+									Arrays.toString(error.getStackTrace()), error.getMessage()))
+							.build()));
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"" + error.getMessage() + "\"]}");
+		} catch (Exception e) {
+			log.error(JSONUtil.getJSON(ImmutableMap.<String, String> builder()
+					.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString())
+					.put(LogMessage.ACTION, String.format("Inside  Exception = [%s] =  Message [%s]",
+							Arrays.toString(e.getStackTrace()), e.getMessage()))
+					.build()));
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+					.body("{\"errors\":[\"" + e.getMessage() + "\"]}");
+		}
+	}
+
+	/**
+	 * Get Current Date and Time.
+	 * 
+	 * @return
+	 */
+	public String getCurrentLocalDateTimeStamp() {
+		return LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"));
+	}
+	
+	/**
+	 * Validate Write Permission for Non-admin User.
+	 * 
+	 * @param object
+	 * @param userDetails
+	 * @param certificateName
+	 * @return
+	 */
+	public Boolean validateWritePermissionForUser(JsonObject object, UserDetails userDetails, String certificateName) {
+		ObjectMapper mapper = new ObjectMapper();
+		String permission = "";
+		Boolean isPermission = false;
+		if (object.get("users") != null) {
+			String writePermission = object.get("users").toString();
+
+			try {
+				Map<String, String> usersMap = mapper.readValue(writePermission, Map.class);
+				for (Map.Entry user : usersMap.entrySet()) {
+					if (user.getKey().toString().equalsIgnoreCase(userDetails.getUsername())) {
+						permission = user.getValue().toString();
+						isPermission = true;
+						break;
+					}
+				}
+			} catch (Exception e) {
+				log.error(JSONUtil.getJSON(ImmutableMap.<String, String> builder()
+						.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString())
+						.put(LogMessage.ACTION, String.format("Message [%s]", e.getStackTrace().toString())).build()));
+				e.printStackTrace();
+			}
+		} 
+
+		if (permission != "" && !permission.equals(SSLCertificateConstants.SSL_CERTFICATE_WRITE_PERMISSION)) {
+			isPermission = false;
+			log.error(JSONUtil.getJSON(ImmutableMap.<String, String> builder()
+					.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString())
+					.put(LogMessage.ACTION, String.format("Message [%s]", "Permission Denied")).build()));
+
+		}
+		return isPermission;
+	}
+
 }

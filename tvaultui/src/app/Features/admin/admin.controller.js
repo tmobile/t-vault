@@ -617,7 +617,6 @@
 
 
         $scope.getCertSubjectName = function (cert) {
-        	
             var certName = "";
             if (cert.subjectAltName && cert.subjectAltName.dns && cert.subjectAltName.dns.length > 0) {
                 certName = cert.subjectAltName.dns[0];
@@ -1297,8 +1296,16 @@
             Modal.createModal('md', 'certificateCreationPopUp.html', 'AdminCtrl', $scope);
         };
 
+        $scope.revocationPopUp = function (svcaccname) {
+            Modal.createModal('md', 'revocationPopUp.html', 'AdminCtrl', $scope);
+        };
+
         $scope.certificateCreationFailedPopUp = function (svcaccname) {
             Modal.createModal('md', 'certificateCreationFailedPopUp.html', 'AdminCtrl', $scope);
+        };
+
+        $scope.revokeReasonsPopUp = function (svcaccname) {
+            Modal.createModal('md', 'revokeReasonsPopUp.html', 'AdminCtrl', $scope);
         };
 
         $scope.transferFailedPopUp = function (svcaccname) {
@@ -1591,6 +1598,96 @@
 
         $scope.collapseADDetails = function() {
             $scope.isCollapsed = !$scope.isCollapsed;
+        }
+
+
+        //Revoke Certificate
+
+        $scope.revokeCertificate = function (certificateDetails){
+            try{
+            $scope.isLoadingData = true;
+            $scope.revocationMessage = '';
+            $scope.revocationStatusMessage = '';
+            var certificateName = $scope.getCertSubjectName(certificateDetails);
+            $scope.certificateNameForRevoke = certificateName;
+            var updatedUrlOfEndPoint = RestEndpoints.baseURL + "/v2/certificates/" + certificateDetails.certificateId + "/revocationreasons";
+            $scope.revocationReasons = [];
+            AdminSafesManagement.getRevocationReasons(null, updatedUrlOfEndPoint).then(function (response) {
+                $scope.isLoadingData = false;
+                if (UtilityService.ifAPIRequestSuccessful(response)) { 
+                    for (var index = 0;index<response.data.reasons.length;index++) {
+                        $scope.revocationReasons.push({"type":response.data.reasons[index].reason});
+                    } 
+                    $scope.revokeReasonsPopUp();
+                                                 
+                }
+            },
+            function (error) {
+                // Error handling function
+                $scope.isLoadingData = false;
+                $scope.revocationMessage = error.data.errors[0];
+                $scope.revocationStatusMessage = "Revocation reasons fetching failed";
+                $scope.revocationPopUp();
+                console.log(error);
+               
+            })
+            }catch (e) {
+                $scope.isLoadingData = false;
+                console.log(e);
+            };
+
+            $scope.dropdownRevocationReasons = {
+                'selectedGroupOption': {"type": "Select Revocation Reasons"},       // As initial placeholder
+                'tableOptions': $scope.revocationReasons
+            }
+            Modal.close('');
+        };
+
+        $scope.revocationReasonSelect = function(){
+           $scope.dropdownRevocationReasons.selectedGroupOption.type;
+        }
+
+        $scope.revoke = function(){
+            try {
+                Modal.close('');
+                var reqObjtobeSent =  {                    
+                    "reason": $scope.dropdownRevocationReasons.selectedGroupOption.type
+                }
+                $scope.revocationMessage = ''
+                var url = RestEndpoints.baseURL + "/v2/certificates/" + $scope.certificateNameForRevoke + "/revocationrequest";
+                $scope.isLoadingData = true;
+                AdminSafesManagement.issueRevocationRequest(reqObjtobeSent, url).then(function (response) {
+
+                    $scope.isLoadingData = false;
+                    if (UtilityService.ifAPIRequestSuccessful(response)) {
+                        $scope.revocationStatusMessage = 'Revocation done successfully';
+                        $scope.revocationMessage = response.data.messages[0];
+                        $scope.revocationPopUp();
+
+                    }
+                },
+                    function (error) {
+                        var errors = error.data.errors;
+                        $scope.revocationStatusMessage = 'Revocation failed';
+                        $scope.revocationMessage = errors[0];
+                        $scope.revocationPopUp();
+                        $scope.isLoadingData = false;
+                        console.log(error);
+                    })
+                
+            } catch (e) {
+                $scope.isLoadingData = false;
+                console.log(e);
+            }
+
+        }
+
+        $scope.cancelRevoke = function(){
+            try{
+                Modal.close('');
+            }catch (e){
+                console.log(e);
+            }   
         }
 
         $scope.openExistingTargetSystem = function (e) {
