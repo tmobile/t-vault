@@ -83,9 +83,9 @@
             options: [{
                 'text': 'read'
             }, {
-                'text': 'write'
+                'text': 'Renew'
             }, {
-                'text': 'deny'
+                'text': 'Revoke'
             }]
         };
 
