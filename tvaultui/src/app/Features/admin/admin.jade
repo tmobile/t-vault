@@ -101,21 +101,22 @@ script(type='text/ng-template', id='revocationPopUp.html')
       .clearfix.bottom-sm-sep
         button.link-style.common-btn.btn.btn-primary.btn-lg(ng-click="cancelRevoke()") CLOSE   
 
-script(type='text/ng-template', id='revokeReasonsPopUp.html')
-  loading-state(ng-if="isLoadingModalData")
-  .top-lg-sep.revocationBorder(ng-if="!isLoadingModalData")
-    .left-lg-sep
-        .common-header-label.text-center Revocation reasons
-         .common-form-row
-                .details-input-group
-        .common-form-label.revocationStyle
-                    drop-down(drop-down-options="dropdownRevocationReasons" name="dropdownRoles" id="dropdownRevocationReason"  ng-click="revocationReasonSelect()")              
-    .text-center.bottom-lg-sep.top-lg-sep.notification-button
-     .clearfix.bottom-sm-sep
-        button.common-btn.btn.btn-primary.btn-lg(ng-click="revoke()") REVOKE
-      .clearfix
-        button.link-style.common-btn.btn.btn-default.btn-lg(ng-click="cancelRevoke()") CANCEL         
 
+script(type='text/ng-template', id='revokeReasonsPopUp.html')
+          .modal-sep
+            .common-header-label.text-center Revocation reasons
+
+          .left-lg-sep.right-lg-sep
+            .common-form.modal-inner-wrapper.aws
+              .common-form-row
+                .details-input-group
+                    .common-form-label
+                     drop-down(drop-down-options="dropdownRevocationReasons" name="dropdownRoles" id="dropdownRevocationReason"  ng-click="revocationReasonSelect()")
+          .text-center.bottom-lg-sep.modal-sep.aws
+            .clearfix.bottom-sm-sep
+              button.common-btn.btn.btn-primary.btn-lg(ng-click="revoke()") REVOKE
+            .clearfix
+              button.link-style.common-btn.btn.btn-default.btn-lg(ng-click="cancelRevoke()") Cancel
 
 script(type='text/ng-template', id='certificatePopup.html')
           .modal-sep
