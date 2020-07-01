@@ -208,7 +208,7 @@ public class CertificateUtils {
 
 		if (null != dataNode.get("expiryDate")) {
 			certificate.setExpiryDate(dataNode.get("expiryDate").asText());
-		}	
+		}
 		
 		if (null != dataNode.get("certOwnerNtid")) {
 			certificate.setCertOwnerNtid(dataNode.get("certOwnerNtid").asText());
@@ -217,7 +217,7 @@ public class CertificateUtils {
 		if (null != dataNode.get("requestStatus")) {
 			certificate.setRequestStatus(dataNode.get("requestStatus").asText());
 		}
-		
+
 		if (null != dataNode.get("containerId")) {
 			certificate.setContainerId(dataNode.get("containerId").asInt());
 		}
@@ -263,5 +263,5 @@ public class CertificateUtils {
 			}
 		}
 	}
-	
+
 }

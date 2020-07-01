@@ -125,7 +125,7 @@
         }
 
         $scope.goBack = function () {
-            var targetState = 'manage';            
+            var targetState = 'manage';
             if (SessionStore.getItem("isAdmin") === 'true') {
                 targetState = 'admin';
             }
@@ -135,7 +135,7 @@
                 }
                 else {                    
                     $rootScope.showDetails = true;
-                    $rootScope.activeDetailsTab = 'details';                    
+                    $rootScope.activeDetailsTab = 'details';
                 }
             }
             else {
@@ -148,7 +148,7 @@
         }
 
         $scope.roleNameSelect = function() {
-            var queryParameters = $scope.dropDownRoleNames.selectedGroupOption.type;            
+            var queryParameters = $scope.dropDownRoleNames.selectedGroupOption.type;
             $scope.roleNameSelected = true;
             $scope.approleConfPopupObj.role_name = queryParameters;
         }
@@ -457,10 +457,10 @@
                                     if (editingPermission) {
                                         $scope.addPermission(type, key, permission, true);  // This will be executed when we're editing permissions
                                     }
-                                    else {                                       
+                                    else {
                                         $scope.requestDataFrChangeCertificate();
                                         var notification = UtilityService.getAParticularSuccessMessage('MESSAGE_ADD_SUCCESS');
-                                        
+
                                         if (type === "users" && key === SessionStore.getItem("username")) {
                                             clearInputPermissionData();
                                             return Modal.createModalWithController('stop.modal.html', {
@@ -469,7 +469,7 @@
                                                 });
                                         }
                                         var notification = UtilityService.getAParticularSuccessMessage('MESSAGE_SAFE_DELETE');
-                                        Notifications.toast(key + "'s permission" + notification); 
+                                        Notifications.toast(key + "'s permission" + notification);
                                     }
                                 }
                                 catch (e) {
@@ -505,14 +505,14 @@
 
                 }
             }
-        }       
+        }
 
         $rootScope.goToCertPermissions = function () {
             $scope.isLoadingData = true;
             $rootScope.showDetails = false;               // To show the 'permissions' and hide the 'details'
             $rootScope.activeDetailsTab = 'permissions';
             $scope.isLoadingData = false;
-        } 
+        }
 
         $scope.requestDataFrChangeCertificate = function () {
             $scope.isLoadingData = true;           
@@ -564,12 +564,12 @@
                                 }
                                 $scope.UsersPermissionsData = object.users;
 
-                                var certOwner = object.certOwnerNtid;            
+                                var certOwner = object.certOwnerNtid;
                                 if(SessionStore.getItem("username").toLowerCase() === certOwner.toLowerCase()){
                                     $scope.isCertificateOwner = true;
                                     $scope.detailsNavTags[1].show = true;
-                                }else {                                    
-                                    $scope.detailsNavTags[1].show = false;                                    
+                                }else {
+                                    $scope.detailsNavTags[1].show = false;
                                 }
 
                                 $rootScope.AppRolePermissionsData = {
@@ -754,7 +754,7 @@
                     if (type === "groups" && !editingPermission) {
                         key = document.getElementById('addGroup').value.toLowerCase();
                     }
-                    
+
                     Modal.close('');
                     $scope.isLoadingData = true;
                     $scope.showInputLoader.show = false;
@@ -777,8 +777,8 @@
                             apiCallFunction = AdminSafesManagement.addUserPermissionForCertificate;
                             reqObjtobeSent = {"certificateName": certName, "username": key, "access": permission.toLowerCase(), "certType":certficateType};
                             break;
-                        case 'groups' : 
-                            apiCallFunction = AdminSafesManagement.addGroupPermissionForCertificate;                           
+                        case 'groups' :
+                            apiCallFunction = AdminSafesManagement.addGroupPermissionForCertificate;
                             reqObjtobeSent = {"certificateName": certName, "groupname": key, "access": permission.toLowerCase(), "certType":certficateType};
                             break;
                         case 'AWSPermission' :                            
@@ -788,7 +788,7 @@
                             $scope.awsConfPopupObj['policies'] = "";   // Todo: Because of unavailability of edit service, this has been put
                             reqObjtobeSent = $scope.awsConfPopupObj
                             break;
-                        case 'AppRolePermission' : 
+                        case 'AppRolePermission' :
                             apiCallFunction = AdminSafesManagement.addApprolePermissionForCertificate;
                             reqObjtobeSent = {"certificateName": certName, "approleName": key, "access": permission.toLowerCase(), "certType":certficateType};
                             break;
@@ -844,7 +844,7 @@
                 }
             }
         };
-        
+
         $scope.addApproleToCertificate = function (size) {
             // To reset the aws configuration details object to create a new one
             $scope.editingApprolePermission = {"status": false};
@@ -916,8 +916,8 @@
             Modal.close('close');
             $scope.isLoadingData = false;
         };
-        
-        $scope.cancelDelete = function () {        	
+
+        $scope.cancelDelete = function () {
             Modal.close('close');
             $scope.isLoadingData = false;
             $scope.goBack();
@@ -944,13 +944,13 @@
         $scope.renewCertificateFailedPopUp = function (certificate) {
             Modal.createModal('md', 'renewCertificateFailedPopUp.html', 'ChangeCertificateCtrl', $scope);
         };
-        
+
         $scope.deleteCertPopup = function (certDetails) {
             $scope.fetchDataError = false;
             $rootScope.certDetails = certDetails;
             Modal.createModal('md', 'deleteCertPopup.html', 'ChangeCertificateCtrl', $scope);
         };
-        
+
         $scope.deleteCertificatePopUp = function (certificate) {
             Modal.createModal('md', 'deleteCertificateSuccessPopUp.html', 'ChangeCertificateCtrl', $scope);
         };
@@ -1112,7 +1112,7 @@
                 $scope.searchValue = '';
             };
         };
-        
+
         $rootScope.deleteCertificate = function(certificateDetails){
             if ($rootScope.certDetails !== null && $rootScope.certDetails !== undefined) {
                 certificateDetails = $rootScope.certDetails;
@@ -1124,7 +1124,7 @@
                 $scope.deleteMessage = '';
                 var certificateName = $scope.getCertSubjectName(certificateDetails);
                 $scope.certificateNameForDelete = certificateName;
-                var certType = certificateDetails.certType;                
+                var certType = certificateDetails.certType;
                 var url = RestEndpoints.baseURL + "/v2/certificates/" +certificateName+"/"+certType ;
                 $scope.isLoadingData = true;
 
@@ -1139,13 +1139,13 @@
                 },
                 function (error) {
                     var errors = error.data.errors;
-                    $scope.deleteMessage = 'Delete Failed';                    
+                    $scope.deleteMessage = 'Delete Failed';
                     if (errors[0] == "Access denied: No permission to delete certificate") {
                         $scope.deleteMessage = "For security reasons, you need to log out and log in again for the permissions to take effect.";
                     } else {
                         $scope.deleteMessage = errors[0];
                     }
-                    
+
                     $scope.deleteCertificateFailedPopUp();
                     $scope.isLoadingData = false;
                     console.log(error);
