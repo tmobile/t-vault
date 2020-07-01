@@ -1699,6 +1699,12 @@ public class SSLCertificateService {
 		ObjectMapper mapper = new ObjectMapper();
 		String permission = "";
 		Boolean isPermission = false;
+		String certificateOwner = object.get("certOwnerNtid").toString().replaceAll("^\"|\"$", "");
+		//checking if the login non-admin user itself created the certificate or not
+		//By using the certOwnerNtid field from the metadata
+		if (certificateOwner.equals(userDetails.getUsername())) {
+			return isPermission = true;
+		}
 		if (object.get("users") != null) {
 			String writePermission = object.get("users").toString();
 
