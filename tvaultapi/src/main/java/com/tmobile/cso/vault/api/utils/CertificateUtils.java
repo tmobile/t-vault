@@ -54,12 +54,14 @@ public class CertificateUtils {
 		if (ObjectUtils.isEmpty(certificateMetaData)) {
 			return false;
 		}		
+
 		if (userDetails.isAdmin()) {			
 			return checkIfCertificateAdmin(userDetails, certificateMetaData);
 		}
 		else {
 			// Prevent the owner of the certificate to be denied...
 			return checkIfNonCertificateAdmin(userDetails, certificateMetaData);
+
 		}
 	}
 
@@ -73,7 +75,7 @@ public class CertificateUtils {
 	private boolean checkIfNonCertificateAdmin(UserDetails userDetails, SSLCertificateMetadataDetails certificateMetaData) {
 		boolean hasAccess = true;
 		if (userDetails.getUsername() != null && userDetails.getUsername().equalsIgnoreCase(certificateMetaData.getCertOwnerNtid())) {
-			hasAccess = true;			
+			hasAccess = true;
 		}else {
 			// other normal users will not have permission as they are not the owner
 			hasAccess = false;
