@@ -1725,12 +1725,14 @@
             $scope.cert = {
                 "targetSystemService": ''
             }
-            $scope.certObj.targetSystemServiceRequest.name='';
-            $scope.certObj.targetSystemServiceRequest.description='';
-            $scope.certObj.targetSystemServiceRequest.port='';
-            $scope.certObj.targetSystemServiceRequest.hostname='';
-            $scope.certObj.targetSystemServiceRequest.monitoringEnabled='';
-            $scope.certObj.targetSystemServiceRequest.multiIpMonitoringEnabled='';
+            if(angular.isDefined($scope.certObj.targetSystemServiceRequest)){  
+                $scope.certObj.targetSystemServiceRequest.name='';
+                $scope.certObj.targetSystemServiceRequest.description='';
+                $scope.certObj.targetSystemServiceRequest.port='';
+                $scope.certObj.targetSystemServiceRequest.hostname='';
+                $scope.certObj.targetSystemServiceRequest.monitoringEnabled='';
+                $scope.certObj.targetSystemServiceRequest.multiIpMonitoringEnabled='';
+            }
         }
 
         $scope.searchEmail = function (searchVal) {
