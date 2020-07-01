@@ -565,7 +565,7 @@ script(type='text/ng-template', id='manageSecretId.html')
                                                                 label.expired-cert {{ value.certificateStatus}}
                                                       .container.radio-inputs.col-lg-6.col-md-6.col-sm-6.col-xs-6
                                                           .down.view
-                                                              .list-icon()  Onboard
+                                                              .list-icon(ng-click="goToAddPermissions(value)")  Onboard
                                                           .down.view
                                                               .list-icon()  Renew certificate
                                                           .down.deletesecretids

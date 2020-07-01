@@ -346,6 +346,10 @@ readTextFile("../apiUrls.json");
             name: 'issueRevocationRequest',
             url: '/v2/certificates/{certName}/revocationrequest',
             method: 'POST'
+        }, {
+            name: 'addUserToCertificate',
+            url: '/v2/sslcert/user',
+            method: 'POST'
         }
     ]
     });

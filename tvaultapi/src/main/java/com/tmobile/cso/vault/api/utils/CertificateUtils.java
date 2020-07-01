@@ -58,15 +58,14 @@ public class CertificateUtils {
 		SSLCertificateMetadataDetails certificateMetaData = getCertificateMetaData(token, certificateName);
 		if (ObjectUtils.isEmpty(certificateMetaData)) {
 			return false;
-		}
-		String certOwnerid = certificateMetaData.getCertCreatedBy();
+		}		
 		if (userDetails.isAdmin()) {
 			
-			return checkIfCertificateAdmin(certificateUser, action, certOwnerid);
+			return checkIfCertificateAdmin(userDetails, certificateUser, action, certificateMetaData);
 		}
 		else {
 			// Prevent the owner of the certificate to be denied...
-			return checkIfNonCertificateAdmin(userDetails, certificateUser, action, certOwnerid);
+			return checkIfNonCertificateAdmin(userDetails, certificateUser, action, certificateMetaData);
 		}
 	}
 
@@ -78,11 +77,11 @@ public class CertificateUtils {
 	 * @return
 	 */
 	private boolean checkIfNonCertificateAdmin(UserDetails userDetails, CertificateUser certificateUser, String action,
-			String certOwnerid) {
+			SSLCertificateMetadataDetails certificateMetaData) {
 		boolean hasAccess = true;
-		if (userDetails.getUsername() != null && userDetails.getUsername().equalsIgnoreCase(certOwnerid)) {
+		if (userDetails.getUsername() != null && userDetails.getUsername().equalsIgnoreCase(certificateMetaData.getCertOwnerNtid())) {
 			// This user is owner of the certificate...
-			if (certificateUser.getUsername().equals(certOwnerid)) {
+			if (certificateUser.getUsername().equals(certificateMetaData.getCertOwnerNtid())) {
 				if (TVaultConstants.READ_POLICY.equals(certificateUser.getAccess()) || TVaultConstants.WRITE_POLICY.equals(certificateUser.getAccess()) || (null==certificateUser.getAccess() && action.equals(TVaultConstants.REMOVE_USER))) {
 					// certificate owner himself can set read/write permission to the certificate owner
 					hasAccess = true;
@@ -103,9 +102,9 @@ public class CertificateUtils {
 	 * @param certOwnerid
 	 * @return
 	 */
-	private boolean checkIfCertificateAdmin(CertificateUser certificateUser, String action, String certOwnerid) {
+	private boolean checkIfCertificateAdmin(UserDetails userDetails, CertificateUser certificateUser, String action, SSLCertificateMetadataDetails certificateMetaData) {
 		boolean hasAccess = true;
-		if (StringUtils.isEmpty(certOwnerid)) {
+		if (StringUtils.isEmpty(certificateMetaData.getCertOwnerNtid())) {
 			// Null or empty user for owner
 			// Existing certificate will not have ownerid
 			// Certificate created by Certificateadmin will not have ownerid
@@ -113,7 +112,7 @@ public class CertificateUtils {
 		}
 		else {
 			// There is some owner assigned to the certificate
-			if (certOwnerid.equals(certificateUser.getUsername())) {
+			if (certificateMetaData.getCertOwnerNtid().equalsIgnoreCase(certificateUser.getUsername())) {
 				// Certificate admin is trying to add the owner of the certificate as some user with some permission
 				// Certificate admin can add read or write permission to certificate owner
 				if (TVaultConstants.READ_POLICY.equals(certificateUser.getAccess()) || TVaultConstants.WRITE_POLICY.equals(certificateUser.getAccess()) || (null==certificateUser.getAccess() && action.equals(TVaultConstants.REMOVE_USER))) {
@@ -124,8 +123,12 @@ public class CertificateUtils {
 				}
 			}
 			else {
+				if(userDetails.getUsername().equalsIgnoreCase(certificateMetaData.getCertOwnerNtid())) {
 				// Certificate admin is trying to add a user, who is non-owner of the certificate with read/write/deny
-				hasAccess = true;
+					hasAccess = true;
+				}else {
+					hasAccess = false;
+				}
 			}
 		}
 		return hasAccess;
@@ -202,7 +205,11 @@ public class CertificateUtils {
 		
 		if (null != dataNode.get("expiryDate")) {
 			certificate.setExpiryDate(dataNode.get("expiryDate").asText());
-		}		
+		}	
+		
+		if (null != dataNode.get("certOwnerNtid")) {
+			certificate.setCertOwnerNtid(dataNode.get("certOwnerNtid").asText());
+		}
 		
 		return certificate;
 	}	
