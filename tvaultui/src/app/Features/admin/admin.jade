@@ -197,7 +197,7 @@ script(type='text/ng-template', id='certificatePopup.html')
                       .details-input-group
                         .common-form-label Choose Target system
                           span *
-                        input.form-control.input-box-style(ng-model="certObj.targetSystem" ng-disabled="isTargetSystemListLoading==true" typeahead-min-length="3" name="certObj.targetSystem" uib-typeahead="key as key.name for key in searchTargetSystems($viewValue) | limitTo: 8" typeahead-wait-ms="500" typeahead-on-select="selectTargetSystem(certObj.targetSystem)" placeholder="Select the Target system" minlength="3" uib-tooltip="Please input a target system")
+                        input.form-control.input-box-style(ng-model="existingTargetSystemObj" ng-disabled="isTargetSystemListLoading==true" typeahead-min-length="3" name="existingTargetSystemObj" uib-typeahead="key as key.name for key in searchTargetSystems($viewValue) | limitTo: 8" typeahead-wait-ms="500" typeahead-on-select="selectTargetSystem(existingTargetSystemObj)" placeholder="Select the Target system" minlength="3" uib-tooltip="Please input a target system")
                         div.loader.svcaccid(ng-if='showInputLoader.show')
                           div.ball-spin-fade-loader
                               div
