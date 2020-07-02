@@ -21,7 +21,7 @@ script(type='text/ng-template', id='appRolePopup.html')
               .common-form-row
                 .details-input-group
                     .common-form-label Choose a Role Name
-                    drop-down(drop-down-options="dropDownRoleNames" name="dropdownRoles" ng-click="roleNameSelect()")              
+                    drop-down(drop-down-options="dropDownRoleNames" name="dropdownRoles" ng-click="roleNameSelect()")
               .aws.common-form
                 .common-form-row
                     .aws-conf.clearfix
@@ -98,8 +98,8 @@ script(type='text/ng-template', id='deleteCertPopup.html')
       .clearfix.bottom-sm-sep
         button.common-btn.btn.btn-primary.btn-lg(ng-click="deleteCertificate(certDetails)") DELETE
       .clearfix
-        button.link-style.common-btn.btn.btn-default.btn-lg(ng-click="close()") CANCEL  
-    
+        button.link-style.common-btn.btn.btn-default.btn-lg(ng-click="close()") CANCEL
+
 script(type='text/ng-template', id='deleteCertificateSuccessPopUp.html')
   .top-lg-sep(ng-if="!isLoadingModalData")
     .top-lg-sep
@@ -117,7 +117,7 @@ script(type='text/ng-template', id='deleteCertificateFailedPopUp.html')
     .text-center.bottom-lg-sep.top-lg-sep.notification-button
       .clearfix.bottom-sm-sep
         button.link-style.common-btn.btn.btn-cert.btn-lg(ng-click="cancel()") CLOSE
-        
+
 
 script(src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js")
 .container-fluid.common-main-content.route-page.change-safe-wrapper
@@ -126,7 +126,7 @@ script(src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"
         .header-inner-container.header-without-tab(ng-class="{'no-tabs-header' : showDetails}" ng-cloak="")
             .clearfix
               .left-arrow.glyphicon.glyphicon-menu-left.left.common-header-label(ng-click="goBack()")
-              .left-sm-sep.left.page-header-text {{changeCertificateHeader}}             
+              .left-sm-sep.left.page-header-text {{changeCertificateHeader}}
                   span.safe-in-edit {{certificate.name}}
             nav-bar(active-tab="details" gotoPage="goToPage" nav-tags="detailsNavTags" ng-if="activeDetailsTab == 'details' ")
             nav-bar(active-tab="permissions" gotoPage="goToPage" nav-tags="detailsNavTags" ng-if="activeDetailsTab == 'permissions' ")
@@ -174,19 +174,19 @@ script(src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"
                               .row
                                 .details-input-group.col-lg-12.col-md-12.col-sm-12.col-xs-12
                                   .common-form-label Create Date
-                                  input.form-control.input-box-style(id="createDate" ng-model="certificate.createDate" ng-disabled="changeCertificateHeader == 'EDIT CERTIFICATE'"  name="createDate"  required)                                   
+                                  input.form-control.input-box-style(id="createDate" ng-model="certificate.createDate" ng-disabled="changeCertificateHeader == 'EDIT CERTIFICATE'"  name="createDate"  required)
                             .col-lg-6.col-md-12.col-sm-12.col-xs-12.full-row-fix.col-lg-offset-1.col-lg-offset-1
                               .row
                                 .details-input-group.left-sm-sep.col-lg-12.col-md-12.col-sm-12.col-xs-12
                                     .common-form-label Expiry Date
-                                    input.form-control.input-box-style(id="expiryDate" ng-model="certificate.expiryDate" ng-disabled="changeCertificateHeader == 'EDIT CERTIFICATE'"  name="expiryDate"  required)            
+                                    input.form-control.input-box-style(id="expiryDate" ng-model="certificate.expiryDate" ng-disabled="changeCertificateHeader == 'EDIT CERTIFICATE'"  name="expiryDate"  required)
 
                     .safe-right-content-container.col-lg-6.col-sm-7#full-height
 
                       .safe-detail-container-block
                         .safe-img-container.text-center
                           img
-                        div.font-type-normal 
+                        div.font-type-normal
 
                   .clearfix.btn-section
                     .right.col-lg-12.col-md-12.col-sm-12.col-xs-12.bottom-lg-sep.top-lg-sep
@@ -234,7 +234,7 @@ script(src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"
                                         .add-block.container.actions.col-lg-3.col-md-3.col-sm-12.col-xs-12
                                             button.btn.btn-cert.btn-lg(ng-click="addPermission('users',inputValue.userNameVal,usrRadioBtnVal, false);inputValue.userNameValEmpty = true") ADD USER
                                     .unavailable-text(ng-if='isEmpty(UsersPermissionsData) || hideSudoPolicy')
-                                      | No users are given permission to access this certificate,<br> add users to access the certificate 
+                                      | No users are given permission to access this certificate,<br> add users to access the certificate
                                     .row.change-safe-table-container(ng-if='!isEmpty(UsersPermissionsData) && !hideSudoPolicy')
                                         .row.change-safe.header
                                             .container.name.col-lg-4.col-md-4.col-sm-4.col-xs-4 USERNAME  
@@ -246,7 +246,7 @@ script(src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"
                                                     radio-buttons(data="radio" value="radioValue" state="editPermissionItem")
                                                 .container.actions.col-lg-4.col-md-4.col-sm-4.col-xs-4
                                                     .down
-                                                        .list-icon.icon-delete(ng-click = "deletePermission('users', true, false, key, radioValue)"  uib-tooltip="Delete permission" tooltip-placement="bottom")                                                    
+                                                        .list-icon.icon-delete(ng-click = "deletePermission('users', true, false, key, radioValue)"  uib-tooltip="Delete permission" tooltip-placement="bottom")
                                                     .down.hide-in-mobile.edit
                                                         .list-icon.icon-mode_edit(ng-click="editPermissionItem = !editPermissionItem; activeItem = !activeItem" ng-class="{'inactive' : editPermissionItem == true, 'hide-icon' : editPermissionItem == true}" uib-tooltip="Edit permission" tooltip-placement="bottom")
                                                         .list-icon.icon-cross(ng-click="editPermissionItem = !editPermissionItem; activeItem = !activeItem; radioValue = value" ng-class="{'inactive' : editPermissionItem == true, 'hide-icon' : editPermissionItem == false}")
@@ -258,12 +258,12 @@ script(src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"
                                                     drop-down(drop-down-options="radio" value="radioValue" error="noTypeSelected")
                                                 .container.actions.col-lg-4.col-md-4.col-sm-4.col-xs-4
                                                     .down
-                                                        .list-icon.icon-delete(ng-click = "deletePermission('users', editPermissionItem, false, key, radioValue)" ng-class="{'inactive' : editPermissionItem == false}" uib-tooltip="Delete permission" tooltip-placement="bottom") 
+                                                        .list-icon.icon-delete(ng-click = "deletePermission('users', editPermissionItem, false, key, radioValue)" ng-class="{'inactive' : editPermissionItem == false}" uib-tooltip="Delete permission" tooltip-placement="bottom")
                                                     .down.hide-in-mobile.edit
-                                                        .list-icon.icon-mode_edit(ng-click="editPermissionItem = !editPermissionItem; activeItem = !activeItem" ng-class="{'inactive' : editPermissionItem == true, 'hide-icon' : editPermissionItem == true}" uib-tooltip="Edit permission" tooltip-placement="bottom")                                                    
-                                                        .list-icon.icon-cross(ng-click="editPermissionItem = !editPermissionItem; activeItem = !activeItem; radioValue = value" ng-class="{'inactive' : editPermissionItem == true, 'hide-icon' : editPermissionItem == false}")                                                                                                      
+                                                        .list-icon.icon-mode_edit(ng-click="editPermissionItem = !editPermissionItem; activeItem = !activeItem" ng-class="{'inactive' : editPermissionItem == true, 'hide-icon' : editPermissionItem == true}" uib-tooltip="Edit permission" tooltip-placement="bottom")
+                                                        .list-icon.icon-cross(ng-click="editPermissionItem = !editPermissionItem; activeItem = !activeItem; radioValue = value" ng-class="{'inactive' : editPermissionItem == true, 'hide-icon' : editPermissionItem == false}")
                                                     .down.save
-                                                        .list-icon(ng-click = "editPermission('users', editPermissionItem, key, radioValue); editPermissionItem ? editPermissionItem = !editPermissionItem : editPermissionItem = editPermissionItem" ng-class="{'inactive' : editPermissionItem == false}")  SAVE
+                                                        .list-icon(ng-click = "editPermission('users', editPermissionItem, key, radioValue); editPermissionItem ? editPermissionItem = !editPermissionItem : editPermissionItem = editPermissionItem" ng-class="{'inactive' : editPermissionItem == false}")  SAVE                                                    
 
                         md-tab(label="Groups" md-on-select="clearInputValue('addGroup')")
                             loading-state(ng-if='isLoadingData')
@@ -306,7 +306,7 @@ script(src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"
                                                     radio-buttons(data="radio" value="radioValue" state="editPermissionItem")
                                                 .container.actions.col-lg-4.col-md-4.col-sm-4.col-xs-4
                                                     .down
-                                                        .list-icon.icon-delete(ng-click = "deletePermission('groups', true, false, key, radioValue)" uib-tooltip="Delete permission" tooltip-placement="bottom")  
+                                                        .list-icon.icon-delete(ng-click = "deletePermission('groups', true, false, key, radioValue)" uib-tooltip="Delete permission" tooltip-placement="bottom")
                                                     .down.hide-in-mobile.edit
                                                         .list-icon.icon-mode_edit(ng-click="editPermissionItem = !editPermissionItem; activeItem = !activeItem" ng-class="{'inactive' : editPermissionItem == true, 'hide-icon' : editPermissionItem == true}" uib-tooltip="Edit permission" tooltip-placement="bottom")
                                                         .list-icon.icon-cross(ng-click="editPermissionItem = !editPermissionItem; activeItem = !activeItem; radioValue = value" ng-class="{'inactive' : editPermissionItem == true, 'hide-icon' : editPermissionItem == false}")
