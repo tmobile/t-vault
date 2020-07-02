@@ -82,10 +82,6 @@
             value: 'read',
             options: [{
                 'text': 'read'
-            }, {
-                'text': 'Renew'
-            }, {
-                'text': 'Revoke'
             }]
         };
 
