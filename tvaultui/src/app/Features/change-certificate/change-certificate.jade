@@ -1,0 +1,101 @@
+header
+sideBar
+script(type='text/ng-template', id='error.html')
+    .row
+        .top-lg-sep
+            .common-header-label.text-center Error
+        .top-lg-sep.notification-text {{errorMessage}}
+    
+    .text-center.bottom-lg-sep.top-lg-sep.notification-button
+        .clearfix.bottom-sm-sep
+            button.link-style.common-btn.btn.btn-primary.btn-lg(ng-click="cancel()") Close
+
+script(src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js")
+.container-fluid.common-main-content.route-page.change-safe-wrapper
+    .container-fluid-wrapper.curved
+      .page-header-container
+        .header-inner-container.header-without-tab(ng-class="{'no-tabs-header' : showDetails}" ng-cloak="")
+            .clearfix
+              .left-arrow.glyphicon.glyphicon-menu-left.left.common-header-label(ng-click="goBack()")
+              .left-sm-sep.left.page-header-text {{changeSafeHeader}} 
+            nav-bar(active-tab="permissions" nav-tags="detailsNavTags")            
+      .page-content-container(ng-class="{'no-tabs-body' : showDetails}" ng-cloak="") 
+          .page-content-container.permissions(ng-cloak="")
+                md-content
+                    md-tabs(md-dynamic-height md-border-bottom)
+                        md-tab(label="Users" md-on-select="clearInputValue('addUser')")
+                            loading-state(ng-if='isLoadingData')
+                            md-content(class="md-padding")
+                                .new-container.page-content-container
+                                    .row.change-safe
+                                        .add-block.container.name.col-lg-6.col-md-6.col-sm-12.col-xs-12
+                                            div.input-flex
+                                                div.input-box-style.user-input
+
+                                                    input(type='text' class="form-control" autofocus='!showInputLoader.show' ng-keyup='onKeyUp(searchValue, "userName")' placeholder='Username' restrict-special-char-with-space minlength="1" maxlength="50" ng-model="inputValue.userNameVal" id="addUser" ng-class="{error: (inputValue.userNameValEmpty &&  (inputValue.userNameVal == '' ||  inputValue.userNameVal == undefined)), highlightBox: inputSelected.select}" ng-change="searchValue.userName = inputValue.userNameVal; inputValue.userNameValEmpty = false;")
+                                                div.loader(ng-if='showInputLoader.show && inputValue.userNameVal.length > 0')
+                                                    div.ball-spin-fade-loader
+                                                        div
+                                                        div
+                                                        div
+                                                        div
+                                                        div
+                                                        div
+                                                        div
+                                                        div
+                                                div.input-cross(ng-if='inputSelected.select && inputValue.userNameVal.length > 0' ng-click="clearInputValue('addUser')")
+                                                    div.delete-title
+                                                        img.delete-icon(src="../../assets/images/delete.png")
+                                                div.autocomplete-mismatch(ng-if='showNoMatchingResults && inputValue.userNameVal.length > 0') No matching results found.
+                                        .add-block.container.radio-inputs.col-lg-3.col-md-3.col-sm-12.col-xs-12
+                                            radio-buttons(data="radio" value="usrRadioBtnVal" state="true")
+                                        .add-block.container.actions.col-lg-3.col-md-3.col-sm-12.col-xs-12
+                                            button.btn.btn-primary.btn-lg(ng-click="addPermission('users',inputValue.userNameVal,usrRadioBtnVal, false);inputValue.userNameValEmpty = true") ADD USER
+                                    .unavailable-text(ng-if='isEmpty(UsersPermissionsData)')
+                                      | No users are given permission to access this safe,<br> add users to access the safe 
+                                    .row.change-safe-table-container(ng-if='!isEmpty(UsersPermissionsData)')
+                                        .row.change-safe.header
+                                            .container.name.col-lg-4.col-md-4.col-sm-4.col-xs-4 USERNAME  
+                                            .container.radio-inputs.col-lg-4.col-md-4.col-sm-4.col-xs-4 ACTION
+                                        .change-safe-table-data.row
+                                            .row.change-safe.item.hide-in-mobile(ng-if="!isLoadingData && value != 'sudo'" ng-init="editPermissionItem = false; activeItem = false; radioValue = value" ng-class="{'grayBackground' : activeItem == true}" ng-repeat="(key, value) in UsersPermissionsData")
+                                                .container.name.col-lg-4.col-md-4.col-sm-4.col-xs-4(ng-class="{'inactive' : editPermissionItem == false}") {{key}}
+                                                .container.radio-inputs.col-lg-4.col-md-4.col-sm-4.col-xs-4
+                                                    radio-buttons(data="radio" value="radioValue" state="editPermissionItem")
+                                                .container.actions.col-lg-4.col-md-4.col-sm-4.col-xs-4
+                                                    .down
+                                                        .list-icon.icon-delete(ng-click = "deletePermission('users', true, false, key, radioValue)")                                                    
+                                                    .down.hide-in-mobile.edit
+                                                        .list-icon.icon-mode_edit(ng-class="{'inactive' : editPermissionItem == true, 'hide-icon' : editPermissionItem == true}")
+                                                        .list-icon.icon-cross(ng-click="editPermissionItem = !editPermissionItem; activeItem = !activeItem; radioValue = value" ng-class="{'inactive' : editPermissionItem == true, 'hide-icon' : editPermissionItem == false}")                                                    
+                                            .row.change-safe.item.hide-in-tablet-up(ng-if="!isLoadingData && value != 'sudo'" ng-init="editPermissionItem = true; activeItem = false; radioValue = value" ng-class="{'grayBackground' : activeItem == true}" ng-repeat="(key, value) in UsersPermissionsData")
+                                                .container.name.col-lg-4.col-md-4.col-sm-4.col-xs-4(ng-class="{'inactive' : editPermissionItem == false}") {{key}}
+                                                .container.radio-inputs.col-lg-4.col-md-4.col-sm-4.col-xs-4
+                                                    drop-down(drop-down-options="radio" value="radioValue" error="noTypeSelected")
+                                                .container.actions.col-lg-4.col-md-4.col-sm-4.col-xs-4
+                                                    .down
+                                                        .list-icon.icon-delete(ng-click = "deletePermission('users', editPermissionItem, false, key, radioValue)" ng-class="{'inactive' : editPermissionItem == false}") 
+                                                    .down.hide-in-mobile.edit
+                                                        .list-icon.icon-mode_edit(ng-click="editPermissionItem = !editPermissionItem; activeItem = !activeItem" ng-class="{'inactive' : editPermissionItem == true, 'hide-icon' : editPermissionItem == true}")                                                    
+                                                        .list-icon.icon-cross(ng-click="editPermissionItem = !editPermissionItem; activeItem = !activeItem; radioValue = value" ng-class="{'inactive' : editPermissionItem == true, 'hide-icon' : editPermissionItem == false}")                                                                                                      
+                                                                    
+                        md-tab(label="Groups" md-on-select="clearInputValue('addGroup')")
+                            loading-state(ng-if='isLoadingData')
+                            md-content(class="md-padding")
+                                .new-container.page-content-container
+                                   
+                        md-tab(label="AWS Applications")
+                            loading-state(ng-if='isLoadingData')
+                            md-content(class="md-padding")
+                                .new-container.page-content-container
+                                    
+                        md-tab(label="AppRoles")
+                            loading-state(ng-if='isLoadingData')
+                            md-content(class="md-padding")
+                                .new-container.page-content-container
+                                   
+                .clearfix.btn-section
+                  .right.col-lg-6.col-md-6.col-sm-6.col-xs-12.bottom-lg-sep.top-lg-sep
+                    .right
+                      button.common-btn.btn.btn-primary.btn-lg(type='button' ng-click="certificateEditPermission()") Done
+                  
