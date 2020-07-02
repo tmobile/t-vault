@@ -1385,7 +1385,7 @@
                         $scope.certNameErrorMessage = "Certificate name should end with .t-mobile.com"
                         $scope.certInValid = true;
                     }  else if ( (certName.includes(".-")) || (certName.includes("-."))){
-                        $scope.certNameErrorMessage = "please enter proper value in certificate name "
+                        $scope.certNameErrorMessage = "please enter valid certificate name "
                         $scope.certInValid = true;
                     }
 
