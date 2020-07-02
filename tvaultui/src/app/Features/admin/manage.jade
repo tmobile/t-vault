@@ -38,7 +38,7 @@ script(type='text/ng-template', id='notify.html')
     .top-lg-sep.notification-text  {{ certificateCreationMessage }}
     .text-center.bottom-lg-sep.top-lg-sep.notification-button
       .clearfix.bottom-sm-sep
-        button.link-style.common-btn.btn.btn-primary.btn-lg(ng-click="cancel()") CLOSE  
+        button.link-style.common-btn.btn.btn-primary.btn-lg(ng-click="successCancel()") CLOSE
 
 script(type='text/ng-template', id='certificateCreationFailedPopUp.html')
   loading-state(ng-if="isLoadingModalData")
@@ -91,7 +91,6 @@ script(type='text/ng-template', id='certificatePopup.html')
                 .font-type-normal.collapse-link(ng-click="collapseCertDetails(3)") Step 1/3: Please fill the Certificate details
                   span.svc-collapse-link(ng-if="!isCertCollapsed") >> 
                   span.collapse-link(ng-if="isCertCollapsed") >> 
-                  span.target-note(ng-if="certDetailsSelected") {{cert.certDetails.name}}
                 .font-type-normal(uib-collapse="isCertCollapsed" )
                     .col-lg-12.col-md-12.col-sm-12.col-xs-12.common-form-row()
                       .details-input-group
@@ -131,7 +130,6 @@ script(type='text/ng-template', id='certificatePopup.html')
                 .font-type-normal.collapse-link(ng-click="collapseCertDetails(1)") Step 2/3: Please fill the Target system details
                   span.svc-collapse-link(ng-if="!isTargetCollapsed") >> 
                   span.collapse-link(ng-if="isTargetCollapsed") >> 
-                  span.target-note(ng-if="targetSystemSelected") {{cert.targetSystem.name}}
                 .font-type-normal(uib-collapse="isTargetCollapsed")
                   .col-lg-12.col-md-12.col-sm-12.col-xs-12.common-form-row()
                     .details-input-group
@@ -158,7 +156,7 @@ script(type='text/ng-template', id='certificatePopup.html')
                       .details-input-group
                         .common-form-label Choose Target system
                           span *
-                        input.form-control.input-box-style(ng-model="certObj.targetSystem" ng-disabled="isTargetSystemListLoading==true" typeahead-min-length="3" name="certObj.targetSystem" uib-typeahead="key as key.name for key in searchTargetSystems($viewValue) | limitTo: 8" typeahead-wait-ms="500" typeahead-on-select="selectTargetSystem(certObj.targetSystem)" placeholder="Select the Target system" minlength="3" uib-tooltip="Please input a target system")
+                        input.form-control.input-box-style(ng-model="existingTargetSystemObj" ng-disabled="isTargetSystemListLoading==true" typeahead-min-length="3" name="existingTargetSystemObj" uib-typeahead="key as key.name for key in searchTargetSystems($viewValue) | limitTo: 8" typeahead-wait-ms="500" typeahead-on-select="selectTargetSystem(existingTargetSystemObj)" placeholder="Select the Target system" minlength="3" uib-tooltip="Please input a target system")
                         div.loader.svcaccid(ng-if='showInputLoader.show')
                           div.ball-spin-fade-loader
                               div
@@ -174,7 +172,6 @@ script(type='text/ng-template', id='certificatePopup.html')
                 .font-type-normal.collapse-link(ng-click="collapseCertDetails(2)") Step 3/3: Please fill the Service details
                   span.svc-collapse-link(ng-if="!isTargetServiceCollapsed") >> 
                   span.collapse-link(ng-if="isTargetServiceCollapsed") >> 
-                  span.target-note(ng-if="targetSystemServiceSelected") {{cert.targetSystemService.name}}
                 .font-type-normal(uib-collapse="isTargetServiceCollapsed")
                   .col-lg-12.col-md-12.col-sm-12.col-xs-12.common-form-row()
                     .details-input-group
