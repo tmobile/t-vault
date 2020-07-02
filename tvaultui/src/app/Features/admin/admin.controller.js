@@ -740,14 +740,12 @@
         }
 
         $scope.selectTargetSystem = function (targetSystem) {
-            console.log(targetSystem);
             $scope.certObj.targetSystem = {
                 "name": targetSystem.name,
                 "description": targetSystem.description,
                 "address": targetSystem.address,
                 "targetSystemID": targetSystem.targetSystemID
             }
-            console.log($scope.certObj.targetSystem);
             $scope.targetSystemSelected = true;
             $scope.getTargetSystemService();
         }
@@ -1800,6 +1798,7 @@
         $scope.searchEmail = function (searchVal) {
             if (searchVal.length > 2) {
                 $scope.isUserSearchLoading = true;
+                searchVal = searchVal.toLowerCase();
                 try {
                     $scope.userSearchList = [];
 
@@ -1809,8 +1808,14 @@
                         function(response) {
                             $scope.isUserSearchLoading = false;
                             if (UtilityService.ifAPIRequestSuccessful(response)) {
+                                var filterdUserData = [];
                                 $scope.userSearchList = response.data.data.values;
-                                return orderByFilter(filterFilter($scope.userSearchList, searchVal), 'userName', true);
+                                $scope.userSearchList.forEach(function (userData) {
+                                    if (userData.userEmail != null && userData.userEmail.substring(0, searchVal.length).toLowerCase() == searchVal) {
+                                        filterdUserData.push(userData);
+                                    }
+                                });
+                                return orderByFilter(filterFilter(filterdUserData, searchVal), 'userEmail', true);
                             } else {
                                 $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
                                 $scope.error('md');
