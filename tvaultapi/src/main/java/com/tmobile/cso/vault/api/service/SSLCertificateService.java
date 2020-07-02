@@ -1394,7 +1394,13 @@ public class SSLCertificateService {
         if (HttpStatus.OK.equals(response.getHttpstatus())) {
             JsonParser jsonParser = new JsonParser();
             JsonObject jsonObject = (JsonObject) jsonParser.parse(response.getResponse());
-            if (jsonObject.isJsonNull() || jsonObject.get(SSLCertificateConstants.TARGETSYSTEMS) == null || jsonObject.get(SSLCertificateConstants.TARGETSYSTEMS).toString().equalsIgnoreCase("null"))  {
+            if (jsonObject == null || jsonObject.get(SSLCertificateConstants.TARGETSYSTEMS) == null || jsonObject.get(SSLCertificateConstants.TARGETSYSTEMS).toString().equalsIgnoreCase("null"))  {
+                log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+                        put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+                        put(LogMessage.ACTION, "getTargetSystemList").
+                        put(LogMessage.MESSAGE, "Retrieved empty target system list from NCLM").
+                        put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+                        build()));
                 return ResponseEntity.status(HttpStatus.OK).body("{\"data\": "+JSONUtil.getJSONasDefaultPrettyPrint(targetSystemDetails)+"}");
             }
             JsonArray jsonArray = jsonObject.getAsJsonArray(SSLCertificateConstants.TARGETSYSTEMS);
@@ -1444,7 +1450,13 @@ public class SSLCertificateService {
         if (HttpStatus.OK.equals(response.getHttpstatus())) {
             JsonParser jsonParser = new JsonParser();
             JsonObject jsonObject = (JsonObject) jsonParser.parse(response.getResponse());
-            if (jsonObject.isJsonNull() || jsonObject.get(SSLCertificateConstants.TARGETSYSTEM_SERVICES) == null || jsonObject.get(SSLCertificateConstants.TARGETSYSTEM_SERVICES).toString().equalsIgnoreCase("null"))  {
+            if (jsonObject == null || jsonObject.get(SSLCertificateConstants.TARGETSYSTEM_SERVICES) == null || jsonObject.get(SSLCertificateConstants.TARGETSYSTEM_SERVICES).toString().equalsIgnoreCase("null"))  {
+                log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+                        put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+                        put(LogMessage.ACTION, "getTargetSystemServiceList").
+                        put(LogMessage.MESSAGE, "Retrieved empty target system service list from NCLM").
+                        put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+                        build()));
                 return ResponseEntity.status(HttpStatus.OK).body("{\"data\": "+JSONUtil.getJSONasDefaultPrettyPrint(targetSystemServiceDetails)+"}");
             }
             JsonArray jsonArray = jsonObject.getAsJsonArray(SSLCertificateConstants.TARGETSYSTEM_SERVICES);
