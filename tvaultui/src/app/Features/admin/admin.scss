@@ -483,8 +483,11 @@
     background-color: transparent!important;
 }
 
+#serviceDropdown button {
+    padding-top: 5px!important;
+    padding-bottom: 5px!important;
+}
 #serviceDropdown li a:focus {
-    color: #fff!important;
     color: #fff!important;
     text-decoration: none!important;
     background-color: #f6006e!important;
@@ -493,20 +496,17 @@
 
 #serviceDropdown li a:hover {
     color: #fff!important;
-    color: #fff!important;
     text-decoration: none!important;
     background-color: #f6006e!important;
     outline: 0!important;
 }
 #dropdownRevocationReason li a:focus {
     color: #fff!important;
-    color: #fff!important;
     text-decoration: none!important;
     background-color: #F6006E!important;
     outline: 0!important;
 }
 #dropdownRevocationReason li a:hover {
-    color: #fff!important;
     color: #fff!important;
     text-decoration: none!important;
     background-color: #F6006E!important;
