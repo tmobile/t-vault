@@ -1755,17 +1755,20 @@ public class SSLCertificateService {
    		
    		String userName = certificateUser.getUsername().toLowerCase();
    		String certificateName = certificateUser.getCertificateName();
-   		String access = certificateUser.getAccess().toLowerCase();
+   		String access = certificateUser.getAccess().toLowerCase();   		 		
    		
    		boolean isAuthorized = true;
    		if (userDetails != null) {
+   			if (!userDetails.isAdmin()) {
+   	            token = userDetails.getSelfSupportToken();
+   	        }
    			isAuthorized = certificateUtils.canAddOrRemoveUser(userDetails, certificateUser, "addUser");
    		}
    		
-   		if(isAuthorized){   			
+   		if(isAuthorized){    			
    			return checkUserDetailsAndAddCertificateToUser(token, userName, certificateName, access);	
    		}else{
-   			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid 'path' specified\"]}");
+   			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Access denied: No permission to add users to this certificate\"]}");
    		}
    	}
 
@@ -1796,7 +1799,7 @@ public class SSLCertificateService {
 					put(LogMessage.MESSAGE, "Incorrect access requested. Valid values are read, write, deny").
 					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 					build()));
-			return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body("{\"errors\":[\"Incorrect access requested. Valid values are read,write,deny \"]}");
+			return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body("{\"errors\":[\"Incorrect access requested. Valid values are read,deny \"]}");
 		}
 
 		String policy = policyPrefix + certificateName;

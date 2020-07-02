@@ -66,7 +66,7 @@ public class CertificateUser implements Serializable {
 	/**
 	 * @return the access
 	 */
-	@ApiModelProperty(example="write", position=3)
+	@ApiModelProperty(example="read", position=3)
 	public String getAccess() {
 		return access;
 	}
