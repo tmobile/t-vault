@@ -81,7 +81,7 @@ public class CertificateUtils {
 		boolean hasAccess = true;
 		if (userDetails.getUsername() != null && userDetails.getUsername().equalsIgnoreCase(certificateMetaData.getCertOwnerNtid())) {
 			// This user is owner of the certificate...
-			if (certificateUser.getUsername().equals(certificateMetaData.getCertOwnerNtid())) {
+			if (certificateUser.getUsername().equalsIgnoreCase(certificateMetaData.getCertOwnerNtid())) {
 				if (TVaultConstants.READ_POLICY.equals(certificateUser.getAccess()) || TVaultConstants.WRITE_POLICY.equals(certificateUser.getAccess()) || (null==certificateUser.getAccess() && action.equals(TVaultConstants.REMOVE_USER))) {
 					// certificate owner himself can set read/write permission to the certificate owner
 					hasAccess = true;
