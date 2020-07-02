@@ -136,6 +136,7 @@
             $scope.targetSystemServiceType = { "type": "new" };
             $scope.targetSystemSelected = false;
             $scope.isTargetSystemListLoading = false;
+            $scope.existingTargetSystemObj = "";
 
             $scope.targetSystemServiceSelected = false;
             $scope.serviceListTableOptions = [];
@@ -739,7 +740,14 @@
         }
 
         $scope.selectTargetSystem = function (targetSystem) {
-            $scope.certObj.targetSystem = targetSystem;
+            console.log(targetSystem);
+            $scope.certObj.targetSystem = {
+                "name": targetSystem.name,
+                "description": targetSystem.description,
+                "address": targetSystem.address,
+                "targetSystemID": targetSystem.targetSystemID
+            }
+            console.log($scope.certObj.targetSystem);
             $scope.targetSystemSelected = true;
             $scope.getTargetSystemService();
         }
