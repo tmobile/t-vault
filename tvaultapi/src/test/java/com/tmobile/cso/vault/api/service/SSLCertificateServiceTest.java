@@ -1485,7 +1485,8 @@ public class SSLCertificateServiceTest {
 
     @Test
     public void test_addUserToCertificate_successfully() {        
-        CertificateUser certUser = new CertificateUser("testuser1","read", "CertificateName");        
+        CertificateUser certUser = new CertificateUser("testuser1","read", "CertificateName");    
+        SSLCertificateMetadataDetails certificateMetadata = getSSLCertificateMetadataDetails();
         userDetails.setUsername("testuser1");
         
         Response userResponse = getMockResponse(HttpStatus.OK, true, "{\"data\":{\"bound_cidrs\":[],\"max_ttl\":0,\"policies\":[\"default\",\"w_cert_certtest250630.t-mobile.com\"],\"ttl\":0,\"groups\":\"admin\"}}");
@@ -1510,7 +1511,8 @@ public class SSLCertificateServiceTest {
         when(ControllerUtil.configureLDAPUser(eq("testuser1"),any(),any(),eq(token))).thenReturn(idapConfigureResponse);
         when(ControllerUtil.configureUserpassUser(eq("testuser1"),any(),eq(token))).thenReturn(idapConfigureResponse);
         when(ControllerUtil.updateMetadata(any(),eq(token))).thenReturn(responseNoContent);
-        when(certificateUtils.canAddOrRemoveUser(userDetails, certUser, "addUser")).thenReturn(true);
+        when(certificateUtils.getCertificateMetaData(token, "CertificateName")).thenReturn(certificateMetadata);
+        when(certificateUtils.canAddOrRemoveUser(userDetails, certificateMetadata)).thenReturn(true);
         
         ResponseEntity<String> responseEntity = sSLCertificateService.addUserToCertificate(token, certUser, null);
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
@@ -1519,7 +1521,8 @@ public class SSLCertificateServiceTest {
     
     @Test
     public void test_addUserToCertificate_failure_all_certs() {       
-        CertificateUser certUser = new CertificateUser("testuser1","read", "CertificateName");        
+        CertificateUser certUser = new CertificateUser("testuser1","read", "CertificateName");    
+        SSLCertificateMetadataDetails certificateMetadata = getSSLCertificateMetadataDetails();
         userDetails.setUsername("testuser1");
 
         Response userResponse = getMockResponse(HttpStatus.OK, true, "{\"data\":{\"bound_cidrs\":[],\"max_ttl\":0,\"policies\":[\"default\",\"w_cert_certtest250630.t-mobile.com\"],\"ttl\":0,\"groups\":\"admin\"}}");
@@ -1550,8 +1553,9 @@ public class SSLCertificateServiceTest {
                 return response_404;
             }
         });
-
-        when(certificateUtils.canAddOrRemoveUser(userDetails, certUser, "addUser")).thenReturn(true);
+        
+        when(certificateUtils.getCertificateMetaData(token, "CertificateName")).thenReturn(certificateMetadata);
+        when(certificateUtils.canAddOrRemoveUser(userDetails, certificateMetadata)).thenReturn(true);
 
         ResponseEntity<String> responseEntity = sSLCertificateService.addUserToCertificate(token, certUser, null);
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, responseEntity.getStatusCode());
@@ -1560,7 +1564,8 @@ public class SSLCertificateServiceTest {
     
     @Test
     public void test_addUserToCertificate_failure() {
-        CertificateUser certUser = new CertificateUser("testuser1","write", "CertificateName");        
+        CertificateUser certUser = new CertificateUser("testuser1","write", "CertificateName");    
+        SSLCertificateMetadataDetails certificateMetadata = getSSLCertificateMetadataDetails();
         userDetails.setUsername("testuser1");
         
         Response userResponse = getMockResponse(HttpStatus.OK, true, "{\"data\":{\"bound_cidrs\":[],\"max_ttl\":0,\"policies\":[\"default\",\"w_cert_certtest250630.t-mobile.com\"],\"ttl\":0,\"groups\":\"admin\"}}");
@@ -1582,7 +1587,9 @@ public class SSLCertificateServiceTest {
         }
         when(ControllerUtil.configureLDAPUser(eq("testuser1"),any(),any(),eq(token))).thenReturn(responseNotFound);
         when(ControllerUtil.configureUserpassUser(eq("testuser1"),any(),eq(token))).thenReturn(responseNotFound);
-        when(certificateUtils.canAddOrRemoveUser(userDetails, certUser, "addUser")).thenReturn(true);
+        
+        when(certificateUtils.getCertificateMetaData(token, "CertificateName")).thenReturn(certificateMetadata);
+        when(certificateUtils.canAddOrRemoveUser(userDetails, certificateMetadata)).thenReturn(true);
         
         ResponseEntity<String> responseEntity = sSLCertificateService.addUserToCertificate(token, certUser, null);
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, responseEntity.getStatusCode());
@@ -1591,12 +1598,14 @@ public class SSLCertificateServiceTest {
 
     @Test
     public void test_addUserToCertificate_failure_400() {        
-        CertificateUser certUser = new CertificateUser("testuser1","write", "CertificateName");       
+        CertificateUser certUser = new CertificateUser("testuser1","write", "CertificateName");  
+        SSLCertificateMetadataDetails certificateMetadata = getSSLCertificateMetadataDetails();
         userDetails.setUsername("testuser1");
         
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid input values\"]}");
         when(ControllerUtil.areCertificateUserInputsValid(certUser)).thenReturn(false);
-        when(certificateUtils.canAddOrRemoveUser(userDetails, certUser, "addUser")).thenReturn(true);
+        when(certificateUtils.getCertificateMetaData(token, "CertificateName")).thenReturn(certificateMetadata);
+        when(certificateUtils.canAddOrRemoveUser(userDetails, certificateMetadata)).thenReturn(true);
         
         ResponseEntity<String> responseEntity = sSLCertificateService.addUserToCertificate(token, certUser, null);
         assertEquals(HttpStatus.BAD_REQUEST, responseEntity.getStatusCode());
@@ -1839,5 +1848,16 @@ public class SSLCertificateServiceTest {
         userDetails.setClientToken(token);
         userDetails.setSelfSupportToken(token);
         return userDetails;
+    }
+    
+    SSLCertificateMetadataDetails getSSLCertificateMetadataDetails() {        
+        SSLCertificateMetadataDetails certDetails = new SSLCertificateMetadataDetails();
+        certDetails.setCertType("internal");
+        certDetails.setCertCreatedBy("testuser1");
+        certDetails.setCertificateName("CertificateName");
+        certDetails.setCertOwnerNtid("testuser1");
+        certDetails.setCertOwnerEmailId("owneremail@test.com");
+        certDetails.setExpiryDate("10-20-2030");        
+        return certDetails;
     }
 }
