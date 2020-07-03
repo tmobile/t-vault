@@ -1788,12 +1788,20 @@
                 $scope.certObj.targetSystemServiceRequest.multiIpMonitoringEnabled=undefined;
             }
             else {
-                $scope.certObj.targetSystemServiceRequest = "";
+                $scope.targetSystemServiceRequest = {
+                    'description': undefined,
+                    'hostname': undefined,
+                    'monitoringEnabled': undefined,
+                    'multiIpMonitoringEnabled': undefined,
+                    'name': undefined,
+                    'port': undefined
+                }
             }
         }
 
         $scope.openNewService = function () {
             $scope.existingService = false;
+            $scope.targetSystemServiceSelected = false;
 
             clearTargetSystemServiceFields();
             if ($scope.serviceListTableOptions.length >0) {
