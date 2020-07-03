@@ -621,6 +621,8 @@ public class SSLCertificateService {
                 sslCertificateRequest.getCertOwnerEmailId().contains(" ") ||  sslCertificateRequest.getCertType().contains(" ") ||
                 (!sslCertificateRequest.getCertificateName().endsWith(".t-mobile.com")) ||
                 sslCertificateRequest.getTargetSystem().getAddress().contains(" ") ||
+                (sslCertificateRequest.getCertificateName().contains(".-")) ||
+                (sslCertificateRequest.getCertificateName().contains("-.")) ||
                 (!StringUtils.isEmpty(sslCertificateRequest.getTargetSystemServiceRequest().getHostname()) &&
                         sslCertificateRequest.getTargetSystemServiceRequest().getHostname().contains(" ")) ||
                 (!isValidAppName(sslCertificateRequest))){
