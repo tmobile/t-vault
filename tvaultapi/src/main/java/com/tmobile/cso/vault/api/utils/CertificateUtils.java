@@ -30,10 +30,8 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
 import com.tmobile.cso.vault.api.common.SSLCertificateConstants;
-import com.tmobile.cso.vault.api.common.TVaultConstants;
 import com.tmobile.cso.vault.api.controller.ControllerUtil;
 import com.tmobile.cso.vault.api.exception.LogMessage;
-import com.tmobile.cso.vault.api.model.CertificateUser;
 import com.tmobile.cso.vault.api.model.SSLCertificateMetadataDetails;
 import com.tmobile.cso.vault.api.model.UserDetails;
 import com.tmobile.cso.vault.api.process.Response;
@@ -48,24 +46,16 @@ public class CertificateUtils {
 	 * @param safeUser
 	 * @return
 	 */
-	public boolean canAddOrRemoveUser(UserDetails userDetails, CertificateUser certificateUser, String action) {
-		String token = userDetails.getSelfSupportToken();
-		String certificateName = certificateUser.getCertificateName();		
-		
-		if (userDetails.isAdmin()) {
-			token = userDetails.getClientToken();
-		}
-		SSLCertificateMetadataDetails certificateMetaData = getCertificateMetaData(token, certificateName);
+	public boolean canAddOrRemoveUser(UserDetails userDetails, SSLCertificateMetadataDetails certificateMetaData) {			
 		if (ObjectUtils.isEmpty(certificateMetaData)) {
 			return false;
 		}		
-		if (userDetails.isAdmin()) {
-			
-			return checkIfCertificateAdmin(userDetails, certificateUser, action, certificateMetaData);
+		if (userDetails.isAdmin()) {			
+			return checkIfCertificateAdmin(userDetails, certificateMetaData);
 		}
 		else {
 			// Prevent the owner of the certificate to be denied...
-			return checkIfNonCertificateAdmin(userDetails, certificateUser, action, certificateMetaData);
+			return checkIfNonCertificateAdmin(userDetails, certificateMetaData);
 		}
 	}
 
@@ -76,19 +66,10 @@ public class CertificateUtils {
 	 * @param certOwnerid
 	 * @return
 	 */
-	private boolean checkIfNonCertificateAdmin(UserDetails userDetails, CertificateUser certificateUser, String action,
-			SSLCertificateMetadataDetails certificateMetaData) {
+	private boolean checkIfNonCertificateAdmin(UserDetails userDetails, SSLCertificateMetadataDetails certificateMetaData) {
 		boolean hasAccess = true;
 		if (userDetails.getUsername() != null && userDetails.getUsername().equalsIgnoreCase(certificateMetaData.getCertOwnerNtid())) {
-			// This user is owner of the certificate...
-			if (certificateUser.getUsername().equalsIgnoreCase(certificateMetaData.getCertOwnerNtid())) {
-				if (TVaultConstants.READ_POLICY.equals(certificateUser.getAccess()) || TVaultConstants.WRITE_POLICY.equals(certificateUser.getAccess()) || (null==certificateUser.getAccess() && action.equals(TVaultConstants.REMOVE_USER))) {
-					// certificate owner himself can set read/write permission to the certificate owner
-					hasAccess = true;
-				}else {
-					hasAccess = false;
-				}
-			}
+			hasAccess = true;			
 		}else {
 			// other normal users will not have permission as they are not the owner
 			hasAccess = false;
@@ -102,7 +83,7 @@ public class CertificateUtils {
 	 * @param certOwnerid
 	 * @return
 	 */
-	private boolean checkIfCertificateAdmin(UserDetails userDetails, CertificateUser certificateUser, String action, SSLCertificateMetadataDetails certificateMetaData) {
+	private boolean checkIfCertificateAdmin(UserDetails userDetails, SSLCertificateMetadataDetails certificateMetaData) {
 		boolean hasAccess = true;
 		if (StringUtils.isEmpty(certificateMetaData.getCertOwnerNtid())) {
 			// Null or empty user for owner
@@ -112,23 +93,11 @@ public class CertificateUtils {
 		}
 		else {
 			// There is some owner assigned to the certificate
-			if (certificateMetaData.getCertOwnerNtid().equalsIgnoreCase(certificateUser.getUsername())) {
-				// Certificate admin is trying to add the owner of the certificate as some user with some permission
-				// Certificate admin can add read or write permission to certificate owner
-				if (TVaultConstants.READ_POLICY.equals(certificateUser.getAccess()) || TVaultConstants.WRITE_POLICY.equals(certificateUser.getAccess()) || (null==certificateUser.getAccess() && action.equals(TVaultConstants.REMOVE_USER))) {
-					// Certificate admin or the certificate owner himself can set read/write permission to the certificate owner
-					hasAccess = true;
-				}else {
-					hasAccess = false;
-				}
+			if (certificateMetaData.getCertOwnerNtid().equalsIgnoreCase(userDetails.getUsername())) {
+				hasAccess = true;				
 			}
 			else {
-				if(userDetails.getUsername().equalsIgnoreCase(certificateMetaData.getCertOwnerNtid())) {
-				// Certificate admin is trying to add a user, who is non-owner of the certificate with read/write/deny
-					hasAccess = true;
-				}else {
-					hasAccess = false;
-				}
+				hasAccess = false;
 			}
 		}
 		return hasAccess;
