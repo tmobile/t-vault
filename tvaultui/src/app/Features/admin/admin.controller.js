@@ -1538,62 +1538,48 @@
             })
         }
 
-        var isExistingServiceDetailsValid = function () {
-            if ($scope.targetSystemServiceSelected === true && ($scope.certObj.targetSystemServiceRequest.hostname == undefined || $scope.certObj.targetSystemServiceRequest.hostname == "")) {
-                return false;
-            }
-            return true;
-        }
-
         $scope.createCert = function () {
-            if (isExistingServiceDetailsValid()) {
-
-                try {
-                    Modal.close('');
-                    var sslcertType = 'PRIVATE_SINGLE_SAN';
-                    $scope.appNameTagValue=$scope.certObj.certDetails.applicationName;
-                    $scope.certObj.sslcertType = sslcertType;
-                    var reqObjtobeSent =  {
-                        "sslcertType": $scope.certObj.sslcertType,
-                        "targetSystem": $scope.certObj.targetSystem,
-                        "targetSystemServiceRequest": $scope.certObj.targetSystemServiceRequest,
-                        "appName": $scope.appNameTagValue,
-                        "certificateName":$scope.certObj.certDetails.certName,
-                        "certType":$scope.certObj.certDetails.certType,
-                        "certOwnerEmailId":$scope.certObj.certDetails.ownerEmail,
-                        "certOwnerNTId":$scope.certObj.certDetails.ownerNtId
-                    }
-                    $scope.certificateCreationMessage = '';
-                    var url = '';
-                    $scope.isLoadingData = true;
-                    AdminSafesManagement.sslCertificateCreation(reqObjtobeSent, url).then(function (response) {
-
-                        $scope.isLoadingData = false;
-                        if (UtilityService.ifAPIRequestSuccessful(response)) {
-                            $scope.certificateCreationMessage = response.data.messages[0];
-                            resetCert();
-                            $scope.certificateCreationPopUp();
-                        }
-                    },
-                    function (error) {
-                        resetCert();
-                        var errors = error.data.errors;
-                        $scope.certificateCreationMessage = errors[0];
-                        $scope.certificateCreationFailedPopUp();
-                        $scope.isLoadingData = false;
-                        console.log(error);
-                    })
-                } catch (e) {
-                    resetCert();
-                    $scope.isLoadingData = false;
-                    console.log(e);
+            try {
+                Modal.close('');
+                var sslcertType = 'PRIVATE_SINGLE_SAN';
+                $scope.appNameTagValue=$scope.certObj.certDetails.applicationName;
+                $scope.certObj.sslcertType = sslcertType;
+                var reqObjtobeSent =  {
+                    "sslcertType": $scope.certObj.sslcertType,
+                    "targetSystem": $scope.certObj.targetSystem,
+                    "targetSystemServiceRequest": $scope.certObj.targetSystemServiceRequest,
+                    "appName": $scope.appNameTagValue,
+                    "certificateName":$scope.certObj.certDetails.certName,
+                    "certType":$scope.certObj.certDetails.certType,
+                    "certOwnerEmailId":$scope.certObj.certDetails.ownerEmail,
+                    "certOwnerNTId":$scope.certObj.certDetails.ownerNtId
                 }
-            }
-            else {
-                $scope.certificateCreationMessage = "Invalid Target system service details";
-                $scope.certificateCreationFailedPopUp();
+                $scope.certificateCreationMessage = '';
+                var url = '';
+                $scope.isLoadingData = true;
+                AdminSafesManagement.sslCertificateCreation(reqObjtobeSent, url).then(function (response) {
+
+                    $scope.isLoadingData = false;
+                    if (UtilityService.ifAPIRequestSuccessful(response)) {
+                        $scope.certificateCreationMessage = response.data.messages[0];
+                        resetCert();
+                        $scope.certificateCreationPopUp();
+                    }
+                },
+                function (error) {
+                    resetCert();
+                    var errors = error.data.errors;
+                    $scope.certificateCreationMessage = errors[0];
+                    $scope.certificateCreationFailedPopUp();
+                    $scope.isLoadingData = false;
+                    console.log(error);
+                })
+            } catch (e) {
+                resetCert();
                 $scope.isLoadingData = false;
+                console.log(e);
             }
+
             resetCert();
         };
 
