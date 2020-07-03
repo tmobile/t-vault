@@ -1773,13 +1773,21 @@ public class SSLCertificateService {
    		
    		boolean isAuthorized = true;
    		if (userDetails != null) {
-   			if (!userDetails.isAdmin()) {
-   	            token = userDetails.getSelfSupportToken();
+   			if (userDetails.isAdmin()) {
+   				token = userDetails.getClientToken();   	            
+   	        }else {
+   	        	token = userDetails.getSelfSupportToken();
    	        }
-   			isAuthorized = certificateUtils.canAddOrRemoveUser(userDetails, certificateUser, "addUser");
+   			SSLCertificateMetadataDetails certificateMetaData = certificateUtils.getCertificateMetaData(token, certificateName);
+   			
+   			isAuthorized = certificateUtils.canAddOrRemoveUser(userDetails, certificateMetaData);
+   			
+   			if((isAuthorized && (userName.equalsIgnoreCase(certificateMetaData.getCertOwnerNtid())))) {
+   				return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Certificate owner cannot be added as a user to the certificate owned by him\"]}");
+   			}
    		}
    		
-   		if(isAuthorized){    			
+   		if(isAuthorized){   			
    			return checkUserDetailsAndAddCertificateToUser(token, userName, certificateName, access);	
    		}else{
    			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Access denied: No permission to add users to this certificate\"]}");
