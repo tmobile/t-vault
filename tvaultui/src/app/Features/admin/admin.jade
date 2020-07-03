@@ -129,8 +129,8 @@ script(type='text/ng-template', id='certificatePopup.html')
                     .common-form-label Container
                     input.form-control.input-box-style(value="VenafiBin_12345" uib-tooltip="" tooltip-placement="top" tooltip-popup-delay="600" ng-disabled="true")  
               .cert-conf.clearfix
-                .font-type-normal.collapse-link(ng-click="collapseCertDetails(3)") Step 1/3: Please fill the Certificate details
-                  span.svc-collapse-link(ng-if="!isCertCollapsed") >> 
+                .font-type-normal.collapse-link(ng-click="collapseCertDetails(3)") Step 1/3: Please fill the Certificate details 
+                  span.collapse-link(ng-if="!isCertCollapsed") >>
                   span.collapse-link(ng-if="isCertCollapsed") >> 
                 .font-type-normal(uib-collapse="isCertCollapsed" )
                     .col-lg-12.col-md-12.col-sm-12.col-xs-12.common-form-row()
@@ -148,7 +148,7 @@ script(type='text/ng-template', id='certificatePopup.html')
                     .col-lg-12.col-md-12.col-sm-12.col-xs-12.common-form-row()
                       .details-input-group
                         .common-form-label Application Name*
-                        input.form-control.input-box-style(ng-model="certObj.certDetails.applicationName" id="applicationName" typeahead-min-length="2" name="appName" uib-typeahead="key as key.type for key in getAppName($viewValue) | limitTo: 5" typeahead-wait-ms="500" typeahead-on-select="selectAppName(applicationName)" ng-disabled="isApplicationsLoading" ng-required="true")
+                        input.form-control.input-box-style(ng-model="certApplicationName" id="applicationName" typeahead-min-length="2" name="appName" uib-typeahead="key as key.type for key in getAppName($viewValue) | limitTo: 5" typeahead-wait-ms="500" typeahead-on-select="selectAppName(certApplicationName)" ng-disabled="isApplicationsLoading" ng-required="true")
                         div.loader.svcaccid(ng-if='isApplicationsLoading')
                     .col-lg-12.col-md-12.col-sm-12.col-xs-12.common-form-row()
                       .details-input-group
@@ -168,8 +168,8 @@ script(type='text/ng-template', id='certificatePopup.html')
                             div.delete-title
                                 img.delete-icon(src="../../assets/images/delete.png")
               .cert-conf.clearfix
-                .font-type-normal.collapse-link(ng-click="collapseCertDetails(1)") Step 2/3: Please fill the Target system details
-                  span.svc-collapse-link(ng-if="!isTargetCollapsed") >> 
+                .font-type-normal.collapse-link(ng-click="collapseCertDetails(1)") Step 2/3: Please fill the Target system details 
+                  span.collapse-link(ng-if="!isTargetCollapsed") >>
                   span.collapse-link(ng-if="isTargetCollapsed") >> 
                 .font-type-normal(uib-collapse="isTargetCollapsed")
                   .col-lg-12.col-md-12.col-sm-12.col-xs-12.common-form-row()
@@ -210,8 +210,8 @@ script(type='text/ng-template', id='certificatePopup.html')
                               div
 
               .cert-conf.clearfix
-                .font-type-normal.collapse-link(ng-click="collapseCertDetails(2)") Step 3/3: Please fill the Service details
-                  span.svc-collapse-link(ng-if="!isTargetServiceCollapsed") >> 
+                .font-type-normal.collapse-link(ng-click="collapseCertDetails(2)") Step 3/3: Please fill the Service details 
+                  span.collapse-link(ng-if="!isTargetServiceCollapsed") >>
                   span.collapse-link(ng-if="isTargetServiceCollapsed") >> 
                 .font-type-normal(uib-collapse="isTargetServiceCollapsed")
                   .col-lg-12.col-md-12.col-sm-12.col-xs-12.common-form-row()
