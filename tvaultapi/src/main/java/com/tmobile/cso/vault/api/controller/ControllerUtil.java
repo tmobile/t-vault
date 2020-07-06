@@ -2506,6 +2506,8 @@ public final class ControllerUtil {
 				|| ObjectUtils.isEmpty(certificateUser.getCertificateName())
 				|| certificateUser.getCertificateName().contains(" ")
                 || (!certificateUser.getCertificateName().endsWith(".t-mobile.com"))
+                || (certificateUser.getCertificateName().contains(".-"))
+                || (certificateUser.getCertificateName().contains("-."))
 				) {
 			return false;
 		}

@@ -1783,27 +1783,52 @@ public class SSLCertificateService {
    		
    		String userName = certificateUser.getUsername().toLowerCase();
    		String certificateName = certificateUser.getCertificateName();
-   		String access = certificateUser.getAccess().toLowerCase();   		 		
+   		String access = certificateUser.getAccess().toLowerCase();   
+   		
+   		String authToken = null;
    		
    		boolean isAuthorized = true;
-   		if (userDetails != null) {
+   		if (!ObjectUtils.isEmpty(userDetails)) {
    			if (userDetails.isAdmin()) {
-   				token = userDetails.getClientToken();   	            
+   				authToken = userDetails.getClientToken();   	            
    	        }else {
-   	        	token = userDetails.getSelfSupportToken();
+   	        	authToken = userDetails.getSelfSupportToken();
    	        }
-   			SSLCertificateMetadataDetails certificateMetaData = certificateUtils.getCertificateMetaData(token, certificateName);
+   			SSLCertificateMetadataDetails certificateMetaData = certificateUtils.getCertificateMetaData(authToken, certificateName);
    			
    			isAuthorized = certificateUtils.canAddOrRemoveUser(userDetails, certificateMetaData);
    			
    			if((isAuthorized && (userName.equalsIgnoreCase(certificateMetaData.getCertOwnerNtid())))) {
+   				log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+   	   					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+   	   					put(LogMessage.ACTION, SSLCertificateConstants.ADD_USER_TO_CERT_MSG).
+   	   					put(LogMessage.MESSAGE, "Certificate owner cannot be added as a user to the certificate owned by him").
+   	   					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+   	   					build()));
+   				
    				return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Certificate owner cannot be added as a user to the certificate owned by him\"]}");
    			}
+   		}else {
+   			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+   					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+   					put(LogMessage.ACTION, SSLCertificateConstants.ADD_USER_TO_CERT_MSG).
+   					put(LogMessage.MESSAGE, "Access denied: No permission to add users to this certificate").
+   					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+   					build()));
+   			
+   			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Access denied: No permission to add users to this certificate\"]}");
    		}
    		
    		if(isAuthorized){   			
-   			return checkUserDetailsAndAddCertificateToUser(token, userName, certificateName, access);	
+   			return checkUserDetailsAndAddCertificateToUser(authToken, userName, certificateName, access);	
    		}else{
+   			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+   					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+   					put(LogMessage.ACTION, SSLCertificateConstants.ADD_USER_TO_CERT_MSG).
+   					put(LogMessage.MESSAGE, "Access denied: No permission to add users to this certificate").
+   					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+   					build()));
+   			
    			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Access denied: No permission to add users to this certificate\"]}");
    		}
    	}
