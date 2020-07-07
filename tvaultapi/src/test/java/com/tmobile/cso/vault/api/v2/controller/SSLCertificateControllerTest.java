@@ -158,8 +158,8 @@ public class SSLCertificateControllerTest {
     @Test
     public void test_getCertificates() throws Exception {
         // Mock response        
-        when(sslCertificateService.getServiceCertificates("5PDrOhsy4ig8L3EpsJZSLAMg", userDetails, "")).thenReturn(new ResponseEntity<>(HttpStatus.OK));
-        assertEquals(HttpStatus.OK, sslCertificateService.getServiceCertificates("5PDrOhsy4ig8L3EpsJZSLAMg",userDetails,"").getStatusCode());
+        when(sslCertificateService.getServiceCertificates("5PDrOhsy4ig8L3EpsJZSLAMg", userDetails, "",1,0)).thenReturn(new ResponseEntity<>(HttpStatus.OK));
+        assertEquals(HttpStatus.OK, sslCertificateService.getServiceCertificates("5PDrOhsy4ig8L3EpsJZSLAMg",userDetails,"",1,0).getStatusCode());
     }
 
     

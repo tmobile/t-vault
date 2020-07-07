@@ -533,11 +533,11 @@ script(type='text/ng-template', id='manageSecretId.html')
                               div.cert-management-content
                                 loading-state(ng-if='isLoadingData')                               
                                 md-tabs.admin-tabs.md-dynamic-height.md-border-bottom
-                                    md-tab( ng-if='!isLoadingData' ng-attr-label="All certificates")
+                                    md-tab(  ng-attr-label="All certificates")
                                         md-content(class="md-content-wrapper")
                                           div.data-management-content
                                             .row.change-safe-table-container(ng-if='true')
-                                              loading-state(ng-if='isLoadingData')
+                                              loading-state(ng-if='isLoadingData'  && 'isLoadingCerts')
                                               .row.change-data.header.solid-header(ng-show="!isLoadingData && certificateData.certificates.length>0")
                                                   .container.name.col-lg-4.col-md-4.col-sm-3.col-xs-3 CERTIFICATE
                                                   .container.name.action.col-lg-2.col-md-2.col-sm-2.col-xs-2 STATUS
@@ -551,7 +551,7 @@ script(type='text/ng-template', id='manageSecretId.html')
                                               .change-list-table-data.row
                                                   .unavailable-text(ng-show="!isLoadingData && certificateData.certificates.length==0")
                                                       .container.name No Certificates Available
-                                                  .row.change-data.item(ng-show="!isLoadingData" ng-class="{'grayBackground' : activeItem == true}" ng-repeat="value in certificateData.certificates | filter:searchValue")
+                                                  .row.change-data.item(ng-show="!isLoadingData" ng-class="{'grayBackground' : activeItem == true}" ng-repeat="value in certificateData.certificates |  filter: searchCert() | limitTo: certpaginationLimit()")
                                                       .container.name.col-lg-4.col-md-4.col-sm-3.col-xs-3(title="{{ getCertSubjectName(value) }}") {{ getCertSubjectName(value) }}
                                                       .container.radio-inputs.col-lg-2.col-md-2.col-sm-2.col-xs-2
                                                           .down.view
@@ -569,14 +569,13 @@ script(type='text/ng-template', id='manageSecretId.html')
                                                           .down.deletesecretids
                                                               .list-icon(ng-click="revokeCertificate(value)") Revoke certificate 
                                                       .container.radio-inputs.col-lg-2.col-md-2.col-sm-2.col-xs-2
-                                              .pagination-wrapper(ng-show='certificateData.next')
-                                                  .pagination-count(ng-if="numOfCertificates>0") Displaying {{certificateData.limit+certificateData.offset}} of {{certificateData.totalCount}}
-                                                  .pagination-button-wrapper(ng-click='showMoreCert()')
+                                              .pagination-wrapper(ng-show='hasMoreCertsToShow()')
+                                                  .pagination-count(ng-if="numOfCertificates>0") Displaying {{certcurrentshown}} of {{numOfCertificates}}
+                                                  .pagination-button-wrapper(ng-click='showMoreCertItems()')
                                                       button.show-more-btn VIEW MORE
                                                       span
                                                           img(src="assets/icons/front-arrow.svg")
-                             //       md-tab( ng-if='!isLoadingData' ng-attr-label="Onboarded certificates")
-                             //           md-content(class="md-padding md-content-wrapper")
+                             
                                               
 
 

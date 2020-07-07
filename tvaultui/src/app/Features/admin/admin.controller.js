@@ -146,6 +146,7 @@
             $scope.isUserSearchLoading = false;
             $scope.isOwnerSelected = false;
             setTargetSystemServiceList("No target system selected", []);
+            $scope.certificateData.certificates = [];
 
             $scope.targetSystem = {
                 'description': '',
@@ -579,6 +580,7 @@
             $scope.certificatesLoaded = false;
             $scope.certificateData = {"certificates": []};
             $scope.isLoadingData = true;
+            $scope.isLoadingCerts = true;
             var limitQuery = "";
             var offsetQuery= "";
             if (limit !=null) {
@@ -587,23 +589,22 @@
             if (offset!=null) {
                 offsetQuery= "&offset="+offset;
             }
-//            var updatedUrlOfEndPoint = ModifyUrl.addUrlParameteres('getCertificates',"freeText="+searchCert + limitQuery + offsetQuery);
-            var updatedUrlOfEndPoint = ModifyUrl.addUrlParameteres('getCertificates',"certificateName="+searchCert );
+            var updatedUrlOfEndPoint = ModifyUrl.addUrlParameteres('getCertificates',"certificateName="+searchCert + limitQuery + offsetQuery);
+
             AdminSafesManagement.getCertificates(null, updatedUrlOfEndPoint).then(function (response) {
             	 
-                if (UtilityService.ifAPIRequestSuccessful(response)) {
-                	
-                	$scope.isLoadingData = false;                    
-                    $scope.certificateData.certificates = response.data.keys;                                     
-                    $scope.numOfCertificates = $scope.certificateData.certificates.length;                    
-                    $scope.certificatesLoaded =  true;
+                if (UtilityService.ifAPIRequestSuccessful(response)) { 	
+                	$scope.certificateData.certificates = response.data.keys;                                   
+                    $scope.numOfCertificates = $scope.certificateData.certificates.length;                                                            
+                    $scope.certificateData.offset = response.data.offset;                       
                 }
-                else {
-                    $scope.isLoadingData = false;
+                else {                   
                     $scope.certificatesLoaded =  true;
                     $scope.errorMessage = AdminSafesManagement.getTheRightErrorMessage(response);
                     error('md');
                 }
+                $scope.isLoadingData = false;
+                $scope.isLoadingCerts = false;
             },
             function (error) {
                 // Error handling function
@@ -613,6 +614,7 @@
                 $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
                 $scope.error('md');
             });
+            $scope.certificatesLoaded =  true; 
         }
 
         $scope.tabChangeForAdminCert = function () {
@@ -635,7 +637,7 @@
             return certName;
         }
 
-        $scope.searchCert = function () {
+        $scope.searchCert = function () {        	
             if ($scope.searchValue != '' && $scope.searchValue != undefined && $scope.searchValue.length > 2 && $scope.certSearchValue != $scope.searchValue) {
                 $scope.certSearchValue = $scope.searchValue;
                 getCertificates($scope.certSearchValue, null, null);
@@ -907,6 +909,8 @@
         }
         var pagesShown = 1;
         var pageSize = 8;
+        var certpagesShown = 1;
+        var certpageSize = 50;
 
         $scope.paginationLimit = function (data) {
             $scope.currentshown = pageSize * pagesShown;
@@ -924,6 +928,23 @@
         $scope.showMoreItems = function () {
             pagesShown = pagesShown + 1;
         };
+                    
+        $scope.certpaginationLimit = function (data) {
+            $scope.certcurrentshown = certpageSize * certpagesShown;
+            if (($scope.searchValue != '' && $scope.searchValue != undefined && $scope.searchValue.length > 2) || $scope.certcurrentshown >= $scope.numOfCertificates) {
+                $scope.certcurrentshown = $scope.numOfCertificates;
+            }
+            return $scope.certcurrentshown;
+        };
+        $scope.hasMoreCertsToShow = function () {        	
+                return certpagesShown < ($scope.numOfCertificates / certpageSize);
+            
+        };
+        $scope.showMoreCertItems = function () {
+        	certpagesShown = certpagesShown + 1;
+        };
+        
+        
 
         $scope.createApprole = function () {
             try {
