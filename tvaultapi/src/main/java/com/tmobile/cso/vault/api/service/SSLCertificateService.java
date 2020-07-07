@@ -1409,7 +1409,7 @@ public class SSLCertificateService {
 			if(!ObjectUtils.isEmpty(response.getResponse())) {
 			JsonObject object = ((JsonObject) jsonParser.parse(response.getResponse())).getAsJsonObject("data");
 			if(userDetails.getUsername().equalsIgnoreCase((object.get("certOwnerNtid")!=null? object.get("certOwnerNtid").getAsString() : ""))) {
-				if(count >=offset && count<=maxVal) {
+				if(count >=offset && count<maxVal) {
 				responseArray.add(object);
 			}	
 				count++;
