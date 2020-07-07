@@ -194,7 +194,7 @@ public class SSLCertificateControllerTest {
         CertificateUser certUser = new CertificateUser("testuser1","read", "CertificateName");
 
         String inputJson =new ObjectMapper().writeValueAsString(certUser);
-        when(sslCertificateService.addUserToCertificate(eq("5PDrOhsy4ig8L3EpsJZSLAMg"), Mockito.any(CertificateUser.class), eq(userDetails))).thenReturn(responseEntityExpected);
+        when(sslCertificateService.addUserToCertificate(eq("5PDrOhsy4ig8L3EpsJZSLAMg"), Mockito.any(CertificateUser.class), eq(userDetails), Mockito.anyBoolean())).thenReturn(responseEntityExpected);
 
         mockMvc.perform(MockMvcRequestBuilders.post("/v2/sslcert/user").requestAttr("UserDetails", userDetails)
                 .header("vault-token", "5PDrOhsy4ig8L3EpsJZSLAMg")

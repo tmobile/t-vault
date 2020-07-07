@@ -47,19 +47,6 @@ import com.tmobile.cso.vault.api.controller.ControllerUtil;
 import com.tmobile.cso.vault.api.exception.LogMessage;
 import com.tmobile.cso.vault.api.exception.TVaultValidationException;
 import com.tmobile.cso.vault.api.model.*;
-
-import com.tmobile.cso.vault.api.model.CertManagerLogin;
-import com.tmobile.cso.vault.api.model.CertManagerLoginRequest;
-import com.tmobile.cso.vault.api.model.CertificateData;
-import com.tmobile.cso.vault.api.model.RevocationRequest;
-import com.tmobile.cso.vault.api.model.SSLCertMetadata;
-import com.tmobile.cso.vault.api.model.SSLCertType;
-import com.tmobile.cso.vault.api.model.SSLCertTypeConfig;
-import com.tmobile.cso.vault.api.model.SSLCertificateMetadataDetails;
-import com.tmobile.cso.vault.api.model.SSLCertificateRequest;
-import com.tmobile.cso.vault.api.model.TargetSystem;
-import com.tmobile.cso.vault.api.model.TargetSystemServiceRequest;
-import com.tmobile.cso.vault.api.model.UserDetails;
 import com.tmobile.cso.vault.api.process.CertResponse;
 import com.tmobile.cso.vault.api.process.RequestProcessor;
 import com.tmobile.cso.vault.api.process.Response;
@@ -460,18 +447,37 @@ public class SSLCertificateService {
 								.build()));
                         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\""+enrollResponse.getResponse()+"\"]}");
                     } else {
-						enrollResponse.setResponse(SSLCertificateConstants.SSL_CERT_SUCCESS);
-						enrollResponse.setSuccess(Boolean.TRUE);
-						log.debug(JSONUtil.getJSON(ImmutableMap.<String, String> builder()
-								.put(LogMessage.USER,
-										ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString())
-								.put(LogMessage.ACTION,
-										String.format(
-												"Metadata or Policies created for SSL certificate [%s] - metaDataStatus [%s] - policyStatus [%s]",
-												sslCertificateRequest.getCertificateName(), sslMetaDataCreationStatus,
-												isPoliciesCreated))
-								.build()));
-                        return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\""+enrollResponse.getResponse()+"\"]}");
+                    	
+                    	CertificateUser certificateUser = new CertificateUser();
+                    	certificateUser.setUsername(sslCertificateRequest.getCertOwnerNtid());
+                    	certificateUser.setAccess("sudo");
+                    	certificateUser.setCertificateName(sslCertificateRequest.getCertificateName());
+                    	
+                    	ResponseEntity<String> addUserresponse = addUserToCertificate(token, certificateUser, userDetails, true);
+                    	
+                    	if(HttpStatus.OK.equals(addUserresponse.getStatusCode())){
+                    		enrollResponse.setResponse(SSLCertificateConstants.SSL_CERT_SUCCESS);
+    						enrollResponse.setSuccess(Boolean.TRUE);
+    						log.debug(JSONUtil.getJSON(ImmutableMap.<String, String> builder()
+    								.put(LogMessage.USER,
+    										ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString())
+    								.put(LogMessage.ACTION,
+    										String.format(
+    												"Metadata or Policies created for SSL certificate [%s] - metaDataStatus [%s] - policyStatus [%s]",
+    												sslCertificateRequest.getCertificateName(), sslMetaDataCreationStatus,
+    												isPoliciesCreated))
+    								.build()));
+                            return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\""+enrollResponse.getResponse()+"\"]}");
+                    	}else {
+                    		log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+                                    put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+                                    put(LogMessage.ACTION, "addUserToCertificate").
+                                    put(LogMessage.MESSAGE, "Adding sudo permission to certificate owner failed").
+                                    put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+                                    build()));
+                    		return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\""+addUserresponse.getStatusCode()+"\"]}");
+                    		
+                    	}	
 
                     }
                 }
@@ -1763,7 +1769,7 @@ public class SSLCertificateService {
    	 * @param safeUser
    	 * @return
    	 */
-   	public ResponseEntity<String> addUserToCertificate(String token, CertificateUser certificateUser, UserDetails userDetails) {
+   	public ResponseEntity<String> addUserToCertificate(String token, CertificateUser certificateUser, UserDetails userDetails, boolean addSudoPermission) {
    		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
    				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
    				put(LogMessage.ACTION, SSLCertificateConstants.ADD_USER_TO_CERT_MSG).
@@ -1798,7 +1804,7 @@ public class SSLCertificateService {
    			
    			isAuthorized = certificateUtils.canAddOrRemoveUser(userDetails, certificateMetaData);
    			
-   			if((isAuthorized && (userName.equalsIgnoreCase(certificateMetaData.getCertOwnerNtid())))) {
+   			if((!addSudoPermission) && (isAuthorized) && (userName.equalsIgnoreCase(certificateMetaData.getCertOwnerNtid()))) {
    				log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
    	   					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
    	   					put(LogMessage.ACTION, SSLCertificateConstants.ADD_USER_TO_CERT_MSG).
