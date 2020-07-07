@@ -119,7 +119,8 @@ public class SSLCertificateController {
 	@PostMapping(value="/v2/sslcert/user",consumes="application/json",produces="application/json")
 	public ResponseEntity<String> addUserToCertificate(HttpServletRequest request, @RequestHeader(value="vault-token") String token, @RequestBody CertificateUser certificateUser){
 		UserDetails userDetails = (UserDetails) request.getAttribute("UserDetails");
-		return sslCertificateService.addUserToCertificate(token, certificateUser, userDetails);
+		boolean addSudoPermission = false;
+		return sslCertificateService.addUserToCertificate(token, certificateUser, userDetails, addSudoPermission);
 	}
 
 	/**
