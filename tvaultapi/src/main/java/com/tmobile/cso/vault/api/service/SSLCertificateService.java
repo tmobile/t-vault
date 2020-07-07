@@ -67,6 +67,8 @@ import com.tmobile.cso.vault.api.utils.CertificateUtils;
 import com.tmobile.cso.vault.api.utils.JSONUtil;
 import com.tmobile.cso.vault.api.utils.ThreadLocalContext;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @Component
 public class SSLCertificateService {
@@ -521,10 +523,10 @@ public class SSLCertificateService {
         if (Objects.nonNull(response)) {
             jsonElement = response.get("spec").getAsJsonObject();
             if (Objects.nonNull(jsonElement)) {
-                String applicationTag = jsonElement.get("tag").getAsString();
-                String projectLeadEmail = jsonElement.get("projectLeadEmail").getAsString();
-                String appOwnerEmail = jsonElement.get("brtContactEmail").getAsString();
-                String akmid = jsonElement.get("akmid").getAsString();
+                String applicationTag = validateString(jsonElement.get("tag"));
+                String projectLeadEmail = validateString(jsonElement.get("projectLeadEmail"));
+                String appOwnerEmail = validateString(jsonElement.get("brtContactEmail"));
+                String akmid = validateString(jsonElement.get("akmid"));
                 log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
                         put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
                         put(LogMessage.ACTION,"Populate Application details in SSL Certificate Metadata").
@@ -623,9 +625,7 @@ public class SSLCertificateService {
                 sslCertificateRequest.getTargetSystem().getAddress().contains(" ") ||
                 (sslCertificateRequest.getCertificateName().contains(".-")) ||
                 (sslCertificateRequest.getCertificateName().contains("-.")) ||
-                (!StringUtils.isEmpty(sslCertificateRequest.getTargetSystemServiceRequest().getHostname()) &&
-                        sslCertificateRequest.getTargetSystemServiceRequest().getHostname().contains(" ")) ||
-                (!isValidAppName(sslCertificateRequest))){
+                (!isValidHostName(sslCertificateRequest.getTargetSystemServiceRequest().getHostname())) || (!isValidAppName(sslCertificateRequest))){
             isValid= false;
         }
 
@@ -643,6 +643,20 @@ public class SSLCertificateService {
 
 
     /**
+     * To Validate the hostname when it's not null/empty
+     * @param hostname
+     * @return
+     */
+    private boolean isValidHostName(String hostname){
+        if(!StringUtils.isEmpty(hostname)){
+            String regex = "^[a-zA-Z0-9.-]+$";
+            Pattern p = Pattern.compile(regex);
+            Matcher m = p.matcher(hostname);
+            return m.matches();
+        }
+        return true;
+    }
+	/**
      * To create r/w/o/d policies
      * @param sslCertificateRequest
      * @param token
@@ -654,10 +668,10 @@ public class SSLCertificateService {
         Map<String, Object> policyMap = new HashMap<String, Object>();
         Map<String, String> accessMap = new HashMap<String, String>();
         String certificateName = sslCertificateRequest.getCertificateName();
-        String path = SSLCertificateConstants.SSL_CERT_PATH + sslCertificateRequest.getCertificateName();
+        String path = SSLCertificateConstants.SSL_CERT_PATH +"/" +sslCertificateRequest.getCertificateName();
 
         //Read Policy
-        accessMap.put(path + "/*", TVaultConstants.READ_POLICY);
+        accessMap.put(path , TVaultConstants.READ_POLICY);
         policyMap.put(SSLCertificateConstants.ACCESS_ID, "r_cert_" + certificateName);
         policyMap.put("access", accessMap);
 
@@ -665,19 +679,19 @@ public class SSLCertificateService {
         Response r_response = reqProcessor.process("/access/update", policyRequestJson, token);
 
         //Write Policy
-        accessMap.put(path + "/*", TVaultConstants.WRITE_POLICY);
+        accessMap.put(path , TVaultConstants.WRITE_POLICY);
         policyMap.put(SSLCertificateConstants.ACCESS_ID, "w_cert_" + certificateName);
         policyRequestJson = ControllerUtil.convetToJson(policyMap);
         Response w_response = reqProcessor.process("/access/update", policyRequestJson, token);
 
         //Deny Policy
-        accessMap.put(path + "/*", TVaultConstants.DENY_POLICY);
+        accessMap.put(path , TVaultConstants.DENY_POLICY);
         policyMap.put(SSLCertificateConstants.ACCESS_ID, "d_cert_" + certificateName);
         policyRequestJson = ControllerUtil.convetToJson(policyMap);
         Response d_response = reqProcessor.process("/access/update", policyRequestJson, token);
 
         //Owner Policy
-        accessMap.put(path + "/*", TVaultConstants.SUDO_POLICY);
+        accessMap.put(path , TVaultConstants.SUDO_POLICY);
         policyMap.put(SSLCertificateConstants.ACCESS_ID, "o_cert_" + certificateName);
         policyRequestJson = ControllerUtil.convetToJson(policyMap);
         Response s_response = reqProcessor.process("/access/update", policyRequestJson, token);

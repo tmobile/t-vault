@@ -16,7 +16,6 @@ public class TargetSystemServiceRequest {
     @Max(65535)
     @ApiModelProperty(example="1", position=1)
     private int port;
-    @Pattern(regexp = "^[a-zA-Z0-9.-]+$", message = "HostName can have alphabets, numbers, . and - characters only")
     private String hostname;
     private String description;
     @NotNull
