@@ -1261,11 +1261,11 @@ public class SSLCertificateService {
          * @throws Exception
          */
 
-       public ResponseEntity<String> getServiceCertificates(String token, UserDetails userDetails, String certName) throws Exception {
+    public ResponseEntity<String> getServiceCertificates(String token, UserDetails userDetails, String certName, Integer limit, Integer offset) throws Exception {
        	log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
    			      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
-   				  put(LogMessage.ACTION, "list sslcertificate names from metadata").
-   			      put(LogMessage.MESSAGE, String.format("Trying to get list of Sslcets")).
+   				  put(LogMessage.ACTION, "list certificate names from metadata").
+   			      put(LogMessage.MESSAGE, String.format("Trying to get list of Ssl certificatests")).
    			      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
    			      build()));
        		String _path = SSLCertificateConstants.SSL_CERT_PATH  ;
@@ -1275,7 +1275,7 @@ public class SSLCertificateService {
 
    			response = getMetadata(tokenValue, _path);
    			if(!ObjectUtils.isEmpty(response.getResponse())) {
-   			certListStr = getsslmetadatalist(response.getResponse(),tokenValue,userDetails,certName);
+   			certListStr = getsslmetadatalist(response.getResponse(),tokenValue,userDetails,certName,limit,offset);
    			}
    			else {
    				log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
@@ -1307,8 +1307,8 @@ public class SSLCertificateService {
    	 */
    	private Response getMetadata(String token, String path) {
 
-   		String _path = path+"?list=true";
-   		return reqProcessor.process("/sslcert","{\"path\":\""+_path+"\"}",token);
+   		String pathStr = path+"?list=true";
+   		return reqProcessor.process("/sslcert","{\"path\":\""+pathStr+"\"}",token);
    	}
 
     /**
@@ -1318,9 +1318,9 @@ public class SSLCertificateService {
    	 * @param path
    	 * @return
    	 */
-   	private String getsslmetadatalist(String certificateResponse, String token, UserDetails userDetails, String certName) {
+  	private String getsslmetadatalist(String certificateResponse, String token, UserDetails userDetails, String certName,Integer limit, Integer offset) {
    		String path = SSLCertificateConstants.SSL_CERT_PATH  ;
-   		String _path= "";
+   		String pathStr= "";
    		String endPoint = "";
    		Response response = new Response();
    		JsonParser jsonParser = new JsonParser();
@@ -1328,28 +1328,25 @@ public class SSLCertificateService {
    		JsonObject metadataJsonObj=new JsonObject();
         JsonObject jsonObject = (JsonObject) jsonParser.parse(certificateResponse);
    		JsonArray jsonArray = jsonObject.getAsJsonObject("data").getAsJsonArray("keys");
-   		List<String> certNames = geMatchCertificates(jsonArray,certName);
-   		for (int i = 0; i < certNames.size(); i++)
-   		{
-   			endPoint = certNames.get(i).toString(). replaceAll("^\"+|\"+$", "");
-   			_path = path+"/"+endPoint;
-
-   			if (!userDetails.isAdmin()) {
-   				response = reqProcessor.process("/sslcert","{\"path\":\""+_path+"\"}",userDetails.getSelfSupportToken());
-   				if(!ObjectUtils.isEmpty(response.getResponse())) {
-   				JsonObject object = ((JsonObject) jsonParser.parse(response.getResponse())).getAsJsonObject("data");
-   				if(userDetails.getUsername().equalsIgnoreCase((object.get("certCreatedBy")!=null? object.get("certCreatedBy").getAsString() : ""))) {
-   					responseArray.add(object);
-   				}
-
-   			}
-   			}else {
-   				response = reqProcessor.process("/sslcert","{\"path\":\""+_path+"\"}",token);
-   				if(!ObjectUtils.isEmpty(response.getResponse())) {
-   				responseArray.add(((JsonObject) jsonParser.parse(response.getResponse())).getAsJsonObject("data"));
-   				}
-   			}
+   		List<String> certNames = geMatchCertificates(jsonArray,certName); 		
+   		if(limit == null || offset ==null) {
+   			limit = certNames.size();
+   			offset = 0;
    		}
+   		
+		if (!userDetails.isAdmin()) {
+			responseArray = getMetadataForUser(certNames, userDetails,path,limit,offset);
+		} else {
+			int maxVal = certNames.size()> (limit+offset)?limit+offset : certNames.size();
+			for (int i = offset; i < maxVal; i++) {
+				endPoint = certNames.get(i).replaceAll("^\"+|\"+$", "");
+				pathStr = path + "/" + endPoint;
+				response = reqProcessor.process("/sslcert", "{\"path\":\"" + pathStr + "\"}", token);
+				if (!ObjectUtils.isEmpty(response.getResponse())) {
+					responseArray.add(((JsonObject) jsonParser.parse(response.getResponse())).getAsJsonObject("data"));
+				}
+			}
+		}
 
    		if(ObjectUtils.isEmpty(responseArray)) {
    			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
@@ -1360,18 +1357,19 @@ public class SSLCertificateService {
  	   			      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
  	   			      build()));
    		}
-   		metadataJsonObj.add("keys", responseArray);
+   		metadataJsonObj.add("keys", responseArray);   		
+   		metadataJsonObj.addProperty("offset", offset);
    		return metadataJsonObj.toString();
    	}
 
-   	/**
+  	/**
    	 * Get the certificate names matches the search keyword
    	 * @param jsonArray
    	 * @param searchText
    	 * @return
    	 */
    	private List<String> geMatchCertificates(JsonArray jsonArray, String searchText) {
-   		List<String> list = new ArrayList<String>();
+   		List<String> list = new ArrayList<>();
    		if(!ObjectUtils.isEmpty(jsonArray)) {
    		if(!StringUtils.isEmpty(searchText)) {
    	   	for(int i = 0; i < jsonArray.size(); i++){
@@ -1386,7 +1384,40 @@ public class SSLCertificateService {
    			}
    		}
    	 return list;
-   	} 
+   	}
+   	
+   	/**
+   	 * To Get the metadata details for user
+   	 * @param certNames
+   	 * @param userDetails
+   	 * @param limit
+   	 * @param offset
+   	 * @return
+   	 */
+   	private JsonArray getMetadataForUser(List<String> certNames, UserDetails userDetails, String path,Integer limit, Integer offset) {
+   		Response response;
+   		String pathStr= "";
+   		String endPoint = "";
+   		int count =0;
+   		JsonParser jsonParser = new JsonParser();
+   		JsonArray responseArray = new JsonArray();
+   		int maxVal = certNames.size()> (limit+offset)?limit+offset : certNames.size();   		
+   		for(int i = 0; i < certNames.size(); i++){ 		
+   			endPoint = certNames.get(i).replaceAll("^\"+|\"+$", "");
+			pathStr = path + "/" + endPoint;
+   		response = reqProcessor.process("/sslcert","{\"path\":\""+pathStr+"\"}",userDetails.getSelfSupportToken());
+			if(!ObjectUtils.isEmpty(response.getResponse())) {
+			JsonObject object = ((JsonObject) jsonParser.parse(response.getResponse())).getAsJsonObject("data");
+			if(userDetails.getUsername().equalsIgnoreCase((object.get("certOwnerNtid")!=null? object.get("certOwnerNtid").getAsString() : ""))) {
+				if(count >=offset && count<=maxVal) {
+				responseArray.add(object);
+			}	
+				count++;
+			}
+   	}
+   		}   		
+			return responseArray;
+   	}
 
     /**
      * To get nclm token
