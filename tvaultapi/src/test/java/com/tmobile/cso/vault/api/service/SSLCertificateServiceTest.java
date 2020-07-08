@@ -1153,7 +1153,7 @@ public class SSLCertificateServiceTest {
          
          when(reqProcessor.process("/sslcert", "{\"path\":\"metadata/sslcerts/CertificateName.t-mobile.com\"}",token)).thenReturn(response);
          
-         ResponseEntity<String> responseEntityActual = sSLCertificateService.getServiceCertificates(token, user1, "");
+         ResponseEntity<String> responseEntityActual = sSLCertificateService.getServiceCertificates(token, user1, "",1,0);
 
          assertEquals(HttpStatus.OK, responseEntityActual.getStatusCode());
     }
@@ -1184,7 +1184,7 @@ public class SSLCertificateServiceTest {
          
          when(reqProcessor.process("/sslcert", "{\"path\":\"metadata/sslcerts/CertificateName.t-mobile.com\"}",token)).thenReturn(response);
          
-         ResponseEntity<String> responseEntityActual = sSLCertificateService.getServiceCertificates(token, user1, "");
+         ResponseEntity<String> responseEntityActual = sSLCertificateService.getServiceCertificates(token, user1, "",1,0);
 
          assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, responseEntityActual.getStatusCode());
     }
