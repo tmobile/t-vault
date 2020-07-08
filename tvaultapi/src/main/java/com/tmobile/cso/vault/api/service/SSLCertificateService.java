@@ -23,6 +23,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
 import org.apache.commons.collections.MapUtils;
+import org.apache.commons.lang3.ArrayUtils;
 import org.springframework.util.ObjectUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -47,19 +48,6 @@ import com.tmobile.cso.vault.api.controller.ControllerUtil;
 import com.tmobile.cso.vault.api.exception.LogMessage;
 import com.tmobile.cso.vault.api.exception.TVaultValidationException;
 import com.tmobile.cso.vault.api.model.*;
-
-import com.tmobile.cso.vault.api.model.CertManagerLogin;
-import com.tmobile.cso.vault.api.model.CertManagerLoginRequest;
-import com.tmobile.cso.vault.api.model.CertificateData;
-import com.tmobile.cso.vault.api.model.RevocationRequest;
-import com.tmobile.cso.vault.api.model.SSLCertMetadata;
-import com.tmobile.cso.vault.api.model.SSLCertType;
-import com.tmobile.cso.vault.api.model.SSLCertTypeConfig;
-import com.tmobile.cso.vault.api.model.SSLCertificateMetadataDetails;
-import com.tmobile.cso.vault.api.model.SSLCertificateRequest;
-import com.tmobile.cso.vault.api.model.TargetSystem;
-import com.tmobile.cso.vault.api.model.TargetSystemServiceRequest;
-import com.tmobile.cso.vault.api.model.UserDetails;
 import com.tmobile.cso.vault.api.process.CertResponse;
 import com.tmobile.cso.vault.api.process.RequestProcessor;
 import com.tmobile.cso.vault.api.process.Response;
@@ -165,7 +153,10 @@ public class SSLCertificateService {
     private int retrycount;
 
     @Value("${certificate.delay.time.millsec}")
-    private int delayTime;
+    private int delayTime;    
+    
+    @Value("${SSLCertificateController.certificatename.text}")
+    private String certificateNameTailText;
 
     private static Logger log = LogManager.getLogger(SSLCertificateService.class);
 
@@ -460,18 +451,9 @@ public class SSLCertificateService {
 								.build()));
                         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\""+enrollResponse.getResponse()+"\"]}");
                     } else {
-						enrollResponse.setResponse(SSLCertificateConstants.SSL_CERT_SUCCESS);
-						enrollResponse.setSuccess(Boolean.TRUE);
-						log.debug(JSONUtil.getJSON(ImmutableMap.<String, String> builder()
-								.put(LogMessage.USER,
-										ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString())
-								.put(LogMessage.ACTION,
-										String.format(
-												"Metadata or Policies created for SSL certificate [%s] - metaDataStatus [%s] - policyStatus [%s]",
-												sslCertificateRequest.getCertificateName(), sslMetaDataCreationStatus,
-												isPoliciesCreated))
-								.build()));
-                        return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\""+enrollResponse.getResponse()+"\"]}");
+                    	
+                    	return addSudoPermissionToCertificateOwner(sslCertificateRequest, userDetails, token,
+								enrollResponse, isPoliciesCreated, sslMetaDataCreationStatus);	
 
                     }
                 }
@@ -506,6 +488,52 @@ public class SSLCertificateService {
         }
         return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\""+SSLCertificateConstants.SSL_CERT_SUCCESS+"\"]}");
     }
+
+	/**
+	 * Method to provide sudo permission to certificate owner
+	 * 
+	 * @param sslCertificateRequest
+	 * @param userDetails
+	 * @param token
+	 * @param enrollResponse
+	 * @param isPoliciesCreated
+	 * @param sslMetaDataCreationStatus
+	 * @return
+	 */
+	private ResponseEntity<String> addSudoPermissionToCertificateOwner(SSLCertificateRequest sslCertificateRequest,
+			UserDetails userDetails, String token, CertResponse enrollResponse, boolean isPoliciesCreated,
+			boolean sslMetaDataCreationStatus) {
+		CertificateUser certificateUser = new CertificateUser();
+		certificateUser.setUsername(sslCertificateRequest.getCertOwnerNtid());
+		certificateUser.setAccess(TVaultConstants.SUDO_POLICY);
+		certificateUser.setCertificateName(sslCertificateRequest.getCertificateName());
+		
+		ResponseEntity<String> addUserresponse = addUserToCertificate(token, certificateUser, userDetails, true);
+		
+		if(HttpStatus.OK.equals(addUserresponse.getStatusCode())){
+			enrollResponse.setResponse(SSLCertificateConstants.SSL_CERT_SUCCESS);
+			enrollResponse.setSuccess(Boolean.TRUE);
+			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String> builder()
+					.put(LogMessage.USER,
+							ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString())
+					.put(LogMessage.ACTION,
+							String.format(
+									"Metadata or Policies created for SSL certificate [%s] - metaDataStatus [%s] - policyStatus [%s]",
+									sslCertificateRequest.getCertificateName(), sslMetaDataCreationStatus,
+									isPoliciesCreated))
+					.build()));
+		    return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\""+enrollResponse.getResponse()+"\"]}");
+		}else {
+			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+		            put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+		            put(LogMessage.ACTION, "addUserToCertificate").
+		            put(LogMessage.MESSAGE, "Adding sudo permission to certificate owner failed").
+		            put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+		            build()));
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\""+addUserresponse.getStatusCode()+"\"]}");
+			
+		}
+	}
 
 
     private String populateSSLCertificateMetadata(SSLCertificateRequest sslCertificateRequest, UserDetails userDetails,
@@ -621,7 +649,7 @@ public class SSLCertificateService {
         boolean isValid=true;
         if(sslCertificateRequest.getCertificateName().contains(" ") || sslCertificateRequest.getAppName().contains(" ") ||
                 sslCertificateRequest.getCertOwnerEmailId().contains(" ") ||  sslCertificateRequest.getCertType().contains(" ") ||
-                (!sslCertificateRequest.getCertificateName().endsWith(".t-mobile.com")) ||
+                (!sslCertificateRequest.getCertificateName().endsWith(certificateNameTailText)) ||
                 sslCertificateRequest.getTargetSystem().getAddress().contains(" ") ||
                 (sslCertificateRequest.getCertificateName().contains(".-")) ||
                 (sslCertificateRequest.getCertificateName().contains("-.")) ||
@@ -1763,7 +1791,7 @@ public class SSLCertificateService {
    	 * @param safeUser
    	 * @return
    	 */
-   	public ResponseEntity<String> addUserToCertificate(String token, CertificateUser certificateUser, UserDetails userDetails) {
+   	public ResponseEntity<String> addUserToCertificate(String token, CertificateUser certificateUser, UserDetails userDetails, boolean addSudoPermission) {
    		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
    				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
    				put(LogMessage.ACTION, SSLCertificateConstants.ADD_USER_TO_CERT_MSG).
@@ -1771,7 +1799,7 @@ public class SSLCertificateService {
    				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
    				build()));
    		
-   		if(!ControllerUtil.areCertificateUserInputsValid(certificateUser)) {
+   		if(!areCertificateUserInputsValid(certificateUser)) {
    			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
    					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
    					put(LogMessage.ACTION, SSLCertificateConstants.ADD_USER_TO_CERT_MSG).
@@ -1796,9 +1824,11 @@ public class SSLCertificateService {
    	        }
    			SSLCertificateMetadataDetails certificateMetaData = certificateUtils.getCertificateMetaData(authToken, certificateName);
    			
-   			isAuthorized = certificateUtils.canAddOrRemoveUser(userDetails, certificateMetaData);
+   			if(!addSudoPermission){
+   				isAuthorized = certificateUtils.canAddOrRemoveUser(userDetails, certificateMetaData);
+   			}
    			
-   			if((isAuthorized && (userName.equalsIgnoreCase(certificateMetaData.getCertOwnerNtid())))) {
+   			if((!addSudoPermission) && (isAuthorized) && (userName.equalsIgnoreCase(certificateMetaData.getCertOwnerNtid()))) {
    				log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
    	   					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
    	   					put(LogMessage.ACTION, SSLCertificateConstants.ADD_USER_TO_CERT_MSG).
@@ -1875,7 +1905,7 @@ public class SSLCertificateService {
 		String writePolicy = "w_cert_"+certificateName;
 		String denyPolicy = "d_cert_"+certificateName;
 		
-		log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
 				put(LogMessage.ACTION, SSLCertificateConstants.ADD_USER_TO_CERT_MSG).
 				put(LogMessage.MESSAGE, String.format ("Policies are, read - [%s], write - [%s], deny -[%s]", readPolicy, writePolicy, denyPolicy)).
@@ -2055,6 +2085,32 @@ public class SSLCertificateService {
 			}
 		}
 	} 
-
-
+	
+	/**
+	 * Validates Certificate User inputs
+	 * @param certificateUser
+	 * @return boolean
+	 */
+	public boolean areCertificateUserInputsValid(CertificateUser certificateUser) {
+		
+		if (ObjectUtils.isEmpty(certificateUser)) {
+			return false;
+		}
+		if (ObjectUtils.isEmpty(certificateUser.getUsername())
+				|| ObjectUtils.isEmpty(certificateUser.getAccess())
+				|| ObjectUtils.isEmpty(certificateUser.getCertificateName())
+				|| certificateUser.getCertificateName().contains(" ")
+	            || (!certificateUser.getCertificateName().endsWith(certificateNameTailText))
+	            || (certificateUser.getCertificateName().contains(".-"))
+	            || (certificateUser.getCertificateName().contains("-."))
+				) {
+			return false;
+		}
+		boolean isValid = true;
+		String access = certificateUser.getAccess();
+		if (!ArrayUtils.contains(SSLCertificateConstants.PERMISSIONS, access)) {
+			isValid = false;
+		}
+		return isValid;
+	}
 }
