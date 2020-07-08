@@ -58,6 +58,7 @@ public final class SSLCertificateConstants {
     public static final String WRITE_CERT_POLICY_PREFIX="w_";
     public static final String DENY_CERT_POLICY_PREFIX="d_";
     public static final String SUDO_CERT_POLICY_PREFIX="o_";
+    public static final String[] PERMISSIONS = {"read", "write", "deny", "sudo"};
 
     public static final String ACCESS_UPDATE_ENDPOINT="/access/update";
     public static final String ACCESS_DELETE_ENDPOINT="/access/delete";

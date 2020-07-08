@@ -105,7 +105,7 @@ public final class ControllerUtil {
 	private static String oidcDiscoveryUrl;
 	private static String oidcADLoginUrl;
 	private static OIDCCred oidcCred = null;
-	
+
 	private static OIDCUtil oidcUtil;
 
 	//NCLM Details
@@ -142,7 +142,7 @@ public final class ControllerUtil {
 	public static OIDCUtil getOidcUtil() {
 		return ControllerUtil.oidcUtil;
 	}
-	
+
 	@Autowired(required = true)
 	public void setOidcUtil(OIDCUtil oidcUtil) {
 		ControllerUtil.oidcUtil = oidcUtil;
@@ -924,7 +924,7 @@ public final class ControllerUtil {
 					oidcEntityResponse.setPolicies(responseEntity.getBody().getPolicies());
 					userResponse.setResponse(oidcEntityResponse.getPolicies().toString());
 					userResponse.setHttpstatus(responseEntity.getStatusCode());
-				}	
+				}
 				String responseJson="";
 				String groups="";
 				List<String> policies = new ArrayList<>();
@@ -1047,7 +1047,7 @@ public final class ControllerUtil {
 						response.setHttpstatus(HttpStatus.BAD_REQUEST);
 					}
 				}
-				 
+
 				String responseJson=TVaultConstants.EMPTY;
 				List<String> policies = new ArrayList<>();
 				List<String> currentpolicies = new ArrayList<>();
@@ -1086,7 +1086,7 @@ public final class ControllerUtil {
 						oidcUtil.updateGroupPolicies(token, groupName, policies, currentpolicies, oidcGroup.getId());
 						oidcUtil.renewUserToken(userDetails.getClientToken());
 					}
-					
+
 				}
 			}
 		}
