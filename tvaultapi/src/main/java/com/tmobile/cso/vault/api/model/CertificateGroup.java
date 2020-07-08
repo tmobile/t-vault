@@ -27,8 +27,8 @@ public class CertificateGroup implements Serializable{
 	 * @param groupname
 	 * @param access
 	 */
-	
-	
+
+
 	public CertificateGroup(String certificateName, String groupname, String access, String certType) {
 		super();
 		this.certificateName = certificateName;
@@ -37,8 +37,8 @@ public class CertificateGroup implements Serializable{
 		this.certType = certType;
 	}
 
-	
-	
+
+
 	@ApiModelProperty(example="cert1", position=1)
 	public String getCertificateName() {
 		return certificateName;

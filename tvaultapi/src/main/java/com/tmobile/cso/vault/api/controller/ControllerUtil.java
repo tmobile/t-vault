@@ -2781,65 +2781,281 @@ public final class ControllerUtil {
 		return response;
 	}
 
+    public static boolean arecertificateGroupInputsValid(CertificateGroup certificateGroup) {
+
+		if (ObjectUtils.isEmpty(certificateGroup)) {
+			return false;
+		}
+		if (ObjectUtils.isEmpty(certificateGroup.getGroupname())
+				|| ObjectUtils.isEmpty(certificateGroup.getAccess())
+				|| ObjectUtils.isEmpty(certificateGroup.getCertificatename())
+				|| certificateGroup.getCertificatename().contains(" ")
+                || (!certificateGroup.getCertificatename().endsWith(".t-mobile.com"))
+				) {
+			return false;
+		}
+			boolean isValid = true;
+			String access = certificateGroup.getAccess();
+			if (!ArrayUtils.contains(permissions, access)) {
+				isValid = false;
+			}
+			return isValid;
+		}
+
 	/**
-	 * To filter the duplicate safe permissions
-	 * @param access
+	 * Decides whether a user can be added to a certificate or not
+	 * @param path
+	 * @param token
 	 * @return
 	 */
-	public static Map<String,Object> filterDuplicateSafePermissions(Map<String,Object> access) {
-		if (!MapUtils.isEmpty(access)) {
-			String[] safeTypes = {TVaultConstants.USERS, TVaultConstants.SHARED, TVaultConstants.APPS};
+	//metadata/(certtype)sslcerts/(certname)cert1//
+	public static boolean canAddCertPermission(String path,String certificateName,String token) {
+		String certType = "metadata/sslcerts";
+		String certName =certificateName;
+		System.out.println(certName);
 
-			for (String type: safeTypes) {
-				List<Map<String,String>> safePermissions = (List<Map<String,String>>)access.get(type);
-				if (safePermissions != null) {
-					//map to check duplicate permission
-					Map<String,String> filteredPermissions = Collections.synchronizedMap(new HashMap());
-					List<Map<String,String>> updatedPermissionList = new ArrayList<>();
-					for (Map<String,String> permissionMap: safePermissions) {
-						Set<String> keys = permissionMap.keySet();
-						String key = keys.stream().findFirst().orElse("");
+		//List<String> existingSafeNames = getAllExistingCertNames(safeType, token);
+		List<String> existingCertNames = getAllExistingCertNames(certType, token);
+		List<String> duplicateCertNames = new ArrayList<String>();
+		int count=0;
+		for (String existingCertName: existingCertNames) {
 
-						if (key !="" && !filteredPermissions.containsKey(key)) {
-							filteredPermissions.put(key, permissionMap.get(key));
-							Map<String,String> permission = Collections.synchronizedMap(new HashMap());
-							permission.put(key, permissionMap.get(key));
-							updatedPermissionList.add(permission);
-						}
-					}
-					access.put(type, updatedPermissionList);
-				}
+			if (existingCertName.equalsIgnoreCase(certName)) {
+				count++;
+				duplicateCertNames.add(existingCertName);
 			}
 		}
-		return access;
+
+		if (count !=0 ) {
+			// There is one valid certificate, Hence permission can be added
+			// Exact match
+			return true;
+		}
+		else {
+			// There are no safes or more than one and hence permission can't be added
+			return false;
+		}
 	}
 
 	/**
-	 * To filter the duplicate Service account permissions
-	 * @param access
+	 * Get the map of all existing certificate names for a given type.
 	 * @return
 	 */
-	public static  Map<String,Object> filterDuplicateSvcaccPermissions(Map<String,Object> access) {
-		if (!MapUtils.isEmpty(access)) {
-			List<Map<String,String>> svcaccPermissions = (List<Map<String,String>>)access.get(TVaultConstants.SVC_ACC_PATH_PREFIX);
-			if (svcaccPermissions != null) {
-				//map to check duplicate permission
-				Map<String,String> filteredPermissions = Collections.synchronizedMap(new HashMap());
-				List<Map<String,String>> updatedPermissionList = new ArrayList<>();
-				for (Map<String,String> permissionMap: svcaccPermissions) {
-					Set<String> keys = permissionMap.keySet();
-					String key = keys.stream().findFirst().orElse("");
-
-					if (key !="" && !filteredPermissions.containsKey(key)) {
-						filteredPermissions.put(key, permissionMap.get(key));
-						Map<String,String> permission = Collections.synchronizedMap(new HashMap());
-						permission.put(key, permissionMap.get(key));
-						updatedPermissionList.add(permission);
-					}
-				}
-				access.put(TVaultConstants.SVC_ACC_PATH_PREFIX, updatedPermissionList);
+	public static List<String> getAllExistingCertNames(String type, String token) {
+		List<String> certNames = new ArrayList<String>();
+		String path =  type;
+		Response response = reqProcessor.process("/sdb/list","{\"path\":\""+path+"\"}",token);
+		if(response.getHttpstatus().equals(HttpStatus.OK)){
+			try {
+				Map<String, Object> requestParams = new ObjectMapper().readValue(response.getResponse(), new TypeReference<Map<String, Object>>(){});
+				certNames = (ArrayList<String>) requestParams.get("keys");
+			} catch (Exception e) {
+				log.error("Unable to get list of safes.");
+				log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+						put(LogMessage.ACTION, "getAllExistingCertificateNames").
+						put(LogMessage.MESSAGE, String.format ("Unable to get list of certificate due to [%s] ",e.getMessage())).
+						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+						build()));
 			}
 		}
-		return access;
+		return certNames;
 	}
+
+	public static Response updateSslCertificateMetadata(Map<String,String> params,String token){
+		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+				put(LogMessage.ACTION, "updateMetadata").
+				put(LogMessage.MESSAGE, String.format ("Trying to upate metadata with params")).
+				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+				build()));
+		String _type = params.get("type");
+		String name = params.get("name");
+		String access = params.get("access");
+		String certificateName = params.get("certificatename");
+		String path = "metadata/sslcerts/" +certificateName;
+
+		ObjectMapper objMapper = new ObjectMapper();
+		String pathjson ="{\"path\":\""+path+"\"}";
+		// Read info for the path
+		Response metadataResponse = reqProcessor.process("/read",pathjson,token);
+		Map<String,Object> _metadataMap = null;
+		if(HttpStatus.OK.equals(metadataResponse.getHttpstatus())){
+			try {
+				_metadataMap = objMapper.readValue(metadataResponse.getResponse(), new TypeReference<Map<String,Object>>() {});
+			} catch (IOException e) {
+				log.error(e);
+				log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+						put(LogMessage.ACTION, "updateMetadata").
+						put(LogMessage.MESSAGE, String.format ("Error creating _metadataMap for type [%s], name [%s], access [%s] and path [%s] message [%s]", _type, name, access, path, e.getMessage())).
+						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+						build()));
+			}
+
+			@SuppressWarnings("unchecked")
+			Map<String,Object> metadataMap = (Map<String,Object>) _metadataMap.get("data");
+
+			@SuppressWarnings("unchecked")
+			Map<String,String> dataMap = (Map<String,String>) metadataMap.get(_type);
+			if(dataMap == null) { dataMap = new HashMap<String,String>(); metadataMap.put(_type, dataMap);}
+
+			dataMap.remove(name);
+			if(!"delete".equals(access))
+				dataMap.put(name, access);
+
+			String metadataJson = "";
+			try {
+				metadataJson = objMapper.writeValueAsString(metadataMap);
+			} catch (JsonProcessingException e) {
+				log.error(e);
+				log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+						put(LogMessage.ACTION, "updateMetadata").
+						put(LogMessage.MESSAGE, String.format ("Error in creating metadataJson for type [%s], name [%s], access [%s] and path [%s] with message [%s]", _type, name, access, path, e.getMessage())).
+						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+						build()));
+			}
+
+			String writeJson =  "{\"path\":\""+path+"\",\"data\":"+ metadataJson +"}";
+			metadataResponse = reqProcessor.process("/write",writeJson,token);
+			return metadataResponse;
+		}
+		return null;
+	}
+
+	public static Response updateSslMetaDataOnConfigChanges(String name, String type,String currentPolicies, String latestPolicies, String token){
+
+		List<String> _currentPolicies = Arrays.asList(currentPolicies.split(","));
+		List<String> _latestpolicies = Arrays.asList(latestPolicies.split(","));
+		List<String> _new = new ArrayList<String>();
+		List<String> _del = new ArrayList<String>();
+		for(String currPolicy : _currentPolicies){
+			if(!_latestpolicies.contains(currPolicy)){
+				_del.add(currPolicy);
+			}
+		}
+
+		for(String latest : _latestpolicies){
+			if(!_currentPolicies.contains(latest)){
+				_new.add(latest);
+			}
+		}
+
+		Map<String,String> sslAccessMap = new HashMap<String,String>();
+
+		for(String policy : _new){
+			String policyInfo[] = policy.split("_");
+			if(policyInfo.length==3){
+				String access ="" ;
+				switch(policyInfo[0]) {
+					case "r" : 	access = TVaultConstants.READ_POLICY; break;
+					case "w" : 	access = TVaultConstants.WRITE_POLICY; break;
+					default:	access= TVaultConstants.DENY_POLICY ;break;
+				}
+				String path = policyInfo[1]+"/"+policyInfo[2];
+				sslAccessMap.put(path, access);
+			}
+		}
+		for(String policy : _del){
+			String policyInfo[] = policy.split("_");
+			if(policyInfo.length==3){
+				String path = policyInfo[1]+"/"+policyInfo[2];
+				if(!sslAccessMap.containsKey(path)){
+					sslAccessMap.put(path, "delete");
+				}
+			}
+		}
+
+		Iterator<Entry<String,String>> itr = sslAccessMap.entrySet().iterator();
+		List<String> failed = new ArrayList<String>();
+		while(itr.hasNext()){
+			Entry<String,String> entry = itr.next();
+			Map<String,String> params = new HashMap<String,String>();
+			params.put("type", type);
+			params.put("name", name);
+			params.put("path", entry.getKey());
+			params.put("access", entry.getValue());
+			Response rsp = updateSslCertificateMetadata(params, token);
+			if(rsp == null || !HttpStatus.NO_CONTENT.equals(rsp.getHttpstatus())){
+				failed.add(entry.getKey());
+			}
+		}
+		Response response = new Response();
+		if(failed.size()==0){
+			response.setHttpstatus(HttpStatus.OK);
+		}else{
+			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+					put(LogMessage.ACTION, "updateMetaDataOnConfigChanges").
+					put(LogMessage.MESSAGE, String.format ("updateMetaDataOnConfigChanges failed ")).
+					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+					build()));
+			response.setHttpstatus(HttpStatus.MULTI_STATUS);
+			response.setResponse("Meta data update failed for "+failed.toString() );
+		}
+		return response;
+	}
+
+    /**
+     * To filter the duplicate safe permissions
+     * @param access
+     * @return
+     */
+    public static Map<String,Object> filterDuplicateSafePermissions(Map<String,Object> access) {
+        if (!MapUtils.isEmpty(access)) {
+            String[] safeTypes = {TVaultConstants.USERS, TVaultConstants.SHARED, TVaultConstants.APPS};
+
+            for (String type: safeTypes) {
+                List<Map<String,String>> safePermissions = (List<Map<String,String>>)access.get(type);
+                if (safePermissions != null) {
+                    //map to check duplicate permission
+                    Map<String,String> filteredPermissions = Collections.synchronizedMap(new HashMap());
+                    List<Map<String,String>> updatedPermissionList = new ArrayList<>();
+                    for (Map<String,String> permissionMap: safePermissions) {
+                        Set<String> keys = permissionMap.keySet();
+                        String key = keys.stream().findFirst().orElse("");
+
+                        if (key !="" && !filteredPermissions.containsKey(key)) {
+                            filteredPermissions.put(key, permissionMap.get(key));
+                            Map<String,String> permission = Collections.synchronizedMap(new HashMap());
+                            permission.put(key, permissionMap.get(key));
+                            updatedPermissionList.add(permission);
+                        }
+                    }
+                    access.put(type, updatedPermissionList);
+                }
+            }
+        }
+        return access;
+    }
+
+    /**
+     * To filter the duplicate Service account permissions
+     * @param access
+     * @return
+     */
+    public static  Map<String,Object> filterDuplicateSvcaccPermissions(Map<String,Object> access) {
+        if (!MapUtils.isEmpty(access)) {
+            List<Map<String,String>> svcaccPermissions = (List<Map<String,String>>)access.get(TVaultConstants.SVC_ACC_PATH_PREFIX);
+            if (svcaccPermissions != null) {
+                //map to check duplicate permission
+                Map<String,String> filteredPermissions = Collections.synchronizedMap(new HashMap());
+                List<Map<String,String>> updatedPermissionList = new ArrayList<>();
+                for (Map<String,String> permissionMap: svcaccPermissions) {
+                    Set<String> keys = permissionMap.keySet();
+                    String key = keys.stream().findFirst().orElse("");
+
+                    if (key !="" && !filteredPermissions.containsKey(key)) {
+                        filteredPermissions.put(key, permissionMap.get(key));
+                        Map<String,String> permission = Collections.synchronizedMap(new HashMap());
+                        permission.put(key, permissionMap.get(key));
+                        updatedPermissionList.add(permission);
+                    }
+                }
+                access.put(TVaultConstants.SVC_ACC_PATH_PREFIX, updatedPermissionList);
+            }
+        }
+        return access;
+    }
 }
