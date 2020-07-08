@@ -127,4 +127,19 @@ public class PolicyUtils {
 		}
 		return policies;
 	}
+
+
+	/**
+	 * Gets the list of policies to be checked for a given ssl certificate
+	 * @param certType
+	 * @param certName
+	 * @return
+	 */
+	public ArrayList<String> getCertPoliciesTobeCheked(String certName) {
+		ArrayList<String> policiesTobeChecked = new ArrayList<String>();
+		policiesTobeChecked.addAll(getAdminPolicies()); 
+		String certType="metadata/sslcerts";
+		policiesTobeChecked.addAll(getSudoPolicies(certType, certName));
+		return policiesTobeChecked;
+	}
 }
