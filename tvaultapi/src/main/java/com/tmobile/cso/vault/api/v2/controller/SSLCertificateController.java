@@ -18,6 +18,7 @@ package com.tmobile.cso.vault.api.v2.controller;
 
 
 import com.tmobile.cso.vault.api.model.CertManagerLoginRequest;
+import com.tmobile.cso.vault.api.model.CertificateGroup;
 import com.tmobile.cso.vault.api.model.RevocationRequest;
 import com.tmobile.cso.vault.api.model.CertificateUser;
 import com.tmobile.cso.vault.api.model.SSLCertificateRequest;
@@ -121,6 +122,19 @@ public class SSLCertificateController {
 		UserDetails userDetails = (UserDetails) request.getAttribute("UserDetails");
 		boolean addSudoPermission = false;
 		return sslCertificateService.addUserToCertificate(token, certificateUser, userDetails, addSudoPermission);
+	}
+	
+	/**
+	 * Adds a group to a certificate
+	 * @param token
+	 * @param CertificateGroup
+	 * @return
+	 */
+	@ApiOperation(value = "${SSLCertificateController.addGroupToCertificate.value}", notes = "${SSLCertificateController.addGroupToCertificate.notes}")
+	@PostMapping(value="/v2/ss/certificate/group",consumes="application/json",produces="application/json")
+	public ResponseEntity<String> addGroupToCertificate(HttpServletRequest request, @RequestHeader(value="vault-token") String token, @RequestBody CertificateGroup certificateGroup){
+		UserDetails userDetails = (UserDetails) ((HttpServletRequest) request).getAttribute("UserDetails");
+		return sslCertificateService.addGroupToCertificate(userDetails, token,certificateGroup);
 	}
 
 	/**

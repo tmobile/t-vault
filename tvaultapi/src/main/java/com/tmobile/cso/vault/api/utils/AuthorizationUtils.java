@@ -33,6 +33,7 @@ import org.springframework.util.StringUtils;
 import com.google.common.collect.ImmutableMap;
 import com.tmobile.cso.vault.api.controller.ControllerUtil;
 import com.tmobile.cso.vault.api.exception.LogMessage;
+import com.tmobile.cso.vault.api.model.SSLCertificateMetadataDetails;
 import com.tmobile.cso.vault.api.model.Safe;
 import com.tmobile.cso.vault.api.model.UserDetails;
 import com.tmobile.cso.vault.api.process.Response;
@@ -201,5 +202,42 @@ public class AuthorizationUtils {
 		}
 		return safeType;
 	}
+	/**
+	 * Checks whether the given user can edit the given certificate.
+	 * @param userDetails
+	 * @param certificateMetaData
+	 * @param latestPolicies
+	 * @param policiesTobeChecked
+	 * @return
+	 */
+	public boolean isAuthorizedCert(UserDetails userDetails, SSLCertificateMetadataDetails sslMetaData, String[] latestPolicies, ArrayList<String> policiesTobeChecked, boolean forceCapabilityCheck) {
+		boolean authorized = false;
+		String powerToken = userDetails.getSelfSupportToken();
+		if (userDetails.isAdmin()) {
+			// Admin is always authorized. This flag is set when the user logs in with "safeadmin" policy
+			return true;
+		}
+		else {
+			// Non Admins
+			if (userDetails.getUsername() != null && userDetails.getUsername().equalsIgnoreCase(sslMetaData.getCertOwnerNtid())) {
+				// As a owner of the certificate, I am always authorized...
+				if (!forceCapabilityCheck) {
+					// Little lenient authorization (To be used carefully) 
+					return true;
+				}
+			}
+		}
+		String certType ="metadata/sslcerts";
+		// Open each of the associated policy and check whether the user really has capability 
+		for (String policyTobeChecked: policiesTobeChecked) {
+			String policyKeyTobeChecked = new StringBuffer().append(certType).toString();
+			authorized = isAuthorized(latestPolicies, policyTobeChecked, policyKeyTobeChecked, powerToken);
+			if (authorized) {
+				break;
+			}
+		}
+		return authorized;
+	}
+
 
 }
