@@ -2823,7 +2823,7 @@ public class SSLCertificateService {
         postRequest.addHeader("Accept","application/octet-stream");
         StringEntity stringEntity;
         try {
-            stringEntity = new StringEntity("{\"format\":\""+certificateDownloadRequest.getFormat()+"\",\"password\":\""+certificateDownloadRequest.getCertificateCred()+"\"}");
+            stringEntity = new StringEntity("{\"format\":\""+certificateDownloadRequest.getFormat()+"\",\"password\":\""+certificateDownloadRequest.getCertificateCred()+"\", \"issuerChain\": "+certificateDownloadRequest.isIssuerChain()+"}");
         } catch (UnsupportedEncodingException e) {
             log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
                     put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).

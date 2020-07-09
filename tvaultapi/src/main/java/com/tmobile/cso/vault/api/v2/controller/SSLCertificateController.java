@@ -183,7 +183,7 @@ public class SSLCertificateController {
 	 * @return
 	 */
 	@ApiOperation(value = "${CertificateController.downloadCertificateWithPrivateKey.value}", notes = "${CertificateController.downloadCertificateWithPrivateKey.notes}")
-	@PostMapping(value="/v2/nclm/certificates/download", consumes="application/json")
+	@PostMapping(value="/v2/sslcert/certificates/download", consumes="application/json")
 	public ResponseEntity<InputStreamResource> downloadCertificateWithPrivateKey(HttpServletRequest request, @RequestHeader(value="vault-token") String token, @Valid @RequestBody CertificateDownloadRequest certificateDownloadRequest) {
 		UserDetails userDetails = (UserDetails) ((HttpServletRequest) request).getAttribute("UserDetails");
 		return sslCertificateService.downloadCertificateWithPrivateKey(token, certificateDownloadRequest, userDetails);
@@ -198,7 +198,7 @@ public class SSLCertificateController {
 	 * @return
 	 */
 	@ApiOperation(value = "${CertificateController.downloadCertificate.value}", notes = "${CertificateController.downloadCertificate.notes}")
-	@GetMapping(value="/v2/nclm/certificates/{certificate_name}/{certificate_type}", produces="application/json")
+	@GetMapping(value="/v2/sslcert/certificates/{certificate_name}/{certificate_type}", produces="application/json")
 	public ResponseEntity<InputStreamResource> downloadCertificate(HttpServletRequest request, @RequestHeader(value="vault-token") String token, @PathVariable("certificate_name") String certificateName, @PathVariable("certificate_type") String certificateType){
 		UserDetails userDetails = (UserDetails) ((HttpServletRequest) request).getAttribute("UserDetails");
 		return sslCertificateService.downloadCertificate(token, userDetails, certificateName, certificateType);
