@@ -1506,7 +1506,7 @@ public class SSLCertificateService {
         if (HttpStatus.OK.equals(response.getHttpstatus())) {
             JsonParser jsonParser = new JsonParser();
             JsonObject jsonObject = (JsonObject) jsonParser.parse(response.getResponse());
-            if (jsonObject != null && jsonObject.get(SSLCertificateConstants.TARGETSYSTEMS) != null)  {
+            if (jsonObject != null && jsonObject.get(SSLCertificateConstants.TARGETSYSTEMS) != null && !jsonObject.get(SSLCertificateConstants.TARGETSYSTEMS).toString().equalsIgnoreCase("null"))  {
                 JsonArray jsonArray = jsonObject.getAsJsonArray(SSLCertificateConstants.TARGETSYSTEMS);
 
                 for (int i = 0; i < jsonArray.size(); i++) {
@@ -1562,7 +1562,7 @@ public class SSLCertificateService {
         if (HttpStatus.OK.equals(response.getHttpstatus())) {
             JsonParser jsonParser = new JsonParser();
             JsonObject jsonObject = (JsonObject) jsonParser.parse(response.getResponse());
-            if (jsonObject != null && jsonObject.get(SSLCertificateConstants.TARGETSYSTEM_SERVICES) != null)  {
+            if (jsonObject != null && jsonObject.get(SSLCertificateConstants.TARGETSYSTEM_SERVICES) != null && !jsonObject.get(SSLCertificateConstants.TARGETSYSTEM_SERVICES).toString().equalsIgnoreCase("null")) {
                 JsonArray jsonArray = jsonObject.getAsJsonArray(SSLCertificateConstants.TARGETSYSTEM_SERVICES);
 
                 for (int i = 0; i < jsonArray.size(); i++) {
