@@ -351,6 +351,10 @@ readTextFile("../apiUrls.json");
             url: '/v2/sslcert/user',
             method: 'POST'
         }, {
+            name: 'downloadCertificate',
+            url: '/v2/sslcert/certificates/download',
+            method: 'POST'
+        }, {
             name: 'getAuthUrl',
             url: '/v2/auth/oidc/auth_url',
             method: 'POST'
