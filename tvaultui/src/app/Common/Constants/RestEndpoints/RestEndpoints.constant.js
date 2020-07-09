@@ -411,13 +411,14 @@ readTextFile("../apiUrls.json");
             url: '/v2/sslcert/certificates/download',
             method: 'POST'
         }, {
-            name: 'getAuthUrl',
-            url: '/v2/auth/oidc/auth_url',
-            method: 'POST'
-        }, {
-            name: 'getCallback',
-            url: '/v2/auth/oidc/callback',
-            method: 'GET'
-        }]
+             name: 'getAuthUrl',
+             url: '/v2/auth/oidc/auth_url',
+             method: 'POST'
+         }, {
+             name: 'getCallback',
+             url: '/v2/auth/oidc/callback',
+             method: 'GET'
+         }
+    ]
     });
 })( angular.module( 'vault.constants.RestEndpoints', []));
