@@ -101,7 +101,7 @@ public class SSLCertificateRequest implements Serializable {
 	}
 
 	public String getCertificateName() {
-		return certificateName;
+		return certificateName.toLowerCase();
 	}
 
 	public void setCertificateName(String certificateName) {
