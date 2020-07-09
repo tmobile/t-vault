@@ -49,6 +49,7 @@ import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
+import com.tmobile.cso.vault.api.common.SSLCertificateConstants;
 import com.tmobile.cso.vault.api.common.TVaultConstants;
 import com.tmobile.cso.vault.api.exception.LogMessage;
 import com.tmobile.cso.vault.api.exception.TVaultValidationException;
@@ -2520,11 +2521,9 @@ public final class ControllerUtil {
 	 */
 	//metadata/(certtype)sslcerts/(certname)cert1//
 	public static boolean canAddCertPermission(String path,String certificateName,String token) {
-		String certType = "metadata/sslcerts";
+		String certType =SSLCertificateConstants.SSL_CERT_PATH;
 		String certName =certificateName;
-		System.out.println(certName);
 
-		//List<String> existingSafeNames = getAllExistingCertNames(safeType, token);
 		List<String> existingCertNames = getAllExistingCertNames(certType, token);
 		List<String> duplicateCertNames = new ArrayList<String>();
 		int count=0;
