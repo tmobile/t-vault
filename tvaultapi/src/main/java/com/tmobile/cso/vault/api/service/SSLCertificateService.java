@@ -21,14 +21,30 @@ import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
+import com.tmobile.cso.vault.api.utils.PolicyUtils;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.ArrayUtils;
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.conn.ssl.NoopHostnameVerifier;
+import org.apache.http.ssl.TrustStrategy;
+import org.apache.http.entity.StringEntity;
+import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.impl.client.LaxRedirectStrategy;
+import org.apache.http.ssl.SSLContextBuilder;
+import org.apache.http.util.EntityUtils;
+import org.springframework.core.io.InputStreamResource;
 import org.springframework.util.ObjectUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
@@ -56,6 +72,13 @@ import com.tmobile.cso.vault.api.utils.JSONUtil;
 import com.tmobile.cso.vault.api.utils.PolicyUtils;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.tmobile.cso.vault.api.utils.ThreadLocalContext;
+import java.io.ByteArrayInputStream;
+import java.io.UnsupportedEncodingException;
+import java.security.KeyManagementException;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -74,9 +97,9 @@ public class SSLCertificateService {
     
     @Autowired
 	private CertificateUtils certificateUtils;
-    
+
     @Autowired
-   	private PolicyUtils policyUtils;       
+   	private PolicyUtils policyUtils;
 
     @Autowired
    	private AuthorizationUtils authorizationUtils;
@@ -171,7 +194,7 @@ public class SSLCertificateService {
     private String certificateNameTailText;
 
     private static Logger log = LogManager.getLogger(SSLCertificateService.class);
-    
+
     private static final String[] PERMISSIONS = {"read", "write", "deny", "sudo"};
 
     /**
@@ -1901,7 +1924,7 @@ public class SSLCertificateService {
 	 * @return
 	 */
 	private ResponseEntity<String> checkUserDetailsAndAddCertificateToUser(String token, String userName,
-			String certificateName, String access) {		
+			String certificateName, String access) {
 		
 		String policyPrefix = getCertificatePolicyPrefix(access);
 		
@@ -2004,7 +2027,7 @@ public class SSLCertificateService {
 
 	private String getCertificatePolicyPrefix(String access) {
 		String policyPrefix ="";
-		
+
 		switch (access){
 			case TVaultConstants.READ_POLICY: policyPrefix = "r_cert_"; break ;
 			case TVaultConstants.WRITE_POLICY: policyPrefix = "w_cert_" ;break;
@@ -2015,7 +2038,7 @@ public class SSLCertificateService {
 		return policyPrefix;
 	}
 
-	
+
 	/**
 	 * Method to configure the Userpass or ldap users and update metadata for add user to certificate
 	 * @param token
@@ -2177,7 +2200,7 @@ public class SSLCertificateService {
 	}
 		return addingGroupToCertificate(token, certificateGroup);
 	}
-	
+
 	/**
 	 * isAuthorizedh
 	 * @param token
@@ -2191,12 +2214,12 @@ public class SSLCertificateService {
 		}
 		String powerToken = userDetails.getSelfSupportToken();
 		String username = userDetails.getUsername();
-		
+
 		SSLCertificateMetadataDetails sslMetaData = certificateUtils.getCertificateMetaData(powerToken,certName);
 		if (sslMetaData == null) {
 			return ResponseEntity.status(HttpStatus.OK).body("false");
 		}
-		
+
 		if (sslMetaData != null)  {
 			return ResponseEntity.status(HttpStatus.OK).body("true");
 		}
@@ -2223,12 +2246,12 @@ public class SSLCertificateService {
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid input values\"]}");
 		}
 		String jsonstr = JSONUtil.getJSON(certificateGroup);
-		
+
 		//checking whether auth method is userpass or ldap//
 		//we should set vaultAuthMethod=ldap//
 		if (TVaultConstants.USERPASS.equals(vaultAuthMethod)) {
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"This operation is not supported for Userpass authentication. \"]}");
-		}	
+		}
 		ObjectMapper objMapper = new ObjectMapper();
 		Map<String,String> requestMap = null;
 		try {
@@ -2298,7 +2321,7 @@ public class SSLCertificateService {
 				// New user to be configured
 				policies.add(policy);
 			}
-			
+
 			String policiesString = org.apache.commons.lang3.StringUtils.join(policies, ",");
 			String currentpoliciesString = org.apache.commons.lang3.StringUtils.join(currentpolicies, ",");
 			Response ldapConfigresponse = ControllerUtil.configureLDAPGroup(groupName,policiesString,token);
@@ -2318,21 +2341,21 @@ public class SSLCertificateService {
 							put(LogMessage.STATUS, metadataResponse.getHttpstatus().toString()).
 							put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 							build()));
-					return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Group is successfully associated with Certificate\"]}");		
+					return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Group is successfully associated with Certificate\"]}");
 				}else{
 					String certType = SSLCertificateConstants.SSL_CERT_PATH;
 					String certName = certificateGroup.getCertificatename();
 					List<String> certNames = ControllerUtil.getAllExistingCertNames(certType, token);
 					if (certNames != null ) {
-						
+
 						for (String existingCertName: certNames) {
 							if (existingCertName.equalsIgnoreCase(certName)) {
 								// It will come here when there is only one valid safe
 								String newPath = SSLCertificateConstants.SSL_CERT_PATH + '/' + certificateName;
 								break;
 							}
-						} 
-						
+						}
+
 					}
 					metadataResponse = ControllerUtil.updateSslCertificateMetadata(params,token);
 					if (metadataResponse !=null && HttpStatus.NO_CONTENT.equals(metadataResponse.getHttpstatus())) {
@@ -2343,8 +2366,8 @@ public class SSLCertificateService {
 								put(LogMessage.STATUS, metadataResponse.getHttpstatus().toString()).
 								put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 								build()));
-						return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Group is successfully associated with Certificate\"]}");		
-						
+						return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Group is successfully associated with Certificate\"]}");
+
 					}
 					else {
 						log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
@@ -2365,7 +2388,7 @@ public class SSLCertificateService {
 									put(LogMessage.STATUS, (null!=metadataResponse)?metadataResponse.getHttpstatus().toString():TVaultConstants.EMPTY).
 									put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 									build()));
-							return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Group is successfully associated with Certificate\"]}");		
+							return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Group is successfully associated with Certificate\"]}");
 						}else{
 							log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 									put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
@@ -2378,16 +2401,16 @@ public class SSLCertificateService {
 							return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Group configuration failed.Contact Admin \"]}");
 						}
 					}
-				}		
+				}
 			}else{
 				ldapConfigresponse.getResponse();
 				return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Group configuration failed.Try Again\"]}");
-			}	
+			}
 		}else{
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid 'path' specified\"]}");
 		}
 	}
-	
+
 	/**
      * Associate Approle to Certificate
      * @param userDetails
@@ -2403,7 +2426,7 @@ public class SSLCertificateService {
                 build()));
         String authToken = null;
         boolean isAuthorized = true;
-        
+
         if(!areCertificateApproleInputsValid(certificateApprole)) {
         	log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
    					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
@@ -2417,23 +2440,23 @@ public class SSLCertificateService {
         String approleName = certificateApprole.getApproleName().toLowerCase();
         String certificateName = certificateApprole.getCertificateName().toLowerCase();
         String access = certificateApprole.getAccess().toLowerCase();
-        
+
         if (approleName.equals(TVaultConstants.SELF_SERVICE_APPROLE_NAME)) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Access denied: no permission to associate this AppRole to any Certificate\"]}");
         }
 
-        if (!ObjectUtils.isEmpty(userDetails)) {        	
-      
+        if (!ObjectUtils.isEmpty(userDetails)) {
+
 	        if (userDetails.isAdmin()) {
 	        	authToken = userDetails.getClientToken();
 	        }else {
-	        	authToken = userDetails.getSelfSupportToken();        	
+	        	authToken = userDetails.getSelfSupportToken();
 	        }
-	        
+
 	        SSLCertificateMetadataDetails certificateMetaData = certificateUtils.getCertificateMetaData(authToken, certificateName);
-				
-			isAuthorized = certificateUtils.hasAddOrRemovePermission(userDetails, certificateMetaData);	
-		
+
+			isAuthorized = certificateUtils.hasAddOrRemovePermission(userDetails, certificateMetaData);
+
         }else {
    			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
    					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
@@ -2441,11 +2464,11 @@ public class SSLCertificateService {
    					put(LogMessage.MESSAGE, "Access denied: No permission to add approle to this certificate").
    					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
    					build()));
-   			
+
    			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Access denied: No permission to add approle to this certificate\"]}");
    		}
-        
-        if(isAuthorized){        	
+
+        if(isAuthorized){
         	return createPoliciesAndConfigureApproleToCertificate(authToken, approleName, certificateName, access);
         } else{
         	log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
@@ -2454,7 +2477,7 @@ public class SSLCertificateService {
 					put(LogMessage.MESSAGE, String.format("Access denied: No permission to add Approle [%s] to the Certificate [%s]", approleName, certificateName)).
 					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 					build()));
-        	
+
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Access denied: No permission to add Approle to this Certificate\"]}");
         }
     }
@@ -2469,7 +2492,7 @@ public class SSLCertificateService {
 	private ResponseEntity<String> createPoliciesAndConfigureApproleToCertificate(String authToken, String approleName,
 			String certificateName, String access) {
 		String policyPrefix = getCertificatePolicyPrefix(access);
-		
+
 		if(TVaultConstants.EMPTY.equals(policyPrefix)){
 			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
@@ -2481,19 +2504,19 @@ public class SSLCertificateService {
 		}
 
 		String policy = policyPrefix + certificateName;
-		
+
 		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
 				put(LogMessage.ACTION, SSLCertificateConstants.ADD_APPROLE_TO_CERT_MSG).
 				put(LogMessage.MESSAGE, String.format ("policy is [%s]", policy)).
 				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 				build()));
-		
+
 		String readPolicy = "r_cert_"+certificateName;
 		String writePolicy = "w_cert_"+certificateName;
 		String denyPolicy = "d_cert_"+certificateName;
 		String sudoPolicy = "o_cert_"+certificateName;
-		
+
 		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
 				put(LogMessage.ACTION, SSLCertificateConstants.ADD_APPROLE_TO_CERT_MSG).
@@ -2543,13 +2566,13 @@ public class SSLCertificateService {
 			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
 					put(LogMessage.ACTION, SSLCertificateConstants.ADD_APPROLE_TO_CERT_MSG).
-					put(LogMessage.MESSAGE, String.format("Non existing role name. Please configure approle as first step - Approle = [%s]", approleName)).						
+					put(LogMessage.MESSAGE, String.format("Non existing role name. Please configure approle as first step - Approle = [%s]", approleName)).
 					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 					build()));
-			
+
 		    return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body("{\"errors\":[\"Non existing role name. Please configure approle as first step\"]}");
 		}
-		
+
 		String policiesString = org.apache.commons.lang3.StringUtils.join(policies, ",");
 		String currentpoliciesString = org.apache.commons.lang3.StringUtils.join(currentpolicies, ",");
 
@@ -2587,7 +2610,7 @@ public class SSLCertificateService {
 					put(LogMessage.MESSAGE, String.format("Failed to add Approle [%s] to the Certificate [%s]", approleName, certificateName)).
 					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 					build()));
-			
+
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Failed to add Approle to the Certificate\"]}");
 		}
 	}
@@ -2601,7 +2624,7 @@ public class SSLCertificateService {
 	 * @return
 	 */
 	private ResponseEntity<String> updateApproleMetadataForCertificate(String authToken, String approleName,
-			String certificateName, String access, String currentpoliciesString) {		
+			String certificateName, String access, String currentpoliciesString) {
 		String certificatePath = SSLCertificateConstants.SSL_CERT_PATH_VALUE + certificateName;
 		Map<String,String> params = new HashMap<>();
 		params.put("type", "app-roles");
@@ -2656,14 +2679,14 @@ public class SSLCertificateService {
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Approle configuration failed. Contact Admin\"]}");
 		}
 	}
-    
+
 	/**
 	 * Validates Certificate approle inputs
 	 * @param certificateApprole
 	 * @return boolean
 	 */
 	private boolean areCertificateApproleInputsValid(CertificateApprole certificateApprole) {
-		
+
 		if (ObjectUtils.isEmpty(certificateApprole)) {
 			return false;
 		}
@@ -2685,4 +2708,274 @@ public class SSLCertificateService {
 		return isValid;
 	}
 
+    /**
+     * Check if user has download permission.
+     * @param certificateName
+     * @param userDetails
+     * @return
+     */
+	public boolean hasDownloadPermission(String certificateName, UserDetails userDetails) {
+        String readPolicy = "r_cert_" + certificateName;
+        String sudoPolicy = "o_cert_" + certificateName;
+        String renewRevokePolicy = "w_cert_" + certificateName;
+        boolean hasPermission = false;
+        if (userDetails.isAdmin()) {
+            return true;
+        }
+        String policyList [] = policyUtils.getCurrentPolicies(userDetails.getSelfSupportToken(), userDetails.getUsername());
+        for (String policy: policyList) {
+            if (policy.equalsIgnoreCase(sudoPolicy) || policy.equalsIgnoreCase(readPolicy) || policy.equalsIgnoreCase(renewRevokePolicy)) {
+                hasPermission = true;
+                break;
+            }
+        }
+        return hasPermission;
+    }
+
+    public SSLCertificateMetadataDetails getCertificateMetadata(String token, String certificateName) {
+        return certificateUtils.getCertificateMetaData(token, certificateName);
+    }
+
+    /**
+     * Download certificate.
+     * @param token
+     * @param certificateDownloadRequest
+     * @param userDetails
+     * @return
+     */
+    public ResponseEntity<InputStreamResource> downloadCertificateWithPrivateKey(String token, CertificateDownloadRequest certificateDownloadRequest, UserDetails userDetails) {
+
+        String certName = certificateDownloadRequest.getCertificateName();
+        SSLCertificateMetadataDetails sslCertificateMetadataDetails = certificateUtils.getCertificateMetaData(token, certName);
+        if (hasDownloadPermission(certificateDownloadRequest.getCertificateName(), userDetails) && sslCertificateMetadataDetails!= null) {
+            log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+                    put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+                    put(LogMessage.ACTION, "downloadCertificateWithPrivateKey").
+                    put(LogMessage.MESSAGE, String.format ("Trying to download certificate [%s]", certName)).
+                    put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+                    build()));
+            return downloadCertificateWithPrivateKey(certificateDownloadRequest, sslCertificateMetadataDetails);
+        }
+        log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+                put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+                put(LogMessage.ACTION, "downloadCertificateWithPrivateKey").
+                put(LogMessage.MESSAGE, String.format ("Access denied: [%s] has no permission to download certificate [%s] or certificate is not onboarded in T-Vault", userDetails.getUsername(), certName)).
+                put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+                build()));
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(null);
+    }
+
+    /**
+     * Download certificate.
+     * @param certificateDownloadRequest
+     * @return
+     */
+    public ResponseEntity<InputStreamResource> downloadCertificateWithPrivateKey(CertificateDownloadRequest certificateDownloadRequest, SSLCertificateMetadataDetails sslCertificateMetadataDetails) {
+        InputStreamResource resource = null;
+        int certId = sslCertificateMetadataDetails.getCertificateId();
+        String certName = certificateDownloadRequest.getCertificateName();
+
+        String nclmToken = getNclmToken();
+        if (StringUtils.isEmpty(nclmToken)) {
+            log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+                    put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+                    put(LogMessage.ACTION, "downloadCertificateWithPrivateKey").
+                    put(LogMessage.MESSAGE, String.format ("Failed to download certificate [%s]. Invalid nclm token", certName)).
+                    put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+                    build()));
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(resource);
+        }
+
+        String fileType;
+        switch (certificateDownloadRequest.getFormat()) {
+            case SSLCertificateConstants.CERT_DOWNLOAD_TYPE_PKCS12DERR: fileType=".p12"; break;
+            case SSLCertificateConstants.CERT_DOWNLOAD_TYPE_PEMBUNDLE: fileType=".pem"; break;
+            case SSLCertificateConstants.CERT_DOWNLOAD_TYPE_PKCS12PEM:
+            default: fileType=".pfx"; break;
+        }
+        String downloadFileName = certificateDownloadRequest.getCertificateName()+fileType;
+        HttpClient httpClient;
+        String api = certManagerDomain + "certificates/"+certId+"/privatekeyexport";
+        try {
+            httpClient = HttpClientBuilder.create().setSSLHostnameVerifier(
+                    NoopHostnameVerifier.INSTANCE).
+                    setSSLContext(
+                            new SSLContextBuilder().loadTrustMaterial(null,new TrustStrategy() {
+                                @Override
+                                public boolean isTrusted(X509Certificate[] arg0, String arg1) throws CertificateException {
+                                    return true;
+                                }
+                            }).build()
+                    ).setRedirectStrategy(new LaxRedirectStrategy()).build();
+        } catch (KeyManagementException | NoSuchAlgorithmException | KeyStoreException e1) {
+            log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+                    put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+                    put(LogMessage.ACTION, "getApiResponse").
+                    put(LogMessage.MESSAGE, String.format ("Failed to download certificate [%s]. Failed to create hhtpClient", certName)).
+                    put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+                    build()));
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(resource);
+        }
+
+        HttpPost postRequest = new HttpPost(api);
+        postRequest.addHeader("Authorization", "Bearer "+ nclmToken);
+        postRequest.addHeader("Content-type", "application/json");
+        postRequest.addHeader("Accept","application/octet-stream");
+        StringEntity stringEntity;
+        try {
+            stringEntity = new StringEntity("{\"format\":\""+certificateDownloadRequest.getFormat()+"\",\"password\":\""+certificateDownloadRequest.getCertificateCred()+"\"}");
+        } catch (UnsupportedEncodingException e) {
+            log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+                    put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+                    put(LogMessage.ACTION, "downloadCertificate").
+                    put(LogMessage.MESSAGE, String.format ("Failed to download certificate [%s]. Failed to encode request", certName)).
+                    put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+                    build()));
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(resource);
+        }
+        postRequest.setEntity(stringEntity);
+
+        try {
+            HttpResponse apiResponse = httpClient.execute(postRequest);
+
+            if (apiResponse.getStatusLine().getStatusCode() != 200) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(resource);
+            }
+            HttpEntity entity = apiResponse.getEntity();
+            if (entity != null) {
+                String responseString = EntityUtils.toString(entity, "UTF-8");
+                // nclm api will give certificate in base64 encoded format
+                byte[] decodedBytes = Base64.getDecoder().decode(responseString);
+                resource = new InputStreamResource(new ByteArrayInputStream(decodedBytes));
+                return ResponseEntity.status(HttpStatus.OK).contentLength(decodedBytes.length)
+                        .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\""+downloadFileName+"\"")
+                        .contentType(MediaType.parseMediaType("application/x-pkcs12;charset=utf-8"))
+                        .body(resource);
+            }
+            log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+                    put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+                    put(LogMessage.ACTION, "downloadCertificate").
+                    put(LogMessage.MESSAGE, String.format ("Failed to download certificate [%s]. Failed to get api response from NCLM", certName)).
+                    put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+                    build()));
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(resource);
+
+        } catch (IOException e) {
+            log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+                    put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+                    put(LogMessage.ACTION, "downloadCertificate").
+                    put(LogMessage.MESSAGE, String.format ("Failed to download certificate [%s]. Failed to get api response from NCLM", certName)).
+                    put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+                    build()));
+        }
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(resource);
+    }
+
+    /**
+     * Download certificate.
+     * @param token
+     * @param userDetails
+     * @param certificateName
+     * @param certificateType
+     * @return
+     */
+    public ResponseEntity<InputStreamResource> downloadCertificate(String token, UserDetails userDetails, String certificateName, String certificateType) {
+
+        InputStreamResource resource = null;
+        SSLCertificateMetadataDetails sslCertificateMetadataDetails = certificateUtils.getCertificateMetaData(token, certificateName);
+        if (hasDownloadPermission(certificateName, userDetails) && sslCertificateMetadataDetails != null) {
+
+            String nclmToken = getNclmToken();
+            if (StringUtils.isEmpty(nclmToken)) {
+                log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+                        put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+                        put(LogMessage.ACTION, "downloadCertificate").
+                        put(LogMessage.MESSAGE, String.format ("Failed to download certificate [%s]. Invalid nclm token", certificateName)).
+                        put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+                        build()));
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(resource);
+            }
+
+            String contentType;
+            switch (certificateType) {
+                case "der": contentType = "application/pkix-cert"; break;
+                case "pem":
+                default: contentType = "application/x-pem-file"; break;
+            }
+
+            HttpClient httpClient;
+
+            String api = certManagerDomain + "certificates/"+sslCertificateMetadataDetails.getCertificateId()+"/"+certificateType;
+
+            try {
+                httpClient = HttpClientBuilder.create().setSSLHostnameVerifier(
+                        NoopHostnameVerifier.INSTANCE).
+                        setSSLContext(
+                                new SSLContextBuilder().loadTrustMaterial(null,new TrustStrategy() {
+                                    @Override
+                                    public boolean isTrusted(X509Certificate[] arg0, String arg1) throws CertificateException {
+                                        return true;
+                                    }
+                                }).build()
+                        ).setRedirectStrategy(new LaxRedirectStrategy()).build();
+
+
+            } catch (KeyManagementException | NoSuchAlgorithmException | KeyStoreException e1) {
+                log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+                        put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+                        put(LogMessage.ACTION, "downloadCertificate").
+                        put(LogMessage.MESSAGE, String.format ("Failed to download certificate [%s]. Failed to create hhtpClient", certificateName)).
+                        put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+                        build()));
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(resource);
+            }
+
+            HttpGet getRequest = new HttpGet(api);
+            getRequest.addHeader("accept", "application/json");
+            getRequest.addHeader("Authorization", "Bearer "+ nclmToken);
+
+            try {
+                HttpResponse apiResponse = httpClient.execute(getRequest);
+                if (apiResponse.getStatusLine().getStatusCode() != 200) {
+                    return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(resource);
+                }
+
+                HttpEntity entity = apiResponse.getEntity();
+                if (entity != null) {
+                    String responseString = EntityUtils.toString(entity, "UTF-8");
+                    // nclm api will give certificate in base64 encoded format
+                    byte[] decodedBytes = Base64.getDecoder().decode(responseString);
+                    resource = new InputStreamResource(new ByteArrayInputStream(decodedBytes));
+                    return ResponseEntity.status(HttpStatus.OK).contentLength(decodedBytes.length)
+                            .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\""+certificateName+"\"")
+                            .contentType(MediaType.parseMediaType(contentType+";charset=utf-8"))
+                            .body(resource);
+                }
+                log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+                        put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+                        put(LogMessage.ACTION, "downloadCertificate").
+                        put(LogMessage.MESSAGE, "Failed to download certificate").
+                        put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+                        build()));
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(resource);
+
+            } catch (IOException e) {
+                log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+                        put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+                        put(LogMessage.ACTION, "downloadCertificate").
+                        put(LogMessage.MESSAGE, String.format ("Failed to download certificate")).
+                        put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+                        build()));
+            }
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(resource);
+        }
+
+        log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+                put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+                put(LogMessage.ACTION, "downloadCertificateWithPrivateKey").
+                put(LogMessage.MESSAGE, String.format ("Access denied: [%s] has no permission to download certificate [%s] or certificate is not onboarded in T-Vault", userDetails.getUsername(), certificateName)).
+                put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+                build()));
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(resource);
+    }
 }
