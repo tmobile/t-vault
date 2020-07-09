@@ -38,8 +38,6 @@ public final class SSLCertificateConstants {
     public static final String SSL_CERTFICATE_WRITE_PERMISSION="write";
     public static final String SSL_CERT_PATH_VALUE = "sslcerts/";
     public static final String ERROR_INVALID_ACCESS_POLICY_MSG = "Invalid access policy";
-    public static final String ADD_USER_TO_CERT_MSG = "Add User to Certificate";
-    public static final String[] PERMISSIONS = {"read", "write", "deny", "sudo"};
-
-
+    public static final String ADD_USER_TO_CERT_MSG = "Add User to Certificate"; 
+    public static final String SSL_OWNER_PERMISSION_EXCEPTION="Add sudo permission to certificate owner failed";
 }

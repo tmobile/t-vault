@@ -558,7 +558,7 @@ public class SSLCertificateServiceTest {
     @Test
     public void generateSSLCertificate_Certificate_Already_Exists() throws Exception {
         String jsonStr = "{ \"username\": \"testusername1\",  \"password\": \"testpassword1\"}";
-        String jsonStr1 = "{\"certificates\":[{\"sortedSubjectName\": \"CN=CertificateName.t-mobile.com, C=US, " +
+        String jsonStr1 = "{\"certificates\":[{\"sortedSubjectName\": \"CN=certificatename.t-mobile.com, C=US, " +
                 "ST=Washington, " +
                 "L=Bellevue, O=T-Mobile USA, Inc\"," +
                 "\"certificateId\":57258,\"certificateStatus\":\"Active\"," +
@@ -1279,7 +1279,7 @@ public class SSLCertificateServiceTest {
         targetSystemServiceRequest.setMonitoringEnabled(true);
         targetSystemServiceRequest.setMultiIpMonitoringEnabled(true);
 
-        sSLCertificateRequest.setCertificateName("CertificateName.t-mobile.com");
+        sSLCertificateRequest.setCertificateName("certificatename.t-mobile.com");
         sSLCertificateRequest.setAppName("xyz");
         sSLCertificateRequest.setCertOwnerEmailId("testing@mail.com");
         sSLCertificateRequest.setCertOwnerNtid("testuser2");
@@ -1547,11 +1547,11 @@ public class SSLCertificateServiceTest {
 
     @Test
     public void test_addUserToCertificate_successfully() {        
-        CertificateUser certUser = new CertificateUser("testuser2","read", "CertificateName.t-mobile.com");    
+        CertificateUser certUser = new CertificateUser("testuser2","read", "certificatename.t-mobile.com");    
         SSLCertificateMetadataDetails certificateMetadata = getSSLCertificateMetadataDetails();
         UserDetails userDetail = getMockUser(true);
         userDetail.setUsername("testuser1");
-        Response userResponse = getMockResponse(HttpStatus.OK, true, "{\"data\":{\"bound_cidrs\":[],\"max_ttl\":0,\"policies\":[\"default\",\"r_cert_CertificateName.t-mobile.com\"],\"ttl\":0,\"groups\":\"admin\"}}");
+        Response userResponse = getMockResponse(HttpStatus.OK, true, "{\"data\":{\"bound_cidrs\":[],\"max_ttl\":0,\"policies\":[\"default\",\"r_cert_certificatename.t-mobile.com\"],\"ttl\":0,\"groups\":\"admin\"}}");
         Response idapConfigureResponse = getMockResponse(HttpStatus.NO_CONTENT, true, "{\"policies\":null}");
         Response responseNoContent = getMockResponse(HttpStatus.NO_CONTENT, true, "");
 
@@ -1563,7 +1563,7 @@ public class SSLCertificateServiceTest {
         try {           
             List<String> resList = new ArrayList<>();
             resList.add("default");
-            resList.add("r_cert_CertificateName.t-mobile.com");
+            resList.add("r_cert_certificatename.t-mobile.com");
             when(ControllerUtil.getPoliciesAsListFromJson(any(), any())).thenReturn(resList);
         } catch (IOException e) {
             e.printStackTrace();
@@ -1572,7 +1572,7 @@ public class SSLCertificateServiceTest {
         when(ControllerUtil.configureLDAPUser(eq("testuser2"),any(),any(),eq(token))).thenReturn(idapConfigureResponse);
         when(ControllerUtil.configureUserpassUser(eq("testuser2"),any(),eq(token))).thenReturn(idapConfigureResponse);
         when(ControllerUtil.updateMetadata(any(),eq(token))).thenReturn(responseNoContent);
-        when(certificateUtils.getCertificateMetaData(token, "CertificateName.t-mobile.com")).thenReturn(certificateMetadata);
+        when(certificateUtils.getCertificateMetaData(token, "certificatename.t-mobile.com")).thenReturn(certificateMetadata);
         when(certificateUtils.canAddOrRemoveUser(userDetail, certificateMetadata)).thenReturn(true);
         
         ResponseEntity<String> responseEntity = sSLCertificateService.addUserToCertificate(token, certUser, userDetail, false);
@@ -1914,7 +1914,7 @@ public class SSLCertificateServiceTest {
         SSLCertificateMetadataDetails certDetails = new SSLCertificateMetadataDetails();
         certDetails.setCertType("internal");
         certDetails.setCertCreatedBy("testuser1");
-        certDetails.setCertificateName("CertificateName");
+        certDetails.setCertificateName("certificatename.t-mobile.com");
         certDetails.setCertOwnerNtid("testuser1");
         certDetails.setCertOwnerEmailId("owneremail@test.com");
         certDetails.setExpiryDate("10-20-2030");        
