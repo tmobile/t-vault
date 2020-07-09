@@ -109,7 +109,7 @@
                         permission: entry[0][1]
                     }
                 });
-            
+
                 $scope.certificatesData.keys = data.filter(function(cert){
                     return cert.permission != "deny";
                 });
@@ -192,11 +192,11 @@
             AdminSafesManagement.getCertificates(null, updatedUrlOfEndPoint).then(function (response) {
                 if (UtilityService.ifAPIRequestSuccessful(response)) {
                     if (response.data != "" && response.data != undefined) {
-                        $scope.externalCertificateDetails = response.data.keys;                       
-                        angular.forEach($scope.externalCertificateDetails, function(value, key) {                           
+                        $scope.externalCertificateDetails = response.data.keys;
+                        angular.forEach($scope.externalCertificateDetails, function(value, key) {
                             if(value.requestStatus !== "Pending Approval"){
-                                $scope.certificatesDataExternal.keys.push({"certname": value.certificateName, "permission": "read"});                                    
-                            }                            
+                                $scope.certificatesDataExternal.keys.push({"certname": value.certificateName, "permission": "read"});
+                            }
                         });
                         $scope.numOfCertificatesExternal=$scope.certificatesDataExternal.keys.length;
                         $scope.finalFilterExtCertResults = $scope.certificatesDataExternal.keys.slice(0);
@@ -227,7 +227,7 @@
             $scope.certificatesData = {"keys": []};
             $scope.certificatesDataExternal = {"keys": []};
             $scope.isLoadingData = true;
-        
+
             var updatedUrlOfEndPoint = RestEndpoints.baseURL + "/v2/sslcert/certificates/" + $scope.certificateType;
           //  var updatedUrlOfEndPoint = ModifyUrl.addUrlParameteres('listCertificatesByCertificateType', Math.random());
             AdminSafesManagement.listCertificatesByCertificateType(null, updatedUrlOfEndPoint).then(function (response) {
@@ -286,8 +286,8 @@
                 }
                 return $scope.currentshown;
             }
-           
-            
+
+
         };
 
         $scope.hasMoreItemsToShow = function () {
@@ -332,7 +332,7 @@
 
             AdminSafesManagement.getCertificateDetails(null, updatedUrlOfEndPoint).then(function (response) {
 
-                if (UtilityService.ifAPIRequestSuccessful(response)) { 	
+                if (UtilityService.ifAPIRequestSuccessful(response)) {
                     if($scope.isInternalCertificateTab){
                         $scope.viewCertificate = true;
                     }else{

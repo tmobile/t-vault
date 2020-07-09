@@ -144,7 +144,7 @@ script(type='text/ng-template', id='downloadPopup.html')
 
 
 
-            
+
                     md-tab(label="External Certificates" ng-click = "isExternalCertificate()")
                         md-content(class="md-padding md-content-wrapper page-content-wrapper md-certificate" ng-init="displayGrid" ng-if="!viewExternalCertificate")
                             .new-container.page-content-container
@@ -172,7 +172,7 @@ script(type='text/ng-template', id='downloadPopup.html')
                                                 .pagination-button-wrapper(ng-click='showMoreItems()')
                                                     button.show-more-btn VIEW MORE
                                                     span
-                                                        img(src="assets/icons/front-arrow.svg") 
+                                                        img(src="assets/icons/front-arrow.svg")
 
                         md-content(class="au-tabs-inner _md" ng-init="displayGrid" ng-if="viewExternalCertificate")
                             .create-folder-container.slide-header
@@ -220,4 +220,3 @@ script(type='text/ng-template', id='downloadPopup.html')
                                                         div.download-cert-options(id="downloadbox" ng-if='isDownloadClicked' ng-blur='hideDownload()' tabindex="-1" ng-attr-autofocus="true")
                                                             div(ng-click="downloadPopup()") Download certificate with private key
                                                             div(ng-click="downloadPopupWitoutKey()") Download certificate in PEM/DER format
-                           
