@@ -177,6 +177,11 @@
                 addComma: false,
                 show: feature && feature.adpwdrotation
             }, {
+                displayName: 'CERTIFICATES',
+                navigationName: 'certificates',
+                addComma: false,
+                show: true
+            }, {
                 displayName: 'ADMIN',
                 navigationName: 'admin',
                 addComma: false,
