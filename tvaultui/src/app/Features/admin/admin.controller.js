@@ -1404,7 +1404,8 @@
 
         $scope.replaceSpacesCertName = function () {
             if ($scope.certObj.certDetails.certName !== null && $scope.certObj.certDetails.certName !== undefined) {
-                $scope.certObj.certDetails.certName = $scope.certObj.certDetails.certName.replace(/[ ]/g, '');
+                $scope.certObj.certDetails.certName = $scope.certObj.certDetails.certName.toLowerCase();
+                $scope.certObj.certDetails.certName = $scope.certObj.certDetails.certName.replace(/[ ]/g, '');                
                 return $scope.certificatePatternValidation();
             }
         }
