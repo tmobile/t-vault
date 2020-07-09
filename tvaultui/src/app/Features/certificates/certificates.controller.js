@@ -40,7 +40,7 @@
             "certificateCred": "",
             "issuerChain": "",
             "certificateName": "",
-            "format": "pkcs12der"
+            "format": ""
         }
         var init = function () {
             
@@ -52,11 +52,11 @@
                 $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
                 $scope.requestDataForMyCertifiates();
             }
+            console.log(SessionStore.getItem("policies"));
         };
 
         $scope.selectDownloadFormat = function () {
             $scope.downloadRequest.format = $scope.dropdownDownload.selectedGroupOption.value;
-            console.log($scope.downloadRequest);
         }
 
         $scope.filterCert = function(searchValueCert) {
@@ -76,10 +76,24 @@
                     }
                 });
             }
-           
+
             $scope.certificatesData.keys = data.filter(function(cert){
                 return cert.permission === "read";
               });
+
+            var policies = SessionStore.getItem("policies");
+            if (policies !="" && policies !=null && policies != undefined) {
+                var policiesArray = policies.split(",");
+                var ownerPolicies = policiesArray.filter(function(policy){
+                    return policy.substring(0, 7) == "o_cert_";
+                });
+
+                ownerPolicies.forEach(function (sudoPolicy) {
+                    $scope.certificatesData.keys.push({"certname": sudoPolicy.substring(7), "permission": "sudo"});
+                });
+            }
+            console.log(policies);
+            console.log(ownerPolicies);
             $scope.numOfCertificates=$scope.certificatesData.keys.length;
         };
 
@@ -144,9 +158,16 @@
             });         
         }
 
-        $scope.downloadPopup = function (certId) {
-            $scope.certIdToDownload = certId;
+        $scope.downloadPopup = function () {
+            $scope.downloadRequest.certificateCred = "";
+            $scope.downloadRequest.issuerChain = false;
+            $scope.downloadRequest.format = "pkcs12der";
+            $scope.dropdownDownload.selectedGroupOption = $scope.downloadFormats[0];
             Modal.createModal('md', 'downloadPopup.html', 'CertificatesCtrl', $scope);
+        };
+
+        $scope.downloadPopupWitoutKey = function () {
+            Modal.createModal('md', 'downloadPopupWitoutKey.html', 'CertificatesCtrl', $scope);
         };
 
         $scope.isDownloadDisabled = function () {
@@ -156,10 +177,122 @@
             return false;
         }
 
-        $scope.download = function () {
-
+        function getCertWithKey(reqObjtobeSent) {
+            var url = RestEndpoints.baseURL + '/v2/sslcert/certificates/download'
+            return $http({
+                method: 'POST',
+                url: url,
+                data: reqObjtobeSent,
+                headers: {
+                    'Content-type': 'application/json',
+                    'vault-token': SessionStore.getItem('myVaultKey')
+                },
+                responseType: 'blob',
+            }).then(function (response) {
+                return response;
+            }).catch(function(error) {
+                console.log(error);
+                $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
+                $scope.error('md');
+                return error;
+            });
         }
-        
+
+
+        $scope.download = function () {
+            try {
+                Modal.close('');
+                $scope.isLoadingData = true;
+                var reqObjtobeSent = $scope.downloadRequest;
+                var fileType = ".p12";
+                switch (reqObjtobeSent.format) {
+                    case "pkcs12der": fileType=".p12"; break;
+                    case "pembundle": fileType=".pem"; break;
+                    case "pkcs12pem": fileType=".pfx"; break;
+                }
+                getCertWithKey(reqObjtobeSent, null).then(function (response) {
+                    if (UtilityService.ifAPIRequestSuccessful(response)) {
+
+                        var file = new Blob([response.data], { type: 'application/octet-stream' });
+                        var fileURL = URL.createObjectURL(file);
+                        var downloadlink = document.createElement('a');
+                        downloadlink.href = fileURL;
+                        downloadlink.target = '_blank';
+                        downloadlink.download = reqObjtobeSent.certificateName+fileType;
+                        document.body.appendChild(downloadlink);
+                        downloadlink.click();
+                        document.body.removeChild(downloadlink);
+                        $scope.isLoadingData = false;
+                    }
+                    else {
+                        $scope.isLoadingData = false;
+                        console.log(response.status);
+                    }
+                },
+                function (error) {
+                    $scope.isLoadingData = false;
+                    console.log(error);
+                })
+            } catch (e) {
+                $scope.isLoadingData = false;
+                console.log(e);
+            }
+        }
+
+        function getCert(certificateName, format) {
+            var url = RestEndpoints.baseURL + '/v2/sslcert/certificates/'+certificateName+'/'+format
+            return $http({
+                method: 'GET',
+                url: url,
+                headers: {
+                    'vault-token': SessionStore.getItem('myVaultKey')
+                },
+                responseType: 'blob',
+            }).then(function (response) {
+                return response;
+            }).catch(function(error) {
+                console.log(error);
+                $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
+                $scope.error('md');
+                return error;
+            });
+        }
+
+        $scope.downloadPemDer = function(format) {
+            try {
+                Modal.close('');
+                $scope.isLoadingData = true;
+                var certName = $scope.downloadRequest.certificateName;
+                if (certName != "") {
+                    getCert(certName, format, null).then(function (response) {
+                        if (UtilityService.ifAPIRequestSuccessful(response)) {
+                            var file = new Blob([response.data], { type: 'application/octet-stream' });
+                            var fileURL = URL.createObjectURL(file);
+                            var downloadlink = document.createElement('a');
+                            downloadlink.href = fileURL;
+                            downloadlink.target = '_blank';
+                            downloadlink.download = certName+'.'+format;
+                            document.body.appendChild(downloadlink);
+                            downloadlink.click();
+                            document.body.removeChild(downloadlink);
+                            $scope.isLoadingData = false;
+                        }
+                        else {
+                            $scope.isLoadingData = false;
+                            console.log(response.status);
+                        }
+                    },
+                    function (error) {
+                        $scope.isLoadingData = false;
+                        console.log(error);
+                    })
+                }
+            } catch (e) {
+                $scope.isLoadingData = false;
+                console.log(e);
+            }
+        }
+
         init();
         
     });

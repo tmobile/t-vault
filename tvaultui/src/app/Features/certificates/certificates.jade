@@ -9,7 +9,8 @@ script(type='text/ng-template', id='error.html')
     .text-center.bottom-lg-sep.top-lg-sep.notification-button
         .clearfix.bottom-sm-sep
             button.link-style.common-btn.btn.btn-primary.btn-lg(ng-click="close()") Close
-script(type='text/ng-template', id='downloadPopup.html')
+
+script(type='text/ng-template', id='downloadPopupWitoutKey.html')
     .modal-sep
     .common-header-label.text-center Download Certificate
 
@@ -17,12 +18,29 @@ script(type='text/ng-template', id='downloadPopup.html')
       .common-form.modal-inner-wrapper.aws
         .common-form-row
             .details-input-group                 
+                .row.change-data.header.center-div
+                    .common-form-label
+                    button.common-btn.btn.btn-primary.btn-lg.cert-download-btn(ng-click="downloadPemDer('pem')") PEM format
+                    button.common-btn.btn.btn-primary.btn-lg.cert-download-btn(ng-click="downloadPemDer('der')") DER format
+    .text-center.bottom-lg-sep.modal-sep.aws
+      .clearfix
+        button.link-style.common-btn.btn.btn-default.btn-lg(ng-click="close()") Cancel
+
+script(type='text/ng-template', id='downloadPopup.html')
+    .modal-sep
+    .common-header-label.text-center Download Certificate
+
+    .left-lg-sep.right-lg-sep
+      .common-form.modal-inner-wrapper.aws
+        .common-form-row
+            .details-input-group
+                .row.change-data.header.dark-text Download certificate with private key. Choose you password with
                 .row.change-data.header
-                    .common-form-label.col-lg-12.col-md-12.col-sm-12.col-xs-12.cert-download-row Password                                  
+                    .common-form-label.col-lg-12.col-md-12.col-sm-12.col-xs-12.cert-download-row Password *
                     input.form-control.input-box-style(id="certificateCred" restrict-special-char-with-space placeholder="Password" ng-model="downloadRequest.certificateCred" minlength="8" maxlength="255" uib-tooltip="Password" tooltip-placement="top" tooltip-popup-delay="600" required)
-                    .status-text.exists(ng-if="downloadRequest.certificateCred.length <8")
+                    .cert-password-status-text(ng-show="isDownloadDisabled()") Please enter minimum 8 characters
                 .row.change-data.header
-                    .common-form-label Format
+                    .common-form-label Format *
                     drop-down(drop-down-options="dropdownDownload" ng-model="downloadRequest.format" name="downloadFrmt" id="downloadFrmt"  ng-click="selectDownloadFormat()")                    
                 .row.change-data.header
                     .common-form-label.col-lg-8.col-md-8.col-sm-8.col-xs-8.cert-download-row Include CA chain                       
@@ -49,7 +67,7 @@ script(type='text/ng-template', id='downloadPopup.html')
                             input.search-input-box(type='text' placeholder='SEARCH' ng-model="searchValueCert" restrict-special-char minlength="3" maxlength="40" ng-change="filterCert(searchValueCert)")
             md-content.admin-content
                 md-tabs(md-dynamic-height md-border-bottom md-selected="selectedIndex")                    
-                    md-tab(label="Certificates")
+                    md-tab(label="My Certificates")
                         md-content(class="md-padding md-content-wrapper page-content-wrapper md-approle-management" ng-init="displayGrid" ng-if="!viewCertificate")
                             .new-container.page-content-container
                                 .md-content-inner-wrapper
@@ -117,7 +135,8 @@ script(type='text/ng-template', id='downloadPopup.html')
                                                 .common-form-row.col-lg-12.col-md-12.col-sm-12.col-xs-12
                                                 
                                                
-                                            .container.radio-inputs.col-lg-4.col-md-4.col-sm-4.col-xs-4.cell
+                                            .container.radio-inputs.col-lg-6.col-md-6.col-sm-6.col-xs-6.cell
                                                 .down.view
-                                                    .list-icon.reset(ng-click="downloadPopup()" uib-tooltip="Reset password") Download
-                        
+                                                    .list-icon.cert-download-link
+                                                        div(ng-click="downloadPopup()" uib-tooltip="Download certificate with private key") Download certificate with private key
+                                                        div(ng-click="downloadPopupWitoutKey()" uib-tooltip="Download certificate in PEM/DER format") Download certificate in PEM/DER format 
