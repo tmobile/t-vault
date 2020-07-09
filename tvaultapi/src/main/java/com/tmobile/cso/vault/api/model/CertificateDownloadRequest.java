@@ -24,6 +24,7 @@ public class CertificateDownloadRequest implements Serializable {
     private static final long serialVersionUID = 3599498297619361438L;
     private String certificateName;
     private String certificateCred;
+    private boolean issuerChain;
     private String format;
 
 
@@ -31,10 +32,11 @@ public class CertificateDownloadRequest implements Serializable {
 
     }
 
-    public CertificateDownloadRequest(String certificateName, String certificateCred, String format) {
+    public CertificateDownloadRequest(String certificateName, String certificateCred, String format, boolean issuerChain) {
         this.certificateName = certificateName;
         this.certificateCred = certificateCred;
         this.format = format;
+        this.issuerChain = issuerChain;
     }
 
     public String getCertificateCred() {
@@ -60,4 +62,12 @@ public class CertificateDownloadRequest implements Serializable {
     public void setCertificateName(String certificateName) {
         this.certificateName = certificateName;
     }
-} 
+
+    public boolean isIssuerChain() {
+        return issuerChain;
+    }
+
+    public void setIssuerChain(boolean issuerChain) {
+        this.issuerChain = issuerChain;
+    }
+}
