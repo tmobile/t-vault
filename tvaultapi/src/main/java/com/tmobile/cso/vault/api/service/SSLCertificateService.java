@@ -2222,14 +2222,17 @@ public class SSLCertificateService {
 	public ResponseEntity<String> addingGroupToCertificate(String token, CertificateGroup certificateGroup) {
 		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
-				put(LogMessage.ACTION, "Add Group to SDB").
-				put(LogMessage.MESSAGE, String.format ("Trying to add Group to SDB folder")).
+				put(LogMessage.ACTION, "Add Group to certificate").
+				put(LogMessage.MESSAGE, String.format ("Trying to add Group to certificate")).
 				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 				build()));
 		if(!ControllerUtil.arecertificateGroupInputsValid(certificateGroup)) {
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid input values\"]}");
 		}
 		String jsonstr = JSONUtil.getJSON(certificateGroup);
+		
+		//checking whether auth method is userpass or ldap//
+		//we should set vaultAuthMethod=ldap//
 		if (TVaultConstants.USERPASS.equals(vaultAuthMethod)) {
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"This operation is not supported for Userpass authentication. \"]}");
 		}	
@@ -2317,17 +2320,16 @@ public class SSLCertificateService {
 				if(metadataResponse !=null && HttpStatus.NO_CONTENT.equals(metadataResponse.getHttpstatus())){
 					log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 							put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
-							put(LogMessage.ACTION, "Add Group to SDB").
+							put(LogMessage.ACTION, "Add Group to certificate").
 							put(LogMessage.MESSAGE, "Group configuration Success.").
 							put(LogMessage.STATUS, metadataResponse.getHttpstatus().toString()).
 							put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 							build()));
 					return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Group is successfully associated with Certificate\"]}");		
 				}else{
-					String certType = "metadata/sslcerts";
+					String certType = SSLCertificateConstants.SSL_CERT_PATH;
 					String certName = certificateGroup.getCertificatename();
 					List<String> certNames = ControllerUtil.getAllExistingCertNames(certType, token);
-					//String newPath = path;
 					if (certNames != null ) {
 						
 						for (String existingCertName: certNames) {
@@ -2339,12 +2341,11 @@ public class SSLCertificateService {
 						} 
 						
 					}
-					//params.put("path",newPath);
 					metadataResponse = ControllerUtil.updateSslCertificateMetadata(params,token);
 					if (metadataResponse !=null && HttpStatus.NO_CONTENT.equals(metadataResponse.getHttpstatus())) {
 						log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 								put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
-								put(LogMessage.ACTION, "Add Group to SDB").
+								put(LogMessage.ACTION, "Add Group to certificate").
 								put(LogMessage.MESSAGE, "Group configuration Success.").
 								put(LogMessage.STATUS, metadataResponse.getHttpstatus().toString()).
 								put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
@@ -2355,7 +2356,7 @@ public class SSLCertificateService {
 					else {
 						log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 								put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
-								put(LogMessage.ACTION, "Add Group to SDB").
+								put(LogMessage.ACTION, "Add Group to certificate").
 								put(LogMessage.MESSAGE, "Group configuration failed.").
 								put(LogMessage.RESPONSE, (null!=metadataResponse)?metadataResponse.getResponse():TVaultConstants.EMPTY).
 								put(LogMessage.STATUS, (null!=metadataResponse)?metadataResponse.getHttpstatus().toString():TVaultConstants.EMPTY).
@@ -2365,18 +2366,18 @@ public class SSLCertificateService {
 						if(ldapConfigresponse.getHttpstatus().equals(HttpStatus.NO_CONTENT)){
 							log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 									put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
-									put(LogMessage.ACTION, "Add Group to SDB").
-									put(LogMessage.MESSAGE, "Reverting user policy update failed").
+									put(LogMessage.ACTION, "Add Group to certificate").
+									put(LogMessage.MESSAGE, "group configuration success").
 									put(LogMessage.RESPONSE, (null!=metadataResponse)?metadataResponse.getResponse():TVaultConstants.EMPTY).
 									put(LogMessage.STATUS, (null!=metadataResponse)?metadataResponse.getHttpstatus().toString():TVaultConstants.EMPTY).
 									put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 									build()));
-							return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"erros\":[\"Group configuration failed.Please try again\"]}");
+							return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Group is successfully associated with Certificate\"]}");		
 						}else{
 							log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 									put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
-									put(LogMessage.ACTION, "Add Group to SDB").
-									put(LogMessage.MESSAGE, "Reverting user policy update failed").
+									put(LogMessage.ACTION, "Add Group to certificate").
+									put(LogMessage.MESSAGE, "Group configuration failed").
 									put(LogMessage.RESPONSE, (null!=metadataResponse)?metadataResponse.getResponse():TVaultConstants.EMPTY).
 									put(LogMessage.STATUS, (null!=metadataResponse)?metadataResponse.getHttpstatus().toString():TVaultConstants.EMPTY).
 									put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
