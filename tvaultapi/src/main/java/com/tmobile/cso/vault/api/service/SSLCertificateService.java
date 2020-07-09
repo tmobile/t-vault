@@ -159,6 +159,8 @@ public class SSLCertificateService {
     private String certificateNameTailText;
 
     private static Logger log = LogManager.getLogger(SSLCertificateService.class);
+    
+    private static final String[] PERMISSIONS = {"read", "write", "deny", "sudo"};
 
     /**
      * Login using CertManager
@@ -524,13 +526,15 @@ public class SSLCertificateService {
 					.build()));
 		    return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\""+enrollResponse.getResponse()+"\"]}");
 		}else {
+			enrollResponse.setResponse(SSLCertificateConstants.SSL_OWNER_PERMISSION_EXCEPTION);
+            enrollResponse.setSuccess(Boolean.FALSE);
 			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 		            put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
 		            put(LogMessage.ACTION, "addUserToCertificate").
 		            put(LogMessage.MESSAGE, "Adding sudo permission to certificate owner failed").
 		            put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 		            build()));
-			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\""+addUserresponse.getStatusCode()+"\"]}");
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\""+enrollResponse.getResponse()+"\"]}");
 			
 		}
 	}
@@ -1841,7 +1845,7 @@ public class SSLCertificateService {
    		}
    		
    		String userName = certificateUser.getUsername().toLowerCase();
-   		String certificateName = certificateUser.getCertificateName();
+   		String certificateName = certificateUser.getCertificateName().toLowerCase();
    		String access = certificateUser.getAccess().toLowerCase();   
    		
    		String authToken = null;
@@ -2077,7 +2081,7 @@ public class SSLCertificateService {
 			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
 					put(LogMessage.ACTION, SSLCertificateConstants.ADD_USER_TO_CERT_MSG).
-					put(LogMessage.MESSAGE, "User is successfully associated with Certificate").
+					put(LogMessage.MESSAGE, String.format ("User is successfully associated with Certificate [%s] - User [%s]", certificateName, userName)).
 					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 					build()));
 			
@@ -2139,7 +2143,7 @@ public class SSLCertificateService {
 		}
 		boolean isValid = true;
 		String access = certificateUser.getAccess();
-		if (!ArrayUtils.contains(SSLCertificateConstants.PERMISSIONS, access)) {
+		if (!ArrayUtils.contains(PERMISSIONS, access)) {
 			isValid = false;
 		}
 		return isValid;
