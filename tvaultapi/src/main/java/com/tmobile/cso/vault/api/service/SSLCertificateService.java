@@ -34,7 +34,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
-
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
 import com.google.gson.Gson;
@@ -77,11 +77,13 @@ public class SSLCertificateService {
 	private CertificateUtils certificateUtils;
     
     @Autowired
-   	private PolicyUtils policyUtils;
-       
+   	private PolicyUtils policyUtils;       
 
     @Autowired
    	private AuthorizationUtils authorizationUtils;
+
+    @Autowired
+	private AppRoleService appRoleService;
 
 
     @Value("${vault.auth.method}")
@@ -1871,7 +1873,7 @@ public class SSLCertificateService {
    			SSLCertificateMetadataDetails certificateMetaData = certificateUtils.getCertificateMetaData(authToken, certificateName);
    			
    			if(!addSudoPermission){
-   				isAuthorized = certificateUtils.canAddOrRemoveUser(userDetails, certificateMetaData);
+   				isAuthorized = certificateUtils.hasAddOrRemovePermission(userDetails, certificateMetaData);
    			}
    			
    			if((!addSudoPermission) && (isAuthorized) && (userName.equalsIgnoreCase(certificateMetaData.getCertOwnerNtid()))) {
@@ -1918,16 +1920,9 @@ public class SSLCertificateService {
 	 * @return
 	 */
 	private ResponseEntity<String> checkUserDetailsAndAddCertificateToUser(String token, String userName,
-			String certificateName, String access) {
-		String policyPrefix ="";
+			String certificateName, String access) {		
 		
-		switch (access){
-			case TVaultConstants.READ_POLICY: policyPrefix = "r_cert_"; break ;
-			case TVaultConstants.WRITE_POLICY: policyPrefix = "w_cert_" ;break;
-			case TVaultConstants.DENY_POLICY: policyPrefix = "d_cert_" ;break;
-			case TVaultConstants.SUDO_POLICY: policyPrefix = "o_cert_" ;break;
-			default: log.error(SSLCertificateConstants.ERROR_INVALID_ACCESS_POLICY_MSG); break;
-		}
+		String policyPrefix = getCertificatePolicyPrefix(access);
 		
 		if(TVaultConstants.EMPTY.equals(policyPrefix)){
 			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
@@ -2024,6 +2019,19 @@ public class SSLCertificateService {
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"messages\":[\"Getting the user details failed.Try with valid user\"]}");
 
 		}
+	}
+
+	private String getCertificatePolicyPrefix(String access) {
+		String policyPrefix ="";
+		
+		switch (access){
+			case TVaultConstants.READ_POLICY: policyPrefix = "r_cert_"; break ;
+			case TVaultConstants.WRITE_POLICY: policyPrefix = "w_cert_" ;break;
+			case TVaultConstants.DENY_POLICY: policyPrefix = "d_cert_" ;break;
+			case TVaultConstants.SUDO_POLICY: policyPrefix = "o_cert_" ;break;
+			default: log.error(SSLCertificateConstants.ERROR_INVALID_ACCESS_POLICY_MSG); break;
+		}
+		return policyPrefix;
 	}
 
 	
@@ -2137,7 +2145,7 @@ public class SSLCertificateService {
 	 * @param certificateUser
 	 * @return boolean
 	 */
-	public boolean areCertificateUserInputsValid(CertificateUser certificateUser) {
+	private boolean areCertificateUserInputsValid(CertificateUser certificateUser) {
 		
 		if (ObjectUtils.isEmpty(certificateUser)) {
 			return false;
@@ -2399,5 +2407,302 @@ public class SSLCertificateService {
 		}
 	}
 	
-	
+	/**
+     * Associate Approle to Certificate
+     * @param userDetails
+     * @param token
+     * @param certificateUser
+     * @return
+     */
+    public ResponseEntity<String> associateApproletoCertificate(CertificateApprole certificateApprole, UserDetails userDetails) {
+        log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+                put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+                put(LogMessage.ACTION, SSLCertificateConstants.ADD_APPROLE_TO_CERT_MSG).
+                put(LogMessage.MESSAGE, String.format("Trying to add Approle to Certificate - Request [%s]", certificateApprole.toString())).
+                put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+                build()));
+        String authToken = null;
+        boolean isAuthorized = true;
+        
+        if(!areCertificateApproleInputsValid(certificateApprole)) {
+        	log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+   					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+   					put(LogMessage.ACTION, SSLCertificateConstants.ADD_APPROLE_TO_CERT_MSG).
+   					put(LogMessage.MESSAGE, String.format ("Invalid input values [%s]", certificateApprole.toString())).
+   					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+   					build()));
+   			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid input values\"]}");
+        }
+
+        String approleName = certificateApprole.getApproleName().toLowerCase();
+        String certificateName = certificateApprole.getCertificateName().toLowerCase();
+        String access = certificateApprole.getAccess().toLowerCase();
+        
+        if (approleName.equals(TVaultConstants.SELF_SERVICE_APPROLE_NAME)) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Access denied: no permission to associate this AppRole to any Certificate\"]}");
+        }
+
+        if (!ObjectUtils.isEmpty(userDetails)) {        	
+      
+	        if (userDetails.isAdmin()) {
+	        	authToken = userDetails.getClientToken();
+	        }else {
+	        	authToken = userDetails.getSelfSupportToken();        	
+	        }
+	        
+	        SSLCertificateMetadataDetails certificateMetaData = certificateUtils.getCertificateMetaData(authToken, certificateName);
+				
+			isAuthorized = certificateUtils.hasAddOrRemovePermission(userDetails, certificateMetaData);	
+		
+        }else {
+   			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+   					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+   					put(LogMessage.ACTION, SSLCertificateConstants.ADD_APPROLE_TO_CERT_MSG).
+   					put(LogMessage.MESSAGE, "Access denied: No permission to add approle to this certificate").
+   					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+   					build()));
+   			
+   			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Access denied: No permission to add approle to this certificate\"]}");
+   		}
+        
+        if(isAuthorized){        	
+        	return createPoliciesAndConfigureApproleToCertificate(authToken, approleName, certificateName, access);
+        } else{
+        	log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+					put(LogMessage.ACTION, SSLCertificateConstants.ADD_APPROLE_TO_CERT_MSG).
+					put(LogMessage.MESSAGE, String.format("Access denied: No permission to add Approle [%s] to the Certificate [%s]", approleName, certificateName)).
+					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+					build()));
+        	
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Access denied: No permission to add Approle to this Certificate\"]}");
+        }
+    }
+
+	/**
+	 * @param authToken
+	 * @param approleName
+	 * @param certificateName
+	 * @param access
+	 * @return
+	 */
+	private ResponseEntity<String> createPoliciesAndConfigureApproleToCertificate(String authToken, String approleName,
+			String certificateName, String access) {
+		String policyPrefix = getCertificatePolicyPrefix(access);
+		
+		if(TVaultConstants.EMPTY.equals(policyPrefix)){
+			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+					put(LogMessage.ACTION, SSLCertificateConstants.ADD_APPROLE_TO_CERT_MSG).
+					put(LogMessage.MESSAGE, "Incorrect access requested. Valid values are read, write, deny").
+					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+					build()));
+			return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body("{\"errors\":[\"Incorrect access requested. Valid values are read,deny \"]}");
+		}
+
+		String policy = policyPrefix + certificateName;
+		
+		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+				put(LogMessage.ACTION, SSLCertificateConstants.ADD_APPROLE_TO_CERT_MSG).
+				put(LogMessage.MESSAGE, String.format ("policy is [%s]", policy)).
+				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+				build()));
+		
+		String readPolicy = "r_cert_"+certificateName;
+		String writePolicy = "w_cert_"+certificateName;
+		String denyPolicy = "d_cert_"+certificateName;
+		String sudoPolicy = "o_cert_"+certificateName;
+		
+		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+				put(LogMessage.ACTION, SSLCertificateConstants.ADD_APPROLE_TO_CERT_MSG).
+				put(LogMessage.MESSAGE, String.format ("Policies are, read - [%s], write - [%s], deny -[%s], owner - [%s]", readPolicy, writePolicy, denyPolicy, sudoPolicy)).
+				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+				build()));
+
+		Response roleResponse = reqProcessor.process("/auth/approle/role/read","{\"role_name\":\""+approleName+"\"}",authToken);
+
+		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+		        put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+		        put(LogMessage.ACTION, SSLCertificateConstants.ADD_APPROLE_TO_CERT_MSG).
+		        put(LogMessage.MESSAGE, String.format("roleResponse status is [%s]", roleResponse.getHttpstatus())).
+		        put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+		        build()));
+
+		String responseJson="";
+		List<String> policies = new ArrayList<>();
+		List<String> currentpolicies = new ArrayList<>();
+
+		if(HttpStatus.OK.equals(roleResponse.getHttpstatus())) {
+			responseJson = roleResponse.getResponse();
+			ObjectMapper objMapper = new ObjectMapper();
+			try {
+				JsonNode policiesArry = objMapper.readTree(responseJson).get("data").get("policies");
+				if (null != policiesArry) {
+					for (JsonNode policyNode : policiesArry) {
+						currentpolicies.add(policyNode.asText());
+					}
+				}
+			} catch (IOException e) {
+				log.error(e);
+				log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+						put(LogMessage.ACTION, SSLCertificateConstants.ADD_APPROLE_TO_CERT_MSG).
+						put(LogMessage.MESSAGE, "Exception while creating currentpolicies").
+						put(LogMessage.STACKTRACE, Arrays.toString(e.getStackTrace())).
+						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+						build()));
+			}
+			policies.addAll(currentpolicies);
+			policies.remove(readPolicy);
+			policies.remove(writePolicy);
+			policies.remove(denyPolicy);
+			policies.add(policy);
+		} else {
+			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+					put(LogMessage.ACTION, SSLCertificateConstants.ADD_APPROLE_TO_CERT_MSG).
+					put(LogMessage.MESSAGE, String.format("Non existing role name. Please configure approle as first step - Approle = [%s]", approleName)).						
+					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+					build()));
+			
+		    return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body("{\"errors\":[\"Non existing role name. Please configure approle as first step\"]}");
+		}
+		
+		String policiesString = org.apache.commons.lang3.StringUtils.join(policies, ",");
+		String currentpoliciesString = org.apache.commons.lang3.StringUtils.join(currentpolicies, ",");
+
+		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+				put(LogMessage.ACTION, SSLCertificateConstants.ADD_APPROLE_TO_CERT_MSG).
+				put(LogMessage.MESSAGE, String.format ("policies [%s] before calling configureApprole", policies)).
+				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+				build()));
+
+		return configureApproleAndMetadataToCertificate(authToken, approleName, certificateName, access,
+				policiesString, currentpoliciesString);
+	}
+
+	/**
+	 * @param authToken
+	 * @param approleName
+	 * @param certificateName
+	 * @param access
+	 * @param policiesString
+	 * @param currentpoliciesString
+	 * @return
+	 */
+	private ResponseEntity<String> configureApproleAndMetadataToCertificate(String authToken, String approleName,
+			String certificateName, String access, String policiesString, String currentpoliciesString) {
+		Response approleControllerResp = appRoleService.configureApprole(approleName, policiesString, authToken);
+
+		if(approleControllerResp.getHttpstatus().equals(HttpStatus.NO_CONTENT) || approleControllerResp.getHttpstatus().equals(HttpStatus.OK)){
+			return updateApproleMetadataForCertificate(authToken, approleName, certificateName, access,
+					currentpoliciesString);
+		} else {
+			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+					put(LogMessage.ACTION, SSLCertificateConstants.ADD_APPROLE_TO_CERT_MSG).
+					put(LogMessage.MESSAGE, String.format("Failed to add Approle [%s] to the Certificate [%s]", approleName, certificateName)).
+					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+					build()));
+			
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Failed to add Approle to the Certificate\"]}");
+		}
+	}
+
+	/**
+	 * @param authToken
+	 * @param approleName
+	 * @param certificateName
+	 * @param access
+	 * @param currentpoliciesString
+	 * @return
+	 */
+	private ResponseEntity<String> updateApproleMetadataForCertificate(String authToken, String approleName,
+			String certificateName, String access, String currentpoliciesString) {		
+		String certificatePath = SSLCertificateConstants.SSL_CERT_PATH_VALUE + certificateName;
+		Map<String,String> params = new HashMap<>();
+		params.put("type", "app-roles");
+		params.put("name",approleName);
+		params.put("path",certificatePath);
+		params.put("access",access);
+		Response metadataResponse = ControllerUtil.updateMetadata(params, authToken);
+		if(metadataResponse !=null && (HttpStatus.NO_CONTENT.equals(metadataResponse.getHttpstatus()) || HttpStatus.OK.equals(metadataResponse.getHttpstatus()))){
+			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+					put(LogMessage.ACTION, SSLCertificateConstants.ADD_APPROLE_TO_CERT_MSG).
+					put(LogMessage.MESSAGE, String.format("Approle [%s] successfully associated with Certificate [%s]", approleName, certificateName)).
+					put(LogMessage.STATUS, metadataResponse.getHttpstatus().toString()).
+					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+					build()));
+			return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Approle successfully associated with Certificate\"]}");
+		} else {
+			return rollBackApprolePolicyForCertificate(authToken, approleName, currentpoliciesString, metadataResponse);
+		}
+	}
+
+	/**
+	 * @param authToken
+	 * @param approleName
+	 * @param currentpoliciesString
+	 * @param metadataResponse
+	 * @return
+	 */
+	private ResponseEntity<String> rollBackApprolePolicyForCertificate(String authToken, String approleName,
+			String currentpoliciesString, Response metadataResponse) {
+		Response approleControllerResp;
+		approleControllerResp = appRoleService.configureApprole(approleName, currentpoliciesString, authToken);
+		if(approleControllerResp.getHttpstatus().equals(HttpStatus.NO_CONTENT)){
+			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+					put(LogMessage.ACTION, SSLCertificateConstants.ADD_APPROLE_TO_CERT_MSG).
+					put(LogMessage.MESSAGE, "Reverting, Approle policy update success").
+					put(LogMessage.RESPONSE, (null!=metadataResponse)?metadataResponse.getResponse():TVaultConstants.EMPTY).
+					put(LogMessage.STATUS, (null!=metadataResponse)?metadataResponse.getHttpstatus().toString():TVaultConstants.EMPTY).
+					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+					build()));
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Approle configuration failed. Please try again\"]}");
+		}else{
+			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+					put(LogMessage.ACTION, SSLCertificateConstants.ADD_APPROLE_TO_CERT_MSG).
+					put(LogMessage.MESSAGE, "Reverting Approle policy update failed").
+					put(LogMessage.RESPONSE, (null!=metadataResponse)?metadataResponse.getResponse():TVaultConstants.EMPTY).
+					put(LogMessage.STATUS, (null!=metadataResponse)?metadataResponse.getHttpstatus().toString():TVaultConstants.EMPTY).
+					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+					build()));
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Approle configuration failed. Contact Admin\"]}");
+		}
+	}
+    
+	/**
+	 * Validates Certificate approle inputs
+	 * @param certificateUser
+	 * @return boolean
+	 */
+	private boolean areCertificateApproleInputsValid(CertificateApprole certificateApprole) {
+		
+		if (ObjectUtils.isEmpty(certificateApprole)) {
+			return false;
+		}
+		if (ObjectUtils.isEmpty(certificateApprole.getApproleName())
+				|| ObjectUtils.isEmpty(certificateApprole.getAccess())
+				|| ObjectUtils.isEmpty(certificateApprole.getCertificateName())
+				|| certificateApprole.getCertificateName().contains(" ")
+	            || (!certificateApprole.getCertificateName().endsWith(certificateNameTailText))
+	            || (certificateApprole.getCertificateName().contains(".-"))
+	            || (certificateApprole.getCertificateName().contains("-."))
+				) {
+			return false;
+		}
+		boolean isValid = true;
+		String access = certificateApprole.getAccess();
+		if (!ArrayUtils.contains(PERMISSIONS, access)) {
+			isValid = false;
+		}
+		return isValid;
+	}
+
 }
