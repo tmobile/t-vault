@@ -108,5 +108,5 @@ public class CertificateApprole implements Serializable {
 	 */
 	public void setCertType(String certType) {
 		this.certType = certType;
-	}	
+	}
 }
