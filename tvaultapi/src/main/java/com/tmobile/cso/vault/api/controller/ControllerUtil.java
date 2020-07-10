@@ -2337,7 +2337,7 @@ public final class ControllerUtil {
 	public static List<String> getAllExistingCertNames(String type, String token) {
 		List<String> certNames = new ArrayList<String>();
 		String path =  type;
-		Response response = reqProcessor.process("/sdb/list","{\"path\":\""+path+"\"}",token);
+		Response response = reqProcessor.process("/certificates/list","{\"path\":\""+path+"\"}",token);
 		if(response.getHttpstatus().equals(HttpStatus.OK)){
 			try {
 				Map<String, Object> requestParams = new ObjectMapper().readValue(response.getResponse(), new TypeReference<Map<String, Object>>(){});
