@@ -46,7 +46,7 @@ public class CertificateUtils {
 	 * @param safeUser
 	 * @return
 	 */
-	public boolean canAddOrRemoveUser(UserDetails userDetails, SSLCertificateMetadataDetails certificateMetaData) {			
+	public boolean hasAddOrRemovePermission(UserDetails userDetails, SSLCertificateMetadataDetails certificateMetaData) {			
 		if (ObjectUtils.isEmpty(certificateMetaData)) {
 			return false;
 		}		

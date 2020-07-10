@@ -19,6 +19,7 @@ package com.tmobile.cso.vault.api.v2.controller;
 
 import com.tmobile.cso.vault.api.model.CertManagerLoginRequest;
 import com.tmobile.cso.vault.api.model.CertificateGroup;
+import com.tmobile.cso.vault.api.model.CertificateApprole;
 import com.tmobile.cso.vault.api.model.RevocationRequest;
 import com.tmobile.cso.vault.api.model.CertificateUser;
 import com.tmobile.cso.vault.api.model.SSLCertificateRequest;
@@ -164,5 +165,19 @@ public class SSLCertificateController {
 		UserDetails userDetails = (UserDetails) ((HttpServletRequest) request).getAttribute("UserDetails");
 		return sslCertificateService.getTargetSystemServiceList(token, userDetails, targetSystemId);
 	}
+	
+    /**
+     * Add approle to Certificate
+     * @param request
+     * @param token
+     * @param certificateApprole
+     * @return
+     */
+    @ApiOperation(value = "${SSLCertificateController.associateApproletoCertificate.value}", notes = "${SSLCertificateController.associateApproletoCertificate.notes}")
+    @PostMapping(value="/v2/sslcert/approle",consumes="application/json",produces="application/json")
+    public ResponseEntity<String> associateApproletoCertificate(HttpServletRequest request, @RequestHeader(value="vault-token") String token, @RequestBody CertificateApprole certificateApprole) {
+        UserDetails userDetails = (UserDetails) request.getAttribute("UserDetails");
+        return sslCertificateService.associateApproletoCertificate(certificateApprole, userDetails);
+    }
 
 }

@@ -188,15 +188,33 @@ public class SSLCertificateControllerTest {
 	}
        
 	@Test
-    public void test_addUsertoCertificate() throws Exception {
+    public void testAddUsertoCertificate() throws Exception {
         String responseJson = "{\"messages\":[\"User is successfully associated \"]}";
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(responseJson);       
-        CertificateUser certUser = new CertificateUser("testuser1","read", "CertificateName");
+        CertificateUser certUser = new CertificateUser("testuser1","read", "certificatename.t-mobile.com");
 
         String inputJson =new ObjectMapper().writeValueAsString(certUser);
         when(sslCertificateService.addUserToCertificate(eq("5PDrOhsy4ig8L3EpsJZSLAMg"), Mockito.any(CertificateUser.class), eq(userDetails), Mockito.anyBoolean())).thenReturn(responseEntityExpected);
 
         mockMvc.perform(MockMvcRequestBuilders.post("/v2/sslcert/user").requestAttr("UserDetails", userDetails)
+                .header("vault-token", "5PDrOhsy4ig8L3EpsJZSLAMg")
+                .header("Content-Type", "application/json;charset=UTF-8")
+                .content(inputJson))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString(responseJson)));
+    }
+	
+    @Test
+    public void testAssociateApproletoCertificate() throws Exception {
+    	CertificateApprole certificateApprole = new CertificateApprole("certificatename.t-mobile.com", "role1", "read");
+
+        String inputJson =new ObjectMapper().writeValueAsString(certificateApprole);
+        String responseJson = "{\"messages\":[\"Approle successfully associated with Certificate\"]}";
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(responseJson);
+       
+        when(sslCertificateService.associateApproletoCertificate(Mockito.any(CertificateApprole.class), eq(userDetails))).thenReturn(responseEntityExpected);
+
+        mockMvc.perform(MockMvcRequestBuilders.post("/v2/sslcert/approle").requestAttr("UserDetails", userDetails)
                 .header("vault-token", "5PDrOhsy4ig8L3EpsJZSLAMg")
                 .header("Content-Type", "application/json;charset=UTF-8")
                 .content(inputJson))
