@@ -465,6 +465,15 @@
         ],
          "outparams":["data/keys"]
     },
+     {"#":"**** Listing all SDBs *****",
+    	"apiEndPoint":"/certificates/list",
+    	"vaultEndPoint":"/<path>?list=true",
+    	"method":"GET",
+      	"params":[
+        	{"name":"path","required":true, "appendToPath":true}
+        ],
+         "outparams":["data/keys"]
+    },
     { "#":"**** Deleting a secret  *****",
     	"apiEndPoint":"/delete",
     	"vaultEndPoint":"/<path>",
