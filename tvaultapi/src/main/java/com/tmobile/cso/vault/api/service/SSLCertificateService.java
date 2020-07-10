@@ -2368,7 +2368,7 @@ public class SSLCertificateService {
 								build()));
 						ldapConfigresponse = ControllerUtil.configureLDAPGroup(groupName,policiesString,token);
 						if(ldapConfigresponse.getHttpstatus().equals(HttpStatus.NO_CONTENT)){
-							log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+							log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 									put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 									put(LogMessage.ACTION, "Add Group to certificate").
 									put(LogMessage.MESSAGE, "group configuration success").
