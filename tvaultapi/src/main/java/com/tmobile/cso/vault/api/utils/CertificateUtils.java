@@ -164,6 +164,19 @@ public class CertificateUtils {
 		if (null != dataNode.get("certType")) {
 			certificate.setCertType(dataNode.get("certType").asText());
 		}
+		if (null != dataNode.get("akmid")) {
+			certificate.setAkmid(dataNode.get("akmid").asText());
+		}
+		if (null != dataNode.get("applicationName")) {
+			certificate.setApplicationName(dataNode.get("applicationName").asText());
+		}
+		if (null != dataNode.get("applicationOwnerEmailId")) {
+			certificate.setApplicationOwnerEmailId(dataNode.get("applicationOwnerEmailId").asText());
+		}
+		if (null != dataNode.get("applicationTag")) {
+			certificate.setApplicationTag(dataNode.get("applicationTag").asText());
+		}
+
 		if (null != dataNode.get("certCreatedBy")) {
 			certificate.setCertCreatedBy(dataNode.get("certCreatedBy").asText());
 		}
