@@ -2410,8 +2410,7 @@ public class SSLCertificateService {
 	/**
      * Associate Approle to Certificate
      * @param userDetails
-     * @param token
-     * @param certificateUser
+     * @param certificateApprole
      * @return
      */
     public ResponseEntity<String> associateApproletoCertificate(CertificateApprole certificateApprole, UserDetails userDetails) {
@@ -2679,7 +2678,7 @@ public class SSLCertificateService {
     
 	/**
 	 * Validates Certificate approle inputs
-	 * @param certificateUser
+	 * @param certificateApprole
 	 * @return boolean
 	 */
 	private boolean areCertificateApproleInputsValid(CertificateApprole certificateApprole) {
