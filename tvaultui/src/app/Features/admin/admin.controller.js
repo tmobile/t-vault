@@ -1903,6 +1903,43 @@
                 console.log(e);
             }
         };
+        
+        
+        $scope.renewCertificate = function(certificateDetails){        	
+                try{
+                $scope.isLoadingData = true;                
+                $scope.renewStatusMessage = '';
+                var certificateName = $scope.getCertSubjectName(certificateDetails);
+                $scope.certificateNameForRenew = certificateName;          
+                var url = RestEndpoints.baseURL + "/v2/certificates/" + certificateName + "/renew";
+                $scope.isLoadingData = true;                              
+                
+                AdminSafesManagement.renewCertificate(null, url).then(function (response) {
+                    $scope.isLoadingData = false;
+                    if (UtilityService.ifAPIRequestSuccessful(response)) {
+                    	Notifications.toast('Certificate renewed successfully!');
+                        $scope.renewMessage = 'Certificate renewed successfully!';
+                        $scope.renewMessage = response.data.messages[0];                        
+                        $scope.requestDataFrAdmin();
+                    }
+                },
+                    function (error) {
+                        var errors = error.data.errors;
+                        $scope.renewMessage = 'Renew failed';
+                        $scope.renewMessage = errors[0];                        
+                        $scope.isLoadingData = false;
+                        console.log(error);
+                    })
+                }catch (e) {
+                    $scope.isLoadingData = false;
+                    console.log(e);
+                };               
+                
+            };
+
+            $scope.revocationReasonSelect = function(){
+               $scope.dropdownRevocationReasons.selectedGroupOption.type;
+            }
 
         init();
 

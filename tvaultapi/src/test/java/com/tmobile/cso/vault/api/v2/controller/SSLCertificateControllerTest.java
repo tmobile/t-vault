@@ -205,6 +205,7 @@ public class SSLCertificateControllerTest {
                 .andExpect(content().string(containsString(responseJson)));
     }
 
+
     @Test
     public void testAssociateApproletoCertificate() throws Exception {
     	CertificateApprole certificateApprole = new CertificateApprole("certificatename.t-mobile.com", "role1", "read");
@@ -222,6 +223,7 @@ public class SSLCertificateControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString(responseJson)));
     }
+
 
 
     UserDetails getMockUser(boolean isAdmin) {
@@ -268,4 +270,15 @@ public class SSLCertificateControllerTest {
     }
 
 
+	@Test
+	public void test_renewCertificate_Success() {
+		String certName = "test@t-mobile.com";		
+		
+		when(sslCertificateService.renewCertificate(certName, userDetails, token))
+				.thenReturn(new ResponseEntity<>(HttpStatus.OK));
+		when(httpServletRequest.getAttribute("UserDetails")).thenReturn(userDetails);
+		assertEquals(HttpStatus.OK,
+				SslCertificateController.renewCertificate(httpServletRequest, token, certName).getStatusCode());
+
+	}
 }
