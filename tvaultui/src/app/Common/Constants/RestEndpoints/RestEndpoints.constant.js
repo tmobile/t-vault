@@ -415,6 +415,10 @@ readTextFile("../apiUrls.json");
             url: '/v2/sslcert/approle',
             method: 'POST'
         }, {
+            name: 'renewCertificate',
+            url: '/v2/certificates/{certName}/renew',
+            method: 'POST'
+        }, {
             name: 'downloadCertificate',
             url: '/v2/sslcert/certificates/download',
             method: 'POST'
