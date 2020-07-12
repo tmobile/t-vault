@@ -565,7 +565,9 @@ script(type='text/ng-template', id='manageSecretId.html')
                                                           .down.view
                                                               .list-icon(ng-click="goToAddPermissions(value)")  View/Edit
                                                           .down.view
-                                                              .list-icon()  Renew certificate
+                                                              .list-icon(ng-if="value.certificateStatus=='Revoked'")  Renew certificate
+                                                              .list-icon(ng-if="value.certificateStatus=='Expired'")  Re-Enroll                                                          
+                                                              .list-icon(ng-if="value.certificateStatus=='Active'" ng-click="renewCertificate(value)")  Renew certificate                                                          
                                                           .down.deletesecretids
                                                               .list-icon(ng-click="revokeCertificate(value)") Revoke certificate 
                                                       .container.radio-inputs.col-lg-2.col-md-2.col-sm-2.col-xs-2

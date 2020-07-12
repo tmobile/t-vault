@@ -989,6 +989,16 @@
       		{"name":"time"}
         ]
 	},
+	 {"#" : "**** - Renew Certificate ****** ",
+
+		"apiEndPoint":"/certificates/renew",
+		"vaultEndPoint":"certificates/<certID>/renew",
+		"method":"POST",
+		"params":[
+      		{"name":"certName", "required":true, "appendToPath":true},
+      		{"name":"time"}
+        ]
+	},
     {
       "apiEndPoint":"/auth/oidc/oidc/auth_url",
       "vaultEndPoint":"/auth/oidc/oidc/auth_url",
