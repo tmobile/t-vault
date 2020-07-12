@@ -161,6 +161,7 @@ public class SSLCertificateController {
 		return sslCertificateService.getTargetSystemServiceList(token, userDetails, targetSystemId);
 	}
 
+
     /**
      * Add approle to Certificate
      * @param request
@@ -217,4 +218,19 @@ public class SSLCertificateController {
 		UserDetails userDetails = (UserDetails) ((HttpServletRequest) request).getAttribute("UserDetails");
 		return sslCertificateService.getCertificateDetails(token, userDetails, certificateName);
 	}
+
+	 /* 
+	 * @param request
+	 * @param token
+	 * @param certificateId
+	 * @return
+	 */
+	@ApiOperation(value = "${SSLCertificateController.renewCertificate.value}", notes = "${SSLCertificateController.renewCertificate.notes}")
+	@PostMapping(value = "/v2/certificates/{certName}/renew", produces = "application/json")
+	public ResponseEntity<String> renewCertificate(HttpServletRequest request,
+			@RequestHeader(value = "vault-token") String token, @PathVariable("certName") String certName) {
+		UserDetails userDetails = (UserDetails) ((HttpServletRequest) request).getAttribute("UserDetails");
+		return sslCertificateService.renewCertificate(certName, userDetails, token);
+	}
+
 }

@@ -18,6 +18,7 @@
 package com.tmobile.cso.vault.api.service;
 
 import java.io.IOException;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
@@ -192,6 +193,9 @@ public class SSLCertificateService {
     
     @Value("${SSLCertificateController.certificatename.text}")
     private String certificateNameTailText;
+    
+    @Value("${sslcertmanager.endpoint.renewCertificate}")
+	private String renewCertificateEndpoint;
 
     private static Logger log = LogManager.getLogger(SSLCertificateService.class);
 
@@ -1421,7 +1425,7 @@ public class SSLCertificateService {
    		if(!ObjectUtils.isEmpty(jsonArray)) {
    		if(!StringUtils.isEmpty(searchText)) {
    	   	for(int i = 0; i < jsonArray.size(); i++){
-   	   	if(jsonArray.get(i).toString().toUpperCase().contains(searchText.toUpperCase())){
+   	   	if(jsonArray.get(i).toString().contains(searchText)){
    	   	    list.add(jsonArray.get(i).toString());
    	   	}
    	   	}
@@ -2176,6 +2180,7 @@ public class SSLCertificateService {
 		return isValid;
 	}
 
+
 	/**
 	 * Adds a group to a certificate
 	 * @param userDetails
@@ -2414,6 +2419,7 @@ public class SSLCertificateService {
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid 'path' specified\"]}");
 		}
 	}
+
 
 	/**
      * Associate Approle to Certificate
@@ -2711,6 +2717,195 @@ public class SSLCertificateService {
 		}
 		return isValid;
 	}
+	
+
+	
+	/**
+	 * Renew SSL Certificate and update metadata
+	 * 
+	 * @param certificateId
+	 * @param token
+	 * @return
+	 * @throws IOException
+	 * @throws JsonMappingException
+	 * @throws JsonParseException
+	 */
+	public ResponseEntity<String> renewCertificate(String certificateName, UserDetails userDetails, String token) {			
+
+		Map<String, String> metaDataParams = new HashMap<String, String>();
+
+		String endPoint = certificateName;
+		String _path = SSLCertificateConstants.SSL_CERT_PATH + "/" + endPoint;
+		Response response = null;
+		try {
+			if (userDetails.isAdmin()) {
+				response = reqProcessor.process("/read", "{\"path\":\"" + _path + "\"}", token);
+			} else {
+				response = reqProcessor.process("/read", "{\"path\":\"" + _path + "\"}",
+						userDetails.getSelfSupportToken());
+			}
+		} catch (Exception e) {
+			log.error(
+					JSONUtil.getJSON(
+							ImmutableMap.<String, String> builder()
+									.put(LogMessage.USER,
+											ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString())
+									.put(LogMessage.ACTION,
+											String.format("Exception = [%s] =  Message [%s]",
+													Arrays.toString(e.getStackTrace()), response.getResponse()))
+									.build()));
+			return ResponseEntity.status(response.getHttpstatus())
+					.body("{\"messages\":[\"" + "Certficate unavailable." + "\"]}");
+		}
+		if (!HttpStatus.OK.equals(response.getHttpstatus())) {
+			return ResponseEntity.status(response.getHttpstatus())
+					.body("{\"errors\":[\"" + " Certficate unavailable. " + "\"]}");
+		}
+		JsonParser jsonParser = new JsonParser();
+		JsonObject object = ((JsonObject) jsonParser.parse(response.getResponse())).getAsJsonObject("data");
+		metaDataParams = new Gson().fromJson(object.toString(), Map.class);
+		if (!userDetails.isAdmin()) {
+			Boolean isPermission = validateOwnerPermissionForNonAdmin(userDetails, certificateName);
+			if (!isPermission) {
+				return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("{\"errors\":[\""
+						+ "User has no permission to renew the certificate " + certificateName + "\"]}");
+			}
+		}
+        String certID = object.get("certificateId").toString().trim();
+        float value = Float.parseFloat(certID.replaceAll("[^0-9]",""));
+		int certificateId = (int) value;
+		CertResponse renewResponse = new CertResponse();
+		try {
+			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String> builder()
+					.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString())
+					.put(LogMessage.ACTION, "Renew certificate")
+					.put(LogMessage.MESSAGE,
+							String.format("Trying to renew certificate for [%s]", certificateName))
+					.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString())
+					.build()));
+
+			String nclmAccessToken = getNclmToken();
+
+			String nclmApiRenewEndpoint = renewCertificateEndpoint.replace("certID", String.valueOf(certificateId));
+			renewResponse = reqProcessor.processCert("/certificates/renew", "",
+					nclmAccessToken, getCertmanagerEndPoint(nclmApiRenewEndpoint));
+			log.debug(
+					JSONUtil.getJSON(
+							ImmutableMap.<String, String> builder()
+									.put(LogMessage.USER,
+											ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString())
+									.put(LogMessage.ACTION, "Renew certificate")
+									.put(LogMessage.MESSAGE, "Renew certificate for CertificateID")
+									.put(LogMessage.STATUS, renewResponse.getHttpstatus().toString())
+									.put(LogMessage.APIURL,
+											ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString())
+									.build()));
+			
+			//if renewed get new certificate details and update metadata
+			 
+			CertificateData certData = getLatestCertificate(certificateName,nclmAccessToken);			
+			boolean sslMetaDataUpdationStatus;			
+			metaDataParams.put("certificateId",((Integer)certData.getCertificateId()).toString());
+			metaDataParams.put("createDate", certData.getCreateDate());
+			metaDataParams.put("expiryDate", certData.getExpiryDate());
+			
+			if (userDetails.isAdmin()) {
+				sslMetaDataUpdationStatus = ControllerUtil.updateMetaData(_path, metaDataParams, token);
+			} else {
+				sslMetaDataUpdationStatus = ControllerUtil.updateMetaData(_path, metaDataParams,
+						userDetails.getSelfSupportToken());
+			}
+			if (sslMetaDataUpdationStatus) {
+				return ResponseEntity.status(renewResponse.getHttpstatus())
+						.body("{\"messages\":[\"" + "Certificate renewed successfully." + "\"]}");
+			} else {
+				log.error(
+						JSONUtil.getJSON(
+								ImmutableMap.<String, String> builder()
+										.put(LogMessage.USER,
+												ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString())
+										.put(LogMessage.ACTION, "Renew certificate Failed")
+										.put(LogMessage.MESSAGE, "Renew Request failed for CertificateID")
+										.put(LogMessage.STATUS, renewResponse.getHttpstatus().toString())
+										.put(LogMessage.APIURL,
+												ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString())
+										.build()));
+				return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+						.body("{\"errors\":[\"" + "Certificate renewal failed." + "\"]}");
+			}
+
+		} catch (TVaultValidationException error) {
+			log.error(
+					JSONUtil.getJSON(ImmutableMap.<String, String> builder()
+							.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString())
+							.put(LogMessage.ACTION, String.format("Inside  TVaultValidationException  = [%s] =  Message [%s]",
+									Arrays.toString(error.getStackTrace()), error.getMessage()))
+							.build()));
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"" + error.getMessage() + "\"]}");
+		} catch (Exception e) {
+			log.error(JSONUtil.getJSON(ImmutableMap.<String, String> builder()
+					.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString())
+					.put(LogMessage.ACTION, String.format("Inside  Exception = [%s] =  Message [%s]",
+							Arrays.toString(e.getStackTrace()), e.getMessage()))
+					.build()));
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+					.body("{\"errors\":[\"" + e.getMessage() + "\"]}");
+		}
+	}	
+	
+	
+	/**
+     * THis method will be responsible to check the whether given certificate exists or not
+     * @param sslCertificateRequest
+     * @param certManagerLogin
+     * @return
+     * @throws Exception
+     */
+    private CertificateData getLatestCertificate(String certName, String accessToken) throws Exception {
+        CertificateData certificateData=null;        
+        int containerId = getTargetSystemGroupId(SSLCertType.valueOf("PRIVATE_SINGLE_SAN"));
+        String findCertificateEndpoint = "/certmanager/findCertificate";
+        String targetEndpoint = findCertificate.replace("certname", String.valueOf(certName)).replace("cid", String.valueOf(containerId));
+        CertResponse response = reqProcessor.processCert(findCertificateEndpoint, "", accessToken, getCertmanagerEndPoint(targetEndpoint));
+        Map<String, Object> responseMap = ControllerUtil.parseJson(response.getResponse());
+        if (!MapUtils.isEmpty(responseMap) && (ControllerUtil.parseJson(response.getResponse()).get(SSLCertificateConstants.CERTIFICATES) != null)) {
+            JsonParser jsonParser = new JsonParser();
+            JsonObject jsonObject = (JsonObject) jsonParser.parse(response.getResponse());
+            if (jsonObject != null) {
+                JsonArray jsonArray = jsonObject.getAsJsonArray(SSLCertificateConstants.CERTIFICATES);
+                LocalDateTime  createdDate = null ;
+                LocalDateTime  certCreatedDate;
+//                DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss", Locale.ENGLISH);
+                for (int i = 0; i < jsonArray.size(); i++) {
+                    JsonObject jsonElement = jsonArray.get(i).getAsJsonObject();
+                    if(i==0) {
+                    createdDate = LocalDateTime.parse(validateString(jsonElement.get("NotBefore")).substring(0, 19));
+                    }else if (i>0) {
+                    	createdDate = LocalDateTime.parse(validateString(jsonArray.get(i-1).getAsJsonObject().get("NotBefore")).substring(0, 19));
+                    }
+                    if ((Objects.equals(getCertficateName(jsonElement.get("sortedSubjectName").getAsString()), certName))
+                            && jsonElement.get(SSLCertificateConstants.CERTIFICATE_STATUS).getAsString().
+                            equalsIgnoreCase(SSLCertificateConstants.ACTIVE)) {
+                    	certCreatedDate = LocalDateTime.parse(validateString(jsonElement.get("NotBefore")).substring(0, 19));
+                    	if(!ObjectUtils.isEmpty(createdDate) && createdDate.isBefore(certCreatedDate)) {
+                        certificateData= new CertificateData();
+                        certificateData.setCertificateId(Integer.parseInt(jsonElement.get("certificateId").getAsString()));
+                        certificateData.setExpiryDate(validateString(jsonElement.get("NotAfter")));
+                        certificateData.setCreateDate(validateString(jsonElement.get("NotBefore")));
+                        certificateData.setContainerName(validateString(jsonElement.get("containerName")));
+                        certificateData.setCertificateStatus(validateString(jsonElement.get(SSLCertificateConstants.CERTIFICATE_STATUS)));
+                        certificateData.setCertificateName(certName);
+                        certificateData.setAuthority((!StringUtils.isEmpty(jsonElement.get("enrollServiceInfo")) ?
+                                 validateString(jsonElement.get("enrollServiceInfo").getAsJsonObject().get("name")) :
+                                 null));
+                    	}
+                    }
+
+                }
+            }
+        }
+        return certificateData;
+    }
 
     /**
      * Check if user has download permission.
