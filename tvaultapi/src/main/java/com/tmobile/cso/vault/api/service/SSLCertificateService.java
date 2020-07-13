@@ -2767,7 +2767,7 @@ public class SSLCertificateService {
 		JsonParser jsonParser = new JsonParser();
 		JsonObject object = ((JsonObject) jsonParser.parse(response.getResponse())).getAsJsonObject("data");
 		metaDataParams = new Gson().fromJson(object.toString(), Map.class);
-		/*
+		
 		if (!userDetails.isAdmin()) {
 			Boolean isPermission = validateOwnerPermissionForNonAdmin(userDetails, certificateName);
 			if (!isPermission) {
@@ -2776,7 +2776,7 @@ public class SSLCertificateService {
 								+ "For security reasons, you need to log out and log in again for the permissions to take effect."
 								+ "\"]}");
 			}
-		}*/
+		}
 		
         String certID = object.get("certificateId").toString().trim();
         float value = Float.parseFloat(certID.replaceAll("[^0-9]",""));
