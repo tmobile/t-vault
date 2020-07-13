@@ -144,7 +144,7 @@ public class SSLCertificateServiceTest {
         ReflectionTestUtils.setField(sSLCertificateService, "retrycount", 1);
         ReflectionTestUtils.setField(sSLCertificateService, "getCertifcateReasons", "certificates/certID/revocationreasons");
         ReflectionTestUtils.setField(sSLCertificateService, "issueRevocationRequest", "certificates/certID/revocationrequest");
-//        ReflectionTestUtils.setField(sSLCertificateService, "renew", "certificates/certID/renew");
+        ReflectionTestUtils.setField(sSLCertificateService, "renew", "certificates/certID/renew");
         
         ReflectionTestUtils.setField(sSLCertificateService, "certificateNameTailText", ".t-mobile.com");
         
