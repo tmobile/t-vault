@@ -203,4 +203,18 @@ public class SSLCertificateController {
 		UserDetails userDetails = (UserDetails) ((HttpServletRequest) request).getAttribute("UserDetails");
 		return sslCertificateService.downloadCertificate(token, userDetails, certificateName, certificateType);
 	}
+
+	/**
+	 * Get certificate details.
+	 * @param request
+	 * @param token
+	 * @param certificateName
+	 * @return
+	 */
+	@ApiOperation(value = "${SSLCertificateController.getCertificateDetails.value}", notes = "${SSLCertificateController.getCertificateDetails.notes}", hidden=true)
+	@GetMapping(value = "/v2/sslcert/certificates", produces = "application/json")
+	public ResponseEntity<String> getCertificateDetails(HttpServletRequest request, @RequestHeader(value = "vault-token") String token, @RequestParam("certificate_name") String certificateName) {
+		UserDetails userDetails = (UserDetails) ((HttpServletRequest) request).getAttribute("UserDetails");
+		return sslCertificateService.getCertificateDetails(token, userDetails, certificateName);
+	}
 }

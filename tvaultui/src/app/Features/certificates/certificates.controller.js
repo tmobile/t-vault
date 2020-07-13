@@ -170,13 +170,13 @@
             $scope.isDownloadClicked = false;
             $scope.isLoadingData = true;
             $scope.downloadRequest.certificateName = "";
-            var updatedUrlOfEndPoint = ModifyUrl.addUrlParameteres('getCertificates',"certificateName="+ certName + "&limit=1&offset=0");
+            var updatedUrlOfEndPoint = ModifyUrl.addUrlParameteres('getCertificateDetails',"?certificate_name="+ certName);
 
-            AdminSafesManagement.getCertificates(null, updatedUrlOfEndPoint).then(function (response) {
+            AdminSafesManagement.getCertificateDetails(null, updatedUrlOfEndPoint).then(function (response) {
 
                 if (UtilityService.ifAPIRequestSuccessful(response)) { 	
                     $scope.viewCertificate = true;
-                    $scope.certificateDetails = response.data.keys[0];
+                    $scope.certificateDetails = response.data;
                     $scope.certificateDetails.createDate = new Date($scope.certificateDetails.createDate).toDateString();
                     $scope.certificateDetails.expiryDate = new Date($scope.certificateDetails.expiryDate).toDateString();
                     $scope.certIdToDownload = $scope.certificateDetails.certificateId;

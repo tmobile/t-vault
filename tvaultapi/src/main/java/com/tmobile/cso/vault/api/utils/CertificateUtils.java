@@ -184,7 +184,15 @@ public class CertificateUtils {
 		if (null != dataNode.get("certOwnerEmailId")) {
 			certificate.setCertOwnerEmailId(dataNode.get("certOwnerEmailId").asText());
 		}
-		
+
+		if (null != dataNode.get("createDate")) {
+			certificate.setCreateDate(dataNode.get("createDate").asText());
+		}
+
+		if (null != dataNode.get("certificateStatus")) {
+			certificate.setCertificateStatus(dataNode.get("certificateStatus").asText());
+		}
+
 		if (null != dataNode.get("expiryDate")) {
 			certificate.setExpiryDate(dataNode.get("expiryDate").asText());
 		}	
