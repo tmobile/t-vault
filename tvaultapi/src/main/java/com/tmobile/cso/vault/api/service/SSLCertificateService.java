@@ -2764,6 +2764,7 @@ public class SSLCertificateService {
 		JsonParser jsonParser = new JsonParser();
 		JsonObject object = ((JsonObject) jsonParser.parse(response.getResponse())).getAsJsonObject("data");
 		metaDataParams = new Gson().fromJson(object.toString(), Map.class);
+		
 		if (!userDetails.isAdmin()) {
 			Boolean isPermission = validateOwnerPermissionForNonAdmin(userDetails, certificateName);
 			if (!isPermission) {
@@ -2771,6 +2772,7 @@ public class SSLCertificateService {
 						+ "User has no permission to renew the certificate " + certificateName + "\"]}");
 			}
 		}
+		
         String certID = object.get("certificateId").toString().trim();
         float value = Float.parseFloat(certID.replaceAll("[^0-9]",""));
 		int certificateId = (int) value;
@@ -2802,12 +2804,24 @@ public class SSLCertificateService {
 									.build()));
 			
 			//if renewed get new certificate details and update metadata
-			 
+			if (renewResponse!=null && HttpStatus.OK.equals(renewResponse.getHttpstatus())) {
 			CertificateData certData = getLatestCertificate(certificateName,nclmAccessToken);			
 			boolean sslMetaDataUpdationStatus;			
 			metaDataParams.put("certificateId",((Integer)certData.getCertificateId()).toString());
 			metaDataParams.put("createDate", certData.getCreateDate());
 			metaDataParams.put("expiryDate", certData.getExpiryDate());
+			log.debug(
+					JSONUtil.getJSON(
+							ImmutableMap.<String, String> builder()
+									.put(LogMessage.USER,
+											ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString())
+									.put(LogMessage.ACTION, "Renew certificate")
+									.put(LogMessage.MESSAGE, "Renew certificate for CertificateID "+metaDataParams.get("certificateId"))
+									.put(LogMessage.STATUS, renewResponse.getHttpstatus().toString())
+									.put(LogMessage.APIURL,
+											ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString())
+									.build()));
+			
 			
 			if (userDetails.isAdmin()) {
 				sslMetaDataUpdationStatus = ControllerUtil.updateMetaData(_path, metaDataParams, token);
@@ -2817,8 +2831,23 @@ public class SSLCertificateService {
 			}
 			if (sslMetaDataUpdationStatus) {
 				return ResponseEntity.status(renewResponse.getHttpstatus())
-						.body("{\"messages\":[\"" + "Certificate renewed successfully." + "\"]}");
+						.body("{\"messages\":[\"" + "Certificate Renewed Successfully" + "\"]}");
 			} else {
+				log.error(
+						JSONUtil.getJSON(
+								ImmutableMap.<String, String> builder()
+										.put(LogMessage.USER,
+												ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString())
+										.put(LogMessage.ACTION, "Renew certificate Failed")
+										.put(LogMessage.MESSAGE, "Metadata updation failed for CertificateID")
+										.put(LogMessage.STATUS, renewResponse.getHttpstatus().toString())
+										.put(LogMessage.APIURL,
+												ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString())
+										.build()));
+				return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+						.body("{\"errors\":[\"" + "Certificate renewal Failed." + "\"]}");
+			}
+			}else {
 				log.error(
 						JSONUtil.getJSON(
 								ImmutableMap.<String, String> builder()
@@ -2831,7 +2860,7 @@ public class SSLCertificateService {
 												ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString())
 										.build()));
 				return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-						.body("{\"errors\":[\"" + "Certificate renewal failed." + "\"]}");
+						.body("{\"errors\":[\"" + "Certificate Renewal Failed" + "\"]}");
 			}
 
 		} catch (TVaultValidationException error) {
@@ -2862,7 +2891,7 @@ public class SSLCertificateService {
      * @throws Exception
      */
     private CertificateData getLatestCertificate(String certName, String accessToken) throws Exception {
-        CertificateData certificateData=null;        
+        CertificateData certificateData=null; 
         int containerId = getTargetSystemGroupId(SSLCertType.valueOf("PRIVATE_SINGLE_SAN"));
         String findCertificateEndpoint = "/certmanager/findCertificate";
         String targetEndpoint = findCertificate.replace("certname", String.valueOf(certName)).replace("cid", String.valueOf(containerId));
@@ -2875,7 +2904,6 @@ public class SSLCertificateService {
                 JsonArray jsonArray = jsonObject.getAsJsonArray(SSLCertificateConstants.CERTIFICATES);
                 LocalDateTime  createdDate = null ;
                 LocalDateTime  certCreatedDate;
-//                DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss", Locale.ENGLISH);
                 for (int i = 0; i < jsonArray.size(); i++) {
                     JsonObject jsonElement = jsonArray.get(i).getAsJsonObject();
                     if(i==0) {
@@ -2897,7 +2925,7 @@ public class SSLCertificateService {
                         certificateData.setCertificateName(certName);
                         certificateData.setAuthority((!StringUtils.isEmpty(jsonElement.get("enrollServiceInfo")) ?
                                  validateString(jsonElement.get("enrollServiceInfo").getAsJsonObject().get("name")) :
-                                 null));
+                                 null));                        
                     	}
                     }
 
