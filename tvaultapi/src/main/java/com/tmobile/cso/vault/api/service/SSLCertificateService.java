@@ -17,7 +17,6 @@
 
 package com.tmobile.cso.vault.api.service;
 
-
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -1681,11 +1680,11 @@ public class SSLCertificateService {
 													Arrays.toString(e.getStackTrace()), response.getResponse()))
 									.build()));
 			return ResponseEntity.status(response.getHttpstatus())
-					.body("{\"messages\":[\"" + "Certficate unavailable." + "\"]}");
+					.body("{\"errors\":[\"" + "Certificate unavailable in NCLM" + "\"]}");
 		}
 		if (!HttpStatus.OK.equals(response.getHttpstatus())) {
 			return ResponseEntity.status(response.getHttpstatus())
-					.body("{\"errors\":[\"" + " Certficate unavailable. " + "\"]}");
+					.body("{\"errors\":[\"" + "Certificate unavailable in NCLM" + "\"]}");
 		}
 		JsonParser jsonParser = new JsonParser();
 		JsonObject object = ((JsonObject) jsonParser.parse(response.getResponse())).getAsJsonObject("data");
@@ -1693,14 +1692,16 @@ public class SSLCertificateService {
 
 		if (!userDetails.isAdmin()) {
 
-			Boolean isPermission = validateWritePermissionForUser(object, userDetails, certificateName);
+			Boolean isPermission = validateOwnerPermissionForNonAdmin(userDetails, certificateName);
 
 			if (!isPermission) {
-				return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("{\"errors\":[\""
-						+ "User has no permission to revoke the certificate " + certificateName + "\"]}");
+				return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+						.body("{\"errors\":[\""
+								+ "For security reasons, you need to log out and log in again for the permissions to take effect."
+								+ "\"]}");
 			}
 		}
-        String certID = object.get("certificateId").toString();
+		String certID = object.get("certificateId").toString();
         float value = Float.valueOf(certID);
 		int certificateId = (int) value;
 		CertResponse revocationResponse = new CertResponse();
@@ -1740,7 +1741,7 @@ public class SSLCertificateService {
 			}
 			if (sslMetaDataUpdationStatus) {
 				return ResponseEntity.status(revocationResponse.getHttpstatus())
-						.body("{\"messages\":[\"" + "Certificate revoked successfully." + "\"]}");
+						.body("{\"messages\":[\"" + "Revocation done successfully" + "\"]}");
 			} else {
 				log.error(
 						JSONUtil.getJSON(
@@ -1754,7 +1755,7 @@ public class SSLCertificateService {
 												ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString())
 										.build()));
 				return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-						.body("{\"errors\":[\"" + "Certificate revocation failed." + "\"]}");
+						.body("{\"errors\":[\"" + "Revocation failed" + "\"]}");
 			}
 
 		} catch (TVaultValidationException error) {
@@ -1786,50 +1787,32 @@ public class SSLCertificateService {
 	}
 	
 	/**
-	 * Validate Write Permission for Non-admin User.
+	 * Validate Permission for Non-admin User.
 	 * 
-	 * @param object
 	 * @param userDetails
 	 * @param certificateName
 	 * @return
 	 */
-	public Boolean validateWritePermissionForUser(JsonObject object, UserDetails userDetails, String certificateName) {
-		ObjectMapper mapper = new ObjectMapper();
-		String permission = "";
+	public Boolean validateOwnerPermissionForNonAdmin(UserDetails userDetails, String certificateName) {
+		String ownerPermissionCertName = SSLCertificateConstants.OWNER_PERMISSION_CERTIFICATE + certificateName;
 		Boolean isPermission = false;
-		String certificateOwner = object.get("certOwnerNtid").toString().replaceAll("^\"|\"$", "");
-		//checking if the login non-admin user itself created the certificate or not
-		//By using the certOwnerNtid field from the metadata
-		if (certificateOwner.equalsIgnoreCase(userDetails.getUsername())) {
-			return isPermission = true;
-		}
-		if (object.get("users") != null) {
-			String writePermission = object.get("users").toString();
-
-			try {
-				Map<String, String> usersMap = mapper.readValue(writePermission, Map.class);
-				for (Map.Entry user : usersMap.entrySet()) {
-					if (user.getKey().toString().equalsIgnoreCase(userDetails.getUsername())) {
-						permission = user.getValue().toString();
-						isPermission = true;
-						break;
-					}
-				}
-			} catch (Exception e) {
-				log.error(JSONUtil.getJSON(ImmutableMap.<String, String> builder()
-						.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString())
-						.put(LogMessage.ACTION, String.format("Message [%s]", e.getStackTrace().toString())).build()));
-				e.printStackTrace();
+		if (ArrayUtils.isNotEmpty(userDetails.getPolicies())) {
+			isPermission = Arrays.stream(userDetails.getPolicies()).anyMatch(ownerPermissionCertName::equals);
+			if (isPermission) {
+				log.debug(
+						JSONUtil.getJSON(ImmutableMap.<String, String> builder()
+								.put(LogMessage.USER,
+										ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString())
+								.put(LogMessage.ACTION, "Certificate permission for user " + userDetails.getUsername())
+								.put(LogMessage.MESSAGE,
+										"User has permission to access the certificate " + certificateName)
+								.put(LogMessage.APIURL,
+										ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString())
+								.build()));
+				return isPermission;
 			}
-		} 
-
-		if (permission != "" && !permission.equals(SSLCertificateConstants.SSL_CERTFICATE_WRITE_PERMISSION)) {
-			isPermission = false;
-			log.error(JSONUtil.getJSON(ImmutableMap.<String, String> builder()
-					.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString())
-					.put(LogMessage.ACTION, String.format("Message [%s]", "Permission Denied")).build()));
-
 		}
+
 		return isPermission;
 	}
 	

@@ -1671,7 +1671,8 @@
                 $scope.isLoadingData = false;
                 if (UtilityService.ifAPIRequestSuccessful(response)) { 
                     for (var index = 0;index<response.data.reasons.length;index++) {
-                        $scope.revocationReasons.push({"type":response.data.reasons[index].reason});
+                        $scope.revocationReasons.push({"type":response.data.reasons[index].displayName,
+                        "value":response.data.reasons[index].reason});
                     } 
                     $scope.revokeReasonsPopUp();
                                                  
@@ -1681,7 +1682,7 @@
                 // Error handling function
                 $scope.isLoadingData = false;
                 $scope.revocationMessage = error.data.errors[0];
-                $scope.revocationStatusMessage = "Revocation reasons fetching failed";
+                $scope.revocationStatusMessage = "Revocation Reasons Failed!";
                 $scope.revocationPopUp();
                 console.log(error);
                
@@ -1692,7 +1693,7 @@
             };
 
             $scope.dropdownRevocationReasons = {
-                'selectedGroupOption': {"type": "Select Revocation Reasons"},       // As initial placeholder
+                'selectedGroupOption': {"type": "Select Revocation Reasons","value":"Revocation Values"},       // As initial placeholder
                 'tableOptions': $scope.revocationReasons
             }
             Modal.close('');
@@ -1706,13 +1707,13 @@
             try {
                 $scope.revocationMessage = ''
                 if ($scope.dropdownRevocationReasons.selectedGroupOption.type == 'Select Revocation Reasons') {
-                    $scope.revocationStatusMessage = 'Revocation failed';
-                    $scope.revocationMessage = "Invalid input value";
+                    $scope.revocationStatusMessage = 'Revocation Failed!';
+                    $scope.revocationMessage = "Select Revocation Reasons";
                     return $scope.revocationPopUp();
                 }
                 Modal.close('');
                 var reqObjtobeSent =  {                    
-                    "reason": $scope.dropdownRevocationReasons.selectedGroupOption.type
+                    "reason": $scope.dropdownRevocationReasons.selectedGroupOption.value
                 }
                
                 var url = RestEndpoints.baseURL + "/v2/certificates/" + $scope.certificateNameForRevoke + "/revocationrequest";
@@ -1721,7 +1722,7 @@
 
                     $scope.isLoadingData = false;
                     if (UtilityService.ifAPIRequestSuccessful(response)) {
-                        $scope.revocationStatusMessage = 'Revocation done successfully';
+                        $scope.revocationStatusMessage = 'Revocation Successfull!';
                         $scope.revocationMessage = response.data.messages[0];
                         $scope.revocationPopUp();
                         $scope.requestDataFrAdmin();
@@ -1729,7 +1730,7 @@
                 },
                     function (error) {
                         var errors = error.data.errors;
-                        $scope.revocationStatusMessage = 'Revocation failed';
+                        $scope.revocationStatusMessage = 'Revocation Failed!';
                         $scope.revocationMessage = errors[0];
                         $scope.revocationPopUp();
                         $scope.isLoadingData = false;
