@@ -91,6 +91,26 @@ script(type='text/ng-template', id='certificateCreationFailedPopUp.html')
       .clearfix.bottom-sm-sep
         button.link-style.common-btn.btn.btn-primary.btn-lg(ng-click="cancel()") CLOSE 
 
+script(type='text/ng-template', id='renewCertificatePopUp.html')
+  loading-state(ng-if="isLoadingModalData")
+  .top-lg-sep(ng-if="!isLoadingModalData")
+    .top-lg-sep
+        .common-header-label.text-center Certificate Renewal Successful!
+      .top-lg-sep.notification-text  {{ renewMessage }}
+    .text-center.bottom-lg-sep.top-lg-sep.notification-button
+      .clearfix.bottom-sm-sep
+        button.link-style.common-btn.btn.btn-primary.btn-lg(ng-click="successCancel()") CLOSE
+script(type='text/ng-template', id='renewCertificateFailedPopUp.html')
+  loading-state(ng-if="isLoadingModalData")
+  .top-lg-sep(ng-if="!isLoadingModalData")
+    .top-lg-sep
+        .common-header-label.text-center Certificate Renewal Failed!
+      .top-lg-sep.notification-text  {{ renewMessage }}
+    .text-center.bottom-lg-sep.top-lg-sep.notification-button
+      .clearfix.bottom-sm-sep
+        button.link-style.common-btn.btn.btn-primary.btn-lg(ng-click="cancel()") CLOSE 
+
+
 script(type='text/ng-template', id='revocationPopUp.html')
   loading-state(ng-if="isLoadingModalData")
   .top-lg-sep(ng-if="!isLoadingModalData")
@@ -563,13 +583,13 @@ script(type='text/ng-template', id='manageSecretId.html')
                                                                 label.expired-cert {{ value.certificateStatus}}
                                                       .container.radio-inputs.col-lg-6.col-md-6.col-sm-6.col-xs-6
                                                           .down.view
-                                                              .list-icon(ng-click="goToAddPermissions(value)")  View/Edit
-                                                          .down.view
-                                                              .list-icon(ng-if="value.certificateStatus=='Revoked'")  Renew certificate
-                                                              .list-icon(ng-if="value.certificateStatus=='Expired'")  Re-Enroll                                                          
-                                                              .list-icon(ng-if="value.certificateStatus=='Active'" ng-click="renewCertificate(value)")  Renew certificate                                                          
+                                                              .list-icon(ng-click="goToAddPermissions(value)")  View/Edit                                                                                                                    
                                                           .down.deletesecretids
                                                               .list-icon(ng-click="revokeCertificate(value)") Revoke certificate 
+                                                              .down.view
+                                                              .list-icon(ng-if="value.certificateStatus=='Revoked'")                  
+                                                              .list-icon(ng-if="value.certificateStatus=='Expired'")                                                                          
+                                                              .list-icon(ng-if="value.certificateStatus=='Active'" ng-click="renewCertificate(value)")  Renew certificate
                                                       .container.radio-inputs.col-lg-2.col-md-2.col-sm-2.col-xs-2
                                               .pagination-wrapper(ng-show='hasMoreCertsToShow()')
                                                   .pagination-count(ng-if="numOfCertificates>0") Displaying {{certcurrentshown}} of {{numOfCertificates}}

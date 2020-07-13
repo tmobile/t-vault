@@ -146,7 +146,7 @@
             $scope.isUserSearchLoading = false;
             $scope.isOwnerSelected = false;
             setTargetSystemServiceList("No target system selected", []);
-            $scope.certificateData.certificates = [];
+            $scope.certificateData.certificates = [];            
 
             $scope.targetSystem = {
                 'description': '',
@@ -581,6 +581,7 @@
             $scope.certificateData = {"certificates": []};
             $scope.isLoadingData = true;
             $scope.isLoadingCerts = true;
+            
             var limitQuery = "";
             var offsetQuery= "";
             if (limit !=null) {
@@ -588,9 +589,9 @@
             }
             if (offset!=null) {
                 offsetQuery= "&offset="+offset;
-            }
+            }            
             var updatedUrlOfEndPoint = ModifyUrl.addUrlParameteres('getCertificates',"certificateName="+searchCert + limitQuery + offsetQuery);
-
+            
             AdminSafesManagement.getCertificates(null, updatedUrlOfEndPoint).then(function (response) {
                 if (UtilityService.ifAPIRequestSuccessful(response)) {
                     if(response.data != "" && response.data != undefined) {
@@ -614,7 +615,7 @@
                 $scope.certificatesLoaded =  true;
                 $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
                 $scope.error('md');
-            });
+            });            
             $scope.certificatesLoaded =  true; 
         }
 
@@ -638,15 +639,17 @@
             return certName;
         }
 
-        $scope.searchCert = function () {        	
-            if ($scope.searchValue != '' && $scope.searchValue != undefined && $scope.searchValue.length > 2 && $scope.certSearchValue != $scope.searchValue) {
-                $scope.certSearchValue = $scope.searchValue;
+        $scope.searchCert = function () {
+        	if($scope.selectedIndex ==3){
+            if ($scope.searchValue != '' && $scope.searchValue != undefined && $scope.searchValue.length > 2 && $scope.certSearchValue != $scope.searchValue) {                
+            	$scope.certSearchValue = $scope.searchValue;
                 getCertificates($scope.certSearchValue, null, null);
             }
-            if ($scope.searchValue == '' && $scope.certSearchValue != $scope.searchValue) {
+            if($scope.certSearchValue != $scope.searchValue) {            	
                 $scope.certSearchValue = $scope.searchValue;
                 getCertificates("", null, null);
             }
+        }
         }
 
         $scope.showMoreCert = function () {
@@ -1358,6 +1361,14 @@
         $scope.transferFailedPopUp = function (svcaccname) {
             Modal.createModal('md', 'transferFailedPopUp.html', 'AdminCtrl', $scope);
         };
+        
+        $scope.renewCertificatePopUp = function (svcaccname) {
+            Modal.createModal('md', 'renewCertificatePopUp.html', 'AdminCtrl', $scope);
+        };
+        
+        $scope.renewCertificateFailedPopUp = function (svcaccname) {
+            Modal.createModal('md', 'renewCertificateFailedPopUp.html', 'AdminCtrl', $scope);
+        };
 
         $scope.transferSvcacc = function (svcaccToTransfer) {
             $scope.transferFailedMessage = '';
@@ -1908,7 +1919,7 @@
         $scope.renewCertificate = function(certificateDetails){        	
                 try{
                 $scope.isLoadingData = true;                
-                $scope.renewStatusMessage = '';
+                $scope.renewMessage = '';
                 var certificateName = $scope.getCertSubjectName(certificateDetails);
                 $scope.certificateNameForRenew = certificateName;          
                 var url = RestEndpoints.baseURL + "/v2/certificates/" + certificateName + "/renew";
@@ -1917,16 +1928,17 @@
                 AdminSafesManagement.renewCertificate(null, url).then(function (response) {
                     $scope.isLoadingData = false;
                     if (UtilityService.ifAPIRequestSuccessful(response)) {
-                    	Notifications.toast('Certificate renewed successfully!');
-                        $scope.renewMessage = 'Certificate renewed successfully!';
-                        $scope.renewMessage = response.data.messages[0];                        
+                        $scope.renewMessage = 'Certificate Renewed Successfully!';
+                        $scope.renewMessage = response.data.messages[0];     
+                        $scope.renewCertificatePopUp();
                         $scope.requestDataFrAdmin();
                     }
                 },
                     function (error) {
                         var errors = error.data.errors;
                         $scope.renewMessage = 'Renew failed';
-                        $scope.renewMessage = errors[0];                        
+                        $scope.renewMessage = errors[0]; 
+                        $scope.renewCertificateFailedPopUp();
                         $scope.isLoadingData = false;
                         console.log(error);
                     })
