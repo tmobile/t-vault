@@ -1454,6 +1454,8 @@ public class SSLCertificateServiceTest {
          userDetails.setAdmin(false);
          userDetails.setClientToken(token);
          userDetails.setSelfSupportToken(token);
+         String[] policies = {"o_cert_testCert@t-mobile.com"};
+         userDetails.setPolicies(policies);
  
         Map<String, Object> requestMap = new HashMap<>();
         requestMap.put("access_token", "12345");
