@@ -42,17 +42,21 @@
             "certificateName": "",
             "format": ""
         }
+        $scope.isDownloadClicked = false;
         var init = function () {
-            
             if(!SessionStore.getItem("myVaultKey")){ /* Check if user is in the same session */
                 $state.go('/');
                 return;
             }
             else{
                 $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
-                $scope.requestDataForMyCertifiates();
+                if (JSON.parse(SessionStore.getItem("isAdmin")) == true) {
+                    $scope.requestDataForMyCertifiatesAdmin();
+                }
+                else {
+                    $scope.requestDataForMyCertifiates();
+                }
             }
-            console.log(SessionStore.getItem("policies"));
         };
 
         $scope.selectDownloadFormat = function () {
@@ -63,7 +67,8 @@
             $scope.searchValueCert = searchValueCert;
         }
 
-        $scope.requestDataForMyCertifiates = function () {               
+        $scope.requestDataForMyCertifiates = function () {
+            $scope.isLoadingData = true;
             $scope.certificatesData = {"keys": []};
             var data = [];
             var accessSafes = JSON.parse(SessionStore.getItem("accessSafes"));
@@ -79,7 +84,7 @@
 
             $scope.certificatesData.keys = data.filter(function(cert){
                 return cert.permission === "read";
-              });
+            });
 
             var policies = SessionStore.getItem("policies");
             if (policies !="" && policies !=null && policies != undefined) {
@@ -95,8 +100,39 @@
             console.log(policies);
             console.log(ownerPolicies);
             $scope.numOfCertificates=$scope.certificatesData.keys.length;
+            $scope.isLoadingData = false;
         };
 
+        $scope.requestDataForMyCertifiatesAdmin = function () {
+            $scope.certificatesData = {"keys": []};
+            $scope.isLoadingData = true;
+
+            AdminSafesManagement.getCertificates(null, null).then(function (response) {
+
+                if (UtilityService.ifAPIRequestSuccessful(response)) {
+                    response.data.keys.forEach(function (cert) {
+                        // By default read permission given to admin users
+                        $scope.certificatesData.keys.push({"certname": cert.certificateName, "permission": "read"});
+                    });
+                    $scope.numOfCertificates=$scope.certificatesData.keys.length;
+                }
+                else {
+                    $scope.certificatesLoaded =  true;
+                    $scope.errorMessage = AdminSafesManagement.getTheRightErrorMessage(response);
+                    $scope.error('md');
+                }
+                $scope.isLoadingData = false;
+            },
+            function (error) {
+                // Error handling function
+                console.log(error);
+                $scope.isLoadingData = false;
+                $scope.certificatesLoaded =  true;
+                $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
+                $scope.error('md');
+            });
+
+        }
         
         $scope.error = function (size) {
             Modal.createModal(size, 'error.html', 'CertificatesCtrl', $scope);
@@ -120,7 +156,11 @@
             if ($scope.searchValueCert != '' && $scope.searchValueCert!= undefined && $scope.searchValueCert.length<3) {
                 return pagesShown < ($scope.numOfCertificates / pageSize);
             }
-            return false;
+            return pagesShown < ($scope.numOfCertificates / pageSize);
+        };
+
+        $scope.showMoreItems = function() {
+            pagesShown = pagesShown + 1;
         };
 
         $scope.goToCertificates = function() {
@@ -128,12 +168,13 @@
         }
 
         $scope.getCertificate = function (certName) {
+            $scope.isDownloadClicked = false;
             $scope.isLoadingData = true;
             $scope.downloadRequest.certificateName = "";
             var updatedUrlOfEndPoint = ModifyUrl.addUrlParameteres('getCertificates',"certificateName="+ certName + "&limit=1&offset=0");
 
             AdminSafesManagement.getCertificates(null, updatedUrlOfEndPoint).then(function (response) {
-            	 
+
                 if (UtilityService.ifAPIRequestSuccessful(response)) { 	
                     $scope.viewCertificate = true;
                     $scope.certificateDetails = response.data.keys[0];
@@ -160,7 +201,7 @@
 
         $scope.downloadPopup = function () {
             $scope.downloadRequest.certificateCred = "";
-            $scope.downloadRequest.issuerChain = false;
+            $scope.downloadRequest.issuerChain = true;
             $scope.downloadRequest.format = "pkcs12der";
             $scope.dropdownDownload.selectedGroupOption = $scope.downloadFormats[0];
             Modal.createModal('md', 'downloadPopup.html', 'CertificatesCtrl', $scope);
@@ -291,6 +332,14 @@
                 $scope.isLoadingData = false;
                 console.log(e);
             }
+        }
+
+        $scope.showDownload = function () {
+            $scope.isDownloadClicked = !$scope.isDownloadClicked;
+        }
+
+        $scope.hideDownload = function () {
+            $scope.isDownloadClicked = false;
         }
 
         init();
