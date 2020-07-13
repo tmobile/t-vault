@@ -49,6 +49,7 @@
                 return;
             }
             else{
+                $scope.viewCertificate = false;
                 $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
                 if (JSON.parse(SessionStore.getItem("isAdmin")) == true) {
                     $scope.requestDataForMyCertifiatesAdmin();
@@ -97,8 +98,6 @@
                     $scope.certificatesData.keys.push({"certname": sudoPolicy.substring(7), "permission": "sudo"});
                 });
             }
-            console.log(policies);
-            console.log(ownerPolicies);
             $scope.numOfCertificates=$scope.certificatesData.keys.length;
             $scope.isLoadingData = false;
         };
@@ -106,8 +105,8 @@
         $scope.requestDataForMyCertifiatesAdmin = function () {
             $scope.certificatesData = {"keys": []};
             $scope.isLoadingData = true;
-
-            AdminSafesManagement.getCertificates(null, null).then(function (response) {
+            var updatedUrlOfEndPoint = ModifyUrl.addUrlParameteres('getCertificates', Math.random());
+            AdminSafesManagement.getCertificates(null, updatedUrlOfEndPoint).then(function (response) {
 
                 if (UtilityService.ifAPIRequestSuccessful(response)) {
                     response.data.keys.forEach(function (cert) {
