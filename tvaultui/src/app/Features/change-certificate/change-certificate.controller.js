@@ -44,6 +44,7 @@
         $scope.approleRadioBtn['value'] = 'read';
         $scope.isEmpty = UtilityService.isObjectEmpty;
         $scope.roleNameSelected = false;
+        $scope.isCertificateOwner = false;
         $scope.awsConfPopupObj = {
             "auth_type":"",
             "role": "",
@@ -95,10 +96,15 @@
         };
 
         $scope.detailsNavTags = [{
+            displayName: 'DETAILS',
+            navigationName: 'details',
+            addComma: true,
+            show: true
+        }, {
             displayName: 'PERMISSIONS',
             navigationName: 'permissions',
             addComma: false,
-            show: true
+            show: false
         }];
 
         var clearInputPermissionData = function () {
@@ -139,7 +145,7 @@
         }
 
         $scope.roleNameSelect = function() {
-            var queryParameters = $scope.dropDownRoleNames.selectedGroupOption.type;
+            var queryParameters = $scope.dropDownRoleNames.selectedGroupOption.type;            
             $scope.roleNameSelected = true;
             $scope.approleConfPopupObj.role_name = queryParameters;
         }
@@ -383,23 +389,7 @@
             var successCondition = true;
             $scope.goBack();
         }
-        $scope.getPath = function () {
-            var vaultType = $scope.dropDownOptions.selectedGroupOption.type;
-            switch ($scope.dropDownOptions.selectedGroupOption.type) {
-                case "Application Safe":
-                    vaultType = 'apps';
-                    break;
-                case "User Safe":
-                    vaultType = 'users';
-                    break;
-                case "Shared Safe":
-                    vaultType = 'shared';
-                    break;
-            }
 
-            var setPath = vaultType + '/' + UtilityService.formatName($scope.safe.name);
-            return setPath;
-        }
         $scope.editPermission = function (type, editMode, user, permission) {
             if (editMode) {
                 var editingPermission = true;
@@ -411,110 +401,7 @@
         }
 
         $scope.deletePermission = function (type, editMode, editingPermission, key, permission) {
-            // if (editMode) {
-            //     try {
-            //         key = key.replace($scope.domainName, '');
-            //         $scope.isLoadingData = true;
-            //         var setPath = $scope.getPath();
-            //         var apiCallFunction = '';
-            //         var reqObjtobeSent = {};
-            //         switch (type) {
-            //             case 'users' :
-            //                 apiCallFunction = AdminSafesManagement.deleteUserPermissionFromSafe;
-            //                 if (editingPermission) {
-            //     								reqObjtobeSent = {
-            //     									"path": setPath,
-            //     									"username": key,
-            //     									"access": permission
-            //     								};
-            //     							}
-            //     							else {
-            //     								reqObjtobeSent = {
-            //     									"path": setPath,
-            //     									"username": key
-            //     								};
-            //     							}
-            //                 break;
-            //             case 'groups' :
-            //                 apiCallFunction = AdminSafesManagement.deleteGroupPermissionFromSafe;
-            //                 reqObjtobeSent = {
-            //                     "path": setPath,
-            //                     "groupname": key
-            //                 };
-            //                 break;
-            //             case 'AWSPermission' :
-            //                 if (editingPermission) {
-            //                     apiCallFunction = AdminSafesManagement.detachAWSPermissionFromSafe;
-            //                 }
-            //                 else {
-            //                     apiCallFunction = AdminSafesManagement.deleteAWSPermissionFromSafe;
-            //                 }
-            //                 reqObjtobeSent = {
-            //                     "path": setPath,
-            //                     "role": key
-            //                 };
-            //                 break;
-            //             case 'AppRolePermission' :
-            //                 apiCallFunction = AdminSafesManagement.detachAppRolePermissionFromSafe;
-            //                 reqObjtobeSent = {
-            //                     "path": setPath,
-            //                     "role_name": key
-            //                 };
-            //                 break;
-            //         }
-            //         apiCallFunction(reqObjtobeSent).then(
-            //             function (response) {
-            //                 if (UtilityService.ifAPIRequestSuccessful(response)) {
-            //                     // Try-Catch block to catch errors if there is any change in object structure in the response
-            //                     try {
-            //                         $scope.isLoadingData = false;
-            //                         if (editingPermission) {
-            //                             $scope.addPermission(type, key, permission, true);  // This will be executed when we're editing permissions
-            //                         }
-            //                         else {
-            //                             $scope.requestDataFrChangeSafe();
-            //                             if (type === "users" && key === SessionStore.getItem("username")) {
-            //                                 return Modal.createModalWithController('stop.modal.html', {
-            //                                     title: 'Permission changed',
-            //                                     message: 'For security reasons, if you add or modify permission to yourself, you need to log out and log in again for the added or modified permissions to take effect.'
-            //                                   });
-            //                             }
-            //                             if (type === 'AppRolePermission') {
-            //                                 // delete approle
-            //                             }
-            //                             var notification = UtilityService.getAParticularSuccessMessage('MESSAGE_SAFE_DELETE');
-            //                             Notifications.toast(key + "'s permission" + notification);
-            //                         }
-            //                     }
-            //                     catch (e) {
-            //                         console.log(e);
-            //                         $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_PROCESSING_DATA');
-            //                         $scope.error('md');
-            //                     }
-            //                 }
-            //                 else {
-            //                     $scope.errorMessage = AdminSafesManagement.getTheRightErrorMessage(response);
-            //                     error('md');
-            //                 }
-            //             },
-            //             function (error) {
-
-            //                 // Error handling function
-            //                 console.log(error);
-            //                 $scope.isLoadingData = false;
-            //                 $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
-            //                 $scope.error('md');
-
-            //             })
-            //     } catch (e) {
-
-            //         console.log(e);
-            //         $scope.isLoadingData = false;
-            //         $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
-            //         $scope.error('md');
-
-            //     }
-            // }
+            
         }       
 
 
@@ -540,14 +427,20 @@
             }
         }
 
+        $rootScope.goToCertPermissions = function () {
+            $scope.isLoadingData = true;
+            $rootScope.showDetails = false;               // To show the 'permissions' and hide the 'details'
+            $rootScope.activeDetailsTab = 'permissions';
+            $scope.isLoadingData = false;
+        } 
 
-        $scope.requestDataFrChangeSafe = function () {
+        $scope.requestDataFrChangeCertificate = function () {
             $scope.isLoadingData = true;           
 
             if ($stateParams.certificateObject) {
 
                 // Prefilled values when editing
-                $scope.changeSafeHeader = $stateParams.certificateObject.certificateName;
+                $scope.changeCertificateHeader = "EDIT CERTIFICATE";
                 $scope.certificateName = $stateParams.certificateObject.certificateName;
                 $scope.isEditSafe = true;
                 $scope.typeDropdownDisable = true;
@@ -584,7 +477,27 @@
                                         object.users = data;
                                 }
                                 $scope.UsersPermissionsData = object.users;
-                                
+
+                                var certOwner = object.certOwnerNtid;            
+                                if(SessionStore.getItem("username").toLowerCase() === certOwner.toLowerCase()){
+                                    $scope.isCertificateOwner = true;
+                                    $scope.detailsNavTags[1].show = true;
+                                }else {                                    
+                                    $scope.detailsNavTags[1].show = false;                                    
+                                }
+
+                                $rootScope.AppRolePermissionsData = {
+                                    "data": object['app-roles']
+                                }
+
+                                $scope.certificate = {
+                                    name: object.certificateName || $stateParams.certificateObject.certificateName,
+                                    ownerEmail: object.certOwnerEmailId || $stateParams.certificateObject.certOwnerEmailId || '',
+                                    applicationName: object.applicationTag || $stateParams.certificateObject.applicationTag || '',
+                                    certType: object.certType || $stateParams.certificateObject.certType || '',
+                                    createDate: object.createDate || $stateParams.certificateObject.createDate || '',
+                                    expiryDate: object.expiryDate || $stateParams.certificateObject.expiryDate || ''
+                                }
                                
                             }
                             catch (e) {
@@ -651,7 +564,7 @@
             if(!$scope.myVaultKey){ /* Check if user is in the same session */
                 $state.go('/');
             }
-            $scope.requestDataFrChangeSafe();
+            $scope.requestDataFrChangeCertificate();
             $scope.fetchUsers();
             $scope.fetchGroups();
         }
@@ -696,6 +609,9 @@
                         duplicate = true;
                     }
                 }
+                if (type === "AppRolePermission" && $scope.AppRolePermissionsData.data!= null && $scope.AppRolePermissionsData.data.hasOwnProperty(key.toLowerCase())) {
+                    duplicate = true;
+                }
             }
             if (duplicate) {
                 clearInputPermissionData();
@@ -739,8 +655,9 @@
                             $scope.awsConfPopupObj['policies'] = "";   // Todo: Because of unavailability of edit service, this has been put
                             reqObjtobeSent = $scope.awsConfPopupObj
                             break;
-                        case 'AppRolePermission' :                            
-                            reqObjtobeSent = {"certificateName": certName, "role_name": key, "access": permission.toLowerCase()};
+                        case 'AppRolePermission' : 
+                            apiCallFunction = AdminSafesManagement.addApprolePermissionForCertificate;
+                            reqObjtobeSent = {"certificateName": certName, "approleName": key, "access": permission.toLowerCase()};
                             break;
                     }
                     apiCallFunction(reqObjtobeSent, updatedUrlOfEndPoint).then(function (response) {
@@ -748,7 +665,7 @@
                                 // Try-Catch block to catch errors if there is any change in object structure in the response
                                 try {
                                     $scope.isLoadingData = false;
-                                    $scope.requestDataFrChangeSafe();
+                                    $scope.requestDataFrChangeCertificate();
                                     var notification = UtilityService.getAParticularSuccessMessage('MESSAGE_ADD_SUCCESS');
                                     if (key !== null && key !== undefined) {
                                         if (type === "users" && key === SessionStore.getItem("username")) {
@@ -791,7 +708,50 @@
                     $scope.error('md');
                 }
             }
-        }        
+        } 
+        
+        $scope.addApproleToCertificate = function (size) {
+            // To reset the aws configuration details object to create a new one
+            $scope.editingApprolePermission = {"status": false};
+            $scope.approleConfPopupObj = {
+                "token_max_ttl":"",
+                "token_ttl": "",
+                "role_name": "",
+                "policies": "",
+                "bind_secret_id": "",
+                "secret_id_num_uses": "",
+                "secret_id_ttl": "",
+                "token_num_uses": ""
+            };
+            $scope.roleNameSelected = false;
+            $scope.roleNameTableOptions = [];
+            AdminSafesManagement.getApproles().then(function (response) {
+                if (UtilityService.ifAPIRequestSuccessful(response)) {
+                    var keys = response.data.keys +'';
+                    var roles = keys.split(',');
+                    for (var index = 0;index<roles.length;index++) {
+                        $scope.roleNameTableOptions.push({"type":roles[index]});
+                    }
+                }
+                else {
+                    $scope.errorMessage = AdminSafesManagement.getTheRightErrorMessage(response);
+                    error('md');
+                }
+            },
+            function (error) {
+                // Error handling function
+                console.log(error);
+                $scope.isLoadingData = false;
+                $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
+                $scope.error('md');
+            })
+
+            $scope.dropDownRoleNames = {
+                'selectedGroupOption': {"type": "Select Role Name"},       // As initial placeholder
+                'tableOptions': $scope.roleNameTableOptions
+            }
+            $scope.openApprole(size);
+        }
 
         /* TODO: What is open, functon name should be more descriptive */
         $scope.open = function (size) {
