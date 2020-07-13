@@ -18,7 +18,7 @@ script(type='text/ng-template', id='downloadPopupWitoutKey.html')
       .common-form.modal-inner-wrapper.aws
         .common-form-row
             .details-input-group                 
-                .row.change-data.header.center-div
+                .row.change-data.header.center-div Download certificate in PEM or DER format.
                     .common-form-label
                     button.common-btn.btn.btn-primary.btn-lg.cert-download-btn(ng-click="downloadPemDer('pem')") PEM format
                     button.common-btn.btn.btn-primary.btn-lg.cert-download-btn(ng-click="downloadPemDer('der')") DER format
@@ -34,7 +34,7 @@ script(type='text/ng-template', id='downloadPopup.html')
       .common-form.modal-inner-wrapper.aws
         .common-form-row
             .details-input-group
-                .row.change-data.header.dark-text Download certificate with private key. Choose you password with
+                .row.change-data.header.dark-text Download certificate with private key.
                 .row.change-data.header
                     .common-form-label.col-lg-12.col-md-12.col-sm-12.col-xs-12.cert-download-row Password *
                     input.form-control.input-box-style(id="certificateCred" restrict-special-char-with-space placeholder="Password" ng-model="downloadRequest.certificateCred" minlength="8" maxlength="255" uib-tooltip="Password" tooltip-placement="top" tooltip-popup-delay="600" required)
@@ -78,7 +78,7 @@ script(type='text/ng-template', id='downloadPopup.html')
                                             md-content(class="md-padding md-content-wrapper")
                                                 .unavailable-text(ng-if='certificatesData.keys.length==0')
                                                     | No Certificates Available
-                                                div.tiles-wrapper(img="'safe.png'" loading="isLoadingData")
+                                                div.tiles-wrapper.cert-tiles(img="'safe.png'" loading="isLoadingData")
                                                     .tiles-wrapper
                                                         .loader-wrapper(ng-show="loading" ng-cloak="")
                                                             .gif-wrp
@@ -103,7 +103,7 @@ script(type='text/ng-template', id='downloadPopup.html')
                                                 .glyphicon.glyphicon-chevron-left(ng-click="goToCertificates()")
                                             div.left
                                                 span
-                                                    span Certificate Details                                               
+                                                    span Certificate Details / {{ certificateDetails.certificateName }}
                             div.data-management-content
                                 .row.change-svc-table-container
                                     loading-state(ng-if='isLoadingData')
@@ -138,5 +138,9 @@ script(type='text/ng-template', id='downloadPopup.html')
                                             .container.radio-inputs.col-lg-6.col-md-6.col-sm-6.col-xs-6.cell
                                                 .down.view
                                                     .list-icon.cert-download-link
-                                                        div(ng-click="downloadPopup()" uib-tooltip="Download certificate with private key") Download certificate with private key
-                                                        div(ng-click="downloadPopupWitoutKey()" uib-tooltip="Download certificate in PEM/DER format") Download certificate in PEM/DER format 
+                                                        div(ng-click="showDownload()")
+                                                           span Download Certificate
+                                                           button.download-link-style
+                                                        div.download-cert-options(id="downloadbox" ng-if='isDownloadClicked' ng-blur='hideDownload()' tabindex="-1" ng-attr-autofocus="true")
+                                                            div(ng-click="downloadPopup()") Download certificate with private key
+                                                            div(ng-click="downloadPopupWitoutKey()") Download certificate in PEM/DER format

@@ -252,3 +252,36 @@
 .dark-text {
     color: #000;
 }
+
+.cert-tiles {
+    margin-bottom: 50px!important;
+}
+
+.download-cert-options {
+    position: absolute;
+    top: 80%;
+    left: 80%;
+    z-index: 1000;
+    float: left;
+    min-width: 300px;
+    padding: 5px 5px;
+    margin: 2px 0 0;
+    font-size: 14px;
+    text-align: left;
+    list-style: none;
+    background-color: #fff;
+    -webkit-background-clip: padding-box;
+    background-clip: padding-box;
+    border: 1px solid #ccc;
+    border: 1px solid rgba(0,0,0,.15);
+    border-radius: 4px;
+    box-shadow: 0 6px 12px rgba(0,0,0,.175);
+}
+
+.download-cert-options div {
+    color: #000;
+}
+
+.download-cert-options div:hover {
+    color: #c51162;
+}
