@@ -124,7 +124,7 @@ script(type='text/ng-template', id='downloadPopup.html')
                                                     .details-input-group(uib-tooltip="Certificate Owner" tooltip-popup-delay="600")
                                                         .common-form-label.cert-label Owner
                                                         .cert-details {{ certificateDetails.certOwnerEmailId }}
-                                                .common-form-row.col-lg-12.col-md-12.col-sm-12.col-xs-12
+                                                .common-form-row.col-lg-12.col-md-12.col-sm-12.col-xs-12(ng-if='certificateDetails.applicationTag')
                                                     .details-input-group(uib-tooltip="Application" tooltip-popup-delay="600")
                                                          .common-form-label.cert-label Application
                                                         .cert-details {{ certificateDetails.applicationTag }}

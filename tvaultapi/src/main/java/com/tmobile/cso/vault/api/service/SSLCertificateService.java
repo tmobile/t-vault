@@ -2978,4 +2978,21 @@ public class SSLCertificateService {
                 build()));
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body(resource);
     }
+
+
+    /**
+     * Get certificate details.
+     * @param token
+     * @param userDetails
+     * @param certificateName
+     * @return
+     */
+    public ResponseEntity<String> getCertificateDetails(String token, UserDetails userDetails, String certificateName) {
+
+        SSLCertificateMetadataDetails sslCertificateMetadataDetails = certificateUtils.getCertificateMetaData(token, certificateName);
+        if (sslCertificateMetadataDetails !=null) {
+            return ResponseEntity.status(HttpStatus.OK).body(JSONUtil.getJSON(sslCertificateMetadataDetails));
+        }
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body("{\"errors\":[\"Access denied: Unable to read certificate details.\"]}");
+    }
 }
