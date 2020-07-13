@@ -2001,28 +2001,23 @@ public class SSLCertificateService {
 			policies.remove(denyPolicy);
 			
 			policies.add(policy);
-		
-			String policiesString = org.apache.commons.lang3.StringUtils.join(policies, ",");
-			String currentpoliciesString = org.apache.commons.lang3.StringUtils.join(currentpolicies, ",");
-	
-			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
-					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
-					put(LogMessage.ACTION, SSLCertificateConstants.ADD_USER_TO_CERT_MSG).
-					put(LogMessage.MESSAGE, String.format ("policies [%s] before calling configureUserpassUser/configureLDAPUser", policies)).
-					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
-					build()));
-			return configureUserpassOrLDAPUserToUpdateMetadata(token, userName, certificateName, access, groups,
-					policiesString, currentpoliciesString);
-		}else {
-			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
-					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
-					put(LogMessage.ACTION, SSLCertificateConstants.ADD_USER_TO_CERT_MSG).
-					put(LogMessage.MESSAGE, "Getting the user details failed").
-					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
-					build()));
-			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"messages\":[\"Getting the user details failed.Try with valid user\"]}");
-
+		}else{
+			// New user to be configured
+			policies.add(policy);
 		}
+		
+		String policiesString = org.apache.commons.lang3.StringUtils.join(policies, ",");
+		String currentpoliciesString = org.apache.commons.lang3.StringUtils.join(currentpolicies, ",");
+
+		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+				put(LogMessage.ACTION, SSLCertificateConstants.ADD_USER_TO_CERT_MSG).
+				put(LogMessage.MESSAGE, String.format ("policies [%s] before calling configureUserpassUser/configureLDAPUser", policies)).
+				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+				build()));
+		return configureUserpassOrLDAPUserToUpdateMetadata(token, userName, certificateName, access, groups,
+				policiesString, currentpoliciesString);
+		
 	}
 
 	private String getCertificatePolicyPrefix(String access) {
