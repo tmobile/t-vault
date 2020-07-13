@@ -406,6 +406,10 @@ readTextFile("../apiUrls.json");
             name: 'addUserToCertificate',
             url: '/v2/sslcert/user',
             method: 'POST'
+        },{
+            name: 'getCertificateDetails',
+            url: '/v2/sslcert/certificates',
+            method: 'GET'
         }, {
             name: 'downloadCertificate',
             url: '/v2/sslcert/certificates/download',
