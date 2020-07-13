@@ -28,7 +28,7 @@ script(type='text/ng-template', id='downloadPopupWitoutKey.html')
 
 script(type='text/ng-template', id='downloadPopup.html')
     .modal-sep
-    .common-header-label.text-center Download Certificate
+    .common-header-label.text-center.download-title Download Certificate
 
     .left-lg-sep.right-lg-sep
       .common-form.modal-inner-wrapper.aws
@@ -37,7 +37,7 @@ script(type='text/ng-template', id='downloadPopup.html')
                 .row.change-data.header.dark-text Download certificate with private key.
                 .row.change-data.header
                     .common-form-label.col-lg-12.col-md-12.col-sm-12.col-xs-12.cert-download-row Password *
-                    input.form-control.input-box-style(id="certificateCred" restrict-special-char-with-space placeholder="Password" ng-model="downloadRequest.certificateCred" minlength="8" maxlength="255" uib-tooltip="Password" tooltip-placement="top" tooltip-popup-delay="600" required)
+                    input.form-control.input-box-style(type="password" id="certificateCred" placeholder="Password" ng-model="downloadRequest.certificateCred" minlength="8" maxlength="255" uib-tooltip="Password" tooltip-placement="top" tooltip-popup-delay="600" required)
                     .cert-password-status-text(ng-show="isDownloadDisabled()") Please enter minimum 8 characters
                 .row.change-data.header
                     .common-form-label Format *
@@ -68,7 +68,7 @@ script(type='text/ng-template', id='downloadPopup.html')
             md-content.admin-content
                 md-tabs(md-dynamic-height md-border-bottom md-selected="selectedIndex")                    
                     md-tab(label="My Certificates")
-                        md-content(class="md-padding md-content-wrapper page-content-wrapper md-approle-management" ng-init="displayGrid" ng-if="!viewCertificate")
+                        md-content(class="md-padding md-content-wrapper page-content-wrapper md-certificate" ng-init="displayGrid" ng-if="!viewCertificate")
                             .new-container.page-content-container
                                 .md-content-inner-wrapper
                                     div.data-management-content
@@ -103,7 +103,7 @@ script(type='text/ng-template', id='downloadPopup.html')
                                                 .glyphicon.glyphicon-chevron-left(ng-click="goToCertificates()")
                                             div.left
                                                 span
-                                                    span Certificate Details / {{ certificateDetails.certificateName }}
+                                                    span {{ certificateDetails.certificateName }}
                             div.data-management-content
                                 .row.change-svc-table-container
                                     loading-state(ng-if='isLoadingData')
