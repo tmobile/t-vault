@@ -153,15 +153,6 @@
     margin-top: 10px;
 }
 
-.change-list-table-data.row.secretids {
-    max-height: 300px;
-    overflow-y: scroll;
-}
-
-.common-form input[type='checkbox'] {
-    width:auto!important;
-}
-
 .data-management-content .row.change-approle .container.checkbox {
     height: 6vh;
     display: flex;
@@ -189,19 +180,6 @@
     width:20px;
     height:20px;
     border: none;
-}
-
-.details-input-group .role-status-text {
-    display: inline-block;
-    font-weight: bold;
-    letter-spacing: 0.05vw;
-    float:right;
-}
-.details-input-group .role-status-text.available {
-    color: rgba(0, 180, 0, 0.9);
-}
-.details-input-group .role-status-text.exists {
-    color: rgba(220, 0, 0, 0.9);
 }
 
 .notification-text {
@@ -239,6 +217,79 @@
     font-size: 1.7vh!important;
 }
 
-.md-serviceaccount {
+.cert-details {
+    font-size: 1.4vh;
+    font-weight: normal;
+}
+
+.cert-download-row {
+    padding-left: 0px!important;
+}
+
+.cert-download-btn {
+    width: auto!important;
+    padding: 1.3vh!important;
+    font-size: 12px!important;
+}
+
+.cert-password-status-text {
+    font-size: 11px;
+    color: #c51162;
+}
+
+.center-div {
+    text-align: center!important;
+}
+
+.cert-download-link {
+    font-size: 15px!important;
+}
+
+.cert-download-link div {
+    margin-bottom: 5px;
+}
+
+.dark-text {
+    color: #000;
+}
+
+.cert-tiles {
+    margin-bottom: 50px!important;
+}
+
+.download-cert-options {
+    position: absolute;
+    top: 80%;
+    left: 80%;
+    z-index: 1000;
+    float: left;
+    min-width: 300px;
+    padding: 5px 5px;
+    margin: 2px 0 0;
+    font-size: 14px;
+    text-align: left;
+    list-style: none;
+    background-color: #fff;
+    -webkit-background-clip: padding-box;
+    background-clip: padding-box;
+    border: 1px solid #ccc;
+    border: 1px solid rgba(0,0,0,.15);
+    border-radius: 4px;
+    box-shadow: 0 6px 12px rgba(0,0,0,.175);
+}
+
+.download-cert-options div {
+    color: #000;
+}
+
+.download-cert-options div:hover {
+    color: #c51162;
+}
+
+.download-title {
+    margin-bottom: 15px!important;
+}
+
+.md-certificate {
     width: 80vw!important;
 }

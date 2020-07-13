@@ -74,7 +74,8 @@
         'vault.features.ChangeServiceAccountCtrl',
         'vault.features.ServiceAccountsCtrl',
         'vault.features.HomeCtrl',
-        'vault.features.ChangeCertificateCtrl'
+        'vault.features.ChangeCertificateCtrl',
+        'vault.features.CertificatesCtrl'
     ]);
     angular.module( 'vault.services', [
         'vault.services.CopyToClipboard',

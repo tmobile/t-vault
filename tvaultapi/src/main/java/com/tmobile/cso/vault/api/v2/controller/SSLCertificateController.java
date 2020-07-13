@@ -17,17 +17,12 @@
 package com.tmobile.cso.vault.api.v2.controller;
 
 
-import com.tmobile.cso.vault.api.model.CertManagerLoginRequest;
-import com.tmobile.cso.vault.api.model.CertificateGroup;
-import com.tmobile.cso.vault.api.model.CertificateApprole;
-import com.tmobile.cso.vault.api.model.RevocationRequest;
-import com.tmobile.cso.vault.api.model.CertificateUser;
-import com.tmobile.cso.vault.api.model.SSLCertificateRequest;
-import com.tmobile.cso.vault.api.model.UserDetails;
+import com.tmobile.cso.vault.api.model.*;
 import com.tmobile.cso.vault.api.service.SSLCertificateService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -124,7 +119,7 @@ public class SSLCertificateController {
 		boolean addSudoPermission = false;
 		return sslCertificateService.addUserToCertificate(token, certificateUser, userDetails, addSudoPermission);
 	}
-	
+
 	/**
 	 * Adds a group to a certificate
 	 * @param token
@@ -165,7 +160,7 @@ public class SSLCertificateController {
 		UserDetails userDetails = (UserDetails) ((HttpServletRequest) request).getAttribute("UserDetails");
 		return sslCertificateService.getTargetSystemServiceList(token, userDetails, targetSystemId);
 	}
-	
+
     /**
      * Add approle to Certificate
      * @param request
@@ -180,4 +175,46 @@ public class SSLCertificateController {
         return sslCertificateService.associateApproletoCertificate(certificateApprole, userDetails);
     }
 
+	/**
+	 * Download certificate with private key.
+	 * @param request
+	 * @param token
+	 * @param certificateDownloadRequest
+	 * @return
+	 */
+	@ApiOperation(value = "${CertificateController.downloadCertificateWithPrivateKey.value}", notes = "${CertificateController.downloadCertificateWithPrivateKey.notes}")
+	@PostMapping(value="/v2/sslcert/certificates/download", consumes="application/json")
+	public ResponseEntity<InputStreamResource> downloadCertificateWithPrivateKey(HttpServletRequest request, @RequestHeader(value="vault-token") String token, @Valid @RequestBody CertificateDownloadRequest certificateDownloadRequest) {
+		UserDetails userDetails = (UserDetails) ((HttpServletRequest) request).getAttribute("UserDetails");
+		return sslCertificateService.downloadCertificateWithPrivateKey(token, certificateDownloadRequest, userDetails);
+	}
+
+	/**
+	 * Download certificate.
+	 * @param request
+	 * @param token
+	 * @param certificateName
+	 * @param certificateType
+	 * @return
+	 */
+	@ApiOperation(value = "${CertificateController.downloadCertificate.value}", notes = "${CertificateController.downloadCertificate.notes}")
+	@GetMapping(value="/v2/sslcert/certificates/{certificate_name}/{certificate_type}", produces="application/json")
+	public ResponseEntity<InputStreamResource> downloadCertificate(HttpServletRequest request, @RequestHeader(value="vault-token") String token, @PathVariable("certificate_name") String certificateName, @PathVariable("certificate_type") String certificateType){
+		UserDetails userDetails = (UserDetails) ((HttpServletRequest) request).getAttribute("UserDetails");
+		return sslCertificateService.downloadCertificate(token, userDetails, certificateName, certificateType);
+	}
+
+	/**
+	 * Get certificate details.
+	 * @param request
+	 * @param token
+	 * @param certificateName
+	 * @return
+	 */
+	@ApiOperation(value = "${SSLCertificateController.getCertificateDetails.value}", notes = "${SSLCertificateController.getCertificateDetails.notes}", hidden=true)
+	@GetMapping(value = "/v2/sslcert/certificates", produces = "application/json")
+	public ResponseEntity<String> getCertificateDetails(HttpServletRequest request, @RequestHeader(value = "vault-token") String token, @RequestParam("certificate_name") String certificateName) {
+		UserDetails userDetails = (UserDetails) ((HttpServletRequest) request).getAttribute("UserDetails");
+		return sslCertificateService.getCertificateDetails(token, userDetails, certificateName);
+	}
 }

@@ -1,7 +1,6 @@
 package com.tmobile.cso.vault.api.service;
 
 import com.google.common.collect.ImmutableMap;
-import com.google.gson.JsonObject;
 import com.tmobile.cso.vault.api.controller.ControllerUtil;
 import com.tmobile.cso.vault.api.exception.TVaultValidationException;
 import com.tmobile.cso.vault.api.model.*;
@@ -10,6 +9,7 @@ import com.tmobile.cso.vault.api.process.RequestProcessor;
 import com.tmobile.cso.vault.api.process.Response;
 import com.tmobile.cso.vault.api.utils.CertificateUtils;
 import com.tmobile.cso.vault.api.utils.JSONUtil;
+import com.tmobile.cso.vault.api.utils.PolicyUtils;
 import com.tmobile.cso.vault.api.utils.ThreadLocalContext;
 import org.apache.http.HttpEntity;
 import org.apache.http.StatusLine;
@@ -21,14 +21,12 @@ import org.apache.http.util.EntityUtils;
 import org.apache.logging.log4j.LogManager;
 import org.junit.Before;
 import org.junit.FixMethodOrder;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.MethodSorters;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.Spy;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 import org.powermock.api.mockito.PowerMockito;
@@ -38,7 +36,10 @@ import org.powermock.modules.junit4.PowerMockRunner;
 import org.powermock.reflect.Whitebox;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.ComponentScan;
+import org.springframework.core.io.InputStreamResource;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.test.web.servlet.MockMvc;
@@ -46,10 +47,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static org.junit.Assert.*;
 import static org.mockito.Matchers.*;
@@ -76,6 +74,9 @@ public class SSLCertificateServiceTest {
 
     @Mock
     VaultAuthService vaultAuthService;
+
+    @Mock
+    PolicyUtils policyUtils;
 
     String token;
 
@@ -1915,7 +1916,7 @@ public class SSLCertificateServiceTest {
         userDetails.setSelfSupportToken(token);
         return userDetails;
     }
-    
+
     SSLCertificateMetadataDetails getSSLCertificateMetadataDetails() {        
         SSLCertificateMetadataDetails certDetails = new SSLCertificateMetadataDetails();
         certDetails.setCertType("internal");
@@ -2085,6 +2086,739 @@ public class SSLCertificateServiceTest {
 
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, responseEntityActual.getStatusCode());
         assertEquals(responseEntityExpected, responseEntityActual);
+
+    }
+
+    void mockNclmLogin() throws Exception {
+        String jsonStr = "{  \"username\": \"testusername1\",  \"password\": \"testpassword1\"}";
+        Map<String, Object> requestMap = new HashMap<>();
+        requestMap.put("access_token", "12345");
+        requestMap.put("token_type", "type");
+        when(ControllerUtil.parseJson(jsonStr)).thenReturn(requestMap);
+
+        CertManagerLogin certManagerLogin = new CertManagerLogin();
+        certManagerLogin.setToken_type("token type");
+        certManagerLogin.setAccess_token("1234");
+
+        CertResponse certResponse = new CertResponse();
+        certResponse.setHttpstatus(HttpStatus.OK);
+        certResponse.setResponse(jsonStr);
+        certResponse.setSuccess(true);
+
+        when(reqProcessor.processCert(eq("/auth/certmanager/login"), any(), any(), any())).thenReturn(certResponse);
+    }
+
+    @Test
+    public void test_downloadCertificateWithPrivateKey_success() throws Exception {
+
+        Response response = new Response();
+        response.setHttpstatus(HttpStatus.OK);
+        response.setSuccess(true);
+        response.setResponse(null);
+
+        CertificateDownloadRequest certificateDownloadRequest = new CertificateDownloadRequest(
+                "certname", "password", "pembundle", false);
+
+        mockNclmLogin();
+
+        when(HttpClientBuilder.create()).thenReturn(httpClientBuilder);
+        when(httpClientBuilder.setSSLHostnameVerifier(NoopHostnameVerifier.INSTANCE)).thenReturn(httpClientBuilder);
+        when(httpClientBuilder.setSSLContext(any())).thenReturn(httpClientBuilder);
+        when(httpClientBuilder.setRedirectStrategy(any())).thenReturn(httpClientBuilder);
+        when(httpClientBuilder.build()).thenReturn(httpClient1);
+        when(httpClient1.execute(any())).thenReturn(httpResponse);
+        when(httpResponse.getStatusLine()).thenReturn(statusLine);
+        when(statusLine.getStatusCode()).thenReturn(200);
+        when(httpResponse.getEntity()).thenReturn(mockHttpEntity);
+        String responseString = "teststreamdata";
+        when(EntityUtils.toString(mockHttpEntity, "UTF-8")).thenReturn(responseString);
+
+        String policyList [] = {"r_cert_certname"};
+        when(policyUtils.getCurrentPolicies(Mockito.any(), Mockito.any())).thenReturn(policyList);
+        SSLCertificateMetadataDetails certDetails = new SSLCertificateMetadataDetails();
+        certDetails.setCertType("internal");
+        certDetails.setCertCreatedBy("normaluser");
+        certDetails.setCertificateName("CertificateName");
+        certDetails.setCertOwnerNtid("normaluser");
+        certDetails.setCertOwnerEmailId("normaluser@test.com");
+        certDetails.setExpiryDate("10-20-2030");
+        certDetails.setCertificateId(123123);
+        when(certificateUtils.getCertificateMetaData(Mockito.any(), eq("certname"))).thenReturn(certDetails);
+
+        byte[] decodedBytes = Base64.getDecoder().decode(responseString);
+        InputStreamResource resource = new InputStreamResource(new ByteArrayInputStream(decodedBytes));
+        ResponseEntity<InputStreamResource> responseEntityExpected = ResponseEntity.status(HttpStatus.OK)
+                .contentLength(10).header(HttpHeaders.CONTENT_DISPOSITION,
+                        "attachment; filename=\"certname.pem\"")
+                .contentType(MediaType.parseMediaType("application/x-pkcs12;charset=utf-8")).body(resource);
+
+        ResponseEntity<InputStreamResource> responseEntityActual =
+                sSLCertificateService.downloadCertificateWithPrivateKey(token, certificateDownloadRequest, userDetails);
+        assertEquals(HttpStatus.OK, responseEntityActual.getStatusCode());
+        assertEquals(responseEntityExpected.toString(),responseEntityActual.toString());
+
+    }
+
+    @Test
+    public void test_downloadCertificateWithPrivateKey_success_pkcs12pem() throws Exception {
+
+        Response response = new Response();
+        response.setHttpstatus(HttpStatus.OK);
+        response.setSuccess(true);
+        response.setResponse(null);
+
+        CertificateDownloadRequest certificateDownloadRequest = new CertificateDownloadRequest(
+                "certname", "password", "pkcs12pem", false);
+
+        mockNclmLogin();
+
+        when(HttpClientBuilder.create()).thenReturn(httpClientBuilder);
+        when(httpClientBuilder.setSSLHostnameVerifier(NoopHostnameVerifier.INSTANCE)).thenReturn(httpClientBuilder);
+        when(httpClientBuilder.setSSLContext(Mockito.any())).thenReturn(httpClientBuilder);
+        when(httpClientBuilder.setRedirectStrategy(Mockito.any())).thenReturn(httpClientBuilder);
+        when(httpClientBuilder.build()).thenReturn(httpClient1);
+        when(httpClient1.execute(Mockito.any())).thenReturn(httpResponse);
+        when(httpResponse.getStatusLine()).thenReturn(statusLine);
+        when(statusLine.getStatusCode()).thenReturn(200);
+        when(httpResponse.getEntity()).thenReturn(mockHttpEntity);
+        String responseString = "teststreamdata";
+        when(EntityUtils.toString(mockHttpEntity, "UTF-8")).thenReturn(responseString);
+
+        String policyList [] = {"r_cert_certname"};
+        when(policyUtils.getCurrentPolicies(Mockito.any(), Mockito.any())).thenReturn(policyList);
+        SSLCertificateMetadataDetails certDetails = new SSLCertificateMetadataDetails();
+        certDetails.setCertType("internal");
+        certDetails.setCertCreatedBy("normaluser");
+        certDetails.setCertificateName("CertificateName");
+        certDetails.setCertOwnerNtid("normaluser");
+        certDetails.setCertOwnerEmailId("normaluser@test.com");
+        certDetails.setExpiryDate("10-20-2030");
+        when(certificateUtils.getCertificateMetaData(Mockito.any(), eq("certname"))).thenReturn(certDetails);
+
+        byte[] decodedBytes = Base64.getDecoder().decode(responseString);
+        InputStreamResource resource = new InputStreamResource(new ByteArrayInputStream(decodedBytes));
+        ResponseEntity<InputStreamResource> responseEntityExpected = ResponseEntity.status(HttpStatus.OK)
+                .contentLength(10).header(HttpHeaders.CONTENT_DISPOSITION,
+                        "attachment; filename=\"certname.pfx\"")
+                .contentType(MediaType.parseMediaType("application/x-pkcs12;charset=utf-8")).body(resource);
+
+        ResponseEntity<InputStreamResource> responseEntityActual =
+                sSLCertificateService.downloadCertificateWithPrivateKey(token, certificateDownloadRequest, userDetails);
+        assertEquals(HttpStatus.OK, responseEntityActual.getStatusCode());
+        assertEquals(responseEntityExpected.toString(),responseEntityActual.toString());
+
+    }
+
+    @Test
+    public void test_downloadCertificateWithPrivateKey_success_default() throws Exception {
+
+        Response response = new Response();
+        response.setHttpstatus(HttpStatus.OK);
+        response.setSuccess(true);
+        response.setResponse(null);
+
+        CertificateDownloadRequest certificateDownloadRequest = new CertificateDownloadRequest(
+                "certname", "password", "default", false);
+
+        mockNclmLogin();
+
+        when(HttpClientBuilder.create()).thenReturn(httpClientBuilder);
+        when(httpClientBuilder.setSSLHostnameVerifier(NoopHostnameVerifier.INSTANCE)).thenReturn(httpClientBuilder);
+        when(httpClientBuilder.setSSLContext(Mockito.any())).thenReturn(httpClientBuilder);
+        when(httpClientBuilder.setRedirectStrategy(Mockito.any())).thenReturn(httpClientBuilder);
+        when(httpClientBuilder.build()).thenReturn(httpClient1);
+        when(httpClient1.execute(Mockito.any())).thenReturn(httpResponse);
+        when(httpResponse.getStatusLine()).thenReturn(statusLine);
+        when(statusLine.getStatusCode()).thenReturn(200);
+        when(httpResponse.getEntity()).thenReturn(mockHttpEntity);
+        String responseString = "teststreamdata";
+        when(EntityUtils.toString(mockHttpEntity, "UTF-8")).thenReturn(responseString);
+
+        String policyList [] = {"r_cert_certname"};
+        when(policyUtils.getCurrentPolicies(Mockito.any(), Mockito.any())).thenReturn(policyList);
+        SSLCertificateMetadataDetails certDetails = new SSLCertificateMetadataDetails();
+        certDetails.setCertType("internal");
+        certDetails.setCertCreatedBy("normaluser");
+        certDetails.setCertificateName("CertificateName");
+        certDetails.setCertOwnerNtid("normaluser");
+        certDetails.setCertOwnerEmailId("normaluser@test.com");
+        certDetails.setExpiryDate("10-20-2030");
+        when(certificateUtils.getCertificateMetaData(Mockito.any(), eq("certname"))).thenReturn(certDetails);
+
+        byte[] decodedBytes = Base64.getDecoder().decode(responseString);
+        InputStreamResource resource = new InputStreamResource(new ByteArrayInputStream(decodedBytes));
+        ResponseEntity<InputStreamResource> responseEntityExpected = ResponseEntity.status(HttpStatus.OK)
+                .contentLength(10).header(HttpHeaders.CONTENT_DISPOSITION,
+                        "attachment; filename=\"certname.pfx\"")
+                .contentType(MediaType.parseMediaType("application/x-pkcs12;charset=utf-8")).body(resource);
+
+        ResponseEntity<InputStreamResource> responseEntityActual =
+                sSLCertificateService.downloadCertificateWithPrivateKey(token, certificateDownloadRequest, userDetails);
+        assertEquals(HttpStatus.OK, responseEntityActual.getStatusCode());
+        assertEquals(responseEntityExpected.toString(),responseEntityActual.toString());
+
+    }
+
+    @Test
+    public void test_downloadCertificateWithPrivateKey_failure() throws Exception {
+
+        Response response = new Response();
+        response.setHttpstatus(HttpStatus.OK);
+        response.setSuccess(true);
+        response.setResponse(null);
+
+        CertificateDownloadRequest certificateDownloadRequest = new CertificateDownloadRequest(
+                "certname", "password", "pembundle", false);
+
+        mockNclmLogin();
+
+        when(HttpClientBuilder.create()).thenReturn(httpClientBuilder);
+        when(httpClientBuilder.setSSLHostnameVerifier(NoopHostnameVerifier.INSTANCE)).thenReturn(httpClientBuilder);
+        when(httpClientBuilder.setSSLContext(Mockito.any())).thenReturn(httpClientBuilder);
+        when(httpClientBuilder.setRedirectStrategy(Mockito.any())).thenReturn(httpClientBuilder);
+        when(httpClientBuilder.build()).thenReturn(httpClient1);
+        when(httpClient1.execute(Mockito.any())).thenReturn(httpResponse);
+        when(httpResponse.getStatusLine()).thenReturn(statusLine);
+        when(statusLine.getStatusCode()).thenReturn(200);
+        when(httpResponse.getEntity()).thenReturn(null);
+
+        String policyList [] = {"r_cert_certname"};
+        when(policyUtils.getCurrentPolicies(Mockito.any(), Mockito.any())).thenReturn(policyList);
+        SSLCertificateMetadataDetails certDetails = new SSLCertificateMetadataDetails();
+        certDetails.setCertType("internal");
+        certDetails.setCertCreatedBy("normaluser");
+        certDetails.setCertificateName("CertificateName");
+        certDetails.setCertOwnerNtid("normaluser");
+        certDetails.setCertOwnerEmailId("normaluser@test.com");
+        certDetails.setExpiryDate("10-20-2030");
+        when(certificateUtils.getCertificateMetaData(Mockito.any(), eq("certname"))).thenReturn(certDetails);
+
+        InputStreamResource resource = null;
+        ResponseEntity<InputStreamResource> responseEntityExpected =
+                ResponseEntity.status(HttpStatus.BAD_REQUEST).body(resource);
+
+        ResponseEntity<InputStreamResource> responseEntityActual =
+                sSLCertificateService.downloadCertificateWithPrivateKey(token, certificateDownloadRequest, userDetails);
+        assertEquals(HttpStatus.BAD_REQUEST, responseEntityActual.getStatusCode());
+        assertEquals(responseEntityExpected.toString(),responseEntityActual.toString());
+
+    }
+
+    @Test
+    public void test_downloadCertificateWithPrivateKey_post_failure() throws Exception {
+
+        Response response = new Response();
+        response.setHttpstatus(HttpStatus.OK);
+        response.setSuccess(true);
+        response.setResponse(null);
+
+        CertificateDownloadRequest certificateDownloadRequest = new CertificateDownloadRequest(
+                "certname", "password", "pkcs12der", false);
+
+        mockNclmLogin();
+
+        when(HttpClientBuilder.create()).thenReturn(httpClientBuilder);
+        when(httpClientBuilder.setSSLHostnameVerifier(NoopHostnameVerifier.INSTANCE)).thenReturn(httpClientBuilder);
+        when(httpClientBuilder.setSSLContext(Mockito.any())).thenReturn(httpClientBuilder);
+        when(httpClientBuilder.setRedirectStrategy(Mockito.any())).thenReturn(httpClientBuilder);
+        when(httpClientBuilder.build()).thenReturn(httpClient1);
+        when(httpClient1.execute(Mockito.any())).thenReturn(httpResponse);
+        when(httpResponse.getStatusLine()).thenReturn(statusLine);
+        when(statusLine.getStatusCode()).thenReturn(400);
+
+        String policyList [] = {"r_cert_certname"};
+        when(policyUtils.getCurrentPolicies(Mockito.any(), Mockito.any())).thenReturn(policyList);
+        SSLCertificateMetadataDetails certDetails = new SSLCertificateMetadataDetails();
+        certDetails.setCertType("internal");
+        certDetails.setCertCreatedBy("normaluser");
+        certDetails.setCertificateName("CertificateName");
+        certDetails.setCertOwnerNtid("normaluser");
+        certDetails.setCertOwnerEmailId("normaluser@test.com");
+        certDetails.setExpiryDate("10-20-2030");
+        when(certificateUtils.getCertificateMetaData(Mockito.any(), eq("certname"))).thenReturn(certDetails);
+
+        InputStreamResource resource = null;
+        ResponseEntity<InputStreamResource> responseEntityExpected =
+                ResponseEntity.status(HttpStatus.BAD_REQUEST).body(resource);
+
+        ResponseEntity<InputStreamResource> responseEntityActual =
+                sSLCertificateService.downloadCertificateWithPrivateKey(token, certificateDownloadRequest, userDetails);
+        assertEquals(HttpStatus.BAD_REQUEST, responseEntityActual.getStatusCode());
+        assertEquals(responseEntityExpected.toString(),responseEntityActual.toString());
+
+    }
+
+
+    @Test
+    public void test_downloadCertificateWithPrivateKey_failure_httpClient() throws Exception {
+
+        Response response = new Response();
+        response.setHttpstatus(HttpStatus.OK);
+        response.setSuccess(true);
+        response.setResponse(null);
+
+        CertificateDownloadRequest certificateDownloadRequest = new CertificateDownloadRequest(
+                "certname", "password", "pkcs12der", false);
+
+        mockNclmLogin();
+
+        when(HttpClientBuilder.create()).thenReturn(httpClientBuilder);
+        when(httpClientBuilder.setSSLHostnameVerifier(NoopHostnameVerifier.INSTANCE)).thenReturn(httpClientBuilder);
+        when(httpClientBuilder.setSSLContext(Mockito.any())).thenReturn(httpClientBuilder);
+        when(httpClientBuilder.setRedirectStrategy(Mockito.any())).thenReturn(httpClientBuilder);
+        when(httpClientBuilder.build()).thenReturn(httpClient1);
+        when(httpClient1.execute(Mockito.any())).thenThrow(new IOException());
+
+        String policyList [] = {"r_cert_certname"};
+        when(policyUtils.getCurrentPolicies(Mockito.any(), Mockito.any())).thenReturn(policyList);
+        SSLCertificateMetadataDetails certDetails = new SSLCertificateMetadataDetails();
+        certDetails.setCertType("internal");
+        certDetails.setCertCreatedBy("normaluser");
+        certDetails.setCertificateName("CertificateName");
+        certDetails.setCertOwnerNtid("normaluser");
+        certDetails.setCertOwnerEmailId("normaluser@test.com");
+        certDetails.setExpiryDate("10-20-2030");
+        when(certificateUtils.getCertificateMetaData(Mockito.any(), eq("certname"))).thenReturn(certDetails);
+
+        InputStreamResource resource = null;
+        ResponseEntity<InputStreamResource> responseEntityExpected =
+                ResponseEntity.status(HttpStatus.BAD_REQUEST).body(resource);
+
+        ResponseEntity<InputStreamResource> responseEntityActual =
+                sSLCertificateService.downloadCertificateWithPrivateKey(token, certificateDownloadRequest, userDetails);
+        assertEquals(HttpStatus.BAD_REQUEST, responseEntityActual.getStatusCode());
+        assertEquals(responseEntityExpected.toString(),responseEntityActual.toString());
+
+    }
+
+    @Test
+    public void test_downloadCertificates_success() throws Exception {
+
+        Response response = new Response();
+        response.setHttpstatus(HttpStatus.OK);
+        response.setSuccess(true);
+        response.setResponse(null);
+
+
+        CertificateDownloadRequest certificateDownloadRequest = new CertificateDownloadRequest(
+                "certname", "password", "pembundle", false);
+
+        mockNclmLogin();
+
+        when(HttpClientBuilder.create()).thenReturn(httpClientBuilder);
+        when(httpClientBuilder.setSSLHostnameVerifier(NoopHostnameVerifier.INSTANCE)).thenReturn(httpClientBuilder);
+        when(httpClientBuilder.setSSLContext(Mockito.any())).thenReturn(httpClientBuilder);
+        when(httpClientBuilder.setRedirectStrategy(Mockito.any())).thenReturn(httpClientBuilder);
+        when(httpClientBuilder.build()).thenReturn(httpClient1);
+        when(httpClient1.execute(Mockito.any())).thenReturn(httpResponse);
+        when(httpResponse.getStatusLine()).thenReturn(statusLine);
+        when(statusLine.getStatusCode()).thenReturn(200);
+        when(httpResponse.getEntity()).thenReturn(mockHttpEntity);
+        String responseString = "teststreamdata";
+        when(EntityUtils.toString(mockHttpEntity, "UTF-8")).thenReturn(responseString);
+
+        String policyList [] = {"r_cert_certname"};
+        when(policyUtils.getCurrentPolicies(Mockito.any(), Mockito.any())).thenReturn(policyList);
+        SSLCertificateMetadataDetails certDetails = new SSLCertificateMetadataDetails();
+        certDetails.setCertType("internal");
+        certDetails.setCertCreatedBy("normaluser");
+        certDetails.setCertificateName("CertificateName");
+        certDetails.setCertOwnerNtid("normaluser");
+        certDetails.setCertOwnerEmailId("normaluser@test.com");
+        certDetails.setExpiryDate("10-20-2030");
+        when(certificateUtils.getCertificateMetaData(Mockito.any(), eq("certname"))).thenReturn(certDetails);
+
+        byte[] decodedBytes = Base64.getDecoder().decode(responseString);
+        InputStreamResource resource = new InputStreamResource(new ByteArrayInputStream(decodedBytes));
+        ResponseEntity<InputStreamResource> responseEntityExpected = ResponseEntity.status(HttpStatus.OK)
+                .contentLength(10).header(HttpHeaders.CONTENT_DISPOSITION,
+                        "attachment; filename=\"certname.pem\"")
+                .contentType(MediaType.parseMediaType("application/x-pkcs12;charset=utf-8")).body(resource);
+
+        String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+        UserDetails userDetails = getMockUser(false);
+
+        ResponseEntity<InputStreamResource> responseEntityActual =
+                sSLCertificateService.downloadCertificateWithPrivateKey(token, certificateDownloadRequest, userDetails);
+        assertEquals(HttpStatus.OK, responseEntityActual.getStatusCode());
+        assertEquals(responseEntityExpected.toString(),responseEntityActual.toString());
+
+    }
+
+    @Test
+    public void test_downloadCertificates_failed_403() throws Exception {
+
+        Response response = new Response();
+        response.setHttpstatus(HttpStatus.OK);
+        response.setSuccess(true);
+        response.setResponse(null);
+        String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+
+        mockNclmLogin();
+        CertificateDownloadRequest certificateDownloadRequest = new CertificateDownloadRequest(
+                "certname", "password", "pembundle", false);
+
+        String policyList [] = {};
+        when(policyUtils.getCurrentPolicies(Mockito.any(), Mockito.any())).thenReturn(policyList);
+        SSLCertificateMetadataDetails certDetails = new SSLCertificateMetadataDetails();
+        certDetails.setCertType("internal");
+        certDetails.setCertCreatedBy("normaluser");
+        certDetails.setCertificateName("CertificateName");
+        certDetails.setCertOwnerNtid("normaluser");
+        certDetails.setCertOwnerEmailId("normaluser@test.com");
+        certDetails.setExpiryDate("10-20-2030");
+        when(certificateUtils.getCertificateMetaData(Mockito.any(), eq("certname"))).thenReturn(certDetails);
+
+        String responseString = "teststreamdata";
+        when(EntityUtils.toString(mockHttpEntity, "UTF-8")).thenReturn(responseString);
+
+        byte[] decodedBytes = Base64.getDecoder().decode(responseString);
+        InputStreamResource resource = new InputStreamResource(new ByteArrayInputStream(decodedBytes));
+        ResponseEntity<InputStreamResource> responseEntityExpected = ResponseEntity.status(HttpStatus.FORBIDDEN)
+                .body(null);
+
+        ResponseEntity<InputStreamResource> responseEntityActual =
+                sSLCertificateService.downloadCertificateWithPrivateKey(token, certificateDownloadRequest, userDetails);
+        assertEquals(HttpStatus.FORBIDDEN, responseEntityActual.getStatusCode());
+        assertEquals(responseEntityExpected.toString(),responseEntityActual.toString());
+
+    }
+
+    @Test
+    public void test_downloadCertificates_failed_invalid_token() throws Exception {
+
+        Response response = new Response();
+        response.setHttpstatus(HttpStatus.OK);
+        response.setSuccess(true);
+        response.setResponse(null);
+        String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+
+        CertResponse certResponse = new CertResponse();
+        certResponse.setHttpstatus(HttpStatus.BAD_REQUEST);
+        certResponse.setResponse(null);
+        certResponse.setSuccess(true);
+
+        when(reqProcessor.processCert(eq("/auth/certmanager/login"), any(), any(), any())).thenReturn(certResponse);
+
+        CertificateDownloadRequest certificateDownloadRequest = new CertificateDownloadRequest(
+                "certname", "password", "pembundle", false);
+
+        String policyList [] = {"r_cert_certname"};
+        when(policyUtils.getCurrentPolicies(Mockito.any(), Mockito.any())).thenReturn(policyList);
+        SSLCertificateMetadataDetails certDetails = new SSLCertificateMetadataDetails();
+        certDetails.setCertType("internal");
+        certDetails.setCertCreatedBy("normaluser");
+        certDetails.setCertificateName("CertificateName");
+        certDetails.setCertOwnerNtid("normaluser");
+        certDetails.setCertOwnerEmailId("normaluser@test.com");
+        certDetails.setExpiryDate("10-20-2030");
+        when(certificateUtils.getCertificateMetaData(Mockito.any(), eq("certname"))).thenReturn(certDetails);
+
+        String responseString = "teststreamdata";
+        when(EntityUtils.toString(mockHttpEntity, "UTF-8")).thenReturn(responseString);
+
+        byte[] decodedBytes = Base64.getDecoder().decode(responseString);
+        InputStreamResource resource = new InputStreamResource(new ByteArrayInputStream(decodedBytes));
+        ResponseEntity<InputStreamResource> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(null);
+
+        ResponseEntity<InputStreamResource> responseEntityActual =
+                sSLCertificateService.downloadCertificateWithPrivateKey(token, certificateDownloadRequest, userDetails);
+        assertEquals(HttpStatus.BAD_REQUEST, responseEntityActual.getStatusCode());
+        assertEquals(responseEntityExpected.toString(),responseEntityActual.toString());
+
+    }
+
+    @Test
+    public void test_downloadCertificateWithoutPrivateKey_success() throws Exception {
+
+        Response response = new Response();
+        response.setHttpstatus(HttpStatus.OK);
+        response.setSuccess(true);
+        response.setResponse(null);
+        String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+
+        mockNclmLogin();
+
+        when(HttpClientBuilder.create()).thenReturn(httpClientBuilder);
+        when(httpClientBuilder.setSSLHostnameVerifier(NoopHostnameVerifier.INSTANCE)).thenReturn(httpClientBuilder);
+        when(httpClientBuilder.setSSLContext(Mockito.any())).thenReturn(httpClientBuilder);
+        when(httpClientBuilder.setRedirectStrategy(Mockito.any())).thenReturn(httpClientBuilder);
+        when(httpClientBuilder.build()).thenReturn(httpClient1);
+        when(httpClient1.execute(Mockito.any())).thenReturn(httpResponse);
+        when(httpResponse.getStatusLine()).thenReturn(statusLine);
+        when(statusLine.getStatusCode()).thenReturn(200);
+        when(httpResponse.getEntity()).thenReturn(mockHttpEntity);
+        String responseString = "teststreamdata";
+        when(EntityUtils.toString(mockHttpEntity, "UTF-8")).thenReturn(responseString);
+
+        String policyList [] = {"r_cert_certname"};
+        when(policyUtils.getCurrentPolicies(Mockito.any(), Mockito.any())).thenReturn(policyList);
+        SSLCertificateMetadataDetails certDetails = new SSLCertificateMetadataDetails();
+        certDetails.setCertType("internal");
+        certDetails.setCertCreatedBy("normaluser");
+        certDetails.setCertificateName("CertificateName");
+        certDetails.setCertOwnerNtid("normaluser");
+        certDetails.setCertOwnerEmailId("normaluser@test.com");
+        certDetails.setExpiryDate("10-20-2030");
+        when(certificateUtils.getCertificateMetaData(Mockito.any(), eq("certname"))).thenReturn(certDetails);
+
+        byte[] decodedBytes = Base64.getDecoder().decode(responseString);
+        InputStreamResource resource = new InputStreamResource(new ByteArrayInputStream(decodedBytes));
+        ResponseEntity<InputStreamResource> responseEntityExpected = ResponseEntity.status(HttpStatus.OK)
+                .contentLength(10).header(HttpHeaders.CONTENT_DISPOSITION,
+                        "attachment; filename=\"certname\"")
+                .contentType(MediaType.parseMediaType("application/x-pem-file;charset=utf-8")).body(resource);
+
+        ResponseEntity<InputStreamResource> responseEntityActual =
+                sSLCertificateService.downloadCertificate(token, getMockUser(true), "certname", "pem");
+        assertEquals(HttpStatus.OK, responseEntityActual.getStatusCode());
+        assertEquals(responseEntityExpected.toString(),responseEntityActual.toString());
+
+    }
+
+    @Test
+    public void test_downloadCertificateWithoutPrivateKey_success_der() throws Exception {
+
+        Response response = new Response();
+        response.setHttpstatus(HttpStatus.OK);
+        response.setSuccess(true);
+        response.setResponse(null);
+        String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+
+        mockNclmLogin();
+
+        when(HttpClientBuilder.create()).thenReturn(httpClientBuilder);
+        when(httpClientBuilder.setSSLHostnameVerifier(NoopHostnameVerifier.INSTANCE)).thenReturn(httpClientBuilder);
+        when(httpClientBuilder.setSSLContext(Mockito.any())).thenReturn(httpClientBuilder);
+        when(httpClientBuilder.setRedirectStrategy(Mockito.any())).thenReturn(httpClientBuilder);
+        when(httpClientBuilder.build()).thenReturn(httpClient1);
+        when(httpClient1.execute(Mockito.any())).thenReturn(httpResponse);
+        when(httpResponse.getStatusLine()).thenReturn(statusLine);
+        when(statusLine.getStatusCode()).thenReturn(200);
+        when(httpResponse.getEntity()).thenReturn(mockHttpEntity);
+        String responseString = "teststreamdata";
+        when(EntityUtils.toString(mockHttpEntity, "UTF-8")).thenReturn(responseString);
+
+        String policyList [] = {"r_cert_certname"};
+        when(policyUtils.getCurrentPolicies(Mockito.any(), Mockito.any())).thenReturn(policyList);
+        SSLCertificateMetadataDetails certDetails = new SSLCertificateMetadataDetails();
+        certDetails.setCertType("internal");
+        certDetails.setCertCreatedBy("normaluser");
+        certDetails.setCertificateName("CertificateName");
+        certDetails.setCertOwnerNtid("normaluser");
+        certDetails.setCertOwnerEmailId("normaluser@test.com");
+        certDetails.setExpiryDate("10-20-2030");
+        when(certificateUtils.getCertificateMetaData(Mockito.any(), eq("certname"))).thenReturn(certDetails);
+
+        byte[] decodedBytes = Base64.getDecoder().decode(responseString);
+        InputStreamResource resource = new InputStreamResource(new ByteArrayInputStream(decodedBytes));
+        ResponseEntity<InputStreamResource> responseEntityExpected = ResponseEntity.status(HttpStatus.OK)
+                .contentLength(10).header(HttpHeaders.CONTENT_DISPOSITION,
+                        "attachment; filename=\"certname\"")
+                .contentType(MediaType.parseMediaType("application/pkix-cert;charset=utf-8")).body(resource);
+
+        ResponseEntity<InputStreamResource> responseEntityActual =
+                sSLCertificateService.downloadCertificate(token, getMockUser(true), "certname", "der");
+        assertEquals(HttpStatus.OK, responseEntityActual.getStatusCode());
+        assertEquals(responseEntityExpected.toString(),responseEntityActual.toString());
+
+    }
+
+    @Test
+    public void test_downloadCertificateWithoutPrivateKey_failed() throws Exception {
+
+        Response response = new Response();
+        response.setHttpstatus(HttpStatus.OK);
+        response.setSuccess(true);
+        response.setResponse(null);
+        String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+
+        mockNclmLogin();
+
+        when(HttpClientBuilder.create()).thenReturn(httpClientBuilder);
+        when(httpClientBuilder.setSSLHostnameVerifier(NoopHostnameVerifier.INSTANCE)).thenReturn(httpClientBuilder);
+        when(httpClientBuilder.setSSLContext(Mockito.any())).thenReturn(httpClientBuilder);
+        when(httpClientBuilder.setRedirectStrategy(Mockito.any())).thenReturn(httpClientBuilder);
+        when(httpClientBuilder.build()).thenReturn(httpClient1);
+        when(httpClient1.execute(Mockito.any())).thenReturn(httpResponse);
+        when(httpResponse.getStatusLine()).thenReturn(statusLine);
+        when(statusLine.getStatusCode()).thenReturn(400);
+
+        String policyList [] = {"r_cert_certname"};
+        when(policyUtils.getCurrentPolicies(Mockito.any(), Mockito.any())).thenReturn(policyList);
+        SSLCertificateMetadataDetails certDetails = new SSLCertificateMetadataDetails();
+        certDetails.setCertType("internal");
+        certDetails.setCertCreatedBy("normaluser");
+        certDetails.setCertificateName("CertificateName");
+        certDetails.setCertOwnerNtid("normaluser");
+        certDetails.setCertOwnerEmailId("normaluser@test.com");
+        certDetails.setExpiryDate("10-20-2030");
+        when(certificateUtils.getCertificateMetaData(Mockito.any(), eq("certname"))).thenReturn(certDetails);
+
+        String responseString = "teststreamdata";
+        when(EntityUtils.toString(mockHttpEntity, "UTF-8")).thenReturn(responseString);
+
+        byte[] decodedBytes = Base64.getDecoder().decode(responseString);
+        InputStreamResource resource = new InputStreamResource(new ByteArrayInputStream(decodedBytes));
+        ResponseEntity<InputStreamResource> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(null);
+
+        ResponseEntity<InputStreamResource> responseEntityActual =
+                sSLCertificateService.downloadCertificate(token, getMockUser(true), "certname", "pem");
+        assertEquals(HttpStatus.BAD_REQUEST, responseEntityActual.getStatusCode());
+        assertEquals(responseEntityExpected.toString(),responseEntityActual.toString());
+
+    }
+
+
+    @Test
+    public void test_downloadCertificateWithoutPrivateKey_failed_entity_null() throws Exception {
+
+        Response response = new Response();
+        response.setHttpstatus(HttpStatus.OK);
+        response.setSuccess(true);
+        response.setResponse(null);
+        String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+
+        mockNclmLogin();
+
+        when(HttpClientBuilder.create()).thenReturn(httpClientBuilder);
+        when(httpClientBuilder.setSSLHostnameVerifier(NoopHostnameVerifier.INSTANCE)).thenReturn(httpClientBuilder);
+        when(httpClientBuilder.setSSLContext(Mockito.any())).thenReturn(httpClientBuilder);
+        when(httpClientBuilder.setRedirectStrategy(Mockito.any())).thenReturn(httpClientBuilder);
+        when(httpClientBuilder.build()).thenReturn(httpClient1);
+        when(httpClient1.execute(Mockito.any())).thenReturn(httpResponse);
+        when(httpResponse.getStatusLine()).thenReturn(statusLine);
+        when(statusLine.getStatusCode()).thenReturn(200);
+        when(httpResponse.getEntity()).thenReturn(null);
+
+        String policyList [] = {"r_cert_certname"};
+        when(policyUtils.getCurrentPolicies(Mockito.any(), Mockito.any())).thenReturn(policyList);
+        SSLCertificateMetadataDetails certDetails = new SSLCertificateMetadataDetails();
+        certDetails.setCertType("internal");
+        certDetails.setCertCreatedBy("normaluser");
+        certDetails.setCertificateName("CertificateName");
+        certDetails.setCertOwnerNtid("normaluser");
+        certDetails.setCertOwnerEmailId("normaluser@test.com");
+        certDetails.setExpiryDate("10-20-2030");
+        when(certificateUtils.getCertificateMetaData(Mockito.any(), eq("certname"))).thenReturn(certDetails);
+
+        ResponseEntity<InputStreamResource> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(null);
+
+        ResponseEntity<InputStreamResource> responseEntityActual =
+                sSLCertificateService.downloadCertificate(token, getMockUser(true), "certname", "pem");
+        assertEquals(HttpStatus.BAD_REQUEST, responseEntityActual.getStatusCode());
+        assertEquals(responseEntityExpected.toString(),responseEntityActual.toString());
+
+    }
+
+    @Test
+    public void test_downloadCertificateWithoutPrivateKey_failed_httpClient() throws Exception {
+
+        Response response = new Response();
+        response.setHttpstatus(HttpStatus.OK);
+        response.setSuccess(true);
+        response.setResponse(null);
+        String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+
+        mockNclmLogin();
+
+        when(HttpClientBuilder.create()).thenReturn(httpClientBuilder);
+        when(httpClientBuilder.setSSLHostnameVerifier(NoopHostnameVerifier.INSTANCE)).thenReturn(httpClientBuilder);
+        when(httpClientBuilder.setSSLContext(Mockito.any())).thenReturn(httpClientBuilder);
+        when(httpClientBuilder.setRedirectStrategy(Mockito.any())).thenReturn(httpClientBuilder);
+        when(httpClientBuilder.build()).thenReturn(httpClient1);
+        when(httpClient1.execute(Mockito.any())).thenThrow(new IOException());
+
+        String policyList [] = {"r_cert_certname"};
+        when(policyUtils.getCurrentPolicies(Mockito.any(), Mockito.any())).thenReturn(policyList);
+        SSLCertificateMetadataDetails certDetails = new SSLCertificateMetadataDetails();
+        certDetails.setCertType("internal");
+        certDetails.setCertCreatedBy("normaluser");
+        certDetails.setCertificateName("CertificateName");
+        certDetails.setCertOwnerNtid("normaluser");
+        certDetails.setCertOwnerEmailId("normaluser@test.com");
+        certDetails.setExpiryDate("10-20-2030");
+        when(certificateUtils.getCertificateMetaData(Mockito.any(), eq("certname"))).thenReturn(certDetails);
+
+        ResponseEntity<InputStreamResource> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(null);
+
+        ResponseEntity<InputStreamResource> responseEntityActual =
+                sSLCertificateService.downloadCertificate(token, getMockUser(true), "certname", "pem");
+        assertEquals(HttpStatus.BAD_REQUEST, responseEntityActual.getStatusCode());
+        assertEquals(responseEntityExpected.toString(),responseEntityActual.toString());
+
+    }
+
+    @Test
+    public void test_downloadCertificate_failed_403() throws Exception {
+
+        Response response = new Response();
+        response.setHttpstatus(HttpStatus.OK);
+        response.setSuccess(true);
+        response.setResponse(null);
+        String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+
+        mockNclmLogin();
+
+        String policyList [] = {};
+        when(policyUtils.getCurrentPolicies(Mockito.any(), Mockito.any())).thenReturn(policyList);
+        SSLCertificateMetadataDetails certDetails = new SSLCertificateMetadataDetails();
+        certDetails.setCertType("internal");
+        certDetails.setCertCreatedBy("normaluser");
+        certDetails.setCertificateName("CertificateName");
+        certDetails.setCertOwnerNtid("normaluser1");
+        certDetails.setCertOwnerEmailId("normaluser@test.com");
+        certDetails.setExpiryDate("10-20-2030");
+        when(certificateUtils.getCertificateMetaData(Mockito.any(), eq("certname"))).thenReturn(certDetails);
+
+        ResponseEntity<InputStreamResource> responseEntityExpected = ResponseEntity.status(HttpStatus.FORBIDDEN)
+                .body(null);
+
+        ResponseEntity<InputStreamResource> responseEntityActual =
+                sSLCertificateService.downloadCertificate(token, getMockUser(false), "certname", "pem");
+        assertEquals(HttpStatus.FORBIDDEN, responseEntityActual.getStatusCode());
+        assertEquals(responseEntityExpected.toString(),responseEntityActual.toString());
+
+    }
+
+    @Test
+    public void test_downloadCertificate_failed_invalid_token() throws Exception {
+
+        Response response = new Response();
+        response.setHttpstatus(HttpStatus.OK);
+        response.setSuccess(true);
+        response.setResponse(null);
+        String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+
+        CertResponse certResponse = new CertResponse();
+        certResponse.setHttpstatus(HttpStatus.BAD_REQUEST);
+        certResponse.setResponse(null);
+        certResponse.setSuccess(true);
+
+        when(reqProcessor.processCert(eq("/auth/certmanager/login"), any(), any(), any())).thenReturn(certResponse);
+
+        String policyList [] = {};
+        when(policyUtils.getCurrentPolicies(Mockito.any(), Mockito.any())).thenReturn(policyList);
+        SSLCertificateMetadataDetails certDetails = new SSLCertificateMetadataDetails();
+        certDetails.setCertType("internal");
+        certDetails.setCertCreatedBy("normaluser");
+        certDetails.setCertificateName("CertificateName");
+        certDetails.setCertOwnerNtid("normaluser1");
+        certDetails.setCertOwnerEmailId("normaluser@test.com");
+        certDetails.setExpiryDate("10-20-2030");
+        when(certificateUtils.getCertificateMetaData(Mockito.any(), eq("certname"))).thenReturn(certDetails);
+
+        ResponseEntity<InputStreamResource> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(null);
+
+        ResponseEntity<InputStreamResource> responseEntityActual =
+                sSLCertificateService.downloadCertificate(token, getMockUser(true), "certname", "pem");
+        assertEquals(HttpStatus.BAD_REQUEST, responseEntityActual.getStatusCode());
+        assertEquals(responseEntityExpected.toString(),responseEntityActual.toString());
 
     }
 }
