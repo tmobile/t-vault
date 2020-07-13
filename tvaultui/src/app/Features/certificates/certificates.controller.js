@@ -200,6 +200,7 @@
         }
 
         $scope.downloadPopup = function () {
+            $scope.isDownloadClicked = false;
             $scope.downloadRequest.certificateCred = "";
             $scope.downloadRequest.issuerChain = true;
             $scope.downloadRequest.format = "pkcs12der";
@@ -208,6 +209,7 @@
         };
 
         $scope.downloadPopupWitoutKey = function () {
+            $scope.isDownloadClicked = false;
             Modal.createModal('md', 'downloadPopupWitoutKey.html', 'CertificatesCtrl', $scope);
         };
 
