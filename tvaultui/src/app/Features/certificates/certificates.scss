@@ -220,6 +220,7 @@
 .cert-details {
     font-size: 1.4vh;
     font-weight: normal;
+    width: fit-content;
 }
 
 .cert-download-row {
@@ -292,4 +293,8 @@
 
 .md-certificate {
     width: 80vw!important;
+}
+
+.certdescription {
+    padding-bottom: 20px;
 }
