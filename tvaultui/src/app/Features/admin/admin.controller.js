@@ -592,13 +592,14 @@
             var updatedUrlOfEndPoint = ModifyUrl.addUrlParameteres('getCertificates',"certificateName="+searchCert + limitQuery + offsetQuery);
 
             AdminSafesManagement.getCertificates(null, updatedUrlOfEndPoint).then(function (response) {
-            	 
-                if (UtilityService.ifAPIRequestSuccessful(response)) { 	
-                	$scope.certificateData.certificates = response.data.keys;                                   
-                    $scope.numOfCertificates = $scope.certificateData.certificates.length;                                                            
-                    $scope.certificateData.offset = response.data.offset;                       
+                if (UtilityService.ifAPIRequestSuccessful(response)) {
+                    if(response.data != "" && response.data != undefined) {
+                        $scope.certificateData.certificates = response.data.keys;
+                        $scope.numOfCertificates = $scope.certificateData.certificates.length;
+                        $scope.certificateData.offset = response.data.offset;
+                    }
                 }
-                else {                   
+                else {
                     $scope.certificatesLoaded =  true;
                     $scope.errorMessage = AdminSafesManagement.getTheRightErrorMessage(response);
                     error('md');
