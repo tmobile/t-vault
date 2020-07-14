@@ -587,7 +587,7 @@ script(type='text/ng-template', id='manageSecretId.html')
                                                           .down.deletesecretids
                                                               .list-icon(ng-click="revokeCertificate(value)") Revoke certificate 
                                                               .down.view
-                                                              .list-icon(ng-if="value.certificateStatus=='Revoked'")                  
+                                                              .list-icon(ng-if="value.certificateStatus=='Revoked'" ng-click="renewCertificate(value)")  Renew certificate                  
                                                               .list-icon(ng-if="value.certificateStatus=='Expired'")                                                                          
                                                               .list-icon(ng-if="value.certificateStatus=='Active'" ng-click="renewCertificate(value)")  Renew certificate
                                                       .container.radio-inputs.col-lg-2.col-md-2.col-sm-2.col-xs-2
