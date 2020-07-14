@@ -1314,6 +1314,7 @@ public class SSLCertificateService {
    			      put(LogMessage.MESSAGE, String.format("Trying to get list of Ssl certificatests")).
    			      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
    			      build()));
+
         String _path = SSLCertificateConstants.SSL_CERT_PATH  ;
        	Response response = new Response();
        	String certListStr = "";
@@ -2815,8 +2816,10 @@ public class SSLCertificateService {
 			boolean sslMetaDataUpdationStatus;			
 			metaDataParams.put("certificateId",((Integer)certData.getCertificateId()).toString());
 			metaDataParams.put("createDate", certData.getCreateDate());
-			metaDataParams.put("expiryDate", certData.getExpiryDate());			
-			
+			metaDataParams.put("expiryDate", certData.getExpiryDate());	
+			metaDataParams.put("expiryDate", certData.getExpiryDate());
+			metaDataParams.put("certificateStatus", certData.getCertificateStatus());
+						
 			if (userDetails.isAdmin()) {
 				sslMetaDataUpdationStatus = ControllerUtil.updateMetaData(_path, metaDataParams, token);
 			} else {
