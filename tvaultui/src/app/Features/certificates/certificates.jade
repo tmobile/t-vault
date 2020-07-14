@@ -66,16 +66,16 @@ script(type='text/ng-template', id='downloadPopup.html')
                         .search-input-wrapper
                             input.search-input-box(type='text' placeholder='SEARCH' ng-model="searchValueCert" restrict-special-char minlength="3" maxlength="40" ng-change="filterCert(searchValueCert)")
             md-content.admin-content
-                md-tabs(md-dynamic-height md-border-bottom md-selected="selectedIndex")                    
+                md-tabs(md-dynamic-height md-border-bottom md-selected="selectedIndex")
                     md-tab(label="My Certificates")
                         md-content(class="md-padding md-content-wrapper page-content-wrapper md-certificate" ng-init="displayGrid" ng-if="!viewCertificate")
                             .new-container.page-content-container
                                 .md-content-inner-wrapper
                                     div.data-management-content
-                                        div.svcdescription(ng-show="certificatesData.keys.length>0") Following are list of the Certificates which you have download permission.
                                         .row.change-svc-table-container
                                             loading-state(ng-if='isLoadingData')
                                             md-content(class="md-padding md-content-wrapper")
+                                                div.certdescription(ng-show="certificatesData.keys.length>0") Following are list of the Certificates which you have download permission.
                                                 .unavailable-text(ng-if='certificatesData.keys.length==0')
                                                     | No Certificates Available
                                                 div.tiles-wrapper.cert-tiles(img="'safe.png'" loading="isLoadingData")
@@ -108,33 +108,31 @@ script(type='text/ng-template', id='downloadPopup.html')
                                 .row.change-svc-table-container
                                     loading-state(ng-if='isLoadingData')
                                     .row.table-header.solid-header(ng-show="!isLoadingData")
-                                        .container.name.cell.col-lg-6.col-md-6.col-sm-6.col-xs-6.table-first-cell 
+                                        .container.name.cell.col-lg-6.col-md-6.col-sm-6.col-xs-6.table-first-cell
                                     .accordion-list-main.adjustment
-                                        .container.name.col-lg-12.col-md-12.col-sm-12.col-xs-12.cell 
+                                        .container.name.col-lg-12.col-md-12.col-sm-12.col-xs-12.cell
                                             .cell.col-lg-6.col-md-6.col-sm-6.col-xs-6
                                                 .common-form-row.col-lg-12.col-md-12.col-sm-12.col-xs-12
-                                                    .details-input-group(uib-tooltip="Certificate Name" tooltip-popup-delay="600")
+                                                    .details-input-group
                                                         .common-form-label Certificate Name
-                                                        .cert-details {{ certificateDetails.certificateName }}
+                                                        .cert-details(uib-tooltip="Certificate Name" tooltip-popup-delay="600") {{ certificateDetails.certificateName }}
                                                 .common-form-row.col-lg-12.col-md-12.col-sm-12.col-xs-12
-                                                    .details-input-group(uib-tooltip="Certificate Status" tooltip-popup-delay="600")
+                                                    .details-input-group
                                                         .common-form-label.cert-label Status
-                                                        .cert-details {{ certificateDetails.certificateStatus }}
+                                                        .cert-details(uib-tooltip="Certificate Status" tooltip-popup-delay="600") {{ certificateDetails.certificateStatus }}
                                                 .common-form-row.col-lg-12.col-md-12.col-sm-12.col-xs-12
-                                                    .details-input-group(uib-tooltip="Certificate Owner" tooltip-popup-delay="600")
+                                                    .details-input-group
                                                         .common-form-label.cert-label Owner
-                                                        .cert-details {{ certificateDetails.certOwnerEmailId }}
+                                                        .cert-details(uib-tooltip="Certificate Owner" tooltip-popup-delay="600") {{ certificateDetails.certOwnerEmailId }}
                                                 .common-form-row.col-lg-12.col-md-12.col-sm-12.col-xs-12(ng-if='certificateDetails.applicationTag')
-                                                    .details-input-group(uib-tooltip="Application" tooltip-popup-delay="600")
-                                                         .common-form-label.cert-label Application
-                                                        .cert-details {{ certificateDetails.applicationTag }}
+                                                    .details-input-group
+                                                        .common-form-label.cert-label Application
+                                                        .cert-details(uib-tooltip="Application" tooltip-popup-delay="600") {{ certificateDetails.applicationTag }}
                                                 .common-form-row.col-lg-12.col-md-12.col-sm-12.col-xs-12
-                                                    .details-input-group(uib-tooltip="Validity" tooltip-popup-delay="600")
-                                                         .common-form-label.cert-label Validity
-                                                        .cert-details {{ certificateDetails.createDate }} - {{ certificateDetails.expiryDate }}
+                                                    .details-input-group
+                                                        .common-form-label.cert-label Validity
+                                                        .cert-details(uib-tooltip="Validity" tooltip-popup-delay="600") {{ certificateDetails.createDate }} - {{ certificateDetails.expiryDate }}
                                                 .common-form-row.col-lg-12.col-md-12.col-sm-12.col-xs-12
-                                                
-                                               
                                             .container.radio-inputs.col-lg-6.col-md-6.col-sm-6.col-xs-6.cell
                                                 .down.view
                                                     .list-icon.cert-download-link

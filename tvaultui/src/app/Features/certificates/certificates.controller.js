@@ -152,8 +152,13 @@
         };
 
         $scope.hasMoreItemsToShow = function() {
-            if ($scope.searchValueCert != '' && $scope.searchValueCert!= undefined && $scope.searchValueCert.length<3) {
-                return pagesShown < ($scope.numOfCertificates / pageSize);
+            if ($scope.searchValueCert != '' && $scope.searchValueCert!= undefined) {
+                if ($scope.searchValueCert.length<3) {
+                    return pagesShown < ($scope.numOfCertificates / pageSize);
+                }
+                else {
+                    return false;
+                }
             }
             return pagesShown < ($scope.numOfCertificates / pageSize);
         };
