@@ -109,11 +109,13 @@
             AdminSafesManagement.getCertificates(null, updatedUrlOfEndPoint).then(function (response) {
 
                 if (UtilityService.ifAPIRequestSuccessful(response)) {
-                    response.data.keys.forEach(function (cert) {
-                        // By default read permission given to admin users
-                        $scope.certificatesData.keys.push({"certname": cert.certificateName, "permission": "read"});
-                    });
-                    $scope.numOfCertificates=$scope.certificatesData.keys.length;
+                    if (response.data != "" && response.data != undefined) {
+                        response.data.keys.forEach(function (cert) {
+                            // By default read permission given to admin users
+                            $scope.certificatesData.keys.push({"certname": cert.certificateName, "permission": "read"});
+                        });
+                        $scope.numOfCertificates=$scope.certificatesData.keys.length;
+                    }
                 }
                 else {
                     $scope.certificatesLoaded =  true;
