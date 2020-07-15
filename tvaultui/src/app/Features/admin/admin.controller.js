@@ -1727,7 +1727,11 @@
                     function (error) {
                         var errors = error.data.errors;
                         $scope.revocationStatusMessage = 'Revocation Failed!';
-                        $scope.revocationMessage = errors[0];
+                        if (errors[0] == "Access denied: no permission to revoke certificate") {
+                            $scope.revocationMessage = "For security reasons, you need to log out and log in again for the permissions to take effect.";
+                        } else {
+                            $scope.revocationMessage = errors[0];
+                        }
                         $scope.revocationPopUp();
                         $scope.isLoadingData = false;
                         console.log(error);
