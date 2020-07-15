@@ -354,6 +354,10 @@ readTextFile("../apiUrls.json");
             name: 'getCertificateDetails',
             url: '/v2/sslcert/certificates',
             method: 'GET'
+        }, {
+            name: 'addApproleToCertificate',
+            url: '/v2/sslcert/approle',
+            method: 'POST'
         }
     ]
     });
