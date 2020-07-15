@@ -1864,7 +1864,7 @@ public class SSLCertificateService {
    			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
    					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
    					put(LogMessage.ACTION, SSLCertificateConstants.ADD_USER_TO_CERT_MSG).
-   					put(LogMessage.MESSAGE, String.format ("Invalid user inputs [%s]", certificateUser.toString())).
+   					put(LogMessage.MESSAGE, "Invalid user inputs").
    					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
    					build()));
    			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid input values\"]}");
@@ -2421,25 +2421,25 @@ public class SSLCertificateService {
      * @param certificateApprole
      * @return
      */
-    public ResponseEntity<String> associateApproletoCertificate(CertificateApprole certificateApprole, UserDetails userDetails) {
+    public ResponseEntity<String> associateApproletoCertificate(CertificateApprole certificateApprole, UserDetails userDetails) {        
+        String authToken = null;
+        boolean isAuthorized = true;
+        if(!areCertificateApproleInputsValid(certificateApprole)) {
+        	log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+   					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+   					put(LogMessage.ACTION, SSLCertificateConstants.ADD_APPROLE_TO_CERT_MSG).
+   					put(LogMessage.MESSAGE, "Invalid input values").
+   					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+   					build()));
+   			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid input values\"]}");
+        }
+        
         log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
                 put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
                 put(LogMessage.ACTION, SSLCertificateConstants.ADD_APPROLE_TO_CERT_MSG).
                 put(LogMessage.MESSAGE, String.format("Trying to add Approle to Certificate - Request [%s]", certificateApprole.toString())).
                 put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
                 build()));
-        String authToken = null;
-        boolean isAuthorized = true;
-
-        if(!areCertificateApproleInputsValid(certificateApprole)) {
-        	log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
-   					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
-   					put(LogMessage.ACTION, SSLCertificateConstants.ADD_APPROLE_TO_CERT_MSG).
-   					put(LogMessage.MESSAGE, String.format ("Invalid input values [%s]", certificateApprole.toString())).
-   					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
-   					build()));
-   			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid input values\"]}");
-        }
 
         String approleName = certificateApprole.getApproleName().toLowerCase();
         String certificateName = certificateApprole.getCertificateName().toLowerCase();

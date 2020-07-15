@@ -1,5 +1,6 @@
 package com.tmobile.cso.vault.api.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.common.collect.ImmutableMap;
 import com.tmobile.cso.vault.api.controller.ControllerUtil;
 import com.tmobile.cso.vault.api.exception.TVaultValidationException;
@@ -1553,7 +1554,7 @@ public class SSLCertificateServiceTest {
     }
 
     @Test
-    public void test_addUserToCertificate_successfully() {        
+    public void testAddUserToCertificateSuccessfully() {        
         CertificateUser certUser = new CertificateUser("testuser2","read", "certificatename.t-mobile.com");    
         SSLCertificateMetadataDetails certificateMetadata = getSSLCertificateMetadataDetails();
         UserDetails userDetail = getMockUser(true);
@@ -1588,7 +1589,7 @@ public class SSLCertificateServiceTest {
     }    
     
     @Test
-    public void test_addUserToCertificate_failure_all_certs() {       
+    public void testAddUserToCertificateFailureAllCerts() {       
         CertificateUser certUser = new CertificateUser("testuser2","read", "certtest250630.t-mobile.com");    
         SSLCertificateMetadataDetails certificateMetadata = getSSLCertificateMetadataDetails();
         UserDetails userDetail = getMockUser(true);
@@ -1631,13 +1632,13 @@ public class SSLCertificateServiceTest {
     }
     
     @Test
-    public void test_addUserToCertificate_failure() {
-        CertificateUser certUser = new CertificateUser("testuser2","read", "certtest250630.t-mobile.com");    
+    public void testAddUserToCertificateFailure() throws IOException {
+        CertificateUser certUser = new CertificateUser("testuser2","write", "certtest250630.t-mobile.com");    
         SSLCertificateMetadataDetails certificateMetadata = getSSLCertificateMetadataDetails();
         UserDetails userDetail = getMockUser(true);
         userDetail.setUsername("testuser1");
         
-        Response userResponse = getMockResponse(HttpStatus.OK, true, "{\"data\":{\"bound_cidrs\":[],\"max_ttl\":0,\"policies\":[\"default\",\"r_cert_certtest250630.t-mobile.com\"],\"ttl\":0,\"groups\":\"admin\"}}");
+        Response userResponse = getMockResponse(HttpStatus.OK, true, "{\"data\":{\"bound_cidrs\":[],\"max_ttl\":0,\"policies\":[\"default\",\"w_cert_certtest250630.t-mobile.com\"],\"ttl\":0,\"groups\":\"admin\"}}");
         Response responseNotFound = getMockResponse(HttpStatus.NOT_FOUND, false, "");
 
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"messages\":[\"User configuration failed.Try Again\"]}");
@@ -1645,14 +1646,11 @@ public class SSLCertificateServiceTest {
         when(reqProcessor.process("/auth/userpass/read","{\"username\":\"testuser2\"}",token)).thenReturn(userResponse);
         when(reqProcessor.process("/auth/ldap/users","{\"username\":\"testuser2\"}",token)).thenReturn(userResponse);
 
-        try {
-            List<String> resList = new ArrayList<>();
-            resList.add("default");
-            resList.add("r_cert_certtest250630.t-mobile.com");
-            when(ControllerUtil.getPoliciesAsListFromJson(any(), any())).thenReturn(resList);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        List<String> resList = new ArrayList<>();
+        resList.add("default");
+        resList.add("w_cert_certtest250630.t-mobile.com");
+        when(ControllerUtil.getPoliciesAsListFromJson(any(), any())).thenReturn(resList);
+        
         when(ControllerUtil.configureLDAPUser(eq("testuser2"),any(),any(),eq(token))).thenReturn(responseNotFound);
         when(ControllerUtil.configureUserpassUser(eq("testuser2"),any(),eq(token))).thenReturn(responseNotFound);
         
@@ -1665,7 +1663,7 @@ public class SSLCertificateServiceTest {
     }
 
     @Test
-    public void test_addUserToCertificate_failure_400() {        
+    public void testAddUserToCertificateFailureBadrequest() {        
         CertificateUser certUser = new CertificateUser("testuser1","write", "CertificateName");  
         SSLCertificateMetadataDetails certificateMetadata = getSSLCertificateMetadataDetails();
         userDetails.setUsername("testuser1");
@@ -1677,6 +1675,80 @@ public class SSLCertificateServiceTest {
         ResponseEntity<String> responseEntity = sSLCertificateService.addUserToCertificate(token, certUser, null, false);
         assertEquals(HttpStatus.BAD_REQUEST, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
+    }
+    
+    @Test
+    public void testAddUserToCertificateForNonAdminFailed() throws IOException {        
+        CertificateUser certUser = new CertificateUser("testuser2","deny", "certificatename.t-mobile.com");    
+        SSLCertificateMetadataDetails certificateMetadata = getSSLCertificateMetadataDetails();
+        certificateMetadata.setCertOwnerNtid("testuser2");
+        UserDetails userDetail = getMockUser(false);
+        userDetail.setUsername("testuser1");
+        Response userResponse = getMockResponse(HttpStatus.OK, true, "{\"data\":{\"bound_cidrs\":[],\"max_ttl\":0,\"policies\":[\"default\",\"d_cert_certificatename.t-mobile.com\"],\"ttl\":0,\"groups\":\"admin\"}}");
+        Response idapConfigureResponse = getMockResponse(HttpStatus.NO_CONTENT, true, "{\"policies\":null}");
+        Response responseNoContent = getMockResponse(HttpStatus.NO_CONTENT, true, "");
+
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Certificate owner cannot be added as a user to the certificate owned by him\"]}");
+        
+        when(reqProcessor.process("/auth/userpass/read","{\"username\":\"testuser2\"}",token)).thenReturn(userResponse);
+        when(reqProcessor.process("/auth/ldap/users","{\"username\":\"testuser2\"}",token)).thenReturn(userResponse);
+                
+        List<String> resList = new ArrayList<>();
+        resList.add("default");
+        resList.add("d_cert_certificatename.t-mobile.com");
+        when(ControllerUtil.getPoliciesAsListFromJson(any(), any())).thenReturn(resList);        
+
+        when(ControllerUtil.configureLDAPUser(eq("testuser2"),any(),any(),eq(token))).thenReturn(idapConfigureResponse);
+        when(ControllerUtil.configureUserpassUser(eq("testuser2"),any(),eq(token))).thenReturn(idapConfigureResponse);
+        when(ControllerUtil.updateMetadata(any(),eq(token))).thenReturn(responseNoContent);
+        when(certificateUtils.getCertificateMetaData(token, "certificatename.t-mobile.com")).thenReturn(certificateMetadata);
+        when(certificateUtils.hasAddOrRemovePermission(userDetail, certificateMetadata)).thenReturn(true);
+        
+        ResponseEntity<String> responseEntity = sSLCertificateService.addUserToCertificate(token, certUser, userDetail, false);
+        assertEquals(HttpStatus.BAD_REQUEST, responseEntity.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntity);
+    } 
+    
+    @Test
+    public void testAddUserToCertificateFailedIfEmptyUserDetails() {        
+        CertificateUser certUser = new CertificateUser("testuser1", "read", "certificatename.t-mobile.com");          
+        userDetails = null;        
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Access denied: No permission to add users to this certificate\"]}");        
+       
+        ResponseEntity<String> responseEntity = sSLCertificateService.addUserToCertificate(token, certUser, null, false);
+        assertEquals(HttpStatus.BAD_REQUEST, responseEntity.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntity);
+    }
+    
+    @Test
+    public void testAddUserToCertificateFailedForNotAuthorizedUser() {        
+        CertificateUser certUser = new CertificateUser("testuser2","read", "certificatename.t-mobile.com");    
+        SSLCertificateMetadataDetails certificateMetadata = null;
+        UserDetails userDetail = getMockUser(true);
+        userDetail.setUsername("testuser1");
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Access denied: No permission to add users to this certificate\"]}");
+        when(certificateUtils.getCertificateMetaData(token, "certificatename.t-mobile.com")).thenReturn(certificateMetadata);
+        when(certificateUtils.hasAddOrRemovePermission(userDetail, certificateMetadata)).thenReturn(false);
+        
+        ResponseEntity<String> responseEntity = sSLCertificateService.addUserToCertificate(token, certUser, userDetail, false);
+        assertEquals(HttpStatus.BAD_REQUEST, responseEntity.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntity);
+    }
+    
+    @Test(expected = Exception.class)
+    public void testAddUserToCertificatePolicyDataFailed() {        
+        CertificateUser certUser = new CertificateUser("testuser2","deny", "certificatename.t-mobile.com");    
+        SSLCertificateMetadataDetails certificateMetadata = getSSLCertificateMetadataDetails();
+        UserDetails userDetail = getMockUser(false);
+        userDetail.setUsername("testuser1");
+        Response userResponse = getMockResponse(HttpStatus.OK, true, "{\"key\":[\"bound_cidrs\":[],\"max_ttl\":0,\"policies\":[\"default\",\"d_cert_certificatename.t-mobile.com\"],\"ttl\":0,\"groups\":\"admin\"]}");
+      
+        when(reqProcessor.process("/auth/userpass/read","{\"username\":\"testuser2\"}",token)).thenReturn(userResponse);
+        when(reqProcessor.process("/auth/ldap/users","{\"username\":\"testuser2\"}",token)).thenReturn(userResponse);
+           
+        when(certificateUtils.getCertificateMetaData(token, "certificatename.t-mobile.com")).thenReturn(certificateMetadata);
+        when(certificateUtils.hasAddOrRemovePermission(userDetail, certificateMetadata)).thenReturn(true);        
+        sSLCertificateService.addUserToCertificate(token, certUser, userDetail, false);
     }
 
     @Test
@@ -2087,6 +2159,140 @@ public class SSLCertificateServiceTest {
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, responseEntityActual.getStatusCode());
         assertEquals(responseEntityExpected, responseEntityActual);
 
+    }
+    
+	@Test
+    public void testAssociateAppRoleToCertificateSuccssfullyForAdmin() {
+
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Approle successfully associated with Certificate\"]}");
+        token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+        userDetails = getMockUser(true);
+        SSLCertificateMetadataDetails certificateMetadata = getSSLCertificateMetadataDetails();
+        CertificateApprole certificateApprole = new CertificateApprole("certificatename.t-mobile.com", "role1", "read");
+        
+        when(certificateUtils.getCertificateMetaData(token, "certificatename.t-mobile.com")).thenReturn(certificateMetadata);
+        when(certificateUtils.hasAddOrRemovePermission(userDetails, certificateMetadata)).thenReturn(true);
+
+        Response appRoleResponse = getMockResponse(HttpStatus.OK, true, "{\"data\": {\"policies\":\"r_cert_certificatename.t-mobile.com\"}}");
+        when(reqProcessor.process("/auth/approle/role/read", "{\"role_name\":\"role1\"}",token)).thenReturn(appRoleResponse);
+        Response configureAppRoleResponse = getMockResponse(HttpStatus.OK, true, "");
+        when(appRoleService.configureApprole(Mockito.anyString(), Mockito.anyString(), Mockito.anyString())).thenReturn(configureAppRoleResponse);
+        Response updateMetadataResponse = getMockResponse(HttpStatus.NO_CONTENT, true, "");
+        when(ControllerUtil.updateMetadata(Mockito.anyMap(),Mockito.anyString())).thenReturn(updateMetadataResponse);
+
+        ResponseEntity<String> responseEntityActual =  sSLCertificateService.associateApproletoCertificate(certificateApprole, userDetails);
+
+        assertEquals(HttpStatus.OK, responseEntityActual.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntityActual);
+    }
+    
+	@Test
+    public void testAssociateAppRoleToCertificateFailedForEmptyUserDetails() {
+
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Access denied: No permission to add approle to this certificate\"]}");
+        token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+        userDetails = null;
+        SSLCertificateMetadataDetails certificateMetadata = getSSLCertificateMetadataDetails();
+        CertificateApprole certificateApprole = new CertificateApprole("certificatename.t-mobile.com", "role1", "read");
+        
+        when(certificateUtils.getCertificateMetaData(token, "certificatename.t-mobile.com")).thenReturn(certificateMetadata);
+        when(certificateUtils.hasAddOrRemovePermission(userDetails, certificateMetadata)).thenReturn(true);
+
+        Response appRoleResponse = getMockResponse(HttpStatus.OK, true, "{\"data\": {\"policies\":\"r_cert_certificatename.t-mobile.com\"}}");
+        when(reqProcessor.process("/auth/approle/role/read", "{\"role_name\":\"role1\"}",token)).thenReturn(appRoleResponse);
+        Response configureAppRoleResponse = getMockResponse(HttpStatus.OK, true, "");
+        when(appRoleService.configureApprole(Mockito.anyString(), Mockito.anyString(), Mockito.anyString())).thenReturn(configureAppRoleResponse);
+        Response updateMetadataResponse = getMockResponse(HttpStatus.NO_CONTENT, true, "");
+        when(ControllerUtil.updateMetadata(Mockito.anyMap(),Mockito.anyString())).thenReturn(updateMetadataResponse);
+
+        ResponseEntity<String> responseEntityActual =  sSLCertificateService.associateApproletoCertificate(certificateApprole, userDetails);
+
+        assertEquals(HttpStatus.BAD_REQUEST, responseEntityActual.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntityActual);
+    }
+	
+	@Test
+    public void testAssociateAppRoleToCertificateFailedIfNoRoleExists() {
+
+		ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body("{\"errors\":[\"Non existing role name. Please configure approle as first step\"]}");
+        token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+        userDetails = getMockUser(true);
+        SSLCertificateMetadataDetails certificateMetadata = getSSLCertificateMetadataDetails();
+        CertificateApprole certificateApprole = new CertificateApprole("certificatename.t-mobile.com", "role1", "read");
+        
+        when(certificateUtils.getCertificateMetaData(token, "certificatename.t-mobile.com")).thenReturn(certificateMetadata);
+        when(certificateUtils.hasAddOrRemovePermission(userDetails, certificateMetadata)).thenReturn(true);
+
+        Response appRoleResponse = getMockResponse(HttpStatus.NOT_FOUND, true, "{}");
+        when(reqProcessor.process("/auth/approle/role/read", "{\"role_name\":\"role1\"}",token)).thenReturn(appRoleResponse);
+        Response configureAppRoleResponse = getMockResponse(HttpStatus.OK, true, "");
+        when(appRoleService.configureApprole(Mockito.anyString(), Mockito.anyString(), Mockito.anyString())).thenReturn(configureAppRoleResponse);
+        Response updateMetadataResponse = getMockResponse(HttpStatus.NO_CONTENT, true, "");
+        when(ControllerUtil.updateMetadata(Mockito.anyMap(),Mockito.anyString())).thenReturn(updateMetadataResponse);
+
+        ResponseEntity<String> responseEntityActual =  sSLCertificateService.associateApproletoCertificate(certificateApprole, userDetails);
+
+        assertEquals(HttpStatus.UNPROCESSABLE_ENTITY, responseEntityActual.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntityActual);
+    }
+	
+	@Test(expected = Exception.class)
+    public void testAssociateAppRoleToCertificateFailedIfReadApprole() {
+
+		ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Approle successfully associated with Certificate\"]}");
+        token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+        userDetails = getMockUser(true);
+        SSLCertificateMetadataDetails certificateMetadata = getSSLCertificateMetadataDetails();
+        CertificateApprole certificateApprole = new CertificateApprole("certificatename.t-mobile.com", "role1", "read");
+        
+        when(certificateUtils.getCertificateMetaData(token, "certificatename.t-mobile.com")).thenReturn(certificateMetadata);
+        when(certificateUtils.hasAddOrRemovePermission(userDetails, certificateMetadata)).thenReturn(true);
+
+        Response appRoleResponse = getMockResponse(HttpStatus.OK, true, "{}");
+        when(reqProcessor.process("/auth/approle/role/read", "{\"role_name\":\"role1\"}",token)).thenReturn(appRoleResponse);
+        Response configureAppRoleResponse = getMockResponse(HttpStatus.OK, true, "");
+        when(appRoleService.configureApprole(Mockito.anyString(), Mockito.anyString(), Mockito.anyString())).thenReturn(configureAppRoleResponse);
+        Response updateMetadataResponse = getMockResponse(HttpStatus.NO_CONTENT, true, "");
+        when(ControllerUtil.updateMetadata(Mockito.anyMap(),Mockito.anyString())).thenReturn(updateMetadataResponse);
+
+        ResponseEntity<String> responseEntityActual =  sSLCertificateService.associateApproletoCertificate(certificateApprole, userDetails);
+
+        assertEquals(HttpStatus.OK, responseEntityActual.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntityActual);
+    }
+	
+	@Test
+    public void testAssociateAppRoleToCertificateFailureIfEmptyInput() {
+
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid input values\"]}");
+        token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+        userDetails = getMockUser(false);        
+        CertificateApprole certificateApprole = null;
+        SSLCertificateMetadataDetails certificateMetadata = getSSLCertificateMetadataDetails();
+        when(certificateUtils.getCertificateMetaData(token, "certificatename.t-mobile.com")).thenReturn(certificateMetadata);
+        when(certificateUtils.hasAddOrRemovePermission(userDetails, certificateMetadata)).thenReturn(true);
+        
+        ResponseEntity<String> responseEntityActual =  sSLCertificateService.associateApproletoCertificate(certificateApprole, userDetails);
+
+        assertEquals(HttpStatus.BAD_REQUEST, responseEntityActual.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntityActual);
+    }
+	
+	@Test
+    public void testAssociateAppRoleToCertificateFailureIfInvalidAccess() {
+
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid input values\"]}");
+        token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+        userDetails = getMockUser(false);        
+        CertificateApprole certificateApprole = new CertificateApprole("certificatename.t-mobile.com", "role1", "revoke");
+        SSLCertificateMetadataDetails certificateMetadata = getSSLCertificateMetadataDetails();
+        when(certificateUtils.getCertificateMetaData(token, "certificatename.t-mobile.com")).thenReturn(certificateMetadata);
+        when(certificateUtils.hasAddOrRemovePermission(userDetails, certificateMetadata)).thenReturn(true);
+        
+        ResponseEntity<String> responseEntityActual =  sSLCertificateService.associateApproletoCertificate(certificateApprole, userDetails);
+
+        assertEquals(HttpStatus.BAD_REQUEST, responseEntityActual.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntityActual);
     }
 
     void mockNclmLogin() throws Exception {
