@@ -1727,7 +1727,7 @@ public class SSLCertificateService {
 			if (!isPermission) {
 				return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
 						.body("{\"errors\":[\""
-								+ "For security reasons, you need to log out and log in again for the permissions to take effect."
+								+ "Access denied: no permission to revoke certificate"
 								+ "\"]}");
 			}
 		}
