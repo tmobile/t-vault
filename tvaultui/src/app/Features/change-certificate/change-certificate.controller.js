@@ -45,6 +45,7 @@
         $scope.isEmpty = UtilityService.isObjectEmpty;
         $scope.roleNameSelected = false;
         $scope.isCertificateOwner = false;
+        $scope.hideSudoPolicy = false;
         $scope.awsConfPopupObj = {
             "auth_type":"",
             "role": "",
@@ -83,6 +84,8 @@
             value: 'read',
             options: [{
                 'text': 'read'
+            }, {
+                'text': 'deny'
             }]
         };
 
@@ -498,6 +501,8 @@
                                     createDate: object.createDate || $stateParams.certificateObject.createDate || '',
                                     expiryDate: object.expiryDate || $stateParams.certificateObject.expiryDate || ''
                                 }
+
+                                hideUserSudoPolicy();
                                
                             }
                             catch (e) {
@@ -537,6 +542,21 @@
 
                 }
 
+            }
+        }
+
+        var hideUserSudoPolicy = function() {
+            $scope.hideSudoPolicy = false;
+            var flg = false;
+            var count=0;
+            Object.keys($scope.UsersPermissionsData).forEach(function(key) {
+                if ($scope.UsersPermissionsData[key] == "sudo") {
+                    flg = true;
+                }
+                count++;
+            });
+            if (count==1 && flg == true) {
+                $scope.hideSudoPolicy = true;
             }
         }
 
