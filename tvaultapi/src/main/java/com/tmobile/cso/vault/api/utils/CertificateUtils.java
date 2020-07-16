@@ -157,7 +157,7 @@ public class CertificateUtils {
 	 * @param dataNode
 	 * @return certificate
 	 */
-	public SSLCertificateMetadataDetails getCertificateInfo (JsonNode dataNode) {
+	private SSLCertificateMetadataDetails getCertificateInfo (JsonNode dataNode) {
 		SSLCertificateMetadataDetails certificate = new SSLCertificateMetadataDetails();
 		certificate.setCertificateName(dataNode.get("certificateName").asText());
 		certificate.setCertificateId(dataNode.get("certificateId").asInt());
