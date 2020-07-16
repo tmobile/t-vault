@@ -275,6 +275,51 @@ public class SSLCertificateControllerTest {
                 .header("Content-Type", "application/json;charset=UTF-8"))
                 .andExpect(status().isOk());
     }
+    
+    @Test
+    public void testRemoveUserFromCertificate() throws Exception {
+        CertificateUser certUser = new CertificateUser("testuser1","read", "certificatename.t-mobile.com");   	
+        String expected = "{\"message\":[\"Successfully removed user from the certificate\"]}";
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(expected);
+        when(sslCertificateService.removeUserFromCertificate(Mockito.any(), Mockito.any())).thenReturn(responseEntityExpected);
+        String inputJson = getJSON(certUser);
+        MvcResult result = mockMvc.perform(MockMvcRequestBuilders.delete("/v2/sslcert/user")
+                .header("vault-token", token)
+                .header("Content-Type", "application/json;charset=UTF-8")
+                .requestAttr("UserDetails", userDetails)
+                .content(inputJson))
+        		.andExpect(status().isOk()).andReturn();
+
+        String actual = result.getResponse().getContentAsString();
+        assertEquals(expected, actual);
+    }
+    
+    @Test
+    public void testRemoveGroupFromCertificate() throws Exception {
+    	CertificateGroup certGroup = new CertificateGroup("certificatename.t-mobile.com", "testgroup","read");   	
+        String expected = "{\"message\":[\"Group is successfully removed from certificate\"]}";
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(expected);
+        when(sslCertificateService.removeGroupFromCertificate(Mockito.any(), Mockito.any())).thenReturn(responseEntityExpected);
+        String inputJson = getJSON(certGroup);
+        MvcResult result = mockMvc.perform(MockMvcRequestBuilders.delete("/v2/sslcert/group")
+                .header("vault-token", token)
+                .header("Content-Type", "application/json;charset=UTF-8")
+                .requestAttr("UserDetails", userDetails)
+                .content(inputJson))
+        		.andExpect(status().isOk()).andReturn();
+
+        String actual = result.getResponse().getContentAsString();
+        assertEquals(expected, actual);
+    }
+    
+    private String getJSON(Object obj)  {
+		ObjectMapper mapper = new ObjectMapper();
+		try {
+			return mapper.writeValueAsString(obj);
+		} catch (JsonProcessingException e) {
+			return TVaultConstants.EMPTY_JSON;
+		}
+	}
 
     @Test
     public void testRemoveUserFromCertificate() throws Exception {
