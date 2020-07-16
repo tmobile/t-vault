@@ -1398,7 +1398,7 @@ public class SSLCertificateService {
 				endPoint = certNames.get(i).replaceAll("^\"+|\"+$", "");
 				pathStr = path + "/" + endPoint;
 				response = reqProcessor.process("/sslcert", "{\"path\":\"" + pathStr + "\"}", token);
-				if (!ObjectUtils.isEmpty(response.getResponse())) {
+				if (HttpStatus.OK.equals(response.getHttpstatus())) {
 					responseArray.add(((JsonObject) jsonParser.parse(response.getResponse())).getAsJsonObject("data"));
 				}
 			}
@@ -1462,7 +1462,7 @@ public class SSLCertificateService {
    			endPoint = certNames.get(i).replaceAll("^\"+|\"+$", "");
 			pathStr = path + "/" + endPoint;
    		response = reqProcessor.process("/sslcert","{\"path\":\""+pathStr+"\"}",userDetails.getSelfSupportToken());
-			if(!ObjectUtils.isEmpty(response.getResponse())) {
+			if(HttpStatus.OK.equals(response.getHttpstatus()) && !ObjectUtils.isEmpty(response.getResponse())) {
 			JsonObject object = ((JsonObject) jsonParser.parse(response.getResponse())).getAsJsonObject("data");
 			if(userDetails.getUsername().equalsIgnoreCase((object.get("certOwnerNtid")!=null? object.get("certOwnerNtid").getAsString() : ""))) {
 				if(count >=offset && count<maxVal) {
@@ -1739,7 +1739,7 @@ public class SSLCertificateService {
 								+ "\"]}");
 			}
 		}
-		String certID = object.get("certificateId").toString();
+		String certID = object.get("certificateId").getAsString();
         float value = Float.valueOf(certID);
 		int certificateId = (int) value;
 		CertResponse revocationResponse = new CertResponse();
@@ -2741,6 +2741,16 @@ public class SSLCertificateService {
 		String endPoint = certificateName;
 		String _path = SSLCertificateConstants.SSL_CERT_PATH + "/" + endPoint;
 		Response response = null;
+		if (!userDetails.isAdmin()) {
+			Boolean isPermission = validateOwnerPermissionForNonAdmin(userDetails, certificateName);
+
+			if (!isPermission) {
+				return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+						.body("{\"errors\":[\""
+								+ "Access denied: No permission to renew certificate"
+								+ "\"]}");
+			}
+		}
 		try {
 			if (userDetails.isAdmin()) {
 				response = reqProcessor.process("/read", "{\"path\":\"" + _path + "\"}", token);
@@ -2759,29 +2769,20 @@ public class SSLCertificateService {
 													Arrays.toString(e.getStackTrace()), response.getResponse()))
 									.build()));
 			return ResponseEntity.status(response.getHttpstatus())
-					.body("{\"messages\":[\"" + "Certficate unavailable." + "\"]}");
+					.body("{\"messages\":[\"" + "Certficate unavailable" + "\"]}");
 		}
 		if (!HttpStatus.OK.equals(response.getHttpstatus())) {
 			return ResponseEntity.status(response.getHttpstatus())
-					.body("{\"errors\":[\"" + " Certficate unavailable. " + "\"]}");
+					.body("{\"errors\":[\"" + "Certficate unavailable" + "\"]}");
 		}
 		JsonParser jsonParser = new JsonParser();
 		JsonObject object = ((JsonObject) jsonParser.parse(response.getResponse())).getAsJsonObject("data");
-		metaDataParams = new Gson().fromJson(object.toString(), Map.class);
+		metaDataParams = new Gson().fromJson(object.toString(), Map.class);		
 		
-		if (!userDetails.isAdmin()) {
-			Boolean isPermission = validateOwnerPermissionForNonAdmin(userDetails, certificateName);
-			if (!isPermission) {
-				return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-						.body("{\"errors\":[\""
-								+ "For security reasons, you need to log out and log in again for the permissions to take effect."
-								+ "\"]}");
-			}
-		}
-		
-        String certID = object.get("certificateId").toString().trim();
-        float value = Float.parseFloat(certID.replaceAll("[^0-9]",""));
+		String certID = object.get("certificateId").getAsString();
+        float value = Float.valueOf(certID);
 		int certificateId = (int) value;
+		
 		CertResponse renewResponse = new CertResponse();
 		try {
 			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String> builder()

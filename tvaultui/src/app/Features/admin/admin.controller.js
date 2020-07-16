@@ -645,6 +645,9 @@
             	$scope.certSearchValue = $scope.searchValue;
                 getCertificates($scope.certSearchValue, null, null);
             }
+            if($scope.certSearchValue != $scope.searchValue && $scope.searchValue != undefined && $scope.searchValue.length ==1) {            	
+                $scope.certSearchValue = $scope.searchValue;                
+            }
             if($scope.certSearchValue != $scope.searchValue) {            	
                 $scope.certSearchValue = $scope.searchValue;
                 getCertificates("", null, null);
@@ -1610,6 +1613,7 @@
             }
 
             resetCert();
+            clearSearchBox();
         };
 
         $scope.cancel = function () {
@@ -1704,6 +1708,7 @@
                 'tableOptions': $scope.revocationReasons
             }
             Modal.close('');
+            clearSearchBox();
         };
 
         $scope.revocationReasonSelect = function(){
@@ -1936,8 +1941,12 @@
                 },
                     function (error) {
                         var errors = error.data.errors;
-                        $scope.renewMessage = 'Renew failed';
-                        $scope.renewMessage = errors[0]; 
+                        $scope.renewMessage = 'Renew Failed';
+                        if (errors[0] == "Access denied: No permission to renew certificate") {
+                            $scope.revocationMessage = "For security reasons, you need to log out and log in again for the permissions to take effect.";
+                        } else {
+                            $scope.revocationMessage = errors[0];
+                        } 
                         $scope.renewCertificateFailedPopUp();
                         $scope.isLoadingData = false;
                         console.log(error);
@@ -1946,9 +1955,13 @@
                     $scope.isLoadingData = false;
                     console.log(e);
                 };               
-                
+                clearSearchBox();
             };
 
+            var clearSearchBox =  function () {
+            	$scope.searchValue = '';
+            }
+            
             $scope.revocationReasonSelect = function(){
                $scope.dropdownRevocationReasons.selectedGroupOption.type;
             }
