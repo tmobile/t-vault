@@ -366,6 +366,14 @@ readTextFile("../apiUrls.json");
             name: 'addGroupToCertificate',
             url: '/v2/sslcert/group',
             method: 'POST'  
+        }, {
+            name: 'deleteUserPermissionFromCertificate',
+            url: '/v2/sslcert/user',
+            method: 'DELETE'
+        }, {
+            name: 'deleteGroupPermissionFromCertificate',
+            url: '/v2/sslcert/group',
+            method: 'DELETE'
         }
     ]
     });

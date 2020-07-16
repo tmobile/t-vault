@@ -147,8 +147,8 @@ public class SSLCertificateServiceTest {
         
         ReflectionTestUtils.setField(sSLCertificateService, "certificateNameTailText", ".t-mobile.com");
         ReflectionTestUtils.setField(sSLCertificateService, "renewDelayTime", 3000);
-		ReflectionTestUtils.setField(sSLCertificateService, "renewCertificateEndpoint", "certificates/certID/renew");
-        
+		ReflectionTestUtils.setField(sSLCertificateService, "renewCertificateEndpoint", "certificates/certID/renew");        
+
         token = "5PDrOhsy4ig8L3EpsJZSLAMg";
         userDetails.setUsername("normaluser");
         userDetails.setAdmin(true);
@@ -3219,6 +3219,329 @@ public class SSLCertificateServiceTest {
         //Assert
         assertNotNull(revocResponse);
         assertEquals(HttpStatus.BAD_REQUEST, revocResponse.getStatusCode());
+    }
+
+    @Test
+    public void testRemoveUserFromCertificateForLdapAuthSuccess() throws IOException {
+    	SSLCertificateMetadataDetails certificateMetadata = getSSLCertificateMetadataDetails();
+        UserDetails userDetail = getMockUser(true);
+        userDetail.setUsername("testuser1");
+    	ReflectionTestUtils.setField(sSLCertificateService,"vaultAuthMethod", "ldap");
+    	CertificateUser certUser = new CertificateUser("testuser2","read", "certificatename.t-mobile.com");
+    	Response userResponse = getMockResponse(HttpStatus.OK, true, "{\"data\":{\"bound_cidrs\":[],\"max_ttl\":0,\"policies\":[\"default\",\"r_cert_certificatename.t-mobile.com\"],\"ttl\":0,\"groups\":\"admin\"}}");
+        Response idapConfigureResponse = getMockResponse(HttpStatus.NO_CONTENT, true, "{\"policies\":null}");
+        Response responseNoContent = getMockResponse(HttpStatus.NO_CONTENT, true, "");
+        String expectedResponse = "{\"messages\":[\"Successfully removed user from the certificate\"]}";
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(expectedResponse);
+        
+        when(reqProcessor.process("/auth/ldap/users","{\"username\":\"testuser2\"}", token)).thenReturn(userResponse);
+        
+        List<String> resList = new ArrayList<>();
+        resList.add("default");
+        resList.add("r_cert_certificatename.t-mobile.com");
+        when(ControllerUtil.getPoliciesAsListFromJson(any(), any())).thenReturn(resList);
+        
+        when(ControllerUtil.configureLDAPUser(eq("testuser2"),any(),any(),eq(token))).thenReturn(idapConfigureResponse);
+        when(ControllerUtil.updateMetadata(any(),any())).thenReturn(responseNoContent);
+        when(certificateUtils.getCertificateMetaData(token, "certificatename.t-mobile.com")).thenReturn(certificateMetadata);
+        when(certificateUtils.hasAddOrRemovePermission(userDetail, certificateMetadata)).thenReturn(true);
+       
+        ResponseEntity<String> responseEntity = sSLCertificateService.removeUserFromCertificate(certUser, userDetail);
+        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntity);
+    }
+
+    @Test
+    public void testRemoveUserFromCertificateUserpassAuthSuccess() throws IOException {
+    	SSLCertificateMetadataDetails certificateMetadata = getSSLCertificateMetadataDetails();
+        UserDetails userDetail = getMockUser(true);
+        userDetail.setUsername("testuser1");
+    	CertificateUser certUser = new CertificateUser("testuser2","write", "certificatename.t-mobile.com");
+    	Response userResponse = getMockResponse(HttpStatus.OK, true, "{\"data\":{\"bound_cidrs\":[],\"max_ttl\":0,\"policies\":[\"default\",\"w_cert_certificatename.t-mobile.com\"],\"ttl\":0,\"groups\":\"admin\"}}");
+        Response idapConfigureResponse = getMockResponse(HttpStatus.NO_CONTENT, true, "{\"policies\":null}");
+        Response responseNoContent = getMockResponse(HttpStatus.NO_CONTENT, true, "");        
+        when(reqProcessor.process("/auth/userpass/read","{\"username\":\"testuser2\"}",token)).thenReturn(userResponse);
+        
+        List<String> resList = new ArrayList<>();
+        resList.add("default");
+        resList.add("w_cert_certificatename.t-mobile.com");
+        when(ControllerUtil.getPoliciesAsListFromJson(any(), any())).thenReturn(resList);
+        
+        when(ControllerUtil.configureUserpassUser(eq("testuser2"),any(),eq(token))).thenReturn(idapConfigureResponse);
+        when(ControllerUtil.updateMetadata(any(),any())).thenReturn(responseNoContent);
+        when(certificateUtils.getCertificateMetaData(token, "certificatename.t-mobile.com")).thenReturn(certificateMetadata);
+        when(certificateUtils.hasAddOrRemovePermission(userDetail, certificateMetadata)).thenReturn(true);        
+    	String expectedResponse = "{\"messages\":[\"Successfully removed user from the certificate\"]}";
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(expectedResponse);
+       
+        ResponseEntity<String> responseEntity = sSLCertificateService.removeUserFromCertificate(certUser, userDetail);
+        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntity);
+    }
+
+    @Test
+    public void testRemoveUserFromCertificateFailureIfNotauthorized() {
+    	SSLCertificateMetadataDetails certificateMetadata = null;
+        UserDetails userDetail = getMockUser(false);
+        userDetail.setUsername("testuser1");
+    	CertificateUser certUser = new CertificateUser("testuser1","write", "certificatename.t-mobile.com");        
+        String expectedResponse = "{\"errors\":[\"Access denied: No permission to remove user from this certificate\"]}";        
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body(expectedResponse);
+        
+        when(certificateUtils.getCertificateMetaData(token, "certificatename.t-mobile.com")).thenReturn(certificateMetadata);
+        when(certificateUtils.hasAddOrRemovePermission(userDetail, certificateMetadata)).thenReturn(false);   
+        
+        ResponseEntity<String> responseEntity = sSLCertificateService.removeUserFromCertificate(certUser, userDetail);
+        assertEquals(HttpStatus.BAD_REQUEST, responseEntity.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntity);
+    }
+
+    @Test
+    public void testRemoveUserFromCertificateFailure400() {    	
+        UserDetails userDetail = getMockUser(true);
+        userDetail.setUsername("testuser1");
+    	CertificateUser certUser = new CertificateUser("testuser1", "deny", "certificatename");        
+        String expectedResponse = "{\"errors\":[\"Invalid input values\"]}";
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body(expectedResponse);
+       
+        ResponseEntity<String> responseEntity = sSLCertificateService.removeUserFromCertificate(certUser, userDetail);
+        assertEquals(HttpStatus.BAD_REQUEST, responseEntity.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntity);
+    }
+    
+    @Test
+    public void testRemoveUserFromCertificateFailureIfNotvalidUser() {    	
+        UserDetails userDetail = null;
+    	CertificateUser certUser = new CertificateUser("testuser1","write", "certificatename.t-mobile.com");        
+        String expectedResponse = "{\"errors\":[\"Access denied: No permission to remove user from this certificate\"]}";        
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body(expectedResponse);
+        
+        ResponseEntity<String> responseEntity = sSLCertificateService.removeUserFromCertificate(certUser, userDetail);
+        assertEquals(HttpStatus.BAD_REQUEST, responseEntity.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntity);
+    }
+    
+    @Test(expected = Exception.class)
+    public void testRemoveUserFromCertificatePolicyDataFailed() {        
+        CertificateUser certUser = new CertificateUser("testuser2", "deny", "certificatename.t-mobile.com");    
+        SSLCertificateMetadataDetails certificateMetadata = getSSLCertificateMetadataDetails();
+        ReflectionTestUtils.setField(sSLCertificateService,"vaultAuthMethod", "ldap");
+        UserDetails userDetail = getMockUser(false);
+        userDetail.setUsername("testuser1");
+        Response userResponse = getMockResponse(HttpStatus.OK, true, "{\"key\":[\"bound_cidrs\":[],\"max_ttl\":0,\"policies\":[\"default\",\"d_cert_certificatename.t-mobile.com\"],\"ttl\":0,\"groups\":\"admin\"]}");
+      
+        when(reqProcessor.process("/auth/ldap/users","{\"username\":\"testuser2\"}",token)).thenReturn(userResponse);
+           
+        when(certificateUtils.getCertificateMetaData(token, "certificatename.t-mobile.com")).thenReturn(certificateMetadata);
+        when(certificateUtils.hasAddOrRemovePermission(userDetail, certificateMetadata)).thenReturn(true);        
+        sSLCertificateService.removeUserFromCertificate(certUser, userDetail);
+    }
+    
+    @Test
+    public void testRemoveUserFromCertificateConfigureLdapUserFailed() throws IOException {
+    	SSLCertificateMetadataDetails certificateMetadata = getSSLCertificateMetadataDetails();
+        UserDetails userDetail = getMockUser(true);
+        userDetail.setUsername("testuser1");
+    	ReflectionTestUtils.setField(sSLCertificateService,"vaultAuthMethod", "ldap");
+    	CertificateUser certUser = new CertificateUser("testuser2","read", "certificatename.t-mobile.com");
+    	Response userResponse = getMockResponse(HttpStatus.OK, true, "{\"data\":{\"bound_cidrs\":[],\"max_ttl\":0,\"policies\":[\"default\",\"r_cert_certificatename.t-mobile.com\"],\"ttl\":0,\"groups\":\"admin\"}}");
+    	Response responseNotFound = getMockResponse(HttpStatus.NOT_FOUND, false, "");
+        String expectedResponse = "{\"errors\":[\"Failed to remvoe the user from the certificate\"]}";
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(expectedResponse);
+        
+        when(certificateUtils.getCertificateMetaData(token, "certificatename.t-mobile.com")).thenReturn(certificateMetadata);
+        when(certificateUtils.hasAddOrRemovePermission(userDetail, certificateMetadata)).thenReturn(true);
+        when(reqProcessor.process("/auth/ldap/users","{\"username\":\"testuser2\"}", token)).thenReturn(userResponse);
+        
+        List<String> resList = new ArrayList<>();
+        resList.add("default");
+        resList.add("r_cert_certificatename.t-mobile.com");
+        when(ControllerUtil.getPoliciesAsListFromJson(any(), any())).thenReturn(resList);        
+        when(ControllerUtil.configureLDAPUser(eq("testuser2"),any(),any(),eq(token))).thenReturn(responseNotFound);        
+       
+        ResponseEntity<String> responseEntity = sSLCertificateService.removeUserFromCertificate(certUser, userDetail);
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, responseEntity.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntity);
+    }
+    
+    @Test
+    public void testRemoveUserFromCertificateUpdateMetadataFailed() throws IOException {
+    	SSLCertificateMetadataDetails certificateMetadata = getSSLCertificateMetadataDetails();
+        UserDetails userDetail = getMockUser(true);
+        userDetail.setUsername("testuser1");
+    	ReflectionTestUtils.setField(sSLCertificateService,"vaultAuthMethod", "ldap");
+    	CertificateUser certUser = new CertificateUser("testuser2","read", "certificatename.t-mobile.com");
+    	Response userResponse = getMockResponse(HttpStatus.OK, true, "{\"data\":{\"bound_cidrs\":[],\"max_ttl\":0,\"policies\":[\"default\",\"r_cert_certificatename.t-mobile.com\"],\"ttl\":0,\"groups\":\"admin\"}}");
+    	Response idapConfigureResponse = getMockResponse(HttpStatus.NO_CONTENT, true, "{\"policies\":null}");
+    	Response responseNotFound = getMockResponse(HttpStatus.NOT_FOUND, false, "");
+        String expectedResponse = "{\"errors\":[\"Failed to remove the user from the certificate. Metadata update failed\"]}";
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(expectedResponse);
+        
+        when(certificateUtils.getCertificateMetaData(token, "certificatename.t-mobile.com")).thenReturn(certificateMetadata);
+        when(certificateUtils.hasAddOrRemovePermission(userDetail, certificateMetadata)).thenReturn(true);
+        when(reqProcessor.process("/auth/ldap/users","{\"username\":\"testuser2\"}", token)).thenReturn(userResponse);
+        
+        List<String> resList = new ArrayList<>();
+        resList.add("default");
+        resList.add("r_cert_certificatename.t-mobile.com");
+        when(ControllerUtil.getPoliciesAsListFromJson(any(), any())).thenReturn(resList);        
+        when(ControllerUtil.configureLDAPUser(eq("testuser2"),any(),any(),eq(token))).thenReturn(idapConfigureResponse);        
+        when(ControllerUtil.updateMetadata(any(),any())).thenReturn(responseNotFound);
+        
+        ResponseEntity<String> responseEntity = sSLCertificateService.removeUserFromCertificate(certUser, userDetail);
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, responseEntity.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntity);
+    }
+    
+    @Test
+    public void testRemoveGroupFromCertificateSuccess() throws IOException {
+    	SSLCertificateMetadataDetails certificateMetadata = getSSLCertificateMetadataDetails();
+        UserDetails userDetail = getMockUser(true);
+        userDetail.setUsername("testuser1");
+    	ReflectionTestUtils.setField(sSLCertificateService,"vaultAuthMethod", "ldap");
+    	CertificateGroup certGroup = new CertificateGroup("certificatename.t-mobile.com", "testgroup","read"); 
+    	
+    	Response groupResp = getMockResponse(HttpStatus.OK, true, "{\"data\":{\"bound_cidrs\":[],\"max_ttl\":0,\"policies\":[\"default\",\"r_cert_certificatename.t-mobile.com\"],\"ttl\":0,\"groups\":\"admin\"}}");
+        Response responseNoContent = getMockResponse(HttpStatus.NO_CONTENT, true, "");
+        String expectedResponse = "{\"messages\":[\"Group is successfully removed from certificate\"]}";
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(expectedResponse);
+
+        List<String> resList = new ArrayList<>();
+        resList.add("default");
+        resList.add("r_cert_certificatename.t-mobile.com");
+        when(ControllerUtil.getPoliciesAsListFromJson(any(), any())).thenReturn(resList);
+    	
+        when(certificateUtils.getCertificateMetaData(token, "certificatename.t-mobile.com")).thenReturn(certificateMetadata);
+        when(certificateUtils.hasAddOrRemovePermission(userDetail, certificateMetadata)).thenReturn(true);
+        when(reqProcessor.process("/auth/ldap/groups","{\"groupname\":\"testgroup\"}", token)).thenReturn(groupResp);        
+        
+        when(ControllerUtil.configureLDAPGroup(any(),any(),any())).thenReturn(responseNoContent);
+        when(ControllerUtil.updateMetadata(any(),eq(token))).thenReturn(responseNoContent);        
+       
+        ResponseEntity<String> responseEntity = sSLCertificateService.removeGroupFromCertificate(certGroup, userDetail);
+        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntity);
+    }    
+
+    @Test
+    public void testRemoveGroupFromCertificateFailureIfNotauthorized() {
+    	SSLCertificateMetadataDetails certificateMetadata = null;
+        UserDetails userDetail = getMockUser(false);
+        userDetail.setUsername("testuser1");
+        ReflectionTestUtils.setField(sSLCertificateService,"vaultAuthMethod", "ldap");
+    	CertificateGroup certGroup = new CertificateGroup("certificatename.t-mobile.com", "testgroup","read"); 
+    	
+        String expectedResponse = "{\"errors\":[\"Access denied: No permission to remove groups from this certificate\"]}";        
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body(expectedResponse);
+        
+        when(certificateUtils.getCertificateMetaData(token, "certificatename.t-mobile.com")).thenReturn(certificateMetadata);
+        when(certificateUtils.hasAddOrRemovePermission(userDetail, certificateMetadata)).thenReturn(false);   
+        
+        ResponseEntity<String> responseEntity = sSLCertificateService.removeGroupFromCertificate(certGroup, userDetail);
+        assertEquals(HttpStatus.BAD_REQUEST, responseEntity.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntity);
+    }
+
+    @Test
+    public void testRemoveGroupFromCertificateFailure400() {    	
+        UserDetails userDetail = getMockUser(true);
+        userDetail.setUsername("testuser1");
+        ReflectionTestUtils.setField(sSLCertificateService,"vaultAuthMethod", "ldap");
+    	CertificateGroup certGroup = new CertificateGroup("certificatename", "testgroup","read");      
+        String expectedResponse = "{\"errors\":[\"Invalid input values\"]}";
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body(expectedResponse);
+       
+        ResponseEntity<String> responseEntity = sSLCertificateService.removeGroupFromCertificate(certGroup, userDetail);
+        assertEquals(HttpStatus.BAD_REQUEST, responseEntity.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntity);
+    }
+    
+    @Test
+    public void testRemoveGroupFromCertificateFailureIfNotvalidUser() {    	
+        UserDetails userDetail = null;
+        ReflectionTestUtils.setField(sSLCertificateService,"vaultAuthMethod", "ldap");
+    	CertificateGroup certGroup = new CertificateGroup("certificatename.t-mobile.com", "testgroup","read");       
+        String expectedResponse = "{\"errors\":[\"Access denied: No permission to remove group from this certificate\"]}";        
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body(expectedResponse);
+        
+        ResponseEntity<String> responseEntity = sSLCertificateService.removeGroupFromCertificate(certGroup, userDetail);
+        assertEquals(HttpStatus.BAD_REQUEST, responseEntity.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntity);
+    }
+    
+    @Test(expected = Exception.class)
+    public void testRemoveGroupFromCertificatePolicyDataFailed() {        
+    	ReflectionTestUtils.setField(sSLCertificateService,"vaultAuthMethod", "ldap");
+    	CertificateGroup certGroup = new CertificateGroup("certificatename.t-mobile.com", "testgroup","deny");         
+        SSLCertificateMetadataDetails certificateMetadata = getSSLCertificateMetadataDetails();
+        UserDetails userDetail = getMockUser(false);
+        userDetail.setUsername("testuser1");
+        
+        Response groupResp = getMockResponse(HttpStatus.OK, true, "{\"key\":[\"bound_cidrs\":[],\"max_ttl\":0,\"policies\":[\"default\",\"d_cert_certificatename.t-mobile.com\"],\"ttl\":0,\"groups\":\"admin\"]}");
+                
+        when(reqProcessor.process("/auth/ldap/groups","{\"groupname\":\"testgroup\"}", token)).thenReturn(groupResp);     
+           
+        when(certificateUtils.getCertificateMetaData(token, "certificatename.t-mobile.com")).thenReturn(certificateMetadata);
+        when(certificateUtils.hasAddOrRemovePermission(userDetail, certificateMetadata)).thenReturn(true);        
+        sSLCertificateService.removeGroupFromCertificate(certGroup, userDetail);
+    }
+    
+    @Test
+    public void testRemoveGroupFromCertificateConfigureLdapGroupFailed() throws IOException {
+    	SSLCertificateMetadataDetails certificateMetadata = getSSLCertificateMetadataDetails();
+        UserDetails userDetail = getMockUser(true);
+        userDetail.setUsername("testuser1");
+        ReflectionTestUtils.setField(sSLCertificateService,"vaultAuthMethod", "ldap");
+    	CertificateGroup certGroup = new CertificateGroup("certificatename.t-mobile.com", "testgroup","read");
+    	Response groupResp = getMockResponse(HttpStatus.OK, true, "{\"data\":{\"bound_cidrs\":[],\"max_ttl\":0,\"policies\":[\"default\",\"r_cert_certificatename.t-mobile.com\"],\"ttl\":0,\"groups\":\"admin\"}}");
+        Response responseNotFound = getMockResponse(HttpStatus.NOT_FOUND, false, "");
+        String expectedResponse = "{\"errors\":[\"Failed to remove the group from the certificate\"]}";
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(expectedResponse);
+        
+        when(certificateUtils.getCertificateMetaData(token, "certificatename.t-mobile.com")).thenReturn(certificateMetadata);
+        when(certificateUtils.hasAddOrRemovePermission(userDetail, certificateMetadata)).thenReturn(true);        
+        
+        List<String> resList = new ArrayList<>();
+        resList.add("default");
+        resList.add("r_cert_certificatename.t-mobile.com");
+        when(ControllerUtil.getPoliciesAsListFromJson(any(), any())).thenReturn(resList);   
+        
+        when(reqProcessor.process("/auth/ldap/groups","{\"groupname\":\"testgroup\"}", token)).thenReturn(groupResp);        
+        when(ControllerUtil.configureLDAPGroup(any(),any(),any())).thenReturn(responseNotFound);  
+       
+        ResponseEntity<String> responseEntity = sSLCertificateService.removeGroupFromCertificate(certGroup, userDetail);
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, responseEntity.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntity);
+    }
+    
+    @Test
+    public void testRemoveGroupFromCertificateUpdateMetadataFailed() throws IOException {
+    	SSLCertificateMetadataDetails certificateMetadata = getSSLCertificateMetadataDetails();
+        UserDetails userDetail = getMockUser(true);
+        userDetail.setUsername("testuser1");
+        ReflectionTestUtils.setField(sSLCertificateService,"vaultAuthMethod", "ldap");
+    	CertificateGroup certGroup = new CertificateGroup("certificatename.t-mobile.com", "testgroup","read");
+    	Response groupResp = getMockResponse(HttpStatus.OK, true, "{\"data\":{\"bound_cidrs\":[],\"max_ttl\":0,\"policies\":[\"default\",\"r_cert_certificatename.t-mobile.com\"],\"ttl\":0,\"groups\":\"admin\"}}");
+    	Response idapConfigureResponse = getMockResponse(HttpStatus.NO_CONTENT, true, "{\"policies\":null}");
+    	Response responseNotFound = getMockResponse(HttpStatus.NOT_FOUND, false, "");
+        String expectedResponse = "{\"errors\":[\"Group configuration failed. Please try again\"]}";
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(expectedResponse);
+        
+        when(certificateUtils.getCertificateMetaData(token, "certificatename.t-mobile.com")).thenReturn(certificateMetadata);
+        when(certificateUtils.hasAddOrRemovePermission(userDetail, certificateMetadata)).thenReturn(true);   
+        
+        List<String> resList = new ArrayList<>();
+        resList.add("default");
+        resList.add("r_cert_certificatename.t-mobile.com");
+        when(ControllerUtil.getPoliciesAsListFromJson(any(), any())).thenReturn(resList);   
+        
+        when(reqProcessor.process("/auth/ldap/groups","{\"groupname\":\"testgroup\"}", token)).thenReturn(groupResp);        
+        when(ControllerUtil.configureLDAPGroup(any(),any(),any())).thenReturn(idapConfigureResponse);          
+        when(ControllerUtil.updateMetadata(any(),any())).thenReturn(responseNotFound);
+        
+        ResponseEntity<String> responseEntity = sSLCertificateService.removeGroupFromCertificate(certGroup, userDetail);
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, responseEntity.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntity);
     }
    
 }
