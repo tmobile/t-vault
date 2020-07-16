@@ -332,6 +332,16 @@
                     return response;
                 });
             },
+            deleteUserPermissionFromCertificate: function(payload, url) {
+                return ServiceEndpoint.deleteUserPermissionFromCertificate.makeRequest(payload, url).then(function(response) {
+                    return response;
+                });
+            },
+            deleteGroupPermissionFromCertificate: function(payload, url) {
+                return ServiceEndpoint.deleteGroupPermissionFromCertificate.makeRequest(payload, url).then(function(response) {
+                    return response;
+                });
+            },
             getTheRightErrorMessage : function(responseObject){
                 if(responseObject.status===500 || responseObject.statusText==='Internal Server Error'){
                     return ErrorMessage.ERROR_NETWORK;

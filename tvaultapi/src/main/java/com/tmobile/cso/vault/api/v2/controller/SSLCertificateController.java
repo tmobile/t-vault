@@ -219,7 +219,7 @@ public class SSLCertificateController {
 		return sslCertificateService.getCertificateDetails(token, userDetails, certificateName);
 	}
 
-	 /* 
+	 /**
 	 * @param request
 	 * @param token
 	 * @param certificateId
@@ -232,5 +232,33 @@ public class SSLCertificateController {
 		UserDetails userDetails = (UserDetails) ((HttpServletRequest) request).getAttribute("UserDetails");
 		return sslCertificateService.renewCertificate(certName, userDetails, token);
 	}
+	
+	/**
+	 * Removes permission for a user from the certificate
+	 * @param request
+	 * @param token
+	 * @param certificateUser
+	 * @return
+	 */
+	@ApiOperation(value = "${SSLCertificateController.removeUserFromCertificate.value}", notes = "${SSLCertificateController.removeUserFromCertificate.notes}")
+	@DeleteMapping(value="/v2/sslcert/user", produces="application/json")
+	public ResponseEntity<String> removeUserFromCertificate( HttpServletRequest request, @RequestHeader(value="vault-token") String token, @RequestBody CertificateUser certificateUser){
+		UserDetails userDetails = (UserDetails) request.getAttribute("UserDetails");
+		return sslCertificateService.removeUserFromCertificate(certificateUser, userDetails);
+	}
+	
+	/**
+     * Remove group from certificate
+     * @param request
+     * @param token
+     * @param certificateGroup
+     * @return
+     */
+    @ApiOperation(value = "${SSLCertificateController.removeGroupFromCertificate.value}", notes = "${SSLCertificateController.removeGroupFromCertificate.notes}")
+    @DeleteMapping(value="/v2/sslcert/group", produces="application/json")
+    public ResponseEntity<String> removeGroupFromCertificate( HttpServletRequest request, @RequestHeader(value="vault-token") String token, @RequestBody CertificateGroup certificateGroup ){
+        UserDetails userDetails = (UserDetails) request.getAttribute("UserDetails");
+        return sslCertificateService.removeGroupFromCertificate(certificateGroup, userDetails);
+    }
 
 }
