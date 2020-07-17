@@ -988,6 +988,16 @@
       		{"name":"reason", "required":true},
       		{"name":"time"}
         ]
+	},
+	 {"#" : "**** - Renew Certificate ****** ",
+
+		"apiEndPoint":"/certificates/renew",
+		"vaultEndPoint":"certificates/<certID>/renew", 
+		"method":"POST",
+		"params":[
+      		{"name":"certName", "required":true, "appendToPath":true},      		
+      		{"name":"time"}
+        ]
 	}
 
 ]

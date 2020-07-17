@@ -146,7 +146,7 @@
             $scope.isUserSearchLoading = false;
             $scope.isOwnerSelected = false;
             setTargetSystemServiceList("No target system selected", []);
-            $scope.certificateData.certificates = [];
+            $scope.certificateData.certificates = [];            
 
             $scope.targetSystem = {
                 'description': '',
@@ -581,6 +581,7 @@
             $scope.certificateData = {"certificates": []};
             $scope.isLoadingData = true;
             $scope.isLoadingCerts = true;
+            
             var limitQuery = "";
             var offsetQuery= "";
             if (limit !=null) {
@@ -588,9 +589,9 @@
             }
             if (offset!=null) {
                 offsetQuery= "&offset="+offset;
-            }
+            }            
             var updatedUrlOfEndPoint = ModifyUrl.addUrlParameteres('getCertificates',"certificateName="+searchCert + limitQuery + offsetQuery);
-
+            
             AdminSafesManagement.getCertificates(null, updatedUrlOfEndPoint).then(function (response) {
                 if (UtilityService.ifAPIRequestSuccessful(response)) {
                     if(response.data != "" && response.data != undefined) {
@@ -614,7 +615,7 @@
                 $scope.certificatesLoaded =  true;
                 $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
                 $scope.error('md');
-            });
+            });            
             $scope.certificatesLoaded =  true; 
         }
 
@@ -638,15 +639,20 @@
             return certName;
         }
 
-        $scope.searchCert = function () {        	
-            if ($scope.searchValue != '' && $scope.searchValue != undefined && $scope.searchValue.length > 2 && $scope.certSearchValue != $scope.searchValue) {
-                $scope.certSearchValue = $scope.searchValue;
+        $scope.searchCert = function () {
+        	if($scope.selectedIndex ==3){
+            if ($scope.searchValue != '' && $scope.searchValue != undefined && $scope.searchValue.length > 2 && $scope.certSearchValue != $scope.searchValue) {                
+            	$scope.certSearchValue = $scope.searchValue;
                 getCertificates($scope.certSearchValue, null, null);
             }
-            if ($scope.searchValue == '' && $scope.certSearchValue != $scope.searchValue) {
+            if($scope.certSearchValue != $scope.searchValue && $scope.searchValue != undefined && $scope.searchValue.length ==1) {            	
+                $scope.certSearchValue = $scope.searchValue;                
+            }
+            if($scope.certSearchValue != $scope.searchValue) {            	
                 $scope.certSearchValue = $scope.searchValue;
                 getCertificates("", null, null);
             }
+        }
         }
 
         $scope.showMoreCert = function () {
@@ -1358,6 +1364,14 @@
         $scope.transferFailedPopUp = function (svcaccname) {
             Modal.createModal('md', 'transferFailedPopUp.html', 'AdminCtrl', $scope);
         };
+        
+        $scope.renewCertificatePopUp = function (svcaccname) {
+            Modal.createModal('md', 'renewCertificatePopUp.html', 'AdminCtrl', $scope);
+        };
+        
+        $scope.renewCertificateFailedPopUp = function (svcaccname) {
+            Modal.createModal('md', 'renewCertificateFailedPopUp.html', 'AdminCtrl', $scope);
+        };
 
         $scope.transferSvcacc = function (svcaccToTransfer) {
             $scope.transferFailedMessage = '';
@@ -1599,6 +1613,7 @@
             }
 
             resetCert();
+            clearSearchBox();
         };
 
         $scope.cancel = function () {
@@ -1693,6 +1708,7 @@
                 'tableOptions': $scope.revocationReasons
             }
             Modal.close('');
+            clearSearchBox();
         };
 
         $scope.revocationReasonSelect = function(){
@@ -1903,6 +1919,63 @@
                 console.log(e);
             }
         };
+        
+        $scope.renewCertPopup = function (certDetails) {
+            $scope.fetchDataError = false;
+            $rootScope.certDetails = certDetails;
+            Modal.createModal('md', 'renewCertPopup.html', 'AdminCtrl', $scope);
+        };
+        
+         $rootScope.renewCertificate = function(certificateDetails){      	
+                
+               	if ($rootScope.certDetails !== null && $rootScope.certDetails !== undefined) {
+               		certificateDetails = $rootScope.certDetails;
+                  }
+                $rootScope.certDetails = null;	
+                try{
+                $scope.isLoadingData = true;
+                Modal.close();                
+                $scope.renewMessage = '';
+                var certificateName = $scope.getCertSubjectName(certificateDetails);
+                $scope.certificateNameForRenew = certificateName;          
+                var url = RestEndpoints.baseURL + "/v2/certificates/" + certificateName + "/renew";
+                $scope.isLoadingData = true;                              
+                
+                AdminSafesManagement.renewCertificate(null, url).then(function (response) {
+                    $scope.isLoadingData = false;
+                    if (UtilityService.ifAPIRequestSuccessful(response)) {
+                        $scope.renewMessage = 'Certificate Renewed Successfully!';
+                        $scope.renewMessage = response.data.messages[0];     
+                        $scope.renewCertificatePopUp();
+                        $scope.requestDataFrAdmin();
+                    }
+                },
+                    function (error) {
+                        var errors = error.data.errors;
+                        $scope.renewMessage = 'Renew Failed';
+                        if (errors[0] == "Access denied: No permission to renew certificate") {
+                            $scope.revocationMessage = "For security reasons, you need to log out and log in again for the permissions to take effect.";
+                        } else {
+                            $scope.revocationMessage = errors[0];
+                        } 
+                        $scope.renewCertificateFailedPopUp();
+                        $scope.isLoadingData = false;
+                        console.log(error);
+                    })
+                }catch (e) {
+                    $scope.isLoadingData = false;
+                    console.log(e);
+                };               
+                clearSearchBox();
+            };
+
+            var clearSearchBox =  function () {
+            	$scope.searchValue = '';
+            }
+            
+            $scope.revocationReasonSelect = function(){
+               $scope.dropdownRevocationReasons.selectedGroupOption.type;
+            }
 
         init();
 

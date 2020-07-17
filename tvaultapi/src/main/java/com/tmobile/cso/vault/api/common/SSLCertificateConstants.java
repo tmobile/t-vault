@@ -46,6 +46,4 @@ public final class SSLCertificateConstants {
     public static final String CERT_DOWNLOAD_TYPE_PKCS12DERR = "pkcs12der";
     public static final String CERT_DOWNLOAD_TYPE_PEMBUNDLE = "pembundle";
     public static final String CERT_DOWNLOAD_TYPE_PKCS12PEM = "pkcs12pem";
-
-
 }
