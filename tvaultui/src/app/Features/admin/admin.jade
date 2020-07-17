@@ -11,6 +11,18 @@ script(type='text/ng-template', id='deleteSafePopup.html')
         button.common-btn.btn.btn-primary.btn-lg(ng-click="deleteSafe(safeToDelete)") DELETE
       .clearfix
         button.link-style.common-btn.btn.btn-default.btn-lg(ng-click="close()") CANCEL
+script(type='text/ng-template', id='renewCertPopup.html')
+  loading-state(ng-if="isLoadingModalData")
+  .top-lg-sep(ng-if="!isLoadingModalData")
+    .top-lg-sep
+        .common-header-label.text-center Confirmation
+    .top-lg-sep.notification-text Are you sure you want to renew this certificate?
+    .text-center.bottom-lg-sep.top-lg-sep.notification-button
+      .clearfix.bottom-sm-sep
+        button.common-btn.btn.btn-primary.btn-lg(ng-click="renewCertificate(certDetails)") RENEW
+      .clearfix
+        button.link-style.common-btn.btn.btn-default.btn-lg(ng-click="close()") CANCEL       
+        
 script(type='text/ng-template', id='error.html')
     .row
         .top-lg-sep
@@ -585,9 +597,9 @@ script(type='text/ng-template', id='manageSecretId.html')
                                                           .down.view
                                                               .list-icon(ng-click="goToAddPermissions(value)")  View/Edit 
                                                           .down.view
-                                                              .list-icon(ng-if="value.certificateStatus=='Revoked'" ng-click="renewCertificate(value)")  Renew certificate                  
+                                                              .list-icon(ng-if="value.certificateStatus=='Revoked'" ng-click="renewCertPopup(value)")  Renew certificate                  
                                                               .list-icon.renExp(ng-if="value.certificateStatus=='Expired'")                                                                          
-                                                              .list-icon(ng-if="value.certificateStatus=='Active'" ng-click="renewCertificate(value)")  Renew certificate                                                                                                                   
+                                                              .list-icon(ng-if="value.certificateStatus=='Active'" ng-click="renewCertPopup(value)")  Renew certificate                                                                                                                   
                                                           .down.deletesecretids
                                                               .list-icon(ng-click="revokeCertificate(value)") Revoke certificate 
                                                               

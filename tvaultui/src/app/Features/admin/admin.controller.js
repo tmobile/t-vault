@@ -1925,10 +1925,21 @@
             }
         };
         
+        $scope.renewCertPopup = function (certDetails) {
+            $scope.fetchDataError = false;
+            $rootScope.certDetails = certDetails;
+            Modal.createModal('md', 'renewCertPopup.html', 'AdminCtrl', $scope);
+        };
         
-        $scope.renewCertificate = function(certificateDetails){        	
+         $rootScope.renewCertificate = function(certificateDetails){      	
+                
+               	if ($rootScope.certDetails !== null && $rootScope.certDetails !== undefined) {
+               		certificateDetails = $rootScope.certDetails;
+                  }
+                $rootScope.certDetails = null;	
                 try{
-                $scope.isLoadingData = true;                
+                $scope.isLoadingData = true;
+                Modal.close();                
                 $scope.renewMessage = '';
                 var certificateName = $scope.getCertSubjectName(certificateDetails);
                 $scope.certificateNameForRenew = certificateName;          

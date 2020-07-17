@@ -2817,8 +2817,7 @@ public class SSLCertificateService {
 			boolean sslMetaDataUpdationStatus;			
 			metaDataParams.put("certificateId",((Integer)certData.getCertificateId()).toString());
 			metaDataParams.put("createDate", certData.getCreateDate());
-			metaDataParams.put("expiryDate", certData.getExpiryDate());	
-			metaDataParams.put("expiryDate", certData.getExpiryDate());
+			metaDataParams.put("expiryDate", certData.getExpiryDate());				
 			metaDataParams.put("certificateStatus", certData.getCertificateStatus());
 						
 			if (userDetails.isAdmin()) {
@@ -2889,11 +2888,11 @@ public class SSLCertificateService {
      * @throws Exception
      */
     private CertificateData getLatestCertificate(String certName, String accessToken) throws Exception {
-        CertificateData certificateData=null; 
+        CertificateData certificateData=new CertificateData(); 
         int containerId = getTargetSystemGroupId(SSLCertType.valueOf("PRIVATE_SINGLE_SAN"));
         String findCertificateEndpoint = "/certmanager/findCertificate";
         String targetEndpoint = findCertificate.replace("certname", String.valueOf(certName)).replace("cid", String.valueOf(containerId));
-        CertResponse response = reqProcessor.processCert(findCertificateEndpoint, "", accessToken, getCertmanagerEndPoint(targetEndpoint));
+        CertResponse response = reqProcessor.processCert(findCertificateEndpoint, "", accessToken, getCertmanagerEndPoint(targetEndpoint));        
         Map<String, Object> responseMap = ControllerUtil.parseJson(response.getResponse());
         if (!MapUtils.isEmpty(responseMap) && (ControllerUtil.parseJson(response.getResponse()).get(SSLCertificateConstants.CERTIFICATES) != null)) {
             JsonParser jsonParser = new JsonParser();
@@ -2923,8 +2922,7 @@ public class SSLCertificateService {
                                                
                     	}
                     }
-
-                }
+                }                
             }
         }
         return certificateData;
