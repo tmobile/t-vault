@@ -2740,7 +2740,7 @@ public class SSLCertificateService {
 
 		String endPoint = certificateName;
 		String _path = SSLCertificateConstants.SSL_CERT_PATH + "/" + endPoint;
-		Response response = null;
+		Response response = new Response();
 		if (!userDetails.isAdmin()) {
 			Boolean isPermission = validateOwnerPermissionForNonAdmin(userDetails, certificateName);
 
