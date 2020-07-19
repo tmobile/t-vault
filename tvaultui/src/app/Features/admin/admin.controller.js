@@ -645,7 +645,7 @@
             	$scope.certSearchValue = $scope.searchValue;
                 getCertificates($scope.certSearchValue, null, null);
             }
-            if($scope.certSearchValue != $scope.searchValue && $scope.searchValue != undefined && $scope.searchValue.length ==1) {            	
+            if($scope.certSearchValue != $scope.searchValue && $scope.searchValue != undefined && $scope.searchValue.length ==1) {            	            	
                 $scope.certSearchValue = $scope.searchValue;                
             }
             if($scope.certSearchValue != $scope.searchValue) {            	
@@ -1601,6 +1601,7 @@
                         $scope.certificateCreationMessage = response.data.messages[0];
                         resetCert();
                         $scope.certificateCreationPopUp();
+                        $scope.searchValue = '';
                     }
                 },
                 function (error) {
@@ -1610,15 +1611,16 @@
                     $scope.certificateCreationFailedPopUp();
                     $scope.isLoadingData = false;
                     console.log(error);
+                    $scope.searchValue = '';
                 })
             } catch (e) {
                 resetCert();
                 $scope.isLoadingData = false;
                 console.log(e);
+                $scope.searchValue = '';
             }
 
-            resetCert();
-            clearSearchBox();
+            resetCert();            
         };
 
         $scope.cancel = function () {
@@ -1691,7 +1693,7 @@
                         "value":response.data.reasons[index].reason});
                     } 
                     $scope.revokeReasonsPopUp();
-                                                 
+                    $scope.searchValue = '';                             
                 }
             },
             function (error) {
@@ -1701,19 +1703,19 @@
                 $scope.revocationStatusMessage = "Revocation Reasons Failed!";
                 $scope.revocationPopUp();
                 console.log(error);
-               
+                $scope.searchValue = '';
             })
             }catch (e) {
                 $scope.isLoadingData = false;
                 console.log(e);
+                $scope.searchValue = '';
             };
 
             $scope.dropdownRevocationReasons = {
                 'selectedGroupOption': {"type": "Select Revocation Reasons","value":"Revocation Values"},       // As initial placeholder
                 'tableOptions': $scope.revocationReasons
             }
-            Modal.close('');
-            clearSearchBox();
+            Modal.close('');            
         };
 
         $scope.revocationReasonSelect = function(){
@@ -1936,7 +1938,7 @@
                	if ($rootScope.certDetails !== null && $rootScope.certDetails !== undefined) {
                		certificateDetails = $rootScope.certDetails;
                   }
-                $rootScope.certDetails = null;	
+                $rootScope.certDetails = null;                
                 try{
                 $scope.isLoadingData = true;
                 Modal.close();                
@@ -1953,25 +1955,28 @@
                         $scope.renewMessage = response.data.messages[0];     
                         $scope.renewCertificatePopUp();
                         $scope.requestDataFrAdmin();
+                        $scope.searchValue = '';
                     }
                 },
                     function (error) {
                         var errors = error.data.errors;
-                        $scope.renewMessage = 'Renew Failed';
+                        $scope.renewMessage = 'Renew Failed';                        
                         if (errors[0] == "Access denied: No permission to renew certificate") {
-                            $scope.revocationMessage = "For security reasons, you need to log out and log in again for the permissions to take effect.";
+                            $scope.renewMessage = "For security reasons, you need to log out and log in again for the permissions to take effect.";
                         } else {
-                            $scope.revocationMessage = errors[0];
+                            $scope.renewMessage = errors[0];
                         } 
                         $scope.renewCertificateFailedPopUp();
                         $scope.isLoadingData = false;
                         console.log(error);
+                        $scope.searchValue = '';
                     })
                 }catch (e) {
                     $scope.isLoadingData = false;
                     console.log(e);
+                    $scope.searchValue = '';
                 };               
-                clearSearchBox();
+                
             };
 
             var clearSearchBox =  function () {
