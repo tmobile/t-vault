@@ -1316,7 +1316,7 @@ public class SSLCertificateService {
         String _path = SSLCertificateConstants.SSL_CERT_PATH  ;
        	Response response = new Response();
        	String certListStr = "";
-       	String tokenValue= (userDetails.isAdmin())? token :userDetails.getSelfSupportToken();
+       	String tokenValue= (userDetails.isAdmin())? userDetails.getClientToken() :userDetails.getSelfSupportToken();
 
         response = getMetadata(tokenValue, _path);
         if (HttpStatus.OK.equals(response.getHttpstatus())) {
@@ -1395,7 +1395,7 @@ public class SSLCertificateService {
 			for (int i = offset; i < maxVal; i++) {
 				endPoint = certNames.get(i).replaceAll("^\"+|\"+$", "");
 				pathStr = path + "/" + endPoint;
-				response = reqProcessor.process("/sslcert", "{\"path\":\"" + pathStr + "\"}", token);
+				response = reqProcessor.process("/sslcert", "{\"path\":\"" + pathStr + "\"}", userDetails.getClientToken());
 				if (HttpStatus.OK.equals(response.getHttpstatus())) {
 					responseArray.add(((JsonObject) jsonParser.parse(response.getResponse())).getAsJsonObject("data"));
 				}
@@ -3096,7 +3096,8 @@ public class SSLCertificateService {
 			//if renewed get new certificate details and update metadata
 			if (renewResponse!=null && HttpStatus.OK.equals(renewResponse.getHttpstatus())) {
 			CertificateData certData = getLatestCertificate(certificateName,nclmAccessToken);			
-			boolean sslMetaDataUpdationStatus;			
+			boolean sslMetaDataUpdationStatus=true;		
+			if(!ObjectUtils.isEmpty(certData)) {
 			metaDataParams.put("certificateId",((Integer)certData.getCertificateId()).toString());
 			metaDataParams.put("createDate", certData.getCreateDate());
 			metaDataParams.put("expiryDate", certData.getExpiryDate());				
@@ -3107,6 +3108,7 @@ public class SSLCertificateService {
 			} else {
 				sslMetaDataUpdationStatus = ControllerUtil.updateMetaData(_path, metaDataParams,
 						userDetails.getSelfSupportToken());
+			}
 			}
 			if (sslMetaDataUpdationStatus) {
 				return ResponseEntity.status(renewResponse.getHttpstatus())
@@ -3124,7 +3126,7 @@ public class SSLCertificateService {
 												ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString())
 										.build()));
 				return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-						.body("{\"errors\":[\"" + "Certificate renewal Failed." + "\"]}");
+						.body("{\"errors\":[\"" + "Metadata updation Failed." + "\"]}");
 			}
 			}else {
 				log.error(
@@ -3194,7 +3196,7 @@ public class SSLCertificateService {
                             && jsonElement.get(SSLCertificateConstants.CERTIFICATE_STATUS).getAsString().
                             equalsIgnoreCase(SSLCertificateConstants.ACTIVE)) {
                     	certCreatedDate = LocalDateTime.parse(validateString(jsonElement.get("NotBefore")).substring(0, 19));
-                    	if(!ObjectUtils.isEmpty(createdDate) && createdDate.isBefore(certCreatedDate)) {
+                    	if(!ObjectUtils.isEmpty(createdDate) && (createdDate.isBefore(certCreatedDate) || createdDate.isEqual(certCreatedDate))) {
                         certificateData= new CertificateData();
                         certificateData.setCertificateId(Integer.parseInt(jsonElement.get("certificateId").getAsString()));
                         certificateData.setExpiryDate(validateString(jsonElement.get("NotAfter")));
