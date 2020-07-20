@@ -127,7 +127,7 @@ public class SSLCertificateController {
 	 * @return
 	 */
 	@ApiOperation(value = "${SSLCertificateController.addGroupToCertificate.value}", notes = "${SSLCertificateController.addGroupToCertificate.notes}")
-	@PostMapping(value="/v2/ss/certificate/group",consumes="application/json",produces="application/json")
+	@PostMapping(value="/v2/sslcert/group",consumes="application/json",produces="application/json")
 	public ResponseEntity<String> addGroupToCertificate(HttpServletRequest request, @RequestHeader(value="vault-token") String token, @RequestBody CertificateGroup certificateGroup){
 		UserDetails userDetails = (UserDetails) ((HttpServletRequest) request).getAttribute("UserDetails");
 		return sslCertificateService.addGroupToCertificate(userDetails, token,certificateGroup);

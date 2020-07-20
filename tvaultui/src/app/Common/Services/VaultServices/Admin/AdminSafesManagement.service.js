@@ -312,6 +312,11 @@
                     return response;
                 });
             },
+            addGroupPermissionForCertificate: function(payload, url){
+                return ServiceEndpoint.addGroupToCertificate.makeRequest(payload, url).then(function(response) {
+                    return response;
+                });
+            },
             getCertificateDetails: function (payload, url) {
                 return ServiceEndpoint.getCertificateDetails.makeRequest(payload, url).then(function(response) {
                     return response;
