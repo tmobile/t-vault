@@ -1616,203 +1616,201 @@ public class SSLCertificateService {
 
     }
 
-   	
-	/**
-	 * Get Revocation Reasons.
-	 * 
-	 * @param certificateId
-	 * @param token
-	 * @return
-	 */
-	public ResponseEntity<String> getRevocationReasons(Integer certificateId, String token) {
-		CertResponse revocationReasons = new CertResponse();
-		try {
-			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String> builder()
-					.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString())
-					.put(LogMessage.ACTION, "Fetch Revocation Reasons")
-					.put(LogMessage.MESSAGE,
-							String.format("Trying to fetch Revocation Reasons for [%s]", certificateId))
-					.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString())
-					.build()));
+    /**
+    * Get Revocation Reasons.
+    *
+    * @param certificateId
+    * @param token
+    * @return
+    */
+    public ResponseEntity<String> getRevocationReasons(Integer certificateId, String token) {
+    CertResponse revocationReasons = new CertResponse();
+    try {
+    log.debug(JSONUtil.getJSON(ImmutableMap.<String, String> builder()
+    .put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString())
+    .put(LogMessage.ACTION, "Fetch Revocation Reasons")
+    .put(LogMessage.MESSAGE,
+    String.format("Trying to fetch Revocation Reasons for [%s]", certificateId))
+    .put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString())
+    .build()));
 
-			String nclmAccessToken = getNclmToken();
+    String nclmAccessToken = getNclmToken();
 
-			String nclmGetCertificateReasonsEndpoint = getCertifcateReasons.replace("certID", certificateId.toString());
-			revocationReasons = reqProcessor.processCert("/certificates​/revocationreasons", certificateId,
-					nclmAccessToken, getCertmanagerEndPoint(nclmGetCertificateReasonsEndpoint));
-			log.debug(
-					JSONUtil.getJSON(
-							ImmutableMap.<String, String> builder()
-									.put(LogMessage.USER,
-											ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString())
-									.put(LogMessage.ACTION, "Fetch Revocation Reasons")
-									.put(LogMessage.MESSAGE, "Fetch Revocation Reasons for CertificateID")
-									.put(LogMessage.STATUS, revocationReasons.getHttpstatus().toString())
-									.put(LogMessage.APIURL,
-											ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString())
-									.build()));
-			return ResponseEntity.status(revocationReasons.getHttpstatus()).body(revocationReasons.getResponse());
-		} catch (TVaultValidationException error) {
-			log.error(
-					JSONUtil.getJSON(ImmutableMap.<String, String> builder()
-							.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString())
-							.put(LogMessage.ACTION,
-									String.format(
-											"Inside  TVaultValidationException " + "Exception = [%s] =  Message [%s]",
-											Arrays.toString(error.getStackTrace()), error.getMessage()))
-							.build()));
-			return ResponseEntity.status(HttpStatus.FORBIDDEN).body("{\"errors\":[\"" + "Certificate unavailable in NCLM." + "\"]}");
-		} catch (Exception e) {
-			log.error(
-					JSONUtil.getJSON(
-							ImmutableMap.<String, String> builder()
-									.put(LogMessage.USER,
-											ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString())
-									.put(LogMessage.ACTION, String.format("Inside  Exception = [%s] =  Message [%s]",
-											Arrays.toString(e.getStackTrace()), e.getMessage()))
-									.build()));
-			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-					.body("{\"errors\":[\"" + SSLCertificateConstants.SSL_CERTFICATE_REASONS_FAILED + "\"]}");
-		}
+    String nclmGetCertificateReasonsEndpoint = getCertifcateReasons.replace("certID", certificateId.toString());
+    revocationReasons = reqProcessor.processCert("/certificates​/revocationreasons", certificateId,
+    nclmAccessToken, getCertmanagerEndPoint(nclmGetCertificateReasonsEndpoint));
+    log.debug(
+    JSONUtil.getJSON(
+    ImmutableMap.<String, String> builder()
+    .put(LogMessage.USER,
+    ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString())
+    .put(LogMessage.ACTION, "Fetch Revocation Reasons")
+    .put(LogMessage.MESSAGE, "Fetch Revocation Reasons for CertificateID")
+    .put(LogMessage.STATUS, revocationReasons.getHttpstatus().toString())
+    .put(LogMessage.APIURL,
+    ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString())
+    .build()));
+    return ResponseEntity.status(revocationReasons.getHttpstatus()).body(revocationReasons.getResponse());
+    } catch (TVaultValidationException error) {
+    log.error(
+    JSONUtil.getJSON(ImmutableMap.<String, String> builder()
+    .put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString())
+    .put(LogMessage.ACTION,
+    String.format(
+    "Inside  TVaultValidationException " + "Exception = [%s] =  Message [%s]",
+    Arrays.toString(error.getStackTrace()), error.getMessage()))
+    .build()));
+    return ResponseEntity.status(HttpStatus.FORBIDDEN).body("{\"errors\":[\"" + "Certificate unavailable in NCLM." + "\"]}");
+    } catch (Exception e) {
+    log.error(
+    JSONUtil.getJSON(
+    ImmutableMap.<String, String> builder()
+    .put(LogMessage.USER,
+    ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString())
+    .put(LogMessage.ACTION, String.format("Inside  Exception = [%s] =  Message [%s]",
+    Arrays.toString(e.getStackTrace()), e.getMessage()))
+    .build()));
+    return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+    .body("{\"errors\":[\"" + SSLCertificateConstants.SSL_CERTFICATE_REASONS_FAILED + "\"]}");
+    }
 
-	}
+    }
 
-	/**
-	 * Issue a revocation request for certificate
-	 * 
-	 * @param certificateId
-	 * @param token
-	 * @param revocationRequest
-	 * @return
-	 * @throws IOException
-	 * @throws JsonMappingException
-	 * @throws JsonParseException
-	 */
-	public ResponseEntity<String> issueRevocationRequest(String certificateName, UserDetails userDetails, String token,
-			RevocationRequest revocationRequest) {
-		
-		revocationRequest.setTime(getCurrentLocalDateTimeStamp());
+    /**
+    * Issue a revocation request for certificate
+    *
+    * @param certificateId
+    * @param token
+    * @param revocationRequest
+    * @return
+    * @throws IOException
+    * @throws JsonMappingException
+    * @throws JsonParseException
+    */
+    public ResponseEntity<String> issueRevocationRequest(String certificateName, UserDetails userDetails, String token,
+    RevocationRequest revocationRequest) {
 
-		Map<String, String> metaDataParams = new HashMap<String, String>();
+    revocationRequest.setTime(getCurrentLocalDateTimeStamp());
 
-		String endPoint = certificateName;
-		String _path = SSLCertificateConstants.SSL_CERT_PATH + "/" + endPoint;
-		Response response = null;
-		try {
-			if (userDetails.isAdmin()) {
-				response = reqProcessor.process("/read", "{\"path\":\"" + _path + "\"}", token);
-			} else {
-				response = reqProcessor.process("/read", "{\"path\":\"" + _path + "\"}",
-						userDetails.getSelfSupportToken());
-			}
-		} catch (Exception e) {
-			log.error(
-					JSONUtil.getJSON(
-							ImmutableMap.<String, String> builder()
-									.put(LogMessage.USER,
-											ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString())
-									.put(LogMessage.ACTION,
-											String.format("Exception = [%s] =  Message [%s]",
-													Arrays.toString(e.getStackTrace()), response.getResponse()))
-									.build()));
-			return ResponseEntity.status(response.getHttpstatus())
-					.body("{\"errors\":[\"" + "Certificate unavailable in NCLM" + "\"]}");
-		}
-		if (!HttpStatus.OK.equals(response.getHttpstatus())) {
-			return ResponseEntity.status(response.getHttpstatus())
-					.body("{\"errors\":[\"" + "Certificate unavailable in NCLM" + "\"]}");
-		}
-		JsonParser jsonParser = new JsonParser();
-		JsonObject object = ((JsonObject) jsonParser.parse(response.getResponse())).getAsJsonObject("data");
-		metaDataParams = new Gson().fromJson(object.toString(), Map.class);
+    Map<String, String> metaDataParams = new HashMap<String, String>();
 
-		if (!userDetails.isAdmin()) {
+    String endPoint = certificateName;
+    String _path = SSLCertificateConstants.SSL_CERT_PATH + "/" + endPoint;
+    Response response = null;
+    try {
+    if (userDetails.isAdmin()) {
+    response = reqProcessor.process("/read", "{\"path\":\"" + _path + "\"}", token);
+    } else {
+    response = reqProcessor.process("/read", "{\"path\":\"" + _path + "\"}",
+    userDetails.getSelfSupportToken());
+    }
+    } catch (Exception e) {
+    log.error(
+    JSONUtil.getJSON(
+    ImmutableMap.<String, String> builder()
+    .put(LogMessage.USER,
+    ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString())
+    .put(LogMessage.ACTION,
+    String.format("Exception = [%s] =  Message [%s]",
+    Arrays.toString(e.getStackTrace()), response.getResponse()))
+    .build()));
+    return ResponseEntity.status(response.getHttpstatus())
+    .body("{\"errors\":[\"" + "Certificate unavailable in NCLM" + "\"]}");
+    }
+    if (!HttpStatus.OK.equals(response.getHttpstatus())) {
+    return ResponseEntity.status(response.getHttpstatus())
+    .body("{\"errors\":[\"" + "Certificate unavailable in NCLM" + "\"]}");
+    }
+    JsonParser jsonParser = new JsonParser();
+    JsonObject object = ((JsonObject) jsonParser.parse(response.getResponse())).getAsJsonObject("data");
+    metaDataParams = new Gson().fromJson(object.toString(), Map.class);
 
-			Boolean isPermission = validateOwnerPermissionForNonAdmin(userDetails, certificateName);
+    if (!userDetails.isAdmin()) {
 
-			if (!isPermission) {
-				return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-						.body("{\"errors\":[\""
-								+ "Access denied: no permission to revoke certificate"
-								+ "\"]}");
-			}
-		}
-		String certID = object.get("certificateId").getAsString();
-        float value = Float.valueOf(certID);
-		int certificateId = (int) value;
-		CertResponse revocationResponse = new CertResponse();
-		try {
-			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String> builder()
-					.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString())
-					.put(LogMessage.ACTION, "Issue Revocation Request")
-					.put(LogMessage.MESSAGE,
-							String.format("Trying to issue Revocation Request for [%s]", certificateId))
-					.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString())
-					.build()));
+    Boolean isPermission = validateOwnerPermissionForNonAdmin(userDetails, certificateName);
 
-			String nclmAccessToken = getNclmToken();
+    if (!isPermission) {
+    return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+    .body("{\"errors\":[\""
+    + "Access denied: no permission to revoke certificate"
+    + "\"]}");
+    }
+    }
+    String certID = object.get("certificateId").getAsString();
+            float value = Float.valueOf(certID);
+    int certificateId = (int) value;
+    CertResponse revocationResponse = new CertResponse();
+    try {
+    log.debug(JSONUtil.getJSON(ImmutableMap.<String, String> builder()
+    .put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString())
+    .put(LogMessage.ACTION, "Issue Revocation Request")
+    .put(LogMessage.MESSAGE,
+    String.format("Trying to issue Revocation Request for [%s]", certificateId))
+    .put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString())
+    .build()));
 
-			String nclmApiIssueRevocationEndpoint = issueRevocationRequest.replace("certID", String.valueOf(certificateId));
-			revocationResponse = reqProcessor.processCert("/certificates/revocationrequest", revocationRequest,
-					nclmAccessToken, getCertmanagerEndPoint(nclmApiIssueRevocationEndpoint));
-			log.debug(
-					JSONUtil.getJSON(
-							ImmutableMap.<String, String> builder()
-									.put(LogMessage.USER,
-											ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString())
-									.put(LogMessage.ACTION, "Issue Revocation Request")
-									.put(LogMessage.MESSAGE, "Issue Revocation Request for CertificateID")
-									.put(LogMessage.STATUS, revocationResponse.getHttpstatus().toString())
-									.put(LogMessage.APIURL,
-											ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString())
-									.build()));
+    String nclmAccessToken = getNclmToken();
 
-			boolean sslMetaDataUpdationStatus;
-			metaDataParams.put("certificateStatus", "Revoked");
-			if (userDetails.isAdmin()) {
-				sslMetaDataUpdationStatus = ControllerUtil.updateMetaData(_path, metaDataParams, token);
-			} else {
-				sslMetaDataUpdationStatus = ControllerUtil.updateMetaData(_path, metaDataParams,
-						userDetails.getSelfSupportToken());
-			}
-			if (sslMetaDataUpdationStatus) {
-				return ResponseEntity.status(revocationResponse.getHttpstatus())
-						.body("{\"messages\":[\"" + "Revocation done successfully" + "\"]}");
-			} else {
-				log.error(
-						JSONUtil.getJSON(
-								ImmutableMap.<String, String> builder()
-										.put(LogMessage.USER,
-												ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString())
-										.put(LogMessage.ACTION, "Revocation Request Failed")
-										.put(LogMessage.MESSAGE, "Revocation Request failed for CertificateID")
-										.put(LogMessage.STATUS, revocationResponse.getHttpstatus().toString())
-										.put(LogMessage.APIURL,
-												ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString())
-										.build()));
-				return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-						.body("{\"errors\":[\"" + "Revocation failed" + "\"]}");
-			}
+    String nclmApiIssueRevocationEndpoint = issueRevocationRequest.replace("certID", String.valueOf(certificateId));
+    revocationResponse = reqProcessor.processCert("/certificates/revocationrequest", revocationRequest,
+    nclmAccessToken, getCertmanagerEndPoint(nclmApiIssueRevocationEndpoint));
+    log.debug(
+    JSONUtil.getJSON(
+    ImmutableMap.<String, String> builder()
+    .put(LogMessage.USER,
+    ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString())
+    .put(LogMessage.ACTION, "Issue Revocation Request")
+    .put(LogMessage.MESSAGE, "Issue Revocation Request for CertificateID")
+    .put(LogMessage.STATUS, revocationResponse.getHttpstatus().toString())
+    .put(LogMessage.APIURL,
+    ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString())
+    .build()));
 
-		} catch (TVaultValidationException error) {
-			log.error(
-					JSONUtil.getJSON(ImmutableMap.<String, String> builder()
-							.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString())
-							.put(LogMessage.ACTION, String.format("Inside  TVaultValidationException  = [%s] =  Message [%s]",
-									Arrays.toString(error.getStackTrace()), error.getMessage()))
-							.build()));
-			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"" + error.getMessage() + "\"]}");
-		} catch (Exception e) {
-			log.error(JSONUtil.getJSON(ImmutableMap.<String, String> builder()
-					.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString())
-					.put(LogMessage.ACTION, String.format("Inside  Exception = [%s] =  Message [%s]",
-							Arrays.toString(e.getStackTrace()), e.getMessage()))
-					.build()));
-			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-					.body("{\"errors\":[\"" + e.getMessage() + "\"]}");
-		}
-	}
-		
+    boolean sslMetaDataUpdationStatus;
+    metaDataParams.put("certificateStatus", "Revoked");
+    if (userDetails.isAdmin()) {
+    sslMetaDataUpdationStatus = ControllerUtil.updateMetaData(_path, metaDataParams, token);
+    } else {
+    sslMetaDataUpdationStatus = ControllerUtil.updateMetaData(_path, metaDataParams,
+    userDetails.getSelfSupportToken());
+    }
+    if (sslMetaDataUpdationStatus) {
+    return ResponseEntity.status(revocationResponse.getHttpstatus())
+    .body("{\"messages\":[\"" + "Revocation done successfully" + "\"]}");
+    } else {
+    log.error(
+    JSONUtil.getJSON(
+    ImmutableMap.<String, String> builder()
+    .put(LogMessage.USER,
+    ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString())
+    .put(LogMessage.ACTION, "Revocation Request Failed")
+    .put(LogMessage.MESSAGE, "Revocation Request failed for CertificateID")
+    .put(LogMessage.STATUS, revocationResponse.getHttpstatus().toString())
+    .put(LogMessage.APIURL,
+    ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString())
+    .build()));
+    return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+    .body("{\"errors\":[\"" + "Revocation failed" + "\"]}");
+    }
+
+    } catch (TVaultValidationException error) {
+    log.error(
+    JSONUtil.getJSON(ImmutableMap.<String, String> builder()
+    .put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString())
+    .put(LogMessage.ACTION, String.format("Inside  TVaultValidationException  = [%s] =  Message [%s]",
+    Arrays.toString(error.getStackTrace()), error.getMessage()))
+    .build()));
+    return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"" + error.getMessage() + "\"]}");
+    } catch (Exception e) {
+    log.error(JSONUtil.getJSON(ImmutableMap.<String, String> builder()
+    .put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString())
+    .put(LogMessage.ACTION, String.format("Inside  Exception = [%s] =  Message [%s]",
+    Arrays.toString(e.getStackTrace()), e.getMessage()))
+    .build()));
+    return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+    .body("{\"errors\":[\"" + e.getMessage() + "\"]}");
+    }
+    }
 	/**		
 	 * Get Current Date and Time.
 	 * 
@@ -2200,7 +2198,7 @@ public class SSLCertificateService {
 		}
 		else {
 			token = userDetails.getSelfSupportToken();
-			ResponseEntity<String> isAuthorized = isAuthorized(userDetails, certificateGroup.getCertificatename());
+			ResponseEntity<String> isAuthorized = isAuthorized(userDetails, certificateGroup.getCertificateName());
 			if (!isAuthorized.getStatusCode().equals(HttpStatus.OK)) {
 				return isAuthorized.getStatusCode().equals(HttpStatus.BAD_REQUEST)?isAuthorized:ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Error checking user permission\"]}");
 			}
@@ -2271,7 +2269,7 @@ public class SSLCertificateService {
 		}
 
 		String groupName = requestMap.get("groupname");
-		String certificateName = requestMap.get("certificatename");
+		String certificateName = requestMap.get("certificateName");
 		String access = requestMap.get("access");
 		groupName = (groupName !=null) ? groupName.toLowerCase() : groupName;
 		certificateName = (certificateName != null) ? certificateName.toLowerCase() : certificateName;
@@ -2340,7 +2338,7 @@ public class SSLCertificateService {
 				Map<String,String> params = new HashMap<String,String>();
 				params.put("type", "groups");
 				params.put("name",groupName);
-				params.put("certificatename",certificateName);
+				params.put("certificateName",certificateName);
 				params.put("access",access);
 				Response metadataResponse = ControllerUtil.updateSslCertificateMetadata(params,token);
 				if(metadataResponse !=null && HttpStatus.NO_CONTENT.equals(metadataResponse.getHttpstatus())){
@@ -2354,7 +2352,7 @@ public class SSLCertificateService {
 					return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Group is successfully associated with Certificate\"]}");
 				}else{
 					String certType = SSLCertificateConstants.SSL_CERT_PATH;
-					String certName = certificateGroup.getCertificatename();
+					String certName = certificateGroup.getCertificateName();
 					List<String> certNames = ControllerUtil.getAllExistingCertNames(certType, token);
 					if (certNames != null ) {
 

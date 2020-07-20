@@ -362,6 +362,10 @@ readTextFile("../apiUrls.json");
             name: 'renewCertificate',
             url: '/v2/certificates/{certName}/renew',
             method: 'POST'
+        }, {
+            name: 'addGroupToCertificate',
+            url: '/v2/sslcert/group',
+            method: 'POST'  
         }
     ]
     });
