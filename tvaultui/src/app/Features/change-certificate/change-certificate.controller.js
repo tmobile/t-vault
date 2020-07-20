@@ -458,10 +458,12 @@
 
                             if ($rootScope.showDetails !== true) {
                                 document.getElementById('addUser').value = '';
+                                document.getElementById('addGroup').value = '';
                             }
                             $scope.inputSelected.select = false;
                             $scope.searchValue = {
                                 userName: '',
+                                groupName: ''
                             };
                             lastContent = '';
                             // Try-Catch block to catch errors if there is any change in object structure in the response
@@ -503,7 +505,7 @@
                                 }
 
                                 hideUserSudoPolicy();
-                               
+                                $scope.GroupsPermissionsData = object.groups;
                             }
                             catch (e) {
                                 console.log(e);
@@ -665,7 +667,8 @@
                             apiCallFunction = AdminSafesManagement.addUserPermissionForCertificate;
                             reqObjtobeSent = {"certificateName": certName, "username": key, "access": permission.toLowerCase()};
                             break;
-                        case 'groups' :                            
+                        case 'groups' : 
+                            apiCallFunction = AdminSafesManagement.addGroupPermissionForCertificate;                           
                             reqObjtobeSent = {"certificateName": certName, "groupname": key, "access": permission.toLowerCase()};
                             break;
                         case 'AWSPermission' :                            
@@ -689,6 +692,16 @@
                                     var notification = UtilityService.getAParticularSuccessMessage('MESSAGE_ADD_SUCCESS');
                                     if (key !== null && key !== undefined) {
                                         if (type === "users" && key === SessionStore.getItem("username")) {
+                                            clearInputPermissionData();
+                                            return Modal.createModalWithController('stop.modal.html', {
+                                                title: 'Permission changed',
+                                                message: 'For security reasons, if you add or modify permission to yourself, you need to log out and log in again for the added or modified permissions to take effect.'
+                                                });
+                                        }
+                                        Notifications.toast(key + "'s permission" + notification);
+                                    }
+                                    if (key !== null && key !== undefined) {
+                                        if (type === "groups") {
                                             clearInputPermissionData();
                                             return Modal.createModalWithController('stop.modal.html', {
                                                 title: 'Permission changed',

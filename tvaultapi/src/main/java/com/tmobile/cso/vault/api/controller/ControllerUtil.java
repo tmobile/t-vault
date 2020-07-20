@@ -2499,9 +2499,9 @@ public final class ControllerUtil {
 		}
 		if (ObjectUtils.isEmpty(certificateGroup.getGroupname())
 				|| ObjectUtils.isEmpty(certificateGroup.getAccess())
-				|| ObjectUtils.isEmpty(certificateGroup.getCertificatename())
-				|| certificateGroup.getCertificatename().contains(" ")
-                || (!certificateGroup.getCertificatename().endsWith(".t-mobile.com"))
+				|| ObjectUtils.isEmpty(certificateGroup.getCertificateName())
+				|| certificateGroup.getCertificateName().contains(" ")
+                || (!certificateGroup.getCertificateName().endsWith(".t-mobile.com"))
 				) {
 			return false;
 		}
@@ -2581,7 +2581,7 @@ public final class ControllerUtil {
 		String _type = params.get("type");
 		String name = params.get("name");
 		String access = params.get("access");
-		String certificateName = params.get("certificatename");
+		String certificateName = params.get("certificateName");
 		String path = "metadata/sslcerts/" +certificateName;
 
 		ObjectMapper objMapper = new ObjectMapper();
