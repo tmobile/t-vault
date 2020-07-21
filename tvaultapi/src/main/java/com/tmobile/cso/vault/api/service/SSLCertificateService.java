@@ -72,6 +72,7 @@ import com.tmobile.cso.vault.api.utils.CertificateUtils;
 import com.tmobile.cso.vault.api.utils.JSONUtil;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.tmobile.cso.vault.api.utils.ThreadLocalContext;
+
 import java.io.ByteArrayInputStream;
 import java.io.UnsupportedEncodingException;
 import java.security.KeyManagementException;
@@ -109,7 +110,6 @@ public class SSLCertificateService {
 
     @Autowired
     private TokenValidator tokenValidator;
-
 
 
     @Value("${vault.auth.method}")
@@ -1320,7 +1320,7 @@ public class SSLCertificateService {
         String _path = SSLCertificateConstants.SSL_CERT_PATH  ;
        	Response response = new Response();
        	String certListStr = "";
-       	String tokenValue= (userDetails.isAdmin())? userDetails.getClientToken() :userDetails.getSelfSupportToken();
+       	String tokenValue= (userDetails.isAdmin())? token :userDetails.getSelfSupportToken();
 
         response = getMetadata(tokenValue, _path);
         if (HttpStatus.OK.equals(response.getHttpstatus())) {
@@ -1399,7 +1399,7 @@ public class SSLCertificateService {
 			for (int i = offset; i < maxVal; i++) {
 				endPoint = certNames.get(i).replaceAll("^\"+|\"+$", "");
 				pathStr = path + "/" + endPoint;
-				response = reqProcessor.process("/sslcert", "{\"path\":\"" + pathStr + "\"}", userDetails.getClientToken());
+				response = reqProcessor.process("/sslcert", "{\"path\":\"" + pathStr + "\"}", token);
 				if (HttpStatus.OK.equals(response.getHttpstatus())) {
 					responseArray.add(((JsonObject) jsonParser.parse(response.getResponse())).getAsJsonObject("data"));
 				}
@@ -3091,10 +3091,12 @@ public class SSLCertificateService {
 			CertificateData certData = getLatestCertificate(certificateName,nclmAccessToken);			
 			boolean sslMetaDataUpdationStatus=true;		
 			if(!ObjectUtils.isEmpty(certData)) {
-			metaDataParams.put("certificateId",((Integer)certData.getCertificateId()).toString());
-			metaDataParams.put("createDate", certData.getCreateDate());
-			metaDataParams.put("expiryDate", certData.getExpiryDate());				
-			metaDataParams.put("certificateStatus", certData.getCertificateStatus());
+			metaDataParams.put("certificateId",((Integer)certData.getCertificateId()).toString()!=null?
+					((Integer)certData.getCertificateId()).toString():String.valueOf(certificateId));
+			metaDataParams.put("createDate", certData.getCreateDate()!=null?certData.getCreateDate():object.get("createDate").getAsString());
+			metaDataParams.put("expiryDate", certData.getExpiryDate()!=null?certData.getExpiryDate():object.get("expiryDate").getAsString());			
+			metaDataParams.put("certificateStatus", certData.getCertificateStatus()!=null?certData.getCertificateStatus():
+				object.get("certificateStatus").getAsString());
 						
 			if (userDetails.isAdmin()) {
 				sslMetaDataUpdationStatus = ControllerUtil.updateMetaData(_path, metaDataParams, token);
@@ -3185,9 +3187,7 @@ public class SSLCertificateService {
                     }else if (i>0) {
                     	createdDate = LocalDateTime.parse(validateString(jsonArray.get(i-1).getAsJsonObject().get("NotBefore")).substring(0, 19));
                     }
-                    if ((Objects.equals(getCertficateName(jsonElement.get("sortedSubjectName").getAsString()), certName))
-                            && jsonElement.get(SSLCertificateConstants.CERTIFICATE_STATUS).getAsString().
-                            equalsIgnoreCase(SSLCertificateConstants.ACTIVE)) {
+                    if ((Objects.equals(getCertficateName(jsonElement.get("sortedSubjectName").getAsString()), certName))) {
                     	certCreatedDate = LocalDateTime.parse(validateString(jsonElement.get("NotBefore")).substring(0, 19));
                     	if(!ObjectUtils.isEmpty(createdDate) && (createdDate.isBefore(certCreatedDate) || createdDate.isEqual(certCreatedDate))) {
                         certificateData= new CertificateData();
@@ -3613,6 +3613,7 @@ public class SSLCertificateService {
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Group configuration failed. Contact Admin \"]}");
 		}
 	}
+
     
 	/**
 	 * Validates Certificate group inputs

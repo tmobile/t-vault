@@ -700,8 +700,9 @@
 
         $scope.getTargetSystemService = function () {
             $scope.targetSystemServicesList = [];
-            setTargetSystemServiceList("Loading services..", []);
+            setTargetSystemServiceList("Loading services..", []);            
             var currentServicesList = [];
+            $scope.isLoadingserviceData = true;
             $scope.targetSystemServiceSelected = false;
             if ($scope.targetSystemSelected == true) {
                 var targetSystemId = $scope.certObj.targetSystem.targetSystemID;
@@ -726,6 +727,8 @@
                             setTargetSystemServiceList("No target system selected", []);
                         }
                         $scope.showServiceInputLoader.show = false;
+                        $scope.isLoadingserviceData=false;
+                        $scope.targetSystemServiceValidation();
                     }
                     else {
                         $scope.showServiceInputLoader.show = false;
@@ -1408,6 +1411,8 @@
 
             $scope.hostNameErrorMessage = '';
             $scope.certNameErrorMessage = '';
+            $scope.targetSysErrorMessage = '';
+            $scope.targetSysServiceErrorMessage = '';
             $scope.targetAddrErrorMessage = '';
             $scope.portErrorMessage = '';
             $scope.ownerEmailErrorMessage='';
@@ -1485,7 +1490,50 @@
                 $scope.certObj.targetSystemServiceRequest.hostname = $scope.certObj.targetSystemServiceRequest.hostname.replace(/[ ]/g, '');
                 return $scope.hostNamePatternValidation();
             }
-        }
+        }        
+        
+        $scope.targetSystemAvailable = function(){        	
+        	if($scope.targetSystemType.type=="new"){        		
+        		return $scope.targetSystemValidation();
+        	}
+        	if($scope.targetSystemType.type=="existing"){        		
+        		$scope.targetSystemIsAvailable = false;
+        	} 
+            }
+        
+        $scope.targetSystemValidation = function(){  
+        	$scope.targetSysErrorMessage="";        	
+        	$scope.targetSystemIsAvailable = false;
+        	var targetSysName = $scope.certObj.targetSystem.name;       	
+        	angular.forEach($scope.targetSystemList, function(item){                 
+                if(item.name == targetSysName){
+                	$scope.targetSysErrorMessage="Entered target system is available";
+                	$scope.targetSystemIsAvailable = true;
+                }
+            })              
+            }
+        
+        $scope.targetSystemServiceAvailable = function(){
+        	if($scope.targetSystemServiceType.type=="new"){
+        		return $scope.targetSystemServiceValidation();
+        	}      	
+            }
+        
+        $scope.targetSystemServiceValidation = function(){  
+        	$scope.targetSysServiceErrorMessage="";
+        	
+        	$scope.targetSystemServiceIsAvailable = false;
+        	var targetSysServiceName = $scope.certObj.targetSystemServiceRequest.name;
+        	        	
+        	if($scope.targetSystemServicesList !=null) {   	
+        	angular.forEach($scope.targetSystemServicesList, function(item){
+                if(item.name == targetSysServiceName){
+                	$scope.targetSysServiceErrorMessage="Entered target system service is available";
+                	$scope.targetSystemServiceIsAvailable = true;                	
+                }                
+            })              
+            }
+    }
 
         $scope.portNumValidation = function () {
             $scope.portErrorMessage = '';
@@ -1499,7 +1547,7 @@
             }
         }
 
-        $scope.isCreateCertBtnDisabled = function () {
+        $scope.isCreateCertBtnDisabled = function () {         	
             if ($scope.certObj.targetSystem != undefined
                 && $scope.certObj.targetSystem.name != undefined
                 && $scope.certObj.targetSystem.address != undefined
@@ -1516,12 +1564,14 @@
                 && $scope.certObj.certDetails.certType != undefined
                 && $scope.certObj.certDetails.applicationName != undefined
                 && $scope.isOwnerSelected == true
+                && !$scope.targetSystemIsAvailable 
+                && !$scope.targetSystemServiceIsAvailable
                 && !$scope.hostNameInValid) {
                 return false;
             }
             return true;
         }
-
+        
         $scope.selectAppName = function (applicationObj) {  
             $scope.certObj.certDetails.applicationName = applicationObj.tag;
             $scope.appNameSelected = true;
@@ -1576,7 +1626,8 @@
         }
 
         $scope.createCert = function () {
-            try {
+            try {       
+            	$scope.targetSystemServiceValidation();
                 Modal.close('');
                 var sslcertType = 'PRIVATE_SINGLE_SAN';
                 $scope.appNameTagValue=$scope.certObj.certDetails.applicationName;
@@ -1778,7 +1829,8 @@
         $scope.openExistingTargetSystem = function (e) {
             $scope.existingTargetSystem = true;
             $scope.existingService = true;
-            $scope.existingService = false;
+            $scope.existingService = false;  
+            $scope.targetSystemIsAvailable = false;
             if(angular.isDefined($scope.certObj.targetSystem) && $scope.certObj.targetSystem != null && typeof $scope.certObj.targetSystem == 'object'){
                 $scope.certObj.targetSystem.name=undefined;
                 $scope.certObj.targetSystem.description=undefined;
@@ -1808,7 +1860,10 @@
 
         $scope.openExistingService = function () {
             $scope.existingService = true;
-        }
+            $scope.targetSystemServiceIsAvailable = false;
+            $scope.targetSysServiceErrorMessage="";
+            $scope.certObj.targetSystemServiceRequest.name = undefined
+            }
 
         var clearTargetSystemServiceFields = function () {
             if(angular.isDefined($scope.certObj.targetSystemServiceRequest) && $scope.certObj.targetSystemServiceRequest != null && typeof $scope.certObj.targetSystemServiceRequest == 'object'){  
@@ -1818,6 +1873,7 @@
                 $scope.certObj.targetSystemServiceRequest.hostname=undefined;
                 $scope.certObj.targetSystemServiceRequest.monitoringEnabled=undefined;
                 $scope.certObj.targetSystemServiceRequest.multiIpMonitoringEnabled=undefined;
+                $scope.targetSysServiceErrorMessage="";
             }
             else {
                 $scope.targetSystemServiceRequest = {
