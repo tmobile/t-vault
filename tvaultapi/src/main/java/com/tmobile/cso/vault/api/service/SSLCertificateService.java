@@ -198,14 +198,8 @@ public class SSLCertificateService {
 
     @Value("${certificate.renew.delay.time.millsec}")
     private int renewDelayTime;
-    @Value("${sslcertmanager.external.certificate.telephonenumber}")
-    private String externalCertificateTelephoneNumber;
-    @Value("${sslcertmanager.external.certificate.requester.name}")
-    private String externalCertificateRequesterName;
-    @Value("${sslcertmanager.external.certificate.requester.email}")
-    private String externalCertificateRequesterEmail;
-    @Value("${sslcertmanager.external.certificate.lifetime}")
-    private String externalCertificateLifeTime;
+
+
 
     private static Logger log = LogManager.getLogger(SSLCertificateService.class);
 
@@ -587,39 +581,8 @@ public class SSLCertificateService {
         String enrollEndPoint = "/certmanager/getTemplateParameter";
         String enrollTemplateCA = getTemplateParamUrl.replace("templateId", String.valueOf(templateid)).replace(
                 "entityid", String.valueOf(entityId));
-        CertResponse certResponse = reqProcessor.processCert(enrollEndPoint, "", certManagerLogin.getAccess_token(),
+        return reqProcessor.processCert(enrollEndPoint, "", certManagerLogin.getAccess_token(),
                 getCertmanagerEndPoint(enrollTemplateCA));
-        return updateRequestWithRequestedDetails(certResponse);
-    }
-
-    /**
-     * Update the request with requester details
-     *
-     * @param certResponse
-     * @return
-     */
-    private CertResponse updateRequestWithRequestedDetails(CertResponse certResponse) {
-        Gson gson = new GsonBuilder().setLenient().create();
-        JsonObject json = gson.fromJson(certResponse.getResponse(), JsonObject.class);
-        JsonParser jsonParser = new JsonParser();
-        JsonObject jsonObject = (JsonObject) jsonParser.parse(json.toString());
-        JsonObject paramJsonObject = jsonObject.getAsJsonObject("templateParameters");
-        JsonArray itemsJsonArray = paramJsonObject.getAsJsonArray(SSLCertificateConstants.ITEMS);
-        JsonObject jsonObjectDetails= null;
-        for (int i = 0; i < itemsJsonArray.size(); i++) {
-            jsonObjectDetails = itemsJsonArray.get(i).getAsJsonObject();
-            if (jsonObjectDetails.get(SSLCertificateConstants.NAME).getAsString().equals(SSLCertificateConstants.APPNAME)) {
-                jsonObjectDetails.addProperty(SSLCertificateConstants.PROPERTY_VALUE, externalCertificateRequesterName);
-            } else if (jsonObjectDetails.get(SSLCertificateConstants.NAME).getAsString().equals(SSLCertificateConstants.APPEMAIL)) {
-                jsonObjectDetails.addProperty(SSLCertificateConstants.PROPERTY_VALUE, externalCertificateRequesterEmail);
-            } else if (jsonObjectDetails.get(SSLCertificateConstants.NAME).getAsString().equals(SSLCertificateConstants.APPTELEPHONE)) {
-                jsonObjectDetails.addProperty(SSLCertificateConstants.PROPERTY_VALUE, externalCertificateTelephoneNumber);
-            } else if (jsonObjectDetails.get(SSLCertificateConstants.NAME).getAsString().equals(SSLCertificateConstants.CERTYEARS)) {
-                jsonObjectDetails.addProperty(SSLCertificateConstants.PROPERTY_VALUE, externalCertificateLifeTime);
-            }
-        }
-        certResponse.setResponse(jsonObject.toString());
-        return certResponse;
     }
 
 

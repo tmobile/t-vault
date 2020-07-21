@@ -47,12 +47,7 @@ public final class SSLCertificateConstants {
     public static final String CERT_DOWNLOAD_TYPE_PKCS12DERR = "pkcs12der";
     public static final String CERT_DOWNLOAD_TYPE_PEMBUNDLE = "pembundle";
     public static final String CERT_DOWNLOAD_TYPE_PKCS12PEM = "pkcs12pem";
-    public static final String PROPERTY_VALUE="value";
     public static final String INTERNAL_POLICY_NAME="cert";
     public static final String EXTERNAL_POLICY_NAME="externalcerts";
-    public static final String APPNAME = "appname";
-    public static final String APPEMAIL = "appemail";
-    public static final String APPTELEPHONE= "apptelephone";
-    public static final String CERTYEARS= "certyears";
 
 }
