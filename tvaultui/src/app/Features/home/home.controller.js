@@ -19,7 +19,7 @@
 
 'use strict';
 (function(app){
-    app.controller('HomeCtrl', function($scope, Modal, $state, Authentication, SessionStore, UtilityService, Idle, AppConstant){
+    app.controller('HomeCtrl', function($scope, Modal, $state, Authentication, SessionStore, UtilityService, Idle, AppConstant, $location){
 
         var init = function(){
             $scope.slackLink = AppConstant.SLACK_LINK;
@@ -48,7 +48,73 @@
                 'forgotPasswordLink': $scope.forgotPasswordLink
             }
 
-        }       
+            var searchObj = $location.search();
+            if (searchObj.code && searchObj.state) {
+                // handle call back
+                getSSOCallback(searchObj.code, searchObj.state);
+            }
+
+            // MSAL config
+            var msalConfig = {
+                auth: {
+                    clientId: "06b34fda-31fc-4e29-8fbc-43f01ec894b5",
+                    authority: "https://login.microsoftonline.com/be0f980b-dd99-4b19-bd7b-bc71a09b026c",
+                    redirectUri: "http://localhost:3000",
+                }
+            };
+
+            $scope.msalInstance = new window.Msal.UserAgentApplication(msalConfig);
+            var loginRequest = {scopes: ["user.read", "mail.send"] };
+
+            if(SessionStore.getItem("myVaultKey")){
+                // If no call back and token exists in session.
+                $scope.isLoadingData = true;
+                window.location.replace("/home/safes-tabs/safes");
+                return;
+            }
+
+        }
+
+        //SSO login popup
+        $scope.loginSSO = function () {
+            getSSOAuthUrl();
+        }
+
+        function getSSOAuthUrl() {
+            $scope.isLoadingData = true;
+            var reqObjtobeSent = {
+                "role": AppConstant.OIDC_ROLE,
+                "redirect_uri": AppConstant.OIDC_REDIRECT_URL
+              };
+            Authentication.getAuthUrl(reqObjtobeSent).then(function(response){
+                if(UtilityService.ifAPIRequestSuccessful(response)){
+                    window.open(response.data.data.auth_url,"_self");
+                } else {
+                    $scope.isLoadingData = false;
+                    return Modal.createModalWithController('error.html', {
+                        shortMessage: 'Something went wrong, please try again later.'
+                    });
+                }
+            })
+        }
+
+        function getSSOCallback(code, state) {
+            $scope.isLoadingData = true;
+            Authentication.getSSOCallback(code, state).then(function(response){
+                if(UtilityService.ifAPIRequestSuccessful(response)){
+                    if(response.data != undefined) {
+                        // @TODO: how to get username here
+                        //SessionStore.setItem("username",username);
+                    }
+                    saveParametersInSessionStore(response.data);
+                    window.location.replace("/home/safes-tabs/safes");
+                } else {
+                    // callback process failed. Redirect to landing page. If not active token exists then will automatically redirect from landing page to login.
+                    $scope.isLoadingData = false;
+                    window.location.replace("/home/safes-tabs/safes");
+                }
+            })
+        }
 
         $scope.goToLogin = function(size) {
             $scope.loginPopupObj = {
@@ -131,5 +197,6 @@
     })
 })(angular.module('vault.features.HomeCtrl',[
     'vault.services.UtilityService',
-    'vault.constants.AppConstant'
+    'vault.constants.AppConstant',
+    'vault.services.AdminSafesManagement'
 ]));

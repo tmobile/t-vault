@@ -369,7 +369,7 @@ readTextFile("../apiUrls.json");
         }, {
             name: 'addGroupToCertificate',
             url: '/v2/sslcert/group',
-            method: 'POST'  
+            method: 'POST'
         }, {
             name: 'deleteUserPermissionFromCertificate',
             url: '/v2/sslcert/user',
@@ -394,7 +394,15 @@ readTextFile("../apiUrls.json");
             name: 'deleteCertificate',
             url: '/v2/certificates/{certName}/{certType}',
             method: 'DELETE'
-        }
+        }, {
+             name: 'getAuthUrl',
+             url: '/v2/auth/oidc/auth_url',
+             method: 'POST'
+         }, {
+             name: 'getCallback',
+             url: '/v2/auth/oidc/callback',
+             method: 'GET'
+         }
     ]
     });
 })( angular.module( 'vault.constants.RestEndpoints', []));
