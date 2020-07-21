@@ -331,7 +331,7 @@
                 return ServiceEndpoint.addApproleToCertificate.makeRequest(payload, url).then(function(response) {
                 	 return response;
                 });
-            },            
+            },
             renewCertificate: function (payload, url) {
                 return ServiceEndpoint.renewCertificate.makeRequest(payload, url).then(function(response) {
                     return response;
@@ -351,7 +351,7 @@
                 return ServiceEndpoint.listCertificatesByCertificateType.makeRequest(payload, url).then(function(response) {
                     return response;
                 });
-            },            
+            },
             transferCertificate: function (payload, url) {
                 return ServiceEndpoint.transferCertificate.makeRequest(payload, url).then(function(response) {
                     return response;
@@ -361,9 +361,19 @@
                 return ServiceEndpoint.validateCertificateDetails.makeRequest(payload, url).then(function(response) {
                     return response;
                 });
-            },            
+            },
             deleteCertificate: function (payload, url) {
                 return ServiceEndpoint.deleteCertificate.makeRequest(payload, url).then(function(response) {
+                    return response;
+                });
+            },
+            getAuthUrl: function (payload, url) {
+                return ServiceEndpoint.getAuthUrl.makeRequest(payload, url).then(function(response) {
+                    return response;
+                });
+            },
+            getCallback: function (payload, url) {
+                return ServiceEndpoint.getCallback.makeRequest(payload, url).then(function(response) {
                     return response;
                 });
             },
