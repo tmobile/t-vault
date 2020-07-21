@@ -171,7 +171,8 @@ script(type='text/ng-template', id='certificatePopup.html')
                     .col-lg-12.col-md-12.col-sm-12.col-xs-12.common-form-row()
                       .details-input-group
                         .common-form-label Name*
-                        input.form-control.input-box-style( id="tarSystemName" ng-model="certObj.targetSystem.name" ng-required="true")
+                        input.form-control.input-box-style( id="tarSystemName" ng-model="certObj.targetSystem.name" ng-change="targetSystemAvailable()" ng-required="true")
+                        div.key-acceptance-info() {{ targetSysErrorMessage }}
                     .col-lg-12.col-md-12.col-sm-12.col-xs-12.common-form-row()
                       .details-input-group
                         .common-form-label Description 
@@ -213,7 +214,8 @@ script(type='text/ng-template', id='certificatePopup.html')
                     .col-lg-12.col-md-12.col-sm-12.col-xs-12.common-form-row()
                       .details-input-group
                         .common-form-label Name*
-                        input.form-control.input-box-style(id="tarSysServiceReqName" ng-model="certObj.targetSystemServiceRequest.name"  ng-required="true")
+                        input.form-control.input-box-style(id="tarSysServiceReqName" ng-model="certObj.targetSystemServiceRequest.name"  ng-change="targetSystemServiceAvailable()" typeahead-wait-ms="500" ng-required="true")
+                    div.key-acceptance-info() {{ targetSysServiceErrorMessage }}
                     .col-lg-12.col-md-12.col-sm-12.col-xs-12.common-form-row()
                       .details-input-group
                         .common-form-label Description
