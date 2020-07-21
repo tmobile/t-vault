@@ -83,10 +83,6 @@
                 });
             }
 
-            $scope.certificatesData.keys = data.filter(function(cert){
-                return cert.permission === "read";
-            });
-
             var policies = SessionStore.getItem("policies");
             if (policies !="" && policies !=null && policies != undefined) {
                 var policiesArray = policies.split(",");
@@ -98,6 +94,11 @@
                     $scope.certificatesData.keys.push({"certname": sudoPolicy.substring(7), "permission": "sudo"});
                 });
             }
+
+            $scope.certificatesData.keys = data.filter(function(cert){
+                return cert.permission === "read";
+            });
+
             $scope.numOfCertificates=$scope.certificatesData.keys.length;
             $scope.isLoadingData = false;
         };
