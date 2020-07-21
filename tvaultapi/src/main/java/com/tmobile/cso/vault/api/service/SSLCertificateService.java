@@ -69,7 +69,6 @@ import com.tmobile.cso.vault.api.process.Response;
 import com.tmobile.cso.vault.api.utils.AuthorizationUtils;
 import com.tmobile.cso.vault.api.utils.CertificateUtils;
 import com.tmobile.cso.vault.api.utils.JSONUtil;
-import com.tmobile.cso.vault.api.utils.PolicyUtils;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.tmobile.cso.vault.api.utils.ThreadLocalContext;
 import java.io.ByteArrayInputStream;
@@ -1422,23 +1421,23 @@ public class SSLCertificateService {
    	 * @param searchText
    	 * @return
    	 */
-   	private List<String> geMatchCertificates(JsonArray jsonArray, String searchText) {
-   		List<String> list = new ArrayList<>();
-   		if(!ObjectUtils.isEmpty(jsonArray)) {
-   		if(!StringUtils.isEmpty(searchText)) {
-   	   	for(int i = 0; i < jsonArray.size(); i++){
-   	   	if(jsonArray.get(i).toString().contains(searchText)){
-   	   	    list.add(jsonArray.get(i).toString());
-   	   	}
-   	   	}
-   		}else {
-   			for(int i = 0; i < jsonArray.size(); i++){
-   			 list.add(jsonArray.get(i).toString());
-   	   	   	}
-   			}
-   		}
-   	 return list;
-   	}
+	private List<String> geMatchCertificates(JsonArray jsonArray, String searchText) {
+		List<String> list = new ArrayList<>();
+		if (!ObjectUtils.isEmpty(jsonArray)) {
+		    if (!StringUtils.isEmpty(searchText)) {
+				for (int i = 0; i < jsonArray.size(); i++) {
+					if (jsonArray.get(i).toString().contains(searchText)) {
+						list.add(jsonArray.get(i).toString());
+					}
+				}
+			} else {
+				for (int i = 0; i < jsonArray.size(); i++) {
+					list.add(jsonArray.get(i).toString());
+				}
+			}
+		}
+		return list;
+	}
    	
    	/**
    	 * To Get the metadata details for user
@@ -1448,30 +1447,33 @@ public class SSLCertificateService {
    	 * @param offset
    	 * @return
    	 */
-   	private JsonArray getMetadataForUser(List<String> certNames, UserDetails userDetails, String path,Integer limit, Integer offset) {
-   		Response response;
-   		String pathStr= "";
-   		String endPoint = "";
-   		int count =0;
-   		JsonParser jsonParser = new JsonParser();
-   		JsonArray responseArray = new JsonArray();
-   		int maxVal = certNames.size()> (limit+offset)?limit+offset : certNames.size();   		
-   		for(int i = 0; i < certNames.size(); i++){ 		
-   			endPoint = certNames.get(i).replaceAll("^\"+|\"+$", "");
+	private JsonArray getMetadataForUser(List<String> certNames, UserDetails userDetails, String path, Integer limit,
+			Integer offset) {
+		Response response;
+		String pathStr = "";
+		String endPoint = "";
+		int count = 0;
+		JsonParser jsonParser = new JsonParser();
+		JsonArray responseArray = new JsonArray();
+		int maxVal = certNames.size() > (limit + offset) ? limit + offset : certNames.size();
+		for (int i = 0; i < certNames.size(); i++) {
+			endPoint = certNames.get(i).replaceAll("^\"+|\"+$", "");
 			pathStr = path + "/" + endPoint;
-   		response = reqProcessor.process("/sslcert","{\"path\":\""+pathStr+"\"}",userDetails.getSelfSupportToken());
-   		if(HttpStatus.OK.equals(response.getHttpstatus()) && !ObjectUtils.isEmpty(response.getResponse())) {
-			JsonObject object = ((JsonObject) jsonParser.parse(response.getResponse())).getAsJsonObject("data");
-			if(userDetails.getUsername().equalsIgnoreCase((object.get("certOwnerNtid")!=null? object.get("certOwnerNtid").getAsString() : ""))) {
-				if(count >=offset && count<maxVal) {
-				responseArray.add(object);
-			}	
-				count++;
+			response = reqProcessor.process("/sslcert", "{\"path\":\"" + pathStr + "\"}",
+					userDetails.getSelfSupportToken());
+			if (HttpStatus.OK.equals(response.getHttpstatus()) && !ObjectUtils.isEmpty(response.getResponse())) {
+				JsonObject object = ((JsonObject) jsonParser.parse(response.getResponse())).getAsJsonObject("data");
+				if (userDetails.getUsername().equalsIgnoreCase(
+						(object.get("certOwnerNtid") != null ? object.get("certOwnerNtid").getAsString() : ""))) {
+					if (count >= offset && count < maxVal) {
+						responseArray.add(object);
+					}
+					count++;
+				}
 			}
-   	}
-   		}   		
-			return responseArray;
-   	}
+		}
+		return responseArray;
+	}
 
     /**
      * To get nclm token
@@ -1615,66 +1617,59 @@ public class SSLCertificateService {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Failed to get Target system service list from NCLM\"]}");
 
     }
+  	
+	/**
+	 * Get Revocation Reasons.
+	 * 
+	 * @param certificateId
+	 * @param token
+	 * @return
+	 */
+	public ResponseEntity<String> getRevocationReasons(Integer certificateId, String token) {
+		CertResponse revocationReasons = new CertResponse();
+		try {
+			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String> builder()
+					.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString())
+					.put(LogMessage.ACTION, "Fetch Revocation Reasons")
+					.put(LogMessage.MESSAGE,
+							String.format("Trying to fetch Revocation Reasons for [%s]", certificateId))
+					.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString())
+					.build()));
 
-    /**
-    * Get Revocation Reasons.
-    *
-    * @param certificateId
-    * @param token
-    * @return
-    */
-    public ResponseEntity<String> getRevocationReasons(Integer certificateId, String token) {
-    CertResponse revocationReasons = new CertResponse();
-    try {
-    log.debug(JSONUtil.getJSON(ImmutableMap.<String, String> builder()
-    .put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString())
-    .put(LogMessage.ACTION, "Fetch Revocation Reasons")
-    .put(LogMessage.MESSAGE,
-    String.format("Trying to fetch Revocation Reasons for [%s]", certificateId))
-    .put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString())
-    .build()));
+			String nclmAccessToken = getNclmToken();
 
-    String nclmAccessToken = getNclmToken();
+			String nclmGetCertificateReasonsEndpoint = getCertifcateReasons.replace("certID", certificateId.toString());
+			revocationReasons = reqProcessor.processCert("/certificates​/revocationreasons", certificateId,
+					nclmAccessToken, getCertmanagerEndPoint(nclmGetCertificateReasonsEndpoint));
+			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+					.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString())
+					.put(LogMessage.ACTION, "Fetch Revocation Reasons")
+					.put(LogMessage.MESSAGE, "Fetch Revocation Reasons")
+					.put(LogMessage.STATUS, revocationReasons.getHttpstatus().toString())
+					.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString())
+					.build()));
+			return ResponseEntity.status(revocationReasons.getHttpstatus()).body(revocationReasons.getResponse());
+		} catch (TVaultValidationException error) {
+			log.error(
+					JSONUtil.getJSON(ImmutableMap.<String, String> builder()
+							.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString())
+							.put(LogMessage.ACTION,
+									String.format(
+											"Inside  TVaultValidationException " + "Exception = [%s] =  Message [%s]",
+											Arrays.toString(error.getStackTrace()), error.getMessage()))
+							.build()));
+			return ResponseEntity.status(HttpStatus.FORBIDDEN).body("{\"errors\":[\"" + "Certificate unavailable in NCLM." + "\"]}");
+		} catch (Exception e) {
+			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+					.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString())
+					.put(LogMessage.ACTION, String.format("Inside  Exception = [%s] =  Message [%s]", 
+							Arrays.toString(e.getStackTrace()), e.getMessage()))
+					.build()));
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+					.body("{\"errors\":[\"" + SSLCertificateConstants.SSL_CERTFICATE_REASONS_FAILED + "\"]}");
+		}
 
-    String nclmGetCertificateReasonsEndpoint = getCertifcateReasons.replace("certID", certificateId.toString());
-    revocationReasons = reqProcessor.processCert("/certificates​/revocationreasons", certificateId,
-    nclmAccessToken, getCertmanagerEndPoint(nclmGetCertificateReasonsEndpoint));
-    log.debug(
-    JSONUtil.getJSON(
-    ImmutableMap.<String, String> builder()
-    .put(LogMessage.USER,
-    ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString())
-    .put(LogMessage.ACTION, "Fetch Revocation Reasons")
-    .put(LogMessage.MESSAGE, "Fetch Revocation Reasons for CertificateID")
-    .put(LogMessage.STATUS, revocationReasons.getHttpstatus().toString())
-    .put(LogMessage.APIURL,
-    ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString())
-    .build()));
-    return ResponseEntity.status(revocationReasons.getHttpstatus()).body(revocationReasons.getResponse());
-    } catch (TVaultValidationException error) {
-    log.error(
-    JSONUtil.getJSON(ImmutableMap.<String, String> builder()
-    .put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString())
-    .put(LogMessage.ACTION,
-    String.format(
-    "Inside  TVaultValidationException " + "Exception = [%s] =  Message [%s]",
-    Arrays.toString(error.getStackTrace()), error.getMessage()))
-    .build()));
-    return ResponseEntity.status(HttpStatus.FORBIDDEN).body("{\"errors\":[\"" + "Certificate unavailable in NCLM." + "\"]}");
-    } catch (Exception e) {
-    log.error(
-    JSONUtil.getJSON(
-    ImmutableMap.<String, String> builder()
-    .put(LogMessage.USER,
-    ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString())
-    .put(LogMessage.ACTION, String.format("Inside  Exception = [%s] =  Message [%s]",
-    Arrays.toString(e.getStackTrace()), e.getMessage()))
-    .build()));
-    return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-    .body("{\"errors\":[\"" + SSLCertificateConstants.SSL_CERTFICATE_REASONS_FAILED + "\"]}");
-    }
-
-    }
+	}
 
     /**
     * Issue a revocation request for certificate
@@ -1687,130 +1682,117 @@ public class SSLCertificateService {
     * @throws JsonMappingException
     * @throws JsonParseException
     */
-    public ResponseEntity<String> issueRevocationRequest(String certificateName, UserDetails userDetails, String token,
-    RevocationRequest revocationRequest) {
+	public ResponseEntity<String> issueRevocationRequest(String certificateName, UserDetails userDetails, String token,
+			RevocationRequest revocationRequest) {
 
-    revocationRequest.setTime(getCurrentLocalDateTimeStamp());
+		revocationRequest.setTime(getCurrentLocalDateTimeStamp());
 
-    Map<String, String> metaDataParams = new HashMap<String, String>();
+		Map<String, String> metaDataParams = new HashMap<String, String>();
 
-    String endPoint = certificateName;
-    String _path = SSLCertificateConstants.SSL_CERT_PATH + "/" + endPoint;
-    Response response = null;
-    try {
-    if (userDetails.isAdmin()) {
-    response = reqProcessor.process("/read", "{\"path\":\"" + _path + "\"}", token);
-    } else {
-    response = reqProcessor.process("/read", "{\"path\":\"" + _path + "\"}",
-    userDetails.getSelfSupportToken());
-    }
-    } catch (Exception e) {
-    log.error(
-    JSONUtil.getJSON(
-    ImmutableMap.<String, String> builder()
-    .put(LogMessage.USER,
-    ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString())
-    .put(LogMessage.ACTION,
-    String.format("Exception = [%s] =  Message [%s]",
-    Arrays.toString(e.getStackTrace()), response.getResponse()))
-    .build()));
-    return ResponseEntity.status(response.getHttpstatus())
-    .body("{\"errors\":[\"" + "Certificate unavailable in NCLM" + "\"]}");
-    }
-    if (!HttpStatus.OK.equals(response.getHttpstatus())) {
-    return ResponseEntity.status(response.getHttpstatus())
-    .body("{\"errors\":[\"" + "Certificate unavailable in NCLM" + "\"]}");
-    }
-    JsonParser jsonParser = new JsonParser();
-    JsonObject object = ((JsonObject) jsonParser.parse(response.getResponse())).getAsJsonObject("data");
-    metaDataParams = new Gson().fromJson(object.toString(), Map.class);
+		String endPoint = certificateName;
+		String _path = SSLCertificateConstants.SSL_CERT_PATH + "/" + endPoint;
+		Response response = null;
+		try {
+			if (userDetails.isAdmin()) {
+				response = reqProcessor.process("/read", "{\"path\":\"" + _path + "\"}", token);
+			} else {
+				response = reqProcessor.process("/read", "{\"path\":\"" + _path + "\"}",
+						userDetails.getSelfSupportToken());
+			}
+		} catch (Exception e) {
+			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+					.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString())
+					.put(LogMessage.ACTION, String.format("Exception = [%s] =  Message [%s]", 
+							Arrays.toString(e.getStackTrace()), response.getResponse()))
+					.build()));
+			return ResponseEntity.status(response.getHttpstatus())
+					.body("{\"errors\":[\"" + "Certificate unavailable" + "\"]}");
+		}
+		if (!HttpStatus.OK.equals(response.getHttpstatus())) {
+			return ResponseEntity.status(response.getHttpstatus())
+					.body("{\"errors\":[\"" + "Certificate unavailable" + "\"]}");
+		}
+		JsonParser jsonParser = new JsonParser();
+		JsonObject object = ((JsonObject) jsonParser.parse(response.getResponse())).getAsJsonObject("data");
+		metaDataParams = new Gson().fromJson(object.toString(), Map.class);
 
-    if (!userDetails.isAdmin()) {
+		if (!userDetails.isAdmin()) {
 
-    Boolean isPermission = validateOwnerPermissionForNonAdmin(userDetails, certificateName);
+			Boolean isPermission = validateOwnerPermissionForNonAdmin(userDetails, certificateName);
 
-    if (!isPermission) {
-    return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-    .body("{\"errors\":[\""
-    + "Access denied: no permission to revoke certificate"
-    + "\"]}");
-    }
-    }
-    String certID = object.get("certificateId").getAsString();
-            float value = Float.valueOf(certID);
-    int certificateId = (int) value;
-    CertResponse revocationResponse = new CertResponse();
-    try {
-    log.debug(JSONUtil.getJSON(ImmutableMap.<String, String> builder()
-    .put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString())
-    .put(LogMessage.ACTION, "Issue Revocation Request")
-    .put(LogMessage.MESSAGE,
-    String.format("Trying to issue Revocation Request for [%s]", certificateId))
-    .put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString())
-    .build()));
+			if (!isPermission) {
+				return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+						.body("{\"errors\":[\"" + "Access denied: no permission to revoke certificate" + "\"]}");
+			}
+		}
+		String certID = object.get("certificateId").getAsString();
+		float value = Float.valueOf(certID);
+		int certificateId = (int) value;
+		CertResponse revocationResponse = new CertResponse();
+		try {
+			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+					.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString())
+					.put(LogMessage.ACTION, "Issue Revocation Request")
+					.put(LogMessage.MESSAGE,
+							String.format("Trying to issue Revocation Request for [%s]", certificateId))
+					.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString())
+					.build()));
 
-    String nclmAccessToken = getNclmToken();
+			String nclmAccessToken = getNclmToken();
 
-    String nclmApiIssueRevocationEndpoint = issueRevocationRequest.replace("certID", String.valueOf(certificateId));
-    revocationResponse = reqProcessor.processCert("/certificates/revocationrequest", revocationRequest,
-    nclmAccessToken, getCertmanagerEndPoint(nclmApiIssueRevocationEndpoint));
-    log.debug(
-    JSONUtil.getJSON(
-    ImmutableMap.<String, String> builder()
-    .put(LogMessage.USER,
-    ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString())
-    .put(LogMessage.ACTION, "Issue Revocation Request")
-    .put(LogMessage.MESSAGE, "Issue Revocation Request for CertificateID")
-    .put(LogMessage.STATUS, revocationResponse.getHttpstatus().toString())
-    .put(LogMessage.APIURL,
-    ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString())
-    .build()));
+			String nclmApiIssueRevocationEndpoint = issueRevocationRequest.replace("certID",
+					String.valueOf(certificateId));
+			revocationResponse = reqProcessor.processCert("/certificates/revocationrequest", revocationRequest,
+					nclmAccessToken, getCertmanagerEndPoint(nclmApiIssueRevocationEndpoint));
+			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+					.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString())
+					.put(LogMessage.ACTION, "Issue Revocation Request")
+					.put(LogMessage.MESSAGE, "Issue Revocation Request for CertificateID")
+					.put(LogMessage.STATUS, revocationResponse.getHttpstatus().toString())
+					.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString())
+					.build()));
 
-    boolean sslMetaDataUpdationStatus;
-    metaDataParams.put("certificateStatus", "Revoked");
-    if (userDetails.isAdmin()) {
-    sslMetaDataUpdationStatus = ControllerUtil.updateMetaData(_path, metaDataParams, token);
-    } else {
-    sslMetaDataUpdationStatus = ControllerUtil.updateMetaData(_path, metaDataParams,
-    userDetails.getSelfSupportToken());
-    }
-    if (sslMetaDataUpdationStatus) {
-    return ResponseEntity.status(revocationResponse.getHttpstatus())
-    .body("{\"messages\":[\"" + "Revocation done successfully" + "\"]}");
-    } else {
-    log.error(
-    JSONUtil.getJSON(
-    ImmutableMap.<String, String> builder()
-    .put(LogMessage.USER,
-    ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString())
-    .put(LogMessage.ACTION, "Revocation Request Failed")
-    .put(LogMessage.MESSAGE, "Revocation Request failed for CertificateID")
-    .put(LogMessage.STATUS, revocationResponse.getHttpstatus().toString())
-    .put(LogMessage.APIURL,
-    ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString())
-    .build()));
-    return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-    .body("{\"errors\":[\"" + "Revocation failed" + "\"]}");
-    }
+			boolean sslMetaDataUpdationStatus;
+			metaDataParams.put("certificateStatus", "Revoked");
+			if (userDetails.isAdmin()) {
+				sslMetaDataUpdationStatus = ControllerUtil.updateMetaData(_path, metaDataParams, token);
+			} else {
+				sslMetaDataUpdationStatus = ControllerUtil.updateMetaData(_path, metaDataParams,
+						userDetails.getSelfSupportToken());
+			}
+			if (sslMetaDataUpdationStatus) {
+				return ResponseEntity.status(revocationResponse.getHttpstatus())
+						.body("{\"messages\":[\"" + "Revocation done successfully" + "\"]}");
+			} else {
+				log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+						.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString())
+						.put(LogMessage.ACTION, "Revocation Request Failed")
+						.put(LogMessage.MESSAGE, "Revocation Request failed for CertificateID")
+						.put(LogMessage.STATUS, revocationResponse.getHttpstatus().toString())
+						.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString())
+						.build()));
+				return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+						.body("{\"errors\":[\"" + "Revocation failed" + "\"]}");
+			}
 
-    } catch (TVaultValidationException error) {
-    log.error(
-    JSONUtil.getJSON(ImmutableMap.<String, String> builder()
-    .put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString())
-    .put(LogMessage.ACTION, String.format("Inside  TVaultValidationException  = [%s] =  Message [%s]",
-    Arrays.toString(error.getStackTrace()), error.getMessage()))
-    .build()));
-    return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"" + error.getMessage() + "\"]}");
-    } catch (Exception e) {
-    log.error(JSONUtil.getJSON(ImmutableMap.<String, String> builder()
-    .put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString())
-    .put(LogMessage.ACTION, String.format("Inside  Exception = [%s] =  Message [%s]",
-    Arrays.toString(e.getStackTrace()), e.getMessage()))
-    .build()));
-    return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-    .body("{\"errors\":[\"" + e.getMessage() + "\"]}");
-    }
-    }
+		} catch (TVaultValidationException error) {
+			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+					.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString())
+					.put(LogMessage.ACTION, String.format("Inside  TVaultValidationException  = [%s] =  Message [%s]", 
+							Arrays.toString(error.getStackTrace()), error.getMessage()))
+					.build()));
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"" + error.getMessage() + "\"]}");
+		} catch (Exception e) {
+			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+					.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString())
+					.put(LogMessage.ACTION, String.format("Inside  Exception = [%s] =  Message [%s]",
+							Arrays.toString(e.getStackTrace()), e.getMessage()))
+					.build()));
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+					.body("{\"errors\":[\"" + e.getMessage() + "\"]}");
+		}
+	}
+	
 	/**		
 	 * Get Current Date and Time.
 	 * 
@@ -2205,7 +2187,7 @@ public class SSLCertificateService {
 			if (isAuthorized.getBody().equals(TVaultConstants.FALSE)) {
 				return ResponseEntity.status(HttpStatus.FORBIDDEN).body("{\"errors\":[\"Access denied: no permission to add group to the certificate\"]}");
 			}
-	}
+		}
 		return addingGroupToCertificate(token, certificateGroup);
 	}
 
@@ -3208,6 +3190,442 @@ public class SSLCertificateService {
             }
         }
         return certificateData;
+    }    
+
+	/**
+	 * Removes user from certificate
+	 * @param token
+	 * @param safeUser
+	 * @return
+	 */
+	public ResponseEntity<String> removeUserFromCertificate(CertificateUser certificateUser, UserDetails userDetails) {
+		
+		if(!areCertificateUserInputsValid(certificateUser)) {
+   			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+   					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+   					put(LogMessage.ACTION, SSLCertificateConstants.REMOVE_USER_FROM_CERT_MSG).
+   					put(LogMessage.MESSAGE, "Invalid user inputs").
+   					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+   					build()));
+   			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid input values\"]}");
+   		}
+		
+		String userName = certificateUser.getUsername().toLowerCase();
+   		String certificateName = certificateUser.getCertificateName().toLowerCase();   		
+   		String authToken = null;   		
+   		boolean isAuthorized = true;
+   		
+   		if (!ObjectUtils.isEmpty(userDetails)) {
+   			if (userDetails.isAdmin()) {
+   				authToken = userDetails.getClientToken();   	            
+   	        }else {
+   	        	authToken = userDetails.getSelfSupportToken();
+   	        }
+   			SSLCertificateMetadataDetails certificateMetaData = certificateUtils.getCertificateMetaData(authToken, certificateName);   			
+   			
+   			isAuthorized = certificateUtils.hasAddOrRemovePermission(userDetails, certificateMetaData); 
+   		}else {
+   			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+   					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+   					put(LogMessage.ACTION, SSLCertificateConstants.REMOVE_USER_FROM_CERT_MSG).
+   					put(LogMessage.MESSAGE, "Access denied: No permission to remove user from this certificate").
+   					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+   					build()));
+   			
+   			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Access denied: No permission to remove user from this certificate\"]}");
+   		}
+		
+		if(isAuthorized){
+			return checkUserPolicyAndRemoveFromCertificate(userName, certificateName, authToken);	
+		} else {
+			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+					put(LogMessage.ACTION, SSLCertificateConstants.REMOVE_USER_FROM_CERT_MSG).
+					put(LogMessage.MESSAGE, "Access denied: No permission to remove user from this certificate").
+					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+					build()));
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Access denied: No permission to remove user from this certificate\"]}");
+		}
+	}
+
+	/**
+	 * @param userName
+	 * @param certificateName
+	 * @param authToken
+	 * @return
+	 */
+	private ResponseEntity<String> checkUserPolicyAndRemoveFromCertificate(String userName, String certificateName,
+			String authToken) {
+		String readPolicy = "r_cert_"+certificateName;
+		String writePolicy = "w_cert_"+certificateName;
+		String denyPolicy = "d_cert_"+certificateName;
+		String sudoPolicy = "o_cert_"+certificateName;
+		
+		log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+				put(LogMessage.ACTION, SSLCertificateConstants.REMOVE_USER_FROM_CERT_MSG).
+				put(LogMessage.MESSAGE, String.format ("Policies are, read - [%s], write - [%s], deny -[%s], owner - [%s]", readPolicy, writePolicy, denyPolicy, sudoPolicy)).
+				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+				build()));
+		
+		Response userResponse;
+		if (TVaultConstants.USERPASS.equals(vaultAuthMethod)) {
+			userResponse = reqProcessor.process("/auth/userpass/read","{\"username\":\""+userName+"\"}", authToken);	
+		}
+		else {
+			userResponse = reqProcessor.process("/auth/ldap/users","{\"username\":\""+userName+"\"}", authToken);
+		}
+
+		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+				put(LogMessage.ACTION, SSLCertificateConstants.REMOVE_USER_FROM_CERT_MSG).
+				put(LogMessage.MESSAGE, String.format ("userResponse status is [%s]", userResponse.getHttpstatus())).
+				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+				build()));
+
+		String responseJson="";
+		String groups="";
+		List<String> policies = new ArrayList<>();
+		List<String> currentpolicies = new ArrayList<>();
+		
+		if(HttpStatus.OK.equals(userResponse.getHttpstatus())){
+			responseJson = userResponse.getResponse();	
+			try {
+				ObjectMapper objMapper = new ObjectMapper();
+				currentpolicies = ControllerUtil.getPoliciesAsListFromJson(objMapper, responseJson);
+				if (!(TVaultConstants.USERPASS.equals(vaultAuthMethod))) {
+					groups =objMapper.readTree(responseJson).get("data").get("groups").asText();
+				}
+			} catch (IOException e) {
+				log.error(e);
+				log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+						put(LogMessage.ACTION, SSLCertificateConstants.REMOVE_USER_FROM_CERT_MSG).
+						put(LogMessage.MESSAGE, "Exception while creating currentpolicies or groups").
+						put(LogMessage.STACKTRACE, Arrays.toString(e.getStackTrace())).
+						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+						build()));
+			}
+			
+			policies.addAll(currentpolicies);				
+			policies.remove(readPolicy);
+			policies.remove(writePolicy);
+			policies.remove(denyPolicy);
+		}
+		String policiesString = org.apache.commons.lang3.StringUtils.join(policies, ",");
+		String currentpoliciesString = org.apache.commons.lang3.StringUtils.join(currentpolicies, ",");
+		Response ldapConfigresponse;
+		if (TVaultConstants.USERPASS.equals(vaultAuthMethod)) {
+			ldapConfigresponse = ControllerUtil.configureUserpassUser(userName, policiesString, authToken);
+		}
+		else {
+			ldapConfigresponse = ControllerUtil.configureLDAPUser(userName, policiesString, groups, authToken);
+		}
+		if(ldapConfigresponse.getHttpstatus().equals(HttpStatus.NO_CONTENT) || ldapConfigresponse.getHttpstatus().equals(HttpStatus.OK)){
+			return updateMetadataForRemoveUserFromCertificate(userName, certificateName, authToken, groups,
+					currentpoliciesString);
+		} else {
+			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+					put(LogMessage.ACTION, SSLCertificateConstants.REMOVE_USER_FROM_CERT_MSG).
+					put(LogMessage.MESSAGE, "Failed to remvoe the user from the certificate").
+					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+					build()));
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Failed to remvoe the user from the certificate\"]}");
+		}
+	}
+
+	/**
+	 * @param userName
+	 * @param certificateName
+	 * @param authToken
+	 * @param groups
+	 * @param currentpoliciesString
+	 * @return
+	 */
+	private ResponseEntity<String> updateMetadataForRemoveUserFromCertificate(String userName, String certificateName,
+			String authToken, String groups, String currentpoliciesString) {
+		Response ldapConfigresponse;
+		// User has been associated with certificate. Now metadata has to be deleted
+		String certificatePath = SSLCertificateConstants.SSL_CERT_PATH_VALUE + certificateName;
+		Map<String,String> params = new HashMap<>();
+		params.put("type", "users");
+		params.put("name",userName);
+		params.put("path",certificatePath);
+		params.put("access","delete");
+		
+		Response metadataResponse = ControllerUtil.updateMetadata(params, authToken);
+		if(metadataResponse != null && (HttpStatus.NO_CONTENT.equals(metadataResponse.getHttpstatus()) || HttpStatus.OK.equals(metadataResponse.getHttpstatus()))){
+			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+					put(LogMessage.ACTION, SSLCertificateConstants.REMOVE_USER_FROM_CERT_MSG).
+					put(LogMessage.MESSAGE, "User is successfully Removed from Certificate").
+					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+					build()));
+			return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Successfully removed user from the certificate\"]}");
+		} else {
+			if (TVaultConstants.USERPASS.equals(vaultAuthMethod)) {
+				ldapConfigresponse = ControllerUtil.configureUserpassUser(userName, currentpoliciesString, authToken);
+			}
+			else {
+				ldapConfigresponse = ControllerUtil.configureLDAPUser(userName, currentpoliciesString, groups, authToken);
+			}
+			if(ldapConfigresponse.getHttpstatus().equals(HttpStatus.NO_CONTENT) || ldapConfigresponse.getHttpstatus().equals(HttpStatus.OK)) {
+				log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+						put(LogMessage.ACTION, SSLCertificateConstants.REMOVE_USER_FROM_CERT_MSG).
+						put(LogMessage.MESSAGE, "Failed to remove the user from the certificate. Metadata update failed").
+						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+						build()));
+				return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Failed to remove the user from the certificate. Metadata update failed\"]}");
+			} else {
+				log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+						put(LogMessage.ACTION, SSLCertificateConstants.REMOVE_USER_FROM_CERT_MSG).
+						put(LogMessage.MESSAGE, "Failed to revert user association on certificate").
+						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+						build()));
+				return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Failed to revert user association on certificate\"]}");
+			}
+		}
+	}
+	
+	/**
+     * Remove Group from certificate
+     * @param certificateGroup
+     * @param userDetails
+     * @return
+     */
+    public ResponseEntity<String> removeGroupFromCertificate(CertificateGroup certificateGroup, UserDetails userDetails) {
+    	
+    	if(!areCertificateGroupInputsValid(certificateGroup)) {
+   			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+   					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+   					put(LogMessage.ACTION, SSLCertificateConstants.REMOVE_GROUP_FROM_CERT_MSG).
+   					put(LogMessage.MESSAGE, "Invalid user inputs").
+   					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+   					build()));
+   			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid input values\"]}");
+   		}
+    	
+        log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+                put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+                put(LogMessage.ACTION, SSLCertificateConstants.REMOVE_GROUP_FROM_CERT_MSG).
+                put(LogMessage.MESSAGE, String.format("Trying to remove Group from certificate - [%s]", certificateGroup.toString())).
+                put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+                build()));
+        
+        String groupName = certificateGroup.getGroupname().toLowerCase();
+   		String certificateName = certificateGroup.getCertificateName().toLowerCase();
+   		
+   		String authToken = null;
+   		
+   		boolean isAuthorized = true;
+   		
+   		if (!ObjectUtils.isEmpty(userDetails)) {
+   			if (userDetails.isAdmin()) {
+   				authToken = userDetails.getClientToken();   	            
+   	        }else {
+   	        	authToken = userDetails.getSelfSupportToken();
+   	        }
+   			SSLCertificateMetadataDetails certificateMetaData = certificateUtils.getCertificateMetaData(authToken, certificateName);
+   			
+   			isAuthorized = certificateUtils.hasAddOrRemovePermission(userDetails, certificateMetaData);
+   			
+   		}else {
+   			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+   					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+   					put(LogMessage.ACTION, SSLCertificateConstants.REMOVE_GROUP_FROM_CERT_MSG).
+   					put(LogMessage.MESSAGE, "Access denied: No permission to remove group from this certificate").
+   					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+   					build()));
+   			
+   			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Access denied: No permission to remove group from this certificate\"]}");
+   		} 
+   		
+        if(isAuthorized){        	
+        	return checkPolicyDetailsAndRemoveGroupFromCertificate(groupName, certificateName, authToken);
+        } else {
+        	log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+                    put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+                    put(LogMessage.ACTION, SSLCertificateConstants.REMOVE_USER_FROM_CERT_MSG).
+                    put(LogMessage.MESSAGE, "Access denied: No permission to remove groups from this certificate").
+                    put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+                    build()));
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Access denied: No permission to remove groups from this certificate\"]}");
+        }
+
     }
+
+	/**
+	 * Method to check the group policy and remove the group from certificate
+	 * @param groupName
+	 * @param certificateName
+	 * @param authToken
+	 * @return
+	 */
+	private ResponseEntity<String> checkPolicyDetailsAndRemoveGroupFromCertificate(String groupName,
+			String certificateName, String authToken) {
+		String readPolicy = "r_cert_"+certificateName;
+		String writePolicy = "w_cert_"+certificateName;
+		String denyPolicy = "d_cert_"+certificateName;
+		String sudoPolicy = "o_cert_"+certificateName;
+		
+		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+				put(LogMessage.ACTION, SSLCertificateConstants.REMOVE_USER_FROM_CERT_MSG).
+				put(LogMessage.MESSAGE, String.format ("Policies are, read - [%s], write - [%s], deny -[%s], owner - [%s]", readPolicy, writePolicy, denyPolicy, sudoPolicy)).
+				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+				build()));
+		
+		Response groupResp = reqProcessor.process("/auth/ldap/groups","{\"groupname\":\""+groupName+"\"}", authToken);
+
+		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+		        put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+		        put(LogMessage.ACTION, SSLCertificateConstants.REMOVE_USER_FROM_CERT_MSG).
+		        put(LogMessage.MESSAGE, String.format ("Group Response status is [%s]", groupResp.getHttpstatus())).
+		        put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+		        build()));
+
+		String responseJson="";
+		List<String> policies = new ArrayList<>();
+		List<String> currentpolicies = new ArrayList<>();
+		
+		if(HttpStatus.OK.equals(groupResp.getHttpstatus())){
+		    responseJson = groupResp.getResponse();
+		    try {
+		        ObjectMapper objMapper = new ObjectMapper();
+		        currentpolicies = ControllerUtil.getPoliciesAsListFromJson(objMapper, responseJson);
+		    } catch (IOException e) {
+		        log.error(e);
+		        log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+		                put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+		                put(LogMessage.ACTION, SSLCertificateConstants.REMOVE_USER_FROM_CERT_MSG).
+		                put(LogMessage.MESSAGE, "Exception while creating currentpolicies or groups").
+		                put(LogMessage.STACKTRACE, Arrays.toString(e.getStackTrace())).
+		                put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+		                build()));
+		    }
+
+		    policies.addAll(currentpolicies);
+			policies.remove(readPolicy);
+			policies.remove(writePolicy);
+			policies.remove(denyPolicy);
+		}
+		String policiesString = org.apache.commons.lang3.StringUtils.join(policies, ",");
+		String currentpoliciesString = org.apache.commons.lang3.StringUtils.join(currentpolicies, ",");
+		
+		Response ldapConfigresponse = ControllerUtil.configureLDAPGroup(groupName, policiesString, authToken);
+
+		if(ldapConfigresponse.getHttpstatus().equals(HttpStatus.NO_CONTENT) || ldapConfigresponse.getHttpstatus().equals(HttpStatus.OK)){
+
+			return updateMetadataForRemoveGroupFromCertificate(groupName, certificateName, authToken,
+					currentpoliciesString);
+		} else {
+			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+		            put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+		            put(LogMessage.ACTION, SSLCertificateConstants.REMOVE_USER_FROM_CERT_MSG).
+		            put(LogMessage.MESSAGE, "Failed to remove the group from the certificate").
+		            put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+		            build()));
+		    return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Failed to remove the group from the certificate\"]}");
+		}
+	}
+
+	/**
+	 * Method to update the metadata after removed the group policy for a certificate
+	 * @param groupName
+	 * @param certificateName
+	 * @param authToken
+	 * @param currentpoliciesString
+	 * @return
+	 */
+	private ResponseEntity<String> updateMetadataForRemoveGroupFromCertificate(String groupName, String certificateName,
+			String authToken, String currentpoliciesString) {		
+		String certificatePath = SSLCertificateConstants.SSL_CERT_PATH_VALUE + certificateName;
+		Map<String,String> params = new HashMap<>();
+		params.put("type", "groups");
+		params.put("name", groupName);
+		params.put("path",certificatePath);
+		params.put("access","delete");
+		
+		Response metadataResponse = ControllerUtil.updateMetadata(params, authToken);
+		
+		if(metadataResponse !=null && (HttpStatus.NO_CONTENT.equals(metadataResponse.getHttpstatus()) || HttpStatus.OK.equals(metadataResponse.getHttpstatus()))){
+			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+					put(LogMessage.ACTION, SSLCertificateConstants.REMOVE_USER_FROM_CERT_MSG).
+					put(LogMessage.MESSAGE, String.format ("Group - [%s] is successfully removed from the certificate - [%s]", groupName, certificateName)).
+					put(LogMessage.STATUS, metadataResponse.getHttpstatus().toString()).
+					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+					build()));
+			return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Group is successfully removed from certificate\"]}");
+		}else {				
+			return revertGroupPolicyIfMetadataUpdateFailed(groupName, authToken, currentpoliciesString,
+					metadataResponse);
+		}
+	}
+
+	/**
+	 * Method to revert group policy if metadata update failed for certificate
+	 * @param groupName
+	 * @param authToken
+	 * @param currentpoliciesString
+	 * @param metadataResponse
+	 * @return
+	 */
+	private ResponseEntity<String> revertGroupPolicyIfMetadataUpdateFailed(String groupName, String authToken,
+			String currentpoliciesString, Response metadataResponse) {
+		Response ldapConfigresponse = ControllerUtil.configureLDAPGroup(groupName, currentpoliciesString, authToken);
+		
+		if(ldapConfigresponse.getHttpstatus().equals(HttpStatus.NO_CONTENT)){
+			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+					put(LogMessage.ACTION, SSLCertificateConstants.REMOVE_USER_FROM_CERT_MSG).
+					put(LogMessage.MESSAGE, "Reverting, group policy update success").
+					put(LogMessage.RESPONSE, (null!=metadataResponse)?metadataResponse.getResponse():TVaultConstants.EMPTY).
+					put(LogMessage.STATUS, (null!=metadataResponse)?metadataResponse.getHttpstatus().toString():TVaultConstants.EMPTY).
+					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+					build()));
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Group configuration failed. Please try again\"]}");
+		} else{
+			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+					put(LogMessage.ACTION, SSLCertificateConstants.REMOVE_USER_FROM_CERT_MSG).
+					put(LogMessage.MESSAGE, "Reverting group policy update failed").
+					put(LogMessage.RESPONSE, (null!=metadataResponse)?metadataResponse.getResponse():TVaultConstants.EMPTY).
+					put(LogMessage.STATUS, (null!=metadataResponse)?metadataResponse.getHttpstatus().toString():TVaultConstants.EMPTY).
+					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+					build()));
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Group configuration failed. Contact Admin \"]}");
+		}
+	}
     
+	/**
+	 * Validates Certificate group inputs
+	 * @param certificateUser
+	 * @return boolean
+	 */
+	private boolean areCertificateGroupInputsValid(CertificateGroup certificateGroup) {
+		
+		if (ObjectUtils.isEmpty(certificateGroup)) {
+			return false;
+		}
+		if (ObjectUtils.isEmpty(certificateGroup.getGroupname())
+				|| ObjectUtils.isEmpty(certificateGroup.getAccess())
+				|| ObjectUtils.isEmpty(certificateGroup.getCertificateName())
+				|| certificateGroup.getCertificateName().contains(" ")
+	            || (!certificateGroup.getCertificateName().endsWith(certificateNameTailText))
+	            || (certificateGroup.getCertificateName().contains(".-"))
+	            || (certificateGroup.getCertificateName().contains("-."))
+				) {
+			return false;
+		}
+		boolean isValid = true;
+		String access = certificateGroup.getAccess();
+		if (!ArrayUtils.contains(PERMISSIONS, access)) {
+			isValid = false;
+		}
+		return isValid;
+	}
 }

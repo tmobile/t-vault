@@ -134,8 +134,7 @@
                 }
                 else {                    
                     $rootScope.showDetails = true;
-                    $rootScope.activeDetailsTab = 'details';
-                    $scope.checkOwnerEmailHasValue('details');
+                    $rootScope.activeDetailsTab = 'details';                    
                 }
             }
             else {
@@ -396,7 +395,7 @@
         $scope.editPermission = function (type, editMode, user, permission) {
             if (editMode) {
                 var editingPermission = true;
-                //$scope.deletePermission(type, editMode, editingPermission, user, permission);
+                $scope.deletePermission(type, editMode, editingPermission, user, permission);
             }
         }
         $scope.replaceSpaces = function () {
@@ -404,7 +403,103 @@
         }
 
         $scope.deletePermission = function (type, editMode, editingPermission, key, permission) {
-            
+            $scope.permissionChangeInProgress = true;
+            if (editMode) {
+                try {
+                    key = key.replace($scope.domainName, '');
+                    $scope.isLoadingData = true;
+                    var certName = $scope.certificateName;                    
+                    var apiCallFunction = '';
+                    var reqObjtobeSent = {};
+                    switch (type) {
+                        case 'users' :
+                            apiCallFunction = AdminSafesManagement.deleteUserPermissionFromCertificate;
+                            if (editingPermission) {
+                                reqObjtobeSent = {
+                                    "certificateName": certName,
+                                    "username": key,
+                                    "access": permission
+                                };
+                            }
+                            else {
+                                reqObjtobeSent = {
+                                    "certificateName": certName,
+                                    "username": key,
+                                    "access": permission
+                                };
+                            }
+                            break;
+                        case 'groups' :
+                            apiCallFunction = AdminSafesManagement.deleteGroupPermissionFromCertificate;
+                            reqObjtobeSent = {
+                                "certificateName": certName,
+                                "groupname": key,
+                                "access": permission
+                            };
+                            break;
+                        case 'AWSPermission' :
+                            break;
+                        case 'AppRolePermission' :
+                            break;
+                    }
+                    apiCallFunction(reqObjtobeSent).then(
+                        function (response) {
+                            if (UtilityService.ifAPIRequestSuccessful(response)) {
+                                // Try-Catch block to catch errors if there is any change in object structure in the response
+                                try {
+                                    $scope.isLoadingData = false;
+                                    $scope.permissionChangeInProgress = false;
+                                    if (editingPermission) {
+                                        $scope.addPermission(type, key, permission, true);  // This will be executed when we're editing permissions
+                                    }
+                                    else {                                       
+                                        $scope.requestDataFrChangeCertificate();
+                                        var notification = UtilityService.getAParticularSuccessMessage('MESSAGE_ADD_SUCCESS');
+                                        
+                                        if (type === "users" && key === SessionStore.getItem("username")) {
+                                            clearInputPermissionData();
+                                            return Modal.createModalWithController('stop.modal.html', {
+                                                title: 'Permission changed',
+                                                message: 'For security reasons, if you add or modify permission to yourself, you need to log out and log in again for the added or modified permissions to take effect.'
+                                                });
+                                        }
+                                        var notification = UtilityService.getAParticularSuccessMessage('MESSAGE_SAFE_DELETE');
+                                        Notifications.toast(key + "'s permission" + notification); 
+                                    }
+                                }
+                                catch (e) {
+                                    console.log(e);
+                                    $scope.permissionChangeInProgress = false;
+                                    $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_PROCESSING_DATA');
+                                    $scope.error('md');
+                                }
+                            }
+                            else {
+                                $scope.permissionChangeInProgress = false;
+                                $scope.errorMessage = AdminSafesManagement.getTheRightErrorMessage(response);
+                                $scope.error('md');
+                            }
+                        },
+                        function (error) {
+
+                            // Error handling function
+                            console.log(error);
+                            $scope.permissionChangeInProgress = false;
+                            $scope.isLoadingData = false;
+                            $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
+                            $scope.error('md');
+
+                        })
+                } catch (e) {
+
+                    console.log(e);
+                    $scope.isLoadingData = false;
+                    $scope.permissionChangeInProgress = false;
+                    $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
+                    $scope.error('md');
+
+                }
+            }
         }       
 
 
@@ -504,8 +599,15 @@
                                     expiryDate: object.expiryDate || $stateParams.certificateObject.expiryDate || ''
                                 }
 
-                                hideUserSudoPolicy();
+                                if($scope.certificate.certType.toLowerCase() === "internal"){
+                                    $scope.certificate.certType = "Internal";
+                                }else if($scope.certificate.certType.toLowerCase() === "external"){
+                                    $scope.certificate.certType = "External";
+                                }
+
                                 $scope.GroupsPermissionsData = object.groups;
+
+                                hideUserSudoPolicy();
                             }
                             catch (e) {
                                 console.log(e);
@@ -631,6 +733,10 @@
                         duplicate = true;
                     }
                 }
+                if (type === "groups" && $scope.GroupsPermissionsData!= null && $scope.GroupsPermissionsData.hasOwnProperty(key.toLowerCase())) {
+                    duplicate = true;
+                }
+
                 if (type === "AppRolePermission" && $scope.AppRolePermissionsData.data!= null && $scope.AppRolePermissionsData.data.hasOwnProperty(key.toLowerCase())) {
                     duplicate = true;
                 }
@@ -644,6 +750,10 @@
                 try {
                     if (type === "users" && !editingPermission) {
                         key = document.getElementById('addUser').value.toLowerCase();
+                    }
+
+                    if (type === "groups" && !editingPermission) {
+                        key = document.getElementById('addGroup').value.toLowerCase();
                     }
                     
                     Modal.close('');
@@ -691,17 +801,9 @@
                                     $scope.requestDataFrChangeCertificate();
                                     var notification = UtilityService.getAParticularSuccessMessage('MESSAGE_ADD_SUCCESS');
                                     if (key !== null && key !== undefined) {
+                                        document.getElementById('addGroup').value = '';
+                                        document.getElementById('addUser').value = '';
                                         if (type === "users" && key === SessionStore.getItem("username")) {
-                                            clearInputPermissionData();
-                                            return Modal.createModalWithController('stop.modal.html', {
-                                                title: 'Permission changed',
-                                                message: 'For security reasons, if you add or modify permission to yourself, you need to log out and log in again for the added or modified permissions to take effect.'
-                                                });
-                                        }
-                                        Notifications.toast(key + "'s permission" + notification);
-                                    }
-                                    if (key !== null && key !== undefined) {
-                                        if (type === "groups") {
                                             clearInputPermissionData();
                                             return Modal.createModalWithController('stop.modal.html', {
                                                 title: 'Permission changed',
