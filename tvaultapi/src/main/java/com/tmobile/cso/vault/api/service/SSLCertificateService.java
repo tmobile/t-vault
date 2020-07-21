@@ -22,6 +22,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
 import com.tmobile.cso.vault.api.utils.PolicyUtils;
+import com.tmobile.cso.vault.api.validator.TokenValidator;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.http.HttpEntity;
@@ -105,6 +106,10 @@ public class SSLCertificateService {
 
     @Autowired
 	private AppRoleService appRoleService;
+
+    @Autowired
+    private TokenValidator tokenValidator;
+
 
 
     @Value("${vault.auth.method}")
@@ -2708,18 +2713,26 @@ public class SSLCertificateService {
         String readPolicy = "r_cert_" + certificateName;
         String sudoPolicy = "o_cert_" + certificateName;
         String renewRevokePolicy = "w_cert_" + certificateName;
-        boolean hasPermission = false;
         if (userDetails.isAdmin()) {
             return true;
         }
-        String policyList [] = policyUtils.getCurrentPolicies(userDetails.getSelfSupportToken(), userDetails.getUsername());
-        for (String policy: policyList) {
-            if (policy.equalsIgnoreCase(sudoPolicy) || policy.equalsIgnoreCase(readPolicy) || policy.equalsIgnoreCase(renewRevokePolicy)) {
-                hasPermission = true;
-                break;
-            }
+        VaultTokenLookupDetails  vaultTokenLookupDetails = null;
+        try {
+            vaultTokenLookupDetails = tokenValidator.getVaultTokenLookupDetails(userDetails.getClientToken());
+        } catch (TVaultValidationException e) {
+            log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+                    put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+                    put(LogMessage.ACTION, "hasDownloadPermission").
+                    put(LogMessage.MESSAGE, String.format ("Failed to get lookup details for user  [%s]", userDetails.getUsername())).
+                    put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+                    build()));
+            return false;
         }
-        return hasPermission;
+        String[] policies = vaultTokenLookupDetails.getPolicies();
+        if (ArrayUtils.isNotEmpty(policies) && (Arrays.asList(policies).contains(readPolicy) || Arrays.asList(policies).contains(sudoPolicy) || Arrays.asList(policies).contains(renewRevokePolicy))) {
+            return true;
+        }
+        return false;
     }
 
     public SSLCertificateMetadataDetails getCertificateMetadata(String token, String certificateName) {
