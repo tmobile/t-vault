@@ -57,7 +57,7 @@
             Idle.setTimeout(leaseDuration - 180);
             Keepalive.setInterval(leaseDuration - 60);
           }, function (error) {
-            logout(true);
+            logout(false);
             console.log("error retrieving token", error);
             return error;
           });
@@ -91,13 +91,47 @@
         var regex = /^(corp\/|corp\\)/gi;
         return username.replace(regex, '');
       },
+      getAuthUrl: function (reqObjtobeSent) {
+        var url = RestEndpoints.baseURL + '/v2/auth/oidc/auth_url';
+        return $http({
+            method: 'POST',
+            url: url,
+            data: reqObjtobeSent,
+            headers: {
+                'Content-type': 'application/json',
+                'vault-token': AppConstant.OIDC_TOKEN
+            }
+        }).then(function (response) {
+            window.open(response.data.data.auth_url,"_self");
+            return response;
+        }).catch(function(error) {
+            console.log(error);
+        });
+      },
+      getSSOCallback: function (code, state) {
+        var url = RestEndpoints.baseURL + '/v2/auth/oidc/callback?state='+state+'&code='+code;
+        return $http({
+          method: 'GET',
+          url: url,
+          headers: {
+              'vault-token': AppConstant.OIDC_TOKEN
+          }
+        }).then(function (response) {
+            console.log(response);
+            return response;
+        }).catch(function(error) {
+            console.log(error);
+            return error;
+        });
+      },
+
 
       logout: logout
 
     };
 
     function logout(withoutRevoke) {
-      var url = '/#!/';
+      var url = '/';
       if (withoutRevoke) {
         window.location.replace(url)
       } else {
