@@ -10,7 +10,7 @@ public class CertificateGroup implements Serializable{
 
 	
 	@NotNull
-	private String certificatename;
+	private String certificateName;
 	@NotNull
 	private String groupname;
 	@NotNull
@@ -25,23 +25,26 @@ public class CertificateGroup implements Serializable{
 	 * @param groupname
 	 * @param access
 	 */
-
-	public CertificateGroup(String certificatename, String groupname, String access) {
+	
+	
+	public CertificateGroup(String certificateName, String groupname, String access) {
 		super();
-		this.certificatename = certificatename;
+		this.certificateName = certificateName;
 		this.groupname = groupname;
 		this.access = access;
 	}
 
+	
+	
 	@ApiModelProperty(example="cert1", position=1)
-	public String getCertificatename() {
-		return certificatename;
+	public String getCertificateName() {
+		return certificateName;
 	}
 
-	public void setCertificatename(String certificatename) {
-		this.certificatename = certificatename;
+	public void setCertificateName(String certificateName) {
+		this.certificateName = certificateName;
 	}
-	
+
 	@ApiModelProperty(example="r_vault_demo", position=2)
 	public String getGroupname() {
 		return groupname;
@@ -51,16 +54,15 @@ public class CertificateGroup implements Serializable{
 		this.groupname = groupname;
 	}
 
+	@ApiModelProperty(example="read", position=3)
 	public String getAccess() {
 		return access;
 	}
-	@ApiModelProperty(example="read", position=3)
+
 	public void setAccess(String access) {
 		this.access = access;
 	}
-	
-	
-	
-	
+
+
 	
 }
