@@ -38,7 +38,8 @@ public  class ResponseTransformer {
 			case "/auth/ldap/login":
 			case "/auth/userpass/login":
 			case "/auth/approle/login":
-			case "/auth/aws/login":{
+			case "/auth/aws/login":
+			case "/auth/oidc/oidc/callback":{
 				fetchSDBPaths(responseparams,token);
 				break;
 			}
