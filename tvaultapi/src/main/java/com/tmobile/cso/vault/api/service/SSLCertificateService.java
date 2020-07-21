@@ -1641,17 +1641,13 @@ public class SSLCertificateService {
 			String nclmGetCertificateReasonsEndpoint = getCertifcateReasons.replace("certID", certificateId.toString());
 			revocationReasons = reqProcessor.processCert("/certificates​/revocationreasons", certificateId,
 					nclmAccessToken, getCertmanagerEndPoint(nclmGetCertificateReasonsEndpoint));
-			log.debug(
-					JSONUtil.getJSON(
-							ImmutableMap.<String, String> builder()
-									.put(LogMessage.USER,
-											ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString())
-									.put(LogMessage.ACTION, "Fetch Revocation Reasons")
-									.put(LogMessage.MESSAGE, "Fetch Revocation Reasons for CertificateID")
-									.put(LogMessage.STATUS, revocationReasons.getHttpstatus().toString())
-									.put(LogMessage.APIURL,
-											ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString())
-									.build()));
+			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+					.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString())
+					.put(LogMessage.ACTION, "Fetch Revocation Reasons")
+					.put(LogMessage.MESSAGE, "Fetch Revocation Reasons")
+					.put(LogMessage.STATUS, revocationReasons.getHttpstatus().toString())
+					.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString())
+					.build()));
 			return ResponseEntity.status(revocationReasons.getHttpstatus()).body(revocationReasons.getResponse());
 		} catch (TVaultValidationException error) {
 			log.error(
@@ -1664,14 +1660,11 @@ public class SSLCertificateService {
 							.build()));
 			return ResponseEntity.status(HttpStatus.FORBIDDEN).body("{\"errors\":[\"" + "Certificate unavailable in NCLM." + "\"]}");
 		} catch (Exception e) {
-			log.error(
-					JSONUtil.getJSON(
-							ImmutableMap.<String, String> builder()
-									.put(LogMessage.USER,
-											ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString())
-									.put(LogMessage.ACTION, String.format("Inside  Exception = [%s] =  Message [%s]",
-											Arrays.toString(e.getStackTrace()), e.getMessage()))
-									.build()));
+			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+					.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString())
+					.put(LogMessage.ACTION, String.format("Inside  Exception = [%s] =  Message [%s]", 
+							Arrays.toString(e.getStackTrace()), e.getMessage()))
+					.build()));
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
 					.body("{\"errors\":[\"" + SSLCertificateConstants.SSL_CERTFICATE_REASONS_FAILED + "\"]}");
 		}
@@ -1707,15 +1700,11 @@ public class SSLCertificateService {
 						userDetails.getSelfSupportToken());
 			}
 		} catch (Exception e) {
-			log.error(
-					JSONUtil.getJSON(
-							ImmutableMap.<String, String>builder()
-									.put(LogMessage.USER,
-											ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString())
-									.put(LogMessage.ACTION,
-											String.format("Exception = [%s] =  Message [%s]",
-													Arrays.toString(e.getStackTrace()), response.getResponse()))
-									.build()));
+			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+					.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString())
+					.put(LogMessage.ACTION, String.format("Exception = [%s] =  Message [%s]", 
+							Arrays.toString(e.getStackTrace()), response.getResponse()))
+					.build()));
 			return ResponseEntity.status(response.getHttpstatus())
 					.body("{\"errors\":[\"" + "Certificate unavailable" + "\"]}");
 		}
@@ -1787,15 +1776,11 @@ public class SSLCertificateService {
 			}
 
 		} catch (TVaultValidationException error) {
-			log.error(
-					JSONUtil.getJSON(
-							ImmutableMap.<String, String>builder()
-									.put(LogMessage.USER,
-											ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString())
-									.put(LogMessage.ACTION,
-											String.format("Inside  TVaultValidationException  = [%s] =  Message [%s]",
-													Arrays.toString(error.getStackTrace()), error.getMessage()))
-									.build()));
+			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+					.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString())
+					.put(LogMessage.ACTION, String.format("Inside  TVaultValidationException  = [%s] =  Message [%s]", 
+							Arrays.toString(error.getStackTrace()), error.getMessage()))
+					.build()));
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"" + error.getMessage() + "\"]}");
 		} catch (Exception e) {
 			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
@@ -2202,7 +2187,7 @@ public class SSLCertificateService {
 			if (isAuthorized.getBody().equals(TVaultConstants.FALSE)) {
 				return ResponseEntity.status(HttpStatus.FORBIDDEN).body("{\"errors\":[\"Access denied: no permission to add group to the certificate\"]}");
 			}
-	}
+		}
 		return addingGroupToCertificate(token, certificateGroup);
 	}
 
