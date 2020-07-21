@@ -1,7 +1,6 @@
 package com.tmobile.cso.vault.api.service;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+
 import com.google.common.collect.ImmutableMap;
 import com.tmobile.cso.vault.api.controller.ControllerUtil;
 import com.tmobile.cso.vault.api.exception.TVaultValidationException;
@@ -148,7 +147,10 @@ public class SSLCertificateServiceTest {
         ReflectionTestUtils.setField(sSLCertificateService, "certificateNameTailText", ".t-mobile.com");
         ReflectionTestUtils.setField(sSLCertificateService, "renewDelayTime", 3000);
 		ReflectionTestUtils.setField(sSLCertificateService, "renewCertificateEndpoint", "certificates/certID/renew");
-        
+        ReflectionTestUtils.setField(sSLCertificateService, "getTemplateParamUrl", "policy/template/templateId/parameters?entityRef=SERVICE&entityId=entityid&allowedOnly=true&withTemplateById=templateId");
+        ReflectionTestUtils.setField(sSLCertificateService, "putTemplateParamUrl", "policy/template/templateId/parameters?entityRef=SERVICE&entityId=entityid&allowedOnly=true&enroll=true");
+
+
         token = "5PDrOhsy4ig8L3EpsJZSLAMg";
         userDetails.setUsername("normaluser");
         userDetails.setAdmin(true);
@@ -421,7 +423,151 @@ public class SSLCertificateServiceTest {
         assertEquals(HttpStatus.OK, enrollResponse.getStatusCode());
     }
 
+    @Test
+    public void generateSSLCertificate_External_Success() throws Exception {
+        String jsonStr = "{  \"username\": \"testusername1\",  \"password\": \"testpassword1\"}";
 
+        String jsonStr2 = "{\"certificates\":[{\"sortedSubjectName\": \"CN=CertificateName.t-mobile.com, C=US, " +
+                "ST=Washington, " +
+                "L=Bellevue, O=T-Mobile USA, Inc\"," +
+                "\"certificateId\":57258,\"certificateStatus\":\"Active\"," +
+                "\"containerName\":\"cont_12345\",\"NotAfter\":\"2021-06-15T04:35:58-07:00\"}]}";
+
+        CertManagerLoginRequest certManagerLoginRequest = getCertManagerLoginRequest();
+        certManagerLoginRequest.setUsername("username");
+        certManagerLoginRequest.setPassword("password");
+        userDetails = new UserDetails();
+        userDetails.setAdmin(true);
+        userDetails.setClientToken(token);
+        userDetails.setUsername("testusername1");
+        userDetails.setSelfSupportToken(token);
+        String userDetailToken = userDetails.getSelfSupportToken();
+
+        SSLCertificateRequest sslCertificateRequest = getSSLCertificateRequest();
+        sslCertificateRequest.setCertType("external");
+        Map<String, Object> requestMap = new HashMap<>();
+        requestMap.put("access_token", "12345");
+        requestMap.put("token_type", "type");
+        when(ControllerUtil.parseJson(jsonStr)).thenReturn(requestMap);
+
+        CertManagerLogin certManagerLogin = new CertManagerLogin();
+        certManagerLogin.setToken_type("token type");
+        certManagerLogin.setAccess_token("1234");
+
+        Response userResponse = getMockResponse(HttpStatus.OK, true, "{\"data\":{\"bound_cidrs\":[],\"max_ttl\":0,\"policies\":[\"default\",\"r_cert_CertificateName.t-mobile.com\"],\"ttl\":0,\"groups\":\"admin\"}}");
+        Response idapConfigureResponse = getMockResponse(HttpStatus.NO_CONTENT, true, "{\"policies\":null}");
+
+        SSLCertificateMetadataDetails certificateMetadata = getSSLCertificateMetadataDetails();
+
+        CertResponse response = new CertResponse();
+        response.setHttpstatus(HttpStatus.OK);
+        response.setResponse(jsonStr);
+        response.setSuccess(true);
+        when(reqProcessor.processCert(eq("/auth/certmanager/login"), anyObject(), anyString(), anyString())).thenReturn(response);
+
+        CertResponse findCertResponse = new CertResponse();
+        findCertResponse.setHttpstatus(HttpStatus.OK);
+        findCertResponse.setResponse(jsonStr2);
+        findCertResponse.setSuccess(true);
+        when(reqProcessor.processCert(eq("/certmanager/findCertificate"), anyObject(), anyString(), anyString())).thenReturn(findCertResponse);
+
+        CertResponse response1 = new CertResponse();
+        response1.setHttpstatus(HttpStatus.OK);
+        response1.setResponse(jsonStr);
+        response1.setSuccess(true);
+
+        //Create Target System Validation
+        when(reqProcessor.processCert(eq("/certmanager/findTargetSystem"), anyObject(), anyString(), anyString())).thenReturn(response1);
+        String createTargetSystemResponse = "{  \"name\": \"TARGET SYSTEM1\",  \"password\": \"testpassword1\"," +
+                "\"targetSystemID\": \"29\"}";
+        response1.setResponse(createTargetSystemResponse);
+        Map<String, Object> createTargetSystemMap = new HashMap<>();
+        createTargetSystemMap.put("targetSystemID", 29);
+        createTargetSystemMap.put("name", "TARGET SYSTEM1");
+        createTargetSystemMap.put("description", "TARGET SYSTEM1");
+        createTargetSystemMap.put("address", "address");
+        when(ControllerUtil.parseJson(createTargetSystemResponse)).thenReturn(createTargetSystemMap);
+        when(reqProcessor.processCert(eq("/certmanager/targetsystem/create"), anyObject(), anyString(), anyString())).thenReturn(response1);
+
+        // loadTargetSystemServiceData();
+
+        //Create Target System Validation
+        CertResponse response2 = new CertResponse();
+        String jsonStr1 = "{  \"name\": \"targetService\",  \"address\": \"targetServiceaddress\"}";
+        response2.setHttpstatus(HttpStatus.OK);
+        response2.setResponse(jsonStr1);
+        response2.setSuccess(true);
+        when(reqProcessor.processCert(eq("/certmanager/findTargetSystemService"), anyObject(), anyString(), anyString())).thenReturn(response2);
+        String createTargetSystemServiceResponse =
+                "{  \"name\": \"TARGET SYSTEM Service\",  \"password\": , \"testpassword1\"}";
+        response2.setResponse(createTargetSystemServiceResponse);
+        Map<String, Object> createTargetSystemServiceMap = new HashMap<>();
+        createTargetSystemServiceMap.put("targetSystemServiceId", 40);
+        createTargetSystemServiceMap.put("hostname", "TARGETSYSTEMSERVICEHOST");
+        createTargetSystemServiceMap.put("name", "TARGET SYSTEM SERVICE");
+        createTargetSystemServiceMap.put("port", 443);
+        createTargetSystemServiceMap.put("targetSystemGroupId", 11);
+        createTargetSystemServiceMap.put("targetSystemId", 12);
+
+        Response responseNoContent = getMockResponse(HttpStatus.NO_CONTENT, true, "");
+        when(ControllerUtil.createMetadata(Mockito.any(), any())).thenReturn(true);
+        when(reqProcessor.process(eq("/access/update"),any(),eq(userDetailToken))).thenReturn(responseNoContent);
+
+        when(ControllerUtil.parseJson(createTargetSystemServiceResponse)).thenReturn(createTargetSystemServiceMap);
+        when(reqProcessor.processCert(eq("/certmanager/targetsystemservice/create"), anyObject(), anyString(), anyString())).thenReturn(response2);
+
+        //getEnrollCA Validation
+        when(reqProcessor.processCert(eq("/certmanager/getEnrollCA"), anyObject(), anyString(), anyString())).thenReturn(getEnrollCAResponse_For_External_Certificate());
+
+        ///putEnrollCA Validation
+        when(reqProcessor.processCert(eq("/certmanager/putEnrollCA"), anyObject(), anyString(), anyString())).thenReturn(getEnrollCAResponse());
+
+        ///getEnrollTemplate Validation
+        when(reqProcessor.processCert(eq("/certmanager/getEnrollTemplates"), anyObject(), anyString(), anyString())).thenReturn(getEnrollTemplateResponse_External());
+
+        ///getEnrollTemplate Validation
+        when(reqProcessor.processCert(eq("/certmanager/putEnrollTemplates"), anyObject(), anyString(), anyString())).thenReturn(getEnrollTemplateResponse());
+
+        ///getTemplateParameter Validation
+        when(reqProcessor.processCert(eq("/certmanager/getTemplateParameter"), anyObject(), anyString(), anyString())).thenReturn(getTemplateParametersResponse());
+
+        ///putTemplateParameter Validation
+        when(reqProcessor.processCert(eq("/certmanager/putTemplateParameter"), anyObject(), anyString(), anyString())).thenReturn(putTemplateParameterResponse());
+
+
+        ///getEnrollKeys Validation
+        when(reqProcessor.processCert(eq("/certmanager/getEnrollkeys"), anyObject(), anyString(), anyString())).thenReturn(getEnrollKeysResponse());
+
+        ///putEnrollKeys Validation
+        when(reqProcessor.processCert(eq("/certmanager/putEnrollKeys"), anyObject(), anyString(), anyString())).thenReturn(getEnrollKeysResponse());
+
+        ///getEnrollCSR Validation
+        when(reqProcessor.processCert(eq("/certmanager/getEnrollCSR"), anyObject(), anyString(), anyString())).thenReturn(getEnrollCSRResponse());
+
+        ///putEnrollCSR Validation
+        when(reqProcessor.processCert(eq("/certmanager/putEnrollCSR"), anyObject(), anyString(), anyString())).thenReturn(getEnrollCSRResponse());
+
+        //enroll
+        when(reqProcessor.processCert(eq("/certmanager/enroll"), anyObject(), anyString(), anyString())).thenReturn(getEnrollResonse());
+
+        when(reqProcessor.process("/auth/userpass/read","{\"username\":\"testuser2\"}",token)).thenReturn(userResponse);
+
+        List<String> resList = new ArrayList<>();
+        resList.add("default");
+        resList.add("r_cert_CertificateName.t-mobile.com");
+        when(ControllerUtil.getPoliciesAsListFromJson(any(), any())).thenReturn(resList);
+
+        when(ControllerUtil.configureUserpassUser(eq("testuser2"),any(),eq(token))).thenReturn(idapConfigureResponse);
+        when(ControllerUtil.updateMetadata(any(),eq(token))).thenReturn(responseNoContent);
+        when(certificateUtils.getCertificateMetaData(token, "CertificateName.t-mobile.com")).thenReturn(certificateMetadata);
+        when(certificateUtils.hasAddOrRemovePermission(userDetails, certificateMetadata)).thenReturn(true);
+
+        ResponseEntity<?> enrollResponse =
+                sSLCertificateService.generateSSLCertificate(sslCertificateRequest,userDetails,token);
+        //Assert
+        assertNotNull(enrollResponse);
+        assertEquals(HttpStatus.OK, enrollResponse.getStatusCode());
+    }
 
 
     @Test
@@ -1245,6 +1391,21 @@ public class SSLCertificateServiceTest {
     }
 
 
+
+    private CertResponse getEnrollCAResponse_For_External_Certificate() {
+
+        String getEnrollCAResponse = "{\"ca\":{\"selectedId\":0,\"items\":[{\"id\":38,\"displayName\":\"Entrust CA\"," +
+                "\"availableInSubs\":true,\"allowed\":true,\"policyLinkId\":38,\"linkId\":2,\"linkType\":\"CA\",\"hasTemplates\":true}]}}";
+
+        CertResponse response = new CertResponse();
+        response.setHttpstatus(HttpStatus.OK);
+        response.setResponse(getEnrollCAResponse);
+        response.setSuccess(true);
+
+        return response;
+    }
+
+
     private CertResponse getEnrollTemplateResponse() {
 
         String getEnrollCAResponse = "{\"template\":{\"selectedId\":46,\"items\":[{\"id\":49," +
@@ -1263,6 +1424,18 @@ public class SSLCertificateServiceTest {
     }
 
 
+    private CertResponse getEnrollTemplateResponse_External() {
+
+        String getEnrollCAResponse = "{\"template\":{\"selectedId\":0,\"items\":[{\"id\":40," +
+                "\"displayName\":\"Advantage SSL Certificate\",\"availableInSubs\":true,\"allowed\":true,\"policyLinkId\":50,\"linkId\":2,\"linkType\":\"META_TEMPLATE\",\"hasParameters\":true},{\"id\":42,\"displayName\":\"Unified Communication Multi-Domain SSL Certificate\",\"availableInSubs\":true,\"allowed\":true,\"policyLinkId\":47,\"linkId\":4,\"linkType\":\"META_TEMPLATE\",\"hasParameters\":true}]}}";
+
+        CertResponse response = new CertResponse();
+        response.setHttpstatus(HttpStatus.OK);
+        response.setResponse(getEnrollCAResponse);
+        response.setSuccess(true);
+
+        return response;
+    }
     private CertManagerLoginRequest getCertManagerLoginRequest() {
         CertManagerLoginRequest certManagerLoginRequest = new CertManagerLoginRequest();
         certManagerLoginRequest.setPassword("password");
@@ -3220,5 +3393,31 @@ public class SSLCertificateServiceTest {
         assertNotNull(revocResponse);
         assertEquals(HttpStatus.BAD_REQUEST, revocResponse.getStatusCode());
     }
-   
+
+
+
+
+
+    private CertResponse getTemplateParametersResponse(){
+        String enrollCSRResponse = "{\"templateParameters\":{\"templateId\":47,\"typeName\":\"META_TEMPLATE\"," +
+                "\"items\":[{\"id\":86586,\"parameterId\":105,\"displayName\":\"Client ID\",\"name\":\"clientid\",\"value\":\"1\",\"required\":true,\"hidden\":false,\"disabled\":false,\"owner\":{\"entityRef\":\"GLOBAL\",\"entityId\":0,\"displayName\":\"Global policy\"}},{\"id\":86589,\"parameterId\":95,\"displayName\":\"Requester Name\",\"name\":\"appname\",\"value\":\"\",\"required\":true,\"hidden\":false,\"disabled\":false,\"owner\":{\"entityRef\":\"GLOBAL\",\"entityId\":0,\"displayName\":\"Global policy\"}},{\"id\":86590,\"parameterId\":94,\"displayName\":\"Requester email\",\"name\":\"appemail\",\"value\":\"\",\"required\":true,\"hidden\":false,\"disabled\":false,\"owner\":{\"entityRef\":\"GLOBAL\",\"entityId\":0,\"displayName\":\"Global policy\"}},{\"id\":86588,\"parameterId\":96,\"displayName\":\"Requester telephone number\",\"name\":\"apptelephone\",\"value\":\"\",\"required\":true,\"hidden\":false,\"disabled\":false,\"owner\":{\"entityRef\":\"GLOBAL\",\"entityId\":0,\"displayName\":\"Global policy\"}},{\"id\":86584,\"parameterId\":104,\"displayName\":\"The lifetime of the certificate in years\",\"name\":\"certyears\",\"value\":\"\",\"required\":true,\"hidden\":false,\"disabled\":false,\"owner\":{\"entityRef\":\"GLOBAL\",\"entityId\":0,\"displayName\":\"Global policy\"}},{\"id\":86599,\"parameterId\":93,\"displayName\":\"Additional emails\",\"name\":\"additionalemails\",\"value\":\"\",\"required\":false,\"hidden\":false,\"disabled\":false,\"owner\":{\"entityRef\":\"GLOBAL\",\"entityId\":0,\"displayName\":\"Global policy\"}}]}}";
+        CertResponse response = new CertResponse();
+        response.setHttpstatus(HttpStatus.OK);
+        response.setResponse(enrollCSRResponse);
+        response.setSuccess(true);
+
+        return response;
+    }
+
+    private CertResponse putTemplateParameterResponse(){
+        String enrollCSRResponse = "{\"templateParameters\":{\"templateId\":47,\"typeName\":\"META_TEMPLATE\"," +
+                "\"items\":[{\"id\":86586,\"parameterId\":105,\"displayName\":\"Client ID\",\"name\":\"clientid\",\"value\":\"1\",\"required\":true,\"hidden\":false,\"disabled\":false,\"owner\":{\"entityRef\":\"GLOBAL\",\"entityId\":0,\"displayName\":\"Global policy\"}},{\"id\":86589,\"parameterId\":95,\"displayName\":\"Requester Name\",\"name\":\"appname\",\"value\":\"testappname\",\"required\":true,\"hidden\":false,\"disabled\":false,\"owner\":{\"entityRef\":\"GLOBAL\",\"entityId\":0,\"displayName\":\"Global policy\"}},{\"id\":86590,\"parameterId\":94,\"displayName\":\"Requester email\",\"name\":\"appemail\",\"value\":\"testemail@gmail.com\",\"required\":true,\"hidden\":false,\"disabled\":false,\"owner\":{\"entityRef\":\"GLOBAL\",\"entityId\":0,\"displayName\":\"Global policy\"}},{\"id\":86588,\"parameterId\":96,\"displayName\":\"Requester telephone number\",\"name\":\"apptelephone\",\"value\":\"111-111-1111\",\"required\":true,\"hidden\":false,\"disabled\":false,\"owner\":{\"entityRef\":\"GLOBAL\",\"entityId\":0,\"displayName\":\"Global policy\"}},{\"id\":86584,\"parameterId\":104,\"displayName\":\"The lifetime of the certificate in years\",\"name\":\"certyears\",\"value\":\"2\",\"required\":true,\"hidden\":false,\"disabled\":false,\"owner\":{\"entityRef\":\"GLOBAL\",\"entityId\":0,\"displayName\":\"Global policy\"}},{\"id\":86599,\"parameterId\":93,\"displayName\":\"Additional emails\",\"name\":\"additionalemails\",\"value\":\"\",\"required\":false,\"hidden\":false,\"disabled\":false,\"owner\":{\"entityRef\":\"GLOBAL\"," +
+                "\"entityId\":0,\"displayName\":\"Global policy\"}}]}}";
+        CertResponse response = new CertResponse();
+        response.setHttpstatus(HttpStatus.OK);
+        response.setResponse(enrollCSRResponse);
+        response.setSuccess(true);
+
+        return response;
+    }
 }
