@@ -214,7 +214,7 @@
     	"apiEndPoint":"/auth/tvault/lookup",
     	"vaultEndPoint":"/auth/token/lookup-self",
     	"method":"GET",
-        "outparams":["data/id","data/last_renewal_time","renewable","data/policies","data/creation_ttl", "data/meta/username"] 
+        "outparams":["data/id","data/last_renewal_time","renewable","data/policies","data/creation_ttl", "data/meta/username", "data/identity_policies"]
     },
 	{"#" : "**** - Used to revoke the token *******",
  	
@@ -805,12 +805,12 @@
       	"outparams":["data/current_password", "data/last_password", "data/service_account_name", "data/ttl", "data/last_vault_rotation"]
     },
     {"#" : "**** - CertManager Login  '****** ",
- 	
+
     	"apiEndPoint":"/auth/certmanager/login",
     	"vaultEndPoint":"/token?grant_type=client_credentials",
     	"method":"POST",
       	"params":[
-        		{"name":"username", "required":true}, 
+        		{"name":"username", "required":true},
     	  		{"name":"password","required":true}
  	    ],
         "outparams":["access_token","token_type"]
@@ -945,7 +945,7 @@
 		"outparams":["certificates"]
 	},
 	{"#" : "**** - Create TargetSystem Service '****** ",
- 	
+
     	"apiEndPoint":"/certmanager/targetsystemservice/create",
     	"vaultEndPoint":"targetsystems/",
     	"method":"POST",
@@ -958,7 +958,7 @@
         "outparams":["targetSystemID","name","port","targetSystemGroupId","targetSystemId","targetSystemServiceId","hostname"]
     },
     {"#":"Getting certificate metadata Info",
-    
+
     	"apiEndPoint":"/certmanager",
     	"vaultEndPoint":"/<path>",
     	"method":"GET",
@@ -994,19 +994,19 @@
     {"#" : "**** - Get Revocation Reasons ****** ",
 
 		"apiEndPoint":"/certificates/revocationreasons",
-		"vaultEndPoint":"certificates/<certID>/revocationreasons", 
+		"vaultEndPoint":"certificates/<certID>/revocationreasons",
 		"method":"GET",
 		"params":[
       		{"name":"certID", "required":true, "appendToPath":true}
         ],
         "outparams":["time_enabled","details_enabled","reasons"]
-        
-        
+
+
 	},
     {"#" : "**** - Issue Revocation Request ****** ",
 
 		"apiEndPoint":"/certificates/revocationrequest",
-		"vaultEndPoint":"certificates/{certName}/revocationrequest", 
+		"vaultEndPoint":"certificates/{certName}/revocationrequest",
 		"method":"POST",
 		"params":[
       		{"name":"certName", "required":true, "appendToPath":true},
@@ -1017,33 +1017,53 @@
 	 {"#" : "**** - Renew Certificate ****** ",
 
 		"apiEndPoint":"/certificates/renew",
-		"vaultEndPoint":"certificates/<certID>/renew", 
+		"vaultEndPoint":"certificates/<certID>/renew",
 		"method":"POST",
 		"params":[
-      		{"name":"certName", "required":true, "appendToPath":true},      		
+      		{"name":"certName", "required":true, "appendToPath":true},
       		{"name":"time"}
         ]
 	},
 	 {"#" : "**** - Unassign Certificate ****** ",
 
 		"apiEndPoint":"/certificates/services/assigned",
-		"vaultEndPoint":"certificates/<certID>/services/assigned", 
+		"vaultEndPoint":"certificates/<certID>/services/assigned",
 		"method":"DELETEPAYLOAD",
 		"params":[
-      		{"name":"certID", "required":true, "appendToPath":true},     
-      		{"name":"targetSystemServiceIds", "required":true}, 		
+      		{"name":"certID", "required":true, "appendToPath":true},
+      		{"name":"targetSystemServiceIds", "required":true},
       		{"name":"time"}
         ]
 	},
 	 {"#" : "**** - Delete Certificate ****** ",
 
 		"apiEndPoint":"/certificates",
-		"vaultEndPoint":"certificates/<certID>", 
+		"vaultEndPoint":"certificates/<certID>",
 		"method":"DELETEPAYLOAD",
 		"params":[
-      		{"name":"certID", "required":true, "appendToPath":true},      		
+      		{"name":"certID", "required":true, "appendToPath":true},
       		{"name":"time"}
         ]
-	}
+    },
+	{
 
+		"apiEndPoint":"/auth/oidc/oidc/auth_url",
+		"vaultEndPoint":"/auth/oidc/oidc/auth_url",
+		"method":"POST",
+		"params":[
+			{"name":"role", "required":true},
+			{"name":"redirect_uri", "required":true}
+		],
+		"outparams":["request_id","lease_id","renewable", "lease_duration", "data", "wrap_info", "warnings", "auth"]
+	},
+	{
+
+		"apiEndPoint":"/auth/oidc/oidc/callback",
+		"vaultEndPoint":"/auth/oidc/oidc/callback<path>",
+		"method":"GET",
+		"params":[
+			{"name":"path","required":true, "appendToPath":true}
+		],
+		"outparams":["auth/client_token","admin","access","auth/policies","auth/lease_duration"]
+	}
 ]

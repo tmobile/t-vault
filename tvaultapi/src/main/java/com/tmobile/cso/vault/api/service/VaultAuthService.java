@@ -144,7 +144,7 @@ public class  VaultAuthService {
 	 * @param access
 	 * @return
 	 */
-	private Map<String,Object> filterDuplicateSafePermissions(Map<String,Object> access) {
+	public Map<String,Object> filterDuplicateSafePermissions(Map<String,Object> access) {
 		if (!MapUtils.isEmpty(access)) {
 			String[] safeTypes = {TVaultConstants.USERS, TVaultConstants.SHARED, TVaultConstants.APPS};
 
@@ -177,7 +177,7 @@ public class  VaultAuthService {
 	 * @param access
 	 * @return
 	 */
-	private Map<String,Object> filterDuplicateSvcaccPermissions(Map<String,Object> access) {
+	public Map<String,Object> filterDuplicateSvcaccPermissions(Map<String,Object> access) {
 		if (!MapUtils.isEmpty(access)) {
 			List<Map<String,String>> svcaccPermissions = (List<Map<String,String>>)access.get(TVaultConstants.SVC_ACC_PATH_PREFIX);
 			if (svcaccPermissions != null) {
