@@ -120,4 +120,6 @@ public class TVaultConstants {
         EMAIL_TEMPLATE_IMAGE_IDS.put("adduser", "templates/images/adduser.png");
     }
 
+    public static final String CERT_POLICY_PREFIX="cert";
+
 }
