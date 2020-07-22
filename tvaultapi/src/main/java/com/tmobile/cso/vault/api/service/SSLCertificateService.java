@@ -1199,12 +1199,9 @@ public class SSLCertificateService {
         targetSystemServiceRequest.setDescription(targetSysServiceRequest.getDescription());
         targetSystemServiceRequest.setName(targetSysServiceRequest.getName());
         targetSystemServiceRequest.setHostname(targetSysServiceRequest.getHostname());
-        if (targetSysServiceRequest.isMonitoringEnabled()) {
-            targetSystemServiceRequest.setMonitoringEnabled(Boolean.TRUE);
-        }
-        if (targetSysServiceRequest.isMultiIpMonitoringEnabled()) {
-            targetSystemServiceRequest.setMultiIpMonitoringEnabled(Boolean.TRUE);
-        }
+        
+        targetSystemServiceRequest.setMonitoringEnabled(Boolean.TRUE); 
+        targetSystemServiceRequest.setMultiIpMonitoringEnabled(Boolean.TRUE);
 
         return targetSystemServiceRequest;
     }
