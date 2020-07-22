@@ -47,4 +47,7 @@ public final class SSLCertificateConstants {
     public static final String CERT_DOWNLOAD_TYPE_PKCS12PEM = "pkcs12pem";
     public static final String REMOVE_USER_FROM_CERT_MSG = "Remove User from Certificate";
     public static final String REMOVE_GROUP_FROM_CERT_MSG = "Remove Group from Certificate";
+    public static final String SSL_EXTERNAL_CERT_PATH = "metadata/externalcerts";
+    public static final String INTERNAL_POLICY_NAME="cert";
+    public static final String EXTERNAL_POLICY_NAME="externalcerts";
 }
