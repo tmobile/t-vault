@@ -3,13 +3,11 @@ package com.tmobile.cso.vault.api.model;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import io.swagger.annotations.ApiModelProperty;
-import net.bytebuddy.implementation.bind.annotation.Default;
 import org.hibernate.validator.constraints.NotEmpty;
-
 import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Pattern;
+
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class TargetSystemServiceRequest {
     @Min(value = 1, message = "Please enter value between 0 and 65536")
@@ -21,7 +19,11 @@ public class TargetSystemServiceRequest {
     @NotNull
     @NotEmpty
     private String name;
+    
+    @ApiModelProperty(hidden = true)
     private boolean monitoringEnabled;
+    
+    @ApiModelProperty(hidden = true)
     private boolean multiIpMonitoringEnabled;
 
     public boolean isMonitoringEnabled() {

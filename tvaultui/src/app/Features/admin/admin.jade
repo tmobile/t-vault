@@ -272,11 +272,11 @@ script(type='text/ng-template', id='certificatePopup.html')
                     .col-lg-6.col-md-6.col-sm-6.col-xs-6.common-form-row()
                       .details-input-group
                         .common-form-label Enable monitoring
-                        input(type='checkbox' id="enableMonitoring" ng-model="certObj.targetSystemServiceRequest.monitoringEnabled")
+                        input(type='checkbox' ng-checked = "true" ng-disabled="true" id="enableMonitoring" ng-model="certObj.targetSystemServiceRequest.monitoringEnabled")
                     .col-lg-6.col-md-6.col-sm-6.col-xs-6.common-form-row()
                       .details-input-group
                         .common-form-label Enable multi-IP monitoring
-                        input(type='checkbox' id="enableMultiIpMonitoring" ng-model="certObj.targetSystemServiceRequest.multiIpMonitoringEnabled")
+                        input(type='checkbox' ng-checked = "true" ng-disabled="true" id="enableMultiIpMonitoring" ng-model="certObj.targetSystemServiceRequest.multiIpMonitoringEnabled")
                     .col-lg-12.col-md-12.col-sm-12.col-xs-12.common-form-row()
                       .details-input-group
                         .common-form-label Hostname for SNI
