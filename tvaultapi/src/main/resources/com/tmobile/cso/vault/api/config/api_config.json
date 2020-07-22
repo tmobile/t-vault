@@ -896,6 +896,18 @@
 		"method":"PUT",
 		"outparams":["subject"]
 	},
+	{"#" : "**** - Get  Template Paramter Request '****** ",
+		"apiEndPoint":"/certmanager/getTemplateParameter",
+		"vaultEndPoint":"policy/template",
+		"method":"GET",
+		"outparams":["templateParameters"]
+	},
+	{"#" : "**** - Put  Template Paramter Request '****** ",
+		"apiEndPoint":"/certmanager/putTemplateParameter",
+		"vaultEndPoint":"/policy/template",
+		"method":"PUT",
+		"outparams":["templateParameters"]
+	},
 	{"#" : "**** - Get  Target System '****** ",
 
 		"apiEndPoint":"/certmanager/findTargetSystem",
