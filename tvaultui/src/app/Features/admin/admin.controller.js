@@ -1521,10 +1521,12 @@
         
         $scope.targetSystemServiceValidation = function(){  
         	$scope.targetSysServiceErrorMessage="";
+        	var targetSysServiceName = "";
         	
         	$scope.targetSystemServiceIsAvailable = false;
-        	var targetSysServiceName = $scope.certObj.targetSystemServiceRequest.name;
-        	        	
+        	if($scope.certObj.targetSystemServiceRequest!=undefined){
+        	targetSysServiceName = $scope.certObj.targetSystemServiceRequest.name;
+        	}       	
         	if($scope.targetSystemServicesList !=null) {   	
         	angular.forEach($scope.targetSystemServicesList, function(item){
                 if(item.name == targetSysServiceName){
@@ -1831,6 +1833,7 @@
             $scope.existingService = true;
             $scope.existingService = false;  
             $scope.targetSystemIsAvailable = false;
+            $scope.targetSysErrorMessage = '';
             if(angular.isDefined($scope.certObj.targetSystem) && $scope.certObj.targetSystem != null && typeof $scope.certObj.targetSystem == 'object'){
                 $scope.certObj.targetSystem.name=undefined;
                 $scope.certObj.targetSystem.description=undefined;
