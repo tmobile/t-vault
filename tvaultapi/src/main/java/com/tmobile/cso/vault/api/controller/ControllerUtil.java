@@ -2285,7 +2285,9 @@ public final class ControllerUtil {
 				|| ObjectUtils.isEmpty(certificateGroup.getAccess())
 				|| ObjectUtils.isEmpty(certificateGroup.getCertificateName())
 				|| certificateGroup.getCertificateName().contains(" ")
-                || (!certificateGroup.getCertificateName().endsWith(".t-mobile.com"))
+                || (!certificateGroup.getCertificateName().endsWith(".t-mobile.com")
+                ||(certificateGroup.getCertificateName().contains(".-"))
+	            || (certificateGroup.getCertificateName().contains("-.")))
 				) {
 			return false;
 		}
@@ -2325,7 +2327,7 @@ public final class ControllerUtil {
 			return true;
 		}
 		else {
-			// There are no safes or more than one and hence permission can't be added
+			// There are no certificates or more than one and hence permission can't be added
 			return false;
 		}
 	}

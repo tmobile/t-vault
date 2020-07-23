@@ -329,4 +329,18 @@ public class SSLCertificateControllerTest {
 				SslCertificateController.renewCertificate(httpServletRequest, token, certName).getStatusCode());
 
 	}
+	
+
+	@Test
+    public void testAddGrouptoCertificate() throws Exception {
+		String responseJson = "{\"messages\":[\"Group is successfully associated with Certificate\"]}";
+		ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(responseJson);
+		CertificateGroup certGroup = new CertificateGroup("certificatename.t-mobile.com","testgroup","read");
+		String inputJson =new ObjectMapper().writeValueAsString(certGroup);
+		when(sslCertificateService.addingGroupToCertificate(eq("5PDrOhsy4ig8L3EpsJZSLAMg"), Mockito.any(CertificateGroup.class))).thenReturn(responseEntityExpected);
+		 mockMvc.perform(MockMvcRequestBuilders.post("/v2/ss/certificate/group").requestAttr("UserDetails", userDetails)
+	                .header("vault-token", "5PDrOhsy4ig8L3EpsJZSLAMg")
+	                .header("Content-Type", "application/json;charset=UTF-8")
+	                .content(inputJson));
+	}
 }
