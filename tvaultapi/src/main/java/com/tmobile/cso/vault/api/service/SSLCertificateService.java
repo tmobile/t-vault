@@ -2172,46 +2172,41 @@ public class SSLCertificateService {
 	 * @return
 	 */
 	public ResponseEntity<String> addGroupToCertificate(UserDetails userDetails, String userToken, CertificateGroup certificateGroup) {
-		String token;
-		if (userDetails.isAdmin()) {
-			token = userDetails.getClientToken();
-			ResponseEntity<String> isAuthorized = isAuthorized(userDetails, certificateGroup.getCertificateName());
-			ResponseEntity<String> addingGroupToCertificate = addingGroupToCertificate(token, certificateGroup);
-			if(!addingGroupToCertificate.getStatusCode().equals(HttpStatus.OK)) {
-					return addingGroupToCertificate.getStatusCode().equals(HttpStatus.BAD_REQUEST)?addingGroupToCertificate:ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Error checking user permission\"]}");
-			}
-			if (!isAuthorized.getStatusCode().equals(HttpStatus.OK)) {
-				return isAuthorized.getStatusCode().equals(HttpStatus.BAD_REQUEST)?isAuthorized:ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Error checking user permission\"]}");
-			}
-			if (isAuthorized.getBody().equals(TVaultConstants.FALSE)) {
-				return ResponseEntity.status(HttpStatus.FORBIDDEN).body("{\"errors\":[\"Access denied: no permission to add groups to this certificate\"]}");
-			}
-
-		}
-		else {
-			 token = userDetails.getSelfSupportToken();
-			ResponseEntity<String> isAuthorized = isAuthorized(userDetails, certificateGroup.getCertificateName());
-			if (!isAuthorized.getStatusCode().equals(HttpStatus.OK)) {
-				return isAuthorized.getStatusCode().equals(HttpStatus.BAD_REQUEST)?isAuthorized:ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Error checking user permission\"]}");
-			}
-			if (isAuthorized.getBody().equals(TVaultConstants.FALSE)) {
-				return ResponseEntity.status(HttpStatus.FORBIDDEN).body("{\"errors\":[\"Access denied: no permission to add groups to this certificate\"]}");
-			}
-		}
-		return addingGroupToCertificate(token, certificateGroup);
+   		String authToken = null;
+   		boolean isAuthorized = true;
+   		if (!ObjectUtils.isEmpty(userDetails)) {
+   			if (userDetails.isAdmin()) {
+   				authToken = userDetails.getClientToken();   	            
+   	        }else {
+   	        	authToken = userDetails.getSelfSupportToken();
+   	        }
+   			isAuthorized=isAuthorized(userDetails, certificateGroup.getCertificateName());
+   			if(isAuthorized){   			
+   	   			return addingGroupToCertificate(authToken, certificateGroup);	
+   	   		}else{
+   	   			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+   	   					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+   	   					put(LogMessage.ACTION, SSLCertificateConstants.ADD_GROUP_TO_CERT_MSG).
+   	   					put(LogMessage.MESSAGE, "Access denied: No permission to add groups to this certificate").
+   	   					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+   	   					build()));
+   	   			
+   	   			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Access denied: No permission to add groups to this certificate\"]}");
+   	   		}
+   			
+   		}
+   		return ResponseEntity.status(HttpStatus.OK).body("{\"messages\\\":[\"Group is successfully associated with Certificate\"]}");   			
 	}
-
+	
 	/**
 	 * isAuthorizedh
 	 * @param token
 	 * @param certName
 	 * @return
 	 */
-	public ResponseEntity<String> isAuthorized (UserDetails userDetails, String certificatename) {
+		public boolean isAuthorized (UserDetails userDetails, String certificatename) {	
 		String certName = certificatename;
-		if (certName==null) {
-			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid certificate Name specified\"]}");
-		}
+		
 		String powerToken=null;
 		if (userDetails.isAdmin()) {
 		powerToken = userDetails.getClientToken();
@@ -2224,18 +2219,15 @@ public class SSLCertificateService {
 		
 
 		SSLCertificateMetadataDetails sslMetaData = certificateUtils.getCertificateMetaData(powerToken,certName);
-		if (sslMetaData == null) {
-			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Access denied: No permission to add users to this certificate\"]}");
-		}
 
 		if (sslMetaData != null)  {
 			boolean isValid = certificateUtils.hasAddOrRemovePermission(userDetails, sslMetaData);
-			return ResponseEntity.status(HttpStatus.OK).body(String.valueOf(isValid));
+			return isValid;
 		}
 		String[] latestPolicies = policyUtils.getCurrentPolicies(powerToken, username);
 		ArrayList<String> policiesTobeChecked =  policyUtils.getCertPoliciesTobeCheked(certName);
 		boolean isAuthorized = authorizationUtils.isAuthorizedCert(userDetails, sslMetaData, latestPolicies, policiesTobeChecked, false);
-		return ResponseEntity.status(HttpStatus.OK).body(String.valueOf(isAuthorized));
+		return isAuthorized;
 		
 	}
 
@@ -2282,36 +2274,16 @@ public class SSLCertificateService {
 
 		String path= SSLCertificateConstants.SSL_CERT_PATH + '/' + certificateName;
 		boolean canAddGroup = ControllerUtil.canAddCertPermission(path,certificateName,token);
+		String policyPrefix = getCertificatePolicyPrefix(access);
 		if(canAddGroup){
-			String folders[] = path.split("[/]+");
 
-			String policyPrefix ="";
-			switch (access){
-			case TVaultConstants.READ_POLICY: policyPrefix = "r_"; break ;
-			case TVaultConstants.WRITE_POLICY: policyPrefix = "w_" ;break;
-			case TVaultConstants.DENY_POLICY: policyPrefix = "d_" ;break;
-			}
 			if(TVaultConstants.EMPTY.equals(policyPrefix)){
 				return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body("{\"errors\":[\"Incorrect access requested. Valid values are read,write,deny \"]}");
 			}
-			String policy = policyPrefix+"cert_"+certificateName;
-			String r_policy = "r_";
-			String w_policy = "w_";
-			String d_policy = "d_";
-			if (folders.length > 0) {
-				for (int index = 0; index < folders.length; index++) {
-					if (index == folders.length -1 ) {
-						r_policy += folders[index];
-						w_policy += folders[index];
-						d_policy += folders[index];
-					}
-					else {
-						r_policy += folders[index]  +"_";
-						w_policy += folders[index] +"_";
-						d_policy += folders[index] +"_";
-					}
-				}
-			}
+			String policy = policyPrefix + certificateName;
+			String readPolicy = "r_cert_"+certificateName;
+			String writePolicy = "w_cert_"+certificateName;
+			String denyPolicy = "d_cert_"+certificateName;
 			Response getGrpResp = reqProcessor.process("/auth/ldap/groups","{\"groupname\":\""+groupName+"\"}",token);
 			String responseJson="";
 
@@ -2326,9 +2298,10 @@ public class SSLCertificateService {
 					log.error(e);
 				}
 				policies.addAll(currentpolicies);
-				policies.remove(r_policy);
-				policies.remove(w_policy);
-				policies.remove(d_policy);
+				policies.remove(readPolicy);
+				policies.remove(writePolicy);
+				policies.remove(denyPolicy);
+				
 				policies.add(policy);
 			}else{
 				// New user to be configured
@@ -2364,7 +2337,7 @@ public class SSLCertificateService {
 						for (String existingCertName: certNames) {
 							if (existingCertName.equalsIgnoreCase(certName)) {
 								
-								// It will come here when there is only one valid safe
+								// It will come here when there is only one valid certificate
 								String newPath = SSLCertificateConstants.SSL_CERT_PATH + '/' + certificateName;
 								break;
 							}
