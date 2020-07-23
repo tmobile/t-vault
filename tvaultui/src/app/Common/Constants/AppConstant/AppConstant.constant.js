@@ -32,8 +32,7 @@
         'DOCS_LINK' : '',
         'REPO_LINK' : 'https://github.com/tmobile/t-vault/blob/master/README.md',
         'OIDC_ROLE' : '',
-        'OIDC_REDIRECT_URL' : '',
-        'OIDC_TOKEN': ''
+        'OIDC_REDIRECT_URL' : ''
     });
     /*endinject*/
 })(angular.module('vault.constants.AppConstant', []));
