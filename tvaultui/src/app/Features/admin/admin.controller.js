@@ -1493,7 +1493,8 @@
         }        
         
         $scope.targetSystemAvailable = function(){        	
-        	if($scope.targetSystemType.type=="new"){        		
+        	if($scope.targetSystemType.type=="new"){ 
+        		$scope.targetSystemServicesList=null;
         		return $scope.targetSystemValidation();
         	}
         	if($scope.targetSystemType.type=="existing"){        		
