@@ -31,20 +31,9 @@ import org.springframework.web.bind.annotation.*;
 @CrossOrigin
 @Api(description = "Manage OIDC Authentication", position = 19)
 public class OidcAuthControllerV2 {
-    @Value("${vault.auth.method}")
-    private String vaultAuthMethod;
-
-    @Value("${selfservice.enable}")
-    private boolean isSSEnabled;
-
-    @Value("${ad.passwordrotation.enable}")
-    private boolean isAdPswdRotationEnabled;
 
     @Autowired
     private OidcAuthService oidcAuthService;
-
-    @Autowired
-    private RequestProcessor reqProcessor;
 
     /**
      * Login to TVault
@@ -52,14 +41,14 @@ public class OidcAuthControllerV2 {
      */
     @PostMapping(value="/v2/auth/oidc/auth_url",produces="application/json")
     @ApiOperation(value = "${OidcAuthControllerV2.getAuthUrl.value}", notes = "${OidcAuthControllerV2.getAuthUrl.notes}")
-    public ResponseEntity<String> getAuthUrl(@RequestBody OidcRequest oidcRequest, @RequestHeader(value="vault-token") String token){
-        return oidcAuthService.getAuthUrl(token, oidcRequest);
+    public ResponseEntity<String> getAuthUrl(@RequestBody OidcRequest oidcRequest){
+        return oidcAuthService.getAuthUrl(oidcRequest);
     }
 
     @GetMapping(value="/v2/auth/oidc/callback",produces="application/json")
     @ApiOperation(value = "${OidcAuthControllerV2.processCallback.value}", notes = "${OidcAuthControllerV2.processCallback.notes}")
-    public ResponseEntity<String> processCallback(@RequestHeader(value="vault-token") String token, @RequestParam(name="state", required = false) String state, @RequestParam(name="code", required = false) String code){
-        return oidcAuthService.processCallback(token, state, code);
+    public ResponseEntity<String> processCallback(@RequestParam(name="state", required = false) String state, @RequestParam(name="code", required = false) String code){
+        return oidcAuthService.processCallback(state, code);
 
     }
 }
