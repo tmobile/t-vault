@@ -21,7 +21,7 @@ public class CertificateGroup implements Serializable{
 	}
 
 	/**
-	 * @param certificatename
+	 * @param certificateName
 	 * @param groupname
 	 * @param access
 	 */
@@ -64,5 +64,4 @@ public class CertificateGroup implements Serializable{
 	}
 
 
-	
-}
+	}

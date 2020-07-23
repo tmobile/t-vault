@@ -207,9 +207,9 @@ script(src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"
                                                     radio-buttons(data="radio" value="radioValue" state="editPermissionItem")
                                                 .container.actions.col-lg-4.col-md-4.col-sm-4.col-xs-4
                                                     .down
-                                                        .list-icon.icon-delete(ng-click = "deletePermission('groups', true, false, key, radioValue)")                                                    
+                                                        .list-icon.icon-delete(ng-click = "deletePermission('groups', true, false, key, radioValue)" uib-tooltip="Delete permission" tooltip-placement="bottom")  
                                                     .down.hide-in-mobile.edit
-                                                        .list-icon.icon-mode_edit(ng-click="editPermissionItem = !editPermissionItem; activeItem = !activeItem" ng-class="{'inactive' : editPermissionItem == true, 'hide-icon' : editPermissionItem == true}")
+                                                        .list-icon.icon-mode_edit(ng-click="editPermissionItem = !editPermissionItem; activeItem = !activeItem" ng-class="{'inactive' : editPermissionItem == true, 'hide-icon' : editPermissionItem == true}" uib-tooltip="Edit permission" tooltip-placement="bottom")
                                                         .list-icon.icon-cross(ng-click="editPermissionItem = !editPermissionItem; activeItem = !activeItem; radioValue = value" ng-class="{'inactive' : editPermissionItem == true, 'hide-icon' : editPermissionItem == false}")
                                                     .down.save
                                                         .list-icon(ng-click = "editPermission('groups', editPermissionItem, key, radioValue); editPermissionItem ? editPermissionItem = !editPermissionItem : editPermissionItem = editPermissionItem" ng-class="{'inactive' : editPermissionItem == false}")  SAVE
@@ -219,9 +219,9 @@ script(src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"
                                                     drop-down(drop-down-options="radio" value="radioValue" error="noTypeSelected")
                                                 .container.actions.col-lg-4.col-md-4.col-sm-4.col-xs-4
                                                     .down
-                                                        .list-icon.icon-delete(ng-click = "deletePermission('groups', editPermissionItem, false, key, radioValue)" ng-class="{'inactive' : editPermissionItem == false}")
+                                                        .list-icon.icon-delete(ng-click = "deletePermission('groups', editPermissionItem, false, key, radioValue)" ng-class="{'inactive' : editPermissionItem == false}" uib-tooltip="Delete permission" tooltip-placement="bottom")
                                                     .down.hide-in-mobile.edit
-                                                        .list-icon.icon-mode_edit(ng-click="editPermissionItem = !editPermissionItem; activeItem = !activeItem" ng-class="{'inactive' : editPermissionItem == true, 'hide-icon' : editPermissionItem == true}")
+                                                        .list-icon.icon-mode_edit(ng-click="editPermissionItem = !editPermissionItem; activeItem = !activeItem" ng-class="{'inactive' : editPermissionItem == true, 'hide-icon' : editPermissionItem == true}" uib-tooltip="Edit permission" tooltip-placement="bottom")
                                                         .list-icon.icon-cross(ng-click="editPermissionItem = !editPermissionItem; activeItem = !activeItem; radioValue = value" ng-class="{'inactive' : editPermissionItem == true, 'hide-icon' : editPermissionItem == false}")
                                                     .down.save
                                                         .list-icon(ng-click = "editPermission('groups', editPermissionItem, key, radioValue); editPermissionItem ? editPermissionItem = !editPermissionItem : editPermissionItem = editPermissionItem" ng-class="{'inactive' : editPermissionItem == false}")  SAVE
