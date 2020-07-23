@@ -119,5 +119,4 @@ public class TVaultConstants {
         EMAIL_TEMPLATE_IMAGE_IDS.put("permissiontab", "templates/images/permissiontab.png");
         EMAIL_TEMPLATE_IMAGE_IDS.put("adduser", "templates/images/adduser.png");
     }
-
 }

@@ -54,18 +54,6 @@
                 getSSOCallback(searchObj.code, searchObj.state);
             }
 
-            // MSAL config
-            var msalConfig = {
-                auth: {
-                    clientId: "06b34fda-31fc-4e29-8fbc-43f01ec894b5",
-                    authority: "https://login.microsoftonline.com/be0f980b-dd99-4b19-bd7b-bc71a09b026c",
-                    redirectUri: "http://localhost:3000",
-                }
-            };
-
-            $scope.msalInstance = new window.Msal.UserAgentApplication(msalConfig);
-            var loginRequest = {scopes: ["user.read", "mail.send"] };
-
             if(SessionStore.getItem("myVaultKey")){
                 // If no call back and token exists in session.
                 $scope.isLoadingData = true;

@@ -23,13 +23,12 @@ import com.google.common.collect.ImmutableMap;
 import com.tmobile.cso.vault.api.common.TVaultConstants;
 import com.tmobile.cso.vault.api.exception.LogMessage;
 import com.tmobile.cso.vault.api.model.OidcRequest;
-import com.tmobile.cso.vault.api.model.UserLogin;
 import com.tmobile.cso.vault.api.process.RequestProcessor;
 import com.tmobile.cso.vault.api.process.Response;
 import com.tmobile.cso.vault.api.utils.AuthorizationUtils;
 import com.tmobile.cso.vault.api.utils.JSONUtil;
 import com.tmobile.cso.vault.api.utils.ThreadLocalContext;
-import org.apache.commons.collections.MapUtils;
+import com.tmobile.cso.vault.api.utils.TokenUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -53,6 +52,9 @@ public class OidcAuthService {
 	@Autowired
 	private VaultAuthService vaultAuthService;
 
+    @Autowired
+    private TokenUtils tokenUtils;
+
 	@Value("${selfservice.enable}")
 	private boolean isSSEnabled;
 
@@ -63,11 +65,11 @@ public class OidcAuthService {
 
 	/**
 	 * To get OIDC auth url.
-	 * @param token
 	 * @param oidcRequest
 	 * @return
 	 */
-	public ResponseEntity<String> getAuthUrl(String token, OidcRequest oidcRequest) {
+	public ResponseEntity<String> getAuthUrl(OidcRequest oidcRequest) {
+	    String token = tokenUtils.getSelfServiceToken();
 		String jsonStr = JSONUtil.getJSON(oidcRequest);
 		Response response = reqProcessor.process("/auth/oidc/oidc/auth_url",jsonStr,token);
 		if(HttpStatus.OK.equals(response.getHttpstatus())){
@@ -91,13 +93,14 @@ public class OidcAuthService {
 
 	/**
 	 * To get vault token with OIDC callback state and code.
-	 * @param token
 	 * @param state
 	 * @param code
 	 * @return
 	 */
-	public ResponseEntity<String> processCallback(String token, String state, String code) {
-		String pathStr = "?code="+code+"&state="+state;
+	public ResponseEntity<String> processCallback(String state, String code) {
+        String token = tokenUtils.getSelfServiceToken();
+
+        String pathStr = "?code="+code+"&state="+state;
 		Response response = reqProcessor.process("/auth/oidc/oidc/callback","{\"path\":\""+pathStr+"\"}",token);
 		if(HttpStatus.OK.equals(response.getHttpstatus())){
 			Map<String, Object> responseMap = null;
