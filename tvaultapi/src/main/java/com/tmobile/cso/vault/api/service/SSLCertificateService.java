@@ -2204,31 +2204,20 @@ public class SSLCertificateService {
 	 * @param certName
 	 * @return
 	 */
-		public boolean isAuthorized (UserDetails userDetails, String certificatename) {	
+	public boolean isAuthorized(UserDetails userDetails, String certificatename) {
 		String certName = certificatename;
-		
-		String powerToken=null;
+
+		String powerToken = null;
 		if (userDetails.isAdmin()) {
-		powerToken = userDetails.getClientToken();
+			powerToken = userDetails.getClientToken();
+		} else {
+			powerToken = userDetails.getSelfSupportToken();
 		}
-		else {
-		powerToken = userDetails.getSelfSupportToken() ;
-		}
-			
-		String username = userDetails.getUsername();
-		
 
-		SSLCertificateMetadataDetails sslMetaData = certificateUtils.getCertificateMetaData(powerToken,certName);
+		SSLCertificateMetadataDetails sslMetaData = certificateUtils.getCertificateMetaData(powerToken, certName);
 
-		if (sslMetaData != null)  {
-			boolean isValid = certificateUtils.hasAddOrRemovePermission(userDetails, sslMetaData);
-			return isValid;
-		}
-		String[] latestPolicies = policyUtils.getCurrentPolicies(powerToken, username);
-		ArrayList<String> policiesTobeChecked =  policyUtils.getCertPoliciesTobeCheked(certName);
-		boolean isAuthorized = authorizationUtils.isAuthorizedCert(userDetails, sslMetaData, latestPolicies, policiesTobeChecked, false);
-		return isAuthorized;
-		
+		return certificateUtils.hasAddOrRemovePermission(userDetails, sslMetaData);
+
 	}
 
 	/**
@@ -2304,7 +2293,7 @@ public class SSLCertificateService {
 				
 				policies.add(policy);
 			}else{
-				// New user to be configured
+				// New group to be configured
 				policies.add(policy);
 			}
 
@@ -2365,7 +2354,7 @@ public class SSLCertificateService {
 								put(LogMessage.STATUS, (null!=metadataResponse)?metadataResponse.getHttpstatus().toString():TVaultConstants.EMPTY).
 								put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 								build()));
-						ldapConfigresponse = ControllerUtil.configureLDAPGroup(groupName,policiesString,token);
+						ldapConfigresponse = ControllerUtil.configureLDAPGroup(groupName,currentpoliciesString,token);
 						if(ldapConfigresponse.getHttpstatus().equals(HttpStatus.NO_CONTENT)){
 							log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 									put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
