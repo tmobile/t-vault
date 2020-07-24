@@ -560,19 +560,28 @@ public class SSLCertificateService {
 		
 		ResponseEntity<String> addUserresponse = addUserToCertificate(token, certificateUser, userDetails, true);
 		
-		if(HttpStatus.OK.equals(addUserresponse.getStatusCode())){
-			enrollResponse.setResponse(SSLCertificateConstants.SSL_CERT_SUCCESS);
-			enrollResponse.setSuccess(Boolean.TRUE);
-			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String> builder()
-					.put(LogMessage.USER,
-							ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString())
-					.put(LogMessage.ACTION,
-							String.format(
-									"Metadata or Policies created for SSL certificate [%s] - metaDataStatus [%s] - policyStatus [%s]",
-									sslCertificateRequest.getCertificateName(), sslMetaDataCreationStatus,
-									isPoliciesCreated))
-					.build()));
-		    return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\""+enrollResponse.getResponse()+"\"]}");
+		if(HttpStatus.OK.equals(addUserresponse.getStatusCode())){			
+			certificateUser.setAccess(TVaultConstants.WRITE_POLICY);			
+			ResponseEntity<String> addReadPolicyResponse = addUserToCertificate(token, certificateUser, userDetails, true);			
+			if(HttpStatus.OK.equals(addReadPolicyResponse.getStatusCode())){
+				enrollResponse.setResponse(SSLCertificateConstants.SSL_CERT_SUCCESS);
+				enrollResponse.setSuccess(Boolean.TRUE);
+				log.debug(JSONUtil.getJSON(ImmutableMap.<String, String> builder()
+						.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString())
+						.put(LogMessage.ACTION, String.format("Metadata or Policies created for SSL certificate [%s] - metaDataStatus [%s] - policyStatus [%s]", sslCertificateRequest.getCertificateName(), sslMetaDataCreationStatus, isPoliciesCreated))
+						.build()));
+			    return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\""+enrollResponse.getResponse()+"\"]}");
+			}else {
+				enrollResponse.setResponse(SSLCertificateConstants.SSL_OWNER_PERMISSION_EXCEPTION);
+	            enrollResponse.setSuccess(Boolean.FALSE);
+				log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+			            put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+			            put(LogMessage.ACTION, "addUserToCertificate").
+			            put(LogMessage.MESSAGE, "Adding sudo permission to certificate owner failed").
+			            put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+			            build()));
+				return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\""+enrollResponse.getResponse()+"\"]}");	
+			}
 		}else {
 			enrollResponse.setResponse(SSLCertificateConstants.SSL_OWNER_PERMISSION_EXCEPTION);
             enrollResponse.setSuccess(Boolean.FALSE);
@@ -582,8 +591,7 @@ public class SSLCertificateService {
 		            put(LogMessage.MESSAGE, "Adding sudo permission to certificate owner failed").
 		            put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 		            build()));
-			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\""+enrollResponse.getResponse()+"\"]}");
-			
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\""+enrollResponse.getResponse()+"\"]}");			
 		}
 	}
 
