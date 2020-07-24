@@ -48,4 +48,16 @@ public final class SSLCertificateConstants {
     public static final String CERT_DOWNLOAD_TYPE_PKCS12PEM = "pkcs12pem";
     public static final String REMOVE_USER_FROM_CERT_MSG = "Remove User from Certificate";
     public static final String REMOVE_GROUP_FROM_CERT_MSG = "Remove Group from Certificate";
+    
+    public static final String SSL_CERT_PATH_EXT="metadata/externalcerts";
+    public static final String SSL_CERT_PATH_VALUE_EXT="externalcerts/";
+    
+    public static final String READ_CERT_POLICY_PREFIX="r_cert_";
+    public static final String WRITE_CERT_POLICY_PREFIX="w_cert_";
+    public static final String DENY_CERT_POLICY_PREFIX="d_cert_";
+    public static final String SUDO_CERT_POLICY_PREFIX="o_cert_";
+    
+    public static final String ACCESS_UPDATE_ENDPOINT="/access/update";
+    public static final String ACCESS_STRING="access";
+    public static final String POLICY_CREATION_TITLE="Policies Creation For Certificate";
 }
