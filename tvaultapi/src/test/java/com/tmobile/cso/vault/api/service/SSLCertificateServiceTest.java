@@ -3706,9 +3706,7 @@ public class SSLCertificateServiceTest {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        when(reqProcessor.process("/auth/ldap/groups","{\"groupname\":\"r_safe_w_vault_demo\"}",token)).thenReturn(userResponse);
-        when(reqProcessor.process("/auth/ldap/groups/configure",policies, token)).thenReturn(userResponse);
-        when(ControllerUtil.updateMetadata(any(),eq(token))).thenReturn(responseNoContent);
+        when(ControllerUtil.updateSslCertificateMetadata(any(),eq(token))).thenReturn(responseNoContent);
     	ResponseEntity<String> responseEntity = sSLCertificateService.addingGroupToCertificate( token, certificateGroup);
     	
     	assertEquals(HttpStatus.OK, responseEntity.getStatusCode());

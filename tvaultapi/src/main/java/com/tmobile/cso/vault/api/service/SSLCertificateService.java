@@ -2242,7 +2242,7 @@ public class SSLCertificateService {
 		if (TVaultConstants.USERPASS.equals(vaultAuthMethod)) {
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"This operation is not supported for Userpass authentication. \"]}");
 		}
-		ObjectMapper objMapper = new ObjectMapper();
+ 		ObjectMapper objMapper = new ObjectMapper();
 		Map<String,String> requestMap = null;
 		
 		TypeReference<Map<String,String>> typeRef=new TypeReference<Map<String,String>>() {
@@ -2261,7 +2261,7 @@ public class SSLCertificateService {
 		certificateName = (certificateName != null) ? certificateName.toLowerCase() : certificateName;
 		access = (access != null) ? access.toLowerCase(): access;
 
-		String path= SSLCertificateConstants.SSL_CERT_PATH + '/' + certificateName;
+		String path= SSLCertificateConstants.SSL_CERT_PATH_VALUE + certificateName;
 		boolean canAddGroup = ControllerUtil.canAddCertPermission(path,certificateName,token);
 		String policyPrefix = getCertificatePolicyPrefix(access);
 		if(canAddGroup){
@@ -2319,70 +2319,38 @@ public class SSLCertificateService {
 							build()));
 					return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Group is successfully associated with Certificate\"]}");
 				}else{
-					String certType = SSLCertificateConstants.SSL_CERT_PATH;
-					String certName = certificateGroup.getCertificateName();
-					List<String> certNames = ControllerUtil.getAllExistingCertNames(certType, token);
-					if (certNames != null ) {
-
-						for (String existingCertName: certNames) {
-							if (existingCertName.equalsIgnoreCase(certName)) {
-								
-								// It will come here when there is only one valid certificate
-								String newPath = SSLCertificateConstants.SSL_CERT_PATH + '/' + certificateName;
-								params.put("path", newPath);
-								break;
-							}
-						}
-
-					}
-					metadataResponse = ControllerUtil.updateSslCertificateMetadata(params,token);
-					if (metadataResponse !=null && HttpStatus.NO_CONTENT.equals(metadataResponse.getHttpstatus())) {
+					ldapConfigresponse = ControllerUtil.configureLDAPGroup(groupName,currentpoliciesString,token);
+					if(ldapConfigresponse.getHttpstatus().equals(HttpStatus.NO_CONTENT)){
 						log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 								put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 								put(LogMessage.ACTION, "Add Group to certificate").
-								put(LogMessage.MESSAGE, "Group configuration Success.").
-								put(LogMessage.STATUS, metadataResponse.getHttpstatus().toString()).
-								put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
-								build()));
-						return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Group is successfully associated with Certificate\"]}");
-
-					}
-					else {
-						log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
-								put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
-								put(LogMessage.ACTION, "Add Group to certificate").
-								put(LogMessage.MESSAGE, "Group configuration failed.").
+								put(LogMessage.MESSAGE, "group configuration success").
 								put(LogMessage.RESPONSE, (null!=metadataResponse)?metadataResponse.getResponse():TVaultConstants.EMPTY).
 								put(LogMessage.STATUS, (null!=metadataResponse)?metadataResponse.getHttpstatus().toString():TVaultConstants.EMPTY).
 								put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 								build()));
-						ldapConfigresponse = ControllerUtil.configureLDAPGroup(groupName,currentpoliciesString,token);
-						if(ldapConfigresponse.getHttpstatus().equals(HttpStatus.NO_CONTENT)){
-							log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
-									put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
-									put(LogMessage.ACTION, "Add Group to certificate").
-									put(LogMessage.MESSAGE, "group configuration success").
-									put(LogMessage.RESPONSE, (null!=metadataResponse)?metadataResponse.getResponse():TVaultConstants.EMPTY).
-									put(LogMessage.STATUS, (null!=metadataResponse)?metadataResponse.getHttpstatus().toString():TVaultConstants.EMPTY).
-									put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
-									build()));
-							return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Group is successfully associated with Certificate\"]}");
-						}else{
-							log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
-									put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
-									put(LogMessage.ACTION, "Add Group to certificate").
-									put(LogMessage.MESSAGE, "Group configuration failed").
-									put(LogMessage.RESPONSE, (null!=metadataResponse)?metadataResponse.getResponse():TVaultConstants.EMPTY).
-									put(LogMessage.STATUS, (null!=metadataResponse)?metadataResponse.getHttpstatus().toString():TVaultConstants.EMPTY).
-									put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
-									build()));
-							return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Group configuration failed.Contact Admin \"]}");
-						}
+						return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Group is successfully associated with Certificate\"]}");
+					}else{
+						log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+								put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+								put(LogMessage.ACTION, "Add Group to certificate").
+								put(LogMessage.MESSAGE, "Group configuration failed").
+								put(LogMessage.RESPONSE, (null!=metadataResponse)?metadataResponse.getResponse():TVaultConstants.EMPTY).
+								put(LogMessage.STATUS, (null!=metadataResponse)?metadataResponse.getHttpstatus().toString():TVaultConstants.EMPTY).
+								put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+								build()));
+						return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Group configuration failed.Contact Admin \"]}");
 					}
 				}
-			}else{
-				ldapConfigresponse.getResponse();
-				return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Group configuration failed.Try Again\"]}");
+			}
+			else {
+				log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+						put(LogMessage.ACTION, "Add Group to certificate").
+						put(LogMessage.MESSAGE, "Group configuration failed").
+						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+						build()));
+				return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Group configuration failed.Contact Admin \"]}");
 			}
 		}else{
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Access denied: No permission to add groups to this certificate\"]}");
