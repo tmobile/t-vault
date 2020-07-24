@@ -316,7 +316,7 @@ readTextFile("../apiUrls.json");
             method: 'GET'
         }, {
             name: 'getTargetSystems',
-            url: '/v2/sslcert/targetsystems',
+            url: '/v2/sslcert/{certType}/targetsystems',
             method: 'GET'
         }, {
             name: 'getTargetSystemsServices',
