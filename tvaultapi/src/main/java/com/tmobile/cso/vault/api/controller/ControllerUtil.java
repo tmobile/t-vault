@@ -2866,14 +2866,13 @@ public final class ControllerUtil {
 		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 				put(LogMessage.ACTION, "updateMetadata").
-				put(LogMessage.MESSAGE, String.format ("Trying to upate metadata with params")).
+				put(LogMessage.MESSAGE, String.format ("Trying to update metadata with params")).
 				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 				build()));
 		String _type = params.get("type");
 		String name = params.get("name");
 		String access = params.get("access");
-		String certificateName = params.get("certificateName");
-		String path = "metadata/sslcerts/" +certificateName;
+		String path = "metadata/"+ params.get("path");
 
 		ObjectMapper objMapper = new ObjectMapper();
 		String pathjson ="{\"path\":\""+path+"\"}";
