@@ -516,3 +516,38 @@
 .renExp{
 	margin-left: 110px;;	
 }
+
+.dns-add-btn {
+    font-size: 12px;
+    padding: 5px!important;
+    width: 80px;
+}
+
+.dns-list {
+    float:left;
+    margin-top: 5px;
+    height: 100px!important;
+    overflow: scroll!important;
+}
+
+.dns-wrapper {
+    float:left;
+    margin-bottom: 10px;
+    width: 100%;
+}
+
+.dns-wrapper div {
+    padding-left: 0px!important;
+}
+
+.dns-delete .down {
+    height: 20px!important;
+}
+
+.dns-delete .icon-delete {
+    padding: 0px!important;
+}
+
+.dns-name {
+    padding: 5px!important;
+}
