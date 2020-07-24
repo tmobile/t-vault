@@ -2307,6 +2307,7 @@ public class SSLCertificateService {
 				params.put("name",groupName);
 				params.put("certificateName",certificateName);
 				params.put("access",access);
+				params.put("path", path);
 				Response metadataResponse = ControllerUtil.updateSslCertificateMetadata(params,token);
 				if(metadataResponse !=null && HttpStatus.NO_CONTENT.equals(metadataResponse.getHttpstatus())){
 					log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
@@ -2328,6 +2329,7 @@ public class SSLCertificateService {
 								
 								// It will come here when there is only one valid certificate
 								String newPath = SSLCertificateConstants.SSL_CERT_PATH + '/' + certificateName;
+								params.put("path", newPath);
 								break;
 							}
 						}
