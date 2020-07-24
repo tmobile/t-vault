@@ -19,7 +19,7 @@
 
 'use strict';
 (function (app) {
-    app.controller('AdminCtrl', function ($scope, $rootScope, Modal, fetchData, $http, $window, $state, SessionStore, AdminSafesManagement, ModifyUrl, UtilityService, Notifications, safesService, RestEndpoints, filterFilter, orderByFilter) {
+    app.controller('AdminCtrl', function ($scope, $rootScope, Modal, fetchData, $http, $window, $state, SessionStore, AdminSafesManagement, ModifyUrl, UtilityService, Notifications, safesService, RestEndpoints, filterFilter, orderByFilter, $compile) {
 
         $scope.filterValue = '';            // Initial search filter value kept empty
         $scope.isLoadingData = false;       // Variable to set the loader on
@@ -36,6 +36,7 @@
         $scope.isCertCollapsed = false;
         $scope.isTargetCollapsed = true;
         $scope.isTargetServiceCollapsed = true;
+        $scope.dnsInvalid = true;
         // Type of safe to be filtered from the rest
 
         $scope.safeType = {
@@ -146,7 +147,10 @@
             $scope.isUserSearchLoading = false;
             $scope.isOwnerSelected = false;
             setTargetSystemServiceList("No target system selected", []);
-            $scope.certificateData.certificates = [];            
+            $scope.certificateData.certificates = [];
+            $scope.multiSan = [];
+            $scope.selectedMultiSan = [];
+            $scope.multiSanDnsName = { name:""};
 
             $scope.targetSystem = {
                 'description': '',
@@ -1630,6 +1634,10 @@
                 var sslcertType = 'PRIVATE_SINGLE_SAN';
                 $scope.appNameTagValue=$scope.certObj.certDetails.applicationName;
                 $scope.certObj.sslcertType = sslcertType;
+                var multiSanDns = [];
+                $scope.multiSan.forEach(function (dns) {
+                    multiSanDns.push(dns.name);
+                });
                 var reqObjtobeSent =  {
                     "sslcertType": $scope.certObj.sslcertType,
                     "targetSystem": $scope.certObj.targetSystem,
@@ -1638,7 +1646,8 @@
                     "certificateName":$scope.certObj.certDetails.certName,
                     "certType":$scope.certObj.certDetails.certType,
                     "certOwnerEmailId":$scope.certObj.certDetails.ownerEmail,
-                    "certOwnerNTId":$scope.certObj.certDetails.ownerNtId
+                    "certOwnerNTId":$scope.certObj.certDetails.ownerNtId,
+                    "multiSan": multiSanDns
                 }
                 $scope.certificateCreationMessage = '';
                 var url = '';
@@ -2042,6 +2051,76 @@
             
             $scope.revocationReasonSelect = function(){
                $scope.dropdownRevocationReasons.selectedGroupOption.type;
+            }
+
+            var isDuplicateDns = function (multiSanDnsName) {
+                $scope.certDnsErrorMessage = '';
+                for (var i=0;i<$scope.multiSan.length;i++) {
+                    if (multiSanDnsName == $scope.multiSan[i].name) {
+                        $scope.certDnsErrorMessage = 'Duplicate DNS';
+                        return true;
+                    }
+                }
+                return false;
+            }
+
+            $scope.addDns = function (multiSanDnsName) {
+                var length = $scope.multiSan.length;
+                if (multiSanDnsName && multiSanDnsName.name!="") {
+                    var id="dns"+length;
+                    angular.element('#dnslist').append($compile('<div class="row change-data item ng-scope" id="'+id+'"><div class="container name col-lg-8 col-md-8 col-sm-8 col-xs-8 ng-binding dns-name">'+multiSanDnsName.name+'</div><div class="container radio-inputs col-lg-4 col-md-4 col-sm-4 col-xs-4 dns-delete"><div class="down"><div ng-click="deleteDns(&quot;'+id+'&quot;)" class="list-icon icon-delete" role="button" tabindex="0"></div></div></div></div>')($scope));
+                    $scope.multiSan.push({ "id": length, "name":multiSanDnsName.name});
+                    $scope.multiSanDnsName.name = "";
+                    $scope.dnsInvalid = true;
+                }
+            }
+
+            $scope.deleteDns = function (id) {
+                var dnsElement = angular.element( document.querySelector( '#'+id ) );
+                dnsElement.remove();
+                var index = id.substring(3);
+                $scope.selectedMultiSan = [];
+                for (var i=0;i<$scope.multiSan.length;i++) {
+                    if (index != $scope.multiSan[i].id) {
+                        $scope.selectedMultiSan.push($scope.multiSan[i]);
+                    }
+                }
+                $scope.multiSan = $scope.selectedMultiSan;
+            }
+
+            $scope.replaceSpacesDnsName = function () {
+                if ($scope.multiSanDnsName.name !== null && $scope.multiSanDnsName.name !== undefined) {
+                    $scope.multiSanDnsName.name = $scope.multiSanDnsName.name.toLowerCase();
+                    $scope.multiSanDnsName.name = $scope.multiSanDnsName.name.replace(/[ ]/g, '');
+                    return $scope.dnsPatternValidation();
+                }
+            }
+
+            $scope.dnsPatternValidation = function () {
+                $scope.certDnsErrorMessage = '';
+                $scope.dnsInvalid = false;
+                if ($scope.multiSanDnsName.name != null && $scope.multiSanDnsName.name != undefined
+                    && $scope.multiSanDnsName.name != "") {
+                    var reg = new RegExp("^[a-zA-Z0-9.-]+$")
+                    if (!reg.test($scope.multiSanDnsName.name)) {
+                        $scope.certDnsErrorMessage = "Certificate Name can have alphabets, numbers, . and - characters only."
+                        $scope.dnsInvalid = true;
+                    } else {
+                        var certName = $scope.multiSanDnsName.name.toLowerCase();
+                        if (!certName.endsWith(".t-mobile.com")) {
+                            $scope.certDnsErrorMessage = "Certificate name should end with .t-mobile.com"
+                            $scope.dnsInvalid = true;
+                        }  else if ( (certName.includes(".-")) || (certName.includes("-."))){
+                            $scope.certDnsErrorMessage = "Please enter a valid certificate name"
+                            $scope.dnsInvalid = true;
+                        } else if (isDuplicateDns($scope.multiSanDnsName.name)) {
+                            $scope.certDnsErrorMessage = "Duplicate DNS"
+                            $scope.dnsInvalid = true;
+                        }
+                    }
+                } else {
+                    $scope.dnsInvalid = true;
+                }
             }
 
         init();
