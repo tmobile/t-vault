@@ -654,7 +654,7 @@
             var flg = false;
             var count=0;
             Object.keys($scope.UsersPermissionsData).forEach(function(key) {
-                if ($scope.UsersPermissionsData[key] == "sudo") {
+                if (($scope.UsersPermissionsData[key] === "sudo") || ($scope.UsersPermissionsData[key] === "write")) {
                     flg = true;
                 }
                 count++;
