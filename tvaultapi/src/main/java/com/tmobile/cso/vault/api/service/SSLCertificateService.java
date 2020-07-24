@@ -1670,10 +1670,12 @@ public class SSLCertificateService {
      * @return
      * @throws Exception
      */
-    public ResponseEntity<String> getTargetSystemList(String token, UserDetails userDetails) throws Exception {
+    public ResponseEntity<String> getTargetSystemList(String token, UserDetails userDetails,String certType) throws Exception {
         String getTargetSystemEndpoint = "/certmanager/findTargetSystem";
+        SSLCertType sslCertType = certType.equalsIgnoreCase("internal")?
+                SSLCertType.valueOf("PRIVATE_SINGLE_SAN"): SSLCertType.valueOf("PUBLIC_SINGLE_SAN");
         String findTargetSystemEndpoint = findTargetSystem.replace("tsgid",
-                String.valueOf(getTargetSystemGroupId(SSLCertType.valueOf("PRIVATE_SINGLE_SAN"))));
+                String.valueOf(getTargetSystemGroupId(sslCertType)));
 
         List<TargetSystemDetails> targetSystemDetails = new ArrayList<>();
         CertResponse response = reqProcessor.processCert(getTargetSystemEndpoint, "", getNclmToken(),
