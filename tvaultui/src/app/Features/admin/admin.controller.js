@@ -670,7 +670,9 @@
             $scope.targetSystemSelected = false;
             $scope.showInputLoader.show = true;
             $scope.isTargetSystemListLoading = true;
-            return AdminSafesManagement.getTargetSystems().then(function (response) {
+            var certType = $scope.certObj.certDetails.certType;
+            var updatedUrlOfEndPoint = RestEndpoints.baseURL + "/v2/sslcert/" + certType + "/targetsystems";
+            return AdminSafesManagement.getTargetSystems(null, updatedUrlOfEndPoint).then(function (response) {
                 if (UtilityService.ifAPIRequestSuccessful(response)) {
                     $scope.targetSystemList = response.data.data;
                     $scope.showInputLoader.show = false;
@@ -709,7 +711,7 @@
             $scope.isLoadingserviceData = true;
             $scope.targetSystemServiceSelected = false;
             if ($scope.targetSystemSelected == true) {
-                var targetSystemId = $scope.certObj.targetSystem.targetSystemID;
+                var targetSystemId = $scope.certObj.targetSystem.targetSystemID;                
                 $scope.showServiceInputLoader.show = true;
                 var updatedUrlOfEndPoint = RestEndpoints.baseURL + "/v2/sslcert/targetsystems/" + targetSystemId + "/targetsystemservices";
                 return AdminSafesManagement.getTargetSystemsServices(null, updatedUrlOfEndPoint).then(function (response) {
