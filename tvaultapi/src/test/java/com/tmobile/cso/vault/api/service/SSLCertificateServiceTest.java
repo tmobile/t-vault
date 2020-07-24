@@ -1968,6 +1968,7 @@ public class SSLCertificateServiceTest {
     @Test
     public void test_getgetTargetSystemList_success()throws Exception{
         String token = "12345";
+        String certType= "Internal";
         String jsonStr = "{\"targetSystems\": [ {" +
                 "  \"name\" : \"abc.com\"," +
                 "  \"description\" : \"\"," +
@@ -2001,7 +2002,50 @@ public class SSLCertificateServiceTest {
 
         when(JSONUtil.getJSONasDefaultPrettyPrint(Mockito.any())).thenReturn(jsonStr);
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body("{\"data\": "+jsonStr+"}");
-        ResponseEntity<String> responseEntityActual = sSLCertificateService.getTargetSystemList(token, getMockUser(true));
+        ResponseEntity<String> responseEntityActual = sSLCertificateService.getTargetSystemList(token, getMockUser(true), certType);
+
+        assertEquals(HttpStatus.OK, responseEntityActual.getStatusCode());
+        assertEquals(responseEntityExpected.getBody(), responseEntityActual.getBody());
+    }
+    
+    @Test
+    public void test_getgetTargetSystemList_External_success()throws Exception{
+        String token = "12345";
+        String certType= "External";
+        String jsonStr = "{\"targetSystems\": [ {" +
+                "  \"name\" : \"abc.com\"," +
+                "  \"description\" : \"\"," +
+                "  \"address\" : \"abc.com\"," +
+                "  \"targetSystemID\" : \"234\"" +
+                "}, {" +
+                "  \"name\" : \"cde.com\"," +
+                "  \"description\" : \"cde.com\"," +
+                "  \"address\" : \"cde.com\"," +
+                "  \"targetSystemID\" : \"123\"" +
+                "}]}";
+        CertResponse response = new CertResponse();
+        response.setHttpstatus(HttpStatus.OK);
+        response.setResponse(jsonStr);
+        response.setSuccess(true);
+        String jsonStrUser = "{  \"username\": \"testusername1\",  \"password\": \"testpassword1\"}";
+        CertResponse responseUser = new CertResponse();
+        responseUser.setHttpstatus(HttpStatus.OK);
+        responseUser.setResponse(jsonStrUser);
+        responseUser.setSuccess(true);
+        Map<String, Object> requestMap = new HashMap<>();
+        requestMap.put("access_token", "12345");
+        requestMap.put("token_type", "type");
+        when(ControllerUtil.parseJson(jsonStrUser)).thenReturn(requestMap);
+
+        when(reqProcessor.processCert(eq("/auth/certmanager/login"), Mockito.anyObject(), Mockito.anyString(),
+                Mockito.anyString())).thenReturn(responseUser);
+
+        when(reqProcessor.processCert(eq( "/certmanager/findTargetSystem"), Mockito.anyObject(), Mockito.anyString(),
+                Mockito.anyString())).thenReturn(response);
+
+        when(JSONUtil.getJSONasDefaultPrettyPrint(Mockito.any())).thenReturn(jsonStr);
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body("{\"data\": "+jsonStr+"}");
+        ResponseEntity<String> responseEntityActual = sSLCertificateService.getTargetSystemList(token, getMockUser(true), certType);
 
         assertEquals(HttpStatus.OK, responseEntityActual.getStatusCode());
         assertEquals(responseEntityExpected.getBody(), responseEntityActual.getBody());
@@ -2010,6 +2054,7 @@ public class SSLCertificateServiceTest {
     @Test
     public void test_getgetTargetSystemList_failed()throws Exception{
         String token = "12345";
+        String certType= "Internal";
         String jsonStr = "{\"targetSystems\": [ {" +
                 "  \"name\" : \"abc.com\"," +
                 "  \"description\" : \"\"," +
@@ -2043,7 +2088,7 @@ public class SSLCertificateServiceTest {
 
 
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Failed to get Target system list from NCLM\"]}");
-        ResponseEntity<String> responseEntityActual = sSLCertificateService.getTargetSystemList(token, getMockUser(true));
+        ResponseEntity<String> responseEntityActual = sSLCertificateService.getTargetSystemList(token, getMockUser(true), certType);
 
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, responseEntityActual.getStatusCode());
         assertEquals(responseEntityExpected.getBody(), responseEntityActual.getBody());
@@ -2052,6 +2097,7 @@ public class SSLCertificateServiceTest {
     @Test
     public void test_getgetTargetSystemList_empty()throws Exception{
         String token = "12345";
+        String certType= "Internal";
         String jsonStr = "{\"data\": [ ]}";
         CertResponse response = new CertResponse();
         response.setHttpstatus(HttpStatus.OK);
@@ -2075,7 +2121,7 @@ public class SSLCertificateServiceTest {
         when(JSONUtil.getJSONasDefaultPrettyPrint(Mockito.any())).thenReturn("[]");
 
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body("{\"data\": []}");
-        ResponseEntity<String> responseEntityActual = sSLCertificateService.getTargetSystemList(token, getMockUser(true));
+        ResponseEntity<String> responseEntityActual = sSLCertificateService.getTargetSystemList(token, getMockUser(true), certType);
 
         assertEquals(HttpStatus.OK, responseEntityActual.getStatusCode());
         assertEquals(responseEntityExpected.getBody(), responseEntityActual.getBody());

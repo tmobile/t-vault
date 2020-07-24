@@ -141,10 +141,10 @@ public class SSLCertificateController {
 	 * @throws Exception
 	 */
 	@ApiOperation(value = "${CertificateController.getTargetSystemList.value}", notes = "${CertificateController.getTargetSystemList.notes}")
-	@GetMapping(value = "/v2/sslcert/targetsystems", produces = "application/json")
-	public ResponseEntity<String> getTargetSystemList(HttpServletRequest request, @RequestHeader(value = "vault-token") String token) throws Exception {
+	@GetMapping(value = "/v2/sslcert/{certType}/targetsystems", produces = "application/json")
+	public ResponseEntity<String> getTargetSystemList(HttpServletRequest request, @RequestHeader(value = "vault-token") String token, @PathVariable("certType") String certType) throws Exception {
 		UserDetails userDetails = (UserDetails) ((HttpServletRequest) request).getAttribute("UserDetails");
-		return sslCertificateService.getTargetSystemList(token, userDetails);
+		return sslCertificateService.getTargetSystemList(token, userDetails, certType);
 	}
 
 	/**
@@ -155,7 +155,7 @@ public class SSLCertificateController {
 	 * @throws Exception
 	 */
 	@ApiOperation(value = "${CertificateController.getTargetSystemServiceList.value}", notes = "${CertificateController.getTargetSystemServiceList.value}")
-	@GetMapping(value = "/v2/sslcert/targetsystems/{targetsystem_id}/targetsystemservices", produces = "application/json")
+	@GetMapping(value = "/v2/sslcert/targetsystems/{targetsystem_id}/{certType}/targetsystemservices", produces = "application/json")
 	public ResponseEntity<String> getTargetSystemServiceList(HttpServletRequest request, @RequestHeader(value = "vault-token") String token, @PathVariable("targetsystem_id") String targetSystemId) throws Exception {
 		UserDetails userDetails = (UserDetails) ((HttpServletRequest) request).getAttribute("UserDetails");
 		return sslCertificateService.getTargetSystemServiceList(token, userDetails, targetSystemId);
