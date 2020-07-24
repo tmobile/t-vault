@@ -110,6 +110,9 @@ public class SSLCertificateService {
 
     @Autowired
     private TokenValidator tokenValidator;
+    
+    @Autowired
+	private AccessService accessService;
 
 
     @Value("${vault.auth.method}")
@@ -557,19 +560,28 @@ public class SSLCertificateService {
 		
 		ResponseEntity<String> addUserresponse = addUserToCertificate(token, certificateUser, userDetails, true);
 		
-		if(HttpStatus.OK.equals(addUserresponse.getStatusCode())){
-			enrollResponse.setResponse(SSLCertificateConstants.SSL_CERT_SUCCESS);
-			enrollResponse.setSuccess(Boolean.TRUE);
-			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String> builder()
-					.put(LogMessage.USER,
-							ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString())
-					.put(LogMessage.ACTION,
-							String.format(
-									"Metadata or Policies created for SSL certificate [%s] - metaDataStatus [%s] - policyStatus [%s]",
-									sslCertificateRequest.getCertificateName(), sslMetaDataCreationStatus,
-									isPoliciesCreated))
-					.build()));
-		    return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\""+enrollResponse.getResponse()+"\"]}");
+		if(HttpStatus.OK.equals(addUserresponse.getStatusCode())){			
+			certificateUser.setAccess(TVaultConstants.WRITE_POLICY);			
+			ResponseEntity<String> addReadPolicyResponse = addUserToCertificate(token, certificateUser, userDetails, true);			
+			if(HttpStatus.OK.equals(addReadPolicyResponse.getStatusCode())){
+				enrollResponse.setResponse(SSLCertificateConstants.SSL_CERT_SUCCESS);
+				enrollResponse.setSuccess(Boolean.TRUE);
+				log.debug(JSONUtil.getJSON(ImmutableMap.<String, String> builder()
+						.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString())
+						.put(LogMessage.ACTION, String.format("Metadata or Policies created for SSL certificate [%s] - metaDataStatus [%s] - policyStatus [%s]", sslCertificateRequest.getCertificateName(), sslMetaDataCreationStatus, isPoliciesCreated))
+						.build()));
+			    return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\""+enrollResponse.getResponse()+"\"]}");
+			}else {
+				enrollResponse.setResponse(SSLCertificateConstants.SSL_OWNER_PERMISSION_EXCEPTION);
+	            enrollResponse.setSuccess(Boolean.FALSE);
+				log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+			            put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+			            put(LogMessage.ACTION, "addUserToCertificate").
+			            put(LogMessage.MESSAGE, "Adding sudo permission to certificate owner failed").
+			            put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+			            build()));
+				return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\""+enrollResponse.getResponse()+"\"]}");	
+			}
 		}else {
 			enrollResponse.setResponse(SSLCertificateConstants.SSL_OWNER_PERMISSION_EXCEPTION);
             enrollResponse.setSuccess(Boolean.FALSE);
@@ -579,15 +591,19 @@ public class SSLCertificateService {
 		            put(LogMessage.MESSAGE, "Adding sudo permission to certificate owner failed").
 		            put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 		            build()));
-			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\""+enrollResponse.getResponse()+"\"]}");
-			
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\""+enrollResponse.getResponse()+"\"]}");			
 		}
 	}
 
 
     private String populateSSLCertificateMetadata(SSLCertificateRequest sslCertificateRequest, UserDetails userDetails,
                                                   CertManagerLogin certManagerLogin) throws Exception {
-        String _path = SSLCertificateConstants.SSL_CERT_PATH + "/" + sslCertificateRequest.getCertificateName();
+    	String certMetadataPath = null;
+    	if(sslCertificateRequest.getCertType().equalsIgnoreCase("internal")) {
+    		certMetadataPath = SSLCertificateConstants.SSL_CERT_PATH + '/' + sslCertificateRequest.getCertificateName();
+    	}else {
+    		certMetadataPath = SSLCertificateConstants.SSL_CERT_PATH_EXT + '/' + sslCertificateRequest.getCertificateName();
+    	}
         SSLCertificateMetadataDetails sslCertificateMetadataDetails = new SSLCertificateMetadataDetails();
 
         //Get Application details
@@ -605,7 +621,7 @@ public class SSLCertificateService {
                 String appOwnerEmail = validateString(jsonElement.get("brtContactEmail"));
                 String akmid = validateString(jsonElement.get("akmid"));
                 log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
-                        put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+                        put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
                         put(LogMessage.ACTION,"Populate Application details in SSL Certificate Metadata").
                         put(LogMessage.MESSAGE, String.format("Application Details  for an " +
                                         "applicationName = [%s] , applicationTag = [%s], " +
@@ -621,11 +637,11 @@ public class SSLCertificateService {
             }
         } else {
             log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
-                    put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+                    put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
                     put(LogMessage.ACTION, "Getting Application Details by app name during Meta data creation ").
                     put(LogMessage.MESSAGE, String.format("Application details will not insert/update in metadata  " +
                                     "for an application =  [%s] ",  applicationName)).
-                    put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+                    put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
                     build()));
         }
 
@@ -635,7 +651,7 @@ public class SSLCertificateService {
             Thread.sleep(delayTime);
             certDetails = getCertificate(sslCertificateRequest, certManagerLogin);
             log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
-                    put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+                    put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
                     put(LogMessage.ACTION, "Populate Certificate Details in SSL Certificate MetaData").
                     put(LogMessage.MESSAGE, String.format("Fetching certificate details count = [%s] and status = [%s]"
                             , i, Objects.nonNull(certDetails))).build()));
@@ -654,7 +670,7 @@ public class SSLCertificateService {
 
         } else {
             log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
-                    put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+                    put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
                     put(LogMessage.ACTION, String.format("Certificate Details to  not available for given " +
                             "certificate = [%s]", sslCertificateRequest.getCertificateName())).
                     build()));
@@ -665,29 +681,17 @@ public class SSLCertificateService {
         sslCertificateMetadataDetails.setCertOwnerNtid(sslCertificateRequest.getCertOwnerNtid());
 
         log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
-                put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+                put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
                 put(LogMessage.ACTION, String.format("MetaData info details = [%s]", sslCertificateMetadataDetails)).
                 build()));
 
 
-        SSLCertMetadata sslCertMetadata = new SSLCertMetadata(_path, sslCertificateMetadataDetails);
+        SSLCertMetadata sslCertMetadata = new SSLCertMetadata(certMetadataPath, sslCertificateMetadataDetails);
         String jsonStr = JSONUtil.getJSON(sslCertMetadata);
         Map<String, Object> rqstParams = ControllerUtil.parseJson(jsonStr);
-        rqstParams.put("path", _path);
+        rqstParams.put("path", certMetadataPath);
         return ControllerUtil.convetToJson(rqstParams);
     }
-
-
-    /**
-     * get Application Details
-     * @param api
-     * @return
-     */
-
-
-
-
-
 
     /**
      * Validate input data
@@ -742,64 +746,123 @@ public class SSLCertificateService {
 
     private boolean createPolicies(SSLCertificateRequest sslCertificateRequest, String token) {
         boolean policiesCreated = false;
-        Map<String, Object> policyMap = new HashMap<String, Object>();
-        Map<String, String> accessMap = new HashMap<String, String>();
+        Map<String, Object> policyMap = new HashMap<>();
+        Map<String, String> accessMap = new HashMap<>();
         String certificateName = sslCertificateRequest.getCertificateName();
-        String path = SSLCertificateConstants.SSL_CERT_PATH +"/" +sslCertificateRequest.getCertificateName();
-
-        //Read Policy
-        accessMap.put(path , TVaultConstants.READ_POLICY);
-        policyMap.put(SSLCertificateConstants.ACCESS_ID, "r_cert_" + certificateName);
-        policyMap.put("access", accessMap);
-
-        String policyRequestJson = ControllerUtil.convetToJson(policyMap);
-        Response r_response = reqProcessor.process("/access/update", policyRequestJson, token);
-
-        //Write Policy
-        accessMap.put(path , TVaultConstants.WRITE_POLICY);
-        policyMap.put(SSLCertificateConstants.ACCESS_ID, "w_cert_" + certificateName);
-        policyRequestJson = ControllerUtil.convetToJson(policyMap);
-        Response w_response = reqProcessor.process("/access/update", policyRequestJson, token);
-
-        //Deny Policy
-        accessMap.put(path , TVaultConstants.DENY_POLICY);
-        policyMap.put(SSLCertificateConstants.ACCESS_ID, "d_cert_" + certificateName);
-        policyRequestJson = ControllerUtil.convetToJson(policyMap);
-        Response d_response = reqProcessor.process("/access/update", policyRequestJson, token);
-
-        //Owner Policy
-        accessMap.put(path , TVaultConstants.SUDO_POLICY);
-        policyMap.put(SSLCertificateConstants.ACCESS_ID, "o_cert_" + certificateName);
-        policyRequestJson = ControllerUtil.convetToJson(policyMap);
-        Response s_response = reqProcessor.process("/access/update", policyRequestJson, token);
-
-        if ((r_response.getHttpstatus().equals(HttpStatus.NO_CONTENT) &&
-                w_response.getHttpstatus().equals(HttpStatus.NO_CONTENT) &&
-                d_response.getHttpstatus().equals(HttpStatus.NO_CONTENT)
-                &&  s_response.getHttpstatus().equals(HttpStatus.NO_CONTENT)
-        ) ||
-                (r_response.getHttpstatus().equals(HttpStatus.OK) &&
-                        w_response.getHttpstatus().equals(HttpStatus.OK) &&
-                        d_response.getHttpstatus().equals(HttpStatus.OK))
-              && s_response.getHttpstatus().equals(HttpStatus.OK)
-        ) {
-            log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
-                    put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
-                    put(LogMessage.ACTION, "Policies Creation").
-                    put(LogMessage.MESSAGE, "SSL Certificate Policies Creation Success").
-                    put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
-                    build()));
-            policiesCreated = true;
-        } else {
-            log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
-                    put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
-                    put(LogMessage.ACTION, "createPolicies").
-                    put(LogMessage.MESSAGE, "SSL Certificate  policies creation failed").
-                    put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
-                    build()));
-        }
+        String certPath = null;
+        String certMetadataPath = null;
+    	if(sslCertificateRequest.getCertType().equalsIgnoreCase("internal")) {
+    		certPath = SSLCertificateConstants.SSL_CERT_PATH_VALUE + certificateName;
+    		certMetadataPath = SSLCertificateConstants.SSL_CERT_PATH + '/' + certificateName;
+    	}else {
+    		certPath = SSLCertificateConstants.SSL_CERT_PATH_VALUE_EXT + certificateName;
+    		certMetadataPath = SSLCertificateConstants.SSL_CERT_PATH_EXT + '/' + certificateName;
+    	}  
+    	
+    	boolean isCertDataUpdated = certificateMetadataForPoliciesCreation(sslCertificateRequest, token, certPath);
+		
+		if(isCertDataUpdated) {
+		
+	        //Read Policy
+	        accessMap.put(certPath , TVaultConstants.READ_POLICY);
+	        policyMap.put(SSLCertificateConstants.ACCESS_ID, SSLCertificateConstants.READ_CERT_POLICY_PREFIX + certificateName);
+	        policyMap.put(SSLCertificateConstants.ACCESS_STRING, accessMap);
+	
+	        String policyRequestJson = ControllerUtil.convetToJson(policyMap);
+	        Response readResponse = reqProcessor.process(SSLCertificateConstants.ACCESS_UPDATE_ENDPOINT, policyRequestJson, token);
+	
+	        //Write Policy
+	        accessMap.put(certPath , TVaultConstants.WRITE_POLICY);
+	        policyMap.put(SSLCertificateConstants.ACCESS_ID, SSLCertificateConstants.WRITE_CERT_POLICY_PREFIX+ certificateName);
+	        policyRequestJson = ControllerUtil.convetToJson(policyMap);
+	        Response writeResponse = reqProcessor.process(SSLCertificateConstants.ACCESS_UPDATE_ENDPOINT, policyRequestJson, token);
+	
+	        //Deny Policy
+	        accessMap.put(certPath , TVaultConstants.DENY_POLICY);
+	        policyMap.put(SSLCertificateConstants.ACCESS_ID, SSLCertificateConstants.DENY_CERT_POLICY_PREFIX + certificateName);
+	        policyRequestJson = ControllerUtil.convetToJson(policyMap);
+	        Response denyResponse = reqProcessor.process(SSLCertificateConstants.ACCESS_UPDATE_ENDPOINT, policyRequestJson, token);
+	
+	        //Owner Policy
+	        accessMap.put(certPath , TVaultConstants.SUDO_POLICY);
+	        accessMap.put(certMetadataPath, TVaultConstants.WRITE_POLICY);
+	        policyMap.put(SSLCertificateConstants.ACCESS_ID, SSLCertificateConstants.SUDO_CERT_POLICY_PREFIX + certificateName);	        
+	        policyRequestJson = ControllerUtil.convetToJson(policyMap);
+	        Response sudoResponse = reqProcessor.process(SSLCertificateConstants.ACCESS_UPDATE_ENDPOINT, policyRequestJson, token);
+	
+	        if ((readResponse.getHttpstatus().equals(HttpStatus.NO_CONTENT) &&
+	        		writeResponse.getHttpstatus().equals(HttpStatus.NO_CONTENT) &&
+	        		denyResponse.getHttpstatus().equals(HttpStatus.NO_CONTENT)
+	                &&  sudoResponse.getHttpstatus().equals(HttpStatus.NO_CONTENT)
+	        ) ||
+	                (readResponse.getHttpstatus().equals(HttpStatus.OK) &&
+	                		writeResponse.getHttpstatus().equals(HttpStatus.OK) &&
+	                		denyResponse.getHttpstatus().equals(HttpStatus.OK))
+	              && sudoResponse.getHttpstatus().equals(HttpStatus.OK)
+	        ) {
+	            log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+	                    put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+	                    put(LogMessage.ACTION, SSLCertificateConstants.POLICY_CREATION_TITLE).
+	                    put(LogMessage.MESSAGE, "SSL Certificate Policies Creation Success").
+	                    put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+	                    build()));
+	            policiesCreated = true;
+	        } else {
+	            log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+	                    put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+	                    put(LogMessage.ACTION, SSLCertificateConstants.POLICY_CREATION_TITLE).
+	                    put(LogMessage.MESSAGE, "SSL Certificate policies creation failed").
+	                    put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+	                    build()));
+	        }
+		}
         return policiesCreated;
     }
+
+	/**
+	 * Method to create certificate metadata in sslcerts/externalcerts mount
+	 * @param sslCertificateRequest
+	 * @param token
+	 * @param certPath
+	 * @return
+	 */
+	private boolean certificateMetadataForPoliciesCreation(SSLCertificateRequest sslCertificateRequest, String token,
+			String certPath) {
+		SSLCertificateMetadataDetails sslCertificateMetadataDetails = new SSLCertificateMetadataDetails();
+    	
+    	sslCertificateMetadataDetails.setApplicationName(sslCertificateRequest.getAppName());
+    	sslCertificateMetadataDetails.setCertificateName(sslCertificateRequest.getCertificateName());
+    	sslCertificateMetadataDetails.setCertType(sslCertificateRequest.getCertType());
+    	sslCertificateMetadataDetails.setCertOwnerNtid(sslCertificateRequest.getCertOwnerNtid());
+    	
+    	SSLCertMetadata sslCertMetadata = new SSLCertMetadata(certPath, sslCertificateMetadataDetails);
+        String jsonStr = JSONUtil.getJSON(sslCertMetadata);
+        Map<String, Object> rqstParams = ControllerUtil.parseJson(jsonStr);
+        rqstParams.put("path", certPath);
+        String certDataJson = ControllerUtil.convetToJson(rqstParams);
+        
+		Response response = reqProcessor.process("/write", certDataJson, token);
+
+		boolean isCertDataUpdated = false;
+
+		if(response.getHttpstatus().equals(HttpStatus.NO_CONTENT)){
+			 log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+	                    put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+	                    put(LogMessage.ACTION, SSLCertificateConstants.POLICY_CREATION_TITLE).
+	                    put(LogMessage.MESSAGE, "SSL certificate metadata creation success for policy creation").
+	                    put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+	                    build()));
+			 isCertDataUpdated = true;
+		}else {
+			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+					put(LogMessage.ACTION, SSLCertificateConstants.POLICY_CREATION_TITLE).
+					put(LogMessage.MESSAGE, "SSL certificate metadata creation failed for policy creation").
+					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+					build()));
+		}
+		return isCertDataUpdated;
+	}
 
     /**
      * THis method will be responsible to check the whether given certificate exists or not
@@ -1943,9 +2006,9 @@ public class SSLCertificateService {
 				put(LogMessage.MESSAGE, String.format ("policy is [%s]", policy)).
 				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 				build()));
-		String readPolicy = "r_cert_"+certificateName;
-		String writePolicy = "w_cert_"+certificateName;
-		String denyPolicy = "d_cert_"+certificateName;
+		String readPolicy = SSLCertificateConstants.READ_CERT_POLICY_PREFIX+certificateName;
+		String writePolicy = SSLCertificateConstants.WRITE_CERT_POLICY_PREFIX+certificateName;
+		String denyPolicy = SSLCertificateConstants.DENY_CERT_POLICY_PREFIX+certificateName;
 		
 		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
@@ -1986,7 +2049,7 @@ public class SSLCertificateService {
 				log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
 						put(LogMessage.ACTION, SSLCertificateConstants.ADD_USER_TO_CERT_MSG).
-						put(LogMessage.MESSAGE, "Exception while creating currentpolicies or groups").
+						put(LogMessage.MESSAGE, "Exception while getting the currentpolicies or groups").
 						put(LogMessage.STACKTRACE, Arrays.toString(e.getStackTrace())).
 						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 						build()));
@@ -2021,10 +2084,10 @@ public class SSLCertificateService {
 		String policyPrefix ="";
 
 		switch (access){
-			case TVaultConstants.READ_POLICY: policyPrefix = "r_cert_"; break ;
-			case TVaultConstants.WRITE_POLICY: policyPrefix = "w_cert_" ;break;
-			case TVaultConstants.DENY_POLICY: policyPrefix = "d_cert_" ;break;
-			case TVaultConstants.SUDO_POLICY: policyPrefix = "o_cert_" ;break;
+			case TVaultConstants.READ_POLICY: policyPrefix = SSLCertificateConstants.READ_CERT_POLICY_PREFIX; break ;
+			case TVaultConstants.WRITE_POLICY: policyPrefix = SSLCertificateConstants.WRITE_CERT_POLICY_PREFIX; break;
+			case TVaultConstants.DENY_POLICY: policyPrefix = SSLCertificateConstants.DENY_CERT_POLICY_PREFIX; break;
+			case TVaultConstants.SUDO_POLICY: policyPrefix = SSLCertificateConstants.SUDO_CERT_POLICY_PREFIX; break;
 			default: log.error(SSLCertificateConstants.ERROR_INVALID_ACCESS_POLICY_MSG); break;
 		}
 		return policyPrefix;
@@ -2458,10 +2521,10 @@ public class SSLCertificateService {
 				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 				build()));
 
-		String readPolicy = "r_cert_"+certificateName;
-		String writePolicy = "w_cert_"+certificateName;
-		String denyPolicy = "d_cert_"+certificateName;
-		String sudoPolicy = "o_cert_"+certificateName;
+		String readPolicy = SSLCertificateConstants.READ_CERT_POLICY_PREFIX+certificateName;
+		String writePolicy = SSLCertificateConstants.WRITE_CERT_POLICY_PREFIX+certificateName;
+		String denyPolicy = SSLCertificateConstants.DENY_CERT_POLICY_PREFIX+certificateName;
+		String sudoPolicy = SSLCertificateConstants.SUDO_CERT_POLICY_PREFIX+certificateName;
 
 		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
@@ -2661,9 +2724,9 @@ public class SSLCertificateService {
      * @return
      */
 	public boolean hasDownloadPermission(String certificateName, UserDetails userDetails) {
-        String readPolicy = "r_cert_" + certificateName;
-        String sudoPolicy = "o_cert_" + certificateName;
-        String renewRevokePolicy = "w_cert_" + certificateName;
+        String readPolicy = SSLCertificateConstants.READ_CERT_POLICY_PREFIX + certificateName;
+        String sudoPolicy = SSLCertificateConstants.SUDO_CERT_POLICY_PREFIX + certificateName;
+        String renewRevokePolicy = SSLCertificateConstants.WRITE_CERT_POLICY_PREFIX + certificateName;
         if (userDetails.isAdmin()) {
             return true;
         }
@@ -3220,10 +3283,10 @@ public class SSLCertificateService {
 	 */
 	private ResponseEntity<String> checkUserPolicyAndRemoveFromCertificate(String userName, String certificateName,
 			String authToken) {
-		String readPolicy = "r_cert_"+certificateName;
-		String writePolicy = "w_cert_"+certificateName;
-		String denyPolicy = "d_cert_"+certificateName;
-		String sudoPolicy = "o_cert_"+certificateName;
+		String readPolicy = SSLCertificateConstants.READ_CERT_POLICY_PREFIX+certificateName;
+		String writePolicy = SSLCertificateConstants.WRITE_CERT_POLICY_PREFIX+certificateName;
+		String denyPolicy = SSLCertificateConstants.DENY_CERT_POLICY_PREFIX+certificateName;
+		String sudoPolicy = SSLCertificateConstants.SUDO_CERT_POLICY_PREFIX+certificateName;
 		
 		log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
@@ -3430,10 +3493,10 @@ public class SSLCertificateService {
 	 */
 	private ResponseEntity<String> checkPolicyDetailsAndRemoveGroupFromCertificate(String groupName,
 			String certificateName, String authToken) {
-		String readPolicy = "r_cert_"+certificateName;
-		String writePolicy = "w_cert_"+certificateName;
-		String denyPolicy = "d_cert_"+certificateName;
-		String sudoPolicy = "o_cert_"+certificateName;
+		String readPolicy = SSLCertificateConstants.READ_CERT_POLICY_PREFIX+certificateName;
+		String writePolicy = SSLCertificateConstants.WRITE_CERT_POLICY_PREFIX+certificateName;
+		String denyPolicy = SSLCertificateConstants.DENY_CERT_POLICY_PREFIX+certificateName;
+		String sudoPolicy = SSLCertificateConstants.SUDO_CERT_POLICY_PREFIX+certificateName;
 		
 		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
