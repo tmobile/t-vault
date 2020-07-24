@@ -112,6 +112,9 @@ public class SSLCertificateServiceTest {
 
     @Mock
 	private AppRoleService appRoleService;
+    
+    @Mock
+    ObjectMapper obj;
 
     @Before
     public void setUp() throws Exception {
@@ -3676,6 +3679,90 @@ public class SSLCertificateServiceTest {
         ResponseEntity<String> responseEntity = sSLCertificateService.removeGroupFromCertificate(certGroup, userDetail);
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
+    }
+
+    
+    @Test
+    public void test_addGroupToCertificate_success()  {
+    	String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+    	String policies="r_cert_certmsivadasample.t-mobile.com";
+    	CertificateGroup certificateGroup = new CertificateGroup("certmsivadasample.t-mobile.com","r_safe_w_vault_demo","read");
+    	UserDetails userDetails = getMockUser(false);
+    	SSLCertificateMetadataDetails certificateMetadata = getSSLCertificateMetadataDetails();
+    	Response userResponse = getMockResponse(HttpStatus.OK, true, "{\"data\":{\"bound_cidrs\":[],\"max_ttl\":0,\"policies\":[\"default\",\"r_cert_certificatename.t-mobile.com\"],\"ttl\":0,\"groups\":\"admin\"}}");
+    	Response responseNoContent = getMockResponse(HttpStatus.NO_CONTENT, true, "");
+        when(ControllerUtil.arecertificateGroupInputsValid(certificateGroup)).thenReturn(true);
+        ReflectionTestUtils.setField(sSLCertificateService, "vaultAuthMethod", "ldap");
+        when(ControllerUtil.canAddCertPermission(any(), any(), eq(token))).thenReturn(true);
+        when(reqProcessor.process("/auth/ldap/groups","{\"groupname\":\"r_safe_w_vault_demo\"}",token)).thenReturn(userResponse);
+        try {     
+            List<String> resList = new ArrayList<>();
+            String groupName="r_safe_w_vault_demo";
+            when(ControllerUtil.getPoliciesAsListFromJson(obj,policies)).thenReturn(resList);
+            when(ControllerUtil.arecertificateGroupInputsValid(certificateGroup)).thenReturn(true);
+            when(ControllerUtil.canAddCertPermission(any(), any(), eq(token))).thenReturn(true);
+            when(ControllerUtil.configureLDAPGroup(groupName, policies, token)).thenReturn(responseNoContent);
+            when(reqProcessor.process("/auth/ldap/groups/configure",policies, token)).thenReturn(userResponse);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        when(ControllerUtil.updateSslCertificateMetadata(any(),eq(token))).thenReturn(responseNoContent);
+    	ResponseEntity<String> responseEntity = sSLCertificateService.addingGroupToCertificate( token, certificateGroup);
+    	
+    	assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
+    }
+    
+    @Test
+    public void test_addGroupToCertificate_Badrequest() {
+    	CertificateGroup certGroup = new CertificateGroup("certmsivadasample.t-mobile.com","r_safe_w_vault_demo","read");
+    	SSLCertificateMetadataDetails certificateMetadata = getSSLCertificateMetadataDetails();
+    	UserDetails userDetail = getMockUser(true);
+        userDetail.setUsername("testuser1");
+        Response userResponse = getMockResponse(HttpStatus.OK, true, "{\"data\":{\"bound_cidrs\":[],\"max_ttl\":0,\"policies\":[\"default\",\"r_cert_certificatename.t-mobile.com\"],\"ttl\":0,\"groups\":\"admin\"}}");
+        Response responseNoContent = getMockResponse(HttpStatus.NO_CONTENT, true, "");
+        when(certificateUtils.getCertificateMetaData(token, "certificatename.t-mobile.com")).thenReturn(certificateMetadata);
+        
+        
+        
+        when(ControllerUtil.arecertificateGroupInputsValid(certGroup)).thenReturn(true);
+        when(ControllerUtil.canAddCertPermission(any(), any(), eq(token))).thenReturn(true);
+        when(reqProcessor.process("/auth/ldap/groups","{\"groupname\":\"r_vault_demo\"}",token)).thenReturn(userResponse);
+        try {           
+            List<String> resList = new ArrayList<>();
+            resList.add("default");
+            resList.add("r_cert_certificatename.t-mobile.com");
+            when(ControllerUtil.getPoliciesAsListFromJson(any(), any())).thenReturn(resList);
+            when(ControllerUtil.arecertificateGroupInputsValid(certGroup)).thenReturn(true);
+            when(ControllerUtil.canAddCertPermission(any(), any(), eq(token))).thenReturn(true);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        when(ControllerUtil.updateMetadata(any(),eq(token))).thenReturn(responseNoContent);
+        when(certificateUtils.hasAddOrRemovePermission(userDetail, certificateMetadata)).thenReturn(true);
+        
+        ResponseEntity<String> responseEntity = sSLCertificateService.addingGroupToCertificate(token, certGroup);
+        assertEquals(HttpStatus.BAD_REQUEST, responseEntity.getStatusCode());
+        
+    } 
+
+    
+    @Test
+    public void test_addGroupToCertificate_isAdmin() {
+        String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+        String certificateName = "certsample.t-mobile.com";
+        CertificateGroup certificateGroup = new CertificateGroup();
+        certificateGroup.setAccess("read");
+        certificateGroup.setCertificateName("certsample.t-mobile.com");
+        certificateGroup.setGroupname("group1");
+        System.out.println("certgroup is :"+certificateGroup);
+        UserDetails userDetails = getMockUser(false);
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Group is successfully associated with Certificate\"]}");
+        ResponseEntity<String> response = ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"messages\":[\"Group is successfully associated with Certificate\"]}");
+        when(ControllerUtil.arecertificateGroupInputsValid(certificateGroup)).thenReturn(true);
+        ReflectionTestUtils.setField(sSLCertificateService, "vaultAuthMethod", "ldap");
+
+        ResponseEntity<String> responseEntity = sSLCertificateService.addingGroupToCertificate( token, certificateGroup);
+        assertEquals(HttpStatus.BAD_REQUEST, responseEntity.getStatusCode());
     }
 
 }
