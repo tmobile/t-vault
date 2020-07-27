@@ -451,6 +451,7 @@ public class SSLCertificateService {
 				if (HttpStatus.NO_CONTENT.equals(enrollResponse.getHttpstatus())) {
 					// Policy Creation
 					boolean isPoliciesCreated;
+					
 					if (userDetails.isAdmin()) {
 						isPoliciesCreated = createPolicies(sslCertificateRequest, token);
 					} else {
@@ -596,9 +597,17 @@ public class SSLCertificateService {
 	}
 
 
-    private String populateSSLCertificateMetadata(SSLCertificateRequest sslCertificateRequest, UserDetails userDetails,
-                                                  CertManagerLogin certManagerLogin) throws Exception {
-    	String certMetadataPath = null;
+	/**
+	 * Method to populate certificate metadata details
+	 * @param sslCertificateRequest
+	 * @param userDetails
+	 * @param certManagerLogin
+	 * @return
+	 * @throws Exception
+	 */
+	private String populateSSLCertificateMetadata(SSLCertificateRequest sslCertificateRequest, UserDetails userDetails,
+            CertManagerLogin certManagerLogin) throws Exception {
+		String certMetadataPath = null;
     	if(sslCertificateRequest.getCertType().equalsIgnoreCase("internal")) {
     		certMetadataPath = SSLCertificateConstants.SSL_CERT_PATH + '/' + sslCertificateRequest.getCertificateName();
     	}else {
@@ -691,7 +700,7 @@ public class SSLCertificateService {
         Map<String, Object> rqstParams = ControllerUtil.parseJson(jsonStr);
         rqstParams.put("path", certMetadataPath);
         return ControllerUtil.convetToJson(rqstParams);
-    }
+	}    
 
     /**
      * Validate input data
@@ -737,13 +746,13 @@ public class SSLCertificateService {
         }
         return true;
     }
+    
 	/**
      * To create r/w/o/d policies
      * @param sslCertificateRequest
      * @param token
      * @return
      */
-
     private boolean createPolicies(SSLCertificateRequest sslCertificateRequest, String token) {
         boolean policiesCreated = false;
         Map<String, Object> policyMap = new HashMap<>();
@@ -765,6 +774,7 @@ public class SSLCertificateService {
 		
 	        //Read Policy
 	        accessMap.put(certPath , TVaultConstants.READ_POLICY);
+	        accessMap.put(certMetadataPath, TVaultConstants.READ_POLICY);
 	        policyMap.put(SSLCertificateConstants.ACCESS_ID, SSLCertificateConstants.READ_CERT_POLICY_PREFIX + certificateName);
 	        policyMap.put(SSLCertificateConstants.ACCESS_STRING, accessMap);
 	
@@ -773,6 +783,7 @@ public class SSLCertificateService {
 	
 	        //Write Policy
 	        accessMap.put(certPath , TVaultConstants.WRITE_POLICY);
+	        accessMap.put(certMetadataPath, TVaultConstants.WRITE_POLICY);
 	        policyMap.put(SSLCertificateConstants.ACCESS_ID, SSLCertificateConstants.WRITE_CERT_POLICY_PREFIX+ certificateName);
 	        policyRequestJson = ControllerUtil.convetToJson(policyMap);
 	        Response writeResponse = reqProcessor.process(SSLCertificateConstants.ACCESS_UPDATE_ENDPOINT, policyRequestJson, token);
@@ -826,7 +837,7 @@ public class SSLCertificateService {
 	 * @param certPath
 	 * @return
 	 */
-	private boolean certificateMetadataForPoliciesCreation(SSLCertificateRequest sslCertificateRequest, String token,
+    private boolean certificateMetadataForPoliciesCreation(SSLCertificateRequest sslCertificateRequest, String token,
 			String certPath) {
 		SSLCertificateMetadataDetails sslCertificateMetadataDetails = new SSLCertificateMetadataDetails();
     	
@@ -834,7 +845,7 @@ public class SSLCertificateService {
     	sslCertificateMetadataDetails.setCertificateName(sslCertificateRequest.getCertificateName());
     	sslCertificateMetadataDetails.setCertType(sslCertificateRequest.getCertType());
     	sslCertificateMetadataDetails.setCertOwnerNtid(sslCertificateRequest.getCertOwnerNtid());
-    	
+		
     	SSLCertMetadata sslCertMetadata = new SSLCertMetadata(certPath, sslCertificateMetadataDetails);
         String jsonStr = JSONUtil.getJSON(sslCertMetadata);
         Map<String, Object> rqstParams = ControllerUtil.parseJson(jsonStr);
