@@ -3689,39 +3689,36 @@ public class SSLCertificateService {
 		} else {
 			_path = SSLCertificateConstants.SSL_CERT_PATH_VALUE_EXT;
 		}
-		String tokenValue = (userDetails.isAdmin()) ? token : userDetails.getSelfSupportToken();
-
-		response = getMetadata(tokenValue, _path);
+		response = getMetadata(token, _path);
 		
 		
 		if (HttpStatus.OK.equals(response.getHttpstatus())) {
-            log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
-                    put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
-                    put(LogMessage.ACTION, "getListOfCertificates").
-                    put(LogMessage.MESSAGE, "Certificates fetched from metadata").
-                    put(LogMessage.STATUS, response.getHttpstatus().toString()).
-                    put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
-                    build()));
-            return ResponseEntity.status(response.getHttpstatus()).body(response.getResponse());
-        }
-        else if (HttpStatus.NOT_FOUND.equals(response.getHttpstatus())) {
-            log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
-                    put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
-                    put(LogMessage.ACTION, "getListOfCertificates").
-                    put(LogMessage.MESSAGE, "Reterived empty certificate list from metadata").
-                    put(LogMessage.STATUS, response.getHttpstatus().toString()).
-                    put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
-                    build()));
-            return ResponseEntity.status(HttpStatus.OK).body(response.getResponse());
-        }
-        log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
-   			      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
-                  put(LogMessage.ACTION, "getListOfCertificates").
-                  put(LogMessage.MESSAGE, "Failed to get certificate list from metadata").
-   			      put(LogMessage.STATUS, response.getHttpstatus().toString()).
-   			      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
-   			      build()));
+			log.debug(
+					JSONUtil.getJSON(
+							ImmutableMap.<String, String> builder()
+									.put(LogMessage.USER,
+											ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString())
+									.put(LogMessage.ACTION, "getListOfCertificates")
+									.put(LogMessage.MESSAGE, "Certificates fetched from metadata")
+									.put(LogMessage.STATUS, response.getHttpstatus().toString())
+									.put(LogMessage.APIURL,
+											ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString())
+									.build()));
+			return ResponseEntity.status(response.getHttpstatus()).body(response.getResponse());
+		} else {
+			log.error(
+					JSONUtil.getJSON(
+							ImmutableMap.<String, String> builder()
+									.put(LogMessage.USER,
+											ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString())
+									.put(LogMessage.ACTION, "getListOfCertificates")
+									.put(LogMessage.MESSAGE, "Failed to get certificate list from metadata")
+									.put(LogMessage.STATUS, response.getHttpstatus().toString())
+									.put(LogMessage.APIURL,
+											ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString())
+									.build()));
 
-   		return ResponseEntity.status(response.getHttpstatus()).body(response.getResponse());
+			return ResponseEntity.status(response.getHttpstatus()).body(response.getResponse());
+		}
 	}
 }
