@@ -127,7 +127,7 @@ public class  VaultAuthService {
 					Set<String> keys = permissionMap.keySet();
 					String key = keys.stream().findFirst().orElse("");
 
-					if (key !="" && !filteredPermissions.containsKey(key)) {
+					if (!TVaultConstants.EMPTY.equals(key) && !filteredPermissions.containsKey(key)) {
 						filteredPermissions.put(key, permissionMap.get(key));
 						Map<String,String> permission = Collections.synchronizedMap(new HashMap());
 						permission.put(key, permissionMap.get(key));
@@ -159,7 +159,7 @@ public class  VaultAuthService {
 						Set<String> keys = permissionMap.keySet();
 						String key = keys.stream().findFirst().orElse("");
 
-						if (key !="" && !filteredPermissions.containsKey(key)) {
+						if (!TVaultConstants.EMPTY.equals(key) && !filteredPermissions.containsKey(key)) {
 							filteredPermissions.put(key, permissionMap.get(key));
 							Map<String,String> permission = Collections.synchronizedMap(new HashMap());
 							permission.put(key, permissionMap.get(key));
@@ -189,7 +189,7 @@ public class  VaultAuthService {
 					Set<String> keys = permissionMap.keySet();
 					String key = keys.stream().findFirst().orElse("");
 
-					if (key !="" && !filteredPermissions.containsKey(key)) {
+					if (!TVaultConstants.EMPTY.equals(key) && !filteredPermissions.containsKey(key)) {
 						filteredPermissions.put(key, permissionMap.get(key));
 						Map<String,String> permission = Collections.synchronizedMap(new HashMap());
 						permission.put(key, permissionMap.get(key));
