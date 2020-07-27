@@ -1355,7 +1355,7 @@ public class SSLCertificateServiceTest {
 
          when(reqProcessor.process("/sslcert", "{\"path\":\"metadata/sslcerts/CertificateName.t-mobile.com\"}",token)).thenReturn(response);
 
-         ResponseEntity<String> responseEntityActual = sSLCertificateService.getServiceCertificates(token, user1, "",1,0);
+         ResponseEntity<String> responseEntityActual = sSLCertificateService.getServiceCertificates(token, user1, "",1,0,"internal");
 
          assertEquals(HttpStatus.OK, responseEntityActual.getStatusCode());
     }
@@ -1386,7 +1386,7 @@ public class SSLCertificateServiceTest {
 
          when(reqProcessor.process("/sslcert", "{\"path\":\"metadata/sslcerts/CertificateName.t-mobile.com\"}",token)).thenReturn(response);
 
-         ResponseEntity<String> responseEntityActual = sSLCertificateService.getServiceCertificates(token, user1, "",1,0);
+         ResponseEntity<String> responseEntityActual = sSLCertificateService.getServiceCertificates(token, user1, "",1,0,"internal");
 
          assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, responseEntityActual.getStatusCode());
     }
@@ -1603,6 +1603,7 @@ public class SSLCertificateServiceTest {
     @Test
     public void issueRevocationRequest_Success() throws Exception {
     	String certficateName = "testCert@t-mobile.com";
+    	String certficateType = "internal";
     	String token = "FSR&&%S*";
     	String jsonStr = "{  \"username\": \"testusername1\",  \"password\": \"testpassword1\"}";
 
@@ -1648,7 +1649,7 @@ public class SSLCertificateServiceTest {
         when(ControllerUtil.updateMetaData(anyString(), anyMap(), anyString())).thenReturn(Boolean.TRUE);
 
         ResponseEntity<?> revocResponse =
-                sSLCertificateService.issueRevocationRequest(certficateName, userDetails, token, revocationRequest);
+                sSLCertificateService.issueRevocationRequest(certficateType, certficateName, userDetails, token, revocationRequest);
 
         //Assert
         assertNotNull(revocResponse);
@@ -1658,6 +1659,7 @@ public class SSLCertificateServiceTest {
     @Test
     public void issueRevocationRequest_Non_Admin_Success() throws Exception {
     	String certficateName = "testCert@t-mobile.com";
+    	String certficateType = "internal";
     	String token = "FSR&&%S*";
     	String jsonStr = "{  \"username\": \"testusername1\",  \"password\": \"testpassword1\"}";
 
@@ -1705,7 +1707,7 @@ public class SSLCertificateServiceTest {
         when(ControllerUtil.updateMetaData(anyString(), anyMap(), anyString())).thenReturn(Boolean.TRUE);
 
         ResponseEntity<?> revocResponse =
-                sSLCertificateService.issueRevocationRequest(certficateName, userDetails, token, revocationRequest);
+                sSLCertificateService.issueRevocationRequest(certficateType,certficateName, userDetails, token, revocationRequest);
 
         //Assert
         assertNotNull(revocResponse);
@@ -1715,6 +1717,7 @@ public class SSLCertificateServiceTest {
     @Test
     public void issueRevocationRequest_Admin_Failure() throws Exception {
     	String certficateName = "testCert@t-mobile.com";
+    	String certficateType = "internal";
     	String token = "FSR&&%S*";
     	String jsonStr = "{  \"username\": \"testusername1\",  \"password\": \"testpassword1\"}";
 
@@ -1760,7 +1763,7 @@ public class SSLCertificateServiceTest {
         when(ControllerUtil.updateMetaData(anyString(), anyMap(), anyString())).thenReturn(Boolean.TRUE);
 
         ResponseEntity<?> revocResponse =
-                sSLCertificateService.issueRevocationRequest(certficateName, userDetails, token, revocationRequest);
+                sSLCertificateService.issueRevocationRequest(certficateType,certficateName, userDetails, token, revocationRequest);
 
         //Assert
         assertNotNull(revocResponse);
@@ -3420,6 +3423,7 @@ public class SSLCertificateServiceTest {
     @Test
     public void renewCertificate_Success() throws Exception {
     	String certficateName = "testCert@t-mobile.com";
+    	String certficateType = "internal";
     	String token = "FSR&&%S*";
     	String jsonStr = "{  \"username\": \"testusername1\",  \"password\": \"testpassword1\"}";
     	String jsonStr2 = "{\"certificates\":[{\"sortedSubjectName\": \"CN=CertificateName.t-mobile.com, C=US, " +
@@ -3473,7 +3477,7 @@ public class SSLCertificateServiceTest {
         when(ControllerUtil.updateMetaData(anyString(), anyMap(), anyString())).thenReturn(Boolean.TRUE);
 
         ResponseEntity<?> renewCertResponse =
-                sSLCertificateService.renewCertificate(certficateName, userDetails, token);
+                sSLCertificateService.renewCertificate(certficateType,certficateName, userDetails, token);
 
         //Assert
         assertNotNull(renewCertResponse);
@@ -3482,6 +3486,7 @@ public class SSLCertificateServiceTest {
     @Test
     public void renewCertificate_Non_Admin_Success() throws Exception {
     	String certficateName = "testCert@t-mobile.com";
+    	String certficateType = "internal";
     	String token = "FSR&&%S*";
     	String jsonStr = "{  \"username\": \"testusername1\",  \"password\": \"testpassword1\"}";
     	String jsonStr2 = "{\"certificates\":[{\"sortedSubjectName\": \"CN=CertificateName.t-mobile.com, C=US, " +
@@ -3535,7 +3540,7 @@ public class SSLCertificateServiceTest {
         when(ControllerUtil.updateMetaData(anyString(), anyMap(), anyString())).thenReturn(Boolean.TRUE);
 
         ResponseEntity<?> renewCertResponse =
-                sSLCertificateService.renewCertificate(certficateName, userDetails, token);
+                sSLCertificateService.renewCertificate(certficateType, certficateName, userDetails, token);
 
         //Assert
         assertNotNull(renewCertResponse);
@@ -3544,6 +3549,7 @@ public class SSLCertificateServiceTest {
     @Test
     public void renewCertificate_Admin_Failure() throws Exception {
     	String certficateName = "testCert@t-mobile.com";
+    	String certficateType = "internal";
     	String token = "FSR&&%S*";
     	String jsonStr = "{  \"username\": \"testusername1\",  \"password\": \"testpassword1\"}";
     	String jsonStr2 = "{\"certificates\":[{\"sortedSubjectName\": \"CN=CertificateName.t-mobile.com, C=US, " +
@@ -3601,7 +3607,7 @@ public class SSLCertificateServiceTest {
         when(ControllerUtil.updateMetaData(anyString(), anyMap(), anyString())).thenReturn(Boolean.TRUE);
 
         ResponseEntity<?> revocResponse =
-                sSLCertificateService.issueRevocationRequest(certficateName, userDetails, token, revocationRequest);
+                sSLCertificateService.issueRevocationRequest(certficateType, certficateName, userDetails, token, revocationRequest);
 
         //Assert
         assertNotNull(revocResponse);

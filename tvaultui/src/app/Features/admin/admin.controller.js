@@ -575,28 +575,40 @@
                         $scope.error('md');
                     });
             }
-            getCertificates("", null, null);
+            getCertificates("", null, null,"internal");
         };
 
+        $scope.getExtCertificates = function () {   
+        	
+        	getCertificates("", null, null,"External");
+        }
+        
         //Get ssl certificate
-        var getCertificates =  function (searchCert, limit, offset) {
+        var getCertificates =  function (searchCert, limit, offset, certType) {
             $scope.numOfCertificates = 0;
             $scope.certificatesLoaded = false;
             $scope.certificateData = {"certificates": []};
             $scope.isLoadingData = true;
-            $scope.isLoadingCerts = true;
+            $scope.isLoadingCerts = true;            
             
             var limitQuery = "";
             var offsetQuery= "";
+            var certTypeQuery= "";
             if (limit !=null) {
                 limitQuery = "&limit="+limit;
             }
             if (offset!=null) {
                 offsetQuery= "&offset="+offset;
-            }            
-            var updatedUrlOfEndPoint = ModifyUrl.addUrlParameteres('getCertificates',"certificateName="+searchCert + limitQuery + offsetQuery);
+            }
+            if (certType!=null) {
+            	certTypeQuery= "&certType="+certType;
+            }             
+            var updatedUrlOfEndPoint = ModifyUrl.addUrlParameteres('getCertificates',"certificateName="+searchCert + limitQuery + offsetQuery+certTypeQuery);
             
-            AdminSafesManagement.getCertificates(null, updatedUrlOfEndPoint).then(function (response) {
+            AdminSafesManagement.getCertificates(null, updatedUrlOfEndPoint).then(function (response) {            	
+            	if(certType=="External"){
+            		$scope.selectedIndex =9;
+            		}
                 if (UtilityService.ifAPIRequestSuccessful(response)) {
                     if(response.data != "" && response.data != undefined) {
                         $scope.certificateData.certificates = response.data.keys;
@@ -647,14 +659,14 @@
         	if($scope.selectedIndex ==3){
             if ($scope.searchValue != '' && $scope.searchValue != undefined && $scope.searchValue.length > 2 && $scope.certSearchValue != $scope.searchValue) {                
             	$scope.certSearchValue = $scope.searchValue;
-                getCertificates($scope.certSearchValue, null, null);
+                getCertificates($scope.certSearchValue, null, null,"internal");
             }
             if($scope.certSearchValue != $scope.searchValue && $scope.searchValue != undefined && $scope.searchValue.length ==1) {            	            	
                 $scope.certSearchValue = $scope.searchValue;                
             }
             if($scope.certSearchValue != $scope.searchValue) {            	
                 $scope.certSearchValue = $scope.searchValue;
-                getCertificates("", null, null);
+                getCertificates("", null, null, "internal");
             }
         }
         }
@@ -662,7 +674,7 @@
         $scope.showMoreCert = function () {
             var offset = $scope.certificateData.offset;
             var limit = $scope.certificateData.limit;
-            getCertificates($scope.certSearchValue, limit, limit + offset);
+            getCertificates($scope.certSearchValue, limit, limit + offset,"internal");
         }
 
         $scope.getTargetSystems = function () {
@@ -1694,7 +1706,7 @@
 
         $scope.successCancel = function () {
             Modal.close('');
-            getCertificates("", null, null);
+            getCertificates("", null, null,"internal");
         };
 
         $scope.collapseCertDetails = function (index) {
@@ -1748,6 +1760,7 @@
             $scope.revocationStatusMessage = '';
             var certificateName = $scope.getCertSubjectName(certificateDetails);
             $scope.certificateNameForRevoke = certificateName;
+            $scope.certificateTypeForRevoke = certificateDetails.certType;
             var updatedUrlOfEndPoint = RestEndpoints.baseURL + "/v2/certificates/" + certificateDetails.certificateId + "/revocationreasons";
             $scope.revocationReasons = [];
             AdminSafesManagement.getRevocationReasons(null, updatedUrlOfEndPoint).then(function (response) {
@@ -1800,7 +1813,7 @@
                     "reason": $scope.dropdownRevocationReasons.selectedGroupOption.value
                 }
                
-                var url = RestEndpoints.baseURL + "/v2/certificates/" + $scope.certificateNameForRevoke + "/revocationrequest";
+                var url = RestEndpoints.baseURL + "/v2/certificates/" + $scope.certificateTypeForRevoke +"/" +$scope.certificateNameForRevoke   + "/revocationrequest";
                 $scope.isLoadingData = true;
                 AdminSafesManagement.issueRevocationRequest(reqObjtobeSent, url).then(function (response) {
 
@@ -2017,8 +2030,9 @@
                 Modal.close();                
                 $scope.renewMessage = '';
                 var certificateName = $scope.getCertSubjectName(certificateDetails);
-                $scope.certificateNameForRenew = certificateName;          
-                var url = RestEndpoints.baseURL + "/v2/certificates/" + certificateName + "/renew";
+                $scope.certificateNameForRenew = certificateName; 
+                var certType = certificateDetails.certType;
+                var url = RestEndpoints.baseURL + "/v2/certificates/" +certType+"/"+ certificateName + "/renew";
                 $scope.isLoadingData = true;                              
                 
                 AdminSafesManagement.renewCertificate(null, url).then(function (response) {
