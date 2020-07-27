@@ -45,6 +45,16 @@
     margin:0 auto;
     width: 50%;
 }
+
+.instance-message {
+    margin-top: 2vh!important;
+    padding-top: 2vh!important;
+}
+.instance-message .description {
+    width: 100%!important;
+    color: #f6006e;
+}
+
 .container-fluid-wrapper-welcome h2 {
     font-weight: bold;
     font-size: 4vh;
