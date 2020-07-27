@@ -59,15 +59,15 @@ script(type='text/ng-template', id='downloadPopup.html')
                 .page-header-text CERTIFICATES
         .page-content-container.admin
             .right.search-bar-container
-                .search-bar(ng-if="!viewCertificate")
+                .search-bar(ng-if="!viewCertificate || !viewExternalCertificate")
                     .search-box
                         .search-icon
                             .icon-search
                         .search-input-wrapper
-                            input.search-input-box(type='text' placeholder='SEARCH' ng-model="searchValueCert" restrict-special-char minlength="3" maxlength="40" ng-change="filterCert(searchValueCert)")
+                            input.search-input-box(type='text' placeholder='SEARCH' ng-model="searchValueCert" id = "searchValueId" restrict-special-char minlength="3" maxlength="40" ng-change="filterCert(searchValueCert)")
             md-content.admin-content
                 md-tabs(md-dynamic-height md-border-bottom md-selected="selectedIndex")
-                    md-tab(label="My Certificates")
+                    md-tab(label="Internal Certificates" ng-click = "isInternalCertificate()")
                         md-content(class="md-padding md-content-wrapper page-content-wrapper md-certificate" ng-init="displayGrid" ng-if="!viewCertificate")
                             .new-container.page-content-container
                                 .md-content-inner-wrapper
@@ -142,3 +142,8 @@ script(type='text/ng-template', id='downloadPopup.html')
                                                         div.download-cert-options(id="downloadbox" ng-if='isDownloadClicked' ng-blur='hideDownload()' tabindex="-1" ng-attr-autofocus="true")
                                                             div(ng-click="downloadPopup()") Download certificate with private key
                                                             div(ng-click="downloadPopupWitoutKey()") Download certificate in PEM/DER format
+
+
+
+            
+                    

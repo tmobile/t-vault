@@ -110,8 +110,13 @@ public class CertificateUtils {
 	 * @param certificateName
 	 * @return certificateMetadataDetails
 	 */
-	public SSLCertificateMetadataDetails getCertificateMetaData(String token, String certificateName){
-		String certificatePath = SSLCertificateConstants.SSL_CERT_PATH + '/' + certificateName;
+	public SSLCertificateMetadataDetails getCertificateMetaData(String token, String certificateName, String certificateType){
+		String certificatePath = "";
+		if (certificateType.equalsIgnoreCase("internal")) {
+			certificatePath = SSLCertificateConstants.SSL_CERT_PATH + '/' + certificateName;
+		} else {
+			certificatePath = SSLCertificateConstants.SSL_CERT_PATH_EXT + certificateName;
+		}
 		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
 				put(LogMessage.ACTION, "Get Certificate Info").

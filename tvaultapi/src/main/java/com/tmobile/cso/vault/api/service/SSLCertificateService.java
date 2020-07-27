@@ -1447,8 +1447,10 @@ public class SSLCertificateService {
    	 * @param path
    	 * @return
    	 */
-  	private String getsslmetadatalist(String certificateResponse, String token, UserDetails userDetails, String certName,Integer limit, Integer offset) {
-   		String path = SSLCertificateConstants.SSL_CERT_PATH  ;
+	private String getsslmetadatalist(String certificateResponse, String token, UserDetails userDetails,
+			String certName, Integer limit, Integer offset) {
+		String path = SSLCertificateConstants.SSL_CERT_PATH  ;
+
    		String pathStr= "";
    		String endPoint = "";
    		Response response = new Response();
@@ -1945,7 +1947,7 @@ public class SSLCertificateService {
    	        }else {
    	        	authToken = userDetails.getSelfSupportToken();
    	        }
-   			SSLCertificateMetadataDetails certificateMetaData = certificateUtils.getCertificateMetaData(authToken, certificateName);
+   			SSLCertificateMetadataDetails certificateMetaData = certificateUtils.getCertificateMetaData(authToken, certificateName, "internal");
    			
    			if(!addSudoPermission){
    				isAuthorized = certificateUtils.hasAddOrRemovePermission(userDetails, certificateMetaData);
@@ -2288,7 +2290,7 @@ public class SSLCertificateService {
 			powerToken = userDetails.getSelfSupportToken();
 		}
 
-		SSLCertificateMetadataDetails sslMetaData = certificateUtils.getCertificateMetaData(powerToken, certName);
+		SSLCertificateMetadataDetails sslMetaData = certificateUtils.getCertificateMetaData(powerToken, certName, "internal");
 
 		return certificateUtils.hasAddOrRemovePermission(userDetails, sslMetaData);
 
@@ -2473,7 +2475,7 @@ public class SSLCertificateService {
 	        	authToken = userDetails.getSelfSupportToken();
 	        }
 
-	        SSLCertificateMetadataDetails certificateMetaData = certificateUtils.getCertificateMetaData(authToken, certificateName);
+	        SSLCertificateMetadataDetails certificateMetaData = certificateUtils.getCertificateMetaData(authToken, certificateName, "internal");
 
 			isAuthorized = certificateUtils.hasAddOrRemovePermission(userDetails, certificateMetaData);
 
@@ -2761,7 +2763,7 @@ public class SSLCertificateService {
     }
 
     public SSLCertificateMetadataDetails getCertificateMetadata(String token, String certificateName) {
-        return certificateUtils.getCertificateMetaData(token, certificateName);
+        return certificateUtils.getCertificateMetaData(token, certificateName, "internal");
     }
 
     /**
@@ -2774,7 +2776,7 @@ public class SSLCertificateService {
     public ResponseEntity<InputStreamResource> downloadCertificateWithPrivateKey(String token, CertificateDownloadRequest certificateDownloadRequest, UserDetails userDetails) {
 
         String certName = certificateDownloadRequest.getCertificateName();
-        SSLCertificateMetadataDetails sslCertificateMetadataDetails = certificateUtils.getCertificateMetaData(token, certName);
+        SSLCertificateMetadataDetails sslCertificateMetadataDetails = certificateUtils.getCertificateMetaData(token, certName, "internal");
         if (hasDownloadPermission(certificateDownloadRequest.getCertificateName(), userDetails) && sslCertificateMetadataDetails!= null) {
             log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
                     put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
@@ -2910,7 +2912,7 @@ public class SSLCertificateService {
     public ResponseEntity<InputStreamResource> downloadCertificate(String token, UserDetails userDetails, String certificateName, String certificateType) {
 
         InputStreamResource resource = null;
-        SSLCertificateMetadataDetails sslCertificateMetadataDetails = certificateUtils.getCertificateMetaData(token, certificateName);
+        SSLCertificateMetadataDetails sslCertificateMetadataDetails = certificateUtils.getCertificateMetaData(token, certificateName, "internal");
         if (hasDownloadPermission(certificateName, userDetails) && sslCertificateMetadataDetails != null) {
 
             String nclmToken = getNclmToken();
@@ -3015,9 +3017,10 @@ public class SSLCertificateService {
      * @param certificateName
      * @return
      */
-    public ResponseEntity<String> getCertificateDetails(String token, UserDetails userDetails, String certificateName) {
+    public ResponseEntity<String> getCertificateDetails(String token, UserDetails userDetails, String certificateName,
+    		String certificateType) {
 
-        SSLCertificateMetadataDetails sslCertificateMetadataDetails = certificateUtils.getCertificateMetaData(token, certificateName);
+        SSLCertificateMetadataDetails sslCertificateMetadataDetails = certificateUtils.getCertificateMetaData(token, certificateName, certificateType);
         if (sslCertificateMetadataDetails !=null) {
             return ResponseEntity.status(HttpStatus.OK).body(JSONUtil.getJSON(sslCertificateMetadataDetails));
         }
@@ -3259,7 +3262,7 @@ public class SSLCertificateService {
    	        }else {
    	        	authToken = userDetails.getSelfSupportToken();
    	        }
-   			SSLCertificateMetadataDetails certificateMetaData = certificateUtils.getCertificateMetaData(authToken, certificateName);   			
+   			SSLCertificateMetadataDetails certificateMetaData = certificateUtils.getCertificateMetaData(authToken, certificateName, "internal");   			
    			
    			isAuthorized = certificateUtils.hasAddOrRemovePermission(userDetails, certificateMetaData); 
    		}else {
@@ -3466,7 +3469,7 @@ public class SSLCertificateService {
    	        }else {
    	        	authToken = userDetails.getSelfSupportToken();
    	        }
-   			SSLCertificateMetadataDetails certificateMetaData = certificateUtils.getCertificateMetaData(authToken, certificateName);
+   			SSLCertificateMetadataDetails certificateMetaData = certificateUtils.getCertificateMetaData(authToken, certificateName, "internal");
    			
    			isAuthorized = certificateUtils.hasAddOrRemovePermission(userDetails, certificateMetaData);
    			
@@ -3666,5 +3669,59 @@ public class SSLCertificateService {
 			isValid = false;
 		}
 		return isValid;
+	}
+	
+	
+	/**
+	 * Get List Of internal or external certificates from the path sslcerts or externalcerts
+	 * @param token
+	 * @param certificateType
+	 * @param userDetails
+	 * @return
+	 * @throws Exception
+	 */
+	public ResponseEntity<String> getListOfCertificates(String token, String certificateType, UserDetails userDetails)
+			throws Exception {
+		Response response = new Response();
+		String _path = "";
+		if (certificateType.equalsIgnoreCase("internal")) {
+			_path = SSLCertificateConstants.SSL_CERT_PATH_VALUE;
+		} else {
+			_path = SSLCertificateConstants.SSL_CERT_PATH_VALUE_EXT;
+		}
+		String tokenValue = (userDetails.isAdmin()) ? token : userDetails.getSelfSupportToken();
+
+		response = getMetadata(tokenValue, _path);
+		
+		
+		if (HttpStatus.OK.equals(response.getHttpstatus())) {
+            log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+                    put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+                    put(LogMessage.ACTION, "getListOfCertificates").
+                    put(LogMessage.MESSAGE, "Certificates fetched from metadata").
+                    put(LogMessage.STATUS, response.getHttpstatus().toString()).
+                    put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+                    build()));
+            return ResponseEntity.status(response.getHttpstatus()).body(response.getResponse());
+        }
+        else if (HttpStatus.NOT_FOUND.equals(response.getHttpstatus())) {
+            log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+                    put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+                    put(LogMessage.ACTION, "getListOfCertificates").
+                    put(LogMessage.MESSAGE, "Reterived empty certificate list from metadata").
+                    put(LogMessage.STATUS, response.getHttpstatus().toString()).
+                    put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+                    build()));
+            return ResponseEntity.status(HttpStatus.OK).body(response.getResponse());
+        }
+        log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+   			      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+                  put(LogMessage.ACTION, "getListOfCertificates").
+                  put(LogMessage.MESSAGE, "Failed to get certificate list from metadata").
+   			      put(LogMessage.STATUS, response.getHttpstatus().toString()).
+   			      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+   			      build()));
+
+   		return ResponseEntity.status(response.getHttpstatus()).body(response.getResponse());
 	}
 }
