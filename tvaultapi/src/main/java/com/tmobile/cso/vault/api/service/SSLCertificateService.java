@@ -1462,21 +1462,22 @@ public class SSLCertificateService {
          * @throws Exception
          */
 
-    public ResponseEntity<String> getServiceCertificates(String token, UserDetails userDetails, String certName, Integer limit, Integer offset) throws Exception {
+    public ResponseEntity<String> getServiceCertificates(String token, UserDetails userDetails, String certName, Integer limit, Integer offset, String certType) throws Exception {
        	log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
    			      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
                   put(LogMessage.ACTION, "getServiceCertificates").
    			      put(LogMessage.MESSAGE, String.format("Trying to get list of Ssl certificatests")).
    			      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
    			      build()));
-        String _path = SSLCertificateConstants.SSL_CERT_PATH  ;
+        String metaDataPath = (certType.equalsIgnoreCase("internal"))?
+                SSLCertificateConstants.SSL_CERT_PATH :SSLCertificateConstants.SSL_EXTERNAL_CERT_PATH;
        	Response response = new Response();
        	String certListStr = "";
        	String tokenValue= (userDetails.isAdmin())? token :userDetails.getSelfSupportToken();
 
-        response = getMetadata(tokenValue, _path);
+        response = getMetadata(tokenValue, metaDataPath);
         if (HttpStatus.OK.equals(response.getHttpstatus())) {
-            certListStr = getsslmetadatalist(response.getResponse(),tokenValue,userDetails,certName,limit,offset);
+            certListStr = getsslmetadatalist(response.getResponse(),tokenValue,userDetails,certName,limit,offset,metaDataPath);
             log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
                     put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
                     put(LogMessage.ACTION, "getServiceCertificates").
@@ -1843,7 +1844,7 @@ public class SSLCertificateService {
     * @throws JsonMappingException
     * @throws JsonParseException
     */
-	public ResponseEntity<String> issueRevocationRequest(String certificateName, UserDetails userDetails, String token,
+	public ResponseEntity<String> issueRevocationRequest(String certType, String certificateName, UserDetails userDetails, String token,
 			RevocationRequest revocationRequest) {
 
 		revocationRequest.setTime(getCurrentLocalDateTimeStamp());
@@ -1851,13 +1852,14 @@ public class SSLCertificateService {
 		Map<String, String> metaDataParams = new HashMap<String, String>();
 
 		String endPoint = certificateName;
-		String _path = SSLCertificateConstants.SSL_CERT_PATH + "/" + endPoint;
+		String metaDataPath = (certType.equalsIgnoreCase("internal"))?
+                SSLCertificateConstants.SSL_CERT_PATH :SSLCertificateConstants.SSL_EXTERNAL_CERT_PATH;
 		Response response = null;
 		try {
 			if (userDetails.isAdmin()) {
-				response = reqProcessor.process("/read", "{\"path\":\"" + _path + "\"}", token);
+				response = reqProcessor.process("/read", "{\"path\":\"" + metaDataPath + "\"}", token);
 			} else {
-				response = reqProcessor.process("/read", "{\"path\":\"" + _path + "\"}",
+				response = reqProcessor.process("/read", "{\"path\":\"" + metaDataPath + "\"}",
 						userDetails.getSelfSupportToken());
 			}
 		} catch (Exception e) {
@@ -1916,9 +1918,9 @@ public class SSLCertificateService {
 			boolean sslMetaDataUpdationStatus;
 			metaDataParams.put("certificateStatus", "Revoked");
 			if (userDetails.isAdmin()) {
-				sslMetaDataUpdationStatus = ControllerUtil.updateMetaData(_path, metaDataParams, token);
+				sslMetaDataUpdationStatus = ControllerUtil.updateMetaData(metaDataPath, metaDataParams, token);
 			} else {
-				sslMetaDataUpdationStatus = ControllerUtil.updateMetaData(_path, metaDataParams,
+				sslMetaDataUpdationStatus = ControllerUtil.updateMetaData(metaDataPath, metaDataParams,
 						userDetails.getSelfSupportToken());
 			}
 			if (sslMetaDataUpdationStatus) {
@@ -3120,12 +3122,13 @@ public class SSLCertificateService {
 	 * @throws JsonMappingException
 	 * @throws JsonParseException
 	 */
-	public ResponseEntity<String> renewCertificate(String certificateName, UserDetails userDetails, String token) {			
+	public ResponseEntity<String> renewCertificate(String certType, String certificateName, UserDetails userDetails, String token) {
 
 		Map<String, String> metaDataParams = new HashMap<String, String>();
 
 		String endPoint = certificateName;
-		String _path = SSLCertificateConstants.SSL_CERT_PATH + "/" + endPoint;
+		String metaDataPath = (certType.equalsIgnoreCase("internal"))?
+                SSLCertificateConstants.SSL_CERT_PATH :SSLCertificateConstants.SSL_EXTERNAL_CERT_PATH;
 		Response response = new Response();
 		if (!userDetails.isAdmin()) {
 			Boolean isPermission = validateOwnerPermissionForNonAdmin(userDetails, certificateName);
@@ -3139,9 +3142,9 @@ public class SSLCertificateService {
 		}
 		try {
 			if (userDetails.isAdmin()) {
-				response = reqProcessor.process("/read", "{\"path\":\"" + _path + "\"}", token);
+				response = reqProcessor.process("/read", "{\"path\":\"" + metaDataPath + "\"}", token);
 			} else {
-				response = reqProcessor.process("/read", "{\"path\":\"" + _path + "\"}",
+				response = reqProcessor.process("/read", "{\"path\":\"" + metaDataPath + "\"}",
 						userDetails.getSelfSupportToken());
 			}
 		} catch (Exception e) {
@@ -3210,9 +3213,9 @@ public class SSLCertificateService {
 				object.get("certificateStatus").getAsString());
 						
 			if (userDetails.isAdmin()) {
-				sslMetaDataUpdationStatus = ControllerUtil.updateMetaData(_path, metaDataParams, token);
+				sslMetaDataUpdationStatus = ControllerUtil.updateMetaData(metaDataPath, metaDataParams, token);
 			} else {
-				sslMetaDataUpdationStatus = ControllerUtil.updateMetaData(_path, metaDataParams,
+				sslMetaDataUpdationStatus = ControllerUtil.updateMetaData(metaDataPath, metaDataParams,
 						userDetails.getSelfSupportToken());
 			}
 			}
