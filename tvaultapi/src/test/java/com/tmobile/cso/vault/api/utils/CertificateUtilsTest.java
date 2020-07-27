@@ -194,7 +194,8 @@ public class CertificateUtilsTest {
         when(ControllerUtil.getReqProcessor().process(GET_CERT_DETAIL, GET_CERT_DETAIL_VAL +certificatePath+"\"}",userDetails.getClientToken())).thenReturn(responseObj);
         
         SSLCertificateMetadataDetails certificateMetadata = getSSLCertificateMetadataDetails();
-        SSLCertificateMetadataDetails certificateMetadataObj = certificateUtils.getCertificateMetaData(userDetails.getClientToken(),CERT_NAME);
+        String certType = "internal";
+        SSLCertificateMetadataDetails certificateMetadataObj = certificateUtils.getCertificateMetaData(userDetails.getClientToken(),CERT_NAME, certType);
         assertEquals(certificateMetadataObj.getCertificateName(), certificateMetadata.getCertificateName());
         assertEquals(certificateMetadataObj.getAkmid(), certificateMetadata.getAkmid());
         assertEquals(certificateMetadataObj.getApplicationName(), certificateMetadata.getApplicationName());
@@ -219,9 +220,9 @@ public class CertificateUtilsTest {
           		+ " \"projectLeadEmailId\":\"project@email.com\"]}");
          
         when(ControllerUtil.getReqProcessor().process(GET_CERT_DETAIL, GET_CERT_DETAIL_VAL +certificatePath+"\"}",userDetails.getClientToken())).thenReturn(responseObj);
-        
+        String certType = "internal";
         SSLCertificateMetadataDetails certificateMetadata = getSSLCertificateMetadataDetails();
-        SSLCertificateMetadataDetails certificateMetadataObj = certificateUtils.getCertificateMetaData(userDetails.getClientToken(),CERT_NAME);
+        SSLCertificateMetadataDetails certificateMetadataObj = certificateUtils.getCertificateMetaData(userDetails.getClientToken(),CERT_NAME,certType);
         assertEquals(certificateMetadataObj.getCertificateName(), certificateMetadata.getCertificateName());
     }
     
@@ -229,10 +230,11 @@ public class CertificateUtilsTest {
     public void testGetCertificateMetaDataInvalidResponse() {
         UserDetails userDetails = getMockUser(true);
         userDetails.setUsername(ADMIN_USER);        
+        String certType = "internal";
         String certificatePath = SSLCertificateConstants.SSL_CERT_PATH  + '/' + CERT_NAME;       
         Response responseObj = getMockResponse(HttpStatus.INTERNAL_SERVER_ERROR, true, "{}");         
         when(ControllerUtil.getReqProcessor().process(GET_CERT_DETAIL, GET_CERT_DETAIL_VAL +certificatePath+"\"}",userDetails.getClientToken())).thenReturn(responseObj);
-        SSLCertificateMetadataDetails certificateMetadataObj = certificateUtils.getCertificateMetaData(userDetails.getClientToken(),CERT_NAME);
+        SSLCertificateMetadataDetails certificateMetadataObj = certificateUtils.getCertificateMetaData(userDetails.getClientToken(),CERT_NAME,certType);
         assertEquals(certificateMetadataObj, null);
     }
     

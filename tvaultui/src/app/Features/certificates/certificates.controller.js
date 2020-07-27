@@ -24,9 +24,12 @@
         $scope.isLoadingData = false;       // Variable to set the loader on
         $scope.adminNavTags = safesService.getSafesNavTags();
         $scope.viewCertificate = false;
+        $scope.viewExternalCertificate = false;
         $scope.searchValueCert = "";
         $scope.certificateDetails = [];
         $scope.certIdToDownload = "";
+        $scope.certificateType = "";
+        $scope.isInternalCertificateTab = true;
         $scope.downloadFormats = [
             {"type": "DER - P12", "value": "pkcs12der"},
             {"type": "PEM - PFX", "value": "pembundle"},
@@ -50,8 +53,10 @@
             }
             else{
                 $scope.viewCertificate = false;
+                $scope.viewExternalCertificate = false;
                 $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
                 if (JSON.parse(SessionStore.getItem("isAdmin")) == true) {
+                    $scope.certificateType = "internal";
                     $scope.requestDataForMyCertifiatesAdmin();
                 }
                 else {
@@ -103,18 +108,37 @@
             $scope.isLoadingData = false;
         };
 
+        $scope.isInternalCertificate = function(){
+            $scope.certificateType = "internal";
+            $scope.isInternalCertificateTab = true;
+            $scope.viewExternalCertificate = false;
+            $scope.requestDataForMyCertifiatesAdmin();
+        }
+
+        $scope.isExternalCertificate = function(){
+            $scope.certificateType = "external";
+            $scope.searchValueCert = "";
+            document.getElementById('searchValueId').value = '';
+            $scope.isInternalCertificateTab = false;
+            $scope.viewCertificate = false;
+            $scope.requestDataForMyCertifiatesAdmin();
+        }
+
         $scope.requestDataForMyCertifiatesAdmin = function () {
             $scope.certificatesData = {"keys": []};
             $scope.isLoadingData = true;
-            var updatedUrlOfEndPoint = ModifyUrl.addUrlParameteres('getCertificates', Math.random());
-            AdminSafesManagement.getCertificates(null, updatedUrlOfEndPoint).then(function (response) {
+             
+
+            var updatedUrlOfEndPoint = RestEndpoints.baseURL + "/v2/sslcert/certificates/" + $scope.certificateType;
+
+          //  var updatedUrlOfEndPoint = ModifyUrl.addUrlParameteres('listCertificatesByCertificateType', Math.random());
+            AdminSafesManagement.listCertificatesByCertificateType(null, updatedUrlOfEndPoint).then(function (response) {
 
                 if (UtilityService.ifAPIRequestSuccessful(response)) {
                     if (response.data != "" && response.data != undefined) {
-                        response.data.keys.forEach(function (cert) {
-                            // By default read permission given to admin users
-                            $scope.certificatesData.keys.push({"certname": cert.certificateName, "permission": "read"});
-                        });
+                        angular.forEach(response.data.data.keys, function(value, key) {
+                            $scope.certificatesData.keys.push({"certname": value, "permission": "read"});
+                          });
                         $scope.numOfCertificates=$scope.certificatesData.keys.length;
                     }
                 }
@@ -172,18 +196,29 @@
 
         $scope.goToCertificates = function() {
             $scope.viewCertificate = false;
+            $scope.viewExternalCertificate = false;
         }
 
         $scope.getCertificate = function (certName) {
             $scope.isDownloadClicked = false;
             $scope.isLoadingData = true;
             $scope.downloadRequest.certificateName = "";
-            var updatedUrlOfEndPoint = ModifyUrl.addUrlParameteres('getCertificateDetails',"?certificate_name="+ certName);
+            var updatedUrlOfEndPoint = "";
+            if($scope.isInternalCertificateTab){
+                updatedUrlOfEndPoint = RestEndpoints.baseURL + "/v2/sslcert/certificate/" + "internal" + "?certificate_name="+ certName;
+            }else{
+                updatedUrlOfEndPoint = RestEndpoints.baseURL + "/v2/sslcert/certificate/" + "external" + "?certificate_name="+ certName;
+            }
+            //var updatedUrlOfEndPoint = ModifyUrl.addUrlParameteres('getCertificateDetails',);
 
             AdminSafesManagement.getCertificateDetails(null, updatedUrlOfEndPoint).then(function (response) {
 
                 if (UtilityService.ifAPIRequestSuccessful(response)) { 	
-                    $scope.viewCertificate = true;
+                    if($scope.isInternalCertificateTab){
+                        $scope.viewCertificate = true;
+                    }else{
+                        $scope.viewExternalCertificate = true;
+                    }
                     $scope.certificateDetails = response.data;
                     $scope.certificateDetails.createDate = new Date($scope.certificateDetails.createDate).toDateString();
                     $scope.certificateDetails.expiryDate = new Date($scope.certificateDetails.expiryDate).toDateString();

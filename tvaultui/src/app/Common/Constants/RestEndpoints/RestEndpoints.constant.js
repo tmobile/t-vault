@@ -352,7 +352,7 @@ readTextFile("../apiUrls.json");
             method: 'POST'
         },{
             name: 'getCertificateDetails',
-            url: '/v2/sslcert/certificates',
+            url: '/v2/sslcert/certificate/{certificate_type}',
             method: 'GET'
         }, {
             name: 'addApproleToCertificate',
@@ -374,6 +374,10 @@ readTextFile("../apiUrls.json");
             name: 'deleteGroupPermissionFromCertificate',
             url: '/v2/sslcert/group',
             method: 'DELETE'
+        },{
+            name: 'listCertificatesByCertificateType',
+            url: '/v2/sslcert/certificates{certificate_type}',
+            method: 'GET'
         }
     ]
     });

@@ -212,11 +212,14 @@ public class SSLCertificateController {
 	 * @param certificateName
 	 * @return
 	 */
-	@ApiOperation(value = "${SSLCertificateController.getCertificateDetails.value}", notes = "${SSLCertificateController.getCertificateDetails.notes}", hidden=true)
-	@GetMapping(value = "/v2/sslcert/certificates", produces = "application/json")
-	public ResponseEntity<String> getCertificateDetails(HttpServletRequest request, @RequestHeader(value = "vault-token") String token, @RequestParam("certificate_name") String certificateName) {
+	@ApiOperation(value = "${SSLCertificateController.getCertificateDetails.value}", notes = "${SSLCertificateController.getCertificateDetails.notes}", hidden = true)
+	@GetMapping(value = "/v2/sslcert/certificate/{certificate_type}", produces = "application/json")
+	public ResponseEntity<String> getCertificateDetails(HttpServletRequest request,
+			@RequestHeader(value = "vault-token") String token,
+			@PathVariable("certificate_type") String certificateType,
+			@RequestParam("certificate_name") String certificateName) {
 		UserDetails userDetails = (UserDetails) ((HttpServletRequest) request).getAttribute("UserDetails");
-		return sslCertificateService.getCertificateDetails(token, userDetails, certificateName);
+		return sslCertificateService.getCertificateDetails(token, userDetails, certificateName, certificateType);
 	}
 
 	 /**
@@ -260,5 +263,22 @@ public class SSLCertificateController {
         UserDetails userDetails = (UserDetails) request.getAttribute("UserDetails");
         return sslCertificateService.removeGroupFromCertificate(certificateGroup, userDetails);
     }
+    
+	/**
+	 * Get List Of Certificates
+	 * 
+	 * @param request
+	 * @param token
+	 * @param certificateType
+	 * @return
+	 */
+	@ApiOperation(value = "${SSLCertificateController.getListOfCertificates.value}", notes = "${SSLCertificateController.getListOfCertificates.notes}")
+	@GetMapping(value = "/v2/sslcert/certificates/{certificate_type}", produces = "application/json")
+	public ResponseEntity<String> getListOfCertificates(HttpServletRequest request,
+			@RequestHeader(value = "vault-token") String token,
+			@PathVariable("certificate_type") String certificateType) throws Exception {
+		UserDetails userDetails = (UserDetails) request.getAttribute("UserDetails");
+		return sslCertificateService.getListOfCertificates(token, certificateType, userDetails);
+	}
 
 }
