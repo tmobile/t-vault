@@ -431,10 +431,10 @@ public class SSLCertificateServiceTest {
         resList.add("default");
         resList.add("r_cert_CertificateName.t-mobile.com");
         when(ControllerUtil.getPoliciesAsListFromJson(any(), any())).thenReturn(resList);
-
+        String certType = "internal";
         when(ControllerUtil.configureUserpassUser(eq("testuser2"),any(),eq(token))).thenReturn(idapConfigureResponse);
         when(ControllerUtil.updateMetadata(any(),eq(token))).thenReturn(responseNoContent);
-        when(certificateUtils.getCertificateMetaData(token, "CertificateName.t-mobile.com")).thenReturn(certificateMetadata);
+        when(certificateUtils.getCertificateMetaData(token, "CertificateName.t-mobile.com", certType)).thenReturn(certificateMetadata);
         when(certificateUtils.hasAddOrRemovePermission(userDetails, certificateMetadata)).thenReturn(true);
 
         ResponseEntity<?> enrollResponse =
@@ -880,7 +880,7 @@ public class SSLCertificateServiceTest {
 
         when(ControllerUtil.configureUserpassUser(eq("testuser2"),any(),eq(token))).thenReturn(idapConfigureResponse);
         when(ControllerUtil.updateMetadata(any(),eq(token))).thenReturn(responseNoContent);
-        when(certificateUtils.getCertificateMetaData(token, "CertificateName.t-mobile.com")).thenReturn(certificateMetadata);
+        when(certificateUtils.getCertificateMetaData(token, "CertificateName.t-mobile.com", "internal")).thenReturn(certificateMetadata);
         when(certificateUtils.hasAddOrRemovePermission(userDetails, certificateMetadata)).thenReturn(true);
         
         when(JSONUtil.getJSON(Mockito.any())).thenReturn(metaDataStr);
@@ -1024,7 +1024,7 @@ public class SSLCertificateServiceTest {
 
         when(ControllerUtil.configureUserpassUser(eq("testuser2"),any(),eq(token))).thenReturn(idapConfigureResponse);
         when(ControllerUtil.updateMetadata(any(),eq(token))).thenReturn(responseNoContent);
-        when(certificateUtils.getCertificateMetaData(token, "CertificateName.t-mobile.com")).thenReturn(certificateMetadata);
+        when(certificateUtils.getCertificateMetaData(token, "CertificateName.t-mobile.com", "internal")).thenReturn(certificateMetadata);
         when(certificateUtils.hasAddOrRemovePermission(userDetails, certificateMetadata)).thenReturn(true);
         
         when(JSONUtil.getJSON(Mockito.any())).thenReturn(metaDataStr);
@@ -1630,7 +1630,7 @@ public class SSLCertificateServiceTest {
         when(ControllerUtil.configureLDAPUser(eq("testuser2"),any(),any(),eq(token))).thenReturn(idapConfigureResponse);
         when(ControllerUtil.configureUserpassUser(eq("testuser2"),any(),eq(token))).thenReturn(idapConfigureResponse);
         when(ControllerUtil.updateMetadata(any(),eq(token))).thenReturn(responseNoContent);
-        when(certificateUtils.getCertificateMetaData(token, "certificatename.t-mobile.com")).thenReturn(certificateMetadata);
+        when(certificateUtils.getCertificateMetaData(token, "certificatename.t-mobile.com", "internal")).thenReturn(certificateMetadata);
         when(certificateUtils.hasAddOrRemovePermission(userDetail, certificateMetadata)).thenReturn(true);
 
         ResponseEntity<String> responseEntity = sSLCertificateService.addUserToCertificate(token, certUser, userDetail, false);
@@ -1673,7 +1673,7 @@ public class SSLCertificateServiceTest {
             }
         });
 
-        when(certificateUtils.getCertificateMetaData(token, "certtest250630.t-mobile.com")).thenReturn(certificateMetadata);
+        when(certificateUtils.getCertificateMetaData(token, "certtest250630.t-mobile.com", "internal")).thenReturn(certificateMetadata);
         when(certificateUtils.hasAddOrRemovePermission(userDetail, certificateMetadata)).thenReturn(true);
 
         ResponseEntity<String> responseEntity = sSLCertificateService.addUserToCertificate(token, certUser, userDetail, false);
@@ -1704,7 +1704,7 @@ public class SSLCertificateServiceTest {
         when(ControllerUtil.configureLDAPUser(eq("testuser2"),any(),any(),eq(token))).thenReturn(responseNotFound);
         when(ControllerUtil.configureUserpassUser(eq("testuser2"),any(),eq(token))).thenReturn(responseNotFound);
 
-        when(certificateUtils.getCertificateMetaData(token, "certtest250630.t-mobile.com")).thenReturn(certificateMetadata);
+        when(certificateUtils.getCertificateMetaData(token, "certtest250630.t-mobile.com", "internal")).thenReturn(certificateMetadata);
         when(certificateUtils.hasAddOrRemovePermission(userDetail, certificateMetadata)).thenReturn(true);
 
         ResponseEntity<String> responseEntity = sSLCertificateService.addUserToCertificate(token, certUser, userDetail, false);
@@ -1719,7 +1719,7 @@ public class SSLCertificateServiceTest {
         userDetails.setUsername("testuser1");
 
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid input values\"]}");
-        when(certificateUtils.getCertificateMetaData(token, "CertificateName")).thenReturn(certificateMetadata);
+        when(certificateUtils.getCertificateMetaData(token, "CertificateName", "internal")).thenReturn(certificateMetadata);
         when(certificateUtils.hasAddOrRemovePermission(userDetails, certificateMetadata)).thenReturn(true);
 
         ResponseEntity<String> responseEntity = sSLCertificateService.addUserToCertificate(token, certUser, null, false);
@@ -1751,7 +1751,7 @@ public class SSLCertificateServiceTest {
         when(ControllerUtil.configureLDAPUser(eq("testuser2"),any(),any(),eq(token))).thenReturn(idapConfigureResponse);
         when(ControllerUtil.configureUserpassUser(eq("testuser2"),any(),eq(token))).thenReturn(idapConfigureResponse);
         when(ControllerUtil.updateMetadata(any(),eq(token))).thenReturn(responseNoContent);
-        when(certificateUtils.getCertificateMetaData(token, "certificatename.t-mobile.com")).thenReturn(certificateMetadata);
+        when(certificateUtils.getCertificateMetaData(token, "certificatename.t-mobile.com", "internal")).thenReturn(certificateMetadata);
         when(certificateUtils.hasAddOrRemovePermission(userDetail, certificateMetadata)).thenReturn(true);
 
         ResponseEntity<String> responseEntity = sSLCertificateService.addUserToCertificate(token, certUser, userDetail, false);
@@ -1777,7 +1777,7 @@ public class SSLCertificateServiceTest {
         UserDetails userDetail = getMockUser(true);
         userDetail.setUsername("testuser1");
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Access denied: No permission to add users to this certificate\"]}");
-        when(certificateUtils.getCertificateMetaData(token, "certificatename.t-mobile.com")).thenReturn(certificateMetadata);
+        when(certificateUtils.getCertificateMetaData(token, "certificatename.t-mobile.com", "internal")).thenReturn(certificateMetadata);
         when(certificateUtils.hasAddOrRemovePermission(userDetail, certificateMetadata)).thenReturn(false);
 
         ResponseEntity<String> responseEntity = sSLCertificateService.addUserToCertificate(token, certUser, userDetail, false);
@@ -1796,7 +1796,7 @@ public class SSLCertificateServiceTest {
         when(reqProcessor.process("/auth/userpass/read","{\"username\":\"testuser2\"}",token)).thenReturn(userResponse);
         when(reqProcessor.process("/auth/ldap/users","{\"username\":\"testuser2\"}",token)).thenReturn(userResponse);
 
-        when(certificateUtils.getCertificateMetaData(token, "certificatename.t-mobile.com")).thenReturn(certificateMetadata);
+        when(certificateUtils.getCertificateMetaData(token, "certificatename.t-mobile.com", "internal")).thenReturn(certificateMetadata);
         when(certificateUtils.hasAddOrRemovePermission(userDetail, certificateMetadata)).thenReturn(true);
         sSLCertificateService.addUserToCertificate(token, certUser, userDetail, false);
     }
@@ -2059,7 +2059,7 @@ public class SSLCertificateServiceTest {
         SSLCertificateMetadataDetails certificateMetadata = getSSLCertificateMetadataDetails();
         CertificateApprole certificateApprole = new CertificateApprole("certificatename.t-mobile.com", "role1", "read");
 
-        when(certificateUtils.getCertificateMetaData(token, "certificatename.t-mobile.com")).thenReturn(certificateMetadata);
+        when(certificateUtils.getCertificateMetaData(token, "certificatename.t-mobile.com", "internal")).thenReturn(certificateMetadata);
         when(certificateUtils.hasAddOrRemovePermission(userDetails, certificateMetadata)).thenReturn(true);
 
         Response appRoleResponse = getMockResponse(HttpStatus.OK, true, "{\"data\": {\"policies\":\"r_cert_certificatename.t-mobile.com\"}}");
@@ -2084,7 +2084,7 @@ public class SSLCertificateServiceTest {
         userDetails = getMockUser(false);
         CertificateApprole certificateApprole = new CertificateApprole("certificatename", "role1", "read");
         SSLCertificateMetadataDetails certificateMetadata = getSSLCertificateMetadataDetails();
-        when(certificateUtils.getCertificateMetaData(token, "certificatename.t-mobile.com")).thenReturn(certificateMetadata);
+        when(certificateUtils.getCertificateMetaData(token, "certificatename.t-mobile.com", "internal")).thenReturn(certificateMetadata);
         when(certificateUtils.hasAddOrRemovePermission(userDetails, certificateMetadata)).thenReturn(true);
 
         ResponseEntity<String> responseEntityActual =  sSLCertificateService.associateApproletoCertificate(certificateApprole, userDetails);
@@ -2102,7 +2102,7 @@ public class SSLCertificateServiceTest {
         userDetails = getMockUser(false);
         CertificateApprole certificateApprole = new CertificateApprole("certificatename.t-mobile.com", "selfservicesupportrole", "read");
         SSLCertificateMetadataDetails certificateMetadata = getSSLCertificateMetadataDetails();
-        when(certificateUtils.getCertificateMetaData(token, "certificatename.t-mobile.com")).thenReturn(certificateMetadata);
+        when(certificateUtils.getCertificateMetaData(token, "certificatename.t-mobile.com", "internal")).thenReturn(certificateMetadata);
         when(certificateUtils.hasAddOrRemovePermission(userDetails, certificateMetadata)).thenReturn(true);
 
         ResponseEntity<String> responseEntityActual =  sSLCertificateService.associateApproletoCertificate(certificateApprole, userDetails);
@@ -2120,7 +2120,7 @@ public class SSLCertificateServiceTest {
         userDetails = getMockUser(false);
         CertificateApprole certificateApprole = new CertificateApprole("certificatename.t-mobile.com", "role1", "read");
         SSLCertificateMetadataDetails certificateMetadata = getSSLCertificateMetadataDetails();
-        when(certificateUtils.getCertificateMetaData(token, "certificatename.t-mobile.com")).thenReturn(certificateMetadata);
+        when(certificateUtils.getCertificateMetaData(token, "certificatename.t-mobile.com", "internal")).thenReturn(certificateMetadata);
         when(certificateUtils.hasAddOrRemovePermission(userDetails, certificateMetadata)).thenReturn(true);
 
         Response appRoleResponse = getMockResponse(HttpStatus.OK, true, "{\"data\": {\"policies\":\"r_cert_certificatename.t-mobile.com\"}}");
@@ -2158,7 +2158,7 @@ public class SSLCertificateServiceTest {
         userDetails = getMockUser(false);
         CertificateApprole certificateApprole = new CertificateApprole("certificatename.t-mobile.com", "role1", "read");
         SSLCertificateMetadataDetails certificateMetadata = getSSLCertificateMetadataDetails();
-        when(certificateUtils.getCertificateMetaData(token, "certificatename.t-mobile.com")).thenReturn(certificateMetadata);
+        when(certificateUtils.getCertificateMetaData(token, "certificatename.t-mobile.com", "internal")).thenReturn(certificateMetadata);
         when(certificateUtils.hasAddOrRemovePermission(userDetails, certificateMetadata)).thenReturn(true);
 
         Response appRoleResponse = getMockResponse(HttpStatus.OK, true, "{\"data\": {\"policies\":\"r_cert_certificatename.t-mobile.com\"}}");
@@ -2183,7 +2183,7 @@ public class SSLCertificateServiceTest {
         userDetails = getMockUser(false);
         CertificateApprole certificateApprole = new CertificateApprole("certificatename.t-mobile.com", "role1", "read");
         SSLCertificateMetadataDetails certificateMetadata = getSSLCertificateMetadataDetails();
-        when(certificateUtils.getCertificateMetaData(token, "certificatename.t-mobile.com")).thenReturn(certificateMetadata);
+        when(certificateUtils.getCertificateMetaData(token, "certificatename.t-mobile.com", "internal")).thenReturn(certificateMetadata);
         when(certificateUtils.hasAddOrRemovePermission(userDetails, certificateMetadata)).thenReturn(true);
 
         Response appRoleResponse = getMockResponse(HttpStatus.OK, true, "{\"data\": {\"policies\":\"r_cert_certificatename.t-mobile.com\"}}");
@@ -2220,7 +2220,7 @@ public class SSLCertificateServiceTest {
         SSLCertificateMetadataDetails certificateMetadata = getSSLCertificateMetadataDetails();
         CertificateApprole certificateApprole = new CertificateApprole("certificatename.t-mobile.com", "role1", "read");
 
-        when(certificateUtils.getCertificateMetaData(token, "certificatename.t-mobile.com")).thenReturn(certificateMetadata);
+        when(certificateUtils.getCertificateMetaData(token, "certificatename.t-mobile.com", "internal")).thenReturn(certificateMetadata);
         when(certificateUtils.hasAddOrRemovePermission(userDetails, certificateMetadata)).thenReturn(true);
 
         Response appRoleResponse = getMockResponse(HttpStatus.OK, true, "{\"data\": {\"policies\":\"r_cert_certificatename.t-mobile.com\"}}");
@@ -2245,7 +2245,7 @@ public class SSLCertificateServiceTest {
         SSLCertificateMetadataDetails certificateMetadata = getSSLCertificateMetadataDetails();
         CertificateApprole certificateApprole = new CertificateApprole("certificatename.t-mobile.com", "role1", "read");
 
-        when(certificateUtils.getCertificateMetaData(token, "certificatename.t-mobile.com")).thenReturn(certificateMetadata);
+        when(certificateUtils.getCertificateMetaData(token, "certificatename.t-mobile.com", "internal")).thenReturn(certificateMetadata);
         when(certificateUtils.hasAddOrRemovePermission(userDetails, certificateMetadata)).thenReturn(true);
 
         Response appRoleResponse = getMockResponse(HttpStatus.OK, true, "{\"data\": {\"policies\":\"r_cert_certificatename.t-mobile.com\"}}");
@@ -2270,7 +2270,7 @@ public class SSLCertificateServiceTest {
         SSLCertificateMetadataDetails certificateMetadata = getSSLCertificateMetadataDetails();
         CertificateApprole certificateApprole = new CertificateApprole("certificatename.t-mobile.com", "role1", "read");
 
-        when(certificateUtils.getCertificateMetaData(token, "certificatename.t-mobile.com")).thenReturn(certificateMetadata);
+        when(certificateUtils.getCertificateMetaData(token, "certificatename.t-mobile.com", "internal")).thenReturn(certificateMetadata);
         when(certificateUtils.hasAddOrRemovePermission(userDetails, certificateMetadata)).thenReturn(true);
 
         Response appRoleResponse = getMockResponse(HttpStatus.NOT_FOUND, true, "{}");
@@ -2295,7 +2295,7 @@ public class SSLCertificateServiceTest {
         SSLCertificateMetadataDetails certificateMetadata = getSSLCertificateMetadataDetails();
         CertificateApprole certificateApprole = new CertificateApprole("certificatename.t-mobile.com", "role1", "read");
 
-        when(certificateUtils.getCertificateMetaData(token, "certificatename.t-mobile.com")).thenReturn(certificateMetadata);
+        when(certificateUtils.getCertificateMetaData(token, "certificatename.t-mobile.com", "internal")).thenReturn(certificateMetadata);
         when(certificateUtils.hasAddOrRemovePermission(userDetails, certificateMetadata)).thenReturn(true);
 
         Response appRoleResponse = getMockResponse(HttpStatus.OK, true, "{}");
@@ -2319,7 +2319,7 @@ public class SSLCertificateServiceTest {
         userDetails = getMockUser(false);
         CertificateApprole certificateApprole = null;
         SSLCertificateMetadataDetails certificateMetadata = getSSLCertificateMetadataDetails();
-        when(certificateUtils.getCertificateMetaData(token, "certificatename.t-mobile.com")).thenReturn(certificateMetadata);
+        when(certificateUtils.getCertificateMetaData(token, "certificatename.t-mobile.com", "internal")).thenReturn(certificateMetadata);
         when(certificateUtils.hasAddOrRemovePermission(userDetails, certificateMetadata)).thenReturn(true);
 
         ResponseEntity<String> responseEntityActual =  sSLCertificateService.associateApproletoCertificate(certificateApprole, userDetails);
@@ -2336,7 +2336,7 @@ public class SSLCertificateServiceTest {
         userDetails = getMockUser(false);
         CertificateApprole certificateApprole = new CertificateApprole("certificatename.t-mobile.com", "role1", "revoke");
         SSLCertificateMetadataDetails certificateMetadata = getSSLCertificateMetadataDetails();
-        when(certificateUtils.getCertificateMetaData(token, "certificatename.t-mobile.com")).thenReturn(certificateMetadata);
+        when(certificateUtils.getCertificateMetaData(token, "certificatename.t-mobile.com", "internal")).thenReturn(certificateMetadata);
         when(certificateUtils.hasAddOrRemovePermission(userDetails, certificateMetadata)).thenReturn(true);
 
         ResponseEntity<String> responseEntityActual =  sSLCertificateService.associateApproletoCertificate(certificateApprole, userDetails);
@@ -2408,7 +2408,7 @@ public class SSLCertificateServiceTest {
         certDetails.setCertOwnerEmailId("normaluser@test.com");
         certDetails.setExpiryDate("10-20-2030");
         certDetails.setCertificateId(123123);
-        when(certificateUtils.getCertificateMetaData(Mockito.any(), eq("certname"))).thenReturn(certDetails);
+        when(certificateUtils.getCertificateMetaData(Mockito.any(), eq("certname"), anyString())).thenReturn(certDetails);
 
         byte[] decodedBytes = Base64.getDecoder().decode(responseString);
         InputStreamResource resource = new InputStreamResource(new ByteArrayInputStream(decodedBytes));
@@ -2466,7 +2466,7 @@ public class SSLCertificateServiceTest {
         certDetails.setCertOwnerNtid("normaluser");
         certDetails.setCertOwnerEmailId("normaluser@test.com");
         certDetails.setExpiryDate("10-20-2030");
-        when(certificateUtils.getCertificateMetaData(Mockito.any(), eq("certname"))).thenReturn(certDetails);
+        when(certificateUtils.getCertificateMetaData(Mockito.any(), eq("certname"), anyString())).thenReturn(certDetails);
 
         byte[] decodedBytes = Base64.getDecoder().decode(responseString);
         InputStreamResource resource = new InputStreamResource(new ByteArrayInputStream(decodedBytes));
@@ -2524,7 +2524,7 @@ public class SSLCertificateServiceTest {
         certDetails.setCertOwnerNtid("normaluser");
         certDetails.setCertOwnerEmailId("normaluser@test.com");
         certDetails.setExpiryDate("10-20-2030");
-        when(certificateUtils.getCertificateMetaData(Mockito.any(), eq("certname"))).thenReturn(certDetails);
+        when(certificateUtils.getCertificateMetaData(Mockito.any(), eq("certname"), anyString())).thenReturn(certDetails);
 
         byte[] decodedBytes = Base64.getDecoder().decode(responseString);
         InputStreamResource resource = new InputStreamResource(new ByteArrayInputStream(decodedBytes));
@@ -2580,7 +2580,7 @@ public class SSLCertificateServiceTest {
         certDetails.setCertOwnerNtid("normaluser");
         certDetails.setCertOwnerEmailId("normaluser@test.com");
         certDetails.setExpiryDate("10-20-2030");
-        when(certificateUtils.getCertificateMetaData(Mockito.any(), eq("certname"))).thenReturn(certDetails);
+        when(certificateUtils.getCertificateMetaData(Mockito.any(), eq("certname"), anyString())).thenReturn(certDetails);
 
         InputStreamResource resource = null;
         ResponseEntity<InputStreamResource> responseEntityExpected =
@@ -2632,7 +2632,7 @@ public class SSLCertificateServiceTest {
         certDetails.setCertOwnerNtid("normaluser");
         certDetails.setCertOwnerEmailId("normaluser@test.com");
         certDetails.setExpiryDate("10-20-2030");
-        when(certificateUtils.getCertificateMetaData(Mockito.any(), eq("certname"))).thenReturn(certDetails);
+        when(certificateUtils.getCertificateMetaData(Mockito.any(), eq("certname"), anyString())).thenReturn(certDetails);
 
         InputStreamResource resource = null;
         ResponseEntity<InputStreamResource> responseEntityExpected =
@@ -2683,7 +2683,7 @@ public class SSLCertificateServiceTest {
         certDetails.setCertOwnerNtid("normaluser");
         certDetails.setCertOwnerEmailId("normaluser@test.com");
         certDetails.setExpiryDate("10-20-2030");
-        when(certificateUtils.getCertificateMetaData(Mockito.any(), eq("certname"))).thenReturn(certDetails);
+        when(certificateUtils.getCertificateMetaData(Mockito.any(), eq("certname"), anyString())).thenReturn(certDetails);
 
         InputStreamResource resource = null;
         ResponseEntity<InputStreamResource> responseEntityExpected =
@@ -2739,7 +2739,7 @@ public class SSLCertificateServiceTest {
         certDetails.setCertOwnerNtid("normaluser");
         certDetails.setCertOwnerEmailId("normaluser@test.com");
         certDetails.setExpiryDate("10-20-2030");
-        when(certificateUtils.getCertificateMetaData(Mockito.any(), eq("certname"))).thenReturn(certDetails);
+        when(certificateUtils.getCertificateMetaData(Mockito.any(), eq("certname"), anyString())).thenReturn(certDetails);
 
         byte[] decodedBytes = Base64.getDecoder().decode(responseString);
         InputStreamResource resource = new InputStreamResource(new ByteArrayInputStream(decodedBytes));
@@ -2788,7 +2788,7 @@ public class SSLCertificateServiceTest {
         certDetails.setCertOwnerNtid("normaluser");
         certDetails.setCertOwnerEmailId("normaluser@test.com");
         certDetails.setExpiryDate("10-20-2030");
-        when(certificateUtils.getCertificateMetaData(Mockito.any(), eq("certname"))).thenReturn(certDetails);
+        when(certificateUtils.getCertificateMetaData(Mockito.any(), eq("certname"), anyString())).thenReturn(certDetails);
 
         String responseString = "teststreamdata";
         when(EntityUtils.toString(mockHttpEntity, "UTF-8")).thenReturn(responseString);
@@ -2841,7 +2841,7 @@ public class SSLCertificateServiceTest {
         certDetails.setCertOwnerNtid("normaluser");
         certDetails.setCertOwnerEmailId("normaluser@test.com");
         certDetails.setExpiryDate("10-20-2030");
-        when(certificateUtils.getCertificateMetaData(Mockito.any(), eq("certname"))).thenReturn(certDetails);
+        when(certificateUtils.getCertificateMetaData(Mockito.any(), eq("certname"), anyString())).thenReturn(certDetails);
 
         String responseString = "teststreamdata";
         when(EntityUtils.toString(mockHttpEntity, "UTF-8")).thenReturn(responseString);
@@ -2898,7 +2898,7 @@ public class SSLCertificateServiceTest {
         certDetails.setCertOwnerNtid("normaluser");
         certDetails.setCertOwnerEmailId("normaluser@test.com");
         certDetails.setExpiryDate("10-20-2030");
-        when(certificateUtils.getCertificateMetaData(Mockito.any(), eq("certname"))).thenReturn(certDetails);
+        when(certificateUtils.getCertificateMetaData(Mockito.any(), eq("certname"), anyString())).thenReturn(certDetails);
 
         byte[] decodedBytes = Base64.getDecoder().decode(responseString);
         InputStreamResource resource = new InputStreamResource(new ByteArrayInputStream(decodedBytes));
@@ -2954,7 +2954,7 @@ public class SSLCertificateServiceTest {
         certDetails.setCertOwnerNtid("normaluser");
         certDetails.setCertOwnerEmailId("normaluser@test.com");
         certDetails.setExpiryDate("10-20-2030");
-        when(certificateUtils.getCertificateMetaData(Mockito.any(), eq("certname"))).thenReturn(certDetails);
+        when(certificateUtils.getCertificateMetaData(Mockito.any(), eq("certname"), anyString())).thenReturn(certDetails);
 
         byte[] decodedBytes = Base64.getDecoder().decode(responseString);
         InputStreamResource resource = new InputStreamResource(new ByteArrayInputStream(decodedBytes));
@@ -3007,7 +3007,7 @@ public class SSLCertificateServiceTest {
         certDetails.setCertOwnerNtid("normaluser");
         certDetails.setCertOwnerEmailId("normaluser@test.com");
         certDetails.setExpiryDate("10-20-2030");
-        when(certificateUtils.getCertificateMetaData(Mockito.any(), eq("certname"))).thenReturn(certDetails);
+        when(certificateUtils.getCertificateMetaData(Mockito.any(), eq("certname"), anyString())).thenReturn(certDetails);
 
         String responseString = "teststreamdata";
         when(EntityUtils.toString(mockHttpEntity, "UTF-8")).thenReturn(responseString);
@@ -3063,7 +3063,7 @@ public class SSLCertificateServiceTest {
         certDetails.setCertOwnerNtid("normaluser");
         certDetails.setCertOwnerEmailId("normaluser@test.com");
         certDetails.setExpiryDate("10-20-2030");
-        when(certificateUtils.getCertificateMetaData(Mockito.any(), eq("certname"))).thenReturn(certDetails);
+        when(certificateUtils.getCertificateMetaData(Mockito.any(), eq("certname"), anyString())).thenReturn(certDetails);
 
         ResponseEntity<InputStreamResource> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body(null);
@@ -3110,7 +3110,7 @@ public class SSLCertificateServiceTest {
         certDetails.setCertOwnerNtid("normaluser");
         certDetails.setCertOwnerEmailId("normaluser@test.com");
         certDetails.setExpiryDate("10-20-2030");
-        when(certificateUtils.getCertificateMetaData(Mockito.any(), eq("certname"))).thenReturn(certDetails);
+        when(certificateUtils.getCertificateMetaData(Mockito.any(), eq("certname"), anyString())).thenReturn(certDetails);
 
         ResponseEntity<InputStreamResource> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body(null);
@@ -3150,7 +3150,7 @@ public class SSLCertificateServiceTest {
         certDetails.setCertOwnerNtid("normaluser1");
         certDetails.setCertOwnerEmailId("normaluser@test.com");
         certDetails.setExpiryDate("10-20-2030");
-        when(certificateUtils.getCertificateMetaData(Mockito.any(), eq("certname"))).thenReturn(certDetails);
+        when(certificateUtils.getCertificateMetaData(Mockito.any(), eq("certname"), anyString())).thenReturn(certDetails);
 
         ResponseEntity<InputStreamResource> responseEntityExpected = ResponseEntity.status(HttpStatus.FORBIDDEN)
                 .body(null);
@@ -3195,7 +3195,7 @@ public class SSLCertificateServiceTest {
         certDetails.setCertOwnerNtid("normaluser1");
         certDetails.setCertOwnerEmailId("normaluser@test.com");
         certDetails.setExpiryDate("10-20-2030");
-        when(certificateUtils.getCertificateMetaData(Mockito.any(), eq("certname"))).thenReturn(certDetails);
+        when(certificateUtils.getCertificateMetaData(Mockito.any(), eq("certname"), anyString())).thenReturn(certDetails);
 
         ResponseEntity<InputStreamResource> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body(null);
@@ -3420,7 +3420,7 @@ public class SSLCertificateServiceTest {
 
         when(ControllerUtil.configureLDAPUser(eq("testuser2"),any(),any(),eq(token))).thenReturn(idapConfigureResponse);
         when(ControllerUtil.updateMetadata(any(),any())).thenReturn(responseNoContent);
-        when(certificateUtils.getCertificateMetaData(token, "certificatename.t-mobile.com")).thenReturn(certificateMetadata);
+        when(certificateUtils.getCertificateMetaData(token, "certificatename.t-mobile.com","internal")).thenReturn(certificateMetadata);
         when(certificateUtils.hasAddOrRemovePermission(userDetail, certificateMetadata)).thenReturn(true);
 
         ResponseEntity<String> responseEntity = sSLCertificateService.removeUserFromCertificate(certUser, userDetail);
@@ -3446,7 +3446,7 @@ public class SSLCertificateServiceTest {
 
         when(ControllerUtil.configureUserpassUser(eq("testuser2"),any(),eq(token))).thenReturn(idapConfigureResponse);
         when(ControllerUtil.updateMetadata(any(),any())).thenReturn(responseNoContent);
-        when(certificateUtils.getCertificateMetaData(token, "certificatename.t-mobile.com")).thenReturn(certificateMetadata);
+        when(certificateUtils.getCertificateMetaData(token, "certificatename.t-mobile.com","internal")).thenReturn(certificateMetadata);
         when(certificateUtils.hasAddOrRemovePermission(userDetail, certificateMetadata)).thenReturn(true);
     	String expectedResponse = "{\"messages\":[\"Successfully removed user from the certificate\"]}";
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(expectedResponse);
@@ -3465,7 +3465,7 @@ public class SSLCertificateServiceTest {
         String expectedResponse = "{\"errors\":[\"Access denied: No permission to remove user from this certificate\"]}";
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body(expectedResponse);
 
-        when(certificateUtils.getCertificateMetaData(token, "certificatename.t-mobile.com")).thenReturn(certificateMetadata);
+        when(certificateUtils.getCertificateMetaData(token, "certificatename.t-mobile.com", "internal")).thenReturn(certificateMetadata);
         when(certificateUtils.hasAddOrRemovePermission(userDetail, certificateMetadata)).thenReturn(false);
 
         ResponseEntity<String> responseEntity = sSLCertificateService.removeUserFromCertificate(certUser, userDetail);
@@ -3509,7 +3509,7 @@ public class SSLCertificateServiceTest {
 
         when(reqProcessor.process("/auth/ldap/users","{\"username\":\"testuser2\"}",token)).thenReturn(userResponse);
 
-        when(certificateUtils.getCertificateMetaData(token, "certificatename.t-mobile.com")).thenReturn(certificateMetadata);
+        when(certificateUtils.getCertificateMetaData(token, "certificatename.t-mobile.com", "internal")).thenReturn(certificateMetadata);
         when(certificateUtils.hasAddOrRemovePermission(userDetail, certificateMetadata)).thenReturn(true);
         sSLCertificateService.removeUserFromCertificate(certUser, userDetail);
     }
@@ -3526,7 +3526,7 @@ public class SSLCertificateServiceTest {
         String expectedResponse = "{\"errors\":[\"Failed to remvoe the user from the certificate\"]}";
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(expectedResponse);
 
-        when(certificateUtils.getCertificateMetaData(token, "certificatename.t-mobile.com")).thenReturn(certificateMetadata);
+        when(certificateUtils.getCertificateMetaData(token, "certificatename.t-mobile.com","internal")).thenReturn(certificateMetadata);
         when(certificateUtils.hasAddOrRemovePermission(userDetail, certificateMetadata)).thenReturn(true);
         when(reqProcessor.process("/auth/ldap/users","{\"username\":\"testuser2\"}", token)).thenReturn(userResponse);
 
@@ -3554,7 +3554,7 @@ public class SSLCertificateServiceTest {
         String expectedResponse = "{\"errors\":[\"Failed to remove the user from the certificate. Metadata update failed\"]}";
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(expectedResponse);
 
-        when(certificateUtils.getCertificateMetaData(token, "certificatename.t-mobile.com")).thenReturn(certificateMetadata);
+        when(certificateUtils.getCertificateMetaData(token, "certificatename.t-mobile.com","internal")).thenReturn(certificateMetadata);
         when(certificateUtils.hasAddOrRemovePermission(userDetail, certificateMetadata)).thenReturn(true);
         when(reqProcessor.process("/auth/ldap/users","{\"username\":\"testuser2\"}", token)).thenReturn(userResponse);
 
@@ -3588,7 +3588,7 @@ public class SSLCertificateServiceTest {
         resList.add("r_cert_certificatename.t-mobile.com");
         when(ControllerUtil.getPoliciesAsListFromJson(any(), any())).thenReturn(resList);
 
-        when(certificateUtils.getCertificateMetaData(token, "certificatename.t-mobile.com")).thenReturn(certificateMetadata);
+        when(certificateUtils.getCertificateMetaData(token, "certificatename.t-mobile.com","internal")).thenReturn(certificateMetadata);
         when(certificateUtils.hasAddOrRemovePermission(userDetail, certificateMetadata)).thenReturn(true);
         when(reqProcessor.process("/auth/ldap/groups","{\"groupname\":\"testgroup\"}", token)).thenReturn(groupResp);
 
@@ -3611,7 +3611,7 @@ public class SSLCertificateServiceTest {
         String expectedResponse = "{\"errors\":[\"Access denied: No permission to remove groups from this certificate\"]}";
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body(expectedResponse);
 
-        when(certificateUtils.getCertificateMetaData(token, "certificatename.t-mobile.com")).thenReturn(certificateMetadata);
+        when(certificateUtils.getCertificateMetaData(token, "certificatename.t-mobile.com","internal")).thenReturn(certificateMetadata);
         when(certificateUtils.hasAddOrRemovePermission(userDetail, certificateMetadata)).thenReturn(false);
 
         ResponseEntity<String> responseEntity = sSLCertificateService.removeGroupFromCertificate(certGroup, userDetail);
@@ -3658,7 +3658,7 @@ public class SSLCertificateServiceTest {
 
         when(reqProcessor.process("/auth/ldap/groups","{\"groupname\":\"testgroup\"}", token)).thenReturn(groupResp);
 
-        when(certificateUtils.getCertificateMetaData(token, "certificatename.t-mobile.com")).thenReturn(certificateMetadata);
+        when(certificateUtils.getCertificateMetaData(token, "certificatename.t-mobile.com","internal")).thenReturn(certificateMetadata);
         when(certificateUtils.hasAddOrRemovePermission(userDetail, certificateMetadata)).thenReturn(true);
         sSLCertificateService.removeGroupFromCertificate(certGroup, userDetail);
     }
@@ -3675,7 +3675,7 @@ public class SSLCertificateServiceTest {
         String expectedResponse = "{\"errors\":[\"Failed to remove the group from the certificate\"]}";
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(expectedResponse);
 
-        when(certificateUtils.getCertificateMetaData(token, "certificatename.t-mobile.com")).thenReturn(certificateMetadata);
+        when(certificateUtils.getCertificateMetaData(token, "certificatename.t-mobile.com","internal")).thenReturn(certificateMetadata);
         when(certificateUtils.hasAddOrRemovePermission(userDetail, certificateMetadata)).thenReturn(true);
 
         List<String> resList = new ArrayList<>();
@@ -3704,7 +3704,7 @@ public class SSLCertificateServiceTest {
         String expectedResponse = "{\"errors\":[\"Group configuration failed. Please try again\"]}";
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(expectedResponse);
 
-        when(certificateUtils.getCertificateMetaData(token, "certificatename.t-mobile.com")).thenReturn(certificateMetadata);
+        when(certificateUtils.getCertificateMetaData(token, "certificatename.t-mobile.com","internal")).thenReturn(certificateMetadata);
         when(certificateUtils.hasAddOrRemovePermission(userDetail, certificateMetadata)).thenReturn(true);
 
         List<String> resList = new ArrayList<>();
@@ -3760,7 +3760,7 @@ public class SSLCertificateServiceTest {
         userDetail.setUsername("testuser1");
         Response userResponse = getMockResponse(HttpStatus.OK, true, "{\"data\":{\"bound_cidrs\":[],\"max_ttl\":0,\"policies\":[\"default\",\"r_cert_certificatename.t-mobile.com\"],\"ttl\":0,\"groups\":\"admin\"}}");
         Response responseNoContent = getMockResponse(HttpStatus.NO_CONTENT, true, "");
-        when(certificateUtils.getCertificateMetaData(token, "certificatename.t-mobile.com")).thenReturn(certificateMetadata);
+        when(certificateUtils.getCertificateMetaData(token, "certificatename.t-mobile.com","internal")).thenReturn(certificateMetadata);
         
         
         
@@ -3803,6 +3803,37 @@ public class SSLCertificateServiceTest {
 
         ResponseEntity<String> responseEntity = sSLCertificateService.addingGroupToCertificate( token, certificateGroup);
         assertEquals(HttpStatus.BAD_REQUEST, responseEntity.getStatusCode());
+    }
+    
+    @Test
+    public void getListOfCertificates_Succes()throws Exception{
+    	 String token = "12345";
+
+         Response response =getMockResponse(HttpStatus.OK, true, "{  \"keys\": [    {      \"akamid\": \"102463\",      \"applicationName\": \"tvs\", "
+          		+ "     \"applicationOwnerEmailId\": \"abcdef@mail.com\",      \"applicationTag\": \"TVS\",  "
+          		+ "    \"authority\": \"T-Mobile Issuing CA 01 - SHA2\",      \"certCreatedBy\": \"rob\",     "
+          		+ " \"certOwnerEmailId\": \"ntest@gmail.com\",      \"certType\": \"internal\",     "
+          		+ " \"certificateId\": 59480,      \"certificateName\": \"CertificateName.t-mobile.com\",   "
+          		+ "   \"certificateStatus\": \"Active\",      \"containerName\": \"VenafiBin_12345\",    "
+          		+ "  \"createDate\": \"2020-06-24T03:16:29-07:00\",      \"expiryDate\": \"2021-06-24T03:16:29-07:00\",  "
+          		+ "    \"projectLeadEmailId\": \"project@email.com\"    }  ]}");
+         Response certResponse =getMockResponse(HttpStatus.OK, true, "{  \"data\": {  \"keys\": [    \"CertificateName.t-mobile.com\"    ]  }}");
+
+         token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+         UserDetails user1 = new UserDetails();
+         user1.setUsername("normaluser");
+         user1.setAdmin(true);
+         user1.setClientToken(token);
+         user1.setSelfSupportToken(token);
+         String certificateType = "internal";
+
+         when(reqProcessor.process(Mockito.eq("/sslcert"),Mockito.anyString(),Mockito.eq(token))).thenReturn(certResponse);
+
+         when(reqProcessor.process("/sslcert", "{\"path\":\"/sslcerts/CertificateName.t-mobile.com\"}",token)).thenReturn(response);
+
+         ResponseEntity<String> responseEntityActual = sSLCertificateService.getListOfCertificates(token, certificateType, user1);
+
+         assertEquals(HttpStatus.OK, responseEntityActual.getStatusCode());
     }
 
 }
