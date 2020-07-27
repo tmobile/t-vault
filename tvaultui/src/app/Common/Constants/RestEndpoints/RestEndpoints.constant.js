@@ -344,7 +344,7 @@ readTextFile("../apiUrls.json");
             method: 'GET'
         }, {
             name: 'issueRevocationRequest',
-            url: '/v2/certificates/{certName}/revocationrequest',
+            url: '/v2/certificates/{certType}/{certName}/revocationrequest',
             method: 'POST'
         }, {
             name: 'addUserToCertificate',
@@ -360,7 +360,7 @@ readTextFile("../apiUrls.json");
             method: 'POST'
         }, {
             name: 'renewCertificate',
-            url: '/v2/certificates/{certName}/renew',
+            url: '/v2/certificates/{certType}/{certName}/renew',
             method: 'POST'
         }, {
             name: 'addGroupToCertificate',

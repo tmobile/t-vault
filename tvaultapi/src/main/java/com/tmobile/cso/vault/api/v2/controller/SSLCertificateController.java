@@ -68,9 +68,10 @@ public class SSLCertificateController {
 	 */
 	@ApiOperation(value = "${SSLCertificateController.getssl.value}", notes = "${SSLCertificateController.getssl.notes}")
 	@GetMapping(value="/v2/sslcert", produces="application/json")
-	public ResponseEntity<String> getCertificates(HttpServletRequest request, @RequestHeader(value="vault-token") String token, @RequestParam(name="certificateName", required = false) String certName,@RequestParam(name = "limit", required = false) Integer limit, @RequestParam(name = "offset", required = false) Integer offset)throws Exception{
+	public ResponseEntity<String> getCertificates(HttpServletRequest request, @RequestHeader(value="vault-token") String token, @RequestParam(name="certificateName", required = false) String certName,@RequestParam(name = "limit", required = false) Integer limit,
+			@RequestParam(name = "offset", required = false) Integer offset, @RequestParam(name = "certType", required = false) String certType)throws Exception{
 		UserDetails userDetails = (UserDetails) ((HttpServletRequest) request).getAttribute("UserDetails");
-		return sslCertificateService.getServiceCertificates(token, userDetails, certName, limit, offset);
+		return sslCertificateService.getServiceCertificates(token, userDetails, certName, limit, offset,certType);
      }
 	
 	/**
@@ -98,12 +99,12 @@ public class SSLCertificateController {
 	 * @return
 	 */
 	@ApiOperation(value = "${SSLCertificateController.issueRevocationRequest.value}", notes = "${SSLCertificateController.issueRevocationRequest.notes}")
-	@PostMapping(value = "/v2/certificates/{certName}/revocationrequest", produces = "application/json")
+	@PostMapping(value = "/v2/certificates/{certType}/{certName}/revocationrequest", produces = "application/json")
 	public ResponseEntity<String> issueRevocationRequest(HttpServletRequest request,
-			@RequestHeader(value = "vault-token") String token, @PathVariable("certName") String certName,
+			@RequestHeader(value = "vault-token") String token, @PathVariable("certType") String certType, @PathVariable("certName") String certName,
 			@Valid @RequestBody RevocationRequest revocationRequest) {
 		UserDetails userDetails = (UserDetails) ((HttpServletRequest) request).getAttribute("UserDetails");
-		return sslCertificateService.issueRevocationRequest(certName, userDetails, token, revocationRequest);
+		return sslCertificateService.issueRevocationRequest(certType,certName, userDetails, token, revocationRequest);
 	}
 	
 	/**
@@ -226,11 +227,11 @@ public class SSLCertificateController {
 	 * @return
 	 */
 	@ApiOperation(value = "${SSLCertificateController.renewCertificate.value}", notes = "${SSLCertificateController.renewCertificate.notes}")
-	@PostMapping(value = "/v2/certificates/{certName}/renew", produces = "application/json")
+	@PostMapping(value = "/v2/certificates/{certType}/{certName}/renew", produces = "application/json")
 	public ResponseEntity<String> renewCertificate(HttpServletRequest request,
-			@RequestHeader(value = "vault-token") String token, @PathVariable("certName") String certName) {
+			@RequestHeader(value = "vault-token") String token, @PathVariable("certType") String certType, @PathVariable("certName") String certName) {
 		UserDetails userDetails = (UserDetails) ((HttpServletRequest) request).getAttribute("UserDetails");
-		return sslCertificateService.renewCertificate(certName, userDetails, token);
+		return sslCertificateService.renewCertificate(certType, certName, userDetails, token);
 	}
 	
 	/**
