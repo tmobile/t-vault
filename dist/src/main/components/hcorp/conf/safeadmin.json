@@ -1,60 +1,60 @@
 {
    "name":"safeadmin",
-   "path": {
-     "sys/policy/*": {
-       "policy": "write"
-     },
-     "sys/audit/*": {
-       "policy": "write"
-     },
-     "auth/ldap/*": {
-       "policy": "write"
-     },
-     "auth/aws/*": {
-       "policy": "write"
-     },
-     "auth/approle/*": {
-       "policy": "write"
-     },
-     "auth/userpass/*": {
-       "policy": "write"
-     },
-     "metadata/*": {
-       "policy": "write"
-     },
-     "users/*": {
-       "capabilities": [
-         "create",
-         "update",
-         "delete",
-         "list"
-       ]
-     },
-     "apps/*": {
-       "capabilities": [
-         "create",
-         "update",
-         "delete",
-         "list"
-       ]
-     },
-     "shared/*": {
-       "capabilities": [
-         "create",
-         "update",
-         "delete",
-         "list"
-       ]
-     },
-     "ad/roles/*": {
-       "capabilities": [
-         "create",
-         "update",
-         "delete",
-         "list",
-         "read"
-       ]
-     },
+   "path":{
+      "sys/policy/*":{
+         "policy":"write"
+      },
+      "sys/audit/*":{
+         "policy":"write"
+      },
+      "auth/ldap/*":{
+         "policy":"write"
+      },
+      "auth/aws/*":{
+         "policy":"write"
+      },
+      "auth/approle/*":{
+         "policy":"write"
+      },
+	  "auth/userpass/*":{
+         "policy":"write"
+      },
+      "metadata/*":{
+         "policy":"write"
+      },
+      "users/*":{
+         "capabilities":[
+            "create",
+            "update",
+            "delete",
+            "list"
+         ]
+      },
+      "apps/*":{
+         "capabilities":[
+            "create",
+            "update",
+            "delete",
+            "list"
+         ]
+      },
+      "shared/*":{
+         "capabilities":[
+            "create",
+            "update",
+            "delete",
+            "list"
+         ]
+      },
+      "ad/roles/*":{
+         "capabilities":[
+            "create",
+            "update",
+            "delete",
+            "list",
+			"read"
+         ]
+      },
      "sslcerts/*": {
        "capabilities": [
          "create",
