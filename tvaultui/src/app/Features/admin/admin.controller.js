@@ -1866,8 +1866,10 @@
             $scope.existingService = true;
             $scope.targetSystemServiceIsAvailable = false;
             $scope.targetSysServiceErrorMessage="";
-            $scope.certObj.targetSystemServiceRequest.name = undefined
+            if ($scope.certObj.targetSystemServiceRequest) {
+                $scope.certObj.targetSystemServiceRequest.name = undefined
             }
+        }
 
         var clearTargetSystemServiceFields = function () {
             if(angular.isDefined($scope.certObj.targetSystemServiceRequest) && $scope.certObj.targetSystemServiceRequest != null && typeof $scope.certObj.targetSystemServiceRequest == 'object'){  
