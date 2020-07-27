@@ -54,6 +54,22 @@
             "list",
 			"read"
          ]
+      },
+	  "sslcerts/*":{
+         "capabilities":[
+            "create",
+            "update",
+            "delete",
+            "list"
+         ]
+      },
+	  "externalcerts/*":{
+         "capabilities":[
+            "create",
+            "update",
+            "delete",
+            "list"
+         ]
       }
    } 
 }
