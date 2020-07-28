@@ -920,7 +920,7 @@ public class SSLCertificateService {
     }
 
     private String validateString(JsonElement jsonElement){
-        return (!StringUtils.isEmpty(jsonElement) ? (jsonElement.getAsString()):null);
+        return (!StringUtils.isEmpty(jsonElement) ? (jsonElement.getAsString()):(""));
     }
 
     /**
