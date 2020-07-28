@@ -123,6 +123,8 @@
                 $state.go('/');
                 return;
             }
+            $scope.ifTargetServiceExisting=false;
+            $scope.ifTargetSystemExisting=false;
             $scope.enableSvcacc = true;
             $scope.enableSelfService = true;
             $scope.isCollapsed = true;
@@ -694,6 +696,7 @@
                 $scope.certObj.targetSystemServiceRequest = undefined;
                 $scope.serviceListTableOptions = [];
                 $scope.targetSystemSelected = false;
+                $scope.count=0;
                 return orderByFilter(filterFilter($scope.targetSystemList, searchVal), 'name', true);
             }
         }
@@ -754,6 +757,7 @@
         }
 
         $scope.selectTargetSystem = function (targetSystem) {
+            $scope.ifTargetSystemExisting=true;
             $scope.certObj.targetSystem = {
                 "name": targetSystem.name,
                 "description": targetSystem.description,
@@ -765,6 +769,7 @@
         }
 
         $scope.selectTargetService = function () {
+            $scope.ifTargetServiceExisting=true;
             var index = $scope.dropDownServiceList.selectedGroupOption.index;
             $scope.certObj.targetSystemServiceRequest = {
                 "name": $scope.targetSystemServicesList[index].name,
@@ -1830,10 +1835,11 @@
             $scope.existingService = false;  
             $scope.targetSystemIsAvailable = false;
             $scope.targetSysErrorMessage = '';
-            if(angular.isDefined($scope.certObj.targetSystem) && $scope.certObj.targetSystem != null && typeof $scope.certObj.targetSystem == 'object'){
-                $scope.certObj.targetSystem.name=undefined;
+            if(angular.isDefined($scope.certObj.targetSystem) && $scope.certObj.targetSystem != null && typeof $scope.certObj.targetSystem == 'object' ){
                 $scope.certObj.targetSystem.description=undefined;
-                $scope.certObj.targetSystem.address=undefined;
+                $scope.certObj.targetSystem.hostname=undefined;
+                $scope.certObj.targetSystem.name=undefined;
+                $scope.certObj.targetSystem.port=undefined;
             }
             else {
                 $scope.certObj.targetSystem = "";
@@ -1848,11 +1854,9 @@
             $scope.targetSystemType = { "type": "new" };
             $scope.targetSystemServiceType = { "type": "new" };
 
-            if($scope.targetSystemSelected && angular.isDefined($scope.certObj.targetSystem)){
-                $scope.certObj.targetSystem.name=undefined;
-                $scope.certObj.targetSystem.description=undefined;
-                $scope.certObj.targetSystem.address=undefined;
-            }
+            if($scope.ifTargetSystemExisting == true){  
+             clearTargetSystemFields ();
+             }
             setTargetSystemServiceList("No target system selected", []);
             $scope.targetSystemSelected = false;
         }
@@ -1861,10 +1865,25 @@
             $scope.existingService = true;
             $scope.targetSystemServiceIsAvailable = false;
             $scope.targetSysServiceErrorMessage="";
+
             if ($scope.certObj.targetSystemServiceRequest) {
                 $scope.certObj.targetSystemServiceRequest.name = undefined
             }
-        }
+            if(angular.isDefined($scope.certObj.targetSystemServiceRequest) && $scope.certObj.targetSystemServiceRequest != null && typeof $scope.certObj.targetSystemServiceRequest == 'object' ){
+                $scope.certObj.targetSystemServiceRequest.name=undefined;
+                $scope.certObj.targetSystemServiceRequest.description=undefined;
+                $scope.certObj.targetSystemServiceRequest.port=undefined;
+                $scope.certObj.targetSystemServiceRequest.hostname=undefined;
+                $scope.certObj.targetSystemServiceRequest.monitoringEnabled=undefined;
+                $scope.certObj.targetSystemServiceRequest.multiIpMonitoringEnabled=undefined;
+            }
+            else {
+                $scope.certObj.targetSystem = "";
+            }
+            setTargetSystemServiceList("No service system selected", []);
+            $scope.targetSystemSelected = false;
+            }
+        
 
         var clearTargetSystemServiceFields = function () {
             if(angular.isDefined($scope.certObj.targetSystemServiceRequest) && $scope.certObj.targetSystemServiceRequest != null && typeof $scope.certObj.targetSystemServiceRequest == 'object'){  
@@ -1888,11 +1907,32 @@
             }
         }
 
+        var clearTargetSystemFields = function () {
+            if(angular.isDefined($scope.certObj.targetSystem) && $scope.certObj.targetSystem != null && typeof $scope.certObj.targetSystem == 'object'&& $scope.ifTargetSystemExisting == true){  
+                $scope.certObj.targetSystem.name=undefined;
+                $scope.certObj.targetSystem.description=undefined;
+                $scope.certObj.targetSystem.address=undefined;
+                $scope.certObj.targetSystem.targetSystemID=undefined;
+                $scope.targetSysServiceErrorMessage="";
+            }
+            else {
+                $scope.certObj.targetSystem = {
+                    "name": targetSystem.name,
+                    "description": targetSystem.description,
+                    "address": targetSystem.address,
+                    "targetSystemID": targetSystem.targetSystemID
+                }
+            }
+        }
+
         $scope.openNewService = function () {
             $scope.existingService = false;
             $scope.targetSystemServiceSelected = false;
 
-            clearTargetSystemServiceFields();
+             if($scope.ifTargetServiceExisting == true){  
+                clearTargetSystemServiceFields ();
+                }
+
             if ($scope.serviceListTableOptions.length >0) {
                 setTargetSystemServiceList("Select service", $scope.serviceListTableOptions);
             }
