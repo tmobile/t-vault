@@ -224,9 +224,7 @@
             }
             $scope.targetSystemServiceRequest = {
                 'description': undefined,
-                'hostname': undefined,
-                'monitoringEnabled': undefined,
-                'multiIpMonitoringEnabled': undefined,
+                'hostname': undefined,                
                 'name': undefined,
                 'port': undefined
             }
@@ -775,9 +773,7 @@
                 "name": $scope.targetSystemServicesList[index].name,
                 "description": $scope.targetSystemServicesList[index].description,
                 "port": $scope.targetSystemServicesList[index].port,
-                "hostname": $scope.targetSystemServicesList[index].hostname,
-                "monitoringEnabled": $scope.targetSystemServicesList[index].monitoringEnabled,
-                "multiIpMonitoringEnabled": $scope.targetSystemServicesList[index].multiIpMonitoringEnabled,
+                "hostname": $scope.targetSystemServicesList[index].hostname
             };
             $scope.targetSystemServiceSelected = true;
         }
@@ -1896,16 +1892,12 @@
                 $scope.certObj.targetSystemServiceRequest.description=undefined;
                 $scope.certObj.targetSystemServiceRequest.port=undefined;
                 $scope.certObj.targetSystemServiceRequest.hostname=undefined;
-                $scope.certObj.targetSystemServiceRequest.monitoringEnabled=undefined;
-                $scope.certObj.targetSystemServiceRequest.multiIpMonitoringEnabled=undefined;
                 $scope.targetSysServiceErrorMessage="";
             }
             else {
                 $scope.targetSystemServiceRequest = {
                     'description': undefined,
                     'hostname': undefined,
-                    'monitoringEnabled': undefined,
-                    'multiIpMonitoringEnabled': undefined,
                     'name': undefined,
                     'port': undefined
                 }
