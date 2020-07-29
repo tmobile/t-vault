@@ -625,10 +625,10 @@ public class SSLCertificateService {
         if (Objects.nonNull(response)) {
             jsonElement = response.get("spec").getAsJsonObject();
             if (Objects.nonNull(jsonElement)) {
-                String applicationTag = validateMetadataString(jsonElement.get("tag"));
-                String projectLeadEmail = validateMetadataString(jsonElement.get("projectLeadEmail"));
-                String appOwnerEmail = validateMetadataString(jsonElement.get("brtContactEmail"));
-                String akmid = validateMetadataString(jsonElement.get("akmid"));
+                String applicationTag = validateString(jsonElement.get("tag"));
+                String projectLeadEmail = validateString(jsonElement.get("projectLeadEmail"));
+                String appOwnerEmail = validateString(jsonElement.get("brtContactEmail"));
+                String akmid = validateString(jsonElement.get("akmid"));
                 log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
                         put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
                         put(LogMessage.ACTION,"Populate Application details in SSL Certificate Metadata").
@@ -920,10 +920,7 @@ public class SSLCertificateService {
     }
 
     private String validateString(JsonElement jsonElement){
-        return (!StringUtils.isEmpty(jsonElement) ? (jsonElement.getAsString()):(null));
-    }
-    private String validateMetadataString(JsonElement jsonElement){
-        return (!StringUtils.isEmpty(jsonElement) ? (jsonElement.getAsString()):(""));
+        return (!StringUtils.isEmpty(jsonElement) ? (jsonElement.getAsString()):null);
     }
 
     /**
