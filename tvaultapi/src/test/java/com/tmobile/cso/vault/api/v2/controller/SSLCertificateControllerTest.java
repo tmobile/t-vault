@@ -162,8 +162,15 @@ public class SSLCertificateControllerTest {
     @Test
     public void test_getCertificates() throws Exception {
         // Mock response        
-        when(sslCertificateService.getServiceCertificates("5PDrOhsy4ig8L3EpsJZSLAMg", userDetails, "",1,0)).thenReturn(new ResponseEntity<>(HttpStatus.OK));
-        assertEquals(HttpStatus.OK, sslCertificateService.getServiceCertificates("5PDrOhsy4ig8L3EpsJZSLAMg",userDetails,"",1,0).getStatusCode());
+        when(sslCertificateService.getServiceCertificates("5PDrOhsy4ig8L3EpsJZSLAMg", userDetails, "",1,0,"internal")).thenReturn(new ResponseEntity<>(HttpStatus.OK));
+        assertEquals(HttpStatus.OK, sslCertificateService.getServiceCertificates("5PDrOhsy4ig8L3EpsJZSLAMg",userDetails,"",1,0,"internal").getStatusCode());
+    }
+    
+    @Test
+    public void test_getCertificates_external() throws Exception {
+        // Mock response        
+        when(sslCertificateService.getServiceCertificates("5PDrOhsy4ig8L3EpsJZSLAMg", userDetails, "",1,0,"external")).thenReturn(new ResponseEntity<>(HttpStatus.OK));
+        assertEquals(HttpStatus.OK, sslCertificateService.getServiceCertificates("5PDrOhsy4ig8L3EpsJZSLAMg",userDetails,"",1,0,"external").getStatusCode());
     }
 
     
@@ -181,13 +188,13 @@ public class SSLCertificateControllerTest {
 	@Test
 	public void test_issueRevocationRequest_Success() {
 		String certName = "test@t-mobile.com";
-		
+		String certficateType = "internal";
 		revocationRequest.setReason("unspecified");
-		when(sslCertificateService.issueRevocationRequest(certName, userDetails, token, revocationRequest))
+		when(sslCertificateService.issueRevocationRequest(certficateType, certName, userDetails, token, revocationRequest))
 				.thenReturn(new ResponseEntity<>(HttpStatus.OK));
 		when(httpServletRequest.getAttribute("UserDetails")).thenReturn(userDetails);
 		assertEquals(HttpStatus.OK,
-				SslCertificateController.issueRevocationRequest(httpServletRequest, token, certName, revocationRequest).getStatusCode());
+				SslCertificateController.issueRevocationRequest(httpServletRequest, token, certficateType,certName, revocationRequest).getStatusCode());
 
 	}
        
@@ -321,12 +328,12 @@ public class SSLCertificateControllerTest {
 	@Test
 	public void test_renewCertificate_Success() {
 		String certName = "test@t-mobile.com";		
-		
-		when(sslCertificateService.renewCertificate(certName, userDetails, token))
+		String certficateType = "internal";
+		when(sslCertificateService.renewCertificate(certficateType, certName, userDetails, token))
 				.thenReturn(new ResponseEntity<>(HttpStatus.OK));
 		when(httpServletRequest.getAttribute("UserDetails")).thenReturn(userDetails);
 		assertEquals(HttpStatus.OK,
-				SslCertificateController.renewCertificate(httpServletRequest, token, certName).getStatusCode());
+				SslCertificateController.renewCertificate(httpServletRequest, token, certficateType, certName).getStatusCode());
 
 	}
 }

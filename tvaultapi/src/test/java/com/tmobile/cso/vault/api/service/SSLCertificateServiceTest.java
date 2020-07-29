@@ -1312,7 +1312,7 @@ public class SSLCertificateServiceTest {
 
          when(reqProcessor.process("/sslcert", "{\"path\":\"metadata/sslcerts/CertificateName.t-mobile.com\"}",token)).thenReturn(response);
 
-         ResponseEntity<String> responseEntityActual = sSLCertificateService.getServiceCertificates(token, user1, "",1,0);
+         ResponseEntity<String> responseEntityActual = sSLCertificateService.getServiceCertificates(token, user1, "",1,0,"internal");
 
          assertEquals(HttpStatus.OK, responseEntityActual.getStatusCode());
     }
@@ -1343,7 +1343,7 @@ public class SSLCertificateServiceTest {
 
          when(reqProcessor.process("/sslcert", "{\"path\":\"metadata/sslcerts/CertificateName.t-mobile.com\"}",token)).thenReturn(response);
 
-         ResponseEntity<String> responseEntityActual = sSLCertificateService.getServiceCertificates(token, user1, "",1,0);
+         ResponseEntity<String> responseEntityActual = sSLCertificateService.getServiceCertificates(token, user1, "",1,0,"internal");
 
          assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, responseEntityActual.getStatusCode());
     }
@@ -1560,6 +1560,7 @@ public class SSLCertificateServiceTest {
     @Test
     public void issueRevocationRequest_Success() throws Exception {
     	String certficateName = "testCert@t-mobile.com";
+    	String certficateType = "internal";
     	String token = "FSR&&%S*";
     	String jsonStr = "{  \"username\": \"testusername1\",  \"password\": \"testpassword1\"}";
 
@@ -1605,7 +1606,7 @@ public class SSLCertificateServiceTest {
         when(ControllerUtil.updateMetaData(anyString(), anyMap(), anyString())).thenReturn(Boolean.TRUE);
 
         ResponseEntity<?> revocResponse =
-                sSLCertificateService.issueRevocationRequest(certficateName, userDetails, token, revocationRequest);
+                sSLCertificateService.issueRevocationRequest(certficateType, certficateName, userDetails, token, revocationRequest);
 
         //Assert
         assertNotNull(revocResponse);
@@ -1615,6 +1616,7 @@ public class SSLCertificateServiceTest {
     @Test
     public void issueRevocationRequest_Non_Admin_Success() throws Exception {
     	String certficateName = "testCert@t-mobile.com";
+    	String certficateType = "internal";
     	String token = "FSR&&%S*";
     	String jsonStr = "{  \"username\": \"testusername1\",  \"password\": \"testpassword1\"}";
 
@@ -1662,7 +1664,7 @@ public class SSLCertificateServiceTest {
         when(ControllerUtil.updateMetaData(anyString(), anyMap(), anyString())).thenReturn(Boolean.TRUE);
 
         ResponseEntity<?> revocResponse =
-                sSLCertificateService.issueRevocationRequest(certficateName, userDetails, token, revocationRequest);
+                sSLCertificateService.issueRevocationRequest(certficateType,certficateName, userDetails, token, revocationRequest);
 
         //Assert
         assertNotNull(revocResponse);
@@ -1672,6 +1674,7 @@ public class SSLCertificateServiceTest {
     @Test
     public void issueRevocationRequest_Admin_Failure() throws Exception {
     	String certficateName = "testCert@t-mobile.com";
+    	String certficateType = "internal";
     	String token = "FSR&&%S*";
     	String jsonStr = "{  \"username\": \"testusername1\",  \"password\": \"testpassword1\"}";
 
@@ -1717,7 +1720,7 @@ public class SSLCertificateServiceTest {
         when(ControllerUtil.updateMetaData(anyString(), anyMap(), anyString())).thenReturn(Boolean.TRUE);
 
         ResponseEntity<?> revocResponse =
-                sSLCertificateService.issueRevocationRequest(certficateName, userDetails, token, revocationRequest);
+                sSLCertificateService.issueRevocationRequest(certficateType,certficateName, userDetails, token, revocationRequest);
 
         //Assert
         assertNotNull(revocResponse);
@@ -1925,6 +1928,7 @@ public class SSLCertificateServiceTest {
     @Test
     public void test_getgetTargetSystemList_success()throws Exception{
         String token = "12345";
+        String certType= "Internal";
         String jsonStr = "{\"targetSystems\": [ {" +
                 "  \"name\" : \"abc.com\"," +
                 "  \"description\" : \"\"," +
@@ -1958,7 +1962,50 @@ public class SSLCertificateServiceTest {
 
         when(JSONUtil.getJSONasDefaultPrettyPrint(Mockito.any())).thenReturn(jsonStr);
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body("{\"data\": "+jsonStr+"}");
-        ResponseEntity<String> responseEntityActual = sSLCertificateService.getTargetSystemList(token, getMockUser(true));
+        ResponseEntity<String> responseEntityActual = sSLCertificateService.getTargetSystemList(token, getMockUser(true), certType);
+
+        assertEquals(HttpStatus.OK, responseEntityActual.getStatusCode());
+        assertEquals(responseEntityExpected.getBody(), responseEntityActual.getBody());
+    }
+    
+    @Test
+    public void test_getgetTargetSystemList_External_success()throws Exception{
+        String token = "12345";
+        String certType= "External";
+        String jsonStr = "{\"targetSystems\": [ {" +
+                "  \"name\" : \"abc.com\"," +
+                "  \"description\" : \"\"," +
+                "  \"address\" : \"abc.com\"," +
+                "  \"targetSystemID\" : \"234\"" +
+                "}, {" +
+                "  \"name\" : \"cde.com\"," +
+                "  \"description\" : \"cde.com\"," +
+                "  \"address\" : \"cde.com\"," +
+                "  \"targetSystemID\" : \"123\"" +
+                "}]}";
+        CertResponse response = new CertResponse();
+        response.setHttpstatus(HttpStatus.OK);
+        response.setResponse(jsonStr);
+        response.setSuccess(true);
+        String jsonStrUser = "{  \"username\": \"testusername1\",  \"password\": \"testpassword1\"}";
+        CertResponse responseUser = new CertResponse();
+        responseUser.setHttpstatus(HttpStatus.OK);
+        responseUser.setResponse(jsonStrUser);
+        responseUser.setSuccess(true);
+        Map<String, Object> requestMap = new HashMap<>();
+        requestMap.put("access_token", "12345");
+        requestMap.put("token_type", "type");
+        when(ControllerUtil.parseJson(jsonStrUser)).thenReturn(requestMap);
+
+        when(reqProcessor.processCert(eq("/auth/certmanager/login"), Mockito.anyObject(), Mockito.anyString(),
+                Mockito.anyString())).thenReturn(responseUser);
+
+        when(reqProcessor.processCert(eq( "/certmanager/findTargetSystem"), Mockito.anyObject(), Mockito.anyString(),
+                Mockito.anyString())).thenReturn(response);
+
+        when(JSONUtil.getJSONasDefaultPrettyPrint(Mockito.any())).thenReturn(jsonStr);
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body("{\"data\": "+jsonStr+"}");
+        ResponseEntity<String> responseEntityActual = sSLCertificateService.getTargetSystemList(token, getMockUser(true), certType);
 
         assertEquals(HttpStatus.OK, responseEntityActual.getStatusCode());
         assertEquals(responseEntityExpected.getBody(), responseEntityActual.getBody());
@@ -1967,6 +2014,7 @@ public class SSLCertificateServiceTest {
     @Test
     public void test_getgetTargetSystemList_failed()throws Exception{
         String token = "12345";
+        String certType= "Internal";
         String jsonStr = "{\"targetSystems\": [ {" +
                 "  \"name\" : \"abc.com\"," +
                 "  \"description\" : \"\"," +
@@ -2000,7 +2048,7 @@ public class SSLCertificateServiceTest {
 
 
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Failed to get Target system list from NCLM\"]}");
-        ResponseEntity<String> responseEntityActual = sSLCertificateService.getTargetSystemList(token, getMockUser(true));
+        ResponseEntity<String> responseEntityActual = sSLCertificateService.getTargetSystemList(token, getMockUser(true), certType);
 
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, responseEntityActual.getStatusCode());
         assertEquals(responseEntityExpected.getBody(), responseEntityActual.getBody());
@@ -2009,6 +2057,7 @@ public class SSLCertificateServiceTest {
     @Test
     public void test_getgetTargetSystemList_empty()throws Exception{
         String token = "12345";
+        String certType= "Internal";
         String jsonStr = "{\"data\": [ ]}";
         CertResponse response = new CertResponse();
         response.setHttpstatus(HttpStatus.OK);
@@ -2032,7 +2081,7 @@ public class SSLCertificateServiceTest {
         when(JSONUtil.getJSONasDefaultPrettyPrint(Mockito.any())).thenReturn("[]");
 
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body("{\"data\": []}");
-        ResponseEntity<String> responseEntityActual = sSLCertificateService.getTargetSystemList(token, getMockUser(true));
+        ResponseEntity<String> responseEntityActual = sSLCertificateService.getTargetSystemList(token, getMockUser(true), certType);
 
         assertEquals(HttpStatus.OK, responseEntityActual.getStatusCode());
         assertEquals(responseEntityExpected.getBody(), responseEntityActual.getBody());
@@ -3331,6 +3380,7 @@ public class SSLCertificateServiceTest {
     @Test
     public void renewCertificate_Success() throws Exception {
     	String certficateName = "testCert@t-mobile.com";
+    	String certficateType = "internal";
     	String token = "FSR&&%S*";
     	String jsonStr = "{  \"username\": \"testusername1\",  \"password\": \"testpassword1\"}";
     	String jsonStr2 = "{\"certificates\":[{\"sortedSubjectName\": \"CN=CertificateName.t-mobile.com, C=US, " +
@@ -3384,7 +3434,7 @@ public class SSLCertificateServiceTest {
         when(ControllerUtil.updateMetaData(anyString(), anyMap(), anyString())).thenReturn(Boolean.TRUE);
 
         ResponseEntity<?> renewCertResponse =
-                sSLCertificateService.renewCertificate(certficateName, userDetails, token);
+                sSLCertificateService.renewCertificate(certficateType,certficateName, userDetails, token);
 
         //Assert
         assertNotNull(renewCertResponse);
@@ -3393,6 +3443,7 @@ public class SSLCertificateServiceTest {
     @Test
     public void renewCertificate_Non_Admin_Success() throws Exception {
     	String certficateName = "testCert@t-mobile.com";
+    	String certficateType = "internal";
     	String token = "FSR&&%S*";
     	String jsonStr = "{  \"username\": \"testusername1\",  \"password\": \"testpassword1\"}";
     	String jsonStr2 = "{\"certificates\":[{\"sortedSubjectName\": \"CN=CertificateName.t-mobile.com, C=US, " +
@@ -3446,7 +3497,7 @@ public class SSLCertificateServiceTest {
         when(ControllerUtil.updateMetaData(anyString(), anyMap(), anyString())).thenReturn(Boolean.TRUE);
 
         ResponseEntity<?> renewCertResponse =
-                sSLCertificateService.renewCertificate(certficateName, userDetails, token);
+                sSLCertificateService.renewCertificate(certficateType, certficateName, userDetails, token);
 
         //Assert
         assertNotNull(renewCertResponse);
@@ -3455,6 +3506,7 @@ public class SSLCertificateServiceTest {
     @Test
     public void renewCertificate_Admin_Failure() throws Exception {
     	String certficateName = "testCert@t-mobile.com";
+    	String certficateType = "internal";
     	String token = "FSR&&%S*";
     	String jsonStr = "{  \"username\": \"testusername1\",  \"password\": \"testpassword1\"}";
     	String jsonStr2 = "{\"certificates\":[{\"sortedSubjectName\": \"CN=CertificateName.t-mobile.com, C=US, " +
@@ -3512,7 +3564,7 @@ public class SSLCertificateServiceTest {
         when(ControllerUtil.updateMetaData(anyString(), anyMap(), anyString())).thenReturn(Boolean.TRUE);
 
         ResponseEntity<?> revocResponse =
-                sSLCertificateService.issueRevocationRequest(certficateName, userDetails, token, revocationRequest);
+                sSLCertificateService.issueRevocationRequest(certficateType, certficateName, userDetails, token, revocationRequest);
 
         //Assert
         assertNotNull(revocResponse);
