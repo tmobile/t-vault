@@ -141,11 +141,13 @@
             },
             function (error) {
                 // Error handling function
-                console.log(error);
                 $scope.isLoadingData = false;
                 $scope.certificatesLoaded =  true;
-                $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
-                $scope.error('md');
+                if (error.status !== 404) {
+                    console.log(error);
+                    $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
+                    $scope.error('md');
+                }
             });
 
         }
