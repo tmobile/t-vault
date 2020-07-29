@@ -1870,8 +1870,6 @@
                 $scope.certObj.targetSystemServiceRequest.description=undefined;
                 $scope.certObj.targetSystemServiceRequest.port=undefined;
                 $scope.certObj.targetSystemServiceRequest.hostname=undefined;
-                $scope.certObj.targetSystemServiceRequest.monitoringEnabled=undefined;
-                $scope.certObj.targetSystemServiceRequest.multiIpMonitoringEnabled=undefined;
             }
             else {
                 $scope.certObj.targetSystem = "";
