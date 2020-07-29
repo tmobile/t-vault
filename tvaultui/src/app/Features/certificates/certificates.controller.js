@@ -132,8 +132,10 @@
                 }
                 else {
                     $scope.certificatesLoaded =  true;
-                    $scope.errorMessage = AdminSafesManagement.getTheRightErrorMessage(response);
-                    $scope.error('md');
+                    if(response.status !== 404) {
+                        $scope.errorMessage = AdminSafesManagement.getTheRightErrorMessage(response);
+                        $scope.error('md');
+                    }
                 }
                 $scope.isLoadingData = false;
             },
