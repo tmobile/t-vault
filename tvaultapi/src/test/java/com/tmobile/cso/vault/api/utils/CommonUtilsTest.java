@@ -38,7 +38,7 @@ public class CommonUtilsTest {
 	@Test
     public void test_getPoliciesAsArray() throws Exception {
         ObjectMapper objMapper = new ObjectMapper();
-        String jsonStr = "{\"id\":\"1JRRXfKHYuN2zbl1gkRM12zA\",\"last_renewal_time\":null,\"renewable\":false,\"policies\":[\"approle_normal_user\",\"default\"],\"creation_ttl\":1800000,\"username\":\"normaluser\"}";
+        String jsonStr = "{\"id\":\"1JRRXfKHYuN2zbl1gkRM12zA\",\"last_renewal_time\":null,\"renewable\":false,\"policies\":[\"normal_user\",\"default\"], \"identity_policies\":[\"default2\"],\"creation_ttl\":1800000,\"username\":\"normaluser\"}";
         String[] expectedPolicies = {"approle_normal_user", "default"};
         String[] policies = commonUtils.getPoliciesAsArray(objMapper, jsonStr);
 
@@ -47,7 +47,7 @@ public class CommonUtilsTest {
     @Test
     public void test_getPoliciesAsArray_string() throws Exception {
         ObjectMapper objMapper = new ObjectMapper();
-        String jsonStr = "{\"id\":\"1JRRXfKHYuN2zbl1gkRM12zA\",\"last_renewal_time\":null,\"renewable\":false,\"policies\":\"approle_normal_user\",\"creation_ttl\":1800000,\"username\":\"normaluser\"}";
+        String jsonStr = "{\"id\":\"1JRRXfKHYuN2zbl1gkRM12zA\",\"last_renewal_time\":null,\"renewable\":false,\"policies\":\"approle_normal_user\", \"identity_policies\":[\"default2\"], \"creation_ttl\":1800000,\"username\":\"normaluser\"}";
         String[] expectedPolicies = {"approle_normal_user"};
         String[] policies = commonUtils.getPoliciesAsArray(objMapper, jsonStr);
 

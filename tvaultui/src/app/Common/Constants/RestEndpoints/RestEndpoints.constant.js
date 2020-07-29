@@ -318,6 +318,14 @@ readTextFile("../apiUrls.json");
             name: 'unsealProgress',
             url: '/v2/unseal-progress?serverip=',
             method: 'GET'
+        }, {
+            name: 'getAuthUrl',
+            url: '/v2/auth/oidc/auth_url',
+            method: 'POST'
+        }, {
+            name: 'getCallback',
+            url: '/v2/auth/oidc/callback',
+            method: 'GET'
         }]
     });
 })( angular.module( 'vault.constants.RestEndpoints', []));

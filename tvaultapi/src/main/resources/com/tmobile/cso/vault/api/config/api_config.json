@@ -214,7 +214,7 @@
     	"apiEndPoint":"/auth/tvault/lookup",
     	"vaultEndPoint":"/auth/token/lookup-self",
     	"method":"GET",
-        "outparams":["data/id","data/last_renewal_time","renewable","data/policies","data/creation_ttl", "data/meta/username"] 
+        "outparams":["data/id","data/last_renewal_time","renewable","data/policies","data/creation_ttl", "data/meta/username", "data/identity_policies"]
     },
 	{"#" : "**** - Used to revoke the token *******",
  	
@@ -794,5 +794,26 @@
       		{"name":"role_name","required":true, "appendToPath":true}
         ],
       	"outparams":["data/current_password", "data/last_password", "data/service_account_name", "data/ttl", "data/last_vault_rotation"]
-    }
+    },
+	{
+
+		"apiEndPoint":"/auth/oidc/oidc/auth_url",
+		"vaultEndPoint":"/auth/oidc/oidc/auth_url",
+		"method":"POST",
+		"params":[
+			{"name":"role", "required":true},
+			{"name":"redirect_uri", "required":true}
+		],
+		"outparams":["request_id","lease_id","renewable", "lease_duration", "data", "wrap_info", "warnings", "auth"]
+	},
+	{
+
+		"apiEndPoint":"/auth/oidc/oidc/callback",
+		"vaultEndPoint":"/auth/oidc/oidc/callback<path>",
+		"method":"GET",
+		"params":[
+			{"name":"path","required":true, "appendToPath":true}
+		],
+		"outparams":["auth/client_token","admin","access","auth/policies","auth/lease_duration"]
+	}
 ]

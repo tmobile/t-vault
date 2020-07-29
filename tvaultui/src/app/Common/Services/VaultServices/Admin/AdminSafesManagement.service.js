@@ -272,6 +272,16 @@
                     return response;
                 });
             },
+            getAuthUrl: function (payload, url) {
+                return ServiceEndpoint.getAuthUrl.makeRequest(payload, url).then(function(response) {
+                    return response;
+                });
+            },
+            getCallback: function (payload, url) {
+                return ServiceEndpoint.getCallback.makeRequest(payload, url).then(function(response) {
+                    return response;
+                });
+            },
             getTheRightErrorMessage : function(responseObject){
                 if(responseObject.status===500 || responseObject.statusText==='Internal Server Error'){
                     return ErrorMessage.ERROR_NETWORK;

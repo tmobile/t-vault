@@ -25,7 +25,11 @@
         .config( routerConfig );
 
     /** @ngInject */
-    function routerConfig( $stateProvider, $urlRouterProvider ) {
+    function routerConfig( $stateProvider, $urlRouterProvider, $locationProvider) {
         $urlRouterProvider.otherwise( '/' );
+        $locationProvider.html5Mode({
+            enabled: true,
+            requireBase: true
+        });
     }
 } )();
