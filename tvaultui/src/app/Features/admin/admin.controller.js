@@ -1813,7 +1813,6 @@
                 $scope.isLoadingData = false;
                 console.log(e);
             }
-
         }
 
         $scope.cancelRevoke = function(){
