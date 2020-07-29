@@ -132,18 +132,22 @@
                 }
                 else {
                     $scope.certificatesLoaded =  true;
-                    $scope.errorMessage = AdminSafesManagement.getTheRightErrorMessage(response);
-                    $scope.error('md');
+                    if(response.status !== 404) {
+                        $scope.errorMessage = AdminSafesManagement.getTheRightErrorMessage(response);
+                        $scope.error('md');
+                    }
                 }
                 $scope.isLoadingData = false;
             },
             function (error) {
                 // Error handling function
-                console.log(error);
                 $scope.isLoadingData = false;
                 $scope.certificatesLoaded =  true;
-                $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
-                $scope.error('md');
+                if (error.status !== 404) {
+                    console.log(error);
+                    $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
+                    $scope.error('md');
+                }
             });
 
         }
