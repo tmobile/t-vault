@@ -225,47 +225,7 @@ script(src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"
                                                         .list-icon.icon-cross(ng-click="editPermissionItem = !editPermissionItem; activeItem = !activeItem; radioValue = value" ng-class="{'inactive' : editPermissionItem == true, 'hide-icon' : editPermissionItem == false}")
                                                     .down.save
                                                         .list-icon(ng-click = "editPermission('groups', editPermissionItem, key, radioValue); editPermissionItem ? editPermissionItem = !editPermissionItem : editPermissionItem = editPermissionItem" ng-class="{'inactive' : editPermissionItem == false}")  SAVE
-                                    
-                        md-tab(label="AppRoles")
-                            loading-state(ng-if='isLoadingData')
-                            md-content(class="md-padding")
-                                .new-container.page-content-container                                    
-                                    .row.change-safe
-                                        .container.actions
-                                            .function-text.right.link-style(ng-click="addApproleToCertificate('md')")
-                                                .add-icon-container.action-icon-wrapper.static
-                                                    .rotate.glyphicon.glyphicon-remove-circle
-                                                .text ADD APPROLE TO CERTIFICATE
-                                    .unavailable-text(ng-if="isEmpty(AppRolePermissionsData.data)")
-                                      | No approles are given permission to access this certificate,<br> add approles to access the certificate
-                                    .change-safe-table-container(ng-if="!isEmpty(AppRolePermissionsData.data)")
-                                        .row.change-safe.header
-                                            .container.name.col-lg-4.col-md-4.col-sm-4.col-xs-4 NAME
-                                            .container.radio-inputs.col-lg-4.col-md-4.col-sm-4.col-xs-4 ACTION
-                                        .change-safe-table-data.row
-                                            .row.change-safe.item.hide-in-mobile(ng-if="!isLoadingData" ng-init="editPermissionItem = false; activeItem = false; radioValue = value" ng-class="{'grayBackground' : activeItem == true}" ng-repeat="(key, value) in AppRolePermissionsData.data")
-                                                .container.name.col-lg-4.col-md-4.col-sm-4.col-xs-4(ng-class="{'inactive' : editPermissionItem == false}" title="{{key}}") {{key}}
-                                                .container.radio-inputs.col-lg-4.col-md-4.col-sm-4.col-xs-4
-                                                    radio-buttons(data="radio" value="radioValue" state="editPermissionItem")
-                                                .container.actions.col-lg-4.col-md-4.col-sm-4.col-xs-4
-                                                    .down
-                                                        .list-icon.icon-delete(ng-class="{'inactive' : editPermissionItem == true}")
-                                                    .down.edit
-                                                        .list-icon.icon-mode_edit(ng-class="{'inactive' : editPermissionItem == true, 'hide-icon' : editPermissionItem == true}")
-                                                        .list-icon.icon-cross(ng-click="editPermissionItem = !editPermissionItem; activeItem = !activeItem; radioValue = value" ng-class="{'inactive' : editPermissionItem == true, 'hide-icon' : editPermissionItem == false}")
-                                                    
-                                            .row.change-safe.item.hide-in-tablet-up(ng-if="!isLoadingData" ng-init="editPermissionItem = true; activeItem = false; radioValue = value" ng-class="{'grayBackground' : activeItem == true}" ng-repeat="(key, value) in AppRolePermissionsData.data")
-                                                .container.name.col-lg-4.col-md-4.col-sm-4.col-xs-4(ng-class="{'inactive' : editPermissionItem == false}") {{key}}
-                                                .container.radio-inputs.col-lg-4.col-md-4.col-sm-4.col-xs-4
-                                                    drop-down(drop-down-options="radio" value="radioValue" error="noTypeSelected")
-                                                .container.actions.col-lg-4.col-md-4.col-sm-4.col-xs-4
-                                                    .down
-                                                        .list-icon.icon-delete(ng-class="{'inactive' : editPermissionItem == false}")
-                                                    .down.hide-in-mobile.edit
-                                                        .list-icon.icon-mode_edit(ng-class="{'inactive' : editPermissionItem == true, 'hide-icon' : editPermissionItem == true}")
-                                                        .list-icon.icon-cross(ng-click="editPermissionItem = !editPermissionItem; activeItem = !activeItem; radioValue = value" ng-class="{'inactive' : editPermissionItem == true, 'hide-icon' : editPermissionItem == false}")
-                                                    
-                                   
+
                 .clearfix.btn-section
                   .right.col-lg-6.col-md-6.col-sm-6.col-xs-12.bottom-lg-sep.top-lg-sep
                     .right
