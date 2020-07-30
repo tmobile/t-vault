@@ -21,6 +21,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
 import com.tmobile.cso.vault.api.common.TVaultConstants;
+import com.tmobile.cso.vault.api.controller.ControllerUtil;
 import com.tmobile.cso.vault.api.exception.LogMessage;
 import com.tmobile.cso.vault.api.utils.ThreadLocalContext;
 import org.apache.commons.collections.MapUtils;
@@ -91,9 +92,9 @@ public class  VaultAuthService {
 			}
 			if(responseMap!=null && responseMap.get("access")!=null) {
 				Map<String,Object> access = (Map<String,Object>)responseMap.get("access");
-				access = filterDuplicateSafePermissions(access);
-				access = filterDuplicateSvcaccPermissions(access);
-				access = filterDuplicateCertPermissions(access);
+				access = ControllerUtil.filterDuplicateSafePermissions(access);
+				access = ControllerUtil.filterDuplicateSvcaccPermissions(access);
+                access = filterDuplicateCertPermissions(access);
 				responseMap.put("access", access);
 				// set SS, AD password rotation enable status
 				Map<String,Object> feature = new HashMap<>();
