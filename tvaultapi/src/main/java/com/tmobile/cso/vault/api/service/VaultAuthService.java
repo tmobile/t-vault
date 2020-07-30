@@ -21,6 +21,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
 import com.tmobile.cso.vault.api.common.TVaultConstants;
+import com.tmobile.cso.vault.api.controller.ControllerUtil;
 import com.tmobile.cso.vault.api.exception.LogMessage;
 import com.tmobile.cso.vault.api.utils.ThreadLocalContext;
 import org.apache.commons.collections.MapUtils;
@@ -91,8 +92,8 @@ public class  VaultAuthService {
 			}
 			if(responseMap!=null && responseMap.get("access")!=null) {
 				Map<String,Object> access = (Map<String,Object>)responseMap.get("access");
-				access = filterDuplicateSafePermissions(access);
-				access = filterDuplicateSvcaccPermissions(access);
+				access = ControllerUtil.filterDuplicateSafePermissions(access);
+				access = ControllerUtil.filterDuplicateSvcaccPermissions(access);
 				responseMap.put("access", access);
 				// set SS, AD password rotation enable status
 				Map<String,Object> feature = new HashMap<>();
@@ -112,67 +113,6 @@ public class  VaultAuthService {
 			}
 			return ResponseEntity.status(response.getHttpstatus()).body("{\"errors\":[\"Username Authentication Failed.\"]}");
 		}
-	}
-	/**
-	 * To filter the duplicate safe permissions
-	 * @param access
-	 * @return
-	 */
-	public Map<String,Object> filterDuplicateSafePermissions(Map<String,Object> access) {
-		if (!MapUtils.isEmpty(access)) {
-			String[] safeTypes = {TVaultConstants.USERS, TVaultConstants.SHARED, TVaultConstants.APPS};
-
-			for (String type: safeTypes) {
-				List<Map<String,String>> safePermissions = (List<Map<String,String>>)access.get(type);
-				if (safePermissions != null) {
-					//map to check duplicate permission
-					Map<String,String> filteredPermissions = Collections.synchronizedMap(new HashMap());
-					List<Map<String,String>> updatedPermissionList = new ArrayList<>();
-					for (Map<String,String> permissionMap: safePermissions) {
-						Set<String> keys = permissionMap.keySet();
-						String key = keys.stream().findFirst().orElse("");
-
-						if (key !="" && !filteredPermissions.containsKey(key)) {
-							filteredPermissions.put(key, permissionMap.get(key));
-							Map<String,String> permission = Collections.synchronizedMap(new HashMap());
-							permission.put(key, permissionMap.get(key));
-							updatedPermissionList.add(permission);
-						}
-					}
-					access.put(type, updatedPermissionList);
-				}
-			}
-		}
-		return access;
-	}
-
-	/**
-	 * To filter the duplicate Service account permissions
-	 * @param access
-	 * @return
-	 */
-	public Map<String,Object> filterDuplicateSvcaccPermissions(Map<String,Object> access) {
-		if (!MapUtils.isEmpty(access)) {
-			List<Map<String,String>> svcaccPermissions = (List<Map<String,String>>)access.get(TVaultConstants.SVC_ACC_PATH_PREFIX);
-			if (svcaccPermissions != null) {
-				//map to check duplicate permission
-				Map<String,String> filteredPermissions = Collections.synchronizedMap(new HashMap());
-				List<Map<String,String>> updatedPermissionList = new ArrayList<>();
-				for (Map<String,String> permissionMap: svcaccPermissions) {
-					Set<String> keys = permissionMap.keySet();
-					String key = keys.stream().findFirst().orElse("");
-
-					if (key !="" && !filteredPermissions.containsKey(key)) {
-						filteredPermissions.put(key, permissionMap.get(key));
-						Map<String,String> permission = Collections.synchronizedMap(new HashMap());
-						permission.put(key, permissionMap.get(key));
-						updatedPermissionList.add(permission);
-					}
-				}
-				access.put(TVaultConstants.SVC_ACC_PATH_PREFIX, updatedPermissionList);
-			}
-		}
-		return access;
 	}
 
 	/**
