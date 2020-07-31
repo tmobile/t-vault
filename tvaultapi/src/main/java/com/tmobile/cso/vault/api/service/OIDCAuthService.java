@@ -257,9 +257,8 @@ public class OIDCAuthService {
      * @return
      */
     public ResponseEntity<String> getAuthUrl(OidcRequest oidcRequest) {
-        String token = tokenUtils.getSelfServiceToken();
         String jsonStr = JSONUtil.getJSON(oidcRequest);
-        Response response = reqProcessor.process("/auth/oidc/oidc/auth_url",jsonStr,token);
+        Response response = reqProcessor.process("/auth/oidc/oidc/auth_url",jsonStr, "");
         if(HttpStatus.OK.equals(response.getHttpstatus())){
             log.info(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
                     put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
@@ -286,10 +285,9 @@ public class OIDCAuthService {
      * @return
      */
     public ResponseEntity<String> processOIDCCallback(String state, String code) {
-        String token = tokenUtils.getSelfServiceToken();
 
         String pathStr = "?code="+code+"&state="+state;
-        Response response = reqProcessor.process("/auth/oidc/oidc/callback","{\"path\":\""+pathStr+"\"}",token);
+        Response response = reqProcessor.process("/auth/oidc/oidc/callback","{\"path\":\""+pathStr+"\"}", "");
         if(HttpStatus.OK.equals(response.getHttpstatus())){
             Map<String, Object> responseMap = null;
             try {

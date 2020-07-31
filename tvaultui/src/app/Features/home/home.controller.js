@@ -49,15 +49,15 @@
             }
 
             var searchObj = $location.search();
-            if (searchObj.code && searchObj.state) {
-                // handle call back
-                getSSOCallback(searchObj.code, searchObj.state);
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('code') && urlParams.get('state')) {
+                getSSOCallback(urlParams.get('code'), urlParams.get('state'));
             }
 
             if(SessionStore.getItem("myVaultKey")){
                 // If no call back and token exists in session.
                 $scope.isLoadingData = true;
-                window.location.replace("/home/safes-tabs/safes");
+                window.location.replace("/#!/home/safes-tabs/safes");
                 return;
             }
 
@@ -95,11 +95,11 @@
                         //SessionStore.setItem("username",username);
                     }
                     saveParametersInSessionStore(response.data);
-                    window.location.replace("/home/safes-tabs/safes");
+                    window.location.replace("/#!/home/safes-tabs/safes");
                 } else {
                     // callback process failed. Redirect to landing page. If not active token exists then will automatically redirect from landing page to login.
                     $scope.isLoadingData = false;
-                    window.location.replace("/home/safes-tabs/safes");
+                    window.location.replace("/#!/home/safes-tabs/safes");
                 }
             })
         }
