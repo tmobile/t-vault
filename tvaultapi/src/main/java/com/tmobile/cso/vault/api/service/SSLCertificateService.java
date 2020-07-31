@@ -114,10 +114,6 @@ public class SSLCertificateService {
     @Autowired
     private TokenValidator tokenValidator;
 
-    @Autowired
-	private AccessService accessService;
-
-
     @Value("${vault.auth.method}")
     private String vaultAuthMethod;
 
@@ -1530,8 +1526,7 @@ public class SSLCertificateService {
    	 * @return
    	 */
 	private String getsslmetadatalist(String certificateResponse, String token, UserDetails userDetails,
-			String certName, Integer limit, Integer offset) {
-		String path = SSLCertificateConstants.SSL_CERT_PATH  ;
+			String certName, Integer limit, Integer offset, String path) {
 
    		String pathStr= "";
    		String endPoint = "";
