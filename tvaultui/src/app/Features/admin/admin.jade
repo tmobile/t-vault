@@ -199,6 +199,16 @@ script(type='text/ng-template', id='certificatePopup.html')
                           div.input-cross.svcaccid(ng-if='!isUserSearchLoading && certObj.certDetails.ownerEmail.length > 2' ng-click="clearOwnerEmail()")
                             div.delete-title
                                 img.delete-icon(src="../../assets/images/delete.png")
+                    .col-lg-12.col-md-12.col-sm-12.col-xs-12.common-form-row()
+                      .details-input-group
+                        .common-form-label DNS
+                        div.dns-wrapper
+                          .col-lg-8.col-md-8.col-sm-8.col-xs-8
+                            input.form-control.input-box-style(id="dns" ng-model="multiSanDnsName.name" ng-change="replaceSpacesDnsName()")
+                            div.key-acceptance-info() {{ certDnsErrorMessage }}
+                          .col-lg-4.col-md-4.col-sm-4.col-xs-4
+                            button.common-btn.dns-add-btn(ng-click="addDns(multiSanDnsName)" ng-disabled="dnsInvalid") Add DNS
+                        div.form-control.input-box-style.dns-list(id="dnslist")
               .cert-conf.clearfix
                 .font-type-normal.collapse-link(ng-click="collapseCertDetails(1)") Step 2/3: Please fill the Target system details 
                   span.collapse-link(ng-if="!isTargetCollapsed") >> 
@@ -568,7 +578,7 @@ script(type='text/ng-template', id='manageSecretId.html')
                               div.cert-management-content
                                 loading-state(ng-if='isLoadingData')                               
                                 md-tabs.admin-tabs.md-dynamic-height.md-border-bottom
-                                    md-tab(  ng-attr-label="All certificates")
+                                    md-tab(  ng-attr-label="Internal certificates")
                                         md-content(class="md-content-wrapper")
                                           div.data-management-content
                                             .row.change-safe-table-container(ng-if='true')
@@ -613,7 +623,8 @@ script(type='text/ng-template', id='manageSecretId.html')
                                                       button.show-more-btn VIEW MORE
                                                       span
                                                           img(src="assets/icons/front-arrow.svg")
-                             
+                                    md-tab( md-on-select="getExtCertificates()" ng-if='!isLoadingData' ng-attr-label="External certificates")
+                                        md-content(class="md-padding md-content-wrapper")
                                               
 
 

@@ -19,7 +19,7 @@
 
 'use strict';
 (function (app) {
-    app.controller('AdminCtrl', function ($scope, $rootScope, Modal, fetchData, $http, $window, $state, SessionStore, AdminSafesManagement, ModifyUrl, UtilityService, Notifications, safesService, RestEndpoints, filterFilter, orderByFilter) {
+    app.controller('AdminCtrl', function ($scope, $rootScope, Modal, fetchData, $http, $window, $state, SessionStore, AdminSafesManagement, ModifyUrl, UtilityService, Notifications, safesService, RestEndpoints, filterFilter, orderByFilter, $compile) {
 
         $scope.filterValue = '';            // Initial search filter value kept empty
         $scope.isLoadingData = false;       // Variable to set the loader on
@@ -36,6 +36,7 @@
         $scope.isCertCollapsed = false;
         $scope.isTargetCollapsed = true;
         $scope.isTargetServiceCollapsed = true;
+        $scope.dnsInvalid = true;
         // Type of safe to be filtered from the rest
 
         $scope.safeType = {
@@ -146,7 +147,10 @@
             $scope.isUserSearchLoading = false;
             $scope.isOwnerSelected = false;
             setTargetSystemServiceList("No target system selected", []);
-            $scope.certificateData.certificates = [];            
+            $scope.certificateData.certificates = [];
+            $scope.multiSan = [];
+            $scope.selectedMultiSan = [];
+            $scope.multiSanDnsName = { name:""};
 
             $scope.targetSystem = {
                 'description': '',
@@ -571,28 +575,40 @@
                         $scope.error('md');
                     });
             }
-            getCertificates("", null, null);
+            getCertificates("", null, null,"internal");
         };
 
+        $scope.getExtCertificates = function () {   
+        	
+        	getCertificates("", null, null,"External");
+        }
+        
         //Get ssl certificate
-        var getCertificates =  function (searchCert, limit, offset) {
+        var getCertificates =  function (searchCert, limit, offset, certType) {
             $scope.numOfCertificates = 0;
             $scope.certificatesLoaded = false;
             $scope.certificateData = {"certificates": []};
             $scope.isLoadingData = true;
-            $scope.isLoadingCerts = true;
+            $scope.isLoadingCerts = true;            
             
             var limitQuery = "";
             var offsetQuery= "";
+            var certTypeQuery= "";
             if (limit !=null) {
                 limitQuery = "&limit="+limit;
             }
             if (offset!=null) {
                 offsetQuery= "&offset="+offset;
-            }            
-            var updatedUrlOfEndPoint = ModifyUrl.addUrlParameteres('getCertificates',"certificateName="+searchCert + limitQuery + offsetQuery);
+            }
+            if (certType!=null) {
+            	certTypeQuery= "&certType="+certType;
+            }             
+            var updatedUrlOfEndPoint = ModifyUrl.addUrlParameteres('getCertificates',"certificateName="+searchCert + limitQuery + offsetQuery+certTypeQuery);
             
-            AdminSafesManagement.getCertificates(null, updatedUrlOfEndPoint).then(function (response) {
+            AdminSafesManagement.getCertificates(null, updatedUrlOfEndPoint).then(function (response) {            	
+            	if(certType=="External"){
+            		$scope.selectedIndex =9;
+            		}
                 if (UtilityService.ifAPIRequestSuccessful(response)) {
                     if(response.data != "" && response.data != undefined) {
                         $scope.certificateData.certificates = response.data.keys;
@@ -643,14 +659,14 @@
         	if($scope.selectedIndex ==3){
             if ($scope.searchValue != '' && $scope.searchValue != undefined && $scope.searchValue.length > 2 && $scope.certSearchValue != $scope.searchValue) {                
             	$scope.certSearchValue = $scope.searchValue;
-                getCertificates($scope.certSearchValue, null, null);
+                getCertificates($scope.certSearchValue, null, null,"internal");
             }
             if($scope.certSearchValue != $scope.searchValue && $scope.searchValue != undefined && $scope.searchValue.length ==1) {            	            	
                 $scope.certSearchValue = $scope.searchValue;                
             }
             if($scope.certSearchValue != $scope.searchValue) {            	
                 $scope.certSearchValue = $scope.searchValue;
-                getCertificates("", null, null);
+                getCertificates("", null, null, "internal");
             }
         }
         }
@@ -658,7 +674,7 @@
         $scope.showMoreCert = function () {
             var offset = $scope.certificateData.offset;
             var limit = $scope.certificateData.limit;
-            getCertificates($scope.certSearchValue, limit, limit + offset);
+            getCertificates($scope.certSearchValue, limit, limit + offset,"internal");
         }
 
         $scope.getTargetSystems = function () {
@@ -666,7 +682,9 @@
             $scope.targetSystemSelected = false;
             $scope.showInputLoader.show = true;
             $scope.isTargetSystemListLoading = true;
-            return AdminSafesManagement.getTargetSystems().then(function (response) {
+            var certType = $scope.certObj.certDetails.certType;
+            var updatedUrlOfEndPoint = RestEndpoints.baseURL + "/v2/sslcert/" + certType + "/targetsystems";
+            return AdminSafesManagement.getTargetSystems(null, updatedUrlOfEndPoint).then(function (response) {
                 if (UtilityService.ifAPIRequestSuccessful(response)) {
                     $scope.targetSystemList = response.data.data;
                     $scope.showInputLoader.show = false;
@@ -705,7 +723,7 @@
             $scope.isLoadingserviceData = true;
             $scope.targetSystemServiceSelected = false;
             if ($scope.targetSystemSelected == true) {
-                var targetSystemId = $scope.certObj.targetSystem.targetSystemID;
+                var targetSystemId = $scope.certObj.targetSystem.targetSystemID;                
                 $scope.showServiceInputLoader.show = true;
                 var updatedUrlOfEndPoint = RestEndpoints.baseURL + "/v2/sslcert/targetsystems/" + targetSystemId + "/targetsystemservices";
                 return AdminSafesManagement.getTargetSystemsServices(null, updatedUrlOfEndPoint).then(function (response) {
@@ -1630,6 +1648,10 @@
                 var sslcertType = 'PRIVATE_SINGLE_SAN';
                 $scope.appNameTagValue=$scope.certObj.certDetails.applicationName;
                 $scope.certObj.sslcertType = sslcertType;
+                var multiSanDns = [];
+                $scope.multiSan.forEach(function (dns) {
+                    multiSanDns.push(dns.name);
+                });
                 var reqObjtobeSent =  {
                     "sslcertType": $scope.certObj.sslcertType,
                     "targetSystem": $scope.certObj.targetSystem,
@@ -1638,7 +1660,8 @@
                     "certificateName":$scope.certObj.certDetails.certName,
                     "certType":$scope.certObj.certDetails.certType,
                     "certOwnerEmailId":$scope.certObj.certDetails.ownerEmail,
-                    "certOwnerNTId":$scope.certObj.certDetails.ownerNtId
+                    "certOwnerNTId":$scope.certObj.certDetails.ownerNtId,
+                    "multiSan": multiSanDns
                 }
                 $scope.certificateCreationMessage = '';
                 var url = '';
@@ -1678,7 +1701,7 @@
 
         $scope.successCancel = function () {
             Modal.close('');
-            getCertificates("", null, null);
+            getCertificates("", null, null,"internal");
         };
 
         $scope.collapseCertDetails = function (index) {
@@ -1732,6 +1755,7 @@
             $scope.revocationStatusMessage = '';
             var certificateName = $scope.getCertSubjectName(certificateDetails);
             $scope.certificateNameForRevoke = certificateName;
+            $scope.certificateTypeForRevoke = certificateDetails.certType;
             var updatedUrlOfEndPoint = RestEndpoints.baseURL + "/v2/certificates/" + certificateDetails.certificateId + "/revocationreasons";
             $scope.revocationReasons = [];
             AdminSafesManagement.getRevocationReasons(null, updatedUrlOfEndPoint).then(function (response) {
@@ -1784,7 +1808,7 @@
                     "reason": $scope.dropdownRevocationReasons.selectedGroupOption.value
                 }
                
-                var url = RestEndpoints.baseURL + "/v2/certificates/" + $scope.certificateNameForRevoke + "/revocationrequest";
+                var url = RestEndpoints.baseURL + "/v2/certificates/" + $scope.certificateTypeForRevoke +"/" +$scope.certificateNameForRevoke   + "/revocationrequest";
                 $scope.isLoadingData = true;
                 AdminSafesManagement.issueRevocationRequest(reqObjtobeSent, url).then(function (response) {
 
@@ -2001,8 +2025,9 @@
                 Modal.close();                
                 $scope.renewMessage = '';
                 var certificateName = $scope.getCertSubjectName(certificateDetails);
-                $scope.certificateNameForRenew = certificateName;          
-                var url = RestEndpoints.baseURL + "/v2/certificates/" + certificateName + "/renew";
+                $scope.certificateNameForRenew = certificateName; 
+                var certType = certificateDetails.certType;
+                var url = RestEndpoints.baseURL + "/v2/certificates/" +certType+"/"+ certificateName + "/renew";
                 $scope.isLoadingData = true;                              
                 
                 AdminSafesManagement.renewCertificate(null, url).then(function (response) {
@@ -2042,6 +2067,76 @@
             
             $scope.revocationReasonSelect = function(){
                $scope.dropdownRevocationReasons.selectedGroupOption.type;
+            }
+
+            var isDuplicateDns = function (multiSanDnsName) {
+                $scope.certDnsErrorMessage = '';
+                for (var i=0;i<$scope.multiSan.length;i++) {
+                    if (multiSanDnsName == $scope.multiSan[i].name) {
+                        $scope.certDnsErrorMessage = 'Duplicate DNS';
+                        return true;
+                    }
+                }
+                return false;
+            }
+
+            $scope.addDns = function (multiSanDnsName) {
+                var length = $scope.multiSan.length;
+                if (multiSanDnsName && multiSanDnsName.name!="") {
+                    var id="dns"+length;
+                    angular.element('#dnslist').append($compile('<div class="row change-data item ng-scope" id="'+id+'"><div class="container name col-lg-8 col-md-8 col-sm-8 col-xs-8 ng-binding dns-name">'+multiSanDnsName.name+'</div><div class="container radio-inputs col-lg-4 col-md-4 col-sm-4 col-xs-4 dns-delete"><div class="down"><div ng-click="deleteDns(&quot;'+id+'&quot;)" class="list-icon icon-delete" role="button" tabindex="0"></div></div></div></div>')($scope));
+                    $scope.multiSan.push({ "id": length, "name":multiSanDnsName.name});
+                    $scope.multiSanDnsName.name = "";
+                    $scope.dnsInvalid = true;
+                }
+            }
+
+            $scope.deleteDns = function (id) {
+                var dnsElement = angular.element( document.querySelector( '#'+id ) );
+                dnsElement.remove();
+                var index = id.substring(3);
+                $scope.selectedMultiSan = [];
+                for (var i=0;i<$scope.multiSan.length;i++) {
+                    if (index != $scope.multiSan[i].id) {
+                        $scope.selectedMultiSan.push($scope.multiSan[i]);
+                    }
+                }
+                $scope.multiSan = $scope.selectedMultiSan;
+            }
+
+            $scope.replaceSpacesDnsName = function () {
+                if ($scope.multiSanDnsName.name !== null && $scope.multiSanDnsName.name !== undefined) {
+                    $scope.multiSanDnsName.name = $scope.multiSanDnsName.name.toLowerCase();
+                    $scope.multiSanDnsName.name = $scope.multiSanDnsName.name.replace(/[ ]/g, '');
+                    return $scope.dnsPatternValidation();
+                }
+            }
+
+            $scope.dnsPatternValidation = function () {
+                $scope.certDnsErrorMessage = '';
+                $scope.dnsInvalid = false;
+                if ($scope.multiSanDnsName.name != null && $scope.multiSanDnsName.name != undefined
+                    && $scope.multiSanDnsName.name != "") {
+                    var reg = new RegExp("^[a-zA-Z0-9.-]+$")
+                    if (!reg.test($scope.multiSanDnsName.name)) {
+                        $scope.certDnsErrorMessage = "Certificate Name can have alphabets, numbers, . and - characters only."
+                        $scope.dnsInvalid = true;
+                    } else {
+                        var certName = $scope.multiSanDnsName.name.toLowerCase();
+                        if (!certName.endsWith(".t-mobile.com")) {
+                            $scope.certDnsErrorMessage = "Certificate name should end with .t-mobile.com"
+                            $scope.dnsInvalid = true;
+                        }  else if ( (certName.includes(".-")) || (certName.includes("-."))){
+                            $scope.certDnsErrorMessage = "Please enter a valid certificate name"
+                            $scope.dnsInvalid = true;
+                        } else if (isDuplicateDns($scope.multiSanDnsName.name)) {
+                            $scope.certDnsErrorMessage = "Duplicate DNS"
+                            $scope.dnsInvalid = true;
+                        }
+                    }
+                } else {
+                    $scope.dnsInvalid = true;
+                }
             }
 
         init();
