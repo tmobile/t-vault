@@ -98,8 +98,7 @@
             url: url,
             data: reqObjtobeSent,
             headers: {
-                'Content-type': 'application/json',
-                'vault-token': AppConstant.OIDC_TOKEN
+                'Content-type': 'application/json'
             }
         }).then(function (response) {
             window.open(response.data.data.auth_url,"_self");
@@ -112,10 +111,7 @@
         var url = RestEndpoints.baseURL + '/v2/auth/oidc/callback?state='+state+'&code='+code;
         return $http({
           method: 'GET',
-          url: url,
-          headers: {
-              'vault-token': AppConstant.OIDC_TOKEN
-          }
+          url: url
         }).then(function (response) {
             console.log(response);
             return response;
@@ -131,7 +127,7 @@
     };
 
     function logout(withoutRevoke) {
-      var url = '/';
+      var url = '/#!/';
       if (withoutRevoke) {
         window.location.replace(url)
       } else {

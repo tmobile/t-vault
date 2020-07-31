@@ -176,20 +176,19 @@ public class OIDCAuthController {
 	 */
 	@PostMapping(value="/v2/auth/oidc/auth_url",produces="application/json")
 	@ApiOperation(value = "${VaultAuthControllerV2.login.value}", notes = "${VaultAuthControllerV2.login.notes}")
-	public ResponseEntity<String> getAuthUrl(@RequestBody OidcRequest oidcRequest, @RequestHeader(value="vault-token") String token){
+	public ResponseEntity<String> getAuthUrl(@RequestBody OidcRequest oidcRequest){
 		return oidcAuthService.getAuthUrl(oidcRequest);
 	}
 
 	/**
 	 * Process OIDC callback.
-	 * @param token
 	 * @param state
 	 * @param code
 	 * @return
 	 */
 	@GetMapping(value="/v2/auth/oidc/callback",produces="application/json")
 	@ApiOperation(value = "${VaultAuthControllerV2.renew.value}", notes = "${VaultAuthControllerV2.renew.notes}")
-	public ResponseEntity<String> processOIDCCallback(@RequestHeader(value="vault-token") String token, @RequestParam(name="state", required = false) String state, @RequestParam(name="code", required = false) String code){
+	public ResponseEntity<String> processOIDCCallback(@RequestParam(name="state", required = false) String state, @RequestParam(name="code", required = false) String code){
 		return oidcAuthService.processOIDCCallback(state, code);
 
 	}
