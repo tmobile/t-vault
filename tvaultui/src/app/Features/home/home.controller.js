@@ -48,7 +48,6 @@
                 'forgotPasswordLink': $scope.forgotPasswordLink
             }
 
-            var searchObj = $location.search();
             const urlParams = new URLSearchParams(window.location.search);
             if (urlParams.get('code') && urlParams.get('state')) {
                 getSSOCallback(urlParams.get('code'), urlParams.get('state'));

@@ -261,7 +261,6 @@ public class OIDCAuthServiceTest {
 
         OidcRequest oidcRequest = new OidcRequest("default", "http://localhost:3000");
         String jsonStr = "{  \"role\": \"default\",  \"redirect_uri\": \"http://localhost:3000\"}";
-        String token = "8766fdhjSAtH2a4MdvMyzWid";
         String responseJson = "{\n" +
                 "  \"request_id\": \"test8b8-6ac68f0ab58d\",\n" +
                 "  \"lease_id\": \"\",\n" +
@@ -275,9 +274,8 @@ public class OIDCAuthServiceTest {
                 "  \"auth\": null\n" +
                 "}";
         Response response = getMockResponse(HttpStatus.OK, true, responseJson);
-        when(tokenUtils.getSelfServiceToken()).thenReturn(token);
         when(JSONUtil.getJSON(Mockito.any(OidcRequest.class))).thenReturn(jsonStr);
-        when(reqProcessor.process("/auth/oidc/oidc/auth_url",jsonStr,token)).thenReturn(response);
+        when(reqProcessor.process("/auth/oidc/oidc/auth_url",jsonStr,"")).thenReturn(response);
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(responseJson);
 
         ResponseEntity<String> responseEntity = oidcAuthService.getAuthUrl(oidcRequest);
@@ -290,12 +288,10 @@ public class OIDCAuthServiceTest {
 
         OidcRequest oidcRequest = new OidcRequest("default", "http://localhost:3000");
         String jsonStr = "{  \"role\": \"default\",  \"redirect_uri\": \"http://localhost:3000\"}";
-        String token = "8766fdhjSAtH2a4MdvMyzWid";
         String responseJson = "{\"errors\":[\"Failed to get OIDC auth url\"]}";
         Response response = getMockResponse(HttpStatus.BAD_REQUEST, true, responseJson);
-        when(tokenUtils.getSelfServiceToken()).thenReturn(token);
         when(JSONUtil.getJSON(Mockito.any(OidcRequest.class))).thenReturn(jsonStr);
-        when(reqProcessor.process("/auth/oidc/oidc/auth_url",jsonStr,token)).thenReturn(response);
+        when(reqProcessor.process("/auth/oidc/oidc/auth_url",jsonStr,"")).thenReturn(response);
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body(responseJson);
 
         ResponseEntity<String> responseEntity = oidcAuthService.getAuthUrl(oidcRequest);
@@ -309,7 +305,6 @@ public class OIDCAuthServiceTest {
         String state = "teststatecode";
         String code = "testauthcode";
         String pathStr = "?code="+code+"&state="+state;
-        String token = "8766fdhjSAtH2a4MdvMyzWid";
         String responseJson = "{\n" +
                 "\"client_token\": \"testmioJHmaUB1k7PB2wUDh\",\n" +
                 "\"admin\": \"yes\",\n" +
@@ -330,8 +325,7 @@ public class OIDCAuthServiceTest {
 
         Response response = getMockResponse(HttpStatus.OK, true, responseJson);
 
-        when(tokenUtils.getSelfServiceToken()).thenReturn(token);
-        when(reqProcessor.process("/auth/oidc/oidc/callback","{\"path\":\""+pathStr+"\"}",token)).thenReturn(response);
+        when(reqProcessor.process("/auth/oidc/oidc/callback","{\"path\":\""+pathStr+"\"}","")).thenReturn(response);
         Map<String, Object> access = new HashMap<>();
         when(ControllerUtil.filterDuplicateSafePermissions(Mockito.any())).thenReturn(access);
         when(ControllerUtil.filterDuplicateSvcaccPermissions(Mockito.any())).thenReturn(access);
@@ -349,13 +343,11 @@ public class OIDCAuthServiceTest {
         String state = "teststatecode";
         String code = "testauthcode";
         String pathStr = "?code="+code+"&state="+state;
-        String token = "8766fdhjSAtH2a4MdvMyzWid";
         String responseJson = "{\"errors\":[\"Failed to get process callback\"]}";;
 
         Response response = getMockResponse(HttpStatus.BAD_REQUEST, true, responseJson);
 
-        when(tokenUtils.getSelfServiceToken()).thenReturn(token);
-        when(reqProcessor.process("/auth/oidc/oidc/callback","{\"path\":\""+pathStr+"\"}",token)).thenReturn(response);
+        when(reqProcessor.process("/auth/oidc/oidc/callback","{\"path\":\""+pathStr+"\"}","")).thenReturn(response);
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body(responseJson);
 
         ResponseEntity<String> responseEntity = oidcAuthService.processOIDCCallback(state, code);
