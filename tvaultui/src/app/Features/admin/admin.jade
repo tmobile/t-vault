@@ -615,6 +615,8 @@ script(type='text/ng-template', id='manageSecretId.html')
                                                               .list-icon(ng-if="value.certificateStatus=='Active'" ng-click="renewCertPopup(value)")  Renew certificate                                                                                                                   
                                                           .down.deletesecretids
                                                               .list-icon(ng-click="revokeCertificate(value)") Revoke certificate 
+                                                          .down.view
+                                                              .list-icon() Transfer Owner     
                                                               
                                                       .container.radio-inputs.col-lg-2.col-md-2.col-sm-2.col-xs-2
                                               .pagination-wrapper(ng-show='hasMoreCertsToShow()')
