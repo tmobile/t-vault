@@ -4131,4 +4131,92 @@ public class SSLCertificateService {
 			return ResponseEntity.status(response.getHttpstatus()).body(response.getResponse());
 		}
 	}
+	
+	/**
+     * To update the owner of an existing certificate.
+     * @param token
+     * @param userDetails
+     * @return
+     * @throws Exception
+     */
+    public ResponseEntity<String> updateCertOwner(String token, String certificateName,String certOwnerEmailId, UserDetails userDetails) throws Exception {
+    	Map<String, String> metaDataParams = new HashMap<String, String>();
+
+		String endPoint = certificateName;
+		String _path = SSLCertificateConstants.SSL_CERT_PATH + "/" + endPoint;
+		Response response = new Response();
+		if (!userDetails.isAdmin()) {
+			Boolean isPermission = validateOwnerPermissionForNonAdmin(userDetails, certificateName);
+
+			if (!isPermission) {
+				return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+						.body("{\"errors\":[\""
+								+ "Access denied: No permission to transfer the ownership of this certificate"
+								+ "\"]}");
+			}
+		}
+		try {
+			if (userDetails.isAdmin()) {
+				response = reqProcessor.process("/read", "{\"path\":\"" + _path + "\"}", token);
+			} else {
+				response = reqProcessor.process("/read", "{\"path\":\"" + _path + "\"}",
+						userDetails.getSelfSupportToken());
+			}
+		} catch (Exception e) {
+			log.error(
+					JSONUtil.getJSON(
+							ImmutableMap.<String, String> builder()
+									.put(LogMessage.USER,
+											ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString())
+									.put(LogMessage.ACTION,
+											String.format("Exception = [%s] =  Message [%s]",
+													Arrays.toString(e.getStackTrace()), response.getResponse()))
+									.build()));
+			return ResponseEntity.status(response.getHttpstatus())
+					.body("{\"messages\":[\"" + "Certficate unavailable" + "\"]}");
+		}
+		if (!HttpStatus.OK.equals(response.getHttpstatus())) {
+			return ResponseEntity.status(response.getHttpstatus())
+					.body("{\"errors\":[\"" + "Certficate unavailable" + "\"]}");
+		}
+		JsonParser jsonParser = new JsonParser();
+		JsonObject object = ((JsonObject) jsonParser.parse(response.getResponse())).getAsJsonObject("data");
+		metaDataParams = new Gson().fromJson(object.toString(), Map.class);			
+		
+		boolean sslMetaDataUpdationStatus;
+		metaDataParams.put("certOwnerEmailId", certOwnerEmailId);
+		CertResponse updateResponse = new CertResponse();
+		try {
+		if (userDetails.isAdmin()) {
+			sslMetaDataUpdationStatus = ControllerUtil.updateMetaData(_path, metaDataParams, token);
+		} else {
+			sslMetaDataUpdationStatus = ControllerUtil.updateMetaData(_path, metaDataParams,
+					userDetails.getSelfSupportToken());
+		}
+		if (sslMetaDataUpdationStatus) {
+			return ResponseEntity.status(updateResponse.getHttpstatus())
+					.body("{\"messages\":[\"" + "Revocation done successfully" + "\"]}");
+		} else {
+			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+					.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString())
+					.put(LogMessage.ACTION, "Revocation Request Failed")
+					.put(LogMessage.MESSAGE, "Revocation Request failed for CertificateID")
+					.put(LogMessage.STATUS, updateResponse.getHttpstatus().toString())
+					.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString())
+					.build()));
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+					.body("{\"errors\":[\"" + "Revocation failed" + "\"]}");
+		}
+	
+	} catch (Exception e) {
+		log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+				.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString())
+				.put(LogMessage.ACTION, String.format("Inside  Exception = [%s] =  Message [%s]",
+						Arrays.toString(e.getStackTrace()), e.getMessage()))
+				.build()));
+		return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+				.body("{\"errors\":[\"" + e.getMessage() + "\"]}");
+	}
+
+    }
 }
