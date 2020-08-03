@@ -8,13 +8,15 @@ import io.swagger.annotations.ApiModelProperty;
 
 public class CertificateGroup implements Serializable{
 
-	
+	private static final long serialVersionUID = 4382873160455605317L;
 	@NotNull
 	private String certificateName;
 	@NotNull
 	private String groupname;
 	@NotNull
 	private String access;
+	@NotNull
+	private String certType;
 	
 	public CertificateGroup() {
 		super();
@@ -27,11 +29,12 @@ public class CertificateGroup implements Serializable{
 	 */
 	
 	
-	public CertificateGroup(String certificateName, String groupname, String access) {
+	public CertificateGroup(String certificateName, String groupname, String access, String certType) {
 		super();
 		this.certificateName = certificateName;
 		this.groupname = groupname;
 		this.access = access;
+		this.certType = certType;
 	}
 
 	
@@ -63,5 +66,12 @@ public class CertificateGroup implements Serializable{
 		this.access = access;
 	}
 
-
+	@ApiModelProperty(example="internal", position=4)
+	public String getCertType() {
+		return certType;
 	}
+
+	public void setCertType(String certType) {
+		this.certType = certType;
+	}
+}
