@@ -202,10 +202,10 @@ public class SSLCertificateControllerTest {
     public void testAddUsertoCertificate() throws Exception {
         String responseJson = "{\"messages\":[\"User is successfully associated \"]}";
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(responseJson);       
-        CertificateUser certUser = new CertificateUser("testuser1","read", "certificatename.t-mobile.com");
+        CertificateUser certUser = new CertificateUser("testuser1","read", "certificatename.t-mobile.com", "internal");
 
         String inputJson =new ObjectMapper().writeValueAsString(certUser);
-        when(sslCertificateService.addUserToCertificate(eq("5PDrOhsy4ig8L3EpsJZSLAMg"), Mockito.any(CertificateUser.class), eq(userDetails), Mockito.anyBoolean())).thenReturn(responseEntityExpected);
+        when(sslCertificateService.addUserToCertificate(Mockito.any(CertificateUser.class), eq(userDetails), Mockito.anyBoolean())).thenReturn(responseEntityExpected);
 
         mockMvc.perform(MockMvcRequestBuilders.post("/v2/sslcert/user").requestAttr("UserDetails", userDetails)
                 .header("vault-token", "5PDrOhsy4ig8L3EpsJZSLAMg")
@@ -218,7 +218,7 @@ public class SSLCertificateControllerTest {
 
     @Test
     public void testAssociateApproletoCertificate() throws Exception {
-    	CertificateApprole certificateApprole = new CertificateApprole("certificatename.t-mobile.com", "role1", "read");
+    	CertificateApprole certificateApprole = new CertificateApprole("certificatename.t-mobile.com", "role1", "read", "internal");
 
         String inputJson =new ObjectMapper().writeValueAsString(certificateApprole);
         String responseJson = "{\"messages\":[\"Approle successfully associated with Certificate\"]}";
@@ -281,7 +281,7 @@ public class SSLCertificateControllerTest {
     
     @Test
     public void testRemoveUserFromCertificate() throws Exception {
-        CertificateUser certUser = new CertificateUser("testuser1","read", "certificatename.t-mobile.com");   	
+        CertificateUser certUser = new CertificateUser("testuser1","read", "certificatename.t-mobile.com", "internal");   	
         String expected = "{\"message\":[\"Successfully removed user from the certificate\"]}";
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(expected);
         when(sslCertificateService.removeUserFromCertificate(Mockito.any(), Mockito.any())).thenReturn(responseEntityExpected);
@@ -299,7 +299,7 @@ public class SSLCertificateControllerTest {
     
     @Test
     public void testRemoveGroupFromCertificate() throws Exception {
-    	CertificateGroup certGroup = new CertificateGroup("certificatename.t-mobile.com", "testgroup","read");   	
+    	CertificateGroup certGroup = new CertificateGroup("certificatename.t-mobile.com", "testgroup","read", "internal");   	
         String expected = "{\"message\":[\"Group is successfully removed from certificate\"]}";
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(expected);
         when(sslCertificateService.removeGroupFromCertificate(Mockito.any(), Mockito.any())).thenReturn(responseEntityExpected);
@@ -342,7 +342,7 @@ public class SSLCertificateControllerTest {
     public void testAddGrouptoCertificate() throws Exception {
 		String responseJson = "{\"messages\":[\"Group is successfully associated with Certificate\"]}";
 		ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(responseJson);
-		CertificateGroup certGroup = new CertificateGroup("certificatename.t-mobile.com","testgroup","read");
+		CertificateGroup certGroup = new CertificateGroup("certificatename.t-mobile.com","testgroup","read", "internal");
 		String inputJson =new ObjectMapper().writeValueAsString(certGroup);
 		when(sslCertificateService.addingGroupToCertificate(eq("5PDrOhsy4ig8L3EpsJZSLAMg"), Mockito.any(CertificateGroup.class))).thenReturn(responseEntityExpected);
 		 mockMvc.perform(MockMvcRequestBuilders.post("/v2/ss/certificate/group").requestAttr("UserDetails", userDetails)
