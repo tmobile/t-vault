@@ -408,7 +408,8 @@
                 try {
                     key = key.replace($scope.domainName, '');
                     $scope.isLoadingData = true;
-                    var certName = $scope.certificateName;                    
+                    var certName = $scope.certificateName;
+                    var certficateType = $scope.certificateType;
                     var apiCallFunction = '';
                     var reqObjtobeSent = {};
                     switch (type) {
@@ -418,14 +419,16 @@
                                 reqObjtobeSent = {
                                     "certificateName": certName,
                                     "username": key,
-                                    "access": permission
+                                    "access": permission,
+                                    "certType": certficateType
                                 };
                             }
                             else {
                                 reqObjtobeSent = {
                                     "certificateName": certName,
                                     "username": key,
-                                    "access": permission
+                                    "access": permission,
+                                    "certType": certficateType
                                 };
                             }
                             break;
@@ -434,7 +437,8 @@
                             reqObjtobeSent = {
                                 "certificateName": certName,
                                 "groupname": key,
-                                "access": permission
+                                "access": permission,
+                                "certType": certficateType
                             };
                             break;
                         case 'AWSPermission' :
@@ -540,12 +544,14 @@
                 // Prefilled values when editing
                 $scope.changeCertificateHeader = "EDIT CERTIFICATE";
                 $scope.certificateName = $stateParams.certificateObject.certificateName;
+                $scope.certificateType = $stateParams.certificateObject.certType;
                 $scope.isEditSafe = true;
                 $scope.typeDropdownDisable = true;
                 var certName = $stateParams.certificateObject.certificateName;
+                var certificateType = $stateParams.certificateObject.certType;
                 try {
 
-                    var updatedUrlOfEndPoint = ModifyUrl.addUrlParameteres('getCertificates',"certificateName="+certName );
+                    var updatedUrlOfEndPoint = ModifyUrl.addUrlParameteres('getCertificates',"certificateName="+certName+"&certType="+certificateType );
                     AdminSafesManagement.getCertificates(null, updatedUrlOfEndPoint).then(function (response) {                        
                         if (UtilityService.ifAPIRequestSuccessful(response)) {
                             
@@ -761,6 +767,7 @@
                     $scope.showInputLoader.show = false;
                     $scope.showNoMatchingResults = false;
                     var certName = $scope.certificateName;
+                    var certficateType = $scope.certificateType;
                     var apiCallFunction = '';
                     var reqObjtobeSent = {};
                     // extract only userId/groupId from key
@@ -775,11 +782,11 @@
                     switch (type) {
                         case 'users' :
                             apiCallFunction = AdminSafesManagement.addUserPermissionForCertificate;
-                            reqObjtobeSent = {"certificateName": certName, "username": key, "access": permission.toLowerCase()};
+                            reqObjtobeSent = {"certificateName": certName, "username": key, "access": permission.toLowerCase(), "certType":certficateType};
                             break;
                         case 'groups' : 
                             apiCallFunction = AdminSafesManagement.addGroupPermissionForCertificate;                           
-                            reqObjtobeSent = {"certificateName": certName, "groupname": key, "access": permission.toLowerCase()};
+                            reqObjtobeSent = {"certificateName": certName, "groupname": key, "access": permission.toLowerCase(), "certType":certficateType};
                             break;
                         case 'AWSPermission' :                            
                             reqObjtobeSent = {"certificateName": certName, "role": key, "access": permission.toLowerCase()};
@@ -790,7 +797,7 @@
                             break;
                         case 'AppRolePermission' : 
                             apiCallFunction = AdminSafesManagement.addApprolePermissionForCertificate;
-                            reqObjtobeSent = {"certificateName": certName, "approleName": key, "access": permission.toLowerCase()};
+                            reqObjtobeSent = {"certificateName": certName, "approleName": key, "access": permission.toLowerCase(), "certType":certficateType};
                             break;
                     }
                     apiCallFunction(reqObjtobeSent, updatedUrlOfEndPoint).then(function (response) {
