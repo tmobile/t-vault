@@ -3,21 +3,12 @@ package com.tmobile.cso.vault.api.v2.controller;
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 
+import com.tmobile.cso.vault.api.model.*;
+import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
-import com.tmobile.cso.vault.api.model.GroupAliasRequest;
-import com.tmobile.cso.vault.api.model.OIDCEntityRequest;
-import com.tmobile.cso.vault.api.model.OIDCIdentityGroupRequest;
-import com.tmobile.cso.vault.api.model.OIDCLookupEntityRequest;
 import com.tmobile.cso.vault.api.service.OIDCAuthService;
 
 import io.swagger.annotations.Api;
@@ -177,6 +168,29 @@ public class OIDCAuthController {
 			@RequestHeader(value = "vault-token") String token,
 			@Valid @RequestBody GroupAliasRequest groupAliasRequest) {
 		return oidcAuthService.createGroupAlias(token, groupAliasRequest);
+	}
+
+	/**
+	 * Login to TVault
+	 * @returnC
+	 */
+	@PostMapping(value="/v2/auth/oidc/auth_url",produces="application/json")
+	@ApiOperation(value = "${VaultAuthControllerV2.login.value}", notes = "${VaultAuthControllerV2.login.notes}")
+	public ResponseEntity<String> getAuthUrl(@RequestBody OidcRequest oidcRequest){
+		return oidcAuthService.getAuthUrl(oidcRequest);
+	}
+
+	/**
+	 * Process OIDC callback.
+	 * @param state
+	 * @param code
+	 * @return
+	 */
+	@GetMapping(value="/v2/auth/oidc/callback",produces="application/json")
+	@ApiOperation(value = "${VaultAuthControllerV2.renew.value}", notes = "${VaultAuthControllerV2.renew.notes}")
+	public ResponseEntity<String> processOIDCCallback(@RequestParam(name="state", required = false) String state, @RequestParam(name="code", required = false) String code){
+		return oidcAuthService.processOIDCCallback(state, code);
+
 	}
 
 }

@@ -48,17 +48,17 @@
                 'forgotPasswordLink': $scope.forgotPasswordLink
             }
 
-            var searchObj = $location.search();
-            if (searchObj.code && searchObj.state) {
-                // handle call back
-                getSSOCallback(searchObj.code, searchObj.state);
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('code') && urlParams.get('state')) {
+                $scope.isLoadingData = true;
+                getSSOCallback(urlParams.get('code'), urlParams.get('state'));
+                return;
             }
 
             if(SessionStore.getItem("myVaultKey")){
                 // If no call back and token exists in session.
                 $scope.isLoadingData = true;
-                window.location.replace("/home/safes-tabs/safes");
-                return;
+                $state.go('safes', {'fromLogin':true});
             }
 
         }
@@ -95,11 +95,13 @@
                         //SessionStore.setItem("username",username);
                     }
                     saveParametersInSessionStore(response.data);
-                    window.location.replace("/home/safes-tabs/safes");
+                    window.location.replace("/");
+                    return;
                 } else {
                     // callback process failed. Redirect to landing page. If not active token exists then will automatically redirect from landing page to login.
                     $scope.isLoadingData = false;
-                    window.location.replace("/home/safes-tabs/safes");
+                    window.location.replace("/");
+                    return;
                 }
             })
         }
@@ -129,7 +131,7 @@
                 SessionStore.setItem("accessSafes", JSON.stringify(accessSafes));
                 SessionStore.setItem("policies",policies);
                 SessionStore.setItem("feature",JSON.stringify(loginResponseData.feature));
-                $state.go('safes', {'fromLogin':true});
+                //$state.go('safes', {'fromLogin':true});
             }
         }
         var error = function (size) {
