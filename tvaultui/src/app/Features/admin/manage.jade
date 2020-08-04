@@ -129,7 +129,7 @@ script(type='text/ng-template', id='transferCertPopup.html')
                     .col-lg-12.col-md-12.col-sm-12.col-xs-12.common-form-row()
                       .details-input-group
                         .common-form-label New Owner Email Id*
-                        input.form-control.input-box-style(id="certReqOwnerEmail"  ng-model="certObj.certDetails.ownerEmail" ng-change="ownerEmailValidation()" typeahead-min-length="3" uib-typeahead="key as key.userEmail for key in searchEmail($viewValue) | limitTo: 8" typeahead-wait-ms="500" typeahead-on-select="selectOwner(certObj.certDetails.ownerEmail)")
+                        input.form-control.input-box-style(id="certReqOwnerEmail"  ng-model="certObj.certDetails.ownerEmail" ng-change="ownerEmailValidation()" typeahead-min-length="3" uib-typeahead="key as key.userEmail for key in searchEmail($viewValue) | limitTo: 8" typeahead-wait-ms="500" typeahead-on-select="selectOwnerforCert(certObj.certDetails.ownerEmail)")
                         div.key-acceptance-info() {{ certOwnerEmailErrorMessage }}
                         div.loader.svcaccid(ng-if='isUserSearchLoading && certObj.certDetails.ownerEmail.length > 2')
                             div.ball-spin-fade-loader
@@ -179,9 +179,9 @@ script(type='text/ng-template', id='certificatePopup.html')
                       .details-input-group 
                         .common-form-label Certificate Type*
                         label.common-form-label Internal
-                          input(type='radio' id='cert_type' value="internal" ng-model="certObj.certDetails.certType" ng-checked="certObj.certDetails.certType == 'internal'" )
+                          input(type='radio' id='cert_type' value="internal" ng-model="certObj.certDetails.certType" ng-click="getTargetSystems()" ng-checked="certObj.certDetails.certType == 'internal'" )
                         label.common-form-label External
-                          input(type='radio' id='cert_type' value="external" ng-model="certObj.certDetails.certType" ng-checked="certObj.certDetails.certType == 'external'" )
+                          input(type='radio' id='cert_type' value="external" ng-model="certObj.certDetails.certType" ng-click="getTargetSystems()" ng-checked="certObj.certDetails.certType == 'external'" )
                     .col-lg-12.col-md-12.col-sm-12.col-xs-12.common-form-row()
                       .details-input-group
                         .common-form-label Certificate Name*
@@ -597,6 +597,8 @@ script(type='text/ng-template', id='manageSecretId.html')
                                                               .list-icon(ng-if="value.certificateStatus=='Active'" ng-click="renewCertPopup(value)")  Renew certificate                                                                                                                   
                                                           .down.deletesecretids
                                                               .list-icon(ng-click="revokeCertificate(value)") Revoke certificate 
+                                                          .down.view
+                                                              .list-icon(ng-click="transferCertPopup(value)") Transfer Owner     
                                                               
                                                       .container.radio-inputs.col-lg-2.col-md-2.col-sm-2.col-xs-2
                                               .pagination-wrapper(ng-show='hasMoreCertsToShow()')
@@ -645,6 +647,8 @@ script(type='text/ng-template', id='manageSecretId.html')
                                                               .list-icon(ng-if="value.certificateStatus=='Active'" ng-click="renewCertPopup(value)")  Renew certificate                                                                                                                   
                                                           .down.deletesecretids
                                                               .list-icon(ng-click="revokeCertificate(value)") Revoke certificate 
+                                                          .down.view
+                                                              .list-icon(ng-click="transferCertPopup(value)") Transfer Owner     
                                                               
                                                       .container.radio-inputs.col-lg-2.col-md-2.col-sm-2.col-xs-2
                                               .pagination-wrapper(ng-show='hasMoreCertsToShow()')

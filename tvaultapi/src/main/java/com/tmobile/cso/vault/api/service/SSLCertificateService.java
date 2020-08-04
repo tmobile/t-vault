@@ -17,63 +17,6 @@
 
 package com.tmobile.cso.vault.api.service;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.collect.ImmutableMap;
-import com.google.gson.*;
-import com.tmobile.cso.vault.api.common.SSLCertificateConstants;
-import com.tmobile.cso.vault.api.common.TVaultConstants;
-import com.tmobile.cso.vault.api.controller.ControllerUtil;
-import com.tmobile.cso.vault.api.exception.LogMessage;
-import com.tmobile.cso.vault.api.exception.TVaultValidationException;
-import com.tmobile.cso.vault.api.model.*;
-import com.tmobile.cso.vault.api.process.CertResponse;
-import com.tmobile.cso.vault.api.process.RequestProcessor;
-import com.tmobile.cso.vault.api.process.Response;
-import com.tmobile.cso.vault.api.utils.*;
-import com.tmobile.cso.vault.api.validator.TokenValidator;
-import org.apache.commons.collections.MapUtils;
-import org.apache.commons.lang3.ArrayUtils;
-import org.apache.http.HttpEntity;
-import org.apache.http.HttpResponse;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.conn.ssl.NoopHostnameVerifier;
-import org.apache.http.ssl.TrustStrategy;
-import org.apache.http.entity.StringEntity;
-import org.apache.http.impl.client.HttpClientBuilder;
-import org.apache.http.impl.client.LaxRedirectStrategy;
-import org.apache.http.ssl.SSLContextBuilder;
-import org.apache.http.ssl.TrustStrategy;
-import org.apache.http.util.EntityUtils;
-import org.springframework.core.io.InputStreamResource;
-import org.springframework.util.ObjectUtils;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.cglib.transform.impl.AddPropertyTransformer;
-import org.springframework.core.io.InputStreamResource;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Component;
-import org.springframework.util.ObjectUtils;
-import org.springframework.util.StringUtils;
-
-import com.google.gson.Gson;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
-import com.tmobile.cso.vault.api.utils.AuthorizationUtils;
-import com.tmobile.cso.vault.api.utils.CertificateUtils;
-import com.tmobile.cso.vault.api.utils.JSONUtil;
-import com.tmobile.cso.vault.api.utils.ThreadLocalContext;
-
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -84,9 +27,86 @@ import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Base64;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import org.apache.commons.collections.MapUtils;
+import org.apache.commons.lang3.ArrayUtils;
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.conn.ssl.NoopHostnameVerifier;
+import org.apache.http.entity.StringEntity;
+import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.impl.client.LaxRedirectStrategy;
+import org.apache.http.ssl.SSLContextBuilder;
+import org.apache.http.ssl.TrustStrategy;
+import org.apache.http.util.EntityUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.InputStreamResource;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Component;
+import org.springframework.util.ObjectUtils;
+import org.springframework.util.StringUtils;
+
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.ImmutableMap;
+import com.google.gson.Gson;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParseException;
+import com.google.gson.JsonParser;
+import com.tmobile.cso.vault.api.common.SSLCertificateConstants;
+import com.tmobile.cso.vault.api.common.TVaultConstants;
+import com.tmobile.cso.vault.api.controller.ControllerUtil;
+import com.tmobile.cso.vault.api.exception.LogMessage;
+import com.tmobile.cso.vault.api.exception.TVaultValidationException;
+import com.tmobile.cso.vault.api.model.CertManagerLogin;
+import com.tmobile.cso.vault.api.model.CertManagerLoginRequest;
+import com.tmobile.cso.vault.api.model.CertificateApprole;
+import com.tmobile.cso.vault.api.model.CertificateData;
+import com.tmobile.cso.vault.api.model.CertificateDownloadRequest;
+import com.tmobile.cso.vault.api.model.CertificateGroup;
+import com.tmobile.cso.vault.api.model.CertificateUser;
+import com.tmobile.cso.vault.api.model.RevocationRequest;
+import com.tmobile.cso.vault.api.model.SSLCertMetadata;
+import com.tmobile.cso.vault.api.model.SSLCertType;
+import com.tmobile.cso.vault.api.model.SSLCertTypeConfig;
+import com.tmobile.cso.vault.api.model.SSLCertificateMetadataDetails;
+import com.tmobile.cso.vault.api.model.SSLCertificateRequest;
+import com.tmobile.cso.vault.api.model.TargetSystem;
+import com.tmobile.cso.vault.api.model.TargetSystemDetails;
+import com.tmobile.cso.vault.api.model.TargetSystemServiceDetails;
+import com.tmobile.cso.vault.api.model.TargetSystemServiceRequest;
+import com.tmobile.cso.vault.api.model.UserDetails;
+import com.tmobile.cso.vault.api.model.VaultTokenLookupDetails;
+import com.tmobile.cso.vault.api.process.CertResponse;
+import com.tmobile.cso.vault.api.process.RequestProcessor;
+import com.tmobile.cso.vault.api.process.Response;
+import com.tmobile.cso.vault.api.utils.AuthorizationUtils;
+import com.tmobile.cso.vault.api.utils.CertificateUtils;
+import com.tmobile.cso.vault.api.utils.JSONUtil;
+import com.tmobile.cso.vault.api.utils.PolicyUtils;
+import com.tmobile.cso.vault.api.utils.ThreadLocalContext;
+import com.tmobile.cso.vault.api.validator.TokenValidator;
 
 @Component
 public class SSLCertificateService {
@@ -2174,7 +2194,7 @@ public class SSLCertificateService {
 			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
 					.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString())
 					.put(LogMessage.ACTION, "Issue Revocation Request")
-					.put(LogMessage.MESSAGE, "Issue Revocation Request for CertificateID")
+					.put(LogMessage.MESSAGE, String.format("Issue Revocation Request for [%s] requested by [%s] on [%s]", certificateName,userDetails.getUsername(),LocalDateTime.now()))
 					.put(LogMessage.STATUS, revocationResponse.getHttpstatus().toString())
 					.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString())
 					.build()));
@@ -3185,7 +3205,7 @@ public class SSLCertificateService {
             log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
                     put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
                     put(LogMessage.ACTION, "downloadCertificateWithPrivateKey").
-                    put(LogMessage.MESSAGE, String.format ("Trying to download certificate [%s]", certName)).
+                    put(LogMessage.MESSAGE, String.format ("Trying to download certificate [%s] on [%s] by  [%s]", certName,LocalDateTime.now(),userDetails.getUsername())).
                     put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
                     build()));
             return downloadCertificateWithPrivateKey(certificateDownloadRequest, sslCertificateMetadataDetails);
@@ -3498,7 +3518,7 @@ public class SSLCertificateService {
 					.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString())
 					.put(LogMessage.ACTION, "Renew certificate")
 					.put(LogMessage.MESSAGE,
-							String.format("Trying to renew certificate for [%s]", certificateName))
+							String.format("Trying to renew certificate for [%s] renewed by [%s] on [%s]", certificateName,userDetails.getUsername(),LocalDateTime.now()))
 					.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString())
 					.build()));
 
@@ -4185,9 +4205,10 @@ public class SSLCertificateService {
 		JsonParser jsonParser = new JsonParser();
 		JsonObject object = ((JsonObject) jsonParser.parse(response.getResponse())).getAsJsonObject("data");
 		metaDataParams = new Gson().fromJson(object.toString(), Map.class);			
-		
+		String certificateUser = metaDataParams.get("certOwnerNtid");
 		boolean sslMetaDataUpdationStatus;
-		metaDataParams.put("certOwnerEmailId", sslCertificateRequest.getCertOwnerEmailId());		
+		metaDataParams.put("certOwnerEmailId", sslCertificateRequest.getCertOwnerEmailId());
+		metaDataParams.put("certOwnerNtid", sslCertificateRequest.getCertOwnerNtid());
 		try {
 		if (userDetails.isAdmin()) {
 			sslMetaDataUpdationStatus = ControllerUtil.updateMetaData(metaDataPath, metaDataParams, token);
@@ -4196,14 +4217,10 @@ public class SSLCertificateService {
 					userDetails.getSelfSupportToken());
 		}
 		if (sslMetaDataUpdationStatus) {
-			boolean isPoliciesCreated;
-
-			if (userDetails.isAdmin()) {
-				isPoliciesCreated = createPolicies(sslCertificateRequest, token);
-			} else {
-				isPoliciesCreated = createPolicies(sslCertificateRequest, userDetails.getSelfSupportToken());
-			}
-				
+			boolean isPoliciesCreated=true;			
+			checkUserPolicyAndRemoveFromCertificate( certificateUser, sslCertificateRequest.getCertificateName(),token,sslCertificateRequest.getCertType()); 
+			
+			addSudoPermissionToCertificateOwner(sslCertificateRequest, userDetails, enrollResponse, isPoliciesCreated, true);			
 			return ResponseEntity.status(HttpStatus.OK)
 					.body("{\"messages\":[\"" + "Certificate owner Transfered Successfully" + "\"]}");
 		} else {
