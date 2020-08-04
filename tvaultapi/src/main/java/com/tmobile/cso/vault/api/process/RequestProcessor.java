@@ -390,7 +390,8 @@ public class RequestProcessor {
         }
 
        if (null != certManagerResponse && (!HttpStatus.OK.equals(certManagerResponse.getStatusCode()))
-                && ((!HttpStatus.NO_CONTENT.equals(certManagerResponse.getStatusCode())))) {
+                && ((!HttpStatus.NO_CONTENT.equals(certManagerResponse.getStatusCode())) &&
+               (!HttpStatus.ACCEPTED.equals(certManagerResponse.getStatusCode())))) {
             String errorMessage= (!StringUtils.isEmpty(certManagerResponseMap.get("error_description"))) ?
             certManagerResponseMap.get("error_description").toString() :
                     certManagerResponseMap.get("message").toString();

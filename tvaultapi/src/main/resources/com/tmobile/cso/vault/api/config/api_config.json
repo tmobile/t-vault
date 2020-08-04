@@ -838,7 +838,8 @@
 
 		"apiEndPoint":"/certmanager/enroll",
 		"vaultEndPoint":"enroll/",
-		"method":"POST"
+		"method":"POST",
+		"outparams":["actionId"]
 	},
 	{"#" : "**** - GET Enroll CA  '****** ",
 
@@ -902,11 +903,17 @@
 		"method":"GET",
 		"outparams":["templateParameters"]
 	},
-	{"#" : "**** - Put  Template Paramter Request '****** ",
+	{"#" : "**** - Put  Template Parameter Request '****** ",
 		"apiEndPoint":"/certmanager/putTemplateParameter",
 		"vaultEndPoint":"/policy/template",
 		"method":"PUT",
 		"outparams":["templateParameters"]
+	},
+	{"#" : "**** - Approval Request '****** ",
+		"apiEndPoint":"/certmanager/approvalrequest",
+		"vaultEndPoint":"/actions",
+		"method":"PUT",
+		"outparams":["actionId"]
 	},
 	{"#" : "**** - Get  Target System '****** ",
 

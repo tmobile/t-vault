@@ -63,5 +63,13 @@ public final class SSLCertificateConstants {
     public static final String ACCESS_UPDATE_ENDPOINT="/access/update";
     public static final String ACCESS_STRING="access";
     public static final String POLICY_CREATION_TITLE="Policies Creation For Certificate";
+    public static final String PROPERTY_VALUE="value";
+    public static final String DNS_LABEL="dns";
+    public static final String POLICY_LABEL="Policy";
+    public static final String SERVICE_LABEL="SERVICE";
+    public static final String SUBJECT_ALTERNATIVE_NAMES="subjectAlternativeName";
+    public static final String REQUEST_NEED_APPROVAL="Need Approval";
+    public static final String REQUEST_FOR_APPROVAL= "REQUEST FOR APPROVAL";
     public static final String INVALID_INPUT_MSG="Invalid user inputs";
+    public static final String EXTERNAL= "external";
 }
