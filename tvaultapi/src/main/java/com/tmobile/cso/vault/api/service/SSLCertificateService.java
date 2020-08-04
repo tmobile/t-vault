@@ -54,6 +54,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cglib.transform.impl.AddPropertyTransformer;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -2116,7 +2117,7 @@ public class SSLCertificateService {
 
 		String endPoint = certificateName;
 		String metaDataPath = (certType.equalsIgnoreCase("internal"))?
-                SSLCertificateConstants.SSL_CERT_PATH :SSLCertificateConstants.SSL_EXTERNAL_CERT_PATH;
+                SSLCertificateConstants.SSL_CERT_PATH + "/" + endPoint :SSLCertificateConstants.SSL_EXTERNAL_CERT_PATH + "/" + endPoint;
 		Response response = null;
 		try {
 			if (userDetails.isAdmin()) {
@@ -3447,7 +3448,7 @@ public class SSLCertificateService {
 
 		String endPoint = certificateName;
 		String metaDataPath = (certType.equalsIgnoreCase("internal"))?
-                SSLCertificateConstants.SSL_CERT_PATH :SSLCertificateConstants.SSL_EXTERNAL_CERT_PATH;
+                SSLCertificateConstants.SSL_CERT_PATH + "/" + endPoint :SSLCertificateConstants.SSL_EXTERNAL_CERT_PATH + "/" + endPoint;
 		Response response = new Response();
 		if (!userDetails.isAdmin()) {
 			Boolean isPermission = validateOwnerPermissionForNonAdmin(userDetails, certificateName);
@@ -4139,14 +4140,16 @@ public class SSLCertificateService {
      * @return
      * @throws Exception
      */
-    public ResponseEntity<String> updateCertOwner(String token, String certificateName,String certOwnerEmailId, UserDetails userDetails) throws Exception {
+    public ResponseEntity<String> updateCertOwner(String token, SSLCertificateRequest sslCertificateRequest, UserDetails userDetails) throws Exception {
     	Map<String, String> metaDataParams = new HashMap<String, String>();
 
-		String endPoint = certificateName;
-		String _path = SSLCertificateConstants.SSL_CERT_PATH + "/" + endPoint;
+		String endPoint = sslCertificateRequest.getCertificateName();	
+		CertResponse enrollResponse = new CertResponse();		
+		String metaDataPath = (sslCertificateRequest.getCertType().equalsIgnoreCase("internal"))?
+                SSLCertificateConstants.SSL_CERT_PATH + "/" + endPoint :SSLCertificateConstants.SSL_EXTERNAL_CERT_PATH + "/" + endPoint;
 		Response response = new Response();
 		if (!userDetails.isAdmin()) {
-			Boolean isPermission = validateOwnerPermissionForNonAdmin(userDetails, certificateName);
+			Boolean isPermission = validateOwnerPermissionForNonAdmin(userDetails, sslCertificateRequest.getCertificateName());
 
 			if (!isPermission) {
 				return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
@@ -4157,9 +4160,9 @@ public class SSLCertificateService {
 		}
 		try {
 			if (userDetails.isAdmin()) {
-				response = reqProcessor.process("/read", "{\"path\":\"" + _path + "\"}", token);
+				response = reqProcessor.process("/read", "{\"path\":\"" + metaDataPath + "\"}", token);
 			} else {
-				response = reqProcessor.process("/read", "{\"path\":\"" + _path + "\"}",
+				response = reqProcessor.process("/read", "{\"path\":\"" + metaDataPath + "\"}",
 						userDetails.getSelfSupportToken());
 			}
 		} catch (Exception e) {
@@ -4184,28 +4187,35 @@ public class SSLCertificateService {
 		metaDataParams = new Gson().fromJson(object.toString(), Map.class);			
 		
 		boolean sslMetaDataUpdationStatus;
-		metaDataParams.put("certOwnerEmailId", certOwnerEmailId);
-		CertResponse updateResponse = new CertResponse();
+		metaDataParams.put("certOwnerEmailId", sslCertificateRequest.getCertOwnerEmailId());		
 		try {
 		if (userDetails.isAdmin()) {
-			sslMetaDataUpdationStatus = ControllerUtil.updateMetaData(_path, metaDataParams, token);
+			sslMetaDataUpdationStatus = ControllerUtil.updateMetaData(metaDataPath, metaDataParams, token);
 		} else {
-			sslMetaDataUpdationStatus = ControllerUtil.updateMetaData(_path, metaDataParams,
+			sslMetaDataUpdationStatus = ControllerUtil.updateMetaData(metaDataPath, metaDataParams,
 					userDetails.getSelfSupportToken());
 		}
 		if (sslMetaDataUpdationStatus) {
-			return ResponseEntity.status(updateResponse.getHttpstatus())
-					.body("{\"messages\":[\"" + "Revocation done successfully" + "\"]}");
+			boolean isPoliciesCreated;
+
+			if (userDetails.isAdmin()) {
+				isPoliciesCreated = createPolicies(sslCertificateRequest, token);
+			} else {
+				isPoliciesCreated = createPolicies(sslCertificateRequest, userDetails.getSelfSupportToken());
+			}
+				
+			return ResponseEntity.status(HttpStatus.OK)
+					.body("{\"messages\":[\"" + "Certificate owner Transfered Successfully" + "\"]}");
 		} else {
 			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
 					.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString())
-					.put(LogMessage.ACTION, "Revocation Request Failed")
-					.put(LogMessage.MESSAGE, "Revocation Request failed for CertificateID")
-					.put(LogMessage.STATUS, updateResponse.getHttpstatus().toString())
+					.put(LogMessage.ACTION, "updateCertOwner")
+					.put(LogMessage.MESSAGE, "Certificate owner Transfer failed for CertificateID")
+					.put(LogMessage.STATUS, HttpStatus.INTERNAL_SERVER_ERROR.toString())
 					.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString())
 					.build()));
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-					.body("{\"errors\":[\"" + "Revocation failed" + "\"]}");
+					.body("{\"errors\":[\"" + "Certificate owner Transfer failed" + "\"]}");
 		}
 	
 	} catch (Exception e) {

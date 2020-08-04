@@ -291,12 +291,11 @@ public class SSLCertificateController {
 	 * @return
 	 */
 	@ApiOperation(value = "${SSLCertificateController.getListOfCertificates.value}", notes = "${SSLCertificateController.getListOfCertificates.notes}")
-	@PutMapping(value = "/v2/sslcert/transferowner/{certName}/{certOwnerEmailId}", produces = "application/json")
+	@PutMapping(value = "/v2/sslcert/transferowner", produces = "application/json")
 	public ResponseEntity<String> transferCertOwner(HttpServletRequest request,
-			@RequestHeader(value = "vault-token") String token,
-			@PathVariable("certName") String certName, @PathVariable("certOwnerEmailId") String certOwnerEmailId) throws Exception {
+			@RequestHeader(value = "vault-token") String token, @RequestBody SSLCertificateRequest sslCertificateRequest) throws Exception {
 		UserDetails userDetails = (UserDetails) request.getAttribute("UserDetails");
-		return sslCertificateService.updateCertOwner(token, certName, certOwnerEmailId, userDetails);
+		return sslCertificateService.updateCertOwner(token, sslCertificateRequest, userDetails);
 	}
 
 }
