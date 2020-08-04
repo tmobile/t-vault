@@ -32,6 +32,7 @@ public class VaultTokenLookupDetails implements Serializable {
 	private String[] policies;
 	private boolean valid;
 	private boolean admin;
+	private String email;
 
 	public VaultTokenLookupDetails(String username, String token, String[] policies) {
 		super();
@@ -109,7 +110,12 @@ public class VaultTokenLookupDetails implements Serializable {
 	public void setAdmin(boolean admin) {
 		this.admin = admin;
 	}
-	
-	
 
+	public String getEmail() {
+		return email;
+	}
+
+	public void setEmail(String email) {
+		this.email = email;
+	}
 }

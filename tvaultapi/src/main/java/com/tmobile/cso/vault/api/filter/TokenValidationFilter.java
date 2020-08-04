@@ -61,6 +61,9 @@ public class TokenValidationFilter extends GenericFilterBean {
 	@Value("${ad.passwordrotation.enable:true}")
 	private boolean isAdPswdRotationEnabled;
 
+	@Value("${vault.auth.method}")
+	private String vaultAuthMethod;
+
 	public TokenValidationFilter() {
 	}
 
@@ -112,6 +115,9 @@ public class TokenValidationFilter extends GenericFilterBean {
 			userDetails.setSudoPolicies(null); //TODO: Pre-flight
 			userDetails.setUsername(vaultTokenLookupDetails.getUsername());
 			userDetails.setLeaseDuration(null); //TODO: Pre-flight
+			if ("oidc".equals(vaultAuthMethod)) {
+				userDetails.setEmail(vaultTokenLookupDetails.getEmail());
+			}
 			((HttpServletRequest) request).setAttribute("UserDetails", userDetails);
 		}
 		// Skip the request if requested feature is disabled
