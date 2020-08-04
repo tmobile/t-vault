@@ -2285,9 +2285,10 @@ public final class ControllerUtil {
 				|| ObjectUtils.isEmpty(certificateGroup.getAccess())
 				|| ObjectUtils.isEmpty(certificateGroup.getCertificateName())
 				|| certificateGroup.getCertificateName().contains(" ")
-                || (!certificateGroup.getCertificateName().endsWith(".t-mobile.com")
-                ||(certificateGroup.getCertificateName().contains(".-"))
-	            || (certificateGroup.getCertificateName().contains("-.")))
+                || (!certificateGroup.getCertificateName().endsWith(".t-mobile.com"))
+                || (certificateGroup.getCertificateName().contains(".-"))
+	            || (certificateGroup.getCertificateName().contains("-."))
+                || (!certificateGroup.getCertType().matches("internal|external"))
 				) {
 			return false;
 		}
@@ -2306,12 +2307,11 @@ public final class ControllerUtil {
 	 * @return
 	 */
 	//metadata/(certtype)sslcerts/(certname)cert1//
-	public static boolean canAddCertPermission(String path,String certificateName,String token) {
-		String certType =SSLCertificateConstants.SSL_CERT_PATH;
+	public static boolean canAddCertPermission(String path,String certificateName,String token) {		
 		String certName =certificateName;
 		
-		List<String> existingCertNames = getAllExistingCertNames(certType, token);
-		List<String> duplicateCertNames = new ArrayList<String>();
+		List<String> existingCertNames = getAllExistingCertNames(path, token);
+		List<String> duplicateCertNames = new ArrayList<>();
 		int count=0;
 		for (String existingCertName: existingCertNames) {
 			

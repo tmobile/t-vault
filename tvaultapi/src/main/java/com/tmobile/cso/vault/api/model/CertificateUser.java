@@ -28,6 +28,7 @@ public class CertificateUser implements Serializable {
 	private String username;
 	private String access;
 	private String certificateName;	
+	private String certType;	
 	
 	/**
 	 * 
@@ -41,11 +42,12 @@ public class CertificateUser implements Serializable {
 	 * @param username
 	 * @param access
 	 */
-	public CertificateUser(String username, String access, String certificateName) {
+	public CertificateUser(String username, String access, String certificateName, String certType) {
 		super();		
 		this.username = username;
 		this.access = access;
 		this.certificateName = certificateName;
+		this.certType = certType;
 	}	
 
 	/**
@@ -81,6 +83,7 @@ public class CertificateUser implements Serializable {
 	/**
 	 * @return the certificateName
 	 */
+	@ApiModelProperty(example="certtest.t-mobile.com", position=1)
 	public String getCertificateName() {
 		return certificateName;
 	}
@@ -90,5 +93,20 @@ public class CertificateUser implements Serializable {
 	 */
 	public void setCertificateName(String certificateName) {
 		this.certificateName = certificateName;
+	}
+
+	/**
+	 * @return the certType
+	 */
+	@ApiModelProperty(example="internal", position=4)
+	public String getCertType() {
+		return certType.toLowerCase();
+	}
+
+	/**
+	 * @param certType the certType to set
+	 */
+	public void setCertType(String certType) {
+		this.certType = certType;
 	}	
 }

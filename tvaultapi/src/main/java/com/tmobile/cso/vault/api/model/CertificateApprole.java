@@ -28,7 +28,7 @@ public class CertificateApprole implements Serializable {
 	private String certificateName;	
 	private String approleName;	
 	private String access;
-	
+	private String certType;
 	
 	/**
 	 * 
@@ -42,11 +42,12 @@ public class CertificateApprole implements Serializable {
 	 * @param approleName
 	 * @param access
 	 */
-	public CertificateApprole(String certificateName, String approleName, String access) {
+	public CertificateApprole(String certificateName, String approleName, String access, String certType) {
 		super();		
 		this.approleName = approleName;
 		this.access = access;
 		this.certificateName = certificateName;
+		this.certType = certType;
 	}
 	
 	/**
@@ -92,5 +93,20 @@ public class CertificateApprole implements Serializable {
 	 */
 	public void setAccess(String access) {
 		this.access = access;
-	}		
+	}
+
+	/**
+	 * @return the certType
+	 */
+	@ApiModelProperty(example="internal", position=4)
+	public String getCertType() {
+		return certType;
+	}
+
+	/**
+	 * @param certType the certType to set
+	 */
+	public void setCertType(String certType) {
+		this.certType = certType;
+	}	
 }
