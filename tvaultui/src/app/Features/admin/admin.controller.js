@@ -1661,7 +1661,7 @@
                     "certType":$scope.certObj.certDetails.certType,
                     "certOwnerEmailId":$scope.certObj.certDetails.ownerEmail,
                     "certOwnerNTId":$scope.certObj.certDetails.ownerNtId,
-                    "multiSan": multiSanDns
+                    "dnsList": multiSanDns
                 }
                 $scope.certificateCreationMessage = '';
                 var url = '';
@@ -1675,6 +1675,7 @@
                         $scope.certificateCreationPopUp();
                         $scope.searchValue = '';
                     }
+                    $scope.multiSan=[];
                 },
                 function (error) {
                     resetCert();
@@ -1684,12 +1685,14 @@
                     $scope.isLoadingData = false;
                     console.log(error);
                     $scope.searchValue = '';
+                    $scope.multiSan=[];
                 })
             } catch (e) {
                 resetCert();
                 $scope.isLoadingData = false;
                 console.log(e);
                 $scope.searchValue = '';
+                $scope.multiSan=[];
             }
 
             resetCert();            

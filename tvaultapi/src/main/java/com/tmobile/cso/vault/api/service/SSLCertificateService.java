@@ -137,6 +137,8 @@ public class SSLCertificateService {
 
     @Value("${sslcertmanager.endpoint.enroll}")
     private String enrollUrl;
+    @Value("${sslcertmanager.endpoint.approvalUrl}")
+    private String approvalUrl;
 
     @Value("${sslcertmanager.endpoint.enrollCA}")
     private String enrollCAUrl;
@@ -208,6 +210,14 @@ public class SSLCertificateService {
     
     @Value("${certificate.renew.delay.time.millsec}")
     private int renewDelayTime;
+    @Value("${sslcertmanager.external.certificate.telephonenumber}")
+    private String externalCertificateTelephoneNumber;
+    @Value("${sslcertmanager.external.certificate.requester.name}")
+    private String externalCertificateRequesterName;
+    @Value("${sslcertmanager.external.certificate.requester.email}")
+    private String externalCertificateRequesterEmail;
+    @Value("${sslcertmanager.external.certificate.lifetime}")
+    private String externalCertificateLifeTime;
 
     private static Logger log = LogManager.getLogger(SSLCertificateService.class);
 
@@ -333,7 +343,6 @@ public class SSLCertificateService {
             CertManagerLoginRequest certManagerLoginRequest = new CertManagerLoginRequest(username, password);
             CertManagerLogin certManagerLogin = login(certManagerLoginRequest);
 
-            SSLCertTypeConfig sslCertTypeConfig = prepareSSLConfigObject(sslCertificateRequest);
 
             CertificateData certificateDetails = getCertificate(sslCertificateRequest, certManagerLogin);
             log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
@@ -347,7 +356,8 @@ public class SSLCertificateService {
 
                 //Step-3:  CreateTargetSystem
                 if (targetSystemId == 0) {
-                    targetSystemId  = createTargetSystem(sslCertificateRequest.getTargetSystem(), certManagerLogin, sslCertTypeConfig);
+                    targetSystemId  =   createTargetSystem(sslCertificateRequest.getTargetSystem(), certManagerLogin,
+                            getContainerId(sslCertificateRequest));
                     log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
                             put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
                             put(LogMessage.ACTION, String.format("createTargetSystem Completed Successfully [%s]", targetSystemId)).
@@ -390,6 +400,12 @@ public class SSLCertificateService {
                         put(LogMessage.ACTION, String.format("getEnrollCA Completed Successfully [%s]", response.getResponse())).
                         build()));
 
+                ////Only for External -MultiSAN - Update the selectedId
+                if ((!StringUtils.isEmpty(sslCertificateRequest.getCertType())) && sslCertificateRequest.getCertType().equalsIgnoreCase(SSLCertificateConstants.EXTERNAL)
+                        && sslCertificateRequest.getDnsList().length > 0) {
+                    response = prepareEnrollCARequest(response);
+                }
+
                 //Step-8 PutEnrollCA
                 int updatedSelectedId = putEnrollCA(certManagerLogin, targetSystemServiceId, response);
                 log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
@@ -405,6 +421,11 @@ public class SSLCertificateService {
                                 templateResponse.getResponse())).
                         build()));
 
+                //Only for External -MultiSAN - Update the selectedId
+                if ((!StringUtils.isEmpty(sslCertificateRequest.getCertType())) && sslCertificateRequest.getCertType().equalsIgnoreCase(SSLCertificateConstants.EXTERNAL)
+                        && sslCertificateRequest.getDnsList().length > 0) {
+                    templateResponse = prepareTemplateReqForExternalCert(templateResponse);
+                }
                 //Step-10  PutEnrollTemplates
                 int enrollTemplateId = putEnrollTemplates(certManagerLogin, targetSystemServiceId, templateResponse, updatedSelectedId);
                 log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
@@ -412,7 +433,7 @@ public class SSLCertificateService {
                         put(LogMessage.ACTION, String.format("PutEnroll template  Successfully Completed = enrollTemplateId = [%s]", enrollTemplateId)).
                         build()));
 
-                if ((!StringUtils.isEmpty(sslCertificateRequest.getCertType())) && sslCertificateRequest.getCertType().equalsIgnoreCase("external")) {
+                if ((!StringUtils.isEmpty(sslCertificateRequest.getCertType())) && sslCertificateRequest.getCertType().equalsIgnoreCase(SSLCertificateConstants.EXTERNAL)) {
                 //GetTemplateParameters
                     CertResponse getTemplateResponse = getTemplateParametersResponse(certManagerLogin,
                             targetSystemServiceId, enrollTemplateId);
@@ -420,6 +441,9 @@ public class SSLCertificateService {
                             put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
                             put(LogMessage.ACTION, String.format("GetTemplateParameters  Successfully Completed = " +
                                     "getTemplateParamterRequest = [%s]", getTemplateResponse.getResponse())).build()));
+                    if (sslCertificateRequest.getDnsList().length > 0) {
+                        getTemplateResponse = updateRequestWithRequestedDetails(getTemplateResponse);
+                    }
                 //PutTemplateParameters
                     CertResponse putTemplateParameterResponse = putTemplateParameterResponse(certManagerLogin, targetSystemServiceId,
                             enrollTemplateId, getTemplateResponse);
@@ -450,6 +474,16 @@ public class SSLCertificateService {
                         put(LogMessage.ACTION, String.format("getEnrollCSRResponse Completed Successfully [%s]", updatedRequest)).
                         build()));
 
+                //In case multiSAN(external/internal)-Need to build request for SubjectAlternateNames
+                if (sslCertificateRequest.getDnsList() != null && sslCertificateRequest.getDnsList().length > 0) {
+                    //Build Object with DNS names
+                    updatedRequest = buildSubjectAlternativeNameRequest(updatedRequest, sslCertificateRequest,
+                            targetSystemServiceId);
+                } else {
+                    //If dnsList is empty ,remove the DNS names object from request
+                    updatedRequest = removeSubjectAlternativeNameRequest(updatedRequest);
+                }
+
                 //Step-14  PutEnrollCSRs
                 CertResponse putEnrollCSRResponse = putEnrollCSR(certManagerLogin, targetSystemServiceId, updatedRequest);
                 log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
@@ -464,8 +498,19 @@ public class SSLCertificateService {
                         put(LogMessage.ACTION, String.format("Enroll Certificate response Completed Successfully [%s]", enrollResponse.getResponse())).
                         build()));
 
+                if (enrollResponse.getHttpstatus().equals(HttpStatus.ACCEPTED) && Objects.nonNull(enrollResponse.getResponse())) {
+                    int actionId;
+                    Map<String, Object> responseMap = ControllerUtil.parseJson(enrollResponse.getResponse());
+                    if (!MapUtils.isEmpty(responseMap) && responseMap.get("actionId") != null) {
+                        actionId = (Integer) responseMap.get("actionId");
+                        if (actionId != 0) {
+                            enrollResponse = approvalRequest(certManagerLogin, actionId);
+                        }
+                    }
+                }
                 //If Certificate creates successfully
-				if (HttpStatus.NO_CONTENT.equals(enrollResponse.getHttpstatus())) {
+				if ( (HttpStatus.OK.equals(enrollResponse.getHttpstatus()) ||
+                        (HttpStatus.NO_CONTENT.equals(enrollResponse.getHttpstatus())))) {
 					// Policy Creation
 					boolean isPoliciesCreated;
 
@@ -557,6 +602,204 @@ public class SSLCertificateService {
     }
 
     /**
+     *
+     * @param response
+     * @return
+     */
+    private CertResponse  prepareTemplateReqForExternalCert(CertResponse response){
+        Gson gson = new GsonBuilder().setLenient().create();
+        JsonObject json = gson.fromJson(response.getResponse(),JsonObject.class);
+        JsonParser jsonParser = new JsonParser();
+        JsonObject jsonObject = (JsonObject) jsonParser.parse(json.toString());
+        JsonObject jsonObject1 = jsonObject.getAsJsonObject("template");
+        JsonArray jsonArray = jsonObject1.getAsJsonArray("items");
+        JsonObject jsonObject2 = null;
+        int selectedId = 0;
+        for (int i = 0; i < jsonArray.size(); i++) {
+            jsonObject2 = jsonArray.get(i).getAsJsonObject();
+            if (jsonObject2.get("displayName").getAsString().toString().equals("Unified Communication Multi-Domain SSL Certificate")) {
+                selectedId = Integer.parseInt(jsonObject2.get("policyLinkId").getAsString());
+            }
+        }
+
+        jsonObject1.addProperty("selectedId",selectedId);
+        response.setResponse(jsonObject.toString());
+        return response;
+    }
+
+
+    /**
+     * Update the selectedId value
+     * @param response
+     * @return
+     */
+
+    private CertResponse prepareEnrollCARequest(CertResponse response){
+        Gson gson = new GsonBuilder().setLenient().create();
+        JsonObject json = gson.fromJson(response.getResponse(),JsonObject.class);
+        JsonParser jsonParser = new JsonParser();
+        JsonObject jsonObject = (JsonObject) jsonParser.parse(json.toString());
+        JsonObject jsonObject1 = jsonObject.getAsJsonObject("ca");
+        JsonArray jsonArray = jsonObject1.getAsJsonArray("items");
+        JsonObject jsonObject2 = null;
+        int selectedId = 0;
+        for (int i = 0; i < jsonArray.size(); i++) {
+            jsonObject2 = jsonArray.get(i).getAsJsonObject();
+            if (jsonObject2.get("displayName").getAsString().toString().equals("Entrust CA")) {
+                selectedId = Integer.parseInt(jsonObject2.get("policyLinkId").getAsString());
+            }
+        }
+        jsonObject1.addProperty("selectedId",selectedId);
+        response.setResponse(jsonObject.toString());
+        return response;
+    }
+
+
+    /**
+     *
+     * @param csrRequest
+     * @return
+     */
+    private String removeSubjectAlternativeNameRequest(String csrRequest) {
+        Gson gson = new GsonBuilder().setLenient().create();
+        JsonObject csrRequestDetails = gson.fromJson(csrRequest, JsonObject.class);
+
+        JsonParser jsonParser = new JsonParser();
+        JsonObject jsonObject = (JsonObject) jsonParser.parse(csrRequestDetails.toString());
+
+        //Removing the subjectAlternativeName object
+        jsonObject.remove("subjectAlternativeName");
+        return jsonObject.toString();
+    }
+
+    /**
+     * Build SubjectAlternateNames with multiple DNS names
+     * @param csrRequest
+     * @param sslCertificateRequest
+     * @param entityId
+     * @return
+     */
+    private String buildSubjectAlternativeNameRequest(String csrRequest, SSLCertificateRequest sslCertificateRequest,
+                                                      int entityId) {
+        String[] dnsList = sslCertificateRequest.getDnsList();
+
+        SubjectAlternativeName subjectAlternativeName = new SubjectAlternativeName();
+        List<Items> itemList = new ArrayList<>();
+
+        //Items
+        Items items = new Items();
+        items.setRemovable(false);
+        items.setTypeName(SSLCertificateConstants.DNS_LABEL);
+        items.setRemovable(true);
+
+        //Owner
+        Owner owner = new Owner();
+        owner.setDisplayName(SSLCertificateConstants.POLICY_LABEL);
+        owner.setEntityId(entityId);
+        owner.setEntityRef(SSLCertificateConstants.SERVICE_LABEL);
+
+        //DenyMore
+        DenyMore denyMore = new DenyMore();
+        denyMore.setDisabled(false);
+        denyMore.setOwner(owner);
+        denyMore.setValue(false);
+
+        //Required
+        Required required = new Required();
+        required.setDisabled(false);
+        required.setOwner(owner);
+        required.setValue(false);
+
+        //Setting to Items
+        items.setDenyMore(denyMore);
+        items.setRequired(required);
+
+        //Preparing the Value array
+        List<com.tmobile.cso.vault.api.model.Value> valueList = new ArrayList<>();
+
+        for (String dnsName : dnsList) {
+            com.tmobile.cso.vault.api.model.Value value = new com.tmobile.cso.vault.api.model.Value();
+            value.setDisabled(false);
+            value.setOwner(owner);
+            value.setValue(dnsName);
+            valueList.add(value);
+        }
+
+        items.setValue(valueList);
+        itemList.add(items);
+        subjectAlternativeName.setItems(itemList);
+
+
+        String subjectAltObject = new Gson().toJson(subjectAlternativeName);
+        Gson gson = new GsonBuilder().setLenient().create();
+        JsonObject csrRequestDetails = gson.fromJson(csrRequest, JsonObject.class);
+
+        JsonParser jsonParser = new JsonParser();
+        JsonObject jsonObject = (JsonObject) jsonParser.parse(csrRequestDetails.toString());
+
+        //Removing the subjectAlternativeName object
+        jsonObject.remove(SSLCertificateConstants.SUBJECT_ALTERNATIVE_NAMES);
+
+        //Adding Object again with details
+        JsonElement jsonElement = jsonParser.parse(subjectAltObject);
+        jsonObject.add(SSLCertificateConstants.SUBJECT_ALTERNATIVE_NAMES, jsonElement);
+        return jsonObject.toString();
+    }
+
+
+    /**
+     * Update the Template Response with updated requested details
+     *
+     * @param certManagerLogin
+    }
+    /**
+     * Update the request with requester details
+     * @param certResponse
+     * @return
+     */
+    private CertResponse updateRequestWithRequestedDetails(CertResponse certResponse) {
+        Gson gson = new GsonBuilder().setLenient().create();
+        JsonObject json = gson.fromJson(certResponse.getResponse(), JsonObject.class);
+        JsonParser jsonParser = new JsonParser();
+        JsonObject jsonObject = (JsonObject) jsonParser.parse(json.toString());
+        JsonObject jsonObject1 = jsonObject.getAsJsonObject("templateParameters");
+        JsonArray jsonArray = jsonObject1.getAsJsonArray("items");
+        JsonObject jsonObject2 = null;
+        for (int i = 0; i < jsonArray.size(); i++) {
+            jsonObject2 = jsonArray.get(i).getAsJsonObject();
+            if (jsonObject2.get("name").getAsString().equals("appname")) {
+                jsonObject2.addProperty(SSLCertificateConstants.PROPERTY_VALUE, externalCertificateRequesterName);
+            } else if (jsonObject2.get("name").getAsString().equals("appemail")) {
+                jsonObject2.addProperty(SSLCertificateConstants.PROPERTY_VALUE, externalCertificateRequesterEmail);
+            } else if (jsonObject2.get("name").getAsString().equals("apptelephone")) {
+                jsonObject2.addProperty(SSLCertificateConstants.PROPERTY_VALUE, externalCertificateTelephoneNumber);
+            } else if (jsonObject2.get("name").getAsString().equals("certyears")) {
+                jsonObject2.addProperty(SSLCertificateConstants.PROPERTY_VALUE, externalCertificateLifeTime);
+            }
+        }
+        certResponse.setResponse(jsonObject.toString());
+        return certResponse;
+    }
+
+    /**
+     * This Method used to get the container id
+     * @param sslCertificateRequest
+     * @return
+     */
+    private int getContainerId(SSLCertificateRequest sslCertificateRequest){
+        int containerId=0;
+        int dnsList = sslCertificateRequest.getDnsList().length;
+        if (sslCertificateRequest.getCertType().equalsIgnoreCase("internal")) {
+            containerId =getTargetSystemGroupId(SSLCertType.valueOf("PRIVATE_SINGLE_SAN"));
+        } else  if (sslCertificateRequest.getCertType().equalsIgnoreCase(SSLCertificateConstants.EXTERNAL) && dnsList > 0) {
+            containerId =getTargetSystemGroupId(SSLCertType.valueOf("PUBLIC_MULTI_SAN"));
+        } else  if (sslCertificateRequest.getCertType().equalsIgnoreCase(SSLCertificateConstants.EXTERNAL) && dnsList == 0) {
+            containerId =getTargetSystemGroupId(SSLCertType.valueOf("PUBLIC_SINGLE_SAN"));
+        }
+        return containerId;
+    }
+
+    /**
      * Update the Template Response with updated requested details
      *
      * @param certManagerLogin
@@ -593,7 +836,21 @@ public class SSLCertificateService {
                 getCertmanagerEndPoint(enrollTemplateCA));
     }
 
-
+    /**
+     * This method will be responsible to send the approva request
+     * @param certManagerLogin
+     * @param entityId
+     * @return
+     * @throws Exception
+     */
+    private CertResponse approvalRequest(CertManagerLogin certManagerLogin, int actionId) throws Exception {
+        String approvalEndPoint = "/certmanager/approvalrequest";
+        String endPoint = approvalUrl.replace("actionId", String.valueOf(actionId));
+        ApproveRequest approveRequest = new ApproveRequest();
+        approveRequest.setFinalize(true);
+        approveRequest.setNote(SSLCertificateConstants.REQUEST_FOR_APPROVAL);
+        return reqProcessor.processCert(approvalEndPoint, approveRequest, certManagerLogin.getAccess_token(), getCertmanagerEndPoint(endPoint));
+    }
 
     /**
 	 * Method to provide sudo permission to certificate owner
@@ -652,20 +909,7 @@ public class SSLCertificateService {
 		}
 	}
 
-    /**
-     * This Method used to get the container id
-     * @param sslCertificateRequest
-     * @return
-     */
-    private int getContainerId(SSLCertificateRequest sslCertificateRequest){
-        int containerId=0;
-        if (sslCertificateRequest.getCertType().equalsIgnoreCase("internal")) {
-            containerId =getTargetSystemGroupId(SSLCertType.valueOf("PRIVATE_SINGLE_SAN"));
-        } else  if (sslCertificateRequest.getCertType().equalsIgnoreCase("external")) {
-            containerId =getTargetSystemGroupId(SSLCertType.valueOf("PUBLIC_SINGLE_SAN"));
-        }
-        return containerId;
-    }
+
 
 	/**
 	 * Method to populate certificate metadata details
@@ -725,6 +969,7 @@ public class SSLCertificateService {
                     build()));
         }
 
+        if(sslCertificateRequest.getCertType().equalsIgnoreCase("internal")) {
         CertificateData certDetails = null;
         //Get Certificate Details
         for (int i = 1; i <= retrycount; i++) {
@@ -763,8 +1008,23 @@ public class SSLCertificateService {
 
         log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
                 put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
-                put(LogMessage.ACTION, String.format("MetaData info details = [%s]", sslCertificateMetadataDetails)).
+                put(LogMessage.ACTION, String.format("MetaData info details = [%s]", sslCertificateMetadataDetails.toString())).
                 build()));
+        } else {
+            sslCertificateMetadataDetails.setCertCreatedBy(userDetails.getUsername());
+            sslCertificateMetadataDetails.setCertOwnerEmailId(sslCertificateRequest.getCertOwnerEmailId());
+            sslCertificateMetadataDetails.setCertType(sslCertificateRequest.getCertType());
+            sslCertificateMetadataDetails.setCertOwnerNtid(sslCertificateRequest.getCertOwnerNtid());
+            sslCertificateMetadataDetails.setContainerId(containerId);
+            sslCertificateMetadataDetails.setCertificateName(sslCertificateRequest.getCertificateName());
+            sslCertificateMetadataDetails.setRequestStatus(SSLCertificateConstants.REQUEST_NEED_APPROVAL);
+            log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+                    put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+                    put(LogMessage.ACTION, String.format("  MetaData info details = [%s] = for an external " +
+                            "certificate= [%s]", sslCertificateMetadataDetails.toString(),
+                            sslCertificateMetadataDetails.getCertificateName())).
+                    build()));
+        }
 
 
         SSLCertMetadata sslCertMetadata = new SSLCertMetadata(certMetadataPath, sslCertificateMetadataDetails);
@@ -774,6 +1034,22 @@ public class SSLCertificateService {
         return ControllerUtil.convetToJson(rqstParams);
 	}
 
+    /**
+     * Validate the DNSNames
+     * @param sslCertificateRequest
+     * @return
+     */
+    private boolean validateDNSNames(SSLCertificateRequest sslCertificateRequest) {
+        String[] dnsNames = sslCertificateRequest.getDnsList();
+        Set<String> set = new HashSet<>();
+        for (String dnsName : dnsNames) {
+            if (dnsName.contains(" ") || (!dnsName.endsWith(certificateNameTailText)) ||
+                    (dnsName.contains(".-")) || (dnsName.contains("-.")) || (!set.add(dnsName))) {
+                return false;
+            }
+        }
+        return true;
+    }
     /**
      * Validate input data
      * @param sslCertificateRequest
@@ -788,12 +1064,14 @@ public class SSLCertificateService {
                 (sslCertificateRequest.getCertificateName().contains(".-")) ||
                 (sslCertificateRequest.getCertificateName().contains("-.")) ||
                 (!sslCertificateRequest.getCertType().matches("internal|external")) ||
-                (!isValidHostName(sslCertificateRequest.getTargetSystemServiceRequest().getHostname())) || (!isValidAppName(sslCertificateRequest))){
+                (!isValidHostName(sslCertificateRequest.getTargetSystemServiceRequest().getHostname()))
+                || (!isValidAppName(sslCertificateRequest)) || (!validateDNSNames(sslCertificateRequest))){
             isValid= false;
         }
 
         return isValid;
     }
+
     private boolean isValidAppName(SSLCertificateRequest sslCertificateRequest){
         boolean isValidApp=false;
         ResponseEntity<String> appResponse =
@@ -1356,22 +1634,6 @@ public class SSLCertificateService {
         return targetSystemServiceRequest;
     }
 
-    //Prepare SSL config Object
-
-    /**
-     * Prepare the SSL config Object
-     * @param sslCertificateRequest
-     * @return
-     */
-    private SSLCertTypeConfig prepareSSLConfigObject(SSLCertificateRequest sslCertificateRequest) {
-        SSLCertTypeConfig sslCertTypeConfig = new SSLCertTypeConfig();
-        SSLCertType sslCertType = sslCertificateRequest.getCertType().equalsIgnoreCase("internal")?
-                SSLCertType.valueOf("PRIVATE_SINGLE_SAN"): SSLCertType.valueOf("PUBLIC_SINGLE_SAN");
-        sslCertTypeConfig.setSslCertType(sslCertType);
-        sslCertTypeConfig.setTargetSystemGroupId(getTargetSystemGroupId(sslCertType));
-        return sslCertTypeConfig;
-    }
-
 
     /**
      * Creates a targetSystem
@@ -1381,11 +1643,11 @@ public class SSLCertificateService {
      * @return
      */
     private int createTargetSystem(TargetSystem targetSystemRequest, CertManagerLogin certManagerLogin,
-                                 SSLCertTypeConfig sslCertTypeConfig) throws Exception {
+                                 int  containerId) throws Exception {
         int  targetSystemId = 0;
         String createTargetSystemEndPoint = "/certmanager/targetsystem/create";
         String targetSystemAPIEndpoint = new StringBuffer().append(targetSystemGroups).
-                append(sslCertTypeConfig.getTargetSystemGroupId()).
+                append(containerId).
                 append("/").
                 append(targetSystems).toString();
         log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
@@ -1447,6 +1709,9 @@ public class SSLCertificateService {
                 break;
             case PUBLIC_SINGLE_SAN:
                 ts_gp_id = public_single_san_ts_gp_id; //75
+                break;
+            case PUBLIC_MULTI_SAN:
+                ts_gp_id = public_multi_san_ts_gp_id; //99
                 break;
         }
         return ts_gp_id;

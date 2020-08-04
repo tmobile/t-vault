@@ -67,6 +67,14 @@ public class SSLCertificateRequest implements Serializable {
 	@JsonProperty("certOwnerNTId")
 	private String certOwnerNtid;
 
+	@NotNull
+	private String[] dnsList;
+	public String[] getDnsList() {
+		return dnsList;
+	}
+	public void setDnsList(String[] dnsList) {
+		this.dnsList = dnsList;
+	}
 	public String getCertOwnerNtid() {
 		return certOwnerNtid;
 	}
