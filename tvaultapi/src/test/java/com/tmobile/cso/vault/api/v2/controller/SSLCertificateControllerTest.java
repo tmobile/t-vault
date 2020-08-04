@@ -357,4 +357,27 @@ public class SSLCertificateControllerTest {
         when(sslCertificateService.getListOfCertificates("5PDrOhsy4ig8L3EpsJZSLAMg","internal")).thenReturn(new ResponseEntity<>(HttpStatus.OK));
         assertEquals(HttpStatus.OK, sslCertificateService.getListOfCertificates("5PDrOhsy4ig8L3EpsJZSLAMg","internal").getStatusCode());
     }
+	
+	@Test
+    public void updateCertOwner() throws Exception {
+        // Mock response     
+		TargetSystem targetSystem = new TargetSystem();
+        targetSystem.setAddress("Target System address");
+        targetSystem.setDescription("Target System Description");
+        targetSystem.setName("Target Name");
+
+        TargetSystemServiceRequest targetSystemServiceRequest = new TargetSystemServiceRequest();
+        targetSystemServiceRequest.setHostname("Target System Service Host name");
+        targetSystemServiceRequest.setName("Target System Service Name");
+        targetSystemServiceRequest.setPort(443);
+        targetSystemServiceRequest.setMultiIpMonitoringEnabled(false);
+        targetSystemServiceRequest.setMonitoringEnabled(false);
+        targetSystemServiceRequest.setDescription("Target Service Description");
+
+        sSLCertificateRequest.setCertificateName("CertificateName");
+        sSLCertificateRequest.setTargetSystem(targetSystem);
+        sSLCertificateRequest.setTargetSystemServiceRequest(targetSystemServiceRequest);
+        when(sslCertificateService.updateCertOwner("5PDrOhsy4ig8L3EpsJZSLAMg",sSLCertificateRequest,userDetails)).thenReturn(new ResponseEntity<>(HttpStatus.OK));
+        assertEquals(HttpStatus.OK, sslCertificateService.updateCertOwner("5PDrOhsy4ig8L3EpsJZSLAMg",sSLCertificateRequest,userDetails).getStatusCode());
+    }
 }
