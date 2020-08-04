@@ -281,5 +281,21 @@ public class SSLCertificateController {
 			@PathVariable("certificate_type") String certificateType) {
 		return sslCertificateService.getListOfCertificates(token, certificateType);
 	}
+	
+	/**
+	 * Transfer the ownership Of Certificates
+	 * 
+	 * @param request
+	 * @param token
+	 * @param certificateType
+	 * @return
+	 */
+	@ApiOperation(value = "${SSLCertificateController.getListOfCertificates.value}", notes = "${SSLCertificateController.getListOfCertificates.notes}")
+	@PutMapping(value = "/v2/sslcert/transferowner", produces = "application/json")
+	public ResponseEntity<String> transferCertOwner(HttpServletRequest request,
+			@RequestHeader(value = "vault-token") String token, @RequestBody SSLCertificateRequest sslCertificateRequest) throws Exception {
+		UserDetails userDetails = (UserDetails) request.getAttribute("UserDetails");
+		return sslCertificateService.updateCertOwner(token, sslCertificateRequest, userDetails);
+	}
 
 }
