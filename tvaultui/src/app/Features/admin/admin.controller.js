@@ -575,7 +575,11 @@
                         $scope.error('md');
                     });
             }
-            getCertificates("", null, null,"internal");
+            if($scope.selectedTab == 1){            	
+           	 getCertificates("", null, null,"External");
+           }else{        	   
+           getCertificates("", null, null,"Internal");
+           }
         };
 
         $scope.getExtCertificates = function () { 
@@ -605,7 +609,7 @@
         
         //Get ssl certificate
         var getCertificates =  function (searchCert, limit, offset, certType) {
-            $scope.numOfCertificates = 0;
+            $scope.numOfCertificates = 0;            
             $scope.certificatesLoaded = false;
             $scope.certificateData = {"certificates": []};
             $scope.isLoadingData = true;
@@ -708,7 +712,7 @@
             $scope.targetSystemSelected = false;
             $scope.showInputLoader.show = true;
             $scope.isTargetSystemListLoading = true;
-            var certType = $scope.certObj.certDetails.certType;
+            var certType = $scope.certObj.certDetails.certType;            
             var updatedUrlOfEndPoint = RestEndpoints.baseURL + "/v2/sslcert/" + certType + "/targetsystems";
             return AdminSafesManagement.getTargetSystems(null, updatedUrlOfEndPoint).then(function (response) {
                 if (UtilityService.ifAPIRequestSuccessful(response)) {
@@ -1747,7 +1751,11 @@
 
         $scope.successCancel = function () {
             Modal.close('');
-            getCertificates("", null, null,"internal");
+            if($scope.selectedTab == 1){            	
+              	 getCertificates("", null, null,"External");
+              }else{        	   
+              getCertificates("", null, null,"Internal");
+              }
         };
 
         $scope.collapseCertDetails = function (index) {
@@ -2187,21 +2195,44 @@
             
             $scope.transferCertPopup = function (certDetails) {
                 $scope.fetchDataError = false;
-                $rootScope.certDetails = certDetails;    
+                $rootScope.certDetails = certDetails;  
+                $scope.certTransferInValid = true;
                 $scope.certOwnerEmailErrorMessage = '';
+                $scope.certOwnerTransferErrorMessage = '';
                 Modal.createModal('md', 'transferCertPopup.html', 'AdminCtrl', $scope);
             };
             
             $scope.ownerEmailValidation = function () {
                 $scope.certOwnerEmailErrorMessage = '';
-                $scope.certTransferInValid = false;                
+                $scope.certOwnerTransferErrorMessage = '';                               
+                
                 if ($scope.certObj.certDetails.ownerEmail != null && $scope.certObj.certDetails.ownerEmail != undefined
                     && $scope.certObj.certDetails.ownerEmail != "") {
                     
                     if ($rootScope.certDetails.certOwnerEmailId==$scope.certObj.certDetails.ownerEmail) {
-                        $scope.certOwnerEmailErrorMessage = "New certificate owner email id should not be same as certificate owner email id"
+                        $scope.certOwnerEmailErrorMessage = "New owner email id should not be same as owner email id"
                         $scope.certTransferInValid = true;
                     } 
+                }
+            }
+            
+            $scope.selectOwnerforCert = function (ownerEmail) {
+            	$scope.certOwnerEmailErrorMessage = '';
+                if (ownerEmail != null) {
+                    $scope.certObj.certDetails.ownerEmail = ownerEmail.userEmail;
+                    $scope.certObj.certDetails.ownerNtId = ownerEmail.userName;
+                    $scope.isOwnerSelected = true;                    
+                    if ($scope.certObj.certDetails.ownerEmail != null && $scope.certObj.certDetails.ownerEmail != undefined
+                            && $scope.certObj.certDetails.ownerEmail != "") {
+                            
+                            if ($rootScope.certDetails.certOwnerEmailId==$scope.certObj.certDetails.ownerEmail) {                            	
+                                $scope.certOwnerEmailErrorMessage = "New owner email id should not be same as owner email id"
+                                $scope.certTransferInValid = true;
+                            } 
+                            else{
+                            	$scope.certTransferInValid = false;
+                            }
+                        }
                 }
             }
             
@@ -2209,22 +2240,21 @@
              	if ($rootScope.certDetails !== null && $rootScope.certDetails !== undefined) {
                		certificateDetails = $rootScope.certDetails;
                   }
+             	$scope.certOwnerTransferErrorMessage = '';
                 $rootScope.certDetails = null;                
                 try{
                 $scope.isLoadingData = true;
                 Modal.close();                
                 $scope.transferMessage = '';                             
                 certificateDetails.certOwnerEmailId=$scope.certObj.certDetails.ownerEmail;
-                certificateDetails.certOwnerNTId=$scope.certObj.certDetails.ownerNtId;  
-                certificateDetails.targetSystem=$scope.targetSystem; 
-                certificateDetails.targetSystemServiceRequest=$scope.targetSystemServiceRequest; 
-                certificateDetails.appName=$scope.appNameTagValue; 
-                //var url = RestEndpoints.baseURL + "/v2/sslcert/" +certType+"/"+ certificateName +"/"+ownerEmail+ "/transferowner";
+                certificateDetails.certOwnerNTId=$scope.certObj.certDetails.ownerNtId;                                  
+                certificateDetails.appName=certificateDetails.appNameTagValue;                 
                 var url = RestEndpoints.baseURL + "/v2/sslcert/transferowner";
                 $scope.isLoadingData = true;                          
                 
                 AdminSafesManagement.transferCertificate(certificateDetails, url).then(function (response) {
                     $scope.isLoadingData = false;
+                    $scope.certObj.certDetails.ownerEmail="";
                     if (UtilityService.ifAPIRequestSuccessful(response)) {
                         $scope.transferMessage = 'Certificate owner Transfered Successfully!';
                         $scope.transferMessage = response.data.messages[0];  
