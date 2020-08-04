@@ -35,6 +35,7 @@ public class UserDetails implements Serializable {
 	private String[] sudoPolicies;
 	private String access;
 	private Integer leaseDuration;
+	private String email;
 	
 	/**
 	 * 
@@ -156,5 +157,19 @@ public class UserDetails implements Serializable {
 		this.leaseDuration = leaseDuration;
 	}
 
+	/**
+	 *
+	 * @return the email.
+	 */
+	public String getEmail() {
+		return email;
+	}
 
+	/**
+	 *
+	 * @param email the email to set.
+	 */
+	public void setEmail(String email) {
+		this.email = email;
+	}
 }
