@@ -159,6 +159,7 @@ public class SSLCertificateServiceTest {
 		ReflectionTestUtils.setField(sSLCertificateService, "renewCertificateEndpoint", "certificates/certID/renew");
         ReflectionTestUtils.setField(sSLCertificateService, "getTemplateParamUrl", "policy/template/templateId/parameters?entityRef=SERVICE&entityId=entityid&allowedOnly=true&withTemplateById=templateId");
         ReflectionTestUtils.setField(sSLCertificateService, "putTemplateParamUrl", "policy/template/templateId/parameters?entityRef=SERVICE&entityId=entityid&allowedOnly=true&enroll=true");
+        ReflectionTestUtils.setField(sSLCertificateService, "approvalUrl", "actions/actionId/finalize");
 
         token = "5PDrOhsy4ig8L3EpsJZSLAMg";
         userDetails.setUsername("normaluser");
@@ -315,6 +316,8 @@ public class SSLCertificateServiceTest {
         String userDetailToken = userDetails.getSelfSupportToken();
 
         SSLCertificateRequest sslCertificateRequest = getSSLCertificateRequest();
+        String[] dnsNames = { };
+        sslCertificateRequest.setDnsList(dnsNames);
         Map<String, Object> requestMap = new HashMap<>();
         requestMap.put("access_token", "12345");
         requestMap.put("token_type", "type");
@@ -467,6 +470,8 @@ public class SSLCertificateServiceTest {
         String userDetailToken = userDetails.getSelfSupportToken();
 
         SSLCertificateRequest sslCertificateRequest = getSSLCertificateRequest();
+        String[] dnsNames = { };
+        sslCertificateRequest.setDnsList(dnsNames);
         sslCertificateRequest.setCertType("external");
         Map<String, Object> requestMap = new HashMap<>();
         requestMap.put("access_token", "12345");
@@ -571,7 +576,8 @@ public class SSLCertificateServiceTest {
         when(reqProcessor.processCert(eq("/certmanager/putEnrollCSR"), anyObject(), anyString(), anyString())).thenReturn(getEnrollCSRResponse());
 
         //enroll
-        when(reqProcessor.processCert(eq("/certmanager/enroll"), anyObject(), anyString(), anyString())).thenReturn(getEnrollResonse());
+        when(reqProcessor.processCert(eq("/certmanager/enroll"), anyObject(), anyString(), anyString())).thenReturn(getEnrollResonse_For_ExternalCertificate());
+        when(reqProcessor.processCert(eq("/certmanager/approvalrequest"), anyObject(), anyString(), anyString())).thenReturn(getApproveResponse());
 
         when(reqProcessor.process("/auth/userpass/read","{\"username\":\"testuser2\"}",token)).thenReturn(userResponse);
 
@@ -588,6 +594,10 @@ public class SSLCertificateServiceTest {
         when(ControllerUtil.parseJson(metaDataStr)).thenReturn(createCertPolicyMap);
         when(ControllerUtil.convetToJson(any())).thenReturn(metadatajson);
         when(reqProcessor.process("/write", metadatajson, token)).thenReturn(responseNoContent);
+        String metaDataStr1 = "{\"actionId\":111}";
+        Map<String, Object> createCertPolicyMap1 = new HashMap<>();
+        createCertPolicyMap1.put("actionId", 111);
+        when(ControllerUtil.parseJson(metaDataStr1)).thenReturn(createCertPolicyMap1);
 
         List<String> resList = new ArrayList<>();
         resList.add("default");
@@ -615,6 +625,8 @@ public class SSLCertificateServiceTest {
         certManagerLoginRequest.setPassword("password");
 
         SSLCertificateRequest sslCertificateRequest = getSSLCertificateRequest();
+        String[] dnsNames = { };
+        sslCertificateRequest.setDnsList(dnsNames);
         Map<String, Object> requestMap = new HashMap<>();
         requestMap.put("access_token", "12345");
         requestMap.put("token_type", "type");
@@ -674,6 +686,8 @@ public class SSLCertificateServiceTest {
         certManagerLoginRequest.setPassword("password");
 
         SSLCertificateRequest sslCertificateRequest = getSSLCertificateRequest();
+        String[] dnsNames = { };
+        sslCertificateRequest.setDnsList(dnsNames);
         Map<String, Object> requestMap = new HashMap<>();
         requestMap.put("access_token", "12345");
         requestMap.put("token_type", "type");
@@ -759,6 +773,8 @@ public class SSLCertificateServiceTest {
         certManagerLoginRequest.setPassword("password");
 
         SSLCertificateRequest sslCertificateRequest = getSSLCertificateRequest();
+        String[] dnsNames = { };
+        sslCertificateRequest.setDnsList(dnsNames);
         Map<String, Object> requestMap = new HashMap<>();
         requestMap.put("access_token", "12345");
         requestMap.put("token_type", "type");
@@ -806,6 +822,8 @@ public class SSLCertificateServiceTest {
         certManagerLoginRequest.setPassword("password");
 
         SSLCertificateRequest sslCertificateRequest = getSSLCertificateRequest();
+        String[] dnsNames = { };
+        sslCertificateRequest.setDnsList(dnsNames);
         Map<String, Object> requestMap = new HashMap<>();
         requestMap.put("access_token", "12345");
         requestMap.put("token_type", "type");
@@ -928,6 +946,8 @@ public class SSLCertificateServiceTest {
         String userDetailToken = userDetails.getSelfSupportToken();
 
         SSLCertificateRequest sslCertificateRequest = getSSLCertificateRequest();
+        String[] dnsNames = { };
+        sslCertificateRequest.setDnsList(dnsNames);
         Map<String, Object> requestMap = new HashMap<>();
         requestMap.put("access_token", "12345");
         requestMap.put("token_type", "type");
@@ -1072,6 +1092,8 @@ public class SSLCertificateServiceTest {
         String userDetailToken = userDetails.getSelfSupportToken();
 
         SSLCertificateRequest sslCertificateRequest = getSSLCertificateRequest();
+        String[] dnsNames = { };
+        sslCertificateRequest.setDnsList(dnsNames);
         Map<String, Object> requestMap = new HashMap<>();
         requestMap.put("access_token", "12345");
         requestMap.put("token_type", "type");
@@ -1208,6 +1230,8 @@ public class SSLCertificateServiceTest {
         certManagerLoginRequest.setPassword("password");
 
         SSLCertificateRequest sslCertificateRequest = getSSLCertificateRequest();
+        String[] dnsNames = { };
+        sslCertificateRequest.setDnsList(dnsNames);
         Map<String, Object> requestMap = new HashMap<>();
         requestMap.put("access_token", "12345");
         requestMap.put("token_type", "type");
@@ -1319,6 +1343,8 @@ public class SSLCertificateServiceTest {
         certManagerLoginRequest.setPassword("password");
 
         SSLCertificateRequest sslCertificateRequest = getSSLCertificateRequest();
+        String[] dnsNames = { };
+        sslCertificateRequest.setDnsList(dnsNames);
         Map<String, Object> requestMap = new HashMap<>();
         requestMap.put("access_token", "12345");
         requestMap.put("token_type", "type");
@@ -1405,6 +1431,14 @@ public class SSLCertificateServiceTest {
          assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, responseEntityActual.getStatusCode());
     }
 
+    private CertResponse getEnrollResonse_For_ExternalCertificate() {
+        CertResponse enrollResponse = new CertResponse();
+        enrollResponse.setHttpstatus(HttpStatus.ACCEPTED);
+        String jsonStr = "{\"actionId\":111}";
+        enrollResponse.setResponse(jsonStr);
+        enrollResponse.setSuccess(Boolean.TRUE);
+        return enrollResponse;
+    }
     private CertResponse getEnrollResonse() {
         CertResponse enrollResponse = new CertResponse();
         enrollResponse.setHttpstatus(HttpStatus.NO_CONTENT);
@@ -1414,6 +1448,15 @@ public class SSLCertificateServiceTest {
         return enrollResponse;
     }
 
+    private CertResponse getApproveResponse(){
+        String approveResponse =   "{\"actionId\":304,\"action\":{\"type\":90,\"displayName\":\"Renew certificate\"," +
+                "\"data\":[{\"type\":\"link\",\"displayName\":\"Certificate\",\"value\":\"View certificate\",\"linkType\":\"certificate\",\"certificateId\":66601}]},\"response\":{},\"note\":\"Approve Test\",\"finalized\":true,\"conclusion\":\"waiting\",\"verdicts\":[]}";
+        CertResponse response = new CertResponse();
+        response.setHttpstatus(HttpStatus.OK);
+        response.setResponse(approveResponse);
+        response.setSuccess(true);
+        return response;
+    }
 
     private CertResponse getEnrollCSRResponse() {
         String enrollCSRResponse = "{\"subject\":{\"items\":[{\"typeName\":\"cn\",\"parameterId\":0," +
@@ -4090,5 +4133,116 @@ public class SSLCertificateServiceTest {
 
         return response;
     }
+    @Test
+    public void generateSSLCertificate_Internal_MultiSAN_Success() throws Exception {
+        String jsonStr = "{  \"username\": \"testusername1\",  \"password\": \"testpassword1\"}";
 
+        String jsonStr2 = "{\"certificates\":[{\"sortedSubjectName\": \"CN=CertificateName.t-mobile.com, C=US, " +
+                "ST=Washington, " +
+                "L=Bellevue, O=T-Mobile USA, Inc\"," +
+                "\"certificateId\":57258,\"certificateStatus\":\"Active\"," +
+                "\"containerName\":\"cont_12345\",\"NotAfter\":\"2021-06-15T04:35:58-07:00\"}]}";
+        CertManagerLoginRequest certManagerLoginRequest = getCertManagerLoginRequest();
+        certManagerLoginRequest.setUsername("username");
+        certManagerLoginRequest.setPassword("password");
+        userDetails = new UserDetails();
+        userDetails.setAdmin(true);
+        userDetails.setClientToken(token);
+        userDetails.setUsername("testusername1");
+        userDetails.setSelfSupportToken(token);
+        String userDetailToken = userDetails.getSelfSupportToken();
+        SSLCertificateRequest sslCertificateRequest = getSSLCertificateRequest();
+        Map<String, Object> requestMap = new HashMap<>();
+        requestMap.put("access_token", "12345");
+        requestMap.put("token_type", "type");
+        when(ControllerUtil.parseJson(jsonStr)).thenReturn(requestMap);
+        CertManagerLogin certManagerLogin = new CertManagerLogin();
+        certManagerLogin.setToken_type("token type");
+        certManagerLogin.setAccess_token("1234");
+        Response userResponse = getMockResponse(HttpStatus.OK, true, "{\"data\":{\"bound_cidrs\":[],\"max_ttl\":0,\"policies\":[\"default\",\"r_cert_CertificateName.t-mobile.com\"],\"ttl\":0,\"groups\":\"admin\"}}");
+        Response idapConfigureResponse = getMockResponse(HttpStatus.NO_CONTENT, true, "{\"policies\":null}");
+        SSLCertificateMetadataDetails certificateMetadata = getSSLCertificateMetadataDetails();
+        String[] dnsNames = {"internal.t-mobile.com","second.t-mobile.com","third.t-mobile.com" };
+        sslCertificateRequest.setDnsList(dnsNames);
+        CertResponse response = new CertResponse();
+        response.setHttpstatus(HttpStatus.OK);
+        response.setResponse(jsonStr);
+        response.setSuccess(true);
+        when(reqProcessor.processCert(eq("/auth/certmanager/login"), anyObject(), anyString(), anyString())).thenReturn(response);
+        CertResponse findCertResponse = new CertResponse();
+        findCertResponse.setHttpstatus(HttpStatus.OK);
+        findCertResponse.setResponse(jsonStr2);
+        findCertResponse.setSuccess(true);
+        when(reqProcessor.processCert(eq("/certmanager/findCertificate"), anyObject(), anyString(), anyString())).thenReturn(findCertResponse);
+        CertResponse response1 = new CertResponse();
+        response1.setHttpstatus(HttpStatus.OK);
+        response1.setResponse(jsonStr);
+        response1.setSuccess(true);
+        when(reqProcessor.processCert(eq("/certmanager/findTargetSystem"), anyObject(), anyString(), anyString())).thenReturn(response1);
+        String createTargetSystemResponse = "{  \"name\": \"TARGET SYSTEM1\",  \"password\": \"testpassword1\"," +
+                "\"targetSystemID\": \"29\"}";
+        response1.setResponse(createTargetSystemResponse);
+        Map<String, Object> createTargetSystemMap = new HashMap<>();
+        createTargetSystemMap.put("targetSystemID", 29);
+        createTargetSystemMap.put("name", "TARGET SYSTEM1");
+        createTargetSystemMap.put("description", "TARGET SYSTEM1");
+        createTargetSystemMap.put("address", "address");
+        when(ControllerUtil.parseJson(createTargetSystemResponse)).thenReturn(createTargetSystemMap);
+        when(reqProcessor.processCert(eq("/certmanager/targetsystem/create"), anyObject(), anyString(), anyString())).thenReturn(response1);
+        CertResponse response2 = new CertResponse();
+        String jsonStr1 = "{  \"name\": \"targetService\",  \"address\": \"targetServiceaddress\"}";
+        response2.setHttpstatus(HttpStatus.OK);
+        response2.setResponse(jsonStr1);
+        response2.setSuccess(true);
+        when(reqProcessor.processCert(eq("/certmanager/findTargetSystemService"), anyObject(), anyString(), anyString())).thenReturn(response2);
+        String createTargetSystemServiceResponse =
+                "{  \"name\": \"TARGET SYSTEM Service\",  \"password\": , \"testpassword1\"}";
+        response2.setResponse(createTargetSystemServiceResponse);
+        Map<String, Object> createTargetSystemServiceMap = new HashMap<>();
+        createTargetSystemServiceMap.put("targetSystemServiceId", 40);
+        createTargetSystemServiceMap.put("hostname", "TARGETSYSTEMSERVICEHOST");
+        createTargetSystemServiceMap.put("name", "TARGET SYSTEM SERVICE");
+        createTargetSystemServiceMap.put("port", 443);
+        createTargetSystemServiceMap.put("targetSystemGroupId", 11);
+        createTargetSystemServiceMap.put("targetSystemId", 12);
+        String metaDataStr = "{ \"data\": {\"certificateName\": \"certificatename.t-mobile.com\", \"appName\": \"tvt\", \"certType\": \"internal\", \"certOwnerNtid\": \"testusername1\"}, \"path\": \"sslcerts/certificatename.t-mobile.com\"}";
+        String metadatajson = "{\"path\":\"sslcerts/certificatename.t-mobile.com\",\"data\":{\"certificateName\":\"certificatename.t-mobile.com\",\"appName\":\"tvt\",\"certType\":\"internal\",\"certOwnerNtid\":\"testusername1\"}}";
+        Map<String, Object> createCertPolicyMap = new HashMap<>();
+        createCertPolicyMap.put("certificateName", "certificatename.t-mobile.com");
+        createCertPolicyMap.put("appName", "tvt");
+        createCertPolicyMap.put("certType", "internal");
+        createCertPolicyMap.put("certOwnerNtid", "testusername1");
+        Response responseNoContent = getMockResponse(HttpStatus.NO_CONTENT, true, "");
+        when(ControllerUtil.createMetadata(Mockito.any(), any())).thenReturn(true);
+        when(reqProcessor.process(eq("/access/update"),any(),eq(userDetailToken))).thenReturn(responseNoContent);
+        when(ControllerUtil.parseJson(createTargetSystemServiceResponse)).thenReturn(createTargetSystemServiceMap);
+        when(reqProcessor.processCert(eq("/certmanager/targetsystemservice/create"), anyObject(), anyString(), anyString())).thenReturn(response2);
+        when(reqProcessor.processCert(eq("/certmanager/getEnrollCA"), anyObject(), anyString(), anyString())).thenReturn(getEnrollCAResponse());
+        when(reqProcessor.processCert(eq("/certmanager/putEnrollCA"), anyObject(), anyString(), anyString())).thenReturn(getEnrollCAResponse());
+        when(reqProcessor.processCert(eq("/certmanager/getEnrollTemplates"), anyObject(), anyString(), anyString())).thenReturn(getEnrollTemplateResponse());
+        when(reqProcessor.processCert(eq("/certmanager/putEnrollTemplates"), anyObject(), anyString(), anyString())).thenReturn(getEnrollTemplateResponse());
+        when(reqProcessor.processCert(eq("/certmanager/getEnrollkeys"), anyObject(), anyString(), anyString())).thenReturn(getEnrollKeysResponse());
+        when(reqProcessor.processCert(eq("/certmanager/putEnrollKeys"), anyObject(), anyString(), anyString())).thenReturn(getEnrollKeysResponse());
+        when(reqProcessor.processCert(eq("/certmanager/getEnrollCSR"), anyObject(), anyString(), anyString())).thenReturn(getEnrollCSRResponse());
+        when(reqProcessor.processCert(eq("/certmanager/putEnrollCSR"), anyObject(), anyString(), anyString())).thenReturn(getEnrollCSRResponse());
+        when(reqProcessor.processCert(eq("/certmanager/enroll"), anyObject(), anyString(), anyString())).thenReturn(getEnrollResonse());
+        when(reqProcessor.process("/auth/userpass/read","{\"username\":\"testuser2\"}",token)).thenReturn(userResponse);
+        when(JSONUtil.getJSON(Mockito.any())).thenReturn(metaDataStr);
+        when(ControllerUtil.parseJson(metaDataStr)).thenReturn(createCertPolicyMap);
+        when(ControllerUtil.convetToJson(any())).thenReturn(metadatajson);
+        when(reqProcessor.process("/write", metadatajson, token)).thenReturn(responseNoContent);
+        List<String> resList = new ArrayList<>();
+        resList.add("default");
+        resList.add("r_cert_CertificateName.t-mobile.com");
+        when(ControllerUtil.getPoliciesAsListFromJson(any(), any())).thenReturn(resList);
+        String certType = "external";
+        when(ControllerUtil.configureUserpassUser(eq("testuser2"),any(),eq(token))).thenReturn(idapConfigureResponse);
+        when(ControllerUtil.updateMetadata(any(),eq(token))).thenReturn(responseNoContent);
+        when(certificateUtils.getCertificateMetaData(token, "CertificateName.t-mobile.com", certType)).thenReturn(certificateMetadata);
+        when(certificateUtils.hasAddOrRemovePermission(userDetails, certificateMetadata)).thenReturn(true);
+        ResponseEntity<?> enrollResponse =
+                sSLCertificateService.generateSSLCertificate(sslCertificateRequest,userDetails,token);
+        assertNotNull(enrollResponse);
+        assertEquals(HttpStatus.OK, enrollResponse.getStatusCode());
+    }
 }

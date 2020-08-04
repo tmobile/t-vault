@@ -22,6 +22,13 @@ public class SSLCertificateMetadataDetails implements Serializable {
     private String certOwnerEmailId;
     private String certOwnerNtid;
     private int containerId;
+    private String requestStatus;
+    public String getRequestStatus() {
+        return requestStatus;
+    }
+    public void setRequestStatus(String requestStatus) {
+        this.requestStatus = requestStatus;
+    }
 
     public int getContainerId() {
         return containerId;
@@ -141,5 +148,29 @@ public class SSLCertificateMetadataDetails implements Serializable {
     }
     public void setCertOwnerEmailId(String certOwnerEmailId) {
         this.certOwnerEmailId = certOwnerEmailId;
+    }
+
+    @Override
+    public String toString() {
+        return "SSLCertificateMetadataDetails{" +
+                "certificateId=" + certificateId +
+                ", certificateStatus='" + certificateStatus + '\'' +
+                ", expiryDate='" + expiryDate + '\'' +
+                ", createDate='" + createDate + '\'' +
+                ", containerName='" + containerName + '\'' +
+                ", certificateName='" + certificateName + '\'' +
+                ", authority='" + authority + '\'' +
+                ", applicationTag='" + applicationTag + '\'' +
+                ", applicationName='" + applicationName + '\'' +
+                ", projectLeadEmailId='" + projectLeadEmailId + '\'' +
+                ", applicationOwnerEmailId='" + applicationOwnerEmailId + '\'' +
+                ", akmid='" + akmid + '\'' +
+                ", certType='" + certType + '\'' +
+                ", certCreatedBy='" + certCreatedBy + '\'' +
+                ", certOwnerEmailId='" + certOwnerEmailId + '\'' +
+                ", certOwnerNtid='" + certOwnerNtid + '\'' +
+                ", containerId=" + containerId +
+                ", requestStatus='" + requestStatus + '\'' +
+                '}';
     }
 }
