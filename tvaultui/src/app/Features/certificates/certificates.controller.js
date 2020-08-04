@@ -76,7 +76,9 @@
         $scope.requestDataForMyCertifiates = function () {
             $scope.isLoadingData = true;
             $scope.certificatesData = {"keys": []};
+            $scope.certificatesDataExternal = {"keys": []};
             var data = [];
+            var extData = [];
             var accessSafes = JSON.parse(SessionStore.getItem("accessSafes"));
             if (accessSafes.cert) {
                 data = accessSafes.cert.map(function (certObject) {
@@ -91,16 +93,37 @@
             $scope.certificatesData.keys = data.filter(function(cert){
                 return cert.permission != "deny";
             });
+            //External Certificate Tab Non-admin cert list
+            if (accessSafes.externalcerts) {
+                extData = accessSafes.externalcerts.map(function (certObjectExt) {
+                    var entry = Object.entries(certObjectExt);
+                    return {
+                        certname: entry[0][0],
+                        permission: entry[0][1]
+                    }
+                });
+            }
 
+            $scope.certificatesDataExternal.keys = extData.filter(function(externalcerts){
+                return externalcerts.permission != "deny";
+            });
+           
             $scope.numOfCertificates=$scope.certificatesData.keys.length;
+            $scope.numOfCertificatesExternal=$scope.certificatesDataExternal.keys.length;
             $scope.isLoadingData = false;
         };
 
         $scope.isInternalCertificate = function(){
             $scope.certificateType = "internal";
+            $scope.searchValueCert = "";
+            document.getElementById('searchValueId').value = '';
             $scope.isInternalCertificateTab = true;
             $scope.viewExternalCertificate = false;
-            $scope.requestDataForMyCertifiatesAdmin();
+            if (JSON.parse(SessionStore.getItem("isAdmin")) == true) {
+                $scope.requestDataForMyCertifiatesAdmin();
+            }else{
+                $scope.requestDataForMyCertifiates();
+            }
         }
 
         $scope.isExternalCertificate = function(){
@@ -109,25 +132,40 @@
             document.getElementById('searchValueId').value = '';
             $scope.isInternalCertificateTab = false;
             $scope.viewCertificate = false;
-            $scope.requestDataForMyCertifiatesAdmin();
+            if (JSON.parse(SessionStore.getItem("isAdmin")) == true) {
+                $scope.requestDataForMyCertifiatesAdmin();
+            }else{
+                $scope.requestDataForMyCertifiates();
+            }
         }
 
         $scope.requestDataForMyCertifiatesAdmin = function () {
             $scope.certificatesData = {"keys": []};
+            $scope.certificatesDataExternal = {"keys": []};
             $scope.isLoadingData = true;
              
-
+        
             var updatedUrlOfEndPoint = RestEndpoints.baseURL + "/v2/sslcert/certificates/" + $scope.certificateType;
 
           //  var updatedUrlOfEndPoint = ModifyUrl.addUrlParameteres('listCertificatesByCertificateType', Math.random());
             AdminSafesManagement.listCertificatesByCertificateType(null, updatedUrlOfEndPoint).then(function (response) {
 
                 if (UtilityService.ifAPIRequestSuccessful(response)) {
-                    if (response.data != "" && response.data != undefined) {
-                        angular.forEach(response.data.data.keys, function(value, key) {
-                            $scope.certificatesData.keys.push({"certname": value, "permission": "read"});
-                          });
-                        $scope.numOfCertificates=$scope.certificatesData.keys.length;
+
+                    if($scope.certificateType == "internal"){
+                        if (response.data != "" && response.data != undefined) {
+                            angular.forEach(response.data.data.keys, function(value, key) {
+                                $scope.certificatesData.keys.push({"certname": value, "permission": "read"});
+                              });
+                            $scope.numOfCertificates=$scope.certificatesData.keys.length;
+                        }
+                    }else{
+                        if (response.data != "" && response.data != undefined) {
+                            angular.forEach(response.data.data.keys, function(value, key) {
+                                $scope.certificatesDataExternal.keys.push({"certname": value, "permission": "read"});
+                              });
+                            $scope.numOfCertificatesExternal=$scope.certificatesDataExternal.keys.length;
+                        }
                     }
                 }
                 else {
