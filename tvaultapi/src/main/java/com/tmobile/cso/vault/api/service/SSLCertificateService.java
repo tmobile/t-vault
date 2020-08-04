@@ -1508,7 +1508,7 @@ public class SSLCertificateService {
    	}
 
 
-       /**
+    /**
    	 * Get  for ssl certificate names
    	 * @param token
    	 * @param userDetails
@@ -3148,22 +3148,23 @@ public class SSLCertificateService {
     }
 
 
-    /**
-     * Get certificate details.
-     * @param token
-     * @param userDetails
-     * @param certificateName
-     * @return
-     */
-    public ResponseEntity<String> getCertificateDetails(String token, UserDetails userDetails, String certificateName,
-    		String certificateType) {
+	/**
+	 * Get certificate details.
+	 * 
+	 * @param token
+	 * @param certificateName
+	 * @return
+	 */
+	public ResponseEntity<String> getCertificateDetails(String token, String certificateName, String certificateType) {
 
-        SSLCertificateMetadataDetails sslCertificateMetadataDetails = certificateUtils.getCertificateMetaData(token, certificateName, certificateType);
-        if (sslCertificateMetadataDetails !=null) {
-            return ResponseEntity.status(HttpStatus.OK).body(JSONUtil.getJSON(sslCertificateMetadataDetails));
-        }
-        return ResponseEntity.status(HttpStatus.FORBIDDEN).body("{\"errors\":[\"Access denied: Unable to read certificate details.\"]}");
-    }
+		SSLCertificateMetadataDetails sslCertificateMetadataDetails = certificateUtils.getCertificateMetaData(token,
+				certificateName, certificateType);
+		if (sslCertificateMetadataDetails != null) {
+			return ResponseEntity.status(HttpStatus.OK).body(JSONUtil.getJSON(sslCertificateMetadataDetails));
+		}
+		return ResponseEntity.status(HttpStatus.FORBIDDEN)
+				.body("{\"errors\":[\"Access denied: Unable to read certificate details.\"]}");
+	}
     
     /**
 	 * Renew SSL Certificate and update metadata
@@ -3829,50 +3830,38 @@ public class SSLCertificateService {
 
 
 	/**
-	 * Get List Of internal or external certificates from the path sslcerts or externalcerts
+	 * Get List Of internal or external certificates
+	 * 
 	 * @param token
 	 * @param certificateType
-	 * @param userDetails
 	 * @return
 	 * @throws Exception
 	 */
-	public ResponseEntity<String> getListOfCertificates(String token, String certificateType, UserDetails userDetails)
-			throws Exception {
-		Response response = new Response();
-		String _path = "";
+	public ResponseEntity<String> getListOfCertificates(String token, String certificateType) {
+		Response response;
+		String path = "";
 		if (certificateType.equalsIgnoreCase("internal")) {
-			_path = SSLCertificateConstants.SSL_CERT_PATH_VALUE;
+			path = SSLCertificateConstants.SSL_CERT_PATH_VALUE;
 		} else {
-			_path = SSLCertificateConstants.SSL_CERT_PATH_VALUE_EXT;
+			path = SSLCertificateConstants.SSL_CERT_PATH_VALUE_EXT;
 		}
-		response = getMetadata(token, _path);
-
+		response = getMetadata(token, path);
 
 		if (HttpStatus.OK.equals(response.getHttpstatus())) {
-			log.debug(
-					JSONUtil.getJSON(
-							ImmutableMap.<String, String> builder()
-									.put(LogMessage.USER,
-											ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString())
-									.put(LogMessage.ACTION, "getListOfCertificates")
-									.put(LogMessage.MESSAGE, "Certificates fetched from metadata")
-									.put(LogMessage.STATUS, response.getHttpstatus().toString())
-									.put(LogMessage.APIURL,
-											ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString())
-									.build()));
+			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+					.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+					.put(LogMessage.ACTION, "getListOfCertificates")
+					.put(LogMessage.MESSAGE, "Certificates fetched from metadata")
+					.put(LogMessage.STATUS, response.getHttpstatus().toString())
+					.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
 			return ResponseEntity.status(response.getHttpstatus()).body(response.getResponse());
 		} else {
-			log.error(
-					JSONUtil.getJSON(
-							ImmutableMap.<String, String> builder()
-									.put(LogMessage.USER,
-											ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString())
-									.put(LogMessage.ACTION, "getListOfCertificates")
-									.put(LogMessage.MESSAGE, "Failed to get certificate list from metadata")
-									.put(LogMessage.STATUS, response.getHttpstatus().toString())
-									.put(LogMessage.APIURL,
-											ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString())
-									.build()));
+			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+					.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+					.put(LogMessage.ACTION, "getListOfCertificates")
+					.put(LogMessage.MESSAGE, "Failed to get certificate list from metadata")
+					.put(LogMessage.STATUS, response.getHttpstatus().toString())
+					.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
 
 			return ResponseEntity.status(response.getHttpstatus()).body(response.getResponse());
 		}
