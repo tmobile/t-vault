@@ -221,8 +221,7 @@ public class SSLCertificateController {
 			@RequestHeader(value = "vault-token") String token,
 			@PathVariable("certificate_type") String certificateType,
 			@RequestParam("certificate_name") String certificateName) {
-		UserDetails userDetails = (UserDetails) request.getAttribute(USER_DETAILS_STRING);
-		return sslCertificateService.getCertificateDetails(token, userDetails, certificateName, certificateType);
+		return sslCertificateService.getCertificateDetails(token, certificateName, certificateType);
 	}
 
 	 /**
@@ -279,9 +278,8 @@ public class SSLCertificateController {
 	@GetMapping(value = "/v2/sslcert/certificates/{certificate_type}", produces = "application/json")
 	public ResponseEntity<String> getListOfCertificates(HttpServletRequest request,
 			@RequestHeader(value = "vault-token") String token,
-			@PathVariable("certificate_type") String certificateType) throws Exception {
-		UserDetails userDetails = (UserDetails) request.getAttribute(USER_DETAILS_STRING);
-		return sslCertificateService.getListOfCertificates(token, certificateType, userDetails);
+			@PathVariable("certificate_type") String certificateType) {
+		return sslCertificateService.getListOfCertificates(token, certificateType);
 	}
 
 }

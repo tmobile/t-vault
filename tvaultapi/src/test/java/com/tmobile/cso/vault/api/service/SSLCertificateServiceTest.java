@@ -4106,7 +4106,7 @@ public class SSLCertificateServiceTest {
 
          when(reqProcessor.process("/sslcert", "{\"path\":\"/sslcerts/CertificateName.t-mobile.com\"}",token)).thenReturn(response);
 
-         ResponseEntity<String> responseEntityActual = sSLCertificateService.getListOfCertificates(token, certificateType, user1);
+         ResponseEntity<String> responseEntityActual = sSLCertificateService.getListOfCertificates(token, certificateType);
 
          assertEquals(HttpStatus.OK, responseEntityActual.getStatusCode());
     }
