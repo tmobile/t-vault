@@ -378,6 +378,10 @@ readTextFile("../apiUrls.json");
             name: 'listCertificatesByCertificateType',
             url: '/v2/sslcert/certificates{certificate_type}',
             method: 'GET'
+        }, {
+            name: 'transferCertificate',
+            url: '/v2/sslcert/transferowner',
+            method: 'PUT'
         },
         {
             name: 'downloadCertificate',
