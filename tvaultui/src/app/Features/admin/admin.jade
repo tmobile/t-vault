@@ -230,7 +230,7 @@ script(type='text/ng-template', id='certificatePopup.html')
                 .font-type-normal(uib-collapse="isCertCollapsed" )
                     .col-lg-12.col-md-12.col-sm-12.col-xs-12.common-form-row()
                       .details-input-group 
-                        .common-form-label Certificate Type*
+                        .common-form-label(uib-tooltip="Type of Certificate Private(Internal) or Public(External)") Certificate Type*
                         label.common-form-label Internal
                           input(type='radio' id='cert_type' value="internal" ng-model="certObj.certDetails.certType" ng-click="getTargetSystems()" ng-checked="certObj.certDetails.certType == 'internal'" )
                         label.common-form-label External
@@ -238,17 +238,17 @@ script(type='text/ng-template', id='certificatePopup.html')
                     .col-lg-12.col-md-12.col-sm-12.col-xs-12.common-form-row()
                       .details-input-group
                         .common-form-label Certificate Name*
-                        input.form-control.input-box-style(id="certReqName" ng-model="certObj.certDetails.certName"  ng-change="replaceSpacesCertName()")
+                        input.form-control.input-box-style(type="text" value=".t-mobile.com" id="certReqName" ng-model="certObj.certDetails.certName"  ng-change="replaceSpacesCertName()")
                      div.key-acceptance-info() {{ certNameErrorMessage }}
                     .col-lg-12.col-md-12.col-sm-12.col-xs-12.common-form-row()
                       .details-input-group
-                        .common-form-label Application Name*
-                        input.form-control.input-box-style(ng-model="certApplicationName" id="applicationName" typeahead-min-length="2" name="appName" uib-typeahead="key as key.type for key in getAppName($viewValue) | limitTo: 5" typeahead-wait-ms="500" typeahead-on-select="selectAppName(certApplicationName)" ng-disabled="isApplicationsLoading" ng-required="true")
+                        .common-form-label(uib-tooltip="Name of the application") Application Name*
+                        input.form-control.input-box-style(ng-model="certApplicationName" id="applicationName" typeahead-min-length="2" name="appName" uib-typeahead="key as key.type for key in getAppName($viewValue) | limitTo: 5" typeahead-wait-ms="500" typeahead-on-select="selectAppName(certApplicationName)" ng-change="selectApplicationName(certApplicationName)" ng-disabled="isApplicationsLoading" ng-required="true")
                         div.loader.svcaccid(ng-if='isApplicationsLoading')
                     .col-lg-12.col-md-12.col-sm-12.col-xs-12.common-form-row()
                       .details-input-group
-                        .common-form-label Owner Email Id*
-                        input.form-control.input-box-style(id="certReqOwnerEmail"  ng-model="certObj.certDetails.ownerEmail" typeahead-min-length="3" uib-typeahead="key as key.userEmail for key in searchEmail($viewValue) | limitTo: 8" typeahead-wait-ms="500" typeahead-on-select="selectOwner(certObj.certDetails.ownerEmail)")
+                        .common-form-label(uib-tooltip="Owner of the application") Owner Email ID*
+                        input.form-control.input-box-style(id="certReqOwnerEmail"  ng-model="certObj.certDetails.ownerEmail" typeahead-min-length="3" uib-typeahead="key as key.userEmail for key in searchEmail($viewValue) | limitTo: 8" typeahead-wait-ms="500" typeahead-on-select="selectOwner(certObj.certDetails.ownerEmail)" ng-change="selectOwnerEmail(certObj.certDetails.ownerEmail)")
                         div.loader.svcaccid(ng-if='isUserSearchLoading && certObj.certDetails.ownerEmail.length > 2')
                             div.ball-spin-fade-loader
                                 div
@@ -286,16 +286,16 @@ script(type='text/ng-template', id='certificatePopup.html')
                   .font-type-normal(ng-if="!existingTargetSystem")
                     .col-lg-12.col-md-12.col-sm-12.col-xs-12.common-form-row()
                       .details-input-group
-                        .common-form-label Name*
+                        .common-form-label(uib-tooltip="Hostname of your server") Name*
                         input.form-control.input-box-style( id="tarSystemName" ng-model="certObj.targetSystem.name" ng-change="targetSystemAvailable()" ng-required="true")
                         div.key-acceptance-info() {{ targetSysErrorMessage }}
                     .col-lg-12.col-md-12.col-sm-12.col-xs-12.common-form-row()
                       .details-input-group
-                        .common-form-label Description 
+                        .common-form-label(uib-tooltip="what this system does") Description 
                         input.form-control.input-box-style(id="tarSystemDesc" ng-model="certObj.targetSystem.description")
                     .col-lg-12.col-md-12.col-sm-12.col-xs-12.common-form-row()
                       .details-input-group 
-                        .common-form-label Hostname/IP Address*
+                        .common-form-label(uib-tooltip="This is used for monitoring the deployement of your certificate") Hostname/IP Address*
                         input.form-control.input-box-style(id="tarSystemAddress"  ng-change="replaceSpacesTargetAddr()" ng-model="certObj.targetSystem.address")
                   div.key-acceptance-info() {{ targetAddrErrorMessage }}
                   .font-type-normal(ng-if="existingTargetSystem")
@@ -329,17 +329,17 @@ script(type='text/ng-template', id='certificatePopup.html')
                   .font-type-normal(ng-if="!existingService")
                     .col-lg-12.col-md-12.col-sm-12.col-xs-12.common-form-row()
                       .details-input-group
-                        .common-form-label Name*
+                        .common-form-label(uib-tooltip="Application that will use the certificate") Name*
                         input.form-control.input-box-style(id="tarSysServiceReqName" ng-model="certObj.targetSystemServiceRequest.name" ng-change="targetSystemServiceAvailable()" typeahead-wait-ms="500" ng-required="true")
                     div.key-acceptance-info() {{ targetSysServiceErrorMessage }}
                     
                     .col-lg-12.col-md-12.col-sm-12.col-xs-12.common-form-row()
                       .details-input-group
-                        .common-form-label Description
+                        .common-form-label(uib-tooltip="Description of the service") Description
                         input.form-control.input-box-style(id="tarSysServiceReqDesc" ng-model="certObj.targetSystemServiceRequest.description")
                     .col-lg-12.col-md-12.col-sm-12.col-xs-12.common-form-row()
                       .details-input-group
-                        .common-form-label Port*
+                        .common-form-label(uib-tooltip="The port that monitoring will look for the certificate on") Port*
                         input.form-control.input-box-style(id="tarSysServiceReqPort"  restrict-to-numbers ng-model="certObj.targetSystemServiceRequest.port" minlength="1" maxlength="5" ng-change="portNumValidation()" ng-required="true")
                      div.key-acceptance-info() {{ portErrorMessage }} 
                     .col-lg-6.col-md-6.col-sm-6.col-xs-6.common-form-row()
@@ -352,7 +352,7 @@ script(type='text/ng-template', id='certificatePopup.html')
                         input(type='checkbox' ng-checked = "true" ng-disabled="true" id="enableMultiIpMonitoring" ng-model="certObj.targetSystemServiceRequest.multiIpMonitoringEnabled")
                     .col-lg-12.col-md-12.col-sm-12.col-xs-12.common-form-row()
                       .details-input-group
-                        .common-form-label Hostname for SNI
+                        .common-form-label(uib-tooltip="Server Name Indication the Hostname for monitoring SNI enabled services .Optional") Hostname for SNI
                       input.form-control(id="hostName" ng-change="replaceSpacesHostName()" ng-model="certObj.targetSystemServiceRequest.hostname")
                   div.key-acceptance-info() {{ hostNameErrorMessage }}
                   .font-type-normal(ng-if="existingService")
@@ -647,7 +647,8 @@ script(type='text/ng-template', id='manageSecretId.html')
                                             .row.change-safe-table-container(ng-if='true')
                                               loading-state(ng-if='isLoadingData'  && 'isLoadingCerts')
                                               .row.change-data.header.solid-header(ng-show="!isLoadingData && certificateData.certificates.length>0")
-                                                  .container.name.col-lg-4.col-md-4.col-sm-3.col-xs-3 CERTIFICATE
+                                                  .container.name.col-lg-3.col-md-4.col-sm-3.col-xs-3 CERTIFICATE
+                                                  .container.name.action.col-lg-2.col-md-2.col-sm-2.col-xs-2 EXPIRATION DATE
                                                   .container.name.action.col-lg-2.col-md-2.col-sm-2.col-xs-2 STATUS
                                                   .container.name.action.col-lg-2.col-md-2.col-sm-2.col-xs-2 ACTION
                                                   div.create-certificate-link
@@ -660,8 +661,9 @@ script(type='text/ng-template', id='manageSecretId.html')
                                                   .unavailable-text(ng-show="!isLoadingData && certificateData.certificates.length==0")
                                                       .container.name No Certificates Available
                                                   .row.change-data.item(ng-show="!isLoadingData" ng-class="{'grayBackground' : activeItem == true}" ng-repeat="value in certificateData.certificates |  filter: searchCert() | limitTo: certpaginationLimit()")
-                                                      .container.name.col-lg-4.col-md-4.col-sm-3.col-xs-3(title="{{ getCertSubjectName(value) }}") {{ getCertSubjectName(value) }}
-                                                      .container.radio-inputs.col-lg-2.col-md-2.col-sm-2.col-xs-2
+                                                      .container.name.col-lg-3.col-md-4.col-sm-3.col-xs-3(title="{{ getCertSubjectName(value) }}") {{ getCertSubjectName(value) }}
+                                                      .container.name.col-lg-2.col-md-2.col-sm-1.col-xs-2(title="{{ getCertExpirationDate(value) }}") {{ getCertExpirationDate(value) }}
+                                                      .container.radio-inputs.col-lg-1.col-md-2.col-sm-2.col-xs-2
                                                           .down.view
                                                               .list-icon(ng-if="value.certificateStatus=='Active'")
                                                                 label.active-cert {{ value.certificateStatus}}
@@ -669,7 +671,7 @@ script(type='text/ng-template', id='manageSecretId.html')
                                                                 label.revoked-cert {{ value.certificateStatus}}  
                                                               .list-icon(ng-if="value.certificateStatus=='Expired'")
                                                                 label.expired-cert {{ value.certificateStatus}}
-                                                      .container.radio-inputs.col-lg-6.col-md-6.col-sm-6.col-xs-6
+                                                      .container.radio-inputs.col-lg-4.col-md-5.col-sm-5.col-xs-5
                                                           .down.view
                                                               .list-icon(ng-click="goToAddPermissions(value)")  View/Edit 
                                                           .down.view
