@@ -347,15 +347,17 @@ public class SSLCertificateService {
             CertificateData certificateDetails = getCertificate(sslCertificateRequest, certManagerLogin);
             log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
                     put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
-                    put(LogMessage.ACTION, String.format("Certificate name =[%s] = isCertificateExist [%s]",
-                            sslCertificateRequest.getCertificateName(), certificateDetails)).
+                    put(LogMessage.ACTION, String.format("Details for Certificate name =[%s] = Certificate Details " +
+                                    "[%s]", sslCertificateRequest.getCertificateName(), certificateDetails)).
                     build()));
-            if (Objects.isNull(certificateDetails)) {
 
+
+            if (Objects.isNull(certificateDetails)) {
                 //Validate the certificate in metadata path  for external certificate
                 if (sslCertificateRequest.getCertType().equalsIgnoreCase(SSLCertificateConstants.EXTERNAL)) {
                     SSLCertificateMetadataDetails certMetaData = certificateUtils.getCertificateMetaData(token,
                             sslCertificateRequest.getCertificateName(), sslCertificateRequest.getCertType());
+
                     if ((Objects.nonNull(certMetaData)) && (Objects.nonNull(certMetaData.getRequestStatus()))
                             && (certMetaData.getRequestStatus().equalsIgnoreCase(SSLCertificateConstants.REQUEST_PENDING_APPROVAL))) {
                         enrollResponse.setSuccess(Boolean.FALSE);
@@ -380,7 +382,9 @@ public class SSLCertificateService {
                             getContainerId(sslCertificateRequest));
                     log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
                             put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
-                            put(LogMessage.ACTION, String.format("createTargetSystem Completed Successfully [%s]", targetSystemId)).
+                            put(LogMessage.ACTION, String.format("createTargetSystem Completed Successfully [%s] for " +
+                                            "certificate name = [%s]",
+                                    targetSystemId,sslCertificateRequest.getCertificateName())).
                             build()));
                     if (targetSystemId == 0){
                         enrollResponse.setResponse(SSLCertificateConstants.SSL_CREATE_EXCEPTION);
@@ -407,7 +411,9 @@ public class SSLCertificateService {
                     }
                     log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
                             put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
-                            put(LogMessage.ACTION, String.format("createTargetSystem Service  Completed Successfully [%s]", targetSystemService)).
+                            put(LogMessage.ACTION, String.format("createTargetSystem Service  Completed Successfully " +
+                                    "[%s] = certificate name = [%s] ", targetSystemService.toString(),
+                                    sslCertificateRequest.getCertificateName())).
                             put(LogMessage.MESSAGE, String.format("Target System Service ID  [%s]", targetSystemService.getTargetSystemServiceId())).
                             build()));
                 }
@@ -417,28 +423,37 @@ public class SSLCertificateService {
                 CertResponse response = getEnrollCA(certManagerLogin, targetSystemServiceId);
                 log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
                         put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
-                        put(LogMessage.ACTION, String.format("getEnrollCA Completed Successfully [%s]", response.getResponse())).
+                        put(LogMessage.ACTION, String.format("getEnrollCA Completed Successfully [%s] = certificate name = [%s]",
+                                response.getResponse(),sslCertificateRequest.getCertificateName())).
                         build()));
 
                 ////Only for External -MultiSAN - Update the selectedId
                 if ((!StringUtils.isEmpty(sslCertificateRequest.getCertType())) && sslCertificateRequest.getCertType().equalsIgnoreCase(SSLCertificateConstants.EXTERNAL)
                         && sslCertificateRequest.getDnsList().length > 0) {
                     response = prepareEnrollCARequest(response);
+                    log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+                            put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+                            put(LogMessage.ACTION, String.format("getEnrollCA Completed Successfully [%s] = " +
+                                            "For External-MultiSAN-certificate name = [%s]",
+                                    response.getResponse(),sslCertificateRequest.getCertificateName())).
+                            build()));
                 }
 
                 //Step-8 PutEnrollCA
                 int updatedSelectedId = putEnrollCA(certManagerLogin, targetSystemServiceId, response);
                 log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
                         put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
-                        put(LogMessage.ACTION, String.format("PutEnroll CA Successfully Completed[%s]", updatedSelectedId)).
+                        put(LogMessage.ACTION, String.format("PutEnroll CA Successfully Completed[%s] = certificate " +
+                                        "name = [%s]",
+                                updatedSelectedId,sslCertificateRequest.getCertificateName())).
                         build()));
 
                 //Step-9  GetEnrollTemplates
                 CertResponse templateResponse = getEnrollTemplates(certManagerLogin, targetSystemServiceId, updatedSelectedId);
                 log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
                         put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
-                        put(LogMessage.ACTION, String.format("Get Enrollment template  Completed Successfully [%s]",
-                                templateResponse.getResponse())).
+                        put(LogMessage.ACTION, String.format("Get Enrollment template  Completed Successfully [%s] = certificate name = [%s]",
+                                templateResponse.getResponse(),sslCertificateRequest.getCertificateName())).
                         build()));
 
                 //Only for External -MultiSAN - Update the selectedId
@@ -450,7 +465,8 @@ public class SSLCertificateService {
                 int enrollTemplateId = putEnrollTemplates(certManagerLogin, targetSystemServiceId, templateResponse, updatedSelectedId);
                 log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
                         put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
-                        put(LogMessage.ACTION, String.format("PutEnroll template  Successfully Completed = enrollTemplateId = [%s]", enrollTemplateId)).
+                        put(LogMessage.ACTION, String.format("PutEnroll template  Successfully Completed = " +
+                                "enrollTemplateId = [%s] = certificate name = [%s]", enrollTemplateId,sslCertificateRequest.getCertificateName())).
                         build()));
 
                 if ((!StringUtils.isEmpty(sslCertificateRequest.getCertType())) && sslCertificateRequest.getCertType().equalsIgnoreCase(SSLCertificateConstants.EXTERNAL)) {
@@ -460,7 +476,8 @@ public class SSLCertificateService {
                     log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
                             put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
                             put(LogMessage.ACTION, String.format("GetTemplateParameters  Successfully Completed = " +
-                                    "getTemplateParamterRequest = [%s]", getTemplateResponse.getResponse())).build()));
+                                    "getTemplateParamterRequest = [%s] = certificate name = [%s] ",
+                                    getTemplateResponse.getResponse(),sslCertificateRequest.getCertificateName())).build()));
                     if (sslCertificateRequest.getDnsList().length > 0) {
                         getTemplateResponse = updateRequestWithRequestedDetails(getTemplateResponse);
                     }
@@ -470,28 +487,32 @@ public class SSLCertificateService {
                     log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
                             put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
                             put(LogMessage.ACTION, String.format("PUt TemplateParameters  Successfully Completed = " +
-                                    "putTemplateParamterResponse = [%s]", putTemplateParameterResponse.getResponse())).build()));
+                                    "putTemplateParamterResponse = [%s] = certificate name = [%s] ",
+                                    putTemplateParameterResponse.getResponse(),sslCertificateRequest.getCertificateName())).build()));
                 }
 
                 //Step-11  GetEnrollKeys
                 CertResponse getEnrollKeyResponse = getEnrollKeys(certManagerLogin, targetSystemServiceId, enrollTemplateId);
                 log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
-                        put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
-                        put(LogMessage.ACTION, String.format("getEnrollKeys Completed Successfully [%s]", getEnrollKeyResponse.getResponse())).
+                        put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+                        put(LogMessage.ACTION, String.format("getEnrollKeys Completed Successfully [%s] = certificate name = [%s]",
+                                getEnrollKeyResponse.getResponse(),sslCertificateRequest.getCertificateName())).
                         build()));
 
                 //Step-12  PutEnrollKeys
                 int enrollKeyId = putEnrollKeys(certManagerLogin, targetSystemServiceId, getEnrollKeyResponse, enrollTemplateId);
                 log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
-                        put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
-                        put(LogMessage.ACTION, String.format("putEnrollKeys  Successfully Completed[%s]", enrollKeyId)).
+                        put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+                        put(LogMessage.ACTION, String.format("putEnrollKeys  Successfully Completed[%s] = certificate name = [%s]",
+                                enrollKeyId,sslCertificateRequest.getCertificateName())).
                         build()));
 
                 //Step-13 GetEnrollCSRs
                 String updatedRequest = getEnrollCSR(certManagerLogin, targetSystemServiceId, enrollTemplateId, sslCertificateRequest);
                 log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
-                        put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
-                        put(LogMessage.ACTION, String.format("getEnrollCSRResponse Completed Successfully [%s]", updatedRequest)).
+                        put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+                        put(LogMessage.ACTION, String.format("getEnrollCSRResponse Completed Successfully [%s] = certificate name = [%s]",
+                                updatedRequest,sslCertificateRequest.getCertificateName())).
                         build()));
 
                 //In case multiSAN(external/internal)-Need to build request for SubjectAlternateNames
@@ -499,23 +520,36 @@ public class SSLCertificateService {
                     //Build Object with DNS names
                     updatedRequest = buildSubjectAlternativeNameRequest(updatedRequest, sslCertificateRequest,
                             targetSystemServiceId);
+                    log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+                            put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+                            put(LogMessage.ACTION, String.format("Build Object with DNS names [%s] = certificate name = [%s]",
+                                    updatedRequest,sslCertificateRequest.getCertificateName())).
+                            build()));
+
                 } else {
                     //If dnsList is empty ,remove the DNS names object from request
                     updatedRequest = removeSubjectAlternativeNameRequest(updatedRequest);
+                    log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+                            put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+                            put(LogMessage.ACTION, String.format("Remove  DNS names [%s] = certificate name = [%s]",
+                                    updatedRequest,sslCertificateRequest.getCertificateName())).
+                            build()));
                 }
 
                 //Step-14  PutEnrollCSRs
                 CertResponse putEnrollCSRResponse = putEnrollCSR(certManagerLogin, targetSystemServiceId, updatedRequest);
                 log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
-                        put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
-                        put(LogMessage.ACTION, String.format("PutEnroll CSR  Successfully Completed = = [%s]", putEnrollCSRResponse)).
+                        put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+                        put(LogMessage.ACTION, String.format("PutEnroll CSR  Successfully Completed  = [%s] = certificate name = [%s]",
+                                putEnrollCSRResponse,sslCertificateRequest.getCertificateName())).
                         build()));
 
                 //Step-15: Enroll Process
                 enrollResponse = enrollCertificate(certManagerLogin, targetSystemServiceId);
                 log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
-                        put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
-                        put(LogMessage.ACTION, String.format("Enroll Certificate response Completed Successfully [%s]", enrollResponse.getResponse())).
+                        put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+                        put(LogMessage.ACTION, String.format("Enroll Certificate response Completed Successfully [%s]" +
+                                " = certificate name = [%s]", enrollResponse.getResponse(),sslCertificateRequest.getCertificateName())).
                         build()));
 
                 if (enrollResponse.getHttpstatus().equals(HttpStatus.ACCEPTED) && Objects.nonNull(enrollResponse.getResponse())) {
@@ -525,6 +559,11 @@ public class SSLCertificateService {
                         actionId = (Integer) responseMap.get("actionId");
                         if (actionId != 0) {
                             enrollResponse = approvalRequest(certManagerLogin, actionId);
+                            log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+                                    put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+                                    put(LogMessage.ACTION, String.format("approvalRequest Completed Successfully [%s]" +
+                                            " = certificate name = [%s]", enrollResponse.getResponse(),sslCertificateRequest.getCertificateName())).
+                                    build()));
                         }
                     }
                 }
@@ -542,7 +581,7 @@ public class SSLCertificateService {
                     if(isPoliciesCreated) {
                         log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
                                 put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
-                                put(LogMessage.ACTION, String.format("Policies are created for SSL certificate [%s]",
+                                put(LogMessage.ACTION, String.format("Policies are created for SSL certificate name [%s]",
                                         sslCertificateRequest.getCertificateName())).
                                 build()));
                     }
@@ -563,7 +602,7 @@ public class SSLCertificateService {
                     if (sslMetaDataCreationStatus) {
                         log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
                                 put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
-                                put(LogMessage.ACTION, String.format("Metadata  created for SSL certificate [%s]",
+                                put(LogMessage.ACTION, String.format("Metadata  created for SSL certificate name [%s]",
                                         sslCertificateRequest.getCertificateName())).
                                 build()));
                     }
@@ -578,7 +617,7 @@ public class SSLCertificateService {
 										ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString())
 								.put(LogMessage.ACTION,
 										String.format(
-												"Metadata or Policies failed for SSL certificate [%s] - metaDataStatus[%s] - policyStatus[%s]",
+												"Metadata or Policies failed for SSL certificate name [%s] - metaDataStatus[%s] - policyStatus[%s]",
 												sslCertificateRequest.getCertificateName(), sslMetaDataCreationStatus,
 												isPoliciesCreated))
 								.build()));
@@ -596,7 +635,8 @@ public class SSLCertificateService {
                 log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
                         put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
                         put(LogMessage.ACTION, String.format("Certificate Already Available in  NCLM with Active Status " +
-                                "[%s]", enrollResponse.toString())).
+                                "[%s] = certificate name = [%s]", enrollResponse.toString(),
+                                sslCertificateRequest.getCertificateName())).
                         build()));
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\""+enrollResponse.getResponse()+
                         "\"]}");
@@ -605,16 +645,16 @@ public class SSLCertificateService {
             log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
                     put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
                     put(LogMessage.ACTION, String.format("Inside  TVaultValidationException " +
-                                    "Exception = [%s] =  Message [%s]", Arrays.toString(tex.getStackTrace()),
-                            tex.getMessage())).build()));
+                                    "Exception = [%s] =  Message [%s] = certificate name = [%s]",
+                            Arrays.toString(tex.getStackTrace()), tex.getMessage(),sslCertificateRequest.getCertificateName())).build()));
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"" + tex.getMessage() + "\"]}");
 
         } catch (Exception e) {
             log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
                     put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
                     put(LogMessage.ACTION, String.format("Inside  Exception " +
-                                    "Exception = [%s] =  Message [%s]", Arrays.toString(e.getStackTrace()),
-                            e.getMessage())).build()));
+                                    "Exception = [%s] =  Message [%s] = = certificate name = [%s]", Arrays.toString(e.getStackTrace()),
+                            e.getMessage(),sslCertificateRequest.getCertificateName())).build()));
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body
                     ("{\"errors\":[\"" + SSLCertificateConstants.SSL_CREATE_EXCEPTION + "\"]}");
         }
