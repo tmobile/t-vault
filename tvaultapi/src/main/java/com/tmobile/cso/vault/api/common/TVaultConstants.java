@@ -44,6 +44,7 @@ public class TVaultConstants {
     public static final String EMPTY = "";
     public static final String USERPASS = "userpass";
     public static final String LDAP = "ldap";
+    public static final String OIDC = "oidc";
     public static final String DELETE = "delete";
     public static final String IAM = "iam";
     public static final String CREATE ="create";
@@ -142,6 +143,7 @@ public class TVaultConstants {
     public static final String CERT_POLICY_PREFIX="cert";
     public static final String PATH_DELIMITER="/";
 
-
-
+    public static final String ALIAS_MOUNT_ACCESSOR = "accessor";
+    public static final String ENTITY_NAME = "name";
+    public static final String POLICIES = "policies";
 }
