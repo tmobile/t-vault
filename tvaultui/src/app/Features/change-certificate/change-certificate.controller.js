@@ -824,7 +824,7 @@
                             console.log(error);
                             clearInputPermissionData();
                             $scope.isLoadingData = false;
-                            $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
+                            $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_ADD_OWNER_FOR_PERMISSION');
                             $scope.error('md');
                         })
                 } catch (e) {
