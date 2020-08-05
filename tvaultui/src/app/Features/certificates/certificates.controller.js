@@ -239,7 +239,6 @@
             }else{
                 updatedUrlOfEndPoint = RestEndpoints.baseURL + "/v2/sslcert/certificate/" + "external" + "?certificate_name="+ certName;
             }
-            //var updatedUrlOfEndPoint = ModifyUrl.addUrlParameteres('getCertificateDetails',);
 
             AdminSafesManagement.getCertificateDetails(null, updatedUrlOfEndPoint).then(function (response) {
 
