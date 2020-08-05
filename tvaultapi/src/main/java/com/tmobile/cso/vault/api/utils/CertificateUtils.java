@@ -203,6 +203,10 @@ public class CertificateUtils {
 		if (null != dataNode.get("certOwnerNtid")) {
 			certificate.setCertOwnerNtid(dataNode.get("certOwnerNtid").asText());
 		}
+
+		if (null != dataNode.get("requestStatus")) {
+			certificate.setRequestStatus(dataNode.get("requestStatus").asText());
+		}
 		
 		return certificate;
 	}	
