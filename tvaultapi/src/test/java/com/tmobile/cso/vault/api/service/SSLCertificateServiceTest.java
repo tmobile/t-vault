@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.ImmutableMap;
+import com.tmobile.cso.vault.api.common.SSLCertificateConstants;
 import com.tmobile.cso.vault.api.controller.ControllerUtil;
 import com.tmobile.cso.vault.api.exception.TVaultValidationException;
 import com.tmobile.cso.vault.api.model.*;
@@ -811,6 +812,60 @@ public class SSLCertificateServiceTest {
         assertEquals(HttpStatus.BAD_REQUEST, enrollResponse.getStatusCode());
     }
 
+    @Test
+    public void generateSSLCertificate_External_Already_Exists_in_MetaData() throws Exception {
+        String jsonStr = "{ \"username\": \"testusername1\",  \"password\": \"testpassword1\"}";
+        String jsonStr1 = "{\"certificates\":[{\"sortedSubjectName\": \"CN=certificatename.t-mobile.com, C=US, " +
+                "ST=Washington, " +
+                "L=Bellevue, O=T-Mobile USA, Inc\"," +
+                "\"certificateId\":57258,\"certificateStatus\":\"Active\"," +
+                "\"containerName\":\"cont_12345\",\"NotAfter\":\"2021-06-15T04:35:58-07:00\"}]}";
+        CertManagerLoginRequest certManagerLoginRequest = getCertManagerLoginRequest();
+        certManagerLoginRequest.setUsername("username");
+        certManagerLoginRequest.setPassword("password");
+
+        SSLCertificateMetadataDetails certificateMetadata = getSSLExternalCertificateRequest();
+        SSLCertificateRequest sslCertificateRequest = getSSLCertificateRequest();
+        sslCertificateRequest.setCertType("external");
+        String[] dnsNames = { };
+        sslCertificateRequest.setDnsList(dnsNames);
+        Map<String, Object> requestMap = new HashMap<>();
+        requestMap.put("access_token", "12345");
+        requestMap.put("token_type", "type");
+        when(ControllerUtil.parseJson(jsonStr)).thenReturn(requestMap);
+
+
+        Map<String, Object> requestMap1= new HashMap<>();
+        requestMap1.put("certificates", "certificates");
+        requestMap1.put("certificateStatus", "Active");
+        when(ControllerUtil.parseJson(jsonStr1)).thenReturn(requestMap1);
+
+        CertManagerLogin certManagerLogin = new CertManagerLogin();
+        certManagerLogin.setToken_type("token type");
+        certManagerLogin.setAccess_token("1234");
+
+        CertResponse response = new CertResponse();
+        response.setHttpstatus(HttpStatus.OK);
+        response.setResponse(jsonStr);
+        response.setSuccess(true);
+
+        CertResponse response1 = new CertResponse();
+        response1.setHttpstatus(HttpStatus.OK);
+        response1.setResponse(jsonStr1);
+        response1.setSuccess(true);
+        when(reqProcessor.processCert(eq("/auth/certmanager/login"), anyObject(), anyString(), anyString())).thenReturn(response);
+
+        when(reqProcessor.processCert(eq("/certmanager/findCertificate"), anyObject(), anyString(), anyString())).thenReturn(response);
+
+        when(certificateUtils.getCertificateMetaData(any(), anyString(), anyString())).thenReturn(certificateMetadata);
+
+        ResponseEntity<?> enrollResponse =
+                sSLCertificateService.generateSSLCertificate(sslCertificateRequest,userDetails,token);
+
+        //Assert
+        assertNotNull(enrollResponse);
+        assertEquals(HttpStatus.BAD_REQUEST, enrollResponse.getStatusCode());
+    }
 
 
     @Test
@@ -2317,6 +2372,18 @@ public class SSLCertificateServiceTest {
         certDetails.setCertOwnerNtid("testuser1");
         certDetails.setCertOwnerEmailId("owneremail@test.com");
         certDetails.setExpiryDate("10-20-2030");
+        return certDetails;
+    }
+
+    SSLCertificateMetadataDetails getSSLExternalCertificateRequest() {
+        SSLCertificateMetadataDetails certDetails = new SSLCertificateMetadataDetails();
+        certDetails.setCertType("external");
+        certDetails.setCertCreatedBy("testuser1");
+        certDetails.setCertificateName("certificatename.t-mobile.com");
+        certDetails.setCertOwnerNtid("testuser1");
+        certDetails.setCertOwnerEmailId("owneremail@test.com");
+        certDetails.setExpiryDate("10-20-2030");
+        certDetails.setRequestStatus(SSLCertificateConstants.REQUEST_PENDING_APPROVAL);
         return certDetails;
     }
 
