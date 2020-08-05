@@ -2204,8 +2204,10 @@
             
             $scope.ownerEmailValidation = function () {
                 $scope.certOwnerEmailErrorMessage = '';
-                $scope.certOwnerTransferErrorMessage = '';                               
-                
+                $scope.certOwnerTransferErrorMessage = ''; 
+                if ($scope.certObj.certDetails.ownerEmail == null || $scope.certObj.certDetails.ownerEmail == ""){                	
+                	$scope.certTransferInValid = true;
+                }
                 if ($scope.certObj.certDetails.ownerEmail != null && $scope.certObj.certDetails.ownerEmail != undefined
                     && $scope.certObj.certDetails.ownerEmail != "") {
                     
@@ -2217,7 +2219,7 @@
             }
             
             $scope.selectOwnerforCert = function (ownerEmail) {
-            	$scope.certOwnerEmailErrorMessage = '';
+            	$scope.certOwnerEmailErrorMessage = '';            	
                 if (ownerEmail != null) {
                     $scope.certObj.certDetails.ownerEmail = ownerEmail.userEmail;
                     $scope.certObj.certDetails.ownerNtId = ownerEmail.userName;
