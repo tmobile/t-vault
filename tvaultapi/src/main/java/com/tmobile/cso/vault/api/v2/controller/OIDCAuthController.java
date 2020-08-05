@@ -3,12 +3,18 @@ package com.tmobile.cso.vault.api.v2.controller;
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 
-import com.tmobile.cso.vault.api.model.*;
 import io.swagger.annotations.ApiOperation;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import com.tmobile.cso.vault.api.model.GroupAliasRequest;
+import com.tmobile.cso.vault.api.model.OIDCEntityRequest;
+import com.tmobile.cso.vault.api.model.OIDCEntityResponse;
+import com.tmobile.cso.vault.api.model.OIDCIdentityGroupRequest;
+import com.tmobile.cso.vault.api.model.OIDCLookupEntityRequest;
+import com.tmobile.cso.vault.api.model.OidcRequest;
 import com.tmobile.cso.vault.api.service.OIDCAuthService;
 
 import io.swagger.annotations.Api;
@@ -41,7 +47,7 @@ public class OIDCAuthController {
 	 * @return
 	 */
 	@PostMapping(value = "/v2/identity/lookup/entity", produces = "application/json")
-	public ResponseEntity<String> entityLookUp(HttpServletRequest request,
+	public ResponseEntity<OIDCEntityResponse> entityLookUp(HttpServletRequest request,
 			@RequestHeader(value = "vault-token") String token,
 			@Valid @RequestBody OIDCLookupEntityRequest oidcLookupEntityRequest) {
 		return oidcAuthService.entityLookUp(token, oidcLookupEntityRequest);
@@ -99,7 +105,7 @@ public class OIDCAuthController {
 	public ResponseEntity<String> updateEntityByName(HttpServletRequest request,
 			@RequestHeader(value = "vault-token") String token, @PathVariable("name") String entityName,
 			@Valid @RequestBody OIDCEntityRequest oidcEntityRequest) {
-		return oidcAuthService.updateEntityByName(token, oidcEntityRequest, entityName);
+		return oidcAuthService.updateEntityByName(token, oidcEntityRequest);
 	}
 	
 	/**
@@ -127,7 +133,7 @@ public class OIDCAuthController {
 	public ResponseEntity<String> updateIdentityGroupByName(HttpServletRequest request,
 			@RequestHeader(value = "vault-token") String token, @PathVariable("name") String entityName,
 			@Valid @RequestBody OIDCIdentityGroupRequest oidcIdentityGroupRequest) {
-		return oidcAuthService.updateIdentityGroupByName(token, oidcIdentityGroupRequest, entityName);
+		return oidcAuthService.updateIdentityGroupByName(token, oidcIdentityGroupRequest);
 	}
 	
 	/**

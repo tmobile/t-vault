@@ -4,11 +4,15 @@ import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.when;
 
 import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import com.tmobile.cso.vault.api.model.*;
 import com.tmobile.cso.vault.api.utils.TokenUtils;
+import com.unboundid.util.args.StringArgument;
+
 import org.apache.logging.log4j.LogManager;
 import org.junit.Before;
 import org.junit.FixMethodOrder;
@@ -29,6 +33,7 @@ import org.springframework.http.ResponseEntity;
 
 import com.google.common.collect.ImmutableMap;
 import com.tmobile.cso.vault.api.controller.ControllerUtil;
+import com.tmobile.cso.vault.api.controller.OIDCUtil;
 import com.tmobile.cso.vault.api.process.RequestProcessor;
 import com.tmobile.cso.vault.api.process.Response;
 import com.tmobile.cso.vault.api.utils.JSONUtil;
@@ -38,7 +43,7 @@ import com.tmobile.cso.vault.api.utils.ThreadLocalContext;
 @RunWith(PowerMockRunner.class)
 @ComponentScan(basePackages = { "com.tmobile.cso.vault.api" })
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
-@PrepareForTest({ ControllerUtil.class, JSONUtil.class, PolicyUtils.class })
+@PrepareForTest({ ControllerUtil.class, JSONUtil.class, PolicyUtils.class, OIDCUtil.class })
 @PowerMockIgnore({ "javax.management.*" })
 public class OIDCAuthServiceTest {
 
@@ -55,9 +60,11 @@ public class OIDCAuthServiceTest {
     public void setUp()
             throws NoSuchMethodException, InvocationTargetException, IllegalAccessException, NoSuchFieldException {
         PowerMockito.mockStatic(ControllerUtil.class);
+        PowerMockito.mockStatic(OIDCUtil.class);
         PowerMockito.mockStatic(JSONUtil.class);
 
         Whitebox.setInternalState(ControllerUtil.class, "log", LogManager.getLogger(ControllerUtil.class));
+        Whitebox.setInternalState(OIDCUtil.class, "log", LogManager.getLogger(OIDCUtil.class));
         when(JSONUtil.getJSON(Mockito.any(ImmutableMap.class))).thenReturn("log");
 
         Map<String, String> currentMap = new HashMap<>();
@@ -79,9 +86,12 @@ public class OIDCAuthServiceTest {
     @Test
     public void getAuthenticationMounts() throws Exception {
         String token = "4EpPYDSfgN2D4Gf7UmNO3nuL";
+        String mountAccessor = "auth_oidc";
         String data = "{\n    \"data\": {\n        \"canonical_id\": \"7862bbe1-16ce-442d-756b-585ed77b7385\",\n        \"creation_time\": \"2020-07-15T14:07:14.7237705Z\",\n        \"id\": \"dea21830-f565-77d6-3005-8aab0c2596bb\",\n        \"last_update_time\": \"2020-07-15T14:07:14.7237705Z\",\n        \"merged_from_canonical_ids\": null,\n        \"metadata\": null,\n        \"mount_accessor\": \"auth_oidc_8b51f292\",\n        \"mount_path\": \"auth/oidc/\",\n        \"mount_type\": \"oidc\",\n        \"name\": \"Nithin.Nazeer1@T-Mobile.com\",\n        \"namespace_id\": \"root\"\n    }\n}";
         Response response = getMockResponse(HttpStatus.OK, true, data);
-        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(data);
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(mountAccessor);
+        when(OIDCUtil.fetchMountAccessorForOidc(token)).thenReturn(mountAccessor);
+        
         when(reqProcessor.process("/sys/list", "{}", token)).thenReturn(response);
         ResponseEntity<String> responseEntity = oidcAuthService.getAuthenticationMounts(token);
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
@@ -89,7 +99,7 @@ public class OIDCAuthServiceTest {
     }
 
     @Test
-    public void entityLookUp() throws Exception {
+    public void entityLookUpSuccess() throws Exception {
         String token = "4EpPYDSfgN2D4Gf7UmNO3nuL";
         OIDCLookupEntityRequest oidcLookupEntityRequest = new OIDCLookupEntityRequest();
         oidcLookupEntityRequest.setId("1223");
@@ -98,15 +108,24 @@ public class OIDCAuthServiceTest {
         oidcLookupEntityRequest.setAlias_name("alias_name");
         oidcLookupEntityRequest.setName("name");
         String jsonStr = JSONUtil.getJSON(oidcLookupEntityRequest);
-        Response response = getMockResponse(HttpStatus.OK, true, "{\"data\": [\"safeadmin\",\"vaultadmin\"]]");
-        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK)
-                .body("{\"data\": [\"safeadmin\",\"vaultadmin\"]]");
+        OIDCEntityResponse oidcEntityResponse = new OIDCEntityResponse();
+        oidcEntityResponse.setEntityName("entity_63f119d2");
+        List<String> policies = new ArrayList<>();
+        policies.add("safeadmin");
+        oidcEntityResponse.setPolicies(policies);
+        Response response = getMockResponse(HttpStatus.OK, true, "\"{\\\"entityName\\\":\\\"entity_63f119d2\\\",\\\"policies\\\":[\\\"safeadmin\\\"]}\"");
+        String responseInput = "\"{\\\"entityName\\\":\\\"entity_63f119d2\\\",\\\"policies\\\":[\\\"safeadmin\\\"]}\"";
+        when(OIDCUtil.getEntityLookUpResponse(responseInput)).thenReturn(oidcEntityResponse);
+
+        ResponseEntity<OIDCEntityResponse> responseEntityExpected = ResponseEntity.status(HttpStatus.OK)
+                .body(oidcEntityResponse);
         when(reqProcessor.process("/identity/lookup/entity", jsonStr, token)).thenReturn(response);
-        ResponseEntity<String> responseEntity = oidcAuthService.entityLookUp(token, oidcLookupEntityRequest);
+       
+        ResponseEntity<OIDCEntityResponse> responseEntity = oidcAuthService.entityLookUp(token, oidcLookupEntityRequest);
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
     }
-
+    
     @Test
     public void groupEntityLookUp() throws Exception {
         String token = "4EpPYDSfgN2D4Gf7UmNO3nuL";
@@ -169,7 +188,7 @@ public class OIDCAuthServiceTest {
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK)
                 .body("{\"data\": [\"safeadmin\",\"vaultadmin\"]]");
         when(reqProcessor.process("/identity/entity/name/update", jsonStr, token)).thenReturn(response);
-        ResponseEntity<String> responseEntity = oidcAuthService.updateEntityByName(token, oidcEntityRequest, name);
+        ResponseEntity<String> responseEntity = oidcAuthService.updateEntityByName(token, oidcEntityRequest);
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
     }
@@ -192,7 +211,7 @@ public class OIDCAuthServiceTest {
                 .body("{\"data\": [\"safeadmin\",\"vaultadmin\"]]");
         when(reqProcessor.process("/identity/group/name/update", jsonStr, token)).thenReturn(response);
         ResponseEntity<String> responseEntity = oidcAuthService.updateIdentityGroupByName(token,
-                oidcIdentityGroupRequest, name);
+                oidcIdentityGroupRequest);
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
     }
@@ -354,5 +373,7 @@ public class OIDCAuthServiceTest {
         assertEquals(HttpStatus.BAD_REQUEST, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
     }
+
+   
 
 }
