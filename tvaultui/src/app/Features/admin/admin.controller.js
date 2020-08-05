@@ -707,12 +707,12 @@
             getCertificates($scope.certSearchValue, limit, limit + offset,"internal");
         }
 
-        $scope.getTargetSystems = function () {
+        $scope.getTargetSystems = function () {     
             $scope.targetSystemList = [];
             $scope.targetSystemSelected = false;
             $scope.showInputLoader.show = true;
             $scope.isTargetSystemListLoading = true;
-            var certType = $scope.certObj.certDetails.certType;            
+            var certType = $scope.certObj.certDetails.certType;
             var updatedUrlOfEndPoint = RestEndpoints.baseURL + "/v2/sslcert/" + certType + "/targetsystems";
             return AdminSafesManagement.getTargetSystems(null, updatedUrlOfEndPoint).then(function (response) {
                 if (UtilityService.ifAPIRequestSuccessful(response)) {
@@ -1467,8 +1467,7 @@
                 });
         }
 
-        $scope.newCertificateConfiguration = function (size) {
-
+        $scope.newCertificateConfiguration = function (size) {           
             $scope.hostNameErrorMessage = '';
             $scope.certNameErrorMessage = '';
             $scope.targetSysErrorMessage = '';
@@ -1480,6 +1479,7 @@
             $scope.targetSystemType = { "type": "new" };
             $scope.targetSystemServiceType = { "type": "new" };
             $scope.getTargetSystems();
+            $scope.multiSanDnsName.name='';
         }
 
         $scope.replaceSpacesCertName = function () {
@@ -1699,8 +1699,7 @@
                 $scope.multiSan.forEach(function (dns) {
                     multiSanDns.push(dns.name);
                 });
-                var reqObjtobeSent =  {
-                    "sslcertType": $scope.certObj.sslcertType,
+                var reqObjtobeSent =  {                   
                     "targetSystem": $scope.certObj.targetSystem,
                     "targetSystemServiceRequest": $scope.certObj.targetSystemServiceRequest,
                     "appName": $scope.appNameTagValue,
@@ -1763,13 +1762,22 @@
                 $scope.isTargetCollapsed = false;
                 $scope.isTargetServiceCollapsed = true;
                 $scope.isCertCollapsed = true;
+                if ($scope.multiSanDnsName.name !== null && $scope.multiSanDnsName.name !== undefined 
+                    && $scope.multiSanDnsName.name != "") {
+                        $scope.multiSanDnsName.name ="";
+                }
+    
             } else if (index == 2 ) {
                 $scope.isTargetCollapsed = true;
                 $scope.isTargetServiceCollapsed = false;
                 $scope.isCertCollapsed = true;
                 $scope.targetSystemServiceType = { "type": "new" };
                 $scope.existingService = false;
-                clearTargetSystemServiceFields();
+               // clearTargetSystemServiceFields();
+                if ($scope.multiSanDnsName.name !== null && $scope.multiSanDnsName.name !== undefined 
+                    && $scope.multiSanDnsName.name != "") {
+                        $scope.multiSanDnsName.name ="";
+                }
                 if ($scope.serviceListTableOptions.length >0) {
                     setTargetSystemServiceList("Select service", $scope.serviceListTableOptions);
                 }
