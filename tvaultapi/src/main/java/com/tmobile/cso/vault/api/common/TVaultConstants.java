@@ -124,6 +124,7 @@ public class TVaultConstants {
         EMAIL_TEMPLATE_IMAGE_IDS.put("permissiontab", "templates/images/permissiontab.png");
         EMAIL_TEMPLATE_IMAGE_IDS.put("adduser", "templates/images/adduser.png");
         }
+    public static final String AUTH_TYPE_OIDC = "oidc";
 
     public static final Map<String, String> EMAIL_EXT_TEMPLATE_IMAGE_IDS;
     static {
@@ -147,6 +148,4 @@ public class TVaultConstants {
     public static final String ALIAS_MOUNT_ACCESSOR = "accessor";
     public static final String ENTITY_NAME = "name";
     public static final String POLICIES = "policies";
-
-
 }
