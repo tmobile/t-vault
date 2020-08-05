@@ -115,7 +115,7 @@ public class TokenValidationFilter extends GenericFilterBean {
 			userDetails.setSudoPolicies(null); //TODO: Pre-flight
 			userDetails.setUsername(vaultTokenLookupDetails.getUsername());
 			userDetails.setLeaseDuration(null); //TODO: Pre-flight
-			if ("oidc".equals(vaultAuthMethod)) {
+			if (TVaultConstants.AUTH_TYPE_OIDC.equals(vaultAuthMethod)) {
 				userDetails.setEmail(vaultTokenLookupDetails.getEmail());
 			}
 			((HttpServletRequest) request).setAttribute("UserDetails", userDetails);
