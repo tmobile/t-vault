@@ -1123,10 +1123,18 @@
                         function (error) {
                             // Error handling function
                             console.log(error);
-                            clearInputPermissionData();
-                            $scope.isLoadingData = false;
-                            $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
-                            $scope.error('md');
+                            document.getElementById('addUser').value = '';
+                            if(error.status == "404"){
+                                $scope.isLoadingData = false;
+                                $scope.errorMessage = error.data.messages[0];
+                                $scope.error('md');
+                            }else{
+                                clearInputPermissionData();
+                                $scope.isLoadingData = false;
+                                $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
+                                $scope.error('md');
+                            }
+                           
                         })
                 } catch (e) {
                     // To handle errors while calling 'fetchData' function
