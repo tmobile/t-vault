@@ -38,9 +38,6 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
-import com.google.gson.Gson;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
 import com.tmobile.cso.vault.api.controller.ControllerUtil;
 import com.tmobile.cso.vault.api.controller.OIDCUtil;
 import com.tmobile.cso.vault.api.exception.LogMessage;
@@ -741,7 +738,7 @@ public class  SafesService {
 				userResponse = reqProcessor.process("/auth/ldap/users", "{\"username\":\"" + userName + "\"}", token);
 			} else {
 				// OIDC implementation changes
-				ResponseEntity<OIDCEntityResponse> responseEntity = oidcCommonMethodToFetchEntityDetails(token,
+				ResponseEntity<OIDCEntityResponse> responseEntity = oidcFetchEntityDetails(token,
 						userName);
 				if (!responseEntity.getStatusCode().equals(HttpStatus.OK)) {
 					log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
@@ -901,8 +898,9 @@ public class  SafesService {
 						else if(TVaultConstants.LDAP.equals(vaultAuthMethod)){
 							ldapConfigresponse = ControllerUtil.configureLDAPUser(userName,currentpoliciesString,groups,token);
 						}else {
+							//OIDC changes
 							OIDCEntityRequest oidcEntityRequest = new OIDCEntityRequest();
-							oidcEntityRequest.setPolicies(policies);
+							oidcEntityRequest.setPolicies(currentpolicies);
 							oidcEntityRequest.setDisabled(Boolean.FALSE);
 							oidcEntityRequest.setName(oidcEntityResponse.getEntityName());
 							Map<String, String> metaData = new HashMap<>();
@@ -954,7 +952,7 @@ public class  SafesService {
 	 * @param username
 	 * @return
 	 */
-	public ResponseEntity<OIDCEntityResponse> oidcCommonMethodToFetchEntityDetails(String token, String username) {
+	public ResponseEntity<OIDCEntityResponse> oidcFetchEntityDetails(String token, String username) {
 		String mountAccessor = OIDCUtil.fetchMountAccessorForOidc(token);
 		ResponseEntity<DirectoryObjects> response = directoryService.searchByCorpId(username);
 		String aliasName = "";
