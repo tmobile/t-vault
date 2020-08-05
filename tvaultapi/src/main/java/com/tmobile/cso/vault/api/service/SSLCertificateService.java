@@ -351,6 +351,26 @@ public class SSLCertificateService {
                             sslCertificateRequest.getCertificateName(), certificateDetails)).
                     build()));
             if (Objects.isNull(certificateDetails)) {
+
+                //Validate the certificate in metadata path  for external certificate
+                if (sslCertificateRequest.getCertType().equalsIgnoreCase(SSLCertificateConstants.EXTERNAL)) {
+                    SSLCertificateMetadataDetails certMetaData = certificateUtils.getCertificateMetaData(token,
+                            sslCertificateRequest.getCertificateName(), sslCertificateRequest.getCertType());
+                    if ((Objects.nonNull(certMetaData)) && (Objects.nonNull(certMetaData.getRequestStatus()))
+                            && (certMetaData.getRequestStatus().equalsIgnoreCase(SSLCertificateConstants.REQUEST_PENDING_APPROVAL))) {
+                        enrollResponse.setSuccess(Boolean.FALSE);
+                        enrollResponse.setHttpstatus(HttpStatus.BAD_REQUEST);
+                        enrollResponse.setResponse("Given Certificate is waiting for NCLM approval ");
+                        log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+                                put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+                                put(LogMessage.ACTION, String.format("Given Certificate is waiting for NCLM approval  " +
+                                        "[%s] = Certificate name = [%s]", enrollResponse.toString(),
+                                        sslCertificateRequest.getCertificateName())).
+                                build()));
+                        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"" + enrollResponse.getResponse() +
+                                "\"]}");
+                    }
+                }
                 //Step-2 Validate targetSystem
                 int targetSystemId = getTargetSystem(sslCertificateRequest, certManagerLogin);
 
@@ -1017,7 +1037,7 @@ public class SSLCertificateService {
             sslCertificateMetadataDetails.setCertOwnerNtid(sslCertificateRequest.getCertOwnerNtid());
             sslCertificateMetadataDetails.setContainerId(containerId);
             sslCertificateMetadataDetails.setCertificateName(sslCertificateRequest.getCertificateName());
-            sslCertificateMetadataDetails.setRequestStatus(SSLCertificateConstants.REQUEST_NEED_APPROVAL);
+            sslCertificateMetadataDetails.setRequestStatus(SSLCertificateConstants.REQUEST_PENDING_APPROVAL);
             log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
                     put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
                     put(LogMessage.ACTION, String.format("  MetaData info details = [%s] = for an external " +

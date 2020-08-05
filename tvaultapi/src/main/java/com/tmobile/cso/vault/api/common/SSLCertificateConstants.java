@@ -68,7 +68,7 @@ public final class SSLCertificateConstants {
     public static final String POLICY_LABEL="Policy";
     public static final String SERVICE_LABEL="SERVICE";
     public static final String SUBJECT_ALTERNATIVE_NAMES="subjectAlternativeName";
-    public static final String REQUEST_NEED_APPROVAL="Need Approval";
+    public static final String REQUEST_PENDING_APPROVAL="Pending Approval";
     public static final String REQUEST_FOR_APPROVAL= "REQUEST FOR APPROVAL";
     public static final String INVALID_INPUT_MSG="Invalid user inputs";
     public static final String EXTERNAL= "external";
