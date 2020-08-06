@@ -125,6 +125,10 @@ public class TVaultConstants {
         EMAIL_TEMPLATE_IMAGE_IDS.put("adduser", "templates/images/adduser.png");
         }
     public static final String AUTH_TYPE_OIDC = "oidc";
+    public static final String HTTP_CONTENT_TYPE_JSON = "application/json";
+    public static final String HTTP_CONTENT_TYPE_URL_ENCODED = "application/x-www-form-urlencoded";
+
+
 
     public static final Map<String, String> EMAIL_EXT_TEMPLATE_IMAGE_IDS;
     static {

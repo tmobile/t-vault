@@ -181,7 +181,7 @@ public class OIDCAuthController {
 	 * @returnC
 	 */
 	@PostMapping(value="/v2/auth/oidc/auth_url",produces="application/json")
-	@ApiOperation(value = "${VaultAuthControllerV2.login.value}", notes = "${VaultAuthControllerV2.login.notes}")
+	@ApiOperation(value = "${OIDCAuthController.getAuthUrl.value}", notes = "${OIDCAuthController.getAuthUrl.notes}")
 	public ResponseEntity<String> getAuthUrl(@RequestBody OidcRequest oidcRequest){
 		return oidcAuthService.getAuthUrl(oidcRequest);
 	}
@@ -193,9 +193,21 @@ public class OIDCAuthController {
 	 * @return
 	 */
 	@GetMapping(value="/v2/auth/oidc/callback",produces="application/json")
-	@ApiOperation(value = "${VaultAuthControllerV2.renew.value}", notes = "${VaultAuthControllerV2.renew.notes}")
+	@ApiOperation(value = "${OIDCAuthController.processOIDCCallback.value}", notes = "${OIDCAuthController.processOIDCCallback.notes}")
 	public ResponseEntity<String> processOIDCCallback(@RequestParam(name="state", required = false) String state, @RequestParam(name="code", required = false) String code){
 		return oidcAuthService.processOIDCCallback(state, code);
+
+	}
+
+	/**
+	 * To get group object id from Azure AD.
+	 * @param groupName
+	 * @return
+	 */
+	@GetMapping(value="/v2/azure/group/{name}/objectid",produces="application/json")
+	@ApiOperation(value = "${OIDCAuthController.getGroupObjectIdFromAD.value}", notes = "${OIDCAuthController.getGroupObjectIdFromAD.notes}")
+	public ResponseEntity<String> getGroupObjectIdFromAzure(@PathVariable("name") String groupName){
+		return oidcAuthService.getGroupObjectIdFromAzure(groupName);
 
 	}
 
