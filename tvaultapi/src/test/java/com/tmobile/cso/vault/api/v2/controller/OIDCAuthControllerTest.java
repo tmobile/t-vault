@@ -113,7 +113,7 @@ public class OIDCAuthControllerTest {
 		oidcEntityRequest.setMetadata(metadata);
 		oidcEntityRequest.setPolicies(null);
 		oidcEntityRequest.setName(name);
-		when(oidcAuthService.updateEntityByName(token, oidcEntityRequest, name)).thenReturn(new ResponseEntity<>(HttpStatus.OK));
+		when(oidcAuthService.updateEntityByName(token, oidcEntityRequest)).thenReturn(new ResponseEntity<>(HttpStatus.OK));
 		assertEquals(HttpStatus.OK,
 				oidcAuthController.updateEntityByName(httpServletRequest, token,name,oidcEntityRequest).getStatusCode());
 	}
@@ -137,7 +137,7 @@ public class OIDCAuthControllerTest {
 		oidcIdentityGroupRequest.setMetadata(metadata);
 		oidcIdentityGroupRequest.setPolicies(null);
 		oidcIdentityGroupRequest.setName(name);
-		when(oidcAuthService.updateIdentityGroupByName(token, oidcIdentityGroupRequest, name))
+		when(oidcAuthService.updateIdentityGroupByName(token, oidcIdentityGroupRequest))
 				.thenReturn(new ResponseEntity<>(HttpStatus.OK));
 		assertEquals(HttpStatus.OK, oidcAuthController
 				.updateIdentityGroupByName(httpServletRequest, token, name, oidcIdentityGroupRequest).getStatusCode());

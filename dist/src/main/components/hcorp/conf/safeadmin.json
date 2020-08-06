@@ -54,6 +54,21 @@
             "list",
 			"read"
          ]
-      }
-   } 
+      },
+	  "sys/auth":{
+	      "capabilities":[
+		    "read",
+            "list"
+			
+         ]
+      },
+	  "identity/*":{
+	      "capabilities":[   
+            "create",
+			"read",
+            "update",
+            "delete",
+            "list"
+         ]
+	  }
 }

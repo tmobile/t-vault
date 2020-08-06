@@ -815,5 +815,123 @@
 			{"name":"path","required":true, "appendToPath":true}
 		],
 		"outparams":["auth/client_token","admin","access","auth/policies","auth/lease_duration"]
-	}
+	},
+	 { "#":"****  List all auth methods  *****",
+    	"apiEndPoint":"/sys/list",
+    	"vaultEndPoint":"/sys/auth",
+    	"method":"GET",
+         "outparams":["data"]
+    },
+	 { "#":"****  Lookup an Entity  *****",
+    	"apiEndPoint":"/identity/lookup/entity",
+    	"vaultEndPoint":"/identity/lookup/entity",
+    	"method":"POST",
+    	"params":[
+      		{"name":"name"},
+      		{"name":"id"},
+      		{"name":"alias_id"},
+      		{"name":"alias_name"},
+      		{"name":"alias_mount_accessor"}
+        ],
+         "outparams":["data"]
+    },
+	 { "#":"****  Lookup an Entity  *****",
+    	"apiEndPoint":"/identity/lookup/group",
+    	"vaultEndPoint":"/identity/lookup/group",
+    	"method":"POST",
+    	"params":[
+      		{"name":"name"},
+      		{"name":"id"},
+      		{"name":"alias_id"},
+      		{"name":"alias_name"},
+      		{"name":"alias_mount_accessor"}
+        ],
+         "outparams":["data"]
+    },
+	 { "#":"****  Read Entity Alias By ID  *****",
+    	"apiEndPoint":"/identity/entity-alias/id",
+    	"vaultEndPoint":"/identity/entity-alias/id/<id>",
+    	"method":"GET",
+    	"params":[
+      		{"name":"id", "required":true, "appendToPath":true}
+        ],
+        "outparams":["data"]
+    },
+	 { "#":"****  Read Entity By Name  *****",
+    	"apiEndPoint":"/identity/entity/name",
+    	"vaultEndPoint":"/identity/entity/name/<name>",
+    	"method":"GET",
+    	"params":[
+      		{"name":"name", "required":true, "appendToPath":true}
+        ],
+        "outparams":["data"]
+    },
+	 { "#":"****  Update Entity By Name  *****",
+    	"apiEndPoint":"/identity/entity/name/update",
+    	"vaultEndPoint":"/identity/entity/name/<name>",
+    	"method":"POST",
+    	"params":[
+      		{"name":"name", "required":true, "appendToPath":true},
+      		{"name":"name", "required":true},
+      		{"name":"metadata", "required":true},
+      		{"name":"policies", "required":true},
+      		{"name":"disabled", "required":true}
+        ],
+        "outparams":["data"]
+    },
+	 { "#":"****  Get Policies attached to a Group  *****",
+    	"apiEndPoint":"/identity/group-alias/id",
+    	"vaultEndPoint":"/identity/group-alias/id/<id>",
+    	"method":"GET",
+    	"params":[
+      		{"name":"name", "required":true, "appendToPath":true}
+        ],
+        "outparams":["data"]
+    },
+	 { "#":"****  Delete Group By Name  *****",
+    	"apiEndPoint":"/identity/group/name",
+    	"vaultEndPoint":"/identity/group/name/<name>",
+    	"method":"DELETE",
+    	"params":[
+      		{"name":"name", "required":true, "appendToPath":true}
+        ]
+    },
+	 { "#":"****  Delete Group Alias By Id  *****",
+    	"apiEndPoint":"/identity/group-alias/id",
+    	"vaultEndPoint":"/identity/group-alias/id/<id>",
+    	"method":"DELETE",
+    	"params":[
+      		{"name":"id", "required":true, "appendToPath":true}
+        ]
+    },
+	 { "#":"****  Update Identity Group By Name  *****",
+    	"apiEndPoint":"/identity/group/name/update",
+    	"vaultEndPoint":"/identity/group/name/<name>",
+    	"method":"POST",
+    	"params":[
+      		{"name":"name", "required":true, "appendToPath":true},
+      		{"name":"name", "required":true},
+      		{"name":"type", "required":true},
+      		{"name":"metadata", "required":true},
+      		{"name":"policies", "required":true},
+      		{"name":"member_group_ids", "required":true},
+      		{"name":"member_entity_ids", "required":true}
+        ],
+        "outparams":["data"]
+    },
+	 { "#":"****  Create Group Alias  *****",
+    	"apiEndPoint":"/identity/group-alias",
+    	"vaultEndPoint":"/identity/group-alias",
+    	"method":"POST",
+    	"params":[
+      		{"name":"name", "required":true, "appendToPath":true},
+      		{"name":"name", "required":true},
+      		{"name":"type", "required":true},
+      		{"name":"metadata", "required":true},
+      		{"name":"policies", "required":true},
+      		{"name":"member_group_ids", "required":true},
+      		{"name":"member_entity_ids", "required":true}
+        ],
+        "outparams":["data"]
+    }
 ]

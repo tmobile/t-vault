@@ -19,9 +19,14 @@ package com.tmobile.cso.vault.api.model;
 
 import java.io.Serializable;
 
-
+/**
+ * OidcRequest
+ */
 public class OidcRequest implements Serializable {
 
+	/**
+	 * serialVersionUID
+	 */
     private static final long serialVersionUID = -5343075241640106262L;
 
     private String role;
@@ -51,4 +56,32 @@ public class OidcRequest implements Serializable {
     public void setRedirect_uri(String redirect_uri) {
         this.redirect_uri = redirect_uri;
     }
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		OidcRequest other = (OidcRequest) obj;
+		if (redirect_uri == null) {
+			if (other.redirect_uri != null)
+				return false;
+		} else if (!redirect_uri.equals(other.redirect_uri))
+			return false;
+		if (role == null) {
+			if (other.role != null)
+				return false;
+		} else if (!role.equals(other.role))
+			return false;
+		return true;
+	}
+
+	@Override
+	public String toString() {
+		return "OidcRequest [role=" + role + ", redirect_uri=" + redirect_uri + "]";
+	}
+
 }
