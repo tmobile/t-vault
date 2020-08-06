@@ -208,6 +208,9 @@ public class CertificateUtils {
 			certificate.setRequestStatus(dataNode.get("requestStatus").asText());
 		}
 		
+		if (null != dataNode.get("containerId")) {
+			certificate.setContainerId(dataNode.get("containerId").asInt());
+		}
 		return certificate;
 	}	
 	

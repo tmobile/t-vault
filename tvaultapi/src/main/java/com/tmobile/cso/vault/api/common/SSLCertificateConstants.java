@@ -51,8 +51,6 @@ public final class SSLCertificateConstants {
     public static final String SSL_EXTERNAL_CERT_PATH = "metadata/externalcerts";
     public static final String INTERNAL_POLICY_NAME="cert";
     public static final String EXTERNAL_POLICY_NAME="externalcerts";
-
-    public static final String SSL_CERT_PATH_EXT="metadata/externalcerts";
     public static final String SSL_CERT_PATH_VALUE_EXT="externalcerts/";
 
     public static final String READ_CERT_POLICY_PREFIX="r_";
@@ -72,4 +70,5 @@ public final class SSLCertificateConstants {
     public static final String REQUEST_FOR_APPROVAL= "REQUEST FOR APPROVAL";
     public static final String INVALID_INPUT_MSG="Invalid user inputs";
     public static final String EXTERNAL= "external";
+    public static final String VALIDATE_CERTIFICATE_DETAILS_MSG = "Validate Certificate Details";
 }

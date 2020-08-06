@@ -169,17 +169,23 @@
     width: 60%;
     margin: auto;
 }
+.safe-button-container {
+    width: 200px;
+    margin: auto;
+}
+
 .safe-img-container img {
-    background: url(../assets/images/safe_icon.png);
-    width: 150px;
-    height: 150px;
-    background-size: contain;
-    margin-bottom: 20px;
+  background: url(../assets/images/safe_icon.png);
+  width: 150px;
+  height: 150px;
+  background-size: contain;
+  margin-bottom: 20px;
 }
 .font-type-normal {
     font-size: 1.8vh;
     color: #000;
     font-family: montserratlight;
+    margin-top: 30px;
 }
 .details .right.bottom-lg-sep.top-lg-sep,
 .permissions .right.bottom-lg-sep.top-lg-sep {
@@ -335,11 +341,6 @@
     height: 4vh;
     font-size: 1.7vh;
     padding: 1vh 1.5vh;
-}
-.permissions .row.change-safe .container.radio-inputs {
-    //width: 35%;
-    // padding-top: 0.5rem;
-    // padding-bottom: 0.5rem;
 }
 .permissions .row.change-safe .container.actions {
     height: 6vh;
@@ -816,4 +817,17 @@ input.highlightBox {
 .dropdown-menu {
   max-height: 200px;
   overflow-y: scroll;
+}
+
+.btn-cert {
+  color: #fff;
+  background-color: #f6006e;
+  border-color: #f6006e;
+  border-width: 0px;
+}
+
+.btn-cert:hover, .btn-cert:focus {
+  color: #fff!important;
+  background-color: #B8005E;
+  border-color: #B8005E;
 }
