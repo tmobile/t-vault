@@ -233,4 +233,23 @@ public class OIDCAuthControllerTest {
 				.andExpect(content().string(containsString(responseMessage)));
 	}
 
+	@Test
+	public void test_getGroupObjectIdFromAzure() throws Exception {
+
+		String responseMessage = "{\n" +
+				"  \"data\": {\n" +
+				"    \"objectId\": \"123123-1232-123-123-123123\"\n" +
+				"  }\n" +
+				"}";
+		ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(responseMessage);
+
+		when(oidcAuthService.getGroupObjectIdFromAzure("group1")).thenReturn(responseEntityExpected);
+
+		mockMvc.perform(MockMvcRequestBuilders.get("/v2/azure/group/group1/objectid")
+				.header("vault-token", "test4ig8L3EpsJZSLAMg")
+				.header("Content-Type", "application/json;charset=UTF-8"))
+				.andExpect(status().isOk())
+				.andExpect(content().string(containsString(responseMessage)));
+	}
+
 }
