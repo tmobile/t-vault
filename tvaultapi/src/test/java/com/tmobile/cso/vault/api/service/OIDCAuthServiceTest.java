@@ -17,8 +17,11 @@
 package com.tmobile.cso.vault.api.service;
 
 import static org.junit.Assert.assertEquals;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.when;
 
+import java.io.ByteArrayInputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -29,6 +32,13 @@ import com.tmobile.cso.vault.api.model.*;
 import com.tmobile.cso.vault.api.utils.TokenUtils;
 import com.unboundid.util.args.StringArgument;
 
+import org.apache.http.HttpEntity;
+import org.apache.http.StatusLine;
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.conn.ssl.NoopHostnameVerifier;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.util.EntityUtils;
 import org.apache.logging.log4j.LogManager;
 import org.junit.Before;
 import org.junit.FixMethodOrder;
@@ -38,6 +48,8 @@ import org.junit.runners.MethodSorters;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
@@ -55,12 +67,13 @@ import com.tmobile.cso.vault.api.process.Response;
 import com.tmobile.cso.vault.api.utils.JSONUtil;
 import com.tmobile.cso.vault.api.utils.PolicyUtils;
 import com.tmobile.cso.vault.api.utils.ThreadLocalContext;
+import org.springframework.test.util.ReflectionTestUtils;
 
 @RunWith(PowerMockRunner.class)
 @ComponentScan(basePackages = { "com.tmobile.cso.vault.api" })
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
-@PrepareForTest({ ControllerUtil.class, JSONUtil.class, PolicyUtils.class, OIDCUtil.class })
-@PowerMockIgnore({ "javax.management.*" })
+@PrepareForTest({ ControllerUtil.class, JSONUtil.class, PolicyUtils.class, OIDCUtil.class, HttpClientBuilder.class })
+@PowerMockIgnore({ "javax.management.*", "javax.net.ssl.*" })
 public class OIDCAuthServiceTest {
 
     @InjectMocks
@@ -72,12 +85,29 @@ public class OIDCAuthServiceTest {
     @Mock
     TokenUtils tokenUtils;
 
+    @Mock
+    HttpClientBuilder httpClientBuilder;
+
+    @Mock
+    StatusLine statusLine;
+
+    @Mock
+    HttpEntity mockHttpEntity;
+
+    @Mock
+    CloseableHttpClient httpClient;
+
+    @Mock
+    CloseableHttpResponse httpResponse;
+
+
     @Before
     public void setUp()
             throws NoSuchMethodException, InvocationTargetException, IllegalAccessException, NoSuchFieldException {
         PowerMockito.mockStatic(ControllerUtil.class);
         PowerMockito.mockStatic(OIDCUtil.class);
         PowerMockito.mockStatic(JSONUtil.class);
+        PowerMockito.mockStatic(HttpClientBuilder.class);
 
         Whitebox.setInternalState(ControllerUtil.class, "log", LogManager.getLogger(ControllerUtil.class));
         Whitebox.setInternalState(OIDCUtil.class, "log", LogManager.getLogger(OIDCUtil.class));
@@ -107,7 +137,7 @@ public class OIDCAuthServiceTest {
         Response response = getMockResponse(HttpStatus.OK, true, data);
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(mountAccessor);
         when(OIDCUtil.fetchMountAccessorForOidc(token)).thenReturn(mountAccessor);
-        
+
         when(reqProcessor.process("/sys/list", "{}", token)).thenReturn(response);
         ResponseEntity<String> responseEntity = oidcAuthService.getAuthenticationMounts(token);
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
@@ -136,12 +166,12 @@ public class OIDCAuthServiceTest {
         ResponseEntity<OIDCEntityResponse> responseEntityExpected = ResponseEntity.status(HttpStatus.OK)
                 .body(oidcEntityResponse);
         when(reqProcessor.process("/identity/lookup/entity", jsonStr, token)).thenReturn(response);
-       
+
         ResponseEntity<OIDCEntityResponse> responseEntity = oidcAuthService.entityLookUp(token, oidcLookupEntityRequest);
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
     }
-    
+
     @Test
     public void groupEntityLookUp() throws Exception {
         String token = "4EpPYDSfgN2D4Gf7UmNO3nuL";
@@ -309,7 +339,7 @@ public class OIDCAuthServiceTest {
                 "  \"auth\": null\n" +
                 "}";
         Response response = getMockResponse(HttpStatus.OK, true, responseJson);
-        when(JSONUtil.getJSON(Mockito.any(OidcRequest.class))).thenReturn(jsonStr);
+        when(JSONUtil.getJSON(any(OidcRequest.class))).thenReturn(jsonStr);
         when(reqProcessor.process("/auth/oidc/oidc/auth_url",jsonStr,"")).thenReturn(response);
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(responseJson);
 
@@ -325,7 +355,7 @@ public class OIDCAuthServiceTest {
         String jsonStr = "{  \"role\": \"default\",  \"redirect_uri\": \"http://localhost:3000\"}";
         String responseJson = "{\"errors\":[\"Failed to get OIDC auth url\"]}";
         Response response = getMockResponse(HttpStatus.BAD_REQUEST, true, responseJson);
-        when(JSONUtil.getJSON(Mockito.any(OidcRequest.class))).thenReturn(jsonStr);
+        when(JSONUtil.getJSON(any(OidcRequest.class))).thenReturn(jsonStr);
         when(reqProcessor.process("/auth/oidc/oidc/auth_url",jsonStr,"")).thenReturn(response);
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body(responseJson);
 
@@ -362,9 +392,9 @@ public class OIDCAuthServiceTest {
 
         when(reqProcessor.process("/auth/oidc/oidc/callback","{\"path\":\""+pathStr+"\"}","")).thenReturn(response);
         Map<String, Object> access = new HashMap<>();
-        when(ControllerUtil.filterDuplicateSafePermissions(Mockito.any())).thenReturn(access);
-        when(ControllerUtil.filterDuplicateSvcaccPermissions(Mockito.any())).thenReturn(access);
-        when(JSONUtil.getJSON(Mockito.any(Map.class))).thenReturn(responseJson);
+        when(ControllerUtil.filterDuplicateSafePermissions(any())).thenReturn(access);
+        when(ControllerUtil.filterDuplicateSvcaccPermissions(any())).thenReturn(access);
+        when(JSONUtil.getJSON(any(Map.class))).thenReturn(responseJson);
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(responseJson);
 
         ResponseEntity<String> responseEntity = oidcAuthService.processOIDCCallback(state, code);
@@ -390,6 +420,151 @@ public class OIDCAuthServiceTest {
         assertEquals(responseEntityExpected, responseEntity);
     }
 
-   
+    @Test
+    public void test_getGroupObjectIdFromAzure_success() throws Exception {
 
+        Response response = new Response();
+        response.setHttpstatus(HttpStatus.OK);
+        response.setSuccess(true);
+        response.setResponse(null);
+
+
+        when(HttpClientBuilder.create()).thenReturn(httpClientBuilder);
+        when(httpClientBuilder.setSSLHostnameVerifier(NoopHostnameVerifier.INSTANCE)).thenReturn(httpClientBuilder);
+        when(httpClientBuilder.setSSLContext(any())).thenReturn(httpClientBuilder);
+        when(httpClientBuilder.setRedirectStrategy(any())).thenReturn(httpClientBuilder);
+        when(httpClientBuilder.build()).thenReturn(httpClient);
+        when(httpClient.execute(any())).thenReturn(httpResponse);
+        when(httpResponse.getStatusLine()).thenReturn(statusLine);
+        when(statusLine.getStatusCode()).thenReturn(200);
+        when(httpResponse.getEntity()).thenReturn(mockHttpEntity);
+
+        String responseString = "{\"access_token\": \"abcd\"}";
+        String groupResponseString = "{\"value\": [ {\"id\": \"abcdefg\"}]}";
+
+
+        //when(mockHttpEntity.getContent()).thenReturn( new ByteArrayInputStream(responseString.getBytes()));
+
+        when(mockHttpEntity.getContent()).thenAnswer(new Answer() {
+            private int count = 0;
+
+            public Object answer(InvocationOnMock invocation) {
+                if (count++ == 1)
+                    return new ByteArrayInputStream(groupResponseString.getBytes());
+                return new ByteArrayInputStream(responseString.getBytes());
+
+            }
+        });
+
+        ReflectionTestUtils.setField(oidcAuthService, "ssoGroupsEndpoint", "testgroupurl");
+
+        when(ControllerUtil.getOidcADLoginUrl()).thenReturn("testurl");
+
+
+
+        String responseJson = "{\"data\":{\"objectId\": \"abcdefg\"}}";
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(responseJson);
+
+        ResponseEntity<String> responseEntityActual =
+                oidcAuthService.getGroupObjectIdFromAzure("group1");
+        assertEquals(HttpStatus.OK, responseEntityActual.getStatusCode());
+        assertEquals(responseEntityExpected.toString(),responseEntityActual.toString());
+
+    }
+
+    @Test
+    public void test_getGroupObjectIdFromAzure_400() throws Exception {
+
+        Response response = new Response();
+        response.setHttpstatus(HttpStatus.OK);
+        response.setSuccess(true);
+        response.setResponse(null);
+
+
+        when(HttpClientBuilder.create()).thenReturn(httpClientBuilder);
+        when(httpClientBuilder.setSSLHostnameVerifier(NoopHostnameVerifier.INSTANCE)).thenReturn(httpClientBuilder);
+        when(httpClientBuilder.setSSLContext(any())).thenReturn(httpClientBuilder);
+        when(httpClientBuilder.setRedirectStrategy(any())).thenReturn(httpClientBuilder);
+        when(httpClientBuilder.build()).thenReturn(httpClient);
+        when(httpClient.execute(any())).thenReturn(httpResponse);
+        when(httpResponse.getStatusLine()).thenReturn(statusLine);
+        when(statusLine.getStatusCode()).thenReturn(400);
+        when(httpResponse.getEntity()).thenReturn(mockHttpEntity);
+
+        String responseString = "";
+        String groupResponseString = "{\"value\": [ {\"id\": \"abcdefg\"}]}";
+
+        when(mockHttpEntity.getContent()).thenAnswer(new Answer() {
+            private int count = 0;
+
+            public Object answer(InvocationOnMock invocation) {
+                if (count++ == 1)
+                    return new ByteArrayInputStream(groupResponseString.getBytes());
+                return new ByteArrayInputStream(responseString.getBytes());
+            }
+        });
+
+        ReflectionTestUtils.setField(oidcAuthService, "ssoGroupsEndpoint", "testgroupurl");
+
+        when(ControllerUtil.getOidcADLoginUrl()).thenReturn("testurl");
+
+
+
+        String responseJson = "{\"errors\":[\"Failed to get SSO token for Azure AD access\"]}";
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body(responseJson);
+
+        ResponseEntity<String> responseEntityActual =
+                oidcAuthService.getGroupObjectIdFromAzure("group1");
+        assertEquals(HttpStatus.BAD_REQUEST, responseEntityActual.getStatusCode());
+        assertEquals(responseEntityExpected.toString(),responseEntityActual.toString());
+
+    }
+
+    @Test
+    public void test_getGroupObjectIdFromAzure_404() throws Exception {
+
+        Response response = new Response();
+        response.setHttpstatus(HttpStatus.OK);
+        response.setSuccess(true);
+        response.setResponse(null);
+
+
+        when(HttpClientBuilder.create()).thenReturn(httpClientBuilder);
+        when(httpClientBuilder.setSSLHostnameVerifier(NoopHostnameVerifier.INSTANCE)).thenReturn(httpClientBuilder);
+        when(httpClientBuilder.setSSLContext(any())).thenReturn(httpClientBuilder);
+        when(httpClientBuilder.setRedirectStrategy(any())).thenReturn(httpClientBuilder);
+        when(httpClientBuilder.build()).thenReturn(httpClient);
+        when(httpClient.execute(any())).thenReturn(httpResponse);
+        when(httpResponse.getStatusLine()).thenReturn(statusLine);
+        when(statusLine.getStatusCode()).thenReturn(200);
+        when(httpResponse.getEntity()).thenReturn(mockHttpEntity);
+
+        String responseString = "{\"access_token\": \"abcd\"}";
+        String groupResponseString = "{\"value\": [ ]}";
+
+        when(mockHttpEntity.getContent()).thenAnswer(new Answer() {
+            private int count = 0;
+
+            public Object answer(InvocationOnMock invocation) {
+                if (count++ == 1)
+                    return new ByteArrayInputStream(groupResponseString.getBytes());
+                return new ByteArrayInputStream(responseString.getBytes());
+            }
+        });
+
+        ReflectionTestUtils.setField(oidcAuthService, "ssoGroupsEndpoint", "testgroupurl");
+
+        when(ControllerUtil.getOidcADLoginUrl()).thenReturn("testurl");
+
+
+
+        String responseJson = "{\"errors\":[\"Group not found in Active Directory\"]}";
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.NOT_FOUND).body(responseJson);
+
+        ResponseEntity<String> responseEntityActual =
+                oidcAuthService.getGroupObjectIdFromAzure("group1");
+        assertEquals(HttpStatus.NOT_FOUND, responseEntityActual.getStatusCode());
+        assertEquals(responseEntityExpected.toString(),responseEntityActual.toString());
+
+    }
 }
