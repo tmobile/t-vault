@@ -23,6 +23,16 @@ public class SSLCertificateMetadataDetails implements Serializable {
     private String certOwnerNtid;
     private int containerId;
     private String requestStatus;
+    private String dnsNames;
+
+    public String getDnsNames() {
+        return dnsNames;
+    }
+
+    public void setDnsNames(String dnsNames) {
+        this.dnsNames = dnsNames;
+    }
+
     public String getRequestStatus() {
         return requestStatus;
     }
@@ -171,6 +181,7 @@ public class SSLCertificateMetadataDetails implements Serializable {
                 ", certOwnerNtid='" + certOwnerNtid + '\'' +
                 ", containerId=" + containerId +
                 ", requestStatus='" + requestStatus + '\'' +
+                ", dnsNames='" + dnsNames + '\'' +
                 '}';
     }
 }

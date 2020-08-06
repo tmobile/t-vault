@@ -300,11 +300,8 @@ public class SSLCertificateServiceTest {
     public void generateSSLCertificate_Success() throws Exception {
         String jsonStr = "{  \"username\": \"testusername1\",  \"password\": \"testpassword1\"}";
 
-        String jsonStr2 = "{\"certificates\":[{\"sortedSubjectName\": \"CN=CertificateName.t-mobile.com, C=US, " +
-                "ST=Washington, " +
-                "L=Bellevue, O=T-Mobile USA, Inc\"," +
-                "\"certificateId\":57258,\"certificateStatus\":\"Active\"," +
-                "\"containerName\":\"cont_12345\",\"NotAfter\":\"2021-06-15T04:35:58-07:00\"}]}";
+        String jsonStr2 ="{\"certificates\":[{\"sortedSubjectName\":\"CN=CertificateName.t-mobile.com, C=US," +
+                "ST=Washington,L=Bellevue, O=T-Mobile USA, Inc\",\"certificateId\":57258,\"certificateStatus\":\"Active\",\"containerName\":\"cont_12345\",\"NotAfter\":\"2021-06-15T04:35:58-07:00\",\"subjectAltName\":{\"dns\":[\"test1.t-mobile.com\",\"test2.t-mobile.com\",\"test3.t-mobile.com\",\"certtest-dns.t-mobile.com\"]}}]}";
 
         CertManagerLoginRequest certManagerLoginRequest = getCertManagerLoginRequest();
         certManagerLoginRequest.setUsername("username");
