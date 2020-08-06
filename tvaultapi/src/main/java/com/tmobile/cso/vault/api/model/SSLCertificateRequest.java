@@ -28,6 +28,8 @@ import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
 
 import java.io.Serializable;
+import java.util.Arrays;
+
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class SSLCertificateRequest implements Serializable {
 
@@ -134,13 +136,17 @@ public class SSLCertificateRequest implements Serializable {
 	}
 
 
-
 	@Override
 	public String toString() {
 		return "SSLCertificateRequest{" +
 				"targetSystemServiceRequest=" + targetSystemServiceRequest +
 				", targetSystem=" + targetSystem +
 				", certificateName='" + certificateName + '\'' +
+				", appName='" + appName + '\'' +
+				", certOwnerEmailId='" + certOwnerEmailId + '\'' +
+				", certType='" + certType + '\'' +
+				", certOwnerNtid='" + certOwnerNtid + '\'' +
+				", dnsList=" + Arrays.toString(dnsList) +
 				'}';
 	}
 }
