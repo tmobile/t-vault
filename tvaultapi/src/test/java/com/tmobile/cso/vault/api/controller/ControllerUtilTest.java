@@ -1001,6 +1001,59 @@ public class ControllerUtilTest {
     	return sscredFile;
     }
 
+    private File getOIDCCredFile() throws IOException {
+        TemporaryFolder folder= new TemporaryFolder();
+        folder.create();
+        File oidccredFile = folder.newFile("oidccred");
+        PrintWriter pw =  new PrintWriter(oidccredFile);
+        pw.write("OIDC_CLIENT_NAME=clientname1"+ System.getProperty("line.separator") +
+                "OIDC_CLIENT_ID=123123" + System.getProperty("line.separator") +
+                "OIDC_CLIENT_SECRET=abcd123123" + System.getProperty("line.separator") +
+                "BOUND_AUDIENCES=defg123123" + System.getProperty("line.separator") +
+                "OIDC_DISCOVERY_URL=https://login.microsoftonline.com/123123/v2.0"
+                + System.getProperty("line.separator") +
+                "AD_LOGIN_URL=https://login.microsoftonline.com/123123/oauth2/token");
+        pw.close();
+        return oidccredFile;
+    }
+
+    @Test
+    public void test_readOIDCCredFile() throws IOException{
+        File oidccredFile = getOIDCCredFile();
+        boolean isDelete = true;
+        OIDCCred expected = new OIDCCred();
+        expected.setClientId("123123");
+        expected.setClientName("clientname1");
+        expected.setClientSecret("abcd123123");
+        expected.setBoundAudiences("defg123123");
+        expected.setDiscoveryUrl("https://login.microsoftonline.com/123123/v2.0");
+        expected.setAdLoginUrl("https://login.microsoftonline.com/123123/oauth2/token");
+        OIDCCred actual = ControllerUtil.readOIDCCredFile(oidccredFile.getParent(), isDelete);
+        assertNotNull(actual);
+        assertEquals(expected.getClientName(), actual.getClientName());
+        assertEquals(expected.getClientId(), actual.getClientId());
+        assertEquals(expected.getClientSecret(), actual.getClientSecret());
+        assertEquals(expected.getBoundAudiences(), actual.getBoundAudiences());
+        assertEquals(expected.getDiscoveryUrl(), actual.getDiscoveryUrl());
+        assertEquals(expected.getAdLoginUrl(), actual.getAdLoginUrl());
+    }
+
+    @Test
+    public void test_readOIDCCredFile_Failure() throws IOException{
+        File oidccredFile = getOIDCCredFile();
+        boolean isDelete = true;
+        OIDCCred expected = new OIDCCred();
+        expected.setClientId("123123");
+        expected.setClientName("clientname1");
+        expected.setClientSecret("abcd123123");
+        expected.setBoundAudiences("defg123123");
+        expected.setDiscoveryUrl("https://login.microsoftonline.com/123123/v2.0");
+        expected.setAdLoginUrl("https://login.microsoftonline.com/123123/oauth2/token");
+        ReflectionTestUtils.setField(ControllerUtil.class,"oidcCred", null);
+        SSCred actual = ControllerUtil.readSSCredFile(oidccredFile.getAbsolutePath(), isDelete);
+        assertNull(actual);
+    }
+
     @Test
     public void test_updateMetadataOnSvcUpdate_successfully() {
         String token = "7QPMPIGiyDFlJkrK3jFykUqa";
