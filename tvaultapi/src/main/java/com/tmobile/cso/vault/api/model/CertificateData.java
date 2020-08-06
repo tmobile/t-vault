@@ -11,6 +11,16 @@ public class CertificateData {
     private String containerName;
     private String certificateName;
     private String authority;
+    private String dnsNames;
+
+    public String getDnsNames() {
+        return dnsNames;
+    }
+
+    public void setDnsNames(String dnsNames) {
+        this.dnsNames = dnsNames;
+    }
+
     public String getAuthority() {
         return authority;
     }
