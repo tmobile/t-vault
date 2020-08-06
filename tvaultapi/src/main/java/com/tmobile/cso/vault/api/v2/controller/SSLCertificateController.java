@@ -298,4 +298,21 @@ public class SSLCertificateController {
 		return sslCertificateService.updateCertOwner(token, sslCertificateRequest, userDetails);
 	}
 
+	/**
+	 * Get the latest certificate details if approved
+	 * @param certificateName
+	 * @param certificateType
+	 * @return
+	 */
+	@ApiOperation(value = "${SSLCertificateController.validateCertificateDetails.value}", notes = "${SSLCertificateController.validateCertificateDetails.notes}")
+	@GetMapping(value = "/v2/sslcert/validate/{certificate_name}/{certificate_type}", produces = "application/json")
+	public ResponseEntity<String> validateCertificateDetails(HttpServletRequest request,
+			@RequestHeader(value = "vault-token") String token,
+			@PathVariable("certificate_name") String certificateName,
+			@PathVariable("certificate_type") String certificateType) {
+		UserDetails userDetails = (UserDetails) request.getAttribute(USER_DETAILS_STRING);
+		return sslCertificateService.validateApprovalStatusAndGetCertificateDetails(certificateName, certificateType,
+				userDetails);
+	}
+
 }
