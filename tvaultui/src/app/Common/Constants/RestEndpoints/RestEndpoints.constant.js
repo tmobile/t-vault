@@ -382,6 +382,10 @@ readTextFile("../apiUrls.json");
             name: 'transferCertificate',
             url: '/v2/sslcert/transferowner',
             method: 'PUT'
+        } ,{
+            name: 'validateCertificateDetails',
+            url: '/v2/sslcert/validate/{certificate_name}/{certificate_type}',
+            method: 'GET'
         },
         {
             name: 'downloadCertificate',

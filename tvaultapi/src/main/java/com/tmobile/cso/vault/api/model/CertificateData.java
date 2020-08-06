@@ -12,6 +12,7 @@ public class CertificateData {
     private String certificateName;
     private String authority;
     private String dnsNames;
+	private Integer previousCertId;
 
     public String getDnsNames() {
         return dnsNames;
@@ -76,15 +77,19 @@ public class CertificateData {
         this.certificateName = certificateName;
     }
 
-    @Override
-    public String toString() {
-        return "CertificateData{" +
-                "certificateId=" + certificateId +
-                ", certificateStatus='" + certificateStatus + '\'' +
-                ", expiryData='" + expiryDate + '\'' +
-                ", createDate='" + createDate + '\'' +
-                ", containerName='" + containerName + '\'' +
-                ", certificateName='" + certificateName + '\'' +
-                '}';
-    }
+    public Integer getPreviousCertId() {
+		return previousCertId;
+	}
+
+	public void setPreviousCertId(Integer previousCertId) {
+		this.previousCertId = previousCertId;
+	}
+
+	@Override
+	public String toString() {
+		return "CertificateData [certificateId=" + certificateId + ", certificateStatus=" + certificateStatus
+				+ ", expiryDate=" + expiryDate + ", createDate=" + createDate + ", containerName=" + containerName
+				+ ", certificateName=" + certificateName + ", authority=" + authority + ", dnsNames=" + dnsNames
+				+ ", previousCertId=" + previousCertId + "]";
+	}
 }

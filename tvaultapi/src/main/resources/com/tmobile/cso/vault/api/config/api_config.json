@@ -987,8 +987,8 @@
 	},
     {"#" : "**** - Get Revocation Reasons ****** ",
 
-		"apiEndPoint":"/certificates​/revocationreasons",
-		"vaultEndPoint":"certificates/<certID>/revocationreasons",
+		"apiEndPoint":"/certificates/revocationreasons",
+		"vaultEndPoint":"certificates/<certID>/revocationreasons", 
 		"method":"GET",
 		"params":[
       		{"name":"certID", "required":true, "appendToPath":true}

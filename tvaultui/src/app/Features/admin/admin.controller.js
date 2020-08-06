@@ -2061,6 +2061,10 @@
             $scope.isOwnerSelected = false;
         }
 
+        $scope.validateCertificateDetailsPopUp = function (svcaccname) {
+            Modal.createModal('md', 'validateCertificateDetailPopUp.html', 'AdminCtrl', $scope);
+        };
+
         $scope.goToAddPermissions = function (certificateDetails) {            
             var obj = "certificateObject";
             var myobj = certificateDetails;
@@ -2070,9 +2074,37 @@
                 $scope.isLoadingData = true;
                 $scope.ispermissionData = true;               // To show the 'permissions' and hide the 'details'
                 $scope.UsersPermissionsData = [];
-                $state.go('change-certificate', fullObj);
-                $scope.isLoadingData = false;
-            } catch (e) {  
+
+                var certName = certificateDetails.certificateName;
+                var certificateType = certificateDetails.certType;
+
+                if(certificateType !== null && certificateType.toLowerCase() === "external") {
+                    if(certificateDetails.requestStatus !== null && certificateDetails.requestStatus === "Pending Approval") {
+                        var updatedUrlOfEndPoint = RestEndpoints.baseURL + "/v2/sslcert/validate/" + certName+"/"+ certificateType;
+                        AdminSafesManagement.validateCertificateDetails(null, updatedUrlOfEndPoint).then(function (response) {
+
+                            if (UtilityService.ifAPIRequestSuccessful(response)) {
+                                $state.go('change-certificate', fullObj);
+                                $scope.isLoadingData = false;
+                            }
+                            else {
+                                $scope.isLoadingData = false;
+                                $scope.validateCertificateDetailsPopUp();
+                            }
+                        },
+                        function (error) {
+                            // Error handling function
+                            console.log(error);
+                            $scope.isLoadingData = false;
+                            $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
+                            $scope.error('md');
+                        });
+                    }
+                }else {
+                    $state.go('change-certificate', fullObj);
+                    $scope.isLoadingData = false;
+                }
+            } catch (e) {
                 $scope.isLoadingData = false;              
                 console.log(e);
             }

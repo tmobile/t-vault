@@ -8,7 +8,7 @@ script(type='text/ng-template', id='error.html')
     
     .text-center.bottom-lg-sep.top-lg-sep.notification-button
         .clearfix.bottom-sm-sep
-            button.link-style.common-btn.btn.btn-primary.btn-lg(ng-click="cancel()") Close
+            button.link-style.common-btn.btn.btn-cert.btn-lg(ng-click="cancel()") Close
 
 script(type='text/ng-template', id='appRolePopup.html')
           .modal-sep
@@ -31,9 +31,62 @@ script(type='text/ng-template', id='appRolePopup.html')
                                 radio-buttons(data="radio" value="approleRadioBtn.value" state="true")
           .text-center.bottom-lg-sep.modal-sep.aws
             .clearfix.bottom-sm-sep
-              button.common-btn.btn.btn-primary.btn-lg(id="approle_create_btn" ng-click="addPermission('AppRolePermission', approleConfPopupObj.role_name, approleRadioBtn.value, false)" ng-disabled="isApproleBtnDisabled()" ) Add
+              button.common-btn.btn.btn-cert.btn-lg(id="approle_create_btn" ng-click="addPermission('AppRolePermission', approleConfPopupObj.role_name, approleRadioBtn.value, false)" ng-disabled="isApproleBtnDisabled()" ) Add
             .clearfix
               button.link-style.common-btn.btn.btn-default.btn-lg(ng-click="cancel()") Cancel
+
+script(type='text/ng-template', id='renewCertPopup.html')
+  .top-lg-sep(ng-if="!isLoadingModalData")
+    .top-lg-sep
+        .common-header-label.text-center Confirmation
+    .top-lg-sep.notification-text Are you sure you want to renew this certificate?
+    .text-center.bottom-lg-sep.top-lg-sep.notification-button
+      .clearfix.bottom-sm-sep
+        button.common-btn.btn.btn-cert.btn-lg(ng-click="renewCertificate(certDetails)") RENEW
+      .clearfix
+        button.link-style.common-btn.btn.btn-default.btn-lg(ng-click="close()") CANCEL
+
+script(type='text/ng-template', id='renewCertificatePopUp.html')
+  .top-lg-sep(ng-if="!isLoadingModalData")
+    .top-lg-sep
+        .common-header-label.text-center Certificate Renewal Successful!
+      .top-lg-sep.notification-text  {{ renewMessage }}
+    .text-center.bottom-lg-sep.top-lg-sep.notification-button
+      .clearfix.bottom-sm-sep
+        button.link-style.common-btn.btn.btn-cert.btn-lg(ng-click="cancel()") CLOSE
+
+script(type='text/ng-template', id='renewCertificateFailedPopUp.html')
+  .top-lg-sep(ng-if="!isLoadingModalData")
+    .top-lg-sep
+        .common-header-label.text-center Certificate Renewal Failed!
+      .top-lg-sep.notification-text  {{ renewMessage }}
+    .text-center.bottom-lg-sep.top-lg-sep.notification-button
+      .clearfix.bottom-sm-sep
+        button.link-style.common-btn.btn.btn-cert.btn-lg(ng-click="cancel()") CLOSE
+
+script(type='text/ng-template', id='revocationPopUp.html')
+  .top-lg-sep(ng-if="!isLoadingModalData")
+    .top-lg-sep
+        .common-header-label.text-center {{ revocationStatusMessage }}
+      .top-lg-sep.notification-text  {{ revocationMessage }}
+    .text-center.bottom-lg-sep.top-lg-sep.notification-button
+      .clearfix.bottom-sm-sep
+        button.link-style.common-btn.btn.btn-cert.btn-lg(ng-click="cancelRevoke()") CLOSE
+
+script(type='text/ng-template', id='revokeReasonsPopUp.html')
+          .modal-sep
+            .common-header-label.text-center Revocation reasons
+          .left-lg-sep.right-lg-sep
+            .common-form.modal-inner-wrapper.aws
+              .common-form-row
+                .details-input-group
+                    .common-form-label
+                     drop-down(drop-down-options="dropdownRevocationReasons" name="dropdownRoles" id="dropdownRevocationReason"  ng-click="revocationReasonSelect()")
+          .text-center.bottom-lg-sep.modal-sep.aws
+            .clearfix.bottom-sm-sep
+              button.common-btn.btn.btn-cert.btn-lg(ng-click="revoke()") REVOKE
+            .clearfix
+              button.link-style.common-btn.btn.btn-default.btn-lg(ng-click="cancelRevoke()") Cancel
 
 script(src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js")
 .container-fluid.common-main-content.route-page.change-safe-wrapper
@@ -59,7 +112,7 @@ script(src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"
                           .common-form-row.col-lg-12.col-md-12.col-sm-12.col-xs-12
                             .details-input-group
                                 .common-form-label Name
-                                input.form-control.input-box-style(ng-model="certificate.name" name="certName" ng-disabled="changeCertificateHeader == 'EDIT CERTIFICATE'" placeholder="Certificate name" required)                                
+                                input.form-control.input-box-style(ng-model="certificate.certificateName" name="certName" ng-disabled="changeCertificateHeader == 'EDIT CERTIFICATE'" placeholder="Certificate name" required)
                         .row.middle
                           .common-form-row.clearfix
                             .col-lg-5.col-md-12.col-sm-12.col-xs-12.full-row-fix
@@ -72,11 +125,18 @@ script(src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"
                                 .details-input-group.left-sm-sep.col-lg-12.col-md-12.col-sm-12.col-xs-12
                                     .common-form-label Owner
                                     input.form-control.input-box-style(id="ownerEmail" ng-model="certificate.ownerEmail" ng-disabled="changeCertificateHeader == 'EDIT CERTIFICATE'"  name="ownerEmail" placeholder="Email address - Enter min 3 characters" required)
-                        .row
-                          .common-form-row.col-lg-12.col-md-12.col-sm-12.col-xs-12
-                            .details-input-group
-                                .common-form-label Application
-                                input.form-control.input-box-style(ng-model="certificate.applicationName" ng-disabled="changeCertificateHeader == 'EDIT CERTIFICATE'" name="applicationTag" required)
+                        .row.middle
+                          .common-form-row.clearfix
+                            .col-lg-5.col-md-12.col-sm-12.col-xs-12.full-row-fix
+                              .row
+                                .details-input-group.col-lg-12.col-md-12.col-sm-12.col-xs-12
+                                  .common-form-label Application
+                                  input.form-control.input-box-style(id="applicationTag" ng-model="certificate.applicationName" ng-disabled="changeCertificateHeader == 'EDIT CERTIFICATE'"  name="applicationTag"  required)
+                            .col-lg-6.col-md-12.col-sm-12.col-xs-12.full-row-fix.col-lg-offset-1.col-lg-offset-1
+                              .row
+                                .details-input-group.left-sm-sep.col-lg-12.col-md-12.col-sm-12.col-xs-12
+                                    .common-form-label Status
+                                    input.form-control.input-box-style(id="certificateStatus" ng-model="certificate.certificateStatus" ng-disabled="changeCertificateHeader == 'EDIT CERTIFICATE'"  name="certificateStatus"  required)
                         .row.middle
                           .common-form-row.clearfix
                             .col-lg-5.col-md-12.col-sm-12.col-xs-12.full-row-fix
@@ -89,7 +149,7 @@ script(src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"
                                 .details-input-group.left-sm-sep.col-lg-12.col-md-12.col-sm-12.col-xs-12
                                     .common-form-label Expiry Date
                                     input.form-control.input-box-style(id="expiryDate" ng-model="certificate.expiryDate" ng-disabled="changeCertificateHeader == 'EDIT CERTIFICATE'"  name="expiryDate"  required)            
-                        
+
                     .safe-right-content-container.col-lg-6.col-sm-7#full-height
 
                       .safe-detail-container-block
@@ -98,9 +158,15 @@ script(src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"
                         div.font-type-normal 
 
                   .clearfix.btn-section
-                    .right.col-lg-6.col-md-6.col-sm-6.col-xs-12.bottom-lg-sep.top-lg-sep
-                      .right
-                        button.common-btn.btn.btn-primary.btn-lg(ng-if="isCertificateOwner" type='submit' ng-disabled="!isCertificateOwner") Next
+                    .right.col-lg-12.col-md-12.col-sm-12.col-xs-12.bottom-lg-sep.top-lg-sep
+                      .right.svc-action-button
+                        button.common-btn.btn.btn-cert.btn-lg(type='button' ng-disabled="!isCertificateOwner") Delete
+                      .right.svc-action-button
+                        button.common-btn.btn.btn-cert.btn-lg(type='button' ng-click="revokeCertificate(certificate)") Revoke
+                      .right.svc-action-button
+                        button.common-btn.btn.btn-cert.btn-lg(type='button' ng-if="renewButtonShow && certificate.certificateStatus!=='Expired'" ng-click="renewCertPopup(certificate)") Renew
+                      .right.svc-action-button
+                        button.common-btn.btn.btn-primary.btn-lg(type='submit' ng-if="isCertificateOwner" ng-disabled="!isCertificateOwner") Grant Permission
                       .right.right-sm-sepshowInputLoader
                         button.link-style.common-btn.btn.btn-default.btn-lg.col-lg-6.col-md-6.col-sm-6.col-xs-12(type='button' ng-click="goBack()") Cancel
 
@@ -134,7 +200,7 @@ script(src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"
                                         .add-block.container.radio-inputs.col-lg-3.col-md-3.col-sm-12.col-xs-12
                                             radio-buttons(data="radio" value="usrRadioBtnVal" state="true")
                                         .add-block.container.actions.col-lg-3.col-md-3.col-sm-12.col-xs-12
-                                            button.btn.btn-primary.btn-lg(ng-click="addPermission('users',inputValue.userNameVal,usrRadioBtnVal, false);inputValue.userNameValEmpty = true") ADD USER
+                                            button.btn.btn-cert.btn-lg(ng-click="addPermission('users',inputValue.userNameVal,usrRadioBtnVal, false);inputValue.userNameValEmpty = true") ADD USER
                                     .unavailable-text(ng-if='isEmpty(UsersPermissionsData) || hideSudoPolicy')
                                       | No users are given permission to access this certificate,<br> add users to access the certificate 
                                     .row.change-safe-table-container(ng-if='!isEmpty(UsersPermissionsData) && !hideSudoPolicy')
@@ -193,7 +259,7 @@ script(src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"
                                         .add-block.container.radio-inputs.col-lg-3.col-md-3.col-sm-12.col-xs-12
                                             radio-buttons(data="radio" value="grpRadioBtnVal" state="true")
                                         .add-block.container.actions.col-lg-3.col-md-3.col-sm-12.col-xs-12
-                                            button.btn.btn-primary.btn-lg(ng-click="addPermission('groups', inputValue.grpNameVal,grpRadioBtnVal, false);inputValue.grpNameValEmpty = true") ADD GROUP
+                                            button.btn.btn-cert.btn-lg(ng-click="addPermission('groups', inputValue.grpNameVal,grpRadioBtnVal, false);inputValue.grpNameValEmpty = true") ADD GROUP
                                     .unavailable-text(ng-if="isEmpty(GroupsPermissionsData)")
                                       | No groups are given permission to access this certificate,<br> add groups to access the certificate
                                     .row.change-safe-table-container(ng-if="!isEmpty(GroupsPermissionsData)")
@@ -229,5 +295,5 @@ script(src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"
                 .clearfix.btn-section
                   .right.col-lg-6.col-md-6.col-sm-6.col-xs-12.bottom-lg-sep.top-lg-sep
                     .right
-                      button.common-btn.btn.btn-primary.btn-lg(type='button' ng-click="certificateEditPermission()") Done
+                      button.common-btn.btn.btn-cert.btn-lg(type='button' ng-click="certificateEditPermission()") Done
                   

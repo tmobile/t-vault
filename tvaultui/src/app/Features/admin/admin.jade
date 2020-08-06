@@ -202,7 +202,16 @@ script(type='text/ng-template', id='transferCertFailedPopup.html')
     .text-center.bottom-lg-sep.top-lg-sep.notification-button
       .clearfix.bottom-sm-sep
         button.link-style.common-btn.btn.btn-primary.btn-lg(ng-click="cancel()") CLOSE               
-                        
+
+script(type='text/ng-template', id='validateCertificateDetailPopUp.html')
+  loading-state(ng-if="isLoadingModalData")
+  .top-lg-sep(ng-if="!isLoadingModalData")
+    .top-lg-sep
+        .common-header-label.text-center Pending Approval
+      .top-lg-sep.notification-text  Certificate may not be approved or rejected from NCLM
+    .text-center.bottom-lg-sep.top-lg-sep.notification-button
+      .clearfix.bottom-sm-sep
+        button.link-style.common-btn.btn.btn-primary.btn-lg(ng-click="cancel()") CLOSE
 
 script(type='text/ng-template', id='certificatePopup.html')
           .modal-sep
