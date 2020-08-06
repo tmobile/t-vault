@@ -2,10 +2,26 @@ package com.tmobile.cso.vault.api.service;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import com.tmobile.cso.vault.api.common.TVaultConstants;
 import com.tmobile.cso.vault.api.controller.ControllerUtil;
 import com.tmobile.cso.vault.api.controller.OIDCUtil;
 import com.tmobile.cso.vault.api.model.*;
+import com.tmobile.cso.vault.api.utils.TokenUtils;
+import org.apache.http.HttpResponse;
+import org.apache.http.NameValuePair;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.conn.ssl.NoopHostnameVerifier;
+import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.impl.client.LaxRedirectStrategy;
+import org.apache.http.message.BasicNameValuePair;
+import org.apache.http.ssl.SSLContextBuilder;
+import org.apache.http.ssl.TrustStrategy;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,9 +36,20 @@ import com.tmobile.cso.vault.api.process.RequestProcessor;
 import com.tmobile.cso.vault.api.process.Response;
 import com.tmobile.cso.vault.api.utils.JSONUtil;
 import com.tmobile.cso.vault.api.utils.ThreadLocalContext;
+import org.springframework.util.StringUtils;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.UnsupportedEncodingException;
+import java.security.KeyManagementException;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @Component
@@ -37,11 +64,17 @@ public class OIDCAuthService {
     @Value("${ad.passwordrotation.enable}")
     private boolean isAdPswdRotationEnabled;
 
+    @Value("${sso.azure.resourceendpoint}")
+    private String ssoResourceEndpoint;
+
+    @Value("${sso.azure.groupsendpoint}")
+    private String ssoGroupsEndpoint;
+
     private static Logger log = LogManager.getLogger(OIDCAuthService.class);
 
 	/**
 	 * Get Authentication Mounts
-	 * 
+	 *
 	 * @param token
 	 * @return
 	 */
@@ -341,5 +374,182 @@ public class OIDCAuthService {
                 put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
                 build()));
         return ResponseEntity.status(response.getHttpstatus()).body(response.getResponse());
+    }
+
+    /**
+     * To get group object id from Azure AD.
+     * @param groupName
+     * @return
+     */
+    public ResponseEntity<String> getGroupObjectIdFromAzure(String groupName) {
+        String ssoToken = getSSOToken();
+        if (!StringUtils.isEmpty(ssoToken)) {
+            String objectId = getGroupObjectResponse(ssoToken, groupName);
+            if (objectId != null) {
+                return ResponseEntity.status(HttpStatus.OK).body("{\"data\":{\"objectId\": \""+objectId+"\"}}");
+            }
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("{\"errors\":[\"Group not found in Active Directory\"]}");
+        }
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Failed to get SSO token for Azure AD access\"]}");
+    }
+
+
+    /**
+     * To get object id for a group.
+     *
+     * @param ssoToken
+     * @param groupName
+     * @return
+     */
+    private String getGroupObjectResponse(String ssoToken, String groupName)  {
+        JsonParser jsonParser = new JsonParser();
+        HttpClient httpClient =null;
+        String groupObjectId = null;
+        try {
+            httpClient = HttpClientBuilder.create().setSSLHostnameVerifier(
+                    NoopHostnameVerifier.INSTANCE).
+                    setSSLContext(
+                            new SSLContextBuilder().loadTrustMaterial(null,new TrustStrategy() {
+                                @Override
+                                public boolean isTrusted(X509Certificate[] arg0, String arg1) throws CertificateException {
+                                    return true;
+                                }
+                            }).build()
+                    ).setRedirectStrategy(new LaxRedirectStrategy()).build();
+
+
+        } catch (KeyManagementException | NoSuchAlgorithmException | KeyStoreException e1) {
+            log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+                    put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+                    put(LogMessage.ACTION, "getGroupObjectResponse").
+                    put(LogMessage.MESSAGE, "Failed to initialize httpClient").
+                    put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+                    build()));
+            return null;
+        }
+
+        String filterSearch = "$filter=displayName%20eq%20'"+groupName+"'";
+        String api = ssoGroupsEndpoint + filterSearch;
+        HttpGet getRequest = new HttpGet(api);
+        getRequest.addHeader("accept", TVaultConstants.HTTP_CONTENT_TYPE_JSON);
+        getRequest.addHeader("Authorization", "Bearer " + ssoToken);
+        String output = "";
+        StringBuilder jsonResponse = new StringBuilder();
+
+        try {
+            HttpResponse apiResponse = httpClient.execute(getRequest);
+            if (apiResponse.getStatusLine().getStatusCode() != 200) {
+                return null;
+            }
+            BufferedReader br = new BufferedReader(new InputStreamReader((apiResponse.getEntity().getContent())));
+            while ((output = br.readLine()) != null) {
+                jsonResponse.append(output);
+            }
+
+            JsonObject responseJson = (JsonObject) jsonParser.parse(jsonResponse.toString());
+            if (responseJson != null && responseJson.has("value")) {
+                JsonArray vaulesArray = responseJson.get("value").getAsJsonArray();
+                if (vaulesArray.size() > 0) {
+                    groupObjectId = vaulesArray.get(0).getAsJsonObject().get("id").getAsString();
+                }
+            }
+            return groupObjectId;
+        } catch (IOException e) {
+            log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+                    put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+                    put(LogMessage.ACTION, "getGroupObjectResponse").
+                    put(LogMessage.MESSAGE, String.format ("Failed to parse group object api response")).
+                    put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+                    build()));
+        }
+        return null;
+    }
+
+    /**
+     * To get SSO token.
+     * @return
+     */
+    private String getSSOToken() {
+        JsonParser jsonParser = new JsonParser();
+        HttpClient httpClient;
+        String accessToken = "";
+        try {
+            httpClient = HttpClientBuilder.create().setSSLHostnameVerifier(
+                    NoopHostnameVerifier.INSTANCE).
+                    setSSLContext(
+                            new SSLContextBuilder().loadTrustMaterial(null, new TrustStrategy() {
+                                @Override
+                                public boolean isTrusted(X509Certificate[] arg0, String arg1) throws CertificateException {
+                                    return true;
+                                }
+                            }).build()
+                    ).setRedirectStrategy(new LaxRedirectStrategy()).build();
+        } catch (KeyManagementException | NoSuchAlgorithmException | KeyStoreException e1) {
+            log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+                    put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+                    put(LogMessage.ACTION, "getSSOToken").
+                    put(LogMessage.MESSAGE, "Failed to initialize httpClient").
+                    put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+                    build()));
+            return null;
+        }
+
+        String api = ControllerUtil.getOidcADLoginUrl();
+        HttpPost postRequest = new HttpPost(api);
+        postRequest.addHeader("Content-type", TVaultConstants.HTTP_CONTENT_TYPE_URL_ENCODED);
+        postRequest.addHeader("Accept",TVaultConstants.HTTP_CONTENT_TYPE_JSON);
+
+        List<NameValuePair> form = new ArrayList<>();
+        form.add(new BasicNameValuePair("grant_type", "client_credentials"));
+        form.add(new BasicNameValuePair("client_id",  ControllerUtil.getOidcClientId()));
+        form.add(new BasicNameValuePair("client_secret",  ControllerUtil.getOidcClientSecret()));
+        form.add(new BasicNameValuePair("resource",  ssoResourceEndpoint));
+        UrlEncodedFormEntity entity;
+
+        try {
+            entity = new UrlEncodedFormEntity(form);
+        } catch (UnsupportedEncodingException e) {
+            log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+                    put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+                    put(LogMessage.ACTION, "getSSOToken").
+                    put(LogMessage.MESSAGE, "Failed to encode entity").
+                    put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+                    build()));
+            return null;
+        }
+
+        postRequest.setEntity(entity);
+        String output;
+        StringBuilder jsonResponse = new StringBuilder();
+
+        try {
+            HttpResponse apiResponse = httpClient.execute(postRequest);
+            if (apiResponse.getStatusLine().getStatusCode() != 200) {
+                log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+                        put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+                        put(LogMessage.ACTION, "getSSOToken").
+                        put(LogMessage.MESSAGE, "Failed to get sso token").
+                        put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+                        build()));
+                return null;
+            }
+            BufferedReader br = new BufferedReader(new InputStreamReader((apiResponse.getEntity().getContent())));
+            while ((output = br.readLine()) != null) {
+                jsonResponse.append(output);
+            }
+            JsonObject responseJson = (JsonObject) jsonParser.parse(jsonResponse.toString());
+            if (!responseJson.isJsonNull() && responseJson.has("access_token")) {
+                accessToken = responseJson.get("access_token").getAsString();
+            }
+            return accessToken;
+        } catch (IOException e) {
+            log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+                    put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+                    put(LogMessage.ACTION, "getSSOToken").
+                    put(LogMessage.MESSAGE, "Failed to parse SSO response").
+                    put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+                    build()));
+        }
+        return null;
     }
 }

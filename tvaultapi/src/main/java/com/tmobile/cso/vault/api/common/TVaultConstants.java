@@ -144,6 +144,10 @@ public class TVaultConstants {
     public static final String PATH_DELIMITER="/";
 
     public static final String AUTH_TYPE_OIDC = "oidc";
+    public static final String HTTP_CONTENT_TYPE_JSON = "application/json";
+    public static final String HTTP_CONTENT_TYPE_URL_ENCODED = "application/x-www-form-urlencoded";
+
+
 
     public static final String ALIAS_MOUNT_ACCESSOR = "accessor";
     public static final String ENTITY_NAME = "name";
