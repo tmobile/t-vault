@@ -21,10 +21,14 @@ import java.io.IOException;
 import java.util.ArrayList;
 
 import com.tmobile.cso.vault.api.common.TVaultConstants;
+import com.tmobile.cso.vault.api.model.OIDCEntityResponse;
+import com.tmobile.cso.vault.api.service.SafesService;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -39,6 +43,9 @@ public class PolicyUtils {
 	
 	@Value("${vault.auth.method}")
 	private String vaultAuthMethod;
+
+	@Autowired
+	SafesService safesService;
 	
 	public PolicyUtils() {
 		// TODO Auto-generated constructor stub
@@ -85,20 +92,29 @@ public class PolicyUtils {
 	 * @return
 	 */
 	public String[] getCurrentPolicies(String token, String username) {
-		Response userResponse;
+		Response userResponse = new Response();
 		String[] policies = {};
 		if (TVaultConstants.USERPASS.equals(vaultAuthMethod)) {
 			userResponse = ControllerUtil.getReqProcessor().process("/auth/userpass/read","{\"username\":\""+username+"\"}",token);
 		}
-		else {
+		else if (TVaultConstants.LDAP.equals(vaultAuthMethod)) {
 			userResponse = ControllerUtil.getReqProcessor().process("/auth/ldap/users","{\"username\":\""+username+"\"}",token);
+		}
+		else if(TVaultConstants.OIDC.equals(vaultAuthMethod)) {
+			ResponseEntity<OIDCEntityResponse> responseEntity = safesService.oidcFetchEntityDetails(token,	username);
+			userResponse.setHttpstatus(responseEntity.getStatusCode());
+			if (HttpStatus.OK.equals(responseEntity.getStatusCode())) {
+				policies = responseEntity.getBody().getPolicies().stream().toArray(String[] :: new);
+			}
 		}
 		if(HttpStatus.OK.equals(userResponse.getHttpstatus())){
 			String responseJson = userResponse.getResponse();
 			try {
-				ObjectMapper objMapper = new ObjectMapper();
-				String policiesStr = ControllerUtil.getPoliciesAsStringFromJson(objMapper, responseJson);
-				policies = policiesStr.split(",");
+				if(!TVaultConstants.OIDC.equals(vaultAuthMethod)) {
+					ObjectMapper objMapper = new ObjectMapper();
+					String policiesStr = ControllerUtil.getPoliciesAsStringFromJson(objMapper, responseJson);
+					policies = policiesStr.split(",");
+				}
 			} catch (IOException e) {
 				log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 					      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
