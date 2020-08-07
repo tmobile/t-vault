@@ -1664,7 +1664,7 @@ public class SSLCertificateServiceTest {
         revocationResponse.setHttpstatus(HttpStatus.OK);
         revocationResponse.setResponse(jsonStr2);
         revocationResponse.setSuccess(true);
-        when(reqProcessor.processCert(eq("/certificates​/revocationreasons"), anyObject(), anyString(), anyString())).thenReturn(revocationResponse);
+        when(reqProcessor.processCert(eq("/certificates/revocationreasons"), anyObject(), anyString(), anyString())).thenReturn(revocationResponse);
 
         ResponseEntity<?> enrollResponse =
                 sSLCertificateService.getRevocationReasons(certficateId, token);
@@ -1699,7 +1699,7 @@ public class SSLCertificateServiceTest {
         revocationResponse.setHttpstatus(HttpStatus.FORBIDDEN);
         revocationResponse.setResponse(errorJson);
         revocationResponse.setSuccess(false);
-        when(reqProcessor.processCert(eq("/certificates​/revocationreasons"), anyObject(), anyString(), anyString())).thenReturn(revocationResponse);
+        when(reqProcessor.processCert(eq("/certificates/revocationreasons"), anyObject(), anyString(), anyString())).thenReturn(revocationResponse);
 
         ResponseEntity<?> revocResponse =
                 sSLCertificateService.getRevocationReasons(certficateId, token);
@@ -4410,4 +4410,331 @@ public class SSLCertificateServiceTest {
         assertNotNull(enrollResponse);
         assertEquals(HttpStatus.OK, enrollResponse.getStatusCode());
     }
+
+	@Test
+	public void testValidateApprovalStatusAndGetCertDetailsSuccess() throws Exception {
+		String jsonStr = "{  \"username\": \"testusername1\",  \"password\": \"testpassword1\"}";
+
+		String jsonStr2 = "{\"certificates\":[{\"sortedSubjectName\": \"CN=certificatename.t-mobile.com, C=US, "
+				+ "ST=Washington, " + "L=Bellevue, O=T-Mobile USA, Inc\","
+				+ "\"certificateId\":57258,\"certificateStatus\":\"Active\","
+				+ "\"containerName\":\"cont_12345\",\"NotAfter\":\"2021-06-15T04:35:58-07:00\"}]}";
+		SSLCertificateMetadataDetails certificateMetadata = getSSLExternalCertificateRequest();
+		UserDetails userDetail = getMockUser(true);
+		userDetail.setUsername("testuser1");
+		ReflectionTestUtils.setField(sSLCertificateService, "vaultAuthMethod", "ldap");
+		CertManagerLoginRequest certManagerLoginRequest = getCertManagerLoginRequest();
+		certManagerLoginRequest.setUsername("username");
+		certManagerLoginRequest.setPassword("password");
+
+		Map<String, Object> requestMap = new HashMap<>();
+		requestMap.put("access_token", "12345");
+		requestMap.put("token_type", "type");
+		when(ControllerUtil.parseJson(jsonStr)).thenReturn(requestMap);
+		CertManagerLogin certManagerLogin = new CertManagerLogin();
+		certManagerLogin.setToken_type("token type");
+		certManagerLogin.setAccess_token("1234");
+
+		CertResponse response = new CertResponse();
+		response.setHttpstatus(HttpStatus.OK);
+		response.setResponse(jsonStr);
+		response.setSuccess(true);
+		when(reqProcessor.processCert(eq("/auth/certmanager/login"), anyObject(), anyString(), anyString()))
+				.thenReturn(response);
+
+		CertResponse findCertResponse = new CertResponse();
+		findCertResponse.setHttpstatus(HttpStatus.OK);
+		findCertResponse.setResponse(jsonStr2);
+		findCertResponse.setSuccess(true);
+		when(reqProcessor.processCert(eq("/certmanager/findCertificate"), anyObject(), anyString(), anyString()))
+				.thenReturn(findCertResponse);
+
+		Map<String, Object> requestCertMap = new HashMap<>();
+		Map<String, Object> certificates = new HashMap<>();
+		certificates.put("sortedSubjectName", "certificatename.t-mobile.com");
+		certificates.put("certificateId", "123");
+		certificates.put("NotAfter", "2021-08-06T06:38:06-07:00");
+		certificates.put("NotBefore", "2020-08-06T06:38:06-07:00");
+		certificates.put("containerName", "VenafiBin_12345");
+		certificates.put("certificateStatus", "Active");
+		requestCertMap.put("certificates", certificates);
+		when(ControllerUtil.parseJson(findCertResponse.getResponse())).thenReturn(requestCertMap);
+
+		String metaDataJson = "{\"data\":{\"akmid\":\"102463\",\"applicationName\":\"tvs\",\"applicationOwnerEmailId\":\"certificatename.t-mobile.com\",\"applicationTag\":\"TVS\",\"authority\":\"T-Mobile Issuing CA 01 - SHA2\",\"certCreatedBy\":\"nnazeer1\",\"certOwnerNtid\": \"testusername1\",\"certOwnerEmailId\":\"ltest@smail.com\",\"certType\":\"internal\",\"certificateId\":59880,\"certificateName\":\"certtest260630.t-mobile.com\",\"certificateStatus\":\"Revoked\",\"containerName\":\"VenafiBin_12345\",\"createDate\":\"2020-06-26T05:10:41-07:00\",\"expiryDate\":\"2021-06-26T05:10:41-07:00\",\"projectLeadEmailId\":\"Daniel.Urrutia@T-Mobile.Com\",\"users\":{\"normaluser\":\"write\",\"certuser\":\"read\",\"safeadmin\":\"deny\",\"testsafeuser\":\"write\",\"testuser1\":\"deny\",\"testuser2\":\"read\"}}}";
+		Response readResponse = new Response();
+		readResponse.setHttpstatus(HttpStatus.OK);
+		readResponse.setResponse(metaDataJson);
+		readResponse.setSuccess(true);
+		when(reqProcessor.process(eq("/read"), anyObject(), anyString())).thenReturn(readResponse);
+
+		String certType = "external";
+		String certName = "certificatename.t-mobile.com";
+		when(ControllerUtil.updateMetaData(any(), any(), eq(token))).thenReturn(true);
+		when(certificateUtils.getCertificateMetaData(token, certName, certType)).thenReturn(certificateMetadata);
+		ResponseEntity<?> enrollResponse = sSLCertificateService
+				.validateApprovalStatusAndGetCertificateDetails(certName, certType, userDetail);
+		assertNotNull(enrollResponse);
+		assertEquals(HttpStatus.OK, enrollResponse.getStatusCode());
+	}
+
+	@Test
+	public void testValidateApprovalStatusAndGetCertDetailsFailed() throws Exception {
+		String jsonStr = "{  \"username\": \"testusername1\",  \"password\": \"testpassword1\"}";
+
+		String jsonStr2 = "{\"certificates\":[{\"sortedSubjectName\": \"CN=certificatename.t-mobile.com, C=US, "
+				+ "ST=Washington, " + "L=Bellevue, O=T-Mobile USA, Inc\","
+				+ "\"certificateId\":57258,\"certificateStatus\":\"Active\","
+				+ "\"containerName\":\"cont_12345\",\"NotAfter\":\"2021-06-15T04:35:58-07:00\"}]}";
+
+		ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.NO_CONTENT)
+				.body("{\"messages\":[\"Certificate may not be approved or rejected from NCLM \"]}");
+		SSLCertificateMetadataDetails certificateMetadata = getSSLExternalCertificateRequest();
+		UserDetails userDetail = getMockUser(true);
+		userDetail.setUsername("testuser1");
+		ReflectionTestUtils.setField(sSLCertificateService, "vaultAuthMethod", "ldap");
+		CertManagerLoginRequest certManagerLoginRequest = getCertManagerLoginRequest();
+		certManagerLoginRequest.setUsername("username");
+		certManagerLoginRequest.setPassword("password");
+
+		Map<String, Object> requestMap = new HashMap<>();
+		requestMap.put("access_token", "12345");
+		requestMap.put("token_type", "type");
+		when(ControllerUtil.parseJson(jsonStr)).thenReturn(requestMap);
+		CertManagerLogin certManagerLogin = new CertManagerLogin();
+		certManagerLogin.setToken_type("token type");
+		certManagerLogin.setAccess_token("1234");
+
+		CertResponse response = new CertResponse();
+		response.setHttpstatus(HttpStatus.OK);
+		response.setResponse(jsonStr);
+		response.setSuccess(true);
+		when(reqProcessor.processCert(eq("/auth/certmanager/login"), anyObject(), anyString(), anyString()))
+				.thenReturn(response);
+
+		CertResponse findCertResponse = new CertResponse();
+		findCertResponse.setHttpstatus(HttpStatus.OK);
+		findCertResponse.setResponse(jsonStr2);
+		findCertResponse.setSuccess(true);
+		when(reqProcessor.processCert(eq("/certmanager/findCertificate"), anyObject(), anyString(), anyString()))
+				.thenReturn(findCertResponse);
+
+		when(ControllerUtil.parseJson(findCertResponse.getResponse())).thenReturn(null);
+
+		String certType = "external";
+		String certName = "certificatename.t-mobile.com";
+		when(certificateUtils.getCertificateMetaData(token, certName, certType)).thenReturn(certificateMetadata);
+		ResponseEntity<?> enrollResponse = sSLCertificateService
+				.validateApprovalStatusAndGetCertificateDetails(certName, certType, userDetail);
+		assertEquals(HttpStatus.NO_CONTENT, enrollResponse.getStatusCode());
+		assertEquals(responseEntityExpected, enrollResponse);
+	}
+
+	@Test
+	public void testValidateApprovalStatusForEmptyMetadata() throws Exception {
+		String jsonStr = "{  \"username\": \"testusername1\",  \"password\": \"testpassword1\"}";
+		ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST)
+				.body("{\"errors\":[\"No certificate available\"]}");
+		UserDetails userDetail = getMockUser(false);
+		userDetail.setUsername("testuser1");
+		ReflectionTestUtils.setField(sSLCertificateService, "vaultAuthMethod", "ldap");
+		CertManagerLoginRequest certManagerLoginRequest = getCertManagerLoginRequest();
+		certManagerLoginRequest.setUsername("username");
+		certManagerLoginRequest.setPassword("password");
+
+		Map<String, Object> requestMap = new HashMap<>();
+		requestMap.put("access_token", "12345");
+		requestMap.put("token_type", "type");
+		when(ControllerUtil.parseJson(jsonStr)).thenReturn(requestMap);
+		CertManagerLogin certManagerLogin = new CertManagerLogin();
+		certManagerLogin.setToken_type("token type");
+		certManagerLogin.setAccess_token("1234");
+
+		CertResponse response = new CertResponse();
+		response.setHttpstatus(HttpStatus.OK);
+		response.setResponse(jsonStr);
+		response.setSuccess(true);
+		when(reqProcessor.processCert(eq("/auth/certmanager/login"), anyObject(), anyString(), anyString()))
+				.thenReturn(response);
+
+		CertResponse findCertResponse = new CertResponse();
+		findCertResponse.setHttpstatus(HttpStatus.OK);
+		findCertResponse.setResponse(jsonStr);
+		findCertResponse.setSuccess(true);
+		when(reqProcessor.processCert(eq("/certmanager/findCertificate"), anyObject(), anyString(), anyString()))
+				.thenReturn(findCertResponse);
+
+		when(ControllerUtil.parseJson(findCertResponse.getResponse())).thenReturn(null);
+
+		String certType = "external";
+		String certName = "certificatename.t-mobile.com";
+		when(certificateUtils.getCertificateMetaData(token, certName, certType)).thenReturn(null);
+		ResponseEntity<?> enrollResponse = sSLCertificateService
+				.validateApprovalStatusAndGetCertificateDetails(certName, certType, userDetail);
+		assertEquals(HttpStatus.BAD_REQUEST, enrollResponse.getStatusCode());
+		assertEquals(responseEntityExpected, enrollResponse);
+	}
+
+	@Test
+	public void testValidateApprovalStatusForInvalidUser() {
+		ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+				.body("{\"errors\":[\"Access denied: No permission to access this certificate\"]}");
+		UserDetails userDetail = getMockUser(true);
+		userDetail.setUsername("testuser1");
+		ReflectionTestUtils.setField(sSLCertificateService, "vaultAuthMethod", "ldap");
+		String certType = "external";
+		String certName = "certificatename.t-mobile.com";
+		ResponseEntity<?> enrollResponse = sSLCertificateService
+				.validateApprovalStatusAndGetCertificateDetails(certName, certType, null);
+		assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, enrollResponse.getStatusCode());
+		assertEquals(responseEntityExpected, enrollResponse);
+	}
+
+	@Test
+	public void testValidateApprovalStatusForNoMetadata() throws Exception {
+		String jsonStr = "{  \"username\": \"testusername1\",  \"password\": \"testpassword1\"}";
+
+		String jsonStr2 = "{\"certificates\":[{\"sortedSubjectName\": \"CN=certificatename.t-mobile.com, C=US, "
+				+ "ST=Washington, " + "L=Bellevue, O=T-Mobile USA, Inc\","
+				+ "\"certificateId\":57258,\"certificateStatus\":\"Active\","
+				+ "\"containerName\":\"cont_12345\",\"NotAfter\":\"2021-06-15T04:35:58-07:00\"}]}";
+		SSLCertificateMetadataDetails certificateMetadata = getSSLExternalCertificateRequest();
+		UserDetails userDetail = getMockUser(true);
+		userDetail.setUsername("testuser1");
+		ReflectionTestUtils.setField(sSLCertificateService, "vaultAuthMethod", "ldap");
+		CertManagerLoginRequest certManagerLoginRequest = getCertManagerLoginRequest();
+		certManagerLoginRequest.setUsername("username");
+		certManagerLoginRequest.setPassword("password");
+
+		Map<String, Object> requestMap = new HashMap<>();
+		requestMap.put("access_token", "12345");
+		requestMap.put("token_type", "type");
+		when(ControllerUtil.parseJson(jsonStr)).thenReturn(requestMap);
+		CertManagerLogin certManagerLogin = new CertManagerLogin();
+		certManagerLogin.setToken_type("token type");
+		certManagerLogin.setAccess_token("1234");
+
+		CertResponse response = new CertResponse();
+		response.setHttpstatus(HttpStatus.OK);
+		response.setResponse(jsonStr);
+		response.setSuccess(true);
+		when(reqProcessor.processCert(eq("/auth/certmanager/login"), anyObject(), anyString(), anyString()))
+				.thenReturn(response);
+
+		CertResponse findCertResponse = new CertResponse();
+		findCertResponse.setHttpstatus(HttpStatus.OK);
+		findCertResponse.setResponse(jsonStr2);
+		findCertResponse.setSuccess(true);
+		when(reqProcessor.processCert(eq("/certmanager/findCertificate"), anyObject(), anyString(), anyString()))
+				.thenReturn(findCertResponse);
+
+		Map<String, Object> requestCertMap = new HashMap<>();
+		Map<String, Object> certificates = new HashMap<>();
+		certificates.put("sortedSubjectName", "certificatename.t-mobile.com");
+		certificates.put("certificateId", "123");
+		certificates.put("NotAfter", "2021-08-06T06:38:06-07:00");
+		certificates.put("NotBefore", "2020-08-06T06:38:06-07:00");
+		certificates.put("containerName", "VenafiBin_12345");
+		certificates.put("certificateStatus", "Active");
+		requestCertMap.put("certificates", certificates);
+		when(ControllerUtil.parseJson(findCertResponse.getResponse())).thenReturn(requestCertMap);
+
+		String metaDataJson = "{\"data\":{\"akmid\":\"102463\",\"applicationName\":\"tvs\",\"applicationOwnerEmailId\":\"certificatename.t-mobile.com\",\"applicationTag\":\"TVS\",\"authority\":\"T-Mobile Issuing CA 01 - SHA2\",\"certCreatedBy\":\"nnazeer1\",\"certOwnerNtid\": \"testusername1\",\"certOwnerEmailId\":\"ltest@smail.com\",\"certType\":\"internal\",\"certificateId\":59880,\"certificateName\":\"certtest260630.t-mobile.com\",\"certificateStatus\":\"Revoked\",\"containerName\":\"VenafiBin_12345\",\"createDate\":\"2020-06-26T05:10:41-07:00\",\"expiryDate\":\"2021-06-26T05:10:41-07:00\",\"projectLeadEmailId\":\"Daniel.Urrutia@T-Mobile.Com\",\"users\":{\"normaluser\":\"write\",\"certuser\":\"read\",\"safeadmin\":\"deny\",\"testsafeuser\":\"write\",\"testuser1\":\"deny\",\"testuser2\":\"read\"}}}";
+		Response readResponse = new Response();
+		readResponse.setHttpstatus(HttpStatus.FORBIDDEN);
+		readResponse.setResponse(metaDataJson);
+		readResponse.setSuccess(true);
+		when(reqProcessor.process(eq("/read"), anyObject(), anyString())).thenReturn(readResponse);
+
+		String certType = "external";
+		String certName = "certificatename.t-mobile.com";
+		when(ControllerUtil.updateMetaData(any(), any(), eq(token))).thenReturn(true);
+		when(certificateUtils.getCertificateMetaData(token, certName, certType)).thenReturn(certificateMetadata);
+		ResponseEntity<?> enrollResponse = sSLCertificateService
+				.validateApprovalStatusAndGetCertificateDetails(certName, certType, userDetail);
+		assertNotNull(enrollResponse);
+		assertEquals(HttpStatus.FORBIDDEN, enrollResponse.getStatusCode());
+	}
+
+	@Test
+	public void testValidateApprovalStatusForMetadataUpdateFailed() throws Exception {
+		String jsonStr = "{  \"username\": \"testusername1\",  \"password\": \"testpassword1\"}";
+
+		String jsonStr2 = "{\"certificates\":[{\"sortedSubjectName\": \"CN=certificatename.t-mobile.com, C=US, "
+				+ "ST=Washington, " + "L=Bellevue, O=T-Mobile USA, Inc\","
+				+ "\"certificateId\":57258,\"certificateStatus\":\"Active\","
+				+ "\"containerName\":\"cont_12345\",\"NotAfter\":\"2021-06-15T04:35:58-07:00\"}]}";
+		ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+				.body("{\"errors\":[\"Metadata update failed\"]}");
+		SSLCertificateMetadataDetails certificateMetadata = getSSLExternalCertificateRequest();
+		UserDetails userDetail = getMockUser(true);
+		userDetail.setUsername("testuser1");
+		ReflectionTestUtils.setField(sSLCertificateService, "vaultAuthMethod", "ldap");
+		CertManagerLoginRequest certManagerLoginRequest = getCertManagerLoginRequest();
+		certManagerLoginRequest.setUsername("username");
+		certManagerLoginRequest.setPassword("password");
+
+		Map<String, Object> requestMap = new HashMap<>();
+		requestMap.put("access_token", "12345");
+		requestMap.put("token_type", "type");
+		when(ControllerUtil.parseJson(jsonStr)).thenReturn(requestMap);
+		CertManagerLogin certManagerLogin = new CertManagerLogin();
+		certManagerLogin.setToken_type("token type");
+		certManagerLogin.setAccess_token("1234");
+
+		CertResponse response = new CertResponse();
+		response.setHttpstatus(HttpStatus.OK);
+		response.setResponse(jsonStr);
+		response.setSuccess(true);
+		when(reqProcessor.processCert(eq("/auth/certmanager/login"), anyObject(), anyString(), anyString()))
+				.thenReturn(response);
+
+		CertResponse findCertResponse = new CertResponse();
+		findCertResponse.setHttpstatus(HttpStatus.OK);
+		findCertResponse.setResponse(jsonStr2);
+		findCertResponse.setSuccess(true);
+		when(reqProcessor.processCert(eq("/certmanager/findCertificate"), anyObject(), anyString(), anyString()))
+				.thenReturn(findCertResponse);
+
+		Map<String, Object> requestCertMap = new HashMap<>();
+		Map<String, Object> certificates = new HashMap<>();
+		certificates.put("sortedSubjectName", "certificatename.t-mobile.com");
+		certificates.put("certificateId", "123");
+		certificates.put("NotAfter", "2021-08-06T06:38:06-07:00");
+		certificates.put("NotBefore", "2020-08-06T06:38:06-07:00");
+		certificates.put("containerName", "VenafiBin_12345");
+		certificates.put("certificateStatus", "Active");
+		certificates.put("previous", "122");
+		requestCertMap.put("certificates", certificates);
+		when(ControllerUtil.parseJson(findCertResponse.getResponse())).thenReturn(requestCertMap);
+
+		String metaDataJson = "{\"data\":{\"akmid\":\"102463\",\"applicationName\":\"tvs\",\"applicationOwnerEmailId\":\"certificatename.t-mobile.com\",\"applicationTag\":\"TVS\",\"authority\":\"T-Mobile Issuing CA 01 - SHA2\",\"certCreatedBy\":\"nnazeer1\",\"certOwnerNtid\": \"testusername1\",\"certOwnerEmailId\":\"ltest@smail.com\",\"certType\":\"internal\",\"certificateId\":59880,\"certificateName\":\"certtest260630.t-mobile.com\",\"certificateStatus\":\"Revoked\",\"containerName\":\"VenafiBin_12345\",\"createDate\":\"2020-06-26T05:10:41-07:00\",\"expiryDate\":\"2021-06-26T05:10:41-07:00\",\"projectLeadEmailId\":\"Daniel.Urrutia@T-Mobile.Com\",\"users\":{\"normaluser\":\"write\",\"certuser\":\"read\",\"safeadmin\":\"deny\",\"testsafeuser\":\"write\",\"testuser1\":\"deny\",\"testuser2\":\"read\"}}}";
+		Response readResponse = new Response();
+		readResponse.setHttpstatus(HttpStatus.OK);
+		readResponse.setResponse(metaDataJson);
+		readResponse.setSuccess(true);
+		when(reqProcessor.process(eq("/read"), anyObject(), anyString())).thenReturn(readResponse);
+
+		String certType = "external";
+		String certName = "certificatename.t-mobile.com";
+		when(ControllerUtil.updateMetaData(any(), any(), eq(token))).thenReturn(false);
+		when(certificateUtils.getCertificateMetaData(token, certName, certType)).thenReturn(certificateMetadata);
+		ResponseEntity<?> enrollResponse = sSLCertificateService
+				.validateApprovalStatusAndGetCertificateDetails(certName, certType, userDetail);
+		assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, enrollResponse.getStatusCode());
+		assertEquals(responseEntityExpected, enrollResponse);
+	}
+
+	@Test
+	public void testValidateApprovalStatusForInvalidInputs() {
+		ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST)
+				.body("{\"errors\":[\"Invalid input values\"]}");
+		UserDetails userDetail = getMockUser(true);
+		userDetail.setUsername("testuser1");
+		ReflectionTestUtils.setField(sSLCertificateService, "vaultAuthMethod", "ldap");
+		String certType = "external";
+		ResponseEntity<?> enrollResponse = sSLCertificateService
+				.validateApprovalStatusAndGetCertificateDetails(null, certType, userDetail);
+		assertEquals(HttpStatus.BAD_REQUEST, enrollResponse.getStatusCode());
+		assertEquals(responseEntityExpected, enrollResponse);
+	}
 }

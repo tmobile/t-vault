@@ -68,7 +68,6 @@ public class SSLCertificateControllerTest {
         userDetails.setSelfSupportToken(token);
     }
 
-
     @Test
     public void test_authenticate_successful() throws Exception {
         CertManagerLoginRequest certManagerLoginRequest = new CertManagerLoginRequest("testusername", "testpassword");
@@ -132,7 +131,6 @@ public class SSLCertificateControllerTest {
         assertEquals(HttpStatus.OK, SslCertificateController.generateSSLCertificate(httpServletRequest, token, sSLCertificateRequest).getStatusCode());
     }
 
-
     @Test
     public void test_generateSSLCertificate_Error() {
         TargetSystem targetSystem = new TargetSystem();
@@ -172,7 +170,6 @@ public class SSLCertificateControllerTest {
         when(sslCertificateService.getServiceCertificates("5PDrOhsy4ig8L3EpsJZSLAMg", userDetails, "",1,0,"external")).thenReturn(new ResponseEntity<>(HttpStatus.OK));
         assertEquals(HttpStatus.OK, sslCertificateService.getServiceCertificates("5PDrOhsy4ig8L3EpsJZSLAMg",userDetails,"",1,0,"external").getStatusCode());
     }
-
     
 	@Test
 	public void test_getRevocationReasons_Success() {
@@ -215,7 +212,6 @@ public class SSLCertificateControllerTest {
                 .andExpect(content().string(containsString(responseJson)));
     }
 
-
     @Test
     public void testAssociateApproletoCertificate() throws Exception {
     	CertificateApprole certificateApprole = new CertificateApprole("certificatename.t-mobile.com", "role1", "read", "internal");
@@ -233,8 +229,6 @@ public class SSLCertificateControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString(responseJson)));
     }
-
-
 
     UserDetails getMockUser(boolean isAdmin) {
         String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
@@ -324,7 +318,6 @@ public class SSLCertificateControllerTest {
 		}
 	}
 
-
 	@Test
 	public void test_renewCertificate_Success() {
 		String certName = "test@t-mobile.com";		
@@ -336,7 +329,6 @@ public class SSLCertificateControllerTest {
 				SslCertificateController.renewCertificate(httpServletRequest, token, certficateType, certName).getStatusCode());
 
 	}
-	
 
 	@Test
     public void testAddGrouptoCertificate() throws Exception {
@@ -380,4 +372,20 @@ public class SSLCertificateControllerTest {
         when(sslCertificateService.updateCertOwner("5PDrOhsy4ig8L3EpsJZSLAMg",sSLCertificateRequest,userDetails)).thenReturn(new ResponseEntity<>(HttpStatus.OK));
         assertEquals(HttpStatus.OK, sslCertificateService.updateCertOwner("5PDrOhsy4ig8L3EpsJZSLAMg",sSLCertificateRequest,userDetails).getStatusCode());
     }
+
+	@Test
+	public void testValidateApprovalStatusAndGetCertificateDetails() throws Exception {
+		String expected = "{\"message\":[\"Certificate approved and metadata successfully updated\"]}";
+		ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(expected);
+		when(sslCertificateService.validateApprovalStatusAndGetCertificateDetails(Mockito.anyString(),
+				Mockito.anyString(), Mockito.anyObject())).thenReturn(responseEntityExpected);
+		MvcResult result = mockMvc
+				.perform(MockMvcRequestBuilders.get("/v2/sslcert/validate/certificatename.t-mobile.com/external")
+						.header("vault-token", token).header("Content-Type", "application/json;charset=UTF-8")
+						.requestAttr("UserDetails", userDetails).content(expected))
+				.andExpect(status().isOk()).andReturn();
+
+		String actual = result.getResponse().getContentAsString();
+		assertEquals(expected, actual);
+	}
 }

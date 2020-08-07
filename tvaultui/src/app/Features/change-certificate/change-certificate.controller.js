@@ -19,7 +19,7 @@
 
 'use strict';
 (function (app) {
-    app.controller('ChangeCertificateCtrl', function ($scope, $rootScope, Modal, $timeout, fetchData, $http, UtilityService, Notifications, $window, $state, $stateParams, $q, SessionStore, vaultUtilityService, ModifyUrl, AdminSafesManagement, AppConstant) {
+    app.controller('ChangeCertificateCtrl', function ($scope, $rootScope, Modal, $timeout, fetchData, $http, UtilityService, Notifications, $window, $state, $stateParams, $q, SessionStore, vaultUtilityService, ModifyUrl, AdminSafesManagement, AppConstant,RestEndpoints) {
         
         
         $scope.selectedGroupOption = '';            // Selected dropdown value to be used for filtering
@@ -45,6 +45,7 @@
         $scope.isEmpty = UtilityService.isObjectEmpty;
         $scope.roleNameSelected = false;
         $scope.isCertificateOwner = false;
+        $scope.renewButtonShow = true;
         $scope.hideSudoPolicy = false;
         $scope.awsConfPopupObj = {
             "auth_type":"",
@@ -506,29 +507,6 @@
             }
         }       
 
-
-        $rootScope.goToPermissions = function () {
-            $scope.invalidEmail = false;
-            $scope.showNoMatchingResults = false;
-            var emailPattern = /^[a-zA-Z0-9_%+-]+[.]?[a-zA-Z0-9_%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/;
-            var emailInput = document.getElementById('addOwnerEmail').value;
-            if (!emailPattern.test(emailInput)) {
-                $scope.invalidEmail = true;
-            } else {
-                $timeout(function () {
-                    if ($scope.isEditSafe) {                                              
-                        if(!angular.equals($scope.safePrevious, $scope.safe)){
-                            $scope.editSafe();
-                        }                        
-                    }
-                    else {
-                        $rootScope.noTypeSelected = false;
-                        $scope.createSafe();
-                    }
-                })
-            }
-        }
-
         $rootScope.goToCertPermissions = function () {
             $scope.isLoadingData = true;
             $rootScope.showDetails = false;               // To show the 'permissions' and hide the 'details'
@@ -597,12 +575,14 @@
                                 }
 
                                 $scope.certificate = {
-                                    name: object.certificateName || $stateParams.certificateObject.certificateName,
+                                    certificateName: object.certificateName || $stateParams.certificateObject.certificateName,
                                     ownerEmail: object.certOwnerEmailId || $stateParams.certificateObject.certOwnerEmailId || '',
                                     applicationName: object.applicationTag || $stateParams.certificateObject.applicationTag || '',
                                     certType: object.certType || $stateParams.certificateObject.certType || '',
                                     createDate: object.createDate || $stateParams.certificateObject.createDate || '',
-                                    expiryDate: object.expiryDate || $stateParams.certificateObject.expiryDate || ''
+                                    expiryDate: object.expiryDate || $stateParams.certificateObject.expiryDate || '',
+                                    certificateStatus: object.certificateStatus || $stateParams.certificateObject.certificateStatus || '',
+                                    certificateId: object.certificateId || $stateParams.certificateObject.certificateId || ''
                                 }
 
                                 if($scope.certificate.certType.toLowerCase() === "internal"){
@@ -612,6 +592,12 @@
                                 }
 
                                 $scope.GroupsPermissionsData = object.groups;
+
+                                if(object.requestStatus !== null && object.requestStatus === "Pending Approval") {
+                                    $scope.renewButtonShow = false;
+                                }else {
+                                    $scope.renewButtonShow = true;
+                                }
 
                                 hideUserSudoPolicy();
                             }
@@ -850,7 +836,7 @@
                     $scope.error('md');
                 }
             }
-        } 
+        };
         
         $scope.addApproleToCertificate = function (size) {
             // To reset the aws configuration details object to create a new one
@@ -893,7 +879,7 @@
                 'tableOptions': $scope.roleNameTableOptions
             }
             $scope.openApprole(size);
-        }
+        };
 
         /* TODO: What is open, functon name should be more descriptive */
         $scope.open = function (size) {
@@ -922,6 +908,182 @@
         $scope.cancel = function () {
             Modal.close('close');
             $scope.isLoadingData = false;
+        };
+
+        $scope.renewCertPopup = function (certDetails) {
+            $scope.fetchDataError = false;
+            $rootScope.certDetails = certDetails;
+            Modal.createModal('md', 'renewCertPopup.html', 'ChangeCertificateCtrl', $scope);
+        };
+
+        $scope.revokeReasonsPopUp = function (certificate) {
+            Modal.createModal('md', 'revokeReasonsPopUp.html', 'ChangeCertificateCtrl', $scope);
+        };
+
+        $scope.revocationPopUp = function (certificate) {
+            Modal.createModal('md', 'revocationPopUp.html', 'ChangeCertificateCtrl', $scope);
+        };
+
+        $scope.renewCertificatePopUp = function (certificate) {
+            Modal.createModal('md', 'renewCertificatePopUp.html', 'ChangeCertificateCtrl', $scope);
+        };
+
+        $scope.renewCertificateFailedPopUp = function (certificate) {
+            Modal.createModal('md', 'renewCertificateFailedPopUp.html', 'ChangeCertificateCtrl', $scope);
+        };
+
+         //Revoke Certificate
+        $scope.revokeCertificate = function (certificateDetails){
+            try{
+            $scope.isLoadingData = true;
+            $scope.revocationMessage = '';
+            $scope.revocationStatusMessage = '';
+            var certificateName = $scope.getCertSubjectName(certificateDetails);
+            $scope.certificateNameForRevoke = certificateName;
+            $scope.certificateTypeForRevoke = certificateDetails.certType;
+            var updatedUrlOfEndPoint = RestEndpoints.baseURL + "/v2/certificates/" + certificateDetails.certificateId + "/revocationreasons";
+            $scope.revocationReasons = [];
+            AdminSafesManagement.getRevocationReasons(null, updatedUrlOfEndPoint).then(function (response) {
+                $scope.isLoadingData = false;
+                if (UtilityService.ifAPIRequestSuccessful(response)) {
+                    for (var index = 0;index<response.data.reasons.length;index++) {
+                        $scope.revocationReasons.push({"type":response.data.reasons[index].displayName,
+                        "value":response.data.reasons[index].reason});
+                    }
+                    $scope.revokeReasonsPopUp();
+                    $scope.searchValue = '';
+                }
+            },
+            function (error) {
+                // Error handling function
+                $scope.isLoadingData = false;
+                $scope.revocationMessage = error.data.errors[0];
+                $scope.revocationStatusMessage = "Revocation Reasons Failed!";
+                $scope.revocationPopUp();
+                console.log(error);
+                $scope.searchValue = '';
+            })
+            }catch (e) {
+                $scope.isLoadingData = false;
+                console.log(e);
+                $scope.searchValue = '';
+            };
+
+            $scope.dropdownRevocationReasons = {
+                'selectedGroupOption': {"type": "Select Revocation Reasons","value":"Revocation Values"},       // As initial placeholder
+                'tableOptions': $scope.revocationReasons
+            }
+            Modal.close('');
+        };
+
+        $scope.revocationReasonSelect = function(){
+           $scope.dropdownRevocationReasons.selectedGroupOption.type;
+        };
+
+        $scope.revoke = function(){
+            try {
+                $scope.revocationMessage = ''
+                if ($scope.dropdownRevocationReasons.selectedGroupOption.type == 'Select Revocation Reasons') {
+                    $scope.revocationStatusMessage = 'Revocation Failed!';
+                    $scope.revocationMessage = "Select Revocation Reasons";
+                    return $scope.revocationPopUp();
+                }
+                Modal.close('');
+                var reqObjtobeSent =  {
+                    "reason": $scope.dropdownRevocationReasons.selectedGroupOption.value
+                }
+                var url = RestEndpoints.baseURL + "/v2/certificates/" + $scope.certificateTypeForRevoke +"/" +$scope.certificateNameForRevoke   + "/revocationrequest";
+                $scope.isLoadingData = true;
+                AdminSafesManagement.issueRevocationRequest(reqObjtobeSent, url).then(function (response) {
+
+                    $scope.isLoadingData = false;
+                    if (UtilityService.ifAPIRequestSuccessful(response)) {
+                        $scope.revocationStatusMessage = 'Revocation Successfull!';
+                        $scope.revocationMessage = response.data.messages[0];
+                        $scope.revocationPopUp();
+                        $scope.requestDataFrChangeCertificate();
+                    }
+                },
+                function (error) {
+                    var errors = error.data.errors;
+                    $scope.revocationStatusMessage = 'Revocation Failed!';
+                    if (errors[0] == "Access denied: no permission to revoke certificate") {
+                        $scope.revocationMessage = "For security reasons, you need to log out and log in again for the permissions to take effect.";
+                    } else {
+                        $scope.revocationMessage = errors[0];
+                    }
+                    $scope.revocationPopUp();
+                    $scope.isLoadingData = false;
+                    console.log(error);
+                })
+            } catch (e) {
+                $scope.isLoadingData = false;
+                console.log(e);
+            }
+        };
+
+        $scope.cancelRevoke = function(){
+            try{
+                Modal.close('');
+            }catch (e){
+                console.log(e);
+            }
+        };
+
+        $scope.getCertSubjectName = function (cert) {
+            var certName = "";
+            if (cert.subjectAltName && cert.subjectAltName.dns && cert.subjectAltName.dns.length > 0) {
+                certName = cert.subjectAltName.dns[0];
+            }
+            if (certName == "" || certName == undefined) {
+                certName = cert.certificateName
+            }
+            return certName;
+        };
+
+        $rootScope.renewCertificate = function(certificateDetails){
+            if ($rootScope.certDetails !== null && $rootScope.certDetails !== undefined) {
+                certificateDetails = $rootScope.certDetails;
+            }
+            $rootScope.certDetails = null;
+            try{
+                $scope.isLoadingData = true;
+                Modal.close();
+                $scope.renewMessage = '';
+                var certificateName = $scope.getCertSubjectName(certificateDetails);
+                $scope.certificateNameForRenew = certificateName;
+                var certType = certificateDetails.certType;
+                var url = RestEndpoints.baseURL + "/v2/certificates/" +certType+"/"+ certificateName + "/renew";
+                $scope.isLoadingData = true;
+
+                AdminSafesManagement.renewCertificate(null, url).then(function (response) {
+                    $scope.isLoadingData = false;
+                    if (UtilityService.ifAPIRequestSuccessful(response)) {
+                        $scope.renewMessage = 'Certificate Renewed Successfully!';
+                        $scope.renewMessage = response.data.messages[0];
+                        $scope.renewCertificatePopUp();
+                        $scope.requestDataFrChangeCertificate();
+                        $scope.searchValue = '';
+                    }
+                },
+                function (error) {
+                    var errors = error.data.errors;
+                    $scope.renewMessage = 'Renew Failed';
+                    if (errors[0] == "Access denied: No permission to renew certificate") {
+                        $scope.renewMessage = "For security reasons, you need to log out and log in again for the permissions to take effect.";
+                    } else {
+                        $scope.renewMessage = errors[0];
+                    }
+                    $scope.renewCertificateFailedPopUp();
+                    $scope.isLoadingData = false;
+                    console.log(error);
+                    $scope.searchValue = '';
+                })
+            }catch (e) {
+                $scope.isLoadingData = false;
+                console.log(e);
+                $scope.searchValue = '';
+            };
         };
 
         // TO-BE-CHECKED : Function currently not in use
@@ -953,5 +1115,6 @@
 })(angular.module('vault.features.ChangeCertificateCtrl', [
     'vault.services.AdminSafesManagement',
     'vault.services.ModifyUrl',
-    'vault.constants.AppConstant'
+    'vault.constants.AppConstant',
+    'vault.constants.RestEndpoints'
 ]));
