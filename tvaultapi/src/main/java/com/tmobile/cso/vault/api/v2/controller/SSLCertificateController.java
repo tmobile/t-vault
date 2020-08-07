@@ -290,12 +290,28 @@ public class SSLCertificateController {
 	 * @param certificateType
 	 * @return
 	 */
-	@ApiOperation(value = "${SSLCertificateController.getListOfCertificates.value}", notes = "${SSLCertificateController.getListOfCertificates.notes}")
+	@ApiOperation(value = "${SSLCertificateController.transferCertificateOwner.value}", notes = "${SSLCertificateController.transferCertificateOwner.notes}")
 	@PutMapping(value = "/v2/sslcert/transferowner", produces = "application/json")
 	public ResponseEntity<String> transferCertOwner(HttpServletRequest request,
 			@RequestHeader(value = "vault-token") String token, @RequestBody SSLCertificateRequest sslCertificateRequest) throws Exception {
 		UserDetails userDetails = (UserDetails) request.getAttribute("UserDetails");
 		return sslCertificateService.updateCertOwner(token, sslCertificateRequest, userDetails);
+	}
+	
+	/**
+	 * Transfer the ownership Of Certificates
+	 * 
+	 * @param request
+	 * @param token
+	 * @param certificateType
+	 * @return
+	 */
+	@ApiOperation(value = "${SSLCertificateController.deleteCertificate.value}", notes = "${SSLCertificateController.deleteCertificate.notes}")
+	@DeleteMapping(value = "/v2/sslcert/{certType}/{certName}", produces = "application/json")
+	public ResponseEntity<String> deleteCertificate(HttpServletRequest request,
+			@RequestHeader(value = "vault-token") String token, @PathVariable("certType") String certType, @PathVariable("certName") String certName) throws Exception {
+		UserDetails userDetails = (UserDetails) request.getAttribute("UserDetails");
+		return sslCertificateService.deleteCertificate(token, certType, certName, userDetails);
 	}
 
 	/**
