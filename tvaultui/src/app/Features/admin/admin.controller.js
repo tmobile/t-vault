@@ -724,7 +724,7 @@
                     $scope.showInputLoader.show = false;
                     $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
                     $scope.error('md');
-                }
+                }                
                 $scope.isTargetSystemListLoading = false;
             },
             function (error) {
@@ -1480,6 +1480,7 @@
             $scope.targetSystemServiceType = { "type": "new" };
             $scope.getTargetSystems();
             $scope.multiSanDnsName.name='';
+            $scope.certDnsErrorMessage='';
         }
 
         $scope.replaceSpacesCertName = function () {
@@ -1759,8 +1760,12 @@
                 $scope.isCertCollapsed = true;
                 if ($scope.multiSanDnsName.name !== null && $scope.multiSanDnsName.name !== undefined 
                     && $scope.multiSanDnsName.name != "") {
-                        $scope.multiSanDnsName.name ="";
+                        $scope.multiSanDnsName.name ="";       
+                           if($scope.certDnsErrorMessage!== null)    {
+                            $scope.certDnsErrorMessage = "";
+                        }
                 }
+        
     
             } else if (index == 2 ) {
                 $scope.isTargetCollapsed = true;
@@ -1772,6 +1777,9 @@
                 if ($scope.multiSanDnsName.name !== null && $scope.multiSanDnsName.name !== undefined 
                     && $scope.multiSanDnsName.name != "") {
                         $scope.multiSanDnsName.name ="";
+                        if($scope.certDnsErrorMessage!== null)    {
+                            $scope.certDnsErrorMessage = "";
+                        }
                 }
                 if ($scope.serviceListTableOptions.length >0) {
                     setTargetSystemServiceList("Select service", $scope.serviceListTableOptions);

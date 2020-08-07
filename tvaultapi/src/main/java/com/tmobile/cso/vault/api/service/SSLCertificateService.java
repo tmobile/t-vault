@@ -1052,6 +1052,7 @@ public class SSLCertificateService {
             sslCertificateMetadataDetails.setAuthority(certDetails.getAuthority());
             sslCertificateMetadataDetails.setCertificateStatus(certDetails.getCertificateStatus());
             sslCertificateMetadataDetails.setContainerName(certDetails.getContainerName());
+            sslCertificateMetadataDetails.setDnsNames(certDetails.getDnsNames());
 
         } else {
             log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
@@ -1324,6 +1325,11 @@ public class SSLCertificateService {
                         certificateData.setAuthority((!StringUtils.isEmpty(jsonElement.get("enrollServiceInfo")) ?
                                  validateString(jsonElement.get("enrollServiceInfo").getAsJsonObject().get("name")) :
                                  null));
+                        if(Objects.nonNull(jsonElement.getAsJsonObject("subjectAltName"))){
+                            JsonObject subjectAltNameObject = jsonElement.getAsJsonObject("subjectAltName");
+                            certificateData.setDnsNames(subjectAltNameObject.getAsJsonArray("dns").toString());
+                        }
+
                         break;
                     }
 
