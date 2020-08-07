@@ -1038,7 +1038,6 @@
             if (certName == "" || certName == undefined) {
                 certName = cert.certificateName
             }
-            console.log("certName : " + certName);
             return certName;
         };
 

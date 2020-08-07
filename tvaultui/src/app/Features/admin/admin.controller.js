@@ -2099,6 +2099,9 @@
                             $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
                             $scope.error('md');
                         });
+                    }else {
+                        $state.go('change-certificate', fullObj);
+                        $scope.isLoadingData = false;
                     }
                 }else {
                     $state.go('change-certificate', fullObj);
