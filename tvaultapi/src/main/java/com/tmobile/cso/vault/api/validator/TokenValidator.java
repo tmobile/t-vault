@@ -83,7 +83,7 @@ public class TokenValidator {
 				lookupDetails.setToken(token);
 				lookupDetails.setValid(true);
 				lookupDetails.setAdmin(authorizationUtils.containsAdminPolicies(Arrays.asList(policies),  policyUtils.getAdminPolicies()));
-				if (TVaultConstants.AUTH_TYPE_OIDC.equals(vaultAuthMethod) && objNode.get("display_name") != null) {
+				if (TVaultConstants.OIDC.equals(vaultAuthMethod) && objNode.get("display_name") != null) {
 					// display_name is in format oidc-<email>
 					String email = objNode.get("display_name").asText().substring(5);
 					if (!StringUtils.isEmpty(email)) {
