@@ -4723,4 +4723,18 @@ public class SSLCertificateServiceTest {
 		assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, enrollResponse.getStatusCode());
 		assertEquals(responseEntityExpected, enrollResponse);
 	}
+
+	@Test
+	public void testValidateApprovalStatusForInvalidInputs() {
+		ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST)
+				.body("{\"errors\":[\"Invalid input values\"]}");
+		UserDetails userDetail = getMockUser(true);
+		userDetail.setUsername("testuser1");
+		ReflectionTestUtils.setField(sSLCertificateService, "vaultAuthMethod", "ldap");
+		String certType = "external";
+		ResponseEntity<?> enrollResponse = sSLCertificateService
+				.validateApprovalStatusAndGetCertificateDetails(null, certType, userDetail);
+		assertEquals(HttpStatus.BAD_REQUEST, enrollResponse.getStatusCode());
+		assertEquals(responseEntityExpected, enrollResponse);
+	}
 }
