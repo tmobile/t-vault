@@ -551,6 +551,20 @@ public class SSLCertificateService {
                         put(LogMessage.ACTION, String.format("PutEnroll CSR  Successfully Completed  = [%s] = certificate name = [%s]",
                                 putEnrollCSRResponse,sslCertificateRequest.getCertificateName())).
                         build()));
+                  String responseDetails  = validateCSRResponse(putEnrollCSRResponse.getResponse());
+                if(!StringUtils.isEmpty(responseDetails)) {
+                    enrollResponse.setSuccess(Boolean.FALSE);
+                    enrollResponse.setHttpstatus(HttpStatus.BAD_REQUEST);
+                    enrollResponse.setResponse(responseDetails);
+                    log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+                            put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+                            put(LogMessage.ACTION, String.format("Exception While creating certificate  " +
+                                            "[%s] = certificate name = [%s]", responseDetails,
+                                    sslCertificateRequest.getCertificateName())).
+                            build()));
+                    return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"" + enrollResponse.getResponse() +
+                            "\"]}");
+                }
 
                 //Step-15: Enroll Process
                 enrollResponse = enrollCertificate(certManagerLogin, targetSystemServiceId);
@@ -669,6 +683,73 @@ public class SSLCertificateService {
         return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\""+SSLCertificateConstants.SSL_CERT_SUCCESS+"\"]}");
     }
 
+    private String validateCSRResponse(String csrResponse) {
+        String errorDesc = null;
+        Gson gson = new GsonBuilder().setLenient().create();
+        JsonObject jsonValue = gson.fromJson(csrResponse, JsonObject.class);
+        JsonElement containsError = jsonValue.get("containsErrors");
+        if (Objects.nonNull(containsError) && (!jsonValue.get("containsErrors").isJsonNull())) {
+            errorDesc = parseSubject(csrResponse);
+            if (StringUtils.isEmpty(errorDesc)) {
+                errorDesc = parseSubjectAlternativeName(csrResponse);
+            }
+        }
+        return errorDesc;
+    }
+
+    private String parseSubjectAlternativeName(String json) {
+        Gson gson = new GsonBuilder().setLenient().create();
+        JsonObject json1 = gson.fromJson(json, JsonObject.class);
+        JsonObject json2 = json1.getAsJsonObject("subjectAlternativeName");
+        if (Objects.nonNull(json2)) {
+            JsonArray jsonArray = json2.getAsJsonArray("items");
+            JsonObject jsonObject2;
+            for (int i = 0; i < jsonArray.size(); i++) {
+                jsonObject2 = jsonArray.get(i).getAsJsonObject();
+                JsonArray json3 = jsonObject2.getAsJsonArray("value");
+                for (int j = 0; j < json3.size(); j++) {
+                    JsonObject jsonObject1 = json3.get(j).getAsJsonObject();
+                    if (jsonObject1.getAsJsonObject(SSLCertificateConstants.VALIDATION_RESULT_LABEL) != null) {
+                        JsonArray validationResult = jsonObject1.getAsJsonObject(SSLCertificateConstants.VALIDATION_RESULT_LABEL)
+                                .getAsJsonArray("results");
+                        for (int k = 0; k < validationResult.size(); k++) {
+                            JsonObject result = validationResult.get(k).getAsJsonObject();
+                            if (!StringUtils.isEmpty(result.get("description"))) {
+                                return result.get("description").getAsString();
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return null;
+    }
+
+    private String parseSubject(String csrResponse) {
+        Gson gson = new GsonBuilder().setLenient().create();
+        JsonObject json1 = gson.fromJson(csrResponse, JsonObject.class);
+        JsonObject json2 = json1.getAsJsonObject("subject");
+        JsonArray jsonArray = json2.getAsJsonArray("items");
+        JsonObject jsonObject2;
+        for (int i = 0; i < jsonArray.size(); i++) {
+            jsonObject2 = jsonArray.get(i).getAsJsonObject();
+            JsonArray json3 = jsonObject2.getAsJsonArray("value");
+            for (int j = 0; j < json3.size(); j++) {
+                JsonObject jsonObject1 = json3.get(j).getAsJsonObject();
+                if (jsonObject1.getAsJsonObject(SSLCertificateConstants.VALIDATION_RESULT_LABEL) != null) {
+                    JsonArray validationResult = jsonObject1.getAsJsonObject(SSLCertificateConstants.VALIDATION_RESULT_LABEL)
+                            .getAsJsonArray("results");
+                    for (int k = 0; k < validationResult.size(); k++) {
+                        JsonObject result = validationResult.get(k).getAsJsonObject();
+                        if (!StringUtils.isEmpty(result.get("description"))) {
+                            return result.get("description").getAsString();
+                        }
+                    }
+                }
+            }
+        }
+        return null;
+    }
     /**
      *
      * @param response
@@ -1132,6 +1213,7 @@ public class SSLCertificateService {
                 sslCertificateRequest.getTargetSystem().getAddress().contains(" ") ||
                 (sslCertificateRequest.getCertificateName().contains(".-")) ||
                 (sslCertificateRequest.getCertificateName().contains("-.")) ||
+                (sslCertificateRequest.getCertificateName().contains("..")) ||
                 (!sslCertificateRequest.getCertType().matches("internal|external")) ||
                 (!isValidHostName(sslCertificateRequest.getTargetSystemServiceRequest().getHostname()))
                 || (!isValidAppName(sslCertificateRequest)) || (!validateDNSNames(sslCertificateRequest))){
