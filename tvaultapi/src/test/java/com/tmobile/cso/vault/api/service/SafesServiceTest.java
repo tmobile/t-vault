@@ -792,7 +792,7 @@ public class SafesServiceTest {
         Response responseNoContent = getMockResponse(HttpStatus.INTERNAL_SERVER_ERROR, true, "");
         Response responseNotFound = getMockResponse(HttpStatus.NOT_FOUND, true, "");
 
-        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"messages\":[\"User configuration failed. Please try again\"]}");
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.NOT_FOUND).body("{\"messages\":[\"User configuration failed. Invalid user\"]}");
 
         when(JSONUtil.getJSON(safeUser)).thenReturn(jsonStr);
         when(ControllerUtil.isValidSafePath(path)).thenReturn(true);
@@ -852,7 +852,7 @@ public class SafesServiceTest {
         
         
         ResponseEntity<String> responseEntity = safesService.removeUserFromSafe(token, safeUser);
-        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, responseEntity.getStatusCode());
+        assertEquals(HttpStatus.NOT_FOUND, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
     }
     

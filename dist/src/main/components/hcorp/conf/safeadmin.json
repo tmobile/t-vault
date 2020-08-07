@@ -75,16 +75,16 @@
        "capabilities": [
          "read",
          "list"
-       ]
-     },
-     "identity/*": {
-       "capabilities": [
-         "create",
-         "read",
-         "update",
-         "delete",
-         "list"
-       ]
-     }
+         ]
+      },
+	  "identity/*":{
+	      "capabilities":[   
+            "create",
+			"read",
+            "update",
+            "delete",
+            "list"
+         ]
+	  }
    }
 }
