@@ -1,3 +1,20 @@
+// =========================================================================
+// Copyright 2020 T-Mobile, US
+//
+// Licensed under the Apache License, Version 2.0 (the "License")
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//    http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+// See the readme.txt file for additional language around disclaimer of warranties.
+// =========================================================================
+
 package com.tmobile.cso.vault.api.service;
 
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -9,6 +26,7 @@ import com.tmobile.cso.vault.api.common.TVaultConstants;
 import com.tmobile.cso.vault.api.controller.ControllerUtil;
 import com.tmobile.cso.vault.api.controller.OIDCUtil;
 import com.tmobile.cso.vault.api.model.*;
+import com.tmobile.cso.vault.api.utils.AADUtils;
 import com.tmobile.cso.vault.api.utils.TokenUtils;
 import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
@@ -16,12 +34,7 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
-import org.apache.http.conn.ssl.NoopHostnameVerifier;
-import org.apache.http.impl.client.HttpClientBuilder;
-import org.apache.http.impl.client.LaxRedirectStrategy;
 import org.apache.http.message.BasicNameValuePair;
-import org.apache.http.ssl.SSLContextBuilder;
-import org.apache.http.ssl.TrustStrategy;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,11 +55,6 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
-import java.security.KeyManagementException;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.cert.CertificateException;
-import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -57,6 +65,12 @@ public class OIDCAuthService {
 
     @Autowired
     private RequestProcessor reqProcessor;
+
+    @Autowired
+    private TokenUtils tokenUtils;
+
+    @Autowired
+    private AADUtils aadUtils;
 
     @Value("${selfservice.enable}")
     private boolean isSSEnabled;
@@ -403,22 +417,9 @@ public class OIDCAuthService {
      */
     private String getGroupObjectResponse(String ssoToken, String groupName)  {
         JsonParser jsonParser = new JsonParser();
-        HttpClient httpClient =null;
+        HttpClient httpClient = aadUtils.getHttpClient();
         String groupObjectId = null;
-        try {
-            httpClient = HttpClientBuilder.create().setSSLHostnameVerifier(
-                    NoopHostnameVerifier.INSTANCE).
-                    setSSLContext(
-                            new SSLContextBuilder().loadTrustMaterial(null,new TrustStrategy() {
-                                @Override
-                                public boolean isTrusted(X509Certificate[] arg0, String arg1) throws CertificateException {
-                                    return true;
-                                }
-                            }).build()
-                    ).setRedirectStrategy(new LaxRedirectStrategy()).build();
-
-
-        } catch (KeyManagementException | NoSuchAlgorithmException | KeyStoreException e1) {
+        if (httpClient == null) {
             log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
                     put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
                     put(LogMessage.ACTION, "getGroupObjectResponse").
@@ -471,20 +472,9 @@ public class OIDCAuthService {
      */
     private String getSSOToken() {
         JsonParser jsonParser = new JsonParser();
-        HttpClient httpClient;
+        HttpClient httpClient = aadUtils.getHttpClient();
         String accessToken = "";
-        try {
-            httpClient = HttpClientBuilder.create().setSSLHostnameVerifier(
-                    NoopHostnameVerifier.INSTANCE).
-                    setSSLContext(
-                            new SSLContextBuilder().loadTrustMaterial(null, new TrustStrategy() {
-                                @Override
-                                public boolean isTrusted(X509Certificate[] arg0, String arg1) throws CertificateException {
-                                    return true;
-                                }
-                            }).build()
-                    ).setRedirectStrategy(new LaxRedirectStrategy()).build();
-        } catch (KeyManagementException | NoSuchAlgorithmException | KeyStoreException e1) {
+        if (httpClient == null) {
             log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
                     put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
                     put(LogMessage.ACTION, "getSSOToken").
@@ -493,7 +483,6 @@ public class OIDCAuthService {
                     build()));
             return null;
         }
-
         String api = ControllerUtil.getOidcADLoginUrl();
         HttpPost postRequest = new HttpPost(api);
         postRequest.addHeader("Content-type", TVaultConstants.HTTP_CONTENT_TYPE_URL_ENCODED);
