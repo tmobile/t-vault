@@ -47,6 +47,7 @@ import org.powermock.reflect.Whitebox;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -59,6 +60,7 @@ import com.tmobile.cso.vault.api.utils.JSONUtil;
 import com.tmobile.cso.vault.api.utils.SafeUtils;
 import com.tmobile.cso.vault.api.utils.ThreadLocalContext;
 import com.tmobile.cso.vault.api.utils.TokenUtils;
+
 
 @RunWith(PowerMockRunner.class)
 @ComponentScan(basePackages={"com.tmobile.cso.vault.api"})
@@ -573,10 +575,12 @@ public class SafesServiceTest {
     }
 
     @Test
-    public void test_removeUserFromSafe_successfully() {
+    public void test_removeUserFromSafe_OIDC_successfully() {
         String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
         String path = "shared/mysafe01";
         SafeUser safeUser = new SafeUser(path, "testuser1","write");
+        UserDetails userDetails = new UserDetails();
+        userDetails.setUsername("testuser1");
         String jsonStr = "{  \"path\": \"shared/mysafe01\",  \"username\": \"testuser1\",  \"access\": \"write\"}";
         Response userResponse = getMockResponse(HttpStatus.OK, true, "{\"data\":{\"bound_cidrs\":[],\"max_ttl\":0,\"policies\":[\"default\",\"w_shared_mysafe01\",\"w_shared_mysafe02\"],\"ttl\":0,\"groups\":\"admin\"}}");
         Response responseNoContent = getMockResponse(HttpStatus.NO_CONTENT, true, "");
@@ -602,6 +606,100 @@ public class SafesServiceTest {
         when(ControllerUtil.configureLDAPUser(eq("testuser1"),any(),any(),eq(token))).thenReturn(responseNoContent);
         when(ControllerUtil.updateMetadata(any(),eq(token))).thenReturn(responseNoContent);
 
+      //oidc test cases
+        String mountAccessor = "auth_oidc";
+        DirectoryUser directoryUser = new DirectoryUser();
+        directoryUser.setDisplayName("testUser");
+        directoryUser.setGivenName("testUser");
+        directoryUser.setUserEmail("testUser@t-mobile.com");
+        directoryUser.setUserId("testuser01");
+        directoryUser.setUserName("testUser");
+        
+        ReflectionTestUtils.setField(safesService, "vaultAuthMethod", "oidc");
+
+        List<DirectoryUser> persons = new ArrayList<>();
+        persons.add(directoryUser);
+
+        DirectoryObjects users = new DirectoryObjects();
+        DirectoryObjectsList usersList = new DirectoryObjectsList();
+        usersList.setValues(persons.toArray(new DirectoryUser[persons.size()]));
+        users.setData(usersList);
+        
+			OIDCLookupEntityRequest oidcLookupEntityRequest = new OIDCLookupEntityRequest();
+			oidcLookupEntityRequest.setId(null);
+			oidcLookupEntityRequest.setAlias_id(null);
+			oidcLookupEntityRequest.setName(null);
+			oidcLookupEntityRequest.setAlias_name(directoryUser.getUserEmail());
+			oidcLookupEntityRequest.setAlias_mount_accessor(mountAccessor);
+			OIDCEntityResponse oidcEntityResponse = new OIDCEntityResponse();
+			oidcEntityResponse.setEntityName("entity");
+			List<String> policies = new ArrayList<>();
+			policies.add("safeadmin");
+			oidcEntityResponse.setPolicies(policies);
+			ResponseEntity<DirectoryObjects> responseEntity1 = ResponseEntity.status(HttpStatus.OK).body(users);
+			when(OIDCUtil.fetchMountAccessorForOidc(token)).thenReturn(mountAccessor);
+			when(directoryService.searchByCorpId(userDetails.getUsername())).thenReturn(responseEntity1);
+
+			ResponseEntity<OIDCEntityResponse> responseEntity2 = ResponseEntity.status(HttpStatus.OK)
+					.body(oidcEntityResponse);
+
+			when(oidcAuthService.entityLookUp(eq(token), Mockito.any(OIDCLookupEntityRequest.class))).thenReturn(responseEntity2);
+			when(tokenUtils.getSelfServiceTokenWithAppRole()).thenReturn(token);
+	
+			ResponseEntity<String> responseEntity3 = ResponseEntity.status(HttpStatus.NO_CONTENT)
+					.body("success");
+			when(oidcAuthService.updateEntityByName(eq(token), Mockito.any(OIDCEntityRequest.class)))
+					.thenReturn(responseEntity3);
+        
+        
+        ResponseEntity<String> responseEntity = safesService.removeUserFromSafe(token, safeUser);
+        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntity);
+    }
+    
+    @Test
+    public void test_removeUserFromSafe_ldap_successfully() {
+        String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+        String path = "shared/mysafe01";
+        SafeUser safeUser = new SafeUser(path, "testuser1","write");
+        UserDetails userDetails = new UserDetails();
+        userDetails.setUsername("testuser1");
+        String jsonStr = "{  \"path\": \"shared/mysafe01\",  \"username\": \"testuser1\",  \"access\": \"write\"}";
+        Response userResponse = getMockResponse(HttpStatus.OK, true, "{\"data\":{\"bound_cidrs\":[],\"max_ttl\":0,\"policies\":[\"default\",\"w_shared_mysafe01\",\"w_shared_mysafe02\"],\"ttl\":0,\"groups\":\"admin\"}}");
+        Response responseNoContent = getMockResponse(HttpStatus.NO_CONTENT, true, "");
+
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body("{\"Message\":\"User association is removed \"}");
+
+        when(JSONUtil.getJSON(safeUser)).thenReturn(jsonStr);
+        when(ControllerUtil.isValidSafePath(path)).thenReturn(true);
+        when(ControllerUtil.isValidSafe(path, token)).thenReturn(true);
+        when(ControllerUtil.canAddPermission(path, token)).thenReturn(true);
+
+        when(reqProcessor.process("/auth/ldap/users","{\"username\":\"testuser1\"}",token)).thenReturn(userResponse);
+        try {
+            //when(ControllerUtil.getPoliciesAsStringFromJson(any(), any())).thenReturn("default,w_shared_mysafe01,w_shared_mysafe02");
+            List<String> resList = new ArrayList<>();
+            resList.add("default");
+            resList.add("w_shared_mysafe01");
+            resList.add("w_shared_mysafe02");
+            when(ControllerUtil.getPoliciesAsListFromJson(any(), any())).thenReturn(resList);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        when(ControllerUtil.configureLDAPUser(eq("testuser1"),any(),any(),eq(token))).thenReturn(responseNoContent);
+        when(ControllerUtil.updateMetadata(any(),eq(token))).thenReturn(responseNoContent);
+
+      //oidc test cases
+        String mountAccessor = "auth_oidc";
+        DirectoryUser directoryUser = new DirectoryUser();
+        directoryUser.setDisplayName("testUser");
+        directoryUser.setGivenName("testUser");
+        directoryUser.setUserEmail("testUser@t-mobile.com");
+        directoryUser.setUserId("testuser01");
+        directoryUser.setUserName("testUser");
+        
+        ReflectionTestUtils.setField(safesService, "vaultAuthMethod", "ldap");
+
         ResponseEntity<String> responseEntity = safesService.removeUserFromSafe(token, safeUser);
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
@@ -611,13 +709,15 @@ public class SafesServiceTest {
     public void test_removeUserFromSafe_failure() {
         String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
         String path = "shared/mysafe01";
+        UserDetails userDetails = new UserDetails();
+        userDetails.setUsername("testuser1");
         SafeUser safeUser = new SafeUser(path, "testuser1","write");
         String jsonStr = "{  \"path\": \"shared/mysafe01\",  \"username\": \"testuser1\",  \"access\": \"write\"}";
         Response userResponse = getMockResponse(HttpStatus.OK, true, "{\"data\":{\"bound_cidrs\":[],\"max_ttl\":0,\"policies\":[\"default\",\"w_shared_mysafe01\",\"w_shared_mysafe02\"],\"ttl\":0,\"groups\":\"admin\"}}");
         Response responseNoContent = getMockResponse(HttpStatus.NO_CONTENT, true, "");
         Response responseNotFound = getMockResponse(HttpStatus.NOT_FOUND, true, "");
 
-        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"messages\":[\"User configuration failed.Please try again\"]}");
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"messages\":[\"User configuration failed. Please try again\"]}");
 
         when(JSONUtil.getJSON(safeUser)).thenReturn(jsonStr);
         when(ControllerUtil.isValidSafePath(path)).thenReturn(true);
@@ -632,17 +732,137 @@ public class SafesServiceTest {
         }
         when(ControllerUtil.configureLDAPUser(eq("testuser1"),any(),any(),eq(token))).thenReturn(responseNoContent);
         when(ControllerUtil.updateMetadata(any(),eq(token))).thenReturn(responseNotFound);
+        //oidc test cases
+        String mountAccessor = "auth_oidc";
+        DirectoryUser directoryUser = new DirectoryUser();
+        directoryUser.setDisplayName("testUser");
+        directoryUser.setGivenName("testUser");
+        directoryUser.setUserEmail("testUser@t-mobile.com");
+        directoryUser.setUserId("testuser01");
+        directoryUser.setUserName("testUser");
 
+        List<DirectoryUser> persons = new ArrayList<>();
+        persons.add(directoryUser);
+
+        DirectoryObjects users = new DirectoryObjects();
+        DirectoryObjectsList usersList = new DirectoryObjectsList();
+        usersList.setValues(persons.toArray(new DirectoryUser[persons.size()]));
+        users.setData(usersList);
+        
+			OIDCLookupEntityRequest oidcLookupEntityRequest = new OIDCLookupEntityRequest();
+			oidcLookupEntityRequest.setId(null);
+			oidcLookupEntityRequest.setAlias_id(null);
+			oidcLookupEntityRequest.setName(null);
+			oidcLookupEntityRequest.setAlias_name(directoryUser.getUserEmail());
+			oidcLookupEntityRequest.setAlias_mount_accessor(mountAccessor);
+			OIDCEntityResponse oidcEntityResponse = new OIDCEntityResponse();
+			oidcEntityResponse.setEntityName("entity");
+			List<String> policies = new ArrayList<>();
+			policies.add("safeadmin");
+			oidcEntityResponse.setPolicies(policies);
+			ResponseEntity<DirectoryObjects> responseEntity1 = ResponseEntity.status(HttpStatus.OK).body(users);
+			when(OIDCUtil.fetchMountAccessorForOidc(token)).thenReturn(mountAccessor);
+			when(directoryService.searchByCorpId(userDetails.getUsername())).thenReturn(responseEntity1);
+
+			ResponseEntity<OIDCEntityResponse> responseEntity2 = ResponseEntity.status(HttpStatus.OK)
+					.body(oidcEntityResponse);
+
+			when(oidcAuthService.entityLookUp(eq(token), Mockito.any(OIDCLookupEntityRequest.class))).thenReturn(responseEntity2);
+			when(tokenUtils.getSelfServiceTokenWithAppRole()).thenReturn(token);
+	
+			ResponseEntity<String> responseEntity3 = ResponseEntity.status(HttpStatus.OK)
+					.body("success");
+			when(oidcAuthService.updateEntityByName(eq(token), Mockito.any(OIDCEntityRequest.class)))
+					.thenReturn(responseEntity3);
+        
+        
         ResponseEntity<String> responseEntity = safesService.removeUserFromSafe(token, safeUser);
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
     }
 
     @Test
-    public void test_removeUserFromSafe_failure_orphan_entries() {
+    public void test_removeUserFromSafe_failure_orphan_entries_oidc() {
         String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
         String path = "shared/mysafe01";
         SafeUser safeUser = new SafeUser(path, "testuser1","write");
+        UserDetails userDetails = new UserDetails();
+        userDetails.setUsername("testuser1");
+        String jsonStr = "{  \"path\": \"shared/mysafe01\",  \"username\": \"testuser1\",  \"access\": \"write\"}";
+        Response responseNoContent = getMockResponse(HttpStatus.INTERNAL_SERVER_ERROR, true, "");
+        Response responseNotFound = getMockResponse(HttpStatus.NOT_FOUND, true, "");
+
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"messages\":[\"User configuration failed. Please try again\"]}");
+
+        when(JSONUtil.getJSON(safeUser)).thenReturn(jsonStr);
+        when(ControllerUtil.isValidSafePath(path)).thenReturn(true);
+        when(ControllerUtil.isValidSafe(path, token)).thenReturn(true);
+        when(ControllerUtil.canAddPermission(path, token)).thenReturn(true);
+        when(reqProcessor.process("/auth/ldap/users","{\"username\":\"testuser1\"}",token)).thenReturn(responseNotFound);
+        when(ControllerUtil.updateMetadata(any(),eq(token))).thenReturn(responseNoContent);
+        when(ControllerUtil.getSafeType(path)).thenReturn("shared");
+        when(ControllerUtil.getSafeName(path)).thenReturn("mysafe01");
+        when(ControllerUtil.getAllExistingSafeNames("shared", token)).thenReturn(null);
+        
+      //oidc test cases
+        String mountAccessor = "auth_oidc";
+        DirectoryUser directoryUser = new DirectoryUser();
+        directoryUser.setDisplayName("testUser");
+        directoryUser.setGivenName("testUser");
+        directoryUser.setUserEmail("testUser@t-mobile.com");
+        directoryUser.setUserId("testuser01");
+        directoryUser.setUserName("testUser");
+
+        List<DirectoryUser> persons = new ArrayList<>();
+        persons.add(directoryUser);
+
+        DirectoryObjects users = new DirectoryObjects();
+        DirectoryObjectsList usersList = new DirectoryObjectsList();
+        usersList.setValues(persons.toArray(new DirectoryUser[persons.size()]));
+        users.setData(usersList);
+        
+			OIDCLookupEntityRequest oidcLookupEntityRequest = new OIDCLookupEntityRequest();
+			oidcLookupEntityRequest.setId(null);
+			oidcLookupEntityRequest.setAlias_id(null);
+			oidcLookupEntityRequest.setName(null);
+			oidcLookupEntityRequest.setAlias_name(directoryUser.getUserEmail());
+			oidcLookupEntityRequest.setAlias_mount_accessor(mountAccessor);
+			OIDCEntityResponse oidcEntityResponse = new OIDCEntityResponse();
+			oidcEntityResponse.setEntityName("entity");
+			List<String> policies = new ArrayList<>();
+			policies.add("safeadmin");
+			oidcEntityResponse.setPolicies(policies);
+			ResponseEntity<DirectoryObjects> responseEntity1 = ResponseEntity.status(HttpStatus.OK).body(users);
+			when(OIDCUtil.fetchMountAccessorForOidc(token)).thenReturn(mountAccessor);
+			when(directoryService.searchByCorpId(userDetails.getUsername())).thenReturn(responseEntity1);
+
+			
+			ReflectionTestUtils.setField(safesService, "vaultAuthMethod", "oidc");
+			ResponseEntity<OIDCEntityResponse> responseEntity2 = ResponseEntity.status(HttpStatus.NOT_FOUND)
+					.body(oidcEntityResponse);
+
+			when(oidcAuthService.entityLookUp(eq(token), Mockito.any(OIDCLookupEntityRequest.class))).thenReturn(responseEntity2);
+//			when(tokenUtils.getSelfServiceTokenWithAppRole()).thenReturn(token);
+//	
+//			ResponseEntity<String> responseEntity3 = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+//					.body("failure");
+//			when(oidcAuthService.updateEntityByName(eq(token), Mockito.any(OIDCEntityRequest.class)))
+//					.thenReturn(responseEntity3);
+//        
+        
+        
+        ResponseEntity<String> responseEntity = safesService.removeUserFromSafe(token, safeUser);
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, responseEntity.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntity);
+    }
+    
+    @Test
+    public void test_removeUserFromSafe_failure_orphan_entries_ldap() {
+        String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+        String path = "shared/mysafe01";
+        SafeUser safeUser = new SafeUser(path, "testuser1","write");
+        UserDetails userDetails = new UserDetails();
+        userDetails.setUsername("testuser1");
         String jsonStr = "{  \"path\": \"shared/mysafe01\",  \"username\": \"testuser1\",  \"access\": \"write\"}";
         Response responseNoContent = getMockResponse(HttpStatus.NO_CONTENT, true, "");
         Response responseNotFound = getMockResponse(HttpStatus.NOT_FOUND, true, "");
@@ -658,6 +878,9 @@ public class SafesServiceTest {
         when(ControllerUtil.getSafeType(path)).thenReturn("shared");
         when(ControllerUtil.getSafeName(path)).thenReturn("mysafe01");
         when(ControllerUtil.getAllExistingSafeNames("shared", token)).thenReturn(null);
+        
+		ReflectionTestUtils.setField(safesService, "vaultAuthMethod", "ldap");
+        
         ResponseEntity<String> responseEntity = safesService.removeUserFromSafe(token, safeUser);
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
@@ -1469,6 +1692,8 @@ public class SafesServiceTest {
         directoryUser.setUserEmail("testUser@t-mobile.com");
         directoryUser.setUserId("testuser01");
         directoryUser.setUserName("testUser");
+        
+        ReflectionTestUtils.setField(safesService, "vaultAuthMethod", "oidc");
 
         List<DirectoryUser> persons = new ArrayList<>();
         persons.add(directoryUser);
@@ -1515,7 +1740,7 @@ public class SafesServiceTest {
     }
 	   
 	      @Test
- public void test_addUserToSafe_successfully() {
+ public void test_addUserToSafe_oidc_successfully() {
      String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
      String path = "shared/mysafe01";
      SafeUser safeUser = new SafeUser(path, "testuser1","write");
@@ -1550,6 +1775,7 @@ public class SafesServiceTest {
      when(ControllerUtil.updateMetadata(any(),eq(token))).thenReturn(responseNoContent);
      when(safeUtils.canAddOrRemoveUser(userDetails, safeUser, "addUser")).thenReturn(true);
    //oidc test cases
+     ReflectionTestUtils.setField(safesService, "vaultAuthMethod", "oidc");
      String mountAccessor = "auth_oidc";
      DirectoryUser directoryUser = new DirectoryUser();
      directoryUser.setDisplayName("testUser");
@@ -1560,6 +1786,8 @@ public class SafesServiceTest {
 
      List<DirectoryUser> persons = new ArrayList<>();
      persons.add(directoryUser);
+     
+
 
      DirectoryObjects users = new DirectoryObjects();
      DirectoryObjectsList usersList = new DirectoryObjectsList();
@@ -1596,6 +1824,47 @@ public class SafesServiceTest {
      assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
      assertEquals(responseEntityExpected, responseEntity);
  }
+	      
+	      @Test
+	      public void test_addUserToSafe_ldap_successfully() {
+	          String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+	          String path = "shared/mysafe01";
+	          SafeUser safeUser = new SafeUser(path, "testuser1","write");
+	          UserDetails userDetails = new UserDetails();
+	          userDetails.setUsername("testuser1");
+	          
+	          Response userResponse = getMockResponse(HttpStatus.OK, true, "{\"data\":{\"bound_cidrs\":[],\"max_ttl\":0,\"policies\":[\"default\",\"w_shared_mysafe01\",\"w_shared_mysafe02\"],\"ttl\":0,\"groups\":\"admin\"}}");
+	          Response idapConfigureResponse = getMockResponse(HttpStatus.NO_CONTENT, true, "{\"policies\":null}");
+	          Response responseNoContent = getMockResponse(HttpStatus.NO_CONTENT, true, "");
+
+	          ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"User is successfully associated \"]}");
+	          ReflectionTestUtils.setField(safesService, "vaultAuthMethod", "ldap");
+	          when(ControllerUtil.areSafeUserInputsValid(safeUser)).thenReturn(true);
+	          when(ControllerUtil.canAddPermission(path, token)).thenReturn(true);
+	          when(ControllerUtil.isValidSafePath(path)).thenReturn(true);
+	          when(ControllerUtil.isValidSafe(path, token)).thenReturn(true);
+	          when(reqProcessor.process("/auth/userpass/read","{\"username\":\"testuser1\"}",token)).thenReturn(userResponse);
+	          when(reqProcessor.process("/auth/ldap/users","{\"username\":\"testuser1\"}",token)).thenReturn(userResponse);
+
+	          try {
+	              //when(ControllerUtil.getPoliciesAsStringFromJson(any(), any())).thenReturn("default,w_shared_mysafe01,w_shared_mysafe02");
+	              List<String> resList = new ArrayList<>();
+	              resList.add("default");
+	              resList.add("w_shared_mysafe01");
+	              resList.add("w_shared_mysafe02");
+	              when(ControllerUtil.getPoliciesAsListFromJson(any(), any())).thenReturn(resList);
+	          } catch (IOException e) {
+	              e.printStackTrace();
+	          }
+
+	          when(ControllerUtil.configureLDAPUser(eq("testuser1"),any(),any(),eq(token))).thenReturn(idapConfigureResponse);
+	          when(ControllerUtil.updateMetadata(any(),eq(token))).thenReturn(responseNoContent);
+	          when(safeUtils.canAddOrRemoveUser(userDetails, safeUser, "addUser")).thenReturn(true);
+
+	          ResponseEntity<String> responseEntity = safesService.addUserToSafe(token, safeUser, null);
+	          assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
+	          assertEquals(responseEntityExpected, responseEntity);
+	      }
 
  @Test
  public void test_addUserToSafe_successfully_all_safes() {
@@ -1646,6 +1915,8 @@ public class SafesServiceTest {
      //OIDC changes
      
    //oidc test cases
+     
+     ReflectionTestUtils.setField(safesService, "vaultAuthMethod", "oidc");
      String mountAccessor = "auth_oidc";
      DirectoryUser directoryUser = new DirectoryUser();
      directoryUser.setDisplayName("testUser");
@@ -1741,6 +2012,8 @@ public class SafesServiceTest {
 
      when(safeUtils.canAddOrRemoveUser(userDetails, safeUser, "addUser")).thenReturn(true);
    //oidc test cases
+     
+     ReflectionTestUtils.setField(safesService, "vaultAuthMethod", "oidc");
      String mountAccessor = "auth_oidc";
      DirectoryUser directoryUser = new DirectoryUser();
      directoryUser.setDisplayName("testUser");
