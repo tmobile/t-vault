@@ -133,6 +133,17 @@ script(type='text/ng-template', id='transferCertPopup.html')
                         div.key-acceptance-info() {{ certOwnerEmailErrorMessage }}
                         div.loader.svcaccid(ng-if='isUserSearchLoading && certObj.certDetails.ownerEmail.length > 2')
                             div.ball-spin-fade-loader
+                                div
+                                div
+                                div
+                                div
+                                div
+                                div
+                                div
+                                div
+                          div.input-cross.svcaccid(ng-if='!isUserSearchLoading && certObj.certDetails.ownerEmail.length > 2' ng-click="clearOwnerEmail()")
+                            div.delete-title
+                                img.delete-icon(src="../../assets/images/delete.png")
           .text-center.bottom-lg-sep.modal-sep.aws
             .clearfix.bottom-sm-sep
               button.common-btn.btn.btn-primary.btn-lg(id="cert_transfer_btn" ng-click="transferCert()" ng-disabled="certTransferInValid") Transfer

@@ -1903,7 +1903,7 @@
 
                     $scope.isLoadingData = false;
                     if (UtilityService.ifAPIRequestSuccessful(response)) {
-                        $scope.revocationStatusMessage = 'Revocation Successfull!';
+                        $scope.revocationStatusMessage = 'Revocation Successful!';
                         $scope.revocationMessage = response.data.messages[0];
                         $scope.revocationPopUp();
                         $scope.requestDataFrAdmin();
@@ -2376,7 +2376,7 @@
                     $scope.isLoadingData = false;
                     $scope.certObj.certDetails.ownerEmail="";
                     if (UtilityService.ifAPIRequestSuccessful(response)) {
-                        $scope.transferMessage = 'Certificate owner Transfered Successfully!';
+                        $scope.transferMessage = 'Certificate Owner Transferred Successfully!';
                         $scope.transferMessage = response.data.messages[0];  
                         $scope.transferCertSuccessPopup();
                         $scope.requestDataFrAdmin();
