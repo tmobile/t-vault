@@ -4280,6 +4280,14 @@ public class SSLCertificateService {
 	 */
 	public ResponseEntity<String> validateApprovalStatusAndGetCertificateDetails(String certName, String certType,
 			UserDetails userDetails) {
+		if (!isValidInputs(certName, certType)) {
+			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+					.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+					.put(LogMessage.ACTION, SSLCertificateConstants.VALIDATE_CERTIFICATE_DETAILS_MSG)
+					.put(LogMessage.MESSAGE, "Invalid user inputs")
+					.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid input values\"]}");
+		}
 		String metaDataPath = (certType.equalsIgnoreCase("internal")) ? SSLCertificateConstants.SSL_CERT_PATH
 				: SSLCertificateConstants.SSL_EXTERNAL_CERT_PATH;
 		String certificatePath = metaDataPath + '/' + certName;
@@ -4500,5 +4508,26 @@ public class SSLCertificateService {
 
 		}
 		return certificateData;
+	}
+
+	/**
+	 * Validates User inputs
+	 * @param certName
+	 * @param certType
+	 * @return
+	 */
+	private boolean isValidInputs(String certName, String certType) {
+		boolean isValid = true;
+		if (ObjectUtils.isEmpty(certName)
+				|| ObjectUtils.isEmpty(certType)
+				|| certName.contains(" ")
+	            || (!certName.endsWith(certificateNameTailText))
+	            || (certName.contains(".-"))
+	            || (certName.contains("-."))
+	            || (!certType.matches("internal|external"))
+				) {
+			isValid = false;
+		}
+		return isValid;
 	}
 }
