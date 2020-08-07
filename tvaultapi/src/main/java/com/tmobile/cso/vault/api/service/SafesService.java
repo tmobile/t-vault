@@ -780,13 +780,12 @@ public class  SafesService {
 					ObjectMapper objMapper = new ObjectMapper();
 					if (TVaultConstants.OIDC.equals(vaultAuthMethod)) {
 						currentpolicies.addAll(oidcEntityResponse.getPolicies());
-					} else if (TVaultConstants.LDAP.equals(vaultAuthMethod)) {
-						groups = objMapper.readTree(responseJson).get("data").get("groups").asText();
-
-					} else if (TVaultConstants.USERPASS.equals(vaultAuthMethod)){
+					} else {
 						currentpolicies = ControllerUtil.getPoliciesAsListFromJson(objMapper, responseJson);
+						if (TVaultConstants.LDAP.equals(vaultAuthMethod)) {
+							groups = objMapper.readTree(responseJson).get("data").get("groups").asText();
+						}
 					}
-
 				} catch (IOException e) {
 					log.error(e);
 					log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
@@ -1295,14 +1294,14 @@ public class  SafesService {
 			if(HttpStatus.OK.equals(userResponse.getHttpstatus())){
 				responseJson = userResponse.getResponse();	
 				try {
-
 					if (TVaultConstants.OIDC.equals(vaultAuthMethod)) {
 						currentpolicies.addAll(oidcEntityResponse.getPolicies());
-					} else if (TVaultConstants.LDAP.equals(vaultAuthMethod)) {
-						groups = objMapper.readTree(responseJson).get("data").get("groups").asText();
-
-					} else if (TVaultConstants.USERPASS.equals(vaultAuthMethod)){
+						//groups = objMapper.readTree(responseJson).get("data").get("groups").asText();
+					} else {
 						currentpolicies = ControllerUtil.getPoliciesAsListFromJson(objMapper, responseJson);
+						if (TVaultConstants.LDAP.equals(vaultAuthMethod)) {
+							groups = objMapper.readTree(responseJson).get("data").get("groups").asText();
+						}
 					}
 				} catch (IOException e) {
 					log.error(e);
