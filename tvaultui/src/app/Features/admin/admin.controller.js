@@ -124,6 +124,8 @@
                 $state.go('/');
                 return;
             }
+            $scope.ifTargetServiceExisting=false;	
+            $scope.ifTargetSystemExisting=false;
             $scope.enableSvcacc = true;
             $scope.enableSelfService = true;
             $scope.isCollapsed = true;
@@ -812,6 +814,7 @@
         }
 
         $scope.selectTargetSystem = function (targetSystem) {
+            $scope.ifTargetSystemExisting=true;
             $scope.certObj.targetSystem = {
                 "name": targetSystem.name,
                 "description": targetSystem.description,
@@ -823,6 +826,7 @@
         }
 
         $scope.selectTargetService = function () {
+            $scope.ifTargetServiceExisting=true;
             var index = $scope.dropDownServiceList.selectedGroupOption.index;
             $scope.certObj.targetSystemServiceRequest = {
                 "name": $scope.targetSystemServicesList[index].name,
