@@ -697,18 +697,19 @@ public class SSLCertificateService {
         return errorDesc;
     }
 
+    //Parse SubjectAlternativeName
     private String parseSubjectAlternativeName(String json) {
         Gson gson = new GsonBuilder().setLenient().create();
-        JsonObject json1 = gson.fromJson(json, JsonObject.class);
-        JsonObject json2 = json1.getAsJsonObject("subjectAlternativeName");
-        if (Objects.nonNull(json2)) {
-            JsonArray jsonArray = json2.getAsJsonArray("items");
-            JsonObject jsonObject2;
+        JsonObject jsonObj = gson.fromJson(json, JsonObject.class);
+        JsonObject jsonAlternateNames = jsonObj.getAsJsonObject("subjectAlternativeName");
+        if (Objects.nonNull(jsonAlternateNames)) {
+            JsonArray jsonArray = jsonAlternateNames.getAsJsonArray("items");
+            JsonObject jsonObject;
             for (int i = 0; i < jsonArray.size(); i++) {
-                jsonObject2 = jsonArray.get(i).getAsJsonObject();
-                JsonArray json3 = jsonObject2.getAsJsonArray("value");
-                for (int j = 0; j < json3.size(); j++) {
-                    JsonObject jsonObject1 = json3.get(j).getAsJsonObject();
+                jsonObject = jsonArray.get(i).getAsJsonObject();
+                JsonArray valueJsonArray = jsonObject.getAsJsonArray("value");
+                for (int j = 0; j < valueJsonArray.size(); j++) {
+                    JsonObject jsonObject1 = valueJsonArray.get(j).getAsJsonObject();
                     if (jsonObject1.getAsJsonObject(SSLCertificateConstants.VALIDATION_RESULT_LABEL) != null) {
                         JsonArray validationResult = jsonObject1.getAsJsonObject(SSLCertificateConstants.VALIDATION_RESULT_LABEL)
                                 .getAsJsonArray("results");
@@ -725,19 +726,20 @@ public class SSLCertificateService {
         return null;
     }
 
+    //Parse Subject Array
     private String parseSubject(String csrResponse) {
         Gson gson = new GsonBuilder().setLenient().create();
-        JsonObject json1 = gson.fromJson(csrResponse, JsonObject.class);
-        JsonObject json2 = json1.getAsJsonObject("subject");
-        JsonArray jsonArray = json2.getAsJsonArray("items");
-        JsonObject jsonObject2;
+        JsonObject jsonObj = gson.fromJson(csrResponse, JsonObject.class);
+        JsonObject subjectJson = jsonObj.getAsJsonObject("subject");
+        JsonArray jsonArray = subjectJson.getAsJsonArray("items");
+        JsonObject jsonObject;
         for (int i = 0; i < jsonArray.size(); i++) {
-            jsonObject2 = jsonArray.get(i).getAsJsonObject();
-            JsonArray json3 = jsonObject2.getAsJsonArray("value");
-            for (int j = 0; j < json3.size(); j++) {
-                JsonObject jsonObject1 = json3.get(j).getAsJsonObject();
-                if (jsonObject1.getAsJsonObject(SSLCertificateConstants.VALIDATION_RESULT_LABEL) != null) {
-                    JsonArray validationResult = jsonObject1.getAsJsonObject(SSLCertificateConstants.VALIDATION_RESULT_LABEL)
+            jsonObject = jsonArray.get(i).getAsJsonObject();
+            JsonArray valueJson = jsonObject.getAsJsonArray("value");
+            for (int j = 0; j < valueJson.size(); j++) {
+                JsonObject valueObj = valueJson.get(j).getAsJsonObject();
+                if (valueObj.getAsJsonObject(SSLCertificateConstants.VALIDATION_RESULT_LABEL) != null) {
+                    JsonArray validationResult = valueObj.getAsJsonObject(SSLCertificateConstants.VALIDATION_RESULT_LABEL)
                             .getAsJsonArray("results");
                     for (int k = 0; k < validationResult.size(); k++) {
                         JsonObject result = validationResult.get(k).getAsJsonObject();
@@ -1194,7 +1196,7 @@ public class SSLCertificateService {
         Set<String> set = new HashSet<>();
         for (String dnsName : dnsNames) {
             if (dnsName.contains(" ") || (!dnsName.endsWith(certificateNameTailText)) ||
-                    (dnsName.contains(".-")) || (dnsName.contains("-.")) || (!set.add(dnsName))) {
+                    (dnsName.contains(".-")) || (dnsName.contains("-.")) || (dnsName.contains("..")) || (!set.add(dnsName))) {
                 return false;
             }
         }
