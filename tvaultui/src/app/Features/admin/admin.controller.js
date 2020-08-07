@@ -2307,7 +2307,7 @@
                         if (!certName.endsWith(".t-mobile.com")) {
                             $scope.certDnsErrorMessage = "Certificate name should end with .t-mobile.com"
                             $scope.dnsInvalid = true;
-                        }  else if ( (certName.includes(".-")) || (certName.includes("-."))){
+                        }  else if ( (certName.includes(".-")) || (certName.includes("-.") || (certName.includes("..")))){
                             $scope.certDnsErrorMessage = "Please enter a valid certificate name"
                             $scope.dnsInvalid = true;
                         } else if (isDuplicateDns($scope.multiSanDnsName.name)) {
