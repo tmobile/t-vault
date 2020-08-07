@@ -150,7 +150,7 @@ public class TokenValidatorTest {
         ArrayList<String> adminPolicies = new ArrayList<>();
         adminPolicies.add("adminpolicy");
         expectedLookupDetails.setPolicies(policies);
-        ReflectionTestUtils.setField(tokenValidator, "vaultAuthMethod", TVaultConstants.AUTH_TYPE_OIDC);
+        ReflectionTestUtils.setField(tokenValidator, "vaultAuthMethod", TVaultConstants.OIDC);
         DirectoryUser directoryUser = new DirectoryUser();
         directoryUser.setDisplayName("user1");
         directoryUser.setGivenName("user1");
