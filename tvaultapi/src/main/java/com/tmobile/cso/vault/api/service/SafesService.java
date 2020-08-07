@@ -741,14 +741,18 @@ public class  SafesService {
 				ResponseEntity<OIDCEntityResponse> responseEntity = oidcFetchEntityDetails(token,
 						userName);
 				if (!responseEntity.getStatusCode().equals(HttpStatus.OK)) {
-					log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
-							.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString())
-							.put(LogMessage.ACTION, "Add User to SDB")
-							.put(LogMessage.MESSAGE,
-									String.format("Trying to fetch OIDC user policies, failed"))
-							.put(LogMessage.APIURL,
-									ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString())
-							.build()));
+					if (responseEntity.getStatusCode().equals(HttpStatus.FORBIDDEN)) {
+						log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+								.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString())
+								.put(LogMessage.ACTION, "Add User to SDB")
+								.put(LogMessage.MESSAGE,
+										String.format("Trying to fetch OIDC user policies, failed"))
+								.put(LogMessage.APIURL,
+										ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString())
+								.build()));
+						return ResponseEntity.status(HttpStatus.FORBIDDEN)
+								.body("{\"messages\":[\"User configuration failed. Please try again.\"]}");
+					}
 					return ResponseEntity.status(HttpStatus.NOT_FOUND)
 							.body("{\"messages\":[\"User configuration failed. Invalid user\"]}");
 				}
@@ -953,16 +957,19 @@ public class  SafesService {
 	 */
 	public ResponseEntity<OIDCEntityResponse> oidcFetchEntityDetails(String token, String username) {
 		String mountAccessor = OIDCUtil.fetchMountAccessorForOidc(token);
-		ResponseEntity<DirectoryObjects> response = directoryService.searchByCorpId(username);
-		String aliasName = "";
-		Object[] results = response.getBody().getData().getValues();
-		for (Object tp : results) {
-			aliasName = ((DirectoryUser) tp).getUserEmail();
+		if (!StringUtils.isEmpty(mountAccessor)) {
+			ResponseEntity<DirectoryObjects> response = directoryService.searchByCorpId(username);
+			String aliasName = "";
+			Object[] results = response.getBody().getData().getValues();
+			for (Object tp : results) {
+				aliasName = ((DirectoryUser) tp).getUserEmail();
+			}
+			OIDCLookupEntityRequest oidcLookupEntityRequest = new OIDCLookupEntityRequest();
+			oidcLookupEntityRequest.setAlias_name(aliasName);
+			oidcLookupEntityRequest.setAlias_mount_accessor(mountAccessor);
+			return oidcAuthService.entityLookUp(token, oidcLookupEntityRequest);
 		}
-		OIDCLookupEntityRequest oidcLookupEntityRequest = new OIDCLookupEntityRequest();
-		oidcLookupEntityRequest.setAlias_name(aliasName);
-		oidcLookupEntityRequest.setAlias_mount_accessor(mountAccessor);
-		return oidcAuthService.entityLookUp(token, oidcLookupEntityRequest);
+		return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new OIDCEntityResponse());
 	}
 
 	/**
@@ -1231,44 +1238,46 @@ public class  SafesService {
 				// OIDC implementation changes
 				ResponseEntity<OIDCEntityResponse> responseEntity = oidcFetchEntityDetails(token, userName);
 				if (!responseEntity.getStatusCode().equals(HttpStatus.OK)) {
-					log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
-							.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString())
-							.put(LogMessage.ACTION, "removeUserFromSafe")
-							.put(LogMessage.MESSAGE, String.format("Trying to fetch OIDC user policies, failed"))
-							.put(LogMessage.APIURL,
-									ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString())
-							.build()));
-					
-					// Trying to remove the orphan entries if exists
-					Map<String, String> params = new HashMap<String, String>();
-					params.put("type", "users");
-					params.put("name", userName);
-					params.put("path", path);
-					params.put("access", TVaultConstants.DELETE);
-					Response metadataResponse = ControllerUtil.updateMetadata(params, token);
-					if (HttpStatus.NO_CONTENT.equals(metadataResponse.getHttpstatus())) {
-						log.debug(
-								JSONUtil.getJSON(ImmutableMap.<String, String>builder()
-										.put(LogMessage.USER,
-												ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString())
-										.put(LogMessage.ACTION, "removeUserFromSafe")
-										.put(LogMessage.MESSAGE, "Successfully removed of dangling user associations")
-										.put(LogMessage.STATUS, metadataResponse.getHttpstatus().toString())
-										.put(LogMessage.APIURL,
-												ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString())
-										.build()));
-					} else {
+					if (responseEntity.getStatusCode().equals(HttpStatus.FORBIDDEN)) {
 						log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
-								.put(LogMessage.USER,
-										ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString())
+								.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString())
 								.put(LogMessage.ACTION, "removeUserFromSafe")
-								.put(LogMessage.MESSAGE, "Error occurred while removing of dangling user associations")
-								.put(LogMessage.STATUS, metadataResponse.getHttpstatus().toString())
+								.put(LogMessage.MESSAGE, String.format("Trying to fetch OIDC user policies, failed"))
 								.put(LogMessage.APIURL,
 										ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString())
 								.build()));
-						return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-								.body("{\"messages\":[\"User configuration failed. Please try again\"]}");
+
+						// Trying to remove the orphan entries if exists
+						Map<String, String> params = new HashMap<String, String>();
+						params.put("type", "users");
+						params.put("name", userName);
+						params.put("path", path);
+						params.put("access", TVaultConstants.DELETE);
+						Response metadataResponse = ControllerUtil.updateMetadata(params, token);
+						if (HttpStatus.NO_CONTENT.equals(metadataResponse.getHttpstatus())) {
+							log.debug(
+									JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+											.put(LogMessage.USER,
+													ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString())
+											.put(LogMessage.ACTION, "removeUserFromSafe")
+											.put(LogMessage.MESSAGE, "Successfully removed of dangling user associations")
+											.put(LogMessage.STATUS, metadataResponse.getHttpstatus().toString())
+											.put(LogMessage.APIURL,
+													ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString())
+											.build()));
+						} else {
+							log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+									.put(LogMessage.USER,
+											ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString())
+									.put(LogMessage.ACTION, "removeUserFromSafe")
+									.put(LogMessage.MESSAGE, "Error occurred while removing of dangling user associations")
+									.put(LogMessage.STATUS, metadataResponse.getHttpstatus().toString())
+									.put(LogMessage.APIURL,
+											ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString())
+									.build()));
+							return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+									.body("{\"messages\":[\"User configuration failed. Please try again\"]}");
+						}
 					}
 					return ResponseEntity.status(HttpStatus.NOT_FOUND)
 							.body("{\"messages\":[\"User configuration failed. Invalid user\"]}");
