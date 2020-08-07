@@ -895,7 +895,7 @@
 		"apiEndPoint":"/certmanager/putEnrollCSR",
 		"vaultEndPoint":"policy/csr",
 		"method":"PUT",
-		"outparams":["subject"]
+		"outparams":["containsErrors","subject","subjectAlternativeName"]
 	},
 	{"#" : "**** - Get  Template Paramter Request '****** ",
 		"apiEndPoint":"/certmanager/getTemplateParameter",

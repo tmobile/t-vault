@@ -725,6 +725,15 @@
             $scope.showInputLoader.show = true;
             $scope.isTargetSystemListLoading = true;
             var certType = $scope.certObj.certDetails.certType;
+            //Clearing target system and service fields when we switch internal to external
+            clearTargetSystemServiceFields();
+            if(angular.isDefined($scope.certObj.targetSystem) && $scope.certObj.targetSystem != null && typeof $scope.certObj.targetSystem == 'object'){
+                $scope.certObj.targetSystem.name=undefined;
+                $scope.certObj.targetSystem.description=undefined;
+                $scope.certObj.targetSystem.address=undefined;
+                $scope.targetSysErrorMessage='';
+                $scope.targetAddrErrorMessage='';                
+            } 
             var updatedUrlOfEndPoint = RestEndpoints.baseURL + "/v2/sslcert/" + certType + "/targetsystems";
             return AdminSafesManagement.getTargetSystems(null, updatedUrlOfEndPoint).then(function (response) {
                 if (UtilityService.ifAPIRequestSuccessful(response)) {
@@ -1519,7 +1528,7 @@
                     if (!certName.endsWith(".t-mobile.com")) {
                         $scope.certNameErrorMessage = "Certificate name should end with .t-mobile.com"
                         $scope.certInValid = true;
-                    }  else if ( (certName.includes(".-")) || (certName.includes("-."))){
+                    }  else if ( (certName.includes(".-")) || (certName.includes("-.")) || (certName.includes(".."))  ){
                         $scope.certNameErrorMessage = "Please enter a valid certificate name"
                         $scope.certInValid = true;
                     }
@@ -2032,6 +2041,7 @@
                 $scope.certObj.targetSystemServiceRequest.monitoringEnabled=undefined;
                 $scope.certObj.targetSystemServiceRequest.multiIpMonitoringEnabled=undefined;
                 $scope.targetSysServiceErrorMessage="";
+                $scope.hostNameErrorMessage="";
             }
             else {
                 $scope.targetSystemServiceRequest = {
