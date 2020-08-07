@@ -14,11 +14,11 @@
 // limitations under the License.
 // See the readme.txt file for additional language around disclaimer of warranties.
 // =========================================================================
+
 package com.tmobile.cso.vault.api.service;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.when;
 
 import java.io.ByteArrayInputStream;
@@ -32,13 +32,12 @@ import com.tmobile.cso.vault.api.model.*;
 import com.tmobile.cso.vault.api.utils.TokenUtils;
 import com.unboundid.util.args.StringArgument;
 
+import com.tmobile.cso.vault.api.utils.*;
 import org.apache.http.HttpEntity;
 import org.apache.http.StatusLine;
 import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.conn.ssl.NoopHostnameVerifier;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
-import org.apache.http.util.EntityUtils;
 import org.apache.logging.log4j.LogManager;
 import org.junit.Before;
 import org.junit.FixMethodOrder;
@@ -64,9 +63,6 @@ import com.tmobile.cso.vault.api.controller.ControllerUtil;
 import com.tmobile.cso.vault.api.controller.OIDCUtil;
 import com.tmobile.cso.vault.api.process.RequestProcessor;
 import com.tmobile.cso.vault.api.process.Response;
-import com.tmobile.cso.vault.api.utils.JSONUtil;
-import com.tmobile.cso.vault.api.utils.PolicyUtils;
-import com.tmobile.cso.vault.api.utils.ThreadLocalContext;
 import org.springframework.test.util.ReflectionTestUtils;
 
 @RunWith(PowerMockRunner.class)
@@ -83,12 +79,6 @@ public class OIDCAuthServiceTest {
     private RequestProcessor reqProcessor;
 
     @Mock
-    TokenUtils tokenUtils;
-
-    @Mock
-    HttpClientBuilder httpClientBuilder;
-
-    @Mock
     StatusLine statusLine;
 
     @Mock
@@ -99,6 +89,9 @@ public class OIDCAuthServiceTest {
 
     @Mock
     CloseableHttpResponse httpResponse;
+
+    @Mock
+    AADUtils aadUtils;
 
 
     @Before
@@ -428,12 +421,7 @@ public class OIDCAuthServiceTest {
         response.setSuccess(true);
         response.setResponse(null);
 
-
-        when(HttpClientBuilder.create()).thenReturn(httpClientBuilder);
-        when(httpClientBuilder.setSSLHostnameVerifier(NoopHostnameVerifier.INSTANCE)).thenReturn(httpClientBuilder);
-        when(httpClientBuilder.setSSLContext(any())).thenReturn(httpClientBuilder);
-        when(httpClientBuilder.setRedirectStrategy(any())).thenReturn(httpClientBuilder);
-        when(httpClientBuilder.build()).thenReturn(httpClient);
+        when(aadUtils.getHttpClient()).thenReturn(httpClient);
         when(httpClient.execute(any())).thenReturn(httpResponse);
         when(httpResponse.getStatusLine()).thenReturn(statusLine);
         when(statusLine.getStatusCode()).thenReturn(200);
@@ -480,12 +468,7 @@ public class OIDCAuthServiceTest {
         response.setSuccess(true);
         response.setResponse(null);
 
-
-        when(HttpClientBuilder.create()).thenReturn(httpClientBuilder);
-        when(httpClientBuilder.setSSLHostnameVerifier(NoopHostnameVerifier.INSTANCE)).thenReturn(httpClientBuilder);
-        when(httpClientBuilder.setSSLContext(any())).thenReturn(httpClientBuilder);
-        when(httpClientBuilder.setRedirectStrategy(any())).thenReturn(httpClientBuilder);
-        when(httpClientBuilder.build()).thenReturn(httpClient);
+        when(aadUtils.getHttpClient()).thenReturn(httpClient);
         when(httpClient.execute(any())).thenReturn(httpResponse);
         when(httpResponse.getStatusLine()).thenReturn(statusLine);
         when(statusLine.getStatusCode()).thenReturn(400);
@@ -528,12 +511,7 @@ public class OIDCAuthServiceTest {
         response.setSuccess(true);
         response.setResponse(null);
 
-
-        when(HttpClientBuilder.create()).thenReturn(httpClientBuilder);
-        when(httpClientBuilder.setSSLHostnameVerifier(NoopHostnameVerifier.INSTANCE)).thenReturn(httpClientBuilder);
-        when(httpClientBuilder.setSSLContext(any())).thenReturn(httpClientBuilder);
-        when(httpClientBuilder.setRedirectStrategy(any())).thenReturn(httpClientBuilder);
-        when(httpClientBuilder.build()).thenReturn(httpClient);
+        when(aadUtils.getHttpClient()).thenReturn(httpClient);
         when(httpClient.execute(any())).thenReturn(httpResponse);
         when(httpResponse.getStatusLine()).thenReturn(statusLine);
         when(statusLine.getStatusCode()).thenReturn(200);
