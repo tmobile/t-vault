@@ -4701,6 +4701,14 @@ public class SSLCertificateService {
 	 */
 	public ResponseEntity<String> deleteCertificate( String token, String certType, String certificateName, UserDetails userDetails) {
 
+		if(!certType.matches("internal|external")){
+    		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+					.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+					.put(LogMessage.ACTION, "deleteCertificate")
+					.put(LogMessage.MESSAGE, "Invalid user inputs")
+					.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid input values\"]}");
+    	}
 		Map<String, String> metaDataParams = new HashMap<String, String>();
 		String endPoint =certificateName;	
 		String metaDataPath = (certType.equalsIgnoreCase("internal"))?
