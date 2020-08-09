@@ -125,7 +125,7 @@
         }
 
         $scope.goBack = function () {
-            var targetState = 'manage';
+            var targetState = 'manage';            
             if (SessionStore.getItem("isAdmin") === 'true') {
                 targetState = 'admin';
             }
@@ -909,6 +909,12 @@
             Modal.close('close');
             $scope.isLoadingData = false;
         };
+        
+        $scope.cancelDelete = function () {        	
+            Modal.close('close');
+            $scope.isLoadingData = false;
+            $scope.goBack();
+        };
 
         $scope.renewCertPopup = function (certDetails) {
             $scope.fetchDataError = false;
@@ -930,6 +936,20 @@
 
         $scope.renewCertificateFailedPopUp = function (certificate) {
             Modal.createModal('md', 'renewCertificateFailedPopUp.html', 'ChangeCertificateCtrl', $scope);
+        };
+        
+        $scope.deleteCertPopup = function (certDetails) {
+            $scope.fetchDataError = false;
+            $rootScope.certDetails = certDetails;
+            Modal.createModal('md', 'deleteCertPopup.html', 'ChangeCertificateCtrl', $scope);
+        };
+        
+        $scope.deleteCertificatePopUp = function (certificate) {
+            Modal.createModal('md', 'deleteCertificateSuccessPopUp.html', 'ChangeCertificateCtrl', $scope);
+        };
+
+        $scope.deleteCertificateFailedPopUp = function (certificate) {
+            Modal.createModal('md', 'deleteCertificateFailedPopUp.html', 'ChangeCertificateCtrl', $scope);
         };
 
          //Revoke Certificate
@@ -1075,6 +1095,51 @@
                         $scope.renewMessage = errors[0];
                     }
                     $scope.renewCertificateFailedPopUp();
+                    $scope.isLoadingData = false;
+                    console.log(error);
+                    $scope.searchValue = '';
+                })
+            }catch (e) {
+                $scope.isLoadingData = false;
+                console.log(e);
+                $scope.searchValue = '';
+            };
+        };
+        
+        $rootScope.deleteCertificate = function(certificateDetails){
+            if ($rootScope.certDetails !== null && $rootScope.certDetails !== undefined) {
+                certificateDetails = $rootScope.certDetails;
+            }
+            $rootScope.certDetails = null;
+            try{
+                $scope.isLoadingData = true;
+                Modal.close();
+                $scope.deleteMessage = '';
+                var certificateName = $scope.getCertSubjectName(certificateDetails);
+                $scope.certificateNameForDelete = certificateName;
+                var certType = certificateDetails.certType;                
+                var url = RestEndpoints.baseURL + "/v2/certificates/" +certificateName+"/"+certType ;
+                $scope.isLoadingData = true;
+
+                AdminSafesManagement.deleteCertificate(null, url).then(function (response) {
+                    $scope.isLoadingData = false;
+                    if (UtilityService.ifAPIRequestSuccessful(response)) {
+                        $scope.deleteMessage = 'Certificate Deleted Successfully!';
+                        $scope.deleteMessage = response.data.messages[0];
+                        $scope.deleteCertificatePopUp();
+                        $scope.searchValue = '';
+                    }
+                },
+                function (error) {
+                    var errors = error.data.errors;
+                    $scope.deleteMessage = 'Delete Failed';                    
+                    if (errors[0] == "Access denied: No permission to delete certificate") {
+                        $scope.deleteMessage = "For security reasons, you need to log out and log in again for the permissions to take effect.";
+                    } else {
+                        $scope.deleteMessage = errors[0];
+                    }
+                    
+                    $scope.deleteCertificateFailedPopUp();
                     $scope.isLoadingData = false;
                     console.log(error);
                     $scope.searchValue = '';

@@ -373,6 +373,15 @@ public class RequestProcessor {
                         build()));
                 certManagerResponse = certRestprocessor.delete(certManagerEndPoint.toString(), accessToken);
                 break;
+            case "DELETEPAYLOAD":
+            	log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+                        put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+                        put(LogMessage.ACTION, "Process Request").
+                        put(LogMessage.MESSAGE, String.format("Calling the CertManager end point [%s] using delete method", certManagerEndPoint)).
+                        put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+                        build()));
+                certManagerResponse = certRestprocessor.deleteWithPayload(certManagerEndPoint.toString(), accessToken, request);
+                break;
         }
         log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
                 put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
