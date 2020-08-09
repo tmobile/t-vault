@@ -442,6 +442,10 @@ readTextFile("../apiUrls.json");
             name: 'validateCertificateDetails',
             url: '/v2/sslcert/validate/{certificate_name}/{certificate_type}',
             method: 'GET'
+        }, {
+            name: 'deleteCertificate',
+            url: '/v2/certificates/{certName}/{certType}',
+            method: 'DELETE'
         },
         {
             name: 'downloadCertificate',
