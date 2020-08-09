@@ -356,6 +356,11 @@
                 return ServiceEndpoint.validateCertificateDetails.makeRequest(payload, url).then(function(response) {
                     return response;
                 });
+            },            
+            deleteCertificate: function (payload, url) {
+                return ServiceEndpoint.deleteCertificate.makeRequest(payload, url).then(function(response) {
+                    return response;
+                });
             },
             getTheRightErrorMessage : function(responseObject){
                 if(responseObject.status===500 || responseObject.statusText==='Internal Server Error'){

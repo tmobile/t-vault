@@ -1,5 +1,7 @@
 package com.tmobile.cso.vault.api.model;
 
+import java.util.List;
+
 import com.fasterxml.jackson.annotation.JsonInclude;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class CertificateData {
@@ -13,16 +15,25 @@ public class CertificateData {
     private String authority;
     private String dnsNames;
 	private Integer previousCertId;
+	private List<Integer> deployStatus;
 
     public String getDnsNames() {
         return dnsNames;
     }
-
+    
     public void setDnsNames(String dnsNames) {
         this.dnsNames = dnsNames;
-    }
+    }    
 
-    public String getAuthority() {
+    public List<Integer> getDeployStatus() {
+		return deployStatus;
+	}
+
+	public void setDeployStatus(List<Integer> deployStatus) {
+		this.deployStatus = deployStatus;
+	}
+
+	public String getAuthority() {
         return authority;
     }
     public void setAuthority(String authority) {

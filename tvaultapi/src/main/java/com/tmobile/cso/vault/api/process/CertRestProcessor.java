@@ -23,6 +23,7 @@ import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
+import java.util.Collection;
 
 import org.apache.http.client.HttpClient;
 import org.apache.http.conn.ssl.NoopHostnameVerifier;
@@ -30,11 +31,15 @@ import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.LaxRedirectStrategy;
 import org.apache.http.ssl.SSLContextBuilder;
 import org.apache.http.ssl.TrustStrategy;
-import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.*;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpRequest;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.ClientHttpRequestExecution;
 import org.springframework.http.client.ClientHttpRequestInterceptor;
 import org.springframework.http.client.ClientHttpResponse;
@@ -47,7 +52,6 @@ import org.springframework.web.client.RestTemplate;
 
 import com.google.common.collect.ImmutableMap;
 import com.tmobile.cso.vault.api.exception.LogMessage;
-import com.tmobile.cso.vault.api.model.CertManagerLoginRequest;
 import com.tmobile.cso.vault.api.utils.JSONUtil;
 import com.tmobile.cso.vault.api.utils.ThreadLocalContext;
 
@@ -173,7 +177,38 @@ public class CertRestProcessor {
 		
 		return response;
 	}
+	
+	/**
+	 * Perform the delete rest call with request body
+	 * @param endpoint
+	 * @param token
+	 * @return
+	 */	
+	public ResponseEntity<String> deleteWithPayload(String endpoint,String token,Object payload ){
 
+		RestTemplate restTemplate = getRestTemplate(sslVerify, token);
+		HttpHeaders headers = new HttpHeaders();
+		headers.add("X-HTTP-Method-Override", "DELETE");
+		HttpEntity<String> request  = new HttpEntity<String>(payload.toString(),headers);		
+		ResponseEntity<String> response;
+		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+				put(LogMessage.ACTION, "Invoke Vault API").
+				put(LogMessage.MESSAGE, String.format("Calling the Cert end point [%s] using DELETE method", endpoint)).
+				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+				build()));
+		try{			
+			response= restTemplate.exchange(endpoint, HttpMethod.DELETE, request, String.class);
+		}catch(HttpStatusCodeException e){
+			return ResponseEntity.status(e.getStatusCode()).body(e.getResponseBodyAsString());
+		}catch(RestClientException e){
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
+		}
+		return response;
+
+	}
+	
+	
 	/**
 	 * Get the rest template
 	 * @param sslVerify

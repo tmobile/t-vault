@@ -684,13 +684,7 @@ script(type='text/ng-template', id='manageSecretId.html')
                                                                 label.expired-cert {{ value.certificateStatus}}
                                                       .container.radio-inputs.col-lg-5.col-md-6.col-sm-6.col-xs-6
                                                           .down.view
-                                                              .list-icon(ng-click="goToAddPermissions(value)")  View/Edit 
-                                                          .down.view
-                                                              .list-icon(ng-if="value.certificateStatus=='Revoked'" ng-click="renewCertPopup(value)")  Renew certificate                  
-                                                              .list-icon.renExp(ng-if="value.certificateStatus=='Expired'")                                                                          
-                                                              .list-icon(ng-if="value.certificateStatus=='Active'" ng-click="renewCertPopup(value)")  Renew certificate                                                                                                                   
-                                                          .down.deletesecretids
-                                                              .list-icon(ng-click="revokeCertificate(value)") Revoke certificate 
+                                                              .list-icon(ng-click="goToAddPermissions(value)")  View/Edit                                                           
                                                           .down.view
                                                               .list-icon(ng-click="transferCertPopup(value)") Transfer Owner     
                                                       .container.radio-inputs.col-lg-2.col-md-2.col-sm-2.col-xs-2
@@ -709,8 +703,7 @@ script(type='text/ng-template', id='manageSecretId.html')
                                             .row.change-safe-table-container(ng-if='true')
                                               loading-state(ng-if='isLoadingData'  && 'isLoadingCerts')
                                               .row.change-data.header.solid-header(ng-show="!isLoadingData && certificateData.certificates.length>0")
-                                                  .container.name.col-lg-4.col-md-4.col-sm-3.col-xs-3 CERTIFICATE
-                                                  .container.name.action.col-lg-2.col-md-2.col-sm-2.col-xs-2 STATUS
+                                                  .container.name.col-lg-4.col-md-4.col-sm-3.col-xs-3 CERTIFICATE                                                  
                                                   .container.name.action.col-lg-2.col-md-2.col-sm-2.col-xs-2 ACTION
                                                   div.create-certificate-link
                                                     .function-text.link-style.option.right(ng-click="newCertificateConfiguration('lg')")
@@ -723,23 +716,10 @@ script(type='text/ng-template', id='manageSecretId.html')
                                                       .container.name No Certificates Available
                                                   .row.change-data.item(ng-show="!isLoadingData" ng-class="{'grayBackground' : activeItem == true}" ng-repeat="value in certificateData.certificates |  filter: searchCert() | limitTo: certpaginationLimit()")
                                                       .container.name.col-lg-4.col-md-4.col-sm-3.col-xs-3(title="{{ getCertSubjectName(value) }}") {{ getCertSubjectName(value) }}
-                                                      .container.radio-inputs.col-lg-2.col-md-2.col-sm-2.col-xs-2
-                                                          .down.view
-                                                              .list-icon(ng-if="value.certificateStatus=='Active'")
-                                                                label.active-cert {{ value.certificateStatus}}
-                                                              .list-icon(ng-if="value.certificateStatus=='Revoked'")
-                                                                label.revoked-cert {{ value.certificateStatus}}  
-                                                              .list-icon(ng-if="value.certificateStatus=='Expired'")
-                                                                label.expired-cert {{ value.certificateStatus}}
+                                                      
                                                       .container.radio-inputs.col-lg-6.col-md-6.col-sm-6.col-xs-6
                                                           .down.view
-                                                              .list-icon(ng-click="goToAddPermissions(value)")  View/Edit 
-                                                          .down.view
-                                                              .list-icon(ng-if="value.certificateStatus=='Revoked'" ng-click="renewCertPopup(value)")  Renew certificate                  
-                                                              .list-icon.renExp(ng-if="value.certificateStatus=='Expired'")                                                                          
-                                                              .list-icon(ng-if="value.certificateStatus=='Active'" ng-click="renewCertPopup(value)")  Renew certificate                                                                                                                   
-                                                          .down.deletesecretids
-                                                              .list-icon(ng-click="revokeCertificate(value)") Revoke certificate
+                                                              .list-icon(ng-click="goToAddPermissions(value)")  View/Edit                                                           
                                                           .down.view
                                                               .list-icon(ng-click="transferCertPopup(value)") Transfer Owner 
                                                               
