@@ -228,4 +228,15 @@ public class OIDCAuthController {
 
 	}
 
+	/**
+	 * To get identity group details.
+	 * @param groupName
+	 * @return
+	 */
+	@GetMapping(value="/v2/identity/group/{name}",produces="application/json")
+	@ApiOperation(value = "${OIDCAuthController.getIdentityGroupDetails.value}", notes = "${OIDCAuthController.getIdentityGroupDetails.notes}", hidden=true)
+	public ResponseEntity<String> getIdentityGroupDetails(HttpServletRequest request,
+		@RequestHeader(value = "vault-token") String token, @PathVariable("name") String groupName){
+		return oidcAuthService.getIdentityGroupDetails(groupName, token);
+	}
 }
