@@ -543,4 +543,32 @@ public class OIDCAuthServiceTest {
         assertEquals(responseEntityExpected.toString(),responseEntityActual.toString());
 
     }
+
+    @Test
+    public void test_getIdentityGroupDetails_success() throws Exception {
+        String group = "group1";
+        String token = "test4ig8L3EpsJZSLAMg";
+        List<String> policies = new ArrayList<>();
+        policies.add("r_users_safe1");
+        policies.add("r_users_safe2");
+        OIDCGroup oidcGroup = new OIDCGroup("123-123-123", policies);
+        when(OIDCUtil.getIdentityGroupDetails(group, token)).thenReturn(oidcGroup);
+        ResponseEntity<String> expectedResponseEntity = ResponseEntity.status(HttpStatus.OK).body(JSONUtil.getJSON(oidcGroup));
+
+        ResponseEntity<String> actualResponse = oidcAuthService.getIdentityGroupDetails(group, token);
+        assertEquals(expectedResponseEntity.getStatusCode(), actualResponse.getStatusCode());
+        assertEquals(expectedResponseEntity.getBody(), actualResponse.getBody());
+    }
+
+    @Test
+    public void test_getIdentityGroupDetails_failed() throws Exception {
+        String group = "group1";
+        String token = "test4ig8L3EpsJZSLAMg";
+        when(OIDCUtil.getIdentityGroupDetails(group, token)).thenReturn(null);
+        ResponseEntity<String> expectedResponseEntity = ResponseEntity.status(HttpStatus.NOT_FOUND).body("{\"errors\":[\"Group not found\"]}");
+
+        ResponseEntity<String> actualResponse = oidcAuthService.getIdentityGroupDetails(group, token);
+        assertEquals(expectedResponseEntity.getStatusCode(), actualResponse.getStatusCode());
+        assertEquals(expectedResponseEntity.getBody(), actualResponse.getBody());
+    }
 }
