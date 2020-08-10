@@ -933,5 +933,14 @@
       		{"name":"member_entity_ids", "required":true}
         ],
         "outparams":["data"]
-    }
+    },
+	{ "#":"****  Get identity group details  *****",
+		"apiEndPoint":"/identity/group/name",
+		"vaultEndPoint":"/identity/group/name/<group>",
+		"method":"GET",
+		"params":[
+			{"name":"group", "required":true, "appendToPath":true}
+		],
+		"outparams":["data/id", "data/policies"]
+	}
 ]
