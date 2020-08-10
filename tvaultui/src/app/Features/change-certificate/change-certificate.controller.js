@@ -586,9 +586,9 @@
                                 }
 
                                 if($scope.certificate.certType.toLowerCase() === "internal"){
-                                    $scope.certificate.certType = "Internal";
+                                    $scope.certificate.certType = "internal";
                                 }else if($scope.certificate.certType.toLowerCase() === "external"){
-                                    $scope.certificate.certType = "External";
+                                    $scope.certificate.certType = "external";
                                 }
 
                                 $scope.GroupsPermissionsData = object.groups;
