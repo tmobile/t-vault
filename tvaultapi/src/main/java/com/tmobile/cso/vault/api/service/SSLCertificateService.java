@@ -4344,11 +4344,11 @@ public class SSLCertificateService {
 		try {
 			if (userDetails.isAdmin()) {
 				response = reqProcessor.process("/read", "{\"path\":\"" + metaDataPath + "\"}", token);
-				dataResponse = reqProcessor.process("/read", "{\"path\":\"" + metaDataPath + "\"}", token);
+				dataResponse = reqProcessor.process("/read", "{\"path\":\"" + permissionMetaDataPath + "\"}", token);
 			} else {
 				response = reqProcessor.process("/read", "{\"path\":\"" + metaDataPath + "\"}",
 						userDetails.getSelfSupportToken());
-				dataResponse = reqProcessor.process("/read", "{\"path\":\"" + metaDataPath + "\"}",
+				dataResponse = reqProcessor.process("/read", "{\"path\":\"" + permissionMetaDataPath + "\"}",
 						userDetails.getSelfSupportToken());
 			}
 		} catch (Exception e) {
@@ -4373,22 +4373,25 @@ public class SSLCertificateService {
 		JsonObject object = ((JsonObject) jsonParser.parse(response.getResponse())).getAsJsonObject("data");
 		JsonObject dataObject = ((JsonObject) jsonParser.parse(dataResponse.getResponse())).getAsJsonObject("data");
 		metaDataParams = new Gson().fromJson(object.toString(), Map.class);	
+		if(dataObject!=null) {
 		dataMetaDataParams = new Gson().fromJson(dataObject.toString(), Map.class);	
+		dataMetaDataParams.put("certOwnerNtid", sslCertificateRequest.getCertOwnerNtid());
+		}
 		String certificateUser = metaDataParams.get("certOwnerNtid");
 		boolean sslMetaDataUpdationStatus;			
 		metaDataParams.put("certOwnerEmailId", sslCertificateRequest.getCertOwnerEmailId());
 		metaDataParams.put("certOwnerNtid", sslCertificateRequest.getCertOwnerNtid());
-		dataMetaDataParams.put("certOwnerNtid", sslCertificateRequest.getCertOwnerNtid());
+		
 		
 		try {
 		if (userDetails.isAdmin()) {
 			sslMetaDataUpdationStatus = ControllerUtil.updateMetaData(metaDataPath, metaDataParams, token);
-			sslMetaDataUpdationStatus = ControllerUtil.updateMetaData(permissionMetaDataPath, metaDataParams, token);
+			if(dataObject!=null) {
+			sslMetaDataUpdationStatus = ControllerUtil.updateMetaData(permissionMetaDataPath, dataMetaDataParams, token);
+			}
 		} else {
 			sslMetaDataUpdationStatus = ControllerUtil.updateMetaData(metaDataPath, metaDataParams,
-					userDetails.getSelfSupportToken());
-			sslMetaDataUpdationStatus = ControllerUtil.updateMetaData(permissionMetaDataPath, metaDataParams,
-					userDetails.getSelfSupportToken());
+					userDetails.getSelfSupportToken());			
 		}
 		if (sslMetaDataUpdationStatus) {
 			boolean isPoliciesCreated=true;			
@@ -4779,7 +4782,7 @@ public class SSLCertificateService {
 		}
 		if(ldapConfigresponse.getHttpstatus().equals(HttpStatus.NO_CONTENT) || ldapConfigresponse.getHttpstatus().equals(HttpStatus.OK)){
 			return updateMetadataForRemoveUserFromCertificate(userName, certificatePath, authToken, groups,
-					currentpoliciesString);
+					policiesString);
 		} else {
 			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
