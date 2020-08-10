@@ -193,7 +193,7 @@ script(src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"
                       .right.svc-action-button
                         button.common-btn.btn.btn-cert.btn-lg(type='button' ng-if="renewButtonShow" ng-click="deleteCertPopup(certificate)" ) Delete
                       .right.svc-action-button
-                        button.common-btn.btn.btn-cert.btn-lg(type='button' ng-click="revokeCertificate(certificate)") Revoke
+                        button.common-btn.btn.btn-cert.btn-lg(type='button' ng-if="renewButtonShow" ng-click="revokeCertificate(certificate)") Revoke
                       .right.svc-action-button
                         button.common-btn.btn.btn-cert.btn-lg(type='button' ng-if="renewButtonShow && certificate.certificateStatus!=='Expired'" ng-click="renewCertPopup(certificate)") Renew
                       .right.svc-action-button

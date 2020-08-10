@@ -4233,17 +4233,20 @@ public class SSLCertificateService {
      */
     public ResponseEntity<String> updateCertOwner(String token, SSLCertificateRequest sslCertificateRequest, UserDetails userDetails) throws Exception {
     	Map<String, String> metaDataParams = new HashMap<String, String>();
-
+    	Map<String, String> dataMetaDataParams = new HashMap<String, String>();
     	//Validate the input data
-        boolean isValidData = validateInputData(sslCertificateRequest);
+        boolean isValidData = validateTransferData(sslCertificateRequest);
         if(!isValidData){
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid input values\"]}");
         }
 		String endPoint = sslCertificateRequest.getCertificateName();	
 		CertResponse enrollResponse = new CertResponse();		
 		String metaDataPath = (sslCertificateRequest.getCertType().equalsIgnoreCase("internal"))?
-                SSLCertificateConstants.SSL_CERT_PATH + "/" + endPoint :SSLCertificateConstants.SSL_EXTERNAL_CERT_PATH + "/" + endPoint;
+                SSLCertificateConstants.SSL_CERT_PATH + "/" + endPoint :SSLCertificateConstants.SSL_EXTERNAL_CERT_PATH + "/" + endPoint;		
+		String permissionMetaDataPath = (sslCertificateRequest.getCertType().equalsIgnoreCase("internal"))?
+                SSLCertificateConstants.SSL_CERT_PATH_VALUE + "/" + endPoint :SSLCertificateConstants.SSL_CERT_PATH_VALUE_EXT + "/" + endPoint;
 		Response response = new Response();
+		Response dataResponse = new Response();
 		if (!userDetails.isAdmin()) {
 			Boolean isPermission = validateOwnerPermissionForNonAdmin(userDetails, sslCertificateRequest.getCertificateName());
 
@@ -4257,8 +4260,11 @@ public class SSLCertificateService {
 		try {
 			if (userDetails.isAdmin()) {
 				response = reqProcessor.process("/read", "{\"path\":\"" + metaDataPath + "\"}", token);
+				dataResponse = reqProcessor.process("/read", "{\"path\":\"" + metaDataPath + "\"}", token);
 			} else {
 				response = reqProcessor.process("/read", "{\"path\":\"" + metaDataPath + "\"}",
+						userDetails.getSelfSupportToken());
+				dataResponse = reqProcessor.process("/read", "{\"path\":\"" + metaDataPath + "\"}",
 						userDetails.getSelfSupportToken());
 			}
 		} catch (Exception e) {
@@ -4279,18 +4285,25 @@ public class SSLCertificateService {
 					.body("{\"errors\":[\"" + "Certficate unavailable" + "\"]}");
 		}
 		JsonParser jsonParser = new JsonParser();
+		ObjectMapper objMapper = new ObjectMapper();
 		JsonObject object = ((JsonObject) jsonParser.parse(response.getResponse())).getAsJsonObject("data");
-		metaDataParams = new Gson().fromJson(object.toString(), Map.class);			
+		JsonObject dataObject = ((JsonObject) jsonParser.parse(dataResponse.getResponse())).getAsJsonObject("data");
+		metaDataParams = new Gson().fromJson(object.toString(), Map.class);	
+		dataMetaDataParams = new Gson().fromJson(dataObject.toString(), Map.class);	
 		String certificateUser = metaDataParams.get("certOwnerNtid");
-		boolean sslMetaDataUpdationStatus;
+		boolean sslMetaDataUpdationStatus;			
 		metaDataParams.put("certOwnerEmailId", sslCertificateRequest.getCertOwnerEmailId());
 		metaDataParams.put("certOwnerNtid", sslCertificateRequest.getCertOwnerNtid());
-//		metaDataParams.put("users","{}");
+		dataMetaDataParams.put("certOwnerNtid", sslCertificateRequest.getCertOwnerNtid());
+		
 		try {
 		if (userDetails.isAdmin()) {
 			sslMetaDataUpdationStatus = ControllerUtil.updateMetaData(metaDataPath, metaDataParams, token);
+			sslMetaDataUpdationStatus = ControllerUtil.updateMetaData(permissionMetaDataPath, metaDataParams, token);
 		} else {
 			sslMetaDataUpdationStatus = ControllerUtil.updateMetaData(metaDataPath, metaDataParams,
+					userDetails.getSelfSupportToken());
+			sslMetaDataUpdationStatus = ControllerUtil.updateMetaData(permissionMetaDataPath, metaDataParams,
 					userDetails.getSelfSupportToken());
 		}
 		if (sslMetaDataUpdationStatus) {
@@ -4837,5 +4850,33 @@ public class SSLCertificateService {
 	}
 	}
 	
+	/**
+     * Validate input data
+     * @param sslCertificateRequest
+     * @return
+     */
 	
+    private boolean validateTransferData(SSLCertificateRequest sslCertificateRequest){
+        boolean isValid=true;
+        if(sslCertificateRequest.getCertificateName().contains(" ") || 
+                sslCertificateRequest.getCertOwnerEmailId().contains(" ") ||  sslCertificateRequest.getCertType().contains(" ") ||
+                (!sslCertificateRequest.getCertificateName().endsWith(certificateNameTailText)) ||                
+                (sslCertificateRequest.getCertificateName().contains(".-")) ||
+                (sslCertificateRequest.getCertificateName().contains("-.")) ||
+                (!sslCertificateRequest.getCertType().matches("internal|external"))){
+            isValid= false;
+        }
+        if(sslCertificateRequest.getDnsList()!=null && sslCertificateRequest.getDnsList().length>0) {
+        	if(!validateDNSNames(sslCertificateRequest)) {
+        		isValid= false;
+        	}
+        }
+        	if(sslCertificateRequest.getTargetSystemServiceRequest()!=null && sslCertificateRequest.getTargetSystemServiceRequest().getHostname()!=null) {
+            	if(!isValidHostName(sslCertificateRequest.getTargetSystemServiceRequest().getHostname())) {
+            		isValid= false;
+            	}
+        }
+        return isValid;
+    }
+    
 }
