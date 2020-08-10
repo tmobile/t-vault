@@ -29,8 +29,6 @@ import java.util.List;
 import java.util.Map;
 
 import com.tmobile.cso.vault.api.model.*;
-import com.tmobile.cso.vault.api.utils.TokenUtils;
-import com.unboundid.util.args.StringArgument;
 
 import com.tmobile.cso.vault.api.utils.*;
 import org.apache.http.HttpEntity;
@@ -91,7 +89,7 @@ public class OIDCAuthServiceTest {
     CloseableHttpResponse httpResponse;
 
     @Mock
-    AADUtils aadUtils;
+    HttpUtils httpUtils;
 
 
     @Before
@@ -421,7 +419,7 @@ public class OIDCAuthServiceTest {
         response.setSuccess(true);
         response.setResponse(null);
 
-        when(aadUtils.getHttpClient()).thenReturn(httpClient);
+        when(httpUtils.getHttpClient()).thenReturn(httpClient);
         when(httpClient.execute(any())).thenReturn(httpResponse);
         when(httpResponse.getStatusLine()).thenReturn(statusLine);
         when(statusLine.getStatusCode()).thenReturn(200);
@@ -468,7 +466,7 @@ public class OIDCAuthServiceTest {
         response.setSuccess(true);
         response.setResponse(null);
 
-        when(aadUtils.getHttpClient()).thenReturn(httpClient);
+        when(httpUtils.getHttpClient()).thenReturn(httpClient);
         when(httpClient.execute(any())).thenReturn(httpResponse);
         when(httpResponse.getStatusLine()).thenReturn(statusLine);
         when(statusLine.getStatusCode()).thenReturn(400);
@@ -511,7 +509,7 @@ public class OIDCAuthServiceTest {
         response.setSuccess(true);
         response.setResponse(null);
 
-        when(aadUtils.getHttpClient()).thenReturn(httpClient);
+        when(httpUtils.getHttpClient()).thenReturn(httpClient);
         when(httpClient.execute(any())).thenReturn(httpResponse);
         when(httpResponse.getStatusLine()).thenReturn(statusLine);
         when(statusLine.getStatusCode()).thenReturn(200);

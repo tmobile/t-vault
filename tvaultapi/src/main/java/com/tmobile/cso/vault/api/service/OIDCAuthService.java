@@ -26,7 +26,7 @@ import com.tmobile.cso.vault.api.common.TVaultConstants;
 import com.tmobile.cso.vault.api.controller.ControllerUtil;
 import com.tmobile.cso.vault.api.controller.OIDCUtil;
 import com.tmobile.cso.vault.api.model.*;
-import com.tmobile.cso.vault.api.utils.AADUtils;
+import com.tmobile.cso.vault.api.utils.HttpUtils;
 import com.tmobile.cso.vault.api.utils.TokenUtils;
 import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
@@ -70,7 +70,7 @@ public class OIDCAuthService {
     private TokenUtils tokenUtils;
 
     @Autowired
-    private AADUtils aadUtils;
+    private HttpUtils httpUtils;
 
     @Value("${selfservice.enable}")
     private boolean isSSEnabled;
@@ -417,7 +417,7 @@ public class OIDCAuthService {
      */
     private String getGroupObjectResponse(String ssoToken, String groupName)  {
         JsonParser jsonParser = new JsonParser();
-        HttpClient httpClient = aadUtils.getHttpClient();
+        HttpClient httpClient = httpUtils.getHttpClient();
         String groupObjectId = null;
         if (httpClient == null) {
             log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
@@ -472,7 +472,7 @@ public class OIDCAuthService {
      */
     private String getSSOToken() {
         JsonParser jsonParser = new JsonParser();
-        HttpClient httpClient = aadUtils.getHttpClient();
+        HttpClient httpClient = httpUtils.getHttpClient();
         String accessToken = "";
         if (httpClient == null) {
             log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
