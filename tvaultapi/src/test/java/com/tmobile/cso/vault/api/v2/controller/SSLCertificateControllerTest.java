@@ -388,4 +388,16 @@ public class SSLCertificateControllerTest {
 		String actual = result.getResponse().getContentAsString();
 		assertEquals(expected, actual);
 	}
+	
+	@Test
+	public void testdeleteCertificate_Success() {
+		String certName = "test@t-mobile.com";		
+		String certficateType = "internal";
+		when(sslCertificateService.deleteCertificate(token,certficateType, certName, userDetails ))
+				.thenReturn(new ResponseEntity<>(HttpStatus.OK));
+		when(httpServletRequest.getAttribute("UserDetails")).thenReturn(userDetails);
+		assertEquals(HttpStatus.OK,
+				sslCertificateService.deleteCertificate(token,certficateType, certName, userDetails).getStatusCode());
+
+	}
 }
