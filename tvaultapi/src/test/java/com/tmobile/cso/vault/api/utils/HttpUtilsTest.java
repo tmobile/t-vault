@@ -53,10 +53,10 @@ import static org.mockito.Mockito.when;
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 @PrepareForTest({ JSONUtil.class, HttpClientBuilder.class})
 @PowerMockIgnore({"javax.management.*", "javax.net.ssl.*"})
-public class AADUtilsTest {
+public class HttpUtilsTest {
 
     @InjectMocks
-    AADUtils aadUtils;
+    HttpUtils httpUtils;
 
     @Mock
     HttpClientBuilder httpClientBuilder;
@@ -87,7 +87,7 @@ public class AADUtilsTest {
         when(httpClientBuilder.setRedirectStrategy(any())).thenReturn(httpClientBuilder);
         when(httpClientBuilder.build()).thenReturn(httpClient);
 
-        HttpClient httpClientActual = aadUtils.getHttpClient();
+        HttpClient httpClientActual = httpUtils.getHttpClient();
         assertNotNull(httpClientActual);
     }
 

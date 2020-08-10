@@ -36,11 +36,11 @@ import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 
 @Component
-public class AADUtils {
+public class HttpUtils {
 
-	private Logger log = LogManager.getLogger(AADUtils.class);
+	private Logger log = LogManager.getLogger(HttpUtils.class);
 
-	public AADUtils() {
+	public HttpUtils() {
 		// Auto-generated constructor stub
 	}
 
