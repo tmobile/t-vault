@@ -541,4 +541,19 @@ public class OIDCAuthService {
         }
         return null;
     }
+
+    /**
+     * To get identity group details.
+     * @param groupName
+     * @return
+     */
+    public ResponseEntity<String> getIdentityGroupDetails(String groupName, String token) {
+        OIDCGroup oidcGroup = OIDCUtil.getIdentityGroupDetails(groupName, token);
+        if (oidcGroup != null) {
+            return ResponseEntity.status(HttpStatus.OK).body(JSONUtil.getJSON(oidcGroup));
+        }
+        else {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("{\"errors\":[\"Group not found\"]}");
+        }
+    }
 }
