@@ -1,6 +1,7 @@
 package com.tmobile.cso.vault.api.controller;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.when;
 
@@ -9,6 +10,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.tmobile.cso.vault.api.model.OIDCGroup;
 import org.apache.logging.log4j.LogManager;
 import org.junit.Before;
 import org.junit.FixMethodOrder;
@@ -89,4 +91,31 @@ public class OIDCUtilTest {
         assertEquals(expectedResposne, oidcEntityResponse);
     }
 
+    @Test
+    public void test_getIdentityGroupDetails_success() {
+        String group = "group1";
+        String token = "test4ig8L3EpsJZSLAMg";
+        String dataOutput = "{\"id\": \"123-123-123-123\", \"policies\": [\"r_users_safe1\", \"r_users_safe2\"]}";
+        Response responsemock = getMockResponse(HttpStatus.OK, true, dataOutput);
+
+        List<String> policies = new ArrayList<>();
+        policies.add("r_users_safe1");
+        policies.add("r_users_safe2");
+        OIDCGroup expectedOidcGroup = new OIDCGroup("123-123-123-123", policies);
+
+        when(reqProcessor.process("/identity/group/name", "{\"group\":\""+group+"\"}", token)).thenReturn(responsemock);
+        OIDCGroup oidcGroup = OIDCUtil.getIdentityGroupDetails(group, token);
+        assertEquals(expectedOidcGroup.toString(), oidcGroup.toString());
+    }
+
+    @Test
+    public void test_getIdentityGroupDetails_failed() {
+        String group = "group1";
+        String token = "test4ig8L3EpsJZSLAMg";
+        Response responsemock = getMockResponse(HttpStatus.NOT_FOUND, true, "");
+
+        when(reqProcessor.process("/identity/group/name", "{\"group\":\""+group+"\"}", token)).thenReturn(responsemock);
+        OIDCGroup oidcGroup = OIDCUtil.getIdentityGroupDetails(group, token);
+        assertEquals(null, oidcGroup);
+    }
 }
