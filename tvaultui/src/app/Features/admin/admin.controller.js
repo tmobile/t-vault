@@ -578,9 +578,9 @@
                     });
             }
             if($scope.selectedTab == 1){            	
-           	 getCertificates("", null, null,"External");
+           	 getCertificates("", null, null,"external");
            }else{        	   
-           getCertificates("", null, null,"Internal");
+           getCertificates("", null, null,"internal");
            }
         };
 
@@ -589,9 +589,9 @@
        	$scope.isInternalCert = false; 
        	$scope.isExternalCert = true;   
        	if($scope.certSearchValue == ""){
-       		getCertificates("", null, null,"External");
+       		getCertificates("", null, null,"external");
        	}else{
-       		getCertificates($scope.certSearchValue, null, null,"External");
+       		getCertificates($scope.certSearchValue, null, null,"external");
        	}
        	
        }
@@ -601,9 +601,9 @@
        	$scope.isExternalCert = false;         	
        	 $scope.selectedTab = 0;
        	 if($scope.certSearchValue == ""){
-       		 getCertificates("", null, null,"Internal");
+       		 getCertificates("", null, null,"internal");
        	 }else{
-        		getCertificates($scope.certSearchValue, null, null,"Internal");
+        		getCertificates($scope.certSearchValue, null, null,"internal");
         	}
        }
        
@@ -1766,9 +1766,9 @@
         $scope.successCancel = function () {
             Modal.close('');
             if($scope.selectedTab == 1){            	
-              	 getCertificates("", null, null,"External");
+              	 getCertificates("", null, null,"external");
               }else{        	   
-              getCertificates("", null, null,"Internal");
+              getCertificates("", null, null,"internal");
               }
         };
 
@@ -1995,8 +1995,7 @@
         $scope.openNewService = function () {	
                 $scope.existingService = false;	
                 $scope.existingTargetSystem = false;
-            if($scope.ifTargetServiceExisting == true){ 
-                alert("inside new target") ;	
+            if($scope.ifTargetServiceExisting == true){                	
                 clearTargetSystemServiceFields ();	
                 $scope.ifTargetServiceExisting = false;	
             }	
@@ -2181,7 +2180,7 @@
             Modal.createModal('md', 'renewCertPopup.html', 'AdminCtrl', $scope);
         };
         
-         $rootScope.renewCertificate = function(certificateDetails){      	
+         $rootScope.renewCertificate = function(certificateDetails){  	
                 
                	if ($rootScope.certDetails !== null && $rootScope.certDetails !== undefined) {
                		certificateDetails = $rootScope.certDetails;
@@ -2360,13 +2359,14 @@
                 try{
                 $scope.isLoadingData = true;
                 Modal.close();                
-                $scope.transferMessage = '';                             
+                $scope.transferMessage = '';  
+                var certificateName = $scope.getCertSubjectName(certificateDetails);
+                certificateDetails.certificateName = certificateName; 
                 certificateDetails.certOwnerEmailId=$scope.certObj.certDetails.ownerEmail;
                 certificateDetails.certOwnerNTId=$scope.certObj.certDetails.ownerNtId;                                  
                 certificateDetails.appName=certificateDetails.appNameTagValue;                 
                 var url = RestEndpoints.baseURL + "/v2/sslcert/transferowner";
                 $scope.isLoadingData = true;                          
-                
                 AdminSafesManagement.transferCertificate(certificateDetails, url).then(function (response) {
                     $scope.isLoadingData = false;
                     $scope.certObj.certDetails.ownerEmail="";

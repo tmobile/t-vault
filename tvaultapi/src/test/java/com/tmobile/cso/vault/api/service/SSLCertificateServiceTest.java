@@ -2081,7 +2081,7 @@ public class SSLCertificateServiceTest {
     @Test
     public void test_getgetTargetSystemList_success()throws Exception{
         String token = "12345";
-        String certType= "Internal";
+        String certType= "internal";
         String jsonStr = "{\"targetSystems\": [ {" +
                 "  \"name\" : \"abc.com\"," +
                 "  \"description\" : \"\"," +
@@ -2124,7 +2124,7 @@ public class SSLCertificateServiceTest {
     @Test
     public void test_getgetTargetSystemList_External_success()throws Exception{
         String token = "12345";
-        String certType= "External";
+        String certType= "external";
         String jsonStr = "{\"targetSystems\": [ {" +
                 "  \"name\" : \"abc.com\"," +
                 "  \"description\" : \"\"," +
@@ -2167,7 +2167,7 @@ public class SSLCertificateServiceTest {
     @Test
     public void test_getgetTargetSystemList_failed()throws Exception{
         String token = "12345";
-        String certType= "Internal";
+        String certType= "internal";
         String jsonStr = "{\"targetSystems\": [ {" +
                 "  \"name\" : \"abc.com\"," +
                 "  \"description\" : \"\"," +
@@ -2210,7 +2210,7 @@ public class SSLCertificateServiceTest {
     @Test
     public void test_getgetTargetSystemList_empty()throws Exception{
         String token = "12345";
-        String certType= "Internal";
+        String certType= "internal";
         String jsonStr = "{\"data\": [ ]}";
         CertResponse response = new CertResponse();
         response.setHttpstatus(HttpStatus.OK);
