@@ -578,9 +578,9 @@
                     });
             }
             if($scope.selectedTab == 1){            	
-           	 getCertificates("", null, null,"External");
+           	 getCertificates("", null, null,"external");
            }else{        	   
-           getCertificates("", null, null,"Internal");
+           getCertificates("", null, null,"internal");
            }
         };
 
@@ -589,9 +589,9 @@
        	$scope.isInternalCert = false; 
        	$scope.isExternalCert = true;   
        	if($scope.certSearchValue == ""){
-       		getCertificates("", null, null,"External");
+       		getCertificates("", null, null,"external");
        	}else{
-       		getCertificates($scope.certSearchValue, null, null,"External");
+       		getCertificates($scope.certSearchValue, null, null,"external");
        	}
        	
        }
@@ -601,9 +601,9 @@
        	$scope.isExternalCert = false;         	
        	 $scope.selectedTab = 0;
        	 if($scope.certSearchValue == ""){
-       		 getCertificates("", null, null,"Internal");
+       		 getCertificates("", null, null,"internal");
        	 }else{
-        		getCertificates($scope.certSearchValue, null, null,"Internal");
+        		getCertificates($scope.certSearchValue, null, null,"internal");
         	}
        }
        
@@ -1771,9 +1771,9 @@
         $scope.successCancel = function () {
             Modal.close('');
             if($scope.selectedTab == 1){            	
-              	 getCertificates("", null, null,"External");
+              	 getCertificates("", null, null,"external");
               }else{        	   
-              getCertificates("", null, null,"Internal");
+              getCertificates("", null, null,"internal");
               }
         };
 
