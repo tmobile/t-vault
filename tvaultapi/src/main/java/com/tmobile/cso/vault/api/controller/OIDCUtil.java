@@ -1,10 +1,18 @@
 package com.tmobile.cso.vault.api.controller;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.ImmutableMap;
+import com.tmobile.cso.vault.api.exception.LogMessage;
+import com.tmobile.cso.vault.api.model.OIDCGroup;
+import com.tmobile.cso.vault.api.utils.JSONUtil;
+import com.tmobile.cso.vault.api.utils.ThreadLocalContext;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -86,4 +94,36 @@ public class OIDCUtil {
 		return oidcEntityResponse;
 	}
 
+	/**
+	 * To get identity group details.
+	 * @param groupName
+	 * @param token
+	 * @return
+	 */
+	public static OIDCGroup getIdentityGroupDetails(String groupName, String token) {
+		Response response = reqProcessor.process("/identity/group/name", "{\"group\":\""+groupName+"\"}", token);
+		OIDCGroup oidcGroup = new OIDCGroup();
+		if(HttpStatus.OK.equals(response.getHttpstatus())) {
+			String responseJson = response.getResponse();
+			ObjectMapper objMapper = new ObjectMapper();
+			List<String> policies = new ArrayList<>();
+			try {
+				oidcGroup.setId(objMapper.readTree(responseJson).get("id").asText());
+				JsonNode policiesArry = objMapper.readTree(responseJson).get("policies");
+				for (JsonNode policyNode : policiesArry) {
+					policies.add(policyNode.asText());
+				}
+				oidcGroup.setPolicies(policies);
+				return oidcGroup;
+			}catch (IOException e) {
+				log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+						put(LogMessage.ACTION, "getIdentityGroupDetails").
+						put(LogMessage.MESSAGE, String.format ("Failed to get identity group details for [%s]", groupName)).
+						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+						build()));
+			}
+		}
+		return null;
+	}
 }
