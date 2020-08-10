@@ -20,6 +20,7 @@ package com.tmobile.cso.vault.api.validator;
 import java.io.IOException;
 import java.util.Arrays;
 
+import com.tmobile.cso.vault.api.common.TVaultConstants;
 import com.tmobile.cso.vault.api.model.DirectoryObjects;
 import com.tmobile.cso.vault.api.model.DirectoryUser;
 import com.tmobile.cso.vault.api.service.DirectoryService;
@@ -42,16 +43,16 @@ import org.springframework.util.StringUtils;
 
 @Component
 public class TokenValidator {
-	
+
 	@Autowired
 	private RequestProcessor reqProcessor;
-	
+
 	@Autowired
 	private AuthorizationUtils authorizationUtils;
-	
+
 	@Autowired
 	private CommonUtils commonUtils;
-	
+
 	@Autowired
 	private PolicyUtils policyUtils;
 
@@ -60,7 +61,7 @@ public class TokenValidator {
 
 	@Value("${vault.auth.method}")
 	private String vaultAuthMethod;
-	
+
 	public TokenValidator() {
 	}
 	/**
@@ -82,7 +83,7 @@ public class TokenValidator {
 				lookupDetails.setToken(token);
 				lookupDetails.setValid(true);
 				lookupDetails.setAdmin(authorizationUtils.containsAdminPolicies(Arrays.asList(policies),  policyUtils.getAdminPolicies()));
-				if ("oidc".equals(vaultAuthMethod) && objNode.get("display_name") != null) {
+				if (TVaultConstants.OIDC.equals(vaultAuthMethod) && objNode.get("display_name") != null) {
 					// display_name is in format oidc-<email>
 					String email = objNode.get("display_name").asText().substring(5);
 					if (!StringUtils.isEmpty(email)) {

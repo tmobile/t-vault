@@ -19,6 +19,7 @@ package com.tmobile.cso.vault.api.validator;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
+import com.tmobile.cso.vault.api.common.TVaultConstants;
 import com.tmobile.cso.vault.api.controller.ControllerUtil;
 import com.tmobile.cso.vault.api.exception.TVaultValidationException;
 import com.tmobile.cso.vault.api.model.DirectoryObjects;
@@ -149,7 +150,7 @@ public class TokenValidatorTest {
         ArrayList<String> adminPolicies = new ArrayList<>();
         adminPolicies.add("adminpolicy");
         expectedLookupDetails.setPolicies(policies);
-        ReflectionTestUtils.setField(tokenValidator, "vaultAuthMethod", "oidc");
+        ReflectionTestUtils.setField(tokenValidator, "vaultAuthMethod", TVaultConstants.OIDC);
         DirectoryUser directoryUser = new DirectoryUser();
         directoryUser.setDisplayName("user1");
         directoryUser.setGivenName("user1");

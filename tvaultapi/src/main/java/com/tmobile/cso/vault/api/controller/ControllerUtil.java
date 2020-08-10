@@ -92,6 +92,14 @@ public final class ControllerUtil {
 	private static String ssPassword;
 	private static SSCred sscred = null;
 
+	private static String oidcClientName;
+	private static String oidcClientId;
+	private static String oidcClientSecret;
+	private static String oidcBoundAudiences;
+	private static String oidcDiscoveryUrl;
+	private static String oidcADLoginUrl;
+	private static OIDCCred oidcCred = null;
+
 	@PostConstruct     
 	private void initStatic () {
 		vaultAuthMethod = this.tvaultAuthMethod;
@@ -100,6 +108,7 @@ public final class ControllerUtil {
 		sdbNameAllowedCharacters = this.sdbNameWhitelistedCharacters;
 		sscredFileLocation = this.sscredLocation;
 		readSSCredFile(sscredFileLocation, true);
+		readOIDCCredFile(sscredFileLocation, true);
 	}
 
 	@Autowired(required = true)
@@ -2150,7 +2159,131 @@ public final class ControllerUtil {
 		return sscred;
 	}
 
-    /**
+
+	/**
+	 * Reads the OIDCCred from the location.
+	 * @param fileLocation
+	 * @param isDelete
+	 * @return
+	 */
+	public static OIDCCred readOIDCCredFile(String fileLocation, boolean isDelete) {
+		File oidcFile = null;
+		log.debug("Trying to read oidccred file");
+		try {
+			oidcFile = new File(fileLocation+"/oidccred");
+			if (oidcFile != null && oidcFile.exists()) {
+				oidcCred = new OIDCCred();
+				Scanner sc = new Scanner(oidcFile);
+				while (sc.hasNextLine()) {
+					String line = sc.nextLine();
+					if (line.startsWith("OIDC_CLIENT_NAME=")) {
+						oidcClientName = line.substring("OIDC_CLIENT_NAME=".length(), line.length());
+						oidcCred.setClientName(line.substring("OIDC_CLIENT_NAME=".length(), line.length()));
+						log.debug("Successfully read OIDC_CLIENT_NAME from oidcCred file");
+					}
+					else if (line.startsWith("OIDC_CLIENT_ID=")) {
+						oidcClientId = line.substring("OIDC_CLIENT_ID=".length(), line.length());
+						oidcCred.setClientId(line.substring("OIDC_CLIENT_ID=".length(), line.length()));
+						log.debug("Successfully read OIDC_CLIENT_ID from oidcCred file");
+					}
+					else if (line.startsWith("OIDC_CLIENT_SECRET=")) {
+						oidcClientSecret = line.substring("OIDC_CLIENT_SECRET=".length(), line.length());
+						oidcCred.setClientSecret(line.substring("OIDC_CLIENT_SECRET=".length(), line.length()));
+						log.debug("Successfully read OIDC_CLIENT_SECRET from oidcCred file");
+					}
+					else if (line.startsWith("BOUND_AUDIENCES=")) {
+						oidcBoundAudiences = line.substring("BOUND_AUDIENCES=".length(), line.length());
+						oidcCred.setBoundAudiences(line.substring("BOUND_AUDIENCES=".length(), line.length()));
+						log.debug("Successfully read BOUND_AUDIENCES from oidcCred file");
+					}
+					else if (line.startsWith("OIDC_DISCOVERY_URL=")) {
+						oidcDiscoveryUrl = line.substring("OIDC_DISCOVERY_URL=".length(), line.length());
+						oidcCred.setDiscoveryUrl(line.substring("OIDC_DISCOVERY_URL=".length(), line.length()));
+						log.debug("Successfully read OIDC_DISCOVERY_URL from oidcCred file");
+					}
+					else if (line.startsWith("AD_LOGIN_URL=")) {
+						oidcADLoginUrl = line.substring("AD_LOGIN_URL=".length(), line.length());
+						oidcCred.setAdLoginUrl(line.substring("AD_LOGIN_URL=".length(), line.length()));
+						log.debug("Successfully read AD_LOGIN_URL from oidcCred file");
+					}
+				}
+				sc.close();
+			}
+		} catch (IOException e) {
+			log.error(String.format("Unable to read oidcCred file: [%s]", e.getMessage()));
+		}
+		try {
+			if (oidcFile != null && oidcFile.exists() && isDelete) {
+				if (oidcFile.delete()) {
+					log.debug("Successfully deleted oidcCred file");
+				}
+				else {
+					log.error("Unable to get delete oidcCred file");
+				}
+			}
+		} catch (Exception e) {
+			log.error(String.format("Unable to get delete oidcCred file: [%s]", e.getMessage()));
+		}
+		return oidcCred;
+	}
+
+	/**
+	 *
+	 * @return the oidcClientName.
+	 */
+	public static String getOidcClientName() {
+		return oidcClientName;
+	}
+
+	/**
+	 *
+	 * @return the oidcClientId.
+	 */
+	public static String getOidcClientId() {
+		return oidcClientId;
+	}
+
+	/**
+	 *
+	 * @return the oidcClientSecret.
+	 */
+	public static String getOidcClientSecret() {
+		return oidcClientSecret;
+	}
+
+	/**
+	 *
+	 * @return the oidcBoundAudiences.
+	 */
+	public static String getOidcBoundAudiences() {
+		return oidcBoundAudiences;
+	}
+
+	/**
+	 *
+	 * @return the oidcDiscoveryUrl.
+	 */
+	public static String getOidcDiscoveryUrl() {
+		return oidcDiscoveryUrl;
+	}
+
+	/**
+	 *
+	 * @return the oidcADLoginUrl.
+	 */
+	public static String getOidcADLoginUrl() {
+		return oidcADLoginUrl;
+	}
+
+	/**
+	 *
+	 * @return the oidcCred.
+	 */
+	public static OIDCCred getOidcCred() {
+		return oidcCred;
+	}
+
+	/**
      * To hide the master approle from responses to UI
      * @param response
      * @return
