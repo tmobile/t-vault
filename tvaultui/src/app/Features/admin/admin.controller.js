@@ -1504,6 +1504,7 @@
             $scope.getTargetSystems();
             $scope.multiSanDnsName.name='';
             $scope.certDnsErrorMessage='';
+            $scope.multiSan=[];
         }
 
         $scope.replaceSpacesCertName = function () {
@@ -1801,7 +1802,7 @@
                 $scope.isCertCollapsed = true;
                 $scope.targetSystemServiceType = { "type": "new" };
                 $scope.existingService = false;
-               // clearTargetSystemServiceFields();
+                clearTargetSystemServiceFields();
                 if ($scope.multiSanDnsName.name !== null && $scope.multiSanDnsName.name !== undefined 
                     && $scope.multiSanDnsName.name != "") {
                         $scope.multiSanDnsName.name ="";
