@@ -241,13 +241,12 @@ public class OIDCAuthServiceTest {
         oidcIdentityGroupRequest.setName(name);
         String jsonStr = JSONUtil.getJSON(oidcIdentityGroupRequest);
         Response response = getMockResponse(HttpStatus.OK, true, "{\"data\": [\"safeadmin\",\"vaultadmin\"]]");
-        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK)
-                .body("{\"data\": [\"safeadmin\",\"vaultadmin\"]]");
-        when(reqProcessor.process("/identity/group/name/update", jsonStr, token)).thenReturn(response);
+        String canonicalId ="123-333-33as";
+        when(OIDCUtil.updateIdentityGroupByName(token, oidcIdentityGroupRequest)).thenReturn(canonicalId);
         ResponseEntity<String> responseEntity = oidcAuthService.updateIdentityGroupByName(token,
                 oidcIdentityGroupRequest);
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
-        assertEquals(responseEntityExpected, responseEntity);
+        assertEquals(canonicalId, responseEntity.getBody());
     }
 
     @Test
@@ -283,7 +282,7 @@ public class OIDCAuthServiceTest {
         when(OIDCUtil.deleteGroupAliasByID(token, id)).thenReturn(response);
         ResponseEntity<String> responseEntity = oidcAuthService.deleteGroupAliasByID(token, id);
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
-        assertEquals(response.getResponse(), responseEntity);
+        assertEquals(response.getResponse(), responseEntity.getBody());
     }
 
     @Test
