@@ -430,7 +430,7 @@
   }
 
   .cert-conf {
-    padding-top: 15px;
+    padding-top: 10px;
   }
 
   .cert-col {
@@ -526,7 +526,7 @@
 .dns-list {
     float:left;
     margin-top: 5px;
-    height: 100px!important;
+    height: 90px!important;
     overflow: scroll!important;
 }
 
@@ -550,4 +550,13 @@
 
 .dns-name {
     padding: 5px!important;
+}
+.certificate-form-label {
+    padding: 8px 0;
+    font-weight: 700;
+    font-size: 1.7vh;
+    color: #333333;
+}
+.certmodal-sep {
+    padding: 5% 11% 2% !important;
 }
