@@ -123,12 +123,12 @@ script(type='text/ng-template', id='transferCertPopup.html')
                         input.form-control.input-box-style(ng-model="certDetails.applicationName" ng-disabled="true" name="applicationTag" required)
                         .common-form-label Application Tag
                         input.form-control.input-box-style(ng-model="certDetails.applicationTag" ng-disabled="true" name="applicationTag" required)
-                        .common-form-label Owner Email Id
+                        .common-form-label Owner Email ID
                         input.form-control.input-box-style(ng-model="certDetails.certOwnerEmailId" ng-disabled="true" name="applicationTag" required)
                         div.loader.svcaccid(ng-if='isApplicationsLoading')
                     .col-lg-12.col-md-12.col-sm-12.col-xs-12.common-form-row()
                       .details-input-group
-                        .common-form-label New Owner Email Id*
+                        .common-form-label New Owner Email ID*
                         div
                         input.form-control.input-box-style(id="certReqOwnerEmail"  ng-model="certObj.certDetails.ownerEmail" ng-change="ownerEmailValidation()" typeahead-min-length="3" uib-typeahead="key as key.userEmail for key in searchEmail($viewValue) | limitTo: 8" typeahead-wait-ms="500" typeahead-on-select="selectOwnerforCert(certObj.certDetails.ownerEmail)")
                         div.key-acceptance-info() {{ certOwnerEmailErrorMessage }}
@@ -216,7 +216,7 @@ script(type='text/ng-template', id='certificatePopup.html')
                         div.loader.svcaccid(ng-if='isApplicationsLoading')
                     .col-lg-12.col-md-12.col-sm-12.col-xs-12.common-form-row()
                       .details-input-group
-                        .certificate-form-label(uib-tooltip="Owner of the application") Owner Email Id*
+                        .certificate-form-label(uib-tooltip="Owner of the application") Owner Email ID*
                         input.form-control.input-box-style(id="certReqOwnerEmail"  ng-model="certObj.certDetails.ownerEmail" typeahead-min-length="3" uib-typeahead="key as key.userEmail for key in searchEmail($viewValue) | limitTo: 8" typeahead-wait-ms="500" typeahead-on-select="selectOwner(certObj.certDetails.ownerEmail)" ng-change="selectOwnerEmail(certObj.certDetails.ownerEmail)")
                         div.loader.svcaccid(ng-if='isUserSearchLoading && certObj.certDetails.ownerEmail.length > 2')
                             div.ball-spin-fade-loader
