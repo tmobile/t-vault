@@ -57,11 +57,6 @@ public class OIDCAuthService {
 
     @Autowired
     private RequestProcessor reqProcessor;
-
-    @Autowired
-    private TokenUtils tokenUtils;
-
-    private HttpUtils httpUtils;
     
     @Autowired
     private OIDCUtil oidcUtil;
@@ -262,7 +257,7 @@ public class OIDCAuthService {
                                 .put(LogMessage.MESSAGE, "Trying to read Group Alias By Id").put(LogMessage.APIURL,
                                 ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL))
                                 .build()));
-        Response response = reqProcessor.process("/identity/group-alias/id", "{\"id\":\"" + id + "\"}", token);
+        Response response = oidcUtil.deleteGroupAliasByID(token, id);
         return ResponseEntity.status(response.getHttpstatus()).body(response.getResponse());
     }
 
@@ -388,7 +383,7 @@ public class OIDCAuthService {
      * @return
      */
     public ResponseEntity<String> getIdentityGroupDetails(String groupName, String token) {
-        OIDCGroup oidcGroup = OIDCUtil.getIdentityGroupDetails(groupName, token);
+        OIDCGroup oidcGroup = oidcUtil.getIdentityGroupDetails(groupName, token);
         if (oidcGroup != null) {
             return ResponseEntity.status(HttpStatus.OK).body(JSONUtil.getJSON(oidcGroup));
         }

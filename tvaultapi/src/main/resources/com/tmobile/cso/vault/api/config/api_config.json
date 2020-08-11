@@ -889,7 +889,7 @@
         "outparams":["data"]
     },
 	 { "#":"****  Delete Group By Name  *****",
-    	"apiEndPoint":"/identity/group/name",
+    	"apiEndPoint":"/identity/group/name/delete",
     	"vaultEndPoint":"/identity/group/name/<name>",
     	"method":"DELETE",
     	"params":[
@@ -897,7 +897,7 @@
         ]
     },
 	 { "#":"****  Delete Group Alias By Id  *****",
-    	"apiEndPoint":"/identity/group-alias/id",
+    	"apiEndPoint":"/identity/group-alias/id/delete",
     	"vaultEndPoint":"/identity/group-alias/id/<id>",
     	"method":"DELETE",
     	"params":[
@@ -912,10 +912,7 @@
       		{"name":"name", "required":true, "appendToPath":true},
       		{"name":"name", "required":true},
       		{"name":"type", "required":true},
-      		{"name":"metadata", "required":true},
-      		{"name":"policies", "required":true},
-      		{"name":"member_group_ids", "required":true},
-      		{"name":"member_entity_ids", "required":true}
+      		{"name":"policies", "required":true}
         ],
         "outparams":["data"]
     },
@@ -924,13 +921,9 @@
     	"vaultEndPoint":"/identity/group-alias",
     	"method":"POST",
     	"params":[
-      		{"name":"name", "required":true, "appendToPath":true},
       		{"name":"name", "required":true},
-      		{"name":"type", "required":true},
-      		{"name":"metadata", "required":true},
-      		{"name":"policies", "required":true},
-      		{"name":"member_group_ids", "required":true},
-      		{"name":"member_entity_ids", "required":true}
+      		{"name":"canonical_id", "required":true},
+      		{"name":"mount_accessor", "required":true}
         ],
         "outparams":["data"]
     },
