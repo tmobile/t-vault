@@ -229,8 +229,6 @@
             $scope.targetSystemServiceRequest = {
                 'description': undefined,
                 'hostname': undefined,
-                'monitoringEnabled': undefined,
-                'multiIpMonitoringEnabled': undefined,
                 'name': undefined,
                 'port': undefined
             }
@@ -726,6 +724,8 @@
             $scope.isTargetSystemListLoading = true;
             var certType = $scope.certObj.certDetails.certType;
             //Clearing target system and service fields when we switch internal to external
+            $scope.existingTargetSystem = false;
+            $scope.targetSystemType = { "type": "new" };
             clearTargetSystemServiceFields();
             if(angular.isDefined($scope.certObj.targetSystem) && $scope.certObj.targetSystem != null && typeof $scope.certObj.targetSystem == 'object'){
                 $scope.certObj.targetSystem.name=undefined;
@@ -841,9 +841,7 @@
                 "name": $scope.targetSystemServicesList[index].name,
                 "description": $scope.targetSystemServicesList[index].description,
                 "port": $scope.targetSystemServicesList[index].port,
-                "hostname": $scope.targetSystemServicesList[index].hostname,
-                "monitoringEnabled": $scope.targetSystemServicesList[index].monitoringEnabled,
-                "multiIpMonitoringEnabled": $scope.targetSystemServicesList[index].multiIpMonitoringEnabled,
+                "hostname": $scope.targetSystemServicesList[index].hostname
             };
             $scope.targetSystemServiceSelected = true;
         }
@@ -1995,8 +1993,6 @@
                 $scope.certObj.targetSystemServiceRequest.description=undefined;
                 $scope.certObj.targetSystemServiceRequest.port=undefined;
                 $scope.certObj.targetSystemServiceRequest.hostname=undefined;
-                $scope.certObj.targetSystemServiceRequest.monitoringEnabled=undefined;
-                $scope.certObj.targetSystemServiceRequest.multiIpMonitoringEnabled=undefined;
             }
             else {
                 $scope.certObj.targetSystemServiceRequest = "";
@@ -2037,8 +2033,6 @@
                 $scope.certObj.targetSystemServiceRequest.description=undefined;
                 $scope.certObj.targetSystemServiceRequest.port=undefined;
                 $scope.certObj.targetSystemServiceRequest.hostname=undefined;
-                $scope.certObj.targetSystemServiceRequest.monitoringEnabled=undefined;
-                $scope.certObj.targetSystemServiceRequest.multiIpMonitoringEnabled=undefined;
                 $scope.targetSysServiceErrorMessage="";
                 $scope.hostNameErrorMessage="";
             }
@@ -2046,8 +2040,6 @@
                 $scope.targetSystemServiceRequest = {
                     'description': undefined,
                     'hostname': undefined,
-                    'monitoringEnabled': undefined,
-                    'multiIpMonitoringEnabled': undefined,
                     'name': undefined,
                     'port': undefined
                 }

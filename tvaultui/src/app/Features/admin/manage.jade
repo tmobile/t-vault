@@ -172,6 +172,15 @@ script(type='text/ng-template', id='transferCertFailedPopup.html')
       .clearfix.bottom-sm-sep
         button.link-style.common-btn.btn.btn-primary.btn-lg(ng-click="cancel()") CLOSE               
 
+script(type='text/ng-template', id='validateCertificateDetailPopUp.html')
+  loading-state(ng-if="isLoadingModalData")
+  .top-lg-sep(ng-if="!isLoadingModalData")
+    .top-lg-sep
+        .common-header-label.text-center Pending Approval
+      .top-lg-sep.notification-text  Certificate may not be approved or rejected from NCLM
+    .text-center.bottom-lg-sep.top-lg-sep.notification-button
+      .clearfix.bottom-sm-sep
+        button.link-style.common-btn.btn.btn-primary.btn-lg(ng-click="cancel()") CLOSE
 
 script(type='text/ng-template', id='certificatePopup.html')
           .modal-sep
@@ -579,7 +588,7 @@ script(type='text/ng-template', id='manageSecretId.html')
                                             .row.change-safe-table-container(ng-if='true')
                                               loading-state(ng-if='isLoadingData'  && 'isLoadingCerts')
                                               .row.change-data.header.solid-header(ng-show="!isLoadingData && certificateData.certificates.length>0")
-                                                   .container.name.col-lg-2.col-md-3.col-sm-2.col-xs-2 CERTIFICATE
+                                                  .container.name.col-lg-2.col-md-3.col-sm-2.col-xs-2 CERTIFICATE
                                                   .container.name.action.col-lg-2.col-md-2.col-sm-2.col-xs-2 EXPIRATION DATE
                                                   .container.name.action.col-lg-2.col-md-2.col-sm-2.col-xs-2 STATUS
                                                   .container.name.action.col-lg-2.col-md-2.col-sm-2.col-xs-2 ACTION
@@ -607,9 +616,7 @@ script(type='text/ng-template', id='manageSecretId.html')
                                                           .down.view
                                                               .list-icon(ng-click="goToAddPermissions(value)")  View/Edit                                                           
                                                           .down.view
-                                                              .list-icon(ng-click="transferCertPopup(value)") Transfer Owner     
-                                                              
-                                                      .container.radio-inputs.col-lg-2.col-md-2.col-sm-2.col-xs-2
+                                                              .list-icon(ng-click="transferCertPopup(value)") Transfer Owner
                                               .pagination-wrapper(ng-show='hasMoreCertsToShow()')
                                                   .pagination-count(ng-if="numOfCertificates>0") Displaying {{certcurrentshown}} of {{numOfCertificates}}
                                                   .pagination-button-wrapper(ng-click='showMoreCertItems()')
