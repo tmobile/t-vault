@@ -185,7 +185,6 @@
     font-size: 1.8vh;
     color: #000;
     font-family: montserratlight;
-    margin-top: 30px;
 }
 .details .right.bottom-lg-sep.top-lg-sep,
 .permissions .right.bottom-lg-sep.top-lg-sep {
@@ -830,4 +829,11 @@ input.highlightBox {
   color: #fff!important;
   background-color: #B8005E;
   border-color: #B8005E;
+}
+.certeditnotes {
+  margin-top: 10px;
+  margin-left: 0.5vw;
+  margin-bottom: 10px;
+  color: #000;
+  font-weight: bold;
 }
