@@ -971,6 +971,7 @@ public class  SafesService {
 	 * @return
 	 */
 	public ResponseEntity<String> addGroupToSafe(String token, SafeGroup safeGroup) {
+		OIDCGroup oidcGroup = new OIDCGroup();
 		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 				put(LogMessage.ACTION, "Add Group to SDB").
@@ -1033,12 +1034,20 @@ public class  SafesService {
 			List<String> policies = new ArrayList<>();
 			List<String> currentpolicies = new ArrayList<>();
 			Response getGrpResp = new Response();
+			//OIDC Changes
 			if(TVaultConstants.LDAP.equals(vaultAuthMethod)){
 				getGrpResp = reqProcessor.process("/auth/ldap/groups","{\"groupname\":\""+groupName+"\"}",token);
 			}else if (TVaultConstants.OIDC.equals(vaultAuthMethod)) {
 				//call read api with groupname
-				//currentpolicies.addAll(c);
-				getGrpResp = oidcUtil.updateGroupPolicies(token, currentpolicies, groupName);	
+				oidcGroup= oidcUtil.getIdentityGroupDetails(groupName, token);
+				if (oidcGroup != null) {
+					getGrpResp.setHttpstatus(HttpStatus.OK);
+					getGrpResp.setResponse(oidcGroup.getPolicies().toString());
+				} else {
+					getGrpResp.setHttpstatus(HttpStatus.BAD_REQUEST);
+				}
+				// currentpolicies.addAll(c);
+				
 			}
 			String responseJson="";
 
@@ -1047,8 +1056,13 @@ public class  SafesService {
 			if(HttpStatus.OK.equals(getGrpResp.getHttpstatus())){
 				responseJson = getGrpResp.getResponse();	
 				try {
-					//currentpolicies = ControllerUtil.getPoliciesAsStringFromJson(objMapper, responseJson);
-					currentpolicies = ControllerUtil.getPoliciesAsListFromJson(objMapper, responseJson);
+					//OIDC Changes
+					if (TVaultConstants.LDAP.equals(vaultAuthMethod)) {
+						currentpolicies = ControllerUtil.getPoliciesAsListFromJson(objMapper, responseJson);
+					} else if (TVaultConstants.OIDC.equals(vaultAuthMethod)) {
+						currentpolicies.addAll(oidcGroup.getPolicies());
+					}
+					
 				} catch (IOException e) {
 					log.error(e);
 				}
@@ -1063,9 +1077,15 @@ public class  SafesService {
 			}
 			String policiesString = StringUtils.join(policies, ",");
 			String currentpoliciesString = StringUtils.join(currentpolicies, ",");
-			Response ldapConfigresponse = ControllerUtil.configureLDAPGroup(groupName,policiesString,token);
-
-			if(ldapConfigresponse.getHttpstatus().equals(HttpStatus.NO_CONTENT)){
+			Response ldapConfigresponse = new Response();
+			//OIDC Changes
+			if (TVaultConstants.LDAP.equals(vaultAuthMethod)) {
+				ldapConfigresponse = ControllerUtil.configureLDAPGroup(groupName, policiesString, token);
+			} else if (TVaultConstants.OIDC.equals(vaultAuthMethod)) {
+				ldapConfigresponse = oidcUtil.updateGroupPolicies(token, groupName, policies, currentpolicies, oidcGroup.getId());
+			}
+			if (ldapConfigresponse.getHttpstatus().equals(HttpStatus.NO_CONTENT)
+					|| ldapConfigresponse.getHttpstatus().equals(HttpStatus.OK)) {
 				Map<String,String> params = new HashMap<String,String>();
 				params.put("type", "groups");
 				params.put("name",groupName);
@@ -1119,7 +1139,14 @@ public class  SafesService {
 								put(LogMessage.STATUS, (null!=metadataResponse)?metadataResponse.getHttpstatus().toString():TVaultConstants.EMPTY).
 								put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 								build()));
-						ldapConfigresponse = ControllerUtil.configureLDAPGroup(groupName,currentpoliciesString,token);
+						//OIDC Changes
+						if (TVaultConstants.LDAP.equals(vaultAuthMethod)) {
+							ldapConfigresponse = ControllerUtil.configureLDAPGroup(groupName, currentpoliciesString,
+									token);
+						} else if (TVaultConstants.OIDC.equals(vaultAuthMethod)) {
+							ldapConfigresponse = oidcUtil.updateGroupPolicies(token, groupName, currentpolicies,
+									currentpolicies, oidcGroup.getId());
+						}
 						if(ldapConfigresponse.getHttpstatus().equals(HttpStatus.NO_CONTENT)){
 							log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 									put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
@@ -1431,6 +1458,7 @@ public class  SafesService {
 	 * @return
 	 */
 	public ResponseEntity<String> removeGroupFromSafe(String token, SafeGroup safeGroup) {
+		OIDCGroup oidcGroup = new OIDCGroup();
 		String jsonstr = JSONUtil.getJSON(safeGroup);
 		if (TVaultConstants.USERPASS.equals(vaultAuthMethod)) {
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"This operation is not supported for Userpass authentication. \"]}");
@@ -1465,7 +1493,21 @@ public class  SafesService {
 					}
 				}
 			}
-			Response userResponse = reqProcessor.process("/auth/ldap/groups","{\"groupname\":\""+groupName+"\"}",token);
+			Response userResponse = new Response();
+			//OIDC changes
+			if( TVaultConstants.LDAP.equals(vaultAuthMethod)){
+				userResponse = reqProcessor.process("/auth/ldap/groups","{\"groupname\":\""+groupName+"\"}",token);
+			}else if (TVaultConstants.OIDC.equals(vaultAuthMethod)) {
+				//call read api with groupname
+				oidcGroup= oidcUtil.getIdentityGroupDetails(groupName, token);
+				if (oidcGroup != null) {
+					userResponse.setHttpstatus(HttpStatus.OK);
+					userResponse.setResponse(oidcGroup.getPolicies().toString());
+				} else {
+					userResponse.setHttpstatus(HttpStatus.BAD_REQUEST);
+				}
+			}
+			
 			String responseJson="";
 			List<String> policies = new ArrayList<>();
 			List<String> currentpolicies = new ArrayList<>();
@@ -1473,8 +1515,13 @@ public class  SafesService {
 			if(HttpStatus.OK.equals(userResponse.getHttpstatus())){
 				responseJson = userResponse.getResponse();	
 				try {
-					//currentpolicies = ControllerUtil.getPoliciesAsStringFromJson(objMapper, responseJson);
-					currentpolicies = ControllerUtil.getPoliciesAsListFromJson(objMapper, responseJson);
+					//OIDC Changes
+					if (TVaultConstants.LDAP.equals(vaultAuthMethod)) {
+						currentpolicies = ControllerUtil.getPoliciesAsListFromJson(objMapper, responseJson);
+					} else if (TVaultConstants.OIDC.equals(vaultAuthMethod)) {
+						currentpolicies.addAll(oidcGroup.getPolicies());
+					}
+					
 				} catch (IOException e) {
 					log.error(e);
 				}
@@ -1484,8 +1531,16 @@ public class  SafesService {
 				policies.remove(d_policy);
 				String policiesString = StringUtils.join(policies, ",");
 				String currentpoliciesString = StringUtils.join(currentpolicies, ",");
-				Response ldapConfigresponse = ControllerUtil.configureLDAPGroup(groupName,policiesString,token);
-				if(ldapConfigresponse.getHttpstatus().equals(HttpStatus.NO_CONTENT)){ 
+				Response ldapConfigresponse = new Response();
+				//OIDC Changes
+				if (TVaultConstants.LDAP.equals(vaultAuthMethod)) {
+					ldapConfigresponse = ControllerUtil.configureLDAPGroup(groupName, policiesString, token);
+				} else if (TVaultConstants.OIDC.equals(vaultAuthMethod)) {
+					ldapConfigresponse = oidcUtil.updateGroupPolicies(token, groupName, policies, currentpolicies,
+							oidcGroup.getId());
+				}
+				if (ldapConfigresponse.getHttpstatus().equals(HttpStatus.NO_CONTENT)
+						|| ldapConfigresponse.getHttpstatus().equals(HttpStatus.OK)) { 
 					Map<String,String> params = new HashMap<String,String>();
 					params.put("type", "groups");
 					params.put("name",groupName);
@@ -1518,7 +1573,14 @@ public class  SafesService {
 						else {
 							log.debug("Meta data update failed");
 							log.debug((null!=metadataResponse)?metadataResponse.getResponse():TVaultConstants.EMPTY);
-							ldapConfigresponse = ControllerUtil.configureLDAPGroup(groupName,currentpoliciesString,token);
+							//OIDC Changes
+							if (TVaultConstants.LDAP.equals(vaultAuthMethod)) {
+								ldapConfigresponse = ControllerUtil.configureLDAPGroup(groupName, currentpoliciesString,
+										token);
+							} else if (TVaultConstants.OIDC.equals(vaultAuthMethod)) {
+								ldapConfigresponse = oidcUtil.updateGroupPolicies(token, groupName, currentpolicies,
+										currentpolicies, oidcGroup.getId());
+							}
 							if(ldapConfigresponse.getHttpstatus().equals(HttpStatus.NO_CONTENT)){
 								log.debug("Reverting user policy update");
 								return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"messages\":[\"Group configuration failed.Please try again\"]}");

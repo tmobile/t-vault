@@ -74,10 +74,6 @@ public class OIDCUtilTest {
 
     @InjectMocks
     OIDCUtil oidcUtil;
-
-	
-	@Mock
-	OIDCUtil OIDCUtil;
     
     @Before
     public void setUp() {
@@ -85,7 +81,6 @@ public class OIDCUtilTest {
         PowerMockito.mockStatic(ControllerUtil.class);
 
         Whitebox.setInternalState(OIDCUtil.class, "log", LogManager.getLogger(OIDCUtil.class));
-        Whitebox.setInternalState(OIDCUtil.class, "reqProcessor", reqProcessor);
         when(JSONUtil.getJSON(Mockito.any(ImmutableMap.class))).thenReturn("log");
 
         Map<String, String> currentMap = new HashMap<>();
@@ -110,7 +105,7 @@ public class OIDCUtilTest {
         String dataOutput = "{\"data\":{\"oidc/\":{\"accessor\":\"auth_oidc_8b51f292\",\"config\":{\"default_lease_ttl\":0,\"force_no_cache\":false,\"max_lease_ttl\":0,\"token_type\":\"default-service\"},\"description\":\"\",\"external_entropy_access\":false,\"local\":false,\"options\":null,\"seal_wrap\":false,\"type\":\"oidc\",\"uuid\":\"fbd45cc4-d6b6-8b49-6d1a-d4d931345df9\"}}}";
         Response responsemock = getMockResponse(HttpStatus.OK, true, dataOutput);
         when(reqProcessor.process(eq("/sys/list"),Mockito.any(),eq(token))).thenReturn(responsemock);
-        String mountAccessor = OIDCUtil.fetchMountAccessorForOidc(token);
+        String mountAccessor = oidcUtil.fetchMountAccessorForOidc(token);
         assertEquals("auth_oidc_8b51f292", mountAccessor);
     }
     
@@ -122,7 +117,7 @@ public class OIDCUtilTest {
         List<String> policies = new ArrayList<>();
         policies.add("safeadmin");
         expectedResposne.setPolicies(policies);
-        OIDCEntityResponse oidcEntityResponse = OIDCUtil.getEntityLookUpResponse(authMountResponse);
+        OIDCEntityResponse oidcEntityResponse = oidcUtil.getEntityLookUpResponse(authMountResponse);
         assertEquals(expectedResposne, oidcEntityResponse);
     }
 
@@ -139,7 +134,7 @@ public class OIDCUtilTest {
         OIDCGroup expectedOidcGroup = new OIDCGroup("123-123-123-123", policies);
 
         when(reqProcessor.process("/identity/group/name", "{\"group\":\""+group+"\"}", token)).thenReturn(responsemock);
-        OIDCGroup oidcGroup = OIDCUtil.getIdentityGroupDetails(group, token);
+        OIDCGroup oidcGroup = oidcUtil.getIdentityGroupDetails(group, token);
         assertEquals(expectedOidcGroup.toString(), oidcGroup.toString());
     }
 
@@ -150,7 +145,7 @@ public class OIDCUtilTest {
         Response responsemock = getMockResponse(HttpStatus.NOT_FOUND, true, "");
 
         when(reqProcessor.process("/identity/group/name", "{\"group\":\""+group+"\"}", token)).thenReturn(responsemock);
-        OIDCGroup oidcGroup = OIDCUtil.getIdentityGroupDetails(group, token);
+        OIDCGroup oidcGroup = oidcUtil.getIdentityGroupDetails(group, token);
         assertEquals(null, oidcGroup);
     }
 

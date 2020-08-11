@@ -34,12 +34,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 
-import com.google.common.collect.ImmutableMap;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.tmobile.cso.vault.api.common.TVaultConstants;
-import com.tmobile.cso.vault.api.exception.LogMessage;
 import com.tmobile.cso.vault.api.model.DirectoryObjects;
 import com.tmobile.cso.vault.api.model.DirectoryUser;
 import com.tmobile.cso.vault.api.model.GroupAliasRequest;
@@ -49,8 +47,6 @@ import com.tmobile.cso.vault.api.model.OIDCLookupEntityRequest;
 import com.tmobile.cso.vault.api.process.RequestProcessor;
 import com.tmobile.cso.vault.api.process.Response;
 import com.tmobile.cso.vault.api.service.DirectoryService;
-import com.tmobile.cso.vault.api.utils.JSONUtil;
-import com.tmobile.cso.vault.api.utils.ThreadLocalContext;
 
 @Component
 public class OIDCUtil {
@@ -64,7 +60,6 @@ public class OIDCUtil {
 	@Value("${sso.azure.groupsendpoint}")
 	private String ssoGroupsEndpoint;
 
-	private static RequestProcessor reqProcessor;
 	public static final Logger log = LogManager.getLogger(OIDCUtil.class);
 	
 	@Autowired
@@ -72,8 +67,6 @@ public class OIDCUtil {
 	
 	@Autowired
 	private DirectoryService directoryService;
-	
-	public static final Logger log = LogManager.getLogger(OIDCUtil.class);
 	
 	/**
 	 * Fetch mount accessor id from oidc mount
@@ -131,35 +124,45 @@ public class OIDCUtil {
 	
 	/**
 	 * Update Group Policies
+	 * 
 	 * @param token
-	 * @param policies
 	 * @param groupName
+	 * @param policies
+	 * @param currentPolicies
+	 * @param id
 	 * @return
 	 */
-	public Response updateGroupPolicies(String token, List<String> policies, String groupName) {
+	public Response updateGroupPolicies(String token, String groupName, List<String> policies,
+			List<String> currentPolicies, String id) {
 
-		// Delete Group By Name
-		Response response = deleteGroupByName(token, groupName);
-		if (response.getHttpstatus().equals(HttpStatus.OK)) {
-			OIDCIdentityGroupRequest oidcIdentityGroupRequest = new OIDCIdentityGroupRequest();
-			oidcIdentityGroupRequest.setName(groupName);
-			oidcIdentityGroupRequest.setPolicies(policies);
-			oidcIdentityGroupRequest.setType(TVaultConstants.EXTERNAL_TYPE);
-			String canonicalID = updateIdentityGroupByName(token, oidcIdentityGroupRequest);
-			if (canonicalID != null) {
+		OIDCIdentityGroupRequest oidcIdentityGroupRequest = new OIDCIdentityGroupRequest();
+		oidcIdentityGroupRequest.setName(groupName);
+		oidcIdentityGroupRequest.setType(TVaultConstants.EXTERNAL_TYPE);
+		// Delete Group Alias By ID
+		Response response = deleteGroupAliasByID(token, id);
+		if (response.getHttpstatus().equals(HttpStatus.NO_CONTENT)) {
+			// Delete Group By Name
+			Response deleteGroupResponse = deleteGroupByName(token, groupName);
+			if (deleteGroupResponse.getHttpstatus().equals(HttpStatus.NO_CONTENT)) {
+				oidcIdentityGroupRequest.setPolicies(policies);
+				String canonicalID = updateIdentityGroupByName(token, oidcIdentityGroupRequest);
 				String mountAccessor = fetchMountAccessorForOidc(token);
 				// Object Id call object Api
-				String objectId = "";
-				GroupAliasRequest groupAliasRequest = new GroupAliasRequest();
-				groupAliasRequest.setCanonical_id(canonicalID);
-				groupAliasRequest.setMount_accessor(mountAccessor);
-				groupAliasRequest.setName(objectId);
-				return createGroupAlias(token, groupAliasRequest);
-			} else {
-				response.setHttpstatus(HttpStatus.BAD_REQUEST);
-				return response;
+				String ssoToken = getSSOToken();
+				String objectId = getGroupObjectResponse(ssoToken, groupName);
+				if (!StringUtils.isEmpty(canonicalID) && !StringUtils.isEmpty(mountAccessor)
+						&& !StringUtils.isEmpty(objectId)) {
+					// Update Group Alias
+					GroupAliasRequest groupAliasRequest = new GroupAliasRequest();
+					groupAliasRequest.setCanonical_id(canonicalID);
+					groupAliasRequest.setMount_accessor(mountAccessor);
+					groupAliasRequest.setName(objectId);
+					return createGroupAlias(token, groupAliasRequest);
+				}
 			}
 		}
+		oidcIdentityGroupRequest.setPolicies(currentPolicies);
+		updateIdentityGroupByName(token, oidcIdentityGroupRequest);
 		response.setHttpstatus(HttpStatus.BAD_REQUEST);
 		return response;
 	}
@@ -171,7 +174,7 @@ public class OIDCUtil {
 	 * @return
 	 */
 	public Response deleteGroupByName(String token, String name) {
-		return reqProcessor.process("/identity/group/name", "{\"name\":\"" + name + "\"}", token);
+		return reqProcessor.process("/identity/group/name/delete", "{\"name\":\"" + name + "\"}", token);
 	}
 
 	/**
@@ -180,7 +183,7 @@ public class OIDCUtil {
 	 * @param token
 	 * @return
 	 */
-	public static OIDCGroup getIdentityGroupDetails(String groupName, String token) {
+	public OIDCGroup getIdentityGroupDetails(String groupName, String token) {
 		Response response = reqProcessor.process("/identity/group/name", "{\"group\":\""+groupName+"\"}", token);
 		if(HttpStatus.OK.equals(response.getHttpstatus())) {
 			String responseJson = response.getResponse();
@@ -437,5 +440,15 @@ public class OIDCUtil {
 					.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
 			return ResponseEntity.status(response.getHttpstatus()).body(oidcEntityResponse);
 		}
+	}
+	
+	/**
+	 * Delete Group Alias By ID
+	 * @param token
+	 * @param id
+	 * @return
+	 */
+	public Response deleteGroupAliasByID(String token, String id) {
+		return reqProcessor.process("/identity/group-alias/id/delete", "{\"id\":\"" + id + "\"}", token);
 	}
 }
