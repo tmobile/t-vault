@@ -56,6 +56,7 @@
             Idle.setIdle(180);
             Idle.setTimeout(leaseDuration - 180);
             Keepalive.setInterval(leaseDuration - 60);
+            Idle.watch();
           }, function (error) {
             logout(false);
             console.log("error retrieving token", error);

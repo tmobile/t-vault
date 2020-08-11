@@ -29,7 +29,7 @@
                     scope.showingDropdown = !scope.showingDropdown;
                 };
                 scope.logout = function() {
-                    Authentication.logout();
+                    Authentication.logout(false);
                 }               
             }
         }
