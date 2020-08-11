@@ -2007,31 +2007,28 @@
             $scope.targetSystemServiceSelected = false;
             }	
         	
-        $scope.openNewService = function () {	
-                $scope.existingService = false;	
-                $scope.existingTargetSystem = false;
-            if($scope.ifTargetServiceExisting == true){                	
-                clearTargetSystemServiceFields ();	
-                $scope.ifTargetServiceExisting = false;	
-            }	
-            if ($scope.serviceListTableOptions.length >0) {	
-                setTargetSystemServiceList("Select service", $scope.serviceListTableOptions);	
-            }	
-            else {	
-                if ($scope.showServiceInputLoader.show == true) {	
-                    setTargetSystemServiceList("Loading services..", []);	
-                }	
-                else {	
-                if ($scope.targetSystemSelected == false) {	
-                    setTargetSystemServiceList("No target system selected", []);	
-                    }	
-                else {	
-                    setTargetSystemServiceList("No service available", []);	
-                    }	
-                }   	
-            }	
-            $scope.targetSystemServiceSelected = false;	
-        }   
+        $scope.openNewService = function () {
+            $scope.existingService = false;
+            $scope.targetSystemServiceSelected = false;
+
+            clearTargetSystemServiceFields();
+            if ($scope.serviceListTableOptions.length >0) {
+                setTargetSystemServiceList("Select service", $scope.serviceListTableOptions);
+            }
+            else {
+                if ($scope.showServiceInputLoader.show == true) {
+                    setTargetSystemServiceList("Loading services..", []);
+                }
+                else {
+                    if ($scope.targetSystemSelected == false) {
+                        setTargetSystemServiceList("No target system selected", []);
+                    }
+                    else {
+                        setTargetSystemServiceList("No service available", []);
+                    }
+                }
+            }
+        }
 
         var clearTargetSystemServiceFields = function () {
             if(angular.isDefined($scope.certObj.targetSystemServiceRequest) && $scope.certObj.targetSystemServiceRequest != null && typeof $scope.certObj.targetSystemServiceRequest == 'object'){  
