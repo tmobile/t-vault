@@ -98,6 +98,9 @@ public class SafesServiceTest {
     
     @Mock
     TokenUtils tokenUtils;
+    
+    @Mock
+    OIDCUtil OIDCUtil;
 
     @Before
     public void setUp() {
