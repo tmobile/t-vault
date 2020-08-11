@@ -30,6 +30,11 @@ import java.util.Map;
 import com.tmobile.cso.vault.api.model.*;
 
 import com.tmobile.cso.vault.api.utils.*;
+
+import org.apache.http.HttpEntity;
+import org.apache.http.StatusLine;
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.logging.log4j.LogManager;
 import org.junit.Before;
 import org.junit.FixMethodOrder;
@@ -66,10 +71,8 @@ public class OIDCAuthServiceTest {
 
     @Mock
     private RequestProcessor reqProcessor;
-
+    
     @Mock
-    OIDCUtil oidcUtil;
-
     StatusLine statusLine;
 
     @Mock
@@ -151,8 +154,7 @@ public class OIDCAuthServiceTest {
 
         ResponseEntity<OIDCEntityResponse> responseEntityExpected = ResponseEntity.status(HttpStatus.OK)
                 .body(oidcEntityResponse);
-        when(reqProcessor.process("/identity/lookup/entity", jsonStr, token)).thenReturn(response);
-
+        when(OIDCUtil.entityLookUp(token, oidcLookupEntityRequest)).thenReturn(responseEntityExpected);
         ResponseEntity<OIDCEntityResponse> responseEntity = oidcAuthService.entityLookUp(token, oidcLookupEntityRequest);
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
@@ -266,13 +268,11 @@ public class OIDCAuthServiceTest {
         String token = "4EpPYDSfgN2D4Gf7UmNO3nuL";
         String entityName = "1234ae-45fg";
         Response response = getMockResponse(HttpStatus.OK, true, "{\"data\": [\"safeadmin\",\"vaultadmin\"]]");
-        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK)
-                .body("{\"data\": [\"safeadmin\",\"vaultadmin\"]]");
-        when(reqProcessor.process("/identity/group/name", "{\"name\":\"" + entityName + "\"}", token))
-                .thenReturn(response);
+		when(OIDCUtil.deleteGroupByName(token, entityName)).thenReturn(response);
+
         ResponseEntity<String> responseEntity = oidcAuthService.deleteGroupByName(token, entityName);
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
-        assertEquals(responseEntityExpected, responseEntity);
+        assertEquals(response.getResponse(), responseEntity.getBody());
     }
 
     @Test
@@ -280,12 +280,10 @@ public class OIDCAuthServiceTest {
         String token = "4EpPYDSfgN2D4Gf7UmNO3nuL";
         String id = "1234ae-45fg";
         Response response = getMockResponse(HttpStatus.OK, true, "{\"data\": [\"safeadmin\",\"vaultadmin\"]]");
-        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK)
-                .body("{\"data\": [\"safeadmin\",\"vaultadmin\"]]");
-        when(reqProcessor.process("/identity/group-alias/id", "{\"id\":\"" + id + "\"}", token)).thenReturn(response);
+        when(OIDCUtil.deleteGroupAliasByID(token, id)).thenReturn(response);
         ResponseEntity<String> responseEntity = oidcAuthService.deleteGroupAliasByID(token, id);
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
-        assertEquals(responseEntityExpected, responseEntity);
+        assertEquals(response.getResponse(), responseEntity);
     }
 
     @Test
@@ -299,12 +297,10 @@ public class OIDCAuthServiceTest {
         groupAliasRequest.setName("name");
         String jsonStr = JSONUtil.getJSON(groupAliasRequest);
         Response response = getMockResponse(HttpStatus.OK, true, "{\"data\": [\"safeadmin\",\"vaultadmin\"]]");
-        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK)
-                .body("{\"data\": [\"safeadmin\",\"vaultadmin\"]]");
-        when(reqProcessor.process("/identity/group-alias", jsonStr, token)).thenReturn(response);
+        when(OIDCUtil.createGroupAlias(token, groupAliasRequest)).thenReturn(response);
         ResponseEntity<String> responseEntity = oidcAuthService.createGroupAlias(token, groupAliasRequest);
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
-        assertEquals(responseEntityExpected, responseEntity);
+        assertEquals(response.getResponse(), responseEntity.getBody());
     }
 
     @Test
@@ -411,8 +407,8 @@ public class OIDCAuthServiceTest {
 
         String ssoToken = "abcd";
         String groupName = "group1";
-        when(oidcUtil.getSSOToken()).thenReturn(ssoToken);
-        when(oidcUtil.getGroupObjectResponse(ssoToken, groupName)).thenReturn("abcdefg");
+        when(OIDCUtil.getSSOToken()).thenReturn(ssoToken);
+        when(OIDCUtil.getGroupObjectResponse(ssoToken, groupName)).thenReturn("abcdefg");
 
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body("{\"data\":{\"objectId\": \"abcdefg\"}}");
         ResponseEntity<String> responseEntityActual =
@@ -427,8 +423,8 @@ public class OIDCAuthServiceTest {
 
         String ssoToken = "abcd";
         String groupName = "group1";
-        when(oidcUtil.getSSOToken()).thenReturn(ssoToken);
-        when(oidcUtil.getGroupObjectResponse(ssoToken, groupName)).thenReturn(null);
+        when(OIDCUtil.getSSOToken()).thenReturn(ssoToken);
+        when(OIDCUtil.getGroupObjectResponse(ssoToken, groupName)).thenReturn(null);
 
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.NOT_FOUND).body("{\"errors\":[\"Group not found in Active Directory\"]}");
         ResponseEntity<String> responseEntityActual =
@@ -442,7 +438,7 @@ public class OIDCAuthServiceTest {
 
         String ssoToken = "abcd";
         String groupName = "group1";
-        when(oidcUtil.getSSOToken()).thenReturn(null);
+        when(OIDCUtil.getSSOToken()).thenReturn(null);
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Failed to get SSO token for Azure AD access\"]}");
         ResponseEntity<String> responseEntityActual =
                 oidcAuthService.getGroupObjectIdFromAzure(groupName);
