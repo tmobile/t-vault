@@ -2,6 +2,7 @@ package com.tmobile.cso.vault.api.model;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import java.io.Serializable;
+import java.util.List;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class SSLCertificateMetadataDetails implements Serializable {
 
@@ -23,13 +24,13 @@ public class SSLCertificateMetadataDetails implements Serializable {
     private String certOwnerNtid;
     private int containerId;
     private String requestStatus;
-    private String dnsNames;
+    private List<String> dnsNames;
 
-    public String getDnsNames() {
+    public List<String> getDnsNames() {
         return dnsNames;
     }
 
-    public void setDnsNames(String dnsNames) {
+    public void setDnsNames(List<String> dnsNames) {
         this.dnsNames = dnsNames;
     }
 

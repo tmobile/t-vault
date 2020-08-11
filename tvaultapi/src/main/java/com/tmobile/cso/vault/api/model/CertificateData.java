@@ -13,15 +13,15 @@ public class CertificateData {
     private String containerName;
     private String certificateName;
     private String authority;
-    private String dnsNames;
+    private List<String> dnsNames;
 	private Integer previousCertId;
 	private List<Integer> deployStatus;
 
-    public String getDnsNames() {
+    public List<String> getDnsNames() {
         return dnsNames;
     }
     
-    public void setDnsNames(String dnsNames) {
+    public void setDnsNames(List<String> dnsNames) {
         this.dnsNames = dnsNames;
     }    
 
