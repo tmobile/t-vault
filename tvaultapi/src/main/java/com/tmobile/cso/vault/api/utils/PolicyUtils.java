@@ -22,7 +22,6 @@ import java.util.ArrayList;
 
 import com.tmobile.cso.vault.api.common.TVaultConstants;
 import com.tmobile.cso.vault.api.model.OIDCEntityResponse;
-import com.tmobile.cso.vault.api.service.SafesService;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,6 +33,7 @@ import org.springframework.stereotype.Component;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
 import com.tmobile.cso.vault.api.controller.ControllerUtil;
+import com.tmobile.cso.vault.api.controller.OIDCUtil;
 import com.tmobile.cso.vault.api.exception.LogMessage;
 import com.tmobile.cso.vault.api.process.Response;
 @Component
@@ -43,9 +43,9 @@ public class PolicyUtils {
 	
 	@Value("${vault.auth.method}")
 	private String vaultAuthMethod;
-
+	
 	@Autowired
-	SafesService safesService;
+	private OIDCUtil oidcUtil;
 	
 	public PolicyUtils() {
 		// TODO Auto-generated constructor stub
@@ -101,7 +101,7 @@ public class PolicyUtils {
 			userResponse = ControllerUtil.getReqProcessor().process("/auth/ldap/users","{\"username\":\""+username+"\"}",token);
 		}
 		else if(TVaultConstants.OIDC.equals(vaultAuthMethod)) {
-			ResponseEntity<OIDCEntityResponse> responseEntity = safesService.oidcFetchEntityDetails(token,	username);
+			ResponseEntity<OIDCEntityResponse> responseEntity = oidcUtil.oidcFetchEntityDetails(token, username);
 			userResponse.setHttpstatus(responseEntity.getStatusCode());
 			if (HttpStatus.OK.equals(responseEntity.getStatusCode())) {
 				policies = responseEntity.getBody().getPolicies().stream().toArray(String[] :: new);

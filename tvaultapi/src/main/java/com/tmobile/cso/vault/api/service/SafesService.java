@@ -79,7 +79,7 @@ public class  SafesService {
 	private OIDCAuthService oidcAuthService;
 	
 	@Autowired
-	private DirectoryService directoryService;
+	private OIDCUtil oidcUtil;
 	
 	private static Logger log = LogManager.getLogger(SafesService.class);
 
@@ -738,8 +738,7 @@ public class  SafesService {
 				userResponse = reqProcessor.process("/auth/ldap/users", "{\"username\":\"" + userName + "\"}", token);
 			} else if (TVaultConstants.OIDC.equals(vaultAuthMethod)){
 				// OIDC implementation changes
-				ResponseEntity<OIDCEntityResponse> responseEntity = oidcFetchEntityDetails(token,
-						userName);
+				ResponseEntity<OIDCEntityResponse> responseEntity = oidcUtil.oidcFetchEntityDetails(token, userName);
 				if (!responseEntity.getStatusCode().equals(HttpStatus.OK)) {
 					if (responseEntity.getStatusCode().equals(HttpStatus.FORBIDDEN)) {
 						log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
@@ -946,30 +945,6 @@ public class  SafesService {
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid 'path' specified\"]}");
 		}
 	}
-	
-	/**
-	 * Common method to Fetch OIDC entity details
-	 * 
-	 * @param token
-	 * @param username
-	 * @return
-	 */
-	public ResponseEntity<OIDCEntityResponse> oidcFetchEntityDetails(String token, String username) {
-		String mountAccessor = OIDCUtil.fetchMountAccessorForOidc(token);
-		if (!StringUtils.isEmpty(mountAccessor)) {
-			ResponseEntity<DirectoryObjects> response = directoryService.searchByCorpId(username);
-			String aliasName = "";
-			Object[] results = response.getBody().getData().getValues();
-			for (Object tp : results) {
-				aliasName = ((DirectoryUser) tp).getUserEmail();
-			}
-			OIDCLookupEntityRequest oidcLookupEntityRequest = new OIDCLookupEntityRequest();
-			oidcLookupEntityRequest.setAlias_name(aliasName);
-			oidcLookupEntityRequest.setAlias_mount_accessor(mountAccessor);
-			return oidcAuthService.entityLookUp(token, oidcLookupEntityRequest);
-		}
-		return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new OIDCEntityResponse());
-	}
 
 	/**
 	 * Update Entity by name
@@ -1055,11 +1030,19 @@ public class  SafesService {
 					}
 				}
 			}
-			Response getGrpResp = reqProcessor.process("/auth/ldap/groups","{\"groupname\":\""+groupName+"\"}",token);
-			String responseJson="";
-
 			List<String> policies = new ArrayList<>();
 			List<String> currentpolicies = new ArrayList<>();
+			Response getGrpResp = new Response();
+			if(TVaultConstants.LDAP.equals(vaultAuthMethod)){
+				getGrpResp = reqProcessor.process("/auth/ldap/groups","{\"groupname\":\""+groupName+"\"}",token);
+			}else if (TVaultConstants.OIDC.equals(vaultAuthMethod)) {
+				//call read api with groupname
+				//currentpolicies.addAll(c);
+				getGrpResp = oidcUtil.updateGroupPolicies(token, currentpolicies, groupName);	
+			}
+			String responseJson="";
+
+			
 
 			if(HttpStatus.OK.equals(getGrpResp.getHttpstatus())){
 				responseJson = getGrpResp.getResponse();	
@@ -1235,7 +1218,7 @@ public class  SafesService {
 				userResponse = reqProcessor.process("/auth/ldap/users", "{\"username\":\"" + userName + "\"}", token);
 			} else if (TVaultConstants.OIDC.equals(vaultAuthMethod)){
 				// OIDC implementation changes
-				ResponseEntity<OIDCEntityResponse> responseEntity = oidcFetchEntityDetails(token, userName);
+				ResponseEntity<OIDCEntityResponse> responseEntity = oidcUtil.oidcFetchEntityDetails(token, userName);
 				if (!responseEntity.getStatusCode().equals(HttpStatus.OK)) {
 					if (responseEntity.getStatusCode().equals(HttpStatus.FORBIDDEN)) {
 						log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder()

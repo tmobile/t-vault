@@ -125,4 +125,5 @@ public class TVaultConstants {
     public static final String ALIAS_MOUNT_ACCESSOR = "accessor";
     public static final String ENTITY_NAME = "name";
     public static final String POLICIES = "policies";
+    public static final String EXTERNAL_TYPE = "external";
 }

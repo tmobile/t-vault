@@ -70,6 +70,24 @@ public class OIDCAuthServiceTest {
     @Mock
     OIDCUtil oidcUtil;
 
+    StatusLine statusLine;
+
+    @Mock
+    HttpEntity mockHttpEntity;
+
+    @Mock
+    CloseableHttpClient httpClient;
+
+    @Mock
+    CloseableHttpResponse httpResponse;
+
+    @Mock
+    HttpUtils httpUtils;
+    
+    @Mock
+    OIDCUtil OIDCUtil;
+
+
     @Before
     public void setUp()
             throws NoSuchMethodException, InvocationTargetException, IllegalAccessException, NoSuchFieldException {

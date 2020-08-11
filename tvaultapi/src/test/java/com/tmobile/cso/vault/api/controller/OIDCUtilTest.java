@@ -75,6 +75,10 @@ public class OIDCUtilTest {
     @InjectMocks
     OIDCUtil oidcUtil;
 
+	
+	@Mock
+	OIDCUtil OIDCUtil;
+    
     @Before
     public void setUp() {
         PowerMockito.mockStatic(JSONUtil.class);
