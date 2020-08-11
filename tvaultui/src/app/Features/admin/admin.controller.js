@@ -1504,6 +1504,7 @@
             $scope.getTargetSystems();
             $scope.multiSanDnsName.name='';
             $scope.certDnsErrorMessage='';
+            $scope.multiSan=[];
         }
 
         $scope.replaceSpacesCertName = function () {
