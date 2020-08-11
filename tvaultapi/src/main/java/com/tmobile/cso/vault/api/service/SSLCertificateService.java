@@ -4655,8 +4655,13 @@ public class SSLCertificateService {
 						Integer.parseInt(jsonElement.get("previous").getAsString()) : null));
 				if(Objects.nonNull(jsonElement.getAsJsonObject("subjectAltName"))){
                     JsonObject subjectAltNameObject = jsonElement.getAsJsonObject("subjectAltName");
-                    certificateData.setDnsNames(subjectAltNameObject.getAsJsonArray("dns").toString());
-                }
+                    JsonArray jsonArr = subjectAltNameObject.getAsJsonArray("dns");
+                    List<String> list = new ArrayList<>();
+                    for(int index=0; index < jsonArr.size(); index++) {
+                        list.add(jsonArr.get(index).toString());
+                    }
+                    certificateData.setDnsNames(list);
+	                }
 		        break;
 		    }
 
