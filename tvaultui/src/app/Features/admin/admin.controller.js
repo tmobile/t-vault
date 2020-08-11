@@ -1944,8 +1944,7 @@
 
         $scope.openExistingTargetSystem = function (e) {
             $scope.existingTargetSystem = true;
-            $scope.existingService = true;
-            $scope.existingService = false;  
+            $scope.existingService = true; 
             $scope.targetSystemIsAvailable = false;
             $scope.targetSysErrorMessage = '';
 
@@ -1969,8 +1968,6 @@
             $scope.targetSystemServiceType = { "type": "new" };
 
             if($scope.ifTargetSystemExisting == true){  
-                clearTargetSystemFields ();	
-             clearTargetSystemFields ();
                 clearTargetSystemFields ();	
                 $scope.ifTargetSystemExisting = false;
                 if($scope.ifTargetServiceExisting == true){
@@ -2002,28 +1999,32 @@
             $scope.targetSystemServiceSelected = false;
             }	
         	
-        $scope.openNewService = function () {
-            $scope.existingService = false;
-            $scope.targetSystemServiceSelected = false;
+        $scope.openNewService = function () {	
+                $scope.existingService = false;	
+                
+            if($scope.ifTargetServiceExisting == true){ 	
+                clearTargetSystemServiceFields ();	
+                $scope.ifTargetServiceExisting = false;	
+            }	
 
-            clearTargetSystemServiceFields();
-            if ($scope.serviceListTableOptions.length >0) {
-                setTargetSystemServiceList("Select service", $scope.serviceListTableOptions);
-            }
-            else {
-                if ($scope.showServiceInputLoader.show == true) {
-                    setTargetSystemServiceList("Loading services..", []);
-                }
-                else {
-                    if ($scope.targetSystemSelected == false) {
-                        setTargetSystemServiceList("No target system selected", []);
-                    }
-                    else {
-                        setTargetSystemServiceList("No service available", []);
-                    }
-                }
-            }
-        }
+            if ($scope.serviceListTableOptions.length >0) {	
+                setTargetSystemServiceList("Select service", $scope.serviceListTableOptions);	
+            }	
+            else {	
+                if ($scope.showServiceInputLoader.show == true) {	
+                    setTargetSystemServiceList("Loading services..", []);	
+                }	
+                else {	
+                if ($scope.targetSystemSelected == false) {	
+                    setTargetSystemServiceList("No target system selected", []);	
+                    }	
+                else {	
+                    setTargetSystemServiceList("No service available", []);	
+                    }	
+                }   	
+            }	
+            $scope.targetSystemServiceSelected = false;	
+        }   
 
         var clearTargetSystemServiceFields = function () {
             if(angular.isDefined($scope.certObj.targetSystemServiceRequest) && $scope.certObj.targetSystemServiceRequest != null && typeof $scope.certObj.targetSystemServiceRequest == 'object'){  
@@ -2048,8 +2049,7 @@
             }
         }
 
-
-        var clearTargetSystemFields = function () {
+         var clearTargetSystemFields = function () {
             if(angular.isDefined($scope.certObj.targetSystem) && $scope.certObj.targetSystem != null && typeof $scope.certObj.targetSystem == 'object'){
                 $scope.certObj.targetSystem.name=undefined;
                 $scope.certObj.targetSystem.description=undefined;
