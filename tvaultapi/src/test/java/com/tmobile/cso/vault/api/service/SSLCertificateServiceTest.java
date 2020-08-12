@@ -4418,7 +4418,7 @@ public class SSLCertificateServiceTest {
                 "\"containerName\":\"cont_12345\",\"NotAfter\":\"2021-06-15T04:35:58-07:00\"}]}";
     	Response userResponse = getMockResponse(HttpStatus.OK, true, "{\"data\":{\"bound_cidrs\":[],\"max_ttl\":0,\"policies\":[\"default\",\"r_cert_CertificateName.t-mobile.com\"],\"ttl\":0,\"groups\":\"admin\"}}");
 
-    	SSLCertificateRequest sslCertificateRequest = getSSLCertificateRequest();
+    	SSLCertificateMetadataDetails sslCertificateRequest = getSSLCertificateMetadataDetails();
     	 UserDetails userDetails = new UserDetails();
          userDetails.setSelfSupportToken("tokentTest");
          userDetails.setUsername("normaluser");
@@ -4469,7 +4469,7 @@ public class SSLCertificateServiceTest {
                 "\"certificateId\":57258,\"certificateStatus\":\"Active\"," +
                 "\"containerName\":\"cont_12345\",\"NotAfter\":\"2021-06-15T04:35:58-07:00\"}]}";
 
-    	SSLCertificateRequest sslCertificateRequest = getSSLCertificateRequest();
+    	SSLCertificateMetadataDetails sslCertificateRequest = getSSLCertificateMetadataDetails();
     	 UserDetails userDetails = new UserDetails();
          userDetails.setSelfSupportToken("tokentTest");
          userDetails.setUsername("normaluser");
