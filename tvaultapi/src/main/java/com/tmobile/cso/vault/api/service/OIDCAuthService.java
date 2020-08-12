@@ -174,8 +174,7 @@ public class OIDCAuthService {
 				.put(LogMessage.MESSAGE, "Trying to update entity by name")
 				.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
 
-		String jsonStr = JSONUtil.getJSON(oidcEntityRequest);
-		Response response = reqProcessor.process("/identity/entity/name/update", jsonStr, token);
+		Response response = oidcUtil.updateEntityByName(token, oidcEntityRequest);
 		return ResponseEntity.status(response.getHttpstatus()).body(response.getResponse());
 	}
 
