@@ -249,6 +249,7 @@
             $scope.targetSystemServicesList = [];
             $scope.serviceListTableOptions = [];
             setTargetSystemServiceList("No target system selected", []);
+            $scope.certObj.certDetails.ownerEmail = "";
         }
 
         // Updating the data based on type of safe, by clicking dropdown
