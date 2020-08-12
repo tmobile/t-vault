@@ -98,6 +98,9 @@ public class SafesServiceTest {
     
     @Mock
     TokenUtils tokenUtils;
+    
+    @Mock
+    OIDCUtil OIDCUtil;
 
     @Before
     public void setUp() {
@@ -636,22 +639,17 @@ public class SafesServiceTest {
 			List<String> policies = new ArrayList<>();
 			policies.add("safeadmin");
 			oidcEntityResponse.setPolicies(policies);
-			ResponseEntity<DirectoryObjects> responseEntity1 = ResponseEntity.status(HttpStatus.OK).body(users);
 			when(OIDCUtil.fetchMountAccessorForOidc(token)).thenReturn(mountAccessor);
-			when(directoryService.searchByCorpId(userDetails.getUsername())).thenReturn(responseEntity1);
 
 			ResponseEntity<OIDCEntityResponse> responseEntity2 = ResponseEntity.status(HttpStatus.OK)
 					.body(oidcEntityResponse);
 
-			when(oidcAuthService.entityLookUp(eq(token), Mockito.any(OIDCLookupEntityRequest.class))).thenReturn(responseEntity2);
 			when(tokenUtils.getSelfServiceTokenWithAppRole()).thenReturn(token);
 	
-			ResponseEntity<String> responseEntity3 = ResponseEntity.status(HttpStatus.NO_CONTENT)
-					.body("success");
-			when(oidcAuthService.updateEntityByName(eq(token), Mockito.any(OIDCEntityRequest.class)))
+			Response responseEntity3 = getMockResponse(HttpStatus.NO_CONTENT, true, "{\"data\": [\"safeadmin\",\"vaultadmin\"]]");
+			when(OIDCUtil.updateOIDCEntity(policies, oidcEntityResponse.getEntityName()))
 					.thenReturn(responseEntity3);
-        
-        
+        when(OIDCUtil.oidcFetchEntityDetails(token, "testuser1")).thenReturn(responseEntity2);
         ResponseEntity<String> responseEntity = safesService.removeUserFromSafe(token, safeUser);
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
@@ -832,16 +830,13 @@ public class SafesServiceTest {
 			List<String> policies = new ArrayList<>();
 			policies.add("safeadmin");
 			oidcEntityResponse.setPolicies(policies);
-			ResponseEntity<DirectoryObjects> responseEntity1 = ResponseEntity.status(HttpStatus.OK).body(users);
 			when(OIDCUtil.fetchMountAccessorForOidc(token)).thenReturn(mountAccessor);
-			when(directoryService.searchByCorpId(userDetails.getUsername())).thenReturn(responseEntity1);
 
-			
+
 			ReflectionTestUtils.setField(safesService, "vaultAuthMethod", "oidc");
 			ResponseEntity<OIDCEntityResponse> responseEntity2 = ResponseEntity.status(HttpStatus.NOT_FOUND)
 					.body(oidcEntityResponse);
 
-			when(oidcAuthService.entityLookUp(eq(token), Mockito.any(OIDCLookupEntityRequest.class))).thenReturn(responseEntity2);
 //			when(tokenUtils.getSelfServiceTokenWithAppRole()).thenReturn(token);
 //	
 //			ResponseEntity<String> responseEntity3 = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -849,8 +844,8 @@ public class SafesServiceTest {
 //			when(oidcAuthService.updateEntityByName(eq(token), Mockito.any(OIDCEntityRequest.class)))
 //					.thenReturn(responseEntity3);
 //        
-        
-        
+
+        when(OIDCUtil.oidcFetchEntityDetails(token, "testuser1")).thenReturn(responseEntity2);
         ResponseEntity<String> responseEntity = safesService.removeUserFromSafe(token, safeUser);
         assertEquals(HttpStatus.NOT_FOUND, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
@@ -912,7 +907,7 @@ public class SafesServiceTest {
 
         Response userResponse = getMockResponse(HttpStatus.OK, true, "{\"data\":{\"bound_cidrs\":[],\"max_ttl\":0,\"policies\":[\"default\",\"w_shared_mysafe01\",\"w_shared_mysafe02\"],\"ttl\":0,\"groups\":\"admin\"}}");
         Response responseNoContent = getMockResponse(HttpStatus.NO_CONTENT, true, "");
-        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Group association is removed \"]}");
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body("{\"Message\":\"Group association is removed \"}");
 
 
         when(JSONUtil.getJSON(safeGroup)).thenReturn(jsonstr);
@@ -947,7 +942,7 @@ public class SafesServiceTest {
         Response userResponse = getMockResponse(HttpStatus.OK, true, "{\"data\":{\"bound_cidrs\":[],\"max_ttl\":0,\"policies\":[\"default\",\"w_shared_mysafe01\",\"w_shared_mysafe02\"],\"ttl\":0,\"groups\":\"admin\"}}");
         Response responseNoContent = getMockResponse(HttpStatus.NO_CONTENT, true, "");
         Response responseNotFound = getMockResponse(HttpStatus.NOT_FOUND, true, "");
-        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"messages\":[\"Group configuration failed.Please try again\"]}");
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"messages\":[\"Group configuration failed.Try again \"]}");
 
 
         when(JSONUtil.getJSON(safeGroup)).thenReturn(jsonstr);
@@ -1001,6 +996,23 @@ public class SafesServiceTest {
         when(ControllerUtil.configureLDAPGroup(any(),any(),eq(token))).thenReturn(idapConfigureResponse);
         when(ControllerUtil.updateMetadata(any(),eq(token))).thenReturn(responseNoContent);
 
+        ReflectionTestUtils.setField(safesService, "vaultAuthMethod", "oidc");
+        List<String> policies = new ArrayList<>();
+        policies.add("default");
+        policies.add("w_shared_mysafe02");
+        policies.add("r_shared_mysafe01");
+        List<String> currentpolicies = new ArrayList<>();
+        currentpolicies.add("default");
+        currentpolicies.add("w_shared_mysafe01");
+        currentpolicies.add("w_shared_mysafe02");
+        OIDCGroup oidcGroup = new OIDCGroup("123-123-123", currentpolicies);
+        when(OIDCUtil.getIdentityGroupDetails("mygroup01", token)).thenReturn(oidcGroup);
+
+        Response response = new Response();
+        response.setHttpstatus(HttpStatus.NO_CONTENT);
+        when(OIDCUtil.updateGroupPolicies(token, "mygroup01", policies, currentpolicies, oidcGroup.getId())).thenReturn(response);
+
+
         ResponseEntity<String> responseEntity = safesService.addGroupToSafe(token, safeGroup);
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
@@ -1048,6 +1060,22 @@ public class SafesServiceTest {
         when(ControllerUtil.getSafeName(path)).thenReturn("mysafe01");
         when(ControllerUtil.getAllExistingSafeNames("shared", token)).thenReturn(Arrays.asList("mysafe02"));
 
+        ReflectionTestUtils.setField(safesService, "vaultAuthMethod", "oidc");
+        List<String> policies = new ArrayList<>();
+        policies.add("default");
+        policies.add("w_shared_mysafe02");
+        policies.add("r_shared_mysafe01");
+        List<String> currentpolicies = new ArrayList<>();
+        currentpolicies.add("default");
+        currentpolicies.add("w_shared_mysafe01");
+        currentpolicies.add("w_shared_mysafe02");
+        OIDCGroup oidcGroup = new OIDCGroup("123-123-123", currentpolicies);
+        when(OIDCUtil.getIdentityGroupDetails("mygroup01", token)).thenReturn(oidcGroup);
+
+        Response response = new Response();
+        response.setHttpstatus(HttpStatus.NO_CONTENT);
+        when(OIDCUtil.updateGroupPolicies(token, "mygroup01", policies, currentpolicies, oidcGroup.getId())).thenReturn(response);
+
         ResponseEntity<String> responseEntity = safesService.addGroupToSafe(token, safeGroup);
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
@@ -1067,7 +1095,7 @@ public class SafesServiceTest {
         Response idapConfigureResponse = getMockResponse(HttpStatus.NO_CONTENT, true, "{\"policies\":null}");
         Response responseNoContent = getMockResponse(HttpStatus.NO_CONTENT, true, "");
         Response response_404 = getMockResponse(HttpStatus.NOT_FOUND, true, "");
-        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"erros\":[\"Group configuration failed.Please try again\"]}");
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Group configuration failed.Try Again\"]}");
 
         when(ControllerUtil.areSafeGroupInputsValid(safeGroup)).thenReturn(true);
         when(JSONUtil.getJSON(safeGroup)).thenReturn(jsonstr);
@@ -1090,6 +1118,22 @@ public class SafesServiceTest {
         when(ControllerUtil.getSafeType(path)).thenReturn("shared");
         when(ControllerUtil.getSafeName(path)).thenReturn("mysafe01");
         when(ControllerUtil.getAllExistingSafeNames("shared", token)).thenReturn(Arrays.asList("mysafe02"));
+
+        ReflectionTestUtils.setField(safesService, "vaultAuthMethod", "oidc");
+        List<String> policies = new ArrayList<>();
+        policies.add("default");
+        policies.add("w_shared_mysafe02");
+        policies.add("r_shared_mysafe01");
+        List<String> currentpolicies = new ArrayList<>();
+        currentpolicies.add("default");
+        currentpolicies.add("w_shared_mysafe01");
+        currentpolicies.add("w_shared_mysafe02");
+        OIDCGroup oidcGroup = new OIDCGroup("123-123-123", currentpolicies);
+        when(OIDCUtil.getIdentityGroupDetails("mygroup01", token)).thenReturn(oidcGroup);
+
+        Response response = new Response();
+        response.setHttpstatus(HttpStatus.BAD_REQUEST);
+        when(OIDCUtil.updateGroupPolicies(token, "mygroup01", policies, currentpolicies, oidcGroup.getId())).thenReturn(response);
 
         ResponseEntity<String> responseEntity = safesService.addGroupToSafe(token, safeGroup);
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, responseEntity.getStatusCode());
@@ -1716,25 +1760,23 @@ public class SafesServiceTest {
 			oidcEntityResponse.setPolicies(policies);
 			ResponseEntity<DirectoryObjects> responseEntity1 = ResponseEntity.status(HttpStatus.OK).body(users);
 			when(OIDCUtil.fetchMountAccessorForOidc(token)).thenReturn(mountAccessor);
-			when(directoryService.searchByCorpId(userDetails.getUsername())).thenReturn(responseEntity1);
 
 			ResponseEntity<OIDCEntityResponse> responseEntity2 = ResponseEntity.status(HttpStatus.OK)
 					.body(oidcEntityResponse);
 
-			when(oidcAuthService.entityLookUp(eq(token), Mockito.any(OIDCLookupEntityRequest.class))).thenReturn(responseEntity2);
 			when(tokenUtils.getSelfServiceTokenWithAppRole()).thenReturn(token);
-			String entityName = "entity";
-			
-			ResponseEntity<String> responseEntity3 = ResponseEntity.status(HttpStatus.OK)
-					.body("success");
-			when(oidcAuthService.updateEntityByName(eq(token), Mockito.any(OIDCEntityRequest.class)))
+
+			Response responseEntity3 = getMockResponse(HttpStatus.BAD_REQUEST, true, "{\"data\": [\"safeadmin\",\"vaultadmin\"]]");
+			when(OIDCUtil.updateOIDCEntity(any(), any()))
 					.thenReturn(responseEntity3);
 
 			when(ControllerUtil
 					.configureLDAPUser(eq("testuser1"), any(), any(), eq(token)))
 					.thenReturn(responseNotFound);
+
+            when(OIDCUtil.oidcFetchEntityDetails(token, "testuser1")).thenReturn(responseEntity2);
 			when(safeUtils.canAddOrRemoveUser(userDetails, safeUser, "addUser")).thenReturn(true);
-			ResponseEntity<String> responseEntity = safesService.addUserToSafe(token, safeUser, null);
+			ResponseEntity<String> responseEntity = safesService.addUserToSafe(token, safeUser, userDetails);
 			assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, responseEntity.getStatusCode());
 			assertEquals(responseEntityExpected, responseEntity);
     }
@@ -1807,19 +1849,17 @@ public class SafesServiceTest {
 			oidcEntityResponse.setPolicies(policies);
 			ResponseEntity<DirectoryObjects> responseEntity1 = ResponseEntity.status(HttpStatus.OK).body(users);
 			when(OIDCUtil.fetchMountAccessorForOidc(token)).thenReturn(mountAccessor);
-			when(directoryService.searchByCorpId(userDetails.getUsername())).thenReturn(responseEntity1);
 
 			ResponseEntity<OIDCEntityResponse> responseEntity2 = ResponseEntity.status(HttpStatus.OK)
 					.body(oidcEntityResponse);
 
-			when(oidcAuthService.entityLookUp(eq(token), Mockito.any(OIDCLookupEntityRequest.class))).thenReturn(responseEntity2);
 			when(tokenUtils.getSelfServiceTokenWithAppRole()).thenReturn(token);
 			String entityName = "entity";
 			
-			ResponseEntity<String> responseEntity3 = ResponseEntity.status(HttpStatus.NO_CONTENT)
-					.body("success");
-			when(oidcAuthService.updateEntityByName(eq(token), Mockito.any(OIDCEntityRequest.class)))
+			Response responseEntity3 = getMockResponse(HttpStatus.NO_CONTENT, true, "{\"data\": [\"safeadmin\",\"vaultadmin\"]]");
+			when(OIDCUtil.updateOIDCEntity(any(), any()))
 					.thenReturn(responseEntity3);
+              when(OIDCUtil.oidcFetchEntityDetails(token, "testuser1")).thenReturn(responseEntity2);
      ResponseEntity<String> responseEntity = safesService.addUserToSafe(token, safeUser, null);
      assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
      assertEquals(responseEntityExpected, responseEntity);
@@ -1946,19 +1986,16 @@ public class SafesServiceTest {
 			oidcEntityResponse.setPolicies(policies);
 			ResponseEntity<DirectoryObjects> responseEntity1 = ResponseEntity.status(HttpStatus.OK).body(users);
 			when(OIDCUtil.fetchMountAccessorForOidc(token)).thenReturn(mountAccessor);
-			when(directoryService.searchByCorpId(userDetails.getUsername())).thenReturn(responseEntity1);
 
 			ResponseEntity<OIDCEntityResponse> responseEntity2 = ResponseEntity.status(HttpStatus.OK)
 					.body(oidcEntityResponse);
 
-			when(oidcAuthService.entityLookUp(eq(token), Mockito.any(OIDCLookupEntityRequest.class))).thenReturn(responseEntity2);
 			when(tokenUtils.getSelfServiceTokenWithAppRole()).thenReturn(token);
-			String entityName = "entity";
-			
-			ResponseEntity<String> responseEntity3 = ResponseEntity.status(HttpStatus.NO_CONTENT)
-					.body("success");
-			when(oidcAuthService.updateEntityByName(eq(token), Mockito.any(OIDCEntityRequest.class)))
+
+			Response responseEntity3 = getMockResponse(HttpStatus.NO_CONTENT, true, "{\"data\": [\"safeadmin\",\"vaultadmin\"]]");
+			when(OIDCUtil.updateOIDCEntity(any(), any()))
 					.thenReturn(responseEntity3);
+			when(OIDCUtil.oidcFetchEntityDetails(token, "testuser1")).thenReturn(responseEntity2);
      
      ResponseEntity<String> responseEntity = safesService.addUserToSafe(token, safeUser, null);
      assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
@@ -2043,20 +2080,16 @@ public class SafesServiceTest {
 			oidcEntityResponse.setPolicies(policies);
 			ResponseEntity<DirectoryObjects> responseEntity1 = ResponseEntity.status(HttpStatus.OK).body(users);
 			when(OIDCUtil.fetchMountAccessorForOidc(token)).thenReturn(mountAccessor);
-			when(directoryService.searchByCorpId(userDetails.getUsername())).thenReturn(responseEntity1);
 
 			ResponseEntity<OIDCEntityResponse> responseEntity2 = ResponseEntity.status(HttpStatus.OK)
 					.body(oidcEntityResponse);
 
-			when(oidcAuthService.entityLookUp(eq(token), Mockito.any(OIDCLookupEntityRequest.class))).thenReturn(responseEntity2);
 			when(tokenUtils.getSelfServiceTokenWithAppRole()).thenReturn(token);
-			String entityName = "entity";
-			
-			ResponseEntity<String> responseEntity3 = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-					.body("failure");
-			when(oidcAuthService.updateEntityByName(eq(token), Mockito.any(OIDCEntityRequest.class)))
-					.thenReturn(responseEntity3);
-     ResponseEntity<String> responseEntity = safesService.addUserToSafe(token, safeUser, null);
+
+			Response responseEntity3 = getMockResponse(HttpStatus.BAD_REQUEST, true, "{\"data\": [\"safeadmin\",\"vaultadmin\"]]");
+		when(OIDCUtil.updateOIDCEntity(any(), any())).thenReturn(responseEntity3);
+     when(OIDCUtil.oidcFetchEntityDetails(token, "testuser1")).thenReturn(responseEntity2);
+     ResponseEntity<String> responseEntity = safesService.addUserToSafe(token, safeUser, userDetails);
      assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, responseEntity.getStatusCode());
  }
 }

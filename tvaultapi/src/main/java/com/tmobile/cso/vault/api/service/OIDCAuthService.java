@@ -24,6 +24,14 @@ import com.tmobile.cso.vault.api.controller.ControllerUtil;
 import com.tmobile.cso.vault.api.controller.OIDCUtil;
 import com.tmobile.cso.vault.api.model.*;
 import com.tmobile.cso.vault.api.utils.TokenUtils;
+import com.tmobile.cso.vault.api.utils.HttpUtils;
+import org.apache.http.HttpResponse;
+import org.apache.http.NameValuePair;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.message.BasicNameValuePair;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -49,10 +57,7 @@ public class OIDCAuthService {
 
     @Autowired
     private RequestProcessor reqProcessor;
-
-    @Autowired
-    private TokenUtils tokenUtils;
-
+    
     @Autowired
     private OIDCUtil oidcUtil;
 
@@ -82,7 +87,7 @@ public class OIDCAuthService {
 				.put(LogMessage.ACTION, "List Auth Methods").put(LogMessage.MESSAGE, "Trying to get all auth Methods")
 				.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
 
-		String mountAccessor = OIDCUtil.fetchMountAccessorForOidc(token);
+		String mountAccessor = oidcUtil.fetchMountAccessorForOidc(token);
 		return ResponseEntity.status(HttpStatus.OK).body(mountAccessor);
 	}
     /**
@@ -93,35 +98,14 @@ public class OIDCAuthService {
      */
 	public ResponseEntity<OIDCEntityResponse> entityLookUp(String token,
 			OIDCLookupEntityRequest oidcLookupEntityRequest) {
-		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String> builder()
 				.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
 				.put(LogMessage.ACTION, "Entity Lookup from identity engine")
 				.put(LogMessage.MESSAGE, "Trying to Lookup entity from identity engine")
 				.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
-		OIDCEntityResponse oidcEntityResponse = new OIDCEntityResponse();
-		String jsonStr = JSONUtil.getJSON(oidcLookupEntityRequest);
-		Response response = reqProcessor.process("/identity/lookup/entity", jsonStr, token);
-		if (response.getHttpstatus().equals(HttpStatus.OK)) {
-			oidcEntityResponse = OIDCUtil.getEntityLookUpResponse(response.getResponse());
-			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
-					.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
-					.put(LogMessage.ACTION, "entityLookUp")
-					.put(LogMessage.MESSAGE, "Successfully received entity lookup")
-					.put(LogMessage.STATUS, response.getHttpstatus().toString())
-					.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
-			return ResponseEntity.status(response.getHttpstatus()).body(oidcEntityResponse);
-		} else {
-			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
-					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
-					put(LogMessage.ACTION, "entityLookUp").
-					put(LogMessage.MESSAGE, "Failed entity Lookup").
-					put(LogMessage.STATUS, response.getHttpstatus().toString()).
-					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
-					build()));
-			return ResponseEntity.status(response.getHttpstatus()).body(oidcEntityResponse);
-
-		}
+		return oidcUtil.entityLookUp(token, oidcLookupEntityRequest);
 	}
+	
     /**
      * Group Entity Lookup from identity engine
      * @param token
@@ -190,8 +174,7 @@ public class OIDCAuthService {
 				.put(LogMessage.MESSAGE, "Trying to update entity by name")
 				.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
 
-		String jsonStr = JSONUtil.getJSON(oidcEntityRequest);
-		Response response = reqProcessor.process("/identity/entity/name/update", jsonStr, token);
+		Response response = oidcUtil.updateEntityByName(token, oidcEntityRequest);
 		return ResponseEntity.status(response.getHttpstatus()).body(response.getResponse());
 	}
 
@@ -209,9 +192,12 @@ public class OIDCAuthService {
                 .put(LogMessage.MESSAGE, "Trying to update identity group entity by name")
                 .put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
 
-        String jsonStr = JSONUtil.getJSON(oidcIdentityGroupRequest);
-        Response response = reqProcessor.process("/identity/group/name/update", jsonStr, token);
-        return ResponseEntity.status(response.getHttpstatus()).body(response.getResponse());
+		String canonicalID = oidcUtil.updateIdentityGroupByName(token, oidcIdentityGroupRequest);
+		if (canonicalID != null) {
+			return ResponseEntity.status(HttpStatus.OK).body(canonicalID);
+		} else {
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Failed to get Canonical ID\"]}");
+		}
     }
 
     /**
@@ -250,8 +236,8 @@ public class OIDCAuthService {
                                 .put(LogMessage.MESSAGE, "Trying to read Group Alias By Id").put(LogMessage.APIURL,
                                 ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL))
                                 .build()));
-        Response response = reqProcessor.process("/identity/group/name", "{\"name\":\"" + name + "\"}", token);
-        return ResponseEntity.status(response.getHttpstatus()).body(response.getResponse());
+		Response response = oidcUtil.deleteGroupByName(token, name);
+		return ResponseEntity.status(response.getHttpstatus()).body(response.getResponse());
     }
 
     /**
@@ -270,7 +256,7 @@ public class OIDCAuthService {
                                 .put(LogMessage.MESSAGE, "Trying to read Group Alias By Id").put(LogMessage.APIURL,
                                 ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL))
                                 .build()));
-        Response response = reqProcessor.process("/identity/group-alias/id", "{\"id\":\"" + id + "\"}", token);
+        Response response = oidcUtil.deleteGroupAliasByID(token, id);
         return ResponseEntity.status(response.getHttpstatus()).body(response.getResponse());
     }
 
@@ -290,8 +276,7 @@ public class OIDCAuthService {
                                 .put(LogMessage.MESSAGE, "Trying to create Group Alias").put(LogMessage.APIURL,
                                 ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL))
                                 .build()));
-        String jsonStr = JSONUtil.getJSON(groupAliasRequest);
-        Response response = reqProcessor.process("/identity/group-alias", jsonStr, token);
+        Response response = oidcUtil.createGroupAlias(token, groupAliasRequest);
         return ResponseEntity.status(response.getHttpstatus()).body(response.getResponse());
     }
 
@@ -397,7 +382,7 @@ public class OIDCAuthService {
      * @return
      */
     public ResponseEntity<String> getIdentityGroupDetails(String groupName, String token) {
-        OIDCGroup oidcGroup = OIDCUtil.getIdentityGroupDetails(groupName, token);
+        OIDCGroup oidcGroup = oidcUtil.getIdentityGroupDetails(groupName, token);
         if (oidcGroup != null) {
             return ResponseEntity.status(HttpStatus.OK).body(JSONUtil.getJSON(oidcGroup));
         }
