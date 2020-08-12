@@ -150,7 +150,7 @@ script(src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"
                               .row
                                 .details-input-group.col-lg-12.col-md-12.col-sm-12.col-xs-12
                                   .common-form-label Type
-                                  input.form-control.input-box-style(id="certType" ng-model="certificate.certType" ng-disabled="changeCertificateHeader == 'EDIT CERTIFICATE'"  name="certType"  required)                                   
+                                  input.form-control.input-box-style(id="certType" ng-model="certificateTypeVal" ng-disabled="changeCertificateHeader == 'EDIT CERTIFICATE'"  name="certType"  required)
                             .col-lg-6.col-md-12.col-sm-12.col-xs-12.full-row-fix.col-lg-offset-1.col-lg-offset-1
                               .row
                                 .details-input-group.left-sm-sep.col-lg-12.col-md-12.col-sm-12.col-xs-12
@@ -162,7 +162,7 @@ script(src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"
                               .row
                                 .details-input-group.col-lg-12.col-md-12.col-sm-12.col-xs-12
                                   .common-form-label Application
-                                  input.form-control.input-box-style(id="applicationTag" ng-model="certificate.applicationName" ng-disabled="changeCertificateHeader == 'EDIT CERTIFICATE'"  name="applicationTag"  required)
+                                  input.form-control.input-box-style(id="applicationTag" ng-model="appName" ng-disabled="changeCertificateHeader == 'EDIT CERTIFICATE'"  name="applicationTag"  required)
                             .col-lg-6.col-md-12.col-sm-12.col-xs-12.full-row-fix.col-lg-offset-1.col-lg-offset-1
                               .row
                                 .details-input-group.left-sm-sep.col-lg-12.col-md-12.col-sm-12.col-xs-12
