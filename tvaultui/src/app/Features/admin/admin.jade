@@ -178,7 +178,7 @@ script(type='text/ng-template', id='transferCertPopup.html')
                   .details-input-group
                     .common-form-label New Owner Email ID*
                     input.form-control.input-box-style(id="certReqOwnerEmail"  ng-model="certObj.certDetails.ownerEmail" ng-change="ownerEmailValidation()" typeahead-min-length="3" uib-typeahead="key as key.userEmail for key in searchEmail($viewValue) | limitTo: 8" typeahead-wait-ms="500" typeahead-on-select="selectOwnerforCert(certObj.certDetails.ownerEmail)")
-                    div.key-acceptance-info() {{ certOwnerEmailErrorMessage }}
+                    
                     div.loader.svcaccid(ng-if='isUserSearchLoading && certObj.certDetails.ownerEmail.length > 2')
                         div.ball-spin-fade-loader
                             div
@@ -189,9 +189,10 @@ script(type='text/ng-template', id='transferCertPopup.html')
                             div
                             div
                             div
-                      div.input-cross.svcaccid(ng-if='!isUserSearchLoading && certObj.certDetails.ownerEmail.length > 2' ng-click="clearOwnerEmail()")
+                    div.input-cross.svcaccid(ng-if='!isUserSearchLoading && certObj.certDetails.ownerEmail.length > 2' ng-click="clearOwnerEmail()")
                         div.delete-title
                             img.delete-icon(src="../../assets/images/delete.png")
+                    span.invalid-email   {{ certOwnerEmailErrorMessage }}     
                 .col-lg-12.col-md-12.col-sm-12.col-xs-12.common-form-row()
                   .details-input-group
                     .common-form-label
