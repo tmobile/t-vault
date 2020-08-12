@@ -527,6 +527,8 @@
                 $scope.typeDropdownDisable = true;
                 var certName = $stateParams.certificateObject.certificateName;
                 var certificateType = $stateParams.certificateObject.certType;
+                $scope.certificateTypeVal = $stateParams.certificateObject.certType;
+                $scope.appName = $stateParams.certificateObject.applicationName;
                 try {
 
                     var updatedUrlOfEndPoint = ModifyUrl.addUrlParameteres('getCertificates',"certificateName="+certName+"&certType="+certificateType );
@@ -577,7 +579,8 @@
                                 $scope.certificate = {
                                     certificateName: object.certificateName || $stateParams.certificateObject.certificateName,
                                     ownerEmail: object.certOwnerEmailId || $stateParams.certificateObject.certOwnerEmailId || '',
-                                    applicationName: object.applicationTag || $stateParams.certificateObject.applicationTag || '',
+                                    applicationName: object.applicationName || $stateParams.certificateObject.applicationName || '',
+                                    applicationTag: object.applicationTag || $stateParams.certificateObject.applicationTag || '',
                                     certType: object.certType || $stateParams.certificateObject.certType || '',
                                     createDate: object.createDate || $stateParams.certificateObject.createDate || '',
                                     expiryDate: object.expiryDate || $stateParams.certificateObject.expiryDate || '',
@@ -586,9 +589,15 @@
                                 }
 
                                 if($scope.certificate.certType.toLowerCase() === "internal"){
-                                    $scope.certificate.certType = "internal";
+                                    $scope.certificateTypeVal = "Internal";
                                 }else if($scope.certificate.certType.toLowerCase() === "external"){
-                                    $scope.certificate.certType = "external";
+                                    $scope.certificateTypeVal = "External";
+                                }
+
+                                if($scope.certificate.applicationTag !== null && $scope.certificate.applicationTag !== undefined  && $scope.certificate.applicationTag !== ""){
+                                    $scope.appName = $scope.certificate.applicationTag;
+                                }else {
+                                    $scope.appName = $scope.certificate.applicationName;
                                 }
 
                                 $scope.GroupsPermissionsData = object.groups;
