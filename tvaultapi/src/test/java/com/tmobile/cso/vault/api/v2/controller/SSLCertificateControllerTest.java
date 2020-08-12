@@ -49,6 +49,9 @@ public class SSLCertificateControllerTest {
     private SSLCertificateRequest sSLCertificateRequest;
     
     @Mock
+    private SSLCertificateMetadataDetails sSLCertificateMetadataRequest;
+    
+    @Mock
     private RevocationRequest revocationRequest;
     @Mock
     UserDetails userDetails;
@@ -366,11 +369,9 @@ public class SSLCertificateControllerTest {
         targetSystemServiceRequest.setMonitoringEnabled(false);
         targetSystemServiceRequest.setDescription("Target Service Description");
 
-        sSLCertificateRequest.setCertificateName("CertificateName");
-        sSLCertificateRequest.setTargetSystem(targetSystem);
-        sSLCertificateRequest.setTargetSystemServiceRequest(targetSystemServiceRequest);
-        when(sslCertificateService.updateCertOwner("5PDrOhsy4ig8L3EpsJZSLAMg",sSLCertificateRequest,userDetails)).thenReturn(new ResponseEntity<>(HttpStatus.OK));
-        assertEquals(HttpStatus.OK, sslCertificateService.updateCertOwner("5PDrOhsy4ig8L3EpsJZSLAMg",sSLCertificateRequest,userDetails).getStatusCode());
+        sSLCertificateMetadataRequest.setCertificateName("CertificateName");
+        when(sslCertificateService.updateCertOwner("5PDrOhsy4ig8L3EpsJZSLAMg",sSLCertificateMetadataRequest,userDetails)).thenReturn(new ResponseEntity<>(HttpStatus.OK));
+        assertEquals(HttpStatus.OK, sslCertificateService.updateCertOwner("5PDrOhsy4ig8L3EpsJZSLAMg",sSLCertificateMetadataRequest,userDetails).getStatusCode());
     }
 
 	@Test
