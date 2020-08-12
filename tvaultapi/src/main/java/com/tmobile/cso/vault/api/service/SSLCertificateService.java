@@ -4315,9 +4315,10 @@ public class SSLCertificateService {
      * @return
      * @throws Exception
      */
-    public ResponseEntity<String> updateCertOwner(String token, SSLCertificateRequest sslCertificateRequest, UserDetails userDetails) throws Exception {
+    public ResponseEntity<String> updateCertOwner(String token, SSLCertificateMetadataDetails sslCertificateRequest, UserDetails userDetails) throws Exception {
     	Map<String, String> metaDataParams = new HashMap<String, String>();
     	Map<String, String> dataMetaDataParams = new HashMap<String, String>();
+    	SSLCertificateRequest certificateRequest = new SSLCertificateRequest();
     	//Validate the input data
         boolean isValidData = validateTransferData(sslCertificateRequest);
         if(!isValidData){
@@ -4328,7 +4329,7 @@ public class SSLCertificateService {
 		String metaDataPath = (sslCertificateRequest.getCertType().equalsIgnoreCase("internal"))?
                 SSLCertificateConstants.SSL_CERT_PATH + "/" + endPoint :SSLCertificateConstants.SSL_EXTERNAL_CERT_PATH + "/" + endPoint;		
 		String permissionMetaDataPath = (sslCertificateRequest.getCertType().equalsIgnoreCase("internal"))?
-                SSLCertificateConstants.SSL_CERT_PATH_VALUE + "/" + endPoint :SSLCertificateConstants.SSL_CERT_PATH_VALUE_EXT + "/" + endPoint;
+                SSLCertificateConstants.SSL_CERT_PATH_VALUE  + endPoint :SSLCertificateConstants.SSL_CERT_PATH_VALUE_EXT  + endPoint;
 		Response response = new Response();
 		Response dataResponse = new Response();
 		if (!userDetails.isAdmin()) {
@@ -4382,6 +4383,10 @@ public class SSLCertificateService {
 		metaDataParams.put("certOwnerEmailId", sslCertificateRequest.getCertOwnerEmailId());
 		metaDataParams.put("certOwnerNtid", sslCertificateRequest.getCertOwnerNtid());
 		
+		certificateRequest.setCertificateName(sslCertificateRequest.getCertificateName());
+		certificateRequest.setCertType(sslCertificateRequest.getCertType());
+		certificateRequest.setCertOwnerEmailId(sslCertificateRequest.getCertOwnerEmailId());
+		certificateRequest.setCertOwnerNtid(sslCertificateRequest.getCertOwnerNtid());
 		
 		try {
 		if (userDetails.isAdmin()) {
@@ -4396,8 +4401,8 @@ public class SSLCertificateService {
 		if (sslMetaDataUpdationStatus) {
 			boolean isPoliciesCreated=true;			
 			
-			removeSudoPermissionForPreviousOwner( certificateUser, sslCertificateRequest.getCertificateName(),userDetails,sslCertificateRequest.getCertType());
-			addSudoPermissionToCertificateOwner(sslCertificateRequest, userDetails, enrollResponse, isPoliciesCreated, true);	
+			removeSudoPermissionForPreviousOwner( certificateUser.toLowerCase(), sslCertificateRequest.getCertificateName(),userDetails,sslCertificateRequest.getCertType());
+			addSudoPermissionToCertificateOwner(certificateRequest, userDetails, enrollResponse, isPoliciesCreated, true);	
 			
 			
 			return ResponseEntity.status(HttpStatus.OK)
@@ -4948,7 +4953,7 @@ public class SSLCertificateService {
      * @return
      */
 	
-    private boolean validateTransferData(SSLCertificateRequest sslCertificateRequest){
+    private boolean validateTransferData(SSLCertificateMetadataDetails sslCertificateRequest){
         boolean isValid=true;
         if(sslCertificateRequest.getCertificateName().contains(" ") || 
                 sslCertificateRequest.getCertOwnerEmailId().contains(" ") ||  sslCertificateRequest.getCertType().contains(" ") ||
@@ -4957,17 +4962,7 @@ public class SSLCertificateService {
                 (sslCertificateRequest.getCertificateName().contains("-.")) ||
                 (!sslCertificateRequest.getCertType().matches("internal|external"))){
             isValid= false;
-        }
-        if(sslCertificateRequest.getDnsList()!=null && sslCertificateRequest.getDnsList().length>0) {
-        	if(!validateDNSNames(sslCertificateRequest)) {
-        		isValid= false;
-        	}
-        }
-        	if(sslCertificateRequest.getTargetSystemServiceRequest()!=null && sslCertificateRequest.getTargetSystemServiceRequest().getHostname()!=null) {
-            	if(!isValidHostName(sslCertificateRequest.getTargetSystemServiceRequest().getHostname())) {
-            		isValid= false;
-            	}
-        }
+        }       
         return isValid;
     }
     
