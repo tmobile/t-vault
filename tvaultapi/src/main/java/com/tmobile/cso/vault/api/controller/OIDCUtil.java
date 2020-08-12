@@ -16,6 +16,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.gson.JsonArray;
 import com.tmobile.cso.vault.api.exception.LogMessage;
 import com.tmobile.cso.vault.api.model.OIDCGroup;
+import com.tmobile.cso.vault.api.service.VaultAuthService;
 import com.tmobile.cso.vault.api.utils.HttpUtils;
 import com.tmobile.cso.vault.api.utils.JSONUtil;
 import com.tmobile.cso.vault.api.utils.ThreadLocalContext;
@@ -336,7 +337,14 @@ public class OIDCUtil {
 			if (responseJson != null && responseJson.has("value")) {
 				JsonArray vaulesArray = responseJson.get("value").getAsJsonArray();
 				if (vaulesArray.size() > 0) {
-					groupObjectId = vaulesArray.get(0).getAsJsonObject().get("id").getAsString();
+					for (int i=0;i<vaulesArray.size();i++) {
+						JsonObject adObject = vaulesArray.get(i).getAsJsonObject();
+						// Filter out the duplicate groups by skipping groups created from onprem. Taking group with onPremisesSyncEnabled == null
+						if (adObject.has("onPremisesSyncEnabled") && adObject.get("onPremisesSyncEnabled").isJsonNull()) {
+							groupObjectId = adObject.get("id").getAsString();
+							break;
+						}
+					}
 				}
 			}
 			return groupObjectId;
