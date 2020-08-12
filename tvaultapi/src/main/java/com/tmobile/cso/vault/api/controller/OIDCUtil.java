@@ -124,12 +124,12 @@ public class OIDCUtil {
 	 */
 	public static OIDCGroup getIdentityGroupDetails(String groupName, String token) {
 		Response response = reqProcessor.process("/identity/group/name", "{\"group\":\""+groupName+"\"}", token);
-		OIDCGroup oidcGroup = new OIDCGroup();
 		if(HttpStatus.OK.equals(response.getHttpstatus())) {
 			String responseJson = response.getResponse();
 			ObjectMapper objMapper = new ObjectMapper();
 			List<String> policies = new ArrayList<>();
 			try {
+				OIDCGroup oidcGroup = new OIDCGroup();
 				oidcGroup.setId(objMapper.readTree(responseJson).get("id").asText());
 				JsonNode policiesArry = objMapper.readTree(responseJson).get("policies");
 				for (JsonNode policyNode : policiesArry) {
