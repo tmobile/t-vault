@@ -249,6 +249,7 @@
             $scope.targetSystemServicesList = [];
             $scope.serviceListTableOptions = [];
             setTargetSystemServiceList("No target system selected", []);
+            $scope.certObj.certDetails.ownerEmail = "";
         }
 
         // Updating the data based on type of safe, by clicking dropdown
@@ -2353,20 +2354,21 @@
             $scope.transferCert = function (certificateDetails) {
              	if ($rootScope.certDetails !== null && $rootScope.certDetails !== undefined) {
                		certificateDetails = $rootScope.certDetails;
-                  }
+                  }             	
              	$scope.certOwnerTransferErrorMessage = '';
                 $rootScope.certDetails = null;                
                 try{
                 $scope.isLoadingData = true;
                 Modal.close();                
-                $scope.transferMessage = '';  
+                $scope.transferMessage = ''; 
+                certificateDetails.certOwnerNtid='';
                 var certificateName = $scope.getCertSubjectName(certificateDetails);
                 certificateDetails.certificateName = certificateName; 
                 certificateDetails.certOwnerEmailId=$scope.certObj.certDetails.ownerEmail;
-                certificateDetails.certOwnerNTId=$scope.certObj.certDetails.ownerNtId;                                  
-                certificateDetails.appName=certificateDetails.appNameTagValue;                 
+                certificateDetails.certOwnerNtid=$scope.certObj.certDetails.ownerNtId;                                  
+                certificateDetails.applicationName=certificateDetails.appNameTagValue;                 
                 var url = RestEndpoints.baseURL + "/v2/sslcert/transferowner";
-                $scope.isLoadingData = true;                          
+                $scope.isLoadingData = true;   
                 AdminSafesManagement.transferCertificate(certificateDetails, url).then(function (response) {
                     $scope.isLoadingData = false;
                     $scope.certObj.certDetails.ownerEmail="";
