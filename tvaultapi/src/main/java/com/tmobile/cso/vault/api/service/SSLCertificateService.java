@@ -4669,7 +4669,7 @@ public class SSLCertificateService {
                     JsonArray jsonArr = subjectAltNameObject.getAsJsonArray("dns");
                     List<String> list = new ArrayList<>();
                     for(int index=0; index < jsonArr.size(); index++) {
-                        list.add(jsonArr.get(index).toString());
+                        list.add(jsonArr.get(index).getAsString());
                     }
                     certificateData.setDnsNames(list);
 	                }
