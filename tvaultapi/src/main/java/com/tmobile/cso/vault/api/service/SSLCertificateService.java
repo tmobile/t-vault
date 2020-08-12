@@ -4333,7 +4333,7 @@ public class SSLCertificateService {
 		Response response = new Response();
 		Response dataResponse = new Response();
 		if (!userDetails.isAdmin()) {
-			Boolean isPermission = validateOwnerPermissionForNonAdmin(userDetails, sslCertificateRequest.getCertificateName());
+			Boolean isPermission = validateCertOwnerPermissionForNonAdmin(userDetails, sslCertificateRequest.getCertificateName(), sslCertificateRequest.getCertType());
 
 			if (!isPermission) {
 				return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
@@ -4396,7 +4396,10 @@ public class SSLCertificateService {
 			}
 		} else {
 			sslMetaDataUpdationStatus = ControllerUtil.updateMetaData(metaDataPath, metaDataParams,
-					userDetails.getSelfSupportToken());			
+					userDetails.getSelfSupportToken());	
+			if(dataObject!=null) {
+				sslMetaDataUpdationStatus = ControllerUtil.updateMetaData(permissionMetaDataPath, dataMetaDataParams, userDetails.getSelfSupportToken());
+				}
 		}
 		if (sslMetaDataUpdationStatus) {
 			boolean isPoliciesCreated=true;			
@@ -4965,5 +4968,36 @@ public class SSLCertificateService {
         }       
         return isValid;
     }
+    
+    /**
+	 * Validate Permission for Non-admin User.
+	 * 
+	 * @param userDetails
+	 * @param certificateName
+	 * @return
+	 */
+	public Boolean validateCertOwnerPermissionForNonAdmin(UserDetails userDetails, String certificateName, String certType) {
+		String ownerPermissionCertName = (certType.equalsIgnoreCase("internal"))?
+				SSLCertificateConstants.OWNER_PERMISSION_CERTIFICATE + certificateName :SSLCertificateConstants.OWNER_PERMISSION_EXT_CERTIFICATE + certificateName;
+		Boolean isPermission = false;
+		if (ArrayUtils.isNotEmpty(userDetails.getPolicies())) {
+			isPermission = Arrays.stream(userDetails.getPolicies()).anyMatch(ownerPermissionCertName::equals);
+			if (isPermission) {
+				log.debug(
+						JSONUtil.getJSON(ImmutableMap.<String, String> builder()
+								.put(LogMessage.USER,
+										ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString())
+								.put(LogMessage.ACTION, "Certificate permission for user " + userDetails.getUsername())
+								.put(LogMessage.MESSAGE,
+										"User has permission to access the certificate " + certificateName)
+								.put(LogMessage.APIURL,
+										ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString())
+								.build()));
+				return isPermission;
+			}
+		}
+
+		return isPermission;
+	}
     
 }
