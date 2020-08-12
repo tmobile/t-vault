@@ -835,7 +835,7 @@
             $scope.getTargetSystemService();
         }
         $scope.targetSystemCheck = function (targetSystem) {
-            if(targetSystem ==" "){
+            if(targetSystem ==" " ||targetSystem== null ||targetSystem==undefined ){
             $scope.targetSystemIsAvailable=true; 
             }
             else{
