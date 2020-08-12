@@ -2126,6 +2126,7 @@
             }
         }
         $scope.clearOwnerEmail = function () {
+        	$scope.certOwnerEmailErrorMessage = '';
             $scope.certObj.certDetails.ownerEmail = "";
             $scope.certObj.certDetails.ownerNtId = "";
             $scope.isOwnerSelected = false;
