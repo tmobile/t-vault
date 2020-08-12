@@ -72,4 +72,5 @@ public final class SSLCertificateConstants {
     public static final String EXTERNAL= "external";
     public static final String VALIDATE_CERTIFICATE_DETAILS_MSG = "Validate Certificate Details";
     public static final String  VALIDATION_RESULT_LABEL="validationResult";
+    public static final String OWNER_PERMISSION_EXT_CERTIFICATE = "o_externalcerts_";
 }
