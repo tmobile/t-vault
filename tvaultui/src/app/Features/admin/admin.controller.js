@@ -834,7 +834,15 @@
             $scope.targetSystemSelected = true;
             $scope.getTargetSystemService();
         }
-
+        $scope.targetSystemCheck = function (targetSystem) {
+            if(targetSystem ==" " ||targetSystem== null ||targetSystem==undefined ){
+            $scope.targetSystemIsAvailable=true; 
+            }
+            else{
+                $scope.targetSystemIsAvailable=false;
+            }
+            $scope.getTargetSystemService();
+        }
         $scope.selectTargetService = function () {
             $scope.ifTargetServiceExisting=true;
             var index = $scope.dropDownServiceList.selectedGroupOption.index;
