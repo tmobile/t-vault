@@ -44,6 +44,7 @@ import com.tmobile.cso.vault.api.model.DirectoryObjects;
 import com.tmobile.cso.vault.api.model.DirectoryObjectsList;
 import com.tmobile.cso.vault.api.model.DirectoryUser;
 import com.tmobile.cso.vault.api.model.GroupAliasRequest;
+import com.tmobile.cso.vault.api.model.OIDCEntityRequest;
 import com.tmobile.cso.vault.api.model.OIDCEntityResponse;
 import com.tmobile.cso.vault.api.model.UserDetails;
 import com.tmobile.cso.vault.api.process.RequestProcessor;
@@ -51,6 +52,8 @@ import com.tmobile.cso.vault.api.process.Response;
 import com.tmobile.cso.vault.api.service.DirectoryService;
 import com.tmobile.cso.vault.api.utils.JSONUtil;
 import com.tmobile.cso.vault.api.utils.ThreadLocalContext;
+import com.tmobile.cso.vault.api.utils.TokenUtils;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.util.ReflectionTestUtils;
 
@@ -81,6 +84,9 @@ public class OIDCUtilTest {
 
     @InjectMocks
     OIDCUtil oidcUtil;
+    
+    @Mock
+    TokenUtils tokenUtils;
     
     @Mock
     DirectoryService directoryService;
@@ -347,5 +353,30 @@ public class OIDCUtilTest {
     	when(reqProcessor.process("/identity/group/name/delete", "{\"name\":\"" + name + "\"}", token)).thenReturn(responsemock);
     	Response response = oidcUtil.deleteGroupByName(token, name);
     	assertEquals(responsemock.getHttpstatus(), response.getHttpstatus());
+    }
+    
+    @Test
+    public void updateOIDCEntity() throws Exception {
+        String token = "4EpPYDSfgN2D4Gf7UmNO3nuL";
+        String name = "name";
+        List<String> policies = new ArrayList<>();
+        policies.add("safeadmin");
+        String entityName = "entityName";
+        OIDCEntityRequest oidcEntityRequest = new OIDCEntityRequest();
+        oidcEntityRequest.setDisabled(false);
+        Map<String, String> metadata = new HashMap<String, String>();
+        metadata.put("organization", "t-vault");
+        oidcEntityRequest.setMetadata(metadata);
+        oidcEntityRequest.setPolicies(null);
+        oidcEntityRequest.setName(name);
+        String jsonStr = JSONUtil.getJSON(oidcEntityRequest);
+        Response response = getMockResponse(HttpStatus.OK, true, "{\"data\": [\"safeadmin\",\"vaultadmin\"]]");
+//        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK)
+//                .body("{\"data\": [\"safeadmin\",\"vaultadmin\"]]");
+        when(tokenUtils.getSelfServiceTokenWithAppRole()).thenReturn(token);
+        when(reqProcessor.process("/identity/entity/name/update", jsonStr, token)).thenReturn(response);
+//       
+        Response responseEntity = oidcUtil.updateOIDCEntity(policies, entityName);
+        assertEquals(HttpStatus.OK, responseEntity.getHttpstatus());
     }
 }

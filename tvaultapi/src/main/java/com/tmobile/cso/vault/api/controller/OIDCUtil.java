@@ -6,6 +6,7 @@ import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -18,6 +19,8 @@ import com.tmobile.cso.vault.api.model.OIDCGroup;
 import com.tmobile.cso.vault.api.utils.HttpUtils;
 import com.tmobile.cso.vault.api.utils.JSONUtil;
 import com.tmobile.cso.vault.api.utils.ThreadLocalContext;
+import com.tmobile.cso.vault.api.utils.TokenUtils;
+
 import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.HttpClient;
@@ -41,6 +44,7 @@ import com.tmobile.cso.vault.api.common.TVaultConstants;
 import com.tmobile.cso.vault.api.model.DirectoryObjects;
 import com.tmobile.cso.vault.api.model.DirectoryUser;
 import com.tmobile.cso.vault.api.model.GroupAliasRequest;
+import com.tmobile.cso.vault.api.model.OIDCEntityRequest;
 import com.tmobile.cso.vault.api.model.OIDCEntityResponse;
 import com.tmobile.cso.vault.api.model.OIDCIdentityGroupRequest;
 import com.tmobile.cso.vault.api.model.OIDCLookupEntityRequest;
@@ -53,6 +57,9 @@ public class OIDCUtil {
 
 	@Autowired
 	HttpUtils httpUtils;
+	
+	@Autowired
+	TokenUtils tokenUtils;
 
 	@Value("${sso.azure.resourceendpoint}")
 	private String ssoResourceEndpoint;
@@ -337,7 +344,7 @@ public class OIDCUtil {
 			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
 					put(LogMessage.ACTION, "getGroupObjectResponse").
-					put(LogMessage.MESSAGE, String.format ("Failed to parse group object api response")).
+					put(LogMessage.MESSAGE, "Failed to parse group object api response").
 					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 					build()));
 		}
@@ -450,5 +457,34 @@ public class OIDCUtil {
 	 */
 	public Response deleteGroupAliasByID(String token, String id) {
 		return reqProcessor.process("/identity/group-alias/id/delete", "{\"id\":\"" + id + "\"}", token);
+	}
+	
+	/**
+	 * Update Entity by name
+	 * 
+	 * @param policies
+	 * @param entityName
+	 * @return
+	 */
+	public Response updateOIDCEntity(List<String> policies, String entityName) {
+		OIDCEntityRequest oidcEntityRequest = new OIDCEntityRequest();
+		oidcEntityRequest.setPolicies(policies);
+		oidcEntityRequest.setDisabled(Boolean.FALSE);
+		oidcEntityRequest.setName(entityName);
+		Map<String, String> metaData = new HashMap<>();
+		oidcEntityRequest.setMetadata(metaData);
+		String selfServiceSupportToken = tokenUtils.getSelfServiceTokenWithAppRole();
+		return updateEntityByName(selfServiceSupportToken, oidcEntityRequest);
+	}
+	
+	/**
+	 * Update Entity By Name
+	 * @param token
+	 * @param oidcEntityRequest
+	 * @return
+	 */
+	public Response updateEntityByName(String token, OIDCEntityRequest oidcEntityRequest){
+		String jsonStr = JSONUtil.getJSON(oidcEntityRequest);
+		return reqProcessor.process("/identity/entity/name/update", jsonStr, token);
 	}
 }

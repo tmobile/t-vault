@@ -646,9 +646,8 @@ public class SafesServiceTest {
 
 			when(tokenUtils.getSelfServiceTokenWithAppRole()).thenReturn(token);
 	
-			ResponseEntity<String> responseEntity3 = ResponseEntity.status(HttpStatus.NO_CONTENT)
-					.body("success");
-			when(oidcAuthService.updateEntityByName(eq(token), Mockito.any(OIDCEntityRequest.class)))
+			Response responseEntity3 = getMockResponse(HttpStatus.NO_CONTENT, true, "{\"data\": [\"safeadmin\",\"vaultadmin\"]]");
+			when(OIDCUtil.updateOIDCEntity(policies, oidcEntityResponse.getEntityName()))
 					.thenReturn(responseEntity3);
         when(OIDCUtil.oidcFetchEntityDetails(token, "testuser1")).thenReturn(responseEntity2);
         ResponseEntity<String> responseEntity = safesService.removeUserFromSafe(token, safeUser);
@@ -1767,18 +1766,17 @@ public class SafesServiceTest {
 
 			when(tokenUtils.getSelfServiceTokenWithAppRole()).thenReturn(token);
 
-			ResponseEntity<String> responseEntity3 = ResponseEntity.status(HttpStatus.OK)
-					.body("success");
-			when(oidcAuthService.updateEntityByName(eq(token), Mockito.any(OIDCEntityRequest.class)))
+			Response responseEntity3 = getMockResponse(HttpStatus.BAD_REQUEST, true, "{\"data\": [\"safeadmin\",\"vaultadmin\"]]");
+			when(OIDCUtil.updateOIDCEntity(any(), any()))
 					.thenReturn(responseEntity3);
 
 			when(ControllerUtil
 					.configureLDAPUser(eq("testuser1"), any(), any(), eq(token)))
 					.thenReturn(responseNotFound);
 
-        when(OIDCUtil.oidcFetchEntityDetails(token, "testuser1")).thenReturn(responseEntity2);
+            when(OIDCUtil.oidcFetchEntityDetails(token, "testuser1")).thenReturn(responseEntity2);
 			when(safeUtils.canAddOrRemoveUser(userDetails, safeUser, "addUser")).thenReturn(true);
-			ResponseEntity<String> responseEntity = safesService.addUserToSafe(token, safeUser, null);
+			ResponseEntity<String> responseEntity = safesService.addUserToSafe(token, safeUser, userDetails);
 			assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, responseEntity.getStatusCode());
 			assertEquals(responseEntityExpected, responseEntity);
     }
@@ -1858,9 +1856,8 @@ public class SafesServiceTest {
 			when(tokenUtils.getSelfServiceTokenWithAppRole()).thenReturn(token);
 			String entityName = "entity";
 			
-			ResponseEntity<String> responseEntity3 = ResponseEntity.status(HttpStatus.NO_CONTENT)
-					.body("success");
-			when(oidcAuthService.updateEntityByName(eq(token), Mockito.any(OIDCEntityRequest.class)))
+			Response responseEntity3 = getMockResponse(HttpStatus.NO_CONTENT, true, "{\"data\": [\"safeadmin\",\"vaultadmin\"]]");
+			when(OIDCUtil.updateOIDCEntity(any(), any()))
 					.thenReturn(responseEntity3);
               when(OIDCUtil.oidcFetchEntityDetails(token, "testuser1")).thenReturn(responseEntity2);
      ResponseEntity<String> responseEntity = safesService.addUserToSafe(token, safeUser, null);
@@ -1995,9 +1992,8 @@ public class SafesServiceTest {
 
 			when(tokenUtils.getSelfServiceTokenWithAppRole()).thenReturn(token);
 
-			ResponseEntity<String> responseEntity3 = ResponseEntity.status(HttpStatus.NO_CONTENT)
-					.body("success");
-			when(oidcAuthService.updateEntityByName(eq(token), Mockito.any(OIDCEntityRequest.class)))
+			Response responseEntity3 = getMockResponse(HttpStatus.NO_CONTENT, true, "{\"data\": [\"safeadmin\",\"vaultadmin\"]]");
+			when(OIDCUtil.updateOIDCEntity(any(), any()))
 					.thenReturn(responseEntity3);
 			when(OIDCUtil.oidcFetchEntityDetails(token, "testuser1")).thenReturn(responseEntity2);
      
@@ -2090,12 +2086,10 @@ public class SafesServiceTest {
 
 			when(tokenUtils.getSelfServiceTokenWithAppRole()).thenReturn(token);
 
-			ResponseEntity<String> responseEntity3 = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-					.body("failure");
-			when(oidcAuthService.updateEntityByName(eq(token), Mockito.any(OIDCEntityRequest.class)))
-					.thenReturn(responseEntity3);
+			Response responseEntity3 = getMockResponse(HttpStatus.BAD_REQUEST, true, "{\"data\": [\"safeadmin\",\"vaultadmin\"]]");
+		when(OIDCUtil.updateOIDCEntity(any(), any())).thenReturn(responseEntity3);
      when(OIDCUtil.oidcFetchEntityDetails(token, "testuser1")).thenReturn(responseEntity2);
-     ResponseEntity<String> responseEntity = safesService.addUserToSafe(token, safeUser, null);
+     ResponseEntity<String> responseEntity = safesService.addUserToSafe(token, safeUser, userDetails);
      assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, responseEntity.getStatusCode());
  }
 }

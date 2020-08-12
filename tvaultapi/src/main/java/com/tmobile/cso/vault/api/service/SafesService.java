@@ -827,10 +827,7 @@ public class  SafesService {
 				//OIDC Implementation : Entity Update
 				try {
 
-					ResponseEntity<String> responseEntity = updateOIDCEntity(policies,
-							oidcEntityResponse.getEntityName());
-					ldapConfigresponse.setHttpstatus(responseEntity.getStatusCode());
-					ldapConfigresponse.setResponse(responseEntity.getBody());
+					ldapConfigresponse = oidcUtil.updateOIDCEntity(policies, oidcEntityResponse.getEntityName());
 				}catch (Exception e) {
 					log.error(e);
 					log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
@@ -895,9 +892,8 @@ public class  SafesService {
 						}else if (TVaultConstants.OIDC.equals(vaultAuthMethod)){
 							//OIDC changes
 							try {
-								ResponseEntity<String> responseEntity = updateOIDCEntity(currentpolicies,
+								ldapConfigresponse = oidcUtil.updateOIDCEntity(currentpolicies,
 										oidcEntityResponse.getEntityName());
-								ldapConfigresponse.setResponse(responseEntity.getStatusCode().toString());
 							} catch (Exception e) {
 								log.error(e);
 								log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
@@ -945,25 +941,7 @@ public class  SafesService {
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid 'path' specified\"]}");
 		}
 	}
-
-	/**
-	 * Update Entity by name
-	 * 
-	 * @param policies
-	 * @param entityName
-	 * @return
-	 */
-	private ResponseEntity<String> updateOIDCEntity(List<String> policies, String entityName) {
-		OIDCEntityRequest oidcEntityRequest = new OIDCEntityRequest();
-		oidcEntityRequest.setPolicies(policies);
-		oidcEntityRequest.setDisabled(Boolean.FALSE);
-		oidcEntityRequest.setName(entityName);
-		Map<String, String> metaData = new HashMap<>();
-		oidcEntityRequest.setMetadata(metaData);
-		String selfServiceSupportToken = tokenUtils.getSelfServiceTokenWithAppRole();
-		return oidcAuthService.updateEntityByName(selfServiceSupportToken, oidcEntityRequest);
-	}
-
+	
 	/**
 	 * Adds group to an Safe
 	 * @param token
@@ -1333,10 +1311,8 @@ public class  SafesService {
 				} else if (TVaultConstants.OIDC.equals(vaultAuthMethod)){
 					// OIDC Implementation : Entity Update
 					try {
-						ResponseEntity<String> responseEntity = updateOIDCEntity(policies,
+						ldapConfigresponse = oidcUtil.updateOIDCEntity(policies,
 								oidcEntityResponse.getEntityName());
-						ldapConfigresponse.setHttpstatus(responseEntity.getStatusCode());
-						ldapConfigresponse.setResponse(responseEntity.getBody());
 					} catch (Exception e) {
 						log.error(e);
 						log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
@@ -1391,9 +1367,8 @@ public class  SafesService {
 							} else if (TVaultConstants.OIDC.equals(vaultAuthMethod)){
 								// OIDC changes
 								try {
-									ResponseEntity<String> responseEntity = updateOIDCEntity(currentpolicies,
+									ldapConfigresponse = oidcUtil.updateOIDCEntity(currentpolicies,
 											oidcEntityResponse.getEntityName());
-									ldapConfigresponse.setResponse(responseEntity.getStatusCode().toString());
 								} catch (Exception e2) {
 									log.error(e2);
 									log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder()

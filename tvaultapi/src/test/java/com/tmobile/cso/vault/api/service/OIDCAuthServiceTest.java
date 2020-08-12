@@ -217,14 +217,15 @@ public class OIDCAuthServiceTest {
         oidcEntityRequest.setMetadata(metadata);
         oidcEntityRequest.setPolicies(null);
         oidcEntityRequest.setName(name);
-        String jsonStr = JSONUtil.getJSON(oidcEntityRequest);
+//        String jsonStr = JSONUtil.getJSON(oidcEntityRequest);
         Response response = getMockResponse(HttpStatus.OK, true, "{\"data\": [\"safeadmin\",\"vaultadmin\"]]");
-        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK)
-                .body("{\"data\": [\"safeadmin\",\"vaultadmin\"]]");
-        when(reqProcessor.process("/identity/entity/name/update", jsonStr, token)).thenReturn(response);
+//        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK)
+//                .body("{\"data\": [\"safeadmin\",\"vaultadmin\"]]");
+//        when(reqProcessor.process("/identity/entity/name/update", jsonStr, token)).thenReturn(response);
+//        
+        when(OIDCUtil.updateEntityByName(token, oidcEntityRequest)).thenReturn(response);
         ResponseEntity<String> responseEntity = oidcAuthService.updateEntityByName(token, oidcEntityRequest);
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
-        assertEquals(responseEntityExpected, responseEntity);
     }
 
     @Test
