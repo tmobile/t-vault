@@ -650,7 +650,7 @@ public class SafesServiceTest {
 			when(OIDCUtil.updateOIDCEntity(policies, oidcEntityResponse.getEntityName()))
 					.thenReturn(responseEntity3);
         when(OIDCUtil.oidcFetchEntityDetails(token, "testuser1")).thenReturn(responseEntity2);
-        ResponseEntity<String> responseEntity = safesService.removeUserFromSafe(token, safeUser);
+        ResponseEntity<String> responseEntity = safesService.removeUserFromSafe(token, safeUser, userDetails);
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
     }
@@ -698,7 +698,7 @@ public class SafesServiceTest {
         
         ReflectionTestUtils.setField(safesService, "vaultAuthMethod", "ldap");
 
-        ResponseEntity<String> responseEntity = safesService.removeUserFromSafe(token, safeUser);
+        ResponseEntity<String> responseEntity = safesService.removeUserFromSafe(token, safeUser, userDetails);
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
     }
@@ -774,7 +774,7 @@ public class SafesServiceTest {
 					.thenReturn(responseEntity3);
         
         
-        ResponseEntity<String> responseEntity = safesService.removeUserFromSafe(token, safeUser);
+        ResponseEntity<String> responseEntity = safesService.removeUserFromSafe(token, safeUser, userDetails);
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
     }
@@ -846,7 +846,7 @@ public class SafesServiceTest {
 //        
 
         when(OIDCUtil.oidcFetchEntityDetails(token, "testuser1")).thenReturn(responseEntity2);
-        ResponseEntity<String> responseEntity = safesService.removeUserFromSafe(token, safeUser);
+        ResponseEntity<String> responseEntity = safesService.removeUserFromSafe(token, safeUser, userDetails);
         assertEquals(HttpStatus.NOT_FOUND, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
     }
@@ -876,7 +876,7 @@ public class SafesServiceTest {
         
 		ReflectionTestUtils.setField(safesService, "vaultAuthMethod", "ldap");
         
-        ResponseEntity<String> responseEntity = safesService.removeUserFromSafe(token, safeUser);
+        ResponseEntity<String> responseEntity = safesService.removeUserFromSafe(token, safeUser, userDetails);
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
     }
@@ -893,7 +893,7 @@ public class SafesServiceTest {
         when(JSONUtil.getJSON(safeUser)).thenReturn(jsonStr);
         when(ControllerUtil.isValidSafePath(path)).thenReturn(false);
 
-        ResponseEntity<String> responseEntity = safesService.removeUserFromSafe(token, safeUser);
+        ResponseEntity<String> responseEntity = safesService.removeUserFromSafe(token, safeUser, getMockUser(true));
         assertEquals(HttpStatus.BAD_REQUEST, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
     }
@@ -927,7 +927,7 @@ public class SafesServiceTest {
         when(ControllerUtil.configureLDAPGroup(any(),any(),any())).thenReturn(responseNoContent);
         when(ControllerUtil.updateMetadata(any(),eq(token))).thenReturn(responseNoContent);
 
-        ResponseEntity<String> responseEntity = safesService.removeGroupFromSafe(token, safeGroup);
+        ResponseEntity<String> responseEntity = safesService.removeGroupFromSafe(token, safeGroup, getMockUser(true));
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
     }
@@ -957,7 +957,7 @@ public class SafesServiceTest {
         when(ControllerUtil.configureLDAPGroup(any(),any(),any())).thenReturn(responseNoContent);
         when(ControllerUtil.updateMetadata(any(),eq(token))).thenReturn(responseNotFound);
 
-        ResponseEntity<String> responseEntity = safesService.removeGroupFromSafe(token, safeGroup);
+        ResponseEntity<String> responseEntity = safesService.removeGroupFromSafe(token, safeGroup, getMockUser(true));
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
     }
@@ -1013,7 +1013,7 @@ public class SafesServiceTest {
         when(OIDCUtil.updateGroupPolicies(token, "mygroup01", policies, currentpolicies, oidcGroup.getId())).thenReturn(response);
 
 
-        ResponseEntity<String> responseEntity = safesService.addGroupToSafe(token, safeGroup);
+        ResponseEntity<String> responseEntity = safesService.addGroupToSafe(token, safeGroup, userDetails);
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
     }
@@ -1076,7 +1076,7 @@ public class SafesServiceTest {
         response.setHttpstatus(HttpStatus.NO_CONTENT);
         when(OIDCUtil.updateGroupPolicies(token, "mygroup01", policies, currentpolicies, oidcGroup.getId())).thenReturn(response);
 
-        ResponseEntity<String> responseEntity = safesService.addGroupToSafe(token, safeGroup);
+        ResponseEntity<String> responseEntity = safesService.addGroupToSafe(token, safeGroup, userDetails);
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
     }
@@ -1135,7 +1135,7 @@ public class SafesServiceTest {
         response.setHttpstatus(HttpStatus.BAD_REQUEST);
         when(OIDCUtil.updateGroupPolicies(token, "mygroup01", policies, currentpolicies, oidcGroup.getId())).thenReturn(response);
 
-        ResponseEntity<String> responseEntity = safesService.addGroupToSafe(token, safeGroup);
+        ResponseEntity<String> responseEntity = safesService.addGroupToSafe(token, safeGroup, userDetails);
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
     }
@@ -1158,7 +1158,7 @@ public class SafesServiceTest {
         when(reqProcessor.process("/auth/ldap/groups","{\"groupname\":\"mygroup01\"}",token)).thenReturn(responseNotFound);
         when(ControllerUtil.updateMetadata(any(),eq(token))).thenReturn(responseNoContent);
 
-        ResponseEntity<String> responseEntity = safesService.removeGroupFromSafe(token, safeGroup);
+        ResponseEntity<String> responseEntity = safesService.removeGroupFromSafe(token, safeGroup, getMockUser(true));
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
     }

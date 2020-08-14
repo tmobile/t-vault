@@ -22,7 +22,10 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
+import com.tmobile.cso.vault.api.process.RequestProcessor;
+import com.tmobile.cso.vault.api.process.Response;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
@@ -83,6 +86,9 @@ public class  SelfSupportService {
 	@Value("${safe.quota:20}")
 	private String safeQuota;
 
+	@Autowired
+	private RequestProcessor reqProcessor;
+
 	private static Logger log = LogManager.getLogger(SelfSupportService.class);
 
 	/**
@@ -122,7 +128,7 @@ public class  SelfSupportService {
 				safeUser.setAccess(TVaultConstants.SUDO_POLICY);
 				safeUser.setPath(safe.getPath());
 				safeUser.setUsername(userDetails.getUsername());
-				safesService.addUserToSafe(token, safeUser, null);
+				safesService.addUserToSafe(token, safeUser, userDetails);
 			}
 			return safe_creation_response;
 		}
@@ -243,11 +249,11 @@ public class  SelfSupportService {
 			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("{\"errors\":[\"Access denied: no permission to remove users from this safe\"]}");
 		}
 		if (userDetails.isAdmin()) {
-			return safesService.removeUserFromSafe(token, safeUser);
+			return safesService.removeUserFromSafe(token, safeUser, userDetails);
 		}
 		else {
 			token = userDetails.getSelfSupportToken();
-			return safesService.removeUserFromSafe(token, safeUser);
+			return safesService.removeUserFromSafe(token, safeUser, userDetails);
 		}
 	}
 	/**
@@ -358,7 +364,7 @@ public class  SelfSupportService {
 	public ResponseEntity<String> addGroupToSafe(UserDetails userDetails, String userToken, SafeGroup safeGroup) {
 		String token = userDetails.getClientToken();
 		if (userDetails.isAdmin()) {
-			return safesService.addGroupToSafe(token, safeGroup);
+			return safesService.addGroupToSafe(token, safeGroup, userDetails);
 		}
 		else {
 			ResponseEntity<String> isAuthorized = isAuthorized(userDetails, safeGroup.getPath());
@@ -369,7 +375,7 @@ public class  SelfSupportService {
 				return ResponseEntity.status(HttpStatus.FORBIDDEN).body("{\"errors\":[\"Access denied: no permission to add group to the safe\"]}");
 			}
 			token = userDetails.getSelfSupportToken();
-			return safesService.addGroupToSafe(token, safeGroup);
+			return safesService.addGroupToSafe(token, safeGroup, userDetails);
 		}
 	}
 	/**
@@ -382,7 +388,7 @@ public class  SelfSupportService {
 	public ResponseEntity<String> removeGroupFromSafe(UserDetails userDetails, String userToken, SafeGroup safeGroup) {
 		String token = userDetails.getClientToken();
 		if (userDetails.isAdmin()) {
-			return safesService.removeGroupFromSafe(token, safeGroup);
+			return safesService.removeGroupFromSafe(token, safeGroup, userDetails);
 		}
 		else {
 			ResponseEntity<String> isAuthorized = isAuthorized(userDetails, safeGroup.getPath());
@@ -393,7 +399,7 @@ public class  SelfSupportService {
 				return ResponseEntity.status(HttpStatus.FORBIDDEN).body("{\"errors\":[\"Access denied: no permission to remove group from the safe\"]}");
 			}
 			token = userDetails.getSelfSupportToken();
-			return safesService.removeGroupFromSafe(token, safeGroup);
+			return safesService.removeGroupFromSafe(token, safeGroup, userDetails);
 		}
 	}
 

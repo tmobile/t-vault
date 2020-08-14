@@ -9,6 +9,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -16,7 +17,6 @@ import com.google.common.collect.ImmutableMap;
 import com.google.gson.JsonArray;
 import com.tmobile.cso.vault.api.exception.LogMessage;
 import com.tmobile.cso.vault.api.model.OIDCGroup;
-import com.tmobile.cso.vault.api.service.VaultAuthService;
 import com.tmobile.cso.vault.api.utils.HttpUtils;
 import com.tmobile.cso.vault.api.utils.JSONUtil;
 import com.tmobile.cso.vault.api.utils.ThreadLocalContext;
@@ -58,7 +58,7 @@ public class OIDCUtil {
 
 	@Autowired
 	HttpUtils httpUtils;
-	
+
 	@Autowired
 	TokenUtils tokenUtils;
 
@@ -422,7 +422,53 @@ public class OIDCUtil {
 			OIDCLookupEntityRequest oidcLookupEntityRequest = new OIDCLookupEntityRequest();
 			oidcLookupEntityRequest.setAlias_name(aliasName);
 			oidcLookupEntityRequest.setAlias_mount_accessor(mountAccessor);
-			return entityLookUp(token, oidcLookupEntityRequest);
+
+            // Get polices from user entity. This will have only user policies.
+            ResponseEntity<OIDCEntityResponse> entityResponseResponseEntity = entityLookUp(token, oidcLookupEntityRequest);
+
+            // Get policies from token. This will have all the policies from user and group except the user polices updated to the entity.
+            List<String> policiesFromToken = tokenLookUp(token);
+            List<String> entityPolicies = entityResponseResponseEntity.getBody().getPolicies();
+			policiesFromToken = policiesFromToken.stream().distinct().collect(Collectors.toList());
+
+            List<String> combinedPolicyList = policiesFromToken;
+            for (int i = 0; i < entityPolicies.size(); i++ ) {
+                String policyName = entityPolicies.get(i);
+				String[] _policy = policyName.split("_", -1);
+				if (_policy.length >= 3) {
+					String itemName = policyName.substring(1);
+					List<String> matchingPolicies = combinedPolicyList.stream().filter(p->p.substring(1).equals(itemName)).collect(Collectors.toList());
+					if (!matchingPolicies.isEmpty()) {
+                    /* if conflicting policy is deny then replace existing with deny
+                        or if read exists and write conflict then replace with write.
+                        All other cases have the correct permission in list, no need to udpate.
+                    */
+						if (policyName.startsWith("d_") || (policyName.startsWith("w_") && !matchingPolicies.stream().anyMatch(p-> p.equals("d"+itemName)))) {
+							combinedPolicyList.removeAll(matchingPolicies);
+							combinedPolicyList.add(policyName);
+						}
+						else if (matchingPolicies.stream().anyMatch(p-> p.equals("d"+itemName))) {
+							combinedPolicyList.removeAll(matchingPolicies);
+							combinedPolicyList.add("d"+itemName);
+						}
+						else if (matchingPolicies.stream().anyMatch(p-> p.equals("w"+itemName))) {
+							combinedPolicyList.removeAll(matchingPolicies);
+							combinedPolicyList.add("w"+itemName);
+						}
+						else if (matchingPolicies.stream().anyMatch(p-> p.equals("r"+itemName))) {
+							combinedPolicyList.removeAll(matchingPolicies);
+							combinedPolicyList.add("r"+itemName);
+						}
+
+					}
+					else {
+						combinedPolicyList.add(policyName);
+					}
+				}
+            }
+            List<String> policiesWithOutDuplicates = combinedPolicyList.stream().distinct().collect(Collectors.toList());
+            entityResponseResponseEntity.getBody().setPolicies(policiesWithOutDuplicates);
+            return entityResponseResponseEntity;
 		}
 		return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new OIDCEntityResponse());
 	}
@@ -466,10 +512,10 @@ public class OIDCUtil {
 	public Response deleteGroupAliasByID(String token, String id) {
 		return reqProcessor.process("/identity/group-alias/id/delete", "{\"id\":\"" + id + "\"}", token);
 	}
-	
+
 	/**
 	 * Update Entity by name
-	 * 
+	 *
 	 * @param policies
 	 * @param entityName
 	 * @return
@@ -484,7 +530,7 @@ public class OIDCUtil {
 		String selfServiceSupportToken = tokenUtils.getSelfServiceTokenWithAppRole();
 		return updateEntityByName(selfServiceSupportToken, oidcEntityRequest);
 	}
-	
+
 	/**
 	 * Update Entity By Name
 	 * @param token
@@ -495,4 +541,111 @@ public class OIDCUtil {
 		String jsonStr = JSONUtil.getJSON(oidcEntityRequest);
 		return reqProcessor.process("/identity/entity/name/update", jsonStr, token);
 	}
+
+
+    private List<String> filterDuplicate(List<String> combinedPolicyList) {
+        List<String> filteredPolicy = new ArrayList<>();
+        for (int i = 0; i < combinedPolicyList.size(); i++) {
+            String policyName = combinedPolicyList.get(i);
+            String itemName = policyName.substring(1);
+            for (int j = 0; j < combinedPolicyList.size(); j++) {
+                String conflictPolicy = combinedPolicyList.get(j);
+                if (conflictPolicy.contains(itemName)) {
+                    /* if conflicting policy is deny then replace existing with deny
+                        or if read exists and write conflict then replace with write.
+                        All other cases have the correct permission in list, no need to udpate.
+                    */
+                    if (policyName.startsWith("d_") || (conflictPolicy.startsWith("r_") && policyName.startsWith("w_"))) {
+                        filteredPolicy.remove(conflictPolicy);
+                        filteredPolicy.add(policyName);
+                    }
+                }
+                else {
+                    filteredPolicy.add(policyName);
+                }
+            }
+        }
+        return filteredPolicy;
+    }
+
+    /**
+     * To renew user token after oidc policy update.
+     *
+     * @param token
+     * @return
+     */
+    public void renewUserTokenAfterPolicyUpdate(String token) {
+        Response renewResponse = reqProcessor.process("/auth/tvault/renew", "{}", token);
+        if (HttpStatus.OK.equals(renewResponse.getHttpstatus())) {
+            log.info(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+                    put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+                    put(LogMessage.ACTION, "Add Group to SDB").
+                    put(LogMessage.MESSAGE, "Successfully renewd user token after group policy update").
+                    put(LogMessage.RESPONSE, (null != renewResponse) ? renewResponse.getResponse() : TVaultConstants.EMPTY).
+                    put(LogMessage.STATUS, (null != renewResponse) ? renewResponse.getHttpstatus().toString() : TVaultConstants.EMPTY).
+                    put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+                    build()));
+        } else {
+            log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+                    put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+                    put(LogMessage.ACTION, "Add Group to SDB").
+                    put(LogMessage.MESSAGE, "Reverting user policy update failed").
+                    put(LogMessage.RESPONSE, (null != renewResponse) ? renewResponse.getResponse() : TVaultConstants.EMPTY).
+                    put(LogMessage.STATUS, (null != renewResponse) ? renewResponse.getHttpstatus().toString() : TVaultConstants.EMPTY).
+                    put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+                    build()));
+        }
+    }
+
+
+    /**
+     * Get Entity LookUp Response
+     *
+     * @param authMountResponse
+     * @return
+     */
+    public List<String> getPoliciedFromTokenLookUp(String authMountResponse) {
+        Map<String, String> metaDataParams = null;
+        JsonParser jsonParser = new JsonParser();
+        JsonObject object = ((JsonObject) jsonParser.parse(authMountResponse));
+        metaDataParams = new Gson().fromJson(object.toString(), Map.class);
+        List<String> policies = new ArrayList<>();
+        for (Map.Entry m : metaDataParams.entrySet()) {
+            if (m.getKey().equals(TVaultConstants.IDENTITY_POLICIES) && m.getValue() != null && m.getValue() != "") {
+                String policy = m.getValue().toString().replace("[", "").replace("]", "").replaceAll("\\s", "");
+                policies = new ArrayList<>(Arrays.asList(policy.split(",")));
+                break;
+            }
+        }
+        return policies;
+    }
+
+    /**
+     * Entity Lookup
+     *
+     * @param token
+     * @return
+     */
+    public List<String> tokenLookUp(String token) {
+        List<String> policies = new ArrayList<>();
+        Response response = reqProcessor.process("/auth/tvault/lookup", "{}", token);
+        if (response.getHttpstatus().equals(HttpStatus.OK)) {
+            policies = getPoliciedFromTokenLookUp(response.getResponse());
+            log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+                    .put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+                    .put(LogMessage.ACTION, "tokenLookUp")
+                    .put(LogMessage.MESSAGE, "Successfully received token lookup")
+                    .put(LogMessage.STATUS, response.getHttpstatus().toString())
+                    .put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
+            return policies;
+        } else {
+            log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+                    .put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+                    .put(LogMessage.ACTION, "tokenLookUp").put(LogMessage.MESSAGE, "Failed token Lookup")
+                    .put(LogMessage.STATUS, response.getHttpstatus().toString())
+                    .put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
+            return policies;
+        }
+    }
+
 }
