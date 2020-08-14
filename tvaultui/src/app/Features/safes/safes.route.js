@@ -29,17 +29,6 @@
           fromLogin: true
         },
         resolve: {
-          safes: function (SessionStore, $q, $state, safesService, $stateParams) {
-            if ($stateParams.fromLogin === false) {
-              return safesService.getAllowedSafes()
-                  .catch(function (error) {
-                    return error;
-                  });
-            }
-            else {
-              return JSON.parse(SessionStore.getItem('accessSafes'));
-            }
-          }
         },
         views: {
           'content@safes-tabs': {
