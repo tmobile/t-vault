@@ -4,6 +4,6 @@
             nav-bar(active-tab="safes" nav-tags="safesNavTags")
             .page-header-text SAFES
     .page-content-container.admin
+        .au-100-height(ui-view="content" ng-if="!loadingSafeTabs")
         .au-loader(ng-if="loadingSafeTabs")
             loading-state
-        .au-100-height(ui-view="content" ng-if="!loadingSafeTabs")

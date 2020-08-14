@@ -37,8 +37,6 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
-import java.util.HashMap;
-
 import static org.hamcrest.Matchers.containsString;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.when;
@@ -64,6 +62,16 @@ public class SDBControllerV2Test {
     public void setUp() {
         MockitoAnnotations.initMocks(this);
         this.mockMvc = MockMvcBuilders.standaloneSetup(sdbControllerV2).build();
+    }
+
+    UserDetails getMockUser(boolean isAdmin) {
+        String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+        UserDetails userDetails = new UserDetails();
+        userDetails.setUsername("normaluser");
+        userDetails.setAdmin(isAdmin);
+        userDetails.setClientToken(token);
+        userDetails.setSelfSupportToken(token);
+        return userDetails;
     }
 
     @Test
@@ -220,7 +228,7 @@ public class SDBControllerV2Test {
         String inputJson =new ObjectMapper().writeValueAsString(safeUser);
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(responseJson);
 
-        when(safesService.removeUserFromSafe(eq("5PDrOhsy4ig8L3EpsJZSLAMg"), Mockito.any())).thenReturn(responseEntityExpected);
+        when(safesService.removeUserFromSafe(eq("5PDrOhsy4ig8L3EpsJZSLAMg"), Mockito.any(), getMockUser(true))).thenReturn(responseEntityExpected);
 
         mockMvc.perform(MockMvcRequestBuilders.delete("/v2/sdb/user")
                 .header("vault-token", "5PDrOhsy4ig8L3EpsJZSLAMg")
@@ -238,7 +246,7 @@ public class SDBControllerV2Test {
         String responseJson = "{\"messages\":[\"Group is successfully associated with Safe\"]}";
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(responseJson);
 
-        when(safesService.addGroupToSafe(eq("5PDrOhsy4ig8L3EpsJZSLAMg"), Mockito.any())).thenReturn(responseEntityExpected);
+        when(safesService.addGroupToSafe(eq("5PDrOhsy4ig8L3EpsJZSLAMg"), Mockito.any(), getMockUser(true))).thenReturn(responseEntityExpected);
 
         mockMvc.perform(MockMvcRequestBuilders.post("/v2/sdb/group")
                 .header("vault-token", "5PDrOhsy4ig8L3EpsJZSLAMg")
@@ -256,7 +264,7 @@ public class SDBControllerV2Test {
         String responseJson = "{\"messages\":[\"Group association is removed \"]}";
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(responseJson);
 
-        when(safesService.removeGroupFromSafe(eq("5PDrOhsy4ig8L3EpsJZSLAMg"), Mockito.any())).thenReturn(responseEntityExpected);
+        when(safesService.removeGroupFromSafe(eq("5PDrOhsy4ig8L3EpsJZSLAMg"), Mockito.any(), getMockUser(true))).thenReturn(responseEntityExpected);
 
         mockMvc.perform(MockMvcRequestBuilders.delete("/v2/sdb/group")
                 .header("vault-token", "5PDrOhsy4ig8L3EpsJZSLAMg")

@@ -296,7 +296,7 @@ public class SelfSupportServiceTest {
         ResponseEntity<String> response = ResponseEntity.status(HttpStatus.OK).body("{\"Message\":\"User association is removed \"}");
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body("{\"Message\":\"User association is removed \"}");
 
-        when(safesService.removeUserFromSafe(token, safeUser)).thenReturn(response);
+        when(safesService.removeUserFromSafe(token, safeUser, userDetails)).thenReturn(response);
         when(safeUtils.canAddOrRemoveUser(userDetails, safeUser, "removeUser")).thenReturn(true);
 
         ResponseEntity<String> responseEntity = selfSupportService.removeUserFromSafe(userDetails, token, safeUser);
@@ -314,7 +314,7 @@ public class SelfSupportServiceTest {
         ResponseEntity<String> response = ResponseEntity.status(HttpStatus.OK).body("{\"Message\":\"User association is removed \"}");
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body("{\"Message\":\"User association is removed \"}");
 
-        when(safesService.removeUserFromSafe(token, safeUser)).thenReturn(response);
+        when(safesService.removeUserFromSafe(token, safeUser, userDetails)).thenReturn(response);
         when(safeUtils.canAddOrRemoveUser(userDetails, safeUser, "removeUser")).thenReturn(true);
 
         ResponseEntity<String> responseEntity = selfSupportService.removeUserFromSafe(userDetails, token, safeUser);
@@ -609,7 +609,7 @@ public class SelfSupportServiceTest {
         UserDetails userDetails = getMockUser(false);
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Group is successfully associated with Safe\"]}");
         ResponseEntity<String> response = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Group is successfully associated with Safe\"]}");
-        when(safesService.addGroupToSafe(token, safeGroup)).thenReturn(response);
+        when(safesService.addGroupToSafe(token, safeGroup, userDetails)).thenReturn(response);
         String[] policies = {"s_shared_mysafe01"};
         ArrayList<String> policiesTobeChecked = new ArrayList<String>();
         policiesTobeChecked.add("s_shared_mysafe01");
@@ -635,7 +635,7 @@ public class SelfSupportServiceTest {
         UserDetails userDetails = getMockUser(true);
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Group is successfully associated with Safe\"]}");
         ResponseEntity<String> response = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Group is successfully associated with Safe\"]}");
-        when(safesService.addGroupToSafe(token, safeGroup)).thenReturn(response);
+        when(safesService.addGroupToSafe(token, safeGroup, userDetails)).thenReturn(response);
 
         ResponseEntity<String> responseEntity = selfSupportService.addGroupToSafe(userDetails, token, safeGroup);
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
@@ -650,7 +650,7 @@ public class SelfSupportServiceTest {
         UserDetails userDetails = getMockUser(false);
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.FORBIDDEN).body("{\"errors\":[\"Access denied: no permission to add group to the safe\"]}");
         ResponseEntity<String> response = ResponseEntity.status(HttpStatus.FORBIDDEN).body("{\"errors\":[\"Access denied: no permission to add group to the safe\"]}");
-        when(safesService.addGroupToSafe(token, safeGroup)).thenReturn(response);
+        when(safesService.addGroupToSafe(token, safeGroup, userDetails)).thenReturn(response);
 
         String[] policies = {"s_shared_mysafe01"};
         ArrayList<String> policiesTobeChecked = new ArrayList<String>();
@@ -693,7 +693,7 @@ public class SelfSupportServiceTest {
         ResponseEntity<String> response = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Group association is removed \"]}");
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Group association is removed \"]}");
 
-        when(safesService.removeGroupFromSafe(token, safeGroup)).thenReturn(response);
+        when(safesService.removeGroupFromSafe(token, safeGroup, userDetails)).thenReturn(response);
         String[] policies = {"s_shared_mysafe01"};
         ArrayList<String> policiesTobeChecked = new ArrayList<String>();
         policiesTobeChecked.add("s_shared_mysafe01");
@@ -720,7 +720,7 @@ public class SelfSupportServiceTest {
         ResponseEntity<String> response = ResponseEntity.status(HttpStatus.FORBIDDEN).body("{\"errors\":[\"Access denied: no permission to remove group from the safe\"]}");
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.FORBIDDEN).body("{\"errors\":[\"Access denied: no permission to remove group from the safe\"]}");
 
-        when(safesService.removeGroupFromSafe(token, safeGroup)).thenReturn(response);
+        when(safesService.removeGroupFromSafe(token, safeGroup, userDetails)).thenReturn(response);
         String[] policies = {"s_shared_mysafe01"};
         ArrayList<String> policiesTobeChecked = new ArrayList<String>();
         policiesTobeChecked.add("s_shared_mysafe01");
@@ -747,7 +747,7 @@ public class SelfSupportServiceTest {
         ResponseEntity<String> response = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Group association is removed \"]}");
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Group association is removed \"]}");
 
-        when(safesService.removeGroupFromSafe(token, safeGroup)).thenReturn(response);
+        when(safesService.removeGroupFromSafe(token, safeGroup, userDetails)).thenReturn(response);
         ResponseEntity<String> responseEntity = selfSupportService.removeGroupFromSafe(userDetails, token, safeGroup);
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);

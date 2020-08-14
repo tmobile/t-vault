@@ -18,7 +18,6 @@
 package com.tmobile.cso.vault.api.v2.controller;
 
 import com.tmobile.cso.vault.api.model.*;
-import com.tmobile.cso.vault.api.utils.JSONUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
@@ -32,7 +31,6 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.tmobile.cso.vault.api.service.SelfSupportService;
 import com.tmobile.cso.vault.api.service.SafesService;
 
 import io.swagger.annotations.Api;
@@ -150,8 +148,9 @@ public class SDBControllerV2 {
 	 */
 	@ApiOperation(value = "${SafesController.addUserToSafe.value}", notes = "${SafesController.addUserToSafe.notes}")
 	@PostMapping(value="/v2/sdb/user",consumes="application/json",produces="application/json")
-	public ResponseEntity<String> addUsertoSafe(@RequestHeader(value="vault-token") String token, @RequestBody SafeUser safeUser){
-		return safesService.addUserToSafe(token, safeUser, null);
+	public ResponseEntity<String> addUsertoSafe(HttpServletRequest request, @RequestHeader(value="vault-token") String token, @RequestBody SafeUser safeUser){
+		UserDetails userDetails = (UserDetails) ((HttpServletRequest) request).getAttribute("UserDetails");
+		return safesService.addUserToSafe(token, safeUser, userDetails);
 	}
 
 	/**
@@ -162,8 +161,9 @@ public class SDBControllerV2 {
 	 */
 	@ApiOperation(value = "${SafesController.removeUserFromSafe.value}", notes = "${SafesController.removeUserFromSafe.notes}")
 	@DeleteMapping(value="/v2/sdb/user",consumes="application/json",produces="application/json")
-	public ResponseEntity<String> deleteUserFromSafe(@RequestHeader(value="vault-token") String token, @RequestBody SafeUser safeUser){
-		return safesService.removeUserFromSafe(token, safeUser);
+	public ResponseEntity<String> deleteUserFromSafe(HttpServletRequest request, @RequestHeader(value="vault-token") String token, @RequestBody SafeUser safeUser){
+		UserDetails userDetails = (UserDetails) ((HttpServletRequest) request).getAttribute("UserDetails");
+		return safesService.removeUserFromSafe(token, safeUser, userDetails);
 	}
 
 	/**
@@ -174,8 +174,9 @@ public class SDBControllerV2 {
 	 */
 	@ApiOperation(value = "${SafesController.addGroupToSafe.value}", notes = "${SafesController.addGroupToSafe.notes}")
 	@PostMapping(value="/v2/sdb/group",consumes="application/json",produces="application/json")
-	public ResponseEntity<String> addGrouptoSafe(@RequestHeader(value="vault-token") String token, @RequestBody SafeGroup safeGroup){
-		return safesService.addGroupToSafe(token, safeGroup);
+	public ResponseEntity<String> addGrouptoSafe(HttpServletRequest request, @RequestHeader(value="vault-token") String token, @RequestBody SafeGroup safeGroup){
+		UserDetails userDetails = (UserDetails) ((HttpServletRequest) request).getAttribute("UserDetails");
+		return safesService.addGroupToSafe(token, safeGroup, userDetails);
 	}
 	/**
 	 * Removes a group from safe
@@ -185,8 +186,9 @@ public class SDBControllerV2 {
 	 */
 	@ApiOperation(value = "${SafesController.deleteGroupFromSafe.value}", notes = "${SafesController.deleteGroupFromSafe.notes}")
 	@DeleteMapping (value="/v2/sdb/group",consumes="application/json",produces="application/json")
-	public ResponseEntity<String> deleteGroupFromSafe(@RequestHeader(value="vault-token") String token, @RequestBody SafeGroup safeGroup){
-		return safesService.removeGroupFromSafe(token, safeGroup);
+	public ResponseEntity<String> deleteGroupFromSafe(HttpServletRequest request, @RequestHeader(value="vault-token") String token, @RequestBody SafeGroup safeGroup){
+		UserDetails userDetails = (UserDetails) ((HttpServletRequest) request).getAttribute("UserDetails");
+		return safesService.removeGroupFromSafe(token, safeGroup, userDetails);
 	}
 	/**
 	 * Adds AWS role to a Safe 
