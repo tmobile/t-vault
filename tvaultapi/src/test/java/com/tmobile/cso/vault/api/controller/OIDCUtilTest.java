@@ -230,7 +230,7 @@ public class OIDCUtilTest {
         when(statusLine.getStatusCode()).thenReturn(200);
         when(httpResponse.getEntity()).thenReturn(mockHttpEntity);
 
-        String groupResponseString = "{\"value\": [ {\"id\": \"abcdefg\"}]}";
+        String groupResponseString = "{\"value\": [ {\"id\": \"abcdefg\", \"onPremisesSyncEnabled\":null}]}";
         when(mockHttpEntity.getContent()).thenReturn( new ByteArrayInputStream(groupResponseString.getBytes()));
         ReflectionTestUtils.setField(oidcUtil, "ssoGroupsEndpoint", "testgroupurl");
 
@@ -305,9 +305,10 @@ public class OIDCUtilTest {
            oidcLookupEntityRequest.setAlias_name("alias_name");
            oidcLookupEntityRequest.setAlias_mount_accessor("alias_mount_accessor");
            String jsonStr = JSONUtil.getJSON(oidcLookupEntityRequest);
-           String authMountResponse = "{\"data\":{\"name\":\"entity_63f119d2\",\"policies\":[\"safeadmin\"]}}";
+           String authMountResponse = "{\"data\":{\"name\":\"entity_63f119d2\",\"policies\":[\"default\"]}}";
            Response response = getMockResponse(HttpStatus.OK, true, authMountResponse);
            when(reqProcessor.process("/identity/lookup/entity", jsonStr, token)).thenReturn(response);
+           when(reqProcessor.process("/auth/tvault/lookup", "{}", token)).thenReturn(response);
            when(directoryService.searchByCorpId(username)).thenReturn(responseEntity1);
     	ResponseEntity<OIDCEntityResponse> oiEntity = oidcUtil.oidcFetchEntityDetails(token, username);
         assertEquals(oiEntity.getStatusCode(), responseEntityExpected.getStatusCode());

@@ -228,7 +228,7 @@ public class SDBControllerV2Test {
         String inputJson =new ObjectMapper().writeValueAsString(safeUser);
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(responseJson);
 
-        when(safesService.removeUserFromSafe(eq("5PDrOhsy4ig8L3EpsJZSLAMg"), Mockito.any(), getMockUser(true))).thenReturn(responseEntityExpected);
+        when(safesService.removeUserFromSafe(eq("5PDrOhsy4ig8L3EpsJZSLAMg"), Mockito.any(), Mockito.any(UserDetails.class))).thenReturn(responseEntityExpected);
 
         mockMvc.perform(MockMvcRequestBuilders.delete("/v2/sdb/user")
                 .header("vault-token", "5PDrOhsy4ig8L3EpsJZSLAMg")
@@ -246,7 +246,7 @@ public class SDBControllerV2Test {
         String responseJson = "{\"messages\":[\"Group is successfully associated with Safe\"]}";
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(responseJson);
 
-        when(safesService.addGroupToSafe(eq("5PDrOhsy4ig8L3EpsJZSLAMg"), Mockito.any(), getMockUser(true))).thenReturn(responseEntityExpected);
+        when(safesService.addGroupToSafe(eq("5PDrOhsy4ig8L3EpsJZSLAMg"), Mockito.any(), Mockito.any(UserDetails.class))).thenReturn(responseEntityExpected);
 
         mockMvc.perform(MockMvcRequestBuilders.post("/v2/sdb/group")
                 .header("vault-token", "5PDrOhsy4ig8L3EpsJZSLAMg")
@@ -264,7 +264,7 @@ public class SDBControllerV2Test {
         String responseJson = "{\"messages\":[\"Group association is removed \"]}";
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(responseJson);
 
-        when(safesService.removeGroupFromSafe(eq("5PDrOhsy4ig8L3EpsJZSLAMg"), Mockito.any(), getMockUser(true))).thenReturn(responseEntityExpected);
+        when(safesService.removeGroupFromSafe(eq("5PDrOhsy4ig8L3EpsJZSLAMg"), Mockito.any(), Mockito.any(UserDetails.class))).thenReturn(responseEntityExpected);
 
         mockMvc.perform(MockMvcRequestBuilders.delete("/v2/sdb/group")
                 .header("vault-token", "5PDrOhsy4ig8L3EpsJZSLAMg")
