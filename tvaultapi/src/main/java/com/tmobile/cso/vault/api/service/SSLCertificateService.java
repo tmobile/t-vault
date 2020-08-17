@@ -359,6 +359,7 @@ public class SSLCertificateService {
                                     "[%s]", sslCertificateRequest.getCertificateName(), certificateDetails)).
                     build()));
 
+            token = (userDetails.isAdmin())?token : userDetails.getSelfSupportToken();
 
             if (Objects.isNull(certificateDetails)) {
                 //Validate the certificate in metadata path  for external certificate
@@ -4575,6 +4576,10 @@ public class SSLCertificateService {
 				certificateData.getCertificateStatus(): object.get("certificateStatus").getAsString());
 		metaDataParams.put("containerName", certificateData.getContainerName()!=null ?
 				certificateData.getContainerName() : object.get("containerName").getAsString());
+        if(Objects.nonNull(certificateData.getDnsNames())) {
+            metaDataParams.put("dnsNames", certificateData.getDnsNames().toString());
+        }
+
 		return metaDataParams;
 	}
 
