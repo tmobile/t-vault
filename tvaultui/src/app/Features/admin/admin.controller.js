@@ -758,7 +758,6 @@
                 $scope.error('md');
             });
         }
-
         $scope.searchTargetSystems = function (searchVal) {
             if ($scope.targetSystemList.length > 0 && searchVal.length > 2) {
                 $scope.certObj.targetSystemServiceRequest = undefined;
@@ -1512,6 +1511,7 @@
             $scope.multiSanDnsName.name='';
             $scope.certDnsErrorMessage='';
             $scope.multiSan=[];
+            $scope.addEmail();
         }
 
         $scope.replaceSpacesCertName = function () {
@@ -2067,6 +2067,39 @@
                 }
             }
         }
+        $scope.addEmail = function () {        	
+                try {
+                    var userSearchList = [];
+
+                    var queryParameters = SessionStore.getItem("username");
+                    console.log("id:",queryParameters)
+                    var updatedUrlOfEndPoint = ModifyUrl.addUrlParameteres('usersGetDataUsingCorpID', queryParameters);
+                    console.log("up:",updatedUrlOfEndPoint);
+                    return AdminSafesManagement.usersGetDataUsingCorpID(null, updatedUrlOfEndPoint).then(
+                        function(response) {
+                            if (UtilityService.ifAPIRequestSuccessful(response)) {
+                                var filterdUserData = "";
+                                userSearchList = response.data.data.values[0];
+                                filterdUserData=userSearchList.userEmail;
+                                $scope.certObj.certDetails.ownerEmail=filterdUserData;
+                                console.log("email value is:",filterdUserData);
+                                return filterdUserData;
+                            } 
+                        },
+                        function(error) {
+                            // Error handling function
+                            console.log(error);
+                            $scope.isUserSearchLoading = false;
+                            $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
+                            $scope.error('md');
+                    });
+                } catch (e) {
+                    console.log(e);
+                    $scope.isUserSearchLoading = false;
+                    $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
+                    $scope.error('md');
+                }
+            }
 
         $scope.searchEmail = function (searchVal) {        	
             if (searchVal.length > 2) {
@@ -2077,6 +2110,7 @@
 
                     var queryParameters = $scope.certObj.certDetails.ownerEmail;
                     var updatedUrlOfEndPoint = ModifyUrl.addUrlParameteres('usersGetData', queryParameters);
+                    console.log("up:",updatedUrlOfEndPoint);
                     return AdminSafesManagement.usersGetData(null, updatedUrlOfEndPoint).then(
                         function(response) {
                             $scope.isUserSearchLoading = false;
@@ -2086,6 +2120,7 @@
                                 $scope.userSearchList.forEach(function (userData) {
                                     if (userData.userEmail != null && userData.userEmail.substring(0, searchVal.length).toLowerCase() == searchVal) {
                                         filterdUserData.push(userData);
+                                        console.log("email value is:",userData.userEmail);
                                     }
                                 });
                                 return orderByFilter(filterFilter(filterdUserData, searchVal), 'userEmail', true);
