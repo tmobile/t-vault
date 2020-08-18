@@ -8,8 +8,8 @@
 md-content.au-100-height
     md-tabs.au-100-height.md-border-bottom.md-dynamic-height(md-selected="vm.tabIndex")
         md-tab(ng-repeat="tab in vm.safeCategories" ng-attr-label="{{tab.name}}")
-            md-content.au-tabs-inner(ng-init="safeList = vm.tiles[tab.id]")
-                    tiles(data="safeList" tile-func-available="true" img="'safe_tile.png'" search-value="searchValue" tile-details="vm.goToFolders")
-                    .unavailable-text(ng-if='!safeList.length') No safes available
-
-
+            md-content.au-tabs-inner(ng-init="vm.tiles[tab.id]")
+                    tiles(data="vm.tiles[tab.id]" tile-func-available="true" img="'safe_tile.png'" search-value="searchValue" tile-details="vm.goToFolders")
+                    .unavailable-text(ng-if='!vm.tiles[tab.id].length') No safes available
+                    .au-loader(ng-if="loadingData || !vm.safesLoaded")
+                        loading-state

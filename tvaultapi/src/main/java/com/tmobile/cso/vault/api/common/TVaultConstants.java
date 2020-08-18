@@ -126,4 +126,6 @@ public class TVaultConstants {
     public static final String ENTITY_NAME = "name";
     public static final String POLICIES = "policies";
     public static final String EXTERNAL_TYPE = "external";
+    public static final String IDENTITY_POLICIES = "identity_policies";
+    public static final String ENTITY_DISPLAY_NAME = "display_name";
 }

@@ -828,6 +828,7 @@ public class  SafesService {
 				try {
 
 					ldapConfigresponse = oidcUtil.updateOIDCEntity(policies, oidcEntityResponse.getEntityName());
+					oidcUtil.renewUserTokenAfterPolicyUpdate(userDetails.getClientToken());
 				}catch (Exception e) {
 					log.error(e);
 					log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
@@ -894,6 +895,7 @@ public class  SafesService {
 							try {
 								ldapConfigresponse = oidcUtil.updateOIDCEntity(currentpolicies,
 										oidcEntityResponse.getEntityName());
+                                oidcUtil.renewUserTokenAfterPolicyUpdate(userDetails.getClientToken());
 							} catch (Exception e) {
 								log.error(e);
 								log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
@@ -941,14 +943,15 @@ public class  SafesService {
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid 'path' specified\"]}");
 		}
 	}
-	
+
 	/**
 	 * Adds group to an Safe
 	 * @param token
 	 * @param safeGroup
+	 * @param userDetails
 	 * @return
 	 */
-	public ResponseEntity<String> addGroupToSafe(String token, SafeGroup safeGroup) {
+	public ResponseEntity<String> addGroupToSafe(String token, SafeGroup safeGroup, UserDetails userDetails) {
 		OIDCGroup oidcGroup = new OIDCGroup();
 		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
@@ -1060,7 +1063,9 @@ public class  SafesService {
 			if (TVaultConstants.LDAP.equals(vaultAuthMethod)) {
 				ldapConfigresponse = ControllerUtil.configureLDAPGroup(groupName, policiesString, token);
 			} else if (TVaultConstants.OIDC.equals(vaultAuthMethod)) {
-				ldapConfigresponse = oidcUtil.updateGroupPolicies(token, groupName, policies, currentpolicies, oidcGroup.getId());
+				ldapConfigresponse = oidcUtil.updateGroupPolicies(token, groupName, policies, currentpolicies,
+						oidcGroup!=null?oidcGroup.getId(): null);
+				oidcUtil.renewUserTokenAfterPolicyUpdate(userDetails.getClientToken());
 			}
 			if (ldapConfigresponse.getHttpstatus().equals(HttpStatus.NO_CONTENT)
 					|| ldapConfigresponse.getHttpstatus().equals(HttpStatus.OK)) {
@@ -1124,6 +1129,7 @@ public class  SafesService {
 						} else if (TVaultConstants.OIDC.equals(vaultAuthMethod)) {
 							ldapConfigresponse = oidcUtil.updateGroupPolicies(token, groupName, currentpolicies,
 									currentpolicies, oidcGroup.getId());
+							oidcUtil.renewUserTokenAfterPolicyUpdate(userDetails.getClientToken());
 						}
 						if(ldapConfigresponse.getHttpstatus().equals(HttpStatus.NO_CONTENT)){
 							log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
@@ -1160,9 +1166,10 @@ public class  SafesService {
 	 * Removes an associated user from Safe
 	 * @param token
 	 * @param safeUser
-	 * @return
+	 * @param userDetails
+     * @return
 	 */
-	public ResponseEntity<String> removeUserFromSafe(String token, SafeUser safeUser) {
+	public ResponseEntity<String> removeUserFromSafe(String token, SafeUser safeUser, UserDetails userDetails) {
 		OIDCEntityResponse oidcEntityResponse = new OIDCEntityResponse();
 		String jsonstr = JSONUtil.getJSON(safeUser);
 		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
@@ -1313,6 +1320,7 @@ public class  SafesService {
 					try {
 						ldapConfigresponse = oidcUtil.updateOIDCEntity(policies,
 								oidcEntityResponse.getEntityName());
+                        oidcUtil.renewUserTokenAfterPolicyUpdate(userDetails.getClientToken());
 					} catch (Exception e) {
 						log.error(e);
 						log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
@@ -1369,6 +1377,7 @@ public class  SafesService {
 								try {
 									ldapConfigresponse = oidcUtil.updateOIDCEntity(currentpolicies,
 											oidcEntityResponse.getEntityName());
+                                    oidcUtil.renewUserTokenAfterPolicyUpdate(userDetails.getClientToken());
 								} catch (Exception e2) {
 									log.error(e2);
 									log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
@@ -1430,9 +1439,10 @@ public class  SafesService {
 	 * Removes an associated group from LDAP
 	 * @param token
 	 * @param safeGroup
+	 * @param userDetails
 	 * @return
 	 */
-	public ResponseEntity<String> removeGroupFromSafe(String token, SafeGroup safeGroup) {
+	public ResponseEntity<String> removeGroupFromSafe(String token, SafeGroup safeGroup, UserDetails userDetails) {
 		OIDCGroup oidcGroup = new OIDCGroup();
 		String jsonstr = JSONUtil.getJSON(safeGroup);
 		if (TVaultConstants.USERPASS.equals(vaultAuthMethod)) {
@@ -1513,6 +1523,7 @@ public class  SafesService {
 				} else if (TVaultConstants.OIDC.equals(vaultAuthMethod)) {
 					ldapConfigresponse = oidcUtil.updateGroupPolicies(token, groupName, policies, currentpolicies,
 							oidcGroup.getId());
+					oidcUtil.renewUserTokenAfterPolicyUpdate(userDetails.getClientToken());
 				}
 				if (ldapConfigresponse.getHttpstatus().equals(HttpStatus.NO_CONTENT)
 						|| ldapConfigresponse.getHttpstatus().equals(HttpStatus.OK)) { 
@@ -1555,6 +1566,7 @@ public class  SafesService {
 							} else if (TVaultConstants.OIDC.equals(vaultAuthMethod)) {
 								ldapConfigresponse = oidcUtil.updateGroupPolicies(token, groupName, currentpolicies,
 										currentpolicies, oidcGroup.getId());
+								oidcUtil.renewUserTokenAfterPolicyUpdate(userDetails.getClientToken());
 							}
 							if(ldapConfigresponse.getHttpstatus().equals(HttpStatus.NO_CONTENT)){
 								log.debug("Reverting user policy update");
