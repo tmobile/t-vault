@@ -2077,9 +2077,7 @@
                     var userSearchList = [];
 
                     var queryParameters = SessionStore.getItem("username");
-                    console.log("id:",queryParameters)
                     var updatedUrlOfEndPoint = ModifyUrl.addUrlParameteres('usersGetDataUsingCorpID', queryParameters);
-                    console.log("up:",updatedUrlOfEndPoint);
                     return AdminSafesManagement.usersGetDataUsingCorpID(null, updatedUrlOfEndPoint).then(
                         function(response) {
                             if (UtilityService.ifAPIRequestSuccessful(response)) {
@@ -2087,7 +2085,6 @@
                                 userSearchList = response.data.data.values[0];
                                 filterdUserData=userSearchList.userEmail;
                                 $scope.certObj.certDetails.ownerEmail=filterdUserData;
-                                console.log("email value is:",filterdUserData);
                                 return filterdUserData;
                             } 
                         },
@@ -2115,7 +2112,6 @@
 
                     var queryParameters = $scope.certObj.certDetails.ownerEmail;
                     var updatedUrlOfEndPoint = ModifyUrl.addUrlParameteres('usersGetData', queryParameters);
-                    console.log("up:",updatedUrlOfEndPoint);
                     return AdminSafesManagement.usersGetData(null, updatedUrlOfEndPoint).then(
                         function(response) {
                             $scope.isUserSearchLoading = false;
@@ -2125,7 +2121,6 @@
                                 $scope.userSearchList.forEach(function (userData) {
                                     if (userData.userEmail != null && userData.userEmail.substring(0, searchVal.length).toLowerCase() == searchVal) {
                                         filterdUserData.push(userData);
-                                        console.log("email value is:",userData.userEmail);
                                     }
                                 });
                                 return orderByFilter(filterFilter(filterdUserData, searchVal), 'userEmail', true);
