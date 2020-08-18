@@ -429,43 +429,10 @@ public class OIDCUtil {
             // Get policies from token. This will have all the policies from user and group except the user polices updated to the entity.
             List<String> policiesFromToken = tokenLookUp(token);
             List<String> entityPolicies = entityResponseResponseEntity.getBody().getPolicies();
-			policiesFromToken = policiesFromToken.stream().distinct().collect(Collectors.toList());
 
-            List<String> combinedPolicyList = policiesFromToken;
-            for (int i = 0; i < entityPolicies.size(); i++ ) {
-                String policyName = entityPolicies.get(i);
-				String[] _policy = policyName.split("_", -1);
-				if (_policy.length >= 3) {
-					String itemName = policyName.substring(1);
-					List<String> matchingPolicies = combinedPolicyList.stream().filter(p->p.substring(1).equals(itemName)).collect(Collectors.toList());
-					if (!matchingPolicies.isEmpty()) {
-                    /* if conflicting policy is deny then replace existing with deny
-                        or if read exists and write conflict then replace with write.
-                        All other cases have the correct permission in list, no need to udpate.
-                    */
-						if (policyName.startsWith("d_") || (policyName.startsWith("w_") && !matchingPolicies.stream().anyMatch(p-> p.equals("d"+itemName)))) {
-							combinedPolicyList.removeAll(matchingPolicies);
-							combinedPolicyList.add(policyName);
-						}
-						else if (matchingPolicies.stream().anyMatch(p-> p.equals("d"+itemName))) {
-							combinedPolicyList.removeAll(matchingPolicies);
-							combinedPolicyList.add("d"+itemName);
-						}
-						else if (matchingPolicies.stream().anyMatch(p-> p.equals("w"+itemName))) {
-							combinedPolicyList.removeAll(matchingPolicies);
-							combinedPolicyList.add("w"+itemName);
-						}
-						else if (matchingPolicies.stream().anyMatch(p-> p.equals("r"+itemName))) {
-							combinedPolicyList.removeAll(matchingPolicies);
-							combinedPolicyList.add("r"+itemName);
-						}
+			List<String> combinedPolicyList = policiesFromToken;
+			combinedPolicyList.addAll(entityPolicies);
 
-					}
-					else {
-						combinedPolicyList.add(policyName);
-					}
-				}
-            }
             List<String> policiesWithOutDuplicates = combinedPolicyList.stream().distinct().collect(Collectors.toList());
             entityResponseResponseEntity.getBody().setPolicies(policiesWithOutDuplicates);
             return entityResponseResponseEntity;
