@@ -128,7 +128,7 @@ public class  SelfSupportService {
 				safeUser.setAccess(TVaultConstants.SUDO_POLICY);
 				safeUser.setPath(safe.getPath());
 				safeUser.setUsername(userDetails.getUsername());
-				safesService.addUserToSafe(token, safeUser, userDetails);
+				safesService.addUserToSafe(token, safeUser, null);
 			}
 			return safe_creation_response;
 		}
@@ -690,6 +690,8 @@ public class  SelfSupportService {
 		}
 		String[] policies = policyUtils.getCurrentPolicies(token, userDetails.getUsername());
 
+		policies = filterPoliciesBasedOnPrecedence(Arrays.asList(policies));
+
 		List<Map<String, String>> safeListUsers = new ArrayList<>();
 		List<Map<String, String>> safeListShared = new ArrayList<>();
 		List<Map<String, String>> safeListApps = new ArrayList<>();
@@ -727,6 +729,51 @@ public class  SelfSupportService {
 			safeList.put(TVaultConstants.APPS, safeListApps);
 		}
 		return ResponseEntity.status(HttpStatus.OK).body(JSONUtil.getJSON(safeList));
+	}
+
+	/**
+	 * Filter safe policies based on policy precedence.
+	 * @param policies
+	 * @return
+	 */
+	private String [] filterPoliciesBasedOnPrecedence(List<String> policies) {
+		List<String> filteredList = new ArrayList<>();
+		for (int i = 0; i < policies.size(); i++ ) {
+			String policyName = policies.get(i);
+			String[] _policy = policyName.split("_", -1);
+			if (_policy.length >= 3) {
+				String itemName = policyName.substring(1);
+				List<String> matchingPolicies = filteredList.stream().filter(p->p.substring(1).equals(itemName)).collect(Collectors.toList());
+				if (!matchingPolicies.isEmpty()) {
+					/* deny has highest priority. Read and write are additive in nature
+						Removing all matching as there might be duplicate policies from user and groups
+					*/
+					if (policyName.startsWith("d_") || (policyName.startsWith("w_") && !matchingPolicies.stream().anyMatch(p-> p.equals("d"+itemName)))) {
+						filteredList.removeAll(matchingPolicies);
+						filteredList.add(policyName);
+					}
+					else if (matchingPolicies.stream().anyMatch(p-> p.equals("d"+itemName))) {
+						// policy is read and deny already in the list. Then deny has precedence.
+						filteredList.removeAll(matchingPolicies);
+						filteredList.add("d"+itemName);
+					}
+					else if (matchingPolicies.stream().anyMatch(p-> p.equals("w"+itemName))) {
+						// policy is read and write already in the list. Then write has precedence.
+						filteredList.removeAll(matchingPolicies);
+						filteredList.add("w"+itemName);
+					}
+					else if (matchingPolicies.stream().anyMatch(p-> p.equals("r"+itemName))) {
+						// policy is read and read already in the list. Then remove all duplicates read and add single read permission for that safe.
+						filteredList.removeAll(matchingPolicies);
+						filteredList.add("r"+itemName);
+					}
+				}
+				else {
+					filteredList.add(policyName);
+				}
+			}
+		}
+		return filteredList.toArray(new String[0]);
 	}
 
 	/**
