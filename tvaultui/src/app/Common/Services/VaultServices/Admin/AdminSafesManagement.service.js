@@ -302,6 +302,11 @@
                     return response;
                 });
             },
+            usersGetDataUsingCorpID: function (payload, url) {
+                return ServiceEndpoint.usersGetDataUsingCorpID.makeRequest(payload, url).then(function(response) {
+                    return response;
+                });
+            },
             issueRevocationRequest: function (payload, url) {
                 return ServiceEndpoint.issueRevocationRequest.makeRequest(payload, url).then(function(response) {
                     return response;

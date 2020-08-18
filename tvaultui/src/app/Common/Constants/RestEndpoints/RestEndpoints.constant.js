@@ -338,6 +338,10 @@ readTextFile("../apiUrls.json");
             name: 'usersGetData',
             url: '/v2/ldap/users?UserPrincipalName=',
             method: 'GET'
+        },{
+            name: 'usersGetDataUsingCorpID',
+            url: '/v2/ldap/corpusers?CorpId=',
+            method: 'GET'
         }, {
             name: 'getRevocationReasons',
             url: '/v2/certificates/{certificateId}/revocationreasons',
