@@ -1670,6 +1670,7 @@
         $scope.selectAppName = function (applicationObj) {  
             $scope.certObj.certDetails.applicationName = applicationObj.tag;
             $scope.appNameSelected = true;
+            $scope.isOwnerSelected = true
         }
 
         $scope.selectApplicationName = function (applicationObj) { 	
@@ -1743,7 +1744,7 @@
                     "certificateName":$scope.certObj.certDetails.certName,
                     "certType":$scope.certObj.certDetails.certType,
                     "certOwnerEmailId":$scope.certObj.certDetails.ownerEmail,
-                    "certOwnerNTId":$scope.certObj.certDetails.ownerNtId,
+                    "certOwnerNTId":SessionStore.getItem("username"),
                     "dnsList": multiSanDns
                 }
                 $scope.certificateCreationMessage = '';
@@ -2150,14 +2151,6 @@
                 $scope.certObj.certDetails.ownerEmail = ownerEmail.userEmail;
                 $scope.certObj.certDetails.ownerNtId = ownerEmail.userName;
                 $scope.isOwnerSelected = true;
-            }
-        }
-        $scope.selectOwnerEmail = function (ownerEmail) {
-            if(ownerEmail.includes("@T-Mobile.com")){
-                $scope.isOwnerSelected = true;
-            }
-            else{
-                $scope.isOwnerSelected = false;
             }
         }
         $scope.clearOwnerEmail = function () {
