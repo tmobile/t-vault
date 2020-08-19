@@ -37,6 +37,7 @@ import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
@@ -109,6 +110,8 @@ public final class ControllerUtil {
 	private static String oidcDiscoveryUrl;
 	private static String oidcADLoginUrl;
 	private static OIDCCred oidcCred = null;
+	
+	private static OIDCUtil oidcUtil;
 
 	@PostConstruct
 	private void initStatic () {
@@ -132,6 +135,15 @@ public final class ControllerUtil {
 	 */
 	public static RequestProcessor getReqProcessor() {
 		return ControllerUtil.reqProcessor;
+	}
+
+	public static OIDCUtil getOidcUtil() {
+		return ControllerUtil.oidcUtil;
+	}
+	
+	@Autowired(required = true)
+	public void setOidcUtil(OIDCUtil oidcUtil) {
+		ControllerUtil.oidcUtil = oidcUtil;
 	}
 
 	public static void recursivedeletesdb(String jsonstr,String token,  Response responseVO){
@@ -846,6 +858,7 @@ public final class ControllerUtil {
 	}
 
 	public static void updateUserPolicyAssociationOnSDBDelete(String sdb,Map<String,String> acessInfo,String token){
+		OIDCEntityResponse oidcEntityResponse = new OIDCEntityResponse();
 		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 				put(LogMessage.ACTION, "updateUserPolicyAssociationOnSDBDelete").
@@ -880,12 +893,35 @@ public final class ControllerUtil {
 			ObjectMapper objMapper = new ObjectMapper();
 			for(String userName : users){
 				
-				Response userResponse;
+				Response userResponse = new Response();
 				if (TVaultConstants.USERPASS.equals(vaultAuthMethod)) {
 					userResponse = reqProcessor.process("/auth/userpass/read","{\"username\":\""+userName+"\"}",token);
 				}
-				else {
+				else if (TVaultConstants.LDAP.equals(vaultAuthMethod)){
 					userResponse = reqProcessor.process("/auth/ldap/users","{\"username\":\""+userName+"\"}",token);
+				}else if (TVaultConstants.OIDC.equals(vaultAuthMethod)) {
+					// OIDC implementation changes
+					ResponseEntity<OIDCEntityResponse> responseEntity = oidcUtil.oidcFetchEntityDetails(token, userName);
+					if (!responseEntity.getStatusCode().equals(HttpStatus.OK)) {
+						if (responseEntity.getStatusCode().equals(HttpStatus.FORBIDDEN)) {
+							log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+									.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString())
+									.put(LogMessage.ACTION, "Add User to SDB")
+									.put(LogMessage.MESSAGE,
+											String.format("Trying to fetch OIDC user policies, failed"))
+									.put(LogMessage.APIURL,
+											ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString())
+									.build()));
+							ResponseEntity.status(HttpStatus.FORBIDDEN)
+									.body("{\"messages\":[\"User configuration failed. Please try again.\"]}");
+						}
+						ResponseEntity.status(HttpStatus.NOT_FOUND)
+								.body("{\"messages\":[\"User configuration failed. Invalid user\"]}");
+					}
+					oidcEntityResponse.setEntityName(responseEntity.getBody().getEntityName());
+					oidcEntityResponse.setPolicies(responseEntity.getBody().getPolicies());
+					userResponse.setResponse(oidcEntityResponse.getPolicies().toString());
+					userResponse.setHttpstatus(responseEntity.getStatusCode());
 				}	
 				String responseJson="";
 				String groups="";
@@ -895,10 +931,14 @@ public final class ControllerUtil {
 				if(HttpStatus.OK.equals(userResponse.getHttpstatus())){
 					responseJson = userResponse.getResponse();	
 					try {
-						//currentpolicies = getPoliciesAsStringFromJson(objMapper, responseJson);
-						currentpolicies = ControllerUtil.getPoliciesAsListFromJson(objMapper, responseJson);
-						if (!(TVaultConstants.USERPASS.equals(vaultAuthMethod))) {
-							groups = objMapper.readTree(responseJson).get("data").get("groups").asText();
+						// OIDC implementation changes
+						if (TVaultConstants.OIDC.equals(vaultAuthMethod)) {
+							currentpolicies.addAll(oidcEntityResponse.getPolicies());
+						} else {
+							currentpolicies = ControllerUtil.getPoliciesAsListFromJson(objMapper, responseJson);
+							if (TVaultConstants.LDAP.equals(vaultAuthMethod)) {
+								groups = objMapper.readTree(responseJson).get("data").get("groups").asText();
+							}
 						}
 					} catch (IOException e) {
 						log.error(e);
@@ -927,9 +967,29 @@ public final class ControllerUtil {
 						log.debug ("Inside userpass");
 						ControllerUtil.configureUserpassUser(userName,policiesString,token);
 					}
-					else {
+					else if (TVaultConstants.LDAP.equals(vaultAuthMethod)){
 						log.debug ("Inside non-userpass");
 						ControllerUtil.configureLDAPUser(userName,policiesString,groups,token);
+					}
+					else if (TVaultConstants.OIDC.equals(vaultAuthMethod)) {
+						//OIDC Implementation : Entity Update
+						try {
+							oidcUtil.updateOIDCEntity(policies, oidcEntityResponse.getEntityName());
+						} catch (Exception e) {
+							log.error(e);
+							log.error(
+									JSONUtil.getJSON(
+											ImmutableMap.<String, String> builder()
+													.put(LogMessage.USER,
+															ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+													.put(LogMessage.ACTION, "Add User to SDB")
+													.put(LogMessage.MESSAGE,
+															"Exception while adding or updating the identity ")
+													.put(LogMessage.STACKTRACE, Arrays.toString(e.getStackTrace()))
+													.put(LogMessage.APIURL,
+															ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL))
+													.build()));
+						}
 					}
 				}
 				
@@ -937,6 +997,7 @@ public final class ControllerUtil {
 		}
 	}
 	public static void updateGroupPolicyAssociationOnSDBDelete(String sdb,Map<String,String> acessInfo,String token){
+		OIDCGroup oidcGroup = new OIDCGroup();
 		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 				put(LogMessage.ACTION, "updateGroupPolicyAssociationOnSDBDelete").
@@ -970,15 +1031,32 @@ public final class ControllerUtil {
 			Set<String> groups = acessInfo.keySet();
 			ObjectMapper objMapper = new ObjectMapper();
 			for(String groupName : groups){
-				Response response = reqProcessor.process("/auth/ldap/groups","{\"groupname\":\""+groupName+"\"}",token);
+				Response response = new Response();
+				if( TVaultConstants.LDAP.equals(vaultAuthMethod) ){
+					response = reqProcessor.process("/auth/ldap/groups","{\"groupname\":\""+groupName+"\"}",token);
+				}else if ( TVaultConstants.OIDC.equals(vaultAuthMethod) ) {
+					//call read api with groupname
+					oidcGroup = oidcUtil.getIdentityGroupDetails(groupName, token);
+					if (oidcGroup != null) {
+						response.setHttpstatus(HttpStatus.OK);
+						response.setResponse(oidcGroup.getPolicies().toString());
+					} else {
+						response.setHttpstatus(HttpStatus.BAD_REQUEST);
+					}
+				}
+				 
 				String responseJson=TVaultConstants.EMPTY;
 				List<String> policies = new ArrayList<>();
 				List<String> currentpolicies = new ArrayList<>();
 				if(HttpStatus.OK.equals(response.getHttpstatus())){
 					responseJson = response.getResponse();	
 					try {
-						//currentpolicies = getPoliciesAsStringFromJson(objMapper, responseJson);
-						currentpolicies = ControllerUtil.getPoliciesAsListFromJson(objMapper, responseJson);
+						//OIDC Changes
+						if (TVaultConstants.LDAP.equals(vaultAuthMethod)) {
+							currentpolicies = ControllerUtil.getPoliciesAsListFromJson(objMapper, responseJson);
+						} else if (TVaultConstants.OIDC.equals(vaultAuthMethod)) {
+							currentpolicies.addAll(oidcGroup.getPolicies());
+						}
 					} catch (IOException e) {
 						log.error(e);
 						log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
@@ -999,7 +1077,12 @@ public final class ControllerUtil {
 							put(LogMessage.MESSAGE, String.format ("Current policies [%s]", policies )).
 							put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 							build()));
-					ControllerUtil.configureLDAPGroup(groupName,policiesString,token);
+					if (TVaultConstants.LDAP.equals(vaultAuthMethod)) {
+						ControllerUtil.configureLDAPGroup(groupName, policiesString, token);
+					} else if (TVaultConstants.OIDC.equals(vaultAuthMethod)) {
+						oidcUtil.updateGroupPolicies(token, groupName, policies, currentpolicies, oidcGroup.getId());
+					}
+					
 				}
 			}
 		}
