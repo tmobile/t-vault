@@ -204,6 +204,42 @@ public class CertificateUtilsTest {
         assertEquals(certificateMetadataObj.getCertOwnerNtid(), certificateMetadata.getCertOwnerNtid());
     }
     
+	@Test
+	public void testGetExternalCertificateMetaDataSuccessfully() {
+		UserDetails userDetails = getMockUser(true);
+		userDetails.setUsername(ADMIN_USER);
+		String certificatePath = SSLCertificateConstants.SSL_EXTERNAL_CERT_PATH + '/' + CERT_NAME;
+
+		Response responseObj = getMockResponse(HttpStatus.OK, true,
+				"{ \"data\": {\"akmid\":\"103001\",\"applicationName\":\"tvt\", "
+						+ " \"applicationOwnerEmailId\":\"appowneremail@test.com\", \"applicationTag\":\"T-Vault\", "
+						+ " \"authority\":\"T-Mobile Issuing CA 01 - SHA2\", \"certCreatedBy\": \"testuser1\", "
+						+ " \"certOwnerEmailId\":\"owneremail@test.com\", \"certOwnerNtid\": \"testuser1\", \"certType\": \"external\", "
+						+ " \"certificateId\":\"62765\",\"certificateName\":\"certificatename.t-mobile.com\", "
+						+ " \"certificateStatus\":\"Active\", \"containerName\":\"VenafiBin_12345\", \"containerId\": \"99\", "
+						+ " \"createDate\":\"2020-06-24\", \"expiryDate\":\"2021-06-24\", \"requestStatus\": \"Approved\", "
+						+ " \"projectLeadEmailId\":\"project@email.com\"}}");
+
+		when(ControllerUtil.getReqProcessor().process(GET_CERT_DETAIL, GET_CERT_DETAIL_VAL + certificatePath + "\"}",
+				userDetails.getClientToken())).thenReturn(responseObj);
+
+		SSLCertificateMetadataDetails certificateMetadata = getSSLCertificateMetadataDetails();
+		certificateMetadata.setRequestStatus("Approved");
+		certificateMetadata.setCertType("external");
+		certificateMetadata.setContainerId(99);
+		String certType = "external";
+		SSLCertificateMetadataDetails certificateMetadataObj = certificateUtils
+				.getCertificateMetaData(userDetails.getClientToken(), CERT_NAME, certType);
+		assertEquals(certificateMetadataObj.getCertificateName(), certificateMetadata.getCertificateName());
+		assertEquals(certificateMetadataObj.getAkmid(), certificateMetadata.getAkmid());
+		assertEquals(certificateMetadataObj.getApplicationName(), certificateMetadata.getApplicationName());
+		assertEquals(certificateMetadataObj.getCreateDate(), certificateMetadata.getCreateDate());
+		assertEquals(certificateMetadataObj.getApplicationTag(), certificateMetadata.getApplicationTag());
+		assertEquals(certificateMetadataObj.getCertOwnerNtid(), certificateMetadata.getCertOwnerNtid());
+		assertEquals(certificateMetadataObj.getRequestStatus(), certificateMetadata.getRequestStatus());
+		assertEquals(certificateMetadataObj.getContainerId(), certificateMetadata.getContainerId());
+	}
+
     @Test(expected = Exception.class)
     public void testGetCertificateMetaDataFailed() {
         UserDetails userDetails = getMockUser(true);
