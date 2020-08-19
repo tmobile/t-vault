@@ -1950,7 +1950,7 @@ public class  SafesService {
 					ControllerUtil.updateUserPolicyAssociationOnSDBDelete(path,users,token);
 					ControllerUtil.updateGroupPolicyAssociationOnSDBDelete(path,groups,token);
 					ControllerUtil.deleteAwsRoleOnSDBDelete(path,awsroles,token);
-					updateApprolePolicyAssociationOnSvcaccDelete(path, approles, token);
+					updateApprolePolicyAssociationOnSDBDelete(path, approles, token);
 				}
 				ControllerUtil.recursivedeletesdb("{\"path\":\""+_path+"\"}",token,response);
 				log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
@@ -2004,16 +2004,16 @@ public class  SafesService {
 	
 	 /**
      * Approle policy update as part of offboarding
-     * @param svcAccName
+     * @param path
      * @param acessInfo
      * @param token
      */
-    private void updateApprolePolicyAssociationOnSvcaccDelete(String path, Map<String,String> acessInfo, String token) {
+    private void updateApprolePolicyAssociationOnSDBDelete(String path, Map<String,String> acessInfo, String token) {
         log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
-                put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
-                put(LogMessage.ACTION, "updateApprolePolicyAssociationOnSvcaccDelete").
-                put(LogMessage.MESSAGE, String.format ("trying updateApprolePolicyAssociationOnSvcaccDelete")).
-                put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+                put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+                put(LogMessage.ACTION, "updateApprolePolicyAssociationOnSDBDelete").
+                put(LogMessage.MESSAGE, String.format ("trying updateApprolePolicyAssociationOnSDBDelete")).
+                put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
                 build()));
         if(acessInfo!=null) {
         	String folders[] = path.split("[/]+");
@@ -2054,10 +2054,10 @@ public class  SafesService {
 						}
                     } catch (IOException e) {
 						log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
-								put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
-								put(LogMessage.ACTION, "updateApprolePolicyAssociationOnSvcaccDelete").
-								put(LogMessage.MESSAGE, String.format ("%s, Approle removal as part of offboarding Service account failed.", approleName)).
-								put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+								put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+								put(LogMessage.ACTION, "updateApprolePolicyAssociationOnSDBDelete").
+								put(LogMessage.MESSAGE, String.format ("%s, Approle removal as part of offboarding Safe failed.", approleName)).
+								put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 								build()));
                     }
                     policies.addAll(currentpolicies);
@@ -2067,10 +2067,10 @@ public class  SafesService {
 
                     String policiesString = org.apache.commons.lang3.StringUtils.join(policies, ",");
                     log.info(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
-                            put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
-                            put(LogMessage.ACTION, "updateApprolePolicyAssociationOnSvcaccDelete").
+                            put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+                            put(LogMessage.ACTION, "updateApprolePolicyAssociationOnSDBDelete").
                             put(LogMessage.MESSAGE, "Current policies :" + policiesString + " is being configured").
-                            put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+                            put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
                             build()));
                     appRoleService.configureApprole(approleName, policiesString, token);
                 }
