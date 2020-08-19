@@ -1818,6 +1818,7 @@ public class SSLCertificateServiceTest {
         certManagerLoginRequest.setPassword("password");
 
         SSLCertificateRequest sslCertificateRequest = getSSLCertificateRequest();
+        sslCertificateRequest.setCertificateName("certificatename");
         String[] dnsNames = { };
         sslCertificateRequest.setDnsList(dnsNames);
         Map<String, Object> requestMap = new HashMap<>();
