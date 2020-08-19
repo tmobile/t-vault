@@ -73,4 +73,16 @@ public final class SSLCertificateConstants {
     public static final String VALIDATE_CERTIFICATE_DETAILS_MSG = "Validate Certificate Details";
     public static final String  VALIDATION_RESULT_LABEL="validationResult";
     public static final String OWNER_PERMISSION_EXT_CERTIFICATE = "o_externalcerts_";
+    public static final String CERT_CREATION_SUBJECT = "Certificate Created Successfully";
+    public static final String EX_CERT_CREATION_SUBJECT = "Certificate Create Request received";
+    public static final String EX_CERT_RENEW_SUBJECT = "Certificate Renew Request received";
+    public static final String CERT_RENEW_SUBJECT = "Certificate Renewed Successfully";
+    public static final String CERT_DELETE_SUBJECT = "Certificate Deleted Successfully";
+    public static final String CERT_REVOKED_SUBJECT = "Certificate Revoked Successfully";
+    public static final String INTERNAL_CERT_ENROLL_STRING ="T-Mobile Issuing CA 01 - SHA2";
+    public static final String EXTERNAL_CERT_ENROLL_STRING ="Entrust CA";
+    public static final String INTERNAL_KEY_USAGE ="serverAuth";
+    public static final String EXTERNAL_KEY_USAGE ="serverAuth, clientAuth";
+    public static final String INTERNAL="internal";
+
 }

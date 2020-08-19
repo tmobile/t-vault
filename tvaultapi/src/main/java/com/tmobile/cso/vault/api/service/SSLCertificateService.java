@@ -18,7 +18,6 @@
 package com.tmobile.cso.vault.api.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
@@ -47,7 +46,6 @@ import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.LaxRedirectStrategy;
 import org.apache.http.ssl.SSLContextBuilder;
-import org.apache.http.ssl.TrustStrategy;
 import org.apache.http.util.EntityUtils;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.util.ObjectUtils;
@@ -55,13 +53,11 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
-import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
 import com.google.gson.Gson;
@@ -105,6 +101,9 @@ public class SSLCertificateService {
 
     @Autowired
    	private PolicyUtils policyUtils;
+
+    @Autowired
+    private DirectoryService directoryService;
 
     @Autowired
    	private AuthorizationUtils authorizationUtils;
@@ -227,6 +226,12 @@ public class SSLCertificateService {
     @Value("${sslcertmanager.external.certificate.lifetime}")
     private String externalCertificateLifeTime;
 
+
+    @Value("${ad.notification.fromemail}")
+    private String supportEmail;
+
+    @Autowired
+    private EmailUtils emailUtils;
     private static Logger log = LogManager.getLogger(SSLCertificateService.class);
 
     private static final String[] PERMISSIONS = {"read", "write", "deny", "sudo"};
@@ -646,8 +651,8 @@ public class SSLCertificateService {
 								.build()));
                         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\""+enrollResponse.getResponse()+"\"]}");
                     } else {
-                    	
-                    	return addSudoPermissionToCertificateOwner(sslCertificateRequest, userDetails, enrollResponse, isPoliciesCreated, sslMetaDataCreationStatus);	
+
+                    	return addSudoPermissionToCertificateOwner(sslCertificateRequest, userDetails, enrollResponse, isPoliciesCreated, sslMetaDataCreationStatus);
 
                     }
                 }
@@ -681,8 +686,33 @@ public class SSLCertificateService {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body
                     ("{\"errors\":[\"" + SSLCertificateConstants.SSL_CREATE_EXCEPTION + "\"]}");
         }
+        sendCreationEmail(sslCertificateRequest, userDetails, token);
         return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\""+SSLCertificateConstants.SSL_CERT_SUCCESS+"\"]}");
     }
+
+    /**
+     * THis method is responsible for sending email for cert creation for internal and external cert creation
+     * @param sslCertificateRequest
+     * @param userDetails
+     * @param token
+     */
+
+    private void sendCreationEmail(SSLCertificateRequest sslCertificateRequest,
+                                   UserDetails userDetails, String token) {
+         if (sslCertificateRequest.getCertType().equalsIgnoreCase("internal")) {
+            //Send email for certificate creation
+            sendEmail(sslCertificateRequest.getCertType(), sslCertificateRequest.getCertificateName(),
+                    userDetails,
+                    SSLCertificateConstants.CERT_CREATION_SUBJECT + "-" + sslCertificateRequest.getCertificateName(),
+                    "created", token);
+        } else {
+            sendExternalEmail(sslCertificateRequest.getCertType(), sslCertificateRequest.getCertificateName(),
+                    userDetails,
+                    SSLCertificateConstants.EX_CERT_CREATION_SUBJECT + "-" + sslCertificateRequest.getCertificateName(),
+                    "creation");
+        }
+    }
+
 
     private String validateCSRResponse(String csrResponse) {
         String errorDesc = null;
@@ -1061,7 +1091,154 @@ public class SSLCertificateService {
 		}
 	}
 
+    private DirectoryUser getUserDetails(String userName) {
+        ResponseEntity<DirectoryObjects> data = directoryService.searchByCorpId(userName);
+        DirectoryObjects Obj = data.getBody();
+        DirectoryObjectsList usersList = Obj.getData();
+        DirectoryUser directoryUser = null;
+        for (int i = 0; i < usersList.getValues().length; i++) {
+            directoryUser = (DirectoryUser) usersList.getValues()[i];
+            if (directoryUser.getUserName().equalsIgnoreCase(userName)) {
+                break;
+            }
+        }
+        return directoryUser;
+    }
 
+    /**
+     * @param certType
+     * @param certName
+     * @param userDetails
+     */
+    private void sendDeleteEmail(String token,String certType, String certName, UserDetails userDetails, String subject,
+                                 String operation,CertificateData certData) {
+        DirectoryUser directoryUser = getUserDetails(userDetails.getUsername());
+        if (Objects.nonNull(directoryUser)) {
+            String enrollService = (certType.equalsIgnoreCase(SSLCertificateConstants.INTERNAL) ?
+                    SSLCertificateConstants.INTERNAL_CERT_ENROLL_STRING :
+                    SSLCertificateConstants.EXTERNAL_CERT_ENROLL_STRING);
+
+            String keyUsage = (certType.equalsIgnoreCase(SSLCertificateConstants.INTERNAL) ? SSLCertificateConstants.INTERNAL_KEY_USAGE :
+                    SSLCertificateConstants.EXTERNAL_KEY_USAGE);
+
+                 // set template variables
+            Map<String, String> mailTemplateVariables = new Hashtable<>();
+            mailTemplateVariables.put("name", directoryUser.getDisplayName());
+            mailTemplateVariables.put("certType", StringUtils.capitalize(certType));
+            mailTemplateVariables.put("certName", certName);
+            mailTemplateVariables.put("contactLink", supportEmail);
+            mailTemplateVariables.put("operation", operation);
+            mailTemplateVariables.put("enrollService", enrollService);
+            mailTemplateVariables.put("keyUsage", keyUsage);
+            mailTemplateVariables.put("certStartDate", certData != null ? Objects.requireNonNull(certData).getCreateDate() : null);
+            mailTemplateVariables.put("certEndDate", certData != null ? Objects.requireNonNull(certData).getExpiryDate() : null);
+            emailUtils.sendHtmlEmalFromTemplateForDelete(supportEmail, directoryUser.getUserEmail(),
+                    subject, mailTemplateVariables);
+        } else {
+            log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+                    put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+                    put(LogMessage.ACTION, "sendEmail").
+                    put(LogMessage.MESSAGE, String.format("Unable to get the Directory User details   " +
+                                    "for an user name =  [%s] , do Emails might not send to customer ",
+                            userDetails.getUsername())).
+                    put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+                    build()));
+        }
+    }
+    /**
+     * @param certType
+     * @param certName
+     * @param userDetails
+     */
+    private void sendEmail(String certType, String certName, UserDetails userDetails, String subject,
+                           String operation, String token) {
+        DirectoryUser directoryUser = getUserDetails(userDetails.getUsername());
+        if (Objects.nonNull(directoryUser)) {
+            String enrollService = (certType.equalsIgnoreCase(SSLCertificateConstants.INTERNAL) ?
+                    SSLCertificateConstants.INTERNAL_CERT_ENROLL_STRING :
+                    SSLCertificateConstants.EXTERNAL_CERT_ENROLL_STRING);
+
+            String keyUsage = (certType.equalsIgnoreCase(SSLCertificateConstants.INTERNAL) ?
+                    SSLCertificateConstants.INTERNAL_KEY_USAGE :
+                    SSLCertificateConstants.EXTERNAL_KEY_USAGE);
+            SSLCertificateMetadataDetails certMetaData = null;
+
+            if (!StringUtils.isEmpty(token)) {
+                //Get the DNS names
+                certMetaData = certificateUtils.getCertificateMetaData(token, certName, certType);
+            }
+            // set template variables
+            Map<String, String> mailTemplateVariables = new Hashtable<>();
+            mailTemplateVariables.put("name", directoryUser.getDisplayName());
+            mailTemplateVariables.put("certType", StringUtils.capitalize(certType));
+            mailTemplateVariables.put("certName", certName);
+            mailTemplateVariables.put("contactLink", supportEmail);
+            mailTemplateVariables.put("operation", operation);
+            mailTemplateVariables.put("enrollService", enrollService);
+            mailTemplateVariables.put("keyUsage", keyUsage);
+            mailTemplateVariables.put("certStartDate", certMetaData != null ? Objects.requireNonNull(certMetaData).getCreateDate() : null);
+            mailTemplateVariables.put("certEndDate", certMetaData != null ? Objects.requireNonNull(certMetaData).getExpiryDate() : null);
+
+            if (Objects.nonNull(Objects.requireNonNull(certMetaData).getDnsNames())) {
+                //Removing first and last char from String
+                mailTemplateVariables.put("dnsNames", certMetaData.getDnsNames().toString().
+                        substring(1, certMetaData.getDnsNames().toString().length() - 1));
+            }
+
+            emailUtils.sendHtmlEmalFromTemplateForInternalCert(supportEmail, directoryUser.getUserEmail(),
+                    subject, mailTemplateVariables);
+        } else {
+            log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+                    put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+                    put(LogMessage.ACTION, "sendEmail").
+                    put(LogMessage.MESSAGE, String.format("Unable to get the Directory User details   " +
+                                    "for an user name =  [%s] ,  Emails might not send to customer for an certificate = [%s]",
+                            userDetails.getUsername(),certName)).
+                    put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+                    build()));
+        }
+    }
+
+
+    /**
+     *
+     * @param certType
+     * @param certName
+     * @param userDetails
+     */
+    private void sendExternalEmail(String certType, String certName, UserDetails userDetails, String subject,
+                                   String operation) {
+        DirectoryUser directoryUser = getUserDetails(userDetails.getUsername());
+        if (Objects.nonNull(directoryUser)) {
+            String enrollService = (certType.equalsIgnoreCase(SSLCertificateConstants.INTERNAL) ?
+                    SSLCertificateConstants.INTERNAL_CERT_ENROLL_STRING :
+                    SSLCertificateConstants.EXTERNAL_CERT_ENROLL_STRING);
+
+            String keyUsage = (certType.equalsIgnoreCase(SSLCertificateConstants.INTERNAL) ?
+                    SSLCertificateConstants.INTERNAL_KEY_USAGE :
+                    SSLCertificateConstants.EXTERNAL_KEY_USAGE);
+            // set template variables
+            Map<String, String> mailTemplateVariables = new Hashtable<>();
+            mailTemplateVariables.put("name", directoryUser.getDisplayName());
+            mailTemplateVariables.put("certType", StringUtils.capitalize(certType));
+            mailTemplateVariables.put("certName", certName);
+            mailTemplateVariables.put("contactLink", supportEmail);
+            mailTemplateVariables.put("operation", operation);
+            mailTemplateVariables.put("enrollService", enrollService);
+            mailTemplateVariables.put("keyUsage", keyUsage);
+            emailUtils.sendEmailForExternalCert(supportEmail, directoryUser.getUserEmail(),
+                    subject, mailTemplateVariables);
+        } else {
+            log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+                    put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+                    put(LogMessage.ACTION, "sendEmail").
+                    put(LogMessage.MESSAGE, String.format("Unable to get the Directory User details   " +
+                                    "for an user name =  [%s] ,  Emails might not send to customer for an certificate = [%s]",
+                            userDetails.getUsername(),certName)).
+                    put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+                    build()));
+        }
+    }
 
 	/**
 	 * Method to populate certificate metadata details
@@ -2356,6 +2533,9 @@ public class SSLCertificateService {
 						userDetails.getSelfSupportToken());
 			}
 			if (sslMetaDataUpdationStatus) {
+			    //Send an email for revoke for internal and external
+                sendEmail(certType, certificateName, userDetails, SSLCertificateConstants.CERT_REVOKED_SUBJECT + "-" + certificateName,
+                        "revoked", token);
 				return ResponseEntity.status(revocationResponse.getHttpstatus())
 						.body("{\"messages\":[\"" + "Revocation done successfully" + "\"]}");
 			} else {
@@ -3708,6 +3888,8 @@ public class SSLCertificateService {
 			}
 			}
 			if (sslMetaDataUpdationStatus) {
+                //Sending renew email
+                sendRenewEmail(certType, certificateName, userDetails, token);
 				return ResponseEntity.status(renewResponse.getHttpstatus())
 						.body("{\"messages\":[\"" + "Certificate Renewed Successfully" + "\"]}");
 			} else {
@@ -3758,9 +3940,27 @@ public class SSLCertificateService {
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
 					.body("{\"errors\":[\"" + e.getMessage() + "\"]}");
 		}
-	}	
-	
-	
+	}
+
+    /**
+     * This method will be responsible for sending an email for renew certificate for both internal and external
+     * @param certType
+     * @param certificateName
+     * @param userDetails
+     * @param token
+     */
+    private void sendRenewEmail(String certType, String certificateName, UserDetails userDetails, String token) {
+        //Send email for certificate renewed for internal and external
+        if (certType.equalsIgnoreCase(SSLCertificateConstants.INTERNAL)) {
+            sendEmail(certType, certificateName, userDetails, SSLCertificateConstants.CERT_RENEW_SUBJECT + " - " + certificateName,
+                    "renewed", token);
+        } else {
+            sendExternalEmail(certType, certificateName, userDetails, SSLCertificateConstants.EX_CERT_RENEW_SUBJECT + " - " +
+                    certificateName, "renew");
+        }
+    }
+
+
 	/**
      * To Get the latest certificate details in nclm for a given renewed certificate name
      * @param sslCertificateRequest
@@ -4924,7 +5124,12 @@ public class SSLCertificateService {
 					return ResponseEntity.status(response.getHttpstatus())
 							.body("{\"messages\":[\"" + "Certficate metadata deletion failed" + "\"]}");
 				}
-				
+
+
+				//Send an email for delete in case of internal and external
+                sendDeleteEmail(token,certType, certificateName, userDetails,
+                        SSLCertificateConstants.CERT_DELETE_SUBJECT + " - " + certificateName,
+                        "deleted",certData);
 				return ResponseEntity.status(HttpStatus.OK)
 						.body("{\"messages\":[\"" + "Certificate deleted  Successfully" + "\"]}");
 			}
