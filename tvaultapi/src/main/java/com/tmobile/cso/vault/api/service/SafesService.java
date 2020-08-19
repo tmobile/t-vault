@@ -522,9 +522,11 @@ public class  SafesService {
 			Object awsroles = metadataMap.get(TVaultConstants.AWS_ROLES);
 			Object groups = metadataMap.get(TVaultConstants.GROUPS);
 			Object users = metadataMap.get(TVaultConstants.USERS);
+			Object approles = metadataMap.get(TVaultConstants.APP_ROLES);
 			data.put(TVaultConstants.AWS_ROLES,awsroles);
 			data.put(TVaultConstants.GROUPS,groups);
 			data.put(TVaultConstants.USERS,users);
+			data.put(TVaultConstants.APP_ROLES,approles);
 			requestParams.put("path",pathToBeUpdated);
 			// Do not alter the name of the safe
 			((Map<String,Object>)requestParams.get("data")).put("name",(String) metadataMap.get("name"));
@@ -1939,6 +1941,7 @@ public class  SafesService {
 					Map<String,String> awsroles = (Map<String, String>)metadataMap.get("aws-roles");
 					Map<String,String> groups = (Map<String, String>)metadataMap.get("groups");
 					Map<String,String> users = (Map<String, String>) metadataMap.get("users");
+					Map<String,String> approles = (Map<String, String>)metadataMap.get("app-roles");
 					// always add safeowner to the users list whose policy should be updated
 					String onwerId = (String) metadataMap.get("ownerid");
 					if (!StringUtils.isEmpty(onwerId) && users !=null) {
@@ -1947,6 +1950,7 @@ public class  SafesService {
 					ControllerUtil.updateUserPolicyAssociationOnSDBDelete(path,users,token);
 					ControllerUtil.updateGroupPolicyAssociationOnSDBDelete(path,groups,token);
 					ControllerUtil.deleteAwsRoleOnSDBDelete(path,awsroles,token);
+					updateApprolePolicyAssociationOnSvcaccDelete(path, approles, token);
 				}
 				ControllerUtil.recursivedeletesdb("{\"path\":\""+_path+"\"}",token,response);
 				log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
@@ -1997,6 +2001,82 @@ public class  SafesService {
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid 'path' specified\"]}");
 		}
 	}
+	
+	 /**
+     * Approle policy update as part of offboarding
+     * @param svcAccName
+     * @param acessInfo
+     * @param token
+     */
+    private void updateApprolePolicyAssociationOnSvcaccDelete(String path, Map<String,String> acessInfo, String token) {
+        log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+                put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+                put(LogMessage.ACTION, "updateApprolePolicyAssociationOnSvcaccDelete").
+                put(LogMessage.MESSAGE, String.format ("trying updateApprolePolicyAssociationOnSvcaccDelete")).
+                put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+                build()));
+        if(acessInfo!=null) {
+        	String folders[] = path.split("[/]+");
+			String r_policy = "r_";
+			String w_policy = "w_";
+			String d_policy = "d_";
+			
+			if (folders.length > 0) {
+				for (int index = 0; index < folders.length; index++) {
+					if (index == folders.length -1 ) {
+						r_policy += folders[index];
+						w_policy += folders[index];
+						d_policy += folders[index];
+					}
+					else {
+						r_policy += folders[index] +"_";
+						w_policy += folders[index] +"_";
+						d_policy += folders[index] +"_";
+					}
+				}
+			}	
+
+            Set<String> approles = acessInfo.keySet();
+            ObjectMapper objMapper = new ObjectMapper();
+            for(String approleName : approles) {
+                Response roleResponse = reqProcessor.process("/auth/approle/role/read", "{\"role_name\":\"" + approleName + "\"}", token);
+                String responseJson = "";
+                List<String> policies = new ArrayList<>();
+                List<String> currentpolicies = new ArrayList<>();
+                if (HttpStatus.OK.equals(roleResponse.getHttpstatus())) {
+                    responseJson = roleResponse.getResponse();
+                    try {
+                        JsonNode policiesArry = objMapper.readTree(responseJson).get("data").get("policies");
+						if (null != policiesArry) {
+							for (JsonNode policyNode : policiesArry) {
+								currentpolicies.add(policyNode.asText());
+							}
+						}
+                    } catch (IOException e) {
+						log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+								put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+								put(LogMessage.ACTION, "updateApprolePolicyAssociationOnSvcaccDelete").
+								put(LogMessage.MESSAGE, String.format ("%s, Approle removal as part of offboarding Service account failed.", approleName)).
+								put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+								build()));
+                    }
+                    policies.addAll(currentpolicies);
+                    policies.remove(r_policy);
+                    policies.remove(w_policy);
+                    policies.remove(d_policy);
+
+                    String policiesString = org.apache.commons.lang3.StringUtils.join(policies, ",");
+                    log.info(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+                            put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+                            put(LogMessage.ACTION, "updateApprolePolicyAssociationOnSvcaccDelete").
+                            put(LogMessage.MESSAGE, "Current policies :" + policiesString + " is being configured").
+                            put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+                            build()));
+                    appRoleService.configureApprole(approleName, policiesString, token);
+                }
+            }
+        }
+    }
 
 	/**
 	 * Read from safe Recursively

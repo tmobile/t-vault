@@ -55,7 +55,10 @@ import com.tmobile.cso.vault.api.service.DirectoryService;
 
 @Component
 public class OIDCUtil {
+	
+	public OIDCUtil() {
 
+	}
 	@Autowired
 	HttpUtils httpUtils;
 
