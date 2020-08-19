@@ -18,7 +18,10 @@
 package com.tmobile.cso.vault.api.utils;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
+import com.tmobile.cso.vault.api.model.ADUserAccount;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.http.HttpStatus;
@@ -210,6 +213,15 @@ public class CertificateUtils {
 		
 		if (null != dataNode.get("containerId")) {
 			certificate.setContainerId(dataNode.get("containerId").asInt());
+		}
+		//Adding DNS names to certificate info
+		if (null != dataNode.get("dnsNames")) {
+			List<String> list = new ArrayList<>();
+			JsonNode dnsArray = dataNode.get("dnsNames");
+			for (int i = 0; i < dnsArray.size(); i++) {
+				list.add(dnsArray.get(i).toString());
+			}
+			certificate.setDnsNames(list);
 		}
 		return certificate;
 	}	
