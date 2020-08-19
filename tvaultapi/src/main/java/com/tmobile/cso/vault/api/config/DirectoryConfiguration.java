@@ -45,10 +45,9 @@ public class DirectoryConfiguration {
     @Bean
     public LdapContextSource contextSource() {
         LdapContextSource contextSource = new LdapContextSource();
-        String masterAccDN = env.getRequiredProperty("ldap.username")+","+env.getRequiredProperty("ldap.masteraccdn");
         contextSource.setUrl(env.getRequiredProperty("ldap.url"));
         contextSource.setBase(env.getRequiredProperty("ldap.base"));
-        contextSource.setUserDn(masterAccDN);
+        contextSource.setUserDn(env.getRequiredProperty("ldap.username")+","+env.getRequiredProperty("ldap.userdn"));
         contextSource.setPassword(new String(Base64.getDecoder().decode(env.getRequiredProperty("ldap.password"))));
 
         return contextSource;
