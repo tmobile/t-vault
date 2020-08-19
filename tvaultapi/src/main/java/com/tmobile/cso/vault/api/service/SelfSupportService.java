@@ -26,7 +26,6 @@ import java.util.stream.Collectors;
 
 import com.tmobile.cso.vault.api.controller.OIDCUtil;
 import com.tmobile.cso.vault.api.process.RequestProcessor;
-import com.tmobile.cso.vault.api.process.Response;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
@@ -688,7 +687,7 @@ public class  SelfSupportService {
 	 * @return
 	 */
 	public ResponseEntity<String> getSafes(UserDetails userDetails, String userToken) {
-		oidcUtil.renewUserTokenAfterPolicyUpdate(userDetails.getClientToken());
+		oidcUtil.renewUserToken(userDetails.getClientToken());
 		String token = userDetails.getClientToken();
 		if (!userDetails.isAdmin()) {
 			token = userDetails.getSelfSupportToken();
