@@ -828,7 +828,7 @@ public class  SafesService {
 				try {
 
 					ldapConfigresponse = oidcUtil.updateOIDCEntity(policies, oidcEntityResponse.getEntityName());
-					oidcUtil.renewUserTokenAfterPolicyUpdate(userDetails.getClientToken());
+					oidcUtil.renewUserToken(userDetails.getClientToken());
 				}catch (Exception e) {
 					log.error(e);
 					log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
@@ -895,7 +895,7 @@ public class  SafesService {
 							try {
 								ldapConfigresponse = oidcUtil.updateOIDCEntity(currentpolicies,
 										oidcEntityResponse.getEntityName());
-                                oidcUtil.renewUserTokenAfterPolicyUpdate(userDetails.getClientToken());
+                                oidcUtil.renewUserToken(userDetails.getClientToken());
 							} catch (Exception e) {
 								log.error(e);
 								log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
@@ -1065,7 +1065,7 @@ public class  SafesService {
 			} else if (TVaultConstants.OIDC.equals(vaultAuthMethod)) {
 				ldapConfigresponse = oidcUtil.updateGroupPolicies(token, groupName, policies, currentpolicies,
 						oidcGroup!=null?oidcGroup.getId(): null);
-				oidcUtil.renewUserTokenAfterPolicyUpdate(userDetails.getClientToken());
+				oidcUtil.renewUserToken(userDetails.getClientToken());
 			}
 			if (ldapConfigresponse.getHttpstatus().equals(HttpStatus.NO_CONTENT)
 					|| ldapConfigresponse.getHttpstatus().equals(HttpStatus.OK)) {
@@ -1129,7 +1129,7 @@ public class  SafesService {
 						} else if (TVaultConstants.OIDC.equals(vaultAuthMethod)) {
 							ldapConfigresponse = oidcUtil.updateGroupPolicies(token, groupName, currentpolicies,
 									currentpolicies, oidcGroup.getId());
-							oidcUtil.renewUserTokenAfterPolicyUpdate(userDetails.getClientToken());
+							oidcUtil.renewUserToken(userDetails.getClientToken());
 						}
 						if(ldapConfigresponse.getHttpstatus().equals(HttpStatus.NO_CONTENT)){
 							log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
@@ -1320,7 +1320,7 @@ public class  SafesService {
 					try {
 						ldapConfigresponse = oidcUtil.updateOIDCEntity(policies,
 								oidcEntityResponse.getEntityName());
-                        oidcUtil.renewUserTokenAfterPolicyUpdate(userDetails.getClientToken());
+                        oidcUtil.renewUserToken(userDetails.getClientToken());
 					} catch (Exception e) {
 						log.error(e);
 						log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
@@ -1377,7 +1377,7 @@ public class  SafesService {
 								try {
 									ldapConfigresponse = oidcUtil.updateOIDCEntity(currentpolicies,
 											oidcEntityResponse.getEntityName());
-                                    oidcUtil.renewUserTokenAfterPolicyUpdate(userDetails.getClientToken());
+                                    oidcUtil.renewUserToken(userDetails.getClientToken());
 								} catch (Exception e2) {
 									log.error(e2);
 									log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
@@ -1523,7 +1523,7 @@ public class  SafesService {
 				} else if (TVaultConstants.OIDC.equals(vaultAuthMethod)) {
 					ldapConfigresponse = oidcUtil.updateGroupPolicies(token, groupName, policies, currentpolicies,
 							oidcGroup.getId());
-					oidcUtil.renewUserTokenAfterPolicyUpdate(userDetails.getClientToken());
+					oidcUtil.renewUserToken(userDetails.getClientToken());
 				}
 				if (ldapConfigresponse.getHttpstatus().equals(HttpStatus.NO_CONTENT)
 						|| ldapConfigresponse.getHttpstatus().equals(HttpStatus.OK)) { 
@@ -1566,7 +1566,7 @@ public class  SafesService {
 							} else if (TVaultConstants.OIDC.equals(vaultAuthMethod)) {
 								ldapConfigresponse = oidcUtil.updateGroupPolicies(token, groupName, currentpolicies,
 										currentpolicies, oidcGroup.getId());
-								oidcUtil.renewUserTokenAfterPolicyUpdate(userDetails.getClientToken());
+								oidcUtil.renewUserToken(userDetails.getClientToken());
 							}
 							if(ldapConfigresponse.getHttpstatus().equals(HttpStatus.NO_CONTENT)){
 								log.debug("Reverting user policy update");
