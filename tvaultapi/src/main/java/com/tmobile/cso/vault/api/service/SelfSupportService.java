@@ -24,6 +24,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import com.tmobile.cso.vault.api.controller.OIDCUtil;
 import com.tmobile.cso.vault.api.process.RequestProcessor;
 import com.tmobile.cso.vault.api.process.Response;
 import org.apache.commons.collections.MapUtils;
@@ -79,6 +80,9 @@ public class  SelfSupportService {
 
 	@Autowired
 	private AppRoleService appRoleService;
+
+	@Autowired
+	private OIDCUtil oidcUtil;
 
 	@Value("${vault.auth.method}")
 	private String vaultAuthMethod;
@@ -684,6 +688,7 @@ public class  SelfSupportService {
 	 * @return
 	 */
 	public ResponseEntity<String> getSafes(UserDetails userDetails, String userToken) {
+		oidcUtil.renewUserTokenAfterPolicyUpdate(userDetails.getClientToken());
 		String token = userDetails.getClientToken();
 		if (!userDetails.isAdmin()) {
 			token = userDetails.getSelfSupportToken();
