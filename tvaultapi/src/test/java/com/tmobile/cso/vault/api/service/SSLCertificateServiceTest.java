@@ -249,7 +249,7 @@ public class SSLCertificateServiceTest {
     @Test
     public void test_validateInputData(){
         SSLCertificateRequest sslCertificateRequest = getSSLCertificateRequest();
-        sslCertificateRequest.setCertificateName("qeqeqwe");
+        sslCertificateRequest.setCertificateName("qeqeqwe*");
         ResponseEntity<?> enrollResponse = sSLCertificateService.generateSSLCertificate(sslCertificateRequest,userDetails,token);
         assertEquals(HttpStatus.BAD_REQUEST, enrollResponse.getStatusCode());
 
@@ -316,6 +316,7 @@ public class SSLCertificateServiceTest {
         String userDetailToken = userDetails.getSelfSupportToken();
 
         SSLCertificateRequest sslCertificateRequest = getSSLCertificateRequest();
+        sslCertificateRequest.setCertificateName("certificatename");
         String[] dnsNames = { };
         sslCertificateRequest.setDnsList(dnsNames);
         Map<String, Object> requestMap = new HashMap<>();
@@ -684,6 +685,7 @@ public class SSLCertificateServiceTest {
         String userDetailToken = userDetails.getSelfSupportToken();
 
         SSLCertificateRequest sslCertificateRequest = getSSLCertificateRequest();
+        sslCertificateRequest.setCertificateName("certificatename");
         String[] dnsNames = { };
         sslCertificateRequest.setDnsList(dnsNames);
         sslCertificateRequest.setCertType("external");
@@ -839,6 +841,7 @@ public class SSLCertificateServiceTest {
         certManagerLoginRequest.setPassword("password");
 
         SSLCertificateRequest sslCertificateRequest = getSSLCertificateRequest();
+        sslCertificateRequest.setCertificateName("certificatename");
         String[] dnsNames = { };
         sslCertificateRequest.setDnsList(dnsNames);
         Map<String, Object> requestMap = new HashMap<>();
@@ -900,6 +903,7 @@ public class SSLCertificateServiceTest {
         certManagerLoginRequest.setPassword("password");
 
         SSLCertificateRequest sslCertificateRequest = getSSLCertificateRequest();
+        sslCertificateRequest.setCertificateName("certificatename");
         String[] dnsNames = { };
         sslCertificateRequest.setDnsList(dnsNames);
         Map<String, Object> requestMap = new HashMap<>();
@@ -1090,6 +1094,7 @@ public class SSLCertificateServiceTest {
         certManagerLoginRequest.setPassword("password");
 
         SSLCertificateRequest sslCertificateRequest = getSSLCertificateRequest();
+        sslCertificateRequest.setCertificateName("certificatename");
         String[] dnsNames = { };
         sslCertificateRequest.setDnsList(dnsNames);
         Map<String, Object> requestMap = new HashMap<>();
@@ -1214,6 +1219,7 @@ public class SSLCertificateServiceTest {
         String userDetailToken = userDetails.getSelfSupportToken();
 
         SSLCertificateRequest sslCertificateRequest = getSSLCertificateRequest();
+        sslCertificateRequest.setCertificateName("certificatename");
         String[] dnsNames = { };
         sslCertificateRequest.setDnsList(dnsNames);
         Map<String, Object> requestMap = new HashMap<>();
@@ -1360,6 +1366,7 @@ public class SSLCertificateServiceTest {
         String userDetailToken = userDetails.getSelfSupportToken();
 
         SSLCertificateRequest sslCertificateRequest = getSSLCertificateRequest();
+        sslCertificateRequest.setCertificateName("certificatename");
         String[] dnsNames = { };
         sslCertificateRequest.setDnsList(dnsNames);
         Map<String, Object> requestMap = new HashMap<>();
@@ -1498,6 +1505,7 @@ public class SSLCertificateServiceTest {
         certManagerLoginRequest.setPassword("password");
 
         SSLCertificateRequest sslCertificateRequest = getSSLCertificateRequest();
+        sslCertificateRequest.setCertificateName("certificatename");
         String[] dnsNames = { };
         sslCertificateRequest.setDnsList(dnsNames);
         Map<String, Object> requestMap = new HashMap<>();
@@ -1611,6 +1619,7 @@ public class SSLCertificateServiceTest {
         certManagerLoginRequest.setPassword("password");
 
         SSLCertificateRequest sslCertificateRequest = getSSLCertificateRequest();
+        sslCertificateRequest.setCertificateName("certificatename");
         String[] dnsNames = { };
         sslCertificateRequest.setDnsList(dnsNames);
         Map<String, Object> requestMap = new HashMap<>();
@@ -4550,6 +4559,7 @@ public class SSLCertificateServiceTest {
         userDetails.setSelfSupportToken(token);
         String userDetailToken = userDetails.getSelfSupportToken();
         SSLCertificateRequest sslCertificateRequest = getSSLCertificateRequest();
+        sslCertificateRequest.setCertificateName("certificatename");
         Map<String, Object> requestMap = new HashMap<>();
         requestMap.put("access_token", "12345");
         requestMap.put("token_type", "type");
@@ -4560,7 +4570,7 @@ public class SSLCertificateServiceTest {
         Response userResponse = getMockResponse(HttpStatus.OK, true, "{\"data\":{\"bound_cidrs\":[],\"max_ttl\":0,\"policies\":[\"default\",\"r_cert_CertificateName.t-mobile.com\"],\"ttl\":0,\"groups\":\"admin\"}}");
         Response idapConfigureResponse = getMockResponse(HttpStatus.NO_CONTENT, true, "{\"policies\":null}");
         SSLCertificateMetadataDetails certificateMetadata = getSSLCertificateMetadataDetails();
-        String[] dnsNames = {"internal.t-mobile.com","second.t-mobile.com","third.t-mobile.com" };
+        String[] dnsNames = {"internal","second","third" };
         sslCertificateRequest.setDnsList(dnsNames);
         CertResponse response = new CertResponse();
         response.setHttpstatus(HttpStatus.OK);
