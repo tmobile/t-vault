@@ -1452,7 +1452,7 @@ public class SSLCertificateService {
      * @param sslCertificateRequest
      * @return
      */
-    private boolean validateDNSNames(SSLCertificateRequest sslCertificateRequest) {
+	private boolean validateDNSNames(SSLCertificateRequest sslCertificateRequest) {
         String[] dnsNames = sslCertificateRequest.getDnsList();
         Set<String> set = new HashSet<>();
         if(!ArrayUtils.isEmpty(dnsNames)) {
@@ -1471,20 +1471,18 @@ public class SSLCertificateService {
      * @param sslCertificateRequest
      * @return
      */
-    private boolean validateInputData(SSLCertificateRequest sslCertificateRequest, UserDetails userDetails){
-        boolean isValid=true;
-        if((!validateCertficateName(sslCertificateRequest.getCertificateName())) || sslCertificateRequest.getAppName().contains(" ") ||
-                (!populateCertOwnerEmaild(sslCertificateRequest, userDetails)) ||
-                sslCertificateRequest.getCertOwnerEmailId().contains(" ") ||  sslCertificateRequest.getCertType().contains(" ") ||
-                sslCertificateRequest.getTargetSystem().getAddress().contains(" ") ||
-                (!sslCertificateRequest.getCertType().matches(SSLCertificateConstants.CERT_TYPE_MATCH_STRING)) ||
-                (!isValidHostName(sslCertificateRequest.getTargetSystemServiceRequest().getHostname()))
-                || (!isValidAppName(sslCertificateRequest)) || (!validateDNSNames(sslCertificateRequest))){
-            isValid= false;
-        }
-
-        return isValid;
-    }
+	private boolean validateInputData(SSLCertificateRequest sslCertificateRequest, UserDetails userDetails){
+	    boolean isValid=true;
+	    if((!validateCertficateName(sslCertificateRequest.getCertificateName())) || sslCertificateRequest.getAppName().contains(" ") ||
+	            (!populateCertOwnerEmaild(sslCertificateRequest, userDetails)) ||
+	            sslCertificateRequest.getCertOwnerEmailId().contains(" ") ||  sslCertificateRequest.getCertType().contains(" ") ||
+	            (!sslCertificateRequest.getCertType().matches(SSLCertificateConstants.CERT_TYPE_MATCH_STRING)) 
+	            || (!isValidAppName(sslCertificateRequest)) || (!validateDNSNames(sslCertificateRequest))){
+	        isValid= false;
+	    }
+	
+	    return isValid;
+	}
 
 	/**
 	 * Method to validate the certificate name

@@ -288,6 +288,7 @@ public class SSLCertificateServiceTest {
     @Test
     public void test_validateInputData(){
         SSLCertificateRequest sslCertificateRequest = getSSLCertificateRequest();
+
         sslCertificateRequest.setCertificateName("qeqeqwe");
         sslCertificateRequest.setCertType("test");
         ResponseEntity<?> enrollResponse = sSLCertificateService.generateSSLCertificate(sslCertificateRequest,userDetails,token);
