@@ -18,6 +18,7 @@
 package com.tmobile.cso.vault.api.service;
 
 import com.tmobile.cso.vault.api.controller.ControllerUtil;
+import com.tmobile.cso.vault.api.controller.OIDCUtil;
 import com.tmobile.cso.vault.api.exception.TVaultValidationException;
 import com.tmobile.cso.vault.api.model.*;
 import com.tmobile.cso.vault.api.utils.AuthorizationUtils;
@@ -85,6 +86,9 @@ public class SelfSupportServiceTest {
 
     @Mock
     AppRoleService appRoleService;
+
+    @Mock
+    OIDCUtil OIDCUtil;
 
     @Before
     public void setUp() {

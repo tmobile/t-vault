@@ -509,39 +509,13 @@ public class OIDCUtil {
 		return reqProcessor.process("/identity/entity/name/update", jsonStr, token);
 	}
 
-
-    private List<String> filterDuplicate(List<String> combinedPolicyList) {
-        List<String> filteredPolicy = new ArrayList<>();
-        for (int i = 0; i < combinedPolicyList.size(); i++) {
-            String policyName = combinedPolicyList.get(i);
-            String itemName = policyName.substring(1);
-            for (int j = 0; j < combinedPolicyList.size(); j++) {
-                String conflictPolicy = combinedPolicyList.get(j);
-                if (conflictPolicy.contains(itemName)) {
-                    /* if conflicting policy is deny then replace existing with deny
-                        or if read exists and write conflict then replace with write.
-                        All other cases have the correct permission in list, no need to udpate.
-                    */
-                    if (policyName.startsWith("d_") || (conflictPolicy.startsWith("r_") && policyName.startsWith("w_"))) {
-                        filteredPolicy.remove(conflictPolicy);
-                        filteredPolicy.add(policyName);
-                    }
-                }
-                else {
-                    filteredPolicy.add(policyName);
-                }
-            }
-        }
-        return filteredPolicy;
-    }
-
     /**
      * To renew user token after oidc policy update.
      *
      * @param token
      * @return
      */
-    public void renewUserTokenAfterPolicyUpdate(String token) {
+    public void renewUserToken(String token) {
         Response renewResponse = reqProcessor.process("/auth/tvault/renew", "{}", token);
         if (HttpStatus.OK.equals(renewResponse.getHttpstatus())) {
             log.info(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
