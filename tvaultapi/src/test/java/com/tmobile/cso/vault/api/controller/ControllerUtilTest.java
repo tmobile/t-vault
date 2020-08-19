@@ -22,6 +22,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.when;
 
@@ -42,6 +43,7 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
 import org.junit.runners.MethodSorters;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
@@ -51,6 +53,7 @@ import org.powermock.modules.junit4.PowerMockRunner;
 import org.powermock.reflect.Whitebox;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -61,6 +64,7 @@ import com.tmobile.cso.vault.api.process.RequestProcessor;
 import com.tmobile.cso.vault.api.process.Response;
 import com.tmobile.cso.vault.api.utils.JSONUtil;
 import com.tmobile.cso.vault.api.utils.ThreadLocalContext;
+import com.tmobile.cso.vault.api.utils.TokenUtils;
 
 import javax.xml.ws.Service;
 
@@ -74,12 +78,20 @@ public class ControllerUtilTest {
     @Mock
     RequestProcessor reqProcessor;
     
+    @Mock
+    TokenUtils tokenUtils;
+    
+    @Mock
+    OIDCUtil oidcUtil;
+    
     @Before
     public void setUp() {
         PowerMockito.mockStatic(JSONUtil.class);
 
         Whitebox.setInternalState(ControllerUtil.class, "log", LogManager.getLogger(ControllerUtil.class));
         Whitebox.setInternalState(ControllerUtil.class, "reqProcessor", reqProcessor);
+        Whitebox.setInternalState(ControllerUtil.class, "oidcUtil", oidcUtil);
+
         when(JSONUtil.getJSON(Mockito.any(ImmutableMap.class))).thenReturn("log");
 
         Map<String, String> currentMap = new HashMap<>();
@@ -307,6 +319,35 @@ public class ControllerUtilTest {
         ControllerUtil.updateUserPolicyAssociationOnSDBDelete("users/safe01", acessInfo,  token);
         assertTrue(true);
     }
+    
+    @Test
+    public void test_updateUserPolicyAssociationOnSDBDelete_oidc_successfully() {
+        String token = "7QPMPIGiyDFlJkrK3jFykUqa";
+        String userName = "testuser1";
+        Response userResponse = getMockResponse(HttpStatus.OK, true, "{\"data\":{\"bound_cidrs\":[],\"max_ttl\":0,\"policies\":[\"approle_normal_user\",\"w_users_safe01\"],\"ttl\":0}}");
+        when(reqProcessor.process("/auth/userpass/read","{\"username\":\""+userName+"\"}",token)).thenReturn(userResponse);
+
+        ReflectionTestUtils.setField(ControllerUtil.class,"vaultAuthMethod", "oidc");
+        Map<String,String> acessInfo = new HashMap<>();
+        acessInfo.put("testuser1", "write");
+        
+        OIDCEntityResponse oidcEntityResponse = new OIDCEntityResponse();
+		oidcEntityResponse.setEntityName("entity");
+		List<String> policies = new ArrayList<>();
+		policies.add("safeadmin");
+		oidcEntityResponse.setPolicies(policies);
+        ResponseEntity<OIDCEntityResponse> responseEntity2 = ResponseEntity.status(HttpStatus.OK)
+				.body(oidcEntityResponse);
+
+		when(tokenUtils.getSelfServiceTokenWithAppRole()).thenReturn(token);
+
+		Response responseEntity3 = getMockResponse(HttpStatus.NO_CONTENT, true, "{\"data\": [\"safeadmin\",\"vaultadmin\"]]");
+		when(oidcUtil.updateOIDCEntity(any(), any()))
+				.thenReturn(responseEntity3);
+		when(oidcUtil.oidcFetchEntityDetails(any(), any())).thenReturn(responseEntity2);
+        ControllerUtil.updateUserPolicyAssociationOnSDBDelete("users/safe01", acessInfo,  token);
+        assertTrue(true);
+    }
 
     @Test
     public void test_updateGroupPolicyAssociationOnSDBDelete_successfully() {
@@ -318,6 +359,37 @@ public class ControllerUtilTest {
         ReflectionTestUtils.setField(ControllerUtil.class,"vaultAuthMethod", "ldap");
         Map<String,String> acessInfo = new HashMap<>();
         acessInfo.put("group1", "write");
+
+        ControllerUtil.updateGroupPolicyAssociationOnSDBDelete("users/safe01", acessInfo,  token);
+        assertTrue(true);
+    }
+    
+    @Test
+    public void test_updateGroupPolicyAssociationOnSDBDelete_oidc_successfully() {
+        String token = "7QPMPIGiyDFlJkrK3jFykUqa";
+        String groupName = "group1";
+        Response userResponse = getMockResponse(HttpStatus.OK, true, "{\"data\":{\"bound_cidrs\":[],\"max_ttl\":0,\"policies\":[\"approle_normal_user\",\"w_users_safe01\"],\"ttl\":0}}");
+        when(reqProcessor.process("/auth/ldap/groups","{\"groupname\":\""+groupName+"\"}",token)).thenReturn(userResponse);
+
+        ReflectionTestUtils.setField(ControllerUtil.class,"vaultAuthMethod", "oidc");
+        Map<String,String> acessInfo = new HashMap<>();
+        acessInfo.put("group1", "write");
+        
+        List<String> policies = new ArrayList<>();
+        policies.add("default");
+        policies.add("w_shared_mysafe02");
+        policies.add("r_shared_mysafe01");
+        List<String> currentpolicies = new ArrayList<>();
+        currentpolicies.add("default");
+        currentpolicies.add("w_shared_mysafe01");
+        currentpolicies.add("w_shared_mysafe02");
+        OIDCGroup oidcGroup = new OIDCGroup("123-123-123", currentpolicies);
+        when(oidcUtil.getIdentityGroupDetails(any(), any())).thenReturn(oidcGroup);
+
+        Response response = new Response();
+        response.setHttpstatus(HttpStatus.NO_CONTENT);
+        when(oidcUtil.updateGroupPolicies(token, "mygroup01", policies, currentpolicies, oidcGroup.getId())).thenReturn(response);
+
 
         ControllerUtil.updateGroupPolicyAssociationOnSDBDelete("users/safe01", acessInfo,  token);
         assertTrue(true);

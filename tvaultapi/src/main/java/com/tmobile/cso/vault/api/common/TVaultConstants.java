@@ -41,6 +41,7 @@ public class TVaultConstants {
     public static final String USERS = "users";
     public static final String GROUPS = "groups";
     public static final String AWS_ROLES = "aws-roles";
+    public static final String APP_ROLES = "app-roles";
     public static final String EMPTY = "";
     public static final String USERPASS = "userpass";
     public static final String LDAP = "ldap";
