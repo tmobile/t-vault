@@ -335,7 +335,8 @@ public class SSLCertificateService {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid input values\"]}");
         }
 
-        try {
+		try {
+			appendTmobileTextToCertificateName(sslCertificateRequest);
             log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
                     put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
                     put(LogMessage.ACTION, String.format("CERTIFICATE REQUEST [%s]",
@@ -1373,8 +1374,11 @@ public class SSLCertificateService {
         String[] dnsNames = sslCertificateRequest.getDnsList();
         Set<String> set = new HashSet<>();
         for (String dnsName : dnsNames) {
-            if (dnsName.contains(" ") || (!dnsName.endsWith(certificateNameTailText)) ||
-                    (dnsName.contains(".-")) || (dnsName.contains("-.")) || (dnsName.contains("..")) || (!set.add(dnsName))) {
+            if (dnsName.contains(" ") || (dnsName.endsWith(certificateNameTailText)) ||
+                    (dnsName.contains(".-")) || (dnsName.contains("-.")) || (dnsName.contains("..")) ||
+                    (dnsName.contains("**")) || ((dnsName.contains("*")) && (dnsName.indexOf('*') != 0)) ||
+                    (dnsName.endsWith(".")) || (StringUtils.countOccurrencesOf(dnsName, "*") > 1) ||
+                    (!set.add(dnsName))) {
                 return false;
             }
         }
@@ -1387,13 +1391,9 @@ public class SSLCertificateService {
      */
     private boolean validateInputData(SSLCertificateRequest sslCertificateRequest){
         boolean isValid=true;
-        if(sslCertificateRequest.getCertificateName().contains(" ") || sslCertificateRequest.getAppName().contains(" ") ||
+        if((!validateCertficateName(sslCertificateRequest.getCertificateName())) || sslCertificateRequest.getAppName().contains(" ") ||
                 sslCertificateRequest.getCertOwnerEmailId().contains(" ") ||  sslCertificateRequest.getCertType().contains(" ") ||
-                (!sslCertificateRequest.getCertificateName().endsWith(certificateNameTailText)) ||
                 sslCertificateRequest.getTargetSystem().getAddress().contains(" ") ||
-                (sslCertificateRequest.getCertificateName().contains(".-")) ||
-                (sslCertificateRequest.getCertificateName().contains("-.")) ||
-                (sslCertificateRequest.getCertificateName().contains("..")) ||
                 (!sslCertificateRequest.getCertType().matches("internal|external")) ||
                 (!isValidHostName(sslCertificateRequest.getTargetSystemServiceRequest().getHostname()))
                 || (!isValidAppName(sslCertificateRequest)) || (!validateDNSNames(sslCertificateRequest))){
@@ -1402,6 +1402,41 @@ public class SSLCertificateService {
 
         return isValid;
     }
+
+	/**
+	 * Method to validate the certificate name
+	 *
+	 * @param certName
+	 * @return
+	 */
+	private boolean validateCertficateName(String certName) {
+		boolean isValid = true;
+		if (certName.contains(" ") || (certName.endsWith(certificateNameTailText)) || (certName.contains(".-"))
+				|| (certName.contains("-.")) || (certName.contains("..")) || (certName.contains("**"))
+				|| (certName.contains("*") && certName.indexOf('*') != 0) || (certName.endsWith("."))
+				|| (StringUtils.countOccurrencesOf(certName, "*") > 1)) {
+			isValid = false;
+		}
+		return isValid;
+	}
+
+	/**
+	 * Method to append t-mobile.com text to certificate name and dns
+	 *
+	 * @param sslCertificateRequest
+	 */
+	private void appendTmobileTextToCertificateName(SSLCertificateRequest sslCertificateRequest) {
+		String certName = sslCertificateRequest.getCertificateName() + certificateNameTailText;
+		sslCertificateRequest.setCertificateName(certName);
+
+		String[] dnsNames = sslCertificateRequest.getDnsList();
+
+		if (!ArrayUtils.isEmpty(dnsNames)) {
+			String[] dnsArray = Arrays.stream(dnsNames).map(value -> value + certificateNameTailText)
+					.toArray(String[]::new);
+			sslCertificateRequest.setDnsList(dnsArray);
+		}
+	}
 
     private boolean isValidAppName(SSLCertificateRequest sslCertificateRequest){
         boolean isValidApp=false;

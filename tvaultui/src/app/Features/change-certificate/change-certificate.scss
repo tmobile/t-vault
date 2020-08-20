@@ -825,10 +825,24 @@ input.highlightBox {
   border-width: 0px;
 }
 
-.btn-cert:hover, .btn-cert:focus {
+.btn-cert:focus {
   color: #fff!important;
-  background-color: #B8005E;
+  background-color: #f6006e;
+  background-position: 0 -15px;
+  border-color: #f6006e;
+}
+.btn-cert:hover {
+  color: #fff!important;
+  background-image: linear-gradient(to bottom, #B8005E 0%, #B8005E 100%);
+  background-repeat: repeat;
+  background-color: #f6006e;
+  background-position: 0 -15px;
   border-color: #B8005E;
+}
+.btn-cert:active {
+  color: #fff!important;
+  background-color: #f6006e;
+  border-color: #f6006e;
 }
 .certeditnotes {
   margin-top: 10px;
