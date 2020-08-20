@@ -2426,12 +2426,13 @@
                 certificateDetails.certOwnerNtid='';
                 var certificateName = $scope.getCertSubjectName(certificateDetails);
                 certificateDetails.certificateName = certificateName; 
-                certificateDetails.certOwnerEmailId=$scope.certObj.certDetails.ownerEmail;
+                var certOwnerEmailId = $scope.certObj.certDetails.ownerEmail;
+                var certType = certificateDetails.certType;
                 certificateDetails.certOwnerNtid=$scope.certObj.certDetails.ownerNtId;                                  
-                certificateDetails.applicationName=certificateDetails.appNameTagValue;                 
-                var url = RestEndpoints.baseURL + "/v2/sslcert/transferowner";
+                certificateDetails.applicationName=certificateDetails.appNameTagValue;    
+                var url = RestEndpoints.baseURL + "/v2/sslcert/" +certType+"/"+ certificateName +"/"+certOwnerEmailId +"/transferowner";
                 $scope.isLoadingData = true;   
-                AdminSafesManagement.transferCertificate(certificateDetails, url).then(function (response) {
+                AdminSafesManagement.transferCertificate(null, url).then(function (response) {
                     $scope.isLoadingData = false;
                     $scope.certObj.certDetails.ownerEmail="";
                     if (UtilityService.ifAPIRequestSuccessful(response)) {

@@ -384,7 +384,7 @@ readTextFile("../apiUrls.json");
             method: 'GET'
         }, {
             name: 'transferCertificate',
-            url: '/v2/sslcert/transferowner',
+            url: '/v2/sslcert/{certType}/{certName}/{certOwnerEmailId}/transferowner',
             method: 'PUT'
         } ,{
             name: 'validateCertificateDetails',
