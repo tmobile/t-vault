@@ -73,6 +73,7 @@ public final class SSLCertificateConstants {
     public static final String VALIDATE_CERTIFICATE_DETAILS_MSG = "Validate Certificate Details";
     public static final String  VALIDATION_RESULT_LABEL="validationResult";
     public static final String OWNER_PERMISSION_EXT_CERTIFICATE = "o_externalcerts_";
+
     public static final String CERT_CREATION_SUBJECT = "Certificate Created Successfully";
     public static final String EX_CERT_CREATION_SUBJECT = "Certificate Create Request received";
     public static final String EX_CERT_RENEW_SUBJECT = "Certificate Renew Request received";
@@ -84,5 +85,5 @@ public final class SSLCertificateConstants {
     public static final String INTERNAL_KEY_USAGE ="serverAuth";
     public static final String EXTERNAL_KEY_USAGE ="serverAuth, clientAuth";
     public static final String INTERNAL="internal";
-
+    public static final String RENEW_PENDING="Renew Pending";
 }
