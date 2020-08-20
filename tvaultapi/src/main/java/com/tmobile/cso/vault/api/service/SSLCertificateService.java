@@ -659,7 +659,7 @@ public class SSLCertificateService {
                                 put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
                                 build()));
                     	return addSudoPermissionToCertificateOwner(sslCertificateRequest, userDetails, enrollResponse
-                                , isPoliciesCreated, sslMetaDataCreationStatus,token);
+                                , isPoliciesCreated, sslMetaDataCreationStatus,token,"create");
                     }
                 }
             } else {
@@ -1066,7 +1066,7 @@ public class SSLCertificateService {
 	 */
 	private ResponseEntity<String> addSudoPermissionToCertificateOwner(SSLCertificateRequest sslCertificateRequest,
 			UserDetails userDetails, CertResponse enrollResponse, boolean isPoliciesCreated,
-			boolean sslMetaDataCreationStatus,String token) {
+			boolean sslMetaDataCreationStatus,String token,String operation) {
 		CertificateUser certificateUser = new CertificateUser();
 		certificateUser.setUsername(sslCertificateRequest.getCertOwnerNtid());
 		certificateUser.setAccess(TVaultConstants.SUDO_POLICY);
@@ -1085,8 +1085,10 @@ public class SSLCertificateService {
 						.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
 						.put(LogMessage.ACTION, String.format("Metadata or Policies created for SSL certificate [%s] - metaDataStatus [%s] - policyStatus [%s]", sslCertificateRequest.getCertificateName(), sslMetaDataCreationStatus, isPoliciesCreated))
 						.build()));
-
-                sendCreationEmail(sslCertificateRequest, userDetails, token);
+                //Send email only in case of creation
+                if(operation.equalsIgnoreCase("create")) {
+                    sendCreationEmail(sslCertificateRequest, userDetails, token);
+                }
 			    return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\""+enrollResponse.getResponse()+"\"]}");
 			}else {
 				enrollResponse.setResponse(SSLCertificateConstants.SSL_OWNER_PERMISSION_EXCEPTION);
@@ -4675,7 +4677,7 @@ public class SSLCertificateService {
 			
 			removeSudoPermissionForPreviousOwner( certificateUser.toLowerCase(), sslCertificateRequest.getCertificateName(),userDetails,sslCertificateRequest.getCertType());
 			addSudoPermissionToCertificateOwner(certificateRequest, userDetails, enrollResponse, isPoliciesCreated,
-                    true,token);
+                    true,token,"transfer");
 			
 			
 			return ResponseEntity.status(HttpStatus.OK)
