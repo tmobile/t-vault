@@ -164,6 +164,12 @@ public class CertificateUtils {
 	 * @return certificate
 	 */
 	private SSLCertificateMetadataDetails getCertificateInfo (JsonNode dataNode) {
+		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+				put(LogMessage.ACTION, "getCertificateInfo").
+				put(LogMessage.MESSAGE, String.format ("dataNode [%s] ", dataNode)).
+				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+				build()));
 		SSLCertificateMetadataDetails certificate = new SSLCertificateMetadataDetails();
 		certificate.setCertificateName(dataNode.get("certificateName").asText());
 		certificate.setCertificateId(dataNode.get("certificateId").asInt());
@@ -214,6 +220,14 @@ public class CertificateUtils {
 		if (null != dataNode.get("containerId")) {
 			certificate.setContainerId(dataNode.get("containerId").asInt());
 		}
+
+		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+				put(LogMessage.ACTION, "getCertificateInfo-BEFORE DNS names ").
+				put(LogMessage.MESSAGE, String.format ("certificate [%s] ", certificate.toString())).
+				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+				build()));
+
 		//Adding DNS names to certificate info
 		if (null != dataNode.get("dnsNames")) {
 			List<String> list = new ArrayList<>();
@@ -223,6 +237,13 @@ public class CertificateUtils {
 			}
 			certificate.setDnsNames(list);
 		}
+
+		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+				put(LogMessage.ACTION, "getCertificateInfo").
+				put(LogMessage.MESSAGE, String.format ("certificate [%s] ", certificate.toString())).
+				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+				build()));
 		return certificate;
 	}	
 	
