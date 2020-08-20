@@ -658,7 +658,8 @@ public class SSLCertificateService {
                                 put(LogMessage.MESSAGE, "addSudoPermissionToCertificateOwner- STARTED ").
                                 put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
                                 build()));
-                    	return addSudoPermissionToCertificateOwner(sslCertificateRequest, userDetails, enrollResponse, isPoliciesCreated, sslMetaDataCreationStatus);
+                    	return addSudoPermissionToCertificateOwner(sslCertificateRequest, userDetails, enrollResponse
+                                , isPoliciesCreated, sslMetaDataCreationStatus,token);
                     }
                 }
             } else {
@@ -695,11 +696,10 @@ public class SSLCertificateService {
         log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
                 put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
                 put(LogMessage.ACTION, "generateSSLCertificate").
-                put(LogMessage.MESSAGE, String.format ("certificate [%s] ", sslCertificateRequest.getCertificateName())).
+                put(LogMessage.MESSAGE, String.format ("certificate [%s] before sending an email ",
+                        sslCertificateRequest.getCertificateName())).
                 put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
                 build()));
-
-        sendCreationEmail(sslCertificateRequest, userDetails, token);
         return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\""+SSLCertificateConstants.SSL_CERT_SUCCESS+"\"]}");
     }
 
@@ -712,6 +712,12 @@ public class SSLCertificateService {
 
     private void sendCreationEmail(SSLCertificateRequest sslCertificateRequest,
                                    UserDetails userDetails, String token) {
+        log.debug(JSONUtil.getJSON(ImmutableMap.<String, String> builder()
+                .put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+                .put(LogMessage.ACTION, String.format("sendCreationEmail for SSL certificate [%s] - certType [%s] - "
+                        , sslCertificateRequest.getCertificateName(), sslCertificateRequest.getCertType()))
+                .build()));
+
          if (sslCertificateRequest.getCertType().equalsIgnoreCase("internal")) {
             //Send email for certificate creation
             sendEmail(sslCertificateRequest.getCertType(), sslCertificateRequest.getCertificateName(),
@@ -1060,7 +1066,7 @@ public class SSLCertificateService {
 	 */
 	private ResponseEntity<String> addSudoPermissionToCertificateOwner(SSLCertificateRequest sslCertificateRequest,
 			UserDetails userDetails, CertResponse enrollResponse, boolean isPoliciesCreated,
-			boolean sslMetaDataCreationStatus) {
+			boolean sslMetaDataCreationStatus,String token) {
 		CertificateUser certificateUser = new CertificateUser();
 		certificateUser.setUsername(sslCertificateRequest.getCertOwnerNtid());
 		certificateUser.setAccess(TVaultConstants.SUDO_POLICY);
@@ -1079,6 +1085,8 @@ public class SSLCertificateService {
 						.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
 						.put(LogMessage.ACTION, String.format("Metadata or Policies created for SSL certificate [%s] - metaDataStatus [%s] - policyStatus [%s]", sslCertificateRequest.getCertificateName(), sslMetaDataCreationStatus, isPoliciesCreated))
 						.build()));
+
+                sendCreationEmail(sslCertificateRequest, userDetails, token);
 			    return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\""+enrollResponse.getResponse()+"\"]}");
 			}else {
 				enrollResponse.setResponse(SSLCertificateConstants.SSL_OWNER_PERMISSION_EXCEPTION);
@@ -1198,6 +1206,13 @@ public class SSLCertificateService {
                         substring(1, certMetaData.getDnsNames().toString().length() - 1));
             }
 
+            log.debug(JSONUtil.getJSON(ImmutableMap.<String, String> builder()
+                    .put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+                    .put(LogMessage.ACTION, String.format("sendEmail for SSL certificate [%s] - certType [%s] - User " +
+                                    "email=[%s] - subject = [%s]"
+                            ,certName , certType,directoryUser.getUserEmail(),subject))
+                    .build()));
+
             emailUtils.sendHtmlEmalFromTemplateForInternalCert(supportEmail, directoryUser.getUserEmail(),
                     subject, mailTemplateVariables);
         } else {
@@ -1239,6 +1254,12 @@ public class SSLCertificateService {
             mailTemplateVariables.put("operation", operation);
             mailTemplateVariables.put("enrollService", enrollService);
             mailTemplateVariables.put("keyUsage", keyUsage);
+            log.debug(JSONUtil.getJSON(ImmutableMap.<String, String> builder()
+                    .put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+                    .put(LogMessage.ACTION, String.format("sendEmail for SSL certificate [%s] - certType [%s] - User " +
+                                    "email=[%s] - subject = [%s]"
+                            ,certName , certType,directoryUser.getUserEmail(),subject))
+                    .build()));
             emailUtils.sendEmailForExternalCert(supportEmail, directoryUser.getUserEmail(),
                     subject, mailTemplateVariables);
         } else {
@@ -1630,7 +1651,7 @@ public class SSLCertificateService {
                 certificateData = setLatestCertificate(certificateData, certName, jsonArray);
             }
         }
-        return certificateData;
+         return certificateData;
     }
 
     private String validateString(JsonElement jsonElement){
@@ -4653,7 +4674,8 @@ public class SSLCertificateService {
 			boolean isPoliciesCreated=true;			
 			
 			removeSudoPermissionForPreviousOwner( certificateUser.toLowerCase(), sslCertificateRequest.getCertificateName(),userDetails,sslCertificateRequest.getCertType());
-			addSudoPermissionToCertificateOwner(certificateRequest, userDetails, enrollResponse, isPoliciesCreated, true);	
+			addSudoPermissionToCertificateOwner(certificateRequest, userDetails, enrollResponse, isPoliciesCreated,
+                    true,token);
 			
 			
 			return ResponseEntity.status(HttpStatus.OK)
