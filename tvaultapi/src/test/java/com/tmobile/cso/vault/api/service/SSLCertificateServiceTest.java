@@ -1,8 +1,6 @@
 package com.tmobile.cso.vault.api.service;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.ImmutableMap;
 import com.tmobile.cso.vault.api.common.SSLCertificateConstants;
 import com.tmobile.cso.vault.api.controller.ControllerUtil;
@@ -12,7 +10,6 @@ import com.tmobile.cso.vault.api.process.CertResponse;
 import com.tmobile.cso.vault.api.process.RequestProcessor;
 import com.tmobile.cso.vault.api.process.Response;
 import com.tmobile.cso.vault.api.utils.*;
-import com.tmobile.cso.vault.api.v2.controller.DirectoryServiceControllerV2;
 import com.tmobile.cso.vault.api.validator.TokenValidator;
 import org.apache.http.HttpEntity;
 import org.apache.http.StatusLine;
@@ -24,14 +21,12 @@ import org.apache.http.util.EntityUtils;
 import org.apache.logging.log4j.LogManager;
 import org.junit.Before;
 import org.junit.FixMethodOrder;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.MethodSorters;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.MockitoAnnotations;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 import org.powermock.api.mockito.PowerMockito;
@@ -45,25 +40,19 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.ldap.core.AttributesMapper;
 import org.springframework.ldap.core.LdapTemplate;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
-import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.*;
 
-import static org.hamcrest.Matchers.containsString;
 import static org.junit.Assert.*;
 import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @RunWith(PowerMockRunner.class)
 @ComponentScan(basePackages = {"com.tmobile.cso.vault.api"})
@@ -872,7 +861,6 @@ public class SSLCertificateServiceTest {
         assertEquals(HttpStatus.OK, enrollResponse.getStatusCode());
     }
 
-
     @Test
     public void generateSSLCertificate_External_Success_Scenerio2() throws Exception {
         String jsonStr = "{  \"username\": \"testusername1\",  \"password\": \"testpassword1\"}";
@@ -894,7 +882,7 @@ public class SSLCertificateServiceTest {
         String userDetailToken = userDetails.getSelfSupportToken();
 
         SSLCertificateRequest sslCertificateRequest = getSSLCertificateRequest();
-        String[] dnsNames = {"test1.t-mobile.com","test2.t-mobile.com" };
+        String[] dnsNames = {"test1","test2" };
         sslCertificateRequest.setDnsList(dnsNames);
         sslCertificateRequest.setCertType("external");
         Map<String, Object> requestMap = new HashMap<>();
@@ -2060,7 +2048,7 @@ public class SSLCertificateServiceTest {
         targetSystemServiceRequest.setMonitoringEnabled(true);
         targetSystemServiceRequest.setMultiIpMonitoringEnabled(true);
 
-        sSLCertificateRequest.setCertificateName("certificatename.t-mobile.com");
+        sSLCertificateRequest.setCertificateName("certificatename");
         sSLCertificateRequest.setAppName("xyz");
         sSLCertificateRequest.setCertOwnerEmailId("testing@mail.com");
         sSLCertificateRequest.setCertOwnerNtid("testuser2");
