@@ -1017,13 +1017,21 @@
         };
                     
         $scope.certpaginationLimit = function (data) {
-            $scope.certcurrentshown = certpageSize * certpagesShown;
+            $scope.certcurrentshown = certpageSize * certpagesShown;            
             if (($scope.searchValue != '' && $scope.searchValue != undefined && $scope.searchValue.length > 2) || $scope.certcurrentshown >= $scope.numOfCertificates) {
                 $scope.certcurrentshown = $scope.numOfCertificates;
             }
             return $scope.certcurrentshown;
         };
-        $scope.hasMoreCertsToShow = function () {        	
+        $scope.hasMoreCertsToShow = function () {    
+        	 if ($scope.searchValue != '' && $scope.searchValue!= undefined) {
+                 if ($scope.searchValue.length<3) {
+                	 return certpagesShown < ($scope.numOfCertificates / certpageSize);
+                 }
+                 else {
+                     return false;
+                 }
+             }
                 return certpagesShown < ($scope.numOfCertificates / certpageSize);
             
         };

@@ -2574,7 +2574,8 @@ public class SSLCertificateService {
 
 		if (!userDetails.isAdmin()) {
 
-			Boolean isPermission = validateOwnerPermissionForNonAdmin(userDetails, certificateName);
+//			Boolean isPermission = validateOwnerPermissionForNonAdmin(userDetails, certificateName);
+			Boolean isPermission = validateCertOwnerPermissionForNonAdmin(userDetails, certificateName,certType);
 
 			if (!isPermission) {
 				return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
@@ -3883,7 +3884,8 @@ public class SSLCertificateService {
                 SSLCertificateConstants.SSL_CERT_PATH + "/" + endPoint :SSLCertificateConstants.SSL_EXTERNAL_CERT_PATH + "/" + endPoint;
 		Response response = new Response();
 		if (!userDetails.isAdmin()) {
-			Boolean isPermission = validateOwnerPermissionForNonAdmin(userDetails, certificateName);
+//			Boolean isPermission = validateOwnerPermissionForNonAdmin(userDetails, certificateName);
+			Boolean isPermission = validateCertOwnerPermissionForNonAdmin(userDetails, certificateName,certType);
 
 			if (!isPermission) {
 				return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
@@ -3921,6 +3923,7 @@ public class SSLCertificateService {
 		metaDataParams = new Gson().fromJson(object.toString(), Map.class);		
 		
 		String certID = object.get("certificateId").getAsString();
+		int containerId = object.get("containerId").getAsInt();
         float value = Float.valueOf(certID);
 		int certificateId = (int) value;
 		
@@ -3953,8 +3956,8 @@ public class SSLCertificateService {
 									.build()));
 			
 			//if renewed get new certificate details and update metadata
-			if (renewResponse!=null && HttpStatus.OK.equals(renewResponse.getHttpstatus())) {
-			CertificateData certData = getLatestCertificate(certificateName,nclmAccessToken);			
+			if (renewResponse!=null && (HttpStatus.OK.equals(renewResponse.getHttpstatus()) || HttpStatus.ACCEPTED.equals(renewResponse.getHttpstatus())) ) {
+			CertificateData certData = getLatestCertificate(certificateName,nclmAccessToken, containerId);			
 			boolean sslMetaDataUpdationStatus=true;		
 			if(!ObjectUtils.isEmpty(certData)) {
 			metaDataParams.put("certificateId",((Integer)certData.getCertificateId()).toString()!=null?
@@ -3963,7 +3966,24 @@ public class SSLCertificateService {
 			metaDataParams.put("expiryDate", certData.getExpiryDate()!=null?certData.getExpiryDate():object.get("expiryDate").getAsString());			
 			metaDataParams.put("certificateStatus", certData.getCertificateStatus()!=null?certData.getCertificateStatus():
 				object.get("certificateStatus").getAsString());
-						
+			
+			if(certType.equalsIgnoreCase("external")) {
+				CertManagerLogin certManagerLogin = new CertManagerLogin();
+				certManagerLogin.setAccess_token(nclmAccessToken);
+				Map<String, Object> responseMap = ControllerUtil.parseJson(renewResponse.getResponse());
+                if (!MapUtils.isEmpty(responseMap) && responseMap.get("actionId") != null) {
+                    int actionId = (Integer) responseMap.get("actionId");
+                if (actionId != 0) {
+                	renewResponse = approvalRequest(certManagerLogin, actionId);
+                    log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+                            put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+                            put(LogMessage.ACTION, String.format("approvalRequest Completed Successfully [%s]" +
+                                    " = certificate name = [%s]", renewResponse.getResponse(),certificateName)).
+                            build()));
+                }
+			}
+                metaDataParams.put("certificateStatus", SSLCertificateConstants.RENEW_PENDING); 
+			}
 			if (userDetails.isAdmin()) {
 				sslMetaDataUpdationStatus = ControllerUtil.updateMetaData(metaDataPath, metaDataParams, token);
 			} else {
@@ -4052,9 +4072,8 @@ public class SSLCertificateService {
      * @return
      * @throws Exception
      */
-    private CertificateData getLatestCertificate(String certName, String accessToken) throws Exception {
+    private CertificateData getLatestCertificate(String certName, String accessToken, int containerId) throws Exception {
         CertificateData certificateData=new CertificateData(); 
-        int containerId = getTargetSystemGroupId(SSLCertType.valueOf("PRIVATE_SINGLE_SAN"));
         String findCertificateEndpoint = "/certmanager/findCertificate";
         String targetEndpoint = findCertificate.replace("certname", String.valueOf(certName)).replace("cid", String.valueOf(containerId));
         CertResponse response = reqProcessor.processCert(findCertificateEndpoint, "", accessToken, getCertmanagerEndPoint(targetEndpoint));        
@@ -5123,7 +5142,8 @@ public class SSLCertificateService {
 		Response metadataResponse = new Response();
 		CertResponse unAssignResponse = new CertResponse();
 		if (!userDetails.isAdmin()) {
-			Boolean isPermission = validateOwnerPermissionForNonAdmin(userDetails, certificateName);
+//			Boolean isPermission = validateOwnerPermissionForNonAdmin(userDetails, certificateName);
+			Boolean isPermission = validateCertOwnerPermissionForNonAdmin(userDetails, certificateName,certType);
 
 			if (!isPermission) {
 				return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
@@ -5161,7 +5181,8 @@ public class SSLCertificateService {
 		JsonObject object = ((JsonObject) jsonParser.parse(response.getResponse())).getAsJsonObject("data");
 		metaDataParams = new Gson().fromJson(object.toString(), Map.class);		
 		
-		int certID = object.get("certificateId").getAsInt();		
+		int certID = object.get("certificateId").getAsInt();	
+		int containerId = object.get("containerId").getAsInt();
 		try {
 		metaDataParams = new Gson().fromJson(object.toString(), Map.class);			
 			
@@ -5170,8 +5191,8 @@ public class SSLCertificateService {
 			String nclmAccessToken = getNclmToken();
 			
 			//find certificates
-			CertificateData certData = getLatestCertificate(certificateName,nclmAccessToken);		
-			
+			CertificateData certData = getLatestCertificate(certificateName,nclmAccessToken, containerId);		
+			if(certData!=null) {
 			//Unassign certificate from target system
 			JsonObject jo = new JsonObject();
 	        jo.add("targetSystemServiceIds", new GsonBuilder().create().toJsonTree(certData.getDeployStatus()));
@@ -5232,8 +5253,22 @@ public class SSLCertificateService {
 										.build()));
 				return ResponseEntity.status(HttpStatus.BAD_REQUEST)
 						.body("{\"errors\":[\"" + "Certificate Deletion Failed" + "\"]}");
-			}		
-	
+			}	
+			}else {
+				log.error(
+						JSONUtil.getJSON(
+								ImmutableMap.<String, String> builder()
+										.put(LogMessage.USER,
+												ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString())
+										.put(LogMessage.ACTION, "Delete certificate Failed")
+										.put(LogMessage.MESSAGE, "Delete Request failed for CertificateID")
+										.put(LogMessage.STATUS, unAssignResponse.getHttpstatus().toString())
+										.put(LogMessage.APIURL,
+												ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString())
+										.build()));
+				return ResponseEntity.status(HttpStatus.FORBIDDEN).body("{\"errors\":[\"" + "Certificate unavailable in NCLM." + "\"]}");
+			}
+			
 	} catch (Exception e) {
 		log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
 				.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString())
