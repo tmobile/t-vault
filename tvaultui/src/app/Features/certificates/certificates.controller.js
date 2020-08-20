@@ -69,7 +69,26 @@
             $scope.downloadRequest.format = $scope.dropdownDownload.selectedGroupOption.value;
         }
 
-        $scope.filterCert = function(searchValueCert) {
+        $scope.filterCert = function (searchValueCert) {
+            var filterSearch = searchValueCert;
+            if (searchValueCert != '' && searchValueCert != undefined && searchValueCert.length > 2) {
+                if($scope.certificateType == "internal"){
+                    $scope.finalFilterCertResults = $scope.certificatesData.keys.filter(function (searchValueCert) {
+                        return searchValueCert.certname.includes(filterSearch);
+                    });
+                } else {
+                    $scope.finalFilterExtCertResults = $scope.certificatesDataExternal.keys.filter(function (searchValueCert) {
+                        return searchValueCert.certname.includes(filterSearch);
+                    });
+                }
+
+            } else {
+                if($scope.certificateType == "internal"){
+                    $scope.finalFilterCertResults = $scope.certificatesData.keys.length;
+                } else {
+                    $scope.finalFilterExtCertResults = $scope.certificatesDataExternal.keys.length;
+                }
+            }
             $scope.searchValueCert = searchValueCert;
         }
 
@@ -111,6 +130,8 @@
             $scope.numOfCertificates=$scope.certificatesData.keys.length;
             $scope.numOfCertificatesExternal=$scope.certificatesDataExternal.keys.length;
             $scope.isLoadingData = false;
+            $scope.finalFilterCertResults = $scope.certificatesData.keys.length;
+            $scope.finalFilterExtCertResults = $scope.certificatesDataExternal.keys.length;
         };
 
         $scope.isInternalCertificate = function(){
@@ -158,6 +179,7 @@
                                 $scope.certificatesData.keys.push({"certname": value, "permission": "read"});
                               });
                             $scope.numOfCertificates=$scope.certificatesData.keys.length;
+                            $scope.finalFilterCertResults = $scope.certificatesData.keys.length;
                         }
                     }else{
                         if (response.data != "" && response.data != undefined) {
@@ -165,6 +187,7 @@
                                 $scope.certificatesDataExternal.keys.push({"certname": value, "permission": "read"});
                               });
                             $scope.numOfCertificatesExternal=$scope.certificatesDataExternal.keys.length;
+                            $scope.finalFilterExtCertResults = $scope.certificatesDataExternal.keys.length;
                         }
                     }
                 }
@@ -202,22 +225,39 @@
         var pageSize = 20;
         $scope.paginationLimit = function() {
             $scope.currentshown = pageSize * pagesShown;
-            if(($scope.searchValueCert != '' && $scope.searchValueCert!= undefined && $scope.searchValueCert.length>2) || $scope.currentshown >= $scope.numOfCertificates){
-                $scope.currentshown = $scope.numOfCertificates;
+            if($scope.certificateType == "internal"){
+                if(($scope.searchValueCert != '' && $scope.searchValueCert!= undefined && $scope.searchValueCert.length>2) || $scope.currentshown >= $scope.numOfCertificates){
+                    $scope.currentshown = $scope.numOfCertificates;
+                }
+                return $scope.currentshown;
+            }else{
+                if(($scope.searchValueCert != '' && $scope.searchValueCert!= undefined && $scope.searchValueCert.length>2) || $scope.currentshown >= $scope.numOfCertificatesExternal){
+                    $scope.currentshown = $scope.numOfCertificatesExternal;
+                }
+                return $scope.currentshown;
             }
-            return $scope.currentshown;
+           
+            
         };
 
-        $scope.hasMoreItemsToShow = function() {
-            if ($scope.searchValueCert != '' && $scope.searchValueCert!= undefined) {
-                if ($scope.searchValueCert.length<3) {
-                    return pagesShown < ($scope.numOfCertificates / pageSize);
+        $scope.hasMoreItemsToShow = function () {
+            if ($scope.searchValueCert != '' && $scope.searchValueCert != undefined) {
+                if ($scope.searchValueCert.length < 3) {
+                    if ($scope.certificateType == "internal") {
+                        return pagesShown < ($scope.numOfCertificates / pageSize);
+                    } else {
+                        return pagesShown < ($scope.numOfCertificatesExternal / pageSize);
+                    }
                 }
                 else {
                     return false;
                 }
             }
-            return pagesShown < ($scope.numOfCertificates / pageSize);
+            if ($scope.certificateType == "internal") {
+                return pagesShown < ($scope.numOfCertificates / pageSize);
+            } else {
+                return pagesShown < ($scope.numOfCertificatesExternal / pageSize);
+            }
         };
 
         $scope.showMoreItems = function() {
