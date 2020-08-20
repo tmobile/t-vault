@@ -348,6 +348,10 @@ public class OIDCUtil {
 							break;
 						}
 					}
+					if (groupObjectId == null) {
+						JsonObject adObject = vaulesArray.get(0).getAsJsonObject();
+						groupObjectId = adObject.get("id").getAsString();
+					}
 				}
 			}
 			return groupObjectId;
