@@ -1055,7 +1055,7 @@ public class  SafesService {
 				policies.remove(d_policy);
 				policies.add(policy);
 			}else{
-				// New user to be configured
+				// New group to be configured
 				policies.add(policy);
 			}
 			String policiesString = StringUtils.join(policies, ",");
