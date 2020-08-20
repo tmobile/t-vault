@@ -184,8 +184,18 @@
                     }else{
                         if (response.data != "" && response.data != undefined) {
                             angular.forEach(response.data.data.keys, function(value, key) {
-                                $scope.certificatesDataExternal.keys.push({"certname": value, "permission": "read"});
-                              });
+                                updatedUrlOfEndPoint = RestEndpoints.baseURL + "/v2/sslcert/certificate/" + "external" + "?certificate_name="+ value;
+                                AdminSafesManagement.getCertificateDetails(null, updatedUrlOfEndPoint).then(function (response) {
+                                    if (UtilityService.ifAPIRequestSuccessful(response)) { 
+                                $scope.certificateDetails = response.data;
+                               
+                                    if($scope.certificateDetails.requestStatus === "Approved")
+                                     {
+                                        $scope.certificatesDataExternal.keys.push({"certname": value, "permission": "read"});
+                                     }
+                                    }
+                                })
+                            });
                             $scope.numOfCertificatesExternal=$scope.certificatesDataExternal.keys.length;
                             $scope.finalFilterExtCertResults = $scope.certificatesDataExternal.keys.length;
                         }
