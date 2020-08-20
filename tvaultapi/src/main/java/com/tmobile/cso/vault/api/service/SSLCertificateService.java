@@ -320,6 +320,19 @@ public class SSLCertificateService {
         }
     }
 
+    /**
+     * This method will be used to update the owner email id
+     * @param sslCertificateRequest
+     * @return
+     */
+    private boolean populateCertOwnerEmaild(SSLCertificateRequest sslCertificateRequest){
+        DirectoryUser directoryUser = getUserDetails(sslCertificateRequest.getCertOwnerNtid());
+        if(Objects.nonNull(directoryUser)){
+            sslCertificateRequest.setCertOwnerEmailId(directoryUser.getUserEmail());
+            return true;
+        }
+        return false;
+    }
 
     /**
      * @param sslCertificateRequest
@@ -1427,6 +1440,7 @@ public class SSLCertificateService {
     private boolean validateInputData(SSLCertificateRequest sslCertificateRequest){
         boolean isValid=true;
         if((!validateCertficateName(sslCertificateRequest.getCertificateName())) || sslCertificateRequest.getAppName().contains(" ") ||
+                (!populateCertOwnerEmaild(sslCertificateRequest)) ||
                 sslCertificateRequest.getCertOwnerEmailId().contains(" ") ||  sslCertificateRequest.getCertType().contains(" ") ||
                 sslCertificateRequest.getTargetSystem().getAddress().contains(" ") ||
                 (!sslCertificateRequest.getCertType().matches("internal|external")) ||
