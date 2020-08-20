@@ -652,9 +652,13 @@ public class SSLCertificateService {
 								.build()));
                         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\""+enrollResponse.getResponse()+"\"]}");
                     } else {
-
+                        log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+                                put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+                                put(LogMessage.ACTION, "generateSSLCertificate").
+                                put(LogMessage.MESSAGE, "addSudoPermissionToCertificateOwner- STARTED ").
+                                put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+                                build()));
                     	return addSudoPermissionToCertificateOwner(sslCertificateRequest, userDetails, enrollResponse, isPoliciesCreated, sslMetaDataCreationStatus);
-
                     }
                 }
             } else {
@@ -687,6 +691,14 @@ public class SSLCertificateService {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body
                     ("{\"errors\":[\"" + SSLCertificateConstants.SSL_CREATE_EXCEPTION + "\"]}");
         }
+
+        log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+                put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+                put(LogMessage.ACTION, "generateSSLCertificate").
+                put(LogMessage.MESSAGE, String.format ("certificate [%s] ", sslCertificateRequest.getCertificateName())).
+                put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+                build()));
+
         sendCreationEmail(sslCertificateRequest, userDetails, token);
         return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\""+SSLCertificateConstants.SSL_CERT_SUCCESS+"\"]}");
     }
