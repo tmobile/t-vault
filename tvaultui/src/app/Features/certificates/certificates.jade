@@ -76,7 +76,7 @@ script(type='text/ng-template', id='downloadPopup.html')
                                             loading-state(ng-if='isLoadingData')
                                             md-content(class="md-padding md-content-wrapper")
                                                 div.certdescription(ng-show="certificatesData.keys.length>0") Following are list of the Certificates which you have download permission.
-                                                .unavailable-text(ng-if='finalFilterCertResults.length==0')
+                                                .unavailable-text(ng-if="finalFilterCertResults.length == '0'")
                                                     | No Certificates Available
                                                 div.tiles-wrapper.cert-tiles(img="'safe.png'" loading="isLoadingData")
                                                     .tiles-wrapper
@@ -154,7 +154,7 @@ script(type='text/ng-template', id='downloadPopup.html')
                                             loading-state(ng-if='isLoadingData')
                                             md-content(class="md-padding md-content-wrapper")
                                                 div.certdescription(ng-show="certificatesDataExternal.keys.length>0") Following are list of the Certificates which you have download permission.
-                                                .unavailable-text(ng-if='finalFilterExtCertResults.length==0')
+                                                .unavailable-text(ng-if= "finalFilterExtCertResults.length== '0'")
                                                     | No Certificates Available
                                                 div.tiles-wrapper.cert-tiles(img="'safe.png'" loading="isLoadingData")
                                                     .tiles-wrapper

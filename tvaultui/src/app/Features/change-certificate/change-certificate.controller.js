@@ -1027,7 +1027,7 @@
 
                     $scope.isLoadingData = false;
                     if (UtilityService.ifAPIRequestSuccessful(response)) {
-                        $scope.revocationStatusMessage = 'Revocation Successfull!';
+                        $scope.revocationStatusMessage = 'Revocation Successful!';
                         $scope.revocationMessage = response.data.messages[0];
                         $scope.revocationPopUp();
                         $scope.requestDataFrChangeCertificate();
