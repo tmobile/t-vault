@@ -4814,7 +4814,7 @@ public class SSLCertificateServiceTest {
 
         //Assert
         assertNotNull(transferCertResponse);   
-        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, transferCertResponse.getStatusCode());
+        assertEquals(HttpStatus.BAD_REQUEST, transferCertResponse.getStatusCode());
     }
     
     @Test
@@ -4875,7 +4875,7 @@ public class SSLCertificateServiceTest {
 
         //Assert
         assertNotNull(transferCertResponse);   
-        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, transferCertResponse.getStatusCode());
+        assertEquals(HttpStatus.BAD_REQUEST, transferCertResponse.getStatusCode());
     }
     
     private CertResponse getTemplateParametersResponse(){
