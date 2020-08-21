@@ -86,4 +86,5 @@ public final class SSLCertificateConstants {
     public static final String EXTERNAL_KEY_USAGE ="serverAuth, clientAuth";
     public static final String INTERNAL="internal";
     public static final String RENEW_PENDING="Renew Pending";
+    public static final String CERT_TYPE_MATCH_STRING="internal|external";
 }

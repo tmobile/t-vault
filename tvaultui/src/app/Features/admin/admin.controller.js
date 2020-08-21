@@ -1535,26 +1535,20 @@
             $scope.certInValid = false;
             if ($scope.certObj.certDetails.certName != null && $scope.certObj.certDetails.certName != undefined
                 && $scope.certObj.certDetails.certName != "") {
-                var reg = new RegExp("^[*a-zA-Z0-9.-]+$")
+                var reg = new RegExp("^[a-zA-Z0-9.-]+$")
                 if (!reg.test($scope.certObj.certDetails.certName)) {
-                    $scope.certNameErrorMessage = "Certificate Name can have alphabets, numbers, *, . and - characters only.";
+                    $scope.certNameErrorMessage = "Certificate Name can have alphabets, numbers, . and - characters only.";
                     $scope.certInValid = true;
                 } else {
                     var certName = $scope.certObj.certDetails.certName.toLowerCase();
                     if (certName.endsWith(".t-mobile.com")) {
                         $scope.certNameErrorMessage = "Please enter certificate name without .t-mobile.com";
                         $scope.certInValid = true;
-                    } else if ((certName.includes(".-")) || (certName.includes("-.")) || (certName.includes("..")) || (certName.includes("**"))){
+                    } else if ((certName.includes(".-")) || (certName.includes("-.")) || (certName.includes(".."))){
                         $scope.certNameErrorMessage = "Please enter a valid certificate name";
                         $scope.certInValid = true;
-                    } else if ((certName.includes("*")) && (certName.indexOf('*') !== 0)){
-                        $scope.certNameErrorMessage = "Asterisk (*) allowed only before certificate name";
-                        $scope.certInValid = true;
-                    }else if((certName.match(/\*/g) || []).length > 1){
-                        $scope.certNameErrorMessage = "Asterisk (*) allowed only before certificate name";
-                        $scope.certInValid = true;
                     } else if (certName.endsWith(".")){
-                        $scope.certNameErrorMessage = "Certificate Name should not end with . character";
+                        $scope.certNameErrorMessage = "Certificate Name should not end with dot(.) character";
                         $scope.certInValid = true;
                     }
                 }
@@ -2332,26 +2326,20 @@
                 $scope.dnsInvalid = false;
                 if ($scope.multiSanDnsName.name != null && $scope.multiSanDnsName.name != undefined
                     && $scope.multiSanDnsName.name != "") {
-                    var reg = new RegExp("^[*a-zA-Z0-9.-]+$")
+                    var reg = new RegExp("^[a-zA-Z0-9.-]+$")
                     if (!reg.test($scope.multiSanDnsName.name)) {
-                        $scope.certDnsErrorMessage = "DNS can have alphabets, numbers, *, . and - characters only."
+                        $scope.certDnsErrorMessage = "DNS can have alphabets, numbers, . and - characters only."
                         $scope.dnsInvalid = true;
                     } else {
                         var certName = $scope.multiSanDnsName.name.toLowerCase();
                         if (certName.endsWith(".t-mobile.com")) {
                             $scope.certDnsErrorMessage = "Please enter DNS without .t-mobile.com"
                             $scope.dnsInvalid = true;
-                        }  else if ( (certName.includes(".-")) || (certName.includes("-.")) || (certName.includes("..")) || (certName.includes("**"))){
+                        }  else if ( (certName.includes(".-")) || (certName.includes("-.")) || (certName.includes(".."))){
                             $scope.certDnsErrorMessage = "Please enter a valid DNS"
                             $scope.dnsInvalid = true;
-                        } else if ((certName.includes("*")) && (certName.indexOf('*') !== 0)){
-                            $scope.certDnsErrorMessage = "Asterisk (*) allowed only before DNS";
-                            $scope.dnsInvalid = true;
-                        } else if((certName.match(/\*/g) || []).length > 1){
-                            $scope.certDnsErrorMessage = "Asterisk (*) allowed only before DNS";
-                            $scope.dnsInvalid = true;
                         } else if (certName.endsWith(".")){
-                            $scope.certDnsErrorMessage = "DNS should not end with . character";
+                            $scope.certDnsErrorMessage = "DNS should not end with dot(.) character";
                             $scope.dnsInvalid = true;
                         } else if (isDuplicateDns($scope.multiSanDnsName.name)) {
                             $scope.certDnsErrorMessage = "Duplicate DNS"
