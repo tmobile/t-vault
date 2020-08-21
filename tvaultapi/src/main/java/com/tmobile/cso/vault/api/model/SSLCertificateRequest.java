@@ -47,7 +47,7 @@ public class SSLCertificateRequest implements Serializable {
 
 	@NotNull
 	@NotEmpty
-	@Pattern(regexp = "^[*a-zA-Z0-9.-]+$", message = "certificateName can have alphabets, numbers, *, . and - characters only")
+	@Pattern(regexp = "^[a-zA-Z0-9.-]+$", message = "certificateName can have alphabets, numbers, . and - characters only")
 	private String certificateName;
 
 	@NotNull
@@ -63,9 +63,7 @@ public class SSLCertificateRequest implements Serializable {
 	@ApiModelProperty(example="internal")
 	private String certType;
 
-	@NotNull
-	@NotEmpty
-	@JsonProperty("certOwnerNTId")
+	@ApiModelProperty(hidden = true)
 	private String certOwnerNtid;
 
 	@NotNull

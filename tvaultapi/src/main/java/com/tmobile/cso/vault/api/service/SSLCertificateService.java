@@ -320,19 +320,28 @@ public class SSLCertificateService {
         }
     }
 
-    /**
-     * This method will be used to update the owner email id
-     * @param sslCertificateRequest
-     * @return
-     */
-    private boolean populateCertOwnerEmaild(SSLCertificateRequest sslCertificateRequest){
-        DirectoryUser directoryUser = getUserDetails(sslCertificateRequest.getCertOwnerNtid());
-        if(Objects.nonNull(directoryUser)){
-            sslCertificateRequest.setCertOwnerEmailId(directoryUser.getUserEmail());
-            return true;
-        }
-        return false;
-    }
+	/**
+	 * This method will be used to update the owner email id
+	 *
+	 * @param sslCertificateRequest
+	 * @return
+	 */
+	private boolean populateCertOwnerEmaild(SSLCertificateRequest sslCertificateRequest, UserDetails userDetails) {
+		boolean isvalid = true;
+		if (StringUtils.isEmpty(sslCertificateRequest.getCertOwnerNtid())) {
+			sslCertificateRequest.setCertOwnerNtid(userDetails.getUsername());
+		}
+
+		if (StringUtils.isEmpty(sslCertificateRequest.getCertOwnerEmailId())) {
+			isvalid = false;
+			DirectoryUser directoryUser = getUserDetails(sslCertificateRequest.getCertOwnerNtid());
+			if (Objects.nonNull(directoryUser)) {
+				sslCertificateRequest.setCertOwnerEmailId(directoryUser.getUserEmail());
+				isvalid = true;
+			}
+		}
+		return isvalid;
+	}
 
     /**
      * @param sslCertificateRequest
@@ -343,7 +352,7 @@ public class SSLCertificateService {
         CertResponse enrollResponse = new CertResponse();
 
         //Validate the input data
-        boolean isValidData = validateInputData(sslCertificateRequest);
+        boolean isValidData = validateInputData(sslCertificateRequest, userDetails);
         if(!isValidData){
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid input values\"]}");
         }
@@ -1421,14 +1430,14 @@ public class SSLCertificateService {
     private boolean validateDNSNames(SSLCertificateRequest sslCertificateRequest) {
         String[] dnsNames = sslCertificateRequest.getDnsList();
         Set<String> set = new HashSet<>();
-        for (String dnsName : dnsNames) {
-            if (dnsName.contains(" ") || (dnsName.endsWith(certificateNameTailText)) ||
-                    (dnsName.contains(".-")) || (dnsName.contains("-.")) || (dnsName.contains("..")) ||
-                    (dnsName.contains("**")) || ((dnsName.contains("*")) && (dnsName.indexOf('*') != 0)) ||
-                    (dnsName.endsWith(".")) || (StringUtils.countOccurrencesOf(dnsName, "*") > 1) ||
-                    (!set.add(dnsName))) {
-                return false;
-            }
+        if(!ArrayUtils.isEmpty(dnsNames)) {
+	        for (String dnsName : dnsNames) {
+	            if (dnsName.contains(" ") || (!dnsName.matches("^[a-zA-Z0-9.-]+$")) || (dnsName.endsWith(certificateNameTailText)) ||
+	                    (dnsName.contains(".-")) || (dnsName.contains("-.")) || (dnsName.contains("..")) || (dnsName.endsWith(".")) ||
+	                    (!set.add(dnsName))) {
+	                return false;
+	            }
+	        }
         }
         return true;
     }
@@ -1437,13 +1446,13 @@ public class SSLCertificateService {
      * @param sslCertificateRequest
      * @return
      */
-    private boolean validateInputData(SSLCertificateRequest sslCertificateRequest){
+    private boolean validateInputData(SSLCertificateRequest sslCertificateRequest, UserDetails userDetails){
         boolean isValid=true;
         if((!validateCertficateName(sslCertificateRequest.getCertificateName())) || sslCertificateRequest.getAppName().contains(" ") ||
-                (!populateCertOwnerEmaild(sslCertificateRequest)) ||
+                (!populateCertOwnerEmaild(sslCertificateRequest, userDetails)) ||
                 sslCertificateRequest.getCertOwnerEmailId().contains(" ") ||  sslCertificateRequest.getCertType().contains(" ") ||
                 sslCertificateRequest.getTargetSystem().getAddress().contains(" ") ||
-                (!sslCertificateRequest.getCertType().matches("internal|external")) ||
+                (!sslCertificateRequest.getCertType().matches(SSLCertificateConstants.CERT_TYPE_MATCH_STRING)) ||
                 (!isValidHostName(sslCertificateRequest.getTargetSystemServiceRequest().getHostname()))
                 || (!isValidAppName(sslCertificateRequest)) || (!validateDNSNames(sslCertificateRequest))){
             isValid= false;
@@ -1461,9 +1470,7 @@ public class SSLCertificateService {
 	private boolean validateCertficateName(String certName) {
 		boolean isValid = true;
 		if (certName.contains(" ") || (certName.endsWith(certificateNameTailText)) || (certName.contains(".-"))
-				|| (certName.contains("-.")) || (certName.contains("..")) || (certName.contains("**"))
-				|| (certName.contains("*") && certName.indexOf('*') != 0) || (certName.endsWith("."))
-				|| (StringUtils.countOccurrencesOf(certName, "*") > 1)) {
+				|| (certName.contains("-.")) || (certName.contains("..")) || (certName.endsWith("."))) {
 			isValid = false;
 		}
 		return isValid;
@@ -2130,18 +2137,16 @@ public class SSLCertificateService {
         return ts_gp_id;
     }
 
-        /**
-         * Get ssl certificate metadata list
-         * @param token
-         * @param userDetails
-         * @param certName
-         * @return
-         * @throws Exception
-         */
-
+    /**
+     * Get ssl certificate metadata list
+     * @param token
+     * @param userDetails
+     * @param certName
+     * @return
+     * @throws Exception
+     */
     public ResponseEntity<String> getServiceCertificates(String token, UserDetails userDetails, String certName, Integer limit, Integer offset, String certType) throws Exception {
-       
-    	if(!certType.matches("internal|external")){
+    	if(!certType.matches(SSLCertificateConstants.CERT_TYPE_MATCH_STRING)){
     		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
 					.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
 					.put(LogMessage.ACTION, "getServiceCertificates")
@@ -2357,7 +2362,7 @@ public class SSLCertificateService {
      * @throws Exception
      */
     public ResponseEntity<String> getTargetSystemList(String token, UserDetails userDetails,String certType) throws Exception {
-    	if(!certType.matches("internal|external")){
+    	if(!certType.matches(SSLCertificateConstants.CERT_TYPE_MATCH_STRING)){
     		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
 					.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
 					.put(LogMessage.ACTION, "getTargetSystemList")
@@ -3019,7 +3024,7 @@ public class SSLCertificateService {
 	            || (!certificateUser.getCertificateName().endsWith(certificateNameTailText))
 	            || (certificateUser.getCertificateName().contains(".-"))
 	            || (certificateUser.getCertificateName().contains("-."))
-	            || (!certificateUser.getCertType().matches("internal|external"))
+	            || (!certificateUser.getCertType().matches(SSLCertificateConstants.CERT_TYPE_MATCH_STRING))
 				) {
 			return false;
 		}
@@ -3553,7 +3558,7 @@ public class SSLCertificateService {
 	            || (!certificateApprole.getCertificateName().endsWith(certificateNameTailText))
 	            || (certificateApprole.getCertificateName().contains(".-"))
 	            || (certificateApprole.getCertificateName().contains("-."))
-	            || (!certificateApprole.getCertType().matches("internal|external"))
+	            || (!certificateApprole.getCertType().matches(SSLCertificateConstants.CERT_TYPE_MATCH_STRING))
 				) {
 			return false;
 		}
@@ -4553,7 +4558,7 @@ public class SSLCertificateService {
 	            || (!certificateGroup.getCertificateName().endsWith(certificateNameTailText))
 	            || (certificateGroup.getCertificateName().contains(".-"))
 	            || (certificateGroup.getCertificateName().contains("-."))
-	            || (!certificateGroup.getCertType().matches("internal|external"))
+	            || (!certificateGroup.getCertType().matches(SSLCertificateConstants.CERT_TYPE_MATCH_STRING))
 				) {
 			return false;
 		}
@@ -4577,7 +4582,7 @@ public class SSLCertificateService {
 	public ResponseEntity<String> getListOfCertificates(String token, String certificateType) {
 		Response response;
 		String path = "";
-		if(!certificateType.matches("internal|external")){
+		if(!certificateType.matches(SSLCertificateConstants.CERT_TYPE_MATCH_STRING)){
     		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
 					.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
 					.put(LogMessage.ACTION, "getListOfCertificates")
@@ -5042,7 +5047,7 @@ public class SSLCertificateService {
 	            || (!certName.endsWith(certificateNameTailText))
 	            || (certName.contains(".-"))
 	            || (certName.contains("-."))
-	            || (!certType.matches("internal|external"))
+	            || (!certType.matches(SSLCertificateConstants.CERT_TYPE_MATCH_STRING))
 				) {
 			isValid = false;
 		}
@@ -5162,7 +5167,7 @@ public class SSLCertificateService {
 	 */
 	public ResponseEntity<String> deleteCertificate( String token, String certType, String certificateName, UserDetails userDetails) {
 
-		if(!certType.matches("internal|external")){
+		if(!certType.matches(SSLCertificateConstants.CERT_TYPE_MATCH_STRING)){
     		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
 					.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
 					.put(LogMessage.ACTION, "deleteCertificate")
@@ -5361,7 +5366,7 @@ public class SSLCertificateService {
                 (!sslCertificateRequest.getCertificateName().endsWith(certificateNameTailText)) ||                
                 (sslCertificateRequest.getCertificateName().contains(".-")) ||
                 (sslCertificateRequest.getCertificateName().contains("-.")) ||
-                (!sslCertificateRequest.getCertType().matches("internal|external"))){
+                (!sslCertificateRequest.getCertType().matches(SSLCertificateConstants.CERT_TYPE_MATCH_STRING))){
             isValid= false;
         }       
         return isValid;

@@ -278,7 +278,8 @@ public class SSLCertificateServiceTest {
     @Test
     public void test_validateInputData(){
         SSLCertificateRequest sslCertificateRequest = getSSLCertificateRequest();
-        sslCertificateRequest.setCertificateName("qeqeqwe*");
+        sslCertificateRequest.setCertificateName("qeqeqwe");
+        sslCertificateRequest.setCertType("test");
         ResponseEntity<?> enrollResponse = sSLCertificateService.generateSSLCertificate(sslCertificateRequest,userDetails,token);
         assertEquals(HttpStatus.BAD_REQUEST, enrollResponse.getStatusCode());
 
@@ -882,6 +883,7 @@ public class SSLCertificateServiceTest {
         String userDetailToken = userDetails.getSelfSupportToken();
 
         SSLCertificateRequest sslCertificateRequest = getSSLCertificateRequest();
+        sslCertificateRequest.setCertificateName("certificatename");
         String[] dnsNames = {"test1","test2" };
         sslCertificateRequest.setDnsList(dnsNames);
         sslCertificateRequest.setCertType("external");
@@ -1189,6 +1191,7 @@ public class SSLCertificateServiceTest {
         certManagerLoginRequest.setPassword("password");
 
         SSLCertificateRequest sslCertificateRequest = getSSLCertificateRequest();
+        sslCertificateRequest.setCertificateName("certificatename");
         String[] dnsNames = { };
         sslCertificateRequest.setDnsList(dnsNames);
         Map<String, Object> requestMap = new HashMap<>();
