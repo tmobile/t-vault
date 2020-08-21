@@ -43,7 +43,6 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
 import org.junit.runners.MethodSorters;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
@@ -344,7 +343,7 @@ public class ControllerUtilTest {
 		Response responseEntity3 = getMockResponse(HttpStatus.NO_CONTENT, true, "{\"data\": [\"safeadmin\",\"vaultadmin\"]]");
 		when(oidcUtil.updateOIDCEntity(any(), any()))
 				.thenReturn(responseEntity3);
-		when(oidcUtil.oidcFetchEntityDetails(any(), any())).thenReturn(responseEntity2);
+		when(oidcUtil.oidcFetchEntityDetails(any(), any(), any())).thenReturn(responseEntity2);
         ControllerUtil.updateUserPolicyAssociationOnSDBDelete("users/safe01", acessInfo,  token);
         assertTrue(true);
     }
