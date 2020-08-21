@@ -333,14 +333,22 @@ public class OIDCUtil {
 			if (responseJson != null && responseJson.has("value")) {
 				JsonArray vaulesArray = responseJson.get("value").getAsJsonArray();
 				if (vaulesArray.size() > 0) {
+					String cloudGroupId = null;
+					String onPremGroupId = null;
 					for (int i=0;i<vaulesArray.size();i++) {
 						JsonObject adObject = vaulesArray.get(i).getAsJsonObject();
 						// Filter out the duplicate groups by skipping groups created from onprem. Taking group with onPremisesSyncEnabled == null
-						if (adObject.has("onPremisesSyncEnabled") && adObject.get("onPremisesSyncEnabled").isJsonNull()) {
-							groupObjectId = adObject.get("id").getAsString();
-							break;
+						if (adObject.has("onPremisesSyncEnabled")) {
+							if (adObject.get("onPremisesSyncEnabled").isJsonNull()) {
+								cloudGroupId = adObject.get("id").getAsString();
+								break;
+							}
+							else if (adObject.get("onPremisesSyncEnabled").getAsBoolean()) {
+								onPremGroupId = adObject.get("id").getAsString();
+							}
 						}
 					}
+					groupObjectId = (cloudGroupId!=null)?cloudGroupId:onPremGroupId;
 					if (groupObjectId == null) {
 						JsonObject adObject = vaulesArray.get(0).getAsJsonObject();
 						groupObjectId = adObject.get("id").getAsString();
