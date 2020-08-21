@@ -2154,7 +2154,7 @@ public class SSLCertificateServiceTest {
 
     @Test
     public void issueRevocationRequest_Success() throws Exception {
-    	String certficateName = "testCert@t-mobile.com";
+    	String certficateName = "testCert.t-mobile.com";
     	String certficateType = "internal";
     	String token = "FSR&&%S*";
     	String jsonStr = "{  \"username\": \"testusername1\",  \"password\": \"testpassword1\"}";
@@ -2200,8 +2200,8 @@ public class SSLCertificateServiceTest {
 
         when(ControllerUtil.updateMetaData(anyString(), anyMap(), anyString())).thenReturn(Boolean.TRUE);
         SSLCertificateMetadataDetails certificateMetadata = getSSLCertificateMetadataDetails();
-        when(certificateUtils.getCertificateMetaData(token, "testCert@t-mobile.com", "internal")).thenReturn(certificateMetadata);
-        when(certificateUtils.getCertificateMetaData(token, "testCert@t-mobile.com", "external")).thenReturn(certificateMetadata);
+        when(certificateUtils.getCertificateMetaData(token, "testCert.t-mobile.com", "internal")).thenReturn(certificateMetadata);
+        when(certificateUtils.getCertificateMetaData(token, "testCert.t-mobile.com", "external")).thenReturn(certificateMetadata);
 
         ResponseEntity<?> revocResponse =
                 sSLCertificateService.issueRevocationRequest(certficateType, certficateName, userDetails, token, revocationRequest);
@@ -2213,7 +2213,7 @@ public class SSLCertificateServiceTest {
 
     @Test
     public void issueRevocationRequest_Non_Admin_Success() throws Exception {
-    	String certficateName = "testCert@t-mobile.com";
+    	String certficateName = "testCert.t-mobile.com";
     	String certficateType = "internal";
     	String token = "FSR&&%S*";
     	String jsonStr = "{  \"username\": \"testusername1\",  \"password\": \"testpassword1\"}";
@@ -2227,7 +2227,7 @@ public class SSLCertificateServiceTest {
          userDetails.setAdmin(false);
          userDetails.setClientToken(token);
          userDetails.setSelfSupportToken(token);
-         String[] policies = {"o_cert_testCert@t-mobile.com"};
+         String[] policies = {"o_cert_testCert.t-mobile.com"};
          userDetails.setPolicies(policies);
 
         Map<String, Object> requestMap = new HashMap<>();
@@ -2261,8 +2261,8 @@ public class SSLCertificateServiceTest {
 
         when(ControllerUtil.updateMetaData(anyString(), anyMap(), anyString())).thenReturn(Boolean.TRUE);
         SSLCertificateMetadataDetails certificateMetadata = getSSLCertificateMetadataDetails();
-        when(certificateUtils.getCertificateMetaData(token, "testCert@t-mobile.com", "internal")).thenReturn(certificateMetadata);
-        when(certificateUtils.getCertificateMetaData(token, "testCert@t-mobile.com", "external")).thenReturn(certificateMetadata);
+        when(certificateUtils.getCertificateMetaData(token, "testCert.t-mobile.com", "internal")).thenReturn(certificateMetadata);
+        when(certificateUtils.getCertificateMetaData(token, "testCert.t-mobile.com", "external")).thenReturn(certificateMetadata);
 
 
         ResponseEntity<?> revocResponse =
@@ -2275,7 +2275,7 @@ public class SSLCertificateServiceTest {
 
     @Test
     public void issueRevocationRequest_Admin_Failure() throws Exception {
-    	String certficateName = "testCert@t-mobile.com";
+    	String certficateName = "testCert.t-mobile.com";
     	String certficateType = "internal";
     	String token = "FSR&&%S*";
     	String jsonStr = "{  \"username\": \"testusername1\",  \"password\": \"testpassword1\"}";
@@ -3998,7 +3998,7 @@ public class SSLCertificateServiceTest {
 
     @Test
     public void renewCertificate_Success() throws Exception {
-    	String certficateName = "testCert@t-mobile.com";
+    	String certficateName = "testCert.t-mobile.com";
     	String certficateType = "internal";
     	String token = "FSR&&%S*";
     	String jsonStr = "{  \"username\": \"testusername1\",  \"password\": \"testpassword1\"}";
@@ -4061,7 +4061,7 @@ public class SSLCertificateServiceTest {
 
     @Test
     public void renewCertificate_Non_Admin_Success() throws Exception {
-    	String certficateName = "testCert@t-mobile.com";
+    	String certficateName = "testCert.t-mobile.com";
     	String certficateType = "internal";
     	String token = "FSR&&%S*";
     	String jsonStr = "{  \"username\": \"testusername1\",  \"password\": \"testpassword1\"}";
@@ -4124,7 +4124,7 @@ public class SSLCertificateServiceTest {
     
     @Test
     public void renewCertificate_Non_Admin_External_Success() throws Exception {
-    	String certficateName = "testCert@t-mobile.com";
+    	String certficateName = "testCert.t-mobile.com";
     	String certficateType = "external";
     	String token = "FSR&&%S*";
     	String jsonStr = "{  \"username\": \"testusername1\",  \"password\": \"testpassword1\"}";
@@ -4187,7 +4187,7 @@ public class SSLCertificateServiceTest {
 
     @Test
     public void renewCertificate_Admin_Failure() throws Exception {
-    	String certficateName = "testCert@t-mobile.com";
+    	String certficateName = "testCert.t-mobile.com";
     	String certficateType = "internal";
     	String token = "FSR&&%S*";
     	String jsonStr = "{  \"username\": \"testusername1\",  \"password\": \"testpassword1\"}";
