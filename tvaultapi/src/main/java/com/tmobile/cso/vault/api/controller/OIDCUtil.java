@@ -465,9 +465,9 @@ public class OIDCUtil {
 
 			// if permission adding to current user, then take token policies also.
 			List<String> policiesFromToken;
-            if (userDetails !=null && username.equalsIgnoreCase(userDetails.getUsername())) {
+            if (userDetails != null && username.equalsIgnoreCase(userDetails.getUsername())) {
 				// Get policies from token. This will have all the policies from user and group except the user polices updated to the entity.
-				policiesFromToken = tokenLookUp(token);
+				policiesFromToken = tokenLookUp(userDetails.getClientToken());
 				combinedPolicyList.addAll(policiesFromToken);
 			}
 
