@@ -117,10 +117,7 @@ public class SSLCertificateServiceTest {
 	private AppRoleService appRoleService;
 
     @Mock
-    ObjectMapper obj;
-    
-    @Mock
-    private DirectoryService directoryService;
+    ObjectMapper obj;    
 
     @Mock
     EmailUtils emailUtils;
