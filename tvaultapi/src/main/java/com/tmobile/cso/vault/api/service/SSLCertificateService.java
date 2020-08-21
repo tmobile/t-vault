@@ -4627,7 +4627,14 @@ public class SSLCertificateService {
     	String certOwnerNtId ="";
     	Object[] users = null;
     	DirectoryUser dirUser = new DirectoryUser();
-    	
+    	if(!certType.matches("internal|external")){
+    		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+					.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+					.put(LogMessage.ACTION, "updateCertOwner")
+					.put(LogMessage.MESSAGE, "Invalid user inputs")
+					.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid input values\"]}");
+    	}
     	ResponseEntity<DirectoryObjects> userResponse = directoryService.searchByUPN(certOwnerEmailId);
     	if(userResponse.getStatusCode().equals(HttpStatus.OK)) {
     		 users = userResponse.getBody().getData().getValues();
@@ -4635,7 +4642,16 @@ public class SSLCertificateService {
     		 dirUser = (DirectoryUser) users[0];
     		 certOwnerNtId = dirUser.getUserName();
     		 }
-    	}   	
+    	}   
+    	
+    	if(certOwnerNtId==""){
+    		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+					.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+					.put(LogMessage.ACTION, "updateCertOwner")
+					.put(LogMessage.MESSAGE, "Invalid user inputs")
+					.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid input values\"]}");
+    	}
        
 		String endPoint = certName;	
 		CertResponse enrollResponse = new CertResponse();		
