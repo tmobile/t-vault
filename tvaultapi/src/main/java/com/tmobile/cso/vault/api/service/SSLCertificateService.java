@@ -2546,6 +2546,14 @@ public class SSLCertificateService {
 			RevocationRequest revocationRequest) {
 
 		revocationRequest.setTime(getCurrentLocalDateTimeStamp());
+		if (!isValidInputs(certificateName, certType)) {
+			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+					.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+					.put(LogMessage.ACTION, "revokeCertificate")
+					.put(LogMessage.MESSAGE, "Invalid user inputs")
+					.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid input values\"]}");
+		}
 
 		Map<String, String> metaDataParams = new HashMap<String, String>();
 
@@ -3883,7 +3891,14 @@ public class SSLCertificateService {
 	public ResponseEntity<String> renewCertificate(String certType, String certificateName, UserDetails userDetails, String token) {
 
 		Map<String, String> metaDataParams = new HashMap<String, String>();
-
+		if (!isValidInputs(certificateName, certType)) {
+			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+					.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+					.put(LogMessage.ACTION, "renewCertificate")
+					.put(LogMessage.MESSAGE, "Invalid user inputs")
+					.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid input values\"]}");
+		}
 		String endPoint = certificateName;
 		String metaDataPath = (certType.equalsIgnoreCase("internal"))?
                 SSLCertificateConstants.SSL_CERT_PATH + "/" + endPoint :SSLCertificateConstants.SSL_EXTERNAL_CERT_PATH + "/" + endPoint;
@@ -4632,14 +4647,14 @@ public class SSLCertificateService {
     	String certOwnerNtId ="";
     	Object[] users = null;
     	DirectoryUser dirUser = new DirectoryUser();
-    	if(!certType.matches("internal|external")){
-    		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+    	if (!isValidInputs(certName, certType)) {
+			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
 					.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
-					.put(LogMessage.ACTION, "updateCertOwner")
+					.put(LogMessage.ACTION, "transferCertificate")
 					.put(LogMessage.MESSAGE, "Invalid user inputs")
 					.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid input values\"]}");
-    	}
+		}
     	ResponseEntity<DirectoryObjects> userResponse = directoryService.searchByUPN(certOwnerEmailId);
     	if(userResponse.getStatusCode().equals(HttpStatus.OK)) {
     		 users = userResponse.getBody().getData().getValues();
@@ -4697,11 +4712,11 @@ public class SSLCertificateService {
 													Arrays.toString(e.getStackTrace()), response.getResponse()))
 									.build()));
 			return ResponseEntity.status(response.getHttpstatus())
-					.body("{\"messages\":[\"" + "Certficate unavailable" + "\"]}");
+					.body("{\"messages\":[\"" + "Certificate unavailable" + "\"]}");
 		}
 		if (!HttpStatus.OK.equals(response.getHttpstatus())) {
 			return ResponseEntity.status(response.getHttpstatus())
-					.body("{\"errors\":[\"" + "Certficate unavailable" + "\"]}");
+					.body("{\"errors\":[\"" + "Certificate unavailable" + "\"]}");
 		}
 		JsonParser jsonParser = new JsonParser();
 		ObjectMapper objMapper = new ObjectMapper();
@@ -5167,14 +5182,15 @@ public class SSLCertificateService {
 	 */
 	public ResponseEntity<String> deleteCertificate( String token, String certType, String certificateName, UserDetails userDetails) {
 
-		if(!certType.matches(SSLCertificateConstants.CERT_TYPE_MATCH_STRING)){
-    		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+
+		if (!isValidInputs(certificateName, certType)) {
+			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
 					.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
 					.put(LogMessage.ACTION, "deleteCertificate")
 					.put(LogMessage.MESSAGE, "Invalid user inputs")
 					.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid input values\"]}");
-    	}
+		}
 		Map<String, String> metaDataParams = new HashMap<String, String>();
 		String endPoint =certificateName;	
 		String metaDataPath = (certType.equalsIgnoreCase("internal"))?
@@ -5214,11 +5230,11 @@ public class SSLCertificateService {
 													Arrays.toString(e.getStackTrace()), response.getResponse()))
 									.build()));
 			return ResponseEntity.status(response.getHttpstatus())
-					.body("{\"messages\":[\"" + "Certficate unavailable" + "\"]}");
+					.body("{\"messages\":[\"" + "Certificate unavailable" + "\"]}");
 		}
 		if (!HttpStatus.OK.equals(response.getHttpstatus())) {
 			return ResponseEntity.status(response.getHttpstatus())
-					.body("{\"errors\":[\"" + "Certficate unavailable" + "\"]}");
+					.body("{\"errors\":[\"" + "Certificate unavailable" + "\"]}");
 		}
 		
 		JsonParser jsonParser = new JsonParser();
@@ -5301,7 +5317,7 @@ public class SSLCertificateService {
 															Arrays.toString(e.getStackTrace()), response.getResponse()))
 											.build()));
 					return ResponseEntity.status(response.getHttpstatus())
-							.body("{\"messages\":[\"" + "Certficate metadata deletion failed" + "\"]}");
+							.body("{\"messages\":[\"" + "Certificate metadata deletion failed" + "\"]}");
 				}
 
 
@@ -5504,6 +5520,6 @@ public class SSLCertificateService {
                 build()));
 
         return ResponseEntity.status(response.getHttpstatus()).body(certListStr);
-    }
+    }   
     
 }
