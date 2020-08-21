@@ -5217,16 +5217,45 @@ public class SSLCertificateService {
 		}
 		
 		JsonParser jsonParser = new JsonParser();
-		JsonObject object = ((JsonObject) jsonParser.parse(response.getResponse())).getAsJsonObject("data");
-		metaDataParams = new Gson().fromJson(object.toString(), Map.class);		
+		JsonObject object = ((JsonObject) jsonParser.parse(response.getResponse())).getAsJsonObject("data");				
 		
 		int certID = object.get("certificateId").getAsInt();	
 		int containerId = object.get("containerId").getAsInt();
 		try {
-		metaDataParams = new Gson().fromJson(object.toString(), Map.class);			
-			
-			//removeUserFromCertificate( certificateUser,  userDetails);
-			//removeSudoPermissionForPreviousOwner( certificateUser, certificateName,userDetails,certType);
+		metaDataParams = new Gson().fromJson(object.toString(), Map.class);	
+		String certificateUserId = metaDataParams.get("certOwnerNtid");
+		
+		//remove user permissions
+		CertificateUser certificateUser = new CertificateUser();
+		Map<String, String> userParams = new HashMap<String, String>();
+		JsonObject userObj = ((JsonObject) jsonParser.parse(metaDataParams.get("users")));
+		userParams = new Gson().fromJson(userObj.toString(), Map.class);
+		if(!userParams.isEmpty()) {
+		for (Map.Entry<String, String> entry : userParams.entrySet()) {
+			certificateUser.setCertificateName(certificateName);
+			certificateUser.setCertType(certType);
+			certificateUser.setUsername(entry.getKey());
+			certificateUser.setAccess(entry.getValue());
+			removeUserFromCertificate( certificateUser,  userDetails);
+		 }
+		}		
+		
+			//remove group permissions
+				CertificateGroup certificateGroup = new CertificateGroup();
+				Map<String, String> groupParams = new HashMap<String, String>();
+				JsonObject groupObj = ((JsonObject) jsonParser.parse(metaDataParams.get("groups")));
+				groupParams = new Gson().fromJson(groupObj.toString(), Map.class);
+				if(!groupParams.isEmpty()) {
+				for (Map.Entry<String, String> entry : groupParams.entrySet()) {
+					certificateGroup.setCertificateName(certificateName);
+					certificateGroup.setCertType(certType);
+					certificateGroup.setGroupname(entry.getKey());
+					certificateGroup.setAccess(entry.getValue());
+					removeGroupFromCertificate( certificateGroup,  userDetails);
+				 }
+				}
+		
+			removeSudoPermissionForPreviousOwner( certificateUserId.toLowerCase(), certificateName,userDetails,certType);
 			String nclmAccessToken = getNclmToken();
 			
 			//find certificates
