@@ -722,7 +722,7 @@ script(type='text/ng-template', id='manageSecretId.html')
                                               .change-list-table-data.row
                                                   .unavailable-text(ng-show="!isLoadingData && certificateData.certificates.length==0")
                                                       .container.name No Certificates Available
-                                                  .row.change-data.item(ng-show="!isLoadingData" ng-class="{'grayBackground' : activeItem == true}" ng-repeat="value in certificateData.certificates |  filter: searchCert() | limitTo: certpaginationLimit()")
+                                                  .row.change-data.item(ng-show="!isLoadingData" ng-class="{'grayBackground' : activeItem == true}" ng-repeat="value in certificateData.certificates |  filter:searchValue | limitTo: certpaginationLimit()")
                                                       .container.name.col-lg-4.col-md-4.col-sm-3.col-xs-3(title="{{ getCertSubjectName(value) }}") {{ getCertSubjectName(value) }}
                                                       
                                                       .container.radio-inputs.col-lg-6.col-md-6.col-sm-6.col-xs-6
