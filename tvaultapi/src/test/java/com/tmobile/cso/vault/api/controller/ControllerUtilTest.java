@@ -43,7 +43,6 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
 import org.junit.runners.MethodSorters;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
@@ -65,8 +64,6 @@ import com.tmobile.cso.vault.api.process.Response;
 import com.tmobile.cso.vault.api.utils.JSONUtil;
 import com.tmobile.cso.vault.api.utils.ThreadLocalContext;
 import com.tmobile.cso.vault.api.utils.TokenUtils;
-
-import javax.xml.ws.Service;
 
 @RunWith(PowerMockRunner.class)
 @ComponentScan(basePackages={"com.tmobile.cso.vault.api"})
@@ -344,7 +341,7 @@ public class ControllerUtilTest {
 		Response responseEntity3 = getMockResponse(HttpStatus.NO_CONTENT, true, "{\"data\": [\"safeadmin\",\"vaultadmin\"]]");
 		when(oidcUtil.updateOIDCEntity(any(), any()))
 				.thenReturn(responseEntity3);
-		when(oidcUtil.oidcFetchEntityDetails(any(), any())).thenReturn(responseEntity2);
+		when(oidcUtil.oidcFetchEntityDetails(any(), any(), any())).thenReturn(responseEntity2);
         ControllerUtil.updateUserPolicyAssociationOnSDBDelete("users/safe01", acessInfo,  token);
         assertTrue(true);
     }

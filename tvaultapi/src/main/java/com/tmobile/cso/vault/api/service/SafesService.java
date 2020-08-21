@@ -740,7 +740,7 @@ public class  SafesService {
 				userResponse = reqProcessor.process("/auth/ldap/users", "{\"username\":\"" + userName + "\"}", token);
 			} else if (TVaultConstants.OIDC.equals(vaultAuthMethod)){
 				// OIDC implementation changes
-				ResponseEntity<OIDCEntityResponse> responseEntity = oidcUtil.oidcFetchEntityDetails(token, userName);
+				ResponseEntity<OIDCEntityResponse> responseEntity = oidcUtil.oidcFetchEntityDetails(token, userName, userDetails);
 				if (!responseEntity.getStatusCode().equals(HttpStatus.OK)) {
 					if (responseEntity.getStatusCode().equals(HttpStatus.FORBIDDEN)) {
 						log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
@@ -1232,7 +1232,7 @@ public class  SafesService {
 				userResponse = reqProcessor.process("/auth/ldap/users", "{\"username\":\"" + userName + "\"}", token);
 			} else if (TVaultConstants.OIDC.equals(vaultAuthMethod)){
 				// OIDC implementation changes
-				ResponseEntity<OIDCEntityResponse> responseEntity = oidcUtil.oidcFetchEntityDetails(token, userName);
+				ResponseEntity<OIDCEntityResponse> responseEntity = oidcUtil.oidcFetchEntityDetails(token, userName, userDetails);
 				if (!responseEntity.getStatusCode().equals(HttpStatus.OK)) {
 					if (responseEntity.getStatusCode().equals(HttpStatus.FORBIDDEN)) {
 						log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder()

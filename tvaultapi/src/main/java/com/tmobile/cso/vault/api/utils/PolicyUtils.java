@@ -101,7 +101,7 @@ public class PolicyUtils {
 			userResponse = ControllerUtil.getReqProcessor().process("/auth/ldap/users","{\"username\":\""+username+"\"}",token);
 		}
 		else if(TVaultConstants.OIDC.equals(vaultAuthMethod)) {
-			ResponseEntity<OIDCEntityResponse> responseEntity = oidcUtil.oidcFetchEntityDetails(token, username);
+			ResponseEntity<OIDCEntityResponse> responseEntity = oidcUtil.oidcFetchEntityDetails(token, username, null);
 			userResponse.setHttpstatus(responseEntity.getStatusCode());
 			if (HttpStatus.OK.equals(responseEntity.getStatusCode())) {
 				policies = responseEntity.getBody().getPolicies().stream().toArray(String[] :: new);

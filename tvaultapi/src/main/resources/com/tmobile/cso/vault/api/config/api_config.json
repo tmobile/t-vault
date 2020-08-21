@@ -935,5 +935,15 @@
 			{"name":"group", "required":true, "appendToPath":true}
 		],
 		"outparams":["data/id", "data/policies"]
+	},
+	{ "#":"****  Write Entity alias  *****",
+		"apiEndPoint":"/identity/entity-alias",
+		"vaultEndPoint":"/identity/entity-alias",
+		"method":"POST",
+		"params":[
+			{"name":"name", "required":true},
+			{"name":"mount_accessor", "required":true}
+		],
+		"outparams":["data"]
 	}
 ]
