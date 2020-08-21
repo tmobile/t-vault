@@ -62,7 +62,7 @@
                     $scope.requestDataForMyCertifiatesAdmin();
                 }
                 else {
-                	$scope.certificateType = "internal";
+                    $scope.certificateType = "internal";
                     $scope.requestDataForMyCertifiates();
                 }
             }
