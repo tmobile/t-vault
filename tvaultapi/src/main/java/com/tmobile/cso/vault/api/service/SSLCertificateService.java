@@ -4753,7 +4753,7 @@ public class SSLCertificateService {
 			addSudoPermissionToCertificateOwner(certificateRequest, userDetails, enrollResponse, isPoliciesCreated, true,token,"transfer");		
 			
 			return ResponseEntity.status(HttpStatus.OK)
-					.body("{\"messages\":[\"" + "Certificate owner Transfered Successfully" + "\"]}");
+					.body("{\"messages\":[\"" + "Certificate owner Transferred Successfully" + "\"]}");
 		} else {
 			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
 					.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString())
@@ -5151,7 +5151,7 @@ public class SSLCertificateService {
 	}
 	
 	 /**
-	 * Renew SSL Certificate and update metadata
+	 * Delete SSL Certificate and update metadata
 	 * 
 	 * @param certificateId
 	 * @param token
@@ -5228,7 +5228,7 @@ public class SSLCertificateService {
 		//remove user permissions
 		CertificateUser certificateUser = new CertificateUser();
 		Map<String, String> userParams = new HashMap<String, String>();
-		JsonObject userObj = ((JsonObject) jsonParser.parse(metaDataParams.get("users")));
+		JsonObject userObj = ((JsonObject) jsonParser.parse(object.get("users").toString()));
 		userParams = new Gson().fromJson(userObj.toString(), Map.class);
 		if(!userParams.isEmpty()) {
 		for (Map.Entry<String, String> entry : userParams.entrySet()) {
@@ -5243,7 +5243,7 @@ public class SSLCertificateService {
 			//remove group permissions
 				CertificateGroup certificateGroup = new CertificateGroup();
 				Map<String, String> groupParams = new HashMap<String, String>();
-				JsonObject groupObj = ((JsonObject) jsonParser.parse(metaDataParams.get("groups")));
+				JsonObject groupObj = ((JsonObject) jsonParser.parse(object.get("groups").toString()));
 				groupParams = new Gson().fromJson(groupObj.toString(), Map.class);
 				if(!groupParams.isEmpty()) {
 				for (Map.Entry<String, String> entry : groupParams.entrySet()) {
