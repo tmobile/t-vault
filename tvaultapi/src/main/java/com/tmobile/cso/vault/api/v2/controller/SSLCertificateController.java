@@ -291,11 +291,11 @@ public class SSLCertificateController {
 	 * @return
 	 */
 	@ApiOperation(value = "${SSLCertificateController.transferCertificateOwner.value}", notes = "${SSLCertificateController.transferCertificateOwner.notes}")
-	@PutMapping(value = "/v2/sslcert/transferowner", produces = "application/json")
+	@PutMapping(value = "/v2/sslcert/{certType}/{certName}/{certOwnerEmailId}/transferowner", produces = "application/json")
 	public ResponseEntity<String> transferCertOwner(HttpServletRequest request,
-			@RequestHeader(value = "vault-token") String token, @RequestBody SSLCertificateMetadataDetails sslCertificateRequest) throws Exception {
+			@RequestHeader(value = "vault-token") String token,  @PathVariable("certType") String certType, @PathVariable("certName") String certName,@PathVariable("certOwnerEmailId") String certOwnerEmailId) throws Exception {
 		UserDetails userDetails = (UserDetails) request.getAttribute("UserDetails");
-		return sslCertificateService.updateCertOwner(token, sslCertificateRequest, userDetails);
+		return sslCertificateService.updateCertOwner(token, certType,certName,certOwnerEmailId, userDetails);
 	}
 	
 	/**
@@ -329,6 +329,18 @@ public class SSLCertificateController {
 		UserDetails userDetails = (UserDetails) request.getAttribute(USER_DETAILS_STRING);
 		return sslCertificateService.validateApprovalStatusAndGetCertificateDetails(certificateName, certificateType,
 				userDetails);
+	}
+	
+	/**
+	 * To get list of internal certificates.
+	 * @param request
+	 * @param token
+	 * @return
+	 */
+	@ApiOperation(value = "${SSLCertificateController.getAllCertificates.value}", notes = "${SSLCertificateController.getAllCertificates.notes}")
+	@GetMapping(value="/v2/sslcert/list", produces="application/json")
+	public ResponseEntity<String> getAllCertificates(HttpServletRequest request, @RequestHeader(value="vault-token") String token, @RequestParam(name="certificateName", required = false) String certName,@RequestParam(name = "limit", required = false) Integer limit, @RequestParam(name = "offset", required = false) Integer offset)throws Exception{
+		return sslCertificateService.getAllCertificates(token, certName, limit, offset);
 	}
 
 }

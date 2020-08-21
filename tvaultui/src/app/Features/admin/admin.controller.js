@@ -1017,13 +1017,21 @@
         };
                     
         $scope.certpaginationLimit = function (data) {
-            $scope.certcurrentshown = certpageSize * certpagesShown;
+            $scope.certcurrentshown = certpageSize * certpagesShown;            
             if (($scope.searchValue != '' && $scope.searchValue != undefined && $scope.searchValue.length > 2) || $scope.certcurrentshown >= $scope.numOfCertificates) {
                 $scope.certcurrentshown = $scope.numOfCertificates;
             }
             return $scope.certcurrentshown;
         };
-        $scope.hasMoreCertsToShow = function () {        	
+        $scope.hasMoreCertsToShow = function () {    
+        	 if ($scope.searchValue != '' && $scope.searchValue!= undefined) {
+                 if ($scope.searchValue.length<3) {
+                	 return certpagesShown < ($scope.numOfCertificates / certpageSize);
+                 }
+                 else {
+                     return false;
+                 }
+             }
                 return certpagesShown < ($scope.numOfCertificates / certpageSize);
             
         };
@@ -2413,12 +2421,13 @@
                 certificateDetails.certOwnerNtid='';
                 var certificateName = $scope.getCertSubjectName(certificateDetails);
                 certificateDetails.certificateName = certificateName; 
-                certificateDetails.certOwnerEmailId=$scope.certObj.certDetails.ownerEmail;
+                var certOwnerEmailId = $scope.certObj.certDetails.ownerEmail;
+                var certType = certificateDetails.certType;
                 certificateDetails.certOwnerNtid=$scope.certObj.certDetails.ownerNtId;                                  
-                certificateDetails.applicationName=certificateDetails.appNameTagValue;                 
-                var url = RestEndpoints.baseURL + "/v2/sslcert/transferowner";
+                certificateDetails.applicationName=certificateDetails.appNameTagValue;    
+                var url = RestEndpoints.baseURL + "/v2/sslcert/" +certType+"/"+ certificateName +"/"+certOwnerEmailId +"/transferowner";
                 $scope.isLoadingData = true;   
-                AdminSafesManagement.transferCertificate(certificateDetails, url).then(function (response) {
+                AdminSafesManagement.transferCertificate(null, url).then(function (response) {
                     $scope.isLoadingData = false;
                     $scope.certObj.certDetails.ownerEmail="";
                     if (UtilityService.ifAPIRequestSuccessful(response)) {

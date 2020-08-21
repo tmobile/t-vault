@@ -370,8 +370,8 @@ public class SSLCertificateControllerTest {
         targetSystemServiceRequest.setDescription("Target Service Description");
 
         sSLCertificateMetadataRequest.setCertificateName("CertificateName");
-        when(sslCertificateService.updateCertOwner("5PDrOhsy4ig8L3EpsJZSLAMg",sSLCertificateMetadataRequest,userDetails)).thenReturn(new ResponseEntity<>(HttpStatus.OK));
-        assertEquals(HttpStatus.OK, sslCertificateService.updateCertOwner("5PDrOhsy4ig8L3EpsJZSLAMg",sSLCertificateMetadataRequest,userDetails).getStatusCode());
+        when(sslCertificateService.updateCertOwner("5PDrOhsy4ig8L3EpsJZSLAMg","internal","certificatename.t-mobile.com","owneremail@test.com",userDetails)).thenReturn(new ResponseEntity<>(HttpStatus.OK));
+        assertEquals(HttpStatus.OK, sslCertificateService.updateCertOwner("5PDrOhsy4ig8L3EpsJZSLAMg","internal","certificatename.t-mobile.com","owneremail@test.com",userDetails).getStatusCode());
     }
 
 	@Test

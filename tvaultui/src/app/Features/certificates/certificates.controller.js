@@ -21,6 +21,8 @@
 (function(app){
     app.controller('CertificatesCtrl', function($scope, $rootScope, Modal, fetchData, $http, $window, $state, SessionStore, AdminSafesManagement, ModifyUrl, UtilityService, Notifications, safesService, RestEndpoints, CopyToClipboard){
 
+    	$scope.finalFilterCertResults = [];
+        $scope.finalFilterExtCertResults = [];
         $scope.isLoadingData = false;       // Variable to set the loader on
         $scope.adminNavTags = safesService.getSafesNavTags();
         $scope.viewCertificate = false;
@@ -60,6 +62,7 @@
                     $scope.requestDataForMyCertifiatesAdmin();
                 }
                 else {
+                	$scope.certificateType = "internal";
                     $scope.requestDataForMyCertifiates();
                 }
             }
@@ -84,9 +87,9 @@
 
             } else {
                 if($scope.certificateType == "internal"){
-                    $scope.finalFilterCertResults = $scope.certificatesData.keys.length;
+                	$scope.finalFilterCertResults = $scope.certificatesData.keys.slice(0);
                 } else {
-                    $scope.finalFilterExtCertResults = $scope.certificatesDataExternal.keys.length;
+                	$scope.finalFilterExtCertResults = $scope.certificatesDataExternal.keys.slice(0);
                 }
             }
             $scope.searchValueCert = searchValueCert;
@@ -130,8 +133,8 @@
             $scope.numOfCertificates=$scope.certificatesData.keys.length;
             $scope.numOfCertificatesExternal=$scope.certificatesDataExternal.keys.length;
             $scope.isLoadingData = false;
-            $scope.finalFilterCertResults = $scope.certificatesData.keys.length;
-            $scope.finalFilterExtCertResults = $scope.certificatesDataExternal.keys.length;
+            $scope.finalFilterCertResults = $scope.certificatesData.keys.slice(0);
+            $scope.finalFilterExtCertResults = $scope.certificatesDataExternal.keys.slice(0);
         };
 
         $scope.isInternalCertificate = function(){
@@ -179,7 +182,7 @@
                                 $scope.certificatesData.keys.push({"certname": value, "permission": "read"});
                               });
                             $scope.numOfCertificates=$scope.certificatesData.keys.length;
-                            $scope.finalFilterCertResults = $scope.certificatesData.keys.length;
+                            $scope.finalFilterCertResults = $scope.certificatesData.keys.slice(0);
                         }
                     }else{
                         if (response.data != "" && response.data != undefined) {
@@ -197,7 +200,7 @@
                                 })
                             });
                             $scope.numOfCertificatesExternal=$scope.certificatesDataExternal.keys.length;
-                            $scope.finalFilterExtCertResults = $scope.certificatesDataExternal.keys.length;
+                            $scope.finalFilterExtCertResults = $scope.certificatesDataExternal.keys.slice(0);
                         }
                     }
                 }
