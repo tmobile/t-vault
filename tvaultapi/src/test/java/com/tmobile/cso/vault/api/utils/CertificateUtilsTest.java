@@ -218,6 +218,7 @@ public class CertificateUtilsTest {
 						+ " \"certificateId\":\"62765\",\"certificateName\":\"certificatename.t-mobile.com\", "
 						+ " \"certificateStatus\":\"Active\", \"containerName\":\"VenafiBin_12345\", \"containerId\": \"99\", "
 						+ " \"createDate\":\"2020-06-24\", \"expiryDate\":\"2021-06-24\", \"requestStatus\": \"Approved\", "
+                        + " \"dnsNames\":\"test.t-mobile.com, test1.t-mobile.com, certtestest.t-mobile.com\","
 						+ " \"projectLeadEmailId\":\"project@email.com\"}}");
 
 		when(ControllerUtil.getReqProcessor().process(GET_CERT_DETAIL, GET_CERT_DETAIL_VAL + certificatePath + "\"}",
