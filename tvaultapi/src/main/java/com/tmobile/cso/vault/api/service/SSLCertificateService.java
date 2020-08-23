@@ -1224,10 +1224,17 @@ public class SSLCertificateService {
             mailTemplateVariables.put("certStartDate", certMetaData != null ? Objects.requireNonNull(certMetaData).getCreateDate() : null);
             mailTemplateVariables.put("certEndDate", certMetaData != null ? Objects.requireNonNull(certMetaData).getExpiryDate() : null);
 
+            if(certType.equalsIgnoreCase(SSLCertificateConstants.INTERNAL)) {
             if (Objects.nonNull(Objects.requireNonNull(certMetaData).getDnsNames())) {
                 //Removing first and last char from String
                 mailTemplateVariables.put("dnsNames", certMetaData.getDnsNames().toString().
                         substring(1, certMetaData.getDnsNames().toString().length() - 1));
+                }
+            }else {
+                if (Objects.nonNull(Objects.requireNonNull(certMetaData).getDnsNames())) {
+                    mailTemplateVariables.put("dnsNames", certMetaData.getDnsNames().toString().
+                            substring(3, certMetaData.getDnsNames().toString().length() - 3));
+                }
             }
 
             log.debug(JSONUtil.getJSON(ImmutableMap.<String, String> builder()

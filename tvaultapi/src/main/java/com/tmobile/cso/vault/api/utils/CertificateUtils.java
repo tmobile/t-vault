@@ -19,6 +19,7 @@ package com.tmobile.cso.vault.api.utils;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import com.tmobile.cso.vault.api.model.ADUserAccount;
@@ -227,15 +228,18 @@ public class CertificateUtils {
 				put(LogMessage.MESSAGE, String.format ("certificate [%s] ", certificate.toString())).
 				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 				build()));
-
-		//Adding DNS names to certificate info
-		if (null != dataNode.get("dnsNames")) {
-			List<String> list = new ArrayList<>();
-			JsonNode dnsArray = dataNode.get("dnsNames");
-			for (int i = 0; i < dnsArray.size(); i++) {
-				list.add(dnsArray.get(i).toString());
+		if(certificate.getCertType().equalsIgnoreCase(SSLCertificateConstants.INTERNAL)) {
+			//Adding DNS names to certificate info
+			if (null != dataNode.get("dnsNames")) {
+				List<String> list = new ArrayList<>();
+				JsonNode dnsArray = dataNode.get("dnsNames");
+				for (int i = 0; i < dnsArray.size(); i++) {
+					list.add(dnsArray.get(i).toString());
+				}
+				certificate.setDnsNames(list);
 			}
-			certificate.setDnsNames(list);
+		} else {
+			certificate.setDnsNames(Collections.singletonList(dataNode.get("dnsNames").toString()));
 		}
 
 		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
