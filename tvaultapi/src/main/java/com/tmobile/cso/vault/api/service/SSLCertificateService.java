@@ -5442,7 +5442,7 @@ public class SSLCertificateService {
                 put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
                 build()));
         if(!StringUtils.isEmpty(certName)) {
-        if(!validateCertficateName(certName)) {
+        if(!isValidInputs(certName,"internal")) {
         	log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
 					.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
 					.put(LogMessage.ACTION, "getAllCertificates")
