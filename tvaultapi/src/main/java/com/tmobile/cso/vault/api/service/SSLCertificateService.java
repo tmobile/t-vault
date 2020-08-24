@@ -4654,7 +4654,7 @@ public class SSLCertificateService {
     	String certOwnerNtId ="";
     	Object[] users = null;
     	DirectoryUser dirUser = new DirectoryUser();
-    	if (!isValidInputs(certName, certType)) {
+    	if (!isValidInputs(certName, certType) || !validateCertficateEmail(certOwnerEmailId)) {
 			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
 					.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
 					.put(LogMessage.ACTION, "transferCertificate")
@@ -5256,6 +5256,7 @@ public class SSLCertificateService {
 		//remove user permissions
 		CertificateUser certificateUser = new CertificateUser();
 		Map<String, String> userParams = new HashMap<String, String>();
+		if(object.get("users")!=null) {
 		JsonObject userObj = ((JsonObject) jsonParser.parse(object.get("users").toString()));
 		userParams = new Gson().fromJson(userObj.toString(), Map.class);
 		if(!userParams.isEmpty()) {
@@ -5266,11 +5267,13 @@ public class SSLCertificateService {
 			certificateUser.setAccess(entry.getValue());
 			removeUserFromCertificate( certificateUser,  userDetails);
 		 }
-		}		
+		}	
+		}
 		
 			//remove group permissions
 				CertificateGroup certificateGroup = new CertificateGroup();
 				Map<String, String> groupParams = new HashMap<String, String>();
+				if(object.get("groups")!=null) {
 				JsonObject groupObj = ((JsonObject) jsonParser.parse(object.get("groups").toString()));
 				groupParams = new Gson().fromJson(groupObj.toString(), Map.class);
 				if(!groupParams.isEmpty()) {
@@ -5282,6 +5285,7 @@ public class SSLCertificateService {
 					removeGroupFromCertificate( certificateGroup,  userDetails);
 				 }
 				}
+		}
 		
 			removeSudoPermissionForPreviousOwner( certificateUserId.toLowerCase(), certificateName,userDetails,certType);
 			String nclmAccessToken = getNclmToken();
@@ -5440,7 +5444,7 @@ public class SSLCertificateService {
                 put(LogMessage.ACTION, "getAllCertificates").
                 put(LogMessage.MESSAGE, "Trying to get all certificates").
                 put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
-                build()));
+                build()));       
         String path = SSLCertificateConstants.SSL_CERT_PATH ;        
         String extPath = SSLCertificateConstants.SSL_EXTERNAL_CERT_PATH ;        
 
@@ -5457,12 +5461,12 @@ public class SSLCertificateService {
             JsonObject metadataJsonObj=new JsonObject();            
             JsonObject jsonObject = (JsonObject) jsonParser.parse(response.getResponse());
             JsonArray jsonArray = jsonObject.getAsJsonObject("data").getAsJsonArray("keys");
-            List<String> certNames = geMatchCertificates(jsonArray,certName);
+            List<String> certNames = geMatchCertificates(jsonArray,certName);            
             
             response = getMetadata(token, extPath);
             JsonObject jsonObjectExt = (JsonObject) jsonParser.parse(response.getResponse());
             JsonArray jsonArrayExt = jsonObjectExt.getAsJsonObject("data").getAsJsonArray("keys");
-            List<String> certNamesExt = geMatchCertificates(jsonArrayExt,certName);
+            List<String> certNamesExt = geMatchCertificates(jsonArrayExt,certName);            
             certNames.addAll(certNamesExt);
             Collections.sort(certNames);
             
@@ -5474,9 +5478,13 @@ public class SSLCertificateService {
             }
 
             int maxVal = certNames.size()> (limit+offset)?limit+offset : certNames.size();
-            for (int i = offset; i < maxVal; i++) {
+            for (int i = offset; i < maxVal; i++) {            	
                 endPoint = certNames.get(i).replaceAll("^\"+|\"+$", "");
-                pathStr = path + TVaultConstants.PATH_DELIMITER + endPoint;
+                if(certNamesExt.contains(certNames.get(i))) {  
+                	pathStr = extPath + TVaultConstants.PATH_DELIMITER + endPoint;                
+                }else{
+                	pathStr = path + TVaultConstants.PATH_DELIMITER + endPoint;
+                }
                 metadataResponse = reqProcessor.process("/sslcert", "{\"path\":\"" + pathStr + "\"}", token);
                 if (HttpStatus.OK.equals(metadataResponse.getHttpstatus())) {
                     JsonObject certObj = ((JsonObject) jsonParser.parse(metadataResponse.getResponse())).getAsJsonObject("data");
@@ -5528,5 +5536,19 @@ public class SSLCertificateService {
 
         return ResponseEntity.status(response.getHttpstatus()).body(certListStr);
     }   
+    /**
+	 * Method to validate the certificate name
+	 *
+	 * @param certName
+	 * @return
+	 */
+	private boolean validateCertficateEmail(String email) {
+		boolean isValid = true;
+		String emailTailText="@T-MOBILE.COM";
+		if (email.contains(" ") || (!email.toUpperCase().endsWith(emailTailText)) || (email.endsWith("."))) {
+			isValid = false;
+		}
+		return isValid;
+	}
     
 }
