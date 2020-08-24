@@ -4647,7 +4647,7 @@ public class SSLCertificateService {
     	String certOwnerNtId ="";
     	Object[] users = null;
     	DirectoryUser dirUser = new DirectoryUser();
-    	if (!isValidInputs(certName, certType)) {
+    	if (!isValidInputs(certName, certType) || !validateCertficateEmail(certOwnerEmailId)) {
 			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
 					.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
 					.put(LogMessage.ACTION, "transferCertificate")
@@ -5538,5 +5538,19 @@ public class SSLCertificateService {
 
         return ResponseEntity.status(response.getHttpstatus()).body(certListStr);
     }   
+    /**
+	 * Method to validate the certificate email
+	 *
+	 * @param certName
+	 * @return
+	 */
+	private boolean validateCertficateEmail(String email) {
+		boolean isValid = true;
+		String emailTailText="@t-mobile.com";
+		if (email.contains(" ") || (!email.endsWith(emailTailText)) || (email.endsWith("."))) {
+			isValid = false;
+		}
+		return isValid;
+	}
     
 }
