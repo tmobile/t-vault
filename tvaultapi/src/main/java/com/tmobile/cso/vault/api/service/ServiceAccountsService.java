@@ -1508,7 +1508,7 @@ public class  ServiceAccountsService {
 			response = reqProcessor.process("/ad/serviceaccount/onboardedlist","{}",token);
 		}
 		else {
-			String[] latestPolicies = policyUtils.getCurrentPolicies(userDetails.getSelfSupportToken(), userDetails.getUsername());
+			String[] latestPolicies = policyUtils.getCurrentPolicies(userDetails.getSelfSupportToken(), userDetails.getUsername(), userDetails);
 			List<String> onboardedlist = new ArrayList<>();
 			for (String policy: latestPolicies) {
 				if (policy.startsWith("o_")) {
@@ -1546,7 +1546,7 @@ public class  ServiceAccountsService {
     public boolean hasAddOrRemovePermission(UserDetails userDetails, String serviceAccount, String token) {
 		// Owner of the service account can add/remove users, groups, aws roles and approles to service account
         String o_policy = new StringBuffer().append(TVaultConstants.SVC_ACC_POLICIES_PREFIXES.getKey(TVaultConstants.SUDO_POLICY)).append(TVaultConstants.SVC_ACC_PATH_PREFIX).append("_").append(serviceAccount).toString();
-        String [] policies = policyUtils.getCurrentPolicies(token, userDetails.getUsername());
+        String [] policies = policyUtils.getCurrentPolicies(token, userDetails.getUsername(), userDetails);
         if (ArrayUtils.contains(policies, o_policy)) {
             return true;
         }
@@ -1568,7 +1568,7 @@ public class  ServiceAccountsService {
 		}
 		// Owner of the service account can add/remove users, groups, aws roles and approles to service account
 		String o_policy = new StringBuffer().append(TVaultConstants.SVC_ACC_POLICIES_PREFIXES.getKey(TVaultConstants.SUDO_POLICY)).append(TVaultConstants.SVC_ACC_PATH_PREFIX).append("_").append(serviceAccount).toString();
-		String [] policies = policyUtils.getCurrentPolicies(token, userDetails.getUsername());
+		String [] policies = policyUtils.getCurrentPolicies(token, userDetails.getUsername(), userDetails);
 		if (ArrayUtils.contains(policies, o_policy)) {
 			return true;
 		}

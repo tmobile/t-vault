@@ -20,18 +20,13 @@ package com.tmobile.cso.vault.api.v2.controller;
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 
+import com.tmobile.cso.vault.api.model.*;
 import io.swagger.annotations.ApiOperation;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import com.tmobile.cso.vault.api.model.GroupAliasRequest;
-import com.tmobile.cso.vault.api.model.OIDCEntityRequest;
-import com.tmobile.cso.vault.api.model.OIDCEntityResponse;
-import com.tmobile.cso.vault.api.model.OIDCIdentityGroupRequest;
-import com.tmobile.cso.vault.api.model.OIDCLookupEntityRequest;
-import com.tmobile.cso.vault.api.model.OidcRequest;
 import com.tmobile.cso.vault.api.service.OIDCAuthService;
 
 import io.swagger.annotations.Api;

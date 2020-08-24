@@ -45,7 +45,6 @@ import com.tmobile.cso.vault.api.model.DirectoryUser;
 import com.tmobile.cso.vault.api.model.GroupAliasRequest;
 import com.tmobile.cso.vault.api.model.OIDCEntityRequest;
 import com.tmobile.cso.vault.api.model.OIDCEntityResponse;
-import com.tmobile.cso.vault.api.model.UserDetails;
 import com.tmobile.cso.vault.api.process.RequestProcessor;
 import com.tmobile.cso.vault.api.process.Response;
 import com.tmobile.cso.vault.api.service.DirectoryService;
@@ -309,10 +308,60 @@ public class OIDCUtilTest {
            when(reqProcessor.process("/identity/lookup/entity", jsonStr, token)).thenReturn(response);
            when(reqProcessor.process("/auth/tvault/lookup", "{}", token)).thenReturn(response);
            when(directoryService.searchByCorpId(username)).thenReturn(responseEntity1);
-    	ResponseEntity<OIDCEntityResponse> oiEntity = oidcUtil.oidcFetchEntityDetails(token, username);
+    	ResponseEntity<OIDCEntityResponse> oiEntity = oidcUtil.oidcFetchEntityDetails(token, username, null);
         assertEquals(oiEntity.getStatusCode(), responseEntityExpected.getStatusCode());
     }
-    
+
+    @Test
+    public void oidcFetchEntityDetailsNewUserSuccess(){
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Success\"]}");
+        String token = "qwqwdsfsf";
+        String accessor = "testUser";
+        String username = "testUser";
+        DirectoryUser directoryUser = new DirectoryUser();
+        directoryUser.setDisplayName("testUser");
+        directoryUser.setGivenName("testUser");
+        directoryUser.setUserEmail("testUser@t-mobile.com");
+        directoryUser.setUserId("testuser01");
+        directoryUser.setUserName("testUser");
+
+        List<DirectoryUser> persons = new ArrayList<>();
+        persons.add(directoryUser);
+
+        DirectoryObjects users = new DirectoryObjects();
+        DirectoryObjectsList usersList = new DirectoryObjectsList();
+        usersList.setValues(persons.toArray(new DirectoryUser[persons.size()]));
+        users.setData(usersList);
+        ResponseEntity<DirectoryObjects> responseEntity1 = ResponseEntity.status(HttpStatus.OK).body(users);
+        String dataOutput = "{\"data\":{\"oidc/\":{\"accessor\":\"auth_oidc_8b51f292\",\"config\":{\"default_lease_ttl\":0,\"force_no_cache\":false,\"max_lease_ttl\":0,\"token_type\":\"default-service\"},\"description\":\"\",\"external_entropy_access\":false,\"local\":false,\"options\":null,\"seal_wrap\":false,\"type\":\"oidc\",\"uuid\":\"fbd45cc4-d6b6-8b49-6d1a-d4d931345df9\"}}}";
+        Response responsemock = getMockResponse(HttpStatus.OK, true, dataOutput);
+        when(reqProcessor.process(eq("/sys/list"),Mockito.any(),eq(token))).thenReturn(responsemock);
+        OIDCLookupEntityRequest oidcLookupEntityRequest = new OIDCLookupEntityRequest();
+        oidcLookupEntityRequest.setAlias_name("alias_name");
+        oidcLookupEntityRequest.setAlias_mount_accessor("alias_mount_accessor");
+        String jsonStr = JSONUtil.getJSON(oidcLookupEntityRequest);
+        String authMountResponse = "{\"data\":{\"name\":\"entity_63f119d2\",\"policies\":[\"default\"]}}";
+        Response response = getMockResponse(HttpStatus.OK, true, authMountResponse);
+        Response response404 = getMockResponse(HttpStatus.NOT_FOUND, true, "");
+        //when(reqProcessor.process("/identity/lookup/entity", jsonStr, token)).thenReturn(response);
+
+        when(reqProcessor.process("/identity/lookup/entity", jsonStr, token)).thenAnswer(new Answer() {
+            private int count = 0;
+
+            public Object answer(InvocationOnMock invocation) {
+                if (count++ == 1)
+                    return response;
+
+                return response404;
+            }
+        });
+        when(reqProcessor.process("/identity/entity-alias", jsonStr, token)).thenReturn(getMockResponse(HttpStatus.OK, true, ""));
+        when(reqProcessor.process("/auth/tvault/lookup", "{}", token)).thenReturn(response);
+        when(directoryService.searchByCorpId(username)).thenReturn(responseEntity1);
+        ResponseEntity<OIDCEntityResponse> oiEntity = oidcUtil.oidcFetchEntityDetails(token, username, null);
+        assertEquals(oiEntity.getStatusCode(), responseEntityExpected.getStatusCode());
+    }
+
     @Test
     public void createGroupAlias(){
     	String token = "sdsadsadasdasd";

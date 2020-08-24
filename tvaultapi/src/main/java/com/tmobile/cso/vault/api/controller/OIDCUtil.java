@@ -16,7 +16,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
 import com.google.gson.JsonArray;
 import com.tmobile.cso.vault.api.exception.LogMessage;
-import com.tmobile.cso.vault.api.model.OIDCGroup;
+import com.tmobile.cso.vault.api.model.*;
 import com.tmobile.cso.vault.api.utils.HttpUtils;
 import com.tmobile.cso.vault.api.utils.JSONUtil;
 import com.tmobile.cso.vault.api.utils.ThreadLocalContext;
@@ -42,13 +42,6 @@ import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.tmobile.cso.vault.api.common.TVaultConstants;
-import com.tmobile.cso.vault.api.model.DirectoryObjects;
-import com.tmobile.cso.vault.api.model.DirectoryUser;
-import com.tmobile.cso.vault.api.model.GroupAliasRequest;
-import com.tmobile.cso.vault.api.model.OIDCEntityRequest;
-import com.tmobile.cso.vault.api.model.OIDCEntityResponse;
-import com.tmobile.cso.vault.api.model.OIDCIdentityGroupRequest;
-import com.tmobile.cso.vault.api.model.OIDCLookupEntityRequest;
 import com.tmobile.cso.vault.api.process.RequestProcessor;
 import com.tmobile.cso.vault.api.process.Response;
 import com.tmobile.cso.vault.api.service.DirectoryService;
@@ -340,14 +333,22 @@ public class OIDCUtil {
 			if (responseJson != null && responseJson.has("value")) {
 				JsonArray vaulesArray = responseJson.get("value").getAsJsonArray();
 				if (vaulesArray.size() > 0) {
+					String cloudGroupId = null;
+					String onPremGroupId = null;
 					for (int i=0;i<vaulesArray.size();i++) {
 						JsonObject adObject = vaulesArray.get(i).getAsJsonObject();
 						// Filter out the duplicate groups by skipping groups created from onprem. Taking group with onPremisesSyncEnabled == null
-						if (adObject.has("onPremisesSyncEnabled") && adObject.get("onPremisesSyncEnabled").isJsonNull()) {
-							groupObjectId = adObject.get("id").getAsString();
-							break;
+						if (adObject.has("onPremisesSyncEnabled")) {
+							if (adObject.get("onPremisesSyncEnabled").isJsonNull()) {
+								cloudGroupId = adObject.get("id").getAsString();
+								break;
+							}
+							else if (adObject.get("onPremisesSyncEnabled").getAsBoolean()) {
+								onPremGroupId = adObject.get("id").getAsString();
+							}
 						}
 					}
+					groupObjectId = (cloudGroupId!=null)?cloudGroupId:onPremGroupId;
 					if (groupObjectId == null) {
 						JsonObject adObject = vaulesArray.get(0).getAsJsonObject();
 						groupObjectId = adObject.get("id").getAsString();
@@ -415,9 +416,10 @@ public class OIDCUtil {
 	 * 
 	 * @param token
 	 * @param username
+	 * @param userDetails
 	 * @return
 	 */
-	public ResponseEntity<OIDCEntityResponse> oidcFetchEntityDetails(String token, String username) {
+	public ResponseEntity<OIDCEntityResponse> oidcFetchEntityDetails(String token, String username, UserDetails userDetails) {
 		String mountAccessor = fetchMountAccessorForOidc(token);
 		if (!StringUtils.isEmpty(mountAccessor)) {
 			ResponseEntity<DirectoryObjects> response = directoryService.searchByCorpId(username);
@@ -432,15 +434,45 @@ public class OIDCUtil {
 
             // Get polices from user entity. This will have only user policies.
             ResponseEntity<OIDCEntityResponse> entityResponseResponseEntity = entityLookUp(token, oidcLookupEntityRequest);
+            if (!HttpStatus.OK.equals(entityResponseResponseEntity.getStatusCode())) {
+				// Create entity alias for the user
+				OidcEntityAliasRequest oidcEntityAliasRequest = new OidcEntityAliasRequest(aliasName, mountAccessor);
+				Response createEntityAliasResponse = createEntityAlias(token, oidcEntityAliasRequest);
+				if (HttpStatus.OK.equals(createEntityAliasResponse.getHttpstatus())) {
+					log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+							put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+							put(LogMessage.ACTION, "oidcFetchEntityDetails").
+							put(LogMessage.MESSAGE, String.format("Created entity alias for [%s]", aliasName)).
+							put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+							build()));
+					// fetching entity lookup again
+					entityResponseResponseEntity = entityLookUp(token, oidcLookupEntityRequest);
+				} else {
+					log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+							put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+							put(LogMessage.ACTION, "oidcFetchEntityDetails").
+							put(LogMessage.MESSAGE, String.format("Failed to created entity alias for [%s]", aliasName)).
+							put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+							build()));
+					return ResponseEntity.status(createEntityAliasResponse.getHttpstatus()).body(new OIDCEntityResponse());
+				}
+			}
+			List<String> combinedPolicyList = new ArrayList<>();
+            List<String> policies = entityResponseResponseEntity.getBody().getPolicies();
+            if (policies!=null) {
+				combinedPolicyList.addAll(policies);
+			}
 
-            // Get policies from token. This will have all the policies from user and group except the user polices updated to the entity.
-            List<String> policiesFromToken = tokenLookUp(token);
-            List<String> entityPolicies = entityResponseResponseEntity.getBody().getPolicies();
+			// if permission adding to current user, then take token policies also.
+			List<String> policiesFromToken;
+            if (userDetails != null && username.equalsIgnoreCase(userDetails.getUsername())) {
+				// Get policies from token. This will have all the policies from user and group except the user polices updated to the entity.
+				policiesFromToken = tokenLookUp(userDetails.getClientToken());
+				combinedPolicyList.addAll(policiesFromToken);
+			}
 
-			List<String> combinedPolicyList = policiesFromToken;
-			combinedPolicyList.addAll(entityPolicies);
-
-            List<String> policiesWithOutDuplicates = combinedPolicyList.stream().distinct().collect(Collectors.toList());
+            List<String> policiesWithOutDuplicates
+                    = combinedPolicyList.stream().distinct().collect(Collectors.toList());
             entityResponseResponseEntity.getBody().setPolicies(policiesWithOutDuplicates);
             return entityResponseResponseEntity;
 		}
@@ -596,4 +628,14 @@ public class OIDCUtil {
         }
     }
 
+	/**
+	 * To create entity alias.
+	 * @param token
+	 * @param oidcEntityAliasRequest
+	 * @return
+	 */
+	public Response createEntityAlias(String token, OidcEntityAliasRequest oidcEntityAliasRequest) {
+		String jsonStr = JSONUtil.getJSON(oidcEntityAliasRequest);
+		return reqProcessor.process("/identity/entity-alias", jsonStr, token);
+	}
 }

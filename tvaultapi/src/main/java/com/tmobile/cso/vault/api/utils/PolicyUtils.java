@@ -22,6 +22,7 @@ import java.util.ArrayList;
 
 import com.tmobile.cso.vault.api.common.TVaultConstants;
 import com.tmobile.cso.vault.api.model.OIDCEntityResponse;
+import com.tmobile.cso.vault.api.model.UserDetails;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -91,7 +92,7 @@ public class PolicyUtils {
 	 * @param username
 	 * @return
 	 */
-	public String[] getCurrentPolicies(String token, String username) {
+	public String[] getCurrentPolicies(String token, String username, UserDetails userDetails) {
 		Response userResponse = new Response();
 		String[] policies = {};
 		if (TVaultConstants.USERPASS.equals(vaultAuthMethod)) {
@@ -101,7 +102,7 @@ public class PolicyUtils {
 			userResponse = ControllerUtil.getReqProcessor().process("/auth/ldap/users","{\"username\":\""+username+"\"}",token);
 		}
 		else if(TVaultConstants.OIDC.equals(vaultAuthMethod)) {
-			ResponseEntity<OIDCEntityResponse> responseEntity = oidcUtil.oidcFetchEntityDetails(token, username);
+			ResponseEntity<OIDCEntityResponse> responseEntity = oidcUtil.oidcFetchEntityDetails(token, username, userDetails);
 			userResponse.setHttpstatus(responseEntity.getStatusCode());
 			if (HttpStatus.OK.equals(responseEntity.getStatusCode())) {
 				policies = responseEntity.getBody().getPolicies().stream().toArray(String[] :: new);

@@ -118,7 +118,7 @@ public class  SelfSupportService {
 				return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid input values\"]}");
 			}
 			// check the user safe limit
-			if (isSafeQuotaReached(token, userDetails.getUsername(), ControllerUtil.getSafeType(safe.getPath()))) {
+			if (isSafeQuotaReached(token, userDetails.getUsername(), ControllerUtil.getSafeType(safe.getPath()), userDetails)) {
 				return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"You have reached the limit of number of allowed safes that can be created\"]}");
 			}
 			if (safe != null && safe.getSafeBasicDetails() != null) {
@@ -153,8 +153,8 @@ public class  SelfSupportService {
 	 * @param path
 	 * @return
 	 */
-	private boolean isSafeQuotaReached(String token, String username, String path) {
-		String[] policies = policyUtils.getCurrentPolicies(token, username);
+	private boolean isSafeQuotaReached(String token, String username, String path, UserDetails userDetails) {
+		String[] policies = policyUtils.getCurrentPolicies(token, username, userDetails);
 		String[] safes = safeUtils.getManagedSafes(policies, path);
 		if (safes.length >= Integer.parseInt(safeQuota)) {
 			return true;
@@ -227,7 +227,7 @@ public class  SelfSupportService {
 			String powerToken = userDetails.getSelfSupportToken();
 			String username = userDetails.getUsername();
 			Safe safeMetaData = safeUtils.getSafeMetaData(powerToken, safeType, safeName);
-			String[] latestPolicies = policyUtils.getCurrentPolicies(powerToken, username);
+			String[] latestPolicies = policyUtils.getCurrentPolicies(powerToken, username, userDetails);
 			ArrayList<String> policiesTobeChecked =  policyUtils.getPoliciesTobeCheked(safeType, safeName);
 			boolean isAuthorized = authorizationUtils.isAuthorized(userDetails, safeMetaData, latestPolicies, policiesTobeChecked, false);
 			if (isAuthorized) {
@@ -272,7 +272,7 @@ public class  SelfSupportService {
 		}
 		else {
 			// List of safes based on current user
-			String[] policies = policyUtils.getCurrentPolicies(userDetails.getSelfSupportToken(), userDetails.getUsername());
+			String[] policies = policyUtils.getCurrentPolicies(userDetails.getSelfSupportToken(), userDetails.getUsername(), userDetails);
 			String[] safes = safeUtils.getManagedSafes(policies, path);
 			Map<String, String[]> safesMap = new HashMap<String, String[]>();
 			safesMap.put("keys", safes);
@@ -300,7 +300,7 @@ public class  SelfSupportService {
 		if (safeMetaData == null) {
 			return ResponseEntity.status(HttpStatus.OK).body("false");
 		}
-		String[] latestPolicies = policyUtils.getCurrentPolicies(powerToken, username);
+		String[] latestPolicies = policyUtils.getCurrentPolicies(powerToken, username, userDetails);
 		ArrayList<String> policiesTobeChecked =  policyUtils.getPoliciesTobeCheked(safeType, safeName);
 		boolean isAuthorized = authorizationUtils.isAuthorized(userDetails, safeMetaData, latestPolicies, policiesTobeChecked, false);
 		return ResponseEntity.status(HttpStatus.OK).body(String.valueOf(isAuthorized));
@@ -692,7 +692,7 @@ public class  SelfSupportService {
 		if (!userDetails.isAdmin()) {
 			token = userDetails.getSelfSupportToken();
 		}
-		String[] policies = policyUtils.getCurrentPolicies(token, userDetails.getUsername());
+		String[] policies = policyUtils.getCurrentPolicies(token, userDetails.getUsername(), userDetails);
 
 		policies = filterPoliciesBasedOnPrecedence(Arrays.asList(policies));
 
@@ -766,7 +766,7 @@ public class  SelfSupportService {
 						filteredList.removeAll(matchingPolicies);
 						filteredList.add("w"+itemName);
 					}
-					else if (matchingPolicies.stream().anyMatch(p-> p.equals("r"+itemName))) {
+					else if (matchingPolicies.stream().anyMatch(p-> p.equals("r"+itemName)) || matchingPolicies.stream().anyMatch(p-> p.equals("s"+itemName))) {
 						// policy is read and read already in the list. Then remove all duplicates read and add single read permission for that safe.
 						filteredList.removeAll(matchingPolicies);
 						filteredList.add("r"+itemName);
