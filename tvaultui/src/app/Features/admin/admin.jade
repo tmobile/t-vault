@@ -540,7 +540,7 @@ script(type='text/ng-template', id='manageSecretId.html')
                         .search-icon
                             .icon-search
                         .search-input-wrapper
-                            input.search-input-box(type='text' placeholder='SEARCH' ng-model="searchValue" restrict-special-char minlength="3" maxlength="40")
+                            input.search-input-box(type='text' placeholder='SEARCH' ng-model="searchValue" restrict-special-char minlength="3" maxlength="40" ng-change="filterCert(searchValue)")
             md-content.admin-content
                 md-tabs(md-dynamic-height md-border-bottom md-selected="selectedIndex")
                     md-tab(label="Safe Management" md-on-select="tabChangeForAdmin()")
@@ -666,7 +666,7 @@ script(type='text/ng-template', id='manageSecretId.html')
                                           div.data-management-content
                                             .row.change-safe-table-container(ng-if='true')
                                               loading-state(ng-if='isLoadingData'  && 'isLoadingCerts')
-                                              .row.change-data.header.solid-header(ng-show="!isLoadingData && certificateData.certificates.length>0")
+                                              .row.change-data.header.solid-header(ng-show="!isLoadingData && (certificateData.certificates.length>0 && finalFilterCertResults.length != '0')")
                                                   .container.name.col-lg-3.col-md-2.col-sm-2.col-xs-3 CERTIFICATE
                                                   .container.name.action.col-lg-3.col-md-2.col-sm-2.col-xs-2 EXPIRATION DATE
                                                   .container.name.action.col-lg-2.col-md-2.col-sm-2.col-xs-2 STATUS
@@ -678,7 +678,7 @@ script(type='text/ng-template', id='manageSecretId.html')
                                                       .create-link.middle-block.hide-in-mobile
                                                           .text CREATE NEW CERTIFICATE
                                               .change-list-table-data.row
-                                                  .unavailable-text(ng-show="!isLoadingData && certificateData.certificates.length==0")
+                                                  .unavailable-text(ng-show="!isLoadingData && finalFilterCertResults.length==0")
                                                       .container.name No Certificates Available
                                                   .row.change-data.item(ng-show="!isLoadingData" ng-class="{'grayBackground' : activeItem == true}" ng-repeat="value in certificateData.certificates |  filter:searchValue | limitTo: certpaginationLimit()")
                                                       .container.name.col-lg-3.col-md-3.col-sm-2.col-xs-2(title="{{ getCertSubjectName(value) }}") {{ getCertSubjectName(value) }}
@@ -710,7 +710,7 @@ script(type='text/ng-template', id='manageSecretId.html')
                                           div.data-management-content
                                             .row.change-safe-table-container(ng-if='true')
                                               loading-state(ng-if='isLoadingData'  && 'isLoadingCerts')
-                                              .row.change-data.header.solid-header(ng-show="!isLoadingData && certificateData.certificates.length>0")
+                                              .row.change-data.header.solid-header(ng-show="!isLoadingData && (certificateData.certificates.length>0 && finalFilterCertResults.length != '0')")
                                                   .container.name.col-lg-4.col-md-4.col-sm-3.col-xs-3 CERTIFICATE                                                  
                                                   .container.name.action.col-lg-2.col-md-2.col-sm-2.col-xs-2 ACTION
                                                   div.create-certificate-link
@@ -720,7 +720,7 @@ script(type='text/ng-template', id='manageSecretId.html')
                                                       .create-link.middle-block.hide-in-mobile
                                                           .text CREATE NEW CERTIFICATE
                                               .change-list-table-data.row
-                                                  .unavailable-text(ng-show="!isLoadingData && certificateData.certificates.length==0")
+                                                  .unavailable-text(ng-show="!isLoadingData && finalFilterCertResults.length==0")
                                                       .container.name No Certificates Available
                                                   .row.change-data.item(ng-show="!isLoadingData" ng-class="{'grayBackground' : activeItem == true}" ng-repeat="value in certificateData.certificates |  filter:searchValue | limitTo: certpaginationLimit()")
                                                       .container.name.col-lg-4.col-md-4.col-sm-3.col-xs-3(title="{{ getCertSubjectName(value) }}") {{ getCertSubjectName(value) }}
