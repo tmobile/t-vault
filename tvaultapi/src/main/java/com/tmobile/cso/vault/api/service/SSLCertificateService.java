@@ -5537,8 +5537,8 @@ public class SSLCertificateService {
 	 */
 	private boolean validateCertficateEmail(String email) {
 		boolean isValid = true;
-		String emailTailText="@t-mobile.com";
-		if (email.contains(" ") || (!email.endsWith(emailTailText)) || (email.endsWith("."))) {
+		String emailTailText="@T-MOBILE.COM";
+		if (email.contains(" ") || (!email.toUpperCase().endsWith(emailTailText)) || (email.endsWith("."))) {
 			isValid = false;
 		}
 		return isValid;
