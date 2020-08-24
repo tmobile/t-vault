@@ -5457,12 +5457,12 @@ public class SSLCertificateService {
             JsonObject metadataJsonObj=new JsonObject();            
             JsonObject jsonObject = (JsonObject) jsonParser.parse(response.getResponse());
             JsonArray jsonArray = jsonObject.getAsJsonObject("data").getAsJsonArray("keys");
-            List<String> certNames = geMatchCertificates(jsonArray,certName);
+            List<String> certNames = geMatchCertificates(jsonArray,certName);            
             
             response = getMetadata(token, extPath);
             JsonObject jsonObjectExt = (JsonObject) jsonParser.parse(response.getResponse());
             JsonArray jsonArrayExt = jsonObjectExt.getAsJsonObject("data").getAsJsonArray("keys");
-            List<String> certNamesExt = geMatchCertificates(jsonArrayExt,certName);
+            List<String> certNamesExt = geMatchCertificates(jsonArrayExt,certName);            
             certNames.addAll(certNamesExt);
             Collections.sort(certNames);
             
@@ -5474,9 +5474,13 @@ public class SSLCertificateService {
             }
 
             int maxVal = certNames.size()> (limit+offset)?limit+offset : certNames.size();
-            for (int i = offset; i < maxVal; i++) {
+            for (int i = offset; i < maxVal; i++) {            	
                 endPoint = certNames.get(i).replaceAll("^\"+|\"+$", "");
-                pathStr = path + TVaultConstants.PATH_DELIMITER + endPoint;
+                if(certNamesExt.contains(certNames.get(i))) {  
+                	pathStr = extPath + TVaultConstants.PATH_DELIMITER + endPoint;                
+                }else{
+                	pathStr = path + TVaultConstants.PATH_DELIMITER + endPoint;
+                }
                 metadataResponse = reqProcessor.process("/sslcert", "{\"path\":\"" + pathStr + "\"}", token);
                 if (HttpStatus.OK.equals(metadataResponse.getHttpstatus())) {
                     JsonObject certObj = ((JsonObject) jsonParser.parse(metadataResponse.getResponse())).getAsJsonObject("data");

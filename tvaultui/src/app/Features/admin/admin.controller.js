@@ -637,6 +637,8 @@
                         $scope.certificateData.certificates = response.data.keys;
                         $scope.numOfCertificates = $scope.certificateData.certificates.length;
                         $scope.certificateData.offset = response.data.offset;
+                        $scope.finalFilterCertResults = $scope.certificateData.certificates;                        
+                        $scope.filterCert($scope.searchValue);
                     }
                 }
                 else {
@@ -658,8 +660,9 @@
             $scope.certificatesLoaded =  true; 
         }
 
-        $scope.tabChangeForAdminCert = function () {
+        $scope.tabChangeForAdminCert = function () {        	
             $scope.searchValue = '';
+            $scope.finalFilterCertResults = $scope.certificateData.certificates;
             if ($scope.certificatesLoaded == false) {
                 $scope.isLoadingData = true;
             }
@@ -1020,7 +1023,8 @@
             $scope.certcurrentshown = certpageSize * certpagesShown;            
             if (($scope.searchValue != '' && $scope.searchValue != undefined && $scope.searchValue.length > 2) || $scope.certcurrentshown >= $scope.numOfCertificates) {
                 $scope.certcurrentshown = $scope.numOfCertificates;
-            }
+            }        
+           
             return $scope.certcurrentshown;
         };
         $scope.hasMoreCertsToShow = function () {    
@@ -2451,6 +2455,20 @@
                 };               
                 
             };
+            
+            $scope.filterCert = function (searchValue) {            	
+                var filterSearch = $scope.searchValue;
+                if ($scope.searchValue != '' && $scope.searchValue != undefined && $scope.searchValue.length > 2) {                    
+                        $scope.finalFilterCertResults = $scope.certificateData.certificates.filter(function (searchValue) {
+                        	
+                            return searchValue.certificateName.includes(filterSearch);
+                        });                   
+
+                } else {                    
+                    	$scope.finalFilterCertResults = $scope.certificateData.certificates.slice(0);                    
+                }
+                $scope.searchValue = $scope.searchValue;                
+            }
 
         init();
 
