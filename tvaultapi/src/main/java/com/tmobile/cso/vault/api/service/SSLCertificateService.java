@@ -5249,6 +5249,7 @@ public class SSLCertificateService {
 		//remove user permissions
 		CertificateUser certificateUser = new CertificateUser();
 		Map<String, String> userParams = new HashMap<String, String>();
+		if(object.get("users")!=null) {
 		JsonObject userObj = ((JsonObject) jsonParser.parse(object.get("users").toString()));
 		userParams = new Gson().fromJson(userObj.toString(), Map.class);
 		if(!userParams.isEmpty()) {
@@ -5259,11 +5260,13 @@ public class SSLCertificateService {
 			certificateUser.setAccess(entry.getValue());
 			removeUserFromCertificate( certificateUser,  userDetails);
 		 }
-		}		
+		}	
+		}
 		
 			//remove group permissions
 				CertificateGroup certificateGroup = new CertificateGroup();
 				Map<String, String> groupParams = new HashMap<String, String>();
+				if(object.get("groups")!=null) {
 				JsonObject groupObj = ((JsonObject) jsonParser.parse(object.get("groups").toString()));
 				groupParams = new Gson().fromJson(groupObj.toString(), Map.class);
 				if(!groupParams.isEmpty()) {
@@ -5275,6 +5278,7 @@ public class SSLCertificateService {
 					removeGroupFromCertificate( certificateGroup,  userDetails);
 				 }
 				}
+		}
 		
 			removeSudoPermissionForPreviousOwner( certificateUserId.toLowerCase(), certificateName,userDetails,certType);
 			String nclmAccessToken = getNclmToken();
