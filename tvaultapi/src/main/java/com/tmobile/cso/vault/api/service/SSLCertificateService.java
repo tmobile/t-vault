@@ -5434,7 +5434,7 @@ public class SSLCertificateService {
                 put(LogMessage.MESSAGE, "Trying to get all certificates").
                 put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
                 build()));
-        
+        if(!StringUtils.isEmpty(certName)) {
         if(!validateCertficateName(certName)) {
         	log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
 					.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
@@ -5442,7 +5442,7 @@ public class SSLCertificateService {
 					.put(LogMessage.MESSAGE, "Invalid user inputs")
 					.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid input values\"]}");
-        }
+        }}
         String path = SSLCertificateConstants.SSL_CERT_PATH ;        
         String extPath = SSLCertificateConstants.SSL_EXTERNAL_CERT_PATH ;        
 
