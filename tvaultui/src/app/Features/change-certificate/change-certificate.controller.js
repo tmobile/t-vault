@@ -601,13 +601,11 @@
                                 }
 
                                 $scope.GroupsPermissionsData = object.groups;
-
-                                if(object.requestStatus !== null && object.requestStatus !== "Approved") {
+                                if(object.requestStatus !== null && object.requestStatus !== undefined && object.requestStatus !== "Approved") {
                                     $scope.renewButtonShow = false;
                                 }else {
                                     $scope.renewButtonShow = true;
                                 }
-
                                 hideUserSudoPolicy();
                             }
                             catch (e) {
