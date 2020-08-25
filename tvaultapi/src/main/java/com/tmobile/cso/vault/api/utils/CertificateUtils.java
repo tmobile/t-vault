@@ -239,7 +239,9 @@ public class CertificateUtils {
 				certificate.setDnsNames(list);
 			}
 		} else {
-			certificate.setDnsNames(Collections.singletonList(dataNode.get("dnsNames").toString()));
+			if (null != dataNode.get("dnsNames")) {
+				certificate.setDnsNames(Collections.singletonList(dataNode.get("dnsNames").toString()));
+			}
 		}
 
 		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
