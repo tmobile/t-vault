@@ -228,21 +228,8 @@ public class CertificateUtils {
 				put(LogMessage.MESSAGE, String.format ("certificate [%s] ", certificate.toString())).
 				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 				build()));
-		if(certificate.getCertType().equalsIgnoreCase(SSLCertificateConstants.INTERNAL)) {
-			//Adding DNS names to certificate info
-			if (null != dataNode.get("dnsNames")) {
-				List<String> list = new ArrayList<>();
-				JsonNode dnsArray = dataNode.get("dnsNames");
-				for (int i = 0; i < dnsArray.size(); i++) {
-					list.add(dnsArray.get(i).toString());
-				}
-				certificate.setDnsNames(list);
-			}
-		} else {
-			if (null != dataNode.get("dnsNames")) {
-				certificate.setDnsNames(Collections.singletonList(dataNode.get("dnsNames").toString()));
-			}
-		}
+
+		setDnsDetailsToCertificate(dataNode, certificate);
 
 		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
@@ -251,6 +238,27 @@ public class CertificateUtils {
 				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 				build()));
 		return certificate;
+	}
+
+	/**
+	 * method to set dns details to certificate object
+	 * @param dataNode
+	 * @param certificate
+	 */
+	private void setDnsDetailsToCertificate(JsonNode dataNode, SSLCertificateMetadataDetails certificate) {
+		if (null != dataNode.get("dnsNames")) {
+			if(certificate.getCertType().equalsIgnoreCase(SSLCertificateConstants.INTERNAL)) {
+				//Adding DNS names to certificate info
+				List<String> list = new ArrayList<>();
+				JsonNode dnsArray = dataNode.get("dnsNames");
+				for (int i = 0; i < dnsArray.size(); i++) {
+					list.add(dnsArray.get(i).toString());
+				}
+				certificate.setDnsNames(list);
+			} else {
+				certificate.setDnsNames(Collections.singletonList(dataNode.get("dnsNames").toString()));
+			}
+		}
 	}	
 	
 }
