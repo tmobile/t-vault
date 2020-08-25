@@ -2451,11 +2451,10 @@
                 
             };
             
-            $scope.filterCert = function (searchValue) {            	
+            $scope.filterCert = function (val) {            	
                 var filterSearch = $scope.searchValue;
                 if ($scope.searchValue != '' && $scope.searchValue != undefined && $scope.searchValue.length > 2) {                    
-                        $scope.finalFilterCertResults = $scope.certificateData.certificates.filter(function (searchValue) {
-                        	
+                        $scope.finalFilterCertResults = $scope.certificateData.certificates.filter(function (searchValue) {                        	
                             return searchValue.certificateName.includes(filterSearch);
                         });                   
 

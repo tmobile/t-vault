@@ -3986,13 +3986,7 @@ public class SSLCertificateService {
 			if (renewResponse!=null && (HttpStatus.OK.equals(renewResponse.getHttpstatus()) || HttpStatus.ACCEPTED.equals(renewResponse.getHttpstatus())) ) {
 			CertificateData certData = getLatestCertificate(certificateName,nclmAccessToken, containerId);			
 			boolean sslMetaDataUpdationStatus=true;		
-			if(!ObjectUtils.isEmpty(certData)) {
-			metaDataParams.put("certificateId",((Integer)certData.getCertificateId()).toString()!=null?
-					((Integer)certData.getCertificateId()).toString():String.valueOf(certificateId));
-			metaDataParams.put("createDate", certData.getCreateDate()!=null?certData.getCreateDate():object.get("createDate").getAsString());
-			metaDataParams.put("expiryDate", certData.getExpiryDate()!=null?certData.getExpiryDate():object.get("expiryDate").getAsString());			
-			metaDataParams.put("certificateStatus", certData.getCertificateStatus()!=null?certData.getCertificateStatus():
-				object.get("certificateStatus").getAsString());
+			if(!ObjectUtils.isEmpty(certData)) {	
 			
 			if(certType.equalsIgnoreCase("external")) {
 				CertManagerLogin certManagerLogin = new CertManagerLogin();
@@ -4009,7 +4003,14 @@ public class SSLCertificateService {
                             build()));
                 }
 			}
-                metaDataParams.put("certificateStatus", SSLCertificateConstants.RENEW_PENDING); 
+                metaDataParams.put("requestStatus", SSLCertificateConstants.RENEW_PENDING); 
+			}else {
+				metaDataParams.put("certificateId",((Integer)certData.getCertificateId()).toString()!=null?
+						((Integer)certData.getCertificateId()).toString():String.valueOf(certificateId));
+				metaDataParams.put("createDate", certData.getCreateDate()!=null?certData.getCreateDate():object.get("createDate").getAsString());
+				metaDataParams.put("expiryDate", certData.getExpiryDate()!=null?certData.getExpiryDate():object.get("expiryDate").getAsString());			
+				metaDataParams.put("certificateStatus", certData.getCertificateStatus()!=null?certData.getCertificateStatus():
+					object.get("certificateStatus").getAsString());
 			}
 			if (userDetails.isAdmin()) {
 				sslMetaDataUpdationStatus = ControllerUtil.updateMetaData(metaDataPath, metaDataParams, token);
