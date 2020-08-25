@@ -149,7 +149,7 @@
                                 if(response.data != "" && response.data != undefined) {
                                 $scope.certificateDetails = response.data;
                                
-                                    if($scope.certificateDetails.requestStatus != "Pending Approval")
+                                    if($scope.certificateDetails.requestStatus !== "Pending Approval")
                                      {
                                         $scope.certificatesDataExternal.keys.push({"certname": value.certname, "permission": "read"});
                                      }
@@ -200,7 +200,7 @@
                     if (response.data != "" && response.data != undefined) {
                         $scope.externalCertificateDetails = response.data.keys;                       
                         angular.forEach($scope.externalCertificateDetails, function(value, key) {                           
-                            if(value.requestStatus === "Approved"){
+                            if(value.requestStatus !== "Pending Approval"){
                                 $scope.certificatesDataExternal.keys.push({"certname": value.certificateName, "permission": "read"});                                    
                             }                            
                         });
