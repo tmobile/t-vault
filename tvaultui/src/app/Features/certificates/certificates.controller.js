@@ -99,9 +99,7 @@
         $scope.requestDataForMyCertifiates = function () {
             $scope.isLoadingData = true;
             $scope.certificatesData = {"keys": []};
-            $scope.certificatesDataExternal = {"keys": []};
             var data = [];
-            var extData = [];
             var accessSafes = JSON.parse(SessionStore.getItem("accessSafes"));
             if (accessSafes.cert) {
                 data = accessSafes.cert.map(function (certObject) {
@@ -111,11 +109,24 @@
                         permission: entry[0][1]
                     }
                 });
-            }
-
+            
             $scope.certificatesData.keys = data.filter(function(cert){
                 return cert.permission != "deny";
-            });
+                });
+                $scope.numOfCertificates=$scope.certificatesData.keys.length;
+                $scope.isLoadingData = false;
+                $scope.finalFilterCertResults = $scope.certificatesData.keys.slice(0);
+            };
+        }
+
+
+
+        $scope.requestDataForMyExternalCertifiates = function () {
+            $scope.isLoadingData = true;
+            $scope.certificatesDataExternal = {"keys": []};
+            var extData = [];
+            var accessSafes = JSON.parse(SessionStore.getItem("accessSafes"));
+
             //External Certificate Tab Non-admin cert list
             if (accessSafes.externalcerts) {
                 extData = accessSafes.externalcerts.map(function (certObjectExt) {
@@ -146,13 +157,12 @@
                                     }
                                 })                            
                                 });
-            $scope.numOfCertificates=$scope.certificatesData.keys.length;
             $scope.numOfCertificatesExternal=$scope.certificatesDataExternal.keys.length;
             $scope.isLoadingData = false;
-            $scope.finalFilterCertResults = $scope.certificatesData.keys.slice(0);
             $scope.finalFilterExtCertResults = $scope.certificatesDataExternal.keys.slice(0);
-        };
-    }
+            };
+        
+        }
 
         $scope.isInternalCertificate = function(){
             $scope.certificateType = "internal";
@@ -176,7 +186,7 @@
             if (JSON.parse(SessionStore.getItem("isAdmin")) == true) {
                 $scope.requestDataForMyExternalCertifiatesAdmin();
             }else{
-                $scope.requestDataForMyCertifiates();
+                $scope.requestDataForMyExternalCertifiates();
             }
         }
 
