@@ -83,11 +83,19 @@ public class TokenValidator {
 				lookupDetails.setToken(token);
 				lookupDetails.setValid(true);
 				lookupDetails.setAdmin(authorizationUtils.containsAdminPolicies(Arrays.asList(policies),  policyUtils.getAdminPolicies()));
-				if (TVaultConstants.OIDC.equals(vaultAuthMethod) && objNode.get("display_name") != null) {
-					// display_name is in format oidc-<email>
-					String email = objNode.get("display_name").asText().substring(5);
-					if (!StringUtils.isEmpty(email)) {
-						lookupDetails.setEmail(email);
+
+				if (TVaultConstants.OIDC.equals(vaultAuthMethod) && objNode.get("display_name") != null && objNode.get("path") != null ) {
+					String authPath = objNode.get("path").asText();
+
+					// display_name is in format oidc-<email> for user tokens
+					String displayName = objNode.get("display_name").asText();
+
+					// For user token, auth path will be in oidc. Get the user name and user email to set in UserDetails.
+					if (TVaultConstants.OIDC_AUTH_PATH.equalsIgnoreCase(authPath) && !StringUtils.isEmpty(displayName) && displayName.contains("oidc-")) {
+						String email = objNode.get("display_name").asText().substring(5);
+						if (!StringUtils.isEmpty(email)) {
+							lookupDetails.setEmail(email);
+						}
 						ResponseEntity<DirectoryObjects> directoryObjectsResponseEntity = directoryService.searchByUPN(email);
 						if (directoryObjectsResponseEntity != null && HttpStatus.OK.equals(directoryObjectsResponseEntity.getStatusCode())) {
 							Object[] adUser = directoryObjectsResponseEntity.getBody().getData().getValues();
@@ -96,6 +104,11 @@ public class TokenValidator {
 								lookupDetails.setUsername(directoryUser.getUserName());
 							}
 						}
+					}
+					else {
+						// For approle tokens, aws tokens etc
+						lookupDetails.setEmail(null);
+						lookupDetails.setUsername(displayName);
 					}
 				}
 			} catch (IOException e) {

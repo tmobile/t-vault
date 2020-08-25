@@ -140,7 +140,7 @@ public class TokenValidatorTest {
     @Test
     public void test_getVaultTokenLookupDetails_successfully_oidc() throws TVaultValidationException, IOException {
         String token = "7QPMPIGiyDFlJkrK3jFykUqa";
-        Response response = getMockResponse(HttpStatus.OK, true, "{\"id\":\"7DXvbGXxu81LC724cRrrqYyq\", \"display_name\": \"oidc-user1.company.com\",\"last_renewal_time\":null,\"renewable\":false,\"policies\":[\"default\"],\"creation_ttl\":0,\"username\":null}");
+        Response response = getMockResponse(HttpStatus.OK, true, "{\"id\":\"7DXvbGXxu81LC724cRrrqYyq\", \"display_name\": \"oidc-user1@company.com\",\"last_renewal_time\":null,\"renewable\":false,\"policies\":[\"default\"],\"creation_ttl\":0,\"username\":null,\"path\":\"auth/oidc/oidc/callback\"}");
         VaultTokenLookupDetails expectedLookupDetails = new VaultTokenLookupDetails();
         expectedLookupDetails.setAdmin(false);
         expectedLookupDetails.setValid(true);
@@ -166,7 +166,7 @@ public class TokenValidatorTest {
         usersList.setValues(persons.toArray(new DirectoryUser[persons.size()]));
         users.setData(usersList);
         ResponseEntity<DirectoryObjects> directoryObjectsResponseEntity = ResponseEntity.status(HttpStatus.OK).body(users);
-        when(directoryService.searchByUPN("user1.company.com")).thenReturn(directoryObjectsResponseEntity);
+        when(directoryService.searchByUPN("user1@company.com")).thenReturn(directoryObjectsResponseEntity);
 
         when(reqProcessor.process("/auth/tvault/lookup","{}", token)).thenReturn(response);
         when(commonUtils.getPoliciesAsArray(Mockito.any(), eq(response.getResponse()))).thenReturn(policies);
