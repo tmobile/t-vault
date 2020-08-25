@@ -149,7 +149,7 @@
                                 if(response.data != "" && response.data != undefined) {
                                 $scope.certificateDetails = response.data;
                                
-                                    if($scope.certificateDetails.requestStatus === "Approved")
+                                    if($scope.certificateDetails.requestStatus != "Pending Approval")
                                      {
                                         $scope.certificatesDataExternal.keys.push({"certname": value.certname, "permission": "read"});
                                      }
