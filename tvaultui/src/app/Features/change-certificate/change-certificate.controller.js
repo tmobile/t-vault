@@ -602,7 +602,7 @@
 
                                 $scope.GroupsPermissionsData = object.groups;
 
-                                if(object.requestStatus !== null && object.requestStatus === "Pending Approval") {
+                                if(object.requestStatus !== null && object.requestStatus !== "Approved") {
                                     $scope.renewButtonShow = false;
                                 }else {
                                     $scope.renewButtonShow = true;
