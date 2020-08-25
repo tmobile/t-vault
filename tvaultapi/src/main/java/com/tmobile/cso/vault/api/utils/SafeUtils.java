@@ -128,7 +128,7 @@ public class SafeUtils {
 			}
 			else {
 				// There is some owner assigned to the safe
-				if (safeOwnerid.equals(safeUser.getUsername())) {
+				if (safeOwnerid.equalsIgnoreCase(safeUser.getUsername())) {
 					// Safeadmin is trying to add the owner of the safe as some user with some permission
 					// Safeadmin can add read or write permission to safeowner
 					if (TVaultConstants.READ_POLICY.equals(safeUser.getAccess()) || TVaultConstants.WRITE_POLICY.equals(safeUser.getAccess()) || (null==safeUser.getAccess() && action.equals(TVaultConstants.REMOVE_USER))) {

@@ -121,7 +121,18 @@
             return error;
         });
       },
-
+      getUserName: function () {
+        var url = RestEndpoints.baseURL + '/v2/username';
+        return $http({
+          method: 'GET',
+          url: url
+        }).then(function (response) {
+            return response;
+        }).catch(function(error) {
+            console.log(error);
+            return error;
+        });
+      },
 
       logout: logout
 
@@ -140,6 +151,7 @@
             SessionStore.removeItem("policies");
             SessionStore.removeItem("allSafes");
             SessionStore.removeItem("feature");
+            SessionStore.removeItem("username");
             window.location.replace(url);
           });
       }

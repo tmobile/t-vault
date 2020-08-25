@@ -638,4 +638,19 @@ public class OIDCUtil {
 		String jsonStr = JSONUtil.getJSON(oidcEntityAliasRequest);
 		return reqProcessor.process("/identity/entity-alias", jsonStr, token);
 	}
+	
+	/**
+	 * getUserName
+	 * @param email
+	 * @return
+	 */
+	public String getUserName(String email){
+		ResponseEntity<DirectoryObjects> responseEntity = directoryService.searchByUPN(email);
+		String userName = "";
+		Object[] results = responseEntity.getBody().getData().getValues();
+		for (Object tp : results) {
+			userName = ((DirectoryUser) tp).getUserName();
+		}
+		return userName;
+	}
 }

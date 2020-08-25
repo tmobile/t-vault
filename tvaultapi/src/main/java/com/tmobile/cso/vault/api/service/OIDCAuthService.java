@@ -390,4 +390,16 @@ public class OIDCAuthService {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("{\"errors\":[\"Group not found\"]}");
         }
     }
+    
+	/**
+	 * Get UserName
+	 * @param userDetails
+	 * @return
+	 */
+	public ResponseEntity<String> getUserName(UserDetails userDetails) {
+		String userName = oidcUtil.getUserName(userDetails.getEmail());
+		return ResponseEntity.status(HttpStatus.OK)
+				.body("{\"data\":{\"username\": \"" + userName.toLowerCase() + "\"}}");
+
+	}
 }

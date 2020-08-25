@@ -91,8 +91,9 @@ public class SDBControllerV2 {
 	 * @return
 	 */
 	@DeleteMapping(value="/v2/sdb/delete",produces="application/json")
-	public ResponseEntity<String> deleteFolder(@RequestHeader(value="vault-token") String token, @RequestParam("path") String path){
-		return safesService.deletefolder(token, path);
+	public ResponseEntity<String> deleteFolder(HttpServletRequest request, @RequestHeader(value="vault-token") String token, @RequestParam("path") String path){
+		UserDetails userDetails = (UserDetails) ((HttpServletRequest) request).getAttribute("UserDetails");
+		return safesService.deletefolder(token, path, userDetails);
 	}
 	/**
 	 * Updates a Safe
@@ -125,8 +126,9 @@ public class SDBControllerV2 {
 	 */
 	@ApiOperation(value = "${SafesController.deleteSafe.value}", notes = "${SafesController.deleteSafe.notes}")
 	@DeleteMapping(value="/v2/sdb",produces="application/json")
-	public ResponseEntity<String> deleteSafe(@RequestHeader(value="vault-token") String token, @RequestBody Safe safe){
-		return safesService.deleteSafe(token, safe);
+	public ResponseEntity<String> deleteSafe(HttpServletRequest request, @RequestHeader(value="vault-token") String token, @RequestBody Safe safe){
+		UserDetails userDetails = (UserDetails) ((HttpServletRequest) request).getAttribute("UserDetails");
+		return safesService.deleteSafe(token, safe, userDetails);
 	}
 	/**
 	 * Gets Safe 

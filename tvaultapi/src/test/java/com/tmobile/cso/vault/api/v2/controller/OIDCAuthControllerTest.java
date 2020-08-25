@@ -288,4 +288,11 @@ public class OIDCAuthControllerTest {
 				.andExpect(status().isOk())
 				.andExpect(content().string(containsString(responseMessage)));
 	}
+	
+	@Test
+	public void test_getUserName_successful() throws Exception {
+		when(oidcAuthService.getUserName(Mockito.any(UserDetails.class))).thenReturn(new ResponseEntity<>(HttpStatus.OK));
+		assertEquals(HttpStatus.OK,
+				oidcAuthController.getUserName(httpServletRequest, token).getStatusCode());
+	}
 }

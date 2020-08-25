@@ -60,7 +60,7 @@
                 $scope.isLoadingData = true;
                 $state.go('safes', {'fromLogin':true});
             }
-
+            
         }
 
         //SSO login popup
@@ -93,9 +93,9 @@
                     if(response.data != undefined) {
                         // @TODO: how to get username here
                         //SessionStore.setItem("username",username);
+                        
                     }
-                    saveParametersInSessionStore(response.data);
-                    window.location.replace("/");
+                    saveParametersInSessionStore(response.data);          
                     return;
                 } else {
                     // callback process failed. Redirect to landing page. If not active token exists then will automatically redirect from landing page to login.
@@ -131,8 +131,29 @@
                 SessionStore.setItem("accessSafes", JSON.stringify(accessSafes));
                 SessionStore.setItem("policies",policies);
                 SessionStore.setItem("feature",JSON.stringify(loginResponseData.feature));
+                getUserName();
                 //$state.go('safes', {'fromLogin':true});
             }
+        }
+
+
+        var getUserName = function(){
+            Authentication.getUserName().then(function(response){
+                if(UtilityService.ifAPIRequestSuccessful(response)){
+                    var username = response.data.data.username;
+                    SessionStore.setItem("username", username);
+                    window.location.replace("/");
+                    return; 
+                } else {
+                    // callback process failed. Redirect to landing page. If not active token exists then will automatically redirect from landing page to login.
+                    $scope.isLoadingData = false;
+                    window.location.replace("/");
+                    return;
+                }
+            }, function (error) {
+                console.log(error);
+                window.location.replace("/");
+            })
         }
         var error = function (size) {
             Modal.createModal(size, 'error.html', 'HomeCtrl', $scope);
