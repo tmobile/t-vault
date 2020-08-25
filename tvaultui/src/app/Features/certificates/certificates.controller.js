@@ -129,7 +129,6 @@
             $scope.certificatesDataExternal.keys = extData.filter(function(externalcerts){
                 return externalcerts.permission != "deny";
             });
-            console.log("keys:",$scope.certificatesDataExternal.keys.length);
                                 angular.forEach($scope.certificatesDataExternal.keys.length, function(value, key) {  
                                     var updatedUrlOfEndPoint = "";
                                     updatedUrlOfEndPoint = RestEndpoints.baseURL + "/v2/sslcert/certificate/" + "external" + "?certificate_name=" +value.certname;
