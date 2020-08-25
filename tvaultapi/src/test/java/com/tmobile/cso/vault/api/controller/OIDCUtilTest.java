@@ -237,6 +237,52 @@ public class OIDCUtilTest {
     }
 
     @Test
+    public void test_getGroupObjectResponse_success_no_cloud_entity() throws Exception {
+        String group = "group1";
+        String token = "test4ig8L3EpsJZSLAMg";
+        Response response = new Response();
+        response.setHttpstatus(HttpStatus.OK);
+        response.setSuccess(true);
+        response.setResponse(null);
+
+        when(httpUtils.getHttpClient()).thenReturn(httpClient);
+        when(httpClient.execute(any())).thenReturn(httpResponse);
+        when(httpResponse.getStatusLine()).thenReturn(statusLine);
+        when(statusLine.getStatusCode()).thenReturn(200);
+        when(httpResponse.getEntity()).thenReturn(mockHttpEntity);
+
+        String groupResponseString = "{\"value\": [ {\"id\": \"abcdefg\", \"onPremisesSyncEnabled\":\"true\"}]}";
+        when(mockHttpEntity.getContent()).thenReturn( new ByteArrayInputStream(groupResponseString.getBytes()));
+        ReflectionTestUtils.setField(oidcUtil, "ssoGroupsEndpoint", "testgroupurl");
+
+        String actualResponse = oidcUtil.getGroupObjectResponse(token, group);
+        assertEquals("abcdefg", actualResponse);
+    }
+
+    @Test
+    public void test_getGroupObjectResponse_success_no_cloud_entity_no_onprem_entity() throws Exception {
+        String group = "group1";
+        String token = "test4ig8L3EpsJZSLAMg";
+        Response response = new Response();
+        response.setHttpstatus(HttpStatus.OK);
+        response.setSuccess(true);
+        response.setResponse(null);
+
+        when(httpUtils.getHttpClient()).thenReturn(httpClient);
+        when(httpClient.execute(any())).thenReturn(httpResponse);
+        when(httpResponse.getStatusLine()).thenReturn(statusLine);
+        when(statusLine.getStatusCode()).thenReturn(200);
+        when(httpResponse.getEntity()).thenReturn(mockHttpEntity);
+
+        String groupResponseString = "{\"value\": [ {\"id\": \"abcdefg\", \"onPremisesSyncEnabled\":\"false\"}]}";
+        when(mockHttpEntity.getContent()).thenReturn( new ByteArrayInputStream(groupResponseString.getBytes()));
+        ReflectionTestUtils.setField(oidcUtil, "ssoGroupsEndpoint", "testgroupurl");
+
+        String actualResponse = oidcUtil.getGroupObjectResponse(token, group);
+        assertEquals("abcdefg", actualResponse);
+    }
+
+    @Test
     public void test_getGroupObjectResponse_404() throws Exception {
 
         String group = "group1";
