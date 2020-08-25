@@ -174,7 +174,7 @@ script(type='text/ng-template', id='downloadPopup.html')
                                                     span
                                                         img(src="assets/icons/front-arrow.svg") 
 
-       md-content(class="au-tabs-inner _md" ng-init="displayGrid" ng-if="viewExternalCertificate")
+                        md-content(class="au-tabs-inner _md" ng-init="displayGrid" ng-if="viewExternalCertificate")
                             .create-folder-container.slide-header
                                     .function-text
                                         .clearfix
@@ -186,8 +186,7 @@ script(type='text/ng-template', id='downloadPopup.html')
                             div.data-management-content
                                 .row.change-svc-table-container
                                     loading-state(ng-if='isLoadingData')
-                                    .row.table-header.solid-header(ng-show="!isLoadingData")
-                                        .container.name.cell.col-lg-6.col-md-6.col-sm-6.col-xs-6.table-first-cell
+                                    .row.cert-table-header.solid-header(ng-show="!isLoadingData")
                                     .accordion-list-main.adjustment
                                         .container.name.col-lg-12.col-md-12.col-sm-12.col-xs-12.cell
                                             .cell.col-lg-6.col-md-6.col-sm-6.col-xs-6
