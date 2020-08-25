@@ -381,7 +381,7 @@ public class  SafesService {
 	 * @param safe
 	 * @return
 	 */
-	public ResponseEntity<String> deleteSafe(String token, Safe safe) {
+	public ResponseEntity<String> deleteSafe(String token, Safe safe, UserDetails userDetails) {
 		String path = safe.getPath();
 		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
@@ -394,7 +394,7 @@ public class  SafesService {
 			ControllerUtil.recursivedeletesdb("{\"path\":\""+path+"\"}",token,response);
 			if(response.getHttpstatus().equals(HttpStatus.NO_CONTENT)){
 				deletePolicies(token, safe);
-				return deleteSafeTree(token, safe);
+				return deleteSafeTree(token, safe, userDetails);
 
 			}else{
 				log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
@@ -606,7 +606,7 @@ public class  SafesService {
 	 * @param safe
 	 * @return
 	 */
-	private ResponseEntity<String> deleteSafeTree(String token, Safe safe) {
+	private ResponseEntity<String> deleteSafeTree(String token, Safe safe, UserDetails userDetails) {
 		String path = safe.getPath();
 		String _path = "metadata/"+path;
 
@@ -629,8 +629,8 @@ public class  SafesService {
 			if (!StringUtils.isEmpty(onwerId) && users !=null) {
 				users.put(onwerId, "sudo");
 			}
-			ControllerUtil.updateUserPolicyAssociationOnSDBDelete(path,users,token);
-			ControllerUtil.updateGroupPolicyAssociationOnSDBDelete(path,groups,token);
+			ControllerUtil.updateUserPolicyAssociationOnSDBDelete(path,users,token, userDetails);
+			ControllerUtil.updateGroupPolicyAssociationOnSDBDelete(path,groups,token, userDetails);
 			ControllerUtil.deleteAwsRoleOnSDBDelete(path,awsroles,token);
 		}	
 		ControllerUtil.recursivedeletesdb("{\"path\":\""+_path+"\"}",token,response);
@@ -1196,6 +1196,7 @@ public class  SafesService {
 		}
 
 		String userName = requestMap.get("username");
+		userName = (userName !=null) ? userName.toLowerCase() : userName;
 		if (StringUtils.isEmpty(userName)) {
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"username can't be empty\"]}");
 		}
@@ -1884,9 +1885,10 @@ public class  SafesService {
 	 * Delete a folder
 	 * @param token
 	 * @param path
+	 * @param userDetails
 	 * @return
 	 */
-	public ResponseEntity<String> deletefolder(String token, String path){
+	public ResponseEntity<String> deletefolder(String token, String path, UserDetails userDetails){
 		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 				put(LogMessage.ACTION, "Delete Folder").
@@ -1947,8 +1949,8 @@ public class  SafesService {
 					if (!StringUtils.isEmpty(onwerId) && users !=null) {
 						users.put(onwerId, "sudo");
 					}
-					ControllerUtil.updateUserPolicyAssociationOnSDBDelete(path,users,token);
-					ControllerUtil.updateGroupPolicyAssociationOnSDBDelete(path,groups,token);
+					ControllerUtil.updateUserPolicyAssociationOnSDBDelete(path,users,token,userDetails);
+					ControllerUtil.updateGroupPolicyAssociationOnSDBDelete(path,groups,token,userDetails);
 					ControllerUtil.deleteAwsRoleOnSDBDelete(path,awsroles,token);
 					updateApprolePolicyAssociationOnSDBDelete(path, approles, token);
 				}
