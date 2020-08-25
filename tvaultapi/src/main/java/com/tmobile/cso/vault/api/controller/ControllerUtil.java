@@ -857,7 +857,7 @@ public final class ControllerUtil {
 		return currentpolicies;
 	}
 
-	public static void updateUserPolicyAssociationOnSDBDelete(String sdb,Map<String,String> acessInfo,String token){
+	public static void updateUserPolicyAssociationOnSDBDelete(String sdb,Map<String,String> acessInfo,String token, UserDetails userDetails){
 		OIDCEntityResponse oidcEntityResponse = new OIDCEntityResponse();
 		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
@@ -975,6 +975,7 @@ public final class ControllerUtil {
 						//OIDC Implementation : Entity Update
 						try {
 							oidcUtil.updateOIDCEntity(policies, oidcEntityResponse.getEntityName());
+							oidcUtil.renewUserToken(userDetails.getClientToken());
 						} catch (Exception e) {
 							log.error(e);
 							log.error(
@@ -996,7 +997,7 @@ public final class ControllerUtil {
 			}
 		}
 	}
-	public static void updateGroupPolicyAssociationOnSDBDelete(String sdb,Map<String,String> acessInfo,String token){
+	public static void updateGroupPolicyAssociationOnSDBDelete(String sdb,Map<String,String> acessInfo,String token, UserDetails userDetails){
 		OIDCGroup oidcGroup = new OIDCGroup();
 		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
@@ -1081,6 +1082,7 @@ public final class ControllerUtil {
 						ControllerUtil.configureLDAPGroup(groupName, policiesString, token);
 					} else if (TVaultConstants.OIDC.equals(vaultAuthMethod)) {
 						oidcUtil.updateGroupPolicies(token, groupName, policies, currentpolicies, oidcGroup.getId());
+						oidcUtil.renewUserToken(userDetails.getClientToken());
 					}
 					
 				}

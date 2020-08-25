@@ -558,7 +558,7 @@ public class SelfSupportServiceTest {
         UserDetails userDetails = getMockUser(false);
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"SDB deleted\"]}");
         ResponseEntity<String> response = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"SDB deleted\"]}");
-        when(safesService.deletefolder(token, path)).thenReturn(response);
+        when(safesService.deletefolder(token, path, userDetails)).thenReturn(response);
         mockIsAuthorized(userDetails, true);
         ResponseEntity<String> responseEntity = selfSupportService.deletefolder(userDetails, token, path);
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
@@ -572,7 +572,7 @@ public class SelfSupportServiceTest {
         UserDetails userDetails = getMockUser(true);
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"SDB deleted\"]}");
         ResponseEntity<String> response = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"SDB deleted\"]}");
-        when(safesService.deletefolder(token, path)).thenReturn(response);
+        when(safesService.deletefolder(token, path, userDetails)).thenReturn(response);
 
         ResponseEntity<String> responseEntity = selfSupportService.deletefolder(userDetails, token, path);
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());

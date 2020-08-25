@@ -33,7 +33,6 @@
         $scope.svcInputSelected = false;
         $scope.customTTL = '';
         $scope.permissionChangeInProgress = false;
-
         $scope.usrRadioBtnVal = 'read';             // Keep it in lowercase
         $scope.grpRadioBtnVal = 'read';             // Keep it in lowercase
         $scope.awsRadioBtn['value'] = 'read';       // Keep it in lowercase
@@ -455,12 +454,12 @@
                                     }
                                     else {
                                         getMetadata(svcaccname); 
-                                        if (type === "users" && key === SessionStore.getItem("username")) {
-                                            return Modal.createModalWithController('stop.modal.html', {
-                                                title: 'Permission changed',
-                                                message: 'For security reasons, if you add or modify permission to yourself, you need to log out and log in again for the added or modified permissions to take effect.'
-                                              });
-                                        }
+                                        // if (type === "users") {
+                                        //     return Modal.createModalWithController('stop.modal.html', {
+                                        //         title: 'Permission changed',
+                                        //         message: 'For security reasons, if you add or modify permission to yourself, you need to log out and log in again for the added or modified permissions to take effect.'
+                                        //       });
+                                        // }
                                         if (type === 'AppRolePermission') {
                                             // delete approle
                                         }
@@ -1399,13 +1398,13 @@
                                         if (key !== null && key !== undefined) {
                                             document.getElementById('addUser').value = '';
                                             document.getElementById('addGroup').value = '';
-                                            if (type === "users" && key === SessionStore.getItem("username")) {
+                                            // if (type === "users") {
                                                 clearInputPermissionData();
-                                                return Modal.createModalWithController('stop.modal.html', {
-                                                    title: 'Permission changed',
-                                                    message: 'For security reasons, if you add or modify permission to yourself, you need to log out and log in again for the added or modified permissions to take effect.'
-                                                  });
-                                            }
+                                            //     return Modal.createModalWithController('stop.modal.html', {
+                                            //         title: 'Permission changed',
+                                            //         message: 'For security reasons, if you add or modify permission to yourself, you need to log out and log in again for the added or modified permissions to take effect.'
+                                            //       });
+                                            // }
                                             Notifications.toast(key + "'s permission" + notification);                                            
                                         }
                                         

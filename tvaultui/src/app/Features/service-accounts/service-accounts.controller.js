@@ -31,7 +31,7 @@
         $scope.svcaccToReset = '';
         $scope.searchValueSvcacc = "";
         var init = function () {
-            
+            $scope.loadingData = true;
             if(!SessionStore.getItem("myVaultKey")){ /* Check if user is in the same session */
                 $state.go('/');
                 return;
@@ -45,25 +45,44 @@
                 $scope.requestDataFrMyAccounts();
             }
         };
-
+        function getHeaders() {
+            return {
+                'Content-Type': 'application/json',
+                'vault-token': SessionStore.getItem('myVaultKey')
+            }
+        }
         // Fetching Data
         $scope.filterSvcacc = function(searchValueSvcacc) {
             $scope.searchValueSvcacc = searchValueSvcacc;
         }
 
-        $scope.requestDataFrMyAccounts = function () {               
-            $scope.svcaccOnboardedData = {"keys": []};
-            var accessSafes = JSON.parse(SessionStore.getItem("accessSafes"));
-            if (accessSafes.svcacct) {
-                $scope.svcaccOnboardedData.keys = accessSafes.svcacct.map(function (safeObject) {
+        $scope.requestDataFrMyAccounts = function () {
+            $scope.isLoadingData = true;
+            $scope.svcaccOnboardedData = { "keys": [] };
+            var url = RestEndpoints.baseURL + '/v2/serviceaccounts/list';
+            $http({
+                method: 'GET',
+                url: url,
+                headers: getHeaders()
+            }).then(function (response) {
+                var accessSafes = JSON.parse(JSON.stringify(response.data.svcacct));
+                $scope.svcaccOnboardedData.keys = accessSafes.map(function (safeObject) {
                     var entry = Object.entries(safeObject);
                     return {
                         svcaccname: entry[0][0],
                         permission: entry[0][1]
                     }
                 });
-            }
-            $scope.numOfSvcaccs=$scope.svcaccOnboardedData.keys.length;
+                $scope.numOfSvcaccs = $scope.svcaccOnboardedData.keys.length;
+                $scope.isLoadingData = false;
+            }, function (error) {
+                $scope.isLoadingData = false;
+                console.log(error);
+            })
+                .catch(function (catchError) {
+                    $scope.isLoadingData = false;
+                });
+              
         };
 
         var getPermission = function(svcaccname) {

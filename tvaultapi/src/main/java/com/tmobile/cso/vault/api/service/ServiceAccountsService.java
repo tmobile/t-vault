@@ -856,7 +856,7 @@ public class  ServiceAccountsService {
 				userResponse = reqProcessor.process("/auth/ldap/users","{\"username\":\""+userName+"\"}",token);
 			} else if (TVaultConstants.OIDC.equals(vaultAuthMethod)){
 				// OIDC implementation changes
-				ResponseEntity<OIDCEntityResponse> responseEntity = oidcUtil.oidcFetchEntityDetails(token, userName);
+				ResponseEntity<OIDCEntityResponse> responseEntity = oidcUtil.oidcFetchEntityDetails(token, userName, userDetails);
 				if (!responseEntity.getStatusCode().equals(HttpStatus.OK)) {
 					if (responseEntity.getStatusCode().equals(HttpStatus.FORBIDDEN)) {
 						log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
@@ -1095,7 +1095,7 @@ public class  ServiceAccountsService {
 				userResponse = reqProcessor.process("/auth/ldap/users", "{\"username\":\"" + userName + "\"}", token);
 			} else if (TVaultConstants.OIDC.equals(vaultAuthMethod)) {
 				// OIDC implementation changes
-				ResponseEntity<OIDCEntityResponse> responseEntity = oidcUtil.oidcFetchEntityDetails(token, userName);
+				ResponseEntity<OIDCEntityResponse> responseEntity = oidcUtil.oidcFetchEntityDetails(token, userName, userDetails);
 				if (!responseEntity.getStatusCode().equals(HttpStatus.OK)) {
 					if (responseEntity.getStatusCode().equals(HttpStatus.FORBIDDEN)) {
 						log.error(
@@ -3385,5 +3385,96 @@ public class  ServiceAccountsService {
 			}
 		}
 		return serviceAccountMetadataDetails;
+	}
+	
+	/**
+	 * 
+	 * @param userDetails
+	 * @param token
+	 * @return
+	 */
+	public ResponseEntity<String> getServiceAccounts(UserDetails userDetails, String userToken) {
+		oidcUtil.renewUserToken(userDetails.getClientToken());
+		String token = userDetails.getClientToken();
+		if (!userDetails.isAdmin()) {
+			token = userDetails.getSelfSupportToken();
+		}
+		String[] policies = policyUtils.getCurrentPolicies(token, userDetails.getUsername(), userDetails);
+
+		policies = filterPoliciesBasedOnPrecedence(Arrays.asList(policies));
+
+		List<Map<String, String>> svcListUsers = new ArrayList<>();
+		Map<String, List<Map<String, String>>> safeList = new HashMap<>();
+		if (policies != null) {
+			for (String policy : policies) {
+				Map<String, String> safePolicy = new HashMap<>();
+				String[] _policies = policy.split("_", -1);
+				if (_policies.length >= 3) {
+					String[] policyName = Arrays.copyOfRange(_policies, 2, _policies.length);
+					String safeName = String.join("_", policyName);
+					String safeType = _policies[1];
+
+					if (policy.startsWith("r_")) {
+						safePolicy.put(safeName, "read");
+					} else if (policy.startsWith("w_")) {
+						safePolicy.put(safeName, "write");
+					} else if (policy.startsWith("d_")) {
+						safePolicy.put(safeName, "deny");
+					}
+					if (!safePolicy.isEmpty()) {
+						if (safeType.equals(TVaultConstants.SVC_ACC_PATH_PREFIX)) {
+							svcListUsers.add(safePolicy);
+						} 
+					}
+				}
+			}
+			safeList.put(TVaultConstants.SVC_ACC_PATH_PREFIX, svcListUsers);
+		}
+		return ResponseEntity.status(HttpStatus.OK).body(JSONUtil.getJSON(safeList));
+	}
+	
+	/**
+	 * Filter svc policies based on policy precedence.
+	 * @param policies
+	 * @return
+	 */
+	private String [] filterPoliciesBasedOnPrecedence(List<String> policies) {
+		List<String> filteredList = new ArrayList<>();
+		for (int i = 0; i < policies.size(); i++ ) {
+			String policyName = policies.get(i);
+			String[] _policy = policyName.split("_", -1);
+			if (_policy.length >= 3) {
+				String itemName = policyName.substring(1);
+				List<String> matchingPolicies = filteredList.stream().filter(p->p.substring(1).equals(itemName)).collect(Collectors.toList());
+				if (!matchingPolicies.isEmpty()) {
+					/* deny has highest priority. Read and write are additive in nature
+						Removing all matching as there might be duplicate policies from user and groups
+					*/
+					if (policyName.startsWith("d_") || (policyName.startsWith("w_") && !matchingPolicies.stream().anyMatch(p-> p.equals("d"+itemName)))) {
+						filteredList.removeAll(matchingPolicies);
+						filteredList.add(policyName);
+					}
+					else if (matchingPolicies.stream().anyMatch(p-> p.equals("d"+itemName))) {
+						// policy is read and deny already in the list. Then deny has precedence.
+						filteredList.removeAll(matchingPolicies);
+						filteredList.add("d"+itemName);
+					}
+					else if (matchingPolicies.stream().anyMatch(p-> p.equals("w"+itemName))) {
+						// policy is read and write already in the list. Then write has precedence.
+						filteredList.removeAll(matchingPolicies);
+						filteredList.add("w"+itemName);
+					}
+					else if (matchingPolicies.stream().anyMatch(p-> p.equals("r"+itemName)) || matchingPolicies.stream().anyMatch(p-> p.equals("s"+itemName))) {
+						// policy is read and read already in the list. Then remove all duplicates read and add single read permission for that safe.
+						filteredList.removeAll(matchingPolicies);
+						filteredList.add("r"+itemName);
+					}
+				}
+				else {
+					filteredList.add(policyName);
+				}
+			}
+		}
+		return filteredList.toArray(new String[0]);
 	}
 }

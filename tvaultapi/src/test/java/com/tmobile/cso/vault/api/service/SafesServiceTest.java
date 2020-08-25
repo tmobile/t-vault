@@ -401,8 +401,9 @@ public class SafesServiceTest {
         when(ControllerUtil.isValidSafePath(path)).thenReturn(false);
         when(ControllerUtil.isValidSafe(path, token)).thenReturn(false);
         when(ControllerUtil.isValidDataPath(path)).thenReturn(false);
-
-        ResponseEntity<String> responseEntity = safesService.deleteSafe(token, safe);
+        UserDetails userDetails = new UserDetails();
+        userDetails.setUsername("testuser1"); 
+        ResponseEntity<String> responseEntity = safesService.deleteSafe(token, safe, userDetails);
         assertEquals(HttpStatus.BAD_REQUEST, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
     }

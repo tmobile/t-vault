@@ -342,7 +342,7 @@ public class  SelfSupportService {
 	public ResponseEntity<String> deletefolder(UserDetails userDetails, String userToken, String path) {
 		String token = userDetails.getClientToken();
 		if (userDetails.isAdmin()) {
-			return safesService.deletefolder(token, path);
+			return safesService.deletefolder(token, path, userDetails);
 		}
 		else {
 			ResponseEntity<String> isAuthorized = isAuthorized(userDetails, path);
@@ -353,7 +353,7 @@ public class  SelfSupportService {
 				return ResponseEntity.status(HttpStatus.FORBIDDEN).body("{\"errors\":[\"Access denied: no permission to delete this safe\"]}");
 			}
 			token = userDetails.getSelfSupportToken();
-			ResponseEntity<String> safe_creation_response = safesService.deletefolder(token, path);
+			ResponseEntity<String> safe_creation_response = safesService.deletefolder(token, path,userDetails);
 			return safe_creation_response;
 		}
 	}
