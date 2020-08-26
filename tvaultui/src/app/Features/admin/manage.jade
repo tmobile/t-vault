@@ -482,7 +482,7 @@ script(type='text/ng-template', id='manageSecretId.html')
                         .search-icon
                             .icon-search
                         .search-input-wrapper
-                            input.search-input-box(type='text' placeholder='SEARCH' ng-model="searchValue" restrict-special-char minlength="3" maxlength="40" ng-change="filterCert(searchValue)")
+                            input.search-input-box(type='text' placeholder='SEARCH' ng-model="searchValue" restrict-special-char minlength="3" maxlength="40" ng-change="filterCert()")
             md-content.admin-content
                 md-tabs(md-dynamic-height md-border-bottom md-selected="selectedIndex")
                     md-tab(label="Safe Management" md-on-select="tabChangeForAdmin()" ng-if="enableSelfService")
