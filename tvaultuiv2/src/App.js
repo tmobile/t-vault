@@ -1,6 +1,6 @@
 import React from 'react';
-import Permissions from './components/permissions/permissions'
-import Secrets from "./components/secrets/secrets"
+import Permissions from './components/permissions'
+import Secrets from "./components/secrets"
 import './App.css';
 
 function App() {
