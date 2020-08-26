@@ -11,9 +11,3 @@ code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, "Courier New",
     monospace;
 }
-
-.MuiInput-underline:before,
-.MuiInput-underline:after,
-.MuiInput-underline:hover:not(.Mui-disabled):before {
-  border-bottom: none;
-}

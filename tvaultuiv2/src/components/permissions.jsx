@@ -9,7 +9,6 @@ import FormControl from "@material-ui/core/FormControl";
 import ButtonComponent from "./buttonComponent";
 import styled from "styled-components";
 
-
 const PermissionWrapper = styled.div`
   padding: 2rem;
   width: 50%;
@@ -49,18 +48,14 @@ const CancelSaveWrapper = styled.div`
 `;
 
 const Permissions = (props) => {
-
 	const [value, setValue] = useState("read");
 	const [searchValue, setSearchValue] = useState("");
 
 	const handleChange = (event) => {
 		setValue(event.target.value);
 	};
-	const data = [
-		{ title: "abc@tmobile.com" },
-		{ title: "xyz@tmobile.com" },
-	];
-	console.log('searchValue :>> ', searchValue);
+	const data = [{ title: "abc@tmobile.com" }, { title: "xyz@tmobile.com" }];
+	console.log("searchValue :>> ", searchValue);
 	return (
 		<PermissionWrapper>
 			<InputRadioWrapper>
@@ -72,7 +67,11 @@ const Permissions = (props) => {
 						getOptionLabel={(option) => option.title}
 						style={{ width: "90%" }}
 						renderInput={(params) => (
-							<TextField {...params} placeholder="Search" onChange={(e) => setSearchValue(e.target.value)} />
+							<TextField
+								{...params}
+								placeholder="Search"
+								onChange={(e) => setSearchValue(e.target.value)}
+							/>
 						)}
 					/>
 				</InputWrapper>
