@@ -5575,7 +5575,7 @@ public class SSLCertificateService {
 			
 			//find certificates
 			CertificateData certData = getLatestCertificate(certificateName,nclmAccessToken, containerId);		
-			if(certData!=null) {
+			if(certData!=null && certData.getCertificateName()!=null) {
 			//Unassign certificate from target system
 			JsonObject jo = new JsonObject();
 	        jo.add("targetSystemServiceIds", new GsonBuilder().create().toJsonTree(certData.getDeployStatus()));

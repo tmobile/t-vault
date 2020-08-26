@@ -2457,9 +2457,9 @@
                 
             };
             
-            $scope.filterCert = function (val) {            	
+            $scope.filterCert = function () {            	
                 var filterSearch = $scope.searchValue;
-                if ($scope.searchValue != '' && $scope.searchValue != undefined && $scope.searchValue.length > 2) {                    
+                if ($scope.searchValue != '' && $scope.searchValue != undefined && $scope.searchValue.length > 2 && searchValue.certificateName != undefined && searchValue.certificateName != "") {                    
                         $scope.finalFilterCertResults = $scope.certificateData.certificates.filter(function (searchValue) {                        	
                             return searchValue.certificateName.includes(filterSearch);
                         });                   
