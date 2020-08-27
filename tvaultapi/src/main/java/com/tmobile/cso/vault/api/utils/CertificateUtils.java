@@ -222,6 +222,9 @@ public class CertificateUtils {
 			certificate.setContainerId(dataNode.get("containerId").asInt());
 		}
 
+		if (null != dataNode.get("actionId")) {
+			certificate.setActionId(dataNode.get("actionId").asInt());
+		}
 		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
 				put(LogMessage.ACTION, "getCertificateInfo-BEFORE DNS names ").
