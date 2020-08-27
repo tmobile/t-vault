@@ -46,6 +46,7 @@ public class OIDCAuthController {
 	 * @return
 	 */
 	@GetMapping(value = "/v2/sys/list", produces = "application/json")
+	@ApiOperation(hidden = true, value = "${OIDCAuthController.getAuthenticationMounts.value}", notes = "${OIDCAuthController.getAuthenticationMounts.notes}")
 	public ResponseEntity<String> getAuthenticationMounts(HttpServletRequest request,
 			@RequestHeader(value = "vault-token") String token) {
 		return oidcAuthService.getAuthenticationMounts(token);
@@ -59,6 +60,7 @@ public class OIDCAuthController {
 	 * @return
 	 */
 	@PostMapping(value = "/v2/identity/lookup/entity", produces = "application/json")
+	@ApiOperation(hidden = true,  value = "${OIDCAuthController.entityLookUp.value}", notes = "${OIDCAuthController.entityLookUp.notes}")
 	public ResponseEntity<OIDCEntityResponse> entityLookUp(HttpServletRequest request,
 			@RequestHeader(value = "vault-token") String token,
 			@Valid @RequestBody OIDCLookupEntityRequest oidcLookupEntityRequest) {
@@ -73,6 +75,7 @@ public class OIDCAuthController {
 	 * @return
 	 */
 	@PostMapping(value = "/v2/identity/lookup/group", produces = "application/json")
+	@ApiOperation(hidden = true, value = "${OIDCAuthController.groupEntityLookUp.value}", notes = "${OIDCAuthController.groupEntityLookUp.notes}")
 	public ResponseEntity<String> groupEntityLookUp(HttpServletRequest request,
 			@RequestHeader(value = "vault-token") String token,
 			@Valid @RequestBody OIDCLookupEntityRequest oidcLookupEntityRequest) {
@@ -87,6 +90,7 @@ public class OIDCAuthController {
 	 * @return
 	 */
 	@GetMapping(value = "/v2/identity/entity-alias/id/{id}", produces = "application/json")
+	@ApiOperation(hidden = true, value = "${OIDCAuthController.readEntityAliasById.value}", notes = "${OIDCAuthController.readEntityAliasById.notes}")
 	public ResponseEntity<String> readEntityAliasById(HttpServletRequest request,
 			@RequestHeader(value = "vault-token") String token, @PathVariable("id") String id) {
 		return oidcAuthService.readEntityAliasById(token,id);
@@ -100,6 +104,7 @@ public class OIDCAuthController {
 	 * @return
 	 */
 	@GetMapping(value = "/v2/identity/entity/name/{name}", produces = "application/json")
+	@ApiOperation(hidden = true, value = "${OIDCAuthController.readEntityByName.value}", notes = "${OIDCAuthController.readEntityByName.notes}")
 	public ResponseEntity<String> readEntityByName(HttpServletRequest request,
 			@RequestHeader(value = "vault-token") String token, @PathVariable("name") String entityName) {
 		return oidcAuthService.readEntityByName(token,entityName);
@@ -114,6 +119,7 @@ public class OIDCAuthController {
 	 * @return
 	 */
 	@PostMapping(value = "/v2/identity/entity/name/{name}", produces = "application/json")
+	@ApiOperation(hidden = true, value = "${OIDCAuthController.updateEntityByName.value}", notes = "${OIDCAuthController.updateEntityByName.notes}")
 	public ResponseEntity<String> updateEntityByName(HttpServletRequest request,
 			@RequestHeader(value = "vault-token") String token, @PathVariable("name") String entityName,
 			@Valid @RequestBody OIDCEntityRequest oidcEntityRequest) {
@@ -128,6 +134,7 @@ public class OIDCAuthController {
 	 * @return
 	 */
 	@GetMapping(value = "/v2/identity/group-alias/id/{id}", produces = "application/json")
+	@ApiOperation(hidden = true, value = "${OIDCAuthController.readGroupAliasById.value}", notes = "${OIDCAuthController.readGroupAliasById.notes}")
 	public ResponseEntity<String> readGroupAliasById(HttpServletRequest request,
 			@RequestHeader(value = "vault-token") String token, @PathVariable("id") String id) {
 		return oidcAuthService.readGroupAliasById(token, id);
@@ -142,6 +149,7 @@ public class OIDCAuthController {
 	 * @return
 	 */
 	@PostMapping(value = "/v2/identity/group/name/{name}", produces = "application/json")
+	@ApiOperation(hidden = true, value = "${OIDCAuthController.updateIdentityGroupByName.value}", notes = "${OIDCAuthController.updateIdentityGroupByName.notes}")
 	public ResponseEntity<String> updateIdentityGroupByName(HttpServletRequest request,
 			@RequestHeader(value = "vault-token") String token, @PathVariable("name") String entityName,
 			@Valid @RequestBody OIDCIdentityGroupRequest oidcIdentityGroupRequest) {
@@ -156,6 +164,7 @@ public class OIDCAuthController {
 	 * @return
 	 */
 	@DeleteMapping(value = "/v2/identity/group/name/{name}", produces = "application/json")
+	@ApiOperation(hidden = true, value = "${OIDCAuthController.deleteGroupByName.value}", notes = "${OIDCAuthController.deleteGroupByName.notes}")
 	public ResponseEntity<String> deleteGroupByName(HttpServletRequest request,
 			@RequestHeader(value = "vault-token") String token, @PathVariable("name") String name) {
 		return oidcAuthService.deleteGroupByName(token, name);
@@ -169,6 +178,7 @@ public class OIDCAuthController {
 	 * @return
 	 */
 	@DeleteMapping(value = "/v2/identity/group-alias/id/{id}", produces = "application/json")
+	@ApiOperation(hidden = true, value = "${OIDCAuthController.deleteGroupAliasByID.value}", notes = "${OIDCAuthController.deleteGroupAliasByID.notes}")
 	public ResponseEntity<String> deleteGroupAliasByID(HttpServletRequest request,
 			@RequestHeader(value = "vault-token") String token, @PathVariable("id") String id) {
 		return oidcAuthService.deleteGroupAliasByID(token, id);
@@ -182,6 +192,7 @@ public class OIDCAuthController {
 	 * @return
 	 */
 	@PostMapping(value = "/v2/identity/group-alias", produces = "application/json")
+	@ApiOperation(hidden = true, value = "${OIDCAuthController.createGroupAlias.value}", notes = "${OIDCAuthController.createGroupAlias.notes}")
 	public ResponseEntity<String> createGroupAlias(HttpServletRequest request,
 			@RequestHeader(value = "vault-token") String token,
 			@Valid @RequestBody GroupAliasRequest groupAliasRequest) {
@@ -234,4 +245,18 @@ public class OIDCAuthController {
 		@RequestHeader(value = "vault-token") String token, @PathVariable("name") String groupName){
 		return oidcAuthService.getIdentityGroupDetails(groupName, token);
 	}
+	
+	/**
+	 * To get User name.
+	 * @param request
+	 * @return
+	 */
+	@GetMapping(value = "/v2/username", produces = "application/json")
+	@ApiOperation(value = "${OIDCAuthController.getUserName.value}", notes = "${OIDCAuthController.getUserName.notes}", hidden = true)
+	public ResponseEntity<String> getUserName(HttpServletRequest request,
+			@RequestHeader(value = "vault-token") String token) {
+		UserDetails userDetails = (UserDetails) ((HttpServletRequest) request).getAttribute("UserDetails");
+		return oidcAuthService.getUserName(userDetails);
+	}
+	
 }

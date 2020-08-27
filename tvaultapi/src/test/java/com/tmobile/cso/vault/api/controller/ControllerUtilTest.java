@@ -308,12 +308,13 @@ public class ControllerUtilTest {
         String userName = "testuser1";
         Response userResponse = getMockResponse(HttpStatus.OK, true, "{\"data\":{\"bound_cidrs\":[],\"max_ttl\":0,\"policies\":[\"approle_normal_user\",\"w_users_safe01\"],\"ttl\":0}}");
         when(reqProcessor.process("/auth/userpass/read","{\"username\":\""+userName+"\"}",token)).thenReturn(userResponse);
-
+        UserDetails userDetails = new UserDetails();
+        userDetails.setUsername("testuser1");
         ReflectionTestUtils.setField(ControllerUtil.class,"vaultAuthMethod", "userpass");
         Map<String,String> acessInfo = new HashMap<>();
         acessInfo.put("testuser1", "write");
 
-        ControllerUtil.updateUserPolicyAssociationOnSDBDelete("users/safe01", acessInfo,  token);
+        ControllerUtil.updateUserPolicyAssociationOnSDBDelete("users/safe01", acessInfo,  token, userDetails);
         assertTrue(true);
     }
     
@@ -337,12 +338,13 @@ public class ControllerUtilTest {
 				.body(oidcEntityResponse);
 
 		when(tokenUtils.getSelfServiceTokenWithAppRole()).thenReturn(token);
-
+		UserDetails userDetails = new UserDetails();
+        userDetails.setUsername("testuser1");
 		Response responseEntity3 = getMockResponse(HttpStatus.NO_CONTENT, true, "{\"data\": [\"safeadmin\",\"vaultadmin\"]]");
 		when(oidcUtil.updateOIDCEntity(any(), any()))
 				.thenReturn(responseEntity3);
 		when(oidcUtil.oidcFetchEntityDetails(any(), any(), any())).thenReturn(responseEntity2);
-        ControllerUtil.updateUserPolicyAssociationOnSDBDelete("users/safe01", acessInfo,  token);
+        ControllerUtil.updateUserPolicyAssociationOnSDBDelete("users/safe01", acessInfo,  token, userDetails);
         assertTrue(true);
     }
 
@@ -352,12 +354,13 @@ public class ControllerUtilTest {
         String groupName = "group1";
         Response userResponse = getMockResponse(HttpStatus.OK, true, "{\"data\":{\"bound_cidrs\":[],\"max_ttl\":0,\"policies\":[\"approle_normal_user\",\"w_users_safe01\"],\"ttl\":0}}");
         when(reqProcessor.process("/auth/ldap/groups","{\"groupname\":\""+groupName+"\"}",token)).thenReturn(userResponse);
-
+        UserDetails userDetails = new UserDetails();
+        userDetails.setUsername("testuser1");
         ReflectionTestUtils.setField(ControllerUtil.class,"vaultAuthMethod", "ldap");
         Map<String,String> acessInfo = new HashMap<>();
         acessInfo.put("group1", "write");
 
-        ControllerUtil.updateGroupPolicyAssociationOnSDBDelete("users/safe01", acessInfo,  token);
+        ControllerUtil.updateGroupPolicyAssociationOnSDBDelete("users/safe01", acessInfo,  token, userDetails);
         assertTrue(true);
     }
     
@@ -386,9 +389,10 @@ public class ControllerUtilTest {
         Response response = new Response();
         response.setHttpstatus(HttpStatus.NO_CONTENT);
         when(oidcUtil.updateGroupPolicies(token, "mygroup01", policies, currentpolicies, oidcGroup.getId())).thenReturn(response);
+        UserDetails userDetails = new UserDetails();
+        userDetails.setUsername("testuser1");
 
-
-        ControllerUtil.updateGroupPolicyAssociationOnSDBDelete("users/safe01", acessInfo,  token);
+        ControllerUtil.updateGroupPolicyAssociationOnSDBDelete("users/safe01", acessInfo,  token, userDetails);
         assertTrue(true);
     }
 

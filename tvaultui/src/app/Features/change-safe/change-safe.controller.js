@@ -482,12 +482,12 @@
                                     }
                                     else {
                                         $scope.requestDataFrChangeSafe();
-                                        if (type === "users" && key === SessionStore.getItem("username")) {
-                                            return Modal.createModalWithController('stop.modal.html', {
-                                                title: 'Permission changed',
-                                                message: 'For security reasons, if you add or modify permission to yourself, you need to log out and log in again for the added or modified permissions to take effect.'
-                                              });
-                                        }
+                                        // if (type === "users" && key === SessionStore.getItem("username")) {
+                                        //     return Modal.createModalWithController('stop.modal.html', {
+                                        //         title: 'Permission changed',
+                                        //         message: 'For security reasons, if you add or modify permission to yourself, you need to log out and log in again for the added or modified permissions to take effect.'
+                                        //       });
+                                        // }
                                         if (type === 'AppRolePermission') {
                                             // delete approle
                                         }
@@ -1096,13 +1096,13 @@
                                         $scope.requestDataFrChangeSafe();
                                         var notification = UtilityService.getAParticularSuccessMessage('MESSAGE_ADD_SUCCESS');
                                         if (key !== null && key !== undefined) {
-                                            if (type === "users" && key === SessionStore.getItem("username")) {
+                                            // if (type === "users" && key === SessionStore.getItem("username")) {
                                                 clearInputPermissionData();
-                                                return Modal.createModalWithController('stop.modal.html', {
-                                                    title: 'Permission changed',
-                                                    message: 'For security reasons, if you add or modify permission to yourself, you need to log out and log in again for the added or modified permissions to take effect.'
-                                                  });
-                                            }
+                                            //     return Modal.createModalWithController('stop.modal.html', {
+                                            //         title: 'Permission changed',
+                                            //         message: 'For security reasons, if you add or modify permission to yourself, you need to log out and log in again for the added or modified permissions to take effect.'
+                                            //       });
+                                            // }
                                             Notifications.toast(key + "'s permission" + notification);
                                         }
                                     }
