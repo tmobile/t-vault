@@ -168,6 +168,7 @@ public class SSLCertificateServiceTest {
         ReflectionTestUtils.setField(sSLCertificateService, "unassignCertificateEndpoint", "certificates/certID/services/assigned");
         ReflectionTestUtils.setField(sSLCertificateService, "deleteCertificateEndpoint", "certificates/certID");
         ReflectionTestUtils.setField(sSLCertificateService, "supportEmail", "support@abc.com");
+        ReflectionTestUtils.setField(sSLCertificateService, "requestStatusUrl", "actions/actionid");
 
         token = "5PDrOhsy4ig8L3EpsJZSLAMg";
         userDetails.setUsername("normaluser");
@@ -5074,6 +5075,22 @@ public class SSLCertificateServiceTest {
 		readResponse.setSuccess(true);
 		when(reqProcessor.process(eq("/read"), anyObject(), anyString())).thenReturn(readResponse);
 
+        String metaDataJson1 = "{\"conclusion\":\"rejected\"}" ;
+        CertResponse reqStatusResponse = new CertResponse();
+        reqStatusResponse.setHttpstatus(HttpStatus.OK);
+        reqStatusResponse.setResponse(metaDataJson1);
+        reqStatusResponse.setSuccess(true);
+        Map<String, Object> status = new HashMap<>();
+        Map<String, Object> requestCertMap1 = new HashMap<>();
+        requestCertMap1.put("conclusion", "waiting");
+        when(ControllerUtil.parseJson(metaDataJson1)).thenReturn(requestCertMap1);
+        when(reqProcessor.processCert(eq("/certmanager/actionRequestStatus"), anyObject(), anyString(), anyString()))
+                .thenReturn(reqStatusResponse);
+        Response metadataDeleteResponse = new Response();
+        metadataDeleteResponse.setHttpstatus(HttpStatus.NO_CONTENT);
+        metadataDeleteResponse.setResponse(null);
+        metadataDeleteResponse.setSuccess(true);
+        when(reqProcessor.process(eq("/delete"), anyObject(), anyString())).thenReturn(metadataDeleteResponse);
 		String certType = "external";
 		String certName = "certificatename.t-mobile.com";
 		when(ControllerUtil.updateMetaData(any(), any(), eq(token))).thenReturn(true);
@@ -5084,6 +5101,331 @@ public class SSLCertificateServiceTest {
 		assertEquals(HttpStatus.OK, enrollResponse.getStatusCode());
 	}
 
+    @Test
+    public void testValidateApprovalStatusAndGetCertDetailsSuccess_Renew_Pending() throws Exception {
+        String jsonStr = "{  \"username\": \"testusername1\",  \"password\": \"testpassword1\"}";
+
+        String jsonStr2 = "{\"certificates\":[{\"sortedSubjectName\": \"CN=certificatename.t-mobile.com, C=US, "
+                + "ST=Washington, " + "L=Bellevue, O=T-Mobile USA, Inc\","
+                + "\"certificateId\":57258,\"certificateStatus\":\"Active\","
+                + "\"containerName\":\"cont_12345\",\"NotAfter\":\"2021-06-15T04:35:58-07:00\"}]}";
+        SSLCertificateMetadataDetails certificateMetadata = getSSLExternalCertificateRequest();
+        UserDetails userDetail = getMockUser(true);
+        userDetail.setUsername("testuser1");
+        ReflectionTestUtils.setField(sSLCertificateService, "vaultAuthMethod", "ldap");
+        CertManagerLoginRequest certManagerLoginRequest = getCertManagerLoginRequest();
+        certManagerLoginRequest.setUsername("username");
+        certManagerLoginRequest.setPassword("password");
+
+        Map<String, Object> requestMap = new HashMap<>();
+        requestMap.put("access_token", "12345");
+        requestMap.put("token_type", "type");
+        when(ControllerUtil.parseJson(jsonStr)).thenReturn(requestMap);
+        CertManagerLogin certManagerLogin = new CertManagerLogin();
+        certManagerLogin.setToken_type("token type");
+        certManagerLogin.setAccess_token("1234");
+
+        CertResponse response = new CertResponse();
+        response.setHttpstatus(HttpStatus.OK);
+        response.setResponse(jsonStr);
+        response.setSuccess(true);
+        when(reqProcessor.processCert(eq("/auth/certmanager/login"), anyObject(), anyString(), anyString()))
+                .thenReturn(response);
+
+        CertResponse findCertResponse = new CertResponse();
+        findCertResponse.setHttpstatus(HttpStatus.OK);
+        findCertResponse.setResponse(jsonStr2);
+        findCertResponse.setSuccess(true);
+        when(reqProcessor.processCert(eq("/certmanager/findCertificate"), anyObject(), anyString(), anyString()))
+                .thenReturn(findCertResponse);
+
+        Map<String, Object> requestCertMap = new HashMap<>();
+        Map<String, Object> certificates = new HashMap<>();
+        certificates.put("sortedSubjectName", "certificatename.t-mobile.com");
+        certificates.put("certificateId", "123");
+        certificates.put("NotAfter", "2021-08-06T06:38:06-07:00");
+        certificates.put("NotBefore", "2020-08-06T06:38:06-07:00");
+        certificates.put("containerName", "VenafiBin_12345");
+        certificates.put("certificateStatus", "Active");
+        requestCertMap.put("certificates", certificates);
+        when(ControllerUtil.parseJson(findCertResponse.getResponse())).thenReturn(requestCertMap);
+
+        String metaDataJson = "{\"data\":{\"akmid\":\"102463\",\"applicationName\":\"tvs\",\"applicationOwnerEmailId\":\"certificatename.t-mobile.com\",\"applicationTag\":\"TVS\",\"authority\":\"T-Mobile Issuing CA 01 - SHA2\",\"certCreatedBy\":\"nnazeer1\",\"certOwnerNtid\": \"testusername1\",\"certOwnerEmailId\":\"ltest@smail.com\",\"certType\":\"internal\",\"certificateId\":59880,\"certificateName\":\"certtest260630.t-mobile.com\",\"certificateStatus\":\"Revoked\",\"containerName\":\"VenafiBin_12345\",\"createDate\":\"2020-06-26T05:10:41-07:00\",\"expiryDate\":\"2021-06-26T05:10:41-07:00\",\"projectLeadEmailId\":\"Daniel.Urrutia@T-Mobile.Com\",\"users\":{\"normaluser\":\"write\",\"certuser\":\"read\",\"safeadmin\":\"deny\",\"testsafeuser\":\"write\",\"testuser1\":\"deny\",\"testuser2\":\"read\"}}}";
+        Response readResponse = new Response();
+        readResponse.setHttpstatus(HttpStatus.OK);
+        readResponse.setResponse(metaDataJson);
+        readResponse.setSuccess(true);
+        when(reqProcessor.process(eq("/read"), anyObject(), anyString())).thenReturn(readResponse);
+
+        String metaDataJson1 = "{\"conclusion\":\"rejected\"}" ;
+        CertResponse reqStatusResponse = new CertResponse();
+        reqStatusResponse.setHttpstatus(HttpStatus.OK);
+        reqStatusResponse.setResponse(metaDataJson1);
+        reqStatusResponse.setSuccess(true);
+        Map<String, Object> status = new HashMap<>();
+        Map<String, Object> requestCertMap1 = new HashMap<>();
+        requestCertMap1.put("conclusion", "rejected");
+        when(ControllerUtil.parseJson(metaDataJson1)).thenReturn(requestCertMap1);
+        when(reqProcessor.processCert(eq("/certmanager/actionRequestStatus"), anyObject(), anyString(), anyString()))
+                .thenReturn(reqStatusResponse);
+        Response metadataDeleteResponse = new Response();
+        metadataDeleteResponse.setHttpstatus(HttpStatus.NO_CONTENT);
+        metadataDeleteResponse.setResponse(null);
+        metadataDeleteResponse.setSuccess(true);
+        when(reqProcessor.process(eq("/delete"), anyObject(), anyString())).thenReturn(metadataDeleteResponse);
+        String certType = "external";
+        String certName = "certificatename.t-mobile.com";
+        when(ControllerUtil.updateMetaData(any(), any(), eq(token))).thenReturn(true);
+        certificateMetadata.setRequestStatus(SSLCertificateConstants.RENEW_PENDING);
+        when(certificateUtils.getCertificateMetaData(token, certName, certType)).thenReturn(certificateMetadata);
+        ResponseEntity<?> enrollResponse = sSLCertificateService
+                .validateApprovalStatusAndGetCertificateDetails(certName, certType, userDetail);
+        assertNotNull(enrollResponse);
+        assertEquals(HttpStatus.UNPROCESSABLE_ENTITY, enrollResponse.getStatusCode());
+    }
+
+    @Test
+    public void testValidateApprovalStatusAndGetCertDetailsSuccess_Delete_MetaData_Success() throws Exception {
+        String jsonStr = "{  \"username\": \"testusername1\",  \"password\": \"testpassword1\"}";
+
+        String jsonStr2 = "{\"certificates\":[{\"sortedSubjectName\": \"CN=certificatename.t-mobile.com, C=US, "
+                + "ST=Washington, " + "L=Bellevue, O=T-Mobile USA, Inc\","
+                + "\"certificateId\":57258,\"certificateStatus\":\"Active\","
+                + "\"containerName\":\"cont_12345\",\"NotAfter\":\"2021-06-15T04:35:58-07:00\"}]}";
+        SSLCertificateMetadataDetails certificateMetadata = getSSLExternalCertificateRequest();
+        UserDetails userDetail = getMockUser(true);
+        userDetail.setUsername("testuser1");
+        ReflectionTestUtils.setField(sSLCertificateService, "vaultAuthMethod", "ldap");
+        CertManagerLoginRequest certManagerLoginRequest = getCertManagerLoginRequest();
+        certManagerLoginRequest.setUsername("username");
+        certManagerLoginRequest.setPassword("password");
+
+        Map<String, Object> requestMap = new HashMap<>();
+        requestMap.put("access_token", "12345");
+        requestMap.put("token_type", "type");
+        when(ControllerUtil.parseJson(jsonStr)).thenReturn(requestMap);
+        CertManagerLogin certManagerLogin = new CertManagerLogin();
+        certManagerLogin.setToken_type("token type");
+        certManagerLogin.setAccess_token("1234");
+
+        CertResponse response = new CertResponse();
+        response.setHttpstatus(HttpStatus.OK);
+        response.setResponse(jsonStr);
+        response.setSuccess(true);
+        when(reqProcessor.processCert(eq("/auth/certmanager/login"), anyObject(), anyString(), anyString()))
+                .thenReturn(response);
+
+        CertResponse findCertResponse = new CertResponse();
+        findCertResponse.setHttpstatus(HttpStatus.OK);
+        findCertResponse.setResponse(jsonStr2);
+        findCertResponse.setSuccess(true);
+        when(reqProcessor.processCert(eq("/certmanager/findCertificate"), anyObject(), anyString(), anyString()))
+                .thenReturn(findCertResponse);
+
+        Map<String, Object> requestCertMap = new HashMap<>();
+        Map<String, Object> certificates = new HashMap<>();
+        certificates.put("sortedSubjectName", "certificatename.t-mobile.com");
+        certificates.put("certificateId", "123");
+        certificates.put("NotAfter", "2021-08-06T06:38:06-07:00");
+        certificates.put("NotBefore", "2020-08-06T06:38:06-07:00");
+        certificates.put("containerName", "VenafiBin_12345");
+        certificates.put("certificateStatus", "Active");
+        requestCertMap.put("certificates", certificates);
+        when(ControllerUtil.parseJson(findCertResponse.getResponse())).thenReturn(requestCertMap);
+
+        String metaDataJson = "{\"data\":{\"akmid\":\"102463\",\"applicationName\":\"tvs\",\"applicationOwnerEmailId\":\"certificatename.t-mobile.com\",\"applicationTag\":\"TVS\",\"authority\":\"T-Mobile Issuing CA 01 - SHA2\",\"certCreatedBy\":\"nnazeer1\",\"certOwnerNtid\": \"testusername1\",\"certOwnerEmailId\":\"ltest@smail.com\",\"certType\":\"internal\",\"certificateId\":59880,\"certificateName\":\"certtest260630.t-mobile.com\",\"certificateStatus\":\"Revoked\",\"containerName\":\"VenafiBin_12345\",\"createDate\":\"2020-06-26T05:10:41-07:00\",\"expiryDate\":\"2021-06-26T05:10:41-07:00\",\"projectLeadEmailId\":\"Daniel.Urrutia@T-Mobile.Com\",\"users\":{\"normaluser\":\"write\",\"certuser\":\"read\",\"safeadmin\":\"deny\",\"testsafeuser\":\"write\",\"testuser1\":\"deny\",\"testuser2\":\"read\"}}}";
+        Response readResponse = new Response();
+        readResponse.setHttpstatus(HttpStatus.OK);
+        readResponse.setResponse(metaDataJson);
+        readResponse.setSuccess(true);
+        when(reqProcessor.process(eq("/read"), anyObject(), anyString())).thenReturn(readResponse);
+
+        String metaDataJson1 = "{\"conclusion\":\"rejected\"}" ;
+        CertResponse reqStatusResponse = new CertResponse();
+        reqStatusResponse.setHttpstatus(HttpStatus.OK);
+        reqStatusResponse.setResponse(metaDataJson1);
+        reqStatusResponse.setSuccess(true);
+        Map<String, Object> status = new HashMap<>();
+        Map<String, Object> requestCertMap1 = new HashMap<>();
+        requestCertMap1.put("conclusion", "rejected");
+        when(ControllerUtil.parseJson(metaDataJson1)).thenReturn(requestCertMap1);
+        when(reqProcessor.processCert(eq("/certmanager/actionRequestStatus"), anyObject(), anyString(), anyString()))
+                .thenReturn(reqStatusResponse);
+        Response metadataDeleteResponse = new Response();
+        metadataDeleteResponse.setHttpstatus(HttpStatus.NO_CONTENT);
+        metadataDeleteResponse.setResponse(null);
+        metadataDeleteResponse.setSuccess(true);
+        when(reqProcessor.process(eq("/delete"), anyObject(), anyString())).thenReturn(metadataDeleteResponse);
+        String certType = "external";
+        String certName = "certificatename.t-mobile.com";
+        when(ControllerUtil.updateMetaData(any(), any(), eq(token))).thenReturn(true);
+        when(certificateUtils.getCertificateMetaData(token, certName, certType)).thenReturn(certificateMetadata);
+        ResponseEntity<?> enrollResponse = sSLCertificateService
+                .validateApprovalStatusAndGetCertificateDetails(certName, certType, userDetail);
+        assertNotNull(enrollResponse);
+        assertEquals(HttpStatus.UNPROCESSABLE_ENTITY, enrollResponse.getStatusCode());
+    }
+
+    @Test
+    public void testValidateApprovalStatusAndGetCertDetails_With_DeleteMetaData_Failed() throws Exception {
+        String jsonStr = "{  \"username\": \"testusername1\",  \"password\": \"testpassword1\"}";
+        String jsonStr2 = "{\"certificates\":[{\"sortedSubjectName\": \"CN=certificatename.t-mobile.com, C=US, "
+                + "ST=Washington, " + "L=Bellevue, O=T-Mobile USA, Inc\","
+                + "\"certificateId\":57258,\"certificateStatus\":\"Active\","
+                + "\"containerName\":\"cont_12345\",\"NotAfter\":\"2021-06-15T04:35:58-07:00\"}]}";
+        SSLCertificateMetadataDetails certificateMetadata = getSSLExternalCertificateRequest();
+        UserDetails userDetail = getMockUser(true);
+        userDetail.setUsername("testuser1");
+        ReflectionTestUtils.setField(sSLCertificateService, "vaultAuthMethod", "ldap");
+        CertManagerLoginRequest certManagerLoginRequest = getCertManagerLoginRequest();
+        certManagerLoginRequest.setUsername("username");
+        certManagerLoginRequest.setPassword("password");
+        Map<String, Object> requestMap = new HashMap<>();
+        requestMap.put("access_token", "12345");
+        requestMap.put("token_type", "type");
+        when(ControllerUtil.parseJson(jsonStr)).thenReturn(requestMap);
+        CertManagerLogin certManagerLogin = new CertManagerLogin();
+        certManagerLogin.setToken_type("token type");
+        certManagerLogin.setAccess_token("1234");
+        CertResponse response = new CertResponse();
+        response.setHttpstatus(HttpStatus.OK);
+        response.setResponse(jsonStr);
+        response.setSuccess(true);
+        when(reqProcessor.processCert(eq("/auth/certmanager/login"), anyObject(), anyString(), anyString()))
+                .thenReturn(response);
+        CertResponse findCertResponse = new CertResponse();
+        findCertResponse.setHttpstatus(HttpStatus.OK);
+        findCertResponse.setResponse(jsonStr2);
+        findCertResponse.setSuccess(true);
+        when(reqProcessor.processCert(eq("/certmanager/findCertificate"), anyObject(), anyString(), anyString()))
+                .thenReturn(findCertResponse);
+        Map<String, Object> requestCertMap = new HashMap<>();
+        Map<String, Object> certificates = new HashMap<>();
+        certificates.put("sortedSubjectName", "certificatename.t-mobile.com");
+        certificates.put("certificateId", "123");
+        certificates.put("NotAfter", "2021-08-06T06:38:06-07:00");
+        certificates.put("NotBefore", "2020-08-06T06:38:06-07:00");
+        certificates.put("containerName", "VenafiBin_12345");
+        certificates.put("certificateStatus", "Active");
+        requestCertMap.put("certificates", certificates);
+        when(ControllerUtil.parseJson(findCertResponse.getResponse())).thenReturn(requestCertMap);
+        String metaDataJson = "{\"data\":{\"akmid\":\"102463\",\"applicationName\":\"tvs\",\"applicationOwnerEmailId\":\"certificatename.t-mobile.com\",\"applicationTag\":\"TVS\",\"authority\":\"T-Mobile Issuing CA 01 - SHA2\",\"certCreatedBy\":\"nnazeer1\",\"certOwnerNtid\": \"testusername1\",\"certOwnerEmailId\":\"ltest@smail.com\",\"certType\":\"internal\",\"certificateId\":59880,\"certificateName\":\"certtest260630.t-mobile.com\",\"certificateStatus\":\"Revoked\",\"containerName\":\"VenafiBin_12345\",\"createDate\":\"2020-06-26T05:10:41-07:00\",\"expiryDate\":\"2021-06-26T05:10:41-07:00\",\"projectLeadEmailId\":\"Daniel.Urrutia@T-Mobile.Com\",\"users\":{\"normaluser\":\"write\",\"certuser\":\"read\",\"safeadmin\":\"deny\",\"testsafeuser\":\"write\",\"testuser1\":\"deny\",\"testuser2\":\"read\"}}}";
+        Response readResponse = new Response();
+        readResponse.setHttpstatus(HttpStatus.OK);
+        readResponse.setResponse(metaDataJson);
+        readResponse.setSuccess(true);
+        when(reqProcessor.process(eq("/read"), anyObject(), anyString())).thenReturn(readResponse);
+        String metaDataJson1 = "{\"conclusion\":\"rejected\"}" ;
+        CertResponse reqStatusResponse = new CertResponse();
+        reqStatusResponse.setHttpstatus(HttpStatus.OK);
+        reqStatusResponse.setResponse(metaDataJson1);
+        reqStatusResponse.setSuccess(true);
+        Map<String, Object> status = new HashMap<>();
+        Map<String, Object> requestCertMap1 = new HashMap<>();
+        requestCertMap1.put("conclusion", "rejected");
+        when(ControllerUtil.parseJson(metaDataJson1)).thenReturn(requestCertMap1);
+        when(reqProcessor.processCert(eq("/certmanager/actionRequestStatus"), anyObject(), anyString(), anyString()))
+                .thenReturn(reqStatusResponse);
+        String path="externalcerts/certificatename.t-mobile.com";
+        String pathjson ="{\"path\":\"metadata/"+path+"\"}";
+        Response metadataDeleteResponse = new Response();
+        metadataDeleteResponse.setHttpstatus(HttpStatus.INTERNAL_SERVER_ERROR);
+        metadataDeleteResponse.setResponse(null);
+        metadataDeleteResponse.setSuccess(true);
+        when(reqProcessor.process("/delete", pathjson, "5PDrOhsy4ig8L3EpsJZSLAMg")).thenReturn(metadataDeleteResponse);
+        String certType = "external";
+        String certName = "certificatename.t-mobile.com";
+        when(ControllerUtil.updateMetaData(any(), any(), eq(token))).thenReturn(true);
+        when(certificateUtils.getCertificateMetaData(token, certName, certType)).thenReturn(certificateMetadata);
+        ResponseEntity<?> enrollResponse = sSLCertificateService
+                .validateApprovalStatusAndGetCertificateDetails(certName, certType, userDetail);
+        assertNotNull(enrollResponse);
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, enrollResponse.getStatusCode());
+    }
+    @Test
+    public void testValidateApprovalStatusAndGetCertDetails_With_DeleteMetaPermissinData_Failed() throws Exception {
+        String jsonStr = "{  \"username\": \"testusername1\",  \"password\": \"testpassword1\"}";
+        String jsonStr2 = "{\"certificates\":[{\"sortedSubjectName\": \"CN=certificatename.t-mobile.com, C=US, "
+                + "ST=Washington, " + "L=Bellevue, O=T-Mobile USA, Inc\","
+                + "\"certificateId\":57258,\"certificateStatus\":\"Active\","
+                + "\"containerName\":\"cont_12345\",\"NotAfter\":\"2021-06-15T04:35:58-07:00\"}]}";
+        SSLCertificateMetadataDetails certificateMetadata = getSSLExternalCertificateRequest();
+        UserDetails userDetail = getMockUser(true);
+        userDetail.setUsername("testuser1");
+        ReflectionTestUtils.setField(sSLCertificateService, "vaultAuthMethod", "ldap");
+        CertManagerLoginRequest certManagerLoginRequest = getCertManagerLoginRequest();
+        certManagerLoginRequest.setUsername("username");
+        certManagerLoginRequest.setPassword("password");
+        Map<String, Object> requestMap = new HashMap<>();
+        requestMap.put("access_token", "12345");
+        requestMap.put("token_type", "type");
+        when(ControllerUtil.parseJson(jsonStr)).thenReturn(requestMap);
+        CertManagerLogin certManagerLogin = new CertManagerLogin();
+        certManagerLogin.setToken_type("token type");
+        certManagerLogin.setAccess_token("1234");
+        CertResponse response = new CertResponse();
+        response.setHttpstatus(HttpStatus.OK);
+        response.setResponse(jsonStr);
+        response.setSuccess(true);
+        when(reqProcessor.processCert(eq("/auth/certmanager/login"), anyObject(), anyString(), anyString()))
+                .thenReturn(response);
+        CertResponse findCertResponse = new CertResponse();
+        findCertResponse.setHttpstatus(HttpStatus.OK);
+        findCertResponse.setResponse(jsonStr2);
+        findCertResponse.setSuccess(true);
+        when(reqProcessor.processCert(eq("/certmanager/findCertificate"), anyObject(), anyString(), anyString()))
+                .thenReturn(findCertResponse);
+        Map<String, Object> requestCertMap = new HashMap<>();
+        Map<String, Object> certificates = new HashMap<>();
+        certificates.put("sortedSubjectName", "certificatename.t-mobile.com");
+        certificates.put("certificateId", "123");
+        certificates.put("NotAfter", "2021-08-06T06:38:06-07:00");
+        certificates.put("NotBefore", "2020-08-06T06:38:06-07:00");
+        certificates.put("containerName", "VenafiBin_12345");
+        certificates.put("certificateStatus", "Active");
+        requestCertMap.put("certificates", certificates);
+        when(ControllerUtil.parseJson(findCertResponse.getResponse())).thenReturn(requestCertMap);
+        String metaDataJson = "{\"data\":{\"akmid\":\"102463\",\"applicationName\":\"tvs\",\"applicationOwnerEmailId\":\"certificatename.t-mobile.com\",\"applicationTag\":\"TVS\",\"authority\":\"T-Mobile Issuing CA 01 - SHA2\",\"certCreatedBy\":\"nnazeer1\",\"certOwnerNtid\": \"testusername1\",\"certOwnerEmailId\":\"ltest@smail.com\",\"certType\":\"internal\",\"certificateId\":59880,\"certificateName\":\"certtest260630.t-mobile.com\",\"certificateStatus\":\"Revoked\",\"containerName\":\"VenafiBin_12345\",\"createDate\":\"2020-06-26T05:10:41-07:00\",\"expiryDate\":\"2021-06-26T05:10:41-07:00\",\"projectLeadEmailId\":\"Daniel.Urrutia@T-Mobile.Com\",\"users\":{\"normaluser\":\"write\",\"certuser\":\"read\",\"safeadmin\":\"deny\",\"testsafeuser\":\"write\",\"testuser1\":\"deny\",\"testuser2\":\"read\"}}}";
+        Response readResponse = new Response();
+        readResponse.setHttpstatus(HttpStatus.OK);
+        readResponse.setResponse(metaDataJson);
+        readResponse.setSuccess(true);
+        when(reqProcessor.process(eq("/read"), anyObject(), anyString())).thenReturn(readResponse);
+        String metaDataJson1 = "{\"conclusion\":\"rejected\"}" ;
+        CertResponse reqStatusResponse = new CertResponse();
+        reqStatusResponse.setHttpstatus(HttpStatus.OK);
+        reqStatusResponse.setResponse(metaDataJson1);
+        reqStatusResponse.setSuccess(true);
+        Map<String, Object> status = new HashMap<>();
+        Map<String, Object> requestCertMap1 = new HashMap<>();
+        requestCertMap1.put("conclusion", "rejected");
+        when(ControllerUtil.parseJson(metaDataJson1)).thenReturn(requestCertMap1);
+        when(reqProcessor.processCert(eq("/certmanager/actionRequestStatus"), anyObject(), anyString(), anyString()))
+                .thenReturn(reqStatusResponse);
+        String path="externalcerts/certificatename.t-mobile.com";
+        String pathjson ="{\"path\":\"metadata/"+path+"\"}";
+        Response metadataDeleteResponse = new Response();
+        metadataDeleteResponse.setHttpstatus(HttpStatus.NO_CONTENT);
+        metadataDeleteResponse.setResponse(null);
+        metadataDeleteResponse.setSuccess(true);
+        when(reqProcessor.process("/delete", pathjson, "5PDrOhsy4ig8L3EpsJZSLAMg")).thenReturn(metadataDeleteResponse);
+        String pathjson1 ="{\"path\":\"externalcerts/certificatename.t-mobile.com\"}";
+        Response metadataDeleteResponse1 = new Response();
+        metadataDeleteResponse1.setHttpstatus(HttpStatus.INTERNAL_SERVER_ERROR);
+        metadataDeleteResponse1.setResponse(null);
+        metadataDeleteResponse1.setSuccess(true);
+        when(reqProcessor.process("/delete", pathjson1, "5PDrOhsy4ig8L3EpsJZSLAMg")).thenReturn(metadataDeleteResponse1);
+        String certType = "external";
+        String certName = "certificatename.t-mobile.com";
+        when(ControllerUtil.updateMetaData(any(), any(), eq(token))).thenReturn(true);
+        when(certificateUtils.getCertificateMetaData(token, certName, certType)).thenReturn(certificateMetadata);
+        ResponseEntity<?> enrollResponse = sSLCertificateService
+                .validateApprovalStatusAndGetCertificateDetails(certName, certType, userDetail);
+        assertNotNull(enrollResponse);
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, enrollResponse.getStatusCode());
+    }
+
+
 	@Test
 	public void testValidateApprovalStatusAndGetCertDetailsFailed() throws Exception {
 		String jsonStr = "{  \"username\": \"testusername1\",  \"password\": \"testpassword1\"}";
@@ -5093,8 +5435,8 @@ public class SSLCertificateServiceTest {
 				+ "\"certificateId\":57258,\"certificateStatus\":\"Active\","
 				+ "\"containerName\":\"cont_12345\",\"NotAfter\":\"2021-06-15T04:35:58-07:00\"}]}";
 
-		ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.NO_CONTENT)
-				.body("{\"messages\":[\"Certificate may not be approved or rejected from NCLM \"]}");
+		ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY)
+				.body("{\"errors\":[\"Certificate may not be approved from NCLM \"]}");
 		SSLCertificateMetadataDetails certificateMetadata = getSSLExternalCertificateRequest();
 		UserDetails userDetail = getMockUser(true);
 		userDetail.setUsername("testuser1");
@@ -5117,6 +5459,13 @@ public class SSLCertificateServiceTest {
 		response.setSuccess(true);
 		when(reqProcessor.processCert(eq("/auth/certmanager/login"), anyObject(), anyString(), anyString()))
 				.thenReturn(response);
+        String metaDataJson1 = "{\"conclusion\":\"rejected\"}" ;
+        CertResponse reqStatusResponse = new CertResponse();
+        reqStatusResponse.setHttpstatus(HttpStatus.OK);
+        reqStatusResponse.setResponse(metaDataJson1);
+        reqStatusResponse.setSuccess(true);
+        when(reqProcessor.processCert(eq("/certmanager/actionRequestStatus"), anyObject(), anyString(), anyString()))
+                .thenReturn(reqStatusResponse);
 
 		CertResponse findCertResponse = new CertResponse();
 		findCertResponse.setHttpstatus(HttpStatus.OK);
@@ -5132,7 +5481,7 @@ public class SSLCertificateServiceTest {
 		when(certificateUtils.getCertificateMetaData(token, certName, certType)).thenReturn(certificateMetadata);
 		ResponseEntity<?> enrollResponse = sSLCertificateService
 				.validateApprovalStatusAndGetCertificateDetails(certName, certType, userDetail);
-		assertEquals(HttpStatus.NO_CONTENT, enrollResponse.getStatusCode());
+		assertEquals(HttpStatus.UNPROCESSABLE_ENTITY, enrollResponse.getStatusCode());
 		assertEquals(responseEntityExpected, enrollResponse);
 	}
 
@@ -5162,7 +5511,14 @@ public class SSLCertificateServiceTest {
 		response.setSuccess(true);
 		when(reqProcessor.processCert(eq("/auth/certmanager/login"), anyObject(), anyString(), anyString()))
 				.thenReturn(response);
+        String metaDataJson1 = "{\"conclusion\":\"rejected\"}" ;
+        CertResponse reqStatusResponse = new CertResponse();
+        reqStatusResponse.setHttpstatus(HttpStatus.OK);
+        reqStatusResponse.setResponse(metaDataJson1);
+        reqStatusResponse.setSuccess(true);
 
+        when(reqProcessor.processCert(eq("/certmanager/actionRequestStatus"), anyObject(), anyString(), anyString()))
+                .thenReturn(reqStatusResponse);
 		CertResponse findCertResponse = new CertResponse();
 		findCertResponse.setHttpstatus(HttpStatus.OK);
 		findCertResponse.setResponse(jsonStr);
@@ -5234,6 +5590,11 @@ public class SSLCertificateServiceTest {
 		when(reqProcessor.processCert(eq("/certmanager/findCertificate"), anyObject(), anyString(), anyString()))
 				.thenReturn(findCertResponse);
 
+        Response metadataDeleteResponse = new Response();
+        metadataDeleteResponse.setHttpstatus(HttpStatus.OK);
+        metadataDeleteResponse.setResponse(null);
+        metadataDeleteResponse.setSuccess(true);
+        when(reqProcessor.process(eq("/delete"), anyObject(), anyString())).thenReturn(metadataDeleteResponse);
 		Map<String, Object> requestCertMap = new HashMap<>();
 		Map<String, Object> certificates = new HashMap<>();
 		certificates.put("sortedSubjectName", "certificatename.t-mobile.com");
@@ -5251,6 +5612,13 @@ public class SSLCertificateServiceTest {
 		readResponse.setResponse(metaDataJson);
 		readResponse.setSuccess(true);
 		when(reqProcessor.process(eq("/read"), anyObject(), anyString())).thenReturn(readResponse);
+        String metaDataJson1 = "{\"conclusion\":\"rejected\"}" ;
+        CertResponse reqStatusResponse = new CertResponse();
+        reqStatusResponse.setHttpstatus(HttpStatus.OK);
+        reqStatusResponse.setResponse(metaDataJson1);
+        reqStatusResponse.setSuccess(true);
+        when(reqProcessor.processCert(eq("/certmanager/actionRequestStatus"), anyObject(), anyString(), anyString()))
+                .thenReturn(reqStatusResponse);
 
 		String certType = "external";
 		String certName = "certificatename.t-mobile.com";
@@ -5320,6 +5688,13 @@ public class SSLCertificateServiceTest {
 		readResponse.setResponse(metaDataJson);
 		readResponse.setSuccess(true);
 		when(reqProcessor.process(eq("/read"), anyObject(), anyString())).thenReturn(readResponse);
+        String metaDataJson1 = "{\"conclusion\":\"rejected\"}" ;
+        CertResponse reqStatusResponse = new CertResponse();
+        reqStatusResponse.setHttpstatus(HttpStatus.OK);
+        reqStatusResponse.setResponse(metaDataJson1);
+        reqStatusResponse.setSuccess(true);
+        when(reqProcessor.processCert(eq("/certmanager/actionRequestStatus"), anyObject(), anyString(), anyString()))
+                .thenReturn(reqStatusResponse);
 
 		String certType = "external";
 		String certName = "certificatename.t-mobile.com";
