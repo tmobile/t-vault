@@ -1,8 +1,7 @@
-import React, { useState } from "react";
-import ButtonComponent from "./buttonComponent";
-import TextField from "@material-ui/core/TextField";
-import styled from "styled-components";
-
+import React, { useState } from 'react';
+import TextField from '@material-ui/core/TextField';
+import styled from 'styled-components';
+import ButtonComponent from './buttonComponent';
 
 const SecretWrapper = styled.section`
   padding: 2rem;
@@ -36,19 +35,27 @@ const CancelSaveWrapper = styled.div`
 `;
 
 const Secrets = () => {
-  const [, setSecret] = useState("");
-  const [, setKeyId] = useState("");
+  const [, setSecret] = useState('');
+  const [, setKeyId] = useState('');
 
   return (
     <SecretWrapper>
       <Title>Key Id</Title>
-      <TextField id="filled-basic" variant="filled" onChange={(e) => setKeyId(e.target.value)} />
+      <TextField
+        id="filled-basic"
+        variant="filled"
+        onChange={(e) => setKeyId(e.target.value)}
+      />
       <KeyIdInputRequirements>
         Please enter a minimum of 3 characters lowercase alphabets, number and
         underscores only
       </KeyIdInputRequirements>
       <Title>Secret</Title>
-      <TextField id="filled-basic" variant="filled" onChange={(e) => setSecret(e.target.value)} />
+      <TextField
+        id="filled-basic"
+        variant="filled"
+        onChange={(e) => setSecret(e.target.value)}
+      />
       <CancelSaveWrapper>
         <ButtonComponent label="CANCEL" color="default" type="contained" />
         <ButtonComponent label="SAVE" type="contained" color="primary" />

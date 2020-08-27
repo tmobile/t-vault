@@ -1,13 +1,12 @@
-import React, { useState } from "react";
-
-import Radio from "@material-ui/core/Radio";
-import RadioGroup from "@material-ui/core/RadioGroup";
-import TextField from "@material-ui/core/TextField";
-import Autocomplete from "@material-ui/lab/Autocomplete";
-import FormControlLabel from "@material-ui/core/FormControlLabel";
-import FormControl from "@material-ui/core/FormControl";
-import ButtonComponent from "./buttonComponent";
-import styled from "styled-components";
+import React, { useState } from 'react';
+import Radio from '@material-ui/core/Radio';
+import RadioGroup from '@material-ui/core/RadioGroup';
+import TextField from '@material-ui/core/TextField';
+import Autocomplete from '@material-ui/lab/Autocomplete';
+import FormControlLabel from '@material-ui/core/FormControlLabel';
+import FormControl from '@material-ui/core/FormControl';
+import styled from 'styled-components';
+import ButtonComponent from './buttonComponent';
 
 const PermissionWrapper = styled.div`
   padding: 2rem;
@@ -47,64 +46,64 @@ const CancelSaveWrapper = styled.div`
   align-self: flex-end;
 `;
 
-const Permissions = (props) => {
-	const [value, setValue] = useState("read");
-	const [searchValue, setSearchValue] = useState("");
+const Permissions = () => {
+  const [value, setValue] = useState('read');
+  const [, setSearchValue] = useState('');
 
-	const handleChange = (event) => {
-		setValue(event.target.value);
-	};
-	const data = [{ title: "abc@tmobile.com" }, { title: "xyz@tmobile.com" }];
-	console.log("searchValue :>> ", searchValue);
-	return (
-		<PermissionWrapper>
-			<InputRadioWrapper>
-				<InputWrapper>
-					<Title>Add User</Title>
-					<Autocomplete
-						id="combo-box-demo"
-						options={data}
-						getOptionLabel={(option) => option.title}
-						style={{ width: "90%" }}
-						renderInput={(params) => (
-							<TextField
-								{...params}
-								placeholder="Search"
-								onChange={(e) => setSearchValue(e.target.value)}
-							/>
-						)}
-					/>
-				</InputWrapper>
-				<div>
-					<Title>Permission</Title>
-					<FormControl component="fieldset">
-						<RadioGroup
-							row
-							aria-label="permissions"
-							name="permissions1"
-							value={value}
-							onChange={handleChange}
-						>
-							<FormControlLabel
-								value="read"
-								control={<Radio color="default" />}
-								label="Read"
-							/>
-							<FormControlLabel
-								value="write"
-								control={<Radio color="default" />}
-								label="Write"
-							/>
-						</RadioGroup>
-					</FormControl>
-				</div>
-			</InputRadioWrapper>
-			<CancelSaveWrapper>
-				<ButtonComponent label="CANCEL" color="default" type="contained" />
-				<ButtonComponent label="SAVE" color="primary" type="contained" />
-			</CancelSaveWrapper>
-		</PermissionWrapper>
-	);
+  const handleChange = (event) => {
+    setValue(event.target.value);
+  };
+  const data = [{ title: 'abc@tmobile.com' }, { title: 'xyz@tmobile.com' }];
+
+  return (
+    <PermissionWrapper>
+      <InputRadioWrapper>
+        <InputWrapper>
+          <Title>Add User</Title>
+          <Autocomplete
+            id="combo-box-demo"
+            options={data}
+            getOptionLabel={(option) => option.title}
+            style={{ width: '90%' }}
+            renderInput={(params) => (
+              <TextField
+                // eslint-disable-next-line react/jsx-props-no-spreading
+                {...params}
+                onChange={(e) => setSearchValue(e.target.value)}
+              />
+            )}
+          />
+        </InputWrapper>
+        <div>
+          <Title>Permission</Title>
+          <FormControl component="fieldset">
+            <RadioGroup
+              row
+              aria-label="permissions"
+              name="permissions1"
+              value={value}
+              onChange={handleChange}
+            >
+              <FormControlLabel
+                value="read"
+                control={<Radio color="default" />}
+                label="Read"
+              />
+              <FormControlLabel
+                value="write"
+                control={<Radio color="default" />}
+                label="Write"
+              />
+            </RadioGroup>
+          </FormControl>
+        </div>
+      </InputRadioWrapper>
+      <CancelSaveWrapper>
+        <ButtonComponent label="CANCEL" color="default" type="contained" />
+        <ButtonComponent label="SAVE" color="primary" type="contained" />
+      </CancelSaveWrapper>
+    </PermissionWrapper>
+  );
 };
 
 export default Permissions;
