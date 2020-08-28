@@ -1,40 +1,40 @@
 {
     "safes": [
         {
-            "name": "sample safe-1",
+            "name": "sample/safe-1",
             "desc": "Hello yhis is the sample description of thesafety used here. it shows description about safety type and so on",
             "date": "2 days ago , 9:20 pm",
-            "flagType":"new"
+            "flagType": "new"
         },
         {
-            "name": "sample safe-1",
+            "name": "sample/safe-2",
             "desc": "Hello yhis is the sample description of thesafety used here. it shows description about safety type and so on",
             "date": "2 days ago , 9:20 pm",
-            "flagType":"new"
+            "flagType": "new"
         },
         {
-            "name": "sample safe-1",
+            "name": "sample/safe-3",
             "desc": "Hello yhis is the sample description of thesafety used here. it shows description about safety type and so on",
             "date": "2 days ago , 9:20 pm",
-            "flagType":"new"
+            "flagType": "new"
         },
         {
-            "name": "sample safe-1",
+            "name": "sample/safe-4",
             "desc": "Hello yhis is the sample description of thesafety used here. it shows description about safety type and so on",
             "date": "2 days ago , 9:20 pm",
-            "flagType":"seen"
+            "flagType": "seen"
         },
         {
-            "name": "sample safe-1",
+            "name": "sample/safe-5",
             "desc": "Hello yhis is the sample description of thesafety used here. it shows description about safety type and so on",
             "date": "2 days ago , 9:20 pm",
-            "flagType":"seen"
+            "flagType": "seen"
         },
         {
-            "name": "sample safe-1",
+            "name": "sample/safe-6",
             "desc": "Hello yhis is the sample description of thesafety used here. it shows description about safety type and so on",
             "date": "2 days ago , 9:20 pm",
-            "flagType":"old"
+            "flagType": "old"
         }
     ]
 }

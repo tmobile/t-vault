@@ -24,14 +24,11 @@ from T-Mobile USA, Inc.
 
 import React from 'react';
 import ReactDOM from 'react-dom';
-import { Provider } from 'react-redux';
 import { BrowserRouter } from 'react-router-dom';
-
-import * as customStore from 'customStore';
 import App from './App';
 import { shallow } from 'enzyme';
 
-it('renders without crashing', () => {
+it('renders without crashing', (props) => {
   const div = document.createElement('div');
 
   ReactDOM.render(
@@ -43,6 +40,6 @@ it('renders without crashing', () => {
 
   ReactDOM.unmountComponentAtNode(div);
 
-  const wrapper = shallow(<App {...props} store={store} />);
+  const wrapper = shallow(<App {...props} />);
   wrapper.dive().instance().componentDidUpdate(props);
 });

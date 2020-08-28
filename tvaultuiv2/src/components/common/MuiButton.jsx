@@ -1,23 +1,22 @@
 import React from 'react';
-
+import PropTypes from 'prop-types';
 import styled from 'styled-components';
 import { Button } from '@material-ui/core';
-import Icon from '@material-ui/core/Icon';
 
 const ActionButton = styled('div')``;
+
 const MuiButton = (props) => {
-  const { label } = props;
+  const { label, icon } = props;
   return (
     <ActionButton>
-      <Button
-        variant="contained"
-        color="secondary"
-        startIcon={<Icon>add_circle</Icon>}
-      >
+      <Button variant="contained" color="secondary" startIcon={icon}>
         {label}
       </Button>
     </ActionButton>
   );
 };
-
+MuiButton.prototype = {
+  label: PropTypes.string,
+  icon: PropTypes.node,
+};
 export default MuiButton;

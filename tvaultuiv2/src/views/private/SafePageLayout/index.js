@@ -1,7 +1,7 @@
 import React from 'react';
 import { withRouter } from 'react-router-dom';
 
-import PropTypes from 'prop-types';
+// import PropTypes from 'prop-types';
 import SafeSectionWrap from 'components/containers/SafeSectionWrap';
 import styled from 'styled-components';
 

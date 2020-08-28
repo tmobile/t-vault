@@ -1,11 +1,15 @@
 import React from 'react';
-import MuiButton from 'components/common/ActionButton';
+
+import { Input, InputAdornment } from '@material-ui/core';
+import MuiButton from 'components/common/MuiButton';
 import styled from 'styled-components';
 import Avatar from '@material-ui/core/Avatar';
-import FolderIcon from '@material-ui/icons/Folder';
-
 import Dropdown from 'components/common/SelectDropdown';
 import SelectionTabs from 'components/common/Tabs';
+
+import FolderIcon from '@material-ui/icons/Folder';
+import SearchIcon from '@material-ui/icons/Search';
+import AddIcon from '@material-ui/icons/Add';
 
 //mock data
 import data from 'mockData/safeSectionMock.json';
@@ -22,13 +26,13 @@ const ColumnSection = styled('section')`
 const SectionPreview = styled('main')`
   display: flex;
 `;
-const LeftSectionHeader = styled('div')`
+const ColumnHeader = styled('div')`
   display: flex;
   align-items: center;
   padding: 0.5em;
   justify-content: space-between;
 `;
-const SearchInput = styled.input`
+const SearchInput = styled(Input)`
   padding: 0.25em 0.5em;
   background-color: #f2f2f2;
   padding: 0.25em 0.5em;
@@ -39,12 +43,13 @@ const SearchInput = styled.input`
   height: 3em;
   margin: 0 auto;
   margin-bottom: 1em;
+  &.MuiInput-underline:before,
+  .MuiInput-underline:hover:before {
+    border-bottom: none;
+  }
 `;
 const SafeListContainer = styled.div``;
-const RightSecHeader = styled('div')`
-  display: flex;
-  padding: 0.75em;
-`;
+
 const SafeIconWrap = styled('div')`
   width: 20%;
   height: 100%;
@@ -61,6 +66,10 @@ const SafeFolderWrap = styled.div`
   display: flex;
   align-items: center;
   padding: 0.8em;
+  :hover {
+    background-color: #4a4a4a;
+    color: #fff;
+  }
 `;
 const SafeDetailBox = styled('div')`
   padding-left: 1em;
@@ -74,11 +83,17 @@ const SafeSectionWrap = () => {
   return (
     <SectionPreview title="safe-section">
       <ColumnSection>
-        <LeftSectionHeader>
+        <ColumnHeader>
           <Dropdown />
-          <MuiButton label="Create" />
-        </LeftSectionHeader>
-        <SearchInput />
+          <MuiButton label="Create" icon={<AddIcon />} />
+        </ColumnHeader>
+        <SearchInput
+          startAdornment={
+            <InputAdornment position="start">
+              <SearchIcon />
+            </InputAdornment>
+          }
+        />
         <SafeListContainer>
           {safes.map((safe, index) => (
             <SafeFolderWrap key={index}>
@@ -99,13 +114,13 @@ const SafeSectionWrap = () => {
         </SafeListContainer>
       </ColumnSection>
       <ColumnSection>
-        <RightSecHeader>
+        <ColumnHeader>
           <SafeIconWrap />
           <SafeDescription>
             Hello yhis is the sample description of thesafety used here. it
             shows description about safety type and so on.
           </SafeDescription>
-        </RightSecHeader>
+        </ColumnHeader>
         <SelectionTabs />
       </ColumnSection>
     </SectionPreview>
