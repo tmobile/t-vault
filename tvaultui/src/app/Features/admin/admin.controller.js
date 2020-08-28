@@ -2203,8 +2203,7 @@
                         function (error) {
                         if(error.status === 422){
                         	 var errors = error.data.errors;
-                        	$scope.viewEditErrorMessage = errors[0]
-                        	console.log("$scope.certificateCreationMessage1 "+$scope.viewEditErrorMessage)
+                        	$scope.viewEditErrorMessage = errors[0];
                         	$scope.isLoadingData = false;
                         	$scope.validateCertificateDetailsPopUp();
                         } else {
