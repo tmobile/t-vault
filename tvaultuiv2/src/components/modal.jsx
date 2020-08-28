@@ -1,3 +1,4 @@
+/* eslint-disable react/jsx-props-no-spreading */
 import React, { useState } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 import Modal from '@material-ui/core/Modal';
@@ -55,20 +56,32 @@ const ModalWrapper = styled.div`
 const PopoverDescriptionWrapper = styled.div`
   display: flex;
   margin-bottom: 1.5rem;
+  position: relative;
   .safe-description {
     margin-left: 2rem;
     color: #ccc;
   }
 `;
 
-const CreateModal = (props) => {
-  console.log('props :>> ', props);
+const PopoverWrapper = styled.div`
+  position: absolute;
+  bottom: -48px;
+  background-color: #fff;
+  padding: 2rem;
+  z-index: 2;
+  border-radius: 3px;
+  box-shadow: 0 0.125em 0.75em 0px rgba(0, 0, 0, 0.15);
+  display: ${(props) => (props.popOverOpen ? 'block' : 'none')};
+`;
+
+const CreateModal = () => {
   const classes = useStyles();
   const [open, setOpen] = useState(false);
   const [type, setType] = useState('Personal');
   const [owner, setOwner] = useState('');
   const [safeName, setSafeName] = useState('');
   const [description, setDescription] = useState('');
+  const [popOverOpen, setPopOverOpen] = useState(false);
   const handleOpen = () => {
     setOpen(true);
   };
@@ -84,10 +97,13 @@ const CreateModal = (props) => {
       value: 'Public',
     },
   ];
+  const onIconClicked = () => {
+    setPopOverOpen(!popOverOpen);
+  };
 
   return (
     <div>
-      <button type="button" onClick={() => handleOpen()}>
+      <button type="button" onClick={handleOpen}>
         Create
       </button>
       <Modal
@@ -106,7 +122,12 @@ const CreateModal = (props) => {
           <ModalWrapper>
             <h2 id="transition-modal-title">Create Safe</h2>
             <PopoverDescriptionWrapper>
-              <p>Icon</p>
+              <button type="button" onClick={() => onIconClicked()}>
+                Icon
+              </button>
+              <PopoverWrapper popOverOpen={popOverOpen}>
+                Icon popover
+              </PopoverWrapper>
               <p className="safe-description">
                 A safe is a logical unit to store the secrets. All the safes are
                 created within vault. You can control access only at the safe
