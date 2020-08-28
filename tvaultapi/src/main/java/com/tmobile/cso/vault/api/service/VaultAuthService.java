@@ -118,6 +118,7 @@ public class  VaultAuthService {
 	private Map<String, Object> filterDuplicateCertPermissions(Map<String, Object> access) {
 		if (!MapUtils.isEmpty(access)) {
 			List<Map<String,String>> certPermissions = (List<Map<String,String>>)access.get(TVaultConstants.CERT_POLICY_PREFIX);
+			List<Map<String,String>> externalCertPermissions = (List<Map<String,String>>)access.get(TVaultConstants.EXTERNAL_CERT_POLICY_PREFIX);
 			if (certPermissions != null) {
 				//map to check duplicate permission
 				Map<String,String> filteredPermissions = Collections.synchronizedMap(new HashMap());
@@ -134,6 +135,23 @@ public class  VaultAuthService {
 					}
 				}
 				access.put(TVaultConstants.CERT_POLICY_PREFIX, updatedPermissionList);
+			}
+			if (externalCertPermissions != null) {
+				//map to check duplicate permission
+				Map<String,String> filteredPermissions = Collections.synchronizedMap(new HashMap());
+				List<Map<String,String>> updatedPermissionList = new ArrayList<>();
+				for (Map<String,String> permissionMap: externalCertPermissions) {
+					Set<String> keys = permissionMap.keySet();
+					String key = keys.stream().findFirst().orElse("");
+
+					if (!TVaultConstants.EMPTY.equals(key) && !filteredPermissions.containsKey(key)) {
+						filteredPermissions.put(key, permissionMap.get(key));
+						Map<String,String> permission = Collections.synchronizedMap(new HashMap());
+						permission.put(key, permissionMap.get(key));
+						updatedPermissionList.add(permission);
+					}
+				}
+				access.put(TVaultConstants.EXTERNAL_CERT_POLICY_PREFIX, updatedPermissionList);
 			}
 		}
 		return access;

@@ -2187,7 +2187,7 @@
                 var certificateType = certificateDetails.certType;
 
                 if(certificateType !== null && certificateType.toLowerCase() === "external") {
-                    if(certificateDetails.requestStatus !== null && certificateDetails.requestStatus === "Pending Approval") {
+                    if(certificateDetails.requestStatus !== null && certificateDetails.requestStatus !== "Approved") {
                         var updatedUrlOfEndPoint = RestEndpoints.baseURL + "/v2/sslcert/validate/" + certName+"/"+ certificateType;
                         AdminSafesManagement.validateCertificateDetails(null, updatedUrlOfEndPoint).then(function (response) {
 
@@ -2228,7 +2228,6 @@
         };
         
          $rootScope.renewCertificate = function(certificateDetails){  	
-                
                	if ($rootScope.certDetails !== null && $rootScope.certDetails !== undefined) {
                		certificateDetails = $rootScope.certDetails;
                   }
