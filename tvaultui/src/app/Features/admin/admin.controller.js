@@ -1721,11 +1721,6 @@
 
                         $scope.appNameTableOptions.push({"type":value, "name": name, "tag": appTag, "id": appID});
                     }
-                    if ($scope.certObj.certDetails.applicationName =="" || $scope.certObj.certDetails.applicationName ==null
-                    || $scope.certObj.certDetails.applicationName == undefined) {
-                        document.getElementById('applicationName').value = '';
-                        document.getElementById('applicationName').placeholder="Search application name";
-                    }
                 }
                 else {
                     $scope.errorMessage = AdminSafesManagement.getTheRightErrorMessage(response);
