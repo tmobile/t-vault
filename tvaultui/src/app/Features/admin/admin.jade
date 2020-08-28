@@ -666,6 +666,9 @@ script(type='text/ng-template', id='manageSecretId.html')
                                           div.data-management-content
                                             .row.change-safe-table-container(ng-if='true')
                                               loading-state(ng-if='isLoadingData'  && 'isLoadingCerts')
+                                              .change-list-table-data.row
+                                                  .unavailable-text(ng-show="!isLoadingData && finalFilterCertResults.length==0")
+                                                      .container.name No Certificates Available
                                               .row.change-data.header.solid-header(ng-show="!isLoadingData && (certificateData.certificates.length>0 && finalFilterCertResults.length != '0')")
                                                   .container.name.col-lg-3.col-md-2.col-sm-2.col-xs-3 CERTIFICATE
                                                   .container.name.action.col-lg-3.col-md-2.col-sm-2.col-xs-2 EXPIRATION DATE
@@ -677,9 +680,7 @@ script(type='text/ng-template', id='manageSecretId.html')
                                                           .rotate.glyphicon.glyphicon-remove-circle
                                                       .create-link.middle-block.hide-in-mobile
                                                           .text CREATE NEW CERTIFICATE
-                                              .change-list-table-data.row
-                                                  .unavailable-text(ng-show="!isLoadingData && finalFilterCertResults.length==0")
-                                                      .container.name No Certificates Available
+                                              
                                                   .row.change-data.item(ng-show="!isLoadingData" ng-class="{'grayBackground' : activeItem == true}" ng-repeat="value in certificateData.certificates |  filter:searchValue | limitTo: certpaginationLimit()")
                                                       .container.name.col-lg-3.col-md-3.col-sm-2.col-xs-2(title="{{ getCertSubjectName(value) }}") {{ getCertSubjectName(value) }}
                                                       .container.name.col-lg-3.col-md-2.col-sm-1.col-xs-2(title="{{ getCertExpirationDate(value) }}") {{ getCertExpirationDate(value) }}
@@ -705,26 +706,25 @@ script(type='text/ng-template', id='manageSecretId.html')
                                                           
                                                          
                                     md-tab( md-on-select="getExtCertificates()" ng-attr-label="External certificates" )
-                                        md-content(class="md-padding md-content-wrapper" ng-if="!isExternalCert")
+                                        md-content(class="md-content-wrapper" ng-if="!isExternalCert")
                                             md-content(class="md-content-wrapper")
                                           div.data-management-content
                                             .row.change-safe-table-container(ng-if='true')
                                               loading-state(ng-if='isLoadingData'  && 'isLoadingCerts')
+                                              .change-list-table-data.row
+                                                  .unavailable-text(ng-show="!isLoadingData && finalFilterCertResults.length==0")
+                                                      .container.name No Certificates Available                                              
                                               .row.change-data.header.solid-header(ng-show="!isLoadingData && (certificateData.certificates.length>0 && finalFilterCertResults.length != '0')")
                                                   .container.name.col-lg-4.col-md-4.col-sm-3.col-xs-3 CERTIFICATE                                                  
-                                                  .container.name.action.col-lg-2.col-md-2.col-sm-2.col-xs-2 ACTION
+                                                  .container.name.action.col-lg-4.col-md-4.col-sm-4.col-xs-4 ACTION
                                                   div.create-certificate-link
                                                     .function-text.link-style.option.right(ng-click="newCertificateConfiguration('lg')")
                                                       .action-icon-wrapper.static
                                                           .rotate.glyphicon.glyphicon-remove-circle
                                                       .create-link.middle-block.hide-in-mobile
-                                                          .text CREATE NEW CERTIFICATE
-                                              .change-list-table-data.row
-                                                  .unavailable-text(ng-show="!isLoadingData && finalFilterCertResults.length==0")
-                                                      .container.name No Certificates Available
+                                                          .text CREATE NEW CERTIFICATE                                                                                                
                                                   .row.change-data.item(ng-show="!isLoadingData" ng-class="{'grayBackground' : activeItem == true}" ng-repeat="value in certificateData.certificates |  filter:searchValue | limitTo: certpaginationLimit()")
-                                                      .container.name.col-lg-4.col-md-4.col-sm-3.col-xs-3(title="{{ getCertSubjectName(value) }}") {{ getCertSubjectName(value) }}
-                                                      
+                                                      .container.name.col-lg-4.col-md-4.col-sm-3.col-xs-3(title="{{ getCertSubjectName(value) }}") {{ getCertSubjectName(value) }}                                                      
                                                       .container.radio-inputs.col-lg-6.col-md-6.col-sm-6.col-xs-6
                                                           .down.view
                                                               .list-icon(ng-click="goToAddPermissions(value)")  View/Edit                                                           
