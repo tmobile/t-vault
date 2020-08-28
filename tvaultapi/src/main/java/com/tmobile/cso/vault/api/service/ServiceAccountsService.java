@@ -1649,7 +1649,7 @@ public class  ServiceAccountsService {
 			String[] latestPolicies = policyUtils.getCurrentPolicies(userDetails.getSelfSupportToken(), userDetails.getUsername(), userDetails);
 			List<String> onboardedlist = new ArrayList<>();
 			for (String policy: latestPolicies) {
-				if (policy.startsWith("o_")) {
+				if (policy.startsWith("o_svcacct")) {
 					onboardedlist.add(policy.substring(10));
 				}
 			}

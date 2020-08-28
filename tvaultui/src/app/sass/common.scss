@@ -1507,6 +1507,13 @@ button.btn-primary:hover{
     padding: 1px 4px;
 }
 
+.invalid-email {
+  color: rgb(197,17,98);
+  position: absolute;
+  font-size: 11px;
+  padding: 1px 4px;
+}
+
 .password-padding {
     padding: 26px 0 10px 0;
 }

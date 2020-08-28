@@ -55,15 +55,31 @@
 			"read"
          ]
       },
+	  "sslcerts/*":{
+         "capabilities":[
+            "create",
+            "update",
+            "delete",
+            "list"
+         ]
+      },
+	  "externalcerts/*":{
+         "capabilities":[
+            "create",
+            "update",
+            "delete",
+            "list"
+         ]
+      },
 	  "sys/auth":{
 	      "capabilities":[
 		    "read",
             "list"
-			
+
          ]
       },
 	  "identity/*":{
-	      "capabilities":[   
+	      "capabilities":[
             "create",
 			"read",
             "update",

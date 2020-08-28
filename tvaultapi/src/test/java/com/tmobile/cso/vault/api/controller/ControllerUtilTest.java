@@ -55,8 +55,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.util.ReflectionTestUtils;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
+import com.tmobile.cso.vault.api.common.SSLCertificateConstants;
 import com.tmobile.cso.vault.api.common.TVaultConstants;
 import com.tmobile.cso.vault.api.exception.TVaultValidationException;
 import com.tmobile.cso.vault.api.process.RequestProcessor;
@@ -77,10 +79,10 @@ public class ControllerUtilTest {
     
     @Mock
     TokenUtils tokenUtils;
-    
+
     @Mock
     OIDCUtil oidcUtil;
-    
+
     @Before
     public void setUp() {
         PowerMockito.mockStatic(JSONUtil.class);
@@ -317,7 +319,7 @@ public class ControllerUtilTest {
         ControllerUtil.updateUserPolicyAssociationOnSDBDelete("users/safe01", acessInfo,  token, userDetails);
         assertTrue(true);
     }
-    
+
     @Test
     public void test_updateUserPolicyAssociationOnSDBDelete_oidc_successfully() {
         String token = "7QPMPIGiyDFlJkrK3jFykUqa";
@@ -328,7 +330,7 @@ public class ControllerUtilTest {
         ReflectionTestUtils.setField(ControllerUtil.class,"vaultAuthMethod", "oidc");
         Map<String,String> acessInfo = new HashMap<>();
         acessInfo.put("testuser1", "write");
-        
+
         OIDCEntityResponse oidcEntityResponse = new OIDCEntityResponse();
 		oidcEntityResponse.setEntityName("entity");
 		List<String> policies = new ArrayList<>();
@@ -363,7 +365,7 @@ public class ControllerUtilTest {
         ControllerUtil.updateGroupPolicyAssociationOnSDBDelete("users/safe01", acessInfo,  token, userDetails);
         assertTrue(true);
     }
-    
+
     @Test
     public void test_updateGroupPolicyAssociationOnSDBDelete_oidc_successfully() {
         String token = "7QPMPIGiyDFlJkrK3jFykUqa";
@@ -374,7 +376,7 @@ public class ControllerUtilTest {
         ReflectionTestUtils.setField(ControllerUtil.class,"vaultAuthMethod", "oidc");
         Map<String,String> acessInfo = new HashMap<>();
         acessInfo.put("group1", "write");
-        
+
         List<String> policies = new ArrayList<>();
         policies.add("default");
         policies.add("w_shared_mysafe02");
@@ -1148,5 +1150,35 @@ public class ControllerUtilTest {
         when(reqProcessor.process(eq("/write"),Mockito.any(),eq(token))).thenReturn(getMockResponse(HttpStatus.NO_CONTENT, true, ""));
         Response actualResponse = ControllerUtil.updateMetadataOnSvcUpdate(path, serviceAccount, token);
         assertEquals(HttpStatus.NO_CONTENT, actualResponse.getHttpstatus());
+    }
+
+    @Test
+    public void test_updateMetadata1_successfully() throws JsonProcessingException {
+        String token = "7QPMPIGiyDFlJkrK3jFykUqa";
+        Map<String,String> params = new HashMap<String,String>();
+        params.put("status", "Revoked");
+        String path = SSLCertificateConstants.SSL_CERT_PATH + "/testCert";
+
+
+        Response response = getMockResponse(HttpStatus.NO_CONTENT, true, "");
+        when(reqProcessor.process(eq("/write"),Mockito.any(),eq(token))).thenReturn(response);
+
+        Boolean isUpdated = ControllerUtil.updateMetaData(path, params, token);
+        assertEquals(Boolean.TRUE, isUpdated);
+    }
+
+    @Test
+    public void test_updateMetadata1_failed() throws JsonProcessingException {
+        String token = "7QPMPIGiyDFlJkrK3jFykUqa";
+        Map<String,String> params = new HashMap<String,String>();
+        params.put("status", "Revoked");
+        String path = SSLCertificateConstants.SSL_CERT_PATH + "/testCert";
+
+
+        Response response = getMockResponse(HttpStatus.BAD_REQUEST, false, "");
+        when(reqProcessor.process(eq("/write"),Mockito.any(),eq(token))).thenReturn(response);
+
+        Boolean isUpdated = ControllerUtil.updateMetaData(path, params, token);
+        assertEquals(Boolean.FALSE, isUpdated);
     }
 }

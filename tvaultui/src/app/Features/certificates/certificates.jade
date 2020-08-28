@@ -1,0 +1,223 @@
+header
+sideBar
+script(type='text/ng-template', id='error.html')
+    .row
+        .top-lg-sep
+            .common-header-label.text-center Error
+        .top-lg-sep.notification-text {{errorMessage}}
+    
+    .text-center.bottom-lg-sep.top-lg-sep.notification-button
+        .clearfix.bottom-sm-sep
+            button.link-style.common-btn.btn.btn-primary.btn-lg(ng-click="close()") Close
+
+script(type='text/ng-template', id='downloadPopupWitoutKey.html')
+    .modal-sep
+    .common-header-label.text-center Download Certificate
+
+    .left-lg-sep.right-lg-sep
+      .common-form.modal-inner-wrapper.aws
+        .common-form-row
+            .details-input-group                 
+                .row.change-data.header.center-div Download certificate in PEM or DER format.
+                    .common-form-label
+                    button.common-btn.btn.btn-primary.btn-lg.cert-download-btn(ng-click="downloadPemDer('pem')") PEM format
+                    button.common-btn.btn.btn-primary.btn-lg.cert-download-btn(ng-click="downloadPemDer('der')") DER format
+    .text-center.bottom-lg-sep.modal-sep.aws
+      .clearfix
+        button.link-style.common-btn.btn.btn-default.btn-lg(ng-click="close()") Cancel
+
+script(type='text/ng-template', id='downloadPopup.html')
+    .modal-sep
+    .common-header-label.text-center.download-title Download Certificate
+
+    .left-lg-sep.right-lg-sep
+      .common-form.modal-inner-wrapper.aws
+        .common-form-row
+            .details-input-group
+                .row.change-data.header.dark-text Download certificate with private key.
+                .row.change-data.header
+                    .common-form-label.col-lg-12.col-md-12.col-sm-12.col-xs-12.cert-download-row Password *
+                    input.form-control.input-box-style(type="password" id="certificateCred" placeholder="Password" ng-model="downloadRequest.certificateCred" minlength="8" maxlength="255" uib-tooltip="Password" tooltip-placement="top" tooltip-popup-delay="600" required)
+                    .cert-password-status-text(ng-show="isDownloadDisabled()") Please enter minimum 8 characters
+                .row.change-data.header
+                    .common-form-label Format *
+                    drop-down(drop-down-options="dropdownDownload" ng-model="downloadRequest.format" name="downloadFrmt" id="downloadFrmt"  ng-click="selectDownloadFormat()")                    
+                .row.change-data.header
+                    .common-form-label.col-lg-8.col-md-8.col-sm-8.col-xs-8.cert-download-row Include CA chain                       
+                        input(type='checkbox' ng-model="downloadRequest.issuerChain" id="issuerChain")                         
+            
+    .text-center.bottom-lg-sep.modal-sep.aws
+      .clearfix.bottom-sm-sep
+        button.common-btn.btn.btn-primary.btn-lg.cert-download-btn(ng-click="download()" ng-disabled="isDownloadDisabled()") Download
+      .clearfix
+        button.link-style.common-btn.btn.btn-default.btn-lg(ng-click="close()") Cancel
+.container-fluid
+    .container-fluid-wrapper.curved
+        .page-header-container.admin
+            .header-inner-container
+                nav-bar(active-tab="certificates" gotoPage="goToPage" nav-tags="adminNavTags")
+                .page-header-text CERTIFICATES
+        .page-content-container.admin
+            .right.search-bar-container
+                .search-bar(ng-if="!viewCertificate || !viewExternalCertificate")
+                    .search-box
+                        .search-icon
+                            .icon-search
+                        .search-input-wrapper
+                            input.search-input-box(type='text' placeholder='SEARCH' ng-model="searchValueCert" id = "searchValueId" restrict-special-char minlength="3" maxlength="40" ng-change="filterCert(searchValueCert)")
+            md-content.admin-content
+                md-tabs(md-dynamic-height md-border-bottom md-selected="selectedIndex")
+                    md-tab(label="Internal Certificates" ng-click = "isInternalCertificate()")
+                        md-content(class="md-padding md-content-wrapper page-content-wrapper md-certificate" ng-init="displayGrid" ng-if="!viewCertificate")
+                            .new-container.page-content-container
+                                .md-content-inner-wrapper
+                                    div.data-management-content
+                                        .row.change-svc-table-container
+                                            loading-state(ng-if='isLoadingData')
+                                            md-content(class="md-padding md-content-wrapper")
+                                                div.certdescription(ng-show="certificatesData.keys.length>0 && finalFilterCertResults.length != '0'") Following are list of the Certificates which you have download permission.
+                                                .unavailable-text(ng-if="finalFilterCertResults.length == '0'")
+                                                    | No Certificates Available
+                                                div.tiles-wrapper.cert-tiles(img="'safe.png'" loading="isLoadingData")
+                                                    .tiles-wrapper
+                                                        .loader-wrapper(ng-show="loading" ng-cloak="")
+                                                            .gif-wrp
+                                                                img(src="assets/images/loading.gif" class="loading-state-img")
+                                                        ul(ng-show="!loading" class="row" ng-cloak="")
+                                                            li(class="tiles-container col-lg-3 col-md-3 col-sm-4 col-xs-6" ng-repeat="item in certificatesData.keys | filter : searchValueCert | limitTo: paginationLimit()" ng-click="getCertificate(item.certname, 'md')" )
+                                                                .tiles-container-block(class="padded" md-whiteframe="{{height}}" ng-init="height = 3" ng-mouseenter="height = 12" ng-mouseleave="height = 3" ng-class="safe-parent")
+                                                                    .tile-image-wrapper
+                                                                    .tile-label(uib-tooltip="{{item.certname}}") {{item.certname}}
+                                                            li(ng-repeat="item in numOfTiles = ( certificatesData.keys | filter : { certname: searchValueCert } ).length")
+                                            .pagination-wrapper(ng-show='hasMoreItemsToShow()')
+                                                .pagination-count(ng-if="numOfCertificates>0") Displaying {{currentshown}} of {{numOfCertificates}}
+                                                .pagination-button-wrapper(ng-click='showMoreItems()')
+                                                    button.show-more-btn VIEW MORE
+                                                    span
+                                                        img(src="assets/icons/front-arrow.svg")
+                        md-content(class="au-tabs-inner _md" ng-init="displayGrid" ng-if="viewCertificate")
+                            .create-folder-container.slide-header
+                                    .function-text
+                                        .clearfix
+                                            .editColor.left.static
+                                                .glyphicon.glyphicon-chevron-left(ng-click="goToCertificates()")
+                                            div.left
+                                                span
+                                                    span {{ certificateDetails.certificateName }}
+                            div.data-management-content
+                                .row.change-svc-table-container
+                                    loading-state(ng-if='isLoadingData')
+                                    .row.cert-table-header.solid-header(ng-show="!isLoadingData")
+                                    .accordion-list-main.adjustment
+                                        .container.name.col-lg-12.col-md-12.col-sm-12.col-xs-12.cell
+                                            .cell.col-lg-6.col-md-6.col-sm-6.col-xs-6
+                                                .common-form-row.col-lg-12.col-md-12.col-sm-12.col-xs-12
+                                                    .details-input-group
+                                                        .common-form-label Certificate Name
+                                                        .cert-details(uib-tooltip="Certificate Name" tooltip-popup-delay="600") {{ certificateDetails.certificateName }}
+                                                .common-form-row.col-lg-12.col-md-12.col-sm-12.col-xs-12
+                                                    .details-input-group
+                                                        .common-form-label.cert-label Status
+                                                        .cert-details(uib-tooltip="Certificate Status" tooltip-popup-delay="600") {{ certificateDetails.certificateStatus }}
+                                                .common-form-row.col-lg-12.col-md-12.col-sm-12.col-xs-12
+                                                    .details-input-group
+                                                        .common-form-label.cert-label Owner
+                                                        .cert-details(uib-tooltip="Certificate Owner" tooltip-popup-delay="600") {{ certificateDetails.certOwnerEmailId }}
+                                                .common-form-row.col-lg-12.col-md-12.col-sm-12.col-xs-12(ng-if='certificateDetails.applicationTag')
+                                                    .details-input-group
+                                                        .common-form-label.cert-label Application
+                                                        .cert-details(uib-tooltip="Application" tooltip-popup-delay="600") {{ certificateDetails.applicationTag }}
+                                                .common-form-row.col-lg-12.col-md-12.col-sm-12.col-xs-12
+                                                    .details-input-group
+                                                        .common-form-label.cert-label Validity
+                                                        .cert-details(uib-tooltip="Validity" tooltip-popup-delay="600") {{ certificateDetails.createDate }} - {{ certificateDetails.expiryDate }}
+                                                .common-form-row.col-lg-12.col-md-12.col-sm-12.col-xs-12
+                                            .container.radio-inputs.col-lg-6.col-md-6.col-sm-6.col-xs-6.cell
+                                                .down.view
+                                                    .list-icon.cert-download-link
+                                                        div(ng-click="showDownload()")
+                                                           span Download Certificate
+                                                           button.download-link-style
+                                                        div.download-cert-options(id="downloadbox" ng-if='isDownloadClicked' ng-blur='hideDownload()' tabindex="-1" ng-attr-autofocus="true")
+                                                            div(ng-click="downloadPopup()") Download certificate with private key
+                                                            div(ng-click="downloadPopupWitoutKey()") Download certificate in PEM/DER format
+
+
+
+            
+                    md-tab(label="External Certificates" ng-click = "isExternalCertificate()")
+                        md-content(class="md-padding md-content-wrapper page-content-wrapper md-certificate" ng-init="displayGrid" ng-if="!viewExternalCertificate")
+                            .new-container.page-content-container
+                                .md-content-inner-wrapper
+                                    div.data-management-content
+                                        .row.change-svc-table-container
+                                            loading-state(ng-if='isLoadingData')
+                                            md-content(class="md-padding md-content-wrapper")
+                                                div.certdescription(ng-show="certificatesDataExternal.keys.length>0 && finalFilterExtCertResults.length !='0'") Following are list of the Certificates which you have download permission.
+                                                .unavailable-text(ng-if="finalFilterExtCertResults.length =='0'")
+                                                    | No Certificates Available
+                                                div.tiles-wrapper.cert-tiles(img="'safe.png'" loading="isLoadingData")
+                                                    .tiles-wrapper
+                                                        .loader-wrapper(ng-show="loading" ng-cloak="")
+                                                            .gif-wrp
+                                                                img(src="assets/images/loading.gif" class="loading-state-img")
+                                                        ul(ng-show="!loading" class="row" ng-cloak="")
+                                                            li(class="tiles-container col-lg-3 col-md-3 col-sm-4 col-xs-6" ng-repeat="item in certificatesDataExternal.keys | filter : searchValueCert | limitTo: paginationLimit()" ng-click="getCertificate(item.certname, 'md')" )
+                                                                .tiles-container-block(class="padded" md-whiteframe="{{height}}" ng-init="height = 3" ng-mouseenter="height = 12" ng-mouseleave="height = 3" ng-class="safe-parent")
+                                                                    .tile-image-wrapper
+                                                                    .tile-label(uib-tooltip="{{item.certname}}") {{item.certname}}
+                                                            li(ng-repeat="item in numOfTiles = ( certificatesDataExternal.keys | filter : { certname: searchValueCert } ).length")
+                                            .pagination-wrapper(ng-show='hasMoreItemsToShow()')
+                                                .pagination-count(ng-if="numOfCertificatesExternal>0") Displaying {{currentshown}} of {{numOfCertificatesExternal}}
+                                                .pagination-button-wrapper(ng-click='showMoreItems()')
+                                                    button.show-more-btn VIEW MORE
+                                                    span
+                                                        img(src="assets/icons/front-arrow.svg") 
+
+                        md-content(class="au-tabs-inner _md" ng-init="displayGrid" ng-if="viewExternalCertificate")
+                            .create-folder-container.slide-header
+                                    .function-text
+                                        .clearfix
+                                            .editColor.left.static
+                                                .glyphicon.glyphicon-chevron-left(ng-click="goToCertificates()")
+                                            div.left
+                                                span
+                                                    span {{ certificateDetails.certificateName }}
+                            div.data-management-content
+                                .row.change-svc-table-container
+                                    loading-state(ng-if='isLoadingData')
+                                    .row.cert-table-header.solid-header(ng-show="!isLoadingData")
+                                    .accordion-list-main.adjustment
+                                        .container.name.col-lg-12.col-md-12.col-sm-12.col-xs-12.cell
+                                            .cell.col-lg-6.col-md-6.col-sm-6.col-xs-6
+                                                .common-form-row.col-lg-12.col-md-12.col-sm-12.col-xs-12
+                                                    .details-input-group
+                                                        .common-form-label Certificate Name
+                                                        .cert-details(uib-tooltip="Certificate Name" tooltip-popup-delay="600") {{ certificateDetails.certificateName }}
+                                                .common-form-row.col-lg-12.col-md-12.col-sm-12.col-xs-12
+                                                    .details-input-group
+                                                        .common-form-label.cert-label Status
+                                                        .cert-details(uib-tooltip="Certificate Status" tooltip-popup-delay="600") {{ certificateDetails.certificateStatus }}
+                                                .common-form-row.col-lg-12.col-md-12.col-sm-12.col-xs-12
+                                                    .details-input-group
+                                                        .common-form-label.cert-label Owner
+                                                        .cert-details(uib-tooltip="Certificate Owner" tooltip-popup-delay="600") {{ certificateDetails.certOwnerEmailId }}
+                                                .common-form-row.col-lg-12.col-md-12.col-sm-12.col-xs-12(ng-if='certificateDetails.applicationTag')
+                                                    .details-input-group
+                                                        .common-form-label.cert-label Application
+                                                        .cert-details(uib-tooltip="Application" tooltip-popup-delay="600") {{ certificateDetails.applicationTag }}
+                                                .common-form-row.col-lg-12.col-md-12.col-sm-12.col-xs-12
+                                                    .details-input-group
+                                                        .common-form-label.cert-label Validity
+                                                        .cert-details(uib-tooltip="Validity" tooltip-popup-delay="600") {{ certificateDetails.createDate }} - {{ certificateDetails.expiryDate }}
+                                                .common-form-row.col-lg-12.col-md-12.col-sm-12.col-xs-12
+                                            .container.radio-inputs.col-lg-6.col-md-6.col-sm-6.col-xs-6.cell
+                                                .down.view
+                                                    .list-icon.cert-download-link
+                                                        div(ng-click="showDownload()")
+                                                           span Download Certificate
+                                                           button.download-link-style
+                                                        div.download-cert-options(id="downloadbox" ng-if='isDownloadClicked' ng-blur='hideDownload()' tabindex="-1" ng-attr-autofocus="true")
+                                                            div(ng-click="downloadPopup()") Download certificate with private key
+                                                            div(ng-click="downloadPopupWitoutKey()") Download certificate in PEM/DER format
+                           

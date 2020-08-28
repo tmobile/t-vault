@@ -310,7 +310,19 @@ readTextFile("../apiUrls.json");
             name: 'transferSvcaccOwner',
             url: '/v2/serviceaccounts/transfer?',
             method: 'POST'
-        },{
+        }, {
+            name: 'getCertificates',
+            url: '/v2/sslcert?',
+            method: 'GET'
+        }, {
+            name: 'getTargetSystems',
+            url: '/v2/sslcert/{certType}/targetsystems',
+            method: 'GET'
+        }, {
+            name: 'getTargetSystemsServices',
+            url: '/v2/sslcert/targetsystems/{targetsystem_id}/targetsystemservices',
+            method: 'GET'
+        }, {
             name: 'unseal',
             url: '/v2/unseal',
             method: 'POST'
@@ -319,13 +331,83 @@ readTextFile("../apiUrls.json");
             url: '/v2/unseal-progress?serverip=',
             method: 'GET'
         }, {
-            name: 'getAuthUrl',
-            url: '/v2/auth/oidc/auth_url',
+            name: 'createSslCertificates',
+            url: '/v2/sslcert',
             method: 'POST'
         }, {
-            name: 'getCallback',
-            url: '/v2/auth/oidc/callback',
+            name: 'usersGetData',
+            url: '/v2/ldap/users?UserPrincipalName=',
             method: 'GET'
-        }]
+        },{
+            name: 'usersGetDataUsingCorpID',
+            url: '/v2/ldap/corpusers?CorpId=',
+            method: 'GET'
+        }, {
+            name: 'getRevocationReasons',
+            url: '/v2/certificates/{certificateId}/revocationreasons',
+            method: 'GET'
+        }, {
+            name: 'issueRevocationRequest',
+            url: '/v2/certificates/{certType}/{certName}/revocationrequest',
+            method: 'POST'
+        }, {
+            name: 'addUserToCertificate',
+            url: '/v2/sslcert/user',
+            method: 'POST'
+        },{
+            name: 'getCertificateDetails',
+            url: '/v2/sslcert/certificate/{certificate_type}',
+            method: 'GET'
+        }, {
+            name: 'addApproleToCertificate',
+            url: '/v2/sslcert/approle',
+            method: 'POST'
+        }, {
+            name: 'renewCertificate',
+            url: '/v2/certificates/{certType}/{certName}/renew',
+            method: 'POST'
+        }, {
+            name: 'addGroupToCertificate',
+            url: '/v2/sslcert/group',
+            method: 'POST'  
+        }, {
+            name: 'deleteUserPermissionFromCertificate',
+            url: '/v2/sslcert/user',
+            method: 'DELETE'
+        }, {
+            name: 'deleteGroupPermissionFromCertificate',
+            url: '/v2/sslcert/group',
+            method: 'DELETE'
+        },{
+            name: 'listCertificatesByCertificateType',
+            url: '/v2/sslcert/certificates{certificate_type}',
+            method: 'GET'
+        }, {
+            name: 'transferCertificate',
+            url: '/v2/sslcert/{certType}/{certName}/{certOwnerEmailId}/transferowner',
+            method: 'PUT'
+        } ,{
+            name: 'validateCertificateDetails',
+            url: '/v2/sslcert/validate/{certificate_name}/{certificate_type}',
+            method: 'GET'
+        }, {
+            name: 'deleteCertificate',
+            url: '/v2/certificates/{certName}/{certType}',
+            method: 'DELETE'
+        },
+        {
+            name: 'downloadCertificate',
+            url: '/v2/sslcert/certificates/download',
+            method: 'POST'
+        }, {
+             name: 'getAuthUrl',
+             url: '/v2/auth/oidc/auth_url',
+             method: 'POST'
+         }, {
+             name: 'getCallback',
+             url: '/v2/auth/oidc/callback',
+             method: 'GET'
+         }
+    ]
     });
 })( angular.module( 'vault.constants.RestEndpoints', []));

@@ -272,13 +272,98 @@
                     return response;
                 });
             },
-            getAuthUrl: function (payload, url) {
-                return ServiceEndpoint.getAuthUrl.makeRequest(payload, url).then(function(response) {
+            getCertificates: function (payload, url) {
+                return ServiceEndpoint.getCertificates.makeRequest(payload, url).then(function(response) {
                     return response;
                 });
             },
-            getCallback: function (payload, url) {
-                return ServiceEndpoint.getCallback.makeRequest(payload, url).then(function(response) {
+            getRevocationReasons: function (payload, url) {
+                return ServiceEndpoint.getRevocationReasons.makeRequest(payload, url).then(function(response) {
+                    return response;
+                });
+            },
+            getTargetSystems:function (payload, url) {
+                return ServiceEndpoint.getTargetSystems.makeRequest(payload, url).then(function(response) {
+                    return response;
+                });
+            },
+            getTargetSystemsServices: function (payload, url) {
+                return ServiceEndpoint.getTargetSystemsServices.makeRequest(payload, url).then(function(response) {
+                    return response;
+                });
+            },
+            sslCertificateCreation: function (payload, url) {
+                return ServiceEndpoint.createSslCertificates.makeRequest(payload, url).then(function(response) {
+                    return response;
+                });
+            },
+            usersGetData: function (payload, url) {
+                return ServiceEndpoint.usersGetData.makeRequest(payload, url).then(function(response) {
+                    return response;
+                });
+            },
+            usersGetDataUsingCorpID: function (payload, url) {
+                return ServiceEndpoint.usersGetDataUsingCorpID.makeRequest(payload, url).then(function(response) {
+                    return response;
+                });
+            },
+            issueRevocationRequest: function (payload, url) {
+                return ServiceEndpoint.issueRevocationRequest.makeRequest(payload, url).then(function(response) {
+                    return response;
+                });
+            },
+            addUserPermissionForCertificate: function(payload, url) {
+                return ServiceEndpoint.addUserToCertificate.makeRequest(payload, url).then(function(response) {
+                    return response;
+                });
+            },
+            addGroupPermissionForCertificate: function(payload, url){
+                return ServiceEndpoint.addGroupToCertificate.makeRequest(payload, url).then(function(response) {
+                    return response;
+                });
+            },
+            getCertificateDetails: function (payload, url) {
+                return ServiceEndpoint.getCertificateDetails.makeRequest(payload, url).then(function(response) {
+                    return response;
+                });
+            },
+            addApprolePermissionForCertificate: function(payload, url) {
+                return ServiceEndpoint.addApproleToCertificate.makeRequest(payload, url).then(function(response) {
+                	 return response;
+                });
+            },            
+            renewCertificate: function (payload, url) {
+                return ServiceEndpoint.renewCertificate.makeRequest(payload, url).then(function(response) {
+                    return response;
+                });
+            },
+            deleteUserPermissionFromCertificate: function(payload, url) {
+                return ServiceEndpoint.deleteUserPermissionFromCertificate.makeRequest(payload, url).then(function(response) {
+                    return response;
+                });
+            },
+            deleteGroupPermissionFromCertificate: function(payload, url) {
+                return ServiceEndpoint.deleteGroupPermissionFromCertificate.makeRequest(payload, url).then(function(response) {
+                    return response;
+                });
+            },
+            listCertificatesByCertificateType: function (payload, url) {
+                return ServiceEndpoint.listCertificatesByCertificateType.makeRequest(payload, url).then(function(response) {
+                    return response;
+                });
+            },            
+            transferCertificate: function (payload, url) {
+                return ServiceEndpoint.transferCertificate.makeRequest(payload, url).then(function(response) {
+                    return response;
+                });
+            },
+            validateCertificateDetails: function (payload, url) {
+                return ServiceEndpoint.validateCertificateDetails.makeRequest(payload, url).then(function(response) {
+                    return response;
+                });
+            },            
+            deleteCertificate: function (payload, url) {
+                return ServiceEndpoint.deleteCertificate.makeRequest(payload, url).then(function(response) {
                     return response;
                 });
             },
