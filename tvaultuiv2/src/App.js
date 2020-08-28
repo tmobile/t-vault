@@ -12,8 +12,6 @@ import './App.css';
 import { BrowserRouter, Route, Switch, withRouter } from 'react-router-dom';
 import customMuiTheme from './theme';
 import Header from './components/Header';
-import CreateModal from './components/modal';
-import AddFolder from './components/add-folder';
 import RendetionError from './errorBoundaries/RendetionError/rendetion-error';
 
 const PublicRoutes = lazy(() => import('./views/public'));
@@ -65,8 +63,6 @@ export const App = () => {
                     </Suspense>
                   </Preview>
                 </Layout>
-                <CreateModal />
-                <AddFolder />
               </Container>
             </MuiPickersUtilsProvider>
           </ThemeProvider>
