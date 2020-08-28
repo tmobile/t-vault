@@ -25,7 +25,15 @@ script(type='text/ng-template', id='downloadPopupWitoutKey.html')
     .text-center.bottom-lg-sep.modal-sep.aws
       .clearfix
         button.link-style.common-btn.btn.btn-default.btn-lg(ng-click="close()") Cancel
-
+script(type='text/ng-template', id='validateCertificateDetailPopUp.html')
+  loading-state(ng-if="isLoadingModalData")
+  .top-lg-sep(ng-if="!isLoadingModalData")
+    .top-lg-sep
+        .common-header-label.text-center Pending Approval
+      .top-lg-sep.notification-text  Certificate may not be approved or rejected from NCLM
+    .text-center.bottom-lg-sep.top-lg-sep.notification-button
+      .clearfix.bottom-sm-sep
+        button.link-style.common-btn.btn.btn-primary.btn-lg(ng-click="cancel()") CLOSE
 script(type='text/ng-template', id='downloadPopup.html')
     .modal-sep
     .common-header-label.text-center.download-title Download Certificate

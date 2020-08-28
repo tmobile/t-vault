@@ -99,6 +99,8 @@
         $scope.requestDataForMyCertifiates = function () {
             $scope.isLoadingData = true;
             $scope.certificatesData = {"keys": []};
+            $scope.certificatesDataExternal = {"keys": []};
+            var extData = [];
             var data = [];
             var accessSafes = JSON.parse(SessionStore.getItem("accessSafes"));
             if (accessSafes.cert) {
@@ -117,16 +119,8 @@
                 $scope.isLoadingData = false;
                 $scope.finalFilterCertResults = $scope.certificatesData.keys.slice(0);
             };
-        }
-
-        $scope.requestDataForMyExternalCertifiates = function () {
-            $scope.isLoadingData = true;
-            $scope.certificatesDataExternal = {"keys": []};
-            var extData = [];
-            var accessSafes = JSON.parse(SessionStore.getItem("accessSafes"));
-
             //External Certificate Tab Non-admin cert list
-            if (accessSafes.externalcerts) {
+            if (accessSafes.externalcerts) {                          
                 extData = accessSafes.externalcerts.map(function (certObjectExt) {
                     var entry = Object.entries(certObjectExt);
                     return {
@@ -136,21 +130,6 @@
                 });
                 $scope.certificatesDataExternal.keys = extData.filter(function(externalcerts){
                     return externalcerts.permission != "deny";
-                });
-                $scope.certificatesDataExternal.keys.forEach(function(value, index, object) {
-                    var updatedUrlOfEndPoint = "";
-                    updatedUrlOfEndPoint = RestEndpoints.baseURL + "/v2/sslcert/certificate/" + "external" + "?certificate_name=" +value.certname;
-                    AdminSafesManagement.getCertificateDetails(null, updatedUrlOfEndPoint).then(function (response) {
-                        if (UtilityService.ifAPIRequestSuccessful(response)) {
-                            $scope.certificateDetails = response.data;
-                            if(response.data != "" && response.data != undefined) {
-                                $scope.certificateDetails = response.data;
-                                if($scope.certificateDetails.requestStatus !== "Pending Approval") {
-                                    object.splice(index, 1);
-                                }
-                            }
-                        }
-                    })
                 });
                 $scope.numOfCertificatesExternal=$scope.certificatesDataExternal.keys.length;
                 $scope.isLoadingData = false;
@@ -178,9 +157,9 @@
             $scope.isInternalCertificateTab = false;
             $scope.viewCertificate = false;
             if (JSON.parse(SessionStore.getItem("isAdmin")) == true) {
-                $scope.requestDataForMyExternalCertifiatesAdmin();
+               $scope.requestDataForMyCertifiatesAdmin();
             }else{
-                $scope.requestDataForMyExternalCertifiates();
+               $scope.requestDataForMyCertifiates();
             }
         }
 
@@ -239,6 +218,15 @@
                               });
                             $scope.numOfCertificates=$scope.certificatesData.keys.length;
                             $scope.finalFilterCertResults = $scope.certificatesData.keys.slice(0);
+                        }
+                    }
+                    else{
+                        if (response.data != "" && response.data != undefined) {
+                            angular.forEach(response.data.data.keys, function(value, key) {
+                                $scope.certificatesDataExternal.keys.push({"certname": value, "permission": "read"});
+                            });
+                            $scope.numOfCertificates=$scope.certificatesDataExternal.keys.length; 
+                            $scope.finalFilterExtCertResults = $scope.certificatesDataExternal.keys.slice(0);
                         }
                     }
                 }
@@ -336,8 +324,15 @@
                     if($scope.isInternalCertificateTab){
                         $scope.viewCertificate = true;
                     }else{
-                        $scope.viewExternalCertificate = true;
-                    }
+                        if(response.data.requestStatus !== null && response.data.requestStatus !== "Pending Approval"){
+                            $scope.viewExternalCertificate = true;
+                        }
+                        else{
+                            $scope.viewExternalCertificate = false;
+                            $scope.validateCertificateDetailsPopUp();
+                        }
+                    }   
+                    
                     $scope.certificateDetails = response.data;
                     $scope.certificateDetails.createDate = new Date($scope.certificateDetails.createDate).toDateString();
                     $scope.certificateDetails.expiryDate = new Date($scope.certificateDetails.expiryDate).toDateString();
@@ -360,6 +355,15 @@
             });         
         }
 
+        $scope.validateCertificateDetailsPopUp = function (svcaccname) {
+            Modal.createModal('md', 'validateCertificateDetailPopUp.html', 'CertificatesCtrl', $scope);
+        };
+        $rootScope.cancel = function () {
+            Modal.close();
+        };
+        $scope.error = function (size) {
+            Modal.createModal(size, 'error.html', 'CertificatesCtrl', $scope);
+        };
         $scope.downloadPopup = function () {
             $scope.isDownloadClicked = false;
             $scope.downloadRequest.certificateCred = "";
