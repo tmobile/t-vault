@@ -48,8 +48,6 @@ const AccordionFolder = (props) => {
   const { summaryIcon, titleIcon, title, date } = props;
   return (
     <FolderWrap>
-      {/* <IconWrap>{summaryIcon}</IconWrap> */}
-      {/* <Avatar>{titleIcon}</Avatar> */}
       <FolderSummary
         expandIcon={summaryIcon}
         aria-controls="panel1a-content"
@@ -77,5 +75,10 @@ AccordionFolder.propTypes = {
   title: PropTypes.string,
   date: PropTypes.string,
 };
-
+AccordionFolder.defaultProps = {
+    summaryIcon: <div></div>,
+    titleIcon: <div></div>,
+    title: "Nothing here",
+    date: "No Date",
+  };
 export default AccordionFolder;

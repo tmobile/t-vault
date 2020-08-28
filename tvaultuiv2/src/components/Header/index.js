@@ -34,7 +34,7 @@ const ProfileIconWrap = styled('div')`
   align-items: center;
   display: flex;
 `;
-const Header = (props) => {
+const Header = () => {
   const navItems = ['safe', 'applications', 'service accounts', 'certificates'];
   // const { location, theme } = props;
   const [activeNav, setActiveNav] = useState('safe');
@@ -43,7 +43,6 @@ const Header = (props) => {
     setActiveNav(item);
   };
 
-  // useEffect(() => {handleNavChange()}, [location]);
   return (
     <HeaderWrap>
       <div>LOGO</div>
@@ -51,7 +50,7 @@ const Header = (props) => {
         {navItems.map((item, i) => (
           <NavItem
             to={`/private/${item}`}
-            key={i + 'nav'}
+            key={item}
             onClick={(e) => handleNavChange(e, item)}
             active={
               activeNav === item

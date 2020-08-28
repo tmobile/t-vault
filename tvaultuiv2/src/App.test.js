@@ -33,13 +33,13 @@ it('renders without crashing', (props) => {
 
   ReactDOM.render(
     <BrowserRouter>
-      <App {...props} />
+      <App />
     </BrowserRouter>,
     div
   );
 
   ReactDOM.unmountComponentAtNode(div);
 
-  const wrapper = shallow(<App {...props} />);
+  const wrapper = shallow(<App />);
   wrapper.dive().instance().componentDidUpdate(props);
 });

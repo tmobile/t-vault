@@ -5,8 +5,8 @@ import { makeStyles } from '@material-ui/core/styles';
 import AppBar from '@material-ui/core/AppBar';
 import Tabs from '@material-ui/core/Tabs';
 import Tab from '@material-ui/core/Tab';
-import DialogeBox from 'components/common/DialogeBox';
-import MuiButton from 'components/common/MuiButton';
+import DialogeBox from '../DialogeBox';
+import MuiButton from '../MuiButton';
 import AccordionFolder from '../AccordionFolder';
 import Typography from '@material-ui/core/Typography';
 import Box from '@material-ui/core/Box';
@@ -23,6 +23,7 @@ const WideButton = styled('div')`
   display: flex;
   justify-content: center;
   background: #f2f2f2;
+  padding: 0.5em;
 `;
 const EmptySecretBox = styled('div')`
   display: flex;
@@ -30,7 +31,7 @@ const EmptySecretBox = styled('div')`
   justify-content: center;
 `;
 function TabPanel(props) {
-  const { children = '', value, index, ...other } = props;
+  const { children = '', value, index } = props;
 
   return (
     <div
@@ -38,7 +39,6 @@ function TabPanel(props) {
       hidden={value !== index}
       id={`safes-tabpanel-${index}`}
       aria-labelledby={`safe-tab-${index}`}
-      {...other}
     >
       {value === index && (
         <Box p={3}>
@@ -51,6 +51,12 @@ function TabPanel(props) {
 
 TabPanel.propTypes = {
   children: PropTypes.node,
+  index: PropTypes.any.isRequired,
+  value: PropTypes.any.isRequired,
+};
+
+TabPanel.defaultProps = {
+  children: <div></div>,
   index: PropTypes.any.isRequired,
   value: PropTypes.any.isRequired,
 };
@@ -79,7 +85,6 @@ export default function SelectionTabs() {
 
   return (
     <div className={classes.root}>
-      {console.log('secrets', secrets)}
       <AppBar position="static">
         <Tabs value={value} onChange={handleChange} aria-label="safe tabs">
           <Tab label="Secrets" {...a11yProps(0)} />
@@ -89,7 +94,7 @@ export default function SelectionTabs() {
       <TabPanel value={value} index={0}>
         {secrets.length > 0 ? (
           secrets.map((sec, index) => (
-            <div key={index + sec}>
+            <div key={sec}>
               <AccordionFolder
                 summaryIcon={<ExpandMoreIcon />}
                 title={sec.title}

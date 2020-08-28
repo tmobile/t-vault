@@ -32,7 +32,6 @@ const Layout = styled('main')``;
 const Preview = styled('section')``;
 
 export const App = (props) => {
-  const { location } = props;
   return (
     <BrowserRouter>
       <RendetionError>
@@ -42,7 +41,7 @@ export const App = (props) => {
               <CssBaseline />
               <GlobalCss />
               <Container>
-                <Header location={location} theme={customMuiTheme} />
+                <Header theme={customMuiTheme} />
                 <Layout id="rootLayout">
                   <Preview>
                     <Suspense fallback={<div>Loading......</div>}>

@@ -15,7 +15,7 @@ const MuiButton = (props) => {
     </ActionButton>
   );
 };
-MuiButton.prototype = {
+MuiButton.propTypes = {
   label: PropTypes.string,
   icon: PropTypes.node,
 };
