@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import styled from 'styled-components';
 import { InputLabel } from '@material-ui/core';
 import TextField from '@material-ui/core/TextField';
+import Select from '@material-ui/core/Select';
+import MenuItem from '@material-ui/core/MenuItem';
 
 const ModalWrapper = styled.section`
   background-color: #fff;
@@ -25,6 +27,7 @@ const InputFieldLabelWrapper = styled.div`
   .MuiFilledInput-root {
     border-radius: 5px;
     background-color: #eee;
+    width: 100%;
     :before,
     :after,
     :hover:before {
@@ -62,6 +65,7 @@ const SafeDescription = styled.p`
   margin-left: 2rem;
   color: #ccc;
 `;
+
 const CreateSafeInput = () => {
   const [type, setType] = useState('Personal');
   const [owner, setOwner] = useState('');
@@ -69,14 +73,6 @@ const CreateSafeInput = () => {
   const [description, setDescription] = useState('');
   const [popOverOpen, setPopOverOpen] = useState(false);
 
-  const safeTypes = [
-    {
-      value: 'Personal',
-    },
-    {
-      value: 'Public',
-    },
-  ];
   const onIconClicked = () => {
     setPopOverOpen(!popOverOpen);
   };
@@ -116,22 +112,16 @@ const CreateSafeInput = () => {
         </InputFieldLabelWrapper>
         <InputFieldLabelWrapper>
           <InputLabel>Type of Safe</InputLabel>
-          <TextField
-            id="standard-select-currency-native"
-            select
+          <Select
+            labelId="demo-customized-select-label"
+            id="demo-customized-select"
             value={type}
             variant="filled"
             onChange={(e) => setType(e.target.value)}
-            SelectProps={{
-              native: true,
-            }}
           >
-            {safeTypes.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.value}
-              </option>
-            ))}
-          </TextField>
+            <MenuItem value="Personal">Personal</MenuItem>
+            <MenuItem value="Public">Public</MenuItem>
+          </Select>
         </InputFieldLabelWrapper>
         <InputFieldLabelWrapper>
           <InputLabel>Description</InputLabel>
