@@ -352,7 +352,6 @@ public class SSLCertificateService {
     public ResponseEntity<String> generateSSLCertificate(SSLCertificateRequest sslCertificateRequest,
                                                                UserDetails userDetails ,String token) {
         CertResponse enrollResponse = new CertResponse();
-        userDetails.setUsername("Ukothur1");//TODO
         //Validate the input data
         boolean isValidData = validateInputData(sslCertificateRequest, userDetails);
         if(!isValidData){
