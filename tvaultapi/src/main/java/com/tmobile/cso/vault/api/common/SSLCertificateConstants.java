@@ -59,6 +59,7 @@ public final class SSLCertificateConstants {
     public static final String SUDO_CERT_POLICY_PREFIX="o_";
 
     public static final String ACCESS_UPDATE_ENDPOINT="/access/update";
+    public static final String ACCESS_DELETE_ENDPOINT="/access/delete";
     public static final String ACCESS_STRING="access";
     public static final String POLICY_CREATION_TITLE="Policies Creation For Certificate";
     public static final String PROPERTY_VALUE="value";

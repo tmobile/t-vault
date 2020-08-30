@@ -5184,6 +5184,7 @@ public class SSLCertificateServiceTest {
         assertEquals(HttpStatus.UNPROCESSABLE_ENTITY, enrollResponse.getStatusCode());
     }
 
+    //UDAY
     @Test
     public void testValidateApprovalStatusAndGetCertDetailsSuccess_Delete_MetaData_Success() throws Exception {
         String jsonStr = "{  \"username\": \"testusername1\",  \"password\": \"testpassword1\"}";
@@ -5256,10 +5257,20 @@ public class SSLCertificateServiceTest {
         metadataDeleteResponse.setResponse(null);
         metadataDeleteResponse.setSuccess(true);
         when(reqProcessor.process(eq("/delete"), anyObject(), anyString())).thenReturn(metadataDeleteResponse);
+
+
+        when(reqProcessor.process(eq("/access/delete"), anyObject(), anyString())).thenReturn(metadataDeleteResponse);
+
+
         String certType = "external";
         String certName = "certificatename.t-mobile.com";
         when(ControllerUtil.updateMetaData(any(), any(), eq(token))).thenReturn(true);
         when(certificateUtils.getCertificateMetaData(token, certName, certType)).thenReturn(certificateMetadata);
+        String metadatajson =  "{\"path\":{\"sslcerts/certtest.int.delete01.t-mobile.com\":{\"policy\":\"sudo\"}," +
+                "\"metadata/sslcerts/certtest.int.delete01.t-mobile.com\":{\"policy\":\"write\"}}}";
+        when(ControllerUtil.convetToJson(any())).thenReturn(metadatajson);
+
+
         ResponseEntity<?> enrollResponse = sSLCertificateService
                 .validateApprovalStatusAndGetCertificateDetails(certName, certType, userDetail);
         assertNotNull(enrollResponse);
