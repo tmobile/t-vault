@@ -5184,7 +5184,6 @@ public class SSLCertificateServiceTest {
         assertEquals(HttpStatus.UNPROCESSABLE_ENTITY, enrollResponse.getStatusCode());
     }
 
-    //UDAY
     @Test
     public void testValidateApprovalStatusAndGetCertDetailsSuccess_Delete_MetaData_Success() throws Exception {
         String jsonStr = "{  \"username\": \"testusername1\",  \"password\": \"testpassword1\"}";
