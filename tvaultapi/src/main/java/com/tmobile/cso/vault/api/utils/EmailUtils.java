@@ -277,11 +277,53 @@ public class EmailUtils {
 	}
 
 	/**
+	 * To send HTML email notification for delete
+	 *
+	 * @param from
+	 * @param to
+	 * @param subject
+	 * @param variables
+	 */
+	public void sendTransferEmail(String from, Map<String, String> variables, String subject) {
+		MimeMessage message = javaMailSender.createMimeMessage();
+		MimeMessageHelper helper = null;
+		try {
+			helper = new MimeMessageHelper(message, true, "UTF-8");
+			helper.setFrom(from);
+			helper.setTo(variables.get("newOwnerEmail"));
+			helper.setCc(variables.get("oldOwnerEmail"));
+			helper.setSubject(subject);
+			String templateFileName = TVaultConstants.EMAIL_TEMPLATE_NAME_TRANSFER;
+			String content = this.templateEngine.process(templateFileName, new Context(Locale.getDefault(), variables));
+			helper.setText(content, true);
+			javaMailSender.send(message);
+		} catch (MessagingException e) {
+			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+					put(LogMessage.ACTION, "sendTransferEmail").
+					put(LogMessage.MESSAGE, String.format("Failed to send Transfer email notification to  " +
+									"User  %s for certificate %s for operation = %s", variables.get("newOwnerEmail"), variables.get("certName"),
+							variables.get("operation"))).
+					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+					build()));
+		} catch (MailSendException exception) {
+			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+					put(LogMessage.ACTION, "sendTransferEmail").
+					put(LogMessage.MESSAGE, String.format("Failed to send Transfer email notification to  " +
+									"User  %s for certificate %s for operation = %s", variables.get("newOwnerEmail"), variables.get("certName"),
+							variables.get("operation"))).
+					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+					build()));
+		}
+	}
+	/**
 	 * To get byte array stream of image resources
 	 * @param imagePath
 	 * @return
 	 * @throws IOException
 	 */
+
 	private ByteArrayResource getImageByteArray(String imagePath) throws IOException {
 		ClassLoader classloader = Thread.currentThread().getContextClassLoader();
 		InputStream is = classloader.getResourceAsStream(imagePath);

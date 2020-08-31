@@ -92,4 +92,5 @@ public final class SSLCertificateConstants {
     public static final String STATUS_REJECTED="rejected";
     public static final String DELETE_METADATA_PERMISSIONS="deleteMetaDataAndPermissions";
     public static final String GET_CERTIFICATE_DETAILS_PROCESS_METADATA="getCertificateDetailsAndProcessMetadata";
+    public static final String TRANSFER_EMAIL_SUBJECT="Transfer of Certificate Ownership";
 }

@@ -51,8 +51,7 @@ import java.util.*;
 
 import static org.junit.Assert.*;
 import static org.mockito.Matchers.*;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @RunWith(PowerMockRunner.class)
 @ComponentScan(basePackages = {"com.tmobile.cso.vault.api"})
@@ -4759,6 +4758,83 @@ public class SSLCertificateServiceTest {
         //Assert
         assertNotNull(transferCertResponse);        
     }
+
+    @Test
+    public void transferSSLCertificate_Success_with_SendTransfer_Email() throws Exception {
+        String jsonStr = "{  \"username\": \"testusername1\",  \"password\": \"testpassword1\"}";
+        String jsonStr2 = "{\"certificates\":[{\"sortedSubjectName\": \"CN=CertificateName.t-mobile.com, C=US, " +
+                "ST=Washington, " +
+                "L=Bellevue, O=T-Mobile USA, Inc\"," +
+                "\"certificateId\":57258,\"certificateStatus\":\"Active\"," +
+                "\"containerName\":\"cont_12345\",\"NotAfter\":\"2021-06-15T04:35:58-07:00\"}]}";
+        Response userResponse = getMockResponse(HttpStatus.OK, true, "{\"data\":{\"bound_cidrs\":[],\"max_ttl\":0,\"policies\":[\"default\",\"r_cert_CertificateName.t-mobile.com\"],\"ttl\":0,\"groups\":\"admin\"}}");
+
+        SSLCertificateMetadataDetails sslCertificateRequest = getSSLCertificateMetadataDetails();
+        UserDetails userDetails = new UserDetails();
+        userDetails.setSelfSupportToken("tokentTest");
+        userDetails.setUsername("normaluser");
+        userDetails.setAdmin(true);
+        userDetails.setClientToken(token);
+        userDetails.setSelfSupportToken(token);
+
+        Map<String, Object> requestMap = new HashMap<>();
+        requestMap.put("access_token", "12345");
+        requestMap.put("token_type", "type");
+        when(ControllerUtil.parseJson(jsonStr)).thenReturn(requestMap);
+
+        CertManagerLogin certManagerLogin = new CertManagerLogin();
+        certManagerLogin.setToken_type("token type");
+        certManagerLogin.setAccess_token("1234");
+        String metaDataJson = "{\"data\":{\"akmid\":\"102463\",\"applicationName\":\"tvs\",\"applicationOwnerEmailId\":\"SpectrumClearingTools@T-Mobile.com\",\"applicationTag\":\"TVS\",\"authority\":\"T-Mobile Issuing CA 01 - SHA2\",\"certCreatedBy\":\"nnazeer1\",\"certOwnerNtid\": \"testusername1\",\"certOwnerEmailId\":\"ltest@smail.com\",\"certType\":\"internal\"," +
+                "\"dnsNames\":\"[d1.t-mbobile.com]\",\"certificateId\":59880,\"certificateName\":\"certtest260630.t-mobile.com\",\"certificateStatus\":\"Revoked\",\"containerName\":\"VenafiBin_12345\",\"createDate\":\"2020-06-26T05:10:41-07:00\",\"expiryDate\":\"2021-06-26T05:10:41-07:00\",\"projectLeadEmailId\":\"Daniel.Urrutia@T-Mobile.Com\",\"users\":{\"normaluser\":\"write\"," +
+                "\"certuser\":\"read\",\"safeadmin\":\"deny\",\"testsafeuser\":\"write\",\"testuser1\":\"deny\",\"testuser2\":\"read\"}}}";
+
+        Response response = new Response();
+        response.setHttpstatus(HttpStatus.OK);
+        response.setResponse(metaDataJson);
+        response.setSuccess(true);
+
+        when(reqProcessor.process(eq("/read"), anyObject(), anyString())).thenReturn(response);
+
+        CertResponse certResponse = new CertResponse();
+        certResponse.setHttpstatus(HttpStatus.OK);
+        certResponse.setResponse(jsonStr);
+        certResponse.setSuccess(true);
+        when(reqProcessor.processCert(eq("/auth/certmanager/login"), anyObject(), anyString(), anyString())).thenReturn(certResponse);
+
+
+        when(ControllerUtil.updateMetaData(anyString(), anyMap(), anyString())).thenReturn(Boolean.TRUE);
+
+        when(reqProcessor.process(eq("/auth/userpass/read"),anyObject(), anyString())).thenReturn(userResponse);
+
+        Response idapConfigureResponse = getMockResponse(HttpStatus.NO_CONTENT, true, "{\"policies\":null}");
+        when(ControllerUtil.configureUserpassUser(eq("testusername1"),any(),eq(token))).thenReturn(idapConfigureResponse);
+
+        DirectoryUser directoryUser = new DirectoryUser();
+        directoryUser.setDisplayName("testusername1");
+        directoryUser.setGivenName("testusername1");
+        directoryUser.setUserEmail("testUser@t-mobile.com");
+        directoryUser.setUserId("testuser01");
+        directoryUser.setUserName("testusername1");
+
+        List<DirectoryUser> persons = new ArrayList<>();
+        persons.add(directoryUser);
+        DirectoryObjects users = new DirectoryObjects();
+        DirectoryObjectsList usersList = new DirectoryObjectsList();
+        usersList.setValues(persons.toArray(new DirectoryUser[persons.size()]));
+        users.setData(usersList);
+        Mockito.doNothing().when(emailUtils).sendTransferEmail(Mockito.any(),Mockito.any(),Mockito.any());
+        when(directoryService.searchByUPN(anyString())).
+                thenReturn(ResponseEntity.status(HttpStatus.OK).body(users));
+
+        ResponseEntity<?> transferCertResponse =
+                sSLCertificateService.updateCertOwner(token,"internal","certificatename.t-mobile.com","owneremail@t" +
+                        "-mobile.com" ,userDetails);
+
+        //Assert
+        assertNotNull(transferCertResponse);
+    }
+
 
     @Test
     public void transferSSLCertificate_Failure() throws Exception {
