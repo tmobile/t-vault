@@ -4781,6 +4781,16 @@ public class SSLCertificateService {
 			boolean isPoliciesCreated=true;	
 			removeSudoPermissionForPreviousOwner( certificateUser.toLowerCase(), certName,userDetails,certType);
 			addSudoPermissionToCertificateOwner(certificateRequest, userDetails, enrollResponse, isPoliciesCreated, true,token,"transfer");		
+            sendTransferEmail(metaDataParams,certificateRequest.getCertOwnerNtid(),certificateUser);
+            log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+                    put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+                    put(LogMessage.ACTION, "sendTransferEmail").
+                    put(LogMessage.MESSAGE, String.format("Successfully sent Transfer email notification oldOwner=  " +
+                                    "[%s] newOwner =[%s] for certificate [%s] on date = [%s]",
+                            getUserEmail(getUserDetails(certificateUser)),  getUserEmail(getUserDetails(certificateRequest.getCertOwnerNtid()))
+                            , metaDataParams.get("certificateName"),java.time.LocalDateTime.now())).
+                    put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+                    build()));
 			
 			return ResponseEntity.status(HttpStatus.OK)
 					.body("{\"messages\":[\"" + "Certificate owner Transferred Successfully" + "\"]}");
@@ -4809,7 +4819,58 @@ public class SSLCertificateService {
     }
 
 
-	/**
+    //get Displayable name
+    private String getDisplayName(DirectoryUser directoryUser) {
+        String displayName = "";
+        if (Objects.nonNull(directoryUser)) {
+            displayName = directoryUser.getDisplayName();
+        }
+        return displayName;
+    }
+
+    //get User Email
+    private String getUserEmail(DirectoryUser directoryUser) {
+        String emailId = "";
+        if (Objects.nonNull(directoryUser)) {
+            emailId = directoryUser.getUserEmail();
+        }
+        return emailId;
+    }
+
+    /**
+     * Sending transfer email
+     *
+     * @param metaDataParams
+     * @param newOwner
+     * @param oldOwner
+     */
+    private void sendTransferEmail(Map<String, String> metaDataParams, String newOwner, String oldOwner) {
+        Map<String, String> mailTemplateVariables = new Hashtable<>();
+        mailTemplateVariables.put("oldOwnerName", getDisplayName(getUserDetails(oldOwner)));
+        mailTemplateVariables.put("newOwnerName", getDisplayName(getUserDetails(newOwner)));
+        mailTemplateVariables.put("oldOwnerEmail", getUserEmail(getUserDetails(oldOwner)));
+        mailTemplateVariables.put("newOwnerEmail", getUserEmail(getUserDetails(newOwner)));
+        mailTemplateVariables.put("certType", StringUtils.capitalize(metaDataParams.get("certType")));
+        mailTemplateVariables.put("certName", StringUtils.capitalize(metaDataParams.get("certificateName")));
+        mailTemplateVariables.put("certStartDate", (Objects.nonNull(metaDataParams.get("createDate"))) ?
+                metaDataParams.get("createDate") : "N/A");
+        mailTemplateVariables.put("certEndDate", (Objects.nonNull(metaDataParams.get("expiryDate"))) ?
+                metaDataParams.get("expiryDate") : "N/A");
+        mailTemplateVariables.put("contactLink", supportEmail);
+        String subject = SSLCertificateConstants.TRANSFER_EMAIL_SUBJECT + " -" + StringUtils.capitalize(metaDataParams.get(
+                "certificateName"));
+        if (Objects.nonNull(metaDataParams.get("dnsNames"))) {
+            String dnsNames = Collections.singletonList(metaDataParams.get("dnsNames")).toString();
+            mailTemplateVariables.put("dnsNames", dnsNames.substring(2, dnsNames.length() - 2));
+        } else {
+            mailTemplateVariables.put("dnsNames", "N/A");
+        }
+
+        emailUtils.sendTransferEmail(supportEmail, mailTemplateVariables, subject);
+    }
+
+
+    /**
 	 * Method to validate certificate approval status in nclm and get the latest
 	 * certificate details
 	 * @param certName
