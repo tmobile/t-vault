@@ -7,7 +7,7 @@ import AccordionSummary from '@material-ui/core/AccordionSummary';
 import AccordionDetails from '@material-ui/core/AccordionDetails';
 // import { Avatar } from '@material-ui/core';
 
-//styled components goes here
+// styled components goes here
 const FolderWrap = styled(Accordion)`
   display: flex;
   background: #ddd;
@@ -76,9 +76,9 @@ AccordionFolder.propTypes = {
   date: PropTypes.string,
 };
 AccordionFolder.defaultProps = {
-    summaryIcon: <div></div>,
-    titleIcon: <div></div>,
-    title: "Nothing here",
-    date: "No Date",
-  };
+  summaryIcon: <div />,
+  titleIcon: <div />,
+  title: 'Nothing here',
+  date: 'No Date',
+};
 export default AccordionFolder;

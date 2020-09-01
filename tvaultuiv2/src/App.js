@@ -31,7 +31,7 @@ const Container = styled('div')``;
 const Layout = styled('main')``;
 const Preview = styled('section')``;
 
-export const App = (props) => {
+export const App = () => {
   return (
     <BrowserRouter>
       <RendetionError>

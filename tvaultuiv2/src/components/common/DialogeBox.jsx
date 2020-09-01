@@ -32,6 +32,6 @@ DialogeBox.propTypes = {
 };
 DialogeBox.defaultProps = {
   description: 'Nothing here, But me',
-  actionButton: <div></div>,
+  actionButton: <div />,
 };
 export default DialogeBox;

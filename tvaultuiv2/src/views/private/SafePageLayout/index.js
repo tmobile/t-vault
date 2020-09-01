@@ -2,6 +2,7 @@ import React from 'react';
 import { withRouter } from 'react-router-dom';
 
 // import PropTypes from 'prop-types';
+// eslint-disable-next-line import/no-unresolved
 import SafeSectionWrap from 'components/containers/SafeSectionWrap';
 import styled from 'styled-components';
 

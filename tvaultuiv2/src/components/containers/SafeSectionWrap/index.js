@@ -1,5 +1,5 @@
+/* eslint-disable import/no-unresolved */
 import React from 'react';
-
 import { Input, InputAdornment } from '@material-ui/core';
 import MuiButton from 'components/common/MuiButton';
 import styled from 'styled-components';
@@ -11,10 +11,10 @@ import FolderIcon from '@material-ui/icons/Folder';
 import SearchIcon from '@material-ui/icons/Search';
 import AddIcon from '@material-ui/icons/Add';
 
-//mock data
+// mock data
 import data from 'mockData/safeSectionMock.json';
 
-//styled components
+// styled components
 const ColumnSection = styled('section')`
   width: 50%;
   padding: 2.5em;
@@ -89,6 +89,7 @@ const SafeSectionWrap = () => {
         </ColumnHeader>
         <SearchInput
           startAdornment={
+            // eslint-disable-next-line react/jsx-wrap-multilines
             <InputAdornment position="start">
               <SearchIcon />
             </InputAdornment>
@@ -96,6 +97,7 @@ const SafeSectionWrap = () => {
         />
         <SafeListContainer>
           {safes.map((safe, index) => (
+            // eslint-disable-next-line react/no-array-index-key
             <SafeFolderWrap key={index}>
               <SafeAvatarWrap>
                 <Avatar>
