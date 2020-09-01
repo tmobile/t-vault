@@ -3,21 +3,21 @@ import styled from 'styled-components';
 import TextField from '@material-ui/core/TextField';
 
 const AddFolderNameWrapper = styled.section`
-  padding: 2rem;
-  border: 1.5px solid #ddd;
-  border-radius: 3px;
+  padding: 3.2rem;
+  border: 0.1rem solid #ddd;
+  border-radius: 0.3rem;
   background-color: #fff;
   width: 50%;
   .MuiFormHelperText-contained {
     margin-left: 0;
-    margin-top: 10px;
+    margin-top: 1rem;
     color: #000;
-    font-size: 14px;
+    font-size: 1.4rem;
   }
 `;
 
 const FolderHeader = styled.h1`
-  margin-bottom: 0.875rem;
+  margin-bottom: 1.4rem;
   margin-top: 0;
 `;
 const AddFolder = () => {

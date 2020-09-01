@@ -8,7 +8,7 @@ import MenuItem from '@material-ui/core/MenuItem';
 const ModalWrapper = styled.section`
   background-color: #fff;
   padding: 2rem 3rem;
-  border-radius: 10px;
+  border-radius: 1rem;
   border: none;
   outline: none;
   width: 50%;
@@ -20,12 +20,12 @@ const InputFieldLabelWrapper = styled.div`
     width: 100%;
   }
   .MuiFormLabel-root {
-    margin-bottom: 12px;
-    font-size: 14px;
+    margin-bottom: 1.2rem;
+
     font-weight: bold;
   }
   .MuiFilledInput-root {
-    border-radius: 5px;
+    border-radius: 0.5rem;
     background-color: #eee;
     width: 100%;
     :before,
@@ -52,12 +52,12 @@ const PopoverDescriptionWrapper = styled.div`
 
 const PopoverWrapper = styled.div`
   position: absolute;
-  bottom: -48px;
+  bottom: -4.8rem;
   background-color: #fff;
   padding: 2rem;
   z-index: 2;
-  border-radius: 3px;
-  box-shadow: 0 0.125em 0.75em 0px rgba(0, 0, 0, 0.15);
+  border-radius: 0.3rem;
+  box-shadow: 0 0.125em 0.75em 0 rgba(0, 0, 0, 0.15);
   display: ${(props) => (props.popOverOpen ? 'block' : 'none')};
 `;
 
