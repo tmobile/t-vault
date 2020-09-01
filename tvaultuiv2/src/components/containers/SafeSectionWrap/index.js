@@ -1,5 +1,7 @@
+/* eslint-disable no-return-assign */
 /* eslint-disable import/no-unresolved */
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import InfiniteScroll from 'react-infinite-scroller';
 import { Input, InputAdornment } from '@material-ui/core';
 import MuiButton from 'components/common/MuiButton';
 import styled from 'styled-components';
@@ -48,7 +50,10 @@ const SearchInput = styled(Input)`
     border-bottom: none;
   }
 `;
-const SafeListContainer = styled.div``;
+const SafeListContainer = styled.div`
+  height: 20rem;
+  overflow: auto;
+`;
 
 const SafeIconWrap = styled('div')`
   width: 20%;
@@ -80,6 +85,55 @@ const SafeAvatarWrap = styled.div`
 `;
 const SafeSectionWrap = () => {
   const { safes } = data;
+  const [safeList, setSafeList] = useState([]);
+  const [moreData] = useState(true);
+
+  useEffect(() => {
+    safes.map((item) => {
+      return setSafeList((prev) => [...prev, item]);
+    });
+  }, [safes]);
+
+  const getSafesList = () => {
+    return new Promise((resolve) =>
+      setTimeout(() => {
+        resolve({
+          name: 'sample/safe-7',
+          desc:
+            'Hello yhis is the sample description of thesafety used here. it shows description about safety type and so on',
+          date: '2 days ago , 9:20 pm',
+          flagType: 'new',
+        });
+      }, 1000)
+    );
+  };
+
+  const loadMoreData = () => {
+    getSafesList().then((res) => {
+      setSafeList((prev) => [...prev, res]);
+    });
+  };
+
+  let scrollParentRef = null;
+  const renderSafes = () => {
+    return safeList.map((safe) => (
+      <SafeFolderWrap key={safe.name}>
+        <SafeAvatarWrap>
+          <Avatar>
+            <FolderIcon />
+          </Avatar>
+        </SafeAvatarWrap>
+        <SafeDetailBox>
+          <div>
+            {safe.name}
+            <span>{safe.flagType}</span>
+          </div>
+          <div>{safe.date}</div>
+        </SafeDetailBox>
+      </SafeFolderWrap>
+    ));
+  };
+
   return (
     <SectionPreview title="safe-section">
       <ColumnSection>
@@ -95,24 +149,18 @@ const SafeSectionWrap = () => {
             </InputAdornment>
           }
         />
-        <SafeListContainer>
-          {safes.map((safe, index) => (
-            // eslint-disable-next-line react/no-array-index-key
-            <SafeFolderWrap key={index}>
-              <SafeAvatarWrap>
-                <Avatar>
-                  <FolderIcon />
-                </Avatar>
-              </SafeAvatarWrap>
-              <SafeDetailBox>
-                <div>
-                  {safe.name}
-                  <span>{safe.flagType}</span>
-                </div>
-                <div>{safe.date}</div>
-              </SafeDetailBox>
-            </SafeFolderWrap>
-          ))}
+        <SafeListContainer ref={(ref) => (scrollParentRef = ref)}>
+          <InfiniteScroll
+            pageStart={0}
+            loadMore={() => loadMoreData()}
+            hasMore={moreData}
+            threshold={100}
+            loader={<div key={0}>...</div>}
+            useWindow={false}
+            getScrollParent={() => scrollParentRef}
+          >
+            {renderSafes()}
+          </InfiniteScroll>
         </SafeListContainer>
       </ColumnSection>
       <ColumnSection>
