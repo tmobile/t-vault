@@ -561,7 +561,6 @@ public class OIDCUtil {
                     put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
                     put(LogMessage.ACTION, "Add Group to SDB").
                     put(LogMessage.MESSAGE, "Successfully renewd user token after group policy update").
-                    put(LogMessage.RESPONSE, (null != renewResponse) ? renewResponse.getResponse() : TVaultConstants.EMPTY).
                     put(LogMessage.STATUS, (null != renewResponse) ? renewResponse.getHttpstatus().toString() : TVaultConstants.EMPTY).
                     put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
                     build()));
@@ -570,7 +569,6 @@ public class OIDCUtil {
                     put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
                     put(LogMessage.ACTION, "Add Group to SDB").
                     put(LogMessage.MESSAGE, "Reverting user policy update failed").
-                    put(LogMessage.RESPONSE, (null != renewResponse) ? renewResponse.getResponse() : TVaultConstants.EMPTY).
                     put(LogMessage.STATUS, (null != renewResponse) ? renewResponse.getHttpstatus().toString() : TVaultConstants.EMPTY).
                     put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
                     build()));
