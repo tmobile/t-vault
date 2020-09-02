@@ -143,3 +143,6 @@ export default function SelectionTabs(props) {
 SelectionTabs.propTypes = {
   secrets: PropTypes.array,
 };
+SelectionTabs.defaultProps = {
+  secrets: [],
+};

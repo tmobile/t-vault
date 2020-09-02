@@ -15,7 +15,7 @@ import SearchIcon from '@material-ui/icons/Search';
 import AddIcon from '@material-ui/icons/Add';
 
 // mock data
-import { safes, safeDetail } from 'mockData/safeSectionMock.json';
+import { safes, safeDetail } from './safeSectionMock.json';
 
 // styled components
 const ColumnSection = styled('section')`
@@ -112,15 +112,6 @@ const SafeSectionWrap = (props) => {
    * @param {string}
    * @param {object}
    */
-  // const renderLayout = () => {
-  //   return (
-  //     <Route
-  //       exact
-  //       path={`${routeProps.match.url}`}
-  //       render={() => <SafeDetails />}
-  //     />
-  //   );
-  // };
   return (
     <SectionPreview title="safe-section">
       <ColumnSection>
@@ -174,7 +165,7 @@ const SafeSectionWrap = (props) => {
           <Switch>
             {' '}
             <Route
-              path="/:tab/:safename"
+              path="/:tab/:safeName"
               render={(routerProps) => (
                 <SafeDetails detailData={safeDetail} params={routerProps} />
               )}

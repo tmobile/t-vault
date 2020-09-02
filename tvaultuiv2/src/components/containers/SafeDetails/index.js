@@ -34,14 +34,14 @@ const SafeDescription = styled.p`
 `;
 const SafeDetails = (props) => {
   const { detailData, params } = props;
-  const compdata = detailData[params.match.params.safename];
+  const compData = detailData[params?.match?.params.safeName] || {};
   return (
     <Section>
       <ColumnHeader>
         <SafeIconWrap />
-        <SafeDescription>{compdata.description}</SafeDescription>
+        <SafeDescription>{compData.description}</SafeDescription>
       </ColumnHeader>
-      <SelectionTabs secrets={compdata.secrets} />
+      <SelectionTabs secrets={compData.secrets} />
     </Section>
   );
 };
