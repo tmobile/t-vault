@@ -12,9 +12,9 @@ const styles = () => ({
     color: '#fff',
   },
   iconStyle: {
-    fontSize: '12px',
+    fontSize: '1.2rem',
     fontWeight: 'bold',
-    marginRight: '5px',
+    marginRight: '0.5rem',
   },
 });
 const setIcon = (props) => {

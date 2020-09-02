@@ -6,7 +6,7 @@ import ButtonComponent from './buttonComponent';
 const SecretWrapper = styled.section`
   padding: 2rem;
   width: 50%;
-  border: 1.5px solid #000;
+  border: 0.15rem solid #000;
   display: flex;
   flex-direction: column;
   .MuiFilledInput-root {

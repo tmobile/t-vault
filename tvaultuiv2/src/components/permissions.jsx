@@ -11,7 +11,7 @@ import ButtonComponent from './buttonComponent';
 const PermissionWrapper = styled.div`
   padding: 2rem;
   width: 50%;
-  border: 1.5px solid #000;
+  border: 0.1rem solid #000;
   display: flex;
   flex-direction: column;
 `;
