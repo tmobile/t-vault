@@ -4680,7 +4680,7 @@ public class SSLCertificateService {
 					.put(LogMessage.ACTION, "updateCertOwner")
 					.put(LogMessage.MESSAGE, "Invalid user inputs")
 					.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
-			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid input values\"]}");
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"User unavailable\"]}");
     	}
        
 		String endPoint = certName;	
@@ -5826,12 +5826,12 @@ public class SSLCertificateService {
 	 * @return
 	 */
 	private boolean validateCertficateEmail(String email) {
-		boolean isValid = true;
-		String emailTailText="@T-MOBILE.COM";
-		if (email.contains(" ") || (!email.toUpperCase().endsWith(emailTailText)) || (email.endsWith("."))) {
-			isValid = false;
-		}
-		return isValid;
+		String emailPattern =
+				"^[_A-Za-z0-9-\\+]+(\\.[_A-Za-z0-9-]+)*@"
+				+ "[A-Za-z0-9-]+(\\.[A-Za-z0-9]+)*(\\.[A-Za-z]{2,})$";
+		Pattern pattern = Pattern.compile(emailPattern);
+		Matcher matcher = pattern.matcher(email);
+		return matcher.matches();
 	}
     
 }

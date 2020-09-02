@@ -2425,6 +2425,7 @@
                 certificateDetails.applicationName=certificateDetails.appNameTagValue;    
                 var url = RestEndpoints.baseURL + "/v2/sslcert/" +certType+"/"+ certificateName +"/"+certOwnerEmailId +"/transferowner";
                 $scope.isLoadingData = true;   
+                resetCert();
                 AdminSafesManagement.transferCertificate(null, url).then(function (response) {
                     $scope.isLoadingData = false;
                     $scope.certObj.certDetails.ownerEmail="";
@@ -2458,16 +2459,19 @@
             };
             
             $scope.filterCert = function (val) {            	
-                var filterSearch = $scope.searchValue;
-                if ($scope.searchValue != '' && $scope.searchValue != undefined && $scope.searchValue.length > 2) {                    
-                        $scope.finalFilterCertResults = $scope.certificateData.certificates.filter(function (searchValue) {                        	
+                var filterSearch = $scope.searchValue;                
+                if ($scope.searchValue != '' && $scope.searchValue != undefined && $scope.searchValue.length > 2 ) {                    
+                        $scope.finalFilterCertResults = $scope.certificateData.certificates.filter(function (searchValue) {
+                        	if(searchValue.certificateName != undefined && searchValue.certificateName != ""){
                             return searchValue.certificateName.includes(filterSearch);
+                        	}
                         });                   
 
                 } else {                    
                     	$scope.finalFilterCertResults = $scope.certificateData.certificates.slice(0);                    
                 }
-                $scope.searchValue = $scope.searchValue;                
+                $scope.searchValue = $scope.searchValue;               
+                
             }
 
         init();
