@@ -35,7 +35,7 @@ angular.module('vault.services.VaultUtility', [])
                 } else if(searchFieldName === "userName" && self.authType.toLowerCase() === 'ldap1900') {
                     DataUrl = RestEndpoints.baseURL + RestEndpoints.usersGetData;
                 } else if (searchFieldName === "groupName") {
-                    DataUrl = RestEndpoints.baseURL + RestEndpoints.groupGetData;
+                    DataUrl = RestEndpoints.baseURL + RestEndpoints.groupGetDataFromAAD;
                 }                                
                 DataUrl = DataUrl + searchFieldText;              
                  try {

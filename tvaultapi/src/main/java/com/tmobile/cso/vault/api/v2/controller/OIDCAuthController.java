@@ -258,5 +258,16 @@ public class OIDCAuthController {
 		UserDetails userDetails = (UserDetails) ((HttpServletRequest) request).getAttribute("UserDetails");
 		return oidcAuthService.getUserName(userDetails);
 	}
-	
+
+	/**
+	 * To search group in AAD.
+	 * @param groupName
+	 * @return
+	 */
+	@GetMapping(value="/v2/azure/groups",produces="application/json")
+	@ApiOperation(value = "${OIDCAuthController.getGroupObjectIdFromAD.value}", notes = "${OIDCAuthController.getGroupObjectIdFromAD.notes}")
+	public ResponseEntity<DirectoryObjects> searchGroupInAzureAD(@RequestParam("name") String groupName){
+		return oidcAuthService.searchGroupInAzureAD(groupName);
+
+	}
 }

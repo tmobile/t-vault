@@ -46,7 +46,7 @@ readTextFile("../apiUrls.json");
         baseURL: JSON.parse(sessionStorage.getItem('ApiUrls')).baseURL,
         // written below separately as request requires timeout promise 
         usersGetData : '/v2/ldap/users?UserPrincipalName=',
-        groupGetData: '/v2/ldap/groups?groupName=',
+        groupGetDataFromAAD: '/v2/azure/groups?name=',
         usersGetDataUsingCorpID: '/v2/ldap/corpusers?CorpId=', 
         //baseURL : '/vault'
         endpoints: [{

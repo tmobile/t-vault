@@ -4,11 +4,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -650,5 +646,88 @@ public class OIDCUtil {
 			userName = ((DirectoryUser) tp).getUserName();
 		}
 		return userName;
+	}
+
+	/**
+	 * To get groups from AAD.
+	 *
+	 * @param ssoToken
+	 * @param groupName
+	 * @return
+	 */
+	public List<DirectoryGroup> getGroupsFromAAD(String ssoToken, String groupName) {
+
+		JsonParser jsonParser = new JsonParser();
+		HttpClient httpClient = httpUtils.getHttpClient();
+		List<DirectoryGroup> allGroups = new ArrayList<>();
+		if (httpClient == null) {
+			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+					put(LogMessage.ACTION, "getGroupsFromAAD").
+					put(LogMessage.MESSAGE, "Failed to initialize httpClient").
+					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+					build()));
+			return allGroups;
+		}
+
+		String filterSearch = "$filter=startsWith%28displayName%2C'"+groupName+"'%29";
+		String api = ssoGroupsEndpoint + filterSearch;
+		HttpGet getRequest = new HttpGet(api);
+		getRequest.addHeader("accept", TVaultConstants.HTTP_CONTENT_TYPE_JSON);
+		getRequest.addHeader("Authorization", "Bearer " + ssoToken);
+		String output = "";
+		StringBuilder jsonResponse = new StringBuilder();
+
+		try {
+			HttpResponse apiResponse = httpClient.execute(getRequest);
+			if (apiResponse.getStatusLine().getStatusCode() == 200) {
+				BufferedReader br = new BufferedReader(new InputStreamReader((apiResponse.getEntity().getContent())));
+				while ((output = br.readLine()) != null) {
+					jsonResponse.append(output);
+				}
+
+				JsonObject responseJson = (JsonObject) jsonParser.parse(jsonResponse.toString());
+				if (responseJson != null && responseJson.has("value")) {
+					JsonArray vaulesArray = responseJson.get("value").getAsJsonArray();
+					if (vaulesArray.size() > 0) {
+						Set<String> groupNamesSet = new HashSet<>();
+						// Adding to set to remove duplicates
+						for (int i=0;i<vaulesArray.size();i++) {
+							JsonObject adObject = vaulesArray.get(i).getAsJsonObject();
+							groupNamesSet.add(adObject.get("displayName").getAsString());
+						}
+						for (String group: groupNamesSet) {
+							DirectoryGroup directoryGroup = new DirectoryGroup();
+							directoryGroup.setDisplayName(group);
+							directoryGroup.setGroupName(group);
+							directoryGroup.setEmail(null);
+							allGroups.add(directoryGroup);
+						}
+					}
+				}
+				log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+						put(LogMessage.ACTION, "getGroupsFromAAD").
+						put(LogMessage.MESSAGE, String.format("Retrieved %d group(s) from AAD", allGroups.size())).
+						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+						build()));
+				return allGroups;
+			}
+			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+					put(LogMessage.ACTION, "getGroupsFromAAD").
+					put(LogMessage.MESSAGE, "Failed to retrieve groups from AAD").
+					put(LogMessage.STATUS, String.valueOf(apiResponse.getStatusLine().getStatusCode())).
+					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+					build()));
+		} catch (IOException e) {
+			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+					put(LogMessage.ACTION, "getGroupsFromAAD").
+					put(LogMessage.MESSAGE, "Failed to parse AAD groups api response").
+					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+					build()));
+		}
+		return allGroups;
 	}
 }
