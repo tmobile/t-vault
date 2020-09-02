@@ -59,6 +59,7 @@ public final class SSLCertificateConstants {
     public static final String SUDO_CERT_POLICY_PREFIX="o_";
 
     public static final String ACCESS_UPDATE_ENDPOINT="/access/update";
+    public static final String ACCESS_DELETE_ENDPOINT="/access/delete";
     public static final String ACCESS_STRING="access";
     public static final String POLICY_CREATION_TITLE="Policies Creation For Certificate";
     public static final String PROPERTY_VALUE="value";
@@ -87,4 +88,9 @@ public final class SSLCertificateConstants {
     public static final String INTERNAL="internal";
     public static final String RENEW_PENDING="Renew Pending";
     public static final String CERT_TYPE_MATCH_STRING="internal|external";
+    public static final String CONCLUSION="conclusion";
+    public static final String STATUS_REJECTED="rejected";
+    public static final String DELETE_METADATA_PERMISSIONS="deleteMetaDataAndPermissions";
+    public static final String GET_CERTIFICATE_DETAILS_PROCESS_METADATA="getCertificateDetailsAndProcessMetadata";
+    public static final String TRANSFER_EMAIL_SUBJECT="Transfer of Certificate Ownership";
 }

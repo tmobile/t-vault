@@ -110,7 +110,7 @@ public class TVaultConstants {
     public static final String EMAIL_TEMPLATE_NAME_CREATE_CERT = "InternalCertCreateTemplate";
     public static final String EMAIL_TEMPLATE_NAME_EXTERNAL_CERT = "ExteralCertCreateTemplate";
     public static final String EMAIL_TEMPLATE_NAME_DELETE_CERT = "CertDeleteTemplate";
-
+    public static final String EMAIL_TEMPLATE_NAME_TRANSFER = "TransferTemplate";
 
     public static final Map<String, String> EMAIL_TEMPLATE_IMAGE_IDS;
     static {

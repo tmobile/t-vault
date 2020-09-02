@@ -2201,12 +2201,18 @@
                             }
                         },
                         function (error) {
+                        if(error.status === 422){
+                        	 var errors = error.data.errors;
+                        	$scope.viewEditErrorMessage = errors[0];
+                        	$scope.isLoadingData = false;
+                        	$scope.validateCertificateDetailsPopUp();
+                        } else {
                             // Error handling function
                             console.log(error);
                             $scope.isLoadingData = false;
                             $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
                             $scope.error('md');
-                        });
+                        }});
                     }else {
                         $state.go('change-certificate', fullObj);
                         $scope.isLoadingData = false;

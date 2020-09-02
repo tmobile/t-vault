@@ -855,6 +855,12 @@
 		"method":"PUT",
 		"outparams":["ca/selectedId"]
 	},
+	{"#" : "**** - GET Certificate Approval Status  '****** ",
+		"apiEndPoint":"/certmanager/actionRequestStatus",
+		"vaultEndPoint":"/actions/",
+		"method":"GET",
+		"outparams":["conclusion"]
+	},
 	{"#" : "**** - GET Enroll  Templates '****** ",
 
 		"apiEndPoint":"/certmanager/getEnrollTemplates",

@@ -230,6 +230,8 @@ public class SSLCertificateService {
     @Value("${ad.notification.fromemail}")
     private String supportEmail;
 
+    @Value("${sslcertmanager.endpoint.requestStatusUrl}")
+    private String requestStatusUrl;
     @Autowired
     private EmailUtils emailUtils;
     private static Logger log = LogManager.getLogger(SSLCertificateService.class);
@@ -350,7 +352,6 @@ public class SSLCertificateService {
     public ResponseEntity<String> generateSSLCertificate(SSLCertificateRequest sslCertificateRequest,
                                                                UserDetails userDetails ,String token) {
         CertResponse enrollResponse = new CertResponse();
-
         //Validate the input data
         boolean isValidData = validateInputData(sslCertificateRequest, userDetails);
         if(!isValidData){
@@ -602,9 +603,8 @@ public class SSLCertificateService {
                         put(LogMessage.ACTION, String.format("Enroll Certificate response Completed Successfully [%s]" +
                                 " = certificate name = [%s]", enrollResponse.getResponse(),sslCertificateRequest.getCertificateName())).
                         build()));
-
+                int actionId = 0;
                 if (enrollResponse.getHttpstatus().equals(HttpStatus.ACCEPTED) && Objects.nonNull(enrollResponse.getResponse())) {
-                    int actionId;
                     Map<String, Object> responseMap = ControllerUtil.parseJson(enrollResponse.getResponse());
                     if (!MapUtils.isEmpty(responseMap) && responseMap.get("actionId") != null) {
                         actionId = (Integer) responseMap.get("actionId");
@@ -638,7 +638,7 @@ public class SSLCertificateService {
                     }
 
                     String metadataJson = populateSSLCertificateMetadata(sslCertificateRequest, userDetails,
-                            certManagerLogin);
+                            certManagerLogin,actionId);
 
 					boolean sslMetaDataCreationStatus;
 
@@ -1314,7 +1314,7 @@ public class SSLCertificateService {
 	 * @throws Exception
 	 */
 	private String populateSSLCertificateMetadata(SSLCertificateRequest sslCertificateRequest, UserDetails userDetails,
-            CertManagerLogin certManagerLogin) throws Exception {
+            CertManagerLogin certManagerLogin,int actionId) throws Exception {
 		
 		String metaDataPath = (sslCertificateRequest.getCertType().equalsIgnoreCase("internal"))?
 	            SSLCertificateConstants.SSL_CERT_PATH :SSLCertificateConstants.SSL_EXTERNAL_CERT_PATH;
@@ -1413,6 +1413,7 @@ public class SSLCertificateService {
             sslCertificateMetadataDetails.setContainerId(containerId);
             sslCertificateMetadataDetails.setCertificateName(sslCertificateRequest.getCertificateName());
             sslCertificateMetadataDetails.setRequestStatus(SSLCertificateConstants.REQUEST_PENDING_APPROVAL);
+            sslCertificateMetadataDetails.setActionId(actionId);
             log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
                     put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
                     put(LogMessage.ACTION, String.format("  MetaData info details = [%s] = for an external " +
@@ -3987,13 +3988,13 @@ public class SSLCertificateService {
 			CertificateData certData = getLatestCertificate(certificateName,nclmAccessToken, containerId);			
 			boolean sslMetaDataUpdationStatus=true;		
 			if(!ObjectUtils.isEmpty(certData)) {	
-			
+            int actionId=0;
 			if(certType.equalsIgnoreCase("external")) {
 				CertManagerLogin certManagerLogin = new CertManagerLogin();
 				certManagerLogin.setAccess_token(nclmAccessToken);
 				Map<String, Object> responseMap = ControllerUtil.parseJson(renewResponse.getResponse());
                 if (!MapUtils.isEmpty(responseMap) && responseMap.get("actionId") != null) {
-                    int actionId = (Integer) responseMap.get("actionId");
+                     actionId = (Integer) responseMap.get("actionId");
                 if (actionId != 0) {
                 	renewResponse = approvalRequest(certManagerLogin, actionId);
                     log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
@@ -4004,6 +4005,7 @@ public class SSLCertificateService {
                 }
 			}
                 metaDataParams.put("requestStatus", SSLCertificateConstants.RENEW_PENDING); 
+                metaDataParams.put("actionId",String.valueOf(actionId));
 			}else {
 				metaDataParams.put("certificateId",((Integer)certData.getCertificateId()).toString()!=null?
 						((Integer)certData.getCertificateId()).toString():String.valueOf(certificateId));
@@ -4779,6 +4781,16 @@ public class SSLCertificateService {
 			boolean isPoliciesCreated=true;	
 			removeSudoPermissionForPreviousOwner( certificateUser.toLowerCase(), certName,userDetails,certType);
 			addSudoPermissionToCertificateOwner(certificateRequest, userDetails, enrollResponse, isPoliciesCreated, true,token,"transfer");		
+            sendTransferEmail(metaDataParams,certificateRequest.getCertOwnerNtid(),certificateUser);
+            log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+                    put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+                    put(LogMessage.ACTION, "sendTransferEmail").
+                    put(LogMessage.MESSAGE, String.format("Successfully sent Transfer email notification oldOwner=  " +
+                                    "[%s] newOwner =[%s] for certificate [%s] on date = [%s]",
+                            getUserEmail(getUserDetails(certificateUser)),  getUserEmail(getUserDetails(certificateRequest.getCertOwnerNtid()))
+                            , metaDataParams.get("certificateName"),java.time.LocalDateTime.now())).
+                    put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+                    build()));
 			
 			return ResponseEntity.status(HttpStatus.OK)
 					.body("{\"messages\":[\"" + "Certificate owner Transferred Successfully" + "\"]}");
@@ -4807,7 +4819,58 @@ public class SSLCertificateService {
     }
 
 
-	/**
+    //get Displayable name
+    private String getDisplayName(DirectoryUser directoryUser) {
+        String displayName = "";
+        if (Objects.nonNull(directoryUser)) {
+            displayName = directoryUser.getDisplayName();
+        }
+        return displayName;
+    }
+
+    //get User Email
+    private String getUserEmail(DirectoryUser directoryUser) {
+        String emailId = "";
+        if (Objects.nonNull(directoryUser)) {
+            emailId = directoryUser.getUserEmail();
+        }
+        return emailId;
+    }
+
+    /**
+     * Sending transfer email
+     *
+     * @param metaDataParams
+     * @param newOwner
+     * @param oldOwner
+     */
+    private void sendTransferEmail(Map<String, String> metaDataParams, String newOwner, String oldOwner) {
+        Map<String, String> mailTemplateVariables = new Hashtable<>();
+        mailTemplateVariables.put("oldOwnerName", getDisplayName(getUserDetails(oldOwner)));
+        mailTemplateVariables.put("newOwnerName", getDisplayName(getUserDetails(newOwner)));
+        mailTemplateVariables.put("oldOwnerEmail", getUserEmail(getUserDetails(oldOwner)));
+        mailTemplateVariables.put("newOwnerEmail", getUserEmail(getUserDetails(newOwner)));
+        mailTemplateVariables.put("certType", StringUtils.capitalize(metaDataParams.get("certType")));
+        mailTemplateVariables.put("certName", StringUtils.capitalize(metaDataParams.get("certificateName")));
+        mailTemplateVariables.put("certStartDate", (Objects.nonNull(metaDataParams.get("createDate"))) ?
+                metaDataParams.get("createDate") : "N/A");
+        mailTemplateVariables.put("certEndDate", (Objects.nonNull(metaDataParams.get("expiryDate"))) ?
+                metaDataParams.get("expiryDate") : "N/A");
+        mailTemplateVariables.put("contactLink", supportEmail);
+        String subject = SSLCertificateConstants.TRANSFER_EMAIL_SUBJECT + " -" + StringUtils.capitalize(metaDataParams.get(
+                "certificateName"));
+        if (Objects.nonNull(metaDataParams.get("dnsNames"))) {
+            String dnsNames = Collections.singletonList(metaDataParams.get("dnsNames")).toString();
+            mailTemplateVariables.put("dnsNames", dnsNames.substring(2, dnsNames.length() - 2));
+        } else {
+            mailTemplateVariables.put("dnsNames", "N/A");
+        }
+
+        emailUtils.sendTransferEmail(supportEmail, mailTemplateVariables, subject);
+    }
+
+
+    /**
 	 * Method to validate certificate approval status in nclm and get the latest
 	 * certificate details
 	 * @param certName
@@ -4857,9 +4920,188 @@ public class SSLCertificateService {
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
 					.body("{\"errors\":[\"Access denied: No permission to access this certificate\"]}");
 		}
-
 	}
 
+    /**
+     * To delete r/w/o/d policies
+     * @param sslCertificateRequest
+     * @param token
+     * @return
+     */
+
+    private boolean deletePolicies(String certType,String certificateName, String token) {
+        boolean policiesDeleted = false;
+        Map<String, Object> policyMap = new HashMap<>();
+        Map<String, String> accessMap = new HashMap<>();
+        String metaDataPath = (certType.equalsIgnoreCase("internal")) ?
+                SSLCertificateConstants.SSL_CERT_PATH : SSLCertificateConstants.SSL_EXTERNAL_CERT_PATH;
+
+        String certPathVal = (certType.equalsIgnoreCase("internal")) ?
+                SSLCertificateConstants.SSL_CERT_PATH_VALUE : SSLCertificateConstants.SSL_CERT_PATH_VALUE_EXT;
+
+        String policyValue = (certType.equalsIgnoreCase("internal")) ?
+                SSLCertificateConstants.INTERNAL_POLICY_NAME : SSLCertificateConstants.EXTERNAL_POLICY_NAME;
+
+        String certMetadataPath = metaDataPath + '/' + certificateName;
+        String certPath = certPathVal + certificateName;
+
+        //Read Policy
+        accessMap.put(certPath, TVaultConstants.READ_POLICY);
+        accessMap.put(certMetadataPath, TVaultConstants.READ_POLICY);
+        policyMap.put(SSLCertificateConstants.ACCESS_ID, SSLCertificateConstants.READ_CERT_POLICY_PREFIX + policyValue + "_" + certificateName);
+        policyMap.put(SSLCertificateConstants.ACCESS_STRING, accessMap);
+
+        String policyRequestJson = ControllerUtil.convetToJson(policyMap);
+        Response readResponse = reqProcessor.process(SSLCertificateConstants.ACCESS_DELETE_ENDPOINT, policyRequestJson, token);
+
+        //Write Policy
+        accessMap.put(certPath, TVaultConstants.WRITE_POLICY);
+        accessMap.put(certMetadataPath, TVaultConstants.WRITE_POLICY);
+        policyMap.put(SSLCertificateConstants.ACCESS_ID, SSLCertificateConstants.WRITE_CERT_POLICY_PREFIX + policyValue + "_" + certificateName);
+        policyRequestJson = ControllerUtil.convetToJson(policyMap);
+        Response writeResponse = reqProcessor.process(SSLCertificateConstants.ACCESS_DELETE_ENDPOINT, policyRequestJson, token);
+
+        //Deny Policy
+        accessMap.put(certPath, TVaultConstants.DENY_POLICY);
+        policyMap.put(SSLCertificateConstants.ACCESS_ID, SSLCertificateConstants.DENY_CERT_POLICY_PREFIX + policyValue + "_" + certificateName);
+        policyRequestJson = ControllerUtil.convetToJson(policyMap);
+        Response denyResponse = reqProcessor.process(SSLCertificateConstants.ACCESS_DELETE_ENDPOINT, policyRequestJson, token);
+
+        //Owner Policy
+        accessMap.put(certPath, TVaultConstants.SUDO_POLICY);
+        accessMap.put(certMetadataPath, TVaultConstants.WRITE_POLICY);
+        policyMap.put(SSLCertificateConstants.ACCESS_ID, SSLCertificateConstants.SUDO_CERT_POLICY_PREFIX + policyValue + "_" + certificateName);
+        policyRequestJson = ControllerUtil.convetToJson(policyMap);
+        Response sudoResponse = reqProcessor.process(SSLCertificateConstants.ACCESS_DELETE_ENDPOINT, policyRequestJson, token);
+
+        if ((readResponse.getHttpstatus().equals(HttpStatus.NO_CONTENT) &&
+                writeResponse.getHttpstatus().equals(HttpStatus.NO_CONTENT) &&
+                denyResponse.getHttpstatus().equals(HttpStatus.NO_CONTENT)
+                && sudoResponse.getHttpstatus().equals(HttpStatus.NO_CONTENT)
+        ) ||
+                (readResponse.getHttpstatus().equals(HttpStatus.OK) &&
+                        writeResponse.getHttpstatus().equals(HttpStatus.OK) &&
+                        denyResponse.getHttpstatus().equals(HttpStatus.OK))
+                        && sudoResponse.getHttpstatus().equals(HttpStatus.OK)
+        ) {
+            log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+                    put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+                    put(LogMessage.ACTION, SSLCertificateConstants.POLICY_CREATION_TITLE).
+                    put(LogMessage.MESSAGE, "SSL Certificate Policies Creation Success").
+                    put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+                    build()));
+            policiesDeleted = true;
+        } else {
+            log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+                    put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+                    put(LogMessage.ACTION, SSLCertificateConstants.POLICY_CREATION_TITLE).
+                    put(LogMessage.MESSAGE, "SSL Certificate policies creation failed").
+                    put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+                    build()));
+        }
+
+        return policiesDeleted;
+    }
+
+
+    private String getExternalCertReqStatus(SSLCertificateMetadataDetails certificateMetaData) throws Exception {
+	    String status= null;
+        String actionRequest = "/certmanager/actionRequestStatus";
+        String reqStatusUrl = requestStatusUrl.replace("actionid", String.valueOf(certificateMetaData.getActionId()));
+        CertResponse certResponse= reqProcessor.processCert(actionRequest, "", getNclmToken(),
+                getCertmanagerEndPoint(reqStatusUrl));
+        Map<String, Object> responseMap = ControllerUtil.parseJson(certResponse.getResponse());
+        if (!MapUtils.isEmpty(responseMap)) {
+            status = responseMap.get(SSLCertificateConstants.CONCLUSION).toString();
+        }
+        log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+                put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+                put(LogMessage.ACTION, "getExternalCertReqStatus").
+                put(LogMessage.MESSAGE, String.format("Status  =  [%s] for certificate = [%s] ", status,
+                        certificateMetaData.getCertificateName())).
+                put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+                build()));
+        return status;
+    }
+
+    /**
+     * This method will be responsible for deleting the metadata and permissions
+     * @param certificateMetaData
+     * @param certificatePath
+     * @param authToken
+     * @return
+     */
+    //Delete the Metadata and permissions
+    private boolean deleteMetaDataAndPermissions(SSLCertificateMetadataDetails certificateMetaData,
+                                                 String certificatePath, String authToken) {
+
+        //Delete Metadata
+        Response response = reqProcessor.process("/delete", "{\"path\":\"" + certificatePath + "\"}", authToken);
+        if (HttpStatus.NO_CONTENT.equals(response.getHttpstatus())) {
+            log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+                    put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+                    put(LogMessage.ACTION, SSLCertificateConstants.DELETE_METADATA_PERMISSIONS).
+                    put(LogMessage.MESSAGE, String.format("Certificate Metadata deleted for certificatePath =  [%s] " +
+                            "and certificate name = [%s]" , certificatePath,certificateMetaData.getCertificateName())).
+                    put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+                    build()));
+        } else {
+            log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+                    put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+                    put(LogMessage.ACTION, SSLCertificateConstants.DELETE_METADATA_PERMISSIONS).
+                    put(LogMessage.MESSAGE, String.format("Failed to delete Certificate Metadata  for certificate =  " +
+                            "[%s] and certificate name = [%s] ", certificatePath,certificateMetaData.getCertificateName())).
+                    put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+                    build()));
+            return false;
+        }
+
+        //Delete permissions
+        String permissionMetaDataPath = (certificateMetaData.getCertType().equalsIgnoreCase("internal")) ?
+                SSLCertificateConstants.SSL_CERT_PATH_VALUE + certificateMetaData.getCertificateName() :
+                SSLCertificateConstants.SSL_CERT_PATH_VALUE_EXT + certificateMetaData.getCertificateName();
+        Response metadataResponse = reqProcessor.process("/delete", "{\"path\":\"" + permissionMetaDataPath + "\"}", authToken);
+        if (HttpStatus.NO_CONTENT.equals(metadataResponse.getHttpstatus())) {
+            log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+                    put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+                    put(LogMessage.ACTION, SSLCertificateConstants.DELETE_METADATA_PERMISSIONS).
+                    put(LogMessage.MESSAGE, String.format("Certificate Metadata Permissions deleted for certificate " +
+                            "=[%s]  and certificate name=[%s] ", permissionMetaDataPath,
+                            certificateMetaData.getCertificateName())).
+                    put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+                    build()));
+        } else {
+            log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+                    put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+                    put(LogMessage.ACTION, SSLCertificateConstants.DELETE_METADATA_PERMISSIONS).
+                    put(LogMessage.MESSAGE, String.format("Failed to delete Certificate Metadata  for certificate   " +
+                            "[%s] and certificate name = [%s] ", permissionMetaDataPath,certificateMetaData.getCertificateName())).
+                    put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+                    build()));
+            return false;
+        }
+
+        //Delete policies
+       if(deletePolicies(certificateMetaData.getCertType(),certificateMetaData.getCertificateName(),authToken)) {
+            log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+                    put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+                    put(LogMessage.ACTION, SSLCertificateConstants.DELETE_METADATA_PERMISSIONS).
+                    put(LogMessage.MESSAGE, String.format("Policies(r/w/s/o)  deleted for certificate =[%s] ",certificateMetaData.getCertificateName())).
+                    put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+                    build()));
+        } else {
+           log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+                   put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+                   put(LogMessage.ACTION, SSLCertificateConstants.DELETE_METADATA_PERMISSIONS).
+                   put(LogMessage.MESSAGE, String.format("Failed to delete Policies(r/w/s/o) for certificate=[%s] ",
+                           certificateMetaData.getCertificateName())).
+                   put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+                   build()));
+           return false;
+       }
+
+        return true;
+    }
 	/**
 	 * @param certificatePath
 	 * @param authToken
@@ -4869,6 +5111,46 @@ public class SSLCertificateService {
 	private ResponseEntity<String> getCertificateDetailsAndProcessMetadata(String certificatePath, String authToken,
 			SSLCertificateMetadataDetails certificateMetaData) {
 		try {
+            if (certificateMetaData.getCertType().equalsIgnoreCase(SSLCertificateConstants.EXTERNAL)) {
+                String status = getExternalCertReqStatus(certificateMetaData);
+                if ((status != null) && status.equalsIgnoreCase(SSLCertificateConstants.STATUS_REJECTED)) {
+                    if (certificateMetaData.getRequestStatus().equalsIgnoreCase(SSLCertificateConstants.RENEW_PENDING)) {
+                        log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+                                put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+                                put(LogMessage.ACTION, SSLCertificateConstants.GET_CERTIFICATE_DETAILS_PROCESS_METADATA).
+                                put(LogMessage.MESSAGE, String.format("Renew Certificate has been rejected from NCLM =" +
+                                                " [%s]  But user still access old certificate until expiry",
+                                        certificateMetaData.getCertificateName())).
+                                put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+                                build()));
+                        return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body("{\"errors" +
+                                "\":[\"Renew Certificate has been rejected from NCLM. Validate request and try " +
+                                "again\"]}");
+                    } else if (deleteMetaDataAndPermissions(certificateMetaData, certificatePath, authToken)) {
+                        log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+                                put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+                                put(LogMessage.ACTION, SSLCertificateConstants.GET_CERTIFICATE_DETAILS_PROCESS_METADATA).
+                                put(LogMessage.MESSAGE, String.format("Certificate has been rejected from NCLM =  " +
+                                                "[%s]  and deleted MetaData , Permissions and policies ",
+                                        certificateMetaData.getCertificateName())).
+                                put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+                                build()));
+                        return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body("{\"errors\":[\"Certificate has been rejected from NCLM. " +
+                                " Validate request and try again\"]}");
+                    } else {
+                        log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+                                put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+                                put(LogMessage.ACTION, SSLCertificateConstants.GET_CERTIFICATE_DETAILS_PROCESS_METADATA).
+                                put(LogMessage.MESSAGE, String.format("Error While deleting the metadata and " +
+                                                "permission for certificate =[%s]  and deleted MetaData and Permissions",
+                                        certificateMetaData.getCertificateName())).
+                                put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+                                build()));
+                        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"error\":[\"Failed to " +
+                                "delete the metadata or permissions\"]}");
+                    }
+                }
+            }
 			CertificateData certificateData = getExternalCertificate(certificateMetaData);
 			if(!ObjectUtils.isEmpty(certificateData)) {
 				return processCertificateDataAndUpdateMetadata(certificatePath, authToken, certificateMetaData,
@@ -4877,16 +5159,16 @@ public class SSLCertificateService {
 				log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
 						put(LogMessage.ACTION, SSLCertificateConstants.VALIDATE_CERTIFICATE_DETAILS_MSG).
-						put(LogMessage.MESSAGE, "Certificate may not be approved or rejected from NCLM").
+						put(LogMessage.MESSAGE, "Certificate may not be approved  from NCLM").
 						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 						build()));
-				return ResponseEntity.status(HttpStatus.NO_CONTENT).body("{\"messages\":[\"Certificate may not be approved or rejected from NCLM \"]}");
+				return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body("{\"errors\":[\"Certificate may not be approved from NCLM \"]}");
 			}
 		} catch (Exception e) {
 			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
 					put(LogMessage.ACTION, SSLCertificateConstants.VALIDATE_CERTIFICATE_DETAILS_MSG).
-					put(LogMessage.MESSAGE, "Certificate may not be approved or rejected from NCLM").
+					put(LogMessage.MESSAGE, "Certificate may not be approved  from NCLM").
 					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 					build()));
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Certificate may not be approved or rejected from NCLM\"]}");
