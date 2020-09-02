@@ -86,12 +86,13 @@ const SafeAvatarWrap = styled.div`
 const SafeSectionWrap = () => {
   const { safes } = data;
   const [safeList, setSafeList] = useState([]);
-  const [moreData] = useState(true);
+  const [moreData, setMoreData] = useState(false);
 
   useEffect(() => {
     safes.map((item) => {
       return setSafeList((prev) => [...prev, item]);
     });
+    setMoreData(true);
   }, [safes]);
 
   const getSafesList = () => {
@@ -110,6 +111,7 @@ const SafeSectionWrap = () => {
 
   const loadMoreData = () => {
     getSafesList().then((res) => {
+      setMoreData(false);
       setSafeList((prev) => [...prev, res]);
     });
   };
@@ -155,7 +157,7 @@ const SafeSectionWrap = () => {
             loadMore={() => loadMoreData()}
             hasMore={moreData}
             threshold={100}
-            loader={<div key={0}>...</div>}
+            loader={<div key={0}>Loading...</div>}
             useWindow={false}
             getScrollParent={() => scrollParentRef}
           >
