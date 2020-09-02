@@ -375,7 +375,8 @@ public class SSLCertificateService {
         }
 
 		try {
-			appendTmobileTextToCertificateName(sslCertificateRequest);
+			populateSSLCertificateRequest(sslCertificateRequest);
+
             log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
                     put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
                     put(LogMessage.ACTION, String.format("CERTIFICATE REQUEST [%s]",
@@ -1484,6 +1485,7 @@ public class SSLCertificateService {
 	    return isValid;
 	}
 
+
 	/**
 	 * Method to validate the certificate name
 	 *
@@ -1498,13 +1500,14 @@ public class SSLCertificateService {
 		}
 		return isValid;
 	}
-
+	
 	/**
-	 * Method to append t-mobile.com text to certificate name and dns
+	 * Method to set the target system, target system services and append t-mobile.com text 
+	 * to certificate name and dns
 	 *
 	 * @param sslCertificateRequest
 	 */
-	private void appendTmobileTextToCertificateName(SSLCertificateRequest sslCertificateRequest) {
+	private void populateSSLCertificateRequest(SSLCertificateRequest sslCertificateRequest) {
 		String certName = sslCertificateRequest.getCertificateName() + certificateNameTailText;
 		sslCertificateRequest.setCertificateName(certName);
 
@@ -1515,6 +1518,16 @@ public class SSLCertificateService {
 					.toArray(String[]::new);
 			sslCertificateRequest.setDnsList(dnsArray);
 		}
+
+		TargetSystem targetSystem = new TargetSystem();
+		targetSystem.setName(sslCertificateRequest.getAppName());
+		targetSystem.setAddress(sslCertificateRequest.getAppName());
+		sslCertificateRequest.setTargetSystem(targetSystem);
+
+		TargetSystemServiceRequest targetSystemService = new TargetSystemServiceRequest();
+		targetSystemService.setName(sslCertificateRequest.getCertificateName());
+		targetSystemService.setPort(Integer.parseInt(SSLCertificateConstants.NCLM_TARGET_PORT_NUMBER));
+		sslCertificateRequest.setTargetSystemServiceRequest(targetSystemService);
 	}
 
     private boolean isValidAppName(SSLCertificateRequest sslCertificateRequest){

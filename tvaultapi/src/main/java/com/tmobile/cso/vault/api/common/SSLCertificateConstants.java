@@ -88,9 +88,12 @@ public final class SSLCertificateConstants {
     public static final String INTERNAL="internal";
     public static final String RENEW_PENDING="Renew Pending";
     public static final String CERT_TYPE_MATCH_STRING="internal|external";
+
     public static final String CONCLUSION="conclusion";
     public static final String STATUS_REJECTED="rejected";
     public static final String DELETE_METADATA_PERMISSIONS="deleteMetaDataAndPermissions";
     public static final String GET_CERTIFICATE_DETAILS_PROCESS_METADATA="getCertificateDetailsAndProcessMetadata";
     public static final String TRANSFER_EMAIL_SUBJECT="Transfer of Certificate Ownership";
+    public static final String NCLM_TARGET_PORT_NUMBER="443";
+
 }
