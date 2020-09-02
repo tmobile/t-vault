@@ -11,9 +11,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.tmobile.cso.vault.api.model.OIDCGroup;
-import com.tmobile.cso.vault.api.model.OIDCIdentityGroupRequest;
-import com.tmobile.cso.vault.api.model.OIDCLookupEntityRequest;
+import com.tmobile.cso.vault.api.model.*;
 import com.tmobile.cso.vault.api.utils.HttpUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.StatusLine;
@@ -39,12 +37,6 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.http.HttpStatus;
 
 import com.google.common.collect.ImmutableMap;
-import com.tmobile.cso.vault.api.model.DirectoryObjects;
-import com.tmobile.cso.vault.api.model.DirectoryObjectsList;
-import com.tmobile.cso.vault.api.model.DirectoryUser;
-import com.tmobile.cso.vault.api.model.GroupAliasRequest;
-import com.tmobile.cso.vault.api.model.OIDCEntityRequest;
-import com.tmobile.cso.vault.api.model.OIDCEntityResponse;
 import com.tmobile.cso.vault.api.process.RequestProcessor;
 import com.tmobile.cso.vault.api.process.Response;
 import com.tmobile.cso.vault.api.service.DirectoryService;
@@ -621,5 +613,49 @@ public class OIDCUtilTest {
 
 		String originalUserName = oidcUtil.getUserName(email);
 		assertEquals(originalUserName, responsemock.getResponse().toString());
+    }
+
+    @Test
+    public void test_getGroupsFromAAD_success() throws Exception {
+        String group = "testgroup";
+        Response response = new Response();
+        response.setHttpstatus(HttpStatus.OK);
+        response.setSuccess(true);
+        response.setResponse(null);
+
+        when(httpUtils.getHttpClient()).thenReturn(httpClient);
+        when(httpClient.execute(any())).thenReturn(httpResponse);
+        when(httpResponse.getStatusLine()).thenReturn(statusLine);
+        when(statusLine.getStatusCode()).thenReturn(200);
+        when(httpResponse.getEntity()).thenReturn(mockHttpEntity);
+
+        String groupResponseString = "{\"value\": [ {\"id\": \"abcdefg\", \"onPremisesSyncEnabled\":null, \"displayName\":\"testgroup1\"}]}";
+        when(mockHttpEntity.getContent()).thenReturn( new ByteArrayInputStream(groupResponseString.getBytes()));
+        ReflectionTestUtils.setField(oidcUtil, "ssoGroupsEndpoint", "testgroupurl");
+
+        List<DirectoryGroup> groups = oidcUtil.getGroupsFromAAD("testssotoken", group);
+        assertEquals(1, groups.size());
+        assertEquals("testgroup1", groups.get(0).getDisplayName());
+
+    }
+
+    @Test
+    public void test_getGroupsFromAAD_failed() throws Exception {
+        String group = "testgroup";
+        Response response = new Response();
+        response.setHttpstatus(HttpStatus.OK);
+        response.setSuccess(true);
+        response.setResponse(null);
+
+        when(httpUtils.getHttpClient()).thenReturn(httpClient);
+        when(httpClient.execute(any())).thenReturn(httpResponse);
+        when(httpResponse.getStatusLine()).thenReturn(statusLine);
+        when(statusLine.getStatusCode()).thenReturn(400);
+
+        ReflectionTestUtils.setField(oidcUtil, "ssoGroupsEndpoint", "testgroupurl");
+
+        List<DirectoryGroup> groups = oidcUtil.getGroupsFromAAD("testssotoken", group);
+        assertEquals(0, groups.size());
+
     }
 }

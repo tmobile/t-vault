@@ -23,7 +23,9 @@ import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
@@ -294,5 +296,39 @@ public class OIDCAuthControllerTest {
 		when(oidcAuthService.getUserName(Mockito.any(UserDetails.class))).thenReturn(new ResponseEntity<>(HttpStatus.OK));
 		assertEquals(HttpStatus.OK,
 				oidcAuthController.getUserName(httpServletRequest, token).getStatusCode());
+	}
+
+	@Test
+	public void test_searchGroupInAzureAD() throws Exception {
+
+		String responseMessage = "{\"data\":{\"values\":[{\"groupName\":\"testgroup\",\"displayName\":\"testgroup\",\"email\":null},{\"groupName\":\"testgroup\",\"displayName\":\"testgroup\",\"email\":null}]}}";
+		DirectoryObjects groups = new DirectoryObjects();
+
+		DirectoryObjectsList groupsList = new DirectoryObjectsList();
+		List<DirectoryGroup> allGroups = new ArrayList<>();
+
+		DirectoryGroup directoryGroup1 = new DirectoryGroup();
+		directoryGroup1.setDisplayName("testgroup");
+		directoryGroup1.setGroupName("testgroup");
+		directoryGroup1.setEmail(null);
+		allGroups.add(directoryGroup1);
+
+		DirectoryGroup directoryGroup2 = new DirectoryGroup();
+		directoryGroup2.setDisplayName("testgroup1");
+		directoryGroup2.setGroupName("testgroup1");
+		directoryGroup2.setEmail(null);
+		allGroups.add(directoryGroup1);
+
+		groupsList.setValues(allGroups.toArray(new DirectoryGroup[allGroups.size()]));
+		groups.setData(groupsList);
+
+		ResponseEntity<DirectoryObjects> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(groups);
+
+		when(oidcAuthService.searchGroupInAzureAD("testgroup")).thenReturn(responseEntityExpected);
+
+		mockMvc.perform(MockMvcRequestBuilders.get("/v2/azure/groups?name=testgroup")
+				.header("Content-Type", "application/json;charset=UTF-8"))
+				.andExpect(status().isOk())
+				.andExpect(content().string(containsString(responseMessage)));
 	}
 }
