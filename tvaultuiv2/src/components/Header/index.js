@@ -47,9 +47,9 @@ const Header = () => {
     <HeaderWrap>
       <div>LOGO</div>
       <HeaderCenter>
-        {navItems.map((item, i) => (
+        {navItems.map((item) => (
           <NavItem
-            to={`/private/${item}`}
+            to={`/${item}`}
             key={item}
             onClick={(e) => handleNavChange(e, item)}
             active={

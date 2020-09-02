@@ -1,18 +1,21 @@
 /* eslint-disable import/no-unresolved */
-import React from 'react';
+import React, { Suspense, useState } from 'react';
+import PropTypes from 'prop-types';
+import { Link, Route, Switch } from 'react-router-dom';
 import { Input, InputAdornment } from '@material-ui/core';
 import MuiButton from 'components/common/MuiButton';
+import PsudoPopper from 'components/common/PsudoPopper';
+import SafeDetails from 'components/containers/SafeDetails';
 import styled from 'styled-components';
 import Avatar from '@material-ui/core/Avatar';
 import Dropdown from 'components/common/SelectDropdown';
-import SelectionTabs from 'components/common/Tabs';
 
 import FolderIcon from '@material-ui/icons/Folder';
 import SearchIcon from '@material-ui/icons/Search';
 import AddIcon from '@material-ui/icons/Add';
 
 // mock data
-import data from 'mockData/safeSectionMock.json';
+import { safes, safeDetail } from 'mockData/safeSectionMock.json';
 
 // styled components
 const ColumnSection = styled('section')`
@@ -50,22 +53,16 @@ const SearchInput = styled(Input)`
 `;
 const SafeListContainer = styled.div``;
 
-const SafeIconWrap = styled('div')`
-  width: 20%;
-  height: 100%;
-  background: #4a4a4a;
-  border-radious: 50%;
-  align-items: center;
+const SafeFolderWrap = styled(Link)`
+  position: relative;
   display: flex;
-`;
-const SafeDescription = styled.p`
-  font-size: 1.4em;
-  text-align: left;
-`;
-const SafeFolderWrap = styled.div`
-  display: flex;
+  text-decoration: none;
+  color: #4a4a4a;
   align-items: center;
   padding: 0.8em;
+  cursor: pointer;
+  background-color: ${(props) => (props.active ? '#4a4a4a' : '#fff')};
+  color: ${(props) => (props.active ? '#fff' : '#4a4a4a')};
   :hover {
     background-color: #4a4a4a;
     color: #fff;
@@ -78,8 +75,52 @@ const SafeAvatarWrap = styled.div`
   width: 4em;
   height: 4em;
 `;
-const SafeSectionWrap = () => {
-  const { safes } = data;
+const SafeName = styled.div`
+  font-size: 1.25rem;
+`;
+const Flag = styled('span')`
+  opacity: 0.7;
+  margin-left: 0.5rem;
+  font-size: ${(props) => props.fontSize};
+  font-style: ${(props) => (props.fontStyle ? props.fontStyle : '')};
+`;
+const PopperWrap = styled.div`
+  position: absolute;
+  top: 50%;
+  right: 0%;
+  z-index: 2;
+  transform: translate(-50%, -50%);
+`;
+const SafeSectionWrap = (props) => {
+  const { routeProps } = props;
+  const [activeSafeFolders, setActiveSafeFolders] = useState([]);
+  // const [showPopper, setShowPopper] = useState(false);
+
+  /**
+   * safe detail page route change handling function
+   * @param {string}
+   * @param {object}
+   */
+  const showSafeDetails = (active) => {
+    const activeSafes = [];
+    activeSafes.push(active);
+    setActiveSafeFolders([...activeSafes]);
+  };
+
+  /**
+   * renders safe details page route
+   * @param {string}
+   * @param {object}
+   */
+  // const renderLayout = () => {
+  //   return (
+  //     <Route
+  //       exact
+  //       path={`${routeProps.match.url}`}
+  //       render={() => <SafeDetails />}
+  //     />
+  //   );
+  // };
   return (
     <SectionPreview title="safe-section">
       <ColumnSection>
@@ -96,37 +137,60 @@ const SafeSectionWrap = () => {
           }
         />
         <SafeListContainer>
-          {safes.map((safe, index) => (
+          {safes.map((safe) => (
             // eslint-disable-next-line react/no-array-index-key
-            <SafeFolderWrap key={index}>
+            <SafeFolderWrap
+              to={`${routeProps.match.url}/${safe.name}`}
+              active={activeSafeFolders.includes(safe.name)}
+              key={safe.name}
+              onClick={() => showSafeDetails(safe.name)}
+            >
               <SafeAvatarWrap>
                 <Avatar>
                   <FolderIcon />
                 </Avatar>
               </SafeAvatarWrap>
               <SafeDetailBox>
-                <div>
+                <SafeName>
                   {safe.name}
-                  <span>{safe.flagType}</span>
-                </div>
-                <div>{safe.date}</div>
+                  <Flag fontSize="0.85rem" fontStyle="italic">
+                    {safe.flagType}
+                  </Flag>
+                </SafeName>
+                <Flag fontSize="1rem">{safe.date}</Flag>
               </SafeDetailBox>
+              {activeSafeFolders.includes(safe.name) ? (
+                <PopperWrap>
+                  <PsudoPopper />
+                </PopperWrap>
+              ) : null}
             </SafeFolderWrap>
           ))}
         </SafeListContainer>
       </ColumnSection>
+
       <ColumnSection>
-        <ColumnHeader>
-          <SafeIconWrap />
-          <SafeDescription>
-            Hello yhis is the sample description of thesafety used here. it
-            shows description about safety type and so on.
-          </SafeDescription>
-        </ColumnHeader>
-        <SelectionTabs />
+        <Suspense fallback={<div>Loading...</div>}>
+          <Switch>
+            {' '}
+            <Route
+              path="/:tab/:safename"
+              render={(routerProps) => (
+                <SafeDetails detailData={safeDetail} params={routerProps} />
+              )}
+            />
+          </Switch>
+        </Suspense>
       </ColumnSection>
     </SectionPreview>
   );
 };
 
+SafeSectionWrap.propTypes = {
+  // eslint-disable-next-line react/forbid-prop-types
+  routeProps: PropTypes.object,
+};
+SafeSectionWrap.defaultProps = {
+  routeProps: {},
+};
 export default SafeSectionWrap;
