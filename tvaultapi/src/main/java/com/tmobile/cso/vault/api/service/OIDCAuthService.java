@@ -50,6 +50,7 @@ import org.springframework.util.StringUtils;
 
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @Component
@@ -402,4 +403,22 @@ public class OIDCAuthService {
 				.body("{\"data\":{\"username\": \"" + userName.toLowerCase() + "\"}}");
 
 	}
+
+    /**
+     * To search group in AAD.
+     * @param groupName
+     * @return
+     */
+    public ResponseEntity<DirectoryObjects> searchGroupInAzureAD(String groupName) {
+        String ssoToken = oidcUtil.getSSOToken();
+        DirectoryObjects groups = new DirectoryObjects();
+        if (!StringUtils.isEmpty(ssoToken)) {
+            List<DirectoryGroup> allGroups = oidcUtil.getGroupsFromAAD(ssoToken, groupName);
+
+            DirectoryObjectsList groupsList = new DirectoryObjectsList();
+            groupsList.setValues(allGroups.toArray(new DirectoryGroup[allGroups.size()]));
+            groups.setData(groupsList);
+        }
+        return ResponseEntity.status(HttpStatus.OK).body(groups);
+    }
 }

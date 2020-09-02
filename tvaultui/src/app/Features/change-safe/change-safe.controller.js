@@ -252,7 +252,7 @@
                     return;
                 }
              } else if (variableChanged === 'groupName') {
-                 if(!UtilityService.getAppConstant('AD_GROUP_AUTOCOMPLETE')) {
+                 if(!UtilityService.getAppConstant('AD_GROUP_AUTOCOMPLETE') || newVal.groupName.length < 4) {
                     return;
                  }
              }
