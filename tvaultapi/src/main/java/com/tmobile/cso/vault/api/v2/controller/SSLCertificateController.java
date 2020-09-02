@@ -70,19 +70,6 @@ public class SSLCertificateController {
 	 */
 	@ApiOperation(value = "${SSLCertificateController.getssl.value}", notes = "${SSLCertificateController.getssl.notes}")
 	@GetMapping(value="/v2/sslcert", produces="application/json")
-	public ResponseEntity<String> getCertificates(HttpServletRequest request, @RequestHeader(value="vault-token") String token, @RequestParam(name="freeText", required = false) String freeText)throws Exception{
-		UserDetails userDetails = (UserDetails) ((HttpServletRequest) request).getAttribute("UserDetails");
-		return sslCertificateService.getServiceCertificates(token, userDetails, freeText);
-	}
-
-	/**
-	 * To get list of certificates in a container
-	 * @param request
-	 * @param token
-	 * @return
-	 */
-	@ApiOperation(value = "${SSLCertificateController.getssl.value}", notes = "${SSLCertificateController.getssl.notes}")
-	@GetMapping(value="/v2/sslcert", produces="application/json")
 	public ResponseEntity<String> getCertificates(HttpServletRequest request, @RequestHeader(value="vault-token") String token, @RequestParam(name="certificateName", required = false) String certName,@RequestParam(name = "limit", required = false) Integer limit,
 			@RequestParam(name = "offset", required = false) Integer offset, @RequestParam(name = "certType", required = false) String certType)throws Exception{
 		UserDetails userDetails = (UserDetails) request.getAttribute(USER_DETAILS_STRING);
@@ -355,61 +342,4 @@ public class SSLCertificateController {
 	public ResponseEntity<String> getAllCertificates(HttpServletRequest request, @RequestHeader(value="vault-token") String token, @RequestParam(name="certificateName", required = false) String certName,@RequestParam(name = "limit", required = false) Integer limit, @RequestParam(name = "offset", required = false) Integer offset)throws Exception{
 		return sslCertificateService.getAllCertificates(token, certName, limit, offset);
 	}
-
-	/**
-	 * Get target system list.
-	 * @param request
-	 * @param token
-	 * @return
-	 * @throws Exception
-	 */
-	@ApiOperation(value = "${CertificateController.getTargetSystemList.value}", notes = "${CertificateController.getTargetSystemList.notes}")
-	@GetMapping(value = "/v2/sslcert/targetsystems", produces = "application/json")
-	public ResponseEntity<String> getTargetSystemList(HttpServletRequest request, @RequestHeader(value = "vault-token") String token) throws Exception {
-		UserDetails userDetails = (UserDetails) ((HttpServletRequest) request).getAttribute("UserDetails");
-		return sslCertificateService.getTargetSystemList(token, userDetails);
-	}
-
-	/**
-	 * Get service list from a target system.
-	 * @param request
-	 * @param token
-	 * @return
-	 * @throws Exception
-	 */
-	@ApiOperation(value = "${CertificateController.getTargetSystemServiceList.value}", notes = "${CertificateController.getTargetSystemServiceList.value}")
-	@GetMapping(value = "/v2/sslcert/targetsystems/{targetsystem_id}/targetsystemservices", produces = "application/json")
-	public ResponseEntity<String> getTargetSystemServiceList(HttpServletRequest request, @RequestHeader(value = "vault-token") String token, @PathVariable("targetsystem_id") String targetSystemId) throws Exception {
-		UserDetails userDetails = (UserDetails) ((HttpServletRequest) request).getAttribute("UserDetails");
-		return sslCertificateService.getTargetSystemServiceList(token, userDetails, targetSystemId);
-	}
-	
-	/**
-	 * Removes permission for a user from the certificate
-	 * @param request
-	 * @param token
-	 * @param certificateUser
-	 * @return
-	 */
-	@ApiOperation(value = "${SSLCertificateController.removeUserFromCertificate.value}", notes = "${SSLCertificateController.removeUserFromCertificate.notes}")
-	@DeleteMapping(value="/v2/sslcert/user", produces="application/json")
-	public ResponseEntity<String> removeUserFromCertificate( HttpServletRequest request, @RequestHeader(value="vault-token") String token, @RequestBody CertificateUser certificateUser){
-		UserDetails userDetails = (UserDetails) request.getAttribute("UserDetails");
-		return sslCertificateService.removeUserFromCertificate(certificateUser, userDetails);
-	}
-	
-	/**
-     * Remove group from certificate
-     * @param request
-     * @param token
-     * @param certificateGroup
-     * @return
-     */
-    @ApiOperation(value = "${SSLCertificateController.removeGroupFromCertificate.value}", notes = "${SSLCertificateController.removeGroupFromCertificate.notes}")
-    @DeleteMapping(value="/v2/sslcert/group", produces="application/json")
-    public ResponseEntity<String> removeGroupFromCertificate( HttpServletRequest request, @RequestHeader(value="vault-token") String token, @RequestBody CertificateGroup certificateGroup ){
-        UserDetails userDetails = (UserDetails) request.getAttribute("UserDetails");
-        return sslCertificateService.removeGroupFromCertificate(certificateGroup, userDetails);
-    }
-
 }

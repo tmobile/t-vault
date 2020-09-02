@@ -367,11 +367,6 @@
                     return response;
                 });
             },
-            deleteCertificate: function (payload, url) {
-                return ServiceEndpoint.deleteCertificate.makeRequest(payload, url).then(function(response) {
-                    return response;
-                });
-            },
             getAuthUrl: function (payload, url) {
                 return ServiceEndpoint.getAuthUrl.makeRequest(payload, url).then(function(response) {
                     return response;
