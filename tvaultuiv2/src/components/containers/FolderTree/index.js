@@ -36,8 +36,7 @@ const FolderTreeView = (props) => {
   // render recursive tree items
   const renderChild = (node) => (
     <TreeItem
-      nodeId={node.id}
-      key={node.id}
+      key={node.labelText}
       label={
         // eslint-disable-next-line react/jsx-wrap-multilines
         <div className={classes.labelRoot}>
