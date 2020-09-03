@@ -12,6 +12,8 @@
         "apps/*":{"capabilities":["create","update","delete","list"]},
         "shared/*":{"capabilities":["create","update","delete","list"]},
 		"sslcerts/*":{"capabilities":["create","update","delete","list"]},
-		"externalcerts/*":{"capabilities":["create","update","delete","list"]}
+		"externalcerts/*":{"capabilities":["create","update","delete","list"]},
+        "sys/auth":{"capabilities":[ "read", "list" ]},
+        "identity/*":{"capabilities":["create","read","update","delete","list"]}
     }
 }
