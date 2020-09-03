@@ -339,7 +339,7 @@ public class SSLCertificateControllerTest {
 		ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(responseJson);
 		CertificateGroup certGroup = new CertificateGroup("certificatename.t-mobile.com","testgroup","read", "internal");
 		String inputJson =new ObjectMapper().writeValueAsString(certGroup);
-		when(sslCertificateService.addingGroupToCertificate(eq("5PDrOhsy4ig8L3EpsJZSLAMg"), Mockito.any(CertificateGroup.class))).thenReturn(responseEntityExpected);
+		when(sslCertificateService.addingGroupToCertificate(eq("5PDrOhsy4ig8L3EpsJZSLAMg"), Mockito.any(CertificateGroup.class), Mockito.any(UserDetails.class))).thenReturn(responseEntityExpected);
 		 mockMvc.perform(MockMvcRequestBuilders.post("/v2/ss/certificate/group").requestAttr("UserDetails", userDetails)
 	                .header("vault-token", "5PDrOhsy4ig8L3EpsJZSLAMg")
 	                .header("Content-Type", "application/json;charset=UTF-8")
@@ -401,4 +401,13 @@ public class SSLCertificateControllerTest {
 				sslCertificateService.deleteCertificate(token,certficateType, certName, userDetails).getStatusCode());
 
 	}
+	
+	
+	
+	 @Test
+	    public void test_getAllCertificatesOnCertType_success() throws Exception{
+		  // Mock response        
+	        when(sslCertificateService.getAllCertificatesOnCertType(userDetails, "internal")).thenReturn(new ResponseEntity<>(HttpStatus.OK));
+	        assertEquals(HttpStatus.OK, sslCertificateService.getAllCertificatesOnCertType(userDetails, "internal").getStatusCode());
+	    }
 }

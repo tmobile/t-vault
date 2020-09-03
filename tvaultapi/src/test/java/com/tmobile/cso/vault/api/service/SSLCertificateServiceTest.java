@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
 import com.tmobile.cso.vault.api.common.SSLCertificateConstants;
 import com.tmobile.cso.vault.api.controller.ControllerUtil;
+import com.tmobile.cso.vault.api.controller.OIDCUtil;
 import com.tmobile.cso.vault.api.exception.TVaultValidationException;
 import com.tmobile.cso.vault.api.model.*;
 import com.tmobile.cso.vault.api.process.CertResponse;
@@ -56,7 +57,7 @@ import static org.mockito.Mockito.*;
 @RunWith(PowerMockRunner.class)
 @ComponentScan(basePackages = {"com.tmobile.cso.vault.api"})
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
-@PrepareForTest({ControllerUtil.class, JSONUtil.class,EntityUtils.class,HttpClientBuilder.class})
+@PrepareForTest({ControllerUtil.class, JSONUtil.class,EntityUtils.class,HttpClientBuilder.class, OIDCUtil.class})
 @PowerMockIgnore({"javax.management.*", "javax.net.ssl.*"})
 public class SSLCertificateServiceTest {
 
@@ -120,6 +121,12 @@ public class SSLCertificateServiceTest {
 
     @Mock
     EmailUtils emailUtils;
+    
+    @Mock
+    OIDCUtil OIDCUtil;
+    
+    @Mock
+    TokenUtils tokenUtils;
 
     @Before
     public void setUp() throws Exception {
@@ -127,9 +134,12 @@ public class SSLCertificateServiceTest {
         PowerMockito.mockStatic(JSONUtil.class);
         PowerMockito.mockStatic(HttpClientBuilder.class);
         PowerMockito.mockStatic(EntityUtils.class);
+        PowerMockito.mockStatic(OIDCUtil.class);
 
 
         Whitebox.setInternalState(ControllerUtil.class, "log", LogManager.getLogger(ControllerUtil.class));
+        Whitebox.setInternalState(OIDCUtil.class, "log", LogManager.getLogger(OIDCUtil.class));
+
         when(JSONUtil.getJSON(any(ImmutableMap.class))).thenReturn("log");
 
         Map<String, String> currentMap = new HashMap<>();
@@ -2366,6 +2376,81 @@ public class SSLCertificateServiceTest {
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
     }
+    
+    
+    @Test
+    public void testAddUserToCertificateOIDCSuccessfully() {
+        CertificateUser certUser = new CertificateUser("testuser2","read", "certificatename.t-mobile.com", "internal");
+        SSLCertificateMetadataDetails certificateMetadata = getSSLCertificateMetadataDetails();
+        UserDetails userDetail = getMockUser(true);
+        userDetail.setUsername("testuser1");
+        Response userResponse = getMockResponse(HttpStatus.OK, true, "{\"data\":{\"bound_cidrs\":[],\"max_ttl\":0,\"policies\":[\"default\",\"r_cert_certificatename.t-mobile.com\"],\"ttl\":0,\"groups\":\"admin\"}}");
+        Response idapConfigureResponse = getMockResponse(HttpStatus.NO_CONTENT, true, "{\"policies\":null}");
+        Response responseNoContent = getMockResponse(HttpStatus.NO_CONTENT, true, "");
+
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"User is successfully associated \"]}");
+
+        when(reqProcessor.process("/auth/userpass/read","{\"username\":\"testuser2\"}",token)).thenReturn(userResponse);
+        when(reqProcessor.process("/auth/ldap/users","{\"username\":\"testuser2\"}",token)).thenReturn(userResponse);
+
+        try {
+            List<String> resList = new ArrayList<>();
+            resList.add("default");
+            resList.add("r_cert_certificatename.t-mobile.com");
+            when(ControllerUtil.getPoliciesAsListFromJson(any(), any())).thenReturn(resList);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        when(ControllerUtil.configureLDAPUser(eq("testuser2"),any(),any(),eq(token))).thenReturn(idapConfigureResponse);
+        when(ControllerUtil.configureUserpassUser(eq("testuser2"),any(),eq(token))).thenReturn(idapConfigureResponse);
+        when(ControllerUtil.updateMetadata(any(),eq(token))).thenReturn(responseNoContent);
+        when(certificateUtils.getCertificateMetaData(token, "certificatename.t-mobile.com", "internal")).thenReturn(certificateMetadata);
+        when(certificateUtils.hasAddOrRemovePermission(userDetail, certificateMetadata)).thenReturn(true);
+        //oidc test cases
+        ReflectionTestUtils.setField(sSLCertificateService, "vaultAuthMethod", "oidc");
+        String mountAccessor = "auth_oidc";
+        DirectoryUser directoryUser = new DirectoryUser();
+        directoryUser.setDisplayName("testUser");
+        directoryUser.setGivenName("testUser");
+        directoryUser.setUserEmail("testUser@t-mobile.com");
+        directoryUser.setUserId("testuser01");
+        directoryUser.setUserName("testUser");
+        
+        List<DirectoryUser> persons = new ArrayList<>();
+        persons.add(directoryUser);
+
+        DirectoryObjects users = new DirectoryObjects();
+        DirectoryObjectsList usersList = new DirectoryObjectsList();
+        usersList.setValues(persons.toArray(new DirectoryUser[persons.size()]));
+        users.setData(usersList);
+        
+			OIDCLookupEntityRequest oidcLookupEntityRequest = new OIDCLookupEntityRequest();
+			oidcLookupEntityRequest.setId(null);
+			oidcLookupEntityRequest.setAlias_id(null);
+			oidcLookupEntityRequest.setName(null);
+			oidcLookupEntityRequest.setAlias_name(directoryUser.getUserEmail());
+			oidcLookupEntityRequest.setAlias_mount_accessor(mountAccessor);
+			OIDCEntityResponse oidcEntityResponse = new OIDCEntityResponse();
+			oidcEntityResponse.setEntityName("entity");
+			List<String> policies = new ArrayList<>();
+			policies.add("safeadmin");
+			oidcEntityResponse.setPolicies(policies);
+			when(OIDCUtil.fetchMountAccessorForOidc(token)).thenReturn(mountAccessor);
+
+			ResponseEntity<OIDCEntityResponse> responseEntity2 = ResponseEntity.status(HttpStatus.OK)
+					.body(oidcEntityResponse);
+
+			when(tokenUtils.getSelfServiceTokenWithAppRole()).thenReturn(token);
+	
+			Response responseEntity3 = getMockResponse(HttpStatus.NO_CONTENT, true, "{\"data\": [\"safeadmin\",\"vaultadmin\"]]");
+			when(OIDCUtil.updateOIDCEntity(any(), any()))
+					.thenReturn(responseEntity3);
+        when(OIDCUtil.oidcFetchEntityDetails(anyString(), anyString(), any())).thenReturn(responseEntity2);
+        ResponseEntity<String> responseEntity = sSLCertificateService.addUserToCertificate(certUser, userDetail, false);
+        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntity);
+    }
 
     @Test
     public void testAddUserToCertificateFailureAllCerts() {
@@ -4282,6 +4367,74 @@ public class SSLCertificateServiceTest {
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
     }
+    
+    @Test
+    public void testRemoveUserFromCertificateForOIDCAuthSuccess() throws IOException {
+    	SSLCertificateMetadataDetails certificateMetadata = getSSLCertificateMetadataDetails();
+        UserDetails userDetail = getMockUser(true);
+        userDetail.setUsername("testuser1");
+    	ReflectionTestUtils.setField(sSLCertificateService,"vaultAuthMethod", "oidc");
+    	CertificateUser certUser = new CertificateUser("testuser2","read", "certificatename.t-mobile.com", "internal");
+    	Response userResponse = getMockResponse(HttpStatus.OK, true, "{\"data\":{\"bound_cidrs\":[],\"max_ttl\":0,\"policies\":[\"default\",\"r_cert_certificatename.t-mobile.com\"],\"ttl\":0,\"groups\":\"admin\"}}");
+        Response idapConfigureResponse = getMockResponse(HttpStatus.NO_CONTENT, true, "{\"policies\":null}");
+        Response responseNoContent = getMockResponse(HttpStatus.NO_CONTENT, true, "");
+        String expectedResponse = "{\"messages\":[\"Successfully removed user from the certificate\"]}";
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(expectedResponse);
+
+        when(reqProcessor.process("/auth/ldap/users","{\"username\":\"testuser2\"}", token)).thenReturn(userResponse);
+
+        List<String> resList = new ArrayList<>();
+        resList.add("default");
+        resList.add("r_cert_certificatename.t-mobile.com");
+        when(ControllerUtil.getPoliciesAsListFromJson(any(), any())).thenReturn(resList);
+
+        when(ControllerUtil.configureLDAPUser(eq("testuser2"),any(),any(),eq(token))).thenReturn(idapConfigureResponse);
+        when(ControllerUtil.updateMetadata(any(),any())).thenReturn(responseNoContent);
+        when(certificateUtils.getCertificateMetaData(token, "certificatename.t-mobile.com","internal")).thenReturn(certificateMetadata);
+        when(certificateUtils.hasAddOrRemovePermission(userDetail, certificateMetadata)).thenReturn(true);
+        //oidc test cases
+        String mountAccessor = "auth_oidc";
+        DirectoryUser directoryUser = new DirectoryUser();
+        directoryUser.setDisplayName("testUser");
+        directoryUser.setGivenName("testUser");
+        directoryUser.setUserEmail("testUser@t-mobile.com");
+        directoryUser.setUserId("testuser01");
+        directoryUser.setUserName("testUser");
+        
+        List<DirectoryUser> persons = new ArrayList<>();
+        persons.add(directoryUser);
+
+        DirectoryObjects users = new DirectoryObjects();
+        DirectoryObjectsList usersList = new DirectoryObjectsList();
+        usersList.setValues(persons.toArray(new DirectoryUser[persons.size()]));
+        users.setData(usersList);
+        
+			OIDCLookupEntityRequest oidcLookupEntityRequest = new OIDCLookupEntityRequest();
+			oidcLookupEntityRequest.setId(null);
+			oidcLookupEntityRequest.setAlias_id(null);
+			oidcLookupEntityRequest.setName(null);
+			oidcLookupEntityRequest.setAlias_name(directoryUser.getUserEmail());
+			oidcLookupEntityRequest.setAlias_mount_accessor(mountAccessor);
+			OIDCEntityResponse oidcEntityResponse = new OIDCEntityResponse();
+			oidcEntityResponse.setEntityName("entity");
+			List<String> policies = new ArrayList<>();
+			policies.add("safeadmin");
+			oidcEntityResponse.setPolicies(policies);
+			when(OIDCUtil.fetchMountAccessorForOidc(token)).thenReturn(mountAccessor);
+
+			ResponseEntity<OIDCEntityResponse> responseEntity2 = ResponseEntity.status(HttpStatus.OK)
+					.body(oidcEntityResponse);
+
+			when(tokenUtils.getSelfServiceTokenWithAppRole()).thenReturn(token);
+	
+			Response responseEntity3 = getMockResponse(HttpStatus.NO_CONTENT, true, "{\"data\": [\"safeadmin\",\"vaultadmin\"]]");
+			when(OIDCUtil.updateOIDCEntity(any(), any()))
+					.thenReturn(responseEntity3);
+        when(OIDCUtil.oidcFetchEntityDetails(anyString(), anyString(), any())).thenReturn(responseEntity2);
+        ResponseEntity<String> responseEntity = sSLCertificateService.removeUserFromCertificate(certUser, userDetail);
+        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntity);
+    }
 
     @Test
     public void testRemoveUserFromCertificateUserpassAuthSuccess() throws IOException {
@@ -4605,7 +4758,56 @@ public class SSLCertificateServiceTest {
             e.printStackTrace();
         }
         when(ControllerUtil.updateSslCertificateMetadata(any(),eq(token))).thenReturn(responseNoContent);
-    	ResponseEntity<String> responseEntity = sSLCertificateService.addingGroupToCertificate( token, certificateGroup);
+    	ResponseEntity<String> responseEntity = sSLCertificateService.addingGroupToCertificate( token, certificateGroup, userDetails);
+
+    	assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
+    }
+    
+    
+    @Test
+    public void test_addGroupToCertificate_oidc_success()  {
+    	String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+    	String policies="r_cert_certmsivadasample.t-mobile.com";
+    	CertificateGroup certificateGroup = new CertificateGroup("certmsivadasample.t-mobile.com","r_safe_w_vault_demo","read", "internal");
+    	UserDetails userDetails = getMockUser(false);
+    	SSLCertificateMetadataDetails certificateMetadata = getSSLCertificateMetadataDetails();
+    	Response userResponse = getMockResponse(HttpStatus.OK, true, "{\"data\":{\"bound_cidrs\":[],\"max_ttl\":0,\"policies\":[\"default\",\"r_cert_certificatename.t-mobile.com\"],\"ttl\":0,\"groups\":\"admin\"}}");
+    	Response responseNoContent = getMockResponse(HttpStatus.NO_CONTENT, true, "");
+        when(ControllerUtil.arecertificateGroupInputsValid(certificateGroup)).thenReturn(true);
+        ReflectionTestUtils.setField(sSLCertificateService, "vaultAuthMethod", "ldap");
+        when(ControllerUtil.canAddCertPermission(any(), any(), eq(token))).thenReturn(true);
+        when(reqProcessor.process("/auth/ldap/groups","{\"groupname\":\"r_safe_w_vault_demo\"}",token)).thenReturn(userResponse);
+        try {
+            List<String> resList = new ArrayList<>();
+            String groupName="r_safe_w_vault_demo";
+            when(ControllerUtil.getPoliciesAsListFromJson(obj,policies)).thenReturn(resList);
+            when(ControllerUtil.arecertificateGroupInputsValid(certificateGroup)).thenReturn(true);
+            when(ControllerUtil.canAddCertPermission(any(), any(), eq(token))).thenReturn(true);
+            when(ControllerUtil.configureLDAPGroup(groupName, policies, token)).thenReturn(responseNoContent);
+            when(reqProcessor.process("/auth/ldap/groups/configure",policies, token)).thenReturn(userResponse);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        when(ControllerUtil.updateSslCertificateMetadata(any(),eq(token))).thenReturn(responseNoContent);
+
+        ReflectionTestUtils.setField(sSLCertificateService, "vaultAuthMethod", "oidc");
+        List<String> policiess = new ArrayList<>();
+        policiess.add("default");
+        policiess.add("w_shared_mysafe02");
+        policiess.add("r_shared_mysafe01");
+        List<String> currentpolicies = new ArrayList<>();
+        currentpolicies.add("default");
+        currentpolicies.add("w_shared_mysafe01");
+        currentpolicies.add("w_shared_mysafe02");
+        OIDCGroup oidcGroup = new OIDCGroup("123-123-123", currentpolicies);
+        when(OIDCUtil.getIdentityGroupDetails(any(), any())).thenReturn(oidcGroup);
+
+        Response response = new Response();
+        response.setHttpstatus(HttpStatus.NO_CONTENT);
+        when(OIDCUtil.updateGroupPolicies(any(), any(), any(), any(), any())).thenReturn(response);
+
+        
+    	ResponseEntity<String> responseEntity = sSLCertificateService.addingGroupToCertificate( token, certificateGroup, userDetails);
 
     	assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
     }
@@ -4638,7 +4840,7 @@ public class SSLCertificateServiceTest {
         when(ControllerUtil.updateMetadata(any(),eq(token))).thenReturn(responseNoContent);
         when(certificateUtils.hasAddOrRemovePermission(userDetail, certificateMetadata)).thenReturn(true);
 
-        ResponseEntity<String> responseEntity = sSLCertificateService.addingGroupToCertificate(token, certGroup);
+        ResponseEntity<String> responseEntity = sSLCertificateService.addingGroupToCertificate(token, certGroup, userDetail);
         assertEquals(HttpStatus.BAD_REQUEST, responseEntity.getStatusCode());
 
     }
@@ -4660,7 +4862,7 @@ public class SSLCertificateServiceTest {
         when(ControllerUtil.arecertificateGroupInputsValid(certificateGroup)).thenReturn(true);
         ReflectionTestUtils.setField(sSLCertificateService, "vaultAuthMethod", "ldap");
 
-        ResponseEntity<String> responseEntity = sSLCertificateService.addingGroupToCertificate( token, certificateGroup);
+        ResponseEntity<String> responseEntity = sSLCertificateService.addingGroupToCertificate( token, certificateGroup, userDetails);
         assertEquals(HttpStatus.BAD_REQUEST, responseEntity.getStatusCode());
     }
 
@@ -5927,5 +6129,25 @@ public class SSLCertificateServiceTest {
 	         ResponseEntity<String> responseEntityActual = sSLCertificateService.getAllCertificates(token, "",1,0);
 
 	         assertEquals(HttpStatus.OK, responseEntityActual.getStatusCode());
+	    }
+	 
+	 
+	 
+	 @Test
+	    public void test_getAllCertificatesOnCertType_successfully() {
+	        String certificateType = "internal";
+	        UserDetails userDetails = new UserDetails();
+	        userDetails.setUsername("normaluser");
+	        userDetails.setAdmin(false);
+	        userDetails.setClientToken(token);
+	        userDetails.setSelfSupportToken(token);
+	        String [] policies = {"r_users_s1", "w_users_s2", "r_shared_s3", "w_shared_s4", "r_apps_s5", "w_apps_s6", "d_apps_s7", "w_svcacct_test", "w_cert_certtest.t-mobile.com"};
+	        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body("{\"shared\":[{\"s3\":\"read\"},{\"s4\":\"write\"}],\"users\":[{\"s1\":\"read\"},{\"s2\":\"write\"}],\"cert\":[{\"certtest.t-mobile.com\":\"read\"}],\"apps\":[{\"s5\":\"read\"},{\"s6\":\"write\"},{\"s7\":\"deny\"}]}");
+
+	        when(policyUtils.getCurrentPolicies(token, userDetails.getUsername(), userDetails)).thenReturn(policies);
+	        when(JSONUtil.getJSON(Mockito.any())).thenReturn("{\"shared\":[{\"s3\":\"read\"},{\"s4\":\"write\"}],\"users\":[{\"s1\":\"read\"},{\"s2\":\"write\"}],\"cert\":[{\"certtest.t-mobile.com\":\"read\"}],\"apps\":[{\"s5\":\"read\"},{\"s6\":\"write\"},{\"s7\":\"deny\"}]}");
+	        ResponseEntity<String> responseEntity = sSLCertificateService.getAllCertificatesOnCertType(userDetails, certificateType);
+	        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
+	        assertEquals(responseEntityExpected, responseEntity);
 	    }
 }

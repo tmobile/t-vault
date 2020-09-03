@@ -1029,8 +1029,6 @@ public class  SafesService {
 				} else {
 					getGrpResp.setHttpstatus(HttpStatus.BAD_REQUEST);
 				}
-				// currentpolicies.addAll(c);
-				
 			}
 			String responseJson="";
 
