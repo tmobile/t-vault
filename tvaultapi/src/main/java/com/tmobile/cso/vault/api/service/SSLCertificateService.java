@@ -1168,6 +1168,12 @@ public class SSLCertificateService {
     private void sendDeleteEmail(String token,String certType, String certName, String certOwnerEmailId, String certOwnerNtId,
                                  String subject,
                                  String operation,CertificateData certData) {
+        log.debug(JSONUtil.getJSON(ImmutableMap.<String, String> builder()
+                .put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+                .put(LogMessage.ACTION, String.format("sendDeleteEmail for SSL certificate [%s] - certType [%s] - " +
+                                "certOwnerEmailId - [%s] - certOwnerNtId-[%s] - subject=[%s]"
+                        , certName, certType,certOwnerEmailId,certOwnerNtId,subject))
+                .build()));
         DirectoryUser directoryUser = getUserDetails(certOwnerNtId);
         if (Objects.nonNull(directoryUser)) {
             String enrollService = (certType.equalsIgnoreCase(SSLCertificateConstants.INTERNAL) ?
@@ -1208,6 +1214,12 @@ public class SSLCertificateService {
      */
     private void sendEmail(String certType, String certName, String certOwnerEmailId, String certOwnerNtId  ,
                            String subject, String operation, String token) {
+        log.debug(JSONUtil.getJSON(ImmutableMap.<String, String> builder()
+                .put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+                .put(LogMessage.ACTION, String.format("sendEmail for SSL certificate [%s] - certType [%s] - " +
+                                "certOwnerEmailId - [%s] - certOwnerNtId-[%s] - subject=[%s]"
+                        , certName, certType,certOwnerEmailId,certOwnerNtId,subject))
+                .build()));
         DirectoryUser directoryUser = getUserDetails(certOwnerNtId);
         if (Objects.nonNull(directoryUser)) {
             String enrollService = (certType.equalsIgnoreCase(SSLCertificateConstants.INTERNAL) ?
@@ -1278,6 +1290,12 @@ public class SSLCertificateService {
     private void sendExternalEmail(String certType, String certName, String certOwnerEmailId,String certOwnerNtId,
                                    String subject,
                                    String operation) {
+        log.debug(JSONUtil.getJSON(ImmutableMap.<String, String> builder()
+                .put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+                .put(LogMessage.ACTION, String.format("sendExternalEmail for SSL certificate [%s] - certType [%s] - " +
+                                "certOwnerEmailId - [%s] - certOwnerNtId-[%s] - subject=[%s]"
+                        , certName, certType,certOwnerEmailId,certOwnerNtId,subject))
+                .build()));
         DirectoryUser directoryUser = getUserDetails(certOwnerNtId);
         if (Objects.nonNull(directoryUser)) {
             String enrollService = (certType.equalsIgnoreCase(SSLCertificateConstants.INTERNAL) ?
