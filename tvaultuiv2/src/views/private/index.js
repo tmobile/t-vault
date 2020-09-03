@@ -7,13 +7,14 @@ const PrivateRoutes = () => {
   return (
     <Suspense fallback={<div>Loading...</div>}>
       <Switch>
-        <Redirect exact from="/private" to="/private/:name" />
+        <Redirect exact from="/" to="/" />
 
         <Route
-          path="/private/:name"
+          path="/:name"
           render={(routeProps) => <SafePageLayout routeProps={routeProps} />}
         />
-        <Redirect to="/private" />
+
+        <Redirect exact to="/" />
       </Switch>
     </Suspense>
   );

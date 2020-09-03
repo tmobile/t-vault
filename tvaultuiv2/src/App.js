@@ -48,7 +48,7 @@ export const App = () => {
                       <Switch>
                         {/* <Route exact path="/" render={() => <PublicRoutes />} /> */}
                         <Route
-                          path="/private"
+                          path="/"
                           render={(routerProps) => (
                             <PrivateRoutes {...routerProps} />
                           )}

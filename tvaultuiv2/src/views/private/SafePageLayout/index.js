@@ -1,3 +1,4 @@
+/* eslint-disable react/jsx-props-no-spreading */
 import React from 'react';
 import { withRouter } from 'react-router-dom';
 
@@ -12,11 +13,11 @@ const SafeSectionPreview = styled('section')`
   margin: 3em auto;
 `;
 
-const SafePageLayout = () => {
+const SafePageLayout = (props) => {
   return (
     <main title="safe-layout">
       <SafeSectionPreview>
-        <SafeSectionWrap />
+        <SafeSectionWrap {...props} />
       </SafeSectionPreview>
     </main>
   );
