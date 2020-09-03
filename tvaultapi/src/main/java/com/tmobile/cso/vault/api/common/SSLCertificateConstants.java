@@ -76,8 +76,8 @@ public final class SSLCertificateConstants {
     public static final String OWNER_PERMISSION_EXT_CERTIFICATE = "o_externalcerts_";
 
     public static final String CERT_CREATION_SUBJECT = "Certificate Created Successfully";
-    public static final String EX_CERT_CREATION_SUBJECT = "Certificate Create Request received";
-    public static final String EX_CERT_RENEW_SUBJECT = "Certificate Renew Request received";
+    public static final String EX_CERT_CREATION_SUBJECT = "Certificate Create Request Received";
+    public static final String EX_CERT_RENEW_SUBJECT = "Certificate Renew Request Received";
     public static final String CERT_RENEW_SUBJECT = "Certificate Renewed Successfully";
     public static final String CERT_DELETE_SUBJECT = "Certificate Deleted Successfully";
     public static final String CERT_REVOKED_SUBJECT = "Certificate Revoked Successfully";
