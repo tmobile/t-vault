@@ -309,7 +309,17 @@ public class SSLCertificateService {
                 }
             }
             return certManagerLogin;
-        } else {
+        } else if(HttpStatus.INTERNAL_SERVER_ERROR.equals(response.getHttpstatus())){
+        	 log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+                     put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+                     put(LogMessage.ACTION, SSLCertificateConstants.CUSTOMER_LOGIN).
+                     put(LogMessage.MESSAGE, "NCLM services are down. Please try after some time.").
+                     put(LogMessage.RESPONSE, response.getResponse()).
+                     put(LogMessage.STATUS, response.getHttpstatus().toString()).
+                     put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+                     build()));
+             return null;
+        }else {
             log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
                     put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
                     put(LogMessage.ACTION, SSLCertificateConstants.CUSTOMER_LOGIN).
@@ -1770,6 +1780,7 @@ public class SSLCertificateService {
         int containerId = getContainerId(sslCertificateRequest);
         String findTargetSystemEndpoint = findTargetSystem.replace("tsgid", String.valueOf(containerId));
         CertResponse response = reqProcessor.processCert(getTargetSystemEndpoint, "", certManagerLogin.getAccess_token(), getCertmanagerEndPoint(findTargetSystemEndpoint));
+        if(HttpStatus.OK.equals(response.getHttpstatus())) {
         JsonParser jsonParser = new JsonParser();
         JsonObject jsonObject = (JsonObject) jsonParser.parse(response.getResponse());
         JsonArray jsonArray = jsonObject.getAsJsonArray(SSLCertificateConstants.TARGETSYSTEMS);
@@ -1780,6 +1791,16 @@ public class SSLCertificateService {
                     targetSystemID = jsonElement.get(SSLCertificateConstants.TARGETSYSTEM_ID).getAsInt();
                 }
             }
+        }        
+        }
+        else if(HttpStatus.INTERNAL_SERVER_ERROR.equals(response.getHttpstatus())) {
+        	log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+                    put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+                    put(LogMessage.ACTION, "getTargetSystem ").
+                    put(LogMessage.MESSAGE, "NCLM services are down. Please try after some time").
+                    put(LogMessage.STATUS, response.getHttpstatus().toString()).
+                    put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+                    build()));
         }
         return targetSystemID;
     }
@@ -2420,6 +2441,15 @@ public class SSLCertificateService {
             return ResponseEntity.status(HttpStatus.OK).body("{\"data\": "+JSONUtil.getJSONasDefaultPrettyPrint(targetSystemDetails)+"}");
 
         }
+        if (HttpStatus.INTERNAL_SERVER_ERROR.equals(response.getHttpstatus())) {
+        	log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+                    put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+                    put(LogMessage.ACTION, "getTargetSystemList").
+                    put(LogMessage.MESSAGE, "NCLM services are down. Please try after some time").
+                    put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+                    build()));
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"NCLM services are down. Please try after some time\"]}");
+        }
         log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
                 put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
                 put(LogMessage.ACTION, "getTargetSystemList").
@@ -2477,6 +2507,15 @@ public class SSLCertificateService {
                     build()));
             return ResponseEntity.status(HttpStatus.OK).body("{\"data\": "+JSONUtil.getJSONasDefaultPrettyPrint(targetSystemServiceDetails)+"}");
         }
+        else if (HttpStatus.INTERNAL_SERVER_ERROR.equals(response.getHttpstatus())) {
+        	log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+                    put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+                    put(LogMessage.ACTION, "getTargetSystemServiceList").
+                    put(LogMessage.MESSAGE, "NCLM services are down. Please try after some time").
+                    put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+                    build()));
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"NCLM services are down. Please try after some time\"]}");
+        }
         log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
                 put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
                 put(LogMessage.ACTION, "getTargetSystemServiceList").
@@ -2510,6 +2549,17 @@ public class SSLCertificateService {
 			String nclmGetCertificateReasonsEndpoint = getCertifcateReasons.replace("certID", certificateId.toString());
 			revocationReasons = reqProcessor.processCert("/certificates/revocationreasons", certificateId,
 					nclmAccessToken, getCertmanagerEndPoint(nclmGetCertificateReasonsEndpoint));
+			//check if NCLM is down
+			if (HttpStatus.INTERNAL_SERVER_ERROR.equals(revocationReasons.getHttpstatus())) {
+	        	log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+	                    put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+	                    put(LogMessage.ACTION, "getRevocationReasons").
+	                    put(LogMessage.MESSAGE, "NCLM services are down. Please try after some time").
+	                    put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+	                    build()));
+	            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"NCLM services are down. Please try after some time\"]}");
+	        }
+			
 			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
 					.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString())
 					.put(LogMessage.ACTION, "Fetch Revocation Reasons")
@@ -2631,6 +2681,15 @@ public class SSLCertificateService {
 					.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString())
 					.build()));
 
+			if (HttpStatus.INTERNAL_SERVER_ERROR.equals(revocationResponse.getHttpstatus())) {
+	        	log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+	                    put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+	                    put(LogMessage.ACTION, "Issue Revocation Request").
+	                    put(LogMessage.MESSAGE, "NCLM services are down. Please try after some time").
+	                    put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+	                    build()));
+	            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"NCLM services are down. Please try after some time\"]}");
+	        }
 			boolean sslMetaDataUpdationStatus;
 			metaDataParams.put("certificateStatus", "Revoked");
 			if (userDetails.isAdmin()) {
@@ -4935,7 +4994,8 @@ public class SSLCertificateService {
 
     /**
      * To delete r/w/o/d policies
-     * @param sslCertificateRequest
+     * @param certType
+     * @param certificateName
      * @param token
      * @return
      */
@@ -4998,7 +5058,7 @@ public class SSLCertificateService {
             log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
                     put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
                     put(LogMessage.ACTION, SSLCertificateConstants.POLICY_CREATION_TITLE).
-                    put(LogMessage.MESSAGE, "SSL Certificate Policies Creation Success").
+                    put(LogMessage.MESSAGE, "SSL Certificate Policies Deletion Success").
                     put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
                     build()));
             policiesDeleted = true;
@@ -5006,7 +5066,7 @@ public class SSLCertificateService {
             log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
                     put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
                     put(LogMessage.ACTION, SSLCertificateConstants.POLICY_CREATION_TITLE).
-                    put(LogMessage.MESSAGE, "SSL Certificate policies creation failed").
+                    put(LogMessage.MESSAGE, "SSL Certificate policies deletion failed").
                     put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
                     build()));
         }
@@ -5459,7 +5519,7 @@ public class SSLCertificateService {
 		}
 		if(ldapConfigresponse.getHttpstatus().equals(HttpStatus.NO_CONTENT) || ldapConfigresponse.getHttpstatus().equals(HttpStatus.OK)){
 			return updateMetadataForRemoveUserFromCertificate(userName, certificatePath, authToken, groups,
-					policiesString);
+					currentpoliciesString);
 		} else {
 			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
@@ -5582,11 +5642,16 @@ public class SSLCertificateService {
 		}
 		
 			removeSudoPermissionForPreviousOwner( certificateUserId.toLowerCase(), certificateName,userDetails,certType);
+			if (userDetails.isAdmin()) {
+				deletePolicies(certificateName,certType,token);
+			}else {
+				deletePolicies(certificateName,certType,userDetails.getSelfSupportToken());
+			}
 			String nclmAccessToken = getNclmToken();
 			
 			//find certificates
 			CertificateData certData = getLatestCertificate(certificateName,nclmAccessToken, containerId);		
-			if(certData!=null) {
+			if(!ObjectUtils.isEmpty(certData)) {
 			//Unassign certificate from target system
 			JsonObject jo = new JsonObject();
 	        jo.add("targetSystemServiceIds", new GsonBuilder().create().toJsonTree(certData.getDeployStatus()));
