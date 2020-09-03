@@ -6140,7 +6140,7 @@ public class SSLCertificateService {
 	}
 
 	/**
-	 * Filter svc policies based on policy precedence.
+	 * Filter certificates policies based on policy precedence.
 	 * @param policies
 	 * @return
 	 */
@@ -6170,8 +6170,8 @@ public class SSLCertificateService {
 						filteredList.removeAll(matchingPolicies);
 						filteredList.add("w"+itemName);
 					}
-					else if (matchingPolicies.stream().anyMatch(p-> p.equals("r"+itemName)) || matchingPolicies.stream().anyMatch(p-> p.equals("s"+itemName))) {
-						// policy is read and read already in the list. Then remove all duplicates read and add single read permission for that safe.
+					else if (matchingPolicies.stream().anyMatch(p-> p.equals("r"+itemName)) || matchingPolicies.stream().anyMatch(p-> p.equals("o"+itemName))) {
+						// policy is read and read already in the list. Then remove all duplicates read and add single read permission for that certifcates.
 						filteredList.removeAll(matchingPolicies);
 						filteredList.add("r"+itemName);
 					}
