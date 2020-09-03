@@ -1,18 +1,20 @@
 import React, { Suspense } from 'react';
 import { Route, Switch, Redirect } from 'react-router-dom';
 
-import SamplePage from './SamplePage';
+import SafePageLayout from './SafePageLayout';
 
 const PrivateRoutes = () => {
   return (
     <Suspense fallback={<div>Loading...</div>}>
       <Switch>
-        <Redirect exact from="/private" to="/private/dashboard" />
+        <Redirect exact from="/" to="/" />
+
         <Route
-          path="/private/dashboard"
-          render={(routeProps) => <SamplePage routeProps={routeProps} />}
+          path="/:name"
+          render={(routeProps) => <SafePageLayout routeProps={routeProps} />}
         />
-        <Redirect to="/private" />
+
+        <Redirect exact to="/" />
       </Switch>
     </Suspense>
   );

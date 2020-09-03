@@ -41,14 +41,14 @@ export const App = () => {
               <CssBaseline />
               <GlobalCss />
               <Container>
-                <Header />
+                <Header theme={customMuiTheme} />
                 <Layout id="rootLayout">
                   <Preview>
                     <Suspense fallback={<div>Loading......</div>}>
                       <Switch>
                         {/* <Route exact path="/" render={() => <PublicRoutes />} /> */}
                         <Route
-                          path="/private"
+                          path="/"
                           render={(routerProps) => (
                             <PrivateRoutes {...routerProps} />
                           )}
