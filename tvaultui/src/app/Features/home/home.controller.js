@@ -19,7 +19,7 @@
 
 'use strict';
 (function(app){
-    app.controller('HomeCtrl', function($scope, Modal, $state, Authentication, SessionStore, UtilityService, Idle, AppConstant){
+    app.controller('HomeCtrl', function($scope, Modal, $state, Authentication, SessionStore, UtilityService, Idle, AppConstant, $location, $http){
 
         var init = function(){
             $scope.slackLink = AppConstant.SLACK_LINK;
@@ -30,6 +30,17 @@
             // change login depending on authtype
             $scope.authType = AppConstant.AUTH_TYPE;
             $scope.domainName = AppConstant.DOMAIN_NAME;
+
+            $scope.instanceMessage = '';
+            $http.get('/app/Messages/uimessages.properties').then(function (response) {
+                if (response != undefined && response.data !='') {
+                    $scope.instanceMessage = response.data.home_message;
+                }
+            }, function(error) {
+                console.log(error);
+                $scope.instanceMessage = '';
+            });
+
             $scope.userID = 'Username';
             Idle.unwatch();
             if ($scope.authType.toLowerCase() === 'ldap') {
@@ -48,7 +59,63 @@
                 'forgotPasswordLink': $scope.forgotPasswordLink
             }
 
-        }       
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('code') && urlParams.get('state')) {
+                $scope.isLoadingData = true;
+                getSSOCallback(urlParams.get('code'), urlParams.get('state'));
+                return;
+            }
+
+            if(SessionStore.getItem("myVaultKey")){
+                // If no call back and token exists in session.
+                $scope.isLoadingData = true;
+                $state.go('safes', {'fromLogin':true});
+            }
+            
+        }
+
+        //SSO login popup
+        $scope.loginSSO = function () {
+            getSSOAuthUrl();
+        }
+
+        function getSSOAuthUrl() {
+            $scope.isLoadingData = true;
+            var reqObjtobeSent = {
+                "role": AppConstant.OIDC_ROLE,
+                "redirect_uri": AppConstant.OIDC_REDIRECT_URL
+              };
+            Authentication.getAuthUrl(reqObjtobeSent).then(function(response){
+                if(UtilityService.ifAPIRequestSuccessful(response)){
+                    window.open(response.data.data.auth_url,"_self");
+                } else {
+                    $scope.isLoadingData = false;
+                    return Modal.createModalWithController('error.html', {
+                        shortMessage: 'Something went wrong, please try again later.'
+                    });
+                }
+            })
+        }
+
+        function getSSOCallback(code, state) {
+            $scope.isLoadingData = true;
+            Authentication.getSSOCallback(code, state).then(function(response){
+                if(UtilityService.ifAPIRequestSuccessful(response)){
+                    if(response.data != undefined) {
+                        // @TODO: how to get username here
+                        //SessionStore.setItem("username",username);
+                        
+                    }
+                    saveParametersInSessionStore(response.data);          
+                    return;
+                } else {
+                    // callback process failed. Redirect to landing page. If not active token exists then will automatically redirect from landing page to login.
+                    $scope.isLoadingData = false;
+                    window.location.replace("/");
+                    return;
+                }
+            })
+        }
 
         $scope.goToLogin = function(size) {
             $scope.loginPopupObj = {
@@ -75,8 +142,29 @@
                 SessionStore.setItem("accessSafes", JSON.stringify(accessSafes));
                 SessionStore.setItem("policies",policies);
                 SessionStore.setItem("feature",JSON.stringify(loginResponseData.feature));
-                $state.go('safes', {'fromLogin':true});
+                getUserName();
+                //$state.go('safes', {'fromLogin':true});
             }
+        }
+
+
+        var getUserName = function(){
+            Authentication.getUserName().then(function(response){
+                if(UtilityService.ifAPIRequestSuccessful(response)){
+                    var username = response.data.data.username;
+                    SessionStore.setItem("username", username);
+                    window.location.replace("/");
+                    return; 
+                } else {
+                    // callback process failed. Redirect to landing page. If not active token exists then will automatically redirect from landing page to login.
+                    $scope.isLoadingData = false;
+                    window.location.replace("/");
+                    return;
+                }
+            }, function (error) {
+                console.log(error);
+                window.location.replace("/");
+            })
         }
         var error = function (size) {
             Modal.createModal(size, 'error.html', 'HomeCtrl', $scope);
@@ -131,5 +219,6 @@
     })
 })(angular.module('vault.features.HomeCtrl',[
     'vault.services.UtilityService',
-    'vault.constants.AppConstant'
+    'vault.constants.AppConstant',
+    'vault.services.AdminSafesManagement'
 ]));

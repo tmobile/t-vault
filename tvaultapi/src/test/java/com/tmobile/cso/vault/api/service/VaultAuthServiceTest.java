@@ -92,7 +92,7 @@ public class VaultAuthServiceTest {
 
         String jsonStr = "{  \"username\": \"safeadmin\",  \"password\": \"safeadmin\"}";
         UserLogin userLogin = new UserLogin("safeadmin", "safeadmin");
-        String responseJson = "{  \"client_token\": \"8766fdhjSAtH2a4MdvMyzWid\",\"admin\": \"yes\",\"access\": {\"users\":[{\"safe1\":\"read\"}]},\"policies\": [\"default\",\"safeadmin\"],\"lease_duration\": 1800000, \"feature\": {\"adpwdrotation\": \"true\", \"serviceaccount\":\"true\"}}";
+        String responseJson = "{  \"client_token\": \"8766fdhjSAtH2a4MdvMyzWid\",\"admin\": \"yes\",\"access\": {\"users\":[{\"safe1\":\"read\"}], \"svcacct\":[{\"svc1\":\"read\"}], \"cert\":[{\"cert1\":\"read\"}]},\"policies\": [\"default\",\"safeadmin\"],\"lease_duration\": 1800000, \"feature\": {\"adpwdrotation\": \"true\", \"serviceaccount\":\"true\"}}";
         Response response = getMockResponse(HttpStatus.OK, true, responseJson);
         Map<String, Object> responseMap = null;
         try {

@@ -39,12 +39,14 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
 import com.tmobile.cso.vault.api.controller.ControllerUtil;
+import com.tmobile.cso.vault.api.controller.OIDCUtil;
 import com.tmobile.cso.vault.api.exception.LogMessage;
 import com.tmobile.cso.vault.api.process.RequestProcessor;
 import com.tmobile.cso.vault.api.process.Response;
 import com.tmobile.cso.vault.api.utils.JSONUtil;
 import com.tmobile.cso.vault.api.utils.SafeUtils;
 import com.tmobile.cso.vault.api.utils.ThreadLocalContext;
+import com.tmobile.cso.vault.api.utils.TokenUtils;
 
 @Component
 public class  SafesService {
@@ -54,6 +56,9 @@ public class  SafesService {
 
 	@Autowired
 	private TokenValidator tokenValidator;
+	
+	@Autowired
+	private TokenUtils tokenUtils;
 
 	@Value("${vault.auth.method}")
 	private String vaultAuthMethod;
@@ -69,6 +74,12 @@ public class  SafesService {
 
 	@Autowired
 	private AWSIAMAuthService awsiamAuthService;
+	
+	@Autowired
+	private OIDCAuthService oidcAuthService;
+	
+	@Autowired
+	private OIDCUtil oidcUtil;
 	
 	private static Logger log = LogManager.getLogger(SafesService.class);
 
@@ -370,7 +381,7 @@ public class  SafesService {
 	 * @param safe
 	 * @return
 	 */
-	public ResponseEntity<String> deleteSafe(String token, Safe safe) {
+	public ResponseEntity<String> deleteSafe(String token, Safe safe, UserDetails userDetails) {
 		String path = safe.getPath();
 		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
@@ -383,7 +394,7 @@ public class  SafesService {
 			ControllerUtil.recursivedeletesdb("{\"path\":\""+path+"\"}",token,response);
 			if(response.getHttpstatus().equals(HttpStatus.NO_CONTENT)){
 				deletePolicies(token, safe);
-				return deleteSafeTree(token, safe);
+				return deleteSafeTree(token, safe, userDetails);
 
 			}else{
 				log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
@@ -511,9 +522,11 @@ public class  SafesService {
 			Object awsroles = metadataMap.get(TVaultConstants.AWS_ROLES);
 			Object groups = metadataMap.get(TVaultConstants.GROUPS);
 			Object users = metadataMap.get(TVaultConstants.USERS);
+			Object approles = metadataMap.get(TVaultConstants.APP_ROLES);
 			data.put(TVaultConstants.AWS_ROLES,awsroles);
 			data.put(TVaultConstants.GROUPS,groups);
 			data.put(TVaultConstants.USERS,users);
+			data.put(TVaultConstants.APP_ROLES,approles);
 			requestParams.put("path",pathToBeUpdated);
 			// Do not alter the name of the safe
 			((Map<String,Object>)requestParams.get("data")).put("name",(String) metadataMap.get("name"));
@@ -593,7 +606,7 @@ public class  SafesService {
 	 * @param safe
 	 * @return
 	 */
-	private ResponseEntity<String> deleteSafeTree(String token, Safe safe) {
+	private ResponseEntity<String> deleteSafeTree(String token, Safe safe, UserDetails userDetails) {
 		String path = safe.getPath();
 		String _path = "metadata/"+path;
 
@@ -616,8 +629,8 @@ public class  SafesService {
 			if (!StringUtils.isEmpty(onwerId) && users !=null) {
 				users.put(onwerId, "sudo");
 			}
-			ControllerUtil.updateUserPolicyAssociationOnSDBDelete(path,users,token);
-			ControllerUtil.updateGroupPolicyAssociationOnSDBDelete(path,groups,token);
+			ControllerUtil.updateUserPolicyAssociationOnSDBDelete(path,users,token, userDetails);
+			ControllerUtil.updateGroupPolicyAssociationOnSDBDelete(path,groups,token, userDetails);
 			ControllerUtil.deleteAwsRoleOnSDBDelete(path,awsroles,token);
 		}	
 		ControllerUtil.recursivedeletesdb("{\"path\":\""+_path+"\"}",token,response);
@@ -633,6 +646,7 @@ public class  SafesService {
 	 * @return
 	 */
 	public ResponseEntity<String> addUserToSafe(String token, SafeUser safeUser, UserDetails userDetails) {
+		OIDCEntityResponse oidcEntityResponse = new OIDCEntityResponse();
 		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 				put(LogMessage.ACTION, "Add User to SDB").
@@ -716,12 +730,38 @@ public class  SafesService {
 					put(LogMessage.MESSAGE, String.format ("Policies are, read - [%s], write - [%s], deny -[%s]", r_policy, w_policy, d_policy)).
 					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 					build()));
-			Response userResponse;
+			List<String> policies = new ArrayList<>();
+			List<String> currentpolicies = new ArrayList<>();
+			Response userResponse = new Response();
 			if (TVaultConstants.USERPASS.equals(vaultAuthMethod)) {
-				userResponse = reqProcessor.process("/auth/userpass/read","{\"username\":\""+userName+"\"}",token);	
-			}
-			else {
-				userResponse = reqProcessor.process("/auth/ldap/users","{\"username\":\""+userName+"\"}",token);
+				userResponse = reqProcessor.process("/auth/userpass/read", "{\"username\":\"" + userName + "\"}",
+						token);
+			} else if (TVaultConstants.LDAP.equals(vaultAuthMethod)) {
+				userResponse = reqProcessor.process("/auth/ldap/users", "{\"username\":\"" + userName + "\"}", token);
+			} else if (TVaultConstants.OIDC.equals(vaultAuthMethod)){
+				// OIDC implementation changes
+				ResponseEntity<OIDCEntityResponse> responseEntity = oidcUtil.oidcFetchEntityDetails(token, userName, userDetails);
+				if (!responseEntity.getStatusCode().equals(HttpStatus.OK)) {
+					if (responseEntity.getStatusCode().equals(HttpStatus.FORBIDDEN)) {
+						log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+								.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString())
+								.put(LogMessage.ACTION, "Add User to SDB")
+								.put(LogMessage.MESSAGE,
+										String.format("Trying to fetch OIDC user policies, failed"))
+								.put(LogMessage.APIURL,
+										ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString())
+								.build()));
+						return ResponseEntity.status(HttpStatus.FORBIDDEN)
+								.body("{\"messages\":[\"User configuration failed. Please try again.\"]}");
+					}
+					return ResponseEntity.status(HttpStatus.NOT_FOUND)
+							.body("{\"messages\":[\"User configuration failed. Invalid user\"]}");
+				}
+				oidcEntityResponse.setEntityName(responseEntity.getBody().getEntityName());
+				oidcEntityResponse.setPolicies(responseEntity.getBody().getPolicies());
+				userResponse.setResponse(oidcEntityResponse.getPolicies().toString());
+				userResponse.setHttpstatus(responseEntity.getStatusCode());
+				
 			}
 			
 			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
@@ -733,17 +773,19 @@ public class  SafesService {
 			
 			String responseJson="";
 			String groups="";
-			List<String> policies = new ArrayList<>();
-			List<String> currentpolicies = new ArrayList<>();
+			
 
 			if(HttpStatus.OK.equals(userResponse.getHttpstatus())){
 				responseJson = userResponse.getResponse();	
 				try {
 					ObjectMapper objMapper = new ObjectMapper();
-					//currentpolicies = ControllerUtil.getPoliciesAsStringFromJson(objMapper, responseJson);
-					currentpolicies = ControllerUtil.getPoliciesAsListFromJson(objMapper, responseJson);
-					if (!(TVaultConstants.USERPASS.equals(vaultAuthMethod))) {
-						groups =objMapper.readTree(responseJson).get("data").get("groups").asText();
+					if (TVaultConstants.OIDC.equals(vaultAuthMethod)) {
+						currentpolicies.addAll(oidcEntityResponse.getPolicies());
+					} else {
+						currentpolicies = ControllerUtil.getPoliciesAsListFromJson(objMapper, responseJson);
+						if (TVaultConstants.LDAP.equals(vaultAuthMethod)) {
+							groups = objMapper.readTree(responseJson).get("data").get("groups").asText();
+						}
 					}
 				} catch (IOException e) {
 					log.error(e);
@@ -777,12 +819,29 @@ public class  SafesService {
 					put(LogMessage.MESSAGE, String.format ("policies [%s] before calling configureUserpassUser/configureLDAPUser", policies)).
 					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 					build()));
-			Response ldapConfigresponse;
+			Response ldapConfigresponse = new Response();
 			if (TVaultConstants.USERPASS.equals(vaultAuthMethod)) {
 				ldapConfigresponse = ControllerUtil.configureUserpassUser(userName,policiesString,token);
 			}
-			else {
+			else if (TVaultConstants.LDAP.equals(vaultAuthMethod)){
 				ldapConfigresponse = ControllerUtil.configureLDAPUser(userName,policiesString,groups,token);
+			}else if (TVaultConstants.OIDC.equals(vaultAuthMethod)){
+				//OIDC Implementation : Entity Update
+				try {
+
+					ldapConfigresponse = oidcUtil.updateOIDCEntity(policies, oidcEntityResponse.getEntityName());
+					oidcUtil.renewUserToken(userDetails.getClientToken());
+				}catch (Exception e) {
+					log.error(e);
+					log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+							put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+							put(LogMessage.ACTION, "Add User to SDB").
+							put(LogMessage.MESSAGE, String.format ("Exception while adding or updating the identity ")).
+							put(LogMessage.STACKTRACE, Arrays.toString(e.getStackTrace())).
+							put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+							build()));
+				}
+				
 			}
 
 			if(ldapConfigresponse.getHttpstatus().equals(HttpStatus.NO_CONTENT)){ 
@@ -831,8 +890,26 @@ public class  SafesService {
 						if (TVaultConstants.USERPASS.equals(vaultAuthMethod)) {
 							ldapConfigresponse = ControllerUtil.configureUserpassUser(userName,currentpoliciesString,token);
 						}
-						else {
+						else if (TVaultConstants.LDAP.equals(vaultAuthMethod)){
 							ldapConfigresponse = ControllerUtil.configureLDAPUser(userName,currentpoliciesString,groups,token);
+						}else if (TVaultConstants.OIDC.equals(vaultAuthMethod)){
+							//OIDC changes
+							try {
+								ldapConfigresponse = oidcUtil.updateOIDCEntity(currentpolicies,
+										oidcEntityResponse.getEntityName());
+                                oidcUtil.renewUserToken(userDetails.getClientToken());
+							} catch (Exception e) {
+								log.error(e);
+								log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+										.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+										.put(LogMessage.ACTION, "Add User to SDB")
+										.put(LogMessage.MESSAGE,
+												String.format("Exception while adding or updating the identity "))
+										.put(LogMessage.STACKTRACE, Arrays.toString(e.getStackTrace()))
+										.put(LogMessage.APIURL,
+												ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL))
+										.build()));
+							}
 						}
 						if(ldapConfigresponse.getHttpstatus().equals(HttpStatus.NO_CONTENT)){
 							log.debug("Reverting user policy uupdate");
@@ -873,9 +950,11 @@ public class  SafesService {
 	 * Adds group to an Safe
 	 * @param token
 	 * @param safeGroup
+	 * @param userDetails
 	 * @return
 	 */
-	public ResponseEntity<String> addGroupToSafe(String token, SafeGroup safeGroup) {
+	public ResponseEntity<String> addGroupToSafe(String token, SafeGroup safeGroup, UserDetails userDetails) {
+		OIDCGroup oidcGroup = new OIDCGroup();
 		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 				put(LogMessage.ACTION, "Add Group to SDB").
@@ -935,17 +1014,38 @@ public class  SafesService {
 					}
 				}
 			}
-			Response getGrpResp = reqProcessor.process("/auth/ldap/groups","{\"groupname\":\""+groupName+"\"}",token);
-			String responseJson="";
-
 			List<String> policies = new ArrayList<>();
 			List<String> currentpolicies = new ArrayList<>();
+			Response getGrpResp = new Response();
+			//OIDC Changes
+			if(TVaultConstants.LDAP.equals(vaultAuthMethod)){
+				getGrpResp = reqProcessor.process("/auth/ldap/groups","{\"groupname\":\""+groupName+"\"}",token);
+			}else if (TVaultConstants.OIDC.equals(vaultAuthMethod)) {
+				//call read api with groupname
+				oidcGroup= oidcUtil.getIdentityGroupDetails(groupName, token);
+				if (oidcGroup != null) {
+					getGrpResp.setHttpstatus(HttpStatus.OK);
+					getGrpResp.setResponse(oidcGroup.getPolicies().toString());
+				} else {
+					getGrpResp.setHttpstatus(HttpStatus.BAD_REQUEST);
+				}
+				// currentpolicies.addAll(c);
+				
+			}
+			String responseJson="";
+
+			
 
 			if(HttpStatus.OK.equals(getGrpResp.getHttpstatus())){
 				responseJson = getGrpResp.getResponse();	
 				try {
-					//currentpolicies = ControllerUtil.getPoliciesAsStringFromJson(objMapper, responseJson);
-					currentpolicies = ControllerUtil.getPoliciesAsListFromJson(objMapper, responseJson);
+					//OIDC Changes
+					if (TVaultConstants.LDAP.equals(vaultAuthMethod)) {
+						currentpolicies = ControllerUtil.getPoliciesAsListFromJson(objMapper, responseJson);
+					} else if (TVaultConstants.OIDC.equals(vaultAuthMethod)) {
+						currentpolicies.addAll(oidcGroup.getPolicies());
+					}
+					
 				} catch (IOException e) {
 					log.error(e);
 				}
@@ -955,14 +1055,22 @@ public class  SafesService {
 				policies.remove(d_policy);
 				policies.add(policy);
 			}else{
-				// New user to be configured
+				// New group to be configured
 				policies.add(policy);
 			}
 			String policiesString = StringUtils.join(policies, ",");
 			String currentpoliciesString = StringUtils.join(currentpolicies, ",");
-			Response ldapConfigresponse = ControllerUtil.configureLDAPGroup(groupName,policiesString,token);
-
-			if(ldapConfigresponse.getHttpstatus().equals(HttpStatus.NO_CONTENT)){
+			Response ldapConfigresponse = new Response();
+			//OIDC Changes
+			if (TVaultConstants.LDAP.equals(vaultAuthMethod)) {
+				ldapConfigresponse = ControllerUtil.configureLDAPGroup(groupName, policiesString, token);
+			} else if (TVaultConstants.OIDC.equals(vaultAuthMethod)) {
+				ldapConfigresponse = oidcUtil.updateGroupPolicies(token, groupName, policies, currentpolicies,
+						oidcGroup!=null?oidcGroup.getId(): null);
+				oidcUtil.renewUserToken(userDetails.getClientToken());
+			}
+			if (ldapConfigresponse.getHttpstatus().equals(HttpStatus.NO_CONTENT)
+					|| ldapConfigresponse.getHttpstatus().equals(HttpStatus.OK)) {
 				Map<String,String> params = new HashMap<String,String>();
 				params.put("type", "groups");
 				params.put("name",groupName);
@@ -1016,7 +1124,15 @@ public class  SafesService {
 								put(LogMessage.STATUS, (null!=metadataResponse)?metadataResponse.getHttpstatus().toString():TVaultConstants.EMPTY).
 								put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 								build()));
-						ldapConfigresponse = ControllerUtil.configureLDAPGroup(groupName,currentpoliciesString,token);
+						//OIDC Changes
+						if (TVaultConstants.LDAP.equals(vaultAuthMethod)) {
+							ldapConfigresponse = ControllerUtil.configureLDAPGroup(groupName, currentpoliciesString,
+									token);
+						} else if (TVaultConstants.OIDC.equals(vaultAuthMethod)) {
+							ldapConfigresponse = oidcUtil.updateGroupPolicies(token, groupName, currentpolicies,
+									currentpolicies, oidcGroup.getId());
+							oidcUtil.renewUserToken(userDetails.getClientToken());
+						}
 						if(ldapConfigresponse.getHttpstatus().equals(HttpStatus.NO_CONTENT)){
 							log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 									put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
@@ -1052,9 +1168,11 @@ public class  SafesService {
 	 * Removes an associated user from Safe
 	 * @param token
 	 * @param safeUser
-	 * @return
+	 * @param userDetails
+     * @return
 	 */
-	public ResponseEntity<String> removeUserFromSafe(String token, SafeUser safeUser) {
+	public ResponseEntity<String> removeUserFromSafe(String token, SafeUser safeUser, UserDetails userDetails) {
+		OIDCEntityResponse oidcEntityResponse = new OIDCEntityResponse();
 		String jsonstr = JSONUtil.getJSON(safeUser);
 		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 			      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
@@ -1078,6 +1196,7 @@ public class  SafesService {
 		}
 
 		String userName = requestMap.get("username");
+		userName = (userName !=null) ? userName.toLowerCase() : userName;
 		if (StringUtils.isEmpty(userName)) {
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"username can't be empty\"]}");
 		}
@@ -1106,12 +1225,64 @@ public class  SafesService {
 					}
 				}
 			}
-			Response userResponse;
+			Response userResponse = new Response();
 			if (TVaultConstants.USERPASS.equals(vaultAuthMethod)) {
-				userResponse = reqProcessor.process("/auth/userpass/read","{\"username\":\""+userName+"\"}",token);
-			}
-			else {
-				userResponse = reqProcessor.process("/auth/ldap/users","{\"username\":\""+userName+"\"}",token);
+				userResponse = reqProcessor.process("/auth/userpass/read", "{\"username\":\"" + userName + "\"}",
+						token);
+			} else if (TVaultConstants.LDAP.equals(vaultAuthMethod)) {
+				userResponse = reqProcessor.process("/auth/ldap/users", "{\"username\":\"" + userName + "\"}", token);
+			} else if (TVaultConstants.OIDC.equals(vaultAuthMethod)){
+				// OIDC implementation changes
+				ResponseEntity<OIDCEntityResponse> responseEntity = oidcUtil.oidcFetchEntityDetails(token, userName, userDetails);
+				if (!responseEntity.getStatusCode().equals(HttpStatus.OK)) {
+					if (responseEntity.getStatusCode().equals(HttpStatus.FORBIDDEN)) {
+						log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+								.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString())
+								.put(LogMessage.ACTION, "removeUserFromSafe")
+								.put(LogMessage.MESSAGE, String.format("Trying to fetch OIDC user policies, failed"))
+								.put(LogMessage.APIURL,
+										ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString())
+								.build()));
+
+						// Trying to remove the orphan entries if exists
+						Map<String, String> params = new HashMap<String, String>();
+						params.put("type", "users");
+						params.put("name", userName);
+						params.put("path", path);
+						params.put("access", TVaultConstants.DELETE);
+						Response metadataResponse = ControllerUtil.updateMetadata(params, token);
+						if (HttpStatus.NO_CONTENT.equals(metadataResponse.getHttpstatus())) {
+							log.debug(
+									JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+											.put(LogMessage.USER,
+													ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString())
+											.put(LogMessage.ACTION, "removeUserFromSafe")
+											.put(LogMessage.MESSAGE, "Successfully removed of dangling user associations")
+											.put(LogMessage.STATUS, metadataResponse.getHttpstatus().toString())
+											.put(LogMessage.APIURL,
+													ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString())
+											.build()));
+						} else {
+							log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+									.put(LogMessage.USER,
+											ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString())
+									.put(LogMessage.ACTION, "removeUserFromSafe")
+									.put(LogMessage.MESSAGE, "Error occurred while removing of dangling user associations")
+									.put(LogMessage.STATUS, metadataResponse.getHttpstatus().toString())
+									.put(LogMessage.APIURL,
+											ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString())
+									.build()));
+							return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+									.body("{\"messages\":[\"User configuration failed. Please try again\"]}");
+						}
+					}
+					return ResponseEntity.status(HttpStatus.NOT_FOUND)
+							.body("{\"messages\":[\"User configuration failed. Invalid user\"]}");
+				}
+				oidcEntityResponse.setEntityName(responseEntity.getBody().getEntityName());
+				oidcEntityResponse.setPolicies(responseEntity.getBody().getPolicies());
+				userResponse.setResponse(oidcEntityResponse.getPolicies().toString());
+				userResponse.setHttpstatus(responseEntity.getStatusCode());
 			}
 			String responseJson="";
 			String groups="";
@@ -1121,10 +1292,14 @@ public class  SafesService {
 			if(HttpStatus.OK.equals(userResponse.getHttpstatus())){
 				responseJson = userResponse.getResponse();	
 				try {
-					//currentpolicies = ControllerUtil.getPoliciesAsStringFromJson(objMapper, responseJson);
-					currentpolicies = ControllerUtil.getPoliciesAsListFromJson(objMapper, responseJson);
-					if (!(TVaultConstants.USERPASS.equals(vaultAuthMethod))) {
-						groups =objMapper.readTree(responseJson).get("data").get("groups").asText();
+					if (TVaultConstants.OIDC.equals(vaultAuthMethod)) {
+						currentpolicies.addAll(oidcEntityResponse.getPolicies());
+						//groups = objMapper.readTree(responseJson).get("data").get("groups").asText();
+					} else {
+						currentpolicies = ControllerUtil.getPoliciesAsListFromJson(objMapper, responseJson);
+						if (TVaultConstants.LDAP.equals(vaultAuthMethod)) {
+							groups = objMapper.readTree(responseJson).get("data").get("groups").asText();
+						}
 					}
 				} catch (IOException e) {
 					log.error(e);
@@ -1137,13 +1312,29 @@ public class  SafesService {
 				String policiesString = StringUtils.join(policies, ",");
 				String currentpoliciesString = StringUtils.join(currentpolicies, ",");
 
-				//policies = policies.replaceAll(s_policy, "");
-				Response ldapConfigresponse;
+				// policies = policies.replaceAll(s_policy, "");
+				Response ldapConfigresponse = new Response();
 				if (TVaultConstants.USERPASS.equals(vaultAuthMethod)) {
-					ldapConfigresponse = ControllerUtil.configureUserpassUser(userName,policiesString,token);
-				}
-				else {
-					ldapConfigresponse = ControllerUtil.configureLDAPUser(userName,policiesString,groups,token);
+					ldapConfigresponse = ControllerUtil.configureUserpassUser(userName, policiesString, token);
+				} else if (TVaultConstants.LDAP.equals(vaultAuthMethod)) {
+					ldapConfigresponse = ControllerUtil.configureLDAPUser(userName, policiesString, groups, token);
+				} else if (TVaultConstants.OIDC.equals(vaultAuthMethod)){
+					// OIDC Implementation : Entity Update
+					try {
+						ldapConfigresponse = oidcUtil.updateOIDCEntity(policies,
+								oidcEntityResponse.getEntityName());
+                        oidcUtil.renewUserToken(userDetails.getClientToken());
+					} catch (Exception e) {
+						log.error(e);
+						log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+								.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+								.put(LogMessage.ACTION, "Remove User to SDB")
+								.put(LogMessage.MESSAGE, String.format("Exception while updating the identity"))
+								.put(LogMessage.STACKTRACE, Arrays.toString(e.getStackTrace()))
+								.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL))
+								.build()));
+					}
+
 				}
 				if(ldapConfigresponse.getHttpstatus().equals(HttpStatus.NO_CONTENT)){
 					Map<String,String> params = new HashMap<String,String>();
@@ -1179,10 +1370,30 @@ public class  SafesService {
 							log.debug("Meta data update failed");
 							log.debug((metadataResponse!=null)?metadataResponse.getResponse():TVaultConstants.EMPTY);
 							if (TVaultConstants.USERPASS.equals(vaultAuthMethod)) {
-								ldapConfigresponse = ControllerUtil.configureUserpassUser(userName,currentpoliciesString,token);
-							}
-							else {
-								ldapConfigresponse = ControllerUtil.configureLDAPUser(userName,currentpoliciesString,groups,token);
+								ldapConfigresponse = ControllerUtil.configureUserpassUser(userName,
+										currentpoliciesString, token);
+							} else if (TVaultConstants.LDAP.equals(vaultAuthMethod)) {
+								ldapConfigresponse = ControllerUtil.configureLDAPUser(userName, currentpoliciesString,
+										groups, token);
+							} else if (TVaultConstants.OIDC.equals(vaultAuthMethod)){
+								// OIDC changes
+								try {
+									ldapConfigresponse = oidcUtil.updateOIDCEntity(currentpolicies,
+											oidcEntityResponse.getEntityName());
+                                    oidcUtil.renewUserToken(userDetails.getClientToken());
+								} catch (Exception e2) {
+									log.error(e2);
+									log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+											.put(LogMessage.USER,
+													ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+											.put(LogMessage.ACTION, "Remove User to SDB")
+											.put(LogMessage.MESSAGE,
+													String.format("Exception while updating the identity"))
+											.put(LogMessage.STACKTRACE, Arrays.toString(e2.getStackTrace()))
+											.put(LogMessage.APIURL,
+													ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL))
+											.build()));
+								}
 							}
 							if(ldapConfigresponse.getHttpstatus().equals(HttpStatus.NO_CONTENT)){
 								log.debug("Reverting user policy uupdate");
@@ -1231,9 +1442,11 @@ public class  SafesService {
 	 * Removes an associated group from LDAP
 	 * @param token
 	 * @param safeGroup
+	 * @param userDetails
 	 * @return
 	 */
-	public ResponseEntity<String> removeGroupFromSafe(String token, SafeGroup safeGroup) {
+	public ResponseEntity<String> removeGroupFromSafe(String token, SafeGroup safeGroup, UserDetails userDetails) {
+		OIDCGroup oidcGroup = new OIDCGroup();
 		String jsonstr = JSONUtil.getJSON(safeGroup);
 		if (TVaultConstants.USERPASS.equals(vaultAuthMethod)) {
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"This operation is not supported for Userpass authentication. \"]}");
@@ -1268,7 +1481,21 @@ public class  SafesService {
 					}
 				}
 			}
-			Response userResponse = reqProcessor.process("/auth/ldap/groups","{\"groupname\":\""+groupName+"\"}",token);
+			Response userResponse = new Response();
+			//OIDC changes
+			if( TVaultConstants.LDAP.equals(vaultAuthMethod)){
+				userResponse = reqProcessor.process("/auth/ldap/groups","{\"groupname\":\""+groupName+"\"}",token);
+			}else if (TVaultConstants.OIDC.equals(vaultAuthMethod)) {
+				//call read api with groupname
+				oidcGroup= oidcUtil.getIdentityGroupDetails(groupName, token);
+				if (oidcGroup != null) {
+					userResponse.setHttpstatus(HttpStatus.OK);
+					userResponse.setResponse(oidcGroup.getPolicies().toString());
+				} else {
+					userResponse.setHttpstatus(HttpStatus.BAD_REQUEST);
+				}
+			}
+			
 			String responseJson="";
 			List<String> policies = new ArrayList<>();
 			List<String> currentpolicies = new ArrayList<>();
@@ -1276,8 +1503,13 @@ public class  SafesService {
 			if(HttpStatus.OK.equals(userResponse.getHttpstatus())){
 				responseJson = userResponse.getResponse();	
 				try {
-					//currentpolicies = ControllerUtil.getPoliciesAsStringFromJson(objMapper, responseJson);
-					currentpolicies = ControllerUtil.getPoliciesAsListFromJson(objMapper, responseJson);
+					//OIDC Changes
+					if (TVaultConstants.LDAP.equals(vaultAuthMethod)) {
+						currentpolicies = ControllerUtil.getPoliciesAsListFromJson(objMapper, responseJson);
+					} else if (TVaultConstants.OIDC.equals(vaultAuthMethod)) {
+						currentpolicies.addAll(oidcGroup.getPolicies());
+					}
+					
 				} catch (IOException e) {
 					log.error(e);
 				}
@@ -1287,8 +1519,17 @@ public class  SafesService {
 				policies.remove(d_policy);
 				String policiesString = StringUtils.join(policies, ",");
 				String currentpoliciesString = StringUtils.join(currentpolicies, ",");
-				Response ldapConfigresponse = ControllerUtil.configureLDAPGroup(groupName,policiesString,token);
-				if(ldapConfigresponse.getHttpstatus().equals(HttpStatus.NO_CONTENT)){ 
+				Response ldapConfigresponse = new Response();
+				//OIDC Changes
+				if (TVaultConstants.LDAP.equals(vaultAuthMethod)) {
+					ldapConfigresponse = ControllerUtil.configureLDAPGroup(groupName, policiesString, token);
+				} else if (TVaultConstants.OIDC.equals(vaultAuthMethod)) {
+					ldapConfigresponse = oidcUtil.updateGroupPolicies(token, groupName, policies, currentpolicies,
+							oidcGroup.getId());
+					oidcUtil.renewUserToken(userDetails.getClientToken());
+				}
+				if (ldapConfigresponse.getHttpstatus().equals(HttpStatus.NO_CONTENT)
+						|| ldapConfigresponse.getHttpstatus().equals(HttpStatus.OK)) { 
 					Map<String,String> params = new HashMap<String,String>();
 					params.put("type", "groups");
 					params.put("name",groupName);
@@ -1321,7 +1562,15 @@ public class  SafesService {
 						else {
 							log.debug("Meta data update failed");
 							log.debug((null!=metadataResponse)?metadataResponse.getResponse():TVaultConstants.EMPTY);
-							ldapConfigresponse = ControllerUtil.configureLDAPGroup(groupName,currentpoliciesString,token);
+							//OIDC Changes
+							if (TVaultConstants.LDAP.equals(vaultAuthMethod)) {
+								ldapConfigresponse = ControllerUtil.configureLDAPGroup(groupName, currentpoliciesString,
+										token);
+							} else if (TVaultConstants.OIDC.equals(vaultAuthMethod)) {
+								ldapConfigresponse = oidcUtil.updateGroupPolicies(token, groupName, currentpolicies,
+										currentpolicies, oidcGroup.getId());
+								oidcUtil.renewUserToken(userDetails.getClientToken());
+							}
 							if(ldapConfigresponse.getHttpstatus().equals(HttpStatus.NO_CONTENT)){
 								log.debug("Reverting user policy update");
 								return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"messages\":[\"Group configuration failed.Please try again\"]}");
@@ -1636,9 +1885,10 @@ public class  SafesService {
 	 * Delete a folder
 	 * @param token
 	 * @param path
+	 * @param userDetails
 	 * @return
 	 */
-	public ResponseEntity<String> deletefolder(String token, String path){
+	public ResponseEntity<String> deletefolder(String token, String path, UserDetails userDetails){
 		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 				put(LogMessage.ACTION, "Delete Folder").
@@ -1693,14 +1943,16 @@ public class  SafesService {
 					Map<String,String> awsroles = (Map<String, String>)metadataMap.get("aws-roles");
 					Map<String,String> groups = (Map<String, String>)metadataMap.get("groups");
 					Map<String,String> users = (Map<String, String>) metadataMap.get("users");
+					Map<String,String> approles = (Map<String, String>)metadataMap.get("app-roles");
 					// always add safeowner to the users list whose policy should be updated
 					String onwerId = (String) metadataMap.get("ownerid");
 					if (!StringUtils.isEmpty(onwerId) && users !=null) {
 						users.put(onwerId, "sudo");
 					}
-					ControllerUtil.updateUserPolicyAssociationOnSDBDelete(path,users,token);
-					ControllerUtil.updateGroupPolicyAssociationOnSDBDelete(path,groups,token);
+					ControllerUtil.updateUserPolicyAssociationOnSDBDelete(path,users,token,userDetails);
+					ControllerUtil.updateGroupPolicyAssociationOnSDBDelete(path,groups,token,userDetails);
 					ControllerUtil.deleteAwsRoleOnSDBDelete(path,awsroles,token);
+					updateApprolePolicyAssociationOnSDBDelete(path, approles, token);
 				}
 				ControllerUtil.recursivedeletesdb("{\"path\":\""+_path+"\"}",token,response);
 				log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
@@ -1751,6 +2003,82 @@ public class  SafesService {
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid 'path' specified\"]}");
 		}
 	}
+	
+	 /**
+     * Approle policy update as part of offboarding
+     * @param path
+     * @param acessInfo
+     * @param token
+     */
+    private void updateApprolePolicyAssociationOnSDBDelete(String path, Map<String,String> acessInfo, String token) {
+        log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+                put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+                put(LogMessage.ACTION, "updateApprolePolicyAssociationOnSDBDelete").
+                put(LogMessage.MESSAGE, String.format ("trying updateApprolePolicyAssociationOnSDBDelete")).
+                put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+                build()));
+        if(acessInfo!=null) {
+        	String folders[] = path.split("[/]+");
+			String r_policy = "r_";
+			String w_policy = "w_";
+			String d_policy = "d_";
+			
+			if (folders.length > 0) {
+				for (int index = 0; index < folders.length; index++) {
+					if (index == folders.length -1 ) {
+						r_policy += folders[index];
+						w_policy += folders[index];
+						d_policy += folders[index];
+					}
+					else {
+						r_policy += folders[index] +"_";
+						w_policy += folders[index] +"_";
+						d_policy += folders[index] +"_";
+					}
+				}
+			}	
+
+            Set<String> approles = acessInfo.keySet();
+            ObjectMapper objMapper = new ObjectMapper();
+            for(String approleName : approles) {
+                Response roleResponse = reqProcessor.process("/auth/approle/role/read", "{\"role_name\":\"" + approleName + "\"}", token);
+                String responseJson = "";
+                List<String> policies = new ArrayList<>();
+                List<String> currentpolicies = new ArrayList<>();
+                if (HttpStatus.OK.equals(roleResponse.getHttpstatus())) {
+                    responseJson = roleResponse.getResponse();
+                    try {
+                        JsonNode policiesArry = objMapper.readTree(responseJson).get("data").get("policies");
+						if (null != policiesArry) {
+							for (JsonNode policyNode : policiesArry) {
+								currentpolicies.add(policyNode.asText());
+							}
+						}
+                    } catch (IOException e) {
+						log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+								put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+								put(LogMessage.ACTION, "updateApprolePolicyAssociationOnSDBDelete").
+								put(LogMessage.MESSAGE, String.format ("%s, Approle removal as part of offboarding Safe failed.", approleName)).
+								put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+								build()));
+                    }
+                    policies.addAll(currentpolicies);
+                    policies.remove(r_policy);
+                    policies.remove(w_policy);
+                    policies.remove(d_policy);
+
+                    String policiesString = org.apache.commons.lang3.StringUtils.join(policies, ",");
+                    log.info(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+                            put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+                            put(LogMessage.ACTION, "updateApprolePolicyAssociationOnSDBDelete").
+                            put(LogMessage.MESSAGE, "Current policies :" + policiesString + " is being configured").
+                            put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+                            build()));
+                    appRoleService.configureApprole(approleName, policiesString, token);
+                }
+            }
+        }
+    }
 
 	/**
 	 * Read from safe Recursively

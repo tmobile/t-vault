@@ -214,7 +214,7 @@
     	"apiEndPoint":"/auth/tvault/lookup",
     	"vaultEndPoint":"/auth/token/lookup-self",
     	"method":"GET",
-        "outparams":["data/id","data/last_renewal_time","renewable","data/policies","data/creation_ttl", "data/meta/username"] 
+        "outparams":["data/id","data/last_renewal_time","renewable","data/policies","data/creation_ttl", "data/meta/username", "data/identity_policies", "data/display_name", "data/path"]
     },
 	{"#" : "**** - Used to revoke the token *******",
  	
@@ -458,6 +458,15 @@
     
      {"#":"**** Listing all SDBs *****",
     	"apiEndPoint":"/sdb/list",
+    	"vaultEndPoint":"/<path>?list=true",
+    	"method":"GET",
+      	"params":[
+        	{"name":"path","required":true, "appendToPath":true}
+        ],
+         "outparams":["data/keys"]
+    },
+     {"#":"**** Listing all SDBs *****",
+    	"apiEndPoint":"/certificates/list",
     	"vaultEndPoint":"/<path>?list=true",
     	"method":"GET",
       	"params":[
@@ -794,5 +803,419 @@
       		{"name":"role_name","required":true, "appendToPath":true}
         ],
       	"outparams":["data/current_password", "data/last_password", "data/service_account_name", "data/ttl", "data/last_vault_rotation"]
+    },
+    {"#" : "**** - CertManager Login  '****** ",
+
+    	"apiEndPoint":"/auth/certmanager/login",
+    	"vaultEndPoint":"/token?grant_type=client_credentials",
+    	"method":"POST",
+      	"params":[
+        		{"name":"username", "required":true},
+    	  		{"name":"password","required":true}
+ 	    ],
+        "outparams":["access_token","token_type"]
+    },
+	{"#" : "**** - Find Certificate in TargetSystem  '****** ",
+
+		"apiEndPoint":"/certmanager/targetsystem/find",
+		"vaultEndPoint":"certificates/",
+		"method":"GET",
+		"outparams":["certificate/allowedOperations"]
+	},
+	{"#" : "**** - Create TargetSystem  '****** ",
+
+		"apiEndPoint":"/certmanager/targetsystem/create",
+		"vaultEndPoint":"targetsystemgroups/",
+		"method":"POST",
+		"params":[
+			{"name":"name", "required":true},
+			{"name":"description","required":true},
+			{"name":"address","required":true}
+		],
+		"outparams":["targetSystemID","name","description","address"]
+	},
+	{"#" : "**** - Enroll Certificate '****** ",
+
+		"apiEndPoint":"/certmanager/enroll",
+		"vaultEndPoint":"enroll/",
+		"method":"POST",
+		"outparams":["actionId"]
+	},
+	{"#" : "**** - GET Enroll CA  '****** ",
+
+		"apiEndPoint":"/certmanager/getEnrollCA",
+		"vaultEndPoint":"/policy/ca/",
+		"method":"GET",
+		"outparams":["ca"]
+	},
+	{"#" : "**** - GET Enroll CA  '****** ",
+
+		"apiEndPoint":"/certmanager/putEnrollCA",
+		"vaultEndPoint":"/policy/ca/",
+		"method":"PUT",
+		"outparams":["ca/selectedId"]
+	},
+	{"#" : "**** - GET Certificate Approval Status  '****** ",
+		"apiEndPoint":"/certmanager/actionRequestStatus",
+		"vaultEndPoint":"/actions/",
+		"method":"GET",
+		"outparams":["conclusion"]
+	},
+	{"#" : "**** - GET Enroll  Templates '****** ",
+
+		"apiEndPoint":"/certmanager/getEnrollTemplates",
+		"vaultEndPoint":"/policy/ca/",
+		"method":"GET",
+		"outparams":["template"]
+	},
+	{"#" : "**** - Put  Enroll Templates '****** ",
+
+		"apiEndPoint":"/certmanager/putEnrollTemplates",
+		"vaultEndPoint":"/policy/ca/",
+		"method":"PUT",
+		"outparams":["template/selectedId"]
+	},
+	{"#" : "**** - GET Enroll  Keys '****** ",
+
+		"apiEndPoint":"/certmanager/getEnrollkeys",
+		"vaultEndPoint":"policy/keytype",
+		"method":"GET",
+		"outparams":["keyType"]
+	},
+	{"#" : "**** - Put  Enroll Keys '****** ",
+
+		"apiEndPoint":"/certmanager/putEnrollKeys",
+		"vaultEndPoint":"policy/keytype",
+		"method":"PUT",
+		"outparams":["keyType/selectedId"]
+	},
+	{"#" : "**** - Get  Enroll CSR '****** ",
+
+		"apiEndPoint":"/certmanager/getEnrollCSR",
+		"vaultEndPoint":"policy/csr",
+		"method":"GET",
+		"outparams":["subject","subjectAlternativeName","keyUsage","extendedKeyUsage","extension","subjectOptions"]
+	},
+	{"#" : "**** - Put  Enroll CSR '****** ",
+
+		"apiEndPoint":"/certmanager/putEnrollCSR",
+		"vaultEndPoint":"policy/csr",
+		"method":"PUT",
+		"outparams":["containsErrors","subject","subjectAlternativeName"]
+	},
+	{"#" : "**** - Get  Template Paramter Request '****** ",
+		"apiEndPoint":"/certmanager/getTemplateParameter",
+		"vaultEndPoint":"policy/template",
+		"method":"GET",
+		"outparams":["templateParameters"]
+	},
+	{"#" : "**** - Put  Template Parameter Request '****** ",
+		"apiEndPoint":"/certmanager/putTemplateParameter",
+		"vaultEndPoint":"/policy/template",
+		"method":"PUT",
+		"outparams":["templateParameters"]
+	},
+	{"#" : "**** - Approval Request '****** ",
+		"apiEndPoint":"/certmanager/approvalrequest",
+		"vaultEndPoint":"/actions",
+		"method":"PUT",
+		"outparams":["actionId"]
+	},
+	{"#" : "**** - Get  Target System '****** ",
+
+		"apiEndPoint":"/certmanager/findTargetSystem",
+		"vaultEndPoint":"targetsystemgroups",
+		"method":"GET",
+		"outparams":["targetSystems"]
+	},
+
+	{"#" : "**** - Get  Target System Service****** ",
+
+		"apiEndPoint":"/certmanager/findTargetSystemService",
+		"vaultEndPoint":"targetsystems",
+		"method":"GET",
+		"outparams":["targetsystemservices"]
+	},
+
+	{"#" : "**** - Find Certificate****** ",
+
+		"apiEndPoint":"/certmanager/findCertificate",
+		"vaultEndPoint":"certificates",
+		"method":"GET",
+		"outparams":["certificates"]
+	},
+	{"#" : "**** - Create TargetSystem Service '****** ",
+
+    	"apiEndPoint":"/certmanager/targetsystemservice/create",
+    	"vaultEndPoint":"targetsystems/",
+    	"method":"POST",
+      	"params":[
+        		{"name":"port", "required":true},
+    	  		{"name":"name","required":true},
+    	  		{"name":"description","required":true},
+				{"name":"hostname","required":true}
+ 	    ],
+        "outparams":["targetSystemID","name","port","targetSystemGroupId","targetSystemId","targetSystemServiceId","hostname"]
     }
+ ,
+    {"#":"Getting certificate Info",
+
+    	"apiEndPoint":"/sslcert",
+    	"vaultEndPoint":"/<path>",
+    	"method":"GET",
+      	"params":[
+        	{"name":"path","required":true, "appendToPath":true}
+        ],
+        "outparams":["data"]
+    },
+    {"#":"Getting certificate metadata Info",
+
+    	"apiEndPoint":"/certmanager",
+    	"vaultEndPoint":"/<path>",
+    	"method":"GET",
+      	"params":[
+        	{"name":"path","required":true, "appendToPath":true}
+        ],
+        "outparams":["data"]
+    },
+    {"#":"Getting certificate metadata Info",
+    
+    	"apiEndPoint":"/certmanager",
+    	"vaultEndPoint":"/<path>",
+    	"method":"GET",
+      	"params":[
+        	{"name":"path","required":true, "appendToPath":true}
+        ],
+        "outparams":["data"]
+    },
+    {"#":"Getting certificate Info",
+
+    	"apiEndPoint":"/sslcert",
+    	"vaultEndPoint":"/<path>",
+    	"method":"GET",
+      	"params":[
+        	{"name":"path","required":true, "appendToPath":true}
+        ],
+        "outparams":["data"]
+    },
+	{"#" : "**** - Get  Target System list'****** ",
+
+		"apiEndPoint":"/certmanager/targetsystemlist",
+		"vaultEndPoint":"targetsystemgroups",
+		"method":"GET",
+		"outparams":["targetSystems"]
+	},
+	{"#" : "**** - Get  Target System service list'****** ",
+
+		"apiEndPoint":"/certmanager/targetsystemservicelist",
+		"vaultEndPoint":"targetsystemservices",
+		"method":"GET",
+		"outparams":["targetsystemservices"]
+	},
+    {"#" : "**** - Get Revocation Reasons ****** ",
+
+		"apiEndPoint":"/certificates/revocationreasons",
+		"vaultEndPoint":"certificates/<certID>/revocationreasons",
+		"method":"GET",
+		"params":[
+      		{"name":"certID", "required":true, "appendToPath":true}
+        ],
+        "outparams":["time_enabled","details_enabled","reasons"]
+
+
+	},
+    {"#" : "**** - Issue Revocation Request ****** ",
+
+		"apiEndPoint":"/certificates/revocationrequest",
+		"vaultEndPoint":"certificates/{certName}/revocationrequest",
+		"method":"POST",
+		"params":[
+      		{"name":"certName", "required":true, "appendToPath":true},
+      		{"name":"reason", "required":true},
+      		{"name":"time"}
+        ]
+	},
+	 {"#" : "**** - Renew Certificate ****** ",
+
+		"apiEndPoint":"/certificates/renew",
+		"vaultEndPoint":"certificates/<certID>/renew",
+		"method":"POST",
+		"params":[
+      		{"name":"certName", "required":true, "appendToPath":true},
+      		{"name":"time"}
+        ]
+	},
+	 {"#" : "**** - Unassign Certificate ****** ",
+
+		"apiEndPoint":"/certificates/services/assigned",
+		"vaultEndPoint":"certificates/<certID>/services/assigned",
+		"method":"DELETEPAYLOAD",
+		"params":[
+      		{"name":"certID", "required":true, "appendToPath":true},
+      		{"name":"targetSystemServiceIds", "required":true},
+      		{"name":"time"}
+        ]
+	},
+	 {"#" : "**** - Delete Certificate ****** ",
+
+		"apiEndPoint":"/certificates",
+		"vaultEndPoint":"certificates/<certID>",
+		"method":"DELETEPAYLOAD",
+		"params":[
+      		{"name":"certID", "required":true, "appendToPath":true},
+      		{"name":"time"}
+        ]
+    },
+	{
+
+      "apiEndPoint":"/auth/oidc/oidc/auth_url",
+      "vaultEndPoint":"/auth/oidc/oidc/auth_url",
+      "method":"POST",
+      "params":[
+        {"name":"role", "required":true},
+        {"name":"redirect_uri", "required":true}
+      ],
+      "outparams":["request_id","lease_id","renewable", "lease_duration", "data", "wrap_info", "warnings", "auth"]
+    },
+    {
+
+      "apiEndPoint":"/auth/oidc/oidc/callback",
+      "vaultEndPoint":"/auth/oidc/oidc/callback<path>",
+      "method":"GET",
+      "params":[
+        {"name":"path","required":true, "appendToPath":true}
+      ],
+      "outparams":["auth/client_token","admin","access","auth/policies","auth/lease_duration"]
+    },
+    { "#":"****  List all auth methods  *****",
+      "apiEndPoint":"/sys/list",
+      "vaultEndPoint":"/sys/auth",
+      "method":"GET",
+      "outparams":["data"]
+    },
+    { "#":"****  Lookup an Entity  *****",
+      "apiEndPoint":"/identity/lookup/entity",
+      "vaultEndPoint":"/identity/lookup/entity",
+      "method":"POST",
+      "params":[
+        {"name":"name"},
+        {"name":"id"},
+        {"name":"alias_id"},
+        {"name":"alias_name"},
+        {"name":"alias_mount_accessor"}
+      ],
+      "outparams":["data"]
+    },
+    { "#":"****  Lookup an Entity  *****",
+      "apiEndPoint":"/identity/lookup/group",
+      "vaultEndPoint":"/identity/lookup/group",
+      "method":"POST",
+      "params":[
+        {"name":"name"},
+        {"name":"id"},
+        {"name":"alias_id"},
+        {"name":"alias_name"},
+        {"name":"alias_mount_accessor"}
+      ],
+      "outparams":["data"]
+    },
+    { "#":"****  Read Entity Alias By ID  *****",
+      "apiEndPoint":"/identity/entity-alias/id",
+      "vaultEndPoint":"/identity/entity-alias/id/<id>",
+      "method":"GET",
+      "params":[
+        {"name":"id", "required":true, "appendToPath":true}
+      ],
+      "outparams":["data"]
+    },
+    { "#":"****  Read Entity By Name  *****",
+      "apiEndPoint":"/identity/entity/name",
+      "vaultEndPoint":"/identity/entity/name/<name>",
+      "method":"GET",
+      "params":[
+        {"name":"name", "required":true, "appendToPath":true}
+      ],
+      "outparams":["data"]
+    },
+    { "#":"****  Update Entity By Name  *****",
+      "apiEndPoint":"/identity/entity/name/update",
+      "vaultEndPoint":"/identity/entity/name/<name>",
+      "method":"POST",
+      "params":[
+        {"name":"name", "required":true, "appendToPath":true},
+        {"name":"name", "required":true},
+        {"name":"metadata", "required":true},
+        {"name":"policies", "required":true},
+        {"name":"disabled", "required":true}
+      ],
+      "outparams":["data"]
+    },
+    { "#":"****  Get Policies attached to a Group  *****",
+      "apiEndPoint":"/identity/group-alias/id",
+      "vaultEndPoint":"/identity/group-alias/id/<id>",
+      "method":"GET",
+      "params":[
+        {"name":"name", "required":true, "appendToPath":true}
+      ],
+      "outparams":["data"]
+    },
+    { "#":"****  Delete Group By Name  *****",
+      "apiEndPoint":"/identity/group/name/delete",
+      "vaultEndPoint":"/identity/group/name/<name>",
+      "method":"DELETE",
+      "params":[
+        {"name":"name", "required":true, "appendToPath":true}
+      ]
+    },
+    { "#":"****  Delete Group Alias By Id  *****",
+      "apiEndPoint":"/identity/group-alias/id/delete",
+      "vaultEndPoint":"/identity/group-alias/id/<id>",
+      "method":"DELETE",
+      "params":[
+        {"name":"id", "required":true, "appendToPath":true}
+      ]
+    },
+    { "#":"****  Update Identity Group By Name  *****",
+      "apiEndPoint":"/identity/group/name/update",
+      "vaultEndPoint":"/identity/group/name/<name>",
+      "method":"POST",
+      "params":[
+        {"name":"name", "required":true, "appendToPath":true},
+        {"name":"name", "required":true},
+        {"name":"type", "required":true},
+        {"name":"policies", "required":true}
+      ],
+      "outparams":["data"]
+    },
+    { "#":"****  Create Group Alias  *****",
+      "apiEndPoint":"/identity/group-alias",
+      "vaultEndPoint":"/identity/group-alias",
+      "method":"POST",
+      "params":[
+        {"name":"name", "required":true},
+        {"name":"canonical_id", "required":true},
+        {"name":"mount_accessor", "required":true}
+      ],
+      "outparams":["data"]
+    },
+    { "#":"****  Get identity group details  *****",
+      "apiEndPoint":"/identity/group/name",
+      "vaultEndPoint":"/identity/group/name/<group>",
+      "method":"GET",
+      "params":[
+        {"name":"group", "required":true, "appendToPath":true}
+      ],
+      "outparams":["data/id", "data/policies"]
+    },
+    { "#":"****  Write Entity alias  *****",
+      "apiEndPoint":"/identity/entity-alias",
+      "vaultEndPoint":"/identity/entity-alias",
+      "method":"POST",
+      "params":[
+        {"name":"name", "required":true},
+        {"name":"mount_accessor", "required":true}
+      ],
+      "outparams":["data"]
+    }
+
 ]

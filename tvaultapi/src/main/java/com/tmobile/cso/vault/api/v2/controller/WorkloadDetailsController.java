@@ -46,4 +46,21 @@ public class WorkloadDetailsController {
 		UserDetails userDetails = (UserDetails) ((HttpServletRequest) request).getAttribute("UserDetails");
 		return workloadDetailsService.getWorkloadDetails(token, userDetails);
 	}
+
+	/**
+	 * To get application details by selected app name
+	 * @param request
+	 * @param token
+	 * @param appName
+	 * @return
+	 */
+	@ApiOperation(value = "${WorkloadDetailsController.getApprolesFromCwm.appname.value}", notes = "$" +
+			"{WorkloadDetailsController.getApprolesFromCwm.appname.notes}")
+	@GetMapping(value="/v2/serviceaccounts/cwm/appdetails/appname", produces="application/json")
+	public ResponseEntity<String> getWorkloadDetailsByAPIName(HttpServletRequest request,
+															  @RequestHeader(value="vault-token") String token, @RequestParam(
+			"appName" ) String appName){
+		UserDetails userDetails = (UserDetails) ((HttpServletRequest) request).getAttribute("UserDetails");
+		return workloadDetailsService.getWorkloadDetailsByAppName(appName);
+	}
 }

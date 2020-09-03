@@ -1,5 +1,5 @@
 // =========================================================================
-// Copyright 2019 T-Mobile, US
+// Copyright 2020 T-Mobile, US
 // 
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -37,6 +37,7 @@ import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
@@ -90,9 +91,27 @@ public final class ControllerUtil {
 
 	private static String ssUsername;
 	private static String ssPassword;
+
+
 	private static SSCred sscred = null;
 
-	@PostConstruct     
+	//Workload token
+	private static String cwmToken;
+	private static String oidcClientName;
+	private static String oidcClientId;
+	private static String oidcClientSecret;
+	private static String oidcBoundAudiences;
+	private static String oidcDiscoveryUrl;
+	private static String oidcADLoginUrl;
+	private static OIDCCred oidcCred = null;
+
+	private static OIDCUtil oidcUtil;
+
+	//NCLM Details
+	private static String nclmUsername;
+	private static String nclmPassword;
+
+	@PostConstruct
 	private void initStatic () {
 		vaultAuthMethod = this.tvaultAuthMethod;
 		secretKeyAllowedCharacters = this.secretKeyWhitelistedCharacters;
@@ -100,6 +119,7 @@ public final class ControllerUtil {
 		sdbNameAllowedCharacters = this.sdbNameWhitelistedCharacters;
 		sscredFileLocation = this.sscredLocation;
 		readSSCredFile(sscredFileLocation, true);
+		readOIDCCredFile(sscredFileLocation, true);
 	}
 
 	@Autowired(required = true)
@@ -113,6 +133,15 @@ public final class ControllerUtil {
 	 */
 	public static RequestProcessor getReqProcessor() {
 		return ControllerUtil.reqProcessor;
+	}
+
+	public static OIDCUtil getOidcUtil() {
+		return ControllerUtil.oidcUtil;
+	}
+
+	@Autowired(required = true)
+	public void setOidcUtil(OIDCUtil oidcUtil) {
+		ControllerUtil.oidcUtil = oidcUtil;
 	}
 
 	public static void recursivedeletesdb(String jsonstr,String token,  Response responseVO){
@@ -203,7 +232,7 @@ public final class ControllerUtil {
 	 * @param jsonstr
 	 * @param token
 	 * @param responseVO
-	 * @param secretMap
+	 * @param safeNode
 	 */
 	public static void recursiveRead(String jsonstr,String token,  Response responseVO, SafeNode safeNode){
 		ObjectMapper objMapper =  new ObjectMapper();
@@ -285,7 +314,7 @@ public final class ControllerUtil {
 	 * @param jsonstr
 	 * @param token
 	 * @param responseVO
-	 * @param secretMap
+	 * @param safeNode
 	 */
 	public static void getFoldersAndSecrets(String jsonstr,String token,  Response responseVO, SafeNode safeNode){
 		ObjectMapper objMapper =  new ObjectMapper();
@@ -438,7 +467,7 @@ public final class ControllerUtil {
 		}
 		return reqProcessor.process("/auth/ldap/groups/configure",ldapConfigJson,token);
 	}
-	
+
 	public static Response configureAWSRole(String roleName,String policies,String token ){
 		ObjectMapper objMapper = new ObjectMapper();
 		Map<String,String>configureRoleMap = new HashMap<String,String>();
@@ -458,7 +487,7 @@ public final class ControllerUtil {
 		}
 		return reqProcessor.process("/auth/aws/roles/update",awsConfigJson,token);
 	}
-	
+
 	public static Response configureAWSIAMRole(String roleName,String policies,String token ){
 		ObjectMapper objMapper = new ObjectMapper();
 		Map<String,String>configureRoleMap = new HashMap<String,String>();
@@ -542,9 +571,9 @@ public final class ControllerUtil {
 		}
 		return null;
 	}
-	
+
 	public static Response updateMetaDataOnConfigChanges(String name, String type,String currentPolicies, String latestPolicies, String token){
-		
+
 		List<String> _currentPolicies = Arrays.asList(currentPolicies.split(","));
 		List<String> _latestpolicies = Arrays.asList(latestPolicies.split(","));
 		List<String> _new = new ArrayList<String>();
@@ -554,15 +583,15 @@ public final class ControllerUtil {
 				_del.add(currPolicy);
 			}
 		}
-		
+
 		for(String latest : _latestpolicies){
 			if(!_currentPolicies.contains(latest)){
 				_new.add(latest);
 			}
 		}
-		
+
 		Map<String,String> sdbAccessMap = new HashMap<String,String>();
-		
+
 		for(String policy : _new){
 			String policyInfo[] = policy.split("_");
 			if(policyInfo.length==3){
@@ -585,7 +614,7 @@ public final class ControllerUtil {
 				}
 			}
 		}
-		
+
 		Iterator<Entry<String,String>> itr = sdbAccessMap.entrySet().iterator();
 		List<String> failed = new ArrayList<String>();
 		while(itr.hasNext()){
@@ -738,12 +767,12 @@ public final class ControllerUtil {
 		return null;
 	}
 	/**
-	 * 
+	 *
 	 * @param jsonString
 	 * @return
 	 */
 	public static Map<String,Object> parseJson (String jsonString){
-		Map<String, Object> response = new HashMap<>(); 
+		Map<String, Object> response = new HashMap<>();
 		try {
 			if(jsonString !=null )
 				response = new ObjectMapper().readValue(jsonString, new TypeReference<Map<String, Object>>(){});
@@ -758,7 +787,7 @@ public final class ControllerUtil {
 		}
 		return response;
 	}
-	
+
 	public static String convetToJson (Map<String,Object> jsonMap){
 		String jsonStr = TVaultConstants.EMPTY_JSON;
 		try {
@@ -772,7 +801,7 @@ public final class ControllerUtil {
 					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 					build()));
 		}
-	
+
 		return jsonStr;
 	}
 	/**
@@ -826,7 +855,8 @@ public final class ControllerUtil {
 		return currentpolicies;
 	}
 
-	public static void updateUserPolicyAssociationOnSDBDelete(String sdb,Map<String,String> acessInfo,String token){
+	public static void updateUserPolicyAssociationOnSDBDelete(String sdb,Map<String,String> acessInfo,String token, UserDetails userDetails){
+		OIDCEntityResponse oidcEntityResponse = new OIDCEntityResponse();
 		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 				put(LogMessage.ACTION, "updateUserPolicyAssociationOnSDBDelete").
@@ -856,30 +886,57 @@ public final class ControllerUtil {
 						s_policy += folders[index] +"_";
 					}
 				}
-			}	
+			}
 			Set<String> users = acessInfo.keySet();
 			ObjectMapper objMapper = new ObjectMapper();
 			for(String userName : users){
-				
-				Response userResponse;
+
+				Response userResponse = new Response();
 				if (TVaultConstants.USERPASS.equals(vaultAuthMethod)) {
 					userResponse = reqProcessor.process("/auth/userpass/read","{\"username\":\""+userName+"\"}",token);
 				}
-				else {
+				else if (TVaultConstants.LDAP.equals(vaultAuthMethod)){
 					userResponse = reqProcessor.process("/auth/ldap/users","{\"username\":\""+userName+"\"}",token);
-				}	
+				}else if (TVaultConstants.OIDC.equals(vaultAuthMethod)) {
+					// OIDC implementation changes
+					ResponseEntity<OIDCEntityResponse> responseEntity = oidcUtil.oidcFetchEntityDetails(token, userName, null);
+					if (!responseEntity.getStatusCode().equals(HttpStatus.OK)) {
+						if (responseEntity.getStatusCode().equals(HttpStatus.FORBIDDEN)) {
+							log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+									.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString())
+									.put(LogMessage.ACTION, "Add User to SDB")
+									.put(LogMessage.MESSAGE,
+											String.format("Trying to fetch OIDC user policies, failed"))
+									.put(LogMessage.APIURL,
+											ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString())
+									.build()));
+							ResponseEntity.status(HttpStatus.FORBIDDEN)
+									.body("{\"messages\":[\"User configuration failed. Please try again.\"]}");
+						}
+						ResponseEntity.status(HttpStatus.NOT_FOUND)
+								.body("{\"messages\":[\"User configuration failed. Invalid user\"]}");
+					}
+					oidcEntityResponse.setEntityName(responseEntity.getBody().getEntityName());
+					oidcEntityResponse.setPolicies(responseEntity.getBody().getPolicies());
+					userResponse.setResponse(oidcEntityResponse.getPolicies().toString());
+					userResponse.setHttpstatus(responseEntity.getStatusCode());
+				}
 				String responseJson="";
 				String groups="";
 				List<String> policies = new ArrayList<>();
 				List<String> currentpolicies = new ArrayList<>();
 
 				if(HttpStatus.OK.equals(userResponse.getHttpstatus())){
-					responseJson = userResponse.getResponse();	
+					responseJson = userResponse.getResponse();
 					try {
-						//currentpolicies = getPoliciesAsStringFromJson(objMapper, responseJson);
-						currentpolicies = ControllerUtil.getPoliciesAsListFromJson(objMapper, responseJson);
-						if (!(TVaultConstants.USERPASS.equals(vaultAuthMethod))) {
-							groups = objMapper.readTree(responseJson).get("data").get("groups").asText();
+						// OIDC implementation changes
+						if (TVaultConstants.OIDC.equals(vaultAuthMethod)) {
+							currentpolicies.addAll(oidcEntityResponse.getPolicies());
+						} else {
+							currentpolicies = ControllerUtil.getPoliciesAsListFromJson(objMapper, responseJson);
+							if (TVaultConstants.LDAP.equals(vaultAuthMethod)) {
+								groups = objMapper.readTree(responseJson).get("data").get("groups").asText();
+							}
 						}
 					} catch (IOException e) {
 						log.error(e);
@@ -908,16 +965,38 @@ public final class ControllerUtil {
 						log.debug ("Inside userpass");
 						ControllerUtil.configureUserpassUser(userName,policiesString,token);
 					}
-					else {
+					else if (TVaultConstants.LDAP.equals(vaultAuthMethod)){
 						log.debug ("Inside non-userpass");
 						ControllerUtil.configureLDAPUser(userName,policiesString,groups,token);
 					}
+					else if (TVaultConstants.OIDC.equals(vaultAuthMethod)) {
+						//OIDC Implementation : Entity Update
+						try {
+							oidcUtil.updateOIDCEntity(policies, oidcEntityResponse.getEntityName());
+							oidcUtil.renewUserToken(userDetails.getClientToken());
+						} catch (Exception e) {
+							log.error(e);
+							log.error(
+									JSONUtil.getJSON(
+											ImmutableMap.<String, String> builder()
+													.put(LogMessage.USER,
+															ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+													.put(LogMessage.ACTION, "Add User to SDB")
+													.put(LogMessage.MESSAGE,
+															"Exception while adding or updating the identity ")
+													.put(LogMessage.STACKTRACE, Arrays.toString(e.getStackTrace()))
+													.put(LogMessage.APIURL,
+															ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL))
+													.build()));
+						}
+					}
 				}
-				
+
 			}
 		}
 	}
-	public static void updateGroupPolicyAssociationOnSDBDelete(String sdb,Map<String,String> acessInfo,String token){
+	public static void updateGroupPolicyAssociationOnSDBDelete(String sdb,Map<String,String> acessInfo,String token, UserDetails userDetails){
+		OIDCGroup oidcGroup = new OIDCGroup();
 		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 				put(LogMessage.ACTION, "updateGroupPolicyAssociationOnSDBDelete").
@@ -933,7 +1012,7 @@ public final class ControllerUtil {
 			String r_policy = "r_";
 			String w_policy = "w_";
 			String d_policy = "d_";
-			
+
 			if (folders.length > 0) {
 				for (int index = 0; index < folders.length; index++) {
 					if (index == folders.length -1 ) {
@@ -947,19 +1026,36 @@ public final class ControllerUtil {
 						d_policy += folders[index] +"_";
 					}
 				}
-			}	
+			}
 			Set<String> groups = acessInfo.keySet();
 			ObjectMapper objMapper = new ObjectMapper();
 			for(String groupName : groups){
-				Response response = reqProcessor.process("/auth/ldap/groups","{\"groupname\":\""+groupName+"\"}",token);
+				Response response = new Response();
+				if( TVaultConstants.LDAP.equals(vaultAuthMethod) ){
+					response = reqProcessor.process("/auth/ldap/groups","{\"groupname\":\""+groupName+"\"}",token);
+				}else if ( TVaultConstants.OIDC.equals(vaultAuthMethod) ) {
+					//call read api with groupname
+					oidcGroup = oidcUtil.getIdentityGroupDetails(groupName, token);
+					if (oidcGroup != null) {
+						response.setHttpstatus(HttpStatus.OK);
+						response.setResponse(oidcGroup.getPolicies().toString());
+					} else {
+						response.setHttpstatus(HttpStatus.BAD_REQUEST);
+					}
+				}
+
 				String responseJson=TVaultConstants.EMPTY;
 				List<String> policies = new ArrayList<>();
 				List<String> currentpolicies = new ArrayList<>();
 				if(HttpStatus.OK.equals(response.getHttpstatus())){
-					responseJson = response.getResponse();	
+					responseJson = response.getResponse();
 					try {
-						//currentpolicies = getPoliciesAsStringFromJson(objMapper, responseJson);
-						currentpolicies = ControllerUtil.getPoliciesAsListFromJson(objMapper, responseJson);
+						//OIDC Changes
+						if (TVaultConstants.LDAP.equals(vaultAuthMethod)) {
+							currentpolicies = ControllerUtil.getPoliciesAsListFromJson(objMapper, responseJson);
+						} else if (TVaultConstants.OIDC.equals(vaultAuthMethod)) {
+							currentpolicies.addAll(oidcGroup.getPolicies());
+						}
 					} catch (IOException e) {
 						log.error(e);
 						log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
@@ -980,12 +1076,18 @@ public final class ControllerUtil {
 							put(LogMessage.MESSAGE, String.format ("Current policies [%s]", policies )).
 							put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 							build()));
-					ControllerUtil.configureLDAPGroup(groupName,policiesString,token);
+					if (TVaultConstants.LDAP.equals(vaultAuthMethod)) {
+						ControllerUtil.configureLDAPGroup(groupName, policiesString, token);
+					} else if (TVaultConstants.OIDC.equals(vaultAuthMethod)) {
+						oidcUtil.updateGroupPolicies(token, groupName, policies, currentpolicies, oidcGroup.getId());
+						oidcUtil.renewUserToken(userDetails.getClientToken());
+					}
+
 				}
 			}
 		}
 	}
-	
+
 	// Not using this method and decided to delete the role instead with the concept that you cant have same role used by different safe.S
 	public static void updateAwsRolePolicyAssociationOnSDBDelete(String sdb,Map<String,String> acessInfo,String token){
 		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
@@ -1012,7 +1114,7 @@ public final class ControllerUtil {
 						d_policy += folders[index] +"_";
 					}
 				}
-			}	
+			}
 
 			Set<String> roles = acessInfo.keySet();
 			ObjectMapper objMapper = new ObjectMapper();
@@ -1021,9 +1123,9 @@ public final class ControllerUtil {
 				String responseJson=TVaultConstants.EMPTY;
 				String policies =TVaultConstants.EMPTY;
 				String currentpolicies =TVaultConstants.EMPTY;
-				
+
 				if(HttpStatus.OK.equals(roleResponse.getHttpstatus())){
-					responseJson = roleResponse.getResponse();	
+					responseJson = roleResponse.getResponse();
 					try {
 						JsonNode policiesArry =objMapper.readTree(responseJson).get("policies");
 						for(JsonNode policyNode : policiesArry){
@@ -1053,7 +1155,7 @@ public final class ControllerUtil {
 			}
 		}
 	}
-	
+
 	public static void deleteAwsRoleOnSDBDelete(String sdb,Map<String,String> acessInfo,String token){
 		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
@@ -1101,7 +1203,7 @@ public final class ControllerUtil {
 		}
 		return true;
 	}
-	
+
 	public static boolean isPathValid(String path){
 		String paths[] =  path.split("/");
 		if(paths.length > 0){
@@ -1114,7 +1216,7 @@ public final class ControllerUtil {
 		}
 		return true;
 	}
-	
+
 	public static boolean isValidSafePath(String path){
 		String paths[] =  path.split("/");
 		if(paths.length==2){
@@ -1170,7 +1272,7 @@ public final class ControllerUtil {
 	public static boolean canAddPermission(String path,String token) {
 		String safeType = ControllerUtil.getSafeType(path);
 		String safeName = ControllerUtil.getSafeName(path);
-		
+
 		List<String> existingSafeNames = getAllExistingSafeNames(safeType, token);
 		List<String> duplicateSafeNames = new ArrayList<String>();
 		int count=0;
@@ -1215,7 +1317,7 @@ public final class ControllerUtil {
 		boolean valid = Pattern.matches(sdbNameAllowedCharacters, sdbName);
 		return valid;
 	}
-	
+
 	/**
 	 * Validates inputs values required for SDB creation
 	 * @param requestParams
@@ -1230,10 +1332,10 @@ public final class ControllerUtil {
 		String sdbOwner = (String) map.get("owner");
 		String sdbDescription = (String) map.get("description");
 		String path = (String) requestParams.get("path");
-		if (StringUtils.isEmpty(sdbName) 
-				|| StringUtils.isEmpty(sdbOwner) 
-				|| StringUtils.isEmpty(sdbDescription) 
-				|| StringUtils.isEmpty(path) 
+		if (StringUtils.isEmpty(sdbName)
+				|| StringUtils.isEmpty(sdbOwner)
+				|| StringUtils.isEmpty(sdbDescription)
+				|| StringUtils.isEmpty(path)
 				) {
 			return false;
 		}
@@ -1244,13 +1346,13 @@ public final class ControllerUtil {
 		if (!sdbName.equals(safeName)) {
 			return false;
 		}
-		
+
 		if (!EmailValidator.getInstance().isValid(sdbOwner)) {
 			return false;
 		}
 		return true;
 	}
-	
+
 	/**
 	 * Validates inputs values required for SDB creation
 	 * @param safe
@@ -1268,10 +1370,10 @@ public final class ControllerUtil {
 		String sdbOwner = safeBasicDetails.getOwner();
 		String sdbDescription = safeBasicDetails.getDescription();
 		String path = safe.getPath();
-		if (StringUtils.isEmpty(sdbName) 
-				|| StringUtils.isEmpty(sdbOwner) 
-				|| StringUtils.isEmpty(sdbDescription) 
-				|| StringUtils.isEmpty(path) 
+		if (StringUtils.isEmpty(sdbName)
+				|| StringUtils.isEmpty(sdbOwner)
+				|| StringUtils.isEmpty(sdbDescription)
+				|| StringUtils.isEmpty(path)
 				) {
 			return false;
 		}
@@ -1282,13 +1384,13 @@ public final class ControllerUtil {
 		if (!sdbName.equals(safeName)) {
 			return false;
 		}
-		
+
 		if (!EmailValidator.getInstance().isValid(sdbOwner)) {
 			return false;
 		}
 		return true;
 	}
-	
+
 	/**
 	 * Validates inputs values required for SDB creation
 	 * @param requestParams
@@ -1303,10 +1405,10 @@ public final class ControllerUtil {
 		String sdbOwner = (String) map.get("owner");
 		String sdbDescription = (String) map.get("description");
 		String path = (String) requestParams.get("path");
-		if (StringUtils.isEmpty(sdbName) 
-				|| StringUtils.isEmpty(sdbOwner) 
-				|| StringUtils.isEmpty(sdbDescription) 
-				|| StringUtils.isEmpty(path) 
+		if (StringUtils.isEmpty(sdbName)
+				|| StringUtils.isEmpty(sdbOwner)
+				|| StringUtils.isEmpty(sdbDescription)
+				|| StringUtils.isEmpty(path)
 				) {
 			return false;
 		}
@@ -1516,7 +1618,7 @@ public final class ControllerUtil {
 		}
 	}
 	/**
-	 * 
+	 *
 	 * @param safe
 	 */
 	public static void converSDBInputsToLowerCase(Safe safe) {
@@ -1553,7 +1655,7 @@ public final class ControllerUtil {
 			return jsonstr;
 		}
 	}
-	
+
 	public static String convertSafeAppRoleAccessToLowerCase(String jsonstr) {
 		try {
 			SafeAppRoleAccess safeAppRoleAccess = (SafeAppRoleAccess)JSONUtil.getObj(jsonstr, SafeAppRoleAccess.class);
@@ -1575,7 +1677,7 @@ public final class ControllerUtil {
 			return jsonstr;
 		}
 	}
-	
+
 	public static String convertAppRoleSecretIdToLowerCase(String jsonstr) {
 		try {
 			AppRoleSecretData appRoleSecretData = (AppRoleSecretData)JSONUtil.getObj(jsonstr, AppRoleSecretData.class);
@@ -1594,7 +1696,7 @@ public final class ControllerUtil {
 			return jsonstr;
 		}
 	}
-	
+
 	/**
 	 * Validates the SecretKey
 	 * @return
@@ -1680,7 +1782,7 @@ public final class ControllerUtil {
 		}
 		return true;
 	}
-	
+
 	private static String getSecretKey(String jsonString) {
 		String secretKey = null ;
 		String secretValue = null;
@@ -1702,7 +1804,7 @@ public final class ControllerUtil {
 		}
 	}
 	/**
-	 * 
+	 *
 	 * @param jsonString
 	 * @return
 	 */
@@ -1724,7 +1826,7 @@ public final class ControllerUtil {
 		}
 	}
 	/**
-	 * 
+	 *
 	 * @param jsonString
 	 * @return
 	 */
@@ -1756,7 +1858,7 @@ public final class ControllerUtil {
 		if (StringUtils.isEmpty(awsAuthLogin.getRole())) {
 			return false;
 		}
-				
+
 		if (AWSAuthType.EC2.equals(authType)) {
 			if (!StringUtils.isEmpty(awsAuthLogin.getPkcs7())) {
 				return true;
@@ -1786,21 +1888,21 @@ public final class ControllerUtil {
 		else if (StringUtils.isEmpty(awsLoginRole.getAuth_type()) || !awsLoginRole.getAuth_type().equalsIgnoreCase("ec2")) {
 			throw new TVaultValidationException("auth_type is required and it should be ec2.");
 		}
-		else if (!StringUtils.isEmpty(awsLoginRole.getBound_account_id()) 
-				|| !StringUtils.isEmpty(awsLoginRole.getBound_ami_id()) 
-				|| !StringUtils.isEmpty(awsLoginRole.getBound_iam_instance_profile_arn()) 
-				|| !StringUtils.isEmpty(awsLoginRole.getBound_iam_role_arn()) 
-				|| !StringUtils.isEmpty(awsLoginRole.getBound_region()) 
-				|| !StringUtils.isEmpty(awsLoginRole.getBound_subnet_id()) 
-				|| !StringUtils.isEmpty(awsLoginRole.getBound_vpc_id()) 
+		else if (!StringUtils.isEmpty(awsLoginRole.getBound_account_id())
+				|| !StringUtils.isEmpty(awsLoginRole.getBound_ami_id())
+				|| !StringUtils.isEmpty(awsLoginRole.getBound_iam_instance_profile_arn())
+				|| !StringUtils.isEmpty(awsLoginRole.getBound_iam_role_arn())
+				|| !StringUtils.isEmpty(awsLoginRole.getBound_region())
+				|| !StringUtils.isEmpty(awsLoginRole.getBound_subnet_id())
+				|| !StringUtils.isEmpty(awsLoginRole.getBound_vpc_id())
 			) {
 			return true;
 		}
 		throw new TVaultValidationException("At least one bound parameter should be specified.");
 	}
-	
+
 	public static boolean areAWSEC2RoleInputsValid(String jsonStr) throws TVaultValidationException {
-		
+
 		Map<String,String> map = null;
 		try {
 			ObjectMapper objMapper = new ObjectMapper();
@@ -1812,20 +1914,20 @@ public final class ControllerUtil {
 		if (MapUtils.isEmpty(map)) {
 			return false;
 		}
-		
+
 		if (StringUtils.isEmpty(map.get("role"))) {
 			throw new TVaultValidationException("Role is required.");
 		}
 		else if (StringUtils.isEmpty(map.get("auth_type")) || !"ec2".equalsIgnoreCase(map.get("auth_type"))) {
 			throw new TVaultValidationException("auth_type is required and it should be ec2.");
 		}
-		else if (!StringUtils.isEmpty(map.get("bound_account_id")) 
-				|| !StringUtils.isEmpty(map.get("bound_ami_id")) 
-				|| !StringUtils.isEmpty(map.get("bound_iam_instance_profile_arn")) 
-				|| !StringUtils.isEmpty(map.get("bound_iam_role_arn")) 
-				|| !StringUtils.isEmpty(map.get("bound_region")) 
-				|| !StringUtils.isEmpty(map.get("bound_subnet_id")) 
-				|| !StringUtils.isEmpty(map.get("bound_vpc_id")) 
+		else if (!StringUtils.isEmpty(map.get("bound_account_id"))
+				|| !StringUtils.isEmpty(map.get("bound_ami_id"))
+				|| !StringUtils.isEmpty(map.get("bound_iam_instance_profile_arn"))
+				|| !StringUtils.isEmpty(map.get("bound_iam_role_arn"))
+				|| !StringUtils.isEmpty(map.get("bound_region"))
+				|| !StringUtils.isEmpty(map.get("bound_subnet_id"))
+				|| !StringUtils.isEmpty(map.get("bound_vpc_id"))
 			) {
 			return true;
 		}
@@ -1871,7 +1973,7 @@ public final class ControllerUtil {
 		}
 		return allExistingSafeNames;
 	}
-	
+
 	/**
 	 * Get the map of all existing safe names for a given type.
 	 * @return
@@ -1932,7 +2034,7 @@ public final class ControllerUtil {
 		}
 		return count;
 	}
-	
+
 	public  static String generateSafePath(String safeName, String safeType) {
 		String safePath = "";
 		if (StringUtils.isEmpty(safeName) || StringUtils.isEmpty(safeType)) {
@@ -1949,7 +2051,7 @@ public final class ControllerUtil {
 			safePath = "apps/"+safeName;
 			break;
 		default:
-			
+
 		}
 
 		return safePath;
@@ -2002,6 +2104,16 @@ public final class ControllerUtil {
 		}
 		return isMetaDataUpdated;
 	}
+
+	/**
+	 * createSSLCertificateMetadata
+	 * @param sslCertificateRequest
+	 * @param userDetails
+	 * @param token
+	 * @return boolean
+	 */
+
+
 
 	/**
 	 * Check whether the current user can delete a role
@@ -2086,7 +2198,7 @@ public final class ControllerUtil {
 	 * Reads the SSCred from the location
 	 * @param fileLocation
 	 * @param isDelete
-	 * @return sscred 
+	 * @return sscred
 	 */
 	public static SSCred readSSCredFile(String fileLocation, boolean isDelete)  {
 		File ssFile = null;
@@ -2095,7 +2207,8 @@ public final class ControllerUtil {
 			ssFile = new File(fileLocation+"/sscred");
 			if (ssFile != null && ssFile.exists()) {
 				sscred = new SSCred();
-				Scanner sc = new Scanner(ssFile); 
+				setSscred(sscred);
+				Scanner sc = new Scanner(ssFile);
 				while (sc.hasNextLine()) {
 					String line = sc.nextLine();
 					if (line.startsWith("username:")) {
@@ -2108,6 +2221,22 @@ public final class ControllerUtil {
 						sscred.setPassword(line.substring("password:".length(), line.length()));
 						log.debug("Successfully read password: from sscred file");
 					}
+					else if (line.startsWith("nclmusername:")) {
+						nclmUsername = line.substring("nclmusername:".length(), line.length());
+						sscred.setNclmusername(line.substring("nclmusername:".length(), line.length()));
+						log.debug("Successfully read nclm username: from sscred file");
+					}
+					else if (line.startsWith("nclmpassword:")) {
+						nclmPassword = line.substring("nclmpassword:".length(), line.length());
+						sscred.setNclmpassword(line.substring("nclmpassword:".length(), line.length()));
+						log.debug("Successfully read nclmpassword: from sscred file");
+					}
+					else if (line.startsWith("cwmToken:")) {
+						cwmToken = line.substring("cwmToken:".length(), line.length());
+						sscred.setCwmToken(line.substring("cwmToken:".length(), line.length()));
+						log.debug("Successfully read cwmToken: from sscred file");
+					}
+
 				}
 				sc.close();
 			}
@@ -2129,11 +2258,29 @@ public final class ControllerUtil {
 		return sscred;
 	}
 
+	public static String getNclmUsername() {
+		return nclmUsername;
+	}
+
+
+	public static String getNclmPassword() {
+		return nclmPassword;
+	}
+
+	public static String getCwmToken() {
+		return cwmToken;
+	}
+
 	/**
 	 * @return the ssUsername
 	 */
-	public static String getSsUsername() {
+		public static String getSsUsername() {
 		return ssUsername;
+	}
+
+
+	public static void setSscred(SSCred sscred) {
+		ControllerUtil.sscred = sscred;
 	}
 
 	/**
@@ -2150,7 +2297,131 @@ public final class ControllerUtil {
 		return sscred;
 	}
 
-    /**
+
+	/**
+	 * Reads the OIDCCred from the location.
+	 * @param fileLocation
+	 * @param isDelete
+	 * @return
+	 */
+	public static OIDCCred readOIDCCredFile(String fileLocation, boolean isDelete) {
+		File oidcFile = null;
+		log.debug("Trying to read oidccred file");
+		try {
+			oidcFile = new File(fileLocation+"/oidccred");
+			if (oidcFile != null && oidcFile.exists()) {
+				oidcCred = new OIDCCred();
+				Scanner sc = new Scanner(oidcFile);
+				while (sc.hasNextLine()) {
+					String line = sc.nextLine();
+					if (line.startsWith("OIDC_CLIENT_NAME=")) {
+						oidcClientName = line.substring("OIDC_CLIENT_NAME=".length(), line.length());
+						oidcCred.setClientName(line.substring("OIDC_CLIENT_NAME=".length(), line.length()));
+						log.debug("Successfully read OIDC_CLIENT_NAME from oidcCred file");
+					}
+					else if (line.startsWith("OIDC_CLIENT_ID=")) {
+						oidcClientId = line.substring("OIDC_CLIENT_ID=".length(), line.length());
+						oidcCred.setClientId(line.substring("OIDC_CLIENT_ID=".length(), line.length()));
+						log.debug("Successfully read OIDC_CLIENT_ID from oidcCred file");
+					}
+					else if (line.startsWith("OIDC_CLIENT_SECRET=")) {
+						oidcClientSecret = line.substring("OIDC_CLIENT_SECRET=".length(), line.length());
+						oidcCred.setClientSecret(line.substring("OIDC_CLIENT_SECRET=".length(), line.length()));
+						log.debug("Successfully read OIDC_CLIENT_SECRET from oidcCred file");
+					}
+					else if (line.startsWith("BOUND_AUDIENCES=")) {
+						oidcBoundAudiences = line.substring("BOUND_AUDIENCES=".length(), line.length());
+						oidcCred.setBoundAudiences(line.substring("BOUND_AUDIENCES=".length(), line.length()));
+						log.debug("Successfully read BOUND_AUDIENCES from oidcCred file");
+					}
+					else if (line.startsWith("OIDC_DISCOVERY_URL=")) {
+						oidcDiscoveryUrl = line.substring("OIDC_DISCOVERY_URL=".length(), line.length());
+						oidcCred.setDiscoveryUrl(line.substring("OIDC_DISCOVERY_URL=".length(), line.length()));
+						log.debug("Successfully read OIDC_DISCOVERY_URL from oidcCred file");
+					}
+					else if (line.startsWith("AD_LOGIN_URL=")) {
+						oidcADLoginUrl = line.substring("AD_LOGIN_URL=".length(), line.length());
+						oidcCred.setAdLoginUrl(line.substring("AD_LOGIN_URL=".length(), line.length()));
+						log.debug("Successfully read AD_LOGIN_URL from oidcCred file");
+					}
+				}
+				sc.close();
+			}
+		} catch (IOException e) {
+			log.error(String.format("Unable to read oidcCred file: [%s]", e.getMessage()));
+		}
+		try {
+			if (oidcFile != null && oidcFile.exists() && isDelete) {
+				if (oidcFile.delete()) {
+					log.debug("Successfully deleted oidcCred file");
+				}
+				else {
+					log.error("Unable to get delete oidcCred file");
+				}
+			}
+		} catch (Exception e) {
+			log.error(String.format("Unable to get delete oidcCred file: [%s]", e.getMessage()));
+		}
+		return oidcCred;
+	}
+
+	/**
+	 *
+	 * @return the oidcClientName.
+	 */
+	public static String getOidcClientName() {
+		return oidcClientName;
+	}
+
+	/**
+	 *
+	 * @return the oidcClientId.
+	 */
+	public static String getOidcClientId() {
+		return oidcClientId;
+	}
+
+	/**
+	 *
+	 * @return the oidcClientSecret.
+	 */
+	public static String getOidcClientSecret() {
+		return oidcClientSecret;
+	}
+
+	/**
+	 *
+	 * @return the oidcBoundAudiences.
+	 */
+	public static String getOidcBoundAudiences() {
+		return oidcBoundAudiences;
+	}
+
+	/**
+	 *
+	 * @return the oidcDiscoveryUrl.
+	 */
+	public static String getOidcDiscoveryUrl() {
+		return oidcDiscoveryUrl;
+	}
+
+	/**
+	 *
+	 * @return the oidcADLoginUrl.
+	 */
+	public static String getOidcADLoginUrl() {
+		return oidcADLoginUrl;
+	}
+
+	/**
+	 *
+	 * @return the oidcCred.
+	 */
+	public static OIDCCred getOidcCred() {
+		return oidcCred;
+	}
+
+	/**
      * To hide the master approle from responses to UI
      * @param response
      * @return
@@ -2178,4 +2449,323 @@ public final class ControllerUtil {
         return response;
     }
 
+    /**
+     * Update MetaData
+     * @param params
+     * @param token
+     * @return
+     * @throws JsonProcessingException
+     */
+    public static boolean updateMetaData(String path, Map<String,String> params,String token) throws JsonProcessingException {
+
+    	log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+				put(LogMessage.ACTION, "updateMetadata").
+				put(LogMessage.MESSAGE, String.format ("Trying to upate metadata with params")).
+				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+				build()));
+
+    	ObjectMapper objMapper = new ObjectMapper();
+    	String metadataJson = objMapper.writeValueAsString(params);
+    	String writeJson =  "{\"path\":\""+path+"\",\"data\":"+ metadataJson +"}";
+		Response response = reqProcessor.process("/write", writeJson, token);
+		boolean isMetaDataUpdated = false;
+
+		if(response.getHttpstatus().equals(HttpStatus.NO_CONTENT)){
+			isMetaDataUpdated = true;
+			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+					put(LogMessage.ACTION, "createMetadata").
+					put(LogMessage.MESSAGE, "Metadata created successfully ").
+					put(LogMessage.STATUS, response.getHttpstatus().toString()).
+					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+					build()));
+		} else {
+			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+					put(LogMessage.ACTION, "createMetadata").
+					put(LogMessage.MESSAGE, "Failed to create metadata").
+					put(LogMessage.STATUS, response.getHttpstatus().toString()).
+					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+					build()));
+		}
+		return isMetaDataUpdated;
+    }
+
+    public static boolean arecertificateGroupInputsValid(CertificateGroup certificateGroup) {
+
+		if (ObjectUtils.isEmpty(certificateGroup)) {
+			return false;
+		}
+		if (ObjectUtils.isEmpty(certificateGroup.getGroupname())
+				|| ObjectUtils.isEmpty(certificateGroup.getAccess())
+				|| ObjectUtils.isEmpty(certificateGroup.getCertificateName())
+				|| certificateGroup.getCertificateName().contains(" ")
+                || (!certificateGroup.getCertificateName().endsWith(".t-mobile.com"))
+                || (certificateGroup.getCertificateName().contains(".-"))
+	            || (certificateGroup.getCertificateName().contains("-."))
+                || (!certificateGroup.getCertType().matches("internal|external"))
+				) {
+			return false;
+		}
+			boolean isValid = true;
+			String access = certificateGroup.getAccess();
+			if (!ArrayUtils.contains(permissions, access)) {
+				isValid = false;
+			}
+			return isValid;
+		}
+
+	/**
+	 * Decides whether a user can be added to a certificate or not
+	 * @param path
+	 * @param token
+	 * @return
+	 */
+	//metadata/(certtype)sslcerts/(certname)cert1//
+	public static boolean canAddCertPermission(String path,String certificateName,String token) {
+		String certName =certificateName;
+
+		List<String> existingCertNames = getAllExistingCertNames(path, token);
+		List<String> duplicateCertNames = new ArrayList<>();
+		int count=0;
+		for (String existingCertName: existingCertNames) {
+
+			if (existingCertName.equalsIgnoreCase(certName)) {
+				count++;
+				duplicateCertNames.add(existingCertName);
+			}
+		}
+
+		if (count !=0 ) {
+			// There is one valid certificate, Hence permission can be added
+			// Exact match
+			return true;
+		}
+		else {
+			// There are no certificates or more than one and hence permission can't be added
+			return false;
+		}
+	}
+
+	/**
+	 * Get the map of all existing certificate names for a given type.
+	 * @return
+	 */
+	public static List<String> getAllExistingCertNames(String type, String token) {
+		List<String> certNames = new ArrayList<String>();
+		String path =  type;
+		Response response = reqProcessor.process("/certificates/list","{\"path\":\""+path+"\"}",token);
+		if(response.getHttpstatus().equals(HttpStatus.OK)){
+			try {
+				Map<String, Object> requestParams = new ObjectMapper().readValue(response.getResponse(), new TypeReference<Map<String, Object>>(){});
+				certNames = (ArrayList<String>) requestParams.get("keys");
+			} catch (Exception e) {
+				log.error("Unable to get list of safes.");
+				log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+						put(LogMessage.ACTION, "getAllExistingCertificateNames").
+						put(LogMessage.MESSAGE, String.format ("Unable to get list of certificate due to [%s] ",e.getMessage())).
+						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+						build()));
+			}
+		}
+		return certNames;
+	}
+
+	public static Response updateSslCertificateMetadata(Map<String,String> params,String token){
+		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+				put(LogMessage.ACTION, "updateMetadata").
+				put(LogMessage.MESSAGE, String.format ("Trying to update metadata with params")).
+				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+				build()));
+		String _type = params.get("type");
+		String name = params.get("name");
+		String access = params.get("access");
+		String path = "metadata/"+ params.get("path");
+
+		ObjectMapper objMapper = new ObjectMapper();
+		String pathjson ="{\"path\":\""+path+"\"}";
+		// Read info for the path
+		Response metadataResponse = reqProcessor.process("/read",pathjson,token);
+		Map<String,Object> _metadataMap = null;
+		if(HttpStatus.OK.equals(metadataResponse.getHttpstatus())){
+			try {
+				_metadataMap = objMapper.readValue(metadataResponse.getResponse(), new TypeReference<Map<String,Object>>() {});
+			} catch (IOException e) {
+				log.error(e);
+				log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+						put(LogMessage.ACTION, "updateMetadata").
+						put(LogMessage.MESSAGE, String.format ("Error creating _metadataMap for type [%s], name [%s], access [%s] and path [%s] message [%s]", _type, name, access, path, e.getMessage())).
+						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+						build()));
+			}
+
+			@SuppressWarnings("unchecked")
+			Map<String,Object> metadataMap = (Map<String,Object>) _metadataMap.get("data");
+
+			@SuppressWarnings("unchecked")
+			Map<String,String> dataMap = (Map<String,String>) metadataMap.get(_type);
+			if(dataMap == null) { dataMap = new HashMap<String,String>(); metadataMap.put(_type, dataMap);}
+
+			dataMap.remove(name);
+			if(!"delete".equals(access))
+				dataMap.put(name, access);
+
+			String metadataJson = "";
+			try {
+				metadataJson = objMapper.writeValueAsString(metadataMap);
+			} catch (JsonProcessingException e) {
+				log.error(e);
+				log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+						put(LogMessage.ACTION, "updateMetadata").
+						put(LogMessage.MESSAGE, String.format ("Error in creating metadataJson for type [%s], name [%s], access [%s] and path [%s] with message [%s]", _type, name, access, path, e.getMessage())).
+						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+						build()));
+			}
+
+			String writeJson =  "{\"path\":\""+path+"\",\"data\":"+ metadataJson +"}";
+			metadataResponse = reqProcessor.process("/write",writeJson,token);
+			return metadataResponse;
+		}
+		return null;
+	}
+
+	public static Response updateSslMetaDataOnConfigChanges(String name, String type,String currentPolicies, String latestPolicies, String token){
+
+		List<String> _currentPolicies = Arrays.asList(currentPolicies.split(","));
+		List<String> _latestpolicies = Arrays.asList(latestPolicies.split(","));
+		List<String> _new = new ArrayList<String>();
+		List<String> _del = new ArrayList<String>();
+		for(String currPolicy : _currentPolicies){
+			if(!_latestpolicies.contains(currPolicy)){
+				_del.add(currPolicy);
+			}
+		}
+
+		for(String latest : _latestpolicies){
+			if(!_currentPolicies.contains(latest)){
+				_new.add(latest);
+			}
+		}
+
+		Map<String,String> sslAccessMap = new HashMap<String,String>();
+
+		for(String policy : _new){
+			String policyInfo[] = policy.split("_");
+			if(policyInfo.length==3){
+				String access ="" ;
+				switch(policyInfo[0]) {
+					case "r" : 	access = TVaultConstants.READ_POLICY; break;
+					case "w" : 	access = TVaultConstants.WRITE_POLICY; break;
+					default:	access= TVaultConstants.DENY_POLICY ;break;
+				}
+				String path = policyInfo[1]+"/"+policyInfo[2];
+				sslAccessMap.put(path, access);
+			}
+		}
+		for(String policy : _del){
+			String policyInfo[] = policy.split("_");
+			if(policyInfo.length==3){
+				String path = policyInfo[1]+"/"+policyInfo[2];
+				if(!sslAccessMap.containsKey(path)){
+					sslAccessMap.put(path, "delete");
+				}
+			}
+		}
+
+		Iterator<Entry<String,String>> itr = sslAccessMap.entrySet().iterator();
+		List<String> failed = new ArrayList<String>();
+		while(itr.hasNext()){
+			Entry<String,String> entry = itr.next();
+			Map<String,String> params = new HashMap<String,String>();
+			params.put("type", type);
+			params.put("name", name);
+			params.put("path", entry.getKey());
+			params.put("access", entry.getValue());
+			Response rsp = updateSslCertificateMetadata(params, token);
+			if(rsp == null || !HttpStatus.NO_CONTENT.equals(rsp.getHttpstatus())){
+				failed.add(entry.getKey());
+			}
+		}
+		Response response = new Response();
+		if(failed.size()==0){
+			response.setHttpstatus(HttpStatus.OK);
+		}else{
+			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+					put(LogMessage.ACTION, "updateMetaDataOnConfigChanges").
+					put(LogMessage.MESSAGE, String.format ("updateMetaDataOnConfigChanges failed ")).
+					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+					build()));
+			response.setHttpstatus(HttpStatus.MULTI_STATUS);
+			response.setResponse("Meta data update failed for "+failed.toString() );
+		}
+		return response;
+	}
+
+    /**
+     * To filter the duplicate safe permissions
+     * @param access
+     * @return
+     */
+    public static Map<String,Object> filterDuplicateSafePermissions(Map<String,Object> access) {
+        if (!MapUtils.isEmpty(access)) {
+            String[] safeTypes = {TVaultConstants.USERS, TVaultConstants.SHARED, TVaultConstants.APPS};
+
+            for (String type: safeTypes) {
+                List<Map<String,String>> safePermissions = (List<Map<String,String>>)access.get(type);
+                if (safePermissions != null) {
+                    //map to check duplicate permission
+                    Map<String,String> filteredPermissions = Collections.synchronizedMap(new HashMap());
+                    List<Map<String,String>> updatedPermissionList = new ArrayList<>();
+                    for (Map<String,String> permissionMap: safePermissions) {
+                        Set<String> keys = permissionMap.keySet();
+                        String key = keys.stream().findFirst().orElse("");
+
+                        if (key !="" && !filteredPermissions.containsKey(key)) {
+                            filteredPermissions.put(key, permissionMap.get(key));
+                            Map<String,String> permission = Collections.synchronizedMap(new HashMap());
+                            permission.put(key, permissionMap.get(key));
+                            updatedPermissionList.add(permission);
+                        }
+                    }
+                    access.put(type, updatedPermissionList);
+                }
+            }
+        }
+        return access;
+    }
+
+    /**
+     * To filter the duplicate Service account permissions
+     * @param access
+     * @return
+     */
+    public static  Map<String,Object> filterDuplicateSvcaccPermissions(Map<String,Object> access) {
+        if (!MapUtils.isEmpty(access)) {
+            List<Map<String,String>> svcaccPermissions = (List<Map<String,String>>)access.get(TVaultConstants.SVC_ACC_PATH_PREFIX);
+            if (svcaccPermissions != null) {
+                //map to check duplicate permission
+                Map<String,String> filteredPermissions = Collections.synchronizedMap(new HashMap());
+                List<Map<String,String>> updatedPermissionList = new ArrayList<>();
+                for (Map<String,String> permissionMap: svcaccPermissions) {
+                    Set<String> keys = permissionMap.keySet();
+                    String key = keys.stream().findFirst().orElse("");
+
+                    if (key !="" && !filteredPermissions.containsKey(key)) {
+                        filteredPermissions.put(key, permissionMap.get(key));
+                        Map<String,String> permission = Collections.synchronizedMap(new HashMap());
+                        permission.put(key, permissionMap.get(key));
+                        updatedPermissionList.add(permission);
+                    }
+                }
+                access.put(TVaultConstants.SVC_ACC_PATH_PREFIX, updatedPermissionList);
+            }
+        }
+        return access;
+    }
 }

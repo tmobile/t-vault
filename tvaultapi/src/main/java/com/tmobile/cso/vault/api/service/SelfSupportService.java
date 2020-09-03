@@ -22,7 +22,10 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
+import com.tmobile.cso.vault.api.controller.OIDCUtil;
+import com.tmobile.cso.vault.api.process.RequestProcessor;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
@@ -77,11 +80,17 @@ public class  SelfSupportService {
 	@Autowired
 	private AppRoleService appRoleService;
 
+	@Autowired
+	private OIDCUtil oidcUtil;
+
 	@Value("${vault.auth.method}")
 	private String vaultAuthMethod;
 
 	@Value("${safe.quota:20}")
 	private String safeQuota;
+
+	@Autowired
+	private RequestProcessor reqProcessor;
 
 	private static Logger log = LogManager.getLogger(SelfSupportService.class);
 
@@ -109,7 +118,7 @@ public class  SelfSupportService {
 				return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid input values\"]}");
 			}
 			// check the user safe limit
-			if (isSafeQuotaReached(token, userDetails.getUsername(), ControllerUtil.getSafeType(safe.getPath()))) {
+			if (isSafeQuotaReached(token, userDetails.getUsername(), ControllerUtil.getSafeType(safe.getPath()), userDetails)) {
 				return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"You have reached the limit of number of allowed safes that can be created\"]}");
 			}
 			if (safe != null && safe.getSafeBasicDetails() != null) {
@@ -144,8 +153,8 @@ public class  SelfSupportService {
 	 * @param path
 	 * @return
 	 */
-	private boolean isSafeQuotaReached(String token, String username, String path) {
-		String[] policies = policyUtils.getCurrentPolicies(token, username);
+	private boolean isSafeQuotaReached(String token, String username, String path, UserDetails userDetails) {
+		String[] policies = policyUtils.getCurrentPolicies(token, username, userDetails);
 		String[] safes = safeUtils.getManagedSafes(policies, path);
 		if (safes.length >= Integer.parseInt(safeQuota)) {
 			return true;
@@ -218,7 +227,7 @@ public class  SelfSupportService {
 			String powerToken = userDetails.getSelfSupportToken();
 			String username = userDetails.getUsername();
 			Safe safeMetaData = safeUtils.getSafeMetaData(powerToken, safeType, safeName);
-			String[] latestPolicies = policyUtils.getCurrentPolicies(powerToken, username);
+			String[] latestPolicies = policyUtils.getCurrentPolicies(powerToken, username, userDetails);
 			ArrayList<String> policiesTobeChecked =  policyUtils.getPoliciesTobeCheked(safeType, safeName);
 			boolean isAuthorized = authorizationUtils.isAuthorized(userDetails, safeMetaData, latestPolicies, policiesTobeChecked, false);
 			if (isAuthorized) {
@@ -243,11 +252,11 @@ public class  SelfSupportService {
 			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("{\"errors\":[\"Access denied: no permission to remove users from this safe\"]}");
 		}
 		if (userDetails.isAdmin()) {
-			return safesService.removeUserFromSafe(token, safeUser);
+			return safesService.removeUserFromSafe(token, safeUser, userDetails);
 		}
 		else {
 			token = userDetails.getSelfSupportToken();
-			return safesService.removeUserFromSafe(token, safeUser);
+			return safesService.removeUserFromSafe(token, safeUser, userDetails);
 		}
 	}
 	/**
@@ -263,7 +272,7 @@ public class  SelfSupportService {
 		}
 		else {
 			// List of safes based on current user
-			String[] policies = policyUtils.getCurrentPolicies(userDetails.getSelfSupportToken(), userDetails.getUsername());
+			String[] policies = policyUtils.getCurrentPolicies(userDetails.getSelfSupportToken(), userDetails.getUsername(), userDetails);
 			String[] safes = safeUtils.getManagedSafes(policies, path);
 			Map<String, String[]> safesMap = new HashMap<String, String[]>();
 			safesMap.put("keys", safes);
@@ -291,7 +300,7 @@ public class  SelfSupportService {
 		if (safeMetaData == null) {
 			return ResponseEntity.status(HttpStatus.OK).body("false");
 		}
-		String[] latestPolicies = policyUtils.getCurrentPolicies(powerToken, username);
+		String[] latestPolicies = policyUtils.getCurrentPolicies(powerToken, username, userDetails);
 		ArrayList<String> policiesTobeChecked =  policyUtils.getPoliciesTobeCheked(safeType, safeName);
 		boolean isAuthorized = authorizationUtils.isAuthorized(userDetails, safeMetaData, latestPolicies, policiesTobeChecked, false);
 		return ResponseEntity.status(HttpStatus.OK).body(String.valueOf(isAuthorized));
@@ -333,7 +342,7 @@ public class  SelfSupportService {
 	public ResponseEntity<String> deletefolder(UserDetails userDetails, String userToken, String path) {
 		String token = userDetails.getClientToken();
 		if (userDetails.isAdmin()) {
-			return safesService.deletefolder(token, path);
+			return safesService.deletefolder(token, path, userDetails);
 		}
 		else {
 			ResponseEntity<String> isAuthorized = isAuthorized(userDetails, path);
@@ -344,7 +353,7 @@ public class  SelfSupportService {
 				return ResponseEntity.status(HttpStatus.FORBIDDEN).body("{\"errors\":[\"Access denied: no permission to delete this safe\"]}");
 			}
 			token = userDetails.getSelfSupportToken();
-			ResponseEntity<String> safe_creation_response = safesService.deletefolder(token, path);
+			ResponseEntity<String> safe_creation_response = safesService.deletefolder(token, path,userDetails);
 			return safe_creation_response;
 		}
 	}
@@ -358,7 +367,7 @@ public class  SelfSupportService {
 	public ResponseEntity<String> addGroupToSafe(UserDetails userDetails, String userToken, SafeGroup safeGroup) {
 		String token = userDetails.getClientToken();
 		if (userDetails.isAdmin()) {
-			return safesService.addGroupToSafe(token, safeGroup);
+			return safesService.addGroupToSafe(token, safeGroup, userDetails);
 		}
 		else {
 			ResponseEntity<String> isAuthorized = isAuthorized(userDetails, safeGroup.getPath());
@@ -369,7 +378,7 @@ public class  SelfSupportService {
 				return ResponseEntity.status(HttpStatus.FORBIDDEN).body("{\"errors\":[\"Access denied: no permission to add group to the safe\"]}");
 			}
 			token = userDetails.getSelfSupportToken();
-			return safesService.addGroupToSafe(token, safeGroup);
+			return safesService.addGroupToSafe(token, safeGroup, userDetails);
 		}
 	}
 	/**
@@ -382,7 +391,7 @@ public class  SelfSupportService {
 	public ResponseEntity<String> removeGroupFromSafe(UserDetails userDetails, String userToken, SafeGroup safeGroup) {
 		String token = userDetails.getClientToken();
 		if (userDetails.isAdmin()) {
-			return safesService.removeGroupFromSafe(token, safeGroup);
+			return safesService.removeGroupFromSafe(token, safeGroup, userDetails);
 		}
 		else {
 			ResponseEntity<String> isAuthorized = isAuthorized(userDetails, safeGroup.getPath());
@@ -393,7 +402,7 @@ public class  SelfSupportService {
 				return ResponseEntity.status(HttpStatus.FORBIDDEN).body("{\"errors\":[\"Access denied: no permission to remove group from the safe\"]}");
 			}
 			token = userDetails.getSelfSupportToken();
-			return safesService.removeGroupFromSafe(token, safeGroup);
+			return safesService.removeGroupFromSafe(token, safeGroup, userDetails);
 		}
 	}
 
@@ -678,11 +687,14 @@ public class  SelfSupportService {
 	 * @return
 	 */
 	public ResponseEntity<String> getSafes(UserDetails userDetails, String userToken) {
+		oidcUtil.renewUserToken(userDetails.getClientToken());
 		String token = userDetails.getClientToken();
 		if (!userDetails.isAdmin()) {
 			token = userDetails.getSelfSupportToken();
 		}
-		String[] policies = policyUtils.getCurrentPolicies(token, userDetails.getUsername());
+		String[] policies = policyUtils.getCurrentPolicies(token, userDetails.getUsername(), userDetails);
+
+		policies = filterPoliciesBasedOnPrecedence(Arrays.asList(policies));
 
 		List<Map<String, String>> safeListUsers = new ArrayList<>();
 		List<Map<String, String>> safeListShared = new ArrayList<>();
@@ -721,6 +733,51 @@ public class  SelfSupportService {
 			safeList.put(TVaultConstants.APPS, safeListApps);
 		}
 		return ResponseEntity.status(HttpStatus.OK).body(JSONUtil.getJSON(safeList));
+	}
+
+	/**
+	 * Filter safe policies based on policy precedence.
+	 * @param policies
+	 * @return
+	 */
+	private String [] filterPoliciesBasedOnPrecedence(List<String> policies) {
+		List<String> filteredList = new ArrayList<>();
+		for (int i = 0; i < policies.size(); i++ ) {
+			String policyName = policies.get(i);
+			String[] _policy = policyName.split("_", -1);
+			if (_policy.length >= 3) {
+				String itemName = policyName.substring(1);
+				List<String> matchingPolicies = filteredList.stream().filter(p->p.substring(1).equals(itemName)).collect(Collectors.toList());
+				if (!matchingPolicies.isEmpty()) {
+					/* deny has highest priority. Read and write are additive in nature
+						Removing all matching as there might be duplicate policies from user and groups
+					*/
+					if (policyName.startsWith("d_") || (policyName.startsWith("w_") && !matchingPolicies.stream().anyMatch(p-> p.equals("d"+itemName)))) {
+						filteredList.removeAll(matchingPolicies);
+						filteredList.add(policyName);
+					}
+					else if (matchingPolicies.stream().anyMatch(p-> p.equals("d"+itemName))) {
+						// policy is read and deny already in the list. Then deny has precedence.
+						filteredList.removeAll(matchingPolicies);
+						filteredList.add("d"+itemName);
+					}
+					else if (matchingPolicies.stream().anyMatch(p-> p.equals("w"+itemName))) {
+						// policy is read and write already in the list. Then write has precedence.
+						filteredList.removeAll(matchingPolicies);
+						filteredList.add("w"+itemName);
+					}
+					else if (matchingPolicies.stream().anyMatch(p-> p.equals("r"+itemName)) || matchingPolicies.stream().anyMatch(p-> p.equals("s"+itemName))) {
+						// policy is read and read already in the list. Then remove all duplicates read and add single read permission for that safe.
+						filteredList.removeAll(matchingPolicies);
+						filteredList.add("r"+itemName);
+					}
+				}
+				else {
+					filteredList.add(policyName);
+				}
+			}
+		}
+		return filteredList.toArray(new String[0]);
 	}
 
 	/**
