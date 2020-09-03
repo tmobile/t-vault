@@ -181,12 +181,50 @@ script(src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"
                                     .common-form-label Expiry Date
                                     input.form-control.input-box-style(id="expiryDate" ng-model="certificate.expiryDate" ng-disabled="changeCertificateHeader == 'EDIT CERTIFICATE'"  name="expiryDate"  required)            
 
-                    .safe-right-content-container.col-lg-6.col-sm-7#full-height
 
-                      .safe-detail-container-block
-                        .safe-img-container.text-center
-                          img
-                        div.font-type-normal 
+
+
+                    .safe-left-content-container.border-left.col-lg-6.col-sm-5
+                      .common-section-label 
+                      .common-form
+                        
+                        .row.middle
+                          .common-form-row.clearfix
+                            .col-lg-5.col-md-12.col-sm-12.col-xs-12.full-row-fix
+                              .row
+                                .details-input-group.col-lg-12.col-md-12.col-sm-12.col-xs-12
+                                  .common-form-label Signature Algorithm
+                                  input.form-control.input-box-style(id="algorithm" ng-model="'SHA256-RSA'" ng-disabled="true"  name="algorithm"  required)
+                            .col-lg-6.col-md-12.col-sm-12.col-xs-12.full-row-fix.col-lg-offset-1.col-lg-offset-1
+                              .row
+                                .details-input-group.left-sm-sep.col-lg-12.col-md-12.col-sm-12.col-xs-12
+                                    .common-form-label Key Usage
+                                    input.form-control.input-box-style(id="usage" ng-model="'digitalSignature, keyEncipherment'" ng-disabled="changeCertificateHeader == 'EDIT CERTIFICATE'"  name="ownerEmail" placeholder="Email address - Enter min 3 characters" required)
+                        .row.middle
+                          .common-form-row.clearfix
+                            .col-lg-5.col-md-12.col-sm-12.col-xs-12.full-row-fix
+                              .row
+                                .details-input-group.col-lg-12.col-md-12.col-sm-12.col-xs-12
+                                  .common-form-label Extended Key Usage
+                                  input.form-control.input-box-style(ng-if="certificateTypeVal=='Internal'" id="keyusage" ng-model="'serverAuth'" ng-disabled="changeCertificateHeader == 'EDIT CERTIFICATE'"  name="applicationTag"  required)
+                                  input.form-control.input-box-style(ng-if="certificateTypeVal=='External'" id="keyusage" ng-model="'serverAuth, clientAuth'" ng-disabled="changeCertificateHeader == 'EDIT CERTIFICATE'"  name="applicationTag"  required)
+                            .col-lg-6.col-md-12.col-sm-12.col-xs-12.full-row-fix.col-lg-offset-1.col-lg-offset-1
+                              .row
+                                .details-input-group.left-sm-sep.col-lg-12.col-md-12.col-sm-12.col-xs-12
+                                    .common-form-label Enroll service 
+                                    input.form-control.input-box-style(ng-if="certificateTypeVal=='Internal'" id="enrolService" ng-model="'T-Mobile Issuing CA 01 - SHA2'" ng-disabled="changeCertificateHeader == 'EDIT CERTIFICATE'"  name="certificateStatus"  required)
+                                    input.form-control.input-box-style(ng-if="certificateTypeVal=='External'" id="enrolService" ng-model="'Entrust CA'" ng-disabled="changeCertificateHeader == 'EDIT CERTIFICATE'"  name="certificateStatus"  required)
+                        .row.middle
+                          .common-form-row.clearfix
+                            .col-lg-5.col-md-12.col-sm-12.col-xs-12.full-row-fix
+                              .row
+                                .details-input-group.col-lg-12.col-md-12.col-sm-12.col-xs-12
+                                  .common-form-label Subject Alternate Names
+                                  input.form-control.input-box-style(id="dns" ng-model="certificate.dnsNames" ng-disabled="changeCertificateHeader == 'EDIT CERTIFICATE'"  name="certificateStatus"  required)                                
+                            .col-lg-6.col-md-12.col-sm-12.col-xs-12.full-row-fix.col-lg-offset-1.col-lg-offset-1
+                              
+
+                      
 
                   .clearfix.btn-section
                     .right.col-lg-12.col-md-12.col-sm-12.col-xs-12.bottom-lg-sep.top-lg-sep
