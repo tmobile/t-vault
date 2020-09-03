@@ -309,17 +309,7 @@ public class SSLCertificateService {
                 }
             }
             return certManagerLogin;
-        } else if(HttpStatus.INTERNAL_SERVER_ERROR.equals(response.getHttpstatus())){
-        	 log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
-                     put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
-                     put(LogMessage.ACTION, SSLCertificateConstants.CUSTOMER_LOGIN).
-                     put(LogMessage.MESSAGE, "NCLM services are down. Please try after some time.").
-                     put(LogMessage.RESPONSE, response.getResponse()).
-                     put(LogMessage.STATUS, response.getHttpstatus().toString()).
-                     put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
-                     build()));
-             return null;
-        }else {
+        } else {
             log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
                     put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
                     put(LogMessage.ACTION, SSLCertificateConstants.CUSTOMER_LOGIN).
@@ -1779,7 +1769,6 @@ public class SSLCertificateService {
         int containerId = getContainerId(sslCertificateRequest);
         String findTargetSystemEndpoint = findTargetSystem.replace("tsgid", String.valueOf(containerId));
         CertResponse response = reqProcessor.processCert(getTargetSystemEndpoint, "", certManagerLogin.getAccess_token(), getCertmanagerEndPoint(findTargetSystemEndpoint));
-        if(HttpStatus.OK.equals(response.getHttpstatus())) {
         JsonParser jsonParser = new JsonParser();
         JsonObject jsonObject = (JsonObject) jsonParser.parse(response.getResponse());
         JsonArray jsonArray = jsonObject.getAsJsonArray(SSLCertificateConstants.TARGETSYSTEMS);
@@ -1790,16 +1779,6 @@ public class SSLCertificateService {
                     targetSystemID = jsonElement.get(SSLCertificateConstants.TARGETSYSTEM_ID).getAsInt();
                 }
             }
-        }        
-        }
-        else if(HttpStatus.INTERNAL_SERVER_ERROR.equals(response.getHttpstatus())) {
-        	log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
-                    put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
-                    put(LogMessage.ACTION, "getTargetSystem ").
-                    put(LogMessage.MESSAGE, "NCLM services are down. Please try after some time").
-                    put(LogMessage.STATUS, response.getHttpstatus().toString()).
-                    put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
-                    build()));
         }
         return targetSystemID;
     }
@@ -2440,15 +2419,6 @@ public class SSLCertificateService {
             return ResponseEntity.status(HttpStatus.OK).body("{\"data\": "+JSONUtil.getJSONasDefaultPrettyPrint(targetSystemDetails)+"}");
 
         }
-        if (HttpStatus.INTERNAL_SERVER_ERROR.equals(response.getHttpstatus())) {
-        	log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
-                    put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
-                    put(LogMessage.ACTION, "getTargetSystemList").
-                    put(LogMessage.MESSAGE, "NCLM services are down. Please try after some time").
-                    put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
-                    build()));
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"NCLM services are down. Please try after some time\"]}");
-        }
         log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
                 put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
                 put(LogMessage.ACTION, "getTargetSystemList").
@@ -2506,15 +2476,6 @@ public class SSLCertificateService {
                     build()));
             return ResponseEntity.status(HttpStatus.OK).body("{\"data\": "+JSONUtil.getJSONasDefaultPrettyPrint(targetSystemServiceDetails)+"}");
         }
-        else if (HttpStatus.INTERNAL_SERVER_ERROR.equals(response.getHttpstatus())) {
-        	log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
-                    put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
-                    put(LogMessage.ACTION, "getTargetSystemServiceList").
-                    put(LogMessage.MESSAGE, "NCLM services are down. Please try after some time").
-                    put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
-                    build()));
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"NCLM services are down. Please try after some time\"]}");
-        }
         log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
                 put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
                 put(LogMessage.ACTION, "getTargetSystemServiceList").
@@ -2548,17 +2509,6 @@ public class SSLCertificateService {
 			String nclmGetCertificateReasonsEndpoint = getCertifcateReasons.replace("certID", certificateId.toString());
 			revocationReasons = reqProcessor.processCert("/certificates/revocationreasons", certificateId,
 					nclmAccessToken, getCertmanagerEndPoint(nclmGetCertificateReasonsEndpoint));
-			//check if NCLM is down
-			if (HttpStatus.INTERNAL_SERVER_ERROR.equals(revocationReasons.getHttpstatus())) {
-	        	log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
-	                    put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
-	                    put(LogMessage.ACTION, "getRevocationReasons").
-	                    put(LogMessage.MESSAGE, "NCLM services are down. Please try after some time").
-	                    put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
-	                    build()));
-	            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"NCLM services are down. Please try after some time\"]}");
-	        }
-			
 			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
 					.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString())
 					.put(LogMessage.ACTION, "Fetch Revocation Reasons")
@@ -2680,15 +2630,6 @@ public class SSLCertificateService {
 					.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString())
 					.build()));
 
-			if (HttpStatus.INTERNAL_SERVER_ERROR.equals(revocationResponse.getHttpstatus())) {
-	        	log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
-	                    put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
-	                    put(LogMessage.ACTION, "Issue Revocation Request").
-	                    put(LogMessage.MESSAGE, "NCLM services are down. Please try after some time").
-	                    put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
-	                    build()));
-	            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"NCLM services are down. Please try after some time\"]}");
-	        }
 			boolean sslMetaDataUpdationStatus;
 			metaDataParams.put("certificateStatus", "Revoked");
 			if (userDetails.isAdmin()) {
@@ -5507,7 +5448,7 @@ public class SSLCertificateService {
 		}
 		if(ldapConfigresponse.getHttpstatus().equals(HttpStatus.NO_CONTENT) || ldapConfigresponse.getHttpstatus().equals(HttpStatus.OK)){
 			return updateMetadataForRemoveUserFromCertificate(userName, certificatePath, authToken, groups,
-					currentpoliciesString);
+					policiesString);
 		} else {
 			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
@@ -5630,16 +5571,11 @@ public class SSLCertificateService {
 		}
 		
 			removeSudoPermissionForPreviousOwner( certificateUserId.toLowerCase(), certificateName,userDetails,certType);
-			if (userDetails.isAdmin()) {
-				deletePolicies(certificateName,certType,token);
-			}else {
-				deletePolicies(certificateName,certType,userDetails.getSelfSupportToken());
-			}
 			String nclmAccessToken = getNclmToken();
 			
 			//find certificates
 			CertificateData certData = getLatestCertificate(certificateName,nclmAccessToken, containerId);		
-			if(!ObjectUtils.isEmpty(certData)) {
+			if(certData!=null) {
 			//Unassign certificate from target system
 			JsonObject jo = new JsonObject();
 	        jo.add("targetSystemServiceIds", new GsonBuilder().create().toJsonTree(certData.getDeployStatus()));
@@ -5897,88 +5833,5 @@ public class SSLCertificateService {
 		Matcher matcher = pattern.matcher(email);
 		return matcher.matches();
 	}
-	
-	/**
-     * To delete r/w/o/d policies
-     * @param certName
-     * @param certType
-     * @param token
-     * @return
-     */
-    private boolean deletePolicies(String certName, String certType, String token) {
-        boolean policiesDeleted = false;
-        Map<String, Object> policyMap = new HashMap<>();
-        Map<String, String> accessMap = new HashMap<>();
-        String certificateName = certName;
-        
-        String metaDataPath = (certType.equalsIgnoreCase("internal"))?
-                SSLCertificateConstants.SSL_CERT_PATH :SSLCertificateConstants.SSL_EXTERNAL_CERT_PATH;
-
-		String certPathVal = (certType.equalsIgnoreCase("internal"))?
-				SSLCertificateConstants.SSL_CERT_PATH_VALUE :SSLCertificateConstants.SSL_CERT_PATH_VALUE_EXT;
-
-        String policyValue=(certType.equalsIgnoreCase("internal"))?
-                SSLCertificateConstants.INTERNAL_POLICY_NAME :SSLCertificateConstants.EXTERNAL_POLICY_NAME;
-        
-        String certMetadataPath = metaDataPath +'/' +certificateName;
-        String certPath = certPathVal + certificateName;    	
-
-	        //Read Policy
-	        accessMap.put(certPath , TVaultConstants.READ_POLICY);
-	        accessMap.put(certMetadataPath, TVaultConstants.READ_POLICY);
-	        policyMap.put(SSLCertificateConstants.ACCESS_ID, SSLCertificateConstants.READ_CERT_POLICY_PREFIX +policyValue+"_" + certificateName);
-	        policyMap.put(SSLCertificateConstants.ACCESS_STRING, accessMap);
-
-	        String policyRequestJson = ControllerUtil.convetToJson(policyMap);
-	        Response readResponse = reqProcessor.process("/access/delete", policyRequestJson, token);
-
-	        //Write Policy
-	        accessMap.put(certPath , TVaultConstants.WRITE_POLICY);
-	        accessMap.put(certMetadataPath, TVaultConstants.WRITE_POLICY);
-	        policyMap.put(SSLCertificateConstants.ACCESS_ID, SSLCertificateConstants.WRITE_CERT_POLICY_PREFIX +policyValue+"_" + certificateName);
-	        policyRequestJson = ControllerUtil.convetToJson(policyMap);
-	        Response writeResponse = reqProcessor.process("/access/delete", policyRequestJson, token);
-
-	        //Deny Policy
-	        accessMap.put(certPath , TVaultConstants.DENY_POLICY);
-	        policyMap.put(SSLCertificateConstants.ACCESS_ID, SSLCertificateConstants.DENY_CERT_POLICY_PREFIX +policyValue+"_" + certificateName);
-	        policyRequestJson = ControllerUtil.convetToJson(policyMap);
-	        Response denyResponse = reqProcessor.process("/access/delete", policyRequestJson, token);
-
-	        //Owner Policy
-	        accessMap.put(certPath , TVaultConstants.SUDO_POLICY);
-	        accessMap.put(certMetadataPath, TVaultConstants.WRITE_POLICY);
-	        policyMap.put(SSLCertificateConstants.ACCESS_ID, SSLCertificateConstants.SUDO_CERT_POLICY_PREFIX +policyValue+"_" + certificateName);
-	        policyRequestJson = ControllerUtil.convetToJson(policyMap);
-	        Response sudoResponse = reqProcessor.process("/access/delete", policyRequestJson, token);
-
-	        if ((readResponse.getHttpstatus().equals(HttpStatus.NO_CONTENT) &&
-	        		writeResponse.getHttpstatus().equals(HttpStatus.NO_CONTENT) &&
-	        		denyResponse.getHttpstatus().equals(HttpStatus.NO_CONTENT)
-	                &&  sudoResponse.getHttpstatus().equals(HttpStatus.NO_CONTENT)
-	        ) ||
-	                (readResponse.getHttpstatus().equals(HttpStatus.OK) &&
-	                		writeResponse.getHttpstatus().equals(HttpStatus.OK) &&
-	                		denyResponse.getHttpstatus().equals(HttpStatus.OK))
-	              && sudoResponse.getHttpstatus().equals(HttpStatus.OK)
-	        ) {
-	            log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
-	                    put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
-	                    put(LogMessage.ACTION, SSLCertificateConstants.POLICY_CREATION_TITLE).
-	                    put(LogMessage.MESSAGE, "SSL Certificate Policies Deletion Success").
-	                    put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
-	                    build()));
-	            policiesDeleted = true;
-	        } else {
-	            log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
-	                    put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
-	                    put(LogMessage.ACTION, SSLCertificateConstants.POLICY_CREATION_TITLE).
-	                    put(LogMessage.MESSAGE, "SSL Certificate policies deletion failed").
-	                    put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
-	                    build()));
-	        }
-		
-        return policiesDeleted;
-    }
     
 }
