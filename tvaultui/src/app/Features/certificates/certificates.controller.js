@@ -99,42 +99,83 @@
         $scope.requestDataForMyCertifiates = function () {
             $scope.isLoadingData = true;
             $scope.certificatesData = {"keys": []};
-            $scope.certificatesDataExternal = {"keys": []};
-            var extData = [];
             var data = [];
-            var accessSafes = JSON.parse(SessionStore.getItem("accessSafes"));
-            if (accessSafes.cert) {
-                data = accessSafes.cert.map(function (certObject) {
+
+            ///
+            var url  = RestEndpoints.baseURL + "/v2/sslcert/list/" + "internal";
+            $http({
+                method: 'GET',
+                url: url,
+                headers: getHeaders()
+            }).then(function (response) {
+                var accessSafes = JSON.parse(JSON.stringify(response.data.cert));
+                data = accessSafes.map(function (certObject) {
                     var entry = Object.entries(certObject);
                     return {
                         certname: entry[0][0],
                         permission: entry[0][1]
                     }
                 });
-            
-                $scope.certificatesData.keys = data.filter(function(cert){
+
+                $scope.certificatesData.keys = data.filter(function (cert) {
                     return cert.permission != "deny";
                 });
-                $scope.numOfCertificates=$scope.certificatesData.keys.length;
+                $scope.numOfCertificates = $scope.certificatesData.keys.length;
                 $scope.isLoadingData = false;
                 $scope.finalFilterCertResults = $scope.certificatesData.keys.slice(0);
-            };
+            }, function (error) {
+                $scope.isLoadingData = false;
+                console.log(error);
+            })
+                .catch(function (catchError) {
+                    $scope.isLoadingData = false;
+                });
+        }
+
+        function getHeaders() {
+            return {
+                'Content-Type': 'application/json',
+                'vault-token': SessionStore.getItem('myVaultKey')
+            }
+        }
+
+        $scope.requestDataForMyExternalCertifiates = function () {
+            $scope.isLoadingData = true;
+            $scope.certificatesDataExternal = {"keys": []};
+            var extData = [];
+          //  var accessSafes = JSON.parse(SessionStore.getItem("accessSafes"));
+
             //External Certificate Tab Non-admin cert list
-            if (accessSafes.externalcerts) {                          
-                extData = accessSafes.externalcerts.map(function (certObjectExt) {
+            ///
+            var url = RestEndpoints.baseURL + "/v2/sslcert/list/" + "external";
+
+            $http({
+                method: 'GET',
+                url: url,
+                headers: getHeaders()
+            }).then(function (response) {
+                var accessSafes = JSON.parse(JSON.stringify(response.data.externalcerts));
+                extData = accessSafes.map(function (certObjectExt) {
                     var entry = Object.entries(certObjectExt);
                     return {
                         certname: entry[0][0],
                         permission: entry[0][1]
                     }
                 });
-                $scope.certificatesDataExternal.keys = extData.filter(function(externalcerts){
+                $scope.certificatesDataExternal.keys = extData.filter(function (externalcerts) {
                     return externalcerts.permission != "deny";
                 });
-                $scope.numOfCertificatesExternal=$scope.certificatesDataExternal.keys.length;
+                $scope.numOfCertificatesExternal = $scope.certificatesDataExternal.keys.length;
                 $scope.isLoadingData = false;
                 $scope.finalFilterExtCertResults = $scope.certificatesDataExternal.keys.slice(0);
-            };
+            }, function (error) {
+                $scope.isLoadingData = false;
+                console.log(error);
+            })
+                .catch(function (catchError) {
+                    $scope.isLoadingData = false;
+                    console.log(catchError);
+                })
         }
 
         $scope.isInternalCertificate = function(){
@@ -225,7 +266,7 @@
                             angular.forEach(response.data.data.keys, function(value, key) {
                                 $scope.certificatesDataExternal.keys.push({"certname": value, "permission": "read"});
                             });
-                            $scope.numOfCertificates=$scope.certificatesDataExternal.keys.length; 
+                            $scope.numOfCertificates=$scope.certificatesDataExternal.keys.length;
                             $scope.finalFilterExtCertResults = $scope.certificatesDataExternal.keys.slice(0);
                         }
                     }
@@ -331,8 +372,8 @@
                             $scope.viewExternalCertificate = false;
                             $scope.validateCertificateDetailsPopUp();
                         }
-                    }   
-                    
+                    }
+
                     $scope.certificateDetails = response.data;
                     $scope.certificateDetails.createDate = new Date($scope.certificateDetails.createDate).toDateString();
                     $scope.certificateDetails.expiryDate = new Date($scope.certificateDetails.expiryDate).toDateString();
