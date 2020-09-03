@@ -19,7 +19,7 @@
 
 'use strict';
 (function(app){
-    app.controller('HomeCtrl', function($scope, Modal, $state, Authentication, SessionStore, UtilityService, Idle, AppConstant, $location){
+    app.controller('HomeCtrl', function($scope, Modal, $state, Authentication, SessionStore, UtilityService, Idle, AppConstant, $location, $http){
 
         var init = function(){
             $scope.slackLink = AppConstant.SLACK_LINK;
@@ -30,6 +30,17 @@
             // change login depending on authtype
             $scope.authType = AppConstant.AUTH_TYPE;
             $scope.domainName = AppConstant.DOMAIN_NAME;
+
+            $scope.instanceMessage = '';
+            $http.get('/app/Messages/uimessages.properties').then(function (response) {
+                if (response != undefined && response.data !='') {
+                    $scope.instanceMessage = response.data.home_message;
+                }
+            }, function(error) {
+                console.log(error);
+                $scope.instanceMessage = '';
+            });
+
             $scope.userID = 'Username';
             Idle.unwatch();
             if ($scope.authType.toLowerCase() === 'ldap') {

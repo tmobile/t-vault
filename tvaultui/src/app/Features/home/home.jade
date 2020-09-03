@@ -58,6 +58,8 @@ script(type='text/ng-template', id='login.html')
                     img.welcome-image(src= "assets/images/distribute.png")
                     .column-title Distribute
                     .column-details Easily create safes, add secrets and share access to others. Integrate T-Vault with your existing workflows to distribute secrets to users.
+            div.home.center-text-home.columns.instance-message.clearfix
+                .description {{ instanceMessage }}
             div.button-row.clearfix
                 .button-container
                     button.btn.btn-primary.btn-lg.goto-login-button(ng-click="loginSSO()") Go to Login
