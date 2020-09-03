@@ -16,6 +16,7 @@ import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
 import ChevronRightIcon from '@material-ui/icons/ChevronRight';
 import FolderIcon from '@material-ui/icons/Folder';
 import LockIcon from '@material-ui/icons/Lock';
+import ComponentError from 'errorBoundaries/ComponentError/component-error';
 
 // custom tree item styling
 const useStyles = makeStyles({
@@ -64,18 +65,23 @@ const FolderTreeView = (props) => {
   };
 
   return (
-    <TreeView
-      className={classes.root}
-      defaultCollapseIcon={<ExpandMoreIcon />}
-      defaultExpandIcon={<ChevronRightIcon />}
-      defaultEndIcon={<div style={{ width: 24 }} />}
-    >
-      {renderTree(treeData)}
-    </TreeView>
+    <ComponentError>
+      <TreeView
+        className={classes.root}
+        defaultCollapseIcon={<ExpandMoreIcon />}
+        defaultExpandIcon={<ChevronRightIcon />}
+        defaultEndIcon={<div style={{ width: 24 }} />}
+      >
+        {renderTree(treeData)}
+      </TreeView>
+    </ComponentError>
   );
 };
 FolderTreeView.propTypes = {
   treeData: PropTypes.array,
+};
+FolderTreeView.defaultProps = {
+  treeData: [],
 };
 
 export default FolderTreeView;

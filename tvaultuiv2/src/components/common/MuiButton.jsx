@@ -1,3 +1,4 @@
+/* eslint-disable import/no-unresolved */
 /* eslint-disable react/require-default-props */
 import React from 'react';
 import PropTypes from 'prop-types';
@@ -26,11 +27,14 @@ const MuiButton = (props) => {
   );
 };
 MuiButton.propTypes = {
-  // eslint-disable-next-line react/require-default-props
   label: PropTypes.string,
-  // eslint-disable-next-line react/require-default-props
   icon: PropTypes.node,
   // eslint-disable-next-line react/forbid-prop-types
   customStyle: PropTypes.object,
+};
+MuiButton.defaultProps = {
+  label: 'no label',
+  icon: <div />,
+  customStyle: {},
 };
 export default MuiButton;

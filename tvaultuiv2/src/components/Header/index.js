@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import styled from 'styled-components';
+// eslint-disable-next-line import/no-unresolved
+import ComponentError from 'errorBoundaries/ComponentError/component-error';
 
 const HeaderWrap = styled('div')`
   display: flex;
@@ -44,27 +46,29 @@ const Header = () => {
   };
 
   return (
-    <HeaderWrap>
-      <div>LOGO</div>
-      <HeaderCenter>
-        {navItems.map((item) => (
-          <NavItem
-            to={`/${item}`}
-            key={item}
-            onClick={(e) => handleNavChange(e, item)}
-            active={
-              activeNav === item
-                ? { color: '#fff', backgroundColor: '#e20074' }
-                : { color: '#4a4a4a', backgroundColor: '#f2f2f2' }
-            }
-          >
-            {item}
-          </NavItem>
-        ))}
-      </HeaderCenter>
+    <ComponentError>
+      <HeaderWrap>
+        <div>LOGO</div>
+        <HeaderCenter>
+          {navItems.map((item) => (
+            <NavItem
+              to={`/${item}`}
+              key={item}
+              onClick={(e) => handleNavChange(e, item)}
+              active={
+                activeNav === item
+                  ? { color: '#fff', backgroundColor: '#e20074' }
+                  : { color: '#4a4a4a', backgroundColor: '#f2f2f2' }
+              }
+            >
+              {item}
+            </NavItem>
+          ))}
+        </HeaderCenter>
 
-      <ProfileIconWrap>MS</ProfileIconWrap>
-    </HeaderWrap>
+        <ProfileIconWrap>MS</ProfileIconWrap>
+      </HeaderWrap>
+    </ComponentError>
   );
 };
 

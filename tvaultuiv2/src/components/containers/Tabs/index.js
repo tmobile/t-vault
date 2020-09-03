@@ -1,3 +1,4 @@
+/* eslint-disable import/no-unresolved */
 /* eslint-disable react/forbid-prop-types */
 /* eslint-disable react/require-default-props */
 // eslint-disable-next-line react/forbid-prop-types
@@ -12,6 +13,7 @@ import Tabs from '@material-ui/core/Tabs';
 import Tab from '@material-ui/core/Tab';
 import Typography from '@material-ui/core/Typography';
 import Box from '@material-ui/core/Box';
+import ComponentError from 'errorBoundaries/ComponentError/component-error';
 
 // eslint-disable-next-line import/no-unresolved
 
@@ -102,42 +104,44 @@ export default function SelectionTabs(props) {
   };
 
   return (
-    <div className={classes.root}>
-      <AppBar position="static" className={classes.appBar}>
-        <Tabs value={value} onChange={handleChange} aria-label="safe tabs">
-          {/* eslint-disable-next-line react/jsx-props-no-spreading */}
-          <Tab label="Secrets" {...a11yProps(0)} />
-          {/* eslint-disable-next-line react/jsx-props-no-spreading */}
-          <Tab label="Permissions" {...a11yProps(1)} />
-        </Tabs>
-        <MuiButton
-          label="ADD"
-          customStyle={customBtnStyles}
-          icon={<AddIcon />}
-        />
-      </AppBar>
-      <TabPanel value={value} index={0}>
-        {secrets ? (
-          <>
-            <FolderTreeView treeData={secrets} />
-            <WideButton>
-              <span>+</span>
-              <span>Create Secrets</span>
-            </WideButton>
-          </>
-        ) : (
-          <EmptySecretBox>
-            <DialogeBox
-              description="add a <strong>Folder</strong> and then you will be able to add <strong>secrets</strong> to view them all here"
-              actionButton={<MuiButton label="ADD" icon={<AddIcon />} />}
-            />
-          </EmptySecretBox>
-        )}
-      </TabPanel>
-      <TabPanel value={value} index={1}>
-        Permissions
-      </TabPanel>
-    </div>
+    <ComponentError>
+      <div className={classes.root}>
+        <AppBar position="static" className={classes.appBar}>
+          <Tabs value={value} onChange={handleChange} aria-label="safe tabs">
+            {/* eslint-disable-next-line react/jsx-props-no-spreading */}
+            <Tab label="Secrets" {...a11yProps(0)} />
+            {/* eslint-disable-next-line react/jsx-props-no-spreading */}
+            <Tab label="Permissions" {...a11yProps(1)} />
+          </Tabs>
+          <MuiButton
+            label="ADD"
+            customStyle={customBtnStyles}
+            icon={<AddIcon />}
+          />
+        </AppBar>
+        <TabPanel value={value} index={0}>
+          {secrets ? (
+            <>
+              <FolderTreeView treeData={secrets} />
+              <WideButton>
+                <span>+</span>
+                <span>Create Secrets</span>
+              </WideButton>
+            </>
+          ) : (
+            <EmptySecretBox>
+              <DialogeBox
+                description="add a <strong>Folder</strong> and then you will be able to add <strong>secrets</strong> to view them all here"
+                actionButton={<MuiButton label="ADD" icon={<AddIcon />} />}
+              />
+            </EmptySecretBox>
+          )}
+        </TabPanel>
+        <TabPanel value={value} index={1}>
+          Permissions
+        </TabPanel>
+      </div>
+    </ComponentError>
   );
 }
 SelectionTabs.propTypes = {

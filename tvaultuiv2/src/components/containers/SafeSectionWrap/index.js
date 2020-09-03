@@ -9,6 +9,7 @@ import SafeDetails from 'components/containers/SafeDetails';
 import styled from 'styled-components';
 import Avatar from '@material-ui/core/Avatar';
 import Dropdown from 'components/common/SelectDropdown';
+import ComponentError from 'errorBoundaries/ComponentError/component-error';
 
 import FolderIcon from '@material-ui/icons/Folder';
 import SearchIcon from '@material-ui/icons/Search';
@@ -113,67 +114,69 @@ const SafeSectionWrap = (props) => {
    * @param {object}
    */
   return (
-    <SectionPreview title="safe-section">
-      <ColumnSection>
-        <ColumnHeader>
-          <Dropdown />
-          <MuiButton label="Create" icon={<AddIcon />} />
-        </ColumnHeader>
-        <SearchInput
-          startAdornment={
-            // eslint-disable-next-line react/jsx-wrap-multilines
-            <InputAdornment position="start">
-              <SearchIcon />
-            </InputAdornment>
-          }
-        />
-        <SafeListContainer>
-          {safes.map((safe) => (
-            // eslint-disable-next-line react/no-array-index-key
-            <SafeFolderWrap
-              to={`${routeProps.match.url}/${safe.name}`}
-              active={activeSafeFolders.includes(safe.name)}
-              key={safe.name}
-              onClick={() => showSafeDetails(safe.name)}
-            >
-              <SafeAvatarWrap>
-                <Avatar>
-                  <FolderIcon />
-                </Avatar>
-              </SafeAvatarWrap>
-              <SafeDetailBox>
-                <SafeName>
-                  {safe.name}
-                  <Flag fontSize="0.85rem" fontStyle="italic">
-                    {safe.flagType}
-                  </Flag>
-                </SafeName>
-                <Flag fontSize="1rem">{safe.date}</Flag>
-              </SafeDetailBox>
-              {activeSafeFolders.includes(safe.name) ? (
-                <PopperWrap>
-                  <PsudoPopper />
-                </PopperWrap>
-              ) : null}
-            </SafeFolderWrap>
-          ))}
-        </SafeListContainer>
-      </ColumnSection>
+    <ComponentError>
+      <SectionPreview title="safe-section">
+        <ColumnSection>
+          <ColumnHeader>
+            <Dropdown />
+            <MuiButton label="Create" icon={<AddIcon />} />
+          </ColumnHeader>
+          <SearchInput
+            startAdornment={
+              // eslint-disable-next-line react/jsx-wrap-multilines
+              <InputAdornment position="start">
+                <SearchIcon />
+              </InputAdornment>
+            }
+          />
+          <SafeListContainer>
+            {safes.map((safe) => (
+              // eslint-disable-next-line react/no-array-index-key
+              <SafeFolderWrap
+                to={`${routeProps.match.url}/${safe.name}`}
+                active={activeSafeFolders.includes(safe.name)}
+                key={safe.name}
+                onClick={() => showSafeDetails(safe.name)}
+              >
+                <SafeAvatarWrap>
+                  <Avatar>
+                    <FolderIcon />
+                  </Avatar>
+                </SafeAvatarWrap>
+                <SafeDetailBox>
+                  <SafeName>
+                    {safe.name}
+                    <Flag fontSize="0.85rem" fontStyle="italic">
+                      {safe.flagType}
+                    </Flag>
+                  </SafeName>
+                  <Flag fontSize="1rem">{safe.date}</Flag>
+                </SafeDetailBox>
+                {activeSafeFolders.includes(safe.name) ? (
+                  <PopperWrap>
+                    <PsudoPopper />
+                  </PopperWrap>
+                ) : null}
+              </SafeFolderWrap>
+            ))}
+          </SafeListContainer>
+        </ColumnSection>
 
-      <ColumnSection>
-        <Suspense fallback={<div>Loading...</div>}>
-          <Switch>
-            {' '}
-            <Route
-              path="/:tab/:safeName"
-              render={(routerProps) => (
-                <SafeDetails detailData={safeDetail} params={routerProps} />
-              )}
-            />
-          </Switch>
-        </Suspense>
-      </ColumnSection>
-    </SectionPreview>
+        <ColumnSection>
+          <Suspense fallback={<div>Loading...</div>}>
+            <Switch>
+              {' '}
+              <Route
+                path="/:tab/:safeName"
+                render={(routerProps) => (
+                  <SafeDetails detailData={safeDetail} params={routerProps} />
+                )}
+              />
+            </Switch>
+          </Suspense>
+        </ColumnSection>
+      </SectionPreview>
+    </ComponentError>
   );
 };
 
