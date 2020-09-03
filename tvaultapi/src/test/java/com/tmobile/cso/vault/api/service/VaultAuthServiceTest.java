@@ -88,7 +88,7 @@ public class VaultAuthServiceTest {
     }
 
     @Test
-    public void test_login_successfully() {
+    public void test_login_successfully_for_internalcert() {
 
         String jsonStr = "{  \"username\": \"safeadmin\",  \"password\": \"safeadmin\"}";
         UserLogin userLogin = new UserLogin("safeadmin", "safeadmin");
@@ -109,7 +109,28 @@ public class VaultAuthServiceTest {
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
     }
+    @Test
+    public void test_login_successfully_for_externalcert() {
 
+        String jsonStr = "{  \"username\": \"safeadmin\",  \"password\": \"safeadmin\"}";
+        UserLogin userLogin = new UserLogin("safeadmin", "safeadmin");
+        String responseJson = "{  \"client_token\": \"8766fdhjSAtH2a4MdvMyzWid\",\"admin\": \"yes\",\"access\": {\"users\":[{\"safe1\":\"read\"}], \"svcacct\":[{\"svc1\":\"read\"}], \"externalcerts\":[{\"externalcerts1\":\"read\"}]}, \"policies\": [\"default\",\"safeadmin\"],\"lease_duration\": 1800000, \"feature\": {\"adpwdrotation\": \"true\", \"serviceaccount\":\"true\"}}";
+        Response response = getMockResponse(HttpStatus.OK, true, responseJson);
+        Map<String, Object> responseMap = null;
+        try {
+            responseMap = new ObjectMapper().readValue(response.getResponse(), new TypeReference<Map<String, Object>>(){});
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(responseJson);
+        when(JSONUtil.getJSON(Mockito.any())).thenReturn(responseJson);
+        when(JSONUtil.getJSON(userLogin)).thenReturn(jsonStr);
+        when(reqProcessor.process("/auth/userpass/login",jsonStr,"")).thenReturn(response);
+
+        ResponseEntity<String> responseEntity = vaultAuthService.login(userLogin);
+        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntity);
+    }
     @Test
     public void test_login_failure_400() {
 
