@@ -1,5 +1,5 @@
 /* eslint-disable import/no-unresolved */
-import React, { Suspense, useState } from 'react';
+import React, { useState } from 'react';
 import PropTypes from 'prop-types';
 import { Link, Route, Switch } from 'react-router-dom';
 import { Input, InputAdornment } from '@material-ui/core';
@@ -163,17 +163,15 @@ const SafeSectionWrap = (props) => {
         </ColumnSection>
 
         <ColumnSection>
-          <Suspense fallback={<div>Loading...</div>}>
-            <Switch>
-              {' '}
-              <Route
-                path="/:tab/:safeName"
-                render={(routerProps) => (
-                  <SafeDetails detailData={safeDetail} params={routerProps} />
-                )}
-              />
-            </Switch>
-          </Suspense>
+          <Switch>
+            {' '}
+            <Route
+              path="/:tab/:safeName"
+              render={(routerProps) => (
+                <SafeDetails detailData={safeDetail} params={routerProps} />
+              )}
+            />
+          </Switch>
         </ColumnSection>
       </SectionPreview>
     </ComponentError>
