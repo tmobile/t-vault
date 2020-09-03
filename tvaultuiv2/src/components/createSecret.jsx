@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
 import TextField from '@material-ui/core/TextField';
 import styled from 'styled-components';
+import PropTypes from 'prop-types';
 import ButtonComponent from './buttonComponent';
 
 const SecretWrapper = styled.section`
   padding: 2rem;
-  width: 50%;
+  background: #fff;
   border: 0.15rem solid #000;
   display: flex;
   flex-direction: column;
@@ -34,9 +35,10 @@ const CancelSaveWrapper = styled.div`
   margin-top: 2rem;
 `;
 
-const Secrets = () => {
-  const [, setSecret] = useState('');
-  const [, setKeyId] = useState('');
+const CreateSecret = (props) => {
+  const { handleSecretSave, handleSecretCancel } = props;
+  const [secret, setSecret] = useState('');
+  const [keyId, setKeyId] = useState('');
 
   return (
     <SecretWrapper>
@@ -44,6 +46,7 @@ const Secrets = () => {
       <TextField
         id="filled-basic"
         variant="filled"
+        value={keyId || ''}
         onChange={(e) => setKeyId(e.target.value)}
       />
       <KeyIdInputRequirements>
@@ -54,14 +57,33 @@ const Secrets = () => {
       <TextField
         id="filled-basic"
         variant="filled"
+        value={secret || ''}
         onChange={(e) => setSecret(e.target.value)}
       />
       <CancelSaveWrapper>
-        <ButtonComponent label="CANCEL" color="default" type="contained" />
-        <ButtonComponent label="SAVE" type="contained" color="primary" />
+        <ButtonComponent
+          label="CANCEL"
+          color="default"
+          type="contained"
+          onClick={() => handleSecretCancel(false)}
+        />
+        <ButtonComponent
+          label="SAVE"
+          type="contained"
+          color="primary"
+          onClick={() => handleSecretSave(secret)}
+        />
       </CancelSaveWrapper>
     </SecretWrapper>
   );
 };
+CreateSecret.propTypes = {
+  handleSecretSave: PropTypes.func,
+  handleSecretCancel: PropTypes.func,
+};
+CreateSecret.defaultProps = {
+  handleSecretSave: () => {},
+  handleSecretCancel: () => {},
+};
 
-export default Secrets;
+export default CreateSecret;

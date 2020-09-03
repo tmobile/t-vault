@@ -15,25 +15,26 @@ import Typography from '@material-ui/core/Typography';
 import Box from '@material-ui/core/Box';
 import ComponentError from 'errorBoundaries/ComponentError/component-error';
 import AddFolder from 'components/add-folder';
+// import CreateSecret from 'components/createSecret';
 
 // eslint-disable-next-line import/no-unresolved
 
 // import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
 // import FolderIcon from '@material-ui/icons/Folder';
 import AddIcon from '@material-ui/icons/Add';
-// import AccordionFolder from '../../common/AccordionFolder';
+import AccordionFolder from '../../common/AccordionFolder';
 import MuiButton from '../../common/MuiButton';
 import DialogeBox from '../../common/DialogeBox';
-import FolderTreeView from '../FolderTree';
+// import FolderTreeView from '../FolderTree';
 
 // styled components goes here
 
-const WideButton = styled('div')`
-  display: flex;
-  justify-content: center;
-  background: #f2f2f2;
-  padding: 0.5em;
-`;
+// const WideButton = styled('div')`
+//   display: flex;
+//   justify-content: center;
+//   background: #f2f2f2;
+//   padding: 0.5em;
+// `;
 const EmptySecretBox = styled('div')`
   display: flex;
   align-items: center;
@@ -123,12 +124,13 @@ export default function SelectionTabs(props) {
 
   const saveSecretsFolder = (folderName) => {
     const tempFolders = [...secretsFolder] || [];
-    const folderObj = {};
-    folderObj.labelText = folderName;
-    folderObj.labelInfo = 'folder';
-    folderObj.children = [];
-    tempFolders.push(folderObj);
+    // const folderObj = {};
+    // folderObj.labelText = folderName;
+    // folderObj.labelInfo = 'folder';
+    // folderObj.children = [];
+    tempFolders.push(folderName);
     secSecretsFolder([...tempFolders]);
+    setEnableAddFolder(false);
   };
 
   return (
@@ -159,11 +161,11 @@ export default function SelectionTabs(props) {
           )}
           {secretsFolder || secrets ? (
             <>
-              <FolderTreeView treeData={secretsFolder || secrets} />
-              <WideButton>
-                <span>+</span>
-                <span>Create Secrets</span>
-              </WideButton>
+              {/* reverted folder tree structure and its in different branch(layout-branch) */}
+              {/* <FolderTreeView treeData={secretsFolder || secrets} /> */}
+              {secretsFolder.map((item) => (
+                <AccordionFolder title={item} date="2 days ago" />
+              ))}
             </>
           ) : (
             <EmptySecretBox>
