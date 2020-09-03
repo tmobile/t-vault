@@ -5775,7 +5775,6 @@ public class SSLCertificateService {
 		if(ldapConfigresponse.getHttpstatus().equals(HttpStatus.NO_CONTENT) || ldapConfigresponse.getHttpstatus().equals(HttpStatus.OK)){
 			return updateMetadataForRemoveUserFromCertificate(userName, certificatePath, authToken, groups,
 					currentpoliciesString, userDetails, currentpolicies, oidcEntityResponse.getEntityName());
-					currentpoliciesString);
 		} else {
 			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).

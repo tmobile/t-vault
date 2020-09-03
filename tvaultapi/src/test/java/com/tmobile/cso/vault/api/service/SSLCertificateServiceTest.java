@@ -2718,7 +2718,7 @@ public class SSLCertificateServiceTest {
                 "}]}";
         CertResponse response = new CertResponse();
         response.setHttpstatus(HttpStatus.INTERNAL_SERVER_ERROR);
-        response.setResponse("{\"errors\":[\"Failed to get Target system list from NCLM\"]}");
+        response.setResponse("{\"errors\":[\"NCLM services are down. Please try after some time\"]}");
         response.setSuccess(false);
         String jsonStrUser = "{  \"username\": \"testusername1\",  \"password\": \"testpassword1\"}";
         CertResponse responseUser = new CertResponse();
@@ -2737,7 +2737,7 @@ public class SSLCertificateServiceTest {
                 Mockito.anyString())).thenReturn(response);
 
 
-        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Failed to get Target system list from NCLM\"]}");
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"NCLM services are down. Please try after some time\"]}");
         ResponseEntity<String> responseEntityActual = sSLCertificateService.getTargetSystemList(token, getMockUser(true), certType);
 
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, responseEntityActual.getStatusCode());
@@ -2831,7 +2831,7 @@ public class SSLCertificateServiceTest {
                 "} ]}";
         CertResponse response = new CertResponse();
         response.setHttpstatus(HttpStatus.INTERNAL_SERVER_ERROR);
-        response.setResponse("{\"errors\":[\"Failed to get Target system service list from NCLM\"]}");
+        response.setResponse("{\"errors\":[\"NCLM services are down. Please try after some time\"]}");
         response.setSuccess(false);
         String jsonStrUser = "{  \"username\": \"testusername1\",  \"password\": \"testpassword1\"}";
         CertResponse responseUser = new CertResponse();
@@ -2850,7 +2850,7 @@ public class SSLCertificateServiceTest {
                 Mockito.anyString())).thenReturn(response);
 
 
-        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Failed to get Target system service list from NCLM\"]}");
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"NCLM services are down. Please try after some time\"]}");
         ResponseEntity<String> responseEntityActual = sSLCertificateService.getTargetSystemServiceList(token, getMockUser(true), "123");
 
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, responseEntityActual.getStatusCode());

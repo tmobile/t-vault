@@ -2708,7 +2708,7 @@ public final class ControllerUtil {
 			response.setResponse("Meta data update failed for "+failed.toString() );
 		}
 		return response;
-	}}
+	}
 	/**
 	 * To filter the duplicate safe permissions
 	 * @param access
