@@ -3,6 +3,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import styled from 'styled-components';
 import { Button } from '@material-ui/core';
+import ComponentError from 'errorBoundaries/ComponentError/component-error';
 
 const ActionButton = styled('div')`
   display: flex;
@@ -15,11 +16,13 @@ const ActionButton = styled('div')`
 const MuiButton = (props) => {
   const { label, icon, customStyle } = props;
   return (
-    <ActionButton customBtnStyle={customStyle}>
-      <Button variant="contained" color="secondary" startIcon={icon}>
-        {label}
-      </Button>
-    </ActionButton>
+    <ComponentError>
+      <ActionButton customBtnStyle={customStyle}>
+        <Button variant="contained" color="secondary" startIcon={icon}>
+          {label}
+        </Button>
+      </ActionButton>
+    </ComponentError>
   );
 };
 MuiButton.propTypes = {

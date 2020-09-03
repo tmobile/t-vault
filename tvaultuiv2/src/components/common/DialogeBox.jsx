@@ -1,7 +1,9 @@
+/* eslint-disable import/no-unresolved */
 import React from 'react';
 import styled from 'styled-components';
 import PropTypes from 'prop-types';
 import ReactHtmlParser from 'react-html-parser';
+import ComponentError from 'errorBoundaries/ComponentError/component-error';
 
 const DialogeBoxWrapper = styled('div')`
   display: flex;
@@ -20,10 +22,12 @@ const ActionButtonWrap = styled('div')`
 const DialogeBox = (props) => {
   const { description, actionButton } = props;
   return (
-    <DialogeBoxWrapper>
-      <BoxDescription>{ReactHtmlParser(description)}</BoxDescription>
-      <ActionButtonWrap>{actionButton}</ActionButtonWrap>
-    </DialogeBoxWrapper>
+    <ComponentError>
+      <DialogeBoxWrapper>
+        <BoxDescription>{ReactHtmlParser(description)}</BoxDescription>
+        <ActionButtonWrap>{actionButton}</ActionButtonWrap>
+      </DialogeBoxWrapper>
+    </ComponentError>
   );
 };
 DialogeBox.propTypes = {

@@ -2,6 +2,8 @@ import React from 'react';
 import styled from 'styled-components';
 import EditIcon from '@material-ui/icons/Edit';
 import DeleteIcon from '@material-ui/icons/Delete';
+// eslint-disable-next-line import/no-unresolved
+import ComponentError from 'errorBoundaries/ComponentError/component-error';
 
 const IconWrap = styled('div')`
   display: flex;
@@ -10,10 +12,12 @@ const IconWrap = styled('div')`
 
 const PsudoPopper = () => {
   return (
-    <IconWrap>
-      <EditIcon />
-      <DeleteIcon />
-    </IconWrap>
+    <ComponentError>
+      <IconWrap>
+        <EditIcon />
+        <DeleteIcon />
+      </IconWrap>
+    </ComponentError>
   );
 };
 

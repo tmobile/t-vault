@@ -1,3 +1,4 @@
+/* eslint-disable import/no-unresolved */
 import React from 'react';
 import PropTypes from 'prop-types';
 
@@ -5,6 +6,7 @@ import styled from 'styled-components';
 import Accordion from '@material-ui/core/Accordion';
 import AccordionSummary from '@material-ui/core/AccordionSummary';
 import AccordionDetails from '@material-ui/core/AccordionDetails';
+import ComponentError from 'errorBoundaries/ComponentError/component-error';
 // import { Avatar } from '@material-ui/core';
 
 // styled components goes here
@@ -47,26 +49,28 @@ const FolderIconWrap = styled('div')`
 const AccordionFolder = (props) => {
   const { summaryIcon, titleIcon, title, date } = props;
   return (
-    <FolderWrap>
-      <FolderSummary
-        expandIcon={summaryIcon}
-        aria-controls="panel1a-content"
-        id="panl1a-header"
-      >
-        {' '}
-        <FolderIconWrap>{titleIcon}</FolderIconWrap>
-        <SecretTitleWrap>
+    <ComponentError>
+      <FolderWrap>
+        <FolderSummary
+          expandIcon={summaryIcon}
+          aria-controls="panel1a-content"
+          id="panl1a-header"
+        >
+          {' '}
+          <FolderIconWrap>{titleIcon}</FolderIconWrap>
+          <SecretTitleWrap>
+            <PElement>{title}</PElement>
+            <PElement>{date}</PElement>
+          </SecretTitleWrap>
+        </FolderSummary>
+        <SecretDetail>
           <PElement>{title}</PElement>
-          <PElement>{date}</PElement>
-        </SecretTitleWrap>
-      </FolderSummary>
-      <SecretDetail>
-        <PElement>{title}</PElement>
-        {/* <SpanElement>{date}</SpanElement>
+          {/* <SpanElement>{date}</SpanElement>
         <SpanElement>{title}</SpanElement>
         <SpanElement>{date}</SpanElement> */}
-      </SecretDetail>
-    </FolderWrap>
+        </SecretDetail>
+      </FolderWrap>
+    </ComponentError>
   );
 };
 AccordionFolder.propTypes = {
