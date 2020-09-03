@@ -34,15 +34,13 @@ const FolderTreeView = (props) => {
 
   // render recursive tree items
   const renderChild = (node) => (
-    // const { labelText, labelInfo, id, children } = node;
-
     <TreeItem
       nodeId={node.id}
       key={node.id}
       label={
         // eslint-disable-next-line react/jsx-wrap-multilines
         <div className={classes.labelRoot}>
-          {node.labelInfo.toLowerCase() === 'folder' ? (
+          {node.labelInfo?.toLowerCase() === 'folder' ? (
             <FolderIcon color="inherit" className={classes.labelIcon} />
           ) : (
               <LockIcon color="inherit" className={classes.labelIcon} />
