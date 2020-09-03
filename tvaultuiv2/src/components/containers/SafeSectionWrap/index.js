@@ -11,6 +11,7 @@ import SafeDetails from 'components/containers/SafeDetails';
 import styled from 'styled-components';
 import Avatar from '@material-ui/core/Avatar';
 import Dropdown from 'components/common/SelectDropdown';
+import ComponentError from 'errorBoundaries/ComponentError/component-error';
 
 import FolderIcon from '@material-ui/icons/Folder';
 import SearchIcon from '@material-ui/icons/Search';
@@ -126,7 +127,7 @@ const SafeSectionWrap = (props) => {
       return setSafeList((prev) => [...prev, item]);
     });
     setMoreData(true);
-  }, [safes]);
+  }, []);
 
   const getSafesList = () => {
     return new Promise((resolve) =>
@@ -183,49 +184,51 @@ const SafeSectionWrap = (props) => {
   };
 
   return (
-    <SectionPreview title="safe-section">
-      <ColumnSection>
-        <ColumnHeader>
-          <Dropdown />
-          <MuiButton label="Create" icon={<AddIcon />} />
-        </ColumnHeader>
-        <SearchInput
-          startAdornment={
-            // eslint-disable-next-line react/jsx-wrap-multilines
-            <InputAdornment position="start">
-              <SearchIcon />
-            </InputAdornment>
-          }
-        />
-        <SafeListContainer ref={(ref) => (scrollParentRef = ref)}>
-          <InfiniteScroll
-            pageStart={0}
-            loadMore={() => loadMoreData()}
-            hasMore={moreData}
-            threshold={100}
-            loader={<div key={0}>Loading...</div>}
-            useWindow={false}
-            getScrollParent={() => scrollParentRef}
-          >
-            {renderSafes()}
-          </InfiniteScroll>
-        </SafeListContainer>
-      </ColumnSection>
+    <ComponentError>
+      <SectionPreview title="safe-section">
+        <ColumnSection>
+          <ColumnHeader>
+            <Dropdown />
+            <MuiButton label="Create" icon={<AddIcon />} />
+          </ColumnHeader>
+          <SearchInput
+            startAdornment={
+              // eslint-disable-next-line react/jsx-wrap-multilines
+              <InputAdornment position="start">
+                <SearchIcon />
+              </InputAdornment>
+            }
+          />
+          <SafeListContainer ref={(ref) => (scrollParentRef = ref)}>
+            <InfiniteScroll
+              pageStart={0}
+              loadMore={() => loadMoreData()}
+              hasMore={moreData}
+              threshold={100}
+              loader={<div key={0}>Loading...</div>}
+              useWindow={false}
+              getScrollParent={() => scrollParentRef}
+            >
+              {renderSafes()}
+            </InfiniteScroll>
+          </SafeListContainer>
+        </ColumnSection>
 
-      <ColumnSection>
-        <Suspense fallback={<div>Loading...</div>}>
-          <Switch>
-            {' '}
-            <Route
-              path="/:tab/:safeName"
-              render={(routerProps) => (
-                <SafeDetails detailData={safeDetail} params={routerProps} />
-              )}
-            />
-          </Switch>
-        </Suspense>
-      </ColumnSection>
-    </SectionPreview>
+        <ColumnSection>
+          <Suspense fallback={<div>Loading...</div>}>
+            <Switch>
+              {' '}
+              <Route
+                path="/:tab/:safeName"
+                render={(routerProps) => (
+                  <SafeDetails detailData={safeDetail} params={routerProps} />
+                )}
+              />
+            </Switch>
+          </Suspense>
+        </ColumnSection>
+      </SectionPreview>
+    </ComponentError>
   );
 };
 

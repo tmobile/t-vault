@@ -6,6 +6,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import styled from 'styled-components';
 import SelectionTabs from 'components/containers/Tabs';
+import ComponentError from 'errorBoundaries/ComponentError/component-error';
 
 // styled components goes here
 const Section = styled('section')`
@@ -36,19 +37,27 @@ const SafeDetails = (props) => {
   const { detailData, params } = props;
   const compData =
     (detailData && detailData[params.match?.params.safeName]) || {};
+
   return (
-    <Section>
-      <ColumnHeader>
-        <SafeIconWrap />
-        <SafeDescription>{compData.description}</SafeDescription>
-      </ColumnHeader>
-      <SelectionTabs secrets={compData.secrets} />
-    </Section>
+    <ComponentError>
+      {' '}
+      <Section>
+        <ColumnHeader>
+          <SafeIconWrap />
+          <SafeDescription>{compData.description}</SafeDescription>
+        </ColumnHeader>
+        <SelectionTabs secrets={compData.secrets} />
+      </Section>
+    </ComponentError>
   );
 };
 SafeDetails.propTypes = {
   detailData: PropTypes.object,
   params: PropTypes.object,
+};
+SafeDetails.defaultProps = {
+  detailData: {},
+  params: {},
 };
 
 export default SafeDetails;

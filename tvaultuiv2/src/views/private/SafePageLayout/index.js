@@ -6,6 +6,8 @@ import { withRouter } from 'react-router-dom';
 // eslint-disable-next-line import/no-unresolved
 import SafeSectionWrap from 'components/containers/SafeSectionWrap';
 import styled from 'styled-components';
+// eslint-disable-next-line import/no-unresolved
+import ComponentError from 'errorBoundaries/ComponentError/component-error';
 
 const SafeSectionPreview = styled('section')`
   border: 2px solid #ccc;
@@ -15,11 +17,14 @@ const SafeSectionPreview = styled('section')`
 
 const SafePageLayout = (props) => {
   return (
-    <main title="safe-layout">
-      <SafeSectionPreview>
-        <SafeSectionWrap {...props} />
-      </SafeSectionPreview>
-    </main>
+    <ComponentError>
+      {' '}
+      <main title="safe-layout">
+        <SafeSectionPreview>
+          <SafeSectionWrap {...props} />
+        </SafeSectionPreview>
+      </main>
+    </ComponentError>
   );
 };
 SafePageLayout.propTypes = {};
