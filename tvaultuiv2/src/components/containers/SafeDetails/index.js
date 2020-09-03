@@ -34,7 +34,8 @@ const SafeDescription = styled.p`
 `;
 const SafeDetails = (props) => {
   const { detailData, params } = props;
-  const compData = detailData[params?.match?.params.safeName] || {};
+  const compData =
+    (detailData && detailData[params.match?.params.safeName]) || {};
   return (
     <Section>
       <ColumnHeader>
