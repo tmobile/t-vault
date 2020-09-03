@@ -25,6 +25,7 @@ import com.google.gson.*;
 import com.tmobile.cso.vault.api.common.SSLCertificateConstants;
 import com.tmobile.cso.vault.api.common.TVaultConstants;
 import com.tmobile.cso.vault.api.controller.ControllerUtil;
+import com.tmobile.cso.vault.api.controller.OIDCUtil;
 import com.tmobile.cso.vault.api.exception.LogMessage;
 import com.tmobile.cso.vault.api.exception.TVaultValidationException;
 import com.tmobile.cso.vault.api.model.*;
@@ -83,6 +84,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 @Component
 public class SSLCertificateService {
@@ -234,6 +236,10 @@ public class SSLCertificateService {
     private String requestStatusUrl;
     @Autowired
     private EmailUtils emailUtils;
+
+    @Autowired
+	private OIDCUtil oidcUtil;
+
     private static Logger log = LogManager.getLogger(SSLCertificateService.class);
 
     private static final String[] PERMISSIONS = {"read", "write", "deny", "sudo"};
@@ -2778,7 +2784,7 @@ public class SSLCertificateService {
    		}
 
    		if(isAuthorized){
-   			return checkUserDetailsAndAddCertificateToUser(authToken, userName, certificateName, access, certificateType);
+   			return checkUserDetailsAndAddCertificateToUser(authToken, userName, certificateName, access, certificateType, userDetails);
    		}else{
    			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
    					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
@@ -2800,8 +2806,8 @@ public class SSLCertificateService {
 	 * @return
 	 */
 	private ResponseEntity<String> checkUserDetailsAndAddCertificateToUser(String token, String userName,
-			String certificateName, String access, String certificateType) {
-
+			String certificateName, String access, String certificateType, UserDetails userDetails) {
+		OIDCEntityResponse oidcEntityResponse = new OIDCEntityResponse();
 		String policyPrefix = getCertificatePolicyPrefix(access, certificateType);
 
 		String metaDataPath = (certificateType.equalsIgnoreCase("internal"))?
@@ -2840,12 +2846,37 @@ public class SSLCertificateService {
 				put(LogMessage.MESSAGE, String.format ("Policies are, read - [%s], write - [%s], deny -[%s]", readPolicy, writePolicy, denyPolicy)).
 				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 				build()));
-		Response userResponse;
+		Response userResponse = new Response();
 		if (TVaultConstants.USERPASS.equals(vaultAuthMethod)) {
-			userResponse = reqProcessor.process("/auth/userpass/read","{\"username\":\""+userName+"\"}",token);
-		}
-		else {
-			userResponse = reqProcessor.process("/auth/ldap/users","{\"username\":\""+userName+"\"}",token);
+			userResponse = reqProcessor.process("/auth/userpass/read", "{\"username\":\"" + userName + "\"}", token);
+		} else if (TVaultConstants.LDAP.equals(vaultAuthMethod)) {
+			userResponse = reqProcessor.process("/auth/ldap/users", "{\"username\":\"" + userName + "\"}", token);
+		} else if (TVaultConstants.OIDC.equals(vaultAuthMethod)) {
+            //OIDC Changes
+
+			// OIDC implementation changes
+			ResponseEntity<OIDCEntityResponse> responseEntity = oidcUtil.oidcFetchEntityDetails(token, userName, userDetails);
+			if (!responseEntity.getStatusCode().equals(HttpStatus.OK)) {
+				if (responseEntity.getStatusCode().equals(HttpStatus.FORBIDDEN)) {
+					log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+							.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString())
+							.put(LogMessage.ACTION, "Add User to SDB")
+							.put(LogMessage.MESSAGE,
+									String.format("Trying to fetch OIDC user policies, failed"))
+							.put(LogMessage.APIURL,
+									ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString())
+							.build()));
+					return ResponseEntity.status(HttpStatus.FORBIDDEN)
+							.body("{\"messages\":[\"User configuration failed. Please try again.\"]}");
+				}
+				return ResponseEntity.status(HttpStatus.NOT_FOUND)
+						.body("{\"messages\":[\"User configuration failed. Invalid user\"]}");
+			}
+			oidcEntityResponse.setEntityName(responseEntity.getBody().getEntityName());
+			oidcEntityResponse.setPolicies(responseEntity.getBody().getPolicies());
+			userResponse.setResponse(oidcEntityResponse.getPolicies().toString());
+			userResponse.setHttpstatus(responseEntity.getStatusCode());
+
 		}
 
 		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
@@ -2864,9 +2895,14 @@ public class SSLCertificateService {
 			responseJson = userResponse.getResponse();
 			try {
 				ObjectMapper objMapper = new ObjectMapper();
-				currentpolicies = ControllerUtil.getPoliciesAsListFromJson(objMapper, responseJson);
-				if (!(TVaultConstants.USERPASS.equals(vaultAuthMethod))) {
-					groups =objMapper.readTree(responseJson).get("data").get("groups").asText();
+				// OIDC Changes
+				if (TVaultConstants.OIDC.equals(vaultAuthMethod)) {
+					currentpolicies.addAll(oidcEntityResponse.getPolicies());
+				} else {
+					currentpolicies = ControllerUtil.getPoliciesAsListFromJson(objMapper, responseJson);
+					if (TVaultConstants.LDAP.equals(vaultAuthMethod)) {
+						groups = objMapper.readTree(responseJson).get("data").get("groups").asText();
+					}
 				}
 			} catch (IOException e) {
 				log.error(e);
@@ -2900,8 +2936,9 @@ public class SSLCertificateService {
 				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 				build()));
 		return configureUserpassOrLDAPUserToUpdateMetadata(token, userName, certificatePath, access, groups,
-				policiesString, currentpoliciesString);
-
+				policiesString, currentpoliciesString, userDetails, policies, currentpolicies,
+				oidcEntityResponse.getEntityName());
+		
 	}
 
 	private String getCertificatePolicyPrefix(String access, String certificateType) {
@@ -2931,18 +2968,36 @@ public class SSLCertificateService {
 	 * @return
 	 */
 	private ResponseEntity<String> configureUserpassOrLDAPUserToUpdateMetadata(String token, String userName,
-			String certificatePath, String access, String groups, String policiesString, String currentpoliciesString) {
-		Response ldapConfigresponse;
+			String certificatePath, String access, String groups, String policiesString, String currentpoliciesString,
+			UserDetails userDetails, List<String> policies, List<String> currentpolicies, String entityName) {
+		Response ldapConfigresponse = new Response();
 		if (TVaultConstants.USERPASS.equals(vaultAuthMethod)) {
 			ldapConfigresponse = ControllerUtil.configureUserpassUser(userName,policiesString,token);
 		}
-		else {
+		else if (TVaultConstants.LDAP.equals(vaultAuthMethod)){
 			ldapConfigresponse = ControllerUtil.configureLDAPUser(userName,policiesString,groups,token);
+		} else if (TVaultConstants.OIDC.equals(vaultAuthMethod)) {
+			//OIDC Implementation : Entity Update
+			try {
+
+				ldapConfigresponse = oidcUtil.updateOIDCEntity(policies, entityName);
+				oidcUtil.renewUserToken(userDetails.getClientToken());
+			}catch (Exception e) {
+				log.error(e);
+				log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+						put(LogMessage.ACTION, "Add User to SDB").
+						put(LogMessage.MESSAGE, String.format ("Exception while adding or updating the identity ")).
+						put(LogMessage.STACKTRACE, Arrays.toString(e.getStackTrace())).
+						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+						build()));
+			}
+
 		}
 
 		if(ldapConfigresponse.getHttpstatus().equals(HttpStatus.NO_CONTENT)){
 			return updateMetadataForAddUserToCertificate(token, userName, certificatePath, access, groups,
-					currentpoliciesString);
+					currentpoliciesString, userDetails, currentpolicies, entityName);
 		}else{
 			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
@@ -2965,8 +3020,9 @@ public class SSLCertificateService {
 	 * @return
 	 */
 	private ResponseEntity<String> updateMetadataForAddUserToCertificate(String token, String userName,
-			String certificatePath, String access, String groups, String currentpoliciesString) {
-		Response ldapConfigresponse;
+			String certificatePath, String access, String groups, String currentpoliciesString, UserDetails userDetails,
+			List<String> currentpolicies, String entityName) {
+		Response ldapConfigresponse = new Response();
 		Map<String,String> params = new HashMap<>();
 		params.put("type", "users");
 		params.put("name",userName);
@@ -2998,8 +3054,24 @@ public class SSLCertificateService {
 			if (TVaultConstants.USERPASS.equals(vaultAuthMethod)) {
 				ldapConfigresponse = ControllerUtil.configureUserpassUser(userName,currentpoliciesString,token);
 			}
-			else {
+			else if (TVaultConstants.LDAP.equals(vaultAuthMethod)){
 				ldapConfigresponse = ControllerUtil.configureLDAPUser(userName,currentpoliciesString,groups,token);
+			}else if (TVaultConstants.OIDC.equals(vaultAuthMethod)) {
+				//OIDC Implementation : Entity Update
+				try {
+
+					ldapConfigresponse = oidcUtil.updateOIDCEntity(currentpolicies, entityName);
+					oidcUtil.renewUserToken(userDetails.getClientToken());
+				}catch (Exception e) {
+					log.error(e);
+					log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+							put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+							put(LogMessage.ACTION, "Add User to SDB").
+							put(LogMessage.MESSAGE, String.format ("Exception while adding or updating the identity ")).
+							put(LogMessage.STACKTRACE, Arrays.toString(e.getStackTrace())).
+							put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+							build()));
+				}
 			}
 			if(ldapConfigresponse.getHttpstatus().equals(HttpStatus.NO_CONTENT)){
 				log.debug("Reverting user policy update");
@@ -3080,7 +3152,7 @@ public class SSLCertificateService {
    	        }
    			isAuthorized=isAuthorized(userDetails, certificateGroup.getCertificateName(), certificateGroup.getCertType());
    			if(isAuthorized){
-   	   			return addingGroupToCertificate(authToken, certificateGroup);
+   	   			return addingGroupToCertificate(authToken, certificateGroup, userDetails);
    	   		}else{
    	   			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
    	   					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
@@ -3124,7 +3196,8 @@ public class SSLCertificateService {
 	 * @param certificateGroup
 	 * @return
 	 */
-	public ResponseEntity<String> addingGroupToCertificate(String token, CertificateGroup certificateGroup) {
+	public ResponseEntity<String> addingGroupToCertificate(String token, CertificateGroup certificateGroup, UserDetails userDetails) {
+		OIDCGroup oidcGroup = new OIDCGroup();
 		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
 				put(LogMessage.ACTION, SSLCertificateConstants.ADD_GROUP_TO_CERT_MSG).
@@ -3162,8 +3235,20 @@ public class SSLCertificateService {
 			String readPolicy = SSLCertificateConstants.READ_CERT_POLICY_PREFIX+policyValue+"_"+certificateName;
 			String writePolicy = SSLCertificateConstants.WRITE_CERT_POLICY_PREFIX+policyValue+"_"+certificateName;
 			String denyPolicy = SSLCertificateConstants.DENY_CERT_POLICY_PREFIX+policyValue+"_"+certificateName;
-
-			Response getGrpResp = reqProcessor.process("/auth/ldap/groups","{\"groupname\":\""+groupName+"\"}",token);
+			
+			Response getGrpResp = new Response();
+			if (TVaultConstants.LDAP.equals(vaultAuthMethod)) {
+				getGrpResp = reqProcessor.process("/auth/ldap/groups","{\"groupname\":\""+groupName+"\"}",token);
+			} else if (TVaultConstants.OIDC.equals(vaultAuthMethod)) {
+				//call read api with groupname
+				oidcGroup= oidcUtil.getIdentityGroupDetails(groupName, token);
+				if (oidcGroup != null) {
+					getGrpResp.setHttpstatus(HttpStatus.OK);
+					getGrpResp.setResponse(oidcGroup.getPolicies().toString());
+				} else {
+					getGrpResp.setHttpstatus(HttpStatus.BAD_REQUEST);
+				}
+			}
 			String responseJson="";
 
 			List<String> policies = new ArrayList<>();
@@ -3172,7 +3257,12 @@ public class SSLCertificateService {
 			if(HttpStatus.OK.equals(getGrpResp.getHttpstatus())){
 				responseJson = getGrpResp.getResponse();
 				try {
-					currentpolicies = ControllerUtil.getPoliciesAsListFromJson(objMapper, responseJson);
+					//OIDC Changes
+					if (TVaultConstants.LDAP.equals(vaultAuthMethod)) {
+						currentpolicies = ControllerUtil.getPoliciesAsListFromJson(objMapper, responseJson);
+					} else if (TVaultConstants.OIDC.equals(vaultAuthMethod)) {
+						currentpolicies.addAll(oidcGroup.getPolicies());
+					}
 				} catch (IOException e) {
 					log.error(e);
 				}
@@ -3189,11 +3279,19 @@ public class SSLCertificateService {
 
 			String policiesString = org.apache.commons.lang3.StringUtils.join(policies, ",");
 			String currentpoliciesString = org.apache.commons.lang3.StringUtils.join(currentpolicies, ",");
-			Response ldapConfigresponse = ControllerUtil.configureLDAPGroup(groupName,policiesString,token);
-
-			if(ldapConfigresponse.getHttpstatus().equals(HttpStatus.NO_CONTENT)){
+			Response ldapConfigresponse = new Response();
+			// OIDC Changes
+			if (TVaultConstants.LDAP.equals(vaultAuthMethod)) {
+				ldapConfigresponse = ControllerUtil.configureLDAPGroup(groupName, policiesString, token);
+			} else if (TVaultConstants.OIDC.equals(vaultAuthMethod)) {
+				ldapConfigresponse = oidcUtil.updateGroupPolicies(token, groupName, policies, currentpolicies,
+						oidcGroup != null ? oidcGroup.getId() : null);
+				oidcUtil.renewUserToken(userDetails.getClientToken());
+			}
+			if (ldapConfigresponse.getHttpstatus().equals(HttpStatus.NO_CONTENT)
+					|| ldapConfigresponse.getHttpstatus().equals(HttpStatus.OK)) {
 				return updateMetadataForAddGroupToCertificate(token, groupName, certificateName, access, certPath,
-						currentpoliciesString);
+						currentpoliciesString, userDetails, currentpolicies, oidcGroup.getId());
 			}
 			else {
 				log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
@@ -3225,7 +3323,8 @@ public class SSLCertificateService {
 	 * @return
 	 */
 	private ResponseEntity<String> updateMetadataForAddGroupToCertificate(String token, String groupName,
-			String certificateName, String access, String certPath, String currentpoliciesString) {
+			String certificateName, String access, String certPath, String currentpoliciesString,
+			UserDetails userDetails, List<String> currentpolicies, String groupId) {
 		Map<String,String> params = new HashMap<>();
 		params.put("type", "groups");
 		params.put("name",groupName);
@@ -3242,8 +3341,9 @@ public class SSLCertificateService {
 					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 					build()));
 			return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Group is successfully associated with Certificate\"]}");
-		}else{
-			return revertPoliciesIfMetadataUpdateFailed(token, groupName, currentpoliciesString, metadataResponse);
+		} else {
+			return revertPoliciesIfMetadataUpdateFailed(token, groupName, currentpoliciesString, metadataResponse,
+					userDetails, currentpolicies, groupId);
 		}
 	}
 
@@ -3255,9 +3355,18 @@ public class SSLCertificateService {
 	 * @return
 	 */
 	private ResponseEntity<String> revertPoliciesIfMetadataUpdateFailed(String token, String groupName,
-			String currentpoliciesString, Response metadataResponse) {
-		Response ldapConfigresponse;
-		ldapConfigresponse = ControllerUtil.configureLDAPGroup(groupName,currentpoliciesString,token);
+			String currentpoliciesString, Response metadataResponse, UserDetails userDetails,
+			List<String> currentpolicies, String groupId) {
+		Response ldapConfigresponse = new Response();
+		//OIDC Changes
+		if (TVaultConstants.LDAP.equals(vaultAuthMethod)) {
+			ldapConfigresponse = ControllerUtil.configureLDAPGroup(groupName, currentpoliciesString,
+					token);
+		} else if (TVaultConstants.OIDC.equals(vaultAuthMethod)) {
+			ldapConfigresponse = oidcUtil.updateGroupPolicies(token, groupName, currentpolicies,
+					currentpolicies, groupId);
+			oidcUtil.renewUserToken(userDetails.getClientToken());
+		}
 		if(ldapConfigresponse.getHttpstatus().equals(HttpStatus.NO_CONTENT)){
 			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
@@ -4185,7 +4294,7 @@ public class SSLCertificateService {
    		}
 
 		if(isAuthorized){
-			return checkUserPolicyAndRemoveFromCertificate(userName, certificateName, authToken, certificateType);
+			return checkUserPolicyAndRemoveFromCertificate(userName, certificateName, authToken, certificateType, userDetails);
 		} else {
 			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
@@ -4198,14 +4307,17 @@ public class SSLCertificateService {
 	}
 
 	/**
+	 *
 	 * @param userName
 	 * @param certificateName
 	 * @param authToken
+	 * @param certificateType
+	 * @param userDetails
 	 * @return
 	 */
 	private ResponseEntity<String> checkUserPolicyAndRemoveFromCertificate(String userName, String certificateName,
-			String authToken, String certificateType) {
-
+			String authToken, String certificateType, UserDetails userDetails) {
+		OIDCEntityResponse oidcEntityResponse = new OIDCEntityResponse();
 		String certPrefix=(certificateType.equalsIgnoreCase("internal"))?
                 SSLCertificateConstants.INTERNAL_POLICY_NAME :SSLCertificateConstants.EXTERNAL_POLICY_NAME;
 
@@ -4225,13 +4337,34 @@ public class SSLCertificateService {
 				put(LogMessage.MESSAGE, String.format ("Policies are, read - [%s], write - [%s], deny -[%s], owner - [%s]", readPolicy, writePolicy, denyPolicy, sudoPolicy)).
 				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 				build()));
-
-		Response userResponse;
+		
+		Response userResponse = new Response();
 		if (TVaultConstants.USERPASS.equals(vaultAuthMethod)) {
 			userResponse = reqProcessor.process("/auth/userpass/read","{\"username\":\""+userName+"\"}", authToken);
 		}
-		else {
+		else if (TVaultConstants.LDAP.equals(vaultAuthMethod)){
 			userResponse = reqProcessor.process("/auth/ldap/users","{\"username\":\""+userName+"\"}", authToken);
+		}else if (TVaultConstants.OIDC.equals(vaultAuthMethod)) {
+			// OIDC implementation changes
+			ResponseEntity<OIDCEntityResponse> responseEntity = oidcUtil.oidcFetchEntityDetails(authToken, userName, userDetails);
+			if (!responseEntity.getStatusCode().equals(HttpStatus.OK)) {
+				if (responseEntity.getStatusCode().equals(HttpStatus.FORBIDDEN)) {
+					log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+							.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString())
+							.put(LogMessage.ACTION, "checkUserPolicyAndRemoveFromCertificate")
+							.put(LogMessage.MESSAGE, String.format("Trying to fetch OIDC user policies, failed"))
+							.put(LogMessage.APIURL,
+									ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString())
+							.build()));
+				}
+				return ResponseEntity.status(HttpStatus.NOT_FOUND)
+						.body("{\"messages\":[\"User configuration failed. Invalid user\"]}");
+			}
+			oidcEntityResponse.setEntityName(responseEntity.getBody().getEntityName());
+			oidcEntityResponse.setPolicies(responseEntity.getBody().getPolicies());
+			userResponse.setResponse(oidcEntityResponse.getPolicies().toString());
+			userResponse.setHttpstatus(responseEntity.getStatusCode());
+
 		}
 
 		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
@@ -4250,9 +4383,14 @@ public class SSLCertificateService {
 			responseJson = userResponse.getResponse();
 			try {
 				ObjectMapper objMapper = new ObjectMapper();
-				currentpolicies = ControllerUtil.getPoliciesAsListFromJson(objMapper, responseJson);
-				if (!(TVaultConstants.USERPASS.equals(vaultAuthMethod))) {
-					groups =objMapper.readTree(responseJson).get("data").get("groups").asText();
+				if (TVaultConstants.OIDC.equals(vaultAuthMethod)) {
+					currentpolicies.addAll(oidcEntityResponse.getPolicies());
+					//groups = objMapper.readTree(responseJson).get("data").get("groups").asText();
+				} else {
+					currentpolicies = ControllerUtil.getPoliciesAsListFromJson(objMapper, responseJson);
+					if (TVaultConstants.LDAP.equals(vaultAuthMethod)) {
+						groups = objMapper.readTree(responseJson).get("data").get("groups").asText();
+					}
 				}
 			} catch (IOException e) {
 				log.error(e);
@@ -4272,16 +4410,31 @@ public class SSLCertificateService {
 		}
 		String policiesString = org.apache.commons.lang3.StringUtils.join(policies, ",");
 		String currentpoliciesString = org.apache.commons.lang3.StringUtils.join(currentpolicies, ",");
-		Response ldapConfigresponse;
+		Response ldapConfigresponse = new Response();
 		if (TVaultConstants.USERPASS.equals(vaultAuthMethod)) {
 			ldapConfigresponse = ControllerUtil.configureUserpassUser(userName, policiesString, authToken);
-		}
-		else {
+		} else if (TVaultConstants.LDAP.equals(vaultAuthMethod)) {
 			ldapConfigresponse = ControllerUtil.configureLDAPUser(userName, policiesString, groups, authToken);
+		} else if (TVaultConstants.OIDC.equals(vaultAuthMethod)) {
+			// OIDC Implementation : Entity Update
+			try {
+				ldapConfigresponse = oidcUtil.updateOIDCEntity(policies,
+						oidcEntityResponse.getEntityName());
+                oidcUtil.renewUserToken(userDetails.getClientToken());
+			} catch (Exception e) {
+				log.error(e);
+				log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+						.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+						.put(LogMessage.ACTION, "Remove User from Certificates")
+						.put(LogMessage.MESSAGE, String.format("Exception while updating the identity"))
+						.put(LogMessage.STACKTRACE, Arrays.toString(e.getStackTrace()))
+						.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL))
+						.build()));
+			}
 		}
 		if(ldapConfigresponse.getHttpstatus().equals(HttpStatus.NO_CONTENT) || ldapConfigresponse.getHttpstatus().equals(HttpStatus.OK)){
 			return updateMetadataForRemoveUserFromCertificate(userName, certificatePath, authToken, groups,
-					currentpoliciesString);
+					currentpoliciesString, userDetails, currentpolicies, oidcEntityResponse.getEntityName());
 		} else {
 			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
@@ -4294,16 +4447,21 @@ public class SSLCertificateService {
 	}
 
 	/**
+	 *
 	 * @param userName
-	 * @param certificateName
+	 * @param certificatePath
 	 * @param authToken
 	 * @param groups
 	 * @param currentpoliciesString
+	 * @param userDetails
+	 * @param currentpolicies
+	 * @param entityName
 	 * @return
 	 */
 	private ResponseEntity<String> updateMetadataForRemoveUserFromCertificate(String userName, String certificatePath,
-			String authToken, String groups, String currentpoliciesString) {
-		Response ldapConfigresponse;
+			String authToken, String groups, String currentpoliciesString, UserDetails userDetails,
+			List<String> currentpolicies, String entityName) {
+		Response ldapConfigresponse = new Response();
 		// User has been associated with certificate. Now metadata has to be deleted
 		Map<String,String> params = new HashMap<>();
 		params.put("type", "users");
@@ -4324,8 +4482,27 @@ public class SSLCertificateService {
 			if (TVaultConstants.USERPASS.equals(vaultAuthMethod)) {
 				ldapConfigresponse = ControllerUtil.configureUserpassUser(userName, currentpoliciesString, authToken);
 			}
-			else {
+			else if (TVaultConstants.LDAP.equals(vaultAuthMethod)){
 				ldapConfigresponse = ControllerUtil.configureLDAPUser(userName, currentpoliciesString, groups, authToken);
+			}else if (TVaultConstants.OIDC.equals(vaultAuthMethod)) {
+				// OIDC changes
+				try {
+					ldapConfigresponse = oidcUtil.updateOIDCEntity(currentpolicies,
+							entityName);
+                    oidcUtil.renewUserToken(userDetails.getClientToken());
+				} catch (Exception e2) {
+					log.error(e2);
+					log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+							.put(LogMessage.USER,
+									ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+							.put(LogMessage.ACTION, "Remove User from Certificates")
+							.put(LogMessage.MESSAGE,
+									String.format("Exception while updating the identity"))
+							.put(LogMessage.STACKTRACE, Arrays.toString(e2.getStackTrace()))
+							.put(LogMessage.APIURL,
+									ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL))
+							.build()));
+				}
 			}
 			if(ldapConfigresponse.getHttpstatus().equals(HttpStatus.NO_CONTENT) || ldapConfigresponse.getHttpstatus().equals(HttpStatus.OK)) {
 				log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
@@ -4346,7 +4523,7 @@ public class SSLCertificateService {
 			}
 		}
 	}
-
+	
 	/**
      * Remove Group from certificate
      * @param certificateGroup
@@ -4354,7 +4531,7 @@ public class SSLCertificateService {
      * @return
      */
     public ResponseEntity<String> removeGroupFromCertificate(CertificateGroup certificateGroup, UserDetails userDetails) {
-
+    	
     	if(!areCertificateGroupInputsValid(certificateGroup)) {
    			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
    					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
@@ -4364,31 +4541,31 @@ public class SSLCertificateService {
    					build()));
    			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid input values\"]}");
    		}
-
+    	
         log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
                 put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
                 put(LogMessage.ACTION, SSLCertificateConstants.REMOVE_GROUP_FROM_CERT_MSG).
                 put(LogMessage.MESSAGE, String.format("Trying to remove Group from certificate - [%s]", certificateGroup.toString())).
                 put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
                 build()));
-
+        
         String groupName = certificateGroup.getGroupname().toLowerCase();
    		String certificateName = certificateGroup.getCertificateName().toLowerCase();
    		String certificateType = certificateGroup.getCertType();
    		String authToken = null;
-
+   		
    		boolean isAuthorized = true;
-
+   		
    		if (!ObjectUtils.isEmpty(userDetails)) {
    			if (userDetails.isAdmin()) {
-   				authToken = userDetails.getClientToken();
+   				authToken = userDetails.getClientToken();   	            
    	        }else {
    	        	authToken = userDetails.getSelfSupportToken();
    	        }
    			SSLCertificateMetadataDetails certificateMetaData = certificateUtils.getCertificateMetaData(authToken, certificateName, certificateType);
-
+   			
    			isAuthorized = certificateUtils.hasAddOrRemovePermission(userDetails, certificateMetaData);
-
+   			
    		}else {
    			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
    					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
@@ -4396,12 +4573,13 @@ public class SSLCertificateService {
    					put(LogMessage.MESSAGE, "Access denied: No permission to remove group from this certificate").
    					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
    					build()));
-
+   			
    			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Access denied: No permission to remove group from this certificate\"]}");
-   		}
-
-        if(isAuthorized){
-        	return checkPolicyDetailsAndRemoveGroupFromCertificate(groupName, certificateName, authToken, certificateType);
+   		} 
+   		
+        if(isAuthorized){        	
+			return checkPolicyDetailsAndRemoveGroupFromCertificate(groupName, certificateName, authToken,
+					certificateType, userDetails);
         } else {
         	log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
                     put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
@@ -4422,29 +4600,41 @@ public class SSLCertificateService {
 	 * @return
 	 */
 	private ResponseEntity<String> checkPolicyDetailsAndRemoveGroupFromCertificate(String groupName,
-			String certificateName, String authToken, String certificateType) {
+			String certificateName, String authToken, String certificateType, UserDetails userDetails) {
+		OIDCGroup oidcGroup = new OIDCGroup();
 		String certPrefix=(certificateType.equalsIgnoreCase("internal"))?
                 SSLCertificateConstants.INTERNAL_POLICY_NAME :SSLCertificateConstants.EXTERNAL_POLICY_NAME;
-
+		
 		String metaDataPath = (certificateType.equalsIgnoreCase("internal"))?
 	            SSLCertificateConstants.SSL_CERT_PATH_VALUE :SSLCertificateConstants.SSL_CERT_PATH_VALUE_EXT;
-
+		
 		String certificatePath = metaDataPath + certificateName;
-
+		
 		String readPolicy = SSLCertificateConstants.READ_CERT_POLICY_PREFIX+certPrefix+"_"+certificateName;
 		String writePolicy = SSLCertificateConstants.WRITE_CERT_POLICY_PREFIX+certPrefix+"_"+certificateName;
 		String denyPolicy = SSLCertificateConstants.DENY_CERT_POLICY_PREFIX+certPrefix+"_"+certificateName;
 		String sudoPolicy = SSLCertificateConstants.SUDO_CERT_POLICY_PREFIX+certPrefix+"_"+certificateName;
-
+		
 		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
 				put(LogMessage.ACTION, SSLCertificateConstants.REMOVE_USER_FROM_CERT_MSG).
 				put(LogMessage.MESSAGE, String.format ("Policies are, read - [%s], write - [%s], deny -[%s], owner - [%s]", readPolicy, writePolicy, denyPolicy, sudoPolicy)).
 				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 				build()));
-
-		Response groupResp = reqProcessor.process("/auth/ldap/groups","{\"groupname\":\""+groupName+"\"}", authToken);
-
+		
+		Response groupResp = new Response();
+		if(TVaultConstants.LDAP.equals(vaultAuthMethod)){
+			groupResp = reqProcessor.process("/auth/ldap/groups","{\"groupname\":\""+groupName+"\"}", authToken);
+		}else if (TVaultConstants.OIDC.equals(vaultAuthMethod)) {
+			//call read api with groupname
+			oidcGroup= oidcUtil.getIdentityGroupDetails(groupName, authToken);
+			if (oidcGroup != null) {
+				groupResp.setHttpstatus(HttpStatus.OK);
+				groupResp.setResponse(oidcGroup.getPolicies().toString());
+			} else {
+				groupResp.setHttpstatus(HttpStatus.BAD_REQUEST);
+			}
+		}
 		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 		        put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
 		        put(LogMessage.ACTION, SSLCertificateConstants.REMOVE_USER_FROM_CERT_MSG).
@@ -4455,12 +4645,17 @@ public class SSLCertificateService {
 		String responseJson="";
 		List<String> policies = new ArrayList<>();
 		List<String> currentpolicies = new ArrayList<>();
-
+		
 		if(HttpStatus.OK.equals(groupResp.getHttpstatus())){
 		    responseJson = groupResp.getResponse();
 		    try {
-		        ObjectMapper objMapper = new ObjectMapper();
-		        currentpolicies = ControllerUtil.getPoliciesAsListFromJson(objMapper, responseJson);
+				ObjectMapper objMapper = new ObjectMapper();
+				// OIDC Changes
+				if (TVaultConstants.LDAP.equals(vaultAuthMethod)) {
+					currentpolicies = ControllerUtil.getPoliciesAsListFromJson(objMapper, responseJson);
+				} else if (TVaultConstants.OIDC.equals(vaultAuthMethod)) {
+					currentpolicies.addAll(oidcGroup.getPolicies());
+				}
 		    } catch (IOException e) {
 		        log.error(e);
 		        log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
@@ -4479,13 +4674,20 @@ public class SSLCertificateService {
 		}
 		String policiesString = org.apache.commons.lang3.StringUtils.join(policies, ",");
 		String currentpoliciesString = org.apache.commons.lang3.StringUtils.join(currentpolicies, ",");
-
-		Response ldapConfigresponse = ControllerUtil.configureLDAPGroup(groupName, policiesString, authToken);
-
+		
+		Response ldapConfigresponse = new Response();
+		// OIDC Changes
+		if (TVaultConstants.LDAP.equals(vaultAuthMethod)) {
+			ldapConfigresponse = ControllerUtil.configureLDAPGroup(groupName, policiesString, authToken);
+		} else if (TVaultConstants.OIDC.equals(vaultAuthMethod)) {
+			ldapConfigresponse = oidcUtil.updateGroupPolicies(authToken, groupName, policies, currentpolicies,
+					oidcGroup!=null?oidcGroup.getId(): null);
+			oidcUtil.renewUserToken(userDetails.getClientToken());
+		}
 		if(ldapConfigresponse.getHttpstatus().equals(HttpStatus.NO_CONTENT) || ldapConfigresponse.getHttpstatus().equals(HttpStatus.OK)){
 
 			return updateMetadataForRemoveGroupFromCertificate(groupName, certificatePath, authToken,
-					currentpoliciesString);
+					currentpoliciesString, userDetails, currentpolicies, oidcGroup.getId());
 		} else {
 			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 		            put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
@@ -4506,15 +4708,16 @@ public class SSLCertificateService {
 	 * @return
 	 */
 	private ResponseEntity<String> updateMetadataForRemoveGroupFromCertificate(String groupName, String certificatePath,
-			String authToken, String currentpoliciesString) {
+			String authToken, String currentpoliciesString, UserDetails userDetails, List<String> currentPolicies,
+			String groupId) {
 		Map<String,String> params = new HashMap<>();
 		params.put("type", "groups");
 		params.put("name", groupName);
 		params.put("path",certificatePath);
 		params.put("access","delete");
-
+		
 		Response metadataResponse = ControllerUtil.updateMetadata(params, authToken);
-
+		
 		if(metadataResponse !=null && (HttpStatus.NO_CONTENT.equals(metadataResponse.getHttpstatus()) || HttpStatus.OK.equals(metadataResponse.getHttpstatus()))){
 			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
@@ -4524,9 +4727,9 @@ public class SSLCertificateService {
 					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 					build()));
 			return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Group is successfully removed from certificate\"]}");
-		}else {
+		}else {				
 			return revertGroupPolicyIfMetadataUpdateFailed(groupName, authToken, currentpoliciesString,
-					metadataResponse);
+					metadataResponse, userDetails, currentPolicies, groupId);
 		}
 	}
 
@@ -4539,9 +4742,17 @@ public class SSLCertificateService {
 	 * @return
 	 */
 	private ResponseEntity<String> revertGroupPolicyIfMetadataUpdateFailed(String groupName, String authToken,
-			String currentpoliciesString, Response metadataResponse) {
-		Response ldapConfigresponse = ControllerUtil.configureLDAPGroup(groupName, currentpoliciesString, authToken);
-
+			String currentpoliciesString, Response metadataResponse, UserDetails userDetails,
+			List<String> currentpolicies, String groupId) {
+		Response ldapConfigresponse = new Response();
+		// OIDC Changes
+		if (TVaultConstants.LDAP.equals(vaultAuthMethod)) {
+			ldapConfigresponse = ControllerUtil.configureLDAPGroup(groupName, currentpoliciesString, authToken);
+		} else if (TVaultConstants.OIDC.equals(vaultAuthMethod)) {
+			ldapConfigresponse = oidcUtil.updateGroupPolicies(authToken, groupName, currentpolicies, currentpolicies,
+					groupId);
+			oidcUtil.renewUserToken(userDetails.getClientToken());
+		}
 		if(ldapConfigresponse.getHttpstatus().equals(HttpStatus.NO_CONTENT)){
 			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
@@ -4565,14 +4776,14 @@ public class SSLCertificateService {
 		}
 	}
 
-
+    
 	/**
 	 * Validates Certificate group inputs
 	 * @param certificateUser
 	 * @return boolean
 	 */
 	private boolean areCertificateGroupInputsValid(CertificateGroup certificateGroup) {
-
+		
 		if (ObjectUtils.isEmpty(certificateGroup)) {
 			return false;
 		}
@@ -4598,7 +4809,7 @@ public class SSLCertificateService {
 
 	/**
 	 * Get List Of internal or external certificates
-	 *
+	 * 
 	 * @param token
 	 * @param certificateType
 	 * @return
@@ -4641,7 +4852,7 @@ public class SSLCertificateService {
 			return ResponseEntity.status(response.getHttpstatus()).body(response.getResponse());
 		}
 	}
-
+	
 	/**
      * To update the owner of an existing certificate.
      * @param token
@@ -4672,8 +4883,8 @@ public class SSLCertificateService {
     		 dirUser = (DirectoryUser) users[0];
     		 certOwnerNtId = dirUser.getUserName();
     		 }
-    	}
-
+    	}   
+    	
     	if(certOwnerNtId==""){
     		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
 					.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
@@ -4737,7 +4948,7 @@ public class SSLCertificateService {
 		if(certOwnerEmailId.equalsIgnoreCase(metaDataParams.get("certOwnerEmailId")))	{
 			isValidEmail=false;
 		}
-
+				
 		if(dataObject!=null) {
 		dataMetaDataParams = new Gson().fromJson(dataObject.toString(), Map.class);
 		if(certOwnerEmailId.equalsIgnoreCase(dataMetaDataParams.get("certOwnerEmailId")))	{
@@ -5368,6 +5579,7 @@ public class SSLCertificateService {
 	 */
 	private ResponseEntity<String> removeSudoPermissionForPreviousOwner(String userName, String certificateName,
 			UserDetails userDetails, String certificateType) {
+		OIDCEntityResponse oidcEntityResponse = new OIDCEntityResponse();
 		String authToken = "";
 		String certPrefix=(certificateType.equalsIgnoreCase("internal"))?
                 SSLCertificateConstants.INTERNAL_POLICY_NAME :SSLCertificateConstants.EXTERNAL_POLICY_NAME;
@@ -5392,13 +5604,34 @@ public class SSLCertificateService {
 				put(LogMessage.MESSAGE, String.format ("Policies are, read - [%s], write - [%s], deny -[%s], owner - [%s]", readPolicy, writePolicy, denyPolicy, sudoPolicy)).
 				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 				build()));
-
-		Response userResponse;
+		
+		Response userResponse = new Response();
 		if (TVaultConstants.USERPASS.equals(vaultAuthMethod)) {
 			userResponse = reqProcessor.process("/auth/userpass/read","{\"username\":\""+userName+"\"}", authToken);
 		}
-		else {
+		else if (TVaultConstants.LDAP.equals(vaultAuthMethod)){
 			userResponse = reqProcessor.process("/auth/ldap/users","{\"username\":\""+userName+"\"}", authToken);
+		}
+		else if (TVaultConstants.OIDC.equals(vaultAuthMethod)) {
+			// OIDC implementation changes
+						ResponseEntity<OIDCEntityResponse> responseEntity = oidcUtil.oidcFetchEntityDetails(authToken, userName, userDetails);
+						if (!responseEntity.getStatusCode().equals(HttpStatus.OK)) {
+							if (responseEntity.getStatusCode().equals(HttpStatus.FORBIDDEN)) {
+								log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+										.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString())
+										.put(LogMessage.ACTION, "checkUserPolicyAndRemoveFromCertificate")
+										.put(LogMessage.MESSAGE, String.format("Trying to fetch OIDC user policies, failed"))
+										.put(LogMessage.APIURL,
+												ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString())
+										.build()));
+							}
+							return ResponseEntity.status(HttpStatus.NOT_FOUND)
+									.body("{\"messages\":[\"User configuration failed. Invalid user\"]}");
+						}
+						oidcEntityResponse.setEntityName(responseEntity.getBody().getEntityName());
+						oidcEntityResponse.setPolicies(responseEntity.getBody().getPolicies());
+						userResponse.setResponse(oidcEntityResponse.getPolicies().toString());
+						userResponse.setHttpstatus(responseEntity.getStatusCode());
 		}
 
 		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
@@ -5412,14 +5645,19 @@ public class SSLCertificateService {
 		String groups="";
 		List<String> policies = new ArrayList<>();
 		List<String> currentpolicies = new ArrayList<>();
-
+		
 		if(HttpStatus.OK.equals(userResponse.getHttpstatus())){
 			responseJson = userResponse.getResponse();
 			try {
 				ObjectMapper objMapper = new ObjectMapper();
-				currentpolicies = ControllerUtil.getPoliciesAsListFromJson(objMapper, responseJson);
-				if (!(TVaultConstants.USERPASS.equals(vaultAuthMethod))) {
-					groups =objMapper.readTree(responseJson).get("data").get("groups").asText();
+				if (TVaultConstants.OIDC.equals(vaultAuthMethod)) {
+					currentpolicies.addAll(oidcEntityResponse.getPolicies());
+					//groups = objMapper.readTree(responseJson).get("data").get("groups").asText();
+				} else {
+					currentpolicies = ControllerUtil.getPoliciesAsListFromJson(objMapper, responseJson);
+					if (TVaultConstants.LDAP.equals(vaultAuthMethod)) {
+						groups = objMapper.readTree(responseJson).get("data").get("groups").asText();
+					}
 				}
 			} catch (IOException e) {
 				log.error(e);
@@ -5431,24 +5669,41 @@ public class SSLCertificateService {
 						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 						build()));
 			}
-
-			policies.addAll(currentpolicies);
+			
+			policies.addAll(currentpolicies);			
 			policies.remove(writePolicy);
 			policies.remove(sudoPolicy);
-
+			
 		}
 		String policiesString = org.apache.commons.lang3.StringUtils.join(policies, ",");
 		String currentpoliciesString = org.apache.commons.lang3.StringUtils.join(currentpolicies, ",");
-		Response ldapConfigresponse;
+		Response ldapConfigresponse = new Response();
 		if (TVaultConstants.USERPASS.equals(vaultAuthMethod)) {
 			ldapConfigresponse = ControllerUtil.configureUserpassUser(userName, policiesString, authToken);
 		}
-		else {
+		else if (TVaultConstants.LDAP.equals(vaultAuthMethod)){
 			ldapConfigresponse = ControllerUtil.configureLDAPUser(userName, policiesString, groups, authToken);
+		}
+		else if (TVaultConstants.OIDC.equals(vaultAuthMethod)) {
+			// OIDC Implementation : Entity Update
+			try {
+				ldapConfigresponse = oidcUtil.updateOIDCEntity(policies,
+						oidcEntityResponse.getEntityName());
+                oidcUtil.renewUserToken(userDetails.getClientToken());
+			} catch (Exception e) {
+				log.error(e);
+				log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+						.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+						.put(LogMessage.ACTION, "removeSudoPermissionForPreviousOwner")
+						.put(LogMessage.MESSAGE, String.format("Exception while updating the identity"))
+						.put(LogMessage.STACKTRACE, Arrays.toString(e.getStackTrace()))
+						.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL))
+						.build()));
+			}
 		}
 		if(ldapConfigresponse.getHttpstatus().equals(HttpStatus.NO_CONTENT) || ldapConfigresponse.getHttpstatus().equals(HttpStatus.OK)){
 			return updateMetadataForRemoveUserFromCertificate(userName, certificatePath, authToken, groups,
-					policiesString);
+					currentpoliciesString, userDetails, currentpolicies, oidcEntityResponse.getEntityName());
 		} else {
 			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
@@ -5459,10 +5714,10 @@ public class SSLCertificateService {
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Failed to remvoe the user from the certificate\"]}");
 		}
 	}
-
+	
 	 /**
 	 * Delete SSL Certificate and update metadata
-	 *
+	 * 
 	 * @param certificateId
 	 * @param token
 	 * @return
@@ -5482,12 +5737,12 @@ public class SSLCertificateService {
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid input values\"]}");
 		}
 		Map<String, String> metaDataParams = new HashMap<String, String>();
-		String endPoint =certificateName;
+		String endPoint =certificateName;	
 		String metaDataPath = (certType.equalsIgnoreCase("internal"))?
                 SSLCertificateConstants.SSL_CERT_PATH + "/" + endPoint :SSLCertificateConstants.SSL_EXTERNAL_CERT_PATH + "/" + endPoint;
 		String permissionMetaDataPath = (certType.equalsIgnoreCase("internal"))?
                 SSLCertificateConstants.SSL_CERT_PATH_VALUE + "/" + endPoint :SSLCertificateConstants.SSL_CERT_PATH_VALUE_EXT + "/" + endPoint;
-
+		
 		Response response = new Response();
 		Response metadataResponse = new Response();
 		CertResponse unAssignResponse = new CertResponse();
@@ -5526,7 +5781,7 @@ public class SSLCertificateService {
 			return ResponseEntity.status(response.getHttpstatus())
 					.body("{\"errors\":[\"" + "Certificate unavailable" + "\"]}");
 		}
-
+		
 		JsonParser jsonParser = new JsonParser();
 		JsonObject object = ((JsonObject) jsonParser.parse(response.getResponse())).getAsJsonObject("data");
 
@@ -5550,9 +5805,9 @@ public class SSLCertificateService {
 			certificateUser.setAccess(entry.getValue());
 			removeUserFromCertificate( certificateUser,  userDetails);
 		 }
+		}	
 		}
-		}
-
+		
 			//remove group permissions
 				CertificateGroup certificateGroup = new CertificateGroup();
 				Map<String, String> groupParams = new HashMap<String, String>();
@@ -5569,10 +5824,10 @@ public class SSLCertificateService {
 				 }
 				}
 		}
-
+		
 			removeSudoPermissionForPreviousOwner( certificateUserId.toLowerCase(), certificateName,userDetails,certType);
 			String nclmAccessToken = getNclmToken();
-
+			
 			//find certificates
 			CertificateData certData = getLatestCertificate(certificateName,nclmAccessToken, containerId);
 			if(certData!=null) {
@@ -5651,7 +5906,7 @@ public class SSLCertificateService {
 										.build()));
 				return ResponseEntity.status(HttpStatus.FORBIDDEN).body("{\"errors\":[\"" + "Certificate unavailable in NCLM." + "\"]}");
 			}
-
+			
 	} catch (Exception e) {
 		log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
 				.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString())
@@ -5662,13 +5917,13 @@ public class SSLCertificateService {
 				.body("{\"errors\":[\"" + e.getMessage() + "\"]}");
 	}
 	}
-
+	
 	/**
      * Validate input data
      * @param sslCertificateRequest
      * @return
      */
-
+	
     private boolean validateTransferData(SSLCertificateMetadataDetails sslCertificateRequest){
         boolean isValid=true;
         if(sslCertificateRequest.getCertificateName().contains(" ") ||
@@ -5833,4 +6088,100 @@ public class SSLCertificateService {
 		Matcher matcher = pattern.matcher(email);
 		return matcher.matches();
 	}
+
+	/**
+	 * Get Certificates for non-admin
+	 * @param userDetails
+	 * @param token
+	 * @return
+	 */
+	public ResponseEntity<String> getAllCertificatesOnCertType(UserDetails userDetails, String certificateType) {
+		oidcUtil.renewUserToken(userDetails.getClientToken());
+		String token = userDetails.getSelfSupportToken();
+		if (userDetails.isAdmin()) {
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(JSONUtil.getJSON(null));
+		}
+		String certificatePrefix = TVaultConstants.CERT_POLICY_PREFIX;
+		if (certificateType.equals(SSLCertificateConstants.EXTERNAL)) {
+			certificatePrefix = TVaultConstants.CERT_POLICY_EXTERNAL_PREFIX;
+		}
+		String[] policies = policyUtils.getCurrentPolicies(token, userDetails.getUsername(), userDetails);
+
+		policies = filterPoliciesBasedOnPrecedence(Arrays.asList(policies));
+
+		List<Map<String, String>> certListUsers = new ArrayList<>();
+		Map<String, List<Map<String, String>>> safeList = new HashMap<>();
+		if (policies != null) {
+			for (String policy : policies) {
+				Map<String, String> safePolicy = new HashMap<>();
+				String[] _policies = policy.split("_", -1);
+				if (_policies.length >= 3) {
+					String[] policyName = Arrays.copyOfRange(_policies, 2, _policies.length);
+					String safeName = String.join("_", policyName);
+					String safeType = _policies[1];
+
+					if (policy.startsWith("r_")) {
+						safePolicy.put(safeName, "read");
+					} else if (policy.startsWith("w_")) {
+						safePolicy.put(safeName, "write");
+					} else if (policy.startsWith("d_")) {
+						safePolicy.put(safeName, "deny");
+					}
+					if (!safePolicy.isEmpty()) {
+						if (safeType.equals(certificatePrefix)) {
+							certListUsers.add(safePolicy);
+						}
+					}
+				}
+			}
+			safeList.put(certificatePrefix, certListUsers);
+		}
+		return ResponseEntity.status(HttpStatus.OK).body(JSONUtil.getJSON(safeList));
+	}
+
+	/**
+	 * Filter svc policies based on policy precedence.
+	 * @param policies
+	 * @return
+	 */
+	private String [] filterPoliciesBasedOnPrecedence(List<String> policies) {
+		List<String> filteredList = new ArrayList<>();
+		for (int i = 0; i < policies.size(); i++ ) {
+			String policyName = policies.get(i);
+			String[] _policy = policyName.split("_", -1);
+			if (_policy.length >= 3) {
+				String itemName = policyName.substring(1);
+				List<String> matchingPolicies = filteredList.stream().filter(p->p.substring(1).equals(itemName)).collect(Collectors.toList());
+				if (!matchingPolicies.isEmpty()) {
+					/* deny has highest priority. Read and write are additive in nature
+						Removing all matching as there might be duplicate policies from user and groups
+					*/
+					if (policyName.startsWith("d_") || (policyName.startsWith("w_") && !matchingPolicies.stream().anyMatch(p-> p.equals("d"+itemName)))) {
+						filteredList.removeAll(matchingPolicies);
+						filteredList.add(policyName);
+					}
+					else if (matchingPolicies.stream().anyMatch(p-> p.equals("d"+itemName))) {
+						// policy is read and deny already in the list. Then deny has precedence.
+						filteredList.removeAll(matchingPolicies);
+						filteredList.add("d"+itemName);
+					}
+					else if (matchingPolicies.stream().anyMatch(p-> p.equals("w"+itemName))) {
+						// policy is read and write already in the list. Then write has precedence.
+						filteredList.removeAll(matchingPolicies);
+						filteredList.add("w"+itemName);
+					}
+					else if (matchingPolicies.stream().anyMatch(p-> p.equals("r"+itemName)) || matchingPolicies.stream().anyMatch(p-> p.equals("s"+itemName))) {
+						// policy is read and read already in the list. Then remove all duplicates read and add single read permission for that safe.
+						filteredList.removeAll(matchingPolicies);
+						filteredList.add("r"+itemName);
+					}
+				}
+				else {
+					filteredList.add(policyName);
+				}
+			}
+		}
+		return filteredList.toArray(new String[0]);
+	}
+
 }

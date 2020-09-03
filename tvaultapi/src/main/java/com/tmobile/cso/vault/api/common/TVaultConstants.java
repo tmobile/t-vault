@@ -142,6 +142,7 @@ public class TVaultConstants {
     }
 
     public static final String CERT_POLICY_PREFIX="cert";
+    public static final String CERT_POLICY_EXTERNAL_PREFIX="externalcerts";
     public static final String PATH_DELIMITER="/";
 
     public static final String AUTH_TYPE_OIDC = "oidc";
