@@ -172,10 +172,6 @@
                 $scope.isLoadingData = false;
                 console.log(error);
             })
-                .catch(function (catchError) {
-                    $scope.isLoadingData = false;
-                    console.log(catchError);
-                })
         }
 
         $scope.isInternalCertificate = function(){
