@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import TextField from '@material-ui/core/TextField';
 import styled from 'styled-components';
 import PropTypes from 'prop-types';
-import ButtonComponent from './buttonComponent';
+import ButtonComponent from '../common/ButtonComponent';
 
 const SecretWrapper = styled.section`
   padding: 2rem;
