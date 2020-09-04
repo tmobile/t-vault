@@ -5,7 +5,6 @@ import InfiniteScroll from 'react-infinite-scroller';
 import PropTypes from 'prop-types';
 import { Link, Route, Switch } from 'react-router-dom';
 import { Input, InputAdornment } from '@material-ui/core';
-import MuiButton from 'components/common/MuiButton';
 import PsudoPopper from 'components/common/PsudoPopper';
 import SafeDetails from 'components/containers/SafeDetails';
 import styled from 'styled-components';
@@ -14,7 +13,6 @@ import Dropdown from 'components/common/SelectDropdown';
 
 import FolderIcon from '@material-ui/icons/Folder';
 import SearchIcon from '@material-ui/icons/Search';
-import AddIcon from '@material-ui/icons/Add';
 import ComponentError from '../../../errorBoundaries/ComponentError/component-error';
 
 // mock data
@@ -189,7 +187,7 @@ const SafeSectionWrap = (props) => {
         <ColumnSection>
           <ColumnHeader>
             <Dropdown />
-            <MuiButton label="Create" icon={<AddIcon />} />
+            <Link to="/safe/create-safe">Create</Link>
           </ColumnHeader>
           <SearchInput
             startAdornment={
