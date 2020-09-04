@@ -133,7 +133,7 @@ const SafeSectionWrap = (props) => {
     return new Promise((resolve) =>
       setTimeout(() => {
         resolve({
-          name: 'sample/safe-7',
+          name: `safe-${Math.ceil(Math.random() * 100)}`,
           desc:
             'Hello yhis is the sample description of thesafety used here. it shows description about safety type and so on',
           date: '2 days ago , 9:20 pm',
@@ -145,7 +145,7 @@ const SafeSectionWrap = (props) => {
 
   const loadMoreData = () => {
     getSafesList().then((res) => {
-      setMoreData(false);
+      // setMoreData(false);
       setSafeList((prev) => [...prev, res]);
     });
   };
@@ -202,7 +202,10 @@ const SafeSectionWrap = (props) => {
           <SafeListContainer ref={(ref) => (scrollParentRef = ref)}>
             <InfiniteScroll
               pageStart={0}
-              loadMore={() => loadMoreData()}
+              loadMore={() => {
+                console.log('Load more data called---');
+                loadMoreData();
+              }}
               hasMore={moreData}
               threshold={100}
               loader={<div key={0}>Loading...</div>}

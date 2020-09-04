@@ -414,10 +414,10 @@ const customTheme = createMuiTheme({
     },
   },
   baseFontSize: {
-    fontSize: '1.125vw',
-    '@media only all and (max-width: 1279px)': {
-      fontSize: '10px',
-    },
+    // ,fontSize: '1.125vw',
+    // '@media only all and (max-width: 1279px)': {
+    fontSize: '10px',
+    // },
   },
   // boxShadow: '0 2px 4px 0 rgba(0, 0, 0, 0.5)',
   colorPalette: {

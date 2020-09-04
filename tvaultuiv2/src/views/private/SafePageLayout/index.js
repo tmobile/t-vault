@@ -11,7 +11,7 @@ import ComponentError from 'errorBoundaries/ComponentError/component-error';
 
 const SafeSectionPreview = styled('section')`
   border: 2px solid #ccc;
-  width: 80%;
+  // width: 80%;
   margin: 3em auto;
 `;
 
