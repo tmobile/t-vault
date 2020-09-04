@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import styled from 'styled-components';
 // eslint-disable-next-line import/no-unresolved
-import ComponentError from 'errorBoundaries/ComponentError/component-error';
+import ComponentError from '../../errorBoundaries/ComponentError/component-error';
 
 const HeaderWrap = styled('div')`
   display: flex;
@@ -37,12 +37,17 @@ const ProfileIconWrap = styled('div')`
   display: flex;
 `;
 const Header = () => {
-  const navItems = ['safe', 'applications', 'service accounts', 'certificates'];
+  const navItems = [
+    { label: 'Safe', path: 'safe' },
+    { label: 'Applications', path: 'applications' },
+    { label: 'Service accounts', path: 'service-accounts' },
+    { label: 'Certificates', path: 'certificates' },
+  ];
   // const { location, theme } = props;
   const [activeNav, setActiveNav] = useState('safe');
 
   const handleNavChange = (e, item) => {
-    setActiveNav(item);
+    setActiveNav(item.label);
   };
 
   return (
@@ -52,16 +57,16 @@ const Header = () => {
         <HeaderCenter>
           {navItems.map((item) => (
             <NavItem
-              to={`/${item}`}
-              key={item}
+              to={`/${item.path}`}
+              key={item.label}
               onClick={(e) => handleNavChange(e, item)}
               active={
-                activeNav === item
+                activeNav === item.label
                   ? { color: '#fff', backgroundColor: '#e20074' }
                   : { color: '#4a4a4a', backgroundColor: '#f2f2f2' }
               }
             >
-              {item}
+              {item.label}
             </NavItem>
           ))}
         </HeaderCenter>
