@@ -14,14 +14,14 @@ import Tab from '@material-ui/core/Tab';
 import Typography from '@material-ui/core/Typography';
 import Box from '@material-ui/core/Box';
 import ComponentError from 'errorBoundaries/ComponentError/component-error';
-import AddFolder from 'components/add-folder';
+import AddIcon from '@material-ui/icons/Add';
+import AddFolder from 'views/private/safe/components/AddFolder';
 // import CreateSecret from 'components/createSecret';
 
 // eslint-disable-next-line import/no-unresolved
 
 // import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
 // import FolderIcon from '@material-ui/icons/Folder';
-import AddIcon from '@material-ui/icons/Add';
 import AccordionFolder from '../../common/AccordionFolder';
 import MuiButton from '../../common/MuiButton';
 import DialogeBox from '../../common/DialogeBox';
