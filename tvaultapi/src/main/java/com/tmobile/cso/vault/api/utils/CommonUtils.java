@@ -52,6 +52,20 @@ public class CommonUtils {
 		else {
 			policies.add(policiesNode.asText());
 		}
+
+		// get identity policies
+		JsonNode identityPoliciesNode = objMapper.readTree(policyJson).get("identity_policies");
+		if (identityPoliciesNode.isContainerNode()) {
+			Iterator<JsonNode> elementsIterator = identityPoliciesNode.elements();
+			while (elementsIterator.hasNext()) {
+				JsonNode element = elementsIterator.next();
+				policies.add(element.asText());
+			}
+		}
+		else {
+			policies.add(identityPoliciesNode.asText());
+		}
+
 		return policies.toArray(new String[policies.size()]);
 	}
 }

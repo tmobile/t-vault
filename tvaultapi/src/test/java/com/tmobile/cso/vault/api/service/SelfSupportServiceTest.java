@@ -18,6 +18,7 @@
 package com.tmobile.cso.vault.api.service;
 
 import com.tmobile.cso.vault.api.controller.ControllerUtil;
+import com.tmobile.cso.vault.api.controller.OIDCUtil;
 import com.tmobile.cso.vault.api.exception.TVaultValidationException;
 import com.tmobile.cso.vault.api.model.*;
 import com.tmobile.cso.vault.api.utils.AuthorizationUtils;
@@ -86,6 +87,9 @@ public class SelfSupportServiceTest {
     @Mock
     AppRoleService appRoleService;
 
+    @Mock
+    OIDCUtil OIDCUtil;
+
     @Before
     public void setUp() {
         PowerMockito.mockStatic(ControllerUtil.class);
@@ -113,7 +117,7 @@ public class SelfSupportServiceTest {
         when(ControllerUtil.isPathValid("shared/mysafe01")).thenReturn(true);
         when(ControllerUtil.getSafeType("shared/mysafe01")).thenReturn("shared");
         when(ControllerUtil.getSafeName("shared/mysafe01")).thenReturn("mysafe01");when(safeUtils.getSafeMetaData(Mockito.any(), eq("shared"), eq("mysafe01"))).thenReturn(safe);
-        when(policyUtils.getCurrentPolicies(Mockito.any(), eq("normaluser"))).thenReturn(policies);
+        when(policyUtils.getCurrentPolicies(Mockito.any(), eq("normaluser"), Mockito.any())).thenReturn(policies);
         when(policyUtils.getPoliciesTobeCheked("shared", "mysafe01")).thenReturn(policiesTobeChecked);
         when(authorizationUtils.isAuthorized(userDetails, safe, policies, policiesTobeChecked, false)).thenReturn(isAuthorized);
     }
@@ -130,7 +134,7 @@ public class SelfSupportServiceTest {
         ReflectionTestUtils.setField(selfSupportService, "safeQuota", "2");
         when(ControllerUtil.getSafeType("shared/mysafe01")).thenReturn("shared");
         String [] policies = {"s_shared_s1"};
-        when(policyUtils.getCurrentPolicies(token, "normaluser")).thenReturn(policies);
+        when(policyUtils.getCurrentPolicies(token, "normaluser", userDetails)).thenReturn(policies);
         String [] safes = {"s1"};
         when(safeUtils.getManagedSafes(policies, "shared")).thenReturn(safes);
         when(safesService.createSafe(token, safe)).thenReturn(readResponse);
@@ -152,7 +156,7 @@ public class SelfSupportServiceTest {
         ReflectionTestUtils.setField(selfSupportService, "safeQuota", "2");
         when(ControllerUtil.getSafeType("shared/mysafe01")).thenReturn("shared");
         String [] policies = {"s_shared_s1, s_shared_s2"};
-        when(policyUtils.getCurrentPolicies(token, "normaluser")).thenReturn(policies);
+        when(policyUtils.getCurrentPolicies(token, "normaluser", userDetails)).thenReturn(policies);
         String [] safes = {"s1", "s2"};
         when(safeUtils.getManagedSafes(policies, "shared")).thenReturn(safes);
         when(safesService.createSafe(token, safe)).thenReturn(readResponse);
@@ -207,7 +211,7 @@ public class SelfSupportServiceTest {
         ResponseEntity<String> response = ResponseEntity.status(HttpStatus.OK).body(responseJson);
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(responseJson);
 
-        when(policyUtils.getCurrentPolicies(Mockito.any(), eq("normaluser"))).thenReturn(policies);
+        when(policyUtils.getCurrentPolicies(Mockito.any(), eq("normaluser"), Mockito.any())).thenReturn(policies);
         when(safeUtils.getManagedSafes(policies, path)).thenReturn(safes);
         when(safesService.getFoldersRecursively(token, path)).thenReturn(response);
         when(JSONUtil.getJSON(Mockito.any(HashMap.class))).thenReturn("{\"keys\":[\"mysafe01\"]}");
@@ -296,7 +300,7 @@ public class SelfSupportServiceTest {
         ResponseEntity<String> response = ResponseEntity.status(HttpStatus.OK).body("{\"Message\":\"User association is removed \"}");
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body("{\"Message\":\"User association is removed \"}");
 
-        when(safesService.removeUserFromSafe(token, safeUser)).thenReturn(response);
+        when(safesService.removeUserFromSafe(token, safeUser, userDetails)).thenReturn(response);
         when(safeUtils.canAddOrRemoveUser(userDetails, safeUser, "removeUser")).thenReturn(true);
 
         ResponseEntity<String> responseEntity = selfSupportService.removeUserFromSafe(userDetails, token, safeUser);
@@ -314,7 +318,7 @@ public class SelfSupportServiceTest {
         ResponseEntity<String> response = ResponseEntity.status(HttpStatus.OK).body("{\"Message\":\"User association is removed \"}");
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body("{\"Message\":\"User association is removed \"}");
 
-        when(safesService.removeUserFromSafe(token, safeUser)).thenReturn(response);
+        when(safesService.removeUserFromSafe(token, safeUser, userDetails)).thenReturn(response);
         when(safeUtils.canAddOrRemoveUser(userDetails, safeUser, "removeUser")).thenReturn(true);
 
         ResponseEntity<String> responseEntity = selfSupportService.removeUserFromSafe(userDetails, token, safeUser);
@@ -418,7 +422,7 @@ public class SelfSupportServiceTest {
         when(safesService.getSafe(token, path)).thenReturn(response);
 
         when(safeUtils.getSafeMetaData(Mockito.any(), eq("shared"), eq("mysafe01"))).thenReturn(safe);
-        when(policyUtils.getCurrentPolicies(Mockito.any(), eq("normaluser"))).thenReturn(policies);
+        when(policyUtils.getCurrentPolicies(Mockito.any(), eq("normaluser"), Mockito.any())).thenReturn(policies);
 
         when(authorizationUtils.isAuthorized(eq(userDetails),eq(safe),eq(policies),Mockito.any(), eq(false))).thenReturn(false);
         ResponseEntity<String> responseEntity = selfSupportService.getSafe(userDetails, token, path);
@@ -444,7 +448,7 @@ public class SelfSupportServiceTest {
         when(ControllerUtil.getSafeName(path)).thenReturn("mysafe01");
         when(safesService.getSafe(token, path)).thenReturn(response);
         when(safeUtils.getSafeMetaData(Mockito.any(), eq("shared"), eq("mysafe01"))).thenReturn(safe);
-        when(policyUtils.getCurrentPolicies(Mockito.any(), eq("normaluser"))).thenReturn(policies);
+        when(policyUtils.getCurrentPolicies(Mockito.any(), eq("normaluser"), Mockito.any())).thenReturn(policies);
         when(authorizationUtils.isAuthorized(eq(userDetails),eq(safe),eq(policies),Mockito.any(), eq(false))).thenReturn(true);
         ResponseEntity<String> responseEntity = selfSupportService.getSafe(userDetails, token, path);
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
@@ -554,7 +558,7 @@ public class SelfSupportServiceTest {
         UserDetails userDetails = getMockUser(false);
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"SDB deleted\"]}");
         ResponseEntity<String> response = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"SDB deleted\"]}");
-        when(safesService.deletefolder(token, path)).thenReturn(response);
+        when(safesService.deletefolder(token, path, userDetails)).thenReturn(response);
         mockIsAuthorized(userDetails, true);
         ResponseEntity<String> responseEntity = selfSupportService.deletefolder(userDetails, token, path);
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
@@ -568,7 +572,7 @@ public class SelfSupportServiceTest {
         UserDetails userDetails = getMockUser(true);
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"SDB deleted\"]}");
         ResponseEntity<String> response = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"SDB deleted\"]}");
-        when(safesService.deletefolder(token, path)).thenReturn(response);
+        when(safesService.deletefolder(token, path, userDetails)).thenReturn(response);
 
         ResponseEntity<String> responseEntity = selfSupportService.deletefolder(userDetails, token, path);
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
@@ -609,7 +613,7 @@ public class SelfSupportServiceTest {
         UserDetails userDetails = getMockUser(false);
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Group is successfully associated with Safe\"]}");
         ResponseEntity<String> response = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Group is successfully associated with Safe\"]}");
-        when(safesService.addGroupToSafe(token, safeGroup)).thenReturn(response);
+        when(safesService.addGroupToSafe(token, safeGroup, userDetails)).thenReturn(response);
         String[] policies = {"s_shared_mysafe01"};
         ArrayList<String> policiesTobeChecked = new ArrayList<String>();
         policiesTobeChecked.add("s_shared_mysafe01");
@@ -618,7 +622,7 @@ public class SelfSupportServiceTest {
         when(ControllerUtil.isPathValid(path)).thenReturn(true);
         when(ControllerUtil.getSafeType("shared/mysafe01")).thenReturn("shared");
         when(ControllerUtil.getSafeName("shared/mysafe01")).thenReturn("mysafe01");when(safeUtils.getSafeMetaData(Mockito.any(), eq("shared"), eq("mysafe01"))).thenReturn(safe);
-        when(policyUtils.getCurrentPolicies(Mockito.any(), eq("normaluser"))).thenReturn(policies);
+        when(policyUtils.getCurrentPolicies(Mockito.any(), eq("normaluser"), Mockito.any())).thenReturn(policies);
         when(policyUtils.getPoliciesTobeCheked("shared", "mysafe01")).thenReturn(policiesTobeChecked);
         when(authorizationUtils.isAuthorized(userDetails, safe, policies, policiesTobeChecked, false)).thenReturn(true);
 
@@ -635,7 +639,7 @@ public class SelfSupportServiceTest {
         UserDetails userDetails = getMockUser(true);
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Group is successfully associated with Safe\"]}");
         ResponseEntity<String> response = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Group is successfully associated with Safe\"]}");
-        when(safesService.addGroupToSafe(token, safeGroup)).thenReturn(response);
+        when(safesService.addGroupToSafe(token, safeGroup, userDetails)).thenReturn(response);
 
         ResponseEntity<String> responseEntity = selfSupportService.addGroupToSafe(userDetails, token, safeGroup);
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
@@ -650,7 +654,7 @@ public class SelfSupportServiceTest {
         UserDetails userDetails = getMockUser(false);
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.FORBIDDEN).body("{\"errors\":[\"Access denied: no permission to add group to the safe\"]}");
         ResponseEntity<String> response = ResponseEntity.status(HttpStatus.FORBIDDEN).body("{\"errors\":[\"Access denied: no permission to add group to the safe\"]}");
-        when(safesService.addGroupToSafe(token, safeGroup)).thenReturn(response);
+        when(safesService.addGroupToSafe(token, safeGroup, userDetails)).thenReturn(response);
 
         String[] policies = {"s_shared_mysafe01"};
         ArrayList<String> policiesTobeChecked = new ArrayList<String>();
@@ -660,7 +664,7 @@ public class SelfSupportServiceTest {
         when(ControllerUtil.isPathValid(path)).thenReturn(true);
         when(ControllerUtil.getSafeType("shared/mysafe01")).thenReturn("shared");
         when(ControllerUtil.getSafeName("shared/mysafe01")).thenReturn("mysafe01");when(safeUtils.getSafeMetaData(Mockito.any(), eq("shared"), eq("mysafe01"))).thenReturn(safe);
-        when(policyUtils.getCurrentPolicies(Mockito.any(), eq("normaluser"))).thenReturn(policies);
+        when(policyUtils.getCurrentPolicies(Mockito.any(), eq("normaluser"), Mockito.any())).thenReturn(policies);
         when(policyUtils.getPoliciesTobeCheked("shared", "mysafe01")).thenReturn(policiesTobeChecked);
         when(authorizationUtils.isAuthorized(userDetails, safe, policies, policiesTobeChecked, false)).thenReturn(false);
 
@@ -693,7 +697,7 @@ public class SelfSupportServiceTest {
         ResponseEntity<String> response = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Group association is removed \"]}");
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Group association is removed \"]}");
 
-        when(safesService.removeGroupFromSafe(token, safeGroup)).thenReturn(response);
+        when(safesService.removeGroupFromSafe(token, safeGroup, userDetails)).thenReturn(response);
         String[] policies = {"s_shared_mysafe01"};
         ArrayList<String> policiesTobeChecked = new ArrayList<String>();
         policiesTobeChecked.add("s_shared_mysafe01");
@@ -702,7 +706,7 @@ public class SelfSupportServiceTest {
         when(ControllerUtil.isPathValid("shared/mysafe01")).thenReturn(true);
         when(ControllerUtil.getSafeType("shared/mysafe01")).thenReturn("shared");
         when(ControllerUtil.getSafeName("shared/mysafe01")).thenReturn("mysafe01");when(safeUtils.getSafeMetaData(Mockito.any(), eq("shared"), eq("mysafe01"))).thenReturn(safe);
-        when(policyUtils.getCurrentPolicies(Mockito.any(), eq("normaluser"))).thenReturn(policies);
+        when(policyUtils.getCurrentPolicies(Mockito.any(), eq("normaluser"), Mockito.any())).thenReturn(policies);
         when(policyUtils.getPoliciesTobeCheked("shared", "mysafe01")).thenReturn(policiesTobeChecked);
         when(authorizationUtils.isAuthorized(userDetails, safe, policies, policiesTobeChecked, false)).thenReturn(true);
 
@@ -720,7 +724,7 @@ public class SelfSupportServiceTest {
         ResponseEntity<String> response = ResponseEntity.status(HttpStatus.FORBIDDEN).body("{\"errors\":[\"Access denied: no permission to remove group from the safe\"]}");
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.FORBIDDEN).body("{\"errors\":[\"Access denied: no permission to remove group from the safe\"]}");
 
-        when(safesService.removeGroupFromSafe(token, safeGroup)).thenReturn(response);
+        when(safesService.removeGroupFromSafe(token, safeGroup, userDetails)).thenReturn(response);
         String[] policies = {"s_shared_mysafe01"};
         ArrayList<String> policiesTobeChecked = new ArrayList<String>();
         policiesTobeChecked.add("s_shared_mysafe01");
@@ -729,7 +733,7 @@ public class SelfSupportServiceTest {
         when(ControllerUtil.isPathValid("shared/mysafe01")).thenReturn(true);
         when(ControllerUtil.getSafeType("shared/mysafe01")).thenReturn("shared");
         when(ControllerUtil.getSafeName("shared/mysafe01")).thenReturn("mysafe01");when(safeUtils.getSafeMetaData(Mockito.any(), eq("shared"), eq("mysafe01"))).thenReturn(safe);
-        when(policyUtils.getCurrentPolicies(Mockito.any(), eq("normaluser"))).thenReturn(policies);
+        when(policyUtils.getCurrentPolicies(Mockito.any(), eq("normaluser"), Mockito.any())).thenReturn(policies);
         when(policyUtils.getPoliciesTobeCheked("shared", "mysafe01")).thenReturn(policiesTobeChecked);
         when(authorizationUtils.isAuthorized(userDetails, safe, policies, policiesTobeChecked, false)).thenReturn(false);
 
@@ -747,7 +751,7 @@ public class SelfSupportServiceTest {
         ResponseEntity<String> response = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Group association is removed \"]}");
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Group association is removed \"]}");
 
-        when(safesService.removeGroupFromSafe(token, safeGroup)).thenReturn(response);
+        when(safesService.removeGroupFromSafe(token, safeGroup, userDetails)).thenReturn(response);
         ResponseEntity<String> responseEntity = selfSupportService.removeGroupFromSafe(userDetails, token, safeGroup);
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
@@ -1541,7 +1545,7 @@ public class SelfSupportServiceTest {
         String [] policies = {"r_users_s1", "w_users_s2", "r_shared_s3", "w_shared_s4", "r_apps_s5", "w_apps_s6", "d_apps_s7"};
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body("{\"shared\":[{\"s3\":\"read\"},{\"s4\":\"write\"}],\"users\":[{\"s1\":\"read\"},{\"s2\":\"write\"}],\"apps\":[{\"s5\":\"read\"},{\"s6\":\"write\"},{\"s7\":\"deny\"}]}");
 
-        when(policyUtils.getCurrentPolicies(token, userDetails.getUsername())).thenReturn(policies);
+        when(policyUtils.getCurrentPolicies(token, userDetails.getUsername(), userDetails)).thenReturn(policies);
         when(JSONUtil.getJSON(Mockito.any())).thenReturn("{\"shared\":[{\"s3\":\"read\"},{\"s4\":\"write\"}],\"users\":[{\"s1\":\"read\"},{\"s2\":\"write\"}],\"apps\":[{\"s5\":\"read\"},{\"s6\":\"write\"},{\"s7\":\"deny\"}]}");
         ResponseEntity<String> responseEntity = selfSupportService.getSafes(userDetails, token);
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());

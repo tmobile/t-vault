@@ -41,9 +41,11 @@ public class TVaultConstants {
     public static final String USERS = "users";
     public static final String GROUPS = "groups";
     public static final String AWS_ROLES = "aws-roles";
+    public static final String APP_ROLES = "app-roles";
     public static final String EMPTY = "";
     public static final String USERPASS = "userpass";
     public static final String LDAP = "ldap";
+    public static final String OIDC = "oidc";
     public static final String DELETE = "delete";
     public static final String IAM = "iam";
     public static final String CREATE ="create";
@@ -107,6 +109,10 @@ public class TVaultConstants {
     public static final String EMAIL_TEMPLATE_NAME = "emailtemplate";
     public static final String IMAGE_FORMAT_PNG = "png";
     public static final String IMAGE_TYPE_PNG = "image/png";
+    public static final String EMAIL_TEMPLATE_NAME_CREATE_CERT = "InternalCertCreateTemplate";
+    public static final String EMAIL_TEMPLATE_NAME_EXTERNAL_CERT = "ExteralCertCreateTemplate";
+    public static final String EMAIL_TEMPLATE_NAME_DELETE_CERT = "CertDeleteTemplate";
+    public static final String EMAIL_TEMPLATE_NAME_TRANSFER = "TransferTemplate";
 
     public static final Map<String, String> EMAIL_TEMPLATE_IMAGE_IDS;
     static {
@@ -118,6 +124,37 @@ public class TVaultConstants {
         EMAIL_TEMPLATE_IMAGE_IDS.put("permission", "templates/images/permission.png");
         EMAIL_TEMPLATE_IMAGE_IDS.put("permissiontab", "templates/images/permissiontab.png");
         EMAIL_TEMPLATE_IMAGE_IDS.put("adduser", "templates/images/adduser.png");
+        }
+    public static final String HTTP_CONTENT_TYPE_JSON = "application/json";
+    public static final String HTTP_CONTENT_TYPE_URL_ENCODED = "application/x-www-form-urlencoded";
+
+
+
+    public static final Map<String, String> EMAIL_EXT_TEMPLATE_IMAGE_IDS;
+    static {
+        EMAIL_EXT_TEMPLATE_IMAGE_IDS = Collections.synchronizedMap(new HashMap<String, String>());
+        EMAIL_EXT_TEMPLATE_IMAGE_IDS.put("certmanage", "templates/images/certmanage.png");
+        EMAIL_EXT_TEMPLATE_IMAGE_IDS.put("certmanagement", "templates/images/certmanagement.png");
+        EMAIL_EXT_TEMPLATE_IMAGE_IDS.put("certview", "templates/images/certview.png");
+        EMAIL_EXT_TEMPLATE_IMAGE_IDS.put("certificate", "templates/images/certificate.png");
+        EMAIL_EXT_TEMPLATE_IMAGE_IDS.put("search", "templates/images/search.png");
+        EMAIL_EXT_TEMPLATE_IMAGE_IDS.put("download", "templates/images/download.png");
+        EMAIL_EXT_TEMPLATE_IMAGE_IDS.put("ext_download", "templates/images/ext_download.png");
+        EMAIL_EXT_TEMPLATE_IMAGE_IDS.put("ext_search", "templates/images/ext_search.png");
+        EMAIL_EXT_TEMPLATE_IMAGE_IDS.put("ext_certficate", "templates/images/ext_certficate.png");
+        EMAIL_EXT_TEMPLATE_IMAGE_IDS.put("ext_view_edit", "templates/images/ext_view_edit.png");
     }
 
+    public static final String CERT_POLICY_PREFIX="cert";
+    public static final String CERT_POLICY_EXTERNAL_PREFIX="externalcerts";
+    public static final String EXTERNAL_CERT_POLICY_PREFIX="externalcerts";
+    public static final String PATH_DELIMITER="/";
+
+    public static final String ALIAS_MOUNT_ACCESSOR = "accessor";
+    public static final String ENTITY_NAME = "name";
+    public static final String POLICIES = "policies";
+    public static final String EXTERNAL_TYPE = "external";
+    public static final String IDENTITY_POLICIES = "identity_policies";
+    public static final String ENTITY_DISPLAY_NAME = "display_name";
+    public static final String OIDC_AUTH_PATH = "auth/oidc/oidc/callback";
 }

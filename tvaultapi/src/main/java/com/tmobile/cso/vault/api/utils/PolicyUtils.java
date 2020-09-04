@@ -21,15 +21,20 @@ import java.io.IOException;
 import java.util.ArrayList;
 
 import com.tmobile.cso.vault.api.common.TVaultConstants;
+import com.tmobile.cso.vault.api.model.OIDCEntityResponse;
+import com.tmobile.cso.vault.api.model.UserDetails;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
 import com.tmobile.cso.vault.api.controller.ControllerUtil;
+import com.tmobile.cso.vault.api.controller.OIDCUtil;
 import com.tmobile.cso.vault.api.exception.LogMessage;
 import com.tmobile.cso.vault.api.process.Response;
 @Component
@@ -39,6 +44,9 @@ public class PolicyUtils {
 	
 	@Value("${vault.auth.method}")
 	private String vaultAuthMethod;
+	
+	@Autowired
+	private OIDCUtil oidcUtil;
 	
 	public PolicyUtils() {
 		// TODO Auto-generated constructor stub
@@ -84,21 +92,30 @@ public class PolicyUtils {
 	 * @param username
 	 * @return
 	 */
-	public String[] getCurrentPolicies(String token, String username) {
-		Response userResponse;
+	public String[] getCurrentPolicies(String token, String username, UserDetails userDetails) {
+		Response userResponse = new Response();
 		String[] policies = {};
 		if (TVaultConstants.USERPASS.equals(vaultAuthMethod)) {
 			userResponse = ControllerUtil.getReqProcessor().process("/auth/userpass/read","{\"username\":\""+username+"\"}",token);
 		}
-		else {
+		else if (TVaultConstants.LDAP.equals(vaultAuthMethod)) {
 			userResponse = ControllerUtil.getReqProcessor().process("/auth/ldap/users","{\"username\":\""+username+"\"}",token);
+		}
+		else if(TVaultConstants.OIDC.equals(vaultAuthMethod)) {
+			ResponseEntity<OIDCEntityResponse> responseEntity = oidcUtil.oidcFetchEntityDetails(token, username, userDetails);
+			userResponse.setHttpstatus(responseEntity.getStatusCode());
+			if (HttpStatus.OK.equals(responseEntity.getStatusCode())) {
+				policies = responseEntity.getBody().getPolicies().stream().toArray(String[] :: new);
+			}
 		}
 		if(HttpStatus.OK.equals(userResponse.getHttpstatus())){
 			String responseJson = userResponse.getResponse();
 			try {
-				ObjectMapper objMapper = new ObjectMapper();
-				String policiesStr = ControllerUtil.getPoliciesAsStringFromJson(objMapper, responseJson);
-				policies = policiesStr.split(",");
+				if(!TVaultConstants.OIDC.equals(vaultAuthMethod)) {
+					ObjectMapper objMapper = new ObjectMapper();
+					String policiesStr = ControllerUtil.getPoliciesAsStringFromJson(objMapper, responseJson);
+					policies = policiesStr.split(",");
+				}
 			} catch (IOException e) {
 				log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 					      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
@@ -109,5 +126,20 @@ public class PolicyUtils {
 			}
 		}
 		return policies;
+	}
+
+
+	/**
+	 * Gets the list of policies to be checked for a given ssl certificate
+	 * @param certType
+	 * @param certName
+	 * @return
+	 */
+	public ArrayList<String> getCertPoliciesTobeCheked(String certName) {
+		ArrayList<String> policiesTobeChecked = new ArrayList<String>();
+		policiesTobeChecked.addAll(getAdminPolicies()); 
+		String certType="metadata/sslcerts";
+		policiesTobeChecked.addAll(getSudoPolicies(certType, certName));
+		return policiesTobeChecked;
 	}
 }

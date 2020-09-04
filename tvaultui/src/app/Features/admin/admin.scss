@@ -391,8 +391,26 @@
     padding-top: 10px;
 }
 
-.onboard-link {
+.onboard-link, .create-certificate-link {
     float:right;
+}
+
+.onboard-link .action-icon-wrapper.static, .onboard-link .middle-block, .create-certificate-link .action-icon-wrapper.static, .create-certificate-link .middle-block {
+    color: gray !important;
+}
+
+.onboard-link .middle-block:hover, .onboard-link .action-icon-wrapper.static:hover, .create-certificate-link .middle-block:hover, .create-certificate-link .action-icon-wrapper.static:hover {
+    font-family: montserrat;
+    font-weight: bold !important;
+    letter-spacing: 0.05vw;
+    color: #f6006e !important;
+}
+.onboard-link .function-text.link-style:hover .action-icon-wrapper.static, .onboard-link .function-text.link-style:hover .create-link,
+.create-certificate-link .function-text.link-style:hover .action-icon-wrapper.static, .create-certificate-link .function-text.link-style:hover .create-link  {
+    font-family: montserrat;
+    font-weight: bold !important;
+    letter-spacing: 0.05vw;
+    color: #f6006e !important;
 }
 
 .weighted {
@@ -410,3 +428,182 @@
       border-bottom: 1px solid #000;
       padding-bottom:10px;
   }
+
+  .cert-conf {
+    padding-top: 10px;
+  }
+
+  .cert-col {
+      padding-left: 10px !important;
+  }
+
+  .active-cert {
+    background-color: #5cb85c;
+    border-radius: 2px;
+    padding: 4px;
+    color: #fff!important;
+    font-weight: normal;
+    font-size: x-small;
+  }
+
+  .expired-cert {
+    background-color: #f33;
+    border-radius: 2px;
+    padding: 4px;
+    color: #fff!important;
+    font-weight: normal;
+    font-size: x-small;
+  }
+  
+  .revoked-cert {
+    background-color: #f0ad4e;
+    border-radius: 2px;
+    padding: 4px;
+    color: #fff!important;
+    font-weight: normal;
+    font-size: x-small;
+  }
+
+  .target-note {
+      color: #000!important;
+      font-weight: bold !important;
+  }
+
+.cert-management-content md-tabs md-tabs-wrapper {
+    box-shadow: 0 0 0 0 #fff !important;
+}
+.collapse-link {
+    color:#f6006e!important;
+    font-size: 1.6vh!important;
+}
+
+.service-dropdown li a {
+    color: #000!important;
+    text-decoration: none!important;
+    background-image: none!important;
+    background-color: transparent!important;
+}
+
+#serviceDropdown button {
+    padding-top: 5px!important;
+    padding-bottom: 5px!important;
+}
+#serviceDropdown li a:focus {
+    color: #fff!important;
+    text-decoration: none!important;
+    background-color: #f6006e!important;
+    outline: 0!important;
+}
+
+#serviceDropdown li a:hover {
+    color: #fff!important;
+    text-decoration: none!important;
+    background-color: #f6006e!important;
+    outline: 0!important;
+}
+#dropdownRevocationReason li a:focus {
+    color: #fff!important;
+    text-decoration: none!important;
+    background-color: #F6006E!important;
+    outline: 0!important;
+}
+#dropdownRevocationReason li a:hover {
+    color: #fff!important;
+    text-decoration: none!important;
+    background-color: #F6006E!important;
+    outline: 0!important;
+}
+.renExp{
+	margin-left: 110px;;	
+}
+
+.dns-add-btn {
+    font-size: 12px;
+    padding: 5px!important;
+    width: 80px;
+}
+
+.dns-list {
+    float:left;
+    margin-top: 5px;
+    height: 90px!important;
+    overflow: scroll!important;
+}
+
+.dns-wrapper {
+    float:left;
+    margin-bottom: 10px;
+    width: 100%;
+}
+
+.dns-wrapper div {
+    padding-left: 0px!important;
+}
+
+.dns-delete .down {
+    height: 20px!important;
+}
+
+.dns-delete .icon-delete {
+    padding: 0px!important;
+}
+
+.dns-name {
+    padding: 5px!important;
+}
+.certificate-form-label {
+    padding: 8px 0;
+    font-weight: 700;
+    font-size: 1.7vh;
+    color: #333333;
+}
+.certmodal-sep {
+    padding: 5% 11% 2% !important;
+}
+.cert-input-group{
+    position: relative;
+    display: table;
+    border-collapse: separate;
+    width: 100%;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+}
+.cert-input-group .common-form-input {
+    padding: 0.6vh 2vh;
+    height: 4vh;
+}
+.certform-control{
+    position: relative;
+    display: table-cell;
+    float: left;
+    width: 100%;
+    height: 32px;
+    padding: 6px 12px;
+    font-size: 13px;
+    line-height: 1.42857;
+    color: #555555;
+    background-color: #fff;
+    background-image: none;
+    border: 1px solid #ccc !important;
+    border-radius: 0px;
+    box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
+    transition: border-color ease-in-out 0.15s, box-shadow ease-in-out 0.15s;
+}
+.input-group-addon {
+    padding: 6px 12px;
+    font-size: 14px;
+    font-weight: 400;
+    line-height: 1;
+    color: #555;
+    text-align: center;
+    background-color: #eee;
+    border: 1px solid #ccc;
+    width: 1%;
+    white-space: nowrap;
+    vertical-align: middle;
+    display: table-cell;
+}
+.cert-suffix {
+    border-left: 0;
+    border-radius: 0px 4px 4px 0px;
+}

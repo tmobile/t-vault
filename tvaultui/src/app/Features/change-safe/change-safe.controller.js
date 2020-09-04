@@ -252,7 +252,7 @@
                     return;
                 }
              } else if (variableChanged === 'groupName') {
-                 if(!UtilityService.getAppConstant('AD_GROUP_AUTOCOMPLETE')) {
+                 if(!UtilityService.getAppConstant('AD_GROUP_AUTOCOMPLETE') || newVal.groupName.length < 4) {
                     return;
                  }
              }
@@ -482,12 +482,12 @@
                                     }
                                     else {
                                         $scope.requestDataFrChangeSafe();
-                                        if (type === "users" && key === SessionStore.getItem("username")) {
-                                            return Modal.createModalWithController('stop.modal.html', {
-                                                title: 'Permission changed',
-                                                message: 'For security reasons, if you add or modify permission to yourself, you need to log out and log in again for the added or modified permissions to take effect.'
-                                              });
-                                        }
+                                        // if (type === "users" && key === SessionStore.getItem("username")) {
+                                        //     return Modal.createModalWithController('stop.modal.html', {
+                                        //         title: 'Permission changed',
+                                        //         message: 'For security reasons, if you add or modify permission to yourself, you need to log out and log in again for the added or modified permissions to take effect.'
+                                        //       });
+                                        // }
                                         if (type === 'AppRolePermission') {
                                             // delete approle
                                         }
@@ -1096,13 +1096,13 @@
                                         $scope.requestDataFrChangeSafe();
                                         var notification = UtilityService.getAParticularSuccessMessage('MESSAGE_ADD_SUCCESS');
                                         if (key !== null && key !== undefined) {
-                                            if (type === "users" && key === SessionStore.getItem("username")) {
+                                            // if (type === "users" && key === SessionStore.getItem("username")) {
                                                 clearInputPermissionData();
-                                                return Modal.createModalWithController('stop.modal.html', {
-                                                    title: 'Permission changed',
-                                                    message: 'For security reasons, if you add or modify permission to yourself, you need to log out and log in again for the added or modified permissions to take effect.'
-                                                  });
-                                            }
+                                            //     return Modal.createModalWithController('stop.modal.html', {
+                                            //         title: 'Permission changed',
+                                            //         message: 'For security reasons, if you add or modify permission to yourself, you need to log out and log in again for the added or modified permissions to take effect.'
+                                            //       });
+                                            // }
                                             Notifications.toast(key + "'s permission" + notification);
                                         }
                                     }
@@ -1123,10 +1123,18 @@
                         function (error) {
                             // Error handling function
                             console.log(error);
-                            clearInputPermissionData();
-                            $scope.isLoadingData = false;
-                            $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
-                            $scope.error('md');
+                            document.getElementById('addUser').value = '';
+                            if(error.status == "404"){
+                                $scope.isLoadingData = false;
+                                $scope.errorMessage = error.data.messages[0];
+                                $scope.error('md');
+                            }else{
+                                clearInputPermissionData();
+                                $scope.isLoadingData = false;
+                                $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
+                                $scope.error('md');
+                            }
+                           
                         })
                 } catch (e) {
                     // To handle errors while calling 'fetchData' function

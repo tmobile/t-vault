@@ -96,12 +96,234 @@ public class EmailUtils {
 		}
 	}
 
+
+	/**
+	 * To send HTML email notification for internal certs
+	 * @param from
+	 * @param to
+	 * @param subject
+	 * @param variables
+	 */
+	public void sendHtmlEmalFromTemplateForInternalCert(String from, String to, String subject,
+														Map<String, String> variables) {
+		MimeMessage message = javaMailSender.createMimeMessage();
+		MimeMessageHelper helper = null;
+		try {
+			helper = new MimeMessageHelper(message, true, "UTF-8");
+			helper.setFrom(from);
+			helper.setTo(to);
+			helper.setSubject(subject);
+			String templateFileName = TVaultConstants.EMAIL_TEMPLATE_NAME_CREATE_CERT;
+
+			// inline image content identifies
+			for (Map.Entry<String, String> entry : TVaultConstants.EMAIL_EXT_TEMPLATE_IMAGE_IDS.entrySet()) {
+				variables.put(entry.getKey(), entry.getKey());
+			}
+			String content = this.templateEngine.process(templateFileName, new Context(Locale.getDefault(), variables));
+			helper.setText(content, true);
+			try {
+				// add each inline image byte scream
+				for (Map.Entry<String, String> entry : TVaultConstants.EMAIL_EXT_TEMPLATE_IMAGE_IDS.entrySet()) {
+					helper.addInline(entry.getKey(), getImageByteArray(entry.getValue()), TVaultConstants.IMAGE_TYPE_PNG);
+				}
+			} catch (IOException e) {
+				log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+						put(LogMessage.ACTION, "sendHtmlEmalFromTemplateForInternalCert").
+						put(LogMessage.MESSAGE, "Failed to get byte array from resource").
+						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+						build()));
+			}
+			javaMailSender.send(message);
+		} catch (MessagingException e) {
+			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+					put(LogMessage.ACTION, "sendHtmlEmalFromTemplateForInternalCert").
+					put(LogMessage.MESSAGE, String.format("Failed to send email notification to  " +
+							"User  %s for certificate %s for operation = %s", to, variables.get("certName"),
+							variables.get("operation"))).
+					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+					build()));
+		} catch (MailSendException exception) {
+			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+					put(LogMessage.ACTION, "sendHtmlEmalFromTemplateForInternalCert").
+					put(LogMessage.MESSAGE, String.format("Failed to send email notification to  " +
+									"User  %s for certificate %s for operation = %s", to, variables.get("certName"),
+							variables.get("operation"))).
+					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+					build()));
+		}
+	}
+
+	/**
+	 * To send HTML email notification for delete
+	 * @param from
+	 * @param to
+	 * @param subject
+	 * @param variables
+	 */
+	public void sendHtmlEmalFromTemplateForDelete(String from, String to, String subject,
+														Map<String, String> variables) {
+		MimeMessage message = javaMailSender.createMimeMessage();
+		MimeMessageHelper helper = null;
+		try {
+			helper = new MimeMessageHelper(message,true, "UTF-8");
+			helper.setFrom(from);
+			helper.setTo(to);
+			helper.setSubject(subject);
+			String templateFileName = TVaultConstants.EMAIL_TEMPLATE_NAME_DELETE_CERT;
+
+			// inline image content identifies
+			for (Map.Entry<String, String> entry : TVaultConstants.EMAIL_EXT_TEMPLATE_IMAGE_IDS.entrySet()) {
+				variables.put(entry.getKey(), entry.getKey());
+			}
+			String content = this.templateEngine.process(templateFileName, new Context(Locale.getDefault(), variables));
+			helper.setText(content, true);
+			try {
+				// add each inline image byte scream
+				for (Map.Entry<String, String> entry : TVaultConstants.EMAIL_EXT_TEMPLATE_IMAGE_IDS.entrySet()) {
+					helper.addInline(entry.getKey(), getImageByteArray(entry.getValue()), TVaultConstants.IMAGE_TYPE_PNG);
+				}
+			} catch (IOException e) {
+				log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+						put(LogMessage.ACTION, "sendHtmlEmalFromTemplateForDelete").
+						put(LogMessage.MESSAGE, "Failed to get byte array from resource").
+						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+						build()));
+			}
+			javaMailSender.send(message);
+		} catch (MessagingException e) {
+			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+					put(LogMessage.ACTION, "sendHtmlEmalFromTemplateForDelete").
+					put(LogMessage.MESSAGE, String.format("Failed to send email notification to  " +
+									"User  %s for certificate %s for operation = %s", to, variables.get("certName"),
+							variables.get("operation"))).
+					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+					build()));
+		} catch (MailSendException exception) {
+			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+					put(LogMessage.ACTION, "sendHtmlEmalFromTemplateForDelete").
+					put(LogMessage.MESSAGE, String.format("Failed to send email notification to  " +
+									"User  %s for certificate %s for operation = %s", to, variables.get("certName"),
+							variables.get("operation"))).
+					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+					build()));
+		}
+	}
+
+
+
+	/**
+	 * To send HTML email notification for external cert(ceration and renewal)
+	 * @param from
+	 * @param to
+	 * @param subject
+	 * @param variables
+	 */
+	public void sendEmailForExternalCert(String from, String to, String subject,
+															 Map<String, String> variables) {
+		MimeMessage message = javaMailSender.createMimeMessage();
+		MimeMessageHelper helper = null;
+		try {
+			helper = new MimeMessageHelper(message,true, "UTF-8");
+			helper.setFrom(from);
+			helper.setTo(to);
+			helper.setSubject(subject);
+			String templateFileName = TVaultConstants.EMAIL_TEMPLATE_NAME_EXTERNAL_CERT;
+
+			// inline image content identifies
+			for (Map.Entry<String, String> entry : TVaultConstants.EMAIL_EXT_TEMPLATE_IMAGE_IDS.entrySet()) {
+				variables.put(entry.getKey(), entry.getKey());
+			}
+			String content = this.templateEngine.process(templateFileName, new Context(Locale.getDefault(), variables));
+			helper.setText(content, true);
+			try {
+				// add each inline image byte scream
+				for (Map.Entry<String, String> entry : TVaultConstants.EMAIL_EXT_TEMPLATE_IMAGE_IDS.entrySet()) {
+					helper.addInline(entry.getKey(), getImageByteArray(entry.getValue()), TVaultConstants.IMAGE_TYPE_PNG);
+				}
+			} catch (IOException e) {
+				log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+						put(LogMessage.ACTION, "sendEmailForExternalCert").
+						put(LogMessage.MESSAGE, "Failed to get byte array from resource").
+						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+						build()));
+			}
+			javaMailSender.send(message);
+		} catch (MessagingException e) {
+			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+					put(LogMessage.ACTION, "sendEmailForExternalCert").
+					put(LogMessage.MESSAGE, String.format("Failed to send email notification to  " +
+									"User  %s for certificate %s for operation = %s", to, variables.get("certName"),
+							variables.get("operation"))).
+					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+					build()));
+		} catch (MailSendException exception) {
+			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+					put(LogMessage.ACTION, "sendEmailForExternalCert").
+					put(LogMessage.MESSAGE, String.format("Failed to send email notification to  " +
+									"User  %s for certificate %s for operation = %s", to, variables.get("certName"),
+							variables.get("operation"))).
+					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+					build()));
+		}
+	}
+
+	/**
+	 * To send HTML email notification for delete
+	 *
+	 * @param from
+	 * @param to
+	 * @param subject
+	 * @param variables
+	 */
+	public void sendTransferEmail(String from, Map<String, String> variables, String subject) {
+		MimeMessage message = javaMailSender.createMimeMessage();
+		MimeMessageHelper helper = null;
+		try {
+			helper = new MimeMessageHelper(message, true, "UTF-8");
+			helper.setFrom(from);
+			helper.setTo(variables.get("newOwnerEmail"));
+			helper.setCc(variables.get("oldOwnerEmail"));
+			helper.setSubject(subject);
+			String templateFileName = TVaultConstants.EMAIL_TEMPLATE_NAME_TRANSFER;
+			String content = this.templateEngine.process(templateFileName, new Context(Locale.getDefault(), variables));
+			helper.setText(content, true);
+			javaMailSender.send(message);
+		} catch (MessagingException e) {
+			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+					put(LogMessage.ACTION, "sendTransferEmail").
+					put(LogMessage.MESSAGE, String.format("Failed to send Transfer email notification to  " +
+									"User  %s for certificate %s for operation = %s", variables.get("newOwnerEmail"), variables.get("certName"),
+							variables.get("operation"))).
+					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+					build()));
+		} catch (MailSendException exception) {
+			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+					put(LogMessage.ACTION, "sendTransferEmail").
+					put(LogMessage.MESSAGE, String.format("Failed to send Transfer email notification to  " +
+									"User  %s for certificate %s for operation = %s", variables.get("newOwnerEmail"), variables.get("certName"),
+							variables.get("operation"))).
+					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+					build()));
+		}
+	}
 	/**
 	 * To get byte array stream of image resources
 	 * @param imagePath
 	 * @return
 	 * @throws IOException
 	 */
+
 	private ByteArrayResource getImageByteArray(String imagePath) throws IOException {
 		ClassLoader classloader = Thread.currentThread().getContextClassLoader();
 		InputStream is = classloader.getResourceAsStream(imagePath);

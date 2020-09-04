@@ -561,4 +561,33 @@ public class ServiceAccountsControllerV2Test {
                 .param("serviceAccountName", "testacc02"))
                 .andExpect(status().isOk()).andReturn();
     }
+    
+    
+    
+    
+    @Test
+    public void test_getServiceAccountsList_Details_success() throws Exception{
+        UserDetails userDetails = getMockUser(false);
+        String token = userDetails.getClientToken();
+        String svcAccName = "testacc02";
+        
+    	OnboardedServiceAccountDetails onboardedServiceAccountDetails = new OnboardedServiceAccountDetails();
+    	onboardedServiceAccountDetails.setLastVaultRotation("2018-05-24T17:14:38.677370855Z");
+    	onboardedServiceAccountDetails.setName(svcAccName+"@aaa.bbb.ccc.com");
+    	onboardedServiceAccountDetails.setPasswordLastSet("2018-05-24T17:14:38.6038495Z");
+    	onboardedServiceAccountDetails.setTtl(100L);
+    	
+        String expected = getJSON(onboardedServiceAccountDetails);
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(expected);
+        
+        when(serviceAccountsService.getServiceAccounts(userDetails, token)).thenReturn(responseEntityExpected);
+        
+        MvcResult result = mockMvc.perform(MockMvcRequestBuilders.get("/v2/serviceaccounts/list")
+                .header("vault-token", token)
+                .header("Content-Type", "application/json;charset=UTF-8")
+                .requestAttr("UserDetails", userDetails))
+        		.andExpect(status().isOk()).andReturn();
+        String actual = result.getResponse().getContentAsString();
+        assertEquals(expected, actual);
+    }
 }

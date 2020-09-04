@@ -29,7 +29,7 @@
   /** @ngInject */
   function runBlock($log, Idle, $rootScope, $state, Keepalive, SessionStore, Authentication) {
       $rootScope.$on('IdleTimeout', function () {
-          Authentication.logout();
+          Authentication.logout(false);
       });
 
       $rootScope.$on('Keepalive', function () {

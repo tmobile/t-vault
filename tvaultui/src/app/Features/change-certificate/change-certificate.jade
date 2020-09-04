@@ -1,0 +1,370 @@
+header
+sideBar
+script(type='text/ng-template', id='error.html')
+    .row
+        .top-lg-sep
+            .common-header-label.text-center Error
+        .top-lg-sep.notification-text {{errorMessage}}
+    
+    .text-center.bottom-lg-sep.top-lg-sep.notification-button
+        .clearfix.bottom-sm-sep
+            button.link-style.common-btn.btn.btn-cert.btn-lg(ng-click="cancel()") Close
+
+script(type='text/ng-template', id='appRolePopup.html')
+          .modal-sep
+            .common-header-label.text-center Add your app
+
+          //-   First popup of the Approle configure with multiple ID input fields
+
+          .left-lg-sep.right-lg-sep
+            .common-form.modal-inner-wrapper.aws
+              .common-form-row
+                .details-input-group
+                    .common-form-label Choose a Role Name
+                    drop-down(drop-down-options="dropDownRoleNames" name="dropdownRoles" ng-click="roleNameSelect()")              
+              .aws.common-form
+                .common-form-row
+                    .aws-conf.clearfix
+                        .details-input-group
+                            .common-form-label Permission
+                            .common-radio-group
+                                radio-buttons(data="radio" value="approleRadioBtn.value" state="true")
+          .text-center.bottom-lg-sep.modal-sep.aws
+            .clearfix.bottom-sm-sep
+              button.common-btn.btn.btn-cert.btn-lg(id="approle_create_btn" ng-click="addPermission('AppRolePermission', approleConfPopupObj.role_name, approleRadioBtn.value, false)" ng-disabled="isApproleBtnDisabled()" ) Add
+            .clearfix
+              button.link-style.common-btn.btn.btn-default.btn-lg(ng-click="cancel()") Cancel
+
+script(type='text/ng-template', id='renewCertPopup.html')
+  .top-lg-sep(ng-if="!isLoadingModalData")
+    .top-lg-sep
+        .common-header-label.text-center Confirmation
+    .top-lg-sep.notification-text Are you sure you want to renew this certificate?
+    .text-center.bottom-lg-sep.top-lg-sep.notification-button
+      .clearfix.bottom-sm-sep
+        button.common-btn.btn.btn-cert.btn-lg(ng-click="renewCertificate(certDetails)") RENEW
+      .clearfix
+        button.link-style.common-btn.btn.btn-default.btn-lg(ng-click="close()") CANCEL
+
+script(type='text/ng-template', id='renewCertificatePopUp.html')
+  .top-lg-sep(ng-if="!isLoadingModalData")
+    .top-lg-sep
+        .common-header-label.text-center Certificate Renewal Successful!
+      .top-lg-sep.notification-text  {{ renewMessage }}
+    .text-center.bottom-lg-sep.top-lg-sep.notification-button
+      .clearfix.bottom-sm-sep
+        button.link-style.common-btn.btn.btn-cert.btn-lg(ng-click="cancel()") CLOSE
+
+script(type='text/ng-template', id='renewCertificateFailedPopUp.html')
+  .top-lg-sep(ng-if="!isLoadingModalData")
+    .top-lg-sep
+        .common-header-label.text-center Certificate Renewal Failed!
+      .top-lg-sep.notification-text  {{ renewMessage }}
+    .text-center.bottom-lg-sep.top-lg-sep.notification-button
+      .clearfix.bottom-sm-sep
+        button.link-style.common-btn.btn.btn-cert.btn-lg(ng-click="cancel()") CLOSE
+
+script(type='text/ng-template', id='revocationPopUp.html')
+  .top-lg-sep(ng-if="!isLoadingModalData")
+    .top-lg-sep
+        .common-header-label.text-center {{ revocationStatusMessage }}
+      .top-lg-sep.notification-text  {{ revocationMessage }}
+    .text-center.bottom-lg-sep.top-lg-sep.notification-button
+      .clearfix.bottom-sm-sep
+        button.link-style.common-btn.btn.btn-cert.btn-lg(ng-click="cancelRevoke()") CLOSE
+
+script(type='text/ng-template', id='revokeReasonsPopUp.html')
+          .modal-sep
+            .common-header-label.text-center Revocation reasons
+          .left-lg-sep.right-lg-sep
+            .common-form.modal-inner-wrapper.aws
+              .common-form-row
+                .details-input-group
+                    .common-form-label
+                     drop-down(drop-down-options="dropdownRevocationReasons" name="dropdownRoles" id="dropdownRevocationReason"  ng-click="revocationReasonSelect()")
+          .text-center.bottom-lg-sep.modal-sep.aws
+            .clearfix.bottom-sm-sep
+              button.common-btn.btn.btn-cert.btn-lg(ng-click="revoke()") REVOKE
+            .clearfix
+              button.link-style.common-btn.btn.btn-default.btn-lg(ng-click="cancelRevoke()") Cancel
+
+script(type='text/ng-template', id='deleteCertPopup.html')
+  loading-state(ng-if="isLoadingModalData")
+  .top-lg-sep(ng-if="!isLoadingModalData")
+    .top-lg-sep
+        .common-header-label.text-center Confirmation
+    .top-lg-sep.notification-text Are you sure you want to delete this certificate?
+    .text-center.bottom-lg-sep.top-lg-sep.notification-button
+      .clearfix.bottom-sm-sep
+        button.common-btn.btn.btn-primary.btn-lg(ng-click="deleteCertificate(certDetails)") DELETE
+      .clearfix
+        button.link-style.common-btn.btn.btn-default.btn-lg(ng-click="close()") CANCEL  
+    
+script(type='text/ng-template', id='deleteCertificateSuccessPopUp.html')
+  .top-lg-sep(ng-if="!isLoadingModalData")
+    .top-lg-sep
+        .common-header-label.text-center Certificate Deletion Successful!
+      .top-lg-sep.notification-text  {{ deleteMessage }}
+    .text-center.bottom-lg-sep.top-lg-sep.notification-button
+      .clearfix.bottom-sm-sep
+        button.link-style.common-btn.btn.btn-cert.btn-lg(ng-click="cancelDelete()") CLOSE
+
+script(type='text/ng-template', id='deleteCertificateFailedPopUp.html')
+  .top-lg-sep(ng-if="!isLoadingModalData")
+    .top-lg-sep
+        .common-header-label.text-center Certificate Deletion Failed!
+      .top-lg-sep.notification-text  {{ deleteMessage }}
+    .text-center.bottom-lg-sep.top-lg-sep.notification-button
+      .clearfix.bottom-sm-sep
+        button.link-style.common-btn.btn.btn-cert.btn-lg(ng-click="cancel()") CLOSE
+        
+
+script(src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js")
+.container-fluid.common-main-content.route-page.change-safe-wrapper
+    .container-fluid-wrapper.curved
+      .page-header-container
+        .header-inner-container.header-without-tab(ng-class="{'no-tabs-header' : showDetails}" ng-cloak="")
+            .clearfix
+              .left-arrow.glyphicon.glyphicon-menu-left.left.common-header-label(ng-click="goBack()")
+              .left-sm-sep.left.page-header-text {{changeCertificateHeader}}             
+                  span.safe-in-edit {{certificate.name}}
+            nav-bar(active-tab="details" gotoPage="goToPage" nav-tags="detailsNavTags" ng-if="activeDetailsTab == 'details' ")
+            nav-bar(active-tab="permissions" gotoPage="goToPage" nav-tags="detailsNavTags" ng-if="activeDetailsTab == 'permissions' ")
+      .page-content-container(ng-class="{'no-tabs-body' : showDetails}" ng-cloak="") 
+          .page-content-container.details(ng-if="showDetails" ng-cloak="" )
+              form.row(name="editCertificateDetails" ng-submit="goToCertPermissions()" autocomplete="off" novalidate)
+                .page-content-container
+                  .clearfix.details-wrapper
+                    loading-state(ng-if='isLoadingData')
+                    .safe-left-content-container.border-right.col-lg-6.col-sm-5
+                      .common-section-label CERTIFICATE DETAILS
+                      .common-form
+                        .row
+                          .common-form-row.col-lg-12.col-md-12.col-sm-12.col-xs-12
+                            .details-input-group
+                                .common-form-label Name
+                                input.form-control.input-box-style(ng-model="certificate.certificateName" name="certName" ng-disabled="changeCertificateHeader == 'EDIT CERTIFICATE'" placeholder="Certificate name" required)
+                        .row.middle
+                          .common-form-row.clearfix
+                            .col-lg-5.col-md-12.col-sm-12.col-xs-12.full-row-fix
+                              .row
+                                .details-input-group.col-lg-12.col-md-12.col-sm-12.col-xs-12
+                                  .common-form-label Type
+                                  input.form-control.input-box-style(id="certType" ng-model="certificateTypeVal" ng-disabled="changeCertificateHeader == 'EDIT CERTIFICATE'"  name="certType"  required)
+                            .col-lg-6.col-md-12.col-sm-12.col-xs-12.full-row-fix.col-lg-offset-1.col-lg-offset-1
+                              .row
+                                .details-input-group.left-sm-sep.col-lg-12.col-md-12.col-sm-12.col-xs-12
+                                    .common-form-label Owner
+                                    input.form-control.input-box-style(id="ownerEmail" ng-model="certificate.ownerEmail" ng-disabled="changeCertificateHeader == 'EDIT CERTIFICATE'"  name="ownerEmail" placeholder="Email address - Enter min 3 characters" required)
+                        .row.middle
+                          .common-form-row.clearfix
+                            .col-lg-5.col-md-12.col-sm-12.col-xs-12.full-row-fix
+                              .row
+                                .details-input-group.col-lg-12.col-md-12.col-sm-12.col-xs-12
+                                  .common-form-label Application
+                                  input.form-control.input-box-style(id="applicationTag" ng-model="appName" ng-disabled="changeCertificateHeader == 'EDIT CERTIFICATE'"  name="applicationTag"  required)
+                            .col-lg-6.col-md-12.col-sm-12.col-xs-12.full-row-fix.col-lg-offset-1.col-lg-offset-1
+                              .row
+                                .details-input-group.left-sm-sep.col-lg-12.col-md-12.col-sm-12.col-xs-12
+                                    .common-form-label Status
+                                    input.form-control.input-box-style(id="certificateStatus" ng-model="certificate.certificateStatus" ng-disabled="changeCertificateHeader == 'EDIT CERTIFICATE'"  name="certificateStatus"  required)
+                        .row.middle
+                          .common-form-row.clearfix
+                            .col-lg-5.col-md-12.col-sm-12.col-xs-12.full-row-fix
+                              .row
+                                .details-input-group.col-lg-12.col-md-12.col-sm-12.col-xs-12
+                                  .common-form-label Create Date
+                                  input.form-control.input-box-style(id="createDate" ng-model="certificate.createDate" ng-disabled="changeCertificateHeader == 'EDIT CERTIFICATE'"  name="createDate"  required)                                   
+                            .col-lg-6.col-md-12.col-sm-12.col-xs-12.full-row-fix.col-lg-offset-1.col-lg-offset-1
+                              .row
+                                .details-input-group.left-sm-sep.col-lg-12.col-md-12.col-sm-12.col-xs-12
+                                    .common-form-label Expiry Date
+                                    input.form-control.input-box-style(id="expiryDate" ng-model="certificate.expiryDate" ng-disabled="changeCertificateHeader == 'EDIT CERTIFICATE'"  name="expiryDate"  required)            
+
+
+
+
+                    .safe-left-content-container.border-left.col-lg-6.col-sm-5
+                      .common-section-label 
+                      .common-form
+                        
+                        .row.middle
+                          .common-form-row.clearfix
+                            .col-lg-5.col-md-12.col-sm-12.col-xs-12.full-row-fix
+                              .row
+                                .details-input-group.col-lg-12.col-md-12.col-sm-12.col-xs-12
+                                  .common-form-label Signature Algorithm
+                                  input.form-control.input-box-style(id="algorithm" ng-model="'SHA256-RSA'" ng-disabled="true"  name="algorithm"  required)
+                            .col-lg-6.col-md-12.col-sm-12.col-xs-12.full-row-fix.col-lg-offset-1.col-lg-offset-1
+                              .row
+                                .details-input-group.left-sm-sep.col-lg-12.col-md-12.col-sm-12.col-xs-12
+                                    .common-form-label Key Usage
+                                    input.form-control.input-box-style(id="usage" ng-model="'digitalSignature, keyEncipherment'" ng-disabled="changeCertificateHeader == 'EDIT CERTIFICATE'"  name="ownerEmail" placeholder="Email address - Enter min 3 characters" required)
+                        .row.middle
+                          .common-form-row.clearfix
+                            .col-lg-5.col-md-12.col-sm-12.col-xs-12.full-row-fix
+                              .row
+                                .details-input-group.col-lg-12.col-md-12.col-sm-12.col-xs-12
+                                  .common-form-label Extended Key Usage
+                                  input.form-control.input-box-style(ng-if="certificateTypeVal=='Internal'" id="keyusage" ng-model="'serverAuth'" ng-disabled="changeCertificateHeader == 'EDIT CERTIFICATE'"  name="applicationTag"  required)
+                                  input.form-control.input-box-style(ng-if="certificateTypeVal=='External'" id="keyusage" ng-model="'serverAuth, clientAuth'" ng-disabled="changeCertificateHeader == 'EDIT CERTIFICATE'"  name="applicationTag"  required)
+                            .col-lg-6.col-md-12.col-sm-12.col-xs-12.full-row-fix.col-lg-offset-1.col-lg-offset-1
+                              .row
+                                .details-input-group.left-sm-sep.col-lg-12.col-md-12.col-sm-12.col-xs-12
+                                    .common-form-label Enroll service 
+                                    input.form-control.input-box-style(ng-if="certificateTypeVal=='Internal'" id="enrolService" ng-model="'T-Mobile Issuing CA 01 - SHA2'" ng-disabled="changeCertificateHeader == 'EDIT CERTIFICATE'"  name="certificateStatus"  required)
+                                    input.form-control.input-box-style(ng-if="certificateTypeVal=='External'" id="enrolService" ng-model="'Entrust CA'" ng-disabled="changeCertificateHeader == 'EDIT CERTIFICATE'"  name="certificateStatus"  required)
+                        .row.middle
+                          .common-form-row.clearfix
+                            .col-lg-5.col-md-12.col-sm-12.col-xs-12.full-row-fix
+                              .row
+                                .details-input-group.col-lg-12.col-md-12.col-sm-12.col-xs-12
+                                  .common-form-label Subject Alternate Names
+                                  input.form-control.input-box-style(id="dns" ng-model="certificate.dnsNames" ng-disabled="changeCertificateHeader == 'EDIT CERTIFICATE'"  name="certificateStatus"  required)                                
+                            .col-lg-6.col-md-12.col-sm-12.col-xs-12.full-row-fix.col-lg-offset-1.col-lg-offset-1
+                              
+
+                      
+
+                  .clearfix.btn-section
+                    .right.col-lg-12.col-md-12.col-sm-12.col-xs-12.bottom-lg-sep.top-lg-sep
+                      .right.svc-action-button
+                        button.common-btn.btn.btn-cert.btn-lg(type='button' ng-if="renewButtonShow" ng-click="deleteCertPopup(certificate)" ) Delete
+                      .right.svc-action-button
+                        button.common-btn.btn.btn-cert.btn-lg(type='button' ng-if="renewButtonShow" ng-click="revokeCertificate(certificate)") Revoke
+                      .right.svc-action-button
+                        button.common-btn.btn.btn-cert.btn-lg(type='button' ng-if="renewButtonShow && certificate.certificateStatus!=='Expired'" ng-click="renewCertPopup(certificate)") Renew
+                      .right.svc-action-button
+                        button.common-btn.btn.btn-primary.btn-lg(type='submit' ng-if="isCertificateOwner" ng-disabled="!isCertificateOwner") Grant Permission
+                      .right.right-sm-sepshowInputLoader
+                        button.link-style.common-btn.btn.btn-default.btn-lg.col-lg-6.col-md-6.col-sm-6.col-xs-12(type='button' ng-click="goBack()") Cancel
+
+          .page-content-container.permissions(ng-if="!showDetails" ng-cloak="")
+                md-content
+                    md-tabs(md-dynamic-height md-border-bottom)
+                        md-tab(label="Users" md-on-select="clearInputValue('addUser')")
+                            loading-state(ng-if='isLoadingData')
+                            md-content(class="md-padding")
+                                .new-container.page-content-container
+                                    div.certeditnotes Note: Denying the admin will not take any effect for users.
+                                    .row.change-safe
+                                        .add-block.container.name.col-lg-6.col-md-6.col-sm-12.col-xs-12
+                                            div.input-flex
+                                                div.input-box-style.user-input
+
+                                                    input(type='text' class="form-control" autofocus='!showInputLoader.show' ng-keyup='onKeyUp(searchValue, "userName")' placeholder='Username' restrict-special-char-with-space minlength="1" maxlength="50" ng-model="inputValue.userNameVal" id="addUser" ng-class="{error: (inputValue.userNameValEmpty &&  (inputValue.userNameVal == '' ||  inputValue.userNameVal == undefined)), highlightBox: inputSelected.select}" ng-change="searchValue.userName = inputValue.userNameVal; inputValue.userNameValEmpty = false;")
+                                                div.loader(ng-if='showInputLoader.show && inputValue.userNameVal.length > 0')
+                                                    div.ball-spin-fade-loader
+                                                        div
+                                                        div
+                                                        div
+                                                        div
+                                                        div
+                                                        div
+                                                        div
+                                                        div
+                                                div.input-cross(ng-if='inputSelected.select && inputValue.userNameVal.length > 0' ng-click="clearInputValue('addUser')")
+                                                    div.delete-title
+                                                        img.delete-icon(src="../../assets/images/delete.png")
+                                                div.autocomplete-mismatch(ng-if='showNoMatchingResults && inputValue.userNameVal.length > 0') No matching results found.
+                                        .add-block.container.radio-inputs.col-lg-3.col-md-3.col-sm-12.col-xs-12
+                                            radio-buttons(data="radio" value="usrRadioBtnVal" state="true")
+                                        .add-block.container.actions.col-lg-3.col-md-3.col-sm-12.col-xs-12
+                                            button.btn.btn-cert.btn-lg(ng-click="addPermission('users',inputValue.userNameVal,usrRadioBtnVal, false);inputValue.userNameValEmpty = true") ADD USER
+                                    .unavailable-text(ng-if='isEmpty(UsersPermissionsData) || hideSudoPolicy')
+                                      | No users are given permission to access this certificate,<br> add users to access the certificate 
+                                    .row.change-safe-table-container(ng-if='!isEmpty(UsersPermissionsData) && !hideSudoPolicy')
+                                        .row.change-safe.header
+                                            .container.name.col-lg-4.col-md-4.col-sm-4.col-xs-4 USERNAME  
+                                            .container.radio-inputs.col-lg-4.col-md-4.col-sm-4.col-xs-4 ACTION
+                                        .change-safe-table-data.row
+                                            .row.change-safe.item.hide-in-mobile(ng-if="!isLoadingData && !(value === 'sudo' || value === 'write')" ng-init="editPermissionItem = false; activeItem = false; radioValue = value" ng-class="{'grayBackground' : activeItem == true}" ng-repeat="(key, value) in UsersPermissionsData")
+                                                .container.name.col-lg-4.col-md-4.col-sm-4.col-xs-4(ng-class="{'inactive' : editPermissionItem == false}") {{key}}
+                                                .container.radio-inputs.col-lg-4.col-md-4.col-sm-4.col-xs-4
+                                                    radio-buttons(data="radio" value="radioValue" state="editPermissionItem")
+                                                .container.actions.col-lg-4.col-md-4.col-sm-4.col-xs-4
+                                                    .down
+                                                        .list-icon.icon-delete(ng-click = "deletePermission('users', true, false, key, radioValue)"  uib-tooltip="Delete permission" tooltip-placement="bottom")                                                    
+                                                    .down.hide-in-mobile.edit
+                                                        .list-icon.icon-mode_edit(ng-click="editPermissionItem = !editPermissionItem; activeItem = !activeItem" ng-class="{'inactive' : editPermissionItem == true, 'hide-icon' : editPermissionItem == true}" uib-tooltip="Edit permission" tooltip-placement="bottom")
+                                                        .list-icon.icon-cross(ng-click="editPermissionItem = !editPermissionItem; activeItem = !activeItem; radioValue = value" ng-class="{'inactive' : editPermissionItem == true, 'hide-icon' : editPermissionItem == false}")
+                                                    .down.save
+                                                        .list-icon(ng-click = "editPermission('users', editPermissionItem, key, radioValue); editPermissionItem ? editPermissionItem = !editPermissionItem : editPermissionItem = editPermissionItem" ng-class="{'inactive' : editPermissionItem == false}")  SAVE
+                                            .row.change-safe.item.hide-in-tablet-up(ng-if="!isLoadingData && !(value === 'sudo' || value === 'write')" ng-init="editPermissionItem = true; activeItem = false; radioValue = value" ng-class="{'grayBackground' : activeItem == true}" ng-repeat="(key, value) in UsersPermissionsData")
+                                                .container.name.col-lg-4.col-md-4.col-sm-4.col-xs-4(ng-class="{'inactive' : editPermissionItem == false}") {{key}}
+                                                .container.radio-inputs.col-lg-4.col-md-4.col-sm-4.col-xs-4
+                                                    drop-down(drop-down-options="radio" value="radioValue" error="noTypeSelected")
+                                                .container.actions.col-lg-4.col-md-4.col-sm-4.col-xs-4
+                                                    .down
+                                                        .list-icon.icon-delete(ng-click = "deletePermission('users', editPermissionItem, false, key, radioValue)" ng-class="{'inactive' : editPermissionItem == false}" uib-tooltip="Delete permission" tooltip-placement="bottom") 
+                                                    .down.hide-in-mobile.edit
+                                                        .list-icon.icon-mode_edit(ng-click="editPermissionItem = !editPermissionItem; activeItem = !activeItem" ng-class="{'inactive' : editPermissionItem == true, 'hide-icon' : editPermissionItem == true}" uib-tooltip="Edit permission" tooltip-placement="bottom")                                                    
+                                                        .list-icon.icon-cross(ng-click="editPermissionItem = !editPermissionItem; activeItem = !activeItem; radioValue = value" ng-class="{'inactive' : editPermissionItem == true, 'hide-icon' : editPermissionItem == false}")                                                                                                      
+                                                    .down.save
+                                                        .list-icon(ng-click = "editPermission('users', editPermissionItem, key, radioValue); editPermissionItem ? editPermissionItem = !editPermissionItem : editPermissionItem = editPermissionItem" ng-class="{'inactive' : editPermissionItem == false}")  SAVE
+
+                        md-tab(label="Groups" md-on-select="clearInputValue('addGroup')")
+                            loading-state(ng-if='isLoadingData')
+                            md-content(class="md-padding")
+                                .new-container.page-content-container
+                                    div.certeditnotes Note: Denying the admin will not take any effect for groups.
+                                    .row.change-safe
+                                        .add-block.container.name.col-lg-6.col-md-6.col-sm-12.col-xs-12
+                                           div.input-flex
+                                                div.input-box-style.user-input
+                                                    input(type='text' class="form-control" autofocus='!showInputLoader.show' ng-keyup='onKeyUp(searchValue, "groupName")' placeholder='Group Name' restrict-special-char-with-space minlength="1" maxlength="50" ng-model="inputValue.grpNameVal" id="addGroup" ng-class="{error: (inputValue.grpNameValEmpty &&  (inputValue.grpNameVal == '' ||  inputValue.grpNameVal == undefined)), highlightBox: inputSelected.select}" ng-change="searchValue.groupName = inputValue.grpNameVal; inputValue.grpNameValEmpty = false;")
+                                                 div.loader(ng-if='showInputLoader.show && inputValue.grpNameVal.length > 0')
+                                                    div.ball-spin-fade-loader
+                                                        div
+                                                        div
+                                                        div
+                                                        div
+                                                        div
+                                                        div
+                                                        div
+                                                        div
+                                                div.input-cross(ng-if='inputSelected.select && inputValue.grpNameVal.length > 0' ng-click="clearInputValue('addGroup')")
+                                                    div.delete-title
+                                                        img.delete-icon(src="../../assets/images/delete.png")
+                                                div.autocomplete-mismatch(ng-if='showNoMatchingResults && inputValue.grpNameVal.length > 0') No matching results found.
+                                        .add-block.container.radio-inputs.col-lg-3.col-md-3.col-sm-12.col-xs-12
+                                            radio-buttons(data="radio" value="grpRadioBtnVal" state="true")
+                                        .add-block.container.actions.col-lg-3.col-md-3.col-sm-12.col-xs-12
+                                            button.btn.btn-cert.btn-lg(ng-click="addPermission('groups', inputValue.grpNameVal,grpRadioBtnVal, false);inputValue.grpNameValEmpty = true") ADD GROUP
+                                    .unavailable-text(ng-if="isEmpty(GroupsPermissionsData)")
+                                      | No groups are given permission to access this certificate,<br> add groups to access the certificate
+                                    .row.change-safe-table-container(ng-if="!isEmpty(GroupsPermissionsData)")
+                                        .row.change-safe.header
+                                            .container.name.col-lg-4.col-md-4.col-sm-4.col-xs-4 GROUP NAME
+                                            .container.radio-inputs.col-lg-4.col-md-4.col-sm-4.col-xs-4 ACTION
+                                        .change-safe-table-data.row
+                                            .row.change-safe.item.hide-in-mobile(ng-if="!isLoadingData" ng-init="editPermissionItem = false; activeItem = false; radioValue = value" ng-class="{'grayBackground' : activeItem == true}" ng-repeat="(key, value) in GroupsPermissionsData")
+                                                .container.name.col-lg-4.col-md-4.col-sm-4.col-xs-4(ng-class="{'inactive' : editPermissionItem == false}") {{key}}
+                                                .container.radio-inputs.col-lg-4.col-md-4.col-sm-4.col-xs-4
+                                                    radio-buttons(data="radio" value="radioValue" state="editPermissionItem")
+                                                .container.actions.col-lg-4.col-md-4.col-sm-4.col-xs-4
+                                                    .down
+                                                        .list-icon.icon-delete(ng-click = "deletePermission('groups', true, false, key, radioValue)" uib-tooltip="Delete permission" tooltip-placement="bottom")  
+                                                    .down.hide-in-mobile.edit
+                                                        .list-icon.icon-mode_edit(ng-click="editPermissionItem = !editPermissionItem; activeItem = !activeItem" ng-class="{'inactive' : editPermissionItem == true, 'hide-icon' : editPermissionItem == true}" uib-tooltip="Edit permission" tooltip-placement="bottom")
+                                                        .list-icon.icon-cross(ng-click="editPermissionItem = !editPermissionItem; activeItem = !activeItem; radioValue = value" ng-class="{'inactive' : editPermissionItem == true, 'hide-icon' : editPermissionItem == false}")
+                                                    .down.save
+                                                        .list-icon(ng-click = "editPermission('groups', editPermissionItem, key, radioValue); editPermissionItem ? editPermissionItem = !editPermissionItem : editPermissionItem = editPermissionItem" ng-class="{'inactive' : editPermissionItem == false}")  SAVE
+                                            .row.change-safe.item.hide-in-tablet-up(ng-if="!isLoadingData" ng-init="editPermissionItem = true; activeItem = false; radioValue = value" ng-class="{'grayBackground' : activeItem == true}" ng-repeat="(key, value) in GroupsPermissionsData")
+                                                .container.name.col-lg-4.col-md-4.col-sm-4.col-xs-4(ng-class="{'inactive' : editPermissionItem == false}") {{key}}
+                                                .container.radio-inputs.col-lg-4.col-md-4.col-sm-4.col-xs-4
+                                                    drop-down(drop-down-options="radio" value="radioValue" error="noTypeSelected")
+                                                .container.actions.col-lg-4.col-md-4.col-sm-4.col-xs-4
+                                                    .down
+                                                        .list-icon.icon-delete(ng-click = "deletePermission('groups', editPermissionItem, false, key, radioValue)" ng-class="{'inactive' : editPermissionItem == false}" uib-tooltip="Delete permission" tooltip-placement="bottom")
+                                                    .down.hide-in-mobile.edit
+                                                        .list-icon.icon-mode_edit(ng-click="editPermissionItem = !editPermissionItem; activeItem = !activeItem" ng-class="{'inactive' : editPermissionItem == true, 'hide-icon' : editPermissionItem == true}" uib-tooltip="Edit permission" tooltip-placement="bottom")
+                                                        .list-icon.icon-cross(ng-click="editPermissionItem = !editPermissionItem; activeItem = !activeItem; radioValue = value" ng-class="{'inactive' : editPermissionItem == true, 'hide-icon' : editPermissionItem == false}")
+                                                    .down.save
+                                                        .list-icon(ng-click = "editPermission('groups', editPermissionItem, key, radioValue); editPermissionItem ? editPermissionItem = !editPermissionItem : editPermissionItem = editPermissionItem" ng-class="{'inactive' : editPermissionItem == false}")  SAVE
+
+                .clearfix.btn-section
+                  .right.col-lg-6.col-md-6.col-sm-6.col-xs-12.bottom-lg-sep.top-lg-sep
+                    .right
+                      button.common-btn.btn.btn-cert.btn-lg(type='button' ng-click="certificateEditPermission()") Done
+                  

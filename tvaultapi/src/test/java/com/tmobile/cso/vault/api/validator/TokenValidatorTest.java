@@ -1,7 +1,7 @@
 // =========================================================================
-// Copyright 2019 T-Mobile, US
+// Copyright 2020 T-Mobile, US
 //
-// Licensed under the Apache License, Version 2.0 (the "License");
+// Licensed under the Apache License, Version 2.0 (the "License")
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
 //
@@ -19,11 +19,16 @@ package com.tmobile.cso.vault.api.validator;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
+import com.tmobile.cso.vault.api.common.TVaultConstants;
 import com.tmobile.cso.vault.api.controller.ControllerUtil;
 import com.tmobile.cso.vault.api.exception.TVaultValidationException;
+import com.tmobile.cso.vault.api.model.DirectoryObjects;
+import com.tmobile.cso.vault.api.model.DirectoryObjectsList;
+import com.tmobile.cso.vault.api.model.DirectoryUser;
 import com.tmobile.cso.vault.api.model.VaultTokenLookupDetails;
 import com.tmobile.cso.vault.api.process.RequestProcessor;
 import com.tmobile.cso.vault.api.process.Response;
+import com.tmobile.cso.vault.api.service.DirectoryService;
 import com.tmobile.cso.vault.api.utils.*;
 import org.apache.logging.log4j.LogManager;
 import org.junit.Before;
@@ -39,16 +44,15 @@ import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.powermock.reflect.Whitebox;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.io.IOException;
 import java.util.*;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.when;
@@ -74,6 +78,9 @@ public class TokenValidatorTest {
 
     @Mock
     private PolicyUtils policyUtils;
+
+    @Mock
+    DirectoryService directoryService;
 
     @Before
     public void setUp() {
@@ -121,6 +128,45 @@ public class TokenValidatorTest {
         ArrayList<String> adminPolicies = new ArrayList<>();
         adminPolicies.add("adminpolicy");
         expectedLookupDetails.setPolicies(policies);
+
+        when(reqProcessor.process("/auth/tvault/lookup","{}", token)).thenReturn(response);
+        when(commonUtils.getPoliciesAsArray(Mockito.any(), eq(response.getResponse()))).thenReturn(policies);
+        when(policyUtils.getAdminPolicies()).thenReturn(adminPolicies);
+        when(authorizationUtils.containsAdminPolicies(Mockito.anyList(),  Mockito.anyList())).thenReturn(true);
+        VaultTokenLookupDetails lookupDetails = tokenValidator.getVaultTokenLookupDetails(token);
+        assertEquals(JSONUtil.getJSON(expectedLookupDetails), JSONUtil.getJSON(lookupDetails));
+    }
+
+    @Test
+    public void test_getVaultTokenLookupDetails_successfully_oidc() throws TVaultValidationException, IOException {
+        String token = "7QPMPIGiyDFlJkrK3jFykUqa";
+        Response response = getMockResponse(HttpStatus.OK, true, "{\"id\":\"7DXvbGXxu81LC724cRrrqYyq\", \"display_name\": \"oidc-user1@company.com\",\"last_renewal_time\":null,\"renewable\":false,\"policies\":[\"default\"],\"creation_ttl\":0,\"username\":null,\"path\":\"auth/oidc/oidc/callback\"}");
+        VaultTokenLookupDetails expectedLookupDetails = new VaultTokenLookupDetails();
+        expectedLookupDetails.setAdmin(false);
+        expectedLookupDetails.setValid(true);
+        expectedLookupDetails.setToken(token);
+        expectedLookupDetails.setUsername(null);
+        String [] policies = {"default"};
+        ArrayList<String> adminPolicies = new ArrayList<>();
+        adminPolicies.add("adminpolicy");
+        expectedLookupDetails.setPolicies(policies);
+        ReflectionTestUtils.setField(tokenValidator, "vaultAuthMethod", TVaultConstants.OIDC);
+        DirectoryUser directoryUser = new DirectoryUser();
+        directoryUser.setDisplayName("user1");
+        directoryUser.setGivenName("user1");
+        directoryUser.setUserEmail("oidc-user1.company.com");
+        directoryUser.setUserId("user1");
+        directoryUser.setUserName("user1");
+
+        List<DirectoryUser> persons = new ArrayList<>();
+        persons.add(directoryUser);
+
+        DirectoryObjects users = new DirectoryObjects();
+        DirectoryObjectsList usersList = new DirectoryObjectsList();
+        usersList.setValues(persons.toArray(new DirectoryUser[persons.size()]));
+        users.setData(usersList);
+        ResponseEntity<DirectoryObjects> directoryObjectsResponseEntity = ResponseEntity.status(HttpStatus.OK).body(users);
+        when(directoryService.searchByUPN("user1@company.com")).thenReturn(directoryObjectsResponseEntity);
 
         when(reqProcessor.process("/auth/tvault/lookup","{}", token)).thenReturn(response);
         when(commonUtils.getPoliciesAsArray(Mockito.any(), eq(response.getResponse()))).thenReturn(policies);
