@@ -8,7 +8,7 @@ import styled from 'styled-components';
 // eslint-disable-next-line import/no-unresolved
 import ComponentError from '../../../errorBoundaries/ComponentError/component-error';
 
-const CreateModal = lazy(() => import('./CreateSafe'));
+const CreateSafe = lazy(() => import('./CreateSafe'));
 const SafeSectionPreview = styled('section')`
   border: 2px solid #ccc;
   // width: 80%;
@@ -26,7 +26,7 @@ const SafePageLayout = (props) => {
         <Switch>
           <Route
             path="/safe/create-safe"
-            render={(routeProps) => <CreateModal routeProps={routeProps} />}
+            render={(routeProps) => <CreateSafe routeProps={routeProps} />}
           />
         </Switch>
       </main>

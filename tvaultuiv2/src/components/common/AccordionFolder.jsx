@@ -9,7 +9,7 @@ import AccordionDetails from '@material-ui/core/AccordionDetails';
 import ComponentError from 'errorBoundaries/ComponentError/component-error';
 import FolderIcon from '@material-ui/icons/Folder';
 import LockIcon from '@material-ui/icons/Lock';
-import CreateSecret from '../containers/CreateSecrets';
+import CreateSecret from 'views/private/safe/components/CreateSecrets';
 
 // styled components goes here
 const FolderWrap = styled(Accordion)`
