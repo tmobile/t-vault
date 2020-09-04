@@ -39,7 +39,6 @@ const CreateSecret = (props) => {
   const { handleSecretSave, handleSecretCancel } = props;
   const [secret, setSecret] = useState('');
   const [keyId, setKeyId] = useState('');
-
   return (
     <SecretWrapper>
       <Title>Key Id</Title>
@@ -71,7 +70,7 @@ const CreateSecret = (props) => {
           label="SAVE"
           type="contained"
           color="primary"
-          onClick={() => handleSecretSave(secret)}
+          onClick={() => handleSecretSave({ keyId, secret })}
         />
       </CancelSaveWrapper>
     </SecretWrapper>

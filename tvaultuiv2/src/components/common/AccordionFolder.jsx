@@ -9,7 +9,7 @@ import AccordionDetails from '@material-ui/core/AccordionDetails';
 import ComponentError from 'errorBoundaries/ComponentError/component-error';
 import FolderIcon from '@material-ui/icons/Folder';
 import CreateSecret from 'components/createSecret';
-import LockIcon from '@material-ui/icons/Lock';
+// import LockIcon from '@material-ui/icons/Lock';
 
 // styled components goes here
 const FolderWrap = styled(Accordion)`
@@ -65,14 +65,26 @@ const SecretsListWrapper = styled.div`
 `;
 
 const AccordionFolder = (props) => {
-  const { summaryIcon, title, date } = props;
+  const {
+    summaryIcon,
+    title,
+    date,
+    accordianChildren,
+    saveSecretsToFolder,
+  } = props;
   const [addSecretEnabled, setAddSecretEnabled] = useState(false);
-  const [secrets, setSecrets] = useState([]);
 
-  const saveSecretsToFolder = (secret) => {
-    const tempSecretsList = [...secrets] || [];
-    tempSecretsList.push(secret);
-    setSecrets([...tempSecretsList]);
+  // const saveSecretsToFolder = (secret) => {
+  //   const tempSecretsList = [...secrets] || [];
+  //   const secretItem = {};
+  //   secretItem.labelText = secret;
+  //   secretItem.children = [];
+  //   tempSecretsList.push(secretItem);
+  //   setSecrets([...tempSecretsList]);
+  //   setAddSecretEnabled(false);
+  // };
+  const handleSaveSecretsToFolder = (secret) => {
+    saveSecretsToFolder(secret, title);
     setAddSecretEnabled(false);
   };
   return (
@@ -93,9 +105,19 @@ const AccordionFolder = (props) => {
           </SecretTitleWrap>
         </FolderSummary>
         <SecretDetail>
+          <SecretsListWrapper>
+            {/* {secrets.map((secret) => (
+              <PElement>
+                <LockIcon />
+                <SpanElement>{secret}</SpanElement>
+              </PElement>
+            ))} */}
+            {accordianChildren}
+          </SecretsListWrapper>
+
           {addSecretEnabled ? (
             <CreateSecret
-              handleSecretSave={saveSecretsToFolder}
+              handleSecretSave={handleSaveSecretsToFolder}
               handleSecretCancel={setAddSecretEnabled}
             />
           ) : (
@@ -104,14 +126,6 @@ const AccordionFolder = (props) => {
               <SpanElement>Create secrets</SpanElement>
             </CreateSecretWrap>
           )}
-          <SecretsListWrapper>
-            {secrets.map((secret) => (
-              <PElement>
-                <LockIcon />
-                <SpanElement>{secret}</SpanElement>
-              </PElement>
-            ))}
-          </SecretsListWrapper>
         </SecretDetail>
       </FolderWrap>
     </ComponentError>
@@ -122,11 +136,15 @@ AccordionFolder.propTypes = {
   // titleIcon: PropTypes.node,
   title: PropTypes.string,
   date: PropTypes.string,
+  accordianChildren: PropTypes.node,
+  saveSecretsToFolder: PropTypes.func,
 };
 AccordionFolder.defaultProps = {
   summaryIcon: <div />,
   // titleIcon: <div />,
-  title: 'Nothing here',
-  date: 'No Date',
+  title: '',
+  date: '',
+  accordianChildren: <div />,
+  saveSecretsToFolder: () => {},
 };
 export default AccordionFolder;
