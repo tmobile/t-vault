@@ -1,7 +1,7 @@
 import React, { Suspense, lazy } from 'react';
 import { Route, Switch, Redirect } from 'react-router-dom';
 
-import SafePageLayout from './private/SafePageLayout';
+import Safe from './private/safe';
 
 const Home = lazy(() => import('./public/HomePage'));
 const Applications = lazy(() => import('./private/applications'));
@@ -27,7 +27,7 @@ const PrivateRoutes = () => {
         />
         <Route
           path="/safe"
-          render={(routeProps) => <SafePageLayout routeProps={routeProps} />}
+          render={(routeProps) => <Safe routeProps={routeProps} />}
         />
         <Route path="/home" render={() => <Home />} />
 
