@@ -312,7 +312,7 @@
                 return $scope.currentshown;
             }
            
-
+            
         };
 
         $scope.hasMoreItemsToShow = function () {
