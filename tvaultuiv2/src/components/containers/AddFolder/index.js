@@ -1,8 +1,9 @@
+/* eslint-disable import/no-unresolved */
 import React, { useState } from 'react';
 import PropTypes from 'prop-types';
 import styled from 'styled-components';
 import TextField from '@material-ui/core/TextField';
-import ButtonComponent from '../common/ButtonComponent';
+import ButtonComponent from '../../common/ButtonComponent';
 
 const AddFolderNameWrapper = styled.div`
   padding: 3.2rem;

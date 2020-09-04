@@ -15,7 +15,7 @@ import Typography from '@material-ui/core/Typography';
 import Box from '@material-ui/core/Box';
 import ComponentError from 'errorBoundaries/ComponentError/component-error';
 import AddIcon from '@material-ui/icons/Add';
-import AddFolder from '../../addFolder/index';
+import AddFolder from '../AddFolder';
 // import CreateSecret from 'components/createSecret';
 
 // eslint-disable-next-line import/no-unresolved

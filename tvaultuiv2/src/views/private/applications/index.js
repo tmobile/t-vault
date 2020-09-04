@@ -3,24 +3,24 @@ import PropTypes from 'prop-types';
 // eslint-disable-next-line import/no-unresolved
 import ComponentError from '../../../errorBoundaries/ComponentError/component-error';
 
-const HomePage = (props) => {
+const Applications = (props) => {
   const { message } = props;
   return (
     <ComponentError>
       <section>
-        <h1>Welcome to home page</h1>
+        <h1>Welcome to Applications!!</h1>
         <div>{`Message is ${message}`}</div>
       </section>
     </ComponentError>
   );
 };
 
-HomePage.propTypes = {
+Applications.propTypes = {
   message: PropTypes.string,
 };
 
-HomePage.defaultProps = {
+Applications.defaultProps = {
   message: 'Welcome',
 };
 
-export default HomePage;
+export default Applications;

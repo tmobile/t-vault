@@ -16,12 +16,16 @@ import ComponentError from 'errorBoundaries/ComponentError/component-error';
 
 const ModalWrapper = styled.section`
   background-color: #fff;
-  padding: 2rem 3rem;
+  padding: 2.4rem 3.2rem;
   border-radius: 1rem;
   border: none;
   outline: none;
   width: 50%;
   margin: auto 0;
+`;
+
+const CreateSafeHeader = styled.h2`
+  font-size: 1.6rem;
 `;
 
 const InputFieldLabelWrapper = styled.div`
@@ -50,6 +54,9 @@ const InputFieldLabelWrapper = styled.div`
   .MuiFilledInput-input,
   .MuiFilledInput-multiline {
     padding: 1rem 0.5rem;
+  }
+  .MuiFormLabel-root {
+    font-size: 1.4rem;
   }
 `;
 
@@ -109,22 +116,12 @@ const CreateModal = (props) => {
     setPopOverOpen(!popOverOpen);
   };
 
-  // const handleOpen = () => {
-  //   setOpen(true);
-  // };
-
   const handleClose = () => {
     setOpen(false);
     history.goBack();
   };
   return (
-    <>
-      {/* <CreateSafeLink
-        to={`${match.url}/create-safe`}
-        onClick={() => handleOpen()}
-      >
-        Create
-      </CreateSafeLink> */}
+    <ComponentError>
       <Modal
         aria-labelledby="transition-modal-title"
         aria-describedby="transition-modal-description"
@@ -139,7 +136,9 @@ const CreateModal = (props) => {
       >
         <Fade in={open}>
           <ModalWrapper>
-            <h2 id="transition-modal-title">Create Safe</h2>
+            <CreateSafeHeader id="transition-modal-title">
+              Create Safe
+            </CreateSafeHeader>
             <PopoverDescriptionWrapper>
               <button type="button" onClick={() => onIconClicked()}>
                 Icon
@@ -200,27 +199,23 @@ const CreateModal = (props) => {
                 />
               </InputFieldLabelWrapper>
               <CancelSaveWrapper>
-                <ComponentError>
-                  <ButtonComponent
-                    label="CANCEL"
-                    color="default"
-                    type="contained"
-                    onClick={() => handleClose()}
-                  />
-                </ComponentError>
-                <ComponentError>
-                  <ButtonComponent
-                    label="SAVE"
-                    type="contained"
-                    color="primary"
-                  />
-                </ComponentError>
+                <ButtonComponent
+                  label="CANCEL"
+                  color="default"
+                  type="contained"
+                  onClick={() => handleClose()}
+                />
+                <ButtonComponent
+                  label="SAVE"
+                  type="contained"
+                  color="primary"
+                />
               </CancelSaveWrapper>
             </CreateSafeForm>
           </ModalWrapper>
         </Fade>
       </Modal>
-    </>
+    </ComponentError>
   );
 };
 
