@@ -110,8 +110,8 @@ const customTheme = createMuiTheme({
       fontSize: '1rem',
       lineHeight: 1.5,
       letterSpacing: '0.03125rem',
-      color: 'red',
-      background: '#fff',
+      color: '#000',
+      background: '#ccc',
     },
     body2: {
       fontFamily: '"Exo 2", "Helvetica", "Arial", sans-serif',
@@ -122,6 +122,7 @@ const customTheme = createMuiTheme({
       backgroundImage: 'linear-gradient(to top, #2f3545, #1d212c)',
       backgroundRepeat: 'no-repeat',
       minHeight: '100vh',
+      color: '#fff',
     },
     button: {
       fontFamily: '"Exo 2", "Helvetica", "Arial", sans-serif',
@@ -166,8 +167,8 @@ const customTheme = createMuiTheme({
       main: '#6dba15',
     },
     text: {
-      primary: '#fff',
-      secondary: '#56d1ee',
+      primary: '#000',
+      secondary: '#000',
       light: '#fff',
       main: '#e20074',
       disabled: 'rgba(0, 0, 0, 0.38)',
