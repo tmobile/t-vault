@@ -1,5 +1,7 @@
+/* eslint-disable no-return-assign */
 /* eslint-disable import/no-unresolved */
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import InfiniteScroll from 'react-infinite-scroller';
 import PropTypes from 'prop-types';
 import { Link, Route, Switch } from 'react-router-dom';
 import { Input, InputAdornment } from '@material-ui/core';
@@ -52,7 +54,10 @@ const SearchInput = styled(Input)`
     border-bottom: none;
   }
 `;
-const SafeListContainer = styled.div``;
+const SafeListContainer = styled.div`
+  height: 20rem;
+  overflow: auto;
+`;
 
 const SafeFolderWrap = styled(Link)`
   position: relative;
@@ -93,6 +98,9 @@ const PopperWrap = styled.div`
   transform: translate(-50%, -50%);
 `;
 const SafeSectionWrap = (props) => {
+  const [safeList, setSafeList] = useState([]);
+  const [moreData, setMoreData] = useState(false);
+
   const { routeProps } = props;
   const [activeSafeFolders, setActiveSafeFolders] = useState([]);
   // const [showPopper, setShowPopper] = useState(false);
@@ -113,6 +121,68 @@ const SafeSectionWrap = (props) => {
    * @param {string}
    * @param {object}
    */
+
+  useEffect(() => {
+    safes.map((item) => {
+      return setSafeList((prev) => [...prev, item]);
+    });
+    setMoreData(true);
+  }, []);
+
+  const getSafesList = () => {
+    return new Promise((resolve) =>
+      setTimeout(() => {
+        resolve({
+          name: 'sample/safe-7',
+          desc:
+            'Hello yhis is the sample description of thesafety used here. it shows description about safety type and so on',
+          date: '2 days ago , 9:20 pm',
+          flagType: 'new',
+        });
+      }, 1000)
+    );
+  };
+
+  const loadMoreData = () => {
+    getSafesList().then((res) => {
+      setMoreData(false);
+      setSafeList((prev) => [...prev, res]);
+    });
+  };
+
+  let scrollParentRef = null;
+
+  const renderSafes = () => {
+    return safeList.map((safe) => (
+      <SafeFolderWrap
+        key={safe.name}
+        to={`${routeProps.match.url}/${safe.name}`}
+        active={activeSafeFolders.includes(safe.name)}
+        onClick={() => showSafeDetails(safe.name)}
+      >
+        <SafeAvatarWrap>
+          <Avatar>
+            <FolderIcon />
+          </Avatar>
+        </SafeAvatarWrap>
+        <SafeDetailBox>
+          <SafeName>
+            {safe.name}
+            <Flag fontSize="0.85rem" fontStyle="italic">
+              {safe.flagType}
+            </Flag>
+          </SafeName>
+          <Flag fontSize="1rem">{safe.date}</Flag>
+        </SafeDetailBox>
+        {activeSafeFolders.includes(safe.name) ? (
+          <PopperWrap>
+            <PsudoPopper />
+          </PopperWrap>
+        ) : null}
+      </SafeFolderWrap>
+    ));
+  };
+
   return (
     <ComponentError>
       <SectionPreview title="safe-section">
@@ -129,36 +199,18 @@ const SafeSectionWrap = (props) => {
               </InputAdornment>
             }
           />
-          <SafeListContainer>
-            {safes.map((safe) => (
-              // eslint-disable-next-line react/no-array-index-key
-              <SafeFolderWrap
-                to={`${routeProps.match.url}/${safe.name}`}
-                active={activeSafeFolders.includes(safe.name)}
-                key={safe.name}
-                onClick={() => showSafeDetails(safe.name)}
-              >
-                <SafeAvatarWrap>
-                  <Avatar>
-                    <FolderIcon />
-                  </Avatar>
-                </SafeAvatarWrap>
-                <SafeDetailBox>
-                  <SafeName>
-                    {safe.name}
-                    <Flag fontSize="0.85rem" fontStyle="italic">
-                      {safe.flagType}
-                    </Flag>
-                  </SafeName>
-                  <Flag fontSize="1rem">{safe.date}</Flag>
-                </SafeDetailBox>
-                {activeSafeFolders.includes(safe.name) ? (
-                  <PopperWrap>
-                    <PsudoPopper />
-                  </PopperWrap>
-                ) : null}
-              </SafeFolderWrap>
-            ))}
+          <SafeListContainer ref={(ref) => (scrollParentRef = ref)}>
+            <InfiniteScroll
+              pageStart={0}
+              loadMore={() => loadMoreData()}
+              hasMore={moreData}
+              threshold={100}
+              loader={<div key={0}>Loading...</div>}
+              useWindow={false}
+              getScrollParent={() => scrollParentRef}
+            >
+              {renderSafes()}
+            </InfiniteScroll>
           </SafeListContainer>
         </ColumnSection>
 
@@ -185,4 +237,5 @@ SafeSectionWrap.propTypes = {
 SafeSectionWrap.defaultProps = {
   routeProps: {},
 };
+
 export default SafeSectionWrap;
