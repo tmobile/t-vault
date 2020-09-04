@@ -11,11 +11,11 @@ import SafeDetails from 'components/containers/SafeDetails';
 import styled from 'styled-components';
 import Avatar from '@material-ui/core/Avatar';
 import Dropdown from 'components/common/SelectDropdown';
-import ComponentError from 'errorBoundaries/ComponentError/component-error';
 
 import FolderIcon from '@material-ui/icons/Folder';
 import SearchIcon from '@material-ui/icons/Search';
 import AddIcon from '@material-ui/icons/Add';
+import ComponentError from '../../../errorBoundaries/ComponentError/component-error';
 
 // mock data
 import { safes, safeDetail } from './safeSectionMock.json';

@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import styled from 'styled-components';
 // eslint-disable-next-line import/no-unresolved
-import ComponentError from 'errorBoundaries/ComponentError/component-error';
+import ComponentError from '../../errorBoundaries/ComponentError/component-error';
 
 const HeaderWrap = styled('div')`
   display: flex;

@@ -1,7 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 // eslint-disable-next-line import/no-unresolved
-import ComponentError from 'errorBoundaries/ComponentError/component-error';
+import ComponentError from '../../../errorBoundaries/ComponentError/component-error';
 
 const HomePage = (props) => {
   const { message } = props;
