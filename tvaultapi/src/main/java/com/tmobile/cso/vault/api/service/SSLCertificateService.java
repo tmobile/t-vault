@@ -1481,10 +1481,8 @@ public class SSLCertificateService {
 	            || (!isValidAppName(sslCertificateRequest)) || (!validateDNSNames(sslCertificateRequest))){
 	        isValid= false;
 	    }
-	
 	    return isValid;
 	}
-
 
 	/**
 	 * Method to validate the certificate name
@@ -1500,7 +1498,7 @@ public class SSLCertificateService {
 		}
 		return isValid;
 	}
-	
+
 	/**
 	 * Method to set the target system, target system services and append t-mobile.com text 
 	 * to certificate name and dns

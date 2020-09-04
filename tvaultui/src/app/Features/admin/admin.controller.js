@@ -429,7 +429,6 @@
         };
         $rootScope.cancelCert = function () {
             resetCert();
-            $scope.certObj = {};
             Modal.close();
         };
 
