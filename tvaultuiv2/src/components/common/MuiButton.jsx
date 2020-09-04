@@ -15,11 +15,16 @@ const ActionButton = styled('div')`
 `;
 
 const MuiButton = (props) => {
-  const { label, icon, customStyle } = props;
+  const { label, icon, customStyle, onClick } = props;
   return (
     <ComponentError>
       <ActionButton customBtnStyle={customStyle}>
-        <Button variant="contained" color="secondary" startIcon={icon}>
+        <Button
+          variant="contained"
+          color="secondary"
+          startIcon={icon}
+          onClick={onClick}
+        >
           {label}
         </Button>
       </ActionButton>
@@ -31,10 +36,12 @@ MuiButton.propTypes = {
   icon: PropTypes.node,
   // eslint-disable-next-line react/forbid-prop-types
   customStyle: PropTypes.object,
+  onClick: PropTypes.func,
 };
 MuiButton.defaultProps = {
   label: 'no label',
   icon: <div />,
   customStyle: {},
+  onClick: () => {},
 };
 export default MuiButton;

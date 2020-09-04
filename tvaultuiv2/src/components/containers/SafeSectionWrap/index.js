@@ -1,6 +1,6 @@
 /* eslint-disable no-return-assign */
 /* eslint-disable import/no-unresolved */
-import React, { useState, useEffect, Suspense } from 'react';
+import React, { useState, useEffect } from 'react';
 import InfiniteScroll from 'react-infinite-scroller';
 import PropTypes from 'prop-types';
 import { Link, Route, Switch } from 'react-router-dom';
@@ -218,17 +218,15 @@ const SafeSectionWrap = (props) => {
         </ColumnSection>
 
         <ColumnSection>
-          <Suspense fallback={<div>Loading...</div>}>
-            <Switch>
-              {' '}
-              <Route
-                path="/:tab/:safeName"
-                render={(routerProps) => (
-                  <SafeDetails detailData={safeDetail} params={routerProps} />
-                )}
-              />
-            </Switch>
-          </Suspense>
+          <Switch>
+            {' '}
+            <Route
+              path="/:tab/:safeName"
+              render={(routerProps) => (
+                <SafeDetails detailData={safeDetail} params={routerProps} />
+              )}
+            />
+          </Switch>
         </ColumnSection>
       </SectionPreview>
     </ComponentError>

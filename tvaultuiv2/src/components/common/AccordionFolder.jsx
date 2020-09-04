@@ -1,5 +1,5 @@
 /* eslint-disable import/no-unresolved */
-import React from 'react';
+import React, { useState } from 'react';
 import PropTypes from 'prop-types';
 
 import styled from 'styled-components';
@@ -7,7 +7,9 @@ import Accordion from '@material-ui/core/Accordion';
 import AccordionSummary from '@material-ui/core/AccordionSummary';
 import AccordionDetails from '@material-ui/core/AccordionDetails';
 import ComponentError from 'errorBoundaries/ComponentError/component-error';
-// import { Avatar } from '@material-ui/core';
+import FolderIcon from '@material-ui/icons/Folder';
+import CreateSecret from 'components/createSecret';
+import LockIcon from '@material-ui/icons/Lock';
 
 // styled components goes here
 const FolderWrap = styled(Accordion)`
@@ -29,13 +31,26 @@ const FolderSummary = styled(AccordionSummary)`
   }
 `;
 const SecretDetail = styled(AccordionDetails)`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   //   padding: 1em;
 `;
 const SecretTitleWrap = styled('div')``;
-const PElement = styled('p')`
-  margin: 0;
+const PElement = styled('div')`
+  margin: 0.5rem 0;
+  display: flex;
+  align-items: center;
 `;
-// const IconWrap = styled('div')``;
+const CreateSecretWrap = styled('div')`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f2f2f2;
+  padding: 0.5em;
+  cursor: pointer;
+`;
+const SpanElement = styled('span')``;
 const FolderIconWrap = styled('div')`
   margin: 0 1em;
   display: flex;
@@ -45,9 +60,21 @@ const FolderIconWrap = styled('div')`
     height: 3rem;
   }
 `;
+const SecretsListWrapper = styled.div`
+  width: 100%;
+`;
 
 const AccordionFolder = (props) => {
-  const { summaryIcon, titleIcon, title, date } = props;
+  const { summaryIcon, title, date } = props;
+  const [addSecretEnabled, setAddSecretEnabled] = useState(false);
+  const [secrets, setSecrets] = useState([]);
+
+  const saveSecretsToFolder = (secret) => {
+    const tempSecretsList = [...secrets] || [];
+    tempSecretsList.push(secret);
+    setSecrets([...tempSecretsList]);
+    setAddSecretEnabled(false);
+  };
   return (
     <ComponentError>
       <FolderWrap>
@@ -57,17 +84,34 @@ const AccordionFolder = (props) => {
           id="panl1a-header"
         >
           {' '}
-          <FolderIconWrap>{titleIcon}</FolderIconWrap>
+          <FolderIconWrap>
+            <FolderIcon />
+          </FolderIconWrap>
           <SecretTitleWrap>
             <PElement>{title}</PElement>
             <PElement>{date}</PElement>
           </SecretTitleWrap>
         </FolderSummary>
         <SecretDetail>
-          <PElement>{title}</PElement>
-          {/* <SpanElement>{date}</SpanElement>
-        <SpanElement>{title}</SpanElement>
-        <SpanElement>{date}</SpanElement> */}
+          {addSecretEnabled ? (
+            <CreateSecret
+              handleSecretSave={saveSecretsToFolder}
+              handleSecretCancel={setAddSecretEnabled}
+            />
+          ) : (
+            <CreateSecretWrap onClick={() => setAddSecretEnabled(true)}>
+              <SpanElement>+</SpanElement>
+              <SpanElement>Create secrets</SpanElement>
+            </CreateSecretWrap>
+          )}
+          <SecretsListWrapper>
+            {secrets.map((secret) => (
+              <PElement>
+                <LockIcon />
+                <SpanElement>{secret}</SpanElement>
+              </PElement>
+            ))}
+          </SecretsListWrapper>
         </SecretDetail>
       </FolderWrap>
     </ComponentError>
@@ -75,13 +119,13 @@ const AccordionFolder = (props) => {
 };
 AccordionFolder.propTypes = {
   summaryIcon: PropTypes.node,
-  titleIcon: PropTypes.node,
+  // titleIcon: PropTypes.node,
   title: PropTypes.string,
   date: PropTypes.string,
 };
 AccordionFolder.defaultProps = {
   summaryIcon: <div />,
-  titleIcon: <div />,
+  // titleIcon: <div />,
   title: 'Nothing here',
   date: 'No Date',
 };
