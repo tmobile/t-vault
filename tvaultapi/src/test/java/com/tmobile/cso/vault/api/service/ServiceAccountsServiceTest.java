@@ -2387,7 +2387,7 @@ public class ServiceAccountsServiceTest {
         currentpolicies.add("w_shared_mysafe01");
         currentpolicies.add("w_shared_mysafe02");
         OIDCGroup oidcGroup = new OIDCGroup("123-123-123", currentpolicies);
-        when(OIDCUtil.getIdentityGroupDetails("mygroup01", token)).thenReturn(oidcGroup);
+        when(OIDCUtil.getIdentityGroupDetails(any(), any())).thenReturn(oidcGroup);
 
         Response response1 = new Response();
         response1.setHttpstatus(HttpStatus.NO_CONTENT);

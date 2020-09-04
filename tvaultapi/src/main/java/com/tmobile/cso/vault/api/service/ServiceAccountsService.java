@@ -1930,7 +1930,8 @@ public class  ServiceAccountsService {
      * @return
      */
     public ResponseEntity<String> removeGroupFromServiceAccount(String token, ServiceAccountGroup serviceAccountGroup, UserDetails userDetails) {
-        log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+    	OIDCGroup oidcGroup = new OIDCGroup();
+    	log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
                 put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
                 put(LogMessage.ACTION, "Remove Group from Service Account").
                 put(LogMessage.MESSAGE, String.format ("Trying to remove Group from Service Account")).
@@ -1976,8 +1977,19 @@ public class  ServiceAccountsService {
                     put(LogMessage.MESSAGE, String.format ("Policies are, read - [%s], write - [%s], deny -[%s], owner - [%s]", r_policy, w_policy, d_policy, o_policy)).
                     put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
                     build()));
-            Response groupResp = reqProcessor.process("/auth/ldap/groups","{\"groupname\":\""+groupName+"\"}",token);
-
+            Response groupResp = new Response();      
+			if (TVaultConstants.LDAP.equals(vaultAuthMethod)) {
+				groupResp = reqProcessor.process("/auth/ldap/groups", "{\"groupname\":\"" + groupName + "\"}", token);
+			} else if (TVaultConstants.OIDC.equals(vaultAuthMethod)) {
+				// call read api with groupname
+				oidcGroup = oidcUtil.getIdentityGroupDetails(groupName, token);
+				if (oidcGroup != null) {
+					groupResp.setHttpstatus(HttpStatus.OK);
+					groupResp.setResponse(oidcGroup.getPolicies().toString());
+				} else {
+					groupResp.setHttpstatus(HttpStatus.BAD_REQUEST);
+				}
+			}
             log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
                     put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
                     put(LogMessage.ACTION, "Remove group from ServiceAccount").
@@ -1993,8 +2005,13 @@ public class  ServiceAccountsService {
             if(HttpStatus.OK.equals(groupResp.getHttpstatus())){
                 responseJson = groupResp.getResponse();
                 try {
-                    ObjectMapper objMapper = new ObjectMapper();
-                    currentpolicies = ControllerUtil.getPoliciesAsListFromJson(objMapper, responseJson);
+					ObjectMapper objMapper = new ObjectMapper();
+					// OIDC Changes
+					if (TVaultConstants.LDAP.equals(vaultAuthMethod)) {
+						currentpolicies = ControllerUtil.getPoliciesAsListFromJson(objMapper, responseJson);
+					} else if (TVaultConstants.OIDC.equals(vaultAuthMethod)) {
+						currentpolicies.addAll(oidcGroup.getPolicies());
+					}
                 } catch (IOException e) {
                     log.error(e);
                     log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
@@ -2014,8 +2031,15 @@ public class  ServiceAccountsService {
             }
             String policiesString = org.apache.commons.lang3.StringUtils.join(policies, ",");
 			String currentpoliciesString = org.apache.commons.lang3.StringUtils.join(currentpolicies, ",");
-            Response ldapConfigresponse = ControllerUtil.configureLDAPGroup(groupName,policiesString,token);
-
+			Response ldapConfigresponse = new Response();
+			// OIDC Changes
+			if (TVaultConstants.LDAP.equals(vaultAuthMethod)) {
+				ldapConfigresponse = ControllerUtil.configureLDAPGroup(groupName, policiesString, token);
+			} else if (TVaultConstants.OIDC.equals(vaultAuthMethod)) {
+				ldapConfigresponse = oidcUtil.updateGroupPolicies(token, groupName, policies, currentpolicies,
+						oidcGroup.getId());
+				oidcUtil.renewUserToken(userDetails.getClientToken());
+			}
             if(ldapConfigresponse.getHttpstatus().equals(HttpStatus.NO_CONTENT) || ldapConfigresponse.getHttpstatus().equals(HttpStatus.OK)){
 				String path = new StringBuffer(TVaultConstants.SVC_ACC_ROLES_PATH).append(svcAccName).toString();
 				Map<String,String> params = new HashMap<String,String>();
@@ -2034,7 +2058,14 @@ public class  ServiceAccountsService {
 							build()));
 					return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Group is successfully removed from Service Account\"]}");
 				}
-				ldapConfigresponse = ControllerUtil.configureLDAPGroup(groupName,currentpoliciesString,token);
+				// OIDC Changes
+				if (TVaultConstants.LDAP.equals(vaultAuthMethod)) {
+					ldapConfigresponse = ControllerUtil.configureLDAPGroup(groupName, currentpoliciesString, token);
+				} else if (TVaultConstants.OIDC.equals(vaultAuthMethod)) {
+					ldapConfigresponse = oidcUtil.updateGroupPolicies(token, groupName, currentpolicies,
+							currentpolicies, oidcGroup.getId());
+					oidcUtil.renewUserToken(userDetails.getClientToken());
+				}
 				if(ldapConfigresponse.getHttpstatus().equals(HttpStatus.NO_CONTENT)){
 					log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 							put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
