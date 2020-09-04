@@ -46,7 +46,7 @@ const customTheme = createMuiTheme({
       fontSize: '6rem',
       lineHeight: 1.17,
       letterSpacing: '-0.09375em',
-      color: 'rgba(0, 0, 0, 0.87)',
+      color: '#fff',
     },
     h2: {
       fontFamily: '"Exo 2", "Helvetica", "Arial", sans-serif',
@@ -54,7 +54,7 @@ const customTheme = createMuiTheme({
       fontSize: '3.75rem',
       lineHeight: 1.2,
       letterSpacing: '-0.03125rem',
-      color: 'rgba(0, 0, 0, 0.87)',
+      color: '#fff',
     },
     h3: {
       fontFamily: '"Exo 2", "Helvetica", "Arial", sans-serif',
@@ -62,7 +62,7 @@ const customTheme = createMuiTheme({
       fontSize: '3rem',
       lineHeight: 1.17,
       letterSpacing: 'normal',
-      color: 'rgba(0, 0, 0, 0.87)',
+      color: '#fff',
     },
     h4: {
       fontFamily: '"Exo 2", "Helvetica", "Arial", sans-serif',
@@ -70,7 +70,7 @@ const customTheme = createMuiTheme({
       fontSize: '2.125rem',
       lineHeight: 1.06,
       letterSpacing: 'normal',
-      color: 'rgba(0, 0, 0, 0.87)',
+      color: '#fff',
     },
     h5: {
       fontFamily: '"Exo 2", "Helvetica", "Arial", sans-serif',
@@ -78,6 +78,7 @@ const customTheme = createMuiTheme({
       fontSize: '1.5rem',
       lineHeight: 1,
       letterSpacing: '0.01125rem',
+      color: '#fff',
     },
     h6: {
       fontFamily: '"Exo 2", "Helvetica", "Arial", sans-serif',
@@ -85,7 +86,7 @@ const customTheme = createMuiTheme({
       fontSize: '1.25rem',
       lineHeight: 1.2,
       letterSpacing: '0.009375rem',
-      color: 'rgba(0, 0, 0, 0.87)',
+      color: '#fff',
     },
     subtitle1: {
       fontFamily: '"Exo 2", "Helvetica", "Arial", sans-serif',
@@ -93,7 +94,7 @@ const customTheme = createMuiTheme({
       fontSize: '1rem',
       lineHeight: 1.5,
       letterSpacing: '0.009375rem',
-      color: 'rgba(0, 0, 0, 0.87)',
+      color: '#fff',
     },
     subtitle2: {
       fontFamily: '"Exo 2", "Helvetica", "Arial", sans-serif',
@@ -101,7 +102,7 @@ const customTheme = createMuiTheme({
       fontSize: '0.875rem',
       lineHeight: 1.71,
       letterSpacing: '0.00625rem',
-      color: 'rgba(0, 0, 0, 0.87)',
+      color: '#fff',
     },
     body1: {
       fontFamily: '"Exo 2", "Helvetica", "Arial", sans-serif',
@@ -109,6 +110,8 @@ const customTheme = createMuiTheme({
       fontSize: '1rem',
       lineHeight: 1.5,
       letterSpacing: '0.03125rem',
+      color: '#000',
+      background: '#ccc',
     },
     body2: {
       fontFamily: '"Exo 2", "Helvetica", "Arial", sans-serif',
@@ -116,6 +119,10 @@ const customTheme = createMuiTheme({
       fontSize: '0.875rem',
       lineHeight: 1.43,
       letterSpacing: '0.015625rem',
+      backgroundImage: 'linear-gradient(to top, #2f3545, #1d212c)',
+      backgroundRepeat: 'no-repeat',
+      minHeight: '100vh',
+      color: '#fff',
     },
     button: {
       fontFamily: '"Exo 2", "Helvetica", "Arial", sans-serif',
@@ -131,7 +138,7 @@ const customTheme = createMuiTheme({
       fontSize: '0.75rem',
       lineHeight: 1.33,
       letterSpacing: '0.025rem',
-      color: 'rgba(0, 0, 0, 0.87)',
+      color: '#fff',
     },
     overline: {
       fontFamily: '"Exo 2", "Helvetica", "Arial", sans-serif',
@@ -160,8 +167,8 @@ const customTheme = createMuiTheme({
       main: '#6dba15',
     },
     text: {
-      primary: '#31394d',
-      secondary: '#31394d',
+      primary: '#000',
+      secondary: '#000',
       light: '#fff',
       main: '#e20074',
       disabled: 'rgba(0, 0, 0, 0.38)',
