@@ -4,7 +4,7 @@ import { withRouter } from 'react-router-dom';
 
 // import PropTypes from 'prop-types';
 // eslint-disable-next-line import/no-unresolved
-import SafeSectionWrap from 'components/containers/SafeSectionWrap';
+import SafeDashboard from 'components/containers/SafeDashboard';
 import styled from 'styled-components';
 // eslint-disable-next-line import/no-unresolved
 import ComponentError from 'errorBoundaries/ComponentError/component-error';
@@ -21,7 +21,7 @@ const SafePageLayout = (props) => {
       {' '}
       <main title="safe-layout">
         <SafeSectionPreview>
-          <SafeSectionWrap {...props} />
+          <SafeDashboard {...props} />
         </SafeSectionPreview>
       </main>
     </ComponentError>

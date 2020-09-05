@@ -23,18 +23,12 @@ import AddFolder from 'components/add-folder';
 // import FolderIcon from '@material-ui/icons/Folder';
 import AddIcon from '@material-ui/icons/Add';
 // import AccordionFolder from '../../common/AccordionFolder';
+import { findElementById } from 'services/helperFunctions';
 import MuiButton from '../../common/MuiButton';
 import DialogeBox from '../../common/DialogeBox';
 import FolderTreeView from '../FolderTree';
-
 // styled components goes here
 
-// const WideButton = styled('div')`
-//   display: flex;
-//   justify-content: center;
-//   background: #f2f2f2;
-//   padding: 0.5em;
-// `;
 const EmptySecretBox = styled('div')`
   display: flex;
   align-items: center;
@@ -109,7 +103,7 @@ export default function SelectionTabs() {
   const [value, setValue] = useState(0);
   const [enabledAddFolder, setEnableAddFolder] = useState(false);
   const [secretsFolder, setSecretsFolder] = useState([]);
-  const [secrets, setSecrets] = useState([]);
+  // const [secrets, setSecrets] = useState([]);
 
   const handleChange = (event, newValue) => {
     setValue(newValue);
@@ -123,27 +117,17 @@ export default function SelectionTabs() {
    * @param {string} folderName
    */
 
-  const saveSecretsFolder = (folderName) => {
+  const saveSecretsToFolder = (obj, parentId) => {
     const tempFolders = [...secretsFolder] || [];
-    // const folderObj = {};
-    // folderObj.labelText = folderName;
-    // folderObj.labelInfo = 'folder';
-    // folderObj.children = [];
-    tempFolders.push(folderName);
+    const folderObj = {};
+    folderObj.labelText = obj.name;
+    folderObj.type = obj.type;
+    folderObj.labelKey = obj.key;
+    folderObj.children = [];
+    const selectedItem = findElementById(tempFolders, parentId, 'children');
+    selectedItem.children.push(folderObj);
     setSecretsFolder([...tempFolders]);
     setEnableAddFolder(false);
-  };
-
-  const saveSecretsToFolder = (secret) => {
-    const tempSecretsList = [...secrets] || [];
-    const secretItem = {};
-    secretItem.labelText = secret.secret;
-    secretItem.labelInfo = 'folder';
-    secretItem.id = secret.keyId;
-    secretItem.children = [];
-    secretItem.children.push({ id: secret.keyId, labelText: secret.secret });
-    tempSecretsList.push(secretItem);
-    setSecrets([...tempSecretsList]);
   };
 
   return (
@@ -166,7 +150,7 @@ export default function SelectionTabs() {
         <TabPanel value={value} index={0}>
           {enabledAddFolder ? (
             <AddFolder
-              handleSaveClick={saveSecretsFolder}
+              handleSaveClick={saveSecretsToFolder}
               handleCancelClick={() => setEnableAddFolder(false)}
             />
           ) : (
@@ -177,8 +161,8 @@ export default function SelectionTabs() {
               {/* reverted folder tree structure and its in different branch(layout-branch) */}
               <FolderTreeView
                 treeData={secretsFolder}
-                secrets={secrets}
                 saveSecretsToFolder={saveSecretsToFolder}
+                handleCancelClick={() => setEnableAddFolder(false)}
               />
 
               {/* {secretsFolder.map((item) => (

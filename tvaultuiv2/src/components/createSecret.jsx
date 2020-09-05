@@ -39,6 +39,27 @@ const CreateSecret = (props) => {
   const { handleSecretSave, handleSecretCancel } = props;
   const [secret, setSecret] = useState('');
   const [keyId, setKeyId] = useState('');
+  const [keyErrorMessage, setKeyErrorMessage] = useState('');
+  const [valueErrorMessage, setValueErrorMessage] = useState('');
+
+  const handleValidation = (value, type) => {
+    if (type === 'key') {
+      if (value.length > 3) setKeyErrorMessage('max of 3 characters');
+    } else {
+      setValueErrorMessage('');
+    }
+  };
+
+  const handleKeyChange = (key) => {
+    setKeyId(key);
+    handleValidation(key, 'key');
+  };
+
+  const handleValueChange = (value) => {
+    setSecret(value);
+    handleValidation(value, 'value');
+  };
+
   return (
     <SecretWrapper>
       <Title>Key Id</Title>
@@ -46,7 +67,8 @@ const CreateSecret = (props) => {
         id="filled-basic"
         variant="filled"
         value={keyId || ''}
-        onChange={(e) => setKeyId(e.target.value)}
+        error={!!keyErrorMessage}
+        onChange={(e) => handleKeyChange(e.target.value)}
       />
       <KeyIdInputRequirements>
         Please enter a minimum of 3 characters lowercase alphabets, number and
@@ -57,7 +79,8 @@ const CreateSecret = (props) => {
         id="filled-basic"
         variant="filled"
         value={secret || ''}
-        onChange={(e) => setSecret(e.target.value)}
+        error={!!valueErrorMessage}
+        onChange={(e) => handleValueChange(e.target.value)}
       />
       <CancelSaveWrapper>
         <ButtonComponent
@@ -70,7 +93,7 @@ const CreateSecret = (props) => {
           label="SAVE"
           type="contained"
           color="primary"
-          onClick={() => handleSecretSave({ keyId, secret })}
+          onClick={() => handleSecretSave({ key: keyId, name: secret })}
         />
       </CancelSaveWrapper>
     </SecretWrapper>

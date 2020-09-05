@@ -3,7 +3,8 @@
 /* eslint-disable react/require-default-props */
 // eslint-disable-next-line react/require-default-props
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import styled from 'styled-components';
 import PropTypes from 'prop-types';
 import { makeStyles } from '@material-ui/core/styles';
 import TreeView from '@material-ui/lab/TreeView';
@@ -13,10 +14,15 @@ import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
 
 // import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
 import ChevronRightIcon from '@material-ui/icons/ChevronRight';
-import FolderIcon from '@material-ui/icons/Folder';
+import FolderOutlinedIcon from '@material-ui/icons/FolderOutlined';
+import MoreVertOutlinedIcon from '@material-ui/icons/MoreVertOutlined';
 import LockIcon from '@material-ui/icons/Lock';
 import ComponentError from 'errorBoundaries/ComponentError/component-error';
+import PopperElement from 'components/common/popper';
+import TreeItemWrapper from 'components/common/TreeItemWrapper';
+import AddFolder from 'components/add-folder';
 import AccordionFolder from '../../common/AccordionFolder';
+import CreateSecretButton from '../../createSecretButton';
 
 // custom tree item styling
 const useStyles = makeStyles({
@@ -41,9 +47,47 @@ const useStyles = makeStyles({
     paddingLeft: '1rem',
   },
 });
+
+const FolderIconWrap = styled('div')`
+  margin: 0 1em;
+  display: flex;
+  align-items: center;
+  .MuiSvgIcon-root {
+    width: 3rem;
+    height: 3rem;
+  }
+`;
 const FolderTreeView = (props) => {
   const classes = useStyles();
-  const { treeData, saveSecretsToFolder, secrets } = props;
+  const {
+    treeData,
+    saveSecretsToFolder,
+    handleCancelClick,
+    secrets,
+    addFolderToTargetFolder,
+  } = props;
+  const [updatedTreeData, setUpdatedTreeData] = useState([]);
+  const [isPopperOpen, setIsPopperOpen] = useState(false);
+  const [anchorEl, setAnchorEl] = useState(null);
+  const [isAddFolder, setIsAddFolder] = useState(false);
+
+  const setTreeData = (data) => {
+    setUpdatedTreeData(data);
+  };
+  useEffect(() => {
+    setTreeData(treeData);
+  }, [treeData]);
+
+  // handle popper clicks
+  const enablePopper = (e) => {
+    setIsPopperOpen(true);
+    setAnchorEl(e.currentTarget);
+  };
+
+  const handlePopperClick = () => {
+    addFolderToTargetFolder();
+    setIsAddFolder(true);
+  };
 
   // render recursive tree items
   // eslint-disable-next-line consistent-return
@@ -55,24 +99,52 @@ const FolderTreeView = (props) => {
           // eslint-disable-next-line react/jsx-wrap-multilines
           <div className={classes.labelRoot}>
             <div className={classes.labelKeyWrap}>
-              {node.labelInfo?.toLowerCase() === 'folder' ? (
-                <FolderIcon color="inherit" className={classes.labelIcon} />
+              {item.type?.toLowerCase() === 'folder' ? (
+                <FolderOutlinedIcon
+                  color="inherit"
+                  className={classes.labelIcon}
+                />
               ) : (
                 <LockIcon color="inherit" className={classes.labelIcon} />
               )}
-              <Typography variant="body1" className={classes.labelKey}>
-                {item.id}
-              </Typography>
+              {item.labelKey && (
+                <Typography variant="body1" className={classes.labelKey}>
+                  {item.id}
+                </Typography>
+              )}
             </div>
-
             <Typography variant="body2" className={classes.labelText}>
               {item.labelText}
             </Typography>
+            <FolderIconWrap onClick={(e) => enablePopper(e)}>
+              <MoreVertOutlinedIcon />
+              <PopperElement
+                open={isPopperOpen}
+                popperContent={<span>create folder</span>}
+                position="right-start"
+                anchorEl={anchorEl}
+                handlePopperClick={handlePopperClick}
+              />
+            </FolderIconWrap>
           </div>
         }
       >
         {Array.isArray(node.children)
-          ? node.children.map((childItem) => renderChild(childItem))
+          ? node.children.map((childItem) => (
+              // eslint-disable-next-line react/jsx-indent
+              <TreeItemWrapper
+                inputNode={
+                  // eslint-disable-next-line react/jsx-wrap-multilines
+                  <AddFolder
+                    handleCancelClick={handleCancelClick}
+                    handleSaveClick={saveSecretsToFolder}
+                  />
+                }
+                inputEnabled={isAddFolder}
+                createButton={<CreateSecretButton />}
+                renderChilds={renderChild(childItem)}
+              />
+            ))
           : null}
       </TreeItem>
     ));
@@ -81,9 +153,10 @@ const FolderTreeView = (props) => {
     return nodes.map((node) => {
       return (
         <AccordionFolder
-          title={node}
+          title={node.labelText}
           summaryIcon={<ExpandMoreIcon />}
           saveSecretsToFolder={saveSecretsToFolder}
+          handleCancelClick={handleCancelClick}
           accordianChildren={renderChild(secrets)}
         />
       );
@@ -98,7 +171,7 @@ const FolderTreeView = (props) => {
         defaultExpandIcon={<ChevronRightIcon />}
         defaultEndIcon={<div style={{ width: 24 }} />}
       >
-        {renderTree(treeData)}
+        {!!updatedTreeData && renderTree(updatedTreeData)}
       </TreeView>
     </ComponentError>
   );
@@ -106,11 +179,15 @@ const FolderTreeView = (props) => {
 FolderTreeView.propTypes = {
   treeData: PropTypes.array,
   saveSecretsToFolder: PropTypes.func,
+  handleCancelClick: PropTypes.func,
+  addFolderToTargetFolder: PropTypes.func,
   secrets: PropTypes.array,
 };
 FolderTreeView.defaultProps = {
   treeData: [],
   saveSecretsToFolder: () => {},
+  handleCancelClick: () => {},
+  addFolderToTargetFolder: () => {},
   secrets: [],
 };
 

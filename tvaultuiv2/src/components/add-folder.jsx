@@ -28,11 +28,16 @@ const ButtonWrapper = styled('div')`
 `;
 const AddFolder = (props) => {
   const [inputValue, setInputValue] = useState('');
+  const [errorMessage, setErrorMessage] = useState('');
   const { width = '100%', handleCancelClick, handleSaveClick } = props;
 
+  const handleValidation = (value) => {
+    if (value.length > 10) setErrorMessage('max of 3 characters');
+  };
+
   const handleChange = (e) => {
-    e.preventDefault();
     setInputValue(e.target.value);
+    handleValidation(e.target.value);
   };
 
   return (
@@ -42,6 +47,8 @@ const AddFolder = (props) => {
         <TextField
           id="outlined-basic"
           variant="outlined"
+          label={<span>{errorMessage || ''}</span>}
+          error={!!errorMessage}
           onChange={(e) => handleChange(e)}
           value={inputValue || ''}
           helperText="Please enter a minimum of 3 characters lowercase alphabets, number and underscore only."
@@ -57,7 +64,7 @@ const AddFolder = (props) => {
             label="SAVE"
             color="primary"
             type="contained"
-            onClick={() => handleSaveClick(inputValue)}
+            onClick={() => handleSaveClick({ name: inputValue, key: '' })}
           />
         </ButtonWrapper>
       </form>

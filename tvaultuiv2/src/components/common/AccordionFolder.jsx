@@ -7,13 +7,17 @@ import Accordion from '@material-ui/core/Accordion';
 import AccordionSummary from '@material-ui/core/AccordionSummary';
 import AccordionDetails from '@material-ui/core/AccordionDetails';
 import ComponentError from 'errorBoundaries/ComponentError/component-error';
-import FolderIcon from '@material-ui/icons/Folder';
+import FolderOutlinedIcon from '@material-ui/icons/FolderOutlined';
+import MoreVertOutlinedIcon from '@material-ui/icons/MoreVertOutlined';
 import CreateSecret from 'components/createSecret';
-// import LockIcon from '@material-ui/icons/Lock';
+import PopperElement from './popper';
+import AddFolder from '../add-folder';
+import CreateSecretButton from '../createSecretButton';
 
 // styled components goes here
 const FolderWrap = styled(Accordion)`
   display: flex;
+  position: relative;
   background: #ddd;
   padding: 0.25em;
   justify-content: center;
@@ -28,6 +32,7 @@ const FolderSummary = styled(AccordionSummary)`
   .MuiAccordionSummary-content {
     align-items: center;
     margin: 0.5em 0;
+    justify-content: space-between;
   }
 `;
 const SecretDetail = styled(AccordionDetails)`
@@ -42,15 +47,7 @@ const PElement = styled('div')`
   display: flex;
   align-items: center;
 `;
-const CreateSecretWrap = styled('div')`
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: #f2f2f2;
-  padding: 0.5em;
-  cursor: pointer;
-`;
-const SpanElement = styled('span')``;
+
 const FolderIconWrap = styled('div')`
   margin: 0 1em;
   display: flex;
@@ -71,21 +68,27 @@ const AccordionFolder = (props) => {
     date,
     accordianChildren,
     saveSecretsToFolder,
+    addFolderToTargetFolder,
+    handleCancelClick,
   } = props;
   const [addSecretEnabled, setAddSecretEnabled] = useState(false);
+  const [isPopperOpen, setIsPopperOpen] = useState(false);
+  const [anchorEl, setAnchorEl] = useState(null);
+  const [isAddFolder, setIsAddFolder] = useState(false);
 
-  // const saveSecretsToFolder = (secret) => {
-  //   const tempSecretsList = [...secrets] || [];
-  //   const secretItem = {};
-  //   secretItem.labelText = secret;
-  //   secretItem.children = [];
-  //   tempSecretsList.push(secretItem);
-  //   setSecrets([...tempSecretsList]);
-  //   setAddSecretEnabled(false);
-  // };
   const handleSaveSecretsToFolder = (secret) => {
-    saveSecretsToFolder(secret, title);
+    saveSecretsToFolder(secret);
     setAddSecretEnabled(false);
+  };
+
+  const enablePopper = (e) => {
+    setIsPopperOpen(true);
+    setAnchorEl(e.currentTarget);
+  };
+
+  const handlePopperClick = () => {
+    addFolderToTargetFolder();
+    setIsAddFolder(true);
   };
   return (
     <ComponentError>
@@ -97,34 +100,42 @@ const AccordionFolder = (props) => {
         >
           {' '}
           <FolderIconWrap>
-            <FolderIcon />
+            <FolderOutlinedIcon />
+            <SecretTitleWrap>
+              <PElement>{title}</PElement>
+              <PElement>{date}</PElement>
+            </SecretTitleWrap>
           </FolderIconWrap>
-          <SecretTitleWrap>
-            <PElement>{title}</PElement>
-            <PElement>{date}</PElement>
-          </SecretTitleWrap>
+          <FolderIconWrap onClick={(e) => enablePopper(e)}>
+            <MoreVertOutlinedIcon />
+            <PopperElement
+              open={isPopperOpen}
+              popperContent={<span>create folder</span>}
+              position="right-start"
+              anchorEl={anchorEl}
+              handlePopperClick={handlePopperClick}
+            />
+          </FolderIconWrap>
         </FolderSummary>
         <SecretDetail>
-          <SecretsListWrapper>
-            {/* {secrets.map((secret) => (
-              <PElement>
-                <LockIcon />
-                <SpanElement>{secret}</SpanElement>
-              </PElement>
-            ))} */}
-            {accordianChildren}
-          </SecretsListWrapper>
-
+          <SecretsListWrapper>{accordianChildren}</SecretsListWrapper>
+          {isAddFolder ? (
+            <AddFolder
+              handleCancelClick={handleCancelClick}
+              handleSaveClick={saveSecretsToFolder}
+            />
+          ) : (
+            <></>
+          )}
           {addSecretEnabled ? (
             <CreateSecret
               handleSecretSave={handleSaveSecretsToFolder}
               handleSecretCancel={setAddSecretEnabled}
             />
           ) : (
-            <CreateSecretWrap onClick={() => setAddSecretEnabled(true)}>
-              <SpanElement>+</SpanElement>
-              <SpanElement>Create secrets</SpanElement>
-            </CreateSecretWrap>
+            <CreateSecretButton
+              onClickHandler={() => setAddSecretEnabled(true)}
+            />
           )}
         </SecretDetail>
       </FolderWrap>
@@ -138,6 +149,8 @@ AccordionFolder.propTypes = {
   date: PropTypes.string,
   accordianChildren: PropTypes.node,
   saveSecretsToFolder: PropTypes.func,
+  addFolderToTargetFolder: PropTypes.func,
+  handleCancelClick: PropTypes.func,
 };
 AccordionFolder.defaultProps = {
   summaryIcon: <div />,
@@ -146,5 +159,7 @@ AccordionFolder.defaultProps = {
   date: '',
   accordianChildren: <div />,
   saveSecretsToFolder: () => {},
+  addFolderToTargetFolder: () => {},
+  handleCancelClick: () => {},
 };
 export default AccordionFolder;
