@@ -66,6 +66,8 @@ const SafeFolderWrap = styled(Link)`
   padding: 0.8em;
   cursor: pointer;
   background-color: ${(props) => (props.active ? '#4a4a4a' : '#fff')};
+  background-image: ${(props) =>
+    props.active ? props.theme.gradients.list : 'none'};
   color: ${(props) => (props.active ? '#fff' : '#4a4a4a')};
   :hover {
     background-color: #4a4a4a;
