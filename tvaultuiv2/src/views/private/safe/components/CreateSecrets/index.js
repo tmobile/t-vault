@@ -1,9 +1,10 @@
 /* eslint-disable import/no-unresolved */
 import React, { useState } from 'react';
-import { TextField, InputLabel } from '@material-ui/core';
+import { InputLabel } from '@material-ui/core';
 import styled from 'styled-components';
 import PropTypes from 'prop-types';
 import ButtonComponent from 'components/FormFields/ActionButton';
+import TextFieldComponent from 'components/FormFields/TextField';
 
 const SecretWrapper = styled.section`
   padding: 2rem;
@@ -52,22 +53,22 @@ const CreateSecret = (props) => {
       <h1>Add Secrets</h1>
       <form>
         <InputLabel>Key Id</InputLabel>
-        <TextField
-          id="filled-basic"
-          variant="filled"
+        <TextFieldComponent
+          placeholder="Key Id"
           value={keyId || ''}
           onChange={(e) => setKeyId(e.target.value)}
+          variant="light"
         />
         <KeyIdInputRequirements>
           Please enter a minimum of 3 characters lowercase alphabets, number and
           underscores only
         </KeyIdInputRequirements>
         <InputLabel>Secret</InputLabel>
-        <TextField
-          id="filled-basic"
-          variant="filled"
+        <TextFieldComponent
+          placeholder="Secret"
           value={secret || ''}
           onChange={(e) => setSecret(e.target.value)}
+          variant="light"
         />
         <CancelSaveWrapper>
           <CancelButton>

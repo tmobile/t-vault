@@ -28,6 +28,10 @@ const styles = () => ({
   light: {
     background: '#fff',
     padding: '1rem',
+    color: '#000',
+  },
+  text: {
+    width: '100%',
   },
 });
 
@@ -39,12 +43,22 @@ const setIcon = (props) => {
 const onInputChange = () => {};
 
 const TextFieldComponent = (props) => {
-  const { icon, classes, variant, placeholder, disabled, onChange } = props;
+  const {
+    icon,
+    classes,
+    variant,
+    placeholder,
+    disabled,
+    onChange,
+    value,
+  } = props;
   return (
     <StyleTextField
       icon={icon}
       placeholder={placeholder}
       disabled={disabled || false}
+      value={value || ''}
+      className={classes.text}
       InputProps={{
         disableUnderline: true,
         className: classes[variant],
@@ -66,11 +80,13 @@ TextFieldComponent.propTypes = {
   onChange: PropTypes.func.isRequired,
   variant: PropTypes.string,
   disabled: PropTypes.string,
+  value: PropTypes.string,
 };
 
 TextFieldComponent.defaultProps = {
   icon: '',
   variant: '',
+  value: '',
   disabled: false,
 };
 
