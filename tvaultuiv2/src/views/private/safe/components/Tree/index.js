@@ -1,3 +1,5 @@
+/* eslint-disable consistent-return */
+/* eslint-disable react/jsx-curly-newline */
 /* eslint-disable array-callback-return */
 /* eslint-disable import/no-unresolved */
 import React, { useState, useEffect } from 'react';

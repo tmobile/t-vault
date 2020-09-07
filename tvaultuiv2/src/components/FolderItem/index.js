@@ -22,9 +22,6 @@ const SafeAvatarWrap = styled.div`
   width: 4em;
   height: 4em;
 `;
-const SafeName = styled.div`
-  font-size: 1.25rem;
-`;
 const Flag = styled('span')`
   opacity: 0.7;
   margin-left: 0.5rem;
