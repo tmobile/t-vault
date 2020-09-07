@@ -12,7 +12,7 @@ import Avatar from '@material-ui/core/Avatar';
 import Dropdown from 'components/common/SelectDropdown';
 import FolderIcon from '@material-ui/icons/Folder';
 import SearchIcon from '@material-ui/icons/Search';
-import FloatingButtonComponent from '../../FloatingBtn';
+import FloatingButtonComponent from 'components/FormFields/FloatingButton';
 import ComponentError from '../../../errorBoundaries/ComponentError/component-error';
 
 // mock data

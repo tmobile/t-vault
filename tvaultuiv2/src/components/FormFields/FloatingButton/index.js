@@ -1,9 +1,10 @@
+/* eslint-disable import/no-unresolved */
 import React from 'react';
 import styled from 'styled-components';
 import { withStyles } from '@material-ui/core/styles';
 import { Avatar } from '@material-ui/core';
 import PropTypes from 'prop-types';
-import createIcon from '../assets/icon-create-newsafe.svg';
+import createIcon from '../../../assets/icon-create-newsafe.svg';
 
 const AvatarWrapper = styled.div`
   cursor: pointer;
