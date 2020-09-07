@@ -15,7 +15,7 @@ import ButtonComponent from 'components/ButtonComponent';
 import ComponentError from 'errorBoundaries/ComponentError/component-error';
 
 const ModalWrapper = styled.section`
-  background-color: #fff;
+  background-color: #2a2e3e;
   padding: 2.4rem 3.2rem;
   border-radius: 1rem;
   border: none;

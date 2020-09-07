@@ -21,7 +21,7 @@ import { safes, safeDetail } from './__mock/safeDashboard';
 // styled components
 const ColumnSection = styled('section')`
   width: 50%;
-  padding: ${(props) => props.padding || '2.5rem'};
+  padding: ${(props) => props.padding || '0'};
   background: ${(props) => props.backgroundColor || '#151820'};
 `;
 const SectionPreview = styled('main')`
@@ -66,16 +66,14 @@ const SafeFolderWrap = styled(Link)`
   position: relative;
   display: flex;
   text-decoration: none;
-  color: #4a4a4a;
   align-items: center;
   padding: 0.8em;
   cursor: pointer;
-  background-color: ${(props) => (props.active ? '#4a4a4a' : '#fff')};
   background-image: ${(props) =>
     props.active ? props.theme.gradients.list : 'none'};
   color: ${(props) => (props.active ? '#fff' : '#4a4a4a')};
   :hover {
-    background-color: #4a4a4a;
+    background-image: ${(props) => props.theme.gradients.list || 'none'};
     color: #fff;
   }
 `;

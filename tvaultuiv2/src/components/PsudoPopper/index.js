@@ -1,7 +1,7 @@
 import React from 'react';
 import styled from 'styled-components';
-import EditIcon from '@material-ui/icons/Edit';
-import DeleteIcon from '@material-ui/icons/Delete';
+import EditOutlinedIcon from '@material-ui/icons/EditOutlined';
+import DeleteOutlineOutlinedIcon from '@material-ui/icons/DeleteOutlineOutlined';
 // eslint-disable-next-line import/no-unresolved
 import ComponentError from 'errorBoundaries/ComponentError/component-error';
 
@@ -14,8 +14,8 @@ const PsudoPopper = () => {
   return (
     <ComponentError>
       <IconWrap>
-        <EditIcon />
-        <DeleteIcon />
+        <EditOutlinedIcon />
+        <DeleteOutlineOutlinedIcon />
       </IconWrap>
     </ComponentError>
   );

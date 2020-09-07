@@ -155,7 +155,7 @@ const customTheme = createMuiTheme({
   },
   palette: {
     primary: {
-      main: '#000',
+      main: '#e20074',
       contrastText: '#fff',
     },
     secondary: {
@@ -212,6 +212,7 @@ const customTheme = createMuiTheme({
         borderRadius: '0.25rem',
       },
     },
+    MuiAppBar: { colorPrimary: { backgroundColor: '#151820' } },
   },
   baseFontSize: {
     fontSize: '10px',
