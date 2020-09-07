@@ -1,48 +1,68 @@
 import React from 'react';
+import styled from 'styled-components';
 import { withStyles } from '@material-ui/core/styles';
 import Button from '@material-ui/core/Button';
 import Icon from '@material-ui/core/Icon';
 import PropTypes from 'prop-types';
 
-const styles = () => ({
+const StyledButton = styled(Button)`
+  border-radius: ${(props) => !props.borderRadius && '0'};
+`;
+
+const styles = (theme) => ({
   contained: {
-    marginRight: '1rem',
     padding: '0.5rem 1rem',
+    height: '3.6rem',
     boxShadow: 'none',
-    color: '#fff',
-    borderRadius: 'none',
   },
-  iconStyle: {
+  startIcon: {
     fontSize: '1.2rem',
     fontWeight: 'bold',
     marginRight: '0.5rem',
   },
-  primary: {
+  containedPrimary: {
     backgroundColor: '#fff',
-    color: '#e20074',
+    color: theme.palette.secondary.main,
+    '&:disabled': {
+      backgroundColor: '#ddd',
+    },
+  },
+  containedSecondary: {
+    backgroundColor: theme.palette.secondary.main,
+    color: '#fff',
+    '&:disabled': {
+      backgroundColor: '#454c5e',
+      color: '#fff',
+    },
   },
 });
-const setIcon = (props) => {
-  const { classes, icon } = props;
-  return <Icon className={classes.iconStyle}>{icon}</Icon>;
-};
 
 const onButtonClick = () => {};
 
 const ButtonComponent = (props) => {
-  const { icon, classes, label, onClick, size, disabled, classApplied } = props;
+  const {
+    icon,
+    classes,
+    label,
+    onClick,
+    size,
+    disabled,
+    buttonType,
+    borderRadius,
+  } = props;
   return (
-    <Button
+    <StyledButton
+      borderRadius={borderRadius}
       classes={classes}
       variant="contained"
       size={size || 'small'}
-      className={classes[classApplied]}
+      className={classes[buttonType]}
       disabled={disabled || false}
       onClick={onClick || ((e) => onButtonClick(e))}
     >
-      {icon && setIcon({ ...props })}
+      {icon && <Icon className={classes.startIcon}>{icon}</Icon>}
       {label}
-    </Button>
+    </StyledButton>
   );
 };
 
@@ -53,18 +73,16 @@ ButtonComponent.propTypes = {
   onClick: PropTypes.func.isRequired,
   size: PropTypes.string,
   disabled: PropTypes.bool,
-  classApplied: PropTypes.string,
+  buttonType: PropTypes.string,
+  borderRadius: PropTypes.bool,
 };
 
 ButtonComponent.defaultProps = {
   icon: '',
   size: 'small',
   disabled: false,
-  classApplied: '',
+  buttonType: '',
+  borderRadius: false,
 };
 
-setIcon.propTypes = {
-  icon: PropTypes.string.isRequired,
-  classes: PropTypes.objectOf(PropTypes.any).isRequired,
-};
 export default withStyles(styles)(ButtonComponent);

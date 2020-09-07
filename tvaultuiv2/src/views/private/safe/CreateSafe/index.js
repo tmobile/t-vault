@@ -83,8 +83,13 @@ const SafeDescription = styled.p`
 `;
 
 const CancelSaveWrapper = styled.div`
-  align-self: flex-end;
+  display: flex;
+  justify-content: flex-end;
   margin-top: 2rem;
+`;
+
+const CancelButton = styled.div`
+  margin-right: 0.8rem;
 `;
 
 const CreateSafeForm = styled.form`
@@ -199,12 +204,18 @@ const CreateModal = (props) => {
                 />
               </InputFieldLabelWrapper>
               <CancelSaveWrapper>
+                <CancelButton>
+                  <ButtonComponent
+                    label="Cancel"
+                    buttonType="containedPrimary"
+                    onClick={() => handleClose()}
+                  />
+                </CancelButton>
                 <ButtonComponent
-                  label="CANCEL"
-                  classApplied="primary"
-                  onClick={() => handleClose()}
+                  label="Create"
+                  buttonType="containedSecondary"
+                  icon="add"
                 />
-                <ButtonComponent label="SAVE" classApplied="secondary" />
               </CancelSaveWrapper>
             </CreateSafeForm>
           </ModalWrapper>
