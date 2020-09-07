@@ -23,7 +23,7 @@ const ColumnSection = styled('section')`
   width: 50%;
   padding: 2.5em;
   border-right: 2px solid #ddd;
-  position: absolute;
+  position: relative;
   &:last-child {
     border-right: none;
   }

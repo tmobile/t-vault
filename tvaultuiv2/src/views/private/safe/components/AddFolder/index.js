@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import PropTypes from 'prop-types';
 import styled from 'styled-components';
 import TextField from '@material-ui/core/TextField';
-import ButtonComponent from 'components/common/ButtonComponent';
+import ButtonComponent from 'components/FormFields/ActionButton';
 
 const AddFolderNameWrapper = styled.div`
   padding: 3.2rem;
@@ -27,6 +27,10 @@ const ButtonWrapper = styled('div')`
   display: flex;
   justify-content: flex-end;
 `;
+
+const CancelButton = styled.div`
+  margin-right: 0.8rem;
+`;
 const AddFolder = (props) => {
   const [inputValue, setInputValue] = useState('');
   const { width = '100%', handleCancelClick, handleSaveClick } = props;
@@ -48,17 +52,17 @@ const AddFolder = (props) => {
           helperText="Please enter a minimum of 3 characters lowercase alphabets, number and underscore only."
         />
         <ButtonWrapper>
+          <CancelButton>
+            <ButtonComponent
+              label="Cancel"
+              buttonType="containedPrimary"
+              onClick={handleCancelClick}
+            />
+          </CancelButton>
           <ButtonComponent
-            label="CANCEL"
-            color="default"
-            type="contained"
-            onClick={handleCancelClick}
-          />
-          <ButtonComponent
-            label="SAVE"
-            color="primary"
-            type="contained"
-            onClick={() => handleSaveClick(inputValue)}
+            label="Save"
+            buttonType="containedSecondary"
+            onClick={handleSaveClick(inputValue)}
           />
         </ButtonWrapper>
       </form>
