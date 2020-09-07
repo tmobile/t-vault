@@ -5,6 +5,7 @@ import PropTypes from 'prop-types';
 import styled from 'styled-components';
 import Avatar from '@material-ui/core/Avatar';
 import ComponentError from 'errorBoundaries/ComponentError/component-error';
+import { TitleOne } from 'styles/GlobalStyles';
 
 import FolderOutlinedIcon from '@material-ui/icons/FolderOutlined';
 
@@ -41,12 +42,12 @@ const FolderItem = (props) => {
           <Avatar>{icon}</Avatar>
         </SafeAvatarWrap>
         <SafeDetailBox>
-          <SafeName>
+          <TitleOne>
             {title}
             <Flag fontSize="0.85rem" fontStyle="italic">
               {flag}
             </Flag>
-          </SafeName>
+          </TitleOne>
           <Flag fontSize="1rem">{subTitle}</Flag>
         </SafeDetailBox>
       </FolderWrap>

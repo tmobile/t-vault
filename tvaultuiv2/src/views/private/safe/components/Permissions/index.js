@@ -7,7 +7,7 @@ import Autocomplete from '@material-ui/lab/Autocomplete';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 import FormControl from '@material-ui/core/FormControl';
 import styled from 'styled-components';
-import ButtonComponent from 'common/ButtonComponent';
+import ButtonComponent from 'components/ButtonComponent';
 
 const PermissionWrapper = styled.div`
   padding: 2rem;

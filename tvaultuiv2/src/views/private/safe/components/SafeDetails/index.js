@@ -5,8 +5,8 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import styled from 'styled-components';
-import SelectionTabs from 'components/containers/Tabs';
 import ComponentError from 'errorBoundaries/ComponentError/component-error';
+import SelectionTabs from '../Tabs';
 
 // styled components goes here
 const Section = styled('section')`

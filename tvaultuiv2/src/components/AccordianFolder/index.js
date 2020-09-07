@@ -9,10 +9,10 @@ import AccordionDetails from '@material-ui/core/AccordionDetails';
 import ComponentError from 'errorBoundaries/ComponentError/component-error';
 import FolderOutlinedIcon from '@material-ui/icons/FolderOutlined';
 import MoreVertOutlinedIcon from '@material-ui/icons/MoreVertOutlined';
-import CreateSecret from 'components/createSecret';
-import AddFolder from 'components/add-folder';
-import PopperElement from './popper';
-import CreateSecretButton from '../createSecretButton';
+import CreateSecret from 'components/CreateSecret';
+import AddFolder from 'components/AddFolder';
+import PopperElement from '../Popper';
+import CreateSecretButton from '../CreateSecretButton';
 
 // styled components goes here
 const FolderWrap = styled(Accordion)`

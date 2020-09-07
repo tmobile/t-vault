@@ -14,12 +14,12 @@ import Tab from '@material-ui/core/Tab';
 import Typography from '@material-ui/core/Typography';
 import Box from '@material-ui/core/Box';
 import ComponentError from 'errorBoundaries/ComponentError/component-error';
-import AddFolder from 'components/add-folder';
+import AddIcon from '@material-ui/icons/Add';
 
 // eslint-disable-next-line import/no-unresolved
-import AddIcon from '@material-ui/icons/Add';
-import MuiButton from '../../common/MuiButton';
-import DialogeBox from '../../common/DialogeBox';
+import MuiButton from 'components/MuiButton';
+import NoDataBox from 'components/NoDataBox';
+import AddFolder from '../AddFolder';
 // import FolderTreeView from '../FolderTree';
 import Tree from '../Tree';
 // styled components goes here
@@ -154,7 +154,7 @@ export default function SelectionTabs() {
             </>
           ) : (
             <EmptySecretBox>
-              <DialogeBox
+              <NoDataBox
                 description="add a <strong>Folder</strong> and then you will be able to add <strong>secrets</strong> to view them all here"
                 actionButton={
                   // eslint-disable-next-line react/jsx-wrap-multilines

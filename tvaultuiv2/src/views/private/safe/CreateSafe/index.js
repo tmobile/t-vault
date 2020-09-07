@@ -11,7 +11,7 @@ import TextField from '@material-ui/core/TextField';
 import Select from '@material-ui/core/Select';
 import MenuItem from '@material-ui/core/MenuItem';
 import PropTypes from 'prop-types';
-import ButtonComponent from 'components/common/ButtonComponent';
+import ButtonComponent from 'components/ButtonComponent';
 import ComponentError from 'errorBoundaries/ComponentError/component-error';
 
 const ModalWrapper = styled.section`

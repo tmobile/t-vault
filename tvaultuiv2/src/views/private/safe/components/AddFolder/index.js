@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import PropTypes from 'prop-types';
 import styled from 'styled-components';
 import TextField from '@material-ui/core/TextField';
-import ButtonComponent from 'components/common/ButtonComponent';
+import ButtonComponent from 'components/ButtonComponent';
 
 const AddFolderNameWrapper = styled.div`
   padding: 3.2rem;

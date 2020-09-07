@@ -4,12 +4,12 @@ import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import PropTypes from 'prop-types';
 
-import { findElementAndUpdate } from 'services/helperFunctions';
+import { findElementAndUpdate } from 'services';
 import ComponentError from 'errorBoundaries/ComponentError/component-error';
-import TreeItemWrapper from 'components/common/TreeItemWrapper';
-import AddFolder from 'components/add-folder';
-import CreateSecret from 'components/createSecret';
-import CreateSecretButton from 'components/createSecretButton';
+import TreeItemWrapper from 'components/TreeItemWrapper';
+import ButtonComponent from 'components/ButtonComponent';
+import CreateSecret from '../CreateSecrets';
+import AddFolder from '../AddFolder';
 import File from './components/file';
 import Folder from './components/folder';
 
@@ -53,9 +53,7 @@ const TreeRecursive = ({
               )
             }
             inputEnabled={isAddFolder}
-            createButton={
-              <CreateSecretButton onClickHandler={setCreateSecretBox} />
-            }
+            createButton={<ButtonComponent onClick={setCreateSecretBox} />}
           />
           <TreeRecursive
             data={item.children}

@@ -6,7 +6,7 @@ import styled from 'styled-components';
 
 import MoreVertOutlinedIcon from '@material-ui/icons/MoreVertOutlined';
 import FolderOutlinedIcon from '@material-ui/icons/FolderOutlined';
-import PopperElement from 'components/common/popper';
+import PopperElement from 'components/Popper';
 import ComponentError from 'errorBoundaries/ComponentError/component-error';
 
 const StyledFolder = styled.div`

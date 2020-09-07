@@ -5,16 +5,16 @@ import InfiniteScroll from 'react-infinite-scroller';
 import PropTypes from 'prop-types';
 import { Link, Route, Switch } from 'react-router-dom';
 import { Input, InputAdornment } from '@material-ui/core';
-import PsudoPopper from 'components/common/PsudoPopper';
-import SafeDetails from 'components/containers/SafeDetails';
+import PsudoPopper from 'components/PsudoPopper';
 import styled from 'styled-components';
-import Dropdown from 'components/common/SelectDropdown';
+import SelectDropDown from 'components/SelectDropDown';
 import ComponentError from 'errorBoundaries/ComponentError/component-error';
 import SearchIcon from '@material-ui/icons/Search';
+import FolderItem from 'components/FolderItem';
+import SafeDetails from '../SafeDetails';
 
 // mock data
 import { safes, safeDetail } from './__mock/safeDashboard';
-import FolderItem from '../../common/FolderItem';
 
 // styled components
 const ColumnSection = styled('section')`
@@ -159,7 +159,7 @@ const SafeDashboard = (props) => {
       <SectionPreview title="safe-section">
         <ColumnSection>
           <ColumnHeader>
-            <Dropdown />
+            <SelectDropDown />
             <Link to="/safe/create-safe">Create</Link>
           </ColumnHeader>
           <SearchInput

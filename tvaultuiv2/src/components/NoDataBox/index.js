@@ -19,7 +19,7 @@ const ActionButtonWrap = styled('div')`
   display: flexl;
   justify-content: center;
 `;
-const DialogeBox = (props) => {
+const NoDataBox = (props) => {
   const { description, actionButton } = props;
   return (
     <ComponentError>
@@ -30,12 +30,12 @@ const DialogeBox = (props) => {
     </ComponentError>
   );
 };
-DialogeBox.propTypes = {
+NoDataBox.propTypes = {
   description: PropTypes.string,
   actionButton: PropTypes.node,
 };
-DialogeBox.defaultProps = {
+NoDataBox.defaultProps = {
   description: 'Nothing here, But me',
   actionButton: <div />,
 };
-export default DialogeBox;
+export default NoDataBox;
