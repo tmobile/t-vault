@@ -10,8 +10,8 @@ import ComponentError from 'errorBoundaries/ComponentError/component-error';
 import FolderOutlinedIcon from '@material-ui/icons/FolderOutlined';
 import MoreVertOutlinedIcon from '@material-ui/icons/MoreVertOutlined';
 import CreateSecret from 'components/createSecret';
+import AddFolder from 'components/add-folder';
 import PopperElement from './popper';
-import AddFolder from '../add-folder';
 import CreateSecretButton from '../createSecretButton';
 
 // styled components goes here

@@ -14,8 +14,10 @@ import customMuiTheme from './theme';
 import Header from './components/Header';
 import RendetionError from './errorBoundaries/RendetionError/rendetion-error';
 
-const PublicRoutes = lazy(() => import('./views/public'));
-const PrivateRoutes = lazy(() => import('./views/private'));
+// const PublicRoutes = lazy(() => import('./views/public'));
+// const PrivateRoutes = lazy(() => import('./views/private'));
+
+const Views = lazy(() => import('./views'));
 
 const GlobalCss = withStyles({
   // @global is handled by jss-plugin-global.
@@ -29,7 +31,10 @@ const GlobalCss = withStyles({
 
 const Container = styled('div')``;
 const Layout = styled('main')``;
-const Preview = styled('section')``;
+const Preview = styled('section')`
+  width: 130rem;
+  margin: auto;
+`;
 
 export const App = () => {
   return (
@@ -47,7 +52,7 @@ export const App = () => {
                     <Suspense fallback={<div>Loading......</div>}>
                       <Switch>
                         {/* <Route exact path="/" render={() => <PublicRoutes />} /> */}
-                        <Route
+                        {/* <Route
                           path="/"
                           render={(routerProps) => (
                             <PrivateRoutes {...routerProps} />
@@ -58,6 +63,10 @@ export const App = () => {
                           render={(routerProps) => (
                             <PublicRoutes {...routerProps} />
                           )}
+                        /> */}
+                        <Route
+                          path="/"
+                          render={(routerProps) => <Views {...routerProps} />}
                         />
                       </Switch>
                     </Suspense>
