@@ -10,6 +10,9 @@ const StyleTextField = styled(TextField)`
   input {
     padding: 0;
   }
+  .MuiInputAdornment-positionStart {
+    margin-right: ${(props) => (props.icon ? '8px' : '0px')};
+  }
 `;
 
 const styles = () => ({
@@ -17,7 +20,12 @@ const styles = () => ({
     fontSize: '1.2rem',
     fontWeight: 'bold',
   },
-  input: {
+  dark: {
+    backgroundColor: '#20232e',
+    padding: '1rem',
+    color: '#5e627c',
+  },
+  light: {
     background: '#fff',
     padding: '1rem',
   },
@@ -31,21 +39,15 @@ const setIcon = (props) => {
 const onInputChange = () => {};
 
 const TextFieldComponent = (props) => {
-  const {
-    icon,
-    classes,
-    classApplied,
-    placeholder,
-    disabled,
-    onChange,
-  } = props;
+  const { icon, classes, variant, placeholder, disabled, onChange } = props;
   return (
     <StyleTextField
+      icon={icon}
       placeholder={placeholder}
       disabled={disabled || false}
       InputProps={{
         disableUnderline: true,
-        className: classes[classApplied],
+        className: classes[variant],
         startAdornment: (
           <InputAdornment position="start">
             {icon && setIcon({ ...props })}
@@ -62,13 +64,13 @@ TextFieldComponent.propTypes = {
   classes: PropTypes.objectOf(PropTypes.any).isRequired,
   placeholder: PropTypes.string.isRequired,
   onChange: PropTypes.func.isRequired,
-  classApplied: PropTypes.string,
+  variant: PropTypes.string,
   disabled: PropTypes.string,
 };
 
 TextFieldComponent.defaultProps = {
   icon: '',
-  classApplied: '',
+  variant: '',
   disabled: false,
 };
 
@@ -76,4 +78,5 @@ setIcon.propTypes = {
   icon: PropTypes.string.isRequired,
   classes: PropTypes.objectOf(PropTypes.any).isRequired,
 };
+
 export default withStyles(styles)(TextFieldComponent);
