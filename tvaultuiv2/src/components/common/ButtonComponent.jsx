@@ -10,11 +10,16 @@ const styles = () => ({
     padding: '0.5rem 1rem',
     boxShadow: 'none',
     color: '#fff',
+    borderRadius: 'none',
   },
   iconStyle: {
     fontSize: '1.2rem',
     fontWeight: 'bold',
     marginRight: '0.5rem',
+  },
+  primary: {
+    backgroundColor: '#fff',
+    color: '#e20074',
   },
 });
 const setIcon = (props) => {
@@ -25,24 +30,13 @@ const setIcon = (props) => {
 const onButtonClick = () => {};
 
 const ButtonComponent = (props) => {
-  const {
-    icon,
-    classes,
-    label,
-    onClick,
-    type,
-    size,
-    color,
-    disabled,
-    classApplied,
-  } = props;
+  const { icon, classes, label, onClick, size, disabled, classApplied } = props;
   return (
     <Button
       classes={classes}
-      variant={type || 'text'}
+      variant="contained"
       size={size || 'small'}
       className={classes[classApplied]}
-      color={color || 'default'}
       disabled={disabled || false}
       onClick={onClick || ((e) => onButtonClick(e))}
     >
@@ -58,16 +52,12 @@ ButtonComponent.propTypes = {
   label: PropTypes.string.isRequired,
   onClick: PropTypes.func.isRequired,
   size: PropTypes.string,
-  type: PropTypes.string,
-  color: PropTypes.string,
   disabled: PropTypes.bool,
   classApplied: PropTypes.string,
 };
 
 ButtonComponent.defaultProps = {
   icon: '',
-  type: 'text',
-  color: 'default',
   size: 'small',
   disabled: false,
   classApplied: '',

@@ -15,7 +15,7 @@ import ButtonComponent from 'components/common/ButtonComponent';
 import ComponentError from 'errorBoundaries/ComponentError/component-error';
 
 const ModalWrapper = styled.section`
-  background-color: #fff;
+  background-color: #2a2e3e;
   padding: 2.4rem 3.2rem;
   border-radius: 1rem;
   border: none;
@@ -201,15 +201,10 @@ const CreateModal = (props) => {
               <CancelSaveWrapper>
                 <ButtonComponent
                   label="CANCEL"
-                  color="default"
-                  type="contained"
+                  classApplied="primary"
                   onClick={() => handleClose()}
                 />
-                <ButtonComponent
-                  label="SAVE"
-                  type="contained"
-                  color="primary"
-                />
+                <ButtonComponent label="SAVE" classApplied="secondary" />
               </CancelSaveWrapper>
             </CreateSafeForm>
           </ModalWrapper>
