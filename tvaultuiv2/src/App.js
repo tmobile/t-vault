@@ -14,9 +14,6 @@ import customMuiTheme from './theme';
 import Header from './components/Header';
 import RendetionError from './errorBoundaries/RendetionError/rendetion-error';
 
-// const PublicRoutes = lazy(() => import('./views/public'));
-// const PrivateRoutes = lazy(() => import('./views/private'));
-
 const Views = lazy(() => import('./views'));
 
 const GlobalCss = withStyles({
@@ -51,19 +48,6 @@ export const App = () => {
                   <Preview>
                     <Suspense fallback={<div>Loading......</div>}>
                       <Switch>
-                        {/* <Route exact path="/" render={() => <PublicRoutes />} /> */}
-                        {/* <Route
-                          path="/"
-                          render={(routerProps) => (
-                            <PrivateRoutes {...routerProps} />
-                          )}
-                        />
-                        <Route
-                          path="/"
-                          render={(routerProps) => (
-                            <PublicRoutes {...routerProps} />
-                          )}
-                        /> */}
                         <Route
                           path="/"
                           render={(routerProps) => <Views {...routerProps} />}
