@@ -39,49 +39,51 @@ const customTheme = createMuiTheme({
     '0 11px 15px -7px rgba(0, 0, 0, 0.2), 0 9px 46px 8px rgba(0, 0, 0, 0.12), 0 24px 38px 3px rgba(0, 0, 0, 0.14)', // 24 - app use
   ],
   typography: {
-    fontFamily: '"Exo 2", sans-serif',
+    fontFamily: '"Roboto", "Helvetica", sans-serif',
     h1: {
-      fontFamily: '"Exo 2", "Helvetica", "Arial", sans-serif',
+      fontFamily: '"Roboto", "Helvetica", "Arial", sans-serif',
       fontWeight: 200,
-      fontSize: '6rem',
+      fontSize: '9.6rem',
       lineHeight: 1.17,
       letterSpacing: '-0.09375em',
       color: '#fff',
     },
     h2: {
-      fontFamily: '"Exo 2", "Helvetica", "Arial", sans-serif',
+      fontFamily: '"Roboto", "Helvetica", "Arial", sans-serif',
       fontWeight: 200,
-      fontSize: '3.75rem',
+      fontSize: '6rem',
       lineHeight: 1.2,
       letterSpacing: '-0.03125rem',
       color: '#fff',
     },
     h3: {
-      fontFamily: '"Exo 2", "Helvetica", "Arial", sans-serif',
+      fontFamily: '"Roboto", "Helvetica", "Arial", sans-serif',
       fontWeight: 'normal',
-      fontSize: '3rem',
+      fontSize: '4.8rem',
       lineHeight: 1.17,
       letterSpacing: 'normal',
       color: '#fff',
     },
     h4: {
-      fontFamily: '"Exo 2", "Helvetica", "Arial", sans-serif',
+      fontFamily: '"Roboto", "Helvetica", "Arial", sans-serif',
       fontWeight: 'normal',
-      fontSize: '2.125rem',
+      fontSize: '3.4rem',
       lineHeight: 1.06,
       letterSpacing: 'normal',
       color: '#fff',
     },
     h5: {
-      fontFamily: '"Exo 2", "Helvetica", "Arial", sans-serif',
-      fontWeight: 'normal',
-      fontSize: '1.5rem',
-      lineHeight: 1,
-      letterSpacing: '0.01125rem',
+      fontFamily: '"Roboto", "Helvetica", "Arial", sans-serif',
+      fontSize: '2.4rem',
+      fontWeight: 500,
+      fontStretch: 'normal',
+      fontStyle: 'normal',
+      lineHeight: 'normal',
+      letterSpacing: 'normal',
       color: '#fff',
     },
     h6: {
-      fontFamily: '"Exo 2", "Helvetica", "Arial", sans-serif',
+      fontFamily: '"Roboto", "Helvetica", "Arial", sans-serif',
       fontWeight: 500,
       fontSize: '1.25rem',
       lineHeight: 1.2,
@@ -89,34 +91,34 @@ const customTheme = createMuiTheme({
       color: '#fff',
     },
     subtitle1: {
-      fontFamily: '"Exo 2", "Helvetica", "Arial", sans-serif',
+      fontFamily: '"Roboto", "Helvetica", "Arial", sans-serif',
       fontWeight: 'normal',
-      fontSize: '1rem',
+      fontSize: '1.4rem',
       lineHeight: 1.5,
       letterSpacing: '0.009375rem',
       color: '#fff',
     },
     subtitle2: {
-      fontFamily: '"Exo 2", "Helvetica", "Arial", sans-serif',
+      fontFamily: '"Roboto", "Helvetica", "Arial", sans-serif',
       fontWeight: 500,
-      fontSize: '0.875rem',
+      fontSize: '1.2rem',
       lineHeight: 1.71,
       letterSpacing: '0.00625rem',
       color: '#fff',
     },
     body1: {
-      fontFamily: '"Exo 2", "Helvetica", "Arial", sans-serif',
+      fontFamily: '"Roboto", "Helvetica", "Arial", sans-serif',
       fontWeight: 'normal',
       fontSize: '1rem',
       lineHeight: 1.5,
       letterSpacing: '0.03125rem',
-      color: '#000',
-      background: '#ccc',
+      color: '#fff',
+      background: 'transparent',
     },
     body2: {
-      fontFamily: '"Exo 2", "Helvetica", "Arial", sans-serif',
+      fontFamily: '"Exo 2","Roboto", "Helvetica", "Arial", sans-serif',
       fontWeight: 'normal',
-      fontSize: '0.875rem',
+      fontSize: '1.4rem',
       lineHeight: 1.43,
       letterSpacing: '0.015625rem',
       backgroundImage: 'linear-gradient(to top, #2f3545, #1d212c)',
@@ -125,15 +127,16 @@ const customTheme = createMuiTheme({
       color: '#fff',
     },
     button: {
-      fontFamily: '"Exo 2", "Helvetica", "Arial", sans-serif',
+      fontFamily:
+        'BlinkMacSystemFont,-apple-system,"Segoe UI",Roboto,Oxygen,Ubuntu,"Helvetica Neue",Arial,sans-serif',
       fontWeight: 500,
-      fontSize: '0.875rem',
+      fontSize: '1.2rem',
       lineHeight: 1.14,
       letterSpacing: '0.078125rem',
       color: 'rgba(0, 0, 0, 0.87)',
     },
     caption: {
-      fontFamily: '"Exo 2", "Helvetica", "Arial", sans-serif',
+      fontFamily: '"Roboto", "Helvetica", "Arial", sans-serif',
       fontWeight: 'normal',
       fontSize: '0.75rem',
       lineHeight: 1.33,
@@ -141,7 +144,7 @@ const customTheme = createMuiTheme({
       color: '#fff',
     },
     overline: {
-      fontFamily: '"Exo 2", "Helvetica", "Arial", sans-serif',
+      fontFamily: '"Roboto", "Helvetica", "Arial", sans-serif',
       fontWeight: 500,
       fontSize: '0.75rem',
       lineHeight: 1.6,
@@ -152,12 +155,12 @@ const customTheme = createMuiTheme({
   },
   palette: {
     primary: {
-      main: '#e20074',
+      main: '#000',
       contrastText: '#fff',
     },
     secondary: {
-      main: '#31394d',
-      dark: '#9e0051',
+      main: '#e20074',
+      dark: '#fff',
       contrastText: '#fff',
     },
     error: {
@@ -167,17 +170,17 @@ const customTheme = createMuiTheme({
       main: '#6dba15',
     },
     text: {
-      primary: '#000',
+      primary: '#fff',
       secondary: '#000',
       light: '#fff',
-      main: '#e20074',
-      disabled: 'rgba(0, 0, 0, 0.38)',
-      hint: '#31394d',
-      icon: '#31394d',
+      main: '#fff',
+      disabled: 'rgba(255, 255, 255, 0.38)',
+      hint: '#fff',
+      icon: '#fff',
     },
     action: {
-      active: '#e20074',
-      hover: 'rgba(226, 0, 116, 0.08)',
+      active: '#fff',
+      hover: 'rgba(226, 0, 116, 0.3)',
       hoverOpacity: 0.08,
       selected: '#e20074',
       selectedOpacity: 0.16,
@@ -189,7 +192,7 @@ const customTheme = createMuiTheme({
       activatedOpaciy: 0.24,
     },
     background: {
-      paper: '#fff',
+      paper: '#1f232e',
       default: '#fafafa',
       white: '#333',
       level1: '#212121',
@@ -198,172 +201,10 @@ const customTheme = createMuiTheme({
     },
   },
   overrides: {
-    MuiButton: {
-      root: {
-        padding: '0.75rem 2.125rem',
-        borderRadius: '1.5rem',
-      },
-      outlined: {
-        padding: '0.75rem 2.125rem',
-        borderRadius: '1.5rem',
-      },
-      label: {
-        fontSize: 'inherit',
-        fontFamily: 'inherit',
-      },
-      outlinedPrimary: {
-        borderWidth: '0.0625rem',
-        '&:hover': {
-          borderWidth: '0.0625rem',
-        },
-      },
-      outlinedSecondary: {
-        borderWidth: '0.0625rem',
-        '&:hover': {
-          borderWidth: '0.0625rem',
-        },
-      },
-    },
-    MuiFab: {
-      extended: {
-        height: '3rem',
-        minWidth: '3rem',
-        borderRadius: '1.5rem',
-        padding: '0 1rem',
-      },
-    },
-    MuiIconButton: {
-      root: {
-        padding: '0.75rem',
-      },
-    },
     MuiSvgIcon: {
       root: {
         width: '2rem',
         height: '2rem',
-      },
-    },
-    MuiPickersCalendarHeader: {
-      transitionContainer: {
-        height: '1.4375rem',
-      },
-      dayLabel: {
-        width: '2.25rem',
-        margin: '0 0.125rem',
-      },
-    },
-    MuiPickersToolbar: {
-      toolbar: {
-        height: '6.25rem',
-      },
-    },
-    MuiPickerDTToolbar: {
-      toolbar: {
-        paddingLeft: '1rem',
-        paddingRight: '1rem',
-      },
-    },
-    MuiTabs: {
-      root: {
-        minHeight: '3rem',
-      },
-    },
-    MuiToolbar: {
-      gutters: {
-        paddingLeft: '1rem',
-        paddingRight: '1rem',
-        '@media (min-width: 768px)': {
-          paddingLeft: '1.5rem',
-          paddingRight: '1.5rem',
-        },
-      },
-    },
-    MuiPickersDay: {
-      day: {
-        width: '2.25rem',
-        height: '2.25rem',
-        margin: '0 0.125rem',
-      },
-    },
-    MuiPickersBasePicker: {
-      pickerView: {
-        // maxWidth: '20.3125rem',
-        minWidth: '19.375rem',
-        minHeight: '19.0625rem',
-      },
-    },
-    MuiPickersCalendar: {
-      transitionContainer: {
-        margiTop: '0.75rem',
-        minHeight: '13.5rem',
-      },
-    },
-    MuiListItemText: {
-      marginTop: '0.25rem',
-      marginBottom: '0.25rem',
-    },
-    MuiListItem: {
-      root: {
-        paddingTop: '0.25rem',
-        paddingBottom: '0.25rem',
-      },
-      gutters: {
-        paddingLeft: '1rem',
-        paddingRight: '1rem',
-      },
-    },
-    // MuiPickersClock: {
-    //   container: {
-    //     margin: '1rem 0 0.5rem',
-    //   },
-    //   clock: {
-    //     width: '16.25rem',
-    //     height: '16.25rem',
-    //   },
-    // },
-    MuiInput: {
-      root: {
-        fontFamily: 'inherit',
-      },
-    },
-    MuiInputLabel: {
-      outlined: {
-        transform: 'translate(0.875rem, 1.25rem) scale(1)',
-      },
-      shrink: {
-        transform: 'translate(0.875rem, -0.375rem) scale(0.75) !important',
-      },
-    },
-    PrivateNotchedOutline: {
-      root: {
-        paddingLeft: '0.5rem',
-      },
-      legendLabelled: {
-        fontSize: '0.75rem',
-      },
-    },
-    MuiOutlinedInput: {
-      root: {
-        borderRadius: '0.25rem',
-      },
-      notchedOutline: {
-        borderWidth: '0.0625rem',
-      },
-      input: {
-        padding: '1.15625rem 0.875rem',
-      },
-      adornedEnd: {
-        paddingRight: 0,
-      },
-    },
-    MuiFormLabel: {
-      root: {
-        fontFamily: 'inherit',
-      },
-    },
-    MuiSelect: {
-      icon: {
-        top: 'calc(50% - 0.75rem)',
       },
     },
     MuiPaper: {
@@ -371,103 +212,16 @@ const customTheme = createMuiTheme({
         borderRadius: '0.25rem',
       },
     },
-    MuiAutocomplete: {
-      inputRoot: {
-        '&.MuiOutlinedInput-root': {
-          padding: '0.625rem',
-        },
-      },
-      input: {
-        padding: '0.593rem 0.25rem !important',
-      },
-      root: {
-        '& [class*="MuiInputBase-root"]': {
-          paddingRight: '4.0625rem !important',
-        },
-      },
-      popupIndicator: {
-        padding: '0.125rem',
-        marginRight: '-0.125rem',
-      },
-      endAdornment: {
-        top: 'calc(50% - 0.875rem)',
-        right: '0.5625rem !important',
-      },
-      clearIndicator: {
-        padding: '0.25rem',
-        marginRight: '0.125rem',
-      },
-    },
-    // MuiInputBase: {
-    //   input: {
-    //     Mui: {
-    //       disabled: {
-    //         color: 'black',
-    //       },
-    //     },
-    //   },
-    // },
-    MuiAvatar: {
-      root: {
-        border: '0.0625rem 	#696969 solid',
-        width: '100%',
-        height: '100%',
-        maxWidth: '8rem',
-        maxHeight: '8rem',
-      },
-      img: {
-        textIndent: '62.5rem',
-      },
-    },
   },
   baseFontSize: {
-    // ,fontSize: '1.125vw',
-    // '@media only all and (max-width: 1279px)': {
     fontSize: '10px',
-    // },
+    '@media only all and (min-width: 1024px) and (max-width: 1299px)': {
+      fontSize: '0.7692vw',
+    },
   },
-  // boxShadow: '0 2px 4px 0 rgba(0, 0, 0, 0.5)',
-  colorPalette: {
-    color1: '#730f3a',
-    color2: '#e20074',
-    color3: '#558dca', // blue
-    color4: '#f5a623',
-    color5: '#6dba15', // green
-    color6: '#d8d8d8', // grey
-    statusInProgress: '#6dba15', // green
-    statusNotStarted: '#d8d8d8', // grey
-    statusCompleted: '#558dca', // blue
-    statusNotTracking: '#000000', // black
-    statusStarted: '#6dba15', // green
-    active: '#e20074',
-    activeSecondary: '#fff',
-    disabled: 'rgba(0, 0, 0, 0.38)',
-    disabledSecondary: 'rgba(255, 255, 255, 0.38)',
-    hoverSelected: '#9e0051', // dark pink
-    selected: '#e20074',
-    focus: '#590074',
-    icons: '#80868b',
-    bgDefault: '#fafafa',
-    bgPrimary: '#fff',
-  },
-  text: {
-    light: '#fff',
-    dark: '#000',
-    primary: '#e20074',
-    secondary: '#31394d',
-    active: '#e20074',
-    activeSecondary: '#fff',
-    disabled: 'rgba(0, 0, 0, 0.38)',
-    disabledSecondary: 'rgba(255, 255, 255, 0.38)',
-    hoverSelected: '#9e0051', // dark pink
-    selected: '#e20074',
-    error: '#b00020',
-  },
-  borders: {
-    border1: '#eee',
-    border2: '#fafafa',
-    border3: '#f6f7f9',
-    border4: '#dddddd',
+  gradients: {
+    list: 'linear-gradient(to right, #72134b, #1d212c)',
+    nav: 'linear-gradient(to top, #7b124e, rgba(123, 18, 78, 0))',
   },
 });
 
