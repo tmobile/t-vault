@@ -428,7 +428,7 @@
                     var apiCallFunction = '';
                     var reqObjtobeSent = {};
                     switch (type) {
-                        case 'users' :
+                        case 'users':
                             apiCallFunction = AdminSafesManagement.deleteUserPermissionFromSafe;
                             if (editingPermission) {
                 								reqObjtobeSent = {
@@ -1030,9 +1030,9 @@
                     }
                     var updatedUrlOfEndPoint = "";
                     switch (type) {
-                        case 'users' :
+                        case 'users':
                             apiCallFunction = AdminSafesManagement.addUserPermissionForSafe;
-                            reqObjtobeSent = {"path": setPath, "username": key, "access": permission.toLowerCase()};
+                            reqObjtobeSent = { "path": setPath, "username": key, "access": permission.toLowerCase() };
                             break;
                         case 'groups' :
                             apiCallFunction = AdminSafesManagement.addGroupPermissionForSafe;

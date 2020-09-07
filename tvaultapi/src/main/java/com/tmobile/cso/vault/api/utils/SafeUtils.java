@@ -147,7 +147,7 @@ public class SafeUtils {
 			// Prevent the owner of the safe to be denied...
 			if (userDetails.getUsername() != null && userDetails.getUsername().equalsIgnoreCase(safeOwnerid)) {
 				// This user is owner of the safe...
-				if (safeUser.getUsername().equals(safeOwnerid)) {
+				if (safeUser.getUsername().equalsIgnoreCase(safeOwnerid)) {
 					if (TVaultConstants.READ_POLICY.equals(safeUser.getAccess()) || TVaultConstants.WRITE_POLICY.equals(safeUser.getAccess()) || (null==safeUser.getAccess() && action.equals(TVaultConstants.REMOVE_USER))) {
 						// safeowner himself can set read/write permission to the safeowner
 						return true;
