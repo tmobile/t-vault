@@ -1,28 +1,42 @@
+/* eslint-disable react/jsx-props-no-spreading */
 import React from 'react';
+import styled from 'styled-components';
 import { withStyles } from '@material-ui/core/styles';
 import Button from '@material-ui/core/Button';
 import Icon from '@material-ui/core/Icon';
 import PropTypes from 'prop-types';
 
-const styles = () => ({
+const StyledButton = styled(Button)`
+  border-radius: ${(props) => props.border || '0'};
+`;
+
+const styles = (theme) => ({
   contained: {
-    marginRight: '1rem',
     padding: '0.5rem 1rem',
+    height: '3.6rem',
     boxShadow: 'none',
-    color: '#fff',
   },
-  iconStyle: {
+  startIcon: {
     fontSize: '1.2rem',
     fontWeight: 'bold',
     marginRight: '0.5rem',
   },
+  containedPrimary: {
+    backgroundColor: '#fff',
+    color: theme.palette.secondary.main,
+    '&:disabled': {
+      backgroundColor: '#ddd',
+    },
+  },
+  containedSecondary: {
+    backgroundColor: theme.palette.secondary.main,
+    color: '#fff',
+    '&:disabled': {
+      backgroundColor: '#454c5e',
+      color: '#fff',
+    },
+  },
 });
-const setIcon = (props) => {
-  const { classes, icon } = props;
-  return <Icon className={classes.iconStyle}>{icon}</Icon>;
-};
-
-const onButtonClick = () => {};
 
 const ButtonComponent = (props) => {
   const {
@@ -30,25 +44,24 @@ const ButtonComponent = (props) => {
     classes,
     label,
     onClick,
-    type,
     size,
-    color,
     disabled,
-    classApplied,
+    buttonType,
+    border,
   } = props;
   return (
-    <Button
+    <StyledButton
+      border={border}
       classes={classes}
-      variant={type || 'text'}
+      variant="contained"
       size={size || 'small'}
-      className={classes[classApplied]}
-      color={color || 'default'}
+      className={classes[buttonType]}
       disabled={disabled || false}
-      onClick={onClick || ((e) => onButtonClick(e))}
+      onClick={onClick}
     >
-      {icon && setIcon({ ...props })}
+      {icon ? <Icon className={classes.startIcon}>{icon}</Icon> : ''}
       {label}
-    </Button>
+    </StyledButton>
   );
 };
 
@@ -56,25 +69,20 @@ ButtonComponent.propTypes = {
   icon: PropTypes.string,
   classes: PropTypes.objectOf(PropTypes.any).isRequired,
   label: PropTypes.string.isRequired,
-  onClick: PropTypes.func.isRequired,
+  onClick: PropTypes.func,
   size: PropTypes.string,
-  type: PropTypes.string,
-  color: PropTypes.string,
   disabled: PropTypes.bool,
-  classApplied: PropTypes.string,
+  buttonType: PropTypes.string,
+  border: PropTypes.string,
 };
 
 ButtonComponent.defaultProps = {
   icon: '',
-  type: 'text',
-  color: 'default',
   size: 'small',
   disabled: false,
-  classApplied: '',
+  buttonType: '',
+  border: '0',
+  onClick: () => {},
 };
 
-setIcon.propTypes = {
-  icon: PropTypes.string.isRequired,
-  classes: PropTypes.objectOf(PropTypes.any).isRequired,
-};
 export default withStyles(styles)(ButtonComponent);
