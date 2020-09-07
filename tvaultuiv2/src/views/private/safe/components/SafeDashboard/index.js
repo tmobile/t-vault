@@ -11,6 +11,8 @@ import SelectDropDown from 'components/SelectDropDown';
 import ComponentError from 'errorBoundaries/ComponentError/component-error';
 import SearchIcon from '@material-ui/icons/Search';
 import FolderItem from 'components/FolderItem';
+import NoDataBox from 'components/NoDataBox';
+import NoSafesIcon from 'assets/no-data-safes.svg';
 import SafeDetails from '../SafeDetails';
 
 // mock data
@@ -19,20 +21,22 @@ import { safes, safeDetail } from './__mock/safeDashboard';
 // styled components
 const ColumnSection = styled('section')`
   width: 50%;
-  padding: 2.5em;
-  border-right: 2px solid #ddd;
-  &:last-child {
-    border-right: none;
-  }
+  padding: ${(props) => props.padding || '2.5rem'};
+  background: ${(props) => props.backgroundColor || '#151820'};
 `;
 const SectionPreview = styled('main')`
   display: flex;
+  height: 100%;
 `;
 const ColumnHeader = styled('div')`
   display: flex;
   align-items: center;
   padding: 0.5em;
   justify-content: space-between;
+`;
+const StyledInfiniteScroll = styled(InfiniteScroll)`
+  width: 100%;
+  height: 100%;
 `;
 const SearchInput = styled(Input)`
   padding: 0.25em 0.5em;
@@ -51,8 +55,12 @@ const SearchInput = styled(Input)`
   }
 `;
 const SafeListContainer = styled.div`
-  height: 20rem;
   overflow: auto;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 `;
 const SafeFolderWrap = styled(Link)`
   position: relative;
@@ -75,6 +83,10 @@ const PopperWrap = styled.div`
   right: 0%;
   z-index: 2;
   transform: translate(-50%, -50%);
+`;
+
+const NoSafeWrap = styled.div`
+  width: 30%;
 `;
 
 const SafeDashboard = (props) => {
@@ -125,7 +137,7 @@ const SafeDashboard = (props) => {
 
   const loadMoreData = () => {
     getSafesList().then((res) => {
-      // setMoreData(false);
+      setMoreData(false);
       setSafeList((prev) => [...prev, res]);
     });
   };
@@ -171,24 +183,37 @@ const SafeDashboard = (props) => {
             }
           />
           <SafeListContainer ref={(ref) => (scrollParentRef = ref)}>
-            <InfiniteScroll
-              pageStart={0}
-              loadMore={() => {
-                console.log('Load more data called---');
-                loadMoreData();
-              }}
-              hasMore={moreData}
-              threshold={100}
-              loader={<div key={0}>Loading...</div>}
-              useWindow={false}
-              getScrollParent={() => scrollParentRef}
-            >
-              {renderSafes()}
-            </InfiniteScroll>
+            {safeList && safeList.length ? (
+              <StyledInfiniteScroll
+                pageStart={0}
+                loadMore={() => {
+                  console.log('Load more data called---');
+                  loadMoreData();
+                }}
+                hasMore={moreData}
+                threshold={100}
+                loader={<div key={0}>Loading...</div>}
+                useWindow={false}
+                getScrollParent={() => scrollParentRef}
+              >
+                {renderSafes()}
+              </StyledInfiniteScroll>
+            ) : (
+              <NoSafeWrap>
+                <NoDataBox
+                  imageSrc={NoSafesIcon}
+                  description="Create a Safe to get started!"
+                  actionButton={<div />}
+                />
+              </NoSafeWrap>
+            )}
           </SafeListContainer>
         </ColumnSection>
 
-        <ColumnSection>
+        <ColumnSection
+          backgroundColor="linear-gradient(to top, #151820, #2c3040)"
+          padding="0"
+        >
           <Switch>
             {' '}
             <Route

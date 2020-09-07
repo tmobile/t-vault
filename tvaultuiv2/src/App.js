@@ -32,7 +32,7 @@ const GlobalCss = withStyles({
 const Container = styled('div')``;
 const Layout = styled('main')``;
 const Preview = styled('section')`
-  width: 130rem;
+  width: 100%;
   margin: auto;
 `;
 

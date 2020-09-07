@@ -2,14 +2,16 @@
 import React from 'react';
 import styled from 'styled-components';
 import PropTypes from 'prop-types';
+import CardMedia from '@material-ui/core/CardMedia';
 import ReactHtmlParser from 'react-html-parser';
 import ComponentError from 'errorBoundaries/ComponentError/component-error';
 
 const DialogeBoxWrapper = styled('div')`
   display: flex;
   justify-content: center;
-  alig-items: center;
+  align-items: center;
   flex-direction: column;
+  width: 100%;
 `;
 const BoxDescription = styled.p`
   text-align: center;
@@ -18,12 +20,23 @@ const BoxDescription = styled.p`
 const ActionButtonWrap = styled('div')`
   display: flexl;
   justify-content: center;
+  position: relative;
+  align-items: center;
+  justify-content: center;
+`;
+const BackgroundIcon = styled(CardMedia)`
+  ${(props) => props.imgStyles}
 `;
 const NoDataBox = (props) => {
-  const { description, actionButton } = props;
+  const { description, actionButton, imageSrc, bgIconStyle } = props;
   return (
     <ComponentError>
       <DialogeBoxWrapper>
+        <BackgroundIcon
+          image={imageSrc}
+          title="no-data"
+          imgStyles={bgIconStyle}
+        />
         <BoxDescription>{ReactHtmlParser(description)}</BoxDescription>
         <ActionButtonWrap>{actionButton}</ActionButtonWrap>
       </DialogeBoxWrapper>
@@ -33,9 +46,13 @@ const NoDataBox = (props) => {
 NoDataBox.propTypes = {
   description: PropTypes.string,
   actionButton: PropTypes.node,
+  imageSrc: PropTypes.node,
+  bgIconStyle: PropTypes.objectOf(PropTypes.object),
 };
 NoDataBox.defaultProps = {
   description: 'Nothing here, But me',
   actionButton: <div />,
+  imageSrc: '',
+  bgIconStyle: { width: '100%', height: '22rem' },
 };
 export default NoDataBox;

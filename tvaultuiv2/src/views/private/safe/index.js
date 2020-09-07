@@ -12,9 +12,9 @@ import SafeDashboard from './components/SafeDashboard';
 
 const CreateSafe = lazy(() => import('./CreateSafe'));
 const SafeSectionPreview = styled('section')`
-  border: 2px solid #ccc;
-  // width: 80%;
+  width: 90%;
   margin: 3em auto;
+  height: 65rem;
 `;
 
 const SafePageLayout = (props) => {

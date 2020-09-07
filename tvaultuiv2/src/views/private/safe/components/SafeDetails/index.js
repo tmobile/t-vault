@@ -6,32 +6,30 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import styled from 'styled-components';
 import ComponentError from 'errorBoundaries/ComponentError/component-error';
+import sectionHeaderBg from 'assets/safe-header-bg.png';
 import SelectionTabs from '../Tabs';
 
 // styled components goes here
-const Section = styled('section')`
-  &:last-child {
-    border-right: none;
-  }
-`;
+const Section = styled('section')``;
 
 const ColumnHeader = styled('div')`
   display: flex;
   align-items: center;
-  padding: 0.5em;
-  justify-content: space-between;
+  justify-content: flex-end;
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-image: url(${(props) => props.headerBgSrc || ''});
+  .safe-title-wrap {
+    width: 70%;
+  }
 `;
-const SafeIconWrap = styled('div')`
-  width: 20%;
-  height: 100%;
-  background: #4a4a4a;
-  border-radious: 50%;
-  align-items: center;
-  display: flex;
-`;
+
 const SafeDescription = styled.p`
   font-size: 1.4em;
   text-align: left;
+`;
+const SafeTitle = styled('h5')`
+  font-size: ${(props) => props.theme.typography};
 `;
 const SafeDetails = (props) => {
   const { detailData, params } = props;
@@ -42,9 +40,11 @@ const SafeDetails = (props) => {
     <ComponentError>
       {' '}
       <Section>
-        <ColumnHeader>
-          <SafeIconWrap />
-          <SafeDescription>{compData.description}</SafeDescription>
+        <ColumnHeader headerBgSrc={sectionHeaderBg}>
+          <div className="safe-title-wrap">
+            <SafeTitle>No safes yet</SafeTitle>
+            <SafeDescription>{compData.description}</SafeDescription>
+          </div>
         </ColumnHeader>
         <SelectionTabs secrets={compData.secrets} />
       </Section>
