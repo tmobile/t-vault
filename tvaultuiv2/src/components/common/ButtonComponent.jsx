@@ -1,3 +1,4 @@
+/* eslint-disable react/jsx-props-no-spreading */
 import React from 'react';
 import styled from 'styled-components';
 import { withStyles } from '@material-ui/core/styles';
@@ -6,7 +7,7 @@ import Icon from '@material-ui/core/Icon';
 import PropTypes from 'prop-types';
 
 const StyledButton = styled(Button)`
-  border-radius: ${(props) => !props.borderRadius && '0'};
+  border-radius: ${(props) => props.border || '0'};
 `;
 
 const styles = (theme) => ({
@@ -37,8 +38,6 @@ const styles = (theme) => ({
   },
 });
 
-const onButtonClick = () => {};
-
 const ButtonComponent = (props) => {
   const {
     icon,
@@ -48,19 +47,19 @@ const ButtonComponent = (props) => {
     size,
     disabled,
     buttonType,
-    borderRadius,
+    border,
   } = props;
   return (
     <StyledButton
-      borderRadius={borderRadius}
+      border={border}
       classes={classes}
       variant="contained"
       size={size || 'small'}
       className={classes[buttonType]}
       disabled={disabled || false}
-      onClick={onClick || ((e) => onButtonClick(e))}
+      onClick={onClick}
     >
-      {icon && <Icon className={classes.startIcon}>{icon}</Icon>}
+      {icon ? <Icon className={classes.startIcon}>{icon}</Icon> : ''}
       {label}
     </StyledButton>
   );
@@ -70,11 +69,11 @@ ButtonComponent.propTypes = {
   icon: PropTypes.string,
   classes: PropTypes.objectOf(PropTypes.any).isRequired,
   label: PropTypes.string.isRequired,
-  onClick: PropTypes.func.isRequired,
+  onClick: PropTypes.func,
   size: PropTypes.string,
   disabled: PropTypes.bool,
   buttonType: PropTypes.string,
-  borderRadius: PropTypes.bool,
+  border: PropTypes.string,
 };
 
 ButtonComponent.defaultProps = {
@@ -82,7 +81,8 @@ ButtonComponent.defaultProps = {
   size: 'small',
   disabled: false,
   buttonType: '',
-  borderRadius: false,
+  border: '0',
+  onClick: () => {},
 };
 
 export default withStyles(styles)(ButtonComponent);
