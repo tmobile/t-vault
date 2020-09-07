@@ -15,18 +15,13 @@ import Typography from '@material-ui/core/Typography';
 import Box from '@material-ui/core/Box';
 import ComponentError from 'errorBoundaries/ComponentError/component-error';
 import AddFolder from 'components/add-folder';
-// import CreateSecret from 'components/createSecret';
 
 // eslint-disable-next-line import/no-unresolved
-
-// import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
-// import FolderIcon from '@material-ui/icons/Folder';
 import AddIcon from '@material-ui/icons/Add';
-// import AccordionFolder from '../../common/AccordionFolder';
-import { findElementById } from 'services/helperFunctions';
 import MuiButton from '../../common/MuiButton';
 import DialogeBox from '../../common/DialogeBox';
-import FolderTreeView from '../FolderTree';
+// import FolderTreeView from '../FolderTree';
+import Tree from '../Tree';
 // styled components goes here
 
 const EmptySecretBox = styled('div')`
@@ -112,23 +107,20 @@ export default function SelectionTabs() {
     setEnableAddFolder(true);
   };
 
+  const addSecretsFolderList = (obj) => {
+    const tempFolders = [...secretsFolder] || [];
+    const folderObj = {};
+    folderObj.labelText = obj.name;
+    folderObj.type = obj.type || 'folder';
+    folderObj.children = [];
+    tempFolders.push(folderObj);
+    setSecretsFolder([...tempFolders]);
+    setEnableAddFolder(false);
+  };
   /**
    *Creates secrets folder array
    * @param {string} folderName
    */
-
-  const saveSecretsToFolder = (obj, parentId) => {
-    const tempFolders = [...secretsFolder] || [];
-    const folderObj = {};
-    folderObj.labelText = obj.name;
-    folderObj.type = obj.type;
-    folderObj.labelKey = obj.key;
-    folderObj.children = [];
-    const selectedItem = findElementById(tempFolders, parentId, 'children');
-    selectedItem.children.push(folderObj);
-    setSecretsFolder([...tempFolders]);
-    setEnableAddFolder(false);
-  };
 
   return (
     <ComponentError>
@@ -150,7 +142,7 @@ export default function SelectionTabs() {
         <TabPanel value={value} index={0}>
           {enabledAddFolder ? (
             <AddFolder
-              handleSaveClick={saveSecretsToFolder}
+              handleSaveClick={addSecretsFolderList}
               handleCancelClick={() => setEnableAddFolder(false)}
             />
           ) : (
@@ -158,21 +150,7 @@ export default function SelectionTabs() {
           )}
           {secretsFolder ? (
             <>
-              {/* reverted folder tree structure and its in different branch(layout-branch) */}
-              <FolderTreeView
-                treeData={secretsFolder}
-                saveSecretsToFolder={saveSecretsToFolder}
-                handleCancelClick={() => setEnableAddFolder(false)}
-              />
-
-              {/* {secretsFolder.map((item) => (
-                <AccordionFolder
-                  title={item}
-                  date="2 days ago"
-                  saveSecretsToFolder={saveSecretsToFolder}
-                  se={<FolderTreeView treeData={secrets} />}
-                />
-              ))} */}
+              <Tree data={secretsFolder} />
             </>
           ) : (
             <EmptySecretBox>
