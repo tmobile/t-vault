@@ -760,12 +760,12 @@ public class SSLCertificateService {
             //Send email for certificate creation
             sendEmail(sslCertificateRequest.getCertType(), sslCertificateRequest.getCertificateName(),
                     sslCertificateRequest.getCertOwnerEmailId(),userDetails.getUsername(),
-                    SSLCertificateConstants.CERT_CREATION_SUBJECT + "-" + sslCertificateRequest.getCertificateName(),
+                    SSLCertificateConstants.CERT_CREATION_SUBJECT + " - " + sslCertificateRequest.getCertificateName(),
                     "created", token);
         } else {
             sendExternalEmail(sslCertificateRequest.getCertType(), sslCertificateRequest.getCertificateName(),
                     sslCertificateRequest.getCertOwnerEmailId(),userDetails.getUsername(),
-                    SSLCertificateConstants.EX_CERT_CREATION_SUBJECT + "-" + sslCertificateRequest.getCertificateName(),
+                    SSLCertificateConstants.EX_CERT_CREATION_SUBJECT + " - " + sslCertificateRequest.getCertificateName(),
                     "creation");
         }
     }
@@ -2710,7 +2710,7 @@ public class SSLCertificateService {
 			if (sslMetaDataUpdationStatus) {
 			    //Send an email for revoke for internal and external
                 sendEmail(certType, certificateName, certOwnerEmailId,certOwnerNtId,
-                        SSLCertificateConstants.CERT_REVOKED_SUBJECT + "-" + certificateName,
+                        SSLCertificateConstants.CERT_REVOKED_SUBJECT + " - " + certificateName,
                         "revoked", token);
 				return ResponseEntity.status(revocationResponse.getHttpstatus())
 						.body("{\"messages\":[\"" + "Revocation done successfully" + "\"]}");
