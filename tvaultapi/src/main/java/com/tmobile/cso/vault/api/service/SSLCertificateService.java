@@ -406,7 +406,15 @@ public class SSLCertificateService {
             //Step-1 : Authenticate
             CertManagerLoginRequest certManagerLoginRequest = new CertManagerLoginRequest(username, password);
             CertManagerLogin certManagerLogin = login(certManagerLoginRequest);
-
+            if(ObjectUtils.isEmpty(certManagerLogin)) {
+            	log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().	
+                        put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).	
+                        put(LogMessage.ACTION, "generateSSLCertificate").	
+                        put(LogMessage.MESSAGE, "NCLM services are down. Please try after some time").	
+                        put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).	
+                        build()));	
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"NCLM services are down. Please try after some time\"]}");	
+            }
 
             CertificateData certificateDetails = getCertificate(sslCertificateRequest, certManagerLogin);
             log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
