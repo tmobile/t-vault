@@ -229,6 +229,37 @@ const customTheme = createMuiTheme({
         color: '#fff',
       },
     },
+    MuiFormLabel: {
+      root: {
+        marginBottom: '1.2rem',
+        fontSize: '1.4rem',
+      },
+    },
+    MuiFilledInput: {
+      root: {
+        borderTopLeftRadius: '0',
+        borderTopRightRadius: '0',
+        backgroundColor: '#fff',
+        color: '#000',
+        '&:hover': {
+          backgroundColor: '#fff',
+        },
+      },
+      input: {
+        padding: '0',
+      },
+      adornedStart: {
+        padding: '1.5rem 1rem',
+        paddingLeft: '1rem',
+      },
+      multiline: {
+        padding: '1.5rem 1rem',
+      },
+      colorSecondary: {
+        backgroundColor: '#20232e',
+        color: '#5e627c',
+      },
+    },
   },
   baseFontSize: {
     fontSize: '10px',
