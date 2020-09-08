@@ -1648,7 +1648,7 @@
                 $scope.revocationMessage = ''
                 if ($scope.dropdownRevocationReasons.selectedGroupOption.type == 'Select Revocation Reasons') {
                     $scope.revocationStatusMessage = 'Revocation Failed!';
-                    $scope.revocationMessage = "Select Revocation Reasons";
+                    $scope.revocationMessage = "Select Revocation Reasons";
                     return $scope.revocationPopUp();
                 }
                 Modal.close('');
@@ -1790,6 +1790,7 @@
         $scope.goToAddPermissions = function (certificateDetails) {            
             var obj = "certificateObject";
             var myobj = certificateDetails;
+            $rootScope.checkStatus = "";
             var fullObj = {};
             fullObj[obj] = myobj;
             try {       
@@ -1806,7 +1807,7 @@
                         AdminSafesManagement.validateCertificateDetails(null, updatedUrlOfEndPoint).then(function (response) {
 
                             if (UtilityService.ifAPIRequestSuccessful(response)) {
-                                $state.go('change-certificate', fullObj);
+                                $state.go('change-certificate', fullObj, $rootScope.checkStatus);
                                 $scope.isLoadingData = false;
                             }
                             else {
@@ -1827,13 +1828,57 @@
                             $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
                             $scope.error('md');
                         }});
-                    }else {
-                        $state.go('change-certificate', fullObj);
-                        $scope.isLoadingData = false;
-                    }
-                }else {
-                    $state.go('change-certificate', fullObj);
+                    }else if(certificateDetails.certificateStatus !== null && certificateDetails.certificateStatus == "Revoked") {
+                    	var updatedUrlEndPoint = RestEndpoints.baseURL + "/v2/sslcert/checkstatus/" + certName+"/"+ certificateType;
+                        AdminSafesManagement.checkRevokestatus(null, updatedUrlEndPoint).then(function (responses) {
+                        	if (UtilityService.ifAPIRequestSuccessful(responses)) {
+                        		$rootScope.checkStatus = "Revoked";
+                        		 $state.go('change-certificate', fullObj, $rootScope.checkStatus);
+                                 $scope.isLoadingData = false;
+                        	}else{
+                        		 $state.go('change-certificate', fullObj, $rootScope.checkStatus);
+                                 $scope.isLoadingData = false;
+                        	}
+                            },
+                        function (error) {
+                            var errors = error.data.errors;
+                            $scope.viewEditErrorMessage = 'Edit Failed';                        
+                            $scope.viewEditErrorMessage = errors[0];
+                            $scope.isLoadingData = false;
+                            $scope.validateCertificateDetailsPopUp();
+                        });
+                       
+                	}
+                	else{
+                    $state.go('change-certificate', fullObj, $rootScope.checkStatus);
                     $scope.isLoadingData = false;
+                	}
+                }else {
+                	if(certificateDetails.certificateStatus !== null && certificateDetails.certificateStatus == "Revoked") {
+                    	var updatedUrlEndPoint = RestEndpoints.baseURL + "/v2/sslcert/checkstatus/" + certName+"/"+ certificateType;
+                        AdminSafesManagement.checkRevokestatus(null, updatedUrlEndPoint).then(function (responses) {
+                        	if (UtilityService.ifAPIRequestSuccessful(responses)) {
+                        		$rootScope.checkStatus = "Revoked";
+                        		 $state.go('change-certificate', fullObj, $rootScope.checkStatus);
+                                 $scope.isLoadingData = false;
+                        	}else{
+                        		 $state.go('change-certificate', fullObj, $rootScope.checkStatus);
+                                 $scope.isLoadingData = false;
+                        	}
+                            },
+                            function (error) {
+                                var errors = error.data.errors;
+                                $scope.viewEditErrorMessage = 'Edit Failed';                        
+                                $scope.viewEditErrorMessage = errors[0];
+                                $scope.isLoadingData = false;
+                                $scope.validateCertificateDetailsPopUp();
+                            });
+                       
+                	}
+                	else{
+                    $state.go('change-certificate', fullObj, $rootScope.checkStatus);
+                    $scope.isLoadingData = false;
+                	}
                 }
             } catch (e) {
                 $scope.isLoadingData = false;              
@@ -1980,7 +2025,13 @@
                 $scope.certTransferInValid = true;
                 $scope.certOwnerEmailErrorMessage = '';
                 $scope.certOwnerTransferErrorMessage = '';
-                Modal.createModal('md', 'transferCertPopup.html', 'AdminCtrl', $scope);
+                if(certDetails.requestStatus!=null && certDetails.requestStatus!=undefined && certDetails.requestStatus=="Pending Approval"){	
+                	$scope.isLoadingData = false;	
+                	$scope.viewEditErrorMessage = "Certificate may not be approved or rejected from NCLM";	
+                    $scope.validateCertificateDetailsPopUp();	
+                }else{	
+                Modal.createModal('md', 'transferCertPopup.html', 'AdminCtrl', $scope);	
+            }	
             };
             
             $scope.ownerEmailValidation = function () {

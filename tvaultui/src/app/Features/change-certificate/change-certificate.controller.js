@@ -47,6 +47,7 @@
         $scope.isCertificateOwner = false;
         $scope.renewButtonShow = true;
         $scope.hideSudoPolicy = false;
+        $scope.revokeButtonShow = true;
         $scope.awsConfPopupObj = {
             "auth_type":"",
             "role": "",
@@ -585,7 +586,8 @@
                                     createDate: object.createDate || $stateParams.certificateObject.createDate || '',
                                     expiryDate: object.expiryDate || $stateParams.certificateObject.expiryDate || '',
                                     certificateStatus: object.certificateStatus || $stateParams.certificateObject.certificateStatus || '',
-                                    certificateId: object.certificateId || $stateParams.certificateObject.certificateId || ''
+                                    certificateId: object.certificateId || $stateParams.certificateObject.certificateId || '',
+                                    dnsNames: object.dnsNames || $stateParams.certificateObject.dnsNames || ''
                                 }
 
                                 if($scope.certificate.certType.toLowerCase() === "internal"){
@@ -606,7 +608,18 @@
                                 }else {
                                     $scope.renewButtonShow = true;
                                 }
-                                hideUserSudoPolicy();
+                                
+                                $scope.dnsList = [];
+                                $scope.dnsStr = "";
+                                for (var i=0;i<$scope.certificate.dnsNames.length;i++) {
+                                	$scope.dnsList.push($scope.certificate.dnsNames[i]);
+                                    }
+                                $scope.dnsStr = $scope.dnsList.join('\n');                              
+                                                                                       
+                                if($rootScope.checkStatus=="Revoked"){
+                                	$scope.revokeButtonShow = false;	
+                                }                                
+                                	hideUserSudoPolicy();
                             }
                             catch (e) {
                                 console.log(e);
