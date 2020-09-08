@@ -7,9 +7,6 @@ import PropTypes from 'prop-types';
 import styled from 'styled-components';
 
 const StyleTextField = styled(TextField)`
-  input {
-    padding: 0;
-  }
   .MuiInputAdornment-positionStart {
     margin-right: ${(props) => (props.icon ? '8px' : '0px')};
   }
@@ -22,12 +19,10 @@ const styles = () => ({
   },
   dark: {
     backgroundColor: '#20232e',
-    padding: '1rem',
     color: '#5e627c',
   },
   light: {
     background: '#fff',
-    padding: '1rem',
     color: '#000',
   },
   text: {

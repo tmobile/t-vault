@@ -1,66 +1,38 @@
 import React from 'react';
-import styled from 'styled-components';
 import { withStyles } from '@material-ui/core/styles';
 import Button from '@material-ui/core/Button';
 import Icon from '@material-ui/core/Icon';
 import PropTypes from 'prop-types';
 
-const StyledButton = styled(Button)`
-  border-radius: ${(props) => props.border || '0'};
-`;
-
-const styles = (theme) => ({
+const styles = () => ({
   contained: {
-    padding: '0.5rem 1rem',
     height: '3.6rem',
     boxShadow: 'none',
   },
   startIcon: {
-    fontSize: '1.2rem',
-    fontWeight: 'bold',
     marginRight: '0.5rem',
-  },
-  containedPrimary: {
-    backgroundColor: '#fff',
-    color: theme.palette.secondary.main,
-    '&:disabled': {
-      backgroundColor: '#ddd',
-    },
-  },
-  containedSecondary: {
-    backgroundColor: theme.palette.secondary.main,
-    color: '#fff',
-    '&:disabled': {
-      backgroundColor: '#454c5e',
-      color: '#fff',
-    },
   },
 });
 
+const setIcon = (props) => {
+  const { icon, classes } = props;
+  return <Icon className={classes.startIcon}>{icon}</Icon>;
+};
+
 const ButtonComponent = (props) => {
-  const {
-    icon,
-    classes,
-    label,
-    onClick,
-    size,
-    disabled,
-    buttonType,
-    border,
-  } = props;
+  const { icon, classes, label, onClick, size, disabled, color } = props;
   return (
-    <StyledButton
-      border={border}
+    <Button
       classes={classes}
       variant="contained"
       size={size || 'small'}
-      className={classes[buttonType]}
       disabled={disabled || false}
       onClick={onClick}
+      color={color}
     >
-      {icon ? <Icon className={classes.startIcon}>{icon}</Icon> : ''}
+      {icon && setIcon({ ...props })}
       {label}
-    </StyledButton>
+    </Button>
   );
 };
 
@@ -71,17 +43,19 @@ ButtonComponent.propTypes = {
   onClick: PropTypes.func,
   size: PropTypes.string,
   disabled: PropTypes.bool,
-  buttonType: PropTypes.string,
-  border: PropTypes.string,
+  color: PropTypes.string.isRequired,
 };
 
 ButtonComponent.defaultProps = {
   icon: '',
   size: 'small',
   disabled: false,
-  buttonType: '',
-  border: '0',
   onClick: () => {},
+};
+
+setIcon.propTypes = {
+  icon: PropTypes.string.isRequired,
+  classes: PropTypes.objectOf(PropTypes.any).isRequired,
 };
 
 export default withStyles(styles)(ButtonComponent);

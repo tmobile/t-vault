@@ -12,7 +12,7 @@ import Avatar from '@material-ui/core/Avatar';
 import Dropdown from 'components/common/SelectDropdown';
 import FolderIcon from '@material-ui/icons/Folder';
 import SearchIcon from '@material-ui/icons/Search';
-import FloatingButtonComponent from 'components/FormFields/FloatingButton';
+import FloatingActionButtonComponent from 'components/FormFields/FloatingActionButton';
 import ComponentError from '../../../errorBoundaries/ComponentError/component-error';
 
 // mock data
@@ -182,9 +182,6 @@ const SafeSectionWrap = (props) => {
       </SafeFolderWrap>
     ));
   };
-  const onCreateSafeClicked = () => {
-    routeProps.history.push('/safe/create-safe');
-  };
 
   return (
     <ComponentError>
@@ -192,9 +189,10 @@ const SafeSectionWrap = (props) => {
         <ColumnSection>
           <ColumnHeader>
             <Dropdown />
-            <FloatingButtonComponent
-              onClick={() => onCreateSafeClicked()}
-              type="float"
+            <FloatingActionButtonComponent
+              href="/safe/create-safe"
+              color="secondary"
+              icon="addd"
             />
           </ColumnHeader>
           <SearchInput

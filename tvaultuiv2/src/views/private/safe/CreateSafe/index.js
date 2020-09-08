@@ -207,15 +207,11 @@ const CreateModal = (props) => {
                 <CancelButton>
                   <ButtonComponent
                     label="Cancel"
-                    buttonType="containedPrimary"
+                    color="primary"
                     onClick={() => handleClose()}
                   />
                 </CancelButton>
-                <ButtonComponent
-                  label="Create"
-                  buttonType="containedSecondary"
-                  icon="add"
-                />
+                <ButtonComponent label="Create" color="secondary" icon="add" />
               </CancelSaveWrapper>
             </CreateSafeForm>
           </ModalWrapper>
