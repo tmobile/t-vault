@@ -161,7 +161,6 @@ const customTheme = createMuiTheme({
     secondary: {
       main: '#e20074',
       contrastText: '#fff',
-      disabledBackground: 'red',
     },
     error: {
       main: '#b00020',
