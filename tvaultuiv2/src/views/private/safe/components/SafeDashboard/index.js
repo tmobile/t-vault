@@ -4,17 +4,16 @@ import React, { useState, useEffect } from 'react';
 import InfiniteScroll from 'react-infinite-scroller';
 import PropTypes from 'prop-types';
 import { Link, Route, Switch } from 'react-router-dom';
-import { Input, InputAdornment } from '@material-ui/core';
 import styled from 'styled-components';
-import SelectDropDown from 'components/SelectDropDown';
 import ComponentError from 'errorBoundaries/ComponentError/component-error';
-import SearchIcon from '@material-ui/icons/Search';
 import NoData from 'components/NoData';
 import NoSafesIcon from 'assets/no-data-safes.svg';
 import safeIcon from 'assets/icon_safes.svg';
-import PsudoPopper from '../PsudoPopper';
-import ListItem from '../ListItem';
+import Dropdown from 'components/common/SelectDropdown';
+import FloatingActionButtonComponent from 'components/FormFields/FloatingActionButton';
 import SafeDetails from '../SafeDetails';
+import ListItem from '../ListItem';
+import PsudoPopper from '../PsudoPopper';
 
 // mock data
 import { safes, safeDetail } from './__mock/safeDashboard';
@@ -40,22 +39,7 @@ const StyledInfiniteScroll = styled(InfiniteScroll)`
   width: 100%;
   max-height: 61vh;
 `;
-const SearchInput = styled(Input)`
-  padding: 0.25em 0.5em;
-  background-color: #f2f2f2;
-  padding: 0.25em 0.5em;
-  width: 100%;
-  outline: none;
-  margin: 0 auto;
-  border: none;
-  height: 3em;
-  margin: 0 auto;
-  margin-bottom: 1em;
-  &.MuiInput-underline:before,
-  .MuiInput-underline:hover:before {
-    border-bottom: none;
-  }
-`;
+
 const SafeListContainer = styled.div`
   overflow: auto;
   width: 100%;
@@ -159,7 +143,6 @@ const SafeDashboard = (props) => {
   };
 
   let scrollParentRef = null;
-
   const renderSafes = () => {
     return safeList.map((safe) => (
       <SafeFolderWrap
@@ -189,14 +172,11 @@ const SafeDashboard = (props) => {
       <SectionPreview title="safe-section">
         <ColumnSection width="52.9rem">
           <ColumnHeader>
-            <SelectDropDown />
-            <SearchInput
-              startAdornment={
-                // eslint-disable-next-line react/jsx-wrap-multilines
-                <InputAdornment position="start">
-                  <SearchIcon />
-                </InputAdornment>
-              }
+            <Dropdown />
+            <FloatingActionButtonComponent
+              href="/safe/create-safe"
+              color="secondary"
+              icon="addd"
             />
           </ColumnHeader>
 

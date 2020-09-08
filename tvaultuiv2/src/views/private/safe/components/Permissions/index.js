@@ -2,12 +2,12 @@
 import React, { useState } from 'react';
 import Radio from '@material-ui/core/Radio';
 import RadioGroup from '@material-ui/core/RadioGroup';
-import TextField from '@material-ui/core/TextField';
+import { TextField, InputLabel } from '@material-ui/core';
 import Autocomplete from '@material-ui/lab/Autocomplete';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 import FormControl from '@material-ui/core/FormControl';
 import styled from 'styled-components';
-import ButtonComponent from 'components/ButtonComponent';
+import ButtonComponent from 'components/FormFields/ActionButton';
 
 const PermissionWrapper = styled.div`
   padding: 2rem;
@@ -17,14 +17,16 @@ const PermissionWrapper = styled.div`
   flex-direction: column;
 `;
 
+const UserHeader = styled.h1`
+  margin-bottom: 1.4rem;
+  margin-top: 0;
+`;
+
 const InputRadioWrapper = styled.div`
-  display: flex;
-  justify-content: space-between;
   margin-bottom: 1rem;
 `;
 
 const InputWrapper = styled.div`
-  width: 70%;
   .MuiFormControl-fullWidth {
     background-color: #eee;
     padding: 0.5rem;
@@ -37,14 +39,18 @@ const InputWrapper = styled.div`
   .MuiSvgIcon-root {
     display: none;
   }
-`;
-const Title = styled.p`
-  margin-top: 0;
-  margin-bottom: 1rem;
+  .MuiFormLabel-root {
+    margin-bottom: 1.2rem;
+  }
 `;
 
 const CancelSaveWrapper = styled.div`
+  display: flex;
   align-self: flex-end;
+`;
+
+const CancelButton = styled.div`
+  margin-right: 0.8rem;
 `;
 
 const Permissions = () => {
@@ -58,14 +64,14 @@ const Permissions = () => {
 
   return (
     <PermissionWrapper>
+      <UserHeader>Add User</UserHeader>
       <InputRadioWrapper>
         <InputWrapper>
-          <Title>Add User</Title>
+          <InputLabel>User Email</InputLabel>
           <Autocomplete
             id="combo-box-demo"
             options={data}
             getOptionLabel={(option) => option.title}
-            style={{ width: '90%' }}
             renderInput={(params) => (
               <TextField
                 // eslint-disable-next-line react/jsx-props-no-spreading
@@ -75,33 +81,36 @@ const Permissions = () => {
             )}
           />
         </InputWrapper>
-        <div>
-          <Title>Permission</Title>
-          <FormControl component="fieldset">
-            <RadioGroup
-              row
-              aria-label="permissions"
-              name="permissions1"
-              value={value}
-              onChange={handleChange}
-            >
-              <FormControlLabel
-                value="read"
-                control={<Radio color="default" />}
-                label="Read"
-              />
-              <FormControlLabel
-                value="write"
-                control={<Radio color="default" />}
-                label="Write"
-              />
-            </RadioGroup>
-          </FormControl>
-        </div>
+        <FormControl component="fieldset">
+          <RadioGroup
+            row
+            aria-label="permissions"
+            name="permissions1"
+            value={value}
+            onChange={handleChange}
+          >
+            <FormControlLabel
+              value="read"
+              control={<Radio color="default" />}
+              label="Read"
+            />
+            <FormControlLabel
+              value="write"
+              control={<Radio color="default" />}
+              label="Write"
+            />
+          </RadioGroup>
+        </FormControl>
       </InputRadioWrapper>
       <CancelSaveWrapper>
-        <ButtonComponent label="CANCEL" color="default" type="contained" />
-        <ButtonComponent label="SAVE" color="primary" type="contained" />
+        <CancelButton>
+          <ButtonComponent label="Cancel" buttonType="containedPrimary" />
+        </CancelButton>
+        <ButtonComponent
+          label="Create"
+          icon="add"
+          buttonType="containedSecondary"
+        />
       </CancelSaveWrapper>
     </PermissionWrapper>
   );
