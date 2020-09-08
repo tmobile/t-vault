@@ -222,7 +222,7 @@ script(src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"
                               .row
                                 .details-input-group.col-lg-12.col-md-12.col-sm-12.col-xs-12
                                     .common-form-label Subject Alternate Names                                
-                                    input.form-control.input-box-style.dns-list(id="dnslist" ng-value="dnsList"  ng-model="dnsList" ng-disabled="true"  name="certificateStatus"  required)
+                                    textarea.form-control.input-box-style.dns-list(id="dnsStr" ng-value="dnsStr"  ng-model="dnsStr" ng-disabled="true"  name="certificateStatus"  required)
                                     div( ng-repeat="item in certificate.dnsNames" ) 
                                                              
                             

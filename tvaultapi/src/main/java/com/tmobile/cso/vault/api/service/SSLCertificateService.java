@@ -4263,7 +4263,7 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
                 //Sending renew email
                 sendRenewEmail(certType, certificateName, certOwnerEmailId,certOwnerNtId, token);
 				return ResponseEntity.status(renewResponse.getHttpstatus())
-						.body("{\"messages\":[\"" + "Certificate Renewed Successfully" + "\"]}");
+						.body("{\"messages\":[\"" + "Certificate renewed successfully" + "\"]}");
 			} else {
 				log.error(
 						JSONUtil.getJSON(
@@ -5895,7 +5895,6 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
 		Response metadataResponse = new Response();
 		CertResponse unAssignResponse = new CertResponse();
 		if (!userDetails.isAdmin()) {
-//			Boolean isPermission = validateOwnerPermissionForNonAdmin(userDetails, certificateName);
 			Boolean isPermission = validateCertOwnerPermissionForNonAdmin(userDetails, certificateName,certType);
 
 			if (!isPermission) {
@@ -5940,48 +5939,7 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
 		String certificateUserId = metaDataParams.get("certOwnerNtid");
 		
 		String nclmAccessToken = getNclmToken();	
-		if(!StringUtils.isEmpty(nclmAccessToken)) {
-		
-		//remove user permissions
-		CertificateUser certificateUser = new CertificateUser();
-		Map<String, String> userParams = new HashMap<String, String>();
-		if(object.get("users")!=null) {
-		JsonObject userObj = ((JsonObject) jsonParser.parse(object.get("users").toString()));
-		userParams = new Gson().fromJson(userObj.toString(), Map.class);
-		if(!userParams.isEmpty()) {
-		for (Map.Entry<String, String> entry : userParams.entrySet()) {
-			certificateUser.setCertificateName(certificateName);
-			certificateUser.setCertType(certType);
-			certificateUser.setUsername(entry.getKey());
-			certificateUser.setAccess(entry.getValue());
-			removeUserFromCertificate( certificateUser,  userDetails);
-		 }
-		}	
-		}
-		
-			//remove group permissions
-				CertificateGroup certificateGroup = new CertificateGroup();
-				Map<String, String> groupParams = new HashMap<String, String>();
-				if(object.get("groups")!=null) {
-				JsonObject groupObj = ((JsonObject) jsonParser.parse(object.get("groups").toString()));
-				groupParams = new Gson().fromJson(groupObj.toString(), Map.class);
-				if(!groupParams.isEmpty()) {
-				for (Map.Entry<String, String> entry : groupParams.entrySet()) {
-					certificateGroup.setCertificateName(certificateName);
-					certificateGroup.setCertType(certType);
-					certificateGroup.setGroupname(entry.getKey());
-					certificateGroup.setAccess(entry.getValue());
-					removeGroupFromCertificate( certificateGroup,  userDetails);
-				 }
-				}
-		}
-		
-			removeSudoPermissionForPreviousOwner( certificateUserId.toLowerCase(), certificateName,userDetails,certType);
-			if (userDetails.isAdmin()) {
-				deletePolicies(certificateName,certType,token);
-			}else {
-				deletePolicies(certificateName,certType,userDetails.getSelfSupportToken());
-			}
+		if(!StringUtils.isEmpty(nclmAccessToken)) {		
 						
 			//find certificates
 			CertificateData certData = getLatestCertificate(certificateName,nclmAccessToken, containerId);		
@@ -5998,6 +5956,47 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
 				unAssignResponse = reqProcessor.processCert("/certificates", "",
 						nclmAccessToken, getCertmanagerEndPoint(nclmApiDeleteEndpoint));	
 			}
+			
+			//remove user permissions
+			CertificateUser certificateUser = new CertificateUser();
+			Map<String, String> userParams = new HashMap<String, String>();
+			if(object.get("users")!=null) {
+			JsonObject userObj = ((JsonObject) jsonParser.parse(object.get("users").toString()));
+			userParams = new Gson().fromJson(userObj.toString(), Map.class);
+			if(!userParams.isEmpty()) {
+			for (Map.Entry<String, String> entry : userParams.entrySet()) {
+				certificateUser.setCertificateName(certificateName);
+				certificateUser.setCertType(certType);
+				certificateUser.setUsername(entry.getKey());
+				certificateUser.setAccess(entry.getValue());
+				removeUserFromCertificate( certificateUser,  userDetails);
+			 }
+			}	
+			}
+			
+				//remove group permissions
+					CertificateGroup certificateGroup = new CertificateGroup();
+					Map<String, String> groupParams = new HashMap<String, String>();
+					if(object.get("groups")!=null) {
+					JsonObject groupObj = ((JsonObject) jsonParser.parse(object.get("groups").toString()));
+					groupParams = new Gson().fromJson(groupObj.toString(), Map.class);
+					if(!groupParams.isEmpty()) {
+					for (Map.Entry<String, String> entry : groupParams.entrySet()) {
+						certificateGroup.setCertificateName(certificateName);
+						certificateGroup.setCertType(certType);
+						certificateGroup.setGroupname(entry.getKey());
+						certificateGroup.setAccess(entry.getValue());
+						removeGroupFromCertificate( certificateGroup,  userDetails);
+					 }
+					}
+			}
+			
+				removeSudoPermissionForPreviousOwner( certificateUserId.toLowerCase(), certificateName,userDetails,certType);
+				if (userDetails.isAdmin()) {
+					deletePolicies(certificateName,certType,token);
+				}else {
+					deletePolicies(certificateName,certType,userDetails.getSelfSupportToken());
+				}
 			
 			if (unAssignResponse!=null && (HttpStatus.OK.equals(unAssignResponse.getHttpstatus())|| (HttpStatus.NO_CONTENT.equals(unAssignResponse.getHttpstatus())))) {
 				try {
@@ -6031,7 +6030,7 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
                         SSLCertificateConstants.CERT_DELETE_SUBJECT + " - " + certificateName,
                         "deleted",certData);
 				return ResponseEntity.status(HttpStatus.OK)
-						.body("{\"messages\":[\"" + "Certificate deleted  Successfully" + "\"]}");
+						.body("{\"messages\":[\"" + "Certificate deleted successfully" + "\"]}");
 			}
 			else {
 				log.error(
@@ -6046,7 +6045,7 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
 												ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString())
 										.build()));
 				return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-						.body("{\"errors\":[\"" + "Certificate Deletion Failed" + "\"]}");
+						.body("{\"errors\":[\"" + "Certificate deletion failed" + "\"]}");
 			}	
 			}else {
 				log.error(

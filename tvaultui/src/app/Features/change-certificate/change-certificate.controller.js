@@ -610,9 +610,11 @@
                                 }
                                 
                                 $scope.dnsList = [];
+                                $scope.dnsStr = "";
                                 for (var i=0;i<$scope.certificate.dnsNames.length;i++) {
-                                	$scope.dnsList.push($scope.certificate.dnsNames[i]+"\n");
+                                	$scope.dnsList.push($scope.certificate.dnsNames[i]);
                                     }
+                                $scope.dnsStr = $scope.dnsList.join('\n');
                                 
                                 if($scope.certificate.certificateStatus=="Revoked"){
                                 var updatedUrlEndPoint = RestEndpoints.baseURL + "/v2/sslcert/checkstatus/" + certName+"/"+ certificateType;
