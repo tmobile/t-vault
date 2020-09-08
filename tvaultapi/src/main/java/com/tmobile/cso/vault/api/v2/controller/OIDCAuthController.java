@@ -265,7 +265,7 @@ public class OIDCAuthController {
 	 * @return
 	 */
 	@GetMapping(value="/v2/azure/groups",produces="application/json")
-	@ApiOperation(value = "${OIDCAuthController.getGroupObjectIdFromAD.value}", notes = "${OIDCAuthController.getGroupObjectIdFromAD.notes}")
+	@ApiOperation(value = "${OIDCAuthController.searchGroupsInAzure.value}", notes = "${OIDCAuthController.searchGroupsInAzure.notes}")
 	public ResponseEntity<DirectoryObjects> searchGroupInAzureAD(@RequestParam("name") String groupName){
 		return oidcAuthService.searchGroupInAzureAD(groupName);
 
