@@ -681,8 +681,6 @@
             getCertificates($scope.certSearchValue, limit, limit + offset,"internal");
         }
 
-<<<<<<< HEAD
-=======
         $scope.getTargetSystems = function () {     
             $scope.targetSystemList = [];
             $scope.targetSystemSelected = false;
