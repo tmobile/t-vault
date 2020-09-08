@@ -5199,13 +5199,24 @@ public class SSLCertificateService {
 				return ResponseEntity.status(HttpStatus.BAD_REQUEST)
 						.body("{\"errors\":[\"No certificate available\"]}");
 			} else {
+				if ((!userDetails.isAdmin()) && (userDetails.getUsername() != null)
+						&& (!userDetails.getUsername().equalsIgnoreCase(certificateMetaData.getCertOwnerNtid()))) {
+					log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+							.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+							.put(LogMessage.ACTION, SSLCertificateConstants.VALIDATE_CERTIFICATE_DETAILS_MSG)
+							.put(LogMessage.MESSAGE, "Access denied: No permission to access this certificate")
+							.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL))
+							.build()));
+					return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+							.body("{\"errors\":[\"Access denied: No permission to access this certificate\"]}");
+				}
 				return getCertificateDetailsAndProcessMetadata(certificatePath, authToken, certificateMetaData);
 			}
 		} else {
 			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
 					.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
 					.put(LogMessage.ACTION, SSLCertificateConstants.VALIDATE_CERTIFICATE_DETAILS_MSG)
-					.put(LogMessage.MESSAGE, "Access denied: No permission to add users to this certificate")
+					.put(LogMessage.MESSAGE, "Access denied: No permission to access this certificate")
 					.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
 					.body("{\"errors\":[\"Access denied: No permission to access this certificate\"]}");
