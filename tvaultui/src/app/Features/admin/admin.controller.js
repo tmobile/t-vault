@@ -681,152 +681,6 @@
             getCertificates($scope.certSearchValue, limit, limit + offset,"internal");
         }
 
-        $scope.getTargetSystems = function () {     
-            $scope.targetSystemList = [];
-            $scope.targetSystemSelected = false;
-            $scope.showInputLoader.show = true;
-            $scope.isTargetSystemListLoading = true;
-            var certType = $scope.certObj.certDetails.certType;
-            //Clearing target system and service fields when we switch internal to external
-            $scope.existingTargetSystem = false;
-            $scope.targetSystemType = { "type": "new" };
-            clearTargetSystemServiceFields();
-            if(angular.isDefined($scope.certObj.targetSystem) && $scope.certObj.targetSystem != null && typeof $scope.certObj.targetSystem == 'object'){
-                $scope.certObj.targetSystem.name=undefined;
-                $scope.certObj.targetSystem.description=undefined;
-                $scope.certObj.targetSystem.address=undefined;
-                $scope.targetSysErrorMessage='';
-                $scope.targetAddrErrorMessage='';                
-            } 
-            var updatedUrlOfEndPoint = RestEndpoints.baseURL + "/v2/sslcert/" + certType + "/targetsystems";
-            return AdminSafesManagement.getTargetSystems(null, updatedUrlOfEndPoint).then(function (response) {
-                if (UtilityService.ifAPIRequestSuccessful(response)) {
-                    $scope.targetSystemList = response.data.data;
-                    $scope.showInputLoader.show = false;
-                    $scope.targetSystemSelected = true;
-                }
-                else {
-                    $scope.showInputLoader.show = false;
-                    $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
-                    $scope.error('md');
-                }                
-                $scope.isTargetSystemListLoading = false;
-            },
-            function (error) {
-                // Error handling function
-                console.log(error);                
-                $scope.showInputLoader.show = false;
-                $scope.isTargetSystemListLoading = false;
-                if (error.data.errors[0] == "NCLM services are down. Please try after some time") {
-                	$scope.errorMessage = error.data.errors[0];
-                }else{
-                $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
-            }
-                $scope.error('md');
-            });
-        }
-        $scope.searchTargetSystems = function (searchVal) {
-            if ($scope.targetSystemList.length > 0 && searchVal.length > 2) {
-                $scope.certObj.targetSystemServiceRequest = undefined;
-                $scope.serviceListTableOptions = [];
-                $scope.targetSystemSelected = false;
-                return orderByFilter(filterFilter($scope.targetSystemList, searchVal), 'name', true);
-            }
-        }
-
-        $scope.getTargetSystemService = function () {
-            $scope.targetSystemServicesList = [];
-            setTargetSystemServiceList("Loading services..", []);            
-            var currentServicesList = [];
-            $scope.isLoadingserviceData = true;
-            $scope.targetSystemServiceSelected = false;
-            if ($scope.targetSystemSelected == true) {
-                var targetSystemId = $scope.certObj.targetSystem.targetSystemID;                
-                $scope.showServiceInputLoader.show = true;
-                var updatedUrlOfEndPoint = RestEndpoints.baseURL + "/v2/sslcert/targetsystems/" + targetSystemId + "/targetsystemservices";
-                return AdminSafesManagement.getTargetSystemsServices(null, updatedUrlOfEndPoint).then(function (response) {
-                    if (UtilityService.ifAPIRequestSuccessful(response)) {
-                        $scope.targetSystemServicesList = response.data.data;
-
-                        for (var index = 0;index<$scope.targetSystemServicesList.length;index++) {
-                            currentServicesList.push({"type":$scope.targetSystemServicesList[index].name, "index":index});
-                        }
-                        if ($scope.targetSystemSelected == true) {
-                            if (currentServicesList.length >0) {
-                                setTargetSystemServiceList("Select service", currentServicesList);
-                            }
-                            else {
-                                setTargetSystemServiceList("No service available", []);
-                            }
-                        }
-                        else {
-                            setTargetSystemServiceList("No target system selected", []);
-                        }
-                        $scope.showServiceInputLoader.show = false;
-                        $scope.isLoadingserviceData=false;
-                        $scope.targetSystemServiceValidation();
-                    }
-                    else {
-                        $scope.showServiceInputLoader.show = false;
-                        $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
-                        $scope.error('md');
-                    }
-                },
-                function (error) {
-                    // Error handling function
-                    console.log(error);
-                    $scope.showServiceInputLoader.show = false;
-                    $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
-                    $scope.error('md');
-                });
-            }
-        }
-
-        $scope.searchTargetSystemService = function (searchVal) {
-            if ($scope.targetSystemServicesList.length > 0 && searchVal.length > 2) {
-                $scope.targetSystemServiceSelected = false;
-                return orderByFilter(filterFilter($scope.targetSystemServicesList, searchVal), 'name', true);
-            }
-        }
-
-        $scope.selectTargetSystem = function (targetSystem) {
-            $scope.ifTargetSystemExisting=true;
-            $scope.certObj.targetSystem = {
-                "name": targetSystem.name,
-                "description": targetSystem.description,
-                "address": targetSystem.address,
-                "targetSystemID": targetSystem.targetSystemID
-            }
-            $scope.targetSystemSelected = true;
-            $scope.getTargetSystemService();
-        }
-        $scope.targetSystemCheck = function (targetSystem) {
-            if(targetSystem ==" " ||targetSystem== null ||targetSystem==undefined ){
-            $scope.targetSystemIsAvailable=true; 
-            }
-            else{
-                $scope.targetSystemIsAvailable=false;
-            }
-            $scope.getTargetSystemService();
-        }
-        $scope.selectTargetService = function () {
-            $scope.ifTargetServiceExisting=true;
-            var index = $scope.dropDownServiceList.selectedGroupOption.index;
-            $scope.certObj.targetSystemServiceRequest = {
-                "name": $scope.targetSystemServicesList[index].name,
-                "description": $scope.targetSystemServicesList[index].description,
-                "port": $scope.targetSystemServicesList[index].port,
-                "hostname": $scope.targetSystemServicesList[index].hostname
-            };
-            $scope.targetSystemServiceSelected = true;
-        }
-
-        $scope.selectTargetSystemService = function (targetSystemService) {
-            // for live search
-            $scope.certObj.targetSystemServiceRequest = targetSystemService;
-            $scope.targetSystemServiceSelected = true;
-        }
-
         $scope.newAppRoleConfiguration = function (size) {
             // To reset the aws configuration details object to create a new one
             $scope.editingApprole = { "status": false };
@@ -1794,7 +1648,7 @@
                 $scope.revocationMessage = ''
                 if ($scope.dropdownRevocationReasons.selectedGroupOption.type == 'Select Revocation Reasons') {
                     $scope.revocationStatusMessage = 'Revocation Failed!';
-                    $scope.revocationMessage = "Select Revocation Reasons";
+                    $scope.revocationMessage = "Select Revocation Reasons";
                     return $scope.revocationPopUp();
                 }
                 Modal.close('');
@@ -2126,13 +1980,13 @@
                 $scope.certTransferInValid = true;
                 $scope.certOwnerEmailErrorMessage = '';
                 $scope.certOwnerTransferErrorMessage = '';
-                if(certDetails.requestStatus!=null && certDetails.requestStatus!=undefined && certDetails.requestStatus=="Pending Approval"){
-                	$scope.isLoadingData = false;
-                	$scope.viewEditErrorMessage = "Certificate may not be approved or rejected from NCLM";
-                    $scope.validateCertificateDetailsPopUp();
-                }else{
-                Modal.createModal('md', 'transferCertPopup.html', 'AdminCtrl', $scope);
-            }
+                if(certDetails.requestStatus!=null && certDetails.requestStatus!=undefined && certDetails.requestStatus=="Pending Approval"){	
+                	$scope.isLoadingData = false;	
+                	$scope.viewEditErrorMessage = "Certificate may not be approved or rejected from NCLM";	
+                    $scope.validateCertificateDetailsPopUp();	
+                }else{	
+                Modal.createModal('md', 'transferCertPopup.html', 'AdminCtrl', $scope);	
+            }	
             };
             
             $scope.ownerEmailValidation = function () {
