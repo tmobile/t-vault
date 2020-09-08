@@ -30,7 +30,6 @@ const HeaderCenter = styled.div`
 const NavLink = styled(Link)`
   text-decoration: none;
   margin: 0 0.5rem;
-  color: #fff;
   padding: 2.5rem 2rem;
   font-weight: bold;
   background: ${(props) => (props.active ? props.theme.gradients.nav : 'none')};

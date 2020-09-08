@@ -155,12 +155,12 @@ const customTheme = createMuiTheme({
   },
   palette: {
     primary: {
-      main: '#000',
+      main: '#fff',
       contrastText: '#fff',
     },
     secondary: {
-      main: '#e20074',
-      dark: '#fff',
+      main: '#000',
+      dark: '#000',
       contrastText: '#fff',
     },
     error: {
