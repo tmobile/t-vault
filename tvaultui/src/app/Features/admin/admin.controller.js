@@ -1790,6 +1790,7 @@
         $scope.goToAddPermissions = function (certificateDetails) {            
             var obj = "certificateObject";
             var myobj = certificateDetails;
+            $rootScope.checkStatus = "";
             var fullObj = {};
             fullObj[obj] = myobj;
             try {       
@@ -1806,7 +1807,7 @@
                         AdminSafesManagement.validateCertificateDetails(null, updatedUrlOfEndPoint).then(function (response) {
 
                             if (UtilityService.ifAPIRequestSuccessful(response)) {
-                                $state.go('change-certificate', fullObj);
+                                $state.go('change-certificate', fullObj, $rootScope.checkStatus);
                                 $scope.isLoadingData = false;
                             }
                             else {
@@ -1827,13 +1828,43 @@
                             $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
                             $scope.error('md');
                         }});
-                    }else {
-                        $state.go('change-certificate', fullObj);
-                        $scope.isLoadingData = false;
-                    }
-                }else {
-                    $state.go('change-certificate', fullObj);
+                    }else if(certificateDetails.certificateStatus !== null && certificateDetails.certificateStatus == "Revoked") {
+                    	var updatedUrlEndPoint = RestEndpoints.baseURL + "/v2/sslcert/checkstatus/" + certName+"/"+ certificateType;
+                        AdminSafesManagement.checkRevokestatus(null, updatedUrlEndPoint).then(function (responses) {
+                        	if (UtilityService.ifAPIRequestSuccessful(responses)) {
+                        		$rootScope.checkStatus = "Revoked";
+                        		 $state.go('change-certificate', fullObj, $rootScope.checkStatus);
+                                 $scope.isLoadingData = false;
+                        	}else{
+                        		 $state.go('change-certificate', fullObj, $rootScope.checkStatus);
+                                 $scope.isLoadingData = false;
+                        	}
+                            });
+                       
+                	}
+                	else{
+                    $state.go('change-certificate', fullObj, $rootScope.checkStatus);
                     $scope.isLoadingData = false;
+                	}
+                }else {
+                	if(certificateDetails.certificateStatus !== null && certificateDetails.certificateStatus == "Revoked") {
+                    	var updatedUrlEndPoint = RestEndpoints.baseURL + "/v2/sslcert/checkstatus/" + certName+"/"+ certificateType;
+                        AdminSafesManagement.checkRevokestatus(null, updatedUrlEndPoint).then(function (responses) {
+                        	if (UtilityService.ifAPIRequestSuccessful(responses)) {
+                        		$rootScope.checkStatus = "Revoked";
+                        		 $state.go('change-certificate', fullObj, $rootScope.checkStatus);
+                                 $scope.isLoadingData = false;
+                        	}else{
+                        		 $state.go('change-certificate', fullObj, $rootScope.checkStatus);
+                                 $scope.isLoadingData = false;
+                        	}
+                            });
+                       
+                	}
+                	else{
+                    $state.go('change-certificate', fullObj, $rootScope.checkStatus);
+                    $scope.isLoadingData = false;
+                	}
                 }
             } catch (e) {
                 $scope.isLoadingData = false;              

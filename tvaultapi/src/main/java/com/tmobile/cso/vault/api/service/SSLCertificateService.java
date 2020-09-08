@@ -5943,7 +5943,7 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
 						
 			//find certificates
 			CertificateData certData = getLatestCertificate(certificateName,nclmAccessToken, containerId);		
-			if(!ObjectUtils.isEmpty(certData)) {
+			if((!ObjectUtils.isEmpty(certData)&& certData.getCertificateId()!=0)) {
 			//Unassign certificate from target system
 			JsonObject jo = new JsonObject();
 	        jo.add("targetSystemServiceIds", new GsonBuilder().create().toJsonTree(certData.getDeployStatus()));
@@ -6054,10 +6054,7 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
 										.put(LogMessage.USER,
 												ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString())
 										.put(LogMessage.ACTION, "Delete certificate Failed")
-										.put(LogMessage.MESSAGE, "Delete Request failed for CertificateID")
-										.put(LogMessage.STATUS, unAssignResponse.getHttpstatus().toString())
-										.put(LogMessage.APIURL,
-												ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString())
+										.put(LogMessage.MESSAGE, "Delete Request failed for CertificateID")										
 										.build()));
 				return ResponseEntity.status(HttpStatus.FORBIDDEN).body("{\"errors\":[\"" + "Certificate unavailable in NCLM." + "\"]}");
 			}

@@ -614,23 +614,11 @@
                                 for (var i=0;i<$scope.certificate.dnsNames.length;i++) {
                                 	$scope.dnsList.push($scope.certificate.dnsNames[i]);
                                     }
-                                $scope.dnsStr = $scope.dnsList.join('\n');
-                                
-                                if($scope.certificate.certificateStatus=="Revoked"){
-                                var updatedUrlEndPoint = RestEndpoints.baseURL + "/v2/sslcert/checkstatus/" + certName+"/"+ certificateType;
-                                AdminSafesManagement.checkRevokestatus(null, updatedUrlEndPoint).then(function (responses) {
-                                	if (UtilityService.ifAPIRequestSuccessful(responses)) {
-                                		$scope.revokeButtonShow = false;
-                                	}
-                                    },
-                                    function (error) {
-                                        // Error handling function                                        
-                                        if (error.data.errors[0] == "NCLM services are down. Please try after some time") {
-                                        	$scope.errorMessage = error.data.errors[0];
-                                        }
-                                        $scope.error('md');
-                                    });
-                            }
+                                $scope.dnsStr = $scope.dnsList.join('\n');                              
+                                                                                       
+                                if($rootScope.checkStatus=="Revoked"){
+                                	$scope.revokeButtonShow = false;	
+                                }                                
                                 	hideUserSudoPolicy();
                             }
                             catch (e) {
