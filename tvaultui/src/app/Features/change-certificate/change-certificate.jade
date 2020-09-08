@@ -194,46 +194,48 @@ script(src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"
                               .row
                                 .details-input-group.col-lg-12.col-md-12.col-sm-12.col-xs-12
                                   .common-form-label Signature Algorithm
-                                  input.form-control.input-box-style(id="algorithm" ng-model="'SHA256-RSA'" ng-disabled="true"  name="algorithm"  required)
+                                  input.form-control.input-box-style(id="algorithm"  ng-init="name='SHA256-RSA'" ng-model="name" ng-disabled="true"  name="algorithm"  required)
                             .col-lg-6.col-md-12.col-sm-12.col-xs-12.full-row-fix.col-lg-offset-1.col-lg-offset-1
                               .row
                                 .details-input-group.left-sm-sep.col-lg-12.col-md-12.col-sm-12.col-xs-12
                                     .common-form-label Key Usage
-                                    input.form-control.input-box-style(id="usage" ng-model="'digitalSignature, keyEncipherment'" ng-disabled="changeCertificateHeader == 'EDIT CERTIFICATE'"  name="ownerEmail" placeholder="Email address - Enter min 3 characters" required)
+                                    input.form-control.input-box-style(id="usage" ng-init="usage='digitalSignature, keyEncipherment'" ng-model="usage" ng-disabled="changeCertificateHeader == 'EDIT CERTIFICATE'"  name="ownerEmail" placeholder="Email address - Enter min 3 characters" required)
                         .row.middle
                           .common-form-row.clearfix
                             .col-lg-5.col-md-12.col-sm-12.col-xs-12.full-row-fix
                               .row
                                 .details-input-group.col-lg-12.col-md-12.col-sm-12.col-xs-12
                                   .common-form-label Extended Key Usage
-                                  input.form-control.input-box-style(ng-if="certificateTypeVal=='Internal'" id="keyusage" ng-model="'serverAuth'" ng-disabled="changeCertificateHeader == 'EDIT CERTIFICATE'"  name="applicationTag"  required)
-                                  input.form-control.input-box-style(ng-if="certificateTypeVal=='External'" id="keyusage" ng-model="'serverAuth, clientAuth'" ng-disabled="changeCertificateHeader == 'EDIT CERTIFICATE'"  name="applicationTag"  required)
+                                  input.form-control.input-box-style(ng-if="certificateTypeVal=='Internal'" id="keyusage" ng-init="keyusage='serverAuth'" ng-model="keyusage" ng-disabled="changeCertificateHeader == 'EDIT CERTIFICATE'"  name="applicationTag"  required)
+                                  input.form-control.input-box-style(ng-if="certificateTypeVal=='External'" id="keyusage" ng-init="keyusage='serverAuth, clientAuth'" ng-model="keyusage" ng-disabled="changeCertificateHeader == 'EDIT CERTIFICATE'"  name="applicationTag"  required)
                             .col-lg-6.col-md-12.col-sm-12.col-xs-12.full-row-fix.col-lg-offset-1.col-lg-offset-1
                               .row
                                 .details-input-group.left-sm-sep.col-lg-12.col-md-12.col-sm-12.col-xs-12
-                                    .common-form-label Enroll service 
-                                    input.form-control.input-box-style(ng-if="certificateTypeVal=='Internal'" id="enrolService" ng-model="'T-Mobile Issuing CA 01 - SHA2'" ng-disabled="changeCertificateHeader == 'EDIT CERTIFICATE'"  name="certificateStatus"  required)
-                                    input.form-control.input-box-style(ng-if="certificateTypeVal=='External'" id="enrolService" ng-model="'Entrust CA'" ng-disabled="changeCertificateHeader == 'EDIT CERTIFICATE'"  name="certificateStatus"  required)
+                                    .common-form-label Enroll Service 
+                                    input.form-control.input-box-style(ng-if="certificateTypeVal=='Internal'" id="enrolService" ng-init="enrolService='T-Mobile Issuing CA 01 - SHA2'" ng-model="enrolService" ng-disabled="changeCertificateHeader == 'EDIT CERTIFICATE'"  name="certificateStatus"  required)
+                                    input.form-control.input-box-style(ng-if="certificateTypeVal=='External'" id="enrolService" ng-init="enrolService='Entrust CA'" ng-model="enrolService" ng-disabled="changeCertificateHeader == 'EDIT CERTIFICATE'"  name="certificateStatus"  required)
+                            
+                       
                         .row.middle
                           .common-form-row.clearfix
-                            .col-lg-5.col-md-12.col-sm-12.col-xs-12.full-row-fix
+                            .common-form-row.col-lg-12.col-md-12.col-sm-12.col-xs-12
                               .row
                                 .details-input-group.col-lg-12.col-md-12.col-sm-12.col-xs-12
-                                  .common-form-label Subject Alternate Names
-                                  input.form-control.input-box-style(id="dns" ng-model="certificate.dnsNames" ng-disabled="changeCertificateHeader == 'EDIT CERTIFICATE'"  name="certificateStatus"  required)                                
-                            .col-lg-6.col-md-12.col-sm-12.col-xs-12.full-row-fix.col-lg-offset-1.col-lg-offset-1
+                                    .common-form-label Subject Alternate Names                                
+                                    input.form-control.input-box-style.dns-list(id="dnslist" ng-value="dnsList"  ng-model="dnsList" ng-disabled="true"  name="certificateStatus"  required)
+                                    div( ng-repeat="item in certificate.dnsNames" ) 
+                                                             
+                            
                               
-
-                      
 
                   .clearfix.btn-section
                     .right.col-lg-12.col-md-12.col-sm-12.col-xs-12.bottom-lg-sep.top-lg-sep
                       .right.svc-action-button
                         button.common-btn.btn.btn-cert.btn-lg(type='button' ng-if="renewButtonShow" ng-click="deleteCertPopup(certificate)" ) Delete
                       .right.svc-action-button
-                        button.common-btn.btn.btn-cert.btn-lg(type='button' ng-if="renewButtonShow" ng-click="revokeCertificate(certificate)") Revoke
+                        button.common-btn.btn.btn-cert.btn-lg(type='button' ng-if="renewButtonShow && revokeButtonShow" ng-click="revokeCertificate(certificate)") Revoke
                       .right.svc-action-button
-                        button.common-btn.btn.btn-cert.btn-lg(type='button' ng-if="renewButtonShow && certificate.certificateStatus!=='Expired'" ng-click="renewCertPopup(certificate)") Renew
+                        button.common-btn.btn.btn-cert.btn-lg(type='button' ng-if="renewButtonShow  && revokeButtonShow && certificate.certificateStatus!=='Expired'" ng-click="renewCertPopup(certificate)") Renew
                       .right.svc-action-button
                         button.common-btn.btn.btn-primary.btn-lg(type='submit' ng-if="isCertificateOwner" ng-disabled="!isCertificateOwner") Grant Permission
                       .right.right-sm-sepshowInputLoader

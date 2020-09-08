@@ -47,6 +47,7 @@
         $scope.isCertificateOwner = false;
         $scope.renewButtonShow = true;
         $scope.hideSudoPolicy = false;
+        $scope.revokeButtonShow = true;
         $scope.awsConfPopupObj = {
             "auth_type":"",
             "role": "",
@@ -585,7 +586,8 @@
                                     createDate: object.createDate || $stateParams.certificateObject.createDate || '',
                                     expiryDate: object.expiryDate || $stateParams.certificateObject.expiryDate || '',
                                     certificateStatus: object.certificateStatus || $stateParams.certificateObject.certificateStatus || '',
-                                    certificateId: object.certificateId || $stateParams.certificateObject.certificateId || ''
+                                    certificateId: object.certificateId || $stateParams.certificateObject.certificateId || '',
+                                    dnsNames: object.dnsNames || $stateParams.certificateObject.dnsNames || ''
                                 }
 
                                 if($scope.certificate.certType.toLowerCase() === "internal"){
@@ -606,7 +608,28 @@
                                 }else {
                                     $scope.renewButtonShow = true;
                                 }
-                                hideUserSudoPolicy();
+                                
+                                $scope.dnsList = [];
+                                for (var i=0;i<$scope.certificate.dnsNames.length;i++) {
+                                	$scope.dnsList.push($scope.certificate.dnsNames[i]+"\n");
+                                    }
+                                
+                                if($scope.certificate.certificateStatus=="Revoked"){
+                                var updatedUrlEndPoint = RestEndpoints.baseURL + "/v2/sslcert/checkstatus/" + certName+"/"+ certificateType;
+                                AdminSafesManagement.checkRevokestatus(null, updatedUrlEndPoint).then(function (responses) {
+                                	if (UtilityService.ifAPIRequestSuccessful(responses)) {
+                                		$scope.revokeButtonShow = false;
+                                	}
+                                    },
+                                    function (error) {
+                                        // Error handling function                                        
+                                        if (error.data.errors[0] == "NCLM services are down. Please try after some time") {
+                                        	$scope.errorMessage = error.data.errors[0];
+                                        }
+                                        $scope.error('md');
+                                    });
+                            }
+                                	hideUserSudoPolicy();
                             }
                             catch (e) {
                                 console.log(e);

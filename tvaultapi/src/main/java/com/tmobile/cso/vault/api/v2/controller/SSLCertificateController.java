@@ -358,5 +358,22 @@ public class SSLCertificateController {
 		UserDetails userDetails = (UserDetails) request.getAttribute(USER_DETAILS_STRING);
 		return sslCertificateService.getAllCertificatesOnCertType(userDetails, certificateType);
 	}
+	
+	/**	
+	 * Check if status is revoked	
+	 * @param certificateName	
+	 * @param certificateType	
+	 * @return	
+	 */	
+	@ApiOperation(value = "${SSLCertificateController.checkstatus.value}", notes = "${SSLCertificateController.checkstatus.notes}")	
+	@GetMapping(value = "/v2/sslcert/checkstatus/{certificate_name}/{certificate_type}", produces = "application/json")	
+	public ResponseEntity<String> checkCertificateStatus(HttpServletRequest request,	
+			@RequestHeader(value = "vault-token") String token,	
+			@PathVariable("certificate_name") String certificateName,	
+			@PathVariable("certificate_type") String certificateType) {	
+		UserDetails userDetails = (UserDetails) request.getAttribute(USER_DETAILS_STRING);	
+		return sslCertificateService.checkCertificateStatus(certificateName, certificateType,	
+				userDetails);	
+	}
 
 }

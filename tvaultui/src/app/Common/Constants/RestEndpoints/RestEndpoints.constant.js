@@ -402,6 +402,10 @@ readTextFile("../apiUrls.json");
              name: 'getCallback',
              url: '/v2/auth/oidc/callback',
              method: 'GET'
+         },{	
+             name: 'checkRevokestatus',	
+             url: '/v2/sslcert/checkstatus/{certificate_name}/{certificate_type}',	
+             method: 'GET'	
          }
     ]
     });
