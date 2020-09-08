@@ -117,7 +117,14 @@ script(type='text/ng-template', id='deleteCertificateFailedPopUp.html')
     .text-center.bottom-lg-sep.top-lg-sep.notification-button
       .clearfix.bottom-sm-sep
         button.link-style.common-btn.btn.btn-cert.btn-lg(ng-click="cancel()") CLOSE
-        
+ script(type='text/ng-template', id='renewCertificateDateFailedPopUp.html')
+  .top-lg-sep(ng-if="!isLoadingModalData")
+    .top-lg-sep
+        .common-header-label.text-center Certificate Renewal Failed!
+      .top-lg-sep.notification-text  Expiration date should be less than 30 days
+    .text-center.bottom-lg-sep.top-lg-sep.notification-button
+      .clearfix.bottom-sm-sep
+        button.link-style.common-btn.btn.btn-cert.btn-lg(ng-click="cancel()") CLOSE       
 
 script(src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js")
 .container-fluid.common-main-content.route-page.change-safe-wrapper
