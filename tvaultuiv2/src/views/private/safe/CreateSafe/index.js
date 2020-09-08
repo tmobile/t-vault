@@ -11,11 +11,11 @@ import TextField from '@material-ui/core/TextField';
 import Select from '@material-ui/core/Select';
 import MenuItem from '@material-ui/core/MenuItem';
 import PropTypes from 'prop-types';
-import ButtonComponent from 'components/common/ButtonComponent';
+import ButtonComponent from 'components/FormFields/ActionButton';
 import ComponentError from 'errorBoundaries/ComponentError/component-error';
 
 const ModalWrapper = styled.section`
-  background-color: #fff;
+  background-color: #2a2e3e;
   padding: 2.4rem 3.2rem;
   border-radius: 1rem;
   border: none;
@@ -83,8 +83,13 @@ const SafeDescription = styled.p`
 `;
 
 const CancelSaveWrapper = styled.div`
-  align-self: flex-end;
+  display: flex;
+  justify-content: flex-end;
   margin-top: 2rem;
+`;
+
+const CancelButton = styled.div`
+  margin-right: 0.8rem;
 `;
 
 const CreateSafeForm = styled.form`
@@ -199,17 +204,14 @@ const CreateModal = (props) => {
                 />
               </InputFieldLabelWrapper>
               <CancelSaveWrapper>
-                <ButtonComponent
-                  label="CANCEL"
-                  color="default"
-                  type="contained"
-                  onClick={() => handleClose()}
-                />
-                <ButtonComponent
-                  label="SAVE"
-                  type="contained"
-                  color="primary"
-                />
+                <CancelButton>
+                  <ButtonComponent
+                    label="Cancel"
+                    color="primary"
+                    onClick={() => handleClose()}
+                  />
+                </CancelButton>
+                <ButtonComponent label="Create" color="secondary" icon="add" />
               </CancelSaveWrapper>
             </CreateSafeForm>
           </ModalWrapper>

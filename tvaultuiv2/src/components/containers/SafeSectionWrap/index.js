@@ -10,9 +10,9 @@ import SafeDetails from 'components/containers/SafeDetails';
 import styled from 'styled-components';
 import Avatar from '@material-ui/core/Avatar';
 import Dropdown from 'components/common/SelectDropdown';
-
 import FolderIcon from '@material-ui/icons/Folder';
 import SearchIcon from '@material-ui/icons/Search';
+import FloatingActionButtonComponent from 'components/FormFields/FloatingActionButton';
 import ComponentError from '../../../errorBoundaries/ComponentError/component-error';
 
 // mock data
@@ -23,6 +23,7 @@ const ColumnSection = styled('section')`
   width: 50%;
   padding: 2.5em;
   border-right: 2px solid #ddd;
+  position: relative;
   &:last-child {
     border-right: none;
   }
@@ -151,7 +152,6 @@ const SafeSectionWrap = (props) => {
   };
 
   let scrollParentRef = null;
-
   const renderSafes = () => {
     return safeList.map((safe) => (
       <SafeFolderWrap
@@ -189,7 +189,11 @@ const SafeSectionWrap = (props) => {
         <ColumnSection>
           <ColumnHeader>
             <Dropdown />
-            <Link to="/safe/create-safe">Create</Link>
+            <FloatingActionButtonComponent
+              href="/safe/create-safe"
+              color="secondary"
+              icon="addd"
+            />
           </ColumnHeader>
           <SearchInput
             startAdornment={

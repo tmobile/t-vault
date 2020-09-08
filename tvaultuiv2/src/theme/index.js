@@ -130,7 +130,7 @@ const customTheme = createMuiTheme({
       fontFamily:
         'BlinkMacSystemFont,-apple-system,"Segoe UI",Roboto,Oxygen,Ubuntu,"Helvetica Neue",Arial,sans-serif',
       fontWeight: 500,
-      fontSize: '1.2rem',
+      fontSize: '1.4rem',
       lineHeight: 1.14,
       letterSpacing: '0.078125rem',
       color: 'rgba(0, 0, 0, 0.87)',
@@ -156,11 +156,10 @@ const customTheme = createMuiTheme({
   palette: {
     primary: {
       main: '#fff',
-      contrastText: '#fff',
+      contrastText: '#e20074',
     },
     secondary: {
-      main: '#000',
-      dark: '#000',
+      main: '#e20074',
       contrastText: '#fff',
     },
     error: {
@@ -180,12 +179,12 @@ const customTheme = createMuiTheme({
     },
     action: {
       active: '#fff',
-      hover: 'rgba(226, 0, 116, 0.3)',
+      hover: 'rgba(266 , 0, 116, 0.3)',
       hoverOpacity: 0.08,
       selected: '#e20074',
       selectedOpacity: 0.16,
-      disabled: 'rgba(0, 0, 0, 0.38)',
-      disabledBackground: 'rgba(255, 255, 255, 0.12)',
+      disabled: '#fff',
+      disabledBackground: '#454c5e',
       disabledOpacity: 0.38,
       focus: '#590074',
       focusOpacity: 1,
@@ -210,6 +209,24 @@ const customTheme = createMuiTheme({
     MuiPaper: {
       rounded: {
         borderRadius: '0.25rem',
+      },
+    },
+    MuiInput: {
+      root: {
+        padding: '0.5rem',
+      },
+    },
+    MuiButton: {
+      root: {
+        textTransform: 'capitalize',
+        borderRadius: '0',
+      },
+    },
+    MuiFab: {
+      secondary: {
+        backgroundImage:
+          'linear-gradient(to bottom, #ff61b2, #e20074, #650038)',
+        color: '#fff',
       },
     },
   },
