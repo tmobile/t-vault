@@ -6,20 +6,19 @@ import Modal from '@material-ui/core/Modal';
 import { Backdrop, Typography, InputLabel } from '@material-ui/core';
 import Fade from '@material-ui/core/Fade';
 import styled from 'styled-components';
-import Select from '@material-ui/core/Select';
-import MenuItem from '@material-ui/core/MenuItem';
 import PropTypes from 'prop-types';
 import TextFieldComponent from 'components/FormFields/TextField';
 import ButtonComponent from 'components/FormFields/ActionButton';
+import SelectComponent from 'components/FormFields/SelectFields';
 import ComponentError from 'errorBoundaries/ComponentError/component-error';
 import safeIcon from '../../../../assets/icon_safe.svg';
 
 const ModalWrapper = styled.section`
   background-color: #2a2e3e;
-  padding: 5.5rem 5.9rem;
+  padding: 5.5rem;
   border: none;
   outline: none;
-  width: 50%;
+  width: 69.6rem;
   margin: auto 0;
 `;
 
@@ -86,6 +85,7 @@ const CreateModal = (props) => {
   const [owner, setOwner] = useState('');
   const [safeName, setSafeName] = useState('');
   const [description, setDescription] = useState('');
+  const [menu] = useState(['Personal', 'Public']);
 
   const handleClose = () => {
     setOpen(false);
@@ -138,16 +138,11 @@ const CreateModal = (props) => {
               </InputFieldLabelWrapper>
               <InputFieldLabelWrapper>
                 <InputLabel>Type of Safe</InputLabel>
-                <Select
-                  labelId="demo-customized-select-label"
-                  id="demo-customized-select"
+                <SelectComponent
+                  menu={menu}
                   value={type}
-                  variant="filled"
                   onChange={(e) => setType(e.target.value)}
-                >
-                  <MenuItem value="Personal">Personal</MenuItem>
-                  <MenuItem value="Public">Public</MenuItem>
-                </Select>
+                />
               </InputFieldLabelWrapper>
               <InputFieldLabelWrapper>
                 <InputLabel>Description</InputLabel>

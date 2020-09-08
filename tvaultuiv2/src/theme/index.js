@@ -237,6 +237,7 @@ const customTheme = createMuiTheme({
     },
     MuiFilledInput: {
       root: {
+        padding: '1.5rem 1rem',
         borderTopLeftRadius: '0',
         borderTopRightRadius: '0',
         backgroundColor: '#fff',
@@ -249,7 +250,6 @@ const customTheme = createMuiTheme({
         padding: '0',
       },
       adornedStart: {
-        padding: '1.5rem 1rem',
         paddingLeft: '1rem',
       },
       multiline: {
@@ -258,6 +258,31 @@ const customTheme = createMuiTheme({
       colorSecondary: {
         backgroundColor: '#20232e',
         color: '#5e627c',
+      },
+      underline: {
+        '&:after': {
+          borderBottom: '0',
+        },
+        '&:before': {
+          borderBottom: '0',
+        },
+        '&:hover&:before': {
+          borderBottom: '0',
+        },
+      },
+    },
+    MuiMenuItem: {
+      root: {
+        '&$selected': {
+          backgroundColor: '#e20074',
+        },
+      },
+    },
+    MuiSelect: {
+      select: {
+        '&:focus': {
+          backgroundColor: 'transparent',
+        },
       },
     },
   },
