@@ -1,5 +1,5 @@
 /* eslint-disable react/jsx-props-no-spreading */
-import React, { lazy } from 'react';
+import React, { lazy, useState } from 'react';
 import { Route, Switch, withRouter } from 'react-router-dom';
 // import PropTypes from 'prop-types';
 // eslint-disable-next-line import/no-unresolved
@@ -12,12 +12,12 @@ import SafeDashboard from './components/SafeDashboard';
 
 const CreateSafe = lazy(() => import('./CreateSafe'));
 const SafeSectionPreview = styled('section')`
-  width: 90%;
   margin: 3em auto;
-  height: 65rem;
+  height: 77vh;
 `;
 
 const SafePageLayout = (props) => {
+  const { safesList, setSafesList } = useState([]);
   // Sample API call. For integration, call like this with you mock data being passed as parameter
   apiService
     .fetchSafe({ name: 'Jack' })
@@ -25,16 +25,27 @@ const SafePageLayout = (props) => {
     .then((res) => console.log('res ---- ', res))
     // eslint-disable-next-line no-console
     .catch((e) => console.error(e));
+
+  const createSafe = (safeData) => {
+    apiService
+      .createSafe(safeData)
+      .then((res) => {
+        setSafesList(res.data);
+      })
+      .catch((e) => console.log(e));
+  };
   return (
     <ComponentError>
       <main title="safe-layout">
         <SafeSectionPreview>
-          <SafeDashboard {...props} />
+          <SafeDashboard {...props} safesList={safesList} />
         </SafeSectionPreview>
         <Switch>
           <Route
             path="/safe/create-safe"
-            render={(routeProps) => <CreateSafe routeProps={routeProps} />}
+            render={(routeProps) => (
+              <CreateSafe routeProps={routeProps} createSafe={createSafe} />
+            )}
           />
         </Switch>
       </main>

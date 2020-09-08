@@ -8,8 +8,8 @@ import PropTypes from 'prop-types';
 
 import { findElementAndUpdate } from 'services';
 import ComponentError from 'errorBoundaries/ComponentError/component-error';
-import TreeItemWrapper from 'components/TreeItemWrapper';
 import ButtonComponent from 'components/ButtonComponent';
+import AddForm from '../AddForm';
 import CreateSecret from '../CreateSecrets';
 import AddFolder from '../AddFolder';
 import File from './components/file';
@@ -35,7 +35,7 @@ const TreeRecursive = ({
     if (item.type === 'folder') {
       return (
         <Folder name={item.labelText} popperClickHandler={handlePopperClick}>
-          <TreeItemWrapper
+          <AddForm
             inputNode={
               // eslint-disable-next-line react/jsx-wrap-multilines
               inputType.toLowerCase() === 'folder' ? (

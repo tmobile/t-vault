@@ -18,7 +18,7 @@ import AddIcon from '@material-ui/icons/Add';
 
 // eslint-disable-next-line import/no-unresolved
 import MuiButton from 'components/MuiButton';
-import NoDataBox from 'components/NoDataBox';
+import NoData from 'components/NoData';
 import AddFolder from '../AddFolder';
 // import FolderTreeView from '../FolderTree';
 import Tree from '../Tree';
@@ -154,7 +154,7 @@ export default function SelectionTabs() {
             </>
           ) : (
             <EmptySecretBox>
-              <NoDataBox
+              <NoData
                 description="add a <strong>Folder</strong> and then you will be able to add <strong>secrets</strong> to view them all here"
                 actionButton={
                   // eslint-disable-next-line react/jsx-wrap-multilines

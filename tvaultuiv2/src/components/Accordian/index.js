@@ -11,8 +11,8 @@ import FolderOutlinedIcon from '@material-ui/icons/FolderOutlined';
 import MoreVertOutlinedIcon from '@material-ui/icons/MoreVertOutlined';
 import CreateSecret from 'components/CreateSecret';
 import AddFolder from 'components/AddFolder';
-import PopperElement from '../Popper';
-import CreateSecretButton from '../CreateSecretButton';
+import PopperElement from '../../views/private/safe/components/Popper';
+import CreateSecretButton from '../../views/private/safe/components/CreateSecretButton';
 
 // styled components goes here
 const FolderWrap = styled(Accordion)`

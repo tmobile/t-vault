@@ -6,21 +6,26 @@ import styled from 'styled-components';
 import Avatar from '@material-ui/core/Avatar';
 import ComponentError from 'errorBoundaries/ComponentError/component-error';
 import { TitleOne } from 'styles/GlobalStyles';
-
-import FolderOutlinedIcon from '@material-ui/icons/FolderOutlined';
+import safeIcon from 'assets/icon_safes.svg';
 
 const FolderWrap = styled('div')`
   position: relative;
   display: flex;
+  width: 100%;
   text-decoration: none;
   align-items: center;
 `;
 const SafeDetailBox = styled('div')`
-  padding-left: 1em;
+  padding-left: 1.7rem;
 `;
 const SafeAvatarWrap = styled.div`
-  width: 4em;
-  height: 4em;
+  .MuiAvatar-root {
+    width: 3.4rem;
+    height: 3.9rem;
+    border-radius: 0;
+  }
+  display: flex;
+  align-items: center;
 `;
 const Flag = styled('span')`
   opacity: 0.7;
@@ -29,14 +34,13 @@ const Flag = styled('span')`
   font-style: ${(props) => (props.fontStyle ? props.fontStyle : '')};
 `;
 
-const FolderItem = (props) => {
+const ListItem = (props) => {
   const { title, subTitle, flag, icon } = props;
   return (
     <ComponentError>
-      {' '}
       <FolderWrap>
         <SafeAvatarWrap>
-          <Avatar>{icon}</Avatar>
+          <Avatar alt="safe_icon" src={icon} />
         </SafeAvatarWrap>
         <SafeDetailBox>
           <TitleOne>
@@ -51,16 +55,16 @@ const FolderItem = (props) => {
     </ComponentError>
   );
 };
-FolderItem.propTypes = {
+ListItem.propTypes = {
   subTitle: PropTypes.string,
   title: PropTypes.string,
-  icon: PropTypes.node,
+  icon: PropTypes.objectOf(PropTypes.any),
   flag: PropTypes.string,
 };
-FolderItem.defaultProps = {
+ListItem.defaultProps = {
   subTitle: '',
   title: '',
   flag: '',
-  icon: <FolderOutlinedIcon />,
+  icon: safeIcon,
 };
-export default FolderItem;
+export default ListItem;

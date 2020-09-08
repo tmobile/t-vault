@@ -5,14 +5,15 @@ import InfiniteScroll from 'react-infinite-scroller';
 import PropTypes from 'prop-types';
 import { Link, Route, Switch } from 'react-router-dom';
 import { Input, InputAdornment } from '@material-ui/core';
-import PsudoPopper from 'components/PsudoPopper';
 import styled from 'styled-components';
 import SelectDropDown from 'components/SelectDropDown';
 import ComponentError from 'errorBoundaries/ComponentError/component-error';
 import SearchIcon from '@material-ui/icons/Search';
-import FolderItem from 'components/FolderItem';
-import NoDataBox from 'components/NoDataBox';
+import NoData from 'components/NoData';
 import NoSafesIcon from 'assets/no-data-safes.svg';
+import safeIcon from 'assets/icon_safes.svg';
+import PsudoPopper from '../PsudoPopper';
+import ListItem from '../ListItem';
 import SafeDetails from '../SafeDetails';
 
 // mock data
@@ -20,7 +21,7 @@ import { safes, safeDetail } from './__mock/safeDashboard';
 
 // styled components
 const ColumnSection = styled('section')`
-  width: 50%;
+  width: ${(props) => props.width || '50%'};
   padding: ${(props) => props.padding || '0'};
   background: ${(props) => props.backgroundColor || '#151820'};
 `;
@@ -33,10 +34,11 @@ const ColumnHeader = styled('div')`
   align-items: center;
   padding: 0.5em;
   justify-content: space-between;
+  border-bottom: 0.1rem solid #1d212c;
 `;
 const StyledInfiniteScroll = styled(InfiniteScroll)`
   width: 100%;
-  height: 100%;
+  max-height: 61vh;
 `;
 const SearchInput = styled(Input)`
   padding: 0.25em 0.5em;
@@ -57,7 +59,13 @@ const SearchInput = styled(Input)`
 const SafeListContainer = styled.div`
   overflow: auto;
   width: 100%;
-  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+`;
+
+const NoDataWrapper = styled.div`
+  height: 61vh;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -67,7 +75,8 @@ const SafeFolderWrap = styled(Link)`
   display: flex;
   text-decoration: none;
   align-items: center;
-  padding: 0.8em;
+  flex-direction: column;
+  padding: 1.2rem 1.8rem 1.2rem 3.4rem;
   cursor: pointer;
   background-image: ${(props) =>
     props.active ? props.theme.gradients.list : 'none'};
@@ -82,13 +91,20 @@ const PopperWrap = styled.div`
   top: 50%;
   right: 0%;
   z-index: 2;
+  width: 5.5rem;
   transform: translate(-50%, -50%);
 `;
 
 const NoSafeWrap = styled.div`
-  width: 30%;
+  width: 35%;
 `;
 
+const BorderLine = styled.div`
+  border-bottom: 0.1rem solid #1d212c;
+  width: 90%;
+  position: absolute;
+  bottom: 0;
+`;
 const SafeDashboard = (props) => {
   const [safeList, setSafeList] = useState([]);
   const [moreData, setMoreData] = useState(false);
@@ -152,11 +168,13 @@ const SafeDashboard = (props) => {
         active={activeSafeFolders.includes(safe.name)}
         onClick={() => showSafeDetails(safe.name)}
       >
-        <FolderItem
+        <ListItem
           title={safe.name}
           subTitle={safe.date}
           flag={safe.flagType}
+          icon={safeIcon}
         />
+        <BorderLine />
         {activeSafeFolders.includes(safe.name) ? (
           <PopperWrap>
             <PsudoPopper />
@@ -169,21 +187,21 @@ const SafeDashboard = (props) => {
   return (
     <ComponentError>
       <SectionPreview title="safe-section">
-        <ColumnSection>
+        <ColumnSection width="52.9rem">
           <ColumnHeader>
             <SelectDropDown />
-            <Link to="/safe/create-safe">Create</Link>
+            <SearchInput
+              startAdornment={
+                // eslint-disable-next-line react/jsx-wrap-multilines
+                <InputAdornment position="start">
+                  <SearchIcon />
+                </InputAdornment>
+              }
+            />
           </ColumnHeader>
-          <SearchInput
-            startAdornment={
-              // eslint-disable-next-line react/jsx-wrap-multilines
-              <InputAdornment position="start">
-                <SearchIcon />
-              </InputAdornment>
-            }
-          />
-          <SafeListContainer ref={(ref) => (scrollParentRef = ref)}>
-            {safeList && safeList.length ? (
+
+          {safeList && safeList.length ? (
+            <SafeListContainer ref={(ref) => (scrollParentRef = ref)}>
               <StyledInfiniteScroll
                 pageStart={0}
                 loadMore={() => {
@@ -198,21 +216,25 @@ const SafeDashboard = (props) => {
               >
                 {renderSafes()}
               </StyledInfiniteScroll>
-            ) : (
+            </SafeListContainer>
+          ) : (
+            <NoDataWrapper>
+              {' '}
               <NoSafeWrap>
-                <NoDataBox
+                <NoData
                   imageSrc={NoSafesIcon}
                   description="Create a Safe to get started!"
                   actionButton={<div />}
                 />
               </NoSafeWrap>
-            )}
-          </SafeListContainer>
+            </NoDataWrapper>
+          )}
         </ColumnSection>
 
         <ColumnSection
           backgroundColor="linear-gradient(to top, #151820, #2c3040)"
           padding="0"
+          width="77.1rem"
         >
           <Switch>
             {' '}

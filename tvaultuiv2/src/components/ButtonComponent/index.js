@@ -9,7 +9,6 @@ const styles = () => ({
     marginRight: '1rem',
     padding: '0.5rem 1rem',
     boxShadow: 'none',
-    color: '#fff',
   },
   iconStyle: {
     fontSize: '1.2rem',

@@ -3,7 +3,7 @@ import styled from 'styled-components';
 import PropTypes from 'prop-types';
 
 const ChildItemWrap = styled('div')``;
-const TreeItemWrapper = (props) => {
+const AddForm = (props) => {
   const { inputNode, createButton, inputEnabled } = props;
   return (
     <ChildItemWrap>
@@ -12,14 +12,14 @@ const TreeItemWrapper = (props) => {
     </ChildItemWrap>
   );
 };
-TreeItemWrapper.propTypes = {
+AddForm.propTypes = {
   inputNode: PropTypes.node,
   createButton: PropTypes.node,
   inputEnabled: PropTypes.bool,
 };
-TreeItemWrapper.defaultProps = {
+AddForm.defaultProps = {
   inputNode: <div />,
   createButton: <div />,
   inputEnabled: false,
 };
-export default TreeItemWrapper;
+export default AddForm;

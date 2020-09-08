@@ -25,7 +25,7 @@ const ColumnHeader = styled('div')`
 `;
 
 const SafeDescription = styled.p`
-  font-size: 1.4em;
+  font-size: 1.4rem;
   text-align: left;
 `;
 const SafeTitle = styled('h5')`
@@ -42,7 +42,7 @@ const SafeDetails = (props) => {
       <Section>
         <ColumnHeader headerBgSrc={sectionHeaderBg}>
           <div className="safe-title-wrap">
-            <SafeTitle>No safes yet</SafeTitle>
+            <SafeTitle>{compData.name || 'No Safe'}</SafeTitle>
             <SafeDescription>{compData.description}</SafeDescription>
           </div>
         </ColumnHeader>

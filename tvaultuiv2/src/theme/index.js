@@ -170,7 +170,7 @@ const customTheme = createMuiTheme({
       main: '#6dba15',
     },
     text: {
-      primary: '#fff',
+      primary: '#000',
       secondary: '#000',
       light: '#fff',
       main: '#fff',

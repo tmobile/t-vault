@@ -6,8 +6,8 @@ import styled from 'styled-components';
 
 import MoreVertOutlinedIcon from '@material-ui/icons/MoreVertOutlined';
 import FolderOutlinedIcon from '@material-ui/icons/FolderOutlined';
-import PopperElement from 'components/Popper';
 import ComponentError from 'errorBoundaries/ComponentError/component-error';
+import PopperElement from '../../Popper';
 
 const StyledFolder = styled.div`
   padding-left: 20px;

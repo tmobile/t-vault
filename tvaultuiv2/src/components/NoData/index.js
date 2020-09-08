@@ -27,7 +27,7 @@ const ActionButtonWrap = styled('div')`
 const BackgroundIcon = styled(CardMedia)`
   ${(props) => props.imgStyles}
 `;
-const NoDataBox = (props) => {
+const NoData = (props) => {
   const { description, actionButton, imageSrc, bgIconStyle } = props;
   return (
     <ComponentError>
@@ -43,16 +43,16 @@ const NoDataBox = (props) => {
     </ComponentError>
   );
 };
-NoDataBox.propTypes = {
+NoData.propTypes = {
   description: PropTypes.string,
   actionButton: PropTypes.node,
   imageSrc: PropTypes.node,
   bgIconStyle: PropTypes.objectOf(PropTypes.object),
 };
-NoDataBox.defaultProps = {
+NoData.defaultProps = {
   description: 'Nothing here, But me',
   actionButton: <div />,
   imageSrc: '',
   bgIconStyle: { width: '100%', height: '22rem' },
 };
-export default NoDataBox;
+export default NoData;

@@ -15,7 +15,7 @@ import ButtonComponent from 'components/ButtonComponent';
 import ComponentError from 'errorBoundaries/ComponentError/component-error';
 
 const ModalWrapper = styled.section`
-  background-color: #2a2e3e;
+  // background-color: #2a2e3e;
   padding: 2.4rem 3.2rem;
   border-radius: 1rem;
   border: none;
@@ -103,7 +103,7 @@ const useStyles = makeStyles(() => ({
 }));
 
 const CreateModal = (props) => {
-  const { history } = props;
+  const { history, createSafe } = props;
   const classes = useStyles();
   const [open, setOpen] = useState(true);
   const [type, setType] = useState('Personal');
@@ -117,6 +117,17 @@ const CreateModal = (props) => {
   };
 
   const handleClose = () => {
+    setOpen(false);
+    history.goBack();
+  };
+  const saveSafes = () => {
+    const safeContent = {
+      safeName,
+      description,
+      owner,
+      type,
+    };
+    createSafe(safeContent);
     setOpen(false);
     history.goBack();
   };
@@ -209,6 +220,7 @@ const CreateModal = (props) => {
                   label="SAVE"
                   type="contained"
                   color="primary"
+                  onClick={saveSafes}
                 />
               </CancelSaveWrapper>
             </CreateSafeForm>
@@ -221,6 +233,9 @@ const CreateModal = (props) => {
 
 CreateModal.propTypes = {
   history: PropTypes.objectOf(PropTypes.any).isRequired,
+  createSafe: PropTypes.func,
 };
-
+CreateModal.defaultProps = {
+  createSafe: () => {},
+};
 export default withRouter(CreateModal);

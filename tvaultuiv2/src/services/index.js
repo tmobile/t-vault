@@ -10,6 +10,18 @@ export function mockApi(response) {
     }, 1000)
   );
 }
+
+export function mockCreateSafe(response) {
+  return new Promise((resolve, reject) =>
+    setTimeout(() => {
+      if (response === 'error') {
+        reject(new Error('failed to create data'));
+      }
+      resolve({ data: [response] });
+    })
+  );
+}
+
 export function findElementById(arr, id, nestingKey) {
   // if empty array then return
   if (arr.length === 0) return;
