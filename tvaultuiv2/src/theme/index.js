@@ -1,5 +1,15 @@
 import { createMuiTheme } from '@material-ui/core/styles';
 
+export const customColor = {
+  secondary: {
+    backgroundColor: '#20232e',
+    color: '#5e627c',
+  },
+  primary: {
+    backgroundColor: '#fff',
+    color: '#000',
+  },
+};
 const customTheme = createMuiTheme({
   breakpoints: {
     keys: ['xs', 'sm', 'md', 'lg', 'xl'],
@@ -229,6 +239,58 @@ const customTheme = createMuiTheme({
         color: '#fff',
       },
     },
+    MuiFormLabel: {
+      root: {
+        marginBottom: '1.2rem',
+        fontSize: '1.4rem',
+      },
+    },
+    MuiFilledInput: {
+      root: {
+        padding: '1.5rem 1rem',
+        borderTopLeftRadius: '0',
+        borderTopRightRadius: '0',
+        backgroundColor: customColor.primary.backgroundColor,
+        color: customColor.primary.color,
+        '&:hover': {
+          backgroundColor: customColor.primary.backgroundColor,
+        },
+      },
+      input: {
+        padding: '0',
+      },
+      adornedStart: {
+        paddingLeft: '1rem',
+      },
+      multiline: {
+        padding: '1.5rem 1rem',
+      },
+      colorSecondary: {
+        backgroundColor: customColor.secondary.backgroundColor,
+        color: customColor.secondary.color,
+        '&:hover': {
+          backgroundColor: customColor.secondary.backgroundColor,
+        },
+      },
+      underline: {
+        '&:after': {
+          borderBottom: '0',
+        },
+        '&:before': {
+          borderBottom: '0',
+        },
+        '&:hover&:before': {
+          borderBottom: '0',
+        },
+      },
+    },
+    MuiSelect: {
+      select: {
+        '&:focus': {
+          backgroundColor: 'transparent',
+        },
+      },
+    },
   },
   baseFontSize: {
     fontSize: '10px',
@@ -240,6 +302,7 @@ const customTheme = createMuiTheme({
     list: 'linear-gradient(to right, #72134b, #1d212c)',
     nav: 'linear-gradient(to top, #7b124e, rgba(123, 18, 78, 0))',
   },
+  customColor,
 });
 
 export default customTheme;
