@@ -9,6 +9,7 @@ export const customColor = {
     backgroundColor: '#fff',
     color: '#000',
   },
+  magenta: '#e20074',
 };
 const customTheme = createMuiTheme({
   breakpoints: {
@@ -218,7 +219,7 @@ const customTheme = createMuiTheme({
     },
     MuiPaper: {
       rounded: {
-        borderRadius: '0.25rem',
+        borderRadius: '0',
       },
     },
     MuiInput: {
@@ -243,6 +244,14 @@ const customTheme = createMuiTheme({
       root: {
         marginBottom: '1.2rem',
         fontSize: '1.4rem',
+      },
+    },
+    MuiRadio: {
+      root: {
+        color: customColor.secondary.color,
+        '&$checked': {
+          color: customColor.magenta,
+        },
       },
     },
     MuiFilledInput: {
@@ -287,6 +296,34 @@ const customTheme = createMuiTheme({
     MuiSelect: {
       select: {
         '&:focus': {
+          backgroundColor: 'transparent',
+        },
+      },
+    },
+    MuiAutocomplete: {
+      inputRoot: {
+        paddingBottom: '0',
+        height: '5rem',
+        '&[class*="MuiFilledInput-root"]': {
+          paddingLeft: '2rem',
+          paddingTop: '0',
+        },
+      },
+      paper: {
+        backgroundColor: customColor.primary.backgroundColor,
+        color: customColor.primary.color,
+      },
+      option: {
+        paddingLeft: '2rem',
+        '&[data-focus="true"]': {
+          backgroundColor: customColor.primary.backgroundColor,
+          color: customColor.magenta,
+        },
+        '&[aria-selected="true"]': {
+          backgroundColor: customColor.primary.backgroundColor,
+          color: customColor.magenta,
+        },
+        '&:active': {
           backgroundColor: 'transparent',
         },
       },
