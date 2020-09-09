@@ -250,10 +250,10 @@ const customTheme = createMuiTheme({
         padding: '1.5rem 1rem',
         borderTopLeftRadius: '0',
         borderTopRightRadius: '0',
-        backgroundColor: '#fff',
-        color: '#000',
+        backgroundColor: customColor.primary.backgroundColor,
+        color: customColor.primary.color,
         '&:hover': {
-          backgroundColor: '#fff',
+          backgroundColor: customColor.primary.backgroundColor,
         },
       },
       input: {
