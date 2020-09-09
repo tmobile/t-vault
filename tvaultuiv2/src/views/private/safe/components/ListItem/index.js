@@ -58,7 +58,7 @@ const ListItem = (props) => {
 ListItem.propTypes = {
   subTitle: PropTypes.string,
   title: PropTypes.string,
-  icon: PropTypes.objectOf(PropTypes.any),
+  icon: PropTypes.string,
   flag: PropTypes.string,
 };
 ListItem.defaultProps = {

@@ -9,17 +9,18 @@ import ComponentError from 'errorBoundaries/ComponentError/component-error';
 import NoData from 'components/NoData';
 import NoSafesIcon from 'assets/no-data-safes.svg';
 import safeIcon from 'assets/icon_safes.svg';
-import Dropdown from 'components/common/SelectDropdown';
+import SelectDropDown from 'components/SelectDropDown';
 import FloatingActionButtonComponent from 'components/FormFields/FloatingActionButton';
 import SafeDetails from '../SafeDetails';
 import ListItem from '../ListItem';
 import PsudoPopper from '../PsudoPopper';
 
 // mock data
-import { safes, safeDetail } from './__mock/safeDashboard';
+import { safeDetail } from './__mock/safeDashboard';
 
 // styled components
 const ColumnSection = styled('section')`
+  position: relative;
   width: ${(props) => props.width || '50%'};
   padding: ${(props) => props.padding || '0'};
   background: ${(props) => props.backgroundColor || '#151820'};
@@ -89,11 +90,16 @@ const BorderLine = styled.div`
   position: absolute;
   bottom: 0;
 `;
+const FloatBtnWrapper = styled('div')`
+  position: absolute;
+  bottom: 2.8rem;
+  right: 2.5rem;
+`;
 const SafeDashboard = (props) => {
+  const { routeProps, safes } = props;
   const [safeList, setSafeList] = useState([]);
   const [moreData, setMoreData] = useState(false);
 
-  const { routeProps } = props;
   const [activeSafeFolders, setActiveSafeFolders] = useState([]);
   // const [showPopper, setShowPopper] = useState(false);
 
@@ -115,50 +121,52 @@ const SafeDashboard = (props) => {
    */
 
   useEffect(() => {
+    console.log('routeProps', routeProps);
+    console.log('safeList', safes);
     safes.map((item) => {
       return setSafeList((prev) => [...prev, item]);
     });
     setMoreData(true);
   }, []);
 
-  const getSafesList = () => {
-    return new Promise((resolve) =>
-      setTimeout(() => {
-        resolve({
-          name: `safe-${Math.ceil(Math.random() * 100)}`,
-          desc:
-            'Hello yhis is the sample description of thesafety used here. it shows description about safety type and so on',
-          date: '2 days ago , 9:20 pm',
-          flagType: 'new',
-        });
-      }, 1000)
-    );
-  };
+  // const getSafesList = () => {
+  //   return new Promise((resolve) =>
+  //     setTimeout(() => {
+  //       resolve({
+  //         name: `safe-${Math.ceil(Math.random() * 100)}`,
+  //         desc:
+  //           'Hello yhis is the sample description of thesafety used here. it shows description about safety type and so on',
+  //         date: '2 days ago , 9:20 pm',
+  //         flagType: 'new',
+  //       });
+  //     }, 1000)
+  //   );
+  // };
 
   const loadMoreData = () => {
-    getSafesList().then((res) => {
-      setMoreData(false);
-      setSafeList((prev) => [...prev, res]);
-    });
+    // getSafesList().then((res) => {
+    //   setMoreData(false);
+    //   setSafeList((prev) => [...prev, res]);
+    // });
   };
 
   let scrollParentRef = null;
   const renderSafes = () => {
     return safeList.map((safe) => (
       <SafeFolderWrap
-        key={safe.name}
-        to={`${routeProps.match.url}/${safe.name}`}
-        active={activeSafeFolders.includes(safe.name)}
-        onClick={() => showSafeDetails(safe.name)}
+        key={safe.safeName}
+        to={`${routeProps.match.url}/${safe.safeName}`}
+        active={activeSafeFolders.includes(safe.safeName)}
+        onClick={() => showSafeDetails(safe.safeName)}
       >
         <ListItem
-          title={safe.name}
+          title={safe.safeName}
           subTitle={safe.date}
-          flag={safe.flagType}
+          flag={safe.type}
           icon={safeIcon}
         />
         <BorderLine />
-        {activeSafeFolders.includes(safe.name) ? (
+        {activeSafeFolders.includes(safe.safeName) ? (
           <PopperWrap>
             <PsudoPopper />
           </PopperWrap>
@@ -172,12 +180,7 @@ const SafeDashboard = (props) => {
       <SectionPreview title="safe-section">
         <ColumnSection width="52.9rem">
           <ColumnHeader>
-            <Dropdown />
-            <FloatingActionButtonComponent
-              href="/safe/create-safe"
-              color="secondary"
-              icon="addd"
-            />
+            <SelectDropDown />
           </ColumnHeader>
 
           {safeList && safeList.length ? (
@@ -204,11 +207,29 @@ const SafeDashboard = (props) => {
                 <NoData
                   imageSrc={NoSafesIcon}
                   description="Create a Safe to get started!"
-                  actionButton={<div />}
+                  actionButton={
+                    // eslint-disable-next-line react/jsx-wrap-multilines
+                    <FloatingActionButtonComponent
+                      href="/safe/create-safe"
+                      color="secondary"
+                      icon="addd"
+                      tooltipTitle="Create New Safe"
+                      tooltipPos="bottom"
+                    />
+                  }
                 />
               </NoSafeWrap>
             </NoDataWrapper>
           )}
+          <FloatBtnWrapper>
+            <FloatingActionButtonComponent
+              href="/safe/create-safe"
+              color="secondary"
+              icon="addd"
+              tooltipTitle="Create New Safe"
+              tooltipPos="left"
+            />
+          </FloatBtnWrapper>
         </ColumnSection>
 
         <ColumnSection
@@ -221,7 +242,7 @@ const SafeDashboard = (props) => {
             <Route
               path="/:tab/:safeName"
               render={(routerProps) => (
-                <SafeDetails detailData={safeDetail} params={routerProps} />
+                <SafeDetails detailData={safes} params={routerProps} />
               )}
             />
           </Switch>
@@ -234,9 +255,12 @@ const SafeDashboard = (props) => {
 SafeDashboard.propTypes = {
   // eslint-disable-next-line react/forbid-prop-types
   routeProps: PropTypes.object,
+  // eslint-disable-next-line react/forbid-prop-types
+  safes: PropTypes.array,
 };
 SafeDashboard.defaultProps = {
   routeProps: {},
+  safes: [],
 };
 
 export default SafeDashboard;

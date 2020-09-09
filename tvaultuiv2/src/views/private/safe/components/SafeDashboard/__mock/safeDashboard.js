@@ -1,41 +1,41 @@
 export const safes = [
   {
-    name: 'sample_1',
+    safeName: 'sample_1',
     desc:
       'Hello yhis is the sample description of thesafety used here. it shows description about safety labelInfo and so on',
     date: '2 days ago , 9:20 pm',
     flagType: 'new',
   },
   {
-    name: 'sample_2',
+    safeName: 'sample_2',
     desc:
       'Hello yhis is the sample description of thesafety used here. it shows description about safety type and so on',
     date: '2 days ago , 9:20 pm',
     flagType: 'new',
   },
   {
-    name: 'sample_3',
+    safeName: 'sample_3',
     desc:
       'Hello yhis is the sample description of thesafety used here. it shows description about safety type and so on',
     date: '2 days ago , 9:20 pm',
     flagType: 'new',
   },
   {
-    name: 'sample_4',
+    safeName: 'sample_4',
     desc:
       'Hello yhis is the sample description of thesafety used here. it shows description about safety type and so on',
     date: '2 days ago , 9:20 pm',
     flagType: 'seen',
   },
   {
-    name: 'sample_5',
+    safeName: 'sample_5',
     desc:
       'Hello yhis is the sample description of thesafety used here. it shows description about safety type and so on',
     date: '2 days ago , 9:20 pm',
     flagType: 'seen',
   },
   {
-    name: 'sample_6',
+    safeName: 'sample_6',
     desc:
       'Hello yhis is the sample description of thesafety used here. it shows description about safety type and so on',
     date: '2 days ago , 9:20 pm',

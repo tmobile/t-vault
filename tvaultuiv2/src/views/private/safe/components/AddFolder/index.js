@@ -9,7 +9,8 @@ const AddFolderNameWrapper = styled.div`
   padding: 3.2rem;
   border: 0.1rem solid #ddd;
   border-radius: 0.3rem;
-  background-color: #fff;
+  background-color: ${(props) =>
+    props.theme.palette.background.paper || '#1f232e'};
   width: ${(props) => props.width || '100%'};
   .MuiFormHelperText-contained {
     margin-left: 0;
@@ -68,8 +69,9 @@ const AddFolder = (props) => {
           </CancelButton>
           <ButtonComponent
             label="Save"
+            color="secondary"
             buttonType="containedSecondary"
-            onClick={handleSaveClick(inputValue)}
+            onClick={() => handleSaveClick(inputValue)}
           />
         </ButtonWrapper>
       </form>

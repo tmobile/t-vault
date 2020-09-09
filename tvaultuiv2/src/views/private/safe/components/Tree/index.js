@@ -8,7 +8,7 @@ import PropTypes from 'prop-types';
 
 import { findElementAndUpdate } from 'services';
 import ComponentError from 'errorBoundaries/ComponentError/component-error';
-import ButtonComponent from 'components/ButtonComponent';
+import CreateSecretButton from '../CreateSecretButton';
 import AddForm from '../AddForm';
 import CreateSecret from '../CreateSecrets';
 import AddFolder from '../AddFolder';
@@ -55,7 +55,7 @@ const TreeRecursive = ({
               )
             }
             inputEnabled={isAddFolder}
-            createButton={<ButtonComponent onClick={setCreateSecretBox} />}
+            createButton={<CreateSecretButton onClick={setCreateSecretBox} />}
           />
           <TreeRecursive
             data={item.children}
@@ -74,6 +74,7 @@ const TreeRecursive = ({
 };
 const StyledTree = styled.div`
   line-height: 1.5;
+  margin-top: 1.2rem;
 `;
 const Tree = (props) => {
   const { data } = props;
@@ -96,13 +97,14 @@ const Tree = (props) => {
    */
 
   const saveSecretsToFolder = (obj, parentId) => {
+    debugger;
     const tempFolders = [...secretsFolder] || [];
     const folderObj = {};
-    folderObj.labelText = obj.name;
-    folderObj.type = obj.type;
-    folderObj.labelKey = obj.key;
+    folderObj.labelText = obj.labelValue;
+    folderObj.type = obj.type || 'file';
+    folderObj.labelKey = obj.labelKey;
     folderObj.children = [];
-    const updatedArray = findElementAndUpdate(tempFolders, parentId, '');
+    const updatedArray = findElementAndUpdate(tempFolders, parentId, obj);
     setSecretsFolder([...updatedArray]);
     setIsAddFolder(false);
   };

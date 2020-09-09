@@ -1,3 +1,4 @@
+/* eslint-disable react/jsx-curly-newline */
 /* eslint-disable import/no-unresolved */
 import React, { useState } from 'react';
 import { InputLabel } from '@material-ui/core';
@@ -102,7 +103,9 @@ const CreateSecret = (props) => {
             label="Create"
             icon="add"
             buttonType="containedSecondary"
-            onClick={() => handleSecretSave(secret)}
+            onClick={() =>
+              handleSecretSave({ labelKey: keyId, labelValue: secret })
+            }
           />
         </CancelSaveWrapper>
       </form>

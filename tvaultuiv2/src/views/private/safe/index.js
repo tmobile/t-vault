@@ -1,6 +1,6 @@
 /* eslint-disable react/jsx-props-no-spreading */
 import React, { lazy, useState } from 'react';
-import { Route, Switch, withRouter } from 'react-router-dom';
+import { BrowserRouter, Route, Switch, withRouter } from 'react-router-dom';
 // import PropTypes from 'prop-types';
 // eslint-disable-next-line import/no-unresolved
 import styled from 'styled-components';
@@ -17,7 +17,7 @@ const SafeSectionPreview = styled('section')`
 `;
 
 const SafePageLayout = (props) => {
-  const { safesList, setSafesList } = useState([]);
+  const [safesList, setSafesList] = useState([]);
   // Sample API call. For integration, call like this with you mock data being passed as parameter
   apiService
     .fetchSafe({ name: 'Jack' })
@@ -38,13 +38,14 @@ const SafePageLayout = (props) => {
     <ComponentError>
       <main title="safe-layout">
         <SafeSectionPreview>
-          <SafeDashboard {...props} safesList={safesList} />
+          <SafeDashboard {...props} safes={safesList} />
         </SafeSectionPreview>
         <Switch>
           <Route
+            exact
             path="/safe/create-safe"
             render={(routeProps) => (
-              <CreateSafe routeProps={routeProps} createSafe={createSafe} />
+              <CreateSafe routeProps={{ ...routeProps, createSafe }} />
             )}
           />
         </Switch>

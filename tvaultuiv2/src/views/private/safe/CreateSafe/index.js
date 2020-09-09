@@ -1,7 +1,7 @@
 /* eslint-disable import/no-unresolved */
 import React, { useState } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
-import { withRouter } from 'react-router-dom';
+import { withRouter, useHistory } from 'react-router-dom';
 import Modal from '@material-ui/core/Modal';
 import Backdrop from '@material-ui/core/Backdrop';
 import Fade from '@material-ui/core/Fade';
@@ -108,7 +108,7 @@ const useStyles = makeStyles(() => ({
 }));
 
 const CreateModal = (props) => {
-  const { history, createSafe } = props;
+  const { createSafe } = props;
   const classes = useStyles();
   const [open, setOpen] = useState(true);
   const [type, setType] = useState('Personal');
@@ -116,6 +116,9 @@ const CreateModal = (props) => {
   const [safeName, setSafeName] = useState('');
   const [description, setDescription] = useState('');
   const [popOverOpen, setPopOverOpen] = useState(false);
+
+  // use history from useHistory
+  const history = useHistory();
 
   const onIconClicked = () => {
     setPopOverOpen(!popOverOpen);
@@ -222,7 +225,12 @@ const CreateModal = (props) => {
                     onClick={() => handleClose()}
                   />
                 </CancelButton>
-                <ButtonComponent label="Create" color="secondary" icon="add" />
+                <ButtonComponent
+                  label="Create"
+                  color="secondary"
+                  icon="add"
+                  onClick={() => saveSafes()}
+                />
               </CancelSaveWrapper>
             </CreateSafeForm>
           </ModalWrapper>
@@ -239,4 +247,4 @@ CreateModal.propTypes = {
 CreateModal.defaultProps = {
   createSafe: () => {},
 };
-export default withRouter(CreateModal);
+export default CreateModal;

@@ -7,12 +7,12 @@ import Paper from '@material-ui/core/Paper';
 import Popper from '@material-ui/core/Popper';
 
 const PopperElement = (props) => {
-  const { open, anchorEl, placement, popperContent, handlePopperClick } = props;
+  const { open, anchorEl, placement, children } = props;
   return (
     <Popper open={open} anchorEl={anchorEl} placement={placement} transition>
       {({ TransitionProps }) => (
         <Fade {...TransitionProps} timeout={350}>
-          <Paper onClick={handlePopperClick}>{popperContent}</Paper>
+          <Paper>{children}</Paper>
         </Fade>
       )}
     </Popper>
@@ -24,7 +24,6 @@ PopperElement.propTypes = {
   anchorEl: PropTypes.node,
   placement: PropTypes.string,
   popperContent: PropTypes.node,
-  handlePopperClick: PropTypes.func,
   children: PropTypes.node,
 };
 PopperElement.defaultProps = {
@@ -32,7 +31,6 @@ PopperElement.defaultProps = {
   anchorEl: <div />,
   placement: '',
   popperContent: <div />,
-  handlePopperClick: () => {},
   children: <div />,
 };
 export default PopperElement;

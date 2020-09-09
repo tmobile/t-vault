@@ -35,7 +35,7 @@ export function findElementById(arr, id, nestingKey) {
     'Not found'
   );
 }
-export function findElementAndUpdate(arr, id, parentId, item) {
+export function findElementAndUpdate(arr, parentId, item) {
   const tempArr = [...arr];
   // if empty array then return
   if (arr.length === 0) return;
@@ -43,11 +43,11 @@ export function findElementAndUpdate(arr, id, parentId, item) {
   // eslint-disable-next-line consistent-return
   for (let i = 0; i < tempArr.length; i += 1) {
     const element = tempArr[i];
-    if (element.labelText === id) {
+    if (element.labelText === parentId) {
       element.children = [...element.children, item];
       return tempArr;
     }
     if (element.children)
-      findElementAndUpdate(element.children, id, parentId, item);
+      findElementAndUpdate(element.children, parentId, item);
   }
 }

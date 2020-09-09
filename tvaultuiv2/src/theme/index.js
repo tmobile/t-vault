@@ -230,6 +230,16 @@ const customTheme = createMuiTheme({
         color: '#fff',
       },
     },
+    MuiTooltip: {
+      textColorSecondary: {
+        color: '#000',
+      },
+    },
+    MuiTab: {
+      textColorPrimary: {
+        color: '#5e627c',
+      },
+    },
   },
   baseFontSize: {
     fontSize: '10px',

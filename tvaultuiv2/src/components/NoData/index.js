@@ -11,11 +11,12 @@ const DialogeBoxWrapper = styled('div')`
   justify-content: center;
   align-items: center;
   flex-direction: column;
-  width: 100%;
+  width: ${(props) => props.width};
 `;
 const BoxDescription = styled.p`
   text-align: center;
-  font-size: 1.2em;
+  font-size: 1.4rem;
+  color: #5e627c;
 `;
 const ActionButtonWrap = styled('div')`
   display: flexl;
@@ -28,10 +29,10 @@ const BackgroundIcon = styled(CardMedia)`
   ${(props) => props.imgStyles}
 `;
 const NoData = (props) => {
-  const { description, actionButton, imageSrc, bgIconStyle } = props;
+  const { description, actionButton, imageSrc, bgIconStyle, width } = props;
   return (
     <ComponentError>
-      <DialogeBoxWrapper>
+      <DialogeBoxWrapper width={width}>
         <BackgroundIcon
           image={imageSrc}
           title="no-data"
@@ -48,11 +49,13 @@ NoData.propTypes = {
   actionButton: PropTypes.node,
   imageSrc: PropTypes.node,
   bgIconStyle: PropTypes.objectOf(PropTypes.object),
+  width: PropTypes.string,
 };
 NoData.defaultProps = {
   description: 'Nothing here, But me',
   actionButton: <div />,
   imageSrc: '',
   bgIconStyle: { width: '100%', height: '22rem' },
+  width: '100%',
 };
 export default NoData;

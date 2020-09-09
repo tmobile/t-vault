@@ -2,21 +2,30 @@
 /* eslint-disable import/no-unresolved */
 import React, { useState } from 'react';
 import PropTypes from 'prop-types';
-import styled from 'styled-components';
+import styled, { css } from 'styled-components';
 
 import MoreVertOutlinedIcon from '@material-ui/icons/MoreVertOutlined';
-import FolderOutlinedIcon from '@material-ui/icons/FolderOutlined';
+import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
+import ExpandLessIcon from '@material-ui/icons/ExpandLess';
+import IconFolderActive from 'assets/icon_folder_active';
+import IconFolderInactive from 'assets/icon_folder';
 import ComponentError from 'errorBoundaries/ComponentError/component-error';
+import { TitleTwo, BackgroundColor } from 'styles/GlobalStyles';
 import PopperElement from '../../Popper';
 
 const StyledFolder = styled.div`
-  padding-left: 20px;
-
+  background: ${BackgroundColor.listBg};
+  padding-left: ${(props) => props.padding || '0'};
+  :hover {
+    background-image: ${(props) => props.theme.gradients.list || 'none'};
+    color: #fff;
+  }
   .folder--label {
     display: flex;
     align-items: center;
+    justify-content: space-between;
     span {
-      margin-left: 5px;
+      margin-left: 0.5rem;
     }
   }
 `;
@@ -34,6 +43,16 @@ const FolderIconWrap = styled('div')`
     width: 3rem;
     height: 3rem;
   }
+`;
+
+const LabelWrap = styled.div`
+  display: flex;
+  align-items: center;
+  padding-left: 2rem;
+`;
+
+const titleStyles = css`
+  margin-left: 1.6rem;
 `;
 
 const Folder = (props) => {
@@ -60,8 +79,12 @@ const Folder = (props) => {
           onClick={handleToggle}
           tabIndex={0}
         >
-          <FolderOutlinedIcon />
-          <span>{name}</span>
+          <LabelWrap>
+            {isOpen ? <ExpandMoreIcon /> : <ExpandLessIcon />}
+            <IconFolderActive />
+            <TitleTwo extraCss={titleStyles}>{name}</TitleTwo>
+          </LabelWrap>
+
           <FolderIconWrap onClick={(e) => enablePopper(e)}>
             <MoreVertOutlinedIcon />
             <PopperElement
