@@ -173,11 +173,6 @@ public class EmailUtils {
 			helper.setTo(to);
 			helper.setSubject(subject);
 			String templateFileName = TVaultConstants.EMAIL_TEMPLATE_NAME_DELETE_CERT;
-
-			// inline image content identifies
-			for (Map.Entry<String, String> entry : TVaultConstants.EMAIL_EXT_TEMPLATE_IMAGE_IDS.entrySet()) {
-				variables.put(entry.getKey(), entry.getKey());
-			}
 			String content = this.templateEngine.process(templateFileName, new Context(Locale.getDefault(), variables));
 			helper.setText(content, true);
 			try {

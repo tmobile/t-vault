@@ -4222,7 +4222,8 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
 			//if renewed get new certificate details and update metadata
 			if (renewResponse!=null && (HttpStatus.OK.equals(renewResponse.getHttpstatus()) || HttpStatus.ACCEPTED.equals(renewResponse.getHttpstatus())) ) {
 			CertificateData certData = getLatestCertificate(certificateName,nclmAccessToken, containerId);			
-			boolean sslMetaDataUpdationStatus=true;		
+			boolean sslMetaDataUpdationStatus=true;
+			boolean isApprovalReq=false;
 			if(!ObjectUtils.isEmpty(certData)) {	
             int actionId=0;
 			if(certType.equalsIgnoreCase("external")) {
@@ -4240,6 +4241,7 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
                             build()));
                     metaDataParams.put("requestStatus", SSLCertificateConstants.RENEW_PENDING); 
                     metaDataParams.put("actionId",String.valueOf(actionId));
+                    isApprovalReq = true;
                 }else {
                 	metaDataParams.put("certificateId",((Integer)certData.getCertificateId()).toString()!=null?
     						((Integer)certData.getCertificateId()).toString():String.valueOf(certificateId));
@@ -4269,7 +4271,7 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
                 String certOwnerEmailId = metaDataParams.get("certOwnerEmailId");
                 String certOwnerNtId = metaDataParams.get("certOwnerNtid");
                 //Sending renew email
-                sendRenewEmail(certType, certificateName, certOwnerEmailId,certOwnerNtId, token);
+                sendRenewEmail(certType, certificateName, certOwnerEmailId,certOwnerNtId, token,isApprovalReq);
 				return ResponseEntity.status(renewResponse.getHttpstatus())
 						.body("{\"messages\":[\"" + "Certificate renewed successfully" + "\"]}");
 			} else {
@@ -4340,18 +4342,18 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
      * @param userDetails
      * @param token
      */
-    private void sendRenewEmail(String certType, String certificateName, String certOwnerEmailId,String certOwnerNtId,
-     String token) {
+    private void sendRenewEmail(String certType, String certificateName, String certOwnerEmailId, String certOwnerNtId,
+                                String token, boolean isApprovalReq) {
 
-        //Send email for certificate renewed for internal and external
-        if (certType.equalsIgnoreCase(SSLCertificateConstants.INTERNAL)) {
+        //Send an approval process in case renew required approval process
+        if (isApprovalReq) {
+            sendExternalEmail(certType, certificateName, certOwnerEmailId, certOwnerNtId,
+                    SSLCertificateConstants.EX_CERT_RENEW_SUBJECT + " - " +
+                            certificateName, "renew");
+        } else {
             sendEmail(certType, certificateName, certOwnerEmailId, certOwnerNtId,
                     SSLCertificateConstants.CERT_RENEW_SUBJECT + " - " + certificateName,
                     "renewed", token);
-        } else {
-            sendExternalEmail(certType, certificateName, certOwnerEmailId,certOwnerNtId,
-                    SSLCertificateConstants.EX_CERT_RENEW_SUBJECT + " - " +
-                    certificateName, "renew");
         }
     }
 
