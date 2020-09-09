@@ -594,6 +594,11 @@
                                     $scope.certificateTypeVal = "Internal";
                                 }else if($scope.certificate.certType.toLowerCase() === "external"){
                                     $scope.certificateTypeVal = "External";
+                                    $scope.dnsListExt = [];
+                                    var string = $scope.certificate.dnsNames;
+                                    var dnsStr = string.substring(1, string.length-1); 	
+                                    $scope.dnsListExt  = dnsStr.split(',')
+                                    $scope.certificate.dnsNames = $scope.dnsListExt;
                                 }
 
                                 if($scope.certificate.applicationTag !== null && $scope.certificate.applicationTag !== undefined  && $scope.certificate.applicationTag !== ""){

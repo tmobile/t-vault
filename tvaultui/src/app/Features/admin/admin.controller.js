@@ -1842,10 +1842,16 @@
                             },
                         function (error) {
                             var errors = error.data.errors;
+                            if (errors[0] !== "Certificate is in Revoke Requested status") {
                             $scope.viewEditErrorMessage = 'Edit Failed';                        
                             $scope.viewEditErrorMessage = errors[0];
                             $scope.isLoadingData = false;
                             $scope.validateCertificateDetailsPopUp();
+                            }
+                            else{
+                            	 $state.go('change-certificate', fullObj, $rootScope.checkStatus);
+                                 $scope.isLoadingData = false;
+                            }
                         });
                        
                 	}
@@ -1868,10 +1874,16 @@
                             },
                             function (error) {
                                 var errors = error.data.errors;
+                                if (errors[0] !== "Certificate is in Revoke Requested status") {
                                 $scope.viewEditErrorMessage = 'Edit Failed';                        
                                 $scope.viewEditErrorMessage = errors[0];
                                 $scope.isLoadingData = false;
                                 $scope.validateCertificateDetailsPopUp();
+                                }
+                                else{
+                                	 $state.go('change-certificate', fullObj, $rootScope.checkStatus);
+                                     $scope.isLoadingData = false;
+                                }
                             });
                        
                 	}
