@@ -1,5 +1,15 @@
 import { createMuiTheme } from '@material-ui/core/styles';
 
+export const customColor = {
+  secondary: {
+    backgroundColor: '#20232e',
+    color: '#5e627c',
+  },
+  primary: {
+    backgroundColor: '#fff',
+    color: '#000',
+  },
+};
 const customTheme = createMuiTheme({
   breakpoints: {
     keys: ['xs', 'sm', 'md', 'lg', 'xl'],
@@ -256,7 +266,7 @@ const customTheme = createMuiTheme({
         padding: '1.5rem 1rem',
       },
       colorSecondary: {
-        backgroundColor: '#20232e',
+        backgroundColor: customColor.secondary.backgroundColor,
         color: '#5e627c',
         '&:hover': {
           backgroundColor: '#20232e',
@@ -271,13 +281,6 @@ const customTheme = createMuiTheme({
         },
         '&:hover&:before': {
           borderBottom: '0',
-        },
-      },
-    },
-    MuiMenuItem: {
-      root: {
-        '&$selected': {
-          backgroundColor: '#e20074',
         },
       },
     },
@@ -299,6 +302,7 @@ const customTheme = createMuiTheme({
     list: 'linear-gradient(to right, #72134b, #1d212c)',
     nav: 'linear-gradient(to top, #7b124e, rgba(123, 18, 78, 0))',
   },
+  customColor,
 });
 
 export default customTheme;
