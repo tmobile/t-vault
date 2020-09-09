@@ -68,6 +68,11 @@ const CancelButton = styled.div`
 `;
 
 const useStyles = makeStyles(() => ({
+  select: {
+    '&.MuiFilledInput-root.Mui-focused': {
+      backgroundColor: '#fff',
+    },
+  },
   modal: {
     display: 'flex',
     alignItems: 'center',
@@ -141,6 +146,7 @@ const CreateModal = (props) => {
                 <SelectComponent
                   menu={menu}
                   value={type}
+                  classes={classes.select}
                   onChange={(e) => setType(e.target.value)}
                 />
               </InputFieldLabelWrapper>

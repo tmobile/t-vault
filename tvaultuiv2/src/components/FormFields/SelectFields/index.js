@@ -10,7 +10,7 @@ const SelectComponent = (props) => {
       value={value}
       onChange={onChange}
       fullWidth
-      className={classes.select || ''}
+      className={classes || ''}
       variant={variant || 'filled'}
     >
       {menu.map((item) => {
