@@ -194,9 +194,9 @@
             $scope.isInternalCertificateTab = false;
             $scope.viewCertificate = false;
             if (JSON.parse(SessionStore.getItem("isAdmin")) == true) {
-               $scope.requestDataForMyCertifiatesAdmin();
+                $scope.requestDataForMyExternalCertifiatesAdmin();
             }else{
-               $scope.requestDataForMyCertifiates();
+                $scope.requestDataForMyExternalCertifiates();
             }
         }
 
@@ -255,15 +255,6 @@
                               });
                             $scope.numOfCertificates=$scope.certificatesData.keys.length;
                             $scope.finalFilterCertResults = $scope.certificatesData.keys.slice(0);
-                        }
-                    }
-                    else{
-                        if (response.data != "" && response.data != undefined) {
-                            angular.forEach(response.data.data.keys, function(value, key) {
-                                $scope.certificatesDataExternal.keys.push({"certname": value, "permission": "read"});
-                            });
-                            $scope.numOfCertificates=$scope.certificatesDataExternal.keys.length;
-                            $scope.finalFilterExtCertResults = $scope.certificatesDataExternal.keys.slice(0);
                         }
                     }
                 }
