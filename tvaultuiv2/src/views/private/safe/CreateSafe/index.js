@@ -3,93 +3,41 @@ import React, { useState } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 import { withRouter, useHistory } from 'react-router-dom';
 import Modal from '@material-ui/core/Modal';
-import Backdrop from '@material-ui/core/Backdrop';
+import { Backdrop, Typography, InputLabel } from '@material-ui/core';
 import Fade from '@material-ui/core/Fade';
 import styled from 'styled-components';
-import { InputLabel } from '@material-ui/core';
-import TextField from '@material-ui/core/TextField';
-import Select from '@material-ui/core/Select';
-import MenuItem from '@material-ui/core/MenuItem';
 import PropTypes from 'prop-types';
+import TextFieldComponent from 'components/FormFields/TextField';
 import ButtonComponent from 'components/FormFields/ActionButton';
+import SelectComponent from 'components/FormFields/SelectFields';
 import ComponentError from 'errorBoundaries/ComponentError/component-error';
+import safeIcon from '../../../../assets/icon_safe.svg';
 
 const ModalWrapper = styled.section`
   background-color: #2a2e3e;
-  padding: 2.4rem 3.2rem;
-  border-radius: 1rem;
+  padding: 5.5rem;
   border: none;
   outline: none;
-  width: 50%;
+  width: 69.6rem;
   margin: auto 0;
 `;
 
-const CreateSafeHeader = styled.h2`
-  font-size: 1.6rem;
-`;
-
-const InputFieldLabelWrapper = styled.div`
-  margin-bottom: 1rem;
-  .MuiFormControl-root {
-    width: 100%;
-  }
-  .MuiFormLabel-root {
-    margin-bottom: 1.2rem;
-    font-weight: bold;
-  }
-  .MuiFilledInput-root {
-    border-radius: 0.5rem;
-    background-color: #eee;
-    width: 100%;
-    :before,
-    :after,
-    :hover:before {
-      border: 0;
-    }
-  }
-  .MuiSelect-icon {
-    top: auto;
-    color: #000;
-  }
-  .MuiFilledInput-input,
-  .MuiFilledInput-multiline {
-    padding: 1rem 0.5rem;
-  }
-  .MuiFormLabel-root {
-    font-size: 1.4rem;
-  }
-`;
-
-const PopoverDescriptionWrapper = styled.div`
+const IconDescriptionWrapper = styled.div`
   display: flex;
+  align-items: center;
   margin-bottom: 1.5rem;
   position: relative;
+  margin-top: 3.2rem;
 `;
 
-const PopoverWrapper = styled.div`
-  position: absolute;
-  bottom: -4.8rem;
-  background-color: #fff;
-  padding: 2rem;
-  z-index: 2;
-  border-radius: 0.3rem;
-  box-shadow: 0 0.125em 0.75em 0 rgba(0, 0, 0, 0.15);
-  display: ${(props) => (props.popOverOpen ? 'block' : 'none')};
+const SafeIcon = styled.img`
+  height: 5.7rem;
 `;
 
 const SafeDescription = styled.p`
   margin-left: 2rem;
   color: #ccc;
-`;
-
-const CancelSaveWrapper = styled.div`
-  display: flex;
-  justify-content: flex-end;
-  margin-top: 2rem;
-`;
-
-const CancelButton = styled.div`
-  margin-right: 0.8rem;
+  font-size: 1.4rem;
 `;
 
 const CreateSafeForm = styled.form`
@@ -97,7 +45,34 @@ const CreateSafeForm = styled.form`
   flex-direction: column;
 `;
 
+const InputFieldLabelWrapper = styled.div`
+  margin-bottom: 2rem;
+  .MuiSelect-icon {
+    top: auto;
+    color: #000;
+  }
+`;
+
+const FieldInstruction = styled.p`
+  color: #8b8ea6;
+  font-size: 1.3rem;
+`;
+
+const CancelSaveWrapper = styled.div`
+  display: flex;
+  justify-content: flex-end;
+`;
+
+const CancelButton = styled.div`
+  margin-right: 0.8rem;
+`;
+
 const useStyles = makeStyles(() => ({
+  select: {
+    '&.MuiFilledInput-root.Mui-focused': {
+      backgroundColor: '#fff',
+    },
+  },
   modal: {
     display: 'flex',
     alignItems: 'center',
@@ -123,6 +98,7 @@ const CreateModal = (props) => {
   const onIconClicked = () => {
     setPopOverOpen(!popOverOpen);
   };
+  const [menu] = useState(['Personal', 'Public']);
 
   const handleClose = () => {
     setOpen(false);
@@ -155,67 +131,56 @@ const CreateModal = (props) => {
       >
         <Fade in={open}>
           <ModalWrapper>
-            <CreateSafeHeader id="transition-modal-title">
-              Create Safe
-            </CreateSafeHeader>
-            <PopoverDescriptionWrapper>
-              <button type="button" onClick={() => onIconClicked()}>
-                Icon
-              </button>
-              <PopoverWrapper popOverOpen={popOverOpen}>
-                Icon popover
-              </PopoverWrapper>
+            <Typography variant="h5">Create Safe</Typography>
+            <IconDescriptionWrapper>
+              <SafeIcon src={safeIcon} alt="safe-icon" />
               <SafeDescription>
-                A safe is a logical unit to store the secrets. All the safes are
-                created within vault. You can control access only at the safe
-                level. As a vault administrator you can manage safe but cannot
+                A Safe is a logical unit to store the secrets. All the safes are
+                created within Vault. You can control access only at the safe
+                level. As a vault administrator you can manage safes but cannot
                 view the content of the safe.
               </SafeDescription>
-            </PopoverDescriptionWrapper>
+            </IconDescriptionWrapper>
             <CreateSafeForm>
               <InputFieldLabelWrapper>
                 <InputLabel>Safe Name</InputLabel>
-                <TextField
-                  id="filled-basic"
-                  variant="filled"
+                <TextFieldComponent
                   value={safeName}
+                  placeholder="Save Name"
+                  fullWidth
                   onChange={(e) => setSafeName(e.target.value)}
                 />
               </InputFieldLabelWrapper>
               <InputFieldLabelWrapper>
                 <InputLabel>Owner</InputLabel>
-                <TextField
-                  id="filled-basic"
-                  variant="filled"
+                <TextFieldComponent
+                  placeholder="Owner"
                   value={owner}
+                  fullWidth
                   onChange={(e) => setOwner(e.target.value)}
                 />
               </InputFieldLabelWrapper>
               <InputFieldLabelWrapper>
                 <InputLabel>Type of Safe</InputLabel>
-                <Select
-                  labelId="demo-customized-select-label"
-                  id="demo-customized-select"
+                <SelectComponent
+                  menu={menu}
                   value={type}
-                  variant="filled"
+                  classes={classes.select}
                   onChange={(e) => setType(e.target.value)}
-                >
-                  <MenuItem value="Personal">Personal</MenuItem>
-                  <MenuItem value="Public">Public</MenuItem>
-                </Select>
+                />
               </InputFieldLabelWrapper>
               <InputFieldLabelWrapper>
                 <InputLabel>Description</InputLabel>
-                <TextField
-                  id="standard-multiline-flexible"
+                <TextFieldComponent
                   multiline
-                  rowsMax={4}
-                  variant="filled"
                   value={description}
+                  fullWidth
                   onChange={(e) => setDescription(e.target.value)}
                   placeholder="Add some details about this safe"
-                  helperText="Please add a minimum of 10 characters"
                 />
+                <FieldInstruction>
+                  Please add a minimum of 10 characters
+                </FieldInstruction>
               </InputFieldLabelWrapper>
               <CancelSaveWrapper>
                 <CancelButton>

@@ -1,37 +1,27 @@
 /* eslint-disable react/jsx-curly-newline */
 /* eslint-disable import/no-unresolved */
 import React, { useState } from 'react';
-import { InputLabel } from '@material-ui/core';
+import { InputLabel, Typography } from '@material-ui/core';
 import styled from 'styled-components';
 import PropTypes from 'prop-types';
 import ButtonComponent from 'components/FormFields/ActionButton';
 import TextFieldComponent from 'components/FormFields/TextField';
 
 const SecretWrapper = styled.section`
-  padding: 2rem;
+  padding: 3rem;
   background: #1f232e;
-  border: 0.15rem solid #000;
   display: flex;
   flex-direction: column;
-  .MuiFilledInput-root {
-    border-radius: 0;
-    :before,
-    :after,
-    :hover:before {
-      border: 0;
-    }
-  }
-  .MuiFilledInput-input {
-    padding: 1rem 0.5rem;
-  }
-  .MuiFormLabel-root {
-    margin-bottom: 1.2rem;
-  }
+`;
+
+const FormWrapper = styled.form`
+  margin-top: 4rem;
 `;
 
 const KeyIdInputRequirements = styled.p`
-  color: #9e9e9e;
-  font-size: 1rem;
+  color: #fff;
+  opacity: 0.4;
+  font-size: 1.3rem;
   margin-bottom: 2rem;
 `;
 const CancelSaveWrapper = styled.div`
@@ -71,14 +61,14 @@ const CreateSecret = (props) => {
 
   return (
     <SecretWrapper>
-      <h1>Add Secrets</h1>
-      <form>
+      <Typography variant="h5">Add Secrets</Typography>
+      <FormWrapper>
         <InputLabel>Key Id</InputLabel>
         <TextFieldComponent
           placeholder="Key Id"
           value={keyId || ''}
           onChange={(e) => setKeyId(e.target.value)}
-          variant="light"
+          fullWidth
         />
         <KeyIdInputRequirements>
           Please enter a minimum of 3 characters lowercase alphabets, number and
@@ -89,26 +79,26 @@ const CreateSecret = (props) => {
           placeholder="Secret"
           value={secret || ''}
           onChange={(e) => setSecret(e.target.value)}
-          variant="light"
+          fullWidth
         />
         <CancelSaveWrapper>
           <CancelButton>
             <ButtonComponent
               label="Cancel"
-              buttonType="containedPrimary"
+              color="primary"
               onClick={() => handleSecretCancel(false)}
             />
           </CancelButton>
           <ButtonComponent
             label="Create"
             icon="add"
-            buttonType="containedSecondary"
+            color="secondary"
             onClick={() =>
               handleSecretSave({ labelKey: keyId, labelValue: secret })
             }
           />
         </CancelSaveWrapper>
-      </form>
+      </FormWrapper>
     </SecretWrapper>
   );
 };

@@ -2,8 +2,9 @@
 import React, { useState } from 'react';
 import PropTypes from 'prop-types';
 import styled from 'styled-components';
-import TextField from '@material-ui/core/TextField';
+import { Typography } from '@material-ui/core';
 import ButtonComponent from 'components/FormFields/ActionButton';
+import TextFieldComponent from 'components/FormFields/TextField';
 
 const AddFolderNameWrapper = styled.div`
   padding: 3.2rem;
@@ -12,21 +13,16 @@ const AddFolderNameWrapper = styled.div`
   background-color: ${(props) =>
     props.theme.palette.background.paper || '#1f232e'};
   width: ${(props) => props.width || '100%'};
-  .MuiFormHelperText-contained {
-    margin-left: 0;
-    margin-top: 1rem;
-    color: #000;
-    font-size: 0.8rem;
-  }
 `;
 
-const FolderHeader = styled.h1`
-  margin-bottom: 1.4rem;
-  margin-top: 0;
+const FormWrapper = styled.form`
+  margin-top: 2rem;
 `;
+
 const ButtonWrapper = styled('div')`
   display: flex;
   justify-content: flex-end;
+  margin-top: 2rem;
 `;
 
 const CancelButton = styled.div`
@@ -48,22 +44,20 @@ const AddFolder = (props) => {
 
   return (
     <AddFolderNameWrapper width={width}>
-      <FolderHeader>Add Folder Name*</FolderHeader>
-      <form noValidate autoComplete="off">
-        <TextField
-          id="outlined-basic"
-          variant="outlined"
-          label={<span>{errorMessage || ''}</span>}
-          error={!!errorMessage}
+      <Typography variant="h5">Add Folder Name*</Typography>
+      <FormWrapper>
+        <TextFieldComponent
+          placeholder="Add folder"
           onChange={(e) => handleChange(e)}
           value={inputValue || ''}
+          fullWidth
           helperText="Please enter a minimum of 3 characters lowercase alphabets, number and underscore only."
         />
         <ButtonWrapper>
           <CancelButton>
             <ButtonComponent
               label="Cancel"
-              buttonType="containedPrimary"
+              color="primary"
               onClick={handleCancelClick}
             />
           </CancelButton>
@@ -74,7 +68,7 @@ const AddFolder = (props) => {
             onClick={() => handleSaveClick(inputValue)}
           />
         </ButtonWrapper>
-      </form>
+      </FormWrapper>
     </AddFolderNameWrapper>
   );
 };
