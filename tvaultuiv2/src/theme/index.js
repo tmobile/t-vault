@@ -258,6 +258,9 @@ const customTheme = createMuiTheme({
       colorSecondary: {
         backgroundColor: '#20232e',
         color: '#5e627c',
+        '&:hover': {
+          backgroundColor: '#20232e',
+        },
       },
       underline: {
         '&:after': {

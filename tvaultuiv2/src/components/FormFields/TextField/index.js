@@ -13,7 +13,8 @@ const StyleTextField = styled(TextField)`
     margin-right: ${(props) => (props.icon ? '8px' : '0px')};
   }
   .MuiFilledInput-root.Mui-focused {
-    background-color: ${(props) => (props.primary ? '#fff' : '#20232e')};
+    background-color: ${(props) =>
+      props.primary === 'primary' ? '#fff' : '#20232e'};
   }
 `;
 
