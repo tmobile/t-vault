@@ -209,10 +209,8 @@
                 if (UtilityService.ifAPIRequestSuccessful(response)) {
                     if (response.data != "" && response.data != undefined) {
                         $scope.externalCertificateDetails = response.data.keys;                       
-                        angular.forEach($scope.externalCertificateDetails, function(value, key) {                           
-                            if(value.requestStatus !== "Pending Approval"){
-                                $scope.certificatesDataExternal.keys.push({"certname": value.certificateName, "permission": "read"});                                    
-                            }                            
+                        angular.forEach($scope.externalCertificateDetails, function(value, key) {
+                            $scope.certificatesDataExternal.keys.push({"certname": value.certificateName, "permission": "read"});
                         });
                         $scope.numOfCertificatesExternal=$scope.certificatesDataExternal.keys.length;
                         $scope.finalFilterExtCertResults = $scope.certificatesDataExternal.keys.slice(0);
