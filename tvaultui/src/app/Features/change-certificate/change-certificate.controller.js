@@ -944,17 +944,7 @@
         $scope.renewCertPopup = function (certDetails) {
             $scope.fetchDataError = false;
             $rootScope.certDetails = certDetails;
-            var expdate = new Date(certDetails.expiryDate);
-            var currDate=new Date();
-            var todaysDate=currDate.getFullYear()+'-'+(currDate.getMonth()+1)+'-'+currDate.getDate();
-            var timeInDiff=expdate.getTime() - new Date(todaysDate).getTime() ;
-            var diffIndays=timeInDiff/(1000 * 3600 * 24);
-            if(diffIndays !== null &&diffIndays < 30){
                 Modal.createModal('md', 'renewCertPopup.html', 'ChangeCertificateCtrl', $scope);
-            }
-            else{
-                Modal.createModal('md', 'renewCertificateDateFailedPopUp.html', 'ChangeCertificateCtrl', $scope);
-            }
         };
 
         $scope.revokeReasonsPopUp = function (certificate) {
