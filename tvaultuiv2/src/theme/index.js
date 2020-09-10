@@ -10,6 +10,7 @@ export const customColor = {
     color: '#000',
   },
   magenta: '#e20074',
+  snackBarSuccess: 'rgba(14, 156, 77, 0.7)',
 };
 const customTheme = createMuiTheme({
   breakpoints: {
@@ -297,6 +298,24 @@ const customTheme = createMuiTheme({
       select: {
         '&:focus': {
           backgroundColor: 'transparent',
+        },
+      },
+    },
+    MuiAlert: {
+      root: {
+        minHeight: '5.1rem',
+        alignItems: 'center',
+      },
+      filledSuccess: {
+        background: customColor.snackBarSuccess,
+        backgroundColor: 'none',
+      },
+    },
+    MuiSnackbar: {
+      anchorOriginBottomRight: {
+        '@media (min-width: 768px)': {
+          right: '11rem',
+          bottom: '5.3rem',
         },
       },
     },
