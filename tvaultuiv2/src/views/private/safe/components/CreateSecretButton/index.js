@@ -29,10 +29,10 @@ const CreateSecretButton = (props) => {
 };
 
 CreateSecretButton.propTypes = {
-  onClickHandler: PropTypes.func,
+  onClick: PropTypes.func,
 };
 CreateSecretButton.defaultProps = {
-  onClickHandler: () => {},
+  onClick: () => {},
 };
 
 export default CreateSecretButton;

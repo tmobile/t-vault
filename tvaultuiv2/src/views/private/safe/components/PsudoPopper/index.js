@@ -1,8 +1,7 @@
 /* eslint-disable import/no-unresolved */
 import React from 'react';
 import styled from 'styled-components';
-import EditOutlinedIcon from 'assets/iconEditActive';
-import DeleteOutlinedIcon from 'assets/iconDeleteInactive';
+import { IconDeleteActive, IconEdit } from 'assets/SvgIcons';
 import ComponentError from 'errorBoundaries/ComponentError/component-error';
 
 const IconWrap = styled('div')`
@@ -29,11 +28,11 @@ const PsudoPopper = () => {
       <IconWrap>
         <Icon>
           {' '}
-          <EditOutlinedIcon />
+          <IconEdit />
         </Icon>
         <Icon>
           {' '}
-          <DeleteOutlinedIcon />
+          <IconDeleteActive />
         </Icon>
       </IconWrap>
     </ComponentError>

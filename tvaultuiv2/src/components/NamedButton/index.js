@@ -3,45 +3,41 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import styled from 'styled-components';
-import { Button } from '@material-ui/core';
 import ComponentError from 'errorBoundaries/ComponentError/component-error';
+import { TitleTwo } from 'styles/GlobalStyles';
 
 const ActionButton = styled('div')`
   display: flex;
   align-items: center;
-  .MuiButton-root {
-    ${(props) => props.customBtnStyle};
-  }
+  fontsize: 1.6rem ${(props) => props.customBtnStyle};
+  cursor: pointer;
 `;
 
-const MuiButton = (props) => {
-  const { label, icon, customStyle, onClick } = props;
+const Icon = styled('img')`
+  margin-left: 1rem;
+`;
+const NamedButton = (props) => {
+  const { label, iconSrc, customStyle, onClick } = props;
   return (
     <ComponentError>
-      <ActionButton customBtnStyle={customStyle}>
-        <Button
-          variant="contained"
-          color="secondary"
-          startIcon={icon}
-          onClick={onClick}
-        >
-          {label}
-        </Button>
+      <ActionButton customBtnStyle={customStyle} onClick={onClick}>
+        <TitleTwo color="#fff">{label}</TitleTwo>
+        <Icon alt="icon-plus" src={iconSrc} />
       </ActionButton>
     </ComponentError>
   );
 };
-MuiButton.propTypes = {
+NamedButton.propTypes = {
   label: PropTypes.string,
-  icon: PropTypes.node,
+  iconSrc: PropTypes.node,
   // eslint-disable-next-line react/forbid-prop-types
   customStyle: PropTypes.object,
   onClick: PropTypes.func,
 };
-MuiButton.defaultProps = {
-  label: 'no label',
-  icon: <div />,
+NamedButton.defaultProps = {
+  label: '',
+  iconSrc: '',
   customStyle: {},
   onClick: () => {},
 };
-export default MuiButton;
+export default NamedButton;

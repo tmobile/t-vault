@@ -1,36 +1,59 @@
 /* eslint-disable react/jsx-props-no-spreading */
 import React from 'react';
 import PropTypes from 'prop-types';
-import Fade from '@material-ui/core/Fade';
-import Paper from '@material-ui/core/Paper';
-// import { makeStyles } from '@material-ui/core/styles';
-import Popper from '@material-ui/core/Popper';
+import { makeStyles } from '@material-ui/core/styles';
+import MoreVertOutlinedIcon from '@material-ui/icons/MoreVertOutlined';
+import Popover from '@material-ui/core/Popover';
+import PopupState, { bindTrigger, bindPopover } from 'material-ui-popup-state';
+
+const useStyles = makeStyles((theme) => ({
+  popover: { backgroundColor: '#151820' },
+  paper: {
+    padding: theme.spacing(1),
+    color: theme.palette.common.white,
+    backgroundColor: '#151820',
+  },
+}));
 
 const PopperElement = (props) => {
-  const { open, anchorEl, placement, children } = props;
+  const { anchorOrigin, transformOrigin, children } = props;
+  const classes = useStyles();
   return (
-    <Popper open={open} anchorEl={anchorEl} placement={placement} transition>
-      {({ TransitionProps }) => (
-        <Fade {...TransitionProps} timeout={350}>
-          <Paper>{children}</Paper>
-        </Fade>
+    <PopupState variant="popover" popupId="demo-popup-popover">
+      {(popupState) => (
+        <div>
+          <div {...bindTrigger(popupState)}>
+            {' '}
+            <MoreVertOutlinedIcon />
+          </div>
+          <Popover
+            {...bindPopover(popupState)}
+            anchorOrigin={anchorOrigin}
+            transformOrigin={transformOrigin}
+            classes={classes}
+          >
+            {children}
+          </Popover>
+        </div>
       )}
-    </Popper>
+    </PopupState>
   );
 };
 
 PopperElement.propTypes = {
   open: PropTypes.bool,
-  anchorEl: PropTypes.node,
+  // eslint-disable-next-line react/forbid-prop-types
+  anchorOrigin: PropTypes.object,
+  // eslint-disable-next-line react/forbid-prop-types
+  transformOrigin: PropTypes.object,
   placement: PropTypes.string,
-  popperContent: PropTypes.node,
   children: PropTypes.node,
 };
 PopperElement.defaultProps = {
   open: false,
-  anchorEl: <div />,
+  anchorOrigin: {},
+  transformOrigin: {},
   placement: '',
-  popperContent: <div />,
   children: <div />,
 };
 export default PopperElement;

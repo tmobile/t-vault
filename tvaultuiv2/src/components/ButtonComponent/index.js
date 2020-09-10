@@ -4,7 +4,7 @@ import Button from '@material-ui/core/Button';
 import Icon from '@material-ui/core/Icon';
 import PropTypes from 'prop-types';
 
-const styles = () => ({
+const styles = (theme) => ({
   contained: {
     height: '3.6rem',
     boxShadow: 'none',

@@ -231,6 +231,7 @@ const customTheme = createMuiTheme({
       root: {
         textTransform: 'capitalize',
         borderRadius: '0',
+        fontSize: '1.2rem',
       },
     },
     MuiFab: {
@@ -243,6 +244,11 @@ const customTheme = createMuiTheme({
     MuiTooltip: {
       textColorSecondary: {
         color: '#000',
+      },
+    },
+    MuiPopover: {
+      text: {
+        color: '#fff',
       },
     },
     MuiTab: {

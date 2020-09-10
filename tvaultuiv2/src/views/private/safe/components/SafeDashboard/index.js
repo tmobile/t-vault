@@ -16,7 +16,7 @@ import ListItem from '../ListItem';
 import PsudoPopper from '../PsudoPopper';
 
 // mock data
-import { safeDetail } from './__mock/safeDashboard';
+// import { safeDetail } from './__mock/safeDashboard';
 
 // styled components
 const ColumnSection = styled('section')`

@@ -9,7 +9,6 @@ import TextFieldComponent from 'components/FormFields/TextField';
 
 const SecretWrapper = styled.section`
   padding: 3rem;
-  background: #1f232e;
   display: flex;
   flex-direction: column;
 `;
@@ -94,7 +93,11 @@ const CreateSecret = (props) => {
             icon="add"
             color="secondary"
             onClick={() =>
-              handleSecretSave({ labelKey: keyId, labelValue: secret })
+              handleSecretSave({
+                labelKey: keyId,
+                labelValue: secret,
+                type: 'file',
+              })
             }
           />
         </CancelSaveWrapper>

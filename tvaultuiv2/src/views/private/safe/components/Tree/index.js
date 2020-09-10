@@ -23,18 +23,35 @@ const TreeRecursive = ({
   setCreateSecretBox,
   isAddFolder,
   inputType,
-  handlePopperClick,
 }) => {
   // loop through the data
   return data.map((item) => {
     // if its a file render <File />
-    if (item.type === 'file') {
-      return <File name={item.labelText} />;
+    if (item.type.toLowerCase() === 'file') {
+      return (
+        <File
+          secretKey={item.labelKey}
+          secretValue={item.labelValue}
+          type={item.type}
+        />
+      );
     }
     // if its a folder render <Folder />
     if (item.type === 'folder') {
       return (
-        <Folder name={item.labelText} popperClickHandler={handlePopperClick}>
+        <Folder folderInfo={item}>
+          {Array.isArray(item.children) && (
+            <TreeRecursive
+              data={item.children}
+              saveSecretsToFolder={saveSecretsToFolder}
+              setCreateSecretBox={setCreateSecretBox}
+              handleCancelClick={handleCancelClick}
+              saveFolder={saveFolder}
+              isAddFolder={isAddFolder}
+              inputType={inputType}
+            />
+          )}
+
           <AddForm
             inputNode={
               // eslint-disable-next-line react/jsx-wrap-multilines
@@ -57,16 +74,6 @@ const TreeRecursive = ({
             inputEnabled={isAddFolder}
             createButton={<CreateSecretButton onClick={setCreateSecretBox} />}
           />
-          <TreeRecursive
-            data={item.children}
-            saveSecretsToFolder={saveSecretsToFolder}
-            handlePopperClick={handlePopperClick}
-            setCreateSecretBox={setCreateSecretBox}
-            handleCancelClick={handleCancelClick}
-            saveFolder={saveFolder}
-            isAddFolder={isAddFolder}
-            inputType={inputType}
-          />
         </Folder>
       );
     }
@@ -78,14 +85,13 @@ const StyledTree = styled.div`
 `;
 const Tree = (props) => {
   const { data } = props;
-
-  const [updatedTreeData, setUpdatedTreeData] = useState([]);
   const [secretsFolder, setSecretsFolder] = useState([]);
   const [isAddFolder, setIsAddFolder] = useState(false);
   const [inputType, setInputType] = useState('');
 
+  // set inital tree data structure
   const setTreeData = (treeData) => {
-    setUpdatedTreeData(treeData);
+    setSecretsFolder(treeData);
   };
   useEffect(() => {
     setTreeData(data);
@@ -95,9 +101,7 @@ const Tree = (props) => {
    *Creates secrets folder array
    * @param {string} folderName
    */
-
   const saveSecretsToFolder = (obj, parentId) => {
-    debugger;
     const tempFolders = [...secretsFolder] || [];
     const folderObj = {};
     folderObj.labelText = obj.labelValue;
@@ -107,12 +111,6 @@ const Tree = (props) => {
     const updatedArray = findElementAndUpdate(tempFolders, parentId, obj);
     setSecretsFolder([...updatedArray]);
     setIsAddFolder(false);
-  };
-
-  // prop handlers of tree map
-  const handlePopperClick = () => {
-    setIsAddFolder(true);
-    setInputType('folder');
   };
 
   const saveFolder = (secret, selectedNode) => {
@@ -129,9 +127,8 @@ const Tree = (props) => {
     <ComponentError>
       <StyledTree>
         <TreeRecursive
-          data={updatedTreeData}
+          data={secretsFolder}
           saveSecretsToFolder={saveSecretsToFolder}
-          handlePopperClick={handlePopperClick}
           setCreateSecretBox={setCreateSecretBox}
           handleCancelClick={handleCancelClick}
           saveFolder={saveFolder}

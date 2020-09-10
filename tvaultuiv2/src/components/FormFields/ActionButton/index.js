@@ -8,6 +8,7 @@ const styles = () => ({
   contained: {
     height: '3.6rem',
     boxShadow: 'none',
+    fontSize: '1.4rem',
   },
   startIcon: {
     marginRight: '0.5rem',

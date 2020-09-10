@@ -13,11 +13,10 @@ import Tabs from '@material-ui/core/Tabs';
 import Tab from '@material-ui/core/Tab';
 import ButtonComponent from 'components/FormFields/ActionButton';
 import ComponentError from 'errorBoundaries/ComponentError/component-error';
-import AddIcon from '@material-ui/icons/Add';
+import addFolderPlus from 'assets/folder-plus.svg';
 import NoSecretsIcon from 'assets/no-data-secrets.svg';
-
 // eslint-disable-next-line import/no-unresolved
-import MuiButton from 'components/MuiButton';
+import NamedButton from 'components/NamedButton';
 import NoData from 'components/NoData';
 import AddFolder from '../AddFolder';
 // import FolderTreeView from '../FolderTree';
@@ -90,10 +89,9 @@ function a11yProps(index) {
   };
 }
 
-const useStyles = makeStyles((theme) => ({
+const useStyles = makeStyles(() => ({
   root: {
     flexGrow: 1,
-    backgroundColor: theme.palette.background.paper,
     padding: '0 2.1rem',
   },
   appBar: {
@@ -151,11 +149,11 @@ export default function SelectionTabs() {
             {/* eslint-disable-next-line react/jsx-props-no-spreading */}
             <Tab label="Permissions" {...a11yProps(1)} />
           </Tabs>
-          <MuiButton
-            label="ADD"
+          <NamedButton
+            label="Add Folder"
             onClick={addSecretsFolder}
             customStyle={customBtnStyles}
-            icon={<AddIcon />}
+            iconSrc={addFolderPlus}
           />
         </AppBar>
         <TabPanel value={value} index={0}>

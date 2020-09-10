@@ -8,7 +8,7 @@ const AddForm = (props) => {
   return (
     <ChildItemWrap>
       {inputEnabled ? inputNode : <></>}
-      {createButton}
+      {!inputEnabled ? createButton : <></>}
     </ChildItemWrap>
   );
 };
