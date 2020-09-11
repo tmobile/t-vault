@@ -119,11 +119,11 @@ export default function SelectionTabs() {
     setEnableAddFolder(true);
   };
 
-  const addSecretsFolderList = (name) => {
+  const addSecretsFolderList = (secretFolder) => {
     const tempFolders = [...secretsFolder] || [];
     const folderObj = {};
-    folderObj.labelText = name;
-    folderObj.type = name.type || 'folder';
+    folderObj.labelText = secretFolder.labelText;
+    folderObj.type = secretFolder.type || 'folder';
     folderObj.children = [];
     tempFolders.push(folderObj);
     setSecretsFolder([...tempFolders]);

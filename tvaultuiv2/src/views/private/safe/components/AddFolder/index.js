@@ -1,3 +1,4 @@
+/* eslint-disable react/jsx-curly-newline */
 /* eslint-disable import/no-unresolved */
 import React, { useState } from 'react';
 import PropTypes from 'prop-types';
@@ -64,7 +65,9 @@ const AddFolder = (props) => {
             label="Save"
             color="secondary"
             buttonType="containedSecondary"
-            onClick={() => handleSaveClick(inputValue)}
+            onClick={() =>
+              handleSaveClick({ labelText: inputValue, type: 'folder' })
+            }
           />
         </ButtonWrapper>
       </FormWrapper>

@@ -21,7 +21,9 @@ const TreeRecursive = ({
   saveFolder,
   handleCancelClick,
   setCreateSecretBox,
-  isAddFolder,
+  setIsAddInput,
+  isAddInput,
+  setInputType,
   inputType,
 }) => {
   // loop through the data
@@ -33,13 +35,19 @@ const TreeRecursive = ({
           secretKey={item.labelKey}
           secretValue={item.labelValue}
           type={item.type}
+          setIsAddInput={setIsAddInput}
+          setInputType={setInputType}
         />
       );
     }
     // if its a folder render <Folder />
     if (item.type === 'folder') {
       return (
-        <Folder folderInfo={item}>
+        <Folder
+          folderInfo={item}
+          setInputType={setInputType}
+          setIsAddInput={setIsAddInput}
+        >
           {Array.isArray(item.children) && (
             <TreeRecursive
               data={item.children}
@@ -47,15 +55,16 @@ const TreeRecursive = ({
               setCreateSecretBox={setCreateSecretBox}
               handleCancelClick={handleCancelClick}
               saveFolder={saveFolder}
-              isAddFolder={isAddFolder}
+              isAddInput={isAddInput}
+              setIsAddInput={setIsAddInput}
+              setInputType={setInputType}
               inputType={inputType}
             />
           )}
-
           <AddForm
             inputNode={
               // eslint-disable-next-line react/jsx-wrap-multilines
-              inputType.toLowerCase() === 'folder' ? (
+              inputType && inputType.toLowerCase() === 'folder' ? (
                 <AddFolder
                   handleCancelClick={handleCancelClick}
                   handleSaveClick={(secret) =>
@@ -71,7 +80,7 @@ const TreeRecursive = ({
                 />
               )
             }
-            inputEnabled={isAddFolder}
+            inputEnabled={isAddInput}
             createButton={<CreateSecretButton onClick={setCreateSecretBox} />}
           />
         </Folder>
@@ -82,11 +91,14 @@ const TreeRecursive = ({
 const StyledTree = styled.div`
   line-height: 1.5;
   margin-top: 1.2rem;
+  & > div {
+    padding-left: 0;
+  }
 `;
 const Tree = (props) => {
   const { data } = props;
   const [secretsFolder, setSecretsFolder] = useState([]);
-  const [isAddFolder, setIsAddFolder] = useState(false);
+  const [isAddInput, setIsAddInput] = useState(false);
   const [inputType, setInputType] = useState('');
 
   // set inital tree data structure
@@ -110,19 +122,35 @@ const Tree = (props) => {
     folderObj.children = [];
     const updatedArray = findElementAndUpdate(tempFolders, parentId, obj);
     setSecretsFolder([...updatedArray]);
-    setIsAddFolder(false);
+    setIsAddInput(false);
+  };
+
+  const saveFolderToCurrentFolder = (secretFolder, parentId) => {
+    const tempFolders = [...secretsFolder] || [];
+    const folderObj = {};
+    folderObj.labelText = secretFolder.labelText;
+    folderObj.type = secretFolder.type || 'folder';
+    folderObj.children = [];
+    const updatedArray = findElementAndUpdate(tempFolders, parentId, folderObj);
+    setSecretsFolder([...updatedArray]);
+    setIsAddInput(false);
   };
 
   const saveFolder = (secret, selectedNode) => {
-    saveSecretsToFolder(secret, selectedNode);
+    if (secret?.type?.toLowerCase() === 'file') {
+      saveSecretsToFolder(secret, selectedNode);
+      return;
+    }
+
+    saveFolderToCurrentFolder(secret, selectedNode);
   };
   const setCreateSecretBox = (e) => {
-    setIsAddFolder(e);
+    setIsAddInput(e);
+    setInputType('file');
   };
   const handleCancelClick = (val) => {
-    setIsAddFolder(val);
+    setIsAddInput(val);
   };
-
   return (
     <ComponentError>
       <StyledTree>
@@ -132,8 +160,10 @@ const Tree = (props) => {
           setCreateSecretBox={setCreateSecretBox}
           handleCancelClick={handleCancelClick}
           saveFolder={saveFolder}
-          isAddFolder={isAddFolder}
+          isAddInput={isAddInput}
+          setInputType={setInputType}
           inputType={inputType}
+          setIsAddInput={setIsAddInput}
         />
       </StyledTree>
     </ComponentError>

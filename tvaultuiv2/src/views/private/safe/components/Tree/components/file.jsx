@@ -67,7 +67,13 @@ const PopperItem = styled.div`
 `;
 
 const File = (props) => {
-  const { secretKey, secretValue } = props;
+  const { secretKey, secretValue, setInputType, setIsAddInput } = props;
+
+  // handle popper click
+  const handlePopperClick = (e, type) => {
+    setInputType(type);
+    setIsAddInput(e);
+  };
 
   return (
     <ComponentError>
@@ -94,11 +100,11 @@ const File = (props) => {
               <img alt="refersh-ic" src={IconRefreshCC} />
               <span>Rotate Secret</span>
             </PopperItem>
-            <PopperItem>
+            <PopperItem onClick={() => handlePopperClick(true, 'folder')}>
               <IconEdit />
               <span>Edit</span>
             </PopperItem>
-            <PopperItem>
+            <PopperItem onClick={() => handlePopperClick(true, 'folder')}>
               <IconDeleteActive />
               <span>Delete</span>
             </PopperItem>
@@ -111,9 +117,13 @@ const File = (props) => {
 File.propTypes = {
   secretKey: PropTypes.string,
   secretValue: PropTypes.string,
+  setInputType: PropTypes.func,
+  setIsAddInput: PropTypes.func,
 };
 File.defaultProps = {
   secretKey: '',
   secretValue: '',
+  setInputType: () => {},
+  setIsAddInput: () => {},
 };
 export default File;

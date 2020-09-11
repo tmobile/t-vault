@@ -7,7 +7,6 @@ import Popover from '@material-ui/core/Popover';
 import PopupState, { bindTrigger, bindPopover } from 'material-ui-popup-state';
 
 const useStyles = makeStyles((theme) => ({
-  popover: { backgroundColor: '#151820' },
   paper: {
     padding: theme.spacing(1),
     color: theme.palette.common.white,

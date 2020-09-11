@@ -1,3 +1,4 @@
+/* eslint-disable array-callback-return */
 /* eslint-disable consistent-return */
 // eslint-disable-next-line import/prefer-default-export
 export function mockApi(response) {
@@ -22,12 +23,14 @@ export function mockCreateSafe(response) {
   );
 }
 
+// export function mockAddSecrets
+
 export function findElementById(arr, id, nestingKey) {
   // if empty array then return
   if (arr.length === 0) return;
   // return element if found else collect all children(or other nestedKey) array and run this function
   return (
-    arr.find((d) => d.id === id) ||
+    arr.find((d) => d.labelText === id) ||
     findElementById(
       arr.flatMap((d) => d[nestingKey] || []),
       id
@@ -35,19 +38,12 @@ export function findElementById(arr, id, nestingKey) {
     'Not found'
   );
 }
-export function findElementAndUpdate(arr, parentId, item) {
-  const tempArr = [...arr];
-  // if empty array then return
+
+export const findElementAndUpdate = (arr, parentId, item) => {
   if (arr.length === 0) return;
-  // return element if found else collect all children(or other nestedKey) array and run this function
-  // eslint-disable-next-line consistent-return
-  for (let i = 0; i < tempArr.length; i += 1) {
-    const element = tempArr[i];
-    if (element.labelText === parentId) {
-      element.children = [...element.children, item];
-      return tempArr;
-    }
-    if (element.children)
-      findElementAndUpdate(element.children, parentId, item);
-  }
-}
+  const tempArr = [...arr];
+  const itemToUpdate = findElementById(tempArr, parentId, 'children');
+  itemToUpdate.children = [...itemToUpdate.children, item];
+
+  return tempArr;
+};

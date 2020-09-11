@@ -1,7 +1,7 @@
 /* eslint-disable react/jsx-props-no-spreading */
 /* eslint-disable jsx-a11y/click-events-have-key-events */
 /* eslint-disable import/no-unresolved */
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import styled, { css } from 'styled-components';
 
@@ -68,6 +68,7 @@ const LabelWrap = styled.div`
   display: flex;
   align-items: center;
   padding-left: 2rem;
+  width: 100%;
 `;
 
 const titleStyles = css`
@@ -85,6 +86,7 @@ const PopperItem = styled.div`
   display: flex;
   align-items: center;
   flex-direction: row-reverse;
+  cursor: pointer;
   span {
     margin-right: 0.75rem;
   }
@@ -93,22 +95,29 @@ const PopperItem = styled.div`
   }
 `;
 const Folder = (props) => {
-  const { folderInfo, children } = props;
+  const { folderInfo, children, setInputType, setIsAddInput } = props;
   const [isOpen, setIsOpen] = useState(false);
+  const [folderItem, setFolderItem] = useState(false);
+
+  useEffect(() => {
+    setFolderItem(folderInfo);
+  }, []);
+
   const handleToggle = (e) => {
     e.preventDefault();
     setIsOpen(!isOpen);
   };
+
+  const handlePopperClick = (e, type) => {
+    setInputType(type);
+    setIsAddInput(e);
+    setIsOpen(e);
+  };
   return (
     <ComponentError>
-      <StyledFolder parent={folderInfo.parent} padding="1.2rem 0">
-        <div
-          role="button"
-          className="folder--label"
-          onClick={(e) => handleToggle(e)}
-          tabIndex={0}
-        >
-          <LabelWrap>
+      <StyledFolder parent={folderItem.parent} padding="1.2rem 0">
+        <div role="button" className="folder--label" tabIndex={0}>
+          <LabelWrap onClick={(e) => handleToggle(e)}>
             {isOpen ? <ExpandMoreIcon /> : <ExpandLessIcon />}
 
             {isOpen ? (
@@ -117,7 +126,7 @@ const Folder = (props) => {
               <Icon alt="folder--icon" src={IconFolderInactive} />
             )}
 
-            <TitleTwo extraCss={titleStyles}>{folderInfo.labelText}</TitleTwo>
+            <TitleTwo extraCss={titleStyles}>{folderItem.labelText}</TitleTwo>
           </LabelWrap>
 
           <FolderIconWrap>
@@ -131,11 +140,11 @@ const Folder = (props) => {
                 horizontal: 'right',
               }}
             >
-              <PopperItem>
+              <PopperItem onClick={() => handlePopperClick(true, 'folder')}>
                 <IconAddFolder />
                 <span>Create Folder</span>
               </PopperItem>
-              <PopperItem>
+              <PopperItem onClick={() => handlePopperClick(true, 'file')}>
                 <IconAddSecret />
                 <span>Create Secret</span>
               </PopperItem>
@@ -159,10 +168,14 @@ const Folder = (props) => {
 Folder.propTypes = {
   folderInfo: PropTypes.objectOf(PropTypes.object),
   children: PropTypes.node,
+  setInputType: PropTypes.func,
+  setIsAddInput: PropTypes.func,
 };
 Folder.defaultProps = {
   folderInfo: {},
   children: <div />,
+  setInputType: () => {},
+  setIsAddInput: () => {},
 };
 
 export default Folder;
