@@ -6,6 +6,7 @@ import styled from 'styled-components';
 import PropTypes from 'prop-types';
 import ButtonComponent from 'components/FormFields/ActionButton';
 import TextFieldComponent from 'components/FormFields/TextField';
+import ComponentError from 'errorBoundaries/ComponentError/component-error';
 
 const SecretWrapper = styled.section`
   padding: 3rem;
@@ -59,50 +60,52 @@ const CreateSecret = (props) => {
   };
 
   return (
-    <SecretWrapper>
-      <Typography variant="h5">Add Secrets</Typography>
-      <FormWrapper>
-        <InputLabel>Key Id</InputLabel>
-        <TextFieldComponent
-          placeholder="Key Id"
-          value={keyId || ''}
-          onChange={(e) => setKeyId(e.target.value)}
-          fullWidth
-        />
-        <KeyIdInputRequirements>
-          Please enter a minimum of 3 characters lowercase alphabets, number and
-          underscores only
-        </KeyIdInputRequirements>
-        <InputLabel>Secret</InputLabel>
-        <TextFieldComponent
-          placeholder="Secret"
-          value={secret || ''}
-          onChange={(e) => setSecret(e.target.value)}
-          fullWidth
-        />
-        <CancelSaveWrapper>
-          <CancelButton>
-            <ButtonComponent
-              label="Cancel"
-              color="primary"
-              onClick={() => handleSecretCancel(false)}
-            />
-          </CancelButton>
-          <ButtonComponent
-            label="Create"
-            icon="add"
-            color="secondary"
-            onClick={() =>
-              handleSecretSave({
-                labelKey: keyId,
-                labelValue: secret,
-                type: 'file',
-              })
-            }
+    <ComponentError>
+      <SecretWrapper>
+        <Typography variant="h5">Add Secrets</Typography>
+        <FormWrapper>
+          <InputLabel>Key Id</InputLabel>
+          <TextFieldComponent
+            placeholder="Key Id"
+            value={keyId || ''}
+            onChange={(e) => setKeyId(e.target.value)}
+            fullWidth
           />
-        </CancelSaveWrapper>
-      </FormWrapper>
-    </SecretWrapper>
+          <KeyIdInputRequirements>
+            Please enter a minimum of 3 characters lowercase alphabets, number
+            and underscores only
+          </KeyIdInputRequirements>
+          <InputLabel>Secret</InputLabel>
+          <TextFieldComponent
+            placeholder="Secret"
+            value={secret || ''}
+            onChange={(e) => setSecret(e.target.value)}
+            fullWidth
+          />
+          <CancelSaveWrapper>
+            <CancelButton>
+              <ButtonComponent
+                label="Cancel"
+                color="primary"
+                onClick={() => handleSecretCancel(false)}
+              />
+            </CancelButton>
+            <ButtonComponent
+              label="Create"
+              icon="add"
+              color="secondary"
+              onClick={() =>
+                handleSecretSave({
+                  labelKey: keyId,
+                  labelValue: secret,
+                  type: 'file',
+                })
+              }
+            />
+          </CancelSaveWrapper>
+        </FormWrapper>
+      </SecretWrapper>
+    </ComponentError>
   );
 };
 CreateSecret.propTypes = {

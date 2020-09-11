@@ -6,6 +6,7 @@ import styled from 'styled-components';
 import { Typography } from '@material-ui/core';
 import ButtonComponent from 'components/FormFields/ActionButton';
 import TextFieldComponent from 'components/FormFields/TextField';
+import ComponentError from 'errorBoundaries/ComponentError/component-error';
 
 const AddFolderNameWrapper = styled.div`
   padding: 3.2rem;
@@ -43,35 +44,38 @@ const AddFolder = (props) => {
   };
 
   return (
-    <AddFolderNameWrapper width={width}>
-      <Typography variant="h5">Add Folder Name*</Typography>
-      <FormWrapper>
-        <TextFieldComponent
-          placeholder="Add folder"
-          onChange={(e) => handleChange(e)}
-          value={inputValue || ''}
-          fullWidth
-          helperText="Please enter a minimum of 3 characters lowercase alphabets, number and underscore only."
-        />
-        <ButtonWrapper>
-          <CancelButton>
-            <ButtonComponent
-              label="Cancel"
-              color="primary"
-              onClick={handleCancelClick}
-            />
-          </CancelButton>
-          <ButtonComponent
-            label="Save"
-            color="secondary"
-            buttonType="containedSecondary"
-            onClick={() =>
-              handleSaveClick({ labelText: inputValue, type: 'folder' })
-            }
+    <ComponentError>
+      {' '}
+      <AddFolderNameWrapper width={width}>
+        <Typography variant="h5">Add Folder Name*</Typography>
+        <FormWrapper>
+          <TextFieldComponent
+            placeholder="Add folder"
+            onChange={(e) => handleChange(e)}
+            value={inputValue || ''}
+            fullWidth
+            helperText="Please enter a minimum of 3 characters lowercase alphabets, number and underscore only."
           />
-        </ButtonWrapper>
-      </FormWrapper>
-    </AddFolderNameWrapper>
+          <ButtonWrapper>
+            <CancelButton>
+              <ButtonComponent
+                label="Cancel"
+                color="primary"
+                onClick={handleCancelClick}
+              />
+            </CancelButton>
+            <ButtonComponent
+              label="Save"
+              color="secondary"
+              buttonType="containedSecondary"
+              onClick={() =>
+                handleSaveClick({ labelText: inputValue, type: 'folder' })
+              }
+            />
+          </ButtonWrapper>
+        </FormWrapper>
+      </AddFolderNameWrapper>
+    </ComponentError>
   );
 };
 AddFolder.propTypes = {

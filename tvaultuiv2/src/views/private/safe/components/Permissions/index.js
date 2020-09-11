@@ -8,6 +8,7 @@ import FormControlLabel from '@material-ui/core/FormControlLabel';
 import FormControl from '@material-ui/core/FormControl';
 import styled from 'styled-components';
 import ButtonComponent from 'components/FormFields/ActionButton';
+import ComponentError from 'errorBoundaries/ComponentError/component-error';
 
 const PermissionWrapper = styled.div`
   padding: 2rem;
@@ -63,56 +64,58 @@ const Permissions = () => {
   const data = [{ title: 'abc@tmobile.com' }, { title: 'xyz@tmobile.com' }];
 
   return (
-    <PermissionWrapper>
-      <UserHeader>Add User</UserHeader>
-      <InputRadioWrapper>
-        <InputWrapper>
-          <InputLabel>User Email</InputLabel>
-          <Autocomplete
-            id="combo-box-demo"
-            options={data}
-            getOptionLabel={(option) => option.title}
-            renderInput={(params) => (
-              <TextField
-                // eslint-disable-next-line react/jsx-props-no-spreading
-                {...params}
-                onChange={(e) => setSearchValue(e.target.value)}
+    <ComponentError>
+      <PermissionWrapper>
+        <UserHeader>Add User</UserHeader>
+        <InputRadioWrapper>
+          <InputWrapper>
+            <InputLabel>User Email</InputLabel>
+            <Autocomplete
+              id="combo-box-demo"
+              options={data}
+              getOptionLabel={(option) => option.title}
+              renderInput={(params) => (
+                <TextField
+                  // eslint-disable-next-line react/jsx-props-no-spreading
+                  {...params}
+                  onChange={(e) => setSearchValue(e.target.value)}
+                />
+              )}
+            />
+          </InputWrapper>
+          <FormControl component="fieldset">
+            <RadioGroup
+              row
+              aria-label="permissions"
+              name="permissions1"
+              value={value}
+              onChange={handleChange}
+            >
+              <FormControlLabel
+                value="read"
+                control={<Radio color="default" />}
+                label="Read"
               />
-            )}
+              <FormControlLabel
+                value="write"
+                control={<Radio color="default" />}
+                label="Write"
+              />
+            </RadioGroup>
+          </FormControl>
+        </InputRadioWrapper>
+        <CancelSaveWrapper>
+          <CancelButton>
+            <ButtonComponent label="Cancel" buttonType="containedPrimary" />
+          </CancelButton>
+          <ButtonComponent
+            label="Create"
+            icon="add"
+            buttonType="containedSecondary"
           />
-        </InputWrapper>
-        <FormControl component="fieldset">
-          <RadioGroup
-            row
-            aria-label="permissions"
-            name="permissions1"
-            value={value}
-            onChange={handleChange}
-          >
-            <FormControlLabel
-              value="read"
-              control={<Radio color="default" />}
-              label="Read"
-            />
-            <FormControlLabel
-              value="write"
-              control={<Radio color="default" />}
-              label="Write"
-            />
-          </RadioGroup>
-        </FormControl>
-      </InputRadioWrapper>
-      <CancelSaveWrapper>
-        <CancelButton>
-          <ButtonComponent label="Cancel" buttonType="containedPrimary" />
-        </CancelButton>
-        <ButtonComponent
-          label="Create"
-          icon="add"
-          buttonType="containedSecondary"
-        />
-      </CancelSaveWrapper>
-    </PermissionWrapper>
+        </CancelSaveWrapper>
+      </PermissionWrapper>
+    </ComponentError>
   );
 };
 

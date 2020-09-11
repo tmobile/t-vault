@@ -1,6 +1,6 @@
 /* eslint-disable react/jsx-props-no-spreading */
 import React, { lazy, useState } from 'react';
-import { BrowserRouter, Route, Switch, withRouter } from 'react-router-dom';
+import { Route, Switch, withRouter } from 'react-router-dom';
 // import PropTypes from 'prop-types';
 // eslint-disable-next-line import/no-unresolved
 import styled from 'styled-components';
