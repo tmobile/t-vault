@@ -124,7 +124,7 @@ const customTheme = createMuiTheme({
       fontSize: '1rem',
       lineHeight: 1.5,
       letterSpacing: '0.03125rem',
-      color: '#fff',
+      color: '#5e627c',
       background: 'transparent',
     },
     body2: {

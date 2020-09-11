@@ -21,18 +21,19 @@ const setIcon = (props) => {
 };
 
 const AutoCompleteComponent = (props) => {
-  const { options, onChange, classes, icon } = props;
+  const { options, onChange, classes, icon, onSelected } = props;
   return (
     <AutoCompleteField
       options={options}
       getOptionLabel={(option) => option}
-      disableClearable
+      freeSolo
       forcePopupIcon={false}
       className={classes || ''}
+      onChange={onSelected}
+      onInputChange={(e) => onChange(e.target.value)}
       renderInput={(params) => (
         <TextField
           {...params}
-          onChange={onChange}
           variant="filled"
           fullWidth
           InputProps={{
@@ -53,6 +54,7 @@ AutoCompleteComponent.propTypes = {
   options: PropTypes.arrayOf(PropTypes.any).isRequired,
   onChange: PropTypes.func.isRequired,
   classes: PropTypes.objectOf(PropTypes.any),
+  onSelected: PropTypes.func.isRequired,
   icon: PropTypes.string,
 };
 

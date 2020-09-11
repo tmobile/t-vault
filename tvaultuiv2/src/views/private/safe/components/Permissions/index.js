@@ -1,5 +1,6 @@
 /* eslint-disable import/no-unresolved */
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { debounce } from 'lodash';
 import Radio from '@material-ui/core/Radio';
 import { makeStyles } from '@material-ui/core/styles';
 import RadioGroup from '@material-ui/core/RadioGroup';
@@ -9,6 +10,8 @@ import FormControl from '@material-ui/core/FormControl';
 import styled from 'styled-components';
 import ButtonComponent from 'components/FormFields/ActionButton';
 import AutoCompleteComponent from 'components/FormFields/AutoComplete';
+import apiService from '../../apiService';
+import data from './__mock__/data';
 
 const PermissionWrapper = styled.div`
   padding: 3.5rem 4rem;
@@ -75,13 +78,48 @@ const useStyles = makeStyles(() => ({
 
 const Permissions = () => {
   const classes = useStyles();
-  const [value, setValue] = useState('read');
-  const [, setSearchValue] = useState('');
+  const [radioValue, setRadioValue] = useState('read');
+  const [searchValue, setSearchValue] = useState('');
+  const [options, setOptions] = useState([]);
+  const [disabledSave, setDisabledSave] = useState(true);
+
+  useEffect(() => {
+    if (searchValue !== '') {
+      setDisabledSave(false);
+    } else {
+      setDisabledSave(true);
+    }
+  }, [searchValue]);
 
   const handleChange = (event) => {
-    setValue(event.target.value);
+    setRadioValue(event.target.value);
   };
-  const data = ['abc@tmobile.com', 'xyz@tmobile.com'];
+
+  const callSearchApi = debounce(() => {
+    apiService
+      .searchUser(data)
+      .then((res) => {
+        setOptions([]);
+        res.data.values.map((item) => {
+          return setOptions((prev) => [...prev, item.userEmail]);
+        });
+      })
+      // eslint-disable-next-line no-console
+      .catch((e) => console.error(e));
+  }, 1000);
+
+  const onSearchChange = (text) => {
+    setOptions([]);
+    setSearchValue(text);
+    if (text !== '') {
+      callSearchApi();
+      // on api search replace with callSearchApi(text)
+    }
+  };
+
+  const onSelected = (e, val) => {
+    setSearchValue(val);
+  };
 
   return (
     <PermissionWrapper>
@@ -98,10 +136,12 @@ const Permissions = () => {
           <RequiredCircle margin="0.5rem" />
         </InputLabel>
         <AutoCompleteComponent
-          options={data}
+          options={options}
           icon="search"
           classes={classes}
-          onChange={(e) => setSearchValue(e.target.value)}
+          searchValue={searchValue}
+          onSelected={(e, val) => onSelected(e, val)}
+          onChange={(e) => onSearchChange(e)}
         />
         <InstructionText>
           Search the T-Mobile system to add users
@@ -113,7 +153,7 @@ const Permissions = () => {
             row
             aria-label="permissions"
             name="permissions1"
-            value={value}
+            value={radioValue}
             onChange={handleChange}
           >
             <FormControlLabel
@@ -132,7 +172,11 @@ const Permissions = () => {
           <CancelButton>
             <ButtonComponent label="Cancel" color="primary" />
           </CancelButton>
-          <ButtonComponent label="Save" color="secondary" />
+          <ButtonComponent
+            label="Save"
+            color="secondary"
+            disabled={disabledSave}
+          />
         </CancelSaveWrapper>
       </RadioButtonWrapper>
     </PermissionWrapper>
