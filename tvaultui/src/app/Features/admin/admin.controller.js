@@ -1496,6 +1496,8 @@
         }
 
         $scope.createCertPreview = function () {
+            $scope.multiSanDnsName.name = '';
+            $scope.certDnsErrorMessage = '';
             $scope.isCertificatePreview = true;
             $scope.isCertificateManagePreview = true;
             var multiSanDnsPreview = [];

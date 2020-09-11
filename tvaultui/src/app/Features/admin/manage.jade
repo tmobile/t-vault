@@ -108,7 +108,7 @@ script(type='text/ng-template', id='revokeReasonsPopUp.html')
 
 script(type='text/ng-template', id='transferCertPopup.html')
           .modal-sep
-            .common-header-label.text-center Transfer certificate owner
+            .common-header-label.text-center Transfer Certificate Owner
             
           .left-lg-sep.right-lg-sep
             .common-form.modal-inner-wrapper.aws
@@ -161,7 +161,7 @@ script(type='text/ng-template', id='transferCertSuccessPopup.html')
   loading-state(ng-if="isLoadingModalData")
   .top-lg-sep(ng-if="!isLoadingModalData")
     .top-lg-sep
-        .common-header-label.text-center Certificate owner Transfer Successful!
+        .common-header-label.text-center Certificate Owner Transfer Successful!
       .top-lg-sep.notification-text  {{ transferMessage }}
     .text-center.bottom-lg-sep.top-lg-sep.notification-button
       .clearfix.bottom-sm-sep
@@ -171,7 +171,7 @@ script(type='text/ng-template', id='transferCertFailedPopup.html')
   loading-state(ng-if="isLoadingModalData")
   .top-lg-sep(ng-if="!isLoadingModalData")
     .top-lg-sep
-        .common-header-label.text-center Certificate owner Transfer Failed!
+        .common-header-label.text-center Certificate Owner Transfer Failed!
       .top-lg-sep.notification-text  {{ transferMessage }}
     .text-center.bottom-lg-sep.top-lg-sep.notification-button
       .clearfix.bottom-sm-sep
@@ -270,6 +270,24 @@ script(type='text/ng-template', id='certificatePopup.html')
                     .details-input-group
                       .certificate-form-label(ng-if="certificateDetails.dnsList.length>0") DNS :
                       .cert-preview-details(ng-if="certificateDetails.dnsList.length>0" ng-repeat="dnsName in certificateDetails.dnsList") {{ dnsName }}                      
+                  .col-lg-12.col-md-12.col-sm-12.col-xs-12.common-form-row()
+                    .details-input-group
+                      .certificate-form-label Signature Algorithm :
+                      .cert-preview-details SHA256-RSA
+                  .col-lg-12.col-md-12.col-sm-12.col-xs-12.common-form-row()
+                    .details-input-group
+                      .certificate-form-label Key Usage :
+                      .cert-preview-details digitalSignature, keyEncipherment
+                  .col-lg-12.col-md-12.col-sm-12.col-xs-12.common-form-row()
+                    .details-input-group
+                      .certificate-form-label Extended Key Usage :
+                      .cert-preview-details(ng-if="certificateDetails.certType=='Internal'") serverAuth
+                      .cert-preview-details(ng-if="certificateDetails.certType=='External'") serverAuth, clientAuth
+                  .col-lg-12.col-md-12.col-sm-12.col-xs-12.common-form-row()
+                    .details-input-group
+                      .certificate-form-label Enroll Service :
+                      .cert-preview-details(ng-if="certificateDetails.certType=='Internal'") T-Mobile Issuing CA 01 - SHA2
+                      .cert-preview-details(ng-if="certificateDetails.certType=='External'") Entrust CA
 
           .text-center.bottom-lg-sep.modal-sep.aws(ng-show='isCertificateManagePreview')
             .col-lg-6.col-md-6.col-sm-6.col-xs-6

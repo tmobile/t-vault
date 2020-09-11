@@ -380,13 +380,18 @@ public class SSLCertificateService {
         CertResponse enrollResponse = new CertResponse();
         //Validate the input data
         boolean isValidData = validateInputData(sslCertificateRequest, userDetails);
-        if(!isValidData){
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid input values\"]}");
-        }
+		if (!isValidData) {
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid input values\"]}");
+		} else {
+			String applicationName = getValidApplicationName(sslCertificateRequest);
+			if (!StringUtils.isEmpty(applicationName)) {
+				populateSSLCertificateRequest(sslCertificateRequest, applicationName);
+			} else {
+				return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid input values\"]}");
+			}
+		}
 
 		try {
-			populateSSLCertificateRequest(sslCertificateRequest);
-
             log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
                     put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
                     put(LogMessage.ACTION, String.format("CERTIFICATE REQUEST [%s]",
@@ -1498,7 +1503,7 @@ public class SSLCertificateService {
 	            (!populateCertOwnerEmaild(sslCertificateRequest, userDetails)) ||
 	            sslCertificateRequest.getCertOwnerEmailId().contains(" ") ||  sslCertificateRequest.getCertType().contains(" ") ||
 	            (!sslCertificateRequest.getCertType().matches(SSLCertificateConstants.CERT_TYPE_MATCH_STRING)) 
-	            || (!isValidAppName(sslCertificateRequest)) || (!validateDNSNames(sslCertificateRequest))){
+	            || (!validateDNSNames(sslCertificateRequest))){
 	        isValid= false;
 	    }
 	    return isValid;
@@ -1525,7 +1530,7 @@ public class SSLCertificateService {
 	 *
 	 * @param sslCertificateRequest
 	 */
-	private void populateSSLCertificateRequest(SSLCertificateRequest sslCertificateRequest) {
+	private void populateSSLCertificateRequest(SSLCertificateRequest sslCertificateRequest, String appName) {
 		String certName = sslCertificateRequest.getCertificateName() + certificateNameTailText;
 		sslCertificateRequest.setCertificateName(certName);
 
@@ -1538,8 +1543,8 @@ public class SSLCertificateService {
 		}
 
 		TargetSystem targetSystem = new TargetSystem();
-		targetSystem.setName(sslCertificateRequest.getAppName());
-		targetSystem.setAddress(sslCertificateRequest.getAppName());
+		targetSystem.setName(appName);
+		targetSystem.setAddress(appName);
 		sslCertificateRequest.setTargetSystem(targetSystem);
 
 		TargetSystemServiceRequest targetSystemService = new TargetSystemServiceRequest();
@@ -1548,31 +1553,32 @@ public class SSLCertificateService {
 		sslCertificateRequest.setTargetSystemServiceRequest(targetSystemService);
 	}
 
-    private boolean isValidAppName(SSLCertificateRequest sslCertificateRequest){
-        boolean isValidApp=false;
-        ResponseEntity<String> appResponse =
-                workloadDetailsService.getWorkloadDetailsByAppName(sslCertificateRequest.getAppName());
-        if (HttpStatus.OK.equals(appResponse.getStatusCode())) {
-            isValidApp=true;
-        }
-        return isValidApp;
-    }
+	/**
+	 * Method to get the application name
+	 *
+	 * @param sslCertificateRequest
+	 * @return
+	 */
+	private String getValidApplicationName(SSLCertificateRequest sslCertificateRequest) {
+		String appName = sslCertificateRequest.getAppName();
+		ResponseEntity<String> appResponse = workloadDetailsService
+				.getWorkloadDetailsByAppName(appName);
+		if (HttpStatus.OK.equals(appResponse.getStatusCode())) {
+			JsonParser jsonParser = new JsonParser();
+			JsonObject response = (JsonObject) jsonParser.parse(appResponse.getBody());
+			JsonObject jsonElement = null;
+			if (Objects.nonNull(response)) {
+				jsonElement = response.get("spec").getAsJsonObject();
+				if (Objects.nonNull(jsonElement) && !StringUtils.isEmpty(jsonElement.get("tag"))) {
+					appName = jsonElement.get("tag").getAsString();					
+				}
+			}
+		}else {
+			appName = null;
+		}
+		return appName;
+	}
 
-
-    /**
-     * To Validate the hostname when it's not null/empty
-     * @param hostname
-     * @return
-     */
-    private boolean isValidHostName(String hostname){
-        if(!StringUtils.isEmpty(hostname)){
-            String regex = "^[a-zA-Z0-9.-]+$";
-            Pattern p = Pattern.compile(regex);
-            Matcher m = p.matcher(hostname);
-            return m.matches();
-        }
-        return true;
-    }
 
 	/**
      * To create r/w/o/d policies
@@ -5285,6 +5291,12 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
 				return ResponseEntity.status(HttpStatus.BAD_REQUEST)
 						.body("{\"errors\":[\"No certificate available\"]}");
 			} else {
+
+				if (certificateMetaData.getRequestStatus().equalsIgnoreCase("Approved")) {
+					return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+							.body("{\"errors\":[\"Certificate already approved\"]}");
+				}
+
 				if ((!userDetails.isAdmin()) && (userDetails.getUsername() != null)
 						&& (!userDetails.getUsername().equalsIgnoreCase(certificateMetaData.getCertOwnerNtid()))) {
 					log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
