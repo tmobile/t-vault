@@ -9,6 +9,8 @@ export const customColor = {
     backgroundColor: '#fff',
     color: '#000',
   },
+  magenta: '#e20074',
+  snackBarSuccess: 'rgba(14, 156, 77, 0.7)',
 };
 const customTheme = createMuiTheme({
   breakpoints: {
@@ -122,7 +124,7 @@ const customTheme = createMuiTheme({
       fontSize: '1rem',
       lineHeight: 1.5,
       letterSpacing: '0.03125rem',
-      color: '#fff',
+      color: '#5e627c',
       background: 'transparent',
     },
     body2: {
@@ -218,7 +220,7 @@ const customTheme = createMuiTheme({
     },
     MuiPaper: {
       rounded: {
-        borderRadius: '0.25rem',
+        borderRadius: '0',
       },
     },
     MuiAppBar: { colorPrimary: { backgroundColor: '#151820' } },
@@ -260,6 +262,14 @@ const customTheme = createMuiTheme({
       root: {
         marginBottom: '1.2rem',
         fontSize: '1.4rem',
+      },
+    },
+    MuiRadio: {
+      root: {
+        color: customColor.secondary.color,
+        '&$checked': {
+          color: customColor.magenta,
+        },
       },
     },
     MuiFilledInput: {
@@ -304,6 +314,52 @@ const customTheme = createMuiTheme({
     MuiSelect: {
       select: {
         '&:focus': {
+          backgroundColor: 'transparent',
+        },
+      },
+    },
+    MuiAlert: {
+      root: {
+        minHeight: '5.1rem',
+        alignItems: 'center',
+      },
+      filledSuccess: {
+        background: customColor.snackBarSuccess,
+        backgroundColor: 'none',
+      },
+    },
+    MuiSnackbar: {
+      anchorOriginBottomRight: {
+        '@media (min-width: 768px)': {
+          right: '11rem',
+          bottom: '5.3rem',
+        },
+      },
+    },
+    MuiAutocomplete: {
+      inputRoot: {
+        paddingBottom: '0',
+        height: '5rem',
+        '&[class*="MuiFilledInput-root"]': {
+          paddingLeft: '2rem',
+          paddingTop: '0',
+        },
+      },
+      paper: {
+        backgroundColor: customColor.primary.backgroundColor,
+        color: customColor.primary.color,
+      },
+      option: {
+        paddingLeft: '2rem',
+        '&[data-focus="true"]': {
+          backgroundColor: customColor.primary.backgroundColor,
+          color: customColor.magenta,
+        },
+        '&[aria-selected="true"]': {
+          backgroundColor: customColor.primary.backgroundColor,
+          color: customColor.magenta,
+        },
+        '&:active': {
           backgroundColor: 'transparent',
         },
       },
