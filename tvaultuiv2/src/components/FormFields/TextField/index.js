@@ -6,6 +6,9 @@ import PropTypes from 'prop-types';
 import styled from 'styled-components';
 
 const StyleTextField = styled(TextField)`
+  .MuiFilledInput-adornedStart {
+    font-size: 1.4rem;
+  }
   .MuiInputAdornment-filled.MuiInputAdornment-positionStart:not(.MuiInputAdornment-hiddenLabel) {
     margin-top: 0;
   }

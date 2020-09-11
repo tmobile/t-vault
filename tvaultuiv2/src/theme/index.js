@@ -181,7 +181,7 @@ const customTheme = createMuiTheme({
       main: '#6dba15',
     },
     text: {
-      primary: '#fff',
+      primary: '#000',
       secondary: '#000',
       light: '#fff',
       main: '#fff',
@@ -223,6 +223,7 @@ const customTheme = createMuiTheme({
         borderRadius: '0',
       },
     },
+    MuiAppBar: { colorPrimary: { backgroundColor: '#151820' } },
     MuiInput: {
       root: {
         padding: '0.5rem',
@@ -232,6 +233,7 @@ const customTheme = createMuiTheme({
       root: {
         textTransform: 'capitalize',
         borderRadius: '0',
+        fontSize: '1.2rem',
       },
     },
     MuiFab: {
@@ -239,6 +241,21 @@ const customTheme = createMuiTheme({
         backgroundImage:
           'linear-gradient(to bottom, #ff61b2, #e20074, #650038)',
         color: '#fff',
+      },
+    },
+    MuiTooltip: {
+      textColorSecondary: {
+        color: '#000',
+      },
+    },
+    MuiPopover: {
+      text: {
+        color: '#fff',
+      },
+    },
+    MuiTab: {
+      textColorPrimary: {
+        color: '#5e627c',
       },
     },
     MuiFormLabel: {

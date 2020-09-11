@@ -9,6 +9,7 @@ import FormControlLabel from '@material-ui/core/FormControlLabel';
 import FormControl from '@material-ui/core/FormControl';
 import styled from 'styled-components';
 import ButtonComponent from 'components/FormFields/ActionButton';
+import ComponentError from 'errorBoundaries/ComponentError/component-error';
 import AutoCompleteComponent from 'components/FormFields/AutoComplete';
 import apiService from '../../apiService';
 import data from './__mock__/data';
@@ -122,64 +123,66 @@ const Permissions = () => {
   };
 
   return (
-    <PermissionWrapper>
-      <HeaderWrapper>
-        <Typography variant="h5">Add User</Typography>
-        <div>
-          <RequiredCircle />
-          <RequiredText>Required</RequiredText>
-        </div>
-      </HeaderWrapper>
-      <InputWrapper>
-        <InputLabel>
-          User Email
-          <RequiredCircle margin="0.5rem" />
-        </InputLabel>
-        <AutoCompleteComponent
-          options={options}
-          icon="search"
-          classes={classes}
-          searchValue={searchValue}
-          onSelected={(e, val) => onSelected(e, val)}
-          onChange={(e) => onSearchChange(e)}
-        />
-        <InstructionText>
-          Search the T-Mobile system to add users
-        </InstructionText>
-      </InputWrapper>
-      <RadioButtonWrapper>
-        <FormControl component="fieldset">
-          <RadioGroup
-            row
-            aria-label="permissions"
-            name="permissions1"
-            value={radioValue}
-            onChange={handleChange}
-          >
-            <FormControlLabel
-              value="read"
-              control={<Radio color="default" />}
-              label="Read"
-            />
-            <FormControlLabel
-              value="write"
-              control={<Radio color="default" />}
-              label="Write"
-            />
-          </RadioGroup>
-        </FormControl>
-        <CancelSaveWrapper>
-          <CancelButton>
-            <ButtonComponent label="Cancel" color="primary" />
-          </CancelButton>
-          <ButtonComponent
-            label="Save"
-            color="secondary"
-            disabled={disabledSave}
+    <ComponentError>
+      <PermissionWrapper>
+        <HeaderWrapper>
+          <Typography variant="h5">Add User</Typography>
+          <div>
+            <RequiredCircle />
+            <RequiredText>Required</RequiredText>
+          </div>
+        </HeaderWrapper>
+        <InputWrapper>
+          <InputLabel>
+            User Email
+            <RequiredCircle margin="0.5rem" />
+          </InputLabel>
+          <AutoCompleteComponent
+            options={options}
+            icon="search"
+            classes={classes}
+            searchValue={searchValue}
+            onSelected={(e, val) => onSelected(e, val)}
+            onChange={(e) => onSearchChange(e)}
           />
-        </CancelSaveWrapper>
-      </RadioButtonWrapper>
-    </PermissionWrapper>
+          <InstructionText>
+            Search the T-Mobile system to add users
+          </InstructionText>
+        </InputWrapper>
+        <RadioButtonWrapper>
+          <FormControl component="fieldset">
+            <RadioGroup
+              row
+              aria-label="permissions"
+              name="permissions1"
+              value={radioValue}
+              onChange={handleChange}
+            >
+              <FormControlLabel
+                value="read"
+                control={<Radio color="default" />}
+                label="Read"
+              />
+              <FormControlLabel
+                value="write"
+                control={<Radio color="default" />}
+                label="Write"
+              />
+            </RadioGroup>
+          </FormControl>
+          <CancelSaveWrapper>
+            <CancelButton>
+              <ButtonComponent label="Cancel" color="primary" />
+            </CancelButton>
+            <ButtonComponent
+              label="Save"
+              color="secondary"
+              disabled={disabledSave}
+            />
+          </CancelSaveWrapper>
+        </RadioButtonWrapper>
+      </PermissionWrapper>
+    </ComponentError>
   );
 };
 

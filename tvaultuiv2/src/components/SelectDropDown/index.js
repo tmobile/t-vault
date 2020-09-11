@@ -17,7 +17,7 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-export default function SimpleSelect() {
+export default function SelectDropDown() {
   const classes = useStyles();
   const [safe, setSafe] = React.useState('');
 

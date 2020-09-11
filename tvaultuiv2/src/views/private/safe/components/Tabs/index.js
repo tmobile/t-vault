@@ -11,34 +11,26 @@ import { makeStyles } from '@material-ui/core/styles';
 import AppBar from '@material-ui/core/AppBar';
 import Tabs from '@material-ui/core/Tabs';
 import Tab from '@material-ui/core/Tab';
-import Typography from '@material-ui/core/Typography';
-import Box from '@material-ui/core/Box';
+import ButtonComponent from 'components/FormFields/ActionButton';
 import ComponentError from 'errorBoundaries/ComponentError/component-error';
-import AddIcon from '@material-ui/icons/Add';
-import AddFolder from 'views/private/safe/components/AddFolder';
-// import CreateSecret from 'components/createSecret';
-
+import addFolderPlus from 'assets/folder-plus.svg';
+import NoSecretsIcon from 'assets/no-data-secrets.svg';
 // eslint-disable-next-line import/no-unresolved
-
-// import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
-// import FolderIcon from '@material-ui/icons/Folder';
-import AccordionFolder from '../../common/AccordionFolder';
-import MuiButton from '../../common/MuiButton';
-import DialogeBox from '../../common/DialogeBox';
+import NamedButton from 'components/NamedButton';
+import NoData from 'components/NoData';
+import AddFolder from '../AddFolder';
 // import FolderTreeView from '../FolderTree';
-
+import Tree from '../Tree';
 // styled components goes here
 
-// const WideButton = styled('div')`
-//   display: flex;
-//   justify-content: center;
-//   background: #f2f2f2;
-//   padding: 0.5em;
-// `;
 const EmptySecretBox = styled('div')`
+  width: 100%;
+  position: absolute;
   display: flex;
-  align-items: center;
   justify-content: center;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
 `;
 const customBtnStyles = css`
   padding: 0.2rem 1rem;
@@ -46,9 +38,19 @@ const customBtnStyles = css`
 `;
 
 const TabPanelWrap = styled.div`
-  .MuiBox-root {
-    padding: 1em 0;
-  }
+  height: 54.75vh;
+  position: relative;
+  overflow: auto;
+  margin-top: 1.3rem;
+`;
+const bgIconStyle = {
+  width: '16rem',
+  height: '16rem',
+};
+const CountSpan = styled.span`
+  margin-top: 1.5rem;
+  color: #5e627c;
+  font-size: 1.3rem;
 `;
 
 const TabPanel = (props) => {
@@ -61,11 +63,7 @@ const TabPanel = (props) => {
       id={`safes-tabpanel-${index}`}
       aria-labelledby={`safe-tab-${index}`}
     >
-      {value === index && (
-        <Box p={3}>
-          <Typography>{children}</Typography>
-        </Box>
-      )}
+      {children}
     </TabPanelWrap>
   );
 };
@@ -91,24 +89,28 @@ function a11yProps(index) {
   };
 }
 
-const useStyles = makeStyles((theme) => ({
+const useStyles = makeStyles(() => ({
   root: {
     flexGrow: 1,
-    backgroundColor: theme.palette.background.paper,
+    padding: '0 2.1rem',
   },
   appBar: {
     display: 'flex',
     flexDirection: 'row',
     justifyContent: 'space-between',
   },
+  tab: {
+    minWidth: '9.5rem',
+  },
 }));
 
-export default function SelectionTabs(props) {
-  const { secrets } = props;
+export default function SelectionTabs() {
+  // const { secrets } = props;
   const classes = useStyles();
   const [value, setValue] = useState(0);
   const [enabledAddFolder, setEnableAddFolder] = useState(false);
-  const [secretsFolder, secSecretsFolder] = useState([]);
+  const [secretsFolder, setSecretsFolder] = useState([]);
+  // const [secrets, setSecrets] = useState([]);
 
   const handleChange = (event, newValue) => {
     setValue(newValue);
@@ -117,69 +119,81 @@ export default function SelectionTabs(props) {
     setEnableAddFolder(true);
   };
 
+  const addSecretsFolderList = (secretFolder) => {
+    const tempFolders = [...secretsFolder] || [];
+    const folderObj = {};
+    folderObj.labelText = secretFolder.labelText;
+    folderObj.type = secretFolder.type || 'folder';
+    folderObj.children = [];
+    tempFolders.push(folderObj);
+    setSecretsFolder([...tempFolders]);
+    setEnableAddFolder(false);
+  };
   /**
    *Creates secrets folder array
    * @param {string} folderName
    */
-
-  const saveSecretsFolder = (folderName) => {
-    const tempFolders = [...secretsFolder] || [];
-    // const folderObj = {};
-    // folderObj.labelText = folderName;
-    // folderObj.labelInfo = 'folder';
-    // folderObj.children = [];
-    tempFolders.push(folderName);
-    secSecretsFolder([...tempFolders]);
-    setEnableAddFolder(false);
-  };
-
   return (
     <ComponentError>
       <div className={classes.root}>
         <AppBar position="static" className={classes.appBar}>
-          <Tabs value={value} onChange={handleChange} aria-label="safe tabs">
+          <Tabs
+            value={value}
+            onChange={handleChange}
+            aria-label="safe tabs"
+            indicatorColor="secondary"
+            textColor="primary"
+          >
             {/* eslint-disable-next-line react/jsx-props-no-spreading */}
-            <Tab label="Secrets" {...a11yProps(0)} />
+            <Tab className={classes.tab} label="Secrets" {...a11yProps(0)} />
             {/* eslint-disable-next-line react/jsx-props-no-spreading */}
             <Tab label="Permissions" {...a11yProps(1)} />
           </Tabs>
-          <MuiButton
-            label="ADD"
+          <NamedButton
+            label="Add Folder"
             onClick={addSecretsFolder}
             customStyle={customBtnStyles}
-            icon={<AddIcon />}
+            iconSrc={addFolderPlus}
           />
         </AppBar>
         <TabPanel value={value} index={0}>
+          {
+            <CountSpan color="#5e627c">
+              {`${secretsFolder && secretsFolder.length} Secrets`}
+            </CountSpan>
+          }
           {enabledAddFolder ? (
             <AddFolder
-              handleSaveClick={saveSecretsFolder}
+              handleSaveClick={addSecretsFolderList}
               handleCancelClick={() => setEnableAddFolder(false)}
             />
           ) : (
             <></>
           )}
-          {secretsFolder || secrets ? (
+          {secretsFolder && secretsFolder.length ? (
             <>
-              {/* reverted folder tree structure and its in different branch(layout-branch) */}
-              {/* <FolderTreeView treeData={secretsFolder || secrets} /> */}
-              {secretsFolder.map((item) => (
-                <AccordionFolder title={item} date="2 days ago" />
-              ))}
+              <Tree data={secretsFolder} />
             </>
           ) : (
-            <EmptySecretBox>
-              <DialogeBox
-                description="add a <strong>Folder</strong> and then you will be able to add <strong>secrets</strong> to view them all here"
-                actionButton={
-                  // eslint-disable-next-line react/jsx-wrap-multilines
-                  <MuiButton
-                    label="ADD"
-                    icon={<AddIcon onClickFunc={addSecretsFolder} />}
-                  />
-                }
-              />
-            </EmptySecretBox>
+            !enabledAddFolder && (
+              <EmptySecretBox>
+                <NoData
+                  imageSrc={NoSecretsIcon}
+                  description="add a <strong>Folder</strong> and then you will be able to add <strong>secrets</strong> to view them all here"
+                  actionButton={
+                    // eslint-disable-next-line react/jsx-wrap-multilines
+                    <ButtonComponent
+                      label="add"
+                      icon="add"
+                      color="secondary"
+                      onClick={() => setEnableAddFolder(true)}
+                    />
+                  }
+                  bgIconStyle={bgIconStyle}
+                  width="30%"
+                />
+              </EmptySecretBox>
+            )
           )}
         </TabPanel>
         <TabPanel value={value} index={1}>
