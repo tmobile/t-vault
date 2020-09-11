@@ -3247,7 +3247,7 @@ public class SSLCertificateServiceTest {
         response.setResponse(null);
 
         CertificateDownloadRequest certificateDownloadRequest = new CertificateDownloadRequest(
-                "certname", "password", "pembundle", false);
+                "certname", "password", "pembundle", false,"internal");
 
         mockNclmLogin();
 
@@ -3307,7 +3307,7 @@ public class SSLCertificateServiceTest {
         response.setResponse(null);
 
         CertificateDownloadRequest certificateDownloadRequest = new CertificateDownloadRequest(
-                "certname", "password", "pkcs12pem", false);
+                "certname", "password", "pkcs12pem", false,"internal");
 
         mockNclmLogin();
 
@@ -3365,7 +3365,7 @@ public class SSLCertificateServiceTest {
         response.setResponse(null);
 
         CertificateDownloadRequest certificateDownloadRequest = new CertificateDownloadRequest(
-                "certname", "password", "default", false);
+                "certname", "password", "default", false,"internal");
 
         mockNclmLogin();
 
@@ -3423,7 +3423,7 @@ public class SSLCertificateServiceTest {
         response.setResponse(null);
 
         CertificateDownloadRequest certificateDownloadRequest = new CertificateDownloadRequest(
-                "certname", "password", "pembundle", false);
+                "certname", "password", "pembundle", false,"internal");
 
         mockNclmLogin();
 
@@ -3476,7 +3476,7 @@ public class SSLCertificateServiceTest {
         response.setResponse(null);
 
         CertificateDownloadRequest certificateDownloadRequest = new CertificateDownloadRequest(
-                "certname", "password", "pkcs12der", false);
+                "certname", "password", "pkcs12der", false,"internal");
 
         mockNclmLogin();
 
@@ -3529,7 +3529,7 @@ public class SSLCertificateServiceTest {
         response.setResponse(null);
 
         CertificateDownloadRequest certificateDownloadRequest = new CertificateDownloadRequest(
-                "certname", "password", "pkcs12der", false);
+                "certname", "password", "pkcs12der", false,"internal");
 
         mockNclmLogin();
 
@@ -3580,7 +3580,7 @@ public class SSLCertificateServiceTest {
 
 
         CertificateDownloadRequest certificateDownloadRequest = new CertificateDownloadRequest(
-                "certname", "password", "pembundle", false);
+                "certname", "password", "pembundle", false,"internal");
 
         mockNclmLogin();
 
@@ -3643,7 +3643,7 @@ public class SSLCertificateServiceTest {
 
         mockNclmLogin();
         CertificateDownloadRequest certificateDownloadRequest = new CertificateDownloadRequest(
-                "certname", "password", "pembundle", false);
+                "certname", "password", "pembundle", false,"internal");
 
         String policyList [] = {};
         VaultTokenLookupDetails lookupDetails = null;
@@ -3696,7 +3696,7 @@ public class SSLCertificateServiceTest {
         when(reqProcessor.processCert(eq("/auth/certmanager/login"), any(), any(), any())).thenReturn(certResponse);
 
         CertificateDownloadRequest certificateDownloadRequest = new CertificateDownloadRequest(
-                "certname", "password", "pembundle", false);
+                "certname", "password", "pembundle", false,"internal");
 
         String policyList [] = {"r_cert_certname"};
         VaultTokenLookupDetails lookupDetails = null;
@@ -3782,7 +3782,7 @@ public class SSLCertificateServiceTest {
                 .contentType(MediaType.parseMediaType("application/x-pem-file;charset=utf-8")).body(resource);
 
         ResponseEntity<InputStreamResource> responseEntityActual =
-                sSLCertificateService.downloadCertificate(token, getMockUser(true), "certname", "pem");
+                sSLCertificateService.downloadCertificate(token, getMockUser(true), "certname", "pem","internal");
         assertEquals(HttpStatus.OK, responseEntityActual.getStatusCode());
         assertEquals(responseEntityExpected.toString(),responseEntityActual.toString());
 
@@ -3838,7 +3838,7 @@ public class SSLCertificateServiceTest {
                 .contentType(MediaType.parseMediaType("application/pkix-cert;charset=utf-8")).body(resource);
 
         ResponseEntity<InputStreamResource> responseEntityActual =
-                sSLCertificateService.downloadCertificate(token, getMockUser(true), "certname", "der");
+                sSLCertificateService.downloadCertificate(token, getMockUser(true), "certname", "der","external");
         assertEquals(HttpStatus.OK, responseEntityActual.getStatusCode());
         assertEquals(responseEntityExpected.toString(),responseEntityActual.toString());
 
@@ -3892,7 +3892,7 @@ public class SSLCertificateServiceTest {
                 .body(null);
 
         ResponseEntity<InputStreamResource> responseEntityActual =
-                sSLCertificateService.downloadCertificate(token, getMockUser(true), "certname", "pem");
+                sSLCertificateService.downloadCertificate(token, getMockUser(true), "certname", "pem","internal");
         assertEquals(HttpStatus.BAD_REQUEST, responseEntityActual.getStatusCode());
         assertEquals(responseEntityExpected.toString(),responseEntityActual.toString());
 
@@ -3943,7 +3943,7 @@ public class SSLCertificateServiceTest {
                 .body(null);
 
         ResponseEntity<InputStreamResource> responseEntityActual =
-                sSLCertificateService.downloadCertificate(token, getMockUser(true), "certname", "pem");
+                sSLCertificateService.downloadCertificate(token, getMockUser(true), "certname", "pem","internal");
         assertEquals(HttpStatus.BAD_REQUEST, responseEntityActual.getStatusCode());
         assertEquals(responseEntityExpected.toString(),responseEntityActual.toString());
 
@@ -3990,7 +3990,7 @@ public class SSLCertificateServiceTest {
                 .body(null);
 
         ResponseEntity<InputStreamResource> responseEntityActual =
-                sSLCertificateService.downloadCertificate(token, getMockUser(true), "certname", "pem");
+                sSLCertificateService.downloadCertificate(token, getMockUser(true), "certname", "pem","internal");
         assertEquals(HttpStatus.BAD_REQUEST, responseEntityActual.getStatusCode());
         assertEquals(responseEntityExpected.toString(),responseEntityActual.toString());
 
@@ -4030,7 +4030,7 @@ public class SSLCertificateServiceTest {
                 .body(null);
 
         ResponseEntity<InputStreamResource> responseEntityActual =
-                sSLCertificateService.downloadCertificate(token, getMockUser(false), "certname", "pem");
+                sSLCertificateService.downloadCertificate(token, getMockUser(false), "certname", "pem","internal");
         assertEquals(HttpStatus.FORBIDDEN, responseEntityActual.getStatusCode());
         assertEquals(responseEntityExpected.toString(),responseEntityActual.toString());
 
@@ -4075,7 +4075,7 @@ public class SSLCertificateServiceTest {
                 .body(null);
 
         ResponseEntity<InputStreamResource> responseEntityActual =
-                sSLCertificateService.downloadCertificate(token, getMockUser(true), "certname", "pem");
+                sSLCertificateService.downloadCertificate(token, getMockUser(true), "certname", "pem","internal");
         assertEquals(HttpStatus.BAD_REQUEST, responseEntityActual.getStatusCode());
         assertEquals(responseEntityExpected.toString(),responseEntityActual.toString());
 

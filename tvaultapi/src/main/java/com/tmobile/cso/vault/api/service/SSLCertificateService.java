@@ -3875,8 +3875,9 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
     public ResponseEntity<InputStreamResource> downloadCertificateWithPrivateKey(String token, CertificateDownloadRequest certificateDownloadRequest, UserDetails userDetails) {
 
         String certName = certificateDownloadRequest.getCertificateName();
-        SSLCertificateMetadataDetails sslCertificateMetadataDetails = certificateUtils.getCertificateMetaData(token, certName, "internal");
-        if (hasDownloadPermission(certificateDownloadRequest.getCertificateName(), userDetails, "internal") && sslCertificateMetadataDetails!= null) {
+        String certType = certificateDownloadRequest.getCertType();
+        SSLCertificateMetadataDetails sslCertificateMetadataDetails = certificateUtils.getCertificateMetaData(token, certName, certType);
+        if (hasDownloadPermission(certificateDownloadRequest.getCertificateName(), userDetails, certType) && sslCertificateMetadataDetails!= null) {
             log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
                     put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
                     put(LogMessage.ACTION, "downloadCertificateWithPrivateKey").
@@ -4008,11 +4009,13 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
      * @param certificateType
      * @return
      */
-    public ResponseEntity<InputStreamResource> downloadCertificate(String token, UserDetails userDetails, String certificateName, String certificateType) {
+    public ResponseEntity<InputStreamResource> downloadCertificate(String token, UserDetails userDetails,
+                                                                   String certificateName, String certificateType,
+                                                                   String sslCertType) {
 
         InputStreamResource resource = null;
-        SSLCertificateMetadataDetails sslCertificateMetadataDetails = certificateUtils.getCertificateMetaData(token, certificateName, "internal");
-        if (hasDownloadPermission(certificateName, userDetails, "internal") && sslCertificateMetadataDetails != null) {
+        SSLCertificateMetadataDetails sslCertificateMetadataDetails = certificateUtils.getCertificateMetaData(token, certificateName, sslCertType);
+        if (hasDownloadPermission(certificateName, userDetails, sslCertType) && sslCertificateMetadataDetails != null) {
 
             String nclmToken = getNclmToken();
             if (StringUtils.isEmpty(nclmToken)) {

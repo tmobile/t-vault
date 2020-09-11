@@ -202,10 +202,13 @@ public class SSLCertificateController {
 	 * @return
 	 */
 	@ApiOperation(value = "${CertificateController.downloadCertificate.value}", notes = "${CertificateController.downloadCertificate.notes}")
-	@GetMapping(value="/v2/sslcert/certificates/{certificate_name}/{certificate_type}", produces="application/json")
-	public ResponseEntity<InputStreamResource> downloadCertificate(HttpServletRequest request, @RequestHeader(value="vault-token") String token, @PathVariable("certificate_name") String certificateName, @PathVariable("certificate_type") String certificateType){
+	@GetMapping(value="/v2/sslcert/certificates/{certificate_name}/{certificate_type}/{sslcert_type}", produces=
+			"application/json")
+	public ResponseEntity<InputStreamResource> downloadCertificate(HttpServletRequest request, @RequestHeader(value=
+			"vault-token") String token, @PathVariable("certificate_name") String certificateName, @PathVariable(
+					"certificate_type") String certificateType,@PathVariable("sslcert_type") String sslCertType){
 		UserDetails userDetails = (UserDetails) request.getAttribute(USER_DETAILS_STRING);
-		return sslCertificateService.downloadCertificate(token, userDetails, certificateName, certificateType);
+		return sslCertificateService.downloadCertificate(token, userDetails, certificateName, certificateType,sslCertType);
 	}
 
 	/**
