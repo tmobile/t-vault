@@ -1,92 +1,159 @@
 /* eslint-disable import/no-unresolved */
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { debounce } from 'lodash';
 import Radio from '@material-ui/core/Radio';
+import { makeStyles } from '@material-ui/core/styles';
 import RadioGroup from '@material-ui/core/RadioGroup';
-import { TextField, InputLabel } from '@material-ui/core';
-import Autocomplete from '@material-ui/lab/Autocomplete';
+import { InputLabel, Typography } from '@material-ui/core';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 import FormControl from '@material-ui/core/FormControl';
 import styled from 'styled-components';
 import ButtonComponent from 'components/FormFields/ActionButton';
+import AutoCompleteComponent from 'components/FormFields/AutoComplete';
+import apiService from '../../apiService';
+import data from './__mock__/data';
 
 const PermissionWrapper = styled.div`
-  padding: 2rem;
+  padding: 3.5rem 4rem;
   width: 50%;
   border: 0.1rem solid #000;
   display: flex;
   flex-direction: column;
 `;
-
-const UserHeader = styled.h1`
-  margin-bottom: 1.4rem;
-  margin-top: 0;
+const HeaderWrapper = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  div {
+    display: flex;
+    align-items: center;
+  }
+`;
+const RequiredText = styled.span`
+  font-size: 1.6rem;
+  color: #5e627c;
+  margin-left: 0.5rem;
 `;
 
-const InputRadioWrapper = styled.div`
-  margin-bottom: 1rem;
+const RequiredCircle = styled.span`
+  width: 0.6rem;
+  height: 0.6rem;
+  background-color: #e20074;
+  border-radius: 50%;
+  margin-left: ${(props) => props.margin || '0'};
 `;
 
 const InputWrapper = styled.div`
-  .MuiFormControl-fullWidth {
-    background-color: #eee;
-    padding: 0.5rem;
-  }
-  .MuiInput-underline:before,
-  .MuiInput-underline:after,
-  .MuiInput-underline:hover:not(.Mui-disabled):before {
-    border-bottom: none;
-  }
-  .MuiSvgIcon-root {
-    display: none;
-  }
-  .MuiFormLabel-root {
-    margin-bottom: 1.2rem;
+  margin-top: 4rem;
+  margin-bottom: 2.4rem;
+  .MuiInputLabel-root {
+    display: flex;
+    align-items: center;
   }
 `;
-
+const InstructionText = styled.p`
+  margin-top: 1.4rem;
+  color: #bbbbbb;
+  font-size: 1.2rem;
+  margin-bottom: 0rem;
+`;
+const RadioButtonWrapper = styled.div`
+  display: flex;
+  justify-content: space-between;
+`;
 const CancelSaveWrapper = styled.div`
   display: flex;
-  align-self: flex-end;
 `;
 
 const CancelButton = styled.div`
   margin-right: 0.8rem;
 `;
 
+const useStyles = makeStyles(() => ({
+  icon: {
+    color: '#5e627c',
+    fontSize: '2rem',
+  },
+}));
+
 const Permissions = () => {
-  const [value, setValue] = useState('read');
-  const [, setSearchValue] = useState('');
+  const classes = useStyles();
+  const [radioValue, setRadioValue] = useState('read');
+  const [searchValue, setSearchValue] = useState('');
+  const [options, setOptions] = useState([]);
+  const [disabledSave, setDisabledSave] = useState(true);
+
+  useEffect(() => {
+    if (searchValue !== '') {
+      setDisabledSave(false);
+    } else {
+      setDisabledSave(true);
+    }
+  }, [searchValue]);
 
   const handleChange = (event) => {
-    setValue(event.target.value);
+    setRadioValue(event.target.value);
   };
-  const data = [{ title: 'abc@tmobile.com' }, { title: 'xyz@tmobile.com' }];
+
+  const callSearchApi = debounce(() => {
+    apiService
+      .searchUser(data)
+      .then((res) => {
+        setOptions([]);
+        res.data.values.map((item) => {
+          return setOptions((prev) => [...prev, item.userEmail]);
+        });
+      })
+      // eslint-disable-next-line no-console
+      .catch((e) => console.error(e));
+  }, 1000);
+
+  const onSearchChange = (text) => {
+    setOptions([]);
+    setSearchValue(text);
+    if (text !== '') {
+      callSearchApi();
+      // on api search replace with callSearchApi(text)
+    }
+  };
+
+  const onSelected = (e, val) => {
+    setSearchValue(val);
+  };
 
   return (
     <PermissionWrapper>
-      <UserHeader>Add User</UserHeader>
-      <InputRadioWrapper>
-        <InputWrapper>
-          <InputLabel>User Email</InputLabel>
-          <Autocomplete
-            id="combo-box-demo"
-            options={data}
-            getOptionLabel={(option) => option.title}
-            renderInput={(params) => (
-              <TextField
-                // eslint-disable-next-line react/jsx-props-no-spreading
-                {...params}
-                onChange={(e) => setSearchValue(e.target.value)}
-              />
-            )}
-          />
-        </InputWrapper>
+      <HeaderWrapper>
+        <Typography variant="h5">Add User</Typography>
+        <div>
+          <RequiredCircle />
+          <RequiredText>Required</RequiredText>
+        </div>
+      </HeaderWrapper>
+      <InputWrapper>
+        <InputLabel>
+          User Email
+          <RequiredCircle margin="0.5rem" />
+        </InputLabel>
+        <AutoCompleteComponent
+          options={options}
+          icon="search"
+          classes={classes}
+          searchValue={searchValue}
+          onSelected={(e, val) => onSelected(e, val)}
+          onChange={(e) => onSearchChange(e)}
+        />
+        <InstructionText>
+          Search the T-Mobile system to add users
+        </InstructionText>
+      </InputWrapper>
+      <RadioButtonWrapper>
         <FormControl component="fieldset">
           <RadioGroup
             row
             aria-label="permissions"
             name="permissions1"
-            value={value}
+            value={radioValue}
             onChange={handleChange}
           >
             <FormControlLabel
@@ -101,17 +168,17 @@ const Permissions = () => {
             />
           </RadioGroup>
         </FormControl>
-      </InputRadioWrapper>
-      <CancelSaveWrapper>
-        <CancelButton>
-          <ButtonComponent label="Cancel" buttonType="containedPrimary" />
-        </CancelButton>
-        <ButtonComponent
-          label="Create"
-          icon="add"
-          buttonType="containedSecondary"
-        />
-      </CancelSaveWrapper>
+        <CancelSaveWrapper>
+          <CancelButton>
+            <ButtonComponent label="Cancel" color="primary" />
+          </CancelButton>
+          <ButtonComponent
+            label="Save"
+            color="secondary"
+            disabled={disabledSave}
+          />
+        </CancelSaveWrapper>
+      </RadioButtonWrapper>
     </PermissionWrapper>
   );
 };
