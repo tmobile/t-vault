@@ -107,7 +107,7 @@ public class TokenValidationFilter extends GenericFilterBean {
 					put(LogMessage.MESSAGE, String.format ("Generating SelfService token for the user [%s]", vaultTokenLookupDetails.getUsername())).
 					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 					build()));
-			if (!vaultTokenLookupDetails.isAdmin() && isSelfServiceEnabled) {
+			if (isSelfServiceEnabled) {
 				userDetails.setSelfSupportToken(tokenUtils.getSelfServiceToken());
 			}
 			userDetails.setPolicies(vaultTokenLookupDetails.getPolicies());
