@@ -2722,6 +2722,7 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
 			}
 		}
 		String certID = object.get("certificateId").getAsString();
+		int containerId = object.get("containerId").getAsInt();
 		float value = Float.valueOf(certID);
 		int certificateId = (int) value;
 		CertResponse revocationResponse = new CertResponse();
@@ -2736,6 +2737,23 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
 
 			String nclmAccessToken = getNclmToken();	
 			if(!StringUtils.isEmpty(nclmAccessToken)) {
+				CertificateData cerificatetData = getLatestCertificate(certificateName,nclmAccessToken, containerId);
+				if((!ObjectUtils.isEmpty(cerificatetData)&& cerificatetData.getCertificateId()!=0)) {
+					if(cerificatetData.getCertificateStatus().equalsIgnoreCase("Revoked")) {
+						return ResponseEntity.status(HttpStatus.METHOD_NOT_ALLOWED)	
+		    					.body("{\"errors\":[\"" + "Certificate in Revoked status cannot be revoked." + "\"]}");
+					}
+				}else {
+					log.error(
+							JSONUtil.getJSON(
+									ImmutableMap.<String, String> builder()
+											.put(LogMessage.USER,
+													ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString())
+											.put(LogMessage.ACTION, "Issue Revocation Request")
+											.put(LogMessage.MESSAGE, "Revoke Request failed for CertificateID")										
+											.build()));
+					return ResponseEntity.status(HttpStatus.FORBIDDEN).body("{\"errors\":[\"" + "Certificate unavailable in NCLM." + "\"]}");
+				}
 
 			String nclmApiIssueRevocationEndpoint = issueRevocationRequest.replace("certID",
 					String.valueOf(certificateId));
@@ -4188,11 +4206,11 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
 													Arrays.toString(e.getStackTrace()), response.getResponse()))
 									.build()));
 			return ResponseEntity.status(response.getHttpstatus())
-					.body("{\"messages\":[\"" + "Certficate unavailable" + "\"]}");
+					.body("{\"messages\":[\"" + "Certificate unavailable" + "\"]}");
 		}
 		if (!HttpStatus.OK.equals(response.getHttpstatus())) {
 			return ResponseEntity.status(response.getHttpstatus())
-					.body("{\"errors\":[\"" + "Certficate unavailable" + "\"]}");
+					.body("{\"errors\":[\"" + "Certificate unavailable" + "\"]}");
 		}
 		JsonParser jsonParser = new JsonParser();
 		JsonObject object = ((JsonObject) jsonParser.parse(response.getResponse())).getAsJsonObject("data");
@@ -4216,6 +4234,24 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
 			String nclmAccessToken = getNclmToken();
 			if(!StringUtils.isEmpty(nclmAccessToken)) {
 
+				CertificateData cerificatetData = getLatestCertificate(certificateName,nclmAccessToken, containerId);	
+				if((!ObjectUtils.isEmpty(cerificatetData)&& cerificatetData.getCertificateId()!=0)) {
+					if(cerificatetData.getCertificateStatus().equalsIgnoreCase("Revoked")) {
+						return ResponseEntity.status(HttpStatus.METHOD_NOT_ALLOWED)	
+		    					.body("{\"errors\":[\"" + "Certificate in Revoked status cannot be renewed." + "\"]}");
+					}
+				}else {
+					log.error(
+							JSONUtil.getJSON(
+									ImmutableMap.<String, String> builder()
+											.put(LogMessage.USER,
+													ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString())
+											.put(LogMessage.ACTION, "Renew certificate Failed")
+											.put(LogMessage.MESSAGE, "Renew Request failed for CertificateID")										
+											.build()));
+					return ResponseEntity.status(HttpStatus.FORBIDDEN).body("{\"errors\":[\"" + "Certificate unavailable in NCLM." + "\"]}");
+				}
+				
 			String nclmApiRenewEndpoint = renewCertificateEndpoint.replace("certID", String.valueOf(certificateId));
 			renewResponse = reqProcessor.processCert("/certificates/renew", "",
 					nclmAccessToken, getCertmanagerEndPoint(nclmApiRenewEndpoint));
