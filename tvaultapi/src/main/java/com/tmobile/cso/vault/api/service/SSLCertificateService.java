@@ -5291,6 +5291,12 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
 				return ResponseEntity.status(HttpStatus.BAD_REQUEST)
 						.body("{\"errors\":[\"No certificate available\"]}");
 			} else {
+
+				if (certificateMetaData.getRequestStatus().equalsIgnoreCase("Approved")) {
+					return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+							.body("{\"errors\":[\"Certificate already approved\"]}");
+				}
+
 				if ((!userDetails.isAdmin()) && (userDetails.getUsername() != null)
 						&& (!userDetails.getUsername().equalsIgnoreCase(certificateMetaData.getCertOwnerNtid()))) {
 					log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
