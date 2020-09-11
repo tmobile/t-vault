@@ -51,9 +51,11 @@ const customTheme = createMuiTheme({
     '0 11px 15px -7px rgba(0, 0, 0, 0.2), 0 9px 46px 8px rgba(0, 0, 0, 0.12), 0 24px 38px 3px rgba(0, 0, 0, 0.14)', // 24 - app use
   ],
   typography: {
-    fontFamily: '"Roboto", "Helvetica", sans-serif',
+    fontFamily:
+      'BlinkMacSystemFont,-apple-system,"Segoe UI",Roboto,Oxygen,Ubuntu,"Helvetica Neue",Arial,sans-serif',
     h1: {
-      fontFamily: '"Roboto", "Helvetica", "Arial", sans-serif',
+      fontFamily:
+        'BlinkMacSystemFont,-apple-system,"Segoe UI",Roboto,Oxygen,Ubuntu,"Helvetica Neue",Arial,sans-serif',
       fontWeight: 200,
       fontSize: '9.6rem',
       lineHeight: 1.17,
@@ -61,7 +63,8 @@ const customTheme = createMuiTheme({
       color: '#fff',
     },
     h2: {
-      fontFamily: '"Roboto", "Helvetica", "Arial", sans-serif',
+      fontFamily:
+        'BlinkMacSystemFont,-apple-system,"Segoe UI",Roboto,Oxygen,Ubuntu,"Helvetica Neue",Arial,sans-serif',
       fontWeight: 200,
       fontSize: '6rem',
       lineHeight: 1.2,
@@ -69,7 +72,8 @@ const customTheme = createMuiTheme({
       color: '#fff',
     },
     h3: {
-      fontFamily: '"Roboto", "Helvetica", "Arial", sans-serif',
+      fontFamily:
+        'BlinkMacSystemFont,-apple-system,"Segoe UI",Roboto,Oxygen,Ubuntu,"Helvetica Neue",Arial,sans-serif',
       fontWeight: 'normal',
       fontSize: '4.8rem',
       lineHeight: 1.17,
@@ -77,7 +81,8 @@ const customTheme = createMuiTheme({
       color: '#fff',
     },
     h4: {
-      fontFamily: '"Roboto", "Helvetica", "Arial", sans-serif',
+      fontFamily:
+        'BlinkMacSystemFont,-apple-system,"Segoe UI",Roboto,Oxygen,Ubuntu,"Helvetica Neue",Arial,sans-serif',
       fontWeight: 'normal',
       fontSize: '3.4rem',
       lineHeight: 1.06,
@@ -85,7 +90,8 @@ const customTheme = createMuiTheme({
       color: '#fff',
     },
     h5: {
-      fontFamily: '"Roboto", "Helvetica", "Arial", sans-serif',
+      fontFamily:
+        'BlinkMacSystemFont,-apple-system,"Segoe UI",Roboto,Oxygen,Ubuntu,"Helvetica Neue",Arial,sans-serif',
       fontSize: '2.4rem',
       fontWeight: 500,
       fontStretch: 'normal',
@@ -95,7 +101,8 @@ const customTheme = createMuiTheme({
       color: '#fff',
     },
     h6: {
-      fontFamily: '"Roboto", "Helvetica", "Arial", sans-serif',
+      fontFamily:
+        'BlinkMacSystemFont,-apple-system,"Segoe UI",Roboto,Oxygen,Ubuntu,"Helvetica Neue",Arial,sans-serif',
       fontWeight: 500,
       fontSize: '1.25rem',
       lineHeight: 1.2,
@@ -103,7 +110,8 @@ const customTheme = createMuiTheme({
       color: '#fff',
     },
     subtitle1: {
-      fontFamily: '"Roboto", "Helvetica", "Arial", sans-serif',
+      fontFamily:
+        'BlinkMacSystemFont,-apple-system,"Segoe UI",Roboto,Oxygen,Ubuntu,"Helvetica Neue",Arial,sans-serif',
       fontWeight: 'normal',
       fontSize: '1.4rem',
       lineHeight: 1.5,
@@ -111,7 +119,8 @@ const customTheme = createMuiTheme({
       color: '#fff',
     },
     subtitle2: {
-      fontFamily: '"Roboto", "Helvetica", "Arial", sans-serif',
+      fontFamily:
+        'BlinkMacSystemFont,-apple-system,"Segoe UI",Roboto,Oxygen,Ubuntu,"Helvetica Neue",Arial,sans-serif',
       fontWeight: 500,
       fontSize: '1.2rem',
       lineHeight: 1.71,
@@ -119,7 +128,8 @@ const customTheme = createMuiTheme({
       color: '#fff',
     },
     body1: {
-      fontFamily: '"Roboto", "Helvetica", "Arial", sans-serif',
+      fontFamily:
+        'BlinkMacSystemFont,-apple-system,"Segoe UI",Roboto,Oxygen,Ubuntu,"Helvetica Neue",Arial,sans-serif',
       fontWeight: 'normal',
       fontSize: '1rem',
       lineHeight: 1.5,
@@ -128,7 +138,8 @@ const customTheme = createMuiTheme({
       background: 'transparent',
     },
     body2: {
-      fontFamily: '"Exo 2","Roboto", "Helvetica", "Arial", sans-serif',
+      fontFamily:
+        'BlinkMacSystemFont,-apple-system,"Segoe UI",Roboto,Oxygen,Ubuntu,"Helvetica Neue",Arial,sans-serif',
       fontWeight: 'normal',
       fontSize: '1.4rem',
       lineHeight: 1.43,
@@ -148,7 +159,8 @@ const customTheme = createMuiTheme({
       color: 'rgba(0, 0, 0, 0.87)',
     },
     caption: {
-      fontFamily: '"Roboto", "Helvetica", "Arial", sans-serif',
+      fontFamily:
+        'BlinkMacSystemFont,-apple-system,"Segoe UI",Roboto,Oxygen,Ubuntu,"Helvetica Neue",Arial,sans-serif',
       fontWeight: 'normal',
       fontSize: '0.75rem',
       lineHeight: 1.33,
@@ -156,7 +168,8 @@ const customTheme = createMuiTheme({
       color: '#fff',
     },
     overline: {
-      fontFamily: '"Roboto", "Helvetica", "Arial", sans-serif',
+      fontFamily:
+        'BlinkMacSystemFont,-apple-system,"Segoe UI",Roboto,Oxygen,Ubuntu,"Helvetica Neue",Arial,sans-serif',
       fontWeight: 500,
       fontSize: '0.75rem',
       lineHeight: 1.6,
@@ -277,6 +290,8 @@ const customTheme = createMuiTheme({
         padding: '1.5rem 1rem',
         borderTopLeftRadius: '0',
         borderTopRightRadius: '0',
+        fontSize: '1.4rem',
+        height: '5rem',
         backgroundColor: customColor.primary.backgroundColor,
         color: customColor.primary.color,
         '&:hover': {
@@ -291,6 +306,7 @@ const customTheme = createMuiTheme({
       },
       multiline: {
         padding: '1.5rem 1rem',
+        height: 'auto',
       },
       colorSecondary: {
         backgroundColor: customColor.secondary.backgroundColor,
