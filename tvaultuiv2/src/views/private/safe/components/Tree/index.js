@@ -101,7 +101,7 @@ const Tree = (props) => {
   const { data } = props;
   const [secretsFolder, setSecretsFolder] = useState([]);
   const [isAddInput, setIsAddInput] = useState(false);
-  const [inputType, setInputType] = useState('');
+  const [inputType, setInputType] = useState({});
 
   // set inital tree data structure
   const setTreeData = (treeData) => {
