@@ -140,11 +140,25 @@ const Folder = (props) => {
                 horizontal: 'right',
               }}
             >
-              <PopperItem onClick={() => handlePopperClick(true, 'folder')}>
+              <PopperItem
+                onClick={() =>
+                  handlePopperClick(true, {
+                    type: 'folder',
+                    currentNode: folderInfo.labelText,
+                  })
+                }
+              >
                 <IconAddFolder />
                 <span>Create Folder</span>
               </PopperItem>
-              <PopperItem onClick={() => handlePopperClick(true, 'file')}>
+              <PopperItem
+                onClick={() =>
+                  handlePopperClick(true, {
+                    type: 'file',
+                    currentNode: folderInfo.labelText,
+                  })
+                }
+              >
                 <IconAddSecret />
                 <span>Create Secret</span>
               </PopperItem>

@@ -64,7 +64,7 @@ const TreeRecursive = ({
           <AddForm
             inputNode={
               // eslint-disable-next-line react/jsx-wrap-multilines
-              inputType && inputType.toLowerCase() === 'folder' ? (
+              inputType?.type?.toLowerCase() === 'folder' ? (
                 <AddFolder
                   handleCancelClick={handleCancelClick}
                   handleSaveClick={(secret) =>
@@ -80,7 +80,9 @@ const TreeRecursive = ({
                 />
               )
             }
-            inputEnabled={isAddInput}
+            inputEnabled={
+              inputType?.currentNode === item.labelText && isAddInput
+            }
             createButton={<CreateSecretButton onClick={setCreateSecretBox} />}
           />
         </Folder>
@@ -105,6 +107,7 @@ const Tree = (props) => {
   const setTreeData = (treeData) => {
     setSecretsFolder(treeData);
   };
+
   useEffect(() => {
     setTreeData(data);
   }, [data]);
@@ -146,7 +149,7 @@ const Tree = (props) => {
   };
   const setCreateSecretBox = (e) => {
     setIsAddInput(e);
-    setInputType('file');
+    setInputType({ type: 'file', currentNode: '' });
   };
   const handleCancelClick = (val) => {
     setIsAddInput(val);

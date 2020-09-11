@@ -33,7 +33,8 @@ export function findElementById(arr, id, nestingKey) {
     arr.find((d) => d.labelText === id) ||
     findElementById(
       arr.flatMap((d) => d[nestingKey] || []),
-      id
+      id,
+      nestingKey
     ) ||
     'Not found'
   );
