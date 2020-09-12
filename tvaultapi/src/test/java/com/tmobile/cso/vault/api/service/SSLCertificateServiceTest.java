@@ -215,7 +215,7 @@ public class SSLCertificateServiceTest {
                 thenReturn(ResponseEntity.status(HttpStatus.OK).body(workloadApiResponse));
 
         DirectoryUser directoryUser = new DirectoryUser();
-        directoryUser.setDisplayName("testUser");
+        directoryUser.setDisplayName("testUserfirstname,lastname");
         directoryUser.setGivenName("testUser");
         directoryUser.setUserEmail("testUser@t-mobile.com");
         directoryUser.setUserId("testuser01");
@@ -1929,7 +1929,7 @@ public class SSLCertificateServiceTest {
     private CertResponse getEnrollResonse() {
         CertResponse enrollResponse = new CertResponse();
         enrollResponse.setHttpstatus(HttpStatus.NO_CONTENT);
-        enrollResponse.setResponse("Certificate Created Successfully In NCLM");
+        enrollResponse.setResponse("Certificate Created Successfully");
         enrollResponse.setSuccess(Boolean.TRUE);
 
         return enrollResponse;
@@ -2411,7 +2411,7 @@ public class SSLCertificateServiceTest {
         ReflectionTestUtils.setField(sSLCertificateService, "vaultAuthMethod", "oidc");
         String mountAccessor = "auth_oidc";
         DirectoryUser directoryUser = new DirectoryUser();
-        directoryUser.setDisplayName("testUser");
+        directoryUser.setDisplayName("testUser,testuser");
         directoryUser.setGivenName("testUser");
         directoryUser.setUserEmail("testUser@t-mobile.com");
         directoryUser.setUserId("testuser01");
@@ -4395,7 +4395,7 @@ public class SSLCertificateServiceTest {
         //oidc test cases
         String mountAccessor = "auth_oidc";
         DirectoryUser directoryUser = new DirectoryUser();
-        directoryUser.setDisplayName("testUser");
+        directoryUser.setDisplayName("testUser,testuser");
         directoryUser.setGivenName("testUser");
         directoryUser.setUserEmail("testUser@t-mobile.com");
         directoryUser.setUserId("testuser01");
@@ -5013,7 +5013,7 @@ public class SSLCertificateServiceTest {
         when(ControllerUtil.configureUserpassUser(eq("testusername1"),any(),eq(token))).thenReturn(idapConfigureResponse);
 
         DirectoryUser directoryUser = new DirectoryUser();
-        directoryUser.setDisplayName("testusername1");
+        directoryUser.setDisplayName("testusername1,testusername1");
         directoryUser.setGivenName("testusername1");
         directoryUser.setUserEmail("testUser@t-mobile.com");
         directoryUser.setUserId("testuser01");

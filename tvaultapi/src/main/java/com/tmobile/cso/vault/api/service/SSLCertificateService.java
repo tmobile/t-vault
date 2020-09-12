@@ -1187,6 +1187,10 @@ public class SSLCertificateService {
                 break;
             }
         }
+        String[] displayName =   directoryUser.getDisplayName().split(",");
+        if(displayName.length > 1) {
+            directoryUser.setDisplayName(displayName[1] + ", " + displayName[0]);
+        }
         return directoryUser;
     }
 
@@ -5234,7 +5238,8 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
         mailTemplateVariables.put("certEndDate", (Objects.nonNull(metaDataParams.get("expiryDate"))) ?
                 metaDataParams.get("expiryDate") : "N/A");
         mailTemplateVariables.put("contactLink", supportEmail);
-        String subject = SSLCertificateConstants.TRANSFER_EMAIL_SUBJECT + " -" + StringUtils.capitalize(metaDataParams.get(
+        String subject =
+                SSLCertificateConstants.TRANSFER_EMAIL_SUBJECT + " - " + StringUtils.capitalize(metaDataParams.get(
                 "certificateName"));
         if (Objects.nonNull(metaDataParams.get("dnsNames"))) {
             String dnsNames = Collections.singletonList(metaDataParams.get("dnsNames")).toString();
