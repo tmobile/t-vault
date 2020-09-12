@@ -9,6 +9,7 @@ import ButtonComponent from '../FormFields/ActionButton';
 
 const SideMenuWrapper = styled.div`
   padding: 2rem 0;
+  width: 33rem;
 `;
 
 const NavItems = styled.div`
@@ -41,10 +42,10 @@ const UserIcon = styled.img`
 `;
 
 const Sidebar = (props) => {
-  const { hideSideMenu, navItems, location, userName } = props;
+  const { onClose, navItems, location, userName } = props;
   return (
     <SideMenuWrapper>
-      <ButtonComponent color="primary" onClick={hideSideMenu} label="Close" />
+      <ButtonComponent color="primary" onClick={onClose} label="Close" />
       <NavItems>
         {navItems.map((item) => (
           <NavLink
@@ -65,7 +66,7 @@ const Sidebar = (props) => {
 };
 
 Sidebar.propTypes = {
-  hideSideMenu: PropTypes.func.isRequired,
+  onClose: PropTypes.func.isRequired,
   navItems: PropTypes.arrayOf(PropTypes.any).isRequired,
   location: PropTypes.objectOf(PropTypes.any).isRequired,
   userName: PropTypes.string.isRequired,

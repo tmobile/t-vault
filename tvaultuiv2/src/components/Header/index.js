@@ -9,6 +9,7 @@ import mediaBreakpoints from 'breakpoints';
 import vaultIcon from 'assets/tvault.svg';
 import menu from 'assets/menu.svg';
 import userIcon from 'assets/icon-profile.svg';
+import SwipeableDrawer from '@material-ui/core/SwipeableDrawer';
 import Sidebar from '../Sidebar';
 
 const { small, smallAndMedium } = mediaBreakpoints;
@@ -27,25 +28,6 @@ const Container = styled.div`
   height: 7rem;
   ${smallAndMedium} {
     justify-content: center;
-  }
-  .sideMenu {
-    background-color: #151820;
-    position: fixed;
-    left: 0;
-    top: 0px;
-    height: 100vh;
-    width: 30rem;
-    z-index: 1;
-    transition: ease 300ms;
-    ${small} {
-      width: 100%;
-    }
-  }
-  .hideMenu {
-    transform: translate(-100%, 0);
-  }
-  .showMenu {
-    transform: translate(0, 0);
   }
 `;
 
@@ -98,7 +80,20 @@ const UserIcon = styled.img`
 const Header = (props) => {
   const { location } = props;
   const [userName] = useState('User');
-  const [openMenu, setOpenMenu] = useState(false);
+  const [state, setState] = React.useState({
+    left: false,
+  });
+
+  const toggleDrawer = (anchor, open) => (event) => {
+    if (
+      event &&
+      event.type === 'keydown' &&
+      (event.key === 'Tab' || event.key === 'Shift')
+    ) {
+      return;
+    }
+    setState({ ...state, [anchor]: open });
+  };
   const navItems = [
     { label: 'Safe', path: 'safe' },
     { label: 'Applications', path: 'applications' },
@@ -106,15 +101,34 @@ const Header = (props) => {
     { label: 'Certificates', path: 'certificates' },
   ];
 
-  const hideSideMenu = () => {
-    setOpenMenu(false);
+  const hideSideMenu = (anchor, open) => {
+    setState({ ...state, [anchor]: open });
   };
 
   return (
     <ComponentError>
       <HeaderWrap>
         <Container>
-          <MenuIcon src={menu} alt="menu" onClick={() => setOpenMenu(true)} />
+          <>
+            <MenuIcon
+              src={menu}
+              alt="menu"
+              onClick={toggleDrawer('left', true)}
+            />
+            <SwipeableDrawer
+              anchor="left"
+              open={state.left}
+              onClose={toggleDrawer('left', false)}
+              onOpen={toggleDrawer('left', true)}
+            >
+              <Sidebar
+                onClose={() => hideSideMenu('left', false)}
+                navItems={navItems}
+                userName={userName}
+              />
+            </SwipeableDrawer>
+          </>
+
           <TVaultIcon src={vaultIcon} alt="tvault-logo" />
           <HeaderCenter>
             {navItems.map((item) => (
@@ -131,13 +145,6 @@ const Header = (props) => {
             <UserName>{userName}</UserName>
             <UserIcon src={userIcon} alt="usericon" />
           </ProfileIconWrap>
-          <div className={`sideMenu ${openMenu ? 'showMenu' : 'hideMenu'}`}>
-            <Sidebar
-              hideSideMenu={() => hideSideMenu()}
-              navItems={navItems}
-              userName={userName}
-            />
-          </div>
         </Container>
       </HeaderWrap>
     </ComponentError>
