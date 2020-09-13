@@ -26,18 +26,31 @@ public class CertificateDownloadRequest implements Serializable {
     private String certificateCred;
     private boolean issuerChain;
     private String format;
+    private String certType;
 
+    public String getCertType() {
+        return certType;
+    }
+
+    public void setCertType(String certType) {
+        this.certType = certType;
+    }
 
     public CertificateDownloadRequest() {
 
     }
 
-    public CertificateDownloadRequest(String certificateName, String certificateCred, String format, boolean issuerChain) {
+    public CertificateDownloadRequest(String certificateName, String certificateCred, String format,
+                                      boolean issuerChain,String certType) {
         this.certificateName = certificateName;
         this.certificateCred = certificateCred;
         this.format = format;
         this.issuerChain = issuerChain;
+        this.certType=certType;
     }
+
+
+
 
     public String getCertificateCred() {
         return certificateCred;

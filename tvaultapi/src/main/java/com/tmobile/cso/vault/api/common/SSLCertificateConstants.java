@@ -25,7 +25,7 @@ public final class SSLCertificateConstants {
     public static final String SELECTED_ID="selectedId";
     public static final String SSL_CERT_PATH = "metadata/sslcerts";
     public static final String SSL_CREATE_EXCEPTION="SSL Certificate creation failed";
-    public static final String SSL_CERT_SUCCESS="Certificate Created Successfully In NCLM";
+    public static final String SSL_CERT_SUCCESS="Certificate Created Successfully";
     public static final String CUSTOMER_LOGIN="CertManager Login";
     public static final String ACCESS_ID="accessid";
     public static final String ADDRESS="address";

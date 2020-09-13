@@ -219,7 +219,7 @@ script(type='text/ng-template', id='certificatePopup.html')
                     div.loader.svcaccid(ng-if='isApplicationsLoading')
                 .col-lg-12.col-md-12.col-sm-12.col-xs-12.common-form-row()
                   .details-input-group
-                    .certificate-form-label(uib-tooltip="Owner of the application") Owner Email ID*
+                    .certificate-form-label(uib-tooltip="Owner/creator of the certificate") Owner Email ID*
                     input.form-control.input-box-style(id="certReqOwnerEmail"  ng-model="certObj.certDetails.ownerEmail" disabled=true)
                     div.loader.svcaccid(ng-if='isUserSearchLoading && certObj.certDetails.ownerEmail.length > 2')
                             div
@@ -232,7 +232,7 @@ script(type='text/ng-template', id='certificatePopup.html')
                             div
                 .col-lg-12.col-md-12.col-sm-12.col-xs-12.common-form-row()
                   .details-input-group
-                    .certificate-form-label DNS
+                    .certificate-form-label(uib-tooltip="Additional host names (sites, IP addresses, common names, etc.") DNS
                     div.dns-wrapper
                       .col-lg-9.col-md-9.col-sm-9.col-xs-9
                         .cert-input-group.cert-suffix
@@ -288,6 +288,9 @@ script(type='text/ng-template', id='certificatePopup.html')
                       .certificate-form-label Enroll Service :
                       .cert-preview-details(ng-if="certificateDetails.certType=='Internal'") T-Mobile Issuing CA 01 - SHA2
                       .cert-preview-details(ng-if="certificateDetails.certType=='External'") Entrust CA
+                  .col-lg-12.col-md-12.col-sm-12.col-xs-12.common-form-row()
+                    .details-input-group
+                      .div.certeditnotes Note : Select the Edit button  to modify the input details else Create button  to create a certificate
 
           .text-center.bottom-lg-sep.modal-sep.aws(ng-show='isCertificateManagePreview')
             .col-lg-6.col-md-6.col-sm-6.col-xs-6

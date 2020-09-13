@@ -365,6 +365,7 @@
                     $scope.certIdToDownload = $scope.certificateDetails.certificateId;
 
                     $scope.downloadRequest.certificateName = $scope.certificateDetails.certificateName;
+                    $scope.downloadRequest.certType = $scope.certificateDetails.certType;
                 }
                 else {                   
                     $scope.errorMessage = AdminSafesManagement.getTheRightErrorMessage(response);
@@ -473,8 +474,8 @@
             }
         }
 
-        function getCert(certificateName, format) {
-            var url = RestEndpoints.baseURL + '/v2/sslcert/certificates/'+certificateName+'/'+format
+        function getCert(certificateName, format,sslCertType) {
+            var url = RestEndpoints.baseURL + '/v2/sslcert/certificates/'+certificateName+'/'+format+'/'+sslCertType
             return $http({
                 method: 'GET',
                 url: url,
@@ -497,8 +498,9 @@
                 Modal.close('');
                 $scope.isLoadingData = true;
                 var certName = $scope.downloadRequest.certificateName;
+                var certType = $scope.downloadRequest.certType;
                 if (certName != "") {
-                    getCert(certName, format, null).then(function (response) {
+                    getCert(certName, format, certType).then(function (response) {
                         if (UtilityService.ifAPIRequestSuccessful(response)) {
                             var file = new Blob([response.data], { type: 'application/octet-stream' });
                             var fileURL = URL.createObjectURL(file);

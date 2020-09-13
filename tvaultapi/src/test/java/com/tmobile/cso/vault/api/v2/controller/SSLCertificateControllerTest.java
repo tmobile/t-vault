@@ -246,7 +246,7 @@ public class SSLCertificateControllerTest {
     @Test
     public void test_downloadCertificateWithPrivateKey() throws Exception {
         CertificateDownloadRequest certificateDownloadRequest = new CertificateDownloadRequest(
-                "abc.com", "password", "pembundle", false);
+                "abc.com", "password", "pembundle", false,"internal");
 
         String inputJson =new ObjectMapper().writeValueAsString(certificateDownloadRequest);
         InputStreamResource resource = null;
@@ -268,9 +268,10 @@ public class SSLCertificateControllerTest {
         InputStreamResource resource = null;
         ResponseEntity<InputStreamResource> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(resource);
 
-        when(sslCertificateService.downloadCertificate(eq("5PDrOhsy4ig8L3EpsJZSLAMg"), Mockito.any(), eq("12345"), eq("pem"))).thenReturn(responseEntityExpected);
+        when(sslCertificateService.downloadCertificate(eq("5PDrOhsy4ig8L3EpsJZSLAMg"), Mockito.any(), eq("12345"),
+                eq("pem"),eq("external"))).thenReturn(responseEntityExpected);
 
-        mockMvc.perform(MockMvcRequestBuilders.get("/v2/sslcert/certificates/12345/pem")
+        mockMvc.perform(MockMvcRequestBuilders.get("/v2/sslcert/certificates/12345/pem/external")
                 .header("vault-token", "5PDrOhsy4ig8L3EpsJZSLAMg")
                 .header("Content-Type", "application/json;charset=UTF-8"))
                 .andExpect(status().isOk());
