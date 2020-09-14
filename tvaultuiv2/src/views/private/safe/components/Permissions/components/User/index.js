@@ -11,6 +11,7 @@ import AddUser from '../../../AddUser';
 const NoDataWrapper = styled.section`
   display: flex;
   justify-content: center;
+  margin-top: 2.5rem;
 `;
 const bgIconStyle = {
   width: '16rem',
@@ -22,7 +23,7 @@ const User = (props) => {
 
   useEffect(() => {
     console.log('users', users);
-  }, []);
+  }, [users]);
   // eslint-disable-next-line no-unused-vars
   const onSaveClicked = (search, radio) => {
     setAddPermission(false);
@@ -32,6 +33,14 @@ const User = (props) => {
   };
   return (
     <ComponentError>
+      {addPermission ? (
+        <AddUser
+          handleSaveClick={(search, radio) => onSaveClicked(search, radio)}
+          handleCancelClick={() => onCancelClicked()}
+        />
+      ) : (
+        ''
+      )}
       {users && users.length > 0 ? (
         <div>Hi</div>
       ) : (
@@ -54,14 +63,6 @@ const User = (props) => {
             />
           </NoDataWrapper>
         )
-      )}
-      {addPermission ? (
-        <AddUser
-          handleSaveClick={(search, radio) => onSaveClicked(search, radio)}
-          handleCancelClick={() => onCancelClicked()}
-        />
-      ) : (
-        ''
       )}
     </ComponentError>
   );
