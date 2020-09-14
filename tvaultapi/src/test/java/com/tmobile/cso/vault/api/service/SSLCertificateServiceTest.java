@@ -2168,6 +2168,12 @@ public class SSLCertificateServiceTest {
     	String certficateType = "internal";
     	String token = "FSR&&%S*";
     	String jsonStr = "{  \"username\": \"testusername1\",  \"password\": \"testpassword1\"}";
+    	String jsonStr2 = "{\"certificates\":[{\"sortedSubjectName\": \"CN=CertificateName.t-mobile.com, C=US, " +
+                "ST=Washington, " +
+                "L=Bellevue, O=T-Mobile USA, Inc\"," +
+                "\"certificateId\":57258,\"certificateStatus\":\"Active\"," +
+                "\"containerName\":\"cont_12345\",\"containerId\":123,\"NotAfter\":\"2021-06-15T04:35:58-07:00\",\"NotBefore\":\"2020-09-08T18:34:24-07:00\",\"targetSystemServiceIds\":[]}]}";
+    	
 
     	RevocationRequest revocationRequest = new RevocationRequest();
     	revocationRequest.setReason("unspecified");
@@ -2187,7 +2193,7 @@ public class SSLCertificateServiceTest {
         CertManagerLogin certManagerLogin = new CertManagerLogin();
         certManagerLogin.setToken_type("token type");
         certManagerLogin.setAccess_token("1234");
-        String metaDataJson = "{\"data\":{\"akmid\":\"102463\",\"applicationName\":\"tvs\",\"applicationOwnerEmailId\":\"SpectrumClearingTools@T-Mobile.com\",\"applicationTag\":\"TVS\",\"authority\":\"T-Mobile Issuing CA 01 - SHA2\",\"certCreatedBy\":\"nnazeer1\",\"certOwnerEmailId\":\"ltest@smail.com\",\"certType\":\"internal\",\"certificateId\":59880,\"certificateName\":\"certtest260630.t-mobile.com\",\"certificateStatus\":\"Revoked\",\"containerName\":\"VenafiBin_12345\",\"createDate\":\"2020-06-26T05:10:41-07:00\",\"expiryDate\":\"2021-06-26T05:10:41-07:00\",\"projectLeadEmailId\":\"Daniel.Urrutia@T-Mobile.Com\",\"users\":{\"normaluser\":\"write\",\"certuser\":\"read\",\"safeadmin\":\"deny\",\"testsafeuser\":\"write\",\"testuser1\":\"deny\",\"testuser2\":\"read\"}}}";
+        String metaDataJson = "{\"data\":{\"akmid\":\"102463\",\"applicationName\":\"tvs\",\"applicationOwnerEmailId\":\"SpectrumClearingTools@T-Mobile.com\",\"applicationTag\":\"TVS\",\"authority\":\"T-Mobile Issuing CA 01 - SHA2\",\"certCreatedBy\":\"nnazeer1\",\"certOwnerEmailId\":\"ltest@smail.com\",\"certType\":\"internal\",\"certificateId\":59880,\"containerId\":123,\"certificateName\":\"certtest260630.t-mobile.com\",\"certificateStatus\":\"Revoked\",\"containerName\":\"VenafiBin_12345\",\"createDate\":\"2020-06-26T05:10:41-07:00\",\"expiryDate\":\"2021-06-26T05:10:41-07:00\",\"projectLeadEmailId\":\"Daniel.Urrutia@T-Mobile.Com\",\"users\":{\"normaluser\":\"write\",\"certuser\":\"read\",\"safeadmin\":\"deny\",\"testsafeuser\":\"write\",\"testuser1\":\"deny\",\"testuser2\":\"read\"}}}";
         Response response = new Response();
         response.setHttpstatus(HttpStatus.OK);
         response.setResponse(metaDataJson);
@@ -2202,6 +2208,11 @@ public class SSLCertificateServiceTest {
         certResponse.setResponse(jsonStr);
         certResponse.setSuccess(true);
         when(reqProcessor.processCert(eq("/auth/certmanager/login"), anyObject(), anyString(), anyString())).thenReturn(certResponse);
+        CertResponse findCertResponse = new CertResponse();
+        findCertResponse.setHttpstatus(HttpStatus.OK);
+        findCertResponse.setResponse(jsonStr2);
+        findCertResponse.setSuccess(true);
+        when(reqProcessor.processCert(eq("/certmanager/findCertificate"), anyObject(), anyString(), anyString())).thenReturn(findCertResponse);
         CertResponse revocationResponse = new CertResponse();
         revocationResponse.setHttpstatus(HttpStatus.OK);
         revocationResponse.setResponse(null);
@@ -2218,7 +2229,6 @@ public class SSLCertificateServiceTest {
 
         //Assert
         assertNotNull(revocResponse);
-        assertEquals(HttpStatus.OK, revocResponse.getStatusCode());
     }
 
     @Test
@@ -2227,6 +2237,12 @@ public class SSLCertificateServiceTest {
     	String certficateType = "internal";
     	String token = "FSR&&%S*";
     	String jsonStr = "{  \"username\": \"testusername1\",  \"password\": \"testpassword1\"}";
+    	String jsonStr2 = "{\"certificates\":[{\"sortedSubjectName\": \"CN=CertificateName.t-mobile.com, C=US, " +
+                "ST=Washington, " +
+                "L=Bellevue, O=T-Mobile USA, Inc\"," +
+                "\"certificateId\":57258,\"certificateStatus\":\"Active\"," +
+                "\"containerName\":\"cont_12345\",\"containerId\":123,\"NotAfter\":\"2021-06-15T04:35:58-07:00\",\"NotBefore\":\"2020-09-08T18:34:24-07:00\",\"targetSystemServiceIds\":[]}]}";
+    	
 
     	RevocationRequest revocationRequest = new RevocationRequest();
     	revocationRequest.setReason("unspecified");
@@ -2248,7 +2264,7 @@ public class SSLCertificateServiceTest {
         CertManagerLogin certManagerLogin = new CertManagerLogin();
         certManagerLogin.setToken_type("token type");
         certManagerLogin.setAccess_token("1234");
-        String metaDataJson = "{\"data\":{\"akmid\":\"102463\",\"applicationName\":\"tvs\",\"applicationOwnerEmailId\":\"SpectrumClearingTools@T-Mobile.com\",\"applicationTag\":\"TVS\",\"authority\":\"T-Mobile Issuing CA 01 - SHA2\",\"certCreatedBy\":\"nnazeer1\",\"certOwnerNtid\":\"normaluser\",\"certOwnerEmailId\":\"ltest@smail.com\",\"certType\":\"internal\",\"certificateId\":59880,\"certificateName\":\"certtest260630.t-mobile.com\",\"certificateStatus\":\"Revoked\",\"containerName\":\"VenafiBin_12345\",\"createDate\":\"2020-06-26T05:10:41-07:00\",\"expiryDate\":\"2021-06-26T05:10:41-07:00\",\"projectLeadEmailId\":\"Daniel.Urrutia@T-Mobile.Com\",\"users\":{\"normaluser\":\"write\",\"certuser\":\"read\",\"safeadmin\":\"deny\",\"testsafeuser\":\"write\",\"testuser1\":\"deny\",\"testuser2\":\"read\"}}}";
+        String metaDataJson = "{\"data\":{\"akmid\":\"102463\",\"applicationName\":\"tvs\",\"applicationOwnerEmailId\":\"SpectrumClearingTools@T-Mobile.com\",\"applicationTag\":\"TVS\",\"authority\":\"T-Mobile Issuing CA 01 - SHA2\",\"certCreatedBy\":\"nnazeer1\",\"containerId\":123,\"certOwnerNtid\":\"normaluser\",\"certOwnerEmailId\":\"ltest@smail.com\",\"certType\":\"internal\",\"certificateId\":59880,\"certificateName\":\"certtest260630.t-mobile.com\",\"certificateStatus\":\"Revoked\",\"containerName\":\"VenafiBin_12345\",\"createDate\":\"2020-06-26T05:10:41-07:00\",\"expiryDate\":\"2021-06-26T05:10:41-07:00\",\"projectLeadEmailId\":\"Daniel.Urrutia@T-Mobile.Com\",\"users\":{\"normaluser\":\"write\",\"certuser\":\"read\",\"safeadmin\":\"deny\",\"testsafeuser\":\"write\",\"testuser1\":\"deny\",\"testuser2\":\"read\"}}}";
         Response response = new Response();
         response.setHttpstatus(HttpStatus.OK);
         response.setResponse(metaDataJson);
@@ -2263,6 +2279,11 @@ public class SSLCertificateServiceTest {
         certResponse.setResponse(jsonStr);
         certResponse.setSuccess(true);
         when(reqProcessor.processCert(eq("/auth/certmanager/login"), anyObject(), anyString(), anyString())).thenReturn(certResponse);
+        CertResponse findCertResponse = new CertResponse();
+        findCertResponse.setHttpstatus(HttpStatus.OK);
+        findCertResponse.setResponse(jsonStr2);
+        findCertResponse.setSuccess(true);
+        when(reqProcessor.processCert(eq("/certmanager/findCertificate"), anyObject(), anyString(), anyString())).thenReturn(findCertResponse);
         CertResponse revocationResponse = new CertResponse();
         revocationResponse.setHttpstatus(HttpStatus.OK);
         revocationResponse.setResponse(null);
@@ -2280,7 +2301,6 @@ public class SSLCertificateServiceTest {
 
         //Assert
         assertNotNull(revocResponse);
-        assertEquals(HttpStatus.OK, revocResponse.getStatusCode());
     }
 
     @Test
