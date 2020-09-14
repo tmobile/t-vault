@@ -18,7 +18,7 @@ const SafeSectionPreview = styled('section')`
   height: 77vh;
   ${mediaBreakpoints.small} {
     margin: 0;
-    height: 86vh;
+    height: 89vh;
   }
 `;
 
