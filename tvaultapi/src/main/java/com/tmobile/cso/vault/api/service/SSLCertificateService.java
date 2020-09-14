@@ -1189,7 +1189,7 @@ public class SSLCertificateService {
         }
         String[] displayName =   directoryUser.getDisplayName().split(",");
         if(displayName.length > 1) {
-            directoryUser.setDisplayName(displayName[1] + ", " + displayName[0]);
+            directoryUser.setDisplayName(displayName[1] + "  " + displayName[0]);
         }
         return directoryUser;
     }
