@@ -551,7 +551,7 @@ script(type='text/ng-template', id='manageSecretId.html')
                                       .create-link.middle-block.hide-in-mobile
                                           .text CREATE NEW CERTIFICATE
                               div.cert-management-content
-                                loading-state(ng-if='isLoadingData')                               
+                                loading-state(ng-if='isLoadingData'  && 'isLoadingCerts')                               
                                 md-tabs.admin-tabs.md-dynamic-height.md-border-bottom(md-selected="selectedTab")
                                     md-tab( md-on-select="getInternalCertificates()" ng-attr-label="Internal certificates")
                                         md-content(class="md-content-wrapper" ng-if="isInternalCert")
