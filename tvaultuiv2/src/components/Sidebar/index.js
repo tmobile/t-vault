@@ -47,15 +47,16 @@ const Sidebar = (props) => {
     <SideMenuWrapper>
       <ButtonComponent color="primary" onClick={onClose} label="Close" />
       <NavItems>
-        {navItems.map((item) => (
-          <NavLink
-            href={`/${item.path}`}
-            key={item.label}
-            active={`/${location.pathname}`.includes(item.path)}
-          >
-            {item.label}
-          </NavLink>
-        ))}
+        {navItems &&
+          navItems.map((item) => (
+            <NavLink
+              href={`/${item.path}`}
+              key={item.label}
+              active={`/${location.pathname}`.includes(item.path)}
+            >
+              {item.label}
+            </NavLink>
+          ))}
       </NavItems>
       <ProfileIconWrap>
         <UserName>{userName}</UserName>

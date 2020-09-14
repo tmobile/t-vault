@@ -1,5 +1,5 @@
 /* eslint-disable import/no-unresolved */
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import ComponentError from 'errorBoundaries/ComponentError/component-error';
 import NoData from 'components/NoData';
 import ButtonComponent from 'components/FormFields/ActionButton';
@@ -21,9 +21,6 @@ const User = (props) => {
   const { users } = props;
   const [addPermission, setAddPermission] = useState(false);
 
-  useEffect(() => {
-    console.log('users', users);
-  }, [users]);
   // eslint-disable-next-line no-unused-vars
   const onSaveClicked = (search, radio) => {
     setAddPermission(false);

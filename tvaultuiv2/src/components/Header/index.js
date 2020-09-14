@@ -131,15 +131,16 @@ const Header = (props) => {
 
           <TVaultIcon src={vaultIcon} alt="tvault-logo" />
           <HeaderCenter>
-            {navItems.map((item) => (
-              <NavLink
-                href={`/${item.path}`}
-                key={item.label}
-                active={`/${location.pathname}`.includes(item.path)}
-              >
-                {item.label}
-              </NavLink>
-            ))}
+            {navItems &&
+              navItems.map((item) => (
+                <NavLink
+                  href={`/${item.path}`}
+                  key={item.label}
+                  active={`/${location.pathname}`.includes(item.path)}
+                >
+                  {item.label}
+                </NavLink>
+              ))}
           </HeaderCenter>
           <ProfileIconWrap>
             <UserName>{userName}</UserName>

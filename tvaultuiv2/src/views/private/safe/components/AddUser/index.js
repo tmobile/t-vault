@@ -103,9 +103,11 @@ const Permissions = (props) => {
       .searchUser(data)
       .then((res) => {
         setOptions([]);
-        res.data.values.map((item) => {
-          return setOptions((prev) => [...prev, item.userEmail]);
-        });
+        if (res && res.data) {
+          res.data.values.map((item) => {
+            return setOptions((prev) => [...prev, item.userEmail]);
+          });
+        }
       })
       // eslint-disable-next-line no-console
       .catch((e) => console.error(e));
@@ -183,7 +185,7 @@ const Permissions = (props) => {
             <ButtonComponent
               label="Save"
               color="secondary"
-              onClick={handleSaveClick(searchValue, radioValue)}
+              onClick={() => handleSaveClick(searchValue, radioValue)}
               disabled={disabledSave}
             />
           </CancelSaveWrapper>
