@@ -13,6 +13,8 @@ import SelectDropDown from 'components/SelectDropDown';
 import FloatingActionButtonComponent from 'components/FormFields/FloatingActionButton';
 import mediaBreakpoints from 'breakpoints';
 import useMediaQuery from '@material-ui/core/useMediaQuery';
+import TextFieldComponent from 'components/FormFields/TextField';
+import { SearchIcon } from 'assets/SvgIcons';
 import SafeDetails from '../SafeDetails';
 import ListItem from '../ListItem';
 import PsudoPopper from '../PsudoPopper';
@@ -117,6 +119,7 @@ const SafeDashboard = (props) => {
   const [safeList, setSafeList] = useState([]);
   const [moreData, setMoreData] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [inputSearchValue, setInputSearchValue] = useState('');
 
   const [activeSafeFolders, setActiveSafeFolders] = useState([]);
   // const [showPopper, setShowPopper] = useState(false);
@@ -145,6 +148,10 @@ const SafeDashboard = (props) => {
     });
     setMoreData(true);
   }, []);
+
+  const handleChange = (e) => {
+    setInputSearchValue(e.target.value);
+  };
 
   // const getSafesList = () => {
   //   return new Promise((resolve) =>
@@ -200,6 +207,13 @@ const SafeDashboard = (props) => {
           <ColumnSection width={isMobileScreen ? '100%' : '52.9rem'}>
             <ColumnHeader>
               <SelectDropDown />
+              <TextFieldComponent
+                placeholder="Search"
+                icon={<SearchIcon />}
+                onChange={(e) => handleChange(e)}
+                value={inputSearchValue || ''}
+                color="secondary"
+              />
             </ColumnHeader>
 
             {safeList && safeList.length ? (

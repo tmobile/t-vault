@@ -9,6 +9,9 @@ const StyleTextField = styled(TextField)`
   .MuiFilledInput-adornedStart {
     font-size: 1.4rem;
   }
+  .MuiIcon-root {
+    font-size: 2rem;
+  }
   .MuiInputAdornment-filled.MuiInputAdornment-positionStart:not(.MuiInputAdornment-hiddenLabel) {
     margin-top: 0;
   }
