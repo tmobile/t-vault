@@ -267,14 +267,18 @@ const customTheme = createMuiTheme({
       },
     },
     MuiTab: {
+      root: {
+        textTransform: 'capitalize',
+      },
       textColorPrimary: {
         color: '#5e627c',
       },
     },
     MuiFormLabel: {
       root: {
-        marginBottom: '1.2rem',
+        marginBottom: '0.8rem',
         fontSize: '1.4rem',
+        color: '#fff',
       },
     },
     MuiRadio: {
@@ -295,7 +299,7 @@ const customTheme = createMuiTheme({
         backgroundColor: customColor.primary.backgroundColor,
         color: customColor.primary.color,
         '&:hover': {
-          backgroundColor: customColor.primary.backgroundColor,
+          backgroundColor: '#fff !important',
         },
       },
       input: {

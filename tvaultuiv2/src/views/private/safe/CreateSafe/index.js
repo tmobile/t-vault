@@ -1,7 +1,7 @@
 /* eslint-disable import/no-unresolved */
 import React, { useState } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
-import { withRouter, useHistory } from 'react-router-dom';
+import { useHistory } from 'react-router-dom';
 import Modal from '@material-ui/core/Modal';
 import { Backdrop, Typography, InputLabel } from '@material-ui/core';
 import Fade from '@material-ui/core/Fade';
@@ -12,14 +12,30 @@ import ButtonComponent from 'components/FormFields/ActionButton';
 import SelectComponent from 'components/FormFields/SelectFields';
 import ComponentError from 'errorBoundaries/ComponentError/component-error';
 import safeIcon from '../../../../assets/icon_safe.svg';
+import mediaBreakpoints from '../../../../breakpoints';
+
+const { small, smallAndMedium } = mediaBreakpoints;
 
 const ModalWrapper = styled.section`
   background-color: #2a2e3e;
-  padding: 5.5rem;
+  padding: 5.5rem 6rem 6rem 6rem;
   border: none;
   outline: none;
   width: 69.6rem;
   margin: auto 0;
+  ${smallAndMedium} {
+    padding: 4.7rem 5rem 5rem 5rem;
+  }
+  ${small} {
+    width: 37.5rem;
+    padding: 2rem;
+    margin: 0;
+  }
+  .MuiTypography-h5 {
+    ${small} {
+      margin-top: 1rem;
+    }
+  }
 `;
 
 const IconDescriptionWrapper = styled.div`
@@ -35,14 +51,18 @@ const SafeIcon = styled.img`
 `;
 
 const SafeDescription = styled.p`
-  margin-left: 2rem;
+  margin: 0 0 0 2rem;
   color: #ccc;
   font-size: 1.4rem;
+  ${small} {
+    font-size: 1.3rem;
+  }
 `;
 
 const CreateSafeForm = styled.form`
   display: flex;
   flex-direction: column;
+  margin-top: 2.8rem;
 `;
 
 const InputFieldLabelWrapper = styled.div`
@@ -56,15 +76,29 @@ const InputFieldLabelWrapper = styled.div`
 const FieldInstruction = styled.p`
   color: #8b8ea6;
   font-size: 1.3rem;
+  margin-top: 1.2rem;
+  margin-bottom: 0.5rem;
 `;
 
 const CancelSaveWrapper = styled.div`
   display: flex;
   justify-content: flex-end;
+  ${small} {
+    margin-top: 11.3rem;
+  }
+  button {
+    ${small} {
+      width: 16.3rem;
+      height: 4.5rem;
+    }
+  }
 `;
 
 const CancelButton = styled.div`
   margin-right: 0.8rem;
+  ${small} {
+    margin-right: 1rem;
+  }
 `;
 
 const useStyles = makeStyles(() => ({
@@ -79,6 +113,11 @@ const useStyles = makeStyles(() => ({
     justifyContent: 'center',
     overflowY: 'auto',
     padding: '10rem 0',
+    '@media (max-width: 767.95px)': {
+      alignItems: 'unset',
+      justifyContent: 'unset',
+      padding: '0',
+    },
   },
 }));
 
@@ -90,14 +129,9 @@ const CreateModal = (props) => {
   const [owner, setOwner] = useState('');
   const [safeName, setSafeName] = useState('');
   const [description, setDescription] = useState('');
-  const [popOverOpen, setPopOverOpen] = useState(false);
 
-  // use history from useHistory
   const history = useHistory();
 
-  const onIconClicked = () => {
-    setPopOverOpen(!popOverOpen);
-  };
   const [menu] = useState(['Personal', 'Public']);
 
   const handleClose = () => {
@@ -206,7 +240,6 @@ const CreateModal = (props) => {
 };
 
 CreateModal.propTypes = {
-  history: PropTypes.objectOf(PropTypes.any).isRequired,
   createSafe: PropTypes.func,
 };
 CreateModal.defaultProps = {

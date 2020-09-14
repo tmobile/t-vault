@@ -30,6 +30,7 @@ const BackgroundIcon = styled(CardMedia)`
 `;
 const NoData = (props) => {
   const { description, actionButton, imageSrc, bgIconStyle, width } = props;
+
   return (
     <ComponentError>
       <DialogeBoxWrapper width={width}>
