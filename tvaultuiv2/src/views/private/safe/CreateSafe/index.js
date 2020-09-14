@@ -12,6 +12,7 @@ import ButtonComponent from 'components/FormFields/ActionButton';
 import SelectComponent from 'components/FormFields/SelectFields';
 import ComponentError from 'errorBoundaries/ComponentError/component-error';
 import safeIcon from '../../../../assets/icon_safe.svg';
+import leftArrowIcon from '../../../../assets/left-arrow.svg';
 import mediaBreakpoints from '../../../../breakpoints';
 
 const { small, smallAndMedium } = mediaBreakpoints;
@@ -27,17 +28,29 @@ const ModalWrapper = styled.section`
     padding: 4.7rem 5rem 5rem 5rem;
   }
   ${small} {
-    width: 37.5rem;
+    width: 100%;
     padding: 2rem;
     margin: 0;
-  }
-  .MuiTypography-h5 {
-    ${small} {
-      margin-top: 1rem;
-    }
+    height: 89.2rem;
   }
 `;
 
+const HeaderWrapper = styled.div`
+  display: flex;
+  align-items: center;
+  ${small} {
+    margin-top: 1rem;
+  }
+`;
+
+const LeftIcon = styled.img`
+  display: none;
+  ${small} {
+    display: block;
+    margin-right: 1.4rem;
+    margin-top: 0.3rem;
+  }
+`;
 const IconDescriptionWrapper = styled.div`
   display: flex;
   align-items: center;
@@ -82,13 +95,12 @@ const FieldInstruction = styled.p`
 
 const CancelSaveWrapper = styled.div`
   display: flex;
-  justify-content: flex-end;
+  justify-content: center;
   ${small} {
     margin-top: 11.3rem;
   }
   button {
     ${small} {
-      width: 16.3rem;
       height: 4.5rem;
     }
   }
@@ -101,7 +113,7 @@ const CancelButton = styled.div`
   }
 `;
 
-const useStyles = makeStyles(() => ({
+const useStyles = makeStyles((theme) => ({
   select: {
     '&.MuiFilledInput-root.Mui-focused': {
       backgroundColor: '#fff',
@@ -113,7 +125,7 @@ const useStyles = makeStyles(() => ({
     justifyContent: 'center',
     overflowY: 'auto',
     padding: '10rem 0',
-    '@media (max-width: 767.95px)': {
+    [theme.breakpoints.down('xs')]: {
       alignItems: 'unset',
       justifyContent: 'unset',
       padding: '0',
@@ -165,7 +177,14 @@ const CreateModal = (props) => {
       >
         <Fade in={open}>
           <ModalWrapper>
-            <Typography variant="h5">Create Safe</Typography>
+            <HeaderWrapper>
+              <LeftIcon
+                src={leftArrowIcon}
+                alt="go-back"
+                onClick={() => handleClose()}
+              />
+              <Typography variant="h5">Create Safe</Typography>
+            </HeaderWrapper>
             <IconDescriptionWrapper>
               <SafeIcon src={safeIcon} alt="safe-icon" />
               <SafeDescription>

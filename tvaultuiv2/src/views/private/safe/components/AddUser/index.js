@@ -103,7 +103,7 @@ const Permissions = (props) => {
       .searchUser(data)
       .then((res) => {
         setOptions([]);
-        if (res && res.data) {
+        if (res && res.data && res.data.values.length > 0) {
           res.data.values.map((item) => {
             return setOptions((prev) => [...prev, item.userEmail]);
           });
