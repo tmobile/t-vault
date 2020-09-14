@@ -1,4 +1,3 @@
-/* eslint-disable prettier/prettier */
 /* eslint-disable import/no-unresolved */
 import React, { useState, useEffect } from 'react';
 import ComponentError from 'errorBoundaries/ComponentError/component-error';
@@ -41,14 +40,15 @@ const User = (props) => {
             <NoData
               imageSrc={noPermissionsIcon}
               description="Add <strong>Permissions</strong> to allow people, groups or aplication to access this safe"
-              actionButton={(
+              actionButton={
+                // eslint-disable-next-line react/jsx-wrap-multilines
                 <ButtonComponent
                   label="add"
                   icon="add"
                   color="secondary"
                   onClick={() => setAddPermission(true)}
                 />
-              )}
+              }
               bgIconStyle={bgIconStyle}
               width="38%"
             />
