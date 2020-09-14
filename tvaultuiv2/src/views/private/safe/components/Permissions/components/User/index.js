@@ -33,28 +33,35 @@ const User = (props) => {
   };
   return (
     <ComponentError>
+      {users && users.length > 0 ? (
+        <div>Hi</div>
+      ) : (
+        !addPermission && (
+          <NoDataWrapper>
+            <NoData
+              imageSrc={noPermissionsIcon}
+              description="Add <strong>Permissions</strong> to allow people, groups or aplication to access this safe"
+              actionButton={(
+                <ButtonComponent
+                  label="add"
+                  icon="add"
+                  color="secondary"
+                  onClick={() => setAddPermission(true)}
+                />
+              )}
+              bgIconStyle={bgIconStyle}
+              width="38%"
+            />
+          </NoDataWrapper>
+        )
+      )}
       {addPermission ? (
         <AddUser
           handleSaveClick={(search, radio) => onSaveClicked(search, radio)}
           handleCancelClick={() => onCancelClicked()}
         />
       ) : (
-        <NoDataWrapper>
-          <NoData
-            imageSrc={noPermissionsIcon}
-            description="Add <strong>Permissions</strong> to allow people, groups or aplication to access this safe"
-            actionButton={(
-              <ButtonComponent
-                label="add"
-                icon="add"
-                color="secondary"
-                onClick={() => setAddPermission(true)}
-              />
-            )}
-            bgIconStyle={bgIconStyle}
-            width="38%"
-          />
-        </NoDataWrapper>
+        ''
       )}
     </ComponentError>
   );
