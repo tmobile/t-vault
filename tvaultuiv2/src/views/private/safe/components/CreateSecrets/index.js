@@ -3,15 +3,20 @@
 import React, { useState } from 'react';
 import { InputLabel, Typography } from '@material-ui/core';
 import styled from 'styled-components';
+import useMediaQuery from '@material-ui/core/useMediaQuery';
 import PropTypes from 'prop-types';
 import ButtonComponent from 'components/FormFields/ActionButton';
 import TextFieldComponent from 'components/FormFields/TextField';
 import ComponentError from 'errorBoundaries/ComponentError/component-error';
+import mediaBreakpoints from 'breakpoints';
 
 const SecretWrapper = styled.section`
   padding: 3rem;
   display: flex;
   flex-direction: column;
+  ${mediaBreakpoints.small} {
+    padding: 2rem;
+  }
 `;
 
 const FormWrapper = styled.form`
@@ -28,10 +33,18 @@ const CancelSaveWrapper = styled.div`
   display: flex;
   justify-content: flex-end;
   margin-top: 2rem;
+  ${mediaBreakpoints.small} {
+    justify-content: space-between;
+  }
 `;
 
-const CancelButton = styled.div`
-  margin-right: 0.8rem;
+const BtnWrapper = styled.div`
+  width: 19rem;
+  display: flex;
+  justify-content: space-between;
+  ${mediaBreakpoints.small} {
+    width: 100%;
+  }
 `;
 
 const CreateSecret = (props) => {
@@ -40,6 +53,9 @@ const CreateSecret = (props) => {
   const [keyId, setKeyId] = useState('');
   const [keyErrorMessage, setKeyErrorMessage] = useState('');
   const [valueErrorMessage, setValueErrorMessage] = useState('');
+
+  // screen resolution handler
+  const isMobileScreen = useMediaQuery(mediaBreakpoints.small);
 
   const handleValidation = (value, type) => {
     if (type === 'key') {
@@ -83,25 +99,28 @@ const CreateSecret = (props) => {
             fullWidth
           />
           <CancelSaveWrapper>
-            <CancelButton>
+            <BtnWrapper>
+              {' '}
               <ButtonComponent
                 label="Cancel"
                 color="primary"
                 onClick={() => handleSecretCancel(false)}
+                width={isMobileScreen ? '48%' : ''}
               />
-            </CancelButton>
-            <ButtonComponent
-              label="Create"
-              icon="add"
-              color="secondary"
-              onClick={() =>
-                handleSecretSave({
-                  labelKey: keyId,
-                  labelValue: secret,
-                  type: 'file',
-                })
-              }
-            />
+              <ButtonComponent
+                label="Create"
+                icon="add"
+                color="secondary"
+                width={isMobileScreen ? '48%' : ''}
+                onClick={() =>
+                  handleSecretSave({
+                    labelKey: keyId,
+                    labelValue: secret,
+                    type: 'file',
+                  })
+                }
+              />
+            </BtnWrapper>
           </CancelSaveWrapper>
         </FormWrapper>
       </SecretWrapper>

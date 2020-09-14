@@ -5,6 +5,7 @@ import PropTypes from 'prop-types';
 import styled from 'styled-components';
 import ComponentError from 'errorBoundaries/ComponentError/component-error';
 import { TitleTwo } from 'styles/GlobalStyles';
+import mediaBreakpoints from 'breakpoints';
 
 const ActionButton = styled('div')`
   display: flex;
@@ -15,6 +16,9 @@ const ActionButton = styled('div')`
 
 const Icon = styled('img')`
   margin-left: 1rem;
+  ${mediaBreakpoints.small} {
+    margin-left: 0.5rem;
+  }
 `;
 const NamedButton = (props) => {
   const { label, iconSrc, customStyle, onClick } = props;

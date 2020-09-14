@@ -7,6 +7,11 @@ import Avatar from '@material-ui/core/Avatar';
 import ComponentError from 'errorBoundaries/ComponentError/component-error';
 import { TitleOne } from 'styles/GlobalStyles';
 import safeIcon from 'assets/icon_safes.svg';
+import { customColor } from 'theme';
+import mediaBreakpoints from 'breakpoints';
+import useMediaQuery from '@material-ui/core/useMediaQuery';
+import { IconDeleteActive, IconEdit } from 'assets/SvgIcons';
+import PopperElement from '../Popper';
 
 const FolderWrap = styled('div')`
   position: relative;
@@ -14,6 +19,7 @@ const FolderWrap = styled('div')`
   width: 100%;
   text-decoration: none;
   align-items: center;
+  justify-content: space-between;
 `;
 const SafeDetailBox = styled('div')`
   padding-left: 1.7rem;
@@ -34,23 +40,87 @@ const Flag = styled('span')`
   font-style: ${(props) => (props.fontStyle ? props.fontStyle : '')};
 `;
 
+const FolderIconWrap = styled('div')`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  .MuiSvgIcon-root {
+    width: 3rem;
+    height: 3rem;
+    :hover {
+      background: #151820;
+      border-radius: 50%;
+    }
+  }
+`;
+
+const PopperItem = styled.div`
+  padding: 0.5rem;
+  display: flex;
+  align-items: center;
+  flex-direction: row-reverse;
+  cursor: pointer;
+  span {
+    margin-right: 0.75rem;
+  }
+  :hover {
+    background: ${customColor.magenta};
+  }
+`;
+const LabelWrap = styled.div`
+  display: flex;
+  align-items: center;
+`;
+
 const ListItem = (props) => {
   const { title, subTitle, flag, icon } = props;
+
+  // scree handler
+  const isMobileScreen = useMediaQuery(mediaBreakpoints.small);
+  // const isDeskTopView = useMediaQuery(mediaBreakpoints.desktop);
+
   return (
     <ComponentError>
       <FolderWrap>
-        <SafeAvatarWrap>
-          <Avatar alt="safe_icon" src={icon} />
-        </SafeAvatarWrap>
-        <SafeDetailBox>
-          <TitleOne>
-            {title}
-            <Flag fontSize="0.85rem" fontStyle="italic">
-              {flag}
-            </Flag>
-          </TitleOne>
-          <Flag fontSize="1rem">{subTitle}</Flag>
-        </SafeDetailBox>
+        <LabelWrap>
+          <SafeAvatarWrap>
+            <Avatar alt="safe_icon" src={icon} />
+          </SafeAvatarWrap>
+          <SafeDetailBox>
+            <TitleOne>
+              {title}
+              <Flag fontSize="0.85rem" fontStyle="italic">
+                {flag}
+              </Flag>
+            </TitleOne>
+            <Flag fontSize="1rem">{subTitle}</Flag>
+          </SafeDetailBox>
+        </LabelWrap>
+        {isMobileScreen ? (
+          <FolderIconWrap>
+            <PopperElement
+              anchorOrigin={{
+                vertical: 'bottom',
+                horizontal: 'right',
+              }}
+              transformOrigin={{
+                vertical: 'top',
+                horizontal: 'right',
+              }}
+            >
+              <PopperItem>
+                <IconEdit />
+                <span>Edit</span>
+              </PopperItem>
+              <PopperItem>
+                <IconDeleteActive />
+                <span> Delete</span>
+              </PopperItem>
+            </PopperElement>
+          </FolderIconWrap>
+        ) : (
+          <></>
+        )}
       </FolderWrap>
     </ComponentError>
   );

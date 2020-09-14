@@ -84,7 +84,7 @@ const File = (props) => {
           </IconWrap>
           <TitleThree>{secretKey}</TitleThree>
         </LabelWrap>
-        <SecretWrap>{secretValue}</SecretWrap>
+        <SecretWrap type="password">{secretValue}</SecretWrap>
         <FolderIconWrap>
           <PopperElement
             anchorOrigin={{

@@ -39,7 +39,7 @@ const NoData = (props) => {
           imgStyles={bgIconStyle}
         />
         <BoxDescription>{ReactHtmlParser(description)}</BoxDescription>
-        <ActionButtonWrap>{actionButton}</ActionButtonWrap>
+        {actionButton}
       </DialogeBoxWrapper>
     </ComponentError>
   );

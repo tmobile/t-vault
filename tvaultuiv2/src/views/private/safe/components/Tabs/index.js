@@ -18,9 +18,11 @@ import NoSecretsIcon from 'assets/no-data-secrets.svg';
 // eslint-disable-next-line import/no-unresolved
 import NamedButton from 'components/NamedButton';
 import NoData from 'components/NoData';
+import mediaBreakpoints from 'breakpoints';
+import useMediaQuery from '@material-ui/core/useMediaQuery';
 import AddFolder from '../AddFolder';
-// import FolderTreeView from '../FolderTree';
 import Tree from '../Tree';
+
 // styled components goes here
 
 const EmptySecretBox = styled('div')`
@@ -42,6 +44,9 @@ const TabPanelWrap = styled.div`
   position: relative;
   overflow: auto;
   margin-top: 1.3rem;
+  ${mediaBreakpoints.small} {
+    height: 77vh;
+  }
 `;
 const bgIconStyle = {
   width: '16rem',
@@ -111,6 +116,10 @@ export default function SelectionTabs() {
   const [enabledAddFolder, setEnableAddFolder] = useState(false);
   const [secretsFolder, setSecretsFolder] = useState([]);
   // const [secrets, setSecrets] = useState([]);
+
+  // resolution handlers
+  const isMobileScreen = useMediaQuery(mediaBreakpoints.small);
+  // const isDeskTopView = useMediaQuery(mediaBreakpoints.desktop);
 
   const handleChange = (event, newValue) => {
     setValue(newValue);
@@ -186,11 +195,12 @@ export default function SelectionTabs() {
                       label="add"
                       icon="add"
                       color="secondary"
+                      width={isMobileScreen ? '100%' : ''}
                       onClick={() => setEnableAddFolder(true)}
                     />
                   }
                   bgIconStyle={bgIconStyle}
-                  width="30%"
+                  width={isMobileScreen ? '100%' : '30%'}
                 />
               </EmptySecretBox>
             )
