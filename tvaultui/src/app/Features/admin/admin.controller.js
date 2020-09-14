@@ -1558,9 +1558,11 @@
                 $scope.certificateCreationMessage = '';
                 var url = '';
                 $scope.isLoadingData = true;
+                $scope.isLoadingCerts = true;
                 AdminSafesManagement.sslCertificateCreation(reqObjtobeSent, url).then(function (response) {
 
                     $scope.isLoadingData = false;
+                    $scope.isLoadingCerts = false;
                     if (UtilityService.ifAPIRequestSuccessful(response)) {
                         $scope.certificateCreationMessage = response.data.messages[0];
                         resetCert();
@@ -1809,6 +1811,7 @@
             fullObj[obj] = myobj;
             try {       
                 $scope.isLoadingData = true;
+                $scope.isLoadingCerts = true;
                 $scope.ispermissionData = true;               // To show the 'permissions' and hide the 'details'
                 $scope.UsersPermissionsData = [];
 
@@ -1823,9 +1826,11 @@
                             if (UtilityService.ifAPIRequestSuccessful(response)) {
                                 $state.go('change-certificate', fullObj, $rootScope.checkStatus);
                                 $scope.isLoadingData = false;
+                                $scope.isLoadingCerts = false;
                             }
                             else {
                                 $scope.isLoadingData = false;
+                                $scope.isLoadingCerts = false;
                                 $scope.validateCertificateDetailsPopUp();
                             }
                         },
@@ -2115,9 +2120,11 @@
                 certificateDetails.applicationName=certificateDetails.appNameTagValue;    
                 var url = RestEndpoints.baseURL + "/v2/sslcert/" +certType+"/"+ certificateName +"/"+certOwnerEmailId +"/transferowner";
                 $scope.isLoadingData = true;   
+                $scope.isLoadingCerts = true;
                 resetCert();
                 AdminSafesManagement.transferCertificate(null, url).then(function (response) {
                     $scope.isLoadingData = false;
+                    $scope.isLoadingCerts = false;
                     $scope.certObj.certDetails.ownerEmail="";
                     if (UtilityService.ifAPIRequestSuccessful(response)) {
                         $scope.transferMessage = 'Certificate Owner Transferred Successfully!';
