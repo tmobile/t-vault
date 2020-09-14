@@ -406,7 +406,11 @@ readTextFile("../apiUrls.json");
              name: 'checkRevokestatus',	
              url: '/v2/sslcert/checkstatus/{certificate_name}/{certificate_type}',	
              method: 'GET'	
-         }
+         }, {
+            name: 'getAllSelfServiceGroups',
+            url: '/v2/sslcert/grouplist',
+            method: 'GET'
+        }
     ]
     });
 })( angular.module( 'vault.constants.RestEndpoints', []));

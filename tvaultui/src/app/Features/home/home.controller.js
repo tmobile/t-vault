@@ -19,7 +19,7 @@
 
 'use strict';
 (function(app){
-    app.controller('HomeCtrl', function($scope, Modal, $state, Authentication, SessionStore, UtilityService, Idle, AppConstant, $location, $http){
+    app.controller('HomeCtrl', function($scope, Modal, $state, Authentication, SessionStore, UtilityService,AdminSafesManagement, Idle, AppConstant, $location, $http){
 
         var init = function(){
             $scope.slackLink = AppConstant.SLACK_LINK;
@@ -69,6 +69,7 @@
             if(SessionStore.getItem("myVaultKey")){
                 // If no call back and token exists in session.
                 $scope.isLoadingData = true;
+                getAllSelfServiceGroups();
                 $state.go('safes', {'fromLogin':true});
             }
             
@@ -212,6 +213,30 @@
                     shortMessage: 'Something went wrong, please try again later.'
                     })
                 }
+            })
+        };
+
+        var getAllSelfServiceGroups = function () {
+            AdminSafesManagement.getAllSelfServiceGroups().then(function (response) {
+                if (UtilityService.ifAPIRequestSuccessful(response)) {
+                    var assignedApplications = [];
+                    var data = response.data;
+                    if(data.length > 0) {
+                        SessionStore.setItem("isCertPermission", true);
+                        for (var index = 0;index<data.length;index++) {
+                            assignedApplications.push(data[index]);
+                        }
+                        SessionStore.setItem("selfServiceAppNames", JSON.stringify(assignedApplications));
+                    }
+                }
+                else {
+                    $scope.errorMessage = AdminSafesManagement.getTheRightErrorMessage(response);
+                    $scope.error('md');
+                }
+            },
+            function (error) {
+                // Error handling function
+                console.log(error);
             })
         };
 

@@ -41,6 +41,8 @@
         $scope.isCertificateManagePreview = false;
         $scope.certificateDetails = [];
         $scope.appName = '';
+        $scope.isSelfServiceGroupAssigned = true;
+        $scope.assignedApplications = [];
         // Type of safe to be filtered from the rest
 
         $scope.safeType = {
@@ -150,7 +152,9 @@
             $scope.selectedMultiSan = [];
             $scope.multiSanDnsName = { name:""};
             $scope.isCertificatePreview = false;
-            $scope.isCertificateManagePreview = false;            
+            $scope.isCertificateManagePreview = false;
+            $scope.isSelfServiceGroupAssigned = true;
+            $scope.assignedApplications = [];
             $scope.certObj = {
                 'sslcertType': 'PRIVATE_SINGLE_SAN',
                 'certDetails': {"certType":"internal"},
@@ -191,10 +195,15 @@
                 $state.go('safes');
                 return;
             }
-            $scope.requestDataFrAdmin();
-            getWorkloadDetails();
-            resetCert();
 
+            if(SessionStore.getItem("isCertPermission")) {
+                $scope.assignedApplications = JSON.parse(SessionStore.getItem("selfServiceAppNames"));
+            }else {
+                $scope.isSelfServiceGroupAssigned = false;
+            }
+            getWorkloadDetails();
+            $scope.requestDataFrAdmin();
+            resetCert();
         };
 
         var resetCert = function () {
@@ -1478,8 +1487,9 @@
                         if (data[index].appTag !='' && data[index].appTag != null && data[index].appTag != undefined) {
                             appTag = data[index].appTag;
                         }
-                       
-                        $scope.appNameTableOptions.push({"type":value, "name": name, "tag": appTag, "id": appID});
+                        if($scope.assignedApplications.includes(appTag)){
+                            $scope.appNameTableOptions.push({"type":value, "name": name, "tag": appTag, "id": appID});
+                        }
                     }
                 }
                 else {
@@ -2151,7 +2161,6 @@
                 $scope.searchValue = $scope.searchValue;               
                 
             }
-
         init();
 
     });

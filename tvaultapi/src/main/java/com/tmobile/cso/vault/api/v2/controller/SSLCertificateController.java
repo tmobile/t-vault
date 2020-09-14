@@ -379,4 +379,18 @@ public class SSLCertificateController {
 				userDetails);	
 	}
 
+	/**
+	 * To get list of application names based on the self service groups.
+	 *
+	 * @param request
+	 * @param token
+	 * @return
+	 */
+	@ApiOperation(value = "${SSLCertificateController.getAllSelfServiceGroups.value}", notes = "${SSLCertificateController.getAllSelfServiceGroups.notes}", hidden = true)
+	@GetMapping(value = "/v2/sslcert/grouplist", produces = "application/json")
+	public ResponseEntity<String> getAllSelfServiceGroups(HttpServletRequest request,
+			@RequestHeader(value = "vault-token") String token) {
+		UserDetails userDetails = (UserDetails) request.getAttribute(USER_DETAILS_STRING);
+		return sslCertificateService.getAllSelfServiceGroups(userDetails);
+	}
 }

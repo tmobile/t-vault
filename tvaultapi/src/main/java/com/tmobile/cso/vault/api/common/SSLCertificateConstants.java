@@ -94,4 +94,7 @@ public final class SSLCertificateConstants {
     public static final String GET_CERTIFICATE_DETAILS_PROCESS_METADATA="getCertificateDetailsAndProcessMetadata";
     public static final String TRANSFER_EMAIL_SUBJECT="Transfer of Certificate Ownership";
     public static final String NCLM_TARGET_PORT_NUMBER="443";
+    public static final String GET_ID_USER_STRING="getIdOfTheUser";
+    public static final String GET_SELF_SERVICE_GROUPS_STRING="getSelfServiceGroupsFromAADById";
+    public static final String GET_ALL_APPLICATIONS_STRING="getAllSelfServiceGroups";
 }
