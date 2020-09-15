@@ -1,50 +1,30 @@
-/* eslint-disable array-callback-return */
-/* eslint-disable consistent-return */
-// eslint-disable-next-line import/prefer-default-export
-export function mockApi(response) {
-  return new Promise((resolve, reject) =>
-    setTimeout(() => {
-      if (response === 'error') {
-        reject(new Error('Failed to fetch Data.'));
-      }
-      resolve({ data: response });
-    }, 1000)
-  );
+/* eslint-disable import/no-unresolved */
+import axios from 'axios';
+import config from 'config';
+
+function ApiCall(url, method, data, header) {
+  const token = 's.nVrpPbH49IL9FnR58vFSbcSZ';
+  const headers = { ...header, 'vault-token': token };
+  return axios.request({ url, method, headers, data });
 }
 
-export function mockCreateSafe(response) {
-  return new Promise((resolve, reject) =>
-    setTimeout(() => {
-      if (response === 'error') {
-        reject(new Error('failed to create data'));
-      }
-      resolve({ data: [response] });
-    })
-  );
-}
-
-// export function mockAddSecrets
-
-export function findElementById(arr, id, nestingKey) {
-  // if empty array then return
-  if (arr.length === 0) return;
-  // return element if found else collect all children(or other nestedKey) array and run this function
-  return (
-    arr.find((d) => d.labelText === id) ||
-    findElementById(
-      arr.flatMap((d) => d[nestingKey] || []),
-      id,
-      nestingKey
-    ) ||
-    'Not found'
-  );
-}
-
-export const findElementAndUpdate = (arr, parentId, item) => {
-  if (arr.length === 0) return;
-  const tempArr = [...arr];
-  const itemToUpdate = findElementById(tempArr, parentId, 'children');
-  itemToUpdate.children = [...itemToUpdate.children, item];
-
-  return tempArr;
+const api = {
+  get(path, payload, header) {
+    const url = config.url + path;
+    return ApiCall(url, 'GET', payload, header);
+  },
+  post(path, payload, header) {
+    const url = config.url + path;
+    return ApiCall(url, 'POST', payload, header);
+  },
+  put(path, payload, header) {
+    const url = config.url + path;
+    return ApiCall(url, 'PUT', payload, header);
+  },
+  delete(path, payload, header) {
+    const url = config.url + path;
+    return ApiCall(url, 'DELETE', payload, header);
+  },
 };
+
+export default api;
