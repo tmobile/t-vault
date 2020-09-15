@@ -312,7 +312,6 @@ const customTheme = createMuiTheme({
       },
       input: {
         padding: '0',
-        height: '100%',
       },
       adornedStart: {
         paddingLeft: '1rem',

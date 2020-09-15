@@ -34,7 +34,7 @@ const bgIconStyle = {
 const BackgroundIcon = styled(CardMedia)`
   ${(props) => props.imgStyles}
 `;
-const Error = (props) => {
+const DialogBox = (props) => {
   const { description, actionButton, width } = props;
 
   return (
@@ -42,7 +42,7 @@ const Error = (props) => {
       <DialogeBoxWrapper width={width}>
         <BackgroundIcon
           image={errorIcon}
-          title="error"
+          title="response-icon"
           imgStyles={bgIconStyle}
         />
         <BoxDescription>{ReactHtmlParser(description)}</BoxDescription>
@@ -51,14 +51,14 @@ const Error = (props) => {
     </ComponentError>
   );
 };
-Error.propTypes = {
+DialogBox.propTypes = {
   description: PropTypes.string,
   actionButton: PropTypes.node,
   width: PropTypes.string,
 };
-Error.defaultProps = {
+DialogBox.defaultProps = {
   description: 'Something went wrong. Please try again',
   actionButton: <div />,
   width: '100%',
 };
-export default Error;
+export default DialogBox;

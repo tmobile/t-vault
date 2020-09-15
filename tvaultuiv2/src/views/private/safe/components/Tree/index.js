@@ -6,7 +6,7 @@ import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import PropTypes from 'prop-types';
 
-import { findElementAndUpdate } from 'services';
+import { findElementAndUpdate } from 'services/helper-function';
 import ComponentError from 'errorBoundaries/ComponentError/component-error';
 import CreateSecretButton from '../CreateSecretButton';
 import AddForm from '../AddForm';
