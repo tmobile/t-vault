@@ -12,8 +12,11 @@ import ButtonComponent from 'components/FormFields/ActionButton';
 import ComponentError from 'errorBoundaries/ComponentError/component-error';
 import AutoCompleteComponent from 'components/FormFields/AutoComplete';
 import PropTypes from 'prop-types';
+import mediaBreakpoints from 'breakpoints';
 import apiService from '../../apiService';
 import data from './__mock__/data';
+
+const { small } = mediaBreakpoints;
 
 const PermissionWrapper = styled.div`
   padding: 3.5rem 4rem 4rem 4rem;
@@ -21,6 +24,9 @@ const PermissionWrapper = styled.div`
   display: flex;
   flex-direction: column;
   margin-top: 2rem;
+  ${small} {
+    padding: 2.2rem 2.4rem 2.4rem 2.4rem;
+  }
 `;
 const HeaderWrapper = styled.div`
   display: flex;
@@ -30,11 +36,20 @@ const HeaderWrapper = styled.div`
     display: flex;
     align-items: center;
   }
+  .MuiTypography-h5 {
+    font-weight: normal;
+    ${small} {
+      font-size: 1.6rem;
+    }
+  }
 `;
 const RequiredText = styled.span`
   font-size: 1.6rem;
   color: #5e627c;
   margin-left: 0.5rem;
+  ${small} {
+    font-size: 1.4rem;
+  }
 `;
 
 const RequiredCircle = styled.span`
@@ -58,10 +73,21 @@ const InstructionText = styled.p`
   color: #bbbbbb;
   font-size: 1.2rem;
   margin-bottom: 0rem;
+  ${small} {
+    font-size: 1.3rem;
+  }
 `;
 const RadioButtonWrapper = styled.div`
   display: flex;
   justify-content: space-between;
+  ${small} {
+    flex-direction: column;
+  }
+  fieldset {
+    ${small} {
+      margin-bottom: 4.5rem;
+    }
+  }
 `;
 const CancelSaveWrapper = styled.div`
   display: flex;
@@ -103,7 +129,7 @@ const Permissions = (props) => {
       .searchUser(data)
       .then((res) => {
         setOptions([]);
-        if (res && res.data && res.data.values.length > 0) {
+        if (res?.data?.values?.length > 0) {
           res.data.values.map((item) => {
             return setOptions((prev) => [...prev, item.userEmail]);
           });
