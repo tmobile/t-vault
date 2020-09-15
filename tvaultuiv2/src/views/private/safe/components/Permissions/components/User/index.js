@@ -1,45 +1,157 @@
 /* eslint-disable import/no-unresolved */
-import React, { useState } from 'react';
+import React from 'react';
 import ComponentError from 'errorBoundaries/ComponentError/component-error';
 import NoData from 'components/NoData';
 import ButtonComponent from 'components/FormFields/ActionButton';
-import styled from 'styled-components';
+import styled, { css } from 'styled-components';
 import PropTypes from 'prop-types';
+import { TitleTwo, TitleFour, BackgroundColor } from 'styles/GlobalStyles';
+import { IconDeleteActive, IconEdit } from 'assets/SvgIcons';
+import PopperElement from '../../../Popper';
 import noPermissionsIcon from '../../../../../../../assets/no-permissions.svg';
 import AddUser from '../../../AddUser';
+import userIcon from '../../../../../../../assets/permission-user.png';
 
 const NoDataWrapper = styled.section`
   display: flex;
   justify-content: center;
   margin-top: 2.5rem;
 `;
+
 const bgIconStyle = {
   width: '16rem',
   height: '16rem',
 };
-const User = (props) => {
-  const { users } = props;
-  const [addPermission, setAddPermission] = useState(false);
+const UserList = styled.div`
+  margin-top: 2rem;
+`;
+const EachUserWrap = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: ${BackgroundColor.listBg};
+  padding: 1.2rem 0;
+  :hover {
+    background-image: ${(props) => props.theme.gradients.list || 'none'};
+  }
+`;
 
-  // eslint-disable-next-line no-unused-vars
-  const onSaveClicked = (search, radio) => {
-    setAddPermission(false);
-  };
-  const onCancelClicked = () => {
-    setAddPermission(false);
+const IconDetailsWrap = styled.div`
+  display: flex;
+`;
+
+const Icon = styled.img`
+  width: 5rem;
+  height: 5rem;
+  margin-right: 1.6rem;
+  margin-left: 2rem;
+`;
+
+const Details = styled.div``;
+
+const styles = css`
+  margin-bottom: 0.5rem;
+`;
+const permissionStyles = css`
+  opacity: 0.7;
+`;
+
+const FolderIconWrap = styled('div')`
+  margin: 0 1rem;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  .MuiSvgIcon-root {
+    width: 3rem;
+    height: 3rem;
+    :hover {
+      background: #151820;
+      border-radius: 50%;
+    }
+  }
+`;
+const PopperItem = styled.div`
+  padding: 0.5rem;
+  display: flex;
+  align-items: center;
+  flex-direction: row-reverse;
+  cursor: pointer;
+  span {
+    margin-right: 0.75rem;
+  }
+  :hover {
+    background-image: ${(props) => props.theme.gradients.list || 'none'};
+  }
+`;
+
+const User = (props) => {
+  const {
+    users,
+    onSaveClicked,
+    addPermission,
+    onNoDataAddClicked,
+    onCancelClicked,
+  } = props;
+
+  const onSubmit = (search, radio) => {
+    const value = {
+      name: search,
+      last_updated: '2days ago',
+      permission: radio,
+    };
+    onSaveClicked(value);
   };
   return (
     <ComponentError>
       {addPermission ? (
         <AddUser
-          handleSaveClick={(search, radio) => onSaveClicked(search, radio)}
-          handleCancelClick={() => onCancelClicked()}
+          handleSaveClick={(search, radio) => onSubmit(search, radio)}
+          handleCancelClick={onCancelClicked}
         />
       ) : (
         ''
       )}
-      {users && users.length > 0 ? (
-        <div>Hi</div>
+      {users && users.length > 0 && !addPermission ? (
+        <UserList>
+          {users.map((item) => {
+            return (
+              <EachUserWrap key={item.name}>
+                <IconDetailsWrap>
+                  <Icon src={userIcon} alt="user" />
+                  <Details>
+                    <TitleTwo extraCss={styles}>{item.name}</TitleTwo>
+                    <TitleFour extraCss={permissionStyles}>
+                      {item.last_updated}
+                      {' - '}
+                      {item.permission}
+                    </TitleFour>
+                  </Details>
+                </IconDetailsWrap>
+                <FolderIconWrap>
+                  <PopperElement
+                    anchorOrigin={{
+                      vertical: 'bottom',
+                      horizontal: 'right',
+                    }}
+                    transformOrigin={{
+                      vertical: 'top',
+                      horizontal: 'right',
+                    }}
+                  >
+                    <PopperItem>
+                      <IconEdit />
+                      <span>Edit</span>
+                    </PopperItem>
+                    <PopperItem>
+                      <IconDeleteActive />
+                      <span> Delete</span>
+                    </PopperItem>
+                  </PopperElement>
+                </FolderIconWrap>
+              </EachUserWrap>
+            );
+          })}
+        </UserList>
       ) : (
         !addPermission && (
           <NoDataWrapper>
@@ -52,7 +164,7 @@ const User = (props) => {
                   label="add"
                   icon="add"
                   color="secondary"
-                  onClick={() => setAddPermission(true)}
+                  onClick={onNoDataAddClicked}
                 />
               }
               bgIconStyle={bgIconStyle}
@@ -67,5 +179,9 @@ const User = (props) => {
 
 User.propTypes = {
   users: PropTypes.arrayOf(PropTypes.any).isRequired,
+  onSaveClicked: PropTypes.func.isRequired,
+  addPermission: PropTypes.bool.isRequired,
+  onNoDataAddClicked: PropTypes.func.isRequired,
+  onCancelClicked: PropTypes.func.isRequired,
 };
 export default User;

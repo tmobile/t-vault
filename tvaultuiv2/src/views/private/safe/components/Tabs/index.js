@@ -158,12 +158,14 @@ export default function SelectionTabs() {
             {/* eslint-disable-next-line react/jsx-props-no-spreading */}
             <Tab label="Permissions" {...a11yProps(1)} />
           </Tabs>
-          <NamedButton
-            label="Add Folder"
-            onClick={addSecretsFolder}
-            customStyle={customBtnStyles}
-            iconSrc={addFolderPlus}
-          />
+          {value === 0 && (
+            <NamedButton
+              label="Add Folder"
+              onClick={addSecretsFolder}
+              customStyle={customBtnStyles}
+              iconSrc={addFolderPlus}
+            />
+          )}
         </AppBar>
         <TabPanel value={value} index={0}>
           {

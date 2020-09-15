@@ -3,10 +3,13 @@
 import React, { useState } from 'react';
 import styled from 'styled-components';
 import ComponentError from 'errorBoundaries/ComponentError/component-error';
+import { makeStyles } from '@material-ui/core/styles';
 import Tab from '@material-ui/core/Tab';
 import PropTypes from 'prop-types';
 import AppBar from '@material-ui/core/AppBar';
 import Tabs from '@material-ui/core/Tabs';
+import NamedButton from 'components/NamedButton';
+import permissionPlusIcon from 'assets/permission-plus.svg';
 import User from './components/User';
 
 const TabPanelWrapper = styled.div``;
@@ -76,9 +79,24 @@ const CountSpan = styled.div`
   font-size: 1.3rem;
 `;
 
+const useStyles = makeStyles(() => ({
+  appBar: {
+    display: 'flex',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+}));
+
 const Permissions = () => {
+  const classes = useStyles();
   const [value, setValue] = useState(0);
-  const [users] = useState([]);
+  const [users, setUser] = useState([]);
+  const [addPermission, setAddPermission] = useState(false);
+
+  const onSaveClicked = (data) => {
+    setUser((prev) => [...prev, data]);
+    setAddPermission(false);
+  };
 
   const handleChange = (event, newValue) => {
     setValue(newValue);
@@ -89,7 +107,7 @@ const Permissions = () => {
         {`${users && users.length} Permissions`}
       </CountSpan>
       <TabWrapper>
-        <AppBar position="static">
+        <AppBar position="static" className={classes.appBar}>
           <Tabs
             value={value}
             onChange={handleChange}
@@ -102,9 +120,20 @@ const Permissions = () => {
             <Tab label="AWS Application" {...a11yProps(2)} />
             <Tab label="App Roles" {...a11yProps(3)} />
           </Tabs>
+          <NamedButton
+            label="Add Permission"
+            iconSrc={permissionPlusIcon}
+            onClick={() => setAddPermission(true)}
+          />
         </AppBar>
         <TabPanel value={value} index={0}>
-          <User users={users} />
+          <User
+            users={users}
+            onSaveClicked={(data) => onSaveClicked(data)}
+            addPermission={addPermission}
+            onCancelClicked={() => setAddPermission(false)}
+            onNoDataAddClicked={() => setAddPermission(true)}
+          />
         </TabPanel>
         <TabPanel value={value} index={1}>
           Group

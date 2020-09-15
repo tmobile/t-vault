@@ -1,12 +1,13 @@
 /* eslint-disable import/no-unresolved */
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 import { useHistory } from 'react-router-dom';
 import Modal from '@material-ui/core/Modal';
 import { Backdrop, Typography, InputLabel } from '@material-ui/core';
 import Fade from '@material-ui/core/Fade';
 import styled from 'styled-components';
-import PropTypes from 'prop-types';
+import useMediaQuery from '@material-ui/core/useMediaQuery';
+// import PropTypes from 'prop-types';
 import TextFieldComponent from 'components/FormFields/TextField';
 import ButtonComponent from 'components/FormFields/ActionButton';
 import SelectComponent from 'components/FormFields/SelectFields';
@@ -14,6 +15,7 @@ import ComponentError from 'errorBoundaries/ComponentError/component-error';
 import safeIcon from '../../../../assets/icon_safe.svg';
 import leftArrowIcon from '../../../../assets/left-arrow.svg';
 import mediaBreakpoints from '../../../../breakpoints';
+import apiService from '../apiService';
 
 const { small, smallAndMedium } = mediaBreakpoints;
 
@@ -24,6 +26,8 @@ const ModalWrapper = styled.section`
   outline: none;
   width: 69.6rem;
   margin: auto 0;
+  display: flex;
+  flex-direction: column;
   ${smallAndMedium} {
     padding: 4.7rem 5rem 5rem 5rem;
   }
@@ -31,7 +35,7 @@ const ModalWrapper = styled.section`
     width: 100%;
     padding: 2rem;
     margin: 0;
-    height: 89.2rem;
+    height: fit-content;
   }
 `;
 
@@ -95,9 +99,9 @@ const FieldInstruction = styled.p`
 
 const CancelSaveWrapper = styled.div`
   display: flex;
-  justify-content: center;
+  justify-content: flex-end;
   ${small} {
-    margin-top: 11.3rem;
+    margin-top: 5.3rem;
   }
   button {
     ${small} {
@@ -110,6 +114,7 @@ const CancelButton = styled.div`
   margin-right: 0.8rem;
   ${small} {
     margin-right: 1rem;
+    width: 100%;
   }
 `;
 
@@ -129,37 +134,53 @@ const useStyles = makeStyles((theme) => ({
       alignItems: 'unset',
       justifyContent: 'unset',
       padding: '0',
+      height: '100%',
     },
   },
 }));
 
-const CreateModal = (props) => {
-  const { createSafe } = props;
+const CreateModal = () => {
   const classes = useStyles();
   const [open, setOpen] = useState(true);
-  const [type, setType] = useState('Personal');
+  const [safeType, setSafeType] = useState('Users Safe');
   const [owner, setOwner] = useState('');
-  const [safeName, setSafeName] = useState('');
+  const [name, setName] = useState('');
   const [description, setDescription] = useState('');
-
+  const [disabledSave, setDisabledSave] = useState(true);
+  const isMobileScreen = useMediaQuery(mediaBreakpoints.small);
   const history = useHistory();
 
-  const [menu] = useState(['Personal', 'Public']);
+  useEffect(() => {
+    if (name === '' || owner === '' || description.length < 10) {
+      setDisabledSave(true);
+    } else {
+      setDisabledSave(false);
+    }
+  }, [name, description, owner]);
+
+  const [menu] = useState(['Users Safe', 'Shared Safe', 'Application Safe']);
 
   const handleClose = () => {
     setOpen(false);
     history.goBack();
   };
+
   const saveSafes = () => {
+    const value = safeType.split(' ')[0].toLowerCase();
     const safeContent = {
-      safeName,
-      description,
-      owner,
-      type,
+      data: {
+        name,
+        description,
+        type: '',
+        owner,
+      },
+      path: `${value}/${name}`,
     };
-    createSafe(safeContent);
-    setOpen(false);
-    history.goBack();
+    apiService.postApiCall('/vault/v2/ss/sdb', safeContent).then((res) => {
+      console.log('res', res);
+    });
+    // setOpen(false);
+    // history.goBack();
   };
   return (
     <ComponentError>
@@ -198,10 +219,10 @@ const CreateModal = (props) => {
               <InputFieldLabelWrapper>
                 <InputLabel>Safe Name</InputLabel>
                 <TextFieldComponent
-                  value={safeName}
+                  value={name}
                   placeholder="Save Name"
                   fullWidth
-                  onChange={(e) => setSafeName(e.target.value)}
+                  onChange={(e) => setName(e.target.value)}
                 />
               </InputFieldLabelWrapper>
               <InputFieldLabelWrapper>
@@ -217,9 +238,9 @@ const CreateModal = (props) => {
                 <InputLabel>Type of Safe</InputLabel>
                 <SelectComponent
                   menu={menu}
-                  value={type}
+                  value={safeType}
                   classes={classes.select}
-                  onChange={(e) => setType(e.target.value)}
+                  onChange={(e) => setSafeType(e.target.value)}
                 />
               </InputFieldLabelWrapper>
               <InputFieldLabelWrapper>
@@ -235,22 +256,25 @@ const CreateModal = (props) => {
                   Please add a minimum of 10 characters
                 </FieldInstruction>
               </InputFieldLabelWrapper>
-              <CancelSaveWrapper>
-                <CancelButton>
-                  <ButtonComponent
-                    label="Cancel"
-                    color="primary"
-                    onClick={() => handleClose()}
-                  />
-                </CancelButton>
-                <ButtonComponent
-                  label="Create"
-                  color="secondary"
-                  icon="add"
-                  onClick={() => saveSafes()}
-                />
-              </CancelSaveWrapper>
             </CreateSafeForm>
+            <CancelSaveWrapper>
+              <CancelButton>
+                <ButtonComponent
+                  label="Cancel"
+                  color="primary"
+                  onClick={() => handleClose()}
+                  width={isMobileScreen ? '100%' : ''}
+                />
+              </CancelButton>
+              <ButtonComponent
+                label="Create"
+                color="secondary"
+                icon="add"
+                disabled={disabledSave}
+                onClick={() => saveSafes()}
+                width={isMobileScreen ? '100%' : ''}
+              />
+            </CancelSaveWrapper>
           </ModalWrapper>
         </Fade>
       </Modal>
@@ -258,10 +282,10 @@ const CreateModal = (props) => {
   );
 };
 
-CreateModal.propTypes = {
-  createSafe: PropTypes.func,
-};
-CreateModal.defaultProps = {
-  createSafe: () => {},
-};
+// CreateModal.propTypes = {
+//   createSafe: PropTypes.func,
+// };
+// CreateModal.defaultProps = {
+//   createSafe: () => {},
+// };
 export default CreateModal;
