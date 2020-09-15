@@ -1,187 +1,121 @@
+/* eslint-disable react/jsx-props-no-spreading */
 /* eslint-disable import/no-unresolved */
-import React, { useState, useEffect } from 'react';
-import { debounce } from 'lodash';
-import Radio from '@material-ui/core/Radio';
-import { makeStyles } from '@material-ui/core/styles';
-import RadioGroup from '@material-ui/core/RadioGroup';
-import { InputLabel, Typography } from '@material-ui/core';
-import FormControlLabel from '@material-ui/core/FormControlLabel';
-import FormControl from '@material-ui/core/FormControl';
+import React, { useState } from 'react';
 import styled from 'styled-components';
-import ButtonComponent from 'components/FormFields/ActionButton';
 import ComponentError from 'errorBoundaries/ComponentError/component-error';
-import AutoCompleteComponent from 'components/FormFields/AutoComplete';
-import apiService from '../../apiService';
-import data from './__mock__/data';
+import Tab from '@material-ui/core/Tab';
+import PropTypes from 'prop-types';
+import AppBar from '@material-ui/core/AppBar';
+import Tabs from '@material-ui/core/Tabs';
+import User from './components/User';
 
-const PermissionWrapper = styled.div`
-  padding: 3.5rem 4rem;
-  width: 50%;
-  border: 0.1rem solid #000;
-  display: flex;
-  flex-direction: column;
-`;
-const HeaderWrapper = styled.div`
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  div {
-    display: flex;
-    align-items: center;
+const TabPanelWrapper = styled.div``;
+
+function TabPanel(props) {
+  const { children, value, index } = props;
+  return (
+    <TabPanelWrapper
+      role="tabpanel"
+      hidden={value !== index}
+      id={`scrollable-prevent-tabpanel-${index}`}
+      aria-labelledby={`scrollable-prevent-tab-${index}`}
+    >
+      {children}
+    </TabPanelWrapper>
+  );
+}
+
+TabPanel.propTypes = {
+  children: PropTypes.node,
+  index: PropTypes.number.isRequired,
+  value: PropTypes.number.isRequired,
+};
+
+TabPanel.defaultProps = {
+  children: <div />,
+};
+
+function a11yProps(index) {
+  return {
+    id: `scrollable-prevent-tab-${index}`,
+    'aria-controls': `scrollable-prevent-tabpanel-${index}`,
+  };
+}
+
+const TabWrapper = styled.div`
+  .MuiAppBar-colorPrimary {
+    background-color: inherit;
+  }
+  .MuiPaper-elevation4 {
+    box-shadow: none;
+  }
+  .MuiTabs-root {
+    min-height: unset;
+  }
+  .MuiTab-textColorInherit.Mui-selected {
+    background-color: ${(props) => props.theme.palette.secondary.main};
+    color: ${(props) => props.theme.palette.secondary.contrastText};
+  }
+  .MuiTab-textColorInherit {
+    color: #e8e8e8;
+    background-color: #20232e;
+    min-width: auto;
+    padding: 8.5px 20px;
+    margin-right: 0.5rem;
+    font-size: 1.4rem;
+    min-height: 3.65rem;
+  }
+  .PrivateTabIndicator-colorSecondary-15 {
+    background-color: inherit;
   }
 `;
-const RequiredText = styled.span`
-  font-size: 1.6rem;
+
+const CountSpan = styled.div`
+  margin-bottom: 1.85rem;
   color: #5e627c;
-  margin-left: 0.5rem;
+  font-size: 1.3rem;
 `;
-
-const RequiredCircle = styled.span`
-  width: 0.6rem;
-  height: 0.6rem;
-  background-color: #e20074;
-  border-radius: 50%;
-  margin-left: ${(props) => props.margin || '0'};
-`;
-
-const InputWrapper = styled.div`
-  margin-top: 4rem;
-  margin-bottom: 2.4rem;
-  .MuiInputLabel-root {
-    display: flex;
-    align-items: center;
-  }
-`;
-const InstructionText = styled.p`
-  margin-top: 1.4rem;
-  color: #bbbbbb;
-  font-size: 1.2rem;
-  margin-bottom: 0rem;
-`;
-const RadioButtonWrapper = styled.div`
-  display: flex;
-  justify-content: space-between;
-`;
-const CancelSaveWrapper = styled.div`
-  display: flex;
-`;
-
-const CancelButton = styled.div`
-  margin-right: 0.8rem;
-`;
-
-const useStyles = makeStyles(() => ({
-  icon: {
-    color: '#5e627c',
-    fontSize: '2rem',
-  },
-}));
 
 const Permissions = () => {
-  const classes = useStyles();
-  const [radioValue, setRadioValue] = useState('read');
-  const [searchValue, setSearchValue] = useState('');
-  const [options, setOptions] = useState([]);
-  const [disabledSave, setDisabledSave] = useState(true);
+  const [value, setValue] = useState(0);
+  const [users] = useState([]);
 
-  useEffect(() => {
-    if (searchValue !== '') {
-      setDisabledSave(false);
-    } else {
-      setDisabledSave(true);
-    }
-  }, [searchValue]);
-
-  const handleChange = (event) => {
-    setRadioValue(event.target.value);
+  const handleChange = (event, newValue) => {
+    setValue(newValue);
   };
-
-  const callSearchApi = debounce(() => {
-    apiService
-      .searchUser(data)
-      .then((res) => {
-        setOptions([]);
-        res.data.values.map((item) => {
-          return setOptions((prev) => [...prev, item.userEmail]);
-        });
-      })
-      // eslint-disable-next-line no-console
-      .catch((e) => console.error(e));
-  }, 1000);
-
-  const onSearchChange = (text) => {
-    setOptions([]);
-    setSearchValue(text);
-    if (text !== '') {
-      callSearchApi();
-      // on api search replace with callSearchApi(text)
-    }
-  };
-
-  const onSelected = (e, val) => {
-    setSearchValue(val);
-  };
-
   return (
     <ComponentError>
-      <PermissionWrapper>
-        <HeaderWrapper>
-          <Typography variant="h5">Add User</Typography>
-          <div>
-            <RequiredCircle />
-            <RequiredText>Required</RequiredText>
-          </div>
-        </HeaderWrapper>
-        <InputWrapper>
-          <InputLabel>
-            User Email
-            <RequiredCircle margin="0.5rem" />
-          </InputLabel>
-          <AutoCompleteComponent
-            options={options}
-            icon="search"
-            classes={classes}
-            searchValue={searchValue}
-            onSelected={(e, val) => onSelected(e, val)}
-            onChange={(e) => onSearchChange(e)}
-          />
-          <InstructionText>
-            Search the T-Mobile system to add users
-          </InstructionText>
-        </InputWrapper>
-        <RadioButtonWrapper>
-          <FormControl component="fieldset">
-            <RadioGroup
-              row
-              aria-label="permissions"
-              name="permissions1"
-              value={radioValue}
-              onChange={handleChange}
-            >
-              <FormControlLabel
-                value="read"
-                control={<Radio color="default" />}
-                label="Read"
-              />
-              <FormControlLabel
-                value="write"
-                control={<Radio color="default" />}
-                label="Write"
-              />
-            </RadioGroup>
-          </FormControl>
-          <CancelSaveWrapper>
-            <CancelButton>
-              <ButtonComponent label="Cancel" color="primary" />
-            </CancelButton>
-            <ButtonComponent
-              label="Save"
-              color="secondary"
-              disabled={disabledSave}
-            />
-          </CancelSaveWrapper>
-        </RadioButtonWrapper>
-      </PermissionWrapper>
+      <CountSpan color="#5e627c">
+        {`${users && users.length} Permissions`}
+      </CountSpan>
+      <TabWrapper>
+        <AppBar position="static">
+          <Tabs
+            value={value}
+            onChange={handleChange}
+            variant="scrollable"
+            scrollButtons="off"
+            aria-label="scrollable prevent tabs example"
+          >
+            <Tab label="User" {...a11yProps(0)} />
+            <Tab label="Group" {...a11yProps(1)} />
+            <Tab label="AWS Application" {...a11yProps(2)} />
+            <Tab label="App Roles" {...a11yProps(3)} />
+          </Tabs>
+        </AppBar>
+        <TabPanel value={value} index={0}>
+          <User users={users} />
+        </TabPanel>
+        <TabPanel value={value} index={1}>
+          Group
+        </TabPanel>
+        <TabPanel value={value} index={2}>
+          Aws
+        </TabPanel>
+        <TabPanel value={value} index={3}>
+          App Roles
+        </TabPanel>
+      </TabWrapper>
     </ComponentError>
   );
 };

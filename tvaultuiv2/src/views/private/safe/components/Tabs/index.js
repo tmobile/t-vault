@@ -21,6 +21,7 @@ import NoData from 'components/NoData';
 import AddFolder from '../AddFolder';
 // import FolderTreeView from '../FolderTree';
 import Tree from '../Tree';
+import Permissions from '../Permissions';
 // styled components goes here
 
 const EmptySecretBox = styled('div')`
@@ -197,7 +198,7 @@ export default function SelectionTabs() {
           )}
         </TabPanel>
         <TabPanel value={value} index={1}>
-          Permissions
+          <Permissions />
         </TabPanel>
       </div>
     </ComponentError>
