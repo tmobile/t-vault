@@ -17,11 +17,11 @@ const api = {
     const url = config.url + path;
     return ApiCall(url, 'POST', payload, header);
   },
-  put(path, header, payload) {
+  put(path, payload, header) {
     const url = config.url + path;
     return ApiCall(url, 'PUT', payload, header);
   },
-  delete(path, header, payload) {
+  delete(path, payload, header) {
     const url = config.url + path;
     return ApiCall(url, 'DELETE', payload, header);
   },
