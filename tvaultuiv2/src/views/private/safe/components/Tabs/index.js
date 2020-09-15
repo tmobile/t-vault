@@ -22,7 +22,7 @@ import mediaBreakpoints from 'breakpoints';
 import useMediaQuery from '@material-ui/core/useMediaQuery';
 import AddFolder from '../AddFolder';
 import Tree from '../Tree';
-
+import Permissions from '../Permissions';
 // styled components goes here
 
 const EmptySecretBox = styled('div')`
@@ -207,7 +207,7 @@ export default function SelectionTabs() {
           )}
         </TabPanel>
         <TabPanel value={value} index={1}>
-          Permissions
+          <Permissions />
         </TabPanel>
       </div>
     </ComponentError>
