@@ -58,7 +58,8 @@ const FolderIconWrap = styled('div')`
     width: 3rem;
     height: 3rem;
     :hover {
-      background: #151820;
+      background: ${(props) =>
+        props.theme.customColor.hoverColor.list || '#151820'};
       border-radius: 50%;
     }
   }

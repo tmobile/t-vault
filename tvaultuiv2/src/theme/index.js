@@ -245,6 +245,11 @@ const customTheme = createMuiTheme({
         padding: '0.5rem',
       },
     },
+    MuiIcon: {
+      root: {
+        fontSize: '2.5rem',
+      },
+    },
     MuiButton: {
       root: {
         textTransform: 'capitalize',
