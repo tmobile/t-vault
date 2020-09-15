@@ -613,7 +613,7 @@ script(type='text/ng-template', id='manageSecretId.html')
                                                     button.show-more-btn VIEW MORE
                                                     span
                                                         img(src="assets/icons/front-arrow.svg")
-                    md-tab(label="Certificate Management" md-on-select="tabChangeForAdminCert()")
+                    md-tab(label="Certificate Management" md-on-select="tabChangeForAdminCert()" ng-if='isSelfServiceGroupAssigned')
                         md-content(class="md-padding md-content-wrapper page-content-wrapper md-approle-management" ng-init="displayGrid")
                           .md-content-inner-wrapper
                               div.create-certificate-link(ng-show="!isLoadingData && certificateData.certificates.length==0")

@@ -658,4 +658,119 @@ public class OIDCUtilTest {
         assertEquals(0, groups.size());
 
     }
+
+	@Test
+	public void test_getIdOfTheUser_success() throws Exception {
+		String userEmail = "testuser@t-mobile.com";
+		Response response = new Response();
+		response.setHttpstatus(HttpStatus.OK);
+		response.setSuccess(true);
+		response.setResponse(null);
+
+		when(httpUtils.getHttpClient()).thenReturn(httpClient);
+		when(httpClient.execute(any())).thenReturn(httpResponse);
+		when(httpResponse.getStatusLine()).thenReturn(statusLine);
+		when(statusLine.getStatusCode()).thenReturn(200);
+		when(httpResponse.getEntity()).thenReturn(mockHttpEntity);
+
+		String userIdResponseString = "{\"id\": \"abcdefg\", \"onPremisesSyncEnabled\":null, \"displayName\":\"testgroup1\"}";
+		when(mockHttpEntity.getContent()).thenReturn(new ByteArrayInputStream(userIdResponseString.getBytes()));
+		ReflectionTestUtils.setField(oidcUtil, "ssoGetUserEndpoint", "testgroupurl");
+		ReflectionTestUtils.setField(oidcUtil, "sprintMailTailText", "sprint.com");
+
+		String userId = oidcUtil.getIdOfTheUser("testssotoken", userEmail);
+		assertEquals("abcdefg", userId);
+	}
+
+	@Test
+	public void test_getIdOfTheSprintUser_success() throws Exception {
+		String userEmail = "testuser@sprint.com";
+		Response response = new Response();
+		response.setHttpstatus(HttpStatus.OK);
+		response.setSuccess(true);
+		response.setResponse(null);
+
+		when(httpUtils.getHttpClient()).thenReturn(httpClient);
+		when(httpClient.execute(any())).thenReturn(httpResponse);
+		when(httpResponse.getStatusLine()).thenReturn(statusLine);
+		when(statusLine.getStatusCode()).thenReturn(200);
+		when(httpResponse.getEntity()).thenReturn(mockHttpEntity);
+
+		String userIdResponseString = "{\"id\": \"abcdefg\", \"onPremisesSyncEnabled\":null, \"displayName\":\"testgroup1\"}";
+		when(mockHttpEntity.getContent()).thenReturn(new ByteArrayInputStream(userIdResponseString.getBytes()));
+		ReflectionTestUtils.setField(oidcUtil, "ssoGetUserEndpoint", "testgroupurl");
+		ReflectionTestUtils.setField(oidcUtil, "sprintMailTailText", "sprint.com");
+
+		String userId = oidcUtil.getIdOfTheUser("testssotoken", userEmail);
+		assertEquals("abcdefg", userId);
+	}
+
+	@Test
+	public void test_getIdOfTheUser_failed() throws Exception {
+		String userEmail = "testuser@t-mobile.com";
+		Response response = new Response();
+		response.setHttpstatus(HttpStatus.OK);
+		response.setSuccess(true);
+		response.setResponse(null);
+
+		when(httpUtils.getHttpClient()).thenReturn(httpClient);
+		when(httpClient.execute(any())).thenReturn(httpResponse);
+		when(httpResponse.getStatusLine()).thenReturn(statusLine);
+		when(statusLine.getStatusCode()).thenReturn(400);
+
+		ReflectionTestUtils.setField(oidcUtil, "ssoGetUserEndpoint", "testgroupurl");
+		ReflectionTestUtils.setField(oidcUtil, "sprintMailTailText", "sprint.com");
+
+		String userId = oidcUtil.getIdOfTheUser("testssotoken", userEmail);
+		assertEquals(null, userId);
+	}
+
+	@Test
+	public void test_getSelfServiceGroupsFromAADById_success() throws Exception {
+		String userAADId = "abcdefg";
+		String userName = "testuser";
+		Response response = new Response();
+		response.setHttpstatus(HttpStatus.OK);
+		response.setSuccess(true);
+		response.setResponse(null);
+
+		when(httpUtils.getHttpClient()).thenReturn(httpClient);
+		when(httpClient.execute(any())).thenReturn(httpResponse);
+		when(httpResponse.getStatusLine()).thenReturn(statusLine);
+		when(statusLine.getStatusCode()).thenReturn(200);
+		when(httpResponse.getEntity()).thenReturn(mockHttpEntity);
+
+		String groupResponseString = "{\"value\": [ {\"id\": \"abcdefg\", \"onPremisesSyncEnabled\":null, \"displayName\":\"r_selfservice_tvt_admin\"}]}";
+		when(mockHttpEntity.getContent()).thenReturn(new ByteArrayInputStream(groupResponseString.getBytes()));
+		ReflectionTestUtils.setField(oidcUtil, "ssoGetUserEndpoint", "testgroupurl");
+		ReflectionTestUtils.setField(oidcUtil, "ssoGetUserGroups", "groupurlvalue");
+		ReflectionTestUtils.setField(oidcUtil, "ssoGroupPattern", "r_selfservice_[a-z]{3}_admin");
+
+		List<String> groups = oidcUtil.getSelfServiceGroupsFromAADById("testssotoken", userAADId, userName);
+		assertEquals(1, groups.size());
+		assertEquals("tvt", groups.get(0));
+
+	}
+
+	@Test
+	public void test_getSelfServiceGroupsFromAADById_failed() throws Exception {
+		String userAADId = "abcdefg";
+		String userName = "testuser";
+		Response response = new Response();
+		response.setHttpstatus(HttpStatus.OK);
+		response.setSuccess(true);
+		response.setResponse(null);
+
+		when(httpUtils.getHttpClient()).thenReturn(httpClient);
+		when(httpClient.execute(any())).thenReturn(httpResponse);
+		when(httpResponse.getStatusLine()).thenReturn(statusLine);
+		when(statusLine.getStatusCode()).thenReturn(400);
+
+		ReflectionTestUtils.setField(oidcUtil, "ssoGetUserEndpoint", "testgroupurl");
+		ReflectionTestUtils.setField(oidcUtil, "ssoGetUserGroups", "groupurlvalue");
+		ReflectionTestUtils.setField(oidcUtil, "ssoGroupPattern", "r_selfservice_[a-z]{3}_admin");
+
+		List<String> groups = oidcUtil.getSelfServiceGroupsFromAADById("testssotoken", userAADId, userName);
+		assertEquals(0, groups.size());
+	}
 }

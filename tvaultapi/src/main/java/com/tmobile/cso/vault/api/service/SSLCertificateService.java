@@ -6515,6 +6515,69 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)	
 					.body("{\"errors\":[\"Access denied: No permission to access this certificate\"]}");	
 		}	
-	}	
-    
+	}
+
+	/**
+	 * Method to get all application names based on the self service groups of the
+	 * user.
+	 *
+	 * @param userDetails
+	 * @return
+	 */
+	public ResponseEntity<String> getAllSelfServiceGroups(UserDetails userDetails) {
+		if (!ObjectUtils.isEmpty(userDetails)) {
+			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+					.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+					.put(LogMessage.ACTION, SSLCertificateConstants.GET_ALL_APPLICATIONS_STRING)
+					.put(LogMessage.MESSAGE, "Get all self service groups based on the user")
+					.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
+
+			String userEmail = null;
+			List<String> selfServiceGroups = null;
+			DirectoryUser directoryUser = getUserDetails(userDetails.getUsername());
+			if (Objects.nonNull(directoryUser)) {
+				userEmail = directoryUser.getUserEmail();
+			}
+
+			String accessToken = oidcUtil.getSSOToken();
+			String userAADId = null;
+			if ((!StringUtils.isEmpty(accessToken)) && (!StringUtils.isEmpty(userEmail))) {
+				userAADId = oidcUtil.getIdOfTheUser(accessToken, userEmail);
+			}
+
+			if ((!StringUtils.isEmpty(accessToken)) && (!StringUtils.isEmpty(userAADId))) {
+				selfServiceGroups = oidcUtil.getSelfServiceGroupsFromAADById(accessToken, userAADId,
+						userDetails.getUsername());
+			} else {
+				log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+						.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+						.put(LogMessage.ACTION, SSLCertificateConstants.GET_ALL_APPLICATIONS_STRING)
+						.put(LogMessage.MESSAGE, "Access denied: No permission to access certificate management")
+						.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
+				return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+						.body("{\"errors\":[\"Access denied: No permission to access the certificate management\"]}");
+			}
+
+			if (selfServiceGroups != null && !selfServiceGroups.isEmpty()) {
+				return ResponseEntity.status(HttpStatus.OK).body(JSONUtil.getJSON(selfServiceGroups));
+			} else {
+				log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+						.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+						.put(LogMessage.ACTION, SSLCertificateConstants.GET_ALL_APPLICATIONS_STRING)
+						.put(LogMessage.MESSAGE, "Access denied: No permission to access certificate management")
+						.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
+
+				return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+						.body("{\"errors\":[\"Access denied: No permission to access certificate management \"]}");
+			}
+		} else {
+			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+					.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+					.put(LogMessage.ACTION, SSLCertificateConstants.GET_ALL_APPLICATIONS_STRING)
+					.put(LogMessage.MESSAGE, "Access denied: No permission to access certificate")
+					.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+					.body("{\"errors\":[\"Access denied: No permission to access certificate\"]}");
+		}
+	}
 }

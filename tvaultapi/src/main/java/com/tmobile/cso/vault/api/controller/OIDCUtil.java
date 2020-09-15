@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
 import java.util.*;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -37,6 +38,7 @@ import org.springframework.stereotype.Component;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import com.tmobile.cso.vault.api.common.SSLCertificateConstants;
 import com.tmobile.cso.vault.api.common.TVaultConstants;
 import com.tmobile.cso.vault.api.process.RequestProcessor;
 import com.tmobile.cso.vault.api.process.Response;
@@ -59,6 +61,18 @@ public class OIDCUtil {
 
 	@Value("${sso.azure.groupsendpoint}")
 	private String ssoGroupsEndpoint;
+
+	@Value("${sso.azure.userendpoint}")
+	private String ssoGetUserEndpoint;
+
+	@Value("${sso.azure.usergroups}")
+	private String ssoGetUserGroups;
+
+	@Value("${SSLCertificateController.sprintmail.text}")
+	private String sprintMailTailText;
+
+	@Value("${sso.admin.groupName.Pattern}")
+	private String ssoGroupPattern;
 
 	public static final Logger log = LogManager.getLogger(OIDCUtil.class);
 	
@@ -729,5 +743,213 @@ public class OIDCUtil {
 					build()));
 		}
 		return allGroups;
+	}
+
+	/**
+	 * Method to get the Id from AAd by email and access token
+	 *
+	 * @param accessToken
+	 * @param userEmail
+	 * @return
+	 */
+	public String getIdOfTheUser(String accessToken, String userEmail) {
+		String userId = null;
+		JsonParser jsonParser = new JsonParser();
+		HttpClient httpClient = httpUtils.getHttpClient();
+		if (httpClient == null) {
+			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+					.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+					.put(LogMessage.ACTION, SSLCertificateConstants.GET_ID_USER_STRING)
+					.put(LogMessage.MESSAGE, "Failed to initialize httpClient")
+					.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
+			return null;
+		}
+
+		String filterSearch = "";
+		if (userEmail.toLowerCase().endsWith(sprintMailTailText)) {
+			filterSearch = "?$filter=startsWith%28mail%2C'" + userEmail + "'%29";
+		} else {
+			filterSearch = userEmail;
+		}
+
+		String api = ssoGetUserEndpoint + filterSearch;
+
+		HttpGet getRequest = new HttpGet(api);
+		getRequest.addHeader("Authorization", "Bearer " + accessToken);
+
+		StringBuilder jsonResponse = new StringBuilder();
+
+		try {
+			HttpResponse apiResponse = httpClient.execute(getRequest);
+			if (apiResponse.getStatusLine().getStatusCode() == 200) {
+				userId = parseAndGetIdFromAADResponse(userId, jsonParser, jsonResponse, apiResponse);
+				log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+						.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+						.put(LogMessage.ACTION, SSLCertificateConstants.GET_ID_USER_STRING)
+						.put(LogMessage.MESSAGE, String.format("Retrieved %s user id from AAD", userId))
+						.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
+				return userId;
+			}
+			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+					.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+					.put(LogMessage.ACTION, SSLCertificateConstants.GET_ID_USER_STRING)
+					.put(LogMessage.MESSAGE, "Failed to retrieve user id from AAD")
+					.put(LogMessage.STATUS, String.valueOf(apiResponse.getStatusLine().getStatusCode()))
+					.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
+		} catch (IOException e) {
+			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+					.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+					.put(LogMessage.ACTION, SSLCertificateConstants.GET_ID_USER_STRING)
+					.put(LogMessage.MESSAGE, "Failed to parse AAD user api response")
+					.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
+		}
+		return userId;
+	}
+
+	/**
+	 * @param userId
+	 * @param jsonParser
+	 * @param jsonResponse
+	 * @param apiResponse
+	 * @return
+	 * @throws IOException
+	 */
+	private String parseAndGetIdFromAADResponse(String userId, JsonParser jsonParser, StringBuilder jsonResponse,
+			HttpResponse apiResponse) throws IOException {
+		String output = "";
+		BufferedReader br = new BufferedReader(new InputStreamReader((apiResponse.getEntity().getContent())));
+		while ((output = br.readLine()) != null) {
+			jsonResponse.append(output);
+		}
+
+		JsonObject responseJson = (JsonObject) jsonParser.parse(jsonResponse.toString());
+		if (responseJson != null && responseJson.has("id")) {
+			userId = responseJson.get("id").getAsString();
+		}
+		return userId;
+	}
+
+	/**
+	 * To get all self service groups from AAD.
+	 *
+	 * @param ssoToken
+	 * @param groupName
+	 * @return
+	 */
+	public List<String> getSelfServiceGroupsFromAADById(String accessToken, String userAADId, String userName) {
+
+		JsonParser jsonParser = new JsonParser();
+		HttpClient httpClient = httpUtils.getHttpClient();
+		List<String> allGroups = new ArrayList<>();
+		if (httpClient == null) {
+			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+					.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+					.put(LogMessage.ACTION, SSLCertificateConstants.GET_SELF_SERVICE_GROUPS_STRING)
+					.put(LogMessage.MESSAGE, "Failed to initialize httpClient")
+					.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
+			return allGroups;
+		}
+		String api = ssoGetUserEndpoint + userAADId + ssoGetUserGroups;
+		HttpGet getRequest = new HttpGet(api);
+		getRequest.addHeader("Authorization", "Bearer " + accessToken);
+		String output = "";
+		StringBuilder jsonResponse = new StringBuilder();
+
+		try {
+			HttpResponse apiResponse = httpClient.execute(getRequest);
+			if (apiResponse.getStatusLine().getStatusCode() == 200) {
+				BufferedReader br = new BufferedReader(new InputStreamReader((apiResponse.getEntity().getContent())));
+				while ((output = br.readLine()) != null) {
+					jsonResponse.append(output);
+				}
+				JsonObject responseJson = (JsonObject) jsonParser.parse(jsonResponse.toString());
+				if (responseJson != null && responseJson.has("value")) {
+					JsonArray vaulesArray = responseJson.get("value").getAsJsonArray();
+					if (vaulesArray.size() > 0) {
+						Set<String> groupNamesSet = getGroupNameFromJsonArray(vaulesArray);
+
+						if (!isUserSelfServiceAdmin(groupNamesSet)) {
+							log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+									.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+									.put(LogMessage.ACTION, SSLCertificateConstants.GET_SELF_SERVICE_GROUPS_STRING)
+									.put(LogMessage.MESSAGE, "No self-service groups available")
+									.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL))
+									.build()));
+
+							return allGroups;
+						}
+
+						getMatchedSelfServiceGroups(allGroups, groupNamesSet);
+					}
+				}
+				log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+						.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+						.put(LogMessage.ACTION, SSLCertificateConstants.GET_SELF_SERVICE_GROUPS_STRING)
+						.put(LogMessage.MESSAGE,
+								String.format("Retrieved %d group(s) from AAD for user %s", allGroups.size(), userName))
+						.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
+				return allGroups;
+			}
+			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+					.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+					.put(LogMessage.ACTION, SSLCertificateConstants.GET_SELF_SERVICE_GROUPS_STRING)
+					.put(LogMessage.MESSAGE, "Failed to retrieve groups from AAD")
+					.put(LogMessage.STATUS, String.valueOf(apiResponse.getStatusLine().getStatusCode()))
+					.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
+		} catch (IOException e) {
+			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+					.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+					.put(LogMessage.ACTION, SSLCertificateConstants.GET_SELF_SERVICE_GROUPS_STRING)
+					.put(LogMessage.MESSAGE, "Failed to parse AAD groups api response")
+					.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
+		}
+		return allGroups;
+	}
+
+	/**
+	 * @param vaulesArray
+	 * @return
+	 */
+	private Set<String> getGroupNameFromJsonArray(JsonArray vaulesArray) {
+		Set<String> groupNamesSet = new HashSet<>();
+		// Adding to set to remove duplicates
+		for (int i = 0; i < vaulesArray.size(); i++) {
+			JsonObject adObject = vaulesArray.get(i).getAsJsonObject();
+			groupNamesSet.add(adObject.get("displayName").getAsString());
+		}
+		return groupNamesSet;
+	}
+
+	/**
+	 * @param allGroups
+	 * @param groupNamesSet
+	 */
+	private void getMatchedSelfServiceGroups(List<String> allGroups, Set<String> groupNamesSet) {
+		Set<String> filteredGroupSet = getMatchedSelfServiceGroups(groupNamesSet);
+		for (String group : filteredGroupSet) {
+			group = StringUtils.substringBetween(group, "r_selfservice_", "_admin");
+			allGroups.add(group);
+		}
+	}
+
+	/**
+	 * @param userMemberGroups
+	 * @return
+	 */
+	private boolean isUserSelfServiceAdmin(Set<String> userMemberGroups) {
+		boolean match = false;
+		if (!userMemberGroups.isEmpty()) {
+			match = userMemberGroups.stream().anyMatch(str -> str.trim().matches(ssoGroupPattern));
+		}
+		return match;
+	}
+
+	/**
+	 * @param allGroups
+	 * @return
+	 */
+	private Set<String> getMatchedSelfServiceGroups(Set<String> allGroups) {
+		Pattern pattern = Pattern.compile(ssoGroupPattern);
+		return allGroups.stream().filter(pattern.asPredicate()).collect(Collectors.toSet());
 	}
 }
