@@ -44,7 +44,8 @@ const FolderIconWrap = styled('div')`
     width: 3rem;
     height: 3rem;
     :hover {
-      background: #151820;
+      background: ${(props) =>
+        props.theme.customColor.hoverColor.list || '#151820'};
       border-radius: 50%;
     }
   }
@@ -84,7 +85,7 @@ const File = (props) => {
           </IconWrap>
           <TitleThree>{secretKey}</TitleThree>
         </LabelWrap>
-        <SecretWrap>{secretValue}</SecretWrap>
+        <SecretWrap type="password">{secretValue}</SecretWrap>
         <FolderIconWrap>
           <PopperElement
             anchorOrigin={{

@@ -4,19 +4,23 @@ import React, { useState, useEffect } from 'react';
 import InfiniteScroll from 'react-infinite-scroller';
 import PropTypes from 'prop-types';
 import { Link, Route, Switch } from 'react-router-dom';
-import styled from 'styled-components';
+import styled, { css } from 'styled-components';
 import ComponentError from 'errorBoundaries/ComponentError/component-error';
 import NoData from 'components/NoData';
 import NoSafesIcon from 'assets/no-data-safes.svg';
 import safeIcon from 'assets/icon_safes.svg';
 import SelectDropDown from 'components/SelectDropDown';
 import FloatingActionButtonComponent from 'components/FormFields/FloatingActionButton';
+import mediaBreakpoints from 'breakpoints';
+import useMediaQuery from '@material-ui/core/useMediaQuery';
+import TextFieldComponent from 'components/FormFields/TextField';
+import { SearchIcon } from 'assets/SvgIcons';
 import SafeDetails from '../SafeDetails';
 import ListItem from '../ListItem';
 import PsudoPopper from '../PsudoPopper';
 
 // mock data
-// import { safeDetail } from './__mock/safeDashboard';
+import { safes } from './__mock/safeDashboard';
 
 // styled components
 const ColumnSection = styled('section')`
@@ -24,6 +28,9 @@ const ColumnSection = styled('section')`
   width: ${(props) => props.width || '50%'};
   padding: ${(props) => props.padding || '0'};
   background: ${(props) => props.backgroundColor || '#151820'};
+  ${mediaBreakpoints.small} {
+    ${(props) => (props.mobileScreenCss ? props.mobileScreenCss : '')}
+  }
 `;
 const SectionPreview = styled('main')`
   display: flex;
@@ -39,6 +46,9 @@ const ColumnHeader = styled('div')`
 const StyledInfiniteScroll = styled(InfiniteScroll)`
   width: 100%;
   max-height: 61vh;
+  ${mediaBreakpoints.small} {
+    max-height: 78vh;
+  }
 `;
 
 const SafeListContainer = styled.div`
@@ -75,7 +85,7 @@ const PopperWrap = styled.div`
   position: absolute;
   top: 50%;
   right: 0%;
-  z-index: 2;
+  z-index: 1;
   width: 5.5rem;
   transform: translate(-50%, -50%);
 `;
@@ -95,14 +105,27 @@ const FloatBtnWrapper = styled('div')`
   bottom: 2.8rem;
   right: 2.5rem;
 `;
+
+const MobileViewForSafeDetailsPage = css`
+  position: fixed;
+  right: 0;
+  left: 0;
+  bottom: 0;
+  top: 0;
+  z-index: 1;
+`;
+
 const SafeDashboard = (props) => {
-  const { routeProps, safes } = props;
+  const { routeProps } = props;
   const [safeList, setSafeList] = useState([]);
   const [moreData, setMoreData] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [inputSearchValue, setInputSearchValue] = useState('');
 
   const [activeSafeFolders, setActiveSafeFolders] = useState([]);
   // const [showPopper, setShowPopper] = useState(false);
-
+  const isMobileScreen = useMediaQuery(mediaBreakpoints.small);
+  const isDeskTopView = useMediaQuery(mediaBreakpoints.desktop);
   /**
    * safe detail page route change handling function
    * @param {string}
@@ -121,13 +144,15 @@ const SafeDashboard = (props) => {
    */
 
   useEffect(() => {
-    console.log('routeProps', routeProps);
-    console.log('safeList', safes);
     safes.map((item) => {
       return setSafeList((prev) => [...prev, item]);
     });
     setMoreData(true);
   }, []);
+
+  const handleChange = (e) => {
+    setInputSearchValue(e.target.value);
+  };
 
   // const getSafesList = () => {
   //   return new Promise((resolve) =>
@@ -144,6 +169,7 @@ const SafeDashboard = (props) => {
   // };
 
   const loadMoreData = () => {
+    setIsLoading(true);
     // getSafesList().then((res) => {
     //   setMoreData(false);
     //   setSafeList((prev) => [...prev, res]);
@@ -151,6 +177,7 @@ const SafeDashboard = (props) => {
   };
 
   let scrollParentRef = null;
+
   const renderSafes = () => {
     return safeList.map((safe) => (
       <SafeFolderWrap
@@ -174,13 +201,19 @@ const SafeDashboard = (props) => {
       </SafeFolderWrap>
     ));
   };
-
   return (
     <ComponentError>
       <SectionPreview title="safe-section">
-        <ColumnSection width="52.9rem">
+        <ColumnSection width={isMobileScreen ? '100%' : '52.9rem'}>
           <ColumnHeader>
             <SelectDropDown />
+            <TextFieldComponent
+              placeholder="Search"
+              icon={<SearchIcon />}
+              onChange={(e) => handleChange(e)}
+              value={inputSearchValue || ''}
+              color="secondary"
+            />
           </ColumnHeader>
 
           {safeList && safeList.length ? (
@@ -193,7 +226,7 @@ const SafeDashboard = (props) => {
                 }}
                 hasMore={moreData}
                 threshold={100}
-                loader={<div key={0}>Loading...</div>}
+                loader={!isLoading ? <div key={0}>Loading...</div> : <></>}
                 useWindow={false}
                 getScrollParent={() => scrollParentRef}
               >
@@ -221,32 +254,45 @@ const SafeDashboard = (props) => {
               </NoSafeWrap>
             </NoDataWrapper>
           )}
-          <FloatBtnWrapper>
-            <FloatingActionButtonComponent
-              href="/safe/create-safe"
-              color="secondary"
-              icon="addd"
-              tooltipTitle="Create New Safe"
-              tooltipPos="left"
-            />
-          </FloatBtnWrapper>
+          {safeList?.length ? (
+            <FloatBtnWrapper>
+              <FloatingActionButtonComponent
+                href="/safe/create-safe"
+                color="secondary"
+                icon="addd"
+                tooltipTitle="Create New Safe"
+                tooltipPos="left"
+              />
+            </FloatBtnWrapper>
+          ) : (
+            <></>
+          )}
         </ColumnSection>
 
-        <ColumnSection
-          backgroundColor="linear-gradient(to top, #151820, #2c3040)"
-          padding="0"
-          width="77.1rem"
-        >
-          <Switch>
-            {' '}
-            <Route
-              path="/:tab/:safeName"
-              render={(routerProps) => (
-                <SafeDetails detailData={safes} params={routerProps} />
-              )}
-            />
-          </Switch>
-        </ColumnSection>
+        {!isMobileScreen || activeSafeFolders?.length ? (
+          <ColumnSection
+            backgroundColor="linear-gradient(to bottom, #151820, #2c3040)"
+            padding="0"
+            width={isMobileScreen ? '100%' : '77.1rem'}
+            mobileScreenCss={MobileViewForSafeDetailsPage}
+          >
+            <Switch>
+              {' '}
+              <Route
+                path="/:tab/:safeName"
+                render={(routerProps) => (
+                  <SafeDetails
+                    detailData={safes}
+                    params={routerProps}
+                    setActiveSafeFolders={() => setActiveSafeFolders([])}
+                  />
+                )}
+              />
+            </Switch>
+          </ColumnSection>
+        ) : (
+          <></>
+        )}
       </SectionPreview>
     </ComponentError>
   );
@@ -256,11 +302,11 @@ SafeDashboard.propTypes = {
   // eslint-disable-next-line react/forbid-prop-types
   routeProps: PropTypes.object,
   // eslint-disable-next-line react/forbid-prop-types
-  safes: PropTypes.array,
+  // safes: PropTypes.array,
 };
 SafeDashboard.defaultProps = {
   routeProps: {},
-  safes: [],
+  // safes: [],
 };
 
 export default SafeDashboard;

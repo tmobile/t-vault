@@ -11,6 +11,9 @@ export const customColor = {
   },
   magenta: '#e20074',
   snackBarSuccess: 'rgba(14, 156, 77, 0.7)',
+  hoverColor: {
+    list: '#151820',
+  },
 };
 const customTheme = createMuiTheme({
   breakpoints: {
@@ -240,6 +243,11 @@ const customTheme = createMuiTheme({
     MuiInput: {
       root: {
         padding: '0.5rem',
+      },
+    },
+    MuiIcon: {
+      root: {
+        fontSize: '2.5rem',
       },
     },
     MuiButton: {

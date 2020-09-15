@@ -4,10 +4,14 @@
 /* eslint-disable import/no-unresolved */
 import React from 'react';
 import PropTypes from 'prop-types';
+import { useHistory } from 'react-router-dom';
+import useMediaQuery from '@material-ui/core/useMediaQuery';
 import styled from 'styled-components';
 import ComponentError from 'errorBoundaries/ComponentError/component-error';
 import sectionHeaderBg from 'assets/Banner_img.png';
+import { BackArrow } from 'assets/SvgIcons';
 import { TitleFour } from 'styles/GlobalStyles';
+import mediaBreakpoints from 'breakpoints';
 import SelectionTabs from '../Tabs';
 
 // styled components goes here
@@ -24,6 +28,9 @@ const ColumnHeader = styled('div')`
   .safe-title-wrap {
     width: 70%;
   }
+  ${mediaBreakpoints.small} {
+    background-size: cover;
+  }
 `;
 
 const SafeTitle = styled('h5')`
@@ -32,18 +39,39 @@ const SafeTitle = styled('h5')`
   text-overflow: ellipsis;
   overflow: hidden;
 `;
+const BackButton = styled.div`
+  display: flex;
+  align-items: center;
+  padding: 2rem 0 0 2rem;
+`;
+
 const SafeDetails = (props) => {
-  const { detailData, params } = props;
+  const { detailData, params, setActiveSafeFolders } = props;
+
+  // use history of page
+  const history = useHistory();
+  //screen view handler
+  const isMobileScreen = useMediaQuery(mediaBreakpoints.small);
   const safeDetail =
     (detailData &&
       detailData.filter(
         (safe) => safe.safeName === params.match?.params.safeName
       )) ||
     {};
+
+  const goBackToSafeList = () => {
+    setActiveSafeFolders();
+    history.goBack();
+  };
+
   return (
     <ComponentError>
       {' '}
       <Section>
+        <BackButton onClick={goBackToSafeList}>
+          {isMobileScreen ? <BackArrow /> : null}
+          <span>{safeDetail.safeName}</span>
+        </BackButton>
         <ColumnHeader headerBgSrc={sectionHeaderBg}>
           <div className="safe-title-wrap">
             <SafeTitle>{safeDetail?.safeName || 'No Safe'}</SafeTitle>
@@ -61,10 +89,12 @@ const SafeDetails = (props) => {
 SafeDetails.propTypes = {
   detailData: PropTypes.array,
   params: PropTypes.object,
+  setActiveSafeFolders: PropTypes.func,
 };
 SafeDetails.defaultProps = {
   detailData: [],
   params: {},
+  setActiveSafeFolders: () => {},
 };
 
 export default SafeDetails;

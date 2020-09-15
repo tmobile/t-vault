@@ -4,17 +4,22 @@ import Button from '@material-ui/core/Button';
 import Icon from '@material-ui/core/Icon';
 import PropTypes from 'prop-types';
 
-const styles = () => ({
+const withStylesProps = (styles) => (Component) => (props) => {
+  const Comp = withStyles(styles(props))(Component);
+  // eslint-disable-next-line react/jsx-props-no-spreading
+  return <Comp {...props} />;
+};
+const styles = (props) => ({
   contained: {
     height: '3.6rem',
     boxShadow: 'none',
     fontSize: '1.4rem',
+    width: props.width,
   },
   startIcon: {
     marginRight: '0.5rem',
   },
 });
-
 const setIcon = (props) => {
   const { icon, classes } = props;
   return <Icon className={classes.startIcon}>{icon}</Icon>;
@@ -59,4 +64,4 @@ setIcon.propTypes = {
   classes: PropTypes.objectOf(PropTypes.any).isRequired,
 };
 
-export default withStyles(styles)(ButtonComponent);
+export default withStylesProps(styles)(ButtonComponent);
