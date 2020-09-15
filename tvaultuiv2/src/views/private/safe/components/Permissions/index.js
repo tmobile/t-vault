@@ -53,8 +53,8 @@ const TabWrapper = styled.div`
     min-height: unset;
   }
   .MuiTab-textColorInherit.Mui-selected {
-    background-color: #e20074;
-    color: #fff;
+    background-color: ${(props) => props.theme.palette.secondary.main};
+    color: ${(props) => props.theme.palette.secondary.contrastText};
   }
   .MuiTab-textColorInherit {
     color: #e8e8e8;
