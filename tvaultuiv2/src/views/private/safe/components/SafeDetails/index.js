@@ -5,6 +5,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import { useHistory } from 'react-router-dom';
+import useMediaQuery from '@material-ui/core/useMediaQuery';
 import styled from 'styled-components';
 import ComponentError from 'errorBoundaries/ComponentError/component-error';
 import sectionHeaderBg from 'assets/Banner_img.png';
@@ -49,6 +50,8 @@ const SafeDetails = (props) => {
 
   // use history of page
   const history = useHistory();
+  //screen view handler
+  const isMobileScreen = useMediaQuery(mediaBreakpoints.small);
   const safeDetail =
     (detailData &&
       detailData.filter(
@@ -66,7 +69,7 @@ const SafeDetails = (props) => {
       {' '}
       <Section>
         <BackButton onClick={goBackToSafeList}>
-          <BackArrow />
+          {isMobileScreen ? <BackArrow /> : null}
           <span>{safeDetail.safeName}</span>
         </BackButton>
         <ColumnHeader headerBgSrc={sectionHeaderBg}>

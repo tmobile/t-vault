@@ -85,7 +85,7 @@ const PopperWrap = styled.div`
   position: absolute;
   top: 50%;
   right: 0%;
-  z-index: 2;
+  z-index: 1;
   width: 5.5rem;
   transform: translate(-50%, -50%);
 `;
@@ -112,6 +112,7 @@ const MobileViewForSafeDetailsPage = css`
   left: 0;
   bottom: 0;
   top: 0;
+  z-index: 1;
 `;
 
 const SafeDashboard = (props) => {
@@ -205,76 +206,72 @@ const SafeDashboard = (props) => {
   return (
     <ComponentError>
       <SectionPreview title="safe-section">
-        {(!activeSafeFolders?.length && isMobileScreen) || isDeskTopView ? (
-          <ColumnSection width={isMobileScreen ? '100%' : '52.9rem'}>
-            <ColumnHeader>
-              <SelectDropDown />
-              <TextFieldComponent
-                placeholder="Search"
-                icon={<SearchIcon />}
-                onChange={(e) => handleChange(e)}
-                value={inputSearchValue || ''}
-                color="secondary"
-              />
-            </ColumnHeader>
+        <ColumnSection width={isMobileScreen ? '100%' : '52.9rem'}>
+          <ColumnHeader>
+            <SelectDropDown />
+            <TextFieldComponent
+              placeholder="Search"
+              icon={<SearchIcon />}
+              onChange={(e) => handleChange(e)}
+              value={inputSearchValue || ''}
+              color="secondary"
+            />
+          </ColumnHeader>
 
-            {safeList && safeList.length ? (
-              <SafeListContainer ref={(ref) => (scrollParentRef = ref)}>
-                <StyledInfiniteScroll
-                  pageStart={0}
-                  loadMore={() => {
-                    console.log('Load more data called---');
-                    loadMoreData();
-                  }}
-                  hasMore={moreData}
-                  threshold={100}
-                  loader={!isLoading ? <div key={0}>Loading...</div> : <></>}
-                  useWindow={false}
-                  getScrollParent={() => scrollParentRef}
-                >
-                  {renderSafes()}
-                </StyledInfiniteScroll>
-              </SafeListContainer>
-            ) : (
-              <NoDataWrapper>
-                {' '}
-                <NoSafeWrap>
-                  <NoData
-                    imageSrc={NoSafesIcon}
-                    description="Create a Safe to get started!"
-                    actionButton={
-                      // eslint-disable-next-line react/jsx-wrap-multilines
-                      <FloatingActionButtonComponent
-                        href="/safe/create-safe"
-                        color="secondary"
-                        icon="addd"
-                        tooltipTitle="Create New Safe"
-                        tooltipPos="bottom"
-                      />
-                    }
-                  />
-                </NoSafeWrap>
-              </NoDataWrapper>
-            )}
-            {safeList?.length ? (
-              <FloatBtnWrapper>
-                <FloatingActionButtonComponent
-                  href="/safe/create-safe"
-                  color="secondary"
-                  icon="addd"
-                  tooltipTitle="Create New Safe"
-                  tooltipPos="left"
+          {safeList && safeList.length ? (
+            <SafeListContainer ref={(ref) => (scrollParentRef = ref)}>
+              <StyledInfiniteScroll
+                pageStart={0}
+                loadMore={() => {
+                  console.log('Load more data called---');
+                  loadMoreData();
+                }}
+                hasMore={moreData}
+                threshold={100}
+                loader={!isLoading ? <div key={0}>Loading...</div> : <></>}
+                useWindow={false}
+                getScrollParent={() => scrollParentRef}
+              >
+                {renderSafes()}
+              </StyledInfiniteScroll>
+            </SafeListContainer>
+          ) : (
+            <NoDataWrapper>
+              {' '}
+              <NoSafeWrap>
+                <NoData
+                  imageSrc={NoSafesIcon}
+                  description="Create a Safe to get started!"
+                  actionButton={
+                    // eslint-disable-next-line react/jsx-wrap-multilines
+                    <FloatingActionButtonComponent
+                      href="/safe/create-safe"
+                      color="secondary"
+                      icon="addd"
+                      tooltipTitle="Create New Safe"
+                      tooltipPos="bottom"
+                    />
+                  }
                 />
-              </FloatBtnWrapper>
-            ) : (
-              <></>
-            )}
-          </ColumnSection>
-        ) : (
-          <></>
-        )}
+              </NoSafeWrap>
+            </NoDataWrapper>
+          )}
+          {safeList?.length ? (
+            <FloatBtnWrapper>
+              <FloatingActionButtonComponent
+                href="/safe/create-safe"
+                color="secondary"
+                icon="addd"
+                tooltipTitle="Create New Safe"
+                tooltipPos="left"
+              />
+            </FloatBtnWrapper>
+          ) : (
+            <></>
+          )}
+        </ColumnSection>
 
-        {(activeSafeFolders?.length && isMobileScreen) || isDeskTopView ? (
+        {!isMobileScreen || activeSafeFolders?.length ? (
           <ColumnSection
             backgroundColor="linear-gradient(to bottom, #151820, #2c3040)"
             padding="0"

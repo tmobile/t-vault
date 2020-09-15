@@ -12,6 +12,6 @@ code {
     monospace;
 }
 
-#root {
-  overflow-x: hidden;
+strong {
+  color: #fff;
 }

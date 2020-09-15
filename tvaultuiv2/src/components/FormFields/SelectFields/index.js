@@ -15,7 +15,7 @@ const SelectComponent = (props) => {
     >
       {menu.map((item) => {
         return (
-          <MenuItem value={item} selected={value}>
+          <MenuItem value={item} selected={value} key={item}>
             {item}
           </MenuItem>
         );

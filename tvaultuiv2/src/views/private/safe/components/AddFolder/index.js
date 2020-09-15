@@ -31,7 +31,7 @@ const CancelButton = styled.div`
 `;
 const AddFolder = (props) => {
   const [inputValue, setInputValue] = useState('');
-  const [errorMessage, setErrorMessage] = useState('');
+  const [, setErrorMessage] = useState('');
   const { width = '100%', handleCancelClick, handleSaveClick } = props;
 
   const handleValidation = (value) => {

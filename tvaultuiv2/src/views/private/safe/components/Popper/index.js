@@ -12,7 +12,7 @@ const useStyles = makeStyles((theme) => ({
   paper: {
     padding: theme.spacing(1),
     color: theme.palette.common.white,
-    backgroundColor: '#151820',
+    backgroundColor: theme.customColor.hoverColor.list || '#151820',
   },
 }));
 

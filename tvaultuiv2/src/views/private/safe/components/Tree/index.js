@@ -6,7 +6,7 @@ import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import PropTypes from 'prop-types';
 
-import { findElementAndUpdate } from 'services';
+import { findElementAndUpdate } from 'services/helper-function';
 import ComponentError from 'errorBoundaries/ComponentError/component-error';
 import CreateSecretButton from '../CreateSecretButton';
 import AddForm from '../AddForm';
@@ -83,7 +83,12 @@ const TreeRecursive = ({
             inputEnabled={
               inputType?.currentNode === item.labelText && isAddInput
             }
-            createButton={<CreateSecretButton onClick={setCreateSecretBox} />}
+            createButton={
+              // eslint-disable-next-line react/jsx-wrap-multilines
+              <CreateSecretButton
+                onClick={(e) => setCreateSecretBox(e, item.labelText)}
+              />
+            }
           />
         </Folder>
       );
@@ -147,9 +152,9 @@ const Tree = (props) => {
 
     saveFolderToCurrentFolder(secret, selectedNode);
   };
-  const setCreateSecretBox = (e) => {
+  const setCreateSecretBox = (e, node) => {
     setIsAddInput(e);
-    setInputType({ type: 'file', currentNode: '' });
+    setInputType({ type: 'file', currentNode: node });
   };
   const handleCancelClick = (val) => {
     setIsAddInput(val);

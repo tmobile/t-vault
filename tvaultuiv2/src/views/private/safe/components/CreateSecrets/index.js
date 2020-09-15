@@ -51,29 +51,29 @@ const CreateSecret = (props) => {
   const { handleSecretSave, handleSecretCancel } = props;
   const [secret, setSecret] = useState('');
   const [keyId, setKeyId] = useState('');
-  const [keyErrorMessage, setKeyErrorMessage] = useState('');
-  const [valueErrorMessage, setValueErrorMessage] = useState('');
+  // const [keyErrorMessage, setKeyErrorMessage] = useState('');
+  // const [valueErrorMessage, setValueErrorMessage] = useState('');
 
   // screen resolution handler
   const isMobileScreen = useMediaQuery(mediaBreakpoints.small);
 
-  const handleValidation = (value, type) => {
-    if (type === 'key') {
-      if (value.length > 3) setKeyErrorMessage('max of 3 characters');
-    } else {
-      setValueErrorMessage('');
-    }
-  };
+  // const handleValidation = (value, type) => {
+  //   if (type === 'key') {
+  //     if (value.length > 3) setKeyErrorMessage('max of 3 characters');
+  //   } else {
+  //     setValueErrorMessage('');
+  //   }
+  // };
 
-  const handleKeyChange = (key) => {
-    setKeyId(key);
-    handleValidation(key, 'key');
-  };
+  // const handleKeyChange = (key) => {
+  //   setKeyId(key);
+  //   handleValidation(key, 'key');
+  // };
 
-  const handleValueChange = (value) => {
-    setSecret(value);
-    handleValidation(value, 'value');
-  };
+  // const handleValueChange = (value) => {
+  //   setSecret(value);
+  //   handleValidation(value, 'value');
+  // };
 
   return (
     <ComponentError>

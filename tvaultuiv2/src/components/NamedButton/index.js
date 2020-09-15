@@ -2,7 +2,7 @@
 /* eslint-disable react/require-default-props */
 import React from 'react';
 import PropTypes from 'prop-types';
-import styled from 'styled-components';
+import styled, { css } from 'styled-components';
 import ComponentError from 'errorBoundaries/ComponentError/component-error';
 import { TitleTwo } from 'styles/GlobalStyles';
 import mediaBreakpoints from 'breakpoints';
@@ -20,12 +20,19 @@ const Icon = styled('img')`
     margin-left: 0.5rem;
   }
 `;
+
+const styles = css`
+  font-weight: bold;
+`;
+
 const NamedButton = (props) => {
   const { label, iconSrc, customStyle, onClick } = props;
   return (
     <ComponentError>
       <ActionButton customBtnStyle={customStyle} onClick={onClick}>
-        <TitleTwo color="#fff">{label}</TitleTwo>
+        <TitleTwo color="#fff" extraCss={styles}>
+          {label}
+        </TitleTwo>
         <Icon alt="icon-plus" src={iconSrc} />
       </ActionButton>
     </ComponentError>
