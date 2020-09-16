@@ -4,8 +4,7 @@ import InputLabel from '@material-ui/core/InputLabel';
 import MenuItem from '@material-ui/core/MenuItem';
 import FormControl from '@material-ui/core/FormControl';
 import Select from '@material-ui/core/Select';
-// eslint-disable-next-line import/no-unresolved
-import ComponentError from 'errorBoundaries/ComponentError/component-error';
+import ComponentError from '../../errorBoundaries/ComponentError/component-error';
 
 const useStyles = makeStyles((theme) => ({
   formControl: {

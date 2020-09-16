@@ -1,8 +1,7 @@
-/* eslint-disable import/no-unresolved */
 import React from 'react';
 import styled from 'styled-components';
-import { IconDeleteActive, IconEdit } from 'assets/SvgIcons';
-import ComponentError from 'errorBoundaries/ComponentError/component-error';
+import { IconDeleteActive, IconEdit } from '../../../../../assets/SvgIcons';
+import ComponentError from '../../../../../errorBoundaries/ComponentError/component-error';
 
 const IconWrap = styled('div')`
   display: flex;

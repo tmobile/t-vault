@@ -1,20 +1,18 @@
 /* eslint-disable no-return-assign */
-/* eslint-disable import/no-unresolved */
 import React, { useState, useEffect } from 'react';
 import InfiniteScroll from 'react-infinite-scroller';
 import PropTypes from 'prop-types';
 import { Link, Route, Switch } from 'react-router-dom';
 import styled, { css } from 'styled-components';
-import ComponentError from 'errorBoundaries/ComponentError/component-error';
-import NoData from 'components/NoData';
-import NoSafesIcon from 'assets/no-data-safes.svg';
-import safeIcon from 'assets/icon_safes.svg';
-import SelectDropDown from 'components/SelectDropDown';
-import FloatingActionButtonComponent from 'components/FormFields/FloatingActionButton';
-import mediaBreakpoints from 'breakpoints';
 import useMediaQuery from '@material-ui/core/useMediaQuery';
-import TextFieldComponent from 'components/FormFields/TextField';
-import { SearchIcon } from 'assets/SvgIcons';
+import SelectDropDown from '../../../../../components/SelectDropDown';
+import ComponentError from '../../../../../errorBoundaries/ComponentError/component-error';
+import NoData from '../../../../../components/NoData';
+import NoSafesIcon from '../../../../../assets/no-data-safes.svg';
+import safeIcon from '../../../../../assets/icon_safes.svg';
+import FloatingActionButtonComponent from '../../../../../components/FormFields/FloatingActionButton';
+import mediaBreakpoints from '../../../../../breakpoints';
+import TextFieldComponent from '../../../../../components/FormFields/TextField';
 import SafeDetails from '../SafeDetails';
 import ListItem from '../ListItem';
 import PsudoPopper from '../PsudoPopper';
@@ -113,6 +111,7 @@ const MobileViewForSafeDetailsPage = css`
   bottom: 0;
   top: 0;
   z-index: 1;
+  overflow-y: auto;
 `;
 
 const SafeDashboard = (props) => {
@@ -120,13 +119,12 @@ const SafeDashboard = (props) => {
   const [safeList, setSafeList] = useState([]);
   const [moreData, setMoreData] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [responseType, setResponseType] = useState(null);
   const [inputSearchValue, setInputSearchValue] = useState('');
 
   const [activeSafeFolders, setActiveSafeFolders] = useState([]);
   // const [showPopper, setShowPopper] = useState(false);
   const isMobileScreen = useMediaQuery(mediaBreakpoints.small);
-  const isDeskTopView = useMediaQuery(mediaBreakpoints.desktop);
+
   /**
    * safe detail page route change handling function
    * @param {string}
@@ -135,7 +133,7 @@ const SafeDashboard = (props) => {
   const showSafeDetails = (active) => {
     const activeSafes = [];
     activeSafes.push(active);
-    setResponseType(0);
+    // setResponseType(0);
     setActiveSafeFolders([...activeSafes]);
   };
 
@@ -155,7 +153,6 @@ const SafeDashboard = (props) => {
   const handleChange = (e) => {
     setInputSearchValue(e.target.value);
   };
-
   // const getSafesList = () => {
   //   return new Promise((resolve) =>
   //     setTimeout(() => {
@@ -205,97 +202,99 @@ const SafeDashboard = (props) => {
   };
   return (
     <ComponentError>
-      <SectionPreview title="safe-section">
-        <ColumnSection width={isMobileScreen ? '100%' : '52.9rem'}>
-          <ColumnHeader>
-            <SelectDropDown />
-            <TextFieldComponent
-              placeholder="Search"
-              icon={<SearchIcon />}
-              onChange={(e) => handleChange(e)}
-              value={inputSearchValue || ''}
-              color="secondary"
-            />
-          </ColumnHeader>
-
-          {safeList && safeList.length ? (
-            <SafeListContainer ref={(ref) => (scrollParentRef = ref)}>
-              <StyledInfiniteScroll
-                pageStart={0}
-                loadMore={() => {
-                  console.log('Load more data called---');
-                  loadMoreData();
-                }}
-                hasMore={moreData}
-                threshold={100}
-                loader={!isLoading ? <div key={0}>Loading...</div> : <></>}
-                useWindow={false}
-                getScrollParent={() => scrollParentRef}
-              >
-                {renderSafes()}
-              </StyledInfiniteScroll>
-            </SafeListContainer>
-          ) : (
-            <NoDataWrapper>
-              {' '}
-              <NoSafeWrap>
-                <NoData
-                  imageSrc={NoSafesIcon}
-                  description="Create a Safe to get started!"
-                  actionButton={
-                    // eslint-disable-next-line react/jsx-wrap-multilines
-                    <FloatingActionButtonComponent
-                      href="/safe/create-safe"
-                      color="secondary"
-                      icon="addd"
-                      tooltipTitle="Create New Safe"
-                      tooltipPos="bottom"
-                    />
-                  }
-                />
-              </NoSafeWrap>
-            </NoDataWrapper>
-          )}
-          {safeList?.length ? (
-            <FloatBtnWrapper>
-              <FloatingActionButtonComponent
-                href="/safe/create-safe"
+      <>
+        <SectionPreview title="safe-section">
+          <ColumnSection width={isMobileScreen ? '100%' : '52.9rem'}>
+            <ColumnHeader>
+              <SelectDropDown />
+              <TextFieldComponent
+                placeholder="Search"
+                icon="search"
+                onChange={(e) => handleChange(e)}
+                value={inputSearchValue || ''}
                 color="secondary"
-                icon="addd"
-                tooltipTitle="Create New Safe"
-                tooltipPos="left"
               />
-            </FloatBtnWrapper>
+            </ColumnHeader>
+
+            {safeList && safeList.length ? (
+              <SafeListContainer ref={(ref) => (scrollParentRef = ref)}>
+                <StyledInfiniteScroll
+                  pageStart={0}
+                  loadMore={() => {
+                    console.log('Load more data called---');
+                    loadMoreData();
+                  }}
+                  hasMore={moreData}
+                  threshold={100}
+                  loader={!isLoading ? <div key={0}>Loading...</div> : <></>}
+                  useWindow={false}
+                  getScrollParent={() => scrollParentRef}
+                >
+                  {renderSafes()}
+                </StyledInfiniteScroll>
+              </SafeListContainer>
+            ) : (
+              <NoDataWrapper>
+                {' '}
+                <NoSafeWrap>
+                  <NoData
+                    imageSrc={NoSafesIcon}
+                    description="Create a Safe to get started!"
+                    actionButton={
+                      // eslint-disable-next-line react/jsx-wrap-multilines
+                      <FloatingActionButtonComponent
+                        href="/safe/create-safe"
+                        color="secondary"
+                        icon="addd"
+                        tooltipTitle="Create New Safe"
+                        tooltipPos="bottom"
+                      />
+                    }
+                  />
+                </NoSafeWrap>
+              </NoDataWrapper>
+            )}
+            {safeList?.length ? (
+              <FloatBtnWrapper>
+                <FloatingActionButtonComponent
+                  href="/safe/create-safe"
+                  color="secondary"
+                  icon="addd"
+                  tooltipTitle="Create New Safe"
+                  tooltipPos="left"
+                />
+              </FloatBtnWrapper>
+            ) : (
+              <></>
+            )}
+          </ColumnSection>
+
+          {!isMobileScreen || activeSafeFolders?.length ? (
+            <ColumnSection
+              backgroundColor="linear-gradient(to bottom, #151820, #2c3040)"
+              padding="0"
+              width={isMobileScreen ? '100%' : '77.1rem'}
+              mobileScreenCss={MobileViewForSafeDetailsPage}
+            >
+              <Switch>
+                {' '}
+                <Route
+                  path="/:tab/:safeName"
+                  render={(routerProps) => (
+                    <SafeDetails
+                      detailData={safes}
+                      params={routerProps}
+                      setActiveSafeFolders={() => setActiveSafeFolders([])}
+                    />
+                  )}
+                />
+              </Switch>
+            </ColumnSection>
           ) : (
             <></>
           )}
-        </ColumnSection>
-
-        {!isMobileScreen || activeSafeFolders?.length ? (
-          <ColumnSection
-            backgroundColor="linear-gradient(to bottom, #151820, #2c3040)"
-            padding="0"
-            width={isMobileScreen ? '100%' : '77.1rem'}
-            mobileScreenCss={MobileViewForSafeDetailsPage}
-          >
-            <Switch>
-              {' '}
-              <Route
-                path="/:tab/:safeName"
-                render={(routerProps) => (
-                  <SafeDetails
-                    detailData={safes}
-                    params={routerProps}
-                    setActiveSafeFolders={() => setActiveSafeFolders([])}
-                  />
-                )}
-              />
-            </Switch>
-          </ColumnSection>
-        ) : (
-          <></>
-        )}
-      </SectionPreview>
+        </SectionPreview>
+      </>
     </ComponentError>
   );
 };

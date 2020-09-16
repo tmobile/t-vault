@@ -42,35 +42,35 @@ export const safes = [
     flagType: 'old',
   },
   {
-    safeName: 'sample_2',
+    safeName: 'sample_7',
     desc:
       'Hello yhis is the sample description of thesafety used here. it shows description about safety type and so on',
     date: '2 days ago , 9:20 pm',
     flagType: 'new',
   },
   {
-    safeName: 'sample_3',
+    safeName: 'sample_8',
     desc:
       'Hello yhis is the sample description of thesafety used here. it shows description about safety type and so on',
     date: '2 days ago , 9:20 pm',
     flagType: 'new',
   },
   {
-    safeName: 'sample_4',
+    safeName: 'sample_9',
     desc:
       'Hello yhis is the sample description of thesafety used here. it shows description about safety type and so on',
     date: '2 days ago , 9:20 pm',
     flagType: 'seen',
   },
   {
-    safeName: 'sample_5',
+    safeName: 'sample_10',
     desc:
       'Hello yhis is the sample description of thesafety used here. it shows description about safety type and so on',
     date: '2 days ago , 9:20 pm',
     flagType: 'seen',
   },
   {
-    safeName: 'sample_6',
+    safeName: 'sample_11',
     desc:
       'Hello yhis is the sample description of thesafety used here. it shows description about safety type and so on',
     date: '2 days ago , 9:20 pm',

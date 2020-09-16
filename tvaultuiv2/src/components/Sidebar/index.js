@@ -1,10 +1,9 @@
-/* eslint-disable import/no-unresolved */
 import React from 'react';
 import PropTypes from 'prop-types';
 import styled from 'styled-components';
 import { withRouter } from 'react-router-dom';
 import Link from '@material-ui/core/Link';
-import userIcon from 'assets/icon-profile.svg';
+import userIcon from '../../assets/icon-profile.svg';
 import ButtonComponent from '../FormFields/ActionButton';
 
 const SideMenuWrapper = styled.div`

@@ -1,12 +1,11 @@
 /* eslint-disable react/jsx-curly-newline */
-/* eslint-disable import/no-unresolved */
 import React, { useState } from 'react';
 import PropTypes from 'prop-types';
 import styled from 'styled-components';
 import { Typography } from '@material-ui/core';
-import ButtonComponent from 'components/FormFields/ActionButton';
-import TextFieldComponent from 'components/FormFields/TextField';
-import ComponentError from 'errorBoundaries/ComponentError/component-error';
+import ButtonComponent from '../../../../../components/FormFields/ActionButton';
+import TextFieldComponent from '../../../../../components/FormFields/TextField';
+import ComponentError from '../../../../../errorBoundaries/ComponentError/component-error';
 
 const AddFolderNameWrapper = styled.div`
   padding: 3.2rem;

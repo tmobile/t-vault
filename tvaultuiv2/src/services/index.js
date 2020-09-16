@@ -1,9 +1,8 @@
-/* eslint-disable import/no-unresolved */
 import axios from 'axios';
-import config from 'config';
+import config from '../config';
 
 function ApiCall(url, method, data, header) {
-  const token = 's.nVrpPbH49IL9FnR58vFSbcSZ';
+  const token = 's.fwr3AU6OF2tBbRoOukG6AqqN';
   const headers = { ...header, 'vault-token': token };
   return axios.request({ url, method, headers, data });
 }

@@ -1,11 +1,17 @@
-/* eslint-disable import/no-unresolved */
 import React from 'react';
 import styled from 'styled-components';
-import ComponentError from 'errorBoundaries/ComponentError/component-error';
 import PropTypes from 'prop-types';
-import { IconLock, IconDeleteActive, IconEdit } from 'assets/SvgIcons';
-import IconRefreshCC from 'assets/refresh-ccw.svg';
-import { TitleThree, BackgroundColor } from 'styles/GlobalStyles';
+import ComponentError from '../../../../../../errorBoundaries/ComponentError/component-error';
+import {
+  IconLock,
+  IconDeleteActive,
+  IconEdit,
+} from '../../../../../../assets/SvgIcons';
+import IconRefreshCC from '../../../../../../assets/refresh-ccw.svg';
+import {
+  TitleThree,
+  BackgroundColor,
+} from '../../../../../../styles/GlobalStyles';
 import PopperElement from '../../Popper';
 
 const StyledFile = styled.div`

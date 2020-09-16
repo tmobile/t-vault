@@ -1,12 +1,10 @@
-/* eslint-disable import/no-unresolved */
-
 import React from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 import Fab from '@material-ui/core/Fab';
 import Icon from '@material-ui/core/Icon';
 import Tooltip from '@material-ui/core/Tooltip';
 import PropTypes from 'prop-types';
-import ComponentError from 'errorBoundaries/ComponentError/component-error';
+import ComponentError from '../../../errorBoundaries/ComponentError/component-error';
 
 const setIcon = (props) => {
   const { icon } = props;

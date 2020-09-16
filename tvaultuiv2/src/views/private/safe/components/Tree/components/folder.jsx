@@ -1,22 +1,25 @@
+/* eslint-disable react/jsx-curly-newline */
 /* eslint-disable react/jsx-props-no-spreading */
 /* eslint-disable jsx-a11y/click-events-have-key-events */
-/* eslint-disable import/no-unresolved */
 import React, { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import styled, { css } from 'styled-components';
 
 import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
 import ExpandLessIcon from '@material-ui/icons/ExpandLess';
-import IconFolderActive from 'assets/icon_folder_active.png';
-import IconFolderInactive from 'assets/icon_folder.png';
-import ComponentError from 'errorBoundaries/ComponentError/component-error';
-import { TitleTwo, BackgroundColor } from 'styles/GlobalStyles';
+import IconFolderActive from '../../../../../../assets/icon_folder_active.png';
+import IconFolderInactive from '../../../../../../assets/icon_folder.png';
+import ComponentError from '../../../../../../errorBoundaries/ComponentError/component-error';
+import {
+  TitleTwo,
+  BackgroundColor,
+} from '../../../../../../styles/GlobalStyles';
 import {
   IconDeleteActive,
   IconEdit,
   IconAddFolder,
   IconAddSecret,
-} from 'assets/SvgIcons';
+} from '../../../../../../assets/SvgIcons';
 import PopperElement from '../../Popper';
 
 const StyledFolder = styled.div`
@@ -102,7 +105,7 @@ const Folder = (props) => {
 
   useEffect(() => {
     setFolderItem(folderInfo);
-  }, []);
+  }, [folderInfo]);
 
   const handleToggle = (e) => {
     e.preventDefault();

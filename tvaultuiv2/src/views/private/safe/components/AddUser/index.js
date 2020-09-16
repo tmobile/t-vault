@@ -1,4 +1,3 @@
-/* eslint-disable import/no-unresolved */
 import React, { useState, useEffect } from 'react';
 import { debounce } from 'lodash';
 import Radio from '@material-ui/core/Radio';
@@ -6,20 +5,21 @@ import { makeStyles } from '@material-ui/core/styles';
 import RadioGroup from '@material-ui/core/RadioGroup';
 import { InputLabel, Typography } from '@material-ui/core';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
+import useMediaQuery from '@material-ui/core/useMediaQuery';
 import FormControl from '@material-ui/core/FormControl';
 import styled from 'styled-components';
-import ButtonComponent from 'components/FormFields/ActionButton';
-import ComponentError from 'errorBoundaries/ComponentError/component-error';
-import AutoCompleteComponent from 'components/FormFields/AutoComplete';
 import PropTypes from 'prop-types';
-import mediaBreakpoints from 'breakpoints';
+import ComponentError from '../../../../../errorBoundaries/ComponentError/component-error';
+import mediaBreakpoints from '../../../../../breakpoints';
+import AutoCompleteComponent from '../../../../../components/FormFields/AutoComplete';
+import ButtonComponent from '../../../../../components/FormFields/ActionButton';
 import apiService from '../../apiService';
 import data from './__mock__/data';
 
 const { small } = mediaBreakpoints;
 
 const PermissionWrapper = styled.div`
-  padding: 3.5rem 4rem 4rem 4rem;
+  padding: 1rem 4rem 4rem 4rem;
   background-color: #1f232e;
   display: flex;
   flex-direction: column;
@@ -75,6 +75,7 @@ const InstructionText = styled.p`
   margin-bottom: 0rem;
   ${small} {
     font-size: 1.3rem;
+    opacity: 0.4;
   }
 `;
 const RadioButtonWrapper = styled.div`
@@ -95,6 +96,9 @@ const CancelSaveWrapper = styled.div`
 
 const CancelButton = styled.div`
   margin-right: 0.8rem;
+  ${small} {
+    width: 100%;
+  }
 `;
 
 const useStyles = makeStyles(() => ({
@@ -104,14 +108,14 @@ const useStyles = makeStyles(() => ({
   },
 }));
 
-const Permissions = (props) => {
+const AddUser = (props) => {
   const { handleCancelClick, handleSaveClick } = props;
   const classes = useStyles();
   const [radioValue, setRadioValue] = useState('read');
   const [searchValue, setSearchValue] = useState('');
   const [options, setOptions] = useState([]);
   const [disabledSave, setDisabledSave] = useState(true);
-
+  const isMobileScreen = useMediaQuery(small);
   useEffect(() => {
     if (searchValue !== '') {
       setDisabledSave(false);
@@ -206,6 +210,7 @@ const Permissions = (props) => {
                 label="Cancel"
                 color="primary"
                 onClick={handleCancelClick}
+                width={isMobileScreen ? '100%' : ''}
               />
             </CancelButton>
             <ButtonComponent
@@ -213,6 +218,7 @@ const Permissions = (props) => {
               color="secondary"
               onClick={() => handleSaveClick(searchValue, radioValue)}
               disabled={disabledSave}
+              width={isMobileScreen ? '100%' : ''}
             />
           </CancelSaveWrapper>
         </RadioButtonWrapper>
@@ -221,9 +227,9 @@ const Permissions = (props) => {
   );
 };
 
-Permissions.propTypes = {
+AddUser.propTypes = {
   handleSaveClick: PropTypes.func.isRequired,
   handleCancelClick: PropTypes.func.isRequired,
 };
 
-export default Permissions;
+export default AddUser;
