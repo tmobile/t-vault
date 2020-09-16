@@ -311,7 +311,7 @@ const customTheme = createMuiTheme({
         },
       },
       input: {
-        padding: '0',
+        padding: '0.3rem 0',
       },
       adornedStart: {
         paddingLeft: '1rem',

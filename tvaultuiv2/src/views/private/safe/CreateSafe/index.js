@@ -29,6 +29,7 @@ const ModalWrapper = styled.section`
   margin: auto 0;
   display: flex;
   flex-direction: column;
+  position: relative;
   ${smallAndMedium} {
     padding: 4.7rem 5rem 5rem 5rem;
   }
