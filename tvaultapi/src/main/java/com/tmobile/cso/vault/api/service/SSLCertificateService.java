@@ -5275,8 +5275,8 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
                 metaDataParams.get("expiryDate") : "N/A");
         mailTemplateVariables.put("contactLink", supportEmail);
         String subject =
-                SSLCertificateConstants.TRANSFER_EMAIL_SUBJECT + " - " + StringUtils.capitalize(metaDataParams.get(
-                "certificateName"));
+                SSLCertificateConstants.TRANSFER_EMAIL_SUBJECT + " - " + metaDataParams.get(
+                "certificateName");
         if (Objects.nonNull(metaDataParams.get("dnsNames"))) {
             String dnsNames = Collections.singletonList(metaDataParams.get("dnsNames")).toString();
             mailTemplateVariables.put("dnsNames", dnsNames.substring(2, dnsNames.length() - 2));
