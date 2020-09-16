@@ -2067,7 +2067,7 @@
                 if ($scope.certObj.certDetails.ownerEmail != null && $scope.certObj.certDetails.ownerEmail != undefined
                     && $scope.certObj.certDetails.ownerEmail != "") {
                     
-                    if ($rootScope.certDetails.certOwnerEmailId==$scope.certObj.certDetails.ownerEmail) {
+                    if ($rootScope.certDetails.certOwnerEmailId.toLowerCase()==$scope.certObj.certDetails.ownerEmail.toLowerCase()) {
                         $scope.certOwnerEmailErrorMessage = "New owner email id should not be same as owner email id"
                         $scope.certTransferInValid = true;
                     } 
@@ -2083,7 +2083,7 @@
                     if ($scope.certObj.certDetails.ownerEmail != null && $scope.certObj.certDetails.ownerEmail != undefined
                             && $scope.certObj.certDetails.ownerEmail != "") {
                             
-                            if ($rootScope.certDetails.certOwnerEmailId==$scope.certObj.certDetails.ownerEmail) {                            	
+                            if ($rootScope.certDetails.certOwnerEmailId.toLowerCase()==$scope.certObj.certDetails.ownerEmail.toLowerCase()) {
                                 $scope.certOwnerEmailErrorMessage = "New owner email id should not be same as owner email id"
                                 $scope.certTransferInValid = true;
                             } 

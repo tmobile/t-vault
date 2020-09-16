@@ -1548,7 +1548,7 @@ public class SSLCertificateService {
 
 		TargetSystem targetSystem = new TargetSystem();
 		targetSystem.setName(appName);
-		targetSystem.setAddress(appName);
+		targetSystem.setAddress(appName.replaceAll("[^a-zA-Z0-9]", ""));
 		sslCertificateRequest.setTargetSystem(targetSystem);
 
 		TargetSystemServiceRequest targetSystemService = new TargetSystemServiceRequest();
@@ -5210,7 +5210,7 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
                     build()));
 
 			return ResponseEntity.status(HttpStatus.OK)
-					.body("{\"messages\":[\"" + "Certificate owner Transferred Successfully" + "\"]}");
+					.body("{\"messages\":[\"" + "Certificate Owner Transferred Successfully" + "\"]}");
 		} else {
 			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
 					.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString())
@@ -5268,7 +5268,7 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
         mailTemplateVariables.put("oldOwnerEmail", getUserEmail(getUserDetails(oldOwner)));
         mailTemplateVariables.put("newOwnerEmail", getUserEmail(getUserDetails(newOwner)));
         mailTemplateVariables.put("certType", StringUtils.capitalize(metaDataParams.get("certType")));
-        mailTemplateVariables.put("certName", StringUtils.capitalize(metaDataParams.get("certificateName")));
+        mailTemplateVariables.put("certName", metaDataParams.get("certificateName"));
         mailTemplateVariables.put("certStartDate", (Objects.nonNull(metaDataParams.get("createDate"))) ?
                 metaDataParams.get("createDate") : "N/A");
         mailTemplateVariables.put("certEndDate", (Objects.nonNull(metaDataParams.get("expiryDate"))) ?
