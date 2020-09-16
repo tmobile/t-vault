@@ -68,6 +68,7 @@ const AddFolder = (props) => {
               label="Save"
               color="secondary"
               buttonType="containedSecondary"
+              disabled={!inputValue}
               onClick={() =>
                 handleSaveClick({ labelText: inputValue, type: 'folder' })
               }

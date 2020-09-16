@@ -1,3 +1,4 @@
+/* eslint-disable no-nested-ternary */
 /* eslint-disable consistent-return */
 /* eslint-disable react/jsx-curly-newline */
 /* eslint-disable array-callback-return */
@@ -16,6 +17,7 @@ import AddFolder from '../AddFolder';
 import File from './components/file';
 import Folder from './components/folder';
 import apiService from '../../apiService';
+import Error from '../../../../../components/Error';
 
 const TreeRecursive = ({
   data,
@@ -93,7 +95,13 @@ const TreeRecursive = ({
               />
             }
           />
-          {responseType === 0 ? <Loader /> : null}
+          {responseType === 0 ? (
+            <Loader />
+          ) : responseType === -1 && !isAddInput ? (
+            <Error description="error in creating folder" />
+          ) : (
+            <></>
+          )}
         </Folder>
       );
     }
@@ -157,7 +165,7 @@ const Tree = (props) => {
     const updatedArray = findElementAndUpdate(tempFolders, parentId, folderObj);
     // api call
     apiService
-      .postApiCall()
+      .postApiCall('/', null)
       .then((res) => {
         console.log('res....', res);
         setSecretsFolder([...updatedArray]);

@@ -114,6 +114,10 @@ const MobileViewForSafeDetailsPage = css`
   top: 0;
   z-index: 1;
 `;
+const SearchBox = styled.div`
+  display: flex;
+  flex: 1;
+`;
 
 const SafeDashboard = (props) => {
   const { routeProps } = props;
@@ -209,13 +213,16 @@ const SafeDashboard = (props) => {
         <ColumnSection width={isMobileScreen ? '100%' : '52.9rem'}>
           <ColumnHeader>
             <SelectDropDown />
-            <TextFieldComponent
-              placeholder="Search"
-              icon={<SearchIcon />}
-              onChange={(e) => handleChange(e)}
-              value={inputSearchValue || ''}
-              color="secondary"
-            />
+            <SearchBox>
+              <TextFieldComponent
+                placeholder="Search"
+                icon={<SearchIcon />}
+                onChange={(e) => handleChange(e)}
+                value={inputSearchValue || ''}
+                color="secondary"
+                fullWidth={true}
+              />
+            </SearchBox>
           </ColumnHeader>
 
           {safeList && safeList.length ? (

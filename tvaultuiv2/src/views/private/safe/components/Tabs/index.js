@@ -155,6 +155,7 @@ export default function SelectionTabs() {
         console.log(error);
         setResponseType(-1);
       });
+    setSecretsFolder([...tempFolders]);
     setEnableAddFolder(false);
   };
   /**
@@ -201,7 +202,7 @@ export default function SelectionTabs() {
 
           {responseType === 0 ? (
             <Loader />
-          ) : responseType === -1 ? (
+          ) : responseType === -1 && !enabledAddFolder ? (
             <EmptySecretBox>
               {' '}
               <Error description="error in creating folder" />

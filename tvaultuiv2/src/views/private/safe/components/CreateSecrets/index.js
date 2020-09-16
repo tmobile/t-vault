@@ -112,6 +112,7 @@ const CreateSecret = (props) => {
                 icon="add"
                 color="secondary"
                 width={isMobileScreen ? '48%' : ''}
+                disabled={!secret || !keyId}
                 onClick={() =>
                   handleSecretSave({
                     labelKey: keyId,
