@@ -247,7 +247,7 @@ const customTheme = createMuiTheme({
     },
     MuiIcon: {
       root: {
-        fontSize: '2.5rem',
+        fontSize: '2.2rem',
       },
     },
     MuiButton: {

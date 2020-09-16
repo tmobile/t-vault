@@ -120,6 +120,7 @@ const SafeDashboard = (props) => {
   const [safeList, setSafeList] = useState([]);
   const [moreData, setMoreData] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [responseType, setResponseType] = useState(null);
   const [inputSearchValue, setInputSearchValue] = useState('');
 
   const [activeSafeFolders, setActiveSafeFolders] = useState([]);
@@ -134,6 +135,7 @@ const SafeDashboard = (props) => {
   const showSafeDetails = (active) => {
     const activeSafes = [];
     activeSafes.push(active);
+    setResponseType(0);
     setActiveSafeFolders([...activeSafes]);
   };
 

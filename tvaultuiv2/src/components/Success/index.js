@@ -34,7 +34,7 @@ const bgIconStyle = {
 const BackgroundIcon = styled(CardMedia)`
   ${(props) => props.imgStyles}
 `;
-const DialogBox = (props) => {
+const Success = (props) => {
   const { description, actionButton, width } = props;
 
   return (
@@ -51,14 +51,14 @@ const DialogBox = (props) => {
     </ComponentError>
   );
 };
-DialogBox.propTypes = {
+Success.propTypes = {
   description: PropTypes.string,
   actionButton: PropTypes.node,
   width: PropTypes.string,
 };
-DialogBox.defaultProps = {
+Success.defaultProps = {
   description: 'Something went wrong. Please try again',
   actionButton: <div />,
   width: '100%',
 };
-export default DialogBox;
+export default Success;
