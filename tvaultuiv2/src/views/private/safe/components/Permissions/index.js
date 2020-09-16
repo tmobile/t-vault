@@ -1,7 +1,7 @@
 /* eslint-disable react/jsx-props-no-spreading */
 /* eslint-disable import/no-unresolved */
 import React, { useState } from 'react';
-import styled from 'styled-components';
+import styled, { css } from 'styled-components';
 import ComponentError from 'errorBoundaries/ComponentError/component-error';
 import { makeStyles } from '@material-ui/core/styles';
 import Tab from '@material-ui/core/Tab';
@@ -10,7 +10,10 @@ import AppBar from '@material-ui/core/AppBar';
 import Tabs from '@material-ui/core/Tabs';
 import NamedButton from 'components/NamedButton';
 import permissionPlusIcon from 'assets/permission-plus.svg';
+import mediaBreakpoints from 'breakpoints';
 import User from './components/User';
+
+const { small } = mediaBreakpoints;
 
 const TabPanelWrapper = styled.div``;
 
@@ -73,10 +76,29 @@ const TabWrapper = styled.div`
   }
 `;
 
+const CountPlusWrapper = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+`;
 const CountSpan = styled.div`
-  margin-bottom: 1.85rem;
   color: #5e627c;
   font-size: 1.3rem;
+`;
+
+const customStyles = css`
+  display: flex;
+  ${small} {
+    display: none;
+  }
+`;
+
+const customMobileStyles = css`
+  display: none;
+  ${small} {
+    display: flex;
+  }
 `;
 
 const useStyles = makeStyles(() => ({
@@ -103,9 +125,17 @@ const Permissions = () => {
   };
   return (
     <ComponentError>
-      <CountSpan color="#5e627c">
-        {`${users && users.length} Permissions`}
-      </CountSpan>
+      <CountPlusWrapper>
+        <CountSpan color="#5e627c">
+          {`${users && users.length} Permissions`}
+        </CountSpan>
+        <NamedButton
+          customStyle={customMobileStyles}
+          label="Add Permission"
+          iconSrc={permissionPlusIcon}
+          onClick={() => setAddPermission(true)}
+        />
+      </CountPlusWrapper>
       <TabWrapper>
         <AppBar position="static" className={classes.appBar}>
           <Tabs
@@ -121,6 +151,7 @@ const Permissions = () => {
             <Tab label="App Roles" {...a11yProps(3)} />
           </Tabs>
           <NamedButton
+            customStyle={customStyles}
             label="Add Permission"
             iconSrc={permissionPlusIcon}
             onClick={() => setAddPermission(true)}

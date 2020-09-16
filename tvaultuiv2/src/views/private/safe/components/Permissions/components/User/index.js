@@ -7,10 +7,14 @@ import styled, { css } from 'styled-components';
 import PropTypes from 'prop-types';
 import { TitleTwo, TitleFour, BackgroundColor } from 'styles/GlobalStyles';
 import { IconDeleteActive, IconEdit } from 'assets/SvgIcons';
+import useMediaQuery from '@material-ui/core/useMediaQuery';
+import noPermissionsIcon from 'assets/no-permissions.svg';
+import userIcon from 'assets/permission-user.png';
+import mediaBreakpoints from 'breakpoints';
 import PopperElement from '../../../Popper';
-import noPermissionsIcon from '../../../../../../../assets/no-permissions.svg';
 import AddUser from '../../../AddUser';
-import userIcon from '../../../../../../../assets/permission-user.png';
+
+const { small } = mediaBreakpoints;
 
 const NoDataWrapper = styled.section`
   display: flex;
@@ -93,6 +97,7 @@ const User = (props) => {
     onCancelClicked,
   } = props;
 
+  const isMobileScreen = useMediaQuery(small);
   const onSubmit = (search, radio) => {
     const value = {
       name: search,
@@ -165,10 +170,11 @@ const User = (props) => {
                   icon="add"
                   color="secondary"
                   onClick={onNoDataAddClicked}
+                  width={isMobileScreen ? '100%' : '38%'}
                 />
               }
               bgIconStyle={bgIconStyle}
-              width="38%"
+              width={isMobileScreen ? '100%' : '38%'}
             />
           </NoDataWrapper>
         )

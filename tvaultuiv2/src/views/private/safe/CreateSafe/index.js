@@ -7,14 +7,13 @@ import { Backdrop, Typography, InputLabel } from '@material-ui/core';
 import Fade from '@material-ui/core/Fade';
 import styled from 'styled-components';
 import useMediaQuery from '@material-ui/core/useMediaQuery';
-// import PropTypes from 'prop-types';
 import TextFieldComponent from 'components/FormFields/TextField';
 import ButtonComponent from 'components/FormFields/ActionButton';
 import SelectComponent from 'components/FormFields/SelectFields';
 import ComponentError from 'errorBoundaries/ComponentError/component-error';
-import safeIcon from '../../../../assets/icon_safe.svg';
-import leftArrowIcon from '../../../../assets/left-arrow.svg';
-import mediaBreakpoints from '../../../../breakpoints';
+import safeIcon from 'assets/icon_safe.svg';
+import leftArrowIcon from 'assets/left-arrow.svg';
+import mediaBreakpoints from 'breakpoints';
 import apiService from '../apiService';
 
 const { small, smallAndMedium } = mediaBreakpoints;
@@ -147,7 +146,7 @@ const CreateModal = () => {
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [disabledSave, setDisabledSave] = useState(true);
-  const isMobileScreen = useMediaQuery(mediaBreakpoints.small);
+  const isMobileScreen = useMediaQuery(small);
   const history = useHistory();
 
   useEffect(() => {
@@ -282,10 +281,4 @@ const CreateModal = () => {
   );
 };
 
-// CreateModal.propTypes = {
-//   createSafe: PropTypes.func,
-// };
-// CreateModal.defaultProps = {
-//   createSafe: () => {},
-// };
 export default CreateModal;

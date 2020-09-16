@@ -10,7 +10,8 @@ import mediaBreakpoints from 'breakpoints';
 const ActionButton = styled('div')`
   display: flex;
   align-items: center;
-  fontsize: 1.6rem ${(props) => props.customBtnStyle};
+  fontsize: 1.6rem;
+  ${(props) => props.customBtnStyle};
   cursor: pointer;
 `;
 
@@ -27,6 +28,7 @@ const styles = css`
 
 const NamedButton = (props) => {
   const { label, iconSrc, customStyle, onClick } = props;
+
   return (
     <ComponentError>
       <ActionButton customBtnStyle={customStyle} onClick={onClick}>
