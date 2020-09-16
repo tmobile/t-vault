@@ -1,4 +1,3 @@
-/* eslint-disable import/no-unresolved */
 /* eslint-disable react/jsx-props-no-spreading */
 import React from 'react';
 import PropTypes from 'prop-types';
@@ -6,7 +5,7 @@ import { makeStyles } from '@material-ui/core/styles';
 import MoreVertOutlinedIcon from '@material-ui/icons/MoreVertOutlined';
 import Popover from '@material-ui/core/Popover';
 import PopupState, { bindTrigger, bindPopover } from 'material-ui-popup-state';
-import ComponentError from 'errorBoundaries/ComponentError/component-error';
+import ComponentError from '../../../../../errorBoundaries/ComponentError/component-error';
 
 const useStyles = makeStyles((theme) => ({
   paper: {
@@ -46,10 +45,8 @@ const PopperElement = (props) => {
 
 PopperElement.propTypes = {
   open: PropTypes.bool,
-  // eslint-disable-next-line react/forbid-prop-types
-  anchorOrigin: PropTypes.object,
-  // eslint-disable-next-line react/forbid-prop-types
-  transformOrigin: PropTypes.object,
+  anchorOrigin: PropTypes.objectOf(PropTypes.any),
+  transformOrigin: PropTypes.objectOf(PropTypes.any),
   placement: PropTypes.string,
   children: PropTypes.node,
 };

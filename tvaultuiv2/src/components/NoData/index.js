@@ -1,10 +1,9 @@
-/* eslint-disable import/no-unresolved */
 import React from 'react';
 import styled from 'styled-components';
 import PropTypes from 'prop-types';
 import CardMedia from '@material-ui/core/CardMedia';
 import ReactHtmlParser from 'react-html-parser';
-import ComponentError from 'errorBoundaries/ComponentError/component-error';
+import ComponentError from '../../errorBoundaries/ComponentError/component-error';
 
 const DialogeBoxWrapper = styled('div')`
   display: flex;
@@ -18,13 +17,7 @@ const BoxDescription = styled.p`
   font-size: 1.4rem;
   color: #5e627c;
 `;
-const ActionButtonWrap = styled('div')`
-  display: flexl;
-  justify-content: center;
-  position: relative;
-  align-items: center;
-  justify-content: center;
-`;
+
 const BackgroundIcon = styled(CardMedia)`
   ${(props) => props.imgStyles}
 `;

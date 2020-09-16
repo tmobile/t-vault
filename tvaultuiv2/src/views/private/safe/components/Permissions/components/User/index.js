@@ -1,16 +1,22 @@
-/* eslint-disable import/no-unresolved */
 import React from 'react';
-import ComponentError from 'errorBoundaries/ComponentError/component-error';
-import NoData from 'components/NoData';
-import ButtonComponent from 'components/FormFields/ActionButton';
 import styled, { css } from 'styled-components';
 import PropTypes from 'prop-types';
-import { TitleTwo, TitleFour, BackgroundColor } from 'styles/GlobalStyles';
-import { IconDeleteActive, IconEdit } from 'assets/SvgIcons';
 import useMediaQuery from '@material-ui/core/useMediaQuery';
-import noPermissionsIcon from 'assets/no-permissions.svg';
-import userIcon from 'assets/permission-user.png';
-import mediaBreakpoints from 'breakpoints';
+import ComponentError from '../../../../../../../errorBoundaries/ComponentError/component-error';
+import NoData from '../../../../../../../components/NoData';
+import ButtonComponent from '../../../../../../../components/FormFields/ActionButton';
+import {
+  TitleTwo,
+  TitleFour,
+  BackgroundColor,
+} from '../../../../../../../styles/GlobalStyles';
+import {
+  IconDeleteActive,
+  IconEdit,
+} from '../../../../../../../assets/SvgIcons';
+import noPermissionsIcon from '../../../../../../../assets/no-permissions.svg';
+import userIcon from '../../../../../../../assets/permission-user.png';
+import mediaBreakpoints from '../../../../../../../breakpoints';
 import PopperElement from '../../../Popper';
 import AddUser from '../../../AddUser';
 

@@ -1,8 +1,3 @@
-/* eslint-disable import/no-unresolved */
-/* eslint-disable react/forbid-prop-types */
-/* eslint-disable react/require-default-props */
-// eslint-disable-next-line react/forbid-prop-types
-// eslint-disable-next-line react/require-default-props
 import React, { useState } from 'react';
 import PropTypes from 'prop-types';
 import styled, { css } from 'styled-components';
@@ -11,15 +6,14 @@ import { makeStyles } from '@material-ui/core/styles';
 import AppBar from '@material-ui/core/AppBar';
 import Tabs from '@material-ui/core/Tabs';
 import Tab from '@material-ui/core/Tab';
-import ButtonComponent from 'components/FormFields/ActionButton';
-import ComponentError from 'errorBoundaries/ComponentError/component-error';
-import addFolderPlus from 'assets/folder-plus.svg';
-import NoSecretsIcon from 'assets/no-data-secrets.svg';
-// eslint-disable-next-line import/no-unresolved
-import NamedButton from 'components/NamedButton';
-import NoData from 'components/NoData';
-import mediaBreakpoints from 'breakpoints';
 import useMediaQuery from '@material-ui/core/useMediaQuery';
+import ButtonComponent from '../../../../../components/FormFields/ActionButton';
+import ComponentError from '../../../../../errorBoundaries/ComponentError/component-error';
+import addFolderPlus from '../../../../../assets/folder-plus.svg';
+import NoSecretsIcon from '../../../../../assets/no-data-secrets.svg';
+import NamedButton from '../../../../../components/NamedButton';
+import NoData from '../../../../../components/NoData';
+import mediaBreakpoints from '../../../../../breakpoints';
 import AddFolder from '../AddFolder';
 import Tree from '../Tree';
 import Permissions from '../Permissions';
@@ -75,16 +69,12 @@ const TabPanel = (props) => {
 
 TabPanel.propTypes = {
   children: PropTypes.node,
-  index: PropTypes.any.isRequired,
-  value: PropTypes.any.isRequired,
+  index: PropTypes.number.isRequired,
+  value: PropTypes.number.isRequired,
 };
 
 TabPanel.defaultProps = {
   children: <div />,
-  // eslint-disable-next-line react/default-props-match-prop-types
-  index: PropTypes.any.isRequired,
-  // eslint-disable-next-line react/default-props-match-prop-types
-  value: PropTypes.any.isRequired,
 };
 
 function a11yProps(index) {
@@ -216,7 +206,7 @@ export default function SelectionTabs() {
   );
 }
 SelectionTabs.propTypes = {
-  secrets: PropTypes.array,
+  secrets: PropTypes.arrayOf(PropTypes.any),
 };
 SelectionTabs.defaultProps = {
   secrets: [],

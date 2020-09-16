@@ -1,19 +1,18 @@
 /* eslint-disable no-return-assign */
-/* eslint-disable import/no-unresolved */
 import React, { useState, useEffect } from 'react';
 import InfiniteScroll from 'react-infinite-scroller';
 import PropTypes from 'prop-types';
 import { Link, Route, Switch } from 'react-router-dom';
 import styled, { css } from 'styled-components';
-import ComponentError from 'errorBoundaries/ComponentError/component-error';
-import NoData from 'components/NoData';
-import NoSafesIcon from 'assets/no-data-safes.svg';
-import safeIcon from 'assets/icon_safes.svg';
-import SelectDropDown from 'components/SelectDropDown';
-import FloatingActionButtonComponent from 'components/FormFields/FloatingActionButton';
-import mediaBreakpoints from 'breakpoints';
 import useMediaQuery from '@material-ui/core/useMediaQuery';
-import TextFieldComponent from 'components/FormFields/TextField';
+import SelectDropDown from '../../../../../components/SelectDropDown';
+import ComponentError from '../../../../../errorBoundaries/ComponentError/component-error';
+import NoData from '../../../../../components/NoData';
+import NoSafesIcon from '../../../../../assets/no-data-safes.svg';
+import safeIcon from '../../../../../assets/icon_safes.svg';
+import FloatingActionButtonComponent from '../../../../../components/FormFields/FloatingActionButton';
+import mediaBreakpoints from '../../../../../breakpoints';
+import TextFieldComponent from '../../../../../components/FormFields/TextField';
 import SafeDetails from '../SafeDetails';
 import ListItem from '../ListItem';
 import PsudoPopper from '../PsudoPopper';

@@ -1,16 +1,15 @@
 /* eslint-disable react/jsx-props-no-spreading */
-/* eslint-disable import/no-unresolved */
 import React, { useState } from 'react';
 import styled, { css } from 'styled-components';
-import ComponentError from 'errorBoundaries/ComponentError/component-error';
 import { makeStyles } from '@material-ui/core/styles';
 import Tab from '@material-ui/core/Tab';
 import PropTypes from 'prop-types';
 import AppBar from '@material-ui/core/AppBar';
 import Tabs from '@material-ui/core/Tabs';
-import NamedButton from 'components/NamedButton';
-import permissionPlusIcon from 'assets/permission-plus.svg';
-import mediaBreakpoints from 'breakpoints';
+import ComponentError from '../../../../../errorBoundaries/ComponentError/component-error';
+import NamedButton from '../../../../../components/NamedButton';
+import permissionPlusIcon from '../../../../../assets/permission-plus.svg';
+import mediaBreakpoints from '../../../../../breakpoints';
 import User from './components/User';
 
 const { small } = mediaBreakpoints;

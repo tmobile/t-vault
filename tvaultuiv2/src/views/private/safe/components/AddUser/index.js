@@ -1,4 +1,3 @@
-/* eslint-disable import/no-unresolved */
 import React, { useState, useEffect } from 'react';
 import { debounce } from 'lodash';
 import Radio from '@material-ui/core/Radio';
@@ -9,11 +8,11 @@ import FormControlLabel from '@material-ui/core/FormControlLabel';
 import useMediaQuery from '@material-ui/core/useMediaQuery';
 import FormControl from '@material-ui/core/FormControl';
 import styled from 'styled-components';
-import ButtonComponent from 'components/FormFields/ActionButton';
-import ComponentError from 'errorBoundaries/ComponentError/component-error';
-import AutoCompleteComponent from 'components/FormFields/AutoComplete';
 import PropTypes from 'prop-types';
-import mediaBreakpoints from 'breakpoints';
+import ComponentError from '../../../../../errorBoundaries/ComponentError/component-error';
+import mediaBreakpoints from '../../../../../breakpoints';
+import AutoCompleteComponent from '../../../../../components/FormFields/AutoComplete';
+import ButtonComponent from '../../../../../components/FormFields/ActionButton';
 import apiService from '../../apiService';
 import data from './__mock__/data';
 

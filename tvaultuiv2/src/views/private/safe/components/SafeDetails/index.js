@@ -1,17 +1,16 @@
 /* eslint-disable react/forbid-prop-types */
 /* eslint-disable react/require-default-props */
 /* eslint-disable react/no-unused-prop-types */
-/* eslint-disable import/no-unresolved */
 import React from 'react';
 import PropTypes from 'prop-types';
 import { useHistory } from 'react-router-dom';
 import useMediaQuery from '@material-ui/core/useMediaQuery';
 import styled from 'styled-components';
-import ComponentError from 'errorBoundaries/ComponentError/component-error';
-import sectionHeaderBg from 'assets/Banner_img.png';
-import { BackArrow } from 'assets/SvgIcons';
-import { TitleFour } from 'styles/GlobalStyles';
-import mediaBreakpoints from 'breakpoints';
+import ComponentError from '../../../../../errorBoundaries/ComponentError/component-error';
+import sectionHeaderBg from '../../../../../assets/Banner_img.png';
+import { BackArrow } from '../../../../../assets/SvgIcons';
+import { TitleFour } from '../../../../../styles/GlobalStyles';
+import mediaBreakpoints from '../../../../../breakpoints';
 import SelectionTabs from '../Tabs';
 
 // styled components goes here

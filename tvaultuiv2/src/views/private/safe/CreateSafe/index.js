@@ -1,4 +1,3 @@
-/* eslint-disable import/no-unresolved */
 import React, { useState, useEffect } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 import { useHistory } from 'react-router-dom';
@@ -7,14 +6,14 @@ import { Backdrop, Typography, InputLabel } from '@material-ui/core';
 import Fade from '@material-ui/core/Fade';
 import styled, { css } from 'styled-components';
 import useMediaQuery from '@material-ui/core/useMediaQuery';
-import TextFieldComponent from 'components/FormFields/TextField';
-import ButtonComponent from 'components/FormFields/ActionButton';
-import SelectComponent from 'components/FormFields/SelectFields';
-import ComponentError from 'errorBoundaries/ComponentError/component-error';
-import safeIcon from 'assets/icon_safe.svg';
-import leftArrowIcon from 'assets/left-arrow.svg';
-import mediaBreakpoints from 'breakpoints';
-import SnackbarComponent from 'components/Snackbar';
+import TextFieldComponent from '../../../../components/FormFields/TextField';
+import ButtonComponent from '../../../../components/FormFields/ActionButton';
+import SelectComponent from '../../../../components/FormFields/SelectFields';
+import ComponentError from '../../../../errorBoundaries/ComponentError/component-error';
+import safeIcon from '../../../../assets/icon_safe.svg';
+import leftArrowIcon from '../../../../assets/left-arrow.svg';
+import mediaBreakpoints from '../../../../breakpoints';
+import SnackbarComponent from '../../../../components/Snackbar';
 import Loader from '../components/Loader';
 import apiService from '../apiService';
 

@@ -1,14 +1,13 @@
-/* eslint-disable import/no-unresolved */
+/* eslint-disable react/jsx-props-no-spreading */
 import React from 'react';
 import { withStyles } from '@material-ui/core/styles';
 import Button from '@material-ui/core/Button';
 import Icon from '@material-ui/core/Icon';
 import PropTypes from 'prop-types';
-import theme from 'theme';
+import theme from '../../../theme';
 
 const withStylesProps = (styles) => (Component) => (props) => {
   const Comp = withStyles(styles(props, theme))(Component);
-  // eslint-disable-next-line react/jsx-props-no-spreading
   return <Comp {...props} />;
 };
 const styles = (props) => ({
