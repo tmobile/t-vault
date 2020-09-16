@@ -10,7 +10,7 @@ const SelectComponent = (props) => {
       value={value}
       onChange={onChange}
       fullWidth
-      className={classes || ''}
+      className={classes}
       variant={variant || 'filled'}
     >
       {menu.map((item) => {
@@ -29,7 +29,7 @@ SelectComponent.propTypes = {
   variant: PropTypes.string,
   value: PropTypes.string.isRequired,
   menu: PropTypes.arrayOf(PropTypes.any).isRequired,
-  classes: PropTypes.objectOf(PropTypes.any),
+  classes: PropTypes.string,
 };
 
 SelectComponent.defaultProps = {

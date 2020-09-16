@@ -50,7 +50,7 @@ const SafeDetails = (props) => {
 
   // use history of page
   const history = useHistory();
-  //screen view handler
+  // screen view handler
   const isMobileScreen = useMediaQuery(mediaBreakpoints.small);
   const safeDetail =
     (detailData &&
@@ -66,7 +66,6 @@ const SafeDetails = (props) => {
 
   return (
     <ComponentError>
-      {' '}
       <Section>
         <BackButton onClick={goBackToSafeList}>
           {isMobileScreen ? <BackArrow /> : null}

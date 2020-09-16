@@ -20,7 +20,7 @@ import data from './__mock__/data';
 const { small } = mediaBreakpoints;
 
 const PermissionWrapper = styled.div`
-  padding: 3.5rem 4rem 4rem 4rem;
+  padding: 1rem 4rem 4rem 4rem;
   background-color: #1f232e;
   display: flex;
   flex-direction: column;
@@ -109,7 +109,7 @@ const useStyles = makeStyles(() => ({
   },
 }));
 
-const Permissions = (props) => {
+const AddUser = (props) => {
   const { handleCancelClick, handleSaveClick } = props;
   const classes = useStyles();
   const [radioValue, setRadioValue] = useState('read');
@@ -228,9 +228,9 @@ const Permissions = (props) => {
   );
 };
 
-Permissions.propTypes = {
+AddUser.propTypes = {
   handleSaveClick: PropTypes.func.isRequired,
   handleCancelClick: PropTypes.func.isRequired,
 };
 
-export default Permissions;
+export default AddUser;

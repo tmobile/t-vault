@@ -44,13 +44,13 @@ NamedButton.propTypes = {
   label: PropTypes.string,
   iconSrc: PropTypes.node,
   // eslint-disable-next-line react/forbid-prop-types
-  customStyle: PropTypes.object,
+  customStyle: PropTypes.arrayOf(PropTypes.any),
   onClick: PropTypes.func,
 };
 NamedButton.defaultProps = {
   label: '',
   iconSrc: '',
-  customStyle: {},
+  customStyle: [],
   onClick: () => {},
 };
 export default NamedButton;

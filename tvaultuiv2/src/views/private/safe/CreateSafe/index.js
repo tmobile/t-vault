@@ -195,10 +195,11 @@ const CreateModal = () => {
       .postApiCall('/vault/v2/ss/sdb', safeContent)
       .then((res) => {
         if (res && res.status === 200) {
-          history.push({ state: 'success' });
-          setResponseType(null);
-          setOpen(false);
-          history.goBack();
+          setResponseType(1);
+          setTimeout(() => {
+            setOpen(false);
+            history.goBack();
+          }, 1000);
         }
       })
       .catch((err) => {
@@ -316,6 +317,13 @@ const CreateModal = () => {
                 severity="error"
                 icon="error"
                 message={toastMessage || 'Something went wrong!'}
+              />
+            )}
+            {responseType === 1 && (
+              <SnackbarComponent
+                open
+                onClose={() => onToastClose()}
+                message="New Safe has been createtd successfully"
               />
             )}
           </ModalWrapper>

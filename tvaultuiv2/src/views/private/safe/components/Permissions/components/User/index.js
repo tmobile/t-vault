@@ -120,77 +120,79 @@ const User = (props) => {
   };
   return (
     <ComponentError>
-      {addPermission ? (
-        <AddUser
-          handleSaveClick={(search, radio) => onSubmit(search, radio)}
-          handleCancelClick={onCancelClicked}
-        />
-      ) : (
-        ''
-      )}
-      {users && users.length > 0 && !addPermission ? (
-        <UserList>
-          {users.map((item) => {
-            return (
-              <EachUserWrap key={item.name}>
-                <IconDetailsWrap>
-                  <Icon src={userIcon} alt="user" />
-                  <Details>
-                    <TitleTwo extraCss={styles}>{item.name}</TitleTwo>
-                    <TitleFour extraCss={permissionStyles}>
-                      {item.last_updated}
-                      {' - '}
-                      {item.permission}
-                    </TitleFour>
-                  </Details>
-                </IconDetailsWrap>
-                <FolderIconWrap>
-                  <PopperElement
-                    anchorOrigin={{
-                      vertical: 'bottom',
-                      horizontal: 'right',
-                    }}
-                    transformOrigin={{
-                      vertical: 'top',
-                      horizontal: 'right',
-                    }}
-                  >
-                    <PopperItem>
-                      <IconEdit />
-                      <span>Edit</span>
-                    </PopperItem>
-                    <PopperItem>
-                      <IconDeleteActive />
-                      <span> Delete</span>
-                    </PopperItem>
-                  </PopperElement>
-                </FolderIconWrap>
-              </EachUserWrap>
-            );
-          })}
-        </UserList>
-      ) : (
-        !addPermission && (
-          <NoDataWrapper>
-            <NoData
-              imageSrc={noPermissionsIcon}
-              description="Add <strong>Permissions</strong> to allow people, groups or aplication to access this safe"
-              actionButton={
-                // eslint-disable-next-line react/jsx-wrap-multilines
-                <ButtonComponent
-                  label="add"
-                  icon="add"
-                  color="secondary"
-                  onClick={onNoDataAddClicked}
-                  width={isMobileScreen ? '100%' : '38%'}
-                />
-              }
-              bgIconStyle={bgIconStyle}
-              width={isMobileScreen ? '100%' : '38%'}
-            />
-          </NoDataWrapper>
-        )
-      )}
+      <>
+        {addPermission ? (
+          <AddUser
+            handleSaveClick={(search, radio) => onSubmit(search, radio)}
+            handleCancelClick={onCancelClicked}
+          />
+        ) : (
+          ''
+        )}
+        {users && users.length > 0 && !addPermission ? (
+          <UserList>
+            {users.map((item) => {
+              return (
+                <EachUserWrap key={item.name}>
+                  <IconDetailsWrap>
+                    <Icon src={userIcon} alt="user" />
+                    <Details>
+                      <TitleTwo extraCss={styles}>{item.name}</TitleTwo>
+                      <TitleFour extraCss={permissionStyles}>
+                        {item.last_updated}
+                        {' - '}
+                        {item.permission}
+                      </TitleFour>
+                    </Details>
+                  </IconDetailsWrap>
+                  <FolderIconWrap>
+                    <PopperElement
+                      anchorOrigin={{
+                        vertical: 'bottom',
+                        horizontal: 'right',
+                      }}
+                      transformOrigin={{
+                        vertical: 'top',
+                        horizontal: 'right',
+                      }}
+                    >
+                      <PopperItem>
+                        <IconEdit />
+                        <span>Edit</span>
+                      </PopperItem>
+                      <PopperItem>
+                        <IconDeleteActive />
+                        <span> Delete</span>
+                      </PopperItem>
+                    </PopperElement>
+                  </FolderIconWrap>
+                </EachUserWrap>
+              );
+            })}
+          </UserList>
+        ) : (
+          !addPermission && (
+            <NoDataWrapper>
+              <NoData
+                imageSrc={noPermissionsIcon}
+                description="Add <strong>Permissions</strong> to allow people, groups or aplication to access this safe"
+                actionButton={
+                  // eslint-disable-next-line react/jsx-wrap-multilines
+                  <ButtonComponent
+                    label="add"
+                    icon="add"
+                    color="secondary"
+                    onClick={onNoDataAddClicked}
+                    width={isMobileScreen ? '100%' : '38%'}
+                  />
+                }
+                bgIconStyle={bgIconStyle}
+                width={isMobileScreen ? '100%' : '38%'}
+              />
+            </NoDataWrapper>
+          )
+        )}
+      </>
     </ComponentError>
   );
 };

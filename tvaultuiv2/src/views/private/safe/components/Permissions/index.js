@@ -125,57 +125,59 @@ const Permissions = () => {
   };
   return (
     <ComponentError>
-      <CountPlusWrapper>
-        <CountSpan color="#5e627c">
-          {`${users && users.length} Permissions`}
-        </CountSpan>
-        <NamedButton
-          customStyle={customMobileStyles}
-          label="Add Permission"
-          iconSrc={permissionPlusIcon}
-          onClick={() => setAddPermission(true)}
-        />
-      </CountPlusWrapper>
-      <TabWrapper>
-        <AppBar position="static" className={classes.appBar}>
-          <Tabs
-            value={value}
-            onChange={handleChange}
-            variant="scrollable"
-            scrollButtons="off"
-            aria-label="scrollable prevent tabs example"
-          >
-            <Tab label="User" {...a11yProps(0)} />
-            <Tab label="Group" {...a11yProps(1)} />
-            <Tab label="AWS Application" {...a11yProps(2)} />
-            <Tab label="App Roles" {...a11yProps(3)} />
-          </Tabs>
+      <>
+        <CountPlusWrapper>
+          <CountSpan color="#5e627c">
+            {`${users && users.length} Permissions`}
+          </CountSpan>
           <NamedButton
-            customStyle={customStyles}
+            customStyle={customMobileStyles}
             label="Add Permission"
             iconSrc={permissionPlusIcon}
             onClick={() => setAddPermission(true)}
           />
-        </AppBar>
-        <TabPanel value={value} index={0}>
-          <User
-            users={users}
-            onSaveClicked={(data) => onSaveClicked(data)}
-            addPermission={addPermission}
-            onCancelClicked={() => setAddPermission(false)}
-            onNoDataAddClicked={() => setAddPermission(true)}
-          />
-        </TabPanel>
-        <TabPanel value={value} index={1}>
-          Group
-        </TabPanel>
-        <TabPanel value={value} index={2}>
-          Aws
-        </TabPanel>
-        <TabPanel value={value} index={3}>
-          App Roles
-        </TabPanel>
-      </TabWrapper>
+        </CountPlusWrapper>
+        <TabWrapper>
+          <AppBar position="static" className={classes.appBar}>
+            <Tabs
+              value={value}
+              onChange={handleChange}
+              variant="scrollable"
+              scrollButtons="off"
+              aria-label="scrollable prevent tabs example"
+            >
+              <Tab label="User" {...a11yProps(0)} />
+              <Tab label="Group" {...a11yProps(1)} />
+              <Tab label="AWS Application" {...a11yProps(2)} />
+              <Tab label="App Roles" {...a11yProps(3)} />
+            </Tabs>
+            <NamedButton
+              customStyle={customStyles}
+              label="Add Permission"
+              iconSrc={permissionPlusIcon}
+              onClick={() => setAddPermission(true)}
+            />
+          </AppBar>
+          <TabPanel value={value} index={0}>
+            <User
+              users={users}
+              onSaveClicked={(data) => onSaveClicked(data)}
+              addPermission={addPermission}
+              onCancelClicked={() => setAddPermission(false)}
+              onNoDataAddClicked={() => setAddPermission(true)}
+            />
+          </TabPanel>
+          <TabPanel value={value} index={1}>
+            Group
+          </TabPanel>
+          <TabPanel value={value} index={2}>
+            Aws
+          </TabPanel>
+          <TabPanel value={value} index={3}>
+            App Roles
+          </TabPanel>
+        </TabWrapper>
+      </>
     </ComponentError>
   );
 };
