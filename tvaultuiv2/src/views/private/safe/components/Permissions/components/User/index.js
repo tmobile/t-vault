@@ -20,6 +20,18 @@ const NoDataWrapper = styled.section`
   display: flex;
   justify-content: center;
   margin-top: 2.5rem;
+  transform: translate(-50%, -50%);
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 100%;
+  p {
+    ${small} {
+      margin-top: 2rem;
+      margin-bottom: 4rem;
+      width: 75%;
+    }
+  }
 `;
 
 const bgIconStyle = {

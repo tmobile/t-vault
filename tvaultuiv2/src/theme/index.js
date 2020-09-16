@@ -134,7 +134,7 @@ const customTheme = createMuiTheme({
       fontFamily:
         'BlinkMacSystemFont,-apple-system,"Segoe UI",Roboto,Oxygen,Ubuntu,"Helvetica Neue",Arial,sans-serif',
       fontWeight: 'normal',
-      fontSize: '1rem',
+      fontSize: '1.6rem',
       lineHeight: 1.5,
       letterSpacing: '0.03125rem',
       color: '#5e627c',
@@ -354,6 +354,9 @@ const customTheme = createMuiTheme({
       filledSuccess: {
         background: customColor.snackBarSuccess,
         backgroundColor: 'none',
+      },
+      filledError: {
+        backgroundImage: 'none',
       },
     },
     MuiSnackbar: {

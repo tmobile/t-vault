@@ -5,7 +5,7 @@ import { useHistory } from 'react-router-dom';
 import Modal from '@material-ui/core/Modal';
 import { Backdrop, Typography, InputLabel } from '@material-ui/core';
 import Fade from '@material-ui/core/Fade';
-import styled from 'styled-components';
+import styled, { css } from 'styled-components';
 import useMediaQuery from '@material-ui/core/useMediaQuery';
 import TextFieldComponent from 'components/FormFields/TextField';
 import ButtonComponent from 'components/FormFields/ActionButton';
@@ -14,6 +14,8 @@ import ComponentError from 'errorBoundaries/ComponentError/component-error';
 import safeIcon from 'assets/icon_safe.svg';
 import leftArrowIcon from 'assets/left-arrow.svg';
 import mediaBreakpoints from 'breakpoints';
+import SnackbarComponent from 'components/Snackbar';
+import Loader from '../components/Loader';
 import apiService from '../apiService';
 
 const { small, smallAndMedium } = mediaBreakpoints;
@@ -117,6 +119,15 @@ const CancelButton = styled.div`
   }
 `;
 
+const loaderStyle = css`
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  color: red;
+  z-index: 1;
+`;
+
 const useStyles = makeStyles((theme) => ({
   select: {
     '&.MuiFilledInput-root.Mui-focused': {
@@ -146,6 +157,8 @@ const CreateModal = () => {
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [disabledSave, setDisabledSave] = useState(true);
+  const [responseType, setResponseType] = useState(null);
+  const [toastMessage, setToastMessage] = useState('');
   const isMobileScreen = useMediaQuery(small);
   const history = useHistory();
 
@@ -175,11 +188,31 @@ const CreateModal = () => {
       },
       path: `${value}/${name}`,
     };
-    apiService.postApiCall('/vault/v2/ss/sdb', safeContent).then((res) => {
-      console.log('res', res);
-    });
-    // setOpen(false);
-    // history.goBack();
+    setDisabledSave(true);
+    setResponseType(0);
+    apiService
+      .postApiCall('/vault/v2/ss/sdb', safeContent)
+      .then((res) => {
+        if (res && res.status === 200) {
+          history.push({ state: 'success' });
+          setResponseType(null);
+          setOpen(false);
+          history.goBack();
+        }
+      })
+      .catch((err) => {
+        if (err.response && err.response.data?.errors[0]) {
+          setToastMessage(err.response.data.errors[0]);
+        }
+        setResponseType(-1);
+      });
+  };
+
+  const onToastClose = (reason) => {
+    if (reason === 'clickaway') {
+      return;
+    }
+    setResponseType(null);
   };
   return (
     <ComponentError>
@@ -197,6 +230,7 @@ const CreateModal = () => {
       >
         <Fade in={open}>
           <ModalWrapper>
+            {responseType === 0 && <Loader customStyle={loaderStyle} />}
             <HeaderWrapper>
               <LeftIcon
                 src={leftArrowIcon}
@@ -274,6 +308,15 @@ const CreateModal = () => {
                 width={isMobileScreen ? '100%' : ''}
               />
             </CancelSaveWrapper>
+            {responseType === -1 && (
+              <SnackbarComponent
+                open
+                onClose={() => onToastClose()}
+                severity="error"
+                icon="error"
+                message={toastMessage || 'Something went wrong!'}
+              />
+            )}
           </ModalWrapper>
         </Fade>
       </Modal>

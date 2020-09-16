@@ -6,6 +6,7 @@ import { makeStyles } from '@material-ui/core/styles';
 import RadioGroup from '@material-ui/core/RadioGroup';
 import { InputLabel, Typography } from '@material-ui/core';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
+import useMediaQuery from '@material-ui/core/useMediaQuery';
 import FormControl from '@material-ui/core/FormControl';
 import styled from 'styled-components';
 import ButtonComponent from 'components/FormFields/ActionButton';
@@ -75,6 +76,7 @@ const InstructionText = styled.p`
   margin-bottom: 0rem;
   ${small} {
     font-size: 1.3rem;
+    opacity: 0.4;
   }
 `;
 const RadioButtonWrapper = styled.div`
@@ -95,6 +97,9 @@ const CancelSaveWrapper = styled.div`
 
 const CancelButton = styled.div`
   margin-right: 0.8rem;
+  ${small} {
+    width: 100%;
+  }
 `;
 
 const useStyles = makeStyles(() => ({
@@ -111,7 +116,7 @@ const Permissions = (props) => {
   const [searchValue, setSearchValue] = useState('');
   const [options, setOptions] = useState([]);
   const [disabledSave, setDisabledSave] = useState(true);
-
+  const isMobileScreen = useMediaQuery(small);
   useEffect(() => {
     if (searchValue !== '') {
       setDisabledSave(false);
@@ -206,6 +211,7 @@ const Permissions = (props) => {
                 label="Cancel"
                 color="primary"
                 onClick={handleCancelClick}
+                width={isMobileScreen ? '100%' : ''}
               />
             </CancelButton>
             <ButtonComponent
@@ -213,6 +219,7 @@ const Permissions = (props) => {
               color="secondary"
               onClick={() => handleSaveClick(searchValue, radioValue)}
               disabled={disabledSave}
+              width={isMobileScreen ? '100%' : ''}
             />
           </CancelSaveWrapper>
         </RadioButtonWrapper>

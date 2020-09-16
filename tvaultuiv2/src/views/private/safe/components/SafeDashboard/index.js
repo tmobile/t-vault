@@ -15,6 +15,7 @@ import mediaBreakpoints from 'breakpoints';
 import useMediaQuery from '@material-ui/core/useMediaQuery';
 import TextFieldComponent from 'components/FormFields/TextField';
 import { SearchIcon } from 'assets/SvgIcons';
+import SnackbarComponent from 'components/Snackbar';
 import SafeDetails from '../SafeDetails';
 import ListItem from '../ListItem';
 import PsudoPopper from '../PsudoPopper';
@@ -113,6 +114,7 @@ const MobileViewForSafeDetailsPage = css`
   bottom: 0;
   top: 0;
   z-index: 1;
+  overflow-y: auto;
 `;
 
 const SafeDashboard = (props) => {
@@ -120,13 +122,12 @@ const SafeDashboard = (props) => {
   const [safeList, setSafeList] = useState([]);
   const [moreData, setMoreData] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [responseType, setResponseType] = useState(null);
   const [inputSearchValue, setInputSearchValue] = useState('');
 
   const [activeSafeFolders, setActiveSafeFolders] = useState([]);
   // const [showPopper, setShowPopper] = useState(false);
   const isMobileScreen = useMediaQuery(mediaBreakpoints.small);
-  const isDeskTopView = useMediaQuery(mediaBreakpoints.desktop);
+
   /**
    * safe detail page route change handling function
    * @param {string}
@@ -135,7 +136,7 @@ const SafeDashboard = (props) => {
   const showSafeDetails = (active) => {
     const activeSafes = [];
     activeSafes.push(active);
-    setResponseType(0);
+    // setResponseType(0);
     setActiveSafeFolders([...activeSafes]);
   };
 
@@ -155,7 +156,6 @@ const SafeDashboard = (props) => {
   const handleChange = (e) => {
     setInputSearchValue(e.target.value);
   };
-
   // const getSafesList = () => {
   //   return new Promise((resolve) =>
   //     setTimeout(() => {
@@ -294,6 +294,13 @@ const SafeDashboard = (props) => {
           </ColumnSection>
         ) : (
           <></>
+        )}
+        {routeProps.location.state === 'success' && (
+          <SnackbarComponent
+            open
+            onClose={() => {}}
+            message="New Safe has been createtd successfully"
+          />
         )}
       </SectionPreview>
     </ComponentError>
