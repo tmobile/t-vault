@@ -16,7 +16,7 @@ const CreateSecretWrap = styled('div')`
 const SpanElement = styled.span``;
 
 const CreateSecretButton = (props) => {
-  const { onClick } = props;
+  const { onClick,cureentNode } = props;
   return (
     <ComponentError>
       {' '}
@@ -30,6 +30,7 @@ const CreateSecretButton = (props) => {
 
 CreateSecretButton.propTypes = {
   onClick: PropTypes.func,
+  cureentNode:""
 };
 CreateSecretButton.defaultProps = {
   onClick: () => {},

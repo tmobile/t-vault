@@ -1,3 +1,4 @@
+/* eslint-disable no-nested-ternary */
 /* eslint-disable import/no-unresolved */
 /* eslint-disable react/forbid-prop-types */
 /* eslint-disable react/require-default-props */
@@ -20,9 +21,12 @@ import NamedButton from 'components/NamedButton';
 import NoData from 'components/NoData';
 import mediaBreakpoints from 'breakpoints';
 import useMediaQuery from '@material-ui/core/useMediaQuery';
+import Error from 'components/Error';
+import Loader from 'components/Loader';
 import AddFolder from '../AddFolder';
 import Tree from '../Tree';
 import Permissions from '../Permissions';
+import apiService from '../../apiService';
 // styled components goes here
 
 const EmptySecretBox = styled('div')`
@@ -115,6 +119,7 @@ export default function SelectionTabs() {
   const [value, setValue] = useState(0);
   const [enabledAddFolder, setEnableAddFolder] = useState(false);
   const [secretsFolder, setSecretsFolder] = useState([]);
+  const [responseType, setResponseType] = useState(null);
   // const [secrets, setSecrets] = useState([]);
 
   // resolution handlers
@@ -135,7 +140,21 @@ export default function SelectionTabs() {
     folderObj.type = secretFolder.type || 'folder';
     folderObj.children = [];
     tempFolders.push(folderObj);
-    setSecretsFolder([...tempFolders]);
+    setResponseType(0);
+    apiService
+      .postApiCall(
+        `/sdb/createfolder?path=users/gsafeuser/${folderObj.labelText}`,
+        null
+      )
+      .then((res) => {
+        console.log('res....', res);
+        setSecretsFolder([...tempFolders]);
+        setResponseType(1);
+      })
+      .catch((error) => {
+        console.log(error);
+        setResponseType(-1);
+      });
     setEnableAddFolder(false);
   };
   /**
@@ -179,12 +198,23 @@ export default function SelectionTabs() {
           ) : (
             <></>
           )}
-          {secretsFolder && secretsFolder.length ? (
-            <>
-              <Tree data={secretsFolder} />
-            </>
+
+          {responseType === 0 ? (
+            <Loader />
+          ) : responseType === -1 ? (
+            <EmptySecretBox>
+              {' '}
+              <Error description="error in creating folder" />
+            </EmptySecretBox>
           ) : (
-            !enabledAddFolder && (
+            <></>
+          )}
+          {secretsFolder && secretsFolder.length ? (
+            <Tree data={secretsFolder} />
+          ) : (
+            !enabledAddFolder &&
+            responseType !== -1 &&
+            responseType !== 0 && (
               <EmptySecretBox>
                 <NoData
                   imageSrc={NoSecretsIcon}

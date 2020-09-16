@@ -3,8 +3,13 @@ import axios from 'axios';
 import config from 'config';
 
 function ApiCall(url, method, data, header) {
-  const token = 's.nVrpPbH49IL9FnR58vFSbcSZ';
-  const headers = { ...header, 'vault-token': token };
+  const token = 's.SWlWp1MTwdWaSacnlyJItvuT';
+  const headers = {
+    ...header,
+    'vault-token': token,
+    'content-type': 'application/json',
+    'accept-charset': 'ISO-8859-1',
+  };
   return axios.request({ url, method, headers, data });
 }
 

@@ -30,7 +30,7 @@ export function findElementById(arr, id, nestingKey) {
   if (arr.length === 0) return;
   // return element if found else collect all children(or other nestedKey) array and run this function
   return (
-    arr.find((d) => d.labelText === id) ||
+    arr.find((d) => d.labelText.toLowerCase() === id.toLowerCase()) ||
     findElementById(
       arr.flatMap((d) => d[nestingKey] || []),
       id,

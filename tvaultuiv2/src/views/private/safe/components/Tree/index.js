@@ -8,12 +8,14 @@ import PropTypes from 'prop-types';
 
 import { findElementAndUpdate } from 'services/helper-function';
 import ComponentError from 'errorBoundaries/ComponentError/component-error';
+import Loader from 'components/Loader';
 import CreateSecretButton from '../CreateSecretButton';
 import AddForm from '../AddForm';
 import CreateSecret from '../CreateSecrets';
 import AddFolder from '../AddFolder';
 import File from './components/file';
 import Folder from './components/folder';
+import apiService from '../../apiService';
 
 const TreeRecursive = ({
   data,
@@ -25,6 +27,7 @@ const TreeRecursive = ({
   isAddInput,
   setInputType,
   inputType,
+  responseType,
 }) => {
   // loop through the data
   return data.map((item) => {
@@ -90,6 +93,7 @@ const TreeRecursive = ({
               />
             }
           />
+          {responseType === 0 ? <Loader /> : null}
         </Folder>
       );
     }
@@ -107,6 +111,7 @@ const Tree = (props) => {
   const [secretsFolder, setSecretsFolder] = useState([]);
   const [isAddInput, setIsAddInput] = useState(false);
   const [inputType, setInputType] = useState({});
+  const [responseType, setResponseType] = useState(null);
 
   // set inital tree data structure
   const setTreeData = (treeData) => {
@@ -129,7 +134,17 @@ const Tree = (props) => {
     folderObj.labelKey = obj.labelKey;
     folderObj.children = [];
     const updatedArray = findElementAndUpdate(tempFolders, parentId, obj);
-    setSecretsFolder([...updatedArray]);
+    apiService
+      .postApiCall()
+      .then((res) => {
+        console.log('res....', res);
+        setSecretsFolder([...updatedArray]);
+        setResponseType(1);
+      })
+      .catch((error) => {
+        setResponseType(-1);
+        console.log(error);
+      });
     setIsAddInput(false);
   };
 
@@ -140,11 +155,23 @@ const Tree = (props) => {
     folderObj.type = secretFolder.type || 'folder';
     folderObj.children = [];
     const updatedArray = findElementAndUpdate(tempFolders, parentId, folderObj);
-    setSecretsFolder([...updatedArray]);
+    // api call
+    apiService
+      .postApiCall()
+      .then((res) => {
+        console.log('res....', res);
+        setSecretsFolder([...updatedArray]);
+        setResponseType(1);
+      })
+      .catch((error) => {
+        console.log(error);
+        setResponseType(-1);
+      });
     setIsAddInput(false);
   };
 
   const saveFolder = (secret, selectedNode) => {
+    setResponseType(0);
     if (secret?.type?.toLowerCase() === 'file') {
       saveSecretsToFolder(secret, selectedNode);
       return;
@@ -172,6 +199,7 @@ const Tree = (props) => {
           setInputType={setInputType}
           inputType={inputType}
           setIsAddInput={setIsAddInput}
+          responseType={responseType}
         />
       </StyledTree>
     </ComponentError>
