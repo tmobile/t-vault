@@ -307,7 +307,7 @@ const customTheme = createMuiTheme({
         backgroundColor: customColor.primary.backgroundColor,
         color: customColor.primary.color,
         '&:hover': {
-          backgroundColor: '#fff !important',
+          backgroundColor: '#fff',
         },
       },
       input: {

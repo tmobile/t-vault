@@ -266,6 +266,7 @@ const CreateModal = () => {
                   placeholder="Owner"
                   value={owner}
                   fullWidth
+                  type="email"
                   onChange={(e) => setOwner(e.target.value)}
                 />
               </InputFieldLabelWrapper>

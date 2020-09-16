@@ -42,6 +42,7 @@ const TextFieldComponent = (props) => {
     color,
     variant,
     rows,
+    type,
   } = props;
   return (
     <StyleTextField
@@ -54,8 +55,8 @@ const TextFieldComponent = (props) => {
       color={color}
       rows={rows}
       variant={variant || 'filled'}
+      type={type}
       InputProps={{
-        disableUnderline: true,
         startAdornment: (
           <InputAdornment position="start">
             {icon && setIcon({ ...props })}
@@ -77,6 +78,7 @@ TextFieldComponent.propTypes = {
   color: PropTypes.string,
   variant: PropTypes.string,
   rows: PropTypes.number,
+  type: PropTypes.string,
 };
 
 TextFieldComponent.defaultProps = {
@@ -87,6 +89,7 @@ TextFieldComponent.defaultProps = {
   color: 'primary',
   variant: 'filled',
   rows: 5,
+  type: 'text',
 };
 
 setIcon.propTypes = {
