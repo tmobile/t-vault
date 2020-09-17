@@ -44,7 +44,7 @@ public class SSLCertificateController {
 	 * @param certManagetLoginRequest
 	 * @return
 	 */
-	@ApiOperation(value = "${SSLCertificateController.login.value}", notes = "${SSLCertificateController.login.notes}")
+	@ApiOperation(value = "${SSLCertificateController.login.value}", notes = "${SSLCertificateController.login.notes}", hidden = true)
 	@PostMapping(value="/v2/auth/sslcert/login",produces="application/json")
 	public ResponseEntity<String> authenticate(@RequestBody CertManagerLoginRequest certManagetLoginRequest) throws Exception {
 		return sslCertificateService.authenticate(certManagetLoginRequest);
@@ -54,7 +54,7 @@ public class SSLCertificateController {
 	 * @param sslCertificateRequest
 	 * @return
 	 */
-	@ApiOperation(value = "${SSLCertificateController.sslcreate.value}", notes = "${SSLCertificateController.sslcreate.notes}")
+	@ApiOperation(value = "${SSLCertificateController.sslcreate.value}", notes = "${SSLCertificateController.sslcreate.notes}", hidden = true)
 	@PostMapping(value="/v2/sslcert",consumes="application/json",produces="application/json")
 	public ResponseEntity<String> generateSSLCertificate(HttpServletRequest request, @RequestHeader(value=
 			"vault-token") String token,@Valid @RequestBody SSLCertificateRequest sslCertificateRequest)  {
@@ -100,7 +100,7 @@ public class SSLCertificateController {
 	 * @param revocationRequest
 	 * @return
 	 */
-	@ApiOperation(value = "${SSLCertificateController.issueRevocationRequest.value}", notes = "${SSLCertificateController.issueRevocationRequest.notes}")
+	@ApiOperation(value = "${SSLCertificateController.issueRevocationRequest.value}", notes = "${SSLCertificateController.issueRevocationRequest.notes}", hidden = true)
 	@PostMapping(value = "/v2/certificates/{certType}/{certName}/revocationrequest", produces = "application/json")
 	public ResponseEntity<String> issueRevocationRequest(HttpServletRequest request,
 			@RequestHeader(value = "vault-token") String token, @PathVariable("certType") String certType, @PathVariable("certName") String certName,
@@ -115,7 +115,7 @@ public class SSLCertificateController {
 	 * @param certificateUser
 	 * @return
 	 */
-	@ApiOperation(value = "${SSLCertificateController.addUserToCertificate.value}", notes = "${SSLCertificateController.addUserToCertificate.notes}")
+	@ApiOperation(value = "${SSLCertificateController.addUserToCertificate.value}", notes = "${SSLCertificateController.addUserToCertificate.notes}", hidden = true)
 	@PostMapping(value="/v2/sslcert/user",consumes="application/json",produces="application/json")
 	public ResponseEntity<String> addUserToCertificate(HttpServletRequest request, @RequestHeader(value="vault-token") String token, @RequestBody CertificateUser certificateUser){
 		UserDetails userDetails = (UserDetails) request.getAttribute(USER_DETAILS_STRING);
@@ -129,7 +129,7 @@ public class SSLCertificateController {
 	 * @param CertificateGroup
 	 * @return
 	 */
-	@ApiOperation(value = "${SSLCertificateController.addGroupToCertificate.value}", notes = "${SSLCertificateController.addGroupToCertificate.notes}")
+	@ApiOperation(value = "${SSLCertificateController.addGroupToCertificate.value}", notes = "${SSLCertificateController.addGroupToCertificate.notes}", hidden = true)
 	@PostMapping(value="/v2/sslcert/group",consumes="application/json",produces="application/json")
 	public ResponseEntity<String> addGroupToCertificate(HttpServletRequest request, @RequestHeader(value="vault-token") String token, @RequestBody CertificateGroup certificateGroup){
 		UserDetails userDetails = (UserDetails) request.getAttribute(USER_DETAILS_STRING);
@@ -172,7 +172,7 @@ public class SSLCertificateController {
      * @param certificateApprole
      * @return
      */
-    @ApiOperation(value = "${SSLCertificateController.associateApproletoCertificate.value}", notes = "${SSLCertificateController.associateApproletoCertificate.notes}")
+    @ApiOperation(value = "${SSLCertificateController.associateApproletoCertificate.value}", notes = "${SSLCertificateController.associateApproletoCertificate.notes}", hidden = true)
     @PostMapping(value="/v2/sslcert/approle",consumes="application/json",produces="application/json")
     public ResponseEntity<String> associateApproletoCertificate(HttpServletRequest request, @RequestHeader(value="vault-token") String token, @RequestBody CertificateApprole certificateApprole) {
         UserDetails userDetails = (UserDetails) request.getAttribute(USER_DETAILS_STRING);
@@ -186,7 +186,7 @@ public class SSLCertificateController {
 	 * @param certificateDownloadRequest
 	 * @return
 	 */
-	@ApiOperation(value = "${CertificateController.downloadCertificateWithPrivateKey.value}", notes = "${CertificateController.downloadCertificateWithPrivateKey.notes}")
+	@ApiOperation(value = "${CertificateController.downloadCertificateWithPrivateKey.value}", notes = "${CertificateController.downloadCertificateWithPrivateKey.notes}", hidden = true)
 	@PostMapping(value="/v2/sslcert/certificates/download", consumes="application/json")
 	public ResponseEntity<InputStreamResource> downloadCertificateWithPrivateKey(HttpServletRequest request, @RequestHeader(value="vault-token") String token, @Valid @RequestBody CertificateDownloadRequest certificateDownloadRequest) {
 		UserDetails userDetails = (UserDetails) request.getAttribute(USER_DETAILS_STRING);
@@ -201,7 +201,7 @@ public class SSLCertificateController {
 	 * @param certificateType
 	 * @return
 	 */
-	@ApiOperation(value = "${CertificateController.downloadCertificate.value}", notes = "${CertificateController.downloadCertificate.notes}")
+	@ApiOperation(value = "${CertificateController.downloadCertificate.value}", notes = "${CertificateController.downloadCertificate.notes}", hidden = true)
 	@GetMapping(value="/v2/sslcert/certificates/{certificate_name}/{certificate_type}/{sslcert_type}", produces=
 			"application/json")
 	public ResponseEntity<InputStreamResource> downloadCertificate(HttpServletRequest request, @RequestHeader(value=
@@ -233,7 +233,7 @@ public class SSLCertificateController {
 	 * @param certificateId
 	 * @return
 	 */
-	@ApiOperation(value = "${SSLCertificateController.renewCertificate.value}", notes = "${SSLCertificateController.renewCertificate.notes}")
+	@ApiOperation(value = "${SSLCertificateController.renewCertificate.value}", notes = "${SSLCertificateController.renewCertificate.notes}", hidden = true)
 	@PostMapping(value = "/v2/certificates/{certType}/{certName}/renew", produces = "application/json")
 	public ResponseEntity<String> renewCertificate(HttpServletRequest request,
 			@RequestHeader(value = "vault-token") String token, @PathVariable("certType") String certType, @PathVariable("certName") String certName) {
@@ -248,7 +248,7 @@ public class SSLCertificateController {
 	 * @param certificateUser
 	 * @return
 	 */
-	@ApiOperation(value = "${SSLCertificateController.removeUserFromCertificate.value}", notes = "${SSLCertificateController.removeUserFromCertificate.notes}")
+	@ApiOperation(value = "${SSLCertificateController.removeUserFromCertificate.value}", notes = "${SSLCertificateController.removeUserFromCertificate.notes}", hidden = true)
 	@DeleteMapping(value="/v2/sslcert/user", produces="application/json")
 	public ResponseEntity<String> removeUserFromCertificate( HttpServletRequest request, @RequestHeader(value="vault-token") String token, @RequestBody CertificateUser certificateUser){
 		UserDetails userDetails = (UserDetails) request.getAttribute(USER_DETAILS_STRING);
@@ -262,7 +262,7 @@ public class SSLCertificateController {
      * @param certificateGroup
      * @return
      */
-    @ApiOperation(value = "${SSLCertificateController.removeGroupFromCertificate.value}", notes = "${SSLCertificateController.removeGroupFromCertificate.notes}")
+    @ApiOperation(value = "${SSLCertificateController.removeGroupFromCertificate.value}", notes = "${SSLCertificateController.removeGroupFromCertificate.notes}", hidden = true)
     @DeleteMapping(value="/v2/sslcert/group", produces="application/json")
     public ResponseEntity<String> removeGroupFromCertificate( HttpServletRequest request, @RequestHeader(value="vault-token") String token, @RequestBody CertificateGroup certificateGroup ){
         UserDetails userDetails = (UserDetails) request.getAttribute(USER_DETAILS_STRING);
@@ -293,7 +293,7 @@ public class SSLCertificateController {
 	 * @param certificateType
 	 * @return
 	 */
-	@ApiOperation(value = "${SSLCertificateController.transferCertificateOwner.value}", notes = "${SSLCertificateController.transferCertificateOwner.notes}")
+	@ApiOperation(value = "${SSLCertificateController.transferCertificateOwner.value}", notes = "${SSLCertificateController.transferCertificateOwner.notes}", hidden = true)
 	@PutMapping(value = "/v2/sslcert/{certType}/{certName}/{certOwnerEmailId}/transferowner", produces = "application/json")
 	public ResponseEntity<String> transferCertOwner(HttpServletRequest request,
 			@RequestHeader(value = "vault-token") String token,  @PathVariable("certType") String certType, @PathVariable("certName") String certName,@PathVariable("certOwnerEmailId") String certOwnerEmailId) throws Exception {
@@ -309,7 +309,7 @@ public class SSLCertificateController {
 	 * @param certificateType
 	 * @return
 	 */
-	@ApiOperation(value = "${SSLCertificateController.deleteCertificate.value}", notes = "${SSLCertificateController.deleteCertificate.notes}")
+	@ApiOperation(value = "${SSLCertificateController.deleteCertificate.value}", notes = "${SSLCertificateController.deleteCertificate.notes}", hidden = true)
 	@DeleteMapping(value = "/v2/certificates/{certificate_name}/{certificate_type}", produces = "application/json")
 	public ResponseEntity<String> deleteCertificate(HttpServletRequest request,
 			@RequestHeader(value = "vault-token") String token, @PathVariable("certificate_type") String certType, @PathVariable("certificate_name") String certName) throws Exception {
@@ -323,7 +323,7 @@ public class SSLCertificateController {
 	 * @param certificateType
 	 * @return
 	 */
-	@ApiOperation(value = "${SSLCertificateController.validateCertificateDetails.value}", notes = "${SSLCertificateController.validateCertificateDetails.notes}")
+	@ApiOperation(value = "${SSLCertificateController.validateCertificateDetails.value}", notes = "${SSLCertificateController.validateCertificateDetails.notes}", hidden = true)
 	@GetMapping(value = "/v2/sslcert/validate/{certificate_name}/{certificate_type}", produces = "application/json")
 	public ResponseEntity<String> validateCertificateDetails(HttpServletRequest request,
 			@RequestHeader(value = "vault-token") String token,

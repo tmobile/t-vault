@@ -19,7 +19,7 @@
 
 'use strict';
 (function (app) {
-    app.controller('AdminCtrl', function ($scope, $rootScope, Modal, fetchData, $http, $window, $state, SessionStore, AdminSafesManagement, ModifyUrl, UtilityService, Notifications, safesService, RestEndpoints, filterFilter, orderByFilter, $compile) {
+    app.controller('AdminCtrl', function ($scope, $rootScope, Modal, fetchData, $http, $window, $state, SessionStore, AdminSafesManagement, ModifyUrl, UtilityService, Notifications, safesService, RestEndpoints, AppConstant, filterFilter, orderByFilter, $compile) {
 
         $scope.filterValue = '';            // Initial search filter value kept empty
         $scope.isLoadingData = false;       // Variable to set the loader on
@@ -43,6 +43,7 @@
         $scope.appName = '';
         $scope.isSelfServiceGroupAssigned = true;
         $scope.assignedApplications = [];
+        $scope.isExternalCertificateEnable = true;
         // Type of safe to be filtered from the rest
 
         $scope.safeType = {
@@ -155,6 +156,7 @@
             $scope.isCertificateManagePreview = false;
             $scope.isSelfServiceGroupAssigned = true;
             $scope.assignedApplications = [];
+            $scope.isExternalCertificateEnable = AppConstant.SSL_EXT_CERTIFICATE;
             $scope.certObj = {
                 'sslcertType': 'PRIVATE_SINGLE_SAN',
                 'certDetails': {"certType":"internal"},
@@ -2168,5 +2170,6 @@
     'vault.services.fetchData',
     'vault.services.ModifyUrl',
     'vault.services.Notifications',
-    'vault.constants.RestEndpoints'
+    'vault.constants.RestEndpoints',
+    'vault.constants.AppConstant'
 ]));
