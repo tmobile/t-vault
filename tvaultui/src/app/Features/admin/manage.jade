@@ -204,7 +204,7 @@ script(type='text/ng-template', id='certificatePopup.html')
                     label.certificate-form-label Internal
                       input(type='radio' id='cert_type' value="internal" ng-model="certObj.certDetails.certType" ng-click="getTargetSystems()" ng-checked="certObj.certDetails.certType == 'internal'" )
                     label.certificate-form-label External
-                      input(type='radio' id='cert_type' value="external" ng-model="certObj.certDetails.certType" ng-click="getTargetSystems()" ng-checked="certObj.certDetails.certType == 'external'" )
+                      input(type='radio' id='cert_type' value="external" ng-model="certObj.certDetails.certType" ng-click="getTargetSystems()" ng-checked="certObj.certDetails.certType == 'external'"  ng-disabled="!isExternalCertificateEnable")
                 .col-lg-12.col-md-12.col-sm-12.col-xs-12.common-form-row()
                   .details-input-group
                     .certificate-form-label Certificate Name*
