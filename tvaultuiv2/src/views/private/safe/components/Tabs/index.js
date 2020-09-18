@@ -136,16 +136,15 @@ export default function SelectionTabs() {
   const addSecretsFolderList = (secretFolder) => {
     const tempFolders = [...secretsFolder] || [];
     const folderObj = {};
-    folderObj.labelText = secretFolder.labelText;
+    folderObj.id = '';
+    folderObj.parentId = null;
+    folderObj.value = secretFolder.value;
     folderObj.type = secretFolder.type || 'folder';
     folderObj.children = [];
     tempFolders.push(folderObj);
     setResponseType(0);
     apiService
-      .postApiCall(
-        `/sdb/createfolder?path=users/gsafeuser/${folderObj.labelText}`,
-        null
-      )
+      .postApiCall(`/sdb/createfolder?path= ${folderObj.id}`, null)
       .then((res) => {
         console.log('res....', res);
         setSecretsFolder([...tempFolders]);

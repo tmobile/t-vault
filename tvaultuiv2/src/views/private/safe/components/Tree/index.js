@@ -30,18 +30,20 @@ const TreeRecursive = ({
   setInputType,
   inputType,
   responseType,
+  path,
 }) => {
   // loop through the data
   return data.map((item) => {
     // if its a file render <File />
-    if (item.type.toLowerCase() === 'file') {
+    if (item.type.toLowerCase() === 'secret') {
       return (
         <File
-          secretKey={item.labelKey}
-          secretValue={item.labelValue}
+          secretKey={item.key}
+          secretValue={item.value}
           type={item.type}
           setIsAddInput={setIsAddInput}
           setInputType={setInputType}
+          parentId={path}
         />
       );
     }
@@ -52,6 +54,7 @@ const TreeRecursive = ({
           folderInfo={item}
           setInputType={setInputType}
           setIsAddInput={setIsAddInput}
+          parentId={path}
         >
           {Array.isArray(item.children) && (
             <TreeRecursive
@@ -64,6 +67,7 @@ const TreeRecursive = ({
               setIsAddInput={setIsAddInput}
               setInputType={setInputType}
               inputType={inputType}
+              path={`${path}/${item.value}`}
             />
           )}
           <AddForm
@@ -71,30 +75,25 @@ const TreeRecursive = ({
               // eslint-disable-next-line react/jsx-wrap-multilines
               inputType?.type?.toLowerCase() === 'folder' ? (
                 <AddFolder
+                  parentId={`${path}/${item.value}`}
                   handleCancelClick={handleCancelClick}
-                  handleSaveClick={(secret) =>
-                    saveFolder(secret, item.labelText)
-                  }
+                  handleSaveClick={(secret) => saveFolder(secret, item.value)}
                 />
               ) : (
                 <CreateSecret
+                  parentId={path}
                   handleSecretCancel={handleCancelClick}
-                  handleSecretSave={(secret) =>
-                    saveFolder(secret, item.labelText)
-                  }
+                  handleSecretSave={(secret) => saveFolder(secret, item.value)}
                 />
               )
             }
-            inputEnabled={
-              inputType?.currentNode === item.labelText && isAddInput
-            }
-            createButton={
-              // eslint-disable-next-line react/jsx-wrap-multilines
-              <CreateSecretButton
-                onClick={(e) => setCreateSecretBox(e, item.labelText)}
-              />
-            }
+            inputEnabled={inputType?.currentNode === item.value && isAddInput}
           />
+          {item?.children?.length === 0 && (
+            <CreateSecretButton
+              onClick={(e) => setCreateSecretBox(e, item.value)}
+            />
+          )}
           {responseType === 0 ? (
             <Loader />
           ) : responseType === -1 && !isAddInput ? (
@@ -120,6 +119,7 @@ const Tree = (props) => {
   const [isAddInput, setIsAddInput] = useState(false);
   const [inputType, setInputType] = useState({});
   const [responseType, setResponseType] = useState(null);
+  const [path, setPath] = useState('');
 
   // set inital tree data structure
   const setTreeData = (treeData) => {
@@ -134,16 +134,18 @@ const Tree = (props) => {
    *Creates secrets folder array
    * @param {string} folderName
    */
-  const saveSecretsToFolder = (obj, parentId) => {
+  const saveSecretsToFolder = (obj, node) => {
     const tempFolders = [...secretsFolder] || [];
     const folderObj = {};
-    folderObj.labelText = obj.labelValue;
-    folderObj.type = obj.type || 'file';
-    folderObj.labelKey = obj.labelKey;
+    folderObj.id = `${obj.parentId}/${obj.value}`;
+    folderObj.parentId = obj.parentId;
+    folderObj.value = obj.value;
+    folderObj.type = obj.type || 'secret';
+    folderObj.key = obj.key;
     folderObj.children = [];
-    const updatedArray = findElementAndUpdate(tempFolders, parentId, obj);
+    const updatedArray = findElementAndUpdate(tempFolders, node, obj);
     apiService
-      .postApiCall()
+      .postApiCall(`/write?path=${folderObj.id}`, null)
       .then((res) => {
         console.log('res....', res);
         setSecretsFolder([...updatedArray]);
@@ -159,13 +161,15 @@ const Tree = (props) => {
   const saveFolderToCurrentFolder = (secretFolder, parentId) => {
     const tempFolders = [...secretsFolder] || [];
     const folderObj = {};
-    folderObj.labelText = secretFolder.labelText;
+    folderObj.id = `${secretFolder.parentId}/${secretFolder.value}`;
+    folderObj.parentId = secretFolder.parentId;
+    folderObj.value = secretFolder.value;
     folderObj.type = secretFolder.type || 'folder';
     folderObj.children = [];
     const updatedArray = findElementAndUpdate(tempFolders, parentId, folderObj);
     // api call
     apiService
-      .postApiCall('/', null)
+      .postApiCall(`/sdb/createfolder?path=${folderObj.id}`, null)
       .then((res) => {
         console.log('res....', res);
         setSecretsFolder([...updatedArray]);
@@ -180,7 +184,7 @@ const Tree = (props) => {
 
   const saveFolder = (secret, selectedNode) => {
     setResponseType(0);
-    if (secret?.type?.toLowerCase() === 'file') {
+    if (secret?.type?.toLowerCase() === 'secret') {
       saveSecretsToFolder(secret, selectedNode);
       return;
     }
@@ -189,7 +193,7 @@ const Tree = (props) => {
   };
   const setCreateSecretBox = (e, node) => {
     setIsAddInput(e);
-    setInputType({ type: 'file', currentNode: node });
+    setInputType({ type: 'secret', currentNode: node });
   };
   const handleCancelClick = (val) => {
     setIsAddInput(val);
@@ -208,6 +212,8 @@ const Tree = (props) => {
           inputType={inputType}
           setIsAddInput={setIsAddInput}
           responseType={responseType}
+          setPath={setPath}
+          path={path}
         />
       </StyledTree>
     </ComponentError>

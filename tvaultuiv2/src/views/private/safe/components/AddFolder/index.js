@@ -30,9 +30,14 @@ const CancelButton = styled.div`
   margin-right: 0.8rem;
 `;
 const AddFolder = (props) => {
+  const {
+    width = '100%',
+    handleCancelClick,
+    handleSaveClick,
+    parentId,
+  } = props;
   const [inputValue, setInputValue] = useState('');
   const [, setErrorMessage] = useState('');
-  const { width = '100%', handleCancelClick, handleSaveClick } = props;
 
   const handleValidation = (value) => {
     if (value.length > 10) setErrorMessage('max of 3 characters');
@@ -42,7 +47,7 @@ const AddFolder = (props) => {
     setInputValue(e.target.value);
     handleValidation(e.target.value);
   };
-
+  console.log('parnetUd', parentId);
   return (
     <ComponentError>
       {' '}
@@ -70,7 +75,7 @@ const AddFolder = (props) => {
               buttonType="containedSecondary"
               disabled={!inputValue}
               onClick={() =>
-                handleSaveClick({ labelText: inputValue, type: 'folder' })
+                handleSaveClick({ value: inputValue, type: 'folder', parentId })
               }
             />
           </ButtonWrapper>
@@ -83,10 +88,12 @@ AddFolder.propTypes = {
   width: PropTypes.string,
   handleCancelClick: PropTypes.func,
   handleSaveClick: PropTypes.func,
+  parentId: PropTypes.string,
 };
 AddFolder.defaultProps = {
   width: '100%',
   handleSaveClick: () => {},
   handleCancelClick: () => {},
+  parentId: '',
 };
 export default AddFolder;

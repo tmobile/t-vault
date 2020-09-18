@@ -48,32 +48,32 @@ const BtnWrapper = styled.div`
 `;
 
 const CreateSecret = (props) => {
-  const { handleSecretSave, handleSecretCancel } = props;
+  const { handleSecretSave, handleSecretCancel, parentId } = props;
   const [secret, setSecret] = useState('');
   const [keyId, setKeyId] = useState('');
-  // const [keyErrorMessage, setKeyErrorMessage] = useState('');
-  // const [valueErrorMessage, setValueErrorMessage] = useState('');
+  const [keyErrorMessage, setKeyErrorMessage] = useState('');
+  const [valueErrorMessage, setValueErrorMessage] = useState('');
 
   // screen resolution handler
   const isMobileScreen = useMediaQuery(mediaBreakpoints.small);
 
-  // const handleValidation = (value, type) => {
-  //   if (type === 'key') {
-  //     if (value.length > 3) setKeyErrorMessage('max of 3 characters');
-  //   } else {
-  //     setValueErrorMessage('');
-  //   }
-  // };
+  const handleValidation = (value, type) => {
+    if (type === 'key') {
+      if (value.length > 3) setKeyErrorMessage('max of 3 characters');
+    } else {
+      setValueErrorMessage('');
+    }
+  };
 
-  // const handleKeyChange = (key) => {
-  //   setKeyId(key);
-  //   handleValidation(key, 'key');
-  // };
+  const handleKeyChange = (key) => {
+    setKeyId(key);
+    handleValidation(key, 'key');
+  };
 
-  // const handleValueChange = (value) => {
-  //   setSecret(value);
-  //   handleValidation(value, 'value');
-  // };
+  const handleValueChange = (value) => {
+    setSecret(value);
+    handleValidation(value, 'value');
+  };
 
   return (
     <ComponentError>
@@ -84,8 +84,10 @@ const CreateSecret = (props) => {
           <TextFieldComponent
             placeholder="Key Id"
             value={keyId || ''}
-            onChange={(e) => setKeyId(e.target.value)}
+            onChange={(e) => handleKeyChange(e.target.value)}
             fullWidth
+            error={keyErrorMessage}
+            label={<span>{keyErrorMessage}</span>}
           />
           <KeyIdInputRequirements>
             Please enter a minimum of 3 characters lowercase alphabets, number
@@ -95,8 +97,10 @@ const CreateSecret = (props) => {
           <TextFieldComponent
             placeholder="Secret"
             value={secret || ''}
-            onChange={(e) => setSecret(e.target.value)}
+            onChange={(e) => handleValueChange(e.target.value)}
             fullWidth
+            error={valueErrorMessage}
+            label={<span>{valueErrorMessage}</span>}
           />
           <CancelSaveWrapper>
             <BtnWrapper>
@@ -115,9 +119,10 @@ const CreateSecret = (props) => {
                 disabled={!secret || !keyId}
                 onClick={() =>
                   handleSecretSave({
-                    labelKey: keyId,
-                    labelValue: secret,
-                    type: 'file',
+                    key: keyId,
+                    value: secret,
+                    type: 'secret',
+                    parentId,
                   })
                 }
               />
@@ -131,10 +136,12 @@ const CreateSecret = (props) => {
 CreateSecret.propTypes = {
   handleSecretSave: PropTypes.func,
   handleSecretCancel: PropTypes.func,
+  parentId: PropTypes.string,
 };
 CreateSecret.defaultProps = {
   handleSecretSave: () => {},
   handleSecretCancel: () => {},
+  parentId: '',
 };
 
 export default CreateSecret;
