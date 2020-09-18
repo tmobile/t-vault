@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { debounce } from 'lodash';
 import Radio from '@material-ui/core/Radio';
 import { makeStyles } from '@material-ui/core/styles';
@@ -14,7 +14,6 @@ import mediaBreakpoints from '../../../../../breakpoints';
 import AutoCompleteComponent from '../../../../../components/FormFields/AutoComplete';
 import ButtonComponent from '../../../../../components/FormFields/ActionButton';
 import apiService from '../../apiService';
-import data from './__mock__/data';
 
 const { small } = mediaBreakpoints;
 
@@ -128,33 +127,43 @@ const AddUser = (props) => {
     setRadioValue(event.target.value);
   };
 
-  const callSearchApi = debounce(() => {
-    apiService
-      .searchUser(data)
-      .then((res) => {
-        setOptions([]);
-        if (res?.data?.values?.length > 0) {
-          res.data.values.map((item) => {
-            return setOptions((prev) => [...prev, item.userEmail]);
-          });
-        }
-      })
-      // eslint-disable-next-line no-console
-      .catch((e) => console.error(e));
-  }, 1000);
+  const callSearchApi = useCallback(
+    debounce(
+      (value) => {
+        apiService
+          .getApiCall(`/vault/v2/ldap/corpusers?CorpId=${value}`)
+          .then((res) => {
+            setOptions([]);
+            if (res?.data?.data?.values?.length > 0) {
+              res.data.data.values.map((item) => {
+                if (item.userName) {
+                  return setOptions((prev) => [...prev, item.userName]);
+                }
+                return null;
+              });
+            }
+          })
+          // eslint-disable-next-line no-console
+          .catch((e) => console.error(e));
+      },
+      3000,
+      true
+    ),
+    []
+  );
 
   const onSearchChange = (text) => {
-    setOptions([]);
     setSearchValue(text);
-    if (text !== '') {
-      callSearchApi();
-      // on api search replace with callSearchApi(text)
+    if (text !== '' && text.length > 2) {
+      callSearchApi(text);
     }
   };
 
   const onSelected = (e, val) => {
     setSearchValue(val);
   };
+
+  console.log('options', options);
 
   return (
     <ComponentError>
@@ -168,7 +177,7 @@ const AddUser = (props) => {
         </HeaderWrapper>
         <InputWrapper>
           <InputLabel>
-            User Email
+            User Name
             <RequiredCircle margin="0.5rem" />
           </InputLabel>
           <AutoCompleteComponent

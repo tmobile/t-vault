@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
+import { debounce } from 'lodash';
 import { makeStyles } from '@material-ui/core/styles';
 import { useHistory } from 'react-router-dom';
 import Modal from '@material-ui/core/Modal';
@@ -14,6 +15,7 @@ import safeIcon from '../../../../assets/icon_safe.svg';
 import leftArrowIcon from '../../../../assets/left-arrow.svg';
 import mediaBreakpoints from '../../../../breakpoints';
 import SnackbarComponent from '../../../../components/Snackbar';
+import AutoCompleteComponent from '../../../../components/FormFields/AutoComplete';
 import Loader from '../components/Loader';
 import apiService from '../apiService';
 
@@ -85,6 +87,7 @@ const CreateSafeForm = styled.form`
 
 const InputFieldLabelWrapper = styled.div`
   margin-bottom: 2rem;
+  position: ${(props) => (props.postion ? 'relative' : '')};
   .MuiSelect-icon {
     top: auto;
     color: #000;
@@ -128,6 +131,13 @@ const loaderStyle = css`
   z-index: 1;
 `;
 
+const autoLoaderStyle = css`
+  position: absolute;
+  top: 3.5rem;
+  right: 1rem;
+  color: red;
+`;
+
 const useStyles = makeStyles((theme) => ({
   select: {
     '&.MuiFilledInput-root.Mui-focused': {
@@ -159,6 +169,8 @@ const CreateModal = () => {
   const [disabledSave, setDisabledSave] = useState(true);
   const [responseType, setResponseType] = useState(null);
   const [toastMessage, setToastMessage] = useState('');
+  const [autoLoader, setAutoLoader] = useState(false);
+  const [options, setOptions] = useState([]);
   const isMobileScreen = useMediaQuery(small);
   const history = useHistory();
 
@@ -209,6 +221,40 @@ const CreateModal = () => {
       });
   };
 
+  const callSearchApi = useCallback(
+    debounce(
+      (value) => {
+        setAutoLoader(true);
+        apiService
+          .getApiCall(`/vault/v2/ldap/users?UserPrincipalName=${value}`)
+          .then((res) => {
+            setOptions([]);
+            setAutoLoader(false);
+            if (res?.data?.data?.values?.length > 0) {
+              res.data.data.values.map((item) => {
+                if (item.userEmail) {
+                  return setOptions((prev) => [...prev, item.userEmail]);
+                }
+                return null;
+              });
+            }
+          })
+          .catch(() => setAutoLoader(false));
+      },
+      1000,
+      true
+    ),
+    []
+  );
+  const onOwnerChange = (text) => {
+    setOwner(text);
+    if (text !== '' && text.length > 2) {
+      callSearchApi(text);
+    }
+  };
+  const onSelected = (e, val) => {
+    setOwner(val);
+  };
   const onToastClose = (reason) => {
     if (reason === 'clickaway') {
       return;
@@ -259,15 +305,17 @@ const CreateModal = () => {
                   onChange={(e) => setName(e.target.value)}
                 />
               </InputFieldLabelWrapper>
-              <InputFieldLabelWrapper>
+              <InputFieldLabelWrapper postion>
                 <InputLabel>Owner</InputLabel>
-                <TextFieldComponent
-                  placeholder="Owner"
-                  value={owner}
-                  fullWidth
-                  type="email"
-                  onChange={(e) => setOwner(e.target.value)}
+                <AutoCompleteComponent
+                  options={options}
+                  classes={classes}
+                  searchValue={owner}
+                  onSelected={(e, val) => onSelected(e, val)}
+                  onChange={(e) => onOwnerChange(e)}
+                  placeholder="Email address- Enter min 3 characters"
                 />
+                {autoLoader && <Loader customStyle={autoLoaderStyle} />}
               </InputFieldLabelWrapper>
               <InputFieldLabelWrapper>
                 <InputLabel>Type of Safe</InputLabel>

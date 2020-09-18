@@ -372,7 +372,6 @@ const customTheme = createMuiTheme({
         paddingBottom: '0',
         height: '5rem',
         '&[class*="MuiFilledInput-root"]': {
-          paddingLeft: '2rem',
           paddingTop: '0',
         },
       },

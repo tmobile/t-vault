@@ -11,8 +11,15 @@ const AutoCompleteField = styled(Autocomplete)`
   .MuiInputAdornment-filled.MuiInputAdornment-positionStart:not(.MuiInputAdornment-hiddenLabel) {
     margin-top: 0;
   }
+  .MuiAutocomplete-inputRoot[class*='MuiFilledInput-root']
+    .MuiAutocomplete-input {
+    padding-left: 0;
+  }
   .MuiFilledInput-root.Mui-focused {
     background-color: #fff;
+  }
+  .MuiInputAdornment-positionStart {
+    margin-right: ${(props) => (props.icon ? '8px' : '0px')};
   }
 `;
 const setIcon = (props) => {
@@ -21,9 +28,10 @@ const setIcon = (props) => {
 };
 
 const AutoCompleteComponent = (props) => {
-  const { options, onChange, classes, icon, onSelected } = props;
+  const { options, onChange, classes, icon, onSelected, placeholder } = props;
   return (
     <AutoCompleteField
+      icon={icon}
       options={options}
       getOptionLabel={(option) => option}
       freeSolo
@@ -35,6 +43,7 @@ const AutoCompleteComponent = (props) => {
         <TextField
           {...params}
           variant="filled"
+          placeholder={placeholder}
           fullWidth
           InputProps={{
             ...params.InputProps,
@@ -56,11 +65,13 @@ AutoCompleteComponent.propTypes = {
   classes: PropTypes.objectOf(PropTypes.any),
   onSelected: PropTypes.func.isRequired,
   icon: PropTypes.string,
+  placeholder: PropTypes.string,
 };
 
 AutoCompleteComponent.defaultProps = {
   icon: '',
   classes: {},
+  placeholder: '',
 };
 
 setIcon.propTypes = {
