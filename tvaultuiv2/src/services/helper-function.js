@@ -48,3 +48,39 @@ export const findElementAndUpdate = (arr, parentId, item) => {
 
   return tempArr;
 };
+
+export const makeSafesList = (array, type) => {
+  const safeArray = [];
+  array.map((item) => {
+    const data = {
+      safe: Object.keys(item)[0],
+      access: Object.values(item)[0],
+      path: `${type}/${Object.keys(item)[0]}`,
+    };
+    safeArray.push(data);
+  });
+  return safeArray;
+};
+
+export const createArrayOfObject = (array, type) => {
+  const safeArray = [];
+  array.map((item) => {
+    const data = {
+      safe: item,
+      path: `${type}/${item}`,
+    };
+    safeArray.push(data);
+  });
+  return safeArray;
+};
+
+export const removeDuplicate = (arr) => {
+  const filteredArr = arr.reduce((acc, current) => {
+    const x = acc.find((item) => item.safe === current.safe);
+    if (!x) {
+      return acc.concat([current]);
+    }
+    return acc;
+  }, []);
+  return filteredArr;
+};

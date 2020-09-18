@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 /* eslint-disable no-return-assign */
 import React, { useState, useEffect } from 'react';
 import InfiniteScroll from 'react-infinite-scroller';
@@ -16,9 +17,15 @@ import TextFieldComponent from '../../../../../components/FormFields/TextField';
 import SafeDetails from '../SafeDetails';
 import ListItem from '../ListItem';
 import PsudoPopper from '../PsudoPopper';
+import {
+  makeSafesList,
+  createArrayOfObject,
+  removeDuplicate,
+} from '../../../../../services/helper-function';
 
 // mock data
 import { safes } from './__mock/safeDashboard';
+import apiService from '../../apiService';
 
 // styled components
 const ColumnSection = styled('section')`
@@ -116,10 +123,17 @@ const MobileViewForSafeDetailsPage = css`
 
 const SafeDashboard = (props) => {
   const { routeProps } = props;
-  const [safeList, setSafeList] = useState([]);
+  const [safeList, setSafeList] = useState({
+    users: [],
+    apps: [],
+    shared: [],
+  });
   const [moreData, setMoreData] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [inputSearchValue, setInputSearchValue] = useState('');
+  const [usersSafeList, setUsersSafeList] = useState([]);
+  const [appsSafeList, setAppsSafeList] = useState([]);
+  const [sharedSafeList, setSharedSafeList] = useState([]);
 
   const [activeSafeFolders, setActiveSafeFolders] = useState([]);
   // const [showPopper, setShowPopper] = useState(false);
@@ -144,15 +158,85 @@ const SafeDashboard = (props) => {
    */
 
   useEffect(() => {
-    safes.map((item) => {
-      return setSafeList((prev) => [...prev, item]);
-    });
-    setMoreData(true);
-  }, []);
+    Promise.all([
+      apiService.getApiCall(`/vault/v2/ss/sdb/safes`),
+      apiService.getApiCall(`/vault/v2/ss/sdb/list?path=users`),
+      apiService.getApiCall(`/vault/v2/ss/sdb/list?path=shared`),
+      apiService.getApiCall(`/vault/v2/ss/sdb/list?path=apps`),
+    ])
+      .then((responses) => {
+        // Get a JSON object from each of the responses
+        return Promise.all(
+          responses.map((response) => {
+            return response;
+          })
+        );
+      })
+      .then((safeData) => {
+        console.log('safeData', safeData);
+        if (safeData[0] && safeData[0].data) {
+          if (safeData[0].data.users?.length > 0) {
+            const data = makeSafesList(safeData[0].data.users, 'users');
+            data.map((item) => {
+              return safeList.users.push(item);
+            });
+          }
+          if (safeData[0].data.shared?.length > 0) {
+            const data = makeSafesList(safeData[0].data.shared, 'shared');
+            data.map((item) => {
+              return safeList.shared.push(item);
+            });
+          }
+          if (safeData[0].data.apps?.length > 0) {
+            const data = makeSafesList(safeData[0].data.apps, 'apps');
+            data.map((item) => {
+              return safeList.apps.push(item);
+            });
+          }
+        }
+        if (safeData[1] && safeData[1].data?.keys?.length > 0) {
+          const value = createArrayOfObject(safeData[1].data.keys, 'users');
+          value.map((item) => {
+            return safeList.users.push(item);
+          });
+        }
+        if (safeData[2] && safeData[2].data?.keys?.length > 0) {
+          const value = createArrayOfObject(safeData[2].data.keys, 'shared');
+          value.map((item) => {
+            return safeList.shared.push(item);
+          });
+        }
+        if (safeData[3] && safeData[3].data?.keys?.length > 0) {
+          const value = createArrayOfObject(safeData[3].data.keys, 'apps');
+          value.map((item) => {
+            return safeList.apps.push(item);
+          });
+        }
+        const data1 = removeDuplicate(safeList.users);
+        const data2 = removeDuplicate(safeList.apps);
+        const data3 = removeDuplicate(safeList.users);
+      })
+      .catch((error) => {
+        // if there's an error, log it
+        console.log(error);
+      });
+  }, [safeList]);
+
+  //   useEffect(() => {
+  //      const filteredArr = arr.reduce((acc, current) => {
+  //   const x = acc.find(item => item.id === current.id);
+  //   if (!x) {
+  //     return acc.concat([current]);
+  //   } else {
+  //     return acc;
+  //   }
+  // }, []);
+  //   }, [safeList.length> 0]);
 
   const handleChange = (e) => {
     setInputSearchValue(e.target.value);
   };
+
   // const getSafesList = () => {
   //   return new Promise((resolve) =>
   //     setTimeout(() => {
