@@ -51,17 +51,17 @@ const CreateSecret = (props) => {
   const { handleSecretSave, handleSecretCancel, parentId } = props;
   const [secret, setSecret] = useState('');
   const [keyId, setKeyId] = useState('');
-  const [keyErrorMessage, setKeyErrorMessage] = useState('');
-  const [valueErrorMessage, setValueErrorMessage] = useState('');
+  const [keyErrorMessage, setKeyErrorMessage] = useState(null);
+  const [valueErrorMessage, setValueErrorMessage] = useState(null);
 
   // screen resolution handler
   const isMobileScreen = useMediaQuery(mediaBreakpoints.small);
 
   const handleValidation = (value, type) => {
     if (type === 'key') {
-      if (value.length > 3) setKeyErrorMessage('max of 3 characters');
+      setKeyErrorMessage(value.length < 3 || !value.match(/^[a-zA-Z0-9_]*$/g));
     } else {
-      setValueErrorMessage('');
+      setValueErrorMessage(value.length < 3);
     }
   };
 
@@ -87,7 +87,11 @@ const CreateSecret = (props) => {
             onChange={(e) => handleKeyChange(e.target.value)}
             fullWidth
             error={keyErrorMessage}
-            label={<span>{keyErrorMessage}</span>}
+            helperText={
+              keyErrorMessage
+                ? 'Please enter a minimum of 3 characters lowercase alphabets, number and underscore only.'
+                : ''
+            }
           />
           <KeyIdInputRequirements>
             Please enter a minimum of 3 characters lowercase alphabets, number
@@ -100,7 +104,6 @@ const CreateSecret = (props) => {
             onChange={(e) => handleValueChange(e.target.value)}
             fullWidth
             error={valueErrorMessage}
-            label={<span>{valueErrorMessage}</span>}
           />
           <CancelSaveWrapper>
             <BtnWrapper>
@@ -116,7 +119,9 @@ const CreateSecret = (props) => {
                 icon="add"
                 color="secondary"
                 width={isMobileScreen ? '48%' : ''}
-                disabled={!secret || !keyId}
+                disabled={
+                  !secret || !keyId || valueErrorMessage || keyErrorMessage
+                }
                 onClick={() =>
                   handleSecretSave({
                     key: keyId,

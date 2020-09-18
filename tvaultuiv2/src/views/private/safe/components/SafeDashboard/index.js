@@ -220,7 +220,7 @@ const SafeDashboard = (props) => {
                 onChange={(e) => handleChange(e)}
                 value={inputSearchValue || ''}
                 color="secondary"
-                fullWidth={true}
+                fullWidth
               />
             </SearchBox>
           </ColumnHeader>
