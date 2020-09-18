@@ -1,5 +1,5 @@
 /* eslint-disable react/jsx-props-no-spreading */
-import React from 'react';
+import React, { useState } from 'react';
 import { TextField } from '@material-ui/core';
 import Autocomplete from '@material-ui/lab/Autocomplete';
 import InputAdornment from '@material-ui/core/InputAdornment';
@@ -21,6 +21,10 @@ const AutoCompleteField = styled(Autocomplete)`
   .MuiInputAdornment-positionStart {
     margin-right: ${(props) => (props.icon ? '8px' : '0px')};
   }
+  .MuiFormHelperText-root.Mui-error {
+    font-size: 1.2rem;
+    margin: 1rem 0 0;
+  }
 `;
 const setIcon = (props) => {
   const { classes, icon } = props;
@@ -28,7 +32,20 @@ const setIcon = (props) => {
 };
 
 const AutoCompleteComponent = (props) => {
-  const { options, onChange, classes, icon, onSelected, placeholder } = props;
+  const {
+    options,
+    onChange,
+    classes,
+    icon,
+    onSelected,
+    placeholder,
+    searchValue,
+  } = props;
+  const [touched, setTouched] = useState(false);
+
+  const handleTouch = () => {
+    setTouched(true);
+  };
   return (
     <AutoCompleteField
       icon={icon}
@@ -45,6 +62,14 @@ const AutoCompleteComponent = (props) => {
           variant="filled"
           placeholder={placeholder}
           fullWidth
+          required
+          onBlur={handleTouch}
+          error={touched && Boolean(searchValue.length === 0)}
+          helperText={
+            touched &&
+            Boolean(searchValue.length === 0) &&
+            'This field is required!'
+          }
           InputProps={{
             ...params.InputProps,
             startAdornment: (
@@ -66,12 +91,14 @@ AutoCompleteComponent.propTypes = {
   onSelected: PropTypes.func.isRequired,
   icon: PropTypes.string,
   placeholder: PropTypes.string,
+  searchValue: PropTypes.string,
 };
 
 AutoCompleteComponent.defaultProps = {
   icon: '',
   classes: {},
   placeholder: '',
+  searchValue: '',
 };
 
 setIcon.propTypes = {

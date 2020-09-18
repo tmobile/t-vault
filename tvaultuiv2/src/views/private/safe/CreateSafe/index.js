@@ -172,6 +172,7 @@ const CreateModal = () => {
   const [autoLoader, setAutoLoader] = useState(false);
   const [options, setOptions] = useState([]);
   const isMobileScreen = useMediaQuery(small);
+  const [helperText] = useState('This field is required!');
   const history = useHistory();
 
   useEffect(() => {
@@ -252,6 +253,7 @@ const CreateModal = () => {
       callSearchApi(text);
     }
   };
+
   const onSelected = (e, val) => {
     setOwner(val);
   };
@@ -303,6 +305,7 @@ const CreateModal = () => {
                   placeholder="Save Name"
                   fullWidth
                   onChange={(e) => setName(e.target.value)}
+                  helperText={helperText}
                 />
               </InputFieldLabelWrapper>
               <InputFieldLabelWrapper postion>
@@ -324,6 +327,7 @@ const CreateModal = () => {
                   value={safeType}
                   classes={classes.select}
                   onChange={(e) => setSafeType(e.target.value)}
+                  helperText={helperText}
                 />
               </InputFieldLabelWrapper>
               <InputFieldLabelWrapper>
@@ -334,6 +338,7 @@ const CreateModal = () => {
                   fullWidth
                   onChange={(e) => setDescription(e.target.value)}
                   placeholder="Add some details about this safe"
+                  helperText={helperText}
                 />
                 <FieldInstruction>
                   Please add a minimum of 10 characters

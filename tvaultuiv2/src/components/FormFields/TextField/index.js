@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import TextField from '@material-ui/core/TextField';
 import InputAdornment from '@material-ui/core/InputAdornment';
 import Icon from '@material-ui/core/Icon';
@@ -22,6 +22,10 @@ const StyleTextField = styled(TextField)`
     background-color: ${(props) =>
       props.primary === 'primary' ? '#fff' : '#20232e'};
   }
+  .MuiFormHelperText-root.Mui-error {
+    font-size: 1.2rem;
+    margin: 1rem 0 0;
+  }
 `;
 
 const setIcon = (props) => {
@@ -43,7 +47,13 @@ const TextFieldComponent = (props) => {
     variant,
     rows,
     type,
+    helperText,
   } = props;
+  const [touched, setTouched] = useState(false);
+
+  const handleTouch = () => {
+    setTouched(true);
+  };
   return (
     <StyleTextField
       icon={icon}
@@ -56,6 +66,9 @@ const TextFieldComponent = (props) => {
       rows={rows}
       variant={variant || 'filled'}
       type={type}
+      onBlur={handleTouch}
+      error={touched && Boolean(value.length === 0)}
+      helperText={touched && Boolean(value.length === 0) && helperText}
       InputProps={{
         startAdornment: (
           <InputAdornment position="start">
@@ -79,6 +92,7 @@ TextFieldComponent.propTypes = {
   variant: PropTypes.string,
   rows: PropTypes.number,
   type: PropTypes.string,
+  helperText: PropTypes.string,
 };
 
 TextFieldComponent.defaultProps = {
@@ -90,6 +104,7 @@ TextFieldComponent.defaultProps = {
   variant: 'filled',
   rows: 5,
   type: 'text',
+  helperText: '',
 };
 
 setIcon.propTypes = {
