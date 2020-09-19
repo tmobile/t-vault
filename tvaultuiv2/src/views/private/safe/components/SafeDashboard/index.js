@@ -24,7 +24,7 @@ import {
 } from '../../../../../services/helper-function';
 
 // mock data
-import { safes } from './__mock/safeDashboard';
+// import { safes } from './__mock/safeDashboard';
 import apiService from '../../apiService';
 
 // styled components
@@ -123,11 +123,8 @@ const MobileViewForSafeDetailsPage = css`
 
 const SafeDashboard = (props) => {
   const { routeProps } = props;
-  const [safeList, setSafeList] = useState({
-    users: [],
-    apps: [],
-    shared: [],
-  });
+  const [safes, setSafes] = useState([]);
+  const [safeList, setSafeList] = useState([]);
   const [moreData, setMoreData] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [inputSearchValue, setInputSearchValue] = useState('');
@@ -181,37 +178,38 @@ const SafeDashboard = (props) => {
         if (response[0] && response[0].data) {
           Object.keys(response[0].data).forEach((item) => {
             const data = makeSafesList(response[0].data[item], item);
+            console.log('data :>> ', data);
             data.map((value) => {
-              return safeList[item].push(value);
+              return safeList.push(value);
             });
           });
         }
         if (response[1] && response[1].data.keys) {
           response[1].data.keys.map((item) => {
-            const obj = safeList.users.find((o) => o.safe === item);
+            const obj = safeList.find((o) => o.name === item);
             if (!obj) {
               const value = createSafeObject(item, 'users');
-              return safeList.users.push(value);
+              return safeList.push(value);
             }
             return null;
           });
         }
         if (response[2] && response[2].data.keys) {
           response[2].data.keys.map((item) => {
-            const obj = safeList.shared.find((o) => o.safe === item);
+            const obj = safeList.find((o) => o.name === item);
             if (!obj) {
               const value = createSafeObject(item, 'shared');
-              return safeList.shared.push(value);
+              return safeList.push(value);
             }
             return null;
           });
         }
         if (response[3] && response[3].data.keys) {
           response[3].data.keys.map((item) => {
-            const obj = safeList.apps.find((o) => o.safe === item);
+            const obj = safeList.find((o) => o.name === item);
             if (!obj) {
               const value = createSafeObject(item, 'apps');
-              return safeList.apps.push(value);
+              return safeList.push(value);
             }
             return null;
           });
@@ -253,19 +251,19 @@ const SafeDashboard = (props) => {
   const renderSafes = () => {
     return safeList.map((safe) => (
       <SafeFolderWrap
-        key={safe.safeName}
-        to={`${routeProps.match.url}/${safe.safeName}`}
-        active={activeSafeFolders.includes(safe.safeName)}
-        onClick={() => showSafeDetails(safe.safeName)}
+        key={safe.name}
+        to={`${routeProps.match.url}/${safe.name}`}
+        active={activeSafeFolders.includes(safe.name)}
+        onClick={() => showSafeDetails(safe.name)}
       >
         <ListItem
-          title={safe.safeName}
+          title={safe.name}
           subTitle={safe.date}
           flag={safe.type}
           icon={safeIcon}
         />
         <BorderLine />
-        {activeSafeFolders.includes(safe.safeName) ? (
+        {activeSafeFolders.includes(safe.name) ? (
           <PopperWrap>
             <PsudoPopper />
           </PopperWrap>
