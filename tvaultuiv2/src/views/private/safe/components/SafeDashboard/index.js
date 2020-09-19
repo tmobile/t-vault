@@ -24,7 +24,7 @@ import {
 } from '../../../../../services/helper-function';
 
 // mock data
-import { safes } from './__mock/safeDashboard';
+// import { safes } from './__mock/safeDashboard';
 import apiService from '../../apiService';
 
 // styled components
@@ -123,11 +123,12 @@ const MobileViewForSafeDetailsPage = css`
 
 const SafeDashboard = (props) => {
   const { routeProps } = props;
-  const [safeList, setSafeList] = useState({
+  const [safes, setSafes] = useState({
     users: [],
     apps: [],
     shared: [],
   });
+  const [safeList, setSafeList] = useState([]);
   const [moreData, setMoreData] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [inputSearchValue, setInputSearchValue] = useState('');
@@ -159,10 +160,10 @@ const SafeDashboard = (props) => {
 
   useEffect(() => {
     Promise.all([
-      apiService.getApiCall(`/vault/v2/ss/sdb/safes`),
-      apiService.getApiCall(`/vault/v2/ss/sdb/list?path=users`),
-      apiService.getApiCall(`/vault/v2/ss/sdb/list?path=shared`),
-      apiService.getApiCall(`/vault/v2/ss/sdb/list?path=apps`),
+      apiService.getApiCall(`/ss/sdb/safes`),
+      apiService.getApiCall(`/ss/sdb/list?path=users`),
+      apiService.getApiCall(`/ss/sdb/list?path=shared`),
+      apiService.getApiCall(`/ss/sdb/list?path=apps`),
     ])
       .then((responses) => {
         // Get a JSON object from each of the responses
@@ -173,54 +174,62 @@ const SafeDashboard = (props) => {
         );
       })
       .then((safeData) => {
-        console.log('safeData', safeData);
+        // take safes api data
         if (safeData[0] && safeData[0].data) {
           if (safeData[0].data.users?.length > 0) {
             const data = makeSafesList(safeData[0].data.users, 'users');
             data.map((item) => {
-              return safeList.users.push(item);
+              return safes.users.push(item);
             });
           }
           if (safeData[0].data.shared?.length > 0) {
             const data = makeSafesList(safeData[0].data.shared, 'shared');
             data.map((item) => {
-              return safeList.shared.push(item);
+              return safes.shared.push(item);
             });
           }
           if (safeData[0].data.apps?.length > 0) {
             const data = makeSafesList(safeData[0].data.apps, 'apps');
             data.map((item) => {
-              return safeList.apps.push(item);
+              return safes.apps.push(item);
             });
           }
         }
+
+        // Take list api response and update safe hook data
         if (safeData[1] && safeData[1].data?.keys?.length > 0) {
           const value = createArrayOfObject(safeData[1].data.keys, 'users');
           value.map((item) => {
-            return safeList.users.push(item);
+            if (!safes.users.some((list) => list.name === item.name)) {
+              return safes.users.push(item);
+            }
           });
         }
         if (safeData[2] && safeData[2].data?.keys?.length > 0) {
           const value = createArrayOfObject(safeData[2].data.keys, 'shared');
           value.map((item) => {
-            return safeList.shared.push(item);
+            if (!safes.shared.some((list) => list.name === item.name)) {
+              return safes.shared.push(item);
+            }
           });
         }
         if (safeData[3] && safeData[3].data?.keys?.length > 0) {
           const value = createArrayOfObject(safeData[3].data.keys, 'apps');
           value.map((item) => {
-            return safeList.apps.push(item);
+            if (!safes.apps.some((list) => list.name === item.name)) {
+              return safes.apps.push(item);
+            }
           });
         }
-        const data1 = removeDuplicate(safeList.users);
-        const data2 = removeDuplicate(safeList.apps);
-        const data3 = removeDuplicate(safeList.users);
+        // set safe hook
+        setSafes(safes);
+        setSafeList([...safes.shared, ...safes.users, ...safes.apps]);
       })
       .catch((error) => {
         // if there's an error, log it
         console.log(error);
       });
-  }, [safeList]);
+  }, [safes]);
 
   //   useEffect(() => {
   //      const filteredArr = arr.reduce((acc, current) => {
@@ -264,19 +273,19 @@ const SafeDashboard = (props) => {
   const renderSafes = () => {
     return safeList.map((safe) => (
       <SafeFolderWrap
-        key={safe.safeName}
-        to={`${routeProps.match.url}/${safe.safeName}`}
-        active={activeSafeFolders.includes(safe.safeName)}
-        onClick={() => showSafeDetails(safe.safeName)}
+        key={safe.name}
+        to={`${routeProps.match.url}/${safe.name}`}
+        active={activeSafeFolders.includes(safe.name)}
+        onClick={() => showSafeDetails(safe.name)}
       >
         <ListItem
-          title={safe.safeName}
+          title={safe.name}
           subTitle={safe.date}
           flag={safe.type}
           icon={safeIcon}
         />
         <BorderLine />
-        {activeSafeFolders.includes(safe.safeName) ? (
+        {activeSafeFolders.includes(safe.name) ? (
           <PopperWrap>
             <PsudoPopper />
           </PopperWrap>

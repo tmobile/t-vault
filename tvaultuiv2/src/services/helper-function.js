@@ -53,7 +53,7 @@ export const makeSafesList = (array, type) => {
   const safeArray = [];
   array.map((item) => {
     const data = {
-      safe: Object.keys(item)[0],
+      name: Object.keys(item)[0],
       access: Object.values(item)[0],
       path: `${type}/${Object.keys(item)[0]}`,
     };
@@ -66,7 +66,7 @@ export const createArrayOfObject = (array, type) => {
   const safeArray = [];
   array.map((item) => {
     const data = {
-      safe: item,
+      name: item,
       path: `${type}/${item}`,
     };
     safeArray.push(data);
@@ -76,7 +76,7 @@ export const createArrayOfObject = (array, type) => {
 
 export const removeDuplicate = (arr) => {
   const filteredArr = arr.reduce((acc, current) => {
-    const x = acc.find((item) => item.safe === current.safe);
+    const x = acc.find((item) => item.name === current.name);
     if (!x) {
       return acc.concat([current]);
     }
