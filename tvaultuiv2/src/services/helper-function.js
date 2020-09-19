@@ -62,16 +62,12 @@ export const makeSafesList = (array, type) => {
   return safeArray;
 };
 
-export const createArrayOfObject = (array, type) => {
-  const safeArray = [];
-  array.map((item) => {
-    const data = {
-      safe: item,
-      path: `${type}/${item}`,
-    };
-    safeArray.push(data);
-  });
-  return safeArray;
+export const createSafeObject = (item, type) => {
+  const data = {
+    safe: item,
+    path: `${type}/${item}`,
+  };
+  return data;
 };
 
 export const removeDuplicate = (arr) => {

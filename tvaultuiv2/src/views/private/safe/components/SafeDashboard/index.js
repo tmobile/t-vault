@@ -19,7 +19,7 @@ import ListItem from '../ListItem';
 import PsudoPopper from '../PsudoPopper';
 import {
   makeSafesList,
-  createArrayOfObject,
+  createSafeObject,
   removeDuplicate,
 } from '../../../../../services/helper-function';
 
@@ -158,80 +158,69 @@ const SafeDashboard = (props) => {
    */
 
   useEffect(() => {
-    Promise.all([
-      apiService.getApiCall(`/vault/v2/ss/sdb/safes`),
-      apiService.getApiCall(`/vault/v2/ss/sdb/list?path=users`),
-      apiService.getApiCall(`/vault/v2/ss/sdb/list?path=shared`),
-      apiService.getApiCall(`/vault/v2/ss/sdb/list?path=apps`),
-    ])
-      .then((responses) => {
-        // Get a JSON object from each of the responses
-        return Promise.all(
-          responses.map((response) => {
-            return response;
-          })
-        );
-      })
-      .then((safeData) => {
-        console.log('safeData', safeData);
-        if (safeData[0] && safeData[0].data) {
-          if (safeData[0].data.users?.length > 0) {
-            const data = makeSafesList(safeData[0].data.users, 'users');
-            data.map((item) => {
-              return safeList.users.push(item);
+    async function fetchData() {
+      const safesApiResponse = await apiService.getApiCall(
+        `/vault/v2/ss/sdb/safes`
+      );
+      const usersListApiResponse = await apiService.getApiCall(
+        `/vault/v2/ss/sdb/list?path=users`
+      );
+      const sharedListApiResponse = await apiService.getApiCall(
+        `/vault/v2/ss/sdb/list?path=shared`
+      );
+      const appsListApiResponse = await apiService.getApiCall(
+        `/vault/v2/ss/sdb/list?path=apps`
+      );
+      const allApiResponse = Promise.all([
+        safesApiResponse,
+        usersListApiResponse,
+        sharedListApiResponse,
+        appsListApiResponse,
+      ]);
+      allApiResponse.then((response) => {
+        if (response[0] && response[0].data) {
+          Object.keys(response[0].data).forEach((item) => {
+            const data = makeSafesList(response[0].data[item], item);
+            data.map((value) => {
+              return safeList[item].push(value);
             });
-          }
-          if (safeData[0].data.shared?.length > 0) {
-            const data = makeSafesList(safeData[0].data.shared, 'shared');
-            data.map((item) => {
-              return safeList.shared.push(item);
-            });
-          }
-          if (safeData[0].data.apps?.length > 0) {
-            const data = makeSafesList(safeData[0].data.apps, 'apps');
-            data.map((item) => {
-              return safeList.apps.push(item);
-            });
-          }
-        }
-        if (safeData[1] && safeData[1].data?.keys?.length > 0) {
-          const value = createArrayOfObject(safeData[1].data.keys, 'users');
-          value.map((item) => {
-            return safeList.users.push(item);
           });
         }
-        if (safeData[2] && safeData[2].data?.keys?.length > 0) {
-          const value = createArrayOfObject(safeData[2].data.keys, 'shared');
-          value.map((item) => {
-            return safeList.shared.push(item);
+        if (response[1] && response[1].data.keys) {
+          response[1].data.keys.map((item) => {
+            const obj = safeList.users.find((o) => o.safe === item);
+            if (!obj) {
+              const value = createSafeObject(item, 'users');
+              return safeList.users.push(value);
+            }
+            return null;
           });
         }
-        if (safeData[3] && safeData[3].data?.keys?.length > 0) {
-          const value = createArrayOfObject(safeData[3].data.keys, 'apps');
-          value.map((item) => {
-            return safeList.apps.push(item);
+        if (response[2] && response[2].data.keys) {
+          response[2].data.keys.map((item) => {
+            const obj = safeList.shared.find((o) => o.safe === item);
+            if (!obj) {
+              const value = createSafeObject(item, 'shared');
+              return safeList.shared.push(value);
+            }
+            return null;
           });
         }
-        const data1 = removeDuplicate(safeList.users);
-        const data2 = removeDuplicate(safeList.apps);
-        const data3 = removeDuplicate(safeList.users);
-      })
-      .catch((error) => {
-        // if there's an error, log it
-        console.log(error);
+        if (response[3] && response[3].data.keys) {
+          response[3].data.keys.map((item) => {
+            const obj = safeList.apps.find((o) => o.safe === item);
+            if (!obj) {
+              const value = createSafeObject(item, 'apps');
+              return safeList.apps.push(value);
+            }
+            return null;
+          });
+        }
+        console.log('safeList :>> ', safeList);
       });
+    }
+    fetchData();
   }, [safeList]);
-
-  //   useEffect(() => {
-  //      const filteredArr = arr.reduce((acc, current) => {
-  //   const x = acc.find(item => item.id === current.id);
-  //   if (!x) {
-  //     return acc.concat([current]);
-  //   } else {
-  //     return acc;
-  //   }
-  // }, []);
-  //   }, [safeList.length> 0]);
 
   const handleChange = (e) => {
     setInputSearchValue(e.target.value);
