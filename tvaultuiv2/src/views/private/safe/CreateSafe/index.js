@@ -17,6 +17,7 @@ import mediaBreakpoints from '../../../../breakpoints';
 import SnackbarComponent from '../../../../components/Snackbar';
 import AutoCompleteComponent from '../../../../components/FormFields/AutoComplete';
 import Loader from '../components/Loader';
+import { validateEmail } from '../../../../services/helper-function';
 import apiService from '../apiService';
 
 const { small, smallAndMedium } = mediaBreakpoints;
@@ -172,16 +173,24 @@ const CreateModal = () => {
   const [autoLoader, setAutoLoader] = useState(false);
   const [options, setOptions] = useState([]);
   const isMobileScreen = useMediaQuery(small);
-  const [helperText] = useState('This field is required!');
+  const [helperText] = useState('');
+  const [emailError, setEmailError] = useState(false);
+  const [safeError, setSafeError] = useState(false);
   const history = useHistory();
 
   useEffect(() => {
-    if (name === '' || owner === '' || description.length < 10) {
+    if (
+      name === '' ||
+      owner === '' ||
+      description.length < 10 ||
+      safeError ||
+      emailError
+    ) {
       setDisabledSave(true);
     } else {
       setDisabledSave(false);
     }
-  }, [name, description, owner]);
+  }, [name, description, owner, safeError, emailError]);
 
   const [menu] = useState(['Users Safe', 'Shared Safe', 'Application Safe']);
 
@@ -230,14 +239,16 @@ const CreateModal = () => {
           .getApiCall(`/vault/v2/ldap/users?UserPrincipalName=${value}`)
           .then((res) => {
             setOptions([]);
+            const array = [];
             setAutoLoader(false);
             if (res?.data?.data?.values?.length > 0) {
               res.data.data.values.map((item) => {
                 if (item.userEmail) {
-                  return setOptions((prev) => [...prev, item.userEmail]);
+                  return array.push(item.userEmail);
                 }
                 return null;
               });
+              setOptions([...array]);
             }
           })
           .catch(() => setAutoLoader(false));
@@ -252,6 +263,7 @@ const CreateModal = () => {
     if (text !== '' && text.length > 2) {
       callSearchApi(text);
     }
+    setEmailError(false);
   };
 
   const onSelected = (e, val) => {
@@ -262,6 +274,23 @@ const CreateModal = () => {
       return;
     }
     setResponseType(null);
+  };
+
+  const onInputBlur = (e) => {
+    if (e.target.name === 'name') {
+      if (name.length < 3) {
+        setSafeError(true);
+      } else {
+        setSafeError(false);
+      }
+    }
+    if (e.target.name === 'owner') {
+      if (!validateEmail(owner)) {
+        setEmailError(true);
+      } else {
+        setEmailError(false);
+      }
+    }
   };
   return (
     <ComponentError>
@@ -304,8 +333,16 @@ const CreateModal = () => {
                   value={name}
                   placeholder="Save Name"
                   fullWidth
-                  onChange={(e) => setName(e.target.value)}
-                  helperText={helperText}
+                  name="name"
+                  onChange={(e) => {
+                    setName(e.target.value);
+                    setSafeError(false);
+                  }}
+                  error={safeError}
+                  helperText={
+                    safeError ? 'Please enter minimum 3 characters' : ''
+                  }
+                  onInputBlur={(e) => onInputBlur(e)}
                 />
               </InputFieldLabelWrapper>
               <InputFieldLabelWrapper postion>
@@ -314,9 +351,15 @@ const CreateModal = () => {
                   options={options}
                   classes={classes}
                   searchValue={owner}
+                  name="owner"
                   onSelected={(e, val) => onSelected(e, val)}
                   onChange={(e) => onOwnerChange(e)}
                   placeholder="Email address- Enter min 3 characters"
+                  error={emailError}
+                  onInputBlur={(e) => onInputBlur(e)}
+                  helperText={
+                    emailError ? 'Please enter a valid email address!' : ''
+                  }
                 />
                 {autoLoader && <Loader customStyle={autoLoaderStyle} />}
               </InputFieldLabelWrapper>
@@ -338,7 +381,6 @@ const CreateModal = () => {
                   fullWidth
                   onChange={(e) => setDescription(e.target.value)}
                   placeholder="Add some details about this safe"
-                  helperText={helperText}
                 />
                 <FieldInstruction>
                   Please add a minimum of 10 characters

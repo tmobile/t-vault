@@ -3,13 +3,13 @@
 /* eslint-disable react/no-unused-prop-types */
 import React from 'react';
 import PropTypes from 'prop-types';
-import { useHistory } from 'react-router-dom';
+import { useHistory, useLocation } from 'react-router-dom';
 import useMediaQuery from '@material-ui/core/useMediaQuery';
 import styled from 'styled-components';
 import ComponentError from '../../../../../errorBoundaries/ComponentError/component-error';
 import sectionHeaderBg from '../../../../../assets/Banner_img.png';
 import { BackArrow } from '../../../../../assets/SvgIcons';
-// import { TitleFour } from '../../../../../styles/GlobalStyles';
+import { TitleFour } from '../../../../../styles/GlobalStyles';
 import mediaBreakpoints from '../../../../../breakpoints';
 import SelectionTabs from '../Tabs';
 
@@ -46,9 +46,9 @@ const BackButton = styled.div`
 
 const SafeDetails = (props) => {
   const { setActiveSafeFolders } = props;
-  console.log('props', props);
   // use history of page
   const history = useHistory();
+  const location = useLocation();
   // screen view handler
   const isMobileScreen = useMediaQuery(mediaBreakpoints.small);
   // const safeDetail =
@@ -68,15 +68,14 @@ const SafeDetails = (props) => {
       <Section>
         <BackButton onClick={goBackToSafeList}>
           {isMobileScreen ? <BackArrow /> : null}
-          {/* <span>{safeDetail.safeName}</span> */}
+          <span>{location.state?.safe?.name}</span>
         </BackButton>
         <ColumnHeader headerBgSrc={sectionHeaderBg}>
           <div className="safe-title-wrap">
             {/* <SafeTitle>{safeDetail?.safeName || 'No Safe'}</SafeTitle> */}
-            {/* <TitleFour color="#c4c4c4">
-              {safeDetail?.description ||
-                'Create a Safe to see your secrets, folders and permissions here'}
-            </TitleFour> */}
+            <TitleFour color="#c4c4c4">
+              Create a Safe to see your secrets, folders and permissions here
+            </TitleFour>
           </div>
         </ColumnHeader>
         <SelectionTabs />

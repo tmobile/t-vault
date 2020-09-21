@@ -1,5 +1,5 @@
 /* eslint-disable react/jsx-props-no-spreading */
-import React, { useState } from 'react';
+import React from 'react';
 import { TextField } from '@material-ui/core';
 import Autocomplete from '@material-ui/lab/Autocomplete';
 import InputAdornment from '@material-ui/core/InputAdornment';
@@ -40,12 +40,11 @@ const AutoCompleteComponent = (props) => {
     onSelected,
     placeholder,
     searchValue,
+    error,
+    onInputBlur,
+    name,
+    helperText,
   } = props;
-  const [touched, setTouched] = useState(false);
-
-  const handleTouch = () => {
-    setTouched(true);
-  };
 
   return (
     <AutoCompleteField
@@ -65,13 +64,10 @@ const AutoCompleteComponent = (props) => {
           placeholder={placeholder}
           fullWidth
           required
-          onBlur={handleTouch}
-          error={touched && Boolean(searchValue.length === 0)}
-          helperText={
-            touched &&
-            Boolean(searchValue.length === 0) &&
-            'This field is required!'
-          }
+          onBlur={onInputBlur}
+          name={name}
+          error={error}
+          helperText={helperText}
           InputProps={{
             ...params.InputProps,
             startAdornment: (
@@ -94,6 +90,10 @@ AutoCompleteComponent.propTypes = {
   icon: PropTypes.string,
   placeholder: PropTypes.string,
   searchValue: PropTypes.string,
+  onInputBlur: PropTypes.func,
+  helperText: PropTypes.string,
+  error: PropTypes.bool,
+  name: PropTypes.string,
 };
 
 AutoCompleteComponent.defaultProps = {
@@ -101,6 +101,10 @@ AutoCompleteComponent.defaultProps = {
   classes: {},
   placeholder: '',
   searchValue: '',
+  helperText: '',
+  name: '',
+  error: false,
+  onInputBlur: () => {},
 };
 
 setIcon.propTypes = {

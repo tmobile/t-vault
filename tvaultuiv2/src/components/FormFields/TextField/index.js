@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import TextField from '@material-ui/core/TextField';
 import InputAdornment from '@material-ui/core/InputAdornment';
 import Icon from '@material-ui/core/Icon';
@@ -49,17 +49,16 @@ const TextFieldComponent = (props) => {
     type,
     helperText,
     error,
+    onInputBlur,
+    name,
   } = props;
-  const [touched, setTouched] = useState(false);
 
-  const handleTouch = () => {
-    setTouched(true);
-  };
   return (
     <StyleTextField
       icon={icon}
       placeholder={placeholder}
       value={value}
+      name={name}
       primary={color}
       fullWidth={fullWidth}
       multiline={multiline}
@@ -67,9 +66,9 @@ const TextFieldComponent = (props) => {
       rows={rows}
       variant={variant || 'filled'}
       type={type}
-      onBlur={handleTouch}
-      error={(touched && Boolean(value.length === 0)) || error}
-      helperText={touched && Boolean(value.length === 0) && helperText}
+      onBlur={onInputBlur}
+      error={error}
+      helperText={helperText}
       InputProps={{
         startAdornment: (
           <InputAdornment position="start">
@@ -86,6 +85,7 @@ TextFieldComponent.propTypes = {
   icon: PropTypes.string,
   placeholder: PropTypes.string.isRequired,
   onChange: PropTypes.func.isRequired,
+  onInputBlur: PropTypes.func,
   value: PropTypes.string,
   multiline: PropTypes.bool,
   fullWidth: PropTypes.bool,
@@ -95,11 +95,13 @@ TextFieldComponent.propTypes = {
   type: PropTypes.string,
   helperText: PropTypes.string,
   error: PropTypes.bool,
+  name: PropTypes.string,
 };
 
 TextFieldComponent.defaultProps = {
   icon: '',
   value: '',
+  name: '',
   multiline: false,
   fullWidth: false,
   color: 'primary',
@@ -108,6 +110,7 @@ TextFieldComponent.defaultProps = {
   type: 'text',
   helperText: '',
   error: false,
+  onInputBlur: () => {},
 };
 
 setIcon.propTypes = {

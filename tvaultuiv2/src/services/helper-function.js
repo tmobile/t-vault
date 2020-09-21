@@ -74,6 +74,13 @@ export const createSafeArray = (arr, type) => {
   return safeArray;
 };
 
+export const validateEmail = (email) => {
+  if (email) {
+   const res = /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/; //eslint-disable-line
+    return res.test(email);
+  }
+};
+
 export const removeDuplicate = (arr) => {
   const filteredArr = arr.reduce((acc, current) => {
     const x = acc.find((item) => item.name === current.name);
