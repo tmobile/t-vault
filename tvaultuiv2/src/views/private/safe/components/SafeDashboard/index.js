@@ -176,6 +176,13 @@ const SafeDashboard = (props) => {
         }
         if (response[1] && response[1].data.keys) {
           const value = createSafeArray(response[1].data.keys, 'users');
+          safes.users.map((_item) => {
+            if (!response[1].data.keys.includes(_item.name)) {
+              const item = { ..._item };
+              item.manage = false;
+            }
+            return null;
+          });
           value.map((item) => {
             if (!safes.users.some((list) => list.name === item.name)) {
               return safes.users.push(item);
@@ -185,6 +192,13 @@ const SafeDashboard = (props) => {
         }
         if (response[2] && response[2].data.keys) {
           const value = createSafeArray(response[2].data.keys, 'shared');
+          safes.shared.map((_item) => {
+            if (!response[1].data.keys.includes(_item.name)) {
+              const item = { ..._item };
+              item.manage = false;
+            }
+            return null;
+          });
           value.map((item) => {
             if (!safes.shared.some((list) => list.name === item.name)) {
               return safes.shared.push(item);
@@ -194,6 +208,13 @@ const SafeDashboard = (props) => {
         }
         if (response[3] && response[3].data.keys) {
           const value = createSafeArray(response[3].data.keys, 'apps');
+          safes.apps.map((_item) => {
+            if (!response[1].data.keys.includes(_item.name)) {
+              const item = { ..._item };
+              item.manage = false;
+            }
+            return null;
+          });
           value.map((item) => {
             if (!safes.apps.some((list) => list.name === item.name)) {
               return safes.apps.push(item);
