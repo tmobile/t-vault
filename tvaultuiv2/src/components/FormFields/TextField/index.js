@@ -22,6 +22,10 @@ const StyleTextField = styled(TextField)`
     background-color: ${(props) =>
       props.primary === 'primary' ? '#fff' : '#20232e'};
   }
+  .MuiFormHelperText-root.Mui-error {
+    font-size: 1.2rem;
+    margin: 1rem 0 0;
+  }
 `;
 
 const setIcon = (props) => {
@@ -43,12 +47,18 @@ const TextFieldComponent = (props) => {
     variant,
     rows,
     type,
+    helperText,
+    error,
+    onInputBlur,
+    name,
   } = props;
+
   return (
     <StyleTextField
       icon={icon}
       placeholder={placeholder}
       value={value}
+      name={name}
       primary={color}
       fullWidth={fullWidth}
       multiline={multiline}
@@ -56,6 +66,9 @@ const TextFieldComponent = (props) => {
       rows={rows}
       variant={variant || 'filled'}
       type={type}
+      onBlur={onInputBlur}
+      error={error}
+      helperText={helperText}
       InputProps={{
         startAdornment: (
           <InputAdornment position="start">
@@ -72,6 +85,7 @@ TextFieldComponent.propTypes = {
   icon: PropTypes.string,
   placeholder: PropTypes.string.isRequired,
   onChange: PropTypes.func.isRequired,
+  onInputBlur: PropTypes.func,
   value: PropTypes.string,
   multiline: PropTypes.bool,
   fullWidth: PropTypes.bool,
@@ -79,17 +93,24 @@ TextFieldComponent.propTypes = {
   variant: PropTypes.string,
   rows: PropTypes.number,
   type: PropTypes.string,
+  helperText: PropTypes.string,
+  error: PropTypes.bool,
+  name: PropTypes.string,
 };
 
 TextFieldComponent.defaultProps = {
   icon: '',
   value: '',
+  name: '',
   multiline: false,
   fullWidth: false,
   color: 'primary',
   variant: 'filled',
   rows: 5,
   type: 'text',
+  helperText: '',
+  error: false,
+  onInputBlur: () => {},
 };
 
 setIcon.propTypes = {

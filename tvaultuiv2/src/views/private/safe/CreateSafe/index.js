@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
+import { debounce } from 'lodash';
 import { makeStyles } from '@material-ui/core/styles';
 import { useHistory } from 'react-router-dom';
 import Modal from '@material-ui/core/Modal';
@@ -14,7 +15,9 @@ import safeIcon from '../../../../assets/icon_safe.svg';
 import leftArrowIcon from '../../../../assets/left-arrow.svg';
 import mediaBreakpoints from '../../../../breakpoints';
 import SnackbarComponent from '../../../../components/Snackbar';
+import AutoCompleteComponent from '../../../../components/FormFields/AutoComplete';
 import Loader from '../components/Loader';
+import { validateEmail } from '../../../../services/helper-function';
 import apiService from '../apiService';
 
 const { small, smallAndMedium } = mediaBreakpoints;
@@ -85,6 +88,7 @@ const CreateSafeForm = styled.form`
 
 const InputFieldLabelWrapper = styled.div`
   margin-bottom: 2rem;
+  position: ${(props) => (props.postion ? 'relative' : '')};
   .MuiSelect-icon {
     top: auto;
     color: #000;
@@ -128,6 +132,13 @@ const loaderStyle = css`
   z-index: 1;
 `;
 
+const autoLoaderStyle = css`
+  position: absolute;
+  top: 3.5rem;
+  right: 1rem;
+  color: red;
+`;
+
 const useStyles = makeStyles((theme) => ({
   select: {
     '&.MuiFilledInput-root.Mui-focused': {
@@ -159,16 +170,27 @@ const CreateModal = () => {
   const [disabledSave, setDisabledSave] = useState(true);
   const [responseType, setResponseType] = useState(null);
   const [toastMessage, setToastMessage] = useState('');
+  const [autoLoader, setAutoLoader] = useState(false);
+  const [options, setOptions] = useState([]);
   const isMobileScreen = useMediaQuery(small);
+  const [helperText] = useState('');
+  const [emailError, setEmailError] = useState(false);
+  const [safeError, setSafeError] = useState(false);
   const history = useHistory();
 
   useEffect(() => {
-    if (name === '' || owner === '' || description.length < 10) {
+    if (
+      name === '' ||
+      owner === '' ||
+      description.length < 10 ||
+      safeError ||
+      emailError
+    ) {
       setDisabledSave(true);
     } else {
       setDisabledSave(false);
     }
-  }, [name, description, owner]);
+  }, [name, description, owner, safeError, emailError]);
 
   const [menu] = useState(['Users Safe', 'Shared Safe', 'Application Safe']);
 
@@ -191,7 +213,7 @@ const CreateModal = () => {
     setDisabledSave(true);
     setResponseType(0);
     apiService
-      .postApiCall('/vault/v2/ss/sdb', safeContent)
+      .createSafe(safeContent)
       .then((res) => {
         if (res && res.status === 200) {
           setResponseType(1);
@@ -209,11 +231,66 @@ const CreateModal = () => {
       });
   };
 
+  const callSearchApi = useCallback(
+    debounce(
+      (value) => {
+        setAutoLoader(true);
+        apiService
+          .getOwnerEmail(value)
+          .then((res) => {
+            setOptions([]);
+            const array = [];
+            setAutoLoader(false);
+            if (res?.data?.data?.values?.length > 0) {
+              res.data.data.values.map((item) => {
+                if (item.userEmail) {
+                  return array.push(item.userEmail);
+                }
+                return null;
+              });
+              setOptions([...array]);
+            }
+          })
+          .catch(() => setAutoLoader(false));
+      },
+      1000,
+      true
+    ),
+    []
+  );
+  const onOwnerChange = (text) => {
+    setOwner(text);
+    if (text !== '' && text.length > 2) {
+      callSearchApi(text);
+    }
+    setEmailError(false);
+  };
+
+  const onSelected = (e, val) => {
+    setOwner(val);
+  };
   const onToastClose = (reason) => {
     if (reason === 'clickaway') {
       return;
     }
     setResponseType(null);
+  };
+
+  const onInputBlur = (e) => {
+    if (e.target.name === 'name') {
+      if (name.length < 3) {
+        setSafeError(true);
+      } else {
+        setSafeError(false);
+      }
+    }
+    if (e.target.name === 'owner') {
+      if (!validateEmail(owner)) {
+        setEmailError(true);
+      } else {
+        setEmailError(false);
+      }
+    }
   };
   return (
     <ComponentError>
@@ -256,18 +333,35 @@ const CreateModal = () => {
                   value={name}
                   placeholder="Save Name"
                   fullWidth
-                  onChange={(e) => setName(e.target.value)}
+                  name="name"
+                  onChange={(e) => {
+                    setName(e.target.value);
+                    setSafeError(false);
+                  }}
+                  error={safeError}
+                  helperText={
+                    safeError ? 'Please enter minimum 3 characters' : ''
+                  }
+                  onInputBlur={(e) => onInputBlur(e)}
                 />
               </InputFieldLabelWrapper>
-              <InputFieldLabelWrapper>
+              <InputFieldLabelWrapper postion>
                 <InputLabel>Owner</InputLabel>
-                <TextFieldComponent
-                  placeholder="Owner"
-                  value={owner}
-                  fullWidth
-                  type="email"
-                  onChange={(e) => setOwner(e.target.value)}
+                <AutoCompleteComponent
+                  options={options}
+                  classes={classes}
+                  searchValue={owner}
+                  name="owner"
+                  onSelected={(e, val) => onSelected(e, val)}
+                  onChange={(e) => onOwnerChange(e)}
+                  placeholder="Email address- Enter min 3 characters"
+                  error={emailError}
+                  onInputBlur={(e) => onInputBlur(e)}
+                  helperText={
+                    emailError ? 'Please enter a valid email address!' : ''
+                  }
                 />
+                {autoLoader && <Loader customStyle={autoLoaderStyle} />}
               </InputFieldLabelWrapper>
               <InputFieldLabelWrapper>
                 <InputLabel>Type of Safe</InputLabel>
@@ -276,6 +370,7 @@ const CreateModal = () => {
                   value={safeType}
                   classes={classes.select}
                   onChange={(e) => setSafeType(e.target.value)}
+                  helperText={helperText}
                 />
               </InputFieldLabelWrapper>
               <InputFieldLabelWrapper>

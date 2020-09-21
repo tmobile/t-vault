@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import styled, { css } from 'styled-components';
 import PropTypes from 'prop-types';
 import useMediaQuery from '@material-ui/core/useMediaQuery';
@@ -19,6 +19,8 @@ import userIcon from '../../../../../../../assets/permission-user.png';
 import mediaBreakpoints from '../../../../../../../breakpoints';
 import PopperElement from '../../../Popper';
 import AddUser from '../../../AddUser';
+import SnackbarComponent from '../../../../../../../components/Snackbar';
+import apiService from '../../../../apiService';
 
 const { small } = mediaBreakpoints;
 
@@ -114,70 +116,123 @@ const User = (props) => {
     onNoDataAddClicked,
     onCancelClicked,
   } = props;
-
+  const [responseType, setResponseType] = useState(null);
+  const [toastMessage, setToastMessage] = useState('');
+  const [editUser, setEditUser] = useState('');
+  const [editAccess, setEditAccess] = useState('');
+  const [editPermission, setEditPermission] = useState(false);
   const isMobileScreen = useMediaQuery(small);
-  const onSubmit = (search, radio) => {
+
+  const onSubmit = (user, access) => {
     const value = {
-      name: search,
-      last_updated: '2days ago',
-      permission: radio,
+      access,
+      path: 'shared/test-safe3',
+      username: user.toLowerCase(),
     };
     onSaveClicked(value);
   };
+
+  const onDeleteClick = (username) => {
+    const payload = {
+      path: 'shared/test-safe3',
+      username,
+    };
+    apiService
+      .deleteUserPermission(payload)
+      .then((res) => {
+        if (res && res.data?.Message) {
+          setToastMessage(res.data.Message);
+          setResponseType(1);
+        }
+      })
+      .catch((err) => {
+        if (err.response && err.response.data?.messages[0]) {
+          setToastMessage(err.response.data.messages[0]);
+        }
+        setResponseType(-1);
+      });
+  };
+
+  const onToastClose = (reason) => {
+    if (reason === 'clickaway') {
+      return;
+    }
+    setResponseType(null);
+  };
+
+  const onEditClick = (key, value) => {
+    setEditAccess(value);
+    setEditUser(key);
+    setEditPermission(true);
+  };
+
+  const onEditCancelClicked = () => {
+    setEditPermission(false);
+    onCancelClicked();
+  };
+
   return (
     <ComponentError>
       <>
-        {addPermission ? (
+        {addPermission && !editPermission && (
           <AddUser
-            handleSaveClick={(search, radio) => onSubmit(search, radio)}
+            handleSaveClick={(user, access) => onSubmit(user, access)}
             handleCancelClick={onCancelClicked}
           />
-        ) : (
-          ''
         )}
-        {users && users.length > 0 && !addPermission ? (
+        {editPermission && (
+          <AddUser
+            handleSaveClick={(user, access) => onSubmit(user, access)}
+            handleCancelClick={onEditCancelClicked}
+            username={editUser}
+            access={editAccess}
+          />
+        )}
+        {users &&
+        Object.keys(users).length > 0 &&
+        !addPermission &&
+        !editPermission ? (
           <UserList>
-            {users.map((item) => {
-              return (
-                <EachUserWrap key={item.name}>
-                  <IconDetailsWrap>
-                    <Icon src={userIcon} alt="user" />
-                    <Details>
-                      <TitleTwo extraCss={styles}>{item.name}</TitleTwo>
-                      <TitleFour extraCss={permissionStyles}>
-                        {item.last_updated}
-                        {' - '}
-                        {item.permission}
-                      </TitleFour>
-                    </Details>
-                  </IconDetailsWrap>
-                  <FolderIconWrap>
-                    <PopperElement
-                      anchorOrigin={{
-                        vertical: 'bottom',
-                        horizontal: 'right',
-                      }}
-                      transformOrigin={{
-                        vertical: 'top',
-                        horizontal: 'right',
-                      }}
-                    >
-                      <PopperItem>
-                        <IconEdit />
-                        <span>Edit</span>
-                      </PopperItem>
-                      <PopperItem>
-                        <IconDeleteActive />
-                        <span> Delete</span>
-                      </PopperItem>
-                    </PopperElement>
-                  </FolderIconWrap>
-                </EachUserWrap>
-              );
-            })}
+            {Object.entries(users).map(([key, value]) => (
+              <EachUserWrap key={key}>
+                <IconDetailsWrap>
+                  <Icon src={userIcon} alt="user" />
+                  <Details>
+                    <TitleTwo extraCss={styles}>{key}</TitleTwo>
+                    <TitleFour extraCss={permissionStyles}>
+                      2 days ago
+                      {' - '}
+                      {value}
+                    </TitleFour>
+                  </Details>
+                </IconDetailsWrap>
+                <FolderIconWrap>
+                  <PopperElement
+                    anchorOrigin={{
+                      vertical: 'bottom',
+                      horizontal: 'right',
+                    }}
+                    transformOrigin={{
+                      vertical: 'top',
+                      horizontal: 'right',
+                    }}
+                  >
+                    <PopperItem onClick={() => onEditClick(key, value)}>
+                      <IconEdit />
+                      <span>Edit</span>
+                    </PopperItem>
+                    <PopperItem onClick={() => onDeleteClick(key)}>
+                      <IconDeleteActive />
+                      <span> Delete</span>
+                    </PopperItem>
+                  </PopperElement>
+                </FolderIconWrap>
+              </EachUserWrap>
+            ))}
           </UserList>
         ) : (
-          !addPermission && (
+          !addPermission &&
+          !editPermission && (
             <NoDataWrapper>
               <NoData
                 imageSrc={noPermissionsIcon}
@@ -198,13 +253,29 @@ const User = (props) => {
             </NoDataWrapper>
           )
         )}
+        {responseType === -1 && (
+          <SnackbarComponent
+            open
+            onClose={() => onToastClose()}
+            severity="error"
+            icon="error"
+            message={toastMessage || 'Something went wrong!'}
+          />
+        )}
+        {responseType === 1 && (
+          <SnackbarComponent
+            open
+            onClose={() => onToastClose()}
+            message={toastMessage}
+          />
+        )}
       </>
     </ComponentError>
   );
 };
 
 User.propTypes = {
-  users: PropTypes.arrayOf(PropTypes.any).isRequired,
+  users: PropTypes.objectOf(PropTypes.any).isRequired,
   onSaveClicked: PropTypes.func.isRequired,
   addPermission: PropTypes.bool.isRequired,
   onNoDataAddClicked: PropTypes.func.isRequired,

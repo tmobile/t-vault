@@ -11,6 +11,8 @@ import NamedButton from '../../../../../components/NamedButton';
 import permissionPlusIcon from '../../../../../assets/permission-plus.svg';
 import mediaBreakpoints from '../../../../../breakpoints';
 import User from './components/User';
+import apiService from '../../apiService';
+import SnackbarComponent from '../../../../../components/Snackbar';
 
 const { small } = mediaBreakpoints;
 
@@ -111,16 +113,38 @@ const useStyles = makeStyles(() => ({
 const Permissions = () => {
   const classes = useStyles();
   const [value, setValue] = useState(0);
-  const [users, setUser] = useState([]);
+  const [users, setUser] = useState({});
   const [addPermission, setAddPermission] = useState(false);
+  const [responseType, setResponseType] = useState(null);
+  const [toastMessage, setToastMessage] = useState('');
 
   const onSaveClicked = (data) => {
-    setUser((prev) => [...prev, data]);
+    setUser((prev) => ({ ...prev, [data.username]: data.access }));
     setAddPermission(false);
+    apiService
+      .addUserPermission(data)
+      .then((res) => {
+        if (res && res.data?.messages) {
+          setToastMessage(res.data?.messages[0]);
+          setResponseType(1);
+        }
+      })
+      .catch((err) => {
+        if (err.response && err.response.data?.messages[0]) {
+          setToastMessage(err.response.data.messages[0]);
+        }
+        setResponseType(-1);
+      });
   };
 
   const handleChange = (event, newValue) => {
     setValue(newValue);
+  };
+  const onToastClose = (reason) => {
+    if (reason === 'clickaway') {
+      return;
+    }
+    setResponseType(null);
   };
   return (
     <ComponentError>
@@ -176,6 +200,22 @@ const Permissions = () => {
             App Roles
           </TabPanel>
         </TabWrapper>
+        {responseType === -1 && (
+          <SnackbarComponent
+            open
+            onClose={() => onToastClose()}
+            severity="error"
+            icon="error"
+            message={toastMessage || 'Something went wrong!'}
+          />
+        )}
+        {responseType === 1 && (
+          <SnackbarComponent
+            open
+            onClose={() => onToastClose()}
+            message={toastMessage}
+          />
+        )}
       </>
     </ComponentError>
   );

@@ -11,8 +11,19 @@ const AutoCompleteField = styled(Autocomplete)`
   .MuiInputAdornment-filled.MuiInputAdornment-positionStart:not(.MuiInputAdornment-hiddenLabel) {
     margin-top: 0;
   }
+  .MuiAutocomplete-inputRoot[class*='MuiFilledInput-root']
+    .MuiAutocomplete-input {
+    padding-left: 0;
+  }
   .MuiFilledInput-root.Mui-focused {
     background-color: #fff;
+  }
+  .MuiInputAdornment-positionStart {
+    margin-right: ${(props) => (props.icon ? '8px' : '0px')};
+  }
+  .MuiFormHelperText-root.Mui-error {
+    font-size: 1.2rem;
+    margin: 1rem 0 0;
   }
 `;
 const setIcon = (props) => {
@@ -21,21 +32,42 @@ const setIcon = (props) => {
 };
 
 const AutoCompleteComponent = (props) => {
-  const { options, onChange, classes, icon, onSelected } = props;
+  const {
+    options,
+    onChange,
+    classes,
+    icon,
+    onSelected,
+    placeholder,
+    searchValue,
+    error,
+    onInputBlur,
+    name,
+    helperText,
+  } = props;
+
   return (
     <AutoCompleteField
+      icon={icon}
       options={options}
       getOptionLabel={(option) => option}
       freeSolo
       forcePopupIcon={false}
       className={classes || ''}
       onChange={onSelected}
-      onInputChange={(e) => onChange(e.target.value)}
+      inputValue={searchValue}
+      onInputChange={(e) => onChange(e?.target?.value)}
       renderInput={(params) => (
         <TextField
           {...params}
           variant="filled"
+          placeholder={placeholder}
           fullWidth
+          required
+          onBlur={onInputBlur}
+          name={name}
+          error={error}
+          helperText={helperText}
           InputProps={{
             ...params.InputProps,
             startAdornment: (
@@ -56,11 +88,23 @@ AutoCompleteComponent.propTypes = {
   classes: PropTypes.objectOf(PropTypes.any),
   onSelected: PropTypes.func.isRequired,
   icon: PropTypes.string,
+  placeholder: PropTypes.string,
+  searchValue: PropTypes.string,
+  onInputBlur: PropTypes.func,
+  helperText: PropTypes.string,
+  error: PropTypes.bool,
+  name: PropTypes.string,
 };
 
 AutoCompleteComponent.defaultProps = {
   icon: '',
   classes: {},
+  placeholder: '',
+  searchValue: '',
+  helperText: '',
+  name: '',
+  error: false,
+  onInputBlur: () => {},
 };
 
 setIcon.propTypes = {

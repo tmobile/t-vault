@@ -20,7 +20,6 @@ const PopperElement = (props) => {
   const classes = useStyles();
   return (
     <ComponentError>
-      {' '}
       <PopupState variant="popover" popupId="demo-popup-popover">
         {(popupState) => (
           <div>

@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 /* eslint-disable no-return-assign */
 import React, { useState, useEffect } from 'react';
 import InfiniteScroll from 'react-infinite-scroller';
@@ -16,9 +17,14 @@ import TextFieldComponent from '../../../../../components/FormFields/TextField';
 import SafeDetails from '../SafeDetails';
 import ListItem from '../ListItem';
 import PsudoPopper from '../PsudoPopper';
+import {
+  makeSafesList,
+  createSafeArray,
+} from '../../../../../services/helper-function';
 
 // mock data
-import { safes } from './__mock/safeDashboard';
+// import { safes } from './__mock/safeDashboard';
+import apiService from '../../apiService';
 
 // styled components
 const ColumnSection = styled('section')`
@@ -116,11 +122,15 @@ const MobileViewForSafeDetailsPage = css`
 
 const SafeDashboard = (props) => {
   const { routeProps } = props;
+  const [safes, setSafes] = useState({
+    users: [],
+    apps: [],
+    shared: [],
+  });
   const [safeList, setSafeList] = useState([]);
   const [moreData, setMoreData] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [inputSearchValue, setInputSearchValue] = useState('');
-
   const [activeSafeFolders, setActiveSafeFolders] = useState([]);
   // const [showPopper, setShowPopper] = useState(false);
   const isMobileScreen = useMediaQuery(mediaBreakpoints.small);
@@ -144,15 +154,66 @@ const SafeDashboard = (props) => {
    */
 
   useEffect(() => {
-    safes.map((item) => {
-      return setSafeList((prev) => [...prev, item]);
-    });
-    setMoreData(true);
-  }, []);
+    async function fetchData() {
+      const safesApiResponse = await apiService.getSafes();
+      const usersListApiResponse = await apiService.getManageUsersList();
+      const sharedListApiResponse = await apiService.getManageSharedList();
+      const appsListApiResponse = await apiService.getManageAppsList();
+      const allApiResponse = Promise.all([
+        safesApiResponse,
+        usersListApiResponse,
+        sharedListApiResponse,
+        appsListApiResponse,
+      ]);
+      allApiResponse.then((response) => {
+        if (response[0] && response[0].data) {
+          Object.keys(response[0].data).forEach((item) => {
+            const data = makeSafesList(response[0].data[item], item);
+            data.map((value) => {
+              return safes[item].push(value);
+            });
+          });
+        }
+        if (response[1] && response[1].data.keys) {
+          const value = createSafeArray(response[1].data.keys, 'users');
+          value.map((item) => {
+            if (!safes.users.some((list) => list.name === item.name)) {
+              return safes.users.push(item);
+            }
+            return null;
+          });
+        }
+        if (response[2] && response[2].data.keys) {
+          const value = createSafeArray(response[2].data.keys, 'shared');
+          value.map((item) => {
+            if (!safes.shared.some((list) => list.name === item.name)) {
+              return safes.shared.push(item);
+            }
+            return null;
+          });
+        }
+        if (response[3] && response[3].data.keys) {
+          const value = createSafeArray(response[3].data.keys, 'apps');
+          value.map((item) => {
+            if (!safes.apps.some((list) => list.name === item.name)) {
+              return safes.apps.push(item);
+            }
+            return null;
+          });
+        }
+
+        setSafes(safes);
+        setSafeList([...safes.users, ...safes.shared, ...safes.apps]);
+        console.log('safeList :>> ', safes);
+      });
+    }
+    fetchData();
+  }, [safes]);
 
   const handleChange = (e) => {
     setInputSearchValue(e.target.value);
   };
+
   // const getSafesList = () => {
   //   return new Promise((resolve) =>
   //     setTimeout(() => {
@@ -180,19 +241,22 @@ const SafeDashboard = (props) => {
   const renderSafes = () => {
     return safeList.map((safe) => (
       <SafeFolderWrap
-        key={safe.safeName}
-        to={`${routeProps.match.url}/${safe.safeName}`}
-        active={activeSafeFolders.includes(safe.safeName)}
-        onClick={() => showSafeDetails(safe.safeName)}
+        key={safe.name}
+        to={{
+          pathname: `${routeProps.match.url}/${safe.name}`,
+          state: { safe },
+        }}
+        active={activeSafeFolders.includes(safe.name)}
+        onClick={() => showSafeDetails(safe.name, safe)}
       >
         <ListItem
-          title={safe.safeName}
+          title={safe.name}
           subTitle={safe.date}
           flag={safe.type}
           icon={safeIcon}
         />
         <BorderLine />
-        {activeSafeFolders.includes(safe.safeName) ? (
+        {activeSafeFolders.includes(safe.name) ? (
           <PopperWrap>
             <PsudoPopper />
           </PopperWrap>
@@ -215,8 +279,7 @@ const SafeDashboard = (props) => {
                 color="secondary"
               />
             </ColumnHeader>
-
-            {safeList && safeList.length ? (
+            {safeList && safeList.length > 0 ? (
               <SafeListContainer ref={(ref) => (scrollParentRef = ref)}>
                 <StyledInfiniteScroll
                   pageStart={0}
