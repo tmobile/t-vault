@@ -220,7 +220,9 @@ const SafeDashboard = (props) => {
         console.log('safeList :>> ', safes);
       });
     }
-    fetchData();
+    fetchData().catch((err) => {
+      setResponseType(-1);
+    });
   }, [safes, compareSafesAndList]);
 
   const handleChange = (e) => {
