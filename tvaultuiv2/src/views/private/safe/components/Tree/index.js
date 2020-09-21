@@ -16,7 +16,7 @@ import AddFolder from '../AddFolder';
 import File from './components/file';
 import Folder from './components/folder';
 import apiService from '../../apiService';
-import Error from '../../../../../components/Error';
+import SnackbarComponent from '../../../../../components/Snackbar';
 
 const TreeRecursive = ({
   data,
@@ -30,10 +30,19 @@ const TreeRecursive = ({
   inputType,
   responseType,
   path,
+  toastMessage,
+  setResponseType,
 }) => {
+  const onToastClose = (reason) => {
+    if (reason === 'clickaway') {
+      return;
+    }
+    setResponseType(null);
+  };
   // loop through the data
   return data.map((item) => {
     // if its a file render <File />
+
     if (item.type.toLowerCase() === 'secret') {
       return (
         <File
@@ -66,7 +75,9 @@ const TreeRecursive = ({
               setIsAddInput={setIsAddInput}
               setInputType={setInputType}
               inputType={inputType}
-              path={`${path}/${item.value}`}
+              path={`${item.id}/${item.value}`}
+              toastMessage={toastMessage}
+              setResponseType={setResponseType}
             />
           )}
           <AddForm
@@ -74,13 +85,13 @@ const TreeRecursive = ({
               // eslint-disable-next-line react/jsx-wrap-multilines
               inputType?.type?.toLowerCase() === 'folder' ? (
                 <AddFolder
-                  parentId={`${path}/${item.value}`}
+                  parentId={item.id}
                   handleCancelClick={handleCancelClick}
                   handleSaveClick={(secret) => saveFolder(secret, item.value)}
                 />
               ) : (
                 <CreateSecret
-                  parentId={path}
+                  parentId={item.id}
                   handleSecretCancel={handleCancelClick}
                   handleSecretSave={(secret) => saveFolder(secret, item.value)}
                 />
@@ -96,9 +107,23 @@ const TreeRecursive = ({
           {responseType === 0 ? (
             <Loader />
           ) : responseType === -1 && !isAddInput ? (
-            <Error description="error in creating folder" />
+            <SnackbarComponent
+              open
+              onClose={() => onToastClose()}
+              severity="error"
+              icon="error"
+              message={toastMessage || 'Something went wrong!'}
+            />
           ) : (
-            <></>
+            responseType === 1 &&
+            !isAddInput && (
+              <SnackbarComponent
+                open
+                onClose={() => onToastClose()}
+                severity="success"
+                message={toastMessage || 'Folder/Secret added successfully'}
+              />
+            )
           )}
         </Folder>
       );
@@ -118,7 +143,7 @@ const Tree = (props) => {
   const [isAddInput, setIsAddInput] = useState(false);
   const [inputType, setInputType] = useState({});
   const [responseType, setResponseType] = useState(null);
-  const [path, setPath] = useState('');
+  const [toastMessage, setToastMessage] = useState('');
 
   // set inital tree data structure
   const setTreeData = (treeData) => {
@@ -129,6 +154,12 @@ const Tree = (props) => {
     setTreeData(data);
   }, [data]);
 
+  const onToastClose = (reason) => {
+    if (reason === 'clickaway') {
+      return;
+    }
+    setResponseType(null);
+  };
   /**
    *Creates secrets folder array
    * @param {string} folderName
@@ -136,23 +167,29 @@ const Tree = (props) => {
   const saveSecretsToFolder = (obj, node) => {
     const tempFolders = [...secretsFolder] || [];
     const folderObj = {};
-    folderObj.id = `${obj.parentId}/${obj.value}`;
+    folderObj.id = `${obj.parentId}`;
     folderObj.parentId = obj.parentId;
     folderObj.value = obj.value;
     folderObj.type = obj.type || 'secret';
     folderObj.key = obj.key;
     folderObj.children = [];
-    const updatedArray = findElementAndUpdate(tempFolders, node, obj);
+
     apiService
-      .postApiCall(`/write?path=${folderObj.id}`, null)
+      .addSecret(folderObj.id)
+      // eslint-disable-next-line no-unused-vars
       .then((res) => {
-        console.log('res....', res);
-        setSecretsFolder([...updatedArray]);
         setResponseType(1);
+        const updatedArray = findElementAndUpdate(tempFolders, node, obj);
+        setSecretsFolder([...updatedArray]);
+        setToastMessage(res.data.messages[0]);
       })
       .catch((error) => {
         setResponseType(-1);
         console.log(error);
+        if (!error.toString().toLowerCase().includes('network')) {
+          setToastMessage(error.response.data.messages[0]);
+        }
+        setToastMessage('Network Error');
       });
     setIsAddInput(false);
   };
@@ -165,18 +202,28 @@ const Tree = (props) => {
     folderObj.value = secretFolder.value;
     folderObj.type = secretFolder.type || 'folder';
     folderObj.children = [];
-    const updatedArray = findElementAndUpdate(tempFolders, parentId, folderObj);
+
     // api call
     apiService
-      .postApiCall(`/sdb/createfolder?path=${folderObj.id}`, null)
+      .addFolder(folderObj.id)
+      // eslint-disable-next-line no-unused-vars
       .then((res) => {
-        console.log('res....', res);
-        setSecretsFolder([...updatedArray]);
         setResponseType(1);
+        const updatedArray = findElementAndUpdate(
+          tempFolders,
+          parentId,
+          folderObj
+        );
+        setSecretsFolder([...updatedArray]);
+        setToastMessage(res.data.messages[0]);
       })
       .catch((error) => {
         console.log(error);
         setResponseType(-1);
+        if (!error.toString().toLowerCase().includes('network')) {
+          setToastMessage(error.response.data.messages[0]);
+        }
+        setToastMessage('Network Error');
       });
     setIsAddInput(false);
   };
@@ -211,8 +258,9 @@ const Tree = (props) => {
           inputType={inputType}
           setIsAddInput={setIsAddInput}
           responseType={responseType}
-          setPath={setPath}
-          path={path}
+          onToastClose={onToastClose}
+          toastMessage={toastMessage}
+          setResponseType={setResponseType}
         />
       </StyledTree>
     </ComponentError>

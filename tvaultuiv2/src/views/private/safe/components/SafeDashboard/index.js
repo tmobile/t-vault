@@ -1,3 +1,4 @@
+/* eslint-disable no-nested-ternary */
 /* eslint-disable no-param-reassign */
 /* eslint-disable no-unused-vars */
 /* eslint-disable no-return-assign */
@@ -26,6 +27,7 @@ import {
 // mock data
 // import { safes } from './__mock/safeDashboard';
 import apiService from '../../apiService';
+import Loader from '../../../../../components/Loader';
 
 // styled components
 const ColumnSection = styled('section')`
@@ -134,6 +136,7 @@ const SafeDashboard = (props) => {
   });
   const [safeList, setSafeList] = useState([]);
   const [moreData, setMoreData] = useState(false);
+  const [responseType, setResponseType] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [inputSearchValue, setInputSearchValue] = useState('');
   const [activeSafeFolders, setActiveSafeFolders] = useState([]);
@@ -179,6 +182,7 @@ const SafeDashboard = (props) => {
 
   useEffect(() => {
     async function fetchData() {
+      setResponseType(0);
       const safesApiResponse = await apiService.getSafes();
       const usersListApiResponse = await apiService.getManageUsersList();
       const sharedListApiResponse = await apiService.getManageSharedList();
@@ -211,6 +215,7 @@ const SafeDashboard = (props) => {
 
         setSafes(safes);
         setSafeList([...safes.users, ...safes.shared, ...safes.apps]);
+        setResponseType(1);
         // eslint-disable-next-line no-console
         console.log('safeList :>> ', safes);
       });
@@ -289,6 +294,7 @@ const SafeDashboard = (props) => {
                 fullWidth
               />
             </ColumnHeader>
+
             {safeList && safeList.length > 0 ? (
               <SafeListContainer ref={(ref) => (scrollParentRef = ref)}>
                 <StyledInfiniteScroll
@@ -306,6 +312,8 @@ const SafeDashboard = (props) => {
                   {renderSafes()}
                 </StyledInfiniteScroll>
               </SafeListContainer>
+            ) : responseType === 0 && !safeList?.length ? (
+              <Loader contentHeight="80%" contentWidth="100%" />
             ) : (
               <NoDataWrapper>
                 {' '}

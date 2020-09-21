@@ -4,23 +4,21 @@ import { mockApi } from '../../../services/helper-function';
 const fetchSafe = (data) => mockApi(data);
 const searchUser = (data) => mockApi(data);
 
-const getSafes = () => api.get('/vault/v2/ss/sdb/safes');
-const getManageUsersList = () => api.get('/vault/v2/ss/sdb/list?path=users');
-const getManageSharedList = () => api.get('/vault/v2/ss/sdb/list?path=shared');
-const getManageAppsList = () => api.get('/vault/v2/ss/sdb/list?path=apps');
+const getSafes = () => api.get('/ss/sdb/safes');
+const getManageUsersList = () => api.get('/ss/sdb/list?path=users');
+const getManageSharedList = () => api.get('/ss/sdb/list?path=shared');
+const getManageAppsList = () => api.get('/ss/sdb/list?path=apps');
 
-const createSafe = (payload) => api.post('/vault/v2/ss/sdb', payload);
+const createSafe = (payload) => api.post('/ss/sdb', payload);
 const getOwnerEmail = (owner) =>
-  api.get(`/vault/v2/ldap/users?UserPrincipalName=${owner}`);
+  api.get(`/ldap/users?UserPrincipalName=${owner}`);
 
-const addUserPermission = (payload) =>
-  api.post('/vault/v2/ss/sdb/user', payload);
-const deleteUserPermission = (payload) =>
-  api.delete('/vault/v2/ss/sdb/user', payload);
+const addUserPermission = (payload) => api.post('/ss/sdb/user', payload);
+const deleteUserPermission = (payload) => api.delete('/ss/sdb/user', payload);
 
-const getUserName = (user) =>
-  api.get(`/vault/v2/ldap/corpusers?CorpId=${user}`);
-
+const getUserName = (user) => api.get(`/ldap/corpusers?CorpId=${user}`);
+const addFolder = (params) => api.post(`/sdb/createfolder?path=${params}`);
+const addSecret = (params) => api.post(`/write?path=${params}`);
 export default {
   fetchSafe,
   searchUser,
@@ -33,4 +31,6 @@ export default {
   deleteUserPermission,
   addUserPermission,
   getUserName,
+  addFolder,
+  addSecret,
 };

@@ -35,12 +35,12 @@ const ColumnHeader = styled('div')`
   }
 `;
 
-// const SafeTitle = styled('h5')`
-//   font-size: ${(props) => props.theme.typography};
-//   margin: 1rem 0 1.2rem;
-//   text-overflow: ellipsis;
-//   overflow: hidden;
-// `;
+const SafeTitle = styled('h5')`
+  font-size: ${(props) => props.theme.typography};
+  margin: 1rem 0 1.2rem;
+  text-overflow: ellipsis;
+  overflow: hidden;
+`;
 const BackButton = styled.div`
   display: flex;
   align-items: center;
@@ -57,13 +57,9 @@ const SafeDetails = (props) => {
   const location = useLocation();
   // screen view handler
   const isMobileScreen = useMediaQuery(mediaBreakpoints.small);
-  // const safeDetail =
-  //   (detailData &&
-  //     detailData.filter(
-  //       (safe) => safe.safeName === params.match?.params.safeName
-  //     )) ||
-  //   {};
 
+  // route component data
+  const safeDetail = location?.state?.safe;
   const goBackToSafeList = () => {
     setActiveSafeFolders();
     history.goBack();
@@ -75,20 +71,22 @@ const SafeDetails = (props) => {
         {isMobileScreen ? (
           <BackButton onClick={goBackToSafeList}>
             <BackArrow />
-            <span>{safeDetail.safeName || 'No safe'}</span>
+            <span>{safeDetail.name || 'No safe'}</span>
           </BackButton>
         ) : null}
         <ColumnHeader headerBgSrc={sectionHeaderBg}>
           <div className="safe-title-wrap">
             {!isMobileScreen && (
-              <SafeTitle>{safeDetail?.safeName || 'No Safe'}</SafeTitle>
+              <SafeTitle>{safeDetail?.name || 'No Safe'}</SafeTitle>
             )}
             <TitleFour color="#c4c4c4">
-              Create a Safe to see your secrets, folders and permissions here
+              {safeDetail.description
+                ? safeDetail.description
+                : 'Create a Safe to see your secrets, folders and permissions here'}
             </TitleFour>
           </div>
         </ColumnHeader>
-        <SelectionTabs />
+        <SelectionTabs safeDetail={safeDetail} />
       </Section>
     </ComponentError>
   );

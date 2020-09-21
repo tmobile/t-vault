@@ -6,6 +6,8 @@ import styled, { keyframes } from 'styled-components';
 const LoaderContainer = styled('div')`
   display: flex;
   align-items: center;
+  width: ${(props) => props.width};
+  height: ${(props) => props.height};
   justify-content: center;
 `;
 const loaderRotate = keyframes`
@@ -92,8 +94,8 @@ Loader.propTypes = {
   contentHeight: PropTypes.string,
 };
 Loader.defaultProps = {
-  contentWidth: '',
-  contentHeight: '',
+  contentWidth: '100%',
+  contentHeight: '100%',
 };
 
 export default Loader;
