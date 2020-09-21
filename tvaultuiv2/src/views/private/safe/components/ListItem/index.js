@@ -73,7 +73,7 @@ const LabelWrap = styled.div`
 `;
 
 const ListItem = (props) => {
-  const { title, subTitle, flag, icon } = props;
+  const { title, subTitle, flag, icon, manage } = props;
 
   // scree handler
   const isMobileScreen = useMediaQuery(mediaBreakpoints.small);
@@ -96,7 +96,7 @@ const ListItem = (props) => {
             <Flag fontSize="1rem">{subTitle}</Flag>
           </SafeDetailBox>
         </LabelWrap>
-        {isMobileScreen ? (
+        {isMobileScreen && manage ? (
           <FolderIconWrap>
             <PopperElement
               anchorOrigin={{
@@ -130,6 +130,7 @@ ListItem.propTypes = {
   title: PropTypes.string,
   icon: PropTypes.string,
   flag: PropTypes.string,
+  manage: PropTypes.bool.isRequired,
 };
 ListItem.defaultProps = {
   subTitle: '',
