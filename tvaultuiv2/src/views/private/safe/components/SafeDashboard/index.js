@@ -270,23 +270,6 @@ const SafeDashboard = (props) => {
   };
   return (
     <ComponentError>
-<<<<<<< HEAD
-      <SectionPreview title="safe-section">
-        <ColumnSection width={isMobileScreen ? '100%' : '52.9rem'}>
-          <ColumnHeader>
-            <SelectDropDown />
-            <SearchBox>
-              <TextFieldComponent
-                placeholder="Search"
-                icon={<SearchIcon />}
-                onChange={(e) => handleChange(e)}
-                value={inputSearchValue || ''}
-                color="secondary"
-                fullWidth
-              />
-            </SearchBox>
-          </ColumnHeader>
-=======
       <>
         <SectionPreview title="safe-section">
           <ColumnSection width={isMobileScreen ? '100%' : '52.9rem'}>
@@ -298,6 +281,7 @@ const SafeDashboard = (props) => {
                 onChange={(e) => handleChange(e)}
                 value={inputSearchValue || ''}
                 color="secondary"
+                fullWidth
               />
             </ColumnHeader>
             {safeList && safeList.length > 0 ? (
@@ -352,7 +336,6 @@ const SafeDashboard = (props) => {
               <></>
             )}
           </ColumnSection>
->>>>>>> fa8491610009e211ec15b4658575545c02abe0e7
 
           {!isMobileScreen || activeSafeFolders?.length ? (
             <ColumnSection
