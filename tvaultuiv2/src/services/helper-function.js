@@ -56,6 +56,7 @@ export const makeSafesList = (array, type) => {
       name: Object.keys(item)[0],
       access: Object.values(item)[0],
       path: `${type}/${Object.keys(item)[0]}`,
+      manage: true,
     };
     safeArray.push(data);
   });
@@ -68,6 +69,7 @@ export const createSafeArray = (arr, type) => {
     const data = {
       name: item,
       path: `${type}/${item}`,
+      manage: true,
     };
     safeArray.push(data);
   });
