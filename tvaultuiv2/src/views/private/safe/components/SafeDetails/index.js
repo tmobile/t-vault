@@ -9,7 +9,7 @@ import styled from 'styled-components';
 import ComponentError from '../../../../../errorBoundaries/ComponentError/component-error';
 import sectionHeaderBg from '../../../../../assets/Banner_img.png';
 import { BackArrow } from '../../../../../assets/SvgIcons';
-import { TitleFour } from '../../../../../styles/GlobalStyles';
+// import { TitleFour } from '../../../../../styles/GlobalStyles';
 import mediaBreakpoints from '../../../../../breakpoints';
 import SelectionTabs from '../Tabs';
 
@@ -32,12 +32,12 @@ const ColumnHeader = styled('div')`
   }
 `;
 
-const SafeTitle = styled('h5')`
-  font-size: ${(props) => props.theme.typography};
-  margin: 1rem 0 1.2rem;
-  text-overflow: ellipsis;
-  overflow: hidden;
-`;
+// const SafeTitle = styled('h5')`
+//   font-size: ${(props) => props.theme.typography};
+//   margin: 1rem 0 1.2rem;
+//   text-overflow: ellipsis;
+//   overflow: hidden;
+// `;
 const BackButton = styled.div`
   display: flex;
   align-items: center;
@@ -45,18 +45,18 @@ const BackButton = styled.div`
 `;
 
 const SafeDetails = (props) => {
-  const { detailData, params, setActiveSafeFolders } = props;
-
+  const { setActiveSafeFolders } = props;
+  console.log('props', props);
   // use history of page
   const history = useHistory();
   // screen view handler
   const isMobileScreen = useMediaQuery(mediaBreakpoints.small);
-  const safeDetail =
-    (detailData &&
-      detailData.filter(
-        (safe) => safe.safeName === params.match?.params.safeName
-      )) ||
-    {};
+  // const safeDetail =
+  //   (detailData &&
+  //     detailData.filter(
+  //       (safe) => safe.safeName === params.match?.params.safeName
+  //     )) ||
+  //   {};
 
   const goBackToSafeList = () => {
     setActiveSafeFolders();
@@ -68,18 +68,18 @@ const SafeDetails = (props) => {
       <Section>
         <BackButton onClick={goBackToSafeList}>
           {isMobileScreen ? <BackArrow /> : null}
-          <span>{safeDetail.safeName}</span>
+          {/* <span>{safeDetail.safeName}</span> */}
         </BackButton>
         <ColumnHeader headerBgSrc={sectionHeaderBg}>
           <div className="safe-title-wrap">
-            <SafeTitle>{safeDetail?.safeName || 'No Safe'}</SafeTitle>
-            <TitleFour color="#c4c4c4">
+            {/* <SafeTitle>{safeDetail?.safeName || 'No Safe'}</SafeTitle> */}
+            {/* <TitleFour color="#c4c4c4">
               {safeDetail?.description ||
                 'Create a Safe to see your secrets, folders and permissions here'}
-            </TitleFour>
+            </TitleFour> */}
           </div>
         </ColumnHeader>
-        <SelectionTabs secrets={safeDetail.secrets} />
+        <SelectionTabs />
       </Section>
     </ComponentError>
   );

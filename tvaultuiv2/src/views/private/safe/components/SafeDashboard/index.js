@@ -209,26 +209,7 @@ const SafeDashboard = (props) => {
             return null;
           });
         }
-        // if (response[2] && response[2].data.keys) {
-        //   response[2].data.keys.map((item) => {
-        //     const obj = safeList.find((o) => o.name === item);
-        //     if (!obj) {
-        //       const value = createSafeObject(item, 'shared');
-        //       return safeList.push(value);
-        //     }
-        //     return null;
-        //   });
-        // }
-        // if (response[3] && response[3].data.keys) {
-        //   response[3].data.keys.map((item) => {
-        //     const obj = safeList.find((o) => o.name === item);
-        //     if (!obj) {
-        //       const value = createSafeObject(item, 'apps');
-        //       return safeList.push(value);
-        //     }
-        //     return null;
-        //   });
-        // }
+
         setSafes(safes);
         setSafeList([...safes.users, ...safes.shared, ...safes.apps]);
         console.log('safeList :>> ', safes);
@@ -269,9 +250,12 @@ const SafeDashboard = (props) => {
     return safeList.map((safe) => (
       <SafeFolderWrap
         key={safe.name}
-        to={`${routeProps.match.url}/${safe.name}`}
+        to={{
+          pathname: `${routeProps.match.url}/${safe.name}`,
+          state: { safe },
+        }}
         active={activeSafeFolders.includes(safe.name)}
-        onClick={() => showSafeDetails(safe.name)}
+        onClick={() => showSafeDetails(safe.name, safe)}
       >
         <ListItem
           title={safe.name}
@@ -363,7 +347,7 @@ const SafeDashboard = (props) => {
               width={isMobileScreen ? '100%' : '77.1rem'}
               mobileScreenCss={MobileViewForSafeDetailsPage}
             >
-              {/* <Switch>
+              <Switch>
                 {' '}
                 <Route
                   path="/:tab/:safeName"
@@ -375,7 +359,7 @@ const SafeDashboard = (props) => {
                     />
                   )}
                 />
-              </Switch> */}
+              </Switch>
             </ColumnSection>
           ) : (
             <></>
