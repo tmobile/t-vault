@@ -48,6 +48,7 @@ const TextFieldComponent = (props) => {
     rows,
     type,
     helperText,
+    error,
   } = props;
   const [touched, setTouched] = useState(false);
 
@@ -67,7 +68,7 @@ const TextFieldComponent = (props) => {
       variant={variant || 'filled'}
       type={type}
       onBlur={handleTouch}
-      error={touched && Boolean(value.length === 0)}
+      error={(touched && Boolean(value.length === 0)) || error}
       helperText={touched && Boolean(value.length === 0) && helperText}
       InputProps={{
         startAdornment: (
@@ -93,6 +94,7 @@ TextFieldComponent.propTypes = {
   rows: PropTypes.number,
   type: PropTypes.string,
   helperText: PropTypes.string,
+  error: PropTypes.bool,
 };
 
 TextFieldComponent.defaultProps = {
@@ -105,6 +107,7 @@ TextFieldComponent.defaultProps = {
   rows: 5,
   type: 'text',
   helperText: '',
+  error: false,
 };
 
 setIcon.propTypes = {

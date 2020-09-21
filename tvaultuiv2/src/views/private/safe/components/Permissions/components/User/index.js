@@ -118,6 +118,9 @@ const User = (props) => {
   } = props;
   const [responseType, setResponseType] = useState(null);
   const [toastMessage, setToastMessage] = useState('');
+  const [editUser, setEditUser] = useState('');
+  const [editAccess, setEditAccess] = useState('');
+  const [editPermission, setEditPermission] = useState(false);
   const isMobileScreen = useMediaQuery(small);
 
   const onSubmit = (user, access) => {
@@ -157,18 +160,38 @@ const User = (props) => {
     setResponseType(null);
   };
 
+  const onEditClick = (key, value) => {
+    setEditAccess(value);
+    setEditUser(key);
+    setEditPermission(true);
+  };
+
+  const onEditCancelClicked = () => {
+    setEditPermission(false);
+    onCancelClicked();
+  };
+
   return (
     <ComponentError>
       <>
-        {addPermission ? (
+        {addPermission && !editPermission && (
           <AddUser
             handleSaveClick={(user, access) => onSubmit(user, access)}
             handleCancelClick={onCancelClicked}
           />
-        ) : (
-          ''
         )}
-        {users && Object.keys(users).length > 0 && !addPermission ? (
+        {editPermission && (
+          <AddUser
+            handleSaveClick={(user, access) => onSubmit(user, access)}
+            handleCancelClick={onEditCancelClicked}
+            username={editUser}
+            access={editAccess}
+          />
+        )}
+        {users &&
+        Object.keys(users).length > 0 &&
+        !addPermission &&
+        !editPermission ? (
           <UserList>
             {Object.entries(users).map(([key, value]) => (
               <EachUserWrap key={key}>
@@ -194,7 +217,7 @@ const User = (props) => {
                       horizontal: 'right',
                     }}
                   >
-                    <PopperItem>
+                    <PopperItem onClick={() => onEditClick(key, value)}>
                       <IconEdit />
                       <span>Edit</span>
                     </PopperItem>
@@ -208,7 +231,8 @@ const User = (props) => {
             ))}
           </UserList>
         ) : (
-          !addPermission && (
+          !addPermission &&
+          !editPermission && (
             <NoDataWrapper>
               <NoData
                 imageSrc={noPermissionsIcon}

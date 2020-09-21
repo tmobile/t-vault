@@ -46,6 +46,7 @@ const AutoCompleteComponent = (props) => {
   const handleTouch = () => {
     setTouched(true);
   };
+
   return (
     <AutoCompleteField
       icon={icon}
@@ -55,7 +56,8 @@ const AutoCompleteComponent = (props) => {
       forcePopupIcon={false}
       className={classes || ''}
       onChange={onSelected}
-      onInputChange={(e) => onChange(e.target.value)}
+      inputValue={searchValue}
+      onInputChange={(e) => onChange(e?.target?.value)}
       renderInput={(params) => (
         <TextField
           {...params}
