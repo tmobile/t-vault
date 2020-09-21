@@ -132,10 +132,10 @@ const AddUser = (props) => {
   }, [username, access]);
 
   useEffect(() => {
-    if (searchValue !== '') {
-      setDisabledSave(false);
-    } else {
+    if (searchValue === '' || searchValue?.length < 3) {
       setDisabledSave(true);
+    } else {
+      setDisabledSave(false);
     }
   }, [searchValue]);
 
@@ -151,9 +151,9 @@ const AddUser = (props) => {
           .getApiCall(`/vault/v2/ldap/corpusers?CorpId=${value}`)
           .then((res) => {
             setOptions([]);
+            setSearchLoader(false);
             if (res?.data?.data?.values?.length > 0) {
               const array = [];
-              setSearchLoader(false);
               res.data.data.values.map((item) => {
                 if (item.userName) {
                   return array.push(item.userName);
@@ -206,6 +206,7 @@ const AddUser = (props) => {
             searchValue={searchValue}
             onSelected={(e, val) => onSelected(e, val)}
             onChange={(e) => onSearchChange(e)}
+            placeholder="Username - Enter min 3 characters"
           />
           <InstructionText>
             Search the T-Mobile system to add users
