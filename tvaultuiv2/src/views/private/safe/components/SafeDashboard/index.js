@@ -1,6 +1,6 @@
 /* eslint-disable no-unused-vars */
 /* eslint-disable no-return-assign */
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import InfiniteScroll from 'react-infinite-scroller';
 import PropTypes from 'prop-types';
 import { Link, Route, Switch } from 'react-router-dom';
@@ -147,6 +147,26 @@ const SafeDashboard = (props) => {
     setActiveSafeFolders([...activeSafes]);
   };
 
+  const compareSafesAndList = useCallback(
+    (listArray, type) => {
+      const value = createSafeArray(listArray, type);
+      safes[type].map((_item) => {
+        if (listArray.includes(_item.name)) {
+          const item = { ..._item };
+          item.manage = false;
+        }
+        return null;
+      });
+      value.map((item) => {
+        if (!safes[type].some((list) => list.name === item.name)) {
+          return safes[type].push(item);
+        }
+        return null;
+      });
+    },
+    [safes]
+  );
+
   /**
    * renders safe details page route
    * @param {string}
@@ -175,61 +195,23 @@ const SafeDashboard = (props) => {
           });
         }
         if (response[1] && response[1].data.keys) {
-          const value = createSafeArray(response[1].data.keys, 'users');
-          safes.users.map((_item) => {
-            if (!response[1].data.keys.includes(_item.name)) {
-              const item = { ..._item };
-              item.manage = false;
-            }
-            return null;
-          });
-          value.map((item) => {
-            if (!safes.users.some((list) => list.name === item.name)) {
-              return safes.users.push(item);
-            }
-            return null;
-          });
+          compareSafesAndList(response[1].data.keys, 'users');
         }
         if (response[2] && response[2].data.keys) {
-          const value = createSafeArray(response[2].data.keys, 'shared');
-          safes.shared.map((_item) => {
-            if (!response[1].data.keys.includes(_item.name)) {
-              const item = { ..._item };
-              item.manage = false;
-            }
-            return null;
-          });
-          value.map((item) => {
-            if (!safes.shared.some((list) => list.name === item.name)) {
-              return safes.shared.push(item);
-            }
-            return null;
-          });
+          compareSafesAndList(response[2].data.keys, 'shared');
         }
         if (response[3] && response[3].data.keys) {
-          const value = createSafeArray(response[3].data.keys, 'apps');
-          safes.apps.map((_item) => {
-            if (!response[1].data.keys.includes(_item.name)) {
-              const item = { ..._item };
-              item.manage = false;
-            }
-            return null;
-          });
-          value.map((item) => {
-            if (!safes.apps.some((list) => list.name === item.name)) {
-              return safes.apps.push(item);
-            }
-            return null;
-          });
+          compareSafesAndList(response[3].data.keys, 'apps');
         }
 
         setSafes(safes);
         setSafeList([...safes.users, ...safes.shared, ...safes.apps]);
+        // eslint-disable-next-line no-console
         console.log('safeList :>> ', safes);
       });
     }
     fetchData();
-  }, [safes]);
+  }, [safes, compareSafesAndList]);
 
   const handleChange = (e) => {
     setInputSearchValue(e.target.value);
@@ -275,6 +257,7 @@ const SafeDashboard = (props) => {
           subTitle={safe.date}
           flag={safe.type}
           icon={safeIcon}
+          manage={safe.manage}
         />
         <BorderLine />
         {activeSafeFolders.includes(safe.name) ? (
