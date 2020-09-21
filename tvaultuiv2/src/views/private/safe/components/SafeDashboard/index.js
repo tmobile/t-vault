@@ -1,3 +1,4 @@
+/* eslint-disable no-param-reassign */
 /* eslint-disable no-unused-vars */
 /* eslint-disable no-return-assign */
 import React, { useState, useEffect, useCallback } from 'react';
@@ -150,9 +151,8 @@ const SafeDashboard = (props) => {
   const compareSafesAndList = useCallback(
     (listArray, type) => {
       const value = createSafeArray(listArray, type);
-      safes[type].map((_item) => {
-        if (listArray.includes(_item.name)) {
-          const item = { ..._item };
+      safes[type].map((item) => {
+        if (!listArray.includes(item.name)) {
           item.manage = false;
         }
         return null;
@@ -194,6 +194,7 @@ const SafeDashboard = (props) => {
             });
           });
         }
+        console.log('safeList838219 :>> ', safes);
         if (response[1] && response[1].data.keys) {
           compareSafesAndList(response[1].data.keys, 'users');
         }
@@ -260,7 +261,7 @@ const SafeDashboard = (props) => {
           manage={safe.manage}
         />
         <BorderLine />
-        {activeSafeFolders.includes(safe.name) ? (
+        {activeSafeFolders.includes(safe.name) && safe.manage ? (
           <PopperWrap>
             <PsudoPopper />
           </PopperWrap>
