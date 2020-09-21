@@ -69,9 +69,7 @@ const TextFieldComponent = (props) => {
       type={type}
       onBlur={handleTouch}
       error={(touched && Boolean(value.length === 0)) || error}
-      helperText={
-        (touched && Boolean(value.length === 0) && helperText) || helperText
-      }
+      helperText={touched && Boolean(value.length === 0) && helperText}
       InputProps={{
         startAdornment: (
           <InputAdornment position="start">

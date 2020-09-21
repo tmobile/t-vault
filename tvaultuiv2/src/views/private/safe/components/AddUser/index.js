@@ -117,7 +117,7 @@ const useStyles = makeStyles(() => ({
 }));
 
 const AddUser = (props) => {
-  const { handleCancelClick, handleSaveClick } = props;
+  const { handleCancelClick, handleSaveClick, username, access } = props;
   const classes = useStyles();
   const [radioValue, setRadioValue] = useState('read');
   const [searchValue, setSearchValue] = useState('');
@@ -125,6 +125,12 @@ const AddUser = (props) => {
   const [disabledSave, setDisabledSave] = useState(true);
   const [searchLoader, setSearchLoader] = useState(false);
   const isMobileScreen = useMediaQuery(small);
+
+  useEffect(() => {
+    setSearchValue(username);
+    setRadioValue(access);
+  }, [username, access]);
+
   useEffect(() => {
     if (searchValue !== '') {
       setDisabledSave(false);
@@ -157,8 +163,9 @@ const AddUser = (props) => {
               setOptions([...array]);
             }
           })
-          // eslint-disable-next-line no-console
-          .catch((e) => console.error(e));
+          .catch(() => {
+            setSearchLoader(false);
+          });
       },
       1000,
       true
@@ -168,7 +175,7 @@ const AddUser = (props) => {
 
   const onSearchChange = (text) => {
     setSearchValue(text);
-    if (text !== '' && text.length > 2) {
+    if (text !== '' && text?.length > 2) {
       callSearchApi(text);
     }
   };
@@ -252,6 +259,13 @@ const AddUser = (props) => {
 AddUser.propTypes = {
   handleSaveClick: PropTypes.func.isRequired,
   handleCancelClick: PropTypes.func.isRequired,
+  username: PropTypes.string,
+  access: PropTypes.string,
+};
+
+AddUser.defaultProps = {
+  username: '',
+  access: 'read',
 };
 
 export default AddUser;
