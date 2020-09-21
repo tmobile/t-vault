@@ -138,7 +138,7 @@ const User = (props) => {
       username,
     };
     apiService
-      .deleteApiCall('/vault/v2/ss/sdb/user', payload)
+      .deleteUserPermission(payload)
       .then((res) => {
         if (res && res.data?.Message) {
           setToastMessage(res.data.Message);

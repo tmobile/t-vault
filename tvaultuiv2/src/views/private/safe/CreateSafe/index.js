@@ -213,7 +213,7 @@ const CreateModal = () => {
     setDisabledSave(true);
     setResponseType(0);
     apiService
-      .postApiCall('/vault/v2/ss/sdb', safeContent)
+      .createSafe(safeContent)
       .then((res) => {
         if (res && res.status === 200) {
           setResponseType(1);
@@ -236,7 +236,7 @@ const CreateModal = () => {
       (value) => {
         setAutoLoader(true);
         apiService
-          .getApiCall(`/vault/v2/ldap/users?UserPrincipalName=${value}`)
+          .getOwnerEmail(value)
           .then((res) => {
             setOptions([]);
             const array = [];

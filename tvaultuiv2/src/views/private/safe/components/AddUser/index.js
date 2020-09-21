@@ -148,7 +148,7 @@ const AddUser = (props) => {
       (value) => {
         setSearchLoader(true);
         apiService
-          .getApiCall(`/vault/v2/ldap/corpusers?CorpId=${value}`)
+          .getUserName(value)
           .then((res) => {
             setOptions([]);
             setSearchLoader(false);

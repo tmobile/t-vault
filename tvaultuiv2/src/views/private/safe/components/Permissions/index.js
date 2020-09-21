@@ -122,7 +122,7 @@ const Permissions = () => {
     setUser((prev) => ({ ...prev, [data.username]: data.access }));
     setAddPermission(false);
     apiService
-      .postApiCall('/vault/v2/ss/sdb/user', data)
+      .addUserPermission(data)
       .then((res) => {
         if (res && res.data?.messages) {
           setToastMessage(res.data?.messages[0]);

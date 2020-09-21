@@ -155,18 +155,10 @@ const SafeDashboard = (props) => {
 
   useEffect(() => {
     async function fetchData() {
-      const safesApiResponse = await apiService.getApiCall(
-        `/vault/v2/ss/sdb/safes`
-      );
-      const usersListApiResponse = await apiService.getApiCall(
-        `/vault/v2/ss/sdb/list?path=users`
-      );
-      const sharedListApiResponse = await apiService.getApiCall(
-        `/vault/v2/ss/sdb/list?path=shared`
-      );
-      const appsListApiResponse = await apiService.getApiCall(
-        `/vault/v2/ss/sdb/list?path=apps`
-      );
+      const safesApiResponse = await apiService.getSafes();
+      const usersListApiResponse = await apiService.getManageUsersList();
+      const sharedListApiResponse = await apiService.getManageSharedList();
+      const appsListApiResponse = await apiService.getManageAppsList();
       const allApiResponse = Promise.all([
         safesApiResponse,
         usersListApiResponse,
