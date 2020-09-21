@@ -1,8 +1,7 @@
-/* eslint-disable import/no-unresolved */
 import React from 'react';
 import styled from 'styled-components';
 import PropTypes from 'prop-types';
-import ComponentError from 'errorBoundaries/ComponentError/component-error';
+import ComponentError from '../../../../../errorBoundaries/ComponentError/component-error';
 
 const ChildItemWrap = styled('div')``;
 const AddForm = (props) => {

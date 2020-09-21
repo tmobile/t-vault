@@ -12,17 +12,16 @@ import { makeStyles } from '@material-ui/core/styles';
 import AppBar from '@material-ui/core/AppBar';
 import Tabs from '@material-ui/core/Tabs';
 import Tab from '@material-ui/core/Tab';
-import ButtonComponent from 'components/FormFields/ActionButton';
-import ComponentError from 'errorBoundaries/ComponentError/component-error';
-import addFolderPlus from 'assets/folder-plus.svg';
-import NoSecretsIcon from 'assets/no-data-secrets.svg';
-// eslint-disable-next-line import/no-unresolved
-import NamedButton from 'components/NamedButton';
-import NoData from 'components/NoData';
-import mediaBreakpoints from 'breakpoints';
 import useMediaQuery from '@material-ui/core/useMediaQuery';
 import Error from 'components/Error';
 import Loader from 'components/Loader';
+import ButtonComponent from '../../../../../components/FormFields/ActionButton';
+import ComponentError from '../../../../../errorBoundaries/ComponentError/component-error';
+import addFolderPlus from '../../../../../assets/folder-plus.svg';
+import NoSecretsIcon from '../../../../../assets/no-data-secrets.svg';
+import NamedButton from '../../../../../components/NamedButton';
+import NoData from '../../../../../components/NoData';
+import mediaBreakpoints from '../../../../../breakpoints';
 import AddFolder from '../AddFolder';
 import Tree from '../Tree';
 import Permissions from '../Permissions';
@@ -79,16 +78,12 @@ const TabPanel = (props) => {
 
 TabPanel.propTypes = {
   children: PropTypes.node,
-  index: PropTypes.any.isRequired,
-  value: PropTypes.any.isRequired,
+  index: PropTypes.number.isRequired,
+  value: PropTypes.number.isRequired,
 };
 
 TabPanel.defaultProps = {
   children: <div />,
-  // eslint-disable-next-line react/default-props-match-prop-types
-  index: PropTypes.any.isRequired,
-  // eslint-disable-next-line react/default-props-match-prop-types
-  value: PropTypes.any.isRequired,
 };
 
 function a11yProps(index) {
@@ -177,12 +172,14 @@ export default function SelectionTabs() {
             {/* eslint-disable-next-line react/jsx-props-no-spreading */}
             <Tab label="Permissions" {...a11yProps(1)} />
           </Tabs>
-          <NamedButton
-            label="Add Folder"
-            onClick={addSecretsFolder}
-            customStyle={customBtnStyles}
-            iconSrc={addFolderPlus}
-          />
+          {value === 0 && (
+            <NamedButton
+              label="Add Folder"
+              onClick={addSecretsFolder}
+              customStyle={customBtnStyles}
+              iconSrc={addFolderPlus}
+            />
+          )}
         </AppBar>
         <TabPanel value={value} index={0}>
           {
@@ -244,7 +241,7 @@ export default function SelectionTabs() {
   );
 }
 SelectionTabs.propTypes = {
-  secrets: PropTypes.array,
+  secrets: PropTypes.arrayOf(PropTypes.any),
 };
 SelectionTabs.defaultProps = {
   secrets: [],

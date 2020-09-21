@@ -1,14 +1,13 @@
 /* eslint-disable react/jsx-curly-newline */
-/* eslint-disable import/no-unresolved */
 import React, { useState } from 'react';
 import { InputLabel, Typography } from '@material-ui/core';
 import styled from 'styled-components';
 import useMediaQuery from '@material-ui/core/useMediaQuery';
 import PropTypes from 'prop-types';
-import ButtonComponent from 'components/FormFields/ActionButton';
-import TextFieldComponent from 'components/FormFields/TextField';
-import ComponentError from 'errorBoundaries/ComponentError/component-error';
-import mediaBreakpoints from 'breakpoints';
+import TextFieldComponent from '../../../../../components/FormFields/TextField';
+import ComponentError from '../../../../../errorBoundaries/ComponentError/component-error';
+import mediaBreakpoints from '../../../../../breakpoints';
+import ButtonComponent from '../../../../../components/FormFields/ActionButton';
 
 const SecretWrapper = styled.section`
   padding: 3rem;

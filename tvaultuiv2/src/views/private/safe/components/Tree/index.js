@@ -2,14 +2,13 @@
 /* eslint-disable consistent-return */
 /* eslint-disable react/jsx-curly-newline */
 /* eslint-disable array-callback-return */
-/* eslint-disable import/no-unresolved */
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import PropTypes from 'prop-types';
 
-import { findElementAndUpdate } from 'services/helper-function';
-import ComponentError from 'errorBoundaries/ComponentError/component-error';
-import Loader from 'components/Loader';
+import { findElementAndUpdate } from '../../../../../services/helper-function';
+import ComponentError from '../../../../../errorBoundaries/ComponentError/component-error';
+import Loader from '../../../../../components/Loader';
 import CreateSecretButton from '../CreateSecretButton';
 import AddForm from '../AddForm';
 import CreateSecret from '../CreateSecrets';
@@ -225,8 +224,7 @@ Tree.Folder = Folder;
 
 // props validation
 Tree.propTypes = {
-  // eslint-disable-next-line react/forbid-prop-types
-  data: PropTypes.array,
+  data: PropTypes.arrayOf(PropTypes.any),
 };
 
 Tree.defaultProps = {

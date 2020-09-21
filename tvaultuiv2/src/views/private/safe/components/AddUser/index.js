@@ -1,25 +1,25 @@
-/* eslint-disable import/no-unresolved */
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { debounce } from 'lodash';
 import Radio from '@material-ui/core/Radio';
 import { makeStyles } from '@material-ui/core/styles';
 import RadioGroup from '@material-ui/core/RadioGroup';
 import { InputLabel, Typography } from '@material-ui/core';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
+import useMediaQuery from '@material-ui/core/useMediaQuery';
 import FormControl from '@material-ui/core/FormControl';
-import styled from 'styled-components';
-import ButtonComponent from 'components/FormFields/ActionButton';
-import ComponentError from 'errorBoundaries/ComponentError/component-error';
-import AutoCompleteComponent from 'components/FormFields/AutoComplete';
+import styled, { css } from 'styled-components';
 import PropTypes from 'prop-types';
-import mediaBreakpoints from 'breakpoints';
+import ComponentError from '../../../../../errorBoundaries/ComponentError/component-error';
+import mediaBreakpoints from '../../../../../breakpoints';
+import AutoCompleteComponent from '../../../../../components/FormFields/AutoComplete';
+import ButtonComponent from '../../../../../components/FormFields/ActionButton';
 import apiService from '../../apiService';
-import data from './__mock__/data';
+import Loader from '../Loader';
 
 const { small } = mediaBreakpoints;
 
 const PermissionWrapper = styled.div`
-  padding: 3.5rem 4rem 4rem 4rem;
+  padding: 1rem 4rem 4rem 4rem;
   background-color: #1f232e;
   display: flex;
   flex-direction: column;
@@ -63,6 +63,7 @@ const RequiredCircle = styled.span`
 const InputWrapper = styled.div`
   margin-top: 4rem;
   margin-bottom: 2.4rem;
+  position: relative;
   .MuiInputLabel-root {
     display: flex;
     align-items: center;
@@ -75,6 +76,7 @@ const InstructionText = styled.p`
   margin-bottom: 0rem;
   ${small} {
     font-size: 1.3rem;
+    opacity: 0.4;
   }
 `;
 const RadioButtonWrapper = styled.div`
@@ -95,6 +97,16 @@ const CancelSaveWrapper = styled.div`
 
 const CancelButton = styled.div`
   margin-right: 0.8rem;
+  ${small} {
+    width: 100%;
+  }
+`;
+
+const customStyle = css`
+  position: absolute;
+  right: 12px;
+  top: 33px;
+  color: red;
 `;
 
 const useStyles = makeStyles(() => ({
@@ -104,19 +116,26 @@ const useStyles = makeStyles(() => ({
   },
 }));
 
-const Permissions = (props) => {
-  const { handleCancelClick, handleSaveClick } = props;
+const AddUser = (props) => {
+  const { handleCancelClick, handleSaveClick, username, access } = props;
   const classes = useStyles();
   const [radioValue, setRadioValue] = useState('read');
   const [searchValue, setSearchValue] = useState('');
   const [options, setOptions] = useState([]);
   const [disabledSave, setDisabledSave] = useState(true);
+  const [searchLoader, setSearchLoader] = useState(false);
+  const isMobileScreen = useMediaQuery(small);
 
   useEffect(() => {
-    if (searchValue !== '') {
-      setDisabledSave(false);
-    } else {
+    setSearchValue(username);
+    setRadioValue(access);
+  }, [username, access]);
+
+  useEffect(() => {
+    if (searchValue === '' || searchValue?.length < 3) {
       setDisabledSave(true);
+    } else {
+      setDisabledSave(false);
     }
   }, [searchValue]);
 
@@ -124,27 +143,40 @@ const Permissions = (props) => {
     setRadioValue(event.target.value);
   };
 
-  const callSearchApi = debounce(() => {
-    apiService
-      .searchUser(data)
-      .then((res) => {
-        setOptions([]);
-        if (res?.data?.values?.length > 0) {
-          res.data.values.map((item) => {
-            return setOptions((prev) => [...prev, item.userEmail]);
+  const callSearchApi = useCallback(
+    debounce(
+      (value) => {
+        setSearchLoader(true);
+        apiService
+          .getUserName(value)
+          .then((res) => {
+            setOptions([]);
+            setSearchLoader(false);
+            if (res?.data?.data?.values?.length > 0) {
+              const array = [];
+              res.data.data.values.map((item) => {
+                if (item.userName) {
+                  return array.push(item.userName);
+                }
+                return null;
+              });
+              setOptions([...array]);
+            }
+          })
+          .catch(() => {
+            setSearchLoader(false);
           });
-        }
-      })
-      // eslint-disable-next-line no-console
-      .catch((e) => console.error(e));
-  }, 1000);
+      },
+      1000,
+      true
+    ),
+    []
+  );
 
   const onSearchChange = (text) => {
-    setOptions([]);
     setSearchValue(text);
-    if (text !== '') {
-      callSearchApi();
-      // on api search replace with callSearchApi(text)
+    if (text !== '' && text?.length > 2) {
+      callSearchApi(text);
     }
   };
 
@@ -164,7 +196,7 @@ const Permissions = (props) => {
         </HeaderWrapper>
         <InputWrapper>
           <InputLabel>
-            User Email
+            User Name
             <RequiredCircle margin="0.5rem" />
           </InputLabel>
           <AutoCompleteComponent
@@ -174,10 +206,12 @@ const Permissions = (props) => {
             searchValue={searchValue}
             onSelected={(e, val) => onSelected(e, val)}
             onChange={(e) => onSearchChange(e)}
+            placeholder="Username - Enter min 3 characters"
           />
           <InstructionText>
             Search the T-Mobile system to add users
           </InstructionText>
+          {searchLoader && <Loader customStyle={customStyle} />}
         </InputWrapper>
         <RadioButtonWrapper>
           <FormControl component="fieldset">
@@ -206,6 +240,7 @@ const Permissions = (props) => {
                 label="Cancel"
                 color="primary"
                 onClick={handleCancelClick}
+                width={isMobileScreen ? '100%' : ''}
               />
             </CancelButton>
             <ButtonComponent
@@ -213,6 +248,7 @@ const Permissions = (props) => {
               color="secondary"
               onClick={() => handleSaveClick(searchValue, radioValue)}
               disabled={disabledSave}
+              width={isMobileScreen ? '100%' : ''}
             />
           </CancelSaveWrapper>
         </RadioButtonWrapper>
@@ -221,9 +257,16 @@ const Permissions = (props) => {
   );
 };
 
-Permissions.propTypes = {
+AddUser.propTypes = {
   handleSaveClick: PropTypes.func.isRequired,
   handleCancelClick: PropTypes.func.isRequired,
+  username: PropTypes.string,
+  access: PropTypes.string,
 };
 
-export default Permissions;
+AddUser.defaultProps = {
+  username: '',
+  access: 'read',
+};
+
+export default AddUser;

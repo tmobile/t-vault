@@ -1,6 +1,5 @@
-/* eslint-disable import/no-unresolved */
 import axios from 'axios';
-import config from 'config';
+import config from '../config';
 
 function ApiCall(url, method, data, header) {
   const token = 's.SWlWp1MTwdWaSacnlyJItvuT';

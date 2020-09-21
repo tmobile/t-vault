@@ -1,19 +1,24 @@
-/* eslint-disable import/no-unresolved */
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
+import { debounce } from 'lodash';
 import { makeStyles } from '@material-ui/core/styles';
 import { useHistory } from 'react-router-dom';
 import Modal from '@material-ui/core/Modal';
 import { Backdrop, Typography, InputLabel } from '@material-ui/core';
 import Fade from '@material-ui/core/Fade';
-import styled from 'styled-components';
-import PropTypes from 'prop-types';
-import TextFieldComponent from 'components/FormFields/TextField';
-import ButtonComponent from 'components/FormFields/ActionButton';
-import SelectComponent from 'components/FormFields/SelectFields';
-import ComponentError from 'errorBoundaries/ComponentError/component-error';
+import styled, { css } from 'styled-components';
+import useMediaQuery from '@material-ui/core/useMediaQuery';
+import TextFieldComponent from '../../../../components/FormFields/TextField';
+import ButtonComponent from '../../../../components/FormFields/ActionButton';
+import SelectComponent from '../../../../components/FormFields/SelectFields';
+import ComponentError from '../../../../errorBoundaries/ComponentError/component-error';
 import safeIcon from '../../../../assets/icon_safe.svg';
 import leftArrowIcon from '../../../../assets/left-arrow.svg';
 import mediaBreakpoints from '../../../../breakpoints';
+import SnackbarComponent from '../../../../components/Snackbar';
+import AutoCompleteComponent from '../../../../components/FormFields/AutoComplete';
+import Loader from '../components/Loader';
+import { validateEmail } from '../../../../services/helper-function';
+import apiService from '../apiService';
 
 const { small, smallAndMedium } = mediaBreakpoints;
 
@@ -24,6 +29,9 @@ const ModalWrapper = styled.section`
   outline: none;
   width: 69.6rem;
   margin: auto 0;
+  display: flex;
+  flex-direction: column;
+  position: relative;
   ${smallAndMedium} {
     padding: 4.7rem 5rem 5rem 5rem;
   }
@@ -80,6 +88,7 @@ const CreateSafeForm = styled.form`
 
 const InputFieldLabelWrapper = styled.div`
   margin-bottom: 2rem;
+  position: ${(props) => (props.postion ? 'relative' : '')};
   .MuiSelect-icon {
     top: auto;
     color: #000;
@@ -95,9 +104,9 @@ const FieldInstruction = styled.p`
 
 const CancelSaveWrapper = styled.div`
   display: flex;
-  justify-content: center;
+  justify-content: flex-end;
   ${small} {
-    margin-top: 11.3rem;
+    margin-top: 5.3rem;
   }
   button {
     ${small} {
@@ -110,7 +119,24 @@ const CancelButton = styled.div`
   margin-right: 0.8rem;
   ${small} {
     margin-right: 1rem;
+    width: 100%;
   }
+`;
+
+const loaderStyle = css`
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  color: red;
+  z-index: 1;
+`;
+
+const autoLoaderStyle = css`
+  position: absolute;
+  top: 3.5rem;
+  right: 1rem;
+  color: red;
 `;
 
 const useStyles = makeStyles((theme) => ({
@@ -129,37 +155,142 @@ const useStyles = makeStyles((theme) => ({
       alignItems: 'unset',
       justifyContent: 'unset',
       padding: '0',
+      height: '100%',
     },
   },
 }));
 
-const CreateModal = (props) => {
-  const { createSafe } = props;
+const CreateModal = () => {
   const classes = useStyles();
   const [open, setOpen] = useState(true);
-  const [type, setType] = useState('Personal');
+  const [safeType, setSafeType] = useState('Users Safe');
   const [owner, setOwner] = useState('');
-  const [safeName, setSafeName] = useState('');
+  const [name, setName] = useState('');
   const [description, setDescription] = useState('');
-
+  const [disabledSave, setDisabledSave] = useState(true);
+  const [responseType, setResponseType] = useState(null);
+  const [toastMessage, setToastMessage] = useState('');
+  const [autoLoader, setAutoLoader] = useState(false);
+  const [options, setOptions] = useState([]);
+  const isMobileScreen = useMediaQuery(small);
+  const [helperText] = useState('');
+  const [emailError, setEmailError] = useState(false);
+  const [safeError, setSafeError] = useState(false);
   const history = useHistory();
 
-  const [menu] = useState(['Personal', 'Public']);
+  useEffect(() => {
+    if (
+      name === '' ||
+      owner === '' ||
+      description.length < 10 ||
+      safeError ||
+      emailError
+    ) {
+      setDisabledSave(true);
+    } else {
+      setDisabledSave(false);
+    }
+  }, [name, description, owner, safeError, emailError]);
+
+  const [menu] = useState(['Users Safe', 'Shared Safe', 'Application Safe']);
 
   const handleClose = () => {
     setOpen(false);
     history.goBack();
   };
+
   const saveSafes = () => {
+    const value = safeType.split(' ')[0].toLowerCase();
     const safeContent = {
-      safeName,
-      description,
-      owner,
-      type,
+      data: {
+        name,
+        description,
+        type: '',
+        owner,
+      },
+      path: `${value}/${name}`,
     };
-    createSafe(safeContent);
-    setOpen(false);
-    history.goBack();
+    setDisabledSave(true);
+    setResponseType(0);
+    apiService
+      .createSafe(safeContent)
+      .then((res) => {
+        if (res && res.status === 200) {
+          setResponseType(1);
+          setTimeout(() => {
+            setOpen(false);
+            history.goBack();
+          }, 1000);
+        }
+      })
+      .catch((err) => {
+        if (err.response && err.response.data?.errors[0]) {
+          setToastMessage(err.response.data.errors[0]);
+        }
+        setResponseType(-1);
+      });
+  };
+
+  const callSearchApi = useCallback(
+    debounce(
+      (value) => {
+        setAutoLoader(true);
+        apiService
+          .getOwnerEmail(value)
+          .then((res) => {
+            setOptions([]);
+            const array = [];
+            setAutoLoader(false);
+            if (res?.data?.data?.values?.length > 0) {
+              res.data.data.values.map((item) => {
+                if (item.userEmail) {
+                  return array.push(item.userEmail);
+                }
+                return null;
+              });
+              setOptions([...array]);
+            }
+          })
+          .catch(() => setAutoLoader(false));
+      },
+      1000,
+      true
+    ),
+    []
+  );
+  const onOwnerChange = (text) => {
+    setOwner(text);
+    if (text !== '' && text.length > 2) {
+      callSearchApi(text);
+    }
+    setEmailError(false);
+  };
+
+  const onSelected = (e, val) => {
+    setOwner(val);
+  };
+  const onToastClose = (reason) => {
+    if (reason === 'clickaway') {
+      return;
+    }
+    setResponseType(null);
+  };
+
+  const onInputBlur = (e) => {
+    if (e.target.name === 'name') {
+      if (name.length < 3) {
+        setSafeError(true);
+      } else {
+        setSafeError(false);
+      }
+    }
+    if (e.target.name === 'owner') {
+      if (!validateEmail(owner)) {
+        setEmailError(true);
+      } else {
+        setEmailError(false);
+      }
+    }
   };
   return (
     <ComponentError>
@@ -177,6 +308,7 @@ const CreateModal = (props) => {
       >
         <Fade in={open}>
           <ModalWrapper>
+            {responseType === 0 && <Loader customStyle={loaderStyle} />}
             <HeaderWrapper>
               <LeftIcon
                 src={leftArrowIcon}
@@ -198,28 +330,47 @@ const CreateModal = (props) => {
               <InputFieldLabelWrapper>
                 <InputLabel>Safe Name</InputLabel>
                 <TextFieldComponent
-                  value={safeName}
+                  value={name}
                   placeholder="Save Name"
                   fullWidth
-                  onChange={(e) => setSafeName(e.target.value)}
+                  name="name"
+                  onChange={(e) => {
+                    setName(e.target.value);
+                    setSafeError(false);
+                  }}
+                  error={safeError}
+                  helperText={
+                    safeError ? 'Please enter minimum 3 characters' : ''
+                  }
+                  onInputBlur={(e) => onInputBlur(e)}
                 />
               </InputFieldLabelWrapper>
-              <InputFieldLabelWrapper>
+              <InputFieldLabelWrapper postion>
                 <InputLabel>Owner</InputLabel>
-                <TextFieldComponent
-                  placeholder="Owner"
-                  value={owner}
-                  fullWidth
-                  onChange={(e) => setOwner(e.target.value)}
+                <AutoCompleteComponent
+                  options={options}
+                  classes={classes}
+                  searchValue={owner}
+                  name="owner"
+                  onSelected={(e, val) => onSelected(e, val)}
+                  onChange={(e) => onOwnerChange(e)}
+                  placeholder="Email address- Enter min 3 characters"
+                  error={emailError}
+                  onInputBlur={(e) => onInputBlur(e)}
+                  helperText={
+                    emailError ? 'Please enter a valid email address!' : ''
+                  }
                 />
+                {autoLoader && <Loader customStyle={autoLoaderStyle} />}
               </InputFieldLabelWrapper>
               <InputFieldLabelWrapper>
                 <InputLabel>Type of Safe</InputLabel>
                 <SelectComponent
                   menu={menu}
-                  value={type}
+                  value={safeType}
                   classes={classes.select}
-                  onChange={(e) => setType(e.target.value)}
+                  onChange={(e) => setSafeType(e.target.value)}
+                  helperText={helperText}
                 />
               </InputFieldLabelWrapper>
               <InputFieldLabelWrapper>
@@ -235,22 +386,41 @@ const CreateModal = (props) => {
                   Please add a minimum of 10 characters
                 </FieldInstruction>
               </InputFieldLabelWrapper>
-              <CancelSaveWrapper>
-                <CancelButton>
-                  <ButtonComponent
-                    label="Cancel"
-                    color="primary"
-                    onClick={() => handleClose()}
-                  />
-                </CancelButton>
-                <ButtonComponent
-                  label="Create"
-                  color="secondary"
-                  icon="add"
-                  onClick={() => saveSafes()}
-                />
-              </CancelSaveWrapper>
             </CreateSafeForm>
+            <CancelSaveWrapper>
+              <CancelButton>
+                <ButtonComponent
+                  label="Cancel"
+                  color="primary"
+                  onClick={() => handleClose()}
+                  width={isMobileScreen ? '100%' : ''}
+                />
+              </CancelButton>
+              <ButtonComponent
+                label="Create"
+                color="secondary"
+                icon="add"
+                disabled={disabledSave}
+                onClick={() => saveSafes()}
+                width={isMobileScreen ? '100%' : ''}
+              />
+            </CancelSaveWrapper>
+            {responseType === -1 && (
+              <SnackbarComponent
+                open
+                onClose={() => onToastClose()}
+                severity="error"
+                icon="error"
+                message={toastMessage || 'Something went wrong!'}
+              />
+            )}
+            {responseType === 1 && (
+              <SnackbarComponent
+                open
+                onClose={() => onToastClose()}
+                message="New Safe has been createtd successfully"
+              />
+            )}
           </ModalWrapper>
         </Fade>
       </Modal>
@@ -258,10 +428,4 @@ const CreateModal = (props) => {
   );
 };
 
-CreateModal.propTypes = {
-  createSafe: PropTypes.func,
-};
-CreateModal.defaultProps = {
-  createSafe: () => {},
-};
 export default CreateModal;

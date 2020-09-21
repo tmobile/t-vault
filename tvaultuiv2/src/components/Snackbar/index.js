@@ -28,7 +28,7 @@ const SnackbarComponent = (props) => {
   return (
     <Snackbar
       open={open || false}
-      autoHideDuration={3000}
+      autoHideDuration={6000}
       anchorOrigin={{ vertical, horizontal }}
       key={vertical + horizontal}
       onClose={onClose}

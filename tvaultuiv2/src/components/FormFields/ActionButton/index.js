@@ -1,12 +1,13 @@
+/* eslint-disable react/jsx-props-no-spreading */
 import React from 'react';
 import { withStyles } from '@material-ui/core/styles';
 import Button from '@material-ui/core/Button';
 import Icon from '@material-ui/core/Icon';
 import PropTypes from 'prop-types';
+import theme from '../../../theme';
 
 const withStylesProps = (styles) => (Component) => (props) => {
-  const Comp = withStyles(styles(props))(Component);
-  // eslint-disable-next-line react/jsx-props-no-spreading
+  const Comp = withStyles(styles(props, theme))(Component);
   return <Comp {...props} />;
 };
 const styles = (props) => ({
@@ -15,6 +16,9 @@ const styles = (props) => ({
     boxShadow: 'none',
     fontSize: '1.4rem',
     width: props.width,
+    [theme.breakpoints.down('xs')]: {
+      height: '4.5rem',
+    },
   },
   startIcon: {
     marginRight: '0.5rem',

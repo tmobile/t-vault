@@ -1,4 +1,3 @@
-/* eslint-disable import/no-unresolved */
 import React, { useState } from 'react';
 import PropTypes from 'prop-types';
 
@@ -6,11 +5,11 @@ import styled from 'styled-components';
 import Accordion from '@material-ui/core/Accordion';
 import AccordionSummary from '@material-ui/core/AccordionSummary';
 import AccordionDetails from '@material-ui/core/AccordionDetails';
-import ComponentError from 'errorBoundaries/ComponentError/component-error';
 import FolderOutlinedIcon from '@material-ui/icons/FolderOutlined';
 import MoreVertOutlinedIcon from '@material-ui/icons/MoreVertOutlined';
-import CreateSecret from 'components/CreateSecret';
-import AddFolder from 'components/AddFolder';
+import CreateSecret from '../../views/private/safe/components/CreateSecrets';
+import ComponentError from '../../errorBoundaries/ComponentError/component-error';
+import AddFolder from '../../views/private/safe/components/AddFolder';
 import PopperElement from '../../views/private/safe/components/Popper';
 import CreateSecretButton from '../../views/private/safe/components/CreateSecretButton';
 

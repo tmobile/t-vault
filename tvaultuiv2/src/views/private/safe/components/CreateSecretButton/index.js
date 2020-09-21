@@ -1,9 +1,8 @@
-/* eslint-disable import/no-unresolved */
 import React from 'react';
 import PropTypes from 'prop-types';
 import styled from 'styled-components';
-import ComponentError from 'errorBoundaries/ComponentError/component-error';
-import { BackgroundColor } from 'styles/GlobalStyles';
+import ComponentError from '../../../../../errorBoundaries/ComponentError/component-error';
+import { BackgroundColor } from '../../../../../styles/GlobalStyles';
 
 const CreateSecretWrap = styled('div')`
   display: flex;

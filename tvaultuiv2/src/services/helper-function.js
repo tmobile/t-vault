@@ -48,3 +48,46 @@ export const findElementAndUpdate = (arr, parentId, item) => {
 
   return tempArr;
 };
+
+export const makeSafesList = (array, type) => {
+  const safeArray = [];
+  array.map((item) => {
+    const data = {
+      name: Object.keys(item)[0],
+      access: Object.values(item)[0],
+      path: `${type}/${Object.keys(item)[0]}`,
+    };
+    safeArray.push(data);
+  });
+  return safeArray;
+};
+
+export const createSafeArray = (arr, type) => {
+  const safeArray = [];
+  arr.map((item) => {
+    const data = {
+      name: item,
+      path: `${type}/${item}`,
+    };
+    safeArray.push(data);
+  });
+  return safeArray;
+};
+
+export const validateEmail = (email) => {
+  if (email) {
+   const res = /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/; //eslint-disable-line
+    return res.test(email);
+  }
+};
+
+export const removeDuplicate = (arr) => {
+  const filteredArr = arr.reduce((acc, current) => {
+    const x = acc.find((item) => item.name === current.name);
+    if (!x) {
+      return acc.concat([current]);
+    }
+    return acc;
+  }, []);
+  return filteredArr;
+};

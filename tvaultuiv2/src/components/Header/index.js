@@ -1,15 +1,14 @@
-/* eslint-disable import/no-unresolved */
 import React, { useState } from 'react';
 import styled from 'styled-components';
 import { withRouter } from 'react-router-dom';
 import PropTypes from 'prop-types';
 import Link from '@material-ui/core/Link';
-import ComponentError from 'errorBoundaries/ComponentError/component-error';
-import mediaBreakpoints from 'breakpoints';
-import vaultIcon from 'assets/tvault.svg';
-import menu from 'assets/menu.svg';
-import userIcon from 'assets/icon-profile.svg';
 import SwipeableDrawer from '@material-ui/core/SwipeableDrawer';
+import ComponentError from '../../errorBoundaries/ComponentError/component-error';
+import mediaBreakpoints from '../../breakpoints';
+import vaultIcon from '../../assets/tvault.svg';
+import menu from '../../assets/menu.svg';
+import userIcon from '../../assets/icon-profile.svg';
 import Sidebar from '../Sidebar';
 
 const { small, smallAndMedium } = mediaBreakpoints;

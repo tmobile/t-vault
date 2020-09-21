@@ -134,7 +134,7 @@ const customTheme = createMuiTheme({
       fontFamily:
         'BlinkMacSystemFont,-apple-system,"Segoe UI",Roboto,Oxygen,Ubuntu,"Helvetica Neue",Arial,sans-serif',
       fontWeight: 'normal',
-      fontSize: '1rem',
+      fontSize: '1.6rem',
       lineHeight: 1.5,
       letterSpacing: '0.03125rem',
       color: '#5e627c',
@@ -307,11 +307,11 @@ const customTheme = createMuiTheme({
         backgroundColor: customColor.primary.backgroundColor,
         color: customColor.primary.color,
         '&:hover': {
-          backgroundColor: '#fff !important',
+          backgroundColor: '#fff',
         },
       },
       input: {
-        padding: '0',
+        padding: '0.3rem 0',
       },
       adornedStart: {
         paddingLeft: '1rem',
@@ -355,6 +355,9 @@ const customTheme = createMuiTheme({
         background: customColor.snackBarSuccess,
         backgroundColor: 'none',
       },
+      filledError: {
+        backgroundImage: 'none',
+      },
     },
     MuiSnackbar: {
       anchorOriginBottomRight: {
@@ -369,7 +372,6 @@ const customTheme = createMuiTheme({
         paddingBottom: '0',
         height: '5rem',
         '&[class*="MuiFilledInput-root"]': {
-          paddingLeft: '2rem',
           paddingTop: '0',
         },
       },

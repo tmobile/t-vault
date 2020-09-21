@@ -1,16 +1,15 @@
 /* eslint-disable no-return-assign */
-/* eslint-disable import/no-unresolved */
 import React from 'react';
 import PropTypes from 'prop-types';
 import styled from 'styled-components';
 import Avatar from '@material-ui/core/Avatar';
-import ComponentError from 'errorBoundaries/ComponentError/component-error';
-import { TitleOne } from 'styles/GlobalStyles';
-import safeIcon from 'assets/icon_safes.svg';
-import { customColor } from 'theme';
-import mediaBreakpoints from 'breakpoints';
 import useMediaQuery from '@material-ui/core/useMediaQuery';
-import { IconDeleteActive, IconEdit } from 'assets/SvgIcons';
+import ComponentError from '../../../../../errorBoundaries/ComponentError/component-error';
+import { TitleOne } from '../../../../../styles/GlobalStyles';
+import safeIcon from '../../../../../assets/icon_safes.svg';
+import { customColor } from '../../../../../theme';
+import mediaBreakpoints from '../../../../../breakpoints';
+import { IconDeleteActive, IconEdit } from '../../../../../assets/SvgIcons';
 import PopperElement from '../Popper';
 
 const FolderWrap = styled('div')`
