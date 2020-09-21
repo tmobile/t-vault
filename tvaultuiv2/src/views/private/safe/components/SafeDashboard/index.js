@@ -19,8 +19,7 @@ import ListItem from '../ListItem';
 import PsudoPopper from '../PsudoPopper';
 import {
   makeSafesList,
-  createSafeObject,
-  removeDuplicate,
+  createSafeArray,
 } from '../../../../../services/helper-function';
 
 // mock data
@@ -123,15 +122,15 @@ const MobileViewForSafeDetailsPage = css`
 
 const SafeDashboard = (props) => {
   const { routeProps } = props;
-  const [safes, setSafes] = useState([]);
+  const [safes, setSafes] = useState({
+    users: [],
+    apps: [],
+    shared: [],
+  });
   const [safeList, setSafeList] = useState([]);
   const [moreData, setMoreData] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [inputSearchValue, setInputSearchValue] = useState('');
-  const [usersSafeList, setUsersSafeList] = useState([]);
-  const [appsSafeList, setAppsSafeList] = useState([]);
-  const [sharedSafeList, setSharedSafeList] = useState([]);
-
   const [activeSafeFolders, setActiveSafeFolders] = useState([]);
   // const [showPopper, setShowPopper] = useState(false);
   const isMobileScreen = useMediaQuery(mediaBreakpoints.small);
@@ -178,47 +177,65 @@ const SafeDashboard = (props) => {
         if (response[0] && response[0].data) {
           Object.keys(response[0].data).forEach((item) => {
             const data = makeSafesList(response[0].data[item], item);
-            console.log('data :>> ', data);
             data.map((value) => {
-              return safeList.push(value);
+              return safes[item].push(value);
             });
           });
         }
         if (response[1] && response[1].data.keys) {
-          response[1].data.keys.map((item) => {
-            const obj = safeList.find((o) => o.name === item);
-            if (!obj) {
-              const value = createSafeObject(item, 'users');
-              return safeList.push(value);
+          const value = createSafeArray(response[1].data.keys, 'users');
+          value.map((item) => {
+            if (!safes.users.some((list) => list.name === item.name)) {
+              return safes.users.push(item);
             }
             return null;
           });
         }
         if (response[2] && response[2].data.keys) {
-          response[2].data.keys.map((item) => {
-            const obj = safeList.find((o) => o.name === item);
-            if (!obj) {
-              const value = createSafeObject(item, 'shared');
-              return safeList.push(value);
+          const value = createSafeArray(response[2].data.keys, 'shared');
+          value.map((item) => {
+            if (!safes.shared.some((list) => list.name === item.name)) {
+              return safes.shared.push(item);
             }
             return null;
           });
         }
         if (response[3] && response[3].data.keys) {
-          response[3].data.keys.map((item) => {
-            const obj = safeList.find((o) => o.name === item);
-            if (!obj) {
-              const value = createSafeObject(item, 'apps');
-              return safeList.push(value);
+          const value = createSafeArray(response[3].data.keys, 'apps');
+          value.map((item) => {
+            if (!safes.apps.some((list) => list.name === item.name)) {
+              return safes.apps.push(item);
             }
             return null;
           });
         }
-        console.log('safeList :>> ', safeList);
+        // if (response[2] && response[2].data.keys) {
+        //   response[2].data.keys.map((item) => {
+        //     const obj = safeList.find((o) => o.name === item);
+        //     if (!obj) {
+        //       const value = createSafeObject(item, 'shared');
+        //       return safeList.push(value);
+        //     }
+        //     return null;
+        //   });
+        // }
+        // if (response[3] && response[3].data.keys) {
+        //   response[3].data.keys.map((item) => {
+        //     const obj = safeList.find((o) => o.name === item);
+        //     if (!obj) {
+        //       const value = createSafeObject(item, 'apps');
+        //       return safeList.push(value);
+        //     }
+        //     return null;
+        //   });
+        // }
+        setSafes(safes);
+        setSafeList([...safes.users, ...safes.shared, ...safes.apps]);
+        console.log('safeList :>> ', safes);
       });
     }
     fetchData();
-  }, [safeList]);
+  }, [safes]);
 
   const handleChange = (e) => {
     setInputSearchValue(e.target.value);
@@ -286,8 +303,7 @@ const SafeDashboard = (props) => {
                 color="secondary"
               />
             </ColumnHeader>
-
-            {safeList && safeList.length ? (
+            {safeList && safeList.length > 0 ? (
               <SafeListContainer ref={(ref) => (scrollParentRef = ref)}>
                 <StyledInfiniteScroll
                   pageStart={0}
@@ -347,7 +363,7 @@ const SafeDashboard = (props) => {
               width={isMobileScreen ? '100%' : '77.1rem'}
               mobileScreenCss={MobileViewForSafeDetailsPage}
             >
-              <Switch>
+              {/* <Switch>
                 {' '}
                 <Route
                   path="/:tab/:safeName"
@@ -359,7 +375,7 @@ const SafeDashboard = (props) => {
                     />
                   )}
                 />
-              </Switch>
+              </Switch> */}
             </ColumnSection>
           ) : (
             <></>
