@@ -2,11 +2,13 @@
 /* eslint-disable no-unused-vars */
 /* eslint-disable no-return-assign */
 import React, { useState, useEffect, useCallback } from 'react';
+import { makeStyles } from '@material-ui/core/styles';
 import InfiniteScroll from 'react-infinite-scroller';
 import PropTypes from 'prop-types';
 import { Link, Route, Switch } from 'react-router-dom';
 import styled, { css } from 'styled-components';
 import useMediaQuery from '@material-ui/core/useMediaQuery';
+import { values } from 'lodash';
 import SelectDropDown from '../../../../../components/SelectDropDown';
 import ComponentError from '../../../../../errorBoundaries/ComponentError/component-error';
 import NoData from '../../../../../components/NoData';
@@ -18,6 +20,7 @@ import TextFieldComponent from '../../../../../components/FormFields/TextField';
 import SafeDetails from '../SafeDetails';
 import ListItem from '../ListItem';
 import PsudoPopper from '../PsudoPopper';
+import SelectComponent from '../../../../../components/FormFields/SelectFields';
 import {
   makeSafesList,
   createSafeArray,
@@ -111,6 +114,10 @@ const FloatBtnWrapper = styled('div')`
   right: 2.5rem;
 `;
 
+const SearchWrap = styled.div`
+  width: 30.9rem;
+`;
+
 const MobileViewForSafeDetailsPage = css`
   position: fixed;
   right: 0;
@@ -121,7 +128,23 @@ const MobileViewForSafeDetailsPage = css`
   overflow-y: auto;
 `;
 
+const useStyles = makeStyles((theme) => ({
+  select: {
+    backgroundColor: 'transparent',
+    fontSize: '1.6rem',
+    textTransform: 'uppercase',
+    color: '#fff',
+    fontWeight: 'bold',
+    width: '22rem',
+    marginRight: '2.5rem',
+    '& .Mui-selected': {
+      color: 'red',
+    },
+  },
+}));
+
 const SafeDashboard = (props) => {
+  const classes = useStyles();
   const { routeProps } = props;
   const [safes, setSafes] = useState({
     users: [],
@@ -133,6 +156,18 @@ const SafeDashboard = (props) => {
   const [isLoading, setIsLoading] = useState(false);
   const [inputSearchValue, setInputSearchValue] = useState('');
   const [activeSafeFolders, setActiveSafeFolders] = useState([]);
+  const [menu] = useState([
+    'All Safes',
+    'User Safe',
+    'Shared Safe',
+    'Application Safe',
+  ]);
+  const [selectList] = useState([
+    { selected: 'User Safe', path: 'users' },
+    { selected: 'Shared Safe', path: 'shared' },
+    { selected: 'Application Safe', path: 'apps' },
+  ]);
+  const [safeType, setSafeType] = useState('All Safes');
   // const [showPopper, setShowPopper] = useState(false);
   const isMobileScreen = useMediaQuery(mediaBreakpoints.small);
 
@@ -194,7 +229,6 @@ const SafeDashboard = (props) => {
             });
           });
         }
-        console.log('safeList838219 :>> ', safes);
         if (response[1] && response[1].data.keys) {
           compareSafesAndList(response[1].data.keys, 'users');
         }
@@ -214,23 +248,19 @@ const SafeDashboard = (props) => {
     fetchData();
   }, [safes, compareSafesAndList]);
 
-  const handleChange = (e) => {
-    setInputSearchValue(e.target.value);
+  const onSelectChange = (value) => {
+    setSafeType(value);
+    if (value !== 'All Safes') {
+      const obj = selectList.find((item) => item.selected === value);
+      setSafeList([...safes[obj.path]]);
+    } else {
+      setSafeList([...safes.users, ...safes.shared, ...safes.apps]);
+    }
   };
 
-  // const getSafesList = () => {
-  //   return new Promise((resolve) =>
-  //     setTimeout(() => {
-  //       resolve({
-  //         name: `safe-${Math.ceil(Math.random() * 100)}`,
-  //         desc:
-  //           'Hello yhis is the sample description of thesafety used here. it shows description about safety type and so on',
-  //         date: '2 days ago , 9:20 pm',
-  //         flagType: 'new',
-  //       });
-  //     }, 1000)
-  //   );
-  // };
+  const onSearchChange = (value) => {
+    setInputSearchValue(value);
+  };
 
   const loadMoreData = () => {
     setIsLoading(true);
@@ -275,14 +305,24 @@ const SafeDashboard = (props) => {
         <SectionPreview title="safe-section">
           <ColumnSection width={isMobileScreen ? '100%' : '52.9rem'}>
             <ColumnHeader>
-              <SelectDropDown />
-              <TextFieldComponent
-                placeholder="Search"
-                icon="search"
-                onChange={(e) => handleChange(e)}
-                value={inputSearchValue || ''}
+              <SelectComponent
+                menu={menu}
+                value={safeType}
                 color="secondary"
+                classes={classes}
+                fullWidth={false}
+                onChange={(e) => onSelectChange(e.target.value)}
               />
+              <SearchWrap>
+                <TextFieldComponent
+                  placeholder="Search"
+                  icon="search"
+                  fullWidth
+                  onChange={(e) => onSearchChange(e.target.value)}
+                  value={inputSearchValue || ''}
+                  color="secondary"
+                />
+              </SearchWrap>
             </ColumnHeader>
             {safeList && safeList.length > 0 ? (
               <SafeListContainer ref={(ref) => (scrollParentRef = ref)}>

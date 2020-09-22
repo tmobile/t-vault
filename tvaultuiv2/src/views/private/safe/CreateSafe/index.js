@@ -145,6 +145,9 @@ const useStyles = makeStyles((theme) => ({
       backgroundColor: '#fff',
     },
   },
+  dropdownStyle: {
+    backgroundColor: '#fff',
+  },
   modal: {
     display: 'flex',
     alignItems: 'center',
@@ -168,9 +171,9 @@ const CreateModal = () => {
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [disabledSave, setDisabledSave] = useState(true);
-  const [responseType, setResponseType] = useState(null);
+  const [responseType, setResponseType] = useState(0);
   const [toastMessage, setToastMessage] = useState('');
-  const [autoLoader, setAutoLoader] = useState(false);
+  const [autoLoader, setAutoLoader] = useState(true);
   const [options, setOptions] = useState([]);
   const isMobileScreen = useMediaQuery(small);
   const [helperText] = useState('');
@@ -368,7 +371,7 @@ const CreateModal = () => {
                 <SelectComponent
                   menu={menu}
                   value={safeType}
-                  classes={classes.select}
+                  classes={classes}
                   onChange={(e) => setSafeType(e.target.value)}
                   helperText={helperText}
                 />
