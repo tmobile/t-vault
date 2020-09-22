@@ -134,7 +134,7 @@ const loaderStyle = css`
 
 const autoLoaderStyle = css`
   position: absolute;
-  top: 3.5rem;
+  top: 2.5rem;
   right: 1rem;
   color: red;
 `;
@@ -173,7 +173,7 @@ const CreateModal = () => {
   const [disabledSave, setDisabledSave] = useState(true);
   const [responseType, setResponseType] = useState(null);
   const [toastMessage, setToastMessage] = useState('');
-  const [autoLoader, setAutoLoader] = useState(true);
+  const [autoLoader, setAutoLoader] = useState(false);
   const [options, setOptions] = useState([]);
   const isMobileScreen = useMediaQuery(small);
   const [helperText] = useState('');
