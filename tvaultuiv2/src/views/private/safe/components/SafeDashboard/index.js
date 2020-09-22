@@ -293,7 +293,8 @@ const SafeDashboard = (props) => {
           activeSafeFolders.includes(safe.name) ||
           window.location.pathname.includes(safe.name)
         }
-        onMouseOver={() => showSafeDetails(safe.name, safe)}
+        onMouseLeave={() => setActiveSafeFolders([])}
+        onMouseEnter={() => showSafeDetails(safe.name, safe)}
       >
         <ListItem
           title={safe.name}
