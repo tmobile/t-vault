@@ -113,7 +113,7 @@ const File = (props) => {
               <img alt="refersh-ic" src={IconRefreshCC} />
               <span>View Secret</span>
             </PopperItem>
-            <PopperItem onClick={() => toggleSecretValue(true, 'folder')}>
+            <PopperItem onClick={() => toggleSecretValue(true, 'secret')}>
               <IconEdit />
               <span>Edit</span>
             </PopperItem>
@@ -132,11 +132,13 @@ File.propTypes = {
   secretValue: PropTypes.string,
   setInputType: PropTypes.func,
   setIsAddInput: PropTypes.func,
+  toggleSecretValue: PropTypes.func,
 };
 File.defaultProps = {
   secretKey: '',
   secretValue: '',
   setInputType: () => {},
   setIsAddInput: () => {},
+  toggleSecretValue: () => {},
 };
 export default File;

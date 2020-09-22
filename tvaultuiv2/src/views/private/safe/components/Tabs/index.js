@@ -4,7 +4,7 @@
 /* eslint-disable react/require-default-props */
 // eslint-disable-next-line react/forbid-prop-types
 // eslint-disable-next-line react/require-default-props
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import styled, { css } from 'styled-components';
 
@@ -154,21 +154,39 @@ export default function SelectionTabs(props) {
         setToastMessage(res.data.messages[0]);
         setSecretsFolder([...tempFolders]);
         setResponseType(1);
+        console.log('ressss', res);
       })
       .catch((error) => {
-        console.log(error.toString());
+        console.log('error', error);
         setResponseType(-1);
         if (!error.toString().toLowerCase().includes('network')) {
-          setToastMessage(error.response.data.messages[0]);
+          if (error.response) {
+            setToastMessage(error.response?.data.errors[0]);
+            return;
+          }
+        }
+        if (error.toString().toLowerCase().includes('422')) {
+          setToastMessage('folder already exists');
+          return;
         }
         setToastMessage('Network Error');
       });
     setEnableAddFolder(false);
   };
-  /**
-   *Creates secrets folder array
-   * @param {string} folderName
-   */
+
+  useEffect(() => {
+    setResponseType(0);
+    apiService
+      .getSecret(safeDetail.path)
+      .then((res) => {
+        setResponseType(1);
+        setSecretsFolder(res.data.children);
+      })
+      .catch((error) => {
+        setResponseType(-1);
+        console.log('error', error);
+      });
+  }, []);
   return (
     <ComponentError>
       <div className={classes.root}>
@@ -210,19 +228,10 @@ export default function SelectionTabs(props) {
             <></>
           )}
 
-          {responseType === 0 ? (
-            <Loader />
-          ) : responseType === -1 && !enabledAddFolder ? (
+          {responseType === -1 && !enabledAddFolder ? (
             <EmptySecretBox>
               {' '}
               <Error description="error in creating folder" />
-              <SnackbarComponent
-                open
-                onClose={() => onToastClose()}
-                severity="error"
-                icon="error"
-                message={toastMessage || 'Something went wrong!'}
-              />
             </EmptySecretBox>
           ) : (
             responseType === 1 &&
@@ -234,9 +243,12 @@ export default function SelectionTabs(props) {
               />
             )
           )}
-          {secretsFolder && secretsFolder.length ? (
+          {!secretsFolder?.length && responseType === 0 ? (
+            <Loader width="100%" height="70%" />
+          ) : secretsFolder && secretsFolder.length ? (
             <Tree data={secretsFolder} />
           ) : (
+            !secretsFolder?.length &&
             !enabledAddFolder &&
             responseType !== -1 &&
             responseType !== 0 && (
@@ -264,6 +276,15 @@ export default function SelectionTabs(props) {
         <TabPanel value={value} index={1}>
           <Permissions />
         </TabPanel>
+        {responseType === -1 && (
+          <SnackbarComponent
+            open
+            onClose={() => onToastClose()}
+            severity="error"
+            icon="error"
+            message={toastMessage || 'Something went wrong!'}
+          />
+        )}
       </div>
     </ComponentError>
   );

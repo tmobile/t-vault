@@ -22,7 +22,8 @@ const ColumnHeader = styled('div')`
   justify-content: flex-end;
   background-size: cover;
   background-repeat: no-repeat;
-  padding: 8rem 2rem 2.5rem 2rem;
+  padding-right: 2rem;
+  height: 16rem;
   background-image: url(${(props) => props.headerBgSrc || ''});
   .safe-title-wrap {
     width: 70%;

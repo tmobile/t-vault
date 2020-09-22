@@ -1,7 +1,7 @@
 /* eslint-disable react/jsx-curly-newline */
 /* eslint-disable react/jsx-props-no-spreading */
 /* eslint-disable jsx-a11y/click-events-have-key-events */
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import PropTypes from 'prop-types';
 import styled, { css } from 'styled-components';
 
@@ -99,16 +99,20 @@ const PopperItem = styled.div`
   }
 `;
 const Folder = (props) => {
-  const { folderInfo, children, setInputType, setIsAddInput } = props;
+  const {
+    folderInfo,
+    children,
+    setInputType,
+    setIsAddInput,
+    getChildNodes,
+    id,
+  } = props;
   const [isOpen, setIsOpen] = useState(false);
-  const [folderItem, setFolderItem] = useState(false);
 
-  useEffect(() => {
-    setFolderItem(folderInfo);
-  }, []);
   const handleToggle = (e) => {
     e.preventDefault();
     setIsOpen(!isOpen);
+    if (!isOpen) getChildNodes(id);
   };
 
   const handlePopperClick = (e, type) => {
@@ -118,7 +122,7 @@ const Folder = (props) => {
   };
   return (
     <ComponentError>
-      <StyledFolder parent={folderItem.parent} padding="1.2rem 0">
+      <StyledFolder parent={folderInfo.parent} padding="1.2rem 0">
         <div role="button" className="folder--label" tabIndex={0}>
           <LabelWrap onClick={(e) => handleToggle(e)}>
             {isOpen ? <ExpandMoreIcon /> : <ExpandLessIcon />}
@@ -129,7 +133,13 @@ const Folder = (props) => {
               <Icon alt="folder--icon" src={IconFolderInactive} />
             )}
 
-            <TitleTwo extraCss={titleStyles}>{folderItem.value}</TitleTwo>
+            <TitleTwo extraCss={titleStyles}>
+              {
+                folderInfo.value.split('/')[
+                  folderInfo.value.split('/').length - 1
+                ]
+              }
+            </TitleTwo>
           </LabelWrap>
 
           <FolderIconWrap>
@@ -187,12 +197,16 @@ Folder.propTypes = {
   children: PropTypes.node,
   setInputType: PropTypes.func,
   setIsAddInput: PropTypes.func,
+  getChildNodes: PropTypes.func,
+  id: PropTypes.string,
 };
 Folder.defaultProps = {
   folderInfo: {},
   children: <div />,
   setInputType: () => {},
   setIsAddInput: () => {},
+  getChildNodes: () => {},
+  id: '',
 };
 
 export default Folder;
