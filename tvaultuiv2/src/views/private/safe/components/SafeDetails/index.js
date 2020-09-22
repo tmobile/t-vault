@@ -65,7 +65,6 @@ const SafeDetails = (props) => {
     history.goBack();
   };
   useEffect(() => {
-    console.log('location', history);
     if (!location.state) {
       const activeSafeDetail = detailData.filter(
         (item) =>
@@ -75,7 +74,7 @@ const SafeDetails = (props) => {
       return;
     }
     setSafeDetail(location.state.safe);
-  }, [location.state.safe]);
+  }, [location.state, detailData, history.location.pathname]);
   return (
     <ComponentError>
       <Section>
