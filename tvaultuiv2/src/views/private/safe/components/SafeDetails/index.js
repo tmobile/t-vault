@@ -66,14 +66,17 @@ const SafeDetails = (props) => {
   };
   useEffect(() => {
     if (!location.state) {
-      const activeSafeDetail = detailData.filter(
-        (item) =>
-          item.name.toLowerCase() === history.location.pathname.split('/')[2]
-      );
-      setSafeDetail(activeSafeDetail);
-      return;
+      if (detailData && detailData.length) {
+        const activeSafeDetail = detailData.filter(
+          (item) =>
+            item?.name?.toLowerCase() ===
+            history.location.pathname.split('/')[2]
+        );
+        setSafeDetail(activeSafeDetail);
+        return;
+      }
     }
-    setSafeDetail(location.state.safe);
+    setSafeDetail(location?.state?.safe);
   }, [location.state, detailData, history.location.pathname]);
   return (
     <ComponentError>
