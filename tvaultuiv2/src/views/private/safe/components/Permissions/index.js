@@ -104,6 +104,10 @@ const customMobileStyles = css`
   }
 `;
 
+const customStyle = css`
+  margin-top: 10rem;
+`;
+
 const useStyles = makeStyles(() => ({
   appBar: {
     display: 'flex',
@@ -121,32 +125,12 @@ const Permissions = (props) => {
   const [responseType, setResponseType] = useState(0);
   const [toastMessage, setToastMessage] = useState('');
 
-  const onSaveClicked = (data) => {
-    setUsers((prev) => ({ ...prev, [data.username]: data.access }));
-    setAddPermission(false);
-    setResponseType(0);
-    apiService
-      .addUserPermission(data)
-      .then((res) => {
-        if (res && res.data?.messages) {
-          setToastMessage(res.data?.messages[0]);
-          setResponseType(1);
-        }
-      })
-      .catch((err) => {
-        if (err.response && err.response.data?.messages[0]) {
-          setToastMessage(err.response.data.messages[0]);
-        }
-        setResponseType(-1);
-      });
-  };
-
   const fetchPermission = useCallback(() => {
     setResponseType(0);
     apiService
       .getSafePermission(safeDetail.path)
       .then((res) => {
-        setResponseType(1);
+        setResponseType(null);
         if (res && res.data?.data?.users) {
           setUsers(res.data.data.users);
         }
@@ -162,6 +146,49 @@ const Permissions = (props) => {
       fetchPermission();
     }
   }, [safeDetail, fetchPermission]);
+
+  const onSaveClicked = (data) => {
+    setAddPermission(false);
+    setResponseType(0);
+    apiService
+      .addUserPermission(data)
+      .then((res) => {
+        if (res && res.data?.messages) {
+          setToastMessage(res.data?.messages[0]);
+          setResponseType(1);
+          fetchPermission();
+        }
+      })
+      .catch((err) => {
+        if (err.response && err.response.data?.messages[0]) {
+          setToastMessage(err.response.data.messages[0]);
+        }
+        setResponseType(-1);
+      });
+  };
+
+  const onDeleteClick = (username) => {
+    setResponseType(0);
+    const payload = {
+      path: safeDetail.path,
+      username,
+    };
+    apiService
+      .deleteUserPermission(payload)
+      .then((res) => {
+        if (res && res.data?.Message) {
+          setToastMessage(res.data.Message);
+          setResponseType(1);
+          fetchPermission();
+        }
+      })
+      .catch((err) => {
+        if (err.response && err.response.data?.messages[0]) {
+          setToastMessage(err.response.data.messages[0]);
+        }
+        setResponseType(-1);
+      });
+  };
 
   const handleChange = (event, newValue) => {
     setValue(newValue);
@@ -216,9 +243,10 @@ const Permissions = (props) => {
                 addPermission={addPermission}
                 onCancelClicked={() => setAddPermission(false)}
                 onNoDataAddClicked={() => setAddPermission(true)}
+                onDeleteClick={(username) => onDeleteClick(username)}
               />
             ) : (
-              <Loader />
+              <Loader customStyle={customStyle} />
             )}
           </TabPanel>
           <TabPanel value={value} index={1}>

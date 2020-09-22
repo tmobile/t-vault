@@ -19,8 +19,6 @@ import userIcon from '../../../../../../../assets/permission-user.png';
 import mediaBreakpoints from '../../../../../../../breakpoints';
 import PopperElement from '../../../Popper';
 import AddUser from '../../../AddUser';
-import SnackbarComponent from '../../../../../../../components/Snackbar';
-import apiService from '../../../../apiService';
 
 const { small } = mediaBreakpoints;
 
@@ -116,9 +114,8 @@ const User = (props) => {
     onNoDataAddClicked,
     onCancelClicked,
     safeDetail,
+    onDeleteClick,
   } = props;
-  const [responseType, setResponseType] = useState(null);
-  const [toastMessage, setToastMessage] = useState('');
   const [editUser, setEditUser] = useState('');
   const [editAccess, setEditAccess] = useState('');
   const [editPermission, setEditPermission] = useState(false);
@@ -133,34 +130,6 @@ const User = (props) => {
     onSaveClicked(value);
   };
 
-  const onDeleteClick = (username) => {
-    const payload = {
-      path: safeDetail.path,
-      username,
-    };
-    apiService
-      .deleteUserPermission(payload)
-      .then((res) => {
-        if (res && res.data?.Message) {
-          setToastMessage(res.data.Message);
-          setResponseType(1);
-        }
-      })
-      .catch((err) => {
-        if (err.response && err.response.data?.messages[0]) {
-          setToastMessage(err.response.data.messages[0]);
-        }
-        setResponseType(-1);
-      });
-  };
-
-  const onToastClose = (reason) => {
-    if (reason === 'clickaway') {
-      return;
-    }
-    setResponseType(null);
-  };
-
   const onEditClick = (key, value) => {
     setEditAccess(value);
     setEditUser(key);
@@ -168,6 +137,11 @@ const User = (props) => {
   };
 
   const onEditCancelClicked = () => {
+    setEditPermission(false);
+    onCancelClicked();
+  };
+
+  const onEdit = () => {
     setEditPermission(false);
     onCancelClicked();
   };
@@ -183,7 +157,7 @@ const User = (props) => {
         )}
         {editPermission && (
           <AddUser
-            handleSaveClick={(user, access) => onSubmit(user, access)}
+            handleSaveClick={(user, access) => onEdit(user, access)}
             handleCancelClick={onEditCancelClicked}
             username={editUser}
             access={editAccess}
@@ -254,22 +228,6 @@ const User = (props) => {
             </NoDataWrapper>
           )
         )}
-        {responseType === -1 && (
-          <SnackbarComponent
-            open
-            onClose={() => onToastClose()}
-            severity="error"
-            icon="error"
-            message={toastMessage || 'Something went wrong!'}
-          />
-        )}
-        {responseType === 1 && (
-          <SnackbarComponent
-            open
-            onClose={() => onToastClose()}
-            message={toastMessage}
-          />
-        )}
       </>
     </ComponentError>
   );
@@ -282,5 +240,6 @@ User.propTypes = {
   onNoDataAddClicked: PropTypes.func.isRequired,
   onCancelClicked: PropTypes.func.isRequired,
   safeDetail: PropTypes.objectOf(PropTypes.any).isRequired,
+  onDeleteClick: PropTypes.func.isRequired,
 };
 export default User;
