@@ -231,7 +231,7 @@ export default function SelectionTabs(props) {
           {responseType === -1 && !enabledAddFolder ? (
             <EmptySecretBox>
               {' '}
-              <Error description="error in creating folder" />
+              <Error description="Error while fetching safes folders" />
             </EmptySecretBox>
           ) : (
             responseType === 1 &&

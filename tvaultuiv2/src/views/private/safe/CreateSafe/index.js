@@ -134,7 +134,7 @@ const loaderStyle = css`
 
 const autoLoaderStyle = css`
   position: absolute;
-  top: 2.5rem;
+  top: 3rem;
   right: 1rem;
   color: red;
 `;
