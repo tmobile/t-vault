@@ -148,7 +148,7 @@ const TreeRecursive = ({
 const StyledTree = styled.div`
   line-height: 1.5;
   margin-top: 1.2rem;
-  height: 41vh;
+  height: 43.5vh;
   overflow-y: auto;
   & > div {
     padding-left: 0;
