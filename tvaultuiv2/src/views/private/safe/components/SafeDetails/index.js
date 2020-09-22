@@ -20,28 +20,34 @@ const ColumnHeader = styled('div')`
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  background-size: contain;
+  background-size: cover;
   background-repeat: no-repeat;
-  padding: 2.5rem 2rem;
+  padding: 8rem 2rem 2.5rem 2rem;
   background-image: url(${(props) => props.headerBgSrc || ''});
   .safe-title-wrap {
     width: 70%;
   }
   ${mediaBreakpoints.small} {
-    background-size: cover;
+    height: 13rem;
+    padding: 1rem;
+    background-image: url(${(props) => props.headerBgSrc || ''});
+    background-position: -3rem 3rem;
   }
 `;
 
-// const SafeTitle = styled('h5')`
-//   font-size: ${(props) => props.theme.typography};
-//   margin: 1rem 0 1.2rem;
-//   text-overflow: ellipsis;
-//   overflow: hidden;
-// `;
+const SafeTitle = styled('h5')`
+  font-size: ${(props) => props.theme.typography};
+  margin: 1rem 0 1.2rem;
+  text-overflow: ellipsis;
+  overflow: hidden;
+`;
 const BackButton = styled.div`
   display: flex;
   align-items: center;
   padding: 2rem 0 0 2rem;
+  span {
+    margin-left: 1rem;
+  }
 `;
 
 const SafeDetails = (props) => {
@@ -51,13 +57,9 @@ const SafeDetails = (props) => {
   const location = useLocation();
   // screen view handler
   const isMobileScreen = useMediaQuery(mediaBreakpoints.small);
-  // const safeDetail =
-  //   (detailData &&
-  //     detailData.filter(
-  //       (safe) => safe.safeName === params.match?.params.safeName
-  //     )) ||
-  //   {};
 
+  // route component data
+  const safeDetail = location?.state?.safe;
   const goBackToSafeList = () => {
     setActiveSafeFolders();
     history.goBack();
@@ -66,19 +68,25 @@ const SafeDetails = (props) => {
   return (
     <ComponentError>
       <Section>
-        <BackButton onClick={goBackToSafeList}>
-          {isMobileScreen ? <BackArrow /> : null}
-          <span>{location.state?.safe?.name}</span>
-        </BackButton>
+        {isMobileScreen ? (
+          <BackButton onClick={goBackToSafeList}>
+            <BackArrow />
+            <span>{safeDetail.name || 'No safe'}</span>
+          </BackButton>
+        ) : null}
         <ColumnHeader headerBgSrc={sectionHeaderBg}>
           <div className="safe-title-wrap">
-            {/* <SafeTitle>{safeDetail?.safeName || 'No Safe'}</SafeTitle> */}
+            {!isMobileScreen && (
+              <SafeTitle>{safeDetail?.name || 'No Safe'}</SafeTitle>
+            )}
             <TitleFour color="#c4c4c4">
-              Create a Safe to see your secrets, folders and permissions here
+              {safeDetail.description
+                ? safeDetail.description
+                : 'Create a Safe to see your secrets, folders and permissions here'}
             </TitleFour>
           </div>
         </ColumnHeader>
-        <SelectionTabs />
+        <SelectionTabs safeDetail={safeDetail} />
       </Section>
     </ComponentError>
   );

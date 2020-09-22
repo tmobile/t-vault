@@ -9,8 +9,9 @@ const StyleTextField = styled(TextField)`
   .MuiFilledInput-adornedStart {
     font-size: 1.4rem;
   }
-  .MuiIcon-root {
-    font-size: 2rem;
+  .MuiFormHelperText-root {
+    font-size: 1.2rem;
+    margin: 0.2rem 0;
   }
   .MuiInputAdornment-filled.MuiInputAdornment-positionStart:not(.MuiInputAdornment-hiddenLabel) {
     margin-top: 0;
@@ -45,10 +46,10 @@ const TextFieldComponent = (props) => {
     multiline,
     color,
     variant,
+    error,
     rows,
     type,
     helperText,
-    error,
     onInputBlur,
     name,
   } = props;
@@ -64,11 +65,11 @@ const TextFieldComponent = (props) => {
       multiline={multiline}
       color={color}
       rows={rows}
+      error={error}
+      helperText={helperText}
       variant={variant || 'filled'}
       type={type}
       onBlur={onInputBlur}
-      error={error}
-      helperText={helperText}
       InputProps={{
         startAdornment: (
           <InputAdornment position="start">

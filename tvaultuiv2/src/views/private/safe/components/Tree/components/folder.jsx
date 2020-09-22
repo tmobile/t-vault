@@ -106,7 +106,6 @@ const Folder = (props) => {
   useEffect(() => {
     setFolderItem(folderInfo);
   }, [folderInfo]);
-
   const handleToggle = (e) => {
     e.preventDefault();
     setIsOpen(!isOpen);
@@ -130,7 +129,7 @@ const Folder = (props) => {
               <Icon alt="folder--icon" src={IconFolderInactive} />
             )}
 
-            <TitleTwo extraCss={titleStyles}>{folderItem.labelText}</TitleTwo>
+            <TitleTwo extraCss={titleStyles}>{folderItem.value}</TitleTwo>
           </LabelWrap>
 
           <FolderIconWrap>
@@ -148,7 +147,7 @@ const Folder = (props) => {
                 onClick={() =>
                   handlePopperClick(true, {
                     type: 'folder',
-                    currentNode: folderInfo.labelText,
+                    currentNode: folderInfo.value,
                   })
                 }
               >
@@ -158,8 +157,8 @@ const Folder = (props) => {
               <PopperItem
                 onClick={() =>
                   handlePopperClick(true, {
-                    type: 'file',
-                    currentNode: folderInfo.labelText,
+                    type: 'secret',
+                    currentNode: folderInfo.value,
                   })
                 }
               >
