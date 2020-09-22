@@ -1,3 +1,4 @@
+/* eslint-disable react/jsx-props-no-spreading */
 /* eslint-disable no-nested-ternary */
 /* eslint-disable import/no-unresolved */
 /* eslint-disable react/forbid-prop-types */
@@ -206,10 +207,12 @@ export default function SelectionTabs(props) {
             indicatorColor="secondary"
             textColor="primary"
           >
-            {/* eslint-disable-next-line react/jsx-props-no-spreading */}
             <Tab className={classes.tab} label="Secrets" {...a11yProps(0)} />
-            {/* eslint-disable-next-line react/jsx-props-no-spreading */}
-            <Tab label="Permissions" {...a11yProps(1)} />
+            <Tab
+              label="Permissions"
+              {...a11yProps(1)}
+              disabled={!safeDetail.manage}
+            />
           </Tabs>
           {value === 0 && (
             <NamedButton
@@ -284,7 +287,7 @@ export default function SelectionTabs(props) {
           )}
         </TabPanel>
         <TabPanel value={value} index={1}>
-          <Permissions safeDetail={safeDetail} />
+          {safeDetail.manage && <Permissions safeDetail={safeDetail} />}
         </TabPanel>
         {responseType === -1 && (
           <SnackbarComponent

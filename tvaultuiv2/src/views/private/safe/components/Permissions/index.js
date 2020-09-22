@@ -14,6 +14,7 @@ import mediaBreakpoints from '../../../../../breakpoints';
 import User from './components/User';
 import apiService from '../../apiService';
 import SnackbarComponent from '../../../../../components/Snackbar';
+import Loader from '../Loader';
 
 const { small } = mediaBreakpoints;
 
@@ -103,6 +104,10 @@ const customMobileStyles = css`
   }
 `;
 
+const customStyle = css`
+  margin-top: 10rem;
+`;
+
 const useStyles = makeStyles(() => ({
   appBar: {
     display: 'flex',
@@ -117,18 +122,41 @@ const Permissions = (props) => {
   const [value, setValue] = useState(0);
   const [users, setUsers] = useState({});
   const [addPermission, setAddPermission] = useState(false);
-  const [responseType, setResponseType] = useState(null);
+  const [responseType, setResponseType] = useState(0);
   const [toastMessage, setToastMessage] = useState('');
 
+  const fetchPermission = useCallback(() => {
+    setResponseType(0);
+    apiService
+      .getSafePermission(safeDetail.path)
+      .then((res) => {
+        setResponseType(null);
+        if (res && res.data?.data?.users) {
+          setUsers(res.data.data.users);
+        }
+      })
+      .catch((e) => {
+        setResponseType(-1);
+        console.log('error', e);
+      });
+  }, [safeDetail]);
+
+  useEffect(() => {
+    if (safeDetail?.manage) {
+      fetchPermission();
+    }
+  }, [safeDetail, fetchPermission]);
+
   const onSaveClicked = (data) => {
-    setUsers((prev) => ({ ...prev, [data.username]: data.access }));
     setAddPermission(false);
+    setResponseType(0);
     apiService
       .addUserPermission(data)
       .then((res) => {
         if (res && res.data?.messages) {
           setToastMessage(res.data?.messages[0]);
           setResponseType(1);
+          fetchPermission();
         }
       })
       .catch((err) => {
@@ -139,22 +167,28 @@ const Permissions = (props) => {
       });
   };
 
-  const fetchPermission = useCallback(() => {
+  const onDeleteClick = (username) => {
+    setResponseType(0);
+    const payload = {
+      path: safeDetail.path,
+      username,
+    };
     apiService
-      .getSafePermission(safeDetail.path)
+      .deleteUserPermission(payload)
       .then((res) => {
-        if (res && res.data?.data?.users) {
-          setUsers(res.data.data.users);
+        if (res && res.data?.Message) {
+          setToastMessage(res.data.Message);
+          setResponseType(1);
+          fetchPermission();
         }
       })
-      .catch((e) => console.log('error', e));
-  }, [safeDetail]);
-
-  useEffect(() => {
-    if (safeDetail?.manage) {
-      fetchPermission();
-    }
-  }, [safeDetail, fetchPermission]);
+      .catch((err) => {
+        if (err.response && err.response.data?.messages[0]) {
+          setToastMessage(err.response.data.messages[0]);
+        }
+        setResponseType(-1);
+      });
+  };
 
   const handleChange = (event, newValue) => {
     setValue(newValue);
@@ -201,14 +235,19 @@ const Permissions = (props) => {
             />
           </AppBar>
           <TabPanel value={value} index={0}>
-            <User
-              users={users}
-              safeDetail={safeDetail}
-              onSaveClicked={(data) => onSaveClicked(data)}
-              addPermission={addPermission}
-              onCancelClicked={() => setAddPermission(false)}
-              onNoDataAddClicked={() => setAddPermission(true)}
-            />
+            {responseType !== 0 ? (
+              <User
+                users={users}
+                safeDetail={safeDetail}
+                onSaveClicked={(data) => onSaveClicked(data)}
+                addPermission={addPermission}
+                onCancelClicked={() => setAddPermission(false)}
+                onNoDataAddClicked={() => setAddPermission(true)}
+                onDeleteClick={(username) => onDeleteClick(username)}
+              />
+            ) : (
+              <Loader customStyle={customStyle} />
+            )}
           </TabPanel>
           <TabPanel value={value} index={1}>
             Group
