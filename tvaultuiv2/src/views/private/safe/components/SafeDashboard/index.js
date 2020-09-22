@@ -237,13 +237,13 @@ const SafeDashboard = (props) => {
             });
           });
         }
-        if (response[1] && response[1].data.keys) {
+        if (response[1] && response[1]?.data?.keys) {
           compareSafesAndList(response[1].data.keys, 'users');
         }
-        if (response[2] && response[2].data.keys) {
+        if (response[2] && response[2]?.data?.keys) {
           compareSafesAndList(response[2].data.keys, 'shared');
         }
-        if (response[3] && response[3].data.keys) {
+        if (response[3] && response[3]?.data?.keys) {
           compareSafesAndList(response[3].data.keys, 'apps');
         }
 

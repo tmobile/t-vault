@@ -171,7 +171,7 @@ const CreateModal = () => {
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [disabledSave, setDisabledSave] = useState(true);
-  const [responseType, setResponseType] = useState(0);
+  const [responseType, setResponseType] = useState(null);
   const [toastMessage, setToastMessage] = useState('');
   const [autoLoader, setAutoLoader] = useState(true);
   const [options, setOptions] = useState([]);

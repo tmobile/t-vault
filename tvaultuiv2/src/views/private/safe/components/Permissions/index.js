@@ -1,5 +1,6 @@
+/* eslint-disable no-console */
 /* eslint-disable react/jsx-props-no-spreading */
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import styled, { css } from 'styled-components';
 import { makeStyles } from '@material-ui/core/styles';
 import Tab from '@material-ui/core/Tab';
@@ -110,16 +111,17 @@ const useStyles = makeStyles(() => ({
   },
 }));
 
-const Permissions = () => {
+const Permissions = (props) => {
+  const { safeDetail } = props;
   const classes = useStyles();
   const [value, setValue] = useState(0);
-  const [users, setUser] = useState({});
+  const [users, setUsers] = useState({});
   const [addPermission, setAddPermission] = useState(false);
   const [responseType, setResponseType] = useState(null);
   const [toastMessage, setToastMessage] = useState('');
 
   const onSaveClicked = (data) => {
-    setUser((prev) => ({ ...prev, [data.username]: data.access }));
+    setUsers((prev) => ({ ...prev, [data.username]: data.access }));
     setAddPermission(false);
     apiService
       .addUserPermission(data)
@@ -137,6 +139,23 @@ const Permissions = () => {
       });
   };
 
+  const fetchPermission = useCallback(() => {
+    apiService
+      .getSafePermission(safeDetail.path)
+      .then((res) => {
+        if (res && res.data?.data?.users) {
+          setUsers(res.data.data.users);
+        }
+      })
+      .catch((e) => console.log('error', e));
+  }, [safeDetail]);
+
+  useEffect(() => {
+    if (safeDetail?.manage) {
+      fetchPermission();
+    }
+  }, [safeDetail, fetchPermission]);
+
   const handleChange = (event, newValue) => {
     setValue(newValue);
   };
@@ -151,7 +170,7 @@ const Permissions = () => {
       <>
         <CountPlusWrapper>
           <CountSpan color="#5e627c">
-            {`${users && users.length} Permissions`}
+            {`${users && Object.keys(users).length} Permissions`}
           </CountSpan>
           <NamedButton
             customStyle={customMobileStyles}
@@ -184,6 +203,7 @@ const Permissions = () => {
           <TabPanel value={value} index={0}>
             <User
               users={users}
+              safeDetail={safeDetail}
               onSaveClicked={(data) => onSaveClicked(data)}
               addPermission={addPermission}
               onCancelClicked={() => setAddPermission(false)}
@@ -219,6 +239,14 @@ const Permissions = () => {
       </>
     </ComponentError>
   );
+};
+
+Permissions.propTypes = {
+  safeDetail: PropTypes.objectOf(PropTypes.any),
+};
+
+Permissions.defaultProps = {
+  safeDetail: {},
 };
 
 export default Permissions;
