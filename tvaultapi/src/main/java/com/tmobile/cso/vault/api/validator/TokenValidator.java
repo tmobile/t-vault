@@ -101,7 +101,7 @@ public class TokenValidator {
 							Object[] adUser = directoryObjectsResponseEntity.getBody().getData().getValues();
 							if (adUser.length > 0) {
 								DirectoryUser directoryUser = (DirectoryUser) adUser[0];
-								lookupDetails.setUsername(directoryUser.getUserName());
+								lookupDetails.setUsername(directoryUser.getUserName().toLowerCase());
 							}
 						}
 					}
