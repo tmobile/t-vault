@@ -117,7 +117,6 @@ export default function SelectionTabs(props) {
   const [secretsFolder, setSecretsFolder] = useState([]);
   const [responseType, setResponseType] = useState(null);
   const [toastMessage, setToastMessage] = useState('');
-  // const [secrets, setSecrets] = useState([]);
 
   // resolution handlers
   const isMobileScreen = useMediaQuery(mediaBreakpoints.small);
@@ -183,7 +182,6 @@ export default function SelectionTabs(props) {
         .catch((error) => {
           setResponseType(-1);
           if (error.toString().toLowerCase().includes('403')) {
-            setToastMessage('Item not found');
             return;
           }
           if (!error.toString().toLowerCase().includes('network')) {
@@ -274,7 +272,7 @@ export default function SelectionTabs(props) {
                       label="add"
                       icon="add"
                       color="secondary"
-                      disable={safeDetail?.access?.toLowerCase() === 'read'}
+                      disabled={safeDetail?.access?.toLowerCase() === 'read'}
                       width={isMobileScreen ? '100%' : ''}
                       onClick={() => setEnableAddFolder(true)}
                     />

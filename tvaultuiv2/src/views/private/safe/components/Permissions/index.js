@@ -14,7 +14,7 @@ import mediaBreakpoints from '../../../../../breakpoints';
 import User from './components/User';
 import apiService from '../../apiService';
 import SnackbarComponent from '../../../../../components/Snackbar';
-import Loader from '../Loader';
+import LoaderSpinner from '../../../../../components/LoaderSpinner';
 
 const { small } = mediaBreakpoints;
 
@@ -246,7 +246,7 @@ const Permissions = (props) => {
                 onDeleteClick={(username) => onDeleteClick(username)}
               />
             ) : (
-              <Loader customStyle={customStyle} />
+              <LoaderSpinner customStyle={customStyle} />
             )}
           </TabPanel>
           <TabPanel value={value} index={1}>

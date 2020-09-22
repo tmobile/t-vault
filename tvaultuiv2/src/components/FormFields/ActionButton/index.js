@@ -31,6 +31,7 @@ const setIcon = (props) => {
 
 const ButtonComponent = (props) => {
   const { icon, classes, label, onClick, size, disabled, color } = props;
+
   return (
     <Button
       classes={classes}
