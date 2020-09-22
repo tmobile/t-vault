@@ -104,8 +104,8 @@ const CancelButton = styled.div`
 
 const customStyle = css`
   position: absolute;
-  right: 12px;
-  top: 33px;
+  right: 1.2rem;
+  top: 2.6rem;
   color: red;
 `;
 
