@@ -47,7 +47,6 @@ const customBtnStyles = css`
 const TabPanelWrap = styled.div`
   height: 54.75vh;
   position: relative;
-  overflow: auto;
   margin-top: 1.3rem;
   ${mediaBreakpoints.small} {
     height: 77vh;
@@ -118,7 +117,6 @@ export default function SelectionTabs(props) {
   const [secretsFolder, setSecretsFolder] = useState([]);
   const [responseType, setResponseType] = useState(null);
   const [toastMessage, setToastMessage] = useState('');
-  // const [secrets, setSecrets] = useState([]);
 
   // resolution handlers
   const isMobileScreen = useMediaQuery(mediaBreakpoints.small);
@@ -154,10 +152,8 @@ export default function SelectionTabs(props) {
         setToastMessage(res.data.messages[0]);
         setSecretsFolder([...tempFolders]);
         setResponseType(1);
-        console.log('ressss', res);
       })
       .catch((error) => {
-        console.log('error', error);
         setResponseType(-1);
         if (!error.toString().toLowerCase().includes('network')) {
           if (error.response) {
@@ -175,18 +171,29 @@ export default function SelectionTabs(props) {
   };
 
   useEffect(() => {
-    setResponseType(0);
-    apiService
-      .getSecret(safeDetail.path)
-      .then((res) => {
-        setResponseType(1);
-        setSecretsFolder(res.data.children);
-      })
-      .catch((error) => {
-        setResponseType(-1);
-        console.log('error', error);
-      });
-  }, []);
+    if (safeDetail) {
+      setResponseType(0);
+      apiService
+        .getSecret(safeDetail.path)
+        .then((res) => {
+          setResponseType(1);
+          setSecretsFolder(res.data.children);
+        })
+        .catch((error) => {
+          setResponseType(-1);
+          if (error.toString().toLowerCase().includes('403')) {
+            return;
+          }
+          if (!error.toString().toLowerCase().includes('network')) {
+            if (error.response) {
+              setToastMessage(error.response.data.errors[0]);
+              return;
+            }
+          }
+          setToastMessage('Network Error');
+        });
+    }
+  }, [safeDetail]);
   return (
     <ComponentError>
       <div className={classes.root}>
@@ -234,7 +241,7 @@ export default function SelectionTabs(props) {
           {responseType === -1 && !enabledAddFolder ? (
             <EmptySecretBox>
               {' '}
-              <Error description="error in creating folder" />
+              <Error description="Error while fetching safes folders" />
             </EmptySecretBox>
           ) : (
             responseType === 1 &&
@@ -265,7 +272,7 @@ export default function SelectionTabs(props) {
                       label="add"
                       icon="add"
                       color="secondary"
-                      disable={safeDetail?.access?.toLowerCase() === 'read'}
+                      disabled={safeDetail?.access?.toLowerCase() === 'read'}
                       width={isMobileScreen ? '100%' : ''}
                       onClick={() => setEnableAddFolder(true)}
                     />

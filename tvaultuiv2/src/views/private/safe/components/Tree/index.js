@@ -8,7 +8,6 @@ import PropTypes from 'prop-types';
 
 import { findElementAndUpdate } from '../../../../../services/helper-function';
 import ComponentError from '../../../../../errorBoundaries/ComponentError/component-error';
-import Loader from '../../../../../components/Loader';
 import CreateSecretButton from '../CreateSecretButton';
 import AddForm from '../AddForm';
 import CreateSecret from '../CreateSecrets';
@@ -17,6 +16,7 @@ import File from './components/file';
 import Folder from './components/folder';
 import apiService from '../../apiService';
 import SnackbarComponent from '../../../../../components/Snackbar';
+import LoaderSpinner from '../../../../../components/LoaderSpinner';
 
 const TreeRecursive = ({
   data,
@@ -110,7 +110,7 @@ const TreeRecursive = ({
               inputEnabled={inputType?.currentNode === item.value && isAddInput}
             />
             {item?.children?.length === 0 && responseType === 0 ? (
-              <div>Loading</div>
+              <LoaderSpinner />
             ) : (
               item?.children?.length === 0 && (
                 <CreateSecretButton
@@ -118,9 +118,7 @@ const TreeRecursive = ({
                 />
               )
             )}
-            {responseType === 0 ? (
-              <Loader />
-            ) : responseType === -1 && !isAddInput ? (
+            {responseType === -1 && !isAddInput ? (
               <SnackbarComponent
                 open
                 onClose={() => onToastClose()}
@@ -183,18 +181,17 @@ const Tree = (props) => {
     // const idClone = id.split('/');
     // idClone.splice(idClone.length - 1, 1);
     // const parentId = idClone.join('/');
-
+    setResponseType(0);
     apiService
       .getSecret(id)
       .then((res) => {
-        console.log('child------', res);
+        setResponseType(1);
         const updatedArray = findElementAndUpdate(
           tempFolders,
           id,
           res.data.children
         );
         setSecretsFolder([...updatedArray]);
-        console.log('treeeeData', secretsFolder);
       })
       .catch((error) => {
         setResponseType(-1);
@@ -234,7 +231,6 @@ const Tree = (props) => {
       })
       .catch((error) => {
         setResponseType(-1);
-        console.log('error', error);
         if (!error.toString().toLowerCase().includes('network')) {
           if (error.response) {
             setToastMessage(error.response?.data.errors[0]);

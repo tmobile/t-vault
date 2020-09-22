@@ -289,8 +289,12 @@ const SafeDashboard = (props) => {
           pathname: `${routeProps.match.url}/${safe.name}`,
           state: { safe },
         }}
-        active={activeSafeFolders.includes(safe.name)}
-        onClick={() => showSafeDetails(safe.name, safe)}
+        active={
+          activeSafeFolders.includes(safe.name) ||
+          window.location.pathname.includes(safe.name)
+        }
+        onMouseLeave={() => setActiveSafeFolders([])}
+        onMouseEnter={() => showSafeDetails(safe.name, safe)}
       >
         <ListItem
           title={safe.name}
@@ -421,12 +425,9 @@ const SafeDashboard = (props) => {
 SafeDashboard.propTypes = {
   // eslint-disable-next-line react/forbid-prop-types
   routeProps: PropTypes.object,
-  // eslint-disable-next-line react/forbid-prop-types
-  // safes: PropTypes.array,
 };
 SafeDashboard.defaultProps = {
   routeProps: {},
-  // safes: [],
 };
 
 export default SafeDashboard;

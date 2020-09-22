@@ -1,7 +1,7 @@
 /* eslint-disable react/forbid-prop-types */
 /* eslint-disable react/require-default-props */
 /* eslint-disable react/no-unused-prop-types */
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
 import { useHistory, useLocation } from 'react-router-dom';
 import useMediaQuery from '@material-ui/core/useMediaQuery';
@@ -52,20 +52,29 @@ const BackButton = styled.div`
 `;
 
 const SafeDetails = (props) => {
-  const { setActiveSafeFolders } = props;
+  const { setActiveSafeFolders, detailData } = props;
+  const [safeDetail, setSafeDetail] = useState({});
   // use history of page
   const history = useHistory();
   const location = useLocation();
   // screen view handler
   const isMobileScreen = useMediaQuery(mediaBreakpoints.small);
-
   // route component data
-  const safeDetail = location?.state?.safe;
   const goBackToSafeList = () => {
     setActiveSafeFolders();
     history.goBack();
   };
-
+  useEffect(() => {
+    if (!location.state) {
+      const activeSafeDetail = detailData.filter(
+        (item) =>
+          item.name.toLowerCase() === history.location.pathname.split('/')[2]
+      );
+      setSafeDetail(activeSafeDetail);
+      return;
+    }
+    setSafeDetail(location.state.safe);
+  }, [location.state, detailData, history.location.pathname]);
   return (
     <ComponentError>
       <Section>

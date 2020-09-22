@@ -66,7 +66,7 @@ const Spinner = styled.div`
     }
   }
 `;
-const Loader = (props) => {
+const LoaderSpinner = (props) => {
   const { customStyle } = props;
 
   return (
@@ -85,11 +85,11 @@ const Loader = (props) => {
   );
 };
 
-Loader.propTypes = {
+LoaderSpinner.propTypes = {
   customStyle: PropTypes.arrayOf(PropTypes.any),
 };
 
-Loader.defaultProps = {
+LoaderSpinner.defaultProps = {
   customStyle: [],
 };
-export default Loader;
+export default LoaderSpinner;

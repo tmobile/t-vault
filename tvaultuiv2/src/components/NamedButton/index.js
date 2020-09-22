@@ -10,9 +10,9 @@ const ActionButton = styled('div')`
   display: flex;
   align-items: center;
   fontsize: 1.6rem;
-  pointer-events: ${(props) => (props.disabed ? 'none' : 'auto')};
+  pointer-events: ${(props) => (props.disable ? 'none' : 'auto')};
   ${(props) => props.customBtnStyle};
-  cursor: pointer;
+  cursor: ${(props) => (props.disable ? 'unset' : 'pointer')};
 `;
 
 const Icon = styled('img')`

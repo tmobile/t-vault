@@ -14,7 +14,7 @@ import mediaBreakpoints from '../../../../../breakpoints';
 import AutoCompleteComponent from '../../../../../components/FormFields/AutoComplete';
 import ButtonComponent from '../../../../../components/FormFields/ActionButton';
 import apiService from '../../apiService';
-import Loader from '../Loader';
+import LoaderSpinner from '../../../../../components/LoaderSpinner';
 
 const { small } = mediaBreakpoints;
 
@@ -211,7 +211,7 @@ const AddUser = (props) => {
           <InstructionText>
             Search the T-Mobile system to add users
           </InstructionText>
-          {searchLoader && <Loader customStyle={customStyle} />}
+          {searchLoader && <LoaderSpinner customStyle={customStyle} />}
         </InputWrapper>
         <RadioButtonWrapper>
           <FormControl component="fieldset">
