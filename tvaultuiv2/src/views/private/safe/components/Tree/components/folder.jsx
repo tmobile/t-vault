@@ -105,7 +105,7 @@ const Folder = (props) => {
 
   useEffect(() => {
     setFolderItem(folderInfo);
-  }, []);
+  }, [folderInfo]);
   const handleToggle = (e) => {
     e.preventDefault();
     setIsOpen(!isOpen);

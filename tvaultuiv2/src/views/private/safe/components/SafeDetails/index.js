@@ -80,8 +80,8 @@ const SafeDetails = (props) => {
               <SafeTitle>{safeDetail?.name || 'No Safe'}</SafeTitle>
             )}
             <TitleFour color="#c4c4c4">
-              {safeDetail.description
-                ? safeDetail.description
+              {safeDetail?.description
+                ? safeDetail?.description
                 : 'Create a Safe to see your secrets, folders and permissions here'}
             </TitleFour>
           </div>

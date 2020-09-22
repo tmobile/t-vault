@@ -10,8 +10,8 @@ const ActionButton = styled('div')`
   display: flex;
   align-items: center;
   fontsize: 1.6rem;
-  pointer-events: ${(props) => (props.disabed ? 'none' : 'auto')}
-    ${(props) => props.customBtnStyle};
+  pointer-events: ${(props) => (props.disabed ? 'none' : 'auto')};
+  ${(props) => props.customBtnStyle};
   cursor: pointer;
 `;
 
@@ -28,7 +28,6 @@ const styles = css`
 
 const NamedButton = (props) => {
   const { label, iconSrc, customStyle, onClick, disable } = props;
-
   return (
     <ComponentError>
       <ActionButton

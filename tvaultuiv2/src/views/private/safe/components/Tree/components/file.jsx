@@ -132,11 +132,13 @@ File.propTypes = {
   secretValue: PropTypes.string,
   setInputType: PropTypes.func,
   setIsAddInput: PropTypes.func,
+  toggleSecretValue: PropTypes.func,
 };
 File.defaultProps = {
   secretKey: '',
   secretValue: '',
   setInputType: () => {},
   setIsAddInput: () => {},
+  toggleSecretValue: () => {},
 };
 export default File;

@@ -24,12 +24,6 @@ const SafeSectionPreview = styled('section')`
 const SafePageLayout = (props) => {
   const [safesList, setSafesList] = useState([]);
   // Sample API call. For integration, call like this with you mock data being passed as parameter
-  apiService
-    .fetchSafe({ name: 'Jack' })
-    // eslint-disable-next-line no-console
-    .then((res) => console.log('res ---- ', res))
-    // eslint-disable-next-line no-console
-    .catch((e) => console.error(e));
 
   const createSafe = (safeData) => {
     apiService
