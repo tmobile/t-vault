@@ -32,6 +32,8 @@ const TreeRecursive = ({
   path,
   toastMessage,
   setResponseType,
+  childrenData,
+  getChildrenData,
 }) => {
   const onToastClose = (reason) => {
     if (reason === 'clickaway') {
@@ -62,9 +64,10 @@ const TreeRecursive = ({
           folderInfo={item}
           setInputType={setInputType}
           setIsAddInput={setIsAddInput}
+          onClick={getChildrenData}
           parentId={path}
         >
-          {Array.isArray(item.children) && (
+          {Array.isArray(childrenData.childrens) && (
             <TreeRecursive
               data={item.children}
               saveSecretsToFolder={saveSecretsToFolder}
@@ -77,6 +80,7 @@ const TreeRecursive = ({
               inputType={inputType}
               path={`${item.id}/${item.value}`}
               toastMessage={toastMessage}
+              childrenData={childrenData}
               setResponseType={setResponseType}
             />
           )}
@@ -144,6 +148,7 @@ const Tree = (props) => {
   const [inputType, setInputType] = useState({});
   const [responseType, setResponseType] = useState(null);
   const [toastMessage, setToastMessage] = useState('');
+  const [childData, setChildData] = useState({});
 
   // set inital tree data structure
   const setTreeData = (treeData) => {
@@ -162,7 +167,8 @@ const Tree = (props) => {
   };
   /**
    *Creates secrets folder array
-   * @param {string} folderName
+   * @param {object} obj
+   * @param {node} node
    */
   const saveSecretsToFolder = (obj, node) => {
     const tempFolders = [...secretsFolder] || [];
@@ -278,4 +284,6 @@ Tree.propTypes = {
 Tree.defaultProps = {
   data: [],
 };
+
+// Tree recursive props validation
 export default Tree;
