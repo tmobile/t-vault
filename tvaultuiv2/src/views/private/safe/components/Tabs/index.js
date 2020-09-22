@@ -185,7 +185,7 @@ export default function SelectionTabs(props) {
         setResponseType(-1);
         console.log('error', error);
       });
-  }, []);
+  }, [safeDetail]);
   return (
     <ComponentError>
       <div className={classes.root}>
