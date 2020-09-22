@@ -74,7 +74,13 @@ const PopperItem = styled.div`
 `;
 
 const File = (props) => {
-  const { secretKey, secretValue, setInputType, setIsAddInput } = props;
+  const {
+    secretKey,
+    secretValue,
+    setInputType,
+    setIsAddInput,
+    toggleSecretValue,
+  } = props;
 
   // handle popper click
   const handlePopperClick = (e, type) => {
@@ -105,9 +111,9 @@ const File = (props) => {
           >
             <PopperItem>
               <img alt="refersh-ic" src={IconRefreshCC} />
-              <span>Rotate Secret</span>
+              <span>View Secret</span>
             </PopperItem>
-            <PopperItem onClick={() => handlePopperClick(true, 'folder')}>
+            <PopperItem onClick={() => toggleSecretValue(true, 'folder')}>
               <IconEdit />
               <span>Edit</span>
             </PopperItem>

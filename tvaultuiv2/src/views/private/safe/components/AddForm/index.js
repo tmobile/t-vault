@@ -5,24 +5,19 @@ import ComponentError from '../../../../../errorBoundaries/ComponentError/compon
 
 const ChildItemWrap = styled('div')``;
 const AddForm = (props) => {
-  const { inputNode, createButton, inputEnabled } = props;
+  const { inputNode, inputEnabled } = props;
   return (
     <ComponentError>
-      <ChildItemWrap>
-        {inputEnabled ? inputNode : <></>}
-        {!inputEnabled ? createButton : <></>}
-      </ChildItemWrap>
+      <ChildItemWrap>{inputEnabled ? inputNode : <></>}</ChildItemWrap>
     </ComponentError>
   );
 };
 AddForm.propTypes = {
   inputNode: PropTypes.node,
-  createButton: PropTypes.node,
   inputEnabled: PropTypes.bool,
 };
 AddForm.defaultProps = {
   inputNode: <div />,
-  createButton: <div />,
   inputEnabled: false,
 };
 export default AddForm;
