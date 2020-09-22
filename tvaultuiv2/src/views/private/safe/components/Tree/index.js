@@ -29,9 +29,9 @@ const TreeRecursive = ({
   setInputType,
   inputType,
   responseType,
-  path,
   toastMessage,
   setResponseType,
+  getChildrenData,
 }) => {
   const onToastClose = (reason) => {
     if (reason === 'clickaway') {
@@ -45,87 +45,102 @@ const TreeRecursive = ({
 
     if (item.type.toLowerCase() === 'secret') {
       return (
-        <File
-          secretKey={item.key}
-          secretValue={item.value}
-          type={item.type}
-          setIsAddInput={setIsAddInput}
-          setInputType={setInputType}
-          parentId={path}
-        />
+        <div key={item.id}>
+          {' '}
+          <File
+            secretKey={item.key}
+            secretValue={item.value}
+            type={item.type}
+            setIsAddInput={setIsAddInput}
+            setInputType={setInputType}
+            id={item.id}
+          />
+        </div>
       );
     }
     // if its a folder render <Folder />
     if (item.type === 'folder') {
       return (
-        <Folder
-          folderInfo={item}
-          setInputType={setInputType}
-          setIsAddInput={setIsAddInput}
-          parentId={path}
-        >
-          {Array.isArray(item.children) && (
-            <TreeRecursive
-              data={item.children}
-              saveSecretsToFolder={saveSecretsToFolder}
-              setCreateSecretBox={setCreateSecretBox}
-              handleCancelClick={handleCancelClick}
-              saveFolder={saveFolder}
-              isAddInput={isAddInput}
-              setIsAddInput={setIsAddInput}
-              setInputType={setInputType}
-              inputType={inputType}
-              path={`${item.id}/${item.value}`}
-              toastMessage={toastMessage}
-              setResponseType={setResponseType}
+        <div key={item.id}>
+          <Folder
+            folderInfo={item}
+            setInputType={setInputType}
+            setIsAddInput={setIsAddInput}
+            getChildNodes={getChildrenData}
+            id={item.id}
+          >
+            {Array.isArray(item.children) ? (
+              <TreeRecursive
+                data={item.children}
+                saveSecretsToFolder={saveSecretsToFolder}
+                setCreateSecretBox={setCreateSecretBox}
+                handleCancelClick={handleCancelClick}
+                saveFolder={saveFolder}
+                isAddInput={isAddInput}
+                setIsAddInput={setIsAddInput}
+                setInputType={setInputType}
+                inputType={inputType}
+                path={`${item.id}/${item.value}`}
+                toastMessage={toastMessage}
+                setResponseType={setResponseType}
+                getChildrenData={getChildrenData}
+              />
+            ) : (
+              <></>
+            )}
+            <AddForm
+              inputNode={
+                // eslint-disable-next-line react/jsx-wrap-multilines
+                inputType?.type?.toLowerCase() === 'folder' ? (
+                  <AddFolder
+                    parentId={item.id}
+                    handleCancelClick={handleCancelClick}
+                    handleSaveClick={(secret) => saveFolder(secret, item.value)}
+                  />
+                ) : (
+                  <CreateSecret
+                    parentId={item.id}
+                    handleSecretCancel={handleCancelClick}
+                    handleSecretSave={(secret) =>
+                      saveFolder(secret, item.value)
+                    }
+                  />
+                )
+              }
+              inputEnabled={inputType?.currentNode === item.value && isAddInput}
             />
-          )}
-          <AddForm
-            inputNode={
-              // eslint-disable-next-line react/jsx-wrap-multilines
-              inputType?.type?.toLowerCase() === 'folder' ? (
-                <AddFolder
-                  parentId={item.id}
-                  handleCancelClick={handleCancelClick}
-                  handleSaveClick={(secret) => saveFolder(secret, item.value)}
-                />
-              ) : (
-                <CreateSecret
-                  parentId={item.id}
-                  handleSecretCancel={handleCancelClick}
-                  handleSecretSave={(secret) => saveFolder(secret, item.value)}
+            {item?.children?.length === 0 && responseType === 0 ? (
+              <div>Loading</div>
+            ) : (
+              item?.children?.length === 0 && (
+                <CreateSecretButton
+                  onClick={(e) => setCreateSecretBox(e, item.value)}
                 />
               )
-            }
-            inputEnabled={inputType?.currentNode === item.value && isAddInput}
-          />
-          {item?.children?.length === 0 && (
-            <CreateSecretButton
-              onClick={(e) => setCreateSecretBox(e, item.value)}
-            />
-          )}
-          {responseType === 0 ? (
-            <Loader />
-          ) : responseType === -1 && !isAddInput ? (
-            <SnackbarComponent
-              open
-              onClose={() => onToastClose()}
-              severity="error"
-              icon="error"
-              message={toastMessage || 'Something went wrong!'}
-            />
-          ) : (
-            responseType === 1 &&
-            !isAddInput && (
+            )}
+            {responseType === 0 ? (
+              <Loader />
+            ) : responseType === -1 && !isAddInput ? (
               <SnackbarComponent
                 open
                 onClose={() => onToastClose()}
-                severity="success"
-                message={toastMessage || 'Folder/Secret added successfully'}
+                severity="error"
+                icon="error"
+                message={toastMessage || 'Something went wrong!'}
               />
-            )
-          )}
-        </Folder>
+            ) : (
+              responseType === 1 &&
+              !isAddInput && (
+                <SnackbarComponent
+                  open
+                  onClose={() => onToastClose()}
+                  severity="success"
+                  message={toastMessage || 'Folder/Secret added successfully'}
+                />
+              )
+            )}
+          </Folder>
+        </div>
       );
     }
   });
@@ -133,6 +148,8 @@ const TreeRecursive = ({
 const StyledTree = styled.div`
   line-height: 1.5;
   margin-top: 1.2rem;
+  height: 43.5vh;
+  overflow-y: auto;
   & > div {
     padding-left: 0;
   }
@@ -160,9 +177,41 @@ const Tree = (props) => {
     }
     setResponseType(null);
   };
+
+  const getChildrenData = (id) => {
+    const tempFolders = [...secretsFolder] || [];
+    // const idClone = id.split('/');
+    // idClone.splice(idClone.length - 1, 1);
+    // const parentId = idClone.join('/');
+
+    apiService
+      .getSecret(id)
+      .then((res) => {
+        console.log('child------', res);
+        const updatedArray = findElementAndUpdate(
+          tempFolders,
+          id,
+          res.data.children
+        );
+        setSecretsFolder([...updatedArray]);
+        console.log('treeeeData', secretsFolder);
+      })
+      .catch((error) => {
+        setResponseType(-1);
+        if (!error.toString().toLowerCase().includes('network')) {
+          if (error.response) {
+            setToastMessage(error.response?.data.errors[0]);
+            return;
+          }
+        }
+        setToastMessage('Network Error');
+      });
+  };
+
   /**
    *Creates secrets folder array
-   * @param {string} folderName
+   * @param {object} obj
+   * @param {node} node
    */
   const saveSecretsToFolder = (obj, node) => {
     const tempFolders = [...secretsFolder] || [];
@@ -185,8 +234,16 @@ const Tree = (props) => {
       })
       .catch((error) => {
         setResponseType(-1);
+        console.log('error', error);
         if (!error.toString().toLowerCase().includes('network')) {
-          setToastMessage(error.response.data.messages[0]);
+          if (error.response) {
+            setToastMessage(error.response?.data.errors[0]);
+            return;
+          }
+        }
+        if (error.toString().toLowerCase().includes('422')) {
+          setToastMessage('Secret already exists');
+          return;
         }
         setToastMessage('Network Error');
       });
@@ -219,7 +276,14 @@ const Tree = (props) => {
       .catch((error) => {
         setResponseType(-1);
         if (!error.toString().toLowerCase().includes('network')) {
-          setToastMessage(error.response.data.messages[0]);
+          if (error.response) {
+            setToastMessage(error.response?.data.errors[0]);
+            return;
+          }
+        }
+        if (error.toString().toLowerCase().includes('422')) {
+          setToastMessage('folder already exists');
+          return;
         }
         setToastMessage('Network Error');
       });
@@ -259,6 +323,7 @@ const Tree = (props) => {
           onToastClose={onToastClose}
           toastMessage={toastMessage}
           setResponseType={setResponseType}
+          getChildrenData={getChildrenData}
         />
       </StyledTree>
     </ComponentError>
@@ -276,4 +341,6 @@ Tree.propTypes = {
 Tree.defaultProps = {
   data: [],
 };
+
+// Tree recursive props validation
 export default Tree;
