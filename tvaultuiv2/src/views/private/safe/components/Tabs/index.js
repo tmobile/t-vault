@@ -13,8 +13,8 @@ import AppBar from '@material-ui/core/AppBar';
 import Tabs from '@material-ui/core/Tabs';
 import Tab from '@material-ui/core/Tab';
 import useMediaQuery from '@material-ui/core/useMediaQuery';
-import Error from 'components/Error';
-import Loader from 'components/Loader';
+import Error from '../../../../../components/Error';
+import Loader from '../../../../../components/Loader';
 import ButtonComponent from '../../../../../components/FormFields/ActionButton';
 import ComponentError from '../../../../../errorBoundaries/ComponentError/component-error';
 import addFolderPlus from '../../../../../assets/folder-plus.svg';
@@ -149,7 +149,6 @@ export default function SelectionTabs(props) {
     setResponseType(0);
     apiService
       .addFolder(folderObj.id)
-      // eslint-disable-next-line no-unused-vars
       .then((res) => {
         setToastMessage(res.data.messages[0]);
         setSecretsFolder([...tempFolders]);
@@ -209,6 +208,7 @@ export default function SelectionTabs(props) {
               onClick={addSecretsFolder}
               customStyle={customBtnStyles}
               iconSrc={addFolderPlus}
+              disable={safeDetail?.access?.toLowerCase() === 'read'}
             />
           )}
         </AppBar>
@@ -262,6 +262,7 @@ export default function SelectionTabs(props) {
                       label="add"
                       icon="add"
                       color="secondary"
+                      disable={safeDetail?.access?.toLowerCase() === 'read'}
                       width={isMobileScreen ? '100%' : ''}
                       onClick={() => setEnableAddFolder(true)}
                     />
@@ -274,7 +275,7 @@ export default function SelectionTabs(props) {
           )}
         </TabPanel>
         <TabPanel value={value} index={1}>
-          <Permissions />
+          <Permissions safeDetail={safeDetail} />
         </TabPanel>
         {responseType === -1 && (
           <SnackbarComponent

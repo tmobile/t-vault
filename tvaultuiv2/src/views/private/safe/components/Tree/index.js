@@ -274,7 +274,6 @@ const Tree = (props) => {
         setToastMessage(res.data.messages[0]);
       })
       .catch((error) => {
-        console.log(error);
         setResponseType(-1);
         if (!error.toString().toLowerCase().includes('network')) {
           if (error.response) {

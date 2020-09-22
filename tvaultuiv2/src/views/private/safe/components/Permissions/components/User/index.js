@@ -115,6 +115,7 @@ const User = (props) => {
     addPermission,
     onNoDataAddClicked,
     onCancelClicked,
+    safeDetail,
   } = props;
   const [responseType, setResponseType] = useState(null);
   const [toastMessage, setToastMessage] = useState('');
@@ -126,7 +127,7 @@ const User = (props) => {
   const onSubmit = (user, access) => {
     const value = {
       access,
-      path: 'shared/test-safe3',
+      path: safeDetail.path,
       username: user.toLowerCase(),
     };
     onSaveClicked(value);
@@ -134,7 +135,7 @@ const User = (props) => {
 
   const onDeleteClick = (username) => {
     const payload = {
-      path: 'shared/test-safe3',
+      path: safeDetail.path,
       username,
     };
     apiService
@@ -280,5 +281,6 @@ User.propTypes = {
   addPermission: PropTypes.bool.isRequired,
   onNoDataAddClicked: PropTypes.func.isRequired,
   onCancelClicked: PropTypes.func.isRequired,
+  safeDetail: PropTypes.objectOf(PropTypes.any).isRequired,
 };
 export default User;

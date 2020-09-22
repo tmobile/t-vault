@@ -10,6 +10,7 @@ const ActionButton = styled('div')`
   display: flex;
   align-items: center;
   fontsize: 1.6rem;
+  pointer-events: ${(props) => (props.disabed ? 'none' : 'auto')};
   ${(props) => props.customBtnStyle};
   cursor: pointer;
 `;
@@ -26,11 +27,14 @@ const styles = css`
 `;
 
 const NamedButton = (props) => {
-  const { label, iconSrc, customStyle, onClick } = props;
-
+  const { label, iconSrc, customStyle, onClick, disable } = props;
   return (
     <ComponentError>
-      <ActionButton customBtnStyle={customStyle} onClick={onClick}>
+      <ActionButton
+        customBtnStyle={customStyle}
+        onClick={onClick}
+        disable={disable}
+      >
         <TitleTwo color="#fff" extraCss={styles}>
           {label}
         </TitleTwo>
@@ -45,11 +49,13 @@ NamedButton.propTypes = {
   // eslint-disable-next-line react/forbid-prop-types
   customStyle: PropTypes.arrayOf(PropTypes.any),
   onClick: PropTypes.func,
+  disable: PropTypes.bool,
 };
 NamedButton.defaultProps = {
   label: '',
   iconSrc: '',
   customStyle: [],
   onClick: () => {},
+  disable: false,
 };
 export default NamedButton;

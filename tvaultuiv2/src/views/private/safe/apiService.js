@@ -21,6 +21,8 @@ const addFolder = (params) => api.post(`/sdb/createfolder?path=${params}`);
 const addSecret = (params) => api.post(`/write?path=${params}`);
 const getSecret = (params) =>
   api.get(`/safes/folders/secrets?path=${params}&fetchOption=all`);
+
+const getSafePermission = (path) => api.get(`/ss/sdb?path=${path}`);
 export default {
   fetchSafe,
   searchUser,
@@ -36,4 +38,5 @@ export default {
   addFolder,
   addSecret,
   getSecret,
+  getSafePermission,
 };
