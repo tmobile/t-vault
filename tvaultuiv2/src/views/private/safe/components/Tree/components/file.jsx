@@ -16,7 +16,6 @@ import PopperElement from '../../Popper';
 
 const StyledFile = styled.div`
   padding: 2rem 0 2rem 4.2rem;
-  // padding-left: 2rem;
   background: ${BackgroundColor.secretBg};
   display: flex;
   align-items: center;
@@ -80,6 +79,7 @@ const File = (props) => {
     setInputType,
     setIsAddInput,
     toggleSecretValue,
+    secret,
   } = props;
 
   // handle popper click
@@ -87,7 +87,8 @@ const File = (props) => {
     setInputType(type);
     setIsAddInput(e);
   };
-
+  const secretData = JSON.parse(secret);
+  const { data } = secretData;
   return (
     <ComponentError>
       <StyledFile>
@@ -95,9 +96,11 @@ const File = (props) => {
           <IconWrap>
             <IconLock />
           </IconWrap>
-          <TitleThree>{secretKey}</TitleThree>
+          <TitleThree>{secretKey || Object.keys(data)[0]}</TitleThree>
         </LabelWrap>
-        <SecretWrap type="password">{secretValue}</SecretWrap>
+        <SecretWrap type="password">
+          {Object.values(data)[0] || secretValue}
+        </SecretWrap>
         <FolderIconWrap>
           <PopperElement
             anchorOrigin={{
@@ -133,6 +136,7 @@ File.propTypes = {
   setInputType: PropTypes.func,
   setIsAddInput: PropTypes.func,
   toggleSecretValue: PropTypes.func,
+  secret: PropTypes.string,
 };
 File.defaultProps = {
   secretKey: '',
@@ -140,5 +144,6 @@ File.defaultProps = {
   setInputType: () => {},
   setIsAddInput: () => {},
   toggleSecretValue: () => {},
+  secret: '',
 };
 export default File;

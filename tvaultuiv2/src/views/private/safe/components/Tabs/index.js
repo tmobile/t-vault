@@ -176,7 +176,7 @@ export default function SelectionTabs(props) {
       apiService
         .getSecret(safeDetail.path)
         .then((res) => {
-          setResponseType(1);
+          setResponseType(null);
           setSecretsFolder(res.data.children);
         })
         .catch((error) => {

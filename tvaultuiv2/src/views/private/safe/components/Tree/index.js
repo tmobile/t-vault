@@ -50,6 +50,7 @@ const TreeRecursive = ({
           <File
             secretKey={item.key}
             secretValue={item.value}
+            secret={item.value}
             type={item.type}
             setIsAddInput={setIsAddInput}
             setInputType={setInputType}
@@ -221,7 +222,10 @@ const Tree = (props) => {
     folderObj.children = [];
 
     apiService
-      .addSecret(folderObj.id)
+      .addSecret(folderObj.id, {
+        path: folderObj.id,
+        data: { [folderObj.key]: folderObj.value },
+      })
       // eslint-disable-next-line no-unused-vars
       .then((res) => {
         setResponseType(1);
