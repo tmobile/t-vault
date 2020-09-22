@@ -191,6 +191,7 @@ export default function SelectionTabs(props) {
               onClick={addSecretsFolder}
               customStyle={customBtnStyles}
               iconSrc={addFolderPlus}
+              disable={safeDetail.access.toLowerCase() === 'read'}
             />
           )}
         </AppBar>
@@ -250,6 +251,7 @@ export default function SelectionTabs(props) {
                       label="add"
                       icon="add"
                       color="secondary"
+                      disable={safeDetail.access.toLowerCase() === 'read'}
                       width={isMobileScreen ? '100%' : ''}
                       onClick={() => setEnableAddFolder(true)}
                     />
