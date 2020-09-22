@@ -44,7 +44,11 @@ export const findElementAndUpdate = (arr, parentId, item) => {
   if (arr.length === 0) return;
   const tempArr = [...arr];
   const itemToUpdate = findElementById(tempArr, parentId, 'children');
-  itemToUpdate.children = [...itemToUpdate.children, item];
+  if (Array.isArray(item)) {
+    itemToUpdate.children = [...itemToUpdate.children, ...item];
+  } else {
+    itemToUpdate.children = [...itemToUpdate.children, item];
+  }
 
   return tempArr;
 };
@@ -78,7 +82,7 @@ export const createSafeArray = (arr, type) => {
 
 export const validateEmail = (email) => {
   if (email) {
-   const res = /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/; //eslint-disable-line
+    const res = /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/; //eslint-disable-line
     return res.test(email);
   }
 };
