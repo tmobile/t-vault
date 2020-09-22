@@ -14,6 +14,7 @@ import mediaBreakpoints from '../../../../../breakpoints';
 import User from './components/User';
 import apiService from '../../apiService';
 import SnackbarComponent from '../../../../../components/Snackbar';
+import Loader from '../Loader';
 
 const { small } = mediaBreakpoints;
 
@@ -117,12 +118,13 @@ const Permissions = (props) => {
   const [value, setValue] = useState(0);
   const [users, setUsers] = useState({});
   const [addPermission, setAddPermission] = useState(false);
-  const [responseType, setResponseType] = useState(null);
+  const [responseType, setResponseType] = useState(0);
   const [toastMessage, setToastMessage] = useState('');
 
   const onSaveClicked = (data) => {
     setUsers((prev) => ({ ...prev, [data.username]: data.access }));
     setAddPermission(false);
+    setResponseType(0);
     apiService
       .addUserPermission(data)
       .then((res) => {
@@ -140,14 +142,19 @@ const Permissions = (props) => {
   };
 
   const fetchPermission = useCallback(() => {
+    setResponseType(0);
     apiService
       .getSafePermission(safeDetail.path)
       .then((res) => {
+        setResponseType(1);
         if (res && res.data?.data?.users) {
           setUsers(res.data.data.users);
         }
       })
-      .catch((e) => console.log('error', e));
+      .catch((e) => {
+        setResponseType(-1);
+        console.log('error', e);
+      });
   }, [safeDetail]);
 
   useEffect(() => {
@@ -201,14 +208,18 @@ const Permissions = (props) => {
             />
           </AppBar>
           <TabPanel value={value} index={0}>
-            <User
-              users={users}
-              safeDetail={safeDetail}
-              onSaveClicked={(data) => onSaveClicked(data)}
-              addPermission={addPermission}
-              onCancelClicked={() => setAddPermission(false)}
-              onNoDataAddClicked={() => setAddPermission(true)}
-            />
+            {responseType !== 0 ? (
+              <User
+                users={users}
+                safeDetail={safeDetail}
+                onSaveClicked={(data) => onSaveClicked(data)}
+                addPermission={addPermission}
+                onCancelClicked={() => setAddPermission(false)}
+                onNoDataAddClicked={() => setAddPermission(true)}
+              />
+            ) : (
+              <Loader />
+            )}
           </TabPanel>
           <TabPanel value={value} index={1}>
             Group
