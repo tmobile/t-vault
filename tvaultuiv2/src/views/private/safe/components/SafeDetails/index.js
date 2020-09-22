@@ -52,22 +52,30 @@ const BackButton = styled.div`
 `;
 
 const SafeDetails = (props) => {
-  const { setActiveSafeFolders } = props;
+  const { setActiveSafeFolders, detailData } = props;
   const [safeDetail, setSafeDetail] = useState({});
   // use history of page
   const history = useHistory();
   const location = useLocation();
   // screen view handler
   const isMobileScreen = useMediaQuery(mediaBreakpoints.small);
-
   // route component data
   const goBackToSafeList = () => {
     setActiveSafeFolders();
     history.goBack();
   };
   useEffect(() => {
-    setSafeDetail(location?.state?.safe);
-  }, [location.state]);
+    console.log('location', history);
+    if (!location.state) {
+      const activeSafeDetail = detailData.filter(
+        (item) =>
+          item.name.toLowerCase() === history.location.pathname.split('/')[2]
+      );
+      setSafeDetail(activeSafeDetail);
+      return;
+    }
+    setSafeDetail(location.state.safe);
+  }, [location.state.safe]);
   return (
     <ComponentError>
       <Section>

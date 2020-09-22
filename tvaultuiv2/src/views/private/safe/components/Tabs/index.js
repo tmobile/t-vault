@@ -46,7 +46,6 @@ const customBtnStyles = css`
 const TabPanelWrap = styled.div`
   height: 54.75vh;
   position: relative;
-  overflow: auto;
   margin-top: 1.3rem;
   ${mediaBreakpoints.small} {
     height: 77vh;
@@ -153,10 +152,8 @@ export default function SelectionTabs(props) {
         setToastMessage(res.data.messages[0]);
         setSecretsFolder([...tempFolders]);
         setResponseType(1);
-        console.log('ressss', res);
       })
       .catch((error) => {
-        console.log('error', error);
         setResponseType(-1);
         if (!error.toString().toLowerCase().includes('network')) {
           if (error.response) {
@@ -174,17 +171,29 @@ export default function SelectionTabs(props) {
   };
 
   useEffect(() => {
-    setResponseType(0);
-    apiService
-      .getSecret(safeDetail.path)
-      .then((res) => {
-        setResponseType(1);
-        setSecretsFolder(res.data.children);
-      })
-      .catch((error) => {
-        setResponseType(-1);
-        console.log('error', error);
-      });
+    if (safeDetail) {
+      setResponseType(0);
+      apiService
+        .getSecret(safeDetail.path)
+        .then((res) => {
+          setResponseType(1);
+          setSecretsFolder(res.data.children);
+        })
+        .catch((error) => {
+          setResponseType(-1);
+          if (error.toString().toLowerCase().includes('403')) {
+            setToastMessage('Item not found');
+            return;
+          }
+          if (!error.toString().toLowerCase().includes('network')) {
+            if (error.response) {
+              setToastMessage(error.response.data.errors[0]);
+              return;
+            }
+          }
+          setToastMessage('Network Error');
+        });
+    }
   }, [safeDetail]);
   return (
     <ComponentError>

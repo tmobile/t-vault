@@ -16,7 +16,7 @@ import leftArrowIcon from '../../../../assets/left-arrow.svg';
 import mediaBreakpoints from '../../../../breakpoints';
 import SnackbarComponent from '../../../../components/Snackbar';
 import AutoCompleteComponent from '../../../../components/FormFields/AutoComplete';
-import Loader from '../components/Loader';
+import LoaderSpinner from '../../../../components/LoaderSpinner';
 import { validateEmail } from '../../../../services/helper-function';
 import apiService from '../apiService';
 
@@ -311,7 +311,7 @@ const CreateModal = () => {
       >
         <Fade in={open}>
           <ModalWrapper>
-            {responseType === 0 && <Loader customStyle={loaderStyle} />}
+            {responseType === 0 && <LoaderSpinner customStyle={loaderStyle} />}
             <HeaderWrapper>
               <LeftIcon
                 src={leftArrowIcon}
@@ -364,7 +364,7 @@ const CreateModal = () => {
                     emailError ? 'Please enter a valid email address!' : ''
                   }
                 />
-                {autoLoader && <Loader customStyle={autoLoaderStyle} />}
+                {autoLoader && <LoaderSpinner customStyle={autoLoaderStyle} />}
               </InputFieldLabelWrapper>
               <InputFieldLabelWrapper>
                 <InputLabel>Type of Safe</InputLabel>
