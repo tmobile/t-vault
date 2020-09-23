@@ -173,6 +173,9 @@ export default function SelectionTabs(props) {
   useEffect(() => {
     if (safeDetail) {
       setResponseType(0);
+      if (!safeDetail.manage) {
+        setValue(0);
+      }
       apiService
         .getSecret(safeDetail.path)
         .then((res) => {
@@ -194,6 +197,7 @@ export default function SelectionTabs(props) {
         });
     }
   }, [safeDetail]);
+
   return (
     <ComponentError>
       <div className={classes.root}>
@@ -206,11 +210,7 @@ export default function SelectionTabs(props) {
             textColor="primary"
           >
             <Tab className={classes.tab} label="Secrets" {...a11yProps(0)} />
-            <Tab
-              label="Permissions"
-              {...a11yProps(1)}
-              disabled={!safeDetail.manage}
-            />
+            {safeDetail.manage && <Tab label="Permissions" {...a11yProps(1)} />}
           </Tabs>
           {value === 0 && (
             <NamedButton
@@ -285,7 +285,7 @@ export default function SelectionTabs(props) {
           )}
         </TabPanel>
         <TabPanel value={value} index={1}>
-          {safeDetail.manage && <Permissions safeDetail={safeDetail} />}
+          <Permissions safeDetail={safeDetail} />
         </TabPanel>
         {responseType === -1 && (
           <SnackbarComponent

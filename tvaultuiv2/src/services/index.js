@@ -2,11 +2,12 @@ import axios from 'axios';
 import config from '../config';
 
 function ApiCall(url, method, data, header) {
-  const token = 's.PfXGMPoZrdsOqzkZlTMs9FzF';
+  const token = 's.JLgZUria2KCMXHiY9i7mOKYK';
   const headers = {
     ...header,
     'vault-token': token,
     'content-type': 'application/json',
+    'Access-Control-Allow-Origin': '*',
   };
   return axios.request({ url, method, headers, data });
 }
