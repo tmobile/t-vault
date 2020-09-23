@@ -369,7 +369,7 @@ const SafeDashboard = (props) => {
                 <Error description="Error while fetching safes!" />
               </EmptySecretBox>
             )}
-            {responseType === 0 && !safeList?.length ? (
+            {responseType === 0 ? (
               <Loader contentHeight="80%" contentWidth="100%" />
             ) : safeList && safeList.length > 0 ? (
               <SafeListContainer ref={(ref) => (scrollParentRef = ref)}>
