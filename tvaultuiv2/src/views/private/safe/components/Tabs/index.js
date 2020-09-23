@@ -27,7 +27,7 @@ import AddFolder from '../AddFolder';
 import Tree from '../Tree';
 import Permissions from '../Permissions';
 import apiService from '../../apiService';
-import SnackbarComponent from '../../../../../components/Snackbar';
+// import SnackbarComponent from '../../../../../components/Snackbar';
 // styled components goes here
 
 const EmptySecretBox = styled('div')`

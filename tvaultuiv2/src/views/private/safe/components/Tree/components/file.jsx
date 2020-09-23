@@ -77,7 +77,7 @@ const PopperItem = styled.div`
 `;
 
 const File = (props) => {
-  const { secretKey, secretValue, setInputType, setIsAddInput, secret } = props;
+  const { setInputType, setIsAddInput, secret } = props;
   const [viewSecretValue, setViewSecretValue] = useState(false);
 
   // handle popper click
@@ -89,7 +89,7 @@ const File = (props) => {
     setViewSecretValue(val);
   };
 
-  const secretData = JSON.parse(secret);
+  const secretData = secret && JSON.parse(secret);
   const { data } = secretData;
   return (
     <ComponentError>
@@ -99,10 +99,10 @@ const File = (props) => {
             <IconWrap>
               <IconLock />
             </IconWrap>
-            <TitleThree>{secretKey || Object.keys(data)[0]}</TitleThree>
+            <TitleThree>{data && Object.keys(data)[0]}</TitleThree>
           </LabelWrap>
           <SecretWrap type="password" viewSecret={viewSecretValue}>
-            {Object.values(data)[0] || secretValue}
+            {data && Object.values(data)[0]}
           </SecretWrap>
           <FolderIconWrap>
             <PopperElement
@@ -135,15 +135,11 @@ const File = (props) => {
   );
 };
 File.propTypes = {
-  secretKey: PropTypes.string,
-  secretValue: PropTypes.string,
   setInputType: PropTypes.func,
   setIsAddInput: PropTypes.func,
   secret: PropTypes.string,
 };
 File.defaultProps = {
-  secretKey: '',
-  secretValue: '',
   setInputType: () => {},
   setIsAddInput: () => {},
   secret: '',

@@ -84,20 +84,21 @@ const Tree = (props) => {
     const folderObj = {};
     folderObj.id = `${obj.parentId}`;
     folderObj.parentId = obj.parentId;
-    folderObj.value = obj.value;
+    folderObj.value = JSON.stringify({
+      data: { [obj.key]: obj.value },
+    });
     folderObj.type = obj.type || 'secret';
-    folderObj.key = obj.key;
-    folderObj.children = [];
 
+    folderObj.children = [];
     apiService
       .addSecret(folderObj.id, {
         path: folderObj.id,
-        data: { [folderObj.key]: folderObj.value },
+        data: { [obj.key]: obj.value },
       })
       // eslint-disable-next-line no-unused-vars
       .then((res) => {
         setResponseType(1);
-        const updatedArray = findElementAndUpdate(tempFolders, node, obj);
+        const updatedArray = findElementAndUpdate(tempFolders, node, folderObj);
         setSecretsFolder([...updatedArray]);
         setToastMessage(res.data.messages[0]);
       })
@@ -126,7 +127,6 @@ const Tree = (props) => {
     folderObj.value = secretFolder.value;
     folderObj.type = secretFolder.type || 'folder';
     folderObj.children = [];
-
     // api call
     apiService
       .addFolder(folderObj.id)
