@@ -12,7 +12,7 @@ const ActionButton = styled('div')`
   fontsize: 1.6rem;
   pointer-events: ${(props) => (props.disable ? 'none' : 'auto')};
   ${(props) => props.customBtnStyle};
-  cursor: ${(props) => (props.disable ? 'unset' : 'pointer')};
+  cursor: ${(props) => (props.disable ? 'not-allowed' : 'pointer')};
 `;
 
 const Icon = styled('img')`

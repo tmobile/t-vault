@@ -69,7 +69,7 @@ const SafeDetails = (props) => {
     history.goBack();
   };
   useEffect(() => {
-    if (!location.state) {
+    if (!location?.state?.safe) {
       if (detailData && detailData.length) {
         const activeSafeDetail = detailData.filter(
           (item) =>
@@ -77,8 +77,8 @@ const SafeDetails = (props) => {
             history.location.pathname.split('/')[2]
         );
         setSafeDetail(activeSafeDetail);
-        return;
       }
+      return;
     }
     setSafeDetail(location?.state?.safe);
   }, [location.state, detailData, history.location.pathname]);

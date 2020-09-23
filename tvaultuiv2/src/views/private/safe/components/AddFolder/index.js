@@ -34,12 +34,24 @@ const AddFolder = (props) => {
     handleCancelClick,
     handleSaveClick,
     parentId,
+    childrens,
   } = props;
   const [inputValue, setInputValue] = useState('');
-  const [errorMessage, setErrorMessage] = useState(null);
+  const [errorMessage, setErrorMessage] = useState('');
+  const [error, setError] = useState(null);
 
   const handleValidation = (value) => {
-    setErrorMessage(value.length < 3 || !value.match(/^[a-zA-Z0-9_]*$/g));
+    setErrorMessage(null);
+    const isFolderExist = childrens.find((item) => {
+      const arr = item.id.split('/');
+      return arr[arr.length - 1].toLowerCase() === value.toLowerCase();
+    });
+    if (isFolderExist) {
+      setErrorMessage(
+        "Folder already exist's, You can't store secrets in folders having same name "
+      );
+    }
+    setError(value.length < 3 || !value.match(/^[a-zA-Z0-9_]*$/g));
   };
 
   const handleChange = (e) => {
@@ -57,15 +69,19 @@ const AddFolder = (props) => {
             onChange={(e) => handleChange(e)}
             value={inputValue || ''}
             fullWidth
-            error={errorMessage}
-            helperText="Please enter a minimum of 3 characters lowercase alphabets, number and underscore only."
+            error={error || errorMessage}
+            helperText={
+              errorMessage && errorMessage.includes("Folder already exist's")
+                ? errorMessage
+                : 'Please enter a minimum of 3 characters lowercase alphabets, number and underscore only.'
+            }
           />
           <ButtonWrapper>
             <CancelButton>
               <ButtonComponent
                 label="Cancel"
                 color="primary"
-                onClick={handleCancelClick}
+                onClick={() => handleCancelClick(false)}
               />
             </CancelButton>
             <ButtonComponent
@@ -88,11 +104,13 @@ AddFolder.propTypes = {
   handleCancelClick: PropTypes.func,
   handleSaveClick: PropTypes.func,
   parentId: PropTypes.string,
+  childrens: PropTypes.arrayOf(PropTypes.array),
 };
 AddFolder.defaultProps = {
   width: '100%',
   handleSaveClick: () => {},
   handleCancelClick: () => {},
   parentId: '',
+  childrens: [],
 };
 export default AddFolder;

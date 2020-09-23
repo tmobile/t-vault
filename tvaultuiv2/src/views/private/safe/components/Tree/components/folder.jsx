@@ -22,20 +22,25 @@ import {
 } from '../../../../../../assets/SvgIcons';
 import PopperElement from '../../Popper';
 
+const FolderContainer = styled.div`
+  padding-left: 2rem;
+`;
+
 const StyledFolder = styled.div`
   background: ${BackgroundColor.listBg};
-  padding-left: ${(props) => (props.parent ? '0' : '2rem')};
   outline: none;
+  :hover {
+    background-image: ${(props) =>
+      props.active ? props.theme.gradients.list : 'none'};
+    color: #fff;
+  }
   .folder--label {
     outline: none;
     display: flex;
     align-items: center;
     justify-content: space-between;
     padding: ${(props) => props.padding || '0'};
-    :hover {
-      background-image: ${(props) => props.theme.gradients.list || 'none'};
-      color: #fff;
-    }
+
     span {
       margin-left: 0.5rem;
     }
@@ -108,6 +113,7 @@ const Folder = (props) => {
     id,
   } = props;
   const [isOpen, setIsOpen] = useState(false);
+  const [activeSecrets, setActiveSecrets] = useState([]);
 
   const handleToggle = (e) => {
     e.preventDefault();
@@ -120,80 +126,91 @@ const Folder = (props) => {
     setIsAddInput(e);
     setIsOpen(e);
   };
+
+  const handleActiveSecrets = (folder) => {
+    const activeSecretsArr = [];
+    activeSecretsArr.push(folder);
+    setActiveSecrets([...activeSecretsArr]);
+  };
+  const labelValue = folderInfo?.value?.split('/')[
+    folderInfo.value.split('/').length - 1
+  ];
   return (
     <ComponentError>
-      <StyledFolder parent={folderInfo.parent} padding="1.2rem 0">
-        <div role="button" className="folder--label" tabIndex={0}>
-          <LabelWrap onClick={(e) => handleToggle(e)}>
-            {isOpen ? <ExpandMoreIcon /> : <ExpandLessIcon />}
+      <FolderContainer>
+        <StyledFolder
+          padding="1.2rem 0"
+          onMouseEnter={() => handleActiveSecrets(labelValue)}
+          onMouseLeave={() => setActiveSecrets([])}
+          active={activeSecrets.includes(labelValue)}
+        >
+          <div role="button" className="folder--label" tabIndex={0}>
+            <LabelWrap onClick={(e) => handleToggle(e)}>
+              {isOpen ? <ExpandMoreIcon /> : <ExpandLessIcon />}
 
-            {isOpen ? (
-              <Icon alt="folder--icon" src={IconFolderActive} />
-            ) : (
-              <Icon alt="folder--icon" src={IconFolderInactive} />
-            )}
+              {isOpen ? (
+                <Icon alt="folder--icon" src={IconFolderActive} />
+              ) : (
+                <Icon alt="folder--icon" src={IconFolderInactive} />
+              )}
 
-            <TitleTwo extraCss={titleStyles}>
-              {
-                folderInfo.value.split('/')[
-                  folderInfo.value.split('/').length - 1
-                ]
-              }
-            </TitleTwo>
-          </LabelWrap>
+              <TitleTwo extraCss={titleStyles}>{labelValue}</TitleTwo>
+            </LabelWrap>
 
-          <FolderIconWrap>
-            <PopperElement
-              anchorOrigin={{
-                vertical: 'bottom',
-                horizontal: 'right',
-              }}
-              transformOrigin={{
-                vertical: 'top',
-                horizontal: 'right',
-              }}
-            >
-              <PopperItem
-                onClick={() =>
-                  handlePopperClick(true, {
-                    type: 'folder',
-                    currentNode: folderInfo.value,
-                  })
-                }
+            <FolderIconWrap>
+              <PopperElement
+                anchorOrigin={{
+                  vertical: 'bottom',
+                  horizontal: 'right',
+                }}
+                transformOrigin={{
+                  vertical: 'top',
+                  horizontal: 'right',
+                }}
               >
-                <IconAddFolder />
-                <span>Create Folder</span>
-              </PopperItem>
-              <PopperItem
-                onClick={() =>
-                  handlePopperClick(true, {
-                    type: 'secret',
-                    currentNode: folderInfo.value,
-                  })
-                }
-              >
-                <IconAddSecret />
-                <span>Create Secret</span>
-              </PopperItem>
-              <PopperItem>
-                <IconEdit />
-                <span>Edit</span>
-              </PopperItem>
-              <PopperItem>
-                <IconDeleteActive />
-                <span> Delete</span>
-              </PopperItem>
-            </PopperElement>
-          </FolderIconWrap>
-        </div>
+                <PopperItem
+                  onClick={() =>
+                    handlePopperClick(true, {
+                      type: 'folder',
+                      currentNode: folderInfo.value,
+                    })
+                  }
+                >
+                  <IconAddFolder />
+                  <span>Create Folder</span>
+                </PopperItem>
+                <PopperItem
+                  onClick={() =>
+                    handlePopperClick(true, {
+                      type: 'secret',
+                      currentNode: folderInfo.value,
+                    })
+                  }
+                >
+                  <IconAddSecret />
+                  <span>Create Secret</span>
+                </PopperItem>
+                <PopperItem>
+                  <IconEdit />
+                  <span>Edit</span>
+                </PopperItem>
+                <PopperItem>
+                  <IconDeleteActive />
+                  <span> Delete</span>
+                </PopperItem>
+              </PopperElement>
+            </FolderIconWrap>
+          </div>
+        </StyledFolder>
         <Collapsible isOpen={isOpen}>{children}</Collapsible>
-      </StyledFolder>
+      </FolderContainer>
     </ComponentError>
   );
 };
 
 Folder.propTypes = {
-  folderInfo: PropTypes.objectOf(PropTypes.object),
+  // eslint-disable-next-line react/forbid-prop-types
+  folderInfo: PropTypes.object,
   children: PropTypes.node,
   setInputType: PropTypes.func,
   setIsAddInput: PropTypes.func,
