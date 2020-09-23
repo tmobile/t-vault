@@ -51,27 +51,29 @@ const Tree = (props) => {
     // idClone.splice(idClone.length - 1, 1);
     // const parentId = idClone.join('/');
     setResponseType(0);
-    apiService
-      .getSecret(id)
-      .then((res) => {
-        setResponseType(null);
-        const updatedArray = findElementAndUpdate(
-          tempFolders,
-          id,
-          res.data.children
-        );
-        setSecretsFolder([...updatedArray]);
-      })
-      .catch((error) => {
-        setResponseType(-1);
-        if (!error.toString().toLowerCase().includes('network')) {
-          if (error.response) {
-            setToastMessage(error.response?.data.errors[0]);
-            return;
+    if (id) {
+      apiService
+        .getSecret(id)
+        .then((res) => {
+          setResponseType(null);
+          const updatedArray = findElementAndUpdate(
+            tempFolders,
+            id,
+            res.data.children
+          );
+          setSecretsFolder([...updatedArray]);
+        })
+        .catch((error) => {
+          setResponseType(-1);
+          if (!error.toString().toLowerCase().includes('network')) {
+            if (error.response) {
+              setToastMessage(error.response?.data.errors[0]);
+              return;
+            }
           }
-        }
-        setToastMessage('Network Error');
-      });
+          setToastMessage('Network Error');
+        });
+    }
   };
 
   /**

@@ -171,8 +171,8 @@ export default function SelectionTabs(props) {
   };
 
   useEffect(() => {
-    if (safeDetail) {
-      setResponseType(0);
+    setResponseType(0);
+    if (safeDetail?.path) {
       apiService
         .getSecret(safeDetail.path)
         .then((res) => {
