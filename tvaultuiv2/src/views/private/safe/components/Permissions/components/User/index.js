@@ -51,6 +51,9 @@ const bgIconStyle = {
 };
 const UserList = styled.div`
   margin-top: 2rem;
+  > div:not(:last-child) {
+    border-bottom: 1px solid #323649;
+  }
 `;
 const EachUserWrap = styled.div`
   display: flex;

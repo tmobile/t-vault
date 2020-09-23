@@ -1,5 +1,6 @@
 import React from 'react';
 import styled from 'styled-components';
+import PropTypes from 'prop-types';
 import { IconDeleteActive, IconEdit } from '../../../../../assets/SvgIcons';
 import ComponentError from '../../../../../errorBoundaries/ComponentError/component-error';
 
@@ -21,7 +22,8 @@ const Icon = styled('div')`
   }
 `;
 
-const PsudoPopper = () => {
+const PsudoPopper = (props) => {
+  const { onDeleteSafeClicked } = props;
   return (
     <ComponentError>
       <IconWrap>
@@ -29,13 +31,21 @@ const PsudoPopper = () => {
           {' '}
           <IconEdit />
         </Icon>
-        <Icon>
+        <Icon onClick={onDeleteSafeClicked}>
           {' '}
           <IconDeleteActive />
         </Icon>
       </IconWrap>
     </ComponentError>
   );
+};
+
+PsudoPopper.propTypes = {
+  onDeleteSafeClicked: PropTypes.func,
+};
+
+PsudoPopper.defaultProps = {
+  onDeleteSafeClicked: () => {},
 };
 
 export default PsudoPopper;

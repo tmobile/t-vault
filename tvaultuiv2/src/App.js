@@ -1,3 +1,4 @@
+/* eslint-disable react/jsx-wrap-multilines */
 /* eslint-disable react/jsx-props-no-spreading */
 import React, { Suspense, lazy } from 'react';
 import MomentUtils from '@date-io/moment';
@@ -13,6 +14,7 @@ import { BrowserRouter, Route, Switch, withRouter } from 'react-router-dom';
 import customMuiTheme from './theme';
 import Header from './components/Header';
 import RendetionError from './errorBoundaries/RendetionError/rendetion-error';
+import Loader from './components/Loader';
 
 const Views = lazy(() => import('./views'));
 
@@ -33,6 +35,13 @@ const Preview = styled('section')`
   margin: auto;
 `;
 
+const LoaderWrap = styled('div')`
+  height: calc(100vh - 7rem);
+  display: flex;
+  justify-content: center;
+  align-item: center;
+`;
+
 export const App = () => {
   return (
     <BrowserRouter>
@@ -46,7 +55,13 @@ export const App = () => {
                 <Header theme={customMuiTheme} />
                 <Layout id="rootLayout">
                   <Preview>
-                    <Suspense fallback={<div>Loading......</div>}>
+                    <Suspense
+                      fallback={
+                        <LoaderWrap>
+                          <Loader />
+                        </LoaderWrap>
+                      }
+                    >
                       <Switch>
                         <Route
                           path="/"

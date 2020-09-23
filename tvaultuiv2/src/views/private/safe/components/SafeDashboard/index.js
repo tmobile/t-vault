@@ -215,20 +215,23 @@ const SafeDashboard = (props) => {
    * @param {object}
    */
 
-  useEffect(() => {
-    async function fetchData() {
-      setResponseType(0);
-      const safesApiResponse = await apiService.getSafes();
-      const usersListApiResponse = await apiService.getManageUsersList();
-      const sharedListApiResponse = await apiService.getManageSharedList();
-      const appsListApiResponse = await apiService.getManageAppsList();
-      const allApiResponse = Promise.all([
-        safesApiResponse,
-        usersListApiResponse,
-        sharedListApiResponse,
-        appsListApiResponse,
-      ]);
-      allApiResponse.then((response) => {
+  const fetchData = useCallback(async () => {
+    setResponseType(0);
+    const safesApiResponse = await apiService.getSafes();
+    const usersListApiResponse = await apiService.getManageUsersList();
+    const sharedListApiResponse = await apiService.getManageSharedList();
+    const appsListApiResponse = await apiService.getManageAppsList();
+    const allApiResponse = Promise.all([
+      safesApiResponse,
+      usersListApiResponse,
+      sharedListApiResponse,
+      appsListApiResponse,
+    ]);
+    allApiResponse
+      .then((response) => {
+        safes.users = [];
+        safes.apps = [];
+        safes.shared = [];
         if (response[0] && response[0].data) {
           Object.keys(response[0].data).forEach((item) => {
             const data = makeSafesList(response[0].data[item], item);
@@ -246,16 +249,18 @@ const SafeDashboard = (props) => {
         if (response[3] && response[3]?.data?.keys) {
           compareSafesAndList(response[3].data.keys, 'apps');
         }
-
         setSafes(safes);
         setSafeList([...safes.users, ...safes.shared, ...safes.apps]);
         setResponseType(1);
+      })
+      .catch((err) => {
+        setResponseType(-1);
       });
-    }
-    fetchData().catch((err) => {
-      setResponseType(-1);
-    });
   }, [safes, compareSafesAndList]);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
 
   const onSelectChange = (value) => {
     setSafeType(value);
@@ -273,10 +278,18 @@ const SafeDashboard = (props) => {
 
   const loadMoreData = () => {
     setIsLoading(true);
-    // getSafesList().then((res) => {
-    //   setMoreData(false);
-    //   setSafeList((prev) => [...prev, res]);
-    // });
+  };
+
+  const onDeleteSafeClicked = (path) => {
+    setResponseType(0);
+    apiService
+      .deleteSafe(path)
+      .then((res) => {
+        setResponseType(1);
+        fetchData();
+      })
+      // eslint-disable-next-line no-console
+      .catch((e) => console.log(e));
   };
 
   let scrollParentRef = null;
@@ -306,7 +319,9 @@ const SafeDashboard = (props) => {
         <BorderLine />
         {activeSafeFolders.includes(safe.name) && safe.manage ? (
           <PopperWrap>
-            <PsudoPopper />
+            <PsudoPopper
+              onDeleteSafeClicked={() => onDeleteSafeClicked(safe.path)}
+            />
           </PopperWrap>
         ) : null}
       </SafeFolderWrap>
@@ -337,45 +352,51 @@ const SafeDashboard = (props) => {
                 />
               </SearchWrap>
             </ColumnHeader>
-
-            {safeList && safeList.length > 0 ? (
-              <SafeListContainer ref={(ref) => (scrollParentRef = ref)}>
-                <StyledInfiniteScroll
-                  pageStart={0}
-                  loadMore={() => {
-                    loadMoreData();
-                  }}
-                  hasMore={moreData}
-                  threshold={100}
-                  loader={!isLoading ? <div key={0}>Loading...</div> : <></>}
-                  useWindow={false}
-                  getScrollParent={() => scrollParentRef}
-                >
-                  {renderSafes()}
-                </StyledInfiniteScroll>
-              </SafeListContainer>
-            ) : responseType === 0 && !safeList?.length ? (
+            {responseType === 0 ? (
               <Loader contentHeight="80%" contentWidth="100%" />
             ) : (
-              <NoDataWrapper>
+              <>
                 {' '}
-                <NoSafeWrap>
-                  <NoData
-                    imageSrc={NoSafesIcon}
-                    description="Create a Safe to get started!"
-                    actionButton={
-                      // eslint-disable-next-line react/jsx-wrap-multilines
-                      <FloatingActionButtonComponent
-                        href="/safe/create-safe"
-                        color="secondary"
-                        icon="addd"
-                        tooltipTitle="Create New Safe"
-                        tooltipPos="bottom"
+                {safeList && safeList.length > 0 ? (
+                  <SafeListContainer ref={(ref) => (scrollParentRef = ref)}>
+                    <StyledInfiniteScroll
+                      pageStart={0}
+                      loadMore={() => {
+                        loadMoreData();
+                      }}
+                      hasMore={moreData}
+                      threshold={100}
+                      loader={
+                        !isLoading ? <div key={0}>Loading...</div> : <></>
+                      }
+                      useWindow={false}
+                      getScrollParent={() => scrollParentRef}
+                    >
+                      {renderSafes()}
+                    </StyledInfiniteScroll>
+                  </SafeListContainer>
+                ) : (
+                  <NoDataWrapper>
+                    {' '}
+                    <NoSafeWrap>
+                      <NoData
+                        imageSrc={NoSafesIcon}
+                        description="Create a Safe to get started!"
+                        actionButton={
+                          // eslint-disable-next-line react/jsx-wrap-multilines
+                          <FloatingActionButtonComponent
+                            href="/safe/create-safe"
+                            color="secondary"
+                            icon="addd"
+                            tooltipTitle="Create New Safe"
+                            tooltipPos="bottom"
+                          />
+                        }
                       />
-                    }
-                  />
-                </NoSafeWrap>
-              </NoDataWrapper>
+                    </NoSafeWrap>
+                  </NoDataWrapper>
+                )}
+              </>
             )}
             {safeList?.length ? (
               <FloatBtnWrapper>
