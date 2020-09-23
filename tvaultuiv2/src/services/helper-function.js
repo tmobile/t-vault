@@ -44,7 +44,6 @@ export const findElementAndUpdate = (arr, parentId, item) => {
   if (arr.length === 0) return;
   const tempArr = [...arr];
   const itemToUpdate = findElementById(tempArr, parentId, 'children');
-  debugger;
   if (Array.isArray(item)) {
     const isItemExist = itemToUpdate.children.filter(
       (itm) => itm.id === item.id
