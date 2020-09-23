@@ -14,25 +14,29 @@ import mediaBreakpoints from '../../../../../breakpoints';
 import SelectionTabs from '../Tabs';
 
 // styled components goes here
-const Section = styled('section')``;
+const Section = styled('section')`
+  background-image: url(${(props) => props.headerBgSrc || ''});
+  background-size: contain;
+  background-repeat: no-repeat;
+  position: absolute;
+  z-index: 2;
+  width: 100%;
+  height: 100%;
+  top: -8px;
+`;
 
 const ColumnHeader = styled('div')`
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  background-size: cover;
-  background-repeat: no-repeat;
   padding-right: 2rem;
   height: 16rem;
-  background-image: url(${(props) => props.headerBgSrc || ''});
   .safe-title-wrap {
     width: 70%;
   }
   ${mediaBreakpoints.small} {
     height: 13rem;
     padding: 1rem;
-    background-image: url(${(props) => props.headerBgSrc || ''});
-    background-position: -3rem 3rem;
   }
 `;
 
@@ -80,14 +84,14 @@ const SafeDetails = (props) => {
   }, [location.state, detailData, history.location.pathname]);
   return (
     <ComponentError>
-      <Section>
+      <Section headerBgSrc={sectionHeaderBg}>
         {isMobileScreen ? (
           <BackButton onClick={goBackToSafeList}>
             <BackArrow />
             <span>{safeDetail.name || 'No safe'}</span>
           </BackButton>
         ) : null}
-        <ColumnHeader headerBgSrc={sectionHeaderBg}>
+        <ColumnHeader>
           <div className="safe-title-wrap">
             {!isMobileScreen && (
               <SafeTitle>{safeDetail?.name || 'No Safe'}</SafeTitle>
