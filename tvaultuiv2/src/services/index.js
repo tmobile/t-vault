@@ -7,6 +7,7 @@ function ApiCall(url, method, data, header) {
     ...header,
     'vault-token': token,
     'content-type': 'application/json',
+    'Access-Control-Allow-Origin': '*',
   };
   return axios.request({ url, method, headers, data });
 }

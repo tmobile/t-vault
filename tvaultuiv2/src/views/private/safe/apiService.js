@@ -5,6 +5,7 @@ const fetchSafe = (data) => mockApi(data);
 const searchUser = (data) => mockApi(data);
 
 const getSafes = () => api.get('/ss/sdb/safes');
+const deleteSafe = (path) => api.delete(`/ss/sdb/delete?path=${path}`);
 const getManageUsersList = () => api.get('/ss/sdb/list?path=users');
 const getManageSharedList = () => api.get('/ss/sdb/list?path=shared');
 const getManageAppsList = () => api.get('/ss/sdb/list?path=apps');
@@ -28,6 +29,7 @@ export default {
   fetchSafe,
   searchUser,
   getSafes,
+  deleteSafe,
   getManageUsersList,
   getManageAppsList,
   getManageSharedList,

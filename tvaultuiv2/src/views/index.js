@@ -1,3 +1,4 @@
+/* eslint-disable react/jsx-wrap-multilines */
 import React, { Suspense, lazy } from 'react';
 import {
   BrowserRouter as Router,
@@ -5,17 +6,32 @@ import {
   Switch,
   Redirect,
 } from 'react-router-dom';
+import styled from 'styled-components';
 
 import Safe from './private/safe';
+import Loader from '../components/Loader';
 
 const Home = lazy(() => import('./public/HomePage'));
 const Applications = lazy(() => import('./private/applications'));
 const Certificates = lazy(() => import('./private/certificates'));
 const ServiceAccounts = lazy(() => import('./private/service-accounts'));
 
+const LoaderWrap = styled('div')`
+  height: calc(100vh - 7rem);
+  display: flex;
+  justify-content: center;
+  align-item: center;
+`;
+
 const PrivateRoutes = () => {
   return (
-    <Suspense fallback={<div>Loading...</div>}>
+    <Suspense
+      fallback={
+        <LoaderWrap>
+          <Loader />
+        </LoaderWrap>
+      }
+    >
       <Router>
         <Switch>
           <Redirect exact from="/" to="/safe" />
