@@ -8,142 +8,10 @@ import PropTypes from 'prop-types';
 
 import { findElementAndUpdate } from '../../../../../services/helper-function';
 import ComponentError from '../../../../../errorBoundaries/ComponentError/component-error';
-import CreateSecretButton from '../CreateSecretButton';
-import AddForm from '../AddForm';
-import CreateSecret from '../CreateSecrets';
-import AddFolder from '../AddFolder';
-import File from './components/file';
-import Folder from './components/folder';
-import apiService from '../../apiService';
+import TreeRecursive from './components/TreeRecursive';
 import SnackbarComponent from '../../../../../components/Snackbar';
-import LoaderSpinner from '../../../../../components/LoaderSpinner';
+import apiService from '../../apiService';
 
-const TreeRecursive = ({
-  data,
-  saveSecretsToFolder,
-  saveFolder,
-  handleCancelClick,
-  setCreateSecretBox,
-  setIsAddInput,
-  isAddInput,
-  setInputType,
-  inputType,
-  responseType,
-  toastMessage,
-  setResponseType,
-  getChildrenData,
-}) => {
-  const onToastClose = (reason) => {
-    if (reason === 'clickaway') {
-      return;
-    }
-    setResponseType(null);
-  };
-  // loop through the data
-  return data.map((item) => {
-    // if its a file render <File />
-
-    if (item.type.toLowerCase() === 'secret') {
-      return (
-        <div key={item.id}>
-          {' '}
-          <File
-            secretKey={item.key}
-            secretValue={item.value}
-            secret={item.value}
-            type={item.type}
-            setIsAddInput={setIsAddInput}
-            setInputType={setInputType}
-            id={item.id}
-          />
-        </div>
-      );
-    }
-    // if its a folder render <Folder />
-    if (item.type === 'folder') {
-      return (
-        <div key={item.id}>
-          <Folder
-            folderInfo={item}
-            setInputType={setInputType}
-            setIsAddInput={setIsAddInput}
-            getChildNodes={getChildrenData}
-            id={item.id}
-          >
-            {Array.isArray(item.children) ? (
-              <TreeRecursive
-                data={item.children}
-                saveSecretsToFolder={saveSecretsToFolder}
-                setCreateSecretBox={setCreateSecretBox}
-                handleCancelClick={handleCancelClick}
-                saveFolder={saveFolder}
-                isAddInput={isAddInput}
-                setIsAddInput={setIsAddInput}
-                setInputType={setInputType}
-                inputType={inputType}
-                path={`${item.id}/${item.value}`}
-                toastMessage={toastMessage}
-                setResponseType={setResponseType}
-                getChildrenData={getChildrenData}
-              />
-            ) : (
-              <></>
-            )}
-            <AddForm
-              inputNode={
-                // eslint-disable-next-line react/jsx-wrap-multilines
-                inputType?.type?.toLowerCase() === 'folder' ? (
-                  <AddFolder
-                    parentId={item.id}
-                    handleCancelClick={handleCancelClick}
-                    handleSaveClick={(secret) => saveFolder(secret, item.value)}
-                  />
-                ) : (
-                  <CreateSecret
-                    parentId={item.id}
-                    handleSecretCancel={handleCancelClick}
-                    handleSecretSave={(secret) =>
-                      saveFolder(secret, item.value)
-                    }
-                  />
-                )
-              }
-              inputEnabled={inputType?.currentNode === item.value && isAddInput}
-            />
-            {item?.children?.length === 0 && responseType === 0 ? (
-              <LoaderSpinner />
-            ) : (
-              item?.children?.length === 0 && (
-                <CreateSecretButton
-                  onClick={(e) => setCreateSecretBox(e, item.value)}
-                />
-              )
-            )}
-            {responseType === -1 && !isAddInput ? (
-              <SnackbarComponent
-                open
-                onClose={() => onToastClose()}
-                severity="error"
-                icon="error"
-                message={toastMessage || 'Something went wrong!'}
-              />
-            ) : (
-              responseType === 1 &&
-              !isAddInput && (
-                <SnackbarComponent
-                  open
-                  onClose={() => onToastClose()}
-                  severity="success"
-                  message={toastMessage || 'Folder/Secret added successfully'}
-                />
-              )
-            )}
-          </Folder>
-        </div>
-      );
-    }
-  });
-};
 const StyledTree = styled.div`
   line-height: 1.5;
   margin-top: 1.2rem;
@@ -186,7 +54,7 @@ const Tree = (props) => {
     apiService
       .getSecret(id)
       .then((res) => {
-        setResponseType(1);
+        setResponseType(null);
         const updatedArray = findElementAndUpdate(
           tempFolders,
           id,
@@ -320,18 +188,32 @@ const Tree = (props) => {
           inputType={inputType}
           setIsAddInput={setIsAddInput}
           responseType={responseType}
-          onToastClose={onToastClose}
-          toastMessage={toastMessage}
           setResponseType={setResponseType}
           getChildrenData={getChildrenData}
         />
+        {responseType === -1 && !isAddInput ? (
+          <SnackbarComponent
+            open
+            onClose={() => onToastClose()}
+            severity="error"
+            icon="error"
+            message={toastMessage || 'Something went wrong!'}
+          />
+        ) : (
+          responseType === 1 &&
+          !isAddInput && (
+            <SnackbarComponent
+              open
+              onClose={() => onToastClose()}
+              severity="success"
+              message={toastMessage || 'Folder/Secret added successfully'}
+            />
+          )
+        )}
       </StyledTree>
     </ComponentError>
   );
 };
-
-Tree.File = File;
-Tree.Folder = Folder;
 
 // props validation
 Tree.propTypes = {

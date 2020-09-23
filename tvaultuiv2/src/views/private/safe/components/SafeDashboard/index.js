@@ -22,6 +22,7 @@ import SafeDetails from '../SafeDetails';
 import ListItem from '../ListItem';
 import PsudoPopper from '../PsudoPopper';
 import SelectComponent from '../../../../../components/FormFields/SelectFields';
+import Error from '../../../../../components/Error';
 import {
   makeSafesList,
   createSafeArray,
@@ -132,6 +133,15 @@ const MobileViewForSafeDetailsPage = css`
 const SearchBox = styled.div`
   display: flex;
   flex: 1;
+`;
+const EmptySecretBox = styled('div')`
+  width: 100%;
+  position: absolute;
+  display: flex;
+  justify-content: center;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
 `;
 
 const useStyles = makeStyles((theme) => ({
@@ -294,6 +304,7 @@ const SafeDashboard = (props) => {
           window.location.pathname.includes(safe.name)
         }
         onMouseLeave={() => setActiveSafeFolders([])}
+        onClick={() => showSafeDetails(safe.name, safe)}
         onMouseEnter={() => showSafeDetails(safe.name, safe)}
       >
         <ListItem
@@ -337,8 +348,15 @@ const SafeDashboard = (props) => {
                 />
               </SearchWrap>
             </ColumnHeader>
-
-            {safeList && safeList.length > 0 ? (
+            {responseType === -1 && !safeList?.length && (
+              <EmptySecretBox>
+                {' '}
+                <Error description="Error while fetching safes!" />
+              </EmptySecretBox>
+            )}
+            {responseType === 0 && !safeList?.length ? (
+              <Loader contentHeight="80%" contentWidth="100%" />
+            ) : safeList && safeList.length > 0 ? (
               <SafeListContainer ref={(ref) => (scrollParentRef = ref)}>
                 <StyledInfiniteScroll
                   pageStart={0}
@@ -354,28 +372,31 @@ const SafeDashboard = (props) => {
                   {renderSafes()}
                 </StyledInfiniteScroll>
               </SafeListContainer>
-            ) : responseType === 0 && !safeList?.length ? (
-              <Loader contentHeight="80%" contentWidth="100%" />
             ) : (
-              <NoDataWrapper>
-                {' '}
-                <NoSafeWrap>
-                  <NoData
-                    imageSrc={NoSafesIcon}
-                    description="Create a Safe to get started!"
-                    actionButton={
-                      // eslint-disable-next-line react/jsx-wrap-multilines
-                      <FloatingActionButtonComponent
-                        href="/safe/create-safe"
-                        color="secondary"
-                        icon="addd"
-                        tooltipTitle="Create New Safe"
-                        tooltipPos="bottom"
-                      />
-                    }
-                  />
-                </NoSafeWrap>
-              </NoDataWrapper>
+              safeList &&
+              safeList.length === 0 &&
+              responseType !== -1 &&
+              responseType !== 0 && (
+                <NoDataWrapper>
+                  {' '}
+                  <NoSafeWrap>
+                    <NoData
+                      imageSrc={NoSafesIcon}
+                      description="Create a Safe to get started!"
+                      actionButton={
+                        // eslint-disable-next-line react/jsx-wrap-multilines
+                        <FloatingActionButtonComponent
+                          href="/safe/create-safe"
+                          color="secondary"
+                          icon="addd"
+                          tooltipTitle="Create New Safe"
+                          tooltipPos="bottom"
+                        />
+                      }
+                    />
+                  </NoSafeWrap>
+                </NoDataWrapper>
+              )
             )}
             {safeList?.length ? (
               <FloatBtnWrapper>

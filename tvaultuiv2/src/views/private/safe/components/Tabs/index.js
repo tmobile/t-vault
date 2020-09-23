@@ -129,12 +129,12 @@ export default function SelectionTabs(props) {
     setEnableAddFolder(true);
   };
   // toast close handling
-  const onToastClose = (reason) => {
-    if (reason === 'clickaway') {
-      return;
-    }
-    setResponseType(null);
-  };
+  // const onToastClose = (reason) => {
+  //   if (reason === 'clickaway') {
+  //     return;
+  //   }
+  //   setResponseType(null);
+  // };
 
   const addSecretsFolderList = (secretFolder) => {
     const tempFolders = [...secretsFolder] || [];
@@ -230,6 +230,7 @@ export default function SelectionTabs(props) {
           }
           {enabledAddFolder ? (
             <AddFolder
+              childrens={secretsFolder}
               handleSaveClick={addSecretsFolderList}
               parentId={safeDetail.path}
               handleCancelClick={() => setEnableAddFolder(false)}
@@ -238,64 +239,55 @@ export default function SelectionTabs(props) {
             <></>
           )}
 
-          {responseType === -1 && !enabledAddFolder ? (
+          {responseType === -1 && !enabledAddFolder && !secretsFolder && (
             <EmptySecretBox>
               {' '}
               <Error description="Error while fetching safes folders" />
             </EmptySecretBox>
-          ) : (
-            responseType === 1 &&
-            !enabledAddFolder && (
-              <SnackbarComponent
-                open
-                onClose={() => onToastClose()}
-                message={toastMessage || 'Request succesfull'}
-              />
-            )
           )}
           {!secretsFolder?.length && responseType === 0 ? (
             <Loader width="100%" height="70%" />
           ) : secretsFolder && secretsFolder.length ? (
             <Tree data={secretsFolder} />
-          ) : (
-            !secretsFolder?.length &&
-            !enabledAddFolder &&
+          ) : responseType === 1 &&
+            responseType !== 0 &&
             responseType !== -1 &&
-            responseType !== 0 && (
-              <EmptySecretBox>
-                <NoData
-                  imageSrc={NoSecretsIcon}
-                  description="add a <strong>Folder</strong> and then you will be able to add <strong>secrets</strong> to view them all here"
-                  actionButton={
-                    // eslint-disable-next-line react/jsx-wrap-multilines
-                    <ButtonComponent
-                      label="add"
-                      icon="add"
-                      color="secondary"
-                      disabled={safeDetail?.access?.toLowerCase() === 'read'}
-                      width={isMobileScreen ? '100%' : ''}
-                      onClick={() => setEnableAddFolder(true)}
-                    />
-                  }
-                  bgIconStyle={bgIconStyle}
-                  width={isMobileScreen ? '100%' : '30%'}
-                />
-              </EmptySecretBox>
-            )
+            secretsFolder?.length === 0 &&
+            !enabledAddFolder ? (
+            <EmptySecretBox>
+              <NoData
+                imageSrc={NoSecretsIcon}
+                description="add a <strong>Folder</strong> and then you will be able to add <strong>secrets</strong> to view them all here"
+                actionButton={
+                  // eslint-disable-next-line react/jsx-wrap-multilines
+                  <ButtonComponent
+                    label="add"
+                    icon="add"
+                    color="secondary"
+                    disabled={safeDetail?.access?.toLowerCase() === 'read'}
+                    width={isMobileScreen ? '100%' : ''}
+                    onClick={() => setEnableAddFolder(true)}
+                  />
+                }
+                bgIconStyle={bgIconStyle}
+                width={isMobileScreen ? '100%' : '30%'}
+              />
+            </EmptySecretBox>
+          ) : (
+            <></>
           )}
         </TabPanel>
         <TabPanel value={value} index={1}>
           {safeDetail.manage && <Permissions safeDetail={safeDetail} />}
         </TabPanel>
-        {responseType === -1 && (
-          <SnackbarComponent
-            open
-            onClose={() => onToastClose()}
-            severity="error"
-            icon="error"
-            message={toastMessage || 'Something went wrong!'}
-          />
-        )}
+
+        {/* <SnackbarComponent
+          open={responseType === -1}
+          onClose={() => onToastClose()}
+          severity="error"
+          icon="error"
+          message={toastMessage || 'Something went wrong!'}
+        /> */}
       </div>
     </ComponentError>
   );

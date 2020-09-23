@@ -44,8 +44,18 @@ export const findElementAndUpdate = (arr, parentId, item) => {
   if (arr.length === 0) return;
   const tempArr = [...arr];
   const itemToUpdate = findElementById(tempArr, parentId, 'children');
+
   if (Array.isArray(item)) {
-    itemToUpdate.children = [...itemToUpdate.children, ...item];
+    const isItemExist = itemToUpdate.children.filter(
+      (itm) => itm.id === item.id
+    );
+    if (!itemToUpdate.children.length) {
+      itemToUpdate.children = [...itemToUpdate.children, ...item];
+      return;
+    }
+    if (!isItemExist) {
+      itemToUpdate.children = [...itemToUpdate.children, ...item];
+    }
   } else {
     itemToUpdate.children = [...itemToUpdate.children, item];
   }
