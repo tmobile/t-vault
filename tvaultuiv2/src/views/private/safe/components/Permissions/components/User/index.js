@@ -1,4 +1,6 @@
-import React, { useState } from 'react';
+/* eslint-disable react/jsx-curly-newline */
+/* eslint-disable no-console */
+import React, { useState, useCallback, useEffect } from 'react';
 import styled, { css } from 'styled-components';
 import PropTypes from 'prop-types';
 import useMediaQuery from '@material-ui/core/useMediaQuery';
@@ -19,6 +21,9 @@ import userIcon from '../../../../../../../assets/permission-user.png';
 import mediaBreakpoints from '../../../../../../../breakpoints';
 import PopperElement from '../../../Popper';
 import AddUser from '../../../AddUser';
+import apiService from '../../../../apiService';
+import SnackbarComponent from '../../../../../../../components/Snackbar';
+import LoaderSpinner from '../../../../../../../components/LoaderSpinner';
 
 const { small } = mediaBreakpoints;
 
@@ -106,20 +111,102 @@ const PopperItem = styled.div`
   }
 `;
 
+const customStyle = css`
+  margin-top: 10rem;
+`;
+
 const User = (props) => {
   const {
-    users,
-    onSaveClicked,
-    addPermission,
-    onNoDataAddClicked,
-    onCancelClicked,
     safeDetail,
-    onDeleteClick,
+    newPermission,
+    onNewPermissionChange,
+    getPermissionCount,
   } = props;
+
   const [editUser, setEditUser] = useState('');
   const [editAccess, setEditAccess] = useState('');
   const [editPermission, setEditPermission] = useState(false);
   const isMobileScreen = useMediaQuery(small);
+  const [toastMessage, setToastMessage] = useState('');
+  const [addPermission, setAddPermission] = useState(false);
+  const [responseType, setResponseType] = useState(0);
+  const [users, setUsers] = useState({});
+
+  useEffect(() => {
+    if (newPermission) {
+      setAddPermission(true);
+    }
+  }, [newPermission]);
+
+  useEffect(() => {
+    getPermissionCount(Object.keys(users).length);
+  }, [users, getPermissionCount]);
+
+  const fetchPermission = useCallback(() => {
+    setUsers({});
+    setResponseType(0);
+    apiService
+      .getSafePermission(safeDetail.path)
+      .then((res) => {
+        setResponseType(null);
+        if (res && res.data?.data?.users) {
+          setUsers(res.data.data.users);
+        }
+      })
+      .catch((e) => {
+        setResponseType(-1);
+        console.log('error', e);
+      });
+  }, [safeDetail]);
+
+  useEffect(() => {
+    if (safeDetail?.manage) {
+      fetchPermission();
+    }
+  }, [safeDetail, fetchPermission]);
+
+  const onSaveClicked = (data) => {
+    setAddPermission(false);
+    setResponseType(0);
+    apiService
+      .addUserPermission(data)
+      .then((res) => {
+        if (res && res.data?.messages) {
+          setToastMessage(res.data?.messages[0]);
+          setResponseType(1);
+          fetchPermission();
+        }
+      })
+      .catch((err) => {
+        if (err.response && err.response.data?.messages[0]) {
+          setToastMessage(err.response.data.messages[0]);
+        }
+        setResponseType(-1);
+      });
+  };
+
+  const onDeleteClick = (username) => {
+    setResponseType(0);
+    const payload = {
+      path: safeDetail.path,
+      username,
+    };
+    apiService
+      .deleteUserPermission(payload)
+      .then((res) => {
+        if (res && res.data?.Message) {
+          setToastMessage(res.data.Message);
+          setResponseType(1);
+          fetchPermission();
+        }
+      })
+      .catch((err) => {
+        if (err.response && err.response.data?.messages[0]) {
+          setToastMessage(err.response.data.messages[0]);
+        }
+        setResponseType(-1);
+      });
+  };
 
   const onSubmit = (user, access) => {
     const value = {
@@ -128,6 +215,7 @@ const User = (props) => {
       username: user.toLowerCase(),
     };
     onSaveClicked(value);
+    onNewPermissionChange();
   };
 
   const onEditClick = (key, value) => {
@@ -136,110 +224,152 @@ const User = (props) => {
     setEditPermission(true);
   };
 
-  const onEditCancelClicked = () => {
+  const onCancelClicked = () => {
+    setAddPermission(false);
     setEditPermission(false);
-    onCancelClicked();
+    onNewPermissionChange();
   };
 
-  const onEdit = () => {
+  const onEditSaveClicked = (username, access) => {
+    setResponseType(0);
+    const payload = {
+      path: safeDetail.path,
+      username,
+    };
+    apiService
+      .deleteUserPermission(payload)
+      .then((res) => {
+        if (res) {
+          onSubmit(username, access);
+        }
+      })
+      .catch((e) => {
+        console.log('e', e);
+        setResponseType(-1);
+      });
     setEditPermission(false);
-    onCancelClicked();
+  };
+
+  const onToastClose = (reason) => {
+    if (reason === 'clickaway') {
+      return;
+    }
+    setResponseType(null);
   };
 
   return (
     <ComponentError>
-      <>
-        {addPermission && !editPermission && (
-          <AddUser
-            handleSaveClick={(user, access) => onSubmit(user, access)}
-            handleCancelClick={onCancelClicked}
-          />
-        )}
-        {editPermission && (
-          <AddUser
-            handleSaveClick={(user, access) => onEdit(user, access)}
-            handleCancelClick={onEditCancelClicked}
-            username={editUser}
-            access={editAccess}
-          />
-        )}
-        {users &&
-        Object.keys(users).length > 0 &&
-        !addPermission &&
-        !editPermission ? (
-          <UserList>
-            {Object.entries(users).map(([key, value]) => (
-              <EachUserWrap key={key}>
-                <IconDetailsWrap>
-                  <Icon src={userIcon} alt="user" />
-                  <Details>
-                    <TitleTwo extraCss={styles}>{key}</TitleTwo>
-                    <TitleFour extraCss={permissionStyles}>
-                      2 days ago
-                      {' - '}
-                      {value}
-                    </TitleFour>
-                  </Details>
-                </IconDetailsWrap>
-                <FolderIconWrap>
-                  <PopperElement
-                    anchorOrigin={{
-                      vertical: 'bottom',
-                      horizontal: 'right',
-                    }}
-                    transformOrigin={{
-                      vertical: 'top',
-                      horizontal: 'right',
-                    }}
-                  >
-                    <PopperItem onClick={() => onEditClick(key, value)}>
-                      <IconEdit />
-                      <span>Edit</span>
-                    </PopperItem>
-                    <PopperItem onClick={() => onDeleteClick(key)}>
-                      <IconDeleteActive />
-                      <span> Delete</span>
-                    </PopperItem>
-                  </PopperElement>
-                </FolderIconWrap>
-              </EachUserWrap>
-            ))}
-          </UserList>
-        ) : (
+      {responseType === 0 ? (
+        <LoaderSpinner customStyle={customStyle} />
+      ) : (
+        <>
+          {addPermission && !editPermission && (
+            <AddUser
+              handleSaveClick={(user, access) => onSubmit(user, access)}
+              handleCancelClick={onCancelClicked}
+            />
+          )}
+          {editPermission && (
+            <AddUser
+              handleSaveClick={(user, access) =>
+                onEditSaveClicked(user, access)
+              }
+              handleCancelClick={onCancelClicked}
+              username={editUser}
+              access={editAccess}
+            />
+          )}
+          {users &&
+          Object.keys(users).length > 0 &&
           !addPermission &&
-          !editPermission && (
-            <NoDataWrapper>
-              <NoData
-                imageSrc={noPermissionsIcon}
-                description="Add <strong>Permissions</strong> to allow people, groups or aplication to access this safe"
-                actionButton={
-                  // eslint-disable-next-line react/jsx-wrap-multilines
-                  <ButtonComponent
-                    label="add"
-                    icon="add"
-                    color="secondary"
-                    onClick={onNoDataAddClicked}
-                    width={isMobileScreen ? '100%' : '38%'}
-                  />
-                }
-                bgIconStyle={bgIconStyle}
-                width={isMobileScreen ? '100%' : '38%'}
-              />
-            </NoDataWrapper>
-          )
-        )}
-      </>
+          !editPermission ? (
+            <UserList>
+              {Object.entries(users).map(([key, value]) => (
+                <EachUserWrap key={key}>
+                  <IconDetailsWrap>
+                    <Icon src={userIcon} alt="user" />
+                    <Details>
+                      <TitleTwo extraCss={styles}>{key}</TitleTwo>
+                      <TitleFour extraCss={permissionStyles}>
+                        2 days ago
+                        {' - '}
+                        {value}
+                      </TitleFour>
+                    </Details>
+                  </IconDetailsWrap>
+                  <FolderIconWrap>
+                    <PopperElement
+                      anchorOrigin={{
+                        vertical: 'bottom',
+                        horizontal: 'right',
+                      }}
+                      transformOrigin={{
+                        vertical: 'top',
+                        horizontal: 'right',
+                      }}
+                    >
+                      <PopperItem onClick={() => onEditClick(key, value)}>
+                        <IconEdit />
+                        <span>Edit</span>
+                      </PopperItem>
+                      <PopperItem onClick={() => onDeleteClick(key)}>
+                        <IconDeleteActive />
+                        <span> Delete</span>
+                      </PopperItem>
+                    </PopperElement>
+                  </FolderIconWrap>
+                </EachUserWrap>
+              ))}
+            </UserList>
+          ) : (
+            !addPermission &&
+            !editPermission && (
+              <NoDataWrapper>
+                <NoData
+                  imageSrc={noPermissionsIcon}
+                  description="Add <strong>Permissions</strong> to allow people, groups or aplication to access this safe"
+                  actionButton={
+                    // eslint-disable-next-line react/jsx-wrap-multilines
+                    <ButtonComponent
+                      label="add"
+                      icon="add"
+                      color="secondary"
+                      onClick={() => setAddPermission(true)}
+                      width={isMobileScreen ? '100%' : '38%'}
+                    />
+                  }
+                  bgIconStyle={bgIconStyle}
+                  width={isMobileScreen ? '100%' : '38%'}
+                />
+              </NoDataWrapper>
+            )
+          )}
+        </>
+      )}
+      {responseType === -1 && (
+        <SnackbarComponent
+          open
+          onClose={() => onToastClose()}
+          severity="error"
+          icon="error"
+          message={toastMessage || 'Something went wrong!'}
+        />
+      )}
+      {responseType === 1 && (
+        <SnackbarComponent
+          open
+          onClose={() => onToastClose()}
+          message={toastMessage}
+        />
+      )}
     </ComponentError>
   );
 };
 
 User.propTypes = {
-  users: PropTypes.objectOf(PropTypes.any).isRequired,
-  onSaveClicked: PropTypes.func.isRequired,
-  addPermission: PropTypes.bool.isRequired,
-  onNoDataAddClicked: PropTypes.func.isRequired,
-  onCancelClicked: PropTypes.func.isRequired,
   safeDetail: PropTypes.objectOf(PropTypes.any).isRequired,
-  onDeleteClick: PropTypes.func.isRequired,
+  newPermission: PropTypes.bool.isRequired,
+  onNewPermissionChange: PropTypes.func.isRequired,
+  getPermissionCount: PropTypes.func.isRequired,
 };
 export default User;

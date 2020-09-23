@@ -1,6 +1,6 @@
 /* eslint-disable no-console */
 /* eslint-disable react/jsx-props-no-spreading */
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState } from 'react';
 import styled, { css } from 'styled-components';
 import { makeStyles } from '@material-ui/core/styles';
 import Tab from '@material-ui/core/Tab';
@@ -12,9 +12,6 @@ import NamedButton from '../../../../../components/NamedButton';
 import permissionPlusIcon from '../../../../../assets/permission-plus.svg';
 import mediaBreakpoints from '../../../../../breakpoints';
 import User from './components/User';
-import apiService from '../../apiService';
-import SnackbarComponent from '../../../../../components/Snackbar';
-import LoaderSpinner from '../../../../../components/LoaderSpinner';
 
 const { small } = mediaBreakpoints;
 
@@ -104,10 +101,6 @@ const customMobileStyles = css`
   }
 `;
 
-const customStyle = css`
-  margin-top: 10rem;
-`;
-
 const useStyles = makeStyles(() => ({
   appBar: {
     display: 'flex',
@@ -120,97 +113,27 @@ const Permissions = (props) => {
   const { safeDetail } = props;
   const classes = useStyles();
   const [value, setValue] = useState(0);
-  const [users, setUsers] = useState({});
-  const [addPermission, setAddPermission] = useState(false);
-  const [responseType, setResponseType] = useState(0);
-  const [toastMessage, setToastMessage] = useState('');
-
-  const fetchPermission = useCallback(() => {
-    setResponseType(0);
-    apiService
-      .getSafePermission(safeDetail.path)
-      .then((res) => {
-        setResponseType(null);
-        if (res && res.data?.data?.users) {
-          setUsers(res.data.data.users);
-        }
-      })
-      .catch((e) => {
-        setResponseType(-1);
-        console.log('error', e);
-      });
-  }, [safeDetail]);
-
-  useEffect(() => {
-    if (safeDetail?.manage) {
-      fetchPermission();
-    }
-  }, [safeDetail, fetchPermission]);
-
-  const onSaveClicked = (data) => {
-    setAddPermission(false);
-    setResponseType(0);
-    apiService
-      .addUserPermission(data)
-      .then((res) => {
-        if (res && res.data?.messages) {
-          setToastMessage(res.data?.messages[0]);
-          setResponseType(1);
-          fetchPermission();
-        }
-      })
-      .catch((err) => {
-        if (err.response && err.response.data?.messages[0]) {
-          setToastMessage(err.response.data.messages[0]);
-        }
-        setResponseType(-1);
-      });
-  };
-
-  const onDeleteClick = (username) => {
-    setResponseType(0);
-    const payload = {
-      path: safeDetail.path,
-      username,
-    };
-    apiService
-      .deleteUserPermission(payload)
-      .then((res) => {
-        if (res && res.data?.Message) {
-          setToastMessage(res.data.Message);
-          setResponseType(1);
-          fetchPermission();
-        }
-      })
-      .catch((err) => {
-        if (err.response && err.response.data?.messages[0]) {
-          setToastMessage(err.response.data.messages[0]);
-        }
-        setResponseType(-1);
-      });
-  };
+  const [newPermission, setNewPermission] = useState(false);
+  const [count, setCount] = useState(0);
 
   const handleChange = (event, newValue) => {
     setValue(newValue);
   };
-  const onToastClose = (reason) => {
-    if (reason === 'clickaway') {
-      return;
-    }
-    setResponseType(null);
+
+  const getPermissionCount = (val) => {
+    setCount(val);
   };
+
   return (
     <ComponentError>
       <>
         <CountPlusWrapper>
-          <CountSpan color="#5e627c">
-            {`${users && Object.keys(users).length} Permissions`}
-          </CountSpan>
+          <CountSpan color="#5e627c">{`${count} Permissions`}</CountSpan>
           <NamedButton
             customStyle={customMobileStyles}
             label="Add Permission"
             iconSrc={permissionPlusIcon}
-            onClick={() => setAddPermission(true)}
+            onClick={() => setNewPermission(true)}
           />
         </CountPlusWrapper>
         <TabWrapper>
@@ -231,23 +154,16 @@ const Permissions = (props) => {
               customStyle={customStyles}
               label="Add Permission"
               iconSrc={permissionPlusIcon}
-              onClick={() => setAddPermission(true)}
+              onClick={() => setNewPermission(true)}
             />
           </AppBar>
           <TabPanel value={value} index={0}>
-            {responseType !== 0 ? (
-              <User
-                users={users}
-                safeDetail={safeDetail}
-                onSaveClicked={(data) => onSaveClicked(data)}
-                addPermission={addPermission}
-                onCancelClicked={() => setAddPermission(false)}
-                onNoDataAddClicked={() => setAddPermission(true)}
-                onDeleteClick={(username) => onDeleteClick(username)}
-              />
-            ) : (
-              <LoaderSpinner customStyle={customStyle} />
-            )}
+            <User
+              safeDetail={safeDetail}
+              newPermission={newPermission}
+              onNewPermissionChange={() => setNewPermission(false)}
+              getPermissionCount={(val) => getPermissionCount(val)}
+            />
           </TabPanel>
           <TabPanel value={value} index={1}>
             Group
@@ -259,22 +175,6 @@ const Permissions = (props) => {
             App Roles
           </TabPanel>
         </TabWrapper>
-        {responseType === -1 && (
-          <SnackbarComponent
-            open
-            onClose={() => onToastClose()}
-            severity="error"
-            icon="error"
-            message={toastMessage || 'Something went wrong!'}
-          />
-        )}
-        {responseType === 1 && (
-          <SnackbarComponent
-            open
-            onClose={() => onToastClose()}
-            message={toastMessage}
-          />
-        )}
       </>
     </ComponentError>
   );
