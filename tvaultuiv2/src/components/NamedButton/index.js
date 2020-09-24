@@ -35,7 +35,7 @@ const NamedButton = (props) => {
         onClick={onClick}
         disable={disable}
       >
-        <TitleTwo color="#fff" extraCss={styles}>
+        <TitleTwo color={disable ? '#5e627c' : '#fff'} extraCss={styles}>
           {label}
         </TitleTwo>
         <Icon alt="icon-plus" src={iconSrc} />

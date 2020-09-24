@@ -27,6 +27,7 @@ import AddFolder from '../AddFolder';
 import Tree from '../Tree';
 import Permissions from '../Permissions';
 import apiService from '../../apiService';
+import disableAddFolder from '../../../../../assets/addfolder_inactive.svg';
 // import SnackbarComponent from '../../../../../components/Snackbar';
 // styled components goes here
 
@@ -171,7 +172,6 @@ export default function SelectionTabs(props) {
   };
 
   useEffect(() => {
-    setResponseType(0);
     if (safeDetail?.path) {
       setResponseType(0);
       if (!safeDetail.manage) {
@@ -218,8 +218,15 @@ export default function SelectionTabs(props) {
               label="Add Folder"
               onClick={addSecretsFolder}
               customStyle={customBtnStyles}
-              iconSrc={addFolderPlus}
-              disable={safeDetail?.access?.toLowerCase() === 'read'}
+              iconSrc={
+                Object.keys(safeDetail).length === 0
+                  ? disableAddFolder
+                  : addFolderPlus
+              }
+              disable={
+                safeDetail?.access?.toLowerCase() === 'read' ||
+                Object.keys(safeDetail).length === 0
+              }
             />
           )}
         </AppBar>

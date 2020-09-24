@@ -6,7 +6,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 import InfiniteScroll from 'react-infinite-scroller';
 import PropTypes from 'prop-types';
-import { Link, Route, Switch } from 'react-router-dom';
+import { Link, Route, Switch, Redirect } from 'react-router-dom';
 import styled, { css } from 'styled-components';
 import useMediaQuery from '@material-ui/core/useMediaQuery';
 import { values } from 'lodash';
@@ -437,8 +437,28 @@ const SafeDashboard = (props) => {
             >
               <Switch>
                 {' '}
+                {safeList[0]?.name && (
+                  <Redirect
+                    exact
+                    from="/safe"
+                    to={{
+                      pathname: `/safe/${safeList[0]?.name}`,
+                      state: { safe: safeList[0] },
+                    }}
+                  />
+                )}
                 <Route
                   path="/:tab/:safeName"
+                  render={(routerProps) => (
+                    <SafeDetails
+                      detailData={safes}
+                      params={routerProps}
+                      setActiveSafeFolders={() => setActiveSafeFolders([])}
+                    />
+                  )}
+                />
+                <Route
+                  path="/"
                   render={(routerProps) => (
                     <SafeDetails
                       detailData={safes}

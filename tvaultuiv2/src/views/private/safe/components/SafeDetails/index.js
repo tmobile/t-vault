@@ -82,6 +82,7 @@ const SafeDetails = (props) => {
     }
     setSafeDetail(location?.state?.safe);
   }, [location.state, detailData, history.location.pathname]);
+
   return (
     <ComponentError>
       <Section headerBgSrc={sectionHeaderBg}>
