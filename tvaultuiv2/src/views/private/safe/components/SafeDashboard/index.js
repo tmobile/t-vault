@@ -1,3 +1,4 @@
+/* eslint-disable react/jsx-wrap-multilines */
 /* eslint-disable no-nested-ternary */
 /* eslint-disable no-param-reassign */
 /* eslint-disable no-unused-vars */
@@ -32,6 +33,9 @@ import {
 // import { safes } from './__mock/safeDashboard';
 import apiService from '../../apiService';
 import Loader from '../../../../../components/Loader';
+
+import ConfirmationModal from '../../../../../components/ConfirmationModal';
+import ButtonComponent from '../../../../../components/FormFields/ActionButton';
 
 // styled components
 const ColumnSection = styled('section')`
@@ -185,6 +189,11 @@ const SafeDashboard = (props) => {
     { selected: 'Application Safe', path: 'apps' },
   ]);
   const [safeType, setSafeType] = useState('All Safes');
+  const [openConfirmationModal, setOpenConfirmationModal] = useState(false);
+  const [deletionPath, setDeletionPath] = useState('');
+  const handleClose = () => {
+    setOpenConfirmationModal(false);
+  };
   // const [showPopper, setShowPopper] = useState(false);
   const isMobileScreen = useMediaQuery(mediaBreakpoints.small);
 
@@ -291,15 +300,25 @@ const SafeDashboard = (props) => {
   };
 
   const onDeleteSafeClicked = (path) => {
+    setOpenConfirmationModal(true);
+    setDeletionPath(path);
+  };
+
+  const onDeleteSafeConfirmClicked = () => {
     setResponseType(0);
+    setOpenConfirmationModal(false);
     apiService
-      .deleteSafe(path)
+      .deleteSafe(deletionPath)
       .then((res) => {
+        setDeletionPath('');
         setResponseType(1);
         fetchData();
       })
       // eslint-disable-next-line no-console
-      .catch((e) => console.log(e));
+      .catch((e) => {
+        console.log(e);
+        setDeletionPath('');
+      });
   };
 
   let scrollParentRef = null;
@@ -341,6 +360,27 @@ const SafeDashboard = (props) => {
   return (
     <ComponentError>
       <>
+        <ConfirmationModal
+          open={openConfirmationModal}
+          handleClose={handleClose}
+          title="Are you sure you want to delete this safe?"
+          cancelButton={
+            <ButtonComponent
+              label="Cancel"
+              color="primary"
+              onClick={() => handleClose()}
+              width={isMobileScreen ? '100%' : '38%'}
+            />
+          }
+          confirmButton={
+            <ButtonComponent
+              label="Confirm"
+              color="secondary"
+              onClick={() => onDeleteSafeConfirmClicked()}
+              width={isMobileScreen ? '100%' : '38%'}
+            />
+          }
+        />
         <SectionPreview title="safe-section">
           <ColumnSection width={isMobileScreen ? '100%' : '52.9rem'}>
             <ColumnHeader>
