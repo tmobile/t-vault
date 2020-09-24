@@ -8,7 +8,7 @@ import TextFieldComponent from '../../../../../components/FormFields/TextField';
 import ComponentError from '../../../../../errorBoundaries/ComponentError/component-error';
 
 const AddFolderNameWrapper = styled.div`
-  padding: 3.2rem;
+  padding: 4.2rem;
   border-radius: 0.3rem;
   background-color: ${(props) =>
     props.theme.palette.background.paper || '#20232e'};

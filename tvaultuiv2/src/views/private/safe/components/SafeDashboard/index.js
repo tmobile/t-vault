@@ -269,7 +269,9 @@ const SafeDashboard = (props) => {
   }, [safes, compareSafesAndList]);
 
   useEffect(() => {
-    fetchData();
+    fetchData().catch((error) => {
+      setResponseType(-1);
+    });
   }, [fetchData]);
 
   const onSelectChange = (value) => {
