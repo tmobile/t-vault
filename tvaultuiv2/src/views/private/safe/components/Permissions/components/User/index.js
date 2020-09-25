@@ -230,8 +230,9 @@ const User = (props) => {
   const onEditSaveClicked = (username, access) => {
     setResponse({ status: 'loading' });
     const payload = {
-      path: `${safeDetail.path}dbbdb`,
+      path: `${safeDetail.path}`,
       username,
+      access,
     };
     apiService
       .deleteUserPermission(payload)
