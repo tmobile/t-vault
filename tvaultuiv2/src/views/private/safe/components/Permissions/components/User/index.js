@@ -156,7 +156,7 @@ const User = (props) => {
         setResponseType(null);
         if (res && res.data?.data?.users) {
           setUsers(res.data.data.users);
-          setResponse({ status: 'display' });
+          setResponse({ status: 'success' });
         }
       })
       .catch((err) => {
@@ -188,7 +188,7 @@ const User = (props) => {
         if (err.response?.data?.errors && err.response.data.errors[0]) {
           setToastMessage(err.response.data.errors[0]);
         }
-        setResponse({ status: 'display' });
+        setResponse({ status: 'success' });
         setResponseType(-1);
       });
   };
@@ -209,7 +209,7 @@ const User = (props) => {
         }
       })
       .catch((err) => {
-        setResponse({ status: 'display' });
+        setResponse({ status: 'success' });
         if (err.response?.data?.errors && err.response.data.errors[0]) {
           setToastMessage(err.response.data.errors[0]);
         }
@@ -245,13 +245,13 @@ const User = (props) => {
         if (err.response?.data?.errors && err.response.data.errors[0]) {
           setToastMessage(err.response.data.errors[0]);
         }
-        setResponse({ status: 'display' });
+        setResponse({ status: 'success' });
         setResponseType(-1);
       });
   };
 
   const onCancelClicked = () => {
-    setResponse({ status: 'display' });
+    setResponse({ status: 'success' });
     onNewPermissionChange();
   };
 
@@ -270,10 +270,11 @@ const User = (props) => {
 
   return (
     <ComponentError>
-      {response.status === 'loading' && (
-        <LoaderSpinner customStyle={customStyle} />
-      )}
       <>
+        {response.status === 'loading' && (
+          <LoaderSpinner customStyle={customStyle} />
+        )}
+
         {response.status === 'add' && (
           <AddUser
             handleSaveClick={(user, access) => onSubmit(user, access)}
@@ -290,7 +291,7 @@ const User = (props) => {
         )}
         {users &&
           Object.keys(users).length > 0 &&
-          response.status === 'display' && (
+          response.status === 'success' && (
             <UserList>
               {Object.entries(users).map(([key, value]) => (
                 <EachUserWrap key={key}>
@@ -332,7 +333,7 @@ const User = (props) => {
           )}
         {users &&
           Object.keys(users).length === 0 &&
-          response.status === 'display' && (
+          response.status === 'success' && (
             <NoDataWrapper>
               <NoData
                 imageSrc={noPermissionsIcon}
@@ -353,26 +354,27 @@ const User = (props) => {
               />
             </NoDataWrapper>
           )}
+
+        {response.status === 'error' && (
+          <Error description={errorMessage || 'Something went wrong'} />
+        )}
+        {responseType === -1 && (
+          <SnackbarComponent
+            open
+            onClose={() => onToastClose()}
+            severity="error"
+            icon="error"
+            message={toastMessage || 'Something went wrong!'}
+          />
+        )}
+        {responseType === 1 && (
+          <SnackbarComponent
+            open
+            onClose={() => onToastClose()}
+            message={toastMessage || 'Successful'}
+          />
+        )}
       </>
-      {response.status === 'error' && (
-        <Error description={errorMessage || 'Something went wrong'} />
-      )}
-      {responseType === -1 && (
-        <SnackbarComponent
-          open
-          onClose={() => onToastClose()}
-          severity="error"
-          icon="error"
-          message={toastMessage || 'Something went wrong!'}
-        />
-      )}
-      {responseType === 1 && (
-        <SnackbarComponent
-          open
-          onClose={() => onToastClose()}
-          message={toastMessage || 'Successful'}
-        />
-      )}
     </ComponentError>
   );
 };

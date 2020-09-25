@@ -242,7 +242,7 @@ const CreateModal = () => {
           setResponseType(-1);
         });
     }
-  }, []);
+  }, [history]);
 
   const constructPayload = () => {
     let value = safeType.split(' ')[0].toLowerCase();
