@@ -10,6 +10,8 @@ const getManageUsersList = () => api.get('/ss/sdb/list?path=users');
 const getManageSharedList = () => api.get('/ss/sdb/list?path=shared');
 const getManageAppsList = () => api.get('/ss/sdb/list?path=apps');
 
+const getSafeDetails = (path) => api.get(`/ss/sdb?path=${path}`);
+const editSafe = (payload) => api.put('/ss/sdb', payload);
 const createSafe = (payload) => api.post('/ss/sdb', payload);
 const getOwnerEmail = (owner) =>
   api.get(`/ldap/users?UserPrincipalName=${owner}`);
@@ -25,7 +27,6 @@ const modifySecret = (params, payload) =>
 const getSecret = (params) =>
   api.get(`/safes/folders/secrets?path=${params}&fetchOption=all`);
 
-const getSafePermission = (path) => api.get(`/ss/sdb?path=${path}`);
 export default {
   fetchSafe,
   searchUser,
@@ -42,6 +43,7 @@ export default {
   addFolder,
   modifySecret,
   getSecret,
-  getSafePermission,
+  getSafeDetails,
+  editSafe,
   deleteFolder,
 };

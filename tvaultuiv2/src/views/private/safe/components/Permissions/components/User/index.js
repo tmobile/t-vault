@@ -24,6 +24,7 @@ import AddUser from '../../../AddUser';
 import apiService from '../../../../apiService';
 import SnackbarComponent from '../../../../../../../components/Snackbar';
 import LoaderSpinner from '../../../../../../../components/LoaderSpinner';
+import Error from '../../../../../../../components/Error';
 
 const { small } = mediaBreakpoints;
 
@@ -128,16 +129,17 @@ const User = (props) => {
 
   const [editUser, setEditUser] = useState('');
   const [editAccess, setEditAccess] = useState('');
-  const [editPermission, setEditPermission] = useState(false);
-  const isMobileScreen = useMediaQuery(small);
   const [toastMessage, setToastMessage] = useState('');
-  const [addPermission, setAddPermission] = useState(false);
   const [responseType, setResponseType] = useState(0);
   const [users, setUsers] = useState({});
+  const [errorMessage, setErrorMessage] = useState('');
+  const [response, setResponse] = useState({ status: 'loading' });
+
+  const isMobileScreen = useMediaQuery(small);
 
   useEffect(() => {
     if (newPermission) {
-      setAddPermission(true);
+      setResponse({ status: 'add' });
     }
   }, [newPermission]);
 
@@ -147,18 +149,21 @@ const User = (props) => {
 
   const fetchPermission = useCallback(() => {
     setUsers({});
-    setResponseType(0);
+    setResponse({ status: 'loading' });
     apiService
-      .getSafePermission(safeDetail.path)
+      .getSafeDetails(`${safeDetail.path}`)
       .then((res) => {
         setResponseType(null);
         if (res && res.data?.data?.users) {
           setUsers(res.data.data.users);
+          setResponse({ status: 'success' });
         }
       })
-      .catch((e) => {
-        setResponseType(-1);
-        console.log('error', e);
+      .catch((err) => {
+        setResponse({ status: 'error' });
+        if (err.response?.data?.errors && err.response.data.errors[0]) {
+          setErrorMessage(err.response?.data?.errors[0]);
+        }
       });
   }, [safeDetail]);
 
@@ -169,27 +174,27 @@ const User = (props) => {
   }, [safeDetail, fetchPermission]);
 
   const onSaveClicked = (data) => {
-    setAddPermission(false);
-    setResponseType(0);
+    setResponse({ status: 'loading' });
     apiService
       .addUserPermission(data)
       .then((res) => {
         if (res && res.data?.messages) {
-          setToastMessage(res.data?.messages[0]);
           setResponseType(1);
+          setToastMessage(res.data?.messages[0]);
           fetchPermission();
         }
       })
       .catch((err) => {
-        if (err.response && err.response.data?.messages[0]) {
-          setToastMessage(err.response.data.messages[0]);
+        if (err.response?.data?.errors && err.response.data.errors[0]) {
+          setToastMessage(err.response.data.errors[0]);
         }
+        setResponse({ status: 'success' });
         setResponseType(-1);
       });
   };
 
   const onDeleteClick = (username) => {
-    setResponseType(0);
+    setResponse({ status: 'loading' });
     const payload = {
       path: safeDetail.path,
       username,
@@ -204,8 +209,9 @@ const User = (props) => {
         }
       })
       .catch((err) => {
-        if (err.response && err.response.data?.messages[0]) {
-          setToastMessage(err.response.data.messages[0]);
+        setResponse({ status: 'success' });
+        if (err.response?.data?.errors && err.response.data.errors[0]) {
+          setToastMessage(err.response.data.errors[0]);
         }
         setResponseType(-1);
       });
@@ -214,43 +220,46 @@ const User = (props) => {
   const onSubmit = (user, access) => {
     const value = {
       access,
-      path: safeDetail.path,
+      path: `${safeDetail.path}`,
       username: user.toLowerCase(),
     };
     onSaveClicked(value);
     onNewPermissionChange();
   };
 
-  const onEditClick = (key, value) => {
-    setEditAccess(value);
-    setEditUser(key);
-    setEditPermission(true);
-  };
-
-  const onCancelClicked = () => {
-    setAddPermission(false);
-    setEditPermission(false);
-    onNewPermissionChange();
-  };
-
   const onEditSaveClicked = (username, access) => {
-    setResponseType(0);
+    setResponse({ status: 'loading' });
     const payload = {
-      path: safeDetail.path,
+      path: `${safeDetail.path}`,
       username,
+      access,
     };
     apiService
       .deleteUserPermission(payload)
       .then((res) => {
         if (res) {
+          setResponse({ status: 'loading' });
           onSubmit(username, access);
         }
       })
-      .catch((e) => {
-        console.log('e', e);
+      .catch((err) => {
+        if (err.response?.data?.errors && err.response.data.errors[0]) {
+          setToastMessage(err.response.data.errors[0]);
+        }
+        setResponse({ status: 'success' });
         setResponseType(-1);
       });
-    setEditPermission(false);
+  };
+
+  const onCancelClicked = () => {
+    setResponse({ status: 'success' });
+    onNewPermissionChange();
+  };
+
+  const onEditClick = (key, value) => {
+    setEditAccess(value);
+    setEditUser(key);
+    setResponse({ status: 'edit' });
   };
 
   const onToastClose = (reason) => {
@@ -262,30 +271,28 @@ const User = (props) => {
 
   return (
     <ComponentError>
-      {responseType === 0 ? (
-        <LoaderSpinner customStyle={customStyle} />
-      ) : (
-        <>
-          {addPermission && !editPermission && (
-            <AddUser
-              handleSaveClick={(user, access) => onSubmit(user, access)}
-              handleCancelClick={onCancelClicked}
-            />
-          )}
-          {editPermission && (
-            <AddUser
-              handleSaveClick={(user, access) =>
-                onEditSaveClicked(user, access)
-              }
-              handleCancelClick={onCancelClicked}
-              username={editUser}
-              access={editAccess}
-            />
-          )}
-          {users &&
+      <>
+        {response.status === 'loading' && (
+          <LoaderSpinner customStyle={customStyle} />
+        )}
+
+        {response.status === 'add' && (
+          <AddUser
+            handleSaveClick={(user, access) => onSubmit(user, access)}
+            handleCancelClick={onCancelClicked}
+          />
+        )}
+        {response.status === 'edit' && (
+          <AddUser
+            handleSaveClick={(user, access) => onEditSaveClicked(user, access)}
+            handleCancelClick={onCancelClicked}
+            username={editUser}
+            access={editAccess}
+          />
+        )}
+        {users &&
           Object.keys(users).length > 0 &&
-          !addPermission &&
-          !editPermission ? (
+          response.status === 'success' && (
             <UserList>
               {Object.entries(users).map(([key, value]) => (
                 <EachUserWrap key={key}>
@@ -324,47 +331,51 @@ const User = (props) => {
                 </EachUserWrap>
               ))}
             </UserList>
-          ) : (
-            !addPermission &&
-            !editPermission && (
-              <NoDataWrapper>
-                <NoData
-                  imageSrc={noPermissionsIcon}
-                  description="Add <strong>Permissions</strong> to allow people, groups or aplication to access this safe"
-                  actionButton={
-                    // eslint-disable-next-line react/jsx-wrap-multilines
-                    <ButtonComponent
-                      label="add"
-                      icon="add"
-                      color="secondary"
-                      onClick={() => setAddPermission(true)}
-                      width={isMobileScreen ? '100%' : '38%'}
-                    />
-                  }
-                  bgIconStyle={bgIconStyle}
-                  width={isMobileScreen ? '100%' : '38%'}
-                />
-              </NoDataWrapper>
-            )
           )}
-        </>
-      )}
-      {responseType === -1 && (
-        <SnackbarComponent
-          open
-          onClose={() => onToastClose()}
-          severity="error"
-          icon="error"
-          message={toastMessage || 'Something went wrong!'}
-        />
-      )}
-      {responseType === 1 && (
-        <SnackbarComponent
-          open
-          onClose={() => onToastClose()}
-          message={toastMessage}
-        />
-      )}
+        {users &&
+          Object.keys(users).length === 0 &&
+          response.status === 'success' && (
+            <NoDataWrapper>
+              <NoData
+                imageSrc={noPermissionsIcon}
+                description="Add <strong>Permissions</strong> to allow people, 
+                groups or aplication to access this safe"
+                actionButton={
+                  // eslint-disable-next-line react/jsx-wrap-multilines
+                  <ButtonComponent
+                    label="add"
+                    icon="add"
+                    color="secondary"
+                    onClick={() => setResponse({ status: 'add' })}
+                    width={isMobileScreen ? '100%' : '38%'}
+                  />
+                }
+                bgIconStyle={bgIconStyle}
+                width={isMobileScreen ? '100%' : '38%'}
+              />
+            </NoDataWrapper>
+          )}
+
+        {response.status === 'error' && (
+          <Error description={errorMessage || 'Something went wrong'} />
+        )}
+        {responseType === -1 && (
+          <SnackbarComponent
+            open
+            onClose={() => onToastClose()}
+            severity="error"
+            icon="error"
+            message={toastMessage || 'Something went wrong!'}
+          />
+        )}
+        {responseType === 1 && (
+          <SnackbarComponent
+            open
+            onClose={() => onToastClose()}
+            message={toastMessage || 'Successful'}
+          />
+        )}
+      </>
     </ComponentError>
   );
 };

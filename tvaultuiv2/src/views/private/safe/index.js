@@ -47,6 +47,13 @@ const SafePageLayout = (props) => {
               <CreateSafe routeProps={{ ...routeProps, createSafe }} />
             )}
           />
+          <Route
+            exact
+            path="/safe/edit-safe"
+            render={(routeProps) => (
+              <CreateSafe routeProps={{ ...routeProps }} />
+            )}
+          />
         </Switch>
       </main>
     </ComponentError>
