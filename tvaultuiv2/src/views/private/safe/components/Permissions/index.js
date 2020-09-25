@@ -49,6 +49,9 @@ function a11yProps(index) {
 }
 
 const TabWrapper = styled.div`
+  height: calc(100% - 3.8rem);
+  display: flex;
+  flex-direction: column;
   .MuiAppBar-colorPrimary {
     background-color: inherit;
   }
@@ -80,7 +83,8 @@ const CountPlusWrapper = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 2rem;
+  padding-bottom: 2rem;
+  height: 3.8rem;
 `;
 const CountSpan = styled.div`
   color: #5e627c;
@@ -101,11 +105,17 @@ const customMobileStyles = css`
   }
 `;
 
+const PermissionTabsWrapper = styled('div')`
+  height: calc(100% - 3.7rem);
+  overflow: auto;
+`;
+
 const useStyles = makeStyles(() => ({
   appBar: {
     display: 'flex',
     flexDirection: 'row',
     justifyContent: 'space-between',
+    height: '3.7rem',
   },
 }));
 
@@ -157,23 +167,25 @@ const Permissions = (props) => {
               onClick={() => setNewPermission(true)}
             />
           </AppBar>
-          <TabPanel value={value} index={0}>
-            <User
-              safeDetail={safeDetail}
-              newPermission={newPermission}
-              onNewPermissionChange={() => setNewPermission(false)}
-              getPermissionCount={(val) => getPermissionCount(val)}
-            />
-          </TabPanel>
-          <TabPanel value={value} index={1}>
-            Group
-          </TabPanel>
-          <TabPanel value={value} index={2}>
-            Aws
-          </TabPanel>
-          <TabPanel value={value} index={3}>
-            App Roles
-          </TabPanel>
+          <PermissionTabsWrapper>
+            <TabPanel value={value} index={0}>
+              <User
+                safeDetail={safeDetail}
+                newPermission={newPermission}
+                onNewPermissionChange={() => setNewPermission(false)}
+                getPermissionCount={(val) => getPermissionCount(val)}
+              />
+            </TabPanel>
+            <TabPanel value={value} index={1}>
+              Group
+            </TabPanel>
+            <TabPanel value={value} index={2}>
+              Aws
+            </TabPanel>
+            <TabPanel value={value} index={3}>
+              App Roles
+            </TabPanel>
+          </PermissionTabsWrapper>
         </TabWrapper>
       </>
     </ComponentError>

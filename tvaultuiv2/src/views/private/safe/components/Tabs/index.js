@@ -47,9 +47,11 @@ const customBtnStyles = css`
 `;
 
 const TabPanelWrap = styled.div`
-  height: 54.75vh;
   position: relative;
-  margin-top: 1.3rem;
+  height: 100%;
+  margin: 0;
+  padding-top: 1.3rem;
+  overflow: auto;
   ${mediaBreakpoints.small} {
     height: 77vh;
   }
@@ -62,6 +64,10 @@ const CountSpan = styled.span`
   margin-top: 1.5rem;
   color: #5e627c;
   font-size: 1.3rem;
+`;
+
+const TabContentsWrap = styled('div')`
+  height: calc(100% - 4.8rem);
 `;
 
 const TabPanel = (props) => {
@@ -100,11 +106,15 @@ const useStyles = makeStyles(() => ({
   root: {
     flexGrow: 1,
     padding: '0 2.1rem',
+    height: 'calc( 100% - 19.1rem )',
+    display: 'flex',
+    flexDirection: 'column',
   },
   appBar: {
     display: 'flex',
     flexDirection: 'row',
     justifyContent: 'space-between',
+    height: '4.8rem',
   },
   tab: {
     minWidth: '9.5rem',
@@ -118,6 +128,7 @@ export default function SelectionTabs(props) {
   const [enabledAddFolder, setEnableAddFolder] = useState(false);
   const [secretsFolder, setSecretsFolder] = useState([]);
   const [responseType, setResponseType] = useState(null);
+  // eslint-disable-next-line no-unused-vars
   const [toastMessage, setToastMessage] = useState('');
 
   // resolution handlers
@@ -232,74 +243,79 @@ export default function SelectionTabs(props) {
             />
           )}
         </AppBar>
-        <TabPanel value={value} index={0}>
-          {
-            <CountSpan color="#5e627c">
-              {`${secretsFolder && secretsFolder.length} Secrets`}
-            </CountSpan>
-          }
-          {enabledAddFolder ? (
-            <AddFolderModal
-              openModal={enabledAddFolder}
-              setOpenModal={setEnableAddFolder}
-              childrens={secretsFolder}
-              handleSaveClick={addSecretsFolderList}
-              parentId={safeDetail.path}
-              handleCancelClick={() => setEnableAddFolder(false)}
-            />
-          ) : (
-            <></>
-          )}
-
-          {responseType === -1 && !enabledAddFolder && !secretsFolder?.length && (
-            <EmptySecretBox>
-              {' '}
-              <Error description="Error while fetching safes folders" />
-            </EmptySecretBox>
-          )}
-          {!secretsFolder?.length && responseType === 0 ? (
-            <Loader width="100%" height="70%" />
-          ) : secretsFolder && secretsFolder.length ? (
-            <Tree data={secretsFolder} />
-          ) : responseType === 1 &&
-            responseType !== 0 &&
-            responseType !== -1 &&
-            secretsFolder?.length === 0 &&
-            !enabledAddFolder ? (
-            <EmptySecretBox>
-              <NoData
-                imageSrc={NoSecretsIcon}
-                description="add a <strong>Folder</strong> and then you will be able to add <strong>secrets</strong> to view them all here"
-                actionButton={
-                  // eslint-disable-next-line react/jsx-wrap-multilines
-                  <ButtonComponent
-                    label="add"
-                    icon="add"
-                    color="secondary"
-                    disabled={safeDetail?.access?.toLowerCase() === 'read'}
-                    width={isMobileScreen ? '100%' : ''}
-                    onClick={() => setEnableAddFolder(true)}
-                  />
-                }
-                bgIconStyle={bgIconStyle}
-                width={isMobileScreen ? '100%' : '30%'}
+        <TabContentsWrap>
+          <TabPanel value={value} index={0}>
+            {
+              <CountSpan color="#5e627c">
+                {`${secretsFolder && secretsFolder.length} Secrets`}
+              </CountSpan>
+            }
+            {enabledAddFolder ? (
+              <AddFolderModal
+                openModal={enabledAddFolder}
+                setOpenModal={setEnableAddFolder}
+                childrens={secretsFolder}
+                handleSaveClick={addSecretsFolderList}
+                parentId={safeDetail.path}
+                handleCancelClick={() => setEnableAddFolder(false)}
               />
-            </EmptySecretBox>
-          ) : (
-            <></>
-          )}
-        </TabPanel>
-        <TabPanel value={value} index={1}>
-          <Permissions safeDetail={safeDetail} />
-        </TabPanel>
+            ) : (
+              <></>
+            )}
 
-        {/* <SnackbarComponent
+            {responseType === -1 &&
+              !enabledAddFolder &&
+              !secretsFolder?.length && (
+                <EmptySecretBox>
+                  {' '}
+                  <Error description="Error while fetching safes folders" />
+                </EmptySecretBox>
+              )}
+            {!secretsFolder?.length && responseType === 0 ? (
+              <Loader width="100%" height="70%" />
+            ) : secretsFolder && secretsFolder.length ? (
+              <Tree data={secretsFolder} />
+            ) : responseType === 1 &&
+              responseType !== 0 &&
+              responseType !== -1 &&
+              secretsFolder?.length === 0 &&
+              !enabledAddFolder ? (
+              // eslint-disable-next-line react/jsx-indent
+              <EmptySecretBox>
+                <NoData
+                  imageSrc={NoSecretsIcon}
+                  description="add a <strong>Folder</strong> and then you will be able to add <strong>secrets</strong> to view them all here"
+                  actionButton={
+                    // eslint-disable-next-line react/jsx-wrap-multilines
+                    <ButtonComponent
+                      label="add"
+                      icon="add"
+                      color="secondary"
+                      disabled={safeDetail?.access?.toLowerCase() === 'read'}
+                      width={isMobileScreen ? '100%' : ''}
+                      onClick={() => setEnableAddFolder(true)}
+                    />
+                  }
+                  bgIconStyle={bgIconStyle}
+                  width={isMobileScreen ? '100%' : '30%'}
+                />
+              </EmptySecretBox>
+            ) : (
+              <></>
+            )}
+          </TabPanel>
+          <TabPanel value={value} index={1}>
+            <Permissions safeDetail={safeDetail} />
+          </TabPanel>
+
+          {/* <SnackbarComponent
           open={responseType === -1}
           onClose={() => onToastClose()}
           severity="error"
           icon="error"
           message={toastMessage || 'Something went wrong!'}
         /> */}
+        </TabContentsWrap>
       </div>
     </ComponentError>
   );

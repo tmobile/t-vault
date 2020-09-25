@@ -15,14 +15,11 @@ import SelectionTabs from '../Tabs';
 
 // styled components goes here
 const Section = styled('section')`
-  background-image: url(${(props) => props.headerBgSrc || ''});
-  background-size: contain;
-  background-repeat: no-repeat;
-  position: absolute;
+  flex-direction: column;
+  display: flex;
   z-index: 2;
   width: 100%;
   height: 100%;
-  top: -8px;
 `;
 
 const ColumnHeader = styled('div')`
@@ -30,7 +27,11 @@ const ColumnHeader = styled('div')`
   align-items: center;
   justify-content: flex-end;
   padding-right: 2rem;
-  height: 16rem;
+  height: 19.1rem;
+  position: relative;
+  top: -0.8rem;
+  max-height: 19.1rem;
+  background: url('/static/media/Banner_img.7b53285a.png') no-repeat 0 0;
   .safe-title-wrap {
     width: 70%;
   }

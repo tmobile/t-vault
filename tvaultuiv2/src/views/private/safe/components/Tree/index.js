@@ -9,7 +9,7 @@ import PropTypes from 'prop-types';
 import {
   findElementAndUpdate,
   findElementAndDelete,
-  findSecretAndUpdate,
+  // findSecretAndUpdate,
   findElementAndReturnSecrets,
 } from '../../../../../services/helper-function';
 import ComponentError from '../../../../../errorBoundaries/ComponentError/component-error';
@@ -20,7 +20,6 @@ import apiService from '../../apiService';
 const StyledTree = styled.div`
   line-height: 1.5;
   margin-top: 1.2rem;
-  height: 43.5vh;
   overflow-y: auto;
   & > div {
     padding-left: 0;
@@ -200,6 +199,7 @@ const Tree = (props) => {
           setToastMessage(res.data.messages[0]);
         })
         .catch((error) => {
+          console.error(error);
           setResponseType(-1);
         });
       return;
@@ -216,6 +216,7 @@ const Tree = (props) => {
         );
       })
       .catch((error) => {
+        console.error(error);
         setResponseType(-1);
       });
   };
