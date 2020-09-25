@@ -68,7 +68,6 @@ export const findElementAndUpdate = (arr, parentId, item) => {
 
 export const findSecretAndUpdate = (arr, parentId, secrets) => {
   if (arr.length === 0) return;
-  debugger;
   const tempArr = [...arr];
   const itemToUpdate = findElementById(tempArr, parentId, 'children');
   const currentSecretData = itemToUpdate.children.filter(
