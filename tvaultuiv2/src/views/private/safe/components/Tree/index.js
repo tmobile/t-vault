@@ -6,7 +6,12 @@ import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import PropTypes from 'prop-types';
 
-import { findElementAndUpdate } from '../../../../../services/helper-function';
+import {
+  findElementAndUpdate,
+  findElementAndDelete,
+  findSecretAndUpdate,
+  findElementAndReturnSecrets,
+} from '../../../../../services/helper-function';
 import ComponentError from '../../../../../errorBoundaries/ComponentError/component-error';
 import TreeRecursive from './components/TreeRecursive';
 import SnackbarComponent from '../../../../../components/Snackbar';
@@ -28,6 +33,7 @@ const Tree = (props) => {
   const [inputType, setInputType] = useState({});
   const [responseType, setResponseType] = useState(null);
   const [toastMessage, setToastMessage] = useState('');
+  const [secretprefilledData, setSecretprefilledData] = useState({});
 
   // set inital tree data structure
   const setTreeData = (treeData) => {
@@ -47,9 +53,6 @@ const Tree = (props) => {
 
   const getChildrenData = (id) => {
     const tempFolders = [...secretsFolder] || [];
-    // const idClone = id.split('/');
-    // idClone.splice(idClone.length - 1, 1);
-    // const parentId = idClone.join('/');
     setResponseType(0);
     if (id) {
       apiService
@@ -64,7 +67,6 @@ const Tree = (props) => {
           setSecretsFolder([...updatedArray]);
         })
         .catch((error) => {
-          setResponseType(-1);
           if (!error.toString().toLowerCase().includes('network')) {
             if (error.response) {
               setToastMessage(error.response?.data.errors[0]);
@@ -83,25 +85,30 @@ const Tree = (props) => {
    */
   const saveSecretsToFolder = (obj, node) => {
     const tempFolders = [...secretsFolder] || [];
+    const currentSecrets = findElementAndReturnSecrets(tempFolders, node);
     const folderObj = {};
     folderObj.id = `${obj.parentId}`;
     folderObj.parentId = obj.parentId;
-    folderObj.value = JSON.stringify({
-      data: { [obj.key]: obj.value },
-    });
     folderObj.type = obj.type || 'secret';
-
     folderObj.children = [];
+    folderObj.value = JSON.stringify({
+      data: { ...currentSecrets.data, [obj.key]: obj.value },
+    });
+
     apiService
-      .addSecret(folderObj.id, {
+      .modifySecret(folderObj.id, {
         path: folderObj.id,
-        data: { [obj.key]: obj.value },
+        data: { ...currentSecrets.data, [obj.key]: obj.value },
       })
       // eslint-disable-next-line no-unused-vars
       .then((res) => {
         setResponseType(1);
-        const updatedArray = findElementAndUpdate(tempFolders, node, folderObj);
-        setSecretsFolder([...updatedArray]);
+        getChildrenData(node);
+        // const updatedArray = findSecretAndUpdate(tempFolders, node, {
+        //   data: { ...currentSecrets.data, [obj.key]: obj.value },
+        // });
+        // setSecretsFolder([...updatedArray]);
+
         setToastMessage(res.data.messages[0]);
       })
       .catch((error) => {
@@ -141,6 +148,7 @@ const Tree = (props) => {
           folderObj
         );
         setSecretsFolder([...updatedArray]);
+        // getChildrenData(parentId);
         setToastMessage(res.data.messages[0]);
       })
       .catch((error) => {
@@ -162,6 +170,7 @@ const Tree = (props) => {
 
   const saveFolder = (secret, selectedNode) => {
     setResponseType(0);
+    // getChildrenData(secret.parentId);
     if (secret?.type?.toLowerCase() === 'secret') {
       saveSecretsToFolder(secret, selectedNode);
       return;
@@ -176,6 +185,41 @@ const Tree = (props) => {
   const handleCancelClick = (val) => {
     setIsAddInput(val);
   };
+
+  // delete item in the tree
+  const deleteTreeItem = (node, parent) => {
+    if (node.type.toLowerCase() === 'secret') {
+      const tempFolders = [...secretsFolder] || [];
+      const updatedObject = findElementAndDelete(tempFolders, parent, node.key);
+      const payload = { path: parent, data: updatedObject.data };
+      apiService
+        .modifySecret(parent, payload)
+        .then((res) => {
+          setResponseType(1);
+          getChildrenData(parent);
+          setToastMessage(res.data.messages[0]);
+        })
+        .catch((error) => {
+          setResponseType(-1);
+        });
+      return;
+    }
+    apiService
+      .deleteFolder(node.id)
+      .then((res) => {
+        setResponseType(1);
+        getChildrenData(parent);
+        setToastMessage(
+          res.data.messages[0].toLowerCase().includes('sdb deleted')
+            ? 'Folder Deleted Successfully'
+            : res.data.messages[0]
+        );
+      })
+      .catch((error) => {
+        setResponseType(-1);
+      });
+  };
+
   return (
     <ComponentError>
       <StyledTree>
@@ -192,6 +236,9 @@ const Tree = (props) => {
           responseType={responseType}
           setResponseType={setResponseType}
           getChildrenData={getChildrenData}
+          deleteTreeItem={deleteTreeItem}
+          secretprefilledData={secretprefilledData}
+          setSecretprefilledData={setSecretprefilledData}
         />
         {responseType === -1 && !isAddInput ? (
           <SnackbarComponent

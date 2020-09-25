@@ -23,11 +23,12 @@ import NoSecretsIcon from '../../../../../assets/no-data-secrets.svg';
 import NamedButton from '../../../../../components/NamedButton';
 import NoData from '../../../../../components/NoData';
 import mediaBreakpoints from '../../../../../breakpoints';
-import AddFolder from '../AddFolder';
+// import AddFolder from '../AddFolder';
 import Tree from '../Tree';
 import Permissions from '../Permissions';
 import apiService from '../../apiService';
 import disableAddFolder from '../../../../../assets/addfolder_inactive.svg';
+import AddFolderModal from '../AddFolderModal';
 // import SnackbarComponent from '../../../../../components/Snackbar';
 // styled components goes here
 
@@ -237,7 +238,9 @@ export default function SelectionTabs(props) {
             </CountSpan>
           }
           {enabledAddFolder ? (
-            <AddFolder
+            <AddFolderModal
+              openModal={enabledAddFolder}
+              setOpenModal={setEnableAddFolder}
               childrens={secretsFolder}
               handleSaveClick={addSecretsFolderList}
               parentId={safeDetail.path}
@@ -247,7 +250,7 @@ export default function SelectionTabs(props) {
             <></>
           )}
 
-          {responseType === -1 && !enabledAddFolder && !secretsFolder && (
+          {responseType === -1 && !enabledAddFolder && !secretsFolder?.length && (
             <EmptySecretBox>
               {' '}
               <Error description="Error while fetching safes folders" />

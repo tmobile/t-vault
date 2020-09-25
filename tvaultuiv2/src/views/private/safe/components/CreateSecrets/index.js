@@ -13,6 +13,8 @@ const SecretWrapper = styled.section`
   padding: 3rem;
   display: flex;
   flex-direction: column;
+  background-color: ${(props) =>
+    props.theme.palette.background.paper || '#20232e'};
   ${mediaBreakpoints.small} {
     padding: 2rem;
   }
@@ -47,7 +49,12 @@ const BtnWrapper = styled.div`
 `;
 
 const CreateSecret = (props) => {
-  const { handleSecretSave, handleSecretCancel, parentId } = props;
+  const {
+    handleSecretSave,
+    handleSecretCancel,
+    parentId,
+    secretprefilledData,
+  } = props;
   const [secret, setSecret] = useState('');
   const [keyId, setKeyId] = useState('');
   const [keyErrorMessage, setKeyErrorMessage] = useState(null);
@@ -55,6 +62,9 @@ const CreateSecret = (props) => {
 
   // screen resolution handler
   const isMobileScreen = useMediaQuery(mediaBreakpoints.small);
+
+  //prefetch input data if any(i.e while editing)
+  const { secretData } = secretprefilledData;
 
   const handleValidation = (value, type) => {
     if (type === 'key') {
@@ -82,7 +92,7 @@ const CreateSecret = (props) => {
           <InputLabel>Key Id</InputLabel>
           <TextFieldComponent
             placeholder="Key Id"
-            value={keyId || ''}
+            value={secretData ? Object.keys(secretData)[0] : keyId || ''}
             onChange={(e) => handleKeyChange(e.target.value)}
             fullWidth
             error={keyErrorMessage}
@@ -99,7 +109,7 @@ const CreateSecret = (props) => {
           <InputLabel>Secret</InputLabel>
           <TextFieldComponent
             placeholder="Secret"
-            value={secret || ''}
+            value={secretData ? Object.values(secretData)[0] : secret || ''}
             onChange={(e) => handleValueChange(e.target.value)}
             fullWidth
             error={valueErrorMessage}
@@ -141,11 +151,13 @@ CreateSecret.propTypes = {
   handleSecretSave: PropTypes.func,
   handleSecretCancel: PropTypes.func,
   parentId: PropTypes.string,
+  secretprefilledData: PropTypes.objectOf(PropTypes.object),
 };
 CreateSecret.defaultProps = {
   handleSecretSave: () => {},
   handleSecretCancel: () => {},
   parentId: '',
+  secretprefilledData: {},
 };
 
 export default CreateSecret;
