@@ -111,6 +111,7 @@ const Folder = (props) => {
     setIsAddInput,
     getChildNodes,
     id,
+    deleteTreeItem,
   } = props;
   const [isOpen, setIsOpen] = useState(false);
   const [activeSecrets, setActiveSecrets] = useState([]);
@@ -135,6 +136,15 @@ const Folder = (props) => {
   const labelValue = folderInfo?.value?.split('/')[
     folderInfo.value.split('/').length - 1
   ];
+
+  // delete folder
+  const deleteNode = (treeItem) => {
+    deleteTreeItem(treeItem);
+  };
+  // const editNode = (treeItem) => {
+  //   editTreeItem(treeItem);
+  // };
+
   return (
     <ComponentError>
       <FolderContainer>
@@ -190,11 +200,18 @@ const Folder = (props) => {
                   <IconAddSecret />
                   <span>Create Secret</span>
                 </PopperItem>
-                <PopperItem>
+                {/* <PopperItem onClick={() => editNode(folderInfo.id)}>
                   <IconEdit />
                   <span>Edit</span>
-                </PopperItem>
-                <PopperItem>
+                </PopperItem> */}
+                <PopperItem
+                  onClick={() =>
+                    deleteNode(
+                      { id: folderInfo.id, type: folderInfo.type },
+                      folderInfo.parentId
+                    )
+                  }
+                >
                   <IconDeleteActive />
                   <span> Delete</span>
                 </PopperItem>
@@ -216,6 +233,7 @@ Folder.propTypes = {
   setIsAddInput: PropTypes.func,
   getChildNodes: PropTypes.func,
   id: PropTypes.string,
+  deleteTreeItem: PropTypes.func,
 };
 Folder.defaultProps = {
   folderInfo: {},
@@ -223,6 +241,7 @@ Folder.defaultProps = {
   setInputType: () => {},
   setIsAddInput: () => {},
   getChildNodes: () => {},
+  deleteTreeItem: () => {},
   id: '',
 };
 

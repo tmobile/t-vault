@@ -1,5 +1,6 @@
+/* eslint-disable no-nested-ternary */
 import React from 'react';
-import styled, { keyframes } from 'styled-components';
+import styled, { keyframes, css } from 'styled-components';
 import PropTypes from 'prop-types';
 
 // styled components
@@ -47,6 +48,7 @@ const Spinner = styled.div`
     width: 32px;
     height: 16px;
     overflow: hidden;
+    ${(props) => props.size}
   }
   .circle-inner {
     transform: rotate(45deg);
@@ -66,13 +68,39 @@ const Spinner = styled.div`
     }
   }
 `;
+const xsmall = css`
+  width: 1.6rem;
+  height: 8rem;
+`;
+const small = css`
+  width: 2.4rem;
+  height: 1.2rem;
+`;
+const medium = css`
+  width: 3.2rem;
+  height: 1.6rem;
+`;
+const large = css`
+  width: 6.4rem;
+  height: 3.2rem;
+`;
 const LoaderSpinner = (props) => {
-  const { customStyle } = props;
+  const { customStyle, size } = props;
 
   return (
     <LoaderContainer customStyle={customStyle}>
       <LoaderWrap>
-        <Spinner>
+        <Spinner
+          size={
+            size === 'xsmall'
+              ? xsmall
+              : size === 'small'
+              ? small
+              : size === 'large'
+              ? large
+              : medium
+          }
+        >
           <div className="circle circle-1">
             <div className="circle-inner" />
           </div>
@@ -87,9 +115,11 @@ const LoaderSpinner = (props) => {
 
 LoaderSpinner.propTypes = {
   customStyle: PropTypes.arrayOf(PropTypes.any),
+  size: PropTypes.string,
 };
 
 LoaderSpinner.defaultProps = {
   customStyle: [],
+  size: '',
 };
 export default LoaderSpinner;

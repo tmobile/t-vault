@@ -19,7 +19,8 @@ const deleteUserPermission = (payload) => api.delete('/ss/sdb/user', payload);
 
 const getUserName = (user) => api.get(`/ldap/corpusers?CorpId=${user}`);
 const addFolder = (params) => api.post(`/sdb/createfolder?path=${params}`);
-const addSecret = (params, payload) =>
+const deleteFolder = (params) => api.delete(`/sdb/delete?path=${params}`);
+const modifySecret = (params, payload) =>
   api.post(`/write?path=${params}`, payload);
 const getSecret = (params) =>
   api.get(`/safes/folders/secrets?path=${params}&fetchOption=all`);
@@ -39,7 +40,8 @@ export default {
   addUserPermission,
   getUserName,
   addFolder,
-  addSecret,
+  modifySecret,
   getSecret,
   getSafePermission,
+  deleteFolder,
 };

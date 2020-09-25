@@ -41,6 +41,7 @@ const CreateSecretModal = (props) => {
     handleSecretSave,
     handleSecretCancel,
     parentId,
+    secretprefilledData,
   } = props;
   //   const [open, setOpen] = useState(true);
   const classes = useStyles();
@@ -66,6 +67,7 @@ const CreateSecretModal = (props) => {
             parentId={parentId}
             handleSecretCancel={handleSecretCancel}
             handleSecretSave={handleSecretSave}
+            secretprefilledData={secretprefilledData}
           />
         </ModalWrapper>
       </Modal>
@@ -79,6 +81,7 @@ CreateSecretModal.propTypes = {
   handleSecretSave: PropTypes.func,
   handleSecretCancel: PropTypes.func,
   parentId: PropTypes.func,
+  secretprefilledData: PropTypes.objectOf(PropTypes.object),
 };
 CreateSecretModal.defaultProps = {
   openModal: false,
@@ -86,6 +89,7 @@ CreateSecretModal.defaultProps = {
   handleSecretSave: () => {},
   handleSecretCancel: () => {},
   parentId: '',
+  secretprefilledData: {},
 };
 
 export default CreateSecretModal;

@@ -1,3 +1,4 @@
+/* eslint-disable guard-for-in */
 /* eslint-disable array-callback-return */
 /* eslint-disable consistent-return */
 // eslint-disable-next-line import/prefer-default-export
@@ -45,21 +46,66 @@ export const findElementAndUpdate = (arr, parentId, item) => {
   const tempArr = [...arr];
   const itemToUpdate = findElementById(tempArr, parentId, 'children');
   if (Array.isArray(item)) {
-    const isItemExist = itemToUpdate.children.filter(
-      (itm) => itm.id === item.id
+    const isItemExist = itemToUpdate.children.filter((itm) =>
+      item.includes(itm)
     );
     if (!itemToUpdate.children.length) {
       itemToUpdate.children = [...itemToUpdate.children, ...item];
       return;
     }
     if (!isItemExist) {
-      itemToUpdate.children = [...itemToUpdate.children, ...item];
+      itemToUpdate.children = [
+        ...itemToUpdate.children.filter((itm) => item.indexOf(itm) === -1),
+      ];
+      // [...itemToUpdate.children, ...item];
     }
   } else {
     itemToUpdate.children = [...itemToUpdate.children, item];
   }
 
   return tempArr;
+};
+
+export const findSecretAndUpdate = (arr, parentId, secrets) => {
+  if (arr.length === 0) return;
+  debugger;
+  const tempArr = [...arr];
+  const itemToUpdate = findElementById(tempArr, parentId, 'children');
+  const currentSecretData = itemToUpdate.children.filter(
+    (sec) => sec.type.toLowerCase() === 'secret'
+  )[0];
+  currentSecretData.value = JSON.stringify({ secrets });
+
+  return tempArr;
+};
+
+export const findElementAndDelete = (arr, parent, key) => {
+  const currentParentSecret = findElementById(arr, parent, 'children');
+  const currentSecretData = currentParentSecret.children.filter(
+    (sec) => sec.type.toLowerCase() === 'secret'
+  )[0];
+
+  const obj = JSON.parse(currentSecretData.value);
+  delete obj.data[key];
+  return obj;
+};
+
+export const findElementAndReturnSecrets = (arr, idToFind) => {
+  const currentParentSecret = findElementById(arr, idToFind, 'children');
+  const currentSecretData = currentParentSecret.children.filter(
+    (sec) => sec.type.toLowerCase() === 'secret'
+  )[0];
+  const obj = JSON.parse(currentSecretData.value);
+  return obj;
+};
+
+export const convertObjectToArray = (data) => {
+  const array = [];
+  // eslint-disable-next-line no-restricted-syntax
+  for (const [key, value] of Object.entries(data.data)) {
+    array.push({ [key]: value });
+  }
+  return array;
 };
 
 export const makeSafesList = (array, type) => {

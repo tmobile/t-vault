@@ -1,9 +1,10 @@
 import React from 'react';
 // import PropTypes from 'prop-types';
-// import styled from 'styled-components';
+import { css } from 'styled-components';
 import LoaderSpinner from '../../../../../../components/LoaderSpinner';
 import CreateSecretButton from '../../CreateSecretButton';
-import AddForm from '../../AddForm';
+import { convertObjectToArray } from '../../../../../../services/helper-function';
+// import AddForm from '../../AddForm';
 // import CreateSecret from '../../CreateSecrets';
 // import AddFolder from '../../AddFolder';
 import File from './file';
@@ -12,6 +13,9 @@ import AddFolderModal from '../../AddFolderModal';
 import CreateSecretModal from '../../CreateSecretsModal';
 // import { BackgroundColor } from '../../../../../styles/GlobalStyles';
 
+const loaderStyle = css`
+  margin-top: 0.5rem;
+`;
 const TreeRecursive = ({
   data,
   saveSecretsToFolder,
@@ -25,21 +29,33 @@ const TreeRecursive = ({
   responseType,
   setResponseType,
   getChildrenData,
+  deleteTreeItem,
+  secretprefilledData,
+  setSecretprefilledData,
 }) => {
   // loop through the data
   return data.map((item) => {
     // if its a file render <File />
 
     if (item.type.toLowerCase() === 'secret') {
-      return (
-        <File
-          key={item.id}
-          secret={item.value}
-          type={item.type}
-          setIsAddInput={setIsAddInput}
-          setInputType={setInputType}
-          id={item.id}
-        />
+      const secretArray =
+        item.value && convertObjectToArray(JSON.parse(item.value));
+      return secretArray.map((secret) =>
+        !secret.default ? (
+          <File
+            key={item.id}
+            secret={secret}
+            parentId={item.parentId}
+            setSecretprefilledData={setSecretprefilledData}
+            type={item.type}
+            setIsAddInput={setIsAddInput}
+            setInputType={setInputType}
+            deleteTreeItem={deleteTreeItem}
+            id={item.id}
+          />
+        ) : (
+          <></>
+        )
       );
     }
     // if its a folder render <Folder />
@@ -50,6 +66,7 @@ const TreeRecursive = ({
           setInputType={setInputType}
           setIsAddInput={setIsAddInput}
           getChildNodes={getChildrenData}
+          deleteTreeItem={deleteTreeItem}
           id={item.id}
           key={item.id}
         >
@@ -68,6 +85,7 @@ const TreeRecursive = ({
             inputType?.currentNode === item.value && (
               <CreateSecretModal
                 openModal={isAddInput}
+                secretprefilledData={secretprefilledData}
                 setOpenModal={setIsAddInput}
                 parentId={item.id}
                 handleSecretCancel={handleCancelClick}
@@ -88,21 +106,23 @@ const TreeRecursive = ({
               path={`${item.id}/${item.value}`}
               setResponseType={setResponseType}
               getChildrenData={getChildrenData}
+              deleteTreeItem={deleteTreeItem}
+              secretprefilledData={secretprefilledData}
+              setSecretprefilledData={setSecretprefilledData}
             />
           ) : (
             <></>
           )}
           {responseType === 0 ? (
-            <LoaderSpinner />
+            <LoaderSpinner size="small" customStyle={loaderStyle} />
           ) : (
             item?.children?.length === 0 &&
             responseType !== 0 &&
-            responseType ===
-              1(
-                <CreateSecretButton
-                  onClick={(e) => setCreateSecretBox(e, item.value)}
-                />
-              )
+            responseType === 1 && (
+              <CreateSecretButton
+                onClick={(e) => setCreateSecretBox(e, item.value)}
+              />
+            )
           )}
         </Folder>
       );
