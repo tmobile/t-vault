@@ -395,7 +395,7 @@ const SafeDashboard = (props) => {
           }
         />
         <SectionPreview title="safe-section">
-          <ColumnSection width={isMobileScreen ? '100%' : '52.9rem'}>
+          <ColumnSection width={isMobileScreen ? '100%' : '40.77%'}>
             <ColumnHeader>
               <SelectComponent
                 menu={menu}
@@ -485,7 +485,7 @@ const SafeDashboard = (props) => {
             <ColumnSection
               backgroundColor="linear-gradient(to bottom, #151820, #2c3040)"
               padding="0"
-              width={isMobileScreen ? '100%' : '77.1rem'}
+              width={isMobileScreen ? '100%' : '59.23%'}
               mobileScreenCss={MobileViewForSafeDetailsPage}
             >
               <Switch>
