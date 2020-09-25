@@ -276,7 +276,7 @@ const SafeDashboard = (props) => {
       .catch((err) => {
         setResponseType(-1);
       });
-  }, [safes, compareSafesAndList]);
+  }, [compareSafesAndList]);
 
   useEffect(() => {
     fetchData().catch((error) => {
