@@ -52,10 +52,12 @@ const TextFieldComponent = (props) => {
     helperText,
     onInputBlur,
     name,
+    readOnly,
   } = props;
 
   return (
     <StyleTextField
+      disabled={readOnly}
       icon={icon}
       placeholder={placeholder}
       value={value}
@@ -97,6 +99,7 @@ TextFieldComponent.propTypes = {
   helperText: PropTypes.string,
   error: PropTypes.bool,
   name: PropTypes.string,
+  readOnly: PropTypes.bool,
 };
 
 TextFieldComponent.defaultProps = {
@@ -112,6 +115,7 @@ TextFieldComponent.defaultProps = {
   helperText: '',
   error: false,
   onInputBlur: () => {},
+  readOnly: false,
 };
 
 setIcon.propTypes = {

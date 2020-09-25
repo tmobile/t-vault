@@ -151,7 +151,7 @@ const User = (props) => {
     setUsers({});
     setResponse({ status: 'loading' });
     apiService
-      .getSafePermission(`${safeDetail.path}`)
+      .getSafeDetails(`${safeDetail.path}`)
       .then((res) => {
         setResponseType(null);
         if (res && res.data?.data?.users) {

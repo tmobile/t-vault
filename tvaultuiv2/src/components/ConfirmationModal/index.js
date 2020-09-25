@@ -53,7 +53,7 @@ const useStyles = makeStyles(() => ({
 const ConfirmationModal = (props) => {
   const { open, handleClose, title, confirmButton, cancelButton } = props;
   const classes = useStyles();
-  console.log('cancelButton', typeof cancelButton.type);
+
   return (
     <ComponentError>
       <Modal

@@ -351,6 +351,7 @@ const SafeDashboard = (props) => {
           <PopperWrap>
             <PsudoPopper
               onDeleteSafeClicked={() => onDeleteSafeClicked(safe.path)}
+              safe={safe}
             />
           </PopperWrap>
         ) : null}
