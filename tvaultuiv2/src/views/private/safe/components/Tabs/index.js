@@ -220,6 +220,7 @@ export default function SelectionTabs(props) {
               onClick={addSecretsFolder}
               customStyle={customBtnStyles}
               iconSrc={
+                safeDetail?.access?.toLowerCase() === 'read' ||
                 Object.keys(safeDetail).length === 0
                   ? disableAddFolder
                   : addFolderPlus
