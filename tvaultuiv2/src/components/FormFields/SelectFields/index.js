@@ -13,12 +13,13 @@ const MenuItemList = styled(MenuItem)`
 `;
 
 const SelectComponent = (props) => {
-  const { menu, onChange, value, variant, classes, color } = props;
+  const { menu, onChange, value, variant, classes, color, readOnly } = props;
   return (
     <SelectStyle
       value={value}
       onChange={onChange}
       fullWidth
+      disabled={readOnly}
       className={classes.select}
       variant={variant || 'filled'}
       color={color}
@@ -42,12 +43,14 @@ SelectComponent.propTypes = {
   menu: PropTypes.arrayOf(PropTypes.any).isRequired,
   classes: PropTypes.objectOf(PropTypes.any),
   color: PropTypes.string,
+  readOnly: PropTypes.bool,
 };
 
 SelectComponent.defaultProps = {
   variant: 'filled',
   classes: {},
   color: 'primary',
+  readOnly: false,
 };
 
 export default SelectComponent;

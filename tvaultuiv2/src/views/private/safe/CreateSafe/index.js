@@ -179,6 +179,8 @@ const CreateModal = () => {
   const [helperText] = useState('');
   const [emailError, setEmailError] = useState(false);
   const [safeError, setSafeError] = useState(false);
+  const [editSafe, setEditSafe] = useState(false);
+  const [safeDetails, setSafeDetails] = useState({});
   const history = useHistory();
 
   useEffect(() => {
@@ -190,10 +192,19 @@ const CreateModal = () => {
       emailError
     ) {
       setDisabledSave(true);
+    } else if (editSafe) {
+      if (
+        safeDetails.owner === owner &&
+        safeDetails.description === description
+      ) {
+        setDisabledSave(true);
+      } else {
+        setDisabledSave(false);
+      }
     } else {
       setDisabledSave(false);
     }
-  }, [name, description, owner, safeError, emailError]);
+  }, [name, description, owner, safeError, emailError, editSafe, safeDetails]);
 
   const [menu] = useState(['Users Safe', 'Shared Safe', 'Application Safe']);
 
@@ -202,9 +213,43 @@ const CreateModal = () => {
     history.goBack();
   };
 
-  const saveSafes = () => {
-    const value = safeType.split(' ')[0].toLowerCase();
-    const safeContent = {
+  useEffect(() => {
+    if (history.location.pathname === '/safe/edit-safe') {
+      setEditSafe(true);
+      setResponseType(0);
+      apiService
+        .getSafeDetails(history.location.state.safe.path)
+        .then((res) => {
+          setResponseType(null);
+          if (res?.data?.data) {
+            setSafeDetails(res.data.data);
+            setName(res.data.data.name);
+            setDescription(res.data.data.description);
+            setOwner(res.data.data.owner);
+            if (res.data.data.type === 'user') {
+              setSafeType('Users Safe');
+            } else if (res.data.data.type === 'apps') {
+              setSafeType('Application Safe');
+            } else {
+              setSafeType('Shared Safe');
+            }
+          }
+        })
+        .catch((err) => {
+          if (err.response && err.response.data?.errors[0]) {
+            setToastMessage(err.response.data.errors[0]);
+          }
+          setResponseType(-1);
+        });
+    }
+  }, [history]);
+
+  const constructPayload = () => {
+    let value = safeType.split(' ')[0].toLowerCase();
+    if (value === 'application') {
+      value = 'apps';
+    }
+    const data = {
       data: {
         name,
         description,
@@ -213,10 +258,38 @@ const CreateModal = () => {
       },
       path: `${value}/${name}`,
     };
+    return data;
+  };
+
+  const onEditSafes = () => {
+    const payload = constructPayload();
+    setResponseType(0);
+    apiService
+      .editSafe(payload)
+      .then((res) => {
+        if (res && res.status === 200) {
+          setResponseType(1);
+          setToastMessage(`Safe ${name} updated successfully!`);
+          setTimeout(() => {
+            setOpen(false);
+            history.goBack();
+          }, 1000);
+        }
+      })
+      .catch((err) => {
+        if (err.response && err.response.data?.errors[0]) {
+          setToastMessage(err.response.data.errors[0]);
+        }
+        setResponseType(-1);
+      });
+  };
+
+  const onCreateSafes = () => {
+    const payload = constructPayload();
     setDisabledSave(true);
     setResponseType(0);
     apiService
-      .createSafe(safeContent)
+      .createSafe(payload)
       .then((res) => {
         if (res && res.status === 200) {
           setResponseType(1);
@@ -336,6 +409,7 @@ const CreateModal = () => {
                   value={name}
                   placeholder="Save Name"
                   fullWidth
+                  readOnly={!!editSafe}
                   name="name"
                   onChange={(e) => {
                     setName(e.target.value);
@@ -372,6 +446,7 @@ const CreateModal = () => {
                   menu={menu}
                   value={safeType}
                   classes={classes}
+                  readOnly={!!editSafe}
                   onChange={(e) => setSafeType(e.target.value)}
                   helperText={helperText}
                 />
@@ -404,7 +479,7 @@ const CreateModal = () => {
                 color="secondary"
                 icon="add"
                 disabled={disabledSave}
-                onClick={() => saveSafes()}
+                onClick={() => (!editSafe ? onCreateSafes() : onEditSafes())}
                 width={isMobileScreen ? '100%' : ''}
               />
             </CancelSaveWrapper>
@@ -421,7 +496,9 @@ const CreateModal = () => {
               <SnackbarComponent
                 open
                 onClose={() => onToastClose()}
-                message="New Safe has been createtd successfully"
+                message={
+                  toastMessage || 'New Safe has been createtd successfully'
+                }
               />
             )}
           </ModalWrapper>

@@ -1,3 +1,4 @@
+/* eslint-disable react/jsx-wrap-multilines */
 /* eslint-disable no-nested-ternary */
 /* eslint-disable no-param-reassign */
 /* eslint-disable no-unused-vars */
@@ -6,7 +7,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 import InfiniteScroll from 'react-infinite-scroller';
 import PropTypes from 'prop-types';
-import { Link, Route, Switch } from 'react-router-dom';
+import { Link, Route, Switch, Redirect } from 'react-router-dom';
 import styled, { css } from 'styled-components';
 import useMediaQuery from '@material-ui/core/useMediaQuery';
 import { values } from 'lodash';
@@ -27,11 +28,15 @@ import {
   makeSafesList,
   createSafeArray,
 } from '../../../../../services/helper-function';
+import SnackbarComponent from '../../../../../components/Snackbar';
 
 // mock data
 // import { safes } from './__mock/safeDashboard';
 import apiService from '../../apiService';
 import Loader from '../../../../../components/Loader';
+
+import ConfirmationModal from '../../../../../components/ConfirmationModal';
+import ButtonComponent from '../../../../../components/FormFields/ActionButton';
 
 // styled components
 const ColumnSection = styled('section')`
@@ -185,6 +190,12 @@ const SafeDashboard = (props) => {
     { selected: 'Application Safe', path: 'apps' },
   ]);
   const [safeType, setSafeType] = useState('All Safes');
+  const [openConfirmationModal, setOpenConfirmationModal] = useState(false);
+  const [deletionPath, setDeletionPath] = useState('');
+  const [toast, setToast] = useState(null);
+  const handleClose = () => {
+    setOpenConfirmationModal(false);
+  };
   // const [showPopper, setShowPopper] = useState(false);
   const isMobileScreen = useMediaQuery(mediaBreakpoints.small);
 
@@ -200,24 +211,21 @@ const SafeDashboard = (props) => {
     setActiveSafeFolders([...activeSafes]);
   };
 
-  const compareSafesAndList = useCallback(
-    (listArray, type) => {
-      const value = createSafeArray(listArray, type);
-      safes[type].map((item) => {
-        if (!listArray.includes(item.name)) {
-          item.manage = false;
-        }
-        return null;
-      });
-      value.map((item) => {
-        if (!safes[type].some((list) => list.name === item.name)) {
-          return safes[type].push(item);
-        }
-        return null;
-      });
-    },
-    [safes]
-  );
+  const compareSafesAndList = useCallback((listArray, type, safesObject) => {
+    const value = createSafeArray(listArray, type);
+    safesObject[type].map((item) => {
+      if (!listArray.includes(item.name)) {
+        item.manage = false;
+      }
+      return null;
+    });
+    value.map((item) => {
+      if (!safesObject[type].some((list) => list.name === item.name)) {
+        return safesObject[type].push(item);
+      }
+      return null;
+    });
+  }, []);
 
   /**
    * renders safe details page route
@@ -239,34 +247,36 @@ const SafeDashboard = (props) => {
     ]);
     allApiResponse
       .then((response) => {
-        safes.users = [];
-        safes.apps = [];
-        safes.shared = [];
+        const safesObject = { users: [], apps: [], shared: [] };
         if (response[0] && response[0].data) {
           Object.keys(response[0].data).forEach((item) => {
             const data = makeSafesList(response[0].data[item], item);
             data.map((value) => {
-              return safes[item].push(value);
+              return safesObject[item].push(value);
             });
           });
         }
         if (response[1] && response[1]?.data?.keys) {
-          compareSafesAndList(response[1].data.keys, 'users');
+          compareSafesAndList(response[1].data.keys, 'users', safesObject);
         }
         if (response[2] && response[2]?.data?.keys) {
-          compareSafesAndList(response[2].data.keys, 'shared');
+          compareSafesAndList(response[2].data.keys, 'shared', safesObject);
         }
         if (response[3] && response[3]?.data?.keys) {
-          compareSafesAndList(response[3].data.keys, 'apps');
+          compareSafesAndList(response[3].data.keys, 'apps', safesObject);
         }
-        setSafes(safes);
-        setSafeList([...safes.users, ...safes.shared, ...safes.apps]);
+        setSafes(safesObject);
+        setSafeList([
+          ...safesObject.users,
+          ...safesObject.shared,
+          ...safesObject.apps,
+        ]);
         setResponseType(1);
       })
       .catch((err) => {
         setResponseType(-1);
       });
-  }, [safes, compareSafesAndList]);
+  }, [compareSafesAndList]);
 
   useEffect(() => {
     fetchData().catch((error) => {
@@ -293,15 +303,34 @@ const SafeDashboard = (props) => {
   };
 
   const onDeleteSafeClicked = (path) => {
+    setOpenConfirmationModal(true);
+    setDeletionPath(path);
+  };
+
+  const onDeleteSafeConfirmClicked = () => {
     setResponseType(0);
+    setSafes({ users: [], apps: [], shared: [] });
+    setSafeList([]);
+    setOpenConfirmationModal(false);
     apiService
-      .deleteSafe(path)
+      .deleteSafe(deletionPath)
       .then((res) => {
+        setDeletionPath('');
         setResponseType(1);
+        setToast(1);
         fetchData();
       })
       // eslint-disable-next-line no-console
-      .catch((e) => console.log(e));
+      .catch((e) => {
+        setDeletionPath('');
+        setToast(-1);
+      });
+  };
+  const onToastClose = (reason) => {
+    if (reason === 'clickaway') {
+      return;
+    }
+    setToast(null);
   };
 
   let scrollParentRef = null;
@@ -334,6 +363,7 @@ const SafeDashboard = (props) => {
           <PopperWrap>
             <PsudoPopper
               onDeleteSafeClicked={() => onDeleteSafeClicked(safe.path)}
+              safe={safe}
             />
           </PopperWrap>
         ) : null}
@@ -343,8 +373,29 @@ const SafeDashboard = (props) => {
   return (
     <ComponentError>
       <>
+        <ConfirmationModal
+          open={openConfirmationModal}
+          handleClose={handleClose}
+          title="Are you sure you want to delete this safe?"
+          cancelButton={
+            <ButtonComponent
+              label="Cancel"
+              color="primary"
+              onClick={() => handleClose()}
+              width={isMobileScreen ? '100%' : '38%'}
+            />
+          }
+          confirmButton={
+            <ButtonComponent
+              label="Confirm"
+              color="secondary"
+              onClick={() => onDeleteSafeConfirmClicked()}
+              width={isMobileScreen ? '100%' : '38%'}
+            />
+          }
+        />
         <SectionPreview title="safe-section">
-          <ColumnSection width={isMobileScreen ? '100%' : '52.9rem'}>
+          <ColumnSection width={isMobileScreen ? '100%' : '40.77%'}>
             <ColumnHeader>
               <SelectComponent
                 menu={menu}
@@ -434,13 +485,33 @@ const SafeDashboard = (props) => {
             <ColumnSection
               backgroundColor="linear-gradient(to bottom, #151820, #2c3040)"
               padding="0"
-              width={isMobileScreen ? '100%' : '77.1rem'}
+              width={isMobileScreen ? '100%' : '59.23%'}
               mobileScreenCss={MobileViewForSafeDetailsPage}
             >
               <Switch>
                 {' '}
+                {safeList[0]?.name && (
+                  <Redirect
+                    exact
+                    from="/safe"
+                    to={{
+                      pathname: `/safe/${safeList[0]?.name}`,
+                      state: { safe: safeList[0] },
+                    }}
+                  />
+                )}
                 <Route
                   path="/:tab/:safeName"
+                  render={(routerProps) => (
+                    <SafeDetails
+                      detailData={safes}
+                      params={routerProps}
+                      setActiveSafeFolders={() => setActiveSafeFolders([])}
+                    />
+                  )}
+                />
+                <Route
+                  path="/"
                   render={(routerProps) => (
                     <SafeDetails
                       detailData={safes}
@@ -455,6 +526,22 @@ const SafeDashboard = (props) => {
             <></>
           )}
         </SectionPreview>
+        {toast === -1 && (
+          <SnackbarComponent
+            open
+            onClose={() => onToastClose()}
+            severity="error"
+            icon="error"
+            message="Something went wrong!"
+          />
+        )}
+        {toast === 1 && (
+          <SnackbarComponent
+            open
+            onClose={() => onToastClose()}
+            message="Safe deleted successfully!"
+          />
+        )}
       </>
     </ComponentError>
   );

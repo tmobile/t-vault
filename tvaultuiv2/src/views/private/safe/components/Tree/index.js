@@ -19,7 +19,6 @@ import apiService from '../../apiService';
 const StyledTree = styled.div`
   line-height: 1.5;
   margin-top: 1.2rem;
-  height: 43.5vh;
   overflow-y: auto;
   & > div {
     padding-left: 0;
@@ -198,6 +197,7 @@ const Tree = (props) => {
           });
         })
         .catch((error) => {
+          console.error(error);
           setResponseType(-1);
           setStatus({ status: 'failed', message: 'Secret deletion failed!' });
         });
@@ -215,6 +215,7 @@ const Tree = (props) => {
         );
       })
       .catch((error) => {
+        console.error(error);
         setResponseType(-1);
         setStatus({ status: 'failed', message: 'Folder deletion failed!' });
       });

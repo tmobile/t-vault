@@ -1,6 +1,7 @@
 import React from 'react';
 import styled from 'styled-components';
 import PropTypes from 'prop-types';
+import { Link } from 'react-router-dom';
 import { IconDeleteActive, IconEdit } from '../../../../../assets/SvgIcons';
 import ComponentError from '../../../../../errorBoundaries/ComponentError/component-error';
 
@@ -23,14 +24,22 @@ const Icon = styled('div')`
 `;
 
 const PsudoPopper = (props) => {
-  const { onDeleteSafeClicked } = props;
+  const { onDeleteSafeClicked, safe } = props;
+
   return (
     <ComponentError>
       <IconWrap>
-        <Icon>
-          {' '}
-          <IconEdit />
-        </Icon>
+        <Link
+          to={{
+            pathname: '/safe/edit-safe',
+            state: { safe },
+          }}
+        >
+          <Icon>
+            {' '}
+            <IconEdit />
+          </Icon>
+        </Link>
         <Icon onClick={onDeleteSafeClicked}>
           {' '}
           <IconDeleteActive />
@@ -42,10 +51,12 @@ const PsudoPopper = (props) => {
 
 PsudoPopper.propTypes = {
   onDeleteSafeClicked: PropTypes.func,
+  safe: PropTypes.objectOf(PropTypes.any),
 };
 
 PsudoPopper.defaultProps = {
   onDeleteSafeClicked: () => {},
+  safe: {},
 };
 
 export default PsudoPopper;
