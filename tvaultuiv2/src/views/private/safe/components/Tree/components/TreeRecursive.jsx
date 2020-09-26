@@ -30,7 +30,7 @@ const TreeRecursive = ({
   responseType,
   setResponseType,
   getChildrenData,
-  deleteTreeItem,
+  onDeleteTreeItem,
   secretprefilledData,
   setSecretprefilledData,
 }) => {
@@ -53,7 +53,7 @@ const TreeRecursive = ({
             type={item.type}
             setIsAddInput={setIsAddInput}
             setInputType={setInputType}
-            deleteTreeItem={deleteTreeItem}
+            onDeleteTreeItem={onDeleteTreeItem}
             id={item.id}
           />
         ) : (
@@ -70,7 +70,7 @@ const TreeRecursive = ({
           setIsAddInput={setIsAddInput}
           getChildNodes={getChildrenData}
           setCurrentNode={setCurrentNode}
-          deleteTreeItem={deleteTreeItem}
+          onDeleteTreeItem={onDeleteTreeItem}
           id={item.id}
           key={item.id}
         >
@@ -114,7 +114,7 @@ const TreeRecursive = ({
               path={`${item.id}/${item.value}`}
               setResponseType={setResponseType}
               getChildrenData={getChildrenData}
-              deleteTreeItem={deleteTreeItem}
+              onDeleteTreeItem={onDeleteTreeItem}
               secretprefilledData={secretprefilledData}
               setSecretprefilledData={setSecretprefilledData}
             />

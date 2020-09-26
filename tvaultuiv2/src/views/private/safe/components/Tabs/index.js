@@ -316,47 +316,6 @@ export default function SelectionTabs(props) {
             ) : (
               <></>
             )}
-
-            {responseType === -1 &&
-              !enabledAddFolder &&
-              !secretsFolder?.length && (
-                <EmptySecretBox>
-                  {' '}
-                  <Error description="Error while fetching safes folders" />
-                </EmptySecretBox>
-              )}
-            {!secretsFolder?.length && responseType === 0 ? (
-              <Loader width="100%" height="70%" />
-            ) : secretsFolder && secretsFolder.length ? (
-              <Tree data={secretsFolder} />
-            ) : responseType === 1 &&
-              responseType !== 0 &&
-              responseType !== -1 &&
-              secretsFolder?.length === 0 &&
-              !enabledAddFolder ? (
-              // eslint-disable-next-line react/jsx-indent
-              <EmptySecretBox>
-                <NoData
-                  imageSrc={NoSecretsIcon}
-                  description="add a <strong>Folder</strong> and then you will be able to add <strong>secrets</strong> to view them all here"
-                  actionButton={
-                    // eslint-disable-next-line react/jsx-wrap-multilines
-                    <ButtonComponent
-                      label="add"
-                      icon="add"
-                      color="secondary"
-                      disabled={safeDetail?.access?.toLowerCase() === 'read'}
-                      width={isMobileScreen ? '100%' : ''}
-                      onClick={() => setEnableAddFolder(true)}
-                    />
-                  }
-                  bgIconStyle={bgIconStyle}
-                  width={isMobileScreen ? '100%' : '30%'}
-                />
-              </EmptySecretBox>
-            ) : (
-              <></>
-            )}
           </TabPanel>
 
           <TabPanel value={value} index={1}>

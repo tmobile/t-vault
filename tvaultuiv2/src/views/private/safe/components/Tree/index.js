@@ -4,6 +4,7 @@
 /* eslint-disable array-callback-return */
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
+import useMediaQuery from '@material-ui/core/useMediaQuery';
 import PropTypes from 'prop-types';
 
 import {
@@ -14,6 +15,9 @@ import {
 import ComponentError from '../../../../../errorBoundaries/ComponentError/component-error';
 import TreeRecursive from './components/TreeRecursive';
 import SnackbarComponent from '../../../../../components/Snackbar';
+import ButtonComponent from '../../../../../components/FormFields/ActionButton';
+import ConfirmationModal from '../../../../../components/ConfirmationModal';
+import mediaBreakpoints from '../../../../../breakpoints';
 import apiService from '../../apiService';
 
 const StyledTree = styled.div`
@@ -32,8 +36,10 @@ const Tree = (props) => {
   const [responseType, setResponseType] = useState(null);
   const [toastMessage, setToastMessage] = useState('');
   const [secretprefilledData, setSecretprefilledData] = useState({});
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [status, setStatus] = useState({});
-
+  const isMobileScreen = useMediaQuery(mediaBreakpoints.small);
+  const [deletePath, setDeleteItem] = useState({});
   // set inital tree data structure
   const setTreeData = (treeData) => {
     setSecretsFolder(treeData);
@@ -46,6 +52,7 @@ const Tree = (props) => {
       return;
     }
     setResponseType(null);
+    setStatus({});
   };
 
   const getChildrenData = (id) => {
@@ -178,18 +185,27 @@ const Tree = (props) => {
     setIsAddInput(val);
   };
 
+  const handleDeleteModalClose = () => {
+    setDeleteModalOpen(false);
+  };
+
   // delete item in the tree
-  const deleteTreeItem = (node, parent) => {
+  const deleteTreeItem = (node) => {
     setResponseType(0);
+    setDeleteModalOpen(false);
     if (node.type.toLowerCase() === 'secret') {
       const tempFolders = [...secretsFolder] || [];
-      const updatedObject = findElementAndDelete(tempFolders, parent, node.key);
-      const payload = { path: parent, data: updatedObject.data };
+      const updatedObject = findElementAndDelete(
+        tempFolders,
+        node.parentId,
+        node.key
+      );
+      const payload = { path: node.parentId, data: updatedObject.data };
       apiService
-        .modifySecret(parent, payload)
+        .modifySecret(node.parentId, payload)
         .then((res) => {
           setResponseType(1);
-          getChildrenData(parent);
+          getChildrenData(node.parentId);
           setToastMessage(res.data.messages[0]);
           setStatus({
             status: 'success',
@@ -207,7 +223,7 @@ const Tree = (props) => {
       .deleteFolder(node.id)
       .then((res) => {
         setResponseType(1);
-        getChildrenData(parent);
+        getChildrenData(node.parentId);
         setToastMessage(
           res.data.messages[0].toLowerCase().includes('sdb deleted')
             ? 'Folder Deleted Successfully'
@@ -219,6 +235,12 @@ const Tree = (props) => {
         setResponseType(-1);
         setStatus({ status: 'failed', message: 'Folder deletion failed!' });
       });
+  };
+
+  // delete tree item handler
+  const onDeleteTreeItem = (node) => {
+    setDeleteModalOpen(true);
+    setDeleteItem(node);
   };
 
   return (
@@ -237,7 +259,7 @@ const Tree = (props) => {
           responseType={responseType}
           setResponseType={setResponseType}
           getChildrenData={getChildrenData}
-          deleteTreeItem={deleteTreeItem}
+          onDeleteTreeItem={onDeleteTreeItem}
           secretprefilledData={secretprefilledData}
           setSecretprefilledData={setSecretprefilledData}
         />
@@ -260,6 +282,28 @@ const Tree = (props) => {
             />
           )
         )}
+        <ConfirmationModal
+          open={deleteModalOpen}
+          title={`Are you sure you want to delete this secret? `}
+          cancelButton={
+            // eslint-disable-next-line react/jsx-wrap-multilines
+            <ButtonComponent
+              label="Cancel"
+              color="primary"
+              onClick={() => handleDeleteModalClose()}
+              width={isMobileScreen ? '100%' : '38%'}
+            />
+          }
+          confirmButton={
+            // eslint-disable-next-line react/jsx-wrap-multilines
+            <ButtonComponent
+              label="Confirm"
+              color="secondary"
+              onClick={() => deleteTreeItem(deletePath)}
+              width={isMobileScreen ? '100%' : '38%'}
+            />
+          }
+        />
       </StyledTree>
     </ComponentError>
   );

@@ -111,7 +111,7 @@ const Folder = (props) => {
     setIsAddInput,
     getChildNodes,
     id,
-    deleteTreeItem,
+    onDeleteTreeItem,
     setCurrentNode,
   } = props;
   const [isOpen, setIsOpen] = useState(false);
@@ -140,8 +140,8 @@ const Folder = (props) => {
   ];
 
   // delete folder
-  const deleteNode = (treeItem, parent) => {
-    deleteTreeItem(treeItem, parent);
+  const deleteNode = (treeItem) => {
+    onDeleteTreeItem(treeItem);
   };
   // const editNode = (treeItem) => {
   //   editTreeItem(treeItem);
@@ -208,10 +208,11 @@ const Folder = (props) => {
                 </PopperItem> */}
                 <PopperItem
                   onClick={() =>
-                    deleteNode(
-                      { id: folderInfo.id, type: folderInfo.type },
-                      folderInfo.parentId
-                    )
+                    deleteNode({
+                      id: folderInfo.id,
+                      type: folderInfo.type,
+                      parentId: folderInfo.parentId,
+                    })
                   }
                 >
                   <IconDeleteActive />
@@ -236,7 +237,7 @@ Folder.propTypes = {
   getChildNodes: PropTypes.func,
   setCurrentNode: PropTypes.func,
   id: PropTypes.string,
-  deleteTreeItem: PropTypes.func,
+  onDeleteTreeItem: PropTypes.func,
 };
 Folder.defaultProps = {
   folderInfo: {},
@@ -244,7 +245,7 @@ Folder.defaultProps = {
   setInputType: () => {},
   setIsAddInput: () => {},
   getChildNodes: () => {},
-  deleteTreeItem: () => {},
+  onDeleteTreeItem: () => {},
   setCurrentNode: () => {},
   id: '',
 };

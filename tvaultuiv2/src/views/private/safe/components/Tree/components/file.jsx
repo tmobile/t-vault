@@ -81,7 +81,7 @@ const File = (props) => {
     parentId,
     secret,
     id,
-    deleteTreeItem,
+    onDeleteTreeItem,
     setSecretprefilledData,
     type,
     setIsAddInput,
@@ -94,8 +94,8 @@ const File = (props) => {
   };
 
   // delete folder
-  const deleteNode = (treeItem, parentItem) => {
-    deleteTreeItem(treeItem, parentItem);
+  const deleteNode = (treeItem) => {
+    onDeleteTreeItem(treeItem);
   };
 
   const editNode = () => {
@@ -139,11 +139,15 @@ const File = (props) => {
                 <span>Edit</span>
               </PopperItem>
               <PopperItem
-                onClick={() =>
-                  deleteNode(
-                    { id, type, key: Object.keys(secret)[0] },
-                    parentId
-                  )
+                onClick={
+                  () =>
+                    deleteNode({
+                      id,
+                      type,
+                      key: Object.keys(secret)[0],
+                      parentId,
+                    })
+                  // eslint-disable-next-line react/jsx-curly-newline
                 }
               >
                 <IconDeleteActive />
@@ -159,7 +163,7 @@ const File = (props) => {
 File.propTypes = {
   secret: PropTypes.objectOf(PropTypes.object),
   id: PropTypes.string,
-  deleteTreeItem: PropTypes.func,
+  onDeleteTreeItem: PropTypes.func,
   parentId: PropTypes.string,
   type: PropTypes.string,
   setIsAddInput: PropTypes.func,
@@ -167,7 +171,7 @@ File.propTypes = {
   setSecretprefilledData: PropTypes.func,
 };
 File.defaultProps = {
-  deleteTreeItem: () => {},
+  onDeleteTreeItem: () => {},
   setIsAddInput: () => {},
   setSecretprefilledData: () => {},
   secret: {},
