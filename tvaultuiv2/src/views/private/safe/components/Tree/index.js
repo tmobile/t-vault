@@ -34,7 +34,6 @@ const Tree = (props) => {
   const [isAddInput, setIsAddInput] = useState(false);
   const [inputType, setInputType] = useState({});
   const [responseType, setResponseType] = useState(null);
-  const [toastMessage, setToastMessage] = useState('');
   const [secretprefilledData, setSecretprefilledData] = useState({});
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [status, setStatus] = useState({});
@@ -71,13 +70,20 @@ const Tree = (props) => {
           setSecretsFolder([...updatedArray]);
         })
         .catch((error) => {
+          setResponseType(-1);
           if (!error.toString().toLowerCase().includes('network')) {
             if (error.response) {
-              setToastMessage(error.response?.data.errors[0]);
+              setStatus({
+                status: 'failed',
+                message: error.response?.data.errors[0],
+              });
               return;
             }
           }
-          setToastMessage('Network Error');
+          setStatus({
+            status: 'failed',
+            message: 'Network Error',
+          });
         });
     }
   };
@@ -110,21 +116,33 @@ const Tree = (props) => {
       .then((res) => {
         setResponseType(1);
         getChildrenData(node);
-        setToastMessage(res.data.messages[0]);
+        setStatus({
+          status: 'success',
+          message: res.data.messages[0],
+        });
       })
       .catch((error) => {
         setResponseType(-1);
         if (!error.toString().toLowerCase().includes('network')) {
           if (error.response) {
-            setToastMessage(error.response?.data.errors[0]);
+            setStatus({
+              status: 'failed',
+              message: error.response?.data.errors[0],
+            });
             return;
           }
         }
         if (error.toString().toLowerCase().includes('422')) {
-          setToastMessage('Secret already exists');
+          setStatus({
+            status: 'failed',
+            message: 'Secret already exists!',
+          });
           return;
         }
-        setToastMessage('Network Error');
+        setStatus({
+          status: 'failed',
+          message: 'Network Error',
+        });
       });
     setIsAddInput(false);
   };
@@ -149,21 +167,33 @@ const Tree = (props) => {
           folderObj
         );
         setSecretsFolder([...updatedArray]);
-        setToastMessage(res.data.messages[0]);
+        setStatus({
+          status: 'success',
+          message: res.data.messages[0],
+        });
       })
       .catch((error) => {
         setResponseType(-1);
         if (!error.toString().toLowerCase().includes('network')) {
           if (error.response) {
-            setToastMessage(error.response?.data.errors[0]);
+            setStatus({
+              status: 'success',
+              message: error.response?.data.errors[0],
+            });
             return;
           }
         }
         if (error.toString().toLowerCase().includes('422')) {
-          setToastMessage('folder already exists');
+          setStatus({
+            status: 'failed',
+            message: 'Folder already exists!',
+          });
           return;
         }
-        setToastMessage('Network Error');
+        setStatus({
+          status: 'failed',
+          message: 'Network Error',
+        });
       });
     setIsAddInput(false);
   };
@@ -206,7 +236,6 @@ const Tree = (props) => {
         .then((res) => {
           setResponseType(1);
           getChildrenData(node.parentId);
-          setToastMessage(res.data.messages[0]);
           setStatus({
             status: 'success',
             message: 'Secret deleted Successfully',
@@ -224,11 +253,12 @@ const Tree = (props) => {
       .then((res) => {
         setResponseType(1);
         getChildrenData(node.parentId);
-        setToastMessage(
-          res.data.messages[0].toLowerCase().includes('sdb deleted')
+        setStatus({
+          status: 'success',
+          message: res.data.messages[0].toLowerCase().includes('sdb deleted')
             ? 'Folder Deleted Successfully'
-            : res.data.messages[0]
-        );
+            : res.data.messages[0],
+        });
       })
       .catch((error) => {
         console.error(error);
@@ -269,7 +299,7 @@ const Tree = (props) => {
             onClose={() => onToastClose()}
             severity="error"
             icon="error"
-            message={toastMessage || 'Something went wrong!'}
+            message={status.message || 'Something went wrong!'}
           />
         ) : (
           (responseType === 1 || status.status === 'success') &&
@@ -278,7 +308,7 @@ const Tree = (props) => {
               open
               onClose={() => onToastClose()}
               severity="success"
-              message={toastMessage || 'Folder/Secret added successfully'}
+              message={status.message || 'Folder/Secret added successfully'}
             />
           )
         )}
