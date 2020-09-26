@@ -1,4 +1,5 @@
-import React from 'react';
+/* eslint-disable consistent-return */
+import React, { useState } from 'react';
 // import PropTypes from 'prop-types';
 import { css } from 'styled-components';
 import LoaderSpinner from '../../../../../../components/LoaderSpinner';
@@ -33,7 +34,9 @@ const TreeRecursive = ({
   secretprefilledData,
   setSecretprefilledData,
 }) => {
+  const [currentNode, setCurrentNode] = useState('');
   // loop through the data
+  // eslint-disable-next-line array-callback-return
   return data.map((item) => {
     // if its a file render <File />
 
@@ -66,10 +69,15 @@ const TreeRecursive = ({
           setInputType={setInputType}
           setIsAddInput={setIsAddInput}
           getChildNodes={getChildrenData}
+          setCurrentNode={setCurrentNode}
           deleteTreeItem={deleteTreeItem}
           id={item.id}
           key={item.id}
         >
+          {responseType === 0 && currentNode === item.id && (
+            <LoaderSpinner size="small" customStyle={loaderStyle} />
+          )}
+
           {inputType?.type?.toLowerCase() === 'folder' &&
             inputType?.currentNode === item.value && (
               <AddFolderModal
@@ -113,16 +121,10 @@ const TreeRecursive = ({
           ) : (
             <></>
           )}
-          {responseType === 0 ? (
-            <LoaderSpinner size="small" customStyle={loaderStyle} />
-          ) : (
-            item?.children?.length === 0 &&
-            responseType !== 0 &&
-            responseType === 1 && (
-              <CreateSecretButton
-                onClick={(e) => setCreateSecretBox(e, item.value)}
-              />
-            )
+          {item?.children?.length < 2 && responseType !== 0 && (
+            <CreateSecretButton
+              onClick={(e) => setCreateSecretBox(e, item.value)}
+            />
           )}
         </Folder>
       );

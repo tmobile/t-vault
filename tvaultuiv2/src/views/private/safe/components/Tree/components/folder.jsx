@@ -16,7 +16,7 @@ import {
 } from '../../../../../../styles/GlobalStyles';
 import {
   IconDeleteActive,
-  IconEdit,
+  // IconEdit,
   IconAddFolder,
   IconAddSecret,
 } from '../../../../../../assets/SvgIcons';
@@ -112,6 +112,7 @@ const Folder = (props) => {
     getChildNodes,
     id,
     deleteTreeItem,
+    setCurrentNode,
   } = props;
   const [isOpen, setIsOpen] = useState(false);
   const [activeSecrets, setActiveSecrets] = useState([]);
@@ -119,6 +120,7 @@ const Folder = (props) => {
   const handleToggle = (e) => {
     e.preventDefault();
     setIsOpen(!isOpen);
+    setCurrentNode(id);
     if (!isOpen) getChildNodes(id);
   };
 
@@ -138,8 +140,8 @@ const Folder = (props) => {
   ];
 
   // delete folder
-  const deleteNode = (treeItem) => {
-    deleteTreeItem(treeItem);
+  const deleteNode = (treeItem, parent) => {
+    deleteTreeItem(treeItem, parent);
   };
   // const editNode = (treeItem) => {
   //   editTreeItem(treeItem);
@@ -232,6 +234,7 @@ Folder.propTypes = {
   setInputType: PropTypes.func,
   setIsAddInput: PropTypes.func,
   getChildNodes: PropTypes.func,
+  setCurrentNode: PropTypes.func,
   id: PropTypes.string,
   deleteTreeItem: PropTypes.func,
 };
@@ -242,6 +245,7 @@ Folder.defaultProps = {
   setIsAddInput: () => {},
   getChildNodes: () => {},
   deleteTreeItem: () => {},
+  setCurrentNode: () => {},
   id: '',
 };
 

@@ -157,7 +157,7 @@ const File = (props) => {
   );
 };
 File.propTypes = {
-  secret: PropTypes.string,
+  secret: PropTypes.objectOf(PropTypes.object),
   id: PropTypes.string,
   deleteTreeItem: PropTypes.func,
   parentId: PropTypes.string,
@@ -170,7 +170,7 @@ File.defaultProps = {
   deleteTreeItem: () => {},
   setIsAddInput: () => {},
   setSecretprefilledData: () => {},
-  secret: '',
+  secret: {},
   id: '',
   parentId: '',
   type: '',

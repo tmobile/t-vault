@@ -9,7 +9,6 @@ import PropTypes from 'prop-types';
 import {
   findElementAndUpdate,
   findElementAndDelete,
-  findSecretAndUpdate,
   findElementAndReturnSecrets,
 } from '../../../../../services/helper-function';
 import ComponentError from '../../../../../errorBoundaries/ComponentError/component-error';
@@ -34,16 +33,15 @@ const Tree = (props) => {
   const [responseType, setResponseType] = useState(null);
   const [toastMessage, setToastMessage] = useState('');
   const [secretprefilledData, setSecretprefilledData] = useState({});
+  const [status, setStatus] = useState({});
 
   // set inital tree data structure
   const setTreeData = (treeData) => {
     setSecretsFolder(treeData);
   };
-
   useEffect(() => {
     setTreeData(data);
   }, [data]);
-
   const onToastClose = (reason) => {
     if (reason === 'clickaway') {
       return;
@@ -91,24 +89,21 @@ const Tree = (props) => {
     folderObj.parentId = obj.parentId;
     folderObj.type = obj.type || 'secret';
     folderObj.children = [];
-    folderObj.value = JSON.stringify({
-      data: { ...currentSecrets.data, [obj.key]: obj.value },
-    });
+    folderObj.value =
+      currentSecrets &&
+      JSON.stringify({
+        data: { ...currentSecrets.data, [obj.key]: obj.value },
+      });
 
     apiService
       .modifySecret(folderObj.id, {
         path: folderObj.id,
-        data: { ...currentSecrets.data, [obj.key]: obj.value },
+        data: { ...currentSecrets?.data, [obj.key]: obj.value },
       })
       // eslint-disable-next-line no-unused-vars
       .then((res) => {
         setResponseType(1);
         getChildrenData(node);
-        // const updatedArray = findSecretAndUpdate(tempFolders, node, {
-        //   data: { ...currentSecrets.data, [obj.key]: obj.value },
-        // });
-        // setSecretsFolder([...updatedArray]);
-
         setToastMessage(res.data.messages[0]);
       })
       .catch((error) => {
@@ -148,7 +143,6 @@ const Tree = (props) => {
           folderObj
         );
         setSecretsFolder([...updatedArray]);
-        // getChildrenData(parentId);
         setToastMessage(res.data.messages[0]);
       })
       .catch((error) => {
@@ -170,7 +164,6 @@ const Tree = (props) => {
 
   const saveFolder = (secret, selectedNode) => {
     setResponseType(0);
-    // getChildrenData(secret.parentId);
     if (secret?.type?.toLowerCase() === 'secret') {
       saveSecretsToFolder(secret, selectedNode);
       return;
@@ -188,6 +181,7 @@ const Tree = (props) => {
 
   // delete item in the tree
   const deleteTreeItem = (node, parent) => {
+    setResponseType(0);
     if (node.type.toLowerCase() === 'secret') {
       const tempFolders = [...secretsFolder] || [];
       const updatedObject = findElementAndDelete(tempFolders, parent, node.key);
@@ -198,9 +192,14 @@ const Tree = (props) => {
           setResponseType(1);
           getChildrenData(parent);
           setToastMessage(res.data.messages[0]);
+          setStatus({
+            status: 'success',
+            message: 'Secret deleted Successfully',
+          });
         })
         .catch((error) => {
           setResponseType(-1);
+          setStatus({ status: 'failed', message: 'Secret deletion failed!' });
         });
       return;
     }
@@ -217,6 +216,7 @@ const Tree = (props) => {
       })
       .catch((error) => {
         setResponseType(-1);
+        setStatus({ status: 'failed', message: 'Folder deletion failed!' });
       });
   };
 
@@ -224,7 +224,7 @@ const Tree = (props) => {
     <ComponentError>
       <StyledTree>
         <TreeRecursive
-          data={secretsFolder}
+          data={(secretsFolder?.length && secretsFolder[0].children) || []}
           saveSecretsToFolder={saveSecretsToFolder}
           setCreateSecretBox={setCreateSecretBox}
           handleCancelClick={handleCancelClick}
@@ -240,7 +240,7 @@ const Tree = (props) => {
           secretprefilledData={secretprefilledData}
           setSecretprefilledData={setSecretprefilledData}
         />
-        {responseType === -1 && !isAddInput ? (
+        {(responseType === -1 || status.status === 'failed') && !isAddInput ? (
           <SnackbarComponent
             open
             onClose={() => onToastClose()}
@@ -249,7 +249,7 @@ const Tree = (props) => {
             message={toastMessage || 'Something went wrong!'}
           />
         ) : (
-          responseType === 1 &&
+          (responseType === 1 || status.status === 'success') &&
           !isAddInput && (
             <SnackbarComponent
               open

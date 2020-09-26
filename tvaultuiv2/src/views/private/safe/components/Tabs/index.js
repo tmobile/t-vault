@@ -28,7 +28,7 @@ import Tree from '../Tree';
 import Permissions from '../Permissions';
 import apiService from '../../apiService';
 import AddFolderModal from '../AddFolderModal';
-// import SnackbarComponent from '../../../../../components/Snackbar';
+import SnackbarComponent from '../../../../../components/Snackbar';
 // styled components goes here
 
 const EmptySecretBox = styled('div')`
@@ -117,7 +117,7 @@ export default function SelectionTabs(props) {
   const [enabledAddFolder, setEnableAddFolder] = useState(false);
   const [secretsFolder, setSecretsFolder] = useState([]);
   const [responseType, setResponseType] = useState(null);
-  const [toastMessage, setToastMessage] = useState('');
+  const [status, setStatus] = useState({});
 
   // resolution handlers
   const isMobileScreen = useMediaQuery(mediaBreakpoints.small);
@@ -130,12 +130,12 @@ export default function SelectionTabs(props) {
     setEnableAddFolder(true);
   };
   // toast close handling
-  // const onToastClose = (reason) => {
-  //   if (reason === 'clickaway') {
-  //     return;
-  //   }
-  //   setResponseType(null);
-  // };
+  const onToastClose = (reason) => {
+    if (reason === 'clickaway') {
+      return;
+    }
+    setStatus({});
+  };
 
   const addSecretsFolderList = (secretFolder) => {
     const tempFolders = [...secretsFolder] || [];
@@ -145,12 +145,12 @@ export default function SelectionTabs(props) {
     folderObj.value = secretFolder.value;
     folderObj.type = secretFolder.type || 'folder';
     folderObj.children = [];
-    tempFolders.push(folderObj);
     setResponseType(0);
     apiService
       .addFolder(folderObj.id)
       .then((res) => {
-        setToastMessage(res.data.messages[0]);
+        setStatus({ status: 'success', message: res.data.messages[0] });
+        tempFolders[0].children.push(folderObj);
         setSecretsFolder([...tempFolders]);
         setResponseType(1);
       })
@@ -158,15 +158,24 @@ export default function SelectionTabs(props) {
         setResponseType(-1);
         if (!error.toString().toLowerCase().includes('network')) {
           if (error.response) {
-            setToastMessage(error.response?.data.errors[0]);
+            setStatus({
+              status: 'failed',
+              message: error.response?.data.errors[0],
+            });
             return;
           }
         }
         if (error.toString().toLowerCase().includes('422')) {
-          setToastMessage('folder already exists');
+          setStatus({
+            status: 'failed',
+            message: 'Folder already exists',
+          });
           return;
         }
-        setToastMessage('Network Error');
+        setStatus({
+          status: 'failed',
+          message: 'Network Error!',
+        });
       });
     setEnableAddFolder(false);
   };
@@ -182,7 +191,7 @@ export default function SelectionTabs(props) {
         .getSecret(safeDetail.path)
         .then((res) => {
           setResponseType(null);
-          setSecretsFolder(res.data.children);
+          setSecretsFolder([res.data]);
         })
         .catch((error) => {
           setResponseType(-1);
@@ -191,11 +200,17 @@ export default function SelectionTabs(props) {
           }
           if (!error.toString().toLowerCase().includes('network')) {
             if (error.response) {
-              setToastMessage(error.response.data.errors[0]);
+              setStatus({
+                status: 'failed',
+                message: error.response.data.errors[0],
+              });
               return;
             }
           }
-          setToastMessage('Network Error');
+          setStatus({
+            status: 'failed',
+            message: 'Network Error',
+          });
         });
     }
   }, [safeDetail]);
@@ -242,7 +257,6 @@ export default function SelectionTabs(props) {
           ) : (
             <></>
           )}
-
           {responseType === -1 && !enabledAddFolder && !secretsFolder?.length && (
             <EmptySecretBox>
               {' '}
@@ -258,6 +272,7 @@ export default function SelectionTabs(props) {
             responseType !== -1 &&
             secretsFolder?.length === 0 &&
             !enabledAddFolder ? (
+            // eslint-disable-next-line react/jsx-indent
             <EmptySecretBox>
               <NoData
                 imageSrc={NoSecretsIcon}
@@ -285,13 +300,20 @@ export default function SelectionTabs(props) {
           <Permissions safeDetail={safeDetail} />
         </TabPanel>
 
-        {/* <SnackbarComponent
-          open={responseType === -1}
+        <SnackbarComponent
+          open={status.status === 'failed'}
           onClose={() => onToastClose()}
           severity="error"
           icon="error"
-          message={toastMessage || 'Something went wrong!'}
-        /> */}
+          message={status.message || 'Something went wrong!'}
+        />
+        <SnackbarComponent
+          open={status.status === 'success'}
+          onClose={() => onToastClose()}
+          severity="success"
+          icon="checked"
+          message={status.message || 'Folder added successfully'}
+        />
       </div>
     </ComponentError>
   );
