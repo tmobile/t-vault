@@ -121,11 +121,13 @@ const TreeRecursive = ({
           ) : (
             <></>
           )}
-          {item?.children?.length < 2 && responseType !== 0 && (
-            <CreateSecretButton
-              onClick={(e) => setCreateSecretBox(e, item.value)}
-            />
-          )}
+          {item?.children?.length < 2 &&
+            responseType !== 0 &&
+            currentNode === item.id && (
+              <CreateSecretButton
+                onClick={(e) => setCreateSecretBox(e, item.value)}
+              />
+            )}
         </Folder>
       );
     }
