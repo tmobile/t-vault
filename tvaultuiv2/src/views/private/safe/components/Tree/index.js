@@ -243,14 +243,14 @@ const Tree = (props) => {
       const payload = { path: node.parentId, data: updatedObject.data };
       apiService
         .modifySecret(node.parentId, payload)
-        .then((res) => {
+        .then(() => {
           getChildrenData(node.parentId);
           setStatus({
             status: 'success',
             message: 'Secret deleted Successfully',
           });
         })
-        .catch((error) => {
+        .catch(() => {
           setStatus({ status: 'failed', message: 'Secret deletion failed!' });
         });
       return;
@@ -266,7 +266,7 @@ const Tree = (props) => {
             : res.data.messages[0],
         });
       })
-      .catch((error) => {
+      .catch(() => {
         setStatus({ status: 'failed', message: 'Folder deletion failed!' });
       });
   };

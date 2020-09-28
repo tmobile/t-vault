@@ -13,18 +13,14 @@ import { makeStyles } from '@material-ui/core/styles';
 import AppBar from '@material-ui/core/AppBar';
 import Tabs from '@material-ui/core/Tabs';
 import Tab from '@material-ui/core/Tab';
-import useMediaQuery from '@material-ui/core/useMediaQuery';
-import Error from '../../../../../components/Error';
-import ScaledLoader from '../../../../../components/Loaders/ScaledLoader';
-import ButtonComponent from '../../../../../components/FormFields/ActionButton';
 import ComponentError from '../../../../../errorBoundaries/ComponentError/component-error';
 import addFolderPlus from '../../../../../assets/folder-plus.svg';
-import NoSecretsIcon from '../../../../../assets/no-data-secrets.svg';
 import NamedButton from '../../../../../components/NamedButton';
-import NoData from '../../../../../components/NoData';
+
+import Secrets from '../Secrets';
 import mediaBreakpoints from '../../../../../breakpoints';
 // import AddFolder from '../AddFolder';
-import Tree from '../Tree';
+
 import Permissions from '../Permissions';
 import apiService from '../../apiService';
 import disableAddFolder from '../../../../../assets/addfolder_inactive.svg';
@@ -32,15 +28,6 @@ import AddFolderModal from '../AddFolderModal';
 import SnackbarComponent from '../../../../../components/Snackbar';
 // styled components goes here
 
-const EmptySecretBox = styled('div')`
-  width: 100%;
-  position: absolute;
-  display: flex;
-  justify-content: center;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-`;
 const customBtnStyles = css`
   padding: 0.2rem 1rem;
   border-radius: 0.5rem;
@@ -51,19 +38,9 @@ const TabPanelWrap = styled.div`
   height: 100%;
   margin: 0;
   padding-top: 1.3rem;
-  overflow: auto;
   ${mediaBreakpoints.small} {
     height: 77vh;
   }
-`;
-const bgIconStyle = {
-  width: '16rem',
-  height: '16rem',
-};
-const CountSpan = styled.span`
-  margin-top: 1.5rem;
-  color: #5e627c;
-  font-size: 1.3rem;
 `;
 
 const TabContentsWrap = styled('div')`
@@ -129,10 +106,6 @@ export default function SelectionTabs(props) {
   const [secretsFolder, setSecretsFolder] = useState([]);
   const [getResponse, setGetResponse] = useState(null);
   const [status, setStatus] = useState({});
-
-  // resolution handlers
-  const isMobileScreen = useMediaQuery(mediaBreakpoints.small);
-  // const isDeskTopView = useMediaQuery(mediaBreakpoints.desktop);
 
   const handleChange = (event, newValue) => {
     setValue(newValue);
@@ -255,11 +228,6 @@ export default function SelectionTabs(props) {
         </AppBar>
         <TabContentsWrap>
           <TabPanel value={value} index={0}>
-            {
-              <CountSpan color="#5e627c">
-                {`${secretsFolder && secretsFolder.length} Secrets`}
-              </CountSpan>
-            }
             {enabledAddFolder ? (
               <AddFolderModal
                 openModal={enabledAddFolder}
@@ -272,42 +240,13 @@ export default function SelectionTabs(props) {
             ) : (
               <></>
             )}
-            {!secretsFolder?.length && status.status === 'loading' && (
-              <ScaledLoader width="100%" height="60%" />
-            )}
-            {getResponse === -1 && (
-              <EmptySecretBox>
-                {' '}
-                <Error description="Error while fetching safes folders" />
-              </EmptySecretBox>
-            )}
-
-            {secretsFolder && secretsFolder.length ? (
-              <Tree data={secretsFolder} />
-            ) : secretsFolder?.length === 0 && getResponse === 1 ? (
-              // eslint-disable-next-line react/jsx-indent
-              <EmptySecretBox>
-                <NoData
-                  imageSrc={NoSecretsIcon}
-                  description="add a <strong>Folder</strong> and then you will be able to add <strong>secrets</strong> to view them all here"
-                  actionButton={
-                    // eslint-disable-next-line react/jsx-wrap-multilines
-                    <ButtonComponent
-                      label="add"
-                      icon="add"
-                      color="secondary"
-                      disabled={safeDetail?.access?.toLowerCase() === 'read'}
-                      width={isMobileScreen ? '100%' : ''}
-                      onClick={() => setEnableAddFolder(true)}
-                    />
-                  }
-                  bgIconStyle={bgIconStyle}
-                  width={isMobileScreen ? '100%' : '30%'}
-                />
-              </EmptySecretBox>
-            ) : (
-              <></>
-            )}
+            <Secrets
+              secretsFolder={secretsFolder}
+              status={status}
+              safeDetail={safeDetail}
+              getResponse={getResponse}
+              setEnableAddFolder={setEnableAddFolder}
+            />
           </TabPanel>
 
           <TabPanel value={value} index={1}>
