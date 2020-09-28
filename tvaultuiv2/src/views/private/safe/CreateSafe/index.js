@@ -404,7 +404,7 @@ const CreateModal = () => {
             </IconDescriptionWrapper>
             <CreateSafeForm>
               <InputFieldLabelWrapper>
-                <InputLabel>Safe Name</InputLabel>
+                <InputLabel required>Safe Name</InputLabel>
                 <TextFieldComponent
                   value={name}
                   placeholder="Save Name"
@@ -423,7 +423,7 @@ const CreateModal = () => {
                 />
               </InputFieldLabelWrapper>
               <InputFieldLabelWrapper postion>
-                <InputLabel>Owner</InputLabel>
+                <InputLabel required>Owner</InputLabel>
                 <AutoCompleteComponent
                   options={options}
                   classes={classes}
@@ -441,7 +441,7 @@ const CreateModal = () => {
                 {autoLoader && <LoaderSpinner customStyle={autoLoaderStyle} />}
               </InputFieldLabelWrapper>
               <InputFieldLabelWrapper>
-                <InputLabel>Type of Safe</InputLabel>
+                <InputLabel required>Type of Safe</InputLabel>
                 <SelectComponent
                   menu={menu}
                   value={safeType}
@@ -452,7 +452,7 @@ const CreateModal = () => {
                 />
               </InputFieldLabelWrapper>
               <InputFieldLabelWrapper>
-                <InputLabel>Description</InputLabel>
+                <InputLabel required>Description</InputLabel>
                 <TextFieldComponent
                   multiline
                   value={description}

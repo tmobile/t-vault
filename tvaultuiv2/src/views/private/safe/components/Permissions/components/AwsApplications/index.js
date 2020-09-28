@@ -1,3 +1,5 @@
+/* eslint-disable react/jsx-indent */
+/* eslint-disable react/jsx-curly-newline */
 import React, { useState, useEffect } from 'react';
 import styled, { css } from 'styled-components';
 import PropTypes from 'prop-types';
@@ -5,26 +7,21 @@ import useMediaQuery from '@material-ui/core/useMediaQuery';
 import ComponentError from '../../../../../../../errorBoundaries/ComponentError/component-error';
 import NoData from '../../../../../../../components/NoData';
 import ButtonComponent from '../../../../../../../components/FormFields/ActionButton';
+import PermissionsList from '../PermissionsList';
 import noPermissionsIcon from '../../../../../../../assets/no-permissions.svg';
 import mediaBreakpoints from '../../../../../../../breakpoints';
-import AddUser from '../../../AddUser';
 import apiService from '../../../../apiService';
 import LoaderSpinner from '../../../../../../../components/LoaderSpinner';
-import PermissionsList from '../PermissionsList';
 import Error from '../../../../../../../components/Error';
+import AddAwsApplicationModal from '../../../AddAwsApplicationModal';
 
 const { small } = mediaBreakpoints;
 
 const NoDataWrapper = styled.section`
   display: flex;
   justify-content: center;
-  margin-top: 2.5rem;
-  transform: translate(-50%, -50%);
-  position: absolute;
-  left: 50%;
-  top: 50%;
   width: 100%;
-
+  height: 100%;
   p {
     ${small} {
       margin-top: 2rem;
@@ -43,19 +40,20 @@ const customStyle = css`
   height: 100%;
 `;
 
-const User = (props) => {
+const AwsApplications = (props) => {
   const {
     safeDetail,
-    newPermission,
-    onNewPermissionChange,
     safeData,
     fetchPermission,
+    onNewAwsChange,
+    newAwsApplication,
     updateToastMessage,
   } = props;
 
-  const [editUser, setEditUser] = useState('');
-  const [editAccess, setEditAccess] = useState('');
+  // const [editGroup, setEditGroup] = useState('');
+  // const [editAccess, setEditAccess] = useState('');
   const [response, setResponse] = useState({ status: 'loading' });
+
   const isMobileScreen = useMediaQuery(small);
 
   useEffect(() => {
@@ -71,22 +69,22 @@ const User = (props) => {
   }, [safeData]);
 
   useEffect(() => {
-    if (newPermission) {
+    if (newAwsApplication) {
       setResponse({ status: 'add' });
     }
-  }, [newPermission]);
+  }, [newAwsApplication]);
 
-  const onDeleteClick = (username) => {
+  const onDeleteClick = (role) => {
     setResponse({ status: 'loading' });
     const payload = {
       path: safeDetail.path,
-      username,
+      role,
     };
     apiService
-      .deleteUserPermission(payload)
+      .deleteAwsConfiguration(payload)
       .then((res) => {
-        if (res && res.data?.Message) {
-          updateToastMessage(1, res.data.Message);
+        if (res && res.data?.messages && res.data?.messages[0]) {
+          updateToastMessage(1, res.data.messages[0]);
           setResponse({ status: '' });
           fetchPermission();
         }
@@ -99,10 +97,14 @@ const User = (props) => {
       });
   };
 
-  const onSaveClicked = (data) => {
-    setResponse({ status: 'loading' });
+  const onSaveClicked = (role, access) => {
+    const payload = {
+      access,
+      path: safeDetail.path,
+      role,
+    };
     apiService
-      .addUserPermission(data)
+      .addAwsRole(payload)
       .then((res) => {
         if (res && res.data?.messages) {
           updateToastMessage(1, res.data?.messages[0]);
@@ -118,30 +120,14 @@ const User = (props) => {
       });
   };
 
-  const onSubmit = (user, access) => {
-    const value = {
-      access,
-      path: `${safeDetail.path}`,
-      username: user.toLowerCase(),
-    };
-    onSaveClicked(value);
-    onNewPermissionChange();
-  };
-
-  const onEditSaveClicked = (username, access) => {
+  const onSubmit = (data, access) => {
     setResponse({ status: 'loading' });
-    const payload = {
-      path: `${safeDetail.path}`,
-      username,
-      access,
-    };
+    onNewAwsChange();
     apiService
-      .deleteUserPermission(payload)
+      .addAwsConfiguration(`${safeDetail.path}sss`, data)
       .then((res) => {
-        if (res) {
-          setResponse({ status: 'loading' });
-          onSubmit(username, access);
-        }
+        updateToastMessage(1, res.data?.messages[0]);
+        onSaveClicked(data.role, access);
       })
       .catch((err) => {
         if (err.response?.data?.errors && err.response.data.errors[0]) {
@@ -151,15 +137,41 @@ const User = (props) => {
       });
   };
 
+  // const onEditSaveClicked = (groupname, access) => {
+  //   setResponse({ status: 'loading' });
+  //   const payload = {
+  //     path: `${safeDetail.path}`,
+  //     groupname,
+  //   };
+  //   apiService
+  //     .deleteGroup(payload)
+  //     .then((res) => {
+  //       if (res) {
+  //         setResponse({ status: 'loading' });
+  //         onSubmit(groupname, access);
+  //       }
+  //     })
+  //     .catch((err) => {
+  //       if (err.response?.data?.errors && err.response.data.errors[0]) {
+  //         updateToastMessage(-1, err.response.data.errors[0]);
+  //       }
+  //       setResponse({ status: 'success' });
+  //     });
+  // };
+
   const onCancelClicked = () => {
     setResponse({ status: 'success' });
-    onNewPermissionChange();
+    onNewAwsChange();
   };
 
   const onEditClick = (key, value) => {
-    setEditAccess(value);
-    setEditUser(key);
-    setResponse({ status: 'edit' });
+    // setEditAccess(value);
+    // setEditGroup(key);
+    // setResponse({ status: 'edit' });
+    // eslint-disable-next-line no-console
+    console.log('key', key);
+    // eslint-disable-next-line no-console
+    console.log('value', value);
   };
 
   return (
@@ -169,37 +181,48 @@ const User = (props) => {
           <LoaderSpinner customStyle={customStyle} />
         )}
         {response.status === 'add' && (
-          <AddUser
-            handleSaveClick={(user, access) => onSubmit(user, access)}
+          <AddAwsApplicationModal
+            open
+            handleSaveClick={(data, access) => onSubmit(data, access)}
             handleCancelClick={onCancelClicked}
+            handleModalClose={() => onCancelClicked()}
           />
         )}
-        {response.status === 'edit' && (
-          <AddUser
-            handleSaveClick={(user, access) => onEditSaveClicked(user, access)}
+
+        {/* {response.status === 'edit' && (
+          <AddGroup
+            handleSaveClick={(group, access) =>
+              onEditSaveClicked(group, access)
+            }
             handleCancelClick={onCancelClicked}
-            username={editUser}
+            groupname={editGroup}
             access={editAccess}
           />
-        )}
-        {response.status === 'success' &&
-          safeData &&
-          safeData.response &&
-          safeData.response.users && (
+        )} */}
+        {safeData &&
+          Object.keys(safeData).length > 0 &&
+          Object.keys(safeData?.response).length > 0 &&
+          response.status !== 'loading' &&
+          response.status !== 'error' && (
             <>
-              {Object.keys(safeData.response.users).length > 0 && (
-                <PermissionsList
-                  list={safeData.response.users}
-                  onEditClick={(key, value) => onEditClick(key, value)}
-                  onDeleteClick={(key) => onDeleteClick(key)}
-                />
-              )}
-              {Object.keys(safeData.response.users).length === 0 && (
+              {safeData.response['aws-roles'] &&
+                Object.keys(safeData.response['aws-roles']).length > 0 && (
+                  <PermissionsList
+                    list={safeData.response['aws-roles']}
+                    onEditClick={(key, value) => onEditClick(key, value)}
+                    onDeleteClick={(key) => onDeleteClick(key)}
+                  />
+                )}
+              {(safeData.response['aws-roles'] === null ||
+                !safeData.response['aws-roles'] ||
+                (safeData.response['aws-roles'] &&
+                  Object.keys(safeData.response['aws-roles']).length ===
+                    0)) && (
                 <NoDataWrapper>
                   <NoData
                     imageSrc={noPermissionsIcon}
-                    description="No <strong>users</strong> are given permission to access this safe,
-                    add users to access the safe"
+                    description="No applications are given permission to access this safe,
+                    add applications to access the safe"
                     actionButton={
                       // eslint-disable-next-line react/jsx-wrap-multilines
                       <ButtonComponent
@@ -211,26 +234,26 @@ const User = (props) => {
                       />
                     }
                     bgIconStyle={bgIconStyle}
-                    width={isMobileScreen ? '100%' : '38%'}
+                    width={isMobileScreen ? '100%' : '42%'}
                   />
                 </NoDataWrapper>
               )}
             </>
           )}
         {response.status === 'error' && (
-          <Error description={safeData.error || 'Something went wrong'} />
+          <Error description={safeData.error || 'Something went wrong!'} />
         )}
       </>
     </ComponentError>
   );
 };
 
-User.propTypes = {
+AwsApplications.propTypes = {
   safeDetail: PropTypes.objectOf(PropTypes.any).isRequired,
-  newPermission: PropTypes.bool.isRequired,
-  onNewPermissionChange: PropTypes.func.isRequired,
   safeData: PropTypes.objectOf(PropTypes.any).isRequired,
   fetchPermission: PropTypes.func.isRequired,
+  newAwsApplication: PropTypes.bool.isRequired,
+  onNewAwsChange: PropTypes.func.isRequired,
   updateToastMessage: PropTypes.func.isRequired,
 };
-export default User;
+export default AwsApplications;
