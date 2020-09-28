@@ -18,8 +18,12 @@ const getOwnerEmail = (owner) =>
 
 const addUserPermission = (payload) => api.post('/ss/sdb/user', payload);
 const deleteUserPermission = (payload) => api.delete('/ss/sdb/user', payload);
-
 const getUserName = (user) => api.get(`/ldap/corpusers?CorpId=${user}`);
+
+const getGroupsName = (group) => api.get(`/azure/groups?name=${group}`);
+const deleteGroup = (payload) => api.delete('/ss/sdb/group', payload);
+const addGroup = (payload) => api.post('/ss/sdb/group', payload);
+
 const addFolder = (params) => api.post(`/sdb/createfolder?path=${params}`);
 const deleteFolder = (params) => api.delete(`/sdb/delete?path=${params}`);
 const modifySecret = (params, payload) =>
@@ -46,4 +50,7 @@ export default {
   getSafeDetails,
   editSafe,
   deleteFolder,
+  getGroupsName,
+  addGroup,
+  deleteGroup,
 };

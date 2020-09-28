@@ -1,6 +1,6 @@
-/* eslint-disable no-console */
+/* eslint-disable react/jsx-curly-newline */
 /* eslint-disable react/jsx-props-no-spreading */
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import styled, { css } from 'styled-components';
 import { makeStyles } from '@material-ui/core/styles';
 import Tab from '@material-ui/core/Tab';
@@ -12,10 +12,17 @@ import NamedButton from '../../../../../components/NamedButton';
 import permissionPlusIcon from '../../../../../assets/permission-plus.svg';
 import mediaBreakpoints from '../../../../../breakpoints';
 import User from './components/User';
+import Groups from './components/Groups';
+import apiService from '../../apiService';
+import LoaderSpinner from '../../../../../components/LoaderSpinner';
+import AppRoles from './components/AppRoles';
+import SnackbarComponent from '../../../../../components/Snackbar';
 
 const { small } = mediaBreakpoints;
 
-const TabPanelWrapper = styled.div``;
+const TabPanelWrapper = styled.div`
+  height: 90%;
+`;
 
 function TabPanel(props) {
   const { children, value, index } = props;
@@ -52,6 +59,7 @@ const TabWrapper = styled.div`
   height: calc(100% - 3.8rem);
   display: flex;
   flex-direction: column;
+  position: relative;
   .MuiAppBar-colorPrimary {
     background-color: inherit;
   }
@@ -110,6 +118,14 @@ const PermissionTabsWrapper = styled('div')`
   overflow: auto;
 `;
 
+const customStyle = css`
+  height: 100%;
+  transform: translate(-50%, -50%);
+  position: absolute;
+  left: 50%;
+  top: 50%;
+`;
+
 const useStyles = makeStyles(() => ({
   appBar: {
     display: 'flex',
@@ -124,26 +140,106 @@ const Permissions = (props) => {
   const classes = useStyles();
   const [value, setValue] = useState(0);
   const [newPermission, setNewPermission] = useState(false);
+  const [newGroup, setNewGroup] = useState(false);
   const [count, setCount] = useState(0);
+  const [safeData, setSafeData] = useState({ response: {}, error: '' });
+  const [responseType, setResponseType] = useState(0);
+  const [selectedTab, setSelectedTab] = useState('Permissions');
+  const [toastResponse, setToastResponse] = useState(null);
+  const [toastMessage, setToastMessage] = useState('');
 
   const handleChange = (event, newValue) => {
     setValue(newValue);
+    setCount(0);
+    if (newValue === 0) {
+      setSelectedTab('Permission');
+    } else if (newValue === 1) {
+      setSelectedTab('Group');
+    } else if (newValue === 2) {
+      setSelectedTab('AWS Application');
+    } else {
+      setSelectedTab('App Role');
+    }
   };
 
-  const getPermissionCount = (val) => {
-    setCount(val);
+  useEffect(() => {
+    if (safeData.response && Object.keys(safeData?.response).length !== 0) {
+      if (value === 0) {
+        setCount(Object.keys(safeData.response.users).length);
+      } else if (value === 1) {
+        if (safeData.response.groups) {
+          setCount(Object.keys(safeData.response.groups).length);
+        }
+      } else if (value === 2) {
+        if (safeData.response['aws-roles']) {
+          setCount(Object.keys(safeData.response['aws-roles']).length);
+        }
+      } else if (value === 3) {
+        if (safeData.response['app-roles']) {
+          setCount(Object.keys(safeData.response['app-roles']).length);
+        }
+      }
+    }
+  }, [value, safeData]);
+
+  const fetchPermission = useCallback(() => {
+    setResponseType(0);
+    setCount(0);
+    setSafeData({});
+    apiService
+      .getSafeDetails(`${safeDetail.path}`)
+      .then((res) => {
+        let obj = {};
+        setResponseType(1);
+        if (res && res.data?.data) {
+          obj = res.data.data;
+          setSafeData({ response: obj, error: '' });
+          setCount(Object.keys(res.data.data.users).length);
+        }
+      })
+      .catch((err) => {
+        setResponseType(-1);
+        if (err.response?.data?.errors && err.response.data.errors[0]) {
+          setSafeData({ response: {}, error: err.response.data.errors[0] });
+        }
+      });
+  }, [safeDetail]);
+
+  useEffect(() => {
+    if (safeDetail?.manage) {
+      fetchPermission();
+    }
+  }, [safeDetail, fetchPermission]);
+
+  const onAddLabelBtnClicked = () => {
+    if (value === 0) {
+      setNewPermission(true);
+    } else if (value === 1) {
+      setNewGroup(true);
+    }
+  };
+
+  const onToastClose = (reason) => {
+    if (reason === 'clickaway') {
+      return;
+    }
+    setToastResponse(null);
+  };
+  const updateToastMessage = (response, message) => {
+    setToastResponse(response);
+    setToastMessage(message);
   };
 
   return (
     <ComponentError>
       <>
         <CountPlusWrapper>
-          <CountSpan color="#5e627c">{`${count} Permissions`}</CountSpan>
+          <CountSpan color="#5e627c">{`${count} ${selectedTab}s`}</CountSpan>
           <NamedButton
             customStyle={customMobileStyles}
-            label="Add Permission"
+            label={`Add ${selectedTab}`}
             iconSrc={permissionPlusIcon}
-            onClick={() => setNewPermission(true)}
+            onClick={() => onAddLabelBtnClicked()}
           />
         </CountPlusWrapper>
         <TabWrapper>
@@ -155,37 +251,68 @@ const Permissions = (props) => {
               scrollButtons="off"
               aria-label="scrollable prevent tabs example"
             >
-              <Tab label="User" {...a11yProps(0)} />
-              <Tab label="Group" {...a11yProps(1)} />
-              <Tab label="AWS Application" {...a11yProps(2)} />
+              <Tab label="Users" {...a11yProps(0)} />
+              <Tab label="Groups" {...a11yProps(1)} />
+              <Tab label="AWS Applications" {...a11yProps(2)} />
               <Tab label="App Roles" {...a11yProps(3)} />
             </Tabs>
             <NamedButton
               customStyle={customStyles}
-              label="Add Permission"
+              label={`Add ${selectedTab}`}
               iconSrc={permissionPlusIcon}
-              onClick={() => setNewPermission(true)}
+              onClick={() => onAddLabelBtnClicked()}
             />
           </AppBar>
+          {responseType === 0 && <LoaderSpinner customStyle={customStyle} />}
           <PermissionTabsWrapper>
+            {' '}
             <TabPanel value={value} index={0}>
               <User
                 safeDetail={safeDetail}
                 newPermission={newPermission}
                 onNewPermissionChange={() => setNewPermission(false)}
-                getPermissionCount={(val) => getPermissionCount(val)}
+                fetchPermission={() => fetchPermission()}
+                safeData={safeData}
+                updateToastMessage={(response, message) =>
+                  updateToastMessage(response, message)
+                }
               />
             </TabPanel>
             <TabPanel value={value} index={1}>
-              Group
+              <Groups
+                safeDetail={safeDetail}
+                safeData={safeData}
+                fetchPermission={() => fetchPermission()}
+                newGroup={newGroup}
+                onNewGroupChange={() => setNewGroup(false)}
+                updateToastMessage={(response, message) =>
+                  updateToastMessage(response, message)
+                }
+              />
             </TabPanel>
             <TabPanel value={value} index={2}>
               Aws
             </TabPanel>
             <TabPanel value={value} index={3}>
-              App Roles
+              <AppRoles />
             </TabPanel>
           </PermissionTabsWrapper>
+          {toastResponse === -1 && (
+            <SnackbarComponent
+              open
+              onClose={() => onToastClose()}
+              severity="error"
+              icon="error"
+              message={toastMessage || 'Something went wrong!'}
+            />
+          )}
+          {toastResponse === 1 && (
+            <SnackbarComponent
+              open
+              onClose={() => onToastClose()}
+              message={toastMessage || 'Successful'}
+            />
+          )}
         </TabWrapper>
       </>
     </ComponentError>
