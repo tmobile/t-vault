@@ -41,13 +41,30 @@ import ButtonComponent from '../../../../../components/FormFields/ActionButton';
 // styled components
 const ColumnSection = styled('section')`
   position: relative;
-  width: ${(props) => props.width || '50%'};
   padding: ${(props) => props.padding || '0'};
   background: ${(props) => props.backgroundColor || '#151820'};
   ${mediaBreakpoints.small} {
     ${(props) => (props.mobileScreenCss ? props.mobileScreenCss : '')}
   }
 `;
+
+const RightColumnSection = styled(ColumnSection)`
+  width: 59.23%;
+  padding: 0;
+  background: linear-gradient(to bottom, #151820, #2c3040);
+  ${mediaBreakpoints.small} {
+    width: 100%;
+    display: none;
+    ${(props) => props.mobileViewStyles}
+  }
+`;
+const LeftColumnSection = styled(ColumnSection)`
+  width: 40.77%;
+  ${mediaBreakpoints.small} {
+    width: 100%;
+  }
+`;
+
 const SectionPreview = styled('main')`
   display: flex;
   height: 100%;
@@ -127,6 +144,7 @@ const SearchWrap = styled.div`
 `;
 
 const MobileViewForSafeDetailsPage = css`
+  width: 100%;
   position: fixed;
   right: 0;
   left: 0;
@@ -395,7 +413,7 @@ const SafeDashboard = (props) => {
           }
         />
         <SectionPreview title="safe-section">
-          <ColumnSection width={isMobileScreen ? '100%' : '40.77%'}>
+          <LeftColumnSection>
             <ColumnHeader>
               <SelectComponent
                 menu={menu}
@@ -478,52 +496,49 @@ const SafeDashboard = (props) => {
             ) : (
               <></>
             )}
-          </ColumnSection>
+          </LeftColumnSection>
 
-          {!isMobileScreen || activeSafeFolders?.length ? (
-            <ColumnSection
-              backgroundColor="linear-gradient(to bottom, #151820, #2c3040)"
-              padding="0"
-              width={isMobileScreen ? '100%' : '59.23%'}
-              mobileScreenCss={MobileViewForSafeDetailsPage}
-            >
-              <Switch>
-                {' '}
-                {safeList[0]?.name && (
-                  <Redirect
-                    exact
-                    from="/safe"
-                    to={{
-                      pathname: `/safe/${safeList[0]?.name}`,
-                      state: { safe: safeList[0] },
-                    }}
+          <RightColumnSection
+            mobileViewStyles={
+              activeSafeFolders?.length && isMobileScreen
+                ? MobileViewForSafeDetailsPage
+                : ''
+            }
+          >
+            <Switch>
+              {' '}
+              {safeList[0]?.name && (
+                <Redirect
+                  exact
+                  from="/safe"
+                  to={{
+                    pathname: `/safe/${safeList[0]?.name}`,
+                    state: { safe: safeList[0] },
+                  }}
+                />
+              )}
+              <Route
+                path="/:tab/:safeName"
+                render={(routerProps) => (
+                  <SafeDetails
+                    detailData={safes}
+                    params={routerProps}
+                    setActiveSafeFolders={() => setActiveSafeFolders([])}
                   />
                 )}
-                <Route
-                  path="/:tab/:safeName"
-                  render={(routerProps) => (
-                    <SafeDetails
-                      detailData={safes}
-                      params={routerProps}
-                      setActiveSafeFolders={() => setActiveSafeFolders([])}
-                    />
-                  )}
-                />
-                <Route
-                  path="/"
-                  render={(routerProps) => (
-                    <SafeDetails
-                      detailData={safes}
-                      params={routerProps}
-                      setActiveSafeFolders={() => setActiveSafeFolders([])}
-                    />
-                  )}
-                />
-              </Switch>
-            </ColumnSection>
-          ) : (
-            <></>
-          )}
+              />
+              <Route
+                path="/"
+                render={(routerProps) => (
+                  <SafeDetails
+                    detailData={safes}
+                    params={routerProps}
+                    setActiveSafeFolders={() => setActiveSafeFolders([])}
+                  />
+                )}
+              />
+            </Switch>
+          </RightColumnSection>
         </SectionPreview>
         {toast === -1 && (
           <SnackbarComponent

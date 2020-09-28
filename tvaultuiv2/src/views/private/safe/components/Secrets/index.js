@@ -66,9 +66,11 @@ const Secrets = (props) => {
           </EmptySecretBox>
         )}
 
-        {secretsFolder[0]?.children?.length ? (
+        {secretsFolder[0]?.children?.length && status.status !== 'loading' ? (
           <Tree data={secretsFolder} />
-        ) : secretsFolder[0]?.children?.length === 0 && getResponse === 1 ? (
+        ) : secretsFolder[0]?.children?.length === 0 &&
+          getResponse === 1 &&
+          status.status !== 'loading' ? (
           // eslint-disable-next-line react/jsx-indent
           <EmptySecretBox>
             <NoData
