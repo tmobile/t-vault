@@ -24,6 +24,15 @@ const getGroupsName = (group) => api.get(`/azure/groups?name=${group}`);
 const deleteGroup = (payload) => api.delete('/ss/sdb/group', payload);
 const addGroup = (payload) => api.post('/ss/sdb/group', payload);
 
+const addAwsConfiguration = (path, payload) =>
+  api.post(`/ss/auth/aws/role?path=${path}`, payload);
+const addAwsRole = (payload) => api.post('/ss/sdb/role', payload);
+const deleteAwsConfiguration = (payload) => api.delete('/ss/sdb/role', payload);
+
+const getExistingAppRole = () => api.get('/ss/approle');
+const addAppRole = (payload) => api.post('/ss/sdb/approle', payload);
+const deleteAppRole = (payload) => api.delete('/ss/sdb/approle', payload);
+
 const addFolder = (params) => api.post(`/sdb/createfolder?path=${params}`);
 const deleteFolder = (params) => api.delete(`/sdb/delete?path=${params}`);
 const modifySecret = (params, payload) =>
@@ -53,4 +62,10 @@ export default {
   getGroupsName,
   addGroup,
   deleteGroup,
+  addAwsConfiguration,
+  deleteAwsConfiguration,
+  addAwsRole,
+  deleteAppRole,
+  getExistingAppRole,
+  addAppRole,
 };

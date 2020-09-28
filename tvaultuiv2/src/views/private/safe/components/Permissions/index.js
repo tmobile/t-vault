@@ -17,6 +17,7 @@ import apiService from '../../apiService';
 import LoaderSpinner from '../../../../../components/LoaderSpinner';
 import AppRoles from './components/AppRoles';
 import SnackbarComponent from '../../../../../components/Snackbar';
+import AwsApplications from './components/AwsApplications';
 
 const { small } = mediaBreakpoints;
 
@@ -141,6 +142,8 @@ const Permissions = (props) => {
   const [value, setValue] = useState(0);
   const [newPermission, setNewPermission] = useState(false);
   const [newGroup, setNewGroup] = useState(false);
+  const [newAwsApplication, setNewAwsApplication] = useState(false);
+  const [newAppRole, setNewAppRole] = useState(false);
   const [count, setCount] = useState(0);
   const [safeData, setSafeData] = useState({ response: {}, error: '' });
   const [responseType, setResponseType] = useState(0);
@@ -216,6 +219,10 @@ const Permissions = (props) => {
       setNewPermission(true);
     } else if (value === 1) {
       setNewGroup(true);
+    } else if (value === 2) {
+      setNewAwsApplication(true);
+    } else {
+      setNewAppRole(true);
     }
   };
 
@@ -291,10 +298,28 @@ const Permissions = (props) => {
               />
             </TabPanel>
             <TabPanel value={value} index={2}>
-              Aws
+              <AwsApplications
+                safeDetail={safeDetail}
+                safeData={safeData}
+                fetchPermission={() => fetchPermission()}
+                newAwsApplication={newAwsApplication}
+                onNewAwsChange={() => setNewAwsApplication(false)}
+                updateToastMessage={(response, message) =>
+                  updateToastMessage(response, message)
+                }
+              />
             </TabPanel>
             <TabPanel value={value} index={3}>
-              <AppRoles />
+              <AppRoles
+                safeDetail={safeDetail}
+                safeData={safeData}
+                fetchPermission={() => fetchPermission()}
+                newAppRole={newAppRole}
+                onNewAppRoleChange={() => setNewAppRole(false)}
+                updateToastMessage={(response, message) =>
+                  updateToastMessage(response, message)
+                }
+              />
             </TabPanel>
           </PermissionTabsWrapper>
           {toastResponse === -1 && (

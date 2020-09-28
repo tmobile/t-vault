@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 /* eslint-disable react/jsx-indent */
 /* eslint-disable react/jsx-curly-newline */
 import React, { useState, useEffect } from 'react';
@@ -11,10 +10,10 @@ import ButtonComponent from '../../../../../../../components/FormFields/ActionBu
 import PermissionsList from '../PermissionsList';
 import noPermissionsIcon from '../../../../../../../assets/no-permissions.svg';
 import mediaBreakpoints from '../../../../../../../breakpoints';
-import AddAppRole from '../../../AddAppRole';
 import apiService from '../../../../apiService';
 import LoaderSpinner from '../../../../../../../components/LoaderSpinner';
 import Error from '../../../../../../../components/Error';
+import AddAwsApplicationModal from '../../../AddAwsApplicationModal';
 
 const { small } = mediaBreakpoints;
 
@@ -41,16 +40,18 @@ const customStyle = css`
   height: 100%;
 `;
 
-const Groups = (props) => {
+const AwsApplications = (props) => {
   const {
     safeDetail,
     safeData,
     fetchPermission,
-    onNewAppRoleChange,
-    newAppRole,
+    onNewAwsChange,
+    newAwsApplication,
     updateToastMessage,
   } = props;
 
+  // const [editGroup, setEditGroup] = useState('');
+  // const [editAccess, setEditAccess] = useState('');
   const [response, setResponse] = useState({ status: 'loading' });
 
   const isMobileScreen = useMediaQuery(small);
@@ -68,19 +69,19 @@ const Groups = (props) => {
   }, [safeData]);
 
   useEffect(() => {
-    if (newAppRole) {
+    if (newAwsApplication) {
       setResponse({ status: 'add' });
     }
-  }, [newAppRole]);
+  }, [newAwsApplication]);
 
   const onDeleteClick = (role) => {
     setResponse({ status: 'loading' });
     const payload = {
       path: safeDetail.path,
-      role_name: role,
+      role,
     };
     apiService
-      .deleteAppRole(payload)
+      .deleteAwsConfiguration(payload)
       .then((res) => {
         if (res && res.data?.messages && res.data?.messages[0]) {
           updateToastMessage(1, res.data.messages[0]);
@@ -96,10 +97,14 @@ const Groups = (props) => {
       });
   };
 
-  const onSaveClicked = (data) => {
-    setResponse({ status: 'loading' });
+  const onSaveClicked = (role, access) => {
+    const payload = {
+      access,
+      path: safeDetail.path,
+      role,
+    };
     apiService
-      .addAppRole(data)
+      .addAwsRole(payload)
       .then((res) => {
         if (res && res.data?.messages) {
           updateToastMessage(1, res.data?.messages[0]);
@@ -115,23 +120,58 @@ const Groups = (props) => {
       });
   };
 
-  const onSubmit = (role, access) => {
-    const value = {
-      access,
-      path: `${safeDetail.path}`,
-      role_name: role,
-    };
-    onSaveClicked(value);
-    onNewAppRoleChange();
+  const onSubmit = (data, access) => {
+    setResponse({ status: 'loading' });
+    onNewAwsChange();
+    apiService
+      .addAwsConfiguration(`${safeDetail.path}sss`, data)
+      .then((res) => {
+        updateToastMessage(1, res.data?.messages[0]);
+        onSaveClicked(data.role, access);
+      })
+      .catch((err) => {
+        if (err.response?.data?.errors && err.response.data.errors[0]) {
+          updateToastMessage(-1, err.response.data.errors[0]);
+        }
+        setResponse({ status: 'success' });
+      });
+  };
+
+  // const onEditSaveClicked = (groupname, access) => {
+  //   setResponse({ status: 'loading' });
+  //   const payload = {
+  //     path: `${safeDetail.path}`,
+  //     groupname,
+  //   };
+  //   apiService
+  //     .deleteGroup(payload)
+  //     .then((res) => {
+  //       if (res) {
+  //         setResponse({ status: 'loading' });
+  //         onSubmit(groupname, access);
+  //       }
+  //     })
+  //     .catch((err) => {
+  //       if (err.response?.data?.errors && err.response.data.errors[0]) {
+  //         updateToastMessage(-1, err.response.data.errors[0]);
+  //       }
+  //       setResponse({ status: 'success' });
+  //     });
+  // };
+
+  const onCancelClicked = () => {
+    setResponse({ status: 'success' });
+    onNewAwsChange();
   };
 
   const onEditClick = (key, value) => {
+    // setEditAccess(value);
+    // setEditGroup(key);
+    // setResponse({ status: 'edit' });
+    // eslint-disable-next-line no-console
     console.log('key', key);
+    // eslint-disable-next-line no-console
     console.log('value', value);
-  };
-  const onCancelClicked = () => {
-    setResponse({ status: 'success' });
-    onNewAppRoleChange();
   };
 
   return (
@@ -141,35 +181,48 @@ const Groups = (props) => {
           <LoaderSpinner customStyle={customStyle} />
         )}
         {response.status === 'add' && (
-          <AddAppRole
-            handleSaveClick={(role, access) => onSubmit(role, access)}
-            handleCancelClick={() => onCancelClicked()}
+          <AddAwsApplicationModal
+            open
+            handleSaveClick={(data, access) => onSubmit(data, access)}
+            handleCancelClick={onCancelClicked}
+            handleModalClose={() => onCancelClicked()}
           />
         )}
 
+        {/* {response.status === 'edit' && (
+          <AddGroup
+            handleSaveClick={(group, access) =>
+              onEditSaveClicked(group, access)
+            }
+            handleCancelClick={onCancelClicked}
+            groupname={editGroup}
+            access={editAccess}
+          />
+        )} */}
         {safeData &&
           Object.keys(safeData).length > 0 &&
           Object.keys(safeData?.response).length > 0 &&
-          response.status === 'success' && (
+          response.status !== 'loading' &&
+          response.status !== 'error' && (
             <>
-              {safeData.response['app-roles'] &&
-                Object.keys(safeData.response['app-roles']).length > 0 && (
+              {safeData.response['aws-roles'] &&
+                Object.keys(safeData.response['aws-roles']).length > 0 && (
                   <PermissionsList
-                    list={safeData.response['app-roles']}
+                    list={safeData.response['aws-roles']}
                     onEditClick={(key, value) => onEditClick(key, value)}
                     onDeleteClick={(key) => onDeleteClick(key)}
                   />
                 )}
-              {(safeData.response['app-roles'] === null ||
-                !safeData.response['app-roles'] ||
-                (safeData.response['app-roles'] &&
-                  Object.keys(safeData.response['app-roles']).length ===
+              {(safeData.response['aws-roles'] === null ||
+                !safeData.response['aws-roles'] ||
+                (safeData.response['aws-roles'] &&
+                  Object.keys(safeData.response['aws-roles']).length ===
                     0)) && (
                 <NoDataWrapper>
                   <NoData
                     imageSrc={noPermissionsIcon}
-                    description="No approles are given permission to access this safe,
-                    add approles to access the safe"
+                    description="No applications are given permission to access this safe,
+                    add applications to access the safe"
                     actionButton={
                       // eslint-disable-next-line react/jsx-wrap-multilines
                       <ButtonComponent
@@ -181,7 +234,7 @@ const Groups = (props) => {
                       />
                     }
                     bgIconStyle={bgIconStyle}
-                    width={isMobileScreen ? '100%' : '38%'}
+                    width={isMobileScreen ? '100%' : '42%'}
                   />
                 </NoDataWrapper>
               )}
@@ -195,12 +248,12 @@ const Groups = (props) => {
   );
 };
 
-Groups.propTypes = {
+AwsApplications.propTypes = {
   safeDetail: PropTypes.objectOf(PropTypes.any).isRequired,
   safeData: PropTypes.objectOf(PropTypes.any).isRequired,
   fetchPermission: PropTypes.func.isRequired,
-  newAppRole: PropTypes.bool.isRequired,
-  onNewAppRoleChange: PropTypes.func.isRequired,
+  newAwsApplication: PropTypes.bool.isRequired,
+  onNewAwsChange: PropTypes.func.isRequired,
   updateToastMessage: PropTypes.func.isRequired,
 };
-export default Groups;
+export default AwsApplications;
