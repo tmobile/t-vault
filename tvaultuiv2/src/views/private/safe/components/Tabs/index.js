@@ -164,8 +164,8 @@ export default function SelectionTabs(props) {
   };
 
   useEffect(() => {
+    setStatus({ status: 'loading', message: 'loading...' });
     if (safeDetail?.path) {
-      setStatus({ status: 'loading', message: 'loading...' });
       if (!safeDetail.manage) {
         setValue(0);
       }

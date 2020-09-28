@@ -174,7 +174,7 @@ const SafeDashboard = (props) => {
   });
   const [safeList, setSafeList] = useState([]);
   const [moreData, setMoreData] = useState(false);
-  const [responseType, setResponseType] = useState(null);
+  const [status, setStatus] = useState({});
   const [isLoading, setIsLoading] = useState(false);
   const [inputSearchValue, setInputSearchValue] = useState('');
   const [activeSafeFolders, setActiveSafeFolders] = useState([]);
@@ -207,7 +207,7 @@ const SafeDashboard = (props) => {
   const showSafeDetails = (active) => {
     const activeSafes = [];
     activeSafes.push(active);
-    // setResponseType(0);
+    // setStatus({ status: 'loading', message: 'loading' });
     setActiveSafeFolders([...activeSafes]);
   };
 
@@ -234,7 +234,7 @@ const SafeDashboard = (props) => {
    */
 
   const fetchData = useCallback(async () => {
-    setResponseType(0);
+    setStatus({ status: 'loading', message: 'Loading...' });
     const safesApiResponse = await apiService.getSafes();
     const usersListApiResponse = await apiService.getManageUsersList();
     const sharedListApiResponse = await apiService.getManageSharedList();
@@ -271,16 +271,16 @@ const SafeDashboard = (props) => {
           ...safesObject.shared,
           ...safesObject.apps,
         ]);
-        setResponseType(1);
+        setStatus({ status: 'success', message: '' });
       })
       .catch((err) => {
-        setResponseType(-1);
+        setStatus({ status: 'failed', message: 'failed' });
       });
   }, [compareSafesAndList]);
 
   useEffect(() => {
     fetchData().catch((error) => {
-      setResponseType(-1);
+      setStatus({ status: 'failed', message: 'failed' });
     });
   }, [fetchData]);
 
@@ -308,7 +308,7 @@ const SafeDashboard = (props) => {
   };
 
   const onDeleteSafeConfirmClicked = () => {
-    setResponseType(0);
+    setStatus({ status: 'loading', message: 'loading' });
     setSafes({ users: [], apps: [], shared: [] });
     setSafeList([]);
     setOpenConfirmationModal(false);
@@ -316,7 +316,7 @@ const SafeDashboard = (props) => {
       .deleteSafe(deletionPath)
       .then((res) => {
         setDeletionPath('');
-        setResponseType(1);
+        setStatus({ status: 'success', message: 'success' });
         setToast(1);
         fetchData();
       })
@@ -416,15 +416,16 @@ const SafeDashboard = (props) => {
                 />
               </SearchWrap>
             </ColumnHeader>
-            {responseType === -1 && !safeList?.length && (
+            {status.status === 'loading' && (
+              <ScaledLoader contentHeight="80%" contentWidth="100%" />
+            )}
+            {status.status === 'failed' && !safeList?.length && (
               <EmptySecretBox>
                 {' '}
                 <Error description="Error while fetching safes!" />
               </EmptySecretBox>
             )}
-            {responseType === 0 ? (
-              <ScaledLoader contentHeight="80%" contentWidth="100%" />
-            ) : safeList && safeList.length > 0 ? (
+            {safeList && safeList.length > 0 ? (
               <SafeListContainer ref={(ref) => (scrollParentRef = ref)}>
                 <StyledInfiniteScroll
                   pageStart={0}
@@ -441,10 +442,8 @@ const SafeDashboard = (props) => {
                 </StyledInfiniteScroll>
               </SafeListContainer>
             ) : (
-              safeList &&
-              safeList.length === 0 &&
-              responseType !== -1 &&
-              responseType !== 0 && (
+              safeList?.length === 0 &&
+              status.status === 'success' && (
                 <NoDataWrapper>
                   {' '}
                   <NoSafeWrap>

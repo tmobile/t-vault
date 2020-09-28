@@ -56,19 +56,19 @@ const Secrets = (props) => {
           </CountSpan>
         }
 
-        {!secretsFolder?.length && status.status === 'loading' && (
+        {status.status === 'loading' && (
           <ScaledLoader width="100%" height="90%" />
         )}
-        {getResponse === -1 && (
+        {getResponse === -1 && !secretsFolder[0]?.children?.length && (
           <EmptySecretBox>
             {' '}
             <Error description="Error while fetching safes folders" />
           </EmptySecretBox>
         )}
 
-        {secretsFolder && secretsFolder.length ? (
+        {secretsFolder[0]?.children?.length ? (
           <Tree data={secretsFolder} />
-        ) : secretsFolder?.length === 0 && getResponse === 1 ? (
+        ) : secretsFolder[0]?.children?.length === 0 && getResponse === 1 ? (
           // eslint-disable-next-line react/jsx-indent
           <EmptySecretBox>
             <NoData
