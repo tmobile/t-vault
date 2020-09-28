@@ -63,7 +63,7 @@ const CreateSecret = (props) => {
   // screen resolution handler
   const isMobileScreen = useMediaQuery(mediaBreakpoints.small);
 
-  //prefetch input data if any(i.e while editing)
+  // prefetch input data if any(i.e while editing)
   const { secretData } = secretprefilledData;
 
   const handleValidation = (value, type) => {

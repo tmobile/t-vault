@@ -9,9 +9,9 @@ import styled from 'styled-components';
 import ComponentError from '../../../../../errorBoundaries/ComponentError/component-error';
 import sectionHeaderBg from '../../../../../assets/Banner_img.png';
 import { BackArrow } from '../../../../../assets/SvgIcons';
-import { TitleFour } from '../../../../../styles/GlobalStyles';
 import mediaBreakpoints from '../../../../../breakpoints';
 import SelectionTabs from '../Tabs';
+import SafeDetailHeader from '../SafeDetailHeader';
 
 // styled components goes here
 const Section = styled('section')`
@@ -22,31 +22,6 @@ const Section = styled('section')`
   height: 100%;
 `;
 
-const ColumnHeader = styled('div')`
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  padding-right: 2rem;
-  height: 19.1rem;
-  position: relative;
-  top: -0.8rem;
-  max-height: 19.1rem;
-  background: url('/static/media/Banner_img.7b53285a.png') no-repeat 0 0;
-  .safe-title-wrap {
-    width: 70%;
-  }
-  ${mediaBreakpoints.small} {
-    height: 13rem;
-    padding: 1rem;
-  }
-`;
-
-const SafeTitle = styled('h5')`
-  font-size: ${(props) => props.theme.typography};
-  margin: 1rem 0 1.2rem;
-  text-overflow: ellipsis;
-  overflow: hidden;
-`;
 const BackButton = styled.div`
   display: flex;
   align-items: center;
@@ -86,25 +61,20 @@ const SafeDetails = (props) => {
 
   return (
     <ComponentError>
-      <Section headerBgSrc={sectionHeaderBg}>
+      <Section>
         {isMobileScreen ? (
           <BackButton onClick={goBackToSafeList}>
             <BackArrow />
             <span>{safeDetail.name || 'No safe'}</span>
           </BackButton>
         ) : null}
-        <ColumnHeader>
-          <div className="safe-title-wrap">
-            {!isMobileScreen && (
-              <SafeTitle>{safeDetail?.name || 'No Safe'}</SafeTitle>
-            )}
-            <TitleFour color="#c4c4c4">
-              {safeDetail?.description
-                ? safeDetail?.description
-                : 'Create a Safe to see your secrets, folders and permissions here'}
-            </TitleFour>
-          </div>
-        </ColumnHeader>
+
+        <SafeDetailHeader
+          title={safeDetail?.name}
+          description={safeDetail?.description}
+          bgImage={sectionHeaderBg}
+        />
+
         <SelectionTabs safeDetail={safeDetail} />
       </Section>
     </ComponentError>
