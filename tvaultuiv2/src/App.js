@@ -14,7 +14,7 @@ import { BrowserRouter, Route, Switch, withRouter } from 'react-router-dom';
 import customMuiTheme from './theme';
 import Header from './components/Header';
 import RendetionError from './errorBoundaries/RendetionError/rendetion-error';
-import Loader from './components/Loader';
+import ScaledLoader from './components/Loaders/ScaledLoader';
 
 const Views = lazy(() => import('./views'));
 
@@ -58,7 +58,7 @@ export const App = () => {
                     <Suspense
                       fallback={
                         <LoaderWrap>
-                          <Loader />
+                          <ScaledLoader />
                         </LoaderWrap>
                       }
                     >

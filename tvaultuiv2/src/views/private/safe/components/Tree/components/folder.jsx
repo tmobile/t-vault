@@ -9,6 +9,7 @@ import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
 import ExpandLessIcon from '@material-ui/icons/ExpandLess';
 import IconFolderActive from '../../../../../../assets/icon_folder_active.png';
 import IconFolderInactive from '../../../../../../assets/icon_folder.png';
+
 import ComponentError from '../../../../../../errorBoundaries/ComponentError/component-error';
 import {
   TitleTwo,
@@ -46,10 +47,6 @@ const StyledFolder = styled.div`
     }
   }
 `;
-// const accordian = keyframes`
-//   0% { transform:translateY(-10em); }
-//   100% { transform:translateY(0); }
-// `;
 
 const Collapsible = styled.div`
   /* set the height depending on isOpen prop */
@@ -103,6 +100,7 @@ const PopperItem = styled.div`
     background-image: ${(props) => props.theme.gradients.list || 'none'};
   }
 `;
+
 const Folder = (props) => {
   const {
     folderInfo,

@@ -33,10 +33,9 @@ const Tree = (props) => {
   const [secretsFolder, setSecretsFolder] = useState([]);
   const [isAddInput, setIsAddInput] = useState(false);
   const [inputType, setInputType] = useState({});
-  const [responseType, setResponseType] = useState(null);
+  const [status, setStatus] = useState({});
   const [secretprefilledData, setSecretprefilledData] = useState({});
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
-  const [status, setStatus] = useState({});
   const isMobileScreen = useMediaQuery(mediaBreakpoints.small);
   const [deletePath, setDeleteItem] = useState({});
   // set inital tree data structure
@@ -50,18 +49,18 @@ const Tree = (props) => {
     if (reason === 'clickaway') {
       return;
     }
-    setResponseType(null);
+
     setStatus({});
   };
 
   const getChildrenData = (id) => {
     const tempFolders = [...secretsFolder] || [];
-    setResponseType(0);
+    setStatus({ status: 'loading', message: 'loading...' });
     if (id) {
       apiService
         .getSecret(id)
         .then((res) => {
-          setResponseType(null);
+          setStatus({});
           const updatedArray = findElementAndUpdate(
             tempFolders,
             id,
@@ -70,12 +69,12 @@ const Tree = (props) => {
           setSecretsFolder([...updatedArray]);
         })
         .catch((error) => {
-          setResponseType(-1);
+          setStatus({ status: 'failed', message: '' });
           if (!error.toString().toLowerCase().includes('network')) {
             if (error.response) {
               setStatus({
                 status: 'failed',
-                message: error.response?.data.errors[0],
+                message: '',
               });
               return;
             }
@@ -114,7 +113,6 @@ const Tree = (props) => {
       })
       // eslint-disable-next-line no-unused-vars
       .then((res) => {
-        setResponseType(1);
         getChildrenData(node);
         setStatus({
           status: 'success',
@@ -122,7 +120,10 @@ const Tree = (props) => {
         });
       })
       .catch((error) => {
-        setResponseType(-1);
+        setStatus({
+          status: 'failed',
+          message: '',
+        });
         if (!error.toString().toLowerCase().includes('network')) {
           if (error.response) {
             setStatus({
@@ -160,7 +161,6 @@ const Tree = (props) => {
       .addFolder(folderObj.id)
       // eslint-disable-next-line no-unused-vars
       .then((res) => {
-        setResponseType(1);
         const updatedArray = findElementAndUpdate(
           tempFolders,
           parentId,
@@ -173,11 +173,14 @@ const Tree = (props) => {
         });
       })
       .catch((error) => {
-        setResponseType(-1);
+        setStatus({
+          status: 'failed',
+          message: error.response?.data.errors[0],
+        });
         if (!error.toString().toLowerCase().includes('network')) {
           if (error.response) {
             setStatus({
-              status: 'success',
+              status: 'failed',
               message: error.response?.data.errors[0],
             });
             return;
@@ -199,7 +202,11 @@ const Tree = (props) => {
   };
 
   const saveFolder = (secret, selectedNode) => {
-    setResponseType(0);
+    setStatus({
+      status: 'loading',
+      message: 'loading...',
+    });
+
     if (secret?.type?.toLowerCase() === 'secret') {
       saveSecretsToFolder(secret, selectedNode);
       return;
@@ -221,7 +228,10 @@ const Tree = (props) => {
 
   // delete item in the tree
   const deleteTreeItem = (node) => {
-    setResponseType(0);
+    setStatus({
+      status: 'loading',
+      message: 'loading...',
+    });
     setDeleteModalOpen(false);
     if (node.type.toLowerCase() === 'secret') {
       const tempFolders = [...secretsFolder] || [];
@@ -234,7 +244,6 @@ const Tree = (props) => {
       apiService
         .modifySecret(node.parentId, payload)
         .then((res) => {
-          setResponseType(1);
           getChildrenData(node.parentId);
           setStatus({
             status: 'success',
@@ -242,8 +251,6 @@ const Tree = (props) => {
           });
         })
         .catch((error) => {
-          console.error(error);
-          setResponseType(-1);
           setStatus({ status: 'failed', message: 'Secret deletion failed!' });
         });
       return;
@@ -251,7 +258,6 @@ const Tree = (props) => {
     apiService
       .deleteFolder(node.id)
       .then((res) => {
-        setResponseType(1);
         getChildrenData(node.parentId);
         setStatus({
           status: 'success',
@@ -261,8 +267,6 @@ const Tree = (props) => {
         });
       })
       .catch((error) => {
-        console.error(error);
-        setResponseType(-1);
         setStatus({ status: 'failed', message: 'Folder deletion failed!' });
       });
   };
@@ -286,14 +290,14 @@ const Tree = (props) => {
           setInputType={setInputType}
           inputType={inputType}
           setIsAddInput={setIsAddInput}
-          responseType={responseType}
-          setResponseType={setResponseType}
+          status={status}
+          setStatus={setStatus}
           getChildrenData={getChildrenData}
           onDeleteTreeItem={onDeleteTreeItem}
           secretprefilledData={secretprefilledData}
           setSecretprefilledData={setSecretprefilledData}
         />
-        {(responseType === -1 || status.status === 'failed') && !isAddInput ? (
+        {status.status === 'failed' ? (
           <SnackbarComponent
             open
             onClose={() => onToastClose()}
@@ -302,8 +306,7 @@ const Tree = (props) => {
             message={status.message || 'Something went wrong!'}
           />
         ) : (
-          (responseType === 1 || status.status === 'success') &&
-          !isAddInput && (
+          status.status === 'success' && (
             <SnackbarComponent
               open
               onClose={() => onToastClose()}

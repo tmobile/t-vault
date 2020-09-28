@@ -23,7 +23,7 @@ import PopperElement from '../../../Popper';
 import AddUser from '../../../AddUser';
 import apiService from '../../../../apiService';
 import SnackbarComponent from '../../../../../../../components/Snackbar';
-import LoaderSpinner from '../../../../../../../components/LoaderSpinner';
+import LoaderSpinner from '../../../../../../../components/Loaders/LoaderSpinner';
 import Error from '../../../../../../../components/Error';
 
 const { small } = mediaBreakpoints;

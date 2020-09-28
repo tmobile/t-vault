@@ -33,7 +33,7 @@ import SnackbarComponent from '../../../../../components/Snackbar';
 // mock data
 // import { safes } from './__mock/safeDashboard';
 import apiService from '../../apiService';
-import Loader from '../../../../../components/Loader';
+import ScaledLoader from '../../../../../components/Loaders/ScaledLoader';
 
 import ConfirmationModal from '../../../../../components/ConfirmationModal';
 import ButtonComponent from '../../../../../components/FormFields/ActionButton';
@@ -423,7 +423,7 @@ const SafeDashboard = (props) => {
               </EmptySecretBox>
             )}
             {responseType === 0 ? (
-              <Loader contentHeight="80%" contentWidth="100%" />
+              <ScaledLoader contentHeight="80%" contentWidth="100%" />
             ) : safeList && safeList.length > 0 ? (
               <SafeListContainer ref={(ref) => (scrollParentRef = ref)}>
                 <StyledInfiniteScroll

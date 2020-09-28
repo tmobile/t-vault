@@ -15,7 +15,7 @@ import Tabs from '@material-ui/core/Tabs';
 import Tab from '@material-ui/core/Tab';
 import useMediaQuery from '@material-ui/core/useMediaQuery';
 import Error from '../../../../../components/Error';
-import Loader from '../../../../../components/Loader';
+import ScaledLoader from '../../../../../components/Loaders/ScaledLoader';
 import ButtonComponent from '../../../../../components/FormFields/ActionButton';
 import ComponentError from '../../../../../errorBoundaries/ComponentError/component-error';
 import addFolderPlus from '../../../../../assets/folder-plus.svg';
@@ -127,7 +127,7 @@ export default function SelectionTabs(props) {
   const [value, setValue] = useState(0);
   const [enabledAddFolder, setEnableAddFolder] = useState(false);
   const [secretsFolder, setSecretsFolder] = useState([]);
-  const [responseType, setResponseType] = useState(null);
+  const [getResponse, setGetResponse] = useState(null);
   const [status, setStatus] = useState({});
 
   // resolution handlers
@@ -156,17 +156,16 @@ export default function SelectionTabs(props) {
     folderObj.value = secretFolder.value;
     folderObj.type = secretFolder.type || 'folder';
     folderObj.children = [];
-    setResponseType(0);
+    setStatus({ status: 'loading', message: 'loading...' });
     apiService
       .addFolder(folderObj.id)
       .then((res) => {
         setStatus({ status: 'success', message: res.data.messages[0] });
         tempFolders[0].children.push(folderObj);
         setSecretsFolder([...tempFolders]);
-        setResponseType(1);
       })
       .catch((error) => {
-        setResponseType(-1);
+        setStatus({ status: 'failed', message: 'Secret addition failed' });
         if (!error.toString().toLowerCase().includes('network')) {
           if (error.response) {
             setStatus({
@@ -193,27 +192,24 @@ export default function SelectionTabs(props) {
 
   useEffect(() => {
     if (safeDetail?.path) {
-      setResponseType(0);
+      setStatus({ status: 'loading', message: 'loading...' });
       if (!safeDetail.manage) {
         setValue(0);
       }
       apiService
         .getSecret(safeDetail.path)
         .then((res) => {
-          setResponseType(null);
+          setStatus({});
+          setGetResponse(1);
           setSecretsFolder([res.data]);
         })
         .catch((error) => {
-          setResponseType(-1);
+          setGetResponse(-1);
           if (error.toString().toLowerCase().includes('403')) {
             return;
           }
           if (!error.toString().toLowerCase().includes('network')) {
             if (error.response) {
-              setStatus({
-                status: 'failed',
-                message: error.response.data.errors[0],
-              });
               return;
             }
           }
@@ -276,23 +272,19 @@ export default function SelectionTabs(props) {
             ) : (
               <></>
             )}
-            {responseType === -1 &&
-              !enabledAddFolder &&
-              !secretsFolder?.length && (
-                <EmptySecretBox>
-                  {' '}
-                  <Error description="Error while fetching safes folders" />
-                </EmptySecretBox>
-              )}
-            {!secretsFolder?.length && responseType === 0 ? (
-              <Loader width="100%" height="70%" />
-            ) : secretsFolder && secretsFolder.length ? (
+            {!secretsFolder?.length && status.status === 'loading' && (
+              <ScaledLoader width="100%" height="60%" />
+            )}
+            {getResponse === -1 && (
+              <EmptySecretBox>
+                {' '}
+                <Error description="Error while fetching safes folders" />
+              </EmptySecretBox>
+            )}
+
+            {secretsFolder && secretsFolder.length ? (
               <Tree data={secretsFolder} />
-            ) : responseType === 1 &&
-              responseType !== 0 &&
-              responseType !== -1 &&
-              secretsFolder?.length === 0 &&
-              !enabledAddFolder ? (
+            ) : secretsFolder?.length === 0 && getResponse === 1 ? (
               // eslint-disable-next-line react/jsx-indent
               <EmptySecretBox>
                 <NoData
