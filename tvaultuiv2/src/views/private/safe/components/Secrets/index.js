@@ -38,7 +38,7 @@ const bgIconStyle = {
 const Secrets = (props) => {
   const {
     secretsFolder,
-    status,
+    secretsStatus,
     safeDetail,
     getResponse,
     setEnableAddFolder,
@@ -56,7 +56,7 @@ const Secrets = (props) => {
           </CountSpan>
         }
 
-        {status.status === 'loading' && (
+        {secretsStatus.status === 'loading' && (
           <ScaledLoader width="100%" height="90%" />
         )}
         {getResponse === -1 && !secretsFolder[0]?.children?.length && (
@@ -66,11 +66,12 @@ const Secrets = (props) => {
           </EmptySecretBox>
         )}
 
-        {secretsFolder[0]?.children?.length && status.status !== 'loading' ? (
+        {secretsFolder[0]?.children?.length &&
+        secretsStatus.status !== 'loading' ? (
           <Tree data={secretsFolder} />
         ) : secretsFolder[0]?.children?.length === 0 &&
           getResponse === 1 &&
-          status.status !== 'loading' ? (
+          secretsStatus.status !== 'loading' ? (
           // eslint-disable-next-line react/jsx-indent
           <EmptySecretBox>
             <NoData
@@ -100,14 +101,14 @@ const Secrets = (props) => {
 };
 Secrets.propTypes = {
   secretsFolder: PropTypes.arrayOf(PropTypes.array),
-  status: PropTypes.objectOf(PropTypes.object),
+  secretsStatus: PropTypes.objectOf(PropTypes.object),
   safeDetail: PropTypes.objectOf(PropTypes.object),
   setEnableAddFolder: PropTypes.func,
   getResponse: PropTypes.number,
 };
 Secrets.defaultProps = {
   secretsFolder: [],
-  status: {},
+  secretsStatus: {},
   safeDetail: {},
   setEnableAddFolder: () => {},
   getResponse: null,

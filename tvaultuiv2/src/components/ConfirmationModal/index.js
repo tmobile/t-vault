@@ -91,7 +91,7 @@ const ConfirmationModal = (props) => {
 
 ConfirmationModal.propTypes = {
   open: PropTypes.bool.isRequired,
-  handleClose: PropTypes.func.isRequired,
+  handleClose: PropTypes.func,
   title: PropTypes.string.isRequired,
   confirmButton: PropTypes.node.isRequired,
   cancelButton: PropTypes.node,
@@ -99,6 +99,7 @@ ConfirmationModal.propTypes = {
 
 ConfirmationModal.defaultProps = {
   cancelButton: <div />,
+  handleClose: () => {},
 };
 
 export default ConfirmationModal;

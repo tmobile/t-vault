@@ -241,7 +241,7 @@ export default function SelectionTabs(props) {
             )}
             <Secrets
               secretsFolder={secretsFolder}
-              status={status}
+              secretsStatus={status}
               safeDetail={safeDetail}
               getResponse={getResponse}
               setEnableAddFolder={setEnableAddFolder}

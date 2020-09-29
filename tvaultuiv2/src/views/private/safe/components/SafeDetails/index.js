@@ -33,7 +33,7 @@ const BackButton = styled.div`
 
 const SafeDetails = (props) => {
   const { setActiveSafeFolders, detailData } = props;
-  const [safeDetail, setSafeDetail] = useState({});
+  const [safe, setSafe] = useState({});
   // use history of page
   const history = useHistory();
   const location = useLocation();
@@ -52,11 +52,11 @@ const SafeDetails = (props) => {
             item?.name?.toLowerCase() ===
             history.location.pathname.split('/')[2]
         );
-        setSafeDetail(activeSafeDetail);
+        setSafe(activeSafeDetail);
       }
       return;
     }
-    setSafeDetail(location?.state?.safe);
+    setSafe(location?.state?.safe);
   }, [location.state, detailData, history.location.pathname]);
 
   return (
@@ -65,17 +65,17 @@ const SafeDetails = (props) => {
         {isMobileScreen ? (
           <BackButton onClick={goBackToSafeList}>
             <BackArrow />
-            <span>{safeDetail.name || 'No safe'}</span>
+            <span>{safe.name || 'No safe'}</span>
           </BackButton>
         ) : null}
 
         <SafeDetailHeader
-          title={safeDetail?.name}
-          description={safeDetail?.description}
+          title={safe?.name}
+          description={safe?.description}
           bgImage={sectionHeaderBg}
         />
 
-        <SelectionTabs safeDetail={safeDetail} />
+        <SelectionTabs safeDetail={safe} />
       </Section>
     </ComponentError>
   );
