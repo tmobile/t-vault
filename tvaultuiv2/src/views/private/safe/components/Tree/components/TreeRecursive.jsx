@@ -1,5 +1,6 @@
 /* eslint-disable consistent-return */
 import React, { useState } from 'react';
+import styled from 'styled-components';
 import { makeStyles } from '@material-ui/core/styles';
 
 import CreateSecretButton from '../../CreateSecretButton';
@@ -17,7 +18,12 @@ const useStyles = makeStyles(() => ({
     position: 'absolute',
   },
 }));
-
+const SecretsError = styled.div`
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 0.5rem;
+`;
 const TreeRecursive = ({
   data,
   saveSecretsToFolder,
@@ -123,6 +129,9 @@ const TreeRecursive = ({
             />
           ) : (
             <></>
+          )}
+          {currentNode === item.value && status.status === 'failed' && (
+            <SecretsError>Error in loading secrets!</SecretsError>
           )}
           {item?.children?.length < 2 && currentNode === item.id && (
             <CreateSecretButton

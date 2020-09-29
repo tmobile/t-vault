@@ -41,11 +41,7 @@ import ButtonComponent from '../../../../../components/FormFields/ActionButton';
 // styled components
 const ColumnSection = styled('section')`
   position: relative;
-  padding: ${(props) => props.padding || '0'};
   background: ${(props) => props.backgroundColor || '#151820'};
-  ${mediaBreakpoints.small} {
-    ${(props) => (props.mobileScreenCss ? props.mobileScreenCss : '')}
-  }
 `;
 
 const RightColumnSection = styled(ColumnSection)`
@@ -61,6 +57,7 @@ const RightColumnSection = styled(ColumnSection)`
 const LeftColumnSection = styled(ColumnSection)`
   width: 40.77%;
   ${mediaBreakpoints.small} {
+    display: ${(props) => (props.isRightActive ? 'none' : 'block')};
     width: 100%;
   }
 `;
@@ -144,8 +141,8 @@ const SearchWrap = styled.div`
 `;
 
 const MobileViewForSafeDetailsPage = css`
-  width: 100%;
   position: fixed;
+  display: flex;
   right: 0;
   left: 0;
   bottom: 0;
@@ -413,7 +410,9 @@ const SafeDashboard = (props) => {
           }
         />
         <SectionPreview title="safe-section">
-          <LeftColumnSection>
+          <LeftColumnSection
+            isRightActive={activeSafeFolders?.length && isMobileScreen}
+          >
             <ColumnHeader>
               <SelectComponent
                 menu={menu}
@@ -521,7 +520,7 @@ const SafeDashboard = (props) => {
                 path="/:tab/:safeName"
                 render={(routerProps) => (
                   <SafeDetails
-                    detailData={safes}
+                    detailData={safeList}
                     params={routerProps}
                     setActiveSafeFolders={() => setActiveSafeFolders([])}
                   />
@@ -531,7 +530,7 @@ const SafeDashboard = (props) => {
                 path="/"
                 render={(routerProps) => (
                   <SafeDetails
-                    detailData={safes}
+                    detailData={safeList}
                     params={routerProps}
                     setActiveSafeFolders={() => setActiveSafeFolders([])}
                   />

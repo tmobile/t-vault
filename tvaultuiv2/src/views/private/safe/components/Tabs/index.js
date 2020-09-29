@@ -193,7 +193,6 @@ export default function SelectionTabs(props) {
         });
     }
   }, [safeDetail]);
-
   return (
     <ComponentError>
       <div className={classes.root}>

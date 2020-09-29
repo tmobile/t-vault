@@ -100,9 +100,12 @@ const File = (props) => {
 
   const editNode = () => {
     setIsAddInput(true);
-    setInputType('secret');
+    setInputType({
+      type: 'secret',
+      currentNode: id,
+    });
     if (secret) {
-      setSecretprefilledData(JSON.parse(secret));
+      setSecretprefilledData(secret);
     }
   };
 
