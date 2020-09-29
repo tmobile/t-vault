@@ -1,5 +1,5 @@
 /* eslint-disable react/jsx-props-no-spreading */
-import React, { lazy, useState } from 'react';
+import React, { lazy } from 'react';
 import { Route, Switch, withRouter } from 'react-router-dom';
 // import PropTypes from 'prop-types';
 // eslint-disable-next-line import/no-unresolved
@@ -7,7 +7,6 @@ import styled from 'styled-components';
 // eslint-disable-next-line import/no-unresolved
 
 import mediaBreakpoints from '../../../breakpoints';
-import apiService from './apiService';
 import ComponentError from '../../../errorBoundaries/ComponentError/component-error';
 import SafeDashboard from './components/SafeDashboard';
 
