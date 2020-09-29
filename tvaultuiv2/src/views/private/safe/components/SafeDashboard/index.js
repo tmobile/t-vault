@@ -562,7 +562,7 @@ const SafeDashboard = (props) => {
 
 SafeDashboard.propTypes = {
   // eslint-disable-next-line react/forbid-prop-types
-  routeProps: PropTypes.object,
+  routeProps: PropTypes.objectOf(PropTypes.object),
 };
 SafeDashboard.defaultProps = {
   routeProps: {},

@@ -82,7 +82,7 @@ const SafeDetails = (props) => {
 };
 SafeDetails.propTypes = {
   detailData: PropTypes.arrayOf(PropTypes.array),
-  params: PropTypes.object,
+  params: PropTypes.objectOf(PropTypes.object),
   setActiveSafeFolders: PropTypes.func,
 };
 SafeDetails.defaultProps = {
