@@ -128,6 +128,28 @@ const Groups = (props) => {
     onNewAppRoleChange();
   };
 
+  const onEditSaveClicked = (role, access) => {
+    setResponse({ status: 'loading' });
+    const payload = {
+      path: `${safeDetail.path}`,
+      role_name: role,
+    };
+    apiService
+      .deleteAppRole(payload)
+      .then((res) => {
+        if (res) {
+          setResponse({ status: 'loading' });
+          onSubmit(role, access);
+        }
+      })
+      .catch((err) => {
+        if (err.response?.data?.errors && err.response.data.errors[0]) {
+          updateToastMessage(-1, err.response.data.errors[0]);
+        }
+        setResponse({ status: 'success' });
+      });
+  };
+
   const onEditClick = (key, value) => {
     setEditClicked(true);
     setEditAccess(value);
@@ -154,7 +176,7 @@ const Groups = (props) => {
         )}
         {response.status === 'edit' && (
           <AddAppRole
-            handleSaveClick={(role, access) => onSubmit(role, access)}
+            handleSaveClick={(role, access) => onEditSaveClicked(role, access)}
             handleCancelClick={() => onCancelClicked()}
             access={editAccess}
             editClicked={editClicked}
@@ -183,7 +205,7 @@ const Groups = (props) => {
                 <NoDataWrapper>
                   <NoData
                     imageSrc={noPermissionsIcon}
-                    description="No approles are given permission to access this safe,
+                    description="No <strong>approles</strong> are given permission to access this safe,
                     add approles to access the safe"
                     actionButton={
                       // eslint-disable-next-line react/jsx-wrap-multilines
@@ -192,11 +214,11 @@ const Groups = (props) => {
                         icon="add"
                         color="secondary"
                         onClick={() => setResponse({ status: 'add' })}
-                        width={isMobileScreen ? '100%' : '38%'}
+                        width={isMobileScreen ? '100%' : '9rem'}
                       />
                     }
                     bgIconStyle={bgIconStyle}
-                    width={isMobileScreen ? '100%' : '38%'}
+                    width={isMobileScreen ? '100%' : '42%'}
                   />
                 </NoDataWrapper>
               )}

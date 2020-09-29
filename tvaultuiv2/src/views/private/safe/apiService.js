@@ -28,6 +28,7 @@ const addAwsConfiguration = (path, payload) =>
   api.post(`/ss/auth/aws/role?path=${path}`, payload);
 const addAwsRole = (payload) => api.post('/ss/sdb/role', payload);
 const deleteAwsConfiguration = (payload) => api.delete('/ss/sdb/role', payload);
+const editAwsApplication = (payload) => api.put('/ss/sdb/role', payload);
 
 const getExistingAppRole = () => api.get('/ss/approle');
 const addAppRole = (payload) => api.post('/ss/sdb/approle', payload);
@@ -68,4 +69,5 @@ export default {
   deleteAppRole,
   getExistingAppRole,
   addAppRole,
+  editAwsApplication,
 };

@@ -125,7 +125,7 @@ const AwsApplications = (props) => {
     setResponse({ status: 'loading' });
     onNewAwsChange();
     apiService
-      .addAwsConfiguration(`${safeDetail.path}sss`, data)
+      .addAwsConfiguration(`${safeDetail.path}`, data)
       .then((res) => {
         updateToastMessage(1, res.data?.messages[0]);
         onSaveClicked(data.role, access);
@@ -142,14 +142,14 @@ const AwsApplications = (props) => {
     setResponse({ status: 'loading' });
     const payload = {
       path: `${safeDetail.path}`,
-      awsName,
+      role: awsName,
     };
     apiService
-      .deleteGroup(payload)
+      .editAwsApplication(payload)
       .then((res) => {
         if (res) {
           setResponse({ status: 'loading' });
-          onSubmit(awsName, access);
+          onSaveClicked(awsName, access);
         }
       })
       .catch((err) => {
@@ -199,7 +199,8 @@ const AwsApplications = (props) => {
           Object.keys(safeData).length > 0 &&
           Object.keys(safeData?.response).length > 0 &&
           response.status !== 'loading' &&
-          response.status !== 'error' && (
+          response.status !== 'error' &&
+          response.status !== 'edit' && (
             <>
               {safeData.response['aws-roles'] &&
                 Object.keys(safeData.response['aws-roles']).length > 0 && (
@@ -217,7 +218,7 @@ const AwsApplications = (props) => {
                 <NoDataWrapper>
                   <NoData
                     imageSrc={noPermissionsIcon}
-                    description="No applications are given permission to access this safe,
+                    description="No <strong>applications</strong> are given permission to access this safe,
                     add applications to access the safe"
                     actionButton={
                       // eslint-disable-next-line react/jsx-wrap-multilines
@@ -226,7 +227,7 @@ const AwsApplications = (props) => {
                         icon="add"
                         color="secondary"
                         onClick={() => setResponse({ status: 'add' })}
-                        width={isMobileScreen ? '100%' : '38%'}
+                        width={isMobileScreen ? '100%' : '9rem'}
                       />
                     }
                     bgIconStyle={bgIconStyle}

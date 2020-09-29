@@ -166,9 +166,11 @@ const Permissions = (props) => {
   };
 
   useEffect(() => {
-    if (safeData.response && Object.keys(safeData?.response).length !== 0) {
+    if (safeData?.response && Object.keys(safeData?.response).length !== 0) {
       if (value === 0) {
-        setCount(Object.keys(safeData.response.users).length);
+        if (safeData.response.users) {
+          setCount(Object.keys(safeData.response.users).length);
+        }
       } else if (value === 1) {
         if (safeData.response.groups) {
           setCount(Object.keys(safeData.response.groups).length);
