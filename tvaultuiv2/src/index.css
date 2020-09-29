@@ -36,3 +36,9 @@ strong {
 ::-webkit-scrollbar-thumb:hover {
   background: #5e627c; 
 }
+
+input[type=number]::-webkit-outer-spin-button,
+input[type=number]::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
