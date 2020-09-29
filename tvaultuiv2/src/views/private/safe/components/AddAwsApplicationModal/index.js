@@ -13,6 +13,7 @@ const ModalWrapper = styled('div')`
   background-color: #2a2e3e;
   width: 69.6rem;
   padding: 6rem;
+  margin: auto 0;
 `;
 const useStyles = makeStyles((theme) => ({
   modal: {

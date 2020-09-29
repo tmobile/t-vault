@@ -77,7 +77,7 @@ AddFolderModal.propTypes = {
   openModal: PropTypes.bool,
   setOpenModal: PropTypes.func,
   // eslint-disable-next-line react/forbid-prop-types
-  childrens: PropTypes.array,
+  childrens: PropTypes.arrayOf(PropTypes.array),
   handleSaveClick: PropTypes.func,
   handleCancelClick: PropTypes.func,
   parentId: PropTypes.string,

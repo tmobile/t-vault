@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import useMediaQuery from '@material-ui/core/useMediaQuery';
 import { Typography, InputLabel } from '@material-ui/core';
@@ -17,6 +17,10 @@ const ContainerWrapper = styled.section``;
 const InputAwsWrapper = styled.div`
   display: flex;
   justify-content: space-between;
+  margin: 2rem 0;
+`;
+
+const AuthWrapper = styled.div`
   margin: 2rem 0;
 `;
 
@@ -62,6 +66,15 @@ const AddAwsApplication = (props) => {
   const [radioValue, setRadioValue] = useState('read');
   const [isEC2, setIsEC2] = useState(true);
   const isMobileScreen = useMediaQuery(small);
+  const [disabledSave, setDisabledSave] = useState(true);
+
+  useEffect(() => {
+    if (roleName === '' || roleName.length < 3) {
+      setDisabledSave(true);
+    } else {
+      setDisabledSave(false);
+    }
+  }, [roleName]);
 
   const handleAwsRadioChange = (event) => {
     setAwsAuthenticationType(event.target.value);
@@ -112,25 +125,27 @@ const AddAwsApplication = (props) => {
   return (
     <ContainerWrapper>
       <Typography variant="h5">Create AWS Configuration</Typography>
-      <InputLabel required>AWS Authentication Type</InputLabel>
-      <RadioGroup
-        row
-        aria-label="awsauthentication"
-        name="awsauthentication"
-        value={awsAuthenticationType}
-        onChange={handleAwsRadioChange}
-      >
-        <FormControlLabel
-          value="ec2"
-          control={<Radio color="default" />}
-          label="EC2"
-        />
-        <FormControlLabel
-          value="iam"
-          control={<Radio color="default" />}
-          label="IAM"
-        />
-      </RadioGroup>
+      <AuthWrapper>
+        <InputLabel required>AWS Authentication Type</InputLabel>
+        <RadioGroup
+          row
+          aria-label="awsauthentication"
+          name="awsauthentication"
+          value={awsAuthenticationType}
+          onChange={handleAwsRadioChange}
+        >
+          <FormControlLabel
+            value="ec2"
+            control={<Radio color="default" />}
+            label="EC2"
+          />
+          <FormControlLabel
+            value="iam"
+            control={<Radio color="default" />}
+            label="IAM"
+          />
+        </RadioGroup>
+      </AuthWrapper>
       <InputLabel required>Role Name</InputLabel>
       <TextFieldComponent
         value={roleName}
@@ -146,6 +161,7 @@ const AddAwsApplication = (props) => {
             value={accountId}
             placeholder="Account ID"
             fullWidth
+            type="number"
             readOnly={!isEC2}
             name="accountId"
             onChange={(e) => setAccountId(e.target.value)}
@@ -255,6 +271,7 @@ const AddAwsApplication = (props) => {
           label="Create"
           color="secondary"
           icon="add"
+          disabled={!isEC2 || disabledSave}
           onClick={() => onCreateClicked()}
           width={isMobileScreen ? '100%' : ''}
         />

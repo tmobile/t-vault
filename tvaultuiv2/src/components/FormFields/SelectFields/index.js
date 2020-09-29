@@ -14,6 +14,7 @@ const MenuItemList = styled(MenuItem)`
 
 const SelectComponent = (props) => {
   const { menu, onChange, value, variant, classes, color, readOnly } = props;
+
   return (
     <SelectStyle
       value={value}
