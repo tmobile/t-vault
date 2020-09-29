@@ -13,7 +13,7 @@
             deleteFolder: deleteFolder,
             getFolderContent: getFolderContent,
             itemIsValidToSave: itemIsValidToSave,
-            getAllowedSafes: getAllowedSafes
+            getAllowedSafes: getAllowedSafes,
         };
 
         function getFolderContent(path) {
@@ -59,7 +59,6 @@
                 })
                 .catch(catchError);
         }
-
         function createFolder(path) {
             var url = RestEndpoints.baseURL + '/v2/sdb/createfolder?path=' + path;
             return $http({
@@ -179,6 +178,11 @@
             }, {
                 displayName: 'CERTIFICATES',
                 navigationName: 'certificates',
+                addComma: false,
+                show: true
+            },{
+                displayName: 'IAM SERVICE ACCOUNTS',
+                navigationName: 'iam-service-accounts',
                 addComma: false,
                 show: true
             }, {

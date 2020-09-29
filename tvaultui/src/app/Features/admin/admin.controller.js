@@ -129,6 +129,7 @@
             $scope.ifTargetServiceExisting=false;	
             $scope.ifTargetSystemExisting=false;
             $scope.enableSvcacc = true;
+            $scope.enableIamSvcacc = true;
             $scope.enableSelfService = true;
             $scope.isCollapsed = true;
             $scope.transferFailedMessage = '';
@@ -182,6 +183,9 @@
             if ($rootScope.lastVisited == "change-service-account") {
                 $scope.selectedIndex = 2;
             }
+            if ($rootScope.lastVisited == "change-iam-service-account") {
+                $scope.selectedIndex = 4;
+            }
 
             if ($rootScope.lastVisited == "change-certificate") {
                 $scope.selectedIndex = 3;
@@ -194,6 +198,9 @@
             if (feature.selfservice == false) {
                 $scope.enableSelfService = false;
             }
+
+
+
             $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
             if ($scope.enableSvcacc == false && $scope.enableSelfService == false && JSON.parse(SessionStore.getItem("isAdmin")) == false) {
                 $state.go('safes');
@@ -559,6 +566,32 @@
                         $scope.error('md');
                     });
             }
+
+            //IAM SERVICE ACCOUNT
+            if ($scope.enableIamSvcacc == true) {
+                $scope.numOfIamSvcaccs = 0;
+                $scope.iamSvcaccOnboardedData = { "keys": [] };
+                $scope.isLoadingData = true;
+                AdminSafesManagement.getOnboardedIamServiceAccounts().then(function (response) {
+                    if (UtilityService.ifAPIRequestSuccessful(response)) {
+                        $scope.iamSvcaccOnboardedData = response.data.keys;
+                        $scope.numOfIamSvcaccs = $scope.iamSvcaccOnboardedData.length;
+                        $scope.isLoadingData = false;
+                    }
+                    else {
+                        $scope.isLoadingData = false;
+                        $scope.errorMessage = AdminSafesManagement.getTheRightErrorMessage(response);
+                        error('md');
+                    }
+                },
+                    function (error) {
+                        // Error handling function
+                        console.log(error);
+                        $scope.isLoadingData = false;
+                        $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
+                        $scope.error('md');
+                    });
+            }
             if($scope.selectedTab == 1){            	
            	 getCertificates("", null, null,"external");
            }else{        	   
@@ -728,11 +761,25 @@
             $state.go('change-service-account', fullObj);
         }
 
+        $scope.editOnboardedIamSvcacc = function (userId, size) {
+            var obj = "svcaccData";
+            var fullObj = {};
+            fullObj[obj] = { "userId": userId };
+            $state.go('change-iam-service-account', fullObj);
+        }
+
         $scope.onboardSvcaccAccount = function (size) {
             var obj = "svcaccList";
             var fullObj = {};
             fullObj[obj] = [];
             $state.go('change-service-account', fullObj);
+        }
+
+        $scope.onboardIamSvcaccAccount = function (size) {
+            var obj = "iamsvcaccList";
+            var fullObj = {};
+            fullObj[obj] = [];
+            $state.go('change-iam-service-account', fullObj);
         }
 
         $scope.offboardSvcaccPopUp = function (svcaccname) {

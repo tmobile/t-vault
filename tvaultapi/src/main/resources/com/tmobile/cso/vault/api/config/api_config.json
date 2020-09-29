@@ -1195,5 +1195,15 @@
 			{"name":"mount_accessor", "required":true}
 		],
 		"outparams":["data"]
-	}
+	},
+    {"#":"Getting iam service account Info",
+
+    	"apiEndPoint":"/iamsvcacct",
+    	"vaultEndPoint":"/<path>",
+    	"method":"GET",
+      	"params":[
+        	{"name":"path","required":true, "appendToPath":true}
+        ],
+        "outparams":["data"]
+    }
 ]
