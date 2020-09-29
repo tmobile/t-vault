@@ -7,8 +7,7 @@ var shell = require( 'gulp-shell' );
 
 
 //replace with your endpoint
-//var proxyLiveTarget = 'https://xxxx.us-west-2.xxxx.amazonaws.com:xxxx';
-var proxyLiveTarget = 'http://localhost:8080';
+var proxyLiveTarget = 'https://xxxx.us-west-2.xxxx.amazonaws.com:xxxx';
 
 //Assumption : wiremock is pointing to port 9005
 var proxyMockTarget = 'http://localhost:9006';
