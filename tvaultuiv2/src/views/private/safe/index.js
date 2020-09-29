@@ -22,29 +22,20 @@ const SafeSectionPreview = styled('section')`
 `;
 
 const SafePageLayout = (props) => {
-  const [safesList, setSafesList] = useState([]);
   // Sample API call. For integration, call like this with you mock data being passed as parameter
 
-  const createSafe = (safeData) => {
-    apiService
-      .createSafe(safeData)
-      .then((res) => {
-        setSafesList(res.data);
-      })
-      .catch((e) => console.log(e));
-  };
   return (
     <ComponentError>
       <main title="safe-layout">
         <SafeSectionPreview>
-          <SafeDashboard {...props} safes={safesList} />
+          <SafeDashboard {...props} />
         </SafeSectionPreview>
         <Switch>
           <Route
             exact
             path="/safe/create-safe"
             render={(routeProps) => (
-              <CreateSafe routeProps={{ ...routeProps, createSafe }} />
+              <CreateSafe routeProps={{ ...routeProps }} />
             )}
           />
           <Route
