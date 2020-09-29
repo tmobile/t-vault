@@ -1,11 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import Radio from '@material-ui/core/Radio';
 import { makeStyles } from '@material-ui/core/styles';
-import RadioGroup from '@material-ui/core/RadioGroup';
 import { InputLabel, Typography } from '@material-ui/core';
-import FormControlLabel from '@material-ui/core/FormControlLabel';
 import useMediaQuery from '@material-ui/core/useMediaQuery';
-import FormControl from '@material-ui/core/FormControl';
 import styled, { css } from 'styled-components';
 import PropTypes from 'prop-types';
 import ComponentError from '../../../../../errorBoundaries/ComponentError/component-error';
@@ -14,6 +10,7 @@ import ButtonComponent from '../../../../../components/FormFields/ActionButton';
 import SelectComponent from '../../../../../components/FormFields/SelectFields';
 import apiService from '../../apiService';
 import LoaderSpinner from '../../../../../components/LoaderSpinner';
+import RadioPermissionComponent from '../RadioPermissions';
 
 const { small } = mediaBreakpoints;
 
@@ -107,50 +104,66 @@ const useStyles = makeStyles(() => ({
 
 const AddAppRole = (props) => {
   const classes = useStyles();
-  const { handleSaveClick, handleCancelClick } = props;
+  const {
+    handleSaveClick,
+    handleCancelClick,
+    editClicked,
+    role,
+    access,
+  } = props;
   const [radioValue, setRadioValue] = useState('read');
-  const [selectedValue, setSelectedValue] = useState('role');
+  const [selectedValue, setSelectedValue] = useState('');
   const [disabledSave, setDisabledSave] = useState(true);
   const [menu, setMenu] = useState([]);
   const isMobileScreen = useMediaQuery(small);
   const [loader, setLoader] = useState(false);
 
   useEffect(() => {
-    setLoader(true);
-    apiService
-      .getExistingAppRole()
-      .then((res) => {
-        if (res && res.data?.keys) {
-          setLoader(false);
-          if (res.data.keys.length > 0) {
-            setMenu([...res.data.keys]);
-            setSelectedValue(res.data.keys[0]);
+    setSelectedValue(role);
+    setMenu([role]);
+    setRadioValue(access);
+  }, [role, access]);
+
+  useEffect(() => {
+    if (!editClicked) {
+      setLoader(true);
+      apiService
+        .getExistingAppRole()
+        .then((res) => {
+          if (res && res.data?.keys) {
+            setLoader(false);
+            if (res.data.keys.length > 0) {
+              setMenu([...res.data.keys]);
+              setSelectedValue(res.data.keys[0]);
+            }
           }
-        }
-      })
-      .catch(() => {
-        setLoader(true);
-      });
+        })
+        .catch(() => {
+          setLoader(true);
+        });
+    }
   }, []);
 
   useEffect(() => {
-    if (selectedValue === '' || menu.length === 0) {
+    if (editClicked) {
+      if (access === radioValue) {
+        setDisabledSave(true);
+      } else {
+        setDisabledSave(false);
+      }
+    } else if (selectedValue === '' || menu.length === 0) {
       setDisabledSave(true);
     } else {
       setDisabledSave(false);
     }
-  }, [selectedValue]);
-
-  const handleChange = (event) => {
-    setRadioValue(event.target.value);
-  };
+  }, [selectedValue, radioValue]);
 
   return (
     <ComponentError>
       <PermissionWrapper>
         {loader && <LoaderSpinner customStyle={customStyle} />}
         <HeaderWrapper>
-          <Typography variant="h5">Add your app</Typography>
+          <Typography variant="h5">Add App Role</Typography>
         </HeaderWrapper>
         <InputWrapper>
           <InputLabel required>App Role</InputLabel>
@@ -158,34 +171,18 @@ const AddAppRole = (props) => {
             menu={menu}
             value={selectedValue}
             classes={classes}
-            readOnly={menu.length === 0}
+            readOnly={menu.length === 0 || editClicked}
             onChange={(e) => setSelectedValue(e.target.value)}
           />
         </InputWrapper>
-        {menu.length === 0 && (
+        {menu.length === 0 && !editClicked && (
           <ErrorMessage>No app role is available</ErrorMessage>
         )}
         <RadioButtonWrapper>
-          <FormControl component="fieldset">
-            <RadioGroup
-              row
-              aria-label="permissions"
-              name="permissions1"
-              value={radioValue}
-              onChange={handleChange}
-            >
-              <FormControlLabel
-                value="read"
-                control={<Radio color="default" />}
-                label="Read"
-              />
-              <FormControlLabel
-                value="write"
-                control={<Radio color="default" />}
-                label="Write"
-              />
-            </RadioGroup>
-          </FormControl>
+          <RadioPermissionComponent
+            radioValue={radioValue}
+            handleRadioChange={(e) => setRadioValue(e.target.value)}
+          />
           <CancelSaveWrapper>
             <CancelButton>
               <ButtonComponent
@@ -212,6 +209,15 @@ const AddAppRole = (props) => {
 AddAppRole.propTypes = {
   handleCancelClick: PropTypes.func.isRequired,
   handleSaveClick: PropTypes.func.isRequired,
+  editClicked: PropTypes.bool,
+  role: PropTypes.string,
+  access: PropTypes.string,
+};
+
+AddAppRole.defaultProps = {
+  access: 'read',
+  role: '',
+  editClicked: false,
 };
 
 export default AddAppRole;

@@ -52,6 +52,9 @@ const Groups = (props) => {
   } = props;
 
   const [response, setResponse] = useState({ status: 'loading' });
+  const [editRole, setEditRole] = useState('');
+  const [editAccess, setEditAccess] = useState('');
+  const [editClicked, setEditClicked] = useState(false);
 
   const isMobileScreen = useMediaQuery(small);
 
@@ -126,9 +129,12 @@ const Groups = (props) => {
   };
 
   const onEditClick = (key, value) => {
-    console.log('key', key);
-    console.log('value', value);
+    setEditClicked(true);
+    setEditAccess(value);
+    setEditRole(key);
+    setResponse({ status: 'edit' });
   };
+
   const onCancelClicked = () => {
     setResponse({ status: 'success' });
     onNewAppRoleChange();
@@ -144,6 +150,15 @@ const Groups = (props) => {
           <AddAppRole
             handleSaveClick={(role, access) => onSubmit(role, access)}
             handleCancelClick={() => onCancelClicked()}
+          />
+        )}
+        {response.status === 'edit' && (
+          <AddAppRole
+            handleSaveClick={(role, access) => onSubmit(role, access)}
+            handleCancelClick={() => onCancelClicked()}
+            access={editAccess}
+            editClicked={editClicked}
+            role={editRole}
           />
         )}
 

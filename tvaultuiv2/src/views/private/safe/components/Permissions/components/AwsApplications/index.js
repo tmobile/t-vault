@@ -14,6 +14,7 @@ import apiService from '../../../../apiService';
 import LoaderSpinner from '../../../../../../../components/LoaderSpinner';
 import Error from '../../../../../../../components/Error';
 import AddAwsApplicationModal from '../../../AddAwsApplicationModal';
+import EditAwsApplication from '../../../EditAwsApplication';
 
 const { small } = mediaBreakpoints;
 
@@ -50,8 +51,8 @@ const AwsApplications = (props) => {
     updateToastMessage,
   } = props;
 
-  // const [editGroup, setEditGroup] = useState('');
-  // const [editAccess, setEditAccess] = useState('');
+  const [editAws, setEditAws] = useState('');
+  const [editAccess, setEditAccess] = useState('');
   const [response, setResponse] = useState({ status: 'loading' });
 
   const isMobileScreen = useMediaQuery(small);
@@ -137,27 +138,27 @@ const AwsApplications = (props) => {
       });
   };
 
-  // const onEditSaveClicked = (groupname, access) => {
-  //   setResponse({ status: 'loading' });
-  //   const payload = {
-  //     path: `${safeDetail.path}`,
-  //     groupname,
-  //   };
-  //   apiService
-  //     .deleteGroup(payload)
-  //     .then((res) => {
-  //       if (res) {
-  //         setResponse({ status: 'loading' });
-  //         onSubmit(groupname, access);
-  //       }
-  //     })
-  //     .catch((err) => {
-  //       if (err.response?.data?.errors && err.response.data.errors[0]) {
-  //         updateToastMessage(-1, err.response.data.errors[0]);
-  //       }
-  //       setResponse({ status: 'success' });
-  //     });
-  // };
+  const onEditSaveClicked = (awsName, access) => {
+    setResponse({ status: 'loading' });
+    const payload = {
+      path: `${safeDetail.path}`,
+      awsName,
+    };
+    apiService
+      .deleteGroup(payload)
+      .then((res) => {
+        if (res) {
+          setResponse({ status: 'loading' });
+          onSubmit(awsName, access);
+        }
+      })
+      .catch((err) => {
+        if (err.response?.data?.errors && err.response.data.errors[0]) {
+          updateToastMessage(-1, err.response.data.errors[0]);
+        }
+        setResponse({ status: 'success' });
+      });
+  };
 
   const onCancelClicked = () => {
     setResponse({ status: 'success' });
@@ -165,13 +166,9 @@ const AwsApplications = (props) => {
   };
 
   const onEditClick = (key, value) => {
-    // setEditAccess(value);
-    // setEditGroup(key);
-    // setResponse({ status: 'edit' });
-    // eslint-disable-next-line no-console
-    console.log('key', key);
-    // eslint-disable-next-line no-console
-    console.log('value', value);
+    setEditAccess(value);
+    setEditAws(key);
+    setResponse({ status: 'edit' });
   };
 
   return (
@@ -188,17 +185,16 @@ const AwsApplications = (props) => {
             handleModalClose={() => onCancelClicked()}
           />
         )}
-
-        {/* {response.status === 'edit' && (
-          <AddGroup
-            handleSaveClick={(group, access) =>
-              onEditSaveClicked(group, access)
+        {response.status === 'edit' && (
+          <EditAwsApplication
+            handleSaveClick={(awsName, access) =>
+              onEditSaveClicked(awsName, access)
             }
             handleCancelClick={onCancelClicked}
-            groupname={editGroup}
+            awsName={editAws}
             access={editAccess}
           />
-        )} */}
+        )}
         {safeData &&
           Object.keys(safeData).length > 0 &&
           Object.keys(safeData?.response).length > 0 &&
