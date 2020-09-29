@@ -1,3 +1,5 @@
+/* eslint-disable react/jsx-indent */
+/* eslint-disable react/jsx-curly-newline */
 import React, { useState, useEffect } from 'react';
 import styled, { css } from 'styled-components';
 import PropTypes from 'prop-types';
@@ -5,12 +7,12 @@ import useMediaQuery from '@material-ui/core/useMediaQuery';
 import ComponentError from '../../../../../../../errorBoundaries/ComponentError/component-error';
 import NoData from '../../../../../../../components/NoData';
 import ButtonComponent from '../../../../../../../components/FormFields/ActionButton';
+import PermissionsList from '../PermissionsList';
 import noPermissionsIcon from '../../../../../../../assets/no-permissions.svg';
 import mediaBreakpoints from '../../../../../../../breakpoints';
-import AddUser from '../../../AddUser';
+import AddGroup from '../../../AddGroup';
 import apiService from '../../../../apiService';
 import LoaderSpinner from '../../../../../../../components/Loaders/LoaderSpinner';
-import PermissionsList from '../PermissionsList';
 import Error from '../../../../../../../components/Error';
 
 const { small } = mediaBreakpoints;
@@ -18,13 +20,8 @@ const { small } = mediaBreakpoints;
 const NoDataWrapper = styled.section`
   display: flex;
   justify-content: center;
-  margin-top: 2.5rem;
-  transform: translate(-50%, -50%);
-  position: absolute;
-  left: 50%;
-  top: 50%;
   width: 100%;
-
+  height: 100%;
   p {
     ${small} {
       margin-top: 2rem;
@@ -43,19 +40,20 @@ const customStyle = css`
   height: 100%;
 `;
 
-const User = (props) => {
+const Groups = (props) => {
   const {
     safeDetail,
-    newPermission,
-    onNewPermissionChange,
     safeData,
     fetchPermission,
+    onNewGroupChange,
+    newGroup,
     updateToastMessage,
   } = props;
 
-  const [editUser, setEditUser] = useState('');
+  const [editGroup, setEditGroup] = useState('');
   const [editAccess, setEditAccess] = useState('');
   const [response, setResponse] = useState({ status: 'loading' });
+
   const isMobileScreen = useMediaQuery(small);
 
   useEffect(() => {
@@ -71,22 +69,22 @@ const User = (props) => {
   }, [safeData]);
 
   useEffect(() => {
-    if (newPermission) {
+    if (newGroup) {
       setResponse({ status: 'add' });
     }
-  }, [newPermission]);
+  }, [newGroup]);
 
-  const onDeleteClick = (username) => {
+  const onDeleteClick = (groupname) => {
     setResponse({ status: 'loading' });
     const payload = {
       path: safeDetail.path,
-      username,
+      groupname,
     };
     apiService
-      .deleteUserPermission(payload)
+      .deleteGroup(payload)
       .then((res) => {
-        if (res && res.data?.Message) {
-          updateToastMessage(1, res.data.Message);
+        if (res && res.data?.messages && res.data?.messages[0]) {
+          updateToastMessage(1, res.data.messages[0]);
           setResponse({ status: '' });
           fetchPermission();
         }
@@ -102,7 +100,7 @@ const User = (props) => {
   const onSaveClicked = (data) => {
     setResponse({ status: 'loading' });
     apiService
-      .addUserPermission(data)
+      .addGroup(data)
       .then((res) => {
         if (res && res.data?.messages) {
           updateToastMessage(1, res.data?.messages[0]);
@@ -118,29 +116,28 @@ const User = (props) => {
       });
   };
 
-  const onSubmit = (user, access) => {
+  const onSubmit = (group, access) => {
     const value = {
       access,
       path: `${safeDetail.path}`,
-      username: user.toLowerCase(),
+      groupname: group.toLowerCase(),
     };
     onSaveClicked(value);
-    onNewPermissionChange();
+    onNewGroupChange();
   };
 
-  const onEditSaveClicked = (username, access) => {
+  const onEditSaveClicked = (groupname, access) => {
     setResponse({ status: 'loading' });
     const payload = {
       path: `${safeDetail.path}`,
-      username,
-      access,
+      groupname,
     };
     apiService
-      .deleteUserPermission(payload)
+      .deleteGroup(payload)
       .then((res) => {
         if (res) {
           setResponse({ status: 'loading' });
-          onSubmit(username, access);
+          onSubmit(groupname, access);
         }
       })
       .catch((err) => {
@@ -153,12 +150,12 @@ const User = (props) => {
 
   const onCancelClicked = () => {
     setResponse({ status: 'success' });
-    onNewPermissionChange();
+    onNewGroupChange();
   };
 
   const onEditClick = (key, value) => {
     setEditAccess(value);
-    setEditUser(key);
+    setEditGroup(key);
     setResponse({ status: 'edit' });
   };
 
@@ -169,37 +166,44 @@ const User = (props) => {
           <LoaderSpinner customStyle={customStyle} />
         )}
         {response.status === 'add' && (
-          <AddUser
-            handleSaveClick={(user, access) => onSubmit(user, access)}
+          <AddGroup
+            handleSaveClick={(group, access) => onSubmit(group, access)}
             handleCancelClick={onCancelClicked}
           />
         )}
+
         {response.status === 'edit' && (
-          <AddUser
-            handleSaveClick={(user, access) => onEditSaveClicked(user, access)}
+          <AddGroup
+            handleSaveClick={(group, access) =>
+              onEditSaveClicked(group, access)
+            }
             handleCancelClick={onCancelClicked}
-            username={editUser}
+            groupname={editGroup}
             access={editAccess}
           />
         )}
-        {response.status === 'success' &&
-          safeData &&
-          safeData.response &&
-          safeData.response.users && (
+        {safeData &&
+          Object.keys(safeData).length > 0 &&
+          Object.keys(safeData?.response).length > 0 &&
+          response.status === 'success' && (
             <>
-              {Object.keys(safeData.response.users).length > 0 && (
-                <PermissionsList
-                  list={safeData.response.users}
-                  onEditClick={(key, value) => onEditClick(key, value)}
-                  onDeleteClick={(key) => onDeleteClick(key)}
-                />
-              )}
-              {Object.keys(safeData.response.users).length === 0 && (
+              {safeData.response.groups &&
+                Object.keys(safeData.response?.groups).length > 0 && (
+                  <PermissionsList
+                    list={safeData.response.groups}
+                    onEditClick={(key, value) => onEditClick(key, value)}
+                    onDeleteClick={(key) => onDeleteClick(key)}
+                  />
+                )}
+              {(safeData.response.groups === null ||
+                !safeData.response.groups ||
+                (safeData.response.groups &&
+                  Object.keys(safeData.response.groups).length === 0)) && (
                 <NoDataWrapper>
                   <NoData
                     imageSrc={noPermissionsIcon}
-                    description="No <strong>users</strong> are given permission to access this safe,
-                    add users to access the safe"
+                    description="No <strong>groups</strong> are given permission to access this safe,
+                    add groups to access the safe"
                     actionButton={
                       // eslint-disable-next-line react/jsx-wrap-multilines
                       <ButtonComponent
@@ -218,19 +222,19 @@ const User = (props) => {
             </>
           )}
         {response.status === 'error' && (
-          <Error description={safeData.error || 'Something went wrong'} />
+          <Error description={safeData.error || 'Something went wrong!'} />
         )}
       </>
     </ComponentError>
   );
 };
 
-User.propTypes = {
+Groups.propTypes = {
   safeDetail: PropTypes.objectOf(PropTypes.any).isRequired,
-  newPermission: PropTypes.bool.isRequired,
-  onNewPermissionChange: PropTypes.func.isRequired,
   safeData: PropTypes.objectOf(PropTypes.any).isRequired,
   fetchPermission: PropTypes.func.isRequired,
+  newGroup: PropTypes.bool.isRequired,
+  onNewGroupChange: PropTypes.func.isRequired,
   updateToastMessage: PropTypes.func.isRequired,
 };
-export default User;
+export default Groups;

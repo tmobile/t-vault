@@ -12,6 +12,7 @@ const DialogeBoxWrapper = styled('div')`
   align-items: center;
   flex-direction: column;
   width: ${(props) => props.width};
+  height: 100%;
 `;
 const BoxDescription = styled.p`
   text-align: center;
