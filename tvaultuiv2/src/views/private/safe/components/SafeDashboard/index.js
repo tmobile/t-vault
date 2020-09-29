@@ -297,7 +297,13 @@ const SafeDashboard = (props) => {
     fetchData().catch((error) => {
       setStatus({ status: 'failed', message: 'failed' });
     });
-  }, [fetchData]);
+    if (
+      routeProps.location.pathname.split('/').length === 3 &&
+      isMobileScreen
+    ) {
+      setActiveSafeFolders([routeProps.location.pathname.split('/')[2]]);
+    }
+  }, [fetchData, routeProps.location.pathname, isMobileScreen]);
 
   const onSelectChange = (value) => {
     setSafeType(value);
@@ -360,7 +366,7 @@ const SafeDashboard = (props) => {
         }}
         active={
           activeSafeFolders.includes(safe.name) ||
-          window.location.pathname.includes(safe.name)
+          routeProps.location.pathname.includes(safe.name)
         }
         onMouseLeave={() => setActiveSafeFolders([])}
         onClick={() => showSafeDetails(safe.name, safe)}

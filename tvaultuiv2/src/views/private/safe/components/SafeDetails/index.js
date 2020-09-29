@@ -42,7 +42,6 @@ const SafeDetails = (props) => {
   // route component data
   const goBackToSafeList = () => {
     setActiveSafeFolders();
-    history.goBack();
   };
   useEffect(() => {
     if (!location?.state?.safe) {
