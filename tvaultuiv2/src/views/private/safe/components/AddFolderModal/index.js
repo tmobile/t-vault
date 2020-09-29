@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import PropTypes from 'prop-types';
 import { makeStyles } from '@material-ui/core/styles';
 import { Backdrop } from '@material-ui/core';
@@ -43,7 +43,6 @@ const AddFolderModal = (props) => {
     handleCancelClick,
     parentId,
   } = props;
-  //   const [open, setOpen] = useState(true);
   const classes = useStyles();
   const handleClose = () => {
     setOpenModal(false);

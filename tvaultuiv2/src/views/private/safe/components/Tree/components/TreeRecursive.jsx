@@ -1,20 +1,28 @@
-import React from 'react';
-// import PropTypes from 'prop-types';
-import { css } from 'styled-components';
-import LoaderSpinner from '../../../../../../components/LoaderSpinner';
+/* eslint-disable consistent-return */
+import React, { useState } from 'react';
+import styled from 'styled-components';
+import { makeStyles } from '@material-ui/core/styles';
+
 import CreateSecretButton from '../../CreateSecretButton';
 import { convertObjectToArray } from '../../../../../../services/helper-function';
-// import AddForm from '../../AddForm';
-// import CreateSecret from '../../CreateSecrets';
-// import AddFolder from '../../AddFolder';
+
 import File from './file';
 import Folder from './folder';
 import AddFolderModal from '../../AddFolderModal';
 import CreateSecretModal from '../../CreateSecretsModal';
+import BackdropLoader from '../../../../../../components/Loaders/BackdropLoader';
 // import { BackgroundColor } from '../../../../../styles/GlobalStyles';
 
-const loaderStyle = css`
-  margin-top: 0.5rem;
+const useStyles = makeStyles(() => ({
+  backdrop: {
+    position: 'absolute',
+  },
+}));
+const SecretsError = styled.div`
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 0.5rem;
 `;
 const TreeRecursive = ({
   data,
@@ -26,14 +34,17 @@ const TreeRecursive = ({
   isAddInput,
   setInputType,
   inputType,
-  responseType,
-  setResponseType,
+  status,
+  setStatus,
   getChildrenData,
-  deleteTreeItem,
+  onDeleteTreeItem,
   secretprefilledData,
   setSecretprefilledData,
 }) => {
+  const [currentNode, setCurrentNode] = useState('');
+  const classes = useStyles();
   // loop through the data
+  // eslint-disable-next-line array-callback-return
   return data.map((item) => {
     // if its a file render <File />
 
@@ -50,7 +61,7 @@ const TreeRecursive = ({
             type={item.type}
             setIsAddInput={setIsAddInput}
             setInputType={setInputType}
-            deleteTreeItem={deleteTreeItem}
+            onDeleteTreeItem={onDeleteTreeItem}
             id={item.id}
           />
         ) : (
@@ -66,10 +77,15 @@ const TreeRecursive = ({
           setInputType={setInputType}
           setIsAddInput={setIsAddInput}
           getChildNodes={getChildrenData}
-          deleteTreeItem={deleteTreeItem}
+          setCurrentNode={setCurrentNode}
+          onDeleteTreeItem={onDeleteTreeItem}
           id={item.id}
           key={item.id}
         >
+          {status.status === 'loading' && (
+            <BackdropLoader classes={classes} color="secondary" />
+          )}
+
           {inputType?.type?.toLowerCase() === 'folder' &&
             inputType?.currentNode === item.value && (
               <AddFolderModal
@@ -104,25 +120,23 @@ const TreeRecursive = ({
               setInputType={setInputType}
               inputType={inputType}
               path={`${item.id}/${item.value}`}
-              setResponseType={setResponseType}
+              setStatus={setStatus}
+              status={status}
               getChildrenData={getChildrenData}
-              deleteTreeItem={deleteTreeItem}
+              onDeleteTreeItem={onDeleteTreeItem}
               secretprefilledData={secretprefilledData}
               setSecretprefilledData={setSecretprefilledData}
             />
           ) : (
             <></>
           )}
-          {responseType === 0 ? (
-            <LoaderSpinner size="small" customStyle={loaderStyle} />
-          ) : (
-            item?.children?.length === 0 &&
-            responseType !== 0 &&
-            responseType === 1 && (
-              <CreateSecretButton
-                onClick={(e) => setCreateSecretBox(e, item.value)}
-              />
-            )
+          {currentNode === item.value && status.status === 'failed' && (
+            <SecretsError>Error in loading secrets!</SecretsError>
+          )}
+          {item?.children?.length < 2 && currentNode === item.id && (
+            <CreateSecretButton
+              onClick={(e) => setCreateSecretBox(e, item.value)}
+            />
           )}
         </Folder>
       );

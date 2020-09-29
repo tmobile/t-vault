@@ -9,7 +9,7 @@ import {
 import styled from 'styled-components';
 
 import Safe from './private/safe';
-import Loader from '../components/Loader';
+import ScaledLoader from '../components/Loaders/ScaledLoader';
 
 const Home = lazy(() => import('./public/HomePage'));
 const Applications = lazy(() => import('./private/applications'));
@@ -28,7 +28,7 @@ const PrivateRoutes = () => {
     <Suspense
       fallback={
         <LoaderWrap>
-          <Loader />
+          <ScaledLoader />
         </LoaderWrap>
       }
     >

@@ -11,7 +11,7 @@ import PermissionsList from '../PermissionsList';
 import noPermissionsIcon from '../../../../../../../assets/no-permissions.svg';
 import mediaBreakpoints from '../../../../../../../breakpoints';
 import apiService from '../../../../apiService';
-import LoaderSpinner from '../../../../../../../components/LoaderSpinner';
+import LoaderSpinner from '../../../../../../../components/Loaders/LoaderSpinner';
 import Error from '../../../../../../../components/Error';
 import AddAwsApplicationModal from '../../../AddAwsApplicationModal';
 import EditAwsApplication from '../../../EditAwsApplication';

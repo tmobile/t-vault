@@ -9,7 +9,7 @@ import mediaBreakpoints from '../../../../../breakpoints';
 import ButtonComponent from '../../../../../components/FormFields/ActionButton';
 import SelectComponent from '../../../../../components/FormFields/SelectFields';
 import apiService from '../../apiService';
-import LoaderSpinner from '../../../../../components/LoaderSpinner';
+import LoaderSpinner from '../../../../../components/Loaders/LoaderSpinner';
 import RadioPermissionComponent from '../RadioPermissions';
 
 const { small } = mediaBreakpoints;
@@ -142,7 +142,7 @@ const AddAppRole = (props) => {
           setLoader(true);
         });
     }
-  }, []);
+  }, [editClicked]);
 
   useEffect(() => {
     if (editClicked) {
@@ -156,7 +156,7 @@ const AddAppRole = (props) => {
     } else {
       setDisabledSave(false);
     }
-  }, [selectedValue, radioValue]);
+  }, [selectedValue, radioValue, menu, access, editClicked]);
 
   return (
     <ComponentError>

@@ -14,7 +14,7 @@ import mediaBreakpoints from '../../../../../breakpoints';
 import User from './components/User';
 import Groups from './components/Groups';
 import apiService from '../../apiService';
-import LoaderSpinner from '../../../../../components/LoaderSpinner';
+import LoaderSpinner from '../../../../../components/Loaders/LoaderSpinner';
 import AppRoles from './components/AppRoles';
 import SnackbarComponent from '../../../../../components/Snackbar';
 import AwsApplications from './components/AwsApplications';

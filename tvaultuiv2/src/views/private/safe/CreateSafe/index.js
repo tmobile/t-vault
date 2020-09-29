@@ -16,7 +16,7 @@ import leftArrowIcon from '../../../../assets/left-arrow.svg';
 import mediaBreakpoints from '../../../../breakpoints';
 import SnackbarComponent from '../../../../components/Snackbar';
 import AutoCompleteComponent from '../../../../components/FormFields/AutoComplete';
-import LoaderSpinner from '../../../../components/LoaderSpinner';
+import LoaderSpinner from '../../../../components/Loaders/LoaderSpinner';
 import { validateEmail } from '../../../../services/helper-function';
 import apiService from '../apiService';
 

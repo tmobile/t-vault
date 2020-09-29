@@ -406,6 +406,7 @@ const customTheme = createMuiTheme({
     nav: 'linear-gradient(to top, #7b124e, rgba(123, 18, 78, 0))',
   },
   customColor,
+  zIndex: {},
 });
 
 export default customTheme;

@@ -1,5 +1,5 @@
 /* eslint-disable react/jsx-curly-newline */
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { InputLabel, Typography } from '@material-ui/core';
 import styled from 'styled-components';
 import useMediaQuery from '@material-ui/core/useMediaQuery';
@@ -63,8 +63,11 @@ const CreateSecret = (props) => {
   // screen resolution handler
   const isMobileScreen = useMediaQuery(mediaBreakpoints.small);
 
-  //prefetch input data if any(i.e while editing)
-  const { secretData } = secretprefilledData;
+  // prefetch input data if any(i.e while editing)
+  useEffect(() => {
+    setKeyId(Object.keys(secretprefilledData)[0]);
+    setSecret(Object.values(secretprefilledData)[0]);
+  }, [secretprefilledData]);
 
   const handleValidation = (value, type) => {
     if (type === 'key') {
@@ -92,7 +95,7 @@ const CreateSecret = (props) => {
           <InputLabel>Key Id</InputLabel>
           <TextFieldComponent
             placeholder="Key Id"
-            value={secretData ? Object.keys(secretData)[0] : keyId || ''}
+            value={keyId || ''}
             onChange={(e) => handleKeyChange(e.target.value)}
             fullWidth
             error={keyErrorMessage}
@@ -109,7 +112,7 @@ const CreateSecret = (props) => {
           <InputLabel>Secret</InputLabel>
           <TextFieldComponent
             placeholder="Secret"
-            value={secretData ? Object.values(secretData)[0] : secret || ''}
+            value={secret || ''}
             onChange={(e) => handleValueChange(e.target.value)}
             fullWidth
             error={valueErrorMessage}

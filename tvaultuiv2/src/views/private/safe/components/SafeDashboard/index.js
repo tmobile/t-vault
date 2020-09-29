@@ -33,7 +33,7 @@ import SnackbarComponent from '../../../../../components/Snackbar';
 // mock data
 // import { safes } from './__mock/safeDashboard';
 import apiService from '../../apiService';
-import Loader from '../../../../../components/Loader';
+import ScaledLoader from '../../../../../components/Loaders/ScaledLoader';
 
 import ConfirmationModal from '../../../../../components/ConfirmationModal';
 import ButtonComponent from '../../../../../components/FormFields/ActionButton';
@@ -41,13 +41,27 @@ import ButtonComponent from '../../../../../components/FormFields/ActionButton';
 // styled components
 const ColumnSection = styled('section')`
   position: relative;
-  width: ${(props) => props.width || '50%'};
-  padding: ${(props) => props.padding || '0'};
   background: ${(props) => props.backgroundColor || '#151820'};
+`;
+
+const RightColumnSection = styled(ColumnSection)`
+  width: 59.23%;
+  padding: 0;
+  background: linear-gradient(to bottom, #151820, #2c3040);
   ${mediaBreakpoints.small} {
-    ${(props) => (props.mobileScreenCss ? props.mobileScreenCss : '')}
+    width: 100%;
+    display: none;
+    ${(props) => props.mobileViewStyles}
   }
 `;
+const LeftColumnSection = styled(ColumnSection)`
+  width: 40.77%;
+  ${mediaBreakpoints.small} {
+    display: ${(props) => (props.isRightActive ? 'none' : 'block')};
+    width: 100%;
+  }
+`;
+
 const SectionPreview = styled('main')`
   display: flex;
   height: 100%;
@@ -128,6 +142,7 @@ const SearchWrap = styled.div`
 
 const MobileViewForSafeDetailsPage = css`
   position: fixed;
+  display: flex;
   right: 0;
   left: 0;
   bottom: 0;
@@ -174,7 +189,7 @@ const SafeDashboard = (props) => {
   });
   const [safeList, setSafeList] = useState([]);
   const [moreData, setMoreData] = useState(false);
-  const [responseType, setResponseType] = useState(null);
+  const [status, setStatus] = useState({});
   const [isLoading, setIsLoading] = useState(false);
   const [inputSearchValue, setInputSearchValue] = useState('');
   const [activeSafeFolders, setActiveSafeFolders] = useState([]);
@@ -207,7 +222,7 @@ const SafeDashboard = (props) => {
   const showSafeDetails = (active) => {
     const activeSafes = [];
     activeSafes.push(active);
-    // setResponseType(0);
+    // setStatus({ status: 'loading', message: 'loading' });
     setActiveSafeFolders([...activeSafes]);
   };
 
@@ -234,7 +249,7 @@ const SafeDashboard = (props) => {
    */
 
   const fetchData = useCallback(async () => {
-    setResponseType(0);
+    setStatus({ status: 'loading', message: 'Loading...' });
     const safesApiResponse = await apiService.getSafes();
     const usersListApiResponse = await apiService.getManageUsersList();
     const sharedListApiResponse = await apiService.getManageSharedList();
@@ -271,16 +286,16 @@ const SafeDashboard = (props) => {
           ...safesObject.shared,
           ...safesObject.apps,
         ]);
-        setResponseType(1);
+        setStatus({ status: 'success', message: '' });
       })
       .catch((err) => {
-        setResponseType(-1);
+        setStatus({ status: 'failed', message: 'failed' });
       });
   }, [compareSafesAndList]);
 
   useEffect(() => {
     fetchData().catch((error) => {
-      setResponseType(-1);
+      setStatus({ status: 'failed', message: 'failed' });
     });
   }, [fetchData]);
 
@@ -308,7 +323,7 @@ const SafeDashboard = (props) => {
   };
 
   const onDeleteSafeConfirmClicked = () => {
-    setResponseType(0);
+    setStatus({ status: 'loading', message: 'loading' });
     setSafes({ users: [], apps: [], shared: [] });
     setSafeList([]);
     setOpenConfirmationModal(false);
@@ -316,7 +331,7 @@ const SafeDashboard = (props) => {
       .deleteSafe(deletionPath)
       .then((res) => {
         setDeletionPath('');
-        setResponseType(1);
+        setStatus({ status: 'success', message: 'success' });
         setToast(1);
         fetchData();
       })
@@ -395,7 +410,9 @@ const SafeDashboard = (props) => {
           }
         />
         <SectionPreview title="safe-section">
-          <ColumnSection width={isMobileScreen ? '100%' : '40.77%'}>
+          <LeftColumnSection
+            isRightActive={activeSafeFolders?.length && isMobileScreen}
+          >
             <ColumnHeader>
               <SelectComponent
                 menu={menu}
@@ -416,15 +433,16 @@ const SafeDashboard = (props) => {
                 />
               </SearchWrap>
             </ColumnHeader>
-            {responseType === -1 && !safeList?.length && (
+            {status.status === 'loading' && (
+              <ScaledLoader contentHeight="80%" contentWidth="100%" />
+            )}
+            {status.status === 'failed' && !safeList?.length && (
               <EmptySecretBox>
                 {' '}
                 <Error description="Error while fetching safes!" />
               </EmptySecretBox>
             )}
-            {responseType === 0 ? (
-              <Loader contentHeight="80%" contentWidth="100%" />
-            ) : safeList && safeList.length > 0 ? (
+            {safeList && safeList.length > 0 ? (
               <SafeListContainer ref={(ref) => (scrollParentRef = ref)}>
                 <StyledInfiniteScroll
                   pageStart={0}
@@ -441,10 +459,8 @@ const SafeDashboard = (props) => {
                 </StyledInfiniteScroll>
               </SafeListContainer>
             ) : (
-              safeList &&
-              safeList.length === 0 &&
-              responseType !== -1 &&
-              responseType !== 0 && (
+              safeList?.length === 0 &&
+              status.status === 'success' && (
                 <NoDataWrapper>
                   {' '}
                   <NoSafeWrap>
@@ -479,52 +495,49 @@ const SafeDashboard = (props) => {
             ) : (
               <></>
             )}
-          </ColumnSection>
+          </LeftColumnSection>
 
-          {!isMobileScreen || activeSafeFolders?.length ? (
-            <ColumnSection
-              backgroundColor="linear-gradient(to bottom, #151820, #2c3040)"
-              padding="0"
-              width={isMobileScreen ? '100%' : '59.23%'}
-              mobileScreenCss={MobileViewForSafeDetailsPage}
-            >
-              <Switch>
-                {' '}
-                {safeList[0]?.name && (
-                  <Redirect
-                    exact
-                    from="/safe"
-                    to={{
-                      pathname: `/safe/${safeList[0]?.name}`,
-                      state: { safe: safeList[0] },
-                    }}
+          <RightColumnSection
+            mobileViewStyles={
+              activeSafeFolders?.length && isMobileScreen
+                ? MobileViewForSafeDetailsPage
+                : ''
+            }
+          >
+            <Switch>
+              {' '}
+              {safeList[0]?.name && (
+                <Redirect
+                  exact
+                  from="/safe"
+                  to={{
+                    pathname: `/safe/${safeList[0]?.name}`,
+                    state: { safe: safeList[0] },
+                  }}
+                />
+              )}
+              <Route
+                path="/:tab/:safeName"
+                render={(routerProps) => (
+                  <SafeDetails
+                    detailData={safeList}
+                    params={routerProps}
+                    setActiveSafeFolders={() => setActiveSafeFolders([])}
                   />
                 )}
-                <Route
-                  path="/:tab/:safeName"
-                  render={(routerProps) => (
-                    <SafeDetails
-                      detailData={safes}
-                      params={routerProps}
-                      setActiveSafeFolders={() => setActiveSafeFolders([])}
-                    />
-                  )}
-                />
-                <Route
-                  path="/"
-                  render={(routerProps) => (
-                    <SafeDetails
-                      detailData={safes}
-                      params={routerProps}
-                      setActiveSafeFolders={() => setActiveSafeFolders([])}
-                    />
-                  )}
-                />
-              </Switch>
-            </ColumnSection>
-          ) : (
-            <></>
-          )}
+              />
+              <Route
+                path="/"
+                render={(routerProps) => (
+                  <SafeDetails
+                    detailData={safeList}
+                    params={routerProps}
+                    setActiveSafeFolders={() => setActiveSafeFolders([])}
+                  />
+                )}
+              />
+            </Switch>
+          </RightColumnSection>
         </SectionPreview>
         {toast === -1 && (
           <SnackbarComponent
