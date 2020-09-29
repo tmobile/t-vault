@@ -98,7 +98,7 @@ const CreateSecret = (props) => {
             value={keyId || ''}
             onChange={(e) => handleKeyChange(e.target.value)}
             fullWidth
-            error={keyErrorMessage}
+            error={!!keyErrorMessage}
             helperText={
               keyErrorMessage
                 ? 'Please enter a minimum of 3 characters lowercase alphabets, number and underscore only.'
@@ -115,7 +115,7 @@ const CreateSecret = (props) => {
             value={secret || ''}
             onChange={(e) => handleValueChange(e.target.value)}
             fullWidth
-            error={valueErrorMessage}
+            error={!!valueErrorMessage}
           />
           <CancelSaveWrapper>
             <BtnWrapper>
