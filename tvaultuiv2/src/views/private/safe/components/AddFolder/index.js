@@ -50,6 +50,7 @@ const AddFolder = (props) => {
       setErrorMessage(
         "Folder already exist's, You can't store secrets in folders having same name "
       );
+      setError(true);
     }
     setError(value.length < 3 || !value.match(/^[a-zA-Z0-9_]*$/g));
   };
@@ -69,7 +70,7 @@ const AddFolder = (props) => {
             onChange={(e) => handleChange(e)}
             value={inputValue || ''}
             fullWidth
-            error={error || errorMessage}
+            error={error}
             helperText={
               errorMessage && errorMessage.includes("Folder already exist's")
                 ? errorMessage
