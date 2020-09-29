@@ -773,4 +773,61 @@ public class OIDCUtilTest {
 		List<String> groups = oidcUtil.getSelfServiceGroupsFromAADById("testssotoken", userAADId, userName);
 		assertEquals(0, groups.size());
 	}
+
+    @Test
+    public void test_getAzureUserObject_success() throws Exception {
+        String userEmail = "testuser@t-mobile.com";
+        Response response = new Response();
+        response.setHttpstatus(HttpStatus.OK);
+        response.setSuccess(true);
+        response.setResponse(null);
+
+        when(httpUtils.getHttpClient()).thenReturn(httpClient);
+        when(httpClient.execute(any())).thenReturn(httpResponse);
+        when(httpResponse.getStatusLine()).thenReturn(statusLine);
+        when(statusLine.getStatusCode()).thenReturn(200);
+        when(httpResponse.getEntity()).thenReturn(mockHttpEntity);
+        when(ControllerUtil.getOidcADLoginUrl()).thenReturn("testurl");
+        when(mockHttpEntity.getContent()).thenAnswer(new Answer() {
+            private int count = 0;
+
+            public Object answer(InvocationOnMock invocation) {
+                if (count++ == 1) {
+                    String userIdResponseString = "{\"id\": \"abcdefg\", \"onPremisesSyncEnabled\":null, \"displayName\":\"testgroup1\", \"mail\": \"TestUser@T-Mobile.com\"}";
+                    return new ByteArrayInputStream(userIdResponseString.getBytes());
+                }
+                String responseString = "{\"access_token\": \"abcd\"}";
+                return new ByteArrayInputStream(responseString.getBytes());
+            }
+        });
+
+
+        ReflectionTestUtils.setField(oidcUtil, "ssoGetUserEndpoint", "testgroupurl");
+        ReflectionTestUtils.setField(oidcUtil, "sprintMailTailText", "sprint.com");
+
+        AADUserObject aadUserObject = oidcUtil.getAzureUserObject(userEmail);
+        assertEquals("abcdefg", aadUserObject.getUserId());
+        assertEquals("TestUser@T-Mobile.com", aadUserObject.getEmail());
+    }
+
+    @Test
+    public void test_getAzureUserObject_failed() throws Exception {
+        String userEmail = "testuser@t-mobile.com";
+        Response response = new Response();
+        response.setHttpstatus(HttpStatus.OK);
+        response.setSuccess(true);
+        response.setResponse(null);
+
+        when(httpUtils.getHttpClient()).thenReturn(httpClient);
+        when(httpClient.execute(any())).thenReturn(httpResponse);
+        when(httpResponse.getStatusLine()).thenReturn(statusLine);
+        when(statusLine.getStatusCode()).thenReturn(403);
+        when(ControllerUtil.getOidcADLoginUrl()).thenReturn("testurl");
+        ReflectionTestUtils.setField(oidcUtil, "ssoGetUserEndpoint", "testgroupurl");
+        ReflectionTestUtils.setField(oidcUtil, "sprintMailTailText", "sprint.com");
+
+        AADUserObject aadUserObject = oidcUtil.getAzureUserObject(userEmail);
+        assertEquals(null, aadUserObject.getUserId());
+        assertEquals(null, aadUserObject.getEmail());
+    }
 }
