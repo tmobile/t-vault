@@ -70,6 +70,16 @@ import com.tmobile.cso.vault.api.utils.JSONUtil;
 import com.tmobile.cso.vault.api.utils.PolicyUtils;
 import com.tmobile.cso.vault.api.utils.ThreadLocalContext;
 import com.tmobile.cso.vault.api.utils.TokenUtils;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.stream.Collectors;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import com.tmobile.cso.vault.api.model.IAMServiceAccountResponse;
+
 
 @Component
 public class  IAMServiceAccountsService {
@@ -466,7 +476,7 @@ public class  IAMServiceAccountsService {
 
 	/**
 	 * To get list of iam service accounts
-	 *
+	 * 
 	 * @param token
 	 * @param userDetails
 	 * @return
@@ -478,13 +488,20 @@ public class  IAMServiceAccountsService {
 				.put(LogMessage.MESSAGE, "Trying to get list of onboaded IAM service accounts")
 				.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
 		Response response = null;
-
 		String[] latestPolicies = policyUtils.getCurrentPolicies(userDetails.getSelfSupportToken(),
 				userDetails.getUsername(), userDetails);
-		List<String> onboardedlist = new ArrayList<>();
+		List<IAMServiceAccountResponse> onboardedlist = new ArrayList<>();
 		for (String policy : latestPolicies) {
 			if (policy.startsWith("o_iamsvcacc")) {
-				onboardedlist.add(policy.substring(12));
+				IAMServiceAccountResponse iamServiceAccountResponse = new IAMServiceAccountResponse();
+				String iamSvcName = policy.substring(12);
+				String[] accountID = iamSvcName.split("_");
+				String separator = "_";
+				int sepPos = iamSvcName.indexOf(separator);
+				iamServiceAccountResponse.setMetaDataName(iamSvcName);
+				iamServiceAccountResponse.setUserName(iamSvcName.substring(sepPos + separator.length()));
+				iamServiceAccountResponse.setAccountID(accountID[0]);
+				onboardedlist.add(iamServiceAccountResponse);
 			}
 		}
 		response = new Response();
@@ -493,7 +510,7 @@ public class  IAMServiceAccountsService {
 		response.setResponse("{\"keys\":" + JSONUtil.getJSON(onboardedlist) + "}");
 
 		if (HttpStatus.OK.equals(response.getHttpstatus())) {
-			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String> builder()
 					.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
 					.put(LogMessage.ACTION, "listOnboardedIAMServiceAccounts")
 					.put(LogMessage.MESSAGE, "Successfully retrieved the list of IAM Service Accounts")
@@ -1248,5 +1265,179 @@ public class  IAMServiceAccountsService {
 			hasAccess = true;
 		}
 		return hasAccess;
+	}
+	/*
+	 * 
+	 * @param userDetails
+	 * @param token
+	 * @return
+	 */
+	public ResponseEntity<String> getIAMServiceAccountsList(UserDetails userDetails, String userToken) {
+		oidcUtil.renewUserToken(userDetails.getClientToken());
+		String token = userDetails.getClientToken();
+		if (!userDetails.isAdmin()) {
+			token = userDetails.getSelfSupportToken();
+		}
+		String[] policies = policyUtils.getCurrentPolicies(token, userDetails.getUsername(), userDetails);
+
+		policies = filterPoliciesBasedOnPrecedence(Arrays.asList(policies));
+
+		List<Map<String, String>> svcListUsers = new ArrayList<>();
+		Map<String, List<Map<String, String>>> safeList = new HashMap<>();
+		if (policies != null) {
+			for (String policy : policies) {
+				Map<String, String> safePolicy = new HashMap<>();
+				String[] _policies = policy.split("_", -1);
+				if (_policies.length >= 3) {
+					String[] policyName = Arrays.copyOfRange(_policies, 2, _policies.length);
+					String safeName = String.join("_", policyName);
+					String safeType = _policies[1];
+
+					if (policy.startsWith("r_")) {
+						safePolicy.put(safeName, "read");
+					} else if (policy.startsWith("w_")) {
+						safePolicy.put(safeName, "write");
+					} else if (policy.startsWith("d_")) {
+						safePolicy.put(safeName, "deny");
+					}
+					if (!safePolicy.isEmpty()) {
+						if (safeType.equals(TVaultConstants.IAM_SVC_ACC_PATH_PREFIX)) {
+							svcListUsers.add(safePolicy);
+						}
+					}
+				}
+			}
+			safeList.put(TVaultConstants.IAM_SVC_ACC_PATH_PREFIX, svcListUsers);
+		}
+		return ResponseEntity.status(HttpStatus.OK).body(JSONUtil.getJSON(safeList));
+	}
+
+	/**
+	 * Filter iam service accounts policies based on policy precedence.
+	 * 
+	 * @param policies
+	 * @return
+	 */
+	private String[] filterPoliciesBasedOnPrecedence(List<String> policies) {
+		List<String> filteredList = new ArrayList<>();
+		for (int i = 0; i < policies.size(); i++) {
+			String policyName = policies.get(i);
+			String[] _policy = policyName.split("_", -1);
+			if (_policy.length >= 3) {
+				String itemName = policyName.substring(1);
+				List<String> matchingPolicies = filteredList.stream().filter(p -> p.substring(1).equals(itemName))
+						.collect(Collectors.toList());
+				if (!matchingPolicies.isEmpty()) {
+					/*
+					 * deny has highest priority. Read and write are additive in
+					 * nature Removing all matching as there might be duplicate
+					 * policies from user and groups
+					 */
+					if (policyName.startsWith("d_") || (policyName.startsWith("w_")
+							&& !matchingPolicies.stream().anyMatch(p -> p.equals("d" + itemName)))) {
+						filteredList.removeAll(matchingPolicies);
+						filteredList.add(policyName);
+					} else if (matchingPolicies.stream().anyMatch(p -> p.equals("d" + itemName))) {
+						// policy is read and deny already in the list. Then
+						// deny has precedence.
+						filteredList.removeAll(matchingPolicies);
+						filteredList.add("d" + itemName);
+					} else if (matchingPolicies.stream().anyMatch(p -> p.equals("w" + itemName))) {
+						// policy is read and write already in the list. Then
+						// write has precedence.
+						filteredList.removeAll(matchingPolicies);
+						filteredList.add("w" + itemName);
+					} else if (matchingPolicies.stream().anyMatch(p -> p.equals("r" + itemName))
+							|| matchingPolicies.stream().anyMatch(p -> p.equals("o" + itemName))) {
+						// policy is read and read already in the list. Then
+						// remove all duplicates read and add single read
+						// permission for that iam service account.
+						filteredList.removeAll(matchingPolicies);
+						filteredList.add("r" + itemName);
+					}
+				} else {
+					filteredList.add(policyName);
+				}
+			}
+		}
+		return filteredList.toArray(new String[0]);
+	}
+
+	/**
+	 * Find Iam service account from metadata.
+	 * 
+	 * @param token
+	 * @param iamSvcaccName
+	 * @return
+	 */
+	public ResponseEntity<String> getIAMServiceAccountDetail(String token, String iamSvcaccName) {
+		String path = TVaultConstants.IAM_SVC_PATH + iamSvcaccName;
+		Response response = reqProcessor.process("/iamsvcacct", "{\"path\":\"" + path + "\"}", token);
+		if (response.getHttpstatus().equals(HttpStatus.OK)) {
+			JsonObject data = populateMetaData(response);
+			return ResponseEntity.status(HttpStatus.OK).body(data.toString());
+		}
+		return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+				.body("{\"errors\":[\"No Iam Service Account with " + iamSvcaccName + ".\"]}");
+
+	}
+
+	/**
+	 * Date conversion from milliseconds to yyyy-MM-dd HH:mm:ss
+	 * 
+	 * @param createdEpoch
+	 */
+	private String dateConversion(Long createdEpoch) {
+		DateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+		Calendar calendar = Calendar.getInstance();
+		calendar.setTimeInMillis(createdEpoch);
+		return formatter.format(calendar.getTime());
+	}
+
+	/**
+	 * Find Iam service account from metadata.
+	 * 
+	 * @param token
+	 * @param iamSvcaccName
+	 * @return
+	 */
+	public ResponseEntity<String> getIAMServiceAccountSecretKey(String token, String iamSvcaccName) {
+		String path = TVaultConstants.IAM_SVC_ACC_PATH_PREFIX + "/" + iamSvcaccName;
+		Response response = reqProcessor.process("/iamsvcacct", "{\"path\":\"" + path + "\"}", token);
+		if (response.getHttpstatus().equals(HttpStatus.OK)) {
+			JsonObject data = populateMetaData(response);
+			String iamSvcName = data.get("awsAccountId") + "_" + data.get("userName");
+			data.addProperty("iamsvcname", iamSvcName);
+			return ResponseEntity.status(HttpStatus.OK).body(data.toString());
+		}
+		return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+				.body("{\"errors\":[\"No Iam Service Account with " + iamSvcaccName + ".\"]}");
+
+	}
+
+	/**
+	 * populate metadata
+	 * 
+	 * @param response
+	 * @return
+	 */
+	private JsonObject populateMetaData(Response response) {
+		JsonParser jsonParser = new JsonParser();
+		JsonObject data = ((JsonObject) jsonParser.parse(response.getResponse())).getAsJsonObject("data");
+		Long createdAtEpoch = Long.valueOf(String.valueOf(data.get("createdAtEpoch")));
+
+		String createdDate = dateConversion(createdAtEpoch);
+		data.addProperty("createdDate", createdDate);
+		JsonArray dataSecret = ((JsonObject) jsonParser.parse(data.toString())).getAsJsonArray("secret");
+
+		for (int i = 0; i < dataSecret.size(); i++) {
+			JsonElement jsonElement = dataSecret.get(i);
+			JsonObject jsonObject = jsonElement.getAsJsonObject();
+			String expiryDate = dateConversion(jsonObject.get("expiryDuration").getAsLong());
+			jsonObject.addProperty("expiryDuration", expiryDate);
+		}
+		JsonElement jsonElement = dataSecret.getAsJsonArray();
+		data.add("secret", jsonElement);
+		return data;
 	}
 }

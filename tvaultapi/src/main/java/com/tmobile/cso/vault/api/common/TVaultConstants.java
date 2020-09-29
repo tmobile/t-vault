@@ -157,4 +157,7 @@ public class TVaultConstants {
     public static final String IDENTITY_POLICIES = "identity_policies";
     public static final String ENTITY_DISPLAY_NAME = "display_name";
     public static final String OIDC_AUTH_PATH = "auth/oidc/oidc/callback";
+    
+    public static final String IAM_SVC_PATH = "metadata/iamsvcacc/";
+    public static final String IAM_SVC_ACC_PATH_PREFIX="iamsvcacc";
 }

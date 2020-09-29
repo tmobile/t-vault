@@ -436,7 +436,13 @@ public class OIDCUtil {
 			String aliasName = "";
 			Object[] results = response.getBody().getData().getValues();
 			for (Object tp : results) {
-				aliasName = ((DirectoryUser) tp).getUserEmail();
+				if (((DirectoryUser) tp).getUserName().equalsIgnoreCase(username)) {
+					aliasName = ((DirectoryUser) tp).getUserEmail();
+					break;
+				}
+			}
+			if(StringUtils.isEmpty(aliasName)){
+				return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new OIDCEntityResponse());
 			}
 			OIDCLookupEntityRequest oidcLookupEntityRequest = new OIDCLookupEntityRequest();
 			oidcLookupEntityRequest.setAlias_name(aliasName);

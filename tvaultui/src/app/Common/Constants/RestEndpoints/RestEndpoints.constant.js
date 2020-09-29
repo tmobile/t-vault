@@ -410,6 +410,18 @@ readTextFile("../apiUrls.json");
             name: 'getAllSelfServiceGroups',
             url: '/v2/sslcert/grouplist',
             method: 'GET'
+        },{
+            name: 'getOnboardedIamServiceAccounts',
+            url: '/v2/iamserviceaccounts',
+            method: 'GET'
+        },{
+            name: 'getIamServiceAccount',
+            url: '/v2/iamserviceaccounts/{iam_svc_name}',
+            method: 'GET'
+        },{
+            name: 'getSecretForIamSvcacc',
+            url: '/v2/iamserviceaccounts/secrets/{iam_svc_name}',
+            method: 'GET'
         }
     ]
     });
