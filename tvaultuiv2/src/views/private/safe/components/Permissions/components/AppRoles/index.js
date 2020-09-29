@@ -52,6 +52,9 @@ const Groups = (props) => {
   } = props;
 
   const [response, setResponse] = useState({ status: 'loading' });
+  const [editRole, setEditRole] = useState('');
+  const [editAccess, setEditAccess] = useState('');
+  const [editClicked, setEditClicked] = useState(false);
 
   const isMobileScreen = useMediaQuery(small);
 
@@ -125,10 +128,35 @@ const Groups = (props) => {
     onNewAppRoleChange();
   };
 
-  const onEditClick = (key, value) => {
-    console.log('key', key);
-    console.log('value', value);
+  const onEditSaveClicked = (role, access) => {
+    setResponse({ status: 'loading' });
+    const payload = {
+      path: `${safeDetail.path}`,
+      role_name: role,
+    };
+    apiService
+      .deleteAppRole(payload)
+      .then((res) => {
+        if (res) {
+          setResponse({ status: 'loading' });
+          onSubmit(role, access);
+        }
+      })
+      .catch((err) => {
+        if (err.response?.data?.errors && err.response.data.errors[0]) {
+          updateToastMessage(-1, err.response.data.errors[0]);
+        }
+        setResponse({ status: 'success' });
+      });
   };
+
+  const onEditClick = (key, value) => {
+    setEditClicked(true);
+    setEditAccess(value);
+    setEditRole(key);
+    setResponse({ status: 'edit' });
+  };
+
   const onCancelClicked = () => {
     setResponse({ status: 'success' });
     onNewAppRoleChange();
@@ -144,6 +172,15 @@ const Groups = (props) => {
           <AddAppRole
             handleSaveClick={(role, access) => onSubmit(role, access)}
             handleCancelClick={() => onCancelClicked()}
+          />
+        )}
+        {response.status === 'edit' && (
+          <AddAppRole
+            handleSaveClick={(role, access) => onEditSaveClicked(role, access)}
+            handleCancelClick={() => onCancelClicked()}
+            access={editAccess}
+            editClicked={editClicked}
+            role={editRole}
           />
         )}
 
@@ -168,7 +205,7 @@ const Groups = (props) => {
                 <NoDataWrapper>
                   <NoData
                     imageSrc={noPermissionsIcon}
-                    description="No approles are given permission to access this safe,
+                    description="No <strong>approles</strong> are given permission to access this safe,
                     add approles to access the safe"
                     actionButton={
                       // eslint-disable-next-line react/jsx-wrap-multilines
@@ -177,11 +214,11 @@ const Groups = (props) => {
                         icon="add"
                         color="secondary"
                         onClick={() => setResponse({ status: 'add' })}
-                        width={isMobileScreen ? '100%' : '38%'}
+                        width={isMobileScreen ? '100%' : '9rem'}
                       />
                     }
                     bgIconStyle={bgIconStyle}
-                    width={isMobileScreen ? '100%' : '38%'}
+                    width={isMobileScreen ? '100%' : '42%'}
                   />
                 </NoDataWrapper>
               )}
