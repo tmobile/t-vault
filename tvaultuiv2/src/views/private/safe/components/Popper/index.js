@@ -1,10 +1,10 @@
 /* eslint-disable react/jsx-props-no-spreading */
-import React from 'react';
+import React, { useState } from 'react';
 import PropTypes from 'prop-types';
+import styled from 'styled-components';
 import { makeStyles } from '@material-ui/core/styles';
 import MoreVertOutlinedIcon from '@material-ui/icons/MoreVertOutlined';
 import Popover from '@material-ui/core/Popover';
-import PopupState, { bindTrigger, bindPopover } from 'material-ui-popup-state';
 import ComponentError from '../../../../../errorBoundaries/ComponentError/component-error';
 
 const useStyles = makeStyles((theme) => ({
@@ -14,46 +14,54 @@ const useStyles = makeStyles((theme) => ({
     backgroundColor: theme.customColor.hoverColor.list || '#151820',
   },
 }));
-
+const MoreWrap = styled.div``;
+const PopoverItemWrap = styled.div``;
 const PopperElement = (props) => {
   const { anchorOrigin, transformOrigin, children } = props;
+  const [anchorEl, setAnchorEl] = useState(null);
   const classes = useStyles();
+  const handleClose = () => {
+    setAnchorEl(null);
+  };
+  const handleClick = (event) => {
+    setAnchorEl(event.currentTarget);
+  };
+  const open = Boolean(anchorEl);
+  const id = open ? 'simple-popover' : undefined;
   return (
     <ComponentError>
-      <PopupState variant="popover" popupId="demo-popup-popover">
-        {(popupState) => (
-          <div>
-            <div {...bindTrigger(popupState)}>
-              {' '}
-              <MoreVertOutlinedIcon />
-            </div>
-            <Popover
-              {...bindPopover(popupState)}
-              anchorOrigin={anchorOrigin}
-              transformOrigin={transformOrigin}
-              classes={classes}
-            >
-              {children}
-            </Popover>
-          </div>
-        )}
-      </PopupState>
+      <div>
+        <MoreWrap role="button" onClick={(e) => handleClick(e)} tab-index={-1}>
+          {' '}
+          <MoreVertOutlinedIcon />
+        </MoreWrap>
+        <Popover
+          id={id}
+          anchorOrigin={anchorOrigin}
+          transformOrigin={transformOrigin}
+          classes={classes}
+          open={open}
+          anchorEl={anchorEl}
+          onClose={handleClose}
+        >
+          <PopoverItemWrap onClick={() => setAnchorEl(null)}>
+            {' '}
+            {children}
+          </PopoverItemWrap>
+        </Popover>
+      </div>
     </ComponentError>
   );
 };
 
 PopperElement.propTypes = {
-  open: PropTypes.bool,
   anchorOrigin: PropTypes.objectOf(PropTypes.any),
   transformOrigin: PropTypes.objectOf(PropTypes.any),
-  placement: PropTypes.string,
   children: PropTypes.node,
 };
 PopperElement.defaultProps = {
-  open: false,
   anchorOrigin: {},
   transformOrigin: {},
-  placement: '',
   children: <div />,
 };
 export default PopperElement;

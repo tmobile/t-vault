@@ -13,7 +13,7 @@ import mediaBreakpoints from '../../../../../breakpoints';
 import ButtonComponent from '../../../../../components/FormFields/ActionButton';
 import SelectComponent from '../../../../../components/FormFields/SelectFields';
 import apiService from '../../apiService';
-import LoaderSpinner from '../../../../../components/LoaderSpinner';
+import LoaderSpinner from '../../../../../components/Loaders/LoaderSpinner';
 
 const { small } = mediaBreakpoints;
 
@@ -139,7 +139,7 @@ const AddAppRole = (props) => {
     } else {
       setDisabledSave(false);
     }
-  }, [selectedValue]);
+  }, [selectedValue, menu.length]);
 
   const handleChange = (event) => {
     setRadioValue(event.target.value);

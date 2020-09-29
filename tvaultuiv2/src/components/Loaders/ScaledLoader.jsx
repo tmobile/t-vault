@@ -9,6 +9,7 @@ const LoaderContainer = styled('div')`
   width: ${(props) => props.width};
   height: ${(props) => props.height};
   justify-content: center;
+  position: absolute;
 `;
 const loaderRotate = keyframes`
 0% {

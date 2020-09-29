@@ -12,7 +12,7 @@ import noPermissionsIcon from '../../../../../../../assets/no-permissions.svg';
 import mediaBreakpoints from '../../../../../../../breakpoints';
 import AddGroup from '../../../AddGroup';
 import apiService from '../../../../apiService';
-import LoaderSpinner from '../../../../../../../components/LoaderSpinner';
+import LoaderSpinner from '../../../../../../../components/Loaders/LoaderSpinner';
 import Error from '../../../../../../../components/Error';
 
 const { small } = mediaBreakpoints;

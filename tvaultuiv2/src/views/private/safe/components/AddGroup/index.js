@@ -14,7 +14,7 @@ import mediaBreakpoints from '../../../../../breakpoints';
 import AutoCompleteComponent from '../../../../../components/FormFields/AutoComplete';
 import ButtonComponent from '../../../../../components/FormFields/ActionButton';
 import apiService from '../../apiService';
-import LoaderSpinner from '../../../../../components/LoaderSpinner';
+import LoaderSpinner from '../../../../../components/Loaders/LoaderSpinner';
 
 const { small } = mediaBreakpoints;
 

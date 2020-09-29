@@ -9,6 +9,7 @@ import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
 import ExpandLessIcon from '@material-ui/icons/ExpandLess';
 import IconFolderActive from '../../../../../../assets/icon_folder_active.png';
 import IconFolderInactive from '../../../../../../assets/icon_folder.png';
+
 import ComponentError from '../../../../../../errorBoundaries/ComponentError/component-error';
 import {
   TitleTwo,
@@ -16,7 +17,7 @@ import {
 } from '../../../../../../styles/GlobalStyles';
 import {
   IconDeleteActive,
-  IconEdit,
+  // IconEdit,
   IconAddFolder,
   IconAddSecret,
 } from '../../../../../../assets/SvgIcons';
@@ -46,10 +47,6 @@ const StyledFolder = styled.div`
     }
   }
 `;
-// const accordian = keyframes`
-//   0% { transform:translateY(-10em); }
-//   100% { transform:translateY(0); }
-// `;
 
 const Collapsible = styled.div`
   /* set the height depending on isOpen prop */
@@ -103,6 +100,7 @@ const PopperItem = styled.div`
     background-image: ${(props) => props.theme.gradients.list || 'none'};
   }
 `;
+
 const Folder = (props) => {
   const {
     folderInfo,
@@ -111,7 +109,8 @@ const Folder = (props) => {
     setIsAddInput,
     getChildNodes,
     id,
-    deleteTreeItem,
+    onDeleteTreeItem,
+    setCurrentNode,
   } = props;
   const [isOpen, setIsOpen] = useState(false);
   const [activeSecrets, setActiveSecrets] = useState([]);
@@ -119,6 +118,7 @@ const Folder = (props) => {
   const handleToggle = (e) => {
     e.preventDefault();
     setIsOpen(!isOpen);
+    setCurrentNode(id);
     if (!isOpen) getChildNodes(id);
   };
 
@@ -139,7 +139,7 @@ const Folder = (props) => {
 
   // delete folder
   const deleteNode = (treeItem) => {
-    deleteTreeItem(treeItem);
+    onDeleteTreeItem(treeItem);
   };
   // const editNode = (treeItem) => {
   //   editTreeItem(treeItem);
@@ -206,10 +206,11 @@ const Folder = (props) => {
                 </PopperItem> */}
                 <PopperItem
                   onClick={() =>
-                    deleteNode(
-                      { id: folderInfo.id, type: folderInfo.type },
-                      folderInfo.parentId
-                    )
+                    deleteNode({
+                      id: folderInfo.id,
+                      type: folderInfo.type,
+                      parentId: folderInfo.parentId,
+                    })
                   }
                 >
                   <IconDeleteActive />
@@ -232,8 +233,9 @@ Folder.propTypes = {
   setInputType: PropTypes.func,
   setIsAddInput: PropTypes.func,
   getChildNodes: PropTypes.func,
+  setCurrentNode: PropTypes.func,
   id: PropTypes.string,
-  deleteTreeItem: PropTypes.func,
+  onDeleteTreeItem: PropTypes.func,
 };
 Folder.defaultProps = {
   folderInfo: {},
@@ -241,7 +243,8 @@ Folder.defaultProps = {
   setInputType: () => {},
   setIsAddInput: () => {},
   getChildNodes: () => {},
-  deleteTreeItem: () => {},
+  onDeleteTreeItem: () => {},
+  setCurrentNode: () => {},
   id: '',
 };
 

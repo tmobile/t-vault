@@ -31,7 +31,7 @@ export function findElementById(arr, id, nestingKey) {
   if (arr.length === 0) return;
   // return element if found else collect all children(or other nestedKey) array and run this function
   return (
-    arr.find((d) => d.value.toLowerCase() === id.toLowerCase()) ||
+    arr.find((d) => d?.value?.toLowerCase() === id?.toLowerCase()) ||
     findElementById(
       arr.flatMap((d) => d[nestingKey] || []),
       id,
@@ -46,19 +46,11 @@ export const findElementAndUpdate = (arr, parentId, item) => {
   const tempArr = [...arr];
   const itemToUpdate = findElementById(tempArr, parentId, 'children');
   if (Array.isArray(item)) {
-    const isItemExist = itemToUpdate.children.filter((itm) =>
-      item.includes(itm)
-    );
     if (!itemToUpdate.children.length) {
       itemToUpdate.children = [...itemToUpdate.children, ...item];
-      return;
+      return tempArr;
     }
-    if (!isItemExist) {
-      itemToUpdate.children = [
-        ...itemToUpdate.children.filter((itm) => item.indexOf(itm) === -1),
-      ];
-      // [...itemToUpdate.children, ...item];
-    }
+    itemToUpdate.children = [...item];
   } else {
     itemToUpdate.children = [...itemToUpdate.children, item];
   }
@@ -91,17 +83,17 @@ export const findElementAndDelete = (arr, parent, key) => {
 
 export const findElementAndReturnSecrets = (arr, idToFind) => {
   const currentParentSecret = findElementById(arr, idToFind, 'children');
-  const currentSecretData = currentParentSecret.children.filter(
+  const currentSecretData = currentParentSecret?.children?.filter(
     (sec) => sec.type.toLowerCase() === 'secret'
   )[0];
-  const obj = JSON.parse(currentSecretData.value);
+  const obj = currentSecretData && JSON.parse(currentSecretData.value);
   return obj;
 };
 
 export const convertObjectToArray = (data) => {
   const array = [];
   // eslint-disable-next-line no-restricted-syntax
-  for (const [key, value] of Object.entries(data.data)) {
+  for (const [key, value] of Object.entries(data?.data)) {
     array.push({ [key]: value });
   }
   return array;

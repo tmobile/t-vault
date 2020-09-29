@@ -9,7 +9,7 @@ import noPermissionsIcon from '../../../../../../../assets/no-permissions.svg';
 import mediaBreakpoints from '../../../../../../../breakpoints';
 import AddUser from '../../../AddUser';
 import apiService from '../../../../apiService';
-import LoaderSpinner from '../../../../../../../components/LoaderSpinner';
+import LoaderSpinner from '../../../../../../../components/Loaders/LoaderSpinner';
 import PermissionsList from '../PermissionsList';
 import Error from '../../../../../../../components/Error';
 
