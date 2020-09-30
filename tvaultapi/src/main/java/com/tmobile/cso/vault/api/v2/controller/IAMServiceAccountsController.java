@@ -33,7 +33,6 @@ import org.springframework.web.bind.annotation.RestController;
 import com.tmobile.cso.vault.api.model.IAMServiceAccount;
 import com.tmobile.cso.vault.api.model.IAMServiceAccountGroup;
 import com.tmobile.cso.vault.api.model.IAMServiceAccountUser;
-import com.tmobile.cso.vault.api.model.ServiceAccountUser;
 import com.tmobile.cso.vault.api.model.UserDetails;
 import com.tmobile.cso.vault.api.service.IAMServiceAccountsService;
 
