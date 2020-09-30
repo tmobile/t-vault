@@ -79,7 +79,7 @@ const SafeDetails = (props) => {
   );
 };
 SafeDetails.propTypes = {
-  detailData: PropTypes.arrayOf(PropTypes.array),
+  detailData: PropTypes.arrayOf(PropTypes.any),
   resetClicked: PropTypes.func,
 };
 SafeDetails.defaultProps = {

@@ -59,7 +59,6 @@ const Secrets = (props) => {
   const isMobileScreen = useMediaQuery(mediaBreakpoints.small);
   return (
     <ComponentError>
-      {' '}
       <SecretsContainer>
         {
           <CountSpan color="#5e627c">
@@ -72,7 +71,6 @@ const Secrets = (props) => {
         )}
         {getResponse === -1 && !secretsFolder[0]?.children?.length && (
           <EmptySecretBox>
-            {' '}
             <Error description="Error while fetching safes folders" />
           </EmptySecretBox>
         )}
@@ -111,9 +109,9 @@ const Secrets = (props) => {
   );
 };
 Secrets.propTypes = {
-  secretsFolder: PropTypes.arrayOf(PropTypes.array),
-  secretsStatus: PropTypes.objectOf(PropTypes.object),
-  safeDetail: PropTypes.objectOf(PropTypes.object),
+  secretsFolder: PropTypes.arrayOf(PropTypes.any),
+  secretsStatus: PropTypes.objectOf(PropTypes.any),
+  safeDetail: PropTypes.objectOf(PropTypes.any),
   setEnableAddFolder: PropTypes.func,
   getResponse: PropTypes.number,
 };

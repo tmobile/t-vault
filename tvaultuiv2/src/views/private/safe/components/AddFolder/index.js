@@ -143,7 +143,7 @@ AddFolder.propTypes = {
   handleCancelClick: PropTypes.func,
   handleSaveClick: PropTypes.func,
   parentId: PropTypes.string,
-  childrens: PropTypes.arrayOf(PropTypes.array),
+  childrens: PropTypes.arrayOf(PropTypes.any),
 };
 AddFolder.defaultProps = {
   width: '100%',

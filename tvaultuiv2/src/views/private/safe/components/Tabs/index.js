@@ -104,7 +104,7 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-export default function SelectionTabs(props) {
+const SelectionTabs = (props) => {
   const { safeDetail } = props;
   const classes = useStyles();
   const [value, setValue] = useState(0);
@@ -276,10 +276,12 @@ export default function SelectionTabs(props) {
       </div>
     </ComponentError>
   );
-}
+};
 SelectionTabs.propTypes = {
-  safeDetail: PropTypes.objectOf(PropTypes.object),
+  safeDetail: PropTypes.objectOf(PropTypes.any),
 };
 SelectionTabs.defaultProps = {
   safeDetail: {},
 };
+
+export default SelectionTabs;

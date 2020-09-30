@@ -228,8 +228,7 @@ const Folder = (props) => {
 };
 
 Folder.propTypes = {
-  // eslint-disable-next-line react/forbid-prop-types
-  folderInfo: PropTypes.objectOf(PropTypes.object),
+  folderInfo: PropTypes.objectOf(PropTypes.any),
   children: PropTypes.node,
   setInputType: PropTypes.func,
   setIsAddInput: PropTypes.func,

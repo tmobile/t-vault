@@ -25,7 +25,7 @@ const BoxDescription = styled.p`
 `;
 
 const BackgroundIcon = styled(CardMedia)`
-  ${(props) => props.imgStyles}
+  ${(props) => props.imgstyling}
 `;
 const NoData = (props) => {
   const {
@@ -42,7 +42,7 @@ const NoData = (props) => {
         <BackgroundIcon
           image={imageSrc}
           title="no-data"
-          imgStyles={bgIconStyle}
+          imgstyling={bgIconStyle}
         />
         <BoxDescription>{ReactHtmlParser(description)}</BoxDescription>
         {actionButton}
@@ -54,14 +54,14 @@ NoData.propTypes = {
   description: PropTypes.string,
   actionButton: PropTypes.node,
   imageSrc: PropTypes.node,
-  bgIconStyle: PropTypes.objectOf(PropTypes.object),
-  customStyle: PropTypes.objectOf(PropTypes.any),
+  bgIconStyle: PropTypes.objectOf(PropTypes.any),
+  customStyle: PropTypes.arrayOf(PropTypes.any),
 };
 NoData.defaultProps = {
   description: 'Nothing here, But me',
   actionButton: <div />,
   imageSrc: '',
   bgIconStyle: { width: '100%', height: '22rem' },
-  customStyle: {},
+  customStyle: [],
 };
 export default NoData;

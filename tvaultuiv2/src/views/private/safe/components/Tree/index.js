@@ -349,7 +349,7 @@ const Tree = (props) => {
 
 // props validation
 Tree.propTypes = {
-  data: PropTypes.arrayOf(PropTypes.array),
+  data: PropTypes.arrayOf(PropTypes.any),
 };
 
 Tree.defaultProps = {
