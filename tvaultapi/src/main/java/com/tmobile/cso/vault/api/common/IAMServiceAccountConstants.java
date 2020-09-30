@@ -39,4 +39,7 @@ public final class IAMServiceAccountConstants {
 	public static final String IAM_SVCACC_CREATION_TITLE = "Onboard IAM Service Account";
 
 	public static final String IAM_RESET_MSG_STRING = "reset";
+	public static final String IAM_GROUP_MSG_STRING = "groups";
+	public static final String IAM_ACCESS_MSG_STRING = "access";
+	public static final String USERNAME_PARAM_STRING = "{\"username\":\"";
 }

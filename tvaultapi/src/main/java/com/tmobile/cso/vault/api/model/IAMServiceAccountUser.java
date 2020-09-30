@@ -65,7 +65,7 @@ public class IAMServiceAccountUser implements Serializable {
 	 */
 	@ApiModelProperty(example = "svc_vault_test2", position = 1)
 	public String getIamSvcAccName() {
-		return iamSvcAccName;
+		return iamSvcAccName.toLowerCase();
 	}
 
 	/**
@@ -97,7 +97,7 @@ public class IAMServiceAccountUser implements Serializable {
 	 */
 	@ApiModelProperty(example = "testuser1", position = 3)
 	public String getUsername() {
-		return username;
+		return username.toLowerCase();
 	}
 
 	/**
@@ -110,9 +110,9 @@ public class IAMServiceAccountUser implements Serializable {
 	/**
 	 * @return the access
 	 */
-	@ApiModelProperty(example = "read", position = 4, allowableValues = "read,write,deny,owner")
+	@ApiModelProperty(example = "read", position = 4, allowableValues = "read,reset,deny,owner")
 	public String getAccess() {
-		return access;
+		return access.toLowerCase();
 	}
 
 	/**
