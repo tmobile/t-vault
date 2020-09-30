@@ -1,15 +1,17 @@
 import React, { useState, useEffect } from 'react';
-import styled from 'styled-components';
+import styled, { css } from 'styled-components';
 import useMediaQuery from '@material-ui/core/useMediaQuery';
-import { Typography, InputLabel } from '@material-ui/core';
+import { InputLabel } from '@material-ui/core';
 import RadioGroup from '@material-ui/core/RadioGroup';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 import Radio from '@material-ui/core/Radio';
 import PropTypes from 'prop-types';
+import { SubHeading } from '../../../../../styles/GlobalStyles';
 import TextFieldComponent from '../../../../../components/FormFields/TextField';
 import RadioPermissionComponent from '../RadioPermissions';
 import ButtonComponent from '../../../../../components/FormFields/ActionButton';
 import mediaBreakpoints from '../../../../../breakpoints';
+import { ColorBackArrow } from '../../../../../assets/SvgIcons';
 
 const { small } = mediaBreakpoints;
 const ContainerWrapper = styled.section``;
@@ -46,6 +48,23 @@ const CancelButton = styled.div`
   ${small} {
     margin-right: 1rem;
     width: 100%;
+  }
+`;
+
+const BackButton = styled.span`
+  display: none;
+  ${small} {
+    display: flex;
+    align-items: center;
+    margin-right: 1.4rem;
+    margin-top: 0.5rem;
+  }
+`;
+
+const extraCss = css`
+  display: flex;
+  ${small} {
+    margin-bottom: 4rem;
   }
 `;
 
@@ -124,7 +143,14 @@ const AddAwsApplication = (props) => {
   };
   return (
     <ContainerWrapper>
-      <Typography variant="h5">Create AWS Configuration</Typography>
+      <SubHeading extraCss={extraCss}>
+        {isMobileScreen && (
+          <BackButton onClick={() => handleCancelClick()}>
+            <ColorBackArrow />
+          </BackButton>
+        )}
+        Create AWS Configuration
+      </SubHeading>
       <AuthWrapper>
         <InputLabel required>AWS Authentication Type</InputLabel>
         <RadioGroup

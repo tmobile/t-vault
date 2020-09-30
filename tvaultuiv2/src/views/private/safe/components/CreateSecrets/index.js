@@ -1,14 +1,15 @@
 /* eslint-disable react/jsx-curly-newline */
 import React, { useState, useEffect } from 'react';
 import { InputLabel } from '@material-ui/core';
-import styled from 'styled-components';
+import styled, { css } from 'styled-components';
 import useMediaQuery from '@material-ui/core/useMediaQuery';
 import PropTypes from 'prop-types';
 import TextFieldComponent from '../../../../../components/FormFields/TextField';
 import ComponentError from '../../../../../errorBoundaries/ComponentError/component-error';
 import mediaBreakpoints from '../../../../../breakpoints';
 import ButtonComponent from '../../../../../components/FormFields/ActionButton';
-import { TitleOne } from '../../../../../styles/GlobalStyles';
+import { SubHeading } from '../../../../../styles/GlobalStyles';
+import { ColorBackArrow } from '../../../../../assets/SvgIcons';
 
 const SecretWrapper = styled.section`
   padding: 4rem;
@@ -18,6 +19,7 @@ const SecretWrapper = styled.section`
     props.theme.palette.background.paper || '#20232e'};
   ${mediaBreakpoints.small} {
     padding: 2rem;
+    height: 100%;
   }
 `;
 
@@ -34,7 +36,7 @@ const KeyIdInputRequirements = styled.p`
 const CancelSaveWrapper = styled.div`
   display: flex;
   justify-content: flex-end;
-  margin-top: 3rem;
+  margin-top: 5rem;
   ${mediaBreakpoints.small} {
     justify-content: space-between;
   }
@@ -45,6 +47,20 @@ const CancelButton = styled.div`
   ${mediaBreakpoints.small} {
     width: 100%;
   }
+`;
+
+const BackButton = styled.span`
+  display: none;
+  ${mediaBreakpoints.small} {
+    display: flex;
+    align-items: center;
+    margin-right: 1.4rem;
+    margin-top: 0.5rem;
+  }
+`;
+
+const extraCss = css`
+  display: flex;
 `;
 
 const CreateSecret = (props) => {
@@ -89,7 +105,14 @@ const CreateSecret = (props) => {
   return (
     <ComponentError>
       <SecretWrapper>
-        <TitleOne>Add Secrets</TitleOne>
+        <SubHeading extraCss={extraCss}>
+          {isMobileScreen && (
+            <BackButton onClick={() => handleSecretCancel(false)}>
+              <ColorBackArrow />
+            </BackButton>
+          )}
+          Add Secrets
+        </SubHeading>
         <FormWrapper>
           <InputLabel>Key Id</InputLabel>
           <TextFieldComponent
@@ -122,14 +145,14 @@ const CreateSecret = (props) => {
                 label="Cancel"
                 color="primary"
                 onClick={() => handleSecretCancel(false)}
-                width={isMobileScreen ? '48%' : ''}
+                width={isMobileScreen ? '100%' : ''}
               />
             </CancelButton>
             <ButtonComponent
               label="Create"
               icon="add"
               color="secondary"
-              width={isMobileScreen ? '48%' : ''}
+              width={isMobileScreen ? '100%' : ''}
               disabled={
                 !secret || !keyId || valueErrorMessage || keyErrorMessage
               }

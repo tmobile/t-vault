@@ -156,6 +156,8 @@ const noDataStyle = css`
   width: 100%;
 `;
 
+const EditDeletePopperWrap = styled.div``;
+
 const useStyles = makeStyles(() => ({
   select: {
     backgroundColor: 'transparent',
@@ -297,7 +299,13 @@ const SafeDashboard = () => {
     setIsLoading(true);
   };
 
+  const onActionClicked = (e) => {
+    e.stopPropagation();
+    e.preventDefault();
+  };
+
   const onDeleteSafeClicked = (path) => {
+    onActionClicked();
     setOpenConfirmationModal(true);
     setDeletionPath(path);
   };
@@ -328,7 +336,6 @@ const SafeDashboard = () => {
   };
 
   const onListClicked = () => {
-    console.log('object====');
     if (isMobileScreen) {
       setSafeClicked(true);
     }
@@ -338,11 +345,6 @@ const SafeDashboard = () => {
     if (isMobileScreen) {
       setSafeClicked(false);
     }
-  };
-
-  const onActionClicked = (e) => {
-    console.log('e', e.stopPropagation());
-    e.stopPropagation();
   };
 
   const onEditSafeClicked = (safe) => {
@@ -379,10 +381,12 @@ const SafeDashboard = () => {
           </PopperWrap>
         ) : null}
         {isMobileScreen && safe.manage && (
-          <EditDeletePopper
-            onDeleteClicked={() => onDeleteSafeClicked(safe.path)}
-            onEditClicked={() => onEditSafeClicked(safe)}
-          />
+          <EditDeletePopperWrap onClick={(e) => onActionClicked(e)}>
+            <EditDeletePopper
+              onDeleteClicked={() => onDeleteSafeClicked(safe.path)}
+              onEditClicked={() => onEditSafeClicked(safe)}
+            />
+          </EditDeletePopperWrap>
         )}
       </SafeFolderWrap>
     ));

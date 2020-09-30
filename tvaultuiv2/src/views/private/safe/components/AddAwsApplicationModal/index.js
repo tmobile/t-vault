@@ -7,6 +7,7 @@ import Modal from '@material-ui/core/Modal';
 import styled from 'styled-components';
 import ComponentError from '../../../../../errorBoundaries/ComponentError/component-error';
 import AddAwsApplication from '../AddAwsApplication';
+import mediaBreakpoints from '../../../../../breakpoints';
 
 const ModalWrapper = styled('div')`
   outline: none;
@@ -14,6 +15,9 @@ const ModalWrapper = styled('div')`
   width: 69.6rem;
   padding: 6rem;
   margin: auto 0;
+  ${mediaBreakpoints.small} {
+    padding: 2.5rem 2rem;
+  }
 `;
 const useStyles = makeStyles((theme) => ({
   modal: {
