@@ -353,7 +353,7 @@ const SafeDashboard = () => {
     return safeList.map((safe) => (
       <SafeFolderWrap
         key={safe.name}
-        active={history.location.pathname === `/safe/${safe.path}`}
+        active={history.location.pathname === `/safe/${safe.name}`}
       >
         <ListContainer
           onClick={() => onListClicked(`/safe/${safe.name}`, safe)}
