@@ -4,7 +4,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 import InfiniteScroll from 'react-infinite-scroller';
-import { Route, Switch, Redirect, useHistory } from 'react-router-dom';
+import { Link, Route, Switch, Redirect, useHistory } from 'react-router-dom';
 import styled, { css } from 'styled-components';
 import useMediaQuery from '@material-ui/core/useMediaQuery';
 import ComponentError from '../../../../../errorBoundaries/ComponentError/component-error';
@@ -100,10 +100,11 @@ const PopperWrap = styled.div`
   display: none;
 `;
 
-const SafeFolderWrap = styled.div`
+const SafeFolderWrap = styled(Link)`
   position: relative;
   display: flex;
   align-items: center;
+  text-decoration: none;
   justify-content: space-between;
   padding: 1.2rem 1.8rem 1.2rem 3.4rem;
   background-image: ${(props) =>
@@ -119,11 +120,6 @@ const SafeFolderWrap = styled.div`
       display: block;
     }
   }
-`;
-
-const ListContainer = styled.div`
-  width: calc(100% - 9rem);
-  cursor: pointer;
 `;
 
 const NoSafeWrap = styled.div`
@@ -331,8 +327,8 @@ const SafeDashboard = () => {
     setToast(null);
   };
 
-  const onListClicked = (path, safe) => {
-    history.push({ pathname: path, state: { safe } });
+  const onListClicked = () => {
+    console.log('object====');
     if (isMobileScreen) {
       setSafeClicked(true);
     }
@@ -344,6 +340,11 @@ const SafeDashboard = () => {
     }
   };
 
+  const onActionClicked = (e) => {
+    console.log('e', e.stopPropagation());
+    e.stopPropagation();
+  };
+
   const onEditSafeClicked = (safe) => {
     history.push({ pathname: '/safe/edit-safe', state: { safe } });
   };
@@ -353,25 +354,27 @@ const SafeDashboard = () => {
     return safeList.map((safe) => (
       <SafeFolderWrap
         key={safe.name}
+        to={{
+          pathname: `/safe/${safe.name}`,
+          state: { safe },
+        }}
+        onClick={() => onListClicked()}
         active={history.location.pathname === `/safe/${safe.name}`}
       >
-        <ListContainer
-          onClick={() => onListClicked(`/safe/${safe.name}`, safe)}
-        >
-          <ListItem
-            title={safe.name}
-            subTitle={safe.date}
-            flag={safe.type}
-            icon={safeIcon}
-            manage={safe.manage}
-          />
-          <BorderLine />
-        </ListContainer>
+        <ListItem
+          title={safe.name}
+          subTitle={safe.date}
+          flag={safe.type}
+          icon={safeIcon}
+          manage={safe.manage}
+        />
+        <BorderLine />
         {safe.name && safe.manage && !isMobileScreen ? (
-          <PopperWrap>
+          <PopperWrap onClick={(e) => onActionClicked(e)}>
             <PsudoPopper
               onDeleteSafeClicked={() => onDeleteSafeClicked(safe.path)}
               safe={safe}
+              path="/safe/edit-safe"
             />
           </PopperWrap>
         ) : null}
@@ -521,7 +524,11 @@ const SafeDashboard = () => {
               <Route
                 path="/"
                 render={(routerProps) => (
-                  <SafeDetails detailData={safeList} params={routerProps} />
+                  <SafeDetails
+                    detailData={safeList}
+                    params={routerProps}
+                    resetClicked={() => onResetClicked()}
+                  />
                 )}
               />
             </Switch>
