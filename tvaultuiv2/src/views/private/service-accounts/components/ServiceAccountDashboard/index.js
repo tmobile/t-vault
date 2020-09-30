@@ -175,6 +175,7 @@ const ServiceAccountDashboard = (props) => {
     isLoading,
   } = props;
   const [onBoardForm, setOnBoardForm] = useState(false);
+  const [inputSearchValue, setInputSearchValue] = useState('');
   let scrollParentRef = null;
   const classes = useStyles();
   const isMobileScreen = useMediaQuery(mediaBreakpoints.small);
@@ -182,7 +183,9 @@ const ServiceAccountDashboard = (props) => {
   const showOnBoardForm = () => {
     setOnBoardForm(true);
   };
-
+  const onSearchChange = (value) => {
+    setInputSearchValue(value);
+  };
   const renderList = () => {
     return leftColumLists.map((account) => (
       <ListFolderWrap
@@ -268,8 +271,8 @@ const ServiceAccountDashboard = (props) => {
                     placeholder="Search"
                     icon="search"
                     fullWidth
-                    //   onChange={(e) => onSearchChange(e.target.value)}
-                    //   value={inputSearchValue || ''}
+                    onChange={(e) => onSearchChange(e.target.value)}
+                    value={inputSearchValue || ''}
                     color="secondary"
                   />
                 </SearchWrap>

@@ -1,13 +1,12 @@
 /* eslint-disable react/forbid-prop-types */
 /* eslint-disable react/require-default-props */
 /* eslint-disable react/no-unused-prop-types */
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import PropTypes from 'prop-types';
-import { useHistory, useLocation } from 'react-router-dom';
+// import { useHistory, useLocation } from 'react-router-dom';
 import useMediaQuery from '@material-ui/core/useMediaQuery';
 import styled from 'styled-components';
 import ComponentError from '../../errorBoundaries/ComponentError/component-error';
-import sectionHeaderBg from '../../assets/Banner_img.png';
 import { BackArrow } from '../../assets/SvgIcons';
 import mediaBreakpoints from '../../breakpoints';
 import ListDetailHeader from '../ListDetailHeader';
@@ -31,15 +30,10 @@ const BackButton = styled.div`
 `;
 
 const ListItemDetail = (props) => {
-  const {
-    setActiveSafeFolders,
-    detailData,
-    ListDetailHeaderBg,
-    renderContent,
-  } = props;
+  const { setActiveSafeFolders, ListDetailHeaderBg, renderContent } = props;
   // use history of page
-  const history = useHistory();
-  const location = useLocation();
+  //   const history = useHistory();
+  //   const location = useLocation();
   // screen view handler
   const isMobileScreen = useMediaQuery(mediaBreakpoints.small);
   // route component data
@@ -59,8 +53,8 @@ const ListItemDetail = (props) => {
         ) : null}
 
         <ListDetailHeader
-        //   title={listItem?.name}
-        //   description={listItem?.description}
+          //   title={listItem?.name}
+          //   description={listItem?.description}
           bgImage={ListDetailHeaderBg}
         />
 
