@@ -902,7 +902,6 @@
             $scope.isLoadingData = true;
             $scope.isSvcaccExpired = false;
             $scope.expiredNote = '';
-            console.log("SERVICE ACCOUNT");
             var queryParameters = "serviceAccountName="+svcaccId+"&excludeOnboarded=false";
             var updatedUrlOfEndPoint = ModifyUrl.addUrlParameteres('getSvcaccInfo', queryParameters);
             AdminSafesManagement.getSvcaccInfo(null, updatedUrlOfEndPoint).then(
