@@ -215,7 +215,10 @@ const CreateModal = () => {
   };
 
   useEffect(() => {
-    if (history.location.pathname === '/safe/edit-safe') {
+    if (
+      history.location.pathname === '/safe/edit-safe' &&
+      history.location.state
+    ) {
       setEditSafe(true);
       setResponseType(0);
       apiService

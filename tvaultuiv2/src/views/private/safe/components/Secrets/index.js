@@ -40,7 +40,7 @@ const customStyle = css`
 `;
 
 const noDataStyle = css`
-  width: 60%;
+  width: 45%;
 `;
 
 const Secrets = (props) => {

@@ -1,17 +1,12 @@
-/* eslint-disable react/jsx-wrap-multilines */
-/* eslint-disable no-nested-ternary */
-/* eslint-disable no-param-reassign */
-/* eslint-disable no-unused-vars */
 /* eslint-disable no-return-assign */
+/* eslint-disable react/jsx-wrap-multilines */
+/* eslint-disable no-param-reassign */
 import React, { useState, useEffect, useCallback } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 import InfiniteScroll from 'react-infinite-scroller';
-import PropTypes from 'prop-types';
-import { Link, Route, Switch, Redirect } from 'react-router-dom';
+import { Route, Switch, Redirect, useHistory } from 'react-router-dom';
 import styled, { css } from 'styled-components';
 import useMediaQuery from '@material-ui/core/useMediaQuery';
-import { values } from 'lodash';
-import SelectDropDown from '../../../../../components/SelectDropDown';
 import ComponentError from '../../../../../errorBoundaries/ComponentError/component-error';
 import NoData from '../../../../../components/NoData';
 import NoSafesIcon from '../../../../../assets/no-data-safes.svg';
@@ -30,13 +25,12 @@ import {
 } from '../../../../../services/helper-function';
 import SnackbarComponent from '../../../../../components/Snackbar';
 
-// mock data
-// import { safes } from './__mock/safeDashboard';
 import apiService from '../../apiService';
 import ScaledLoader from '../../../../../components/Loaders/ScaledLoader';
 
 import ConfirmationModal from '../../../../../components/ConfirmationModal';
 import ButtonComponent from '../../../../../components/FormFields/ActionButton';
+import EditDeletePopper from '../EditDeletePopper';
 
 // styled components
 const ColumnSection = styled('section')`
@@ -49,14 +43,15 @@ const RightColumnSection = styled(ColumnSection)`
   padding: 0;
   ${mediaBreakpoints.small} {
     width: 100%;
-    display: none;
-    ${(props) => props.mobileViewStyles}
+    display: ${(props) => (props.clicked ? 'block' : 'none')};
+    position: fixed;
+    top: 0;
   }
 `;
 const LeftColumnSection = styled(ColumnSection)`
   width: 40.77%;
   ${mediaBreakpoints.small} {
-    display: ${(props) => (props.isRightActive ? 'none' : 'block')};
+    display: ${(props) => (props.clicked ? 'none' : 'block')};
     width: 100%;
   }
 `;
@@ -94,14 +89,22 @@ const NoDataWrapper = styled.div`
   justify-content: center;
   align-items: center;
 `;
-const SafeFolderWrap = styled(Link)`
+
+const PopperWrap = styled.div`
+  position: absolute;
+  top: 50%;
+  right: 0%;
+  z-index: 1;
+  width: 5.5rem;
+  transform: translate(-50%, -50%);
+  display: none;
+`;
+
+const SafeFolderWrap = styled.div`
   position: relative;
   display: flex;
-  text-decoration: none;
   align-items: center;
-  flex-direction: column;
   padding: 1.2rem 1.8rem 1.2rem 3.4rem;
-  cursor: pointer;
   background-image: ${(props) =>
     props.active ? props.theme.gradients.list : 'none'};
   color: ${(props) => (props.active ? '#fff' : '#4a4a4a')};
@@ -111,15 +114,15 @@ const SafeFolderWrap = styled(Link)`
   :hover {
     background-image: ${(props) => props.theme.gradients.list || 'none'};
     color: #fff;
+    ${PopperWrap} {
+      display: block;
+    }
   }
 `;
-const PopperWrap = styled.div`
-  position: absolute;
-  top: 50%;
-  right: 0%;
-  z-index: 1;
-  width: 5.5rem;
-  transform: translate(-50%, -50%);
+
+const ListContainer = styled.div`
+  width: calc(100% - 9rem);
+  cursor: pointer;
 `;
 
 const NoSafeWrap = styled.div`
@@ -142,20 +145,6 @@ const SearchWrap = styled.div`
   width: 30.9rem;
 `;
 
-const MobileViewForSafeDetailsPage = css`
-  position: fixed;
-  display: flex;
-  right: 0;
-  left: 0;
-  bottom: 0;
-  top: 0;
-  z-index: 1;
-  overflow-y: auto;
-`;
-const SearchBox = styled.div`
-  display: flex;
-  flex: 1;
-`;
 const EmptySecretBox = styled('div')`
   width: 100%;
   position: absolute;
@@ -170,7 +159,7 @@ const noDataStyle = css`
   width: 100%;
 `;
 
-const useStyles = makeStyles((theme) => ({
+const useStyles = makeStyles(() => ({
   select: {
     backgroundColor: 'transparent',
     fontSize: '1.6rem',
@@ -185,20 +174,18 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-const SafeDashboard = (props) => {
+const SafeDashboard = () => {
   const classes = useStyles();
-  const { routeProps } = props;
   const [safes, setSafes] = useState({
     users: [],
     apps: [],
     shared: [],
   });
   const [safeList, setSafeList] = useState([]);
-  const [moreData, setMoreData] = useState(false);
+  const [moreData] = useState(false);
   const [status, setStatus] = useState({});
   const [isLoading, setIsLoading] = useState(false);
   const [inputSearchValue, setInputSearchValue] = useState('');
-  const [activeSafeFolders, setActiveSafeFolders] = useState([]);
   const [menu] = useState([
     'All Safes',
     'User Safe',
@@ -214,23 +201,13 @@ const SafeDashboard = (props) => {
   const [openConfirmationModal, setOpenConfirmationModal] = useState(false);
   const [deletionPath, setDeletionPath] = useState('');
   const [toast, setToast] = useState(null);
+  const [safeClicked, setSafeClicked] = useState(false);
   const handleClose = () => {
     setOpenConfirmationModal(false);
   };
-  // const [showPopper, setShowPopper] = useState(false);
-  const isMobileScreen = useMediaQuery(mediaBreakpoints.small);
 
-  /**
-   * safe detail page route change handling function
-   * @param {string}
-   * @param {object}
-   */
-  const showSafeDetails = (active) => {
-    const activeSafes = [];
-    activeSafes.push(active);
-    // setStatus({ status: 'loading', message: 'loading' });
-    setActiveSafeFolders([...activeSafes]);
-  };
+  const isMobileScreen = useMediaQuery(mediaBreakpoints.small);
+  const history = useHistory();
 
   const compareSafesAndList = useCallback((listArray, type, safesObject) => {
     const value = createSafeArray(listArray, type);
@@ -294,13 +271,13 @@ const SafeDashboard = (props) => {
         ]);
         setStatus({ status: 'success', message: '' });
       })
-      .catch((err) => {
+      .catch(() => {
         setStatus({ status: 'failed', message: 'failed' });
       });
   }, [compareSafesAndList]);
 
   useEffect(() => {
-    fetchData().catch((error) => {
+    fetchData().catch(() => {
       setStatus({ status: 'failed', message: 'failed' });
     });
   }, [fetchData]);
@@ -335,14 +312,13 @@ const SafeDashboard = (props) => {
     setOpenConfirmationModal(false);
     apiService
       .deleteSafe(deletionPath)
-      .then((res) => {
+      .then(() => {
         setDeletionPath('');
         setStatus({ status: 'success', message: 'success' });
         setToast(1);
         fetchData();
       })
-      // eslint-disable-next-line no-console
-      .catch((e) => {
+      .catch(() => {
         setDeletionPath('');
         setToast(-1);
       });
@@ -354,33 +330,42 @@ const SafeDashboard = (props) => {
     setToast(null);
   };
 
-  let scrollParentRef = null;
+  const onListClicked = (path, safe) => {
+    history.push({ pathname: path, state: { safe } });
+    if (isMobileScreen) {
+      setSafeClicked(true);
+    }
+  };
 
+  const onResetClicked = () => {
+    if (isMobileScreen) {
+      setSafeClicked(false);
+    }
+  };
+
+  const onEditSafeClicked = (safe) => {
+    history.push({ pathname: '/safe/edit-safe', state: { safe } });
+  };
+
+  let scrollParentRef = null;
   const renderSafes = () => {
     return safeList.map((safe) => (
       <SafeFolderWrap
-        key={safe.name}
-        to={{
-          pathname: `${routeProps.match.url}/${safe.name}`,
-          state: { safe },
-        }}
-        active={
-          activeSafeFolders.includes(safe.name) ||
-          window.location.pathname.includes(safe.name)
-        }
-        onMouseLeave={() => setActiveSafeFolders([])}
-        onClick={() => showSafeDetails(safe.name, safe)}
-        onMouseEnter={() => showSafeDetails(safe.name, safe)}
+        active={history.location.pathname === `/safe/${safe.path}`}
       >
-        <ListItem
-          title={safe.name}
-          subTitle={safe.date}
-          flag={safe.type}
-          icon={safeIcon}
-          manage={safe.manage}
-        />
-        <BorderLine />
-        {activeSafeFolders.includes(safe.name) && safe.manage ? (
+        <ListContainer
+          onClick={() => onListClicked(`/safe/${safe.path}`, safe)}
+        >
+          <ListItem
+            title={safe.name}
+            subTitle={safe.date}
+            flag={safe.type}
+            icon={safeIcon}
+            manage={safe.manage}
+          />
+          <BorderLine />
+        </ListContainer>
+        {safe.name && safe.manage && !isMobileScreen ? (
           <PopperWrap>
             <PsudoPopper
               onDeleteSafeClicked={() => onDeleteSafeClicked(safe.path)}
@@ -388,6 +373,12 @@ const SafeDashboard = (props) => {
             />
           </PopperWrap>
         ) : null}
+        {isMobileScreen && safe.manage && (
+          <EditDeletePopper
+            onDeleteClicked={() => onDeleteSafeClicked(safe.path)}
+            onEditClicked={() => onEditSafeClicked(safe)}
+          />
+        )}
       </SafeFolderWrap>
     ));
   };
@@ -416,9 +407,7 @@ const SafeDashboard = (props) => {
           }
         />
         <SectionPreview title="safe-section">
-          <LeftColumnSection
-            isRightActive={activeSafeFolders?.length && isMobileScreen}
-          >
+          <LeftColumnSection clicked={safeClicked}>
             <ColumnHeader>
               <SelectComponent
                 menu={menu}
@@ -504,13 +493,7 @@ const SafeDashboard = (props) => {
             )}
           </LeftColumnSection>
 
-          <RightColumnSection
-            mobileViewStyles={
-              activeSafeFolders?.length && isMobileScreen
-                ? MobileViewForSafeDetailsPage
-                : ''
-            }
-          >
+          <RightColumnSection clicked={safeClicked}>
             <Switch>
               {' '}
               {safeList[0]?.name && (
@@ -527,20 +510,16 @@ const SafeDashboard = (props) => {
                 path="/:tab/:safeName"
                 render={(routerProps) => (
                   <SafeDetails
+                    resetClicked={() => onResetClicked()}
                     detailData={safeList}
                     params={routerProps}
-                    setActiveSafeFolders={() => setActiveSafeFolders([])}
                   />
                 )}
               />
               <Route
                 path="/"
                 render={(routerProps) => (
-                  <SafeDetails
-                    detailData={safeList}
-                    params={routerProps}
-                    setActiveSafeFolders={() => setActiveSafeFolders([])}
-                  />
+                  <SafeDetails detailData={safeList} params={routerProps} />
                 )}
               />
             </Switch>
@@ -565,14 +544,6 @@ const SafeDashboard = (props) => {
       </>
     </ComponentError>
   );
-};
-
-SafeDashboard.propTypes = {
-  // eslint-disable-next-line react/forbid-prop-types
-  routeProps: PropTypes.objectOf(PropTypes.object),
-};
-SafeDashboard.defaultProps = {
-  routeProps: {},
 };
 
 export default SafeDashboard;
