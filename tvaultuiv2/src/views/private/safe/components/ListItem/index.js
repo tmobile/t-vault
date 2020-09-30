@@ -1,7 +1,7 @@
 /* eslint-disable no-return-assign */
 import React from 'react';
 import PropTypes from 'prop-types';
-import styled from 'styled-components';
+import styled, { css } from 'styled-components';
 import Avatar from '@material-ui/core/Avatar';
 import useMediaQuery from '@material-ui/core/useMediaQuery';
 import ComponentError from '../../../../../errorBoundaries/ComponentError/component-error';
@@ -72,6 +72,19 @@ const LabelWrap = styled.div`
   align-items: center;
 `;
 
+const extraCss = css`
+  ${mediaBreakpoints.landscapeIpad} {
+    width: 28rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-size: 1.6rem;
+  }
+  ${mediaBreakpoints.smallAndMedium} {
+    width: 17rem;
+  }
+`;
+
 const ListItem = (props) => {
   const { title, subTitle, flag, icon, manage } = props;
 
@@ -87,7 +100,7 @@ const ListItem = (props) => {
             <Avatar alt="safe_icon" src={icon} />
           </SafeAvatarWrap>
           <SafeDetailBox>
-            <TitleOne>
+            <TitleOne extraCss={extraCss}>
               {title}
               <Flag fontSize="0.85rem" fontStyle="italic">
                 {flag}

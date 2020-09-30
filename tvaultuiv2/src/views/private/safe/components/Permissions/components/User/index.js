@@ -14,7 +14,7 @@ import LoaderSpinner from '../../../../../../../components/Loaders/LoaderSpinner
 import PermissionsList from '../PermissionsList';
 import Error from '../../../../../../../components/Error';
 
-const { small } = mediaBreakpoints;
+const { small, landscapeIpad } = mediaBreakpoints;
 
 const NoDataWrapper = styled.section`
   display: flex;
@@ -39,6 +39,13 @@ const bgIconStyle = {
 
 const customStyle = css`
   height: 100%;
+`;
+
+const noDataStyle = css`
+  width: 42%;
+  ${landscapeIpad} {
+    width: 70%;
+  }
 `;
 
 const User = (props) => {
@@ -206,11 +213,11 @@ const User = (props) => {
                       icon="add"
                       color="secondary"
                       onClick={() => setResponse({ status: 'add' })}
-                      width={isMobileScreen ? '100%' : '38%'}
+                      width={isMobileScreen ? '100%' : '9.4rem'}
                     />
                   }
                   bgIconStyle={bgIconStyle}
-                  width={isMobileScreen ? '100%' : '38%'}
+                  customStyle={noDataStyle}
                 />
               </NoDataWrapper>
             )}

@@ -59,6 +59,7 @@ const FolderIconWrap = styled('div')`
   margin: 0 1em;
   display: flex;
   align-items: center;
+  cursor: pointer;
   .MuiSvgIcon-root {
     width: 3rem;
     height: 3rem;

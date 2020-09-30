@@ -27,6 +27,9 @@ const StyledTree = styled.div`
   & > div {
     padding-left: 0;
   }
+  > div:not(:last-child) {
+    border-bottom: 1px solid #323649;
+  }
 `;
 const Tree = (props) => {
   const { data } = props;

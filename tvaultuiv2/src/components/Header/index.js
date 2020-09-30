@@ -11,7 +11,7 @@ import menu from '../../assets/menu.svg';
 import userIcon from '../../assets/icon-profile.svg';
 import Sidebar from '../Sidebar';
 
-const { small, smallAndMedium } = mediaBreakpoints;
+const { small, smallAndMedium, semiLarge } = mediaBreakpoints;
 
 const HeaderWrap = styled('div')`
   background-color: #151820;
@@ -25,6 +25,9 @@ const Container = styled.div`
   margin: auto;
   font-size: 1.4rem;
   height: 7rem;
+  ${semiLarge} {
+    margin: 0 3.5rem;
+  }
   ${smallAndMedium} {
     justify-content: center;
   }

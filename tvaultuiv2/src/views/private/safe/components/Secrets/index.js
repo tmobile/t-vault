@@ -1,10 +1,10 @@
 /* eslint-disable no-nested-ternary */
 import React from 'react';
 import PropTypes from 'prop-types';
-import styled from 'styled-components';
+import styled, { css } from 'styled-components';
 import useMediaQuery from '@material-ui/core/useMediaQuery';
 import Error from '../../../../../components/Error';
-import ScaledLoader from '../../../../../components/Loaders/ScaledLoader';
+import LoaderSpinner from '../../../../../components/Loaders/LoaderSpinner';
 import ButtonComponent from '../../../../../components/FormFields/ActionButton';
 import ComponentError from '../../../../../errorBoundaries/ComponentError/component-error';
 import NoData from '../../../../../components/NoData';
@@ -35,6 +35,14 @@ const bgIconStyle = {
   height: '16rem',
 };
 
+const customStyle = css`
+  height: calc(100% - 4rem);
+`;
+
+const noDataStyle = css`
+  width: 60%;
+`;
+
 const Secrets = (props) => {
   const {
     secretsFolder,
@@ -57,7 +65,7 @@ const Secrets = (props) => {
         }
 
         {secretsStatus.status === 'loading' && (
-          <ScaledLoader width="100%" height="90%" />
+          <LoaderSpinner customStyle={customStyle} />
         )}
         {getResponse === -1 && !secretsFolder[0]?.children?.length && (
           <EmptySecretBox>
@@ -84,12 +92,12 @@ const Secrets = (props) => {
                   icon="add"
                   color="secondary"
                   disabled={safeDetail?.access?.toLowerCase() === 'read'}
-                  width={isMobileScreen ? '100%' : ''}
+                  width={isMobileScreen ? '100%' : '9.4rem'}
                   onClick={() => setEnableAddFolder(true)}
                 />
               }
               bgIconStyle={bgIconStyle}
-              width={isMobileScreen ? '100%' : '30%'}
+              customStyle={noDataStyle}
             />
           </EmptySecretBox>
         ) : (

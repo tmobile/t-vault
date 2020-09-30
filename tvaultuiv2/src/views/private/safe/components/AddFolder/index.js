@@ -2,27 +2,29 @@
 import React, { useState } from 'react';
 import PropTypes from 'prop-types';
 import styled from 'styled-components';
-import { Typography } from '@material-ui/core';
+import { Typography, InputLabel } from '@material-ui/core';
 import ButtonComponent from '../../../../../components/FormFields/ActionButton';
 import TextFieldComponent from '../../../../../components/FormFields/TextField';
 import ComponentError from '../../../../../errorBoundaries/ComponentError/component-error';
+import mediaBreakpoints from '../../../../../breakpoints';
 
 const AddFolderNameWrapper = styled.div`
-  padding: 4.2rem;
-  border-radius: 0.3rem;
-  background-color: ${(props) =>
-    props.theme.palette.background.paper || '#20232e'};
+  padding: 5.5rem 6rem 6rem 6rem;
+  background-color: #2a2e3e;
   width: ${(props) => props.width || '100%'};
+  ${mediaBreakpoints.semiLarge} {
+    padding: 4.5rem 5rem 5rem 5rem;
+  }
 `;
 
 const FormWrapper = styled.form`
-  margin-top: 2rem;
+  margin-top: 5rem;
 `;
 
 const ButtonWrapper = styled('div')`
   display: flex;
   justify-content: flex-end;
-  margin-top: 2rem;
+  margin-top: 5rem;
 `;
 
 const CancelButton = styled.div`
@@ -63,8 +65,9 @@ const AddFolder = (props) => {
     <ComponentError>
       {' '}
       <AddFolderNameWrapper width={width}>
-        <Typography variant="h5">Add Folder Name*</Typography>
+        <Typography variant="h5">Add Folder</Typography>
         <FormWrapper>
+          <InputLabel required>Safe Name</InputLabel>
           <TextFieldComponent
             placeholder="Add folder"
             onChange={(e) => handleChange(e)}

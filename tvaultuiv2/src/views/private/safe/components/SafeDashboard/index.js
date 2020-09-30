@@ -47,7 +47,6 @@ const ColumnSection = styled('section')`
 const RightColumnSection = styled(ColumnSection)`
   width: 59.23%;
   padding: 0;
-  background: linear-gradient(to bottom, #151820, #2c3040);
   ${mediaBreakpoints.small} {
     width: 100%;
     display: none;
@@ -82,7 +81,7 @@ const StyledInfiniteScroll = styled(InfiniteScroll)`
 `;
 
 const SafeListContainer = styled.div`
-  overflow: auto;
+  overflow-y: auto;
   width: 100%;
   display: flex;
   justify-content: center;
@@ -106,6 +105,9 @@ const SafeFolderWrap = styled(Link)`
   background-image: ${(props) =>
     props.active ? props.theme.gradients.list : 'none'};
   color: ${(props) => (props.active ? '#fff' : '#4a4a4a')};
+  ${mediaBreakpoints.landscapeIpad} {
+    padding: 2rem 1.1rem;
+  }
   :hover {
     background-image: ${(props) => props.theme.gradients.list || 'none'};
     color: #fff;
@@ -162,6 +164,10 @@ const EmptySecretBox = styled('div')`
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
+`;
+
+const noDataStyle = css`
+  width: 100%;
 `;
 
 const useStyles = makeStyles((theme) => ({
@@ -477,6 +483,7 @@ const SafeDashboard = (props) => {
                           tooltipPos="bottom"
                         />
                       }
+                      customStyle={noDataStyle}
                     />
                   </NoSafeWrap>
                 </NoDataWrapper>

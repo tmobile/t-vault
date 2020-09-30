@@ -1,6 +1,6 @@
 /* eslint-disable react/jsx-curly-newline */
 import React, { useState, useEffect } from 'react';
-import { InputLabel, Typography } from '@material-ui/core';
+import { InputLabel } from '@material-ui/core';
 import styled from 'styled-components';
 import useMediaQuery from '@material-ui/core/useMediaQuery';
 import PropTypes from 'prop-types';
@@ -8,9 +8,10 @@ import TextFieldComponent from '../../../../../components/FormFields/TextField';
 import ComponentError from '../../../../../errorBoundaries/ComponentError/component-error';
 import mediaBreakpoints from '../../../../../breakpoints';
 import ButtonComponent from '../../../../../components/FormFields/ActionButton';
+import { TitleOne } from '../../../../../styles/GlobalStyles';
 
 const SecretWrapper = styled.section`
-  padding: 3rem;
+  padding: 4rem;
   display: flex;
   flex-direction: column;
   background-color: ${(props) =>
@@ -33,16 +34,14 @@ const KeyIdInputRequirements = styled.p`
 const CancelSaveWrapper = styled.div`
   display: flex;
   justify-content: flex-end;
-  margin-top: 2rem;
+  margin-top: 3rem;
   ${mediaBreakpoints.small} {
     justify-content: space-between;
   }
 `;
 
-const BtnWrapper = styled.div`
-  width: 19rem;
-  display: flex;
-  justify-content: space-between;
+const CancelButton = styled.div`
+  margin-right: 0.8rem;
   ${mediaBreakpoints.small} {
     width: 100%;
   }
@@ -90,7 +89,7 @@ const CreateSecret = (props) => {
   return (
     <ComponentError>
       <SecretWrapper>
-        <Typography variant="h5">Add Secrets</Typography>
+        <TitleOne>Add Secrets</TitleOne>
         <FormWrapper>
           <InputLabel>Key Id</InputLabel>
           <TextFieldComponent
@@ -118,32 +117,31 @@ const CreateSecret = (props) => {
             error={!!valueErrorMessage}
           />
           <CancelSaveWrapper>
-            <BtnWrapper>
-              {' '}
+            <CancelButton>
               <ButtonComponent
                 label="Cancel"
                 color="primary"
                 onClick={() => handleSecretCancel(false)}
                 width={isMobileScreen ? '48%' : ''}
               />
-              <ButtonComponent
-                label="Create"
-                icon="add"
-                color="secondary"
-                width={isMobileScreen ? '48%' : ''}
-                disabled={
-                  !secret || !keyId || valueErrorMessage || keyErrorMessage
-                }
-                onClick={() =>
-                  handleSecretSave({
-                    key: keyId,
-                    value: secret,
-                    type: 'secret',
-                    parentId,
-                  })
-                }
-              />
-            </BtnWrapper>
+            </CancelButton>
+            <ButtonComponent
+              label="Create"
+              icon="add"
+              color="secondary"
+              width={isMobileScreen ? '48%' : ''}
+              disabled={
+                !secret || !keyId || valueErrorMessage || keyErrorMessage
+              }
+              onClick={() =>
+                handleSecretSave({
+                  key: keyId,
+                  value: secret,
+                  type: 'secret',
+                  parentId,
+                })
+              }
+            />
           </CancelSaveWrapper>
         </FormWrapper>
       </SecretWrapper>
