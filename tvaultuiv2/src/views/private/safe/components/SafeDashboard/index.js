@@ -208,6 +208,10 @@ const SafeDashboard = () => {
   const isMobileScreen = useMediaQuery(mediaBreakpoints.small);
   const history = useHistory();
 
+  /**
+   * @function compareSafesAndList
+   * @description function compare safe and manage safes and remove duplication.
+   */
   const compareSafesAndList = useCallback((listArray, type, safesObject) => {
     const value = createSafeArray(listArray, type);
     safesObject[type].map((item) => {
@@ -225,11 +229,9 @@ const SafeDashboard = () => {
   }, []);
 
   /**
-   * renders safe details page route
-   * @param {string}
-   * @param {object}
+   * @function fetchData
+   * @description function call all the manage and safe api.
    */
-
   const fetchData = useCallback(async () => {
     setStatus({ status: 'loading', message: 'Loading...' });
     const safesApiResponse = await apiService.getSafes();
@@ -275,12 +277,20 @@ const SafeDashboard = () => {
       });
   }, [compareSafesAndList]);
 
+  /**
+   * @description On component load call fetchData function.
+   */
   useEffect(() => {
     fetchData().catch(() => {
       setStatus({ status: 'failed', message: 'failed' });
     });
   }, [fetchData]);
 
+  /**
+   * @function onSelectChange
+   * @description function to filter safe.
+   * @param {string} value selected filter value.
+   */
   const onSelectChange = (value) => {
     setSafeType(value);
     if (value !== 'All Safes') {
@@ -299,17 +309,31 @@ const SafeDashboard = () => {
     setIsLoading(true);
   };
 
+  /**
+   * @function onActionClicked
+   * @description function to prevent default click.
+   * @param {object} e event
+   */
   const onActionClicked = (e) => {
     e.stopPropagation();
     e.preventDefault();
   };
 
+  /**
+   * @function onDeleteSafeClicked
+   * @description function to call delete confirmation modal for safe.
+   * @param {string} path path of the clicked safe.
+   */
   const onDeleteSafeClicked = (path) => {
     onActionClicked();
     setOpenConfirmationModal(true);
     setDeletionPath(path);
   };
 
+  /**
+   * @function onDeleteSafeConfirmClicked
+   * @description function to delete safe.
+   */
   const onDeleteSafeConfirmClicked = () => {
     setStatus({ status: 'loading', message: 'loading' });
     setSafes({ users: [], apps: [], shared: [] });
@@ -328,6 +352,11 @@ const SafeDashboard = () => {
         setToast(-1);
       });
   };
+
+  /**
+   * @function onToastClose
+   * @description function to close the toast message.
+   */
   const onToastClose = (reason) => {
     if (reason === 'clickaway') {
       return;
@@ -335,18 +364,33 @@ const SafeDashboard = () => {
     setToast(null);
   };
 
-  const onListClicked = () => {
+  /**
+   * @function onLinkClicked
+   * @description function to check if mobile screen the make safeClicked true
+   * based on that value display left and right side.
+   */
+  const onLinkClicked = () => {
     if (isMobileScreen) {
       setSafeClicked(true);
     }
   };
 
+  /**
+   * @function onResetClicked
+   * @description function to check if mobile screen then make safeClicked to false
+   * based on that value display left and right side.
+   */
   const onResetClicked = () => {
     if (isMobileScreen) {
       setSafeClicked(false);
     }
   };
 
+  /**
+   * @function onEditSafeClicked
+   * @description function to edit the safe.
+   * @param {object} safe safe details.
+   */
   const onEditSafeClicked = (safe) => {
     history.push({ pathname: '/safe/edit-safe', state: { safe } });
   };
@@ -360,7 +404,7 @@ const SafeDashboard = () => {
           pathname: `/safe/${safe.name}`,
           state: { safe },
         }}
-        onClick={() => onListClicked()}
+        onClick={() => onLinkClicked()}
         active={history.location.pathname === `/safe/${safe.name}`}
       >
         <ListItem
