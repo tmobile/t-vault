@@ -40,7 +40,6 @@ const ServiceAccountLayout = (props) => {
   };
 
   useEffect(() => {
-    console.log('serviceAccounts', serviceAccounts);
     setServiceAccountList([...serviceAccounts.serviceAccounts]);
   }, []);
 

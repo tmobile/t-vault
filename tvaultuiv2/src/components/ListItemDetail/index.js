@@ -30,15 +30,15 @@ const BackButton = styled.div`
 `;
 
 const ListItemDetail = (props) => {
-  const { setActiveSafeFolders, ListDetailHeaderBg, renderContent } = props;
+  const { setActiveFolders, ListDetailHeaderBg, renderContent } = props;
   // use history of page
   //   const history = useHistory();
   //   const location = useLocation();
   // screen view handler
   const isMobileScreen = useMediaQuery(mediaBreakpoints.small);
   // route component data
-  const goBackToSafeList = () => {
-    setActiveSafeFolders();
+  const goBackToList = () => {
+    setActiveFolders();
   };
   useEffect(() => {}, []);
 
@@ -46,7 +46,7 @@ const ListItemDetail = (props) => {
     <ComponentError>
       <Section>
         {isMobileScreen ? (
-          <BackButton onClick={goBackToSafeList}>
+          <BackButton onClick={goBackToList}>
             <BackArrow />
             {/* <span>{listItem.name || 'No safe'}</span> */}
           </BackButton>
@@ -66,14 +66,14 @@ const ListItemDetail = (props) => {
 ListItemDetail.propTypes = {
   detailData: PropTypes.arrayOf(PropTypes.array),
   params: PropTypes.objectOf(PropTypes.object),
-  setActiveSafeFolders: PropTypes.func,
+  setActiveFolders: PropTypes.func,
   ListDetailHeaderBg: PropTypes.string,
   renderContent: PropTypes.node,
 };
 ListItemDetail.defaultProps = {
   detailData: [],
   params: {},
-  setActiveSafeFolders: () => {},
+  setActiveFolders: () => {},
   ListDetailHeaderBg: '',
   renderContent: <div />,
 };

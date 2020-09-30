@@ -5,7 +5,7 @@ import styled from 'styled-components';
 import Avatar from '@material-ui/core/Avatar';
 import ComponentError from '../../errorBoundaries/ComponentError/component-error';
 import { TitleOne } from '../../styles/GlobalStyles';
-import safeIcon from '../../assets/icon_safes.svg';
+import ListItemIcon from '../../assets/icon_safes.svg';
 import { customColor } from '../../theme';
 import PopperElement from '../Popper';
 
@@ -17,10 +17,10 @@ const FolderWrap = styled('div')`
   align-items: center;
   justify-content: space-between;
 `;
-const SafeDetailBox = styled('div')`
+const ListItemDetailBox = styled('div')`
   padding-left: 1.7rem;
 `;
-const SafeAvatarWrap = styled.div`
+const ListItemAvatarWrap = styled.div`
   .MuiAvatar-root {
     width: 3.4rem;
     height: 3.9rem;
@@ -77,10 +77,10 @@ const ListItem = (props) => {
     <ComponentError>
       <FolderWrap>
         <LabelWrap>
-          <SafeAvatarWrap>
-            <Avatar alt="safe_icon" src={icon} />
-          </SafeAvatarWrap>
-          <SafeDetailBox>
+          <ListItemAvatarWrap>
+            <Avatar alt="ListItem_icon" src={icon} />
+          </ListItemAvatarWrap>
+          <ListItemDetailBox>
             <TitleOne color="#d0d0d0">
               {title}
               <Flag fontSize="0.85rem" fontStyle="italic">
@@ -88,7 +88,7 @@ const ListItem = (props) => {
               </Flag>
             </TitleOne>
             <Flag fontSize="1rem">{subTitle}</Flag>
-          </SafeDetailBox>
+          </ListItemDetailBox>
         </LabelWrap>
         {showActions ? (
           <FolderIconWrap>
@@ -131,7 +131,7 @@ ListItem.defaultProps = {
   subTitle: '',
   title: '',
   flag: '',
-  icon: safeIcon,
+  icon: ListItemIcon,
   popperListItems: [],
 };
 export default ListItem;

@@ -18,8 +18,8 @@ const AntSwitch = withStyles((theme) => ({
       color: theme.palette.common.white,
       '& + $track': {
         opacity: 1,
-        backgroundColor: theme.palette.primary.main,
-        borderColor: theme.palette.primary.main,
+        backgroundColor: theme.palette.secondary.main,
+        borderColor: theme.palette.secondary.main,
       },
     },
   },
@@ -29,7 +29,7 @@ const AntSwitch = withStyles((theme) => ({
     boxShadow: 'none',
   },
   track: {
-    border: `1px solid ${theme.palette.grey[500]}`,
+    border: `1px solid ${theme.palette.secondary.main}`,
     borderRadius: 16 / 2,
     opacity: 1,
     backgroundColor: theme.palette.common.white,
@@ -39,10 +39,9 @@ const AntSwitch = withStyles((theme) => ({
 
 const SwitchComponent = (props) => {
   const { checked, handleChange, name } = props;
-  return (
-    <AntSwitch checked={checked} handleChange={handleChange} name={name} />
-  );
+  return <AntSwitch checked={checked} onChange={handleChange} name={name} />;
 };
+
 SwitchComponent.propTypes = {
   checked: PropTypes.bool.isRequired,
   handleChange: PropTypes.func.isRequired,
