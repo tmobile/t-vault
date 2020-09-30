@@ -13,7 +13,7 @@
             deleteFolder: deleteFolder,
             getFolderContent: getFolderContent,
             itemIsValidToSave: itemIsValidToSave,
-            getAllowedSafes: getAllowedSafes,
+            getAllowedSafes: getAllowedSafes
         };
 
         function getFolderContent(path) {

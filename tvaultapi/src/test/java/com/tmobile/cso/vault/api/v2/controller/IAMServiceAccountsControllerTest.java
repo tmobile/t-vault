@@ -27,7 +27,7 @@ import com.tmobile.cso.vault.api.service.IAMServiceAccountsService;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @WebAppConfiguration
-public class IAMServiceAccountsControllerV2Test {
+public class IAMServiceAccountsControllerTest {
 	
 	@Mock
 	public IAMServiceAccountsService iamServiceAccountsService;
@@ -35,7 +35,7 @@ public class IAMServiceAccountsControllerV2Test {
 	private MockMvc mockMvc;
 	
 	@InjectMocks
-	private IAMServiceAccountsControllerV2 iamServiceAccountsControllerV2;
+	private IAMServiceAccountsController iamServiceAccountsController;
 	
 	@Mock
     HttpServletRequest httpServletRequest;
@@ -48,7 +48,7 @@ public class IAMServiceAccountsControllerV2Test {
     @Before
     public void setUp() {
         MockitoAnnotations.initMocks(this);
-        this.mockMvc = MockMvcBuilders.standaloneSetup(iamServiceAccountsControllerV2).build();
+        this.mockMvc = MockMvcBuilders.standaloneSetup(iamServiceAccountsController).build();
         token = "5PDrOhsy4ig8L3EpsJZSLAMg";  
         userDetails.setUsername("normaluser");
         userDetails.setAdmin(true);
