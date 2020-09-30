@@ -32,7 +32,7 @@ const bgIconStyle = {
 };
 
 const BackgroundIcon = styled(CardMedia)`
-  ${(props) => props.imgStyles}
+  ${(props) => props.imgstyles}
 `;
 const Error = (props) => {
   const { description, actionButton, width } = props;
@@ -43,7 +43,7 @@ const Error = (props) => {
         <BackgroundIcon
           image={errorIcon}
           title="response-icon"
-          imgStyles={bgIconStyle}
+          imgstyles={bgIconStyle}
         />
         <BoxDescription>{ReactHtmlParser(description)}</BoxDescription>
         <ActionButtonWrap>{actionButton}</ActionButtonWrap>

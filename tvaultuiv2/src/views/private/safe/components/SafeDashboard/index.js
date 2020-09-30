@@ -88,6 +88,13 @@ const NoDataWrapper = styled.div`
   display: flex;
   justify-content: center;
   align-items: center;
+  color: #5e627c;
+  span {
+    margin-left: 0.4rem;
+    color: #fff;
+    font-weight: bold;
+    text-transform: uppercase;
+  }
 `;
 
 const PopperWrap = styled.div`
@@ -201,6 +208,7 @@ const SafeDashboard = () => {
   const [deletionPath, setDeletionPath] = useState('');
   const [toast, setToast] = useState(null);
   const [safeClicked, setSafeClicked] = useState(false);
+  const [allSafeList, setAllSafeList] = useState([]);
   const handleClose = () => {
     setOpenConfirmationModal(false);
   };
@@ -270,6 +278,11 @@ const SafeDashboard = () => {
           ...safesObject.shared,
           ...safesObject.apps,
         ]);
+        setAllSafeList([
+          ...safesObject.users,
+          ...safesObject.shared,
+          ...safesObject.apps,
+        ]);
         setStatus({ status: 'success', message: '' });
       })
       .catch(() => {
@@ -303,6 +316,14 @@ const SafeDashboard = () => {
 
   const onSearchChange = (value) => {
     setInputSearchValue(value);
+    if (value !== '') {
+      const array = allSafeList.filter((item) => {
+        return String(item.name).startsWith(value);
+      });
+      setSafeList([...array]);
+    } else {
+      setSafeList([...allSafeList]);
+    }
   };
 
   const loadMoreData = () => {
@@ -509,26 +530,36 @@ const SafeDashboard = () => {
             ) : (
               safeList?.length === 0 &&
               status.status === 'success' && (
-                <NoDataWrapper>
-                  {' '}
-                  <NoSafeWrap>
-                    <NoData
-                      imageSrc={NoSafesIcon}
-                      description="Create a Safe to get started!"
-                      actionButton={
-                        // eslint-disable-next-line react/jsx-wrap-multilines
-                        <FloatingActionButtonComponent
-                          href="/safe/create-safe"
-                          color="secondary"
-                          icon="addd"
-                          tooltipTitle="Create New Safe"
-                          tooltipPos="bottom"
+                <>
+                  {inputSearchValue ? (
+                    <NoDataWrapper>
+                      No safe found with name
+                      <span>{inputSearchValue}</span>
+                      {' . '}
+                    </NoDataWrapper>
+                  ) : (
+                    <NoDataWrapper>
+                      {' '}
+                      <NoSafeWrap>
+                        <NoData
+                          imageSrc={NoSafesIcon}
+                          description="Create a Safe to get started!"
+                          actionButton={
+                            // eslint-disable-next-line react/jsx-wrap-multilines
+                            <FloatingActionButtonComponent
+                              href="/safe/create-safe"
+                              color="secondary"
+                              icon="addd"
+                              tooltipTitle="Create New Safe"
+                              tooltipPos="bottom"
+                            />
+                          }
+                          customStyle={noDataStyle}
                         />
-                      }
-                      customStyle={noDataStyle}
-                    />
-                  </NoSafeWrap>
-                </NoDataWrapper>
+                      </NoSafeWrap>
+                    </NoDataWrapper>
+                  )}
+                </>
               )
             )}
             {safeList?.length ? (
