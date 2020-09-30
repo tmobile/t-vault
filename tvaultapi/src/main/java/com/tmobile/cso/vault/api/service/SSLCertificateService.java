@@ -5067,6 +5067,7 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
     	Map<String, String> metaDataParams = new HashMap<String, String>();
     	Map<String, String> dataMetaDataParams = new HashMap<String, String>();
     	SSLCertificateRequest certificateRequest = new SSLCertificateRequest();
+    	token = userDetails.getSelfSupportToken();
     	boolean isValidEmail = true;
     	String certOwnerNtId ="";
     	Object[] users = null;
@@ -5819,11 +5820,11 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
 		
 		String metaDataPath = (certificateType.equalsIgnoreCase("internal"))?
 	            SSLCertificateConstants.SSL_CERT_PATH_VALUE :SSLCertificateConstants.SSL_CERT_PATH_VALUE_EXT;
-		if (userDetails.isAdmin()) {
-				authToken = userDetails.getClientToken();   	            
-	        }else {
+//		if (userDetails.isAdmin()) {
+//				authToken = userDetails.getClientToken();   	            
+//	        }else {
 	        	authToken = userDetails.getSelfSupportToken();
-	        }
+//	        }
 		String certificatePath = metaDataPath + certificateName;
 		
 		String readPolicy = SSLCertificateConstants.READ_CERT_POLICY_PREFIX+certPrefix+"_"+certificateName;
@@ -5906,6 +5907,8 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
 			policies.addAll(currentpolicies);			
 			policies.remove(writePolicy);
 			policies.remove(sudoPolicy);
+			policies.remove(readPolicy);
+			policies.remove(denyPolicy);
 			
 		}
 		String policiesString = org.apache.commons.lang3.StringUtils.join(policies, ",");
@@ -5979,6 +5982,7 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
 		Response response = new Response();
 		Response metadataResponse = new Response();
 		CertResponse unAssignResponse = new CertResponse();
+		token = userDetails.getSelfSupportToken();
 		if (!userDetails.isAdmin()) {
 			Boolean isPermission = validateCertOwnerPermissionForNonAdmin(userDetails, certificateName,certType);
 
@@ -6071,16 +6075,16 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
 						certificateGroup.setCertType(certType);
 						certificateGroup.setGroupname(entry.getKey());
 						certificateGroup.setAccess(entry.getValue());
-						removeGroupFromCertificate( certificateGroup,  userDetails);
+						removeGroupFromCertificateForDelete( certificateGroup,  userDetails);
 					 }
 					}
 			}
 			
 				removeSudoPermissionForPreviousOwner( certificateUserId.toLowerCase(), certificateName,userDetails,certType);
 				if (userDetails.isAdmin()) {
-					deletePolicies(certificateName,certType,token);
+					deletePolicies(certType,certificateName,userDetails.getSelfSupportToken());
 				}else {
-					deletePolicies(certificateName,certType,userDetails.getSelfSupportToken());
+					deletePolicies(certType,certificateName,userDetails.getSelfSupportToken());
 				}
 			
 			if (unAssignResponse!=null && (HttpStatus.OK.equals(unAssignResponse.getHttpstatus())|| (HttpStatus.NO_CONTENT.equals(unAssignResponse.getHttpstatus())))) {
@@ -6580,4 +6584,73 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
 					.body("{\"errors\":[\"Access denied: No permission to access certificate\"]}");
 		}
 	}
+	
+	/**
+     * Remove Group from certificate
+     * @param certificateGroup
+     * @param userDetails
+     * @return
+     */
+    public ResponseEntity<String> removeGroupFromCertificateForDelete(CertificateGroup certificateGroup, UserDetails userDetails) {
+    	
+    	if(!areCertificateGroupInputsValid(certificateGroup)) {
+   			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+   					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+   					put(LogMessage.ACTION, SSLCertificateConstants.REMOVE_GROUP_FROM_CERT_MSG).
+   					put(LogMessage.MESSAGE, "Invalid user inputs").
+   					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+   					build()));
+   			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid input values\"]}");
+   		}
+    	
+        log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+                put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+                put(LogMessage.ACTION, SSLCertificateConstants.REMOVE_GROUP_FROM_CERT_MSG).
+                put(LogMessage.MESSAGE, String.format("Trying to remove Group from certificate - [%s]", certificateGroup.toString())).
+                put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+                build()));
+        
+        String groupName = certificateGroup.getGroupname().toLowerCase();
+   		String certificateName = certificateGroup.getCertificateName().toLowerCase();
+   		String certificateType = certificateGroup.getCertType();
+   		String authToken = null;
+   		
+   		boolean isAuthorized = true;
+   		
+   		if (!ObjectUtils.isEmpty(userDetails)) {
+ 			if (userDetails.isAdmin()) {
+ 				authToken = userDetails.getClientToken();   	            
+ 	        }else {
+   	        	authToken = userDetails.getSelfSupportToken();
+ 	        }
+   			SSLCertificateMetadataDetails certificateMetaData = certificateUtils.getCertificateMetaData(authToken, certificateName, certificateType);
+   			if (!userDetails.isAdmin()) {
+   			isAuthorized = certificateUtils.hasAddOrRemovePermission(userDetails, certificateMetaData);
+   			}
+   			
+   		}else {
+   			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+   					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+   					put(LogMessage.ACTION, SSLCertificateConstants.REMOVE_GROUP_FROM_CERT_MSG).
+   					put(LogMessage.MESSAGE, "Access denied: No permission to remove group from this certificate").
+   					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+   					build()));
+   			
+   			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Access denied: No permission to remove group from this certificate\"]}");
+   		} 
+   		
+        if(isAuthorized){        	
+			return checkPolicyDetailsAndRemoveGroupFromCertificate(groupName, certificateName, authToken,
+					certificateType, userDetails);
+        } else {
+        	log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+                    put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+                    put(LogMessage.ACTION, SSLCertificateConstants.REMOVE_USER_FROM_CERT_MSG).
+                    put(LogMessage.MESSAGE, "Access denied: No permission to remove groups from this certificate").
+                    put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+                    build()));
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Access denied: No permission to remove groups from this certificate\"]}");
+        }
+
+    }
 }
