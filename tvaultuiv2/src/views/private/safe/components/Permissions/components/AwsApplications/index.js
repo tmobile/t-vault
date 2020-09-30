@@ -16,7 +16,7 @@ import Error from '../../../../../../../components/Error';
 import AddAwsApplicationModal from '../../../AddAwsApplicationModal';
 import EditAwsApplication from '../../../EditAwsApplication';
 
-const { small, landscapeIpad } = mediaBreakpoints;
+const { small, belowLarge } = mediaBreakpoints;
 
 const NoDataWrapper = styled.section`
   display: flex;
@@ -43,7 +43,7 @@ const customStyle = css`
 
 const noDataStyle = css`
   width: 42%;
-  ${landscapeIpad} {
+  ${belowLarge} {
     width: 75%;
   }
   ${small} {

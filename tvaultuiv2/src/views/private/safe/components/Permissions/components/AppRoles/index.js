@@ -15,7 +15,7 @@ import apiService from '../../../../apiService';
 import LoaderSpinner from '../../../../../../../components/Loaders/LoaderSpinner';
 import Error from '../../../../../../../components/Error';
 
-const { small, landscapeIpad } = mediaBreakpoints;
+const { small, belowLarge } = mediaBreakpoints;
 
 const NoDataWrapper = styled.section`
   display: flex;
@@ -42,7 +42,7 @@ const customStyle = css`
 
 const noDataStyle = css`
   width: 42%;
-  ${landscapeIpad} {
+  ${belowLarge} {
     width: 70%;
   }
   ${small} {

@@ -19,7 +19,7 @@ import AppRoles from './components/AppRoles';
 import SnackbarComponent from '../../../../../components/Snackbar';
 import AwsApplications from './components/AwsApplications';
 
-const { landscapeIpad } = mediaBreakpoints;
+const { belowLarge } = mediaBreakpoints;
 
 const TabPanelWrapper = styled.div`
   height: 90%;
@@ -82,7 +82,7 @@ const TabWrapper = styled.div`
     margin-right: 0.5rem;
     font-size: 1.4rem;
     min-height: 3.65rem;
-    ${landscapeIpad} {
+    ${belowLarge} {
       margin-right: 1.2rem;
     }
   }
@@ -105,14 +105,14 @@ const CountSpan = styled.div`
 
 const customStyles = css`
   display: flex;
-  ${landscapeIpad} {
+  ${belowLarge} {
     display: none;
   }
 `;
 
 const customMobileStyles = css`
   display: none;
-  ${landscapeIpad} {
+  ${belowLarge} {
     display: flex;
   }
 `;

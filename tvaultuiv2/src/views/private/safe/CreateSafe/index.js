@@ -21,7 +21,7 @@ import { validateEmail } from '../../../../services/helper-function';
 import apiService from '../apiService';
 import { TitleThree } from '../../../../styles/GlobalStyles';
 
-const { small, landscapeIpad } = mediaBreakpoints;
+const { small, belowLarge } = mediaBreakpoints;
 
 const ModalWrapper = styled.section`
   background-color: #2a2e3e;
@@ -33,7 +33,7 @@ const ModalWrapper = styled.section`
   display: flex;
   flex-direction: column;
   position: relative;
-  ${landscapeIpad} {
+  ${belowLarge} {
     padding: 2.7rem 5rem 3.2rem 5rem;
     width: 57.2rem;
   }

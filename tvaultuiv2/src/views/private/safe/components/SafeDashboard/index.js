@@ -110,7 +110,7 @@ const SafeFolderWrap = styled(Link)`
   background-image: ${(props) =>
     props.active ? props.theme.gradients.list : 'none'};
   color: ${(props) => (props.active ? '#fff' : '#4a4a4a')};
-  ${mediaBreakpoints.landscapeIpad} {
+  ${mediaBreakpoints.belowLarge} {
     padding: 2rem 1.1rem;
   }
   :hover {
@@ -324,8 +324,8 @@ const SafeDashboard = () => {
    * @description function to call delete confirmation modal for safe.
    * @param {string} path path of the clicked safe.
    */
-  const onDeleteSafeClicked = (path) => {
-    onActionClicked();
+  const onDeleteSafeClicked = (e, path) => {
+    onActionClicked(e);
     setOpenConfirmationModal(true);
     setDeletionPath(path);
   };
@@ -418,7 +418,7 @@ const SafeDashboard = () => {
         {safe.name && safe.manage && !isMobileScreen ? (
           <PopperWrap onClick={(e) => onActionClicked(e)}>
             <PsudoPopper
-              onDeleteSafeClicked={() => onDeleteSafeClicked(safe.path)}
+              onDeleteSafeClicked={(e) => onDeleteSafeClicked(e, safe.path)}
               safe={safe}
               path="/safe/edit-safe"
             />
@@ -427,7 +427,7 @@ const SafeDashboard = () => {
         {isMobileScreen && safe.manage && (
           <EditDeletePopperWrap onClick={(e) => onActionClicked(e)}>
             <EditDeletePopper
-              onDeleteClicked={() => onDeleteSafeClicked(safe.path)}
+              onDeleteClicked={(e) => onDeleteSafeClicked(e, safe.path)}
               onEditClicked={() => onEditSafeClicked(safe)}
             />
           </EditDeletePopperWrap>

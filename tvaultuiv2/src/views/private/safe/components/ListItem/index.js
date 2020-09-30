@@ -40,7 +40,7 @@ const LabelWrap = styled.div`
 `;
 
 const extraCss = css`
-  ${mediaBreakpoints.landscapeIpad} {
+  ${mediaBreakpoints.belowLarge} {
     width: 28rem;
     white-space: nowrap;
     overflow: hidden;
