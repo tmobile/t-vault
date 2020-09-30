@@ -24,6 +24,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
@@ -32,6 +33,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.tmobile.cso.vault.api.model.IAMServiceAccount;
 import com.tmobile.cso.vault.api.model.IAMServiceAccountGroup;
 import com.tmobile.cso.vault.api.model.IAMServiceAccountUser;
+import com.tmobile.cso.vault.api.model.ServiceAccountUser;
 import com.tmobile.cso.vault.api.model.UserDetails;
 import com.tmobile.cso.vault.api.service.IAMServiceAccountsService;
 
@@ -58,7 +60,7 @@ public class IAMServiceAccountsController {
 	@ApiOperation(value = "${IAMServiceAccountsController.onboardIAMServiceAccount.value}", notes = "${IAMServiceAccountsController.onboardIAMServiceAccount.notes}")
 	@PostMapping(value="/v2/iamserviceaccounts/onboard", produces="application/json")
 	public ResponseEntity<String> onboardIAMServiceAccount( HttpServletRequest request, @RequestHeader(value="vault-token") String token, @RequestBody @Valid IAMServiceAccount iamServiceAccount ){
-		UserDetails userDetails = (UserDetails) request.getAttribute("UserDetails");
+		UserDetails userDetails = (UserDetails) request.getAttribute(USER_DETAILS_STRING);
 		return iamServiceAccountsService.onboardIAMServiceAccount(token, iamServiceAccount, userDetails);
 	}
 
@@ -70,7 +72,7 @@ public class IAMServiceAccountsController {
 	@PostMapping(value="/v2/iamserviceaccounts/user",produces="application/json")
 	@ApiOperation(value = "${IAMServiceAccountsController.addUserToIAMServiceAccount.value}", notes = "${IAMServiceAccountsController.addUserToIAMServiceAccount.notes}")
 	public ResponseEntity<String> addUserToIAMServiceAccount(HttpServletRequest request, @RequestHeader(value="vault-token") String token, @RequestBody @Valid IAMServiceAccountUser iamServiceAccountUser){
-	   UserDetails userDetails = (UserDetails) request.getAttribute("UserDetails");
+	   UserDetails userDetails = (UserDetails) request.getAttribute(USER_DETAILS_STRING);
 	   return iamServiceAccountsService.addUserToIAMServiceAccount(token, userDetails, iamServiceAccountUser, false);
 	}
 
@@ -84,7 +86,7 @@ public class IAMServiceAccountsController {
 	@PostMapping(value="/v2/iamserviceaccounts/group",produces="application/json")
 	@ApiOperation(value = "${IAMServiceAccountsController.addGroupToIAMServiceAccount.value}", notes = "${IAMServiceAccountsController.addGroupToIAMServiceAccount.notes}")
 	public ResponseEntity<String> addGroupToIAMServiceAccount(HttpServletRequest request, @RequestHeader(value="vault-token") String token, @RequestBody @Valid IAMServiceAccountGroup iamServiceAccountGroup){
-	   UserDetails userDetails = (UserDetails) request.getAttribute("UserDetails");
+	   UserDetails userDetails = (UserDetails) request.getAttribute(USER_DETAILS_STRING);
 	   return iamServiceAccountsService.addGroupToIAMServiceAccount(token, iamServiceAccountGroup, userDetails);
 	}
 	
@@ -143,4 +145,31 @@ public class IAMServiceAccountsController {
 		return iamServiceAccountsService.getIAMServiceAccountSecretKey(token, iamsvcname);
 	}
 
+	/**
+	 * Removes permission for a user from the IAM service account
+	 * @param request
+	 * @param token
+	 * @param iamServiceAccountUser
+	 * @return
+	 */
+	@ApiOperation(value = "${IAMServiceAccountsController.removeUserFromIAMServiceAccount.value}", notes = "${IAMServiceAccountsController.removeUserFromIAMServiceAccount.notes}")
+	@DeleteMapping(value="/v2/iamserviceaccounts/user", produces="application/json")
+	public ResponseEntity<String> removeUserFromIAMServiceAccount( HttpServletRequest request, @RequestHeader(value="vault-token") String token, @Valid @RequestBody IAMServiceAccountUser iamServiceAccountUser ){
+		UserDetails userDetails = (UserDetails) request.getAttribute(USER_DETAILS_STRING);
+		return iamServiceAccountsService.removeUserFromIAMServiceAccount(token, iamServiceAccountUser, userDetails);
+	}
+
+	/**
+	 * Removes permission for a group from the IAM service account
+	 * @param request
+	 * @param token
+	 * @param iamServiceAccountGroup
+	 * @return
+	 */
+	@ApiOperation(value = "${IAMServiceAccountsController.removeGroupFromIAMServiceAccount.value}", notes = "${IAMServiceAccountsController.removeGroupFromIAMServiceAccount.notes}")
+	@DeleteMapping(value="/v2/iamserviceaccounts/group", produces="application/json")
+	public ResponseEntity<String> removeGroupFromIAMServiceAccount( HttpServletRequest request, @RequestHeader(value="vault-token") String token, @Valid @RequestBody IAMServiceAccountGroup iamServiceAccountGroup ){
+		UserDetails userDetails = (UserDetails) request.getAttribute(USER_DETAILS_STRING);
+		return iamServiceAccountsService.removeGroupFromIAMServiceAccount(token, iamServiceAccountGroup, userDetails);
+	}
 }

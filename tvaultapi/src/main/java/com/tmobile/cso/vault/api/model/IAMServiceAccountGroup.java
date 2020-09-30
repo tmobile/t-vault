@@ -69,7 +69,7 @@ public class IAMServiceAccountGroup implements Serializable {
 	 */
 	@ApiModelProperty(example = "123123_svc_vlt_test2", position = 1)
 	public String getIamSvcAccName() {
-		return iamSvcAccName;
+		return iamSvcAccName.toLowerCase();
 	}
 
 	/**
@@ -97,7 +97,7 @@ public class IAMServiceAccountGroup implements Serializable {
 	/**
 	 * @return the access
 	 */
-	@ApiModelProperty(example = "read", position = 3, allowableValues = "read,write,deny,owner")
+	@ApiModelProperty(example = "read", position = 3, allowableValues = "read,reset,deny,owner")
 	public String getAccess() {
 		return access.toLowerCase();
 	}
