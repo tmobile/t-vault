@@ -387,6 +387,21 @@
                     return response;
                 });
             },
+            getOnboardedIamServiceAccounts: function(payload, url) {
+                return ServiceEndpoint.getOnboardedIamServiceAccounts.makeRequest(payload, url).then(function(response) {
+                    return response;
+                });
+            },
+            getIamServiceAccount: function(payload, url) {
+                return ServiceEndpoint.getIamServiceAccount.makeRequest(payload, url).then(function(response) {
+                    return response;
+                });
+            },
+            getSecretForIamSvcacc: function(payload, url) {
+                return ServiceEndpoint.getSecretForIamSvcacc.makeRequest(payload, url).then(function(response) {
+                    return response;
+                });
+            },
             getTheRightErrorMessage : function(responseObject){
                 if(responseObject.status===500 || responseObject.statusText==='Internal Server Error'){
                     return ErrorMessage.ERROR_NETWORK;
