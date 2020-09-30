@@ -45,6 +45,9 @@ const noDataStyle = css`
   ${landscapeIpad} {
     width: 70%;
   }
+  ${small} {
+    width: 100%;
+  }
 `;
 
 const Groups = (props) => {

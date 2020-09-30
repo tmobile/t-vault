@@ -104,6 +104,7 @@ const SafeFolderWrap = styled.div`
   position: relative;
   display: flex;
   align-items: center;
+  justify-content: space-between;
   padding: 1.2rem 1.8rem 1.2rem 3.4rem;
   background-image: ${(props) =>
     props.active ? props.theme.gradients.list : 'none'};
@@ -351,10 +352,11 @@ const SafeDashboard = () => {
   const renderSafes = () => {
     return safeList.map((safe) => (
       <SafeFolderWrap
+        key={safe.name}
         active={history.location.pathname === `/safe/${safe.path}`}
       >
         <ListContainer
-          onClick={() => onListClicked(`/safe/${safe.path}`, safe)}
+          onClick={() => onListClicked(`/safe/${safe.name}`, safe)}
         >
           <ListItem
             title={safe.name}

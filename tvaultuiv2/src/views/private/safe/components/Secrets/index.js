@@ -41,6 +41,9 @@ const customStyle = css`
 
 const noDataStyle = css`
   width: 45%;
+  ${mediaBreakpoints.small} {
+    width: 100%;
+  }
 `;
 
 const Secrets = (props) => {

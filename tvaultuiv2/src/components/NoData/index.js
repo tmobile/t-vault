@@ -3,6 +3,7 @@ import styled from 'styled-components';
 import PropTypes from 'prop-types';
 import CardMedia from '@material-ui/core/CardMedia';
 import ReactHtmlParser from 'react-html-parser';
+import mediaBreakpoints from '../../breakpoints';
 import ComponentError from '../../errorBoundaries/ComponentError/component-error';
 
 const DialogeBoxWrapper = styled('div')`
@@ -18,6 +19,9 @@ const BoxDescription = styled.p`
   text-align: center;
   font-size: 1.4rem;
   color: #5e627c;
+  ${mediaBreakpoints.small} {
+    width: 90%;
+  }
 `;
 
 const BackgroundIcon = styled(CardMedia)`

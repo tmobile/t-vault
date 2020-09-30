@@ -46,6 +46,9 @@ const noDataStyle = css`
   ${landscapeIpad} {
     width: 75%;
   }
+  ${small} {
+    width: 100%;
+  }
 `;
 
 const AwsApplications = (props) => {
