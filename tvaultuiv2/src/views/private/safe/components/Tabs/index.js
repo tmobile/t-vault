@@ -272,7 +272,7 @@ export default function SelectionTabs(props) {
   );
 }
 SelectionTabs.propTypes = {
-  safeDetail: PropTypes.object,
+  safeDetail: PropTypes.objectOf(PropTypes.object),
 };
 SelectionTabs.defaultProps = {
   safeDetail: {},
