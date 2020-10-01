@@ -259,12 +259,7 @@ script(type='text/ng-template', id='certificatePopup.html')
                     div.key-acceptance-info() {{ certNameErrorMessage }}
                   .col-lg-12.col-md-12.col-sm-12.col-xs-12.common-form-row()
                     .details-input-group
-                      .certificate-form-label(uib-tooltip="Name of the application") Application Name* 
-                      .left-lg-sep.right-lg-sep
-            			.common-form.modal-inner-wrapper.aws
-              			.common-form-row
-                		.details-input-group
-                    	.common-form-label                     
+                      .certificate-form-label(uib-tooltip="Name of the application") Application Name*                                           
                       drop-down(drop-down-options="dropdownApplicationName" name="certApplicationName" id="applicationName"  ng-click="appNameSelect()")
                       div.loader.svcaccid(ng-if='isApplicationsLoading')
                   .col-lg-12.col-md-12.col-sm-12.col-xs-12.common-form-row()
