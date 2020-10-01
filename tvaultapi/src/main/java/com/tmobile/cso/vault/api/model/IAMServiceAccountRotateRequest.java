@@ -34,7 +34,7 @@ public class IAMServiceAccountRotateRequest implements Serializable {
     private String userName;
     @NotNull
     @Pattern( regexp = "^$|^[0-9]+$", message="Invalid AWS account id")
-    private String awsAccountId;
+    private String accountId;
 
     /**
      *
@@ -46,13 +46,13 @@ public class IAMServiceAccountRotateRequest implements Serializable {
     /**
      * @param accessKeyId
      * @param userName
-     * @param awsAccountId
+     * @param accountId
      */
-    public IAMServiceAccountRotateRequest(String accessKeyId, String userName, String awsAccountId) {
+    public IAMServiceAccountRotateRequest(String accessKeyId, String userName, String accountId) {
         super();
         this.accessKeyId = accessKeyId;
         this.userName = userName;
-        this.awsAccountId = awsAccountId;
+        this.accountId = accountId;
     }
 
     public String getAccessKeyId() {
@@ -71,12 +71,12 @@ public class IAMServiceAccountRotateRequest implements Serializable {
         this.userName = userName;
     }
 
-    public String getAwsAccountId() {
-        return awsAccountId;
+    public String getAccountId() {
+        return accountId;
     }
 
-    public void setAwsAccountId(String awsAccountId) {
-        this.awsAccountId = awsAccountId;
+    public void setAccountId(String accountId) {
+        this.accountId = accountId;
     }
 
     @Override
@@ -84,7 +84,7 @@ public class IAMServiceAccountRotateRequest implements Serializable {
         return "IAMServiceAccountRotateRequest{" +
                 "accessKeyId='" + accessKeyId + '\'' +
                 ", userName='" + userName + '\'' +
-                ", awsAccountId='" + awsAccountId + '\'' +
+                ", accountId='" + accountId + '\'' +
                 '}';
     }
 }

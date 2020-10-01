@@ -65,7 +65,7 @@ public class IAMServiceAccountUser implements Serializable {
 	 */
 	@ApiModelProperty(example = "svc_vault_test2", position = 1)
 	public String getIamSvcAccName() {
-		return iamSvcAccName.toLowerCase();
+		return iamSvcAccName;
 	}
 
 	/**
