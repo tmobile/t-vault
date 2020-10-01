@@ -23,6 +23,7 @@ const styles = (props) => ({
   startIcon: {
     marginRight: '0.5rem',
   },
+  ...props.muiButtonOverrides,
 });
 const setIcon = (props) => {
   const { icon, classes } = props;

@@ -11,8 +11,6 @@ const IconWrap = styled('div')`
 `;
 
 const Icon = styled('div')`
-    // width: 2.5rem;
-    // height:2.5rem;
     display: flex;
     align-items: center;
     justify-content: center
@@ -31,7 +29,7 @@ const PsudoPopper = (props) => {
       <IconWrap>
         <Link
           to={{
-            pathname: '/safe/edit-safe',
+            pathname: `/${item.name}`,
             state: { item },
           }}
         >

@@ -12,7 +12,7 @@ const ColumnHeader = styled('div')`
   position: relative;
   height: 17.1rem;
   padding: 2rem;
-  .safe-title-wrap {
+  .list-title-wrap {
     width: 70%;
   }
   ${mediaBreakpoints.small} {
@@ -20,7 +20,7 @@ const ColumnHeader = styled('div')`
     padding: 1rem;
   }
 `;
-const SafeTitle = styled('h5')`
+const ListTitle = styled('h5')`
   font-size: ${(props) => props.theme.typography};
   margin: 1rem 0 1.2rem;
   text-overflow: ellipsis;
@@ -35,7 +35,7 @@ const HeaderBg = styled('div')`
   background: url(${(props) => props.bgImage || ''});
 `;
 
-const SafeDetailHeader = (props) => {
+const ListDetailHeader = (props) => {
   const { title, description, bgImage } = props;
 
   // screen view handler
@@ -43,25 +43,25 @@ const SafeDetailHeader = (props) => {
   return (
     <ColumnHeader>
       <HeaderBg bgImage={bgImage} />
-      <div className="safe-title-wrap">
-        {!isMobileScreen && <SafeTitle>{title || 'No Safe'}</SafeTitle>}
+      <div className="list-title-wrap">
+        {!isMobileScreen && <ListTitle>{title || 'No Title'}</ListTitle>}
         <TitleFour color="#c4c4c4">
           {description ||
-            'Create a Safe to see your secrets, folders and permissions here'}
+            'Create a service to see your secrets, folders and permissions here'}
         </TitleFour>
       </div>
     </ColumnHeader>
   );
 };
 
-SafeDetailHeader.propTypes = {
+ListDetailHeader.propTypes = {
   title: PropTypes.string,
   description: PropTypes.string,
   bgImage: PropTypes.string,
 };
-SafeDetailHeader.defaultProps = {
+ListDetailHeader.defaultProps = {
   title: '',
   description: '',
   bgImage: '',
 };
-export default SafeDetailHeader;
+export default ListDetailHeader;

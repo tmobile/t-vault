@@ -17,13 +17,14 @@ import FloatingActionButtonComponent from '../../../../../components/FormFields/
 import TextFieldComponent from '../../../../../components/FormFields/TextField';
 import ListItemDetail from '../../../../../components/ListItemDetail';
 import ListItem from '../../../../../components/ListItem';
-import PsudoPopper from '../../../../../components/PsudoPopper';
+import PsudoPopper from '../../../../../components/EditAndDeletePopup';
 import Error from '../../../../../components/Error';
 
 import apiService from '../../apiService';
 import ScaledLoader from '../../../../../components/Loaders/ScaledLoader';
 
 import ConfirmationModal from '../../../../../components/ConfirmationModal';
+import OnBoardForm from '../OnBoardForm';
 import ButtonComponent from '../../../../../components/FormFields/ActionButton';
 import { IconEdit, IconDeleteActive } from '../../../../../assets/SvgIcons';
 import { TitleOne } from '../../../../../styles/GlobalStyles';
@@ -36,7 +37,7 @@ const ColumnSection = styled('section')`
 const RightColumnSection = styled(ColumnSection)`
   width: 59.23%;
   padding: 0;
-  background: linear-gradient(to bottom, #151820, #2c3040);
+  background: linear-gradient(to top, #151820, #2c3040);
   ${mediaBreakpoints.small} {
     width: 100%;
     display: none;
@@ -174,14 +175,14 @@ const ServiceAccountDashboard = (props) => {
     setActiveFolders,
     isLoading,
   } = props;
-  const [onBoardForm, setOnBoardForm] = useState(false);
+  const [enableOnBoardForm, setEnableOnBoardForm] = useState(false);
   const [inputSearchValue, setInputSearchValue] = useState('');
   let scrollParentRef = null;
   const classes = useStyles();
   const isMobileScreen = useMediaQuery(mediaBreakpoints.small);
 
   const showOnBoardForm = () => {
-    setOnBoardForm(true);
+    setEnableOnBoardForm(true);
   };
   const onSearchChange = (value) => {
     setInputSearchValue(value);
@@ -368,6 +369,9 @@ const ServiceAccountDashboard = (props) => {
                 render={(routerProps) => (
                   <ListItemDetail
                     detailData={leftColumLists}
+                    renderContent={
+                      enableOnBoardForm ? <OnBoardForm /> : <div />
+                    }
                     params={routerProps}
                     setActiveFolders={() => setActiveFolders([])}
                     ListDetailHeaderBg={sectionHeaderBg}
@@ -379,6 +383,7 @@ const ServiceAccountDashboard = (props) => {
                 render={(routerProps) => (
                   <ListItemDetail
                     detailData={leftColumLists}
+                    renderContent={<OnBoardForm />}
                     params={routerProps}
                     ListDetailHeaderBg={sectionHeaderBg}
                     setActiveFolders={() => setActiveFolders([])}

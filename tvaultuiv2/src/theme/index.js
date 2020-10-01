@@ -14,6 +14,11 @@ export const customColor = {
   hoverColor: {
     list: '#151820',
   },
+  collapse: {
+    color: '#c4c4c4',
+    title: '#8488a8',
+    fontSize: '1.4rem;',
+  },
 };
 const customTheme = createMuiTheme({
   breakpoints: {
@@ -152,6 +157,9 @@ const customTheme = createMuiTheme({
       minHeight: '100vh',
       color: '#fff',
     },
+    collapse: {
+      color: '#c4c4c4',
+    },
     button: {
       fontFamily:
         'BlinkMacSystemFont,-apple-system,"Segoe UI",Roboto,Oxygen,Ubuntu,"Helvetica Neue",Arial,sans-serif',
@@ -237,6 +245,9 @@ const customTheme = createMuiTheme({
     MuiPaper: {
       rounded: {
         borderRadius: '0',
+      },
+      root: {
+        color: customColor.collapse.color,
       },
     },
     MuiAppBar: { colorPrimary: { backgroundColor: 'transparent' } },
@@ -392,6 +403,11 @@ const customTheme = createMuiTheme({
         '&:active': {
           backgroundColor: 'transparent',
         },
+      },
+    },
+    MuiCollapse: {
+      container: {
+        color: customColor.collapse.color,
       },
     },
   },
