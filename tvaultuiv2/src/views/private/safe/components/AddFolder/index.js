@@ -34,12 +34,21 @@ const ButtonWrapper = styled('div')`
   display: flex;
   justify-content: flex-end;
   margin-top: 5rem;
+  height: 100%;
+`;
+
+const SaveButton = styled.div`
+  ${mediaBreakpoints.small} {
+    align-self: flex-end;
+    width: 100%;
+  }
 `;
 
 const CancelButton = styled.div`
   margin-right: 0.8rem;
   ${mediaBreakpoints.small} {
     width: 100%;
+    align-self: flex-end;
   }
 `;
 
@@ -123,16 +132,18 @@ const AddFolder = (props) => {
               width={isMobileScreen ? '100%' : ''}
             />
           </CancelButton>
-          <ButtonComponent
-            label="Save"
-            color="secondary"
-            buttonType="containedSecondary"
-            disabled={!inputValue || errorMessage}
-            onClick={() =>
-              handleSaveClick({ value: inputValue, type: 'folder', parentId })
-            }
-            width={isMobileScreen ? '100%' : ''}
-          />
+          <SaveButton>
+            <ButtonComponent
+              label="Save"
+              color="secondary"
+              buttonType="containedSecondary"
+              disabled={!inputValue || errorMessage}
+              onClick={() =>
+                handleSaveClick({ value: inputValue, type: 'folder', parentId })
+              }
+              width={isMobileScreen ? '100%' : ''}
+            />
+          </SaveButton>
         </ButtonWrapper>
       </AddFolderNameWrapper>
     </ComponentError>

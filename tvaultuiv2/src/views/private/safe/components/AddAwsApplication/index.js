@@ -127,14 +127,15 @@ const AddAwsApplication = (props) => {
     } else {
       data = {
         auth_type: awsAuthenticationType,
+        bound_account_id: '',
         bound_ami_id: '',
         bound_iam_instance_profile_arn: '',
-        bound_iam_principal_arn: iamPrincipalArn,
+        bound_iam_principal_arn: [iamPrincipalArn],
         bound_iam_role_arn: '',
         bound_region: '',
         bound_subnet_id: '',
         bound_vpc_id: '',
-        policies: '',
+        policies: [],
         resolve_aws_unique_ids: 'false',
         role: roleName,
       };
@@ -297,7 +298,7 @@ const AddAwsApplication = (props) => {
           label="Create"
           color="secondary"
           icon="add"
-          disabled={!isEC2 || disabledSave}
+          disabled={disabledSave}
           onClick={() => onCreateClicked()}
           width={isMobileScreen ? '100%' : ''}
         />

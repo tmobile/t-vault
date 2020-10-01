@@ -46,6 +46,8 @@ const RightColumnSection = styled(ColumnSection)`
     display: ${(props) => (props.clicked ? 'block' : 'none')};
     position: fixed;
     top: 0;
+    overflow-y: scroll;
+    max-height: 100%;
   }
 `;
 const LeftColumnSection = styled(ColumnSection)`
