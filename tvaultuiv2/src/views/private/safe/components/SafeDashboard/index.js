@@ -92,7 +92,7 @@ const NoDataWrapper = styled.div`
   align-items: center;
   color: #5e627c;
   span {
-    margin-left: 0.4rem;
+    margin: 0 0.4rem;
     color: #fff;
     font-weight: bold;
     text-transform: uppercase;
@@ -302,20 +302,10 @@ const SafeDashboard = () => {
   }, [fetchData]);
 
   /**
-   * @function onSelectChange
-   * @description function to filter safe.
-   * @param {string} value selected filter value.
+   * @function onSearchChange
+   * @description function to search safe.
+   * @param {string} value searched input value.
    */
-  const onSelectChange = (value) => {
-    setSafeType(value);
-    if (value !== 'All Safes') {
-      const obj = selectList.find((item) => item.selected === value);
-      setSafeList([...safes[obj.path]]);
-    } else {
-      setSafeList([...safes.users, ...safes.shared, ...safes.apps]);
-    }
-  };
-
   const onSearchChange = (value) => {
     setInputSearchValue(value);
     if (value !== '') {
@@ -327,6 +317,39 @@ const SafeDashboard = () => {
       setSafeList([...allSafeList]);
     }
   };
+
+  /**
+   * @function onSelectChange
+   * @description function to filter safe.
+   * @param {string} value selected filter value.
+   */
+  const onSelectChange = (value) => {
+    setSafeType(value);
+    if (value !== 'All Safes') {
+      const obj = selectList.find((item) => item.selected === value);
+      setSafeList([...safes[obj.path]]);
+    } else {
+      setSafeList([...allSafeList]);
+    }
+  };
+
+  // when both search and filter value is available.
+  useEffect(() => {
+    if (safeType !== 'All Safes' && inputSearchValue) {
+      const obj = selectList.find((item) => item.selected === safeType);
+      const array = allSafeList.filter(
+        (item) =>
+          item.path.split('/')[0] === obj.path &&
+          String(item.name).startsWith(inputSearchValue)
+      );
+      setSafeList([...array]);
+    } else if (safeType === 'All Safes' && inputSearchValue) {
+      onSearchChange(inputSearchValue);
+    } else if (inputSearchValue === '') {
+      onSelectChange(safeType);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [inputSearchValue, safeType]);
 
   const loadMoreData = () => {
     setIsLoading(true);
@@ -537,6 +560,12 @@ const SafeDashboard = () => {
                     <NoDataWrapper>
                       No safe found with name
                       <span>{inputSearchValue}</span>
+                      {safeType !== 'All Safes' && (
+                        <>
+                          and filter by
+                          <span>{safeType}</span>
+                        </>
+                      )}
                       {' . '}
                     </NoDataWrapper>
                   ) : (
