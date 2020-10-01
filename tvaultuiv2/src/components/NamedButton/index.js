@@ -1,4 +1,3 @@
-/* eslint-disable react/require-default-props */
 import React from 'react';
 import PropTypes from 'prop-types';
 import styled, { css } from 'styled-components';
@@ -24,6 +23,10 @@ const Icon = styled('img')`
 
 const styles = css`
   font-weight: bold;
+  ${mediaBreakpoints.small} {
+    font-weight: normal;
+    font-size: 1.4rem;
+  }
 `;
 
 const NamedButton = (props) => {
@@ -46,7 +49,6 @@ const NamedButton = (props) => {
 NamedButton.propTypes = {
   label: PropTypes.string,
   iconSrc: PropTypes.node,
-  // eslint-disable-next-line react/forbid-prop-types
   customStyle: PropTypes.arrayOf(PropTypes.any),
   onClick: PropTypes.func,
   disable: PropTypes.bool,

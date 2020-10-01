@@ -1,5 +1,13 @@
 import styled from 'styled-components';
 
+export const SubHeading = styled('div')`
+  font-size: 2.4rem;
+  color: ${(props) => props.color || '#fff'};
+  line-height: ${(props) => props.lineHeight || 'normal'};
+  font-family: ${(props) => props.fontfamily || ''};
+  ${(props) => (props.extraCss ? props.extraCss : '')}
+`;
+
 export const TitleOne = styled('div')`
   font-size: 1.8rem;
   color: ${(props) => props.color || '#fff'};

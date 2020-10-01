@@ -250,7 +250,7 @@ const customTheme = createMuiTheme({
         color: customColor.collapse.color,
       },
     },
-    MuiAppBar: { colorPrimary: { backgroundColor: '#151820' } },
+    MuiAppBar: { colorPrimary: { backgroundColor: 'transparent' } },
     MuiInput: {
       root: {
         padding: '0.5rem',

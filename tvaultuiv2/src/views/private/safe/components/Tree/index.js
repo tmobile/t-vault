@@ -27,6 +27,9 @@ const StyledTree = styled.div`
   & > div {
     padding-left: 0;
   }
+  > div:not(:last-child) {
+    border-bottom: 1px solid #323649;
+  }
 `;
 const Tree = (props) => {
   const { data } = props;
@@ -346,7 +349,7 @@ const Tree = (props) => {
 
 // props validation
 Tree.propTypes = {
-  data: PropTypes.arrayOf(PropTypes.array),
+  data: PropTypes.arrayOf(PropTypes.any),
 };
 
 Tree.defaultProps = {

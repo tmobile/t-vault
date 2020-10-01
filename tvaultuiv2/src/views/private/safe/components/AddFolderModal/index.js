@@ -43,6 +43,7 @@ const AddFolderModal = (props) => {
     handleCancelClick,
     parentId,
   } = props;
+
   const classes = useStyles();
   const handleClose = () => {
     setOpenModal(false);
@@ -76,8 +77,7 @@ const AddFolderModal = (props) => {
 AddFolderModal.propTypes = {
   openModal: PropTypes.bool,
   setOpenModal: PropTypes.func,
-  // eslint-disable-next-line react/forbid-prop-types
-  childrens: PropTypes.arrayOf(PropTypes.array),
+  childrens: PropTypes.arrayOf(PropTypes.object),
   handleSaveClick: PropTypes.func,
   handleCancelClick: PropTypes.func,
   parentId: PropTypes.string,

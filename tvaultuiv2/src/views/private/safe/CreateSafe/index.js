@@ -19,8 +19,9 @@ import AutoCompleteComponent from '../../../../components/FormFields/AutoComplet
 import LoaderSpinner from '../../../../components/Loaders/LoaderSpinner';
 import { validateEmail } from '../../../../services/helper-function';
 import apiService from '../apiService';
+import { TitleThree } from '../../../../styles/GlobalStyles';
 
-const { small, smallAndMedium } = mediaBreakpoints;
+const { small, belowLarge } = mediaBreakpoints;
 
 const ModalWrapper = styled.section`
   background-color: #2a2e3e;
@@ -32,8 +33,9 @@ const ModalWrapper = styled.section`
   display: flex;
   flex-direction: column;
   position: relative;
-  ${smallAndMedium} {
-    padding: 4.7rem 5rem 5rem 5rem;
+  ${belowLarge} {
+    padding: 2.7rem 5rem 3.2rem 5rem;
+    width: 57.2rem;
   }
   ${small} {
     width: 100%;
@@ -69,12 +71,11 @@ const IconDescriptionWrapper = styled.div`
 
 const SafeIcon = styled.img`
   height: 5.7rem;
+  width: 5rem;
+  margin-right: 2rem;
 `;
 
-const SafeDescription = styled.p`
-  margin: 0 0 0 2rem;
-  color: #ccc;
-  font-size: 1.4rem;
+const extraCss = css`
   ${small} {
     font-size: 1.3rem;
   }
@@ -214,7 +215,10 @@ const CreateModal = () => {
   };
 
   useEffect(() => {
-    if (history.location.pathname === '/safe/edit-safe') {
+    if (
+      history.location.pathname === '/safe/edit-safe' &&
+      history.location.state
+    ) {
       setEditSafe(true);
       setResponseType(0);
       apiService
@@ -395,12 +399,12 @@ const CreateModal = () => {
             </HeaderWrapper>
             <IconDescriptionWrapper>
               <SafeIcon src={safeIcon} alt="safe-icon" />
-              <SafeDescription>
+              <TitleThree lineHeight="1.8rem" extraCss={extraCss} color="#ccc">
                 A Safe is a logical unit to store the secrets. All the safes are
                 created within Vault. You can control access only at the safe
                 level. As a vault administrator you can manage safes but cannot
                 view the content of the safe.
-              </SafeDescription>
+              </TitleThree>
             </IconDescriptionWrapper>
             <CreateSafeForm>
               <InputFieldLabelWrapper>

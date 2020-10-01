@@ -12,6 +12,7 @@ const CreateSecretWrap = styled('div')`
   padding: 0.5em;
   cursor: pointer;
 `;
+
 const SpanElement = styled.span``;
 
 const CreateSecretButton = (props) => {

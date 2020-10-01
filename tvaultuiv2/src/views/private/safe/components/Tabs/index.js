@@ -79,26 +79,32 @@ function a11yProps(index) {
   };
 }
 
-const useStyles = makeStyles(() => ({
+const useStyles = makeStyles((theme) => ({
   root: {
     flexGrow: 1,
     padding: '0 2.1rem',
     height: 'calc( 100% - 19.1rem )',
     display: 'flex',
     flexDirection: 'column',
+    background: 'linear-gradient(to bottom,#151820,#2c3040)',
   },
   appBar: {
     display: 'flex',
     flexDirection: 'row',
     justifyContent: 'space-between',
     height: '4.8rem',
+    boxShadow: 'none',
+    borderBottom: '0.3rem solid #222632',
+    [theme.breakpoints.down('md')]: {
+      height: 'auto',
+    },
   },
   tab: {
     minWidth: '9.5rem',
   },
 }));
 
-export default function SelectionTabs(props) {
+const SelectionTabs = (props) => {
   const { safeDetail } = props;
   const classes = useStyles();
   const [value, setValue] = useState(0);
@@ -270,10 +276,12 @@ export default function SelectionTabs(props) {
       </div>
     </ComponentError>
   );
-}
+};
 SelectionTabs.propTypes = {
-  safeDetail: PropTypes.objectOf(PropTypes.object),
+  safeDetail: PropTypes.objectOf(PropTypes.any),
 };
 SelectionTabs.defaultProps = {
   safeDetail: {},
 };
+
+export default SelectionTabs;

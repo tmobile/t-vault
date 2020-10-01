@@ -43,7 +43,7 @@ const CreateSecretModal = (props) => {
     parentId,
     secretprefilledData,
   } = props;
-  //   const [open, setOpen] = useState(true);
+
   const classes = useStyles();
   const handleClose = () => {
     setOpenModal(false);
@@ -80,7 +80,7 @@ CreateSecretModal.propTypes = {
   setOpenModal: PropTypes.func,
   handleSecretSave: PropTypes.func,
   handleSecretCancel: PropTypes.func,
-  parentId: PropTypes.func,
+  parentId: PropTypes.string,
   secretprefilledData: PropTypes.objectOf(PropTypes.object),
 };
 CreateSecretModal.defaultProps = {

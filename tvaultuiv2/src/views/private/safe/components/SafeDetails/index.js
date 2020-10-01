@@ -1,6 +1,3 @@
-/* eslint-disable react/forbid-prop-types */
-/* eslint-disable react/require-default-props */
-/* eslint-disable react/no-unused-prop-types */
 import React, { useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
 import { useHistory, useLocation } from 'react-router-dom';
@@ -26,13 +23,14 @@ const BackButton = styled.div`
   display: flex;
   align-items: center;
   padding: 2rem 0 0 2rem;
+  cursor: pointer;
   span {
     margin-left: 1rem;
   }
 `;
 
 const SafeDetails = (props) => {
-  const { setActiveSafeFolders, detailData } = props;
+  const { detailData, resetClicked } = props;
   const [safe, setSafe] = useState({});
   // use history of page
   const history = useHistory();
@@ -41,8 +39,9 @@ const SafeDetails = (props) => {
   const isMobileScreen = useMediaQuery(mediaBreakpoints.small);
   // route component data
   const goBackToSafeList = () => {
-    setActiveSafeFolders();
+    resetClicked();
   };
+
   useEffect(() => {
     if (!location?.state?.safe) {
       if (detailData && detailData.length) {
@@ -80,14 +79,12 @@ const SafeDetails = (props) => {
   );
 };
 SafeDetails.propTypes = {
-  detailData: PropTypes.arrayOf(PropTypes.array),
-  params: PropTypes.objectOf(PropTypes.object),
-  setActiveSafeFolders: PropTypes.func,
+  detailData: PropTypes.arrayOf(PropTypes.any),
+  resetClicked: PropTypes.func,
 };
 SafeDetails.defaultProps = {
   detailData: [],
-  params: {},
-  setActiveSafeFolders: () => {},
+  resetClicked: () => {},
 };
 
 export default SafeDetails;
