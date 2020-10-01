@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 /* eslint-disable react/jsx-indent */
 /* eslint-disable react/jsx-curly-newline */
 import React, { useState, useEffect } from 'react';
@@ -16,7 +15,7 @@ import apiService from '../../../../apiService';
 import LoaderSpinner from '../../../../../../../components/Loaders/LoaderSpinner';
 import Error from '../../../../../../../components/Error';
 
-const { small } = mediaBreakpoints;
+const { small, belowLarge } = mediaBreakpoints;
 
 const NoDataWrapper = styled.section`
   display: flex;
@@ -39,6 +38,16 @@ const bgIconStyle = {
 
 const customStyle = css`
   height: 100%;
+`;
+
+const noDataStyle = css`
+  width: 42%;
+  ${belowLarge} {
+    width: 70%;
+  }
+  ${small} {
+    width: 100%;
+  }
 `;
 
 const Groups = (props) => {
@@ -214,11 +223,11 @@ const Groups = (props) => {
                         icon="add"
                         color="secondary"
                         onClick={() => setResponse({ status: 'add' })}
-                        width={isMobileScreen ? '100%' : '9rem'}
+                        width={isMobileScreen ? '100%' : '9.4rem'}
                       />
                     }
                     bgIconStyle={bgIconStyle}
-                    width={isMobileScreen ? '100%' : '42%'}
+                    customStyle={noDataStyle}
                   />
                 </NoDataWrapper>
               )}

@@ -24,14 +24,14 @@ const Icon = styled('div')`
 `;
 
 const PsudoPopper = (props) => {
-  const { onDeleteSafeClicked, safe } = props;
+  const { onDeleteSafeClicked, safe, path } = props;
 
   return (
     <ComponentError>
       <IconWrap>
         <Link
           to={{
-            pathname: '/safe/edit-safe',
+            pathname: path,
             state: { safe },
           }}
         >
@@ -52,11 +52,13 @@ const PsudoPopper = (props) => {
 PsudoPopper.propTypes = {
   onDeleteSafeClicked: PropTypes.func,
   safe: PropTypes.objectOf(PropTypes.any),
+  path: PropTypes.string,
 };
 
 PsudoPopper.defaultProps = {
   onDeleteSafeClicked: () => {},
   safe: {},
+  path: '',
 };
 
 export default PsudoPopper;

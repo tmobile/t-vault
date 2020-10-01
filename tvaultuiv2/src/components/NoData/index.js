@@ -3,6 +3,7 @@ import styled from 'styled-components';
 import PropTypes from 'prop-types';
 import CardMedia from '@material-ui/core/CardMedia';
 import ReactHtmlParser from 'react-html-parser';
+import mediaBreakpoints from '../../breakpoints';
 import ComponentError from '../../errorBoundaries/ComponentError/component-error';
 
 const DialogeBoxWrapper = styled('div')`
@@ -11,27 +12,37 @@ const DialogeBoxWrapper = styled('div')`
   align-items: center;
   flex-direction: column;
   height: 100%;
-  width: ${(props) => props.width};
+  width: 100%;
+  ${(props) => props.customStyle};
 `;
 const BoxDescription = styled.p`
   text-align: center;
   font-size: 1.4rem;
   color: #5e627c;
+  ${mediaBreakpoints.small} {
+    width: 90%;
+  }
 `;
 
 const BackgroundIcon = styled(CardMedia)`
-  ${(props) => props.imgStyles}
+  ${(props) => props.imgstyling}
 `;
 const NoData = (props) => {
-  const { description, actionButton, imageSrc, bgIconStyle, width } = props;
+  const {
+    description,
+    actionButton,
+    imageSrc,
+    bgIconStyle,
+    customStyle,
+  } = props;
 
   return (
     <ComponentError>
-      <DialogeBoxWrapper width={width}>
+      <DialogeBoxWrapper customStyle={customStyle}>
         <BackgroundIcon
           image={imageSrc}
           title="no-data"
-          imgStyles={bgIconStyle}
+          imgstyling={bgIconStyle}
         />
         <BoxDescription>{ReactHtmlParser(description)}</BoxDescription>
         {actionButton}
@@ -43,14 +54,14 @@ NoData.propTypes = {
   description: PropTypes.string,
   actionButton: PropTypes.node,
   imageSrc: PropTypes.node,
-  bgIconStyle: PropTypes.objectOf(PropTypes.object),
-  width: PropTypes.string,
+  bgIconStyle: PropTypes.objectOf(PropTypes.any),
+  customStyle: PropTypes.arrayOf(PropTypes.any),
 };
 NoData.defaultProps = {
   description: 'Nothing here, But me',
   actionButton: <div />,
   imageSrc: '',
   bgIconStyle: { width: '100%', height: '22rem' },
-  width: '100%',
+  customStyle: [],
 };
 export default NoData;

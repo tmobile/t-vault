@@ -64,8 +64,8 @@ const ListItemDetail = (props) => {
   );
 };
 ListItemDetail.propTypes = {
-  detailData: PropTypes.arrayOf(PropTypes.array),
-  params: PropTypes.objectOf(PropTypes.object),
+  detailData: PropTypes.arrayOf(PropTypes.any),
+  params: PropTypes.objectOf(PropTypes.any),
   setActiveSafeFolders: PropTypes.func,
   ListDetailHeaderBg: PropTypes.string,
   renderContent: PropTypes.node,

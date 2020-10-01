@@ -10,8 +10,8 @@ const StyleTextField = styled(TextField)`
     font-size: 1.4rem;
   }
   .MuiFormHelperText-root {
-    font-size: 1.2rem;
-    margin: 0.2rem 0;
+    font-size: 1.3rem;
+    margin: 0.8rem 0;
   }
   .MuiInputAdornment-filled.MuiInputAdornment-positionStart:not(.MuiInputAdornment-hiddenLabel) {
     margin-top: 0;

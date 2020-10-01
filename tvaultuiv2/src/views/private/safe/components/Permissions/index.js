@@ -19,7 +19,7 @@ import AppRoles from './components/AppRoles';
 import SnackbarComponent from '../../../../../components/Snackbar';
 import AwsApplications from './components/AwsApplications';
 
-const { small } = mediaBreakpoints;
+const { belowLarge } = mediaBreakpoints;
 
 const TabPanelWrapper = styled.div`
   height: 90%;
@@ -82,6 +82,9 @@ const TabWrapper = styled.div`
     margin-right: 0.5rem;
     font-size: 1.4rem;
     min-height: 3.65rem;
+    ${belowLarge} {
+      margin-right: 1.2rem;
+    }
   }
   .PrivateTabIndicator-colorSecondary-15 {
     background-color: inherit;
@@ -102,14 +105,14 @@ const CountSpan = styled.div`
 
 const customStyles = css`
   display: flex;
-  ${small} {
+  ${belowLarge} {
     display: none;
   }
 `;
 
 const customMobileStyles = css`
   display: none;
-  ${small} {
+  ${belowLarge} {
     display: flex;
   }
 `;

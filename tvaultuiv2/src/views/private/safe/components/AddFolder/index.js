@@ -1,33 +1,70 @@
 /* eslint-disable react/jsx-curly-newline */
 import React, { useState } from 'react';
 import PropTypes from 'prop-types';
-import styled from 'styled-components';
-import { Typography } from '@material-ui/core';
+import styled, { css } from 'styled-components';
+import { InputLabel } from '@material-ui/core';
+import useMediaQuery from '@material-ui/core/useMediaQuery';
 import ButtonComponent from '../../../../../components/FormFields/ActionButton';
 import TextFieldComponent from '../../../../../components/FormFields/TextField';
 import ComponentError from '../../../../../errorBoundaries/ComponentError/component-error';
+import mediaBreakpoints from '../../../../../breakpoints';
+import { SubHeading } from '../../../../../styles/GlobalStyles';
+import { ColorBackArrow } from '../../../../../assets/SvgIcons';
 
 const AddFolderNameWrapper = styled.div`
-  padding: 4.2rem;
-  border-radius: 0.3rem;
-  background-color: ${(props) =>
-    props.theme.palette.background.paper || '#20232e'};
+  padding: 5.5rem 6rem 6rem 6rem;
+  background-color: #2a2e3e;
   width: ${(props) => props.width || '100%'};
+  ${mediaBreakpoints.semiLarge} {
+    padding: 4.5rem 5rem 5rem 5rem;
+  }
+  ${mediaBreakpoints.small} {
+    padding: 3rem 2rem 2rem 2rem;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+  }
 `;
 
 const FormWrapper = styled.form`
-  margin-top: 2rem;
+  margin-top: 5rem;
 `;
 
 const ButtonWrapper = styled('div')`
   display: flex;
   justify-content: flex-end;
-  margin-top: 2rem;
+  margin-top: 5rem;
+  height: 100%;
+`;
+
+const SaveButton = styled.div`
+  ${mediaBreakpoints.small} {
+    align-self: flex-end;
+    width: 100%;
+  }
 `;
 
 const CancelButton = styled.div`
   margin-right: 0.8rem;
+  ${mediaBreakpoints.small} {
+    width: 100%;
+    align-self: flex-end;
+  }
 `;
+
+const BackButton = styled.span`
+  display: none;
+  ${mediaBreakpoints.small} {
+    display: flex;
+    align-items: center;
+    margin-right: 1.4rem;
+  }
+`;
+
+const extraCss = css`
+  display: flex;
+`;
+
 const AddFolder = (props) => {
   const {
     width = '100%',
@@ -39,6 +76,7 @@ const AddFolder = (props) => {
   const [inputValue, setInputValue] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
   const [error, setError] = useState(null);
+  const isMobileScreen = useMediaQuery(mediaBreakpoints.small);
 
   const handleValidation = (value) => {
     setErrorMessage(null);
@@ -61,10 +99,17 @@ const AddFolder = (props) => {
   };
   return (
     <ComponentError>
-      {' '}
       <AddFolderNameWrapper width={width}>
-        <Typography variant="h5">Add Folder Name*</Typography>
+        <SubHeading extraCss={extraCss}>
+          {isMobileScreen && (
+            <BackButton onClick={() => handleCancelClick(false)}>
+              <ColorBackArrow />
+            </BackButton>
+          )}
+          Add Folder
+        </SubHeading>
         <FormWrapper>
+          <InputLabel required>Folder Name</InputLabel>
           <TextFieldComponent
             placeholder="Add folder"
             onChange={(e) => handleChange(e)}
@@ -77,14 +122,17 @@ const AddFolder = (props) => {
                 : 'Please enter a minimum of 3 characters lowercase alphabets, number and underscore only.'
             }
           />
-          <ButtonWrapper>
-            <CancelButton>
-              <ButtonComponent
-                label="Cancel"
-                color="primary"
-                onClick={() => handleCancelClick(false)}
-              />
-            </CancelButton>
+        </FormWrapper>
+        <ButtonWrapper>
+          <CancelButton>
+            <ButtonComponent
+              label="Cancel"
+              color="primary"
+              onClick={() => handleCancelClick(false)}
+              width={isMobileScreen ? '100%' : ''}
+            />
+          </CancelButton>
+          <SaveButton>
             <ButtonComponent
               label="Save"
               color="secondary"
@@ -93,9 +141,10 @@ const AddFolder = (props) => {
               onClick={() =>
                 handleSaveClick({ value: inputValue, type: 'folder', parentId })
               }
+              width={isMobileScreen ? '100%' : ''}
             />
-          </ButtonWrapper>
-        </FormWrapper>
+          </SaveButton>
+        </ButtonWrapper>
       </AddFolderNameWrapper>
     </ComponentError>
   );
@@ -105,7 +154,7 @@ AddFolder.propTypes = {
   handleCancelClick: PropTypes.func,
   handleSaveClick: PropTypes.func,
   parentId: PropTypes.string,
-  childrens: PropTypes.arrayOf(PropTypes.array),
+  childrens: PropTypes.arrayOf(PropTypes.any),
 };
 AddFolder.defaultProps = {
   width: '100%',
