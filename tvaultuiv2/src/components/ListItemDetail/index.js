@@ -30,7 +30,12 @@ const BackButton = styled.div`
 `;
 
 const ListItemDetail = (props) => {
-  const { setActiveFolders, ListDetailHeaderBg, renderContent } = props;
+  const {
+    setActiveFolders,
+    ListDetailHeaderBg,
+    renderContent,
+    listItem,
+  } = props;
   // use history of page
   //   const history = useHistory();
   //   const location = useLocation();
@@ -48,7 +53,7 @@ const ListItemDetail = (props) => {
         {isMobileScreen ? (
           <BackButton onClick={goBackToList}>
             <BackArrow />
-            {/* <span>{listItem.name || 'No safe'}</span> */}
+            <span>{listItem.name || ''}</span>
           </BackButton>
         ) : null}
 
@@ -69,6 +74,7 @@ ListItemDetail.propTypes = {
   setActiveFolders: PropTypes.func,
   ListDetailHeaderBg: PropTypes.string,
   renderContent: PropTypes.node,
+  listItem: PropTypes.objectOf(PropTypes.object),
 };
 ListItemDetail.defaultProps = {
   detailData: [],
@@ -76,6 +82,7 @@ ListItemDetail.defaultProps = {
   setActiveFolders: () => {},
   ListDetailHeaderBg: '',
   renderContent: <div />,
+  listItem: {},
 };
 
 export default ListItemDetail;

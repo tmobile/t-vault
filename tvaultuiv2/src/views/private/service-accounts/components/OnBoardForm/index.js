@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
-import styled from 'styled-components';
+import styled, { css } from 'styled-components';
 import { InputLabel } from '@material-ui/core';
 import SwitchComponent from '../../../../../components/FormFields/SwitchComponent';
 import TextFieldComponent from '../../../../../components/FormFields/TextField';
 import ButtonComponent from '../../../../../components/FormFields/ActionButton';
 import ServiceAcoountHelp from '../ServiceAccountHelp';
-import { TitleTwo } from '../../../../../styles/GlobalStyles';
+import { TitleTwo, TitleThree } from '../../../../../styles/GlobalStyles';
+import { customColor } from '../../../../../theme';
 import ComponentError from '../../../../../errorBoundaries/ComponentError/component-error';
 
 const Container = styled('section')`
@@ -19,6 +20,7 @@ const InputFieldLabelWrapper = styled('div')`
 const ToggleWrap = styled('div')`
   display: flex;
   align-items: center;
+  justify-content: space-between;
   color: ${(props) => props.theme.customColor.collapse.color};
 `;
 const OnBoardFormContainer = styled('div')`
@@ -54,6 +56,32 @@ const ActionButtonWrap = styled.div`
 const CancelButton = styled.div`
   margin-right: 0.8rem;
 `;
+const CollapseTitle = styled.div`
+  color: ${(props) =>
+    props.color ? props.color : props.theme.customColor.collapse.title};
+  font-size: ${(props) => props.theme.customColor.collapse.fontSize};
+`;
+const Grid = styled.div`
+  display: flex;
+  justify-content: space-between;
+  padding: 2rem 3.6rem;
+`;
+const GridColumn = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: left;
+  text-align: left;
+  ${(props) => props.customStyles}
+`;
+const GridItem = styled.div`
+  margin-bottom: 2.4rem;
+`;
+const GridColumnStyles = css`
+  width: 45%;
+`;
+const ServiceAccountDetailWrap = styled.div`
+  margin-top: 1.9rem;
+`;
 
 // Render component goes here
 const OnBoardForm = () => {
@@ -74,6 +102,17 @@ const OnBoardForm = () => {
   };
   const handleCancelClick = () => {};
   const handleSaveClick = () => {};
+
+  // render grid row of service account details
+  //   const renderGridRow = (data) => {
+  //     data.map((item) => (
+  //       <Grid>
+  //         <div>{item.title}</div>
+  //         <div>{item.info}</div>
+  //       </Grid>
+  //     ));
+  //   };
+
   return (
     <ComponentError>
       <Container>
@@ -133,17 +172,72 @@ const OnBoardForm = () => {
               onChange={(e) => onServiceAccountNameChange(e.target.value)}
               value={inputSearchValue || ''}
             />
-            <ServiceAcoountHelp />
+            <ServiceAccountDetailWrap>
+              <ServiceAcoountHelp title="Service Account Details">
+                <Grid container>
+                  <GridColumn customStyles={GridColumnStyles}>
+                    <GridItem>
+                      <CollapseTitle color={customColor.collapse.title}>
+                        Owner (Managed By):
+                      </CollapseTitle>
+                      <CollapseTitle color="#fff">
+                        Sivakumar Nagarajan
+                      </CollapseTitle>
+                    </GridItem>
+                    <GridItem>
+                      {' '}
+                      <CollapseTitle>Date Created in AD</CollapseTitle>
+                      <CollapseTitle color="#fff">
+                        2020-01-13 12:40
+                      </CollapseTitle>
+                    </GridItem>
+                    <GridItem>
+                      {' '}
+                      <CollapseTitle>Account Expiry</CollapseTitle>
+                      <CollapseTitle color="#fff">Never</CollapseTitle>
+                    </GridItem>
+                    <GridItem>
+                      {' '}
+                      <CollapseTitle>Lock Satus</CollapseTitle>
+                      <CollapseTitle color="#fff">unlocked</CollapseTitle>
+                    </GridItem>
+                  </GridColumn>
+                  <GridColumn customStyles={GridColumnStyles}>
+                    <GridItem>
+                      {' '}
+                      <CollapseTitle>Owner Email</CollapseTitle>
+                      <CollapseTitle color="#fff">
+                        Sivakumar.Nagarajan14 @T-Mobile.com
+                      </CollapseTitle>
+                    </GridItem>
+                    <GridItem>
+                      {' '}
+                      <CollapseTitle>Password Expiry</CollapseTitle>
+                      <CollapseTitle color="#fff">
+                        2021-01-13 12:40 (365 days)
+                      </CollapseTitle>
+                    </GridItem>
+                    <GridItem>
+                      {' '}
+                      <CollapseTitle>Account Satus</CollapseTitle>
+                      <CollapseTitle color="#fff">active</CollapseTitle>
+                    </GridItem>
+                  </GridColumn>
+                </Grid>
+              </ServiceAcoountHelp>
+            </ServiceAccountDetailWrap>
           </InputFieldLabelWrapper>
           <ToggleWrap>
-            <TitleTwo extraCss="display:flex;justify-content:space-between">
+            <TitleTwo extraCss="display:flex;justify-content:space-between;align-items:center">
               {' '}
               <SwitchComponent
                 checked={isSwitchOn}
                 handleChange={handleSwitch}
                 name="rotate password"
               />
-              <TitleTwo>Enable Auto Password Rotation</TitleTwo>
+              <TitleThree extraCss="margin-right:0.5rem;">
+                Enable Auto Password Rotation
+              </TitleThree>
             </TitleTwo>
             <InputFieldLabelWrapper>
               <InputLabel>Password Expiration Time</InputLabel>
