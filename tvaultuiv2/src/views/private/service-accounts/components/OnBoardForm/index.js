@@ -5,6 +5,7 @@ import SwitchComponent from '../../../../../components/FormFields/SwitchComponen
 import TextFieldComponent from '../../../../../components/FormFields/TextField';
 import ButtonComponent from '../../../../../components/FormFields/ActionButton';
 import ServiceAcoountHelp from '../ServiceAccountHelp';
+import mediaBreakpoints from '../../../../../breakpoints';
 import { TitleTwo, TitleThree } from '../../../../../styles/GlobalStyles';
 import { customColor } from '../../../../../theme';
 import ComponentError from '../../../../../errorBoundaries/ComponentError/component-error';
@@ -17,12 +18,18 @@ const Container = styled('section')`
 const InputFieldLabelWrapper = styled('div')`
   margin: 2rem 0 1.2rem;
   ${(props) => props.customCss}
+  ${mediaBreakpoints.small} {
+    width: 100%;
+  }
 `;
 const ToggleWrap = styled('div')`
   display: flex;
   align-items: center;
   justify-content: space-between;
   color: ${(props) => props.theme.customColor.collapse.color};
+  ${mediaBreakpoints.small} {
+    flex-direction: column;
+  }
 `;
 const OnBoardFormContainer = styled('div')`
   padding: 2.4rem 4rem;
