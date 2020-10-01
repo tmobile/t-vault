@@ -24,9 +24,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import javax.naming.NamingException;
-import javax.naming.directory.Attributes;
-
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -35,11 +32,9 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.ldap.core.AttributesMapper;
 import org.springframework.ldap.core.LdapTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.util.ObjectUtils;
-import org.springframework.util.StringUtils;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -50,7 +45,6 @@ import com.tmobile.cso.vault.api.common.TVaultConstants;
 import com.tmobile.cso.vault.api.controller.ControllerUtil;
 import com.tmobile.cso.vault.api.controller.OIDCUtil;
 import com.tmobile.cso.vault.api.exception.LogMessage;
-import com.tmobile.cso.vault.api.model.ADUserAccount;
 import com.tmobile.cso.vault.api.model.AccessPolicy;
 import com.tmobile.cso.vault.api.model.IAMSecrets;
 import com.tmobile.cso.vault.api.model.IAMSecretsMetadata;
@@ -84,17 +78,8 @@ import com.tmobile.cso.vault.api.model.IAMServiceAccountResponse;
 @Component
 public class  IAMServiceAccountsService {
 
-	@Value("${vault.port}")
-	private String vaultPort;
-
 	@Value("${ad.notification.fromemail}")
 	private String supportEmail;
-
-	@Value("${ad.notification.mail.subject}")
-	private String subject;
-
-	@Value("${ad.notification.mail.body.groupcontent}")
-	private String mailAdGroupContent;
 
 	private static Logger log = LogManager.getLogger(IAMServiceAccountsService.class);
 	private static final String[] ACCESS_PERMISSIONS = { "read", IAMServiceAccountConstants.IAM_RESET_MSG_STRING, "deny", "sudo" };
@@ -102,10 +87,6 @@ public class  IAMServiceAccountsService {
 	@Autowired
 	@Qualifier(value = "svcAccLdapTemplate")
 	private LdapTemplate ldapTemplate;
-
-	@Autowired
-	@Qualifier(value = "adUserLdapTemplate")
-	private LdapTemplate adUserLdapTemplate;
 
 	@Autowired
 	private AccessService accessService;
@@ -116,14 +97,8 @@ public class  IAMServiceAccountsService {
 	@Autowired
 	private PolicyUtils policyUtils;
 
-	@Value("${ad.svc.acc.suffix:clouddev.corporate.t-mobile.com}")
-	private String serviceAccountSuffix;
-
 	@Value("${vault.auth.method}")
 	private String vaultAuthMethod;
-
-	@Value("${ad.username}")
-	private String adMasterServiveAccount;
 
 	@Autowired
 	private TokenUtils tokenUtils;
@@ -163,8 +138,7 @@ public class  IAMServiceAccountsService {
 		IAMServiceAccountMetadataDetails iamServiceAccountMetadataDetails = populateIAMSvcAccMetaData(
 				iamServiceAccount);
 
-		boolean accountRoleCreationResponse = createIAMServiceAccount(token, iamServiceAccountMetadataDetails,
-				iamSvccAccPath);
+		boolean accountRoleCreationResponse = createIAMServiceAccount(token, iamSvccAccPath);
 		if (accountRoleCreationResponse) {
 			// Create Metadata
 			ResponseEntity<String> metadataCreationResponse = createIAMSvcAccMetadata(token,
@@ -263,23 +237,18 @@ public class  IAMServiceAccountsService {
 	 */
 	private void sendMailToIAMSvcAccOwner(IAMServiceAccount iamServiceAccount, String iamSvcAccName) {
 		// send email notification to service account owner
-		// get service account owner email
-		String filterQuery = "(&(objectclass=user)(|(cn=" + iamServiceAccount.getOwnerNtid() + ")))";
-		List<ADUserAccount> managerDetails = getServiceAccountManagerDetails(filterQuery);
-		if (!managerDetails.isEmpty() && !StringUtils.isEmpty(managerDetails.get(0).getUserEmail())) {
-			String from = supportEmail;
-			List<String> to = new ArrayList<>();
-			to.add(managerDetails.get(0).getUserEmail());
-			String mailSubject = String.format(subject, iamSvcAccName);
+		String from = supportEmail;
+		List<String> to = new ArrayList<>();
+		to.add(iamServiceAccount.getOwnerEmail());
+		String mailSubject = String.format(IAMServiceAccountConstants.IAM_ONBOARD_EMAIL_SUBJECT, iamSvcAccName);
 
-			// set template variables
-			Map<String, String> mailTemplateVariables = new HashMap<>();
-			mailTemplateVariables.put("name", managerDetails.get(0).getDisplayName());
-			mailTemplateVariables.put("iamSvcAccName", iamSvcAccName);
+		// set template variables
+		Map<String, String> mailTemplateVariables = new HashMap<>();
+		mailTemplateVariables.put("name", iamServiceAccount.getOwnerNtid());
+		mailTemplateVariables.put("iamSvcAccName", iamSvcAccName);
 
-			mailTemplateVariables.put("contactLink", supportEmail);
-			emailUtils.sendHtmlEmalFromTemplate(from, to, mailSubject, mailTemplateVariables);
-		}
+		mailTemplateVariables.put("contactLink", supportEmail);
+		emailUtils.sendIAMSvcAccHtmlEmalFromTemplate(from, to, mailSubject, mailTemplateVariables);
 	}
 
 	/**
@@ -340,7 +309,6 @@ public class  IAMServiceAccountsService {
 		iamServiceAccountMetadataDetails.setCreatedAtEpoch(iamServiceAccount.getCreatedAtEpoch());
 		iamServiceAccountMetadataDetails.setOwnerEmail(iamServiceAccount.getOwnerEmail());
 		iamServiceAccountMetadataDetails.setOwnerNtid(iamServiceAccount.getOwnerNtid());
-
 		for (IAMSecrets iamSecrets : iamServiceAccount.getSecret()) {
 			IAMSecretsMetadata iamSecretsMetadata = new IAMSecretsMetadata();
 			iamSecretsMetadata.setAccessKeyId(iamSecrets.getAccessKeyId());
@@ -360,9 +328,8 @@ public class  IAMServiceAccountsService {
 	 * @param iamSvccAccPath
 	 * @return
 	 */
-	private boolean createIAMServiceAccount(String token, IAMServiceAccountMetadataDetails iamServiceAccount,
-			String iamSvccAccPath) {
-		IAMSvccAccMetadata iamSvccAccMetadata = new IAMSvccAccMetadata(iamSvccAccPath, iamServiceAccount);
+	private boolean createIAMServiceAccount(String token, String iamSvccAccPath) {
+		IAMSvccAccMetadata iamSvccAccMetadata = new IAMSvccAccMetadata(iamSvccAccPath, new IAMServiceAccountMetadataDetails());
 		String jsonStr = JSONUtil.getJSON(iamSvccAccMetadata);
 		Map<String, Object> rqstParams = ControllerUtil.parseJson(jsonStr);
 		rqstParams.put("path", iamSvccAccPath);
@@ -534,45 +501,6 @@ public class  IAMServiceAccountsService {
 			isValidAccess = false;
 		}
 		return isValidAccess;
-	}
-
-	/**
-	 * Get Manager details for service account
-	 *
-	 * @param filter
-	 * @return
-	 */
-	private List<ADUserAccount> getServiceAccountManagerDetails(String filter) {
-		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
-				.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
-				.put(LogMessage.ACTION, "getServiceAccountManagerDetails")
-				.put(LogMessage.MESSAGE, "Trying to get manager details")
-				.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
-		return adUserLdapTemplate.search("", filter, new AttributesMapper<ADUserAccount>() {
-			@Override
-			public ADUserAccount mapFromAttributes(Attributes attr) throws NamingException {
-				ADUserAccount person = new ADUserAccount();
-				if (attr != null) {
-					String userId = ((String) attr.get("name").get());
-					person.setUserId(userId);
-					if (attr.get("displayname") != null) {
-						person.setDisplayName(((String) attr.get("displayname").get()));
-					}
-					if (attr.get("givenname") != null) {
-						person.setGivenName(((String) attr.get("givenname").get()));
-					}
-
-					if (attr.get("mail") != null) {
-						person.setUserEmail(((String) attr.get("mail").get()));
-					}
-
-					if (attr.get("name") != null) {
-						person.setUserName(((String) attr.get("name").get()));
-					}
-				}
-				return person;
-			}
-		});
 	}
 
 	/**
@@ -797,6 +725,13 @@ public class  IAMServiceAccountsService {
 					currentpolicies, oidcGroup != null ? oidcGroup.getId() : null);
 			oidcUtil.renewUserToken(userDetails.getClientToken());
 		}
+
+		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+				.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+				.put(LogMessage.ACTION, IAMServiceAccountConstants.ADD_GROUP_TO_IAMSVCACC_MSG)
+				.put(LogMessage.MESSAGE, String.format("After configured the group [%s] and status [%s] ", iamServiceAccountGroup.getGroupname(), ldapConfigresponse.getHttpstatus()))
+				.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
+
 		if (ldapConfigresponse.getHttpstatus().equals(HttpStatus.NO_CONTENT)
 				|| ldapConfigresponse.getHttpstatus().equals(HttpStatus.OK)) {
 			String path = new StringBuffer(IAMServiceAccountConstants.IAM_SVCC_ACC_PATH).append(iamSvcAccountName)
@@ -1344,11 +1279,11 @@ public class  IAMServiceAccountsService {
 		if (policies != null) {
 			for (String policy : policies) {
 				Map<String, String> safePolicy = new HashMap<>();
-				String[] _policies = policy.split("_", -1);
-				if (_policies.length >= 3) {
-					String[] policyName = Arrays.copyOfRange(_policies, 2, _policies.length);
+				String[] iamPolicies = policy.split("_", -1);
+				if (iamPolicies.length >= 3) {
+					String[] policyName = Arrays.copyOfRange(iamPolicies, 2, iamPolicies.length);
 					String safeName = String.join("_", policyName);
-					String safeType = _policies[1];
+					String safeType = iamPolicies[1];
 
 					if (policy.startsWith("r_")) {
 						safePolicy.put(safeName, "read");
@@ -1379,8 +1314,8 @@ public class  IAMServiceAccountsService {
 		List<String> filteredList = new ArrayList<>();
 		for (int i = 0; i < policies.size(); i++) {
 			String policyName = policies.get(i);
-			String[] _policy = policyName.split("_", -1);
-			if (_policy.length >= 3) {
+			String[] iamPolicy = policyName.split("_", -1);
+			if (iamPolicy.length >= 3) {
 				String itemName = policyName.substring(1);
 				List<String> matchingPolicies = filteredList.stream().filter(p -> p.substring(1).equals(itemName))
 						.collect(Collectors.toList());
@@ -1459,7 +1394,7 @@ public class  IAMServiceAccountsService {
 	 * @return
 	 */
 	public ResponseEntity<String> getIAMServiceAccountSecretKey(String token, String iamSvcaccName) {
-		String path = TVaultConstants.IAM_SVC_ACC_PATH_PREFIX + "/" + iamSvcaccName;
+		String path = TVaultConstants.IAM_SVC_ACC_PATH_PREFIX + '/' + iamSvcaccName;
 		Response response = reqProcessor.process("/iamsvcacct", "{\"path\":\"" + path + "\"}", token);
 		if (response.getHttpstatus().equals(HttpStatus.OK)) {
 			JsonObject data = populateMetaData(response);

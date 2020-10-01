@@ -402,6 +402,26 @@
                     return response;
                 });
             },
+            addUserPermissionForIAMSvcacc: function(payload, url) {
+                return ServiceEndpoint.addUserPermissionForIAMSvcacc.makeRequest(payload, url).then(function(response) {
+                    return response;
+                });
+            },
+            deleteUserPermissionFromIAMSvcacc: function(payload, url) {
+                return ServiceEndpoint.deleteUserPermissionFromIAMSvcacc.makeRequest(payload, url).then(function(response) {
+                    return response;
+                });
+            },
+            addGroupPermissionForIAMSvcacc: function(payload, url) {
+                return ServiceEndpoint.addGroupPermissionForIAMSvcacc.makeRequest(payload, url).then(function(response) {
+                    return response;
+                });
+            },
+            deleteGroupPermissionFromIAMSvcacc: function(payload, url) {
+                return ServiceEndpoint.deleteGroupPermissionFromIAMSvcacc.makeRequest(payload, url).then(function(response) {
+                    return response;
+                });
+            },
             getTheRightErrorMessage : function(responseObject){
                 if(responseObject.status===500 || responseObject.statusText==='Internal Server Error'){
                     return ErrorMessage.ERROR_NETWORK;

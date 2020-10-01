@@ -422,6 +422,22 @@ readTextFile("../apiUrls.json");
             name: 'getSecretForIamSvcacc',
             url: '/v2/iamserviceaccounts/secrets/{iam_svc_name}',
             method: 'GET'
+        },{
+            name: 'addUserPermissionForIAMSvcacc',
+            url: '/v2/iamserviceaccounts/user',
+            method: 'POST'
+        },{
+            name: 'deleteUserPermissionFromIAMSvcacc',
+            url: '/v2/iamserviceaccounts/user',
+            method: 'DELETE'
+        },{
+            name: 'addGroupPermissionForIAMSvcacc',
+            url: '/v2/iamserviceaccounts/group',
+            method: 'POST'
+        },{
+            name: 'deleteGroupPermissionFromIAMSvcacc',
+            url: '/v2/iamserviceaccounts/group',
+            method: 'DELETE'
         }
     ]
     });
