@@ -236,9 +236,7 @@
             },
             function (error) {
                 // Error handling function
-                console.log(error);
-                $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
-                $scope.error('md');
+                console.log(error);               
             })
         };
 
