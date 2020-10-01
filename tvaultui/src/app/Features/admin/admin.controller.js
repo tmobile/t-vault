@@ -1680,7 +1680,7 @@
             };
 
             $scope.dropdownRevocationReasons = {
-                'selectedGroupOption': {"type": "Select Application Name","value":"Application Values"},       // As initial placeholder
+                'selectedGroupOption': {"type": "Select Revocation Reasons","value":"Revocation Values"},       // As initial placeholder
                 'tableOptions': $scope.revocationReasons
             }
             Modal.close('');            
