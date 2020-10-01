@@ -19,6 +19,7 @@ package com.tmobile.cso.vault.api.v2.controller;
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 
+import com.tmobile.cso.vault.api.model.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -147,11 +148,11 @@ public class IAMServiceAccountsController {
 			@PathVariable("folderName") String folderName){
 		return iamServiceAccountsService.getIAMServiceAccountSecretKey(token, iamsvcname, folderName);
 	}
-	
-	
+
+
 	/**
 	 * Read secrets from vault
-	 * 
+	 *
 	 * @param token
 	 * @param path
 	 * @return
@@ -191,10 +192,10 @@ public class IAMServiceAccountsController {
 		UserDetails userDetails = (UserDetails) request.getAttribute(USER_DETAILS_STRING);
 		return iamServiceAccountsService.removeGroupFromIAMServiceAccount(token, iamServiceAccountGroup, userDetails);
 	}
-	
+
 	/**
 	 * Add approle to IAM Service Account
-	 * 
+	 *
 	 * @param request
 	 * @param token
 	 * @param iamServiceAccountApprole
@@ -211,7 +212,7 @@ public class IAMServiceAccountsController {
 
 	/**
 	 * Remove approle from IAM Service Account
-	 * 
+	 *
 	 * @param request
 	 * @param token
 	 * @param iamServiceAccountApprole
@@ -224,5 +225,35 @@ public class IAMServiceAccountsController {
 			@Valid @RequestBody IAMServiceAccountApprole iamServiceAccountApprole) {
 		UserDetails userDetails = (UserDetails) request.getAttribute(USER_DETAILS_STRING);
 		return iamServiceAccountsService.removeApproleFromIAMSvcAcc(userDetails, token, iamServiceAccountApprole);
+	}
+
+	/**
+	 * Activate IAM Service Account.
+	 * @param request
+	 * @param token
+	 * @param iamServiceAccountName
+	 * @param awsAccountId
+	 * @return
+	 */
+	@PostMapping(value="/v2/iamserviceaccount/activate",produces="application/json")
+	@ApiOperation(value = "${IAMServiceAccountsControllerV2.activateIAMServiceAccount.value}", notes = "${IAMServiceAccountsControllerV2.activateIAMServiceAccount.notes}")
+	public ResponseEntity<String> activateIAMServiceAccount(HttpServletRequest request, @RequestHeader(value="vault-token") String token, @RequestParam("serviceAccountName" ) String iamServiceAccountName, @RequestParam("awsAccountId" ) String awsAccountId){
+		UserDetails userDetails = (UserDetails) ((HttpServletRequest) request).getAttribute("UserDetails");
+		return iamServiceAccountsService.activateIAMServiceAccount(token, userDetails, iamServiceAccountName, awsAccountId);
+	}
+
+	/**
+	 * Rotate IAM Service account secret by accessKeyId.
+	 * @param request
+	 * @param token
+	 * @param accessKeyIndex
+	 * @param iamServiceAccountRotateRequest
+	 * @return
+	 */
+	@PostMapping(value="/v2/iamserviceaccount/rotate/{accesskey_index}",produces="application/json")
+	@ApiOperation(value = "${IAMServiceAccountsControllerV2.rotateIAMServiceAccountCreds.value}", notes = "${IAMServiceAccountsControllerV2.rotateIAMServiceAccountCreds.notes}")
+	public ResponseEntity<String> rotateIAMServiceAccountCreds(HttpServletRequest request, @RequestHeader(value="vault-token") String token, @PathVariable("accesskey_index") int accessKeyIndex, @RequestBody @Valid IAMServiceAccountRotateRequest iamServiceAccountRotateRequest){
+		UserDetails userDetails = (UserDetails) ((HttpServletRequest) request).getAttribute("UserDetails");
+		return iamServiceAccountsService.rotateIAMServiceAccount(token, userDetails, iamServiceAccountRotateRequest, accessKeyIndex);
 	}
 }
