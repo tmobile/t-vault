@@ -37,7 +37,7 @@ const ColumnSection = styled('section')`
 const RightColumnSection = styled(ColumnSection)`
   width: 59.23%;
   padding: 0;
-  background: linear-gradient(to bottom, #151820, #2c3040);
+  background: linear-gradient(to top, #151820, #2c3040);
   ${mediaBreakpoints.small} {
     width: 100%;
     display: none;

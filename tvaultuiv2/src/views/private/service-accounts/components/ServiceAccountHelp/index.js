@@ -6,7 +6,11 @@ import ChevronRightIcon from '@material-ui/icons/ChevronRight';
 import { Collapse, Paper, makeStyles } from '@material-ui/core';
 import { TitleThree } from '../../../../../styles/GlobalStyles';
 
-const Container = styled('div')``;
+const Container = styled('div')`
+  .MuiCollapse-wrapper {
+    width: 100%;
+  }
+`;
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -19,10 +23,11 @@ const useStyles = makeStyles((theme) => ({
     margin: theme.spacing(1),
   },
 }));
-const TitleCss = css`
+const titleCss = css`
   display: flex;
   align-items: center;
   font-weight: 600;
+  cursor: pointer;
 `;
 const ServiceAccountHelp = (props) => {
   const classes = useStyles();
@@ -31,10 +36,10 @@ const ServiceAccountHelp = (props) => {
   return (
     <Container classes={customStyles}>
       <TitleThree
-        extraCss={TitleCss}
+        extraCss={titleCss}
         onClick={() => setIsCollapse(!isCollapse)}
       >
-        {isCollapse ? <ChevronRightIcon /> : <KeyboardArrowDownIcon />}
+        {!isCollapse ? <ChevronRightIcon /> : <KeyboardArrowDownIcon />}
         <span>{title}</span>
       </TitleThree>
       <Collapse in={isCollapse} classes={classes}>

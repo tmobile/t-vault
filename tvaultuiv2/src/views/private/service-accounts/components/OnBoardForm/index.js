@@ -16,6 +16,7 @@ const Container = styled('section')`
 `;
 const InputFieldLabelWrapper = styled('div')`
   margin: 2rem 0 1.2rem;
+  ${(props) => props.customCss}
 `;
 const ToggleWrap = styled('div')`
   display: flex;
@@ -28,25 +29,23 @@ const OnBoardFormContainer = styled('div')`
 `;
 const InfoLine = styled('p')`
   color: ${(props) => props.theme.customColor.collapse.color};
-  span {
-    color: ${(props) => props.theme.customColor.secondary.color};
-    fontsize: ${(props) => props.theme.typography.body2.fontSze};
-  }
+  fontsize: ${(props) => props.theme.typography.body2.fontSize};
 `;
 const Asteristick = styled.span``;
 const InfoContainer = styled.div`
   padding: 1rem 4rem;
+  background: ${(props) => props.theme.customColor.secondary.backgroundColor};
 `;
 const Span = styled('span')`
-  color: ${(props) => props.theme.customColor.secondary.color};
-  fontsize: ${(props) => props.theme.typography.body2.fontSze};
+  color: ${(props) => props.theme.customColor.collapse.title};
+  fontsize: ${(props) => props.theme.typography.body2.fontSize};
 `;
 const CollapsibleContainer = styled('div')``;
 const AcionButtons = styled.div`
   display: flex;
   justify-content: flex-end;
   position: sticky;
-  bottom: 0;
+  bottom: -0.1rem;
   padding: 1.7rem 4rem;
   background: ${(props) => props.theme.customColor.secondary.backgroundColor};
 `;
@@ -64,7 +63,7 @@ const CollapseTitle = styled.div`
 const Grid = styled.div`
   display: flex;
   justify-content: space-between;
-  padding: 2rem 3.6rem;
+  padding: 2rem 2.5rem;
 `;
 const GridColumn = styled.div`
   display: flex;
@@ -80,7 +79,7 @@ const GridColumnStyles = css`
   width: 45%;
 `;
 const ServiceAccountDetailWrap = styled.div`
-  margin-top: 1.9rem;
+  margin-top: 1rem;
 `;
 
 // Render component goes here
@@ -235,11 +234,11 @@ const OnBoardForm = () => {
                 handleChange={handleSwitch}
                 name="rotate password"
               />
-              <TitleThree extraCss="margin-right:0.5rem;">
+              <TitleThree extraCss="margin-left:1rem;">
                 Enable Auto Password Rotation
               </TitleThree>
             </TitleTwo>
-            <InputFieldLabelWrapper>
+            <InputFieldLabelWrapper customCss="width:60%">
               <InputLabel>Password Expiration Time</InputLabel>
               <TextFieldComponent
                 placeholder="AD Group Name"

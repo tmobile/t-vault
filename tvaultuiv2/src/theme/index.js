@@ -16,6 +16,7 @@ export const customColor = {
   },
   collapse: {
     color: '#c4c4c4',
+    title: '#8488a8',
     fontSize: '1.4rem;',
   },
 };
