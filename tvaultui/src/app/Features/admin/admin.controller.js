@@ -224,13 +224,16 @@
             $scope.isCertificatePreview = false;
             $scope.isCertificateManagePreview = false;
             if($scope.appNameTableOptions!==undefined){
-                $scope.appNameTableOptionsSort = $scope.appNameTableOptions.sort((a, b) => (a.name > b.name) ? 1 : -1)             
+            	$scope.appNameTableOptionsSort = $scope.appNameTableOptions.sort(function (a, b) {
+                    return (a.name > b.name ? 1 : -1);
+                });    
                 $scope.dropdownApplicationName = {
                         'selectedGroupOption': {"type": "Select Application Name","name":"Application Name"},       // As initial placeholder
                         'tableOptions': $scope.appNameTableOptionsSort
                     }}
         }
-
+        
+        
         // Updating the data based on type of safe, by clicking dropdown
         $scope.filterUpdate = function (option) {
             $scope.filterValue = option.value;
@@ -1359,11 +1362,13 @@
             $scope.addEmail();
             $scope.appNameTableOptionsSort=[]
             if($scope.appNameTableOptions!==undefined){
-            $scope.appNameTableOptionsSort = $scope.appNameTableOptions.sort((a, b) => (a.name > b.name) ? 1 : -1)             
-            $scope.dropdownApplicationName = {
-                    'selectedGroupOption': {"type": "Select Application Name","name":"Application Name"},       // As initial placeholder
-                    'tableOptions': $scope.appNameTableOptionsSort
-                }}
+            	$scope.appNameTableOptionsSort = $scope.appNameTableOptions.sort(function (a, b) {
+                    return (a.name > b.name ? 1 : -1);
+                });    
+                $scope.dropdownApplicationName = {
+                        'selectedGroupOption': {"type": "Select Application Name","name":"Application Name"},       // As initial placeholder
+                        'tableOptions': $scope.appNameTableOptionsSort
+                    }}
         }
 
         $scope.replaceSpacesCertName = function () {
