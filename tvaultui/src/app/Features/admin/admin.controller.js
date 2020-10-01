@@ -44,6 +44,7 @@
         $scope.isSelfServiceGroupAssigned = true;
         $scope.assignedApplications = [];
         $scope.isExternalCertificateEnable = true;
+        $scope.isAppNamesLoading = true;
         // Type of safe to be filtered from the rest
 
         $scope.safeType = {
@@ -222,6 +223,12 @@
             $scope.certObj.certDetails.ownerEmail = "";
             $scope.isCertificatePreview = false;
             $scope.isCertificateManagePreview = false;
+            if($scope.appNameTableOptions!==undefined){
+                $scope.appNameTableOptionsSort = $scope.appNameTableOptions.sort((a, b) => (a.name > b.name) ? 1 : -1)             
+                $scope.dropdownApplicationName = {
+                        'selectedGroupOption': {"type": "Select Application Name","name":"Application Name"},       // As initial placeholder
+                        'tableOptions': $scope.appNameTableOptionsSort
+                    }}
         }
 
         // Updating the data based on type of safe, by clicking dropdown
@@ -1350,6 +1357,13 @@
             $scope.certDnsErrorMessage='';
             $scope.multiSan=[];
             $scope.addEmail();
+            $scope.appNameTableOptionsSort=[]
+            if($scope.appNameTableOptions!==undefined){
+            $scope.appNameTableOptionsSort = $scope.appNameTableOptions.sort((a, b) => (a.name > b.name) ? 1 : -1)             
+            $scope.dropdownApplicationName = {
+                    'selectedGroupOption': {"type": "Select Application Name","name":"Application Name"},       // As initial placeholder
+                    'tableOptions': $scope.appNameTableOptionsSort
+                }}
         }
 
         $scope.replaceSpacesCertName = function () {
@@ -1436,7 +1450,7 @@
             }
         }
 
-        $scope.isCreateCertBtnDisabled = function () {         	
+        $scope.isCreateCertBtnDisabled = function () {          	
             if ($scope.certObj.certDetails.certName != undefined
 	        	&& $scope.certObj.certDetails.certName != ""
                 && !$scope.certInValid
@@ -1451,12 +1465,22 @@
             }
             return true;
         }
-        $scope.selectAppName = function (applicationObj) {  
+        $scope.selectAppName = function (applicationObj) {         	
             $scope.certObj.certDetails.applicationName = applicationObj.tag;
             $scope.appName = applicationObj.name;
             $scope.appNameSelected = true;
             $scope.isOwnerSelected = true
         }
+        
+        $scope.appNameSelect = function(){
+        	if($scope.dropdownApplicationName !==undefined){
+            $scope.dropdownApplicationName.selectedGroupOption.type;
+            $scope.certObj.certDetails.applicationName = $scope.dropdownApplicationName.selectedGroupOption.tag;
+            $scope.appName = $scope.dropdownApplicationName.selectedGroupOption.name;
+            $scope.appNameSelected = true;
+            $scope.isOwnerSelected = true
+        	}
+         }
 
         $scope.selectApplicationName = function (applicationObj) { 	
             if(applicationObj != $scope.certObj.certDetails.applicationName){	
@@ -1472,8 +1496,9 @@
             AdminSafesManagement.getApprolesFromCwm().then(function (response) {
                 if (UtilityService.ifAPIRequestSuccessful(response)) {
                     $scope.isApplicationsLoading = false;
+                    $scope.isAppNamesLoading = true;
                     var data = response.data;
-                    $scope.appNameTableOptions=[];
+                    $scope.appNameTableOptions=[];                    
                      for (var index = 0;index<data.length;index++) {
                         var value = '';
                         var appTag = '';
@@ -1489,10 +1514,14 @@
                         if (data[index].appTag !='' && data[index].appTag != null && data[index].appTag != undefined) {
                             appTag = data[index].appTag;
                         }
-                        if($scope.assignedApplications.includes(appTag)){
+                        if(JSON.parse(SessionStore.getItem("isAdmin")) == true){
+                        	$scope.appNameTableOptions.push({"type":value, "name": name, "tag": appTag, "id": appID});
+                        }
+                        if(JSON.parse(SessionStore.getItem("isAdmin")) == false && $scope.assignedApplications.includes(appTag)  ){
                             $scope.appNameTableOptions.push({"type":value, "name": name, "tag": appTag, "id": appID});
                         }
                     }
+                     $scope.isAppNamesLoading = false;
                 }
                 else {
                     $scope.errorMessage = AdminSafesManagement.getTheRightErrorMessage(response);
@@ -1502,6 +1531,7 @@
             function (error) {
                 // Error handling function
                 console.log(error);
+                $scope.isAppNamesLoading = false;
                 $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
                 $scope.error('md');
             })
@@ -1577,6 +1607,7 @@
                     $scope.certificateCreationMessage = errors[0];
                     $scope.certificateCreationFailedPopUp();
                     $scope.isLoadingData = false;
+                    $scope.isLoadingCerts = false;
                     console.log(error);
                     $scope.searchValue = '';
                     $scope.multiSan=[];
@@ -2010,6 +2041,20 @@
                     }
                 }
                 $scope.multiSan = $scope.selectedMultiSan;
+            }
+            
+            $scope.AddorRemoveDNS= function (id) {
+            	$scope.certDnsErrorMessage = '';
+            	$scope.multiSanDnsName.name = "";
+            	if(id==false){
+            		for (var i=0;i<$scope.multiSan.length;i++) {
+            			 var dnsElement = angular.element( document.querySelector( '#dns'+i ) );
+                         dnsElement.remove();
+            		}
+                         $scope.selectedMultiSan = [];
+                         $scope.multiSan = $scope.selectedMultiSan;
+            		
+            		}
             }
 
             $scope.replaceSpacesDnsName = function () {

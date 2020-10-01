@@ -1570,7 +1570,7 @@ public class SSLCertificateService {
 
 		TargetSystem targetSystem = new TargetSystem();
 		targetSystem.setName(appName);
-		targetSystem.setAddress(appName);
+		targetSystem.setAddress(appName.replaceAll("[^a-zA-Z0-9]",""));
 		sslCertificateRequest.setTargetSystem(targetSystem);
 
 		TargetSystemServiceRequest targetSystemService = new TargetSystemServiceRequest();

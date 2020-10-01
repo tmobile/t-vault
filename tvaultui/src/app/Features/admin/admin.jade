@@ -259,8 +259,13 @@ script(type='text/ng-template', id='certificatePopup.html')
                     div.key-acceptance-info() {{ certNameErrorMessage }}
                   .col-lg-12.col-md-12.col-sm-12.col-xs-12.common-form-row()
                     .details-input-group
-                      .certificate-form-label(uib-tooltip="Name of the application") Application Name*
-                      input.form-control.input-box-style(ng-model="certApplicationName" id="applicationName" typeahead-min-length="2" name="appName" uib-typeahead="key as key.type for key in getAppName($viewValue) | limitTo: 5" typeahead-wait-ms="500" typeahead-on-select="selectAppName(certApplicationName)" ng-change="selectApplicationName(certApplicationName)" ng-disabled="isApplicationsLoading" ng-required="true")
+                      .certificate-form-label(uib-tooltip="Name of the application") Application Name* 
+                      .left-lg-sep.right-lg-sep
+            			.common-form.modal-inner-wrapper.aws
+              			.common-form-row
+                		.details-input-group
+                    	.common-form-label                     
+                      drop-down(drop-down-options="dropdownApplicationName" name="certApplicationName" id="applicationName"  ng-click="appNameSelect()")
                       div.loader.svcaccid(ng-if='isApplicationsLoading')
                   .col-lg-12.col-md-12.col-sm-12.col-xs-12.common-form-row()
                     .details-input-group
@@ -276,7 +281,10 @@ script(type='text/ng-template', id='certificatePopup.html')
                               div
                               div
                               div
-                  .col-lg-12.col-md-12.col-sm-12.col-xs-12.common-form-row()
+                  .col-lg-12.col-md-12.col-sm-12.col-xs-12.common-form-row() 
+                    .details-input-group   
+                      .certificate-form-label()  Are additional DNS names required (SAN Certificate)?  <input type="checkbox" ng-model="isChecked" ng-change="AddorRemoveDNS(isChecked)"/>      
+                  .col-lg-12.col-md-12.col-sm-12.col-xs-12.common-form-row(ng-show="isChecked")
                     .details-input-group
                       .certificate-form-label(uib-tooltip="Additional host names (sites, IP addresses, common names, etc.")  DNS
                       div.dns-wrapper
@@ -613,7 +621,7 @@ script(type='text/ng-template', id='manageSecretId.html')
                                                     button.show-more-btn VIEW MORE
                                                     span
                                                         img(src="assets/icons/front-arrow.svg")
-                    md-tab(label="Certificate Management" md-on-select="tabChangeForAdminCert()" ng-if='isSelfServiceGroupAssigned')
+                    md-tab(label="Certificate Management" md-on-select="tabChangeForAdminCert()" )
                         md-content(class="md-padding md-content-wrapper page-content-wrapper md-approle-management" ng-init="displayGrid")
                           .md-content-inner-wrapper
                               div.create-certificate-link(ng-show="!isLoadingData && certificateData.certificates.length==0")
@@ -638,7 +646,7 @@ script(type='text/ng-template', id='manageSecretId.html')
                                                   .container.name.action.col-lg-3.col-md-2.col-sm-2.col-xs-2 EXPIRATION DATE
                                                   .container.name.action.col-lg-2.col-md-2.col-sm-2.col-xs-2 STATUS
                                                   .container.name.action.col-lg-2.col-md-2.col-sm-2.col-xs-2 ACTION
-                                                  div.create-certificate-link
+                                                  div.create-certificate-link(ng-show="!isAppNamesLoading" )
                                                     .function-text.link-style.option.right(ng-click="newCertificateConfiguration('lg')")
                                                       .action-icon-wrapper.static
                                                           .rotate.glyphicon.glyphicon-remove-circle
@@ -683,7 +691,7 @@ script(type='text/ng-template', id='manageSecretId.html')
                                                   .container.name.action.col-lg-3.col-md-2.col-sm-2.col-xs-2 EXPIRATION DATE
                                                   .container.name.action.col-lg-2.col-md-2.col-sm-2.col-xs-2 STATUS                                                  
                                                   .container.name.action.col-lg-2.col-md-2.col-sm-2.col-xs-2 ACTION
-                                                  div.create-certificate-link
+                                                  div.create-certificate-link(ng-show="!isAppNamesLoading" )
                                                     .function-text.link-style.option.right(ng-click="newCertificateConfiguration('lg')")
                                                       .action-icon-wrapper.static
                                                           .rotate.glyphicon.glyphicon-remove-circle
