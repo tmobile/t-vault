@@ -26,6 +26,8 @@ import javax.validation.constraints.Size;
 
 import org.hibernate.validator.constraints.Email;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import io.swagger.annotations.ApiModelProperty;
 
 public class IAMServiceAccount implements Serializable {
@@ -49,19 +51,24 @@ public class IAMServiceAccount implements Serializable {
 
 	@NotNull
 	@Pattern(regexp = "^$|^[a-z0-9_-]+$", message = "Owner can have alphabets, numbers, _ and - characters only")
+	@JsonProperty("owner_ntid")
 	private String ownerNtid;
 
 	@NotNull
 	@Email
+	@JsonProperty("owner_email")
 	private String ownerEmail;
 
 	@NotNull
+	@JsonProperty("application_id")
 	private String applicationId;
 
 	@NotNull
+	@JsonProperty("application_name")
 	private String applicationName;
 
 	@NotNull
+	@JsonProperty("application_tag")
 	private String applicationTag;
 
 	@NotNull

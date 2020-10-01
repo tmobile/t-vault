@@ -17,6 +17,8 @@
 package com.tmobile.cso.vault.api.model;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import java.io.Serializable;
 import java.util.List;
 
@@ -29,11 +31,25 @@ public class IAMServiceAccountMetadataDetails implements Serializable {
 	private String awsAccountId;
 	private String awsAccountName;
 	private Long createdAtEpoch;
+
+	@JsonProperty("owner_ntid")
 	private String ownerNtid;
+
+	@JsonProperty("owner_email")
 	private String ownerEmail;
+
+	@JsonProperty("application_id")
 	private String applicationId;
+
+	@JsonProperty("application_name")
 	private String applicationName;
+
+	@JsonProperty("application_tag")
 	private String applicationTag;
+
+	@JsonProperty("isActivated")
+	private boolean accountActivated;
+
 	private List<IAMSecretsMetadata> secret;
 
 	/**
@@ -162,6 +178,21 @@ public class IAMServiceAccountMetadataDetails implements Serializable {
 		this.applicationTag = applicationTag;
 	}
 
+
+	/**
+	 * @return the accountActivated
+	 */
+	public boolean isAccountActivated() {
+		return accountActivated;
+	}
+
+	/**
+	 * @param accountActivated the accountActivated to set
+	 */
+	public void setAccountActivated(boolean accountActivated) {
+		this.accountActivated = accountActivated;
+	}
+
 	/**
 	 * @return the secret
 	 */
@@ -181,6 +212,8 @@ public class IAMServiceAccountMetadataDetails implements Serializable {
 		return "IAMServiceAccountMetadataDetails [userName=" + userName + ", awsAccountId=" + awsAccountId
 				+ ", awsAccountName=" + awsAccountName + ", createdAtEpoch=" + createdAtEpoch + ", ownerNtid="
 				+ ownerNtid + ", ownerEmail=" + ownerEmail + ", applicationId=" + applicationId + ", applicationName="
-				+ applicationName + ", applicationTag=" + applicationTag + ", secret=" + secret + "]";
+				+ applicationName + ", applicationTag=" + applicationTag + ", accountActivated=" + accountActivated
+				+ ", secret=" + secret + "]";
 	}
+
 }

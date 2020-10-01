@@ -386,18 +386,111 @@
 
         //EDIT PERMISSION FUNCTION
         $scope.editPermission = function (type, editMode, user, permission) {
-            
+            if (editMode) {
+                var editingPermission = true;
+                $scope.deletePermission(type, editMode, editingPermission, user, permission);
+            }
         }
 
 
         //DELETE PERMISSION FUNCTION 
         $scope.deletePermission = function (type, editMode, editingPermission, key, permission) {
-           
-              //After permission is deleted, call 
-            getSvcaccInfo(iamsvcId) 
-            //for fetching the iam service account details and permissions
-
+            $scope.permissionChangeInProgress = true;
+            if (editMode) {
+                try {
+                    key = key.replace($scope.domainName, '');
+                    $scope.isLoadingData = true;
+                    var svcaccname = $scope.svcacc.svcaccId;
+                    var awsAccountId = $scope.svcacc.awsAccId;
+                    var iamsvcId = awsAccountId+"_"+svcaccname;
+                    var apiCallFunction = '';
+                    var reqObjtobeSent = {};
+                    switch (type) {
+                        case 'users' :
+                            apiCallFunction = AdminSafesManagement.deleteUserPermissionFromIAMSvcacc;
+                            if (editingPermission) {
+                                reqObjtobeSent = {
+                                    "iamSvcAccName": svcaccname,
+                                    "username": key,
+                                    "access": permission,
+                                    "awsAccountId": awsAccountId
+                                };
+                            }
+                            else {
+                                reqObjtobeSent = {
+                                    "iamSvcAccName": svcaccname,
+                                    "username": key,
+                                    "access": permission,
+                                    "awsAccountId": awsAccountId
+                                };
+                            }
+                            break;
+                        case 'groups' :
+                            apiCallFunction = AdminSafesManagement.deleteGroupPermissionFromIAMSvcacc;
+                            reqObjtobeSent = {
+                                "iamSvcAccName": svcaccname,
+                                "groupname": key,
+                                "access": permission,
+                                "awsAccountId": awsAccountId
+                            };
+                            break;
+                    }
+                    apiCallFunction(reqObjtobeSent).then(
+                        function (response) {
+                            if (UtilityService.ifAPIRequestSuccessful(response)) {
+                                // Try-Catch block to catch errors if there is any change in object structure in the response
+                                try {
+                                    $scope.isLoadingData = false;
+                                    $scope.permissionChangeInProgress = false;
+                                    if (editingPermission) {
+                                        $scope.addPermission(type, key, permission, true);  // This will be executed when we're editing permissions
+                                    }
+                                    else {
+                                        getSvcaccInfo(iamsvcId);
+                                        // if (type === "users") {
+                                        //     return Modal.createModalWithController('stop.modal.html', {
+                                        //         title: 'Permission changed',
+                                        //         message: 'For security reasons, if you add or modify permission to yourself, you need to log out and log in again for the added or modified permissions to take effect.'
+                                        //       });
+                                        // }
+                                        if (type === 'AppRolePermission') {
+                                            // delete approle
+                                        }
+                                        var notification = UtilityService.getAParticularSuccessMessage('MESSAGE_SAFE_DELETE');
+                                        Notifications.toast(key + "'s permission" + notification);
+                                    }
+                                }
+                                catch (e) {
+                                    console.log(e);
+                                    $scope.permissionChangeInProgress = false;
+                                    $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_PROCESSING_DATA');
+                                    $scope.error('md');
+                                }
+                            }
+                            else {
+                                $scope.permissionChangeInProgress = false;
+                                $scope.errorMessage = AdminSafesManagement.getTheRightErrorMessage(response);
+                                $scope.error('md');
+                            }
+                        },
+                        function (error) {
+                            // Error handling function
+                            console.log(error);
+                            $scope.permissionChangeInProgress = false;
+                            $scope.isLoadingData = false;
+                            $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
+                            $scope.error('md');
+                        })
+                } catch (e) {
+                    console.log(e);
+                    $scope.isLoadingData = false;
+                    $scope.permissionChangeInProgress = false;
+                    $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
+                    $scope.error('md');
+                }
+            }
         }
+
         $scope.editAWSConfigurationDetails = function (editMode, rolename) {
             if (editMode) {
                 try {
@@ -831,12 +924,121 @@
 
         //ADD USER FUNCTION : 
         $scope.addPermission = function (type, key, permission, editingPermission) {
-            
-
-            //After permission is added, call 
-            getSvcaccInfo(iamsvcId) 
-            //for fetching the iam service account details and permissions
-            
+            var duplicate = false;
+            $scope.permissionChangeInProgress = true;
+            if (!editingPermission && key != '' && key != undefined) {
+                if (type === "users" && $scope.permissionData.UsersPermissionsData!= null && $scope.permissionData.UsersPermissionsData.hasOwnProperty(key.toLowerCase())) {
+                    if ($scope.permissionData.UsersPermissionsData[key.toLowerCase()] != "sudo") {
+                        duplicate = true;
+                    }
+                }
+                if (type === "groups" && $scope.permissionData.GroupsPermissionsData!= null && $scope.permissionData.GroupsPermissionsData.hasOwnProperty(key.toLowerCase())) {
+                    duplicate = true;
+                }
+            }
+            if (duplicate) {
+                clearInputPermissionData();
+                $scope.errorMessage = 'Permission already exists! Select edit icon for update';
+                $scope.error('md');
+            }
+            else if ((key != '' && key != undefined) || type == 'AwsRoleConfigure') {
+                try {
+                    if (type === "users" && !editingPermission) {
+                        key = document.getElementById('addUser').value.toLowerCase();
+                    }
+                    if (type === "groups" && !editingPermission) {
+                        key = document.getElementById('addGroup').value.toLowerCase();
+                    }
+                    Modal.close('');
+                    $scope.isLoadingData = true;
+                    $scope.showInputLoader.show = false;
+                    $scope.showNoMatchingResults = false;
+                    var svcaccname = $scope.svcacc.svcaccId;
+                    var awsAccountId = $scope.svcacc.awsAccId;
+                    var iamsvcId = awsAccountId+"_"+svcaccname;
+                    var apiCallFunction = '';
+                    var reqObjtobeSent = {};
+                    // extract only userId/groupId from key
+                    if (key.includes($scope.domainName)) {
+                        key = key.split('@')[0];
+                    }
+                    if (key !== null && key !== undefined) {
+                        key = UtilityService.formatName(key);
+                    }
+                    if ($scope.awsConfPopupObj.role !== null && $scope.awsConfPopupObj.role !== undefined) {
+                        $scope.awsConfPopupObj.role = UtilityService.formatName($scope.awsConfPopupObj.role);
+                    }
+                    if ($scope.awsConfPopupObj.bound_region !== null && $scope.awsConfPopupObj.bound_region !== undefined) {
+                        $scope.awsConfPopupObj.bound_region = UtilityService.formatName($scope.awsConfPopupObj.bound_region);
+                    }
+                    var updatedUrlOfEndPoint = "";
+                    switch (type) {
+                        case 'users' :
+                            apiCallFunction = AdminSafesManagement.addUserPermissionForIAMSvcacc;
+                            reqObjtobeSent = {"iamSvcAccName": svcaccname, "username": key, "access": permission.toLowerCase(), "awsAccountId":awsAccountId};
+                            break;
+                        case 'groups' :
+                            apiCallFunction = AdminSafesManagement.addGroupPermissionForIAMSvcacc;
+                            reqObjtobeSent = {"iamSvcAccName": svcaccname, "groupname": key, "access": permission.toLowerCase(), "awsAccountId":awsAccountId};
+                            break;
+                    }
+                    apiCallFunction(reqObjtobeSent, updatedUrlOfEndPoint).then(function (response) {
+                            if (UtilityService.ifAPIRequestSuccessful(response)) {
+                                // Try-Catch block to catch errors if there is any change in object structure in the response
+                                try {
+                                    $scope.isLoadingData = false;
+                                    if (type === 'AwsRoleConfigure') {
+                                        $scope.addPermission('AWSPermission', $scope.awsConfPopupObj.role, permission, false);
+                                    }
+                                    else {
+                                        getSvcaccInfo(iamsvcId);
+                                        var notification = UtilityService.getAParticularSuccessMessage('MESSAGE_ADD_SUCCESS');
+                                        $scope.permissionChangeInProgress = false;
+                                        if (key !== null && key !== undefined) {
+                                            document.getElementById('addUser').value = '';
+                                            document.getElementById('addGroup').value = '';
+                                            // if (type === "users") {
+                                                clearInputPermissionData();
+                                            //     return Modal.createModalWithController('stop.modal.html', {
+                                            //         title: 'Permission changed',
+                                            //         message: 'For security reasons, if you add or modify permission to yourself, you need to log out and log in again for the added or modified permissions to take effect.'
+                                            //       });
+                                            // }
+                                            Notifications.toast(key + "'s permission" + notification);                                            
+                                        }
+                                    }
+                                } catch (e) {
+                                    console.log(e);
+                                    $scope.isLoadingData = false;
+                                    $scope.permissionChangeInProgress = false;
+                                    $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_PROCESSING_DATA');
+                                    $scope.error('md');
+                                }
+                            }
+                            else {
+                                $scope.errorMessage = AdminSafesManagement.getTheRightErrorMessage(response);
+                                $scope.error('md');
+                            }
+                            clearInputPermissionData();
+                            $scope.roleNameSelected = false;
+                        },
+                        function (error) {
+                            // Error handling function
+                            console.log(error);
+                            clearInputPermissionData();
+                            $scope.isLoadingData = false;
+                            $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
+                            $scope.error('md');
+                        })
+                } catch (e) {
+                    // To handle errors while calling 'fetchData' function
+                    $scope.isLoadingData = false;
+                    clearInputPermissionData();
+                    console.log(e);
+                    $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
+                    $scope.error('md');
+                }
+            }
         }
 
         $scope.newAwsConfiguration = function (size) {
