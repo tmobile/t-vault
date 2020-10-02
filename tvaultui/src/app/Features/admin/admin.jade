@@ -259,12 +259,12 @@ script(type='text/ng-template', id='certificatePopup.html')
                     div.key-acceptance-info() {{ certNameErrorMessage }}
                   .col-lg-12.col-md-12.col-sm-12.col-xs-12.common-form-row()
                     .details-input-group
-                      .certificate-form-label(uib-tooltip="Name of the application") Application Name*                                           
+                      .certificate-form-label(uib-tooltip="Name of the Cloud application this certificate will be used for. Only applications you have self-service rights to will be shown.") Application Name*
                       drop-down(drop-down-options="dropdownApplicationName" name="certApplicationName" id="applicationName"  ng-click="appNameSelect()")
                       div.loader.svcaccid(ng-if='isApplicationsLoading')
                   .col-lg-12.col-md-12.col-sm-12.col-xs-12.common-form-row()
                     .details-input-group
-                      .certificate-form-label(uib-tooltip="Owner/creator of the certificate") Owner Email ID*
+                      .certificate-form-label(uib-tooltip="Owner/Creator of the certificate") Owner Email ID*
                       input.form-control.input-box-style(id="certReqOwnerEmail"  ng-model="certObj.certDetails.ownerEmail" disabled=true)
                       div.loader.svcaccid(ng-if='isUserSearchLoading && certObj.certDetails.ownerEmail.length > 2')
 
@@ -278,10 +278,10 @@ script(type='text/ng-template', id='certificatePopup.html')
                               div
                   .col-lg-12.col-md-12.col-sm-12.col-xs-12.common-form-row() 
                     .details-input-group   
-                      .certificate-form-label()  Are additional DNS names required (SAN Certificate)?  <input type="checkbox" ng-model="isChecked" ng-change="AddorRemoveDNS(isChecked)"/>      
+                      .certificate-form-label(uib-tooltip="Option  to create a SAN certificate with additional domain names")  Are additional DNS names required (SAN Certificate)?  <input type="checkbox" ng-model="isChecked" ng-change="AddorRemoveDNS(isChecked)"/>
                   .col-lg-12.col-md-12.col-sm-12.col-xs-12.common-form-row(ng-show="isChecked")
                     .details-input-group
-                      .certificate-form-label(uib-tooltip="Additional host names (sites, IP addresses, common names, etc.")  DNS
+                      .certificate-form-label(uib-tooltip="Option  to create a SAN certificate with additional domain names")  DNS
                       div.dns-wrapper
                         .col-lg-9.col-md-9.col-sm-9.col-xs-9
                           .cert-input-group.cert-suffix
