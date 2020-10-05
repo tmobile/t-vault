@@ -30,6 +30,7 @@ public class IAMServiceAccountSecret implements Serializable {
     private String accessKeySecret;
     private Long expiryDateEpoch;
     private String userName;
+    private String awsAccountId;
     /**
      *
      */
@@ -37,11 +38,12 @@ public class IAMServiceAccountSecret implements Serializable {
         super();
     }
 
-    public IAMServiceAccountSecret(String userName, String accessKeyId, String accessKeySecret, Long expiryDateEpoch) {
+    public IAMServiceAccountSecret(String userName, String accessKeyId, String accessKeySecret, Long expiryDateEpoch, String awsAccountId) {
         this.accessKeyId = accessKeyId;
         this.accessKeySecret = accessKeySecret;
         this.expiryDateEpoch = expiryDateEpoch;
         this.userName = userName;
+        this.awsAccountId = awsAccountId;
     }
 
     public String getAccessKeyId() {
@@ -76,13 +78,22 @@ public class IAMServiceAccountSecret implements Serializable {
         this.userName = userName;
     }
 
+    public String getAwsAccountId() {
+        return awsAccountId;
+    }
+
+    public void setAwsAccountId(String awsAccountId) {
+        this.awsAccountId = awsAccountId;
+    }
+
     @Override
     public String toString() {
         return "IAMServiceAccountSecret{" +
                 "accessKeyId='" + accessKeyId + '\'' +
                 ", accessKeySecret='" + accessKeySecret + '\'' +
-                ", expiryDateEpoch='" + expiryDateEpoch + '\'' +
+                ", expiryDateEpoch=" + expiryDateEpoch +
                 ", userName='" + userName + '\'' +
+                ", awsAccountId='" + awsAccountId + '\'' +
                 '}';
     }
 }

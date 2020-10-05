@@ -2564,10 +2564,11 @@ public class  IAMServiceAccountsService {
 	 * @param token
 	 * @param userDetails
 	 * @param iamServiceAccountRotateRequest
-	 * @param accessKeyIndex
+	 * @param secretFolder
 	 * @return
 	 */
-	public ResponseEntity<String> rotateIAMServiceAccount(String token, UserDetails userDetails, IAMServiceAccountRotateRequest iamServiceAccountRotateRequest, int accessKeyIndex) {
+	public ResponseEntity<String> rotateIAMServiceAccount(String token, UserDetails userDetails, IAMServiceAccountRotateRequest iamServiceAccountRotateRequest) {
+		boolean rotationStatus = false;
 		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
 				put(LogMessage.ACTION, "rotateIAMServiceAccount").
@@ -2576,10 +2577,58 @@ public class  IAMServiceAccountsService {
 						iamServiceAccountRotateRequest.getAccessKeyId())).
 				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 				build()));
-		boolean rotationStatus = rotateIAMServiceAccountByAccessKeyId(token,
-				iamServiceAccountRotateRequest.getAccountId(),
-				iamServiceAccountRotateRequest.getUserName(),
-				iamServiceAccountRotateRequest.getAccessKeyId(), accessKeyIndex);
+
+		String accessKeyId = iamServiceAccountRotateRequest.getAccessKeyId();
+		String awsAccountId = iamServiceAccountRotateRequest.getAccountId();
+		String iamSvcName = iamServiceAccountRotateRequest.getUserName();
+		String uniqueIAMSvcaccName = awsAccountId + "_" + iamSvcName;
+
+		// Get metadata to check the accesskeyid
+		JsonObject iamMetadataJson = getIAMMetadata(token, uniqueIAMSvcaccName);
+
+		if (null!= iamMetadataJson && iamMetadataJson.has("secret")) {
+			if (!iamMetadataJson.get("secret").isJsonNull()) {
+				log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+						put(LogMessage.ACTION, "rotateIAMServiceAccount").
+						put(LogMessage.MESSAGE, String.format("Trying to rotate secret for the IAM Service account [%s]", uniqueIAMSvcaccName)).
+						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+						build()));
+
+				JsonArray svcSecretArray = null;
+				try {
+					svcSecretArray = iamMetadataJson.get("secret").getAsJsonArray();
+				} catch (IllegalStateException e) {
+					log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+							put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+							put(LogMessage.ACTION, "rotateIAMServiceAccount").
+							put(LogMessage.MESSAGE, String.format("Failed to rotate IAM secret. Invalid metadata for [%s].", uniqueIAMSvcaccName)).
+							put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+							build()));
+					return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Failed to rotate secret for IAM Service account. Invalid metadata.\"]}");
+				}
+
+				if (null != svcSecretArray) {
+					for (int i = 0; i < svcSecretArray.size(); i++) {
+
+						JsonObject iamSecret = (JsonObject) svcSecretArray.get(i);
+						if (iamSecret.has("accessKeyId") && accessKeyId.equals(iamSecret.get("accessKeyId").getAsString())) {
+							log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+									put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+									put(LogMessage.ACTION, "rotateIAMServiceAccount").
+									put(LogMessage.MESSAGE, String.format("Trying to rotate secret for the IAM Service account [%s] access key id: [%s]", uniqueIAMSvcaccName, accessKeyId)).
+									put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+									build()));
+							// Rotate IAM service account secret for each access key id in metadata
+							rotationStatus = rotateIAMServiceAccountByAccessKeyId(token, awsAccountId,
+									iamSvcName, accessKeyId, i+1);
+							break;
+						}
+					}
+				}
+			}
+		}
+
 		if (rotationStatus) {
 			log.info(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
@@ -2616,17 +2665,34 @@ public class  IAMServiceAccountsService {
 
 		IAMServiceAccountSecret iamServiceAccountSecret = iamServiceAccountUtils.rotateIAMSecret(iamServiceAccountRotateRequest);
 
-		// Mocked data
-		//IAMServiceAccountSecret iamServiceAccountSecret = new IAMServiceAccountSecret("testiamsvcacc01", "accessKeyid3", "accessKeyidsecret3", 1609167473000L);
-
-
 		if (null != iamServiceAccountSecret) {
+			log.info(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+					put(LogMessage.ACTION, "rotateIAMServiceAccountByAccessKeyId").
+					put(LogMessage.MESSAGE, String.format ("IAM Service account [%s] rotated successfully for " +
+									"AccessKeyId [%s]", iamServiceAccountRotateRequest.getUserName(),
+							iamServiceAccountRotateRequest.getAccessKeyId())).
+					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+					build()));
 			// Save secret in iamavcacc mount
 			String path = IAMServiceAccountConstants.IAM_SVCC_ACC_PATH + uniqueIAMSvcaccName + "/" + IAMServiceAccountConstants.IAM_SECRET_FOLDER_PREFIX + (accessKeyIndex);
 			if (iamServiceAccountUtils.writeIAMSvcAccSecret(token, path, iamServiceAccountName, iamServiceAccountSecret)) {
+				log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+						put(LogMessage.ACTION, "rotateIAMServiceAccountByAccessKeyId").
+						put(LogMessage.MESSAGE, "Secret saved to IAM service account mount").
+						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+						build()));
 				Response metadataUdpateResponse = iamServiceAccountUtils.updateIAMSvcAccNewAccessKeyIdInMetadata(token, awsAccountId, iamServiceAccountName, accessKeyId, iamServiceAccountSecret);
-
-				return true;
+				if (null != metadataUdpateResponse && HttpStatus.NO_CONTENT.equals(metadataUdpateResponse.getHttpstatus())) {
+					log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+							put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+							put(LogMessage.ACTION, "rotateIAMServiceAccountByAccessKeyId").
+							put(LogMessage.MESSAGE, "Updated IAM service account metadata with new AccessKeyId and expiry").
+							put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+							build()));
+					return true;
+				}
 			}
 		}
 		return false;

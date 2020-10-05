@@ -246,14 +246,13 @@ public class IAMServiceAccountsController {
 	 * Rotate IAM Service account secret by accessKeyId.
 	 * @param request
 	 * @param token
-	 * @param accessKeyIndex
 	 * @param iamServiceAccountRotateRequest
 	 * @return
 	 */
-	@PostMapping(value="/v2/iamserviceaccount/rotate/{accesskey_index}",produces="application/json")
+	@PostMapping(value="/v2/iamserviceaccount/rotate",produces="application/json")
 	@ApiOperation(value = "${IAMServiceAccountsControllerV2.rotateIAMServiceAccountCreds.value}", notes = "${IAMServiceAccountsControllerV2.rotateIAMServiceAccountCreds.notes}")
-	public ResponseEntity<String> rotateIAMServiceAccountCreds(HttpServletRequest request, @RequestHeader(value="vault-token") String token, @PathVariable("accesskey_index") int accessKeyIndex, @RequestBody @Valid IAMServiceAccountRotateRequest iamServiceAccountRotateRequest){
+	public ResponseEntity<String> rotateIAMServiceAccountCreds(HttpServletRequest request, @RequestHeader(value="vault-token") String token, @RequestBody @Valid IAMServiceAccountRotateRequest iamServiceAccountRotateRequest){
 		UserDetails userDetails = (UserDetails) ((HttpServletRequest) request).getAttribute("UserDetails");
-		return iamServiceAccountsService.rotateIAMServiceAccount(token, userDetails, iamServiceAccountRotateRequest, accessKeyIndex);
+		return iamServiceAccountsService.rotateIAMServiceAccount(token, userDetails, iamServiceAccountRotateRequest);
 	}
 }
