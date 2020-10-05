@@ -182,11 +182,11 @@
                 $scope.selectedIndex = 2;
             }
             if ($rootScope.lastVisited == "change-iam-service-account") {
-                $scope.selectedIndex = 4;
+                $scope.selectedIndex = 3;
             }
 
             if ($rootScope.lastVisited == "change-certificate") {
-                $scope.selectedIndex = 3;
+                $scope.selectedIndex = 4;
             }
 
             var feature = JSON.parse(SessionStore.getItem("feature"));
@@ -696,7 +696,7 @@
             return expiryDate;
         }
         $scope.searchCert = function () {
-        	if($scope.selectedIndex ==3){
+            if($scope.selectedIndex ==4){
             if ($scope.searchValue != '' && $scope.searchValue != undefined && $scope.searchValue.length > 2 && $scope.certSearchValue != $scope.searchValue) {                
             	$scope.certSearchValue = $scope.searchValue;
             	if($scope.selectedTab == 1){
