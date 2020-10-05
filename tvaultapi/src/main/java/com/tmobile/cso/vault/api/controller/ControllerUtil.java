@@ -2770,4 +2770,92 @@ public final class ControllerUtil {
 		}
 		return access;
 	}
+	
+	public static boolean isValidIAMPath(String path){
+		String paths[] =  path.split("/");
+		if(paths.length==2){
+			String iamPathType =  paths[0];
+			if(!(TVaultConstants.IAM_SVC_ACC_PATH_PREFIX.equals(iamPathType))){
+				return false;
+			}
+		}else{
+			return false;
+		}
+		return true;
+	}
+	
+	/**
+	 * Gets the folders and secrets for a given path
+	 * 
+	 * @param jsonstr
+	 * @param token
+	 * @param responseVO
+	 * @param safeNode
+	 */
+	public static void getIamFoldersAndSecrets(String jsonstr, String token, Response responseVO,
+			IAMServiceAccountNode iamServiceAccountNode) {
+		ObjectMapper objMapper = new ObjectMapper();
+		String path = getPath(objMapper, jsonstr, responseVO);
+		/* Read the folders for the given path */
+		Response lisresp = reqProcessor.process("/iam/list", jsonstr, token);
+		if (HttpStatus.NOT_FOUND.equals(lisresp.getHttpstatus())) {
+				if (TVaultConstants.IAM_SVC_ACC_PATH_PREFIX.equals(iamServiceAccountNode.getType())) {
+					responseVO.setResponse(TVaultConstants.EMPTY_JSON);
+					responseVO.setHttpstatus(HttpStatus.OK);
+				} else {
+					responseVO.setResponse(lisresp.getResponse());
+					responseVO.setHttpstatus(lisresp.getHttpstatus());
+				}
+			return;
+		}  else {
+			if (!lisresp.getResponse().contains("errors")) {
+				try {
+					List<String> foldersList = new ArrayList<String>();
+					JsonNode folders = objMapper.readTree(lisresp.getResponse()).get("keys");
+					for (JsonNode node : folders) {
+						jsonstr = "{\"path\":\"" + path + "/" + node.asText() + "\"}";
+						IAMServiceAccountNode sn = new IAMServiceAccountNode();
+						sn.setValue(path + "/" + node.asText());
+						sn.setType(TVaultConstants.FOLDER);
+						foldersList.add(node.textValue());
+					}
+					iamServiceAccountNode.setFolders(foldersList);
+					responseVO.setSuccess(true);
+					responseVO.setHttpstatus(HttpStatus.OK);
+
+				} catch (IOException e) {
+					log.error(e);
+					log.error(
+							JSONUtil.getJSON(
+									ImmutableMap.<String, String> builder()
+											.put(LogMessage.USER,
+													ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString())
+											.put(LogMessage.ACTION, "getFoldersAndSecrets")
+											.put(LogMessage.MESSAGE,
+													String.format("Unable to getFoldersAndSecrets [%s]",
+															e.getMessage()))
+											.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap()
+													.get(LogMessage.APIURL).toString())
+											.build()));
+					responseVO.setSuccess(false);
+					responseVO.setHttpstatus(HttpStatus.INTERNAL_SERVER_ERROR);
+					responseVO.setResponse("{\"errors\":[\"Unexpected error :" + e.getMessage() + "\"]}");
+				}
+			} else {
+				log.error("Unable to read the given path " + jsonstr);
+				log.error(
+						JSONUtil.getJSON(ImmutableMap.<String, String> builder()
+								.put(LogMessage.USER,
+										ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString())
+								.put(LogMessage.ACTION, "getFoldersAndSecrets")
+								.put(LogMessage.MESSAGE, String.format("Unable to read the given path [%s]", jsonstr))
+								.put(LogMessage.APIURL,
+										ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString())
+								.build()));
+				responseVO.setSuccess(false);
+				responseVO.setHttpstatus(HttpStatus.INTERNAL_SERVER_ERROR);
+				responseVO.setResponse("{\"errors\":[\"Unable to read the given path :" + jsonstr + "\"]}");
+			}
+		}
+	}
 }

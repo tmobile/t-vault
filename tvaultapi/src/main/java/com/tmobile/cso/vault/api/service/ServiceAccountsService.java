@@ -3315,7 +3315,7 @@ public class  ServiceAccountsService {
 						ResponseEntity<String> addOwnerWriteToServiceAccountResponse = addUserToServiceAccount(token, serviceAccountNewOwner, userDetails, true);
 					}
 
-					removeOldUserPermissions(oldOwner, token, svcAccName);
+					removeOldUserPermissions(oldOwner, token, svcAccName, userDetails);
 
 					if (HttpStatus.OK.equals(addOwnerSudoToServiceAccountResponse.getStatusCode())) {
 						return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Service account ownership transferred successfully from " + oldOwner + " to " + svcOwner + ".\"]}");
@@ -3344,8 +3344,8 @@ public class  ServiceAccountsService {
 	 * @param token
 	 * @param svcAccName
 	 */
-	private void removeOldUserPermissions(String userName, String token, String svcAccName) {
-
+	private void removeOldUserPermissions(String userName, String token, String svcAccName, UserDetails userDetails) {
+		OIDCEntityResponse oidcEntityResponse = new OIDCEntityResponse();
 		// Remove metadata directly as removeUserFromServiceAccount() will need refreshed token
 		String path = new StringBuffer(TVaultConstants.SVC_ACC_ROLES_PATH).append(svcAccName).toString();
 		Map<String,String> params = new HashMap<String,String>();
@@ -3374,12 +3374,35 @@ public class  ServiceAccountsService {
 		// Remove old owner sudo and reset permissions
 		ObjectMapper objMapper = new ObjectMapper();
 
-		Response userResponse;
+		Response userResponse = new Response();
 		if (TVaultConstants.USERPASS.equals(vaultAuthMethod)) {
 			userResponse = reqProcessor.process("/auth/userpass/read", "{\"username\":\"" + userName + "\"}", token);
-		} else {
+		} else if (TVaultConstants.LDAP.equals(vaultAuthMethod)){
 			userResponse = reqProcessor.process("/auth/ldap/users", "{\"username\":\"" + userName + "\"}", token);
-		}
+		} else if (TVaultConstants.OIDC.equals(vaultAuthMethod)) {
+			// OIDC implementation changes
+			ResponseEntity<OIDCEntityResponse> responseEntity = oidcUtil.oidcFetchEntityDetails(token, userName, userDetails);
+			if (!responseEntity.getStatusCode().equals(HttpStatus.OK)) {
+				if (responseEntity.getStatusCode().equals(HttpStatus.FORBIDDEN)) {
+					log.error(
+							JSONUtil.getJSON(
+									ImmutableMap.<String, String> builder()
+											.put(LogMessage.USER,
+													ThreadLocalContext.getCurrentMap().get(LogMessage.USER)
+															.toString())
+											.put(LogMessage.ACTION, "removeUserFromSafe")
+											.put(LogMessage.MESSAGE,
+													String.format("Trying to fetch OIDC user policies, failed"))
+											.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap()
+													.get(LogMessage.APIURL).toString())
+											.build()));
+				}
+			}
+			oidcEntityResponse.setEntityName(responseEntity.getBody().getEntityName());
+			oidcEntityResponse.setPolicies(responseEntity.getBody().getPolicies());
+			userResponse.setResponse(oidcEntityResponse.getPolicies().toString());
+			userResponse.setHttpstatus(responseEntity.getStatusCode());
+			}
 		String responseJson = "";
 		String groups = "";
 		List<String> policies = new ArrayList<>();
@@ -3388,9 +3411,15 @@ public class  ServiceAccountsService {
 		if (HttpStatus.OK.equals(userResponse.getHttpstatus())) {
 			responseJson = userResponse.getResponse();
 			try {
-				currentpolicies = ControllerUtil.getPoliciesAsListFromJson(objMapper, responseJson);
-				if (!(TVaultConstants.USERPASS.equals(vaultAuthMethod))) {
-					groups = objMapper.readTree(responseJson).get("data").get("groups").asText();
+				//OIDC changes
+				if (TVaultConstants.OIDC.equals(vaultAuthMethod)) {
+					currentpolicies.addAll(oidcEntityResponse.getPolicies());
+					//groups = objMapper.readTree(responseJson).get("data").get("groups").asText();
+				} else {
+					currentpolicies = ControllerUtil.getPoliciesAsListFromJson(objMapper, responseJson);
+					if (TVaultConstants.LDAP.equals(vaultAuthMethod)) {
+						groups = objMapper.readTree(responseJson).get("data").get("groups").asText();
+					}
 				}
 			} catch (IOException e) {
 				log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
@@ -3427,7 +3456,7 @@ public class  ServiceAccountsService {
 						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 						build()));
 				ControllerUtil.configureUserpassUser(userName, policiesString, token);
-			} else {
+			} else if (TVaultConstants.LDAP.equals(vaultAuthMethod)){
 				log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 						put(LogMessage.ACTION, "removeOldUserPermissions").
@@ -3435,6 +3464,32 @@ public class  ServiceAccountsService {
 						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 						build()));
 				ControllerUtil.configureLDAPUser(userName, policiesString, groups, token);
+			} else if (TVaultConstants.OIDC.equals(vaultAuthMethod)) {
+				log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+						put(LogMessage.ACTION, "removeOldUserPermissions").
+						put(LogMessage.MESSAGE, String.format("Current policies oidc [%s]", policies)).
+						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+						build()));
+				// OIDC changes
+				try {
+					oidcUtil.updateOIDCEntity(policies,
+							oidcEntityResponse.getEntityName());
+					oidcUtil.renewUserToken(userDetails.getClientToken());
+				} catch (Exception e2) {
+					log.error(e2);
+					log.error(
+							JSONUtil.getJSON(ImmutableMap.<String, String> builder()
+									.put(LogMessage.USER,
+											ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+									.put(LogMessage.ACTION, "removeOldUserPermissions")
+									.put(LogMessage.MESSAGE,
+											String.format("Exception while updating the identity"))
+									.put(LogMessage.STACKTRACE, Arrays.toString(e2.getStackTrace()))
+									.put(LogMessage.APIURL,
+											ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL))
+									.build()));
+				}
 			}
 		}
 	}

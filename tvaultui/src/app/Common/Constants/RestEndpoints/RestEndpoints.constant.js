@@ -438,6 +438,14 @@ readTextFile("../apiUrls.json");
             name: 'deleteGroupPermissionFromIAMSvcacc',
             url: '/v2/iamserviceaccounts/group',
             method: 'DELETE'
+        },{
+            name: 'addAppRolePermissionForIAMSvcacc',
+            url: '/v2/iamserviceaccounts/approle',
+            method: 'POST'
+        },{
+            name: 'detachAppRolePermissionFromIAMSvcacc',
+            url: '/v2/iamserviceaccounts/approle',
+            method: 'DELETE'
         }
     ]
     });

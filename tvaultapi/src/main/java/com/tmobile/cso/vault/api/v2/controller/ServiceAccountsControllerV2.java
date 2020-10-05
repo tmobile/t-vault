@@ -313,7 +313,7 @@ public class ServiceAccountsControllerV2 {
 	 * @param serviceAccountName
 	 * @return
 	 */
-	@ApiOperation(value = "${ServiceAccountsControllerV2.transferSvcAccountOwner.value}", notes = "${ServiceAccountsControllerV2.transferSvcAccountOwner.notes}",hidden = true)
+	@ApiOperation(value = "${ServiceAccountsControllerV2.getServiceAccountsList.value}", notes = "${ServiceAccountsControllerV2.getServiceAccountsList.notes}",hidden = true)
 	@GetMapping (value="/v2/serviceaccounts/list",produces="application/json")
 	public ResponseEntity<String> getServiceAccountsList(HttpServletRequest request, @RequestHeader(value="vault-token") String token){
 		UserDetails userDetails = (UserDetails) ((HttpServletRequest) request).getAttribute("UserDetails");

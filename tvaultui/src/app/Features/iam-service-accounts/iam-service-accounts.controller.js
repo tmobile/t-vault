@@ -31,6 +31,7 @@
         $scope.svcaccToReset = '';
         $scope.resetSecretDetails = {};
         $scope.searchValueSvcacc = "";
+        $scope.folderDisplay = false;
         var init = function () {
             $scope.loadingData = true;
             if(!SessionStore.getItem("myVaultKey")){ /* Check if user is in the same session */
@@ -100,20 +101,46 @@
 
         }
 
-        $scope.viewSecret = function (iamsvcaccname) {
+
+        $scope.viewFolders = function (path) {
+            $scope.isLoadingData = true;
+            $scope.folderList = {};
+            $scope.iamsvcaccSecretData = {"userName":""};
+            var url = RestEndpoints.baseURL + '/v2/iamserviceaccounts/folders/secrets?path=' + 'iamsvcacc/' + path + '&fetchOption=all';
+            return $http({
+                method: 'GET',
+                url: url,
+                headers: getHeaders()
+            })
+                .then(function (response) {
+
+                    $scope.folderDisplay = true;
+                    $scope.viewPassword = true;
+                    $scope.isLoadingData = false;
+                    $scope.folderList = response.data;
+                    $scope.iamsvcaccSecretData.userName = response.data.iamsvcaccName;
+                }), function (error) {
+                    console.log(error);
+                }    
+        }
+
+        $scope.viewSecret = function (iamsvcaccname, folderName) {
+            var path = iamsvcaccname + '/' + folderName;
             $scope.isLoadingData = true;
             $scope.write = false;
-            $scope.iamsvcaccSecretData = {"secret":"", "userName":iamsvcaccname};
-            var updatedUrlOfEndPoint = RestEndpoints.baseURL + "/v2/iamserviceaccounts/secrets/" + iamsvcaccname;
+            $scope.iamsvcaccSecretData = {};
+            var updatedUrlOfEndPoint = RestEndpoints.baseURL + "/v2/iamserviceaccounts/secrets/" + path;
             AdminSafesManagement.getSecretForIamSvcacc(null, updatedUrlOfEndPoint).then(function (response) {                
                 if (UtilityService.ifAPIRequestSuccessful(response)) {
                     $scope.isLoadingData = false;
                     $scope.viewPassword = true;
                     $scope.ifSecret = true;
-                    $scope.iamsvcaccSecretData = response.data;
+                    $scope.iamsvcaccSecretData = response.data.data;
                     if (getPermission(iamsvcaccname) == "write") {
                         $scope.write = true;
                     }
+                    $scope.iamsvcaccSecretData.userName = iamsvcaccname.split(/_(.+)/)[1] + '/' + folderName;
+                    $scope.folderDisplay = false;
                 }
                 else {
                     $scope.isLoadingData = false;
