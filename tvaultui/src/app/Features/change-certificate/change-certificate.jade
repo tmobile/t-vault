@@ -39,7 +39,7 @@ script(type='text/ng-template', id='renewCertPopup.html')
   .top-lg-sep(ng-if="!isLoadingModalData")
     .top-lg-sep
         .common-header-label.text-center Confirmation
-    .top-lg-sep.notification-text Are you sure you want to renew this certificate?
+    .top-lg-sep.notification-text {{renewConfirmMessage}}
     .text-center.bottom-lg-sep.top-lg-sep.notification-button
       .clearfix.bottom-sm-sep
         button.common-btn.btn.btn-cert.btn-lg(ng-click="renewCertificate(certDetails)") RENEW

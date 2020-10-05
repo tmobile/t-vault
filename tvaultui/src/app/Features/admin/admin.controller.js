@@ -1858,7 +1858,6 @@
                     if(certificateDetails.requestStatus !== null && certificateDetails.requestStatus !== "Approved") {
                         var updatedUrlOfEndPoint = RestEndpoints.baseURL + "/v2/sslcert/validate/" + certName+"/"+ certificateType;
                         AdminSafesManagement.validateCertificateDetails(null, updatedUrlOfEndPoint).then(function (response) {
-
                             if (UtilityService.ifAPIRequestSuccessful(response)) {
                                 $state.go('change-certificate', fullObj, $rootScope.checkStatus);
                                 $scope.isLoadingData = false;
@@ -1876,7 +1875,12 @@
                         	$scope.viewEditErrorMessage = errors[0];
                         	$scope.isLoadingData = false;
                         	$scope.validateCertificateDetailsPopUp();
-                        } else {
+                        } else if(error.status === 500){
+                             var errors = error.data.errors;
+                            $scope.viewEditErrorMessage = "Your request cannot be processed now due to some technical issue. Please try again later";
+                            $scope.isLoadingData = false;
+                            $scope.validateCertificateDetailsPopUp();
+                          } else {
                             // Error handling function
                             console.log(error);
                             $scope.isLoadingData = false;
@@ -2108,7 +2112,7 @@
                 $scope.certOwnerTransferErrorMessage = '';
                 if(certDetails.requestStatus!=null && certDetails.requestStatus!=undefined && certDetails.requestStatus=="Pending Approval"){	
                 	$scope.isLoadingData = false;	
-                	$scope.viewEditErrorMessage = "Certificate may not be approved or rejected from NCLM";	
+                	$scope.viewEditErrorMessage = "Certificate may not be approved or rejected.Please follow the instructions mentioned in email ";
                     $scope.validateCertificateDetailsPopUp();	
                 }else{	
                 Modal.createModal('md', 'transferCertPopup.html', 'AdminCtrl', $scope);	
