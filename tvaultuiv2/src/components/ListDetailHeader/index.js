@@ -2,6 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import useMediaQuery from '@material-ui/core/useMediaQuery';
 import styled from 'styled-components';
+import ReactHtmlParser from 'react-html-parser';
 import mediaBreakpoints from '../../breakpoints';
 import { TitleFour } from '../../styles/GlobalStyles';
 
@@ -14,6 +15,7 @@ const ColumnHeader = styled('div')`
   padding: 2rem;
   .list-title-wrap {
     width: 70%;
+    z-index: 2;
   }
   ${mediaBreakpoints.small} {
     height: 18rem;
@@ -42,13 +44,14 @@ const ListDetailHeader = (props) => {
   const { title, description, bgImage } = props;
   // screen view handler
   const isMobileScreen = useMediaQuery(mediaBreakpoints.small);
+
   return (
     <ColumnHeader>
       <HeaderBg bgImage={bgImage} />
       <div className="list-title-wrap">
         {!isMobileScreen && <ListTitle>{title || 'No Title'}</ListTitle>}
         <TitleFour color="#c4c4c4">
-          {description ||
+          {ReactHtmlParser(description) ||
             'Create a service to see your secrets, folders and permissions here'}
         </TitleFour>
       </div>
