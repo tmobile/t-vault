@@ -51,7 +51,7 @@ public class IAMServiceAccountsController {
 	@Autowired
 	private IAMServiceAccountsService iamServiceAccountsService;
 	
-	public static final String USER_DETAILS_STRING="UserDetails";
+	private static final String USER_DETAILS_STRING="UserDetails";
 
 	/**
 	 * Onbaords a IAM service account for password rotation

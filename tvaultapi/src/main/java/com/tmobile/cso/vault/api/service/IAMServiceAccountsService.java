@@ -19,9 +19,8 @@ package com.tmobile.cso.vault.api.service;
 
 import java.io.IOException;
 import java.util.*;
-
-import javax.naming.NamingException;
-import javax.naming.directory.Attributes;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 
 import com.tmobile.cso.vault.api.model.*;
 import com.tmobile.cso.vault.api.utils.*;
@@ -29,11 +28,9 @@ import org.apache.commons.lang.ArrayUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.ldap.core.LdapTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
@@ -43,6 +40,10 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import com.tmobile.cso.vault.api.common.IAMServiceAccountConstants;
 import com.tmobile.cso.vault.api.common.TVaultConstants;
 import com.tmobile.cso.vault.api.controller.ControllerUtil;
@@ -56,25 +57,22 @@ import com.tmobile.cso.vault.api.model.IAMServiceAccountApprole;
 import com.tmobile.cso.vault.api.model.IAMServiceAccountGroup;
 import com.tmobile.cso.vault.api.model.IAMServiceAccountMetadataDetails;
 import com.tmobile.cso.vault.api.model.IAMServiceAccountNode;
+import com.tmobile.cso.vault.api.model.IAMServiceAccountResponse;
 import com.tmobile.cso.vault.api.model.IAMServiceAccountUser;
 import com.tmobile.cso.vault.api.model.IAMSvccAccMetadata;
 import com.tmobile.cso.vault.api.model.OIDCEntityResponse;
 import com.tmobile.cso.vault.api.model.OIDCGroup;
 import com.tmobile.cso.vault.api.model.OnboardedIAMServiceAccount;
-import com.tmobile.cso.vault.api.model.ServiceAccountApprole;
 import com.tmobile.cso.vault.api.model.UserDetails;
 import com.tmobile.cso.vault.api.process.RequestProcessor;
 import com.tmobile.cso.vault.api.process.Response;
-
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.stream.Collectors;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
-import com.tmobile.cso.vault.api.model.IAMServiceAccountResponse;
-import org.springframework.util.StringUtils;
+
+import com.tmobile.cso.vault.api.utils.EmailUtils;
+import com.tmobile.cso.vault.api.utils.JSONUtil;
+import com.tmobile.cso.vault.api.utils.PolicyUtils;
+import com.tmobile.cso.vault.api.utils.ThreadLocalContext;
+import com.tmobile.cso.vault.api.utils.TokenUtils;
 
 
 @Component
@@ -85,10 +83,6 @@ public class  IAMServiceAccountsService {
 
 	private static Logger log = LogManager.getLogger(IAMServiceAccountsService.class);
 	private static final String[] ACCESS_PERMISSIONS = { "read", IAMServiceAccountConstants.IAM_RESET_MSG_STRING, "deny", "sudo" };
-
-	@Autowired
-	@Qualifier(value = "svcAccLdapTemplate")
-	private LdapTemplate ldapTemplate;
 
 	@Autowired
 	private AccessService accessService;
@@ -141,44 +135,31 @@ public class  IAMServiceAccountsService {
 					"{\"errors\":[\"Failed to onboard IAM Service Account. IAM Service account is already onboarded\"]}");
 		}
 
-		//String iamSvccAccPath = IAMServiceAccountConstants.IAM_SVCC_ACC_PATH + iamSvcAccName;
 		String iamSvccAccMetaPath = IAMServiceAccountConstants.IAM_SVCC_ACC_META_PATH + iamSvcAccName;
 
 		IAMServiceAccountMetadataDetails iamServiceAccountMetadataDetails = populateIAMSvcAccMetaData(
 				iamServiceAccount);
-
-		boolean accountRoleCreationResponse = createIAMServiceAccount(token, iamSvccAccMetaPath);
-		if (accountRoleCreationResponse) {
-			// Create Metadata
-			ResponseEntity<String> metadataCreationResponse = createIAMSvcAccMetadata(token,
-					iamServiceAccountMetadataDetails, iamSvccAccMetaPath);
-			if (HttpStatus.OK.equals(metadataCreationResponse.getStatusCode())) {
-				log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
-						.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
-						.put(LogMessage.ACTION, IAMServiceAccountConstants.IAM_SVCACC_CREATION_TITLE)
-						.put(LogMessage.MESSAGE, "Successfully created Metadata for the IAM Service Account")
-						.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
-			} else {
-				log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
-						.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
-						.put(LogMessage.ACTION, IAMServiceAccountConstants.IAM_SVCACC_CREATION_TITLE)
-						.put(LogMessage.MESSAGE,
-								"Successfully created Service Account. However creation of Metadata failed.")
-						.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
-				return ResponseEntity.status(HttpStatus.MULTI_STATUS).body(
-						"{\"errors\":[\"Successfully created IAM Service Account. However creation of Metadata failed.\"]}");
-			}
-
-			return createIAMSvcAccPoliciesAndAddUserToAccount(token, iamServiceAccount, userDetails, iamSvcAccName);
+		// Create Metadata
+		ResponseEntity<String> metadataCreationResponse = createIAMSvcAccMetadata(token,
+				iamServiceAccountMetadataDetails, iamSvccAccMetaPath);
+		if (HttpStatus.OK.equals(metadataCreationResponse.getStatusCode())) {
+			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+					.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+					.put(LogMessage.ACTION, IAMServiceAccountConstants.IAM_SVCACC_CREATION_TITLE)
+					.put(LogMessage.MESSAGE, "Successfully created Metadata for the IAM Service Account")
+					.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
 		} else {
 			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
 					.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
 					.put(LogMessage.ACTION, IAMServiceAccountConstants.IAM_SVCACC_CREATION_TITLE)
-					.put(LogMessage.MESSAGE, "Failed to onboard IAM service account into TVault for password rotation.")
+					.put(LogMessage.MESSAGE,
+							"Successfully created Service Account. However creation of Metadata failed.")
 					.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
-			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
-					"{\"errors\":[\"Failed to onboard IAM service account into TVault for password rotation.\"]}");
+			return ResponseEntity.status(HttpStatus.MULTI_STATUS).body(
+					"{\"errors\":[\"Successfully created IAM Service Account. However creation of Metadata failed.\"]}");
 		}
+
+		return createIAMSvcAccPoliciesAndAddUserToAccount(token, iamServiceAccount, userDetails, iamSvcAccName);	
 	}
 
 	/**
@@ -327,42 +308,6 @@ public class  IAMServiceAccountsService {
 		iamServiceAccountMetadataDetails.setSecret(iamSecretsMetadatas);
 
 		return iamServiceAccountMetadataDetails;
-	}
-
-	/**
-	 * Method to create IAM service account metadata in iamsvcacc mount
-	 *
-	 * @param iamServiceAccount
-	 * @param token
-	 * @param iamSvccAccPath
-	 * @return
-	 */
-	private boolean createIAMServiceAccount(String token, String iamSvccAccPath) {
-		IAMSvccAccMetadata iamSvccAccMetadata = new IAMSvccAccMetadata(iamSvccAccPath, new IAMServiceAccountMetadataDetails());
-		String jsonStr = JSONUtil.getJSON(iamSvccAccMetadata);
-		Map<String, Object> rqstParams = ControllerUtil.parseJson(jsonStr);
-		rqstParams.put("path", iamSvccAccPath);
-		String iamSvcAccDataJson = ControllerUtil.convetToJson(rqstParams);
-
-		Response response = reqProcessor.process("/write", iamSvcAccDataJson, token);
-
-		boolean isIamSvcAccDataCreated = false;
-
-		if (response.getHttpstatus().equals(HttpStatus.NO_CONTENT)) {
-			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
-					.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
-					.put(LogMessage.ACTION, IAMServiceAccountConstants.IAM_SVCACC_CREATION_TITLE)
-					.put(LogMessage.MESSAGE, "IAM Service account metadata creation success for policy creation")
-					.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
-			isIamSvcAccDataCreated = true;
-		} else {
-			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
-					.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
-					.put(LogMessage.ACTION, IAMServiceAccountConstants.IAM_SVCACC_CREATION_TITLE)
-					.put(LogMessage.MESSAGE, "IAM Service account metadata creation failed for policy creation")
-					.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
-		}
-		return isIamSvcAccDataCreated;
 	}
 
 	/**
