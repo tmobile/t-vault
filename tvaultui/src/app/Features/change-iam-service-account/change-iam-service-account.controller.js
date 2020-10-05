@@ -986,10 +986,6 @@
                             apiCallFunction = AdminSafesManagement.addGroupPermissionForSvcacc;
                             reqObjtobeSent = {"svcAccName": iamSvcaccName, "groupname": key, "access": permission.toLowerCase()};
                             break;
-                        case 'AppRolePermission' :
-                            apiCallFunction = AdminSafesManagement.addAppRolePermissionForSvcacc;
-                            reqObjtobeSent = {"svcAccName": iamSvcaccName, "approlename": key, "access": permission.toLowerCase()};
-                            break;
                         case 'AppRolePermission':
                             apiCallFunction = AdminSafesManagement.addAppRolePermissionForIAMSvcacc;
                             reqObjtobeSent = { "iamSvcAccName": svcaccname, "approlename": key, "access": permission.toLowerCase(), "awsAccountId":awsAccountId};

@@ -51,7 +51,7 @@ public class IAMServiceAccountsController {
 	@Autowired
 	private IAMServiceAccountsService iamServiceAccountsService;
 	
-	public static final String USER_DETAILS_STRING="UserDetails";
+	private static final String USER_DETAILS_STRING="UserDetails";
 
 	/**
 	 * Onbaords a IAM service account for password rotation
@@ -236,7 +236,7 @@ public class IAMServiceAccountsController {
 	 * @return
 	 */
 	@PostMapping(value="/v2/iamserviceaccount/activate",produces="application/json")
-	@ApiOperation(value = "${IAMServiceAccountsControllerV2.activateIAMServiceAccount.value}", notes = "${IAMServiceAccountsControllerV2.activateIAMServiceAccount.notes}")
+	@ApiOperation(value = "${IAMServiceAccountsController.activateIAMServiceAccount.value}", notes = "${IAMServiceAccountsController.activateIAMServiceAccount.notes}")
 	public ResponseEntity<String> activateIAMServiceAccount(HttpServletRequest request, @RequestHeader(value="vault-token") String token, @RequestParam("serviceAccountName" ) String iamServiceAccountName, @RequestParam("awsAccountId" ) String awsAccountId){
 		UserDetails userDetails = (UserDetails) ((HttpServletRequest) request).getAttribute("UserDetails");
 		return iamServiceAccountsService.activateIAMServiceAccount(token, userDetails, iamServiceAccountName, awsAccountId);
@@ -250,7 +250,7 @@ public class IAMServiceAccountsController {
 	 * @return
 	 */
 	@PostMapping(value="/v2/iamserviceaccount/rotate",produces="application/json")
-	@ApiOperation(value = "${IAMServiceAccountsControllerV2.rotateIAMServiceAccountCreds.value}", notes = "${IAMServiceAccountsControllerV2.rotateIAMServiceAccountCreds.notes}")
+	@ApiOperation(value = "${IAMServiceAccountsController.rotateIAMServiceAccountCreds.value}", notes = "${IAMServiceAccountsController.rotateIAMServiceAccountCreds.notes}")
 	public ResponseEntity<String> rotateIAMServiceAccountCreds(HttpServletRequest request, @RequestHeader(value="vault-token") String token, @RequestBody @Valid IAMServiceAccountRotateRequest iamServiceAccountRotateRequest){
 		UserDetails userDetails = (UserDetails) ((HttpServletRequest) request).getAttribute("UserDetails");
 		return iamServiceAccountsService.rotateIAMServiceAccount(token, userDetails, iamServiceAccountRotateRequest);

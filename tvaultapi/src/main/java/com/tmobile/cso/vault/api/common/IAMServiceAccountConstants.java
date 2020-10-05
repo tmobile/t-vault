@@ -16,6 +16,10 @@
 *********************************************************************************** */
 package com.tmobile.cso.vault.api.common;
 
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * IAMServiceAccountConstants Constants
  */
@@ -47,4 +51,16 @@ public final class IAMServiceAccountConstants {
 	public static final String IAM_ONBOARD_EMAIL_SUBJECT="Onboarding IAM Service account %s is successful";
 	public static final String IAM_SECRET_FOLDER_PREFIX = "secret_";
 	public static final String IAM_AUTH_TOKEN_PREFIX = "cloud-iam";
+
+	public static final Map<String, String> IAM_EMAIL_TEMPLATE_IMAGE_IDS;
+	static {
+		IAM_EMAIL_TEMPLATE_IMAGE_IDS = Collections.synchronizedMap(new HashMap<String, String>());
+		IAM_EMAIL_TEMPLATE_IMAGE_IDS.put("iammanagetab", "templates/images/iammanagetab.png");
+		IAM_EMAIL_TEMPLATE_IMAGE_IDS.put("iamviewlink", "templates/images/iamviewlink.png");
+		IAM_EMAIL_TEMPLATE_IMAGE_IDS.put("update", "templates/images/update.png");
+		IAM_EMAIL_TEMPLATE_IMAGE_IDS.put("iamactivate", "templates/images/iamactivate.png");
+		IAM_EMAIL_TEMPLATE_IMAGE_IDS.put("iampermission", "templates/images/iampermission.png");
+		IAM_EMAIL_TEMPLATE_IMAGE_IDS.put("permissiontab", "templates/images/permissiontab.png");
+		IAM_EMAIL_TEMPLATE_IMAGE_IDS.put("adduser", "templates/images/adduser.png");
+	}
 }

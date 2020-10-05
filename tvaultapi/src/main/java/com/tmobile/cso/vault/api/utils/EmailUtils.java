@@ -347,7 +347,7 @@ public class EmailUtils {
 			String templateFileName = IAMServiceAccountConstants.IAM_EMAIL_TEMPLATE_NAME;
 
 			// inline image content identifies
-			for (Map.Entry<String, String> entry : TVaultConstants.EMAIL_TEMPLATE_IMAGE_IDS.entrySet()) {
+			for (Map.Entry<String, String> entry : IAMServiceAccountConstants.IAM_EMAIL_TEMPLATE_IMAGE_IDS.entrySet()) {
 				variables.put(entry.getKey(), entry.getKey());
 			}
 			String content = this.templateEngine.process(templateFileName, new Context(Locale.getDefault(), variables));
