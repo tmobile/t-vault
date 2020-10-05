@@ -450,6 +450,14 @@ readTextFile("../apiUrls.json");
             name: 'activateIAMSvcacc',
             url: '/v2/iamserviceaccount/activate?',
             method: 'POST'
+        },{
+            name: 'rotateIAMSvcaccSecret',
+            url: '/v2/iamserviceaccount/rotate',
+            method: 'POST'
+        },{
+            name: 'addUserPermissionForIAMSvcacc',
+            url: '/v2/iamserviceaccounts/user',
+            method: 'POST'
         }
     ]
     });

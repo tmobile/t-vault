@@ -437,6 +437,16 @@
                     return response;
                 });
             },
+            rotateIAMSvcaccSecret: function(payload, url) {
+                return ServiceEndpoint.rotateIAMSvcaccSecret.makeRequest(payload, url).then(function(response) {
+                    return response;
+                });
+            },
+            addUserPermissionForIAMSvcacc: function(payload, url) {
+                return ServiceEndpoint.addUserPermissionForIAMSvcacc.makeRequest(payload, url).then(function(response) {
+                    return response;
+                });
+            },
             getTheRightErrorMessage : function(responseObject){
                 if(responseObject.status===500 || responseObject.statusText==='Internal Server Error'){
                     return ErrorMessage.ERROR_NETWORK;

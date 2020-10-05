@@ -29,7 +29,8 @@
         $scope.showPassword = false;
         $scope.write = false;
         $scope.svcaccToReset = '';
-        $scope.resetSecretDetails = {};
+        $scope.rotateSecretDetails = {};
+        $scope.folderList = {};
         $scope.searchValueSvcacc = "";
         $scope.folderDisplay = false;
         var init = function () {
@@ -126,11 +127,12 @@
 
         $scope.viewSecret = function (iamsvcaccname, folderName) {
             var path = iamsvcaccname + '/' + folderName;
+            console.log(path)
             $scope.isLoadingData = true;
             $scope.write = false;
             $scope.iamsvcaccSecretData = {};
             var updatedUrlOfEndPoint = RestEndpoints.baseURL + "/v2/iamserviceaccounts/secrets/" + path;
-            AdminSafesManagement.getSecretForIamSvcacc(null, updatedUrlOfEndPoint).then(function (response) {                
+            AdminSafesManagement.getSecretForIamSvcacc(null, updatedUrlOfEndPoint).then(function (response) {
                 if (UtilityService.ifAPIRequestSuccessful(response)) {
                     $scope.isLoadingData = false;
                     $scope.viewPassword = true;
@@ -160,7 +162,7 @@
                     $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
                 }
                 $scope.error('md');
-            });            
+            });
         }
 
         $scope.copyToClipboard = function ($event, copyValue, messageKey) {
@@ -170,52 +172,54 @@
             CopyToClipboard.copy(copyValue);
         }
 
-        $scope.resetPasswordForSvcacc = function(resetSecretDetails) {    
-            // if ($scope.svcaccToReset != '') {
-            //     $scope.isLoadingData = true;
-            //     Modal.close();
-            //     var queryParameters = "serviceAccountName="+$scope.svcaccToReset;
-            //     var updatedUrlOfEndPoint = ModifyUrl.addUrlParameteres('resetPasswordForSvcacc',queryParameters);
-            //     AdminSafesManagement.resetPasswordForSvcacc(null, updatedUrlOfEndPoint).then(function (response) {                
-            //         if (UtilityService.ifAPIRequestSuccessful(response)) {
-            //             $scope.isLoadingData = false;
-            //             $scope.svcaccSecretData.secret = response.data.current_password;
-            //             var notification = UtilityService.getAParticularSuccessMessage("MESSAGE_RESET_SUCCESS");
-            //             Notifications.toast("Password "+notification);
-            //             $scope.svcaccToReset = '';
-            //         }
-            //         else {
-            //             $scope.isLoadingData = false;
-            //             $scope.svcaccToReset = '';
-            //             $scope.errorMessage = AdminSafesManagement.getTheRightErrorMessage(response);
-            //             error('md');
-            //         }
-            //     },
-            //     function (error) {
-            //         // Error handling function
-            //         console.log(error);
-            //         $scope.isLoadingData = false;
-            //         $scope.svcaccToReset = '';
-            //         $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
-            //         $scope.error('md');
-            //     });    
-            // } else {
-            //     $scope.isLoadingData = false;
-            //     $scope.svcaccToReset = '';
-            //     $scope.errorMessage = AdminSafesManagement.getTheRightErrorMessage('ERROR_GENERAL');
-            //     error('md');
-            // }
+        $scope.rotateIAMSvcaccSecret = function(rotateSecretDetails) {
+            var folderName = $scope.iamsvcaccSecretData.userName.split("/")[1];
+            if (folderName != '') {
+                 $scope.isLoadingData = true;
+                 Modal.close();
+                 var pathParameters = folderName;
+                 var updatedUrlOfEndPoint = ModifyUrl.addUrlParameteres('rotateIAMSvcaccSecret',pathParameters);
+                 AdminSafesManagement.rotateIAMSvcaccSecret(rotateSecretDetails, "").then(function (response) {
+                     if (UtilityService.ifAPIRequestSuccessful(response)) {
+                        $scope.viewSecret(rotateSecretDetails.accountId + "_" + rotateSecretDetails.userName, folderName);
+                        var notification = UtilityService.getAParticularSuccessMessage("MESSAGE_RESET_SUCCESS");
+                        Notifications.toast("Password "+notification);
+                     }
+                     else {
+                        $scope.isLoadingData = false;
+                        $scope.errorMessage = AdminSafesManagement.getTheRightErrorMessage(response);
+                        error('md');
+                     }
+                 },
+                 function (error) {
+                    // Error handling function
+                    console.log(error);
+                    $scope.isLoadingData = false;
+                    $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
+                    $scope.error('md');
+                 });
+             } else {
+                $scope.isLoadingData = false;
+                $scope.errorMessage = AdminSafesManagement.getTheRightErrorMessage('ERROR_GENERAL');
+                $scope.error('md');
+            }
         }
 
-        $scope.resetPasswordPopup = function(svcaccname, secretKey) {
+        $scope.rotatePasswordPopup = function(iamsvcaccSecretData) {
             $scope.fetchDataError = false;
-            // $scope.svcaccToReset = svcaccname;
-            // $scope.svcaccSecretToReset = secretKey;
-            $scope.resetSecretDetails = {
-                svcaccname: svcaccname || '',
-                secretKey: secretKey || ''
-            };
-            Modal.createModal('md', 'resetPopup.html', 'IamServiceAccountsCtrl', $scope);
+            var svcName = iamsvcaccSecretData.userName.split("/")[0];
+            if (svcName != undefined) {
+                $scope.rotateSecretDetails = {
+                    accessKeyId: iamsvcaccSecretData.accessKeyId,
+                    accountId: iamsvcaccSecretData.awsAccountId,
+                    userName: svcName
+                };
+                Modal.createModal('md', 'rotatePopup.html', 'IamServiceAccountsCtrl', $scope);
+            }
+            else {
+                $scope.errorMessage = AdminSafesManagement.getTheRightErrorMessage('ERROR_GENERAL');
+                $scope.error('md');
+            }
         };
 
         $scope.goToMyServiceAccounts = function() {
@@ -247,7 +251,6 @@
             Modal.close();
         };
         init();
-        
     });
 })(angular.module('vault.features.IamServiceAccountsCtrl',[
     'vault.services.fetchData',
