@@ -1,4 +1,5 @@
 import styled from 'styled-components';
+import mediaBreakpoints from '../../breakpoints';
 
 export const SubHeading = styled('div')`
   font-size: 2.4rem;
@@ -14,6 +15,9 @@ export const TitleOne = styled('div')`
   line-height: ${(props) => props.lineHeight || 'normal'};
   font-family: ${(props) => props.fontfamily || ''};
   ${(props) => (props.extraCss ? props.extraCss : '')}
+  ${mediaBreakpoints.small} {
+    font-size: 1.6rem;
+  }
 `;
 export const TitleTwo = styled('div')`
   font-size: 1.6rem;

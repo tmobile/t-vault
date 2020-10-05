@@ -16,7 +16,7 @@ const ColumnHeader = styled('div')`
     width: 70%;
   }
   ${mediaBreakpoints.small} {
-    height: 13rem;
+    height: 18rem;
     padding: 1rem;
   }
 `;
@@ -33,11 +33,13 @@ const HeaderBg = styled('div')`
   right: 0;
   bottom: 0;
   background: url(${(props) => props.bgImage || ''});
+  ${mediaBreakpoints.small} {
+    z-index: -1;
+  }
 `;
 
 const ListDetailHeader = (props) => {
   const { title, description, bgImage } = props;
-
   // screen view handler
   const isMobileScreen = useMediaQuery(mediaBreakpoints.small);
   return (

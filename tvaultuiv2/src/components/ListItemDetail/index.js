@@ -1,7 +1,7 @@
 /* eslint-disable react/forbid-prop-types */
 /* eslint-disable react/require-default-props */
 /* eslint-disable react/no-unused-prop-types */
-import React, { useEffect } from 'react';
+import React from 'react';
 import PropTypes from 'prop-types';
 // import { useHistory, useLocation } from 'react-router-dom';
 import useMediaQuery from '@material-ui/core/useMediaQuery';
@@ -10,6 +10,7 @@ import ComponentError from '../../errorBoundaries/ComponentError/component-error
 import { BackArrow } from '../../assets/SvgIcons';
 import mediaBreakpoints from '../../breakpoints';
 import ListDetailHeader from '../ListDetailHeader';
+import { TitleOne } from '../../styles/GlobalStyles';
 
 // styled components goes here
 const Section = styled('section')`
@@ -24,28 +25,27 @@ const BackButton = styled.div`
   display: flex;
   align-items: center;
   padding: 2rem 0 0 2rem;
-  span {
-    margin-left: 1rem;
+
+  ${mediaBreakpoints.small} {
+    position: absolute;
+    z-index: 2;
   }
 `;
 
 const ListItemDetail = (props) => {
   const {
-    setActiveFolders,
     ListDetailHeaderBg,
     renderContent,
-    listItem,
+    listItemDetails,
+    backToLists,
   } = props;
-  // use history of page
-  //   const history = useHistory();
-  //   const location = useLocation();
   // screen view handler
   const isMobileScreen = useMediaQuery(mediaBreakpoints.small);
+
   // route component data
   const goBackToList = () => {
-    setActiveFolders();
+    backToLists();
   };
-  useEffect(() => {}, []);
 
   return (
     <ComponentError>
@@ -53,13 +53,15 @@ const ListItemDetail = (props) => {
         {isMobileScreen ? (
           <BackButton onClick={goBackToList}>
             <BackArrow />
-            <span>{listItem.name || ''}</span>
+            <TitleOne extraCss="font-weight:bold;margin-left:1rem;">
+              {listItemDetails.name || ''}
+            </TitleOne>
           </BackButton>
         ) : null}
 
         <ListDetailHeader
-          //   title={listItem?.name}
-          //   description={listItem?.description}
+          title={listItemDetails?.name}
+          description={listItemDetails?.description}
           bgImage={ListDetailHeaderBg}
         />
 
@@ -71,18 +73,18 @@ const ListItemDetail = (props) => {
 ListItemDetail.propTypes = {
   detailData: PropTypes.arrayOf(PropTypes.array),
   params: PropTypes.objectOf(PropTypes.object),
-  setActiveFolders: PropTypes.func,
   ListDetailHeaderBg: PropTypes.string,
   renderContent: PropTypes.node,
-  listItem: PropTypes.objectOf(PropTypes.object),
+  listItemDetails: PropTypes.objectOf(PropTypes.object),
+  backToLists: PropTypes.func,
 };
 ListItemDetail.defaultProps = {
   detailData: [],
   params: {},
-  setActiveFolders: () => {},
   ListDetailHeaderBg: '',
   renderContent: <div />,
-  listItem: {},
+  listItemDetails: {},
+  backToLists: () => {},
 };
 
 export default ListItemDetail;
