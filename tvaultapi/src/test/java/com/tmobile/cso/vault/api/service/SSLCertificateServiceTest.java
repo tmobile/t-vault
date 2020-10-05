@@ -180,7 +180,7 @@ public class SSLCertificateServiceTest {
         ReflectionTestUtils.setField(sSLCertificateService, "requestStatusUrl", "actions/actionid");
         ReflectionTestUtils.setField(sSLCertificateService, "fromEmail", "no-reply@t-mobile.com");
         ReflectionTestUtils.setField(sSLCertificateService, "nclmErrorMessage", "Your request cannot be processed now due to some technical issue. Please try after some time");
-
+        ReflectionTestUtils.setField(sSLCertificateService, "nclmMockEnabled", "false");
 
 
 
