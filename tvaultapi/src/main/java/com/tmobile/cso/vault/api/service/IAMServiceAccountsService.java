@@ -1939,7 +1939,7 @@ public class  IAMServiceAccountsService {
 	
 	
 	/**
-	 * Read Folder and Secrets for a given folder
+	 * Read Folder details for a given iamsvcacc
 	 * 
 	 * @param token
 	 * @param path
