@@ -29,7 +29,7 @@ import Error from '../../../../../components/Error';
 import OnBoardServiceAccount from '../OnBoardServiceAccounts';
 import SnackbarComponent from '../../../../../components/Snackbar';
 import ScaledLoader from '../../../../../components/Loaders/ScaledLoader';
-import apiService from '../../apiService';
+// import apiService from '../../apiService';
 
 import ConfirmationModal from '../../../../../components/ConfirmationModal';
 // import OnBoardForm from '../OnBoardForm';
@@ -180,7 +180,6 @@ const useStyles = makeStyles(() => ({
   containedSecondary: { borderRadius: '0.4rem' },
 }));
 const ServiceAccountDashboard = () => {
-  const [enableOnBoardForm, setEnableOnBoardForm] = useState(false);
   const [inputSearchValue, setInputSearchValue] = useState('');
   const [anchorEl, setAnchorEl] = useState(null);
   const [serviceAccountClicked, setServiceAccountClicked] = useState(false);
@@ -260,6 +259,8 @@ const ServiceAccountDashboard = () => {
   }, []);
   const onServiceAccountOffBoard = () => {};
   const onServiceAccountEdit = () => {};
+
+  const handleConfirmationModalClose = () => {};
   const renderList = () => {
     return serviceAccountList.map((account) => (
       <ListFolderWrap
@@ -318,22 +319,16 @@ const ServiceAccountDashboard = () => {
     <ComponentError>
       <>
         {/* <ConfirmationModal
-          open={openConfirmationModal}
-          handleClose={handleClose}
-          title="Are you sure you want to delete this service account?"
-          cancelButton={
-            <ButtonComponent
-              label="Cancel"
-              color="primary"
-              onClick={() => handleClose()}
-              width={isMobileScreen ? '100%' : '38%'}
-            />
-          }
+          open={onBoardConfirmationModal}
+          handleClose={handleConfirmationModalClose}
+          title="Onboarding Service Account"
+          description="The password for this service account will expire in 365 days and will not be enabled for auto rotation by T-Vault. You need to makes sure the passwod for this service account is getting roated appropriately."
           confirmButton={
+            // eslint-disable-next-line react/jsx-wrap-multilines
             <ButtonComponent
               label="Confirm"
               color="secondary"
-              onClick={() => onDeleteSafeConfirmClicked()}
+              onClick={() => setOnBoardConfirmationModal(false)}
               width={isMobileScreen ? '100%' : '38%'}
             />
           }
