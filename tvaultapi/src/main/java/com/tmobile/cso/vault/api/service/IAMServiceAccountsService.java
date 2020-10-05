@@ -127,6 +127,7 @@ public class  IAMServiceAccountsService {
 	 */
 	public ResponseEntity<String> onboardIAMServiceAccount(String token, IAMServiceAccount iamServiceAccount,
 			UserDetails userDetails) {
+		iamServiceAccount.setUserName(iamServiceAccount.getUserName().toLowerCase());
 		List<String> onboardedList = getOnboardedIAMServiceAccountList(token, userDetails);
 		String iamSvcAccName = iamServiceAccount.getAwsAccountId() + "_" + iamServiceAccount.getUserName();
 		if (onboardedList.contains(iamSvcAccName)) {
@@ -140,13 +141,13 @@ public class  IAMServiceAccountsService {
 					"{\"errors\":[\"Failed to onboard IAM Service Account. IAM Service account is already onboarded\"]}");
 		}
 
-		String iamSvccAccPath = IAMServiceAccountConstants.IAM_SVCC_ACC_PATH + iamSvcAccName;
+		//String iamSvccAccPath = IAMServiceAccountConstants.IAM_SVCC_ACC_PATH + iamSvcAccName;
 		String iamSvccAccMetaPath = IAMServiceAccountConstants.IAM_SVCC_ACC_META_PATH + iamSvcAccName;
 
 		IAMServiceAccountMetadataDetails iamServiceAccountMetadataDetails = populateIAMSvcAccMetaData(
 				iamServiceAccount);
 
-		boolean accountRoleCreationResponse = createIAMServiceAccount(token, iamSvccAccPath);
+		boolean accountRoleCreationResponse = createIAMServiceAccount(token, iamSvccAccMetaPath);
 		if (accountRoleCreationResponse) {
 			// Create Metadata
 			ResponseEntity<String> metadataCreationResponse = createIAMSvcAccMetadata(token,
@@ -379,18 +380,19 @@ public class  IAMServiceAccountsService {
 					.append(IAMServiceAccountConstants.IAMSVCACC_POLICY_PREFIX).append(iamSvcAccName).toString();
 			accessPolicy.setAccessid(accessId);
 			HashMap<String, String> accessMap = new HashMap<>();
-
+			String iamCredsPath=new StringBuffer().append(IAMServiceAccountConstants.IAM_SVCC_ACC_PATH).append(iamSvcAccName).append("/*").toString();
+			accessMap.put(iamCredsPath, TVaultConstants.getSvcAccPolicies().get(policyPrefix));
 			// Attaching write permissions for owner
 			if (TVaultConstants.getSvcAccPolicies().get(policyPrefix).equals(TVaultConstants.SUDO_POLICY)) {
-				accessMap.put(IAMServiceAccountConstants.IAM_SVCC_ACC_PATH + iamSvcAccName,
+				accessMap.put(IAMServiceAccountConstants.IAM_SVCC_ACC_PATH + iamSvcAccName + "/*",
 						TVaultConstants.WRITE_POLICY);
-				accessMap.put(IAMServiceAccountConstants.IAM_SVCC_ACC_META_PATH + iamSvcAccName,
+				accessMap.put(IAMServiceAccountConstants.IAM_SVCC_ACC_META_PATH + iamSvcAccName + "/*",
 						TVaultConstants.WRITE_POLICY);
 			}
 			if (TVaultConstants.getSvcAccPolicies().get(policyPrefix).equals(TVaultConstants.WRITE_POLICY)) {
-				accessMap.put(IAMServiceAccountConstants.IAM_SVCC_ACC_PATH + iamSvcAccName,
+				accessMap.put(IAMServiceAccountConstants.IAM_SVCC_ACC_PATH + iamSvcAccName + "/*",
 						TVaultConstants.WRITE_POLICY);
-				accessMap.put(IAMServiceAccountConstants.IAM_SVCC_ACC_META_PATH + iamSvcAccName,
+				accessMap.put(IAMServiceAccountConstants.IAM_SVCC_ACC_META_PATH + iamSvcAccName + "/*",
 						TVaultConstants.WRITE_POLICY);
 			}
 			accessPolicy.setAccess(accessMap);
@@ -835,6 +837,7 @@ public class  IAMServiceAccountsService {
 	public ResponseEntity<String> addUserToIAMServiceAccount(String token, UserDetails userDetails,
 			IAMServiceAccountUser iamServiceAccountUser, boolean isPartOfOnboard) {
 
+		iamServiceAccountUser.setIamSvcAccName(iamServiceAccountUser.getIamSvcAccName().toLowerCase());
 		OIDCEntityResponse oidcEntityResponse = new OIDCEntityResponse();
 		if (!userDetails.isAdmin()) {
 			token = userDetails.getSelfSupportToken();
@@ -2379,6 +2382,7 @@ public class  IAMServiceAccountsService {
 	 * @return
 	 */
 	public ResponseEntity<String> activateIAMServiceAccount(String token, UserDetails userDetails, String iamServiceAccountName, String awsAccountId) {
+		iamServiceAccountName = iamServiceAccountName.toLowerCase();
 		if (!userDetails.isAdmin()) {
 			token = userDetails.getSelfSupportToken();
 		}
@@ -2585,7 +2589,7 @@ public class  IAMServiceAccountsService {
 		String uniqueIAMSvcaccName = awsAccountId + "_" + iamSvcName;
 
 		// Get metadata to check the accesskeyid
-		JsonObject iamMetadataJson = getIAMMetadata(token, uniqueIAMSvcaccName);
+		JsonObject iamMetadataJson = getIAMMetadata(tokenUtils.getSelfServiceToken(), uniqueIAMSvcaccName);
 
 		if (null!= iamMetadataJson && iamMetadataJson.has("secret")) {
 			if (!iamMetadataJson.get("secret").isJsonNull()) {
@@ -2684,7 +2688,7 @@ public class  IAMServiceAccountsService {
 						put(LogMessage.MESSAGE, "Secret saved to IAM service account mount").
 						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 						build()));
-				Response metadataUdpateResponse = iamServiceAccountUtils.updateIAMSvcAccNewAccessKeyIdInMetadata(token, awsAccountId, iamServiceAccountName, accessKeyId, iamServiceAccountSecret);
+				Response metadataUdpateResponse = iamServiceAccountUtils.updateIAMSvcAccNewAccessKeyIdInMetadata(tokenUtils.getSelfServiceToken(), awsAccountId, iamServiceAccountName, accessKeyId, iamServiceAccountSecret);
 				if (null != metadataUdpateResponse && HttpStatus.NO_CONTENT.equals(metadataUdpateResponse.getHttpstatus())) {
 					log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 							put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
