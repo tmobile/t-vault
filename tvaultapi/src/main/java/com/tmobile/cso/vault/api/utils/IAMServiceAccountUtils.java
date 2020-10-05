@@ -264,6 +264,7 @@ public class IAMServiceAccountUtils {
                 if (responseJson.has("expiryDateEpoch")) {
                     iamServiceAccountSecret.setExpiryDateEpoch(responseJson.get("expiryDateEpoch").getAsLong());
                 }
+                iamServiceAccountSecret.setAwsAccountId(iamServiceAccountRotateRequest.getAccountId());
             }
             return iamServiceAccountSecret;
         } catch (IOException e) {
