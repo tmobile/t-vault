@@ -150,26 +150,4 @@ public class NCLMMockUtil {
         return certificateData;
     }
 
-
-   /* public SSLCertificateMetadataDetails addingMockingDataForExternalCert(SSLCertificateMetadataDetails sslCertificateMetadataDetails,SSLCertificateRequest sslCertificateRequest){
-        //Assign from and to-dates
-        DateTimeFormatter formatter= DateTimeFormatter.ofPattern("uuuu-MM-dd'T'HH:mm:ssXXX");
-        OffsetDateTime now = OffsetDateTime.now(ZoneId.of("-07:00"));
-        String fromDate = now.format(formatter);
-        int endYear = Integer.parseInt(fromDate.substring(0,4))+1;
-        sslCertificateMetadataDetails.setContainerId(2222);
-        sslCertificateMetadataDetails.setRequestStatus("Approved");
-        sslCertificateMetadataDetails.setCertificateStatus("Active");
-        sslCertificateMetadataDetails.setCreateDate(now.format(formatter));
-        sslCertificateMetadataDetails.setExpiryDate(endYear +fromDate.substring(4));
-
-        sslCertificateMetadataDetails.setContainerName("T-Vault-Test");
-        sslCertificateMetadataDetails.setAuthority("T-Mobile Issuing CA 01 - SHA2");
-        if(Objects.nonNull(sslCertificateMetadataDetails.getDnsNames())) {
-            sslCertificateMetadataDetails.setDnsNames(Arrays.asList(sslCertificateRequest.getDnsList()));
-        }
-
-        return sslCertificateMetadataDetails;
-    }
-*/
 }
