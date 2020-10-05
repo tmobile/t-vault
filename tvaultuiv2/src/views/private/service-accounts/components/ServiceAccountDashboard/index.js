@@ -196,7 +196,7 @@ const ServiceAccountDashboard = () => {
   const history = useHistory();
 
   const showOnBoardForm = () => {
-    setEnableOnBoardForm(true);
+    // setEnableOnBoardForm(true);
     setServiceAccountClicked(true);
   };
   /**
@@ -352,6 +352,7 @@ const ServiceAccountDashboard = () => {
                     label="Onboard Account"
                     onClick={() => showOnBoardForm()}
                     classes={classes}
+                    href="/service-accounts/change-service-accounts"
                   />
                 </div>
 
@@ -457,9 +458,7 @@ const ServiceAccountDashboard = () => {
                       listItemDetails={listItemDetails}
                       renderContent={
                         // eslint-disable-next-line react/jsx-wrap-multilines
-                        <OnBoardServiceAccount
-                          enableOnBoardForm={enableOnBoardForm}
-                        />
+                        <OnBoardServiceAccount />
                       }
                       params={routerProps}
                       backToLists={backToServiceAccounts}
