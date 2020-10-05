@@ -36,6 +36,7 @@ import org.springframework.ldap.core.LdapTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.util.ObjectUtils;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -51,6 +52,7 @@ import com.tmobile.cso.vault.api.model.IAMSecretsMetadata;
 import com.tmobile.cso.vault.api.model.IAMServiceAccount;
 import com.tmobile.cso.vault.api.model.IAMServiceAccountGroup;
 import com.tmobile.cso.vault.api.model.IAMServiceAccountMetadataDetails;
+import com.tmobile.cso.vault.api.model.IAMServiceAccountNode;
 import com.tmobile.cso.vault.api.model.IAMServiceAccountUser;
 import com.tmobile.cso.vault.api.model.IAMSvccAccMetadata;
 import com.tmobile.cso.vault.api.model.OIDCEntityResponse;
@@ -1393,14 +1395,11 @@ public class  IAMServiceAccountsService {
 	 * @param iamSvcaccName
 	 * @return
 	 */
-	public ResponseEntity<String> getIAMServiceAccountSecretKey(String token, String iamSvcaccName) {
-		String path = TVaultConstants.IAM_SVC_ACC_PATH_PREFIX + '/' + iamSvcaccName;
+	public ResponseEntity<String> getIAMServiceAccountSecretKey(String token, String iamSvcaccName, String folderName) {
+		String path = TVaultConstants.IAM_SVC_ACC_PATH_PREFIX + "/" + iamSvcaccName + "/" + folderName;
 		Response response = reqProcessor.process("/iamsvcacct", "{\"path\":\"" + path + "\"}", token);
 		if (response.getHttpstatus().equals(HttpStatus.OK)) {
-			JsonObject data = populateMetaData(response);
-			String iamSvcName = data.get("awsAccountId") + "_" + data.get("userName");
-			data.addProperty("iamsvcname", iamSvcName);
-			return ResponseEntity.status(HttpStatus.OK).body(data.toString());
+			return ResponseEntity.status(HttpStatus.OK).body(response.getResponse());
 		}
 		return ResponseEntity.status(HttpStatus.BAD_REQUEST)
 				.body("{\"errors\":[\"No Iam Service Account with " + iamSvcaccName + ".\"]}");
@@ -1935,6 +1934,37 @@ public class  IAMServiceAccountsService {
 					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 					build()));
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Group configuration failed. Contact Admin \"]}");
+		}
+	}
+	
+	
+	/**
+	 * Read Folder and Secrets for a given folder
+	 * 
+	 * @param token
+	 * @param path
+	 * @return
+	 */
+	public ResponseEntity<String> readFoldersAndSecrets(String token, String path) {
+		Response response = new Response();
+		IAMServiceAccountNode iamServiceAccountNode = new IAMServiceAccountNode();
+		String iamSvcName = path.substring(10);
+		iamServiceAccountNode.setPath(iamSvcName);
+		if (ControllerUtil.isValidIAMPath(path)) {
+			iamServiceAccountNode.setType(TVaultConstants.IAM_SVC_ACC_PATH_PREFIX);
+		} else {
+			iamServiceAccountNode.setType(TVaultConstants.FOLDER);
+		}
+		ControllerUtil.getIamFoldersAndSecrets("{\"path\":\"" + path + "\"}", token, response, iamServiceAccountNode);
+		String separator = "_";
+		int sepPos = path.indexOf(separator);
+		iamServiceAccountNode.setIamsvcaccName(path.substring(sepPos + separator.length()));
+		ObjectMapper mapper = new ObjectMapper();
+		try {
+			String res = mapper.writeValueAsString(iamServiceAccountNode);
+			return ResponseEntity.status(response.getHttpstatus()).body(res);
+		} catch (JsonProcessingException e) {
+			return ResponseEntity.status(response.getHttpstatus()).body(response.getResponse());
 		}
 	}
 }

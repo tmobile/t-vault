@@ -3345,7 +3345,6 @@ public class  ServiceAccountsService {
 	 * @param svcAccName
 	 */
 	private void removeOldUserPermissions(String userName, String token, String svcAccName, UserDetails userDetails) {
-
 		OIDCEntityResponse oidcEntityResponse = new OIDCEntityResponse();
 		// Remove metadata directly as removeUserFromServiceAccount() will need refreshed token
 		String path = new StringBuffer(TVaultConstants.SVC_ACC_ROLES_PATH).append(svcAccName).toString();
@@ -3378,32 +3377,34 @@ public class  ServiceAccountsService {
 		Response userResponse = new Response();
 		if (TVaultConstants.USERPASS.equals(vaultAuthMethod)) {
 			userResponse = reqProcessor.process("/auth/userpass/read", "{\"username\":\"" + userName + "\"}", token);
+
 		} else if (TVaultConstants.LDAP.equals(vaultAuthMethod)) {
 			userResponse = reqProcessor.process("/auth/ldap/users", "{\"username\":\"" + userName + "\"}", token);
-	} else if (TVaultConstants.OIDC.equals(vaultAuthMethod)) {
-		// OIDC implementation changes
-		ResponseEntity<OIDCEntityResponse> responseEntity = oidcUtil.oidcFetchEntityDetails(token, userName, userDetails);
-		if (!responseEntity.getStatusCode().equals(HttpStatus.OK)) {
-			if (responseEntity.getStatusCode().equals(HttpStatus.FORBIDDEN)) {
-				log.error(
-						JSONUtil.getJSON(
-								ImmutableMap.<String, String> builder()
-										.put(LogMessage.USER,
-												ThreadLocalContext.getCurrentMap().get(LogMessage.USER)
-														.toString())
-										.put(LogMessage.ACTION, "removeUserFromSafe")
-										.put(LogMessage.MESSAGE,
-												String.format("Trying to fetch OIDC user policies, failed"))
-										.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap()
-												.get(LogMessage.APIURL).toString())
-										.build()));
+		} else if (TVaultConstants.OIDC.equals(vaultAuthMethod)) {
+			// OIDC implementation changes
+			ResponseEntity<OIDCEntityResponse> responseEntity = oidcUtil.oidcFetchEntityDetails(token, userName, userDetails);
+			if (!responseEntity.getStatusCode().equals(HttpStatus.OK)) {
+				if (responseEntity.getStatusCode().equals(HttpStatus.FORBIDDEN)) {
+					log.error(
+							JSONUtil.getJSON(
+									ImmutableMap.<String, String> builder()
+											.put(LogMessage.USER,
+													ThreadLocalContext.getCurrentMap().get(LogMessage.USER)
+															.toString())
+											.put(LogMessage.ACTION, "removeUserFromSafe")
+											.put(LogMessage.MESSAGE,
+													String.format("Trying to fetch OIDC user policies, failed"))
+											.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap()
+													.get(LogMessage.APIURL).toString())
+											.build()));
+				}
 			}
+			oidcEntityResponse.setEntityName(responseEntity.getBody().getEntityName());
+			oidcEntityResponse.setPolicies(responseEntity.getBody().getPolicies());
+			userResponse.setResponse(oidcEntityResponse.getPolicies().toString());
+			userResponse.setHttpstatus(responseEntity.getStatusCode());
 		}
-		oidcEntityResponse.setEntityName(responseEntity.getBody().getEntityName());
-		oidcEntityResponse.setPolicies(responseEntity.getBody().getPolicies());
-		userResponse.setResponse(oidcEntityResponse.getPolicies().toString());
-		userResponse.setHttpstatus(responseEntity.getStatusCode());
-		}
+
 		String responseJson = "";
 		String groups = "";
 		List<String> policies = new ArrayList<>();
