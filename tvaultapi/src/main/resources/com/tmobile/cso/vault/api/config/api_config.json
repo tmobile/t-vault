@@ -1205,5 +1205,14 @@
         	{"name":"path","required":true, "appendToPath":true}
         ],
         "outparams":["data"]
+    },
+    {"#":"**** Listing all IAM Service Account Folders and secret *****",
+    	"apiEndPoint":"/iam/list",
+    	"vaultEndPoint":"/<path>?list=true",
+    	"method":"GET",
+      	"params":[
+        	{"name":"path","required":true, "appendToPath":true}
+        ],
+         "outparams":["data/keys"]
     }
 ]
