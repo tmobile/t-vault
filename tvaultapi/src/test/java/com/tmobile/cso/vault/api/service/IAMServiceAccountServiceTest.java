@@ -2,6 +2,7 @@ package com.tmobile.cso.vault.api.service;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.when;
 
 import java.lang.reflect.InvocationTargetException;
@@ -33,6 +34,8 @@ import org.springframework.http.ResponseEntity;
 import com.google.common.collect.ImmutableMap;
 import com.tmobile.cso.vault.api.controller.ControllerUtil;
 import com.tmobile.cso.vault.api.controller.OIDCUtil;
+import com.tmobile.cso.vault.api.model.IAMServiceAccountApprole;
+import com.tmobile.cso.vault.api.model.ServiceAccountApprole;
 import com.tmobile.cso.vault.api.model.UserDetails;
 import com.tmobile.cso.vault.api.process.RequestProcessor;
 import com.tmobile.cso.vault.api.process.Response;
@@ -40,6 +43,7 @@ import com.tmobile.cso.vault.api.utils.HttpUtils;
 import com.tmobile.cso.vault.api.utils.JSONUtil;
 import com.tmobile.cso.vault.api.utils.PolicyUtils;
 import com.tmobile.cso.vault.api.utils.ThreadLocalContext;
+import com.tmobile.cso.vault.api.utils.TokenUtils;
 
 @RunWith(PowerMockRunner.class)
 @ComponentScan(basePackages = { "com.tmobile.cso.vault.api" })
@@ -74,6 +78,12 @@ public class IAMServiceAccountServiceTest {
     
     @Mock
     OIDCUtil OIDCUtil;
+    
+    @Mock
+    AppRoleService appRoleService;
+    
+    @Mock
+    TokenUtils tokenUtils;
     
     @Before
     public void setUp()
@@ -125,5 +135,31 @@ public class IAMServiceAccountServiceTest {
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
     }
+    
+//    @Test
+//    public void test_AssociateAppRole_succssfully() throws Exception {
+//
+//        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Approle successfully associated with Service Account\"]}");
+//        String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+//        UserDetails userDetails = getMockUser(false);
+//        IAMServiceAccountApprole serviceAccountApprole = new IAMServiceAccountApprole("testsvcname", "role1", "reset", "1234567890");
+//
+//        String [] policies = {"o_iamsvcacc_testsvcname"};
+//        when(policyUtils.getCurrentPolicies(token, userDetails.getUsername(), userDetails)).thenReturn(policies);
+//        Response appRoleResponse = getMockResponse(HttpStatus.OK, true, "{\"data\": {\"policies\":\"w_shared_mysafe01\"}}");
+//        when(reqProcessor.process("/auth/approle/role/read","{\"role_name\":\"role1\"}",token)).thenReturn(appRoleResponse);
+//        Response configureAppRoleResponse = getMockResponse(HttpStatus.OK, true, "");
+//        when(appRoleService.configureApprole(Mockito.anyString(), Mockito.anyString(), Mockito.anyString())).thenReturn(configureAppRoleResponse);
+//        Response updateMetadataResponse = getMockResponse(HttpStatus.NO_CONTENT, true, "");
+//        when(ControllerUtil.updateMetadata(Mockito.anyMap(),Mockito.anyString())).thenReturn(updateMetadataResponse);
+//
+//        when(tokenUtils.getSelfServiceToken()).thenReturn(token);
+//        when(reqProcessor.process(eq("/sdb"),Mockito.any(),eq(token))).thenReturn(getMockResponse(HttpStatus.OK, true, "{\"data\":{\"initialPasswordReset\":true,\"managedBy\":\"smohan11\",\"name\":\"svc_vault_test5\",\"users\":{\"smohan11\":\"sudo\"}}}"));
+//        ResponseEntity<String> responseEntityActual =  iamServiceAccountsService.associateApproletoIAMsvcacc(userDetails, token, serviceAccountApprole);
+//
+//        assertEquals(HttpStatus.OK, responseEntityActual.getStatusCode());
+//        assertEquals(responseEntityExpected, responseEntityActual);
+//
+//    }
 
 }

@@ -422,6 +422,16 @@
                     return response;
                 });
             },
+            addAppRolePermissionForIAMSvcacc: function(payload, url) {
+                return ServiceEndpoint.addAppRolePermissionForIAMSvcacc.makeRequest(payload, url).then(function(response) {
+                    return response;
+                });
+            },
+            detachAppRolePermissionFromIAMSvcacc: function(payload, url) {
+                return ServiceEndpoint.detachAppRolePermissionFromIAMSvcacc.makeRequest(payload, url).then(function(response) {
+                    return response;
+                });
+            },
             getTheRightErrorMessage : function(responseObject){
                 if(responseObject.status===500 || responseObject.statusText==='Internal Server Error'){
                     return ErrorMessage.ERROR_NETWORK;

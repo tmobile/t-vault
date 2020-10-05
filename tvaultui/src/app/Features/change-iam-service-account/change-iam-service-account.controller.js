@@ -433,6 +433,14 @@
                                 "access": permission,
                                 "awsAccountId": awsAccountId
                             };
+                            case 'AppRolePermission' :
+                                apiCallFunction = AdminSafesManagement.detachAppRolePermissionFromIAMSvcacc;
+                                reqObjtobeSent = {
+                                    "iamSvcAccName": svcaccname,
+                                    "approlename": key,
+                                    "access": permission,
+                                    "awsAccountId": awsAccountId
+                                };
                             break;
                     }
                     apiCallFunction(reqObjtobeSent).then(
@@ -611,6 +619,9 @@
                                 GroupsPermissionsData: object.groups || '',
                                 AwsPermissionsData: '',
                                 AppRolePermissionsData: ''
+                            }
+                            $scope.permissionData.AppRolePermissionsData = {
+                                "data": object['app-roles']
                             }
                             $scope.isLoadingData = false;
                             hideUserSudoPolicy();
@@ -935,6 +946,9 @@
                 if (type === "groups" && $scope.permissionData.GroupsPermissionsData!= null && $scope.permissionData.GroupsPermissionsData.hasOwnProperty(key.toLowerCase())) {
                     duplicate = true;
                 }
+                if (type === "AppRolePermission" && $scope.permissionData.AppRolePermissionsData.data!= null && $scope.permissionData.AppRolePermissionsData.data.hasOwnProperty(key.toLowerCase())) {
+                    duplicate = true;
+                }
             }
             if (duplicate) {
                 clearInputPermissionData();
@@ -981,6 +995,10 @@
                             apiCallFunction = AdminSafesManagement.addGroupPermissionForIAMSvcacc;
                             reqObjtobeSent = {"iamSvcAccName": svcaccname, "groupname": key, "access": permission.toLowerCase(), "awsAccountId":awsAccountId};
                             break;
+                        case 'AppRolePermission':
+                            apiCallFunction = AdminSafesManagement.addAppRolePermissionForIAMSvcacc;
+                            reqObjtobeSent = { "iamSvcAccName": svcaccname, "approlename": key, "access": permission.toLowerCase(), "awsAccountId":awsAccountId};
+                            break;    
                     }
                     apiCallFunction(reqObjtobeSent, updatedUrlOfEndPoint).then(function (response) {
                             if (UtilityService.ifAPIRequestSuccessful(response)) {
@@ -1064,7 +1082,46 @@
 
         //APPROLE FUNCTION:
         $scope.addApproleToSafe = function (size) {
-           
+            // To reset the aws configuration details object to create a new one
+            $scope.editingApprolePermission = {"status": false};
+            $scope.approleConfPopupObj = {
+                "token_max_ttl":"",
+                "token_ttl": "",
+                "role_name": "",
+                "policies": "",
+                "bind_secret_id": "",
+                "secret_id_num_uses": "",
+                "secret_id_ttl": "",
+                "token_num_uses": ""
+            };
+            $scope.roleNameSelected = false;
+            $scope.roleNameTableOptions = [];
+            AdminSafesManagement.getApproles().then(function (response) {
+                if (UtilityService.ifAPIRequestSuccessful(response)) {
+                    var keys = response.data.keys +'';
+                    var roles = keys.split(',');
+                    for (var index = 0;index<roles.length;index++) {
+                        $scope.roleNameTableOptions.push({"type":roles[index]});
+                    }
+                }
+                else {
+                    $scope.errorMessage = AdminSafesManagement.getTheRightErrorMessage(response);
+                    $scope.error('md');
+                }
+            },
+            function (error) {
+                // Error handling function
+                console.log(error);
+                $scope.isLoadingData = false;
+                $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
+                $scope.error('md');
+            })
+
+            $scope.dropDownRoleNames = {
+                'selectedGroupOption': {"type": "Select Role Name"},       // As initial placeholder
+                'tableOptions': $scope.roleNameTableOptions
+            }
+            $scope.openApprole(size);
         }
 
         /* TODO: What is open, functon name should be more descriptive */
