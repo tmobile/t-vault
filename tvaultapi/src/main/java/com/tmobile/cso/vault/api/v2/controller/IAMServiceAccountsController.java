@@ -32,8 +32,10 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.tmobile.cso.vault.api.model.IAMServiceAccount;
+import com.tmobile.cso.vault.api.model.IAMServiceAccountApprole;
 import com.tmobile.cso.vault.api.model.IAMServiceAccountGroup;
 import com.tmobile.cso.vault.api.model.IAMServiceAccountUser;
+import com.tmobile.cso.vault.api.model.ServiceAccountApprole;
 import com.tmobile.cso.vault.api.model.UserDetails;
 import com.tmobile.cso.vault.api.service.IAMServiceAccountsService;
 
@@ -156,10 +158,10 @@ public class IAMServiceAccountsController {
 	 */
 	@ApiOperation(value = "${IAMServiceAccountsController.readFromVault.value}", notes = "${IAMServiceAccountsController.readFromVault.notes}")
 	@GetMapping(value = "/v2/iamserviceaccounts/folders/secrets", produces = "application/json")
-	public ResponseEntity<String> readFromVault(@RequestHeader(value = "vault-token") String token,
+	public ResponseEntity<String> readFolders(@RequestHeader(value = "vault-token") String token,
 			@RequestParam("path") String path,
 			@RequestParam(name = "fetchOption", required = false) FetchOption fetchOption) {
-		return iamServiceAccountsService.readFoldersAndSecrets(token, path);
+		return iamServiceAccountsService.readFolders(token, path);
 	}
 
 	/**
@@ -188,5 +190,39 @@ public class IAMServiceAccountsController {
 	public ResponseEntity<String> removeGroupFromIAMServiceAccount( HttpServletRequest request, @RequestHeader(value="vault-token") String token, @Valid @RequestBody IAMServiceAccountGroup iamServiceAccountGroup ){
 		UserDetails userDetails = (UserDetails) request.getAttribute(USER_DETAILS_STRING);
 		return iamServiceAccountsService.removeGroupFromIAMServiceAccount(token, iamServiceAccountGroup, userDetails);
+	}
+	
+	/**
+	 * Add approle to IAM Service Account
+	 * 
+	 * @param request
+	 * @param token
+	 * @param iamServiceAccountApprole
+	 * @return
+	 */
+	@ApiOperation(value = "${IAMServiceAccountsController.associateApprole.value}", notes = "${IAMServiceAccountsController.associateApprole.notes}")
+	@PostMapping(value = "/v2/iamserviceaccounts/approle", consumes = "application/json", produces = "application/json")
+	public ResponseEntity<String> associateApproletoIAMSvcAcc(HttpServletRequest request,
+			@RequestHeader(value = "vault-token") String token,
+			@Valid @RequestBody IAMServiceAccountApprole iamServiceAccountApprole) {
+		UserDetails userDetails = (UserDetails) request.getAttribute(USER_DETAILS_STRING);
+		return iamServiceAccountsService.associateApproletoIAMsvcacc(userDetails, token, iamServiceAccountApprole);
+	}
+
+	/**
+	 * Remove approle from IAM Service Account
+	 * 
+	 * @param request
+	 * @param token
+	 * @param iamServiceAccountApprole
+	 * @return
+	 */
+	@ApiOperation(value = "${IAMServiceAccountsController.removeApprole.value}", notes = "${IAMServiceAccountsController.removeApprole.notes}")
+	@DeleteMapping(value = "/v2/iamserviceaccounts/approle", consumes = "application/json", produces = "application/json")
+	public ResponseEntity<String> removeApproleFromIAMSvcAcc(HttpServletRequest request,
+			@RequestHeader(value = "vault-token") String token,
+			@Valid @RequestBody IAMServiceAccountApprole iamServiceAccountApprole) {
+		UserDetails userDetails = (UserDetails) request.getAttribute(USER_DETAILS_STRING);
+		return iamServiceAccountsService.removeApproleFromIAMSvcAcc(userDetails, token, iamServiceAccountApprole);
 	}
 }

@@ -35,6 +35,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.ldap.core.LdapTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.util.ObjectUtils;
+import org.springframework.util.StringUtils;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -50,6 +51,7 @@ import com.tmobile.cso.vault.api.model.AccessPolicy;
 import com.tmobile.cso.vault.api.model.IAMSecrets;
 import com.tmobile.cso.vault.api.model.IAMSecretsMetadata;
 import com.tmobile.cso.vault.api.model.IAMServiceAccount;
+import com.tmobile.cso.vault.api.model.IAMServiceAccountApprole;
 import com.tmobile.cso.vault.api.model.IAMServiceAccountGroup;
 import com.tmobile.cso.vault.api.model.IAMServiceAccountMetadataDetails;
 import com.tmobile.cso.vault.api.model.IAMServiceAccountNode;
@@ -58,6 +60,7 @@ import com.tmobile.cso.vault.api.model.IAMSvccAccMetadata;
 import com.tmobile.cso.vault.api.model.OIDCEntityResponse;
 import com.tmobile.cso.vault.api.model.OIDCGroup;
 import com.tmobile.cso.vault.api.model.OnboardedIAMServiceAccount;
+import com.tmobile.cso.vault.api.model.ServiceAccountApprole;
 import com.tmobile.cso.vault.api.model.UserDetails;
 import com.tmobile.cso.vault.api.process.RequestProcessor;
 import com.tmobile.cso.vault.api.process.Response;
@@ -110,6 +113,9 @@ public class  IAMServiceAccountsService {
 
 	@Autowired
 	private OIDCUtil oidcUtil;
+	
+	@Autowired
+	private AppRoleService appRoleService;
 
 	/**
 	 * Onboard an IAM service account into TVault for password rotation
@@ -1945,7 +1951,7 @@ public class  IAMServiceAccountsService {
 	 * @param path
 	 * @return
 	 */
-	public ResponseEntity<String> readFoldersAndSecrets(String token, String path) {
+	public ResponseEntity<String> readFolders(String token, String path) {
 		Response response = new Response();
 		IAMServiceAccountNode iamServiceAccountNode = new IAMServiceAccountNode();
 		String iamSvcName = path.substring(10);
@@ -1965,6 +1971,429 @@ public class  IAMServiceAccountsService {
 			return ResponseEntity.status(response.getHttpstatus()).body(res);
 		} catch (JsonProcessingException e) {
 			return ResponseEntity.status(response.getHttpstatus()).body(response.getResponse());
+		}
+	}
+	
+	/**
+	 * Associate Approle to Service Account
+	 * 
+	 * @param userDetails
+	 * @param token
+	 * @param serviceAccountApprole
+	 * @return
+	 */
+	public ResponseEntity<String> associateApproletoIAMsvcacc(UserDetails userDetails, String token,
+			IAMServiceAccountApprole iamServiceAccountApprole) {
+		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String> builder()
+				.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString())
+				.put(LogMessage.ACTION, "Add Approle to IAM Service Account")
+				.put(LogMessage.MESSAGE, String.format("Trying to add Approle to IAM Service Account"))
+				.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).build()));
+		if (!userDetails.isAdmin()) {
+			token = tokenUtils.getSelfServiceToken();
+		}
+		if (!isIAMSvcaccPermissionInputValid(iamServiceAccountApprole.getAccess())) {
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+					.body("{\"errors\":[\"Invalid value specified for access. Valid values are read, reset, deny\"]}");
+		}
+		if (iamServiceAccountApprole.getAccess().equalsIgnoreCase("reset")) {
+			iamServiceAccountApprole.setAccess(TVaultConstants.WRITE_POLICY);
+		}
+		String svcAccName = iamServiceAccountApprole.getAwsAccountId() + "_" + iamServiceAccountApprole.getIamSvcAccName();
+		String approleName = iamServiceAccountApprole.getApprolename();
+		//String svcAccName = iamServiceAccountApprole.getIamSvcAccName();
+		String access = iamServiceAccountApprole.getAccess();
+
+		if (iamServiceAccountApprole.getApprolename().equals(TVaultConstants.SELF_SERVICE_APPROLE_NAME)) {
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
+					"{\"errors\":[\"Access denied: no permission to associate this AppRole to any IAM Service Account\"]}");
+		}
+		approleName = (approleName != null) ? approleName.toLowerCase() : approleName;
+		access = (access != null) ? access.toLowerCase() : access;
+
+		boolean isAuthorized = hasAddOrRemovePermission(userDetails, svcAccName, token);
+		if (isAuthorized) {
+			String policy = TVaultConstants.EMPTY;
+			policy = new StringBuffer().append(TVaultConstants.SVC_ACC_POLICIES_PREFIXES.getKey(access))
+					.append(IAMServiceAccountConstants.IAMSVCACC_POLICY_PREFIX).append(svcAccName).toString();
+
+			log.debug(
+					JSONUtil.getJSON(
+							ImmutableMap.<String, String> builder()
+									.put(LogMessage.USER,
+											ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString())
+									.put(LogMessage.ACTION, "Add Approle to IAM Service Account")
+									.put(LogMessage.MESSAGE, String.format("policy is [%s]", policy))
+									.put(LogMessage.APIURL,
+											ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString())
+									.build()));
+			String r_policy = new StringBuffer()
+					.append(TVaultConstants.SVC_ACC_POLICIES_PREFIXES.getKey(TVaultConstants.READ_POLICY))
+					.append(IAMServiceAccountConstants.IAMSVCACC_POLICY_PREFIX).append(svcAccName).toString();
+			String w_policy = new StringBuffer()
+					.append(TVaultConstants.SVC_ACC_POLICIES_PREFIXES.getKey(TVaultConstants.WRITE_POLICY))
+					.append(IAMServiceAccountConstants.IAMSVCACC_POLICY_PREFIX).append(svcAccName).toString();
+			String d_policy = new StringBuffer()
+					.append(TVaultConstants.SVC_ACC_POLICIES_PREFIXES.getKey(TVaultConstants.DENY_POLICY))
+					.append(IAMServiceAccountConstants.IAMSVCACC_POLICY_PREFIX).append(svcAccName).toString();
+			String o_policy = new StringBuffer()
+					.append(TVaultConstants.SVC_ACC_POLICIES_PREFIXES.getKey(TVaultConstants.SUDO_POLICY))
+					.append(IAMServiceAccountConstants.IAMSVCACC_POLICY_PREFIX).append(svcAccName).toString();
+
+			log.error(JSONUtil.getJSON(ImmutableMap.<String, String> builder()
+					.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString())
+					.put(LogMessage.ACTION, "Add Approle to IAM Service Account")
+					.put(LogMessage.MESSAGE,
+							String.format("Policies are, read - [%s], write - [%s], deny -[%s], owner - [%s]", r_policy,
+									w_policy, d_policy, o_policy))
+					.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString())
+					.build()));
+
+			Response roleResponse = reqProcessor.process("/auth/approle/role/read",
+					"{\"role_name\":\"" + approleName + "\"}", token);
+
+			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String> builder()
+					.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString())
+					.put(LogMessage.ACTION, "Add Approle to ServiceAccount")
+					.put(LogMessage.MESSAGE, String.format("roleResponse status is [%s]", roleResponse.getHttpstatus()))
+					.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString())
+					.build()));
+
+			String responseJson = "";
+			List<String> policies = new ArrayList<>();
+			List<String> currentpolicies = new ArrayList<>();
+
+			if (HttpStatus.OK.equals(roleResponse.getHttpstatus())) {
+				responseJson = roleResponse.getResponse();
+				ObjectMapper objMapper = new ObjectMapper();
+				try {
+					JsonNode policiesArry = objMapper.readTree(responseJson).get("data").get("policies");
+					if (null != policiesArry) {
+						for (JsonNode policyNode : policiesArry) {
+							currentpolicies.add(policyNode.asText());
+						}
+					}
+				} catch (IOException e) {
+					log.error(e);
+					log.error(
+							JSONUtil.getJSON(ImmutableMap.<String, String> builder()
+									.put(LogMessage.USER,
+											ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString())
+									.put(LogMessage.ACTION, "Add Approle to ServiceAccount")
+									.put(LogMessage.MESSAGE, String.format("Exception while creating currentpolicies"))
+									.put(LogMessage.STACKTRACE, Arrays.toString(e.getStackTrace()))
+									.put(LogMessage.APIURL,
+											ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString())
+									.build()));
+				}
+				policies.addAll(currentpolicies);
+				policies.remove(r_policy);
+				policies.remove(w_policy);
+				policies.remove(d_policy);
+				policies.add(policy);
+			} else {
+				return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY)
+						.body("{\"errors\":[\"Non existing role name. Please configure approle as first step\"]}");
+			}
+			String policiesString = org.apache.commons.lang3.StringUtils.join(policies, ",");
+			String currentpoliciesString = org.apache.commons.lang3.StringUtils.join(currentpolicies, ",");
+
+			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String> builder()
+					.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString())
+					.put(LogMessage.ACTION, "Add Approle to ServiceAccount")
+					.put(LogMessage.MESSAGE, String.format("policies [%s] before calling configureApprole", policies))
+					.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString())
+					.build()));
+
+			Response approleControllerResp = appRoleService.configureApprole(approleName, policiesString, token);
+
+			if (approleControllerResp.getHttpstatus().equals(HttpStatus.NO_CONTENT)
+					|| approleControllerResp.getHttpstatus().equals(HttpStatus.OK)) {
+				String path = new StringBuffer(IAMServiceAccountConstants.IAM_SVCC_ACC_PATH).append(svcAccName)
+						.toString();
+				Map<String, String> params = new HashMap<String, String>();
+				params.put("type", "app-roles");
+				params.put("name", approleName);
+				params.put("path", path);
+				params.put("access", access);
+				Response metadataResponse = ControllerUtil.updateMetadata(params, token);
+				if (metadataResponse != null && (HttpStatus.NO_CONTENT.equals(metadataResponse.getHttpstatus())
+						|| HttpStatus.OK.equals(metadataResponse.getHttpstatus()))) {
+					log.debug(
+							JSONUtil.getJSON(ImmutableMap.<String, String> builder()
+									.put(LogMessage.USER,
+											ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString())
+									.put(LogMessage.ACTION, "Add Approle to Service Account")
+									.put(LogMessage.MESSAGE, "Approle successfully associated with Service Account")
+									.put(LogMessage.STATUS, metadataResponse.getHttpstatus().toString())
+									.put(LogMessage.APIURL,
+											ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString())
+									.build()));
+					return ResponseEntity.status(HttpStatus.OK)
+							.body("{\"messages\":[\"Approle successfully associated with IAM Service Account\"]}");
+				}
+				approleControllerResp = appRoleService.configureApprole(approleName, currentpoliciesString, token);
+				if (approleControllerResp.getHttpstatus().equals(HttpStatus.NO_CONTENT)) {
+					log.error(
+							JSONUtil.getJSON(ImmutableMap.<String, String> builder()
+									.put(LogMessage.USER,
+											ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString())
+									.put(LogMessage.ACTION, "Add Approle to IAM Service Account")
+									.put(LogMessage.MESSAGE, "Reverting, Approle policy update success")
+									.put(LogMessage.RESPONSE,
+											(null != metadataResponse) ? metadataResponse.getResponse()
+													: TVaultConstants.EMPTY)
+									.put(LogMessage.STATUS,
+											(null != metadataResponse) ? metadataResponse.getHttpstatus().toString()
+													: TVaultConstants.EMPTY)
+									.put(LogMessage.APIURL,
+											ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString())
+									.build()));
+					return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+							.body("{\"errors\":[\"Approle configuration failed. Please try again\"]}");
+				} else {
+					log.error(
+							JSONUtil.getJSON(ImmutableMap.<String, String> builder()
+									.put(LogMessage.USER,
+											ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString())
+									.put(LogMessage.ACTION, "Add Approle to IAM Service Account")
+									.put(LogMessage.MESSAGE, "Reverting Approle policy update failed")
+									.put(LogMessage.RESPONSE,
+											(null != metadataResponse) ? metadataResponse.getResponse()
+													: TVaultConstants.EMPTY)
+									.put(LogMessage.STATUS,
+											(null != metadataResponse) ? metadataResponse.getHttpstatus().toString()
+													: TVaultConstants.EMPTY)
+									.put(LogMessage.APIURL,
+											ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString())
+									.build()));
+					return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+							.body("{\"errors\":[\"Approle configuration failed. Contact Admin \"]}");
+				}
+			} else {
+				return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+						.body("{\"errors\":[\"Failed to add Approle to the IAM Service Account\"]}");
+			}
+		} else {
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+					.body("{\"errors\":[\"Access denied: No permission to add Approle to this iam service account\"]}");
+		}
+	}
+
+	/**
+	 * Validates IAM Service Account permission inputs
+	 * 
+	 * @param access
+	 * @return
+	 */
+	public static boolean isIAMSvcaccPermissionInputValid(String access) {
+		if (!org.apache.commons.lang3.ArrayUtils.contains(ACCESS_PERMISSIONS, access)) {
+			return false;
+		}
+		return true;
+	}
+
+	/**
+	 * Check if user has the permission to add user/group/awsrole/approles to
+	 * the IAM Service Account
+	 * 
+	 * @param userDetails
+	 * @param action
+	 * @param token
+	 * @return
+	 */
+	public boolean hasAddOrRemovePermission(UserDetails userDetails, String serviceAccount, String token) {
+		// Owner of the service account can add/remove users, groups, aws roles
+		// and approles to service account
+		
+		String ownerPolicy = new StringBuffer()
+				.append(TVaultConstants.SVC_ACC_POLICIES_PREFIXES.getKey(TVaultConstants.SUDO_POLICY))
+				.append(IAMServiceAccountConstants.IAMSVCACC_POLICY_PREFIX).append(serviceAccount).toString();
+		String[] policies = policyUtils.getCurrentPolicies(token, userDetails.getUsername(), userDetails);
+		if (ArrayUtils.contains(policies, ownerPolicy)) {
+			return true;
+		}
+		return false;
+	}
+
+	/**
+	 * Remove approle from IAM service account
+	 * 
+	 * @param userDetails
+	 * @param token
+	 * @param serviceAccountApprole
+	 * @return
+	 */
+	public ResponseEntity<String> removeApproleFromIAMSvcAcc(UserDetails userDetails, String token,
+			IAMServiceAccountApprole iamServiceAccountApprole) {
+		log.debug(
+				JSONUtil.getJSON(
+						ImmutableMap.<String, String> builder()
+								.put(LogMessage.USER,
+										ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString())
+								.put(LogMessage.ACTION, "Remove Approle from IAM Service Account")
+								.put(LogMessage.MESSAGE,
+										String.format("Trying to remove approle from IAM Service Account [%s]",
+												iamServiceAccountApprole.getApprolename()))
+								.put(LogMessage.APIURL,
+										ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString())
+								.build()));
+		if (!userDetails.isAdmin()) {
+			token = tokenUtils.getSelfServiceToken();
+		}
+		if (iamServiceAccountApprole.getAccess().equalsIgnoreCase("reset")) {
+			iamServiceAccountApprole.setAccess(TVaultConstants.WRITE_POLICY);
+		}
+		String approleName = iamServiceAccountApprole.getApprolename();
+//		String svcAccName = iamServiceAccountApprole.getIamSvcAccName();
+		String svcAccName = iamServiceAccountApprole.getAwsAccountId() + "_" + iamServiceAccountApprole.getIamSvcAccName();
+		String access = iamServiceAccountApprole.getAccess();
+
+		if (iamServiceAccountApprole.getApprolename().equals(TVaultConstants.SELF_SERVICE_APPROLE_NAME)) {
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
+					"{\"errors\":[\"Access denied: no permission to remove this AppRole to any Service Account\"]}");
+		}
+		approleName = (approleName != null) ? approleName.toLowerCase() : approleName;
+		access = (access != null) ? access.toLowerCase() : access;
+		if (StringUtils.isEmpty(access)) {
+			return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY)
+					.body("{\"errors\":[\"Incorrect access. Valid values are read, reset, deny \"]}");
+		}
+		boolean isAuthorized = hasAddOrRemovePermission(userDetails, svcAccName, token);
+
+		if (isAuthorized) {
+			String r_policy = new StringBuffer()
+					.append(TVaultConstants.SVC_ACC_POLICIES_PREFIXES.getKey(TVaultConstants.READ_POLICY))
+					.append(IAMServiceAccountConstants.IAMSVCACC_POLICY_PREFIX).append(svcAccName).toString();
+			String w_policy = new StringBuffer()
+					.append(TVaultConstants.SVC_ACC_POLICIES_PREFIXES.getKey(TVaultConstants.WRITE_POLICY))
+					.append(IAMServiceAccountConstants.IAMSVCACC_POLICY_PREFIX).append(svcAccName).toString();
+			String d_policy = new StringBuffer()
+					.append(TVaultConstants.SVC_ACC_POLICIES_PREFIXES.getKey(TVaultConstants.DENY_POLICY))
+					.append(IAMServiceAccountConstants.IAMSVCACC_POLICY_PREFIX).append(svcAccName).toString();
+			String o_policy = new StringBuffer()
+					.append(TVaultConstants.SVC_ACC_POLICIES_PREFIXES.getKey(TVaultConstants.SUDO_POLICY))
+					.append(IAMServiceAccountConstants.IAMSVCACC_POLICY_PREFIX).append(svcAccName).toString();
+
+			log.error(JSONUtil.getJSON(ImmutableMap.<String, String> builder()
+					.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString())
+					.put(LogMessage.ACTION, "Remove approle from IAM Service Account")
+					.put(LogMessage.MESSAGE,
+							String.format("Policies are, read - [%s], write - [%s], deny -[%s], owner - [%s]", r_policy,
+									w_policy, d_policy, o_policy))
+					.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString())
+					.build()));
+			Response roleResponse = reqProcessor.process("/auth/approle/role/read",
+					"{\"role_name\":\"" + approleName + "\"}", token);
+			String responseJson = "";
+			List<String> policies = new ArrayList<>();
+			List<String> currentpolicies = new ArrayList<>();
+			if (HttpStatus.OK.equals(roleResponse.getHttpstatus())) {
+				responseJson = roleResponse.getResponse();
+				ObjectMapper objMapper = new ObjectMapper();
+				try {
+					JsonNode policiesArry = objMapper.readTree(responseJson).get("data").get("policies");
+					if (null != policiesArry) {
+						for (JsonNode policyNode : policiesArry) {
+							currentpolicies.add(policyNode.asText());
+						}
+					}
+				} catch (IOException e) {
+					log.error(e);
+				}
+				policies.addAll(currentpolicies);
+				// policies.remove(policy);
+				policies.remove(r_policy);
+				policies.remove(w_policy);
+				policies.remove(d_policy);
+
+			}
+
+			String policiesString = org.apache.commons.lang3.StringUtils.join(policies, ",");
+			String currentpoliciesString = org.apache.commons.lang3.StringUtils.join(currentpolicies, ",");
+			log.info(
+					JSONUtil.getJSON(
+							ImmutableMap.<String, String> builder()
+									.put(LogMessage.USER,
+											ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString())
+									.put(LogMessage.ACTION, "Remove AppRole from IAM Service account")
+									.put(LogMessage.MESSAGE,
+											"Remove approle from IAM Service account -  policy :" + policiesString
+													+ " is being configured")
+									.put(LogMessage.APIURL,
+											ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString())
+									.build()));
+			// Update the policy for approle
+			Response approleControllerResp = appRoleService.configureApprole(approleName, policiesString, token);
+			if (approleControllerResp.getHttpstatus().equals(HttpStatus.NO_CONTENT)
+					|| approleControllerResp.getHttpstatus().equals(HttpStatus.OK)) {
+				String path = new StringBuffer(IAMServiceAccountConstants.IAM_SVCC_ACC_PATH).append(svcAccName).toString();
+				Map<String, String> params = new HashMap<String, String>();
+				params.put("type", "app-roles");
+				params.put("name", approleName);
+				params.put("path", path);
+				params.put("access", "delete");
+				Response metadataResponse = ControllerUtil.updateMetadata(params, token);
+				if (metadataResponse != null && (HttpStatus.NO_CONTENT.equals(metadataResponse.getHttpstatus())
+						|| HttpStatus.OK.equals(metadataResponse.getHttpstatus()))) {
+					log.debug(
+							JSONUtil.getJSON(ImmutableMap.<String, String> builder()
+									.put(LogMessage.USER,
+											ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString())
+									.put(LogMessage.ACTION, "Remove AppRole from Service Account")
+									.put(LogMessage.MESSAGE, "Approle is successfully removed from Service Account")
+									.put(LogMessage.STATUS, metadataResponse.getHttpstatus().toString())
+									.put(LogMessage.APIURL,
+											ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString())
+									.build()));
+					return ResponseEntity.status(HttpStatus.OK)
+							.body("{\"messages\":[\"Approle is successfully removed from Service Account\"]}");
+				}
+				approleControllerResp = appRoleService.configureApprole(approleName, currentpoliciesString, token);
+				if (approleControllerResp.getHttpstatus().equals(HttpStatus.NO_CONTENT)) {
+					log.error(
+							JSONUtil.getJSON(ImmutableMap.<String, String> builder()
+									.put(LogMessage.USER,
+											ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString())
+									.put(LogMessage.ACTION, "Remove AppRole from Service Account")
+									.put(LogMessage.MESSAGE, "Reverting, approle policy update success")
+									.put(LogMessage.RESPONSE,
+											(null != metadataResponse) ? metadataResponse.getResponse()
+													: TVaultConstants.EMPTY)
+									.put(LogMessage.STATUS,
+											(null != metadataResponse) ? metadataResponse.getHttpstatus().toString()
+													: TVaultConstants.EMPTY)
+									.put(LogMessage.APIURL,
+											ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString())
+									.build()));
+					return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+							.body("{\"errors\":[\"Approle configuration failed. Please try again\"]}");
+				} else {
+					log.error(
+							JSONUtil.getJSON(ImmutableMap.<String, String> builder()
+									.put(LogMessage.USER,
+											ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString())
+									.put(LogMessage.ACTION, "Remove AppRole from Service Account")
+									.put(LogMessage.MESSAGE, "Reverting approle policy update failed")
+									.put(LogMessage.RESPONSE,
+											(null != metadataResponse) ? metadataResponse.getResponse()
+													: TVaultConstants.EMPTY)
+									.put(LogMessage.STATUS,
+											(null != metadataResponse) ? metadataResponse.getHttpstatus().toString()
+													: TVaultConstants.EMPTY)
+									.put(LogMessage.APIURL,
+											ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString())
+									.build()));
+					return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+							.body("{\"errors\":[\"Approle configuration failed. Contact Admin \"]}");
+				}
+			} else {
+				return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+						.body("{\"errors\":[\"Failed to remove approle from the Service Account\"]}");
+			}
+		} else {
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+					.body("{\"errors\":[\"Access denied: No permission to remove approle from Service Account\"]}");
 		}
 	}
 }

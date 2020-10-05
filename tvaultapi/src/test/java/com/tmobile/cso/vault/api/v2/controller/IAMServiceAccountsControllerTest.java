@@ -1,7 +1,10 @@
 package com.tmobile.cso.vault.api.v2.controller;
 
+import static org.hamcrest.Matchers.containsString;
 import static org.junit.Assert.assertEquals;
+import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import javax.servlet.http.HttpServletRequest;
@@ -22,6 +25,9 @@ import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.tmobile.cso.vault.api.model.IAMServiceAccountApprole;
+import com.tmobile.cso.vault.api.model.ServiceAccountApprole;
 import com.tmobile.cso.vault.api.model.UserDetails;
 import com.tmobile.cso.vault.api.service.IAMServiceAccountsService;
 
@@ -107,13 +113,66 @@ public class IAMServiceAccountsControllerTest {
 		ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(responseJson);
 		String expected = responseEntityExpected.getBody();
 
-		when(iamServiceAccountsService.getIAMServiceAccountSecretKey(token , "123456789012_testiamsvcacc01"))
+		when(iamServiceAccountsService.getIAMServiceAccountSecretKey(token , "123456789012_testiamsvcacc01", "testiamsvcacc01_01"))
 				.thenReturn(responseEntityExpected);
-		MvcResult result = mockMvc.perform(MockMvcRequestBuilders.get("/v2/iamserviceaccounts/secrets/123456789012_testiamsvcacc01")
+		MvcResult result = mockMvc.perform(MockMvcRequestBuilders.get("/v2/iamserviceaccounts/secrets/123456789012_testiamsvcacc01/testiamsvcacc01_01")
 				.header("vault-token", token).header("Content-Type", "application/json;charset=UTF-8")
 				.requestAttr("UserDetails", userDetails)).andExpect(status().isOk()).andReturn();
 		String actual = result.getResponse().getContentAsString();
 		assertEquals(expected, actual);
 	}
+	
+	@Test
+	public void test_readFolders_successful() throws Exception {
+		String responseJson = "{\"application_id\":1222,\"createdAtEpoch\":1086073200000,\"isActivated\":true,\"owner_email\":\"Nithin.Nazeer1@T-mobile.com\",\"owner_ntid\":\"NNazeer1\",\"secret\":[{\"accessKeyId\":\"1212zdasd\",\"expiryDuration\":\"1973-11-15\",\"secretkey\":\"abcdefg123\"},{\"accessKeyId\":\"dsfdsfzdasd\",\"expiryDuration\":\"2009-01-19\",\"secretkey\":\"mnbcjddk987\"}],\"userName\":\"testiamsvcacc01\",\"createdDate\":\"2004-06-01\"}";
+		ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(responseJson);
+		String expected = responseEntityExpected.getBody();
+
+		when(iamServiceAccountsService.readFolders(token , "iamsvcacc/123456789012_testiamsvcacc01"))
+				.thenReturn(responseEntityExpected);
+		
+		MvcResult result = mockMvc.perform(MockMvcRequestBuilders.get("/v2/iamserviceaccounts/folders/secrets?path=iamsvcacc/123456789012_testiamsvcacc01&fetchOption=all")
+				.header("vault-token", token).header("Content-Type", "application/json;charset=UTF-8")
+				.requestAttr("UserDetails", userDetails)).andExpect(status().isOk()).andReturn();
+		String actual = result.getResponse().getContentAsString();
+		assertEquals(expected, actual);
+	}
+	
+	
+	 @Test
+	    public void test_associateApproletoIAMSvcAcc() throws Exception {
+	        IAMServiceAccountApprole serviceAccountApprole = new IAMServiceAccountApprole("testacc02", "role1","write", "1234567890");
+
+	        String inputJson =new ObjectMapper().writeValueAsString(serviceAccountApprole);
+	        String responseJson = "{\"messages\":[\"Approle is successfully associated with Service Account\"]}";
+	        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(responseJson);
+	        when(iamServiceAccountsService.associateApproletoIAMsvcacc(eq(userDetails), eq("5PDrOhsy4ig8L3EpsJZSLAMg"), Mockito.any(IAMServiceAccountApprole.class))).thenReturn(responseEntityExpected);
+
+	        mockMvc.perform(MockMvcRequestBuilders.post("/v2/iamserviceaccounts/approle").requestAttr("UserDetails", userDetails)
+	                .header("vault-token", "5PDrOhsy4ig8L3EpsJZSLAMg")
+	                .header("Content-Type", "application/json;charset=UTF-8")
+	                .content(inputJson))
+	                .andExpect(status().isOk())
+	                .andExpect(content().string(containsString(responseJson)));
+	    }
+	 
+	  @Test
+	    public void test_removeApproleFromIAMSvcAcc() throws Exception {
+		  IAMServiceAccountApprole serviceAccountApprole = new IAMServiceAccountApprole("testacc02", "role1","write" ,"1234567890");
+
+	        String inputJson =new ObjectMapper().writeValueAsString(serviceAccountApprole);
+	        String responseJson = "{\"messages\":[\"Approle is successfully removed from Service Account\"]}";
+	        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(responseJson);
+	        when(iamServiceAccountsService.removeApproleFromIAMSvcAcc(eq(userDetails), eq("5PDrOhsy4ig8L3EpsJZSLAMg"), Mockito.any(IAMServiceAccountApprole.class))).thenReturn(responseEntityExpected);
+
+	        mockMvc.perform(MockMvcRequestBuilders.delete("/v2/iamserviceaccounts/approle").requestAttr("UserDetails", userDetails)
+	                .header("vault-token", "5PDrOhsy4ig8L3EpsJZSLAMg")
+	                .header("Content-Type", "application/json;charset=UTF-8")
+	                .content(inputJson))
+	                .andExpect(status().isOk())
+	                .andExpect(content().string(containsString(responseJson)));
+	    }
+	
+	
 
 }

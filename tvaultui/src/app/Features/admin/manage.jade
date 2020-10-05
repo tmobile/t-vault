@@ -547,10 +547,10 @@ script(type='text/ng-template', id='manageSecretId.html')
                         md-content(class="md-padding md-content-wrapper page-content-wrapper md-approle-management" ng-init="displayGrid")
                             .new-container.page-content-container
                                 .md-content-inner-wrapper
-                                    div.svcnotes T-Vault can be used to manage the life cycle of Corporate (CORP) active directory service accounts, including password resets and expiry. In order to self-service your service accounts there is a three-step process to onboard the account into T-Vault. Click here for more information 
+                                    div.svcnotes T-Vault can be used to manage the life cycle of Corporate (CORP) IAM service accounts, including password resets and expiry. In order to self-service your service accounts there is a three-step process to onboard the account into T-Vault. Click here for more information 
                                       span.svc-collapse-link(ng-click="collapseNote()")
                                     div.svccollapsible(uib-collapse="isCollapsed")
-                                    div.svcdescription(ng-show="!isLoadingData && iamSvcaccOnboardedData.length>0") The following are list of service accounts managed by T-Vault. You can click View/Edit link to either activate the IAM Service account  or grant permissions for users and groups.
+                                    div.svcdescription(ng-show="!isLoadingData && iamSvcaccOnboardedData.length>0") The following are list of IAM service accounts managed by T-Vault. You can click View/Edit link to either activate the IAM Service account  or grant permissions for users and groups.
                                     div.data-management-content
                                         .row.change-safe-table-container(ng-if='true')
                                             loading-state(ng-if='isLoadingData')
@@ -560,13 +560,13 @@ script(type='text/ng-template', id='manageSecretId.html')
                                                 .container.name.cell.col-lg-2.col-md-2.col-sm-2.col-xs-2 ACTION     
                                             .change-list-table-data.row
                                                 .unavailable-text(ng-show="!isLoadingData && iamSvcaccOnboardedData.length==0")
-                                                    .container.name No Service Accounts enabled for Password Rotation
+                                                    .container.name No IAM Service Accounts enabled for Password Rotation
                                                 .row.change-data.item(ng-show="!isLoadingData" ng-class="{'grayBackground' : activeItem == true}" ng-repeat="value in iamSvcaccOnboardedData")
                                                     .container.name.cell.col-lg-4.col-md-4.col-sm-4.col-xs-4(uib-tooltip="{{value.userName}}") {{value.userName}}
                                                     .container.name.cell.col-lg-4.col-md-4.col-sm-4.col-xs-4(uib-tooltip="{{value.accountID}}") {{value.accountID}}
                                                     .container.radio-inputs.cell.col-lg-4.col-md-.col-sm-4.col-xs-4
                                                         .down.view
-                                                            .list-icon(ng-click = "editOnboardedIamSvcacc(value.metaDataName, 'md')" uib-tooltip="View/Edit Service Account password rotation configuration")  View/Edit
+                                                            .list-icon(ng-show="!isLoadingData && iamSvcaccOnboardedData.length>0" ng-click = "editOnboardedIamSvcacc(value.metaDataName, 'md')" uib-tooltip="View/Edit IAM Service Account password rotation configuration")  View/Edit
                                             .pagination-wrapper(ng-show='hasMoreItemsToShow()')
                                                 .pagination-count(ng-if="numOfIamSvcaccs>0") Displaying {{currentshown}} of {{numOfIamSvcaccs}}
                                                 .pagination-button-wrapper(ng-click='showMoreItems()')
