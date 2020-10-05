@@ -933,7 +933,6 @@
             angular.element(document.getElementById('bound_iam_principal_arn'))[0].disabled = false;
         }
 
-        //ADD USER FUNCTION : 
         $scope.addPermission = function (type, key, permission, editingPermission) {
             var duplicate = false;
             $scope.permissionChangeInProgress = true;
@@ -955,7 +954,7 @@
                 $scope.errorMessage = 'Permission already exists! Select edit icon for update';
                 $scope.error('md');
             }
-            else if ((key != '' && key != undefined) || type == 'AwsRoleConfigure') {
+            else if (key != '' && key != undefined) {
                 try {
                     if (type === "users" && !editingPermission) {
                         key = document.getElementById('addUser').value.toLowerCase();
@@ -967,9 +966,7 @@
                     $scope.isLoadingData = true;
                     $scope.showInputLoader.show = false;
                     $scope.showNoMatchingResults = false;
-                    var svcaccname = $scope.svcacc.svcaccId;
-                    var awsAccountId = $scope.svcacc.awsAccId;
-                    var iamsvcId = awsAccountId+"_"+svcaccname;
+                    var iamSvcaccName = $scope.svcacc.svcaccId;
                     var apiCallFunction = '';
                     var reqObjtobeSent = {};
                     // extract only userId/groupId from key
@@ -979,21 +976,19 @@
                     if (key !== null && key !== undefined) {
                         key = UtilityService.formatName(key);
                     }
-                    if ($scope.awsConfPopupObj.role !== null && $scope.awsConfPopupObj.role !== undefined) {
-                        $scope.awsConfPopupObj.role = UtilityService.formatName($scope.awsConfPopupObj.role);
-                    }
-                    if ($scope.awsConfPopupObj.bound_region !== null && $scope.awsConfPopupObj.bound_region !== undefined) {
-                        $scope.awsConfPopupObj.bound_region = UtilityService.formatName($scope.awsConfPopupObj.bound_region);
-                    }
                     var updatedUrlOfEndPoint = "";
                     switch (type) {
                         case 'users' :
                             apiCallFunction = AdminSafesManagement.addUserPermissionForIAMSvcacc;
-                            reqObjtobeSent = {"iamSvcAccName": svcaccname, "username": key, "access": permission.toLowerCase(), "awsAccountId":awsAccountId};
+                            reqObjtobeSent = {"iamSvcAccName": iamSvcaccName,"awsAccountId": $scope.svcacc.awsAccId, "username": key, "access": permission.toLowerCase()};
                             break;
                         case 'groups' :
-                            apiCallFunction = AdminSafesManagement.addGroupPermissionForIAMSvcacc;
-                            reqObjtobeSent = {"iamSvcAccName": svcaccname, "groupname": key, "access": permission.toLowerCase(), "awsAccountId":awsAccountId};
+                            apiCallFunction = AdminSafesManagement.addGroupPermissionForSvcacc;
+                            reqObjtobeSent = {"svcAccName": iamSvcaccName, "groupname": key, "access": permission.toLowerCase()};
+                            break;
+                        case 'AppRolePermission' :
+                            apiCallFunction = AdminSafesManagement.addAppRolePermissionForSvcacc;
+                            reqObjtobeSent = {"svcAccName": iamSvcaccName, "approlename": key, "access": permission.toLowerCase()};
                             break;
                         case 'AppRolePermission':
                             apiCallFunction = AdminSafesManagement.addAppRolePermissionForIAMSvcacc;
@@ -1005,25 +1000,15 @@
                                 // Try-Catch block to catch errors if there is any change in object structure in the response
                                 try {
                                     $scope.isLoadingData = false;
-                                    if (type === 'AwsRoleConfigure') {
-                                        $scope.addPermission('AWSPermission', $scope.awsConfPopupObj.role, permission, false);
-                                    }
-                                    else {
-                                        getSvcaccInfo(iamsvcId);
-                                        var notification = UtilityService.getAParticularSuccessMessage('MESSAGE_ADD_SUCCESS');
-                                        $scope.permissionChangeInProgress = false;
-                                        if (key !== null && key !== undefined) {
-                                            document.getElementById('addUser').value = '';
-                                            document.getElementById('addGroup').value = '';
-                                            // if (type === "users") {
-                                                clearInputPermissionData();
-                                            //     return Modal.createModalWithController('stop.modal.html', {
-                                            //         title: 'Permission changed',
-                                            //         message: 'For security reasons, if you add or modify permission to yourself, you need to log out and log in again for the added or modified permissions to take effect.'
-                                            //       });
-                                            // }
-                                            Notifications.toast(key + "'s permission" + notification);                                            
-                                        }
+                                    var uniqueIAMSvcName = $scope.svcacc.awsAccId + "_" +iamSvcaccName;
+                                    getSvcaccInfo(uniqueIAMSvcName);
+                                    var notification = UtilityService.getAParticularSuccessMessage('MESSAGE_ADD_SUCCESS');
+                                    $scope.permissionChangeInProgress = false;
+                                    if (key !== null && key !== undefined) {
+                                        document.getElementById('addUser').value = '';
+                                        document.getElementById('addGroup').value = '';
+                                        clearInputPermissionData();
+                                        Notifications.toast(key + "'s permission" + notification);
                                     }
                                 } catch (e) {
                                     console.log(e);
@@ -1198,6 +1183,7 @@
                     $scope.initialPwdResetRequired = false;
                     $scope.detailsNavTags[1].show = true;
                     $scope.isActivating = false;
+                    $scope.svcacc.isActivated = true;
                     $scope.openActivationStatus();
                 }
                 else {
