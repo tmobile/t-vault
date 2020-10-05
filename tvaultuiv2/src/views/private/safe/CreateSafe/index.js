@@ -230,7 +230,7 @@ const CreateModal = () => {
             setName(res.data.data.name);
             setDescription(res.data.data.description);
             setOwner(res.data.data.owner);
-            if (res.data.data.type === 'user') {
+            if (res.data.data.type === 'users') {
               setSafeType('Users Safe');
             } else if (res.data.data.type === 'apps') {
               setSafeType('Application Safe');

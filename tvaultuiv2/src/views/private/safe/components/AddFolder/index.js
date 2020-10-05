@@ -136,7 +136,6 @@ const AddFolder = (props) => {
             <ButtonComponent
               label="Save"
               color="secondary"
-              buttonType="containedSecondary"
               disabled={!inputValue || errorMessage}
               onClick={() =>
                 handleSaveClick({ value: inputValue, type: 'folder', parentId })
