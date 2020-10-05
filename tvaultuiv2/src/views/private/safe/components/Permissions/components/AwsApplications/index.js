@@ -134,8 +134,14 @@ const AwsApplications = (props) => {
   const onSubmit = (data, access) => {
     setResponse({ status: 'loading' });
     onNewAwsChange();
+    let url = '';
+    if (data.auth_type === 'iam') {
+      url = `/ss/auth/aws/iam/role?path=${safeDetail.path}`;
+    } else {
+      url = `/ss/auth/aws/role?path=${safeDetail.path}`;
+    }
     apiService
-      .addAwsConfiguration(`${safeDetail.path}`, data)
+      .addAwsConfiguration(url, data)
       .then((res) => {
         updateToastMessage(1, res.data?.messages[0]);
         onSaveClicked(data.role, access);

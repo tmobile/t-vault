@@ -31,7 +31,6 @@ const ListItemAvatarWrap = styled.div`
 `;
 const Flag = styled('span')`
   opacity: 0.7;
-  margin-left: 0.5rem;
   font-size: ${(props) => props.fontSize};
   font-style: ${(props) => (props.fontStyle ? props.fontStyle : '')};
 `;
@@ -87,7 +86,7 @@ const ListItem = (props) => {
                 {flag}
               </Flag>
             </TitleOne>
-            <Flag fontSize="1rem">{subTitle}</Flag>
+            <Flag fontSize="1.3rem">{subTitle}</Flag>
           </ListItemDetailBox>
         </LabelWrap>
         {showActions ? (
