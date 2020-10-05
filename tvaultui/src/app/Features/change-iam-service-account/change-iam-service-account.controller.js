@@ -19,7 +19,7 @@
 
 'use strict';
 (function (app) {
-    app.controller('ChangeIamServiceAccountCtrl', function ($scope, $rootScope, Modal, $timeout, fetchData, $http, UtilityService, Notifications, $window, $state, $stateParams, $q, SessionStore, vaultUtilityService, ModifyUrl, AdminSafesManagement, AppConstant, $filter, filterFilter, orderByFilter, RestEndpoints, CopyToClipboard) {
+    app.controller('ChangeIamServiceAccountCtrl', function ($scope, $rootScope, Modal, $timeout, fetchData, $http, UtilityService, Notifications, $window, $state, $stateParams, $q, SessionStore, vaultUtilityService, ModifyUrl, AdminSafesManagement, AppConstant, $filter, filterFilter, orderByFilter, RestEndpoints) {
         $scope.selectedGroupOption = '';            // Selected dropdown value to be used for filtering
         $rootScope.showDetails = true;              // Set true to show details view first
         $rootScope.activeDetailsTab = 'details';
@@ -586,7 +586,7 @@
             AdminSafesManagement.getSvcaccOnboardInfo(null, updatedUrlOfEndPoint).then(
                 function (response) {
                     if (UtilityService.ifAPIRequestSuccessful(response)) {
-
+                        console.log(response);
                         if ($rootScope.showDetails !== true) {
                             document.getElementById('addUser').value = '';
                             document.getElementById('addGroup').value = '';
@@ -1134,16 +1134,16 @@
             Modal.createModal(size, 'appRolePopup.html', 'ChangeIamServiceAccountCtrl', $scope);
         };
 //
-        $scope.openResetStatus = function (size) {
-            Modal.createModal(size, 'resetStatus.html', 'ChangeIamServiceAccountCtrl', $scope);
+        $scope.openActivationStatus = function (size) {
+            Modal.createModal(size, 'openActivationStatus.html', 'ChangeIamServiceAccountCtrl', $scope);
         }
 //
         $scope.openOneTimeResetFailedMessage = function (size) {
             Modal.createModal(size, 'openOneTimeResetFailedMessage.html', 'ChangeIamServiceAccountCtrl', $scope);
         };
 //
-        $scope.oneTimeResetConfirmation = function (size) {
-            Modal.createModal(size, 'oneTimeResetConfirmation.html', 'ChangeIamServiceAccountCtrl', $scope);
+        $scope.iamActivationConfirmation = function (size) {
+            Modal.createModal(size, 'iamActivationConfirmation.html', 'ChangeIamServiceAccountCtrl', $scope);
         }
         
         /* TODO: What is ok, functon name should be more descriptive */
@@ -1181,6 +1181,46 @@
             //getMetadata(svcaccname);
             $rootScope.showDetails = false;
             $rootScope.activeDetailsTab = 'permissions';
+        }
+
+        $scope.activateIAM = function () {
+            $scope.isLoadingData = true;
+            $scope.isActivating = true;
+            Modal.close();
+            Notifications.toast('Activating Service account. Please wait..');
+            var queryParameters = "serviceAccountName=" + $scope.svcacc.svcaccId + "&awsAccountId=" + $scope.svcacc.awsAccId;
+            var updatedUrlOfEndPoint = ModifyUrl.addUrlParameteres('activateIAMSvcacc',queryParameters);
+            AdminSafesManagement.activateIAMSvcacc(null, updatedUrlOfEndPoint).then(function (response) {
+                if (UtilityService.ifAPIRequestSuccessful(response)) {
+                    $scope.isLoadingData = false;
+                    $scope.newPassword = response.data.current_password;
+                    $scope.resetMessage = "Service account "+$scope.svcacc.svcaccId+" has been activated successfully!"
+                    $scope.initialPwdResetRequired = false;
+                    $scope.detailsNavTags[1].show = true;
+                    $scope.isActivating = false;
+                    $scope.openActivationStatus();
+                }
+                else {
+                    $scope.isLoadingData = false;
+                    $scope.isActivating = false;
+                    $scope.newPassword = '';
+                    $scope.errorMessage = AdminSafesManagement.getTheRightErrorMessage(response);
+                    error('md');
+                }
+            },
+            function (error) {
+                // Error handling function
+                console.log(error);
+                $scope.isLoadingData = false;
+                $scope.isActivating = false;
+                if (error.status === '403' || error.status === 403) {
+                    $scope.openOneTimeResetFailedMessage();
+                }
+                else {
+                    $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
+                    $scope.error('md');
+                }
+            });
         }
 
         $scope.init();
