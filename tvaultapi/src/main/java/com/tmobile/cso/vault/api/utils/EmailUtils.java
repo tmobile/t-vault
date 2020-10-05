@@ -24,6 +24,7 @@ import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
 
 import com.google.common.collect.ImmutableMap;
+import com.tmobile.cso.vault.api.common.IAMServiceAccountConstants;
 import com.tmobile.cso.vault.api.common.TVaultConstants;
 import com.tmobile.cso.vault.api.exception.LogMessage;
 
@@ -326,5 +327,60 @@ public class EmailUtils {
 		ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
 		ImageIO.write(bImage, TVaultConstants.IMAGE_FORMAT_PNG, byteArrayOutputStream);
 		return new ByteArrayResource(byteArrayOutputStream.toByteArray());
+	}
+
+	/**
+	 * To send HTML email notification
+	 * @param from
+	 * @param to
+	 * @param subject
+	 * @param variables
+	 */
+	public void sendIAMSvcAccHtmlEmalFromTemplate(String from, List<String> to, String subject, Map<String, String> variables) {
+		MimeMessage message = javaMailSender.createMimeMessage();
+		MimeMessageHelper helper = null;
+		try {
+			helper = new MimeMessageHelper(message,true, "UTF-8");
+			helper.setFrom(from);
+			helper.setTo(to.toArray(new String[to.size()]));
+			helper.setSubject(subject);
+			String templateFileName = IAMServiceAccountConstants.IAM_EMAIL_TEMPLATE_NAME;
+
+			// inline image content identifies
+			for (Map.Entry<String, String> entry : TVaultConstants.EMAIL_TEMPLATE_IMAGE_IDS.entrySet()) {
+				variables.put(entry.getKey(), entry.getKey());
+			}
+			String content = this.templateEngine.process(templateFileName, new Context(Locale.getDefault(), variables));
+			helper.setText(content, true);
+			extractImageBytesFromByteArray(helper);
+			javaMailSender.send(message);
+		} catch (MessagingException|MailSendException e) {
+			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+					put(LogMessage.ACTION, "sendIAMSvcAccHtmlEmalFromTemplate").
+					put(LogMessage.MESSAGE, String.format ("Failed to send email notification to IAM Service account owner %s for IAM service account %s", to.get(0), variables.get("svcAccName"))).
+					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+					build()));
+		}
+	}
+
+	/**
+	 * @param helper
+	 * @throws MessagingException
+	 */
+	private void extractImageBytesFromByteArray(MimeMessageHelper helper) throws MessagingException {
+		try {
+			// add each inline image byte scream
+			for (Map.Entry<String, String> entry : TVaultConstants.EMAIL_TEMPLATE_IMAGE_IDS.entrySet()) {
+				helper.addInline(entry.getKey(), getImageByteArray(entry.getValue()), TVaultConstants.IMAGE_TYPE_PNG);
+			}
+		} catch (IOException e) {
+			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+					put(LogMessage.ACTION, "sendIAMSvcAccHtmlEmalFromTemplate").
+					put(LogMessage.MESSAGE, "Failed to get byte array from resource").
+					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+					build()));
+		}
 	}
 }

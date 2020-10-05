@@ -37,9 +37,11 @@ public final class IAMServiceAccountConstants {
 	public static final String REMOVE_GROUP_FROM_IAMSVCACC_MSG = "Remove Group from IAM Service Account";
 	public static final String IAM_SVCACC_POLICY_CREATION_TITLE = "Policies Creation For IAM Service Account";
 	public static final String IAM_SVCACC_CREATION_TITLE = "Onboard IAM Service Account";
-
 	public static final String IAM_RESET_MSG_STRING = "reset";
 	public static final String IAM_GROUP_MSG_STRING = "groups";
 	public static final String IAM_ACCESS_MSG_STRING = "access";
 	public static final String USERNAME_PARAM_STRING = "{\"username\":\"";
+
+	public static final String IAM_EMAIL_TEMPLATE_NAME = "IAMEmailtemplate";
+	public static final String IAM_ONBOARD_EMAIL_SUBJECT="Onboarding IAM Service account %s is successful";
 }
