@@ -922,8 +922,8 @@ public class  IAMServiceAccountsService {
 			userResponse.setHttpstatus(responseEntity.getStatusCode());
 		}
 
-		return createPoliciesAndAddUserPermissionToIAMSvcAcc(token, userDetails, iamServiceAccountUser,
-				oidcEntityResponse, uniqueIAMSvcaccName, userResponse);
+		return addPolicyToIAMSvcAcc(token, userDetails, iamServiceAccountUser, oidcEntityResponse, uniqueIAMSvcaccName,
+				userResponse);
 	}
 
 	/**
@@ -935,9 +935,10 @@ public class  IAMServiceAccountsService {
 	 * @param userResponse
 	 * @return
 	 */
-	private ResponseEntity<String> createPoliciesAndAddUserPermissionToIAMSvcAcc(String token, UserDetails userDetails,
-			IAMServiceAccountUser iamServiceAccountUser, OIDCEntityResponse oidcEntityResponse,
-			String uniqueIAMSvcaccName, Response userResponse) {
+	private ResponseEntity<String> addPolicyToIAMSvcAcc(String token, UserDetails userDetails,
+		IAMServiceAccountUser iamServiceAccountUser, OIDCEntityResponse oidcEntityResponse,
+		String uniqueIAMSvcaccName, Response userResponse) {
+
 		String policy = new StringBuffer().append(TVaultConstants.SVC_ACC_POLICIES_PREFIXES.getKey(iamServiceAccountUser.getAccess())).append(IAMServiceAccountConstants.IAMSVCACC_POLICY_PREFIX).append(uniqueIAMSvcaccName).toString();
 		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
 				.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
@@ -954,14 +955,11 @@ public class  IAMServiceAccountsService {
 		String denyPolicy = new StringBuffer()
 				.append(TVaultConstants.SVC_ACC_POLICIES_PREFIXES.getKey(TVaultConstants.DENY_POLICY))
 				.append(IAMServiceAccountConstants.IAMSVCACC_POLICY_PREFIX).append(uniqueIAMSvcaccName).toString();
-		String ownerPolicy = new StringBuffer()
-				.append(TVaultConstants.SVC_ACC_POLICIES_PREFIXES.getKey(TVaultConstants.SUDO_POLICY))
-				.append(IAMServiceAccountConstants.IAMSVCACC_POLICY_PREFIX).append(uniqueIAMSvcaccName).toString();
 
 		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
 				.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
 				.put(LogMessage.ACTION, IAMServiceAccountConstants.ADD_USER_TO_IAMSVCACC_MSG)
-				.put(LogMessage.MESSAGE, String.format("User policies are, read - [%s], write - [%s], deny -[%s], owner - [%s]", readPolicy, writePolicy, denyPolicy, ownerPolicy))
+				.put(LogMessage.MESSAGE, String.format("User policies are, read - [%s], write - [%s], deny -[%s]", readPolicy, writePolicy, denyPolicy))
 				.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
 
 		String responseJson = "";
@@ -2493,10 +2491,10 @@ public class  IAMServiceAccountsService {
 										put(LogMessage.STATUS, addUserToIAMSvcAccResponse!=null?addUserToIAMSvcAccResponse.getStatusCode().toString():HttpStatus.BAD_REQUEST.toString()).
 										put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 										build()));
-								return ResponseEntity.status(HttpStatus.OK).body("{\"errors\":[\"Failed to activate IAM Service account. IAM secrets are rotated and saved in T-Vault. However owner permission update failed.\"]}");
+								return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Failed to activate IAM Service account. IAM secrets are rotated and saved in T-Vault. However owner permission update failed.\"]}");
 
 							}
-							return ResponseEntity.status(HttpStatus.OK).body("{\"errors\":[\"Failed to activate IAM Service account. IAM secrets are rotated and saved in T-Vault. However metadata update failed.\"]}");
+							return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Failed to activate IAM Service account. IAM secrets are rotated and saved in T-Vault. However metadata update failed.\"]}");
 						}
 						log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 								put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
@@ -2504,7 +2502,7 @@ public class  IAMServiceAccountsService {
 								put(LogMessage.MESSAGE, String.format ("IAM Service account [%s] activated successfully", iamServiceAccountName)).
 								put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 								build()));
-						return ResponseEntity.status(HttpStatus.OK).body("{\"errors\":[\"Failed to activate IAM Service account. Failed to save one or more IAM secrets.\"]}");
+						return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Failed to activate IAM Service account. Failed to save one or more IAM secrets.\"]}");
 					}
 				}
 				log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
