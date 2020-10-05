@@ -622,7 +622,7 @@ const SafeDashboard = () => {
                 />
               )}
               <Route
-                path="/:tab/:safeName"
+                path="/safe/:safeName"
                 render={(routerProps) => (
                   <SafeDetails
                     resetClicked={() => onResetClicked()}

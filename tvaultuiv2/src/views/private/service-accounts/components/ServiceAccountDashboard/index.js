@@ -1,9 +1,15 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import styled, { css } from 'styled-components';
-import { makeStyles, withStyles } from '@material-ui/core/styles';
+import { makeStyles } from '@material-ui/core/styles';
 import InfiniteScroll from 'react-infinite-scroller';
-import PropTypes from 'prop-types';
-import { Link, Route, Switch, Redirect } from 'react-router-dom';
+import MoreVertOutlinedIcon from '@material-ui/icons/MoreVertOutlined';
+import {
+  BrowserRouter as Router,
+  Link,
+  Route,
+  Switch,
+  useHistory,
+} from 'react-router-dom';
 
 import useMediaQuery from '@material-ui/core/useMediaQuery';
 import sectionHeaderBg from '../../../../../assets/Banner_img.png';
@@ -16,18 +22,21 @@ import safeIcon from '../../../../../assets/icon_safes.svg';
 import FloatingActionButtonComponent from '../../../../../components/FormFields/FloatingActionButton';
 import TextFieldComponent from '../../../../../components/FormFields/TextField';
 import ListItemDetail from '../../../../../components/ListItemDetail';
+import EditDeletePopper from '../EditDeletePopper';
 import ListItem from '../../../../../components/ListItem';
-import PsudoPopper from '../../../../../components/EditAndDeletePopup';
+import EditAndDeletePopup from '../../../../../components/EditAndDeletePopup';
 import Error from '../../../../../components/Error';
-
-import apiService from '../../apiService';
+import OnBoardServiceAccount from '../OnBoardServiceAccounts';
+import SnackbarComponent from '../../../../../components/Snackbar';
 import ScaledLoader from '../../../../../components/Loaders/ScaledLoader';
+import apiService from '../../apiService';
 
 import ConfirmationModal from '../../../../../components/ConfirmationModal';
-import OnBoardForm from '../OnBoardForm';
+// import OnBoardForm from '../OnBoardForm';
 import ButtonComponent from '../../../../../components/FormFields/ActionButton';
 import { IconEdit, IconDeleteActive } from '../../../../../assets/SvgIcons';
 import { TitleOne } from '../../../../../styles/GlobalStyles';
+import serviceAccounts from '../../__mock';
 
 const ColumnSection = styled('section')`
   position: relative;
@@ -40,14 +49,14 @@ const RightColumnSection = styled(ColumnSection)`
   background: linear-gradient(to top, #151820, #2c3040);
   ${mediaBreakpoints.small} {
     width: 100%;
-    display: none;
     ${(props) => props.mobileViewStyles}
+    display: ${(props) => (props.isAccountDetailsOpen ? 'block' : 'none')};
   }
 `;
 const LeftColumnSection = styled(ColumnSection)`
   width: 40.77%;
   ${mediaBreakpoints.small} {
-    display: ${(props) => (props.isRightActive ? 'none' : 'block')};
+    display: ${(props) => (props.isAccountDetailsOpen ? 'none' : 'block')};
     width: 100%;
   }
 `;
@@ -85,12 +94,21 @@ const NoDataWrapper = styled.div`
   justify-content: center;
   align-items: center;
 `;
+
+const PopperWrap = styled.div`
+  position: absolute;
+  top: 50%;
+  right: 0%;
+  z-index: 1;
+  width: 5.5rem;
+  transform: translate(-50%, -50%);
+  display: none;
+`;
 const ListFolderWrap = styled(Link)`
   position: relative;
   display: flex;
   text-decoration: none;
   align-items: center;
-  flex-direction: column;
   padding: 1.2rem 1.8rem 1.2rem 3.4rem;
   cursor: pointer;
   background-image: ${(props) =>
@@ -99,15 +117,10 @@ const ListFolderWrap = styled(Link)`
   :hover {
     background-image: ${(props) => props.theme.gradients.list || 'none'};
     color: #fff;
+    ${PopperWrap} {
+      display: block;
+    }
   }
-`;
-const PopperWrap = styled.div`
-  position: absolute;
-  top: 50%;
-  right: 0%;
-  z-index: 1;
-  width: 5.5rem;
-  transform: translate(-50%, -50%);
 `;
 
 const NoListWrap = styled.div`
@@ -162,46 +175,103 @@ const ColumnTitleWrap = styled('div')`
   }
   margin-bottom: 0.75rem;
 `;
+const MoreWrap = styled.div``;
 const useStyles = makeStyles(() => ({
   containedSecondary: { borderRadius: '0.4rem' },
 }));
-const ServiceAccountDashboard = (props) => {
-  const {
-    leftColumLists,
-    moreData,
-    status,
-    activeFolders,
-    loadMoreData,
-    setActiveFolders,
-    isLoading,
-  } = props;
+const ServiceAccountDashboard = () => {
   const [enableOnBoardForm, setEnableOnBoardForm] = useState(false);
   const [inputSearchValue, setInputSearchValue] = useState('');
+  const [anchorEl, setAnchorEl] = useState(null);
+  const [serviceAccountClicked, setServiceAccountClicked] = useState(false);
+  const [listItemDetails, setListItemDetails] = useState({});
+  const [moreData, setMoreData] = useState(false);
+  const [isLoading, setIsloading] = useState(false);
+  const [serviceAccountList, setServiceAccountList] = useState([]);
+  const [toast, setToast] = useState(null);
+  const [status, setStatus] = useState({});
   let scrollParentRef = null;
   const classes = useStyles();
   const isMobileScreen = useMediaQuery(mediaBreakpoints.small);
+  const history = useHistory();
 
   const showOnBoardForm = () => {
     setEnableOnBoardForm(true);
+    setServiceAccountClicked(true);
   };
+  /**
+   * @function onSearchChange
+   * @description function to search input
+   */
   const onSearchChange = (value) => {
     setInputSearchValue(value);
   };
+  /**
+   * @function handlePopperClick
+   * @description handle edit and delete popper when we click on more
+   */
+  const handlePopperClick = (e) => {
+    e.preventDefault();
+    setAnchorEl(e.currentTarget);
+  };
+  /**
+   * @function onLinkClicked
+   * @description function to check if mobile screen the make safeClicked true
+   * based on that value display left and right side.
+   */
+  const onLinkClicked = (item) => {
+    if (isMobileScreen) {
+      setServiceAccountClicked(true);
+      setListItemDetails(item);
+    }
+  };
+
+  /**
+   * @function onActionClicked
+   * @description function to prevent default click.
+   * @param {object} e event
+   */
+  const onActionClicked = (e) => {
+    e.stopPropagation();
+    e.preventDefault();
+  };
+
+  /**
+   * @function backToServiceAccounts
+   * @description To get back to left side lists in case of mobile view
+   * @param {bool} isMobileScreen boolian
+   */
+  const backToServiceAccounts = () => {
+    if (isMobileScreen) {
+      setServiceAccountClicked(false);
+    }
+  };
+
+  // Infine scroll load more data
+  const loadMoreData = () => {};
+
+  // toast close handler
+  const onToastClose = () => {
+    setStatus({});
+  };
+
+  useEffect(() => {
+    setServiceAccountList([...serviceAccounts.serviceAccounts]);
+  }, []);
+  const onServiceAccountOffBoard = () => {};
+  const onServiceAccountEdit = () => {};
   const renderList = () => {
-    return leftColumLists.map((account) => (
+    return serviceAccountList.map((account) => (
       <ListFolderWrap
         key={account.name}
-        // to={{
-        //   pathname: `${routeProps.match.url}/${account.name}`,
-        //   state: { account },
-        // }}
-        // active={
-        //   activeFolders.includes(account.name) ||
-        //   routeProps.location.pathname.includes(account.name)
-        // }
-        // onMouseLeave={() => setactiveFolders([])}
-        // onClick={() => showSafeDetails(account.name, account)}
-        // onMouseEnter={() => showSafeDetails(account.name, account)}
+        to={{
+          pathname: `/service-accounts/${account.name}`,
+          state: { account },
+        }}
+        onClick={() => onLinkClicked(account)}
+        active={
+          history.location.pathname === `/service-accounts/${account.name}`
+        }
       >
         <ListItem
           title={account.name}
@@ -215,13 +285,31 @@ const ServiceAccountDashboard = (props) => {
           ]}
         />
         <BorderLine />
-        {activeFolders.includes(account.name) && account.manage ? (
-          <PopperWrap>
-            <PsudoPopper
+        {account.owner && !isMobileScreen ? (
+          <PopperWrap onClick={(e) => onActionClicked(e)}>
+            <EditAndDeletePopup
               //   onDeleteListItemClicked={() => onDeleteSafeClicked(safe.path)}
               item={account}
+              path="/service-accounts/edit-service-account"
             />
           </PopperWrap>
+        ) : null}
+        {isMobileScreen && account.owner ? (
+          <div>
+            <MoreWrap
+              role="button"
+              onClick={(e) => handlePopperClick(e)}
+              tab-index={-1}
+            >
+              <MoreVertOutlinedIcon />
+            </MoreWrap>
+            <EditDeletePopper
+              onDeleteClicked={onServiceAccountOffBoard}
+              onEditClicked={onServiceAccountEdit}
+              setAnchorEl={setAnchorEl}
+              anchorEl={anchorEl}
+            />
+          </div>
         ) : null}
       </ListFolderWrap>
     ));
@@ -251,7 +339,7 @@ const ServiceAccountDashboard = (props) => {
           }
         /> */}
         <SectionPreview title="service-account-section">
-          <LeftColumnSection>
+          <LeftColumnSection isAccountDetailsOpen={serviceAccountClicked}>
             <ColumnHeader>
               <ColumnTitleWrap>
                 <div className="button-wrap">
@@ -282,13 +370,13 @@ const ServiceAccountDashboard = (props) => {
             {status.status === 'loading' && (
               <ScaledLoader contentHeight="80%" contentWidth="100%" />
             )}
-            {status.status === 'failed' && !leftColumLists?.length && (
+            {status.status === 'failed' && !serviceAccountList?.length && (
               <EmptyContentBox>
                 {' '}
                 <Error description="Error while fetching service accounts!" />
               </EmptyContentBox>
             )}
-            {leftColumLists && leftColumLists.length > 0 ? (
+            {serviceAccountList && serviceAccountList.length > 0 ? (
               <ListContainer
                 // eslint-disable-next-line no-return-assign
                 ref={(ref) => (scrollParentRef = ref)}
@@ -308,7 +396,7 @@ const ServiceAccountDashboard = (props) => {
                 </StyledInfiniteScroll>
               </ListContainer>
             ) : (
-              leftColumLists?.length === 0 && (
+              serviceAccountList?.length === 0 && (
                 <NoDataWrapper>
                   {' '}
                   <NoListWrap>
@@ -330,7 +418,7 @@ const ServiceAccountDashboard = (props) => {
                 </NoDataWrapper>
               )
             )}
-            {leftColumLists?.length ? (
+            {serviceAccountList?.length ? (
               <FloatBtnWrapper>
                 <FloatingActionButtonComponent
                   href="/service-accounts/onboard-service-account"
@@ -346,74 +434,77 @@ const ServiceAccountDashboard = (props) => {
           </LeftColumnSection>
 
           <RightColumnSection
-            mobileViewStyles={
-              activeFolders?.length && isMobileScreen
-                ? MobileViewForListDetailPage
-                : ''
-            }
+            mobileViewStyles={isMobileScreen ? MobileViewForListDetailPage : ''}
+            isAccountDetailsOpen={serviceAccountClicked}
           >
-            <Switch>
-              {' '}
-              {leftColumLists[0]?.name && (
+            <Router>
+              <Switch>
+                {' '}
+                {/* {serviceAccountList[0]?.name && (
                 <Redirect
                   exact
-                  from="/service-account"
+                  from="/service-accounts"
                   to={{
-                    pathname: `/service-account/${leftColumLists[0]?.name}`,
-                    state: { serviceAccount: leftColumLists[0] },
+                    pathname: `/service-account/${serviceAccountList[0]?.name}`,
+                    state: { serviceAccount: serviceAccountList[0] },
                   }}
                 />
-              )}
-              <Route
-                path="/:tab/:serviceAccountName"
-                render={(routerProps) => (
-                  <ListItemDetail
-                    detailData={leftColumLists}
-                    renderContent={
-                      enableOnBoardForm ? <OnBoardForm /> : <div />
-                    }
-                    params={routerProps}
-                    setActiveFolders={() => setActiveFolders([])}
-                    ListDetailHeaderBg={sectionHeaderBg}
-                  />
-                )}
-              />
-              <Route
-                path="/"
-                render={(routerProps) => (
-                  <ListItemDetail
-                    detailData={leftColumLists}
-                    renderContent={<OnBoardForm />}
-                    params={routerProps}
-                    ListDetailHeaderBg={sectionHeaderBg}
-                    setActiveFolders={() => setActiveFolders([])}
-                  />
-                )}
-              />
-            </Switch>
+              )} */}
+                <Route
+                  path="/:tab/:serviceAccountName"
+                  render={(routerProps) => (
+                    <ListItemDetail
+                      listItemDetails={listItemDetails}
+                      renderContent={
+                        // eslint-disable-next-line react/jsx-wrap-multilines
+                        <OnBoardServiceAccount
+                          enableOnBoardForm={enableOnBoardForm}
+                        />
+                      }
+                      params={routerProps}
+                      backToLists={backToServiceAccounts}
+                      ListDetailHeaderBg={sectionHeaderBg}
+                    />
+                  )}
+                />
+                {/* <Route
+                  path="/"
+                  render={(routerProps) => (
+                    <ListItemDetail
+                      detailData={serviceAccountList}
+                      renderContent={
+                        enableOnBoardForm ? <OnBoardForm /> : <div />
+                      }
+                      params={routerProps}
+                      ListDetailHeaderBg={sectionHeaderBg}
+                    />
+                  )}
+                /> */}
+              </Switch>
+            </Router>
           </RightColumnSection>
+          {toast === -1 && (
+            <SnackbarComponent
+              open
+              onClose={() => onToastClose()}
+              severity="error"
+              icon="error"
+              message="Something went wrong!"
+            />
+          )}
+          {toast === 1 && (
+            <SnackbarComponent
+              open
+              onClose={() => onToastClose()}
+              message="Service account off-boarded successfully!"
+            />
+          )}
         </SectionPreview>
       </>
     </ComponentError>
   );
 };
-ServiceAccountDashboard.propTypes = {
-  leftColumLists: PropTypes.arrayOf(PropTypes.array),
-  moreData: PropTypes.bool,
-  status: PropTypes.objectOf(PropTypes.object),
-  activeFolders: PropTypes.arrayOf(PropTypes.array),
-  loadMoreData: PropTypes.func,
-  setActiveFolders: PropTypes.func,
-  isLoading: PropTypes.bool,
-};
-ServiceAccountDashboard.defaultProps = {
-  leftColumLists: [],
-  moreData: false,
-  status: {},
-  activeFolders: [],
-  loadMoreData: PropTypes.func,
-  setActiveFolders: () => {},
-  isLoading: false,
-};
+ServiceAccountDashboard.propTypes = {};
+ServiceAccountDashboard.defaultProps = {};
 
 export default ServiceAccountDashboard;
