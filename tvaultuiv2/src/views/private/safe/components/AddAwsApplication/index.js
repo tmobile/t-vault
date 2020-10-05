@@ -205,9 +205,10 @@ const AddAwsApplication = (props) => {
           name="roleName"
           onChange={(e) => setRoleName(e.target.value)}
         />
+        {isEC2 && <p>**Please fill atleast two of the followings.</p>}
         <InputAwsWrapper>
           <EachInputField>
-            <InputLabel required>Account ID</InputLabel>
+            <InputLabel required>Account ID*</InputLabel>
             <TextFieldComponent
               value={accountId}
               placeholder="Account ID"
@@ -219,7 +220,7 @@ const AddAwsApplication = (props) => {
             />
           </EachInputField>
           <EachInputField>
-            <InputLabel required>Region</InputLabel>
+            <InputLabel required>Region*</InputLabel>
             <TextFieldComponent
               value={region}
               placeholder="Region"
@@ -232,7 +233,7 @@ const AddAwsApplication = (props) => {
         </InputAwsWrapper>
         <InputAwsWrapper>
           <EachInputField>
-            <InputLabel required>VPC ID</InputLabel>
+            <InputLabel required>VPC ID*</InputLabel>
             <TextFieldComponent
               value={vpcId}
               placeholder="VPC ID"
@@ -243,7 +244,7 @@ const AddAwsApplication = (props) => {
             />
           </EachInputField>
           <EachInputField>
-            <InputLabel required>Subnet ID</InputLabel>
+            <InputLabel required>Subnet ID*</InputLabel>
             <TextFieldComponent
               value={subnetId}
               placeholder="Subnet ID"
@@ -256,7 +257,7 @@ const AddAwsApplication = (props) => {
         </InputAwsWrapper>
         <InputAwsWrapper>
           <EachInputField>
-            <InputLabel required>AMI ID</InputLabel>
+            <InputLabel required>AMI ID*</InputLabel>
             <TextFieldComponent
               value={amiId}
               placeholder="AMI ID"
@@ -267,7 +268,7 @@ const AddAwsApplication = (props) => {
             />
           </EachInputField>
           <EachInputField>
-            <InputLabel required>Instance Profile ARN</InputLabel>
+            <InputLabel required>Instance Profile ARN*</InputLabel>
             <TextFieldComponent
               value={profileArn}
               placeholder="Instance Profile ARN"
@@ -280,7 +281,7 @@ const AddAwsApplication = (props) => {
         </InputAwsWrapper>
         <InputAwsWrapper>
           <EachInputField>
-            <InputLabel required>IAM Role ARN</InputLabel>
+            <InputLabel required>IAM Role ARN*</InputLabel>
             <TextFieldComponent
               value={iamRoleArn}
               placeholder="IAM Role ARN"
