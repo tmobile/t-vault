@@ -49,7 +49,6 @@ import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
-import com.tmobile.cso.vault.api.common.SSLCertificateConstants;
 import com.tmobile.cso.vault.api.common.TVaultConstants;
 import com.tmobile.cso.vault.api.exception.LogMessage;
 import com.tmobile.cso.vault.api.exception.TVaultValidationException;
@@ -110,6 +109,10 @@ public final class ControllerUtil {
 	private static String oidcDiscoveryUrl;
 	private static String oidcADLoginUrl;
 	private static OIDCCred oidcCred = null;
+
+	private static String iamUsername;
+	private static String iamPassword;
+	private static IAMPortalCred iamPortalCred = null;
 	
 	private static OIDCUtil oidcUtil;
 
@@ -122,6 +125,7 @@ public final class ControllerUtil {
 		sscredFileLocation = this.sscredLocation;
 		readSSCredFile(sscredFileLocation, true);
 		readOIDCCredFile(sscredFileLocation, true);
+		readIAMPortalCredFile(sscredFileLocation, true);
 	}
 
 	@Autowired(required = true)
@@ -2365,6 +2369,77 @@ public final class ControllerUtil {
 			log.error(String.format("Unable to get delete oidcCred file: [%s]", e.getMessage()));
 		}
 		return oidcCred;
+	}
+
+	public static String getIamUsername() {
+		return iamUsername;
+	}
+
+	public static void setIamUsername(String iamUsername) {
+		ControllerUtil.iamUsername = iamUsername;
+	}
+
+	public static String getIamPassword() {
+		return iamPassword;
+	}
+
+	public static void setIamPassword(String iamPassword) {
+		ControllerUtil.iamPassword = iamPassword;
+	}
+
+	public static IAMPortalCred getIamPortalCred() {
+		return iamPortalCred;
+	}
+
+	public static void setIamPortalCred(IAMPortalCred iamPortalCred) {
+		ControllerUtil.iamPortalCred = iamPortalCred;
+	}
+
+	/**
+	 * To read IAM portal cred file
+	 * @param fileLocation
+	 * @param isDelete
+	 * @return
+	 */
+	public static IAMPortalCred readIAMPortalCredFile(String fileLocation, boolean isDelete) {
+		File iamCredFile = null;
+		log.debug("Trying to read IAM cred file");
+		try {
+			iamCredFile = new File(fileLocation+"/iamportalcred");
+			if (iamCredFile != null && iamCredFile.exists()) {
+				iamPortalCred = new IAMPortalCred();
+				Scanner sc = new Scanner(iamCredFile);
+				while (sc.hasNextLine()) {
+					String line = sc.nextLine();
+					if (line.startsWith("username:")) {
+						iamUsername = line.substring("username:".length(), line.length());
+						iamPortalCred.setRoleId(line.substring("username:".length(), line.length()));
+						log.debug("Successfully read username: from iamportalcred file");
+					}
+					else if (line.startsWith("password:")) {
+						iamPassword = line.substring("password:".length(), line.length());
+						iamPortalCred.setSecretId(line.substring("password:".length(), line.length()));
+						log.debug("Successfully read password: from iamportalcred file");
+					}
+				}
+				sc.close();
+			}
+		} catch (IOException e) {
+			log.error(String.format("Unable to read IAM cred file: [%s]", e.getMessage()));
+		}
+		try {
+			if (iamCredFile != null && iamCredFile.exists() && isDelete) {
+				if (iamCredFile.delete()) {
+					log.debug("Successfully deleted IAM cred file");
+				}
+				else {
+					log.error("Unable to get delete IAM cred file");
+				}
+			}
+		} catch (Exception e) {
+			log.error(String.format("Unable to get delete IAM cred file: [%s]", e.getMessage()));
+		}
+		return iamPortalCred;
 	}
 
 	/**

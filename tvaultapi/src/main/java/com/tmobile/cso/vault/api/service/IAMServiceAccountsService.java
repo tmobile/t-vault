@@ -18,12 +18,13 @@
 package com.tmobile.cso.vault.api.service;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
+import javax.naming.NamingException;
+import javax.naming.directory.Attributes;
+
+import com.tmobile.cso.vault.api.model.*;
+import com.tmobile.cso.vault.api.utils.*;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -64,20 +65,16 @@ import com.tmobile.cso.vault.api.model.ServiceAccountApprole;
 import com.tmobile.cso.vault.api.model.UserDetails;
 import com.tmobile.cso.vault.api.process.RequestProcessor;
 import com.tmobile.cso.vault.api.process.Response;
-import com.tmobile.cso.vault.api.utils.EmailUtils;
-import com.tmobile.cso.vault.api.utils.JSONUtil;
-import com.tmobile.cso.vault.api.utils.PolicyUtils;
-import com.tmobile.cso.vault.api.utils.ThreadLocalContext;
-import com.tmobile.cso.vault.api.utils.TokenUtils;
+
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.Calendar;
 import java.util.stream.Collectors;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.tmobile.cso.vault.api.model.IAMServiceAccountResponse;
+import org.springframework.util.StringUtils;
 
 
 @Component
@@ -113,7 +110,10 @@ public class  IAMServiceAccountsService {
 
 	@Autowired
 	private OIDCUtil oidcUtil;
-	
+
+	@Autowired
+	IAMServiceAccountUtils iamServiceAccountUtils;
+
 	@Autowired
 	private AppRoleService appRoleService;
 
@@ -127,6 +127,7 @@ public class  IAMServiceAccountsService {
 	 */
 	public ResponseEntity<String> onboardIAMServiceAccount(String token, IAMServiceAccount iamServiceAccount,
 			UserDetails userDetails) {
+		iamServiceAccount.setUserName(iamServiceAccount.getUserName().toLowerCase());
 		List<String> onboardedList = getOnboardedIAMServiceAccountList(token, userDetails);
 		String iamSvcAccName = iamServiceAccount.getAwsAccountId() + "_" + iamServiceAccount.getUserName();
 		if (onboardedList.contains(iamSvcAccName)) {
@@ -140,13 +141,13 @@ public class  IAMServiceAccountsService {
 					"{\"errors\":[\"Failed to onboard IAM Service Account. IAM Service account is already onboarded\"]}");
 		}
 
-		String iamSvccAccPath = IAMServiceAccountConstants.IAM_SVCC_ACC_PATH + iamSvcAccName;
+		//String iamSvccAccPath = IAMServiceAccountConstants.IAM_SVCC_ACC_PATH + iamSvcAccName;
 		String iamSvccAccMetaPath = IAMServiceAccountConstants.IAM_SVCC_ACC_META_PATH + iamSvcAccName;
 
 		IAMServiceAccountMetadataDetails iamServiceAccountMetadataDetails = populateIAMSvcAccMetaData(
 				iamServiceAccount);
 
-		boolean accountRoleCreationResponse = createIAMServiceAccount(token, iamSvccAccPath);
+		boolean accountRoleCreationResponse = createIAMServiceAccount(token, iamSvccAccMetaPath);
 		if (accountRoleCreationResponse) {
 			// Create Metadata
 			ResponseEntity<String> metadataCreationResponse = createIAMSvcAccMetadata(token,
@@ -379,18 +380,19 @@ public class  IAMServiceAccountsService {
 					.append(IAMServiceAccountConstants.IAMSVCACC_POLICY_PREFIX).append(iamSvcAccName).toString();
 			accessPolicy.setAccessid(accessId);
 			HashMap<String, String> accessMap = new HashMap<>();
-
+			String iamCredsPath=new StringBuffer().append(IAMServiceAccountConstants.IAM_SVCC_ACC_PATH).append(iamSvcAccName).append("/*").toString();
+			accessMap.put(iamCredsPath, TVaultConstants.getSvcAccPolicies().get(policyPrefix));
 			// Attaching write permissions for owner
 			if (TVaultConstants.getSvcAccPolicies().get(policyPrefix).equals(TVaultConstants.SUDO_POLICY)) {
-				accessMap.put(IAMServiceAccountConstants.IAM_SVCC_ACC_PATH + iamSvcAccName,
+				accessMap.put(IAMServiceAccountConstants.IAM_SVCC_ACC_PATH + iamSvcAccName + "/*",
 						TVaultConstants.WRITE_POLICY);
-				accessMap.put(IAMServiceAccountConstants.IAM_SVCC_ACC_META_PATH + iamSvcAccName,
+				accessMap.put(IAMServiceAccountConstants.IAM_SVCC_ACC_META_PATH + iamSvcAccName + "/*",
 						TVaultConstants.WRITE_POLICY);
 			}
 			if (TVaultConstants.getSvcAccPolicies().get(policyPrefix).equals(TVaultConstants.WRITE_POLICY)) {
-				accessMap.put(IAMServiceAccountConstants.IAM_SVCC_ACC_PATH + iamSvcAccName,
+				accessMap.put(IAMServiceAccountConstants.IAM_SVCC_ACC_PATH + iamSvcAccName + "/*",
 						TVaultConstants.WRITE_POLICY);
-				accessMap.put(IAMServiceAccountConstants.IAM_SVCC_ACC_META_PATH + iamSvcAccName,
+				accessMap.put(IAMServiceAccountConstants.IAM_SVCC_ACC_META_PATH + iamSvcAccName + "/*",
 						TVaultConstants.WRITE_POLICY);
 			}
 			accessPolicy.setAccess(accessMap);
@@ -575,7 +577,7 @@ public class  IAMServiceAccountsService {
 		String iamSvcAccountName = iamServiceAccountGroup.getAwsAccountId() + "_"
 				+ iamServiceAccountGroup.getIamSvcAccName();
 
-		boolean canAddGroup = hasAddOrRemovePermissionForUser(userDetails, iamSvcAccountName, token);
+		boolean canAddGroup = isAuthorizedToAddPermissionInIAMSvcAcc(userDetails, iamSvcAccountName, token, false);
 		if (canAddGroup) {
 			// Only Sudo policy can be added (as part of onbord) before activation.
 			if (!isIAMSvcaccActivated(token, userDetails, iamSvcAccountName)
@@ -824,29 +826,6 @@ public class  IAMServiceAccountsService {
 	}
 
 	/**
-	 * Check if user has the permission to add user/group/approles to the IAM
-	 * Service Account
-	 *
-	 * @param userDetails
-	 * @param action
-	 * @param token
-	 * @return
-	 */
-	public boolean hasAddOrRemovePermissionForUser(UserDetails userDetails, String iamServiceAccount, String token) {
-		boolean hasPermission = false;
-		// Owner of the IAM service account can add/remove users, groups and approles to
-		// IAM service account
-		String sudoPolicy = new StringBuffer()
-				.append(TVaultConstants.SVC_ACC_POLICIES_PREFIXES.getKey(TVaultConstants.SUDO_POLICY))
-				.append(IAMServiceAccountConstants.IAMSVCACC_POLICY_PREFIX).append(iamServiceAccount).toString();
-		String[] policies = policyUtils.getCurrentPolicies(token, userDetails.getUsername(), userDetails);
-		if (ArrayUtils.contains(policies, sudoPolicy)) {
-			hasPermission = true;
-		}
-		return hasPermission;
-	}
-
-	/**
 	 * Add user to IAM Service account.
 	 *
 	 * @param token
@@ -858,6 +837,7 @@ public class  IAMServiceAccountsService {
 	public ResponseEntity<String> addUserToIAMServiceAccount(String token, UserDetails userDetails,
 			IAMServiceAccountUser iamServiceAccountUser, boolean isPartOfOnboard) {
 
+		iamServiceAccountUser.setIamSvcAccName(iamServiceAccountUser.getIamSvcAccName().toLowerCase());
 		OIDCEntityResponse oidcEntityResponse = new OIDCEntityResponse();
 		if (!userDetails.isAdmin()) {
 			token = userDetails.getSelfSupportToken();
@@ -878,7 +858,7 @@ public class  IAMServiceAccountsService {
 
 		String uniqueIAMSvcaccName = iamServiceAccountUser.getAwsAccountId() + "_" + iamServiceAccountUser.getIamSvcAccName();
 
-		boolean isAuthorized = hasGrantPermissionForIAMSvcAcc(userDetails, uniqueIAMSvcaccName, token, isPartOfOnboard);
+		boolean isAuthorized = isAuthorizedToAddPermissionInIAMSvcAcc(userDetails, uniqueIAMSvcaccName, token, isPartOfOnboard);
 
 		if (isAuthorized) {
 			// Only Sudo policy can be added (as part of onbord) before activation.
@@ -946,8 +926,8 @@ public class  IAMServiceAccountsService {
 			userResponse.setHttpstatus(responseEntity.getStatusCode());
 		}
 
-		return createPoliciesAndAddUserPermissionToIAMSvcAcc(token, userDetails, iamServiceAccountUser,
-				oidcEntityResponse, uniqueIAMSvcaccName, userResponse);
+		return addPolicyToIAMSvcAcc(token, userDetails, iamServiceAccountUser, oidcEntityResponse, uniqueIAMSvcaccName,
+				userResponse);
 	}
 
 	/**
@@ -959,9 +939,10 @@ public class  IAMServiceAccountsService {
 	 * @param userResponse
 	 * @return
 	 */
-	private ResponseEntity<String> createPoliciesAndAddUserPermissionToIAMSvcAcc(String token, UserDetails userDetails,
-			IAMServiceAccountUser iamServiceAccountUser, OIDCEntityResponse oidcEntityResponse,
-			String uniqueIAMSvcaccName, Response userResponse) {
+	private ResponseEntity<String> addPolicyToIAMSvcAcc(String token, UserDetails userDetails,
+		IAMServiceAccountUser iamServiceAccountUser, OIDCEntityResponse oidcEntityResponse,
+		String uniqueIAMSvcaccName, Response userResponse) {
+
 		String policy = new StringBuffer().append(TVaultConstants.SVC_ACC_POLICIES_PREFIXES.getKey(iamServiceAccountUser.getAccess())).append(IAMServiceAccountConstants.IAMSVCACC_POLICY_PREFIX).append(uniqueIAMSvcaccName).toString();
 		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
 				.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
@@ -978,14 +959,11 @@ public class  IAMServiceAccountsService {
 		String denyPolicy = new StringBuffer()
 				.append(TVaultConstants.SVC_ACC_POLICIES_PREFIXES.getKey(TVaultConstants.DENY_POLICY))
 				.append(IAMServiceAccountConstants.IAMSVCACC_POLICY_PREFIX).append(uniqueIAMSvcaccName).toString();
-		String ownerPolicy = new StringBuffer()
-				.append(TVaultConstants.SVC_ACC_POLICIES_PREFIXES.getKey(TVaultConstants.SUDO_POLICY))
-				.append(IAMServiceAccountConstants.IAMSVCACC_POLICY_PREFIX).append(uniqueIAMSvcaccName).toString();
 
-		log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
 				.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
 				.put(LogMessage.ACTION, IAMServiceAccountConstants.ADD_USER_TO_IAMSVCACC_MSG)
-				.put(LogMessage.MESSAGE, String.format("User policies are, read - [%s], write - [%s], deny -[%s], owner - [%s]", readPolicy, writePolicy, denyPolicy, ownerPolicy))
+				.put(LogMessage.MESSAGE, String.format("User policies are, read - [%s], write - [%s], deny -[%s]", readPolicy, writePolicy, denyPolicy))
 				.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
 
 		String responseJson = "";
@@ -1246,24 +1224,22 @@ public class  IAMServiceAccountsService {
 	 * @param token
 	 * @return
 	 */
-	public boolean hasGrantPermissionForIAMSvcAcc(UserDetails userDetails, String serviceAccount, String token,
+	public boolean isAuthorizedToAddPermissionInIAMSvcAcc(UserDetails userDetails, String serviceAccount, String token,
 			boolean isPartOfOnboard) {
-		// IAM admin users can add sudo policy for owner while onboarding the service
-		// account
+		// IAM admin users can add sudo policy for owner while onboarding the service account
+		// @TODO: it might not be required for all admin users, IAM team will be using and approle during onboard
 		if (userDetails.isAdmin() && isPartOfOnboard) {
 			return true;
 		}
-		boolean hasAccess = false;
-		// Owner of the service account can add/remove users, groups, aws roles and
-		// approles to service account
-		String ownerPolicy = new StringBuffer()
-				.append(TVaultConstants.SVC_ACC_POLICIES_PREFIXES.getKey(TVaultConstants.SUDO_POLICY))
-				.append(IAMServiceAccountConstants.IAMSVCACC_POLICY_PREFIX).append(serviceAccount).toString();
-		String[] policies = policyUtils.getCurrentPolicies(token, userDetails.getUsername(), userDetails);
+		// Owner of the service account can add/remove users, groups, aws roles and approles to service account
+		String ownerPolicy = new StringBuffer().append(TVaultConstants.SVC_ACC_POLICIES_PREFIXES.
+				getKey(TVaultConstants.SUDO_POLICY)).append(TVaultConstants.IAM_SVC_ACC_PATH_PREFIX).
+				append("_").append(serviceAccount).toString();
+		String [] policies = policyUtils.getCurrentPolicies(token, userDetails.getUsername(), userDetails);
 		if (ArrayUtils.contains(policies, ownerPolicy)) {
-			hasAccess = true;
+			return true;
 		}
-		return hasAccess;
+		return false;
 	}
 
 	/*
@@ -1459,7 +1435,7 @@ public class  IAMServiceAccountsService {
 
 		String uniqueIAMSvcaccName = iamServiceAccountUser.getAwsAccountId() + "_" + iamServiceAccountUser.getIamSvcAccName();
 
-		boolean isAuthorized = hasGrantPermissionForIAMSvcAcc(userDetails, uniqueIAMSvcaccName, token, false);		
+		boolean isAuthorized = isAuthorizedToAddPermissionInIAMSvcAcc(userDetails, uniqueIAMSvcaccName, token, false);
 
 		if(isAuthorized){
 			// Only Sudo policy can be added (as part of onbord) before activation.
@@ -1744,7 +1720,7 @@ public class  IAMServiceAccountsService {
 
         String iamSvcAccountName = iamServiceAccountGroup.getAwsAccountId() + "_" + iamServiceAccountGroup.getIamSvcAccName();
 
-		boolean isAuthorized = hasAddOrRemovePermissionForUser(userDetails, iamSvcAccountName, token);
+		boolean isAuthorized = isAuthorizedToAddPermissionInIAMSvcAcc(userDetails, iamSvcAccountName, token, false);
 		if (isAuthorized) {
 			// Only Sudo policy can be added (as part of onbord) before activation.
 			if (!isIAMSvcaccActivated(token, userDetails, iamSvcAccountName)
@@ -1942,11 +1918,11 @@ public class  IAMServiceAccountsService {
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Group configuration failed. Contact Admin \"]}");
 		}
 	}
-	
-	
+
+
 	/**
 	 * Read Folder details for a given iamsvcacc
-	 * 
+	 *
 	 * @param token
 	 * @param path
 	 * @return
@@ -1973,10 +1949,10 @@ public class  IAMServiceAccountsService {
 			return ResponseEntity.status(response.getHttpstatus()).body(response.getResponse());
 		}
 	}
-	
+
 	/**
 	 * Associate Approle to Service Account
-	 * 
+	 *
 	 * @param userDetails
 	 * @param token
 	 * @param serviceAccountApprole
@@ -2182,7 +2158,7 @@ public class  IAMServiceAccountsService {
 
 	/**
 	 * Validates IAM Service Account permission inputs
-	 * 
+	 *
 	 * @param access
 	 * @return
 	 */
@@ -2196,7 +2172,7 @@ public class  IAMServiceAccountsService {
 	/**
 	 * Check if user has the permission to add user/group/awsrole/approles to
 	 * the IAM Service Account
-	 * 
+	 *
 	 * @param userDetails
 	 * @param action
 	 * @param token
@@ -2205,7 +2181,7 @@ public class  IAMServiceAccountsService {
 	public boolean hasAddOrRemovePermission(UserDetails userDetails, String serviceAccount, String token) {
 		// Owner of the service account can add/remove users, groups, aws roles
 		// and approles to service account
-		
+
 		String ownerPolicy = new StringBuffer()
 				.append(TVaultConstants.SVC_ACC_POLICIES_PREFIXES.getKey(TVaultConstants.SUDO_POLICY))
 				.append(IAMServiceAccountConstants.IAMSVCACC_POLICY_PREFIX).append(serviceAccount).toString();
@@ -2218,7 +2194,7 @@ public class  IAMServiceAccountsService {
 
 	/**
 	 * Remove approle from IAM service account
-	 * 
+	 *
 	 * @param userDetails
 	 * @param token
 	 * @param serviceAccountApprole
@@ -2396,4 +2372,336 @@ public class  IAMServiceAccountsService {
 					.body("{\"errors\":[\"Access denied: No permission to remove approle from Service Account\"]}");
 		}
 	}
+
+	/**
+	 * Activate IAM Service Account.
+	 * @param token
+	 * @param userDetails
+	 * @param iamServiceAccountName
+	 * @param awsAccountId
+	 * @return
+	 */
+	public ResponseEntity<String> activateIAMServiceAccount(String token, UserDetails userDetails, String iamServiceAccountName, String awsAccountId) {
+		iamServiceAccountName = iamServiceAccountName.toLowerCase();
+		if (!userDetails.isAdmin()) {
+			token = userDetails.getSelfSupportToken();
+		}
+		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+				put(LogMessage.ACTION, "activateIAMServiceAccount").
+				put(LogMessage.MESSAGE, String.format ("Trying to activate ServiceAccount [%s]", iamServiceAccountName)).
+				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+				build()));
+
+		String uniqueIAMSvcaccName = awsAccountId + "_" + iamServiceAccountName;
+
+		boolean isAuthorized = true;
+		if (userDetails != null) {
+			isAuthorized = isAuthorizedToAddPermissionInIAMSvcAcc(userDetails, uniqueIAMSvcaccName, token, false);
+		}
+		if (isAuthorized) {
+			if (isIAMSvcaccActivated(token, userDetails, uniqueIAMSvcaccName)) {
+				log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+						put(LogMessage.ACTION, "activateIAMServiceAccount").
+						put(LogMessage.MESSAGE, String.format ("Failed to activate IAM Service account. [%s] is already activated.", uniqueIAMSvcaccName)).
+						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+						build()));
+				return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Service Account is already activated. You can now grant permissions from Permissions menu\"]}");
+			}
+
+			JsonObject iamMetadataJson = getIAMMetadata(token, uniqueIAMSvcaccName);
+
+			if (null!= iamMetadataJson && iamMetadataJson.has("secret")) {
+				if (!iamMetadataJson.get("secret").isJsonNull()) {
+					log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+							put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+							put(LogMessage.ACTION, "activateIAMServiceAccount").
+							put(LogMessage.MESSAGE, String.format ("Trying to rotate secret for the IAM Service account [%s]", uniqueIAMSvcaccName)).
+							put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+							build()));
+
+					JsonArray svcSecretArray = null;
+					try {
+						svcSecretArray = iamMetadataJson.get("secret").getAsJsonArray();
+					} catch (IllegalStateException e) {
+						log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+								put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+								put(LogMessage.ACTION, "activateIAMServiceAccount").
+								put(LogMessage.MESSAGE, String.format ("Failed to activate IAM Service account. Invalid metadata for [%s].", uniqueIAMSvcaccName)).
+								put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+								build()));
+						return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Failed to activate IAM Service account. Invalid metadata.\"]}");
+					}
+
+					if (null != svcSecretArray) {
+						int secretSaveCount = 0;
+						for (int i=0;i<svcSecretArray.size();i++) {
+
+							JsonObject iamSecret = (JsonObject) svcSecretArray.get(i);
+							if (iamSecret.has("accessKeyId")) {
+								String accessKeyId = iamSecret.get("accessKeyId").getAsString();
+								log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+										put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+										put(LogMessage.ACTION, "activateIAMServiceAccount").
+										put(LogMessage.MESSAGE, String.format ("Trying to rotate secret for the IAM Service account [%s] access key id: [%s]", uniqueIAMSvcaccName, accessKeyId)).
+										put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+										build()));
+								// Rotate IAM service account secret for each access key id in metadata
+								if (rotateIAMServiceAccountByAccessKeyId(token, awsAccountId, iamServiceAccountName, accessKeyId, i+1)) {
+									secretSaveCount++;
+								}
+							}
+						}
+						if (secretSaveCount == svcSecretArray.size()) {
+							// Update status to activated.
+							Response metadataUpdateResponse = iamServiceAccountUtils.updateActivatedStatusInMetadata(token, iamServiceAccountName, awsAccountId);
+							if(metadataUpdateResponse !=null && (HttpStatus.NO_CONTENT.equals(metadataUpdateResponse.getHttpstatus()) || HttpStatus.OK.equals(metadataUpdateResponse.getHttpstatus()))){
+								log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+										put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+										put(LogMessage.ACTION, "activateIAMServiceAccount").
+										put(LogMessage.MESSAGE, String.format("Metadata updated Successfully for IAM service account [%s].", iamServiceAccountName)).
+										put(LogMessage.STATUS, metadataUpdateResponse.getHttpstatus().toString()).
+										put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+										build()));
+								// Add reset permission for owner
+								String ownerNTId = getOwnerNTIdFromMetadata(token, uniqueIAMSvcaccName );
+								if (StringUtils.isEmpty(ownerNTId)) {
+									log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+											put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+											put(LogMessage.ACTION, "activateIAMServiceAccount").
+											put(LogMessage.MESSAGE, String.format("Failed to add reset permission for owner for IAM service account [%s]. Owner NT id not found in metadata", iamServiceAccountName)).
+											put(LogMessage.STATUS, HttpStatus.BAD_REQUEST.toString()).
+											put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+											build()));
+									return ResponseEntity.status(HttpStatus.OK).body("{\"errors\":[\"Failed to activate IAM Service account. IAM secrets are rotated and saved in T-Vault. However failed to add permission to owner. Owner info not found in Metadata.\"]}");
+								}
+								IAMServiceAccountUser iamServiceAccountUser = new IAMServiceAccountUser(iamServiceAccountName, ownerNTId, TVaultConstants.RESET_POLICY, awsAccountId);
+
+								ResponseEntity<String> addUserToIAMSvcAccResponse = addUserToIAMServiceAccount(token, userDetails, iamServiceAccountUser, false);
+								if (HttpStatus.OK.equals(addUserToIAMSvcAccResponse.getStatusCode())) {
+									log.info(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+											put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+											put(LogMessage.ACTION, "activateIAMServiceAccount").
+											put(LogMessage.MESSAGE, String.format ("IAM Service account [%s] activated successfully", iamServiceAccountName)).
+											put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+											build()));
+									return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"IAM Service account activated successfully\"]}");
+
+								}
+								log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+										put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+										put(LogMessage.ACTION, "activateIAMServiceAccount").
+										put(LogMessage.MESSAGE, String.format("Failed to add reset permission to owner as part of IAM service account activation for [%s].", iamServiceAccountName)).
+										put(LogMessage.STATUS, addUserToIAMSvcAccResponse!=null?addUserToIAMSvcAccResponse.getStatusCode().toString():HttpStatus.BAD_REQUEST.toString()).
+										put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+										build()));
+								return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Failed to activate IAM Service account. IAM secrets are rotated and saved in T-Vault. However owner permission update failed.\"]}");
+
+							}
+							return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Failed to activate IAM Service account. IAM secrets are rotated and saved in T-Vault. However metadata update failed.\"]}");
+						}
+						log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+								put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+								put(LogMessage.ACTION, "activateIAMServiceAccount").
+								put(LogMessage.MESSAGE, String.format ("IAM Service account [%s] activated successfully", iamServiceAccountName)).
+								put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+								build()));
+						return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Failed to activate IAM Service account. Failed to save one or more IAM secrets.\"]}");
+					}
+				}
+				log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+						put(LogMessage.ACTION, "activateIAMServiceAccount").
+						put(LogMessage.MESSAGE, String.format ("Failed to activate IAM Service account. Invalid metadata for [%s].", uniqueIAMSvcaccName)).
+						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+						build()));
+				return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Failed to activate IAM Service account. Invalid metadata.\"]}");
+			}
+			else {
+				log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+						put(LogMessage.ACTION, "activateIAMServiceAccount").
+						put(LogMessage.MESSAGE, String.format ("AccessKey information not found in metadata for IAM Service account [%s]", uniqueIAMSvcaccName)).
+						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+						build()));
+				return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"AccessKey information not found in metadata for this IAM Service account\"]}");
+			}
+
+		}
+		else{
+			return ResponseEntity.status(HttpStatus.FORBIDDEN).body("{\"errors\":[\"Access denied: No permission to activate this IAM service account\"]}");
+		}
+	}
+
+	/**
+	 * To get owner NT id from metadata.
+	 * @param token
+	 * @param uniqueIAMSvcaccName
+	 * @return
+	 */
+	private String getOwnerNTIdFromMetadata(String token, String uniqueIAMSvcaccName) {
+		JsonObject iamMetadataJson = getIAMMetadata(token, uniqueIAMSvcaccName);
+		if (null != iamMetadataJson && iamMetadataJson.has("owner_ntid")) {
+			return iamMetadataJson.get("owner_ntid").getAsString();
+		}
+		return null;
+	}
+
+	/**
+	 * To get IAM Service Account metadata as JsonObject.
+	 * @param token
+	 * @param uniqueIAMSvcaccName
+	 * @return
+	 */
+	private JsonObject getIAMMetadata(String token, String uniqueIAMSvcaccName) {
+		String path = TVaultConstants.IAM_SVC_PATH + uniqueIAMSvcaccName;
+		Response response = reqProcessor.process("/read", "{\"path\":\"" + path + "\"}", token);
+		if (response.getHttpstatus().equals(HttpStatus.OK)) {
+			JsonObject data = populateMetaData(response);
+			return data;
+		}
+		return null;
+	}
+
+	/**
+	 * To rotate an IAM Service Account secret.
+	 * @param token
+	 * @param userDetails
+	 * @param iamServiceAccountRotateRequest
+	 * @param secretFolder
+	 * @return
+	 */
+	public ResponseEntity<String> rotateIAMServiceAccount(String token, UserDetails userDetails, IAMServiceAccountRotateRequest iamServiceAccountRotateRequest) {
+		boolean rotationStatus = false;
+		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+				put(LogMessage.ACTION, "rotateIAMServiceAccount").
+				put(LogMessage.MESSAGE, String.format ("Trying to rotate secret for the IAM Service account [%s] " +
+								"access key id: [%s]", iamServiceAccountRotateRequest.getUserName(),
+						iamServiceAccountRotateRequest.getAccessKeyId())).
+				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+				build()));
+
+		String accessKeyId = iamServiceAccountRotateRequest.getAccessKeyId();
+		String awsAccountId = iamServiceAccountRotateRequest.getAccountId();
+		String iamSvcName = iamServiceAccountRotateRequest.getUserName();
+		String uniqueIAMSvcaccName = awsAccountId + "_" + iamSvcName;
+
+		// Get metadata to check the accesskeyid
+		JsonObject iamMetadataJson = getIAMMetadata(tokenUtils.getSelfServiceToken(), uniqueIAMSvcaccName);
+
+		if (null!= iamMetadataJson && iamMetadataJson.has("secret")) {
+			if (!iamMetadataJson.get("secret").isJsonNull()) {
+				log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+						put(LogMessage.ACTION, "rotateIAMServiceAccount").
+						put(LogMessage.MESSAGE, String.format("Trying to rotate secret for the IAM Service account [%s]", uniqueIAMSvcaccName)).
+						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+						build()));
+
+				JsonArray svcSecretArray = null;
+				try {
+					svcSecretArray = iamMetadataJson.get("secret").getAsJsonArray();
+				} catch (IllegalStateException e) {
+					log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+							put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+							put(LogMessage.ACTION, "rotateIAMServiceAccount").
+							put(LogMessage.MESSAGE, String.format("Failed to rotate IAM secret. Invalid metadata for [%s].", uniqueIAMSvcaccName)).
+							put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+							build()));
+					return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Failed to rotate secret for IAM Service account. Invalid metadata.\"]}");
+				}
+
+				if (null != svcSecretArray) {
+					for (int i = 0; i < svcSecretArray.size(); i++) {
+
+						JsonObject iamSecret = (JsonObject) svcSecretArray.get(i);
+						if (iamSecret.has("accessKeyId") && accessKeyId.equals(iamSecret.get("accessKeyId").getAsString())) {
+							log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+									put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+									put(LogMessage.ACTION, "rotateIAMServiceAccount").
+									put(LogMessage.MESSAGE, String.format("Trying to rotate secret for the IAM Service account [%s] access key id: [%s]", uniqueIAMSvcaccName, accessKeyId)).
+									put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+									build()));
+							// Rotate IAM service account secret for each access key id in metadata
+							rotationStatus = rotateIAMServiceAccountByAccessKeyId(token, awsAccountId,
+									iamSvcName, accessKeyId, i+1);
+							break;
+						}
+					}
+				}
+			}
+		}
+
+		if (rotationStatus) {
+			log.info(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+					put(LogMessage.ACTION, "rotateIAMServiceAccount").
+					put(LogMessage.MESSAGE, String.format ("IAM Service account [%s] rotated successfully for " +
+									"AccessKeyId [%s]", iamServiceAccountRotateRequest.getUserName(),
+							iamServiceAccountRotateRequest.getAccessKeyId())).
+					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+					build()));
+			return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"IAM Service account activated successfully\"]}");
+		}
+		log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+				put(LogMessage.ACTION, "rotateIAMServiceAccount").
+				put(LogMessage.MESSAGE, String.format ("Failed to rotate secret for AccesskeyId [%s] for IAM Service " +
+								"account [%s]", iamServiceAccountRotateRequest.getAccessKeyId(),
+						iamServiceAccountRotateRequest.getUserName())).
+				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+				build()));
+		return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"AccessKey information not found in metadata for this IAM Service account\"]}");
+	}
+
+	/**
+	 * Rotate secret for an accessKeyID in an IAM Service Account.
+	 * @param token
+	 * @param awsAccountId
+	 * @param iamServiceAccountName
+	 * @param accessKeyId
+	 * @return
+	 */
+	private boolean rotateIAMServiceAccountByAccessKeyId(String token,  String awsAccountId, String iamServiceAccountName, String accessKeyId, int accessKeyIndex) {
+		String uniqueIAMSvcaccName = awsAccountId + "_" + iamServiceAccountName;
+		IAMServiceAccountRotateRequest iamServiceAccountRotateRequest = new IAMServiceAccountRotateRequest(accessKeyId, iamServiceAccountName, awsAccountId);
+
+		IAMServiceAccountSecret iamServiceAccountSecret = iamServiceAccountUtils.rotateIAMSecret(iamServiceAccountRotateRequest);
+
+		if (null != iamServiceAccountSecret) {
+			log.info(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+					put(LogMessage.ACTION, "rotateIAMServiceAccountByAccessKeyId").
+					put(LogMessage.MESSAGE, String.format ("IAM Service account [%s] rotated successfully for " +
+									"AccessKeyId [%s]", iamServiceAccountRotateRequest.getUserName(),
+							iamServiceAccountRotateRequest.getAccessKeyId())).
+					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+					build()));
+			// Save secret in iamavcacc mount
+			String path = IAMServiceAccountConstants.IAM_SVCC_ACC_PATH + uniqueIAMSvcaccName + "/" + IAMServiceAccountConstants.IAM_SECRET_FOLDER_PREFIX + (accessKeyIndex);
+			if (iamServiceAccountUtils.writeIAMSvcAccSecret(token, path, iamServiceAccountName, iamServiceAccountSecret)) {
+				log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+						put(LogMessage.ACTION, "rotateIAMServiceAccountByAccessKeyId").
+						put(LogMessage.MESSAGE, "Secret saved to IAM service account mount").
+						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+						build()));
+				Response metadataUdpateResponse = iamServiceAccountUtils.updateIAMSvcAccNewAccessKeyIdInMetadata(tokenUtils.getSelfServiceToken(), awsAccountId, iamServiceAccountName, accessKeyId, iamServiceAccountSecret);
+				if (null != metadataUdpateResponse && HttpStatus.NO_CONTENT.equals(metadataUdpateResponse.getHttpstatus())) {
+					log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+							put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+							put(LogMessage.ACTION, "rotateIAMServiceAccountByAccessKeyId").
+							put(LogMessage.MESSAGE, "Updated IAM service account metadata with new AccessKeyId and expiry").
+							put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+							build()));
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+
+
 }
