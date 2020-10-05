@@ -14,6 +14,7 @@ const ColumnHeader = styled('div')`
   padding: 2rem;
   .safe-title-wrap {
     width: 70%;
+    z-index: 2;
   }
   ${mediaBreakpoints.small} {
     height: 13rem;
