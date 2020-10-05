@@ -101,30 +101,6 @@ public class IAMServiceAccountServiceTest {
 	private RequestProcessor reqProcessor;
 
 	@Mock
-	StatusLine statusLine;
-
-	@Mock
-	HttpEntity mockHttpEntity;
-
-	@Mock
-	CloseableHttpClient httpClient;
-
-	@Mock
-	CloseableHttpResponse httpResponse;
-
-	@Mock
-	HttpUtils httpUtils;
-
-	@Mock
-	PolicyUtils policyUtils;
-
-	@Mock
-	OIDCUtil OIDCUtil;
-
-	@Mock
-	TokenUtils tokenUtils;
-
-	@Mock
 	AccessService accessService;
 
 	String token;
