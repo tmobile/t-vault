@@ -134,6 +134,7 @@ export const createSafeArray = (arr, type) => {
       path: `${type}/${item}`,
       manage: true,
       safeType: setSafeType(type),
+      access: '',
     };
     safeArray.push(data);
   });
