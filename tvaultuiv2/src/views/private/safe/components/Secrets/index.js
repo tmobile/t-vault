@@ -92,7 +92,10 @@ const Secrets = (props) => {
                   label="add"
                   icon="add"
                   color="secondary"
-                  disabled={safeDetail?.access?.toLowerCase() === 'read'}
+                  disabled={
+                    safeDetail?.access?.toLowerCase() === 'read' ||
+                    safeDetail?.access === ''
+                  }
                   width={isMobileScreen ? '100%' : '9.4rem'}
                   onClick={() => setEnableAddFolder(true)}
                 />

@@ -199,6 +199,7 @@ const SelectionTabs = (props) => {
         });
     }
   }, [safeDetail]);
+
   return (
     <ComponentError>
       <div className={classes.root}>
@@ -219,12 +220,14 @@ const SelectionTabs = (props) => {
               onClick={addSecretsFolder}
               customStyle={customBtnStyles}
               iconSrc={
+                safeDetail?.access === '' ||
                 safeDetail?.access?.toLowerCase() === 'read' ||
                 Object.keys(safeDetail).length === 0
                   ? disableAddFolder
                   : addFolderPlus
               }
               disable={
+                safeDetail?.access === '' ||
                 safeDetail?.access?.toLowerCase() === 'read' ||
                 Object.keys(safeDetail).length === 0
               }

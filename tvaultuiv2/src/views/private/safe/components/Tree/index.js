@@ -322,7 +322,8 @@ const Tree = (props) => {
         )}
         <ConfirmationModal
           open={deleteModalOpen}
-          title={`Are you sure you want to delete this secret? `}
+          title="confirmation"
+          description={`Are you sure you want to delete this secret? `}
           cancelButton={
             // eslint-disable-next-line react/jsx-wrap-multilines
             <ButtonComponent

@@ -24,6 +24,10 @@ import Error from '../../../../../components/Error';
 // import OnBoardServiceAccount from '../OnBoardServiceAccounts';
 import SnackbarComponent from '../../../../../components/Snackbar';
 import ScaledLoader from '../../../../../components/Loaders/ScaledLoader';
+// import apiService from '../../apiService';
+
+import ConfirmationModal from '../../../../../components/ConfirmationModal';
+// import OnBoardForm from '../OnBoardForm';
 import apiService from '../../apiService';
 import Strings from '../../../../../resources';
 import ButtonComponent from '../../../../../components/FormFields/ActionButton';
@@ -252,7 +256,7 @@ const ServiceAccountDashboard = () => {
   }, [fetchData]);
 
   const showOnBoardForm = () => {
-    setEnableOnBoardForm(true);
+    // setEnableOnBoardForm(true);
     setServiceAccountClicked(true);
   };
   /**
@@ -323,6 +327,8 @@ const ServiceAccountDashboard = () => {
   };
   const onServiceAccountOffBoard = () => {};
   const onServiceAccountEdit = () => {};
+
+  const handleConfirmationModalClose = () => {};
   const renderList = () => {
     return serviceAccountList.map((account) => (
       <ListFolderWrap
@@ -336,8 +342,6 @@ const ServiceAccountDashboard = () => {
           history.location.pathname === `/service-accounts/${account.name}`
         }
       >
-        {/* {history.location.pathname === `/service-accounts/${account.name}` &&
-         () => hello(account)} */}
         <ListItem
           title={account.name}
           subTitle={account.date}
@@ -383,22 +387,16 @@ const ServiceAccountDashboard = () => {
     <ComponentError>
       <>
         {/* <ConfirmationModal
-          open={openConfirmationModal}
-          handleClose={handleClose}
-          title="Are you sure you want to delete this service account?"
-          cancelButton={
-            <ButtonComponent
-              label="Cancel"
-              color="primary"
-              onClick={() => handleClose()}
-              width={isMobileScreen ? '100%' : '38%'}
-            />
-          }
+          open={onBoardConfirmationModal}
+          handleClose={handleConfirmationModalClose}
+          title="Onboarding Service Account"
+          description="The password for this service account will expire in 365 days and will not be enabled for auto rotation by T-Vault. You need to makes sure the passwod for this service account is getting roated appropriately."
           confirmButton={
+            // eslint-disable-next-line react/jsx-wrap-multilines
             <ButtonComponent
               label="Confirm"
               color="secondary"
-              onClick={() => onDeleteSafeConfirmClicked()}
+              onClick={() => setOnBoardConfirmationModal(false)}
               width={isMobileScreen ? '100%' : '38%'}
             />
           }
@@ -417,6 +415,7 @@ const ServiceAccountDashboard = () => {
                     label="Onboard Account"
                     onClick={() => showOnBoardForm()}
                     classes={classes}
+                    href="/service-accounts/change-service-accounts"
                   />
                 </div>
 

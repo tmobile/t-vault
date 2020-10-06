@@ -31,7 +31,7 @@ const setIcon = (props) => {
 };
 
 const ButtonComponent = (props) => {
-  const { icon, classes, label, onClick, size, disabled, color } = props;
+  const { icon, classes, label, onClick, size, disabled, color, href } = props;
 
   return (
     <Button
@@ -41,6 +41,7 @@ const ButtonComponent = (props) => {
       disabled={disabled || false}
       onClick={onClick}
       color={color}
+      href={href}
     >
       {icon && setIcon({ ...props })}
       {label}
@@ -56,6 +57,7 @@ ButtonComponent.propTypes = {
   size: PropTypes.string,
   disabled: PropTypes.bool,
   color: PropTypes.string.isRequired,
+  href: PropTypes.string,
 };
 
 ButtonComponent.defaultProps = {
@@ -63,6 +65,7 @@ ButtonComponent.defaultProps = {
   size: 'small',
   disabled: false,
   onClick: () => {},
+  href: '',
 };
 
 setIcon.propTypes = {
