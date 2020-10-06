@@ -2962,11 +2962,8 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
    		
    		boolean isAuthorized = true;
    		if (!ObjectUtils.isEmpty(userDetails)) {
-   			if (userDetails.isAdmin()) {
-   				authToken = userDetails.getClientToken();   	            
-   	        }else {
+
    	        	authToken = userDetails.getSelfSupportToken();
-   	        }
    			SSLCertificateMetadataDetails certificateMetaData = certificateUtils.getCertificateMetaData(authToken, certificateName, certificateType);
    			
    			if(!addSudoPermission){
