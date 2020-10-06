@@ -19,6 +19,7 @@ package com.tmobile.cso.vault.api.utils;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
 import com.google.gson.JsonObject;
@@ -478,5 +479,29 @@ public class IAMServiceAccountUtils {
             return metadataResponse;
         }
         return null;
+    }
+
+    /**
+     * Convenient method to get policies as list from token lookup.
+     * @param objMapper
+     * @param policyJson
+     * @return
+     * @throws JsonProcessingException
+     * @throws IOException
+     */
+    public static List<String> getPoliciesAsListFromTokenLookupJson(ObjectMapper objMapper, String policyJson) throws JsonProcessingException, IOException{
+        List<String> currentpolicies = new ArrayList<>();
+        JsonNode policiesNode = objMapper.readTree(policyJson).get("policies");
+        if (policiesNode.isContainerNode()) {
+            Iterator<JsonNode> elementsIterator = policiesNode.elements();
+            while (elementsIterator.hasNext()) {
+                JsonNode element = elementsIterator.next();
+                currentpolicies.add(element.asText());
+            }
+        }
+        else {
+            currentpolicies.add(policiesNode.asText());
+        }
+        return currentpolicies;
     }
 }
