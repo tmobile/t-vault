@@ -24,8 +24,7 @@ const getGroupsName = (group) => api.get(`/azure/groups?name=${group}`);
 const deleteGroup = (payload) => api.delete('/ss/sdb/group', payload);
 const addGroup = (payload) => api.post('/ss/sdb/group', payload);
 
-const addAwsConfiguration = (path, payload) =>
-  api.post(`/ss/auth/aws/role?path=${path}`, payload);
+const addAwsConfiguration = (url, payload) => api.post(url, payload);
 const addAwsRole = (payload) => api.post('/ss/sdb/role', payload);
 const deleteAwsConfiguration = (payload) => api.delete('/ss/sdb/role', payload);
 const editAwsApplication = (payload) => api.put('/ss/sdb/role', payload);
