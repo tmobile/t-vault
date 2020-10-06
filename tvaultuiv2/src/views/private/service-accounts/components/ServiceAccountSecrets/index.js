@@ -45,11 +45,6 @@ const Icon = styled.img`
   margin-left: 2rem;
 `;
 
-const IconDetailsWrap = styled.div`
-  display: flex;
-  align-items: center;
-`;
-
 const FolderIconWrap = styled('div')`
   margin: 0 1em;
   display: flex;
@@ -98,37 +93,35 @@ const ServiceAccountSecrets = (props) => {
         )}
         {response.status === 'success' && secretsData && (
           <UserList>
-            <IconDetailsWrap>
-              <Icon src={lock} alt="lock" />
-              <Secret type="password" viewSecret={showSecret}>
-                {secretsData.current_password}
-              </Secret>
-              <FolderIconWrap>
-                <PopperElement
-                  anchorOrigin={{
-                    vertical: 'bottom',
-                    horizontal: 'right',
-                  }}
-                  transformOrigin={{
-                    vertical: 'top',
-                    horizontal: 'right',
-                  }}
-                >
-                  <PopperItem onClick={() => onViewSecretsCliked()}>
-                    {showSecret ? <VisibilityOffIcon /> : <VisibilityIcon />}
-                    <span>{showSecret ? 'Hide Secret' : 'View Secret'}</span>
-                  </PopperItem>
-                  <PopperItem>
-                    <img alt="refersh-ic" src={IconRefreshCC} />
-                    <span>Rotate Secret</span>
-                  </PopperItem>
-                  <PopperItem>
-                    <FileCopyIcon />
-                    <span>Copy Secret</span>
-                  </PopperItem>
-                </PopperElement>
-              </FolderIconWrap>
-            </IconDetailsWrap>
+            <Icon src={lock} alt="lock" />
+            <Secret type="password" viewSecret={showSecret}>
+              {secretsData.current_password}
+            </Secret>
+            <FolderIconWrap>
+              <PopperElement
+                anchorOrigin={{
+                  vertical: 'bottom',
+                  horizontal: 'right',
+                }}
+                transformOrigin={{
+                  vertical: 'top',
+                  horizontal: 'right',
+                }}
+              >
+                <PopperItem onClick={() => onViewSecretsCliked()}>
+                  {showSecret ? <VisibilityOffIcon /> : <VisibilityIcon />}
+                  <span>{showSecret ? 'Hide Secret' : 'View Secret'}</span>
+                </PopperItem>
+                <PopperItem>
+                  <img alt="refersh-ic" src={IconRefreshCC} />
+                  <span>Rotate Secret</span>
+                </PopperItem>
+                <PopperItem>
+                  <FileCopyIcon />
+                  <span>Copy Secret</span>
+                </PopperItem>
+              </PopperElement>
+            </FolderIconWrap>
           </UserList>
         )}
       </>

@@ -244,6 +244,7 @@ const SafeDashboard = () => {
    */
   const fetchData = useCallback(async () => {
     setStatus({ status: 'loading', message: 'Loading...' });
+    setInputSearchValue('');
     const safesApiResponse = await apiService.getSafes();
     const usersListApiResponse = await apiService.getManageUsersList();
     const sharedListApiResponse = await apiService.getManageSharedList();
