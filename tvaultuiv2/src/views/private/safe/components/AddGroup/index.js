@@ -129,12 +129,16 @@ const AddGroup = (props) => {
   }, [groupname, access]);
 
   useEffect(() => {
-    if (searchValue === '' || searchValue?.length < 3) {
+    if (
+      searchValue === '' ||
+      searchValue?.length < 3 ||
+      (searchValue?.toLowerCase() === groupname && radioValue === access)
+    ) {
       setDisabledSave(true);
     } else {
       setDisabledSave(false);
     }
-  }, [searchValue]);
+  }, [searchValue, radioValue, groupname, access]);
 
   const callSearchApi = useCallback(
     debounce(

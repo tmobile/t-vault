@@ -10,9 +10,7 @@ import mediaBreakpoints from '../../../breakpoints';
 import ComponentError from '../../../errorBoundaries/ComponentError/component-error';
 import ServiceAccountDashboard from './components/ServiceAccountDashboard';
 
-const OnBoardServiceAccounts = lazy(() =>
-  import('./components/OnBoardServiceAccounts')
-);
+const OnBoardForm = lazy(() => import('./OnBoardForm'));
 const ServiceAccountSectionPreview = styled('section')`
   margin: 3em auto;
   height: 77vh;
@@ -32,16 +30,9 @@ const ServiceAccountLayout = (props) => {
         <Switch>
           <Route
             exact
-            // path="/service-accounts/onboard-service-account"
+            path="/service-accounts/change-service-accounts"
             render={(routeProps) => (
-              <OnBoardServiceAccounts routeProps={{ ...routeProps }} />
-            )}
-          />
-          <Route
-            exact
-            // path="/service-accounts/onboard-service-accounts"
-            render={(routeProps) => (
-              <OnBoardServiceAccounts routeProps={{ ...routeProps }} />
+              <OnBoardForm routeProps={{ ...routeProps }} />
             )}
           />
         </Switch>

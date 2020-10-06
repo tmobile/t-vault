@@ -24,14 +24,16 @@ import Error from '../../../../../components/Error';
 // import OnBoardServiceAccount from '../OnBoardServiceAccounts';
 import SnackbarComponent from '../../../../../components/Snackbar';
 import ScaledLoader from '../../../../../components/Loaders/ScaledLoader';
-import apiService from '../../apiService';
-import Strings from '../../../../../resources';
+// import apiService from '../../apiService';
 
 // import ConfirmationModal from '../../../../../components/ConfirmationModal';
 // import OnBoardForm from '../OnBoardForm';
+import apiService from '../../apiService';
+import Strings from '../../../../../resources';
 import ButtonComponent from '../../../../../components/FormFields/ActionButton';
 import { IconEdit, IconDeleteActive } from '../../../../../assets/SvgIcons';
 import { TitleOne } from '../../../../../styles/GlobalStyles';
+import AccountSelectionTabs from '../Tabs';
 
 const ColumnSection = styled('section')`
   position: relative;
@@ -176,11 +178,11 @@ const useStyles = makeStyles(() => ({
 }));
 
 const ServiceAccountDashboard = () => {
-  const [, setEnableOnBoardForm] = useState(false);
+  // const [, setEnableOnBoardForm] = useState(false);
   const [inputSearchValue, setInputSearchValue] = useState('');
   const [anchorEl, setAnchorEl] = useState(null);
   const [serviceAccountClicked, setServiceAccountClicked] = useState(false);
-  const [, setListItemDetails] = useState({});
+  const [listItemDetails, setListItemDetails] = useState({});
   const [moreData] = useState(false);
   const [isLoading] = useState(false);
   const [serviceAccountList, setServiceAccountList] = useState([]);
@@ -239,8 +241,8 @@ const ServiceAccountDashboard = () => {
         }
         setStatus({ status: 'success', message: '' });
       })
-      .catch((err) => {
-        console.log('err', err);
+      .catch(() => {
+        setStatus({ status: 'failed', message: 'failed' });
       });
   }, []);
 
@@ -254,7 +256,7 @@ const ServiceAccountDashboard = () => {
   }, [fetchData]);
 
   const showOnBoardForm = () => {
-    setEnableOnBoardForm(true);
+    // setEnableOnBoardForm(true);
     setServiceAccountClicked(true);
   };
   /**
@@ -278,9 +280,9 @@ const ServiceAccountDashboard = () => {
    * based on that value display left and right side.
    */
   const onLinkClicked = (item) => {
+    setListItemDetails(item);
     if (isMobileScreen) {
       setServiceAccountClicked(true);
-      setListItemDetails(item);
     }
   };
 
@@ -305,6 +307,17 @@ const ServiceAccountDashboard = () => {
     }
   };
 
+  useEffect(() => {
+    if (serviceAccountList?.length > 0) {
+      serviceAccountList.map((item) => {
+        if (history.location.pathname === `/service-accounts/${item.name}`) {
+          return setListItemDetails(item);
+        }
+        return null;
+      });
+    }
+  }, [serviceAccountList, listItemDetails, history]);
+
   // Infine scroll load more data
   const loadMoreData = () => {};
 
@@ -314,6 +327,8 @@ const ServiceAccountDashboard = () => {
   };
   const onServiceAccountOffBoard = () => {};
   const onServiceAccountEdit = () => {};
+
+  // const handleConfirmationModalClose = () => {};
   const renderList = () => {
     return serviceAccountList.map((account) => (
       <ListFolderWrap
@@ -372,22 +387,16 @@ const ServiceAccountDashboard = () => {
     <ComponentError>
       <>
         {/* <ConfirmationModal
-          open={openConfirmationModal}
-          handleClose={handleClose}
-          title="Are you sure you want to delete this service account?"
-          cancelButton={
-            <ButtonComponent
-              label="Cancel"
-              color="primary"
-              onClick={() => handleClose()}
-              width={isMobileScreen ? '100%' : '38%'}
-            />
-          }
+          open={onBoardConfirmationModal}
+          handleClose={handleConfirmationModalClose}
+          title="Onboarding Service Account"
+          description="The password for this service account will expire in 365 days and will not be enabled for auto rotation by T-Vault. You need to makes sure the passwod for this service account is getting roated appropriately."
           confirmButton={
+            // eslint-disable-next-line react/jsx-wrap-multilines
             <ButtonComponent
               label="Confirm"
               color="secondary"
-              onClick={() => onDeleteSafeConfirmClicked()}
+              onClick={() => setOnBoardConfirmationModal(false)}
               width={isMobileScreen ? '100%' : '38%'}
             />
           }
@@ -406,6 +415,7 @@ const ServiceAccountDashboard = () => {
                     label="Onboard Account"
                     onClick={() => showOnBoardForm()}
                     classes={classes}
+                    href="/service-accounts/change-service-accounts"
                   />
                 </div>
 
@@ -512,11 +522,14 @@ const ServiceAccountDashboard = () => {
                 path="/service-accounts/:serviceAccountName"
                 render={(routerProps) => (
                   <ListItemDetail
-                    listItemDetails={serviceAccountList}
+                    listItemDetails={listItemDetails}
                     params={routerProps}
                     backToLists={backToServiceAccounts}
                     ListDetailHeaderBg={sectionHeaderBg}
                     description={introduction}
+                    renderContent={
+                      <AccountSelectionTabs accountDetail={listItemDetails} />
+                    }
                   />
                 )}
               />

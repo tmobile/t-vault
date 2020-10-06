@@ -492,7 +492,8 @@ const SafeDashboard = () => {
         <ConfirmationModal
           open={openConfirmationModal}
           handleClose={handleClose}
-          title="Are you sure you want to delete this safe?"
+          title="confirmation"
+          description="Are you sure you want to delete this safe?"
           cancelButton={
             <ButtonComponent
               label="Cancel"

@@ -132,12 +132,16 @@ const AddUser = (props) => {
   }, [username, access]);
 
   useEffect(() => {
-    if (searchValue === '' || searchValue?.length < 3) {
+    if (
+      searchValue === '' ||
+      searchValue?.length < 3 ||
+      (searchValue?.toLowerCase() === username && radioValue === access)
+    ) {
       setDisabledSave(true);
     } else {
       setDisabledSave(false);
     }
-  }, [searchValue]);
+  }, [searchValue, radioValue, access, username]);
 
   const handleChange = (event) => {
     setRadioValue(event.target.value);
