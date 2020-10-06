@@ -28,8 +28,7 @@ const SafeAvatarWrap = styled.div`
   align-items: center;
 `;
 const Flag = styled('span')`
-  opacity: 0.7;
-  margin-left: 0.5rem;
+  opacity: 1;
   font-size: ${(props) => props.fontSize};
   font-style: ${(props) => (props.fontStyle ? props.fontStyle : '')};
 `;
@@ -54,7 +53,6 @@ const extraCss = css`
 
 const ListItem = (props) => {
   const { title, subTitle, flag, icon } = props;
-
   return (
     <ComponentError>
       <FolderWrap>
@@ -69,7 +67,7 @@ const ListItem = (props) => {
                 {flag}
               </Flag>
             </TitleOne>
-            <Flag fontSize="1rem">{subTitle}</Flag>
+            <Flag fontSize="1.3rem">{subTitle}</Flag>
           </SafeDetailBox>
         </LabelWrap>
       </FolderWrap>

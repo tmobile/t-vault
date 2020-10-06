@@ -99,6 +99,18 @@ export const convertObjectToArray = (data) => {
   return array;
 };
 
+const setSafeType = (type) => {
+  let safeType = '';
+  if (type === 'users') {
+    safeType = 'User safe';
+  } else if (type === 'apps') {
+    safeType = 'Application safe';
+  } else if (type === 'shared') {
+    safeType = 'Shared safe';
+  }
+  return safeType;
+};
+
 export const makeSafesList = (array, type) => {
   const safeArray = [];
   array.map((item) => {
@@ -107,6 +119,7 @@ export const makeSafesList = (array, type) => {
       access: Object.values(item)[0],
       path: `${type}/${Object.keys(item)[0]}`,
       manage: true,
+      safeType: setSafeType(type),
     };
     safeArray.push(data);
   });
@@ -120,6 +133,7 @@ export const createSafeArray = (arr, type) => {
       name: item,
       path: `${type}/${item}`,
       manage: true,
+      safeType: setSafeType(type),
     };
     safeArray.push(data);
   });

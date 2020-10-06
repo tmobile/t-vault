@@ -1,7 +1,10 @@
 import api from '../../../services';
 
+const getServiceAccountList = () => api.get('/serviceaccounts/list');
+const getServiceAccounts = () => api.get('/serviceaccounts');
+
 const getAppRoles = () => api.get('/serviceaccounts/cwm/approles');
-const getServiceAccounts = (name) =>
+const getUsersServiceAccounts = (name) =>
   api.get(`/ad/serviceaccounts?serviceAccountName=${name}`);
 const onBoardServiceAccount = (payload) =>
   api.post('/serviceaccounts/onboard', payload);
@@ -19,4 +22,6 @@ export default {
   fetchServiceAccountDetails,
   callServiceAccount,
   updateMetaPath,
+  getUsersServiceAccounts,
+  getServiceAccountList,
 };

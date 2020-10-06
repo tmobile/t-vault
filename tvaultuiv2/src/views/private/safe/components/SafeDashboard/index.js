@@ -455,7 +455,7 @@ const SafeDashboard = () => {
       >
         <ListItem
           title={safe.name}
-          subTitle={safe.date}
+          subTitle={safe.safeType}
           flag={safe.type}
           icon={safeIcon}
           manage={safe.manage}

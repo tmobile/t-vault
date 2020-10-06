@@ -256,7 +256,7 @@ const OnBoardForm = () => {
     debounce((name) => {
       setIsServiceFetching(true);
       apiService
-        .getServiceAccounts(name)
+        .getUsersServiceAccounts(name)
         .then((res) => {
           setGetResponseType(1);
           setIsServiceFetching(false);

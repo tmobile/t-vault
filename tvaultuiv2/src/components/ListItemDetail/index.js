@@ -1,9 +1,6 @@
-/* eslint-disable react/forbid-prop-types */
-/* eslint-disable react/require-default-props */
-/* eslint-disable react/no-unused-prop-types */
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
-// import { useHistory, useLocation } from 'react-router-dom';
+import { useLocation } from 'react-router-dom';
 import useMediaQuery from '@material-ui/core/useMediaQuery';
 import styled from 'styled-components';
 import ComponentError from '../../errorBoundaries/ComponentError/component-error';
@@ -36,11 +33,24 @@ const ListItemDetail = (props) => {
   const {
     ListDetailHeaderBg,
     renderContent,
-    listItemDetails,
     backToLists,
+    description,
+    listItemDetails,
   } = props;
+  const location = useLocation();
+  const [data, setData] = useState({});
+
   // screen view handler
   const isMobileScreen = useMediaQuery(mediaBreakpoints.small);
+
+  useEffect(() => {
+    if (location?.state?.data) {
+      setData(location?.state?.data);
+    }
+    if (listItemDetails) {
+      setData({ ...listItemDetails });
+    }
+  }, [location.state, listItemDetails]);
 
   // route component data
   const goBackToList = () => {
@@ -54,14 +64,14 @@ const ListItemDetail = (props) => {
           <BackButton onClick={goBackToList}>
             <BackArrow />
             <TitleOne extraCss="font-weight:bold;margin-left:1rem;">
-              {listItemDetails.name || ''}
+              {data.name || ''}
             </TitleOne>
           </BackButton>
         ) : null}
 
         <ListDetailHeader
-          title={listItemDetails?.name}
-          description={listItemDetails?.description}
+          title={data?.name}
+          description={description}
           bgImage={ListDetailHeaderBg}
         />
 
@@ -71,20 +81,19 @@ const ListItemDetail = (props) => {
   );
 };
 ListItemDetail.propTypes = {
-  detailData: PropTypes.arrayOf(PropTypes.array),
-  params: PropTypes.objectOf(PropTypes.object),
+  description: PropTypes.string,
   ListDetailHeaderBg: PropTypes.string,
   renderContent: PropTypes.node,
-  listItemDetails: PropTypes.objectOf(PropTypes.object),
   backToLists: PropTypes.func,
+  listItemDetails: PropTypes.objectOf(PropTypes.any),
 };
+
 ListItemDetail.defaultProps = {
-  detailData: [],
-  params: {},
   ListDetailHeaderBg: '',
   renderContent: <div />,
-  listItemDetails: {},
   backToLists: () => {},
+  listItemDetails: {},
+  description: 'No details available',
 };
 
 export default ListItemDetail;
