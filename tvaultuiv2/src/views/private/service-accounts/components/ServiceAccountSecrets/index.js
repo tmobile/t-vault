@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import styled, { css } from 'styled-components';
+import { CopyToClipboard } from 'react-copy-to-clipboard';
 import PropTypes from 'prop-types';
 import VisibilityIcon from '@material-ui/icons/Visibility';
 import VisibilityOffIcon from '@material-ui/icons/VisibilityOff';
@@ -14,6 +15,7 @@ import {
   BackgroundColor,
 } from '../../../../../styles/GlobalStyles';
 import PopperElement from '../../../../../components/Popper';
+import SnackbarComponent from '../../../../../components/Snackbar';
 
 const UserList = styled.div`
   margin-top: 2rem;
@@ -22,6 +24,7 @@ const UserList = styled.div`
   align-items: center;
   background-color: ${BackgroundColor.listBg};
   padding: 1.2rem 0;
+  border-bottom: 1px solid #323649;
   :hover {
     background-image: ${(props) => props.theme.gradients.list || 'none'};
   }
@@ -66,6 +69,8 @@ const ServiceAccountSecrets = (props) => {
   const [response, setResponse] = useState({ status: 'loading' });
   const [secretsData, setSecretsData] = useState({});
   const [showSecret, setShowSecret] = useState(false);
+  const [responseType, setResponseType] = useState(null);
+  const [toastMessage, setToastMessage] = useState('');
 
   useEffect(() => {
     if (accountDetail && Object.keys(accountDetail).length > 0) {
@@ -85,6 +90,18 @@ const ServiceAccountSecrets = (props) => {
     setShowSecret(!showSecret);
   };
 
+  const onCopyClicked = () => {
+    setResponseType(1);
+    setToastMessage('Secret copied to clipboard');
+  };
+
+  const onToastClose = (reason) => {
+    if (reason === 'clickaway') {
+      return;
+    }
+    setResponseType(null);
+  };
+
   return (
     <ComponentError>
       <>
@@ -94,9 +111,11 @@ const ServiceAccountSecrets = (props) => {
         {response.status === 'success' && secretsData && (
           <UserList>
             <Icon src={lock} alt="lock" />
+
             <Secret type="password" viewSecret={showSecret}>
               {secretsData.current_password}
             </Secret>
+
             <FolderIconWrap>
               <PopperElement
                 anchorOrigin={{
@@ -112,17 +131,31 @@ const ServiceAccountSecrets = (props) => {
                   {showSecret ? <VisibilityOffIcon /> : <VisibilityIcon />}
                   <span>{showSecret ? 'Hide Secret' : 'View Secret'}</span>
                 </PopperItem>
-                <PopperItem>
-                  <img alt="refersh-ic" src={IconRefreshCC} />
-                  <span>Rotate Secret</span>
-                </PopperItem>
-                <PopperItem>
-                  <FileCopyIcon />
-                  <span>Copy Secret</span>
-                </PopperItem>
+                {accountDetail.access === 'write' && (
+                  <PopperItem>
+                    <img alt="refersh-ic" src={IconRefreshCC} />
+                    <span>Rotate Secret</span>
+                  </PopperItem>
+                )}
+                <CopyToClipboard
+                  text={secretsData.current_password}
+                  onCopy={() => onCopyClicked()}
+                >
+                  <PopperItem>
+                    <FileCopyIcon />
+                    <span>Copy Secret</span>
+                  </PopperItem>
+                </CopyToClipboard>
               </PopperElement>
             </FolderIconWrap>
           </UserList>
+        )}
+        {responseType === 1 && (
+          <SnackbarComponent
+            open
+            onClose={() => onToastClose()}
+            message={toastMessage}
+          />
         )}
       </>
     </ComponentError>
