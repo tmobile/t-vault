@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 import React, { useState, useCallback, useEffect } from 'react';
 import { debounce } from 'lodash';
 import styled, { css } from 'styled-components';
@@ -186,7 +187,9 @@ const customLoaderStyle = css`
 const OnBoardForm = () => {
   const [inputAdGroupName, setInputAdGroupName] = useState('');
   const [inputServiceName, setInputServiceName] = useState('');
+  // eslint-disable-next-line no-unused-vars
   const [getResponseType, setGetResponseType] = useState(null);
+  // eslint-disable-next-line no-unused-vars
   const [isAppNameFetchig, setIsAppNameFetching] = useState(false);
 
   const [onBoardConfirmationModal, setOnBoardConfirmationModal] = useState(
@@ -237,6 +240,7 @@ const OnBoardForm = () => {
           }
         })
         .catch((err) => {
+          console.log('error fetching list ---- ', err);
           setGetResponseType(-1);
         });
     }),
@@ -272,6 +276,7 @@ const OnBoardForm = () => {
           }
         })
         .catch((err) => {
+          console.log('error fetching list ---- ', err);
           setGetResponseType(-1);
           setIsServiceFetching(false);
         });

@@ -98,7 +98,10 @@ const Tree = (props) => {
   const saveSecretsToFolder = (obj, node) => {
     const tempFolders = [...secretsFolder] || [];
     const currentSecrets = findElementAndReturnSecrets(tempFolders, node);
-    if (currentSecrets.data[Object.keys(secretprefilledData)[0]]) {
+    if (
+      currentSecrets &&
+      currentSecrets.data[Object.keys(secretprefilledData)[0]]
+    ) {
       delete currentSecrets.data[Object.keys(secretprefilledData)[0]];
     }
     const folderObj = {};

@@ -140,7 +140,7 @@ const useStyles = makeStyles(() => ({
 }));
 
 const Permissions = (props) => {
-  const { safeDetail } = props;
+  const { safeDetail, refresh } = props;
   const classes = useStyles();
   const [value, setValue] = useState(0);
   const [newPermission, setNewPermission] = useState(false);
@@ -285,6 +285,7 @@ const Permissions = (props) => {
                 onNewPermissionChange={() => setNewPermission(false)}
                 fetchPermission={() => fetchPermission()}
                 safeData={safeData}
+                refresh={refresh}
                 updateToastMessage={(response, message) =>
                   updateToastMessage(response, message)
                 }
@@ -351,6 +352,7 @@ const Permissions = (props) => {
 
 Permissions.propTypes = {
   safeDetail: PropTypes.objectOf(PropTypes.any),
+  refresh: PropTypes.func.isRequired,
 };
 
 Permissions.defaultProps = {

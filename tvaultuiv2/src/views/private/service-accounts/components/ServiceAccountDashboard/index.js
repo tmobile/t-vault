@@ -26,7 +26,7 @@ import SnackbarComponent from '../../../../../components/Snackbar';
 import ScaledLoader from '../../../../../components/Loaders/ScaledLoader';
 // import apiService from '../../apiService';
 
-import ConfirmationModal from '../../../../../components/ConfirmationModal';
+// import ConfirmationModal from '../../../../../components/ConfirmationModal';
 // import OnBoardForm from '../OnBoardForm';
 import apiService from '../../apiService';
 import Strings from '../../../../../resources';
@@ -178,7 +178,7 @@ const useStyles = makeStyles(() => ({
 }));
 
 const ServiceAccountDashboard = () => {
-  const [, setEnableOnBoardForm] = useState(false);
+  // const [, setEnableOnBoardForm] = useState(false);
   const [inputSearchValue, setInputSearchValue] = useState('');
   const [anchorEl, setAnchorEl] = useState(null);
   const [serviceAccountClicked, setServiceAccountClicked] = useState(false);
@@ -328,7 +328,7 @@ const ServiceAccountDashboard = () => {
   const onServiceAccountOffBoard = () => {};
   const onServiceAccountEdit = () => {};
 
-  const handleConfirmationModalClose = () => {};
+  // const handleConfirmationModalClose = () => {};
   const renderList = () => {
     return serviceAccountList.map((account) => (
       <ListFolderWrap
