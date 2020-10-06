@@ -278,7 +278,7 @@ script(type='text/ng-template', id='certificatePopup.html')
                               div
                   .col-lg-12.col-md-12.col-sm-12.col-xs-12.common-form-row() 
                     .details-input-group   
-                      .certificate-form-label(uib-tooltip="Option  to create a SAN certificate with additional domain names")  Are additional DNS names required (SAN Certificate)?  <input type="checkbox" ng-model="isChecked" ng-change="AddorRemoveDNS(isChecked)"/>
+                      .certificate-form-label(uib-tooltip="Option  to create a SAN certificate with additional domain names")  Are additional DNS names required (SAN Certificate)? &nbsp;&nbsp;  <input type="checkbox" ng-model="isChecked" ng-change="AddorRemoveDNS(isChecked)"/>
                   .col-lg-12.col-md-12.col-sm-12.col-xs-12.common-form-row(ng-show="isChecked")
                     .details-input-group
                       .certificate-form-label(uib-tooltip="Option  to create a SAN certificate with additional domain names")  DNS
