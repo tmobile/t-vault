@@ -211,6 +211,7 @@ const SafeDashboard = () => {
   const [toast, setToast] = useState(null);
   const [safeClicked, setSafeClicked] = useState(false);
   const [allSafeList, setAllSafeList] = useState([]);
+  const [goodToRoute, setGoodToRoute] = useState(false);
   const handleClose = () => {
     setOpenConfirmationModal(false);
   };
@@ -230,6 +231,7 @@ const SafeDashboard = () => {
       }
       return null;
     });
+
     value.map((item) => {
       if (!safesObject[type].some((list) => list.name === item.name)) {
         return safesObject[type].push(item);
@@ -285,6 +287,7 @@ const SafeDashboard = () => {
           ...safesObject.shared,
           ...safesObject.apps,
         ]);
+        setGoodToRoute(true);
         setStatus({ status: 'success', message: '' });
       })
       .catch(() => {
@@ -443,43 +446,45 @@ const SafeDashboard = () => {
 
   let scrollParentRef = null;
   const renderSafes = () => {
-    return safeList.map((safe) => (
-      <SafeFolderWrap
-        key={safe.name}
-        to={{
-          pathname: `/safe/${safe.name}`,
-          state: { safe },
-        }}
-        onClick={() => onLinkClicked()}
-        active={history.location.pathname === `/safe/${safe.name}`}
-      >
-        <ListItem
-          title={safe.name}
-          subTitle={safe.safeType}
-          flag={safe.type}
-          icon={safeIcon}
-          manage={safe.manage}
-        />
-        <BorderLine />
-        {safe.name && safe.manage && !isMobileScreen ? (
-          <PopperWrap onClick={(e) => onActionClicked(e)}>
-            <PsudoPopper
-              onDeleteSafeClicked={(e) => onDeleteSafeClicked(e, safe.path)}
-              safe={safe}
-              path="/safe/edit-safe"
-            />
-          </PopperWrap>
-        ) : null}
-        {isMobileScreen && safe.manage && (
-          <EditDeletePopperWrap onClick={(e) => onActionClicked(e)}>
-            <EditDeletePopper
-              onDeleteClicked={(e) => onDeleteSafeClicked(e, safe.path)}
-              onEditClicked={() => onEditSafeClicked(safe)}
-            />
-          </EditDeletePopperWrap>
-        )}
-      </SafeFolderWrap>
-    ));
+    return safeList.map((safe) => {
+      return (
+        <SafeFolderWrap
+          key={safe.name}
+          to={{
+            pathname: `/safe/${safe.name}`,
+            state: { safe },
+          }}
+          onClick={() => onLinkClicked()}
+          active={history.location.pathname === `/safe/${safe.name}`}
+        >
+          <ListItem
+            title={safe.name}
+            subTitle={safe.safeType}
+            flag={safe.type}
+            icon={safeIcon}
+            manage={safe.manage}
+          />
+          <BorderLine />
+          {safe.name && safe.manage && !isMobileScreen ? (
+            <PopperWrap onClick={(e) => onActionClicked(e)}>
+              <PsudoPopper
+                onDeleteSafeClicked={(e) => onDeleteSafeClicked(e, safe.path)}
+                safe={safe}
+                path="/safe/edit-safe"
+              />
+            </PopperWrap>
+          ) : null}
+          {isMobileScreen && safe.manage && (
+            <EditDeletePopperWrap onClick={(e) => onActionClicked(e)}>
+              <EditDeletePopper
+                onDeleteClicked={(e) => onDeleteSafeClicked(e, safe.path)}
+                onEditClicked={() => onEditSafeClicked(safe)}
+              />
+            </EditDeletePopperWrap>
+          )}
+        </SafeFolderWrap>
+      );
+    });
   };
   return (
     <ComponentError>
@@ -628,6 +633,8 @@ const SafeDashboard = () => {
                     resetClicked={() => onResetClicked()}
                     detailData={safeList}
                     params={routerProps}
+                    goodToRoute={goodToRoute}
+                    refresh={fetchData}
                   />
                 )}
               />

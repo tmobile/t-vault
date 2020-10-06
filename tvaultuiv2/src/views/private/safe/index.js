@@ -1,10 +1,11 @@
 /* eslint-disable react/jsx-props-no-spreading */
-import React, { lazy } from 'react';
+import React, { lazy, useContext } from 'react';
 import { Route, Switch, withRouter } from 'react-router-dom';
 import styled from 'styled-components';
 import mediaBreakpoints from '../../../breakpoints';
 import ComponentError from '../../../errorBoundaries/ComponentError/component-error';
 import SafeDashboard from './components/SafeDashboard';
+import { UserContext } from '../../../contexts';
 
 const CreateSafe = lazy(() => import('./CreateSafe'));
 const SafeSectionPreview = styled('section')`
@@ -20,6 +21,13 @@ const SafeSectionPreview = styled('section')`
 `;
 
 const SafePageLayout = (props) => {
+  const contextObj = useContext(UserContext);
+
+  // eslint-disable-next-line no-console
+  console.log(
+    '---- const contextObj = useContext(GlobalContext); ---- ',
+    contextObj
+  );
   return (
     <ComponentError>
       <main title="safe-layout">

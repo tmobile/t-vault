@@ -59,6 +59,7 @@ const User = (props) => {
     safeData,
     fetchPermission,
     updateToastMessage,
+    refresh,
   } = props;
 
   const [editUser, setEditUser] = useState('');
@@ -92,11 +93,12 @@ const User = (props) => {
     };
     apiService
       .deleteUserPermission(payload)
-      .then((res) => {
+      .then(async (res) => {
         if (res && res.data?.Message) {
           updateToastMessage(1, res.data.Message);
           setResponse({ status: '' });
-          fetchPermission();
+          await fetchPermission();
+          refresh();
         }
       })
       .catch((err) => {
@@ -126,13 +128,14 @@ const User = (props) => {
       });
   };
 
-  const onSubmit = (user, access) => {
+  const onSubmit = async (user, access) => {
     const value = {
       access,
       path: `${safeDetail.path}`,
       username: user.toLowerCase(),
     };
-    onSaveClicked(value);
+    await onSaveClicked(value);
+    refresh();
     onNewPermissionChange();
   };
 
@@ -180,6 +183,7 @@ const User = (props) => {
           <AddUser
             handleSaveClick={(user, access) => onSubmit(user, access)}
             handleCancelClick={onCancelClicked}
+            refresh={refresh}
           />
         )}
         {response.status === 'edit' && (
@@ -188,6 +192,7 @@ const User = (props) => {
             handleCancelClick={onCancelClicked}
             username={editUser}
             access={editAccess}
+            refresh={refresh}
           />
         )}
         {response.status === 'success' && safeData && safeData.response && (
@@ -241,5 +246,6 @@ User.propTypes = {
   safeData: PropTypes.objectOf(PropTypes.any).isRequired,
   fetchPermission: PropTypes.func.isRequired,
   updateToastMessage: PropTypes.func.isRequired,
+  refresh: PropTypes.func.isRequired,
 };
 export default User;
