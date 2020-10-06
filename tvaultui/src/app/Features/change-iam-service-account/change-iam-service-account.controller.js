@@ -586,7 +586,6 @@
             AdminSafesManagement.getSvcaccOnboardInfo(null, updatedUrlOfEndPoint).then(
                 function (response) {
                     if (UtilityService.ifAPIRequestSuccessful(response)) {
-                        console.log(response);
                         if ($rootScope.showDetails !== true) {
                             document.getElementById('addUser').value = '';
                             document.getElementById('addGroup').value = '';
