@@ -1961,7 +1961,7 @@ public class  IAMServiceAccountsService {
 					.append(TVaultConstants.SVC_ACC_POLICIES_PREFIXES.getKey(TVaultConstants.SUDO_POLICY))
 					.append(IAMServiceAccountConstants.IAMSVCACC_POLICY_PREFIX).append(svcAccName).toString();
 
-			log.error(JSONUtil.getJSON(ImmutableMap.<String, String> builder()
+			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String> builder()
 					.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString())
 					.put(LogMessage.ACTION, "Add Approle to IAM Service Account")
 					.put(LogMessage.MESSAGE,
@@ -2262,13 +2262,13 @@ public class  IAMServiceAccountsService {
 									.put(LogMessage.USER,
 											ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString())
 									.put(LogMessage.ACTION, "Remove AppRole from Service Account")
-									.put(LogMessage.MESSAGE, "Approle is successfully removed from Service Account")
+									.put(LogMessage.MESSAGE, "Approle is successfully removed from IAM Service Account")
 									.put(LogMessage.STATUS, metadataResponse.getHttpstatus().toString())
 									.put(LogMessage.APIURL,
 											ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString())
 									.build()));
 					return ResponseEntity.status(HttpStatus.OK)
-							.body("{\"messages\":[\"Approle is successfully removed from Service Account\"]}");
+							.body("{\"messages\":[\"Approle is successfully removed from IAM Service Account\"]}");
 				}
 				approleControllerResp = appRoleService.configureApprole(approleName, currentpoliciesString, token);
 				if (approleControllerResp.getHttpstatus().equals(HttpStatus.NO_CONTENT)) {

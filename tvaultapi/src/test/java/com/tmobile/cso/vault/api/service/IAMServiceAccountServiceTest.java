@@ -249,31 +249,31 @@ public class IAMServiceAccountServiceTest {
         assertEquals(responseEntityExpected, responseEntity);
     }
     
-//    @Test
-//    public void test_AssociateAppRole_succssfully() throws Exception {
-//
-//        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Approle successfully associated with Service Account\"]}");
-//        String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
-//        UserDetails userDetails = getMockUser(false);
-//        IAMServiceAccountApprole serviceAccountApprole = new IAMServiceAccountApprole("testsvcname", "role1", "reset", "1234567890");
-//
-//        String [] policies = {"o_iamsvcacc_testsvcname"};
-//        when(policyUtils.getCurrentPolicies(token, userDetails.getUsername(), userDetails)).thenReturn(policies);
-//        Response appRoleResponse = getMockResponse(HttpStatus.OK, true, "{\"data\": {\"policies\":\"w_shared_mysafe01\"}}");
-//        when(reqProcessor.process("/auth/approle/role/read","{\"role_name\":\"role1\"}",token)).thenReturn(appRoleResponse);
-//        Response configureAppRoleResponse = getMockResponse(HttpStatus.OK, true, "");
-//        when(appRoleService.configureApprole(Mockito.anyString(), Mockito.anyString(), Mockito.anyString())).thenReturn(configureAppRoleResponse);
-//        Response updateMetadataResponse = getMockResponse(HttpStatus.NO_CONTENT, true, "");
-//        when(ControllerUtil.updateMetadata(Mockito.anyMap(),Mockito.anyString())).thenReturn(updateMetadataResponse);
-//
-//        when(tokenUtils.getSelfServiceToken()).thenReturn(token);
-//        when(reqProcessor.process(eq("/sdb"),Mockito.any(),eq(token))).thenReturn(getMockResponse(HttpStatus.OK, true, "{\"data\":{\"initialPasswordReset\":true,\"managedBy\":\"smohan11\",\"name\":\"svc_vault_test5\",\"users\":{\"smohan11\":\"sudo\"}}}"));
-//        ResponseEntity<String> responseEntityActual =  iamServiceAccountsService.associateApproletoIAMsvcacc(userDetails, token, serviceAccountApprole);
-//
-//        assertEquals(HttpStatus.OK, responseEntityActual.getStatusCode());
-//        assertEquals(responseEntityExpected, responseEntityActual);
-//
-//    }
+    @Test
+    public void test_AssociateAppRole_succssfully() throws Exception {
+
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Approle successfully associated with IAM Service Account\"]}");
+        String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+        UserDetails userDetails = getMockUser(false);
+        IAMServiceAccountApprole serviceAccountApprole = new IAMServiceAccountApprole("testsvcname", "role1", "reset", "1234567890");
+
+        String [] policies = {"o_iamsvcacc_1234567890_testsvcname"};
+        when(policyUtils.getCurrentPolicies(token, userDetails.getUsername(), userDetails)).thenReturn(policies);
+        Response appRoleResponse = getMockResponse(HttpStatus.OK, true, "{\"data\": {\"policies\":\"w_iamsvcacc_testsvcname\"}}");
+        when(reqProcessor.process("/auth/approle/role/read","{\"role_name\":\"role1\"}",token)).thenReturn(appRoleResponse);
+        Response configureAppRoleResponse = getMockResponse(HttpStatus.OK, true, "");
+        when(appRoleService.configureApprole(Mockito.anyString(), Mockito.anyString(), Mockito.anyString())).thenReturn(configureAppRoleResponse);
+        Response updateMetadataResponse = getMockResponse(HttpStatus.NO_CONTENT, true, "");
+        when(ControllerUtil.updateMetadata(Mockito.anyMap(),Mockito.anyString())).thenReturn(updateMetadataResponse);
+
+        when(tokenUtils.getSelfServiceToken()).thenReturn(token);
+        when(reqProcessor.process(eq("/sdb"),Mockito.any(),eq(token))).thenReturn(getMockResponse(HttpStatus.OK, true, "{\"data\":{\"initialPasswordReset\":true,\"managedBy\":\"smohan11\",\"name\":\"svc_vault_test5\",\"users\":{\"smohan11\":\"sudo\"}}}"));
+        ResponseEntity<String> responseEntityActual =  iamServiceAccountsService.associateApproletoIAMsvcacc(userDetails, token, serviceAccountApprole);
+
+        assertEquals(HttpStatus.OK, responseEntityActual.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntityActual);
+
+    }
 
 	@Test
 	public void testOnboardIAMServiceAccountSuccss() {
@@ -977,5 +977,79 @@ public class IAMServiceAccountServiceTest {
 		assertEquals(HttpStatus.BAD_REQUEST, responseEntity.getStatusCode());
 		assertEquals(responseEntityExpected, responseEntity);
 	}
+	
+	 @Test
+	    public void test_removeApproleFromIAMSvcAcc_succssfully() throws Exception {
+
+	        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Approle is successfully removed from IAM Service Account\"]}");
+	        String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+	        UserDetails userDetails = getMockUser(false);
+	        IAMServiceAccountApprole serviceAccountApprole = new IAMServiceAccountApprole("testsvcname", "role1", "reset", "1234567890");
+
+	        String [] policies = {"o_iamsvcacc_1234567890_testsvcname"};
+	        when(policyUtils.getCurrentPolicies(token, userDetails.getUsername(), userDetails)).thenReturn(policies);
+	        Response appRoleResponse = getMockResponse(HttpStatus.OK, true, "{\"data\": {\"policies\":\"w_iamsvcacc_1234567890_testsvcname\"}}");
+	        when(reqProcessor.process("/auth/approle/role/read","{\"role_name\":\"role1\"}",token)).thenReturn(appRoleResponse);
+	        Response configureAppRoleResponse = getMockResponse(HttpStatus.OK, true, "");
+	        when(appRoleService.configureApprole(Mockito.anyString(), Mockito.anyString(), Mockito.anyString())).thenReturn(configureAppRoleResponse);
+	        Response updateMetadataResponse = getMockResponse(HttpStatus.NO_CONTENT, true, "");
+	        when(ControllerUtil.updateMetadata(Mockito.anyMap(),Mockito.anyString())).thenReturn(updateMetadataResponse);
+
+	        when(tokenUtils.getSelfServiceToken()).thenReturn(token);
+	        when(reqProcessor.process(eq("/sdb"),Mockito.any(),eq(token))).thenReturn(getMockResponse(HttpStatus.OK, true, "{\"data\":{\"initialPasswordReset\":true,\"managedBy\":\"smohan11\",\"name\":\"svc_vault_test5\",\"users\":{\"smohan11\":\"sudo\"}}}"));
+
+	        ResponseEntity<String> responseEntityActual =  iamServiceAccountsService.removeApproleFromIAMSvcAcc(userDetails, token, serviceAccountApprole);
+
+	        assertEquals(HttpStatus.OK, responseEntityActual.getStatusCode());
+	        assertEquals(responseEntityExpected, responseEntityActual);
+
+	    }
+	 
+	@Test
+	public void test_getOnboardedIAMServiceAccounts_successfully() {
+		String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+		UserDetails userDetails = getMockUser(false);
+		String[] policies = { "r_users_s1", "w_users_s2", "r_shared_s3", "w_shared_s4", "r_apps_s5", "w_apps_s6",
+				"d_apps_s7", "w_svcacct_test", "o_iamsvcacc_1234567890_test" };
+		ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(
+				"{\"keys\":{\"shared\":[{\"s3\":\"read\"},{\"s4\":\"write\"}],\"users\":[{\"s1\":\"read\"},{\"s2\":\"write\"}],\"svcacct\":[{\"test\":\"read\"}],\"iamsvcacc\":[{\"test\":\"sudo\"}],\"apps\":[{\"s5\":\"read\"},{\"s6\":\"write\"},{\"s7\":\"deny\"}]}}");
+
+		when(policyUtils.getCurrentPolicies(token, userDetails.getUsername(), userDetails)).thenReturn(policies);
+		when(JSONUtil.getJSON(Mockito.any())).thenReturn(
+				"{\"shared\":[{\"s3\":\"read\"},{\"s4\":\"write\"}],\"users\":[{\"s1\":\"read\"},{\"s2\":\"write\"}],\"svcacct\":[{\"test\":\"read\"}],\"iamsvcacc\":[{\"test\":\"sudo\"}],\"apps\":[{\"s5\":\"read\"},{\"s6\":\"write\"},{\"s7\":\"deny\"}]}");
+		ResponseEntity<String> responseEntity = iamServiceAccountsService.getOnboardedIAMServiceAccounts(token,
+				userDetails);
+		assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
+		assertEquals(responseEntityExpected, responseEntity);
+	}
+	
+	@Test
+	public void test_getIAMServiceAccountDetail_successfully() {
+		String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+		UserDetails userDetails = getMockUser(false);
+		String iamSvcaccName = "1234567890_testiamsvc";
+		ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(
+				"{\"app-roles\":{\"selfserviceoidcsupportrole\":\"read\"},\"application_id\":1222,\"application_name\":\"T-Vault\",\"application_tag\":\"TVT\",\"awsAccountId\":\"123456789012\",\"awsAccountName\":\"AWS-SEC\",\"createdAtEpoch\":1086073200000,\"isActivated\":true,\"owner_email\":\"Nithin.Nazeer1@T-mobile.com\",\"owner_ntid\":\"NNazeer1\",\"secret\":[{\"accessKeyId\":\"1212zdasd\",\"expiryDuration\":\"2004-06-01 12:30:00\"}],\"userName\":\"testiamsvcacc01\",\"users\":{\"nnazeer1\":\"write\"},\"createdDate\":\"2004-06-01 12:30:00\"}");
+
+		when(reqProcessor.process(eq("/iamsvcacct"),Mockito.any(),eq(token))).thenReturn(getMockResponse(HttpStatus.OK, true, "{\"data\":{\"app-roles\":{\"selfserviceoidcsupportrole\":\"read\"},\"application_id\":1222,\"application_name\":\"T-Vault\",\"application_tag\":\"TVT\",\"awsAccountId\":\"123456789012\",\"awsAccountName\":\"AWS-SEC\",\"createdAtEpoch\":1086073200000,\"isActivated\":true,\"owner_email\":\"Nithin.Nazeer1@T-mobile.com\",\"owner_ntid\":\"NNazeer1\",\"secret\":[{\"accessKeyId\":\"1212zdasd\",\"expiryDuration\":\"1086073200000\"}],\"userName\":\"testiamsvcacc01\",\"users\":{\"nnazeer1\":\"write\"}}}"));
+		ResponseEntity<String> responseEntity = iamServiceAccountsService.getIAMServiceAccountDetail(token, iamSvcaccName);
+		assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
+		assertEquals(responseEntityExpected, responseEntity);
+	}
+	
+	@Test
+	public void test_getIAMServiceAccountSecretKey_successfully() {
+		String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+		String iamSvcaccName = "1234567890_testiamsvcacc01";
+		String folderName = "testiamsvc_01";
+		ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(
+				"{\"iamsvcacc\":[{\"123456789012_testiamsvcacc01\":\"write\"}]}");
+
+		when(reqProcessor.process(eq("/iamsvcacct"),Mockito.any(),eq(token))).thenReturn(getMockResponse(HttpStatus.OK, true, "{\"iamsvcacc\":[{\"123456789012_testiamsvcacc01\":\"write\"}]}"));
+		ResponseEntity<String> responseEntity = iamServiceAccountsService.getIAMServiceAccountSecretKey(token, iamSvcaccName, folderName);
+		assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
+		assertEquals(responseEntityExpected, responseEntity);
+	}
+	
 
 }
