@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
-import { useLocation } from 'react-router-dom';
 import useMediaQuery from '@material-ui/core/useMediaQuery';
 import styled from 'styled-components';
 import ComponentError from '../../errorBoundaries/ComponentError/component-error';
@@ -37,19 +36,16 @@ const ListItemDetail = (props) => {
     description,
     listItemDetails,
   } = props;
-  const location = useLocation();
+
   const [data, setData] = useState({});
   // screen view handler
   const isMobileScreen = useMediaQuery(mediaBreakpoints.small);
 
   useEffect(() => {
-    if (location?.state?.data) {
-      setData(location?.state?.data);
-    }
     if (listItemDetails) {
       setData({ ...listItemDetails });
     }
-  }, [location.state, listItemDetails]);
+  }, [listItemDetails]);
 
   // route component data
   const goBackToList = () => {
