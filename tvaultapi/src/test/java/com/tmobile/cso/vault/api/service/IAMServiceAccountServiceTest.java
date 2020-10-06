@@ -28,6 +28,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.tmobile.cso.vault.api.utils.*;
 import org.apache.http.HttpEntity;
 import org.apache.http.StatusLine;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -80,12 +81,6 @@ import com.tmobile.cso.vault.api.model.OIDCLookupEntityRequest;
 import com.tmobile.cso.vault.api.model.UserDetails;
 import com.tmobile.cso.vault.api.process.RequestProcessor;
 import com.tmobile.cso.vault.api.process.Response;
-import com.tmobile.cso.vault.api.utils.EmailUtils;
-import com.tmobile.cso.vault.api.utils.HttpUtils;
-import com.tmobile.cso.vault.api.utils.JSONUtil;
-import com.tmobile.cso.vault.api.utils.PolicyUtils;
-import com.tmobile.cso.vault.api.utils.ThreadLocalContext;
-import com.tmobile.cso.vault.api.utils.TokenUtils;
 
 @RunWith(PowerMockRunner.class)
 @ComponentScan(basePackages = { "com.tmobile.cso.vault.api" })
@@ -141,6 +136,9 @@ public class IAMServiceAccountServiceTest {
     @Mock
 	EmailUtils emailUtils;
 
+    @Mock
+	IAMServiceAccountUtils iamServiceAccountUtils;
+
     @Before
     public void setUp()
             throws NoSuchMethodException, InvocationTargetException, IllegalAccessException, NoSuchFieldException {
@@ -152,6 +150,7 @@ public class IAMServiceAccountServiceTest {
         Whitebox.setInternalState(OIDCUtil.class, "log", LogManager.getLogger(OIDCUtil.class));
         when(JSONUtil.getJSON(Mockito.any(ImmutableMap.class))).thenReturn("log");
         ReflectionTestUtils.setField(iamServiceAccountsService, "vaultAuthMethod", "ldap");
+		ReflectionTestUtils.setField(iamServiceAccountsService, "iamMasterPolicyName", "iamportal_master_policy");
         Map<String, String> currentMap = new HashMap<>();
         currentMap.put("apiurl", "http://localhost:8080/vault/v2/identity");
         currentMap.put("user", "");
@@ -355,6 +354,16 @@ public class IAMServiceAccountServiceTest {
 		ReflectionTestUtils.setField(iamServiceAccountsService, "supportEmail", "support@abc.com");
 		Mockito.doNothing().when(emailUtils).sendHtmlEmalFromTemplate(Mockito.any(), Mockito.any(), Mockito.any(),
 				Mockito.any());
+		// Mock approle permission check
+		Response lookupResponse = getMockResponse(HttpStatus.OK, true, "{\"policies\":[\"iamportal_master_policy \"]}");
+		when(reqProcessor.process("/auth/tvault/lookup","{}", token)).thenReturn(lookupResponse);
+		List<String> currentPolicies = new ArrayList<>();
+		currentPolicies.add("iamportal_master_policy");
+		try {
+			when(iamServiceAccountUtils.getPoliciesAsListFromTokenLookupJson(Mockito.any(),Mockito.any())).thenReturn(currentPolicies);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 
 		ResponseEntity<String> responseEntity = iamServiceAccountsService.onboardIAMServiceAccount(token,
 				serviceAccount, userDetails);
@@ -390,6 +399,7 @@ public class IAMServiceAccountServiceTest {
 				.thenReturn(latestPolicies);
 		when(reqProcessor.process(eq("/sdb"), Mockito.any(), eq(token))).thenReturn(getMockResponse(HttpStatus.OK, true,
 				"{\"data\":{\"isActivated\":true,\"managedBy\":\"normaluser\",\"name\":\"svc_vault_test5\",\"users\":{\"normaluser\":\"sudo\"}}}"));
+		when(tokenUtils.getSelfServiceToken()).thenReturn(token);
 		ResponseEntity<String> responseEntity = iamServiceAccountsService.removeUserFromIAMServiceAccount(token,
 				iamSvcAccUser, userDetails);
 		assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
@@ -465,7 +475,7 @@ public class IAMServiceAccountServiceTest {
 				"{\"data\": [\"safeadmin\",\"vaultadmin\"]]");
 		when(OIDCUtil.updateOIDCEntity(any(), any())).thenReturn(responseEntity3);
 		when(OIDCUtil.oidcFetchEntityDetails(any(), any(), any())).thenReturn(responseEntity2);
-
+		when(tokenUtils.getSelfServiceToken()).thenReturn(token);
 		ResponseEntity<String> responseEntity = iamServiceAccountsService.removeUserFromIAMServiceAccount(token,
 				iamSvcAccUser, userDetails);
 		assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
@@ -501,6 +511,7 @@ public class IAMServiceAccountServiceTest {
 				.thenReturn(latestPolicies);
 		when(reqProcessor.process(eq("/sdb"), Mockito.any(), eq(token))).thenReturn(getMockResponse(HttpStatus.OK, true,
 				"{\"data\":{\"isActivated\":true,\"managedBy\":\"normaluser\",\"name\":\"svc_vault_test5\",\"users\":{\"normaluser\":\"sudo\"}}}"));
+		when(tokenUtils.getSelfServiceToken()).thenReturn(token);
 		ResponseEntity<String> responseEntity = iamServiceAccountsService.removeUserFromIAMServiceAccount(token,
 				iamSvcAccUser, userDetails);
 		assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
@@ -700,6 +711,8 @@ public class IAMServiceAccountServiceTest {
 		String[] latestPolicies = { "o_iamsvcacc_1234567_testaccount" };
 		when(policyUtils.getCurrentPolicies(userDetails.getSelfSupportToken(), userDetails.getUsername(), userDetails))
 				.thenReturn(latestPolicies);
+
+		when(tokenUtils.getSelfServiceToken()).thenReturn(token);
 		ResponseEntity<String> responseEntity = iamServiceAccountsService.addGroupToIAMServiceAccount(token,
 				iamSvcAccGroup, userDetails);
 		assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, responseEntity.getStatusCode());
@@ -935,7 +948,7 @@ public class IAMServiceAccountServiceTest {
 				.thenReturn(latestPolicies);
 		when(reqProcessor.process(eq("/sdb"), Mockito.any(), eq(token))).thenReturn(getMockResponse(HttpStatus.OK, true,
 				"{\"data\":{\"isActivated\":true,\"managedBy\":\"normaluser\",\"name\":\"svc_vault_test5\",\"users\":{\"normaluser\":\"sudo\"}}}"));
-
+		when(tokenUtils.getSelfServiceToken()).thenReturn(token);
 		ResponseEntity<String> responseEntity = iamServiceAccountsService.removeGroupFromIAMServiceAccount(token,
 				iamSvcAccGroup, userDetails);
 		assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, responseEntity.getStatusCode());

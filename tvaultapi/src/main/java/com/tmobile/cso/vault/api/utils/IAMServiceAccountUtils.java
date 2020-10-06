@@ -489,7 +489,7 @@ public class IAMServiceAccountUtils {
      * @throws JsonProcessingException
      * @throws IOException
      */
-    public static List<String> getPoliciesAsListFromTokenLookupJson(ObjectMapper objMapper, String policyJson) throws JsonProcessingException, IOException{
+    public List<String> getPoliciesAsListFromTokenLookupJson(ObjectMapper objMapper, String policyJson) throws JsonProcessingException, IOException{
         List<String> currentpolicies = new ArrayList<>();
         JsonNode policiesNode = objMapper.readTree(policyJson).get("policies");
         if (policiesNode.isContainerNode()) {
