@@ -26,12 +26,10 @@ import SnackbarComponent from '../../../../../components/Snackbar';
 import ScaledLoader from '../../../../../components/Loaders/ScaledLoader';
 import apiService from '../../apiService';
 import Strings from '../../../../../resources';
-
-// import ConfirmationModal from '../../../../../components/ConfirmationModal';
-// import OnBoardForm from '../OnBoardForm';
 import ButtonComponent from '../../../../../components/FormFields/ActionButton';
 import { IconEdit, IconDeleteActive } from '../../../../../assets/SvgIcons';
 import { TitleOne } from '../../../../../styles/GlobalStyles';
+import SelectionTabs from '../Tabs';
 
 const ColumnSection = styled('section')`
   position: relative;
@@ -239,8 +237,8 @@ const ServiceAccountDashboard = () => {
         }
         setStatus({ status: 'success', message: '' });
       })
-      .catch((err) => {
-        console.log('err', err);
+      .catch(() => {
+        setStatus({ status: 'failed', message: 'failed' });
       });
   }, []);
 
@@ -517,6 +515,7 @@ const ServiceAccountDashboard = () => {
                     backToLists={backToServiceAccounts}
                     ListDetailHeaderBg={sectionHeaderBg}
                     description={introduction}
+                    renderContent={<SelectionTabs />}
                   />
                 )}
               />
