@@ -1183,6 +1183,8 @@
                     $scope.detailsNavTags[1].show = true;
                     $scope.isActivating = false;
                     $scope.svcacc.isActivated = true;
+                    var uniqueIAMSvcName = $scope.svcacc.awsAccId + "_" + $scope.svcacc.svcaccId;
+                    getSvcaccInfo(uniqueIAMSvcName);
                     $scope.openActivationStatus();
                 }
                 else {
