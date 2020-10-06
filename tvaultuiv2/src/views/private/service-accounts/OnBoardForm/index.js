@@ -317,7 +317,7 @@ const OnBoardForm = () => {
     setInputAdGroupName(name);
   };
   const onApplicationNameChange = (e) => {
-    setInputApplicationName(e.target.value);
+    setInputApplicationName(e);
   };
 
   const onExpiryTimeChange = (value) => {
