@@ -510,7 +510,7 @@ script(type='text/ng-template', id='manageSecretId.html')
                             input.search-input-box(type='text' placeholder='SEARCH' ng-model="searchValue" restrict-special-char minlength="3" maxlength="40" ng-change="filterCert(searchValue)")
             md-content.admin-content
                 md-tabs(md-dynamic-height md-border-bottom md-selected="selectedIndex")
-                    md-tab(label="Safe" md-on-select="tabChangeForAdmin()")
+                    md-tab(label="Safes" md-on-select="tabChangeForAdmin()")
                         md-content(class="md-padding md-content-wrapper page-content-wrapper" ng-init="displayGrid")  
                             .md-content-inner-wrapper                               
                                 div.safe-management-content
@@ -527,7 +527,7 @@ script(type='text/ng-template', id='manageSecretId.html')
                                             .rotate.glyphicon.glyphicon-remove-circle
                                         .create-link.middle-block.hide-in-mobile
                                             .text CREATE NEW SAFE
-                    md-tab(label="Vault AppRole" md-on-select="tabChangeForAdmin()")
+                    md-tab(label="Vault AppRoles" md-on-select="tabChangeForAdmin()")
                         md-content(class="md-padding md-content-wrapper page-content-wrapper md-approle-management" ng-init="displayGrid")
                             .new-container.page-content-container
                                 .md-content-inner-wrapper
@@ -558,7 +558,7 @@ script(type='text/ng-template', id='manageSecretId.html')
                                                 .rotate.glyphicon.glyphicon-remove-circle
                                             .create-link.middle-block.hide-in-mobile
                                                 .text CREATE NEW APPROLE
-                    md-tab(label="AD Service Account" md-on-select="tabChangeForAdmin()" ng-if="enableSvcacc")
+                    md-tab(label="AD Service Accounts" md-on-select="tabChangeForAdmin()" ng-if="enableSvcacc")
                         md-content(class="md-padding md-content-wrapper page-content-wrapper md-approle-management" ng-init="displayGrid")
                             .new-container.page-content-container
                                 .md-content-inner-wrapper
@@ -616,7 +616,7 @@ script(type='text/ng-template', id='manageSecretId.html')
                                                     button.show-more-btn VIEW MORE
                                                     span
                                                         img(src="assets/icons/front-arrow.svg")
-                    md-tab(label="IAM Service Account" md-on-select="tabChangeForAdmin()" ng-if="enableIamSvcacc")
+                    md-tab(label="IAM Service Accounts" md-on-select="tabChangeForAdmin()" ng-if="enableIamSvcacc")
                         md-content(class="md-padding md-content-wrapper page-content-wrapper md-approle-management" ng-init="displayGrid")
                             .new-container.page-content-container
                                 .md-content-inner-wrapper
