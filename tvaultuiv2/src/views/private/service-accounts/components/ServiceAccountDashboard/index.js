@@ -543,6 +543,9 @@ const ServiceAccountDashboard = () => {
                     backToLists={backToServiceAccounts}
                     ListDetailHeaderBg={sectionHeaderBg}
                     description={introduction}
+                    renderContent={
+                      <AccountSelectionTabs accountDetail={listItemDetails} />
+                    }
                   />
                 )}
               />

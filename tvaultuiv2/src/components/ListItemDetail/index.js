@@ -39,7 +39,6 @@ const ListItemDetail = (props) => {
   } = props;
   const location = useLocation();
   const [data, setData] = useState({});
-
   // screen view handler
   const isMobileScreen = useMediaQuery(mediaBreakpoints.small);
 
@@ -74,7 +73,6 @@ const ListItemDetail = (props) => {
           description={description}
           bgImage={ListDetailHeaderBg}
         />
-
         {renderContent}
       </Section>
     </ComponentError>
