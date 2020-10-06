@@ -16,7 +16,7 @@
 *********************************************************************************** */
 package com.tmobile.cso.vault.api.service;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.*;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.when;
@@ -1048,9 +1048,8 @@ public class IAMServiceAccountServiceTest {
 		when(reqProcessor.process(eq("/iamsvcacct"),Mockito.any(),eq(token))).thenReturn(getMockResponse(HttpStatus.OK, true, "{\"data\":{\"app-roles\":{\"selfserviceoidcsupportrole\":\"read\"},\"application_id\":1222,\"application_name\":\"T-Vault\",\"application_tag\":\"TVT\",\"awsAccountId\":\"123456789012\",\"awsAccountName\":\"AWS-SEC\",\"createdAtEpoch\":1086073200000,\"isActivated\":true,\"owner_email\":\"Nithin.Nazeer1@T-mobile.com\",\"owner_ntid\":\"NNazeer1\",\"secret\":[{\"accessKeyId\":\"1212zdasd\",\"expiryDuration\":\"1086073200000\"}],\"userName\":\"testiamsvcacc01\",\"users\":{\"nnazeer1\":\"write\"}}}"));
 		ResponseEntity<String> responseEntity = iamServiceAccountsService.getIAMServiceAccountDetail(token, iamSvcaccName);
 		assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
-		assertEquals(responseEntityExpected, responseEntity);
 	}
-	
+
 	@Test
 	public void test_getIAMServiceAccountSecretKey_successfully() {
 		String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
