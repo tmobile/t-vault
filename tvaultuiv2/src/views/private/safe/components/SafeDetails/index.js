@@ -65,7 +65,7 @@ const SafeDetails = (props) => {
         {isMobileScreen ? (
           <BackButton onClick={goBackToSafeList}>
             <BackArrow />
-            <span>{safe.name || 'No safe'}</span>
+            <span>{(safe && safe.name) || 'No safe'}</span>
           </BackButton>
         ) : null}
 
