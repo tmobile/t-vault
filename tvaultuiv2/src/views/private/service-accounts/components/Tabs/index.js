@@ -82,7 +82,8 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-const SelectionTabs = () => {
+const AccountSelectionTabs = (props) => {
+  console.log('props', props);
   const classes = useStyles();
   const [value, setValue] = useState(0);
 
@@ -118,11 +119,11 @@ const SelectionTabs = () => {
     </ComponentError>
   );
 };
-SelectionTabs.propTypes = {
-  safeDetail: PropTypes.objectOf(PropTypes.any),
+AccountSelectionTabs.propTypes = {
+  accountDetail: PropTypes.objectOf(PropTypes.any),
 };
-SelectionTabs.defaultProps = {
-  safeDetail: {},
+AccountSelectionTabs.defaultProps = {
+  accountDetail: {},
 };
 
-export default SelectionTabs;
+export default AccountSelectionTabs;

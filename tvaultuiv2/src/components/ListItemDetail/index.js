@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
-import { useHistory, useLocation } from 'react-router-dom';
+import { useLocation } from 'react-router-dom';
 import useMediaQuery from '@material-ui/core/useMediaQuery';
 import styled from 'styled-components';
 import ComponentError from '../../errorBoundaries/ComponentError/component-error';
@@ -33,30 +33,24 @@ const ListItemDetail = (props) => {
   const {
     ListDetailHeaderBg,
     renderContent,
-    listItemDetails,
     backToLists,
     description,
+    listItemDetails,
   } = props;
   const location = useLocation();
-  const history = useHistory();
   const [data, setData] = useState({});
+
   // screen view handler
   const isMobileScreen = useMediaQuery(mediaBreakpoints.small);
 
   useEffect(() => {
-    if (!location?.state?.data) {
-      if (listItemDetails && listItemDetails.length) {
-        const activeSafeDetail = listItemDetails.filter(
-          (item) =>
-            item?.name?.toLowerCase() ===
-            history.location.pathname.split('/')[2]
-        );
-        setData(activeSafeDetail);
-      }
-      return;
+    if (location?.state?.data) {
+      setData(location?.state?.data);
     }
-    setData(location?.state?.data);
-  }, [location.state, listItemDetails, history.location.pathname]);
+    if (listItemDetails) {
+      setData({ ...listItemDetails });
+    }
+  }, [location.state, listItemDetails]);
 
   // route component data
   const goBackToList = () => {
@@ -90,14 +84,15 @@ ListItemDetail.propTypes = {
   description: PropTypes.string,
   ListDetailHeaderBg: PropTypes.string,
   renderContent: PropTypes.node,
-  listItemDetails: PropTypes.arrayOf(PropTypes.any),
   backToLists: PropTypes.func,
+  listItemDetails: PropTypes.objectOf(PropTypes.any),
 };
+
 ListItemDetail.defaultProps = {
   ListDetailHeaderBg: '',
   renderContent: <div />,
-  listItemDetails: {},
   backToLists: () => {},
+  listItemDetails: {},
   description: 'No details available',
 };
 

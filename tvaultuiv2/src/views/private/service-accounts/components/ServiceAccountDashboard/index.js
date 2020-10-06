@@ -29,7 +29,7 @@ import Strings from '../../../../../resources';
 import ButtonComponent from '../../../../../components/FormFields/ActionButton';
 import { IconEdit, IconDeleteActive } from '../../../../../assets/SvgIcons';
 import { TitleOne } from '../../../../../styles/GlobalStyles';
-import SelectionTabs from '../Tabs';
+import AccountSelectionTabs from '../Tabs';
 
 const ColumnSection = styled('section')`
   position: relative;
@@ -178,7 +178,7 @@ const ServiceAccountDashboard = () => {
   const [inputSearchValue, setInputSearchValue] = useState('');
   const [anchorEl, setAnchorEl] = useState(null);
   const [serviceAccountClicked, setServiceAccountClicked] = useState(false);
-  const [, setListItemDetails] = useState({});
+  const [listItemDetails, setListItemDetails] = useState({});
   const [moreData] = useState(false);
   const [isLoading] = useState(false);
   const [serviceAccountList, setServiceAccountList] = useState([]);
@@ -276,9 +276,9 @@ const ServiceAccountDashboard = () => {
    * based on that value display left and right side.
    */
   const onLinkClicked = (item) => {
+    setListItemDetails(item);
     if (isMobileScreen) {
       setServiceAccountClicked(true);
-      setListItemDetails(item);
     }
   };
 
@@ -303,6 +303,17 @@ const ServiceAccountDashboard = () => {
     }
   };
 
+  useEffect(() => {
+    if (serviceAccountList?.length > 0) {
+      serviceAccountList.map((item) => {
+        if (history.location.pathname === `/service-accounts/${item.name}`) {
+          return setListItemDetails(item);
+        }
+        return null;
+      });
+    }
+  }, [serviceAccountList, listItemDetails, history]);
+
   // Infine scroll load more data
   const loadMoreData = () => {};
 
@@ -325,6 +336,8 @@ const ServiceAccountDashboard = () => {
           history.location.pathname === `/service-accounts/${account.name}`
         }
       >
+        {/* {history.location.pathname === `/service-accounts/${account.name}` &&
+         () => hello(account)} */}
         <ListItem
           title={account.name}
           subTitle={account.date}
@@ -510,12 +523,14 @@ const ServiceAccountDashboard = () => {
                 path="/service-accounts/:serviceAccountName"
                 render={(routerProps) => (
                   <ListItemDetail
-                    listItemDetails={serviceAccountList}
+                    listItemDetails={listItemDetails}
                     params={routerProps}
                     backToLists={backToServiceAccounts}
                     ListDetailHeaderBg={sectionHeaderBg}
                     description={introduction}
-                    renderContent={<SelectionTabs />}
+                    renderContent={
+                      <AccountSelectionTabs accountDetail={listItemDetails} />
+                    }
                   />
                 )}
               />
