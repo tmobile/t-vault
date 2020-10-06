@@ -1214,5 +1214,14 @@
         	{"name":"path","required":true, "appendToPath":true}
         ],
          "outparams":["data/keys"]
-    }
+    },
+    {"#" : "**** To get list of all onboarded IAM service accounts ****** ",
+		"apiEndPoint": "/iam/onboardedlist",
+		"vaultEndPoint": "/<path>?list=true",
+		"method": "GET",
+		"params": [
+			{ "name": "path","required": true, "appendToPath": true }
+		],
+		"outparams": ["data/keys"]
+	}
 ]

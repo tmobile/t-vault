@@ -297,8 +297,9 @@ public class IAMServiceAccountServiceTest {
 		IAMServiceAccountMetadataDetails iamServiceAccountMetadataDetails = populateIAMSvcAccMetaData(serviceAccount);
 		IAMSvccAccMetadata iamSvccAccMetadata = new IAMSvccAccMetadata(iamSvccAccPath,
 				iamServiceAccountMetadataDetails);
-		String[] policies = { "o_iamsvcacc_testacc01" };
-		when(policyUtils.getCurrentPolicies(token, userDetails.getUsername(), userDetails)).thenReturn(policies);
+
+		when(reqProcessor.process(eq("/iam/onboardedlist"), Mockito.any(), eq(token))).thenReturn(getMockResponse(
+				HttpStatus.OK, true, "{\"keys\":[\"12234237890_svc_tvt_test13\",\"1223455345_svc_tvt_test9\"]}"));
 
 		when(JSONUtil.getJSON(Mockito.any())).thenReturn(metaDataStr);
 		when(ControllerUtil.parseJson(metaDataStr)).thenReturn(iamSvcAccPolicyMap);
@@ -345,7 +346,7 @@ public class IAMServiceAccountServiceTest {
 		when(ControllerUtil.updateMetadata(any(), any())).thenReturn(responseNoContent);
 
 		// System under test
-		String expectedResponse = "{\"messages\":[\"Successfully completed onboarding of IAM service account into TVault for password rotation.\"]}";
+		String expectedResponse = "{\"messages\":[\"Successfully completed onboarding of IAM service account into TVault.\"]}";
 		ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(expectedResponse);
 
 		when(reqProcessor.process(eq("/sdb"), Mockito.any(), eq(token))).thenReturn(getMockResponse(HttpStatus.OK, true,

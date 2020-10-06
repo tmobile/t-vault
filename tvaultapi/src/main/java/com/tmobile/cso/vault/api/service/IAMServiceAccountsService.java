@@ -139,6 +139,7 @@ public class  IAMServiceAccountsService {
 
 		IAMServiceAccountMetadataDetails iamServiceAccountMetadataDetails = populateIAMSvcAccMetaData(
 				iamServiceAccount);
+
 		// Create Metadata
 		ResponseEntity<String> metadataCreationResponse = createIAMSvcAccMetadata(token,
 				iamServiceAccountMetadataDetails, iamSvccAccMetaPath);
@@ -163,18 +164,22 @@ public class  IAMServiceAccountsService {
 	}
 
 	/**
+	 * Method to create IAM service account policies and add sudo permission to owner.
 	 * @param token
 	 * @param iamServiceAccount
 	 * @param userDetails
 	 * @param iamSvcAccName
 	 * @return
 	 */
-	private ResponseEntity<String> createIAMSvcAccPoliciesAndAddUserToAccount(String token,
+	private ResponseEntity<String> createIAMSvcAccPoliciesAndAddUserToAccount(String token, 
 			IAMServiceAccount iamServiceAccount, UserDetails userDetails, String iamSvcAccName) {
 		ResponseEntity<String> iamSvcAccPolicyCreationResponse = createIAMServiceAccountPolicies(token, iamSvcAccName);
+		boolean iamSvcAccCreationStatus = true;
+		boolean iamSvcAccOwnerPermissionAddStatus = true;
 		if (HttpStatus.OK.equals(iamSvcAccPolicyCreationResponse.getStatusCode())) {
 			IAMServiceAccountUser iamServiceAccountUser = new IAMServiceAccountUser(iamServiceAccount.getUserName(),
 					iamServiceAccount.getOwnerNtid(), TVaultConstants.SUDO_POLICY, iamServiceAccount.getAwsAccountId());
+			//Add sudo permisson to the IAM service account owner
 			ResponseEntity<String> addUserToIAMSvcAccResponse = addUserToIAMServiceAccount(token, userDetails,
 					iamServiceAccountUser, true);
 			if (HttpStatus.OK.equals(addUserToIAMSvcAccResponse.getStatusCode())) {
@@ -182,38 +187,66 @@ public class  IAMServiceAccountsService {
 						.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
 						.put(LogMessage.ACTION, IAMServiceAccountConstants.IAM_SVCACC_CREATION_TITLE)
 						.put(LogMessage.MESSAGE,
-								"Successfully completed onboarding of IAM service account into TVault for password rotation.")
-						.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
-
-				sendMailToIAMSvcAccOwner(iamServiceAccount, iamSvcAccName);
-
-				return ResponseEntity.status(HttpStatus.OK).body(
-						"{\"messages\":[\"Successfully completed onboarding of IAM service account into TVault for password rotation.\"]}");
+								"Successfully completed onboarding of IAM service account into TVault.")
+						.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));				
+				iamSvcAccCreationStatus = true;
 			} else {
+				iamSvcAccCreationStatus = false;
+				iamSvcAccOwnerPermissionAddStatus = false;
 				log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
 						.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
 						.put(LogMessage.ACTION, IAMServiceAccountConstants.IAM_SVCACC_CREATION_TITLE)
 						.put(LogMessage.MESSAGE,
 								"Successfully created IAM Service Account and policies. However the association of owner information failed.")
-						.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
-				return ResponseEntity.status(HttpStatus.MULTI_STATUS).body(
-						"{\"messages\":[\"Successfully created IAM Service Account and policies. However the association of owner information failed.\"]}");
+						.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));				
 			}
 		} else {
+			iamSvcAccCreationStatus = false;
 			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
 					.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
 					.put(LogMessage.ACTION, IAMServiceAccountConstants.IAM_SVCACC_CREATION_TITLE)
-					.put(LogMessage.MESSAGE, "Failed to onboard IAM service account into TVault for password rotation.")
-					.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
+					.put(LogMessage.MESSAGE, "Failed to onboard IAM service account into TVault.")
+					.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));			
+		}
 
+		return sendMailAndRollbackProcess(token, iamServiceAccount, iamSvcAccName, iamSvcAccCreationStatus,
+				iamSvcAccOwnerPermissionAddStatus);
+	}
+
+	/**
+	 * Method to send mail or Roll back IAM service account creation process if anything failed
+	 * @param userToken
+	 * @param iamServiceAccount
+	 * @param iamSvcAccName
+	 * @param iamSvcAccCreationStatus
+	 * @param iamSvcAccOwnerPermissionAddStatus
+	 * @return
+	 */
+	private ResponseEntity<String> sendMailAndRollbackProcess(String userToken, IAMServiceAccount iamServiceAccount,
+			String iamSvcAccName, boolean iamSvcAccCreationStatus, boolean iamSvcAccOwnerPermissionAddStatus) {
+		if(iamSvcAccCreationStatus) {
+			//Send mail to IAM service account owner
+			sendMailToIAMSvcAccOwner(iamServiceAccount, iamSvcAccName);
+			return ResponseEntity.status(HttpStatus.OK).body(
+					"{\"messages\":[\"Successfully completed onboarding of IAM service account into TVault.\"]}");			
+		}else {
+			//Delete the IAM Service account policies if add Owner permission failed.
+			if(!iamSvcAccOwnerPermissionAddStatus) {
+				boolean policyDeleteStatus = deleteIAMServiceAccountPolicies(userToken, iamSvcAccName);				
+				if(!policyDeleteStatus) {
+					return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
+							"{\"errors\":[\"Failed to delete IAM Service Account policies. Revert IAM service account creation failed.\"]}");
+				}
+			}
+			//Deleting the IAM service account details if policy creation failed
 			OnboardedIAMServiceAccount iamSvcAccToRevert = new OnboardedIAMServiceAccount(
 					iamServiceAccount.getUserName(), iamServiceAccount.getAwsAccountId(),
 					iamServiceAccount.getOwnerNtid());
-			ResponseEntity<String> accountRoleDeletionResponse = deleteIAMSvcAccount(token, iamSvcAccToRevert);
-			if (accountRoleDeletionResponse != null
-					&& HttpStatus.OK.equals(accountRoleDeletionResponse.getStatusCode())) {
+			ResponseEntity<String> iamMetaDataDeletionResponse = deleteIAMSvcAccount(userToken, iamSvcAccToRevert);
+			if (iamMetaDataDeletionResponse != null
+					&& HttpStatus.OK.equals(iamMetaDataDeletionResponse.getStatusCode())) {
 				return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
-						"{\"errors\":[\"Failed to onboard IAM service account into TVault for password rotation.\"]}");
+						"{\"errors\":[\"Failed to onboard IAM service account into TVault.\"]}");
 			} else {
 				return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
 						"{\"errors\":[\"Failed to create IAM Service Account policies. Revert IAM service account creation failed.\"]}");
@@ -222,11 +255,13 @@ public class  IAMServiceAccountsService {
 	}
 
 	/**
+	 * Method to send mail to IAM Service account owner
+	 *
 	 * @param iamServiceAccount
 	 * @param iamSvcAccName
 	 */
 	private void sendMailToIAMSvcAccOwner(IAMServiceAccount iamServiceAccount, String iamSvcAccName) {
-		// send email notification to service account owner
+		// send email notification to IAM service account owner
 		String from = supportEmail;
 		List<String> to = new ArrayList<>();
 		to.add(iamServiceAccount.getOwnerEmail());
@@ -281,7 +316,7 @@ public class  IAMServiceAccountsService {
 	}
 
 	/**
-	 * method to populate IAMServiceAccountMetadataDetails object
+	 * Method to populate IAMServiceAccountMetadataDetails object
 	 *
 	 * @param iamServiceAccount
 	 * @return
@@ -311,6 +346,40 @@ public class  IAMServiceAccountsService {
 	}
 
 	/**
+	 * Deletes IAM Service Account policies
+	 * @param token
+	 * @param svcAccName
+	 * @return
+	 */
+	private boolean deleteIAMServiceAccountPolicies(String token, String iamSvcAccName) {
+		int succssCount = 0;
+		boolean allPoliciesDeleted = false;
+		for (String policyPrefix : TVaultConstants.getSvcAccPolicies().keySet()) {
+			String accessId = new StringBuffer().append(policyPrefix).append(IAMServiceAccountConstants.IAMSVCACC_POLICY_PREFIX).append(iamSvcAccName).toString();
+			ResponseEntity<String> policyDeleteStatus = accessService.deletePolicyInfo(token, accessId);
+			if (HttpStatus.OK.equals(policyDeleteStatus.getStatusCode())) {
+				succssCount++;
+			}
+		}
+		if (succssCount == TVaultConstants.getSvcAccPolicies().size()) {
+			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+					put(LogMessage.ACTION, "deleteIAMServiceAccountPolicies").
+					put(LogMessage.MESSAGE, "Successfully removed policies for IAM service account.").
+					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+					build()));
+			allPoliciesDeleted = true;
+		}
+		log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+				put(LogMessage.ACTION, "deleteIAMServiceAccountPolicies").
+				put(LogMessage.MESSAGE, "Failed to delete some of the policies for IAM service account.").
+				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+				build()));
+		return allPoliciesDeleted;
+	}
+
+	/**
 	 * Create policies for IAM service account
 	 *
 	 * @param token
@@ -331,13 +400,13 @@ public class  IAMServiceAccountsService {
 			if (TVaultConstants.getSvcAccPolicies().get(policyPrefix).equals(TVaultConstants.SUDO_POLICY)) {
 				accessMap.put(IAMServiceAccountConstants.IAM_SVCC_ACC_PATH + iamSvcAccName + "/*",
 						TVaultConstants.WRITE_POLICY);
-				accessMap.put(IAMServiceAccountConstants.IAM_SVCC_ACC_META_PATH + iamSvcAccName + "/*",
+				accessMap.put(IAMServiceAccountConstants.IAM_SVCC_ACC_META_PATH + iamSvcAccName,
 						TVaultConstants.WRITE_POLICY);
 			}
 			if (TVaultConstants.getSvcAccPolicies().get(policyPrefix).equals(TVaultConstants.WRITE_POLICY)) {
 				accessMap.put(IAMServiceAccountConstants.IAM_SVCC_ACC_PATH + iamSvcAccName + "/*",
 						TVaultConstants.WRITE_POLICY);
-				accessMap.put(IAMServiceAccountConstants.IAM_SVCC_ACC_META_PATH + iamSvcAccName + "/*",
+				accessMap.put(IAMServiceAccountConstants.IAM_SVCC_ACC_META_PATH + iamSvcAccName,
 						TVaultConstants.WRITE_POLICY);
 			}
 			accessPolicy.setAccess(accessMap);
@@ -373,7 +442,7 @@ public class  IAMServiceAccountsService {
 	 */
 	private ResponseEntity<String> deleteIAMSvcAccount(String token, OnboardedIAMServiceAccount iamServiceAccount) {
 		String iamSvcAccName = iamServiceAccount.getAwsAccountId() + "_" + iamServiceAccount.getUserName();
-		String iamSvcAccPath = IAMServiceAccountConstants.IAM_SVCC_ACC_PATH + iamSvcAccName;
+		String iamSvcAccPath = IAMServiceAccountConstants.IAM_SVCC_ACC_META_PATH + iamSvcAccName;
 		Response onboardingResponse = reqProcessor.process("/delete", "{\"path\":\"" + iamSvcAccPath + "\"}", token);
 
 		if (onboardingResponse.getHttpstatus().equals(HttpStatus.NO_CONTENT)
@@ -466,7 +535,7 @@ public class  IAMServiceAccountsService {
 	 * @return
 	 */
 	private List<String> getOnboardedIAMServiceAccountList(String token, UserDetails userDetails) {
-		ResponseEntity<String> onboardedResponse = getOnboardedIAMServiceAccounts(token, userDetails);
+		ResponseEntity<String> onboardedResponse = getAllOnboardedIAMServiceAccounts(token, userDetails);
 
 		ObjectMapper objMapper = new ObjectMapper();
 		List<String> onboardedList = new ArrayList<>();
@@ -485,6 +554,37 @@ public class  IAMServiceAccountsService {
 					.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
 		}
 		return onboardedList;
+	}
+
+	/**
+	 * To get all iam service accounts
+	 *
+	 * @param token
+	 * @param userDetails
+	 * @return
+	 */
+	private ResponseEntity<String> getAllOnboardedIAMServiceAccounts(String token, UserDetails userDetails) {
+		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+				.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+				.put(LogMessage.ACTION, "listAllOnboardedIAMServiceAccounts")
+				.put(LogMessage.MESSAGE, "Trying to get all onboaded IAM service accounts")
+				.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
+		String metadataPath = IAMServiceAccountConstants.IAM_SVCC_ACC_META_PATH;
+
+		Response response = reqProcessor.process("/iam/onboardedlist", "{\"path\":\"" + metadataPath + "\"}", token);
+
+		if (HttpStatus.OK.equals(response.getHttpstatus())) {
+			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+					.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+					.put(LogMessage.ACTION, "listOnboardedIAMServiceAccounts")
+					.put(LogMessage.MESSAGE, "Successfully retrieved the list of IAM Service Accounts")
+					.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
+
+			return ResponseEntity.status(response.getHttpstatus()).body(response.getResponse());
+		} else if (HttpStatus.NOT_FOUND.equals(response.getHttpstatus())) {
+			return ResponseEntity.status(HttpStatus.OK).body("{\"keys\":[]}");
+		}
+		return ResponseEntity.status(response.getHttpstatus()).body(response.getResponse());
 	}
 
 	/**
@@ -549,6 +649,7 @@ public class  IAMServiceAccountsService {
 	}
 
 	/**
+	 * Method to create policies for add group to IAM service account and call the update process.
 	 * @param token
 	 * @param userDetails
 	 * @param oidcGroup
@@ -648,6 +749,7 @@ public class  IAMServiceAccountsService {
 	}
 
 	/**
+	 * Method to update policies and metadata for add group to IAM service account.
 	 * @param token
 	 * @param userDetails
 	 * @param oidcGroup
@@ -720,6 +822,7 @@ public class  IAMServiceAccountsService {
 	}
 
 	/**
+	 * Method to revert group permission if add group to IAM service account failed.
 	 * @param token
 	 * @param userDetails
 	 * @param oidcGroup
@@ -830,6 +933,7 @@ public class  IAMServiceAccountsService {
 	}
 
 	/**
+	 * Method to verify the user for add user to IAM service account. 
 	 * @param token
 	 * @param userDetails
 	 * @param iamServiceAccountUser
@@ -876,6 +980,7 @@ public class  IAMServiceAccountsService {
 	}
 
 	/**
+	 * Method to create policies for add user to IAM service account and call the update process.
 	 * @param token
 	 * @param userDetails
 	 * @param iamServiceAccountUser
@@ -954,6 +1059,7 @@ public class  IAMServiceAccountsService {
 	}
 
 	/**
+	 * Method to update policies for add user to IAM service account.
 	 * @param token
 	 * @param userDetails
 	 * @param iamServiceAccountUser
@@ -1007,6 +1113,7 @@ public class  IAMServiceAccountsService {
 	}
 
 	/**
+	 * Method to update metadata for add user to IAM service account.
 	 * @param token
 	 * @param userDetails
 	 * @param iamServiceAccountUser
@@ -1046,6 +1153,7 @@ public class  IAMServiceAccountsService {
 	}
 
 	/**
+	 * Method to revert user policies if add user to IAM service account failed.
 	 * @param token
 	 * @param userDetails
 	 * @param oidcEntityResponse
@@ -1173,7 +1281,7 @@ public class  IAMServiceAccountsService {
 			boolean isPartOfOnboard) {
 		// IAM admin users can add sudo policy for owner while onboarding the service account
 		// @TODO: it might not be required for all admin users, IAM team will be using and approle during onboard
-		if (userDetails.isAdmin() && isPartOfOnboard) {
+		if (isPartOfOnboard) {
 			return true;
 		}
 		// Owner of the service account can add/remove users, groups, aws roles and approles to service account
@@ -1405,6 +1513,7 @@ public class  IAMServiceAccountsService {
 	}
 
 	/**
+	 * Method to verify the user for removing from IAM service account.
 	 * @param token
 	 * @param iamServiceAccountUser
 	 * @param userDetails
@@ -1454,6 +1563,7 @@ public class  IAMServiceAccountsService {
 	}
 
 	/**
+	 * Method to create policies for removing user from IAM service account and call the metadata update.
 	 * @param token
 	 * @param iamServiceAccountUser
 	 * @param userDetails
@@ -1524,6 +1634,7 @@ public class  IAMServiceAccountsService {
 	}
 
 	/**
+	 * Method to update the metadata after removed user from IAM service account
 	 * @param token
 	 * @param iamServiceAccountUser
 	 * @param userDetails
@@ -1560,6 +1671,7 @@ public class  IAMServiceAccountsService {
 	}
 
 	/**
+	 * Method to configure the user permission after removed from IAM service account.
 	 * @param token
 	 * @param iamServiceAccountUser
 	 * @param userDetails
@@ -1597,6 +1709,7 @@ public class  IAMServiceAccountsService {
 	}
 
 	/**
+	 * Method to revert user permission for remove user from IAM service account if update failed.
 	 * @param token
 	 * @param iamServiceAccountUser
 	 * @param userDetails
@@ -1638,9 +1751,10 @@ public class  IAMServiceAccountsService {
 	}
 
 	/**
-     * Remove Group Service Account
+     * Remove Group from IAM Service Account
+     *
      * @param token
-     * @param serviceAccountGroup
+     * @param iamServiceAccountGroup
      * @param userDetails
      * @return
      */
@@ -1711,6 +1825,7 @@ public class  IAMServiceAccountsService {
     }
 
 	/**
+	 * Method to update policies for remove group from IAM service account.
 	 * @param token
 	 * @param iamServiceAccountGroup
 	 * @param userDetails
@@ -1785,6 +1900,8 @@ public class  IAMServiceAccountsService {
 	}
 
 	/**
+	 * Method to update metadata and revert group permission if metadata update failed.
+	 *
 	 * @param token
 	 * @param iamServiceAccountGroup
 	 * @param userDetails
@@ -1820,6 +1937,8 @@ public class  IAMServiceAccountsService {
 	}
 
 	/**
+	 * Method to revert group permission for IAM service account
+	 *
 	 * @param token
 	 * @param iamServiceAccountGroup
 	 * @param userDetails
