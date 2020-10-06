@@ -157,7 +157,7 @@ public class IAMServiceAccountsController {
 	 * @param path
 	 * @return
 	 */
-	@ApiOperation(value = "${IAMServiceAccountsController.readFromVault.value}", notes = "${IAMServiceAccountsController.readFromVault.notes}")
+	@ApiOperation(value = "${IAMServiceAccountsController.readFolders.value}", notes = "${IAMServiceAccountsController.readFolders.notes}", hidden = true)
 	@GetMapping(value = "/v2/iamserviceaccounts/folders/secrets", produces = "application/json")
 	public ResponseEntity<String> readFolders(@RequestHeader(value = "vault-token") String token,
 			@RequestParam("path") String path,
@@ -201,7 +201,7 @@ public class IAMServiceAccountsController {
 	 * @param iamServiceAccountApprole
 	 * @return
 	 */
-	@ApiOperation(value = "${IAMServiceAccountsController.associateApprole.value}", notes = "${IAMServiceAccountsController.associateApprole.notes}")
+	@ApiOperation(value = "${IAMServiceAccountsController.associateApproletoIAMSvcAcc.value}", notes = "${IAMServiceAccountsController.associateApproletoIAMSvcAcc.notes}")
 	@PostMapping(value = "/v2/iamserviceaccounts/approle", consumes = "application/json", produces = "application/json")
 	public ResponseEntity<String> associateApproletoIAMSvcAcc(HttpServletRequest request,
 			@RequestHeader(value = "vault-token") String token,
@@ -218,7 +218,7 @@ public class IAMServiceAccountsController {
 	 * @param iamServiceAccountApprole
 	 * @return
 	 */
-	@ApiOperation(value = "${IAMServiceAccountsController.removeApprole.value}", notes = "${IAMServiceAccountsController.removeApprole.notes}")
+	@ApiOperation(value = "${IAMServiceAccountsController.removeApproleFromIAMSvcAcc.value}", notes = "${IAMServiceAccountsController.removeApproleFromIAMSvcAcc.notes}")
 	@DeleteMapping(value = "/v2/iamserviceaccounts/approle", consumes = "application/json", produces = "application/json")
 	public ResponseEntity<String> removeApproleFromIAMSvcAcc(HttpServletRequest request,
 			@RequestHeader(value = "vault-token") String token,

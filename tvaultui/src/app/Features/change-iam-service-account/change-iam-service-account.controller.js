@@ -623,6 +623,10 @@
                             $scope.permissionData.AppRolePermissionsData = {
                                 "data": object['app-roles']
                             }
+
+                            if (object.isActivated){
+                                $scope.detailsNavTags[1].show = true;
+                            }
                             $scope.isLoadingData = false;
                             hideUserSudoPolicy();
                         }
