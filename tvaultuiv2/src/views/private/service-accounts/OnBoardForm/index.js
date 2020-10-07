@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 import React, { useState, useCallback } from 'react';
 import { debounce } from 'lodash';
 import styled, { css } from 'styled-components';
@@ -243,8 +244,9 @@ const OnBoardForm = () => {
             setApplicationList([...array]);
           }
         })
-        .catch(() => {
+        .catch((err) => {
           setIsAppNameFetching(false);
+          console.log('error fetching list ---- ', err);
         });
     }),
     []

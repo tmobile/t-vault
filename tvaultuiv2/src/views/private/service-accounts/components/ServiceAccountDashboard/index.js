@@ -328,6 +328,7 @@ const ServiceAccountDashboard = () => {
   const onServiceAccountOffBoard = () => {};
   const onServiceAccountEdit = () => {};
 
+  // const handleConfirmationModalClose = () => {};
   const renderList = () => {
     return serviceAccountList.map((account) => (
       <ListFolderWrap
