@@ -28,6 +28,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.tmobile.cso.vault.api.model.*;
 import com.tmobile.cso.vault.api.utils.*;
 import org.apache.http.HttpEntity;
 import org.apache.http.StatusLine;
@@ -42,6 +43,8 @@ import org.junit.runners.MethodSorters;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
@@ -61,24 +64,6 @@ import com.tmobile.cso.vault.api.common.TVaultConstants;
 import com.tmobile.cso.vault.api.controller.ControllerUtil;
 import com.tmobile.cso.vault.api.controller.OIDCUtil;
 
-import com.tmobile.cso.vault.api.model.IAMServiceAccountApprole;
-import com.tmobile.cso.vault.api.model.ServiceAccountApprole;
-
-import com.tmobile.cso.vault.api.model.DirectoryObjects;
-import com.tmobile.cso.vault.api.model.DirectoryObjectsList;
-import com.tmobile.cso.vault.api.model.DirectoryUser;
-import com.tmobile.cso.vault.api.model.IAMSecrets;
-import com.tmobile.cso.vault.api.model.IAMSecretsMetadata;
-import com.tmobile.cso.vault.api.model.IAMServiceAccount;
-import com.tmobile.cso.vault.api.model.IAMServiceAccountGroup;
-import com.tmobile.cso.vault.api.model.IAMServiceAccountMetadataDetails;
-import com.tmobile.cso.vault.api.model.IAMServiceAccountUser;
-import com.tmobile.cso.vault.api.model.IAMSvccAccMetadata;
-import com.tmobile.cso.vault.api.model.OIDCEntityResponse;
-import com.tmobile.cso.vault.api.model.OIDCGroup;
-import com.tmobile.cso.vault.api.model.OIDCLookupEntityRequest;
-
-import com.tmobile.cso.vault.api.model.UserDetails;
 import com.tmobile.cso.vault.api.process.RequestProcessor;
 import com.tmobile.cso.vault.api.process.Response;
 
@@ -360,7 +345,7 @@ public class IAMServiceAccountServiceTest {
 		List<String> currentPolicies = new ArrayList<>();
 		currentPolicies.add("iamportal_master_policy");
 		try {
-			when(iamServiceAccountUtils.getPoliciesAsListFromTokenLookupJson(Mockito.any(),Mockito.any())).thenReturn(currentPolicies);
+			when(iamServiceAccountUtils.getTokenPoliciesAsListFromTokenLookupJson(Mockito.any(),Mockito.any())).thenReturn(currentPolicies);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -1063,6 +1048,510 @@ public class IAMServiceAccountServiceTest {
 		assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
 		assertEquals(responseEntityExpected, responseEntity);
 	}
-	
 
+	@Test
+	public void test_activateIAMServiceAccount_successfull() {
+
+		String iamServiceAccountName = "svc_vault_test5";
+		String token = "123123123123";
+		String awsAccountId = "1234567890";
+		String path = "metadata/iamsvcacc/1234567890_svc_vault_test5";
+		String iamSecret = "abcdefgh";
+		String accessKeyId = "testaccesskey";
+		String [] policies = {"o_iamsvcacc_1234567890_svc_vault_test5"};
+		Response responseNoContent = getMockResponse(HttpStatus.NO_CONTENT, true, "");
+		String iamMetaDataStr = "{ \"data\": {\"userName\": \"svc_vault_test5\", \"awsAccountId\": \"1234567890\", \"awsAccountName\": \"testaccount1\", \"createdAtEpoch\": 1609754282000, \"owner_ntid\": \"normaluser\", \"owner_email\": \"normaluser@testmail.com\", \"application_id\": \"app1\", \"application_name\": \"App1\", \"application_tag\": \"App1\", \"isActivated\": false, \"secret\":[{\"accessKeyId\":\"testaccesskey\", \"expiryDuration\":12345}]}, \"path\": \"iamsvcacc/1234567890_svc_vault_test5\"}";
+		String iamMetaDataStrActivated = "{ \"data\": {\"userName\": \"svc_vault_test5\", \"awsAccountId\": \"1234567890\", \"awsAccountName\": \"testaccount1\", \"createdAtEpoch\": 1609754282000, \"owner_ntid\": \"normaluser\", \"owner_email\": \"normaluser@testmail.com\", \"application_id\": \"app1\", \"application_name\": \"App1\", \"application_tag\": \"App1\", \"isActivated\": true, \"secret\":[{\"accessKeyId\":\"testaccesskey\", \"expiryDuration\":12345}]}, \"path\": \"iamsvcacc/1234567890_svc_vault_test5\"}";
+
+		Response metaResponse = getMockResponse(HttpStatus.OK, true, iamMetaDataStr);
+		Response metaActivatedResponse = getMockResponse(HttpStatus.OK, true, iamMetaDataStrActivated);
+		when(tokenUtils.getSelfServiceToken()).thenReturn(token);
+		when(policyUtils.getCurrentPolicies(token, userDetails.getUsername(), userDetails)).thenReturn(policies);
+
+		when(reqProcessor.process(eq("/sdb"), Mockito.any(), eq(token))).thenAnswer(new Answer() {
+			private int count = 0;
+
+			public Object answer(InvocationOnMock invocation) {
+				if (count++ == 1)
+					return metaActivatedResponse;
+
+				return metaResponse;
+			}
+		});
+
+		when(reqProcessor.process("/read", "{\"path\":\""+path+"\"}", token)).thenReturn(getMockResponse(HttpStatus.OK, true,
+				iamMetaDataStr));
+
+		IAMServiceAccountSecret iamServiceAccountSecret = new IAMServiceAccountSecret(iamServiceAccountName, accessKeyId, iamSecret, 1609754282000L, awsAccountId);
+
+		when(iamServiceAccountUtils.rotateIAMSecret(Mockito.any())).thenReturn(iamServiceAccountSecret);
+		when(iamServiceAccountUtils.writeIAMSvcAccSecret(token, "iamsvcacc/1234567890_svc_vault_test5/secret_1", iamServiceAccountName, iamServiceAccountSecret)).thenReturn(true);
+		when(iamServiceAccountUtils.updateIAMSvcAccNewAccessKeyIdInMetadata(eq(token), eq(awsAccountId), eq(iamServiceAccountName), eq(accessKeyId), Mockito.any())).thenReturn(responseNoContent);
+		when(iamServiceAccountUtils.updateActivatedStatusInMetadata(token, iamServiceAccountName, awsAccountId)).thenReturn(responseNoContent);
+
+
+		// Add User to Service Account
+		Response userResponse = getMockResponse(HttpStatus.OK, true,
+				"{\"data\":{\"bound_cidrs\":[],\"max_ttl\":0,\"policies\":[\"default\"],\"ttl\":0,\"groups\":\"admin\"}}");
+		Response ldapConfigureResponse = getMockResponse(HttpStatus.NO_CONTENT, true, "{\"policies\":null}");
+		when(reqProcessor.process("/auth/ldap/users", "{\"username\":\"normaluser\"}", token)).thenReturn(userResponse);
+
+		try {
+			List<String> resList = new ArrayList<>();
+			resList.add("default");
+			when(ControllerUtil.getPoliciesAsListFromJson(any(), any())).thenReturn(resList);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		when(ControllerUtil.configureLDAPUser(eq("normaluser"), any(), any(), eq(token)))
+				.thenReturn(ldapConfigureResponse);
+		when(ControllerUtil.updateMetadata(any(), any())).thenReturn(responseNoContent);
+
+		ResponseEntity<String> expectedResponse =  ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"IAM Service account activated successfully\"]}");
+		ResponseEntity<String> actualResponse = iamServiceAccountsService.activateIAMServiceAccount(token, userDetails, iamServiceAccountName, awsAccountId);
+		assertEquals(expectedResponse, actualResponse);
+	}
+
+	@Test
+	public void test_activateIAMServiceAccount_failed_403() {
+
+		String iamServiceAccountName = "svc_vault_test5";
+		String token = "123123123123";
+		String awsAccountId = "1234567890";
+		String [] policies = {"defaullt"};
+		when(tokenUtils.getSelfServiceToken()).thenReturn(token);
+		when(policyUtils.getCurrentPolicies(token, userDetails.getUsername(), userDetails)).thenReturn(policies);
+
+		ResponseEntity<String> expectedResponse =  ResponseEntity.status(HttpStatus.FORBIDDEN).body("{\"errors\":[\"Access denied: No permission to activate this IAM service account\"]}");
+		ResponseEntity<String> actualResponse = iamServiceAccountsService.activateIAMServiceAccount(token, userDetails, iamServiceAccountName, awsAccountId);
+		assertEquals(expectedResponse, actualResponse);
+	}
+
+	@Test
+	public void test_activateIAMServiceAccount_failure_already_activated() {
+
+		String iamServiceAccountName = "svc_vault_test5";
+		String token = "123123123123";
+		String awsAccountId = "1234567890";
+		String [] policies = {"o_iamsvcacc_1234567890_svc_vault_test5"};
+		String iamMetaDataStrActivated = "{ \"data\": {\"userName\": \"svc_vault_test5\", \"awsAccountId\": \"1234567890\", \"awsAccountName\": \"testaccount1\", \"createdAtEpoch\": 1609754282000, \"owner_ntid\": \"normaluser\", \"owner_email\": \"normaluser@testmail.com\", \"application_id\": \"app1\", \"application_name\": \"App1\", \"application_tag\": \"App1\", \"isActivated\": true, \"secret\":[{\"accessKeyId\":\"testaccesskey\", \"expiryDuration\":12345}]}, \"path\": \"iamsvcacc/1234567890_svc_vault_test5\"}";
+		when(tokenUtils.getSelfServiceToken()).thenReturn(token);
+		Response metaActivatedResponse = getMockResponse(HttpStatus.OK, true, iamMetaDataStrActivated);
+		when(policyUtils.getCurrentPolicies(token, userDetails.getUsername(), userDetails)).thenReturn(policies);
+
+		when(reqProcessor.process(eq("/sdb"), Mockito.any(), eq(token))).thenReturn(metaActivatedResponse);
+
+		ResponseEntity<String> expectedResponse =  ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Service Account is already activated. You can now grant permissions from Permissions menu\"]}");
+		ResponseEntity<String> actualResponse = iamServiceAccountsService.activateIAMServiceAccount(token, userDetails, iamServiceAccountName, awsAccountId);
+		assertEquals(expectedResponse, actualResponse);
+	}
+
+	@Test
+	public void test_activateIAMServiceAccount_failed_owner_association() {
+
+		String iamServiceAccountName = "svc_vault_test5";
+		String token = "123123123123";
+		String awsAccountId = "1234567890";
+		String path = "metadata/iamsvcacc/1234567890_svc_vault_test5";
+		String iamSecret = "abcdefgh";
+		String accessKeyId = "testaccesskey";
+		String [] policies = {"o_iamsvcacc_1234567890_svc_vault_test5"};
+		Response responseNoContent = getMockResponse(HttpStatus.NO_CONTENT, true, "");
+		String iamMetaDataStr = "{ \"data\": {\"userName\": \"svc_vault_test5\", \"awsAccountId\": \"1234567890\", \"awsAccountName\": \"testaccount1\", \"createdAtEpoch\": 1609754282000, \"owner_email\": \"normaluser@testmail.com\", \"application_id\": \"app1\", \"application_name\": \"App1\", \"application_tag\": \"App1\", \"isActivated\": false, \"secret\":[{\"accessKeyId\":\"testaccesskey\", \"expiryDuration\":12345}]}, \"path\": \"iamsvcacc/1234567890_svc_vault_test5\"}";
+		String iamMetaDataStrActivated = "{ \"data\": {\"userName\": \"svc_vault_test5\", \"awsAccountId\": \"1234567890\", \"awsAccountName\": \"testaccount1\", \"createdAtEpoch\": 1609754282000, \"owner_ntid\": \"normaluser\", \"owner_email\": \"normaluser@testmail.com\", \"application_id\": \"app1\", \"application_name\": \"App1\", \"application_tag\": \"App1\", \"isActivated\": true, \"secret\":[{\"accessKeyId\":\"testaccesskey\", \"expiryDuration\":12345}]}, \"path\": \"iamsvcacc/1234567890_svc_vault_test5\"}";
+
+		Response metaResponse = getMockResponse(HttpStatus.OK, true, iamMetaDataStr);
+		Response metaActivatedResponse = getMockResponse(HttpStatus.OK, true, iamMetaDataStrActivated);
+		when(tokenUtils.getSelfServiceToken()).thenReturn(token);
+		when(policyUtils.getCurrentPolicies(token, userDetails.getUsername(), userDetails)).thenReturn(policies);
+
+		when(reqProcessor.process(eq("/sdb"), Mockito.any(), eq(token))).thenAnswer(new Answer() {
+			private int count = 0;
+
+			public Object answer(InvocationOnMock invocation) {
+				if (count++ == 1)
+					return metaActivatedResponse;
+
+				return metaResponse;
+			}
+		});
+
+		when(reqProcessor.process("/read", "{\"path\":\""+path+"\"}", token)).thenReturn(getMockResponse(HttpStatus.OK, true,
+				iamMetaDataStr));
+
+		IAMServiceAccountSecret iamServiceAccountSecret = new IAMServiceAccountSecret(iamServiceAccountName, accessKeyId, iamSecret, 1609754282000L, awsAccountId);
+		when(iamServiceAccountUtils.rotateIAMSecret(Mockito.any())).thenReturn(iamServiceAccountSecret);
+		when(iamServiceAccountUtils.writeIAMSvcAccSecret(token, "iamsvcacc/1234567890_svc_vault_test5/secret_1", iamServiceAccountName, iamServiceAccountSecret)).thenReturn(true);
+		when(iamServiceAccountUtils.updateIAMSvcAccNewAccessKeyIdInMetadata(eq(token), eq(awsAccountId), eq(iamServiceAccountName), eq(accessKeyId), Mockito.any())).thenReturn(responseNoContent);
+		when(iamServiceAccountUtils.updateActivatedStatusInMetadata(token, iamServiceAccountName, awsAccountId)).thenReturn(responseNoContent);
+
+		ResponseEntity<String> expectedResponse =  ResponseEntity.status(HttpStatus.OK).body("{\"errors\":[\"Failed to activate IAM Service account. IAM secrets are rotated and saved in T-Vault. However failed to add permission to owner. Owner info not found in Metadata.\"]}");
+		ResponseEntity<String> actualResponse = iamServiceAccountsService.activateIAMServiceAccount(token, userDetails, iamServiceAccountName, awsAccountId);
+		assertEquals(expectedResponse, actualResponse);
+	}
+
+	@Test
+	public void test_activateIAMServiceAccount_failed_add_user() {
+
+		String iamServiceAccountName = "svc_vault_test5";
+		String token = "123123123123";
+		String awsAccountId = "1234567890";
+		String path = "metadata/iamsvcacc/1234567890_svc_vault_test5";
+		String iamSecret = "abcdefgh";
+		String accessKeyId = "testaccesskey";
+		String [] policies = {"o_iamsvcacc_1234567890_svc_vault_test5"};
+		Response responseNoContent = getMockResponse(HttpStatus.NO_CONTENT, true, "");
+		String iamMetaDataStr = "{ \"data\": {\"userName\": \"svc_vault_test5\", \"awsAccountId\": \"1234567890\", \"awsAccountName\": \"testaccount1\", \"createdAtEpoch\": 1609754282000, \"owner_ntid\": \"normaluser\", \"owner_email\": \"normaluser@testmail.com\", \"application_id\": \"app1\", \"application_name\": \"App1\", \"application_tag\": \"App1\", \"isActivated\": false, \"secret\":[{\"accessKeyId\":\"testaccesskey\", \"expiryDuration\":12345}]}, \"path\": \"iamsvcacc/1234567890_svc_vault_test5\"}";
+		String iamMetaDataStrActivated = "{ \"data\": {\"userName\": \"svc_vault_test5\", \"awsAccountId\": \"1234567890\", \"awsAccountName\": \"testaccount1\", \"createdAtEpoch\": 1609754282000, \"owner_ntid\": \"normaluser\", \"owner_email\": \"normaluser@testmail.com\", \"application_id\": \"app1\", \"application_name\": \"App1\", \"application_tag\": \"App1\", \"isActivated\": true, \"secret\":[{\"accessKeyId\":\"testaccesskey\", \"expiryDuration\":12345}]}, \"path\": \"iamsvcacc/1234567890_svc_vault_test5\"}";
+
+		Response metaResponse = getMockResponse(HttpStatus.OK, true, iamMetaDataStr);
+		Response metaActivatedResponse = getMockResponse(HttpStatus.OK, true, iamMetaDataStrActivated);
+		when(tokenUtils.getSelfServiceToken()).thenReturn(token);
+		when(policyUtils.getCurrentPolicies(token, userDetails.getUsername(), userDetails)).thenReturn(policies);
+
+		when(reqProcessor.process(eq("/sdb"), Mockito.any(), eq(token))).thenAnswer(new Answer() {
+			private int count = 0;
+
+			public Object answer(InvocationOnMock invocation) {
+				if (count++ == 1)
+					return metaActivatedResponse;
+
+				return metaResponse;
+			}
+		});
+
+		when(reqProcessor.process("/read", "{\"path\":\""+path+"\"}", token)).thenReturn(getMockResponse(HttpStatus.OK, true,
+				iamMetaDataStr));
+
+		IAMServiceAccountSecret iamServiceAccountSecret = new IAMServiceAccountSecret(iamServiceAccountName, accessKeyId, iamSecret, 1609754282000L, awsAccountId);
+
+		when(iamServiceAccountUtils.rotateIAMSecret(Mockito.any())).thenReturn(iamServiceAccountSecret);
+		when(iamServiceAccountUtils.writeIAMSvcAccSecret(token, "iamsvcacc/1234567890_svc_vault_test5/secret_1", iamServiceAccountName, iamServiceAccountSecret)).thenReturn(true);
+		when(iamServiceAccountUtils.updateIAMSvcAccNewAccessKeyIdInMetadata(eq(token), eq(awsAccountId), eq(iamServiceAccountName), eq(accessKeyId), Mockito.any())).thenReturn(responseNoContent);
+		when(iamServiceAccountUtils.updateActivatedStatusInMetadata(token, iamServiceAccountName, awsAccountId)).thenReturn(responseNoContent);
+
+
+		// Add User to Service Account
+		Response userResponse = getMockResponse(HttpStatus.OK, true,
+				"{\"data\":{\"bound_cidrs\":[],\"max_ttl\":0,\"policies\":[\"default\"],\"ttl\":0,\"groups\":\"admin\"}}");
+		Response ldapConfigureResponse = getMockResponse(HttpStatus.INTERNAL_SERVER_ERROR, true, "{\"policies\":null}");
+		when(reqProcessor.process("/auth/ldap/users", "{\"username\":\"normaluser\"}", token)).thenReturn(userResponse);
+
+		try {
+			List<String> resList = new ArrayList<>();
+			resList.add("default");
+			when(ControllerUtil.getPoliciesAsListFromJson(any(), any())).thenReturn(resList);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		when(ControllerUtil.configureLDAPUser(eq("normaluser"), any(), any(), eq(token)))
+				.thenReturn(ldapConfigureResponse);
+
+		ResponseEntity<String> expectedResponse =  ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Failed to activate IAM Service account. IAM secrets are rotated and saved in T-Vault. However owner permission update failed.\"]}");
+		ResponseEntity<String> actualResponse = iamServiceAccountsService.activateIAMServiceAccount(token, userDetails, iamServiceAccountName, awsAccountId);
+		assertEquals(expectedResponse, actualResponse);
+	}
+
+	@Test
+	public void test_activateIAMServiceAccount_failed_to_save_secret() {
+
+		String iamServiceAccountName = "svc_vault_test5";
+		String token = "123123123123";
+		String awsAccountId = "1234567890";
+		String path = "metadata/iamsvcacc/1234567890_svc_vault_test5";
+		String [] policies = {"o_iamsvcacc_1234567890_svc_vault_test5"};
+		String iamMetaDataStr = "{ \"data\": {\"userName\": \"svc_vault_test5\", \"awsAccountId\": \"1234567890\", \"awsAccountName\": \"testaccount1\", \"createdAtEpoch\": 1609754282000, \"owner_ntid\": \"normaluser\", \"owner_email\": \"normaluser@testmail.com\", \"application_id\": \"app1\", \"application_name\": \"App1\", \"application_tag\": \"App1\", \"isActivated\": false, \"secret\":[{\"accessKeyId\":\"testaccesskey\", \"expiryDuration\":12345}]}, \"path\": \"iamsvcacc/1234567890_svc_vault_test5\"}";
+		String iamMetaDataStrActivated = "{ \"data\": {\"userName\": \"svc_vault_test5\", \"awsAccountId\": \"1234567890\", \"awsAccountName\": \"testaccount1\", \"createdAtEpoch\": 1609754282000, \"owner_ntid\": \"normaluser\", \"owner_email\": \"normaluser@testmail.com\", \"application_id\": \"app1\", \"application_name\": \"App1\", \"application_tag\": \"App1\", \"isActivated\": true, \"secret\":[{\"accessKeyId\":\"testaccesskey\", \"expiryDuration\":12345}]}, \"path\": \"iamsvcacc/1234567890_svc_vault_test5\"}";
+
+		Response metaResponse = getMockResponse(HttpStatus.OK, true, iamMetaDataStr);
+		Response metaActivatedResponse = getMockResponse(HttpStatus.OK, true, iamMetaDataStrActivated);
+		when(tokenUtils.getSelfServiceToken()).thenReturn(token);
+		when(policyUtils.getCurrentPolicies(token, userDetails.getUsername(), userDetails)).thenReturn(policies);
+
+		when(reqProcessor.process(eq("/sdb"), Mockito.any(), eq(token))).thenAnswer(new Answer() {
+			private int count = 0;
+
+			public Object answer(InvocationOnMock invocation) {
+				if (count++ == 1)
+					return metaActivatedResponse;
+
+				return metaResponse;
+			}
+		});
+
+		when(reqProcessor.process("/read", "{\"path\":\""+path+"\"}", token)).thenReturn(getMockResponse(HttpStatus.OK, true,
+				iamMetaDataStr));
+
+		when(iamServiceAccountUtils.rotateIAMSecret(Mockito.any())).thenReturn(null);
+
+
+		ResponseEntity<String> expectedResponse =  ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Failed to activate IAM Service account. Failed to save one or more IAM secrets.\"]}");
+		ResponseEntity<String> actualResponse = iamServiceAccountsService.activateIAMServiceAccount(token, userDetails, iamServiceAccountName, awsAccountId);
+		assertEquals(expectedResponse, actualResponse);
+	}
+
+	@Test
+	public void test_activateIAMServiceAccount_failed_metadata_update() {
+
+		String iamServiceAccountName = "svc_vault_test5";
+		String token = "123123123123";
+		String awsAccountId = "1234567890";
+		String path = "metadata/iamsvcacc/1234567890_svc_vault_test5";
+		String iamSecret = "abcdefgh";
+		String accessKeyId = "testaccesskey";
+		String [] policies = {"o_iamsvcacc_1234567890_svc_vault_test5"};
+		Response responseNoContent = getMockResponse(HttpStatus.NO_CONTENT, true, "");
+		String iamMetaDataStr = "{ \"data\": {\"userName\": \"svc_vault_test5\", \"awsAccountId\": \"1234567890\", \"awsAccountName\": \"testaccount1\", \"createdAtEpoch\": 1609754282000, \"owner_ntid\": \"normaluser\", \"owner_email\": \"normaluser@testmail.com\", \"application_id\": \"app1\", \"application_name\": \"App1\", \"application_tag\": \"App1\", \"isActivated\": false, \"secret\":[{\"accessKeyId\":\"testaccesskey\", \"expiryDuration\":12345}]}, \"path\": \"iamsvcacc/1234567890_svc_vault_test5\"}";
+		String iamMetaDataStrActivated = "{ \"data\": {\"userName\": \"svc_vault_test5\", \"awsAccountId\": \"1234567890\", \"awsAccountName\": \"testaccount1\", \"createdAtEpoch\": 1609754282000, \"owner_ntid\": \"normaluser\", \"owner_email\": \"normaluser@testmail.com\", \"application_id\": \"app1\", \"application_name\": \"App1\", \"application_tag\": \"App1\", \"isActivated\": true, \"secret\":[{\"accessKeyId\":\"testaccesskey\", \"expiryDuration\":12345}]}, \"path\": \"iamsvcacc/1234567890_svc_vault_test5\"}";
+
+		Response metaResponse = getMockResponse(HttpStatus.OK, true, iamMetaDataStr);
+		Response metaActivatedResponse = getMockResponse(HttpStatus.OK, true, iamMetaDataStrActivated);
+		when(tokenUtils.getSelfServiceToken()).thenReturn(token);
+		when(policyUtils.getCurrentPolicies(token, userDetails.getUsername(), userDetails)).thenReturn(policies);
+
+		when(reqProcessor.process(eq("/sdb"), Mockito.any(), eq(token))).thenAnswer(new Answer() {
+			private int count = 0;
+
+			public Object answer(InvocationOnMock invocation) {
+				if (count++ == 1)
+					return metaActivatedResponse;
+
+				return metaResponse;
+			}
+		});
+
+		when(reqProcessor.process("/read", "{\"path\":\""+path+"\"}", token)).thenReturn(getMockResponse(HttpStatus.OK, true,
+				iamMetaDataStr));
+
+		IAMServiceAccountSecret iamServiceAccountSecret = new IAMServiceAccountSecret(iamServiceAccountName, accessKeyId, iamSecret, 1609754282000L, awsAccountId);
+
+		when(iamServiceAccountUtils.rotateIAMSecret(Mockito.any())).thenReturn(iamServiceAccountSecret);
+		when(iamServiceAccountUtils.writeIAMSvcAccSecret(token, "iamsvcacc/1234567890_svc_vault_test5/secret_1", iamServiceAccountName, iamServiceAccountSecret)).thenReturn(true);
+		when(iamServiceAccountUtils.updateIAMSvcAccNewAccessKeyIdInMetadata(eq(token), eq(awsAccountId), eq(iamServiceAccountName), eq(accessKeyId), Mockito.any())).thenReturn(responseNoContent);
+		when(iamServiceAccountUtils.updateActivatedStatusInMetadata(token, iamServiceAccountName, awsAccountId)).thenReturn(getMockResponse(HttpStatus.INTERNAL_SERVER_ERROR, false, ""));
+
+		ResponseEntity<String> expectedResponse =  ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Failed to activate IAM Service account. IAM secrets are rotated and saved in T-Vault. However metadata update failed.\"]}");
+		ResponseEntity<String> actualResponse = iamServiceAccountsService.activateIAMServiceAccount(token, userDetails, iamServiceAccountName, awsAccountId);
+		assertEquals(expectedResponse, actualResponse);
+	}
+
+	@Test
+	public void test_rotateIAMServiceAccount_successfull() {
+
+		String iamServiceAccountName = "svc_vault_test5";
+		String token = "123123123123";
+		String awsAccountId = "1234567890";
+		String path = "metadata/iamsvcacc/1234567890_svc_vault_test5";
+		String iamSecret = "abcdefgh";
+		String accessKeyId = "testaccesskey";
+		Response responseNoContent = getMockResponse(HttpStatus.NO_CONTENT, true, "");
+		String iamMetaDataStr = "{ \"data\": {\"userName\": \"svc_vault_test5\", \"awsAccountId\": \"1234567890\", \"awsAccountName\": \"testaccount1\", \"createdAtEpoch\": 1609754282000, \"owner_ntid\": \"normaluser\", \"owner_email\": \"normaluser@testmail.com\", \"application_id\": \"app1\", \"application_name\": \"App1\", \"application_tag\": \"App1\", \"isActivated\": false, \"secret\":[{\"accessKeyId\":\"testaccesskey\", \"expiryDuration\":12345}]}, \"path\": \"iamsvcacc/1234567890_svc_vault_test5\"}";
+		String iamMetaDataStrActivated = "{ \"data\": {\"userName\": \"svc_vault_test5\", \"awsAccountId\": \"1234567890\", \"awsAccountName\": \"testaccount1\", \"createdAtEpoch\": 1609754282000, \"owner_ntid\": \"normaluser\", \"owner_email\": \"normaluser@testmail.com\", \"application_id\": \"app1\", \"application_name\": \"App1\", \"application_tag\": \"App1\", \"isActivated\": true, \"secret\":[{\"accessKeyId\":\"testaccesskey\", \"expiryDuration\":12345}]}, \"path\": \"iamsvcacc/1234567890_svc_vault_test5\"}";
+
+
+		// Mock approle permission check
+		Response lookupResponse = getMockResponse(HttpStatus.OK, true, "{\"policies\":[\"w_iamsvcacc_1234567890_svc_vault_test5 \"]}");
+		when(reqProcessor.process("/auth/tvault/lookup","{}", token)).thenReturn(lookupResponse);
+		List<String> currentPolicies = new ArrayList<>();
+		currentPolicies.add("w_iamsvcacc_1234567890_svc_vault_test5");
+		try {
+			when(iamServiceAccountUtils.getTokenPoliciesAsListFromTokenLookupJson(Mockito.any(),Mockito.any())).thenReturn(currentPolicies);
+			when(iamServiceAccountUtils.getIdentityPoliciesAsListFromTokenLookupJson(Mockito.any(),Mockito.any())).thenReturn(new ArrayList<>());
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+
+		when(tokenUtils.getSelfServiceToken()).thenReturn(token);
+
+		when(reqProcessor.process("/read", "{\"path\":\""+path+"\"}", token)).thenReturn(getMockResponse(HttpStatus.OK, true,
+				iamMetaDataStr));
+
+		IAMServiceAccountSecret iamServiceAccountSecret = new IAMServiceAccountSecret(iamServiceAccountName, accessKeyId, iamSecret, 1609754282000L, awsAccountId);
+
+		when(iamServiceAccountUtils.rotateIAMSecret(Mockito.any())).thenReturn(iamServiceAccountSecret);
+		when(iamServiceAccountUtils.writeIAMSvcAccSecret(token, "iamsvcacc/1234567890_svc_vault_test5/secret_1", iamServiceAccountName, iamServiceAccountSecret)).thenReturn(true);
+		when(iamServiceAccountUtils.updateIAMSvcAccNewAccessKeyIdInMetadata(eq(token), eq(awsAccountId), eq(iamServiceAccountName), eq(accessKeyId), Mockito.any())).thenReturn(responseNoContent);
+		when(iamServiceAccountUtils.updateActivatedStatusInMetadata(token, iamServiceAccountName, awsAccountId)).thenReturn(responseNoContent);
+
+		ResponseEntity<String> expectedResponse =  ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"IAM Service account activated successfully\"]}");
+		IAMServiceAccountRotateRequest iamServiceAccountRotateRequest = new IAMServiceAccountRotateRequest(accessKeyId, iamServiceAccountName, awsAccountId);
+		ResponseEntity<String> actualResponse = iamServiceAccountsService.rotateIAMServiceAccount(token, userDetails, iamServiceAccountRotateRequest);
+		assertEquals(expectedResponse, actualResponse);
+	}
+
+	@Test
+	public void test_rotateIAMServiceAccount_failed_403() {
+
+		String iamServiceAccountName = "svc_vault_test5";
+		String token = "123123123123";
+		String awsAccountId = "1234567890";
+		String accessKeyId = "testaccesskey";
+
+		// Mock approle permission check
+		Response lookupResponse = getMockResponse(HttpStatus.OK, true, "{\"policies\":[\"w_iamsvcacc_1234567890_svc_vault_test1 \"]}");
+		when(reqProcessor.process("/auth/tvault/lookup","{}", token)).thenReturn(lookupResponse);
+		List<String> currentPolicies = new ArrayList<>();
+		currentPolicies.add("w_iamsvcacc_1234567890_svc_vault_test1");
+		try {
+			when(iamServiceAccountUtils.getTokenPoliciesAsListFromTokenLookupJson(Mockito.any(),Mockito.any())).thenReturn(currentPolicies);
+			when(iamServiceAccountUtils.getIdentityPoliciesAsListFromTokenLookupJson(Mockito.any(),Mockito.any())).thenReturn(new ArrayList<>());
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+
+		ResponseEntity<String> expectedResponse =  ResponseEntity.status(HttpStatus.FORBIDDEN).body("{\"errors\":[\"Access denied: No permission to rotate secret for IAM service account.\"]}");
+		IAMServiceAccountRotateRequest iamServiceAccountRotateRequest = new IAMServiceAccountRotateRequest(accessKeyId, iamServiceAccountName, awsAccountId);
+		ResponseEntity<String> actualResponse = iamServiceAccountsService.rotateIAMServiceAccount(token, userDetails, iamServiceAccountRotateRequest);
+		assertEquals(expectedResponse, actualResponse);
+	}
+
+	@Test
+	public void test_rotateIAMServiceAccount_faile_to_rotate_secret() {
+
+		String iamServiceAccountName = "svc_vault_test5";
+		String token = "123123123123";
+		String awsAccountId = "1234567890";
+		String path = "metadata/iamsvcacc/1234567890_svc_vault_test5";
+		String iamSecret = "abcdefgh";
+		String accessKeyId = "testaccesskey";
+		Response responseNoContent = getMockResponse(HttpStatus.NO_CONTENT, true, "");
+		String iamMetaDataStr = "{ \"data\": {\"userName\": \"svc_vault_test5\", \"awsAccountId\": \"1234567890\", \"awsAccountName\": \"testaccount1\", \"createdAtEpoch\": 1609754282000, \"owner_ntid\": \"normaluser\", \"owner_email\": \"normaluser@testmail.com\", \"application_id\": \"app1\", \"application_name\": \"App1\", \"application_tag\": \"App1\", \"isActivated\": false, \"secret\":[{\"accessKeyId\":\"testaccesskey\", \"expiryDuration\":12345}]}, \"path\": \"iamsvcacc/1234567890_svc_vault_test5\"}";
+		String iamMetaDataStrActivated = "{ \"data\": {\"userName\": \"svc_vault_test5\", \"awsAccountId\": \"1234567890\", \"awsAccountName\": \"testaccount1\", \"createdAtEpoch\": 1609754282000, \"owner_ntid\": \"normaluser\", \"owner_email\": \"normaluser@testmail.com\", \"application_id\": \"app1\", \"application_name\": \"App1\", \"application_tag\": \"App1\", \"isActivated\": true, \"secret\":[{\"accessKeyId\":\"testaccesskey\", \"expiryDuration\":12345}]}, \"path\": \"iamsvcacc/1234567890_svc_vault_test5\"}";
+
+
+		// Mock approle permission check
+		Response lookupResponse = getMockResponse(HttpStatus.OK, true, "{\"policies\":[\"w_iamsvcacc_1234567890_svc_vault_test5 \"]}");
+		when(reqProcessor.process("/auth/tvault/lookup","{}", token)).thenReturn(lookupResponse);
+		List<String> currentPolicies = new ArrayList<>();
+		currentPolicies.add("w_iamsvcacc_1234567890_svc_vault_test5");
+		try {
+			when(iamServiceAccountUtils.getTokenPoliciesAsListFromTokenLookupJson(Mockito.any(),Mockito.any())).thenReturn(currentPolicies);
+			when(iamServiceAccountUtils.getIdentityPoliciesAsListFromTokenLookupJson(Mockito.any(),Mockito.any())).thenReturn(new ArrayList<>());
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+
+		when(tokenUtils.getSelfServiceToken()).thenReturn(token);
+
+		when(reqProcessor.process("/read", "{\"path\":\""+path+"\"}", token)).thenReturn(getMockResponse(HttpStatus.OK, true,
+				iamMetaDataStr));
+
+		IAMServiceAccountSecret iamServiceAccountSecret = new IAMServiceAccountSecret(iamServiceAccountName, accessKeyId, iamSecret, 1609754282000L, awsAccountId);
+
+		when(iamServiceAccountUtils.rotateIAMSecret(Mockito.any())).thenReturn(null);
+		when(iamServiceAccountUtils.writeIAMSvcAccSecret(token, "iamsvcacc/1234567890_svc_vault_test5/secret_1", iamServiceAccountName, iamServiceAccountSecret)).thenReturn(true);
+		when(iamServiceAccountUtils.updateIAMSvcAccNewAccessKeyIdInMetadata(eq(token), eq(awsAccountId), eq(iamServiceAccountName), eq(accessKeyId), Mockito.any())).thenReturn(responseNoContent);
+		when(iamServiceAccountUtils.updateActivatedStatusInMetadata(token, iamServiceAccountName, awsAccountId)).thenReturn(responseNoContent);
+
+		ResponseEntity<String> expectedResponse =  ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Failed to rotate secret for IAM Service account Access Key Id\"]}");
+		IAMServiceAccountRotateRequest iamServiceAccountRotateRequest = new IAMServiceAccountRotateRequest(accessKeyId, iamServiceAccountName, awsAccountId);
+		ResponseEntity<String> actualResponse = iamServiceAccountsService.rotateIAMServiceAccount(token, userDetails, iamServiceAccountRotateRequest);
+		assertEquals(expectedResponse, actualResponse);
+	}
+
+	@Test
+	public void test_addUserToIAMServiceAccount_successfull() {
+
+		String iamServiceAccountName = "svc_vault_test5";
+		String token = "123123123123";
+		String awsAccountId = "1234567890";
+		String path = "metadata/iamsvcacc/1234567890_svc_vault_test5";
+		String iamSecret = "abcdefgh";
+		String accessKeyId = "testaccesskey";
+		String [] policies = {"o_iamsvcacc_1234567890_svc_vault_test5"};
+		Response responseNoContent = getMockResponse(HttpStatus.NO_CONTENT, true, "");
+		String iamMetaDataStr = "{ \"data\": {\"userName\": \"svc_vault_test5\", \"awsAccountId\": \"1234567890\", \"awsAccountName\": \"testaccount1\", \"createdAtEpoch\": 1609754282000, \"owner_ntid\": \"normaluser\", \"owner_email\": \"normaluser@testmail.com\", \"application_id\": \"app1\", \"application_name\": \"App1\", \"application_tag\": \"App1\", \"isActivated\": false, \"secret\":[{\"accessKeyId\":\"testaccesskey\", \"expiryDuration\":12345}]}, \"path\": \"iamsvcacc/1234567890_svc_vault_test5\"}";
+		String iamMetaDataStrActivated = "{ \"data\": {\"userName\": \"svc_vault_test5\", \"awsAccountId\": \"1234567890\", \"awsAccountName\": \"testaccount1\", \"createdAtEpoch\": 1609754282000, \"owner_ntid\": \"normaluser\", \"owner_email\": \"normaluser@testmail.com\", \"application_id\": \"app1\", \"application_name\": \"App1\", \"application_tag\": \"App1\", \"isActivated\": true, \"secret\":[{\"accessKeyId\":\"testaccesskey\", \"expiryDuration\":12345}]}, \"path\": \"iamsvcacc/1234567890_svc_vault_test5\"}";
+
+		Response metaResponse = getMockResponse(HttpStatus.OK, true, iamMetaDataStr);
+		Response metaActivatedResponse = getMockResponse(HttpStatus.OK, true, iamMetaDataStrActivated);
+		when(tokenUtils.getSelfServiceToken()).thenReturn(token);
+		when(policyUtils.getCurrentPolicies(token, userDetails.getUsername(), userDetails)).thenReturn(policies);
+
+		when(reqProcessor.process(eq("/sdb"), Mockito.any(), eq(token))).thenReturn(metaActivatedResponse);
+
+		when(reqProcessor.process("/read", "{\"path\":\""+path+"\"}", token)).thenReturn(getMockResponse(HttpStatus.OK, true,
+				iamMetaDataStr));
+
+		IAMServiceAccountSecret iamServiceAccountSecret = new IAMServiceAccountSecret(iamServiceAccountName, accessKeyId, iamSecret, 1609754282000L, awsAccountId);
+
+		when(iamServiceAccountUtils.rotateIAMSecret(Mockito.any())).thenReturn(iamServiceAccountSecret);
+		when(iamServiceAccountUtils.writeIAMSvcAccSecret(token, "iamsvcacc/1234567890_svc_vault_test5/secret_1", iamServiceAccountName, iamServiceAccountSecret)).thenReturn(true);
+		when(iamServiceAccountUtils.updateIAMSvcAccNewAccessKeyIdInMetadata(eq(token), eq(awsAccountId), eq(iamServiceAccountName), eq(accessKeyId), Mockito.any())).thenReturn(responseNoContent);
+		when(iamServiceAccountUtils.updateActivatedStatusInMetadata(token, iamServiceAccountName, awsAccountId)).thenReturn(responseNoContent);
+
+
+		// Add User to Service Account
+		Response userResponse = getMockResponse(HttpStatus.OK, true,
+				"{\"data\":{\"bound_cidrs\":[],\"max_ttl\":0,\"policies\":[\"default\"],\"ttl\":0,\"groups\":\"admin\"}}");
+		Response ldapConfigureResponse = getMockResponse(HttpStatus.NO_CONTENT, true, "{\"policies\":null}");
+		when(reqProcessor.process("/auth/ldap/users", "{\"username\":\"normaluser\"}", token)).thenReturn(userResponse);
+
+		try {
+			List<String> resList = new ArrayList<>();
+			resList.add("default");
+			when(ControllerUtil.getPoliciesAsListFromJson(any(), any())).thenReturn(resList);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		when(ControllerUtil.configureLDAPUser(eq("normaluser"), any(), any(), eq(token)))
+				.thenReturn(ldapConfigureResponse);
+		when(ControllerUtil.updateMetadata(any(), any())).thenReturn(responseNoContent);
+
+		ResponseEntity<String> expectedResponse =  ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Successfully added user to the IAM Service Account\"]}");
+		IAMServiceAccountUser iamServiceAccountUser =  new IAMServiceAccountUser(iamServiceAccountName, "normaluser", "read",awsAccountId);
+		ResponseEntity<String> actualResponse = iamServiceAccountsService.addUserToIAMServiceAccount(token, userDetails, iamServiceAccountUser, false);
+		assertEquals(expectedResponse, actualResponse);
+	}
+
+	@Test
+	public void test_addUserToIAMServiceAccount_successfull_oidc() {
+
+		String iamServiceAccountName = "svc_vault_test5";
+		String token = "123123123123";
+		String awsAccountId = "1234567890";
+		String path = "metadata/iamsvcacc/1234567890_svc_vault_test5";
+		String iamSecret = "abcdefgh";
+		String accessKeyId = "testaccesskey";
+		String [] policies = {"o_iamsvcacc_1234567890_svc_vault_test5"};
+		Response responseNoContent = getMockResponse(HttpStatus.NO_CONTENT, true, "");
+		String iamMetaDataStr = "{ \"data\": {\"userName\": \"svc_vault_test5\", \"awsAccountId\": \"1234567890\", \"awsAccountName\": \"testaccount1\", \"createdAtEpoch\": 1609754282000, \"owner_ntid\": \"normaluser\", \"owner_email\": \"normaluser@testmail.com\", \"application_id\": \"app1\", \"application_name\": \"App1\", \"application_tag\": \"App1\", \"isActivated\": false, \"secret\":[{\"accessKeyId\":\"testaccesskey\", \"expiryDuration\":12345}]}, \"path\": \"iamsvcacc/1234567890_svc_vault_test5\"}";
+		String iamMetaDataStrActivated = "{ \"data\": {\"userName\": \"svc_vault_test5\", \"awsAccountId\": \"1234567890\", \"awsAccountName\": \"testaccount1\", \"createdAtEpoch\": 1609754282000, \"owner_ntid\": \"normaluser\", \"owner_email\": \"normaluser@testmail.com\", \"application_id\": \"app1\", \"application_name\": \"App1\", \"application_tag\": \"App1\", \"isActivated\": true, \"secret\":[{\"accessKeyId\":\"testaccesskey\", \"expiryDuration\":12345}]}, \"path\": \"iamsvcacc/1234567890_svc_vault_test5\"}";
+
+		ReflectionTestUtils.setField(iamServiceAccountsService, "vaultAuthMethod", "oidc");
+
+		Response metaActivatedResponse = getMockResponse(HttpStatus.OK, true, iamMetaDataStrActivated);
+		when(tokenUtils.getSelfServiceToken()).thenReturn(token);
+		when(policyUtils.getCurrentPolicies(token, userDetails.getUsername(), userDetails)).thenReturn(policies);
+
+		when(reqProcessor.process(eq("/sdb"), Mockito.any(), eq(token))).thenReturn(metaActivatedResponse);
+
+		when(reqProcessor.process("/read", "{\"path\":\""+path+"\"}", token)).thenReturn(getMockResponse(HttpStatus.OK, true,
+				iamMetaDataStr));
+
+		IAMServiceAccountSecret iamServiceAccountSecret = new IAMServiceAccountSecret(iamServiceAccountName, accessKeyId, iamSecret, 1609754282000L, awsAccountId);
+
+		when(iamServiceAccountUtils.rotateIAMSecret(Mockito.any())).thenReturn(iamServiceAccountSecret);
+		when(iamServiceAccountUtils.writeIAMSvcAccSecret(token, "iamsvcacc/1234567890_svc_vault_test5/secret_1", iamServiceAccountName, iamServiceAccountSecret)).thenReturn(true);
+		when(iamServiceAccountUtils.updateIAMSvcAccNewAccessKeyIdInMetadata(eq(token), eq(awsAccountId), eq(iamServiceAccountName), eq(accessKeyId), Mockito.any())).thenReturn(responseNoContent);
+		when(iamServiceAccountUtils.updateActivatedStatusInMetadata(token, iamServiceAccountName, awsAccountId)).thenReturn(responseNoContent);
+
+		// oidc mock
+		OIDCEntityResponse oidcEntityResponse = new OIDCEntityResponse();
+		oidcEntityResponse.setEntityName("entity");
+		List<String> policies1 = new ArrayList<>();
+		policies1.add("safeadmin");
+		oidcEntityResponse.setPolicies(policies1);
+		ResponseEntity<OIDCEntityResponse> responseEntity2 = ResponseEntity.status(HttpStatus.OK)
+				.body(oidcEntityResponse);
+		when(OIDCUtil.oidcFetchEntityDetails(Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(responseEntity2);
+
+		when(OIDCUtil.updateOIDCEntity(Mockito.any(), Mockito.any())).thenReturn(getMockResponse(HttpStatus.NO_CONTENT, true, ""));
+		when(ControllerUtil.updateMetadata(any(), any())).thenReturn(responseNoContent);
+
+		ResponseEntity<String> expectedResponse =  ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Successfully added user to the IAM Service Account\"]}");
+		IAMServiceAccountUser iamServiceAccountUser =  new IAMServiceAccountUser(iamServiceAccountName, "normaluser", "read",awsAccountId);
+		ResponseEntity<String> actualResponse = iamServiceAccountsService.addUserToIAMServiceAccount(token, userDetails, iamServiceAccountUser, false);
+		assertEquals(expectedResponse, actualResponse);
+	}
 }
