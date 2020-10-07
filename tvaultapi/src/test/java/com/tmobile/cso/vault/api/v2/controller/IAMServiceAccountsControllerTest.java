@@ -28,6 +28,7 @@ import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
 
+import com.tmobile.cso.vault.api.model.*;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -44,16 +45,9 @@ import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.tmobile.cso.vault.api.model.IAMServiceAccountApprole;
-import com.tmobile.cso.vault.api.model.ServiceAccountApprole;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.tmobile.cso.vault.api.common.TVaultConstants;
-import com.tmobile.cso.vault.api.model.IAMSecrets;
-import com.tmobile.cso.vault.api.model.IAMServiceAccount;
-import com.tmobile.cso.vault.api.model.IAMServiceAccountGroup;
-import com.tmobile.cso.vault.api.model.IAMServiceAccountUser;
 
-import com.tmobile.cso.vault.api.model.UserDetails;
 import com.tmobile.cso.vault.api.service.IAMServiceAccountsService;
 
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -326,6 +320,36 @@ public class IAMServiceAccountsControllerTest {
 				.andExpect(status().isOk()).andReturn();
 		String actual = result.getResponse().getContentAsString();
 		assertEquals(responseJson, actual);
+	}
+
+	@Test
+	public void test_activateIAMServiceAccount() throws Exception {
+
+		String responseJson = "{\"messages\":[\"IAM Service account activated successfully\"]}";
+		ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(responseJson);
+		when(iamServiceAccountsService.activateIAMServiceAccount(eq("5PDrOhsy4ig8L3EpsJZSLAMg"), eq(userDetails), Mockito.any(), Mockito.any())).thenReturn(responseEntityExpected);
+
+		mockMvc.perform(MockMvcRequestBuilders.post("/v2/iamserviceaccount/activate?serviceAccountName=testiamname&awsAccountId=testawsaccount").requestAttr("UserDetails", userDetails)
+				.header("vault-token", "5PDrOhsy4ig8L3EpsJZSLAMg")
+				.header("Content-Type", "application/json;charset=UTF-8"))
+				.andExpect(status().isOk())
+				.andExpect(content().string(containsString(responseJson)));
+	}
+
+	@Test
+	public void test_rotateIAMServiceAccount() throws Exception {
+		IAMServiceAccountRotateRequest iamServiceAccountRotateRequest = new IAMServiceAccountRotateRequest("testaccesskeyid", "testiamname", "123123123123");
+		String inputJson = getJSON(iamServiceAccountRotateRequest);
+		String responseJson = "{\"messages\":[\"IAM Service account activated successfully\"]}";
+		ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(responseJson);
+		when(iamServiceAccountsService.rotateIAMServiceAccount(eq("5PDrOhsy4ig8L3EpsJZSLAMg"), eq(userDetails), Mockito.any(IAMServiceAccountRotateRequest.class))).thenReturn(responseEntityExpected);
+
+		mockMvc.perform(MockMvcRequestBuilders.post("/v2/iamserviceaccount/rotate").requestAttr("UserDetails", userDetails)
+				.header("vault-token", "5PDrOhsy4ig8L3EpsJZSLAMg")
+				.header("Content-Type", "application/json;charset=UTF-8")
+				.content(inputJson))
+				.andExpect(status().isOk())
+				.andExpect(content().string(containsString(responseJson)));
 	}
 
 }
