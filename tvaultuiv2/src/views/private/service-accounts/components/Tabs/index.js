@@ -104,12 +104,7 @@ const AccountSelectionTabs = (props) => {
             indicatorColor="secondary"
             textColor="primary"
           >
-            <Tab
-              className={classes.tab}
-              label="Secrets"
-              {...a11yProps(0)}
-              disabled={accountDetail.access === ''}
-            />
+            <Tab className={classes.tab} label="Secrets" {...a11yProps(0)} />
             <Tab
               label="Permissions"
               {...a11yProps(1)}

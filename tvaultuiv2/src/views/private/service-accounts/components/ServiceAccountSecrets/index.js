@@ -1,3 +1,4 @@
+/* eslint-disable react/jsx-one-expression-per-line */
 /* eslint-disable react/jsx-wrap-multilines */
 import React, { useState, useEffect } from 'react';
 import styled, { css } from 'styled-components';
@@ -71,6 +72,20 @@ const FolderIconWrap = styled('div')`
   }
 `;
 
+const NoPermission = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: #5a637a;
+  text-align: center;
+  span {
+    display: contents;
+    margin: 0 0.3rem;
+    color: #fff;
+  }
+`;
+
 const ServiceAccountSecrets = (props) => {
   const { accountDetail } = props;
   const [response, setResponse] = useState({ status: 'loading' });
@@ -94,24 +109,29 @@ const ServiceAccountSecrets = (props) => {
    */
   useEffect(() => {
     if (accountDetail && Object.keys(accountDetail).length > 0) {
-      apiService
-        .getServiceAccountPassword(accountDetail?.name)
-        .then((res) => {
-          setResponse({ status: 'success' });
-          if (res?.data) {
-            setSecretsData(res.data);
-          }
-        })
-        .catch((err) => {
-          if (
-            err?.response &&
-            err.response.data?.errors &&
-            err.response.data.errors[0]
-          ) {
-            setToastMessage(err.response.data.errors[0]);
-          }
-          setResponse({ status: 'error' });
-        });
+      setResponse({ status: 'loading' });
+      if (accountDetail.access !== '') {
+        apiService
+          .getServiceAccountPassword(accountDetail?.name)
+          .then((res) => {
+            setResponse({ status: 'success' });
+            if (res?.data) {
+              setSecretsData(res.data);
+            }
+          })
+          .catch((err) => {
+            if (
+              err?.response &&
+              err.response.data?.errors &&
+              err.response.data.errors[0]
+            ) {
+              setToastMessage(err.response.data.errors[0]);
+            }
+            setResponse({ status: 'error' });
+          });
+      } else {
+        setResponse({ status: 'no-permission' });
+      }
     }
   }, [accountDetail]);
 
@@ -248,6 +268,12 @@ const ServiceAccountSecrets = (props) => {
         )}
         {response.status === 'error' && (
           <Error description={toastMessage || 'Something went wrong!'} />
+        )}
+        {response.status === 'no-permission' && (
+          <NoPermission>
+            Access denied: no permission to read the password details for the{' '}
+            <span>{accountDetail.name}</span> service account.
+          </NoPermission>
         )}
         {responseType === 1 && (
           <SnackbarComponent
