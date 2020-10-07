@@ -479,9 +479,9 @@ const CreateModal = () => {
                 />
               </CancelButton>
               <ButtonComponent
-                label="Create"
+                label={!editSafe ? 'Create' : 'Edit'}
                 color="secondary"
-                icon="add"
+                icon={!editSafe ? 'add' : ''}
                 disabled={disabledSave}
                 onClick={() => (!editSafe ? onCreateSafes() : onEditSafes())}
                 width={isMobileScreen ? '100%' : ''}

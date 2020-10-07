@@ -1,9 +1,8 @@
 /* eslint-disable no-param-reassign */
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useContext } from 'react';
 import styled, { css } from 'styled-components';
 import { makeStyles } from '@material-ui/core/styles';
 import InfiniteScroll from 'react-infinite-scroller';
-import MoreVertOutlinedIcon from '@material-ui/icons/MoreVertOutlined';
 import { Link, Route, Switch, useHistory, Redirect } from 'react-router-dom';
 
 import useMediaQuery from '@material-ui/core/useMediaQuery';
@@ -31,9 +30,9 @@ import ScaledLoader from '../../../../../components/Loaders/ScaledLoader';
 import apiService from '../../apiService';
 import Strings from '../../../../../resources';
 import ButtonComponent from '../../../../../components/FormFields/ActionButton';
-import { IconEdit, IconDeleteActive } from '../../../../../assets/SvgIcons';
 import { TitleOne } from '../../../../../styles/GlobalStyles';
 import AccountSelectionTabs from '../Tabs';
+import { UserContext } from '../../../../../contexts';
 
 const ColumnSection = styled('section')`
   position: relative;
@@ -172,7 +171,7 @@ const ColumnTitleWrap = styled('div')`
   }
   margin-bottom: 0.75rem;
 `;
-const MoreWrap = styled.div``;
+const EditDeletePopperWrap = styled.div``;
 const useStyles = makeStyles(() => ({
   contained: { borderRadius: '0.4rem' },
 }));
@@ -180,7 +179,6 @@ const useStyles = makeStyles(() => ({
 const ServiceAccountDashboard = () => {
   // const [, setEnableOnBoardForm] = useState(false);
   const [inputSearchValue, setInputSearchValue] = useState('');
-  const [anchorEl, setAnchorEl] = useState(null);
   const [serviceAccountClicked, setServiceAccountClicked] = useState(false);
   const [listItemDetails, setListItemDetails] = useState({});
   const [moreData] = useState(false);
@@ -195,56 +193,60 @@ const ServiceAccountDashboard = () => {
 
   const introduction = Strings.Resources.serviceAccount;
 
+  const contextObj = useContext(UserContext);
+
   /**
    * @function fetchData
    * @description function call all the manage and safe api.
    */
   const fetchData = useCallback(async () => {
     setStatus({ status: 'loading', message: 'Loading...' });
-    const serviceList = await apiService.getServiceAccountList();
-    const serviceAccounts = await apiService.getServiceAccounts();
-    const allApiResponse = Promise.all([serviceList, serviceAccounts]);
-    allApiResponse
-      .then((response) => {
-        const listArray = [];
-        if (response[0] && response[0].data && response[0].data.svcacct) {
-          response[0].data.svcacct.map((item) => {
-            const data = {
-              name: Object.keys(item)[0],
-              access: Object.values(item)[0],
-              admin: true,
-              manage: true,
-            };
-            return listArray.push(data);
-          });
-        }
-        if (response[1] && response[1]?.data?.keys) {
-          listArray.map((item) => {
-            if (!response[1].data.keys.includes(item.name)) {
-              item.manage = false;
-            }
-            return null;
-          });
-          response[1].data.keys.map((item) => {
-            if (!listArray.some((list) => list.name === item)) {
+    if (contextObj && Object.keys(contextObj).length > 0) {
+      const serviceList = await apiService.getServiceAccountList();
+      const serviceAccounts = await apiService.getServiceAccounts();
+      const allApiResponse = Promise.all([serviceList, serviceAccounts]);
+      allApiResponse
+        .then((response) => {
+          const listArray = [];
+          if (response[0] && response[0].data && response[0].data.svcacct) {
+            response[0].data.svcacct.map((item) => {
               const data = {
-                name: item,
-                access: '',
-                admin: true,
+                name: Object.keys(item)[0],
+                access: Object.values(item)[0],
+                admin: contextObj.isAdmin,
                 manage: true,
               };
               return listArray.push(data);
-            }
-            return null;
-          });
-          setServiceAccountList([...listArray]);
-        }
-        setStatus({ status: 'success', message: '' });
-      })
-      .catch(() => {
-        setStatus({ status: 'failed', message: 'failed' });
-      });
-  }, []);
+            });
+          }
+          if (response[1] && response[1]?.data?.keys) {
+            listArray.map((item) => {
+              if (!response[1].data.keys.includes(item.name)) {
+                item.manage = false;
+              }
+              return null;
+            });
+            response[1].data.keys.map((item) => {
+              if (!listArray.some((list) => list.name === item)) {
+                const data = {
+                  name: item,
+                  access: '',
+                  admin: contextObj.isAdmin,
+                  manage: true,
+                };
+                return listArray.push(data);
+              }
+              return null;
+            });
+            setServiceAccountList([...listArray]);
+          }
+          setStatus({ status: 'success', message: '' });
+        })
+        .catch(() => {
+          setStatus({ status: 'failed', message: 'failed' });
+        });
+    }
+  }, [contextObj]);
 
   /**
    * @description On component load call fetchData function.
@@ -266,14 +268,7 @@ const ServiceAccountDashboard = () => {
   const onSearchChange = (value) => {
     setInputSearchValue(value);
   };
-  /**
-   * @function handlePopperClick
-   * @description handle edit and delete popper when we click on more
-   */
-  const handlePopperClick = (e) => {
-    e.preventDefault();
-    setAnchorEl(e.currentTarget);
-  };
+
   /**
    * @function onLinkClicked
    * @description function to check if mobile screen the make safeClicked true
@@ -348,10 +343,6 @@ const ServiceAccountDashboard = () => {
           flag={account.type}
           icon={safeIcon}
           showActions={false}
-          popperListItems={[
-            { title: 'Edit', icon: <IconEdit /> },
-            { title: 'delete', icon: <IconDeleteActive /> },
-          ]}
         />
         <BorderLine />
         {account.name && !isMobileScreen ? (
@@ -360,26 +351,18 @@ const ServiceAccountDashboard = () => {
               //   onDeleteListItemClicked={() => onDeleteSafeClicked(safe.path)}
               item={account}
               path="/service-accounts/edit-service-account"
+              admin={contextObj.isAdmin}
             />
           </PopperWrap>
         ) : null}
-        {isMobileScreen && account.name ? (
-          <div>
-            <MoreWrap
-              role="button"
-              onClick={(e) => handlePopperClick(e)}
-              tab-index={-1}
-            >
-              <MoreVertOutlinedIcon />
-            </MoreWrap>
+        {isMobileScreen && account.name && (
+          <EditDeletePopperWrap onClick={(e) => onActionClicked(e)}>
             <EditDeletePopper
-              onDeleteClicked={onServiceAccountOffBoard}
-              onEditClicked={onServiceAccountEdit}
-              setAnchorEl={setAnchorEl}
-              anchorEl={anchorEl}
+              onDeleteClicked={() => onServiceAccountOffBoard()}
+              onEditClicked={() => onServiceAccountEdit()}
             />
-          </div>
-        ) : null}
+          </EditDeletePopperWrap>
+        )}
       </ListFolderWrap>
     ));
   };

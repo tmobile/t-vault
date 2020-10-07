@@ -248,7 +248,7 @@ const AddUser = (props) => {
               />
             </CancelButton>
             <ButtonComponent
-              label="Save"
+              label={username && access ? 'Edit' : 'Save'}
               color="secondary"
               onClick={() => handleSaveClick(searchValue, radioValue)}
               disabled={disabledSave}

@@ -121,7 +121,7 @@ const EditAwsApplication = (props) => {
               />
             </CancelButton>
             <ButtonComponent
-              label="Save"
+              label={awsName && access ? 'Edit' : 'Save'}
               color="secondary"
               onClick={() => handleSaveClick(value, radioValue)}
               disabled={disabledSave}

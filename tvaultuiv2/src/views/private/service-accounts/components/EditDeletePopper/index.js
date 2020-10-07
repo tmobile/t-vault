@@ -36,7 +36,7 @@ const PopperItem = styled.div`
 `;
 
 const EditDeletePopper = (props) => {
-  const { onDeleteClicked, onEditClicked, setAnchorEl, anchorEl } = props;
+  const { onDeleteClicked, onEditClicked } = props;
   return (
     <div>
       <FolderIconWrap>
@@ -49,8 +49,6 @@ const EditDeletePopper = (props) => {
             vertical: 'top',
             horizontal: 'right',
           }}
-          anchorEl={anchorEl}
-          setAnchorEl={setAnchorEl}
         >
           <PopperItem onClick={onEditClicked}>
             <IconEdit />
@@ -69,8 +67,6 @@ const EditDeletePopper = (props) => {
 EditDeletePopper.propTypes = {
   onEditClicked: PropTypes.func.isRequired,
   onDeleteClicked: PropTypes.func.isRequired,
-  anchorEl: PropTypes.func.isRequired,
-  setAnchorEl: PropTypes.func.isRequired,
 };
 EditDeletePopper.defaultProps = {};
 
