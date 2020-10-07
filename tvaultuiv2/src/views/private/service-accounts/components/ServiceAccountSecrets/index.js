@@ -21,6 +21,7 @@ import {
 } from '../../../../../styles/GlobalStyles';
 import PopperElement from '../../../../../components/Popper';
 import SnackbarComponent from '../../../../../components/Snackbar';
+import Error from '../../../../../components/Error';
 
 const UserList = styled.div`
   margin-top: 2rem;
@@ -40,6 +41,7 @@ const Secret = styled.div`
   text-security: ${(props) => (props.viewSecret ? 'none' : 'disc')};
   font-size: 1.2rem;
   color: #5a637a;
+  word-break: break-all;
 `;
 
 const customStyle = css`
@@ -78,9 +80,18 @@ const ServiceAccountSecrets = (props) => {
   const [toastMessage, setToastMessage] = useState('');
   const [openConfirmationModal, setOpenConfirmationModal] = useState(false);
   const isMobileScreen = useMediaQuery(mediaBreakpoints.small);
+
+  /**
+   * @function handleClose
+   * @description function to handle opening and closing of confirmation modal.
+   */
   const handleClose = () => {
     setOpenConfirmationModal(false);
   };
+
+  /**
+   * @description function to get the secret once the component loads.
+   */
   useEffect(() => {
     if (accountDetail && Object.keys(accountDetail).length > 0) {
       apiService
@@ -91,19 +102,40 @@ const ServiceAccountSecrets = (props) => {
             setSecretsData(res.data);
           }
         })
-        .catch((e) => console.log('e.response', e.response));
+        .catch((err) => {
+          if (
+            err?.response &&
+            err.response.data?.errors &&
+            err.response.data.errors[0]
+          ) {
+            setToastMessage(err.response.data.errors[0]);
+          }
+          setResponse({ status: 'error' });
+        });
     }
   }, [accountDetail]);
 
+  /**
+   * @function onViewSecretsCliked
+   * @description function to hide and show secret.
+   */
   const onViewSecretsCliked = () => {
     setShowSecret(!showSecret);
   };
 
+  /**
+   * @function onCopyClicked
+   * @description function to copy the secret.
+   */
   const onCopyClicked = () => {
     setResponseType(1);
     setToastMessage('Secret copied to clipboard');
   };
 
+  /**
+   * @function onResetConfirmedClicked
+   * @description function to reset secret when the confirm is clicked.
+   */
   const onResetConfirmedClicked = () => {
     const payload = {};
     setOpenConfirmationModal(false);
@@ -119,15 +151,24 @@ const ServiceAccountSecrets = (props) => {
         }
       })
       .catch(() => {
+        setResponse({ status: 'success' });
         setResponseType(-1);
         setToastMessage('Unable to reset password!');
       });
   };
 
+  /**
+   * @function onResetClicked
+   * @description function to open the confirmation modal.
+   */
   const onResetClicked = () => {
     setOpenConfirmationModal(true);
   };
 
+  /**
+   * @function onToastClose
+   * @description function to handle the snackbar component.
+   */
   const onToastClose = (reason) => {
     if (reason === 'clickaway') {
       return;
@@ -204,6 +245,9 @@ const ServiceAccountSecrets = (props) => {
               </PopperElement>
             </FolderIconWrap>
           </UserList>
+        )}
+        {response.status === 'error' && (
+          <Error description={toastMessage || 'Something went wrong!'} />
         )}
         {responseType === 1 && (
           <SnackbarComponent
