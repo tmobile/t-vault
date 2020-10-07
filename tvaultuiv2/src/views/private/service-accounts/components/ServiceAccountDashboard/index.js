@@ -1,5 +1,5 @@
 /* eslint-disable no-param-reassign */
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useContext } from 'react';
 import styled, { css } from 'styled-components';
 import { makeStyles } from '@material-ui/core/styles';
 import InfiniteScroll from 'react-infinite-scroller';
@@ -34,6 +34,7 @@ import ButtonComponent from '../../../../../components/FormFields/ActionButton';
 import { IconEdit, IconDeleteActive } from '../../../../../assets/SvgIcons';
 import { TitleOne } from '../../../../../styles/GlobalStyles';
 import AccountSelectionTabs from '../Tabs';
+import { UserContext } from '../../../../../contexts';
 
 const ColumnSection = styled('section')`
   position: relative;
@@ -195,6 +196,8 @@ const ServiceAccountDashboard = () => {
 
   const introduction = Strings.Resources.serviceAccount;
 
+  const contextObj = useContext(UserContext);
+
   /**
    * @function fetchData
    * @description function call all the manage and safe api.
@@ -212,7 +215,7 @@ const ServiceAccountDashboard = () => {
             const data = {
               name: Object.keys(item)[0],
               access: Object.values(item)[0],
-              admin: true,
+              admin: contextObj.isAdmin,
               manage: true,
             };
             return listArray.push(data);
@@ -230,7 +233,7 @@ const ServiceAccountDashboard = () => {
               const data = {
                 name: item,
                 access: '',
-                admin: true,
+                admin: contextObj.isAdmin,
                 manage: true,
               };
               return listArray.push(data);
@@ -244,7 +247,7 @@ const ServiceAccountDashboard = () => {
       .catch(() => {
         setStatus({ status: 'failed', message: 'failed' });
       });
-  }, []);
+  }, [contextObj]);
 
   /**
    * @description On component load call fetchData function.

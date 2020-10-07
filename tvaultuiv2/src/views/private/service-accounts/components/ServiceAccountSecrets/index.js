@@ -132,6 +132,8 @@ const ServiceAccountSecrets = (props) => {
       } else {
         setResponse({ status: 'no-permission' });
       }
+    } else {
+      setResponse({ status: '' });
     }
   }, [accountDetail]);
 
