@@ -991,7 +991,7 @@
                             break;
                         case 'AppRolePermission':
                             apiCallFunction = AdminSafesManagement.addAppRolePermissionForIAMSvcacc;
-                            reqObjtobeSent = { "iamSvcAccName": svcaccname, "approlename": key, "access": permission.toLowerCase(), "awsAccountId":awsAccountId};
+                            reqObjtobeSent = { "iamSvcAccName": iamSvcaccName, "approlename": key, "access": permission.toLowerCase(), "awsAccountId":$scope.svcacc.awsAccId};
                             break;    
                     }
                     apiCallFunction(reqObjtobeSent, updatedUrlOfEndPoint).then(function (response) {
