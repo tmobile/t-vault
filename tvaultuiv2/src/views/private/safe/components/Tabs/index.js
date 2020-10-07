@@ -105,7 +105,7 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 const SelectionTabs = (props) => {
-  const { safeDetail } = props;
+  const { safeDetail, refresh } = props;
   const classes = useStyles();
   const [value, setValue] = useState(0);
   const [enabledAddFolder, setEnableAddFolder] = useState(false);
@@ -199,6 +199,7 @@ const SelectionTabs = (props) => {
         });
     }
   }, [safeDetail]);
+
   return (
     <ComponentError>
       <div className={classes.root}>
@@ -219,12 +220,14 @@ const SelectionTabs = (props) => {
               onClick={addSecretsFolder}
               customStyle={customBtnStyles}
               iconSrc={
+                safeDetail?.access === '' ||
                 safeDetail?.access?.toLowerCase() === 'read' ||
                 Object.keys(safeDetail).length === 0
                   ? disableAddFolder
                   : addFolderPlus
               }
               disable={
+                safeDetail?.access === '' ||
                 safeDetail?.access?.toLowerCase() === 'read' ||
                 Object.keys(safeDetail).length === 0
               }
@@ -255,7 +258,7 @@ const SelectionTabs = (props) => {
           </TabPanel>
 
           <TabPanel value={value} index={1}>
-            <Permissions safeDetail={safeDetail} />
+            <Permissions safeDetail={safeDetail} refresh={refresh} />
           </TabPanel>
 
           <SnackbarComponent
@@ -279,6 +282,7 @@ const SelectionTabs = (props) => {
 };
 SelectionTabs.propTypes = {
   safeDetail: PropTypes.objectOf(PropTypes.any),
+  refresh: PropTypes.func.isRequired,
 };
 SelectionTabs.defaultProps = {
   safeDetail: {},

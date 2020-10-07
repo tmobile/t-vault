@@ -98,7 +98,10 @@ const Tree = (props) => {
   const saveSecretsToFolder = (obj, node) => {
     const tempFolders = [...secretsFolder] || [];
     const currentSecrets = findElementAndReturnSecrets(tempFolders, node);
-    if (currentSecrets.data[Object.keys(secretprefilledData)[0]]) {
+    if (
+      currentSecrets &&
+      currentSecrets.data[Object.keys(secretprefilledData)[0]]
+    ) {
       delete currentSecrets.data[Object.keys(secretprefilledData)[0]];
     }
     const folderObj = {};
@@ -322,7 +325,8 @@ const Tree = (props) => {
         )}
         <ConfirmationModal
           open={deleteModalOpen}
-          title={`Are you sure you want to delete this secret? `}
+          title="confirmation"
+          description={`Are you sure you want to delete this secret? `}
           cancelButton={
             // eslint-disable-next-line react/jsx-wrap-multilines
             <ButtonComponent

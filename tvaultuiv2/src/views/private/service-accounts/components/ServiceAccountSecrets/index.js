@@ -115,10 +115,13 @@ const ServiceAccountSecrets = (props) => {
         if (res?.data) {
           setSecretsData(res.data);
           setResponseType(1);
-          setToastMessage('Password reset successfully');
+          setToastMessage('Password reset successfully!');
         }
       })
-      .catch((e) => console.log('e', e));
+      .catch(() => {
+        setResponseType(-1);
+        setToastMessage('Unable to reset password!');
+      });
   };
 
   const onResetClicked = () => {
@@ -138,7 +141,8 @@ const ServiceAccountSecrets = (props) => {
         <ConfirmationModal
           open={openConfirmationModal}
           handleClose={handleClose}
-          title="Are you sure you want to reset the password for this Service Account?"
+          title="Confirmation"
+          description="Are you sure you want to reset the password for this Service Account?"
           cancelButton={
             <ButtonComponent
               label="Cancel"

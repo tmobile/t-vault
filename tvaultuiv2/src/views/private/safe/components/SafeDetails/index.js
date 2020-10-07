@@ -30,7 +30,7 @@ const BackButton = styled.div`
 `;
 
 const SafeDetails = (props) => {
-  const { detailData, resetClicked } = props;
+  const { detailData, resetClicked, goodToRoute, refresh } = props;
   const [safe, setSafe] = useState({});
   // use history of page
   const history = useHistory();
@@ -43,19 +43,21 @@ const SafeDetails = (props) => {
   };
 
   useEffect(() => {
-    if (!location?.state?.safe) {
+    // if (goodToRoute && !location?.state?.safe) {
+    if (goodToRoute) {
       if (detailData && detailData.length) {
         const activeSafeDetail = detailData.filter(
           (item) =>
             item?.name?.toLowerCase() ===
             history.location.pathname.split('/')[2]
         );
-        setSafe(activeSafeDetail);
+        setSafe(activeSafeDetail[0]);
       }
-      return;
+      // return;
     }
-    setSafe(location?.state?.safe);
-  }, [location.state, detailData, history.location.pathname]);
+    // if (goodToRoute) setSafe(location?.state?.safe);
+  }, [location, goodToRoute, detailData, history.location.pathname]);
+  // }, [location.state, detailData, history.location.pathname]);
 
   return (
     <ComponentError>
@@ -63,7 +65,7 @@ const SafeDetails = (props) => {
         {isMobileScreen ? (
           <BackButton onClick={goBackToSafeList}>
             <BackArrow />
-            <span>{safe.name || 'No safe'}</span>
+            <span>{(safe && safe.name) || 'No safe'}</span>
           </BackButton>
         ) : null}
 
@@ -73,7 +75,7 @@ const SafeDetails = (props) => {
           bgImage={sectionHeaderBg}
         />
 
-        <SelectionTabs safeDetail={safe} />
+        <SelectionTabs safeDetail={safe} refresh={refresh} />
       </Section>
     </ComponentError>
   );
@@ -81,10 +83,13 @@ const SafeDetails = (props) => {
 SafeDetails.propTypes = {
   detailData: PropTypes.arrayOf(PropTypes.any),
   resetClicked: PropTypes.func,
+  goodToRoute: PropTypes.bool,
+  refresh: PropTypes.func.isRequired,
 };
 SafeDetails.defaultProps = {
   detailData: [],
   resetClicked: () => {},
+  goodToRoute: false,
 };
 
 export default SafeDetails;

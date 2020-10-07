@@ -51,7 +51,14 @@ const useStyles = makeStyles(() => ({
 }));
 
 const ConfirmationModal = (props) => {
-  const { open, handleClose, title, confirmButton, cancelButton } = props;
+  const {
+    open,
+    handleClose,
+    title,
+    description,
+    confirmButton,
+    cancelButton,
+  } = props;
   const classes = useStyles();
 
   return (
@@ -71,10 +78,10 @@ const ConfirmationModal = (props) => {
         <Fade in={open}>
           <ModalWrapper>
             <TitleOne color="#e20074" extraCss={titleOneCss}>
-              Confirmation
+              {title}
             </TitleOne>
             <TitleTwo color="#666" extraCss={titleTwoCss}>
-              {title}
+              {description}
             </TitleTwo>
             <ButtonWrapper>
               {cancelButton.type !== 'div' && (
@@ -93,6 +100,7 @@ ConfirmationModal.propTypes = {
   open: PropTypes.bool.isRequired,
   handleClose: PropTypes.func,
   title: PropTypes.string.isRequired,
+  description: PropTypes.string.isRequired,
   confirmButton: PropTypes.node.isRequired,
   cancelButton: PropTypes.node,
 };
