@@ -1,3 +1,5 @@
+/* eslint-disable react/jsx-curly-newline */
+/* eslint-disable react/jsx-wrap-multilines */
 /* eslint-disable no-param-reassign */
 import React, { useState, useEffect, useCallback, useContext } from 'react';
 import styled, { css } from 'styled-components';
@@ -20,13 +22,9 @@ import EditDeletePopper from '../EditDeletePopper';
 import ListItem from '../../../../../components/ListItem';
 import EditAndDeletePopup from '../../../../../components/EditAndDeletePopup';
 import Error from '../../../../../components/Error';
-// import OnBoardServiceAccount from '../OnBoardServiceAccounts';
 import SnackbarComponent from '../../../../../components/Snackbar';
 import ScaledLoader from '../../../../../components/Loaders/ScaledLoader';
-// import apiService from '../../apiService';
-
-// import ConfirmationModal from '../../../../../components/ConfirmationModal';
-// import OnBoardForm from '../OnBoardForm';
+import ConfirmationModal from '../../../../../components/ConfirmationModal';
 import apiService from '../../apiService';
 import Strings from '../../../../../resources';
 import ButtonComponent from '../../../../../components/FormFields/ActionButton';
@@ -184,8 +182,14 @@ const ServiceAccountDashboard = () => {
   const [moreData] = useState(false);
   const [isLoading] = useState(false);
   const [serviceAccountList, setServiceAccountList] = useState([]);
-  const [toast] = useState(null);
+  const [toast, setToast] = useState(null);
   const [status, setStatus] = useState({});
+  const [deleteAccName, setDeleteAccName] = useState('');
+  const [offBoardSuccessfull, setOffBoardSuccessfull] = useState(false);
+  const [
+    offBoardSvcAccountConfirmation,
+    setOffBoardSvcAccountConfirmation,
+  ] = useState(false);
   let scrollParentRef = null;
   const classes = useStyles();
   const isMobileScreen = useMediaQuery(mediaBreakpoints.small);
@@ -320,10 +324,64 @@ const ServiceAccountDashboard = () => {
   const onToastClose = () => {
     setStatus({});
   };
-  const onServiceAccountOffBoard = () => {};
+
+  const onDeleteClicked = (name) => {
+    setOffBoardSvcAccountConfirmation(true);
+    setDeleteAccName(name);
+  };
+
+  const deleteServiceAccount = (owner) => {
+    const payload = {
+      name: deleteAccName,
+      owner,
+    };
+    apiService
+      .offBoardServiceAccount(payload)
+      .then(() => {
+        fetchData();
+        setOffBoardSuccessfull(true);
+      })
+      .catch(() => {
+        setToast(-1);
+      });
+  };
+
+  useEffect(() => {
+    if (offBoardSuccessfull) {
+      setOffBoardSvcAccountConfirmation(true);
+    }
+  }, [offBoardSuccessfull]);
+
+  const onServiceAccountOffBoard = () => {
+    setOffBoardSvcAccountConfirmation(false);
+    setStatus({ status: 'loading' });
+    apiService
+      .fetchServiceAccountDetails(deleteAccName)
+      .then((res) => {
+        let details = {};
+        if (res?.data?.data?.values && res.data.data.values[0]) {
+          details = { ...res.data.data.values[0] };
+          if (details?.managedBy?.userName) {
+            deleteServiceAccount(details.managedBy.userName);
+          }
+        }
+      })
+      .catch(() => {
+        setToast(-1);
+      });
+  };
+
   const onServiceAccountEdit = () => {};
 
-  // const handleConfirmationModalClose = () => {};
+  const handleSuccessfullConfirmation = () => {
+    setOffBoardSvcAccountConfirmation(false);
+    setOffBoardSuccessfull(false);
+  };
+
+  const handleConfirmationModalClose = () => {
+    setOffBoardSvcAccountConfirmation(false);
+  };
+
   const renderList = () => {
     return serviceAccountList.map((account) => (
       <ListFolderWrap
@@ -348,7 +406,7 @@ const ServiceAccountDashboard = () => {
         {account.name && !isMobileScreen ? (
           <PopperWrap onClick={(e) => onActionClicked(e)}>
             <EditAndDeletePopup
-              //   onDeleteListItemClicked={() => onDeleteSafeClicked(safe.path)}
+              onDeletListItemClicked={() => onDeleteClicked(account.name)}
               item={account}
               path="/service-accounts/edit-service-account"
               admin={contextObj.isAdmin}
@@ -358,7 +416,7 @@ const ServiceAccountDashboard = () => {
         {isMobileScreen && account.name && (
           <EditDeletePopperWrap onClick={(e) => onActionClicked(e)}>
             <EditDeletePopper
-              onDeleteClicked={() => onServiceAccountOffBoard()}
+              onDeleteClicked={() => onDeleteClicked()}
               onEditClicked={() => onServiceAccountEdit()}
             />
           </EditDeletePopperWrap>
@@ -369,21 +427,48 @@ const ServiceAccountDashboard = () => {
   return (
     <ComponentError>
       <>
-        {/* <ConfirmationModal
-          open={onBoardConfirmationModal}
-          handleClose={handleConfirmationModalClose}
-          title="Onboarding Service Account"
-          description="The password for this service account will expire in 365 days and will not be enabled for auto rotation by T-Vault. You need to makes sure the passwod for this service account is getting roated appropriately."
+        <ConfirmationModal
+          open={offBoardSvcAccountConfirmation}
+          handleClose={
+            offBoardSuccessfull
+              ? handleSuccessfullConfirmation
+              : handleConfirmationModalClose
+          }
+          title={
+            offBoardSuccessfull ? 'Offboarding successful!' : 'Confirmation'
+          }
+          description={
+            offBoardSuccessfull
+              ? Strings.Resources.offBoardSuccessfull
+              : Strings.Resources.offBoardConfirmation
+          }
+          cancelButton={
+            !offBoardSuccessfull && (
+              <ButtonComponent
+                label={offBoardSuccessfull ? 'Close' : 'Cancel'}
+                color={offBoardSuccessfull ? 'secondary' : 'primary'}
+                onClick={() =>
+                  offBoardSuccessfull
+                    ? handleSuccessfullConfirmation()
+                    : handleConfirmationModalClose()
+                }
+                width={isMobileScreen ? '100%' : '38%'}
+              />
+            )
+          }
           confirmButton={
-            // eslint-disable-next-line react/jsx-wrap-multilines
             <ButtonComponent
-              label="Confirm"
+              label={offBoardSuccessfull ? 'Close' : 'Confirm'}
               color="secondary"
-              onClick={() => setOnBoardConfirmationModal(false)}
+              onClick={() =>
+                offBoardSuccessfull
+                  ? handleConfirmationModalClose()
+                  : onServiceAccountOffBoard()
+              }
               width={isMobileScreen ? '100%' : '38%'}
             />
           }
-        /> */}
+        />
         <SectionPreview title="service-account-section">
           <LeftColumnSection isAccountDetailsOpen={serviceAccountClicked}>
             <ColumnHeader>
