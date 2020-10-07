@@ -189,7 +189,7 @@ public class  IAMServiceAccountsService {
 		if(HttpStatus.OK.equals(response.getHttpstatus())) {
 			String responseJson = response.getResponse();
 			try {
-				currentPolicies = iamServiceAccountUtils.getPoliciesAsListFromTokenLookupJson(objectMapper, responseJson);
+				currentPolicies = iamServiceAccountUtils.getTokenPoliciesAsListFromTokenLookupJson(objectMapper, responseJson);
 				if (currentPolicies.contains(iamMasterPolicyName)) {
 					log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
 							.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
@@ -2698,8 +2698,18 @@ public class  IAMServiceAccountsService {
 
 		String accessKeyId = iamServiceAccountRotateRequest.getAccessKeyId();
 		String awsAccountId = iamServiceAccountRotateRequest.getAccountId();
-		String iamSvcName = iamServiceAccountRotateRequest.getUserName();
+		String iamSvcName = iamServiceAccountRotateRequest.getUserName().toLowerCase();
 		String uniqueIAMSvcaccName = awsAccountId + "_" + iamSvcName;
+
+		if (!hasResetPermissionForIAMServiceAccount(token, uniqueIAMSvcaccName)) {
+			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+					put(LogMessage.ACTION, "rotateIAMServiceAccount").
+					put(LogMessage.MESSAGE, String.format("Access denited. No permisison to rotate IAM secret for [%s].", uniqueIAMSvcaccName)).
+					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+					build()));
+			return ResponseEntity.status(HttpStatus.FORBIDDEN).body("{\"errors\":[\"Access denied: No permission to rotate secret for IAM service account.\"]}");
+		}
 
 		// Get metadata to check the accesskeyid
 		JsonObject iamMetadataJson = getIAMMetadata(token, uniqueIAMSvcaccName);
@@ -2746,6 +2756,17 @@ public class  IAMServiceAccountsService {
 				}
 			}
 		}
+		else {
+			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+					put(LogMessage.ACTION, "rotateIAMServiceAccount").
+					put(LogMessage.MESSAGE, String.format ("Failed to rotate secret for AccesskeyId [%s] for IAM Service " +
+									"account [%s]", iamServiceAccountRotateRequest.getAccessKeyId(),
+							iamServiceAccountRotateRequest.getUserName())).
+					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+					build()));
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"AccessKey information not found in metadata for this IAM Service account\"]}");
+		}
 
 		if (rotationStatus) {
 			log.info(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
@@ -2766,7 +2787,49 @@ public class  IAMServiceAccountsService {
 						iamServiceAccountRotateRequest.getUserName())).
 				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 				build()));
-		return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"AccessKey information not found in metadata for this IAM Service account\"]}");
+		return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Failed to rotate secret for IAM Service account Access Key Id\"]}");
+	}
+
+	/**
+	 * Method to check if the user/approle has reset permission.
+	 * @param token
+	 * @param uniqueIAMSvcaccName
+	 * @return
+	 */
+	private boolean hasResetPermissionForIAMServiceAccount(String token, String uniqueIAMSvcaccName) {
+		String resetPermission = "w_"+ IAMServiceAccountConstants.IAMSVCACC_POLICY_PREFIX + uniqueIAMSvcaccName;
+		ObjectMapper objectMapper = new ObjectMapper();
+		List<String> currentPolicies = new ArrayList<>();
+		List<String> identityPolicies = new ArrayList<>();
+		Response response = reqProcessor.process("/auth/tvault/lookup","{}", token);
+		if(HttpStatus.OK.equals(response.getHttpstatus())) {
+			String responseJson = response.getResponse();
+			try {
+				currentPolicies = iamServiceAccountUtils.getTokenPoliciesAsListFromTokenLookupJson(objectMapper, responseJson);
+				identityPolicies = iamServiceAccountUtils.getIdentityPoliciesAsListFromTokenLookupJson(objectMapper, responseJson);
+				if (currentPolicies.contains(resetPermission) || identityPolicies.contains(resetPermission)) {
+					log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+							.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+							.put(LogMessage.ACTION, "hasResetPermissionForIAMServiceAccount")
+							.put(LogMessage.MESSAGE, "User has reset permission on this IAM service account.")
+							.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
+					return true;
+				}
+			} catch (IOException e) {
+				log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+						.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+						.put(LogMessage.ACTION, "hasResetPermissionForIAMServiceAccount")
+						.put(LogMessage.MESSAGE,
+								"Failed to parse policies from token")
+						.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
+			}
+		}
+		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+				.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+				.put(LogMessage.ACTION, "hasResetPermissionForIAMServiceAccount")
+				.put(LogMessage.MESSAGE, "Access denied. User is not permitted for IAM secret rotation.")
+				.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
+		return false;
 	}
 
 	/**

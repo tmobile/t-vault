@@ -489,18 +489,46 @@ public class IAMServiceAccountUtils {
      * @throws JsonProcessingException
      * @throws IOException
      */
-    public List<String> getPoliciesAsListFromTokenLookupJson(ObjectMapper objMapper, String policyJson) throws JsonProcessingException, IOException{
+    public List<String> getTokenPoliciesAsListFromTokenLookupJson(ObjectMapper objMapper, String policyJson) throws JsonProcessingException, IOException{
         List<String> currentpolicies = new ArrayList<>();
         JsonNode policiesNode = objMapper.readTree(policyJson).get("policies");
-        if (policiesNode.isContainerNode()) {
-            Iterator<JsonNode> elementsIterator = policiesNode.elements();
-            while (elementsIterator.hasNext()) {
-                JsonNode element = elementsIterator.next();
-                currentpolicies.add(element.asText());
+        if (null != policiesNode ) {
+            if (policiesNode.isContainerNode()) {
+                Iterator<JsonNode> elementsIterator = policiesNode.elements();
+                while (elementsIterator.hasNext()) {
+                    JsonNode element = elementsIterator.next();
+                    currentpolicies.add(element.asText());
+                }
+            }
+            else {
+                currentpolicies.add(policiesNode.asText());
             }
         }
-        else {
-            currentpolicies.add(policiesNode.asText());
+        return currentpolicies;
+    }
+
+    /**
+     * Convenient method to get identity policies as list from token lookup.
+     * @param objMapper
+     * @param policyJson
+     * @return
+     * @throws JsonProcessingException
+     * @throws IOException
+     */
+    public List<String> getIdentityPoliciesAsListFromTokenLookupJson(ObjectMapper objMapper, String policyJson) throws JsonProcessingException, IOException{
+        List<String> currentpolicies = new ArrayList<>();
+        JsonNode policiesNode = objMapper.readTree(policyJson).get("identity_policies");
+        if (null != policiesNode ) {
+            if (policiesNode.isContainerNode()) {
+                Iterator<JsonNode> elementsIterator = policiesNode.elements();
+                while (elementsIterator.hasNext()) {
+                    JsonNode element = elementsIterator.next();
+                    currentpolicies.add(element.asText());
+                }
+            }
+            else {
+                currentpolicies.add(policiesNode.asText());
+            }
         }
         return currentpolicies;
     }
