@@ -31,8 +31,14 @@ const titleCss = css`
 `;
 const ServiceAccountHelp = (props) => {
   const classes = useStyles();
-  const { customStyles, children, title, elevation } = props;
-  const [isCollapse, setIsCollapse] = useState(false);
+  const {
+    customStyles,
+    children,
+    title,
+    elevation,
+    isCollapse,
+    setIsCollapse,
+  } = props;
   return (
     <Container classes={customStyles}>
       <TitleThree
@@ -53,10 +59,14 @@ ServiceAccountHelp.propTypes = {
   customStyles: PropTypes.objectOf(PropTypes.object),
   title: PropTypes.string.isRequired,
   elevation: PropTypes.number,
+  setIsCollapse: PropTypes.func,
+  isCollapse: PropTypes.bool,
 };
 ServiceAccountHelp.defaultProps = {
   children: <></>,
   customStyles: '',
   elevation: 0,
+  setIsCollapse: () => {},
+  isCollapse: false,
 };
 export default ServiceAccountHelp;

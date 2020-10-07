@@ -13,7 +13,7 @@ import { ColorBackArrow } from '../../../../../assets/SvgIcons';
 
 const AddFolderNameWrapper = styled.div`
   padding: 5.5rem 6rem 6rem 6rem;
-  background-color: #2a2e3e;
+  background-color: ${(props) => props.theme.pallet.background.modal};
   width: ${(props) => props.width || '100%'};
   ${mediaBreakpoints.semiLarge} {
     padding: 4.5rem 5rem 5rem 5rem;

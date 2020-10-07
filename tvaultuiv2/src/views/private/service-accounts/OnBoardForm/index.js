@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback } from 'react';
 import { debounce } from 'lodash';
 import styled, { css } from 'styled-components';
 import {
@@ -25,6 +25,8 @@ import AutoCompleteComponent from '../../../../components/FormFields/AutoComplet
 import LoaderSpinner from '../../../../components/Loaders/LoaderSpinner';
 import SnackbarComponent from '../../../../components/Snackbar';
 import ConfirmationModal from '../../../../components/ConfirmationModal';
+import BackdropLoader from '../../../../components/Loaders/BackdropLoader';
+import { validateEmail } from '../../../../services/helper-function';
 
 const useStyles = makeStyles((theme) => ({
   select: {
@@ -58,7 +60,7 @@ const Container = styled('section')`
   overflow: auto;
   height: 100%;
   position: relative;
-  background-color: #2a2e3e;
+  background-color: ${(props) => props.theme.palette.background.modal};
   padding: 5.5rem 6rem 6rem 6rem;
   border: none;
   outline: none;
@@ -112,7 +114,7 @@ const InfoLine = styled('p')`
 `;
 const Asteristick = styled.span``;
 const InfoContainer = styled.div`
-  padding: 1rem 4rem;
+  padding: 1rem 0;
 `;
 const Span = styled('span')`
   color: ${(props) => props.theme.customColor.collapse.title};
@@ -186,20 +188,26 @@ const customLoaderStyle = css`
 const OnBoardForm = () => {
   const [inputAdGroupName, setInputAdGroupName] = useState('');
   const [inputServiceName, setInputServiceName] = useState('');
+  const [inputApplicationName, setInputApplicationName] = useState('');
+  const [inputExpiryTime, setInputExpiryTime] = useState('');
+
   const [getResponseType, setGetResponseType] = useState(null);
+  const [timeError, setTimeError] = useState(null);
+  const [selectedApplication, setSelectedApplication] = useState(null);
+  const [serviceAccountDetails, setServiceAccountDetails] = useState(null);
   const [isAppNameFetchig, setIsAppNameFetching] = useState(false);
+  const [isServiceFetching, setIsServiceFetching] = useState(false);
 
   const [onBoardConfirmationModal, setOnBoardConfirmationModal] = useState(
     false
   );
   const [status, setStatus] = useState({});
 
-  const [isServiceFetching, setIsServiceFetching] = useState(false);
   const [postOnBoardModal, setPostOnBoardModal] = useState(false);
+  const [isCollapse, setIsCollapse] = useState(false);
   const [serviceAccountsList, setServiceAccountsList] = useState([]);
   const [applicationList, setApplicationList] = useState([]);
-  const [inputExpiryTime, setInputExpiryTime] = useState('');
-  const [inputApplicationName, setInputApplicationName] = useState('');
+
   const [open, setOpen] = useState(true);
   const [isSwitchOn, setIsSwitchOn] = useState(false);
 
@@ -218,34 +226,32 @@ const OnBoardForm = () => {
 
   const fetchAppRoles = useCallback(
     debounce(() => {
+      setIsAppNameFetching(true);
       apiService
         .getAppRoles()
         .then((res) => {
           setGetResponseType(1);
           setIsServiceFetching(false);
+          setIsAppNameFetching(false);
           if (res?.data?.length > 0) {
             const array = [];
             res.data.map((item) => {
               if (item.appName) {
-                return array.push(
-                  `${item.appName} (AppId: ${item.appID},AppTag:${item.appTag})`
-                );
+                return array.push(item);
               }
               return null;
             });
+
             setApplicationList([...array]);
           }
         })
         .catch((err) => {
+          setIsAppNameFetching(false);
           setGetResponseType(-1);
         });
     }),
     []
   );
-  // fetch approles when page loads
-  useEffect(() => {
-    fetchAppRoles();
-  }, [fetchAppRoles]);
 
   /**
    * Fetch all available service accounts of the associated user
@@ -264,7 +270,7 @@ const OnBoardForm = () => {
             const array = [];
             res.data.data.values.map((item) => {
               if (item.userId) {
-                return array.push(item.userName);
+                return array.push(item);
               }
               return null;
             });
@@ -286,8 +292,18 @@ const OnBoardForm = () => {
    */
   const onBoardServiceAccount = () => {
     setStatus({ status: 'loading', message: 'loading...' });
+    const payload = {
+      adGroup: inputAdGroupName,
+      appID: selectedApplication.appID,
+      appName: selectedApplication.appName,
+      appTag: selectedApplication.appTag,
+      autoRotate: isSwitchOn,
+      max_ttl: serviceAccountDetails?.maxPwdAge,
+      name: inputServiceName,
+      ttl: inputExpiryTime || serviceAccountDetails?.maxPwdAge,
+    };
     apiService
-      .onBoardServiceAccount()
+      .onBoardServiceAccount(payload)
       .then((res) => {
         setStatus({
           status: 'success',
@@ -305,22 +321,35 @@ const OnBoardForm = () => {
 
   const onServiceAccountSelected = (e, val) => {
     setInputServiceName(val);
+    const svcObj = serviceAccountsList.find((item) => item.userId === val);
+    setServiceAccountDetails({ ...svcObj });
+    setIsCollapse(!isCollapse);
   };
   const onApplicationNameSelected = (e, val) => {
     setInputApplicationName(val);
+    const selectedApplicationClone = applicationList.find((item) =>
+      item.appName.includes(val.split('(')[0].trim())
+    );
+    setSelectedApplication({ ...selectedApplicationClone });
   };
   const onServiceAccountNameChange = (name) => {
-    setInputServiceName(name);
     fetchServiceAccounts(name);
   };
   const onADGroupChange = (name) => {
     setInputAdGroupName(name);
   };
-  const onApplicationNameChange = (e) => {
-    setInputApplicationName(e.target.value);
+  const onApplicationNameChange = (val) => {
+    fetchAppRoles();
   };
-
+  /**
+   *
+   * @param {string} value value of input time in seconds
+   */
+  const validateTime = (value) => {
+    setTimeError(Number(value) > serviceAccountDetails?.maxPwdAge);
+  };
   const onExpiryTimeChange = (value) => {
+    validateTime(value);
     setInputExpiryTime(value);
   };
   const handleSwitch = (e) => {
@@ -354,6 +383,7 @@ const OnBoardForm = () => {
   return (
     <ComponentError>
       <>
+        {status.status === 'loading' && <BackdropLoader />}
         <ConfirmationModal
           open={onBoardConfirmationModal}
           handleClose={handleConfirmationModalClose}
@@ -382,22 +412,13 @@ const OnBoardForm = () => {
           open={postOnBoardModal}
           handleClose={setPostOnBoardModal}
           title="Onboarding Successfull"
-          description="The password for this service account will expire in 365 days and will not be enabled for auto rotation by T-Vault. You need to makes sure the passwod for this service account is getting roated appropriately."
+          description="Onboarding of service account has been completed successfully. To continue, the service account needs to be activated by Sunil Kumar - Sunil.Kumar255@T-Mobile.com . If you are owner of the service account, you need to log out and login again to activate it."
           cancelButton={
             // eslint-disable-next-line react/jsx-wrap-multilines
             <ButtonComponent
-              label="Cancel"
-              color="primary"
-              onClick={() => setOnBoardConfirmationModal(false)}
-              width={isMobileScreen ? '100%' : '38%'}
-            />
-          }
-          confirmButton={
-            // eslint-disable-next-line react/jsx-wrap-multilines
-            <ButtonComponent
-              label="onboard"
+              label="CLOSE"
               color="secondary"
-              onClick={() => onBoardServiceAccount()}
+              onClick={() => setOnBoardConfirmationModal(false)}
               width={isMobileScreen ? '100%' : '38%'}
             />
           }
@@ -407,7 +428,7 @@ const OnBoardForm = () => {
           aria-describedby="transition-modal-description"
           className={classes.modal}
           open={open}
-          onClose={() => handleClose()}
+          onClose={handleClose}
           closeAfterTransition
           BackdropComponent={Backdrop}
           BackdropProps={{
@@ -479,7 +500,9 @@ const OnBoardForm = () => {
                     <Asteristick>*</Asteristick>
                   </InputLabel>
                   <AutoCompleteComponent
-                    options={serviceAccountsList}
+                    options={[
+                      ...serviceAccountsList.map((item) => item.userId),
+                    ]}
                     icon="search"
                     classes={classes}
                     searchValue={inputServiceName}
@@ -494,7 +517,11 @@ const OnBoardForm = () => {
                     />
                   )}
                   <ServiceAccountDetailWrap>
-                    <ServiceAcoountHelp title="Service Account Details">
+                    <ServiceAcoountHelp
+                      title="Service Account Details"
+                      isCollapse={isCollapse}
+                      setIsCollapse={setIsCollapse}
+                    >
                       <Grid container>
                         <GridColumn customStyles={GridColumnStyles}>
                           <GridItem>
@@ -502,25 +529,28 @@ const OnBoardForm = () => {
                               Owner (Managed By):
                             </CollapseTitle>
                             <CollapseTitle color="#fff">
-                              Sivakumar Nagarajan
+                              {serviceAccountDetails?.managedBy?.displayName}
                             </CollapseTitle>
                           </GridItem>
                           <GridItem>
                             {' '}
                             <CollapseTitle>Date Created in AD</CollapseTitle>
                             <CollapseTitle color="#fff">
-                              2020-01-13 12:40
+                              {serviceAccountDetails?.creationDate}
                             </CollapseTitle>
                           </GridItem>
                           <GridItem>
                             {' '}
                             <CollapseTitle>Account Expiry</CollapseTitle>
-                            <CollapseTitle color="#fff">Never</CollapseTitle>
+                            <CollapseTitle color="#fff">
+                              {serviceAccountDetails?.accountExpiresFormatted}
+                            </CollapseTitle>
                           </GridItem>
                           <GridItem>
-                            {' '}
-                            <CollapseTitle>Lock Satus</CollapseTitle>
-                            <CollapseTitle color="#fff">unlocked</CollapseTitle>
+                            <CollapseTitle>Lock Status</CollapseTitle>
+                            <CollapseTitle color="#fff">
+                              {serviceAccountDetails?.lockStatus}
+                            </CollapseTitle>
                           </GridItem>
                         </GridColumn>
                         <GridColumn customStyles={GridColumnStyles}>
@@ -528,20 +558,22 @@ const OnBoardForm = () => {
                             {' '}
                             <CollapseTitle>Owner Email</CollapseTitle>
                             <CollapseTitle color="#fff">
-                              Sivakumar.Nagarajan14 @T-Mobile.com
+                              {serviceAccountDetails?.managedBy?.userEmail}
                             </CollapseTitle>
                           </GridItem>
                           <GridItem>
                             {' '}
                             <CollapseTitle>Password Expiry</CollapseTitle>
                             <CollapseTitle color="#fff">
-                              2021-01-13 12:40 (365 days)
+                              {serviceAccountDetails?.passwordExpiry}
                             </CollapseTitle>
                           </GridItem>
                           <GridItem>
                             {' '}
-                            <CollapseTitle>Account Satus</CollapseTitle>
-                            <CollapseTitle color="#fff">active</CollapseTitle>
+                            <CollapseTitle>Account Status</CollapseTitle>
+                            <CollapseTitle color="#fff">
+                              {serviceAccountDetails?.accountStatus}
+                            </CollapseTitle>
                           </GridItem>
                         </GridColumn>
                       </Grid>
@@ -563,20 +595,26 @@ const OnBoardForm = () => {
                   <InputFieldLabelWrapper customCss="width:60%">
                     <InputLabel>Password Expiration Time</InputLabel>
                     <TextFieldComponent
-                      placeholder="TTL in seconds(max: 31536000)"
+                      placeholder={
+                        serviceAccountDetails?.maxPwdAge === 7776000
+                          ? 'TTL in seconds(max: 7776000)'
+                          : 'TTL in seconds(max: 31536000)'
+                      }
                       icon="search"
                       fullWidth
                       onChange={(e) => onExpiryTimeChange(e.target.value)}
                       value={inputExpiryTime || ''}
-                      helperText="Enter the date you would like your password to expire. "
+                      error={timeError}
+                      helperText={
+                        timeError
+                          ? 'Please enter valid expiry time in seconds'
+                          : 'Enter the date you would like your password to expire. '
+                      }
                     />
                   </InputFieldLabelWrapper>
                 </ToggleWrap>
                 <InputFieldLabelWrapper>
-                  <InputLabel>
-                    AD Group Name
-                    <Asteristick>*</Asteristick>
-                  </InputLabel>
+                  <InputLabel>AD Group Name</InputLabel>
                   <TextFieldComponent
                     placeholder="AD Group Name"
                     icon="search"
@@ -592,7 +630,12 @@ const OnBoardForm = () => {
                     <Asteristick>*</Asteristick>
                   </InputLabel>
                   <AutoCompleteComponent
-                    options={applicationList}
+                    options={[
+                      ...applicationList.map(
+                        (item) =>
+                          `${item.appName} (AppId: ${item.appID},AppTag:${item.appTag})`
+                      ),
+                    ]}
                     icon="search"
                     classes={classes}
                     searchValue={inputApplicationName}
@@ -614,11 +657,17 @@ const OnBoardForm = () => {
                     <ButtonComponent
                       label="Cancel"
                       color="primary"
-                      onClick={() => handleCancelClick(false)}
+                      onClick={() => handleCancelClick()}
                     />
                   </CancelButton>
                   <ButtonComponent
                     label="Onboard"
+                    disabled={
+                      !timeError ||
+                      !inputServiceName ||
+                      !inputApplicationName ||
+                      !inputExpiryTime
+                    }
                     color="secondary"
                     buttonType="containedSecondary"
                     //   disabled={!inputValue || errorMessage}
@@ -626,25 +675,25 @@ const OnBoardForm = () => {
                   />
                 </ActionButtonWrap>
               </AcionButtons>
-              {status.status === 'failed' && (
-                <SnackbarComponent
-                  open
-                  onClose={() => onToastClose()}
-                  severity="error"
-                  icon="error"
-                  message={status.message || 'Something went wrong!'}
-                />
-              )}
-              {status.status === 'success' && (
-                <SnackbarComponent
-                  open
-                  onClose={() => onToastClose()}
-                  message={status.message || 'Request Successfull'}
-                />
-              )}
             </Container>
           </Fade>
         </Modal>
+        {status.status === 'failed' && (
+          <SnackbarComponent
+            open
+            onClose={() => onToastClose()}
+            severity="error"
+            icon="error"
+            message={status.message || 'Something went wrong!'}
+          />
+        )}
+        {status.status === 'success' && (
+          <SnackbarComponent
+            open
+            onClose={() => onToastClose()}
+            message={status.message || 'Request Successfull'}
+          />
+        )}
       </>
     </ComponentError>
   );

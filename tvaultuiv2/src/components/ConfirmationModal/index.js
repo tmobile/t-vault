@@ -10,7 +10,7 @@ import ComponentError from '../../errorBoundaries/ComponentError/component-error
 import mediaBreakpoints from '../../breakpoints';
 
 const ModalWrapper = styled.div`
-  background-color: #fff;
+  background-color: ${(props) => props.theme.palette.background.modal};
   padding: 4rem 3rem;
   outline: none;
   text-align: center;
