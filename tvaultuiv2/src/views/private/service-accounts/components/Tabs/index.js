@@ -105,11 +105,13 @@ const AccountSelectionTabs = (props) => {
             textColor="primary"
           >
             <Tab className={classes.tab} label="Secrets" {...a11yProps(0)} />
-            <Tab
-              label="Permissions"
-              {...a11yProps(1)}
-              disabled={!accountDetail.admin}
-            />
+            {accountDetail.admin && (
+              <Tab
+                label="Permissions"
+                {...a11yProps(1)}
+                disabled={!accountDetail.admin}
+              />
+            )}
           </Tabs>
         </AppBar>
         <TabContentsWrap>

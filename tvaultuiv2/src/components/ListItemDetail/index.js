@@ -42,7 +42,7 @@ const ListItemDetail = (props) => {
   const isMobileScreen = useMediaQuery(mediaBreakpoints.small);
 
   useEffect(() => {
-    if (listItemDetails) {
+    if (listItemDetails && Object.keys(listItemDetails).length > 0) {
       setData({ ...listItemDetails });
     }
   }, [listItemDetails]);
