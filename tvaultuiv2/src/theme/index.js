@@ -199,7 +199,7 @@ const customTheme = createMuiTheme({
       contrastText: '#fff',
     },
     error: {
-      main: '#b00020',
+      main: '#ee4e4e',
     },
     success: {
       main: '#6dba15',

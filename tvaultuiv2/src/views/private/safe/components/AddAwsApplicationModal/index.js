@@ -11,7 +11,7 @@ import mediaBreakpoints from '../../../../../breakpoints';
 
 const ModalWrapper = styled('div')`
   outline: none;
-  background-color: ${(props) => props.theme.pallet.background.modal};
+  background-color: ${(props) => props.theme.palette.background.modal};
   width: 69.6rem;
   padding: 6rem;
   margin: auto 0;

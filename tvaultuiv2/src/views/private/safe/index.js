@@ -20,8 +20,6 @@ const SafeSectionPreview = styled('section')`
 `;
 
 const SafePageLayout = (props) => {
-  // Sample API call. For integration, call like this with you mock data being passed as parameter
-
   return (
     <ComponentError>
       <main title="safe-layout">

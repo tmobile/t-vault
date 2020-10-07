@@ -1,15 +1,10 @@
-import React, { useState, useEffect } from 'react';
+/* eslint-disable no-param-reassign */
+import React, { useState, useEffect, useCallback } from 'react';
 import styled, { css } from 'styled-components';
 import { makeStyles } from '@material-ui/core/styles';
 import InfiniteScroll from 'react-infinite-scroller';
 import MoreVertOutlinedIcon from '@material-ui/icons/MoreVertOutlined';
-import {
-  BrowserRouter as Router,
-  Link,
-  Route,
-  Switch,
-  useHistory,
-} from 'react-router-dom';
+import { Link, Route, Switch, useHistory, Redirect } from 'react-router-dom';
 
 import useMediaQuery from '@material-ui/core/useMediaQuery';
 import sectionHeaderBg from '../../../../../assets/Banner_img.png';
@@ -26,17 +21,19 @@ import EditDeletePopper from '../EditDeletePopper';
 import ListItem from '../../../../../components/ListItem';
 import EditAndDeletePopup from '../../../../../components/EditAndDeletePopup';
 import Error from '../../../../../components/Error';
-import OnBoardServiceAccount from '../OnBoardServiceAccounts';
+// import OnBoardServiceAccount from '../OnBoardServiceAccounts';
 import SnackbarComponent from '../../../../../components/Snackbar';
 import ScaledLoader from '../../../../../components/Loaders/ScaledLoader';
 // import apiService from '../../apiService';
 
-import ConfirmationModal from '../../../../../components/ConfirmationModal';
+// import ConfirmationModal from '../../../../../components/ConfirmationModal';
 // import OnBoardForm from '../OnBoardForm';
+import apiService from '../../apiService';
+import Strings from '../../../../../resources';
 import ButtonComponent from '../../../../../components/FormFields/ActionButton';
 import { IconEdit, IconDeleteActive } from '../../../../../assets/SvgIcons';
 import { TitleOne } from '../../../../../styles/GlobalStyles';
-import serviceAccounts from '../../__mock';
+import AccountSelectionTabs from '../Tabs';
 
 const ColumnSection = styled('section')`
   position: relative;
@@ -177,22 +174,86 @@ const ColumnTitleWrap = styled('div')`
 `;
 const MoreWrap = styled.div``;
 const useStyles = makeStyles(() => ({
-  containedSecondary: { borderRadius: '0.4rem' },
+  contained: { borderRadius: '0.4rem' },
 }));
+
 const ServiceAccountDashboard = () => {
+  // const [, setEnableOnBoardForm] = useState(false);
   const [inputSearchValue, setInputSearchValue] = useState('');
   const [anchorEl, setAnchorEl] = useState(null);
   const [serviceAccountClicked, setServiceAccountClicked] = useState(false);
   const [listItemDetails, setListItemDetails] = useState({});
-  const [moreData, setMoreData] = useState(false);
-  const [isLoading, setIsloading] = useState(false);
+  const [moreData] = useState(false);
+  const [isLoading] = useState(false);
   const [serviceAccountList, setServiceAccountList] = useState([]);
-  const [toast, setToast] = useState(null);
+  const [toast] = useState(null);
   const [status, setStatus] = useState({});
   let scrollParentRef = null;
   const classes = useStyles();
   const isMobileScreen = useMediaQuery(mediaBreakpoints.small);
   const history = useHistory();
+
+  const introduction = Strings.Resources.serviceAccount;
+
+  /**
+   * @function fetchData
+   * @description function call all the manage and safe api.
+   */
+  const fetchData = useCallback(async () => {
+    setStatus({ status: 'loading', message: 'Loading...' });
+    const serviceList = await apiService.getServiceAccountList();
+    const serviceAccounts = await apiService.getServiceAccounts();
+    const allApiResponse = Promise.all([serviceList, serviceAccounts]);
+    allApiResponse
+      .then((response) => {
+        const listArray = [];
+        if (response[0] && response[0].data && response[0].data.svcacct) {
+          response[0].data.svcacct.map((item) => {
+            const data = {
+              name: Object.keys(item)[0],
+              access: Object.values(item)[0],
+              admin: true,
+              manage: true,
+            };
+            return listArray.push(data);
+          });
+        }
+        if (response[1] && response[1]?.data?.keys) {
+          listArray.map((item) => {
+            if (!response[1].data.keys.includes(item.name)) {
+              item.manage = false;
+            }
+            return null;
+          });
+          response[1].data.keys.map((item) => {
+            if (!listArray.some((list) => list.name === item)) {
+              const data = {
+                name: item,
+                access: '',
+                admin: true,
+                manage: true,
+              };
+              return listArray.push(data);
+            }
+            return null;
+          });
+          setServiceAccountList([...listArray]);
+        }
+        setStatus({ status: 'success', message: '' });
+      })
+      .catch(() => {
+        setStatus({ status: 'failed', message: 'failed' });
+      });
+  }, []);
+
+  /**
+   * @description On component load call fetchData function.
+   */
+  useEffect(() => {
+    fetchData().catch(() => {
+      setStatus({ status: 'failed', message: 'failed' });
+    });
+  }, [fetchData]);
 
   const showOnBoardForm = () => {
     // setEnableOnBoardForm(true);
@@ -219,9 +280,9 @@ const ServiceAccountDashboard = () => {
    * based on that value display left and right side.
    */
   const onLinkClicked = (item) => {
+    setListItemDetails(item);
     if (isMobileScreen) {
       setServiceAccountClicked(true);
-      setListItemDetails(item);
     }
   };
 
@@ -246,6 +307,17 @@ const ServiceAccountDashboard = () => {
     }
   };
 
+  useEffect(() => {
+    if (serviceAccountList?.length > 0) {
+      serviceAccountList.map((item) => {
+        if (history.location.pathname === `/service-accounts/${item.name}`) {
+          return setListItemDetails(item);
+        }
+        return null;
+      });
+    }
+  }, [serviceAccountList, listItemDetails, history]);
+
   // Infine scroll load more data
   const loadMoreData = () => {};
 
@@ -253,21 +325,16 @@ const ServiceAccountDashboard = () => {
   const onToastClose = () => {
     setStatus({});
   };
-
-  useEffect(() => {
-    setServiceAccountList([...serviceAccounts.serviceAccounts]);
-  }, []);
   const onServiceAccountOffBoard = () => {};
   const onServiceAccountEdit = () => {};
 
-  const handleConfirmationModalClose = () => {};
   const renderList = () => {
     return serviceAccountList.map((account) => (
       <ListFolderWrap
         key={account.name}
         to={{
           pathname: `/service-accounts/${account.name}`,
-          state: { account },
+          state: { data: account },
         }}
         onClick={() => onLinkClicked(account)}
         active={
@@ -286,7 +353,7 @@ const ServiceAccountDashboard = () => {
           ]}
         />
         <BorderLine />
-        {account.owner && !isMobileScreen ? (
+        {account.name && !isMobileScreen ? (
           <PopperWrap onClick={(e) => onActionClicked(e)}>
             <EditAndDeletePopup
               //   onDeleteListItemClicked={() => onDeleteSafeClicked(safe.path)}
@@ -295,7 +362,7 @@ const ServiceAccountDashboard = () => {
             />
           </PopperWrap>
         ) : null}
-        {isMobileScreen && account.owner ? (
+        {isMobileScreen && account.name ? (
           <div>
             <MoreWrap
               role="button"
@@ -318,21 +385,6 @@ const ServiceAccountDashboard = () => {
   return (
     <ComponentError>
       <>
-        {/* <ConfirmationModal
-          open={onBoardConfirmationModal}
-          handleClose={handleConfirmationModalClose}
-          title="Onboarding Service Account"
-          description="The password for this service account will expire in 365 days and will not be enabled for auto rotation by T-Vault. You need to makes sure the passwod for this service account is getting roated appropriately."
-          confirmButton={
-            // eslint-disable-next-line react/jsx-wrap-multilines
-            <ButtonComponent
-              label="Confirm"
-              color="secondary"
-              onClick={() => setOnBoardConfirmationModal(false)}
-              width={isMobileScreen ? '100%' : '38%'}
-            />
-          }
-        /> */}
         <SectionPreview title="service-account-section">
           <LeftColumnSection isAccountDetailsOpen={serviceAccountClicked}>
             <ColumnHeader>
@@ -372,52 +424,59 @@ const ServiceAccountDashboard = () => {
                 <Error description="Error while fetching service accounts!" />
               </EmptyContentBox>
             )}
-            {serviceAccountList && serviceAccountList.length > 0 ? (
-              <ListContainer
-                // eslint-disable-next-line no-return-assign
-                ref={(ref) => (scrollParentRef = ref)}
-              >
-                <StyledInfiniteScroll
-                  pageStart={0}
-                  loadMore={() => {
-                    loadMoreData();
-                  }}
-                  hasMore={moreData}
-                  threshold={100}
-                  loader={!isLoading ? <div key={0}>Loading...</div> : <></>}
-                  useWindow={false}
-                  getScrollParent={() => scrollParentRef}
-                >
-                  {renderList()}
-                </StyledInfiniteScroll>
-              </ListContainer>
-            ) : (
-              serviceAccountList?.length === 0 && (
-                <NoDataWrapper>
-                  {' '}
-                  <NoListWrap>
-                    <NoData
-                      imageSrc={NoSafesIcon}
-                      description="Onbaord a service account to get started!"
-                      actionButton={
-                        // eslint-disable-next-line react/jsx-wrap-multilines
-                        <FloatingActionButtonComponent
-                          href="/service-accounts/onboard-service-account"
-                          color="secondary"
-                          icon="add"
-                          tooltipTitle="Onboard New Service Account"
-                          tooltipPos="bottom"
-                        />
+            {status.status === 'success' && (
+              <>
+                {serviceAccountList && serviceAccountList.length > 0 ? (
+                  <ListContainer
+                    // eslint-disable-next-line no-return-assign
+                    ref={(ref) => (scrollParentRef = ref)}
+                  >
+                    <StyledInfiniteScroll
+                      pageStart={0}
+                      loadMore={() => {
+                        loadMoreData();
+                      }}
+                      hasMore={moreData}
+                      threshold={100}
+                      loader={
+                        !isLoading ? <div key={0}>Loading...</div> : <></>
                       }
-                    />
-                  </NoListWrap>
-                </NoDataWrapper>
-              )
+                      useWindow={false}
+                      getScrollParent={() => scrollParentRef}
+                    >
+                      {renderList()}
+                    </StyledInfiniteScroll>
+                  </ListContainer>
+                ) : (
+                  serviceAccountList?.length === 0 && (
+                    <NoDataWrapper>
+                      {' '}
+                      <NoListWrap>
+                        <NoData
+                          imageSrc={NoSafesIcon}
+                          description="Onbaord a service account to get started!"
+                          actionButton={
+                            // eslint-disable-next-line react/jsx-wrap-multilines
+                            <FloatingActionButtonComponent
+                              href="/service-accounts/change-service-accounts"
+                              color="secondary"
+                              icon="add"
+                              tooltipTitle="Onboard New Service Account"
+                              tooltipPos="bottom"
+                            />
+                          }
+                        />
+                      </NoListWrap>
+                    </NoDataWrapper>
+                  )
+                )}
+              </>
             )}
+
             {serviceAccountList?.length ? (
               <FloatBtnWrapper>
                 <FloatingActionButtonComponent
-                  href="/service-accounts/onboard-service-account"
+                  href="/service-accounts/change-service-accounts"
                   color="secondary"
                   icon="add"
                   tooltipTitle="Onboard New Service Account"
@@ -428,54 +487,49 @@ const ServiceAccountDashboard = () => {
               <></>
             )}
           </LeftColumnSection>
-
           <RightColumnSection
             mobileViewStyles={isMobileScreen ? MobileViewForListDetailPage : ''}
             isAccountDetailsOpen={serviceAccountClicked}
           >
-            <Router>
-              <Switch>
-                {' '}
-                {/* {serviceAccountList[0]?.name && (
+            <Switch>
+              {serviceAccountList[0]?.name && (
                 <Redirect
                   exact
                   from="/service-accounts"
                   to={{
-                    pathname: `/service-account/${serviceAccountList[0]?.name}`,
-                    state: { serviceAccount: serviceAccountList[0] },
+                    pathname: `/service-accounts/${serviceAccountList[0]?.name}`,
+                    state: { data: serviceAccountList[0] },
                   }}
                 />
-              )} */}
-                <Route
-                  path="/:tab/:serviceAccountName"
-                  render={(routerProps) => (
-                    <ListItemDetail
-                      listItemDetails={listItemDetails}
-                      renderContent={
-                        // eslint-disable-next-line react/jsx-wrap-multilines
-                        <OnBoardServiceAccount />
-                      }
-                      params={routerProps}
-                      backToLists={backToServiceAccounts}
-                      ListDetailHeaderBg={sectionHeaderBg}
-                    />
-                  )}
-                />
-                {/* <Route
-                  path="/"
-                  render={(routerProps) => (
-                    <ListItemDetail
-                      detailData={serviceAccountList}
-                      renderContent={
-                        enableOnBoardForm ? <OnBoardForm /> : <div />
-                      }
-                      params={routerProps}
-                      ListDetailHeaderBg={sectionHeaderBg}
-                    />
-                  )}
-                /> */}
-              </Switch>
-            </Router>
+              )}
+              <Route
+                path="/service-accounts/:serviceAccountName"
+                render={(routerProps) => (
+                  <ListItemDetail
+                    listItemDetails={listItemDetails}
+                    params={routerProps}
+                    backToLists={backToServiceAccounts}
+                    ListDetailHeaderBg={sectionHeaderBg}
+                    description={introduction}
+                    renderContent={
+                      <AccountSelectionTabs accountDetail={listItemDetails} />
+                    }
+                  />
+                )}
+              />
+              <Route
+                path="/service-accounts"
+                render={(routerProps) => (
+                  <ListItemDetail
+                    listItemDetails={serviceAccountList}
+                    params={routerProps}
+                    backToLists={backToServiceAccounts}
+                    ListDetailHeaderBg={sectionHeaderBg}
+                    description={introduction}
+                  />
+                )}
+              />
+            </Switch>
           </RightColumnSection>
           {toast === -1 && (
             <SnackbarComponent

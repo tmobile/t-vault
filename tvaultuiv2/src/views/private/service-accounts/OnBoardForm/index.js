@@ -26,7 +26,6 @@ import LoaderSpinner from '../../../../components/Loaders/LoaderSpinner';
 import SnackbarComponent from '../../../../components/Snackbar';
 import ConfirmationModal from '../../../../components/ConfirmationModal';
 import BackdropLoader from '../../../../components/Loaders/BackdropLoader';
-import { validateEmail } from '../../../../services/helper-function';
 
 const useStyles = makeStyles((theme) => ({
   select: {
@@ -191,7 +190,7 @@ const OnBoardForm = () => {
   const [inputApplicationName, setInputApplicationName] = useState('');
   const [inputExpiryTime, setInputExpiryTime] = useState('');
 
-  const [getResponseType, setGetResponseType] = useState(null);
+  // const [getResponseType, setGetResponseType] = useState(null);
   const [timeError, setTimeError] = useState(null);
   const [selectedApplication, setSelectedApplication] = useState(null);
   const [serviceAccountDetails, setServiceAccountDetails] = useState(null);
@@ -230,7 +229,6 @@ const OnBoardForm = () => {
       apiService
         .getAppRoles()
         .then((res) => {
-          setGetResponseType(1);
           setIsServiceFetching(false);
           setIsAppNameFetching(false);
           if (res?.data?.length > 0) {
@@ -245,9 +243,8 @@ const OnBoardForm = () => {
             setApplicationList([...array]);
           }
         })
-        .catch((err) => {
+        .catch(() => {
           setIsAppNameFetching(false);
-          setGetResponseType(-1);
         });
     }),
     []
@@ -262,9 +259,8 @@ const OnBoardForm = () => {
     debounce((name) => {
       setIsServiceFetching(true);
       apiService
-        .getServiceAccounts(name)
+        .getUsersServiceAccounts(name)
         .then((res) => {
-          setGetResponseType(1);
           setIsServiceFetching(false);
           if (res?.data?.data?.values?.length > 0) {
             const array = [];
@@ -278,12 +274,29 @@ const OnBoardForm = () => {
           }
         })
         .catch((err) => {
-          setGetResponseType(-1);
           setIsServiceFetching(false);
         });
     }),
     []
   );
+  /**
+   * fetch/update service account details after it has been onboarded
+   */
+  const updateServiceAccountDetails = useCallback(async () => {
+    const fetchServiceAccountDetails = await apiService.fetchServiceAccountDetails(
+      inputServiceName
+    );
+    const callServiceAccount = await apiService.callServiceAccount(
+      inputServiceName
+    );
+    const updateMetaPath = await apiService.updateMetaPath(inputServiceName);
+    const allApiResponse = Promise.all([
+      fetchServiceAccountDetails,
+      callServiceAccount,
+      updateMetaPath,
+    ]);
+    allApiResponse.then(() => {}).catch();
+  }, [inputServiceName]);
 
   /**
    *
@@ -292,6 +305,7 @@ const OnBoardForm = () => {
    */
   const onBoardServiceAccount = () => {
     setStatus({ status: 'loading', message: 'loading...' });
+    setOnBoardConfirmationModal(false);
     const payload = {
       adGroup: inputAdGroupName,
       appID: selectedApplication.appID,
@@ -310,6 +324,7 @@ const OnBoardForm = () => {
           message: res.data.messages[0],
         });
         setPostOnBoardModal(true);
+        updateServiceAccountDetails();
       })
       .catch((err) => {
         setStatus({
@@ -323,7 +338,7 @@ const OnBoardForm = () => {
     setInputServiceName(val);
     const svcObj = serviceAccountsList.find((item) => item.userId === val);
     setServiceAccountDetails({ ...svcObj });
-    setIsCollapse(!isCollapse);
+    setIsCollapse(true);
   };
   const onApplicationNameSelected = (e, val) => {
     setInputApplicationName(val);
@@ -338,17 +353,21 @@ const OnBoardForm = () => {
   const onADGroupChange = (name) => {
     setInputAdGroupName(name);
   };
-  const onApplicationNameChange = (val) => {
+  const onApplicationNameChange = () => {
     fetchAppRoles();
   };
   /**
-   *
+   *@function validateTime
    * @param {string} value value of input time in seconds
    */
   const validateTime = (value) => {
-    setTimeError(Number(value) > serviceAccountDetails?.maxPwdAge);
+    setTimeError(
+      !value.match(/^[0-9]*$/g) ||
+        Number(value) > serviceAccountDetails?.maxPwdAge
+    );
   };
   const onExpiryTimeChange = (value) => {
+    setTimeError(null);
     validateTime(value);
     setInputExpiryTime(value);
   };
@@ -370,6 +389,13 @@ const OnBoardForm = () => {
     }
     setStatus({});
   };
+  /**
+   *Handle confirmation modal after service account onboarding
+   */
+  const handlePostOnboardModalClose = () => {
+    setPostOnBoardModal(false);
+    handleClose();
+  };
   // render grid row of service account details
   //   const renderGridRow = (data) => {
   //     data.map((item) => (
@@ -382,7 +408,7 @@ const OnBoardForm = () => {
 
   return (
     <ComponentError>
-      <>
+      <div>
         {status.status === 'loading' && <BackdropLoader />}
         <ConfirmationModal
           open={onBoardConfirmationModal}
@@ -395,7 +421,7 @@ const OnBoardForm = () => {
               label="Cancel"
               color="primary"
               onClick={() => setOnBoardConfirmationModal(false)}
-              width={isMobileScreen ? '100%' : '38%'}
+              width={isMobileScreen ? '45%' : ''}
             />
           }
           confirmButton={
@@ -404,13 +430,13 @@ const OnBoardForm = () => {
               label="onboard"
               color="secondary"
               onClick={() => onBoardServiceAccount()}
-              width={isMobileScreen ? '100%' : '38%'}
+              width={isMobileScreen ? '45%' : ''}
             />
           }
         />
         <ConfirmationModal
           open={postOnBoardModal}
-          handleClose={setPostOnBoardModal}
+          handleClose={() => setPostOnBoardModal(false)}
           title="Onboarding Successfull"
           description="Onboarding of service account has been completed successfully. To continue, the service account needs to be activated by Sunil Kumar - Sunil.Kumar255@T-Mobile.com . If you are owner of the service account, you need to log out and login again to activate it."
           cancelButton={
@@ -418,8 +444,8 @@ const OnBoardForm = () => {
             <ButtonComponent
               label="CLOSE"
               color="secondary"
-              onClick={() => setOnBoardConfirmationModal(false)}
-              width={isMobileScreen ? '100%' : '38%'}
+              onClick={() => handlePostOnboardModalClose(false)}
+              width={isMobileScreen ? '100%' : ''}
             />
           }
         />
@@ -601,6 +627,7 @@ const OnBoardForm = () => {
                           : 'TTL in seconds(max: 31536000)'
                       }
                       icon="search"
+                      readOnly={!isSwitchOn}
                       fullWidth
                       onChange={(e) => onExpiryTimeChange(e.target.value)}
                       value={inputExpiryTime || ''}
@@ -660,10 +687,11 @@ const OnBoardForm = () => {
                       onClick={() => handleCancelClick()}
                     />
                   </CancelButton>
+
                   <ButtonComponent
                     label="Onboard"
                     disabled={
-                      !timeError ||
+                      timeError ||
                       !inputServiceName ||
                       !inputApplicationName ||
                       !inputExpiryTime
@@ -694,7 +722,7 @@ const OnBoardForm = () => {
             message={status.message || 'Request Successfull'}
           />
         )}
-      </>
+      </div>
     </ComponentError>
   );
 };
