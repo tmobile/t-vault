@@ -7,7 +7,6 @@ import Radio from '@material-ui/core/Radio';
 
 const RadioPermissionComponent = (props) => {
   const { radioValue, handleRadioChange } = props;
-
   return (
     <div>
       <FormControl component="fieldset">
@@ -24,9 +23,9 @@ const RadioPermissionComponent = (props) => {
             label="Read"
           />
           <FormControlLabel
-            value="write"
+            value="reset"
             control={<Radio color="default" />}
-            label="Write"
+            label="Reset"
           />
           <FormControlLabel
             value="deny"

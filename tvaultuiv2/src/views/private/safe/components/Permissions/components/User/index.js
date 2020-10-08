@@ -8,10 +8,10 @@ import NoData from '../../../../../../../components/NoData';
 import ButtonComponent from '../../../../../../../components/FormFields/ActionButton';
 import noPermissionsIcon from '../../../../../../../assets/no-permissions.svg';
 import mediaBreakpoints from '../../../../../../../breakpoints';
-import AddUser from '../../../AddUser';
+import AddUser from '../../../../../../../components/AddUser';
 import apiService from '../../../../apiService';
 import LoaderSpinner from '../../../../../../../components/Loaders/LoaderSpinner';
-import PermissionsList from '../PermissionsList';
+import PermissionsList from '../../../../../../../components/PermissionsList';
 import Error from '../../../../../../../components/Error';
 
 const { small, belowLarge } = mediaBreakpoints;

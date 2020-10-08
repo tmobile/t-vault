@@ -1,6 +1,6 @@
 /* eslint-disable react/jsx-curly-newline */
 /* eslint-disable react/jsx-props-no-spreading */
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import styled, { css } from 'styled-components';
 import { makeStyles } from '@material-ui/core/styles';
 import Tab from '@material-ui/core/Tab';
@@ -8,16 +8,13 @@ import PropTypes from 'prop-types';
 import AppBar from '@material-ui/core/AppBar';
 import Tabs from '@material-ui/core/Tabs';
 import ComponentError from '../../../../../errorBoundaries/ComponentError/component-error';
-// import NamedButton from '../../../../../components/NamedButton';
-// import permissionPlusIcon from '../../../../../assets/permission-plus.svg';
+import NamedButton from '../../../../../components/NamedButton';
+import permissionPlusIcon from '../../../../../assets/permission-plus.svg';
 import mediaBreakpoints from '../../../../../breakpoints';
-// import User from './components/User';
-// import Groups from './components/Groups';
-// import apiService from '../../apiService';
+import Users from './components/Users';
 import LoaderSpinner from '../../../../../components/Loaders/LoaderSpinner';
-// import AppRoles from './components/AppRoles';
-// import SnackbarComponent from '../../../../../components/Snackbar';
-// import AwsApplications from './components/AwsApplications';
+import Error from '../../../../../components/Error';
+import SnackbarComponent from '../../../../../components/Snackbar';
 
 const { belowLarge } = mediaBreakpoints;
 
@@ -130,6 +127,14 @@ const customStyle = css`
   top: 50%;
 `;
 
+const NoPermission = styled.div`
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #5a637a;
+`;
+
 const useStyles = makeStyles(() => ({
   appBar: {
     display: 'flex',
@@ -140,16 +145,21 @@ const useStyles = makeStyles(() => ({
 }));
 
 const ServiceAccountPermission = (props) => {
-  const { accountDetail, refresh } = props;
+  const {
+    accountDetail,
+    refresh,
+    accountMetaData,
+    hasPermission,
+    parentStatus,
+  } = props;
   const classes = useStyles();
   const [value, setValue] = useState(0);
   const [newPermission, setNewPermission] = useState(false);
-  const [newGroup, setNewGroup] = useState(false);
-  const [newAwsApplication, setNewAwsApplication] = useState(false);
-  const [newAppRole, setNewAppRole] = useState(false);
+  const [, setNewGroup] = useState(false);
+  const [, setNewAwsApplication] = useState(false);
+  const [, setNewAppRole] = useState(false);
   const [count, setCount] = useState(0);
-  const [safeData, setSafeData] = useState({ response: {}, error: '' });
-  const [responseType, setResponseType] = useState(0);
+  const [response, setResponse] = useState({ status: 'loading' });
   const [selectedTab, setSelectedTab] = useState('Permissions');
   const [toastResponse, setToastResponse] = useState(null);
   const [toastMessage, setToastMessage] = useState('');
@@ -168,196 +178,166 @@ const ServiceAccountPermission = (props) => {
     }
   };
 
-  //   useEffect(() => {
-  //     if (safeData?.response && Object.keys(safeData?.response).length !== 0) {
-  //       setCount(0);
-  //       if (value === 0) {
-  //         if (safeData.response.users) {
-  //           setCount(Object.keys(safeData.response.users).length);
-  //         }
-  //       } else if (value === 1) {
-  //         if (safeData.response.groups) {
-  //           setCount(Object.keys(safeData.response.groups).length);
-  //         }
-  //       } else if (value === 2) {
-  //         if (safeData.response['aws-roles']) {
-  //           setCount(Object.keys(safeData.response['aws-roles']).length);
-  //         }
-  //       } else if (value === 3) {
-  //         if (safeData.response['app-roles']) {
-  //           setCount(Object.keys(safeData.response['app-roles']).length);
-  //         }
-  //       }
-  //     }
-  //   }, [value, safeData]);
+  useEffect(() => {
+    setResponse({ status: parentStatus });
+  }, [parentStatus]);
 
-  //   const fetchPermission = useCallback(() => {
-  //     setResponseType(0);
-  //     setCount(0);
-  //     setSafeData({});
-  //     apiService
-  //       .getSafeDetails(`${safeDetail.path}`)
-  //       .then((res) => {
-  //         let obj = {};
-  //         setResponseType(1);
-  //         if (res && res.data?.data) {
-  //           obj = res.data.data;
-  //           setSafeData({ response: obj, error: '' });
-  //           setCount(Object.keys(res.data.data.users).length);
-  //         }
-  //       })
-  //       .catch((err) => {
-  //         setResponseType(-1);
-  //         if (err.response?.data?.errors && err.response.data.errors[0]) {
-  //           setSafeData({ response: {}, error: err.response.data.errors[0] });
-  //         }
-  //       });
-  //   }, [safeDetail]);
+  useEffect(() => {
+    if (
+      accountMetaData?.response &&
+      Object.keys(accountMetaData?.response).length !== 0
+    ) {
+      setCount(0);
+      if (value === 0) {
+        if (accountMetaData.response.users) {
+          setCount(Object.keys(accountMetaData.response.users).length);
+        }
+      } else if (value === 1) {
+        if (accountMetaData.response.groups) {
+          setCount(Object.keys(accountMetaData.response.groups).length);
+        }
+      } else if (value === 2) {
+        if (accountMetaData.response['aws-roles']) {
+          setCount(Object.keys(accountMetaData.response['aws-roles']).length);
+        }
+      } else if (value === 3) {
+        if (accountMetaData.response['app-roles']) {
+          setCount(Object.keys(accountMetaData.response['app-roles']).length);
+        }
+      }
+    }
+  }, [value, accountMetaData]);
 
-  //   useEffect(() => {
-  //     if (safeDetail?.manage) {
-  //       fetchPermission();
-  //     }
-  //   }, [safeDetail, fetchPermission]);
+  const onAddLabelBtnClicked = () => {
+    if (value === 0) {
+      setNewPermission(true);
+    } else if (value === 1) {
+      setNewGroup(true);
+    } else if (value === 2) {
+      setNewAwsApplication(true);
+    } else if (value === 3) {
+      setNewAppRole(true);
+    }
+  };
 
-  //   const onAddLabelBtnClicked = () => {
-  //     if (value === 0) {
-  //       setNewPermission(true);
-  //     } else if (value === 1) {
-  //       setNewGroup(true);
-  //     } else if (value === 2) {
-  //       setNewAwsApplication(true);
-  //     } else if (value === 3) {
-  //       setNewAppRole(true);
-  //     }
-  //   };
-
-  //   const onToastClose = (reason) => {
-  //     if (reason === 'clickaway') {
-  //       return;
-  //     }
-  //     setToastResponse(null);
-  //   };
-  //   const updateToastMessage = (response, message) => {
-  //     setToastResponse(response);
-  //     setToastMessage(message);
-  //   };
+  const onToastClose = (reason) => {
+    if (reason === 'clickaway') {
+      return;
+    }
+    setToastResponse(null);
+  };
+  const updateToastMessage = (res, message) => {
+    setToastResponse(res);
+    setToastMessage(message);
+  };
 
   return (
     <ComponentError>
       <>
-        <CountPlusWrapper>
-          <CountSpan color="#5e627c">{`${count} ${selectedTab}s`}</CountSpan>
-          {/* <NamedButton
-            customStyle={customMobileStyles}
-            label={`Add ${selectedTab}`}
-            iconSrc={permissionPlusIcon}
-            onClick={() => onAddLabelBtnClicked()}
-          /> */}
-        </CountPlusWrapper>
-        <TabWrapper>
-          <AppBar position="static" className={classes.appBar}>
-            <Tabs
-              value={value}
-              onChange={handleChange}
-              variant="scrollable"
-              scrollButtons="off"
-              aria-label="scrollable prevent tabs example"
-            >
-              <Tab label="Users" {...a11yProps(0)} />
-              <Tab label="Groups" {...a11yProps(1)} />
-              <Tab label="AWS Applications" {...a11yProps(2)} />
-              <Tab label="App Roles" {...a11yProps(3)} />
-            </Tabs>
-            {/* <NamedButton
-              customStyle={customStyles}
-              label={`Add ${selectedTab}`}
-              iconSrc={permissionPlusIcon}
-              onClick={() => onAddLabelBtnClicked()}
-            /> */}
-          </AppBar>
-          {responseType === 0 && <LoaderSpinner customStyle={customStyle} />}
-          <PermissionTabsWrapper>
-            {' '}
-            <TabPanel value={value} index={0}>
-              {/* <User
-                safeDetail={safeDetail}
-                newPermission={newPermission}
-                onNewPermissionChange={() => setNewPermission(false)}
-                fetchPermission={() => fetchPermission()}
-                safeData={safeData}
-                refresh={refresh}
-                updateToastMessage={(response, message) =>
-                  updateToastMessage(response, message)
-                }
-              /> */}
-            </TabPanel>
-            <TabPanel value={value} index={1}>
-              {/* <Groups
-                safeDetail={safeDetail}
-                safeData={safeData}
-                fetchPermission={() => fetchPermission()}
-                newGroup={newGroup}
-                onNewGroupChange={() => setNewGroup(false)}
-                updateToastMessage={(response, message) =>
-                  updateToastMessage(response, message)
-                }
-              /> */}
-            </TabPanel>
-            <TabPanel value={value} index={2}>
-              {/* <AwsApplications
-                safeDetail={safeDetail}
-                safeData={safeData}
-                fetchPermission={() => fetchPermission()}
-                newAwsApplication={newAwsApplication}
-                onNewAwsChange={() => setNewAwsApplication(false)}
-                updateToastMessage={(response, message) =>
-                  updateToastMessage(response, message)
-                }
-              /> */}
-            </TabPanel>
-            <TabPanel value={value} index={3}>
-              {/* <AppRoles
-                safeDetail={safeDetail}
-                safeData={safeData}
-                fetchPermission={() => fetchPermission()}
-                newAppRole={newAppRole}
-                onNewAppRoleChange={() => setNewAppRole(false)}
-                updateToastMessage={(response, message) =>
-                  updateToastMessage(response, message)
-                }
-              /> */}
-            </TabPanel>
-          </PermissionTabsWrapper>
-          {/* {toastResponse === -1 && (
-            <SnackbarComponent
-              open
-              onClose={() => onToastClose()}
-              severity="error"
-              icon="error"
-              message={toastMessage || 'Something went wrong!'}
-            />
-          )}
-          {toastResponse === 1 && (
-            <SnackbarComponent
-              open
-              onClose={() => onToastClose()}
-              message={toastMessage || 'Successful'}
-            />
-          )} */}
-        </TabWrapper>
+        {response.status === 'loading' && (
+          <LoaderSpinner customStyle={customStyle} />
+        )}
+        {response.status === 'error' && (
+          <Error description="Something went wrong!" />
+        )}
+        {response.status === 'success' && (
+          <>
+            {hasPermission ? (
+              <>
+                {' '}
+                <CountPlusWrapper>
+                  <CountSpan color="#5e627c">{`${count} ${selectedTab}s`}</CountSpan>
+                  <NamedButton
+                    customStyle={customMobileStyles}
+                    label={`Add ${selectedTab}`}
+                    iconSrc={permissionPlusIcon}
+                    onClick={() => onAddLabelBtnClicked()}
+                  />
+                </CountPlusWrapper>
+                <TabWrapper>
+                  <AppBar position="static" className={classes.appBar}>
+                    <Tabs
+                      value={value}
+                      onChange={handleChange}
+                      variant="scrollable"
+                      scrollButtons="off"
+                      aria-label="scrollable prevent tabs example"
+                    >
+                      <Tab label="Users" {...a11yProps(0)} />
+                      <Tab label="Groups" {...a11yProps(1)} />
+                      <Tab label="AWS Applications" {...a11yProps(2)} />
+                      <Tab label="App Roles" {...a11yProps(3)} />
+                    </Tabs>
+                    <NamedButton
+                      customStyle={customStyles}
+                      label={`Add ${selectedTab}`}
+                      iconSrc={permissionPlusIcon}
+                      onClick={() => onAddLabelBtnClicked()}
+                    />
+                  </AppBar>
+                  <PermissionTabsWrapper>
+                    {' '}
+                    <TabPanel value={value} index={0}>
+                      <Users
+                        accountDetail={accountDetail}
+                        newPermission={newPermission}
+                        onNewPermissionChange={() => setNewPermission(false)}
+                        accountMetaData={accountMetaData}
+                        refresh={refresh}
+                        updateToastMessage={(res, message) =>
+                          updateToastMessage(res, message)
+                        }
+                      />
+                    </TabPanel>
+                    <TabPanel value={value} index={1}>
+                      groups
+                    </TabPanel>
+                    <TabPanel value={value} index={2}>
+                      AwsApplications
+                    </TabPanel>
+                    <TabPanel value={value} index={3}>
+                      Approle
+                    </TabPanel>
+                  </PermissionTabsWrapper>
+                  {toastResponse === -1 && (
+                    <SnackbarComponent
+                      open
+                      onClose={() => onToastClose()}
+                      severity="error"
+                      icon="error"
+                      message={toastMessage || 'Something went wrong!'}
+                    />
+                  )}
+                  {toastResponse === 1 && (
+                    <SnackbarComponent
+                      open
+                      onClose={() => onToastClose()}
+                      message={toastMessage || 'Successful'}
+                    />
+                  )}
+                </TabWrapper>
+              </>
+            ) : (
+              <NoPermission>Access denied</NoPermission>
+            )}
+          </>
+        )}
       </>
     </ComponentError>
   );
 };
 
 ServiceAccountPermission.propTypes = {
-  safeDetail: PropTypes.objectOf(PropTypes.any),
+  accountDetail: PropTypes.objectOf(PropTypes.any),
+  accountMetaData: PropTypes.objectOf(PropTypes.any).isRequired,
   refresh: PropTypes.func.isRequired,
+  hasPermission: PropTypes.bool,
+  parentStatus: PropTypes.objectOf(PropTypes.any).isRequired,
 };
 
 ServiceAccountPermission.defaultProps = {
-  safeDetail: {},
+  accountDetail: {},
+  hasPermission: false,
 };
 
 export default ServiceAccountPermission;

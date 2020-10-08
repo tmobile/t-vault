@@ -5,13 +5,14 @@ import { InputLabel, Typography } from '@material-ui/core';
 import useMediaQuery from '@material-ui/core/useMediaQuery';
 import styled, { css } from 'styled-components';
 import PropTypes from 'prop-types';
-import ComponentError from '../../../../../errorBoundaries/ComponentError/component-error';
-import mediaBreakpoints from '../../../../../breakpoints';
-import AutoCompleteComponent from '../../../../../components/FormFields/AutoComplete';
-import ButtonComponent from '../../../../../components/FormFields/ActionButton';
-import apiService from '../../apiService';
-import LoaderSpinner from '../../../../../components/Loaders/LoaderSpinner';
-import RadioPermissionComponent from '../RadioPermissions';
+import ComponentError from '../../errorBoundaries/ComponentError/component-error';
+import mediaBreakpoints from '../../breakpoints';
+import AutoCompleteComponent from '../FormFields/AutoComplete';
+import ButtonComponent from '../FormFields/ActionButton';
+import apiService from '../../views/private/safe/apiService';
+import LoaderSpinner from '../Loaders/LoaderSpinner';
+import RadioSafePermissionComponent from '../../views/private/safe/components/RadioPermissions';
+import RadioSvcPermissionComponent from '../../views/private/service-accounts/components/RadioPermissions';
 
 const { small } = mediaBreakpoints;
 
@@ -113,8 +114,14 @@ const useStyles = makeStyles(() => ({
   },
 }));
 
-const AddGroup = (props) => {
-  const { handleCancelClick, handleSaveClick, groupname, access } = props;
+const AddUser = (props) => {
+  const {
+    handleCancelClick,
+    handleSaveClick,
+    username,
+    access,
+    isSvcAccount,
+  } = props;
   const classes = useStyles();
   const [radioValue, setRadioValue] = useState('read');
   const [searchValue, setSearchValue] = useState('');
@@ -124,36 +131,40 @@ const AddGroup = (props) => {
   const isMobileScreen = useMediaQuery(small);
 
   useEffect(() => {
-    setSearchValue(groupname);
+    setSearchValue(username);
     setRadioValue(access);
-  }, [groupname, access]);
+  }, [username, access]);
 
   useEffect(() => {
     if (
       searchValue === '' ||
       searchValue?.length < 3 ||
-      (searchValue?.toLowerCase() === groupname && radioValue === access)
+      (searchValue?.toLowerCase() === username && radioValue === access)
     ) {
       setDisabledSave(true);
     } else {
       setDisabledSave(false);
     }
-  }, [searchValue, radioValue, groupname, access]);
+  }, [searchValue, radioValue, access, username]);
+
+  const handleChange = (event) => {
+    setRadioValue(event.target.value);
+  };
 
   const callSearchApi = useCallback(
     debounce(
       (value) => {
         setSearchLoader(true);
         apiService
-          .getGroupsName(value)
+          .getUserName(value)
           .then((res) => {
             setOptions([]);
             setSearchLoader(false);
             if (res?.data?.data?.values?.length > 0) {
               const array = [];
               res.data.data.values.map((item) => {
-                if (item.displayName) {
-                  return array.push(item.displayName);
+                if (item.userName) {
+                  return array.push(item.userName);
                 }
                 return null;
               });
@@ -185,7 +196,7 @@ const AddGroup = (props) => {
     <ComponentError>
       <PermissionWrapper>
         <HeaderWrapper>
-          <Typography variant="h5">Add Group</Typography>
+          <Typography variant="h5">Add User</Typography>
           <div>
             <RequiredCircle />
             <RequiredText>Required</RequiredText>
@@ -193,7 +204,7 @@ const AddGroup = (props) => {
         </HeaderWrapper>
         <InputWrapper>
           <InputLabel>
-            Group Name
+            User Name
             <RequiredCircle margin="0.5rem" />
           </InputLabel>
           <AutoCompleteComponent
@@ -211,10 +222,18 @@ const AddGroup = (props) => {
           {searchLoader && <LoaderSpinner customStyle={customStyle} />}
         </InputWrapper>
         <RadioButtonWrapper>
-          <RadioPermissionComponent
-            radioValue={radioValue}
-            handleRadioChange={(e) => setRadioValue(e.target.value)}
-          />
+          {isSvcAccount ? (
+            <RadioSvcPermissionComponent
+              radioValue={radioValue}
+              handleRadioChange={(e) => handleChange(e)}
+            />
+          ) : (
+            <RadioSafePermissionComponent
+              radioValue={radioValue}
+              handleRadioChange={(e) => handleChange(e)}
+            />
+          )}
+
           <CancelSaveWrapper>
             <CancelButton>
               <ButtonComponent
@@ -225,7 +244,7 @@ const AddGroup = (props) => {
               />
             </CancelButton>
             <ButtonComponent
-              label={groupname && access ? 'Edit' : 'Save'}
+              label={username && access ? 'Edit' : 'Save'}
               color="secondary"
               onClick={() => handleSaveClick(searchValue, radioValue)}
               disabled={disabledSave}
@@ -238,16 +257,18 @@ const AddGroup = (props) => {
   );
 };
 
-AddGroup.propTypes = {
+AddUser.propTypes = {
   handleSaveClick: PropTypes.func.isRequired,
   handleCancelClick: PropTypes.func.isRequired,
-  groupname: PropTypes.string,
+  username: PropTypes.string,
   access: PropTypes.string,
+  isSvcAccount: PropTypes.bool,
 };
 
-AddGroup.defaultProps = {
-  groupname: '',
+AddUser.defaultProps = {
+  username: '',
   access: 'read',
+  isSvcAccount: false,
 };
 
-export default AddGroup;
+export default AddUser;

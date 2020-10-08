@@ -1,6 +1,6 @@
 /* eslint-disable no-console */
 /* eslint-disable react/jsx-props-no-spreading */
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import PropTypes from 'prop-types';
 import styled from 'styled-components';
 
@@ -12,6 +12,8 @@ import ComponentError from '../../../../../errorBoundaries/ComponentError/compon
 import mediaBreakpoints from '../../../../../breakpoints';
 import ServiceAccountSecrets from '../ServiceAccountSecrets';
 import ServiceAccountPermission from '../ServiceAccountPermission';
+import { useStateValue } from '../../../../../contexts/globalState';
+import apiService from '../../apiService';
 // styled components goes here
 
 const TabPanelWrap = styled.div`
@@ -89,10 +91,46 @@ const AccountSelectionTabs = (props) => {
   const { accountDetail } = props;
   const classes = useStyles();
   const [value, setValue] = useState(0);
-
+  const [response, setResponse] = useState({ status: 'loading' });
+  const [hasPermission, setHasPermission] = useState(false);
+  const [accountMetaData, setAccountMetaData] = useState({
+    response: {},
+    error: '',
+  });
+  const [state] = useStateValue();
   const handleChange = (event, newValue) => {
     setValue(newValue);
   };
+
+  const fetchPermission = useCallback(() => {
+    setResponse({ status: 'loading' });
+    apiService
+      .updateMetaPath(accountDetail.name)
+      .then((res) => {
+        console.log('res', res);
+        if (res.data && res.data.data) {
+          setResponse({ status: 'success' });
+          if (res.data.data.managedBy === state.username) {
+            setHasPermission(true);
+            setAccountMetaData({ response: { ...res.data.data }, error: '' });
+          } else {
+            setHasPermission(false);
+          }
+        }
+      })
+      .catch(() => {
+        setResponse({ status: 'error' });
+        setAccountMetaData({ response: {}, error: 'Something went wrong' });
+      });
+  }, [accountDetail, state]);
+
+  useEffect(() => {
+    setResponse({ status: 'loading' });
+    setHasPermission(false);
+    if (accountDetail?.name) {
+      fetchPermission();
+    }
+  }, [accountDetail, fetchPermission]);
 
   return (
     <ComponentError>
@@ -117,10 +155,19 @@ const AccountSelectionTabs = (props) => {
         </AppBar>
         <TabContentsWrap>
           <TabPanel value={value} index={0}>
-            <ServiceAccountSecrets accountDetail={accountDetail} />
+            <ServiceAccountSecrets
+              accountDetail={accountDetail}
+              accountMetaData={accountMetaData}
+            />
           </TabPanel>
           <TabPanel value={value} index={1}>
-            <ServiceAccountPermission accountDetail={accountDetail} />
+            <ServiceAccountPermission
+              accountDetail={accountDetail}
+              accountMetaData={accountMetaData}
+              hasPermission={hasPermission}
+              parentStatus={response.status}
+              refresh={fetchPermission}
+            />
           </TabPanel>
         </TabContentsWrap>
       </div>
