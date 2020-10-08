@@ -332,7 +332,7 @@ ServiceAccountPermission.propTypes = {
   accountMetaData: PropTypes.objectOf(PropTypes.any).isRequired,
   refresh: PropTypes.func.isRequired,
   hasPermission: PropTypes.bool,
-  parentStatus: PropTypes.objectOf(PropTypes.any).isRequired,
+  parentStatus: PropTypes.string.isRequired,
 };
 
 ServiceAccountPermission.defaultProps = {

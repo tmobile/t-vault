@@ -201,6 +201,10 @@ const ServiceAccountSecrets = (props) => {
     setResponseType(null);
   };
 
+  /**
+   * @description to check the whether the user have write permission
+   * compare the service account data with loged in user.
+   */
   useEffect(() => {
     if (
       accountMetaData.response &&

@@ -56,7 +56,6 @@ const Users = (props) => {
     newPermission,
     onNewPermissionChange,
     accountMetaData,
-    fetchPermission,
     updateToastMessage,
     refresh,
   } = props;
@@ -103,7 +102,6 @@ const Users = (props) => {
         if (res && res.data?.messages && res.data.messages[0]) {
           updateToastMessage(1, res.data.messages[0]);
           setResponse({ status: '' });
-          await fetchPermission();
           refresh();
         }
       })
@@ -129,7 +127,6 @@ const Users = (props) => {
           updateToastMessage(1, res.data?.messages[0]);
           setResponse({ status: '' });
           refresh();
-          //   fetchPermission();
         }
       })
       .catch((err) => {
@@ -280,7 +277,6 @@ Users.propTypes = {
   newPermission: PropTypes.bool.isRequired,
   onNewPermissionChange: PropTypes.func.isRequired,
   accountMetaData: PropTypes.objectOf(PropTypes.any).isRequired,
-  fetchPermission: PropTypes.func.isRequired,
   updateToastMessage: PropTypes.func.isRequired,
   refresh: PropTypes.func.isRequired,
 };

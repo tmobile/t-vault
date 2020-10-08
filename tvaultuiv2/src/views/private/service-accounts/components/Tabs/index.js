@@ -98,16 +98,17 @@ const AccountSelectionTabs = (props) => {
     error: '',
   });
   const [state] = useStateValue();
+
   const handleChange = (event, newValue) => {
     setValue(newValue);
   };
 
+  // Function to get the metadata of the given service account
   const fetchPermission = useCallback(() => {
     setResponse({ status: 'loading' });
     apiService
       .updateMetaPath(accountDetail.name)
       .then((res) => {
-        console.log('res', res);
         if (res.data && res.data.data) {
           setResponse({ status: 'success' });
           if (res.data.data.managedBy === state.username) {
