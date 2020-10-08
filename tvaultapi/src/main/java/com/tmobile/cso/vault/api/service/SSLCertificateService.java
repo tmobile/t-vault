@@ -753,7 +753,7 @@ public class SSLCertificateService {
             } else {
                 SSLCertificateMetadataDetails certMetaDataDetails = certificateUtils.getCertificateMetaData(token,
                         sslCertificateRequest.getCertificateName(), sslCertificateRequest.getCertType());
-                String responseMessage = StringUtils.capitalize(sslCertificateRequest.getCertificateName())+" Already" +
+                String responseMessage = sslCertificateRequest.getCertificateName()+" is already" +
                         " available  in system and owned  by "+ certMetaDataDetails.getCertOwnerEmailId() +" " +
                         ". Please try with different certificate name";
 
@@ -3959,6 +3959,16 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
 
         String certName = certificateDownloadRequest.getCertificateName();
         String certType = certificateDownloadRequest.getCertType();
+        if(!ControllerUtil.arecertificateDownloadInputsValid(certificateDownloadRequest)) {
+   			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+	   					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+	   					put(LogMessage.ACTION, "downloadCertificateWithPrivateKey").
+	   					put(LogMessage.MESSAGE, "Invalid input values").
+	   					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+	   					build()));
+   			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
+		}
+        
         SSLCertificateMetadataDetails sslCertificateMetadataDetails = certificateUtils.getCertificateMetaData(token, certName, certType);
         if (hasDownloadPermission(certificateDownloadRequest.getCertificateName(), userDetails, certType) && sslCertificateMetadataDetails!= null) {
             log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
@@ -4101,6 +4111,16 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
                                                                    String sslCertType) {
 
         InputStreamResource resource = null;
+        if(!ControllerUtil.areDownloadInputsValid(certificateName,sslCertType)) {
+   			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+	   					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+	   					put(LogMessage.ACTION, "downloadCertificateWithPrivateKey").
+	   					put(LogMessage.MESSAGE, "Invalid input values").
+	   					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+	   					build()));
+   			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
+		}
+        
         SSLCertificateMetadataDetails sslCertificateMetadataDetails = certificateUtils.getCertificateMetaData(token, certificateName, sslCertType);
         if (hasDownloadPermission(certificateName, userDetails, sslCertType) && sslCertificateMetadataDetails != null) {
 

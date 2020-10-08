@@ -2517,6 +2517,39 @@ public final class ControllerUtil {
 			}
 			return isValid;
 		}
+    
+    public static boolean arecertificateDownloadInputsValid(CertificateDownloadRequest certificateDownloadRequest) {
+    	boolean isValid = true;
+		if (ObjectUtils.isEmpty(certificateDownloadRequest)) {
+			return false;
+		}
+		if (ObjectUtils.isEmpty(certificateDownloadRequest.getCertificateName())
+				|| ObjectUtils.isEmpty(certificateDownloadRequest.getCertType())
+				|| ObjectUtils.isEmpty(certificateDownloadRequest.getCertificateCred())
+				|| certificateDownloadRequest.getCertificateName().contains(" ")
+                || (!certificateDownloadRequest.getCertificateName().endsWith(".t-mobile.com"))
+                || (certificateDownloadRequest.getCertificateName().contains(".-"))
+	            || (certificateDownloadRequest.getCertificateName().contains("-."))
+                || (!certificateDownloadRequest.getCertType().matches("internal|external"))
+				) {
+			return false;
+		}
+			
+			return isValid;
+		}
+    public static boolean areDownloadInputsValid(String certificateName,String sslCertType) {
+    	boolean isValid = true;
+		if (certificateName.contains(" ")
+                || (!certificateName.endsWith(".t-mobile.com"))
+                || (certificateName.contains(".-"))
+	            || (certificateName.contains("-."))
+                || (!sslCertType.matches("internal|external"))
+				) {
+			return false;
+		}
+			
+			return isValid;
+		}
 
 	/**
 	 * Decides whether a user can be added to a certificate or not
