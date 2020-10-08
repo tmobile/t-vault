@@ -1,5 +1,5 @@
 /* eslint-disable react/jsx-props-no-spreading */
-import React, { lazy } from 'react';
+import React, { lazy, useContext } from 'react';
 import { Route, Switch, withRouter } from 'react-router-dom';
 // import PropTypes from 'prop-types';
 // eslint-disable-next-line import/no-unresolved
@@ -9,6 +9,8 @@ import styled from 'styled-components';
 import mediaBreakpoints from '../../../breakpoints';
 import ComponentError from '../../../errorBoundaries/ComponentError/component-error';
 import ServiceAccountDashboard from './components/ServiceAccountDashboard';
+import { UserContext } from '../../../contexts';
+// import { useStateValue } from '../../../contexts/globalState';
 
 const OnBoardForm = lazy(() => import('./OnBoardForm'));
 const ServiceAccountSectionPreview = styled('section')`
@@ -21,6 +23,9 @@ const ServiceAccountSectionPreview = styled('section')`
 `;
 
 const ServiceAccountLayout = (props) => {
+  const userInfo = useContext(UserContext);
+  // eslint-disable-next-line no-console
+
   return (
     <ComponentError>
       <main title="service-account-layout">
@@ -32,7 +37,7 @@ const ServiceAccountLayout = (props) => {
             exact
             path="/service-accounts/change-service-accounts"
             render={(routeProps) => (
-              <OnBoardForm routeProps={{ ...routeProps }} />
+              <OnBoardForm routeProps={{ ...routeProps, userInfo }} />
             )}
           />
         </Switch>
