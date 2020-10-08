@@ -96,7 +96,7 @@ public class IAMServiceAccountsControllerTest {
 		iamServiceAccount.setApplicationId("app1");
 		iamServiceAccount.setApplicationName("App1");
 		iamServiceAccount.setApplicationTag("App1");
-		iamServiceAccount.setCreatedAtEpoch(12345L);
+		iamServiceAccount.setCreatedAtEpoch(125L);
 		iamServiceAccount.setSecret(generateIAMSecret());
 		return iamServiceAccount;
 	}
@@ -104,8 +104,8 @@ public class IAMServiceAccountsControllerTest {
 	private List<IAMSecrets> generateIAMSecret() {
 		List<IAMSecrets> iamSecrets = new ArrayList<>();
 		IAMSecrets iamSecret = new IAMSecrets();
-		iamSecret.setAccessKeyId("testaccesskey");
-		iamSecret.setExpiryDuration(12345L);
+		iamSecret.setAccessKeyId("testaccesskey555");
+		iamSecret.setExpiryDuration(7776000000L);
 		iamSecrets.add(iamSecret);
 		return iamSecrets;
 	}
