@@ -16,9 +16,13 @@
 *********************************************************************************** */
 package com.tmobile.cso.vault.api.v2.controller;
 
+import java.io.IOException;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 
+import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.tmobile.cso.vault.api.model.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -121,9 +125,9 @@ public class IAMServiceAccountsController {
 	
 	/**
 	 * Get iam service account detail from metadata
-	 * 
 	 * @param request
 	 * @param token
+	 * @param iamsvcname
 	 * @return
 	 */
 	@ApiOperation(value = "${IAMServiceAccountsController.getIAMServiceAccountDetail.value}", notes = "${IAMServiceAccountsController.getIAMServiceAccountDetail.notes}", hidden = false)
@@ -136,25 +140,26 @@ public class IAMServiceAccountsController {
 	
 	/**
 	 * Get iam service account detail with secretkey
-	 * 
 	 * @param request
 	 * @param token
+	 * @param iamsvcname
+	 * @param folderName
 	 * @return
 	 */
-	@ApiOperation(value = "${IAMServiceAccountsController.getIAMServiceAccountSecretKey.value}", notes = "${IAMServiceAccountsController.getIAMServiceAccountSecretKey.notes}", hidden = false)
+	@ApiOperation(value = "${IAMServiceAccountsController.getIAMServiceAccountSecretKey.value}", notes = "${IAMServiceAccountsController.getIAMServiceAccountSecretKey.notes}", hidden = true)
 	@GetMapping(value = "/v2/iamserviceaccounts/secrets/{iam_svc_name}/{folderName}", produces = "application/json")
 	public ResponseEntity<String> getIAMServiceAccountSecretKey(HttpServletRequest request,
 			@RequestHeader(value = "vault-token") String token, @PathVariable("iam_svc_name") String iamsvcname,
-			@PathVariable("folderName") String folderName){
+			@PathVariable("folderName") String folderName) {
 		return iamServiceAccountsService.getIAMServiceAccountSecretKey(token, iamsvcname, folderName);
 	}
 
 
 	/**
 	 * Read secrets from vault
-	 *
 	 * @param token
 	 * @param path
+	 * @param fetchOption
 	 * @return
 	 */
 	@ApiOperation(value = "${IAMServiceAccountsController.readFolders.value}", notes = "${IAMServiceAccountsController.readFolders.notes}", hidden = true)
@@ -254,5 +259,23 @@ public class IAMServiceAccountsController {
 	public ResponseEntity<String> rotateIAMServiceAccountCreds(HttpServletRequest request, @RequestHeader(value="vault-token") String token, @RequestBody @Valid IAMServiceAccountRotateRequest iamServiceAccountRotateRequest){
 		UserDetails userDetails = (UserDetails) ((HttpServletRequest) request).getAttribute("UserDetails");
 		return iamServiceAccountsService.rotateIAMServiceAccount(token, userDetails, iamServiceAccountRotateRequest);
+	}
+	
+	/**
+	 * 
+	 * @param token
+	 * @param awsAccountID
+	 * @param iamSvcName
+	 * @return
+	 * @throws IOException 
+	 * @throws JsonMappingException 
+	 * @throws JsonParseException 
+	 */
+	@ApiOperation(value = "${IAMServiceAccountsController.readSecrets.value}", notes = "${IAMServiceAccountsController.readSecrets.notes}", hidden = false)
+	@GetMapping(value = "/v2/iamserviceaccounts/secrets/{aws_account_id}/{iam_svc_name}/{accessKey}", produces = "application/json")
+	public ResponseEntity<String> readSecrets(@RequestHeader(value = "vault-token") String token,
+			@RequestParam("aws_account_id") String awsAccountID, @RequestParam("iam_svc_name") String iamSvcName,
+			@RequestParam("accessKey") String accessKey) throws JsonParseException, JsonMappingException, IOException {
+		return iamServiceAccountsService.readSecrets(token, awsAccountID, iamSvcName, accessKey);
 	}
 }

@@ -2125,7 +2125,10 @@ public class  ServiceAccountsService {
         String svcAccName = serviceAccountApprole.getSvcAccName();
         String access = serviceAccountApprole.getAccess();
 
-        if (serviceAccountApprole.getApprolename().equals(TVaultConstants.SELF_SERVICE_APPROLE_NAME)) {
+//        if (serviceAccountApprole.getApprolename().equals(TVaultConstants.SELF_SERVICE_APPROLE_NAME)) {
+//            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Access denied: no permission to associate this AppRole to any Service Account\"]}");
+//        }
+        if (Arrays.asList(TVaultConstants.MASTER_APPROLES).contains(serviceAccountApprole.getApprolename())){
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Access denied: no permission to associate this AppRole to any Service Account\"]}");
         }
         approleName = (approleName !=null) ? approleName.toLowerCase() : approleName;
@@ -2679,8 +2682,13 @@ public class  ServiceAccountsService {
 		String svcAccName = serviceAccountApprole.getSvcAccName();
 		String access = serviceAccountApprole.getAccess();
 
-		if (serviceAccountApprole.getApprolename().equals(TVaultConstants.SELF_SERVICE_APPROLE_NAME)) {
-			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Access denied: no permission to remove this AppRole to any Service Account\"]}");
+//		if (serviceAccountApprole.getApprolename().equals(TVaultConstants.SELF_SERVICE_APPROLE_NAME)) {
+//			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Access denied: no permission to remove this AppRole to any Service Account\"]}");
+//		}
+		
+		if (Arrays.asList(TVaultConstants.MASTER_APPROLES).contains(serviceAccountApprole.getApprolename())) {
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
+					"{\"errors\":[\"Access denied: no permission to remove this AppRole to any Service Account\"]}");
 		}
 		approleName = (approleName !=null) ? approleName.toLowerCase() : approleName;
 		access = (access != null) ? access.toLowerCase(): access;
