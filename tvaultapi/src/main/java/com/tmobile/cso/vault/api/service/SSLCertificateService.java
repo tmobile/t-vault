@@ -74,9 +74,6 @@ import com.tmobile.cso.vault.api.utils.ThreadLocalContext;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.security.KeyManagementException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
@@ -251,8 +248,6 @@ public class SSLCertificateService {
     @Value("${nclm.mock}")
     private String nclmMockEnabled;    
     
-    @Value("${selfservice.ssfilelocation}")
-    private String downloadLocation;
 
     @Autowired
 	private OIDCUtil oidcUtil;
