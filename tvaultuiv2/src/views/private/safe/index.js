@@ -6,6 +6,7 @@ import mediaBreakpoints from '../../../breakpoints';
 import ComponentError from '../../../errorBoundaries/ComponentError/component-error';
 import SafeDashboard from './components/SafeDashboard';
 import { UserContext } from '../../../contexts';
+import { useStateValue } from '../../../contexts/globalState';
 
 const CreateSafe = lazy(() => import('./CreateSafe'));
 const SafeSectionPreview = styled('section')`
@@ -21,13 +22,27 @@ const SafeSectionPreview = styled('section')`
 `;
 
 const SafePageLayout = (props) => {
+  /** -- statrt of sample code */
+  // Sample to use context
   const contextObj = useContext(UserContext);
+
+  // Sample code to use global state - below function provides with the global state and a dispatcher to handle the reducer
+  const [state, dispatch] = useStateValue();
+  // eslint-disable-next-line no-console
+  console.log(state);
+
+  setTimeout(() => {
+    if (state.dataOne?.value !== 'OLA') {
+      dispatch({ type: 'R1_DUMMY_ONE', data: 'OLA' });
+    }
+  }, 5000);
 
   // eslint-disable-next-line no-console
   console.log(
     '---- const contextObj = useContext(GlobalContext); ---- ',
     contextObj
   );
+  /** End of Sample code */
   return (
     <ComponentError>
       <main title="safe-layout">

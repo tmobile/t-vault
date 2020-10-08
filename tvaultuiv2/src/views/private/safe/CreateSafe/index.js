@@ -24,7 +24,7 @@ import { TitleThree } from '../../../../styles/GlobalStyles';
 const { small, belowLarge } = mediaBreakpoints;
 
 const ModalWrapper = styled.section`
-  background-color: #2a2e3e;
+  background-color: ${(props) => props.theme.palette.background.modal};
   padding: 5.5rem 6rem 6rem 6rem;
   border: none;
   outline: none;
