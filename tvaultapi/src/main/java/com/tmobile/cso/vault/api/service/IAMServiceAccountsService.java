@@ -18,12 +18,10 @@
 package com.tmobile.cso.vault.api.service;
 
 import java.io.IOException;
-import java.util.*;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 
-import com.tmobile.cso.vault.api.model.*;
-import com.tmobile.cso.vault.api.utils.*;
+
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -35,8 +33,10 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
+import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
@@ -49,6 +49,17 @@ import com.tmobile.cso.vault.api.common.TVaultConstants;
 import com.tmobile.cso.vault.api.controller.ControllerUtil;
 import com.tmobile.cso.vault.api.controller.OIDCUtil;
 import com.tmobile.cso.vault.api.exception.LogMessage;
+import com.tmobile.cso.vault.api.process.RequestProcessor;
+import com.tmobile.cso.vault.api.process.Response;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Calendar;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
 import com.tmobile.cso.vault.api.model.AccessPolicy;
 import com.tmobile.cso.vault.api.model.IAMSecrets;
 import com.tmobile.cso.vault.api.model.IAMSecretsMetadata;
@@ -58,17 +69,16 @@ import com.tmobile.cso.vault.api.model.IAMServiceAccountGroup;
 import com.tmobile.cso.vault.api.model.IAMServiceAccountMetadataDetails;
 import com.tmobile.cso.vault.api.model.IAMServiceAccountNode;
 import com.tmobile.cso.vault.api.model.IAMServiceAccountResponse;
+import com.tmobile.cso.vault.api.model.IAMServiceAccountRotateRequest;
+import com.tmobile.cso.vault.api.model.IAMServiceAccountSecret;
 import com.tmobile.cso.vault.api.model.IAMServiceAccountUser;
 import com.tmobile.cso.vault.api.model.IAMSvccAccMetadata;
 import com.tmobile.cso.vault.api.model.OIDCEntityResponse;
 import com.tmobile.cso.vault.api.model.OIDCGroup;
 import com.tmobile.cso.vault.api.model.OnboardedIAMServiceAccount;
 import com.tmobile.cso.vault.api.model.UserDetails;
-import com.tmobile.cso.vault.api.process.RequestProcessor;
-import com.tmobile.cso.vault.api.process.Response;
-import java.util.stream.Collectors;
-
 import com.tmobile.cso.vault.api.utils.EmailUtils;
+import com.tmobile.cso.vault.api.utils.IAMServiceAccountUtils;
 import com.tmobile.cso.vault.api.utils.JSONUtil;
 import com.tmobile.cso.vault.api.utils.PolicyUtils;
 import com.tmobile.cso.vault.api.utils.ThreadLocalContext;
@@ -1510,7 +1520,7 @@ public class  IAMServiceAccountsService {
 	 * @return
 	 */
 	public ResponseEntity<String> getIAMServiceAccountSecretKey(String token, String iamSvcaccName, String folderName) {
-		String path = TVaultConstants.IAM_SVC_ACC_PATH_PREFIX + "/" + iamSvcaccName + "/" + folderName;
+		String path = IAMServiceAccountConstants.IAM_SVCC_ACC_PATH + iamSvcaccName + "/" + folderName;
 		Response response = reqProcessor.process("/iamsvcacct", "{\"path\":\"" + path + "\"}", token);
 		if (response.getHttpstatus().equals(HttpStatus.OK)) {
 			return ResponseEntity.status(HttpStatus.OK).body(response.getResponse());
@@ -2134,7 +2144,12 @@ public class  IAMServiceAccountsService {
 		//String svcAccName = iamServiceAccountApprole.getIamSvcAccName();
 		String access = iamServiceAccountApprole.getAccess();
 
-		if (iamServiceAccountApprole.getApprolename().equals(TVaultConstants.SELF_SERVICE_APPROLE_NAME)) {
+//		if (iamServiceAccountApprole.getApprolename().equals(TVaultConstants.SELF_SERVICE_APPROLE_NAME)) {
+//			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
+//					"{\"errors\":[\"Access denied: no permission to associate this AppRole to any IAM Service Account\"]}");
+//		}
+		
+		if (Arrays.asList(TVaultConstants.MASTER_APPROLES).contains(iamServiceAccountApprole.getApprolename())) {
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
 					"{\"errors\":[\"Access denied: no permission to associate this AppRole to any IAM Service Account\"]}");
 		}
@@ -2379,7 +2394,12 @@ public class  IAMServiceAccountsService {
 		String svcAccName = iamServiceAccountApprole.getAwsAccountId() + "_" + iamServiceAccountApprole.getIamSvcAccName();
 		String access = iamServiceAccountApprole.getAccess();
 
-		if (iamServiceAccountApprole.getApprolename().equals(TVaultConstants.SELF_SERVICE_APPROLE_NAME)) {
+//		if (iamServiceAccountApprole.getApprolename().equals(TVaultConstants.SELF_SERVICE_APPROLE_NAME)) {
+//			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
+//					"{\"errors\":[\"Access denied: no permission to remove this AppRole to any Service Account\"]}");
+//		}
+		
+		if (Arrays.asList(TVaultConstants.MASTER_APPROLES).contains(iamServiceAccountApprole.getApprolename())) {
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
 					"{\"errors\":[\"Access denied: no permission to remove this AppRole to any Service Account\"]}");
 		}
@@ -2916,6 +2936,50 @@ public class  IAMServiceAccountsService {
 			}
 		}
 		return false;
+	}
+	
+	/**
+	 * Read Secrets.
+	 * 
+	 * @param token
+	 * @param awsAccountID
+	 * @param iamSvcName
+	 * @param accessKey
+	 * @return
+	 * @throws IOException
+	 * @throws JsonMappingException
+	 * @throws JsonParseException
+	 */
+	public ResponseEntity<String> readSecrets(String token, String awsAccountID, String iamSvcName, String accessKey)
+			throws JsonParseException, JsonMappingException, IOException {
+
+		String iamSvcNamePath = IAMServiceAccountConstants.IAM_SVCC_ACC_PATH + awsAccountID + '_' + iamSvcName;
+		ResponseEntity<String> response = readFolders(token, iamSvcNamePath);
+		ObjectMapper mapper = new ObjectMapper();
+		String secret = "";
+		IAMServiceAccountNode iamServiceAccountNode = mapper.readValue(response.getBody(), IAMServiceAccountNode.class);
+		if (iamServiceAccountNode.getFolders() != null) {
+			for (String folderName : iamServiceAccountNode.getFolders()) {
+				ResponseEntity<String> responseEntity = getIAMServiceAccountSecretKey(token,
+						awsAccountID + '_' + iamSvcName, folderName);
+				JsonParser jsonParser = new JsonParser();
+				JsonObject data = ((JsonObject) jsonParser.parse(responseEntity.getBody())).getAsJsonObject("data");
+
+				IAMServiceAccountSecret iamServiceAccountSecret = mapper.readValue(data.toString(),
+						IAMServiceAccountSecret.class);
+				if (accessKey.equals(iamServiceAccountSecret.getAccessKeyId())) {
+					secret = iamServiceAccountSecret.getAccessKeySecret();
+				}
+			}
+			if (StringUtils.isEmpty(secret)) {
+				return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
+						"{\"error\":" + JSONUtil.getJSON("No secret with the access keyID :" + accessKey + "") + "}");
+			}
+			return ResponseEntity.status(HttpStatus.OK).body("{\"accessKeySecret\":" + JSONUtil.getJSON(secret) + "}");
+		} else {
+			return ResponseEntity.status(HttpStatus.NOT_FOUND)
+					.body("{\"error\":" + JSONUtil.getJSON("No secret with the access keyID :" + accessKey + "") + "}");
+		}
 	}
 
 
