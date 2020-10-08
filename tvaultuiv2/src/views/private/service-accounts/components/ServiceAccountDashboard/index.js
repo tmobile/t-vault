@@ -245,6 +245,7 @@ const ServiceAccountDashboard = () => {
             setServiceAccountList([...listArray]);
           }
           setStatus({ status: 'success', message: '' });
+          setListItemDetails({});
         })
         .catch(() => {
           setStatus({ status: 'failed', message: 'failed' });

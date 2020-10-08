@@ -11,6 +11,7 @@ import Tab from '@material-ui/core/Tab';
 import ComponentError from '../../../../../errorBoundaries/ComponentError/component-error';
 import mediaBreakpoints from '../../../../../breakpoints';
 import ServiceAccountSecrets from '../ServiceAccountSecrets';
+import ServiceAccountPermission from '../ServiceAccountPermission';
 // styled components goes here
 
 const TabPanelWrap = styled.div`
@@ -119,7 +120,7 @@ const AccountSelectionTabs = (props) => {
             <ServiceAccountSecrets accountDetail={accountDetail} />
           </TabPanel>
           <TabPanel value={value} index={1}>
-            Permissions
+            <ServiceAccountPermission accountDetail={accountDetail} />
           </TabPanel>
         </TabContentsWrap>
       </div>
