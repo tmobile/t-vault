@@ -19,12 +19,15 @@ package com.tmobile.cso.vault.api.model;
 import java.io.Serializable;
 import java.util.List;
 
+import javax.validation.Valid;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
 import javax.validation.constraints.Size;
 
 import org.hibernate.validator.constraints.Email;
+import org.hibernate.validator.constraints.NotBlank;
+import org.hibernate.validator.constraints.NotEmpty;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -33,45 +36,54 @@ import io.swagger.annotations.ApiModelProperty;
 public class IAMServiceAccount implements Serializable {
 
 	private static final long serialVersionUID = -9011756132661399159L;
-	@NotNull
+	
+	@NotBlank
 	@Size(min = 11, message = "UserName specified should be minimum 11 chanracters only")
 	@Pattern(regexp = "^[a-zA-Z0-9_-]+$", message = "Name can have alphabets, numbers, _ and - characters only")
 	private String userName;
 
-	@NotNull
-	@Size(max = 12, message = "AWSAccountId specified should be maximum 12 characters only")
+	@NotBlank
+	@Pattern( regexp = "^$|^[0-9]+$", message="Invalid AWS account id")
+	@Size(min = 1, max = 12, message = "AWSAccountId specified should be maximum 12 characters only")
 	private String awsAccountId;
 
-	@NotNull
+	@NotBlank
+	@Pattern(regexp = "^[a-zA-Z0-9_-]+$", message = "Name can have alphabets, numbers, _ and - characters only")
 	@Size(min = 1, max = 50, message = "AWSAccountName specified should be minimum 1 chanracters and maximum 50 characters only")
 	private String awsAccountName;
 
+	@NotNull
 	@Min(1)
 	private Long createdAtEpoch;
 
-	@NotNull
+	@NotBlank
 	@Pattern(regexp = "^$|^[a-zA-Z0-9_-]+$", message = "Owner can have alphabets, numbers, _ and - characters only")
 	@JsonProperty("owner_ntid")
 	private String ownerNtid;
 
-	@NotNull
+	@NotBlank
 	@Email
+	@Size(min = 1, message = "Owner Email can not be null or empty")
 	@JsonProperty("owner_email")
 	private String ownerEmail;
 
-	@NotNull
+	@NotBlank
+	@Size(min = 1, message = "Application Id can not be null or empty")
 	@JsonProperty("application_id")
 	private String applicationId;
 
-	@NotNull
+	@NotBlank
+	@Size(min = 1, message = "Application Name can not be null or empty")
 	@JsonProperty("application_name")
 	private String applicationName;
 
-	@NotNull
+	@NotBlank
+	@Size(min = 1, message = "Application Tag can not be null or empty")
 	@JsonProperty("application_tag")
 	private String applicationTag;
 
-	@NotNull
+	@Valid
+	@NotEmpty
 	private List<IAMSecrets> secret;
 
 	public IAMServiceAccount() {
