@@ -21,17 +21,23 @@ import java.io.Serializable;
 
 import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
+import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
+
+import org.hibernate.validator.constraints.NotBlank;
+import org.hibernate.validator.constraints.NotEmpty;
 
 public class IAMSecrets implements Serializable {
 
 	private static final long serialVersionUID = -5704090790663628283L;
 
+	@NotBlank
 	@Size(min = 16, max = 128, message = "AccessKeyId specified should be minimum 16 chanracters and maximum 128 characters only")
 	private String accessKeyId;
 
-	@Min(7 * 24 * 60 * 60 * 1000)
-	@Max(90 * 24 * 60 * 60 * 1000)
+	@NotNull
+	@Min(604800000L)
+	@Max(7776000000L)
 	private Long expiryDuration;
 
 	public IAMSecrets() {

@@ -891,9 +891,9 @@ public class  IAMServiceAccountsService {
 		// OIDC Changes
 		if (TVaultConstants.LDAP.equals(vaultAuthMethod)) {
 			ldapRevertConfigresponse = ControllerUtil.configureLDAPGroup(groupName, currentpoliciesString, token);
-		} else if (TVaultConstants.OIDC.equals(vaultAuthMethod) && !ObjectUtils.isEmpty(oidcGroup)) {
+		} else if (TVaultConstants.OIDC.equals(vaultAuthMethod)) {
 			ldapRevertConfigresponse = oidcUtil.updateGroupPolicies(token, groupName, currentpolicies, currentpolicies,
-					oidcGroup.getId());
+					oidcGroup != null ? oidcGroup.getId() : null);
 			oidcUtil.renewUserToken(userDetails.getClientToken());
 		}
 		if (ldapRevertConfigresponse.getHttpstatus().equals(HttpStatus.NO_CONTENT)) {
@@ -1975,9 +1975,9 @@ public class  IAMServiceAccountsService {
 		// OIDC Changes
 		if (TVaultConstants.LDAP.equals(vaultAuthMethod)) {
 			ldapConfigresponse = ControllerUtil.configureLDAPGroup(iamServiceAccountGroup.getGroupname(), policiesString, token);
-		} else if (TVaultConstants.OIDC.equals(vaultAuthMethod) && !ObjectUtils.isEmpty(oidcGroup)) {
+		} else if (TVaultConstants.OIDC.equals(vaultAuthMethod)) {
 			ldapConfigresponse = oidcUtil.updateGroupPolicies(token, iamServiceAccountGroup.getGroupname(), policies, currentpolicies,
-					oidcGroup.getId());
+					oidcGroup != null ? oidcGroup.getId() : null);
 			oidcUtil.renewUserToken(userDetails.getClientToken());
 		}
 		if(ldapConfigresponse.getHttpstatus().equals(HttpStatus.NO_CONTENT) || ldapConfigresponse.getHttpstatus().equals(HttpStatus.OK)){
@@ -2045,9 +2045,9 @@ public class  IAMServiceAccountsService {
 		// OIDC Changes
 		if (TVaultConstants.LDAP.equals(vaultAuthMethod)) {
 			configGroupResponse = ControllerUtil.configureLDAPGroup(iamServiceAccountGroup.getGroupname(), currentpoliciesString, token);
-		} else if (TVaultConstants.OIDC.equals(vaultAuthMethod) && !ObjectUtils.isEmpty(oidcGroup)) {
+		} else if (TVaultConstants.OIDC.equals(vaultAuthMethod)) {
 			configGroupResponse = oidcUtil.updateGroupPolicies(token, iamServiceAccountGroup.getGroupname(), currentpolicies,
-					currentpolicies, oidcGroup.getId());
+					currentpolicies, oidcGroup != null ? oidcGroup.getId() : null);
 			oidcUtil.renewUserToken(userDetails.getClientToken());
 		}
 		if(configGroupResponse.getHttpstatus().equals(HttpStatus.NO_CONTENT)){
