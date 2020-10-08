@@ -27,6 +27,11 @@ const RadioPermissionComponent = (props) => {
             control={<Radio color="default" />}
             label="Write"
           />
+          <FormControlLabel
+            value="deny"
+            control={<Radio color="default" />}
+            label="Deny"
+          />
         </RadioGroup>
       </FormControl>
     </div>

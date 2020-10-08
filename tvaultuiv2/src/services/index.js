@@ -2,7 +2,7 @@ import axios from 'axios';
 import config from '../config';
 
 function ApiCall(url, method, data, header) {
-  const token = 's.7jMjjZdiBZKxmjZ7jFcdo5AY';
+  const token = '';
   const headers = {
     ...header,
     'vault-token': token,

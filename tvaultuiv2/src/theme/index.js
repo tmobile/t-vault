@@ -14,6 +14,11 @@ export const customColor = {
   hoverColor: {
     list: '#151820',
   },
+  modal: {
+    color: '#c4c4c4',
+    title: '#fff',
+    backgroundColor: '#2a2e3e',
+  },
   collapse: {
     color: '#c4c4c4',
     title: '#8488a8',
@@ -233,6 +238,7 @@ const customTheme = createMuiTheme({
       level1: '#212121',
       headerParent: '#e20074',
       headerChild: '#31394d',
+      modal: '#2a2e3e',
     },
   },
   overrides: {

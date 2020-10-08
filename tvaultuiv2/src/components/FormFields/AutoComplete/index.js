@@ -51,7 +51,6 @@ const AutoCompleteComponent = (props) => {
       icon={icon}
       options={options}
       getOptionLabel={(option) => option}
-      freeSolo
       forcePopupIcon={false}
       className={classes || ''}
       onChange={onSelected}
