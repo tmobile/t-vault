@@ -238,6 +238,7 @@ const customTheme = createMuiTheme({
       level1: '#212121',
       headerParent: '#e20074',
       headerChild: '#31394d',
+      modal: '#2a2e3e',
     },
   },
   overrides: {

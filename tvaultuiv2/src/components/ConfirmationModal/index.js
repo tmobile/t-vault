@@ -15,7 +15,7 @@ const ModalWrapper = styled.div`
   padding: 3rem 4rem;
   outline: none;
   text-align: center;
-  width: 35%;
+  width: ${(props) => props.size};
   display: flex;
   flex-direction: column;
 `;
@@ -65,6 +65,7 @@ const ConfirmationModal = (props) => {
     description,
     confirmButton,
     cancelButton,
+    size,
   } = props;
   const classes = useStyles();
 
@@ -83,7 +84,12 @@ const ConfirmationModal = (props) => {
         }}
       >
         <Fade in={open}>
-          <ModalWrapper>
+          <ModalWrapper
+            size={
+              // eslint-disable-next-line no-nested-ternary
+              size === 'large' ? '90%' : size === 'medium' ? '60%' : '35%'
+            }
+          >
             <TitleOne color="#e20074" extraCss={titleOneCss}>
               {title}
             </TitleOne>
@@ -108,11 +114,13 @@ ConfirmationModal.propTypes = {
   description: PropTypes.string.isRequired,
   confirmButton: PropTypes.node.isRequired,
   cancelButton: PropTypes.node,
+  size: PropTypes.string,
 };
 
 ConfirmationModal.defaultProps = {
   cancelButton: <div />,
   handleClose: () => {},
+  size: '40%',
 };
 
 export default ConfirmationModal;

@@ -542,7 +542,7 @@ const ServiceAccountDashboard = () => {
                           actionButton={
                             // eslint-disable-next-line react/jsx-wrap-multilines
                             <FloatingActionButtonComponent
-                              href="/service-accounts/onboard-service-account"
+                              href="/service-accounts/change-service-accounts"
                               color="secondary"
                               icon="add"
                               tooltipTitle="Onboard New Service Account"
@@ -560,7 +560,7 @@ const ServiceAccountDashboard = () => {
             {serviceAccountList?.length ? (
               <FloatBtnWrapper>
                 <FloatingActionButtonComponent
-                  href="/service-accounts/onboard-service-account"
+                  href="/service-accounts/change-service-accounts"
                   color="secondary"
                   icon="add"
                   tooltipTitle="Onboard New Service Account"
