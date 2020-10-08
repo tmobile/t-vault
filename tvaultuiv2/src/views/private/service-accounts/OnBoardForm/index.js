@@ -215,7 +215,7 @@ const OnBoardForm = () => {
   const [status, setStatus] = useState({});
 
   const [postOnBoardModal, setPostOnBoardModal] = useState(false);
-  const [isCollapse, setIsCollapse] = useState(false);
+  const [isAutoExpand, setIsAutoExpand] = useState(false);
   const [serviceAccountsList, setServiceAccountsList] = useState([]);
   const [applicationList, setApplicationList] = useState([]);
 
@@ -353,7 +353,7 @@ const OnBoardForm = () => {
     setInputServiceName(val);
     const svcObj = serviceAccountsList.find((item) => item.userId === val);
     setServiceAccountDetails({ ...svcObj });
-    setIsCollapse(true);
+    setIsAutoExpand(true);
     if (svcObj?.accountStatus.toLowerCase() === 'expired') {
       setStatus({
         status: 'failed',
@@ -570,8 +570,8 @@ const OnBoardForm = () => {
                   <ServiceAccountDetailWrap>
                     <ServiceAcoountHelp
                       title="Service Account Details"
-                      isCollapse={isCollapse}
-                      setIsCollapse={setIsCollapse}
+                      isAutoExpand={isAutoExpand}
+                      setIsAutoExpand={setIsAutoExpand}
                     >
                       <Grid container>
                         <GridColumn customStyles={GridColumnStyles}>
