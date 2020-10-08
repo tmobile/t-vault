@@ -353,6 +353,12 @@ const OnBoardForm = () => {
     const svcObj = serviceAccountsList.find((item) => item.userId === val);
     setServiceAccountDetails({ ...svcObj });
     setIsCollapse(true);
+    if (svcObj?.accountStatus.toLowerCase() === 'expired') {
+      setStatus({
+        status: 'failed',
+        message: 'Expired service accounts cannot be onboarded',
+      });
+    }
   };
   const onApplicationNameSelected = (e, val) => {
     setInputApplicationName(val);
@@ -721,7 +727,8 @@ const OnBoardForm = () => {
                       timeError ||
                       !inputServiceName ||
                       !inputApplicationName ||
-                      !inputExpiryTime
+                      serviceAccountDetails?.accountStatus.toLowerCase() ===
+                        'expired'
                     }
                     color="secondary"
                     buttonType="containedSecondary"
