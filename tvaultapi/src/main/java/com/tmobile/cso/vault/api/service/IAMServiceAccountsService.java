@@ -284,7 +284,7 @@ public class  IAMServiceAccountsService {
 		}else {
 			//Delete the IAM Service account policies if add Owner permission failed.
 			if(!iamSvcAccOwnerPermissionAddStatus) {
-				boolean policyDeleteStatus = deleteIAMServiceAccountPolicies(userToken, iamSvcAccName);
+				boolean policyDeleteStatus = deleteIAMServiceAccountPolicies(tokenUtils.getSelfServiceToken(), iamSvcAccName);
 				if(!policyDeleteStatus) {
 					return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
 							"{\"errors\":[\"Failed to delete IAM Service Account policies. Revert IAM service account creation failed.\"]}");
@@ -294,7 +294,7 @@ public class  IAMServiceAccountsService {
 			OnboardedIAMServiceAccount iamSvcAccToRevert = new OnboardedIAMServiceAccount(
 					iamServiceAccount.getUserName(), iamServiceAccount.getAwsAccountId(),
 					iamServiceAccount.getOwnerNtid());
-			ResponseEntity<String> iamMetaDataDeletionResponse = deleteIAMSvcAccount(userToken, iamSvcAccToRevert);
+			ResponseEntity<String> iamMetaDataDeletionResponse = deleteIAMSvcAccount(tokenUtils.getSelfServiceToken(), iamSvcAccToRevert);
 			if (iamMetaDataDeletionResponse != null
 					&& HttpStatus.OK.equals(iamMetaDataDeletionResponse.getStatusCode())) {
 				return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
