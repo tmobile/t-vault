@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import styled, { css } from 'styled-components';
 import KeyboardArrowDownIcon from '@material-ui/icons/KeyboardArrowDown';
@@ -36,15 +36,21 @@ const ServiceAccountHelp = (props) => {
     children,
     title,
     elevation,
-    isCollapse,
-    setIsCollapse,
+    isAutoExpand,
+    setIsAutoExpand,
   } = props;
+  const [isCollapse, setIsCollapse] = useState(false);
+
+  useEffect(() => {
+    setIsCollapse(isAutoExpand);
+  }, [isAutoExpand]);
+  const handleCollapse = () => {
+    setIsCollapse(!isCollapse);
+    setIsAutoExpand(!isAutoExpand);
+  };
   return (
     <Container classes={customStyles}>
-      <TitleThree
-        extraCss={titleCss}
-        onClick={() => setIsCollapse(!isCollapse)}
-      >
+      <TitleThree extraCss={titleCss} onClick={() => handleCollapse()}>
         {!isCollapse ? <ChevronRightIcon /> : <KeyboardArrowDownIcon />}
         <span>{title}</span>
       </TitleThree>
@@ -59,14 +65,14 @@ ServiceAccountHelp.propTypes = {
   customStyles: PropTypes.objectOf(PropTypes.object),
   title: PropTypes.string.isRequired,
   elevation: PropTypes.number,
-  setIsCollapse: PropTypes.func,
-  isCollapse: PropTypes.bool,
+  setIsAutoExpand: PropTypes.func,
+  isAutoExpand: PropTypes.bool,
 };
 ServiceAccountHelp.defaultProps = {
   children: <></>,
   customStyles: '',
   elevation: 0,
-  setIsCollapse: () => {},
-  isCollapse: false,
+  setIsAutoExpand: () => {},
+  isAutoExpand: false,
 };
 export default ServiceAccountHelp;
