@@ -99,4 +99,5 @@ public final class SSLCertificateConstants {
     public static final String GET_ALL_APPLICATIONS_STRING="getAllSelfServiceGroups";
     public static final String  SSL_EXT_CERT_SUCCESS="Certificate Request received.Please check your email and follow" +
             " the instructions";
+    public static final String  DOWNLOAD_CERT="downloadcert";
 }

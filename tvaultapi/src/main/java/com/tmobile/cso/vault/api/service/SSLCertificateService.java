@@ -217,7 +217,7 @@ public class SSLCertificateService {
 	private String unassignCertificateEndpoint;
     
     @Value("${sslcertmanager.endpoint.deleteCertificate}")
-	private String deleteCertificateEndpoint;
+	private String deleteCertificateEndpoint;   
 
     
     @Value("${certificate.renew.delay.time.millsec}")
@@ -246,7 +246,8 @@ public class SSLCertificateService {
     private EmailUtils emailUtils;
 
     @Value("${nclm.mock}")
-    private String nclmMockEnabled;
+    private String nclmMockEnabled;    
+    
 
     @Autowired
 	private OIDCUtil oidcUtil;
@@ -453,7 +454,7 @@ public class SSLCertificateService {
 
                     if ((Objects.nonNull(certMetaData)) && (Objects.nonNull(certMetaData.getRequestStatus()))
                             && (certMetaData.getRequestStatus().equalsIgnoreCase(SSLCertificateConstants.REQUEST_PENDING_APPROVAL))) {
-                        String responseMessage = StringUtils.capitalize(sslCertificateRequest.getCertificateName())+" Already" +
+                        String responseMessage = sslCertificateRequest.getCertificateName()+" is already" +
                                 " requested by "+ certMetaData.getCertOwnerEmailId() + "  and it's " +
                                 "waiting for approval" ;
                         enrollResponse.setSuccess(Boolean.FALSE);
@@ -2694,8 +2695,8 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
 										"Inside  TVaultValidationException " + "Exception = [%s] =  Message [%s]",	
 										Arrays.toString(error.getStackTrace()), error.getMessage()))	
 						.build()));	
-		return ResponseEntity.status(HttpStatus.FORBIDDEN).body("{\"errors\":[\"" + "Certificate Unavailable in " +
-                "System." + "\"]}");
+		return ResponseEntity.status(HttpStatus.FORBIDDEN).body("{\"errors\":[\"" + "Certificate unavailable in " +
+                "system." + "\"]}");
 	} catch (Exception e) {	
 		log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder()	
 				.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString())	
@@ -2804,7 +2805,7 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
                                                 .put(LogMessage.MESSAGE, "Revoke Request failed for CertificateID")
                                                 .build()));
                         return ResponseEntity.status(HttpStatus.FORBIDDEN).body("{\"errors\":[\"" + "Certificate " +
-                                "unavailable in System." + "\"]}");
+                                "unavailable in system." + "\"]}");
                     }
                 }
                 //Depends on mock response property
@@ -3499,7 +3500,7 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
 			if (ldapConfigresponse.getHttpstatus().equals(HttpStatus.NO_CONTENT)
 					|| ldapConfigresponse.getHttpstatus().equals(HttpStatus.OK)) {
 				return updateMetadataForAddGroupToCertificate(token, groupName, certificateName, access, certPath,
-						currentpoliciesString, userDetails, currentpolicies, oidcGroup.getId());
+						currentpoliciesString, userDetails, currentpolicies, oidcGroup != null ? oidcGroup.getId() : null);
 			}
 			else {
 				log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
@@ -3982,6 +3983,7 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
         String certName = certificateDownloadRequest.getCertificateName();
 
         String nclmToken = getNclmToken();
+           
         if (StringUtils.isEmpty(nclmToken)) {
             log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
                     put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
@@ -4023,6 +4025,8 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(resource);
         }
 
+             	
+        
         HttpPost postRequest = new HttpPost(api);
         postRequest.addHeader("Authorization", "Bearer "+ nclmToken);
         postRequest.addHeader("Content-type", "application/json");
@@ -4073,8 +4077,9 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
                     put(LogMessage.MESSAGE, String.format ("Failed to download certificate [%s]. Failed to get api response from NCLM", certName)).
                     put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
                     build()));
-        }
+        }       
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(resource);
+        
     }
 
     /**
@@ -4093,7 +4098,7 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
         SSLCertificateMetadataDetails sslCertificateMetadataDetails = certificateUtils.getCertificateMetaData(token, certificateName, sslCertType);
         if (hasDownloadPermission(certificateName, userDetails, sslCertType) && sslCertificateMetadataDetails != null) {
 
-            String nclmToken = getNclmToken();
+        	String nclmToken = getNclmToken();
             if (StringUtils.isEmpty(nclmToken)) {
                 log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
                         put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
@@ -4111,6 +4116,7 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
                 default: contentType = "application/x-pem-file"; break;
             }
 
+            
             HttpClient httpClient;
 
             String api = certManagerDomain + "certificates/"+sslCertificateMetadataDetails.getCertificateId()+"/"+certificateType;
@@ -4175,6 +4181,7 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
                         put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
                         build()));
             }
+            
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(resource);
         }
 
@@ -4305,7 +4312,7 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
 											.put(LogMessage.MESSAGE, "Renew Request failed for CertificateID")										
 											.build()));
 					return ResponseEntity.status(HttpStatus.FORBIDDEN).body("{\"errors\":[\"" + "Certificate " +
-                            "unavailable in System." + "\"]}");
+                            "unavailable in system." + "\"]}");
 				}
 
 				//Adding mocking flag
@@ -4335,7 +4342,7 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
                     getLatestCertificate(certificateName,nclmAccessToken, containerId):nclmMockUtil.getRenewCertificateMockData();
 			boolean sslMetaDataUpdationStatus=true;
 			boolean isApprovalReq=false;
-			if(!ObjectUtils.isEmpty(certData)) {	
+			if(!ObjectUtils.isEmpty(certData)) {
             int actionId=0;
 			if(certType.equalsIgnoreCase("external")) {
                 CertManagerLogin certManagerLogin = new CertManagerLogin();
@@ -6125,7 +6132,7 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
                                certificateUser.setCertType(certType);
                                certificateUser.setUsername(entry.getKey());
                                certificateUser.setAccess(entry.getValue());
-                               removeUserFromCertificate(certificateUser, userDetails);
+                               removeUserFromCertificateForDelete(certificateUser, userDetails);
                            }
                        }
                    }
@@ -6212,7 +6219,7 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
                                            .put(LogMessage.MESSAGE, "Delete Request failed for CertificateID")
                                            .build()));
                    return ResponseEntity.status(HttpStatus.FORBIDDEN).body("{\"errors\":[\"" + "Certificate " +
-                           "unavailable in System." + "\"]}");
+                           "unavailable in system." + "\"]}");
                }
            }else {
         	log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().	
@@ -6560,13 +6567,13 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
 				try {
 					CertificateData certData = (!isMockingEnabled(certType)) ? getLatestCertificate(certName,
                             nclmAccessToken, containerId):nclmMockUtil.getMockDataForRevoked();
-					if(!ObjectUtils.isEmpty(certData)) {	
+					if(!ObjectUtils.isEmpty(certData) && certData.getCertificateId() != 0) {
 						if(!certData.getCertificateStatus().equalsIgnoreCase("Revoked")) {	
 							 return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body("{\"errors\":[\"Certificate is in Revoke Requested status\"]}");	
 						}	
 					}else {	
 						return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)	
-								.body("{\"errors\":[\"Certificate details not available in NCLM \"]}");	
+								.body("{\"errors\":[\"Certificate unavailable in system.\"]}");	
 					}	
 				} catch (Exception e) {	
 					log.error(JSONUtil.getJSON(ImmutableMap.<String, String> builder()	
@@ -6732,4 +6739,63 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
         }
 
     }
+    /**
+	 * Removes user from certificate
+	 * @param token
+	 * @param safeUser
+	 * @return
+	 */
+	public ResponseEntity<String> removeUserFromCertificateForDelete(CertificateUser certificateUser, UserDetails userDetails) {
+		
+		if(!areCertificateUserInputsValid(certificateUser)) {
+   			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+   					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+   					put(LogMessage.ACTION, SSLCertificateConstants.REMOVE_USER_FROM_CERT_MSG).
+   					put(LogMessage.MESSAGE, "Invalid user inputs").
+   					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+   					build()));
+   			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid input values\"]}");
+   		}
+		
+		String userName = certificateUser.getUsername().toLowerCase();
+   		String certificateName = certificateUser.getCertificateName().toLowerCase(); 
+   		String certificateType = certificateUser.getCertType();
+   		String authToken = null;   		
+   		boolean isAuthorized = true;
+   		
+   		if (!ObjectUtils.isEmpty(userDetails)) {
+   			if (userDetails.isAdmin()) {
+   				authToken = userDetails.getClientToken();   	            
+   	        }else {
+   	        	authToken = userDetails.getSelfSupportToken();
+   	        }
+   			SSLCertificateMetadataDetails certificateMetaData = certificateUtils.getCertificateMetaData(authToken, certificateName, certificateType);
+   			
+   			if (!userDetails.isAdmin()) {
+   				isAuthorized = certificateUtils.hasAddOrRemovePermission(userDetails, certificateMetaData); 
+   	   			}
+   			
+   		}else {
+   			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+   					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+   					put(LogMessage.ACTION, SSLCertificateConstants.REMOVE_USER_FROM_CERT_MSG).
+   					put(LogMessage.MESSAGE, "Access denied: No permission to remove user from this certificate").
+   					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+   					build()));
+   			
+   			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Access denied: No permission to remove user from this certificate\"]}");
+   		}
+		
+		if(isAuthorized){
+			return checkUserPolicyAndRemoveFromCertificate(userName, certificateName, authToken, certificateType, userDetails);
+		} else {
+			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+					put(LogMessage.ACTION, SSLCertificateConstants.REMOVE_USER_FROM_CERT_MSG).
+					put(LogMessage.MESSAGE, "Access denied: No permission to remove user from this certificate").
+					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+					build()));
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Access denied: No permission to remove user from this certificate\"]}");
+		}
+	}
 }
