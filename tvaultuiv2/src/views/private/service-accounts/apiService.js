@@ -4,7 +4,10 @@ import api from '../../../services';
 const getServiceAccountList = () => api.get('/serviceaccounts/list');
 const getServiceAccounts = () => api.get('/serviceaccounts');
 
-// Onboarding API call
+// Offboard service account
+const offBoardServiceAccount = (payload) =>
+  api.post('/serviceaccounts/offboard', payload);
+
 const getAppRoles = () => api.get('/serviceaccounts/cwm/approles');
 const getUsersServiceAccounts = (name) =>
   api.get(`/ad/serviceaccounts?serviceAccountName=${name}`);
@@ -19,14 +22,10 @@ const updateMetaPath = (svcName) =>
   api.get(`/serviceaccounts/meta?path=ad/roles/${svcName}`);
 
 // Service account secret API call.
-const getServiceAccountPassword = (name) =>
-  api.get(`/serviceaccounts/password?serviceAccountName=${name}`);
-const resetServiceAccountPassword = (name, payload) =>
-  api.put(`/serviceaccounts/password?serviceAccountName=${name}`, payload);
-
-// Service account permissions API call.
-const getServiceAccountDetail = (name) =>
-  api.get(`/serviceaccounts/meta?path=ad/roles/${name}`);
+const getServiceAccountPassword = (svcName) =>
+  api.get(`/serviceaccounts/password?serviceAccountName=${svcName}`);
+const resetServiceAccountPassword = (svcName, payload) =>
+  api.put(`/serviceaccounts/password?serviceAccountName=${svcName}`, payload);
 
 export default {
   getServiceAccounts,
@@ -39,5 +38,5 @@ export default {
   callServiceAccount,
   updateMetaPath,
   getUsersServiceAccounts,
-  getServiceAccountDetail,
+  offBoardServiceAccount,
 };
