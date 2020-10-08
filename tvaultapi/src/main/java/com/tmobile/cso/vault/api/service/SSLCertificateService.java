@@ -3987,7 +3987,7 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
         int certId = sslCertificateMetadataDetails.getCertificateId();
         String certName = certificateDownloadRequest.getCertificateName();
 
-        String nclmToken = nclmMockEnabled.equalsIgnoreCase(TVaultConstants.TRUE) ? TVaultConstants.NCLM_MOCK_VALUE :  getNclmToken();
+        String nclmToken = getNclmToken();
            
         if (StringUtils.isEmpty(nclmToken)) {
             log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
@@ -4030,8 +4030,7 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(resource);
         }
 
-        if(!nclmMockEnabled.equalsIgnoreCase(TVaultConstants.TRUE) ) {
-        	
+             	
         
         HttpPost postRequest = new HttpPost(api);
         postRequest.addHeader("Authorization", "Bearer "+ nclmToken);
@@ -4083,28 +4082,7 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
                     put(LogMessage.MESSAGE, String.format ("Failed to download certificate [%s]. Failed to get api response from NCLM", certName)).
                     put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
                     build()));
-        }
-        }else {
-        	try {
-        	Path path = Paths.get(downloadLocation+"/"+SSLCertificateConstants.DOWNLOAD_CERT+fileType);
-        	if(path!=null) {
-            byte[] decodedBytes;			
-			decodedBytes = Files.readAllBytes(path);        	
-            resource = new InputStreamResource(new ByteArrayInputStream(decodedBytes));
-            return ResponseEntity.status(HttpStatus.OK).contentLength(decodedBytes.length)
-                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\""+downloadFileName+"\"")
-                    .contentType(MediaType.parseMediaType("application/x-pkcs12;charset=utf-8"))
-                    .body(resource);
-        	}
-        	} catch (IOException e) {
-        		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
-                        put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
-                        put(LogMessage.ACTION, "downloadCertificate").
-                        put(LogMessage.MESSAGE, String.format ("Failed to download certificate [%s].", certName)).
-                        put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
-                        build()));
-			}
-        }
+        }       
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(resource);
         
     }
@@ -4125,7 +4103,7 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
         SSLCertificateMetadataDetails sslCertificateMetadataDetails = certificateUtils.getCertificateMetaData(token, certificateName, sslCertType);
         if (hasDownloadPermission(certificateName, userDetails, sslCertType) && sslCertificateMetadataDetails != null) {
 
-        	String nclmToken = nclmMockEnabled.equalsIgnoreCase(TVaultConstants.TRUE) ? TVaultConstants.NCLM_MOCK_VALUE :  getNclmToken();
+        	String nclmToken = getNclmToken();
             if (StringUtils.isEmpty(nclmToken)) {
                 log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
                         put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
@@ -4143,7 +4121,7 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
                 default: contentType = "application/x-pem-file"; break;
             }
 
-            if(!nclmMockEnabled.equalsIgnoreCase(TVaultConstants.TRUE) ) {
+            
             HttpClient httpClient;
 
             String api = certManagerDomain + "certificates/"+sslCertificateMetadataDetails.getCertificateId()+"/"+certificateType;
@@ -4208,27 +4186,7 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
                         put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
                         build()));
             }
-            }else {
-            	try {
-            	Path path = Paths.get(downloadLocation+"/"+SSLCertificateConstants.DOWNLOAD_CERT+"."+certificateType);
-            	if(path!=null) {
-                byte[] decodedBytes;			
-    			decodedBytes = Files.readAllBytes(path);        	
-    			resource = new InputStreamResource(new ByteArrayInputStream(decodedBytes));
-                return ResponseEntity.status(HttpStatus.OK).contentLength(decodedBytes.length)
-                        .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\""+certificateName+"\"")
-                        .contentType(MediaType.parseMediaType(contentType+";charset=utf-8"))
-                        .body(resource);
-            	}
-            	} catch (IOException e) {
-            		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
-                            put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
-                            put(LogMessage.ACTION, "downloadCertificate").
-                            put(LogMessage.MESSAGE, String.format ("Failed to download certificate [%s].", certificateName)).
-                            put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
-                            build()));
-    			}
-            }
+            
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(resource);
         }
 
