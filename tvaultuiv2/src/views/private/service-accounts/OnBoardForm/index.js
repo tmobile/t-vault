@@ -276,6 +276,7 @@ const OnBoardForm = () => {
           }
         })
         .catch((err) => {
+          console.log('error fetching list ---- ', err);
           setIsServiceFetching(false);
         });
     }),
