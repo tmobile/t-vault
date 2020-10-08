@@ -975,6 +975,17 @@ public class  IAMServiceAccountsService {
 						"{\"errors\":[\"Failed to add user permission to IAM Service account. Service Account is not activated. Please activate this service account and try again.\"]}");
 			}
 
+			if (isOwnerPemissionGettingChanged(iamServiceAccountUser, userDetails.getUsername(), isPartOfOnboard)) {
+				log.error(
+						JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+								.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+								.put(LogMessage.ACTION, IAMServiceAccountConstants.ADD_USER_TO_IAMSVCACC_MSG)
+								.put(LogMessage.MESSAGE, "Failed to add user permission to IAM Service account. Owner permission cannot be changed..")
+								.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL))
+								.build()));
+				return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
+						"{\"errors\":[\"Failed to add user permission to IAM Service account. Owner permission cannot be changed.\"]}");
+			}
 			return getUserPoliciesForAddUserToIAMSvcAcc(token, userDetails, iamServiceAccountUser, oidcEntityResponse,
 					uniqueIAMSvcaccName);
 
@@ -982,6 +993,23 @@ public class  IAMServiceAccountsService {
 			return ResponseEntity.status(HttpStatus.FORBIDDEN)
 					.body("{\"errors\":[\"Access denied: No permission to add users to this IAM service account\"]}");
 		}
+	}
+
+	/**
+	 * Method to check if the owner permission is getting changed.
+	 * @param iamServiceAccountUser
+	 * @return
+	 */
+	private boolean isOwnerPemissionGettingChanged(IAMServiceAccountUser iamServiceAccountUser, String currentUsername, boolean isPartOfOnboard) {
+		if (isPartOfOnboard) {
+			// sudo as part of onboard is allowed.
+			return false;
+		}
+		// if owner is grating read/ deny to himself, not allowed. Write is allowed as part of activation.
+		if (iamServiceAccountUser.getUsername().equalsIgnoreCase(currentUsername) && !iamServiceAccountUser.getAccess().equals(TVaultConstants.WRITE_POLICY)) {
+			return true;
+		}
+		return false;
 	}
 
 	/**
@@ -1554,7 +1582,18 @@ public class  IAMServiceAccountsService {
 				return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
 						"{\"errors\":[\"Failed to remove user permission from IAM Service account. IAM Service Account is not activated. Please activate this IAM service account and try again.\"]}");
 			}
-
+			// Deleting owner permission is not allowed
+			if (iamServiceAccountUser.getUsername().equalsIgnoreCase(userDetails.getUsername())) {
+				log.error(
+						JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+								.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+								.put(LogMessage.ACTION, IAMServiceAccountConstants.REMOVE_USER_FROM_IAMSVCACC_MSG)
+								.put(LogMessage.MESSAGE, "Failed to remove user permission to IAM Service account. Owner permission cannot be changed..")
+								.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL))
+								.build()));
+				return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
+						"{\"errors\":[\"Failed to remove user permission to IAM Service account. Owner permission cannot be changed.\"]}");
+			}
 			return processAndRemoveUserPermissionFromIAMSvcAcc(token, iamServiceAccountUser, userDetails,
 					oidcEntityResponse, uniqueIAMSvcaccName);
 		}

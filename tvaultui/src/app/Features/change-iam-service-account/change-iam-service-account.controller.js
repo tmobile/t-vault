@@ -408,6 +408,13 @@
                     switch (type) {
                         case 'users' :
                             apiCallFunction = AdminSafesManagement.deleteUserPermissionFromIAMSvcacc;
+                            if (SessionStore.getItem("username") == key) {
+                                $scope.isLoadingData = false;
+                                clearInputPermissionData();
+                                $scope.errorMessage = "Owner permission for an IAM service account cannot be changed!";
+                                $scope.error('md');
+                                return;
+                            }
                             if (editingPermission) {
                                 reqObjtobeSent = {
                                     "iamSvcAccName": svcaccname,
@@ -984,6 +991,13 @@
                         case 'users' :
                             apiCallFunction = AdminSafesManagement.addUserPermissionForIAMSvcacc;
                             reqObjtobeSent = {"iamSvcAccName": iamSvcaccName,"awsAccountId": $scope.svcacc.awsAccId, "username": key, "access": permission.toLowerCase()};
+                            if (SessionStore.getItem("username") == key) {
+                                $scope.isLoadingData = false;
+                                clearInputPermissionData();
+                                $scope.errorMessage = "Owner permission for an IAM service account cannot be changed";
+                                $scope.error('md');
+                                return;
+                            }
                             break;
                         case 'groups' :
                             apiCallFunction = AdminSafesManagement.addGroupPermissionForSvcacc;
