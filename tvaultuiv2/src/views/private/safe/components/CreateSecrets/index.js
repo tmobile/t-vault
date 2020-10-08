@@ -149,8 +149,12 @@ const CreateSecret = (props) => {
               />
             </CancelButton>
             <ButtonComponent
-              label="Create"
-              icon="add"
+              label={
+                Object.keys(secretprefilledData).length === 0
+                  ? 'Create'
+                  : 'Edit'
+              }
+              icon={Object.keys(secretprefilledData).length === 0 ? 'add' : ''}
               color="secondary"
               width={isMobileScreen ? '100%' : ''}
               disabled={

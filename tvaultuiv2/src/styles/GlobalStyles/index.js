@@ -48,3 +48,22 @@ export const BackgroundColor = {
   secretBg: '#2a2e3e',
   secretHoverBg: '#252937',
 };
+
+export const PopperItem = styled.div`
+  padding: 0.5em;
+  display: flex;
+  align-items: center;
+  flex-direction: row-reverse;
+  cursor: pointer;
+  span {
+    margin-right: 0.75rem;
+  }
+  img {
+    width: 2rem;
+    height: 2rem;
+  }
+  :hover {
+    background-image: ${(props) => props.theme.gradients.list || 'none'};
+  }
+  ${(props) => (props.extraCss ? props.extraCss : '')}
+`;

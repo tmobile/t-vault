@@ -22,7 +22,7 @@ const Icon = styled('div')`
 `;
 
 const PsudoPopper = (props) => {
-  const { onDeletListItemClicked, item } = props;
+  const { onDeletListItemClicked, item, admin } = props;
 
   return (
     <ComponentError>
@@ -38,10 +38,12 @@ const PsudoPopper = (props) => {
             <IconEdit />
           </Icon>
         </Link>
-        <Icon onClick={onDeletListItemClicked}>
-          {' '}
-          <IconDeleteActive />
-        </Icon>
+        {admin && (
+          <Icon onClick={onDeletListItemClicked}>
+            {' '}
+            <IconDeleteActive />
+          </Icon>
+        )}
       </IconWrap>
     </ComponentError>
   );
@@ -50,11 +52,13 @@ const PsudoPopper = (props) => {
 PsudoPopper.propTypes = {
   onDeletListItemClicked: PropTypes.func,
   item: PropTypes.objectOf(PropTypes.any),
+  admin: PropTypes.bool,
 };
 
 PsudoPopper.defaultProps = {
   onDeletListItemClicked: () => {},
   item: {},
+  admin: true,
 };
 
 export default PsudoPopper;

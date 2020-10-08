@@ -10,17 +10,20 @@ import ComponentError from '../../errorBoundaries/ComponentError/component-error
 import mediaBreakpoints from '../../breakpoints';
 
 const ModalWrapper = styled.div`
-  background-color: ${(props) => props.theme.palette.background.modal};
-  padding: 4rem 3rem;
+  background-color: ${(props) =>
+    props.theme.customColor.modal.backgroundColor || '#ddd'};
+  padding: 3rem 4rem;
   outline: none;
   text-align: center;
   width: ${(props) => props.size};
+  display: flex;
+  flex-direction: column;
 `;
 
 const ButtonWrapper = styled.div`
   display: flex;
   justify-content: center;
-  margin-top: 3rem;
+  align-self: flex-end;
   ${mediaBreakpoints.small} {
     flex-direction: column;
   }
@@ -35,12 +38,15 @@ const CancelButtonWrap = styled.div`
 `;
 
 const titleOneCss = css`
-  margin-bottom: 1rem;
   font-weight: bold;
   font-size: 2.4rem;
+  color: ${(props) => props.theme.customColor.modal.title || '#fff'};
+  text-align: left;
 `;
 const titleTwoCss = css`
-  margin: 3rem 0;
+  margin: 1.6rem 0 3rem 0;
+  color: ${(props) => props.theme.customColor.modal.color || '#fff'};
+  text-align: left;
 `;
 
 const useStyles = makeStyles(() => ({
@@ -81,15 +87,13 @@ const ConfirmationModal = (props) => {
           <ModalWrapper
             size={
               // eslint-disable-next-line no-nested-ternary
-              size === 'large' ? '90%' : size === 'medium' ? '60%' : '40%'
+              size === 'large' ? '90%' : size === 'medium' ? '60%' : '35%'
             }
           >
             <TitleOne color="#e20074" extraCss={titleOneCss}>
               {title}
             </TitleOne>
-            <TitleTwo color="#666" extraCss={titleTwoCss}>
-              {description}
-            </TitleTwo>
+            <TitleTwo extraCss={titleTwoCss}>{description}</TitleTwo>
             <ButtonWrapper>
               {cancelButton.type !== 'div' && (
                 <CancelButtonWrap>{cancelButton}</CancelButtonWrap>

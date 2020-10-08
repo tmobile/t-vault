@@ -10,6 +10,7 @@ import Tabs from '@material-ui/core/Tabs';
 import Tab from '@material-ui/core/Tab';
 import ComponentError from '../../../../../errorBoundaries/ComponentError/component-error';
 import mediaBreakpoints from '../../../../../breakpoints';
+import ServiceAccountSecrets from '../ServiceAccountSecrets';
 // styled components goes here
 
 const TabPanelWrap = styled.div`
@@ -27,7 +28,7 @@ const TabContentsWrap = styled('div')`
 `;
 
 const TabPanel = (props) => {
-  const { children = '', value, index } = props;
+  const { children, value, index } = props;
 
   return (
     <TabPanelWrap
@@ -83,7 +84,8 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-const AccountSelectionTabs = () => {
+const AccountSelectionTabs = (props) => {
+  const { accountDetail } = props;
   const classes = useStyles();
   const [value, setValue] = useState(0);
 
@@ -103,14 +105,19 @@ const AccountSelectionTabs = () => {
             textColor="primary"
           >
             <Tab className={classes.tab} label="Secrets" {...a11yProps(0)} />
-            <Tab label="Permissions" {...a11yProps(1)} />
+            {accountDetail.admin && (
+              <Tab
+                label="Permissions"
+                {...a11yProps(1)}
+                disabled={!accountDetail.admin}
+              />
+            )}
           </Tabs>
         </AppBar>
         <TabContentsWrap>
           <TabPanel value={value} index={0}>
-            Secrets
+            <ServiceAccountSecrets accountDetail={accountDetail} />
           </TabPanel>
-
           <TabPanel value={value} index={1}>
             Permissions
           </TabPanel>

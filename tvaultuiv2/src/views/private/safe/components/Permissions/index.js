@@ -163,13 +163,14 @@ const Permissions = (props) => {
       setSelectedTab('Group');
     } else if (newValue === 2) {
       setSelectedTab('AWS Application');
-    } else {
+    } else if (newValue === 3) {
       setSelectedTab('App Role');
     }
   };
 
   useEffect(() => {
     if (safeData?.response && Object.keys(safeData?.response).length !== 0) {
+      setCount(0);
       if (value === 0) {
         if (safeData.response.users) {
           setCount(Object.keys(safeData.response.users).length);
@@ -226,7 +227,7 @@ const Permissions = (props) => {
       setNewGroup(true);
     } else if (value === 2) {
       setNewAwsApplication(true);
-    } else {
+    } else if (value === 3) {
       setNewAppRole(true);
     }
   };

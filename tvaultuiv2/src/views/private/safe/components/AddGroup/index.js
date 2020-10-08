@@ -225,7 +225,7 @@ const AddGroup = (props) => {
               />
             </CancelButton>
             <ButtonComponent
-              label="Save"
+              label={groupname && access ? 'Edit' : 'Save'}
               color="secondary"
               onClick={() => handleSaveClick(searchValue, radioValue)}
               disabled={disabledSave}
