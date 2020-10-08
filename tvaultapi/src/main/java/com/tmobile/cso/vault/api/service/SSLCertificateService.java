@@ -3500,7 +3500,7 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
 			if (ldapConfigresponse.getHttpstatus().equals(HttpStatus.NO_CONTENT)
 					|| ldapConfigresponse.getHttpstatus().equals(HttpStatus.OK)) {
 				return updateMetadataForAddGroupToCertificate(token, groupName, certificateName, access, certPath,
-						currentpoliciesString, userDetails, currentpolicies, oidcGroup.getId());
+						currentpoliciesString, userDetails, currentpolicies, oidcGroup != null ? oidcGroup.getId() : null);
 			}
 			else {
 				log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
