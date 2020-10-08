@@ -543,15 +543,41 @@ script(type='text/ng-template', id='manageSecretId.html')
                                                     button.show-more-btn VIEW MORE
                                                     span
                                                         img(src="assets/icons/front-arrow.svg")
-                    md-tab(label="Certificate Management" md-on-select="tabChangeForAdminCert()"  ng-if='isSelfServiceGroupAssigned')
+                    md-tab(label="Certificate Management" md-on-select="tabChangeForAdminCert()" )
                         md-content(class="md-padding md-content-wrapper page-content-wrapper md-approle-management" ng-init="displayGrid")
-                          .md-content-inner-wrapper
+                            .md-content-inner-wrapper
+                              div.certnotes How to get started and what to know:
+                                span.cert-collapse-link(ng-click="collapseNoteCert()") >>
+                              div.certcollapsible(uib-collapse="isCollapsedCert")
+                                  div.svcdescription
+                                    text.weighted  1 :
+                                    text Ensure you are a member of the self-service administration group in AD for your respective application.  You can request access from the owner of your application at #[a(href='https://access.t-mobile.com/') Cloud Access].  If you are not a member of one or more of these groups you will not be able to create certificates yourself.
+                                  div.svcdescription
+                                    text.weighted  2 :
+                                    text Currently only the standard SSL Certificate template is used to create certificates, this includes:
+                                  div.svcdescription
+                                    text &nbsp;&nbsp;&nbsp;Signature algorithm: SHA256-RSA.
+                                  div.svcdescription
+                                    text &nbsp;&nbsp;&nbsp;Key usage  : digitalSignature, keyEncipherment.
+                                  div.svcdescription
+                                    text &nbsp;&nbsp;&nbsp;Extended key usage : serverAuth for Internal  and ServerAuth, ClientAuth for External certificates
+                                  div.svcdescription
+                                    text.weighted  3 :
+                                    text If you need a non-standard certificate please reach out to Cloud Support
+                                    to work with them to create this for you.  This functionality will be developed and incorporated into T-Vault at a later date.
+                                  div.svcdescription
+                                      text.weighted 4 :
+                                      text External certificate requests require approval from the NCLM team, that process is outlined when you request an external certificate.
+                                  div.svcdescription
+                                    text.weighted 5 :
+                                    text Suggestions for improvements and features are welcome, please reach out to T-Vault@T-Mobile.com if you have any to share. For more information on how to manage certificates please go #[a(href='https://ccoe.docs.t-mobile.com/t-vault/user-interface/manage_certificates/') here.]
+
                               div.create-certificate-link(ng-show="!isLoadingData && certificateData.certificates.length==0")
-                                  .function-text.link-style.option.right(ng-click="newCertificateConfiguration('lg')")
-                                      .action-icon-wrapper.static
-                                          .rotate.glyphicon.glyphicon-remove-circle
-                                      .create-link.middle-block.hide-in-mobile
-                                          .text CREATE NEW CERTIFICATE
+                                .function-text.link-style.option.right(ng-click="newCertificateConfiguration('lg')")
+                                    .action-icon-wrapper.static
+                                        .rotate.glyphicon.glyphicon-remove-circle
+                                    .create-link.middle-block.hide-in-mobile
+                                        .text CREATE NEW CERTIFICATE
                               div.cert-management-content
                                 loading-state(ng-if='isLoadingData'  && 'isLoadingCerts')                               
                                 md-tabs.admin-tabs.md-dynamic-height.md-border-bottom(md-selected="selectedTab")
