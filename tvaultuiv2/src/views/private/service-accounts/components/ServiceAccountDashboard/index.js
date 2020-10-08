@@ -198,7 +198,6 @@ const ServiceAccountDashboard = () => {
   const introduction = Strings.Resources.serviceAccount;
 
   const contextObj = useContext(UserContext);
-
   /**
    * @function fetchData
    * @description function call all the manage and safe api.
@@ -477,14 +476,16 @@ const ServiceAccountDashboard = () => {
                   <TitleOne extraCss="font-weight:600">
                     SERVICE ACCOUNTS
                   </TitleOne>
-                  <ButtonComponent
-                    color="secondary"
-                    icon="add"
-                    label="Onboard Account"
-                    onClick={() => showOnBoardForm()}
-                    classes={classes}
-                    href="/service-accounts/change-service-accounts"
-                  />
+                  {contextObj.isAdmin && (
+                    <ButtonComponent
+                      color="secondary"
+                      icon="add"
+                      label="Onboard Account"
+                      onClick={() => showOnBoardForm()}
+                      classes={classes}
+                      href="/service-accounts/change-service-accounts"
+                    />
+                  )}
                 </div>
 
                 <SearchWrap>
