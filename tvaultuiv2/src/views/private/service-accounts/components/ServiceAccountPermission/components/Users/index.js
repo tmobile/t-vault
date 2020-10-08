@@ -137,6 +137,16 @@ const Users = (props) => {
       });
   };
 
+  const checkAccess = (access) => {
+    let val = '';
+    if (access === 'write') {
+      val = 'reset';
+    } else {
+      val = access;
+    }
+    return val;
+  };
+
   /**
    * @function onSubmit
    * @description function structure the payload when save/edit is clicked and call save api.
@@ -145,7 +155,7 @@ const Users = (props) => {
    */
   const onSubmit = async (username, access) => {
     const value = {
-      access,
+      access: checkAccess(access),
       svcAccName: `${accountDetail.name}`,
       username: username.toLowerCase(),
     };
@@ -162,7 +172,7 @@ const Users = (props) => {
   const onEditSaveClicked = (username, access) => {
     setResponse({ status: 'loading' });
     const payload = {
-      access,
+      access: checkAccess(access),
       svcAccName: accountDetail.name,
       username,
     };
