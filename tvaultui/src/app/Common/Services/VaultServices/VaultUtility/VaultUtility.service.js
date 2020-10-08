@@ -31,7 +31,8 @@ angular.module('vault.services.VaultUtility', [])
                 if (forOwner) {
                     DataUrl = RestEndpoints.baseURL + RestEndpoints.usersGetData;
                 } else if (searchFieldName === "userName" && self.authType.toLowerCase() === 'ldap') {
-                    DataUrl = RestEndpoints.baseURL + RestEndpoints.usersGetDataUsingCorpID;
+                    //DataUrl = RestEndpoints.baseURL + RestEndpoints.usersGetDataUsingCorpID;
+                    DataUrl = RestEndpoints.baseURL + RestEndpoints.usersGetDataUsingNTID;
                 } else if(searchFieldName === "userName" && self.authType.toLowerCase() === 'ldap1900') {
                     DataUrl = RestEndpoints.baseURL + RestEndpoints.usersGetData;
                 } else if (searchFieldName === "groupName") {
@@ -130,10 +131,16 @@ angular.module('vault.services.VaultUtility', [])
             var users = dataFrmApi;
             users.forEach(function(item) {
                 var userName = item["userName"].toLowerCase();
-                if(userName.includes(searchText.toLowerCase())) {
-                    if (item["userName"]) {                               
-                        data.push(item["userName"]);
-                    }                
+                var displayName = item["displayName"].toLowerCase();
+                if(displayName.includes(searchText.toLowerCase())) {
+                    if (item["userName"]) {
+                        data.push(item["displayName"] + " (" + item["userName"]+ ")");
+                    }
+                }
+                else if(userName.includes(searchText.toLowerCase())) {
+                    if (item["userName"]) {
+                        data.push(item["displayName"] + " (" + item["userName"]+ ")");
+                    }
                 }
             });
             return data;

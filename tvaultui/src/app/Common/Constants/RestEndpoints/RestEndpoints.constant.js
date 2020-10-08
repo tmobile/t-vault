@@ -47,7 +47,8 @@ readTextFile("../apiUrls.json");
         // written below separately as request requires timeout promise 
         usersGetData : '/v2/ldap/users?UserPrincipalName=',
         groupGetDataFromAAD: '/v2/azure/groups?name=',
-        usersGetDataUsingCorpID: '/v2/ldap/corpusers?CorpId=', 
+        usersGetDataUsingCorpID: '/v2/ldap/corpusers?CorpId=',
+        usersGetDataUsingNTID: '/v2/ldap/ntusers?displayName=',
         //baseURL : '/vault'
         endpoints: [{
             name: 'postAction',
