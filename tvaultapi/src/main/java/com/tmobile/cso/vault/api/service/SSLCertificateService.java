@@ -4087,6 +4087,7 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
         }else {
         	try {
         	Path path = Paths.get(downloadLocation+"/"+SSLCertificateConstants.DOWNLOAD_CERT+fileType);
+        	if(path!=null) {
             byte[] decodedBytes;			
 			decodedBytes = Files.readAllBytes(path);        	
             resource = new InputStreamResource(new ByteArrayInputStream(decodedBytes));
@@ -4094,6 +4095,7 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
                     .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\""+downloadFileName+"\"")
                     .contentType(MediaType.parseMediaType("application/x-pkcs12;charset=utf-8"))
                     .body(resource);
+        	}
         	} catch (IOException e) {
         		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
                         put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
@@ -4209,6 +4211,7 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
             }else {
             	try {
             	Path path = Paths.get(downloadLocation+"/"+SSLCertificateConstants.DOWNLOAD_CERT+"."+certificateType);
+            	if(path!=null) {
                 byte[] decodedBytes;			
     			decodedBytes = Files.readAllBytes(path);        	
     			resource = new InputStreamResource(new ByteArrayInputStream(decodedBytes));
@@ -4216,6 +4219,7 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
                         .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\""+certificateName+"\"")
                         .contentType(MediaType.parseMediaType(contentType+";charset=utf-8"))
                         .body(resource);
+            	}
             	} catch (IOException e) {
             		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
                             put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
