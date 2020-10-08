@@ -8,6 +8,7 @@ import {
   Modal,
   Fade,
   Typography,
+  Tooltip,
 } from '@material-ui/core';
 import { makeStyles } from '@material-ui/core/styles';
 import useMediaQuery from '@material-ui/core/useMediaQuery';
@@ -102,6 +103,8 @@ const ToggleWrap = styled('div')`
 `;
 const OnBoardFormContainer = styled('div')`
   padding: 1rem 0rem;
+  display: flex;
+  flex-direction: column;
 `;
 const HeaderInfoWrapper = styled.div`
   display: flex;
@@ -119,6 +122,7 @@ const InfoContainer = styled.div`
 const Span = styled('span')`
   color: ${(props) => props.theme.customColor.collapse.title};
   fontsize: ${(props) => props.theme.typography.body2.fontSize};
+  ${(props) => props.extraStyles}
 `;
 const CollapsibleContainer = styled('div')``;
 const AcionButtons = styled.div`
@@ -184,6 +188,13 @@ const customLoaderStyle = css`
   top: 3.2rem;
   color: red;
 `;
+
+const useStylesBootstrap = makeStyles((theme) => ({
+  tooltip: {
+    fontSize: theme.typography.subtitle2.fontSize,
+  },
+}));
+
 // Render component goes here
 const OnBoardForm = () => {
   const [inputAdGroupName, setInputAdGroupName] = useState('');
@@ -219,6 +230,7 @@ const OnBoardForm = () => {
     setOpen(false);
     history.goBack();
   };
+  const tooltipStyles = useStylesBootstrap();
   /**
    * Fetch all available application names by approles for the associated user
    * @param {String} name value of the application name  to search
@@ -344,18 +356,21 @@ const OnBoardForm = () => {
   };
   const onApplicationNameSelected = (e, val) => {
     setInputApplicationName(val);
-    const selectedApplicationClone = applicationList.find((item) =>
-      item.appName.includes(val.split('(')[0].trim())
+    const selectedApplicationClone = applicationList?.find((item) =>
+      item.appName.includes(val?.split('(')[0].trim())
     );
     setSelectedApplication({ ...selectedApplicationClone });
   };
+
   const onServiceAccountNameChange = (name) => {
+    setInputServiceName(name);
     fetchServiceAccounts(name);
   };
   const onADGroupChange = (name) => {
     setInputAdGroupName(name);
   };
-  const onApplicationNameChange = () => {
+  const onApplicationNameChange = (val) => {
+    setInputApplicationName(val);
     fetchAppRoles();
   };
   /**
@@ -522,6 +537,7 @@ const OnBoardForm = () => {
               </InfoContainer>
               <OnBoardFormContainer>
                 {' '}
+                <Span extraStyles="align-self:flex-end">* required</Span>
                 <InputFieldLabelWrapper>
                   <InputLabel>
                     Service Account Name
@@ -621,7 +637,16 @@ const OnBoardForm = () => {
                     </TitleThree>
                   </TitleTwo>
                   <InputFieldLabelWrapper customCss="width:60%">
-                    <InputLabel>Password Expiration Time</InputLabel>
+                    <Tooltip
+                      classes={tooltipStyles}
+                      title="This value needs to be between 1 and 31536000.
+                      15min=900s, 1h=3600s,1d=86400s,90d=7776000s,365d=31536000s. Once the TTL is passed, password will be rotated the next time it is requested"
+                      placement="top"
+                      arrow
+                    >
+                      <InputLabel>Password Expiration Time</InputLabel>
+                    </Tooltip>
+
                     <TextFieldComponent
                       placeholder={
                         serviceAccountDetails?.maxPwdAge === 7776000
