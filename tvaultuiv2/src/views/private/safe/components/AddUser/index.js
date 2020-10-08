@@ -1,12 +1,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { debounce } from 'lodash';
-import Radio from '@material-ui/core/Radio';
 import { makeStyles } from '@material-ui/core/styles';
-import RadioGroup from '@material-ui/core/RadioGroup';
 import { InputLabel, Typography } from '@material-ui/core';
-import FormControlLabel from '@material-ui/core/FormControlLabel';
 import useMediaQuery from '@material-ui/core/useMediaQuery';
-import FormControl from '@material-ui/core/FormControl';
 import styled, { css } from 'styled-components';
 import PropTypes from 'prop-types';
 import ComponentError from '../../../../../errorBoundaries/ComponentError/component-error';
@@ -15,6 +11,7 @@ import AutoCompleteComponent from '../../../../../components/FormFields/AutoComp
 import ButtonComponent from '../../../../../components/FormFields/ActionButton';
 import apiService from '../../apiService';
 import LoaderSpinner from '../../../../../components/Loaders/LoaderSpinner';
+import RadioPermissionComponent from '../RadioPermissions';
 
 const { small } = mediaBreakpoints;
 
@@ -218,26 +215,10 @@ const AddUser = (props) => {
           {searchLoader && <LoaderSpinner customStyle={customStyle} />}
         </InputWrapper>
         <RadioButtonWrapper>
-          <FormControl component="fieldset">
-            <RadioGroup
-              row
-              aria-label="permissions"
-              name="permissions1"
-              value={radioValue}
-              onChange={handleChange}
-            >
-              <FormControlLabel
-                value="read"
-                control={<Radio color="default" />}
-                label="Read"
-              />
-              <FormControlLabel
-                value="write"
-                control={<Radio color="default" />}
-                label="Write"
-              />
-            </RadioGroup>
-          </FormControl>
+          <RadioPermissionComponent
+            radioValue={radioValue}
+            handleRadioChange={(e) => handleChange(e)}
+          />
           <CancelSaveWrapper>
             <CancelButton>
               <ButtonComponent
@@ -248,7 +229,7 @@ const AddUser = (props) => {
               />
             </CancelButton>
             <ButtonComponent
-              label="Save"
+              label={username && access ? 'Edit' : 'Save'}
               color="secondary"
               onClick={() => handleSaveClick(searchValue, radioValue)}
               disabled={disabledSave}

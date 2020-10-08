@@ -193,7 +193,7 @@ const AddAppRole = (props) => {
               />
             </CancelButton>
             <ButtonComponent
-              label="Save"
+              label={editClicked ? 'Edit' : 'Save'}
               color="secondary"
               onClick={() => handleSaveClick(selectedValue, radioValue)}
               disabled={disabledSave}

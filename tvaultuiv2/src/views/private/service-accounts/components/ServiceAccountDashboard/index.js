@@ -1,9 +1,10 @@
+/* eslint-disable react/jsx-curly-newline */
+/* eslint-disable react/jsx-wrap-multilines */
 /* eslint-disable no-param-reassign */
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useContext } from 'react';
 import styled, { css } from 'styled-components';
 import { makeStyles } from '@material-ui/core/styles';
 import InfiniteScroll from 'react-infinite-scroller';
-import MoreVertOutlinedIcon from '@material-ui/icons/MoreVertOutlined';
 import { Link, Route, Switch, useHistory, Redirect } from 'react-router-dom';
 
 import useMediaQuery from '@material-ui/core/useMediaQuery';
@@ -21,19 +22,15 @@ import EditDeletePopper from '../EditDeletePopper';
 import ListItem from '../../../../../components/ListItem';
 import EditAndDeletePopup from '../../../../../components/EditAndDeletePopup';
 import Error from '../../../../../components/Error';
-// import OnBoardServiceAccount from '../OnBoardServiceAccounts';
 import SnackbarComponent from '../../../../../components/Snackbar';
 import ScaledLoader from '../../../../../components/Loaders/ScaledLoader';
-// import apiService from '../../apiService';
-
-// import ConfirmationModal from '../../../../../components/ConfirmationModal';
-// import OnBoardForm from '../OnBoardForm';
+import ConfirmationModal from '../../../../../components/ConfirmationModal';
 import apiService from '../../apiService';
 import Strings from '../../../../../resources';
 import ButtonComponent from '../../../../../components/FormFields/ActionButton';
-import { IconEdit, IconDeleteActive } from '../../../../../assets/SvgIcons';
 import { TitleOne } from '../../../../../styles/GlobalStyles';
 import AccountSelectionTabs from '../Tabs';
+import { UserContext } from '../../../../../contexts';
 
 const ColumnSection = styled('section')`
   position: relative;
@@ -172,7 +169,7 @@ const ColumnTitleWrap = styled('div')`
   }
   margin-bottom: 0.75rem;
 `;
-const MoreWrap = styled.div``;
+const EditDeletePopperWrap = styled.div``;
 const useStyles = makeStyles(() => ({
   contained: { borderRadius: '0.4rem' },
 }));
@@ -180,14 +177,19 @@ const useStyles = makeStyles(() => ({
 const ServiceAccountDashboard = () => {
   // const [, setEnableOnBoardForm] = useState(false);
   const [inputSearchValue, setInputSearchValue] = useState('');
-  const [anchorEl, setAnchorEl] = useState(null);
   const [serviceAccountClicked, setServiceAccountClicked] = useState(false);
   const [listItemDetails, setListItemDetails] = useState({});
   const [moreData] = useState(false);
   const [isLoading] = useState(false);
   const [serviceAccountList, setServiceAccountList] = useState([]);
-  const [toast] = useState(null);
+  const [toast, setToast] = useState(null);
   const [status, setStatus] = useState({});
+  const [deleteAccName, setDeleteAccName] = useState('');
+  const [offBoardSuccessfull, setOffBoardSuccessfull] = useState(false);
+  const [
+    offBoardSvcAccountConfirmation,
+    setOffBoardSvcAccountConfirmation,
+  ] = useState(false);
   let scrollParentRef = null;
   const classes = useStyles();
   const isMobileScreen = useMediaQuery(mediaBreakpoints.small);
@@ -195,56 +197,60 @@ const ServiceAccountDashboard = () => {
 
   const introduction = Strings.Resources.serviceAccount;
 
+  const contextObj = useContext(UserContext);
+
   /**
    * @function fetchData
    * @description function call all the manage and safe api.
    */
   const fetchData = useCallback(async () => {
     setStatus({ status: 'loading', message: 'Loading...' });
-    const serviceList = await apiService.getServiceAccountList();
-    const serviceAccounts = await apiService.getServiceAccounts();
-    const allApiResponse = Promise.all([serviceList, serviceAccounts]);
-    allApiResponse
-      .then((response) => {
-        const listArray = [];
-        if (response[0] && response[0].data && response[0].data.svcacct) {
-          response[0].data.svcacct.map((item) => {
-            const data = {
-              name: Object.keys(item)[0],
-              access: Object.values(item)[0],
-              admin: true,
-              manage: true,
-            };
-            return listArray.push(data);
-          });
-        }
-        if (response[1] && response[1]?.data?.keys) {
-          listArray.map((item) => {
-            if (!response[1].data.keys.includes(item.name)) {
-              item.manage = false;
-            }
-            return null;
-          });
-          response[1].data.keys.map((item) => {
-            if (!listArray.some((list) => list.name === item)) {
+    if (contextObj && Object.keys(contextObj).length > 0) {
+      const serviceList = await apiService.getServiceAccountList();
+      const serviceAccounts = await apiService.getServiceAccounts();
+      const allApiResponse = Promise.all([serviceList, serviceAccounts]);
+      allApiResponse
+        .then((response) => {
+          const listArray = [];
+          if (response[0] && response[0].data && response[0].data.svcacct) {
+            response[0].data.svcacct.map((item) => {
               const data = {
-                name: item,
-                access: '',
-                admin: true,
+                name: Object.keys(item)[0],
+                access: Object.values(item)[0],
+                admin: contextObj.isAdmin,
                 manage: true,
               };
               return listArray.push(data);
-            }
-            return null;
-          });
-          setServiceAccountList([...listArray]);
-        }
-        setStatus({ status: 'success', message: '' });
-      })
-      .catch(() => {
-        setStatus({ status: 'failed', message: 'failed' });
-      });
-  }, []);
+            });
+          }
+          if (response[1] && response[1]?.data?.keys) {
+            listArray.map((item) => {
+              if (!response[1].data.keys.includes(item.name)) {
+                item.manage = false;
+              }
+              return null;
+            });
+            response[1].data.keys.map((item) => {
+              if (!listArray.some((list) => list.name === item)) {
+                const data = {
+                  name: item,
+                  access: '',
+                  admin: contextObj.isAdmin,
+                  manage: true,
+                };
+                return listArray.push(data);
+              }
+              return null;
+            });
+            setServiceAccountList([...listArray]);
+          }
+          setStatus({ status: 'success', message: '' });
+        })
+        .catch(() => {
+          setStatus({ status: 'failed', message: 'failed' });
+        });
+    }
+  }, [contextObj]);
 
   /**
    * @description On component load call fetchData function.
@@ -266,14 +272,7 @@ const ServiceAccountDashboard = () => {
   const onSearchChange = (value) => {
     setInputSearchValue(value);
   };
-  /**
-   * @function handlePopperClick
-   * @description handle edit and delete popper when we click on more
-   */
-  const handlePopperClick = (e) => {
-    e.preventDefault();
-    setAnchorEl(e.currentTarget);
-  };
+
   /**
    * @function onLinkClicked
    * @description function to check if mobile screen the make safeClicked true
@@ -325,10 +324,64 @@ const ServiceAccountDashboard = () => {
   const onToastClose = () => {
     setStatus({});
   };
-  const onServiceAccountOffBoard = () => {};
+
+  const onDeleteClicked = (name) => {
+    setOffBoardSvcAccountConfirmation(true);
+    setDeleteAccName(name);
+  };
+
+  const deleteServiceAccount = (owner) => {
+    const payload = {
+      name: deleteAccName,
+      owner,
+    };
+    apiService
+      .offBoardServiceAccount(payload)
+      .then(() => {
+        fetchData();
+        setOffBoardSuccessfull(true);
+      })
+      .catch(() => {
+        setToast(-1);
+      });
+  };
+
+  useEffect(() => {
+    if (offBoardSuccessfull) {
+      setOffBoardSvcAccountConfirmation(true);
+    }
+  }, [offBoardSuccessfull]);
+
+  const onServiceAccountOffBoard = () => {
+    setOffBoardSvcAccountConfirmation(false);
+    setStatus({ status: 'loading' });
+    apiService
+      .fetchServiceAccountDetails(deleteAccName)
+      .then((res) => {
+        let details = {};
+        if (res?.data?.data?.values && res.data.data.values[0]) {
+          details = { ...res.data.data.values[0] };
+          if (details?.managedBy?.userName) {
+            deleteServiceAccount(details.managedBy.userName);
+          }
+        }
+      })
+      .catch(() => {
+        setToast(-1);
+      });
+  };
+
   const onServiceAccountEdit = () => {};
 
-  // const handleConfirmationModalClose = () => {};
+  const handleSuccessfullConfirmation = () => {
+    setOffBoardSvcAccountConfirmation(false);
+    setOffBoardSuccessfull(false);
+  };
+
+  const handleConfirmationModalClose = () => {
+    setOffBoardSvcAccountConfirmation(false);
+  };
+
   const renderList = () => {
     return serviceAccountList.map((account) => (
       <ListFolderWrap
@@ -348,44 +401,74 @@ const ServiceAccountDashboard = () => {
           flag={account.type}
           icon={safeIcon}
           showActions={false}
-          popperListItems={[
-            { title: 'Edit', icon: <IconEdit /> },
-            { title: 'delete', icon: <IconDeleteActive /> },
-          ]}
         />
         <BorderLine />
         {account.name && !isMobileScreen ? (
           <PopperWrap onClick={(e) => onActionClicked(e)}>
             <EditAndDeletePopup
-              //   onDeleteListItemClicked={() => onDeleteSafeClicked(safe.path)}
+              onDeletListItemClicked={() => onDeleteClicked(account.name)}
               item={account}
               path="/service-accounts/edit-service-account"
+              admin={contextObj.isAdmin}
             />
           </PopperWrap>
         ) : null}
-        {isMobileScreen && account.name ? (
-          <div>
-            <MoreWrap
-              role="button"
-              onClick={(e) => handlePopperClick(e)}
-              tab-index={-1}
-            >
-              <MoreVertOutlinedIcon />
-            </MoreWrap>
+        {isMobileScreen && account.name && (
+          <EditDeletePopperWrap onClick={(e) => onActionClicked(e)}>
             <EditDeletePopper
-              onDeleteClicked={onServiceAccountOffBoard}
-              onEditClicked={onServiceAccountEdit}
-              setAnchorEl={setAnchorEl}
-              anchorEl={anchorEl}
+              onDeleteClicked={() => onDeleteClicked()}
+              onEditClicked={() => onServiceAccountEdit()}
             />
-          </div>
-        ) : null}
+          </EditDeletePopperWrap>
+        )}
       </ListFolderWrap>
     ));
   };
   return (
     <ComponentError>
       <>
+        <ConfirmationModal
+          open={offBoardSvcAccountConfirmation}
+          handleClose={
+            offBoardSuccessfull
+              ? handleSuccessfullConfirmation
+              : handleConfirmationModalClose
+          }
+          title={
+            offBoardSuccessfull ? 'Offboarding successful!' : 'Confirmation'
+          }
+          description={
+            offBoardSuccessfull
+              ? Strings.Resources.offBoardSuccessfull
+              : Strings.Resources.offBoardConfirmation
+          }
+          cancelButton={
+            !offBoardSuccessfull && (
+              <ButtonComponent
+                label={offBoardSuccessfull ? 'Close' : 'Cancel'}
+                color={offBoardSuccessfull ? 'secondary' : 'primary'}
+                onClick={() =>
+                  offBoardSuccessfull
+                    ? handleSuccessfullConfirmation()
+                    : handleConfirmationModalClose()
+                }
+                width={isMobileScreen ? '100%' : '38%'}
+              />
+            )
+          }
+          confirmButton={
+            <ButtonComponent
+              label={offBoardSuccessfull ? 'Close' : 'Confirm'}
+              color="secondary"
+              onClick={() =>
+                offBoardSuccessfull
+                  ? handleConfirmationModalClose()
+                  : onServiceAccountOffBoard()
+              }
+              width={isMobileScreen ? '100%' : '38%'}
+            />
+          }
+        />
         <SectionPreview title="service-account-section">
           <LeftColumnSection isAccountDetailsOpen={serviceAccountClicked}>
             <ColumnHeader>
