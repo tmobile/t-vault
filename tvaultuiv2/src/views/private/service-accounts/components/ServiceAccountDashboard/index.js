@@ -646,7 +646,10 @@ const ServiceAccountDashboard = () => {
                     ListDetailHeaderBg={sectionHeaderBg}
                     description={introduction}
                     renderContent={
-                      <AccountSelectionTabs accountDetail={listItemDetails} />
+                      <AccountSelectionTabs
+                        accountDetail={listItemDetails}
+                        refresh={() => fetchData()}
+                      />
                     }
                   />
                 )}

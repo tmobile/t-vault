@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 /* eslint-disable react/jsx-props-no-spreading */
 import React, { useState, useEffect, useCallback } from 'react';
 import PropTypes from 'prop-types';
@@ -88,7 +87,7 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 const AccountSelectionTabs = (props) => {
-  const { accountDetail } = props;
+  const { accountDetail, refresh } = props;
   const classes = useStyles();
   const [value, setValue] = useState(0);
   const [response, setResponse] = useState({ status: 'loading' });
@@ -139,7 +138,7 @@ const AccountSelectionTabs = (props) => {
     setResponse({ status: 'loading' });
     apiService
       .updateMetaPath(accountDetail.name)
-      .then(async (res) => {
+      .then((res) => {
         if (res.data && res.data.data) {
           setResponse({ status: 'success' });
           if (res.data.data.managedBy === state.username) {
@@ -197,7 +196,6 @@ const AccountSelectionTabs = (props) => {
               accountMetaData={accountMetaData}
               accountSecretData={accountSecretData}
               accountSecretError={accountSecretError}
-              getSecrets={getSecrets}
               secretStatus={secretResStatus.status}
             />
           </TabPanel>
@@ -207,7 +205,7 @@ const AccountSelectionTabs = (props) => {
               accountMetaData={accountMetaData}
               hasSvcAccountAcitve={hasSvcAccountAcitve}
               parentStatus={response.status}
-              refresh={fetchPermission}
+              refresh={refresh}
             />
           </TabPanel>
         </TabContentsWrap>
@@ -217,6 +215,7 @@ const AccountSelectionTabs = (props) => {
 };
 AccountSelectionTabs.propTypes = {
   accountDetail: PropTypes.objectOf(PropTypes.any),
+  refresh: PropTypes.func.isRequired,
 };
 AccountSelectionTabs.defaultProps = {
   accountDetail: {},

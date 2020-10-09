@@ -100,7 +100,7 @@ const Users = (props) => {
    * @param {username} string username of the user.
    * @param {access} string permission of the user.
    */
-  const onDeleteClick = (username, access) => {
+  const onDeleteClick = async (username, access) => {
     setResponse({ status: 'loading' });
     const payload = {
       access: checkAccess(access),
