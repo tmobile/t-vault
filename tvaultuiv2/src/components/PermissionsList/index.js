@@ -1,13 +1,13 @@
 import React from 'react';
 import styled, { css } from 'styled-components';
 import PropTypes from 'prop-types';
-import userIcon from '../../../../../../../assets/permission-user.png';
-import EditDeletePopper from '../../../EditDeletePopper';
+import userIcon from '../../assets/permission-user.png';
+import EditDeletePopper from '../../views/private/safe/components/EditDeletePopper';
 import {
   TitleTwo,
   TitleFour,
   BackgroundColor,
-} from '../../../../../../../styles/GlobalStyles';
+} from '../../styles/GlobalStyles';
 
 const UserList = styled.div`
   margin-top: 2rem;
@@ -47,7 +47,7 @@ const permissionStyles = css`
 `;
 
 const PermissionsList = (props) => {
-  const { onEditClick, list, onDeleteClick } = props;
+  const { onEditClick, list, onDeleteClick, isSvcAccount } = props;
   return (
     <UserList>
       {Object.entries(list).map(([key, value]) => (
@@ -56,12 +56,14 @@ const PermissionsList = (props) => {
             <Icon src={userIcon} alt="user" />
             <Details>
               <TitleTwo extraCss={styles}>{key}</TitleTwo>
-              <TitleFour extraCss={permissionStyles}>{value}</TitleFour>
+              <TitleFour extraCss={permissionStyles}>
+                {isSvcAccount && value === 'write' ? 'reset' : value}
+              </TitleFour>
             </Details>
           </IconDetailsWrap>
           <EditDeletePopper
             onEditClicked={() => onEditClick(key, value)}
-            onDeleteClicked={() => onDeleteClick(key)}
+            onDeleteClicked={() => onDeleteClick(key, value)}
           />
         </EachUserWrap>
       ))}
@@ -72,6 +74,11 @@ PermissionsList.propTypes = {
   onDeleteClick: PropTypes.func.isRequired,
   onEditClick: PropTypes.func.isRequired,
   list: PropTypes.objectOf(PropTypes.any).isRequired,
+  isSvcAccount: PropTypes.bool,
+};
+
+PermissionsList.defaultProps = {
+  isSvcAccount: false,
 };
 
 export default PermissionsList;

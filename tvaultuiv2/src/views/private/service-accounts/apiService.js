@@ -27,6 +27,14 @@ const getServiceAccountPassword = (svcName) =>
 const resetServiceAccountPassword = (svcName, payload) =>
   api.put(`/serviceaccounts/password?serviceAccountName=${svcName}`, payload);
 
+// API call for users permission
+
+const addUserPermission = (payload) =>
+  api.post('/serviceaccounts/user', payload);
+
+const deleteUserPermission = (payload) =>
+  api.delete('/serviceaccounts/user', payload);
+
 export default {
   getServiceAccounts,
   getServiceAccountList,
@@ -39,4 +47,6 @@ export default {
   updateMetaPath,
   getUsersServiceAccounts,
   offBoardServiceAccount,
+  addUserPermission,
+  deleteUserPermission,
 };

@@ -12,7 +12,7 @@ import AddUser from '../../../../../../../components/AddUser';
 import apiService from '../../../../apiService';
 import LoaderSpinner from '../../../../../../../components/Loaders/LoaderSpinner';
 import PermissionsList from '../../../../../../../components/PermissionsList';
-import Error from '../../../../../../../components/Error';
+import Strings from '../../../../../../../resources';
 
 const { small, belowLarge } = mediaBreakpoints;
 
@@ -51,13 +51,12 @@ const noDataStyle = css`
   }
 `;
 
-const User = (props) => {
+const Users = (props) => {
   const {
-    safeDetail,
+    accountDetail,
     newPermission,
     onNewPermissionChange,
-    safeData,
-    fetchPermission,
+    accountMetaData,
     updateToastMessage,
     refresh,
   } = props;
@@ -67,38 +66,54 @@ const User = (props) => {
   const [response, setResponse] = useState({ status: 'loading' });
   const isMobileScreen = useMediaQuery(small);
 
+  // on svc account meta data is available.
   useEffect(() => {
-    if (safeData && Object.keys(safeData).length !== 0) {
-      if (Object.keys(safeData?.response).length !== 0) {
+    if (accountMetaData && Object.keys(accountMetaData).length !== 0) {
+      if (Object.keys(accountMetaData?.response).length !== 0) {
         setResponse({ status: 'success' });
-      } else if (safeData.error !== '') {
-        setResponse({ status: 'error' });
       }
     } else {
       setResponse({ status: '' });
     }
-  }, [safeData]);
+  }, [accountMetaData]);
 
+  // When add permission button is clicked.
   useEffect(() => {
     if (newPermission) {
       setResponse({ status: 'add' });
     }
   }, [newPermission]);
 
-  const onDeleteClick = (username) => {
+  const checkAccess = (access) => {
+    let val = '';
+    if (access === 'write') {
+      val = 'reset';
+    } else {
+      val = access;
+    }
+    return val;
+  };
+
+  /**
+   * @function onDeleteClick
+   * @description function to delete the user from the svc account users list.
+   * @param {username} string username of the user.
+   * @param {access} string permission of the user.
+   */
+  const onDeleteClick = async (username, access) => {
     setResponse({ status: 'loading' });
     const payload = {
-      path: safeDetail.path,
+      access: checkAccess(access),
+      svcAccName: accountDetail.name,
       username,
     };
     apiService
       .deleteUserPermission(payload)
       .then(async (res) => {
-        if (res && res.data?.Message) {
-          updateToastMessage(1, res.data.Message);
+        if (res && res.data?.messages && res.data.messages[0]) {
+          updateToastMessage(1, res.data.messages[0]);
           setResponse({ status: '' });
-          await fetchPermission();
-          refresh();
+          await refresh();
         }
       })
       .catch((err) => {
@@ -109,15 +124,20 @@ const User = (props) => {
       });
   };
 
+  /**
+   * @function onSaveClicked
+   * @description function to save the user to the svc account users list.
+   * @param {data} object payload to call api.
+   */
   const onSaveClicked = (data) => {
     setResponse({ status: 'loading' });
     apiService
       .addUserPermission(data)
-      .then((res) => {
+      .then(async (res) => {
         if (res && res.data?.messages) {
           updateToastMessage(1, res.data?.messages[0]);
           setResponse({ status: '' });
-          fetchPermission();
+          await refresh();
         }
       })
       .catch((err) => {
@@ -128,23 +148,39 @@ const User = (props) => {
       });
   };
 
-  const onSubmit = async (user, access) => {
+  /**
+   * @function onSubmit
+   * @description function structure the payload when save/edit is clicked and call save api.
+   * @param {username} string user name of the user.
+   * @param {access} string permission given to the user.
+   */
+  const onSubmit = async (username, access) => {
     const value = {
-      access,
-      path: `${safeDetail.path}`,
-      username: user.toLowerCase(),
+      access: checkAccess(access),
+      svcAccName: `${accountDetail.name}`,
+      username: username.toLowerCase(),
     };
-    await onSaveClicked(value);
-    refresh();
-    onNewPermissionChange();
+    try {
+      await onSaveClicked(value);
+      onNewPermissionChange();
+    } catch {
+      setResponse({ status: 'success' });
+      updateToastMessage(-1, 'Something went wrong');
+    }
   };
 
+  /**
+   * @function onEditSaveClicked
+   * @description function to edit the existing user.
+   * @param {username} string user name of the user.
+   * @param {access} string permission given to the user.
+   */
   const onEditSaveClicked = (username, access) => {
     setResponse({ status: 'loading' });
     const payload = {
-      path: `${safeDetail.path}`,
+      access: checkAccess(access),
+      svcAccName: accountDetail.name,
       username,
-      access,
     };
     apiService
       .deleteUserPermission(payload)
@@ -162,11 +198,21 @@ const User = (props) => {
       });
   };
 
+  /**
+   * @function onCancelClicked
+   * @description function when cancel of add user and edit user is called.
+   */
   const onCancelClicked = () => {
     setResponse({ status: 'success' });
     onNewPermissionChange();
   };
 
+  /**
+   * @function onEditClick
+   * @description function to edit the existing user.
+   * @param {key} key user name of the user.
+   * @param {value} value permission given to the user.
+   */
   const onEditClick = (key, value) => {
     setEditAccess(value);
     setEditUser(key);
@@ -184,6 +230,7 @@ const User = (props) => {
             handleSaveClick={(user, access) => onSubmit(user, access)}
             handleCancelClick={onCancelClicked}
             refresh={refresh}
+            isSvcAccount
           />
         )}
         {response.status === 'edit' && (
@@ -193,59 +240,55 @@ const User = (props) => {
             username={editUser}
             access={editAccess}
             refresh={refresh}
+            isSvcAccount
           />
         )}
-        {response.status === 'success' && safeData && safeData.response && (
-          <>
-            {safeData.response?.users &&
-              Object.keys(safeData.response?.users).length > 0 && (
+        {response.status === 'success' &&
+          accountMetaData &&
+          accountMetaData.response && (
+            <>
+              {Object.keys(accountMetaData.response?.users).length > 0 && (
                 <PermissionsList
-                  list={safeData.response.users}
+                  list={accountMetaData.response.users}
+                  isSvcAccount
                   onEditClick={(key, value) => onEditClick(key, value)}
-                  onDeleteClick={(key) => onDeleteClick(key)}
+                  onDeleteClick={(key, value) => onDeleteClick(key, value)}
                 />
               )}
-            {(safeData.response.users === null ||
-              !safeData.response.users ||
-              (safeData.response.users &&
-                Object.keys(safeData.response.users).length === 0)) && (
-              <NoDataWrapper>
-                <NoData
-                  imageSrc={noPermissionsIcon}
-                  description="No <strong>users</strong> are given permission to access this safe,
-                    add users to access the safe"
-                  actionButton={
-                    // eslint-disable-next-line react/jsx-wrap-multilines
-                    <ButtonComponent
-                      label="add"
-                      icon="add"
-                      color="secondary"
-                      onClick={() => setResponse({ status: 'add' })}
-                      width={isMobileScreen ? '100%' : '9.4rem'}
+              {accountMetaData.response.users &&
+                Object.keys(accountMetaData.response.users).length === 0 && (
+                  <NoDataWrapper>
+                    <NoData
+                      imageSrc={noPermissionsIcon}
+                      description={Strings.Resources.noUsersPermissionFound}
+                      actionButton={
+                        // eslint-disable-next-line react/jsx-wrap-multilines
+                        <ButtonComponent
+                          label="add"
+                          icon="add"
+                          color="secondary"
+                          onClick={() => setResponse({ status: 'add' })}
+                          width={isMobileScreen ? '100%' : '9.4rem'}
+                        />
+                      }
+                      bgIconStyle={bgIconStyle}
+                      customStyle={noDataStyle}
                     />
-                  }
-                  bgIconStyle={bgIconStyle}
-                  customStyle={noDataStyle}
-                />
-              </NoDataWrapper>
-            )}
-          </>
-        )}
-        {response.status === 'error' && (
-          <Error description={safeData.error || 'Something went wrong'} />
-        )}
+                  </NoDataWrapper>
+                )}
+            </>
+          )}
       </>
     </ComponentError>
   );
 };
 
-User.propTypes = {
-  safeDetail: PropTypes.objectOf(PropTypes.any).isRequired,
+Users.propTypes = {
+  accountDetail: PropTypes.objectOf(PropTypes.any).isRequired,
   newPermission: PropTypes.bool.isRequired,
   onNewPermissionChange: PropTypes.func.isRequired,
-  safeData: PropTypes.objectOf(PropTypes.any).isRequired,
-  fetchPermission: PropTypes.func.isRequired,
+  accountMetaData: PropTypes.objectOf(PropTypes.any).isRequired,
   updateToastMessage: PropTypes.func.isRequired,
   refresh: PropTypes.func.isRequired,
 };
-export default User;
+export default Users;
