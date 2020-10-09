@@ -58,8 +58,6 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 const Container = styled('section')`
-  overflow: auto;
-  height: 100%;
   position: relative;
   background-color: ${(props) => props.theme.palette.background.modal};
   padding: 5.5rem 6rem 6rem 6rem;
@@ -67,7 +65,7 @@ const Container = styled('section')`
   outline: none;
   width: 69.6rem;
   margin: auto 0;
-  display: flex;
+  display: ${(props) => (props.isShowOnBoardModal ? 'none' : 'flex')};
   flex-direction: column;
   ${mediaBreakpoints.belowLarge} {
     padding: 2.7rem 5rem 3.2rem 5rem;
@@ -87,10 +85,10 @@ const InputFieldLabelWrapper = styled('div')`
     display: flex;
     align-items: center;
   }
-  ${(props) => props.customCss}
   ${mediaBreakpoints.small} {
     width: 100%;
   }
+  ${(props) => props.customCss}
 `;
 const ToggleWrap = styled('div')`
   display: flex;
@@ -486,7 +484,9 @@ const OnBoardForm = () => {
           }}
         >
           <Fade in={open}>
-            <Container>
+            <Container
+              isShowOnBoardModal={onBoardConfirmationModal || postOnBoardModal}
+            >
               <HeaderWrapper>
                 <LeftIcon
                   src={leftArrowIcon}
@@ -632,7 +632,7 @@ const OnBoardForm = () => {
                   </ServiceAccountDetailWrap>
                 </InputFieldLabelWrapper>
                 <ToggleWrap>
-                  <TitleTwo extraCss="display:flex;justify-content:space-between;align-items:center">
+                  <TitleTwo extraCss="display:flex;align-items:center">
                     {' '}
                     <SwitchComponent
                       checked={isSwitchOn}
@@ -643,7 +643,7 @@ const OnBoardForm = () => {
                       Enable Auto Password Rotation
                     </TitleThree>
                   </TitleTwo>
-                  <InputFieldLabelWrapper customCss="width:60%">
+                  <InputFieldLabelWrapper customCss="width:50%">
                     <Tooltip
                       classes={tooltipStyles}
                       title="This value needs to be between 1 and 31536000.
@@ -669,7 +669,7 @@ const OnBoardForm = () => {
                       helperText={
                         timeError
                           ? 'Please enter valid expiry time in seconds'
-                          : 'Enter the date you would like your password to expire. '
+                          : 'Enter your custom password expiration time here. Once the expiration time has passed, the password will be rotated the next time it is requested.'
                       }
                     />
                   </InputFieldLabelWrapper>

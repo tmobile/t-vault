@@ -182,6 +182,7 @@ const ServiceAccountDashboard = () => {
   const [moreData] = useState(false);
   const [isLoading] = useState(false);
   const [serviceAccountList, setServiceAccountList] = useState([]);
+  const [serviceAccountDetails, setServiceAccountDetails] = useState({});
   const [toast, setToast] = useState(null);
   const [status, setStatus] = useState({});
   const [deleteAccName, setDeleteAccName] = useState('');
@@ -328,7 +329,53 @@ const ServiceAccountDashboard = () => {
     setOffBoardSvcAccountConfirmation(true);
     setDeleteAccName(name);
   };
+  /**
+   * fetch/update service account details after it has been onboarded
+   */
+  const updateServiceAccountDetails = useCallback(async (inputServiceName) => {
+    const fetchServiceAccountDetails = await apiService.fetchServiceAccountDetails(
+      inputServiceName
+    );
+    const callServiceAccount = await apiService.callServiceAccount(
+      inputServiceName
+    );
+    const updateMetaPath = await apiService.updateMetaPath(inputServiceName);
+    const allApiResponse = Promise.all([
+      fetchServiceAccountDetails,
+      callServiceAccount,
+      updateMetaPath,
+    ]);
+    allApiResponse.then(() => {}).catch();
+  }, []);
 
+  const onServiceAccountEdit = (name) => {
+    setStatus({ status: 'loading' });
+    apiService
+      .fetchServiceAccountDetails(name)
+      .then((res) => {
+        setStatus({});
+        let details = {};
+        if (res?.data?.data?.values && res.data.data.values[0]) {
+          details = { ...res.data.data.values[0] };
+          if (details?.managedBy?.userName) {
+            setServiceAccountDetails(details);
+          }
+          updateServiceAccountDetails(name);
+        }
+      })
+      .catch(() => {
+        setToast(-1);
+      });
+    history.push({
+      pathname: '/service-accounts/change-service-accounts',
+      state: {
+        serviceAccountDetails,
+        isAdmin: contextObj?.isAdmin,
+        isEdit: true,
+        formDetails: {},
+      },
+    });
+  };
   const deleteServiceAccount = (owner) => {
     const payload = {
       name: deleteAccName,
@@ -370,8 +417,6 @@ const ServiceAccountDashboard = () => {
       });
   };
 
-  const onServiceAccountEdit = () => {};
-
   const handleSuccessfullConfirmation = () => {
     setOffBoardSvcAccountConfirmation(false);
     setOffBoardSuccessfull(false);
@@ -406,8 +451,7 @@ const ServiceAccountDashboard = () => {
           <PopperWrap onClick={(e) => onActionClicked(e)}>
             <EditAndDeletePopup
               onDeletListItemClicked={() => onDeleteClicked(account.name)}
-              item={account}
-              path="/service-accounts/edit-service-account"
+              onEditListItemClicked={() => onServiceAccountEdit(account.name)}
               admin={contextObj.isAdmin}
             />
           </PopperWrap>
@@ -415,8 +459,8 @@ const ServiceAccountDashboard = () => {
         {isMobileScreen && account.name && (
           <EditDeletePopperWrap onClick={(e) => onActionClicked(e)}>
             <EditDeletePopper
-              onDeleteClicked={() => onDeleteClicked()}
-              onEditClicked={() => onServiceAccountEdit()}
+              onDeleteClicked={() => onDeleteClicked(account.name)}
+              onEditClicked={() => onServiceAccountEdit(account.name)}
             />
           </EditDeletePopperWrap>
         )}
