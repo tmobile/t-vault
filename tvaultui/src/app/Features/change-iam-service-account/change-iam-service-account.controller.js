@@ -988,8 +988,8 @@
                             }
                             break;
                         case 'groups' :
-                            apiCallFunction = AdminSafesManagement.addGroupPermissionForSvcacc;
-                            reqObjtobeSent = {"svcAccName": iamSvcaccName, "groupname": key, "access": permission.toLowerCase()};
+                            apiCallFunction = AdminSafesManagement.addGroupPermissionForIAMSvcacc;
+                            reqObjtobeSent = {"iamSvcAccName": iamSvcaccName, "groupname": key, "access": permission.toLowerCase(), "awsAccountId":$scope.svcacc.awsAccId};
                             break;
                         case 'AppRolePermission':
                             apiCallFunction = AdminSafesManagement.addAppRolePermissionForIAMSvcacc;
