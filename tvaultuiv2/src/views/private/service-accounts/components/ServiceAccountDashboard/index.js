@@ -558,7 +558,7 @@ const ServiceAccountDashboard = () => {
               </>
             )}
 
-            {serviceAccountList?.length ? (
+            {serviceAccountList?.length && contextObj.isAdmin ? (
               <FloatBtnWrapper>
                 <FloatingActionButtonComponent
                   href="/service-accounts/change-service-accounts"

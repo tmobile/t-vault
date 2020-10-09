@@ -98,16 +98,11 @@ const Tree = (props) => {
   const saveSecretsToFolder = (obj, node) => {
     const tempFolders = [...secretsFolder] || [];
     const currentSecrets = findElementAndReturnSecrets(tempFolders, node);
-    const uniqueSecrets = currentSecrets?.filter((secret) => {
-      if (secret.default) {
-        return secret.default.toLowerCase() !== 'default';
-      }
-    });
     if (
-      uniqueSecrets &&
-      uniqueSecrets.data[Object.keys(secretprefilledData)[0]]
+      currentSecrets &&
+      currentSecrets.data[Object.keys(secretprefilledData)[0]]
     ) {
-      delete uniqueSecrets.data[Object.keys(secretprefilledData)[0]];
+      delete currentSecrets.data[Object.keys(secretprefilledData)[0]];
     }
     const folderObj = {};
     folderObj.id = `${obj.parentId}`;
@@ -115,14 +110,14 @@ const Tree = (props) => {
     folderObj.type = obj.type || 'secret';
     folderObj.children = [];
     folderObj.value =
-      uniqueSecrets &&
+      currentSecrets &&
       JSON.stringify({
-        data: { ...uniqueSecrets.data, [obj.key]: obj.value },
+        data: { ...currentSecrets.data, [obj.key]: obj.value },
       });
     apiService
       .modifySecret(folderObj.id, {
         path: folderObj.id,
-        data: { ...uniqueSecrets?.data, [obj.key]: obj.value },
+        data: { ...currentSecrets?.data, [obj.key]: obj.value },
       })
       // eslint-disable-next-line no-unused-vars
       .then((res) => {
