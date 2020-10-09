@@ -173,7 +173,7 @@ public class AppRoleServiceTest {
         String [] policies = {"default"};
         AppRole appRole = new AppRole("selfservicesupportrole", policies, true, 1, 100, 0);
         String jsonStr = "{\"role_name\":\"approle1\",\"policies\":[\"default\"],\"bind_secret_id\":true,\"secret_id_num_uses\":\"1\",\"secret_id_ttl\":\"100m\",\"token_num_uses\":0,\"token_ttl\":null,\"token_max_ttl\":null}";
-        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Access denied: no permission to create an approle named "+TVaultConstants.SELF_SERVICE_APPROLE_NAME+"\"]}");
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Access denied: no permission to create an approle named "+appRole.getRole_name()+"\"]}");
         UserDetails userDetails = getMockUser(true);
         when(ControllerUtil.areAppRoleInputsValid(appRole)).thenReturn(true);
         ResponseEntity<String> responseEntityActual = appRoleService.createAppRole(token, appRole, userDetails);

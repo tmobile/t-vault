@@ -3574,9 +3574,14 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
         String certificateName = certificateApprole.getCertificateName().toLowerCase();
         String access = certificateApprole.getAccess().toLowerCase();
         String certType = certificateApprole.getCertType().toLowerCase();
-        if (approleName.equals(TVaultConstants.SELF_SERVICE_APPROLE_NAME)) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Access denied: no permission to associate this AppRole to any Certificate\"]}");
-        }
+//        if (approleName.equals(TVaultConstants.SELF_SERVICE_APPROLE_NAME)) {
+//            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Access denied: no permission to associate this AppRole to any Certificate\"]}");
+//        }
+		if (Arrays.asList(TVaultConstants.MASTER_APPROLES).contains(approleName)) {
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
+					"{\"errors\":[\"Access denied: no permission to associate this AppRole to any Certificate\"]}");
+		}
+        
 
         if (!ObjectUtils.isEmpty(userDetails)) {
 
