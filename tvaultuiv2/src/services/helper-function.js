@@ -31,7 +31,7 @@ export function findElementById(arr, id, nestingKey) {
   if (arr.length === 0) return;
   // return element if found else collect all children(or other nestedKey) array and run this function
   return (
-    arr.find((d) => d?.value?.toLowerCase() === id?.toLowerCase()) ||
+    arr.find((d) => d?.id?.toLowerCase() === id?.toLowerCase()) ||
     findElementById(
       arr.flatMap((d) => d[nestingKey] || []),
       id,
@@ -40,19 +40,29 @@ export function findElementById(arr, id, nestingKey) {
     'Not found'
   );
 }
+export const findItemAndRemove = (arr, key, id) => {
+  if (arr?.length === 0) return;
+  const tempArr = [...arr];
+  const indexofItem = tempArr[0][key].findIndex((item) => item.id === id);
+  tempArr[0][key].splice(indexofItem, 1);
+  return tempArr;
+};
 
 export const findElementAndUpdate = (arr, parentId, item) => {
-  if (arr.length === 0) return;
+  if (arr?.length === 0) return;
   const tempArr = [...arr];
   const itemToUpdate = findElementById(tempArr, parentId, 'children');
   if (Array.isArray(item)) {
-    if (!itemToUpdate.children.length) {
+    if (!itemToUpdate?.children?.length) {
       itemToUpdate.children = [...itemToUpdate.children, ...item];
       return tempArr;
     }
     itemToUpdate.children = [...item];
   } else {
-    itemToUpdate.children = [...itemToUpdate.children, item];
+    itemToUpdate.children = itemToUpdate?.children && [
+      ...itemToUpdate.children,
+      item,
+    ];
   }
 
   return tempArr;
