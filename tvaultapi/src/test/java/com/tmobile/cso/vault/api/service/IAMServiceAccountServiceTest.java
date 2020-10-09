@@ -124,6 +124,9 @@ public class IAMServiceAccountServiceTest {
     @Mock
 	IAMServiceAccountUtils iamServiceAccountUtils;
 
+    @Mock
+    DirectoryService directoryService;
+
     @Before
     public void setUp()
             throws NoSuchMethodException, InvocationTargetException, IllegalAccessException, NoSuchFieldException {
@@ -335,6 +338,23 @@ public class IAMServiceAccountServiceTest {
 
 		when(reqProcessor.process(eq("/sdb"), Mockito.any(), eq(token))).thenReturn(getMockResponse(HttpStatus.OK, true,
 				"{\"data\":{\"isActivated\":true,\"managedBy\":\"normaluser\",\"name\":\"svc_vault_test5\",\"users\":{\"normaluser\":\"sudo\"}}}"));
+
+		DirectoryUser directoryUser = new DirectoryUser();
+        directoryUser.setDisplayName("testUserfirstname,lastname");
+        directoryUser.setGivenName("testUser");
+        directoryUser.setUserEmail("testUser@t-mobile.com");
+        directoryUser.setUserId("normaluser");
+        directoryUser.setUserName("normaluser");
+
+        List<DirectoryUser> persons = new ArrayList<>();
+        persons.add(directoryUser);
+        DirectoryObjects users = new DirectoryObjects();
+        DirectoryObjectsList usersList = new DirectoryObjectsList();
+        usersList.setValues(persons.toArray(new DirectoryUser[persons.size()]));
+        users.setData(usersList);
+
+        ResponseEntity<DirectoryObjects> responseEntityCorpExpected = ResponseEntity.status(HttpStatus.OK).body(users);
+        when(directoryService.searchByCorpId(Mockito.any())).thenReturn(responseEntityCorpExpected);
 
 		ReflectionTestUtils.setField(iamServiceAccountsService, "supportEmail", "support@abc.com");
 		Mockito.doNothing().when(emailUtils).sendHtmlEmalFromTemplate(Mockito.any(), Mockito.any(), Mockito.any(),
