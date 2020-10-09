@@ -67,6 +67,7 @@ const Groups = (props) => {
   const [response, setResponse] = useState({ status: 'loading' });
 
   const isMobileScreen = useMediaQuery(small);
+
   // on svc account meta data is available.
   useEffect(() => {
     if (

@@ -40,6 +40,12 @@ const addGroupPermission = (payload) =>
 const deleteGroupPermission = (payload) =>
   api.delete('/serviceaccounts/group', payload);
 
+// Api call for app roles permission
+const addAppRolePermission = (payload) =>
+  api.post('/serviceaccounts/approle', payload);
+const deleteAppRolePermission = (payload) =>
+  api.delete('/serviceaccounts/approle', payload);
+
 export default {
   getServiceAccounts,
   getServiceAccountList,
@@ -56,4 +62,6 @@ export default {
   deleteUserPermission,
   addGroupPermission,
   deleteGroupPermission,
+  addAppRolePermission,
+  deleteAppRolePermission,
 };

@@ -4,13 +4,14 @@ import { InputLabel, Typography } from '@material-ui/core';
 import useMediaQuery from '@material-ui/core/useMediaQuery';
 import styled, { css } from 'styled-components';
 import PropTypes from 'prop-types';
-import ComponentError from '../../../../../errorBoundaries/ComponentError/component-error';
-import mediaBreakpoints from '../../../../../breakpoints';
-import ButtonComponent from '../../../../../components/FormFields/ActionButton';
-import SelectComponent from '../../../../../components/FormFields/SelectFields';
-import apiService from '../../apiService';
-import LoaderSpinner from '../../../../../components/Loaders/LoaderSpinner';
-import RadioPermissionComponent from '../RadioPermissions';
+import ComponentError from '../../errorBoundaries/ComponentError/component-error';
+import mediaBreakpoints from '../../breakpoints';
+import ButtonComponent from '../FormFields/ActionButton';
+import SelectComponent from '../FormFields/SelectFields';
+import apiService from '../../views/private/safe/apiService';
+import LoaderSpinner from '../Loaders/LoaderSpinner';
+import RadioSafePermissionComponent from '../../views/private/safe/components/RadioPermissions';
+import RadioSvcPermissionComponent from '../../views/private/service-accounts/components/RadioPermissions';
 
 const { small } = mediaBreakpoints;
 
@@ -110,6 +111,7 @@ const AddAppRole = (props) => {
     editClicked,
     role,
     access,
+    isSvcAccount,
   } = props;
   const [radioValue, setRadioValue] = useState('read');
   const [selectedValue, setSelectedValue] = useState('');
@@ -179,10 +181,18 @@ const AddAppRole = (props) => {
           <ErrorMessage>No app role is available</ErrorMessage>
         )}
         <RadioButtonWrapper>
-          <RadioPermissionComponent
-            radioValue={radioValue}
-            handleRadioChange={(e) => setRadioValue(e.target.value)}
-          />
+          {isSvcAccount ? (
+            <RadioSvcPermissionComponent
+              radioValue={radioValue}
+              isEdit={!!(access && role)}
+              handleRadioChange={(e) => setRadioValue(e.target.value)}
+            />
+          ) : (
+            <RadioSafePermissionComponent
+              radioValue={radioValue}
+              handleRadioChange={(e) => setRadioValue(e.target.value)}
+            />
+          )}
           <CancelSaveWrapper>
             <CancelButton>
               <ButtonComponent
@@ -212,12 +222,14 @@ AddAppRole.propTypes = {
   editClicked: PropTypes.bool,
   role: PropTypes.string,
   access: PropTypes.string,
+  isSvcAccount: PropTypes.bool,
 };
 
 AddAppRole.defaultProps = {
   access: 'read',
   role: '',
   editClicked: false,
+  isSvcAccount: false,
 };
 
 export default AddAppRole;

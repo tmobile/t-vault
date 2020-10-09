@@ -5,9 +5,9 @@ import Fade from '@material-ui/core/Fade';
 import { Backdrop } from '@material-ui/core';
 import Modal from '@material-ui/core/Modal';
 import styled from 'styled-components';
-import ComponentError from '../../../../../errorBoundaries/ComponentError/component-error';
+import ComponentError from '../../errorBoundaries/ComponentError/component-error';
 import AddAwsApplication from '../AddAwsApplication';
-import mediaBreakpoints from '../../../../../breakpoints';
+import mediaBreakpoints from '../../breakpoints';
 
 const ModalWrapper = styled('div')`
   outline: none;
