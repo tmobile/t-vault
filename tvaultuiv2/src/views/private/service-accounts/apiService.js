@@ -40,6 +40,10 @@ const addGroupPermission = (payload) =>
 const deleteGroupPermission = (payload) =>
   api.delete('/serviceaccounts/group', payload);
 
+// Api call for aws application permission
+const addAwsPermission = (url, payload) => api.post(url, payload);
+const addAwsRole = (payload) => api.post('/serviceaccounts/role', payload);
+
 // Api call for app roles permission
 const addAppRolePermission = (payload) =>
   api.post('/serviceaccounts/approle', payload);
@@ -62,6 +66,8 @@ export default {
   deleteUserPermission,
   addGroupPermission,
   deleteGroupPermission,
+  addAwsPermission,
+  addAwsRole,
   addAppRolePermission,
   deleteAppRolePermission,
 };

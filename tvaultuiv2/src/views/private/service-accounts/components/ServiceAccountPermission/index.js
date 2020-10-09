@@ -6,6 +6,7 @@ import ComponentError from '../../../../../errorBoundaries/ComponentError/compon
 import Users from './components/Users';
 import Groups from './components/Groups';
 import AppRoles from './components/AppRoles';
+import AwsApplications from './components/AwsApplications';
 import LoaderSpinner from '../../../../../components/Loaders/LoaderSpinner';
 import Error from '../../../../../components/Error';
 import SnackbarComponent from '../../../../../components/Snackbar';
@@ -46,7 +47,7 @@ const ServiceAccountPermission = (props) => {
   const [value, setValue] = useState(0);
   const [newPermission, setNewPermission] = useState(false);
   const [newGroup, setNewGroup] = useState(false);
-  const [, setNewAwsApplication] = useState(false);
+  const [newAwsApplication, setNewAwsApplication] = useState(false);
   const [newAppRole, setNewAppRole] = useState(false);
   const [count, setCount] = useState(0);
   const [response, setResponse] = useState({ status: 'loading' });
@@ -157,7 +158,16 @@ const ServiceAccountPermission = (props) => {
                       />
                     </TabPanel>
                     <TabPanel value={value} index={2}>
-                      Aws Application
+                      <AwsApplications
+                        accountDetail={accountDetail}
+                        newAwsApplication={newAwsApplication}
+                        onNewAwsChange={() => setNewAwsApplication(false)}
+                        accountMetaData={accountMetaData}
+                        updateToastMessage={(res, message) =>
+                          updateToastMessage(res, message)
+                        }
+                        fetchPermission={fetchPermission}
+                      />
                     </TabPanel>
                     <TabPanel value={value} index={3}>
                       <AppRoles

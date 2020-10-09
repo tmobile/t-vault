@@ -8,7 +8,8 @@ import Radio from '@material-ui/core/Radio';
 import PropTypes from 'prop-types';
 import { SubHeading } from '../../styles/GlobalStyles';
 import TextFieldComponent from '../FormFields/TextField';
-import RadioPermissionComponent from '../../views/private/safe/components/RadioPermissions';
+import RadioSafePermissionComponent from '../../views/private/safe/components/RadioPermissions';
+import RadioSvcPermissionComponent from '../../views/private/service-accounts/components/RadioPermissions';
 import ButtonComponent from '../FormFields/ActionButton';
 import mediaBreakpoints from '../../breakpoints';
 import { ColorBackArrow } from '../../assets/SvgIcons';
@@ -72,7 +73,7 @@ const extraCss = css`
 const RadioWrapper = styled.div``;
 
 const AddAwsApplication = (props) => {
-  const { handleSaveClick, handleCancelClick } = props;
+  const { handleSaveClick, handleCancelClick, isSvcAccount } = props;
   const [awsAuthenticationType, setAwsAuthenticationType] = useState('ec2');
   const [roleName, setRoleName] = useState('');
   const [iamRoleArn, setIamRoleArn] = useState('');
@@ -115,10 +116,6 @@ const AddAwsApplication = (props) => {
     } else {
       setIsEC2(false);
     }
-  };
-
-  const handleRadioChange = (event) => {
-    setRadioValue(event.target.value);
   };
 
   const onCreateClicked = () => {
@@ -307,10 +304,17 @@ const AddAwsApplication = (props) => {
         </InputAwsWrapper>
         <RadioWrapper>
           <InputLabel required>Permission</InputLabel>
-          <RadioPermissionComponent
-            radioValue={radioValue}
-            handleRadioChange={(e) => handleRadioChange(e)}
-          />
+          {isSvcAccount ? (
+            <RadioSvcPermissionComponent
+              radioValue={radioValue}
+              handleRadioChange={(e) => setRadioValue(e.target.value)}
+            />
+          ) : (
+            <RadioSafePermissionComponent
+              radioValue={radioValue}
+              handleRadioChange={(e) => setRadioValue(e.target.value)}
+            />
+          )}
         </RadioWrapper>
         <CancelSaveWrapper>
           <CancelButton>
@@ -337,5 +341,10 @@ const AddAwsApplication = (props) => {
 AddAwsApplication.propTypes = {
   handleCancelClick: PropTypes.func.isRequired,
   handleSaveClick: PropTypes.func.isRequired,
+  isSvcAccount: PropTypes.bool,
+};
+
+AddAwsApplication.defaultProps = {
+  isSvcAccount: false,
 };
 export default AddAwsApplication;

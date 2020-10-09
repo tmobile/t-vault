@@ -9,6 +9,8 @@ const Resources = {
     'No <strong>Users</strong> are given permission to access this safe, add users to access the safe',
   noGroupsPermissionFound:
     'No <strong>Groups</strong> are given permission to access this safe, add groups to access the safe',
+  noAwsPermissionFound:
+    'No <strong>Applications</strong> are given permission to access this safe, add applications to access the safe',
   noAppRolePermissionFound:
     'No <strong>App roles</strong> are given permission to access this safe, add approles to access the safe',
 };
