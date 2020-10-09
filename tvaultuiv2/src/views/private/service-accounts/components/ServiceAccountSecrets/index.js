@@ -16,6 +16,7 @@ import lock from '../../../../../assets/icon_lock.svg';
 import ButtonComponent from '../../../../../components/FormFields/ActionButton';
 import mediaBreakpoints from '../../../../../breakpoints';
 import ConfirmationModal from '../../../../../components/ConfirmationModal';
+import { useStateValue } from '../../../../../contexts/globalState';
 import {
   PopperItem,
   BackgroundColor,
@@ -87,14 +88,22 @@ const NoPermission = styled.div`
 `;
 
 const ServiceAccountSecrets = (props) => {
-  const { accountDetail } = props;
+  const {
+    accountDetail,
+    accountMetaData,
+    accountSecretError,
+    accountSecretData,
+    secretStatus,
+  } = props;
   const [response, setResponse] = useState({ status: 'loading' });
   const [secretsData, setSecretsData] = useState({});
   const [showSecret, setShowSecret] = useState(false);
   const [responseType, setResponseType] = useState(null);
   const [toastMessage, setToastMessage] = useState('');
   const [openConfirmationModal, setOpenConfirmationModal] = useState(false);
+  const [writePermission, setWritePermission] = useState(false);
   const isMobileScreen = useMediaQuery(mediaBreakpoints.small);
+  const [state] = useStateValue();
 
   /**
    * @function handleClose
@@ -107,35 +116,16 @@ const ServiceAccountSecrets = (props) => {
   /**
    * @description function to get the secret once the component loads.
    */
+
   useEffect(() => {
-    if (accountDetail && Object.keys(accountDetail).length > 0) {
-      setResponse({ status: 'loading' });
-      if (accountDetail.access !== '') {
-        apiService
-          .getServiceAccountPassword(accountDetail?.name)
-          .then((res) => {
-            setResponse({ status: 'success' });
-            if (res?.data) {
-              setSecretsData(res.data);
-            }
-          })
-          .catch((err) => {
-            if (
-              err?.response &&
-              err.response.data?.errors &&
-              err.response.data.errors[0]
-            ) {
-              setToastMessage(err.response.data.errors[0]);
-            }
-            setResponse({ status: 'error' });
-          });
-      } else {
-        setResponse({ status: 'no-permission' });
-      }
-    } else {
-      setResponse({ status: '' });
+    setResponse({ status: secretStatus });
+  }, [secretStatus]);
+
+  useEffect(() => {
+    if (accountSecretData) {
+      setSecretsData({ ...accountSecretData });
     }
-  }, [accountDetail]);
+  }, [accountSecretData]);
 
   /**
    * @function onViewSecretsCliked
@@ -198,6 +188,23 @@ const ServiceAccountSecrets = (props) => {
     setResponseType(null);
   };
 
+  /**
+   * @description to check the whether the user have write permission
+   * compare the service account data with loged in user.
+   */
+  useEffect(() => {
+    if (accountMetaData?.response?.users) {
+      Object.entries(accountMetaData.response.users).map(([key, value]) => {
+        if (key === state.username && value === 'write') {
+          return setWritePermission(true);
+        }
+        return setWritePermission(false);
+      });
+    } else {
+      setResponse({ status: 'no-permission' });
+    }
+  }, [accountMetaData, state]);
+
   return (
     <ComponentError>
       <>
@@ -249,7 +256,7 @@ const ServiceAccountSecrets = (props) => {
                   {showSecret ? <VisibilityOffIcon /> : <VisibilityIcon />}
                   <span>{showSecret ? 'Hide Secret' : 'View Secret'}</span>
                 </PopperItem>
-                {accountDetail.access === 'write' && (
+                {writePermission && (
                   <PopperItem onClick={() => onResetClicked()}>
                     <img alt="refersh-ic" src={IconRefreshCC} />
                     <span>Rotate Secret</span>
@@ -269,7 +276,7 @@ const ServiceAccountSecrets = (props) => {
           </UserList>
         )}
         {response.status === 'error' && (
-          <Error description={toastMessage || 'Something went wrong!'} />
+          <Error description={accountSecretError || 'Something went wrong!'} />
         )}
         {response.status === 'no-permission' && (
           <NoPermission>
@@ -300,6 +307,16 @@ const ServiceAccountSecrets = (props) => {
 
 ServiceAccountSecrets.propTypes = {
   accountDetail: PropTypes.objectOf(PropTypes.any).isRequired,
+  accountMetaData: PropTypes.objectOf(PropTypes.any).isRequired,
+  accountSecretError: PropTypes.string,
+  accountSecretData: PropTypes.objectOf(PropTypes.any),
+  secretStatus: PropTypes.string,
+};
+
+ServiceAccountSecrets.defaultProps = {
+  accountSecretError: 'Something went wrong!',
+  accountSecretData: {},
+  secretStatus: 'loading',
 };
 
 export default ServiceAccountSecrets;

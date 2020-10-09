@@ -1,6 +1,5 @@
-/* eslint-disable no-console */
 /* eslint-disable react/jsx-props-no-spreading */
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import PropTypes from 'prop-types';
 import styled from 'styled-components';
 
@@ -11,6 +10,9 @@ import Tab from '@material-ui/core/Tab';
 import ComponentError from '../../../../../errorBoundaries/ComponentError/component-error';
 import mediaBreakpoints from '../../../../../breakpoints';
 import ServiceAccountSecrets from '../ServiceAccountSecrets';
+import ServiceAccountPermission from '../ServiceAccountPermission';
+import { useStateValue } from '../../../../../contexts/globalState';
+import apiService from '../../apiService';
 // styled components goes here
 
 const TabPanelWrap = styled.div`
@@ -85,13 +87,88 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 const AccountSelectionTabs = (props) => {
-  const { accountDetail } = props;
+  const { accountDetail, refresh } = props;
   const classes = useStyles();
   const [value, setValue] = useState(0);
+  const [response, setResponse] = useState({ status: 'loading' });
+  const [accountSecretData, setAccountSecretData] = useState({});
+  const [accountSecretError, setAccountSecretError] = useState('');
+  const [hasSvcAccountAcitve, setHasSvcAccountAcitve] = useState(false);
+  const [disabledPermission, setDisabledPermission] = useState(false);
+  const [secretResStatus, setSecretResStatus] = useState({ status: 'loading' });
+  const [accountMetaData, setAccountMetaData] = useState({
+    response: {},
+    error: '',
+  });
+  const [state] = useStateValue();
 
   const handleChange = (event, newValue) => {
     setValue(newValue);
   };
+
+  // Function to get the secret of the given service account.
+  const getSecrets = useCallback(() => {
+    setSecretResStatus({ status: 'loading' });
+    if (accountDetail.access !== '') {
+      apiService
+        .getServiceAccountPassword(accountDetail?.name)
+        .then((res) => {
+          setSecretResStatus({ status: 'success' });
+          if (res?.data) {
+            setAccountSecretData(res.data);
+          }
+        })
+        .catch((err) => {
+          if (
+            err?.response &&
+            err.response.data?.errors &&
+            err.response.data.errors[0]
+          ) {
+            setAccountSecretError(err.response.data.errors[0]);
+          }
+          setSecretResStatus({ status: 'error' });
+        });
+    } else {
+      setSecretResStatus({ status: 'no-permission' });
+    }
+  }, [accountDetail]);
+
+  // Function to get the metadata of the given service account
+  const fetchPermission = useCallback(() => {
+    setResponse({ status: 'loading' });
+    apiService
+      .updateMetaPath(accountDetail.name)
+      .then((res) => {
+        if (res.data && res.data.data) {
+          setResponse({ status: 'success' });
+          if (res.data.data.managedBy === state.username) {
+            setDisabledPermission(false);
+            if (res.data.data.initialPasswordReset) {
+              setHasSvcAccountAcitve(true);
+              setAccountMetaData({ response: { ...res.data.data }, error: '' });
+            } else {
+              setHasSvcAccountAcitve(false);
+            }
+          } else {
+            setValue(0);
+            setDisabledPermission(true);
+          }
+        }
+      })
+      .catch(() => {
+        setResponse({ status: 'error' });
+        setAccountMetaData({ response: {}, error: 'Something went wrong' });
+      });
+  }, [accountDetail, state]);
+
+  useEffect(() => {
+    setResponse({ status: 'loading' });
+    setHasSvcAccountAcitve(false);
+    if (accountDetail?.name) {
+      fetchPermission();
+      getSecrets();
+    }
+  }, [accountDetail, fetchPermission, getSecrets]);
 
   return (
     <ComponentError>
@@ -105,21 +182,31 @@ const AccountSelectionTabs = (props) => {
             textColor="primary"
           >
             <Tab className={classes.tab} label="Secrets" {...a11yProps(0)} />
-            {accountDetail.admin && (
-              <Tab
-                label="Permissions"
-                {...a11yProps(1)}
-                disabled={!accountDetail.admin}
-              />
-            )}
+            <Tab
+              label="Permissions"
+              {...a11yProps(1)}
+              disabled={!accountDetail.admin || disabledPermission}
+            />
           </Tabs>
         </AppBar>
         <TabContentsWrap>
           <TabPanel value={value} index={0}>
-            <ServiceAccountSecrets accountDetail={accountDetail} />
+            <ServiceAccountSecrets
+              accountDetail={accountDetail}
+              accountMetaData={accountMetaData}
+              accountSecretData={accountSecretData}
+              accountSecretError={accountSecretError}
+              secretStatus={secretResStatus.status}
+            />
           </TabPanel>
           <TabPanel value={value} index={1}>
-            Permissions
+            <ServiceAccountPermission
+              accountDetail={accountDetail}
+              accountMetaData={accountMetaData}
+              hasSvcAccountAcitve={hasSvcAccountAcitve}
+              parentStatus={response.status}
+              refresh={refresh}
+            />
           </TabPanel>
         </TabContentsWrap>
       </div>
@@ -128,6 +215,7 @@ const AccountSelectionTabs = (props) => {
 };
 AccountSelectionTabs.propTypes = {
   accountDetail: PropTypes.objectOf(PropTypes.any),
+  refresh: PropTypes.func.isRequired,
 };
 AccountSelectionTabs.defaultProps = {
   accountDetail: {},
