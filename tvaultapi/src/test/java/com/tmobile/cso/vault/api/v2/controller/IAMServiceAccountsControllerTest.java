@@ -49,6 +49,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.tmobile.cso.vault.api.common.TVaultConstants;
 
 import com.tmobile.cso.vault.api.service.IAMServiceAccountsService;
+import com.tmobile.cso.vault.api.utils.JSONUtil;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @WebAppConfiguration
@@ -350,6 +351,22 @@ public class IAMServiceAccountsControllerTest {
 				.content(inputJson))
 				.andExpect(status().isOk())
 				.andExpect(content().string(containsString(responseJson)));
+	}
+	
+	@Test
+	public void test_readSecrets_successful() throws Exception {
+		String responseJson = "{\"accessKeySecret\":" + "assO/OetcHce1VugthF6KE9hqv2PWWbX3ULrpe1Tss" + "}";
+		ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(responseJson);
+		String expected = responseEntityExpected.getBody();
+
+		when(iamServiceAccountsService.readSecrets(eq("5PDrOhsy4ig8L3EpsJZSLAMg"), Mockito.any(), Mockito.any(), Mockito.any()))
+				.thenReturn(responseEntityExpected);		
+		MvcResult result = mockMvc.perform(MockMvcRequestBuilders.get("/v2/iamserviceaccounts/secrets/123456789012/testiamsvcacc01/1212zdasdssss")
+				.header(VAULT_TOKEN_STRING, token).header(CONTENT_TYPE_STRING, CONTENT_TYPE_VALUE_STRING)
+				.requestAttr(USER_DETAILS_STRING, userDetails)).andExpect(status().isOk()).andReturn();
+
+		String actual = result.getResponse().getContentAsString();
+		assertEquals(expected, actual);
 	}
 
 }

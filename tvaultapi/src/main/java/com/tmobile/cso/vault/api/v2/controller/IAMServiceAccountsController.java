@@ -20,9 +20,6 @@ import java.io.IOException;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
-
-import com.fasterxml.jackson.core.JsonParseException;
-import com.fasterxml.jackson.databind.JsonMappingException;
 import com.tmobile.cso.vault.api.model.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -36,12 +33,6 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.tmobile.cso.vault.api.model.IAMServiceAccount;
-import com.tmobile.cso.vault.api.model.IAMServiceAccountApprole;
-import com.tmobile.cso.vault.api.model.IAMServiceAccountGroup;
-import com.tmobile.cso.vault.api.model.IAMServiceAccountUser;
-import com.tmobile.cso.vault.api.model.ServiceAccountApprole;
-import com.tmobile.cso.vault.api.model.UserDetails;
 import com.tmobile.cso.vault.api.service.IAMServiceAccountsService;
 
 import io.swagger.annotations.Api;
@@ -130,7 +121,7 @@ public class IAMServiceAccountsController {
 	 * @param iamsvcname
 	 * @return
 	 */
-	@ApiOperation(value = "${IAMServiceAccountsController.getIAMServiceAccountDetail.value}", notes = "${IAMServiceAccountsController.getIAMServiceAccountDetail.notes}", hidden = false)
+	@ApiOperation(value = "${IAMServiceAccountsController.getIAMServiceAccountDetail.value}", notes = "${IAMServiceAccountsController.getIAMServiceAccountDetail.notes}", hidden = true)
 	@GetMapping(value = "/v2/iamserviceaccounts/{iam_svc_name}", produces = "application/json")
 	public ResponseEntity<String> getIAMServiceAccountDetail(HttpServletRequest request,
 			@RequestHeader(value = "vault-token") String token, @PathVariable("iam_svc_name") String iamsvcname){
@@ -268,14 +259,12 @@ public class IAMServiceAccountsController {
 	 * @param iamSvcName
 	 * @return
 	 * @throws IOException 
-	 * @throws JsonMappingException 
-	 * @throws JsonParseException 
 	 */
 	@ApiOperation(value = "${IAMServiceAccountsController.readSecrets.value}", notes = "${IAMServiceAccountsController.readSecrets.notes}", hidden = false)
 	@GetMapping(value = "/v2/iamserviceaccounts/secrets/{aws_account_id}/{iam_svc_name}/{accessKey}", produces = "application/json")
 	public ResponseEntity<String> readSecrets(@RequestHeader(value = "vault-token") String token,
-			@RequestParam("aws_account_id") String awsAccountID, @RequestParam("iam_svc_name") String iamSvcName,
-			@RequestParam("accessKey") String accessKey) throws JsonParseException, JsonMappingException, IOException {
+			@PathVariable("aws_account_id") String awsAccountID, @PathVariable("iam_svc_name") String iamSvcName,
+			@PathVariable("accessKey") String accessKey) throws IOException {
 		return iamServiceAccountsService.readSecrets(token, awsAccountID, iamSvcName, accessKey);
 	}
 }

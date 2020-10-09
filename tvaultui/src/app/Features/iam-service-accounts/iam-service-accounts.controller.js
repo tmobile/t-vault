@@ -120,14 +120,17 @@
                     $scope.isLoadingData = false;
                     $scope.folderList = response.data;
                     $scope.iamsvcaccSecretData.userName = response.data.iamsvcaccName;
-                }), function (error) {
-                    console.log(error);
-                }    
+                }).catch(function (catchError) {
+                    console.error(catchError);
+                    $scope.isLoadingData = false;
+                    $scope.viewPassword = false;
+                    $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
+                    $scope.error('md');
+                });
         }
 
         $scope.viewSecret = function (iamsvcaccname, folderName) {
             var path = iamsvcaccname + '/' + folderName;
-            console.log(path)
             $scope.isLoadingData = true;
             $scope.write = false;
             $scope.iamsvcaccSecretData = {};
@@ -137,7 +140,8 @@
                     $scope.isLoadingData = false;
                     $scope.viewPassword = true;
                     $scope.ifSecret = true;
-                    $scope.iamsvcaccSecretData = response.data.data;
+                    $scope.iamsvcaccSecretData = response.data;
+
                     if (getPermission(iamsvcaccname) == "write") {
                         $scope.write = true;
                     }
