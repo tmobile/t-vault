@@ -5,7 +5,14 @@ import React, { useState, useEffect, useCallback, useContext } from 'react';
 import styled, { css } from 'styled-components';
 import { makeStyles } from '@material-ui/core/styles';
 import InfiniteScroll from 'react-infinite-scroller';
-import { Link, Route, Switch, useHistory, Redirect } from 'react-router-dom';
+import {
+  Link,
+  Route,
+  Switch,
+  useHistory,
+  Redirect,
+  useLocation,
+} from 'react-router-dom';
 
 import useMediaQuery from '@material-ui/core/useMediaQuery';
 import sectionHeaderBg from '../../../../../assets/Banner_img.png';
@@ -194,6 +201,7 @@ const ServiceAccountDashboard = () => {
   const classes = useStyles();
   const isMobileScreen = useMediaQuery(mediaBreakpoints.small);
   const history = useHistory();
+  const location = useLocation();
 
   const introduction = Strings.Resources.serviceAccount;
 
@@ -325,11 +333,23 @@ const ServiceAccountDashboard = () => {
     setStatus({});
   };
 
+  /**
+   * @function onDeleteClicked
+   * @description function is called when delete is clicked opening
+   * the confirmation modal and setting the path.
+   * @param {string} name service acc name to be deleted.
+   */
   const onDeleteClicked = (name) => {
     setOffBoardSvcAccountConfirmation(true);
     setDeleteAccName(name);
   };
 
+  /**
+   * @function deleteServiceAccount
+   * @description function is called when delete is clicked opening
+   * the confirmation modal and setting the path.
+   * @param {string} name service acc name to be deleted.
+   */
   const deleteServiceAccount = (owner) => {
     const payload = {
       name: deleteAccName,
@@ -352,6 +372,10 @@ const ServiceAccountDashboard = () => {
     }
   }, [offBoardSuccessfull]);
 
+  /**
+   * @function onServiceAccountOffBoard
+   * @description function is to fetch the service account details and check username
+   */
   const onServiceAccountOffBoard = () => {
     setOffBoardSvcAccountConfirmation(false);
     setStatus({ status: 'loading' });
@@ -371,16 +395,45 @@ const ServiceAccountDashboard = () => {
       });
   };
 
-  const onServiceAccountEdit = () => {};
+  /**
+   * @function onDeleteRouteToNextSvcAccount
+   * @description function is called after deletion is successfull
+   * based on that the next svc account is selected,
+   */
+  const onDeleteRouteToNextSvcAccount = () => {
+    const val = location.pathname.split('/');
+    const routeName = val.slice(-1)[0];
+    if (serviceAccountList.length > 0) {
+      const obj = serviceAccountList.find((item) => item.name === routeName);
+      if (!obj) {
+        setListItemDetails(serviceAccountList[0]);
+        history.push(`/service-accounts/${serviceAccountList[0].name}`);
+      }
+    } else {
+      setListItemDetails({});
+      history.push(`/service-accounts`);
+    }
+  };
 
+  /**
+   * @function handleSuccessfullConfirmation
+   * @description function to handle the deletion successfull modal.
+   */
   const handleSuccessfullConfirmation = () => {
     setOffBoardSvcAccountConfirmation(false);
     setOffBoardSuccessfull(false);
+    onDeleteRouteToNextSvcAccount();
   };
 
+  /**
+   * @function handleConfirmationModalClose
+   * @description function to handle the close of deletion modal.
+   */
   const handleConfirmationModalClose = () => {
     setOffBoardSvcAccountConfirmation(false);
   };
+
+  const onServiceAccountEdit = () => {};
 
   const renderList = () => {
     return serviceAccountList.map((account) => (
@@ -445,13 +498,9 @@ const ServiceAccountDashboard = () => {
           cancelButton={
             !offBoardSuccessfull && (
               <ButtonComponent
-                label={offBoardSuccessfull ? 'Close' : 'Cancel'}
-                color={offBoardSuccessfull ? 'secondary' : 'primary'}
-                onClick={() =>
-                  offBoardSuccessfull
-                    ? handleSuccessfullConfirmation()
-                    : handleConfirmationModalClose()
-                }
+                label="Cancel"
+                color="primary"
+                onClick={() => handleConfirmationModalClose()}
                 width={isMobileScreen ? '100%' : '38%'}
               />
             )
@@ -462,7 +511,7 @@ const ServiceAccountDashboard = () => {
               color="secondary"
               onClick={() =>
                 offBoardSuccessfull
-                  ? handleConfirmationModalClose()
+                  ? handleSuccessfullConfirmation()
                   : onServiceAccountOffBoard()
               }
               width={isMobileScreen ? '100%' : '38%'}
