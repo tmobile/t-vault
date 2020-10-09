@@ -12,6 +12,7 @@ import AddUser from '../../../../../../../components/AddUser';
 import apiService from '../../../../apiService';
 import LoaderSpinner from '../../../../../../../components/Loaders/LoaderSpinner';
 import PermissionsList from '../../../../../../../components/PermissionsList';
+import Strings from '../../../../../../../resources';
 
 const { small, belowLarge } = mediaBreakpoints;
 
@@ -83,6 +84,16 @@ const Users = (props) => {
     }
   }, [newPermission]);
 
+  const checkAccess = (access) => {
+    let val = '';
+    if (access === 'write') {
+      val = 'reset';
+    } else {
+      val = access;
+    }
+    return val;
+  };
+
   /**
    * @function onDeleteClick
    * @description function to delete the user from the svc account users list.
@@ -92,7 +103,7 @@ const Users = (props) => {
   const onDeleteClick = (username, access) => {
     setResponse({ status: 'loading' });
     const payload = {
-      access,
+      access: checkAccess(access),
       svcAccName: accountDetail.name,
       username,
     };
@@ -102,7 +113,7 @@ const Users = (props) => {
         if (res && res.data?.messages && res.data.messages[0]) {
           updateToastMessage(1, res.data.messages[0]);
           setResponse({ status: '' });
-          refresh();
+          await refresh();
         }
       })
       .catch((err) => {
@@ -122,11 +133,11 @@ const Users = (props) => {
     setResponse({ status: 'loading' });
     apiService
       .addUserPermission(data)
-      .then((res) => {
+      .then(async (res) => {
         if (res && res.data?.messages) {
           updateToastMessage(1, res.data?.messages[0]);
           setResponse({ status: '' });
-          refresh();
+          await refresh();
         }
       })
       .catch((err) => {
@@ -135,16 +146,6 @@ const Users = (props) => {
         }
         setResponse({ status: 'success' });
       });
-  };
-
-  const checkAccess = (access) => {
-    let val = '';
-    if (access === 'write') {
-      val = 'reset';
-    } else {
-      val = access;
-    }
-    return val;
   };
 
   /**
@@ -159,8 +160,13 @@ const Users = (props) => {
       svcAccName: `${accountDetail.name}`,
       username: username.toLowerCase(),
     };
-    onSaveClicked(value);
-    onNewPermissionChange();
+    try {
+      await onSaveClicked(value);
+      onNewPermissionChange();
+    } catch {
+      setResponse({ status: 'success' });
+      updateToastMessage(-1, 'Something went wrong');
+    }
   };
 
   /**
@@ -254,8 +260,7 @@ const Users = (props) => {
                   <NoDataWrapper>
                     <NoData
                       imageSrc={noPermissionsIcon}
-                      description="No <strong>users</strong> are given permission to access this safe,
-                    add users to access the safe"
+                      description={Strings.Resources.noUsersPermissionFound}
                       actionButton={
                         // eslint-disable-next-line react/jsx-wrap-multilines
                         <ButtonComponent

@@ -88,7 +88,13 @@ const NoPermission = styled.div`
 `;
 
 const ServiceAccountSecrets = (props) => {
-  const { accountDetail, accountMetaData } = props;
+  const {
+    accountDetail,
+    accountMetaData,
+    accountSecretError,
+    accountSecretData,
+    secretStatus,
+  } = props;
   const [response, setResponse] = useState({ status: 'loading' });
   const [secretsData, setSecretsData] = useState({});
   const [showSecret, setShowSecret] = useState(false);
@@ -110,35 +116,16 @@ const ServiceAccountSecrets = (props) => {
   /**
    * @description function to get the secret once the component loads.
    */
+
   useEffect(() => {
-    if (accountDetail && Object.keys(accountDetail).length > 0) {
-      setResponse({ status: 'loading' });
-      if (accountDetail.access !== '') {
-        apiService
-          .getServiceAccountPassword(accountDetail?.name)
-          .then((res) => {
-            setResponse({ status: 'success' });
-            if (res?.data) {
-              setSecretsData(res.data);
-            }
-          })
-          .catch((err) => {
-            if (
-              err?.response &&
-              err.response.data?.errors &&
-              err.response.data.errors[0]
-            ) {
-              setToastMessage(err.response.data.errors[0]);
-            }
-            setResponse({ status: 'error' });
-          });
-      } else {
-        setResponse({ status: 'no-permission' });
-      }
-    } else {
-      setResponse({ status: '' });
+    setResponse({ status: secretStatus });
+  }, [secretStatus]);
+
+  useEffect(() => {
+    if (accountSecretData) {
+      setSecretsData({ ...accountSecretData });
     }
-  }, [accountDetail]);
+  }, [accountSecretData]);
 
   /**
    * @function onViewSecretsCliked
@@ -213,6 +200,8 @@ const ServiceAccountSecrets = (props) => {
         }
         return setWritePermission(false);
       });
+    } else {
+      setResponse({ status: 'no-permission' });
     }
   }, [accountMetaData, state]);
 
@@ -287,7 +276,7 @@ const ServiceAccountSecrets = (props) => {
           </UserList>
         )}
         {response.status === 'error' && (
-          <Error description={toastMessage || 'Something went wrong!'} />
+          <Error description={accountSecretError || 'Something went wrong!'} />
         )}
         {response.status === 'no-permission' && (
           <NoPermission>
@@ -319,6 +308,15 @@ const ServiceAccountSecrets = (props) => {
 ServiceAccountSecrets.propTypes = {
   accountDetail: PropTypes.objectOf(PropTypes.any).isRequired,
   accountMetaData: PropTypes.objectOf(PropTypes.any).isRequired,
+  accountSecretError: PropTypes.string,
+  accountSecretData: PropTypes.objectOf(PropTypes.any),
+  secretStatus: PropTypes.string,
+};
+
+ServiceAccountSecrets.defaultProps = {
+  accountSecretError: 'Something went wrong!',
+  accountSecretData: {},
+  secretStatus: 'loading',
 };
 
 export default ServiceAccountSecrets;
