@@ -371,7 +371,7 @@ public class EmailUtils {
 	private void extractImageBytesFromByteArray(MimeMessageHelper helper) throws MessagingException {
 		try {
 			// add each inline image byte scream
-			for (Map.Entry<String, String> entry : TVaultConstants.EMAIL_TEMPLATE_IMAGE_IDS.entrySet()) {
+			for (Map.Entry<String, String> entry : IAMServiceAccountConstants.IAM_EMAIL_TEMPLATE_IMAGE_IDS.entrySet()) {
 				helper.addInline(entry.getKey(), getImageByteArray(entry.getValue()), TVaultConstants.IMAGE_TYPE_PNG);
 			}
 		} catch (IOException e) {

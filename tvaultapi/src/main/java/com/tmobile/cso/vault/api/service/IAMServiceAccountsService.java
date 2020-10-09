@@ -20,7 +20,8 @@ package com.tmobile.cso.vault.api.service;
 import java.io.IOException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-
+import java.util.*;
+import java.util.stream.Collectors;
 
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.logging.log4j.LogManager;
@@ -50,31 +51,8 @@ import com.tmobile.cso.vault.api.exception.LogMessage;
 import com.tmobile.cso.vault.api.process.RequestProcessor;
 import com.tmobile.cso.vault.api.process.Response;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Calendar;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
+import com.tmobile.cso.vault.api.model.*;
 
-import com.tmobile.cso.vault.api.model.AccessPolicy;
-import com.tmobile.cso.vault.api.model.IAMSecrets;
-import com.tmobile.cso.vault.api.model.IAMSecretsMetadata;
-import com.tmobile.cso.vault.api.model.IAMServiceAccount;
-import com.tmobile.cso.vault.api.model.IAMServiceAccountApprole;
-import com.tmobile.cso.vault.api.model.IAMServiceAccountGroup;
-import com.tmobile.cso.vault.api.model.IAMServiceAccountMetadataDetails;
-import com.tmobile.cso.vault.api.model.IAMServiceAccountNode;
-import com.tmobile.cso.vault.api.model.IAMServiceAccountResponse;
-import com.tmobile.cso.vault.api.model.IAMServiceAccountRotateRequest;
-import com.tmobile.cso.vault.api.model.IAMServiceAccountSecret;
-import com.tmobile.cso.vault.api.model.IAMServiceAccountUser;
-import com.tmobile.cso.vault.api.model.IAMSvccAccMetadata;
-import com.tmobile.cso.vault.api.model.OIDCEntityResponse;
-import com.tmobile.cso.vault.api.model.OIDCGroup;
-import com.tmobile.cso.vault.api.model.OnboardedIAMServiceAccount;
-import com.tmobile.cso.vault.api.model.UserDetails;
 import com.tmobile.cso.vault.api.utils.EmailUtils;
 import com.tmobile.cso.vault.api.utils.IAMServiceAccountUtils;
 import com.tmobile.cso.vault.api.utils.JSONUtil;
@@ -121,6 +99,9 @@ public class  IAMServiceAccountsService {
 
 	@Autowired
 	private AppRoleService appRoleService;
+
+	@Autowired
+    private DirectoryService directoryService;
 
 	/**
 	 * Onboard an IAM service account into TVault for password rotation
@@ -322,18 +303,64 @@ public class  IAMServiceAccountsService {
 	 */
 	private void sendMailToIAMSvcAccOwner(IAMServiceAccount iamServiceAccount, String iamSvcAccName) {
 		// send email notification to IAM service account owner
-		String from = supportEmail;
-		List<String> to = new ArrayList<>();
-		to.add(iamServiceAccount.getOwnerEmail());
-		String mailSubject = String.format(IAMServiceAccountConstants.IAM_ONBOARD_EMAIL_SUBJECT, iamSvcAccName);
+		DirectoryUser directoryUser = getUserDetails(iamServiceAccount.getOwnerNtid());
+		if (!ObjectUtils.isEmpty(directoryUser)) {
+			String from = supportEmail;
+			List<String> to = new ArrayList<>();
+			to.add(iamServiceAccount.getOwnerEmail());
+			String mailSubject = String.format(IAMServiceAccountConstants.IAM_ONBOARD_EMAIL_SUBJECT, iamSvcAccName);
 
-		// set template variables
-		Map<String, String> mailTemplateVariables = new HashMap<>();
-		mailTemplateVariables.put("name", iamServiceAccount.getOwnerNtid());
-		mailTemplateVariables.put("iamSvcAccName", iamSvcAccName);
+			// set template variables
+			Map<String, String> mailTemplateVariables = new HashMap<>();
+			mailTemplateVariables.put("name", directoryUser.getDisplayName());
+			mailTemplateVariables.put("iamSvcAccName", iamSvcAccName);
 
-		mailTemplateVariables.put("contactLink", supportEmail);
-		emailUtils.sendIAMSvcAccHtmlEmalFromTemplate(from, to, mailSubject, mailTemplateVariables);
+			mailTemplateVariables.put("contactLink", supportEmail);
+
+			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+					.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+					.put(LogMessage.ACTION,
+							String.format(
+									"sendEmail for IAM Service account [%s] -  User " + "email=[%s] - subject = [%s]",
+									iamSvcAccName, iamServiceAccount.getOwnerEmail(), mailSubject))
+					.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
+
+			emailUtils.sendIAMSvcAccHtmlEmalFromTemplate(from, to, mailSubject, mailTemplateVariables);
+		} else {
+			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+					.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+					.put(LogMessage.ACTION, "sendMailToIAMSvcAccOwner")
+					.put(LogMessage.MESSAGE, String.format("Unable to get the Directory User details   "
+							+ "for an user name =  [%s] ,  Emails might not send to owner for an IAM service account = [%s]",
+							iamServiceAccount.getOwnerEmail(), iamSvcAccName))
+					.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
+		}
+	}
+
+	/**
+	 * Method to get the Directory User details
+	 *
+	 * @param userName
+	 * @return
+	 */
+	private DirectoryUser getUserDetails(String userName) {
+		ResponseEntity<DirectoryObjects> data = directoryService.searchByCorpId(userName);
+		DirectoryObjects directoryObjects = data.getBody();
+		DirectoryObjectsList usersList = directoryObjects.getData();
+		DirectoryUser directoryUser = null;
+		for (int i = 0; i < usersList.getValues().length; i++) {
+			directoryUser = (DirectoryUser) usersList.getValues()[i];
+			if (directoryUser.getUserName().equalsIgnoreCase(userName)) {
+				break;
+			}
+		}
+		if (!ObjectUtils.isEmpty(directoryUser)) {
+			String[] displayName = directoryUser.getDisplayName().split(",");
+			if (displayName.length > 1) {
+				directoryUser.setDisplayName(displayName[1] + "  " + displayName[0]);
+			}
+		}
+		return directoryUser;
 	}
 
 	/**
