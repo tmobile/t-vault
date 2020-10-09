@@ -33,10 +33,8 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
-import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
@@ -1523,7 +1521,12 @@ public class  IAMServiceAccountsService {
 		String path = IAMServiceAccountConstants.IAM_SVCC_ACC_PATH + iamSvcaccName + "/" + folderName;
 		Response response = reqProcessor.process("/iamsvcacct", "{\"path\":\"" + path + "\"}", token);
 		if (response.getHttpstatus().equals(HttpStatus.OK)) {
-			return ResponseEntity.status(HttpStatus.OK).body(response.getResponse());
+			JsonParser jsonParser = new JsonParser();
+			JsonObject data = ((JsonObject) jsonParser.parse(response.getResponse())).getAsJsonObject("data");
+			Long expiryDate = Long.valueOf(String.valueOf(data.get("expiryDateEpoch")));
+			String formattedExpiryDt = dateConversion(expiryDate);
+			data.addProperty("expiryDate", formattedExpiryDt);
+			return ResponseEntity.status(HttpStatus.OK).body(data.toString());
 		}
 		return ResponseEntity.status(HttpStatus.BAD_REQUEST)
 				.body("{\"errors\":[\"No Iam Service Account with " + iamSvcaccName + ".\"]}");
@@ -2947,11 +2950,9 @@ public class  IAMServiceAccountsService {
 	 * @param accessKey
 	 * @return
 	 * @throws IOException
-	 * @throws JsonMappingException
-	 * @throws JsonParseException
 	 */
 	public ResponseEntity<String> readSecrets(String token, String awsAccountID, String iamSvcName, String accessKey)
-			throws JsonParseException, JsonMappingException, IOException {
+			throws IOException {
 
 		String iamSvcNamePath = IAMServiceAccountConstants.IAM_SVCC_ACC_PATH + awsAccountID + '_' + iamSvcName;
 		ResponseEntity<String> response = readFolders(token, iamSvcNamePath);
@@ -2980,7 +2981,7 @@ public class  IAMServiceAccountsService {
 			return ResponseEntity.status(HttpStatus.NOT_FOUND)
 					.body("{\"error\":" + JSONUtil.getJSON("No secret with the access keyID :" + accessKey + "") + "}");
 		}
+		
 	}
-
 
 }

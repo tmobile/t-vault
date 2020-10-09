@@ -688,20 +688,8 @@
                 if (JSON.parse(SessionStore.getItem("isAdmin")) == false) {
                     $state.go('manage');
                 }
-                $scope.changeSvcaccHeader = "ONBOARD SERVICE ACCOUNT";
-                $scope.isEditSvcacc = false;
-                try {
-                    $rootScope.AwsPermissionsData = {}
-                    $rootScope.AppRolePermissionsData = {}
-                    $scope.isLoadingData = false;
-                    getWorkloadDetails();
-                } catch (e) {
-                    // To handle errors while calling 'fetchData' function
-                    console.log(e);
-                    $scope.isLoadingData = false;
-                    $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
-                    $scope.error('md');
-
+                else {
+                    $state.go('admin');
                 }
             }
         }
