@@ -28,12 +28,17 @@ const resetServiceAccountPassword = (svcName, payload) =>
   api.put(`/serviceaccounts/password?serviceAccountName=${svcName}`, payload);
 
 // API call for users permission
-
 const addUserPermission = (payload) =>
   api.post('/serviceaccounts/user', payload);
 
 const deleteUserPermission = (payload) =>
   api.delete('/serviceaccounts/user', payload);
+
+// Api call for groups permission
+const addGroupPermission = (payload) =>
+  api.post('/serviceaccounts/group', payload);
+const deleteGroupPermission = (payload) =>
+  api.delete('/serviceaccounts/group', payload);
 
 export default {
   getServiceAccounts,
@@ -49,4 +54,6 @@ export default {
   offBoardServiceAccount,
   addUserPermission,
   deleteUserPermission,
+  addGroupPermission,
+  deleteGroupPermission,
 };

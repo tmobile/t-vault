@@ -13,6 +13,7 @@ import apiService from '../../../../apiService';
 import LoaderSpinner from '../../../../../../../components/Loaders/LoaderSpinner';
 import PermissionsList from '../../../../../../../components/PermissionsList';
 import Strings from '../../../../../../../resources';
+import { checkAccess } from '../../../../../../../services/helper-function';
 
 const { small, belowLarge } = mediaBreakpoints;
 
@@ -83,16 +84,6 @@ const Users = (props) => {
       setResponse({ status: 'add' });
     }
   }, [newPermission]);
-
-  const checkAccess = (access) => {
-    let val = '';
-    if (access === 'write') {
-      val = 'reset';
-    } else {
-      val = access;
-    }
-    return val;
-  };
 
   /**
    * @function onDeleteClick
@@ -255,27 +246,27 @@ const Users = (props) => {
                   onDeleteClick={(key, value) => onDeleteClick(key, value)}
                 />
               )}
-              {accountMetaData.response.users &&
-                Object.keys(accountMetaData.response.users).length === 0 && (
-                  <NoDataWrapper>
-                    <NoData
-                      imageSrc={noPermissionsIcon}
-                      description={Strings.Resources.noUsersPermissionFound}
-                      actionButton={
-                        // eslint-disable-next-line react/jsx-wrap-multilines
-                        <ButtonComponent
-                          label="add"
-                          icon="add"
-                          color="secondary"
-                          onClick={() => setResponse({ status: 'add' })}
-                          width={isMobileScreen ? '100%' : '9.4rem'}
-                        />
-                      }
-                      bgIconStyle={bgIconStyle}
-                      customStyle={noDataStyle}
-                    />
-                  </NoDataWrapper>
-                )}
+              {(!accountMetaData.response.users ||
+                Object.keys(accountMetaData.response.users).length === 0) && (
+                <NoDataWrapper>
+                  <NoData
+                    imageSrc={noPermissionsIcon}
+                    description={Strings.Resources.noUsersPermissionFound}
+                    actionButton={
+                      // eslint-disable-next-line react/jsx-wrap-multilines
+                      <ButtonComponent
+                        label="add"
+                        icon="add"
+                        color="secondary"
+                        onClick={() => setResponse({ status: 'add' })}
+                        width={isMobileScreen ? '100%' : '9.4rem'}
+                      />
+                    }
+                    bgIconStyle={bgIconStyle}
+                    customStyle={noDataStyle}
+                  />
+                </NoDataWrapper>
+              )}
             </>
           )}
       </>

@@ -206,6 +206,7 @@ const AccountSelectionTabs = (props) => {
               hasSvcAccountAcitve={hasSvcAccountAcitve}
               parentStatus={response.status}
               refresh={refresh}
+              fetchPermission={fetchPermission}
             />
           </TabPanel>
         </TabContentsWrap>

@@ -11,7 +11,8 @@ import AutoCompleteComponent from '../FormFields/AutoComplete';
 import ButtonComponent from '../FormFields/ActionButton';
 import apiService from '../../views/private/safe/apiService';
 import LoaderSpinner from '../Loaders/LoaderSpinner';
-import RadioPermissionComponent from '../../views/private/safe/components/RadioPermissions';
+import RadioSafePermissionComponent from '../../views/private/safe/components/RadioPermissions';
+import RadioSvcPermissionComponent from '../../views/private/service-accounts/components/RadioPermissions';
 
 const { small } = mediaBreakpoints;
 
@@ -114,7 +115,13 @@ const useStyles = makeStyles(() => ({
 }));
 
 const AddGroup = (props) => {
-  const { handleCancelClick, handleSaveClick, groupname, access } = props;
+  const {
+    handleCancelClick,
+    handleSaveClick,
+    groupname,
+    access,
+    isSvcAccount,
+  } = props;
   const classes = useStyles();
   const [radioValue, setRadioValue] = useState('read');
   const [searchValue, setSearchValue] = useState('');
@@ -211,10 +218,18 @@ const AddGroup = (props) => {
           {searchLoader && <LoaderSpinner customStyle={customStyle} />}
         </InputWrapper>
         <RadioButtonWrapper>
-          <RadioPermissionComponent
-            radioValue={radioValue}
-            handleRadioChange={(e) => setRadioValue(e.target.value)}
-          />
+          {isSvcAccount ? (
+            <RadioSvcPermissionComponent
+              radioValue={radioValue}
+              isEdit={!!(access && groupname)}
+              handleRadioChange={(e) => setRadioValue(e.target.value)}
+            />
+          ) : (
+            <RadioSafePermissionComponent
+              radioValue={radioValue}
+              handleRadioChange={(e) => setRadioValue(e.target.value)}
+            />
+          )}
           <CancelSaveWrapper>
             <CancelButton>
               <ButtonComponent
@@ -243,11 +258,13 @@ AddGroup.propTypes = {
   handleCancelClick: PropTypes.func.isRequired,
   groupname: PropTypes.string,
   access: PropTypes.string,
+  isSvcAccount: PropTypes.bool,
 };
 
 AddGroup.defaultProps = {
   groupname: '',
   access: 'read',
+  isSvcAccount: false,
 };
 
 export default AddGroup;

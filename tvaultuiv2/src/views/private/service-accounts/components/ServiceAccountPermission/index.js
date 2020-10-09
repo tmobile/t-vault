@@ -4,6 +4,7 @@ import styled, { css } from 'styled-components';
 import PropTypes from 'prop-types';
 import ComponentError from '../../../../../errorBoundaries/ComponentError/component-error';
 import Users from './components/Users';
+import Groups from './components/Groups';
 import LoaderSpinner from '../../../../../components/Loaders/LoaderSpinner';
 import Error from '../../../../../components/Error';
 import SnackbarComponent from '../../../../../components/Snackbar';
@@ -39,10 +40,11 @@ const ServiceAccountPermission = (props) => {
     accountMetaData,
     hasSvcAccountAcitve,
     parentStatus,
+    fetchPermission,
   } = props;
   const [value, setValue] = useState(0);
   const [newPermission, setNewPermission] = useState(false);
-  const [, setNewGroup] = useState(false);
+  const [newGroup, setNewGroup] = useState(false);
   const [, setNewAwsApplication] = useState(false);
   const [, setNewAppRole] = useState(false);
   const [count, setCount] = useState(0);
@@ -105,6 +107,7 @@ const ServiceAccountPermission = (props) => {
   };
 
   const onTabChange = (newValue) => {
+    console.log('neWvalue', newValue);
     setValue(newValue);
   };
 
@@ -142,7 +145,16 @@ const ServiceAccountPermission = (props) => {
                       />
                     </TabPanel>
                     <TabPanel value={value} index={1}>
-                      groups
+                      <Groups
+                        accountDetail={accountDetail}
+                        newGroup={newGroup}
+                        onNewGroupChange={() => setNewGroup(false)}
+                        accountMetaData={accountMetaData}
+                        updateToastMessage={(res, message) =>
+                          updateToastMessage(res, message)
+                        }
+                        fetchPermission={fetchPermission}
+                      />
                     </TabPanel>
                     <TabPanel value={value} index={2}>
                       AwsApplications
@@ -185,11 +197,13 @@ ServiceAccountPermission.propTypes = {
   refresh: PropTypes.func.isRequired,
   hasSvcAccountAcitve: PropTypes.bool,
   parentStatus: PropTypes.string.isRequired,
+  fetchPermission: PropTypes.func,
 };
 
 ServiceAccountPermission.defaultProps = {
   accountDetail: {},
   hasSvcAccountAcitve: false,
+  fetchPermission: () => {},
 };
 
 export default ServiceAccountPermission;

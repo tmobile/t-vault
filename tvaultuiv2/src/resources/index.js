@@ -6,7 +6,9 @@ const Resources = {
   offBoardSuccessfull:
     'Offboarding of Service Account has been completed successfully. The Service Account Password can no longer be managed by T-Vault. For security reasons, you need to log out and log in order for the changes to effect.',
   noUsersPermissionFound:
-    'No <strong>users</strong> are given permission to access this safe, add users to access the safe',
+    'No <strong>Users</strong> are given permission to access this safe, add users to access the safe',
+  noGroupsPermissionFound:
+    'No <strong>Groups</strong> are given permission to access this safe, add groups to access the safe',
 };
 
 export default { Resources };
