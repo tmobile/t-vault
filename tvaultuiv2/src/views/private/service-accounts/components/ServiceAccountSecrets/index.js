@@ -206,11 +206,7 @@ const ServiceAccountSecrets = (props) => {
    * compare the service account data with loged in user.
    */
   useEffect(() => {
-    if (
-      accountMetaData.response &&
-      Object.keys(accountMetaData.response).length > 0 &&
-      accountMetaData.response?.users
-    ) {
+    if (accountMetaData?.response?.users) {
       Object.entries(accountMetaData.response.users).map(([key, value]) => {
         if (key === state.username && value === 'write') {
           return setWritePermission(true);

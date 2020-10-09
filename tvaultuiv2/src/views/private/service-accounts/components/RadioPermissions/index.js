@@ -7,6 +7,7 @@ import Radio from '@material-ui/core/Radio';
 
 const RadioPermissionComponent = (props) => {
   const { radioValue, handleRadioChange, isEdit } = props;
+  console.log('isEdit', isEdit);
   return (
     <div>
       <FormControl component="fieldset">

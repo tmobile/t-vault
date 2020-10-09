@@ -241,40 +241,36 @@ const Users = (props) => {
           accountMetaData &&
           accountMetaData.response && (
             <>
-              {accountMetaData.response?.users &&
-                Object.keys(accountMetaData.response?.users).length > 0 && (
-                  <PermissionsList
-                    list={accountMetaData.response.users}
-                    isSvcAccount
-                    onEditClick={(key, value) => onEditClick(key, value)}
-                    onDeleteClick={(key, value) => onDeleteClick(key, value)}
-                  />
-                )}
-              {(accountMetaData.response.users === null ||
-                !accountMetaData.response.users ||
-                (accountMetaData.response.users &&
-                  Object.keys(accountMetaData.response.users).length ===
-                    0)) && (
-                <NoDataWrapper>
-                  <NoData
-                    imageSrc={noPermissionsIcon}
-                    description="No <strong>users</strong> are given permission to access this safe,
-                    add users to access the safe"
-                    actionButton={
-                      // eslint-disable-next-line react/jsx-wrap-multilines
-                      <ButtonComponent
-                        label="add"
-                        icon="add"
-                        color="secondary"
-                        onClick={() => setResponse({ status: 'add' })}
-                        width={isMobileScreen ? '100%' : '9.4rem'}
-                      />
-                    }
-                    bgIconStyle={bgIconStyle}
-                    customStyle={noDataStyle}
-                  />
-                </NoDataWrapper>
+              {Object.keys(accountMetaData.response?.users).length > 0 && (
+                <PermissionsList
+                  list={accountMetaData.response.users}
+                  isSvcAccount
+                  onEditClick={(key, value) => onEditClick(key, value)}
+                  onDeleteClick={(key, value) => onDeleteClick(key, value)}
+                />
               )}
+              {accountMetaData.response.users &&
+                Object.keys(accountMetaData.response.users).length === 0 && (
+                  <NoDataWrapper>
+                    <NoData
+                      imageSrc={noPermissionsIcon}
+                      description="No <strong>users</strong> are given permission to access this safe,
+                    add users to access the safe"
+                      actionButton={
+                        // eslint-disable-next-line react/jsx-wrap-multilines
+                        <ButtonComponent
+                          label="add"
+                          icon="add"
+                          color="secondary"
+                          onClick={() => setResponse({ status: 'add' })}
+                          width={isMobileScreen ? '100%' : '9.4rem'}
+                        />
+                      }
+                      bgIconStyle={bgIconStyle}
+                      customStyle={noDataStyle}
+                    />
+                  </NoDataWrapper>
+                )}
             </>
           )}
       </>

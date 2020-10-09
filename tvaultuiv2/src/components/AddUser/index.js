@@ -225,7 +225,7 @@ const AddUser = (props) => {
           {isSvcAccount ? (
             <RadioSvcPermissionComponent
               radioValue={radioValue}
-              isEdit={access && username}
+              isEdit={!!(access && username)}
               handleRadioChange={(e) => handleChange(e)}
             />
           ) : (

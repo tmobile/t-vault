@@ -92,7 +92,8 @@ const AccountSelectionTabs = (props) => {
   const classes = useStyles();
   const [value, setValue] = useState(0);
   const [response, setResponse] = useState({ status: 'loading' });
-  const [hasPermission, setHasPermission] = useState(false);
+  const [hasSvcAccountAcitve, setHasSvcAccountAcitve] = useState(false);
+  const [disabledPermission, setDisabledPermission] = useState(false);
   const [accountMetaData, setAccountMetaData] = useState({
     response: {},
     error: '',
@@ -112,10 +113,16 @@ const AccountSelectionTabs = (props) => {
         if (res.data && res.data.data) {
           setResponse({ status: 'success' });
           if (res.data.data.managedBy === state.username) {
-            setHasPermission(true);
-            setAccountMetaData({ response: { ...res.data.data }, error: '' });
+            setDisabledPermission(false);
+            if (res.data.data.initialPasswordReset) {
+              setHasSvcAccountAcitve(true);
+              setAccountMetaData({ response: { ...res.data.data }, error: '' });
+            } else {
+              setHasSvcAccountAcitve(false);
+            }
           } else {
-            setHasPermission(false);
+            setValue(0);
+            setDisabledPermission(true);
           }
         }
       })
@@ -127,7 +134,7 @@ const AccountSelectionTabs = (props) => {
 
   useEffect(() => {
     setResponse({ status: 'loading' });
-    setHasPermission(false);
+    setHasSvcAccountAcitve(false);
     if (accountDetail?.name) {
       fetchPermission();
     }
@@ -145,13 +152,11 @@ const AccountSelectionTabs = (props) => {
             textColor="primary"
           >
             <Tab className={classes.tab} label="Secrets" {...a11yProps(0)} />
-            {accountDetail.admin && (
-              <Tab
-                label="Permissions"
-                {...a11yProps(1)}
-                disabled={!accountDetail.admin}
-              />
-            )}
+            <Tab
+              label="Permissions"
+              {...a11yProps(1)}
+              disabled={!accountDetail.admin || disabledPermission}
+            />
           </Tabs>
         </AppBar>
         <TabContentsWrap>
@@ -165,7 +170,7 @@ const AccountSelectionTabs = (props) => {
             <ServiceAccountPermission
               accountDetail={accountDetail}
               accountMetaData={accountMetaData}
-              hasPermission={hasPermission}
+              hasSvcAccountAcitve={hasSvcAccountAcitve}
               parentStatus={response.status}
               refresh={fetchPermission}
             />
