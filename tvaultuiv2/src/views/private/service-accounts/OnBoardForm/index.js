@@ -541,7 +541,9 @@ const OnBoardForm = () => {
         setIsActiveServiceAccount(true);
         setPostOnBoardModal(true);
       })
-      .catch(() => {});
+      .catch((err) => {
+        setStatus({ status: 'failed', message: err?.data?.messages[0] });
+      });
   };
   // render grid row of service account details
   //   const renderGridRow = (data) => {
