@@ -12,17 +12,16 @@ const CreateSecretWrap = styled('div')`
   padding: 0.5em;
   cursor: pointer;
 `;
-
 const SpanElement = styled.span``;
 
 const CreateSecretButton = (props) => {
   const { onClick } = props;
   return (
     <ComponentError>
-      {' '}
       <CreateSecretWrap onClick={() => onClick(true)}>
-        <SpanElement>+</SpanElement>
-        <SpanElement>Create Secrets</SpanElement>
+        <SpanElement>
+          There are no secrets here!, Click here to create one
+        </SpanElement>
       </CreateSecretWrap>
     </ComponentError>
   );

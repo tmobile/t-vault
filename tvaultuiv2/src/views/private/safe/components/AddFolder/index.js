@@ -139,7 +139,11 @@ const AddFolder = (props) => {
               buttonType="containedSecondary"
               disabled={!inputValue || errorMessage}
               onClick={() =>
-                handleSaveClick({ value: inputValue, type: 'folder', parentId })
+                handleSaveClick({
+                  value: inputValue.toLowerCase(),
+                  type: 'folder',
+                  parentId,
+                })
               }
               width={isMobileScreen ? '100%' : ''}
             />

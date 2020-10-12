@@ -13,6 +13,7 @@ import { makeStyles } from '@material-ui/core/styles';
 import AppBar from '@material-ui/core/AppBar';
 import Tabs from '@material-ui/core/Tabs';
 import Tab from '@material-ui/core/Tab';
+import { useHistory } from 'react-router-dom';
 import ComponentError from '../../../../../errorBoundaries/ComponentError/component-error';
 import addFolderPlus from '../../../../../assets/folder-plus.svg';
 import NamedButton from '../../../../../components/NamedButton';
@@ -113,6 +114,7 @@ const SelectionTabs = (props) => {
   const [getResponse, setGetResponse] = useState(null);
   const [status, setStatus] = useState({});
 
+  const history = useHistory();
   const handleChange = (event, newValue) => {
     setValue(newValue);
   };
@@ -171,12 +173,13 @@ const SelectionTabs = (props) => {
 
   useEffect(() => {
     setStatus({ status: 'loading', message: 'loading...' });
-    if (safeDetail?.path) {
-      if (!safeDetail.manage) {
+    const safeObj = history?.location?.state?.safe;
+    if (safeDetail?.path || safeObj?.path) {
+      if (!safeDetail.manage || !safeObj?.manage) {
         setValue(0);
       }
       apiService
-        .getSecret(safeDetail.path)
+        .getSecret(safeDetail.path || safeObj?.path)
         .then((res) => {
           setStatus({});
           setGetResponse(1);
@@ -198,7 +201,7 @@ const SelectionTabs = (props) => {
           });
         });
     }
-  }, [safeDetail]);
+  }, [safeDetail, history]);
 
   return (
     <ComponentError>

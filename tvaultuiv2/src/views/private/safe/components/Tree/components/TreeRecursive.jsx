@@ -24,6 +24,7 @@ const SecretsError = styled.div`
   align-items: center;
   padding: 0.5rem;
 `;
+
 const TreeRecursive = ({
   data,
   saveSecretsToFolder,
@@ -44,30 +45,34 @@ const TreeRecursive = ({
   const [currentNode, setCurrentNode] = useState('');
   const classes = useStyles();
   // loop through the data
+
+  let arr = [];
   // eslint-disable-next-line array-callback-return
   return data.map((item) => {
-    // if its a file render <File />
+    if (
+      item?.children[0]?.type.toLowerCase() === 'secret' &&
+      item?.children[0]?.value
+    ) {
+      arr = convertObjectToArray(JSON.parse(item?.children[0]?.value));
+    }
 
+    // if its a file render <File />
     if (item.type.toLowerCase() === 'secret') {
       const secretArray =
         item.value && convertObjectToArray(JSON.parse(item.value));
-      return secretArray.map((secret) =>
-        !secret.default ? (
-          <File
-            key={item.id}
-            secret={secret}
-            parentId={item.parentId}
-            setSecretprefilledData={setSecretprefilledData}
-            type={item.type}
-            setIsAddInput={setIsAddInput}
-            setInputType={setInputType}
-            onDeleteTreeItem={onDeleteTreeItem}
-            id={item.id}
-          />
-        ) : (
-          <></>
-        )
-      );
+      return secretArray.map((secret) => (
+        <File
+          key={item.id}
+          secret={secret}
+          parentId={item.parentId}
+          setSecretprefilledData={setSecretprefilledData}
+          type={item.type}
+          setIsAddInput={setIsAddInput}
+          setInputType={setInputType}
+          onDeleteTreeItem={onDeleteTreeItem}
+          id={item.id}
+        />
+      ));
     }
     // if its a folder render <Folder />
     if (item.type === 'folder') {
@@ -133,11 +138,13 @@ const TreeRecursive = ({
           {currentNode === item.value && status.status === 'failed' && (
             <SecretsError>Error in loading secrets!</SecretsError>
           )}
-          {item?.children?.length < 2 && currentNode === item.id && (
-            <CreateSecretButton
-              onClick={(e) => setCreateSecretBox(e, item.value)}
-            />
-          )}
+
+          {[...item?.children, ...arr].length <= 1 &&
+            currentNode === item.id && (
+              <CreateSecretButton
+                onClick={(e) => setCreateSecretBox(e, item.value)}
+              />
+            )}
         </Folder>
       );
     }
