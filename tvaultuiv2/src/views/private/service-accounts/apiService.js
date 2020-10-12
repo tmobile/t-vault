@@ -13,6 +13,8 @@ const getUsersServiceAccounts = (name) =>
   api.get(`/ad/serviceaccounts?serviceAccountName=${name}`);
 const onBoardServiceAccount = (payload) =>
   api.post('/serviceaccounts/onboard', payload);
+const updateServiceAccount = (payload) =>
+  api.put('/serviceaccounts/onboard', payload);
 const fetchServiceAccountDetails = (svcName) =>
   api.get(
     `/ad/serviceaccounts?serviceAccountName=${svcName}&excludeOnboarded=false`
@@ -20,7 +22,10 @@ const fetchServiceAccountDetails = (svcName) =>
 const callServiceAccount = (svcName) => api.get(`/serviceaccounts/${svcName}`);
 const updateMetaPath = (svcName) =>
   api.get(`/serviceaccounts/meta?path=ad/roles/${svcName}`);
-
+const sslCertification = (certName) =>
+  api.get(`/sslcert?certificateName=${certName}&certType=internal`);
+const activateServiceAccount = (svcName) =>
+  api.put(`/serviceaccounts/password?serviceAccountName=${svcName}`);
 // Service account secret API call.
 const getServiceAccountPassword = (svcName) =>
   api.get(`/serviceaccounts/password?serviceAccountName=${svcName}`);
@@ -49,4 +54,7 @@ export default {
   offBoardServiceAccount,
   addUserPermission,
   deleteUserPermission,
+  sslCertification,
+  activateServiceAccount,
+  updateServiceAccount,
 };

@@ -344,8 +344,6 @@ const ServiceAccountDashboard = () => {
   };
 
   const onServiceAccountEdit = (name) => {
-    setStatus({ status: 'loading' });
-
     history.push({
       pathname: '/service-accounts/change-service-accounts',
       state: {
@@ -445,8 +443,6 @@ const ServiceAccountDashboard = () => {
   const handleConfirmationModalClose = () => {
     setOffBoardSvcAccountConfirmation(false);
   };
-
-  const onServiceAccountEdit = () => {};
 
   const renderList = () => {
     return serviceAccountList.map((account) => (

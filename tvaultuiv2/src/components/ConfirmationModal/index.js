@@ -7,6 +7,7 @@ import PropTypes from 'prop-types';
 import styled, { css } from 'styled-components';
 import { TitleOne, TitleTwo } from '../../styles/GlobalStyles';
 import ComponentError from '../../errorBoundaries/ComponentError/component-error';
+import ReactHtmlParser from 'react-html-parser';
 import mediaBreakpoints from '../../breakpoints';
 
 const ModalWrapper = styled.div`
@@ -93,7 +94,9 @@ const ConfirmationModal = (props) => {
             <TitleOne color="#e20074" extraCss={titleOneCss}>
               {title}
             </TitleOne>
-            <TitleTwo extraCss={titleTwoCss}>{description}</TitleTwo>
+            <TitleTwo extraCss={titleTwoCss}>
+              {ReactHtmlParser(description)}
+            </TitleTwo>
             <ButtonWrapper>
               {cancelButton.type !== 'div' && (
                 <CancelButtonWrap>{cancelButton}</CancelButtonWrap>
