@@ -695,7 +695,7 @@ public class  IAMServiceAccountsService {
 		}
 		if (!isIamSvcaccPermissionInputValid(iamServiceAccountGroup.getAccess())) {
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-					.body("{\"errors\":[\"Invalid value specified for group access. Valid values are read, reset, deny\"]}");
+					.body("{\"errors\":[\"Invalid value specified for access. Valid values are read, reset, deny\"]}");
 		}
 		if (iamServiceAccountGroup.getAccess().equalsIgnoreCase(IAMServiceAccountConstants.IAM_RESET_MSG_STRING)) {
 			iamServiceAccountGroup.setAccess(TVaultConstants.WRITE_POLICY);
@@ -985,7 +985,7 @@ public class  IAMServiceAccountsService {
 
 		if (!isIamSvcaccPermissionInputValid(iamServiceAccountUser.getAccess())) {
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-					.body("{\"errors\":[\"Invalid value specified for add user access. Valid values are read, reset, deny\"]}");
+					.body("{\"errors\":[\"Invalid value specified for access. Valid values are read, reset, deny\"]}");
 		}
 		if (iamServiceAccountUser.getAccess().equalsIgnoreCase(IAMServiceAccountConstants.IAM_RESET_MSG_STRING)) {
 			iamServiceAccountUser.setAccess(TVaultConstants.WRITE_POLICY);
@@ -1593,6 +1593,7 @@ public class  IAMServiceAccountsService {
 	 * @return
 	 */
 	public ResponseEntity<String> removeUserFromIAMServiceAccount(String token, IAMServiceAccountUser iamServiceAccountUser, UserDetails userDetails) {
+		iamServiceAccountUser.setIamSvcAccName(iamServiceAccountUser.getIamSvcAccName().toLowerCase());
 		OIDCEntityResponse oidcEntityResponse = new OIDCEntityResponse();
 		if (!userDetails.isAdmin()) {
             token = tokenUtils.getSelfServiceToken();
@@ -2435,10 +2436,11 @@ public class  IAMServiceAccountsService {
 		}
 		approleName = (approleName != null) ? approleName.toLowerCase() : approleName;
 		access = (access != null) ? access.toLowerCase() : access;
-		if (StringUtils.isEmpty(access)) {
-			return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY)
-					.body("{\"errors\":[\"Incorrect access. Valid values are read, reset, deny \"]}");
+		if (!isIAMSvcaccPermissionInputValid(iamServiceAccountApprole.getAccess())) {
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+					.body("{\"errors\":[\"Invalid value specified for access. Valid values are read, reset, deny\"]}");
 		}
+
 		boolean isAuthorized = hasAddOrRemovePermission(userDetails, svcAccName, token);
 
 		if (isAuthorized) {
@@ -2866,7 +2868,7 @@ public class  IAMServiceAccountsService {
 							iamServiceAccountRotateRequest.getAccessKeyId())).
 					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 					build()));
-			return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"IAM Service account activated successfully\"]}");
+			return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"IAM Service account secret rotated successfully\"]}");
 		}
 		log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
