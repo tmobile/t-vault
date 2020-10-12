@@ -438,9 +438,16 @@ public class OIDCUtil {
 			for (Object tp : results) {
 				aliasName = ((DirectoryUser) tp).getUserEmail();
 			}
+
 			OIDCLookupEntityRequest oidcLookupEntityRequest = new OIDCLookupEntityRequest();
 			oidcLookupEntityRequest.setAlias_name(aliasName);
 			oidcLookupEntityRequest.setAlias_mount_accessor(mountAccessor);
+
+			// Get correct case email from AAD
+			AADUserObject aadUserObject = getAzureUserObject(aliasName);
+			if (aadUserObject != null && StringUtils.isNotEmpty(aadUserObject.getEmail())) {
+				oidcLookupEntityRequest.setAlias_name(aadUserObject.getEmail());
+			}
 
             // Get polices from user entity. This will have only user policies.
             ResponseEntity<OIDCEntityResponse> entityResponseResponseEntity = entityLookUp(token, oidcLookupEntityRequest);
@@ -951,5 +958,94 @@ public class OIDCUtil {
 	private Set<String> getMatchedSelfServiceGroups(Set<String> allGroups) {
 		Pattern pattern = Pattern.compile(ssoGroupPattern);
 		return allGroups.stream().filter(pattern.asPredicate()).collect(Collectors.toSet());
+	}
+
+	/**
+	 * Method to get the AAD user object by email and access token
+	 *
+	 * @param userEmail
+	 * @return
+	 */
+	public AADUserObject getAzureUserObject(String userEmail) {
+		String accessToken = getSSOToken();
+
+		AADUserObject aadUserObject = new AADUserObject();
+		JsonParser jsonParser = new JsonParser();
+		HttpClient httpClient = httpUtils.getHttpClient();
+		if (httpClient == null) {
+			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+					.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+					.put(LogMessage.ACTION, "getAzureUserObject")
+					.put(LogMessage.MESSAGE, "Failed to initialize httpClient")
+					.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
+			return null;
+		}
+
+		String filterSearch = "";
+		if (userEmail.toLowerCase().endsWith(sprintMailTailText)) {
+			filterSearch = "?$filter=startsWith%28mail%2C'" + userEmail + "'%29";
+		} else {
+			filterSearch = userEmail;
+		}
+
+		String api = ssoGetUserEndpoint + filterSearch;
+
+		HttpGet getRequest = new HttpGet(api);
+		getRequest.addHeader("Authorization", "Bearer " + accessToken);
+
+		StringBuilder jsonResponse = new StringBuilder();
+
+		try {
+			HttpResponse apiResponse = httpClient.execute(getRequest);
+			if (apiResponse.getStatusLine().getStatusCode() == 200) {
+				aadUserObject = parseAndGetUserObjFromAADResponse(jsonParser, jsonResponse, apiResponse);
+				log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+						.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+						.put(LogMessage.ACTION, "getAzureUserObject")
+						.put(LogMessage.MESSAGE, String.format("Retrieved %s user id from AAD", aadUserObject.getUserId()))
+						.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
+				return aadUserObject;
+			}
+			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+					.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+					.put(LogMessage.ACTION, "getAzureUserObject")
+					.put(LogMessage.MESSAGE, "Failed to retrieve user id from AAD")
+					.put(LogMessage.STATUS, String.valueOf(apiResponse.getStatusLine().getStatusCode()))
+					.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
+		} catch (IOException e) {
+			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+					.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+					.put(LogMessage.ACTION, "getAzureUserObject")
+					.put(LogMessage.MESSAGE, "Failed to parse AAD user api response")
+					.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
+		}
+		return aadUserObject;
+	}
+
+	/**
+	 *
+	 * @param jsonParser
+	 * @param jsonResponse
+	 * @param apiResponse
+	 * @return
+	 * @throws IOException
+	 */
+	private AADUserObject parseAndGetUserObjFromAADResponse(JsonParser jsonParser, StringBuilder jsonResponse,
+												HttpResponse apiResponse) throws IOException {
+		String output = "";
+		BufferedReader br = new BufferedReader(new InputStreamReader((apiResponse.getEntity().getContent())));
+		while ((output = br.readLine()) != null) {
+			jsonResponse.append(output);
+		}
+
+		AADUserObject aadUserObject = new AADUserObject();
+		JsonObject responseJson = (JsonObject) jsonParser.parse(jsonResponse.toString());
+		if (responseJson != null && responseJson.has("id")) {
+			aadUserObject.setUserId(responseJson.get("id").getAsString());
+		}
+		if (responseJson != null && responseJson.has("mail")) {
+			aadUserObject.setEmail(responseJson.get("mail").getAsString());
+		}
+		return aadUserObject;
 	}
 }
