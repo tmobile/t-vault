@@ -69,7 +69,7 @@ export const PopperItem = styled.div`
 `;
 
 export const TabWrapper = styled.div`
-  height: calc(100% - 2.8rem);
+  height: 100%;
   display: flex;
   flex-direction: column;
   position: relative;
