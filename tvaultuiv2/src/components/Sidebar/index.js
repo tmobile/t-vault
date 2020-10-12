@@ -4,12 +4,23 @@ import styled from 'styled-components';
 import { withRouter } from 'react-router-dom';
 import Link from '@material-ui/core/Link';
 import userIcon from '../../assets/icon-profile.svg';
-import ButtonComponent from '../FormFields/ActionButton';
+import banner from '../../assets/mob-banner.svg';
+import close from '../../assets/close.svg';
 
 const SideMenuWrapper = styled.div`
-  padding: 2rem 0;
   width: 33rem;
 `;
+
+const BannerCloseWrap = styled.div`
+  display: flex;
+  align-item: center;
+  justify-content: space-between;
+  padding: 4rem 3rem 5.5rem 4rem;
+`;
+
+const Logo = styled.img``;
+
+const Close = styled.img``;
 
 const NavItems = styled.div`
   display: flex;
@@ -19,10 +30,10 @@ const NavItems = styled.div`
 
 const NavLink = styled(Link)`
   text-decoration: none;
-  padding: 2rem;
+  padding: 2rem 4rem;
   font-weight: bold;
   background: ${(props) =>
-    props.active ? props.theme.gradients.list : 'none'};
+    props.active ? props.theme.gradients.sideBar : 'none'};
   :hover {
     text-decoration: none;
   }
@@ -31,7 +42,8 @@ const NavLink = styled(Link)`
 const ProfileIconWrap = styled('div')`
   display: flex;
   align-items: center;
-  padding-left: 2rem;
+  padding-left: 4rem;
+  padding-top: 2rem;
 `;
 
 const UserName = styled.span``;
@@ -44,7 +56,10 @@ const Sidebar = (props) => {
   const { onClose, navItems, location, userName } = props;
   return (
     <SideMenuWrapper>
-      <ButtonComponent color="primary" onClick={onClose} label="Close" />
+      <BannerCloseWrap>
+        <Logo src={banner} alt="banner" />
+        <Close src={close} alt="close" onClick={onClose} />
+      </BannerCloseWrap>
       <NavItems>
         {navItems &&
           navItems.map((item) => (

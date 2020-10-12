@@ -426,6 +426,7 @@ const customTheme = createMuiTheme({
   gradients: {
     list: 'linear-gradient(to right, #72134b, #1d212c)',
     nav: 'linear-gradient(to top, #7b124e, rgba(123, 18, 78, 0))',
+    sideBar: 'linear-gradient(to right, #1d212c, #72134b)',
   },
   customColor,
   zIndex: { zIndex: 1300 },
