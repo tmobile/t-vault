@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useReducer } from 'react';
 import styled, { css } from 'styled-components';
 import useMediaQuery from '@material-ui/core/useMediaQuery';
 import { InputLabel } from '@material-ui/core';
@@ -6,13 +6,14 @@ import RadioGroup from '@material-ui/core/RadioGroup';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 import Radio from '@material-ui/core/Radio';
 import PropTypes from 'prop-types';
-import { SubHeading } from '../../../../../styles/GlobalStyles';
-import TextFieldComponent from '../../../../../components/FormFields/TextField';
-import RadioPermissionComponent from '../RadioPermissions';
-import ButtonComponent from '../../../../../components/FormFields/ActionButton';
-import mediaBreakpoints from '../../../../../breakpoints';
-import { ColorBackArrow } from '../../../../../assets/SvgIcons';
-import ComponentError from '../../../../../errorBoundaries/ComponentError/component-error';
+import { SubHeading } from '../../styles/GlobalStyles';
+import TextFieldComponent from '../FormFields/TextField';
+import RadioSafePermissionComponent from '../../views/private/safe/components/RadioPermissions';
+import RadioSvcPermissionComponent from '../../views/private/service-accounts/components/RadioPermissions';
+import ButtonComponent from '../FormFields/ActionButton';
+import mediaBreakpoints from '../../breakpoints';
+import { ColorBackArrow } from '../../assets/SvgIcons';
+import ComponentError from '../../errorBoundaries/ComponentError/component-error';
 
 const { small } = mediaBreakpoints;
 const ContainerWrapper = styled.section``;
@@ -72,41 +73,80 @@ const extraCss = css`
 const RadioWrapper = styled.div``;
 
 const AddAwsApplication = (props) => {
-  const { handleSaveClick, handleCancelClick } = props;
+  const { handleSaveClick, handleCancelClick, isSvcAccount } = props;
   const [awsAuthenticationType, setAwsAuthenticationType] = useState('ec2');
   const [roleName, setRoleName] = useState('');
-  const [iamRoleArn, setIamRoleArn] = useState('');
-  const [vpcId, setVpcId] = useState('');
-  const [accountId, setAccountId] = useState('');
-  const [subnetId, setSubnetId] = useState('');
-  const [amiId, setAmiId] = useState('');
-  const [profileArn, setProfileArn] = useState('');
-  const [region, setRegion] = useState('');
   const [iamPrincipalArn, setIamPrincipalArn] = useState('');
   const [radioValue, setRadioValue] = useState('read');
   const [isEC2, setIsEC2] = useState(true);
   const isMobileScreen = useMediaQuery(small);
   const [disabledSave, setDisabledSave] = useState(true);
   const [principalError, setPrincipalError] = useState(false);
+  const [count, setCount] = useState(0);
+
+  const initialState = {
+    vpcId: '',
+    iamRoleArn: '',
+    accountId: '',
+    subnetId: '',
+    amiId: '',
+    profileArn: '',
+    region: '',
+  };
+  const reducer = (state, { field, value }) => {
+    return {
+      ...state,
+      [field]: value,
+    };
+  };
+  const [state, dispatch] = useReducer(reducer, initialState);
+
+  const onChange = (e) => {
+    dispatch({ field: e.target.name, value: e.target.value });
+  };
+
+  const {
+    vpcId,
+    accountId,
+    iamRoleArn,
+    region,
+    subnetId,
+    profileArn,
+    amiId,
+  } = state;
+
+  useEffect(() => {
+    let val = 0;
+    Object.values(state).map((value) => {
+      if (value === null || value === '') {
+        val += 1;
+        return setCount(val);
+      }
+      return null;
+    });
+  }, [state]);
 
   const checkValidArn = (text) => {
-    const res = /^arn:aws:\S+::\d{12}/;
-    return res.test(text);
+    if (text) {
+      const res = /^arn:aws:\S+::\d{12}/;
+      return res.test(text);
+    }
+    return null;
   };
 
   useEffect(() => {
     if (!isEC2) {
-      if (roleName === '' || roleName.length < 3 || principalError) {
+      if (roleName?.length < 3 || principalError) {
         setDisabledSave(true);
       } else {
         setDisabledSave(false);
       }
-    } else if (roleName === '' || roleName.length < 3) {
+    } else if (roleName?.length < 3 || count > 5) {
       setDisabledSave(true);
     } else {
       setDisabledSave(false);
     }
-  }, [roleName, isEC2, iamPrincipalArn, principalError]);
+  }, [roleName, isEC2, iamPrincipalArn, principalError, count]);
 
   const handleAwsRadioChange = (event) => {
     setAwsAuthenticationType(event.target.value);
@@ -115,10 +155,6 @@ const AddAwsApplication = (props) => {
     } else {
       setIsEC2(false);
     }
-  };
-
-  const handleRadioChange = (event) => {
-    setRadioValue(event.target.value);
   };
 
   const onCreateClicked = () => {
@@ -158,7 +194,7 @@ const AddAwsApplication = (props) => {
 
   const onIamPrincipalChange = (text) => {
     setIamPrincipalArn(text);
-    if (text && !checkValidArn(text)) {
+    if (!checkValidArn(text)) {
       setPrincipalError(true);
     } else {
       setPrincipalError(false);
@@ -216,7 +252,7 @@ const AddAwsApplication = (props) => {
               type="number"
               readOnly={!isEC2}
               name="accountId"
-              onChange={(e) => setAccountId(e.target.value)}
+              onChange={(e) => onChange(e)}
             />
           </EachInputField>
           <EachInputField>
@@ -227,7 +263,7 @@ const AddAwsApplication = (props) => {
               fullWidth
               readOnly={!isEC2}
               name="region"
-              onChange={(e) => setRegion(e.target.value)}
+              onChange={(e) => onChange(e)}
             />
           </EachInputField>
         </InputAwsWrapper>
@@ -240,7 +276,7 @@ const AddAwsApplication = (props) => {
               fullWidth
               readOnly={!isEC2}
               name="vpcId"
-              onChange={(e) => setVpcId(e.target.value)}
+              onChange={(e) => onChange(e)}
             />
           </EachInputField>
           <EachInputField>
@@ -251,7 +287,7 @@ const AddAwsApplication = (props) => {
               fullWidth
               readOnly={!isEC2}
               name="subnetId"
-              onChange={(e) => setSubnetId(e.target.value)}
+              onChange={(e) => onChange(e)}
             />
           </EachInputField>
         </InputAwsWrapper>
@@ -264,7 +300,7 @@ const AddAwsApplication = (props) => {
               fullWidth
               readOnly={!isEC2}
               name="amiId"
-              onChange={(e) => setAmiId(e.target.value)}
+              onChange={(e) => onChange(e)}
             />
           </EachInputField>
           <EachInputField>
@@ -275,7 +311,7 @@ const AddAwsApplication = (props) => {
               fullWidth
               readOnly={!isEC2}
               name="profileArn"
-              onChange={(e) => setProfileArn(e.target.value)}
+              onChange={(e) => onChange(e)}
             />
           </EachInputField>
         </InputAwsWrapper>
@@ -288,7 +324,7 @@ const AddAwsApplication = (props) => {
               fullWidth
               readOnly={!isEC2}
               name="iamRoleArn"
-              onChange={(e) => setIamRoleArn(e.target.value)}
+              onChange={(e) => onChange(e)}
             />
           </EachInputField>
           <EachInputField>
@@ -307,10 +343,17 @@ const AddAwsApplication = (props) => {
         </InputAwsWrapper>
         <RadioWrapper>
           <InputLabel required>Permission</InputLabel>
-          <RadioPermissionComponent
-            radioValue={radioValue}
-            handleRadioChange={(e) => handleRadioChange(e)}
-          />
+          {isSvcAccount ? (
+            <RadioSvcPermissionComponent
+              radioValue={radioValue}
+              handleRadioChange={(e) => setRadioValue(e.target.value)}
+            />
+          ) : (
+            <RadioSafePermissionComponent
+              radioValue={radioValue}
+              handleRadioChange={(e) => setRadioValue(e.target.value)}
+            />
+          )}
         </RadioWrapper>
         <CancelSaveWrapper>
           <CancelButton>
@@ -337,5 +380,10 @@ const AddAwsApplication = (props) => {
 AddAwsApplication.propTypes = {
   handleCancelClick: PropTypes.func.isRequired,
   handleSaveClick: PropTypes.func.isRequired,
+  isSvcAccount: PropTypes.bool,
+};
+
+AddAwsApplication.defaultProps = {
+  isSvcAccount: false,
 };
 export default AddAwsApplication;

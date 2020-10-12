@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import styled from 'styled-components';
+import { makeStyles } from '@material-ui/core/styles';
 import { withRouter } from 'react-router-dom';
 import PropTypes from 'prop-types';
 import Link from '@material-ui/core/Link';
@@ -60,7 +61,8 @@ const NavLink = styled(Link)`
   margin: 0 0.5rem;
   padding: 2.5rem 2rem;
   font-weight: bold;
-  background: ${(props) => (props.active ? props.theme.gradients.nav : 'none')};
+  background: ${(props) =>
+    props.active === 'true' ? props.theme.gradients.nav : 'none'};
   :hover {
     text-decoration: none;
   }
@@ -79,7 +81,17 @@ const UserIcon = styled.img`
   margin: 0 0.5rem;
 `;
 
+const useStyles = makeStyles(() => ({
+  root: {
+    '& .MuiDrawer-paper': {
+      boxShadow: '5px 0 15px 0 rgba(226, 0, 116, 0.5)',
+      backgroundColor: '#151820',
+    },
+  },
+}));
+
 const Header = (props) => {
+  const classes = useStyles();
   const { location } = props;
   const [userName] = useState('User');
   const [state, setState] = React.useState({
@@ -122,6 +134,7 @@ const Header = (props) => {
               open={state.left}
               onClose={toggleDrawer('left', false)}
               onOpen={toggleDrawer('left', true)}
+              className={classes.root}
             >
               <Sidebar
                 onClose={() => hideSideMenu('left', false)}
@@ -138,7 +151,9 @@ const Header = (props) => {
                 <NavLink
                   href={`/${item.path}`}
                   key={item.label}
-                  active={`/${location.pathname}`.includes(item.path)}
+                  active={`/${location.pathname}`
+                    .includes(item.path)
+                    .toString()}
                 >
                   {item.label}
                 </NavLink>

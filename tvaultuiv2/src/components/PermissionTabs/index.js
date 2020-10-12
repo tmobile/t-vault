@@ -1,5 +1,5 @@
 /* eslint-disable react/jsx-props-no-spreading */
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import styled, { css } from 'styled-components';
 import { makeStyles } from '@material-ui/core/styles';
 import Tab from '@material-ui/core/Tab';
@@ -59,13 +59,14 @@ const PermissionsTabs = (props) => {
   const { onAddLabelBtnClicked, count, onTabChange, value } = props;
   const classes = useStyles();
   const [tabData] = useState({
-    0: 'Permission',
+    0: 'User',
     1: 'Group',
     2: 'AWS Application',
     3: 'App Role',
   });
-  const [selectedTab, setSelectedTab] = useState('Permission');
+  const [selectedTab, setSelectedTab] = useState('User');
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const handleChange = (event, newValue) => {
     onTabChange(newValue);
     Object.entries(tabData).map(([key, data]) => {
@@ -75,6 +76,10 @@ const PermissionsTabs = (props) => {
       return null;
     });
   };
+
+  useEffect(() => {
+    handleChange('', value);
+  }, [value, handleChange]);
 
   return (
     <ComponentError>

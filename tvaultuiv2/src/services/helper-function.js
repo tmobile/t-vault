@@ -169,3 +169,13 @@ export const removeDuplicate = (arr) => {
   }, []);
   return filteredArr;
 };
+
+export const checkAccess = (access) => {
+  let val = '';
+  if (access === 'write') {
+    val = 'reset';
+  } else {
+    val = access;
+  }
+  return val;
+};

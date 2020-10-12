@@ -163,6 +163,7 @@ const AccountSelectionTabs = (props) => {
 
   useEffect(() => {
     setResponse({ status: 'loading' });
+    setSecretResStatus({ status: ' loading' });
     setHasSvcAccountAcitve(false);
     if (accountDetail?.name) {
       fetchPermission();
@@ -206,6 +207,7 @@ const AccountSelectionTabs = (props) => {
               hasSvcAccountAcitve={hasSvcAccountAcitve}
               parentStatus={response.status}
               refresh={refresh}
+              fetchPermission={fetchPermission}
             />
           </TabPanel>
         </TabContentsWrap>

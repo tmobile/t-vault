@@ -4,6 +4,9 @@ import styled, { css } from 'styled-components';
 import PropTypes from 'prop-types';
 import ComponentError from '../../../../../errorBoundaries/ComponentError/component-error';
 import Users from './components/Users';
+import Groups from './components/Groups';
+import AppRoles from './components/AppRoles';
+import AwsApplications from './components/AwsApplications';
 import LoaderSpinner from '../../../../../components/Loaders/LoaderSpinner';
 import Error from '../../../../../components/Error';
 import SnackbarComponent from '../../../../../components/Snackbar';
@@ -39,16 +42,27 @@ const ServiceAccountPermission = (props) => {
     accountMetaData,
     hasSvcAccountAcitve,
     parentStatus,
+    fetchPermission,
   } = props;
   const [value, setValue] = useState(0);
-  const [newPermission, setNewPermission] = useState(false);
-  const [, setNewGroup] = useState(false);
-  const [, setNewAwsApplication] = useState(false);
-  const [, setNewAppRole] = useState(false);
+  const [newPermission, setNewUser] = useState(false);
+  const [newGroup, setNewGroup] = useState(false);
+  const [newAwsApplication, setNewAwsApplication] = useState(false);
+  const [newAppRole, setNewAppRole] = useState(false);
   const [count, setCount] = useState(0);
   const [response, setResponse] = useState({ status: 'loading' });
   const [toastResponse, setToastResponse] = useState(null);
   const [toastMessage, setToastMessage] = useState('');
+
+  const initialObject = {
+    0: { label: 'users', addBtnCallback: () => setNewUser(true) },
+    1: { label: 'groups', addBtnCallback: () => setNewGroup(true) },
+    2: {
+      label: 'aws applications',
+      addBtnCallback: () => setNewAwsApplication(true),
+    },
+    3: { label: 'app roles', addBtnCallback: () => setNewAppRole(true) },
+  };
 
   useEffect(() => {
     setResponse({ status: parentStatus });
@@ -81,15 +95,12 @@ const ServiceAccountPermission = (props) => {
   }, [value, accountMetaData]);
 
   const onAddLabelBtnClicked = () => {
-    if (value === 0) {
-      setNewPermission(true);
-    } else if (value === 1) {
-      setNewGroup(true);
-    } else if (value === 2) {
-      setNewAwsApplication(true);
-    } else if (value === 3) {
-      setNewAppRole(true);
-    }
+    Object.keys(initialObject).map((item) => {
+      if (item === value.toString()) {
+        initialObject[item].addBtnCallback();
+      }
+      return null;
+    });
   };
 
   const onToastClose = (reason) => {
@@ -133,7 +144,7 @@ const ServiceAccountPermission = (props) => {
                       <Users
                         accountDetail={accountDetail}
                         newPermission={newPermission}
-                        onNewPermissionChange={() => setNewPermission(false)}
+                        onNewPermissionChange={() => setNewUser(false)}
                         accountMetaData={accountMetaData}
                         refresh={refresh}
                         updateToastMessage={(res, message) =>
@@ -142,13 +153,40 @@ const ServiceAccountPermission = (props) => {
                       />
                     </TabPanel>
                     <TabPanel value={value} index={1}>
-                      groups
+                      <Groups
+                        accountDetail={accountDetail}
+                        newGroup={newGroup}
+                        onNewGroupChange={() => setNewGroup(false)}
+                        accountMetaData={accountMetaData}
+                        updateToastMessage={(res, message) =>
+                          updateToastMessage(res, message)
+                        }
+                        fetchPermission={fetchPermission}
+                      />
                     </TabPanel>
                     <TabPanel value={value} index={2}>
-                      AwsApplications
+                      <AwsApplications
+                        accountDetail={accountDetail}
+                        newAwsApplication={newAwsApplication}
+                        onNewAwsChange={() => setNewAwsApplication(false)}
+                        accountMetaData={accountMetaData}
+                        updateToastMessage={(res, message) =>
+                          updateToastMessage(res, message)
+                        }
+                        fetchPermission={fetchPermission}
+                      />
                     </TabPanel>
                     <TabPanel value={value} index={3}>
-                      Approle
+                      <AppRoles
+                        accountDetail={accountDetail}
+                        newAppRole={newAppRole}
+                        onNewAppRoleChange={() => setNewAppRole(false)}
+                        accountMetaData={accountMetaData}
+                        updateToastMessage={(res, message) =>
+                          updateToastMessage(res, message)
+                        }
+                        fetchPermission={fetchPermission}
+                      />
                     </TabPanel>
                   </PermissionTabsWrapper>
                   {toastResponse === -1 && (
@@ -185,11 +223,13 @@ ServiceAccountPermission.propTypes = {
   refresh: PropTypes.func.isRequired,
   hasSvcAccountAcitve: PropTypes.bool,
   parentStatus: PropTypes.string.isRequired,
+  fetchPermission: PropTypes.func,
 };
 
 ServiceAccountPermission.defaultProps = {
   accountDetail: {},
   hasSvcAccountAcitve: false,
+  fetchPermission: () => {},
 };
 
 export default ServiceAccountPermission;
