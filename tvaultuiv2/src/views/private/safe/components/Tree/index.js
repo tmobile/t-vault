@@ -284,7 +284,7 @@ const Tree = (props) => {
     apiService
       .deleteFolder(node.id)
       .then((res) => {
-        if (node.parentId.split('/').length === 2) {
+        if (node?.parentId?.split('/').length === 2) {
           getChildrenData(node.parentId, node.id, 'deleteparentitem');
           setStatus({
             status: 'success',

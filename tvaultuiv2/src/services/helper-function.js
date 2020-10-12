@@ -43,8 +43,9 @@ export function findElementById(arr, id, nestingKey) {
 export const findItemAndRemove = (arr, key, id) => {
   if (arr?.length === 0) return;
   const tempArr = [...arr];
-  const indexofItem = tempArr[0][key].findIndex((item) => item.id === id);
-  tempArr[0][key].splice(indexofItem, 1);
+  const indexofItem =
+    tempArr[0] && tempArr[0][key].findIndex((item) => item.id === id);
+  if (indexofItem) tempArr[0][key].splice(indexofItem, 1);
   return tempArr;
 };
 

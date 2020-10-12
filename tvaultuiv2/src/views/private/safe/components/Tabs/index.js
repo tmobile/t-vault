@@ -201,7 +201,7 @@ const SelectionTabs = (props) => {
           });
         });
     }
-  }, [safeDetail, history.location.state]);
+  }, [safeDetail, history]);
 
   return (
     <ComponentError>
