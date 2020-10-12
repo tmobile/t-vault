@@ -2983,6 +2983,7 @@ public class  IAMServiceAccountsService {
 	public ResponseEntity<String> readSecrets(String token, String awsAccountID, String iamSvcName, String accessKey)
 			throws IOException {
 
+		iamSvcName = iamSvcName.toLowerCase();
 		String iamSvcNamePath = IAMServiceAccountConstants.IAM_SVCC_ACC_PATH + awsAccountID + '_' + iamSvcName;
 		ResponseEntity<String> response = readFolders(token, iamSvcNamePath);
 		ObjectMapper mapper = new ObjectMapper();
@@ -2992,13 +2993,16 @@ public class  IAMServiceAccountsService {
 			for (String folderName : iamServiceAccountNode.getFolders()) {
 				ResponseEntity<String> responseEntity = getIAMServiceAccountSecretKey(token,
 						awsAccountID + '_' + iamSvcName, folderName);
-				JsonParser jsonParser = new JsonParser();
-				JsonObject data = ((JsonObject) jsonParser.parse(responseEntity.getBody())).getAsJsonObject("data");
-
-				IAMServiceAccountSecret iamServiceAccountSecret = mapper.readValue(data.toString(),
-						IAMServiceAccountSecret.class);
-				if (accessKey.equals(iamServiceAccountSecret.getAccessKeyId())) {
-					secret = iamServiceAccountSecret.getAccessKeySecret();
+				if (HttpStatus.OK.equals(responseEntity.getStatusCode())) {
+					IAMServiceAccountSecret iamServiceAccountSecret = mapper.readValue(responseEntity.getBody(),
+							IAMServiceAccountSecret.class);
+					if (accessKey.equals(iamServiceAccountSecret.getAccessKeyId())) {
+						secret = iamServiceAccountSecret.getAccessKeySecret();
+						break;
+					}
+				}else{
+					return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
+							"{\"error\":" + JSONUtil.getJSON("No secret with the access keyID :" + accessKey + "") + "}");
 				}
 			}
 			if (StringUtils.isEmpty(secret)) {
