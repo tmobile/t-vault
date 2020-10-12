@@ -1049,6 +1049,7 @@ public class ControllerUtilTest {
     	SSCred expected = new SSCred();
     	expected.setUsername("c2FmZWFkbWlu");
     	expected.setPassword("c2FmZWFkbWlu");
+        ReflectionTestUtils.setField(ControllerUtil.class,"sscred", expected);
     	SSCred actual = ControllerUtil.readSSCredFile(sscredFile.getParent(), isDelete);
     	assertNotNull(actual);
     	assertEquals(expected.getUsername(), actual.getUsername());
@@ -1103,7 +1104,8 @@ public class ControllerUtilTest {
         expected.setBoundAudiences("defg123123");
         expected.setDiscoveryUrl("https://login.microsoftonline.com/123123/v2.0");
         expected.setAdLoginUrl("https://login.microsoftonline.com/123123/oauth2/token");
-        OIDCCred actual = ControllerUtil.readOIDCCredFile(oidccredFile.getParent(), isDelete);
+        ReflectionTestUtils.setField(ControllerUtil.class,"oidcCred", expected);
+        OIDCCred actual = ControllerUtil.readOIDCCredFile(oidccredFile.getAbsolutePath(), isDelete);
         assertNotNull(actual);
         assertEquals(expected.getClientName(), actual.getClientName());
         assertEquals(expected.getClientId(), actual.getClientId());
@@ -1125,7 +1127,7 @@ public class ControllerUtilTest {
         expected.setDiscoveryUrl("https://login.microsoftonline.com/123123/v2.0");
         expected.setAdLoginUrl("https://login.microsoftonline.com/123123/oauth2/token");
         ReflectionTestUtils.setField(ControllerUtil.class,"oidcCred", null);
-        SSCred actual = ControllerUtil.readSSCredFile(oidccredFile.getAbsolutePath(), isDelete);
+        OIDCCred actual = ControllerUtil.readOIDCCredFile(oidccredFile.getAbsolutePath(), isDelete);
         assertNull(actual);
     }
 
