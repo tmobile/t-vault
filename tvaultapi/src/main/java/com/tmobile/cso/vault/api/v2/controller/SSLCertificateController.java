@@ -71,7 +71,7 @@ public class SSLCertificateController {
 	@ApiOperation(value = "${SSLCertificateController.getssl.value}", notes = "${SSLCertificateController.getssl.notes}")
 	@GetMapping(value="/v2/sslcert", produces="application/json")
 	public ResponseEntity<String> getCertificates(HttpServletRequest request, @RequestHeader(value="vault-token") String token, @RequestParam(name="certificateName", required = false) String certName,@RequestParam(name = "limit", required = false) Integer limit,
-			@RequestParam(name = "offset", required = false) Integer offset, @RequestParam(name = "certType", required = false) String certType)throws Exception{
+			@RequestParam(name = "offset", required = false) Integer offset, @RequestParam(name = "certType", required = true) String certType)throws Exception{
 		UserDetails userDetails = (UserDetails) request.getAttribute(USER_DETAILS_STRING);
 		return sslCertificateService.getServiceCertificates(token, userDetails, certName, limit, offset,certType);
      }
@@ -186,7 +186,7 @@ public class SSLCertificateController {
 	 * @param certificateDownloadRequest
 	 * @return
 	 */
-	@ApiOperation(value = "${CertificateController.downloadCertificateWithPrivateKey.value}", notes = "${CertificateController.downloadCertificateWithPrivateKey.notes}", hidden = true)
+	@ApiOperation(value = "${CertificateController.downloadCertificateWithPrivateKey.value}", notes = "${CertificateController.downloadCertificateWithPrivateKey.notes}", hidden = false)
 	@PostMapping(value="/v2/sslcert/certificates/download", consumes="application/json")
 	public ResponseEntity<InputStreamResource> downloadCertificateWithPrivateKey(HttpServletRequest request, @RequestHeader(value="vault-token") String token, @Valid @RequestBody CertificateDownloadRequest certificateDownloadRequest) {
 		UserDetails userDetails = (UserDetails) request.getAttribute(USER_DETAILS_STRING);
@@ -201,7 +201,7 @@ public class SSLCertificateController {
 	 * @param certificateType
 	 * @return
 	 */
-	@ApiOperation(value = "${CertificateController.downloadCertificate.value}", notes = "${CertificateController.downloadCertificate.notes}", hidden = true)
+	@ApiOperation(value = "${CertificateController.downloadCertificate.value}", notes = "${CertificateController.downloadCertificate.notes}", hidden = false)
 	@GetMapping(value="/v2/sslcert/certificates/{certificate_name}/{certificate_type}/{sslcert_type}", produces=
 			"application/json")
 	public ResponseEntity<InputStreamResource> downloadCertificate(HttpServletRequest request, @RequestHeader(value=

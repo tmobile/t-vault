@@ -31,6 +31,7 @@
         $scope.svcaccToTransfer = '';
         $scope.searchValue = '';
         $scope.isCollapsed = true;
+        $scope.isCollapsedCert = true;
         $scope.existingTargetSystem = false;
         $scope.existingService = false;
         $scope.isCertCollapsed = false;
@@ -44,6 +45,7 @@
         $scope.isSelfServiceGroupAssigned = true;
         $scope.assignedApplications = [];
         $scope.isExternalCertificateEnable = true;
+        $scope.isAppNamesLoading = true;
         // Type of safe to be filtered from the rest
 
         $scope.safeType = {
@@ -222,8 +224,17 @@
             $scope.certObj.certDetails.ownerEmail = "";
             $scope.isCertificatePreview = false;
             $scope.isCertificateManagePreview = false;
+            if($scope.appNameTableOptions!==undefined){
+            	$scope.appNameTableOptionsSort = $scope.appNameTableOptions.sort(function (a, b) {
+                    return (a.name > b.name ? 1 : -1);
+                });    
+                $scope.dropdownApplicationName = {
+                        'selectedGroupOption': {"type": "Select Application Name","name":"Application Name"},       // As initial placeholder
+                        'tableOptions': $scope.appNameTableOptionsSort
+                    }}
         }
-
+        
+        
         // Updating the data based on type of safe, by clicking dropdown
         $scope.filterUpdate = function (option) {
             $scope.filterValue = option.value;
@@ -1256,6 +1267,11 @@
             $scope.isCollapsed = !$scope.isCollapsed;
         }
 
+        $scope.collapseNoteCert = function () {
+            $scope.isCollapsedCert = !$scope.isCollapsedCert;
+        }
+
+
         $scope.transferOwnerPopUp = function (svcaccname) {
             $scope.svcaccToTransfer = svcaccname;
             Modal.createModal('md', 'transferSvcaccPopUp.html', 'AdminCtrl', $scope);
@@ -1350,6 +1366,15 @@
             $scope.certDnsErrorMessage='';
             $scope.multiSan=[];
             $scope.addEmail();
+            $scope.appNameTableOptionsSort=[]
+            if($scope.appNameTableOptions!==undefined){
+            	$scope.appNameTableOptionsSort = $scope.appNameTableOptions.sort(function (a, b) {
+                    return (a.name > b.name ? 1 : -1);
+                });    
+                $scope.dropdownApplicationName = {
+                        'selectedGroupOption': {"type": "Select Application Name","name":"Application Name"},       // As initial placeholder
+                        'tableOptions': $scope.appNameTableOptionsSort
+                    }}
         }
 
         $scope.replaceSpacesCertName = function () {
@@ -1436,7 +1461,7 @@
             }
         }
 
-        $scope.isCreateCertBtnDisabled = function () {         	
+        $scope.isCreateCertBtnDisabled = function () {          	
             if ($scope.certObj.certDetails.certName != undefined
 	        	&& $scope.certObj.certDetails.certName != ""
                 && !$scope.certInValid
@@ -1451,12 +1476,22 @@
             }
             return true;
         }
-        $scope.selectAppName = function (applicationObj) {  
+        $scope.selectAppName = function (applicationObj) {         	
             $scope.certObj.certDetails.applicationName = applicationObj.tag;
             $scope.appName = applicationObj.name;
             $scope.appNameSelected = true;
             $scope.isOwnerSelected = true
         }
+        
+        $scope.appNameSelect = function(){
+        	if($scope.dropdownApplicationName !==undefined){
+            $scope.dropdownApplicationName.selectedGroupOption.type;
+            $scope.certObj.certDetails.applicationName = $scope.dropdownApplicationName.selectedGroupOption.tag;
+            $scope.appName = $scope.dropdownApplicationName.selectedGroupOption.name;
+            $scope.appNameSelected = true;
+            $scope.isOwnerSelected = true
+        	}
+         }
 
         $scope.selectApplicationName = function (applicationObj) { 	
             if(applicationObj != $scope.certObj.certDetails.applicationName){	
@@ -1472,8 +1507,9 @@
             AdminSafesManagement.getApprolesFromCwm().then(function (response) {
                 if (UtilityService.ifAPIRequestSuccessful(response)) {
                     $scope.isApplicationsLoading = false;
+                    $scope.isAppNamesLoading = true;
                     var data = response.data;
-                    $scope.appNameTableOptions=[];
+                    $scope.appNameTableOptions=[];                    
                      for (var index = 0;index<data.length;index++) {
                         var value = '';
                         var appTag = '';
@@ -1489,10 +1525,14 @@
                         if (data[index].appTag !='' && data[index].appTag != null && data[index].appTag != undefined) {
                             appTag = data[index].appTag;
                         }
-                        if($scope.assignedApplications.includes(appTag)){
+                        if(JSON.parse(SessionStore.getItem("isAdmin")) == true){
+                        	$scope.appNameTableOptions.push({"type":value, "name": name, "tag": appTag, "id": appID});
+                        }
+                        if(JSON.parse(SessionStore.getItem("isAdmin")) == false && $scope.assignedApplications.includes(appTag)  ){
                             $scope.appNameTableOptions.push({"type":value, "name": name, "tag": appTag, "id": appID});
                         }
                     }
+                     $scope.isAppNamesLoading = false;
                 }
                 else {
                     $scope.errorMessage = AdminSafesManagement.getTheRightErrorMessage(response);
@@ -1502,6 +1542,7 @@
             function (error) {
                 // Error handling function
                 console.log(error);
+                $scope.isAppNamesLoading = false;
                 $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
                 $scope.error('md');
             })
@@ -1558,9 +1599,11 @@
                 $scope.certificateCreationMessage = '';
                 var url = '';
                 $scope.isLoadingData = true;
+                $scope.isLoadingCerts = true;
                 AdminSafesManagement.sslCertificateCreation(reqObjtobeSent, url).then(function (response) {
 
                     $scope.isLoadingData = false;
+                    $scope.isLoadingCerts = false;
                     if (UtilityService.ifAPIRequestSuccessful(response)) {
                         $scope.certificateCreationMessage = response.data.messages[0];
                         resetCert();
@@ -1575,6 +1618,7 @@
                     $scope.certificateCreationMessage = errors[0];
                     $scope.certificateCreationFailedPopUp();
                     $scope.isLoadingData = false;
+                    $scope.isLoadingCerts = false;
                     console.log(error);
                     $scope.searchValue = '';
                     $scope.multiSan=[];
@@ -1809,6 +1853,7 @@
             fullObj[obj] = myobj;
             try {       
                 $scope.isLoadingData = true;
+                $scope.isLoadingCerts = true;
                 $scope.ispermissionData = true;               // To show the 'permissions' and hide the 'details'
                 $scope.UsersPermissionsData = [];
 
@@ -1819,13 +1864,14 @@
                     if(certificateDetails.requestStatus !== null && certificateDetails.requestStatus !== "Approved") {
                         var updatedUrlOfEndPoint = RestEndpoints.baseURL + "/v2/sslcert/validate/" + certName+"/"+ certificateType;
                         AdminSafesManagement.validateCertificateDetails(null, updatedUrlOfEndPoint).then(function (response) {
-
                             if (UtilityService.ifAPIRequestSuccessful(response)) {
                                 $state.go('change-certificate', fullObj, $rootScope.checkStatus);
                                 $scope.isLoadingData = false;
+                                $scope.isLoadingCerts = false;
                             }
                             else {
                                 $scope.isLoadingData = false;
+                                $scope.isLoadingCerts = false;
                                 $scope.validateCertificateDetailsPopUp();
                             }
                         },
@@ -1835,7 +1881,12 @@
                         	$scope.viewEditErrorMessage = errors[0];
                         	$scope.isLoadingData = false;
                         	$scope.validateCertificateDetailsPopUp();
-                        } else {
+                        } else if(error.status === 500){
+                             var errors = error.data.errors;
+                            $scope.viewEditErrorMessage = "Your request cannot be processed now due to some technical issue. Please try again later";
+                            $scope.isLoadingData = false;
+                            $scope.validateCertificateDetailsPopUp();
+                          } else {
                             // Error handling function
                             console.log(error);
                             $scope.isLoadingData = false;
@@ -2006,6 +2057,20 @@
                 }
                 $scope.multiSan = $scope.selectedMultiSan;
             }
+            
+            $scope.AddorRemoveDNS= function (id) {
+            	$scope.certDnsErrorMessage = '';
+            	$scope.multiSanDnsName.name = "";
+            	if(id==false){
+            		for (var i=0;i<$scope.multiSan.length;i++) {
+            			 var dnsElement = angular.element( document.querySelector( '#dns'+i ) );
+                         dnsElement.remove();
+            		}
+                         $scope.selectedMultiSan = [];
+                         $scope.multiSan = $scope.selectedMultiSan;
+            		
+            		}
+            }
 
             $scope.replaceSpacesDnsName = function () {
                 if ($scope.multiSanDnsName.name !== null && $scope.multiSanDnsName.name !== undefined) {
@@ -2053,7 +2118,7 @@
                 $scope.certOwnerTransferErrorMessage = '';
                 if(certDetails.requestStatus!=null && certDetails.requestStatus!=undefined && certDetails.requestStatus=="Pending Approval"){	
                 	$scope.isLoadingData = false;	
-                	$scope.viewEditErrorMessage = "Certificate may not be approved or rejected from NCLM";	
+                	$scope.viewEditErrorMessage = "Certificate may not be approved or rejected.Please follow the instructions mentioned in email ";
                     $scope.validateCertificateDetailsPopUp();	
                 }else{	
                 Modal.createModal('md', 'transferCertPopup.html', 'AdminCtrl', $scope);	
@@ -2115,9 +2180,11 @@
                 certificateDetails.applicationName=certificateDetails.appNameTagValue;    
                 var url = RestEndpoints.baseURL + "/v2/sslcert/" +certType+"/"+ certificateName +"/"+certOwnerEmailId +"/transferowner";
                 $scope.isLoadingData = true;   
+                $scope.isLoadingCerts = true;
                 resetCert();
                 AdminSafesManagement.transferCertificate(null, url).then(function (response) {
                     $scope.isLoadingData = false;
+                    $scope.isLoadingCerts = false;
                     $scope.certObj.certDetails.ownerEmail="";
                     if (UtilityService.ifAPIRequestSuccessful(response)) {
                         $scope.transferMessage = 'Certificate Owner Transferred Successfully!';

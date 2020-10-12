@@ -236,7 +236,7 @@
             },
             function (error) {
                 // Error handling function
-                console.log(error);
+                console.log(error);               
             })
         };
 

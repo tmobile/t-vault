@@ -178,6 +178,11 @@ public class SSLCertificateServiceTest {
         ReflectionTestUtils.setField(sSLCertificateService, "deleteCertificateEndpoint", "certificates/certID");
         ReflectionTestUtils.setField(sSLCertificateService, "supportEmail", "support@abc.com");
         ReflectionTestUtils.setField(sSLCertificateService, "requestStatusUrl", "actions/actionid");
+        ReflectionTestUtils.setField(sSLCertificateService, "fromEmail", "no-reply@t-mobile.com");
+        ReflectionTestUtils.setField(sSLCertificateService, "nclmErrorMessage", "Your request cannot be processed now due to some technical issue. Please try after some time");
+        ReflectionTestUtils.setField(sSLCertificateService, "nclmMockEnabled", "false");
+
+
 
         token = "5PDrOhsy4ig8L3EpsJZSLAMg";
         userDetails.setUsername("normaluser");
@@ -1229,8 +1234,10 @@ public class SSLCertificateServiceTest {
         response1.setResponse(jsonStr1);
         response1.setSuccess(true);
         when(reqProcessor.processCert(eq("/auth/certmanager/login"), anyObject(), anyString(), anyString())).thenReturn(response);
-
         when(reqProcessor.processCert(eq("/certmanager/findCertificate"), anyObject(), anyString(), anyString())).thenReturn(response1);
+
+        SSLCertificateMetadataDetails certificateMetadata = getSSLExternalCertificateRequest();
+        when(certificateUtils.getCertificateMetaData(any(), anyString(), anyString())).thenReturn(certificateMetadata);
 
         ResponseEntity<?> enrollResponse =
                 sSLCertificateService.generateSSLCertificate(sslCertificateRequest,userDetails,token);
@@ -2738,7 +2745,7 @@ public class SSLCertificateServiceTest {
                 "}]}";
         CertResponse response = new CertResponse();
         response.setHttpstatus(HttpStatus.INTERNAL_SERVER_ERROR);
-        response.setResponse("{\"errors\":[\"NCLM services are down. Please try after some time\"]}");
+        response.setResponse("{\"errors\":[\"Your request cannot be processed now due to some technical issue. Please try after some time\"]}");
         response.setSuccess(false);
         String jsonStrUser = "{  \"username\": \"testusername1\",  \"password\": \"testpassword1\"}";
         CertResponse responseUser = new CertResponse();
@@ -2757,7 +2764,7 @@ public class SSLCertificateServiceTest {
                 Mockito.anyString())).thenReturn(response);
 
 
-        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"NCLM services are down. Please try after some time\"]}");
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Your request cannot be processed now due to some technical issue. Please try after some time\"]}");
         ResponseEntity<String> responseEntityActual = sSLCertificateService.getTargetSystemList(token, getMockUser(true), certType);
 
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, responseEntityActual.getStatusCode());
@@ -2870,7 +2877,7 @@ public class SSLCertificateServiceTest {
                 Mockito.anyString())).thenReturn(response);
 
 
-        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"NCLM services are down. Please try after some time\"]}");
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Your request cannot be processed now due to some technical issue. Please try after some time\"]}");
         ResponseEntity<String> responseEntityActual = sSLCertificateService.getTargetSystemServiceList(token, getMockUser(true), "123");
 
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, responseEntityActual.getStatusCode());
@@ -5744,7 +5751,7 @@ public class SSLCertificateServiceTest {
 				+ "\"containerName\":\"cont_12345\",\"NotAfter\":\"2021-06-15T04:35:58-07:00\"}]}";
 
 		ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY)
-				.body("{\"errors\":[\"Certificate may not be approved from NCLM \"]}");
+				.body("{\"errors\":[\"Certificate may not be approved \"]}");
 		SSLCertificateMetadataDetails certificateMetadata = getSSLExternalCertificateRequest();
 		UserDetails userDetail = getMockUser(true);
 		userDetail.setUsername("testuser1");

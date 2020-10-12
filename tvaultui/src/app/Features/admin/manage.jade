@@ -214,14 +214,14 @@ script(type='text/ng-template', id='certificatePopup.html')
                   div.key-acceptance-info() {{ certNameErrorMessage }}
                 .col-lg-12.col-md-12.col-sm-12.col-xs-12.common-form-row()
                   .details-input-group
-                    .certificate-form-label(uib-tooltip="Name of the application") Application Name*
-                    input.form-control.input-box-style(ng-model="certApplicationName" id="applicationName" typeahead-min-length="2" name="appName" uib-typeahead="key as key.type for key in getAppName($viewValue) | limitTo: 5" typeahead-wait-ms="500" typeahead-on-select="selectAppName(certApplicationName)" ng-change="selectApplicationName(certApplicationName)" ng-disabled="isApplicationsLoading" ng-required="true")
-                    div.loader.svcaccid(ng-if='isApplicationsLoading')
-                .col-lg-12.col-md-12.col-sm-12.col-xs-12.common-form-row()
-                  .details-input-group
-                    .certificate-form-label(uib-tooltip="Owner/creator of the certificate") Owner Email ID*
-                    input.form-control.input-box-style(id="certReqOwnerEmail"  ng-model="certObj.certDetails.ownerEmail" disabled=true)
-                    div.loader.svcaccid(ng-if='isUserSearchLoading && certObj.certDetails.ownerEmail.length > 2')
+                    .certificate-form-label(uib-tooltip="Name of the Cloud application this certificate will be used for. Only applications you have self-service rights to will be shown.") Application Name*
+                      drop-down(drop-down-options="dropdownApplicationName" name="certApplicationName" id="applicationName"  ng-click="appNameSelect()")
+                      div.loader.svcaccid(ng-if='isApplicationsLoading')
+                  .col-lg-12.col-md-12.col-sm-12.col-xs-12.common-form-row()
+                    .details-input-group
+                      .certificate-form-label(uib-tooltip="Owner/Creator of the certificate") Owner Email ID*
+                      input.form-control.input-box-style(id="certReqOwnerEmail"  ng-model="certObj.certDetails.ownerEmail" disabled=true)
+                      div.loader.svcaccid(ng-if='isUserSearchLoading && certObj.certDetails.ownerEmail.length > 2')
                             div
                             div
                             div
@@ -230,18 +230,21 @@ script(type='text/ng-template', id='certificatePopup.html')
                             div
                             div
                             div
-                .col-lg-12.col-md-12.col-sm-12.col-xs-12.common-form-row()
-                  .details-input-group
-                    .certificate-form-label(uib-tooltip="Additional host names (sites, IP addresses, common names, etc.") DNS
-                    div.dns-wrapper
-                      .col-lg-9.col-md-9.col-sm-9.col-xs-9
-                        .cert-input-group.cert-suffix
-                          input.certform-control.input-box-style(id="dns" ng-model="multiSanDnsName.name" ng-change="replaceSpacesDnsName()")
-                          span.input-group-addon .t-mobile.com
-                        div.key-acceptance-info() {{ certDnsErrorMessage }}
-                      .col-lg-3.col-md-3.col-sm-3.col-xs-3
-                        button.common-btn.dns-add-btn(ng-click="addDns(multiSanDnsName)" ng-disabled="dnsInvalid") Add DNS
-                    div.form-control.input-box-style.dns-list(id="dnslist")
+                .col-lg-12.col-md-12.col-sm-12.col-xs-12.common-form-row() 
+                    .details-input-group   
+                      .certificate-form-label(uib-tooltip="Option  to create a SAN certificate with additional domain names")  Are additional DNS names required (SAN Certificate)? &nbsp;&nbsp;   <input type="checkbox" ng-model="isChecked" ng-change="AddorRemoveDNS(isChecked)"/>
+                  .col-lg-12.col-md-12.col-sm-12.col-xs-12.common-form-row(ng-show="isChecked")
+                    .details-input-group
+                      .certificate-form-label(uib-tooltip="Option  to create a SAN certificate with additional domain names")  DNS
+                      div.dns-wrapper
+                        .col-lg-9.col-md-9.col-sm-9.col-xs-9
+                          .cert-input-group.cert-suffix
+                            input.certform-control.input-box-style(id="dns" ng-model="multiSanDnsName.name" ng-change="replaceSpacesDnsName()")
+                            span.input-group-addon .t-mobile.com
+                          div.key-acceptance-info() {{ certDnsErrorMessage }}
+                        .col-lg-3.col-md-3.col-sm-3.col-xs-3
+                          button.common-btn.dns-add-btn(ng-click="addDns(multiSanDnsName)" ng-disabled="dnsInvalid") Add DNS
+                      div.form-control.input-box-style.dns-list(id="dnslist")
 
             .common-form.modal-inner-wrapper.aws(ng-show='isCertificateManagePreview')  
               .common-form-row
@@ -290,8 +293,7 @@ script(type='text/ng-template', id='certificatePopup.html')
                       .cert-preview-details(ng-if="certificateDetails.certType=='External'") Entrust CA
                   .col-lg-12.col-md-12.col-sm-12.col-xs-12.common-form-row()
                     .details-input-group
-                      .div.certeditnotes Note : Select the Edit button  to modify the input details else Create button  to create a certificate
-
+                      .certificate-form-label Note : Select the Edit button  to modify the input details else Create button  to create a certificate
           .text-center.bottom-lg-sep.modal-sep.aws(ng-show='isCertificateManagePreview')
             .col-lg-6.col-md-6.col-sm-6.col-xs-6
               button.common-btn.btn.btn-primary.btn-lg(type='button' ng-click="backToEdit()" ) Edit
@@ -541,17 +543,43 @@ script(type='text/ng-template', id='manageSecretId.html')
                                                     button.show-more-btn VIEW MORE
                                                     span
                                                         img(src="assets/icons/front-arrow.svg")
-                    md-tab(label="Certificate Management" md-on-select="tabChangeForAdminCert()"  ng-if='isSelfServiceGroupAssigned')
+                    md-tab(label="Certificate Management" md-on-select="tabChangeForAdminCert()" )
                         md-content(class="md-padding md-content-wrapper page-content-wrapper md-approle-management" ng-init="displayGrid")
-                          .md-content-inner-wrapper
+                            .md-content-inner-wrapper
+                              div.certnotes How to get started and what to know:
+                                span.cert-collapse-link(ng-click="collapseNoteCert()") >>
+                              div.certcollapsible(uib-collapse="isCollapsedCert")
+                                  div.svcdescription
+                                    text.weighted  1 :
+                                    text Ensure you are a member of the self-service administration group in AD for your respective application.  You can request access from the owner of your application at #[a(href='https://access.t-mobile.com/') Cloud Access].  If you are not a member of one or more of these groups you will not be able to create certificates yourself.
+                                  div.svcdescription
+                                    text.weighted  2 :
+                                    text Currently only the standard SSL Certificate template is used to create certificates, this includes:
+                                  div.svcdescription
+                                    text &nbsp;&nbsp;&nbsp;Signature algorithm: SHA256-RSA.
+                                  div.svcdescription
+                                    text &nbsp;&nbsp;&nbsp;Key usage  : digitalSignature, keyEncipherment.
+                                  div.svcdescription
+                                    text &nbsp;&nbsp;&nbsp;Extended key usage : serverAuth for Internal  and ServerAuth, ClientAuth for External certificates
+                                  div.svcdescription
+                                    text.weighted  3 :
+                                    text If you need a non-standard certificate please reach out to Cloud Support
+                                    to work with them to create this for you.  This functionality will be developed and incorporated into T-Vault at a later date.
+                                  div.svcdescription
+                                      text.weighted 4 :
+                                      text External certificate requests require approval from the NCLM team, that process is outlined when you request an external certificate.
+                                  div.svcdescription
+                                    text.weighted 5 :
+                                    text Suggestions for improvements and features are welcome, please reach out to T-Vault@T-Mobile.com if you have any to share. For more information on how to manage certificates please go #[a(href='https://ccoe.docs.t-mobile.com/t-vault/user-interface/manage_certificates/') here.]
+
                               div.create-certificate-link(ng-show="!isLoadingData && certificateData.certificates.length==0")
-                                  .function-text.link-style.option.right(ng-click="newCertificateConfiguration('lg')")
-                                      .action-icon-wrapper.static
-                                          .rotate.glyphicon.glyphicon-remove-circle
-                                      .create-link.middle-block.hide-in-mobile
-                                          .text CREATE NEW CERTIFICATE
+                                .function-text.link-style.option.right(ng-click="newCertificateConfiguration('lg')")
+                                    .action-icon-wrapper.static
+                                        .rotate.glyphicon.glyphicon-remove-circle
+                                    .create-link.middle-block.hide-in-mobile
+                                        .text CREATE NEW CERTIFICATE
                               div.cert-management-content
-                                loading-state(ng-if='isLoadingData')                               
+                                loading-state(ng-if='isLoadingData'  && 'isLoadingCerts')                               
                                 md-tabs.admin-tabs.md-dynamic-height.md-border-bottom(md-selected="selectedTab")
                                     md-tab( md-on-select="getInternalCertificates()" ng-attr-label="Internal certificates")
                                         md-content(class="md-content-wrapper" ng-if="isInternalCert")
@@ -566,7 +594,7 @@ script(type='text/ng-template', id='manageSecretId.html')
                                                   .container.name.action.col-lg-3.col-md-2.col-sm-2.col-xs-2 EXPIRATION DATE
                                                   .container.name.action.col-lg-2.col-md-2.col-sm-2.col-xs-2 STATUS
                                                   .container.name.action.col-lg-2.col-md-2.col-sm-2.col-xs-2 ACTION
-                                                  div.create-certificate-link
+                                                  div.create-certificate-link(ng-show="!isAppNamesLoading" )
                                                     .function-text.link-style.option.right(ng-click="newCertificateConfiguration('lg')")
                                                       .action-icon-wrapper.static
                                                           .rotate.glyphicon.glyphicon-remove-circle
@@ -611,7 +639,7 @@ script(type='text/ng-template', id='manageSecretId.html')
                                                   .container.name.action.col-lg-3.col-md-2.col-sm-2.col-xs-2 EXPIRATION DATE
                                                   .container.name.action.col-lg-2.col-md-2.col-sm-2.col-xs-2 STATUS                                                  
                                                   .container.name.action.col-lg-2.col-md-2.col-sm-2.col-xs-2 ACTION
-                                                  div.create-certificate-link
+                                                  div.create-certificate-link(ng-show="!isAppNamesLoading" )
                                                     .function-text.link-style.option.right(ng-click="newCertificateConfiguration('lg')")
                                                       .action-icon-wrapper.static
                                                           .rotate.glyphicon.glyphicon-remove-circle

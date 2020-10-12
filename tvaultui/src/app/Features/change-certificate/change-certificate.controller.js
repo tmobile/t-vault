@@ -944,7 +944,15 @@
         $scope.renewCertPopup = function (certDetails) {
             $scope.fetchDataError = false;
             $rootScope.certDetails = certDetails;
-                Modal.createModal('md', 'renewCertPopup.html', 'ChangeCertificateCtrl', $scope);
+            var Difference_In_Time = new Date(certDetails.expiryDate).getTime() - new Date().getTime() ;
+            var Difference_In_Days = Math.round(Difference_In_Time / (1000 * 3600 * 24));
+            console.log("AppConstant.VALID_RENEW_DAYS"+AppConstant.VALID_RENEW_DAYS);
+            if(Difference_In_Days > AppConstant.VALID_RENEW_DAYS){
+                $scope.renewConfirmMessage = "Certificate expiring in  " +Difference_In_Days + " Days . Do you want to renew this certificate?" ;
+            } else {
+                 $scope.renewConfirmMessage = "Are you sure you want to renew this certificate? ";
+            }
+            Modal.createModal('md', 'renewCertPopup.html', 'ChangeCertificateCtrl', $scope);
         };
 
         $scope.revokeReasonsPopUp = function (certificate) {
