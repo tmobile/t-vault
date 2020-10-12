@@ -62,7 +62,9 @@ const Secrets = (props) => {
       <SecretsContainer>
         {
           <CountSpan color="#5e627c">
-            {`${secretsFolder && secretsFolder.length} Secrets`}
+            {`${
+              secretsFolder[0] ? secretsFolder[0]?.children?.length : 0
+            } Secrets`}
           </CountSpan>
         }
 

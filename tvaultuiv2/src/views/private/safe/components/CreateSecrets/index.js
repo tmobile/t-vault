@@ -162,8 +162,8 @@ const CreateSecret = (props) => {
               }
               onClick={() =>
                 handleSecretSave({
-                  key: keyId,
-                  value: secret,
+                  key: keyId.toLowerCase(),
+                  value: secret.toLowerCase(),
                   type: 'secret',
                   parentId,
                 })

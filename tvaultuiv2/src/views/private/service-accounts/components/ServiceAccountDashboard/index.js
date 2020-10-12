@@ -346,6 +346,20 @@ const ServiceAccountDashboard = () => {
     setDeleteAccName(name);
   };
 
+  const onServiceAccountEdit = (name) => {
+    setStatus({ status: 'loading' });
+
+    history.push({
+      pathname: '/service-accounts/change-service-accounts',
+      state: {
+        serviceAccountDetails: {
+          name,
+          isAdmin: contextObj?.isAdmin,
+          isEdit: true,
+        },
+      },
+    });
+  };
   /**
    * @function deleteServiceAccount
    * @description function is called when delete is clicked opening
@@ -435,19 +449,26 @@ const ServiceAccountDashboard = () => {
     setOffBoardSvcAccountConfirmation(false);
   };
 
-  const onServiceAccountEdit = () => {};
-
+  /**
+   * @function onTransferOwnerClicked
+   * @description function open transfer owner modal.
+   */
   const onTransferOwnerClicked = (name) => {
     setTransferSvcAccountConfirmation(true);
     setTransferName(name);
   };
 
+  /**
+   * @function onTransferOwnerCancelClicked
+   * @description function to handle the close of transfer owner modal.
+   */
   const onTransferOwnerCancelClicked = () => {
     setTransferSvcAccountConfirmation(false);
     setTransferResponse(false);
   };
 
   const onTranferConfirmationClicked = () => {
+    setStatus({ status: 'loading' });
     setTransferSvcAccountConfirmation(false);
     apiService
       .transferOwner(transferName)
@@ -489,8 +510,7 @@ const ServiceAccountDashboard = () => {
           <PopperWrap onClick={(e) => onActionClicked(e)}>
             <EditAndDeletePopup
               onDeletListItemClicked={() => onDeleteClicked(account.name)}
-              item={account}
-              path="/service-accounts/edit-service-account"
+              onEditListItemClicked={() => onServiceAccountEdit(account.name)}
               admin={contextObj.isAdmin}
               onTransferOwnerClicked={() =>
                 onTransferOwnerClicked(account.name)
@@ -501,8 +521,8 @@ const ServiceAccountDashboard = () => {
         {isMobileScreen && account.name && (
           <EditDeletePopperWrap onClick={(e) => onActionClicked(e)}>
             <EditDeletePopper
-              onDeleteClicked={() => onDeleteClicked()}
-              onEditClicked={() => onServiceAccountEdit()}
+              onDeleteClicked={() => onDeleteClicked(account.name)}
+              onEditClicked={() => onServiceAccountEdit(account.name)}
               admin={contextObj.isAdmin}
               onTransferOwnerClicked={() =>
                 onTransferOwnerClicked(account.name)
