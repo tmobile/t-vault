@@ -227,8 +227,11 @@ const AddUser = (props) => {
             onSelected={(e, val) => onSelected(e, val)}
             onChange={(e) => onSearchChange(e)}
             placeholder="Username - Enter min 3 characters"
+            error={username !== searchValue && !isValidUserName}
             helperText={
-              !isValidUserName && `User name ${searchValue} is not valid!`
+              username !== searchValue &&
+              !isValidUserName &&
+              `User name ${searchValue} does not exist!`
             }
           />
           <InstructionText>

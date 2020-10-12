@@ -128,6 +128,7 @@ const AddGroup = (props) => {
   const [options, setOptions] = useState([]);
   const [disabledSave, setDisabledSave] = useState(true);
   const [searchLoader, setSearchLoader] = useState(false);
+  const [isValidGroupName, setIsValidGroupName] = useState(true);
   const isMobileScreen = useMediaQuery(small);
 
   useEffect(() => {
@@ -136,16 +137,27 @@ const AddGroup = (props) => {
   }, [groupname, access]);
 
   useEffect(() => {
+    if (searchValue?.length > 2) {
+      if (!searchLoader) {
+        if (options.length === 0 || !options.includes(searchValue)) {
+          setIsValidGroupName(false);
+        } else {
+          setIsValidGroupName(true);
+        }
+      }
+    }
+  }, [searchValue, searchLoader, options]);
+
+  useEffect(() => {
     if (
-      searchValue === '' ||
-      searchValue?.length < 3 ||
+      !isValidGroupName ||
       (searchValue?.toLowerCase() === groupname && radioValue === access)
     ) {
       setDisabledSave(true);
     } else {
       setDisabledSave(false);
     }
-  }, [searchValue, radioValue, groupname, access]);
+  }, [searchValue, radioValue, groupname, access, isValidGroupName]);
 
   const callSearchApi = useCallback(
     debounce(
@@ -211,6 +223,12 @@ const AddGroup = (props) => {
             onSelected={(e, val) => onSelected(e, val)}
             onChange={(e) => onSearchChange(e)}
             placeholder="Username - Enter min 3 characters"
+            error={groupname !== searchValue && !isValidGroupName}
+            helperText={
+              groupname !== searchValue &&
+              !isValidGroupName &&
+              `Group name ${searchValue} does not exist!`
+            }
           />
           <InstructionText>
             Search the T-Mobile system to add users

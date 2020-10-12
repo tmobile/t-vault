@@ -45,7 +45,7 @@ const ServiceAccountPermission = (props) => {
     fetchPermission,
   } = props;
   const [value, setValue] = useState(0);
-  const [newPermission, setNewPermission] = useState(false);
+  const [newPermission, setNewUser] = useState(false);
   const [newGroup, setNewGroup] = useState(false);
   const [newAwsApplication, setNewAwsApplication] = useState(false);
   const [newAppRole, setNewAppRole] = useState(false);
@@ -53,6 +53,16 @@ const ServiceAccountPermission = (props) => {
   const [response, setResponse] = useState({ status: 'loading' });
   const [toastResponse, setToastResponse] = useState(null);
   const [toastMessage, setToastMessage] = useState('');
+
+  const initialObject = {
+    0: { label: 'users', addBtnCallback: () => setNewUser(true) },
+    1: { label: 'groups', addBtnCallback: () => setNewGroup(true) },
+    2: {
+      label: 'aws applications',
+      addBtnCallback: () => setNewAwsApplication(true),
+    },
+    3: { label: 'app roles', addBtnCallback: () => setNewAppRole(true) },
+  };
 
   useEffect(() => {
     setResponse({ status: parentStatus });
@@ -85,15 +95,12 @@ const ServiceAccountPermission = (props) => {
   }, [value, accountMetaData]);
 
   const onAddLabelBtnClicked = () => {
-    if (value === 0) {
-      setNewPermission(true);
-    } else if (value === 1) {
-      setNewGroup(true);
-    } else if (value === 2) {
-      setNewAwsApplication(true);
-    } else if (value === 3) {
-      setNewAppRole(true);
-    }
+    Object.keys(initialObject).map((item) => {
+      if (item === value.toString()) {
+        initialObject[item].addBtnCallback();
+      }
+      return null;
+    });
   };
 
   const onToastClose = (reason) => {
@@ -137,7 +144,7 @@ const ServiceAccountPermission = (props) => {
                       <Users
                         accountDetail={accountDetail}
                         newPermission={newPermission}
-                        onNewPermissionChange={() => setNewPermission(false)}
+                        onNewPermissionChange={() => setNewUser(false)}
                         accountMetaData={accountMetaData}
                         refresh={refresh}
                         updateToastMessage={(res, message) =>

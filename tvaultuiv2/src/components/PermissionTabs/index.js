@@ -59,12 +59,12 @@ const PermissionsTabs = (props) => {
   const { onAddLabelBtnClicked, count, onTabChange, value } = props;
   const classes = useStyles();
   const [tabData] = useState({
-    0: 'Permission',
+    0: 'User',
     1: 'Group',
     2: 'AWS Application',
     3: 'App Role',
   });
-  const [selectedTab, setSelectedTab] = useState('Permission');
+  const [selectedTab, setSelectedTab] = useState('User');
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const handleChange = (event, newValue) => {
