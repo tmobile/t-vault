@@ -443,6 +443,7 @@
                                 "access": permission,
                                 "awsAccountId": awsAccountId
                             };
+                            break;
                             case 'AppRolePermission' :
                                 apiCallFunction = AdminSafesManagement.detachAppRolePermissionFromIAMSvcacc;
                                 reqObjtobeSent = {
