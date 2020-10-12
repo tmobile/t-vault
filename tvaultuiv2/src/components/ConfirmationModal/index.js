@@ -5,10 +5,10 @@ import Backdrop from '@material-ui/core/Backdrop';
 import Fade from '@material-ui/core/Fade';
 import PropTypes from 'prop-types';
 import styled, { css } from 'styled-components';
+import ReactHtmlParser from 'react-html-parser';
 import { TitleOne, TitleTwo } from '../../styles/GlobalStyles';
 import ComponentError from '../../errorBoundaries/ComponentError/component-error';
-import ReactHtmlParser from 'react-html-parser';
-import mediaBreakpoints from '../../breakpoints';
+// import mediaBreakpoints from '../../breakpoints';
 
 const ModalWrapper = styled.div`
   background-color: ${(props) =>
@@ -25,17 +25,10 @@ const ButtonWrapper = styled.div`
   display: flex;
   justify-content: center;
   align-self: flex-end;
-  ${mediaBreakpoints.small} {
-    flex-direction: column;
-  }
 `;
 
 const CancelButtonWrap = styled.div`
   margin-right: 1rem;
-  ${mediaBreakpoints.small} {
-    margin-right: 0;
-    margin-bottom: 1rem;
-  }
 `;
 
 const titleOneCss = css`

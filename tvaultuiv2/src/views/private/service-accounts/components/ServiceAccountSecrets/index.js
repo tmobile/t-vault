@@ -200,8 +200,6 @@ const ServiceAccountSecrets = (props) => {
         }
         return setWritePermission(false);
       });
-    } else {
-      setResponse({ status: 'no-permission' });
     }
   }, [accountMetaData, state]);
 

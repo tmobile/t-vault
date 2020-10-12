@@ -10,7 +10,7 @@ import ButtonComponent from '../../../../../../../components/FormFields/ActionBu
 import PermissionsList from '../../../../../../../components/PermissionsList';
 import noPermissionsIcon from '../../../../../../../assets/no-permissions.svg';
 import mediaBreakpoints from '../../../../../../../breakpoints';
-import AddAppRole from '../../../AddAppRole';
+import AddAppRole from '../../../../../../../components/AddAppRole';
 import apiService from '../../../../apiService';
 import LoaderSpinner from '../../../../../../../components/Loaders/LoaderSpinner';
 import Error from '../../../../../../../components/Error';
@@ -50,7 +50,7 @@ const noDataStyle = css`
   }
 `;
 
-const Groups = (props) => {
+const AppRoles = (props) => {
   const {
     safeDetail,
     safeData,
@@ -241,7 +241,7 @@ const Groups = (props) => {
   );
 };
 
-Groups.propTypes = {
+AppRoles.propTypes = {
   safeDetail: PropTypes.objectOf(PropTypes.any).isRequired,
   safeData: PropTypes.objectOf(PropTypes.any).isRequired,
   fetchPermission: PropTypes.func.isRequired,
@@ -249,4 +249,4 @@ Groups.propTypes = {
   onNewAppRoleChange: PropTypes.func.isRequired,
   updateToastMessage: PropTypes.func.isRequired,
 };
-export default Groups;
+export default AppRoles;

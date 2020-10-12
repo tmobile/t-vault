@@ -30,7 +30,7 @@ const customStyle = css`
 const Permissions = (props) => {
   const { safeDetail, refresh } = props;
   const [value, setValue] = useState(0);
-  const [newPermission, setNewPermission] = useState(false);
+  const [newPermission, setNewUser] = useState(false);
   const [newGroup, setNewGroup] = useState(false);
   const [newAwsApplication, setNewAwsApplication] = useState(false);
   const [newAppRole, setNewAppRole] = useState(false);
@@ -39,6 +39,15 @@ const Permissions = (props) => {
   const [responseType, setResponseType] = useState(0);
   const [toastResponse, setToastResponse] = useState(null);
   const [toastMessage, setToastMessage] = useState('');
+  const initialObject = {
+    0: { label: 'users', addBtnCallback: () => setNewUser(true) },
+    1: { label: 'groups', addBtnCallback: () => setNewGroup(true) },
+    2: {
+      label: 'aws applications',
+      addBtnCallback: () => setNewAwsApplication(true),
+    },
+    3: { label: 'app roles', addBtnCallback: () => setNewAppRole(true) },
+  };
 
   useEffect(() => {
     if (safeData?.response && Object.keys(safeData.response).length !== 0) {
@@ -93,15 +102,12 @@ const Permissions = (props) => {
   }, [safeDetail, fetchPermission]);
 
   const onAddLabelBtnClicked = () => {
-    if (value === 0) {
-      setNewPermission(true);
-    } else if (value === 1) {
-      setNewGroup(true);
-    } else if (value === 2) {
-      setNewAwsApplication(true);
-    } else if (value === 3) {
-      setNewAppRole(true);
-    }
+    Object.keys(initialObject).map((item) => {
+      if (item === value.toString()) {
+        initialObject[item].addBtnCallback();
+      }
+      return null;
+    });
   };
 
   const onToastClose = (reason) => {
@@ -136,7 +142,7 @@ const Permissions = (props) => {
               <User
                 safeDetail={safeDetail}
                 newPermission={newPermission}
-                onNewPermissionChange={() => setNewPermission(false)}
+                onNewPermissionChange={() => setNewUser(false)}
                 fetchPermission={() => fetchPermission()}
                 safeData={safeData}
                 refresh={refresh}

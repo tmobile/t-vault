@@ -84,12 +84,13 @@ SafeDetails.propTypes = {
   detailData: PropTypes.arrayOf(PropTypes.any),
   resetClicked: PropTypes.func,
   goodToRoute: PropTypes.bool,
-  refresh: PropTypes.func.isRequired,
+  refresh: PropTypes.func,
 };
 SafeDetails.defaultProps = {
   detailData: [],
   resetClicked: () => {},
   goodToRoute: false,
+  refresh: () => {},
 };
 
 export default SafeDetails;

@@ -11,6 +11,7 @@ import {
   findElementAndUpdate,
   findElementAndDelete,
   findElementAndReturnSecrets,
+  findItemAndRemove,
 } from '../../../../../services/helper-function';
 import ComponentError from '../../../../../errorBoundaries/ComponentError/component-error';
 import TreeRecursive from './components/TreeRecursive';
@@ -55,8 +56,14 @@ const Tree = (props) => {
 
     setStatus({});
   };
+  /**
+   * fetch all safes folders and secrets
+   * @param {*} id id of item to update
+   * @param {*} parentId parent id
+   * @param {*} type type of action
+   */
 
-  const getChildrenData = (id) => {
+  const getChildrenData = (id, idOfItem, type) => {
     const tempFolders = [...secretsFolder] || [];
     setStatus({ status: 'loading', message: 'loading...' });
     if (id) {
@@ -64,6 +71,15 @@ const Tree = (props) => {
         .getSecret(id)
         .then((res) => {
           setStatus({});
+          if (type?.toLowerCase() === 'deleteparentitem') {
+            const updatedArray = findItemAndRemove(
+              tempFolders,
+              'children',
+              idOfItem
+            );
+            setSecretsFolder([...updatedArray]);
+            return;
+          }
           const updatedArray = findElementAndUpdate(
             tempFolders,
             id,
@@ -92,12 +108,15 @@ const Tree = (props) => {
 
   /**
    *Creates secrets folder array
-   * @param {object} obj
-   * @param {node} node
+   * @param {object} obj added secret data
+   * @param {node} node id of added secret
    */
   const saveSecretsToFolder = (obj, node) => {
     const tempFolders = [...secretsFolder] || [];
-    const currentSecrets = findElementAndReturnSecrets(tempFolders, node);
+    const currentSecrets = findElementAndReturnSecrets(
+      tempFolders,
+      obj.parentId
+    );
     if (
       currentSecrets &&
       currentSecrets.data[Object.keys(secretprefilledData)[0]]
@@ -156,12 +175,12 @@ const Tree = (props) => {
     setIsAddInput(false);
   };
 
-  const saveFolderToCurrentFolder = (secretFolder, parentId) => {
+  const saveFolderToCurrentFolder = (secretFolder) => {
     const tempFolders = [...secretsFolder] || [];
     const folderObj = {};
     folderObj.id = `${secretFolder.parentId}/${secretFolder.value}`;
     folderObj.parentId = secretFolder.parentId;
-    folderObj.value = secretFolder.value;
+    folderObj.value = `${secretFolder.parentId}/${secretFolder.value}`;
     folderObj.type = secretFolder.type || 'folder';
     folderObj.children = [];
     // api call
@@ -171,7 +190,7 @@ const Tree = (props) => {
       .then((res) => {
         const updatedArray = findElementAndUpdate(
           tempFolders,
-          parentId,
+          folderObj.parentId,
           folderObj
         );
         setSecretsFolder([...updatedArray]);
@@ -214,7 +233,6 @@ const Tree = (props) => {
       status: 'loading',
       message: 'loading...',
     });
-
     if (secret?.type?.toLowerCase() === 'secret') {
       saveSecretsToFolder(secret, selectedNode);
       return;
@@ -266,6 +284,14 @@ const Tree = (props) => {
     apiService
       .deleteFolder(node.id)
       .then((res) => {
+        if (node?.parentId?.split('/').length === 2) {
+          getChildrenData(node.parentId, node.id, 'deleteparentitem');
+          setStatus({
+            status: 'success',
+            message: 'Folder Deleted Successfully',
+          });
+          return;
+        }
         getChildrenData(node.parentId);
         setStatus({
           status: 'success',

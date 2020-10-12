@@ -182,7 +182,20 @@ const CreateModal = () => {
   const [safeError, setSafeError] = useState(false);
   const [editSafe, setEditSafe] = useState(false);
   const [safeDetails, setSafeDetails] = useState({});
+  const [isValidEmail, setIsValidEmail] = useState(true);
   const history = useHistory();
+
+  useEffect(() => {
+    if (owner?.length > 2) {
+      if (!autoLoader) {
+        if (options.length === 0 || !options.includes(owner)) {
+          setIsValidEmail(false);
+        } else {
+          setIsValidEmail(true);
+        }
+      }
+    }
+  }, [owner, autoLoader, options]);
 
   useEffect(() => {
     if (
@@ -190,22 +203,24 @@ const CreateModal = () => {
       owner === '' ||
       description.length < 10 ||
       safeError ||
-      emailError
+      emailError ||
+      !isValidEmail ||
+      (safeDetails.owner === owner && safeDetails.description === description)
     ) {
       setDisabledSave(true);
-    } else if (editSafe) {
-      if (
-        safeDetails.owner === owner &&
-        safeDetails.description === description
-      ) {
-        setDisabledSave(true);
-      } else {
-        setDisabledSave(false);
-      }
     } else {
       setDisabledSave(false);
     }
-  }, [name, description, owner, safeError, emailError, editSafe, safeDetails]);
+  }, [
+    name,
+    description,
+    owner,
+    safeError,
+    emailError,
+    editSafe,
+    safeDetails,
+    isValidEmail,
+  ]);
 
   const [menu] = useState(['Users Safe', 'Shared Safe', 'Application Safe']);
 
@@ -343,7 +358,6 @@ const CreateModal = () => {
     if (text !== '' && text.length > 2) {
       callSearchApi(text);
     }
-    setEmailError(false);
   };
 
   const onSelected = (e, val) => {
@@ -365,13 +379,14 @@ const CreateModal = () => {
       }
     }
     if (e.target.name === 'owner') {
-      if (!validateEmail(owner)) {
-        setEmailError(true);
-      } else {
+      if (validateEmail(owner)) {
         setEmailError(false);
+      } else {
+        setEmailError(true);
       }
     }
   };
+
   return (
     <ComponentError>
       <Modal
@@ -436,10 +451,14 @@ const CreateModal = () => {
                   onSelected={(e, val) => onSelected(e, val)}
                   onChange={(e) => onOwnerChange(e)}
                   placeholder="Email address- Enter min 3 characters"
-                  error={emailError}
+                  error={
+                    emailError || (!isValidEmail && safeDetails.owner !== owner)
+                  }
                   onInputBlur={(e) => onInputBlur(e)}
                   helperText={
-                    emailError ? 'Please enter a valid email address!' : ''
+                    (!isValidEmail && safeDetails.owner !== owner) || emailError
+                      ? 'Please enter a valid email address or not available!'
+                      : ''
                   }
                 />
                 {autoLoader && <LoaderSpinner customStyle={autoLoaderStyle} />}

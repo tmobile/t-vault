@@ -31,6 +31,7 @@ import SnackbarComponent from '../../../../components/Snackbar';
 import ConfirmationModal from '../../../../components/ConfirmationModal';
 import BackdropLoader from '../../../../components/Loaders/BackdropLoader';
 import svcHeaderBgimg from '../../../../assets/icon-service-account.svg';
+// eslint-disable-next-line import/named
 import { formatSecondsToTime } from '../../../../services/helper-function';
 
 const useStyles = makeStyles((theme) => ({
@@ -628,7 +629,7 @@ const OnBoardForm = () => {
                     : 'Onboarding'
                 } of service account has been completed successfully. To continue, the service account needs to be activated by ${
                   state.userEmail
-                }  . If you are owner of the service account, you need to log out and login again to activate it.</p>`
+                }. If you are owner of the service account, you need to log out and login again to activate it.</p>`
           }
           cancelButton={
             // eslint-disable-next-line react/jsx-wrap-multilines

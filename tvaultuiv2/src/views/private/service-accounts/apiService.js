@@ -8,6 +8,10 @@ const getServiceAccounts = () => api.get('/serviceaccounts');
 const offBoardServiceAccount = (payload) =>
   api.post('/serviceaccounts/offboard', payload);
 
+// Transfer owner service account
+const transferOwner = (svcName) =>
+  api.post(`/serviceaccounts/transfer?serviceAccountName=${svcName}`);
+
 const getAppRoles = () => api.get('/serviceaccounts/cwm/approles');
 const getUsersServiceAccounts = (name) =>
   api.get(`/ad/serviceaccounts?serviceAccountName=${name}`);
@@ -33,16 +37,33 @@ const resetServiceAccountPassword = (svcName, payload) =>
   api.put(`/serviceaccounts/password?serviceAccountName=${svcName}`, payload);
 
 // API call for users permission
-
 const addUserPermission = (payload) =>
   api.post('/serviceaccounts/user', payload);
 
 const deleteUserPermission = (payload) =>
   api.delete('/serviceaccounts/user', payload);
 
+// Api call for groups permission
+const addGroupPermission = (payload) =>
+  api.post('/serviceaccounts/group', payload);
+const deleteGroupPermission = (payload) =>
+  api.delete('/serviceaccounts/group', payload);
+
+// Api call for aws application permission
+const addAwsPermission = (url, payload) => api.post(url, payload);
+const addAwsRole = (payload) => api.post('/serviceaccounts/role', payload);
+const deleteAwsRole = (payload) => api.delete('/serviceaccounts/role', payload);
+
+// Api call for app roles permission
+const addAppRolePermission = (payload) =>
+  api.post('/serviceaccounts/approle', payload);
+const deleteAppRolePermission = (payload) =>
+  api.delete('/serviceaccounts/approle', payload);
+
 export default {
   getServiceAccounts,
   getServiceAccountList,
+  transferOwner,
   getServiceAccountPassword,
   resetServiceAccountPassword,
   getAppRoles,
@@ -57,4 +78,11 @@ export default {
   sslCertification,
   activateServiceAccount,
   updateServiceAccount,
+  addGroupPermission,
+  deleteGroupPermission,
+  addAwsPermission,
+  addAwsRole,
+  addAppRolePermission,
+  deleteAppRolePermission,
+  deleteAwsRole,
 };

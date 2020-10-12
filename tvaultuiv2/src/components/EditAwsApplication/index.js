@@ -3,11 +3,12 @@ import PropTypes from 'prop-types';
 import { InputLabel, Typography } from '@material-ui/core';
 import useMediaQuery from '@material-ui/core/useMediaQuery';
 import styled from 'styled-components';
-import ButtonComponent from '../../../../../components/FormFields/ActionButton';
-import TextFieldComponent from '../../../../../components/FormFields/TextField';
-import RadioPermissionComponent from '../RadioPermissions';
-import ComponentError from '../../../../../errorBoundaries/ComponentError/component-error';
-import mediaBreakpoints from '../../../../../breakpoints';
+import ButtonComponent from '../FormFields/ActionButton';
+import TextFieldComponent from '../FormFields/TextField';
+import RadioSafePermissionComponent from '../../views/private/safe/components/RadioPermissions';
+import RadioSvcPermissionComponent from '../../views/private/service-accounts/components/RadioPermissions';
+import ComponentError from '../../errorBoundaries/ComponentError/component-error';
+import mediaBreakpoints from '../../breakpoints';
 
 const { small } = mediaBreakpoints;
 
@@ -71,7 +72,13 @@ const CancelButton = styled.div`
 `;
 
 const EditAwsApplication = (props) => {
-  const { handleCancelClick, handleSaveClick, awsName, access } = props;
+  const {
+    handleCancelClick,
+    handleSaveClick,
+    awsName,
+    access,
+    isSvcAccount,
+  } = props;
   const [radioValue, setRadioValue] = useState('read');
   const [value, setValue] = useState('');
   const [disabledSave, setDisabledSave] = useState(true);
@@ -107,10 +114,18 @@ const EditAwsApplication = (props) => {
           />
         </InputWrapper>
         <RadioButtonWrapper>
-          <RadioPermissionComponent
-            radioValue={radioValue}
-            handleRadioChange={(e) => setRadioValue(e.target.value)}
-          />
+          {isSvcAccount ? (
+            <RadioSvcPermissionComponent
+              radioValue={radioValue}
+              isEdit={!!(access && awsName)}
+              handleRadioChange={(e) => setRadioValue(e.target.value)}
+            />
+          ) : (
+            <RadioSafePermissionComponent
+              radioValue={radioValue}
+              handleRadioChange={(e) => setRadioValue(e.target.value)}
+            />
+          )}
           <CancelSaveWrapper>
             <CancelButton>
               <ButtonComponent
@@ -139,6 +154,11 @@ EditAwsApplication.propTypes = {
   handleCancelClick: PropTypes.func.isRequired,
   access: PropTypes.string.isRequired,
   awsName: PropTypes.string.isRequired,
+  isSvcAccount: PropTypes.bool,
+};
+
+EditAwsApplication.defaultProps = {
+  isSvcAccount: false,
 };
 
 export default EditAwsApplication;

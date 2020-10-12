@@ -13,8 +13,8 @@ import mediaBreakpoints from '../../../../../../../breakpoints';
 import apiService from '../../../../apiService';
 import LoaderSpinner from '../../../../../../../components/Loaders/LoaderSpinner';
 import Error from '../../../../../../../components/Error';
-import AddAwsApplicationModal from '../../../AddAwsApplicationModal';
-import EditAwsApplication from '../../../EditAwsApplication';
+import AddAwsApplicationModal from '../../../../../../../components/AddAwsApplicationModal';
+import EditAwsApplication from '../../../../../../../components/EditAwsApplication';
 
 const { small, belowLarge } = mediaBreakpoints;
 
