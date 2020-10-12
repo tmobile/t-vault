@@ -736,6 +736,40 @@ const OnBoardForm = () => {
                     //   disabled={!inputValue || errorMessage}
                     onClick={() => handleSaveClick()}
                   />
+                  {isOwner && !isAdmin ? (
+                    <>
+                      <ButtonComponent
+                        label="Activate service Account"
+                        disabled={
+                          timeError ||
+                          !inputServiceName ||
+                          !inputApplicationName ||
+                          serviceAccountDetails?.accountStatus.toLowerCase() ===
+                            'expired'
+                        }
+                        color="secondary"
+                        buttonType="containedSecondary"
+                        //   disabled={!inputValue || errorMessage}
+                        onClick={() => handleSaveClick()}
+                      />
+                      <ButtonComponent
+                        label="Grant Permission"
+                        disabled={
+                          timeError ||
+                          !inputServiceName ||
+                          !inputApplicationName ||
+                          serviceAccountDetails?.accountStatus.toLowerCase() ===
+                            'expired'
+                        }
+                        color="secondary"
+                        buttonType="containedSecondary"
+                        //   disabled={!inputValue || errorMessage}
+                        onClick={() => handleSaveClick()}
+                      />
+                    </>
+                  ) : (
+                    <></>
+                  )}
                 </ActionButtonWrap>
               </AcionButtons>
             </Container>
