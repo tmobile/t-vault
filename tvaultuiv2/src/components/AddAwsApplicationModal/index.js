@@ -36,7 +36,13 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 const AddAwsApplicationModal = (props) => {
-  const { handleSaveClick, handleCancelClick, handleModalClose, open } = props;
+  const {
+    handleSaveClick,
+    handleCancelClick,
+    handleModalClose,
+    open,
+    isSvcAccount,
+  } = props;
 
   const classes = useStyles();
 
@@ -59,6 +65,7 @@ const AddAwsApplicationModal = (props) => {
             <AddAwsApplication
               handleSaveClick={handleSaveClick}
               handleCancelClick={handleCancelClick}
+              isSvcAccount={isSvcAccount}
             />
           </ModalWrapper>
         </Fade>
@@ -72,5 +79,10 @@ AddAwsApplicationModal.propTypes = {
   handleCancelClick: PropTypes.func.isRequired,
   handleModalClose: PropTypes.func.isRequired,
   open: PropTypes.bool.isRequired,
+  isSvcAccount: PropTypes.bool,
 };
+AddAwsApplicationModal.defaultProps = {
+  isSvcAccount: false,
+};
+
 export default AddAwsApplicationModal;

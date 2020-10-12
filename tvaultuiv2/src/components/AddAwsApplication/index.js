@@ -91,8 +91,11 @@ const AddAwsApplication = (props) => {
   const [principalError, setPrincipalError] = useState(false);
 
   const checkValidArn = (text) => {
-    const res = /^arn:aws:\S+::\d{12}/;
-    return res.test(text);
+    if (text) {
+      const res = /^arn:aws:\S+::\d{12}/;
+      return res.test(text);
+    }
+    return null;
   };
 
   useEffect(() => {
@@ -155,7 +158,7 @@ const AddAwsApplication = (props) => {
 
   const onIamPrincipalChange = (text) => {
     setIamPrincipalArn(text);
-    if (text && !checkValidArn(text)) {
+    if (!checkValidArn(text)) {
       setPrincipalError(true);
     } else {
       setPrincipalError(false);

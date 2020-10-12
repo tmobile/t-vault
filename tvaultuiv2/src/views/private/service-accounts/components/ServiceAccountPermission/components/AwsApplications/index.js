@@ -69,6 +69,7 @@ const AwsApplications = (props) => {
 
   const isMobileScreen = useMediaQuery(small);
 
+  // on svc account meta data is available.
   useEffect(() => {
     if (accountMetaData && Object.keys(accountMetaData).length !== 0) {
       if (Object.keys(accountMetaData?.response).length !== 0) {
@@ -77,52 +78,68 @@ const AwsApplications = (props) => {
         setResponse({ status: 'error' });
       }
     } else {
-      setResponse({ status: '' });
+      setResponse({ status: 'success' });
     }
   }, [accountMetaData]);
 
+  // When add group button is clicked.
   useEffect(() => {
     if (newAwsApplication) {
       setResponse({ status: 'add' });
     }
   }, [newAwsApplication]);
 
-  const onDeleteClick = (role) => {
-    setResponse({ status: 'loading' });
-    const payload = {
-      path: accountDetail.path,
-      role,
-    };
-    apiService
-      .deleteAwsConfiguration(payload)
-      .then((res) => {
-        if (res && res.data?.messages && res.data?.messages[0]) {
-          updateToastMessage(1, res.data.messages[0]);
-          setResponse({ status: '' });
-          fetchPermission();
-        }
-      })
-      .catch((err) => {
-        setResponse({ status: 'success' });
-        if (err.response?.data?.errors && err.response.data.errors[0]) {
-          updateToastMessage(-1, err.response.data.errors[0]);
-        }
-      });
-  };
-
-  const onSaveClicked = (role, access) => {
-    const payload = {
+  const constructPayload = (role, access) => {
+    const data = {
       access: checkAccess(access),
       rolename: role,
       svcAccName: accountDetail.name,
     };
+    return data;
+  };
+
+  /**
+   * @function onDeleteClick
+   * @description function to delete the aws configuration from the svc account aws
+   * application list.
+   * @param {role} string role of the aws configuration.
+   * @param {access} string permission of the aws configuration.
+   */
+  const onDeleteClick = (role, access) => {
+    setResponse({ status: 'loading' });
+    const payload = constructPayload(role, access);
+    apiService
+      .deleteAwsRole(payload)
+      .then(async (res) => {
+        if (res && res.data?.messages && res.data?.messages[0]) {
+          updateToastMessage(1, res.data.messages[0]);
+          setResponse({ status: '' });
+          await fetchPermission();
+        }
+      })
+      .catch((err) => {
+        setResponse({ status: 'success' });
+        if (err.response?.data?.errors && err.response.data.errors[0]) {
+          updateToastMessage(-1, err.response.data.errors[0]);
+        }
+      });
+  };
+
+  /**
+   * @function onSaveClicked
+   * @description function to save the aws configuration role to the svc account
+   * aws application list.
+   * @param {data} object payload to call api.
+   */
+  const onSaveClicked = (role, access) => {
+    const payload = constructPayload(role, access);
     apiService
       .addAwsRole(payload)
-      .then((res) => {
+      .then(async (res) => {
         if (res && res.data?.messages) {
           updateToastMessage(1, res.data?.messages[0]);
           setResponse({ status: '' });
-          fetchPermission();
+          await fetchPermission();
         }
       })
       .catch((err) => {
@@ -133,20 +150,26 @@ const AwsApplications = (props) => {
       });
   };
 
+  /**
+   * @function onSubmit
+   * @description function to save the aws configuration  to the svc account
+   * aws application list and then call the save of role to aws application list.
+   * @param {data} object payload to call api.
+   */
   const onSubmit = (data, access) => {
     setResponse({ status: 'loading' });
     onNewAwsChange();
     let url = '';
     if (data.auth_type === 'iam') {
-      url = '/serviceaccounts/aws/role';
-    } else {
       url = '/serviceaccounts/aws/iam/role';
+    } else {
+      url = '/serviceaccounts/aws/role';
     }
     apiService
       .addAwsPermission(url, data)
-      .then((res) => {
+      .then(async (res) => {
         updateToastMessage(1, res.data?.messages[0]);
-        onSaveClicked(data.role, access);
+        await onSaveClicked(data.role, access);
       })
       .catch((err) => {
         if (err.response?.data?.errors && err.response.data.errors[0]) {
@@ -156,14 +179,17 @@ const AwsApplications = (props) => {
       });
   };
 
+  /**
+   * @function onEditSaveClicked
+   * @description function to edit the existing aws configuration.
+   * @param {role} string aws configuration name to edit.
+   * @param {access} string permission given to the aws configuration.
+   */
   const onEditSaveClicked = (awsName, access) => {
     setResponse({ status: 'loading' });
-    const payload = {
-      path: `${accountDetail.path}`,
-      role: awsName,
-    };
+    const payload = constructPayload(awsName, access);
     apiService
-      .editAwsApplication(payload)
+      .deleteAwsRole(payload)
       .then((res) => {
         if (res) {
           setResponse({ status: 'loading' });
@@ -178,11 +204,22 @@ const AwsApplications = (props) => {
       });
   };
 
+  /**
+   * @function onCancelClicked
+   * @description function when cancel of add aws configuration and
+   * aws configuration  is called.
+   */
   const onCancelClicked = () => {
     setResponse({ status: 'success' });
     onNewAwsChange();
   };
 
+  /**
+   * @function onEditClick
+   * @description function to edit the existing aws configuration.
+   * @param {key} key aws configuration name of  the permission.
+   * @param {value} value permission given to the aws configuration.
+   */
   const onEditClick = (key, value) => {
     setEditAccess(value);
     setEditAws(key);
@@ -201,6 +238,7 @@ const AwsApplications = (props) => {
             handleSaveClick={(data, access) => onSubmit(data, access)}
             handleCancelClick={onCancelClicked}
             handleModalClose={() => onCancelClicked()}
+            isSvcAccount
           />
         )}
         {response.status === 'edit' && (
@@ -211,14 +249,12 @@ const AwsApplications = (props) => {
             handleCancelClick={onCancelClicked}
             awsName={editAws}
             access={editAccess}
+            isSvcAccount
           />
         )}
         {accountMetaData &&
-          Object.keys(accountMetaData).length > 0 &&
-          Object.keys(accountMetaData?.response).length > 0 &&
-          response.status !== 'loading' &&
-          response.status !== 'error' &&
-          response.status !== 'edit' && (
+          accountMetaData.response &&
+          response.status === 'success' && (
             <>
               {accountMetaData.response['aws-roles'] &&
                 Object.keys(accountMetaData.response['aws-roles']).length >
@@ -226,14 +262,13 @@ const AwsApplications = (props) => {
                   <PermissionsList
                     list={accountMetaData.response['aws-roles']}
                     onEditClick={(key, value) => onEditClick(key, value)}
-                    onDeleteClick={(key) => onDeleteClick(key)}
+                    onDeleteClick={(key, value) => onDeleteClick(key, value)}
+                    isSvcAccount
                   />
                 )}
-              {(accountMetaData.response['aws-roles'] === null ||
-                !accountMetaData.response['aws-roles'] ||
-                (accountMetaData.response['aws-roles'] &&
-                  Object.keys(accountMetaData.response['aws-roles']).length ===
-                    0)) && (
+              {(!accountMetaData.response['aws-roles'] ||
+                Object.keys(accountMetaData.response['aws-roles']).length ===
+                  0) && (
                 <NoDataWrapper>
                   <NoData
                     imageSrc={noPermissionsIcon}

@@ -87,7 +87,7 @@ const TextFieldComponent = (props) => {
 TextFieldComponent.propTypes = {
   icon: PropTypes.string,
   placeholder: PropTypes.string.isRequired,
-  onChange: PropTypes.func.isRequired,
+  onChange: PropTypes.func,
   onInputBlur: PropTypes.func,
   value: PropTypes.string,
   multiline: PropTypes.bool,
@@ -116,6 +116,7 @@ TextFieldComponent.defaultProps = {
   error: false,
   onInputBlur: () => {},
   readOnly: false,
+  onChange: () => {},
 };
 
 setIcon.propTypes = {

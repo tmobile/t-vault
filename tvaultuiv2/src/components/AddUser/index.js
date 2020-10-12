@@ -128,6 +128,7 @@ const AddUser = (props) => {
   const [options, setOptions] = useState([]);
   const [disabledSave, setDisabledSave] = useState(true);
   const [searchLoader, setSearchLoader] = useState(false);
+  const [isValidUserName, setIsValidUserName] = useState(true);
   const isMobileScreen = useMediaQuery(small);
 
   useEffect(() => {
@@ -136,16 +137,27 @@ const AddUser = (props) => {
   }, [username, access]);
 
   useEffect(() => {
+    if (searchValue?.length > 2) {
+      if (!searchLoader) {
+        if (options.length === 0 || !options.includes(searchValue)) {
+          setIsValidUserName(false);
+        } else {
+          setIsValidUserName(true);
+        }
+      }
+    }
+  }, [searchValue, searchLoader, options]);
+
+  useEffect(() => {
     if (
-      searchValue === '' ||
-      searchValue?.length < 3 ||
+      !isValidUserName ||
       (searchValue?.toLowerCase() === username && radioValue === access)
     ) {
       setDisabledSave(true);
     } else {
       setDisabledSave(false);
     }
-  }, [searchValue, radioValue, access, username]);
+  }, [searchValue, radioValue, access, username, isValidUserName]);
 
   const handleChange = (event) => {
     setRadioValue(event.target.value);
@@ -164,7 +176,7 @@ const AddUser = (props) => {
               const array = [];
               res.data.data.values.map((item) => {
                 if (item.userName) {
-                  return array.push(item.userName);
+                  return array.push(item.userName.toLowerCase());
                 }
                 return null;
               });
@@ -215,6 +227,9 @@ const AddUser = (props) => {
             onSelected={(e, val) => onSelected(e, val)}
             onChange={(e) => onSearchChange(e)}
             placeholder="Username - Enter min 3 characters"
+            helperText={
+              !isValidUserName && `User name ${searchValue} is not valid!`
+            }
           />
           <InstructionText>
             Search the T-Mobile system to add users

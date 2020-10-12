@@ -97,6 +97,7 @@ const AppRoles = (props) => {
     };
     return data;
   };
+
   /**
    * @function onDeleteClick
    * @description function to delete the app role from the svc account app role list.
