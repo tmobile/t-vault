@@ -937,6 +937,7 @@
 
         $scope.addPermission = function (type, key, permission, editingPermission) {
             var duplicate = false;
+            var uniqueIAMSvcName = $scope.svcacc.awsAccId + "_" +iamSvcaccName;
             $scope.permissionChangeInProgress = true;
             if (!editingPermission && key != '' && key != undefined) {
                 if (type === "users" && $scope.permissionData.UsersPermissionsData!= null && $scope.permissionData.UsersPermissionsData.hasOwnProperty(key.toLowerCase())) {
@@ -990,6 +991,7 @@
                                 clearInputPermissionData();
                                 $scope.errorMessage = "Owner permission for an IAM service account cannot be changed";
                                 $scope.error('md');
+                                getSvcaccInfo(uniqueIAMSvcName);
                                 return;
                             }
                             break;
@@ -1007,7 +1009,6 @@
                                 // Try-Catch block to catch errors if there is any change in object structure in the response
                                 try {
                                     $scope.isLoadingData = false;
-                                    var uniqueIAMSvcName = $scope.svcacc.awsAccId + "_" +iamSvcaccName;
                                     getSvcaccInfo(uniqueIAMSvcName);
                                     var notification = UtilityService.getAParticularSuccessMessage('MESSAGE_ADD_SUCCESS');
                                     $scope.permissionChangeInProgress = false;
