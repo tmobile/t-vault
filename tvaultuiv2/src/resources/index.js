@@ -13,6 +13,8 @@ const Resources = {
     'No <strong>Applications</strong> are given permission to access this safe, add applications to access the safe',
   noAppRolePermissionFound:
     'No <strong>App roles</strong> are given permission to access this safe, add approles to access the safe',
+  transferConfirmation:
+    'Are you sure you want to transfer service account owner?',
 };
 
 export default { Resources };

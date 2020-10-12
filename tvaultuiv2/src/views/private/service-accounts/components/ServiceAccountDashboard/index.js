@@ -16,7 +16,6 @@ import {
 
 import useMediaQuery from '@material-ui/core/useMediaQuery';
 import sectionHeaderBg from '../../../../../assets/Banner_img.png';
-// import { values } from 'lodash';
 import mediaBreakpoints from '../../../../../breakpoints';
 import ComponentError from '../../../../../errorBoundaries/ComponentError/component-error';
 import NoData from '../../../../../components/NoData';
@@ -31,13 +30,14 @@ import EditAndDeletePopup from '../../../../../components/EditAndDeletePopup';
 import Error from '../../../../../components/Error';
 import SnackbarComponent from '../../../../../components/Snackbar';
 import ScaledLoader from '../../../../../components/Loaders/ScaledLoader';
-import ConfirmationModal from '../../../../../components/ConfirmationModal';
 import apiService from '../../apiService';
 import Strings from '../../../../../resources';
 import ButtonComponent from '../../../../../components/FormFields/ActionButton';
 import { TitleOne } from '../../../../../styles/GlobalStyles';
 import AccountSelectionTabs from '../Tabs';
 import { UserContext } from '../../../../../contexts';
+import DeletionConfirmationModal from './components/DeletionConfirmationModal';
+import TransferConfirmationModal from './components/TransferConfirmationModal';
 
 const ColumnSection = styled('section')`
   position: relative;
@@ -98,11 +98,9 @@ const NoDataWrapper = styled.div`
 
 const PopperWrap = styled.div`
   position: absolute;
-  top: 50%;
-  right: 0%;
+  right: 4%;
   z-index: 1;
-  width: 5.5rem;
-  transform: translate(-50%, -50%);
+  width: 18rem;
   display: none;
 `;
 const ListFolderWrap = styled(Link)`
@@ -182,7 +180,13 @@ const useStyles = makeStyles(() => ({
 }));
 
 const ServiceAccountDashboard = () => {
-  // const [, setEnableOnBoardForm] = useState(false);
+  const [
+    transferSvcAccountConfirmation,
+    setTransferSvcAccountConfirmation,
+  ] = useState(false);
+  const [transferResponse, setTransferResponse] = useState(false);
+  const [transferResponseDesc, setTransferResponseDesc] = useState('');
+  const [transferName, setTransferName] = useState('');
   const [inputSearchValue, setInputSearchValue] = useState('');
   const [serviceAccountClicked, setServiceAccountClicked] = useState(false);
   const [listItemDetails, setListItemDetails] = useState({});
@@ -269,7 +273,6 @@ const ServiceAccountDashboard = () => {
   }, [fetchData]);
 
   const showOnBoardForm = () => {
-    // setEnableOnBoardForm(true);
     setServiceAccountClicked(true);
   };
   /**
@@ -434,6 +437,33 @@ const ServiceAccountDashboard = () => {
 
   const onServiceAccountEdit = () => {};
 
+  const onTransferOwnerClicked = (name) => {
+    setTransferSvcAccountConfirmation(true);
+    setTransferName(name);
+  };
+
+  const onTransferOwnerCancelClicked = () => {
+    setTransferSvcAccountConfirmation(false);
+    setTransferResponse(false);
+  };
+
+  const onTranferConfirmationClicked = () => {
+    setTransferSvcAccountConfirmation(false);
+    apiService
+      .transferOwner(transferName)
+      .then(async (res) => {
+        setTransferResponse(true);
+        setTransferSvcAccountConfirmation(true);
+        if (res?.data?.messages && res.data.messages[0]) {
+          setTransferResponseDesc(res.data.messages[0]);
+        }
+        await fetchData();
+      })
+      .catch(() => {
+        setToast(-1);
+      });
+  };
+
   const renderList = () => {
     return serviceAccountList.map((account) => (
       <ListFolderWrap
@@ -462,6 +492,9 @@ const ServiceAccountDashboard = () => {
               item={account}
               path="/service-accounts/edit-service-account"
               admin={contextObj.isAdmin}
+              onTransferOwnerClicked={() =>
+                onTransferOwnerClicked(account.name)
+              }
             />
           </PopperWrap>
         ) : null}
@@ -470,6 +503,10 @@ const ServiceAccountDashboard = () => {
             <EditDeletePopper
               onDeleteClicked={() => onDeleteClicked()}
               onEditClicked={() => onServiceAccountEdit()}
+              admin={contextObj.isAdmin}
+              onTransferOwnerClicked={() =>
+                onTransferOwnerClicked(account.name)
+              }
             />
           </EditDeletePopperWrap>
         )}
@@ -479,43 +516,19 @@ const ServiceAccountDashboard = () => {
   return (
     <ComponentError>
       <>
-        <ConfirmationModal
-          open={offBoardSvcAccountConfirmation}
-          handleClose={
-            offBoardSuccessfull
-              ? handleSuccessfullConfirmation
-              : handleConfirmationModalClose
-          }
-          title={
-            offBoardSuccessfull ? 'Offboarding successful!' : 'Confirmation'
-          }
-          description={
-            offBoardSuccessfull
-              ? Strings.Resources.offBoardSuccessfull
-              : Strings.Resources.offBoardConfirmation
-          }
-          cancelButton={
-            !offBoardSuccessfull && (
-              <ButtonComponent
-                label="Cancel"
-                color="primary"
-                onClick={() => handleConfirmationModalClose()}
-                width={isMobileScreen ? '100%' : '38%'}
-              />
-            )
-          }
-          confirmButton={
-            <ButtonComponent
-              label={offBoardSuccessfull ? 'Close' : 'Confirm'}
-              color="secondary"
-              onClick={() =>
-                offBoardSuccessfull
-                  ? handleSuccessfullConfirmation()
-                  : onServiceAccountOffBoard()
-              }
-              width={isMobileScreen ? '100%' : '38%'}
-            />
-          }
+        <DeletionConfirmationModal
+          offBoardSvcAccountConfirmation={offBoardSvcAccountConfirmation}
+          offBoardSuccessfull={offBoardSuccessfull}
+          handleSuccessfullConfirmation={handleSuccessfullConfirmation}
+          handleConfirmationModalClose={handleConfirmationModalClose}
+          onServiceAccountOffBoard={onServiceAccountOffBoard}
+        />
+        <TransferConfirmationModal
+          transferSvcAccountConfirmation={transferSvcAccountConfirmation}
+          onTransferOwnerCancelClicked={onTransferOwnerCancelClicked}
+          transferResponse={transferResponse}
+          transferResponseDesc={transferResponseDesc}
+          onTranferConfirmationClicked={onTranferConfirmationClicked}
         />
         <SectionPreview title="service-account-section">
           <LeftColumnSection isAccountDetailsOpen={serviceAccountClicked}>

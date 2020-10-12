@@ -7,7 +7,6 @@ import PropTypes from 'prop-types';
 import styled, { css } from 'styled-components';
 import { TitleOne, TitleTwo } from '../../styles/GlobalStyles';
 import ComponentError from '../../errorBoundaries/ComponentError/component-error';
-import mediaBreakpoints from '../../breakpoints';
 
 const ModalWrapper = styled.div`
   background-color: ${(props) =>
@@ -24,17 +23,10 @@ const ButtonWrapper = styled.div`
   display: flex;
   justify-content: center;
   align-self: flex-end;
-  ${mediaBreakpoints.small} {
-    flex-direction: column;
-  }
 `;
 
 const CancelButtonWrap = styled.div`
   margin-right: 1rem;
-  ${mediaBreakpoints.small} {
-    margin-right: 0;
-    margin-bottom: 1rem;
-  }
 `;
 
 const titleOneCss = css`

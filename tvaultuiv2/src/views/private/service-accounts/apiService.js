@@ -8,6 +8,10 @@ const getServiceAccounts = () => api.get('/serviceaccounts');
 const offBoardServiceAccount = (payload) =>
   api.post('/serviceaccounts/offboard', payload);
 
+// Transfer owner service account
+const transferOwner = (svcName) =>
+  api.post(`/serviceaccounts/transfer?serviceAccountName=${svcName}`);
+
 const getAppRoles = () => api.get('/serviceaccounts/cwm/approles');
 const getUsersServiceAccounts = (name) =>
   api.get(`/ad/serviceaccounts?serviceAccountName=${name}`);
@@ -54,6 +58,7 @@ const deleteAppRolePermission = (payload) =>
 export default {
   getServiceAccounts,
   getServiceAccountList,
+  transferOwner,
   getServiceAccountPassword,
   resetServiceAccountPassword,
   getAppRoles,

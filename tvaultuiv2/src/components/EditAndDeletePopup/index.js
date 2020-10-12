@@ -21,12 +21,19 @@ const Icon = styled('div')`
   }
 `;
 
+const TransferOwnerWrap = styled.div``;
+
 const PsudoPopper = (props) => {
-  const { onDeletListItemClicked, item, admin } = props;
+  const { onDeletListItemClicked, item, admin, onTransferOwnerClicked } = props;
 
   return (
     <ComponentError>
       <IconWrap>
+        {admin && (
+          <TransferOwnerWrap onClick={onTransferOwnerClicked}>
+            Transfer Owner
+          </TransferOwnerWrap>
+        )}
         <Link
           to={{
             pathname: `/${item.name}`,
@@ -52,12 +59,14 @@ const PsudoPopper = (props) => {
 PsudoPopper.propTypes = {
   onDeletListItemClicked: PropTypes.func,
   item: PropTypes.objectOf(PropTypes.any),
+  onTransferOwnerClicked: PropTypes.func,
   admin: PropTypes.bool,
 };
 
 PsudoPopper.defaultProps = {
   onDeletListItemClicked: () => {},
   item: {},
+  onTransferOwnerClicked: () => {},
   admin: true,
 };
 

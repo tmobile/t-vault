@@ -36,7 +36,12 @@ const PopperItem = styled.div`
 `;
 
 const EditDeletePopper = (props) => {
-  const { onDeleteClicked, onEditClicked } = props;
+  const {
+    onDeleteClicked,
+    onEditClicked,
+    admin,
+    onTransferOwnerClicked,
+  } = props;
   return (
     <div>
       <FolderIconWrap>
@@ -50,14 +55,21 @@ const EditDeletePopper = (props) => {
             horizontal: 'right',
           }}
         >
+          {admin && (
+            <PopperItem onClick={onTransferOwnerClicked}>
+              <span>Transfer Owner</span>
+            </PopperItem>
+          )}
           <PopperItem onClick={onEditClicked}>
             <IconEdit />
             <span>Edit</span>
           </PopperItem>
-          <PopperItem onClick={onDeleteClicked}>
-            <IconDeleteActive />
-            <span> Delete</span>
-          </PopperItem>
+          {admin && (
+            <PopperItem onClick={onDeleteClicked}>
+              <IconDeleteActive />
+              <span> Delete</span>
+            </PopperItem>
+          )}
         </PopperElement>
       </FolderIconWrap>
     </div>
@@ -67,7 +79,12 @@ const EditDeletePopper = (props) => {
 EditDeletePopper.propTypes = {
   onEditClicked: PropTypes.func.isRequired,
   onDeleteClicked: PropTypes.func.isRequired,
+  admin: PropTypes.bool,
+  onTransferOwnerClicked: PropTypes.func,
 };
-EditDeletePopper.defaultProps = {};
+EditDeletePopper.defaultProps = {
+  admin: false,
+  onTransferOwnerClicked: () => {},
+};
 
 export default EditDeletePopper;
