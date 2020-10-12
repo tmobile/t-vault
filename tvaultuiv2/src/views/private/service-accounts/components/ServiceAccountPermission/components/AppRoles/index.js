@@ -171,10 +171,10 @@ const AppRoles = (props) => {
     const payload = constructPayload(role, access);
     apiService
       .deleteAppRolePermission(payload)
-      .then((res) => {
+      .then(async (res) => {
         if (res) {
           setResponse({ status: 'loading' });
-          onSubmit(role, access);
+          await onSubmit(role, access);
         }
       })
       .catch((err) => {

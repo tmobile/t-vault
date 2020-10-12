@@ -151,13 +151,13 @@ const Groups = (props) => {
    * @param {username} string group name.
    * @param {access} string permission given to the group.
    */
-  const onSubmit = (groupname, access) => {
+  const onSubmit = async (groupname, access) => {
     const value = {
       access: checkAccess(access),
       groupname: groupname.toLowerCase().replace(/ /g, '-'),
       svcAccName: accountDetail.name,
     };
-    onSaveClicked(value);
+    await onSaveClicked(value);
     onNewGroupChange();
   };
 
@@ -176,10 +176,10 @@ const Groups = (props) => {
     };
     apiService
       .deleteGroupPermission(payload)
-      .then((res) => {
+      .then(async (res) => {
         if (res) {
           setResponse({ status: 'loading' });
-          onSubmit(groupname, access);
+          await onSubmit(groupname, access);
         }
       })
       .catch((err) => {

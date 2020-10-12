@@ -175,10 +175,10 @@ const Users = (props) => {
     };
     apiService
       .deleteUserPermission(payload)
-      .then((res) => {
+      .then(async (res) => {
         if (res) {
           setResponse({ status: 'loading' });
-          onSubmit(username, access);
+          await onSubmit(username, access);
         }
       })
       .catch((err) => {
