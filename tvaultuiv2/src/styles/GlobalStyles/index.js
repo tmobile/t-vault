@@ -67,3 +67,38 @@ export const PopperItem = styled.div`
   }
   ${(props) => (props.extraCss ? props.extraCss : '')}
 `;
+
+export const TabWrapper = styled.div`
+  height: calc(100% - 2.8rem);
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  .MuiAppBar-colorPrimary {
+    background-color: inherit;
+  }
+  .MuiPaper-elevation4 {
+    box-shadow: none;
+  }
+  .MuiTabs-root {
+    min-height: unset;
+  }
+  .MuiTab-textColorInherit.Mui-selected {
+    background-color: ${(props) => props.theme.palette.secondary.main};
+    color: ${(props) => props.theme.palette.secondary.contrastText};
+  }
+  .MuiTab-textColorInherit {
+    color: #e8e8e8;
+    background-color: #20232e;
+    min-width: auto;
+    padding: 8.5px 20px;
+    margin-right: 0.5rem;
+    font-size: 1.4rem;
+    min-height: 3.65rem;
+    ${mediaBreakpoints.belowLarge} {
+      margin-right: 1.2rem;
+    }
+  }
+  .PrivateTabIndicator-colorSecondary-15 {
+    background-color: inherit;
+  }
+`;

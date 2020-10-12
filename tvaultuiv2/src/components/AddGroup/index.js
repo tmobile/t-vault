@@ -5,13 +5,13 @@ import { InputLabel, Typography } from '@material-ui/core';
 import useMediaQuery from '@material-ui/core/useMediaQuery';
 import styled, { css } from 'styled-components';
 import PropTypes from 'prop-types';
-import ComponentError from '../../../../../errorBoundaries/ComponentError/component-error';
-import mediaBreakpoints from '../../../../../breakpoints';
-import AutoCompleteComponent from '../../../../../components/FormFields/AutoComplete';
-import ButtonComponent from '../../../../../components/FormFields/ActionButton';
-import apiService from '../../apiService';
-import LoaderSpinner from '../../../../../components/Loaders/LoaderSpinner';
-import RadioPermissionComponent from '../RadioPermissions';
+import ComponentError from '../../errorBoundaries/ComponentError/component-error';
+import mediaBreakpoints from '../../breakpoints';
+import AutoCompleteComponent from '../FormFields/AutoComplete';
+import ButtonComponent from '../FormFields/ActionButton';
+import apiService from '../../views/private/safe/apiService';
+import LoaderSpinner from '../Loaders/LoaderSpinner';
+import RadioPermissionComponent from '../../views/private/safe/components/RadioPermissions';
 
 const { small } = mediaBreakpoints;
 
@@ -113,8 +113,8 @@ const useStyles = makeStyles(() => ({
   },
 }));
 
-const AddUser = (props) => {
-  const { handleCancelClick, handleSaveClick, username, access } = props;
+const AddGroup = (props) => {
+  const { handleCancelClick, handleSaveClick, groupname, access } = props;
   const classes = useStyles();
   const [radioValue, setRadioValue] = useState('read');
   const [searchValue, setSearchValue] = useState('');
@@ -124,40 +124,36 @@ const AddUser = (props) => {
   const isMobileScreen = useMediaQuery(small);
 
   useEffect(() => {
-    setSearchValue(username);
+    setSearchValue(groupname);
     setRadioValue(access);
-  }, [username, access]);
+  }, [groupname, access]);
 
   useEffect(() => {
     if (
       searchValue === '' ||
       searchValue?.length < 3 ||
-      (searchValue?.toLowerCase() === username && radioValue === access)
+      (searchValue?.toLowerCase() === groupname && radioValue === access)
     ) {
       setDisabledSave(true);
     } else {
       setDisabledSave(false);
     }
-  }, [searchValue, radioValue, access, username]);
-
-  const handleChange = (event) => {
-    setRadioValue(event.target.value);
-  };
+  }, [searchValue, radioValue, groupname, access]);
 
   const callSearchApi = useCallback(
     debounce(
       (value) => {
         setSearchLoader(true);
         apiService
-          .getUserName(value)
+          .getGroupsName(value)
           .then((res) => {
             setOptions([]);
             setSearchLoader(false);
             if (res?.data?.data?.values?.length > 0) {
               const array = [];
               res.data.data.values.map((item) => {
-                if (item.userName) {
-                  return array.push(item.userName);
+                if (item.displayName) {
+                  return array.push(item.displayName);
                 }
                 return null;
               });
@@ -189,7 +185,7 @@ const AddUser = (props) => {
     <ComponentError>
       <PermissionWrapper>
         <HeaderWrapper>
-          <Typography variant="h5">Add User</Typography>
+          <Typography variant="h5">Add Group</Typography>
           <div>
             <RequiredCircle />
             <RequiredText>Required</RequiredText>
@@ -197,7 +193,7 @@ const AddUser = (props) => {
         </HeaderWrapper>
         <InputWrapper>
           <InputLabel>
-            User Name
+            Group Name
             <RequiredCircle margin="0.5rem" />
           </InputLabel>
           <AutoCompleteComponent
@@ -217,7 +213,7 @@ const AddUser = (props) => {
         <RadioButtonWrapper>
           <RadioPermissionComponent
             radioValue={radioValue}
-            handleRadioChange={(e) => handleChange(e)}
+            handleRadioChange={(e) => setRadioValue(e.target.value)}
           />
           <CancelSaveWrapper>
             <CancelButton>
@@ -229,7 +225,7 @@ const AddUser = (props) => {
               />
             </CancelButton>
             <ButtonComponent
-              label={username && access ? 'Edit' : 'Save'}
+              label={groupname && access ? 'Edit' : 'Save'}
               color="secondary"
               onClick={() => handleSaveClick(searchValue, radioValue)}
               disabled={disabledSave}
@@ -242,16 +238,16 @@ const AddUser = (props) => {
   );
 };
 
-AddUser.propTypes = {
+AddGroup.propTypes = {
   handleSaveClick: PropTypes.func.isRequired,
   handleCancelClick: PropTypes.func.isRequired,
-  username: PropTypes.string,
+  groupname: PropTypes.string,
   access: PropTypes.string,
 };
 
-AddUser.defaultProps = {
-  username: '',
+AddGroup.defaultProps = {
+  groupname: '',
   access: 'read',
 };
 
-export default AddUser;
+export default AddGroup;

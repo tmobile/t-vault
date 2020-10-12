@@ -6,8 +6,7 @@ import PropTypes from 'prop-types';
 import Radio from '@material-ui/core/Radio';
 
 const RadioPermissionComponent = (props) => {
-  const { radioValue, handleRadioChange } = props;
-
+  const { radioValue, handleRadioChange, isEdit } = props;
   return (
     <div>
       <FormControl component="fieldset">
@@ -23,11 +22,21 @@ const RadioPermissionComponent = (props) => {
             control={<Radio color="default" />}
             label="Read"
           />
-          <FormControlLabel
-            value="write"
-            control={<Radio color="default" />}
-            label="Write"
-          />
+          {isEdit && (
+            <FormControlLabel
+              value="write"
+              control={<Radio color="default" />}
+              label="Reset"
+            />
+          )}
+          {!isEdit && (
+            <FormControlLabel
+              value="reset"
+              control={<Radio color="default" />}
+              label="Reset"
+            />
+          )}
+
           <FormControlLabel
             value="deny"
             control={<Radio color="default" />}
@@ -42,11 +51,13 @@ const RadioPermissionComponent = (props) => {
 RadioPermissionComponent.propTypes = {
   radioValue: PropTypes.string,
   handleRadioChange: PropTypes.func,
+  isEdit: PropTypes.bool,
 };
 
 RadioPermissionComponent.defaultProps = {
   radioValue: 'read',
   handleRadioChange: () => {},
+  isEdit: false,
 };
 
 export default RadioPermissionComponent;
