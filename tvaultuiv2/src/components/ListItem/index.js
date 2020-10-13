@@ -36,6 +36,7 @@ const Flag = styled('span')`
   font-style: ${(props) => (props.fontStyle ? props.fontStyle : '')};
   color: #5e627c;
   text-transform: ${(props) => (props.capital ? props.capital : '')};
+  margin-left: ${(props) => (props.margin ? props.margin : '0')};
 `;
 
 const FolderIconWrap = styled('div')`
@@ -113,8 +114,7 @@ const ListItem = (props) => {
               </Flag>
             </TitleOne>
             <Flag fontSize="1.3rem">{subTitle}</Flag>
-            <Flag fontSize="1.3rem" capital="capitalize">
-              {' . '}
+            <Flag fontSize="1.3rem" capital="capitalize" margin="0.5rem">
               {subTitle2}
             </Flag>
           </ListItemDetailBox>
