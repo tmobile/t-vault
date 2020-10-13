@@ -114,7 +114,7 @@ public class  IAMServiceAccountsService {
 	public ResponseEntity<String> onboardIAMServiceAccount(String token, IAMServiceAccount iamServiceAccount,
 			UserDetails userDetails) {
 
-		if (!isAuthorizedForIAMOnboarding(token)) {
+		if (!isAuthorizedForIAMOnboardAndOffboard(token)) {
 			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
 					.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
 					.put(LogMessage.ACTION, IAMServiceAccountConstants.IAM_SVCACC_CREATION_TITLE)
@@ -171,7 +171,7 @@ public class  IAMServiceAccountsService {
 	 * @param token
 	 * @return
 	 */
-	private boolean isAuthorizedForIAMOnboarding(String token) {
+	private boolean isAuthorizedForIAMOnboardAndOffboard(String token) {
 		ObjectMapper objectMapper = new ObjectMapper();
 		List<String> currentPolicies = new ArrayList<>();
 		Response response = reqProcessor.process("/auth/tvault/lookup","{}", token);
@@ -182,7 +182,7 @@ public class  IAMServiceAccountsService {
 				if (currentPolicies.contains(iamMasterPolicyName)) {
 					log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
 							.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
-							.put(LogMessage.ACTION, "isAuthorizedForIAMOnboarding")
+							.put(LogMessage.ACTION, "isAuthorizedForIAMOnboardAndOffboard")
 							.put(LogMessage.MESSAGE, "Validation success. IAM master policy exists in Token.")
 							.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
 					return true;
@@ -190,7 +190,7 @@ public class  IAMServiceAccountsService {
 			} catch (IOException e) {
 				log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
 						.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
-						.put(LogMessage.ACTION, "isAuthorizedForIAMOnboarding")
+						.put(LogMessage.ACTION, "isAuthorizedForIAMOnboardAndOffboard")
 						.put(LogMessage.MESSAGE,
 								"Failed to parse policies from token")
 						.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
@@ -198,7 +198,7 @@ public class  IAMServiceAccountsService {
 		}
 		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
 				.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
-				.put(LogMessage.ACTION, "isAuthorizedForIAMOnboarding")
+				.put(LogMessage.ACTION, "isAuthorizedForIAMOnboardAndOffboard")
 				.put(LogMessage.MESSAGE, "Validation failed. IAM master policy does not exists in Token.")
 				.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
 		return false;
@@ -457,12 +457,14 @@ public class  IAMServiceAccountsService {
 					build()));
 			allPoliciesDeleted = true;
 		}
-		log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
-				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
-				put(LogMessage.ACTION, "deleteIAMServiceAccountPolicies").
-				put(LogMessage.MESSAGE, "Failed to delete some of the policies for IAM service account.").
-				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
-				build()));
+		else {
+			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+					put(LogMessage.ACTION, "deleteIAMServiceAccountPolicies").
+					put(LogMessage.MESSAGE, "Failed to delete some of the policies for IAM service account.").
+					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+					build()));
+		}
 		return allPoliciesDeleted;
 	}
 
@@ -3015,6 +3017,543 @@ public class  IAMServiceAccountsService {
 					.body("{\"error\":" + JSONUtil.getJSON("No secret with the access keyID :" + accessKey + "") + "}");
 		}
 		
+	}
+
+	/**
+	 * Method to offboard IAM service account.
+	 * @param token
+	 * @param iamServiceAccount
+	 * @param userDetails
+	 * @return
+	 */
+	public ResponseEntity<String> offboardIAMServiceAccount(String token, IAMServiceAccountOffboardRequest iamServiceAccount,
+															UserDetails userDetails) {
+		String managedBy = "";
+		String iamSvcName = iamServiceAccount.getIamSvcAccName().toLowerCase();
+		String awsAcountId = iamServiceAccount.getAwsAccountId();
+		String uniqueIAMSvcName = awsAcountId + "_" + iamSvcName;
+		String selfSupportToken = tokenUtils.getSelfServiceToken();
+		if (!isAuthorizedForIAMOnboardAndOffboard(token)) {
+			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+					.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+					.put(LogMessage.ACTION, IAMServiceAccountConstants.IAM_SVCACC_CREATION_TITLE)
+					.put(LogMessage.MESSAGE,
+							"Access denied. Not authorized to perform offboarding of IAM service accounts.")
+					.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
+					"{\"errors\":[\"Access denied. Not authorized to perform offboarding of IAM service accounts.\"]}");
+		}
+
+		boolean policyDeleteStatus = deleteIAMServiceAccountPolicies(selfSupportToken, uniqueIAMSvcName);
+		if (!policyDeleteStatus) {
+			log.error(JSONUtil.getJSON(ImmutableMap.<String, String> builder()
+					.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+					.put(LogMessage.ACTION, "offboardIAMServiceAccount")
+					.put(LogMessage.MESSAGE, String.format("Failed to delete some of the policies for iam service " +
+							"account [%s]", iamSvcName))
+					.put(LogMessage.APIURL,	ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL))
+					.build()));
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
+					"{\"errors\":[\"Failed to Offboard IAM service account. Policy deletion failed.\"]}");
+		}
+
+		// delete users,groups,aws-roles,app-roles from service account
+		String path = IAMServiceAccountConstants.IAM_SVCC_ACC_META_PATH + uniqueIAMSvcName;
+		Response metaResponse = reqProcessor.process("/sdb", "{\"path\":\"" + path + "\"}", token);
+		Map<String, Object> responseMap = null;
+		try {
+			responseMap = new ObjectMapper().readValue(metaResponse.getResponse(),
+					new TypeReference<Map<String, Object>>() {
+					});
+		} catch (IOException e) {
+			log.error(JSONUtil.getJSON(ImmutableMap.<String, String> builder()
+					.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+					.put(LogMessage.ACTION, "offboardIAMServiceAccount")
+					.put(LogMessage.MESSAGE, String.format("Error Fetching metadata for iam service account " +
+							" [%s]", iamSvcName))
+					.put(LogMessage.APIURL,	ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL))
+					.build()));
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+					.body("{\"errors\":[\"Failed to Offboard IAM service account. Error Fetching metadata for iam service account\"]}");
+		}
+		if (responseMap != null && responseMap.get("data") != null) {
+			Map<String, Object> metadataMap = (Map<String, Object>) responseMap.get("data");
+			Map<String, String> approles = (Map<String, String>) metadataMap.get("app-roles");
+			Map<String, String> groups = (Map<String, String>) metadataMap.get("groups");
+			Map<String, String> users = (Map<String, String>) metadataMap.get("users");
+			// always add owner to the users list whose policy should be updated
+			managedBy = (String) metadataMap.get("owner_ntid");
+			if (!org.apache.commons.lang3.StringUtils.isEmpty(managedBy)) {
+				if (null == users) {
+					users = new HashMap<>();
+				}
+				users.put(managedBy, "sudo");
+			}
+
+			updateUserPolicyAssociationOnIAMSvcaccDelete(uniqueIAMSvcName, users, selfSupportToken, userDetails);
+			updateGroupPolicyAssociationOnIAMSvcaccDelete(uniqueIAMSvcName, groups, selfSupportToken, userDetails);
+			updateApprolePolicyAssociationOnIAMSvcaccDelete(uniqueIAMSvcName, approles, selfSupportToken);
+		}
+
+		OnboardedIAMServiceAccount iamSvcAccToOffboard = new OnboardedIAMServiceAccount(iamSvcName,
+				awsAcountId, managedBy);
+		//delete iam service account secrets and mount details
+		ResponseEntity<String> secretDeletionResponse = deleteIAMSvcAccountSecrets(token, iamSvcAccToOffboard);
+		if (HttpStatus.OK.equals(secretDeletionResponse.getStatusCode())) {
+			// Remove metadata...
+			ResponseEntity<String> metadataResponse = deleteIAMSvcAccount(token, iamSvcAccToOffboard);
+			if(HttpStatus.OK.equals(metadataResponse.getStatusCode())){
+				return ResponseEntity.status(HttpStatus.OK).body(
+						"{\"messages\":[\"Successfully completed offboarding of iam service account from TVault\"]}");
+			}else{
+				return ResponseEntity.status(HttpStatus.MULTI_STATUS).body(
+						"{\"errors\":[\"Failed to offboard IAM service account from TVault\"]}");
+			}
+		} else {
+			log.error(JSONUtil.getJSON(ImmutableMap.<String, String> builder()
+					.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+					.put(LogMessage.ACTION, "offboardIAMServiceAccount")
+					.put(LogMessage.MESSAGE, String.format("Failed to offboard IAM service account [%s] from TVault",
+							iamSvcName))
+					.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
+			return ResponseEntity.status(HttpStatus.MULTI_STATUS).body(
+					"{\"errors\":[\"Failed to offboard IAM service account from TVault\"]}");
+		}
+	}
+
+
+	/**
+	 * Update User policy on IAM Service account offboarding
+	 * @param iamSvcAccName
+	 * @param acessInfo
+	 * @param token
+	 * @param userDetails
+	 */
+	private void updateUserPolicyAssociationOnIAMSvcaccDelete(String iamSvcAccName, Map<String, String> acessInfo,
+															  String token, UserDetails userDetails) {
+		OIDCEntityResponse oidcEntityResponse = new OIDCEntityResponse();
+		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String> builder()
+				.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+				.put(LogMessage.ACTION, "updateUserPolicyAssociationOnIAMSvcaccDelete")
+				.put(LogMessage.MESSAGE, String.format("Trying to delete user policies on IAM service account delete " +
+						"of [%s]", iamSvcAccName))
+				.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
+		if (acessInfo != null) {
+			String readPolicy = new StringBuffer()
+					.append(TVaultConstants.SVC_ACC_POLICIES_PREFIXES.getKey(TVaultConstants.READ_POLICY))
+					.append(IAMServiceAccountConstants.IAMSVCACC_POLICY_PREFIX).append(iamSvcAccName).toString();
+			String writePolicy = new StringBuffer()
+					.append(TVaultConstants.SVC_ACC_POLICIES_PREFIXES.getKey(TVaultConstants.WRITE_POLICY))
+					.append(IAMServiceAccountConstants.IAMSVCACC_POLICY_PREFIX).append(iamSvcAccName).toString();
+			String denyPolicy = new StringBuffer()
+					.append(TVaultConstants.SVC_ACC_POLICIES_PREFIXES.getKey(TVaultConstants.DENY_POLICY))
+					.append(IAMServiceAccountConstants.IAMSVCACC_POLICY_PREFIX).append(iamSvcAccName).toString();
+			String ownerPolicy = new StringBuffer()
+					.append(TVaultConstants.SVC_ACC_POLICIES_PREFIXES.getKey(TVaultConstants.SUDO_POLICY))
+					.append(IAMServiceAccountConstants.IAMSVCACC_POLICY_PREFIX).append(iamSvcAccName).toString();
+
+			Set<String> users = acessInfo.keySet();
+			ObjectMapper objMapper = new ObjectMapper();
+			for (String userName : users) {
+
+				Response userResponse = new Response();
+				if (TVaultConstants.USERPASS.equals(vaultAuthMethod)) {
+					userResponse = reqProcessor.process("/auth/userpass/read", "{\"username\":\"" + userName + "\"}",
+							token);
+				} else if (TVaultConstants.LDAP.equals(vaultAuthMethod)) {
+					userResponse = reqProcessor.process("/auth/ldap/users", "{\"username\":\"" + userName + "\"}",
+							token);
+				} else if (TVaultConstants.OIDC.equals(vaultAuthMethod)) {
+					// OIDC implementation changes
+					ResponseEntity<OIDCEntityResponse> responseEntity = oidcUtil.oidcFetchEntityDetails(token, userName,
+							null);
+					if (!responseEntity.getStatusCode().equals(HttpStatus.OK)) {
+						if (responseEntity.getStatusCode().equals(HttpStatus.FORBIDDEN)) {
+							log.error(JSONUtil.getJSON(ImmutableMap.<String, String> builder()
+									.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+									.put(LogMessage.ACTION, "updateUserPolicyAssociationOnIAMSvcaccDelete")
+									.put(LogMessage.MESSAGE, String.format("Failed to fetch OIDC user policies for [%s]"
+											, userName))
+									.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL))
+									.build()));
+							ResponseEntity.status(HttpStatus.FORBIDDEN)
+									.body("{\"messages\":[\"User configuration failed. Please try again.\"]}");
+						}
+						ResponseEntity.status(HttpStatus.NOT_FOUND)
+								.body("{\"messages\":[\"User configuration failed. Invalid user\"]}");
+					}
+					oidcEntityResponse.setEntityName(responseEntity.getBody().getEntityName());
+					oidcEntityResponse.setPolicies(responseEntity.getBody().getPolicies());
+					userResponse.setResponse(oidcEntityResponse.getPolicies().toString());
+					userResponse.setHttpstatus(responseEntity.getStatusCode());
+				}
+				String responseJson = "";
+				String groups = "";
+				List<String> policies = new ArrayList<>();
+				List<String> currentpolicies = new ArrayList<>();
+
+				if (HttpStatus.OK.equals(userResponse.getHttpstatus())) {
+					responseJson = userResponse.getResponse();
+					try {
+						// OIDC implementation changes
+						if (TVaultConstants.OIDC.equals(vaultAuthMethod)) {
+							currentpolicies.addAll(oidcEntityResponse.getPolicies());
+						} else {
+							currentpolicies = ControllerUtil.getPoliciesAsListFromJson(objMapper, responseJson);
+							if (TVaultConstants.LDAP.equals(vaultAuthMethod)) {
+								groups = objMapper.readTree(responseJson).get("data").get("groups").asText();
+							}
+						}
+					} catch (IOException e) {
+						log.error(JSONUtil.getJSON(ImmutableMap.<String, String> builder()
+								.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+								.put(LogMessage.ACTION, "updateUserPolicyAssociationOnIAMSvcaccDelete")
+								.put(LogMessage.MESSAGE, String.format("updateUserPolicyAssociationOnIAMSvcaccDelete " +
+												"failed [%s]", e.getMessage()))
+								.put(LogMessage.APIURL,	ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL))
+								.build()));
+					}
+					policies.addAll(currentpolicies);
+					policies.remove(readPolicy);
+					policies.remove(writePolicy);
+					policies.remove(denyPolicy);
+					policies.remove(ownerPolicy);
+
+					String policiesString = org.apache.commons.lang3.StringUtils.join(policies, ",");
+
+					log.debug(JSONUtil.getJSON(ImmutableMap.<String, String> builder()
+							.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+							.put(LogMessage.ACTION, "updateUserPolicyAssociationOnIAMSvcaccDelete")
+							.put(LogMessage.MESSAGE, String.format("Current policies [%s]", policies))
+							.put(LogMessage.APIURL,	ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL))
+							.build()));
+					if (TVaultConstants.USERPASS.equals(vaultAuthMethod)) {
+						log.debug(JSONUtil.getJSON(ImmutableMap.<String, String> builder()
+								.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+								.put(LogMessage.ACTION, "updateUserPolicyAssociationOnIAMSvcaccDelete")
+								.put(LogMessage.MESSAGE, String.format("Current policies userpass [%s]", policies))
+								.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL))
+								.build()));
+						ControllerUtil.configureUserpassUser(userName, policiesString, token);
+					} else if (TVaultConstants.LDAP.equals(vaultAuthMethod)) {
+						log.debug(JSONUtil.getJSON(ImmutableMap.<String, String> builder()
+								.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+								.put(LogMessage.ACTION, "updateUserPolicyAssociationOnIAMSvcaccDelete")
+								.put(LogMessage.MESSAGE, String.format("Current policies ldap [%s]", policies))
+								.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL))
+								.build()));
+						ControllerUtil.configureLDAPUser(userName, policiesString, groups, token);
+					} else if (TVaultConstants.OIDC.equals(vaultAuthMethod)) {
+						// OIDC Implementation : Entity Update
+						try {
+							oidcUtil.updateOIDCEntity(policies, oidcEntityResponse.getEntityName());
+							oidcUtil.renewUserToken(userDetails.getClientToken());
+						} catch (Exception e) {
+							log.error(e);
+							log.error(JSONUtil.getJSON(ImmutableMap.<String, String> builder()
+									.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+									.put(LogMessage.ACTION, "updateUserPolicyAssociationOnIAMSvcaccDelete")
+									.put(LogMessage.MESSAGE, "Exception while adding or updating the identity ")
+									.put(LogMessage.STACKTRACE, Arrays.toString(e.getStackTrace()))
+									.put(LogMessage.APIURL,	ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL))
+									.build()));
+						}
+					}
+				}
+			}
+		}
+	}
+
+	/**
+	 * Update Group policy on IAM Service account offboarding
+	 *
+	 * @param iamSvcAccountName
+	 * @param acessInfo
+	 * @param token
+	 * @param userDetails
+	 */
+	private void updateGroupPolicyAssociationOnIAMSvcaccDelete(String iamSvcAccountName, Map<String, String> acessInfo,
+															   String token, UserDetails userDetails) {
+		OIDCGroup oidcGroup = new OIDCGroup();
+		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String> builder()
+				.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+				.put(LogMessage.ACTION, "updateGroupPolicyAssociationOnIAMSvcaccDelete")
+				.put(LogMessage.MESSAGE, String.format("trying to delete group policies on IAM service account delete " +
+						"for [%s]", iamSvcAccountName))
+				.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
+		if (TVaultConstants.USERPASS.equals(vaultAuthMethod)) {
+			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String> builder()
+					.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+					.put(LogMessage.ACTION, "updateGroupPolicyAssociationOnIAMSvcaccDelete")
+					.put(LogMessage.MESSAGE, "Inside userpass of updateGroupPolicyAssociationOnIAMSvcaccDelete...Just Returning...")
+					.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
+			return;
+		}
+		if (acessInfo != null) {
+			String readPolicy = new StringBuffer()
+					.append(TVaultConstants.SVC_ACC_POLICIES_PREFIXES.getKey(TVaultConstants.READ_POLICY))
+					.append(IAMServiceAccountConstants.IAMSVCACC_POLICY_PREFIX).append(iamSvcAccountName).toString();
+			String writePolicy = new StringBuffer()
+					.append(TVaultConstants.SVC_ACC_POLICIES_PREFIXES.getKey(TVaultConstants.WRITE_POLICY))
+					.append(IAMServiceAccountConstants.IAMSVCACC_POLICY_PREFIX).append(iamSvcAccountName).toString();
+			String denyPolicy = new StringBuffer()
+					.append(TVaultConstants.SVC_ACC_POLICIES_PREFIXES.getKey(TVaultConstants.DENY_POLICY))
+					.append(IAMServiceAccountConstants.IAMSVCACC_POLICY_PREFIX).append(iamSvcAccountName).toString();
+			String sudoPolicy = new StringBuffer()
+					.append(TVaultConstants.SVC_ACC_POLICIES_PREFIXES.getKey(TVaultConstants.SUDO_POLICY))
+					.append(IAMServiceAccountConstants.IAMSVCACC_POLICY_PREFIX).append(iamSvcAccountName).toString();
+
+			Set<String> groups = acessInfo.keySet();
+			ObjectMapper objMapper = new ObjectMapper();
+			for (String groupName : groups) {
+				Response response = new Response();
+				if (TVaultConstants.LDAP.equals(vaultAuthMethod)) {
+					response = reqProcessor.process("/auth/ldap/groups", "{\"groupname\":\"" + groupName + "\"}",
+							token);
+				} else if (TVaultConstants.OIDC.equals(vaultAuthMethod)) {
+					// call read api with groupname
+					oidcGroup = oidcUtil.getIdentityGroupDetails(groupName, token);
+					if (oidcGroup != null) {
+						response.setHttpstatus(HttpStatus.OK);
+						response.setResponse(oidcGroup.getPolicies().toString());
+					} else {
+						response.setHttpstatus(HttpStatus.BAD_REQUEST);
+					}
+				}
+
+				String responseJson = TVaultConstants.EMPTY;
+				List<String> policies = new ArrayList<>();
+				List<String> currentpolicies = new ArrayList<>();
+				if (HttpStatus.OK.equals(response.getHttpstatus())) {
+					responseJson = response.getResponse();
+					try {
+						// OIDC Changes
+						if (TVaultConstants.LDAP.equals(vaultAuthMethod)) {
+							currentpolicies = ControllerUtil.getPoliciesAsListFromJson(objMapper, responseJson);
+						} else if (TVaultConstants.OIDC.equals(vaultAuthMethod)) {
+							currentpolicies.addAll(oidcGroup.getPolicies());
+						}
+					} catch (IOException e) {
+						log.error(e);
+						log.error(JSONUtil.getJSON(ImmutableMap.<String, String> builder()
+								.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+								.put(LogMessage.ACTION, "updateGroupPolicyAssociationOnIAMSvcaccDelete")
+								.put(LogMessage.MESSAGE, String.format("updateGroupPolicyAssociationOnIAMSvcaccDelete " +
+												"failed [%s]", e.getMessage()))
+								.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL))
+								.build()));
+					}
+					policies.addAll(currentpolicies);
+					policies.remove(readPolicy);
+					policies.remove(writePolicy);
+					policies.remove(denyPolicy);
+					policies.remove(sudoPolicy);
+					String policiesString = org.apache.commons.lang3.StringUtils.join(policies, ",");
+					log.debug(JSONUtil.getJSON(ImmutableMap.<String, String> builder()
+							.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+							.put(LogMessage.ACTION, "updateGroupPolicyAssociationOnIAMSvcaccDelete")
+							.put(LogMessage.MESSAGE, String.format("Current policies [%s]", policies))
+							.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL))
+							.build()));
+					if (TVaultConstants.LDAP.equals(vaultAuthMethod)) {
+						ControllerUtil.configureLDAPGroup(groupName, policiesString, token);
+					} else if (TVaultConstants.OIDC.equals(vaultAuthMethod)) {
+						oidcUtil.updateGroupPolicies(token, groupName, policies, currentpolicies, oidcGroup.getId());
+						oidcUtil.renewUserToken(userDetails.getClientToken());
+					}
+				}
+			}
+		}
+	}
+
+	/**
+	 * Approle policy update as part of offboarding
+	 *
+	 * @param iamSvcAccountName
+	 * @param acessInfo
+	 * @param token
+	 */
+	private void updateApprolePolicyAssociationOnIAMSvcaccDelete(String iamSvcAccountName,
+																 Map<String, String> acessInfo, String token) {
+		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String> builder()
+				.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+				.put(LogMessage.ACTION, "updateApprolePolicyAssociationOnIAMSvcaccDelete")
+				.put(LogMessage.MESSAGE, String.format("trying to update approle policies on IAM service account " +
+						"delete for [%s]", iamSvcAccountName))
+				.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
+		if (acessInfo != null) {
+			String readPolicy = new StringBuffer()
+					.append(TVaultConstants.SVC_ACC_POLICIES_PREFIXES.getKey(TVaultConstants.READ_POLICY))
+					.append(IAMServiceAccountConstants.IAMSVCACC_POLICY_PREFIX).append(iamSvcAccountName).toString();
+			String writePolicy = new StringBuffer()
+					.append(TVaultConstants.SVC_ACC_POLICIES_PREFIXES.getKey(TVaultConstants.WRITE_POLICY))
+					.append(IAMServiceAccountConstants.IAMSVCACC_POLICY_PREFIX).append(iamSvcAccountName).toString();
+			String denyPolicy = new StringBuffer()
+					.append(TVaultConstants.SVC_ACC_POLICIES_PREFIXES.getKey(TVaultConstants.DENY_POLICY))
+					.append(IAMServiceAccountConstants.IAMSVCACC_POLICY_PREFIX).append(iamSvcAccountName).toString();
+			String sudoPolicy = new StringBuffer()
+					.append(TVaultConstants.SVC_ACC_POLICIES_PREFIXES.getKey(TVaultConstants.SUDO_POLICY))
+					.append(IAMServiceAccountConstants.IAMSVCACC_POLICY_PREFIX).append(iamSvcAccountName).toString();
+			Set<String> approles = acessInfo.keySet();
+			ObjectMapper objMapper = new ObjectMapper();
+			for (String approleName : approles) {
+				Response roleResponse = reqProcessor.process("/auth/approle/role/read",
+						"{\"role_name\":\"" + approleName + "\"}", token);
+				String responseJson = "";
+				List<String> policies = new ArrayList<>();
+				List<String> currentpolicies = new ArrayList<>();
+				if (HttpStatus.OK.equals(roleResponse.getHttpstatus())) {
+					responseJson = roleResponse.getResponse();
+					try {
+						JsonNode policiesArry = objMapper.readTree(responseJson).get("data").get("policies");
+						if (null != policiesArry) {
+							for (JsonNode policyNode : policiesArry) {
+								currentpolicies.add(policyNode.asText());
+							}
+						}
+					} catch (IOException e) {
+						log.error(JSONUtil.getJSON(ImmutableMap.<String, String> builder()
+								.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+								.put(LogMessage.ACTION, "updateApprolePolicyAssociationOnIAMSvcaccDelete")
+								.put(LogMessage.MESSAGE, String.format("%s, Approle removal as part of offboarding " +
+												"Service account failed.", approleName))
+								.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL))
+								.build()));
+					}
+					policies.addAll(currentpolicies);
+					policies.remove(readPolicy);
+					policies.remove(writePolicy);
+					policies.remove(denyPolicy);
+					policies.remove(sudoPolicy);
+
+					String policiesString = org.apache.commons.lang3.StringUtils.join(policies, ",");
+					log.info( JSONUtil.getJSON(ImmutableMap.<String, String> builder()
+									.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+									.put(LogMessage.ACTION, "updateApprolePolicyAssociationOnIAMSvcaccDelete")
+									.put(LogMessage.MESSAGE, "Current policies :" + policiesString + " is being configured")
+									.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL))
+									.build()));
+					appRoleService.configureApprole(approleName, policiesString, token);
+				}
+			}
+		}
+	}
+
+	/**
+	 * Deletes the IAMSvcAccount secret
+	 *
+	 * @param token
+	 * @param iamServiceAccount
+	 * @return
+	 */
+	private ResponseEntity<String> deleteIAMSvcAccountSecrets(String token, OnboardedIAMServiceAccount iamServiceAccount) {
+		String iamSvcAccName = iamServiceAccount.getAwsAccountId() + "_" + iamServiceAccount.getUserName();
+		String iamSvcAccPath = IAMServiceAccountConstants.IAM_SVCC_ACC_PATH + iamSvcAccName;
+
+		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+				.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+				.put(LogMessage.ACTION, "deleteIAMSvcAccountSecrets")
+				.put(LogMessage.MESSAGE, String.format("Trying to delete secret folder for IAM service " +
+						"account [%s].", iamSvcAccName))
+				.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
+
+		boolean secretDeleteStatus = deleteIAMSvcAccountSecretFolders(token, iamServiceAccount.getAwsAccountId(),
+				iamServiceAccount.getUserName());
+		if (secretDeleteStatus) {
+			Response onboardingResponse = reqProcessor.process("/delete", "{\"path\":\"" + iamSvcAccPath + "\"}", token);
+
+			if (onboardingResponse.getHttpstatus().equals(HttpStatus.NO_CONTENT)
+					|| onboardingResponse.getHttpstatus().equals(HttpStatus.OK)) {
+				log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+						.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+						.put(LogMessage.ACTION, "deleteIAMSvcAccountSecrets")
+						.put(LogMessage.MESSAGE, "Successfully deleted IAM service account Secrets.")
+						.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
+				return ResponseEntity.status(HttpStatus.OK)
+						.body("{\"messages\":[\"Successfully deleted IAM service account Secrets.\"]}");
+			}
+			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+					.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+					.put(LogMessage.ACTION, "deleteIAMSvcAccountSecrets")
+					.put(LogMessage.MESSAGE, "Failed to delete IAM service account Secrets.")
+					.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+					.body("{\"errors\":[\"Failed to delete IAM service account Secrets.\"]}");
+		}
+
+		log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+				.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+				.put(LogMessage.ACTION, "deleteIAMSvcAccountSecrets")
+				.put(LogMessage.MESSAGE, "Failed to delete one or more IAM service account Secret folders.")
+				.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
+		return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+				.body("{\"errors\":[\"Failed to delete IAM service account Secrets.\"]}");
+	}
+
+	/**
+	 * To delete IAM secret folders as part of Offboarding.
+	 * @param token
+	 * @param awsAccountId
+	 * @param iamSvcAccName
+	 * @return
+	 */
+	private boolean deleteIAMSvcAccountSecretFolders(String token, String awsAccountId, String iamSvcAccName) {
+
+		String uniqueSvcAccName = awsAccountId + "_" + iamSvcAccName;
+		JsonObject iamMetadataJson = getIAMMetadata(token, uniqueSvcAccName);
+
+		if (null!= iamMetadataJson && iamMetadataJson.has("secret")) {
+			if (!iamMetadataJson.get("secret").isJsonNull()) {
+				log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+						put(LogMessage.ACTION, "deleteIAMSvcAccountSecretFolders").
+						put(LogMessage.MESSAGE, String.format("Trying to delete secret folders for the IAM Service " +
+								"account [%s]", uniqueSvcAccName)).
+						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+						build()));
+
+				JsonArray svcSecretArray = null;
+				try {
+					svcSecretArray = iamMetadataJson.get("secret").getAsJsonArray();
+				} catch (IllegalStateException e) {
+					log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+							put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+							put(LogMessage.ACTION, "deleteIAMSvcAccountSecretFolders").
+							put(LogMessage.MESSAGE, String.format("Failed to get secret folders. Invalid metadata " +
+									"for [%s].", uniqueSvcAccName)).
+							put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+							build()));
+					return false;
+				}
+
+				if (null != svcSecretArray) {
+					int deleteCount = 0;
+					for (int i = 0; i < svcSecretArray.size(); i++) {
+						String folderPath = IAMServiceAccountConstants.IAM_SVCC_ACC_PATH + "/"+ uniqueSvcAccName + "/secret_" + (i+1);
+						Response deleteFolderResponse = reqProcessor.process("/delete",
+								"{\"path\":\"" + folderPath + "\"}", token);
+						if (deleteFolderResponse.getHttpstatus().equals(HttpStatus.NO_CONTENT)
+								|| deleteFolderResponse.getHttpstatus().equals(HttpStatus.OK)) {
+							log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+									put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+									put(LogMessage.ACTION, "deleteIAMSvcAccountSecretFolders").
+									put(LogMessage.MESSAGE, String.format("Deleted secret folder [%d] for the IAM Service " +
+											"account [%s]", (i+1), uniqueSvcAccName)).
+									put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+									build()));
+							deleteCount++;
+						}
+					}
+					if (deleteCount == svcSecretArray.size()) {
+						return true;
+					}
+					else {
+						return false;
+					}
+				}
+			}
+		}
+		return true;
 	}
 
 }

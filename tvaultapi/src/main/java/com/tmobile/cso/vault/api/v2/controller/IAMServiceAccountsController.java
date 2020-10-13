@@ -267,4 +267,18 @@ public class IAMServiceAccountsController {
 			@PathVariable("accessKey") String accessKey) throws IOException {
 		return iamServiceAccountsService.readSecrets(token, awsAccountID, iamSvcName, accessKey);
 	}
+
+	/**
+	 * Offboard IAM service account.
+	 * @param request
+	 * @param token
+	 * @param iamServiceAccount
+	 * @return
+	 */
+	@ApiOperation(value = "${IAMServiceAccountsController.offboardIAMServiceAccount.value}", notes = "${IAMServiceAccountsController.offboardIAMServiceAccount.notes}")
+	@PostMapping(value="/v2/iamserviceaccounts/offboard", produces="application/json")
+	public ResponseEntity<String> offboardIAMServiceAccount( HttpServletRequest request, @RequestHeader(value="vault-token") String token, @RequestBody IAMServiceAccountOffboardRequest iamServiceAccount ){
+		UserDetails userDetails = (UserDetails) request.getAttribute(USER_DETAILS_STRING);
+		return iamServiceAccountsService.offboardIAMServiceAccount(token, iamServiceAccount, userDetails);
+	}
 }
