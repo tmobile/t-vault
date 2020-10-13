@@ -17,9 +17,9 @@ import ScaledLoader from '../../../../../components/Loaders/ScaledLoader';
 import SelectComponent from '../../../../../components/FormFields/SelectFields';
 import CertificatesReviewDetails from '../CertificatesReviewDetails';
 import ListItem from '../../../../../components/ListItem';
-import { certificates } from '../../__mock/certificates';
 import CertificateItemDetail from '../CertificateItemDetail';
 import { TitleFour } from '../../../../../styles/GlobalStyles';
+import apiService from '../../apiService';
 
 const ColumnSection = styled('section')`
   position: relative;
@@ -33,13 +33,13 @@ const RightColumnSection = styled(ColumnSection)`
   ${mediaBreakpoints.small} {
     width: 100%;
     ${(props) => props.mobileViewStyles}
-    display: ${(props) => (props.isAccountDetailsOpen ? 'block' : 'none')};
+    display: ${(props) => (props.isDetailsOpen ? 'block' : 'none')};
   }
 `;
 const LeftColumnSection = styled(ColumnSection)`
   width: 40.77%;
   ${mediaBreakpoints.small} {
-    display: ${(props) => (props.isAccountDetailsOpen ? 'none' : 'block')};
+    display: ${(props) => (props.isDetailsOpen ? 'none' : 'block')};
     width: 100%;
   }
 `;
@@ -76,6 +76,13 @@ const NoDataWrapper = styled.div`
   display: flex;
   justify-content: center;
   align-items: center;
+  color: #5e627c;
+  span {
+    margin: 0 0.4rem;
+    color: #fff;
+    font-weight: bold;
+    text-transform: uppercase;
+  }
 `;
 
 const PopperWrap = styled.div`
@@ -94,8 +101,8 @@ const ListFolderWrap = styled(Link)`
   padding: 1.2rem 1.8rem 1.2rem 3.4rem;
   cursor: pointer;
   background-image: ${(props) =>
-    props.active ? props.theme.gradients.list : 'none'};
-  color: ${(props) => (props.active ? '#fff' : '#4a4a4a')};
+    props.active === 'true' ? props.theme.gradients.list : 'none'};
+  color: ${(props) => (props.active === 'true' ? '#fff' : '#4a4a4a')};
   ${mediaBreakpoints.belowLarge} {
     padding: 2rem 1.1rem;
   }
@@ -172,7 +179,7 @@ const extraCss = css`
   color: #5e627c;
 `;
 
-const useStyles = makeStyles(() => ({
+const useStyles = makeStyles((theme) => ({
   contained: { borderRadius: '0.4rem' },
   select: {
     backgroundColor: 'transparent',
@@ -180,8 +187,11 @@ const useStyles = makeStyles(() => ({
     textTransform: 'uppercase',
     color: '#fff',
     fontWeight: 'bold',
-    width: '22rem',
+    maxWidth: '22rem',
     marginRight: '2.5rem',
+    [theme.breakpoints.down('sm')]: {
+      maxWidth: '16rem',
+    },
     '& .Mui-selected': {
       color: 'red',
     },
@@ -198,40 +208,89 @@ const CertificatesDashboard = () => {
     'Internal Certificates',
   ]);
   const [response, setResponse] = useState({ status: 'success' });
+  const [errorMsg, setErrorMsg] = useState('');
+  const [allCertList, setAllCertList] = useState([]);
   const [certificateClicked, setCertificateClicked] = useState(false);
   const [ListItemDetails, setListItemDetails] = useState({});
   const classes = useStyles();
   const history = useHistory();
   const isMobileScreen = useMediaQuery(mediaBreakpoints.small);
 
+  const compareCertificates = (internalCertArray, allCertArray) => {
+    if (allCertArray.length > 0) {
+      allCertArray.map((item) => {
+        if (!internalCertArray.some((list) => list.certificateName === item)) {
+          const obj = {
+            certificateName: item,
+            certType: 'Internal',
+          };
+          internalCertArray.push(obj);
+        }
+        return null;
+      });
+    }
+  };
+
   /**
    * @function fetchData
    * @description function call all certificates api.
    */
   const fetchData = useCallback(async () => {
-    setCertificateList([...certificates]);
+    setResponse({ status: 'loading' });
+    const allCertInternal = await apiService.getAllCertInternal();
+    const internalCertificates = await apiService.getInternalCertificates();
+    const externalCertificates = await apiService.getExternalCertificates();
+    const allApiResponse = Promise.all([
+      allCertInternal,
+      internalCertificates,
+      externalCertificates,
+    ]);
+    allApiResponse
+      .then((result) => {
+        const allCertArray = [];
+        const internalCertArray = [];
+        const externalCertArray = [];
+        if (result && result[0]?.data?.data?.keys) {
+          result[0].data.data.keys.map((item) => {
+            return allCertArray.push(item);
+          });
+        }
+        if (result && result[1]?.data?.keys) {
+          result[1].data.keys.map((item) => {
+            return internalCertArray.push(item);
+          });
+          compareCertificates(internalCertArray, allCertArray);
+        }
+        if (result && result[2]?.data?.keys) {
+          result[2].data.keys.map((item) => {
+            return externalCertArray.push(item);
+          });
+        }
+        setCertificateList([...internalCertArray, ...externalCertArray]);
+        setAllCertList([...internalCertArray, ...externalCertArray]);
+        setResponse({ status: 'success' });
+      })
+      .catch((err) => {
+        console.log('err.response', err.response);
+        setResponse({ status: 'failed' });
+      });
   }, []);
 
   /**
    * @description On component load call fetchData function.
    */
   useEffect(() => {
-    fetchData().catch(() => {
-      setResponse({ status: 'failed', message: 'failed' });
+    fetchData().catch((err) => {
+      if (err?.response?.data?.errors && err.response.data.errors[0]) {
+        setErrorMsg(err.response.data.errors[0]);
+      }
+      setResponse({ status: 'failed' });
     });
   }, [fetchData]);
 
   /**
-   * @function onSearchChange
-   * @description function to search input
-   */
-  const onSearchChange = (value) => {
-    setInputSearchValue(value);
-  };
-
-  /**
    * @function onLinkClicked
-   * @description function to check if mobile screen the make safeClicked true
+   * @description function to check if mobile screen the make certificateClicked true
    * based on that value display left and right side.
    */
   const onLinkClicked = (item) => {
@@ -242,7 +301,7 @@ const CertificatesDashboard = () => {
   };
 
   /**
-   * @function backToServiceAccounts
+   * @function backToCertificates
    * @description To get back to left side lists in case of mobile view
    * @param {bool} isMobileScreen boolian
    */
@@ -258,6 +317,54 @@ const CertificatesDashboard = () => {
     }
   }, [certificateList]);
 
+  /**
+   * @function onSelectChange
+   * @description function to filter certificates.
+   * @param {string} value selected filter value.
+   */
+  const onSelectChange = (value) => {
+    setCertificateType(value);
+    if (value !== 'All Certificates') {
+      const array = allCertList.filter((cert) =>
+        value.toLowerCase().includes(cert.certType)
+      );
+      setCertificateList([...array]);
+    } else {
+      setCertificateList([...allCertList]);
+    }
+  };
+
+  /**
+   * @function onSearchChange
+   * @description function to search certificate.
+   * @param {string} value searched input value.
+   */
+  const onSearchChange = (value) => {
+    if (value !== '') {
+      const array = allCertList.filter((item) =>
+        item.certificateName.includes(value)
+      );
+      setCertificateList([...array]);
+    } else {
+      setCertificateList([...allCertList]);
+    }
+  };
+
+  // when both search and filter value is available.
+  useEffect(() => {
+    if (certificateType !== 'All Certificates' && inputSearchValue) {
+      const array = certificateList.filter((cert) =>
+        cert.certificateName.includes(inputSearchValue)
+      );
+      setCertificateList([...array]);
+    } else if (certificateType === 'All Certificates' && inputSearchValue) {
+      onSearchChange(inputSearchValue);
+    } else if (inputSearchValue === '') {
+      onSelectChange(certificateType);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [inputSearchValue, certificateType]);
+
   const renderList = () => {
     return certificateList.map((certificate) => (
       <ListFolderWrap
@@ -270,6 +377,8 @@ const CertificatesDashboard = () => {
         active={
           history.location.pathname ===
           `/certificates/${certificate.certificateName}`
+            ? 'true'
+            : 'false'
         }
       >
         <ListItem
@@ -301,14 +410,14 @@ const CertificatesDashboard = () => {
                 color="secondary"
                 classes={classes}
                 fullWidth={false}
-                onChange={(e) => setCertificateType(e.target.value)}
+                onChange={(e) => onSelectChange(e.target.value)}
               />
               <SearchWrap>
                 <TextFieldComponent
                   placeholder="Search"
                   icon="search"
                   fullWidth
-                  onChange={(e) => onSearchChange(e.target.value)}
+                  onChange={(e) => setInputSearchValue(e.target.value)}
                   value={inputSearchValue || ''}
                   color="secondary"
                 />
@@ -319,7 +428,9 @@ const CertificatesDashboard = () => {
             )}
             {response.status === 'failed' && (
               <EmptyContentBox>
-                <Error description="Error while fetching certificates!" />
+                <Error
+                  description={errorMsg || 'Error while fetching certificates!'}
+                />
               </EmptyContentBox>
             )}
             {response.status === 'success' && (
@@ -330,22 +441,38 @@ const CertificatesDashboard = () => {
                   </ListContainer>
                 )}
                 {certificateList?.length === 0 && (
-                  <NoDataWrapper>
-                    <NoListWrap>
-                      <NoData
-                        imageSrc={noCertificateIcon}
-                        actionButton={
-                          <FloatingActionButtonComponent
-                            href="/certificates/create-ceritificate"
-                            color="secondary"
-                            icon="add"
-                            tooltipTitle="Create New Certificate"
-                            tooltipPos="bottom"
+                  <>
+                    {inputSearchValue ? (
+                      <NoDataWrapper>
+                        No certificate found with name
+                        <span>{inputSearchValue}</span>
+                        {certificateType !== 'All Certificates' && (
+                          <>
+                            and filter by
+                            <span>{certificateType}</span>
+                          </>
+                        )}
+                        {' . '}
+                      </NoDataWrapper>
+                    ) : (
+                      <NoDataWrapper>
+                        <NoListWrap>
+                          <NoData
+                            imageSrc={noCertificateIcon}
+                            actionButton={
+                              <FloatingActionButtonComponent
+                                href="/certificates/create-ceritificate"
+                                color="secondary"
+                                icon="add"
+                                tooltipTitle="Create New Certificate"
+                                tooltipPos="bottom"
+                              />
+                            }
                           />
-                        }
-                      />
-                    </NoListWrap>
-                  </NoDataWrapper>
+                        </NoListWrap>
+                      </NoDataWrapper>
+                    )}
+                  </>
                 )}
               </>
             )}
@@ -363,7 +490,7 @@ const CertificatesDashboard = () => {
           </LeftColumnSection>
           <RightColumnSection
             mobileViewStyles={isMobileScreen ? MobileViewForListDetailPage : ''}
-            isAccountDetailsOpen={certificateClicked}
+            isDetailsOpen={certificateClicked}
           >
             <Switch>
               {certificateList[0]?.certificateName && (

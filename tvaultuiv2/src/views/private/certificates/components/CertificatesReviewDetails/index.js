@@ -19,10 +19,10 @@ const NoDataWrapper = styled.div`
   justify-content: center;
   height: 100%;
 `;
-const bgIconStyle = css`
-  width: 20rem;
-  height: 20rem;
-`;
+const bgIconStyle = {
+  width: '20rem',
+  height: '20rem',
+};
 
 const noDataStyle = css`
   height: 100%;

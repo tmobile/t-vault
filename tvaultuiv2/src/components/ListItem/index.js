@@ -78,10 +78,10 @@ const extraCss = css`
     text-overflow: ellipsis;
     font-size: 1.6rem;
   }
-  ${mediaBreakpoints.smallAndMedium} {
+  ${mediaBreakpoints.belowLarge} {
     width: 17rem;
   }
-  ${mediaBreakpoints.smallAndMedium} {
+  ${mediaBreakpoints.small} {
     width: 20rem;
   }
 `;
