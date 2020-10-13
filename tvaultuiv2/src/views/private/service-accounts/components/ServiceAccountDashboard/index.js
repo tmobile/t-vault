@@ -113,6 +113,9 @@ const ListFolderWrap = styled(Link)`
   background-image: ${(props) =>
     props.active ? props.theme.gradients.list : 'none'};
   color: ${(props) => (props.active ? '#fff' : '#4a4a4a')};
+  ${mediaBreakpoints.belowLarge} {
+    padding: 2rem 1.1rem;
+  }
   :hover {
     background-image: ${(props) => props.theme.gradients.list || 'none'};
     color: #fff;

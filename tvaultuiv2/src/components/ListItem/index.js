@@ -1,13 +1,14 @@
 /* eslint-disable no-return-assign */
 import React, { useState } from 'react';
 import PropTypes from 'prop-types';
-import styled from 'styled-components';
+import styled, { css } from 'styled-components';
 import Avatar from '@material-ui/core/Avatar';
 import ComponentError from '../../errorBoundaries/ComponentError/component-error';
 import { TitleOne } from '../../styles/GlobalStyles';
 import ListItemIcon from '../../assets/icon_safes.svg';
 import { customColor } from '../../theme';
 import PopperElement from '../Popper';
+import mediaBreakpoints from '../../breakpoints';
 
 const FolderWrap = styled('div')`
   position: relative;
@@ -33,6 +34,8 @@ const Flag = styled('span')`
   opacity: 0.7;
   font-size: ${(props) => props.fontSize};
   font-style: ${(props) => (props.fontStyle ? props.fontStyle : '')};
+  color: #5e627c;
+  text-transform: ${(props) => (props.capital ? props.capital : '')};
 `;
 
 const FolderIconWrap = styled('div')`
@@ -68,8 +71,31 @@ const LabelWrap = styled.div`
   align-items: center;
 `;
 
+const extraCss = css`
+  ${mediaBreakpoints.belowLarge} {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-size: 1.6rem;
+  }
+  ${mediaBreakpoints.smallAndMedium} {
+    width: 17rem;
+  }
+  ${mediaBreakpoints.smallAndMedium} {
+    width: 20rem;
+  }
+`;
+
 const ListItem = (props) => {
-  const { title, subTitle, flag, icon, showActions, popperListItems } = props;
+  const {
+    title,
+    subTitle,
+    flag,
+    icon,
+    showActions,
+    popperListItems,
+    subTitle2,
+  } = props;
   const [anchorEl, setAnchorEl] = useState(null);
 
   return (
@@ -80,13 +106,17 @@ const ListItem = (props) => {
             <Avatar alt="ListItem_icon" src={icon} />
           </ListItemAvatarWrap>
           <ListItemDetailBox>
-            <TitleOne color="#d0d0d0">
+            <TitleOne color="#d0d0d0" extraCss={extraCss}>
               {title}
               <Flag fontSize="0.85rem" fontStyle="italic">
                 {flag}
               </Flag>
             </TitleOne>
             <Flag fontSize="1.3rem">{subTitle}</Flag>
+            <Flag fontSize="1.3rem" capital="capitalize">
+              {' . '}
+              {subTitle2}
+            </Flag>
           </ListItemDetailBox>
         </LabelWrap>
         {showActions ? (
@@ -125,6 +155,7 @@ ListItem.propTypes = {
   flag: PropTypes.string,
   showActions: PropTypes.bool.isRequired,
   popperListItems: PropTypes.arrayOf(PropTypes.any),
+  subTitle2: PropTypes.string,
 };
 ListItem.defaultProps = {
   subTitle: '',
@@ -132,5 +163,6 @@ ListItem.defaultProps = {
   flag: '',
   icon: ListItemIcon,
   popperListItems: [],
+  subTitle2: '',
 };
 export default ListItem;
