@@ -250,30 +250,34 @@ const OnBoardForm = () => {
    */
 
   const fetchAppRoles = useCallback(
-    debounce(() => {
-      setIsAppNameFetching(true);
-      apiService
-        .getAppRoles()
-        .then((res) => {
-          setIsServiceFetching(false);
-          setIsAppNameFetching(false);
-          if (res?.data?.length > 0) {
-            const array = [];
-            res.data.map((item) => {
-              if (item.appName) {
-                return array.push(item);
-              }
-              return null;
-            });
+    debounce(
+      () => {
+        setIsAppNameFetching(true);
+        apiService
+          .getAppRoles()
+          .then((res) => {
+            setIsServiceFetching(false);
+            setIsAppNameFetching(false);
+            if (res?.data?.length > 0) {
+              const array = [];
+              res.data.map((item) => {
+                if (item.appName) {
+                  return array.push(item);
+                }
+                return null;
+              });
 
-            setApplicationList([...array]);
-          }
-        })
-        .catch((err) => {
-          setIsAppNameFetching(false);
-          console.log('error fetching list ---- ', err);
-        });
-    }),
+              setApplicationList([...array]);
+            }
+          })
+          .catch((err) => {
+            setIsAppNameFetching(false);
+            console.log('error fetching list ---- ', err);
+          });
+      },
+      1000,
+      true
+    ),
     []
   );
 
@@ -283,28 +287,32 @@ const OnBoardForm = () => {
    */
 
   const fetchServiceAccounts = useCallback(
-    debounce((name) => {
-      setIsServiceFetching(true);
-      apiService
-        .getUsersServiceAccounts(name)
-        .then((res) => {
-          setIsServiceFetching(false);
-          if (res?.data?.data?.values?.length > 0) {
-            const array = [];
-            res.data.data.values.map((item) => {
-              if (item.userId) {
-                return array.push(item);
-              }
-              return null;
-            });
-            setServiceAccountsList([...array]);
-          }
-        })
-        .catch((err) => {
-          console.log('error fetching list ---- ', err);
-          setIsServiceFetching(false);
-        });
-    }),
+    debounce(
+      (name) => {
+        setIsServiceFetching(true);
+        apiService
+          .getUsersServiceAccounts(name)
+          .then((res) => {
+            setIsServiceFetching(false);
+            if (res?.data?.data?.values?.length > 0) {
+              const array = [];
+              res.data.data.values.map((item) => {
+                if (item.userId) {
+                  return array.push(item);
+                }
+                return null;
+              });
+              setServiceAccountsList([...array]);
+            }
+          })
+          .catch((err) => {
+            console.log('error fetching list ---- ', err);
+            setIsServiceFetching(false);
+          });
+      },
+      1000,
+      true
+    ),
     []
   );
   /**
@@ -464,10 +472,7 @@ const OnBoardForm = () => {
    * @param {string} value value of input time in seconds
    */
   const validateTime = (value) => {
-    setTimeError(
-      Number(value) === 'NaN' ||
-        Number(value) > serviceAccountDetails?.maxPwdAge
-    );
+    setTimeError(value.match(/^[a-zA-Z]*$/g));
   };
   useEffect(() => {
     if (
