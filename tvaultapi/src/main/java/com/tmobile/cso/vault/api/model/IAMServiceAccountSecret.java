@@ -31,6 +31,7 @@ public class IAMServiceAccountSecret implements Serializable {
     private Long expiryDateEpoch;
     private String userName;
     private String awsAccountId;
+    private String expiryDate;
     /**
      *
      */
@@ -86,6 +87,14 @@ public class IAMServiceAccountSecret implements Serializable {
         this.awsAccountId = awsAccountId;
     }
 
+    public String getExpiryDate() {
+        return expiryDate;
+    }
+
+    public void setExpiryDate(String expiryDate) {
+        this.expiryDate = expiryDate;
+    }
+
     @Override
     public String toString() {
         return "IAMServiceAccountSecret{" +
@@ -94,6 +103,7 @@ public class IAMServiceAccountSecret implements Serializable {
                 ", expiryDateEpoch=" + expiryDateEpoch +
                 ", userName='" + userName + '\'' +
                 ", awsAccountId='" + awsAccountId + '\'' +
+                ", expiryDate='" + expiryDate + '\'' +
                 '}';
     }
 }

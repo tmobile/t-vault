@@ -249,7 +249,10 @@
                  }
              }
              var newLetter = newVal[variableChanged];
+             if (variableChanged != 'userName'  && variableChanged != 'groupName') {
                 newLetter = newLetter.replace(" ", "");
+             }
+
                 initiateAutoComplete(variableChanged, ['loading']);
            // delay before providing api call      
           delay(function(){
@@ -440,6 +443,7 @@
                                 "access": permission,
                                 "awsAccountId": awsAccountId
                             };
+                            break;
                             case 'AppRolePermission' :
                                 apiCallFunction = AdminSafesManagement.detachAppRolePermissionFromIAMSvcacc;
                                 reqObjtobeSent = {
@@ -933,6 +937,7 @@
 
         $scope.addPermission = function (type, key, permission, editingPermission) {
             var duplicate = false;
+            var uniqueIAMSvcName = $scope.svcacc.awsAccId + "_" +iamSvcaccName;
             $scope.permissionChangeInProgress = true;
             if (!editingPermission && key != '' && key != undefined) {
                 if (type === "users" && $scope.permissionData.UsersPermissionsData!= null && $scope.permissionData.UsersPermissionsData.hasOwnProperty(key.toLowerCase())) {
@@ -972,7 +977,9 @@
                         key = key.split('@')[0];
                     }
                     if (key !== null && key !== undefined) {
-                        key = UtilityService.formatName(key);
+                        if (key.includes("(")) {
+                            key = key.substring(key.lastIndexOf("(") + 1, key.lastIndexOf(")"));
+                        }
                     }
                     var updatedUrlOfEndPoint = "";
                     switch (type) {
@@ -984,6 +991,7 @@
                                 clearInputPermissionData();
                                 $scope.errorMessage = "Owner permission for an IAM service account cannot be changed";
                                 $scope.error('md');
+                                getSvcaccInfo(uniqueIAMSvcName);
                                 return;
                             }
                             break;
@@ -1001,7 +1009,6 @@
                                 // Try-Catch block to catch errors if there is any change in object structure in the response
                                 try {
                                     $scope.isLoadingData = false;
-                                    var uniqueIAMSvcName = $scope.svcacc.awsAccId + "_" +iamSvcaccName;
                                     getSvcaccInfo(uniqueIAMSvcName);
                                     var notification = UtilityService.getAParticularSuccessMessage('MESSAGE_ADD_SUCCESS');
                                     $scope.permissionChangeInProgress = false;

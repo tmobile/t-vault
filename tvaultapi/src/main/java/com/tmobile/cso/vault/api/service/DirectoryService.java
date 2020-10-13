@@ -17,6 +17,7 @@
 
 package com.tmobile.cso.vault.api.service;
 
+import java.net.URLEncoder;
 import java.util.List;
 
 import javax.naming.NamingException;
@@ -191,4 +192,49 @@ public class  DirectoryService {
 		});
 	}
 
+	/**
+	 * Method to query ladp with displayName.
+	 * @param displayName
+	 * @return
+	 */
+	public DirectoryObjects searchBydisplayName(String displayName) {
+		AndFilter andFilter = new AndFilter();
+		andFilter.and(new LikeFilter("displayName", displayName+"*"));
+		andFilter.and(new EqualsFilter("objectClass", "user"));
+
+		List<DirectoryUser> allPersons = getAllPersons(andFilter);
+		DirectoryObjects users = new DirectoryObjects();
+		DirectoryObjectsList usersList = new DirectoryObjectsList();
+		usersList.setValues(allPersons.toArray(new DirectoryUser[allPersons.size()]));
+		users.setData(usersList);
+		return users;
+	}
+
+	public DirectoryObjects searchByNTId(String ntId) {
+		AndFilter andFilter = new AndFilter();
+		andFilter.and(new LikeFilter("cn", ntId+"*"));
+		andFilter.and(new EqualsFilter("objectClass", "user"));
+
+		List<DirectoryUser> allPersons = getAllPersons(andFilter);
+		DirectoryObjects users = new DirectoryObjects();
+		DirectoryObjectsList usersList = new DirectoryObjectsList();
+		usersList.setValues(allPersons.toArray(new DirectoryUser[allPersons.size()]));
+		users.setData(usersList);
+		return users;
+	}
+
+	/**
+	 * Method to query ladp with displayName.
+	 * @param ntId
+	 * @return
+	 */
+	public ResponseEntity<DirectoryObjects> searchUserInGSM(String ntId) {
+		DirectoryObjects objectsByDisplayName = searchBydisplayName(ntId);
+		if (objectsByDisplayName.getData().getValues().length > 0) {
+			return ResponseEntity.status(HttpStatus.OK).body(objectsByDisplayName);
+		}
+
+		DirectoryObjects objectsByCN = searchByNTId(ntId);
+		return ResponseEntity.status(HttpStatus.OK).body(objectsByCN);
+	}
 }

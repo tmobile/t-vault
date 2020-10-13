@@ -139,6 +139,7 @@
         'vault.directives.headerHome',
         'vault.directives.restrictConfigCharApprole',
         'vault.directives.restrictSpecialCharWithSpace',
+        'vault.directives.restrictSpecialCharForUsers'
     ]);
 
     angular.module( 'vault.factories', [

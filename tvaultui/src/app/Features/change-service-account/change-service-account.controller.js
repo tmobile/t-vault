@@ -249,7 +249,9 @@
                  }
              }
              var newLetter = newVal[variableChanged];
-                newLetter = newLetter.replace(" ", "");
+             if (variableChanged != 'userName'  && variableChanged != 'groupName') {
+               newLetter = newLetter.replace(" ", "");
+             }
                 initiateAutoComplete(variableChanged, ['loading']);
            // delay before providing api call      
           delay(function(){
@@ -1333,7 +1335,9 @@
                         key = key.split('@')[0];
                     }
                     if (key !== null && key !== undefined) {
-                        key = UtilityService.formatName(key);
+                        if (key.includes("(")) {
+                            key = key.substring(key.lastIndexOf("(") + 1, key.lastIndexOf(")"));
+                        }
                     }
                     if ($scope.awsConfPopupObj.role !== null && $scope.awsConfPopupObj.role !== undefined) {
                         $scope.awsConfPopupObj.role = UtilityService.formatName($scope.awsConfPopupObj.role);
