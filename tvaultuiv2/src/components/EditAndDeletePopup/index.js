@@ -1,5 +1,4 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
 import styled from 'styled-components';
 import PropTypes from 'prop-types';
 import { IconDeleteActive, IconEdit } from '../../assets/SvgIcons';
@@ -27,7 +26,6 @@ const PsudoPopper = (props) => {
   const {
     onDeletListItemClicked,
     onEditListItemClicked,
-    item,
     admin,
     onTransferOwnerClicked,
   } = props;
@@ -35,26 +33,15 @@ const PsudoPopper = (props) => {
   return (
     <ComponentError>
       <IconWrap>
-        <Icon onClick={onEditListItemClicked}>
-          <IconEdit />
-        </Icon>
-
         {admin && (
           <TransferOwnerWrap onClick={onTransferOwnerClicked}>
             Transfer Owner
           </TransferOwnerWrap>
         )}
-        <Link
-          to={{
-            pathname: `/${item.name}`,
-            state: { item },
-          }}
-        >
-          <Icon>
-            {' '}
-            <IconEdit />
-          </Icon>
-        </Link>
+        <Icon onClick={onEditListItemClicked}>
+          <IconEdit />
+        </Icon>
+
         {admin && (
           <Icon onClick={onDeletListItemClicked}>
             {' '}
@@ -69,7 +56,6 @@ const PsudoPopper = (props) => {
 PsudoPopper.propTypes = {
   onDeletListItemClicked: PropTypes.func,
   onEditListItemClicked: PropTypes.func,
-  item: PropTypes.objectOf(PropTypes.any),
   onTransferOwnerClicked: PropTypes.func,
   admin: PropTypes.bool,
 };
@@ -77,7 +63,6 @@ PsudoPopper.propTypes = {
 PsudoPopper.defaultProps = {
   onDeletListItemClicked: () => {},
   onEditListItemClicked: () => {},
-  item: {},
   onTransferOwnerClicked: () => {},
   admin: true,
 };

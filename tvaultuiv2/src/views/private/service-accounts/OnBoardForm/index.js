@@ -622,16 +622,14 @@ const OnBoardForm = () => {
               : 'Onboarding Successfull'
           }
           description={
+            // eslint-disable-next-line no-nested-ternary
             svcPasswordDetails
               ? `<p>Service account <strong>${svcPasswordDetails?.username}<strong> has been activated successfully!</br></br>
                Please click "Copy Password" button to copy the password and update the dependent services. You may also want to assign permissions for other users or groups to view or modify this service account. Please do so by visiting the "Permission" tab on the right screen.</p>`
-              : `<p>${
-                  history?.location?.state?.serviceAccountDetails?.isEdit
-                    ? 'Updating'
-                    : 'Onboarding'
-                } of service account has been completed successfully. To continue, the service account needs to be activated by ${
-                  state.userEmail
-                }. If you are owner of the service account, you need to log out and login again to activate it.</p>`
+              : history?.location?.state?.serviceAccountDetails?.isEdit
+              ? 'Password rotation configuration for the service account has been updated successfully.'
+              : `<p> Onboarding
+                of service account has been completed successfully. To continue, the service account needs to be activated by ${state.userEmail}. If you are owner of the service account, you need to log out and login again to activate it.</p>`
           }
           cancelButton={
             // eslint-disable-next-line react/jsx-wrap-multilines

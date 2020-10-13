@@ -15,12 +15,12 @@ import {
 } from 'react-router-dom';
 
 import useMediaQuery from '@material-ui/core/useMediaQuery';
-import sectionHeaderBg from '../../../../../assets/Banner_img.png';
+import sectionHeaderBg from '../../../../../assets/svc_banner_img.png';
 import mediaBreakpoints from '../../../../../breakpoints';
 import ComponentError from '../../../../../errorBoundaries/ComponentError/component-error';
 import NoData from '../../../../../components/NoData';
 import NoSafesIcon from '../../../../../assets/no-data-safes.svg';
-import safeIcon from '../../../../../assets/icon_safes.svg';
+import svcIcon from '../../../../../assets/icon-service-account.svg';
 import FloatingActionButtonComponent from '../../../../../components/FormFields/FloatingActionButton';
 import TextFieldComponent from '../../../../../components/FormFields/TextField';
 import ListItemDetail from '../../../../../components/ListItemDetail';
@@ -108,7 +108,7 @@ const ListFolderWrap = styled(Link)`
   display: flex;
   text-decoration: none;
   align-items: center;
-  padding: 1.2rem 1.8rem 1.2rem 3.4rem;
+  padding: 1.2rem 1.8rem 1.2rem 2rem;
   cursor: pointer;
   background-image: ${(props) =>
     props.active ? props.theme.gradients.list : 'none'};
@@ -178,6 +178,11 @@ const EditDeletePopperWrap = styled.div``;
 const useStyles = makeStyles(() => ({
   contained: { borderRadius: '0.4rem' },
 }));
+const iconStyles = makeStyles(() => ({
+  root: {
+    width: '100%',
+  },
+}));
 
 const ServiceAccountDashboard = () => {
   const [
@@ -203,6 +208,7 @@ const ServiceAccountDashboard = () => {
   ] = useState(false);
   let scrollParentRef = null;
   const classes = useStyles();
+  const listIconStyles = iconStyles();
   const isMobileScreen = useMediaQuery(mediaBreakpoints.small);
   const history = useHistory();
   const location = useLocation();
@@ -281,6 +287,14 @@ const ServiceAccountDashboard = () => {
    */
   const onSearchChange = (value) => {
     setInputSearchValue(value);
+    if (value !== '') {
+      const array = serviceAccountList.filter((item) => {
+        return String(item.name).startsWith(value);
+      });
+      setServiceAccountList([...array]);
+    } else {
+      setServiceAccountList([...serviceAccountList]);
+    }
   };
 
   /**
@@ -347,8 +361,6 @@ const ServiceAccountDashboard = () => {
   };
 
   const onServiceAccountEdit = (name) => {
-    setStatus({ status: 'loading' });
-
     history.push({
       pathname: '/service-accounts/change-service-accounts',
       state: {
@@ -502,8 +514,9 @@ const ServiceAccountDashboard = () => {
           title={account.name}
           subTitle={account.date}
           flag={account.type}
-          icon={safeIcon}
+          icon={svcIcon}
           showActions={false}
+          listIconStyles={listIconStyles}
         />
         <BorderLine />
         {account.name && !isMobileScreen ? (
@@ -615,26 +628,37 @@ const ServiceAccountDashboard = () => {
                     </StyledInfiniteScroll>
                   </ListContainer>
                 ) : (
-                  serviceAccountList?.length === 0 && (
-                    <NoDataWrapper>
+                  serviceAccountList?.length === 0 &&
+                  status.status === 'success' && (
+                    <>
                       {' '}
-                      <NoListWrap>
-                        <NoData
-                          imageSrc={NoSafesIcon}
-                          description="Onbaord a service account to get started!"
-                          actionButton={
-                            // eslint-disable-next-line react/jsx-wrap-multilines
-                            <FloatingActionButtonComponent
-                              href="/service-accounts/change-service-accounts"
-                              color="secondary"
-                              icon="add"
-                              tooltipTitle="Onboard New Service Account"
-                              tooltipPos="bottom"
+                      {inputSearchValue ? (
+                        <NoDataWrapper>
+                          No service account found with name:
+                          <strong>{inputSearchValue}</strong>
+                        </NoDataWrapper>
+                      ) : (
+                        <NoDataWrapper>
+                          {' '}
+                          <NoListWrap>
+                            <NoData
+                              imageSrc={NoSafesIcon}
+                              description="Onbaord a service account to get started!"
+                              actionButton={
+                                // eslint-disable-next-line react/jsx-wrap-multilines
+                                <FloatingActionButtonComponent
+                                  href="/service-accounts/change-service-accounts"
+                                  color="secondary"
+                                  icon="add"
+                                  tooltipTitle="Onboard New Service Account"
+                                  tooltipPos="bottom"
+                                />
+                              }
                             />
-                          }
-                        />
-                      </NoListWrap>
-                    </NoDataWrapper>
+                          </NoListWrap>
+                        </NoDataWrapper>
+                      )}
+                    </>
                   )
                 )}
               </>
