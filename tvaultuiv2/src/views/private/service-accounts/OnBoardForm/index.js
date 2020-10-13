@@ -678,7 +678,11 @@ const OnBoardForm = () => {
                   alt="go-back"
                   onClick={() => handleClose()}
                 />
-                <Typography variant="h5">Create Service Account</Typography>
+                <Typography variant="h5">
+                  {history?.location?.state?.serviceAccountDetails?.isEdit
+                    ? 'Edit Create Safe'
+                    : 'Onboard Service Account'}
+                </Typography>
               </HeaderWrapper>
               <InfoContainer>
                 <HeaderInfoWrapper>
