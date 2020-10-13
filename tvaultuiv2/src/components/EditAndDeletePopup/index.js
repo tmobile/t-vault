@@ -10,17 +10,22 @@ const IconWrap = styled('div')`
 `;
 
 const Icon = styled('div')`
-    display: flex;
-    align-items: center;
-    justify-content: center
-    :hover {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: 0.75rem;
+  :hover {
     background-color: #5a637a;
     border-radius: 50%;
-    
   }
 `;
 
-const TransferOwnerWrap = styled.div``;
+const TransferOwnerWrap = styled.div`
+  :hover {
+    background-color: #5a637a;
+    border-radius: 0.4rem;
+  }
+`;
 
 const PsudoPopper = (props) => {
   const {

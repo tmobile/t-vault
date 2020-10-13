@@ -101,7 +101,6 @@ const PopperWrap = styled.div`
   position: absolute;
   right: 4%;
   z-index: 1;
-  width: 18rem;
   display: none;
 `;
 const ListFolderWrap = styled(Link)`

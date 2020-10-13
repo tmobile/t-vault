@@ -340,8 +340,11 @@ const OnBoardForm = () => {
         );
         setSelectedApplication(res[2]?.data?.data);
       })
-      .catch(() => {
-        setStatus({ status: 'failed' });
+      .catch((err) => {
+        setStatus({
+          status: 'failed',
+          message: err?.response?.data?.errors[0],
+        });
       });
   }, []);
 
@@ -374,17 +377,9 @@ const OnBoardForm = () => {
         updateServiceAccountDetails(inputServiceName);
       })
       .catch((err) => {
-        if (err?.toString().toLowerCase().includes('400')) {
-          setStatus({
-            status: 'failed',
-            message:
-              'Failed to onboard Service Account. Service account is already onboarded ',
-          });
-          return;
-        }
         setStatus({
           status: 'failed',
-          message: err?.data?.messages[0],
+          message: err?.response?.data?.errors[0],
         });
       });
   };
@@ -420,7 +415,7 @@ const OnBoardForm = () => {
       .catch((err) => {
         setStatus({
           status: 'failed',
-          message: err?.data?.messages[0],
+          message: err?.response?.data?.errors[0],
         });
       });
   };
@@ -542,7 +537,10 @@ const OnBoardForm = () => {
         setPostOnBoardModal(true);
       })
       .catch((err) => {
-        setStatus({ status: 'failed', message: err?.data?.messages[0] });
+        setStatus({
+          status: 'failed',
+          message: err?.response?.data?.errors[0],
+        });
       });
   };
   // render grid row of service account details
@@ -624,7 +622,7 @@ const OnBoardForm = () => {
           description={
             // eslint-disable-next-line no-nested-ternary
             svcPasswordDetails
-              ? `<p>Service account <strong>${svcPasswordDetails?.username}<strong> has been activated successfully!</br></br>
+              ? `<p>Service account <strong>${svcPasswordDetails?.username}</strong> has been activated successfully!</br></br>
                Please click "Copy Password" button to copy the password and update the dependent services. You may also want to assign permissions for other users or groups to view or modify this service account. Please do so by visiting the "Permission" tab on the right screen.</p>`
               : history?.location?.state?.serviceAccountDetails?.isEdit
               ? 'Password rotation configuration for the service account has been updated successfully.'
