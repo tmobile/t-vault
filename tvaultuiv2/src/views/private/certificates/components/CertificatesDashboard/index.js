@@ -1,5 +1,5 @@
 /* eslint-disable react/jsx-wrap-multilines */
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useContext } from 'react';
 import styled, { css } from 'styled-components';
 import { makeStyles } from '@material-ui/core/styles';
 import { Link, Route, Switch, useHistory, Redirect } from 'react-router-dom';
@@ -16,10 +16,11 @@ import Error from '../../../../../components/Error';
 import ScaledLoader from '../../../../../components/Loaders/ScaledLoader';
 import SelectComponent from '../../../../../components/FormFields/SelectFields';
 import CertificatesReviewDetails from '../CertificatesReviewDetails';
-import ListItem from '../../../../../components/ListItem';
 import CertificateItemDetail from '../CertificateItemDetail';
 import { TitleFour } from '../../../../../styles/GlobalStyles';
+import { UserContext } from '../../../../../contexts';
 import apiService from '../../apiService';
+import CertificateListItem from '../CertificateListItem';
 
 const ColumnSection = styled('section')`
   position: relative;
@@ -216,15 +217,17 @@ const CertificatesDashboard = () => {
   const history = useHistory();
   const isMobileScreen = useMediaQuery(mediaBreakpoints.small);
 
-  const compareCertificates = (internalCertArray, allCertArray) => {
-    if (allCertArray.length > 0) {
-      allCertArray.map((item) => {
-        if (!internalCertArray.some((list) => list.certificateName === item)) {
+  const contextObj = useContext(UserContext);
+
+  const compareCertificates = (array1, array2, type) => {
+    if (array2.length > 0) {
+      array2.map((item) => {
+        if (!array1.some((list) => list.certificateName === item)) {
           const obj = {
             certificateName: item,
-            certType: 'Internal',
+            certType: type,
           };
-          internalCertArray.push(obj);
+          array1.push(obj);
         }
         return null;
       });
@@ -235,9 +238,8 @@ const CertificatesDashboard = () => {
    * @function fetchData
    * @description function call all certificates api.
    */
-  const fetchData = useCallback(async () => {
-    setResponse({ status: 'loading' });
-    const allCertInternal = await apiService.getAllCertInternal();
+  const fetchAdminData = useCallback(async () => {
+    const allCertInternal = await apiService.getAllAdminCertInternal();
     const internalCertificates = await apiService.getInternalCertificates();
     const externalCertificates = await apiService.getExternalCertificates();
     const allApiResponse = Promise.all([
@@ -270,8 +272,67 @@ const CertificatesDashboard = () => {
         setAllCertList([...internalCertArray, ...externalCertArray]);
         setResponse({ status: 'success' });
       })
-      .catch((err) => {
-        console.log('err.response', err.response);
+      .catch(() => {
+        setResponse({ status: 'failed' });
+      });
+  }, []);
+
+  const fetchNonAdminData = useCallback(async () => {
+    const allCertInternal = await apiService.getAllNonAdminCertInternal();
+    const allCertExternal = await apiService.getAllNonAdminCertExternal();
+    const internalCertificates = await apiService.getInternalCertificates();
+    const externalCertificates = await apiService.getExternalCertificates();
+    const allApiResponse = Promise.all([
+      allCertInternal,
+      allCertExternal,
+      internalCertificates,
+      externalCertificates,
+    ]);
+    allApiResponse
+      .then((result) => {
+        const allCertificateInternal = [];
+        const allCertificateExternal = [];
+        const internalCertArray = [];
+        const externalCertArray = [];
+        if (result && result[0]?.data?.cert) {
+          result[0].data.cert.map((item) => {
+            return Object.entries(item).map(([key]) => {
+              return allCertificateInternal.push(key);
+            });
+          });
+        }
+        if (result && result[1]?.data?.externalcerts) {
+          result[1].data.externalcerts.map((item) => {
+            return Object.entries(item).map(([key]) => {
+              return allCertificateExternal.push(key);
+            });
+          });
+        }
+        if (result && result[2]?.data?.keys) {
+          result[2].data.keys.map((item) => {
+            return internalCertArray.push(item);
+          });
+        }
+        compareCertificates(
+          internalCertArray,
+          allCertificateInternal,
+          'internal'
+        );
+        if (result && result[3]?.data?.keys) {
+          result[3].data.keys.map((item) => {
+            return externalCertArray.push(item);
+          });
+        }
+        compareCertificates(
+          externalCertArray,
+          allCertificateExternal,
+          'external'
+        );
+        setCertificateList([...internalCertArray, ...externalCertArray]);
+        setAllCertList([...internalCertArray, ...externalCertArray]);
+        setResponse({ status: 'success' });
+      })
+      .catch(() => {
         setResponse({ status: 'failed' });
       });
   }, []);
@@ -280,13 +341,25 @@ const CertificatesDashboard = () => {
    * @description On component load call fetchData function.
    */
   useEffect(() => {
-    fetchData().catch((err) => {
-      if (err?.response?.data?.errors && err.response.data.errors[0]) {
-        setErrorMsg(err.response.data.errors[0]);
+    setResponse({ status: 'loading' });
+    if (contextObj && Object.keys(contextObj).length > 0) {
+      if (contextObj.isAdmin) {
+        fetchAdminData().catch((err) => {
+          if (err?.response?.data?.errors && err.response.data.errors[0]) {
+            setErrorMsg(err.response.data.errors[0]);
+          }
+          setResponse({ status: 'failed' });
+        });
+      } else {
+        fetchNonAdminData().catch((err) => {
+          if (err?.response?.data?.errors && err.response.data.errors[0]) {
+            setErrorMsg(err.response.data.errors[0]);
+          }
+          setResponse({ status: 'failed' });
+        });
       }
-      setResponse({ status: 'failed' });
-    });
-  }, [fetchData]);
+    }
+  }, [fetchAdminData, contextObj, fetchNonAdminData]);
 
   /**
    * @function onLinkClicked
@@ -325,10 +398,10 @@ const CertificatesDashboard = () => {
   const onSelectChange = (value) => {
     setCertificateType(value);
     if (value !== 'All Certificates') {
-      const array = allCertList.filter((cert) =>
+      const filterArray = allCertList.filter((cert) =>
         value.toLowerCase().includes(cert.certType)
       );
-      setCertificateList([...array]);
+      setCertificateList([...filterArray]);
     } else {
       setCertificateList([...allCertList]);
     }
@@ -341,10 +414,10 @@ const CertificatesDashboard = () => {
    */
   const onSearchChange = (value) => {
     if (value !== '') {
-      const array = allCertList.filter((item) =>
+      const searchArray = allCertList.filter((item) =>
         item.certificateName.includes(value)
       );
-      setCertificateList([...array]);
+      setCertificateList([...searchArray]);
     } else {
       setCertificateList([...allCertList]);
     }
@@ -381,20 +454,26 @@ const CertificatesDashboard = () => {
             : 'false'
         }
       >
-        <ListItem
+        <CertificateListItem
           title={certificate.certificateName}
-          subTitle2={certificate.certType}
-          subTitle="26/10/10202"
+          certType={certificate.certType}
+          createDate={
+            certificate.createDate
+              ? new Date(certificate.createDate).toLocaleDateString()
+              : ''
+          }
           icon={certIcon}
           showActions={false}
         />
         <BorderLine />
-        <CertificateStatus>
-          <TitleFour extraCss={extraCss}>
-            {certificate.certificateStatus}
-          </TitleFour>
-          <StatusIcon status={certificate.certificateStatus} />
-        </CertificateStatus>
+        {certificate.certificateStatus && (
+          <CertificateStatus>
+            <TitleFour extraCss={extraCss}>
+              {certificate.certificateStatus}
+            </TitleFour>
+            <StatusIcon status={certificate.certificateStatus} />
+          </CertificateStatus>
+        )}
       </ListFolderWrap>
     ));
   };
