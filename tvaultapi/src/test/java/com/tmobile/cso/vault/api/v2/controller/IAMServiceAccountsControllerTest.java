@@ -229,7 +229,7 @@ public class IAMServiceAccountsControllerTest {
 				.thenReturn(responseEntityExpected);
 
 		MvcResult result = mockMvc.perform(MockMvcRequestBuilders.get(
-				"/v2/iamserviceaccounts/folders/secrets?path=iamsvcacc/123456789012_testiamsvcacc01&fetchOption=all")
+				"/v2/iamserviceaccounts/folders/secrets?path=iamsvcacc/123456789012_testiamsvcacc01")
 				.header("vault-token", token).header("Content-Type", "application/json;charset=UTF-8")
 				.requestAttr("UserDetails", userDetails)).andExpect(status().isOk()).andReturn();
 		String actual = result.getResponse().getContentAsString();
