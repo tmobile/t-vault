@@ -13,6 +13,10 @@ const getCertificateDetail = (url) => api.get(url);
 const addCertificateUser = (payload) => api.post('/sslcert/user', payload);
 const deleteCertificate = (payload) => api.delete('/sslcert/user', payload);
 
+const addCertificateGroup = (payload) => api.post('/sslcert/group', payload);
+const deleteCertificateGroup = (payload) =>
+  api.delete('/sslcert/group', payload);
+
 export default {
   getAllAdminCertInternal,
   getAllNonAdminCertInternal,
@@ -22,4 +26,6 @@ export default {
   getCertificateDetail,
   addCertificateUser,
   deleteCertificate,
+  addCertificateGroup,
+  deleteCertificateGroup,
 };

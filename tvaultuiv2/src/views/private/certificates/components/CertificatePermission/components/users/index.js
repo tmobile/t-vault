@@ -224,39 +224,40 @@ const Users = (props) => {
             refresh={refresh}
           />
         )}
-        {response.status === 'success' && certificateMetaData && (
-          <>
-            {Object.keys(certificateMetaData.users).length > 1 && (
-              <PermissionsList
-                list={certificateMetaData.users}
-                username={username}
-                onEditClick={(key, value) => onEditClick(key, value)}
-                onDeleteClick={(key, value) => onDeleteClick(key, value)}
-              />
-            )}
-            {(!certificateMetaData.users ||
-              Object.keys(certificateMetaData.users).length === 1) && (
-              <NoDataWrapper>
-                <NoData
-                  imageSrc={noPermissionsIcon}
-                  description={Strings.Resources.noUsersPermissionFound}
-                  actionButton={
-                    // eslint-disable-next-line react/jsx-wrap-multilines
-                    <ButtonComponent
-                      label="add"
-                      icon="add"
-                      color="secondary"
-                      onClick={() => setResponse({ status: 'add' })}
-                      width={isMobileScreen ? '100%' : '9.4rem'}
-                    />
-                  }
-                  bgIconStyle={bgIconStyle}
-                  customStyle={noDataStyle}
+        {response.status === 'success' &&
+          Object.keys(certificateMetaData).length > 0 && (
+            <>
+              {Object.keys(certificateMetaData.users).length > 1 && (
+                <PermissionsList
+                  list={certificateMetaData.users}
+                  username={username}
+                  onEditClick={(key, value) => onEditClick(key, value)}
+                  onDeleteClick={(key, value) => onDeleteClick(key, value)}
                 />
-              </NoDataWrapper>
-            )}
-          </>
-        )}
+              )}
+              {(!certificateMetaData.users ||
+                Object.keys(certificateMetaData.users).length === 1) && (
+                <NoDataWrapper>
+                  <NoData
+                    imageSrc={noPermissionsIcon}
+                    description={Strings.Resources.noUsersPermissionFound}
+                    actionButton={
+                      // eslint-disable-next-line react/jsx-wrap-multilines
+                      <ButtonComponent
+                        label="add"
+                        icon="add"
+                        color="secondary"
+                        onClick={() => setResponse({ status: 'add' })}
+                        width={isMobileScreen ? '100%' : '9.4rem'}
+                      />
+                    }
+                    bgIconStyle={bgIconStyle}
+                    customStyle={noDataStyle}
+                  />
+                </NoDataWrapper>
+              )}
+            </>
+          )}
       </>
     </ComponentError>
   );

@@ -8,6 +8,7 @@ import PermissionsTabs from '../../../../../components/PermissionTabs';
 import TabPanel from '../../../../../components/TabPanel';
 import { TabWrapper } from '../../../../../styles/GlobalStyles';
 import Users from './components/users';
+import Groups from './components/groups';
 
 const PermissionTabsWrapper = styled('div')`
   height: calc(100% - 3.7rem);
@@ -18,7 +19,7 @@ const CertificatePermission = (props) => {
   const { certificateMetaData, responseStatus, fetchDetail, username } = props;
   const [value, setValue] = useState(0);
   const [newPermission, setNewUser] = useState(false);
-  const [, setNewGroup] = useState(false);
+  const [newGroup, setNewGroup] = useState(false);
   const [count, setCount] = useState(0);
   const [toastResponse, setToastResponse] = useState(null);
   const [toastMessage, setToastMessage] = useState('');
@@ -94,7 +95,17 @@ const CertificatePermission = (props) => {
               />
             </TabPanel>
             <TabPanel value={value} index={1}>
-              Groups
+              <Groups
+                certificateMetaData={certificateMetaData}
+                refresh={fetchDetail}
+                responseStatus={responseStatus}
+                username={username}
+                newGroup={newGroup}
+                onNewGroupChange={() => setNewGroup(false)}
+                updateToastMessage={(res, message) =>
+                  updateToastMessage(res, message)
+                }
+              />
             </TabPanel>
           </PermissionTabsWrapper>
           {toastResponse === -1 && (

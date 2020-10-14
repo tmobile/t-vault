@@ -149,15 +149,21 @@ const AddGroup = (props) => {
   }, [searchValue, searchLoader, options]);
 
   useEffect(() => {
-    if (
-      !isValidGroupName ||
-      (searchValue?.toLowerCase() === groupname && radioValue === access)
-    ) {
+    if (groupname) {
+      if (
+        (groupname !== searchValue?.toLowerCase() && !isValidGroupName) ||
+        (groupname === searchValue?.toLowerCase() && access === radioValue)
+      ) {
+        setDisabledSave(true);
+      } else {
+        setDisabledSave(false);
+      }
+    } else if (!isValidGroupName) {
       setDisabledSave(true);
     } else {
       setDisabledSave(false);
     }
-  }, [searchValue, radioValue, groupname, access, isValidGroupName]);
+  }, [searchValue, radioValue, access, groupname, isValidGroupName]);
 
   const callSearchApi = useCallback(
     debounce(

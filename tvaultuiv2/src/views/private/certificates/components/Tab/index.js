@@ -1,6 +1,6 @@
 /* eslint-disable no-else-return */
 /* eslint-disable react/jsx-props-no-spreading */
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import styled from 'styled-components';
 
@@ -102,7 +102,7 @@ const CertificateSelectionTabs = (props) => {
     setValue(newValue);
   };
 
-  const fetchDetail = useCallback(() => {
+  const fetchDetail = () => {
     setResponse({ status: 'loading' });
     apiService
       .getCertificateDetail(
@@ -112,6 +112,8 @@ const CertificateSelectionTabs = (props) => {
         setResponse({ status: 'success' });
         if (res.data.keys && res.data.keys[0]) {
           setCertificateMetaData({ ...res.data.keys[0] });
+        } else {
+          setCertificateMetaData({});
         }
       })
       .catch((err) => {
@@ -122,7 +124,7 @@ const CertificateSelectionTabs = (props) => {
         setValue(0);
         setHasPermission(false);
       });
-  }, []);
+  };
 
   useEffect(() => {
     if (Object.keys(certificateDetail).length > 0) {
@@ -133,7 +135,8 @@ const CertificateSelectionTabs = (props) => {
         setCertificateMetaData({ ...certificateDetail });
       }
     }
-  }, [certificateDetail, fetchDetail]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [certificateDetail]);
 
   useEffect(() => {
     if (

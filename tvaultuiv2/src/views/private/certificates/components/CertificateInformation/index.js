@@ -48,10 +48,21 @@ const ErrorWrap = styled.div`
 const CertificateInformation = (props) => {
   const { responseStatus, certificateMetaData, errorMessage } = props;
   const [response, setResponse] = useState({ status: 'loading' });
+  const [dnsNames, setDnsNames] = useState([]);
 
   useEffect(() => {
     setResponse({ status: responseStatus });
   }, [responseStatus]);
+
+  useEffect(() => {
+    if (certificateMetaData?.dnsNames) {
+      if (typeof certificateMetaData.dnsNames !== 'string') {
+        setDnsNames(certificateMetaData.dnsNames);
+      } else {
+        setDnsNames([]);
+      }
+    }
+  }, [certificateMetaData]);
 
   return (
     <ComponentError>
@@ -61,21 +72,21 @@ const CertificateInformation = (props) => {
           <DetailsWrap>
             <EachDetail>
               <Label>Certificate Type:</Label>
-              <Value>{certificateMetaData.certType}</Value>
+              <Value>{certificateMetaData.certType || 'N/A'}</Value>
             </EachDetail>
             <EachDetail>
               <Label>Certificate Name:</Label>
-              <Value>{certificateMetaData.certificateName}</Value>
+              <Value>{certificateMetaData.certificateName || 'N/A'}</Value>
             </EachDetail>
             <EachDetail>
               <Label>Aplication Name:</Label>
-              <Value>{certificateMetaData.applicationName}</Value>
+              <Value>{certificateMetaData.applicationName || 'N/A'}</Value>
             </EachDetail>
             <EachDetail>
               <Label>DNS:</Label>
-              {certificateMetaData?.dnsNames ? (
+              {certificateMetaData.dnsNames && dnsNames.length > 0 ? (
                 <>
-                  {certificateMetaData?.dnsNames?.map((item) => {
+                  {dnsNames?.map((item) => {
                     return (
                       <DnsName key={item}>{item.replace(/"/g, '')}</DnsName>
                     );

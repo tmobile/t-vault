@@ -2,7 +2,14 @@
 import React, { useState, useEffect, useCallback, useContext } from 'react';
 import styled, { css } from 'styled-components';
 import { makeStyles } from '@material-ui/core/styles';
-import { Link, Route, Switch, useHistory, Redirect } from 'react-router-dom';
+import {
+  Link,
+  Route,
+  Switch,
+  useHistory,
+  Redirect,
+  useLocation,
+} from 'react-router-dom';
 import useMediaQuery from '@material-ui/core/useMediaQuery';
 import sectionHeaderBg from '../../../../../assets/certificate-banner.svg';
 import mediaBreakpoints from '../../../../../breakpoints';
@@ -215,6 +222,7 @@ const CertificatesDashboard = () => {
   const [ListItemDetails, setListItemDetails] = useState({});
   const classes = useStyles();
   const history = useHistory();
+  const location = useLocation();
   const isMobileScreen = useMediaQuery(mediaBreakpoints.small);
 
   const contextObj = useContext(UserContext);
@@ -384,11 +392,18 @@ const CertificatesDashboard = () => {
     }
   };
 
-  // useEffect(() => {
-  //   if (certificateList.length > 0) {
-  //     setListItemDetails(certificateList[0]);
-  //   }
-  // }, [certificateList]);
+  useEffect(() => {
+    if (allCertList.length > 0) {
+      const val = location.pathname.split('/');
+      const certName = val[val.length - 1];
+      const obj = allCertList.find((cert) => cert.certificateName === certName);
+      if (obj) {
+        setListItemDetails({ ...obj });
+      } else {
+        setListItemDetails(allCertList[0]);
+      }
+    }
+  }, [allCertList, location]);
 
   /**
    * @function onSelectChange
