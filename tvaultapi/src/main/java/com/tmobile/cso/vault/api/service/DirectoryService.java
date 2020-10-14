@@ -17,7 +17,6 @@
 
 package com.tmobile.cso.vault.api.service;
 
-import java.net.URLEncoder;
 import java.util.List;
 
 import javax.naming.NamingException;
@@ -35,7 +34,9 @@ import org.springframework.ldap.filter.AndFilter;
 import org.springframework.ldap.filter.EqualsFilter;
 import org.springframework.ldap.filter.Filter;
 import org.springframework.ldap.filter.LikeFilter;
+import org.springframework.ldap.filter.OrFilter;
 import org.springframework.stereotype.Component;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
 import com.google.common.collect.ImmutableMap;
@@ -236,5 +237,31 @@ public class  DirectoryService {
 
 		DirectoryObjects objectsByCN = searchByNTId(ntId);
 		return ResponseEntity.status(HttpStatus.OK).body(objectsByCN);
+	}
+
+	/**
+	 * Method to gets the list of users from Directory Server by ntIds
+	 *
+	 * @param ntIds
+	 * @return
+	 */
+	public ResponseEntity<DirectoryObjects> getAllUsersDetailByNtIds(String ntIds) {
+		AndFilter andFilter = new AndFilter();
+		if (!StringUtils.isEmpty(ntIds)) {
+			OrFilter orFilter = new OrFilter();
+			String[] userNtIds = ntIds.split(",");
+			andFilter.and(new EqualsFilter("objectClass", "user"));
+			for (String ntId : userNtIds) {
+				orFilter.or(new EqualsFilter("CN", ntId.trim()));
+			}
+			andFilter.and(orFilter);
+		}
+		List<DirectoryUser> allPersons = getAllPersons(andFilter);
+		DirectoryObjects users = new DirectoryObjects();
+		DirectoryObjectsList usersList = new DirectoryObjectsList();
+		usersList.setValues(allPersons.toArray(new DirectoryUser[allPersons.size()]));
+		users.setData(usersList);
+
+		return ResponseEntity.status(HttpStatus.OK).body(users);
 	}
 }
