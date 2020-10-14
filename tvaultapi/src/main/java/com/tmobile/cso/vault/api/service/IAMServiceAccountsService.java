@@ -104,7 +104,7 @@ public class  IAMServiceAccountsService {
     private DirectoryService directoryService;
 
 	/**
-	 * Onboard an IAM service account into TVault for password rotation
+	 * Onboard an IAM service account
 	 *
 	 * @param token
 	 * @param iamServiceAccount
@@ -140,7 +140,7 @@ public class  IAMServiceAccountsService {
 
 		String iamSvccAccMetaPath = IAMServiceAccountConstants.IAM_SVCC_ACC_META_PATH + iamSvcAccName;
 
-		IAMServiceAccountMetadataDetails iamServiceAccountMetadataDetails = populateIAMSvcAccMetaData(
+		IAMServiceAccountMetadataDetails iamServiceAccountMetadataDetails = constructIAMSvcAccMetaData(
 				iamServiceAccount);
 
 		// Create Metadata
@@ -163,11 +163,74 @@ public class  IAMServiceAccountsService {
 					"{\"errors\":[\"Successfully created IAM Service Account. However creation of Metadata failed.\"]}");
 		}
 
-		return createIAMSvcAccPoliciesAndAddUserToAccount(token, iamServiceAccount, userDetails, iamSvcAccName);	
+		// Create policies
+		boolean iamSvcAccOwnerPermissionAddStatus = createIAMSvcAccPolicies(token, iamServiceAccount, userDetails, iamSvcAccName);
+		if (iamSvcAccOwnerPermissionAddStatus) {
+			// Add sudo permission to owner
+			boolean iamSvcAccCreationStatus = addSudoPermissionToOwner(token, iamServiceAccount, userDetails, iamSvcAccName);
+			if (iamSvcAccCreationStatus) {
+				sendMailToIAMSvcAccOwner(iamServiceAccount, iamSvcAccName);
+				return ResponseEntity.status(HttpStatus.OK).body(
+						"{\"messages\":[\"Successfully completed onboarding of IAM service account\"]}");
+			}
+			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+					.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+					.put(LogMessage.ACTION, IAMServiceAccountConstants.IAM_SVCACC_CREATION_TITLE)
+					.put(LogMessage.MESSAGE, "Failed to onboard IAM service account. Owner association failed.")
+					.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
+			return rollBackIAMOnboardOnFailure(iamServiceAccount, iamSvcAccName, "onOwnerAssociationFailure");
+		}
+		log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+				.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+				.put(LogMessage.ACTION, IAMServiceAccountConstants.IAM_SVCACC_CREATION_TITLE)
+				.put(LogMessage.MESSAGE, "Failed to onboard IAM service account. Policy creation failed.")
+				.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
+		return rollBackIAMOnboardOnFailure(iamServiceAccount, iamSvcAccName, "onPolicyFailure");
+
 	}
 
 	/**
-	 * To check if the approle has iam master policy.
+	 * Method to add Sudo permission to owner as part of IAM onboarding.
+	 * @param token
+	 * @param iamServiceAccount
+	 * @param userDetails
+	 * @param iamSvcAccName
+	 * @return
+	 */
+	private boolean addSudoPermissionToOwner(String token, IAMServiceAccount iamServiceAccount, UserDetails userDetails,
+											 String iamSvcAccName) {
+		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+				.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+				.put(LogMessage.ACTION, IAMServiceAccountConstants.IAM_SVCACC_CREATION_TITLE)
+				.put(LogMessage.MESSAGE, String.format("Trying to add sudo permission to [%s] in IAM service " +
+						"account [%s].", iamServiceAccount.getOwnerNtid(), iamSvcAccName))
+				.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
+		IAMServiceAccountUser iamServiceAccountUser = new IAMServiceAccountUser(iamServiceAccount.getUserName(),
+				iamServiceAccount.getOwnerNtid(), TVaultConstants.SUDO_POLICY, iamServiceAccount.getAwsAccountId());
+		//Add sudo permisson to the IAM service account owner
+		ResponseEntity<String> addUserToIAMSvcAccResponse = addUserToIAMServiceAccount(token, userDetails,
+				iamServiceAccountUser, true);
+		if (HttpStatus.OK.equals(addUserToIAMSvcAccResponse.getStatusCode())) {
+			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+					.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+					.put(LogMessage.ACTION, IAMServiceAccountConstants.IAM_SVCACC_CREATION_TITLE)
+					.put(LogMessage.MESSAGE, String.format("Successfully added owner permission to [%s] for IAM service " +
+							"account [%s].", iamServiceAccount.getOwnerNtid(), iamSvcAccName))
+					.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
+			return true;
+		}
+		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+				.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+				.put(LogMessage.ACTION, IAMServiceAccountConstants.IAM_SVCACC_CREATION_TITLE)
+				.put(LogMessage.MESSAGE, String.format("Failed to add owner permission to [%s] for IAM service " +
+						"account [%s].", iamServiceAccount.getOwnerNtid(), iamSvcAccName))
+				.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
+		return false;
+
+	}
+
+	/**
+	 * Method To check if the user/token has permission for onboarding or offboarding IAM service account.
 	 * @param token
 	 * @return
 	 */
@@ -183,7 +246,7 @@ public class  IAMServiceAccountsService {
 					log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
 							.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
 							.put(LogMessage.ACTION, "isAuthorizedForIAMOnboardAndOffboard")
-							.put(LogMessage.MESSAGE, "Validation success. IAM master policy exists in Token.")
+							.put(LogMessage.MESSAGE, "The User/Token has required policies to onboard/offblard IAM Service Account.")
 							.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
 					return true;
 				}
@@ -199,99 +262,74 @@ public class  IAMServiceAccountsService {
 		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
 				.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
 				.put(LogMessage.ACTION, "isAuthorizedForIAMOnboardAndOffboard")
-				.put(LogMessage.MESSAGE, "Validation failed. IAM master policy does not exists in Token.")
+				.put(LogMessage.MESSAGE, "The User/Token does not have required policies to onboard/offboard IAM Service Account.")
 				.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
 		return false;
 	}
 
 	/**
-	 * Method to create IAM service account policies and add sudo permission to owner.
+	 * Method to create IAM service account policies as part of IAM service account onboarding.
 	 * @param token
 	 * @param iamServiceAccount
 	 * @param userDetails
 	 * @param iamSvcAccName
 	 * @return
 	 */
-	private ResponseEntity<String> createIAMSvcAccPoliciesAndAddUserToAccount(String token,
-			IAMServiceAccount iamServiceAccount, UserDetails userDetails, String iamSvcAccName) {
+	private boolean createIAMSvcAccPolicies(String token, IAMServiceAccount iamServiceAccount,
+														   UserDetails userDetails, String iamSvcAccName) {
+		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+				.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+				.put(LogMessage.ACTION, IAMServiceAccountConstants.IAM_SVCACC_CREATION_TITLE)
+				.put(LogMessage.MESSAGE,
+						String.format("Trying to create policies for IAM service account [%s].", iamSvcAccName))
+				.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
 		ResponseEntity<String> iamSvcAccPolicyCreationResponse = createIAMServiceAccountPolicies(token, iamSvcAccName);
-		boolean iamSvcAccCreationStatus = true;
-		boolean iamSvcAccOwnerPermissionAddStatus = true;
 		if (HttpStatus.OK.equals(iamSvcAccPolicyCreationResponse.getStatusCode())) {
-			IAMServiceAccountUser iamServiceAccountUser = new IAMServiceAccountUser(iamServiceAccount.getUserName(),
-					iamServiceAccount.getOwnerNtid(), TVaultConstants.SUDO_POLICY, iamServiceAccount.getAwsAccountId());
-			//Add sudo permisson to the IAM service account owner
-			ResponseEntity<String> addUserToIAMSvcAccResponse = addUserToIAMServiceAccount(token, userDetails,
-					iamServiceAccountUser, true);
-			if (HttpStatus.OK.equals(addUserToIAMSvcAccResponse.getStatusCode())) {
-				log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
-						.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
-						.put(LogMessage.ACTION, IAMServiceAccountConstants.IAM_SVCACC_CREATION_TITLE)
-						.put(LogMessage.MESSAGE,
-								"Successfully completed onboarding of IAM service account into TVault.")
-						.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
-				iamSvcAccCreationStatus = true;
-			} else {
-				iamSvcAccCreationStatus = false;
-				iamSvcAccOwnerPermissionAddStatus = false;
-				log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
-						.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
-						.put(LogMessage.ACTION, IAMServiceAccountConstants.IAM_SVCACC_CREATION_TITLE)
-						.put(LogMessage.MESSAGE,
-								"Successfully created IAM Service Account and policies. However the association of owner information failed.")
-						.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
-			}
+			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+					.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+					.put(LogMessage.ACTION, IAMServiceAccountConstants.IAM_SVCACC_CREATION_TITLE)
+					.put(LogMessage.MESSAGE,
+							String.format("Successfully created policies for IAM service account [%s].", iamSvcAccName))
+					.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
+			return true;
 		} else {
-			iamSvcAccCreationStatus = false;
 			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
 					.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
 					.put(LogMessage.ACTION, IAMServiceAccountConstants.IAM_SVCACC_CREATION_TITLE)
-					.put(LogMessage.MESSAGE, "Failed to onboard IAM service account into TVault.")
+					.put(LogMessage.MESSAGE, String.format("Failed to create policies for IAM service account [%s].",
+							iamServiceAccount))
 					.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
+			return false;
 		}
-
-		return sendMailAndRollbackProcess(token, iamServiceAccount, iamSvcAccName, iamSvcAccCreationStatus,
-				iamSvcAccOwnerPermissionAddStatus);
 	}
 
 	/**
-	 * Method to send mail or Roll back IAM service account creation process if anything failed
-	 * @param userToken
+	 * Method to rollback IAM service account onboarding process on failure.
 	 * @param iamServiceAccount
 	 * @param iamSvcAccName
-	 * @param iamSvcAccCreationStatus
-	 * @param iamSvcAccOwnerPermissionAddStatus
+	 * @param onAction
 	 * @return
 	 */
-	private ResponseEntity<String> sendMailAndRollbackProcess(String userToken, IAMServiceAccount iamServiceAccount,
-			String iamSvcAccName, boolean iamSvcAccCreationStatus, boolean iamSvcAccOwnerPermissionAddStatus) {
-		if(iamSvcAccCreationStatus) {
-			//Send mail to IAM service account owner
-			sendMailToIAMSvcAccOwner(iamServiceAccount, iamSvcAccName);
-			return ResponseEntity.status(HttpStatus.OK).body(
-					"{\"messages\":[\"Successfully completed onboarding of IAM service account into TVault.\"]}");
-		}else {
-			//Delete the IAM Service account policies if add Owner permission failed.
-			if(!iamSvcAccOwnerPermissionAddStatus) {
-				boolean policyDeleteStatus = deleteIAMServiceAccountPolicies(tokenUtils.getSelfServiceToken(), iamSvcAccName);
-				if(!policyDeleteStatus) {
-					return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
-							"{\"errors\":[\"Failed to delete IAM Service Account policies. Revert IAM service account creation failed.\"]}");
-				}
-			}
-			//Deleting the IAM service account details if policy creation failed
-			OnboardedIAMServiceAccount iamSvcAccToRevert = new OnboardedIAMServiceAccount(
-					iamServiceAccount.getUserName(), iamServiceAccount.getAwsAccountId(),
-					iamServiceAccount.getOwnerNtid());
-			ResponseEntity<String> iamMetaDataDeletionResponse = deleteIAMSvcAccount(tokenUtils.getSelfServiceToken(), iamSvcAccToRevert);
-			if (iamMetaDataDeletionResponse != null
-					&& HttpStatus.OK.equals(iamMetaDataDeletionResponse.getStatusCode())) {
+	private ResponseEntity<String> rollBackIAMOnboardOnFailure(IAMServiceAccount iamServiceAccount,
+				String iamSvcAccName, String onAction) {
+		//Delete the IAM Service account policies
+		deleteIAMServiceAccountPolicies(tokenUtils.getSelfServiceToken(), iamSvcAccName);
+		//Deleting the IAM service account metadata
+		OnboardedIAMServiceAccount iamSvcAccToRevert = new OnboardedIAMServiceAccount(
+				iamServiceAccount.getUserName(), iamServiceAccount.getAwsAccountId(),
+				iamServiceAccount.getOwnerNtid());
+		ResponseEntity<String> iamMetaDataDeletionResponse = deleteIAMSvcAccount(tokenUtils.getSelfServiceToken(), iamSvcAccToRevert);
+		if (iamMetaDataDeletionResponse != null
+				&& HttpStatus.OK.equals(iamMetaDataDeletionResponse.getStatusCode())) {
+			if (onAction.equals("onPolicyFailure")) {
 				return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
-						"{\"errors\":[\"Failed to onboard IAM service account into TVault.\"]}");
-			} else {
-				return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
-						"{\"errors\":[\"Failed to create IAM Service Account policies. Revert IAM service account creation failed.\"]}");
+						"{\"errors\":[\"Failed to onboard IAM service account. Policy creation failed.\"]}");
 			}
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
+					"{\"errors\":[\"Failed to onboard IAM service account. Association of owner permission failed\"]}");
+		} else {
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
+					"{\"errors\":[\"Failed to create IAM Service Account policies. Reverting IAM service account creation also failed.\"]}");
 		}
 	}
 
@@ -408,7 +446,7 @@ public class  IAMServiceAccountsService {
 	 * @param iamServiceAccount
 	 * @return
 	 */
-	private IAMServiceAccountMetadataDetails populateIAMSvcAccMetaData(IAMServiceAccount iamServiceAccount) {
+	private IAMServiceAccountMetadataDetails constructIAMSvcAccMetaData(IAMServiceAccount iamServiceAccount) {
 
 		IAMServiceAccountMetadataDetails iamServiceAccountMetadataDetails = new IAMServiceAccountMetadataDetails();
 		List<IAMSecretsMetadata> iamSecretsMetadatas = new ArrayList<>();
