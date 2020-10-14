@@ -3000,28 +3000,35 @@ public class  IAMServiceAccountsService {
 		ResponseEntity<String> response = readFolders(token, iamSvcNamePath);
 		ObjectMapper mapper = new ObjectMapper();
 		String secret = "";
-		IAMServiceAccountNode iamServiceAccountNode = mapper.readValue(response.getBody(), IAMServiceAccountNode.class);
-		if (iamServiceAccountNode.getFolders() != null) {
-			for (String folderName : iamServiceAccountNode.getFolders()) {
-				ResponseEntity<String> responseEntity = getIAMServiceAccountSecretKey(token,
-						awsAccountID + '_' + iamSvcName, folderName);
-				if (HttpStatus.OK.equals(responseEntity.getStatusCode())) {
-					IAMServiceAccountSecret iamServiceAccountSecret = mapper.readValue(responseEntity.getBody(),
-							IAMServiceAccountSecret.class);
-					if (accessKey.equals(iamServiceAccountSecret.getAccessKeyId())) {
-						secret = iamServiceAccountSecret.getAccessKeySecret();
-						break;
+		if (HttpStatus.OK.equals(response.getStatusCode())) {
+			IAMServiceAccountNode iamServiceAccountNode = mapper.readValue(response.getBody(),
+					IAMServiceAccountNode.class);
+			if (iamServiceAccountNode.getFolders() != null) {
+				for (String folderName : iamServiceAccountNode.getFolders()) {
+					ResponseEntity<String> responseEntity = getIAMServiceAccountSecretKey(token,
+							awsAccountID + '_' + iamSvcName, folderName);
+					if (HttpStatus.OK.equals(responseEntity.getStatusCode())) {
+						IAMServiceAccountSecret iamServiceAccountSecret = mapper.readValue(responseEntity.getBody(),
+								IAMServiceAccountSecret.class);
+						if (accessKey.equals(iamServiceAccountSecret.getAccessKeyId())) {
+							secret = iamServiceAccountSecret.getAccessKeySecret();
+							break;
+						}
+					} else {
+						return ResponseEntity.status(HttpStatus.NOT_FOUND).body("{\"error\":"
+								+ JSONUtil.getJSON("No secret with the access keyID :" + accessKey + "") + "}");
 					}
-				}else{
-					return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
-							"{\"error\":" + JSONUtil.getJSON("No secret with the access keyID :" + accessKey + "") + "}");
 				}
-			}
-			if (StringUtils.isEmpty(secret)) {
+				if (StringUtils.isEmpty(secret)) {
+					return ResponseEntity.status(HttpStatus.NOT_FOUND).body("{\"error\":"
+							+ JSONUtil.getJSON("No secret with the access keyID :" + accessKey + "") + "}");
+				}
+				return ResponseEntity.status(HttpStatus.OK)
+						.body("{\"accessKeySecret\":" + JSONUtil.getJSON(secret) + "}");
+			} else {
 				return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
 						"{\"error\":" + JSONUtil.getJSON("No secret with the access keyID :" + accessKey + "") + "}");
 			}
-			return ResponseEntity.status(HttpStatus.OK).body("{\"accessKeySecret\":" + JSONUtil.getJSON(secret) + "}");
 		} else {
 			return ResponseEntity.status(HttpStatus.NOT_FOUND)
 					.body("{\"error\":" + JSONUtil.getJSON("No secret with the access keyID :" + accessKey + "") + "}");
