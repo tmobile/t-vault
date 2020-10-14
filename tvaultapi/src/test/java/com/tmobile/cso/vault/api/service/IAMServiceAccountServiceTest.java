@@ -2113,5 +2113,31 @@ public class IAMServiceAccountServiceTest {
 		assertEquals(HttpStatus.MULTI_STATUS, responseEntity.getStatusCode());
 		assertEquals(responseEntityExpected, responseEntity);
 	}
+	
+	@Test
+	public void test_readFolders_successfully() throws IOException {
+		String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+		String path = "iamsvcacc/123456789012_testiamsvcacc01";
+		ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(
+				"{\"folders\":[\"testiamsvcacc01_01\",\"testiamsvcacc01_02\"],\"path\":\"123456789012_testiamsvcacc01\",\"iamsvcaccName\":\"testiamsvcacc01\"}");
+
+		when(reqProcessor.process(eq("/iam/list"),Mockito.any(),eq(token))).thenReturn(getMockResponse(HttpStatus.OK, true, "{\"keys\":[\"testiamsvcacc01_01\",\"testiamsvcacc01_02\"]}"));
+		ResponseEntity<String> responseEntity = iamServiceAccountsService.readFolders(token, path);
+		assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
+		assertEquals(responseEntityExpected, responseEntity);
+	}
+	
+	@Test
+	public void test_readFolders_failure() throws IOException {
+		String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+		String path = "iamsvcacc/123456789012_testiamsvcacc01";
+		ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.FORBIDDEN).body(
+				"{\"errors\":[\"Unable to read the given path :" + path + "\"]}");
+
+		when(reqProcessor.process(eq("/iam/list"),Mockito.any(),eq(token))).thenReturn(getMockResponse(HttpStatus.FORBIDDEN, false, "{\"errors\":[\"1 error occurred:\n\t* permission denied\n\n\"]}"));
+		ResponseEntity<String> responseEntity = iamServiceAccountsService.readFolders(token, path);
+		assertEquals(HttpStatus.FORBIDDEN, responseEntity.getStatusCode());
+		assertEquals(responseEntityExpected, responseEntity);
+	}
 
 }
