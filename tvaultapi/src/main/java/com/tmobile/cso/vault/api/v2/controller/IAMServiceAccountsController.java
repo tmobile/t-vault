@@ -234,7 +234,7 @@ public class IAMServiceAccountsController {
 	@PostMapping(value="/v2/iamserviceaccount/activate",produces="application/json")
 	@ApiOperation(value = "${IAMServiceAccountsController.activateIAMServiceAccount.value}", notes = "${IAMServiceAccountsController.activateIAMServiceAccount.notes}")
 	public ResponseEntity<String> activateIAMServiceAccount(HttpServletRequest request, @RequestHeader(value="vault-token") String token, @RequestParam("serviceAccountName" ) String iamServiceAccountName, @RequestParam("awsAccountId" ) String awsAccountId){
-		UserDetails userDetails = (UserDetails) ((HttpServletRequest) request).getAttribute("UserDetails");
+		UserDetails userDetails = (UserDetails) request.getAttribute(USER_DETAILS_STRING);
 		return iamServiceAccountsService.activateIAMServiceAccount(token, userDetails, iamServiceAccountName, awsAccountId);
 	}
 
@@ -248,7 +248,7 @@ public class IAMServiceAccountsController {
 	@PostMapping(value="/v2/iamserviceaccount/rotate",produces="application/json")
 	@ApiOperation(value = "${IAMServiceAccountsController.rotateIAMServiceAccountCreds.value}", notes = "${IAMServiceAccountsController.rotateIAMServiceAccountCreds.notes}")
 	public ResponseEntity<String> rotateIAMServiceAccountCreds(HttpServletRequest request, @RequestHeader(value="vault-token") String token, @RequestBody @Valid IAMServiceAccountRotateRequest iamServiceAccountRotateRequest){
-		UserDetails userDetails = (UserDetails) ((HttpServletRequest) request).getAttribute("UserDetails");
+		UserDetails userDetails = (UserDetails) request.getAttribute(USER_DETAILS_STRING);
 		return iamServiceAccountsService.rotateIAMServiceAccount(token, userDetails, iamServiceAccountRotateRequest);
 	}
 	
