@@ -65,6 +65,6 @@ public class DirectoryServiceControllerV2 {
 	@GetMapping(value="/v2/ldap/ntusers",produces="application/json")
 	public ResponseEntity<DirectoryObjects> searchUserInGSM(@ApiParam(name="displayName", defaultValue="")
 	@RequestParam(name="displayName", defaultValue="") String displayName ){
-		return directoryService.searchUserInGSM(displayName);
+		return directoryService.searchByDisplayNameAndId(displayName);
 	}
 }
