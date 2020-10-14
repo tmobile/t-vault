@@ -37,7 +37,6 @@ const Flag = styled('span')`
 
 const FolderIconWrap = styled('div')`
   display: flex;
-  align-items: center;
   justify-content: space-between;
   .MuiSvgIcon-root {
     width: 3rem;

@@ -43,7 +43,6 @@ const PrivateRoutes = () => {
               render={(routeProps) => <Applications routeProps={routeProps} />}
             />
             <Route
-              exact
               path="/certificates"
               render={(routeProps) => <Certificates routeProps={routeProps} />}
             />
