@@ -1,25 +1,37 @@
+/* eslint-disable react/jsx-props-no-spreading */
 import React from 'react';
-import PropTypes from 'prop-types';
+import { withRouter } from 'react-router-dom';
+import styled from 'styled-components';
+
+import mediaBreakpoints from '../../../breakpoints';
 import ComponentError from '../../../errorBoundaries/ComponentError/component-error';
+import CertificatesDashboard from './components/CertificatesDashboard';
+// import { UserContext } from '../../../contexts';
+
+const CertificatesSectionPreview = styled('section')`
+  margin: 3em auto;
+  height: 77vh;
+  ${mediaBreakpoints.semiLarge} {
+    margin: 3rem 3.5rem 0 3.5rem;
+  }
+  ${mediaBreakpoints.small} {
+    margin: 0;
+    height: 89vh;
+  }
+`;
 
 const Certificates = (props) => {
-  const { message } = props;
   return (
     <ComponentError>
-      <section>
-        <h1>Welcome to Certificates!!</h1>
-        <div>{`Message is ${message}`}</div>
-      </section>
+      <main title="service-account-layout">
+        <CertificatesSectionPreview>
+          <CertificatesDashboard {...props} />
+        </CertificatesSectionPreview>
+      </main>
     </ComponentError>
   );
 };
+Certificates.propTypes = {};
 
-Certificates.propTypes = {
-  message: PropTypes.string,
-};
-
-Certificates.defaultProps = {
-  message: 'Welcome',
-};
-
-export default Certificates;
+Certificates.defaultProps = {};
+export default withRouter(Certificates);

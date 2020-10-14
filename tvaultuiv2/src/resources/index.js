@@ -15,6 +15,8 @@ const Resources = {
     'No <strong>App roles</strong> are given permission to access this safe, add approles to access the safe',
   transferConfirmation:
     'Are you sure you want to transfer service account owner?',
+  noCertificatesFound:
+    'Once you add a <strong>Certificate</strong> you’ll see the  Corresponding <strong>Details</strong> here!',
 };
 
 export default { Resources };

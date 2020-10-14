@@ -58,7 +58,7 @@ NoData.propTypes = {
   customStyle: PropTypes.arrayOf(PropTypes.any),
 };
 NoData.defaultProps = {
-  description: 'Nothing here, But me',
+  description: '',
   actionButton: <div />,
   imageSrc: '',
   bgIconStyle: { width: '100%', height: '22rem' },
