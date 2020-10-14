@@ -2419,26 +2419,17 @@ public class  IAMServiceAccountsService {
 		if (!userDetails.isAdmin()) {
 			token = tokenUtils.getSelfServiceToken();
 		}
-		if (iamServiceAccountApprole.getAccess().equalsIgnoreCase("reset")) {
-			iamServiceAccountApprole.setAccess(TVaultConstants.WRITE_POLICY);
-		}
 		String approleName = iamServiceAccountApprole.getApprolename();
-//		String svcAccName = iamServiceAccountApprole.getIamSvcAccName();
 		String svcAccName = iamServiceAccountApprole.getAwsAccountId() + "_" + iamServiceAccountApprole.getIamSvcAccName();
 		String access = iamServiceAccountApprole.getAccess();
+		approleName = (approleName != null) ? approleName.toLowerCase() : approleName;
+		access = (access != null) ? access.toLowerCase() : access;
 
-//		if (iamServiceAccountApprole.getApprolename().equals(TVaultConstants.SELF_SERVICE_APPROLE_NAME)) {
-//			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
-//					"{\"errors\":[\"Access denied: no permission to remove this AppRole to any Service Account\"]}");
-//		}
-		
 		if (Arrays.asList(TVaultConstants.MASTER_APPROLES).contains(iamServiceAccountApprole.getApprolename())) {
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
 					"{\"errors\":[\"Access denied: no permission to remove this AppRole to any Service Account\"]}");
 		}
-		approleName = (approleName != null) ? approleName.toLowerCase() : approleName;
-		access = (access != null) ? access.toLowerCase() : access;
-		if (!isIAMSvcaccPermissionInputValid(iamServiceAccountApprole.getAccess())) {
+		if (!isIAMSvcaccPermissionInputValid(access)) {
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST)
 					.body("{\"errors\":[\"Invalid value specified for access. Valid values are read, reset, deny\"]}");
 		}
@@ -2486,11 +2477,9 @@ public class  IAMServiceAccountsService {
 					log.error(e);
 				}
 				policies.addAll(currentpolicies);
-				// policies.remove(policy);
 				policies.remove(r_policy);
 				policies.remove(w_policy);
 				policies.remove(d_policy);
-
 			}
 
 			String policiesString = org.apache.commons.lang3.StringUtils.join(policies, ",");
@@ -3040,7 +3029,7 @@ public class  IAMServiceAccountsService {
 					.put(LogMessage.MESSAGE,
 							"Access denied. Not authorized to perform offboarding of IAM service accounts.")
 					.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
-			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
+			return ResponseEntity.status(HttpStatus.FORBIDDEN).body(
 					"{\"errors\":[\"Access denied. Not authorized to perform offboarding of IAM service accounts.\"]}");
 		}
 

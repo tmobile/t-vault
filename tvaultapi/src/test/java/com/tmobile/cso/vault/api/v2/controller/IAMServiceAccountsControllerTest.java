@@ -369,4 +369,24 @@ public class IAMServiceAccountsControllerTest {
 		assertEquals(expected, actual);
 	}
 
+	@Test
+	public void testoffboardIAMServiceAccountSuccess() throws Exception {
+
+		IAMServiceAccountOffboardRequest iamServiceAccountOffboardRequest = new IAMServiceAccountOffboardRequest("testaccount", "1234567");
+		String expected = "{\"messages\":[\"Successfully completed offboarding of IAM service account into TVault for password rotation.\"]}";
+		ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(expected);
+		when(iamServiceAccountsService.offboardIAMServiceAccount(Mockito.anyString(), Mockito.any(), Mockito.any()))
+				.thenReturn(responseEntityExpected);
+		String inputJson = getJSON(iamServiceAccountOffboardRequest);
+		MvcResult result = mockMvc
+				.perform(MockMvcRequestBuilders.post("/v2/iamserviceaccounts/offboard").header(VAULT_TOKEN_STRING, token)
+						.header(CONTENT_TYPE_STRING, CONTENT_TYPE_VALUE_STRING)
+						.requestAttr(USER_DETAILS_STRING, userDetails).content(inputJson))
+				.andExpect(status().isOk()).andReturn();
+
+		String actual = result.getResponse().getContentAsString();
+		assertEquals(expected, actual);
+	}
+
+
 }
