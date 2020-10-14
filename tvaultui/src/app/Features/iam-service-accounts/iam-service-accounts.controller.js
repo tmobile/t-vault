@@ -107,7 +107,7 @@
             $scope.isLoadingData = true;
             $scope.folderList = {};
             $scope.iamsvcaccSecretData = {"userName":""};
-            var url = RestEndpoints.baseURL + '/v2/iamserviceaccounts/folders/secrets?path=' + 'iamsvcacc/' + path + '&fetchOption=all';
+            var url = RestEndpoints.baseURL + '/v2/iamserviceaccounts/folders/secrets?path=' + 'iamsvcacc/' + path;
             return $http({
                 method: 'GET',
                 url: url,

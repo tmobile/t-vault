@@ -2123,28 +2123,49 @@ public class  IAMServiceAccountsService {
 	 * @param token
 	 * @param path
 	 * @return
+	 * @throws IOException 
 	 */
-	public ResponseEntity<String> readFolders(String token, String path) {
+	public ResponseEntity<String> readFolders(String token, String path) throws IOException {
 		Response response = new Response();
-		IAMServiceAccountNode iamServiceAccountNode = new IAMServiceAccountNode();
-		String iamSvcName = path.substring(10);
-		iamServiceAccountNode.setPath(iamSvcName);
-		if (ControllerUtil.isValidIAMPath(path)) {
-			iamServiceAccountNode.setType(TVaultConstants.IAM_SVC_ACC_PATH_PREFIX);
-		} else {
-			iamServiceAccountNode.setType(TVaultConstants.FOLDER);
-		}
-		ControllerUtil.getIamFoldersAndSecrets("{\"path\":\"" + path + "\"}", token, response, iamServiceAccountNode);
-		String separator = "_";
-		int sepPos = path.indexOf(separator);
-		iamServiceAccountNode.setIamsvcaccName(path.substring(sepPos + separator.length()));
-		ObjectMapper mapper = new ObjectMapper();
-		try {
-			String res = mapper.writeValueAsString(iamServiceAccountNode);
+		ObjectMapper objMapper = new ObjectMapper();
+		Response lisresp = reqProcessor.process("/iam/list", "{\"path\":\"" + path + "\"}", token);
+		if(lisresp.getHttpstatus().equals(HttpStatus.OK)){
+			List<String> foldersList = new ArrayList<>();
+			IAMServiceAccountNode iamServiceAccountNode = new IAMServiceAccountNode();
+			JsonNode folders = objMapper.readTree(lisresp.getResponse()).get("keys");
+			for (JsonNode node : folders) {
+				foldersList.add(node.textValue());
+			}
+			iamServiceAccountNode.setFolders(foldersList);
+			iamServiceAccountNode.setPath(path.substring(10));
+			String separator = "_";
+			int sepPos = path.indexOf(separator);
+			iamServiceAccountNode.setIamsvcaccName(path.substring(sepPos + separator.length()));
+			response.setSuccess(true);
+			response.setHttpstatus(HttpStatus.OK);
+			String res = objMapper.writeValueAsString(iamServiceAccountNode);
 			return ResponseEntity.status(response.getHttpstatus()).body(res);
-		} catch (JsonProcessingException e) {
+		}else if (lisresp.getHttpstatus().equals(HttpStatus.FORBIDDEN)){
+			log.error(JSONUtil.getJSON(ImmutableMap.<String, String> builder()
+					.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+					.put(LogMessage.ACTION, "readFolders")
+					.put(LogMessage.MESSAGE, "No permission to access the folder")
+					.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
+			response.setSuccess(false);
+			response.setHttpstatus(HttpStatus.FORBIDDEN);
+			response.setResponse("{\"errors\":[\"Unable to read the given path :" + path + "\"]}");
 			return ResponseEntity.status(response.getHttpstatus()).body(response.getResponse());
-		}
+		}else{
+			log.error(JSONUtil.getJSON(ImmutableMap.<String, String> builder()
+					.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+					.put(LogMessage.ACTION, "readFolders")
+					.put(LogMessage.MESSAGE, "Unable to readFolders")
+					.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
+			response.setSuccess(false);
+			response.setHttpstatus(HttpStatus.INTERNAL_SERVER_ERROR);
+			response.setResponse("{\"errors\":[\"Unexpected error :" + path + "\"]}");
+			return ResponseEntity.status(response.getHttpstatus()).body(response.getResponse());
+		} 
 	}
 
 	/**
