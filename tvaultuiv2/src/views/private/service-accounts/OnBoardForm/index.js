@@ -1,5 +1,5 @@
 /* eslint-disable no-console */
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect, useReducer } from 'react';
 import { debounce } from 'lodash';
 import { CopyToClipboard } from 'react-copy-to-clipboard';
 import styled, { css } from 'styled-components';
@@ -206,15 +206,7 @@ const useStylesBootstrap = makeStyles((theme) => ({
 
 // Render component goes here
 const OnBoardForm = () => {
-  const [inputAdGroupName, setInputAdGroupName] = useState('');
-  const [inputServiceName, setInputServiceName] = useState('');
-  const [inputApplicationName, setInputApplicationName] = useState('');
-  const [inputExpiryTime, setInputExpiryTime] = useState(null);
-
-  // const [getResponseType, setGetResponseType] = useState(null);
   const [timeError, setTimeError] = useState(null);
-  const [selectedApplication, setSelectedApplication] = useState(null);
-  const [serviceAccountDetails, setServiceAccountDetails] = useState(null);
   const [svcPasswordDetails, setSvcPasswordDetails] = useState(null);
   const [isAppNameFetchig, setIsAppNameFetching] = useState(false);
   const [isServiceFetching, setIsServiceFetching] = useState(false);
@@ -237,12 +229,50 @@ const OnBoardForm = () => {
   const history = useHistory();
   const classes = useStyles();
   const isMobileScreen = useMediaQuery(mediaBreakpoints.small);
-  const [state] = useStateValue();
-  // Close on board from functionality
-  const handleClose = () => {
-    setOpen(false);
-    history.goBack();
+  const [userState] = useStateValue();
+  const initialState = {
+    inputServiceName: '',
+    inputAdGroupName: '',
+    inputApplicationName: '',
+    inputExpiryTime: '',
+    selectedApplication: {},
+    serviceAccountDetails: {},
   };
+  // eslint-disable-next-line consistent-return
+  const reducer = (state, { type, payload, field, value }) => {
+    switch (type) {
+      case 'INPUT_FORM_FIELDS':
+        return {
+          ...state,
+          [field]: value,
+        };
+      case 'UPDATE_FORM_FIELDS':
+        return {
+          ...state,
+          ...payload,
+        };
+      default:
+        break;
+    }
+  };
+  const [state, dispatch] = useReducer(reducer, initialState);
+  const onChange = (e) => {
+    // setInputServiceName(name);
+    dispatch({
+      type: 'INPUT_FORM_FIELDS',
+      field: e?.target?.name,
+      value: e?.target?.value,
+    });
+  };
+
+  const {
+    inputApplicationName,
+    inputExpiryTime,
+    inputAdGroupName,
+    inputServiceName,
+    serviceAccountDetails,
+    selectedApplication,
+  } = state;
   const tooltipStyles = useStylesBootstrap();
   /**
    * Fetch all available application names by approles for the associated user
@@ -259,14 +289,7 @@ const OnBoardForm = () => {
             setIsServiceFetching(false);
             setIsAppNameFetching(false);
             if (res?.data?.length > 0) {
-              const array = [];
-              res.data.map((item) => {
-                if (item.appName) {
-                  return array.push(item);
-                }
-                return null;
-              });
-
+              const array = res.data.filter((item) => item.appName);
               setApplicationList([...array]);
             }
           })
@@ -295,13 +318,7 @@ const OnBoardForm = () => {
           .then((res) => {
             setIsServiceFetching(false);
             if (res?.data?.data?.values?.length > 0) {
-              const array = [];
-              res.data.data.values.map((item) => {
-                if (item.userId) {
-                  return array.push(item);
-                }
-                return null;
-              });
+              const array = res.data.data.values.filter((item) => item.userId);
               setServiceAccountsList([...array]);
             }
           })
@@ -334,19 +351,22 @@ const OnBoardForm = () => {
     allApiResponse
       .then((res) => {
         setStatus({});
-        setServiceAccountDetails(res[0]?.data?.data?.values[0]);
         setIsAutoExpand(true);
-        setInputServiceName(res[0]?.data?.data?.values[0]?.userId);
-        setInputApplicationName(
-          `${res[2]?.data?.data?.appName} (AppId:${res[2]?.data?.data?.appID},AppTag:${res[2]?.data?.data?.appTag})`
-        );
-        setInputAdGroupName(res[2]?.data?.data?.adGroup);
         setIsActiveServiceAccount(res[2]?.data?.data?.initialPasswordReset);
-        setInputExpiryTime(res[1]?.data?.ttl);
         setIsSwitchOn(
           res[1]?.data?.ttl <= res[0]?.data?.data?.values[0]?.maxPwdAge
         );
-        setSelectedApplication(res[2]?.data?.data);
+        dispatch({
+          type: 'UPDATE_FORM_FIELDS',
+          payload: {
+            inputServiceName: res[0]?.data?.data?.values[0]?.userId,
+            inputAdGroupName: res[2]?.data?.data?.adGroup,
+            inputApplicationName: `${res[2]?.data?.data?.appName} (AppId:${res[2]?.data?.data?.appID},AppTag:${res[2]?.data?.data?.appTag})`,
+            inputExpiryTime: res[1]?.data?.ttl,
+            selectedApplication: res[2]?.data?.data,
+            serviceAccountDetails: res[0]?.data?.data?.values[0],
+          },
+        });
       })
       .catch((err) => {
         setStatus({
@@ -355,7 +375,11 @@ const OnBoardForm = () => {
         });
       });
   }, []);
-
+  // Close on board from functionality
+  const handleClose = () => {
+    setOpen(false);
+    history.goBack();
+  };
   /**
    *
    * @param {*} e
@@ -418,7 +442,7 @@ const OnBoardForm = () => {
           message: res?.data?.messages[0],
         });
         setPostOnBoardModal(true);
-        updateServiceAccountDetails();
+        updateServiceAccountDetails(inputServiceName);
       })
       .catch((err) => {
         setStatus({
@@ -437,10 +461,15 @@ const OnBoardForm = () => {
     setStatus({ status: 'success', message: 'Password copied to clip-board' });
   };
   const onServiceAccountSelected = (e, val) => {
-    setInputServiceName(val);
     const svcObj = serviceAccountsList.find((item) => item.userId === val);
-    setServiceAccountDetails({ ...svcObj });
     setIsAutoExpand(true);
+    dispatch({
+      type: 'UPDATE_FORM_FIELDS',
+      payload: {
+        inputServiceName: val,
+        serviceAccountDetails: { ...svcObj },
+      },
+    });
     if (svcObj?.accountStatus.toLowerCase() === 'expired') {
       setStatus({
         status: 'failed',
@@ -449,23 +478,25 @@ const OnBoardForm = () => {
     }
   };
   const onApplicationNameSelected = (e, val) => {
-    setInputApplicationName(val);
     const selectedApplicationClone = applicationList?.find((item) =>
       item.appName.includes(val?.split('(')[0].trim())
     );
-    setSelectedApplication({ ...selectedApplicationClone });
+    dispatch({
+      type: 'UPDATE_FORM_FIELDS',
+      payload: {
+        inputApplicationName: val,
+        selectedApplication: { ...selectedApplicationClone },
+      },
+    });
   };
 
-  const onServiceAccountNameChange = (name) => {
-    setInputServiceName(name);
-    fetchServiceAccounts(name);
+  const onServiceAccountNameChange = (e) => {
+    fetchServiceAccounts(e.target.value);
+    onChange(e);
   };
-  const onADGroupChange = (name) => {
-    setInputAdGroupName(name);
-  };
-  const onApplicationNameChange = (val) => {
-    setInputApplicationName(val);
+  const onApplicationNameChange = (e) => {
     fetchAppRoles();
+    onChange(e);
   };
   /**
    *@function validateTime
@@ -474,11 +505,16 @@ const OnBoardForm = () => {
   const validateTime = (value) => {
     setTimeError(value.match(/^[a-zA-Z]*$/g));
   };
+  const onExpiryTimeChange = (e) => {
+    setTimeError(null);
+    validateTime(e.target.value);
+    onChange(e);
+  };
   useEffect(() => {
     if (
       history?.location?.pathname ===
-        '/service-accounts/change-service-accounts' &&
-      history?.location?.state?.serviceAccountDetails?.isEdit
+        '/service-accounts/edit-service-accounts' &&
+      history?.location?.state
     ) {
       setStatus({ status: 'loading' });
       updateServiceAccountDetails(
@@ -486,11 +522,7 @@ const OnBoardForm = () => {
       );
     }
   }, [history, updateServiceAccountDetails]);
-  const onExpiryTimeChange = (value) => {
-    setTimeError(null);
-    validateTime(value);
-    setInputExpiryTime(value);
-  };
+
   const handleSwitch = (e) => {
     setIsSwitchOn(e.target.checked);
   };
@@ -548,6 +580,15 @@ const OnBoardForm = () => {
         });
       });
   };
+
+  const getDisabledStatus = () => {
+    return (
+      timeError ||
+      !inputServiceName ||
+      !inputApplicationName ||
+      serviceAccountDetails?.accountStatus.toLowerCase() === 'expired'
+    );
+  };
   // render grid row of service account details
   //   const renderGridRow = (data) => {
   //     data.map((item) => (
@@ -569,7 +610,7 @@ const OnBoardForm = () => {
             // eslint-disable-next-line no-nested-ternary
             isActivateSvc
               ? 'Activating Service Account'
-              : history?.location?.state?.serviceAccountDetails?.isEdit
+              : history?.location?.pathname.includes('/edit-service-accounts')
               ? 'Updating Service Account'
               : 'Onboarding Service Account'
           }
@@ -596,7 +637,9 @@ const OnBoardForm = () => {
                 // eslint-disable-next-line no-nested-ternary
                 isActivateSvc
                   ? 'Activate'
-                  : history?.location?.state?.serviceAccountDetails?.isEdit
+                  : history?.location?.pathname.includes(
+                      '/edit-service-accounts'
+                    )
                   ? 'Update'
                   : 'onboard'
               }
@@ -605,7 +648,9 @@ const OnBoardForm = () => {
                 // eslint-disable-next-line no-nested-ternary
                 isActivateSvc
                   ? () => onActivateServiceAccount(inputServiceName)
-                  : history?.location?.state?.serviceAccountDetails?.isEdit
+                  : history?.location?.pathname.includes(
+                      '/edit-service-accounts'
+                    )
                   ? () => updateServiceAccount()
                   : () => onBoardServiceAccount()
               }
@@ -620,7 +665,7 @@ const OnBoardForm = () => {
             // eslint-disable-next-line no-nested-ternary
             svcPasswordDetails
               ? 'Activation Successfull'
-              : history?.location?.state?.serviceAccountDetails?.isEdit
+              : history?.location?.pathname.includes('/edit-service-accounts')
               ? 'Update Successfull'
               : 'Onboarding Successfull'
           }
@@ -629,7 +674,7 @@ const OnBoardForm = () => {
             svcPasswordDetails
               ? `<p>Service account <strong>${svcPasswordDetails?.username}</strong> has been activated successfully!</br></br>
                Please click "Copy Password" button to copy the password and update the dependent services. You may also want to assign permissions for other users or groups to view or modify this service account. Please do so by visiting the "Permission" tab on the right screen.</p>`
-              : history?.location?.state?.serviceAccountDetails?.isEdit
+              : history?.location?.pathname.includes('/edit-service-accounts')
               ? 'Password rotation configuration for the service account has been updated successfully.'
               : `<p> Onboarding
                 of service account has been completed successfully. To continue, the service account needs to be activated by ${state.userEmail}. If you are owner of the service account, you need to log out and login again to activate it.</p>`
@@ -682,7 +727,9 @@ const OnBoardForm = () => {
                   onClick={() => handleClose()}
                 />
                 <Typography variant="h5">
-                  {history?.location?.state?.serviceAccountDetails?.isEdit
+                  {history?.location?.pathname.includes(
+                    '/edit-service-accounts'
+                  )
                     ? 'Edit Create Safe'
                     : 'Onboard Service Account'}
                 </Typography>
@@ -751,6 +798,7 @@ const OnBoardForm = () => {
                     ]}
                     icon="search"
                     classes={classes}
+                    name="inputServiceName"
                     searchValue={inputServiceName}
                     onSelected={(e, val) => onServiceAccountSelected(e, val)}
                     onChange={(e) => onServiceAccountNameChange(e)}
@@ -856,9 +904,10 @@ const OnBoardForm = () => {
                           : 'TTL in seconds(max: 31536000)'
                       }
                       icon="search"
+                      name="inputExpiryTime"
                       readOnly={!isSwitchOn}
                       fullWidth
-                      onChange={(e) => onExpiryTimeChange(e.target.value)}
+                      onChange={(val, e) => onExpiryTimeChange(val, e)}
                       value={inputExpiryTime || ''}
                       error={timeError}
                       helperText={
@@ -874,8 +923,9 @@ const OnBoardForm = () => {
                   <TextFieldComponent
                     placeholder="AD Group Name"
                     icon="search"
+                    name="inputAdGroupName"
                     fullWidth
-                    onChange={(e) => onADGroupChange(e.target.value)}
+                    onChange={(val, e) => onChange(val, e)}
                     value={inputAdGroupName || ''}
                     helperText="Please provide the AD group for which read or reset permission to be granted later"
                   />
@@ -893,6 +943,7 @@ const OnBoardForm = () => {
                       ),
                     ]}
                     icon="search"
+                    name="inputApplicationName"
                     classes={classes}
                     searchValue={inputApplicationName}
                     onSelected={(e, val) => onApplicationNameSelected(e, val)}
@@ -919,23 +970,18 @@ const OnBoardForm = () => {
 
                   <ButtonComponent
                     label={
-                      history?.location?.state?.serviceAccountDetails?.isEdit
+                      history?.location?.pathname.includes(
+                        '/edit-service-accounts'
+                      )
                         ? 'Update'
                         : 'Onboard'
                     }
-                    disabled={
-                      timeError ||
-                      !inputServiceName ||
-                      !inputApplicationName ||
-                      serviceAccountDetails?.accountStatus.toLowerCase() ===
-                        'expired'
-                    }
+                    disabled={getDisabledStatus()}
                     color="secondary"
                     buttonType="containedSecondary"
-                    //   disabled={!inputValue || errorMessage}
                     onClick={(e) => handleSaveClick(e)}
                   />
-                  {state?.username ===
+                  {userState?.username ===
                     serviceAccountDetails?.managedBy?.userId &&
                   !isActiveServiceAccount ? (
                     <OwnerActionsWrap>
@@ -943,16 +989,9 @@ const OnBoardForm = () => {
                         {' '}
                         <ButtonComponent
                           label="Activate service Account"
-                          disabled={
-                            timeError ||
-                            !inputServiceName ||
-                            !inputApplicationName ||
-                            serviceAccountDetails?.accountStatus.toLowerCase() ===
-                              'expired'
-                          }
+                          disabled={getDisabledStatus()}
                           color="secondary"
                           buttonType="containedSecondary"
-                          //   disabled={!inputValue || errorMessage}
                           onClick={() => activateServiceAccount()}
                         />
                       </BtnWrap>
