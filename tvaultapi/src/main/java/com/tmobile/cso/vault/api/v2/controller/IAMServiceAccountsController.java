@@ -152,12 +152,12 @@ public class IAMServiceAccountsController {
 	 * @param path
 	 * @param fetchOption
 	 * @return
+	 * @throws IOException 
 	 */
 	@ApiOperation(value = "${IAMServiceAccountsController.readFolders.value}", notes = "${IAMServiceAccountsController.readFolders.notes}", hidden = true)
 	@GetMapping(value = "/v2/iamserviceaccounts/folders/secrets", produces = "application/json")
 	public ResponseEntity<String> readFolders(@RequestHeader(value = "vault-token") String token,
-			@RequestParam("path") String path,
-			@RequestParam(name = "fetchOption", required = false) FetchOption fetchOption) {
+			@RequestParam("path") String path) throws IOException {
 		return iamServiceAccountsService.readFolders(token, path);
 	}
 
