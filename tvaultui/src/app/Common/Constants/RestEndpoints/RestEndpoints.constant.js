@@ -49,6 +49,7 @@ readTextFile("../apiUrls.json");
         groupGetDataFromAAD: '/v2/azure/groups?name=',
         usersGetDataUsingCorpID: '/v2/ldap/corpusers?CorpId=',
         usersGetDataUsingNTID: '/v2/ldap/ntusers?displayName=',
+        getUsersDataUsingNTIDs: '/v2/ldap/getusersdetail/',
         //baseURL : '/vault'
         endpoints: [{
             name: 'postAction',

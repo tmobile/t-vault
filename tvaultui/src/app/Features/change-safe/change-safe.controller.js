@@ -42,6 +42,7 @@
         $scope.approleRadioBtn['value'] = 'read';
         $scope.isEmpty = UtilityService.isObjectEmpty;
         $scope.roleNameSelected = false;
+        $scope.isUserPermissionEmpty = true;
         $scope.awsConfPopupObj = {
             "auth_type":"",
             "role": "",
@@ -794,6 +795,8 @@
                                     if($scope.activeDetailsTab === 'details') {
                                          $scope.checkOwnerEmailHasValue('details');
                                     }
+
+                                    getUserDisplayNameDetails();
                                    
                                 }
                                 catch (e) {
@@ -882,6 +885,8 @@
                                         $rootScope.AppRolePermissionsData = {
                                             "data": object['app-roles']
                                         }
+
+                                        getUserDisplayNameDetails();
                                     }
                                     catch (e) {
                                         console.log(e);
@@ -915,6 +920,59 @@
                     $scope.error('md');
 
                 }
+            }
+        }
+
+        var getUserDisplayNameDetails = function () {
+            $scope.isLoadingData = true;
+            $scope.userNames = [];
+            $scope.UsersPermissionsDetails = [];
+            $scope.UsersDisplayNameData = [];
+            for (var key in $scope.UsersPermissionsData) {
+                $scope.userNames.push(key);
+            }
+            if ($scope.userNames !== undefined && $scope.userNames.length > 0) {
+                $scope.isUserPermissionEmpty = false;
+                vaultUtilityService.getAllUsersDataForPermissions($scope.userNames.join()).then(function (res, error) {
+                    var serviceData;
+                    if (res) {
+                        $scope.isLoadingData = false;
+                        serviceData = res;
+                        $scope.UsersDisplayNameData = serviceData.response.data.data.values;
+                        for (var i=0;i<$scope.UsersDisplayNameData.length;i++) {
+                            var userNameKey = $scope.UsersDisplayNameData[i].userName.toLowerCase();
+                            var userDisplayName = $scope.UsersDisplayNameData[i].displayName + " ("+$scope.UsersDisplayNameData[i].userName+")";
+                            var permissionVal = "";
+                            for (var key in $scope.UsersPermissionsData) {
+                                if(key.toLowerCase() === userNameKey) {
+                                    permissionVal = $scope.UsersPermissionsData[key.toLowerCase()];
+                                }
+                            }
+                            $scope.UsersPermissionsDetails.push({"key":userNameKey, "value":permissionVal, "displayName":userDisplayName});
+                        }
+                        $scope.$apply();
+                    } else {
+                        $scope.isLoadingData = false;
+                        serviceData = error;
+                        $scope.commonErrorHandler(serviceData.error, serviceData.error || serviceData.response.data, "getDropdownData");
+
+                    }
+                },
+                function (error) {
+                    $scope.isLoadingData = false;
+                    // Error handling function when api fails
+                    $scope.showInputLoader.show = false;
+                    if (error.status === 500) {
+                        $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_NETWORK');
+                        $scope.error('md');
+                    } else if(error.status !== 200 && (error.xhrStatus === 'error' || error.xhrStatus === 'complete')) {
+                        $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_AUTOCOMPLETE_USERNAME');
+                        $scope.error('md');
+                    }
+                });
+            }else{
+                $scope.isUserPermissionEmpty = true;
+                $scope.isLoadingData = false;
             }
         }
 

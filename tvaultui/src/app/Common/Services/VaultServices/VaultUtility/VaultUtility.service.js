@@ -207,5 +207,51 @@ angular.module('vault.services.VaultUtility', [])
                 parentString = parentString.replace(parentString[l], "");
             }
             return parentString;
-        }
+        };
+
+        self.getAllUsersDataForPermissions = function(userNames) {
+            return new Promise(function(resolve, reject) {
+                var data = {};
+                var dataUrl = RestEndpoints.baseURL + RestEndpoints.getUsersDataUsingNTIDs;
+                dataUrl = dataUrl + userNames;
+                 try {
+                     // Abort pending requests before making new request
+                     if (Object.keys(self.canceller).length !== 0) {
+                        self.canceller.resolve();
+                     }
+                    fetchUsersData(dataUrl)
+                     .then(
+                         function(response) {
+                             try {
+                                 data.response = response;
+                                 var dataFrmApi = response.data.data.values;
+
+                                 if (response.statusText !== "OK") {
+                                     data.loadingDataFrDropdown = false;
+                                     data.erroredFrDropdown = false;
+                                     data.successFrDropdown = false;
+                                     resolve(data);
+                                 } else {
+                                     data.dataFrmApi = dataFrmApi;
+                                     data.loadingDataFrDropdown = false;
+                                     data.erroredFrDropdown = false;
+                                     data.successFrDropdown = true;
+                                     resolve(data);
+                                 }
+
+                             } catch (e) {
+                                 data.error = e;
+                                 reject(data.error);
+                             }
+                         },
+                         function(response) {
+                           reject(response);
+                         }
+                     );
+                 } catch (e) {
+                     data.error = e;
+                     reject(data.error);
+                 }
+            });
+        };
     });
