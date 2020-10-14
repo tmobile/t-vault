@@ -19,7 +19,6 @@ package com.tmobile.cso.vault.api.v2.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tmobile.cso.vault.api.main.Application;
 import com.tmobile.cso.vault.api.model.*;
-import com.tmobile.cso.vault.api.service.AWSIAMAuthService;
 import com.tmobile.cso.vault.api.service.DirectoryService;
 import org.junit.Before;
 import org.junit.Test;
@@ -166,7 +165,7 @@ public class DirectoryServiceControllerV2Test {
         String responseMessage =new ObjectMapper().writeValueAsString(users);
 
         ResponseEntity<DirectoryObjects> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(users);
-        when(directoryService.searchUserInGSM(Mockito.any())).thenReturn(responseEntityExpected);
+        when(directoryService.searchByDisplayNameAndId(Mockito.any())).thenReturn(responseEntityExpected);
 
         mockMvc.perform(MockMvcRequestBuilders.get("/v2/ldap/ntusers?displayName=corpid")
                 .header("vault-token", "5PDrOhsy4ig8L3EpsJZSLAMg")

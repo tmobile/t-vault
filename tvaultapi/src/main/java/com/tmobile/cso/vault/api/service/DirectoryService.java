@@ -224,11 +224,11 @@ public class  DirectoryService {
 	}
 
 	/**
-	 * Method to query ladp with displayName.
+	 * Search the LDAP with displayName.
 	 * @param ntId
 	 * @return
 	 */
-	public ResponseEntity<DirectoryObjects> searchUserInGSM(String ntId) {
+	public ResponseEntity<DirectoryObjects> searchByDisplayNameAndId(String ntId) {
 		DirectoryObjects objectsByDisplayName = searchBydisplayName(ntId);
 		if (objectsByDisplayName.getData().getValues().length > 0) {
 			return ResponseEntity.status(HttpStatus.OK).body(objectsByDisplayName);

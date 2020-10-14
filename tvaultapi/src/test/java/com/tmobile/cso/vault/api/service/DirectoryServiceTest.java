@@ -195,7 +195,7 @@ public class DirectoryServiceTest {
         ResponseEntity<DirectoryObjects> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(users);
 
         when(ldapTemplate.search(Mockito.anyString(), Mockito.anyString(), Mockito.any(AttributesMapper.class))).thenReturn(persons);
-        ResponseEntity<DirectoryObjects> responseEntity = directoryService.searchUserInGSM("test_corpid");
+        ResponseEntity<DirectoryObjects> responseEntity = directoryService.searchByDisplayNameAndId("test_corpid");
 
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected.getBody().getData().getValues()[0], responseEntity.getBody().getData().getValues()[0]);
@@ -233,7 +233,7 @@ public class DirectoryServiceTest {
             }
         });
 
-        ResponseEntity<DirectoryObjects> responseEntity = directoryService.searchUserInGSM("test_corpid");
+        ResponseEntity<DirectoryObjects> responseEntity = directoryService.searchByDisplayNameAndId("test_corpid");
 
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected.getBody().getData().getValues()[0], responseEntity.getBody().getData().getValues()[0]);
