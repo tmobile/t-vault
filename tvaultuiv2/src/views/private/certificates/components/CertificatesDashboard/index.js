@@ -261,7 +261,7 @@ const CertificatesDashboard = () => {
           result[1].data.keys.map((item) => {
             return internalCertArray.push(item);
           });
-          compareCertificates(internalCertArray, allCertArray);
+          compareCertificates(internalCertArray, allCertArray, 'internal');
         }
         if (result && result[2]?.data?.keys) {
           result[2].data.keys.map((item) => {
@@ -384,11 +384,11 @@ const CertificatesDashboard = () => {
     }
   };
 
-  useEffect(() => {
-    if (certificateList.length > 0) {
-      setListItemDetails(certificateList[0]);
-    }
-  }, [certificateList]);
+  // useEffect(() => {
+  //   if (certificateList.length > 0) {
+  //     setListItemDetails(certificateList[0]);
+  //   }
+  // }, [certificateList]);
 
   /**
    * @function onSelectChange
