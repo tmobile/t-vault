@@ -371,7 +371,7 @@ const ServiceAccountDashboard = () => {
 
   const onServiceAccountEdit = (name) => {
     history.push({
-      pathname: '/service-accounts/change-service-accounts',
+      pathname: '/service-accounts/edit-service-accounts',
       state: {
         serviceAccountDetails: {
           name,
@@ -587,7 +587,7 @@ const ServiceAccountDashboard = () => {
                       label="Onboard Account"
                       onClick={() => showOnBoardForm()}
                       classes={classes}
-                      href="/service-accounts/change-service-accounts"
+                      href="/service-accounts/onboard-service-accounts"
                     />
                   )}
                 </div>
@@ -657,7 +657,7 @@ const ServiceAccountDashboard = () => {
                                 // eslint-disable-next-line react/jsx-wrap-multilines
                                 contextObj?.isAdmin ? (
                                   <FloatingActionButtonComponent
-                                    href="/service-accounts/change-service-accounts"
+                                    href="/service-accounts/onboard-service-accounts"
                                     color="secondary"
                                     icon="add"
                                     tooltipTitle="Onboard New Service Account"
@@ -680,7 +680,7 @@ const ServiceAccountDashboard = () => {
             {serviceAccountList?.length && contextObj?.isAdmin ? (
               <FloatBtnWrapper>
                 <FloatingActionButtonComponent
-                  href="/service-accounts/change-service-accounts"
+                  href="/service-accounts/oboard-service-accounts"
                   color="secondary"
                   icon="add"
                   tooltipTitle="Onboard New Service Account"

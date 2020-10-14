@@ -35,7 +35,14 @@ const ServiceAccountLayout = (props) => {
         <Switch>
           <Route
             exact
-            path="/service-accounts/change-service-accounts"
+            path="/service-accounts/onboard-service-accounts"
+            render={(routeProps) => (
+              <OnBoardForm routeProps={{ ...routeProps, userInfo }} />
+            )}
+          />
+          <Route
+            exact
+            path="/service-accounts/edit-service-accounts"
             render={(routeProps) => (
               <OnBoardForm routeProps={{ ...routeProps, userInfo }} />
             )}
