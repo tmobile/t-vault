@@ -59,6 +59,7 @@ const PreviewCertificate = (props) => {
     onCreateClicked,
     onEditClicked,
     isMobileScreen,
+    responseType,
   } = props;
   return (
     <ComponentError>
@@ -92,6 +93,7 @@ const PreviewCertificate = (props) => {
             <ButtonComponent
               label="Cancel"
               color="primary"
+              disabled={responseType === 0}
               onClick={() => handleClose()}
               width={isMobileScreen ? '100%' : ''}
             />
@@ -100,6 +102,7 @@ const PreviewCertificate = (props) => {
             <ButtonComponent
               label="Edit"
               color="secondary"
+              disabled={responseType === 0}
               onClick={() => onEditClicked()}
               width={isMobileScreen ? '100%' : ''}
             />
@@ -108,6 +111,7 @@ const PreviewCertificate = (props) => {
             label="Create"
             icon="add"
             color="secondary"
+            disabled={responseType === 0}
             onClick={() => onCreateClicked()}
             width={isMobileScreen ? '100%' : ''}
           />
@@ -126,6 +130,7 @@ PreviewCertificate.propTypes = {
   onCreateClicked: PropTypes.func,
   onEditClicked: PropTypes.func,
   isMobileScreen: PropTypes.bool,
+  responseType: PropTypes.number,
 };
 
 PreviewCertificate.defaultProps = {
@@ -137,6 +142,7 @@ PreviewCertificate.defaultProps = {
   onCreateClicked: () => {},
   onEditClicked: () => {},
   isMobileScreen: false,
+  responseType: null,
 };
 
 export default PreviewCertificate;

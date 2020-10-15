@@ -74,6 +74,7 @@ const TextFieldComponent = (props) => {
       type={type}
       onBlur={onInputBlur}
       onKeyDown={onKeyDown}
+      autoComplete="off"
       InputProps={{
         startAdornment: (
           <InputAdornment position="start">

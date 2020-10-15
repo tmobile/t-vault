@@ -244,8 +244,10 @@ const CreateCertificates = () => {
   const [menu, setMenu] = useState([]);
 
   const handleClose = () => {
-    setOpen(false);
-    history.goBack();
+    if (responseType !== 0) {
+      setOpen(false);
+      history.goBack();
+    }
   };
 
   const onToastClose = (reason) => {
@@ -491,6 +493,7 @@ const CreateCertificates = () => {
                 onEditClicked={() => setShowPreview(false)}
                 onCreateClicked={() => onCreateClicked()}
                 isMobileScreen={isMobileScreen}
+                responseType={responseType}
               />
             </PreviewWrap>
             <CreateSafeForm showPreview={showPreview}>

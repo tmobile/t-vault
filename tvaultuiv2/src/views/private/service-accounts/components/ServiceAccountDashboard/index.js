@@ -205,6 +205,7 @@ const ServiceAccountDashboard = () => {
   const [status, setStatus] = useState({});
   const [deleteAccName, setDeleteAccName] = useState('');
   const [offBoardSuccessfull, setOffBoardSuccessfull] = useState(false);
+  const [allServiceAccountList, setAllServiceAccountList] = useState([]);
   const [
     offBoardSvcAccountConfirmation,
     setOffBoardSvcAccountConfirmation,
@@ -265,6 +266,7 @@ const ServiceAccountDashboard = () => {
               return null;
             });
             setServiceAccountList([...listArray]);
+            setAllServiceAccountList([...listArray]);
             dispatch({
               type: 'GET_ALL_SERVICE_ACCOUNT_LIST',
               payload: [...listArray],
@@ -340,15 +342,15 @@ const ServiceAccountDashboard = () => {
   };
 
   useEffect(() => {
-    if (serviceAccountList?.length > 0) {
-      serviceAccountList.map((item) => {
+    if (allServiceAccountList?.length > 0) {
+      allServiceAccountList.map((item) => {
         if (history.location.pathname === `/service-accounts/${item.name}`) {
           return setListItemDetails(item);
         }
         return null;
       });
     }
-  }, [serviceAccountList, listItemDetails, history]);
+  }, [allServiceAccountList, listItemDetails, history]);
 
   // Infine scroll load more data
   const loadMoreData = () => {};
