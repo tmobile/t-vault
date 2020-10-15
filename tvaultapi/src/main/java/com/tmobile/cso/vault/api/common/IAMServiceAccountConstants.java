@@ -41,7 +41,10 @@ public final class IAMServiceAccountConstants {
 	public static final String REMOVE_GROUP_FROM_IAMSVCACC_MSG = "Remove Group from IAM Service Account";
 	public static final String IAM_SVCACC_POLICY_CREATION_TITLE = "Policies Creation For IAM Service Account";
 	public static final String IAM_SVCACC_CREATION_TITLE = "Onboard IAM Service Account";
-
+	public static final String REMOVE_APPROLE_TO_IAMSVCACC_MSG = "Remove Approle from IAM Service Account";
+	public static final String IAM_SVCACC_OFFBOARD_CREATION_TITLE = "Offboard IAM Service Account";
+	public static final String ROTATE_IAM_SVCACC_TITLE = "Rotate IAM Service Account";
+	
 	public static final String IAM_RESET_MSG_STRING = "reset";
 	public static final String IAM_GROUP_MSG_STRING = "groups";
 	public static final String IAM_ACCESS_MSG_STRING = "access";
@@ -63,4 +66,7 @@ public final class IAMServiceAccountConstants {
 		IAM_EMAIL_TEMPLATE_IMAGE_IDS.put("permissiontab", "templates/images/permissiontab.png");
 		IAM_EMAIL_TEMPLATE_IMAGE_IDS.put("adduser", "templates/images/adduser.png");
 	}
+	
+	public static final String ACCESS_KEY_ID = "accessKeyId";
+	public static final String OWNER_NT_ID = "owner_ntid";
 }

@@ -343,7 +343,7 @@ public class IAMServiceAccountsControllerTest {
 		String inputJson = getJSON(iamServiceAccountRotateRequest);
 		String responseJson = "{\"messages\":[\"IAM Service account activated successfully\"]}";
 		ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(responseJson);
-		when(iamServiceAccountsService.rotateIAMServiceAccount(eq("5PDrOhsy4ig8L3EpsJZSLAMg"), eq(userDetails), Mockito.any(IAMServiceAccountRotateRequest.class))).thenReturn(responseEntityExpected);
+		when(iamServiceAccountsService.rotateIAMServiceAccount(eq("5PDrOhsy4ig8L3EpsJZSLAMg"), Mockito.any(IAMServiceAccountRotateRequest.class))).thenReturn(responseEntityExpected);
 
 		mockMvc.perform(MockMvcRequestBuilders.post("/v2/iamserviceaccount/rotate").requestAttr("UserDetails", userDetails)
 				.header("vault-token", "5PDrOhsy4ig8L3EpsJZSLAMg")
