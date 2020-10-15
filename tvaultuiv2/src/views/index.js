@@ -13,7 +13,7 @@ import ScaledLoader from '../components/Loaders/ScaledLoader';
 import { UserContextProvider } from '../contexts';
 
 const Home = lazy(() => import('./public/HomePage'));
-const Applications = lazy(() => import('./private/applications'));
+const Applications = lazy(() => import('./private/app-roles'));
 const Certificates = lazy(() => import('./private/certificates'));
 const ServiceAccounts = lazy(() => import('./private/service-accounts'));
 
