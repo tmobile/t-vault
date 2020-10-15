@@ -13,7 +13,7 @@ import ScaledLoader from '../components/Loaders/ScaledLoader';
 import { UserContextProvider } from '../contexts';
 
 const Home = lazy(() => import('./public/HomePage'));
-const Applications = lazy(() => import('./private/app-roles'));
+const VaultAppRoles = lazy(() => import('./private/vault-app-roles'));
 const Certificates = lazy(() => import('./private/certificates'));
 const ServiceAccounts = lazy(() => import('./private/service-accounts'));
 
@@ -39,8 +39,8 @@ const PrivateRoutes = () => {
             <Redirect exact from="/" to="/safe" />
             <Route
               exact
-              path="/applications"
-              render={(routeProps) => <Applications routeProps={routeProps} />}
+              path="/vault-app-roles"
+              render={(routeProps) => <VaultAppRoles routeProps={routeProps} />}
             />
             <Route
               path="/certificates"
