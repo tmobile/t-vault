@@ -29,6 +29,7 @@ import { UserContext } from '../../../../../contexts';
 import apiService from '../../apiService';
 import CertificateListItem from '../CertificateListItem';
 import EditAndDeletePopup from '../../../../../components/EditAndDeletePopup';
+import EditCertificate from '../EditCertificate';
 
 const ColumnSection = styled('section')`
   position: relative;
@@ -224,6 +225,7 @@ const CertificatesDashboard = () => {
   const [allCertList, setAllCertList] = useState([]);
   const [certificateClicked, setCertificateClicked] = useState(false);
   const [ListItemDetails, setListItemDetails] = useState({});
+  const [openEditModal, setOpenEditModal] = useState(false);
   const classes = useStyles();
   const history = useHistory();
   const location = useLocation();
@@ -467,6 +469,10 @@ const CertificatesDashboard = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [inputSearchValue, certificateType]);
 
+  const onEditListItemClicked = () => {
+    setOpenEditModal(true);
+  };
+
   const renderList = () => {
     return certificateList.map((certificate) => (
       <ListFolderWrap
@@ -507,7 +513,7 @@ const CertificatesDashboard = () => {
           <PopperWrap onClick={(e) => onActionClicked(e)}>
             <EditAndDeletePopup
               onDeletListItemClicked={() => {}}
-              onEditListItemClicked={() => {}}
+              onEditListItemClicked={() => onEditListItemClicked()}
               admin={contextObj.isAdmin}
             />
           </PopperWrap>
@@ -519,6 +525,10 @@ const CertificatesDashboard = () => {
     <ComponentError>
       <>
         <SectionPreview title="certificates-section">
+          <EditCertificate
+            ListItemDetails={ListItemDetails}
+            open={openEditModal}
+          />
           <LeftColumnSection>
             <ColumnHeader>
               <SelectComponent
