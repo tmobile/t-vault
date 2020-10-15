@@ -532,6 +532,7 @@
                 var certificateType = $stateParams.certificateObject.certType;
                 $scope.certificateTypeVal = $stateParams.certificateObject.certType;
                 $scope.appName = $stateParams.certificateObject.applicationName;
+
                 try {
 
                     var updatedUrlOfEndPoint = ModifyUrl.addUrlParameteres('getCertificates',"certificateName="+certName+"&certType="+certificateType );
@@ -566,8 +567,7 @@
                                         object.users = data;
                                 }
                                 $scope.UsersPermissionsData = object.users;
-
-                                var certOwner = object.certOwnerNtid;            
+                                var certOwner = object.certOwnerNtid;
                                 if(SessionStore.getItem("username").toLowerCase() === certOwner.toLowerCase()){
                                     $scope.isCertificateOwner = true;
                                     $scope.detailsNavTags[1].show = true;
@@ -626,7 +626,8 @@
                                 if($rootScope.checkStatus=="Revoked"){
                                 	$scope.revokeButtonShow = false;	
                                 }                                
-                                	hideUserSudoPolicy();
+                                    hideUserSudoPolicy();
+                                    getUserDisplayNameDetails();
                             }
                             catch (e) {
                                 console.log(e);
@@ -665,6 +666,57 @@
 
                 }
 
+            }
+        }
+
+        var getUserDisplayNameDetails = function () {
+            $scope.isLoadingData = true;
+            $scope.userNames = [];
+            $scope.UsersPermissionsDetails = [];
+            $scope.UsersDisplayNameData = [];
+            for (var key in $scope.UsersPermissionsData) {
+                $scope.userNames.push(key);
+            }
+            if ($scope.userNames !== undefined && $scope.userNames.length > 0) {
+                vaultUtilityService.getAllUsersDataForPermissions($scope.userNames.join()).then(function (res, error) {
+                    var serviceData;
+                    if (res) {
+                        $scope.isLoadingData = false;
+                        serviceData = res;
+                        $scope.UsersDisplayNameData = serviceData.response.data.data.values;
+                        for (var i=0;i<$scope.UsersDisplayNameData.length;i++) {
+                            var userNameKey = $scope.UsersDisplayNameData[i].userName.toLowerCase();
+                            var userDisplayName = $scope.UsersDisplayNameData[i].displayName + " ("+$scope.UsersDisplayNameData[i].userName+")";
+                            var permissionVal = "";
+                            for (var key in $scope.UsersPermissionsData) {
+                                if(key.toLowerCase() === userNameKey) {
+                                    permissionVal = $scope.UsersPermissionsData[key.toLowerCase()];
+                                }
+                            }
+                            $scope.UsersPermissionsDetails.push({"key":userNameKey, "value":permissionVal, "displayName":userDisplayName});
+                        }
+                        $scope.$apply();
+                    } else {
+                        $scope.isLoadingData = false;
+                        serviceData = error;
+                        $scope.commonErrorHandler(serviceData.error, serviceData.error || serviceData.response.data, "getDropdownData");
+
+                    }
+                },
+                function (error) {
+                    $scope.isLoadingData = false;
+                    // Error handling function when api fails
+                    $scope.showInputLoader.show = false;
+                    if (error.status === 500) {
+                        $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_NETWORK');
+                        $scope.error('md');
+                    } else if(error.status !== 200 && (error.xhrStatus === 'error' || error.xhrStatus === 'complete')) {
+                        $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_AUTOCOMPLETE_USERNAME');
+                        $scope.error('md');
+                    }
+                });
+            }else{
+                $scope.isLoadingData = false;
             }
         }
 
