@@ -1394,7 +1394,7 @@ public class IAMServiceAccountServiceTest {
 
 		ResponseEntity<String> expectedResponse =  ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"IAM Service account secret rotated successfully\"]}");
 		IAMServiceAccountRotateRequest iamServiceAccountRotateRequest = new IAMServiceAccountRotateRequest(accessKeyId, iamServiceAccountName, awsAccountId);
-		ResponseEntity<String> actualResponse = iamServiceAccountsService.rotateIAMServiceAccount(token, userDetails, iamServiceAccountRotateRequest);
+		ResponseEntity<String> actualResponse = iamServiceAccountsService.rotateIAMServiceAccount(token, iamServiceAccountRotateRequest);
 		assertEquals(expectedResponse, actualResponse);
 	}
 
@@ -1420,7 +1420,7 @@ public class IAMServiceAccountServiceTest {
 
 		ResponseEntity<String> expectedResponse =  ResponseEntity.status(HttpStatus.FORBIDDEN).body("{\"errors\":[\"Access denied: No permission to rotate secret for IAM service account.\"]}");
 		IAMServiceAccountRotateRequest iamServiceAccountRotateRequest = new IAMServiceAccountRotateRequest(accessKeyId, iamServiceAccountName, awsAccountId);
-		ResponseEntity<String> actualResponse = iamServiceAccountsService.rotateIAMServiceAccount(token, userDetails, iamServiceAccountRotateRequest);
+		ResponseEntity<String> actualResponse = iamServiceAccountsService.rotateIAMServiceAccount(token, iamServiceAccountRotateRequest);
 		assertEquals(expectedResponse, actualResponse);
 	}
 
@@ -1464,7 +1464,7 @@ public class IAMServiceAccountServiceTest {
 
 		ResponseEntity<String> expectedResponse =  ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Failed to rotate secret for IAM Service account Access Key Id\"]}");
 		IAMServiceAccountRotateRequest iamServiceAccountRotateRequest = new IAMServiceAccountRotateRequest(accessKeyId, iamServiceAccountName, awsAccountId);
-		ResponseEntity<String> actualResponse = iamServiceAccountsService.rotateIAMServiceAccount(token, userDetails, iamServiceAccountRotateRequest);
+		ResponseEntity<String> actualResponse = iamServiceAccountsService.rotateIAMServiceAccount(token, iamServiceAccountRotateRequest);
 		assertEquals(expectedResponse, actualResponse);
 	}
 

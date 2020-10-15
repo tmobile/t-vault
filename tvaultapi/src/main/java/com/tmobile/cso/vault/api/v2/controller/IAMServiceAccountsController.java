@@ -248,8 +248,7 @@ public class IAMServiceAccountsController {
 	@PostMapping(value="/v2/iamserviceaccount/rotate",produces="application/json")
 	@ApiOperation(value = "${IAMServiceAccountsController.rotateIAMServiceAccountCreds.value}", notes = "${IAMServiceAccountsController.rotateIAMServiceAccountCreds.notes}")
 	public ResponseEntity<String> rotateIAMServiceAccountCreds(HttpServletRequest request, @RequestHeader(value="vault-token") String token, @RequestBody @Valid IAMServiceAccountRotateRequest iamServiceAccountRotateRequest){
-		UserDetails userDetails = (UserDetails) request.getAttribute(USER_DETAILS_STRING);
-		return iamServiceAccountsService.rotateIAMServiceAccount(token, userDetails, iamServiceAccountRotateRequest);
+		return iamServiceAccountsService.rotateIAMServiceAccount(token, iamServiceAccountRotateRequest);
 	}
 	
 	/**
