@@ -2,6 +2,7 @@ import React from 'react';
 import styled from 'styled-components';
 import PropTypes from 'prop-types';
 import { Link } from 'react-router-dom';
+import SyncAltIcon from '@material-ui/icons/SyncAlt';
 import { IconDeleteActive, IconEdit } from '../../assets/SvgIcons';
 import ComponentError from '../../errorBoundaries/ComponentError/component-error';
 
@@ -31,7 +32,7 @@ const PsudoPopper = (props) => {
       <IconWrap>
         {admin && (
           <TransferOwnerWrap onClick={onTransferOwnerClicked}>
-            Transfer Owner
+            <SyncAltIcon color="#fff" />
           </TransferOwnerWrap>
         )}
         <Link

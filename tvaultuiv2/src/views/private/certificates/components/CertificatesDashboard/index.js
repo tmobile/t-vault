@@ -28,6 +28,7 @@ import { TitleFour } from '../../../../../styles/GlobalStyles';
 import { UserContext } from '../../../../../contexts';
 import apiService from '../../apiService';
 import CertificateListItem from '../CertificateListItem';
+import EditAndDeletePopup from '../../../../../components/EditAndDeletePopup';
 
 const ColumnSection = styled('section')`
   position: relative;
@@ -97,8 +98,13 @@ const PopperWrap = styled.div`
   position: absolute;
   right: 4%;
   z-index: 1;
-  width: 18rem;
+  max-width: 18rem;
   display: none;
+`;
+
+const CertificateStatus = styled.div`
+  display: flex;
+  align-items: center;
 `;
 
 const ListFolderWrap = styled(Link)`
@@ -119,6 +125,9 @@ const ListFolderWrap = styled(Link)`
     color: #fff;
     ${PopperWrap} {
       display: block;
+    }
+    ${CertificateStatus} {
+      display: none;
     }
   }
 `;
@@ -161,11 +170,6 @@ const EmptyContentBox = styled('div')`
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-`;
-
-const CertificateStatus = styled.div`
-  display: flex;
-  align-items: center;
 `;
 
 const StatusIcon = styled.span`
@@ -423,6 +427,16 @@ const CertificatesDashboard = () => {
   };
 
   /**
+   * @function onActionClicked
+   * @description function to prevent default click.
+   * @param {object} e event
+   */
+  const onActionClicked = (e) => {
+    e.stopPropagation();
+    e.preventDefault();
+  };
+
+  /**
    * @function onSearchChange
    * @description function to search certificate.
    * @param {string} value searched input value.
@@ -489,6 +503,15 @@ const CertificatesDashboard = () => {
             <StatusIcon status={certificate.certificateStatus} />
           </CertificateStatus>
         )}
+        {certificate.applicationName && !isMobileScreen ? (
+          <PopperWrap onClick={(e) => onActionClicked(e)}>
+            <EditAndDeletePopup
+              onDeletListItemClicked={() => {}}
+              onEditListItemClicked={() => {}}
+              admin={contextObj.isAdmin}
+            />
+          </PopperWrap>
+        ) : null}
       </ListFolderWrap>
     ));
   };
