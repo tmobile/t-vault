@@ -19,6 +19,7 @@ const deleteCertificateGroup = (payload) =>
 
 const getApplicationName = () => api.get('/serviceaccounts/cwm/approles');
 const getOwnerEmail = (corpId) => api.get(`/ldap/corpusers?CorpId=${corpId}`);
+const createCertificate = (payload) => api.post('/sslcert', payload);
 
 export default {
   getAllAdminCertInternal,
@@ -33,4 +34,5 @@ export default {
   deleteCertificateGroup,
   getApplicationName,
   getOwnerEmail,
+  createCertificate,
 };

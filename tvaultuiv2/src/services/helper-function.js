@@ -2,6 +2,7 @@
 /* eslint-disable array-callback-return */
 /* eslint-disable consistent-return */
 // eslint-disable-next-line import/prefer-default-export
+
 export function mockApi(response) {
   return new Promise((resolve, reject) =>
     setTimeout(() => {
@@ -170,6 +171,25 @@ export const removeDuplicate = (arr) => {
   return filteredArr;
 };
 
+export const formatSecondsToTime = (seconds) => {
+  const date = Number(seconds);
+  if (date) {
+    // const duration = moment.duration(date, 'seconds');
+    const days = Math.round(date / 86400);
+    const hours = Math.round(date / 3600);
+    const minutes = Math.round(date / 60);
+    if (days >= 1) {
+      return `${days} day/s`;
+    }
+    if (hours >= 1 && hours < 24) {
+      return `${hours} hours`;
+    }
+    if (days === 0 || hours === 0) {
+      return 'few seconds';
+    }
+    return `${minutes} minutes`;
+  }
+};
 export const checkAccess = (access) => {
   let val = '';
   if (access === 'write') {

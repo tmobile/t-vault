@@ -22,8 +22,6 @@ const ListItemDetailBox = styled('div')`
 `;
 const ListItemAvatarWrap = styled.div`
   .MuiAvatar-root {
-    width: 3.4rem;
-    height: 3.9rem;
     border-radius: 0;
   }
   display: flex;
@@ -68,7 +66,15 @@ const LabelWrap = styled.div`
 `;
 
 const ListItem = (props) => {
-  const { title, subTitle, flag, icon, showActions, popperListItems } = props;
+  const {
+    title,
+    subTitle,
+    flag,
+    icon,
+    showActions,
+    popperListItems,
+    listIconStyles,
+  } = props;
   const [anchorEl, setAnchorEl] = useState(null);
 
   return (
@@ -76,7 +82,7 @@ const ListItem = (props) => {
       <FolderWrap>
         <LabelWrap>
           <ListItemAvatarWrap>
-            <Avatar alt="ListItem_icon" src={icon} />
+            <Avatar alt="ListItem_icon" src={icon} classes={listIconStyles} />
           </ListItemAvatarWrap>
           <ListItemDetailBox>
             <TitleOne color="#d0d0d0">
@@ -124,6 +130,7 @@ ListItem.propTypes = {
   flag: PropTypes.string,
   showActions: PropTypes.bool.isRequired,
   popperListItems: PropTypes.arrayOf(PropTypes.any),
+  listIconStyles: PropTypes.objectOf(PropTypes.object),
 };
 ListItem.defaultProps = {
   subTitle: '',
@@ -131,5 +138,6 @@ ListItem.defaultProps = {
   flag: '',
   icon: ListItemIcon,
   popperListItems: [],
+  listIconStyles: {},
 };
 export default ListItem;

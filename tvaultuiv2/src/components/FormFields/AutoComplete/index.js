@@ -55,7 +55,7 @@ const AutoCompleteComponent = (props) => {
       className={classes || ''}
       onChange={onSelected}
       inputValue={searchValue}
-      onInputChange={(e) => onChange(e?.target?.value)}
+      onInputChange={(e) => onChange(e)}
       renderInput={(params) => (
         <TextField
           {...params}
