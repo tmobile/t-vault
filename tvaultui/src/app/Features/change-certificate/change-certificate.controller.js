@@ -798,6 +798,22 @@
 
         $scope.addPermission = function (type, key, permission, editingPermission) {
             var duplicate = false;
+            if (key !== null && key !== undefined) {
+                if (type === "users" && !editingPermission) {
+                    key = document.getElementById('addUser').value.toLowerCase();
+                }
+
+                if (type === "groups" && !editingPermission) {
+                    key = document.getElementById('addGroup').value.toLowerCase();
+                }
+                // extract only userId/groupId from key
+                if (key.includes($scope.domainName)) {
+                    key = key.split('@')[0];
+                }
+                if (key.includes("(")) {
+                    key = key.substring(key.lastIndexOf("(") + 1, key.lastIndexOf(")"));
+                }
+            }
             if (!editingPermission && key != '' && key != undefined) {
                 if (type === "users" && $scope.UsersPermissionsData!= null && $scope.UsersPermissionsData.hasOwnProperty(key.toLowerCase())) {
                     if ($scope.UsersPermissionsData[key.toLowerCase()] != "write") {
@@ -819,14 +835,6 @@
             }
             else if ((key != '' && key != undefined) || type == 'AwsRoleConfigure') {
                 try {
-                    if (type === "users" && !editingPermission) {
-                        key = document.getElementById('addUser').value.toLowerCase();
-                    }
-
-                    if (type === "groups" && !editingPermission) {
-                        key = document.getElementById('addGroup').value.toLowerCase();
-                    }
-                    
                     Modal.close('');
                     $scope.isLoadingData = true;
                     $scope.showInputLoader.show = false;
@@ -835,16 +843,6 @@
                     var certficateType = $scope.certificateType;
                     var apiCallFunction = '';
                     var reqObjtobeSent = {};
-                    // extract only userId/groupId from key
-                    if (key.includes($scope.domainName)) {
-                        key = key.split('@')[0];
-                    }
-                    if (key !== null && key !== undefined) {
-                        if (key.includes("(")) {
-                            key = key.substring(key.lastIndexOf("(") + 1, key.lastIndexOf(")"));
-                        }
-                    }
-                    
                     var updatedUrlOfEndPoint = "";
                     switch (type) {
                         case 'users' :
