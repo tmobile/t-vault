@@ -121,6 +121,7 @@ const AddGroup = (props) => {
     groupname,
     access,
     isSvcAccount,
+    isCertificate,
   } = props;
   const classes = useStyles();
   const [radioValue, setRadioValue] = useState('read');
@@ -158,7 +159,7 @@ const AddGroup = (props) => {
       } else {
         setDisabledSave(false);
       }
-    } else if (!isValidGroupName) {
+    } else if (!isValidGroupName || searchValue === '') {
       setDisabledSave(true);
     } else {
       setDisabledSave(false);
@@ -252,6 +253,7 @@ const AddGroup = (props) => {
             <RadioSafePermissionComponent
               radioValue={radioValue}
               handleRadioChange={(e) => setRadioValue(e.target.value)}
+              isCertificate={isCertificate}
             />
           )}
           <CancelSaveWrapper>
@@ -283,12 +285,14 @@ AddGroup.propTypes = {
   groupname: PropTypes.string,
   access: PropTypes.string,
   isSvcAccount: PropTypes.bool,
+  isCertificate: PropTypes.bool,
 };
 
 AddGroup.defaultProps = {
   groupname: '',
   access: 'read',
   isSvcAccount: false,
+  isCertificate: false,
 };
 
 export default AddGroup;

@@ -1,3 +1,5 @@
+/* eslint-disable react/jsx-wrap-multilines */
+/* eslint-disable react/jsx-curly-newline */
 import React, { useState, useEffect } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 import { useHistory } from 'react-router-dom';
@@ -10,6 +12,7 @@ import RadioGroup from '@material-ui/core/RadioGroup';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 import Radio from '@material-ui/core/Radio';
 import KeyboardReturnIcon from '@material-ui/icons/KeyboardReturn';
+import ConfirmationModal from '../../../../components/ConfirmationModal';
 import TextFieldComponent from '../../../../components/FormFields/TextField';
 import ButtonComponent from '../../../../components/FormFields/ActionButton';
 import SelectComponent from '../../../../components/FormFields/SelectFields';
@@ -173,6 +176,7 @@ const EndingBox = styled.div`
   width: ${(props) => props.width};
   display: flex;
   align-items: center;
+  height: 5rem;
   span {
     margin-left: 1rem;
   }
@@ -224,6 +228,14 @@ const CreateCertificates = () => {
   const [certificateType, setCertificateType] = useState('Internal');
   const [dnsArray, setDnsArray] = useState([]);
   const [showPreview, setShowPreview] = useState(false);
+  const [dnsError, setDnsError] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
+  const [errorDnsMessage, setErrorDnsMessage] = useState('');
+  const [certNameError, setCertNameError] = useState(false);
+  const [responseDesc, setResponseDesc] = useState('');
+  const [responseTitle, setResponseTitle] = useState('');
+  const [allApplication, setAllApplication] = useState([]);
+  const [openConfirmationModal, setOpenConfirmationModal] = useState(false);
   const isMobileScreen = useMediaQuery(small);
   const [helperText] = useState('');
   const history = useHistory();
@@ -245,7 +257,7 @@ const CreateCertificates = () => {
 
   const getOwnerEmail = () => {
     apiService
-      .getOwnerEmail(`${state.username}sss`)
+      .getOwnerEmail(`${state.username}`)
       .then((res) => {
         if (res.data.data.values && res.data.data.values[0]) {
           setOwnerEmail(res.data.data.values[0].userEmail);
@@ -263,6 +275,7 @@ const CreateCertificates = () => {
       .then((res) => {
         if (res.data && res.data.length > 0) {
           res.data.map((item) => {
+            setAllApplication((prev) => [...prev, item]);
             return setMenu((prev) => [...prev, item.appName]);
           });
           setApplicationName(res.data[0].appName);
@@ -287,23 +300,74 @@ const CreateCertificates = () => {
   }, [state]);
 
   useEffect(() => {
-    if (certName === '' || applicationName === '') {
+    if (
+      certName === '' ||
+      applicationName === '' ||
+      dnsError ||
+      certNameError ||
+      ownerEmail === 'N/A'
+    ) {
       setDisabledSave(true);
     } else {
       setDisabledSave(false);
     }
-  }, [certName, applicationName]);
+  }, [certName, applicationName, certNameError, dnsError, ownerEmail]);
+
+  const InputValidation = (text) => {
+    if (text) {
+      const res = /^[A-Za-z0-9][ A-Za-z0-9-.]*?[a-z0-9]$/i;
+      return res.test(text);
+    }
+    return null;
+  };
+
+  const onCertificateNameChange = (e) => {
+    setCertName(e.target.value);
+    const { value } = e.target;
+    if (!InputValidation(e.target.value)) {
+      setCertNameError(true);
+      setErrorMessage(
+        'Certificate name can have alphabets, numbers, . and - characters only or should not ends with special character.'
+      );
+    } else if (value.toLowerCase().includes('.t-mobile.com')) {
+      setCertNameError(true);
+      setErrorMessage('Please enter certificate name without .t-mobile.com.');
+    } else {
+      setCertNameError(false);
+      setErrorMessage('');
+    }
+  };
 
   const onAddDnsClicked = (e) => {
     if (e.keyCode === 13) {
       const val = `${e.target.value}.t-mobile.com`;
-      setDnsArray((prev) => [...prev, val.toLowerCase()]);
-      setDnsName('');
+      if (dnsArray.includes(val)) {
+        setDnsError(true);
+        setErrorDnsMessage('Dns name already added!');
+      } else {
+        setDnsArray((prev) => [...prev, val.toLowerCase()]);
+        setDnsName('');
+        setDnsError(false);
+        setErrorDnsMessage('');
+      }
     }
   };
 
   const onDnsNameChange = (e) => {
     setDnsName(e.target.value);
+    const { value } = e.target;
+    if (!InputValidation(e.target.value)) {
+      setDnsError(true);
+      setErrorDnsMessage(
+        'DNS can have alphabets, numbers, . and - characters only or should not ends with special character.'
+      );
+    } else if (value.toLowerCase().includes('.t-mobile.com')) {
+      setDnsError(true);
+      setErrorDnsMessage('Please enter DNS without .t-mobile.com.');
+    } else {
+      setDnsError(false);
+      setErrorDnsMessage('');
+    }
   };
 
   const onRemoveClicked = (dns) => {
@@ -316,15 +380,45 @@ const CreateCertificates = () => {
   };
 
   const onCreateClicked = () => {
-    const payload = {
-      appName: applicationName,
-      certOwnerEmailId: ownerEmail,
-      certOwnerNTId: state.username,
-      certType: certificateType,
-      certificateName: certName,
-      dnsList: dnsArray,
-    };
-    console.log('payload', payload);
+    const obj = allApplication.find((item) => item.appName === applicationName);
+    if (obj) {
+      const payload = {
+        appName: obj.appID,
+        certOwnerEmailId: ownerEmail,
+        certOwnerNTId: state.username,
+        certType: certificateType.toLowerCase(),
+        certificateName: certName,
+        dnsList: dnsArray,
+      };
+      setResponseType(0);
+      apiService
+        .createCertificate(payload)
+        .then((res) => {
+          setResponseType(null);
+          if (res.data.messages && res.data.messages[0]) {
+            setOpenConfirmationModal(true);
+            setResponseTitle('Successfull');
+            setResponseDesc(res.data.messages[0]);
+          }
+        })
+        .catch((err) => {
+          if (err?.response?.data?.errors && err.response.data.errors[0]) {
+            setOpenConfirmationModal(true);
+            setResponseTitle('Error');
+            setResponseDesc(err.response.data.errors[0]);
+          }
+          setResponseType(null);
+        });
+    }
+  };
+
+  const handleCloseConfirmationModal = () => {
+    setOpenConfirmationModal(false);
+    handleClose();
+  };
+
+  const errorHandleClose = () => {
+    setOpenConfirmationModal(false);
   };
 
   return (
@@ -343,6 +437,24 @@ const CreateCertificates = () => {
       >
         <Fade in={open}>
           <ModalWrapper>
+            <ConfirmationModal
+              open={openConfirmationModal}
+              handleClose={handleCloseConfirmationModal}
+              title={responseTitle}
+              description={responseDesc}
+              confirmButton={
+                <ButtonComponent
+                  label="Close"
+                  color="secondary"
+                  onClick={() =>
+                    responseTitle === 'Error'
+                      ? errorHandleClose()
+                      : handleCloseConfirmationModal()
+                  }
+                  width={isMobileScreen ? '100%' : '38%'}
+                />
+              }
+            />
             {responseType === 0 && <LoaderSpinner customStyle={loaderStyle} />}
             <HeaderWrapper>
               <LeftIcon
@@ -411,8 +523,10 @@ const CreateCertificates = () => {
                     placeholder="Enter a name here..."
                     fullWidth
                     name="certName"
+                    error={certNameError}
+                    helperText={certNameError ? errorMessage : ''}
                     onChange={(e) => {
-                      setCertName(e.target.value);
+                      onCertificateNameChange(e);
                     }}
                   />
                   <EndingBox width="14rem">.T-mobile.com</EndingBox>
@@ -443,6 +557,8 @@ const CreateCertificates = () => {
                     onChange={(e) => {
                       onDnsNameChange(e);
                     }}
+                    error={dnsError}
+                    helperText={dnsError ? errorDnsMessage : ''}
                     onKeyDown={(e) => onAddDnsClicked(e)}
                   />
                   <EndingBox width="17rem">

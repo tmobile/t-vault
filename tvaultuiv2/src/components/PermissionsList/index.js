@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import styled, { css } from 'styled-components';
 import PropTypes from 'prop-types';
 import userIcon from '../../assets/permission-user.png';
@@ -15,8 +15,6 @@ const UserList = styled.div`
     border-bottom: 1px solid #323649;
   }
 `;
-
-const Wrap = styled.div``;
 
 const EachUserWrap = styled.div`
   display: flex;
@@ -51,28 +49,36 @@ const permissionStyles = css`
 
 const PermissionsList = (props) => {
   const { onEditClick, list, onDeleteClick, isSvcAccount, username } = props;
+
+  useEffect(() => {
+    if (username) {
+      Object.entries(list).map(([key, value]) => {
+        if (username === key && value === 'write') {
+          return delete list.key;
+        }
+        return null;
+      });
+    }
+  }, [username, list]);
+
   return (
     <UserList>
       {Object.entries(list).map(([key, value]) => (
-        <Wrap key={key}>
-          {username !== key && value !== 'write' && (
-            <EachUserWrap>
-              <IconDetailsWrap>
-                <Icon src={userIcon} alt="user" />
-                <Details>
-                  <TitleTwo extraCss={styles}>{key}</TitleTwo>
-                  <TitleFour extraCss={permissionStyles}>
-                    {isSvcAccount && value === 'write' ? 'reset' : value}
-                  </TitleFour>
-                </Details>
-              </IconDetailsWrap>
-              <EditDeletePopper
-                onEditClicked={() => onEditClick(key, value)}
-                onDeleteClicked={() => onDeleteClick(key, value)}
-              />
-            </EachUserWrap>
-          )}
-        </Wrap>
+        <EachUserWrap key={key}>
+          <IconDetailsWrap>
+            <Icon src={userIcon} alt="user" />
+            <Details>
+              <TitleTwo extraCss={styles}>{key}</TitleTwo>
+              <TitleFour extraCss={permissionStyles}>
+                {isSvcAccount && value === 'write' ? 'reset' : value}
+              </TitleFour>
+            </Details>
+          </IconDetailsWrap>
+          <EditDeletePopper
+            onEditClicked={() => onEditClick(key, value)}
+            onDeleteClicked={() => onDeleteClick(key, value)}
+          />
+        </EachUserWrap>
       ))}
     </UserList>
   );

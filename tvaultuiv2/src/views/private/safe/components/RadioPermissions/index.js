@@ -6,7 +6,7 @@ import PropTypes from 'prop-types';
 import Radio from '@material-ui/core/Radio';
 
 const RadioPermissionComponent = (props) => {
-  const { radioValue, handleRadioChange } = props;
+  const { radioValue, handleRadioChange, isCertificate } = props;
 
   return (
     <div>
@@ -23,11 +23,13 @@ const RadioPermissionComponent = (props) => {
             control={<Radio color="default" />}
             label="Read"
           />
-          <FormControlLabel
-            value="write"
-            control={<Radio color="default" />}
-            label="Write"
-          />
+          {!isCertificate && (
+            <FormControlLabel
+              value="write"
+              control={<Radio color="default" />}
+              label="Write"
+            />
+          )}
           <FormControlLabel
             value="deny"
             control={<Radio color="default" />}
@@ -42,11 +44,13 @@ const RadioPermissionComponent = (props) => {
 RadioPermissionComponent.propTypes = {
   radioValue: PropTypes.string,
   handleRadioChange: PropTypes.func,
+  isCertificate: PropTypes.bool,
 };
 
 RadioPermissionComponent.defaultProps = {
   radioValue: 'read',
   handleRadioChange: () => {},
+  isCertificate: false,
 };
 
 export default RadioPermissionComponent;

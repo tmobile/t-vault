@@ -213,6 +213,7 @@ const Users = (props) => {
             handleSaveClick={(user, access) => onSubmit(user, access)}
             handleCancelClick={onCancelClicked}
             refresh={refresh}
+            isCertificate
           />
         )}
         {response.status === 'edit' && (
@@ -222,6 +223,7 @@ const Users = (props) => {
             username={editUser}
             access={editAccess}
             refresh={refresh}
+            isCertificate
           />
         )}
         {response.status === 'success' &&
