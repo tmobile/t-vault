@@ -212,6 +212,7 @@ const Groups = (props) => {
           <AddGroup
             handleSaveClick={(group, access) => onSubmit(group, access)}
             handleCancelClick={onCancelClicked}
+            isCertificate
           />
         )}
         {response.status === 'edit' && (
@@ -222,7 +223,7 @@ const Groups = (props) => {
             handleCancelClick={onCancelClicked}
             groupname={editGroup}
             access={editAccess}
-            isSvcAccount
+            isCertificate
           />
         )}
         {response.status === 'success' && (

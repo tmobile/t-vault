@@ -1,6 +1,6 @@
 const initilaState = {
   message: 'Welcome',
-  username: 'SKumar255',
+  username: 'sshreya2',
   userEmail: 'Sunil.kumar255@t-mobile.com',
 };
 

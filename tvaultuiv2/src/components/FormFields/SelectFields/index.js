@@ -1,3 +1,4 @@
+/* eslint-disable react/no-array-index-key */
 import React from 'react';
 import MenuItem from '@material-ui/core/MenuItem';
 import Select from '@material-ui/core/Select';
@@ -26,9 +27,9 @@ const SelectComponent = (props) => {
       color={color}
       MenuProps={{ classes: { paper: classes.dropdownStyle } }}
     >
-      {menu.map((item) => {
+      {menu.map((item, index) => {
         return (
-          <MenuItemList value={item} selected={value} key={item}>
+          <MenuItemList value={item} selected={value} key={index}>
             {item}
           </MenuItemList>
         );
