@@ -12,7 +12,7 @@ const withStylesProps = (Styles) => (Component) => (props) => {
 };
 const Styles = (props) => ({
   backdrop: {
-    zIndex: theme.zIndex.modal + 2,
+    zIndex: theme.zIndex.modal + 10,
     color: '#fff',
     backgroundColor: 'rgba(0, 0, 0, 0.1)',
 

@@ -15,12 +15,13 @@ import {
 } from 'react-router-dom';
 
 import useMediaQuery from '@material-ui/core/useMediaQuery';
-import sectionHeaderBg from '../../../../../assets/Banner_img.png';
+import { useStateValue } from '../../../../../contexts/globalState';
+import sectionHeaderBg from '../../../../../assets/svc_banner_img.png';
 import mediaBreakpoints from '../../../../../breakpoints';
 import ComponentError from '../../../../../errorBoundaries/ComponentError/component-error';
 import NoData from '../../../../../components/NoData';
 import NoSafesIcon from '../../../../../assets/no-data-safes.svg';
-import safeIcon from '../../../../../assets/icon_safes.svg';
+import svcIcon from '../../../../../assets/icon-service-account.svg';
 import FloatingActionButtonComponent from '../../../../../components/FormFields/FloatingActionButton';
 import TextFieldComponent from '../../../../../components/FormFields/TextField';
 import ListItemDetail from '../../../../../components/ListItemDetail';
@@ -100,7 +101,6 @@ const PopperWrap = styled.div`
   position: absolute;
   right: 4%;
   z-index: 1;
-  width: 18rem;
   display: none;
 `;
 const ListFolderWrap = styled(Link)`
@@ -108,7 +108,7 @@ const ListFolderWrap = styled(Link)`
   display: flex;
   text-decoration: none;
   align-items: center;
-  padding: 1.2rem 1.8rem 1.2rem 3.4rem;
+  padding: 1.2rem 1.8rem 1.2rem 2rem;
   cursor: pointer;
   background-image: ${(props) =>
     props.active ? props.theme.gradients.list : 'none'};
@@ -181,6 +181,11 @@ const EditDeletePopperWrap = styled.div``;
 const useStyles = makeStyles(() => ({
   contained: { borderRadius: '0.4rem' },
 }));
+const iconStyles = makeStyles(() => ({
+  root: {
+    width: '100%',
+  },
+}));
 
 const ServiceAccountDashboard = () => {
   const [
@@ -204,8 +209,10 @@ const ServiceAccountDashboard = () => {
     offBoardSvcAccountConfirmation,
     setOffBoardSvcAccountConfirmation,
   ] = useState(false);
+  const [state, dispatch] = useStateValue();
   let scrollParentRef = null;
   const classes = useStyles();
+  const listIconStyles = iconStyles();
   const isMobileScreen = useMediaQuery(mediaBreakpoints.small);
   const history = useHistory();
   const location = useLocation();
@@ -219,6 +226,7 @@ const ServiceAccountDashboard = () => {
    */
   const fetchData = useCallback(async () => {
     setStatus({ status: 'loading', message: 'Loading...' });
+    setInputSearchValue('');
     if (contextObj && Object.keys(contextObj).length > 0) {
       const serviceList = await apiService.getServiceAccountList();
       const serviceAccounts = await apiService.getServiceAccounts();
@@ -257,6 +265,10 @@ const ServiceAccountDashboard = () => {
               return null;
             });
             setServiceAccountList([...listArray]);
+            dispatch({
+              type: 'GET_ALL_SERVICE_ACCOUNT_LIST',
+              payload: [...listArray],
+            });
           }
           setStatus({ status: 'success', message: '' });
         })
@@ -264,7 +276,7 @@ const ServiceAccountDashboard = () => {
           setStatus({ status: 'failed', message: 'failed' });
         });
     }
-  }, [contextObj]);
+  }, [contextObj, dispatch]);
 
   /**
    * @description On component load call fetchData function.
@@ -284,6 +296,14 @@ const ServiceAccountDashboard = () => {
    */
   const onSearchChange = (value) => {
     setInputSearchValue(value);
+    if (value !== '') {
+      const array = state?.serviceAccountList.filter((item) => {
+        return String(item.name).startsWith(value);
+      });
+      setServiceAccountList([...array]);
+    } else {
+      setServiceAccountList([...state?.serviceAccountList]);
+    }
   };
 
   /**
@@ -350,10 +370,8 @@ const ServiceAccountDashboard = () => {
   };
 
   const onServiceAccountEdit = (name) => {
-    setStatus({ status: 'loading' });
-
     history.push({
-      pathname: '/service-accounts/change-service-accounts',
+      pathname: '/service-accounts/edit-service-accounts',
       state: {
         serviceAccountDetails: {
           name,
@@ -505,8 +523,9 @@ const ServiceAccountDashboard = () => {
           title={account.name}
           subTitle={account.date}
           flag={account.type}
-          icon={safeIcon}
+          icon={svcIcon}
           showActions={false}
+          listIconStyles={listIconStyles}
         />
         <BorderLine />
         {account.name && !isMobileScreen ? (
@@ -561,14 +580,14 @@ const ServiceAccountDashboard = () => {
                   <TitleOne extraCss="font-weight:600">
                     SERVICE ACCOUNTS
                   </TitleOne>
-                  {contextObj.isAdmin && (
+                  {contextObj?.isAdmin && (
                     <ButtonComponent
                       color="secondary"
                       icon="add"
                       label="Onboard Account"
                       onClick={() => showOnBoardForm()}
                       classes={classes}
-                      href="/service-accounts/change-service-accounts"
+                      href="/service-accounts/onboard-service-accounts"
                     />
                   )}
                 </div>
@@ -618,35 +637,50 @@ const ServiceAccountDashboard = () => {
                     </StyledInfiniteScroll>
                   </ListContainer>
                 ) : (
-                  serviceAccountList?.length === 0 && (
-                    <NoDataWrapper>
+                  serviceAccountList?.length === 0 &&
+                  status.status === 'success' && (
+                    <>
                       {' '}
-                      <NoListWrap>
-                        <NoData
-                          imageSrc={NoSafesIcon}
-                          description="Onbaord a service account to get started!"
-                          actionButton={
-                            // eslint-disable-next-line react/jsx-wrap-multilines
-                            <FloatingActionButtonComponent
-                              href="/service-accounts/change-service-accounts"
-                              color="secondary"
-                              icon="add"
-                              tooltipTitle="Onboard New Service Account"
-                              tooltipPos="bottom"
+                      {inputSearchValue ? (
+                        <NoDataWrapper>
+                          No service account found with name:
+                          <strong>{inputSearchValue}</strong>
+                        </NoDataWrapper>
+                      ) : (
+                        <NoDataWrapper>
+                          {' '}
+                          <NoListWrap>
+                            <NoData
+                              imageSrc={NoSafesIcon}
+                              description="No service accounts are associated with you yet!, If you are a admin please onboard a service account to get started!"
+                              actionButton={
+                                // eslint-disable-next-line react/jsx-wrap-multilines
+                                contextObj?.isAdmin ? (
+                                  <FloatingActionButtonComponent
+                                    href="/service-accounts/onboard-service-accounts"
+                                    color="secondary"
+                                    icon="add"
+                                    tooltipTitle="Onboard New Service Account"
+                                    tooltipPos="bottom"
+                                  />
+                                ) : (
+                                  <></>
+                                )
+                              }
                             />
-                          }
-                        />
-                      </NoListWrap>
-                    </NoDataWrapper>
+                          </NoListWrap>
+                        </NoDataWrapper>
+                      )}
+                    </>
                   )
                 )}
               </>
             )}
 
-            {serviceAccountList?.length ? (
+            {serviceAccountList?.length && contextObj?.isAdmin ? (
               <FloatBtnWrapper>
                 <FloatingActionButtonComponent
-                  href="/service-accounts/change-service-accounts"
+                  href="/service-accounts/oboard-service-accounts"
                   color="secondary"
                   icon="add"
                   tooltipTitle="Onboard New Service Account"

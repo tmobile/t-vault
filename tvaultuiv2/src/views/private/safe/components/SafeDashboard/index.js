@@ -181,7 +181,12 @@ const useStyles = makeStyles(() => ({
     },
   },
 }));
-
+const iconStyles = makeStyles(() => ({
+  root: {
+    width: '3.4rem',
+    height: '3.9rem',
+  },
+}));
 const SafeDashboard = () => {
   const classes = useStyles();
   const [safes, setSafes] = useState({
@@ -215,7 +220,7 @@ const SafeDashboard = () => {
   const handleClose = () => {
     setOpenConfirmationModal(false);
   };
-
+  const listIconStyles = iconStyles();
   const isMobileScreen = useMediaQuery(mediaBreakpoints.small);
   const history = useHistory();
 
@@ -464,6 +469,7 @@ const SafeDashboard = () => {
             flag={safe.type}
             icon={safeIcon}
             manage={safe.manage}
+            listIconStyles={listIconStyles}
           />
           <BorderLine />
           {safe.name && safe.manage && !isMobileScreen ? (

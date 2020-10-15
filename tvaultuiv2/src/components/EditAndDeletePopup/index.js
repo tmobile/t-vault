@@ -1,7 +1,6 @@
 import React from 'react';
 import styled from 'styled-components';
 import PropTypes from 'prop-types';
-import { Link } from 'react-router-dom';
 import { IconDeleteActive, IconEdit } from '../../assets/SvgIcons';
 import ComponentError from '../../errorBoundaries/ComponentError/component-error';
 
@@ -11,20 +10,30 @@ const IconWrap = styled('div')`
 `;
 
 const Icon = styled('div')`
-    display: flex;
-    align-items: center;
-    justify-content: center
-    :hover {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: 0.75rem;
+  :hover {
     background-color: #5a637a;
     border-radius: 50%;
-    
   }
 `;
 
-const TransferOwnerWrap = styled.div``;
+const TransferOwnerWrap = styled.div`
+  :hover {
+    background-color: #5a637a;
+    border-radius: 0.4rem;
+  }
+`;
 
 const PsudoPopper = (props) => {
-  const { onDeletListItemClicked, item, admin, onTransferOwnerClicked } = props;
+  const {
+    onDeletListItemClicked,
+    onEditListItemClicked,
+    admin,
+    onTransferOwnerClicked,
+  } = props;
 
   return (
     <ComponentError>
@@ -34,17 +43,10 @@ const PsudoPopper = (props) => {
             Transfer Owner
           </TransferOwnerWrap>
         )}
-        <Link
-          to={{
-            pathname: `/${item.name}`,
-            state: { item },
-          }}
-        >
-          <Icon>
-            {' '}
-            <IconEdit />
-          </Icon>
-        </Link>
+        <Icon onClick={onEditListItemClicked}>
+          <IconEdit />
+        </Icon>
+
         {admin && (
           <Icon onClick={onDeletListItemClicked}>
             {' '}
@@ -58,14 +60,14 @@ const PsudoPopper = (props) => {
 
 PsudoPopper.propTypes = {
   onDeletListItemClicked: PropTypes.func,
-  item: PropTypes.objectOf(PropTypes.any),
+  onEditListItemClicked: PropTypes.func,
   onTransferOwnerClicked: PropTypes.func,
   admin: PropTypes.bool,
 };
 
 PsudoPopper.defaultProps = {
   onDeletListItemClicked: () => {},
-  item: {},
+  onEditListItemClicked: () => {},
   onTransferOwnerClicked: () => {},
   admin: true,
 };

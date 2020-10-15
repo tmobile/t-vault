@@ -1,10 +1,8 @@
-import reducerOne from './reducerOne';
-import reducerTwo from './reducerTwo';
+import serviceAccountReducer from './serviceAccountReducer';
 
 const mainReducer = (state, action) => ({
   ...state,
-  dataOne: reducerOne(state.dataOne, action),
-  dataTwo: reducerTwo(state.dataTwo, action),
+  ...serviceAccountReducer(state.serviceAccountList, action),
 });
 
 export default mainReducer;

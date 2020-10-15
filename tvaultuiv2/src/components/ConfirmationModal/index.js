@@ -5,8 +5,10 @@ import Backdrop from '@material-ui/core/Backdrop';
 import Fade from '@material-ui/core/Fade';
 import PropTypes from 'prop-types';
 import styled, { css } from 'styled-components';
+import ReactHtmlParser from 'react-html-parser';
 import { TitleOne, TitleTwo } from '../../styles/GlobalStyles';
 import ComponentError from '../../errorBoundaries/ComponentError/component-error';
+// import mediaBreakpoints from '../../breakpoints';
 
 const ModalWrapper = styled.div`
   background-color: ${(props) =>
@@ -85,7 +87,9 @@ const ConfirmationModal = (props) => {
             <TitleOne color="#e20074" extraCss={titleOneCss}>
               {title}
             </TitleOne>
-            <TitleTwo extraCss={titleTwoCss}>{description}</TitleTwo>
+            <TitleTwo extraCss={titleTwoCss}>
+              {ReactHtmlParser(description)}
+            </TitleTwo>
             <ButtonWrapper>
               {cancelButton.type !== 'div' && (
                 <CancelButtonWrap>{cancelButton}</CancelButtonWrap>
