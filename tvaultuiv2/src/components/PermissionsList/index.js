@@ -15,6 +15,9 @@ const UserList = styled.div`
     border-bottom: 1px solid #323649;
   }
 `;
+
+const Wrap = styled.div``;
+
 const EachUserWrap = styled.div`
   display: flex;
   justify-content: space-between;
@@ -47,25 +50,29 @@ const permissionStyles = css`
 `;
 
 const PermissionsList = (props) => {
-  const { onEditClick, list, onDeleteClick, isSvcAccount } = props;
+  const { onEditClick, list, onDeleteClick, isSvcAccount, username } = props;
   return (
     <UserList>
       {Object.entries(list).map(([key, value]) => (
-        <EachUserWrap key={key}>
-          <IconDetailsWrap>
-            <Icon src={userIcon} alt="user" />
-            <Details>
-              <TitleTwo extraCss={styles}>{key}</TitleTwo>
-              <TitleFour extraCss={permissionStyles}>
-                {isSvcAccount && value === 'write' ? 'reset' : value}
-              </TitleFour>
-            </Details>
-          </IconDetailsWrap>
-          <EditDeletePopper
-            onEditClicked={() => onEditClick(key, value)}
-            onDeleteClicked={() => onDeleteClick(key, value)}
-          />
-        </EachUserWrap>
+        <Wrap key={key}>
+          {username !== key && value !== 'write' && (
+            <EachUserWrap>
+              <IconDetailsWrap>
+                <Icon src={userIcon} alt="user" />
+                <Details>
+                  <TitleTwo extraCss={styles}>{key}</TitleTwo>
+                  <TitleFour extraCss={permissionStyles}>
+                    {isSvcAccount && value === 'write' ? 'reset' : value}
+                  </TitleFour>
+                </Details>
+              </IconDetailsWrap>
+              <EditDeletePopper
+                onEditClicked={() => onEditClick(key, value)}
+                onDeleteClicked={() => onDeleteClick(key, value)}
+              />
+            </EachUserWrap>
+          )}
+        </Wrap>
       ))}
     </UserList>
   );
@@ -75,10 +82,12 @@ PermissionsList.propTypes = {
   onEditClick: PropTypes.func.isRequired,
   list: PropTypes.objectOf(PropTypes.any).isRequired,
   isSvcAccount: PropTypes.bool,
+  username: PropTypes.string,
 };
 
 PermissionsList.defaultProps = {
   isSvcAccount: false,
+  username: '',
 };
 
 export default PermissionsList;

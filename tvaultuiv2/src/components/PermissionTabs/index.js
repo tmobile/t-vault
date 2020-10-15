@@ -56,7 +56,13 @@ const useStyles = makeStyles(() => ({
 }));
 
 const PermissionsTabs = (props) => {
-  const { onAddLabelBtnClicked, count, onTabChange, value } = props;
+  const {
+    onAddLabelBtnClicked,
+    count,
+    onTabChange,
+    value,
+    certificate,
+  } = props;
   const classes = useStyles();
   const [tabData] = useState({
     0: 'User',
@@ -103,8 +109,8 @@ const PermissionsTabs = (props) => {
           >
             <Tab label="Users" {...a11yProps(0)} />
             <Tab label="Groups" {...a11yProps(1)} />
-            <Tab label="AWS Applications" {...a11yProps(2)} />
-            <Tab label="App Roles" {...a11yProps(3)} />
+            {!certificate && <Tab label="AWS Applications" {...a11yProps(2)} />}
+            {!certificate && <Tab label="App Roles" {...a11yProps(3)} />}
           </Tabs>
           <NamedButton
             customStyle={customStyles}
@@ -123,6 +129,7 @@ PermissionsTabs.propTypes = {
   onTabChange: PropTypes.func,
   value: PropTypes.number,
   count: PropTypes.number,
+  certificate: PropTypes.bool,
 };
 
 PermissionsTabs.defaultProps = {
@@ -130,6 +137,7 @@ PermissionsTabs.defaultProps = {
   count: 0,
   onTabChange: () => {},
   onAddLabelBtnClicked: () => {},
+  certificate: false,
 };
 
 export default PermissionsTabs;

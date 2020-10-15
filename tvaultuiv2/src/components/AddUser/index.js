@@ -149,10 +149,16 @@ const AddUser = (props) => {
   }, [searchValue, searchLoader, options]);
 
   useEffect(() => {
-    if (
-      !isValidUserName ||
-      (searchValue?.toLowerCase() === username && radioValue === access)
-    ) {
+    if (username) {
+      if (
+        (username !== searchValue?.toLowerCase() && !isValidUserName) ||
+        (username === searchValue?.toLowerCase() && access === radioValue)
+      ) {
+        setDisabledSave(true);
+      } else {
+        setDisabledSave(false);
+      }
+    } else if (!isValidUserName) {
       setDisabledSave(true);
     } else {
       setDisabledSave(false);
@@ -229,9 +235,9 @@ const AddUser = (props) => {
             placeholder="Username - Enter min 3 characters"
             error={username !== searchValue && !isValidUserName}
             helperText={
-              username !== searchValue &&
-              !isValidUserName &&
-              `User name ${searchValue} does not exist!`
+              username !== searchValue && !isValidUserName
+                ? `User name ${searchValue} does not exist!`
+                : ''
             }
           />
           <InstructionText>
