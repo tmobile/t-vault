@@ -15,7 +15,7 @@ import KeyboardReturnIcon from '@material-ui/icons/KeyboardReturn';
 import ConfirmationModal from '../../../../components/ConfirmationModal';
 import TextFieldComponent from '../../../../components/FormFields/TextField';
 import ButtonComponent from '../../../../components/FormFields/ActionButton';
-import SelectComponent from '../../../../components/FormFields/SelectFields';
+import TextFieldSelect from '../../../../components/FormFields/TextFieldSelect';
 import ComponentError from '../../../../errorBoundaries/ComponentError/component-error';
 import certIcon from '../../../../assets/cert-icon.svg';
 import leftArrowIcon from '../../../../assets/left-arrow.svg';
@@ -237,7 +237,6 @@ const CreateCertificates = () => {
   const [allApplication, setAllApplication] = useState([]);
   const [openConfirmationModal, setOpenConfirmationModal] = useState(false);
   const isMobileScreen = useMediaQuery(small);
-  const [helperText] = useState('');
   const history = useHistory();
   const [state] = useStateValue();
 
@@ -271,6 +270,12 @@ const CreateCertificates = () => {
       });
   };
 
+  useEffect(() => {
+    if (menu?.length > 0) {
+      menu.sort((first, sec) => first.localeCompare(sec));
+    }
+  }, [menu]);
+
   const getApplicationName = () => {
     apiService
       .getApplicationName()
@@ -280,7 +285,6 @@ const CreateCertificates = () => {
             setAllApplication((prev) => [...prev, item]);
             return setMenu((prev) => [...prev, item.appName]);
           });
-          // setApplicationName(res.data[0].appName);
         }
         setResponseType(null);
       })
@@ -425,211 +429,213 @@ const CreateCertificates = () => {
 
   return (
     <ComponentError>
-      <ConfirmationModal
-        open={openConfirmationModal}
-        handleClose={handleCloseConfirmationModal}
-        title={responseTitle}
-        description={responseDesc}
-        confirmButton={
-          <ButtonComponent
-            label="Close"
-            color="secondary"
-            onClick={() =>
-              responseTitle === 'Error'
-                ? errorHandleClose()
-                : handleCloseConfirmationModal()
-            }
-            width={isMobileScreen ? '100%' : '38%'}
-          />
-        }
-      />
-      {!openConfirmationModal && (
-        <Modal
-          aria-labelledby="transition-modal-title"
-          aria-describedby="transition-modal-description"
-          className={classes.modal}
-          open={open}
-          onClose={() => handleClose()}
-          closeAfterTransition
-          BackdropComponent={Backdrop}
-          BackdropProps={{
-            timeout: 500,
-          }}
-        >
-          <Fade in={open}>
-            <ModalWrapper>
-              {responseType === 0 && (
-                <LoaderSpinner customStyle={loaderStyle} />
-              )}
-              <HeaderWrapper>
-                <LeftIcon
-                  src={leftArrowIcon}
-                  alt="go-back"
-                  onClick={() => handleClose()}
-                />
-                {!showPreview ? (
-                  <Typography variant="h5">Create Certificate</Typography>
-                ) : (
-                  <Typography variant="h5">Certificate Preview</Typography>
+      <>
+        <ConfirmationModal
+          open={openConfirmationModal}
+          handleClose={handleCloseConfirmationModal}
+          title={responseTitle}
+          description={responseDesc}
+          confirmButton={
+            <ButtonComponent
+              label="Close"
+              color="secondary"
+              onClick={() =>
+                responseTitle === 'Error'
+                  ? errorHandleClose()
+                  : handleCloseConfirmationModal()
+              }
+              width={isMobileScreen ? '100%' : '38%'}
+            />
+          }
+        />
+        {!openConfirmationModal && (
+          <Modal
+            aria-labelledby="transition-modal-title"
+            aria-describedby="transition-modal-description"
+            className={classes.modal}
+            open={open}
+            onClose={() => handleClose()}
+            closeAfterTransition
+            BackdropComponent={Backdrop}
+            BackdropProps={{
+              timeout: 500,
+            }}
+          >
+            <Fade in={open}>
+              <ModalWrapper>
+                {responseType === 0 && (
+                  <LoaderSpinner customStyle={loaderStyle} />
                 )}
-              </HeaderWrapper>
-              <IconDescriptionWrapper>
-                <SafeIcon src={certIcon} alt="cert-icon" />
-                <ContainerOwnerWrap>
-                  <Container>
-                    <Label>Container:</Label>
-                    <Value>VenafiBin_12345</Value>
-                  </Container>
-                  <Owner>
-                    <Label>Owner Email:</Label>
-                    <Value>{ownerEmail}</Value>
-                  </Owner>
-                </ContainerOwnerWrap>
-              </IconDescriptionWrapper>
-              <PreviewWrap showPreview={showPreview}>
-                <PreviewCertificate
-                  dns={dnsArray}
-                  certificateType={certificateType}
-                  applicationName={applicationName}
-                  certName={certName}
-                  handleClose={handleClose}
-                  onEditClicked={() => setShowPreview(false)}
-                  onCreateClicked={() => onCreateClicked()}
-                  isMobileScreen={isMobileScreen}
-                  responseType={responseType}
-                />
-              </PreviewWrap>
-              <CreateSafeForm showPreview={showPreview}>
-                <RadioWrap>
-                  <InputLabel required>Certificate Type</InputLabel>
-                  <RadioGroup
-                    row
-                    aria-label="certificateType"
-                    name="certificateType"
-                    value={certificateType}
-                    onChange={(e) => setCertificateType(e.target.value)}
-                  >
-                    <FormControlLabel
-                      value="Internal"
-                      control={<Radio color="default" />}
-                      label="Internal"
-                    />
-                    <FormControlLabel
-                      value="External"
-                      control={<Radio color="default" />}
-                      label="External"
-                    />
-                  </RadioGroup>
-                </RadioWrap>
-                <InputFieldLabelWrapper>
-                  <InputLabel required>Certificate Name</InputLabel>
-                  <InputEndWrap>
-                    <TextFieldComponent
-                      value={certName}
-                      placeholder="Enter a name here..."
-                      fullWidth
-                      name="certName"
-                      error={certNameError}
-                      helperText={certNameError ? errorMessage : ''}
-                      onChange={(e) => {
-                        onCertificateNameChange(e);
-                      }}
-                    />
-                    <EndingBox width="14rem">.T-mobile.com</EndingBox>
-                  </InputEndWrap>
-                </InputFieldLabelWrapper>
-                <InputFieldLabelWrapper>
-                  <InputLabel required>Aplication Name</InputLabel>
-                  <SelectComponent
-                    menu={menu}
-                    value={applicationName}
-                    classes={classes}
-                    onChange={(e) => setApplicationName(e.target.value)}
-                    helperText={helperText}
-                  />
-                  <FieldInstruction>
-                    Please provide the AD group for which read or reset
-                    permission to be granted later
-                  </FieldInstruction>
-                </InputFieldLabelWrapper>
-                <InputFieldLabelWrapper>
-                  <InputLabel>Add DNS</InputLabel>
-                  <InputEndWrap>
-                    <TextFieldComponent
-                      value={dnsName}
-                      placeholder="Add DNS"
-                      fullWidth
-                      name="dnsName"
-                      onChange={(e) => {
-                        onDnsNameChange(e);
-                      }}
-                      error={dnsError}
-                      helperText={dnsError ? errorDnsMessage : ''}
-                      onKeyDown={(e) => onAddDnsClicked(e)}
-                    />
-                    <EndingBox width="17rem">
-                      .T-mobile.com
-                      <span>
-                        <KeyboardReturnIcon />
-                      </span>
-                    </EndingBox>
-                  </InputEndWrap>
-                  <DNSArrayList>
-                    {dnsArray.map((item) => {
-                      return (
-                        <EachDns key={item}>
-                          <Name>{item}</Name>
-                          <RemoveIcon
-                            src={removeIcon}
-                            alt="remove"
-                            onClick={() => onRemoveClicked(item)}
-                          />
-                        </EachDns>
-                      );
-                    })}
-                  </DNSArrayList>
-                </InputFieldLabelWrapper>
-              </CreateSafeForm>
-              <CancelSaveWrapper showPreview={showPreview}>
-                <CancelButton>
-                  <ButtonComponent
-                    label="Cancel"
-                    color="primary"
+                <HeaderWrapper>
+                  <LeftIcon
+                    src={leftArrowIcon}
+                    alt="go-back"
                     onClick={() => handleClose()}
+                  />
+                  {!showPreview ? (
+                    <Typography variant="h5">Create Certificate</Typography>
+                  ) : (
+                    <Typography variant="h5">Certificate Preview</Typography>
+                  )}
+                </HeaderWrapper>
+                <IconDescriptionWrapper>
+                  <SafeIcon src={certIcon} alt="cert-icon" />
+                  <ContainerOwnerWrap>
+                    <Container>
+                      <Label>Container:</Label>
+                      <Value>VenafiBin_12345</Value>
+                    </Container>
+                    <Owner>
+                      <Label>Owner Email:</Label>
+                      <Value>{ownerEmail}</Value>
+                    </Owner>
+                  </ContainerOwnerWrap>
+                </IconDescriptionWrapper>
+                <PreviewWrap showPreview={showPreview}>
+                  <PreviewCertificate
+                    dns={dnsArray}
+                    certificateType={certificateType}
+                    applicationName={applicationName}
+                    certName={certName}
+                    handleClose={handleClose}
+                    onEditClicked={() => setShowPreview(false)}
+                    onCreateClicked={() => onCreateClicked()}
+                    isMobileScreen={isMobileScreen}
+                    responseType={responseType}
+                  />
+                </PreviewWrap>
+                <CreateSafeForm showPreview={showPreview}>
+                  <RadioWrap>
+                    <InputLabel required>Certificate Type</InputLabel>
+                    <RadioGroup
+                      row
+                      aria-label="certificateType"
+                      name="certificateType"
+                      value={certificateType}
+                      onChange={(e) => setCertificateType(e.target.value)}
+                    >
+                      <FormControlLabel
+                        value="Internal"
+                        control={<Radio color="default" />}
+                        label="Internal"
+                      />
+                      <FormControlLabel
+                        value="External"
+                        control={<Radio color="default" />}
+                        label="External"
+                      />
+                    </RadioGroup>
+                  </RadioWrap>
+                  <InputFieldLabelWrapper>
+                    <InputLabel required>Certificate Name</InputLabel>
+                    <InputEndWrap>
+                      <TextFieldComponent
+                        value={certName}
+                        placeholder="Enter a name here..."
+                        fullWidth
+                        name="certName"
+                        error={certNameError}
+                        helperText={certNameError ? errorMessage : ''}
+                        onChange={(e) => {
+                          onCertificateNameChange(e);
+                        }}
+                      />
+                      <EndingBox width="14rem">.T-mobile.com</EndingBox>
+                    </InputEndWrap>
+                  </InputFieldLabelWrapper>
+                  <InputFieldLabelWrapper>
+                    <InputLabel required>Aplication Name</InputLabel>
+                    <TextFieldSelect
+                      menu={menu}
+                      value={applicationName}
+                      classes={classes}
+                      handleChange={(e) => setApplicationName(e.target.value)}
+                      filledText="Select application name"
+                    />
+                    <FieldInstruction>
+                      Please provide the AD group for which read or reset
+                      permission to be granted later
+                    </FieldInstruction>
+                  </InputFieldLabelWrapper>
+                  <InputFieldLabelWrapper>
+                    <InputLabel>Add DNS</InputLabel>
+                    <InputEndWrap>
+                      <TextFieldComponent
+                        value={dnsName}
+                        placeholder="Add DNS"
+                        fullWidth
+                        name="dnsName"
+                        onChange={(e) => {
+                          onDnsNameChange(e);
+                        }}
+                        error={dnsError}
+                        helperText={dnsError ? errorDnsMessage : ''}
+                        onKeyDown={(e) => onAddDnsClicked(e)}
+                      />
+                      <EndingBox width="17rem">
+                        .T-mobile.com
+                        <span>
+                          <KeyboardReturnIcon />
+                        </span>
+                      </EndingBox>
+                    </InputEndWrap>
+                    <DNSArrayList>
+                      {dnsArray.map((item) => {
+                        return (
+                          <EachDns key={item}>
+                            <Name>{item}</Name>
+                            <RemoveIcon
+                              src={removeIcon}
+                              alt="remove"
+                              onClick={() => onRemoveClicked(item)}
+                            />
+                          </EachDns>
+                        );
+                      })}
+                    </DNSArrayList>
+                  </InputFieldLabelWrapper>
+                </CreateSafeForm>
+                <CancelSaveWrapper showPreview={showPreview}>
+                  <CancelButton>
+                    <ButtonComponent
+                      label="Cancel"
+                      color="primary"
+                      onClick={() => handleClose()}
+                      width={isMobileScreen ? '100%' : ''}
+                    />
+                  </CancelButton>
+                  <ButtonComponent
+                    label="Preview"
+                    color="secondary"
+                    disabled={disabledSave}
+                    onClick={() => onPreviewClicked()}
                     width={isMobileScreen ? '100%' : ''}
                   />
-                </CancelButton>
-                <ButtonComponent
-                  label="Preview"
-                  color="secondary"
-                  disabled={disabledSave}
-                  onClick={() => onPreviewClicked()}
-                  width={isMobileScreen ? '100%' : ''}
-                />
-              </CancelSaveWrapper>
-              {responseType === -1 && (
-                <SnackbarComponent
-                  open
-                  onClose={() => onToastClose()}
-                  severity="error"
-                  icon="error"
-                  message={toastMessage || 'Something went wrong!'}
-                />
-              )}
-              {responseType === 1 && (
-                <SnackbarComponent
-                  open
-                  onClose={() => onToastClose()}
-                  message={
-                    toastMessage ||
-                    'New Certificate has been createtd successfully'
-                  }
-                />
-              )}
-            </ModalWrapper>
-          </Fade>
-        </Modal>
-      )}
+                </CancelSaveWrapper>
+                {responseType === -1 && (
+                  <SnackbarComponent
+                    open
+                    onClose={() => onToastClose()}
+                    severity="error"
+                    icon="error"
+                    message={toastMessage || 'Something went wrong!'}
+                  />
+                )}
+                {responseType === 1 && (
+                  <SnackbarComponent
+                    open
+                    onClose={() => onToastClose()}
+                    message={
+                      toastMessage ||
+                      'New Certificate has been createtd successfully'
+                    }
+                  />
+                )}
+              </ModalWrapper>
+            </Fade>
+          </Modal>
+        )}
+      </>
     </ComponentError>
   );
 };

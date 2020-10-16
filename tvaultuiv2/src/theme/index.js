@@ -314,9 +314,6 @@ const customTheme = createMuiTheme({
         },
       },
     },
-    MuiList: {
-      root: { backgroundColor: customColor.primary.backgroundColor },
-    },
     MuiFilledInput: {
       root: {
         padding: '1rem',

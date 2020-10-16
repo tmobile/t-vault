@@ -6,7 +6,7 @@ import PropTypes from 'prop-types';
 
 const StyleTextField = styled(TextField)`
   .MuiInputLabel-filled {
-    transform: translate(12px, 14px) scale(1);
+    transform: translate(12px, 18px) scale(1);
     color: #000;
   }
   .MuiSelect-icon {
@@ -50,6 +50,11 @@ export default function TextFieldSelect(props) {
       fullWidth={fullWidth}
       variant={variant}
       color={color}
+      SelectProps={{
+        MenuProps: {
+          classes: { paper: classes.dropdownStyle },
+        },
+      }}
     >
       {menu.map((item) => (
         <MenuItem key={item} value={item}>
