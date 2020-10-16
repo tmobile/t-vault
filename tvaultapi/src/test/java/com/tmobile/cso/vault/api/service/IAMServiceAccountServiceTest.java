@@ -333,7 +333,7 @@ public class IAMServiceAccountServiceTest {
 		when(ControllerUtil.updateMetadata(any(), any())).thenReturn(responseNoContent);
 
 		// System under test
-		String expectedResponse = "{\"messages\":[\"Successfully completed onboarding of IAM service account into TVault.\"]}";
+		String expectedResponse = "{\"messages\":[\"Successfully completed onboarding of IAM service account\"]}";
 		ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(expectedResponse);
 
 		when(reqProcessor.process(eq("/sdb"), Mockito.any(), eq(token))).thenReturn(getMockResponse(HttpStatus.OK, true,
