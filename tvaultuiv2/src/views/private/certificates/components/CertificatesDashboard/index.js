@@ -217,8 +217,8 @@ const CertificatesDashboard = () => {
   const [certificateType, setCertificateType] = useState('All Certificates');
   const [menu] = useState([
     'All Certificates',
-    'External Certificates',
     'Internal Certificates',
+    'External Certificates',
   ]);
   const [response, setResponse] = useState({ status: 'success' });
   const [errorMsg, setErrorMsg] = useState('');
