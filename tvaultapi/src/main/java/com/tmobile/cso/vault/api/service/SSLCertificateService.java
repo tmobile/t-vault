@@ -3533,7 +3533,7 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"This operation is not supported for Userpass authentication. \"]}");
 		} 		
 		ObjectMapper objMapper = new ObjectMapper();
-		String groupName = certificateGroup.getGroupname().toLowerCase();
+		String groupName = certificateGroup.getGroupname();
 		String certificateName = certificateGroup.getCertificateName().toLowerCase();
 		String access = certificateGroup.getAccess().toLowerCase();		
 		String certType = certificateGroup.getCertType().toLowerCase();
@@ -3582,7 +3582,7 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
 					//OIDC Changes
 					if (TVaultConstants.LDAP.equals(vaultAuthMethod)) {
 						currentpolicies = ControllerUtil.getPoliciesAsListFromJson(objMapper, responseJson);
-					} else if (TVaultConstants.OIDC.equals(vaultAuthMethod)) {
+					} else if (TVaultConstants.OIDC.equals(vaultAuthMethod) && !ObjectUtils.isEmpty(oidcGroup)) {
 						currentpolicies.addAll(oidcGroup.getPolicies());
 					}
 				} catch (IOException e) {

@@ -979,7 +979,6 @@ public class  SafesService {
 		String groupName = requestMap.get("groupname");
 		String path = requestMap.get("path");
 		String access = requestMap.get("access");
-		groupName = (groupName !=null) ? groupName.toLowerCase() : groupName;
 		path = (path != null) ? path.toLowerCase() : path;
 		access = (access != null) ? access.toLowerCase(): access;
 

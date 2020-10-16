@@ -4,6 +4,8 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -321,7 +323,7 @@ public class OIDCUtil {
 			return null;
 		}
 
-		String filterSearch = "$filter=displayName%20eq%20'"+groupName+"'";
+		String filterSearch = "$filter=displayName%20eq%20'"+encodeValue(groupName)+"'";
 		String api = ssoGroupsEndpoint + filterSearch;
 		HttpGet getRequest = new HttpGet(api);
 		getRequest.addHeader("accept", TVaultConstants.HTTP_CONTENT_TYPE_JSON);
@@ -1048,5 +1050,15 @@ public class OIDCUtil {
 			aadUserObject.setEmail(responseJson.get("mail").getAsString());
 		}
 		return aadUserObject;
+	}
+	
+	private String encodeValue(String value) {
+		String encodedValue = null;
+		try {
+			encodedValue = URLEncoder.encode(value, StandardCharsets.UTF_8.toString());
+		} catch (UnsupportedEncodingException e) {
+			e.printStackTrace();
+		}
+		return encodedValue;
 	}
 }
