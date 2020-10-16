@@ -6,6 +6,7 @@ import Loader from '../../../../../components/Loaders/LoaderSpinner';
 import NoData from '../../../../../components/NoData';
 import Strings from '../../../../../resources';
 import noCertificatesIcon from '../../../../../assets/no-certficates.svg';
+import CertificateSelectionTabs from '../Tab';
 
 const DetailsContainer = styled.section`
   background-image: linear-gradient(to bottom, #151820, #2c3040);
@@ -55,7 +56,7 @@ const CertificatesReviewDetails = (props) => {
               </NoDataWrapper>
             )}
             {Object.keys(certificateDetail).length > 0 && (
-              <div>All Certificates detail</div>
+              <CertificateSelectionTabs certificateDetail={certificateDetail} />
             )}
           </>
         )}

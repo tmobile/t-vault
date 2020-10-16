@@ -2,7 +2,14 @@
 import React, { useState, useEffect, useCallback, useContext } from 'react';
 import styled, { css } from 'styled-components';
 import { makeStyles } from '@material-ui/core/styles';
-import { Link, Route, Switch, useHistory, Redirect } from 'react-router-dom';
+import {
+  Link,
+  Route,
+  Switch,
+  useHistory,
+  Redirect,
+  useLocation,
+} from 'react-router-dom';
 import useMediaQuery from '@material-ui/core/useMediaQuery';
 import sectionHeaderBg from '../../../../../assets/certificate-banner.svg';
 import mediaBreakpoints from '../../../../../breakpoints';
@@ -21,6 +28,7 @@ import { TitleFour } from '../../../../../styles/GlobalStyles';
 import { UserContext } from '../../../../../contexts';
 import apiService from '../../apiService';
 import CertificateListItem from '../CertificateListItem';
+import EditAndDeletePopup from '../../../../../components/EditAndDeletePopup';
 
 const ColumnSection = styled('section')`
   position: relative;
@@ -90,8 +98,13 @@ const PopperWrap = styled.div`
   position: absolute;
   right: 4%;
   z-index: 1;
-  width: 18rem;
+  max-width: 18rem;
   display: none;
+`;
+
+const CertificateStatus = styled.div`
+  display: flex;
+  align-items: center;
 `;
 
 const ListFolderWrap = styled(Link)`
@@ -112,6 +125,9 @@ const ListFolderWrap = styled(Link)`
     color: #fff;
     ${PopperWrap} {
       display: block;
+    }
+    ${CertificateStatus} {
+      display: none;
     }
   }
 `;
@@ -154,11 +170,6 @@ const EmptyContentBox = styled('div')`
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-`;
-
-const CertificateStatus = styled.div`
-  display: flex;
-  align-items: center;
 `;
 
 const StatusIcon = styled.span`
@@ -215,6 +226,7 @@ const CertificatesDashboard = () => {
   const [ListItemDetails, setListItemDetails] = useState({});
   const classes = useStyles();
   const history = useHistory();
+  const location = useLocation();
   const isMobileScreen = useMediaQuery(mediaBreakpoints.small);
 
   const contextObj = useContext(UserContext);
@@ -261,7 +273,7 @@ const CertificatesDashboard = () => {
           result[1].data.keys.map((item) => {
             return internalCertArray.push(item);
           });
-          compareCertificates(internalCertArray, allCertArray);
+          compareCertificates(internalCertArray, allCertArray, 'internal');
         }
         if (result && result[2]?.data?.keys) {
           result[2].data.keys.map((item) => {
@@ -385,10 +397,17 @@ const CertificatesDashboard = () => {
   };
 
   useEffect(() => {
-    if (certificateList.length > 0) {
-      setListItemDetails(certificateList[0]);
+    if (allCertList.length > 0) {
+      const val = location.pathname.split('/');
+      const certName = val[val.length - 1];
+      const obj = allCertList.find((cert) => cert.certificateName === certName);
+      if (obj) {
+        setListItemDetails({ ...obj });
+      } else {
+        setListItemDetails(allCertList[0]);
+      }
     }
-  }, [certificateList]);
+  }, [allCertList, location]);
 
   /**
    * @function onSelectChange
@@ -405,6 +424,16 @@ const CertificatesDashboard = () => {
     } else {
       setCertificateList([...allCertList]);
     }
+  };
+
+  /**
+   * @function onActionClicked
+   * @description function to prevent default click.
+   * @param {object} e event
+   */
+  const onActionClicked = (e) => {
+    e.stopPropagation();
+    e.preventDefault();
   };
 
   /**
@@ -474,6 +503,15 @@ const CertificatesDashboard = () => {
             <StatusIcon status={certificate.certificateStatus} />
           </CertificateStatus>
         )}
+        {certificate.applicationName && !isMobileScreen ? (
+          <PopperWrap onClick={(e) => onActionClicked(e)}>
+            <EditAndDeletePopup
+              onDeletListItemClicked={() => {}}
+              onEditListItemClicked={() => {}}
+              admin={contextObj.isAdmin}
+            />
+          </PopperWrap>
+        ) : null}
       </ListFolderWrap>
     ));
   };
