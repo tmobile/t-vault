@@ -38,7 +38,6 @@ const PrivateRoutes = () => {
           <Switch>
             <Redirect exact from="/" to="/safe" />
             <Route
-              exact
               path="/vault-app-roles"
               render={(routeProps) => <VaultAppRoles routeProps={routeProps} />}
             />

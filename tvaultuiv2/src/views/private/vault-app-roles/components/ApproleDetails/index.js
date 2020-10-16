@@ -1,7 +1,8 @@
+/* eslint-disable no-nested-ternary */
 /* eslint-disable react/jsx-props-no-spreading */
 import React, { useState, useEffect, useCallback } from 'react';
 import PropTypes from 'prop-types';
-import styled from 'styled-components';
+import styled, { css } from 'styled-components';
 
 import { makeStyles } from '@material-ui/core/styles';
 import AppBar from '@material-ui/core/AppBar';
@@ -10,8 +11,11 @@ import Tab from '@material-ui/core/Tab';
 import ComponentError from '../../../../../errorBoundaries/ComponentError/component-error';
 import mediaBreakpoints from '../../../../../breakpoints';
 import AppRoleSecrets from '../AppRoleSecrets';
-import { useStateValue } from '../../../../../contexts/globalState';
-import apiService from '../apiService';
+import apiService from '../../apiService';
+import NoData from '../../../../../components/NoData';
+import Error from '../../../../../components/Error';
+import NoSafesIcon from '../../../../../assets/no-data-safes.svg';
+import SnackbarComponent from '../../../../../components/Snackbar';
 // styled components goes here
 
 const TabPanelWrap = styled.div`
@@ -26,6 +30,27 @@ const TabPanelWrap = styled.div`
 
 const TabContentsWrap = styled('div')`
   height: calc(100% - 4.8rem);
+`;
+
+const NoDataWrapper = styled.div`
+  height: 61vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: #5e627c;
+  span {
+    margin: 0 0.4rem;
+    color: #fff;
+    font-weight: bold;
+    text-transform: uppercase;
+  }
+`;
+const noDataStyle = css`
+  width: 100%;
+`;
+
+const NoSecretIdWrap = styled.div`
+  width: 40%;
 `;
 
 const TabPanel = (props) => {
@@ -90,35 +115,60 @@ const AppRoleDetails = (props) => {
   const classes = useStyles();
   const [value, setValue] = useState(0);
   const [status, setStatus] = useState({});
-  const [secretsData, setSecretsData] = useState(null);
-  const [state] = useStateValue();
+  const [secretIdsData, setSecretIdsData] = useState(null);
+  const [getResponseType, setGetResponseType] = useState(null);
 
   const handleChange = (event, newValue) => {
     setValue(newValue);
   };
 
-  //   // Function to get the secret of the given service account.
-  //   const getSecrets = useCallback(() => {
-  //     setStatus({ status: 'loading' });
-  //     apiService
-  //       .getServiceAccountPassword(appRoleDetail?.name)
-  //       .then((res) => {
-  //         if (res?.data) {
-  //           setSecretsData(res.data);
-  //         }
-  //       })
-  //       .catch((err) => {
-  //         if (
-  //           err?.response &&
-  //           err.response.data?.errors &&
-  //           err.response.data.errors[0]
-  //         ) {
-  //           setAccountSecretError(err.response.data.errors[0]);
-  //         }
-  //         setSecretResStatus({ status: 'error' });
-  //       });
-  //   }, [appRoleDetail]);
+  // Function to get the secretIDs  of the given approle.
+  const getSecrets = useCallback((appRole) => {
+    setStatus({ status: 'loading' });
+    apiService
+      .getAccessors(appRole)
+      .then((res) => {
+        setStatus({});
+        if (res?.data) {
+          setSecretIdsData(res.data.keys);
+        }
+        setGetResponseType(1);
+      })
+      .catch((err) => {
+        if (
+          err?.response &&
+          err.response.data?.errors &&
+          err.response.data.errors[0]
+        ) {
+          setStatus(err.response.data.errors[0]);
+        }
+        setGetResponseType(1);
+      });
+  }, []);
+  useEffect(() => {
+    getSecrets(appRoleDetail.name);
+  }, [appRoleDetail, getSecrets]);
 
+  /**
+   * @function OnDeleteSecretIds
+   * @param secretId Secret id/s to be deleted
+   * @description To delete the secretIds
+   */
+
+  const OnDeleteSecretIds = () => {
+    setStatus({ status: 'loading' });
+    const payload = {};
+    apiService
+      .deleteSecretIds(payload)
+      .then((res) => {
+        setStatus({ status: 'success', message: '' });
+      })
+      .catch();
+  };
+  const onToastClose = () => {
+    setStatus({});
+    setGetResponseType(null);
+  };
   return (
     <ComponentError>
       <div className={classes.root}>
@@ -131,18 +181,48 @@ const AppRoleDetails = (props) => {
             textColor="primary"
           >
             <Tab className={classes.tab} label="Secrets" {...a11yProps(0)} />
-            <Tab
-              label="Permissions"
-              {...a11yProps(1)}
-              disabled={!appRoleDetail.admin || disabledPermission}
-            />
           </Tabs>
         </AppBar>
         <TabContentsWrap>
           <TabPanel value={value} index={0}>
-            <AppRoleSecrets />
+            {getResponseType === 1 && secretIdsData ? (
+              <AppRoleSecrets
+                secretIds={secretIdsData}
+                deleteSecretIds={OnDeleteSecretIds}
+              />
+            ) : getResponseType === 1 && secretIdsData?.length === 0 ? (
+              <NoDataWrapper>
+                {' '}
+                <NoSecretIdWrap>
+                  <NoData
+                    imageSrc={NoSafesIcon}
+                    description="There are no secretIds to view here.!"
+                    actionButton={<></>}
+                    customStyle={noDataStyle}
+                  />
+                </NoSecretIdWrap>
+              </NoDataWrapper>
+            ) : getResponseType === -1 ? (
+              <Error description="Error while fetching secretId's" />
+            ) : null}
           </TabPanel>
         </TabContentsWrap>
+        {status.status === 'success' && (
+          <SnackbarComponent
+            open
+            onClose={() => onToastClose()}
+            message={status.message}
+          />
+        )}
+        {status.status === 'failed' && (
+          <SnackbarComponent
+            open
+            onClose={() => onToastClose()}
+            severity="error"
+            icon="error"
+            message="Something went wrong!"
+          />
+        )}
       </div>
     </ComponentError>
   );

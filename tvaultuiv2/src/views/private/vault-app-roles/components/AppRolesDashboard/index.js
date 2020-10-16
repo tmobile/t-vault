@@ -25,6 +25,7 @@ import svcIcon from '../../../../../assets/icon-service-account.svg';
 import FloatingActionButtonComponent from '../../../../../components/FormFields/FloatingActionButton';
 import TextFieldComponent from '../../../../../components/FormFields/TextField';
 import ListItemDetail from '../../../../../components/ListItemDetail';
+import AppRoleDetails from '../ApproleDetails';
 import EditDeletePopper from '../EditDeletePopper';
 import SelectComponent from '../../../../../components/FormFields/SelectFields';
 import ListItem from '../../../../../components/ListItem';
@@ -32,11 +33,12 @@ import EditAndDeletePopup from '../../../../../components/EditAndDeletePopup';
 import Error from '../../../../../components/Error';
 import SnackbarComponent from '../../../../../components/Snackbar';
 import ScaledLoader from '../../../../../components/Loaders/ScaledLoader';
-import apiService from '../apiService';
+import apiService from '../../apiService';
 import Strings from '../../../../../resources';
 // import { TitleOne } from '../../../../../styles/GlobalStyles';
 import { UserContext } from '../../../../../contexts';
 import ConfirmationModal from '../../../../../components/ConfirmationModal';
+import ButtonComponent from '../../../../../components/FormFields/ActionButton';
 
 const ColumnSection = styled('section')`
   position: relative;
@@ -163,21 +165,21 @@ const EmptyContentBox = styled('div')`
   transform: translate(-50%, -50%);
 `;
 
-const ColumnTitleWrap = styled('div')`
-  display: flex;
-  flex-flow: wrap;
-  .button-wrap {
-    display: flex;
-    width: 100%;
-    align-items: center;
-    padding: 1.5rem 0;
-    justify-content: space-between;
-  }
-  margin-bottom: 0.75rem;
-`;
 const EditDeletePopperWrap = styled.div``;
 const useStyles = makeStyles(() => ({
   contained: { borderRadius: '0.4rem' },
+  select: {
+    backgroundColor: 'transparent',
+    fontSize: '1.6rem',
+    textTransform: 'uppercase',
+    color: '#fff',
+    fontWeight: 'bold',
+    width: '22rem',
+    marginRight: '2.5rem',
+    '& .Mui-selected': {
+      color: 'red',
+    },
+  },
 }));
 const iconStyles = makeStyles(() => ({
   root: {
@@ -193,8 +195,10 @@ const AppRolesDashboard = () => {
   const [moreData] = useState(false);
   const [isLoading] = useState(false);
   const [appRoleList, setAppRoleList] = useState([]);
+  const [menu] = useState(['All Approles']);
   const [status, setStatus] = useState({});
-  const [deleteAccName, setDeleteAccName] = useState('');
+  const [getResponseType, setGetResponseType] = useState(null);
+  const [deleteAppRoleName, setDeleteAppRoleName] = useState('');
   const [deleteAppRoleConfirmation, setDeleteAppRoleConfirmation] = useState(
     false
   );
@@ -205,7 +209,7 @@ const AppRolesDashboard = () => {
   const isMobileScreen = useMediaQuery(mediaBreakpoints.small);
   const history = useHistory();
   const location = useLocation();
-
+  console.log('roleState', state);
   const introduction = Strings.Resources.appRoles;
 
   const contextObj = useContext(UserContext);
@@ -215,6 +219,29 @@ const AppRolesDashboard = () => {
    */
   const fetchData = useCallback(async () => {
     setStatus({ status: 'loading', message: 'Loading...' });
+    apiService
+      .getAppRole()
+      .then((res) => {
+        setGetResponseType(1);
+        setStatus({});
+        const appRolesArr = [];
+        if (res?.data?.keys) {
+          res.data.keys.map((item) => {
+            const appObj = {
+              name: item,
+              admin: contextObj?.isAdmin,
+            };
+            return appRolesArr.push(appObj);
+          });
+        }
+
+        setAppRoleList([...appRolesArr]);
+        dispatch({ type: 'UPDATE_APP_ROLE_LIST', payload: [...appRolesArr] });
+      })
+      .catch(() => {
+        setStatus({});
+        setGetResponseType(-1);
+      });
   }, [contextObj, dispatch]);
 
   /**
@@ -292,6 +319,7 @@ const AppRolesDashboard = () => {
   // toast close handler
   const onToastClose = () => {
     setStatus({});
+    setGetResponseType(null);
   };
 
   /**
@@ -302,7 +330,7 @@ const AppRolesDashboard = () => {
    */
   const onDeleteClicked = (name) => {
     setDeleteAppRoleConfirmation(true);
-    setDeleteAccName(name);
+    setDeleteAppRoleName(name);
   };
 
   const onApproleEdit = (name) => {
@@ -325,7 +353,7 @@ const AppRolesDashboard = () => {
    */
   const deleteAppRole = (owner) => {
     const payload = {
-      name: deleteAccName,
+      name: deleteAppRoleName,
       owner,
     };
     apiService
@@ -349,7 +377,7 @@ const AppRolesDashboard = () => {
     setDeleteAppRoleConfirmation(false);
     setStatus({ status: 'loading' });
     apiService
-      .fetchServiceAccountDetails(deleteAccName)
+      .deleteAppRole(deleteAppRoleName)
       .then((res) => {
         let details = {};
         if (res?.data?.data?.values && res.data.data.values[0]) {
@@ -376,10 +404,10 @@ const AppRolesDashboard = () => {
     const val = location.pathname.split('/');
     const routeName = val.slice(-1)[0];
     if (appRoleList.length > 0) {
-      const obj = appRoleList.find((item) => item.name === routeName);
+      const obj = appRoleList.find((item) => item === routeName);
       if (!obj) {
         setListItemDetails(appRoleList[0]);
-        history.push(`/vault-app-roles/${appRoleList[0].name}`);
+        history.push(`/vault-app-roles/${appRoleList[0]}`);
       }
     } else {
       setListItemDetails({});
@@ -410,51 +438,45 @@ const AppRolesDashboard = () => {
    * @param {string} value selected filter value.
    */
   const onSelectChange = (value) => {
-    // setAppRoleType(value);
-    // if (value !== 'All Safes') {
-    //   const obj = selectList.find((item) => item.selected === value);
-    //   setAppRoleList([...safes[obj.path]]);
-    // } else {
-    //     setAppRoleList([...allSafeList]);
-    // }
+    setAppRoleType(value);
   };
 
   const renderList = () => {
-    return appRoleList.map((account) => (
+    return appRoleList.map((appRole) => (
       <ListFolderWrap
-        key={account.name}
+        key={appRole.name}
         to={{
-          pathname: `/vault-app-roles/${account.name}`,
-          state: { data: account },
+          pathname: `/vault-app-roles/${appRole}`,
+          state: { data: appRole },
         }}
-        onClick={() => onLinkClicked(account)}
+        onClick={() => onLinkClicked(appRole)}
         active={
-          history.location.pathname === `/vault-app-roles/${account.name}`
+          history.location.pathname === `/vault-app-roles/${appRole.name}`
         }
       >
         <ListItem
-          title={account.name}
-          subTitle={account.date}
-          flag={account.type}
+          title={appRole.name}
+          subTitle={appRole.date}
+          flag={appRole.type}
           icon={svcIcon}
           showActions={false}
           listIconStyles={listIconStyles}
         />
         <BorderLine />
-        {account.name && !isMobileScreen ? (
+        {appRole.name && !isMobileScreen ? (
           <PopperWrap onClick={(e) => onActionClicked(e)}>
             <EditAndDeletePopup
-              onDeletListItemClicked={() => onDeleteClicked(account.name)}
-              onEditListItemClicked={() => onApproleEdit(account.name)}
+              onDeletListItemClicked={() => onDeleteClicked(appRole.name)}
+              onEditListItemClicked={() => onApproleEdit(appRole.name)}
               admin={contextObj.isAdmin}
             />
           </PopperWrap>
         ) : null}
-        {isMobileScreen && account.name && (
+        {isMobileScreen && appRole.name && (
           <EditDeletePopperWrap onClick={(e) => onActionClicked(e)}>
             <EditDeletePopper
-              onDeleteClicked={() => onDeleteClicked(account.name)}
-              onEditClicked={() => onApproleEdit(account.name)}
+              onDeleteClicked={() => onDeleteClicked(appRole.name)}
+              onEditClicked={() => onApproleEdit(appRole.name)}
               admin={contextObj.isAdmin}
             />
           </EditDeletePopperWrap>
@@ -466,44 +488,62 @@ const AppRolesDashboard = () => {
     <ComponentError>
       <>
         <ConfirmationModal
-          handleSuccessfullConfirmation={handleSuccessfullConfirmation}
-          handleConfirmationModalClose={handleConfirmationModalClose}
-          onAppRoleDelete={onAppRoleDelete}
+          open={deleteAppRoleConfirmation}
+          handleClose={handleConfirmationModalClose}
+          title="Confirmation"
+          description="Are you sure you want to delete this appRole"
+          cancelButton={
+            // eslint-disable-next-line react/jsx-wrap-multilines
+            <ButtonComponent
+              label="Cancel"
+              color="primary"
+              onClick={() => handleConfirmationModalClose()}
+              width={isMobileScreen ? '45%' : ''}
+            />
+          }
+          confirmButton={
+            // eslint-disable-next-line react/jsx-wrap-multilines
+            <ButtonComponent
+              label="Delete"
+              color="secondary"
+              onClick={onAppRoleDelete()}
+              width={isMobileScreen ? '45%' : ''}
+            />
+          }
         />
         <SectionPreview title="vault-app-roles-section">
           <LeftColumnSection isAccountDetailsOpen={appRoleClicked}>
             <ColumnHeader>
               <SelectComponent
-                // menu={menu}
+                menu={menu}
                 value={appRoleType}
                 color="secondary"
                 classes={classes}
                 fullWidth={false}
                 onChange={(e) => onSelectChange(e.target.value)}
               />
-              <ColumnTitleWrap>
-                <SearchWrap>
-                  <TextFieldComponent
-                    placeholder="Search"
-                    icon="search"
-                    fullWidth
-                    onChange={(e) => onSearchChange(e.target.value)}
-                    value={inputSearchValue || ''}
-                    color="secondary"
-                  />
-                </SearchWrap>
-              </ColumnTitleWrap>
+
+              <SearchWrap>
+                <TextFieldComponent
+                  placeholder="Search"
+                  icon="search"
+                  fullWidth
+                  onChange={(e) => onSearchChange(e.target.value)}
+                  value={inputSearchValue || ''}
+                  color="secondary"
+                />
+              </SearchWrap>
             </ColumnHeader>
             {status.status === 'loading' && (
               <ScaledLoader contentHeight="80%" contentWidth="100%" />
             )}
-            {status.status === 'failed' && !appRoleList?.length && (
+            {getResponseType === -1 && !appRoleList?.length && (
               <EmptyContentBox>
                 {' '}
                 <Error description="Error while fetching app roles!" />
               </EmptyContentBox>
             )}
-            {status.status === 'success' && (
+            {getResponseType === 1 && (
               <>
                 {appRoleList && appRoleList.length > 0 ? (
                   <ListContainer
@@ -527,8 +567,7 @@ const AppRolesDashboard = () => {
                     </StyledInfiniteScroll>
                   </ListContainer>
                 ) : (
-                  appRoleList?.length === 0 &&
-                  status.status === 'success' && (
+                  appRoleList?.length === 0 && (
                     <>
                       {' '}
                       {inputSearchValue ? (
@@ -605,7 +644,9 @@ const AppRolesDashboard = () => {
                     backToLists={backToAppRoles}
                     ListDetailHeaderBg={sectionHeaderBg}
                     description={introduction}
-                    // renderContent={}
+                    renderContent={
+                      <AppRoleDetails appRoleDetail={listItemDetails} />
+                    }
                   />
                 )}
               />

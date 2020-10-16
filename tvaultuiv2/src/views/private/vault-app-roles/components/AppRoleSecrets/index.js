@@ -1,28 +1,25 @@
 /* eslint-disable react/jsx-one-expression-per-line */
 /* eslint-disable react/jsx-wrap-multilines */
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import styled, { css } from 'styled-components';
 import { CopyToClipboard } from 'react-copy-to-clipboard';
 import PropTypes from 'prop-types';
-import VisibilityIcon from '@material-ui/icons/Visibility';
+// import VisibilityIcon from '@material-ui/icons/Visibility';
+// import VisibilityOffIcon from '@material-ui/icons/VisibilityOff';
+
 import useMediaQuery from '@material-ui/core/useMediaQuery';
-import VisibilityOffIcon from '@material-ui/icons/VisibilityOff';
 import FileCopyIcon from '@material-ui/icons/FileCopy';
 import LoaderSpinner from '../../../../../components/Loaders/LoaderSpinner';
 import ComponentError from '../../../../../errorBoundaries/ComponentError/component-error';
-import apiService from '../apiService';
 import lock from '../../../../../assets/icon_lock.svg';
 import ButtonComponent from '../../../../../components/FormFields/ActionButton';
 import mediaBreakpoints from '../../../../../breakpoints';
 import ConfirmationModal from '../../../../../components/ConfirmationModal';
-import { useStateValue } from '../../../../../contexts/globalState';
 import {
   PopperItem,
   BackgroundColor,
 } from '../../../../../styles/GlobalStyles';
 import PopperElement from '../../../../../components/Popper';
-import SnackbarComponent from '../../../../../components/Snackbar';
-import Error from '../../../../../components/Error';
 
 const SecretsList = styled.div`
   margin-top: 2rem;
@@ -38,11 +35,10 @@ const SecretsList = styled.div`
 `;
 
 const Secret = styled.div`
-  -webkit-text-security: ${(props) => (props.viewSecret ? 'none' : 'disc')};
-  text-security: ${(props) => (props.viewSecret ? 'none' : 'disc')};
   font-size: 1.2rem;
   color: #5a637a;
   word-break: break-all;
+  text-overflow: ellipsis;
 `;
 
 const customStyle = css`
@@ -71,31 +67,17 @@ const FolderIconWrap = styled('div')`
     }
   }
 `;
-
-const NoPermission = styled.div`
+const SecretIdWrap = styled.div`
   display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 100%;
-  color: #5a637a;
-  text-align: center;
-  span {
-    display: contents;
-    margin: 0 0.3rem;
-    color: #fff;
-  }
+  align-items: Center;
 `;
 
 const AppRoleSecrets = (props) => {
-  const { accountDetail } = props;
-  const [response, setResponse] = useState({ status: 'loading' });
-  const [secretsData, setSecretsData] = useState({});
-  const [showSecret, setShowSecret] = useState(false);
-  const [responseType, setResponseType] = useState(null);
+  const { secretIds, deleteSecretIds } = props;
+  const [deleteSecretId, setDeleteSecretId] = useState(false);
   const [status, setStatus] = useState(null);
   const [openConfirmationModal, setOpenConfirmationModal] = useState(false);
   const isMobileScreen = useMediaQuery(mediaBreakpoints.small);
-  const [state] = useStateValue();
 
   /**
    * @function handleClose
@@ -106,33 +88,11 @@ const AppRoleSecrets = (props) => {
   };
 
   /**
-   * @description function to get the secret once the component loads.
-   */
-
-  //   useEffect(() => {
-  //     setResponse({ status: secretStatus });
-  //   }, [secretStatus]);
-
-  //   useEffect(() => {
-  //     if (accountSecretData) {
-  //       setSecretsData({ ...accountSecretData });
-  //     }
-  //   }, [accountSecretData]);
-
-  /**
-   * @function onViewSecretsCliked
-   * @description function to hide and show secret.
-   */
-  const onViewSecretsCliked = () => {
-    setShowSecret(!showSecret);
-  };
-
-  /**
    * @function onCopyClicked
    * @description function to copy the secret.
    */
   const onCopyClicked = () => {
-    setResponseType(1);
+    // setResponseType(1);
     setStatus({ status: 'success', message: 'Secret copied to clipboard' });
   };
 
@@ -141,57 +101,14 @@ const AppRoleSecrets = (props) => {
    * @description function to reset secret when the confirm is clicked.
    */
   const onDeleteClicked = () => {
-    const payload = {};
+    // const payload = {};
     setOpenConfirmationModal(false);
-    setResponse({ status: 'loading' });
-    apiService
-      .resetServiceAccountPassword(accountDetail?.name, payload)
-      .then((res) => {
-        setResponse({ status: 'success' });
-        if (res?.data) {
-          setSecretsData(res.data);
-          setResponseType(1);
-          setStatus({
-            status: 'success',
-            message: 'SecretId deleted successfully',
-          });
-        }
-      })
-      .catch((err) => {
-        setResponseType(-1);
-        setStatus({
-          status: 'failed',
-          message: err?.response?.data?.errors[0],
-        });
-      });
+    deleteSecretIds(deleteSecretId);
   };
-
-  /**
-   * @function onToastClose
-   * @description function to handle the snackbar component.
-   */
-  const onToastClose = (reason) => {
-    if (reason === 'clickaway') {
-      return;
-    }
-    setResponseType(null);
+  const onDeleteSecretId = (secretId) => {
+    setOpenConfirmationModal(true);
+    setDeleteSecretId(secretId);
   };
-
-  /**
-   * @description to check the whether the user have write permission
-   * compare the service account data with loged in user.
-//    */
-  //   useEffect(() => {
-  //     if (accountMetaData?.response?.users) {
-  //       Object.entries(accountMetaData.response.users).map(([key, value]) => {
-  //         if (key === state.username && value === 'write') {
-  //           return setWritePermission(true);
-  //         }
-  //         return setWritePermission(false);
-  //       });
-  //     }
-  //   }, [accountMetaData, state]);
-
   return (
     <ComponentError>
       <>
@@ -220,73 +137,51 @@ const AppRoleSecrets = (props) => {
         {status.status === 'loading' && (
           <LoaderSpinner customStyle={customStyle} />
         )}
-        {status.status === 'success' && secretsData && (
-          <SecretsList>
-            <Icon src={lock} alt="lock" />
+        <SecretsList>
+          {secretIds?.map((secretId) => (
+            <SecretIdWrap key={secretId}>
+              <Icon src={lock} alt="lock" />
 
-            <Secret type="password" viewSecret={showSecret}>
-              {secretsData.current_password}
-            </Secret>
+              <Secret>{secretId}</Secret>
 
-            <FolderIconWrap>
-              <PopperElement
-                anchorOrigin={{
-                  vertical: 'bottom',
-                  horizontal: 'right',
-                }}
-                transformOrigin={{
-                  vertical: 'top',
-                  horizontal: 'right',
-                }}
-              >
-                <PopperItem onClick={() => onViewSecretsCliked()}>
-                  {showSecret ? <VisibilityOffIcon /> : <VisibilityIcon />}
-                  <span>{showSecret ? 'Hide Secret' : 'View Secret'}</span>
-                </PopperItem>
-                <CopyToClipboard
-                  text={secretsData.current_password}
-                  onCopy={() => onCopyClicked()}
+              <FolderIconWrap>
+                <PopperElement
+                  anchorOrigin={{
+                    vertical: 'bottom',
+                    horizontal: 'right',
+                  }}
+                  transformOrigin={{
+                    vertical: 'top',
+                    horizontal: 'right',
+                  }}
                 >
-                  <PopperItem>
-                    <FileCopyIcon />
-                    <span>Copy Secret</span>
+                  <PopperItem onClick={() => onDeleteSecretId(secretId)}>
+                    <span>Delete</span>
                   </PopperItem>
-                </CopyToClipboard>
-              </PopperElement>
-            </FolderIconWrap>
-          </SecretsList>
-        )}
-        {response.status === 'error' && (
-          <Error description={"error while fetching secretId's"} />
-        )}
-        {response.status === 'no-permission' && (
-          <NoPermission>There are no secretIds to view here.</NoPermission>
-        )}
-        {responseType === 1 && (
-          <SnackbarComponent
-            open
-            onClose={() => onToastClose()}
-            message={status.message}
-          />
-        )}
-        {responseType === -1 && (
-          <SnackbarComponent
-            open
-            severity="error"
-            icon="error"
-            onClose={() => onToastClose()}
-            message={status.message}
-          />
-        )}
+                  <CopyToClipboard
+                    text={secretId}
+                    onCopy={() => onCopyClicked()}
+                  >
+                    <PopperItem>
+                      <FileCopyIcon />
+                      <span>Copy SecretId</span>
+                    </PopperItem>
+                  </CopyToClipboard>
+                </PopperElement>
+              </FolderIconWrap>
+            </SecretIdWrap>
+          ))}
+        </SecretsList>
       </>
     </ComponentError>
   );
 };
 
 AppRoleSecrets.propTypes = {
-  accountDetail: PropTypes.objectOf(PropTypes.any).isRequired,
+  secretIds: PropTypes.arrayOf(PropTypes.array).isRequired,
+  deleteSecretIds: PropTypes.func,
 };
 
-AppRoleSecrets.defaultProps = {};
+AppRoleSecrets.defaultProps = { deleteSecretIds: () => {} };
 
 export default AppRoleSecrets;
