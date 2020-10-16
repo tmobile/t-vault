@@ -16,6 +16,7 @@ import NoData from '../../../../../components/NoData';
 import Error from '../../../../../components/Error';
 import NoSafesIcon from '../../../../../assets/no-data-safes.svg';
 import SnackbarComponent from '../../../../../components/Snackbar';
+import LoaderSpinner from '../../../../../components/Loaders/LoaderSpinner';
 // styled components goes here
 
 const TabPanelWrap = styled.div`
@@ -123,10 +124,10 @@ const AppRoleDetails = (props) => {
   };
 
   // Function to get the secretIDs  of the given approle.
-  const getSecrets = useCallback((appRole) => {
+  const getSecrets = useCallback(() => {
     setStatus({ status: 'loading' });
     apiService
-      .getAccessors(appRole)
+      .getAccessors(appRoleDetail?.name)
       .then((res) => {
         setStatus({});
         if (res?.data) {
@@ -140,14 +141,15 @@ const AppRoleDetails = (props) => {
           err.response.data?.errors &&
           err.response.data.errors[0]
         ) {
-          setStatus(err.response.data.errors[0]);
+          setStatus({ message: err.response.data.errors[0] });
         }
         setGetResponseType(1);
       });
-  }, []);
+  }, [appRoleDetail]);
+
   useEffect(() => {
-    getSecrets(appRoleDetail.name);
-  }, [appRoleDetail, getSecrets]);
+    getSecrets();
+  }, [getSecrets]);
 
   /**
    * @function OnDeleteSecretIds
@@ -185,6 +187,8 @@ const AppRoleDetails = (props) => {
         </AppBar>
         <TabContentsWrap>
           <TabPanel value={value} index={0}>
+            {status?.status === 'loading' && <LoaderSpinner size="medium" />}
+            <span>{`${secretIdsData?.length} secretIds`}</span>
             {getResponseType === 1 && secretIdsData ? (
               <AppRoleSecrets
                 secretIds={secretIdsData}

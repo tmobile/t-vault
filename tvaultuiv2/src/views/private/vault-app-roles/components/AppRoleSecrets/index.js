@@ -18,27 +18,24 @@ import ConfirmationModal from '../../../../../components/ConfirmationModal';
 import {
   PopperItem,
   BackgroundColor,
+  Color,
 } from '../../../../../styles/GlobalStyles';
 import PopperElement from '../../../../../components/Popper';
 
 const SecretsList = styled.div`
   margin-top: 2rem;
-  display: flex;
   justify-content: space-between;
   align-items: center;
   background-color: ${BackgroundColor.listBg};
   padding: 1.2rem 0;
   border-bottom: 1px solid #323649;
-  :hover {
-    background-image: ${(props) => props.theme.gradients.list || 'none'};
-  }
 `;
 
 const Secret = styled.div`
   font-size: 1.2rem;
-  color: #5a637a;
+  display: flex;
+  align-items: center;
   word-break: break-all;
-  text-overflow: ellipsis;
 `;
 
 const customStyle = css`
@@ -46,8 +43,7 @@ const customStyle = css`
 `;
 
 const Icon = styled.img`
-  width: 2.2rem;
-  height: 2.2rem;
+  width: 1.5rem;
   margin-right: 1.6rem;
   margin-left: 2rem;
 `;
@@ -58,8 +54,8 @@ const FolderIconWrap = styled('div')`
   align-items: center;
   cursor: pointer;
   .MuiSvgIcon-root {
-    width: 3rem;
-    height: 3rem;
+    width: 2.5rem;
+    height: 2.5rem;
     :hover {
       background: ${(props) =>
         props.theme.customColor.hoverColor.list || '#151820'};
@@ -70,6 +66,13 @@ const FolderIconWrap = styled('div')`
 const SecretIdWrap = styled.div`
   display: flex;
   align-items: Center;
+  justify-content: space-between;
+  background: ${BackgroundColor.secretBg || '#2a2e3e'};
+  padding: 1.2rem 0;
+  text-overflow: ellipsis;
+  :hover {
+    background: ${BackgroundColor.secretHoverBg};
+  }
 `;
 
 const AppRoleSecrets = (props) => {
@@ -134,15 +137,17 @@ const AppRoleSecrets = (props) => {
             />
           }
         />
-        {status.status === 'loading' && (
+        {status?.status === 'loading' && (
           <LoaderSpinner customStyle={customStyle} />
         )}
         <SecretsList>
           {secretIds?.map((secretId) => (
             <SecretIdWrap key={secretId}>
-              <Icon src={lock} alt="lock" />
-
-              <Secret>{secretId}</Secret>
+              <Secret>
+                {' '}
+                <Icon src={lock} alt="lock" />
+                <span>{secretId}</span>
+              </Secret>
 
               <FolderIconWrap>
                 <PopperElement

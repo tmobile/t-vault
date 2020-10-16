@@ -11,7 +11,7 @@ import TextFieldComponent from '../../../../components/FormFields/TextField';
 import ButtonComponent from '../../../../components/FormFields/ActionButton';
 import SelectComponent from '../../../../components/FormFields/SelectFields';
 import ComponentError from '../../../../errorBoundaries/ComponentError/component-error';
-import safeIcon from '../../../../assets/icon_safe.svg';
+import ApproleIcon from '../../../../assets/icon_safe.svg';
 import leftArrowIcon from '../../../../assets/left-arrow.svg';
 import mediaBreakpoints from '../../../../breakpoints';
 import SnackbarComponent from '../../../../components/Snackbar';
@@ -222,7 +222,7 @@ const CreateAppRole = () => {
     isValidEmail,
   ]);
 
-  const [menu] = useState(['Users Safe', 'Shared Safe', 'Application Safe']);
+  const [menu] = useState(['All Approles']);
 
   const handleClose = () => {
     setOpen(false);
@@ -410,20 +410,18 @@ const CreateAppRole = () => {
                 alt="go-back"
                 onClick={() => handleClose()}
               />
-              <Typography variant="h5">Create Safe</Typography>
+              <Typography variant="h5">Create AppRole</Typography>
             </HeaderWrapper>
             <IconDescriptionWrapper>
-              <SafeIcon src={safeIcon} alt="safe-icon" />
+              <SafeIcon src={ApproleIcon} alt="safe-icon" />
               <TitleThree lineHeight="1.8rem" extraCss={extraCss} color="#ccc">
-                A Safe is a logical unit to store the secrets. All the safes are
-                created within Vault. You can control access only at the safe
-                level. As a vault administrator you can manage safes but cannot
-                view the content of the safe.
+                Approles’s operate a lot like safes, but they put the aplication
+                at the logical unit for sharing.
               </TitleThree>
             </IconDescriptionWrapper>
             <CreateSafeForm>
               <InputFieldLabelWrapper>
-                <InputLabel required>Safe Name</InputLabel>
+                <InputLabel required>Role Name</InputLabel>
                 <TextFieldComponent
                   value={name}
                   placeholder="Save Name"
@@ -442,7 +440,7 @@ const CreateAppRole = () => {
                 />
               </InputFieldLabelWrapper>
               <InputFieldLabelWrapper postion>
-                <InputLabel required>Owner</InputLabel>
+                <InputLabel required>Token Max TTL</InputLabel>
                 <AutoCompleteComponent
                   options={options}
                   classes={classes}
@@ -464,28 +462,80 @@ const CreateAppRole = () => {
                 {autoLoader && <LoaderSpinner customStyle={autoLoaderStyle} />}
               </InputFieldLabelWrapper>
               <InputFieldLabelWrapper>
-                <InputLabel required>Type of Safe</InputLabel>
-                <SelectComponent
-                  menu={menu}
-                  value={safeType}
-                  classes={classes}
+                <InputLabel required>Token TTL</InputLabel>
+                <TextFieldComponent
+                  value={name}
+                  placeholder="Save Name"
+                  fullWidth
                   readOnly={!!editSafe}
-                  onChange={(e) => setSafeType(e.target.value)}
-                  helperText={helperText}
+                  name="name"
+                  onChange={(e) => {
+                    setName(e.target.value);
+                    setSafeError(false);
+                  }}
+                  error={safeError}
+                  helperText={
+                    safeError ? 'Please enter minimum 3 characters' : ''
+                  }
+                  onInputBlur={(e) => onInputBlur(e)}
                 />
               </InputFieldLabelWrapper>
               <InputFieldLabelWrapper>
-                <InputLabel required>Description</InputLabel>
+                <InputLabel required>Sec ID Number Uses</InputLabel>
                 <TextFieldComponent
-                  multiline
-                  value={description}
+                  value={name}
+                  placeholder="Save Name"
                   fullWidth
-                  onChange={(e) => setDescription(e.target.value)}
-                  placeholder="Add some details about this safe"
+                  readOnly={!!editSafe}
+                  name="name"
+                  onChange={(e) => {
+                    setName(e.target.value);
+                    setSafeError(false);
+                  }}
+                  error={safeError}
+                  helperText={
+                    safeError ? 'Please enter minimum 3 characters' : ''
+                  }
+                  onInputBlur={(e) => onInputBlur(e)}
                 />
-                <FieldInstruction>
-                  Please add a minimum of 10 characters
-                </FieldInstruction>
+              </InputFieldLabelWrapper>
+              <InputFieldLabelWrapper>
+                <InputLabel required>Token Number Uses</InputLabel>
+                <TextFieldComponent
+                  value={name}
+                  placeholder="Save Name"
+                  fullWidth
+                  readOnly={!!editSafe}
+                  name="name"
+                  onChange={(e) => {
+                    setName(e.target.value);
+                    setSafeError(false);
+                  }}
+                  error={safeError}
+                  helperText={
+                    safeError ? 'Please enter minimum 3 characters' : ''
+                  }
+                  onInputBlur={(e) => onInputBlur(e)}
+                />
+              </InputFieldLabelWrapper>
+              <InputFieldLabelWrapper>
+                <InputLabel required>Secret ID TTL</InputLabel>
+                <TextFieldComponent
+                  value={name}
+                  placeholder="Save Name"
+                  fullWidth
+                  readOnly={!!editSafe}
+                  name="name"
+                  onChange={(e) => {
+                    setName(e.target.value);
+                    setSafeError(false);
+                  }}
+                  error={safeError}
+                  helperText={
+                    safeError ? 'Please enter minimum 3 characters' : ''
+                  }
+                  onInputBlur={(e) => onInputBlur(e)}
+                />
               </InputFieldLabelWrapper>
             </CreateSafeForm>
             <CancelSaveWrapper>

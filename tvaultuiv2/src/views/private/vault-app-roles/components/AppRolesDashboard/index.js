@@ -16,12 +16,12 @@ import {
 
 import useMediaQuery from '@material-ui/core/useMediaQuery';
 import { useStateValue } from '../../../../../contexts/globalState';
-import sectionHeaderBg from '../../../../../assets/svc_banner_img.png';
+import sectionHeaderBg from '../../../../../assets/approle_banner_img.png';
 import mediaBreakpoints from '../../../../../breakpoints';
 import ComponentError from '../../../../../errorBoundaries/ComponentError/component-error';
 import NoData from '../../../../../components/NoData';
 import NoSafesIcon from '../../../../../assets/no-data-safes.svg';
-import svcIcon from '../../../../../assets/icon-service-account.svg';
+import appRoleIcon from '../../../../../assets/icon-approle.svg';
 import FloatingActionButtonComponent from '../../../../../components/FormFields/FloatingActionButton';
 import TextFieldComponent from '../../../../../components/FormFields/TextField';
 import ListItemDetail from '../../../../../components/ListItemDetail';
@@ -458,7 +458,7 @@ const AppRolesDashboard = () => {
           title={appRole.name}
           subTitle={appRole.date}
           flag={appRole.type}
-          icon={svcIcon}
+          icon={appRoleIcon}
           showActions={false}
           listIconStyles={listIconStyles}
         />
@@ -506,7 +506,7 @@ const AppRolesDashboard = () => {
             <ButtonComponent
               label="Delete"
               color="secondary"
-              onClick={onAppRoleDelete()}
+              onClick={() => onAppRoleDelete()}
               width={isMobileScreen ? '45%' : ''}
             />
           }

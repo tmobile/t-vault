@@ -49,6 +49,10 @@ export const BackgroundColor = {
   secretHoverBg: '#252937',
 };
 
+export const Color = {
+  secretColor: '#5a637a',
+};
+
 export const PopperItem = styled.div`
   padding: 0.5em;
   display: flex;
