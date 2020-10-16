@@ -39,6 +39,9 @@
         $scope.approleRadioBtn['value'] = 'read';
         $scope.isEmpty = UtilityService.isObjectEmpty;
         $scope.roleNameSelected = false;
+        $scope.userAutoCompleteEnabled = false;
+        $scope.groupAutoCompleteEnabled = false;
+        $scope.disableAddBtn = true;
         $scope.awsConfPopupObj = {
             "auth_type":"",
             "role": "",
@@ -72,7 +75,7 @@
             options: [{
                 'text': 'read'
             }, {
-                'text': 'reset'
+                'text': 'rotate'
             }, {
                 'text': 'deny'
             }]
@@ -116,6 +119,9 @@
                 "grpNameValEmpty": false
             }
             $scope.permissionChangeInProgress = false;
+            $scope.disableAddBtn = true;
+            $scope.clearInputValue("addUser");
+            $scope.clearInputValue("addGroup");
         }
 
         $scope.isApproleBtnDisabled = function() {
@@ -216,6 +222,7 @@
             };
             lastContent = '';
             $scope.showNoMatchingResults = false;
+            $scope.disableAddBtn = true;
         }
 
         // function call on input keyup 
@@ -362,6 +369,7 @@
                         $scope.inputSelected.select = true; 
                         $scope.showNoMatchingResults = false;  
                         $scope.invalidEmail = false;                
+                        $scope.disableAddBtn = false;
                         $(id).blur();                     
                         $scope.$apply();
                     },
@@ -900,6 +908,16 @@
             $scope.appNameSelected = false;
             $scope.applicationName = '';
             $scope.isApplicationsLoading = true;
+
+            $scope.disableAddBtn = true;
+            $scope.userAutoCompleteEnabled = false;
+            $scope.groupAutoCompleteEnabled = false;
+            if (AppConstant.AD_USERS_AUTOCOMPLETE == true) {
+                $scope.userAutoCompleteEnabled = true;
+            }
+            if (AppConstant.AD_GROUP_AUTOCOMPLETE == true) {
+                $scope.groupAutoCompleteEnabled = true;
+            }
             $scope.myVaultKey = SessionStore.getItem("myVaultKey");
             if(!$scope.myVaultKey){ /* Check if user is in the same session */
                 $state.go('/');
@@ -1240,7 +1258,7 @@
                 if (UtilityService.ifAPIRequestSuccessful(response)) {
                     $scope.isLoadingData = false;
                     $scope.newPassword = response.data.current_password;
-                    $scope.resetMessage = "Service account "+$scope.svcacc.svcaccId+" has been activated successfully!"
+                    $scope.resetMessage = "IAM Service account "+$scope.svcacc.svcaccId+" has been activated successfully!"
                     $scope.initialPwdResetRequired = false;
                     $scope.detailsNavTags[1].show = true;
                     $scope.isActivating = false;

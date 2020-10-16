@@ -248,7 +248,7 @@ script(src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"
                             md-content(class="md-padding")
                                 .new-container.page-content-container
                                     div.certeditnotes Note: Denying the admin will not take any effect for users.
-                                    div.certeditnotes Search users by User name (&ltlastname&gt, &ltfirstname&gt) or if you have the NTId, search using NTId directly.
+                                    div.certeditnotes Search users by user name (lastname, firstname) or by NTid.
                                     .row.change-safe
                                         .add-block.container.name.col-lg-6.col-md-6.col-sm-12.col-xs-12
                                             div.input-flex
@@ -272,7 +272,7 @@ script(src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"
                                         .add-block.container.radio-inputs.col-lg-3.col-md-3.col-sm-12.col-xs-12
                                             radio-buttons(data="radio" value="usrRadioBtnVal" state="true")
                                         .add-block.container.actions.col-lg-3.col-md-3.col-sm-12.col-xs-12
-                                            button.btn.btn-cert.btn-lg(ng-click="addPermission('users',inputValue.userNameVal,usrRadioBtnVal, false);inputValue.userNameValEmpty = true") ADD USER
+                                            button.btn.btn-cert.btn-lg(ng-click="addPermission('users',inputValue.userNameVal,usrRadioBtnVal, false);inputValue.userNameValEmpty = true" ng-disabled="disableAddBtn && userAutoCompleteEnabled") ADD USER
                                     .unavailable-text(ng-if='isEmpty(UsersPermissionsDetails) || hideSudoPolicy')
                                       | No users are given permission to access this certificate,<br> add users to access the certificate 
                                     .row.change-safe-table-container(ng-if='!isEmpty(UsersPermissionsDetails) && !hideSudoPolicy')
@@ -332,7 +332,7 @@ script(src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"
                                         .add-block.container.radio-inputs.col-lg-3.col-md-3.col-sm-12.col-xs-12
                                             radio-buttons(data="radio" value="grpRadioBtnVal" state="true")
                                         .add-block.container.actions.col-lg-3.col-md-3.col-sm-12.col-xs-12
-                                            button.btn.btn-cert.btn-lg(ng-click="addPermission('groups', inputValue.grpNameVal,grpRadioBtnVal, false);inputValue.grpNameValEmpty = true") ADD GROUP
+                                            button.btn.btn-cert.btn-lg(ng-click="addPermission('groups', inputValue.grpNameVal,grpRadioBtnVal, false);inputValue.grpNameValEmpty = true" ng-disabled="disableAddBtn && groupAutoCompleteEnabled") ADD GROUP
                                     .unavailable-text(ng-if="isEmpty(GroupsPermissionsData)")
                                       | No groups are given permission to access this certificate,<br> add groups to access the certificate
                                     .row.change-safe-table-container(ng-if="!isEmpty(GroupsPermissionsData)")
