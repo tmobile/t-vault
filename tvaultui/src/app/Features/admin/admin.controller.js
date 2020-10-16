@@ -31,6 +31,7 @@
         $scope.svcaccToTransfer = '';
         $scope.searchValue = '';
         $scope.isCollapsed = true;
+        $scope.isCollapsedIAM = true;
         $scope.existingTargetSystem = false;
         $scope.existingService = false;
         $scope.isCertCollapsed = false;
@@ -130,6 +131,7 @@
             $scope.enableIamSvcacc = true;
             $scope.enableSelfService = true;
             $scope.isCollapsed = true;
+            $scope.isCollapsedIAM = true;
             $scope.transferFailedMessage = '';
             $scope.selectedIndex = 0;
             $scope.existingTargetSystem = false;
@@ -1301,6 +1303,10 @@
 
         $scope.collapseNote = function () {
             $scope.isCollapsed = !$scope.isCollapsed;
+        }
+
+        $scope.collapseNoteIAM = function () {
+            $scope.isCollapsedIAM = !$scope.isCollapsedIAM;
         }
 
         $scope.transferOwnerPopUp = function (svcaccname) {
