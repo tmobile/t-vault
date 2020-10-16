@@ -43,6 +43,9 @@
         $scope.isEmpty = UtilityService.isObjectEmpty;
         $scope.roleNameSelected = false;
         $scope.isUserPermissionEmpty = true;
+        $scope.userAutoCompleteEnabled = false;
+        $scope.groupAutoCompleteEnabled = false;
+        $scope.disableAddBtn = true;
         $scope.awsConfPopupObj = {
             "auth_type":"",
             "role": "",
@@ -116,6 +119,9 @@
                 "userNameValEmpty": false,
                 "grpNameValEmpty": false
             }
+            $scope.disableAddBtn = true;
+            $scope.clearInputValue("addUser");
+            $scope.clearInputValue("addGroup");
         }
 
         $scope.isApproleBtnDisabled = function() {
@@ -211,6 +217,7 @@
             };
             lastContent = '';
             $scope.showNoMatchingResults = false;
+            $scope.disableAddBtn = true;
         }
 
         //clear selcted email id on cross icon click
@@ -370,6 +377,7 @@
                         $scope.inputSelected.select = true; 
                         $scope.showNoMatchingResults = false;  
                         $scope.invalidEmail = false;                
+                        $scope.disableAddBtn = false;
                         $(id).trigger('change');
                         $(id).blur();                     
                         $scope.$apply();
@@ -999,6 +1007,15 @@
             $scope.myVaultKey = SessionStore.getItem("myVaultKey");
             if(!$scope.myVaultKey){ /* Check if user is in the same session */
                 $state.go('/');
+            }
+            $scope.disableAddBtn = true;
+            $scope.userAutoCompleteEnabled = false;
+            $scope.groupAutoCompleteEnabled = false;
+            if (AppConstant.AD_USERS_AUTOCOMPLETE == true) {
+                $scope.userAutoCompleteEnabled = true;
+            }
+            if (AppConstant.AD_GROUP_AUTOCOMPLETE == true) {
+                $scope.groupAutoCompleteEnabled = true;
             }
             $scope.requestDataFrChangeSafe();
             $scope.fetchUsers();
