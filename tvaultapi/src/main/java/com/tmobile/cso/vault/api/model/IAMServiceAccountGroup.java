@@ -84,7 +84,7 @@ public class IAMServiceAccountGroup implements Serializable {
 	 */
 	@ApiModelProperty(example = "group1", position = 2)
 	public String getGroupname() {
-		return groupname.toLowerCase();
+		return groupname;
 	}
 
 	/**
