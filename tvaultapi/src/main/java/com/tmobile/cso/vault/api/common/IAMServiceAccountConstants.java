@@ -43,9 +43,9 @@ public final class IAMServiceAccountConstants {
 	public static final String IAM_SVCACC_CREATION_TITLE = "Onboard IAM Service Account";
 	public static final String REMOVE_APPROLE_TO_IAMSVCACC_MSG = "Remove Approle from IAM Service Account";
 	public static final String IAM_SVCACC_OFFBOARD_CREATION_TITLE = "Offboard IAM Service Account";
-	public static final String ROTATE_IAM_SVCACC_TITLE = "Rotate IAM Service Account";
+	public static final String ROTATE_IAM_SVCACC_TITLE = "Rotate IAM Service Account Secrets";
 	
-	public static final String IAM_RESET_MSG_STRING = "reset";
+	public static final String IAM_ROTATE_MSG_STRING = "rotate";
 	public static final String IAM_GROUP_MSG_STRING = "groups";
 	public static final String IAM_ACCESS_MSG_STRING = "access";
 	public static final String USERNAME_PARAM_STRING = "{\"username\":\"";
