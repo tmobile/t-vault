@@ -56,26 +56,32 @@ const useStyles = makeStyles((theme) => ({
 const EditCertificate = (props) => {
   const { open, certificateData, onCloseModal } = props;
   const classes = useStyles();
-  const [openConfirmationModal, setOpenConfirmationModal] = useState(false);
-  // const [responseTitle, setResponseTitle] = useState('');
-  // const [responseDesc, setResponseDesc] = useState('');
   const [modalDetail, setModalDetail] = useState({
     title: '',
     description: '',
   });
+  const [openModal, setOpenModal] = useState({ status: 'edit' });
   const [loading, setLoading] = useState(true);
   const [showRevokeRenewBtn, setShowRevokeRenewBtn] = useState(true);
-  const isMobileScreen = useMediaQuery(small);
-  const [openRenewConfirmation, setOpenRenewConfirmation] = useState(false);
   const [actionResponse, setActionResponse] = useState(false);
-  const [revokeModalOpen, setRevokeModalOpen] = useState(false);
   const [revokeMenu, setRevokeMenu] = useState([]);
   const [allRevokeReason, setAllRevokeReason] = useState([]);
+  const [editActionPerform, setEditActionPerform] = useState(false);
 
-  const clear = () => {
+  const isMobileScreen = useMediaQuery(small);
+
+  /**
+   * @function clearModalDetail
+   * @description function to clear modal detail.
+   */
+  const clearModalDetail = () => {
     setModalDetail({ title: '', description: '' });
   };
 
+  /**
+   * @function checkCertStatus
+   * @description function to check the status of revoked certificate.
+   */
   const checkCertStatus = () => {
     apiService
       .checkExtCertificateStatus(
@@ -92,8 +98,8 @@ const EditCertificate = (props) => {
           setShowRevokeRenewBtn(true);
         }
         setLoading(false);
-        setOpenConfirmationModal(false);
-        clear();
+        setOpenModal({ status: 'edit' });
+        clearModalDetail();
       })
       .catch((err) => {
         if (
@@ -112,31 +118,39 @@ const EditCertificate = (props) => {
         ) {
           setShowRevokeRenewBtn(true);
           setLoading(false);
-          setOpenConfirmationModal(false);
-          clear();
+          setOpenModal({ status: 'edit' });
+          clearModalDetail();
         }
       });
   };
 
+  /**
+   * @function onCertRenewClicked
+   * @description function when user clicked the renew certificate calculate the difference.
+   */
   const onCertRenewClicked = () => {
-    clear();
-    setOpenRenewConfirmation(true);
+    clearModalDetail();
+    setOpenModal({ status: 'renew' });
     const diff = getDaysDifference(
       certificateData.createDate,
       certificateData.expiryDate
     );
-    const desc = `Certificate expiring in ${diff} Days . Do you want to renew this certificate?`;
+    const desc = `Certificate expiring in ${diff} Days . Do you want 
+    to renew this certificate?`;
     setModalDetail({
       title: 'Renew Confirmation',
       description: desc,
     });
   };
 
+  /**
+   * @function onRenewConfirmClicked
+   * @description function when user clicked the renew certificate Confirmation.
+   */
   const onRenewConfirmClicked = () => {
     setLoading(true);
-    setOpenConfirmationModal(true);
-    setOpenRenewConfirmation(false);
-    clear();
+    setOpenModal({ status: 'confirm' });
+    clearModalDetail();
     apiService
       .certificateRenew(
         certificateData.certType,
@@ -151,6 +165,7 @@ const EditCertificate = (props) => {
         }
         setLoading(false);
         setActionResponse(true);
+        setEditActionPerform(true);
       })
       .catch((err) => {
         if (err?.response?.data?.errors && err.response.data.errors[0]) {
@@ -164,9 +179,14 @@ const EditCertificate = (props) => {
       });
   };
 
+  /**
+   * @function onCloseRenewConfirmation
+   * @description function when user clicked the renew certificate cancel open the
+   * edit certificate.
+   */
   const onCloseRenewConfirmation = () => {
-    setOpenRenewConfirmation(false);
-    clear();
+    setOpenModal({ status: 'edit' });
+    clearModalDetail();
   };
 
   useEffect(() => {
@@ -175,26 +195,39 @@ const EditCertificate = (props) => {
         certificateData.certificateStatus === 'Revoked' ||
         !certificateData.certificateStatus
       ) {
-        setOpenConfirmationModal(true);
+        setOpenModal({ status: 'confirm' });
         setLoading(true);
         checkCertStatus();
       }
+      setEditActionPerform(false);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [certificateData]);
 
+  /**
+   * @function handleCloseConfirmationModal
+   * @description function when user clicked cancel of confirmation modal.
+   */
   const handleCloseConfirmationModal = () => {
     if (!loading) {
-      setOpenConfirmationModal(false);
-      onCloseModal();
+      setOpenModal({ status: '' });
+      onCloseModal(editActionPerform);
     }
   };
 
+  /**
+   * @function backToEdit
+   * @description function to take the user back to edit mode.
+   */
   const backToEdit = () => {
-    setOpenConfirmationModal(false);
+    setOpenModal({ status: 'edit' });
     setActionResponse(false);
   };
 
+  /**
+   * @function getRevokeReasons
+   * @description function to get the revoke reason.
+   */
   const getRevokeReasons = () => {
     apiService
       .getRevokeReason(certificateData.certificateId)
@@ -204,13 +237,12 @@ const EditCertificate = (props) => {
           res.data.reasons.map((item) => {
             return setRevokeMenu((prev) => [...prev, item.displayName]);
           });
-          setOpenConfirmationModal(false);
-          setRevokeModalOpen(true);
+          setOpenModal({ status: 'revoke' });
           setLoading(false);
         }
       })
       .catch(() => {
-        setRevokeModalOpen(false);
+        setOpenModal({ status: 'confirm' });
         setLoading(false);
         setModalDetail({
           title: 'Error',
@@ -220,19 +252,26 @@ const EditCertificate = (props) => {
       });
   };
 
+  /**
+   * @function onCertRevokeClicked
+   * @description function to when user clicked the renew and open the renew reason modal.
+   */
   const onCertRevokeClicked = async () => {
-    clear();
+    clearModalDetail();
     setAllRevokeReason([]);
     setRevokeMenu([]);
     setLoading(true);
-    setOpenConfirmationModal(true);
+    setOpenModal({ status: 'confirm' });
     await getRevokeReasons();
   };
 
+  /**
+   * @function onRevokeConfirm
+   * @description function to when user clicked the confirmation renew.
+   */
   const onRevokeConfirm = (data) => {
     setLoading(true);
-    setRevokeModalOpen(false);
-    setOpenConfirmationModal(true);
+    setOpenModal({ status: 'confirm' });
     apiService
       .revokeRequest(
         certificateData.certType,
@@ -248,6 +287,7 @@ const EditCertificate = (props) => {
         }
         setLoading(false);
         setActionResponse(true);
+        setEditActionPerform(true);
       })
       .catch((err) => {
         if (err.response.data.errors && err.response.data.errors[0]) {
@@ -261,8 +301,12 @@ const EditCertificate = (props) => {
       });
   };
 
+  /**
+   * @function handleRevokeModalClose
+   * @description function to close the revoke modal.
+   */
   const handleRevokeModalClose = () => {
-    setRevokeModalOpen(false);
+    setOpenModal({ status: 'edit' });
   };
 
   return (
@@ -270,7 +314,7 @@ const EditCertificate = (props) => {
       <>
         {open && (
           <ConfirmationModal
-            open={openConfirmationModal}
+            open={openModal.status === 'confirm'}
             handleClose={
               actionResponse ? backToEdit : handleCloseConfirmationModal
             }
@@ -295,7 +339,7 @@ const EditCertificate = (props) => {
           />
         )}
         <ConfirmationModal
-          open={openRenewConfirmation}
+          open={openModal.status === 'renew'}
           handleClose={onCloseRenewConfirmation}
           title={modalDetail.title}
           description={modalDetail.description}
@@ -316,9 +360,9 @@ const EditCertificate = (props) => {
             />
           }
         />
-        {revokeModalOpen && (
+        {openModal.status === 'revoke' && (
           <RevokeCertificate
-            revokeModalOpen={revokeModalOpen}
+            revokeModalOpen={openModal.status === 'revoke'}
             revokeMenu={revokeMenu}
             handleRevokeModalClose={handleRevokeModalClose}
             isMobileScreen={isMobileScreen}
@@ -326,13 +370,13 @@ const EditCertificate = (props) => {
             allRevokeReason={allRevokeReason}
           />
         )}
-        {!openConfirmationModal && !openRenewConfirmation && !revokeModalOpen && (
+        {openModal.status === 'edit' && (
           <Modal
             aria-labelledby="transition-modal-title"
             aria-describedby="transition-modal-description"
             className={classes.modal}
             open={open}
-            onClose={onCloseModal}
+            onClose={() => onCloseModal(editActionPerform)}
             closeAfterTransition
             BackdropComponent={Backdrop}
             BackdropProps={{
@@ -345,7 +389,7 @@ const EditCertificate = (props) => {
                 onCertRenewClicked={onCertRenewClicked}
                 isMobileScreen={isMobileScreen}
                 showRevokeRenewBtn={showRevokeRenewBtn}
-                onCloseModal={onCloseModal}
+                onCloseModal={() => onCloseModal(editActionPerform)}
                 onCertRevokeClicked={onCertRevokeClicked}
               />
             </Fade>

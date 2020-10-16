@@ -254,6 +254,8 @@ const CertificatesDashboard = () => {
    * @description function call all certificates api.
    */
   const fetchAdminData = useCallback(async () => {
+    setAllCertList([]);
+    setCertificateList([]);
     const allCertInternal = await apiService.getAllAdminCertInternal();
     const internalCertificates = await apiService.getInternalCertificates();
     const externalCertificates = await apiService.getExternalCertificates();
@@ -475,9 +477,17 @@ const CertificatesDashboard = () => {
     setCertificateData({ ...item });
   };
 
-  const onCloseEditModal = () => {
+  const onCloseEditModal = (editActionPerform) => {
     setOpenEditModal(false);
     setCertificateData({});
+    if (editActionPerform) {
+      setResponse({ status: 'loading' });
+      if (contextObj.isAdmin) {
+        fetchAdminData();
+      } else {
+        fetchNonAdminData();
+      }
+    }
   };
 
   const renderList = () => {
@@ -536,7 +546,7 @@ const CertificatesDashboard = () => {
             <EditCertificate
               certificateData={certificateData}
               open={openEditModal}
-              onCloseModal={() => onCloseEditModal()}
+              onCloseModal={(action) => onCloseEditModal(action)}
             />
           )}
           <LeftColumnSection>
