@@ -70,7 +70,7 @@ public class  IAMServiceAccountsService {
 	private String iamMasterPolicyName;
 
 	private static Logger log = LogManager.getLogger(IAMServiceAccountsService.class);
-	private static final String[] ACCESS_PERMISSIONS = { "read", IAMServiceAccountConstants.IAM_RESET_MSG_STRING, "deny", "sudo" };
+	private static final String[] ACCESS_PERMISSIONS = { "read", IAMServiceAccountConstants.IAM_ROTATE_MSG_STRING, "deny", "sudo" };
 
 	@Autowired
 	private AccessService accessService;
@@ -201,8 +201,8 @@ public class  IAMServiceAccountsService {
 		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
 				.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
 				.put(LogMessage.ACTION, IAMServiceAccountConstants.IAM_SVCACC_CREATION_TITLE)
-				.put(LogMessage.MESSAGE, String.format("Trying to add sudo permission to [%s] in IAM service " +
-						"account [%s].", iamServiceAccount.getOwnerNtid(), iamSvcAccName))
+				.put(LogMessage.MESSAGE, String.format("Trying to add sudo permission for the service account [%s] to " +
+						"the user {%s]", iamSvcAccName, iamServiceAccount.getOwnerNtid()))
 				.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
 		IAMServiceAccountUser iamServiceAccountUser = new IAMServiceAccountUser(iamServiceAccount.getUserName(),
 				iamServiceAccount.getOwnerNtid(), TVaultConstants.SUDO_POLICY, iamServiceAccount.getAwsAccountId());
@@ -229,7 +229,7 @@ public class  IAMServiceAccountsService {
 	}
 
 	/**
-	 * Method To check if the user/token has permission for onboarding or offboarding IAM service account.
+	 * To check if the user/token has permission for onboarding or offboarding IAM service account.
 	 * @param token
 	 * @return
 	 */
@@ -245,7 +245,7 @@ public class  IAMServiceAccountsService {
 					log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
 							.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
 							.put(LogMessage.ACTION, "isAuthorizedForIAMOnboardAndOffboard")
-							.put(LogMessage.MESSAGE, "The User/Token has required policies to onboard/offblard IAM Service Account.")
+							.put(LogMessage.MESSAGE, "The User/Token has required policies to onboard/offboard IAM Service Account.")
 							.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
 					return true;
 				}
@@ -734,9 +734,9 @@ public class  IAMServiceAccountsService {
 		}
 		if (!isIamSvcaccPermissionInputValid(iamServiceAccountGroup.getAccess())) {
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-					.body("{\"errors\":[\"Invalid value specified for access. Valid values are read, reset, deny\"]}");
+					.body("{\"errors\":[\"Invalid value specified for access. Valid values are read, rotate, deny\"]}");
 		}
-		if (iamServiceAccountGroup.getAccess().equalsIgnoreCase(IAMServiceAccountConstants.IAM_RESET_MSG_STRING)) {
+		if (iamServiceAccountGroup.getAccess().equalsIgnoreCase(IAMServiceAccountConstants.IAM_ROTATE_MSG_STRING)) {
 			iamServiceAccountGroup.setAccess(TVaultConstants.WRITE_POLICY);
 		}
 
@@ -1024,9 +1024,9 @@ public class  IAMServiceAccountsService {
 
 		if (!isIamSvcaccPermissionInputValid(iamServiceAccountUser.getAccess())) {
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-					.body("{\"errors\":[\"Invalid value specified for access. Valid values are read, reset, deny\"]}");
+					.body("{\"errors\":[\"Invalid value specified for access. Valid values are read, rotate, deny\"]}");
 		}
-		if (iamServiceAccountUser.getAccess().equalsIgnoreCase(IAMServiceAccountConstants.IAM_RESET_MSG_STRING)) {
+		if (iamServiceAccountUser.getAccess().equalsIgnoreCase(IAMServiceAccountConstants.IAM_ROTATE_MSG_STRING)) {
 			iamServiceAccountUser.setAccess(TVaultConstants.WRITE_POLICY);
 		}
 
@@ -1639,9 +1639,9 @@ public class  IAMServiceAccountsService {
         }
 		if (!isIamSvcaccPermissionInputValid(iamServiceAccountUser.getAccess())) {
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-					.body("{\"errors\":[\"Invalid value specified for access. Valid values are read, reset, deny\"]}");
+					.body("{\"errors\":[\"Invalid value specified for access. Valid values are read, rotate, deny\"]}");
 		}
-		if (iamServiceAccountUser.getAccess().equalsIgnoreCase("reset")) {
+		if (iamServiceAccountUser.getAccess().equalsIgnoreCase(IAMServiceAccountConstants.IAM_ROTATE_MSG_STRING)) {
 			iamServiceAccountUser.setAccess(TVaultConstants.WRITE_POLICY);
 		}
 
@@ -1941,9 +1941,9 @@ public class  IAMServiceAccountsService {
 
         if (!isIamSvcaccPermissionInputValid(iamServiceAccountGroup.getAccess())) {
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-					.body("{\"errors\":[\"Invalid value specified for access. Valid values are read, reset, deny\"]}");
+					.body("{\"errors\":[\"Invalid value specified for access. Valid values are read, rotate, deny\"]}");
 		}
-		if (iamServiceAccountGroup.getAccess().equalsIgnoreCase("reset")) {
+		if (iamServiceAccountGroup.getAccess().equalsIgnoreCase(IAMServiceAccountConstants.IAM_ROTATE_MSG_STRING)) {
 			iamServiceAccountGroup.setAccess(TVaultConstants.WRITE_POLICY);
 		}
 
@@ -2225,9 +2225,9 @@ public class  IAMServiceAccountsService {
 		}
 		if (!isIamSvcaccPermissionInputValid(iamServiceAccountApprole.getAccess())) {
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-					.body("{\"errors\":[\"Invalid value specified for access. Valid values are read, reset, deny\"]}");
+					.body("{\"errors\":[\"Invalid value specified for access. Valid values are read, rotate, deny\"]}");
 		}
-		if (iamServiceAccountApprole.getAccess().equalsIgnoreCase("reset")) {
+		if (iamServiceAccountApprole.getAccess().equalsIgnoreCase(IAMServiceAccountConstants.IAM_ROTATE_MSG_STRING)) {
 			iamServiceAccountApprole.setAccess(TVaultConstants.WRITE_POLICY);
 		}
 		String uniqueIAMSvcaccName = iamServiceAccountApprole.getAwsAccountId() + "_" + iamServiceAccountApprole.getIamSvcAccName();
@@ -2467,7 +2467,7 @@ public class  IAMServiceAccountsService {
 		}
 		if (!isIamSvcaccPermissionInputValid(access)) {
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-					.body("{\"errors\":[\"Invalid value specified for access. Valid values are read, reset, deny\"]}");
+					.body("{\"errors\":[\"Invalid value specified for access. Valid values are read, rotate, deny\"]}");
 		}
 
 		boolean isAuthorized = hasAddOrRemovePermission(userDetails, uniqueIAMSvcaccName, token);
@@ -2695,19 +2695,19 @@ public class  IAMServiceAccountsService {
 										put(LogMessage.STATUS, metadataUpdateResponse.getHttpstatus().toString()).
 										put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 										build()));
-								// Add reset permission for owner
+								// Add rotate permission for owner
 								String ownerNTId = getOwnerNTIdFromMetadata(token, uniqueIAMSvcaccName );
 								if (StringUtils.isEmpty(ownerNTId)) {
 									log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 											put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
 											put(LogMessage.ACTION, "activateIAMServiceAccount").
-											put(LogMessage.MESSAGE, String.format("Failed to add reset permission for owner for IAM service account [%s]. Owner NT id not found in metadata", iamServiceAccountName)).
+											put(LogMessage.MESSAGE, String.format("Failed to add rotate permission for owner for IAM service account [%s]. Owner NT id not found in metadata", iamServiceAccountName)).
 											put(LogMessage.STATUS, HttpStatus.BAD_REQUEST.toString()).
 											put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 											build()));
 									return ResponseEntity.status(HttpStatus.OK).body("{\"errors\":[\"Failed to activate IAM Service account. IAM secrets are rotated and saved in T-Vault. However failed to add permission to owner. Owner info not found in Metadata.\"]}");
 								}
-								IAMServiceAccountUser iamServiceAccountUser = new IAMServiceAccountUser(iamServiceAccountName, ownerNTId, TVaultConstants.RESET_POLICY, awsAccountId);
+								IAMServiceAccountUser iamServiceAccountUser = new IAMServiceAccountUser(iamServiceAccountName, ownerNTId, IAMServiceAccountConstants.IAM_ROTATE_MSG_STRING, awsAccountId);
 
 								ResponseEntity<String> addUserToIAMSvcAccResponse = addUserToIAMServiceAccount(token, userDetails, iamServiceAccountUser, false);
 								if (HttpStatus.OK.equals(addUserToIAMSvcAccResponse.getStatusCode())) {
@@ -2723,7 +2723,7 @@ public class  IAMServiceAccountsService {
 								log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 										put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
 										put(LogMessage.ACTION, "activateIAMServiceAccount").
-										put(LogMessage.MESSAGE, String.format("Failed to add reset permission to owner as part of IAM service account activation for [%s].", iamServiceAccountName)).
+										put(LogMessage.MESSAGE, String.format("Failed to add rotate permission to owner as part of IAM service account activation for [%s].", iamServiceAccountName)).
 										put(LogMessage.STATUS, addUserToIAMSvcAccResponse!=null?addUserToIAMSvcAccResponse.getStatusCode().toString():HttpStatus.BAD_REQUEST.toString()).
 										put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 										build()));

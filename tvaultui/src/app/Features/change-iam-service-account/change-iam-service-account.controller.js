@@ -72,7 +72,7 @@
             options: [{
                 'text': 'read'
             }, {
-                'text': 'reset'
+                'text': 'rotate'
             }, {
                 'text': 'deny'
             }]
@@ -1240,7 +1240,7 @@
                 if (UtilityService.ifAPIRequestSuccessful(response)) {
                     $scope.isLoadingData = false;
                     $scope.newPassword = response.data.current_password;
-                    $scope.resetMessage = "Service account "+$scope.svcacc.svcaccId+" has been activated successfully!"
+                    $scope.resetMessage = "IAM Service account "+$scope.svcacc.svcaccId+" has been activated successfully!"
                     $scope.initialPwdResetRequired = false;
                     $scope.detailsNavTags[1].show = true;
                     $scope.isActivating = false;
