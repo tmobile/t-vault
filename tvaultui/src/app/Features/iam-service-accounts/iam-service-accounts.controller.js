@@ -122,9 +122,18 @@
                     $scope.iamsvcaccSecretData.userName = response.data.iamsvcaccName;
                 }).catch(function (catchError) {
                     console.error(catchError);
+
                     $scope.isLoadingData = false;
                     $scope.viewPassword = false;
-                    $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
+                    if (catchError.status == 403 || catchError.status == "403") {
+                        var errorMsg = "Access Denied: No permission to read or reset secret for IAM service account";
+                        $scope.errorMessage = errorMsg;
+                    }
+                    else {
+                        var errorMsg = catchError.data.errors;
+                        $scope.errorMessage = errorMsg[0];
+                        $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
+                    }
                     $scope.error('md');
                 });
         }
