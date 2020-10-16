@@ -568,7 +568,7 @@ script(type='text/ng-template', id='manageSecretId.html')
                                                 .container.name.cell.col-lg-2.col-md-2.col-sm-2.col-xs-2 ACTION     
                                             .change-list-table-data.row
                                                 .unavailable-text(ng-show="!isLoadingData && iamSvcaccOnboardedData.length==0")
-                                                    .container.name No IAM Service Accounts enabled for Password Rotation
+                                                    .container.name No IAM Service Accounts enabled.
                                                 .row.change-data.item(ng-show="!isLoadingData" ng-class="{'grayBackground' : activeItem == true}" ng-repeat="value in iamSvcaccOnboardedData")
                                                     .container.name.cell.col-lg-4.col-md-4.col-sm-4.col-xs-4(uib-tooltip="{{value.userName}}") {{value.userName}}
                                                     .container.name.cell.col-lg-4.col-md-4.col-sm-4.col-xs-4(uib-tooltip="{{value.accountID}}") {{value.accountID}}
