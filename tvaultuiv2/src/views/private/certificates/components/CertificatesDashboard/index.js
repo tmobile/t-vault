@@ -29,6 +29,7 @@ import { UserContext } from '../../../../../contexts';
 import apiService from '../../apiService';
 import CertificateListItem from '../CertificateListItem';
 import EditAndDeletePopup from '../../../../../components/EditAndDeletePopup';
+import EditCertificate from '../EditCertificate';
 
 const ColumnSection = styled('section')`
   position: relative;
@@ -216,14 +217,16 @@ const CertificatesDashboard = () => {
   const [certificateType, setCertificateType] = useState('All Certificates');
   const [menu] = useState([
     'All Certificates',
-    'External Certificates',
     'Internal Certificates',
+    'External Certificates',
   ]);
   const [response, setResponse] = useState({ status: 'success' });
   const [errorMsg, setErrorMsg] = useState('');
   const [allCertList, setAllCertList] = useState([]);
   const [certificateClicked, setCertificateClicked] = useState(false);
   const [ListItemDetails, setListItemDetails] = useState({});
+  const [openEditModal, setOpenEditModal] = useState(false);
+  const [certificateData, setCertificateData] = useState({});
   const classes = useStyles();
   const history = useHistory();
   const location = useLocation();
@@ -251,6 +254,8 @@ const CertificatesDashboard = () => {
    * @description function call all certificates api.
    */
   const fetchAdminData = useCallback(async () => {
+    setAllCertList([]);
+    setCertificateList([]);
     const allCertInternal = await apiService.getAllAdminCertInternal();
     const internalCertificates = await apiService.getInternalCertificates();
     const externalCertificates = await apiService.getExternalCertificates();
@@ -467,6 +472,24 @@ const CertificatesDashboard = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [inputSearchValue, certificateType]);
 
+  const onEditListItemClicked = (item) => {
+    setOpenEditModal(true);
+    setCertificateData({ ...item });
+  };
+
+  const onCloseEditModal = (editActionPerform) => {
+    setOpenEditModal(false);
+    setCertificateData({});
+    if (editActionPerform) {
+      setResponse({ status: 'loading' });
+      if (contextObj.isAdmin) {
+        fetchAdminData();
+      } else {
+        fetchNonAdminData();
+      }
+    }
+  };
+
   const renderList = () => {
     return certificateList.map((certificate) => (
       <ListFolderWrap
@@ -507,7 +530,7 @@ const CertificatesDashboard = () => {
           <PopperWrap onClick={(e) => onActionClicked(e)}>
             <EditAndDeletePopup
               onDeletListItemClicked={() => {}}
-              onEditListItemClicked={() => {}}
+              onEditListItemClicked={() => onEditListItemClicked(certificate)}
               admin={contextObj.isAdmin}
             />
           </PopperWrap>
@@ -519,6 +542,13 @@ const CertificatesDashboard = () => {
     <ComponentError>
       <>
         <SectionPreview title="certificates-section">
+          {openEditModal && (
+            <EditCertificate
+              certificateData={certificateData}
+              open={openEditModal}
+              onCloseModal={(action) => onCloseEditModal(action)}
+            />
+          )}
           <LeftColumnSection>
             <ColumnHeader>
               <SelectComponent

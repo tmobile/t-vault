@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import styled from 'styled-components';
 import PropTypes from 'prop-types';
 import ComponentError from '../../../../errorBoundaries/ComponentError/component-error';
@@ -7,7 +7,7 @@ import breakpoints from '../../../../breakpoints';
 
 const DetailsWrap = styled.div``;
 const EachDetail = styled.div`
-  margin-bottom: 4rem;
+  margin-bottom: 3rem;
   p {
     margin: 0;
   }
@@ -60,7 +60,18 @@ const PreviewCertificate = (props) => {
     onEditClicked,
     isMobileScreen,
     responseType,
+    isEditCertificate,
   } = props;
+  const [dnsNames, setDnsNames] = useState([]);
+  useEffect(() => {
+    if (dns) {
+      if (typeof dns !== 'string') {
+        setDnsNames(dns);
+      } else {
+        setDnsNames([]);
+      }
+    }
+  }, [dns]);
   return (
     <ComponentError>
       <DetailsWrap>
@@ -78,9 +89,9 @@ const PreviewCertificate = (props) => {
         </EachDetail>
         <EachDetail>
           <Label>DNS:</Label>
-          {dns.length > 0 ? (
+          {dnsNames?.length > 0 ? (
             <>
-              {dns?.map((item) => {
+              {dnsNames?.map((item) => {
                 return <DnsName key={item}>{item}</DnsName>;
               })}
             </>
@@ -88,34 +99,36 @@ const PreviewCertificate = (props) => {
             'N/A'
           )}
         </EachDetail>
-        <CancelSaveWrapper>
-          <CancelButton>
+        {!isEditCertificate && (
+          <CancelSaveWrapper>
+            <CancelButton>
+              <ButtonComponent
+                label="Cancel"
+                color="primary"
+                disabled={responseType === 0}
+                onClick={() => handleClose()}
+                width={isMobileScreen ? '100%' : ''}
+              />
+            </CancelButton>
+            <CancelButton>
+              <ButtonComponent
+                label="Edit"
+                color="secondary"
+                disabled={responseType === 0}
+                onClick={() => onEditClicked()}
+                width={isMobileScreen ? '100%' : ''}
+              />
+            </CancelButton>
             <ButtonComponent
-              label="Cancel"
-              color="primary"
-              disabled={responseType === 0}
-              onClick={() => handleClose()}
-              width={isMobileScreen ? '100%' : ''}
-            />
-          </CancelButton>
-          <CancelButton>
-            <ButtonComponent
-              label="Edit"
+              label="Create"
+              icon="add"
               color="secondary"
               disabled={responseType === 0}
-              onClick={() => onEditClicked()}
+              onClick={() => onCreateClicked()}
               width={isMobileScreen ? '100%' : ''}
             />
-          </CancelButton>
-          <ButtonComponent
-            label="Create"
-            icon="add"
-            color="secondary"
-            disabled={responseType === 0}
-            onClick={() => onCreateClicked()}
-            width={isMobileScreen ? '100%' : ''}
-          />
-        </CancelSaveWrapper>
+          </CancelSaveWrapper>
+        )}
       </DetailsWrap>
     </ComponentError>
   );
@@ -131,6 +144,7 @@ PreviewCertificate.propTypes = {
   onEditClicked: PropTypes.func,
   isMobileScreen: PropTypes.bool,
   responseType: PropTypes.number,
+  isEditCertificate: PropTypes.bool,
 };
 
 PreviewCertificate.defaultProps = {
@@ -143,6 +157,7 @@ PreviewCertificate.defaultProps = {
   onEditClicked: () => {},
   isMobileScreen: false,
   responseType: null,
+  isEditCertificate: false,
 };
 
 export default PreviewCertificate;

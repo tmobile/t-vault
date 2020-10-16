@@ -354,9 +354,11 @@ const CreateModal = () => {
     []
   );
   const onOwnerChange = (e) => {
-    setOwner(e.target.value);
-    if (e.target.value !== '' && e.target.value.length > 2) {
-      callSearchApi(e.target.value);
+    if (e) {
+      setOwner(e.target.value);
+      if (e.target.value !== '' && e.target.value.length > 2) {
+        callSearchApi(e.target.value);
+      }
     }
   };
 

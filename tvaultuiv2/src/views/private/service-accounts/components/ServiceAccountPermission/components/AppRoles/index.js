@@ -217,6 +217,7 @@ const AppRoles = (props) => {
           <AddAppRole
             handleSaveClick={(role, access) => onSubmit(role, access)}
             handleCancelClick={() => onCancelClicked()}
+            isSvcAccount
           />
         )}
         {response.status === 'edit' && (

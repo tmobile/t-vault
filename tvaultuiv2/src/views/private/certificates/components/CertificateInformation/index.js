@@ -59,7 +59,9 @@ const CertificateInformation = (props) => {
       if (typeof certificateMetaData.dnsNames !== 'string') {
         setDnsNames(certificateMetaData.dnsNames);
       } else {
-        setDnsNames([]);
+        const parts = certificateMetaData?.dnsNames.split(/[[\]]{1,2}/);
+        const stringArray = parts[1].split(', ');
+        setDnsNames([...stringArray]);
       }
     }
   }, [certificateMetaData]);

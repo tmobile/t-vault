@@ -20,6 +20,14 @@ const deleteCertificateGroup = (payload) =>
 const getApplicationName = () => api.get('/serviceaccounts/cwm/approles');
 const getOwnerEmail = (corpId) => api.get(`/ldap/corpusers?CorpId=${corpId}`);
 const createCertificate = (payload) => api.post('/sslcert', payload);
+const checkExtCertificateStatus = (name, certType) =>
+  api.get(`/sslcert/checkstatus/${name}/${certType}`);
+const certificateRenew = (certType, name) =>
+  api.post(`/certificates/${certType}/${name}/renew`);
+const getRevokeReason = (id) =>
+  api.get(`/certificates/${id}/revocationreasons`);
+const revokeRequest = (certType, name, payload) =>
+  api.post(`/certificates/${certType}/${name}/revocationrequest`, payload);
 
 export default {
   getAllAdminCertInternal,
@@ -35,4 +43,8 @@ export default {
   getApplicationName,
   getOwnerEmail,
   createCertificate,
+  checkExtCertificateStatus,
+  certificateRenew,
+  getRevokeReason,
+  revokeRequest,
 };

@@ -19,6 +19,7 @@ const ModalWrapper = styled.div`
   width: ${(props) => props.size};
   display: flex;
   flex-direction: column;
+  min-height: 24rem;
 `;
 
 const ButtonWrapper = styled.div`
