@@ -11,7 +11,7 @@ import mediaBreakpoints from '../../../../../../../breakpoints';
 import AddUser from '../../../../../../../components/AddUser';
 import apiService from '../../../../apiService';
 import LoaderSpinner from '../../../../../../../components/Loaders/LoaderSpinner';
-import PermissionsList from '../../../../../../../components/PermissionsList';
+import CertificatePermissionsList from '../../../PermissionList';
 import Strings from '../../../../../../../resources';
 
 const { small, belowLarge } = mediaBreakpoints;
@@ -230,7 +230,7 @@ const Users = (props) => {
           Object.keys(certificateMetaData).length > 0 && (
             <>
               {Object.keys(certificateMetaData.users).length > 1 && (
-                <PermissionsList
+                <CertificatePermissionsList
                   list={certificateMetaData.users}
                   username={username}
                   onEditClick={(key, value) => onEditClick(key, value)}

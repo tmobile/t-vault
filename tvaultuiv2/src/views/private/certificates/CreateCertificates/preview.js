@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import styled from 'styled-components';
 import PropTypes from 'prop-types';
 import ComponentError from '../../../../errorBoundaries/ComponentError/component-error';
@@ -62,6 +62,16 @@ const PreviewCertificate = (props) => {
     responseType,
     isEditCertificate,
   } = props;
+  const [dnsNames, setDnsNames] = useState([]);
+  useEffect(() => {
+    if (dns) {
+      if (typeof dns !== 'string') {
+        setDnsNames(dns);
+      } else {
+        setDnsNames([]);
+      }
+    }
+  }, [dns]);
   return (
     <ComponentError>
       <DetailsWrap>
@@ -79,9 +89,9 @@ const PreviewCertificate = (props) => {
         </EachDetail>
         <EachDetail>
           <Label>DNS:</Label>
-          {dns.length > 0 ? (
+          {dnsNames?.length > 0 ? (
             <>
-              {dns?.map((item) => {
+              {dnsNames?.map((item) => {
                 return <DnsName key={item}>{item}</DnsName>;
               })}
             </>

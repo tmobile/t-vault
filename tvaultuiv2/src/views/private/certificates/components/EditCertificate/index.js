@@ -1,110 +1,25 @@
 /* eslint-disable react/jsx-wrap-multilines */
 /* eslint-disable react/jsx-curly-newline */
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 import Modal from '@material-ui/core/Modal';
-import { Backdrop, Typography } from '@material-ui/core';
+import { Backdrop } from '@material-ui/core';
 import Fade from '@material-ui/core/Fade';
-import styled, { css } from 'styled-components';
+import { css } from 'styled-components';
 import useMediaQuery from '@material-ui/core/useMediaQuery';
 import PropTypes from 'prop-types';
 import ButtonComponent from '../../../../../components/FormFields/ActionButton';
+import ConfirmationModal from '../../../../../components/ConfirmationModal';
 import ComponentError from '../../../../../errorBoundaries/ComponentError/component-error';
-import certIcon from '../../../../../assets/cert-icon.svg';
-import leftArrowIcon from '../../../../../assets/left-arrow.svg';
 import mediaBreakpoints from '../../../../../breakpoints';
 import LoaderSpinner from '../../../../../components/Loaders/LoaderSpinner';
-import PreviewCertificate from '../../CreateCertificates/preview';
+import apiService from '../../apiService';
+import ViewCertificate from './components/ViewCertificate';
+import { getDaysDifference } from '../../../../../services/helper-function';
+import RevokeCertificate from './components/RevokeCertificate';
 
-const { small, belowLarge } = mediaBreakpoints;
+const { small } = mediaBreakpoints;
 
-const ModalWrapper = styled.section`
-  background-color: ${(props) => props.theme.palette.background.modal};
-  padding: 5.5rem 6rem 6rem 6rem;
-  border: none;
-  outline: none;
-  width: 69.6rem;
-  margin: auto 0;
-  display: flex;
-  flex-direction: column;
-  position: relative;
-  ${belowLarge} {
-    padding: 2.7rem 5rem 3.2rem 5rem;
-    width: 57.2rem;
-  }
-  ${small} {
-    width: 100%;
-    padding: 2rem;
-    margin: 0;
-    height: fit-content;
-  }
-`;
-
-const HeaderWrapper = styled.div`
-  display: flex;
-  align-items: center;
-  ${small} {
-    margin-top: 1rem;
-  }
-`;
-
-const LeftIcon = styled.img`
-  display: none;
-  ${small} {
-    display: block;
-    margin-right: 1.4rem;
-    margin-top: 0.3rem;
-  }
-`;
-const IconDescriptionWrapper = styled.div`
-  display: flex;
-  align-items: center;
-  margin-bottom: 1.5rem;
-  position: relative;
-  margin-top: 3.2rem;
-`;
-
-const SafeIcon = styled.img`
-  height: 5.7rem;
-  width: 5rem;
-  margin-right: 2rem;
-`;
-
-const PreviewWrap = styled.div``;
-
-const ContainerOwnerWrap = styled.div`
-  font-size: 1.4rem;
-`;
-
-const Container = styled.div``;
-const Owner = styled.div``;
-const SideLabel = styled.span`
-  color: #8b8ea6;
-  margin-right: 0.3rem;
-`;
-
-const SideValue = styled.span``;
-
-const CancelSaveWrapper = styled.div`
-  display: ${(props) => (props.showPreview ? 'none' : 'flex')};
-  justify-content: flex-end;
-  ${small} {
-    margin-top: 5.3rem;
-  }
-  button {
-    ${small} {
-      height: 4.5rem;
-    }
-  }
-`;
-
-const CancelButton = styled.div`
-  margin-right: 0.8rem;
-  ${small} {
-    margin-right: 1rem;
-    width: 100%;
-  }
-`;
 const loaderStyle = css`
   position: absolute;
   left: 50%;
@@ -112,24 +27,6 @@ const loaderStyle = css`
   transform: translate(-50%, -50%);
   color: red;
   z-index: 1;
-`;
-
-const Label = styled.p`
-  font-size: 1.3rem;
-  color: #8b8ea6;
-  margin-bottom: 0.9rem;
-`;
-
-const Value = styled.p`
-  font-size: 1.8rem;
-  text-transform: capitalize;
-`;
-
-const EachDetail = styled.div`
-  margin-bottom: 3rem;
-  p {
-    margin: 0;
-  }
 `;
 
 const useStyles = makeStyles((theme) => ({
@@ -157,116 +54,312 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 const EditCertificate = (props) => {
-  const { open, ListItemDetails } = props;
+  const { open, certificateData, onCloseModal } = props;
   const classes = useStyles();
-  const [responseType] = useState(null);
+  const [openConfirmationModal, setOpenConfirmationModal] = useState(false);
+  // const [responseTitle, setResponseTitle] = useState('');
+  // const [responseDesc, setResponseDesc] = useState('');
+  const [modalDetail, setModalDetail] = useState({
+    title: '',
+    description: '',
+  });
+  const [loading, setLoading] = useState(true);
+  const [showRevokeRenewBtn, setShowRevokeRenewBtn] = useState(true);
   const isMobileScreen = useMediaQuery(small);
+  const [openRenewConfirmation, setOpenRenewConfirmation] = useState(false);
+  const [actionResponse, setActionResponse] = useState(false);
+  const [revokeModalOpen, setRevokeModalOpen] = useState(false);
+  const [revokeMenu, setRevokeMenu] = useState([]);
+  const [allRevokeReason, setAllRevokeReason] = useState([]);
+
+  const clear = () => {
+    setModalDetail({ title: '', description: '' });
+  };
+
+  const checkCertStatus = () => {
+    apiService
+      .checkExtCertificateStatus(
+        certificateData.certificateName,
+        certificateData.certType
+      )
+      .then((res) => {
+        if (
+          res?.data?.messages &&
+          res.data.messages[0] === 'Certifictae is in Revoked status '
+        ) {
+          setShowRevokeRenewBtn(false);
+        } else {
+          setShowRevokeRenewBtn(true);
+        }
+        setLoading(false);
+        setOpenConfirmationModal(false);
+        clear();
+      })
+      .catch((err) => {
+        if (
+          err?.response?.data?.errors &&
+          err.response.data.errors[0] !==
+            'Certificate is in Revoke Requested status'
+        ) {
+          setLoading(false);
+          setModalDetail({
+            title: 'Certificate Status',
+            description: err.response.data.errors[0],
+          });
+        } else if (
+          err?.response?.data?.errors[0] ===
+          'Certificate is in Revoke Requested status'
+        ) {
+          setShowRevokeRenewBtn(true);
+          setLoading(false);
+          setOpenConfirmationModal(false);
+          clear();
+        }
+      });
+  };
+
+  const onCertRenewClicked = () => {
+    clear();
+    setOpenRenewConfirmation(true);
+    const diff = getDaysDifference(
+      certificateData.createDate,
+      certificateData.expiryDate
+    );
+    const desc = `Certificate expiring in ${diff} Days . Do you want to renew this certificate?`;
+    setModalDetail({
+      title: 'Renew Confirmation',
+      description: desc,
+    });
+  };
+
+  const onRenewConfirmClicked = () => {
+    setLoading(true);
+    setOpenConfirmationModal(true);
+    setOpenRenewConfirmation(false);
+    clear();
+    apiService
+      .certificateRenew(
+        certificateData.certType,
+        certificateData.certificateName
+      )
+      .then((res) => {
+        if (res?.data?.messages && res.data.messages[0]) {
+          setModalDetail({
+            title: 'Successfull',
+            description: res.data.messages[0],
+          });
+        }
+        setLoading(false);
+        setActionResponse(true);
+      })
+      .catch((err) => {
+        if (err?.response?.data?.errors && err.response.data.errors[0]) {
+          setModalDetail({
+            title: 'Error',
+            description: err.response.data.errors[0],
+          });
+        }
+        setLoading(false);
+        setActionResponse(true);
+      });
+  };
+
+  const onCloseRenewConfirmation = () => {
+    setOpenRenewConfirmation(false);
+    clear();
+  };
+
+  useEffect(() => {
+    if (certificateData) {
+      if (
+        certificateData.certificateStatus === 'Revoked' ||
+        !certificateData.certificateStatus
+      ) {
+        setOpenConfirmationModal(true);
+        setLoading(true);
+        checkCertStatus();
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [certificateData]);
+
+  const handleCloseConfirmationModal = () => {
+    if (!loading) {
+      setOpenConfirmationModal(false);
+      onCloseModal();
+    }
+  };
+
+  const backToEdit = () => {
+    setOpenConfirmationModal(false);
+    setActionResponse(false);
+  };
+
+  const getRevokeReasons = () => {
+    apiService
+      .getRevokeReason(certificateData.certificateId)
+      .then((res) => {
+        if (res?.data?.reasons) {
+          setAllRevokeReason([...res.data.reasons]);
+          res.data.reasons.map((item) => {
+            return setRevokeMenu((prev) => [...prev, item.displayName]);
+          });
+          setOpenConfirmationModal(false);
+          setRevokeModalOpen(true);
+          setLoading(false);
+        }
+      })
+      .catch(() => {
+        setRevokeModalOpen(false);
+        setLoading(false);
+        setModalDetail({
+          title: 'Error',
+          description: 'Something went wrong!',
+        });
+        setActionResponse(true);
+      });
+  };
+
+  const onCertRevokeClicked = async () => {
+    clear();
+    setAllRevokeReason([]);
+    setRevokeMenu([]);
+    setLoading(true);
+    setOpenConfirmationModal(true);
+    await getRevokeReasons();
+  };
+
+  const onRevokeConfirm = (data) => {
+    setLoading(true);
+    setRevokeModalOpen(false);
+    setOpenConfirmationModal(true);
+    apiService
+      .revokeRequest(
+        certificateData.certType,
+        certificateData.certificateName,
+        data
+      )
+      .then((res) => {
+        if (res?.data?.messages && res.data.messages[0]) {
+          setModalDetail({
+            title: 'Successfull',
+            description: res.data.messages[0],
+          });
+        }
+        setLoading(false);
+        setActionResponse(true);
+      })
+      .catch((err) => {
+        if (err.response.data.errors && err.response.data.errors[0]) {
+          setModalDetail({
+            title: 'Successfull',
+            description: err.response.data.errors[0],
+          });
+        }
+        setLoading(false);
+        setActionResponse(true);
+      });
+  };
+
+  const handleRevokeModalClose = () => {
+    setRevokeModalOpen(false);
+  };
 
   return (
     <ComponentError>
-      <Modal
-        aria-labelledby="transition-modal-title"
-        aria-describedby="transition-modal-description"
-        className={classes.modal}
-        open={open}
-        onClose={() => {}}
-        closeAfterTransition
-        BackdropComponent={Backdrop}
-        BackdropProps={{
-          timeout: 500,
-        }}
-      >
-        <Fade in={open}>
-          <ModalWrapper>
-            {responseType === 0 && <LoaderSpinner customStyle={loaderStyle} />}
-            <HeaderWrapper>
-              <LeftIcon src={leftArrowIcon} alt="go-back" onClick={() => {}} />
-              <Typography variant="h5">Edit Certificate</Typography>
-            </HeaderWrapper>
-            <IconDescriptionWrapper>
-              <SafeIcon src={certIcon} alt="cert-icon" />
-              <ContainerOwnerWrap>
-                <Container>
-                  <SideLabel>Container:</SideLabel>
-                  <SideValue>{ListItemDetails.containerName}</SideValue>
-                </Container>
-                <Owner>
-                  <SideLabel>Owner Email:</SideLabel>
-                  <SideValue>{ListItemDetails.certOwnerEmailId}</SideValue>
-                </Owner>
-              </ContainerOwnerWrap>
-            </IconDescriptionWrapper>
-            <PreviewWrap>
-              <PreviewCertificate
-                dns={ListItemDetails.dnsNames}
-                certificateType={ListItemDetails.certType}
-                applicationName={ListItemDetails.applicationName}
-                certName={ListItemDetails.certificateName}
-                isEditCertificate
-              />
-              <EachDetail>
-                <Label>Status:</Label>
-                <Value>{ListItemDetails.certificateStatus}</Value>
-              </EachDetail>
-              <EachDetail>
-                <Label>Create Data:</Label>
-                <Value>{ListItemDetails.createDate}</Value>
-              </EachDetail>
-              <EachDetail>
-                <Label>Expiry Date:</Label>
-                <Value>{ListItemDetails.expiryDate}</Value>
-              </EachDetail>
-              <EachDetail>
-                <Label>Signature Algorithm:</Label>
-                <Value>SHA256-RSA</Value>
-              </EachDetail>
-              <EachDetail>
-                <Label>Key Usage:</Label>
-                <Value>digitalSignature, keyEncipherment</Value>
-              </EachDetail>
-              <EachDetail>
-                <Label>Extended Key Usage:</Label>
-                <Value>serverAuth</Value>
-              </EachDetail>
-              <EachDetail>
-                <Label>Enroll Service:</Label>
-                <Value>T-Mobile Issuing CA 01 - SHA2</Value>
-              </EachDetail>
-            </PreviewWrap>
-            <CancelSaveWrapper>
-              <CancelButton>
+      <>
+        {open && (
+          <ConfirmationModal
+            open={openConfirmationModal}
+            handleClose={
+              actionResponse ? backToEdit : handleCloseConfirmationModal
+            }
+            title={modalDetail.title}
+            description={modalDetail.description}
+            confirmButton={
+              !loading ? (
                 <ButtonComponent
-                  label="Cancel"
-                  color="primary"
-                  onClick={() => {}}
-                  width={isMobileScreen ? '100%' : ''}
-                />
-              </CancelButton>
-              <CancelButton>
-                <ButtonComponent
-                  label="Revoke"
+                  label="Close"
                   color="secondary"
-                  onClick={() => {}}
-                  width={isMobileScreen ? '100%' : ''}
+                  onClick={() =>
+                    actionResponse
+                      ? backToEdit()
+                      : handleCloseConfirmationModal()
+                  }
+                  width={isMobileScreen ? '100%' : '38%'}
                 />
-              </CancelButton>
-              <ButtonComponent
-                label="Renew"
-                color="secondary"
-                onClick={() => {}}
-                width={isMobileScreen ? '100%' : ''}
+              ) : (
+                <LoaderSpinner customStyle={loaderStyle} />
+              )
+            }
+          />
+        )}
+        <ConfirmationModal
+          open={openRenewConfirmation}
+          handleClose={onCloseRenewConfirmation}
+          title={modalDetail.title}
+          description={modalDetail.description}
+          cancelButton={
+            <ButtonComponent
+              label="Cancel"
+              color="primary"
+              onClick={() => onCloseRenewConfirmation()}
+              width={isMobileScreen ? '100%' : '38%'}
+            />
+          }
+          confirmButton={
+            <ButtonComponent
+              label="Renew"
+              color="secondary"
+              onClick={() => onRenewConfirmClicked()}
+              width={isMobileScreen ? '100%' : '38%'}
+            />
+          }
+        />
+        {revokeModalOpen && (
+          <RevokeCertificate
+            revokeModalOpen={revokeModalOpen}
+            revokeMenu={revokeMenu}
+            handleRevokeModalClose={handleRevokeModalClose}
+            isMobileScreen={isMobileScreen}
+            onRevokeConfirm={(data) => onRevokeConfirm(data)}
+            allRevokeReason={allRevokeReason}
+          />
+        )}
+        {!openConfirmationModal && !openRenewConfirmation && !revokeModalOpen && (
+          <Modal
+            aria-labelledby="transition-modal-title"
+            aria-describedby="transition-modal-description"
+            className={classes.modal}
+            open={open}
+            onClose={onCloseModal}
+            closeAfterTransition
+            BackdropComponent={Backdrop}
+            BackdropProps={{
+              timeout: 500,
+            }}
+          >
+            <Fade in={open}>
+              <ViewCertificate
+                certificateData={certificateData}
+                onCertRenewClicked={onCertRenewClicked}
+                isMobileScreen={isMobileScreen}
+                showRevokeRenewBtn={showRevokeRenewBtn}
+                onCloseModal={onCloseModal}
+                onCertRevokeClicked={onCertRevokeClicked}
               />
-            </CancelSaveWrapper>
-          </ModalWrapper>
-        </Fade>
-      </Modal>
+            </Fade>
+          </Modal>
+        )}
+      </>
     </ComponentError>
   );
 };
 
 EditCertificate.propTypes = {
-  ListItemDetails: PropTypes.objectOf(PropTypes.any).isRequired,
+  certificateData: PropTypes.objectOf(PropTypes.any).isRequired,
   open: PropTypes.bool.isRequired,
+  onCloseModal: PropTypes.func.isRequired,
 };
 
 export default EditCertificate;

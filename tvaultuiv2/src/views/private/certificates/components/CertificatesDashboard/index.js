@@ -226,6 +226,7 @@ const CertificatesDashboard = () => {
   const [certificateClicked, setCertificateClicked] = useState(false);
   const [ListItemDetails, setListItemDetails] = useState({});
   const [openEditModal, setOpenEditModal] = useState(false);
+  const [certificateData, setCertificateData] = useState({});
   const classes = useStyles();
   const history = useHistory();
   const location = useLocation();
@@ -469,8 +470,14 @@ const CertificatesDashboard = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [inputSearchValue, certificateType]);
 
-  const onEditListItemClicked = () => {
+  const onEditListItemClicked = (item) => {
     setOpenEditModal(true);
+    setCertificateData({ ...item });
+  };
+
+  const onCloseEditModal = () => {
+    setOpenEditModal(false);
+    setCertificateData({});
   };
 
   const renderList = () => {
@@ -513,7 +520,7 @@ const CertificatesDashboard = () => {
           <PopperWrap onClick={(e) => onActionClicked(e)}>
             <EditAndDeletePopup
               onDeletListItemClicked={() => {}}
-              onEditListItemClicked={() => onEditListItemClicked()}
+              onEditListItemClicked={() => onEditListItemClicked(certificate)}
               admin={contextObj.isAdmin}
             />
           </PopperWrap>
@@ -525,10 +532,13 @@ const CertificatesDashboard = () => {
     <ComponentError>
       <>
         <SectionPreview title="certificates-section">
-          <EditCertificate
-            ListItemDetails={ListItemDetails}
-            open={openEditModal}
-          />
+          {openEditModal && (
+            <EditCertificate
+              certificateData={certificateData}
+              open={openEditModal}
+              onCloseModal={() => onCloseEditModal()}
+            />
+          )}
           <LeftColumnSection>
             <ColumnHeader>
               <SelectComponent
