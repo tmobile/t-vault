@@ -620,9 +620,19 @@ script(type='text/ng-template', id='manageSecretId.html')
                         md-content(class="md-padding md-content-wrapper page-content-wrapper md-approle-management" ng-init="displayGrid")
                             .new-container.page-content-container
                                 .md-content-inner-wrapper
-                                    div.svcnotes T-Vault can be used to manage the life cycle of Corporate (CORP) IAM service accounts, including password resets and expiry. In order to self-service your IAM service accounts there is a three-step process to onboard the account into T-Vault. 
-                                      span.svc-collapse-link(ng-click="collapseNote()")
-                                    div.svccollapsible(uib-collapse="isCollapsed")
+                                    div.svcnotes T-Vault can be used to manage to read and rotate the secrets of IAM service accounts. In order to self-service your IAM service accounts there is a three-step process to onboard the account into T-Vault.
+                                      span.svc-collapse-link(ng-click="collapseNoteIAM()") >>
+                                    div.svccollapsible(uib-collapse="isCollapsedIAM")
+                                      div.svcdescription 
+                                      div.svcdescription
+                                        text.weighted Step 1: On-Boarding:
+                                        text This step brings the IAM service account into T-Vault so that the secrets can be read or rotated through T-Vault. This is a one-time operation.
+                                      div.svcdescription
+                                        text.weighted Step 2: Service Account Activation:
+                                        text The IAM service account owner will Activate (rotate) the account password once after on-boarding the account into T-Vault. This process ensures that the secrets in T-Vault and IAM portal are in sync.
+                                      div.svcdescription
+                                        text.weighted Step 3: Granting Permissions:
+                                        text When an IAM service account is activated in T-Vault, the account owner can grant specific permissions to other users and groups allowing others to read and/or rotate the secrets for the IAM service account as well through T-Vault.
                                     div.svcdescription(ng-show="!isLoadingData && iamSvcaccOnboardedData.length>0") The following are list of IAM service accounts managed by T-Vault. You can click View/Edit link to either activate the IAM Service account  or grant permissions for users and groups.
                                     div.data-management-content
                                         .row.change-safe-table-container(ng-if='true')
@@ -633,7 +643,7 @@ script(type='text/ng-template', id='manageSecretId.html')
                                                 .container.name.cell.col-lg-2.col-md-2.col-sm-2.col-xs-2 ACTION     
                                             .change-list-table-data.row
                                                 .unavailable-text(ng-show="!isLoadingData && iamSvcaccOnboardedData.length==0")
-                                                    .container.name No IAM Service Accounts enabled for Password Rotation
+                                                    .container.name No IAM Service Accounts enabled.
                                                 .row.change-data.item(ng-show="!isLoadingData"  ng-class="{'grayBackground' : activeItem == true}" ng-repeat="value in iamSvcaccOnboardedData")
                                                     .container.name.cell.col-lg-4.col-md-4.col-sm-4.col-xs-4(uib-tooltip="{{value.userName}}") {{value.userName}}
                                                     .container.name.cell.col-lg-4.col-md-4.col-sm-4.col-xs-4(uib-tooltip="{{value.accountID}}") {{value.accountID}}
