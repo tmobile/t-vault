@@ -221,6 +221,7 @@ const Groups = (props) => {
           <AddGroup
             handleSaveClick={(group, access) => onSubmit(group, access)}
             handleCancelClick={onCancelClicked}
+            isSvcAccount
           />
         )}
 
