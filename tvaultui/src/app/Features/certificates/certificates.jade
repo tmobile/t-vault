@@ -83,7 +83,7 @@ script(type='text/ng-template', id='downloadPopup.html')
                                         .row.change-svc-table-container
                                             loading-state(ng-if='isLoadingData')
                                             md-content(class="md-padding md-content-wrapper")
-                                                div.certdescription(ng-show="certificatesData.keys.length>0 && finalFilterCertResults.length != '0'") The Following is a list of certificates that you have access to. For more information on how to manage certificates please go #[a(href='https://ccoe.docs.t-mobile.com/t-vault/user-interface/manage_certificates/') here.]
+                                                div.certdescription(ng-show="certificatesData.keys.length>0 && finalFilterCertResults.length != '0'") The Following are list of Certificates that you have access to. For more information on how to manage certificates please go #[a(href='https://ccoe.docs.t-mobile.com/t-vault/user-interface/manage_certificates/') here.]
                                                 .unavailable-text(ng-if="finalFilterCertResults.length == '0'")
                                                     | No Certificates Available
                                                 div.tiles-wrapper.cert-tiles(img="'safe.png'" loading="isLoadingData")
@@ -161,7 +161,7 @@ script(type='text/ng-template', id='downloadPopup.html')
                                         .row.change-svc-table-container
                                             loading-state(ng-if='isLoadingData')
                                             md-content(class="md-padding md-content-wrapper")
-                                                div.certdescription(ng-show="certificatesDataExternal.keys.length>0 && finalFilterExtCertResults.length !='0'") The Following is a list of certificates that you have access to. For more information on how to manage certificates please go #[a(href='https://ccoe.docs.t-mobile.com/t-vault/user-interface/manage_certificates/') here.]
+                                                div.certdescription(ng-show="certificatesDataExternal.keys.length>0 && finalFilterExtCertResults.length !='0'") The Following are list of Certificates that you have access to. For more information on how to manage certificates please go #[a(href='https://ccoe.docs.t-mobile.com/t-vault/user-interface/manage_certificates/') here.]
                                                 .unavailable-text(ng-if="finalFilterExtCertResults.length =='0'")
                                                     | No Certificates Available
                                                 div.tiles-wrapper.cert-tiles(img="'safe.png'" loading="isLoadingData")

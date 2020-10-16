@@ -619,7 +619,7 @@ script(type='text/ng-template', id='manageSecretId.html')
                     md-tab(label="Certificate Management" md-on-select="tabChangeForAdminCert()" )
                         md-content(class="md-padding md-content-wrapper page-content-wrapper md-approle-management" ng-init="displayGrid")
                           .md-content-inner-wrapper
-                              div.certnotes How to get started and what to know:
+                              div.certnotes How to get started and what to know
                                 span.cert-collapse-link(ng-click="collapseNoteCert()") >>
                               div.certcollapsible(uib-collapse="isCollapsedCert")
                                   div.svcdescription
@@ -633,7 +633,7 @@ script(type='text/ng-template', id='manageSecretId.html')
                                   div.svcdescription
                                     text &nbsp;&nbsp;&nbsp;Key usage  : digitalSignature, keyEncipherment.
                                   div.svcdescription
-                                    text &nbsp;&nbsp;&nbsp;Extended key usage : serverAuth for Internal  and ServerAuth, ClientAuth for External certificates
+                                    text &nbsp;&nbsp;&nbsp;Extended key usage : serverAuth for Internal  and serverAuth, clientAuth for External certificates.
                                   div.svcdescription
                                     text.weighted  3 :
                                     text If you need a non-standard certificate please reach out to Cloud Support
@@ -660,7 +660,7 @@ script(type='text/ng-template', id='manageSecretId.html')
                                             .row.change-safe-table-container(ng-if='true')
                                               loading-state(ng-if='isLoadingData'  && 'isLoadingCerts')
                                               .change-list-table-data.row
-                                                  .unavailable-text(ng-show="!isLoadingData && finalFilterCertResults.length==0")
+                                                  .unavailable-text(ng-show="!isLoadingData && certificateData.certificates.length==0")
                                                       .container.name No Certificates Available
                                               .row.change-data.header.solid-header.removeborder(ng-show="!isLoadingData && (certificateData.certificates.length>0 && finalFilterCertResults.length != '0')")
                                                   .container.name.col-lg-3.col-md-2.col-sm-2.col-xs-3 CERTIFICATE
@@ -705,7 +705,7 @@ script(type='text/ng-template', id='manageSecretId.html')
                                             .row.change-safe-table-container(ng-if='true')
                                               loading-state(ng-if='isLoadingData'  && 'isLoadingCerts')
                                               .change-list-table-data.row
-                                                  .unavailable-text(ng-show="!isLoadingData && finalFilterCertResults.length==0")
+                                                  .unavailable-text(ng-show="!isLoadingData && certificateData.certificates.length==0")
                                                       .container.name No Certificates Available                                              
                                               .row.change-data.header.solid-header(ng-show="!isLoadingData && (certificateData.certificates.length>0 && finalFilterCertResults.length != '0')")
                                                   .container.name.col-lg-3.col-md-2.col-sm-2.col-xs-3 CERTIFICATE
