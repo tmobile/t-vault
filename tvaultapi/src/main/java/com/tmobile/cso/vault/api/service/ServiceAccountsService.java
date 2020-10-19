@@ -1945,7 +1945,7 @@ public class  ServiceAccountsService {
 		if (serviceAccountGroup.getAccess().equalsIgnoreCase("reset")) {
 			serviceAccountGroup.setAccess(TVaultConstants.WRITE_POLICY);
 		}
-        String groupName = serviceAccountGroup.getGroupname().toLowerCase();
+        String groupName = serviceAccountGroup.getGroupname();
         String svcAccName = serviceAccountGroup.getSvcAccName();
         String access = serviceAccountGroup.getAccess();
 

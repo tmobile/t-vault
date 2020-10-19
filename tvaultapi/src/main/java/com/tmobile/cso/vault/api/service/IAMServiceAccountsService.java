@@ -149,17 +149,17 @@ public class  IAMServiceAccountsService {
 			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
 					.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
 					.put(LogMessage.ACTION, IAMServiceAccountConstants.IAM_SVCACC_CREATION_TITLE)
-					.put(LogMessage.MESSAGE, "Successfully created Metadata for the IAM Service Account")
+					.put(LogMessage.MESSAGE, String.format("Successfully created Metadata for the IAM Service Account [%s]", iamSvccAccMetaPath))
 					.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
 		} else {
 			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
 					.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
 					.put(LogMessage.ACTION, IAMServiceAccountConstants.IAM_SVCACC_CREATION_TITLE)
 					.put(LogMessage.MESSAGE,
-							"Successfully created Service Account. However creation of Metadata failed.")
+							String.format("Creating metadata for IAM Service Account [%s] failed."))
 					.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
 			return ResponseEntity.status(HttpStatus.MULTI_STATUS).body(
-					"{\"errors\":[\"Successfully created IAM Service Account. However creation of Metadata failed.\"]}");
+					"{\"errors\":[\"Metadata creation failed for IAM Service Account.\"]}");
 		}
 
 		// Create policies
@@ -734,7 +734,7 @@ public class  IAMServiceAccountsService {
 		}
 		if (!isIamSvcaccPermissionInputValid(iamServiceAccountGroup.getAccess())) {
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-					.body("{\"errors\":[\"Invalid value specified for access. Valid values are read, rotate, deny\"]}");
+					.body("{\"errors\":[\"Invalid value specified for access. Valid permission values are read, rotate, deny\"]}");
 		}
 		if (iamServiceAccountGroup.getAccess().equalsIgnoreCase(IAMServiceAccountConstants.IAM_ROTATE_MSG_STRING)) {
 			iamServiceAccountGroup.setAccess(TVaultConstants.WRITE_POLICY);
