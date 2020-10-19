@@ -23,24 +23,28 @@ import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
 import javax.validation.constraints.Size;
 
+import org.hibernate.validator.constraints.NotBlank;
+
 import java.io.Serializable;
 
 public class IAMServiceAccountGroup implements Serializable {
 
 	private static final long serialVersionUID = 7345425327330378618L;
 
-	@NotNull
+	@NotBlank
 	@Size(min = 11, max = 30, message = "UserName specified should be minimum 11 chanracters and maximum 30 characters only")
 	@Pattern(regexp = "^[a-zA-Z0-9_-]+$", message = "Name can have alphabets, numbers, _ and - characters only")
 	private String iamSvcAccName;
 
-	@NotNull
+	@NotBlank
+	@Size(min = 1, message = "Group name can not be null or empty")
 	private String groupname;
 
-	@NotNull
+	@NotBlank
+	@Size(min = 1, message = "Access can not be null or empty")
 	private String access;
 
-	@NotNull
+	@NotBlank
 	@Pattern(regexp = "^$|^[0-9]+$", message = "Invalid AWS account id")
 	private String awsAccountId;
 
