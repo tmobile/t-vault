@@ -3,6 +3,7 @@ import React from 'react';
 import { withStyles } from '@material-ui/core/styles';
 import Button from '@material-ui/core/Button';
 import Icon from '@material-ui/core/Icon';
+import { Link } from 'react-router-dom';
 import PropTypes from 'prop-types';
 import theme from '../../../theme';
 
@@ -32,7 +33,12 @@ const setIcon = (props) => {
 
 const ButtonComponent = (props) => {
   const { icon, classes, label, onClick, size, disabled, color, href } = props;
-
+  const linkProps = href
+    ? {
+        component: Link,
+        to: href,
+      }
+    : '';
   return (
     <Button
       classes={classes}
@@ -41,7 +47,8 @@ const ButtonComponent = (props) => {
       disabled={disabled || false}
       onClick={onClick}
       color={color}
-      href={href}
+      // href={href}
+      {...linkProps}
     >
       {icon && setIcon({ ...props })}
       {label}
