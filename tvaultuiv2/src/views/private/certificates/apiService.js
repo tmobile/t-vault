@@ -7,11 +7,13 @@ const getInternalCertificates = () =>
   api.get('/sslcert?certificateName=&certType=internal');
 const getExternalCertificates = () =>
   api.get('/sslcert?certificateName=&certType=external');
+const deleteCertificate = (name, certType) =>
+  api.delete(`/certificates/${name}/${certType}`);
 
 const getCertificateDetail = (url) => api.get(url);
 
 const addCertificateUser = (payload) => api.post('/sslcert/user', payload);
-const deleteCertificate = (payload) => api.delete('/sslcert/user', payload);
+const deleteCertificateUser = (payload) => api.delete('/sslcert/user', payload);
 
 const addCertificateGroup = (payload) => api.post('/sslcert/group', payload);
 const deleteCertificateGroup = (payload) =>
@@ -40,9 +42,10 @@ export default {
   getAllNonAdminCertExternal,
   getInternalCertificates,
   getExternalCertificates,
+  deleteCertificate,
   getCertificateDetail,
   addCertificateUser,
-  deleteCertificate,
+  deleteCertificateUser,
   addCertificateGroup,
   deleteCertificateGroup,
   getApplicationName,

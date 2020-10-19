@@ -1,3 +1,4 @@
+/* eslint-disable react/jsx-curly-newline */
 /* eslint-disable react/jsx-wrap-multilines */
 import React, { useState, useEffect, useCallback, useContext } from 'react';
 import styled, { css } from 'styled-components';
@@ -31,6 +32,7 @@ import CertificateListItem from '../CertificateListItem';
 import EditAndDeletePopup from '../../../../../components/EditAndDeletePopup';
 import EditCertificate from '../EditCertificate';
 import TransferCertificate from '../TransferCertificateOwner';
+import DeletionConfirmationModal from './components/DeletionConfirmationModal';
 
 const ColumnSection = styled('section')`
   position: relative;
@@ -229,6 +231,13 @@ const CertificatesDashboard = () => {
   const [openEditModal, setOpenEditModal] = useState(false);
   const [certificateData, setCertificateData] = useState({});
   const [openTransferModal, setOpenTransferModal] = useState(false);
+  const [openDeleteConfirmation, setOpenDeleteConfirmation] = useState(false);
+  const [deleteResponse, setDeleteResponse] = useState(false);
+  const [deleteError, setDeleteError] = useState(false);
+  const [deleteModalDetail, setDeleteModalDetail] = useState({
+    title: '',
+    description: '',
+  });
   const classes = useStyles();
   const history = useHistory();
   const location = useLocation();
@@ -412,9 +421,10 @@ const CertificatesDashboard = () => {
         setListItemDetails({ ...obj });
       } else {
         setListItemDetails(allCertList[0]);
+        history.push(`/certificates/${allCertList[0].certificateName}`);
       }
     }
-  }, [allCertList, location]);
+  }, [allCertList, location, history]);
 
   /**
    * @function onSelectChange
@@ -474,16 +484,27 @@ const CertificatesDashboard = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [inputSearchValue, certificateType]);
 
+  /**
+   * @function onEditListItemClicked
+   * @description function to open the edit modal.
+   * @param {object} item certificate which is clicked.
+   */
   const onEditListItemClicked = (item) => {
     setOpenEditModal(true);
     setCertificateData({ ...item });
   };
 
-  const onCloseEditTransferModal = (editActionPerform) => {
+  /**
+   * @function onCloseAllModal
+   * @description function to close all modal and make api call to fetch certificate, when edit or
+   * transfer or delete certificate happen.
+   * @param {bool} actionPerform true/false based on the success event of corresponding action.
+   */
+  const onCloseAllModal = (actionPerform) => {
     setOpenEditModal(false);
     setOpenTransferModal(false);
     setCertificateData({});
-    if (editActionPerform) {
+    if (actionPerform) {
       setResponse({ status: 'loading' });
       if (contextObj.isAdmin) {
         fetchAdminData();
@@ -493,9 +514,79 @@ const CertificatesDashboard = () => {
     }
   };
 
+  /**
+   * @function onTransferOwnerClicked
+   * @description function to open the transfer owner
+   * @param {object} data .
+   */
   const onTransferOwnerClicked = (data) => {
     setOpenTransferModal(true);
     setCertificateData(data);
+  };
+
+  /**
+   * @function onDeleteCertificateClicked
+   * @description function to open the delete modal.
+   * @param {object} data .
+   */
+  const onDeleteCertificateClicked = (data) => {
+    setCertificateData(data);
+    setOpenDeleteConfirmation(true);
+    setDeleteModalDetail({
+      title: 'Confirmation',
+      description: 'Are you sure you want to delete this certificate?',
+    });
+  };
+
+  /**
+   * @function handleDeleteConfirmationModalClose
+   * @description function to close the delete modal and if
+   * deletion completed successfully the call the api to fetch all certificates.
+   */
+  const handleDeleteConfirmationModalClose = () => {
+    setDeleteResponse(false);
+    setOpenDeleteConfirmation(false);
+    if (!deleteError) {
+      onCloseAllModal(true);
+    }
+  };
+
+  /**
+   * @function onCertificateDeleteConfirm
+   * @description function to perform the delete of certificate.
+   */
+  const onCertificateDeleteConfirm = () => {
+    setResponse({ status: 'loading' });
+    setOpenDeleteConfirmation(false);
+    apiService
+      .deleteCertificate(
+        certificateData.certificateName,
+        `${certificateData.certType}`
+      )
+      .then((res) => {
+        if (res?.data?.messages && res.data.messages[0]) {
+          setDeleteModalDetail({
+            title: 'Successfull',
+            description: res.data.messages[0],
+          });
+        }
+        setOpenDeleteConfirmation(true);
+        setResponse({ status: 'success' });
+        setDeleteError(false);
+        setDeleteResponse(true);
+      })
+      .catch((err) => {
+        if (err?.response?.data?.errors && err.response.data.errors[0]) {
+          setDeleteModalDetail({
+            title: 'Error',
+            description: err.response.data.errors[0],
+          });
+        }
+        setDeleteError(true);
+        setOpenDeleteConfirmation(true);
+        setResponse({ status: 'success' });
+        setDeleteResponse(true);
+      });
   };
 
   const renderList = () => {
@@ -537,7 +628,9 @@ const CertificatesDashboard = () => {
         {certificate.applicationName && !isMobileScreen ? (
           <PopperWrap onClick={(e) => onActionClicked(e)}>
             <EditAndDeletePopup
-              onDeletListItemClicked={() => {}}
+              onDeletListItemClicked={() =>
+                onDeleteCertificateClicked(certificate)
+              }
               onEditListItemClicked={() => onEditListItemClicked(certificate)}
               admin={contextObj.isAdmin}
               onTransferOwnerClicked={() => onTransferOwnerClicked(certificate)}
@@ -555,14 +648,25 @@ const CertificatesDashboard = () => {
             <EditCertificate
               certificateData={certificateData}
               open={openEditModal}
-              onCloseModal={(action) => onCloseEditTransferModal(action)}
+              onCloseModal={(action) => onCloseAllModal(action)}
             />
           )}
           {openTransferModal && (
             <TransferCertificate
               certificateData={certificateData}
               open={openTransferModal}
-              onCloseModal={(action) => onCloseEditTransferModal(action)}
+              onCloseModal={(action) => onCloseAllModal(action)}
+            />
+          )}
+          {openDeleteConfirmation && (
+            <DeletionConfirmationModal
+              openDeleteConfirmation={openDeleteConfirmation}
+              handleDeleteConfirmationModalClose={
+                handleDeleteConfirmationModalClose
+              }
+              onCertificateDeleteConfirm={onCertificateDeleteConfirm}
+              deleteResponse={deleteResponse}
+              deleteModalDetail={deleteModalDetail}
             />
           )}
           <LeftColumnSection>
@@ -704,7 +808,5 @@ const CertificatesDashboard = () => {
     </ComponentError>
   );
 };
-CertificatesDashboard.propTypes = {};
-CertificatesDashboard.defaultProps = {};
 
 export default CertificatesDashboard;
