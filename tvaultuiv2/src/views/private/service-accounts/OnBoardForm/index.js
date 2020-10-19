@@ -339,14 +339,12 @@ const OnBoardForm = () => {
     const fetchServiceAccountDetails = await apiService.fetchServiceAccountDetails(
       name
     );
-    const sslCertification = await apiService.sslCertification('');
     const callServiceAccount = await apiService.callServiceAccount(name);
     const updateMetaPath = await apiService.updateMetaPath(name);
     const allApiResponse = Promise.all([
       fetchServiceAccountDetails,
       callServiceAccount,
       updateMetaPath,
-      sslCertification,
     ]);
     allApiResponse
       .then((res) => {

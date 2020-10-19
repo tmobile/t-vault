@@ -3,6 +3,8 @@
 import React, { useState } from 'react';
 import styled, { css } from 'styled-components';
 import { CopyToClipboard } from 'react-copy-to-clipboard';
+import { makeStyles } from '@material-ui/core/styles';
+import Checkbox from '@material-ui/core/Checkbox';
 import PropTypes from 'prop-types';
 // import VisibilityIcon from '@material-ui/icons/Visibility';
 // import VisibilityOffIcon from '@material-ui/icons/VisibilityOff';
@@ -18,7 +20,6 @@ import ConfirmationModal from '../../../../../components/ConfirmationModal';
 import {
   PopperItem,
   BackgroundColor,
-  Color,
 } from '../../../../../styles/GlobalStyles';
 import PopperElement from '../../../../../components/Popper';
 
@@ -27,7 +28,9 @@ const SecretsList = styled.div`
   justify-content: space-between;
   align-items: center;
   background-color: ${BackgroundColor.listBg};
-  padding: 1.2rem 0;
+  padding: 1.2rem 0 0;
+  height: calc(100% - 3.8rem);
+  overflow: auto;
   border-bottom: 1px solid #323649;
 `;
 
@@ -74,14 +77,21 @@ const SecretIdWrap = styled.div`
     background: ${BackgroundColor.secretHoverBg};
   }
 `;
-
+const checkBoxStyles = makeStyles((theme) => ({
+  root: {
+    color: theme.customColor.checkbox.color,
+    '&$checked': {},
+  },
+  checked: {},
+}));
 const AppRoleSecrets = (props) => {
   const { secretIds, deleteSecretIds } = props;
   const [deleteSecretId, setDeleteSecretId] = useState(false);
   const [status, setStatus] = useState(null);
   const [openConfirmationModal, setOpenConfirmationModal] = useState(false);
+  const [checkedSecretIds, setCheckedSecretIds] = useState([]);
   const isMobileScreen = useMediaQuery(mediaBreakpoints.small);
-
+  const checkBoxClasses = checkBoxStyles();
   /**
    * @function handleClose
    * @description function to handle opening and closing of confirmation modal.
@@ -111,6 +121,23 @@ const AppRoleSecrets = (props) => {
   const onDeleteSecretId = (secretId) => {
     setOpenConfirmationModal(true);
     setDeleteSecretId(secretId);
+  };
+
+  /**
+   * @function handleSecretCheckbox
+   * @param secretId id of secret to check
+   */
+
+  const handleSecretCheckbox = (secretId) => {
+    const tempChecks = [...checkedSecretIds];
+    const indexOfSecretToCheck = tempChecks.indexOf(secretId);
+    if (tempChecks?.includes(secretId)) {
+      tempChecks.splice(indexOfSecretToCheck, 1);
+      setCheckedSecretIds([...tempChecks]);
+      return;
+    }
+    tempChecks.push(secretId);
+    setCheckedSecretIds([...tempChecks]);
   };
   return (
     <ComponentError>
@@ -145,6 +172,13 @@ const AppRoleSecrets = (props) => {
             <SecretIdWrap key={secretId}>
               <Secret>
                 {' '}
+                <Checkbox
+                  checked={checkedSecretIds?.includes(secretId)}
+                  color="secondary"
+                  classes={checkBoxClasses}
+                  inputProps={{ 'aria-label': 'secondary checkbox' }}
+                  onChange={() => handleSecretCheckbox(secretId)}
+                />
                 <Icon src={lock} alt="lock" />
                 <span>{secretId}</span>
               </Secret>

@@ -1,23 +1,25 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { debounce } from 'lodash';
+import React, { useState, useEffect, useCallback, useReducer } from 'react';
+import PropTypes from 'prop-types';
 import { makeStyles } from '@material-ui/core/styles';
 import { useHistory } from 'react-router-dom';
 import Modal from '@material-ui/core/Modal';
 import { Backdrop, Typography, InputLabel } from '@material-ui/core';
+import Tooltip from '@material-ui/core/Tooltip';
+
 import Fade from '@material-ui/core/Fade';
 import styled, { css } from 'styled-components';
 import useMediaQuery from '@material-ui/core/useMediaQuery';
 import TextFieldComponent from '../../../../components/FormFields/TextField';
 import ButtonComponent from '../../../../components/FormFields/ActionButton';
-import SelectComponent from '../../../../components/FormFields/SelectFields';
+// import SelectComponent from '../../../../components/FormFields/SelectFields';
+import infoIcon from '../../../../assets/info.svg';
 import ComponentError from '../../../../errorBoundaries/ComponentError/component-error';
-import ApproleIcon from '../../../../assets/icon_safe.svg';
+import ApproleIcon from '../../../../assets/icon-approle.svg';
 import leftArrowIcon from '../../../../assets/left-arrow.svg';
 import mediaBreakpoints from '../../../../breakpoints';
 import SnackbarComponent from '../../../../components/Snackbar';
-import AutoCompleteComponent from '../../../../components/FormFields/AutoComplete';
+// import AutoCompleteComponent from '../../../../components/FormFields/AutoComplete';
 import LoaderSpinner from '../../../../components/Loaders/LoaderSpinner';
-import { validateEmail } from '../../../../services/helper-function';
 import apiService from '../apiService';
 import { TitleThree } from '../../../../styles/GlobalStyles';
 
@@ -96,13 +98,6 @@ const InputFieldLabelWrapper = styled.div`
   }
 `;
 
-const FieldInstruction = styled.p`
-  color: #8b8ea6;
-  font-size: 1.3rem;
-  margin-top: 1.2rem;
-  margin-bottom: 0.5rem;
-`;
-
 const CancelSaveWrapper = styled.div`
   display: flex;
   justify-content: flex-end;
@@ -133,12 +128,12 @@ const loaderStyle = css`
   z-index: 1;
 `;
 
-const autoLoaderStyle = css`
-  position: absolute;
-  top: 3rem;
-  right: 1rem;
-  color: red;
+const InputLabelWrap = styled.div`
+  display: flex;
+  justify-content: space-between;
 `;
+
+const InfoIcon = styled('img')``;
 
 const useStyles = makeStyles((theme) => ({
   select: {
@@ -162,133 +157,171 @@ const useStyles = makeStyles((theme) => ({
       height: '100%',
     },
   },
+  arrow: {
+    color: theme.palette.common.white,
+  },
+  tooltip: {
+    backgroundColor: theme.palette.common.white,
+    color: theme.palette.common.black,
+    fontSize: theme.typography.subtitle2.fontSize,
+  },
 }));
 
 const CreateAppRole = () => {
   const classes = useStyles();
   const [open, setOpen] = useState(true);
-  const [safeType, setSafeType] = useState('Users Safe');
-  const [owner, setOwner] = useState('');
-  const [name, setName] = useState('');
-  const [description, setDescription] = useState('');
-  const [disabledSave, setDisabledSave] = useState(true);
+  const [disabledSave, setDisabledSave] = useState(false);
   const [responseType, setResponseType] = useState(null);
-  const [toastMessage, setToastMessage] = useState('');
-  const [autoLoader, setAutoLoader] = useState(false);
-  const [options, setOptions] = useState([]);
   const isMobileScreen = useMediaQuery(small);
-  const [helperText] = useState('');
-  const [emailError, setEmailError] = useState(false);
-  const [safeError, setSafeError] = useState(false);
-  const [editSafe, setEditSafe] = useState(false);
-  const [safeDetails, setSafeDetails] = useState({});
-  const [isValidEmail, setIsValidEmail] = useState(true);
+  const [appRoleError, setApproleError] = useState(false);
+  const [editApprole, setEditApprole] = useState(false);
+  const [allAppRoles, setAllAppRoles] = useState([]);
+  const [status, setStatus] = useState({});
   const history = useHistory();
 
-  useEffect(() => {
-    if (owner?.length > 2) {
-      if (!autoLoader) {
-        if (options.length === 0 || !options.includes(owner)) {
-          setIsValidEmail(false);
-        } else {
-          setIsValidEmail(true);
-        }
-      }
-    }
-  }, [owner, autoLoader, options]);
+  const initialState = {
+    roleName: '',
+    maxTokenTtl: '',
+    tokenTtl: '',
+    sectetIdNumUses: '',
+    tokenNumUses: '',
+    secretIdTtl: '',
+  };
+  const reducer = (state, { field, type, value, payload }) => {
+    switch (type) {
+      case 'INPUT_FORM_FIELDS':
+        return { ...state, [field]: value };
 
-  useEffect(() => {
-    if (
-      name === '' ||
-      owner === '' ||
-      description.length < 10 ||
-      safeError ||
-      emailError ||
-      !isValidEmail ||
-      (safeDetails.owner === owner && safeDetails.description === description)
-    ) {
-      setDisabledSave(true);
-    } else {
-      setDisabledSave(false);
-    }
-  }, [
-    name,
-    description,
-    owner,
-    safeError,
-    emailError,
-    editSafe,
-    safeDetails,
-    isValidEmail,
-  ]);
+      case 'UPDATE_FORM_FIELDS':
+        return { ...state, ...payload };
 
-  const [menu] = useState(['All Approles']);
+      default:
+        break;
+    }
+  };
+  const [state, dispatch] = useReducer(reducer, initialState);
+
+  const onChange = (e) => {
+    // setInputServiceName(name);
+    dispatch({
+      type: 'INPUT_FORM_FIELDS',
+      field: e?.target?.name,
+      value: e?.target?.value,
+    });
+  };
+  const {
+    roleName,
+    maxTokenTtl,
+    tokenTtl,
+    sectetIdNumUses,
+    tokenNumUses,
+    secretIdTtl,
+  } = state;
+
+  useEffect(() => {}, []);
 
   const handleClose = () => {
     setOpen(false);
     history.goBack();
   };
 
+  /**
+   * @function validateRoleName
+   * @description To check the existing rolenames
+   * @param {*} e event of input handler
+   */
+
+  const validateRoleName = (name) => {
+    if (allAppRoles?.includes(name)) {
+      setApproleError(true);
+    }
+  };
+
+  const onRoleNameChange = (e) => {
+    setApproleError(false);
+    validateRoleName(e.target.value);
+    onChange(e);
+  };
+  console.log(
+    'roleName',
+    roleName,
+    maxTokenTtl,
+    tokenTtl,
+    sectetIdNumUses,
+    tokenNumUses,
+    secretIdTtl
+  );
   useEffect(() => {
     if (
-      history.location.pathname === '/safe/edit-safe' &&
-      history.location.state
+      history.location.pathname === '/vault-app-roles/edit-vault-app-role' &&
+      history.location.state.appRoleDetails.isEdit
     ) {
-      setEditSafe(true);
-      setResponseType(0);
+      setEditApprole(true);
+      setAllAppRoles([...history.location.state.appRoleDetails.allAppRoles]);
       apiService
-        .getSafeDetails(history.location.state.safe.path)
+        .fetchAppRoleDetails(history.location.state.appRoleDetails.name)
         .then((res) => {
           setResponseType(null);
           if (res?.data?.data) {
-            setSafeDetails(res.data.data);
-            setName(res.data.data.name);
-            setDescription(res.data.data.description);
-            setOwner(res.data.data.owner);
-            if (res.data.data.type === 'users') {
-              setSafeType('Users Safe');
-            } else if (res.data.data.type === 'apps') {
-              setSafeType('Application Safe');
-            } else {
-              setSafeType('Shared Safe');
-            }
+            // setSafeDetails(res.data.data);
+            // setName(res.data.data.name);
+            // setDescription(res.data.data.description);
+            // setOwner(res.data.data.owner);
+
+            dispatch({
+              type: 'UPDATE_FORM_FIELDS',
+              payload: {
+                roleName,
+                maxTokenTtl,
+                tokenTtl,
+                sectetIdNumUses,
+                tokenNumUses,
+                secretIdTtl,
+              },
+            });
           }
         })
         .catch((err) => {
           if (err.response && err.response.data?.errors[0]) {
-            setToastMessage(err.response.data.errors[0]);
+            setStatus({ message: err.response.data.errors[0] });
           }
           setResponseType(-1);
         });
     }
-  }, [history]);
+  }, [
+    history,
+    roleName,
+    maxTokenTtl,
+    tokenTtl,
+    sectetIdNumUses,
+    tokenNumUses,
+    secretIdTtl,
+  ]);
 
   const constructPayload = () => {
-    let value = safeType.split(' ')[0].toLowerCase();
-    if (value === 'application') {
-      value = 'apps';
-    }
     const data = {
-      data: {
-        name,
-        description,
-        type: '',
-        owner,
-      },
-      path: `${value}/${name}`,
+      bind_secret_id: true,
+      policies: [],
+      role_name: roleName,
+      secret_id_num_uses: sectetIdNumUses,
+      secret_id_ttl: secretIdTtl,
+      token_max_ttl: maxTokenTtl,
+      token_num_uses: tokenNumUses,
+      token_ttl: tokenTtl,
     };
+
     return data;
   };
 
-  const onEditSafes = () => {
+  const onEditApprole = () => {
     const payload = constructPayload();
     setResponseType(0);
     apiService
-      .editSafe(payload)
+      .updateAppRole(payload)
       .then((res) => {
         if (res && res.status === 200) {
           setResponseType(1);
-          setToastMessage(`Safe ${name} updated successfully!`);
+          setStatus({ status: 'success', message: res.data.messages[0] });
           setTimeout(() => {
             setOpen(false);
             history.goBack();
@@ -297,21 +330,23 @@ const CreateAppRole = () => {
       })
       .catch((err) => {
         if (err.response && err.response.data?.errors[0]) {
-          setToastMessage(err.response.data.errors[0]);
+          setStatus({ status: 'failed', message: err.response.data.errors[0] });
         }
         setResponseType(-1);
       });
   };
 
-  const onCreateSafes = () => {
+  const onCreateApprole = () => {
     const payload = constructPayload();
     setDisabledSave(true);
     setResponseType(0);
     apiService
-      .createSafe(payload)
+      .createAppRole(payload)
       .then((res) => {
+        console.log('res approle', res);
         if (res && res.status === 200) {
           setResponseType(1);
+          setStatus({ status: 'success', message: res.data.messages[0] });
           setTimeout(() => {
             setOpen(false);
             history.goBack();
@@ -320,49 +355,12 @@ const CreateAppRole = () => {
       })
       .catch((err) => {
         if (err.response && err.response.data?.errors[0]) {
-          setToastMessage(err.response.data.errors[0]);
+          setStatus({ status: 'failed', message: err.response.data.errors[0] });
         }
         setResponseType(-1);
       });
   };
 
-  const callSearchApi = useCallback(
-    debounce(
-      (value) => {
-        setAutoLoader(true);
-        apiService
-          .getOwnerEmail(value)
-          .then((res) => {
-            setOptions([]);
-            const array = [];
-            setAutoLoader(false);
-            if (res?.data?.data?.values?.length > 0) {
-              res.data.data.values.map((item) => {
-                if (item.userEmail) {
-                  return array.push(item.userEmail);
-                }
-                return null;
-              });
-              setOptions([...array]);
-            }
-          })
-          .catch(() => setAutoLoader(false));
-      },
-      1000,
-      true
-    ),
-    []
-  );
-  const onOwnerChange = (e) => {
-    setOwner(e.target.value);
-    if (e.target.value !== '' && e.target.value.length > 2) {
-      callSearchApi(e.target.value);
-    }
-  };
-
-  const onSelected = (e, val) => {
-    setOwner(val);
-  };
   const onToastClose = (reason) => {
     if (reason === 'clickaway') {
       return;
@@ -370,23 +368,19 @@ const CreateAppRole = () => {
     setResponseType(null);
   };
 
-  const onInputBlur = (e) => {
-    if (e.target.name === 'name') {
-      if (name.length < 3) {
-        setSafeError(true);
-      } else {
-        setSafeError(false);
-      }
-    }
-    if (e.target.name === 'owner') {
-      if (validateEmail(owner)) {
-        setEmailError(false);
-      } else {
-        setEmailError(true);
-      }
-    }
-  };
+  const onInputBlur = (e) => {};
 
+  const getDisabledState = () => {
+    return (
+      !roleName ||
+      !maxTokenTtl ||
+      !tokenTtl ||
+      !sectetIdNumUses ||
+      !tokenNumUses ||
+      !secretIdTtl ||
+      appRoleError
+    );
+  };
   return (
     <ComponentError>
       <Modal
@@ -413,7 +407,7 @@ const CreateAppRole = () => {
               <Typography variant="h5">Create AppRole</Typography>
             </HeaderWrapper>
             <IconDescriptionWrapper>
-              <SafeIcon src={ApproleIcon} alt="safe-icon" />
+              <SafeIcon src={ApproleIcon} alt="app-role-icon" />
               <TitleThree lineHeight="1.8rem" extraCss={extraCss} color="#ccc">
                 Approles’s operate a lot like safes, but they put the aplication
                 at the logical unit for sharing.
@@ -421,119 +415,163 @@ const CreateAppRole = () => {
             </IconDescriptionWrapper>
             <CreateSafeForm>
               <InputFieldLabelWrapper>
-                <InputLabel required>Role Name</InputLabel>
+                <InputLabelWrap>
+                  <InputLabel required>Role Name</InputLabel>
+                  <Tooltip
+                    classes={classes}
+                    title="Duration in seconds after which
+ the issued token can no longer
+be renewed "
+                    placement="top"
+                    arrow
+                  >
+                    <div>
+                      <InfoIcon src={infoIcon} alt="info-icon-role-name" />
+                    </div>
+                  </Tooltip>
+                </InputLabelWrap>
                 <TextFieldComponent
-                  value={name}
-                  placeholder="Save Name"
+                  value={roleName}
+                  placeholder="Role_name"
                   fullWidth
-                  readOnly={!!editSafe}
-                  name="name"
-                  onChange={(e) => {
-                    setName(e.target.value);
-                    setSafeError(false);
-                  }}
-                  error={safeError}
+                  name="roleName"
+                  onChange={(e) => onRoleNameChange(e)}
+                  error={appRoleError}
                   helperText={
-                    safeError ? 'Please enter minimum 3 characters' : ''
+                    appRoleError ? 'Please enter minimum 3 characters' : ''
                   }
                   onInputBlur={(e) => onInputBlur(e)}
                 />
               </InputFieldLabelWrapper>
               <InputFieldLabelWrapper postion>
-                <InputLabel required>Token Max TTL</InputLabel>
-                <AutoCompleteComponent
-                  options={options}
-                  classes={classes}
-                  searchValue={owner}
-                  name="owner"
-                  onSelected={(e, val) => onSelected(e, val)}
-                  onChange={(e) => onOwnerChange(e)}
-                  placeholder="Email address- Enter min 3 characters"
-                  error={
-                    emailError || (!isValidEmail && safeDetails.owner !== owner)
-                  }
-                  onInputBlur={(e) => onInputBlur(e)}
-                  helperText={
-                    (!isValidEmail && safeDetails.owner !== owner) || emailError
-                      ? 'Please enter a valid email address or not available!'
-                      : ''
-                  }
-                />
-                {autoLoader && <LoaderSpinner customStyle={autoLoaderStyle} />}
-              </InputFieldLabelWrapper>
-              <InputFieldLabelWrapper>
-                <InputLabel required>Token TTL</InputLabel>
+                <InputLabelWrap>
+                  <InputLabel required>Token Max TTL</InputLabel>
+                  <Tooltip
+                    classes={classes}
+                    arrow
+                    title="Duration in seconds after which the issued token can no longer be renewed"
+                    placement="top"
+                  >
+                    <div>
+                      <InfoIcon src={infoIcon} alt="info-icon" />
+                    </div>
+                  </Tooltip>
+                </InputLabelWrap>
                 <TextFieldComponent
-                  value={name}
-                  placeholder="Save Name"
+                  value={maxTokenTtl}
+                  placeholder="Token Max TTL"
                   fullWidth
-                  readOnly={!!editSafe}
-                  name="name"
-                  onChange={(e) => {
-                    setName(e.target.value);
-                    setSafeError(false);
-                  }}
-                  error={safeError}
+                  readOnly={!!editApprole}
+                  name="maxTokenTtl"
+                  onChange={(e) => onChange(e)}
+                  // error={appRoleError}
                   helperText={
-                    safeError ? 'Please enter minimum 3 characters' : ''
+                    appRoleError ? 'Please enter minimum 3 characters' : ''
                   }
                   onInputBlur={(e) => onInputBlur(e)}
                 />
               </InputFieldLabelWrapper>
               <InputFieldLabelWrapper>
-                <InputLabel required>Sec ID Number Uses</InputLabel>
+                <InputLabelWrap>
+                  {' '}
+                  <InputLabel required>Token TTL</InputLabel>
+                  <Tooltip
+                    classes={classes}
+                    arrow
+                    title="Duration in seconds after which the issued token can no longer be renewed"
+                    placement="top"
+                  >
+                    <div>
+                      <InfoIcon src={infoIcon} alt="info-icon-token" />
+                    </div>
+                  </Tooltip>
+                </InputLabelWrap>
                 <TextFieldComponent
-                  value={name}
-                  placeholder="Save Name"
+                  value={tokenTtl}
+                  placeholder="Token_TTL"
                   fullWidth
-                  readOnly={!!editSafe}
-                  name="name"
-                  onChange={(e) => {
-                    setName(e.target.value);
-                    setSafeError(false);
-                  }}
-                  error={safeError}
+                  readOnly={!!editApprole}
+                  name="tokenTtl"
+                  onChange={(e) => onChange(e)}
+                  // error={appRoleError}
                   helperText={
-                    safeError ? 'Please enter minimum 3 characters' : ''
+                    appRoleError ? 'Please enter minimum 3 characters' : ''
                   }
                   onInputBlur={(e) => onInputBlur(e)}
                 />
               </InputFieldLabelWrapper>
               <InputFieldLabelWrapper>
-                <InputLabel required>Token Number Uses</InputLabel>
+                <InputLabelWrap>
+                  <InputLabel required>Sec ID Number Uses</InputLabel>
+                  <Tooltip
+                    classes={classes}
+                    arrow
+                    title="Duration in seconds after which the issued token can no longer be renewed"
+                    placement="top"
+                  >
+                    <div>
+                      <InfoIcon src={infoIcon} alt="info-icon-sec" />
+                    </div>
+                  </Tooltip>
+                </InputLabelWrap>
                 <TextFieldComponent
-                  value={name}
-                  placeholder="Save Name"
+                  value={sectetIdNumUses}
+                  placeholder="secret_Id_Num_Uses"
                   fullWidth
-                  readOnly={!!editSafe}
-                  name="name"
-                  onChange={(e) => {
-                    setName(e.target.value);
-                    setSafeError(false);
-                  }}
-                  error={safeError}
-                  helperText={
-                    safeError ? 'Please enter minimum 3 characters' : ''
-                  }
+                  readOnly={!!editApprole}
+                  name="sectetIdNumUses"
+                  onChange={(e) => onChange(e)}
+                  // error={appRoleError}
                   onInputBlur={(e) => onInputBlur(e)}
                 />
               </InputFieldLabelWrapper>
               <InputFieldLabelWrapper>
-                <InputLabel required>Secret ID TTL</InputLabel>
+                <InputLabelWrap>
+                  <InputLabel required>Token Number Uses</InputLabel>
+                  <Tooltip
+                    classes={classes}
+                    arrow
+                    title="Duration in seconds after which the issued token can no longer be renewed"
+                    placement="top"
+                  >
+                    <div>
+                      <InfoIcon src={infoIcon} alt="info-icon-token-uses" />
+                    </div>
+                  </Tooltip>
+                </InputLabelWrap>
                 <TextFieldComponent
-                  value={name}
-                  placeholder="Save Name"
+                  value={tokenNumUses}
+                  placeholder="token_num_uses"
                   fullWidth
-                  readOnly={!!editSafe}
-                  name="name"
-                  onChange={(e) => {
-                    setName(e.target.value);
-                    setSafeError(false);
-                  }}
-                  error={safeError}
-                  helperText={
-                    safeError ? 'Please enter minimum 3 characters' : ''
-                  }
+                  readOnly={!!editApprole}
+                  name="tokenNumUses"
+                  onChange={(e) => onChange(e)}
+                  // error={appRoleError}
+                  onInputBlur={(e) => onInputBlur(e)}
+                />
+              </InputFieldLabelWrapper>
+              <InputFieldLabelWrapper>
+                <InputLabelWrap>
+                  <InputLabel required>Secret ID TTL</InputLabel>
+                  <Tooltip
+                    classes={classes}
+                    arrow
+                    title="Duration in seconds after which the issued token can no longer be renewed"
+                    placement="top"
+                  >
+                    <div>
+                      <InfoIcon src={infoIcon} alt="info-icon-secret-id" />
+                    </div>
+                  </Tooltip>
+                </InputLabelWrap>
+                <TextFieldComponent
+                  value={secretIdTtl}
+                  placeholder="secret_id_ttl"
+                  fullWidth
+                  readOnly={!!editApprole}
+                  name="secretIdTtl"
+                  onChange={(e) => onChange(e)}
+                  // error={appRoleError}
                   onInputBlur={(e) => onInputBlur(e)}
                 />
               </InputFieldLabelWrapper>
@@ -548,29 +586,31 @@ const CreateAppRole = () => {
                 />
               </CancelButton>
               <ButtonComponent
-                label={!editSafe ? 'Create' : 'Edit'}
+                label={!editApprole ? 'Create' : 'Edit'}
                 color="secondary"
-                icon={!editSafe ? 'add' : ''}
-                disabled={disabledSave}
-                onClick={() => (!editSafe ? onCreateSafes() : onEditSafes())}
+                icon={!editApprole ? 'add' : ''}
+                disabled={getDisabledState()}
+                onClick={() =>
+                  !editApprole ? onCreateApprole() : onEditApprole()
+                }
                 width={isMobileScreen ? '100%' : ''}
               />
             </CancelSaveWrapper>
-            {responseType === -1 && (
+            {status.status === 'failed' && (
               <SnackbarComponent
                 open
                 onClose={() => onToastClose()}
                 severity="error"
                 icon="error"
-                message={toastMessage || 'Something went wrong!'}
+                message={status.message || 'Something went wrong!'}
               />
             )}
-            {responseType === 1 && (
+            {status.status === 'success' && (
               <SnackbarComponent
                 open
                 onClose={() => onToastClose()}
                 message={
-                  toastMessage || 'New Safe has been createtd successfully'
+                  status.message || 'Approle has been created successfully '
                 }
               />
             )}

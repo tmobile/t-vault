@@ -24,6 +24,9 @@ export const customColor = {
     title: '#8488a8',
     fontSize: '1.4rem;',
   },
+  checkbox: {
+    color: '#c4c4c4',
+  },
 };
 const customTheme = createMuiTheme({
   breakpoints: {

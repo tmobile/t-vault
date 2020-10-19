@@ -1,10 +1,14 @@
 import React from 'react';
+import styled from 'styled-components';
 import { makeStyles } from '@material-ui/core/styles';
 import Fab from '@material-ui/core/Fab';
 import Icon from '@material-ui/core/Icon';
 import Tooltip from '@material-ui/core/Tooltip';
 import PropTypes from 'prop-types';
 import ComponentError from '../../../errorBoundaries/ComponentError/component-error';
+
+// styled components
+const FabWrap = styled.div``;
 
 const setIcon = (props) => {
   const { icon } = props;
@@ -32,12 +36,36 @@ const BootstrapTooltip = (options) => {
   );
 };
 const FloatingActionButtonComponent = (props) => {
-  const { href, size, disabled, color, icon, tooltipPos, tooltipTitle } = props;
+  const {
+    href,
+    size,
+    disabled,
+    color,
+    icon,
+    tooltipPos,
+    tooltipTitle,
+    onClick,
+  } = props;
 
   return (
     <ComponentError>
       {tooltipTitle ? (
         <BootstrapTooltip title={tooltipTitle} placement={tooltipPos}>
+          <FabWrap role="button" onClick={onClick}>
+            <Fab
+              color={color || 'default'}
+              aria-label={icon}
+              href={href}
+              size={size || 'small'}
+              disabled={disabled || false}
+            >
+              {setIcon({ ...props })}
+            </Fab>
+          </FabWrap>
+        </BootstrapTooltip>
+      ) : (
+        <FabWrap onClick={onClick}>
+          {' '}
           <Fab
             color={color || 'default'}
             aria-label={icon}
@@ -47,17 +75,7 @@ const FloatingActionButtonComponent = (props) => {
           >
             {setIcon({ ...props })}
           </Fab>
-        </BootstrapTooltip>
-      ) : (
-        <Fab
-          color={color || 'default'}
-          aria-label={icon}
-          href={href}
-          size={size || 'small'}
-          disabled={disabled || false}
-        >
-          {setIcon({ ...props })}
-        </Fab>
+        </FabWrap>
       )}
     </ComponentError>
   );
@@ -71,6 +89,7 @@ FloatingActionButtonComponent.propTypes = {
   icon: PropTypes.string.isRequired,
   tooltipPos: PropTypes.string,
   tooltipTitle: PropTypes.string,
+  onClick: PropTypes.func.isRequired,
 };
 
 FloatingActionButtonComponent.defaultProps = {

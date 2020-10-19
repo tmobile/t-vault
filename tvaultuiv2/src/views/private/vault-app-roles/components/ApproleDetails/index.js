@@ -8,6 +8,7 @@ import { makeStyles } from '@material-ui/core/styles';
 import AppBar from '@material-ui/core/AppBar';
 import Tabs from '@material-ui/core/Tabs';
 import Tab from '@material-ui/core/Tab';
+import useMediaQuery from '@material-ui/core/useMediaQuery';
 import ComponentError from '../../../../../errorBoundaries/ComponentError/component-error';
 import mediaBreakpoints from '../../../../../breakpoints';
 import AppRoleSecrets from '../AppRoleSecrets';
@@ -17,6 +18,8 @@ import Error from '../../../../../components/Error';
 import NoSafesIcon from '../../../../../assets/no-data-safes.svg';
 import SnackbarComponent from '../../../../../components/Snackbar';
 import LoaderSpinner from '../../../../../components/Loaders/LoaderSpinner';
+import ButtonComponent from '../../../../../components/FormFields/ActionButton';
+import { TitleThree } from '../../../../../styles/GlobalStyles';
 // styled components goes here
 
 const TabPanelWrap = styled.div`
@@ -118,7 +121,7 @@ const AppRoleDetails = (props) => {
   const [status, setStatus] = useState({});
   const [secretIdsData, setSecretIdsData] = useState(null);
   const [getResponseType, setGetResponseType] = useState(null);
-
+  const isMobileScreen = useMediaQuery(mediaBreakpoints.small);
   const handleChange = (event, newValue) => {
     setValue(newValue);
   };
@@ -171,6 +174,12 @@ const AppRoleDetails = (props) => {
     setStatus({});
     setGetResponseType(null);
   };
+
+  /**
+   * On create new secret id
+   */
+  const createSecretId = () => {};
+
   return (
     <ComponentError>
       <div className={classes.root}>
@@ -188,7 +197,9 @@ const AppRoleDetails = (props) => {
         <TabContentsWrap>
           <TabPanel value={value} index={0}>
             {status?.status === 'loading' && <LoaderSpinner size="medium" />}
-            <span>{`${secretIdsData?.length} secretIds`}</span>
+            <TitleThree extraCss="color:#5e627c">
+              {`${secretIdsData?.length || 0} secretIds`}
+            </TitleThree>
             {getResponseType === 1 && secretIdsData ? (
               <AppRoleSecrets
                 secretIds={secretIdsData}
@@ -200,8 +211,17 @@ const AppRoleDetails = (props) => {
                 <NoSecretIdWrap>
                   <NoData
                     imageSrc={NoSafesIcon}
-                    description="There are no secretIds to view here.!"
-                    actionButton={<></>}
+                    description="There are no secretIds to view here.Once you create a New Approle you’ll be able to add Secret IDs  to this app role here!"
+                    actionButton={
+                      // eslint-disable-next-line react/jsx-wrap-multilines
+                      <ButtonComponent
+                        label="Add"
+                        icon="add"
+                        color="primary"
+                        onClick={() => createSecretId()}
+                        width={isMobileScreen ? '45%' : ''}
+                      />
+                    }
                     customStyle={noDataStyle}
                   />
                 </NoSecretIdWrap>

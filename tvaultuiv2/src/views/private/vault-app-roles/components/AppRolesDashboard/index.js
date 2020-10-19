@@ -209,7 +209,6 @@ const AppRolesDashboard = () => {
   const isMobileScreen = useMediaQuery(mediaBreakpoints.small);
   const history = useHistory();
   const location = useLocation();
-  console.log('roleState', state);
   const introduction = Strings.Resources.appRoles;
 
   const contextObj = useContext(UserContext);
@@ -341,6 +340,7 @@ const AppRolesDashboard = () => {
           name,
           isAdmin: contextObj?.isAdmin,
           isEdit: true,
+          allAppRoles: appRoleList,
         },
       },
     });
