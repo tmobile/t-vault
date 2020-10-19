@@ -560,26 +560,26 @@ script(type='text/ng-template', id='manageSecretId.html')
                                       div.svcdescription
                                         text.weighted Step 3: Granting Permissions:
                                         text When an IAM service account is activated in T-Vault, the account owner can grant specific permissions to other users and groups allowing others to read and/or rotate the secrets for the IAM service account as well through T-Vault.
-                                    div.svcdescription(ng-show="!isLoadingData && iamSvcaccOnboardedData.length>0") The following are list of IAM service accounts managed by T-Vault. You can click View/Edit link to either activate the IAM Service account  or grant permissions for users and groups.
+                                    div.svcdescription(ng-show="!isLoadingData && iamSvcaccOnboardedData.keys.length>0") The following are list of IAM service accounts managed by T-Vault. You can click View/Edit link to either activate the IAM Service account  or grant permissions for users and groups.
                                     div.data-management-content
                                         .row.change-safe-table-container(ng-if='true')
                                             loading-state(ng-if='isLoadingData')
-                                            .row.change-data.header.solid-header(ng-show="!isLoadingData && iamSvcaccOnboardedData.length>0")
+                                            .row.change-data.header.solid-header(ng-show="!isLoadingData && iamSvcaccOnboardedData.keys.length>0")
                                                 .container.name.col-lg-4.col-md-4.col-sm-4.col-xs-4(uib-tooltip="IAM SERVICE ACCOUNT NAME") ACCOUNT NAME
                                                 .container.name.col-lg-4.col-md-4.col-sm-4.col-xs-4(uib-tooltip="IAM SERVICE ACCOUNT ID") ACCOUNT ID
                                                 .container.name.cell.col-lg-2.col-md-2.col-sm-2.col-xs-2 ACTION     
                                             .change-list-table-data.row
-                                                .unavailable-text(ng-show="!isLoadingData && iamSvcaccOnboardedData.length==0")
+                                                .unavailable-text(ng-show="!isLoadingData && iamSvcaccOnboardedData.keys.length==0")
                                                     .container.name No IAM Service Accounts enabled.
-                                                .row.change-data.item(ng-show="!isLoadingData" ng-class="{'grayBackground' : activeItem == true}" ng-repeat="value in iamSvcaccOnboardedData")
+                                                .row.change-data.item(ng-show="!isLoadingData" ng-class="{'grayBackground' : activeItem == true}" ng-repeat="value in iamSvcaccOnboardedData.keys | filter:searchValue | limitTo: iampaginationLimit()")
                                                     .container.name.cell.col-lg-4.col-md-4.col-sm-4.col-xs-4(uib-tooltip="{{value.userName}}") {{value.userName}}
                                                     .container.name.cell.col-lg-4.col-md-4.col-sm-4.col-xs-4(uib-tooltip="{{value.accountID}}") {{value.accountID}}
                                                     .container.radio-inputs.cell.col-lg-4.col-md-.col-sm-4.col-xs-4
                                                         .down.view
-                                                            .list-icon(ng-show="!isLoadingData && iamSvcaccOnboardedData.length>0" ng-click = "editOnboardedIamSvcacc(value.metaDataName, 'md')" uib-tooltip="View/Edit IAM Service Account password rotation configuration")  View/Edit
-                                            .pagination-wrapper(ng-show='hasMoreItemsToShow()')
-                                                .pagination-count(ng-if="numOfIamSvcaccs>0") Displaying {{currentshown}} of {{numOfIamSvcaccs}}
-                                                .pagination-button-wrapper(ng-click='showMoreItems()')
+                                                            .list-icon(ng-show="!isLoadingData && iamSvcaccOnboardedData.keys.length>0" ng-click = "editOnboardedIamSvcacc(value.metaDataName, 'md')" uib-tooltip="View/Edit IAM Service Account password rotation configuration")  View/Edit
+                                            .pagination-wrapper(ng-show='hasMoreIAMItemsToShow()')
+                                                .pagination-count(ng-if="numOfIamSvcaccs>0") Displaying {{iamcurrentshown}} of {{numOfIamSvcaccs}}
+                                                .pagination-button-wrapper(ng-click='showMoreIAMItems()')
                                                     button.show-more-btn VIEW MORE
                                                     span
                                                         img(src="assets/icons/front-arrow.svg")

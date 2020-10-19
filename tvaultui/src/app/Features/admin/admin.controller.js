@@ -576,8 +576,8 @@
                 $scope.isLoadingData = true;
                 AdminSafesManagement.getOnboardedIamServiceAccounts().then(function (response) {
                     if (UtilityService.ifAPIRequestSuccessful(response)) {
-                        $scope.iamSvcaccOnboardedData = response.data.keys;
-                        $scope.numOfIamSvcaccs = $scope.iamSvcaccOnboardedData.length;
+                        $scope.iamSvcaccOnboardedData = response.data;
+                        $scope.numOfIamSvcaccs = $scope.iamSvcaccOnboardedData.keys.length;
                         $scope.isLoadingData = false;
                     }
                     else {
@@ -889,24 +889,53 @@
         }
         var pagesShown = 1;
         var pageSize = 8;
+        var iampagesShown = 1;
+        var iampageSize = 8;
         var certpagesShown = 1;
         var certpageSize = 50;
 
-        $scope.paginationLimit = function (data) {
+        $scope.paginationLimit = function () {
             $scope.currentshown = pageSize * pagesShown;
             if (($scope.searchValue != '' && $scope.searchValue != undefined && $scope.searchValue.length > 2) || $scope.currentshown >= $scope.numOfSvcaccs) {
                 $scope.currentshown = $scope.numOfSvcaccs;
             }
             return $scope.currentshown;
         };
+        $scope.iampaginationLimit = function () {
+            $scope.iamcurrentshown = iampageSize * iampagesShown;            
+            if (($scope.searchValue != '' && $scope.searchValue != undefined && $scope.searchValue.length > 2) || $scope.iamcurrentshown >= $scope.numOfIamSvcaccs) {
+                $scope.iamcurrentshown = $scope.numOfIamSvcaccs;
+            }        
+            return $scope.iamcurrentshown;
+        };
         $scope.hasMoreItemsToShow = function () {
-            if ($scope.searchValue != '' && $scope.searchValue != undefined && $scope.searchValue.length < 3) {
-                return pagesShown < ($scope.numOfSvcaccs / pageSize);
+            if ($scope.searchValue != '' && $scope.searchValue!= undefined) {
+                if ($scope.searchValue.length<3) {
+                    return pagesShown < ($scope.numOfSvcaccs / pageSize);
+                }
+                else {
+                    return false;
+                }
             }
-            return false;
+               return pagesShown < ($scope.numOfSvcaccs / pageSize);
+        };
+        $scope.hasMoreIAMItemsToShow = function () {
+            if ($scope.searchValue != '' && $scope.searchValue!= undefined) {
+                if ($scope.searchValue.length<3) {
+                    return iampagesShown < ($scope.numOfIamSvcaccs / iampageSize);
+                }
+                else {
+                    return false;
+                }
+            }
+               return iampagesShown < ($scope.numOfIamSvcaccs / iampageSize);
         };
         $scope.showMoreItems = function () {
             pagesShown = pagesShown + 1;
+        };
+
+        $scope.showMoreIAMItems = function () {
+            iampagesShown = iampagesShown + 1;
         };
                     
         $scope.certpaginationLimit = function (data) {
@@ -917,6 +946,7 @@
            
             return $scope.certcurrentshown;
         };
+
         $scope.hasMoreCertsToShow = function () {    
         	 if ($scope.searchValue != '' && $scope.searchValue!= undefined) {
                  if ($scope.searchValue.length<3) {
