@@ -53,6 +53,7 @@ const TextFieldComponent = (props) => {
     onInputBlur,
     name,
     readOnly,
+    onKeyDown,
   } = props;
 
   return (
@@ -72,6 +73,8 @@ const TextFieldComponent = (props) => {
       variant={variant || 'filled'}
       type={type}
       onBlur={onInputBlur}
+      onKeyDown={onKeyDown}
+      autoComplete="off"
       InputProps={{
         startAdornment: (
           <InputAdornment position="start">
@@ -100,6 +103,7 @@ TextFieldComponent.propTypes = {
   error: PropTypes.bool,
   name: PropTypes.string,
   readOnly: PropTypes.bool,
+  onKeyDown: PropTypes.func,
 };
 
 TextFieldComponent.defaultProps = {
@@ -117,6 +121,7 @@ TextFieldComponent.defaultProps = {
   onInputBlur: () => {},
   readOnly: false,
   onChange: () => {},
+  onKeyDown: () => {},
 };
 
 setIcon.propTypes = {

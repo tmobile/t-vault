@@ -121,6 +121,7 @@ const AddGroup = (props) => {
     groupname,
     access,
     isSvcAccount,
+    isCertificate,
   } = props;
   const classes = useStyles();
   const [radioValue, setRadioValue] = useState('read');
@@ -149,15 +150,21 @@ const AddGroup = (props) => {
   }, [searchValue, searchLoader, options]);
 
   useEffect(() => {
-    if (
-      !isValidGroupName ||
-      (searchValue?.toLowerCase() === groupname && radioValue === access)
-    ) {
+    if (groupname) {
+      if (
+        (groupname !== searchValue?.toLowerCase() && !isValidGroupName) ||
+        (groupname === searchValue?.toLowerCase() && access === radioValue)
+      ) {
+        setDisabledSave(true);
+      } else {
+        setDisabledSave(false);
+      }
+    } else if (!isValidGroupName || searchValue === '') {
       setDisabledSave(true);
     } else {
       setDisabledSave(false);
     }
-  }, [searchValue, radioValue, groupname, access, isValidGroupName]);
+  }, [searchValue, radioValue, access, groupname, isValidGroupName]);
 
   const callSearchApi = useCallback(
     debounce(
@@ -190,9 +197,11 @@ const AddGroup = (props) => {
   );
 
   const onSearchChange = (e) => {
-    setSearchValue(e.target.value);
-    if (e.target.value !== '' && e.target.value?.length > 2) {
-      callSearchApi(e.target.value);
+    if (e) {
+      setSearchValue(e.target.value);
+      if (e.target.value !== '' && e.target.value?.length > 2) {
+        callSearchApi(e.target.value);
+      }
     }
   };
 
@@ -246,6 +255,7 @@ const AddGroup = (props) => {
             <RadioSafePermissionComponent
               radioValue={radioValue}
               handleRadioChange={(e) => setRadioValue(e.target.value)}
+              isCertificate={isCertificate}
             />
           )}
           <CancelSaveWrapper>
@@ -277,12 +287,14 @@ AddGroup.propTypes = {
   groupname: PropTypes.string,
   access: PropTypes.string,
   isSvcAccount: PropTypes.bool,
+  isCertificate: PropTypes.bool,
 };
 
 AddGroup.defaultProps = {
   groupname: '',
   access: 'read',
   isSvcAccount: false,
+  isCertificate: false,
 };
 
 export default AddGroup;

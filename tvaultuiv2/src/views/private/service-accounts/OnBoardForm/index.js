@@ -493,7 +493,7 @@ const OnBoardForm = () => {
     onChange(e);
   };
   const onApplicationNameChange = (e) => {
-    fetchAppRoles();
+    // fetchAppRoles();
     onChange(e);
   };
   /**
@@ -519,7 +519,8 @@ const OnBoardForm = () => {
         history.location.state.serviceAccountDetails.name
       );
     }
-  }, [history, updateServiceAccountDetails]);
+    fetchAppRoles();
+  }, [history, updateServiceAccountDetails, fetchAppRoles]);
 
   const handleSwitch = (e) => {
     setIsSwitchOn(e.target.checked);
@@ -615,9 +616,11 @@ const OnBoardForm = () => {
           description={
             isActivateSvc
               ? "During the activation, the password of the service account will be reset to ensure Active Directory and T-Vault are in sync. If you want to continue with activation now please click the 'ACTIVATE' button below and make sure to update any services depending on the service account with its new password."
-              : `The password for this service account will expire in ${formatSecondsToTime(
-                  inputExpiryTime || serviceAccountDetails?.maxPwdAge
-                )} and will not be enabled for auto rotation by T-Vault. You need to makes sure the passwod for this service account is getting roated appropriately.`
+              : `The password for this service account will expire in ${
+                  formatSecondsToTime(
+                    inputExpiryTime || serviceAccountDetails?.maxPwdAge
+                  ) || '365 days'
+                } and will not be enabled for auto rotation by T-Vault. You need to makes sure the passwod for this service account is getting roated appropriately.`
           }
           cancelButton={
             // eslint-disable-next-line react/jsx-wrap-multilines
@@ -920,7 +923,6 @@ const OnBoardForm = () => {
                   <InputLabel>AD Group Name</InputLabel>
                   <TextFieldComponent
                     placeholder="AD Group Name"
-                    icon="search"
                     name="inputAdGroupName"
                     fullWidth
                     onChange={(val, e) => onChange(val, e)}
@@ -980,7 +982,7 @@ const OnBoardForm = () => {
                     onClick={(e) => handleSaveClick(e)}
                   />
                   {userState?.username ===
-                    serviceAccountDetails?.managedBy?.userId &&
+                    serviceAccountDetails?.managedBy?.userId.toLowerCase() &&
                   !isActiveServiceAccount ? (
                     <OwnerActionsWrap>
                       <BtnWrap>

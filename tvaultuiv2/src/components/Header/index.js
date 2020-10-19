@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import styled from 'styled-components';
 import { makeStyles } from '@material-ui/core/styles';
-import { withRouter } from 'react-router-dom';
+import { withRouter, Link as RRDLink } from 'react-router-dom';
 import PropTypes from 'prop-types';
 import Link from '@material-ui/core/Link';
 import SwipeableDrawer from '@material-ui/core/SwipeableDrawer';
@@ -149,8 +149,10 @@ const Header = (props) => {
             {navItems &&
               navItems.map((item) => (
                 <NavLink
-                  href={`/${item.path}`}
+                  // href={`/${item.path}`}
                   key={item.label}
+                  to={`/${item.path}`}
+                  component={RRDLink}
                   active={`/${location.pathname}`
                     .includes(item.path)
                     .toString()}

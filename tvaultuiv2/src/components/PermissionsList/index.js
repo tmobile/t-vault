@@ -15,6 +15,7 @@ const UserList = styled.div`
     border-bottom: 1px solid #323649;
   }
 `;
+
 const EachUserWrap = styled.div`
   display: flex;
   justify-content: space-between;
@@ -48,6 +49,7 @@ const permissionStyles = css`
 
 const PermissionsList = (props) => {
   const { onEditClick, list, onDeleteClick, isSvcAccount } = props;
+
   return (
     <UserList>
       {Object.entries(list).map(([key, value]) => (

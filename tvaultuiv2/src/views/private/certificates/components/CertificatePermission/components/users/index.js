@@ -1,5 +1,4 @@
 /* eslint-disable react/jsx-indent */
-/* eslint-disable react/jsx-curly-newline */
 import React, { useState, useEffect } from 'react';
 import styled, { css } from 'styled-components';
 import PropTypes from 'prop-types';
@@ -7,14 +6,12 @@ import useMediaQuery from '@material-ui/core/useMediaQuery';
 import ComponentError from '../../../../../../../errorBoundaries/ComponentError/component-error';
 import NoData from '../../../../../../../components/NoData';
 import ButtonComponent from '../../../../../../../components/FormFields/ActionButton';
-import PermissionsList from '../../../../../../../components/PermissionsList';
 import noPermissionsIcon from '../../../../../../../assets/no-permissions.svg';
 import mediaBreakpoints from '../../../../../../../breakpoints';
-import AddGroup from '../../../../../../../components/AddGroup';
+import AddUser from '../../../../../../../components/AddUser';
 import apiService from '../../../../apiService';
 import LoaderSpinner from '../../../../../../../components/Loaders/LoaderSpinner';
-import Error from '../../../../../../../components/Error';
-import { checkAccess } from '../../../../../../../services/helper-function';
+import CertificatePermissionsList from '../../../PermissionList';
 import Strings from '../../../../../../../resources';
 
 const { small, belowLarge } = mediaBreakpoints;
@@ -22,8 +19,10 @@ const { small, belowLarge } = mediaBreakpoints;
 const NoDataWrapper = styled.section`
   display: flex;
   justify-content: center;
-  width: 100%;
+  align-items: center;
   height: 100%;
+  width: 100%;
+
   p {
     ${small} {
       margin-top: 2rem;
@@ -52,65 +51,60 @@ const noDataStyle = css`
   }
 `;
 
-const Groups = (props) => {
+const Users = (props) => {
   const {
-    accountDetail,
-    accountMetaData,
-    fetchPermission,
-    onNewGroupChange,
-    newGroup,
+    certificateMetaData,
+    newPermission,
+    onNewPermissionChange,
     updateToastMessage,
+    responseStatus,
+    refresh,
+    username,
   } = props;
 
-  const [editGroup, setEditGroup] = useState('');
+  const [editUser, setEditUser] = useState('');
   const [editAccess, setEditAccess] = useState('');
   const [response, setResponse] = useState({ status: 'loading' });
-
   const isMobileScreen = useMediaQuery(small);
 
   // on svc account meta data is available.
   useEffect(() => {
-    if (
-      accountMetaData?.response &&
-      Object.keys(accountMetaData.response).length !== 0
-    ) {
-      if (Object.keys(accountMetaData?.response).length !== 0) {
-        setResponse({ status: 'success' });
-      } else if (accountMetaData.error !== '') {
-        setResponse({ status: 'error' });
-      }
-    } else {
-      setResponse({ status: '' });
-    }
-  }, [accountMetaData]);
+    setResponse({ status: responseStatus });
+  }, [responseStatus]);
 
-  // When add group button is clicked.
+  // When add permission button is clicked.
   useEffect(() => {
-    if (newGroup) {
+    if (newPermission) {
       setResponse({ status: 'add' });
     }
-  }, [newGroup]);
+  }, [newPermission]);
+
+  const constructPayload = (userName, access) => {
+    const data = {
+      access,
+      certType: certificateMetaData.certType,
+      certificateName: certificateMetaData.certificateName,
+      username: userName,
+    };
+    return data;
+  };
 
   /**
    * @function onDeleteClick
-   * @description function to delete the group from the svc account group list.
-   * @param {username} string groupname of the group.
-   * @param {access} string permission of the group.
+   * @description function to delete the user from the svc account users list.
+   * @param {username} string username of the user.
+   * @param {access} string permission of the user.
    */
-  const onDeleteClick = (groupname, access) => {
+  const onDeleteClick = async (userName, access) => {
     setResponse({ status: 'loading' });
-    const payload = {
-      access: checkAccess(access),
-      groupname,
-      svcAccName: accountDetail.name,
-    };
+    const payload = constructPayload(userName, access);
     apiService
-      .deleteGroupPermission(payload)
+      .deleteCertificateUser(payload)
       .then(async (res) => {
-        if (res?.data?.messages && res.data?.messages[0]) {
+        if (res && res.data?.messages && res.data.messages[0]) {
           updateToastMessage(1, res.data.messages[0]);
           setResponse({ status: '' });
-          await fetchPermission();
+          await refresh();
         }
       })
       .catch((err) => {
@@ -123,18 +117,18 @@ const Groups = (props) => {
 
   /**
    * @function onSaveClicked
-   * @description function to save the group to the svc account groups list.
+   * @description function to save the user to the svc account users list.
    * @param {data} object payload to call api.
    */
   const onSaveClicked = (data) => {
     setResponse({ status: 'loading' });
     apiService
-      .addGroupPermission(data)
+      .addCertificateUser(data)
       .then(async (res) => {
         if (res && res.data?.messages) {
           updateToastMessage(1, res.data?.messages[0]);
           setResponse({ status: '' });
-          await fetchPermission();
+          await refresh();
         }
       })
       .catch((err) => {
@@ -148,38 +142,35 @@ const Groups = (props) => {
   /**
    * @function onSubmit
    * @description function structure the payload when save/edit is clicked and call save api.
-   * @param {username} string group name.
-   * @param {access} string permission given to the group.
+   * @param {username} string user name of the user.
+   * @param {access} string permission given to the user.
    */
-  const onSubmit = async (groupname, access) => {
-    const value = {
-      access: checkAccess(access),
-      groupname: groupname.toLowerCase().replace(/ /g, '-'),
-      svcAccName: accountDetail.name,
-    };
-    await onSaveClicked(value);
-    onNewGroupChange();
+  const onSubmit = async (userName, access) => {
+    const payload = constructPayload(userName, access);
+    try {
+      await onSaveClicked(payload);
+      onNewPermissionChange();
+    } catch {
+      setResponse({ status: 'success' });
+      updateToastMessage(-1, 'Something went wrong');
+    }
   };
 
   /**
    * @function onEditSaveClicked
-   * @description function to edit the existing group.
-   * @param {groupname} string group name to edit.
-   * @param {access} string permission given to the group.
+   * @description function to edit the existing user.
+   * @param {username} string user name of the user.
+   * @param {access} string permission given to the user.
    */
-  const onEditSaveClicked = (groupname, access) => {
+  const onEditSaveClicked = (userName, access) => {
     setResponse({ status: 'loading' });
-    const payload = {
-      access: checkAccess(access),
-      groupname,
-      svcAccName: accountDetail.name,
-    };
+    const payload = constructPayload(userName, access);
     apiService
-      .deleteGroupPermission(payload)
+      .deleteCertificateUser(payload)
       .then(async (res) => {
         if (res) {
           setResponse({ status: 'loading' });
-          await onSubmit(groupname, access);
+          await onSubmit(userName, access);
         }
       })
       .catch((err) => {
@@ -192,22 +183,22 @@ const Groups = (props) => {
 
   /**
    * @function onCancelClicked
-   * @description function when cancel of add group and edit group is called.
+   * @description function when cancel of add user and edit user is called.
    */
   const onCancelClicked = () => {
     setResponse({ status: 'success' });
-    onNewGroupChange();
+    onNewPermissionChange();
   };
 
   /**
    * @function onEditClick
-   * @description function to edit the existing group.
-   * @param {key} key group name of  the permission.
-   * @param {value} value permission given to the group.
+   * @description function to edit the existing user.
+   * @param {key} key user name of the user.
+   * @param {value} value permission given to the user.
    */
   const onEditClick = (key, value) => {
     setEditAccess(value);
-    setEditGroup(key);
+    setEditUser(key);
     setResponse({ status: 'edit' });
   };
 
@@ -218,43 +209,40 @@ const Groups = (props) => {
           <LoaderSpinner customStyle={customStyle} />
         )}
         {response.status === 'add' && (
-          <AddGroup
-            handleSaveClick={(group, access) => onSubmit(group, access)}
+          <AddUser
+            handleSaveClick={(user, access) => onSubmit(user, access)}
             handleCancelClick={onCancelClicked}
-            isSvcAccount
+            refresh={refresh}
+            isCertificate
           />
         )}
-
         {response.status === 'edit' && (
-          <AddGroup
-            handleSaveClick={(group, access) =>
-              onEditSaveClicked(group, access)
-            }
+          <AddUser
+            handleSaveClick={(user, access) => onEditSaveClicked(user, access)}
             handleCancelClick={onCancelClicked}
-            groupname={editGroup}
+            username={editUser}
             access={editAccess}
-            isSvcAccount
+            refresh={refresh}
+            isCertificate
           />
         )}
-        {accountMetaData &&
-          accountMetaData.response &&
-          response.status === 'success' && (
+        {response.status === 'success' &&
+          Object.keys(certificateMetaData).length > 0 && (
             <>
-              {accountMetaData.response.groups &&
-                Object.keys(accountMetaData.response?.groups).length > 0 && (
-                  <PermissionsList
-                    list={accountMetaData.response.groups}
-                    onEditClick={(key, value) => onEditClick(key, value)}
-                    onDeleteClick={(key, value) => onDeleteClick(key, value)}
-                    isSvcAccount
-                  />
-                )}
-              {(!accountMetaData.response.groups ||
-                Object.keys(accountMetaData.response?.groups).length === 0) && (
+              {Object.keys(certificateMetaData.users).length > 1 && (
+                <CertificatePermissionsList
+                  list={certificateMetaData.users}
+                  username={username}
+                  onEditClick={(key, value) => onEditClick(key, value)}
+                  onDeleteClick={(key, value) => onDeleteClick(key, value)}
+                />
+              )}
+              {(!certificateMetaData.users ||
+                Object.keys(certificateMetaData.users).length === 1) && (
                 <NoDataWrapper>
                   <NoData
                     imageSrc={noPermissionsIcon}
-                    description={Strings.Resources.noGroupsPermissionFound}
+                    description={Strings.Resources.noUsersPermissionFound}
                     actionButton={
                       // eslint-disable-next-line react/jsx-wrap-multilines
                       <ButtonComponent
@@ -272,22 +260,18 @@ const Groups = (props) => {
               )}
             </>
           )}
-        {response.status === 'error' && (
-          <Error
-            description={accountMetaData.error || 'Something went wrong!'}
-          />
-        )}
       </>
     </ComponentError>
   );
 };
 
-Groups.propTypes = {
-  accountDetail: PropTypes.objectOf(PropTypes.any).isRequired,
-  accountMetaData: PropTypes.objectOf(PropTypes.any).isRequired,
-  fetchPermission: PropTypes.func.isRequired,
-  newGroup: PropTypes.bool.isRequired,
-  onNewGroupChange: PropTypes.func.isRequired,
+Users.propTypes = {
+  responseStatus: PropTypes.string.isRequired,
+  newPermission: PropTypes.bool.isRequired,
+  onNewPermissionChange: PropTypes.func.isRequired,
+  certificateMetaData: PropTypes.objectOf(PropTypes.any).isRequired,
   updateToastMessage: PropTypes.func.isRequired,
+  refresh: PropTypes.func.isRequired,
+  username: PropTypes.string.isRequired,
 };
-export default Groups;
+export default Users;
