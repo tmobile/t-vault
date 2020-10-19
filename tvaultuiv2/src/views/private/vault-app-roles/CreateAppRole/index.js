@@ -1,5 +1,4 @@
-import React, { useState, useEffect, useCallback, useReducer } from 'react';
-import PropTypes from 'prop-types';
+import React, { useState, useEffect, useReducer } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 import { useHistory } from 'react-router-dom';
 import Modal from '@material-ui/core/Modal';
@@ -170,11 +169,11 @@ const useStyles = makeStyles((theme) => ({
 const CreateAppRole = () => {
   const classes = useStyles();
   const [open, setOpen] = useState(true);
-  const [disabledSave, setDisabledSave] = useState(false);
   const [responseType, setResponseType] = useState(null);
   const isMobileScreen = useMediaQuery(small);
   const [appRoleError, setApproleError] = useState(false);
   const [editApprole, setEditApprole] = useState(false);
+  const [numberError, setNumberError] = useState(false);
   const [allAppRoles, setAllAppRoles] = useState([]);
   const [status, setStatus] = useState({});
   const history = useHistory();
@@ -187,6 +186,7 @@ const CreateAppRole = () => {
     tokenNumUses: '',
     secretIdTtl: '',
   };
+  // eslint-disable-next-line consistent-return
   const reducer = (state, { field, type, value, payload }) => {
     switch (type) {
       case 'INPUT_FORM_FIELDS':
@@ -202,7 +202,10 @@ const CreateAppRole = () => {
   const [state, dispatch] = useReducer(reducer, initialState);
 
   const onChange = (e) => {
-    // setInputServiceName(name);
+    setNumberError(false);
+    if (!e?.target?.value.match(/^[0-9]*$/g)) {
+      setNumberError(true);
+    }
     dispatch({
       type: 'INPUT_FORM_FIELDS',
       field: e?.target?.name,
@@ -232,6 +235,7 @@ const CreateAppRole = () => {
    */
 
   const validateRoleName = (name) => {
+    debugger;
     if (allAppRoles?.includes(name)) {
       setApproleError(true);
     }
@@ -242,15 +246,7 @@ const CreateAppRole = () => {
     validateRoleName(e.target.value);
     onChange(e);
   };
-  console.log(
-    'roleName',
-    roleName,
-    maxTokenTtl,
-    tokenTtl,
-    sectetIdNumUses,
-    tokenNumUses,
-    secretIdTtl
-  );
+
   useEffect(() => {
     if (
       history.location.pathname === '/vault-app-roles/edit-vault-app-role' &&
@@ -338,12 +334,10 @@ const CreateAppRole = () => {
 
   const onCreateApprole = () => {
     const payload = constructPayload();
-    setDisabledSave(true);
     setResponseType(0);
     apiService
       .createAppRole(payload)
       .then((res) => {
-        console.log('res approle', res);
         if (res && res.status === 200) {
           setResponseType(1);
           setStatus({ status: 'success', message: res.data.messages[0] });
@@ -368,7 +362,7 @@ const CreateAppRole = () => {
     setResponseType(null);
   };
 
-  const onInputBlur = (e) => {};
+  const onInputBlur = () => {};
 
   const getDisabledState = () => {
     return (
@@ -378,7 +372,8 @@ const CreateAppRole = () => {
       !sectetIdNumUses ||
       !tokenNumUses ||
       !secretIdTtl ||
-      appRoleError
+      appRoleError ||
+      numberError
     );
   };
   return (
@@ -464,9 +459,11 @@ be renewed "
                   readOnly={!!editApprole}
                   name="maxTokenTtl"
                   onChange={(e) => onChange(e)}
-                  // error={appRoleError}
+                  error={numberError}
                   helperText={
-                    appRoleError ? 'Please enter minimum 3 characters' : ''
+                    numberError
+                      ? 'Please enter a valid input(value must be number)'
+                      : ''
                   }
                   onInputBlur={(e) => onInputBlur(e)}
                 />
@@ -493,9 +490,11 @@ be renewed "
                   readOnly={!!editApprole}
                   name="tokenTtl"
                   onChange={(e) => onChange(e)}
-                  // error={appRoleError}
+                  error={numberError}
                   helperText={
-                    appRoleError ? 'Please enter minimum 3 characters' : ''
+                    numberError
+                      ? 'Please enter a valid input(value must be number)'
+                      : ''
                   }
                   onInputBlur={(e) => onInputBlur(e)}
                 />
@@ -521,7 +520,12 @@ be renewed "
                   readOnly={!!editApprole}
                   name="sectetIdNumUses"
                   onChange={(e) => onChange(e)}
-                  // error={appRoleError}
+                  error={numberError}
+                  helperText={
+                    numberError
+                      ? 'Please enter a valid input(value must be number)'
+                      : ''
+                  }
                   onInputBlur={(e) => onInputBlur(e)}
                 />
               </InputFieldLabelWrapper>
@@ -546,7 +550,12 @@ be renewed "
                   readOnly={!!editApprole}
                   name="tokenNumUses"
                   onChange={(e) => onChange(e)}
-                  // error={appRoleError}
+                  error={numberError}
+                  helperText={
+                    numberError
+                      ? 'Please enter a valid input(value must be number)'
+                      : ''
+                  }
                   onInputBlur={(e) => onInputBlur(e)}
                 />
               </InputFieldLabelWrapper>
@@ -571,7 +580,12 @@ be renewed "
                   readOnly={!!editApprole}
                   name="secretIdTtl"
                   onChange={(e) => onChange(e)}
-                  // error={appRoleError}
+                  error={numberError}
+                  helperText={
+                    numberError
+                      ? 'Please enter a valid input(value must be number)'
+                      : ''
+                  }
                   onInputBlur={(e) => onInputBlur(e)}
                 />
               </InputFieldLabelWrapper>

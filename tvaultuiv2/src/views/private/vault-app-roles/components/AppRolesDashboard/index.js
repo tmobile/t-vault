@@ -345,55 +345,6 @@ const AppRolesDashboard = () => {
       },
     });
   };
-  /**
-   * @function deleteAppRole
-   * @description function is called when delete is clicked opening
-   * the confirmation modal and setting the path.
-   * @param {string} name approle  name to be deleted.
-   */
-  const deleteAppRole = (owner) => {
-    const payload = {
-      name: deleteAppRoleName,
-      owner,
-    };
-    apiService
-      .offBoardServiceAccount(payload)
-      .then(() => {
-        fetchData();
-      })
-      .catch((err) => {
-        setStatus({
-          status: 'failed',
-          message: err?.response?.data?.errors[0],
-        });
-      });
-  };
-
-  /**
-   * @function onAppRoleDelete
-   * @description delete app role
-   */
-  const onAppRoleDelete = () => {
-    setDeleteAppRoleConfirmation(false);
-    setStatus({ status: 'loading' });
-    apiService
-      .deleteAppRole(deleteAppRoleName)
-      .then((res) => {
-        let details = {};
-        if (res?.data?.data?.values && res.data.data.values[0]) {
-          details = { ...res.data.data.values[0] };
-          if (details?.managedBy?.userName) {
-            deleteAppRole(details.managedBy.userName);
-          }
-        }
-      })
-      .catch((err) => {
-        setStatus({
-          status: 'failed',
-          message: err?.response?.data?.errors[0],
-        });
-      });
-  };
 
   /**
    * @function onDeleteRouteToNextAppRole
@@ -414,14 +365,25 @@ const AppRolesDashboard = () => {
       history.push(`/vault-app-roles`);
     }
   };
-
   /**
-   * @function handleSuccessfullConfirmation
-   * @description function to handle the deletion successfull modal.
+   * @function onAppRoleDelete
+   * @description delete app role
    */
-  const handleSuccessfullConfirmation = () => {
+  const onAppRoleDelete = () => {
     setDeleteAppRoleConfirmation(false);
-    onDeleteRouteToNextAppRole();
+    setStatus({ status: 'loading' });
+    apiService
+      .deleteAppRole(deleteAppRoleName)
+      .then((res) => {
+        setStatus({ status: 'success', message: res?.data?.messages[0] });
+        onDeleteRouteToNextAppRole();
+      })
+      .catch((err) => {
+        setStatus({
+          status: 'failed',
+          message: err?.response?.data?.errors[0],
+        });
+      });
   };
 
   /**
@@ -468,7 +430,6 @@ const AppRolesDashboard = () => {
             <EditAndDeletePopup
               onDeletListItemClicked={() => onDeleteClicked(appRole.name)}
               onEditListItemClicked={() => onApproleEdit(appRole.name)}
-              admin={contextObj.isAdmin}
             />
           </PopperWrap>
         ) : null}
@@ -477,7 +438,6 @@ const AppRolesDashboard = () => {
             <EditDeletePopper
               onDeleteClicked={() => onDeleteClicked(appRole.name)}
               onEditClicked={() => onApproleEdit(appRole.name)}
-              admin={contextObj.isAdmin}
             />
           </EditDeletePopperWrap>
         )}

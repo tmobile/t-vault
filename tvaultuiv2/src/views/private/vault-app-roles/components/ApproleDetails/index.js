@@ -166,7 +166,7 @@ const AppRoleDetails = (props) => {
     apiService
       .deleteSecretIds(payload)
       .then((res) => {
-        setStatus({ status: 'success', message: '' });
+        setStatus({ status: 'success', message: res?.data?.messages[0] });
       })
       .catch();
   };
