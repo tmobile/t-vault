@@ -432,18 +432,13 @@ public class OIDCUtil {
 	public ResponseEntity<OIDCEntityResponse> oidcFetchEntityDetails(String token, String username, UserDetails userDetails) {
 		String mountAccessor = fetchMountAccessorForOidc(token);
 		if (!StringUtils.isEmpty(mountAccessor)) {
-			ResponseEntity<DirectoryObjects> response = directoryService.searchByCorpId(username);
-			String aliasName = "";
-			Object[] results = response.getBody().getData().getValues();
-			for (Object tp : results) {
-				if (((DirectoryUser) tp).getUserName().equalsIgnoreCase(username)) {
-					aliasName = ((DirectoryUser) tp).getUserEmail();
-					break;
-				}
-			}
-			if(StringUtils.isEmpty(aliasName)){
+			DirectoryUser directoryUser = directoryService.getUserDetailsByCorpId(username);
+
+			if (StringUtils.isEmpty(directoryUser.getUserEmail())) {
 				return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new OIDCEntityResponse());
 			}
+			
+			String aliasName = directoryUser.getUserEmail();
 
 			OIDCLookupEntityRequest oidcLookupEntityRequest = new OIDCLookupEntityRequest();
 			oidcLookupEntityRequest.setAlias_name(aliasName);
