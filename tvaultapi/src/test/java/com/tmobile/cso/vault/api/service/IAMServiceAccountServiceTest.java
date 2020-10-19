@@ -242,7 +242,7 @@ public class IAMServiceAccountServiceTest {
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Approle successfully associated with IAM Service Account\"]}");
         String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
         UserDetails userDetails = getMockUser(false);
-        IAMServiceAccountApprole serviceAccountApprole = new IAMServiceAccountApprole("testsvcname", "role1", "reset", "1234567890");
+        IAMServiceAccountApprole serviceAccountApprole = new IAMServiceAccountApprole("testsvcname", "role1", "rotate", "1234567890");
 
         String [] policies = {"o_iamsvcacc_1234567890_testsvcname"};
         when(policyUtils.getCurrentPolicies(token, userDetails.getUsername(), userDetails)).thenReturn(policies);
@@ -553,7 +553,7 @@ public class IAMServiceAccountServiceTest {
 		token = userDetails.getClientToken();
 		IAMServiceAccountUser iamSvcAccUser = new IAMServiceAccountUser("testaccount", "testuser1", "reads", "1234567");
 		// System under test
-		String expectedResponse = "{\"errors\":[\"Invalid value specified for access. Valid values are read, reset, deny\"]}";
+		String expectedResponse = "{\"errors\":[\"Invalid value specified for access. Valid values are read, rotate, deny\"]}";
 		ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST)
 				.body(expectedResponse);
 		when(tokenUtils.getSelfServiceToken()).thenReturn(token);
@@ -565,7 +565,7 @@ public class IAMServiceAccountServiceTest {
 
 	@Test
 	public void testAddGroupToIAMSvcAccSuccessfully() {
-		IAMServiceAccountGroup iamSvcAccGroup = new IAMServiceAccountGroup("testaccount", "group1", "reset", "1234567");
+		IAMServiceAccountGroup iamSvcAccGroup = new IAMServiceAccountGroup("testaccount", "group1", "rotate", "1234567");
 		userDetails = getMockUser(false);
 		ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK)
 				.body("{\"messages\":[\"Group is successfully associated with IAM Service Account\"]}");
@@ -601,7 +601,7 @@ public class IAMServiceAccountServiceTest {
 
 	@Test
 	public void testAddGroupToIAMSvcACcOidcSuccessfully() {
-		IAMServiceAccountGroup iamSvcAccGroup = new IAMServiceAccountGroup("testaccount", "group1", "reset", "1234567");
+		IAMServiceAccountGroup iamSvcAccGroup = new IAMServiceAccountGroup("testaccount", "group1", "rotate", "1234567");
 		userDetails = getMockUser(false);
 		ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK)
 				.body("{\"messages\":[\"Group is successfully associated with IAM Service Account\"]}");
@@ -653,7 +653,7 @@ public class IAMServiceAccountServiceTest {
 
 	@Test
 	public void testAddGroupToIAMSvcAccMetadataFailure() {
-		IAMServiceAccountGroup iamSvcAccGroup = new IAMServiceAccountGroup("testaccount", "group1", "reset", "1234567");
+		IAMServiceAccountGroup iamSvcAccGroup = new IAMServiceAccountGroup("testaccount", "group1", "rotate", "1234567");
 		userDetails = getMockUser(false);
 		ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
 				.body("{\"errors\":[\"Group configuration failed. Please try again\"]}");
@@ -689,7 +689,7 @@ public class IAMServiceAccountServiceTest {
 
 	@Test
 	public void testAddGroupToIAMSvcAccFailure() {
-		IAMServiceAccountGroup iamSvcAccGroup = new IAMServiceAccountGroup("testaccount", "group1", "reset", "1234567");
+		IAMServiceAccountGroup iamSvcAccGroup = new IAMServiceAccountGroup("testaccount", "group1", "rotate", "1234567");
 		userDetails = getMockUser(true);
 		token = userDetails.getClientToken();
 		ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -726,7 +726,7 @@ public class IAMServiceAccountServiceTest {
 
 	@Test
 	public void testAddGroupToIAMSvcAccFailure403() {
-		IAMServiceAccountGroup iamSvcAccGroup = new IAMServiceAccountGroup("testaccount", "group1", "reset", "1234567");
+		IAMServiceAccountGroup iamSvcAccGroup = new IAMServiceAccountGroup("testaccount", "group1", "rotate", "1234567");
 		userDetails = getMockUser(false);
 		ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST)
 				.body("{\"errors\":[\"Access denied: No permission to add groups to this IAM service account\"]}");
@@ -760,7 +760,7 @@ public class IAMServiceAccountServiceTest {
 
 	@Test
 	public void testAddGroupToIAMSvcAccFailureInitialActivate() {
-		IAMServiceAccountGroup iamSvcAccGroup = new IAMServiceAccountGroup("testaccount", "group1", "reset", "1234567");
+		IAMServiceAccountGroup iamSvcAccGroup = new IAMServiceAccountGroup("testaccount", "group1", "rotate", "1234567");
 		userDetails = getMockUser(false);
 		token = userDetails.getClientToken();
 		ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
@@ -780,7 +780,7 @@ public class IAMServiceAccountServiceTest {
 	@Test
 	public void testRemoveGroupFromIAMSvcAccSuccessfully() {
 		token = userDetails.getClientToken();
-		IAMServiceAccountGroup iamSvcAccGroup = new IAMServiceAccountGroup("testaccount", "group1", "reset", "1234567");
+		IAMServiceAccountGroup iamSvcAccGroup = new IAMServiceAccountGroup("testaccount", "group1", "rotate", "1234567");
 		userDetails = getMockUser(false);
 		ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK)
 				.body("{\"messages\":[\"Group is successfully removed from IAM Service Account\"]}");
@@ -818,7 +818,7 @@ public class IAMServiceAccountServiceTest {
 	public void testRemoveGroupFromIAMSvcAccOidcSuccessfully() {
 		userDetails = getMockUser(false);
 		token = userDetails.getClientToken();
-		IAMServiceAccountGroup iamSvcAccGroup = new IAMServiceAccountGroup("testaccount", "group1", "reset", "1234567");
+		IAMServiceAccountGroup iamSvcAccGroup = new IAMServiceAccountGroup("testaccount", "group1", "rotate", "1234567");
 		ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK)
 				.body("{\"messages\":[\"Group is successfully removed from IAM Service Account\"]}");
 		Response responseNoContent = getMockResponse(HttpStatus.NO_CONTENT, true, "");
@@ -871,7 +871,7 @@ public class IAMServiceAccountServiceTest {
 	public void testRemoveGroupFromIAMSvcAccFailureInitialActivation() {
 		userDetails = getMockUser(false);
 		token = userDetails.getClientToken();
-		IAMServiceAccountGroup iamSvcAccGroup = new IAMServiceAccountGroup("testaccount", "group1", "reset", "1234567");
+		IAMServiceAccountGroup iamSvcAccGroup = new IAMServiceAccountGroup("testaccount", "group1", "rotate", "1234567");
 		ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
 				"{\"errors\":[\"Failed to remove group permission to IAM Service account. IAM Service Account is not activated. Please activate this service account and try again.\"]}");
 		when(tokenUtils.getSelfServiceToken()).thenReturn(token);
@@ -890,7 +890,7 @@ public class IAMServiceAccountServiceTest {
 	public void testRemoveGroupFromIAMSvcAccMetadataFailure() {
 		userDetails = getMockUser(false);
 		token = userDetails.getClientToken();
-		IAMServiceAccountGroup iamSvcAccGroup = new IAMServiceAccountGroup("testaccount", "group1", "reset", "1234567");
+		IAMServiceAccountGroup iamSvcAccGroup = new IAMServiceAccountGroup("testaccount", "group1", "rotate", "1234567");
 		ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
 				.body("{\"errors\":[\"Group configuration failed. Please try again\"]}");
 		Response responseNoContent = getMockResponse(HttpStatus.NO_CONTENT, true, "");
@@ -928,7 +928,7 @@ public class IAMServiceAccountServiceTest {
 	public void testRemoveGroupFromIAMSVcAccFailure() {
 		userDetails = getMockUser(true);
 		token = userDetails.getClientToken();
-		IAMServiceAccountGroup iamSvcAccGroup = new IAMServiceAccountGroup("testaccount", "group1", "reset", "1234567");
+		IAMServiceAccountGroup iamSvcAccGroup = new IAMServiceAccountGroup("testaccount", "group1", "rotate", "1234567");
 		ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
 				.body("{\"errors\":[\"Failed to remove the group from the IAM Service Account\"]}");
 		Response response404 = getMockResponse(HttpStatus.NOT_FOUND, true, "");
@@ -964,7 +964,7 @@ public class IAMServiceAccountServiceTest {
 	public void testRemoveGroupFromIAMSvcAccFailure403() {
 		userDetails = getMockUser(false);
 		token = userDetails.getClientToken();
-		IAMServiceAccountGroup iamSvcAccGroup = new IAMServiceAccountGroup("testaccount", "group1", "reset", "1234567");
+		IAMServiceAccountGroup iamSvcAccGroup = new IAMServiceAccountGroup("testaccount", "group1", "rotate", "1234567");
 
 		ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST)
 				.body("{\"errors\":[\"Access denied: No permission to remove groups from this IAM service account\"]}");
@@ -1003,7 +1003,7 @@ public class IAMServiceAccountServiceTest {
 	        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Approle is successfully removed from IAM Service Account\"]}");
 	        String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
 	        UserDetails userDetails = getMockUser(false);
-	        IAMServiceAccountApprole serviceAccountApprole = new IAMServiceAccountApprole("testsvcname", "role1", "reset", "1234567890");
+	        IAMServiceAccountApprole serviceAccountApprole = new IAMServiceAccountApprole("testsvcname", "role1", "rotate", "1234567890");
 
 	        String [] policies = {"o_iamsvcacc_1234567890_testsvcname"};
 	        when(policyUtils.getCurrentPolicies(token, userDetails.getUsername(), userDetails)).thenReturn(policies);
