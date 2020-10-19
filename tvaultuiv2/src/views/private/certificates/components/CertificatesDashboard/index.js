@@ -416,12 +416,16 @@ const CertificatesDashboard = () => {
     if (allCertList.length > 0) {
       const val = location.pathname.split('/');
       const certName = val[val.length - 1];
-      const obj = allCertList.find((cert) => cert.certificateName === certName);
-      if (obj) {
-        setListItemDetails({ ...obj });
-      } else {
-        setListItemDetails(allCertList[0]);
-        history.push(`/certificates/${allCertList[0].certificateName}`);
+      if (certName !== 'create-ceritificate') {
+        const obj = allCertList.find(
+          (cert) => cert.certificateName === certName
+        );
+        if (obj) {
+          setListItemDetails({ ...obj });
+        } else {
+          setListItemDetails(allCertList[0]);
+          history.push(`/certificates/${allCertList[0].certificateName}`);
+        }
       }
     }
   }, [allCertList, location, history]);
@@ -496,8 +500,8 @@ const CertificatesDashboard = () => {
 
   /**
    * @function onCloseAllModal
-   * @description function to close all modal and make api call to fetch certificate, when edit or
-   * transfer or delete certificate happen.
+   * @description function to close all modal and make api call to fetch
+   * certificate, when edit or transfer or delete certificate happen.
    * @param {bool} actionPerform true/false based on the success event of corresponding action.
    */
   const onCloseAllModal = (actionPerform) => {
