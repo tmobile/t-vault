@@ -269,7 +269,7 @@ public class SSLCertificateService {
     @Value("${pacbot.client.secret}")
     private String pacbotClientSecret;
     
-    @Value("${selfservice.ssfilelocation}")
+    @Value("${selfservice.downloadLocation}")
     private String downloadLocation;
     
 
