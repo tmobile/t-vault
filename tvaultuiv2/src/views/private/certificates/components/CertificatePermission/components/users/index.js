@@ -99,7 +99,7 @@ const Users = (props) => {
     setResponse({ status: 'loading' });
     const payload = constructPayload(userName, access);
     apiService
-      .deleteCertificate(payload)
+      .deleteCertificateUser(payload)
       .then(async (res) => {
         if (res && res.data?.messages && res.data.messages[0]) {
           updateToastMessage(1, res.data.messages[0]);
@@ -166,7 +166,7 @@ const Users = (props) => {
     setResponse({ status: 'loading' });
     const payload = constructPayload(userName, access);
     apiService
-      .deleteCertificate(payload)
+      .deleteCertificateUser(payload)
       .then(async (res) => {
         if (res) {
           setResponse({ status: 'loading' });
