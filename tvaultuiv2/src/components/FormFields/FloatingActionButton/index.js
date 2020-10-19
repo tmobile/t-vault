@@ -1,6 +1,8 @@
+/* eslint-disable react/jsx-props-no-spreading */
 import React from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 import Fab from '@material-ui/core/Fab';
+import { Link } from 'react-router-dom';
 import Icon from '@material-ui/core/Icon';
 import Tooltip from '@material-ui/core/Tooltip';
 import PropTypes from 'prop-types';
@@ -33,7 +35,12 @@ const BootstrapTooltip = (options) => {
 };
 const FloatingActionButtonComponent = (props) => {
   const { href, size, disabled, color, icon, tooltipPos, tooltipTitle } = props;
-
+  const linkProps = href
+    ? {
+        component: Link,
+        to: href,
+      }
+    : '';
   return (
     <ComponentError>
       {tooltipTitle ? (
@@ -41,9 +48,10 @@ const FloatingActionButtonComponent = (props) => {
           <Fab
             color={color || 'default'}
             aria-label={icon}
-            href={href}
+            // href={href}
             size={size || 'small'}
             disabled={disabled || false}
+            {...linkProps}
           >
             {setIcon({ ...props })}
           </Fab>
@@ -52,9 +60,10 @@ const FloatingActionButtonComponent = (props) => {
         <Fab
           color={color || 'default'}
           aria-label={icon}
-          href={href}
+          // href={href}
           size={size || 'small'}
           disabled={disabled || false}
+          {...linkProps}
         >
           {setIcon({ ...props })}
         </Fab>
