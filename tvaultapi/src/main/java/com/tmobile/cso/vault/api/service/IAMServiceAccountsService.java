@@ -734,7 +734,7 @@ public class  IAMServiceAccountsService {
 		}
 		if (!isIamSvcaccPermissionInputValid(iamServiceAccountGroup.getAccess())) {
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-					.body("{\"errors\":[\"Invalid value specified for access. Valid permission values are read, rotate, deny\"]}");
+					.body("{\"errors\":[\"Invalid value specified for access. Valid values are read, rotate, deny\"]}");
 		}
 		if (iamServiceAccountGroup.getAccess().equalsIgnoreCase(IAMServiceAccountConstants.IAM_ROTATE_MSG_STRING)) {
 			iamServiceAccountGroup.setAccess(TVaultConstants.WRITE_POLICY);
