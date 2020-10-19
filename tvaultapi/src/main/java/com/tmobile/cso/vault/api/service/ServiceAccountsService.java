@@ -1756,7 +1756,6 @@ public class  ServiceAccountsService {
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"This operation is not supported for Userpass authentication. \"]}");
 		}
 
-		groupName = (groupName !=null) ? groupName.toLowerCase() : groupName;
 		access = (access != null) ? access.toLowerCase(): access;
 
 		boolean canAddGroup = hasAddOrRemovePermission(userDetails, svcAccName, token);

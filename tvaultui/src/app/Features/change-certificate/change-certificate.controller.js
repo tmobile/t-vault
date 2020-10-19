@@ -821,7 +821,7 @@
                 }
 
                 if (type === "groups" && !editingPermission) {
-                    key = document.getElementById('addGroup').value.toLowerCase();
+                    key = document.getElementById('addGroup').value;
                 }
                 // extract only userId/groupId from key
                 if (key.includes($scope.domainName)) {
