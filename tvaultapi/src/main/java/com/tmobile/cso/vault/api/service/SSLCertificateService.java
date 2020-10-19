@@ -34,6 +34,8 @@ import com.tmobile.cso.vault.api.process.RequestProcessor;
 import com.tmobile.cso.vault.api.process.Response;
 import com.tmobile.cso.vault.api.utils.*;
 import com.tmobile.cso.vault.api.validator.TokenValidator;
+
+
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.http.HttpEntity;
@@ -85,6 +87,9 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 @Component
 public class SSLCertificateService {
@@ -118,6 +123,9 @@ public class SSLCertificateService {
 
     @Autowired
     private NCLMMockUtil nclmMockUtil;
+    
+    @Autowired
+    private TokenUtils tokenUtils;    
 
     @Value("${vault.auth.method}")
     private String vaultAuthMethod;
@@ -242,11 +250,27 @@ public class SSLCertificateService {
 
     @Value("${sslcertmanager.endpoint.requestStatusUrl}")
     private String requestStatusUrl;
+    
     @Autowired
     private EmailUtils emailUtils;
 
     @Value("${nclm.mock}")
     private String nclmMockEnabled;    
+    
+    @Value("${pacbot.endpoint.getToken}")
+    private String pacbotGetTokenEndpoint;
+    
+    @Value("${pacbot.endpoint.getallcertificates}")
+    private String pacbotGetCertEndpoint;
+    
+    @Value("${pacbot.client.id}")
+    private String pacbotClientId;
+    
+    @Value("${pacbot.client.secret}")
+    private String pacbotClientSecret;
+    
+    @Value("${selfservice.ssfilelocation}")
+    private String downloadLocation;
     
 
     @Autowired
@@ -1664,6 +1688,22 @@ public class SSLCertificateService {
 
 	        String policyRequestJson = ControllerUtil.convetToJson(policyMap);
 	        Response readResponse = reqProcessor.process(SSLCertificateConstants.ACCESS_UPDATE_ENDPOINT, policyRequestJson, token);
+	        
+	        if(readResponse.getHttpstatus().equals(HttpStatus.NO_CONTENT) || readResponse.getHttpstatus().equals(HttpStatus.OK)){
+				 log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+		                    put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+		                    put(LogMessage.ACTION, SSLCertificateConstants.POLICY_CREATION_TITLE).
+		                    put(LogMessage.MESSAGE, String.format("read policy created successfully for [%s]", certificateName )).
+		                    put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+		                    build()));
+			}else {
+				log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+						put(LogMessage.ACTION, SSLCertificateConstants.POLICY_CREATION_TITLE).
+						put(LogMessage.MESSAGE, String.format("read policy creation failed for [%s]", certificateName )).
+						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+						build()));
+			}
 
 	        //Write Policy
 	        accessMap.put(certPath , TVaultConstants.WRITE_POLICY);
@@ -1671,12 +1711,42 @@ public class SSLCertificateService {
 	        policyMap.put(SSLCertificateConstants.ACCESS_ID, SSLCertificateConstants.WRITE_CERT_POLICY_PREFIX +policyValue+"_" + certificateName);
 	        policyRequestJson = ControllerUtil.convetToJson(policyMap);
 	        Response writeResponse = reqProcessor.process(SSLCertificateConstants.ACCESS_UPDATE_ENDPOINT, policyRequestJson, token);
+	        if(writeResponse.getHttpstatus().equals(HttpStatus.NO_CONTENT) || writeResponse.getHttpstatus().equals(HttpStatus.OK)){
+				 log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+		                    put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+		                    put(LogMessage.ACTION, SSLCertificateConstants.POLICY_CREATION_TITLE).
+		                    put(LogMessage.MESSAGE, String.format("write policy created successfully for [%s]", certificateName )).
+		                    put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+		                    build()));
+			}else {
+				log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+						put(LogMessage.ACTION, SSLCertificateConstants.POLICY_CREATION_TITLE).
+						put(LogMessage.MESSAGE, String.format("write policy creation failed for [%s]", certificateName )).
+						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+						build()));
+			}
 
 	        //Deny Policy
 	        accessMap.put(certPath , TVaultConstants.DENY_POLICY);
 	        policyMap.put(SSLCertificateConstants.ACCESS_ID, SSLCertificateConstants.DENY_CERT_POLICY_PREFIX +policyValue+"_" + certificateName);
 	        policyRequestJson = ControllerUtil.convetToJson(policyMap);
 	        Response denyResponse = reqProcessor.process(SSLCertificateConstants.ACCESS_UPDATE_ENDPOINT, policyRequestJson, token);
+	        if(denyResponse.getHttpstatus().equals(HttpStatus.NO_CONTENT) || denyResponse.getHttpstatus().equals(HttpStatus.OK)){
+				 log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+		                    put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+		                    put(LogMessage.ACTION, SSLCertificateConstants.POLICY_CREATION_TITLE).
+		                    put(LogMessage.MESSAGE, String.format("deny policy created successfully for [%s]", certificateName )).
+		                    put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+		                    build()));
+			}else {
+				log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+						put(LogMessage.ACTION, SSLCertificateConstants.POLICY_CREATION_TITLE).
+						put(LogMessage.MESSAGE, String.format("deny policy creation failed for [%s]", certificateName )).
+						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+						build()));
+			}
 
 	        //Owner Policy
 	        accessMap.put(certPath , TVaultConstants.SUDO_POLICY);
@@ -1684,6 +1754,21 @@ public class SSLCertificateService {
 	        policyMap.put(SSLCertificateConstants.ACCESS_ID, SSLCertificateConstants.SUDO_CERT_POLICY_PREFIX +policyValue+"_" + certificateName);
 	        policyRequestJson = ControllerUtil.convetToJson(policyMap);
 	        Response sudoResponse = reqProcessor.process(SSLCertificateConstants.ACCESS_UPDATE_ENDPOINT, policyRequestJson, token);
+	        if(sudoResponse.getHttpstatus().equals(HttpStatus.NO_CONTENT) || sudoResponse.getHttpstatus().equals(HttpStatus.OK)){
+				 log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+		                    put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+		                    put(LogMessage.ACTION, SSLCertificateConstants.POLICY_CREATION_TITLE).
+		                    put(LogMessage.MESSAGE, String.format("sudo policy created successfully for [%s]", certificateName )).
+		                    put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+		                    build()));
+			}else {
+				log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+						put(LogMessage.ACTION, SSLCertificateConstants.POLICY_CREATION_TITLE).
+						put(LogMessage.MESSAGE, String.format("sudo policy creation failed for [%s]", certificateName )).
+						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+						build()));
+			}
 
 	        if ((readResponse.getHttpstatus().equals(HttpStatus.NO_CONTENT) &&
 	        		writeResponse.getHttpstatus().equals(HttpStatus.NO_CONTENT) &&
@@ -3145,7 +3230,7 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
 		String currentpoliciesString = org.apache.commons.lang3.StringUtils.join(currentpolicies, ",");
 
 		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
-				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+ 				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
 				put(LogMessage.ACTION, SSLCertificateConstants.ADD_USER_TO_CERT_MSG).
 				put(LogMessage.MESSAGE, String.format ("policies [%s] before calling configureUserpassUser/configureLDAPUser", policies)).
 				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
@@ -3998,7 +4083,7 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
         int certId = sslCertificateMetadataDetails.getCertificateId();
         String certName = certificateDownloadRequest.getCertificateName();
 
-        String nclmToken = getNclmToken();
+        String nclmToken = nclmMockEnabled.equalsIgnoreCase(TVaultConstants.TRUE) ? TVaultConstants.NCLM_MOCK_VALUE :  getNclmToken();
            
         if (StringUtils.isEmpty(nclmToken)) {
             log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
@@ -4041,7 +4126,8 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(resource);
         }
 
-             	
+        if(!nclmMockEnabled.equalsIgnoreCase(TVaultConstants.TRUE) ) {
+        	
         
         HttpPost postRequest = new HttpPost(api);
         postRequest.addHeader("Authorization", "Bearer "+ nclmToken);
@@ -4093,7 +4179,28 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
                     put(LogMessage.MESSAGE, String.format ("Failed to download certificate [%s]. Failed to get api response from NCLM", certName)).
                     put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
                     build()));
-        }       
+        }
+        }else {
+        	try {
+        	Path path = Paths.get(downloadLocation+"/"+SSLCertificateConstants.DOWNLOAD_CERT+fileType);
+        	if(path!=null) {
+            byte[] decodedBytes;			
+			decodedBytes = Files.readAllBytes(path);        	
+            resource = new InputStreamResource(new ByteArrayInputStream(decodedBytes));
+            return ResponseEntity.status(HttpStatus.OK).contentLength(decodedBytes.length)
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\""+downloadFileName+"\"")
+                    .contentType(MediaType.parseMediaType("application/x-pkcs12;charset=utf-8"))
+                    .body(resource);
+        	}
+        	} catch (IOException e) {
+        		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+                        put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+                        put(LogMessage.ACTION, "downloadCertificate").
+                        put(LogMessage.MESSAGE, String.format ("Failed to download certificate [%s].", certName)).
+                        put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+                        build()));
+			}
+        }
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(resource);
         
     }
@@ -4124,7 +4231,7 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
         SSLCertificateMetadataDetails sslCertificateMetadataDetails = certificateUtils.getCertificateMetaData(token, certificateName, sslCertType);
         if (hasDownloadPermission(certificateName, userDetails, sslCertType) && sslCertificateMetadataDetails != null) {
 
-        	String nclmToken = getNclmToken();
+        	String nclmToken = nclmMockEnabled.equalsIgnoreCase(TVaultConstants.TRUE) ? TVaultConstants.NCLM_MOCK_VALUE :  getNclmToken();
             if (StringUtils.isEmpty(nclmToken)) {
                 log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
                         put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
@@ -4142,7 +4249,7 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
                 default: contentType = "application/x-pem-file"; break;
             }
 
-            
+            if(!nclmMockEnabled.equalsIgnoreCase(TVaultConstants.TRUE) ) {
             HttpClient httpClient;
 
             String api = certManagerDomain + "certificates/"+sslCertificateMetadataDetails.getCertificateId()+"/"+certificateType;
@@ -4208,6 +4315,27 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
                         build()));
             }
             
+            }else {
+            	try {
+            	Path path = Paths.get(downloadLocation+"/"+SSLCertificateConstants.DOWNLOAD_CERT+"."+certificateType);
+            	if(path!=null) {
+                byte[] decodedBytes;			
+    			decodedBytes = Files.readAllBytes(path);        	
+    			resource = new InputStreamResource(new ByteArrayInputStream(decodedBytes));
+                return ResponseEntity.status(HttpStatus.OK).contentLength(decodedBytes.length)
+                        .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\""+certificateName+"\"")
+                        .contentType(MediaType.parseMediaType(contentType+";charset=utf-8"))
+                        .body(resource);
+            	}
+            	} catch (IOException e) {
+            		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+                            put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+                            put(LogMessage.ACTION, "downloadCertificate").
+                            put(LogMessage.MESSAGE, String.format ("Failed to download certificate [%s].", certificateName)).
+                            put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+                            build()));
+    			}
+            }
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(resource);
         }
 
@@ -6831,4 +6959,7 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Access denied: No permission to remove user from this certificate\"]}");
 		}
 	}
+	
+	
+
 }
