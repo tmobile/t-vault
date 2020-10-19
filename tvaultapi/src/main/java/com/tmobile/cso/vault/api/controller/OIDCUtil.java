@@ -955,12 +955,21 @@ public class OIDCUtil {
 		return allGroups.stream().filter(pattern.asPredicate()).collect(Collectors.toSet());
 	}
 
+	/**
+	 * Method to URL encode any string
+	 * @param value
+	 * @return
+	 */
 	private String encodeValue(String value) {
 		String encodedValue = null;
 		try {
 			encodedValue = URLEncoder.encode(value, StandardCharsets.UTF_8.toString());
 		} catch (UnsupportedEncodingException e) {
-			e.printStackTrace();
+			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+					.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+					.put(LogMessage.ACTION, "Encode URL")
+					.put(LogMessage.MESSAGE, "Failed to encode URL value")
+					.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
 		}
 		return encodedValue;
 	}
