@@ -3149,7 +3149,7 @@ public class  IAMServiceAccountsService {
 			ResponseEntity<String> metadataResponse = deleteIAMSvcAccount(token, iamSvcAccToOffboard);
 			if(HttpStatus.OK.equals(metadataResponse.getStatusCode())){
 				return ResponseEntity.status(HttpStatus.OK).body(
-						"{\"messages\":[\"Successfully completed offboarding of iam service account from TVault\"]}");
+						"{\"messages\":[\"Successfully offboarded iam service account (if it existed) from TVault\"]}");
 			}else{
 				return ResponseEntity.status(HttpStatus.MULTI_STATUS).body(
 						"{\"errors\":[\"Failed to offboard IAM service account from TVault\"]}");
