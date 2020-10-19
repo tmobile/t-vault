@@ -30,6 +30,7 @@ import apiService from '../../apiService';
 import CertificateListItem from '../CertificateListItem';
 import EditAndDeletePopup from '../../../../../components/EditAndDeletePopup';
 import EditCertificate from '../EditCertificate';
+import TransferCertificate from '../TransferCertificateOwner';
 
 const ColumnSection = styled('section')`
   position: relative;
@@ -227,6 +228,7 @@ const CertificatesDashboard = () => {
   const [ListItemDetails, setListItemDetails] = useState({});
   const [openEditModal, setOpenEditModal] = useState(false);
   const [certificateData, setCertificateData] = useState({});
+  const [openTransferModal, setOpenTransferModal] = useState(false);
   const classes = useStyles();
   const history = useHistory();
   const location = useLocation();
@@ -477,8 +479,9 @@ const CertificatesDashboard = () => {
     setCertificateData({ ...item });
   };
 
-  const onCloseEditModal = (editActionPerform) => {
+  const onCloseEditTransferModal = (editActionPerform) => {
     setOpenEditModal(false);
+    setOpenTransferModal(false);
     setCertificateData({});
     if (editActionPerform) {
       setResponse({ status: 'loading' });
@@ -488,6 +491,11 @@ const CertificatesDashboard = () => {
         fetchNonAdminData();
       }
     }
+  };
+
+  const onTransferOwnerClicked = (data) => {
+    setOpenTransferModal(true);
+    setCertificateData(data);
   };
 
   const renderList = () => {
@@ -532,6 +540,7 @@ const CertificatesDashboard = () => {
               onDeletListItemClicked={() => {}}
               onEditListItemClicked={() => onEditListItemClicked(certificate)}
               admin={contextObj.isAdmin}
+              onTransferOwnerClicked={() => onTransferOwnerClicked(certificate)}
             />
           </PopperWrap>
         ) : null}
@@ -546,7 +555,14 @@ const CertificatesDashboard = () => {
             <EditCertificate
               certificateData={certificateData}
               open={openEditModal}
-              onCloseModal={(action) => onCloseEditModal(action)}
+              onCloseModal={(action) => onCloseEditTransferModal(action)}
+            />
+          )}
+          {openTransferModal && (
+            <TransferCertificate
+              certificateData={certificateData}
+              open={openTransferModal}
+              onCloseModal={(action) => onCloseEditTransferModal(action)}
             />
           )}
           <LeftColumnSection>

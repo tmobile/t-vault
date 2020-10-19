@@ -29,6 +29,11 @@ const getRevokeReason = (id) =>
 const revokeRequest = (certType, name, payload) =>
   api.post(`/certificates/${certType}/${name}/revocationrequest`, payload);
 
+const getOwnerTransferEmail = (owner) =>
+  api.get(`/ldap/users?UserPrincipalName=${owner}`);
+const transferOwner = (certType, name, ownerName) =>
+  api.put(`/sslcert/${certType}/${name}/${ownerName}/transferowner`);
+
 export default {
   getAllAdminCertInternal,
   getAllNonAdminCertInternal,
@@ -47,4 +52,6 @@ export default {
   certificateRenew,
   getRevokeReason,
   revokeRequest,
+  getOwnerTransferEmail,
+  transferOwner,
 };
