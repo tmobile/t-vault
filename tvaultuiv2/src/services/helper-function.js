@@ -205,5 +205,5 @@ export const getDaysDifference = (start, end) => {
   const date2 = new Date(end);
   const diffInTime = date2.getTime() - date1.getTime();
   const diffInTimeDays = diffInTime / (1000 * 3600 * 24);
-  return diffInTimeDays;
+  return Math.ceil(diffInTimeDays);
 };

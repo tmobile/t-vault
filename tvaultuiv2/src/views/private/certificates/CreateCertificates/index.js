@@ -12,6 +12,7 @@ import RadioGroup from '@material-ui/core/RadioGroup';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 import Radio from '@material-ui/core/Radio';
 import KeyboardReturnIcon from '@material-ui/icons/KeyboardReturn';
+import PropTypes from 'prop-types';
 import ConfirmationModal from '../../../../components/ConfirmationModal';
 import TextFieldComponent from '../../../../components/FormFields/TextField';
 import ButtonComponent from '../../../../components/FormFields/ActionButton';
@@ -81,7 +82,7 @@ const SafeIcon = styled.img`
   margin-right: 2rem;
 `;
 
-const CreateSafeForm = styled.form`
+const CreateCertificateForm = styled.form`
   display: ${(props) => (props.showPreview ? 'none' : 'flex')};
   flex-direction: column;
   margin-top: 2.8rem;
@@ -215,7 +216,8 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-const CreateCertificates = () => {
+const CreateCertificates = (props) => {
+  const { refresh } = props;
   const classes = useStyles();
   const [open, setOpen] = useState(true);
   const [applicationName, setApplicationName] = useState('');
@@ -399,12 +401,13 @@ const CreateCertificates = () => {
       setResponseType(0);
       apiService
         .createCertificate(payload)
-        .then((res) => {
+        .then(async (res) => {
           setResponseType(null);
           if (res.data.messages && res.data.messages[0]) {
             setOpenConfirmationModal(true);
             setResponseTitle('Successfull');
             setResponseDesc(res.data.messages[0]);
+            await refresh();
           }
         })
         .catch((err) => {
@@ -504,7 +507,7 @@ const CreateCertificates = () => {
                     responseType={responseType}
                   />
                 </PreviewWrap>
-                <CreateSafeForm showPreview={showPreview}>
+                <CreateCertificateForm showPreview={showPreview}>
                   <RadioWrap>
                     <InputLabel required>Certificate Type</InputLabel>
                     <RadioGroup
@@ -594,7 +597,7 @@ const CreateCertificates = () => {
                       })}
                     </DNSArrayList>
                   </InputFieldLabelWrapper>
-                </CreateSafeForm>
+                </CreateCertificateForm>
                 <CancelSaveWrapper showPreview={showPreview}>
                   <CancelButton>
                     <ButtonComponent
@@ -638,6 +641,10 @@ const CreateCertificates = () => {
       </>
     </ComponentError>
   );
+};
+
+CreateCertificates.propTypes = {
+  refresh: PropTypes.func.isRequired,
 };
 
 export default CreateCertificates;

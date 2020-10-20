@@ -34,6 +34,7 @@ import EditCertificate from '../EditCertificate';
 import TransferCertificate from '../TransferCertificateOwner';
 import DeletionConfirmationModal from './components/DeletionConfirmationModal';
 import EditDeletePopper from '../../../service-accounts/components/EditDeletePopper';
+import CreateCertificates from '../../CreateCertificates';
 
 const ColumnSection = styled('section')`
   position: relative;
@@ -268,6 +269,7 @@ const CertificatesDashboard = () => {
    * @description function call all certificates api.
    */
   const fetchAdminData = useCallback(async () => {
+    setResponse({ status: 'loading' });
     setAllCertList([]);
     setCertificateList([]);
     const allCertInternal = await apiService.getAllAdminCertInternal();
@@ -309,6 +311,7 @@ const CertificatesDashboard = () => {
   }, []);
 
   const fetchNonAdminData = useCallback(async () => {
+    setResponse({ status: 'loading' });
     const allCertInternal = await apiService.getAllNonAdminCertInternal();
     const allCertExternal = await apiService.getAllNonAdminCertExternal();
     const internalCertificates = await apiService.getInternalCertificates();
@@ -820,6 +823,20 @@ const CertificatesDashboard = () => {
               />
             </Switch>
           </RightColumnSection>
+          <Switch>
+            <Route
+              exact
+              path="/certificates/create-ceritificate"
+              render={(routeProps) => (
+                <CreateCertificates
+                  routeProps={routeProps}
+                  refresh={() =>
+                    contextObj?.isAdmin ? fetchAdminData() : fetchNonAdminData()
+                  }
+                />
+              )}
+            />
+          </Switch>
         </SectionPreview>
       </>
     </ComponentError>
