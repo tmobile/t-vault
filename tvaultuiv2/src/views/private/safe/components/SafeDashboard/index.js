@@ -1,7 +1,7 @@
 /* eslint-disable no-return-assign */
 /* eslint-disable react/jsx-wrap-multilines */
 /* eslint-disable no-param-reassign */
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, lazy } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 import InfiniteScroll from 'react-infinite-scroller';
 import { Link, Route, Switch, Redirect, useHistory } from 'react-router-dom';
@@ -31,6 +31,8 @@ import ScaledLoader from '../../../../../components/Loaders/ScaledLoader';
 import ConfirmationModal from '../../../../../components/ConfirmationModal';
 import ButtonComponent from '../../../../../components/FormFields/ActionButton';
 import EditDeletePopper from '../EditDeletePopper';
+
+const CreateSafe = lazy(() => import('../../CreateSafe'));
 
 // styled components
 const ColumnSection = styled('section')`
@@ -675,6 +677,22 @@ const SafeDashboard = () => {
             message="Safe deleted successfully!"
           />
         )}
+        <Switch>
+          <Route
+            exact
+            path="/safe/create-safe"
+            render={(routeProps) => (
+              <CreateSafe routeProps={{ ...routeProps }} refresh={fetchData} />
+            )}
+          />
+          <Route
+            exact
+            path="/safe/edit-safe"
+            render={(routeProps) => (
+              <CreateSafe routeProps={{ ...routeProps }} refresh={fetchData} />
+            )}
+          />
+        </Switch>
       </>
     </ComponentError>
   );

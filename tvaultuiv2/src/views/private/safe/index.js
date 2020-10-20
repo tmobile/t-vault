@@ -1,6 +1,6 @@
 /* eslint-disable react/jsx-props-no-spreading */
-import React, { lazy } from 'react';
-import { Route, Switch, withRouter } from 'react-router-dom';
+import React from 'react';
+import { withRouter } from 'react-router-dom';
 import styled from 'styled-components';
 import mediaBreakpoints from '../../../breakpoints';
 import ComponentError from '../../../errorBoundaries/ComponentError/component-error';
@@ -8,7 +8,6 @@ import SafeDashboard from './components/SafeDashboard';
 // import { UserContext } from '../../../contexts';
 import { useStateValue } from '../../../contexts/globalState';
 
-const CreateSafe = lazy(() => import('./CreateSafe'));
 const SafeSectionPreview = styled('section')`
   margin: 3em auto;
   height: 77vh;
@@ -43,7 +42,7 @@ const SafePageLayout = (props) => {
         <SafeSectionPreview>
           <SafeDashboard {...props} />
         </SafeSectionPreview>
-        <Switch>
+        {/* <Switch>
           <Route
             exact
             path="/safe/create-safe"
@@ -58,7 +57,7 @@ const SafePageLayout = (props) => {
               <CreateSafe routeProps={{ ...routeProps }} />
             )}
           />
-        </Switch>
+        </Switch> */}
       </main>
     </ComponentError>
   );

@@ -17,6 +17,7 @@ const Resources = {
     'Are you sure you want to transfer service account owner?',
   noCertificatesFound:
     'Once you add a <strong>Certificate</strong> you’ll see the  Corresponding <strong>Details</strong> here!',
+  appRoles: '',
   noTransferOwnerAvailable:
     'Certificate may not be approved or rejected.Please follow the instructions mentioned in email',
 };

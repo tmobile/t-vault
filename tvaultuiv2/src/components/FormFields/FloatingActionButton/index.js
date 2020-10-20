@@ -1,12 +1,16 @@
 /* eslint-disable react/jsx-props-no-spreading */
 import React from 'react';
+import styled from 'styled-components';
 import { makeStyles } from '@material-ui/core/styles';
-import Fab from '@material-ui/core/Fab';
 import { Link } from 'react-router-dom';
+import Fab from '@material-ui/core/Fab';
 import Icon from '@material-ui/core/Icon';
 import Tooltip from '@material-ui/core/Tooltip';
 import PropTypes from 'prop-types';
 import ComponentError from '../../../errorBoundaries/ComponentError/component-error';
+
+// styled components
+const FabWrap = styled.div``;
 
 const setIcon = (props) => {
   const { icon } = props;
@@ -34,39 +38,54 @@ const BootstrapTooltip = (options) => {
   );
 };
 const FloatingActionButtonComponent = (props) => {
-  const { href, size, disabled, color, icon, tooltipPos, tooltipTitle } = props;
+  const {
+    href,
+    size,
+    disabled,
+    color,
+    icon,
+    tooltipPos,
+    tooltipTitle,
+    onClick,
+  } = props;
   const linkProps = href
     ? {
         component: Link,
         to: href,
       }
     : '';
+
   return (
     <ComponentError>
       {tooltipTitle ? (
         <BootstrapTooltip title={tooltipTitle} placement={tooltipPos}>
+          <FabWrap role="button" onClick={onClick}>
+            <Fab
+              color={color || 'default'}
+              aria-label={icon}
+              // href={href}
+              size={size || 'small'}
+              disabled={disabled || false}
+              {...linkProps}
+            >
+              {setIcon({ ...props })}
+            </Fab>
+          </FabWrap>
+        </BootstrapTooltip>
+      ) : (
+        <FabWrap onClick={onClick}>
+          {' '}
           <Fab
             color={color || 'default'}
             aria-label={icon}
             // href={href}
+            {...linkProps}
             size={size || 'small'}
             disabled={disabled || false}
-            {...linkProps}
           >
             {setIcon({ ...props })}
           </Fab>
-        </BootstrapTooltip>
-      ) : (
-        <Fab
-          color={color || 'default'}
-          aria-label={icon}
-          // href={href}
-          size={size || 'small'}
-          disabled={disabled || false}
-          {...linkProps}
-        >
-          {setIcon({ ...props })}
-        </Fab>
+        </FabWrap>
       )}
     </ComponentError>
   );
@@ -80,6 +99,7 @@ FloatingActionButtonComponent.propTypes = {
   icon: PropTypes.string.isRequired,
   tooltipPos: PropTypes.string,
   tooltipTitle: PropTypes.string,
+  onClick: PropTypes.func.isRequired,
 };
 
 FloatingActionButtonComponent.defaultProps = {

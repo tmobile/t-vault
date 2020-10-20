@@ -110,7 +110,7 @@ const Header = (props) => {
   };
   const navItems = [
     { label: 'Safe', path: 'safe' },
-    { label: 'Applications', path: 'applications' },
+    { label: 'Vault Approles', path: 'vault-app-roles' },
     { label: 'Service accounts', path: 'service-accounts' },
     { label: 'Certificates', path: 'certificates' },
   ];

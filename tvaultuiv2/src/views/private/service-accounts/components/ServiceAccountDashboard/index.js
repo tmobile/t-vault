@@ -1,7 +1,13 @@
 /* eslint-disable react/jsx-curly-newline */
 /* eslint-disable react/jsx-wrap-multilines */
 /* eslint-disable no-param-reassign */
-import React, { useState, useEffect, useCallback, useContext } from 'react';
+import React, {
+  useState,
+  useEffect,
+  useCallback,
+  useContext,
+  lazy,
+} from 'react';
 import styled, { css } from 'styled-components';
 import { makeStyles } from '@material-ui/core/styles';
 import InfiniteScroll from 'react-infinite-scroller';
@@ -40,6 +46,8 @@ import { UserContext } from '../../../../../contexts';
 import DeletionConfirmationModal from './components/DeletionConfirmationModal';
 import TransferConfirmationModal from './components/TransferConfirmationModal';
 
+const OnBoardForm = lazy(() => import('../../OnBoardForm'));
+
 const ColumnSection = styled('section')`
   position: relative;
   background: ${(props) => props.backgroundColor || '#151820'};
@@ -76,7 +84,7 @@ const ColumnHeader = styled('div')`
 `;
 const StyledInfiniteScroll = styled(InfiniteScroll)`
   width: 100%;
-  max-height: 57vh;
+  max-height: 61vh;
   ${mediaBreakpoints.small} {
     max-height: 78vh;
   }
@@ -536,6 +544,7 @@ const ServiceAccountDashboard = () => {
               onDeletListItemClicked={() => onDeleteClicked(account.name)}
               onEditListItemClicked={() => onServiceAccountEdit(account.name)}
               admin={contextObj.isAdmin}
+              isTransferOwner={contextObj.isAdmin}
               onTransferOwnerClicked={() =>
                 onTransferOwnerClicked(account.name)
               }
@@ -757,6 +766,22 @@ const ServiceAccountDashboard = () => {
             />
           )}
         </SectionPreview>
+        <Switch>
+          <Route
+            exact
+            path="/service-accounts/onboard-service-accounts"
+            render={(routeProps) => (
+              <OnBoardForm routeProps={{ ...routeProps }} refresh={fetchData} />
+            )}
+          />
+          <Route
+            exact
+            path="/service-accounts/edit-service-accounts"
+            render={(routeProps) => (
+              <OnBoardForm routeProps={{ ...routeProps }} refresh={fetchData} />
+            )}
+          />
+        </Switch>
       </>
     </ComponentError>
   );

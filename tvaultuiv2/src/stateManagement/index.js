@@ -1,7 +1,8 @@
 const initilaState = {
   message: 'Welcome',
-  username: '',
-  userEmail: '',
+  username: 'SKumar255',
+  userEmail: 'Sunil.kumar255@t-mobile.com',
+  appRoleList: [],
 };
 
 export default initilaState;

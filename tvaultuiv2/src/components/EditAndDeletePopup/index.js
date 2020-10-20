@@ -39,12 +39,13 @@ const PsudoPopper = (props) => {
     onEditListItemClicked,
     admin,
     onTransferOwnerClicked,
+    isTransferOwner,
   } = props;
 
   return (
     <ComponentError>
       <IconWrap>
-        {admin && (
+        {admin && isTransferOwner && (
           <TransferOwnerWrap onClick={onTransferOwnerClicked}>
             <SyncAltIcon style={{ fill: '#fff' }} />
           </TransferOwnerWrap>
@@ -67,6 +68,7 @@ PsudoPopper.propTypes = {
   onEditListItemClicked: PropTypes.func,
   onTransferOwnerClicked: PropTypes.func,
   admin: PropTypes.bool,
+  isTransferOwner: PropTypes.bool,
 };
 
 PsudoPopper.defaultProps = {
@@ -74,6 +76,7 @@ PsudoPopper.defaultProps = {
   onEditListItemClicked: () => {},
   onTransferOwnerClicked: () => {},
   admin: true,
+  isTransferOwner: false,
 };
 
 export default PsudoPopper;
