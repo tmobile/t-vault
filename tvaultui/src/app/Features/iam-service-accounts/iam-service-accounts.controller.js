@@ -19,7 +19,7 @@
 
 'use strict';
 (function(app){
-    app.controller('IamServiceAccountsCtrl', function($scope, $rootScope, Modal, fetchData, $http, $window, $state, SessionStore, AdminSafesManagement, ModifyUrl, UtilityService, Notifications, safesService, RestEndpoints, CopyToClipboard){
+    app.controller('IamServiceAccountsCtrl', function($scope, $rootScope, Modal, fetchData, $http, $window, $state, SessionStore, AdminSafesManagement, ModifyUrl, UtilityService, Notifications, safesService, RestEndpoints, CopyToClipboard, AppConstant){
 
         $scope.isLoadingData = false;       // Variable to set the loader on
         $scope.adminNavTags = safesService.getSafesNavTags();
@@ -239,7 +239,7 @@
             $scope.viewPassword = false;
         }
         var pagesShown = 1;
-        var pageSize = 20;
+        var pageSize = AppConstant.PAGE_SIZE;
         $scope.paginationLimit = function(data) {
             $scope.currentshown = pageSize * pagesShown;
             if(($scope.searchValueSvcacc != '' && $scope.searchValueSvcacc!= undefined && $scope.searchValueSvcacc.length>2) || $scope.currentshown >= $scope.numOfSvcaccs){
@@ -248,10 +248,15 @@
             return $scope.currentshown;
         };
         $scope.hasMoreItemsToShow = function() {
-            if ($scope.searchValueSvcacc != '' && $scope.searchValueSvcacc!= undefined && $scope.searchValueSvcacc.length<3) {
-                return pagesShown < ($scope.numOfSvcaccs / pageSize);
+            if ($scope.searchValueSvcacc != '' && $scope.searchValueSvcacc!= undefined) {
+                if ($scope.searchValueSvcacc.length<3) {
+                    return pagesShown < ($scope.numOfSvcaccs / pageSize);
+                }
+                else {
+                    return false;
+                }
             }
-            return false;
+            return pagesShown < ($scope.numOfSvcaccs / pageSize);
         };
         $scope.showMoreItems = function() {
             pagesShown = pagesShown + 1;
@@ -269,5 +274,6 @@
     'vault.services.fetchData',
     'vault.services.ModifyUrl',
     'vault.services.Notifications',
-    'vault.constants.RestEndpoints'
+    'vault.constants.RestEndpoints',
+    'vault.constants.AppConstant'
 ]));

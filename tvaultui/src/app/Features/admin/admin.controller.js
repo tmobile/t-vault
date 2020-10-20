@@ -888,9 +888,9 @@
             $scope.searchValue = '';
         }
         var pagesShown = 1;
-        var pageSize = 8;
+        var pageSize = AppConstant.PAGE_SIZE;
         var iampagesShown = 1;
-        var iampageSize = 8;
+        var iampageSize = AppConstant.PAGE_SIZE;
         var certpagesShown = 1;
         var certpageSize = 50;
 
