@@ -38,8 +38,8 @@ const TabPanel = (props) => {
     <TabPanelWrap
       role="tabpanel"
       hidden={value !== index}
-      id={`safes-tabpanel-${index}`}
-      aria-labelledby={`safe-tab-${index}`}
+      id={`certs-tabpanel-${index}`}
+      aria-labelledby={`cert-tab-${index}`}
     >
       {children}
     </TabPanelWrap>
@@ -163,6 +163,7 @@ const CertificateSelectionTabs = (props) => {
       }
     } else {
       setHasPermission(false);
+      setValue(0);
     }
   }, [certificateMetaData, state]);
 
@@ -173,7 +174,7 @@ const CertificateSelectionTabs = (props) => {
           <Tabs
             value={value}
             onChange={handleChange}
-            aria-label="safe tabs"
+            aria-label="cert tabs"
             indicatorColor="secondary"
             textColor="primary"
           >
