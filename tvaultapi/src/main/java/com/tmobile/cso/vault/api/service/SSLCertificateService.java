@@ -753,7 +753,7 @@ public class SSLCertificateService {
             } else {
                 SSLCertificateMetadataDetails certMetaDataDetails = certificateUtils.getCertificateMetaData(token,
                         sslCertificateRequest.getCertificateName(), sslCertificateRequest.getCertType());
-                String responseMessage = StringUtils.capitalize(sslCertificateRequest.getCertificateName())+" Already" +
+                String responseMessage = sslCertificateRequest.getCertificateName()+" is already" +
                         " available  in system and owned  by "+ certMetaDataDetails.getCertOwnerEmailId() +" " +
                         ". Please try with different certificate name";
 
@@ -1325,8 +1325,9 @@ public class SSLCertificateService {
                     .put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
                     .put(LogMessage.ACTION, String.format("sendEmail for SSL certificate [%s] - certType [%s] - User " +
                                     "email=[%s] - subject = [%s]"
-                            ,certName , certType,directoryUser.getUserEmail(),subject))
-                    .build()));
+                            ,certName , certType,directoryUser.getUserEmail(),subject)).
+                    put(LogMessage.MESSAGE, String.format("Certificate revoked successfully [%s] revoked by [%s] on [%s]",certName,certOwnerNtId,LocalDateTime.now())).
+                    build()));
 
             emailUtils.sendHtmlEmalFromTemplateForInternalCert(fromEmail, certOwnerEmailId, subject, mailTemplateVariables);
         } else {
@@ -2431,6 +2432,11 @@ public class SSLCertificateService {
 					userDetails.getSelfSupportToken());
 			if (HttpStatus.OK.equals(response.getHttpstatus()) && !ObjectUtils.isEmpty(response.getResponse())) {
 				JsonObject object = ((JsonObject) jsonParser.parse(response.getResponse())).getAsJsonObject("data");
+				log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+		  				put(LogMessage.ACTION, "get certificateName and Status").
+		  			    put(LogMessage.MESSAGE, String.format("CertificatesName [%s] and Status [%s] is ",object.getAsString())).
+		  			    build()));
 				if (userDetails.getUsername().equalsIgnoreCase(
 						(object.get("certOwnerNtid") != null ? object.get("certOwnerNtid").getAsString() : ""))) {
 					if (count >= offset && count < maxVal) {
@@ -3248,7 +3254,7 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
 			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
 					put(LogMessage.ACTION, SSLCertificateConstants.ADD_USER_TO_CERT_MSG).
-					put(LogMessage.MESSAGE, String.format ("User is successfully associated with Certificate [%s] - User [%s]", certificatePath, userName)).
+					put(LogMessage.MESSAGE, String.format ("User is successfully associated with Certificate [%s] - User [%s] -Access [%s]", certificatePath, userName, access)).
 					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 					build()));
 			
@@ -3545,7 +3551,7 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
 			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
 					put(LogMessage.ACTION, SSLCertificateConstants.ADD_GROUP_TO_CERT_MSG).
-					put(LogMessage.MESSAGE, "Group configuration Success.").
+					put(LogMessage.MESSAGE, String.format ("Group configuration Success [%s] - Group [%s] -Access [%s]",certificateName, groupName, access)).
 					put(LogMessage.STATUS, metadataResponse.getHttpstatus().toString()).
 					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 					build()));
@@ -3953,6 +3959,16 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
 
         String certName = certificateDownloadRequest.getCertificateName();
         String certType = certificateDownloadRequest.getCertType();
+        if(!ControllerUtil.arecertificateDownloadInputsValid(certificateDownloadRequest)) {
+   			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+	   					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+	   					put(LogMessage.ACTION, "downloadCertificateWithPrivateKey").
+	   					put(LogMessage.MESSAGE, "Invalid input values").
+	   					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+	   					build()));
+   			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
+		}
+        
         SSLCertificateMetadataDetails sslCertificateMetadataDetails = certificateUtils.getCertificateMetaData(token, certName, certType);
         if (hasDownloadPermission(certificateDownloadRequest.getCertificateName(), userDetails, certType) && sslCertificateMetadataDetails!= null) {
             log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
@@ -4095,6 +4111,16 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
                                                                    String sslCertType) {
 
         InputStreamResource resource = null;
+        if(!ControllerUtil.areDownloadInputsValid(certificateName,sslCertType)) {
+   			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+	   					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+	   					put(LogMessage.ACTION, "downloadCertificateWithPrivateKey").
+	   					put(LogMessage.MESSAGE, "Invalid input values").
+	   					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+	   					build()));
+   			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
+		}
+        
         SSLCertificateMetadataDetails sslCertificateMetadataDetails = certificateUtils.getCertificateMetaData(token, certificateName, sslCertType);
         if (hasDownloadPermission(certificateName, userDetails, sslCertType) && sslCertificateMetadataDetails != null) {
 
@@ -4390,6 +4416,13 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
                 String certOwnerNtId = metaDataParams.get("certOwnerNtid");
                 //Sending renew email
                 sendRenewEmail(certType, certificateName, certOwnerEmailId,certOwnerNtId, token,isApprovalReq);
+                log.debug(JSONUtil.getJSON(ImmutableMap.<String, String> builder()
+    					.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString())
+    					.put(LogMessage.ACTION, "Renew certificate")
+    					.put(LogMessage.MESSAGE,
+    							String.format("Certificate renewed successfully [%s] renewed by [%s] on [%s]", certificateName,userDetails.getUsername(),LocalDateTime.now()))
+    					.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString())
+    					.build()));
 				return ResponseEntity.status(renewResponse.getHttpstatus())
 						.body("{\"messages\":[\"" + "Certificate renewed successfully" + "\"]}");
 			} else {

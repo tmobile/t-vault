@@ -71,6 +71,9 @@ public class SSLCertificateServiceTest {
 
     @InjectMocks
     SSLCertificateService sSLCertificateService;
+    
+    @Mock
+    ControllerUtil controllerUtil;
 
     @Mock
     private RequestProcessor reqProcessor;
@@ -3304,13 +3307,13 @@ public class SSLCertificateServiceTest {
         SSLCertificateMetadataDetails certDetails = new SSLCertificateMetadataDetails();
         certDetails.setCertType("internal");
         certDetails.setCertCreatedBy("normaluser");
-        certDetails.setCertificateName("CertificateName");
+        certDetails.setCertificateName("certname");
         certDetails.setCertOwnerNtid("normaluser");
         certDetails.setCertOwnerEmailId("normaluser@test.com");
         certDetails.setExpiryDate("10-20-2030");
         certDetails.setCertificateId(123123);
+        when(controllerUtil.arecertificateDownloadInputsValid(certificateDownloadRequest)).thenReturn(true);
         when(certificateUtils.getCertificateMetaData(Mockito.any(), eq("certname"), anyString())).thenReturn(certDetails);
-
         byte[] decodedBytes = Base64.getDecoder().decode(responseString);
         InputStreamResource resource = new InputStreamResource(new ByteArrayInputStream(decodedBytes));
         ResponseEntity<InputStreamResource> responseEntityExpected = ResponseEntity.status(HttpStatus.OK)
@@ -3358,7 +3361,7 @@ public class SSLCertificateServiceTest {
         lookupDetails.setToken(token);
         lookupDetails.setValid(true);
         lookupDetails.setAdmin(true);
-
+        when(controllerUtil.arecertificateDownloadInputsValid(certificateDownloadRequest)).thenReturn(true);
         when(tokenValidator.getVaultTokenLookupDetails(Mockito.any())).thenReturn(lookupDetails);
         SSLCertificateMetadataDetails certDetails = new SSLCertificateMetadataDetails();
         certDetails.setCertType("internal");
@@ -3416,7 +3419,7 @@ public class SSLCertificateServiceTest {
         lookupDetails.setToken(token);
         lookupDetails.setValid(true);
         lookupDetails.setAdmin(true);
-
+        when(controllerUtil.arecertificateDownloadInputsValid(certificateDownloadRequest)).thenReturn(true);
         when(tokenValidator.getVaultTokenLookupDetails(Mockito.any())).thenReturn(lookupDetails);
         SSLCertificateMetadataDetails certDetails = new SSLCertificateMetadataDetails();
         certDetails.setCertType("internal");
@@ -3472,7 +3475,7 @@ public class SSLCertificateServiceTest {
         lookupDetails.setToken(token);
         lookupDetails.setValid(true);
         lookupDetails.setAdmin(true);
-
+        when(controllerUtil.arecertificateDownloadInputsValid(certificateDownloadRequest)).thenReturn(true);
         when(tokenValidator.getVaultTokenLookupDetails(Mockito.any())).thenReturn(lookupDetails);
         SSLCertificateMetadataDetails certDetails = new SSLCertificateMetadataDetails();
         certDetails.setCertType("internal");
@@ -3524,7 +3527,7 @@ public class SSLCertificateServiceTest {
         lookupDetails.setToken(token);
         lookupDetails.setValid(true);
         lookupDetails.setAdmin(true);
-
+        when(controllerUtil.arecertificateDownloadInputsValid(certificateDownloadRequest)).thenReturn(true);
         when(tokenValidator.getVaultTokenLookupDetails(Mockito.any())).thenReturn(lookupDetails);
         SSLCertificateMetadataDetails certDetails = new SSLCertificateMetadataDetails();
         certDetails.setCertType("internal");
@@ -3575,12 +3578,12 @@ public class SSLCertificateServiceTest {
         lookupDetails.setToken(token);
         lookupDetails.setValid(true);
         lookupDetails.setAdmin(true);
-
+        when(controllerUtil.arecertificateDownloadInputsValid(certificateDownloadRequest)).thenReturn(true);
         when(tokenValidator.getVaultTokenLookupDetails(Mockito.any())).thenReturn(lookupDetails);
         SSLCertificateMetadataDetails certDetails = new SSLCertificateMetadataDetails();
         certDetails.setCertType("internal");
         certDetails.setCertCreatedBy("normaluser");
-        certDetails.setCertificateName("CertificateName");
+        certDetails.setCertificateName("CertificateName.t-mobile.com");
         certDetails.setCertOwnerNtid("normaluser");
         certDetails.setCertOwnerEmailId("normaluser@test.com");
         certDetails.setExpiryDate("10-20-2030");
@@ -3631,7 +3634,7 @@ public class SSLCertificateServiceTest {
         lookupDetails.setToken(token);
         lookupDetails.setValid(true);
         lookupDetails.setAdmin(true);
-
+        when(controllerUtil.arecertificateDownloadInputsValid(certificateDownloadRequest)).thenReturn(true);
         when(tokenValidator.getVaultTokenLookupDetails(Mockito.any())).thenReturn(lookupDetails);
         SSLCertificateMetadataDetails certDetails = new SSLCertificateMetadataDetails();
         certDetails.setCertType("internal");
@@ -3680,7 +3683,7 @@ public class SSLCertificateServiceTest {
         lookupDetails.setToken(token);
         lookupDetails.setValid(true);
         lookupDetails.setAdmin(true);
-
+        when(controllerUtil.arecertificateDownloadInputsValid(certificateDownloadRequest)).thenReturn(true);
         when(tokenValidator.getVaultTokenLookupDetails(Mockito.any())).thenReturn(lookupDetails);
         SSLCertificateMetadataDetails certDetails = new SSLCertificateMetadataDetails();
         certDetails.setCertType("internal");
@@ -3733,7 +3736,7 @@ public class SSLCertificateServiceTest {
         lookupDetails.setToken(token);
         lookupDetails.setValid(true);
         lookupDetails.setAdmin(true);
-
+        when(controllerUtil.arecertificateDownloadInputsValid(certificateDownloadRequest)).thenReturn(true);
         when(tokenValidator.getVaultTokenLookupDetails(Mockito.any())).thenReturn(lookupDetails);
         SSLCertificateMetadataDetails certDetails = new SSLCertificateMetadataDetails();
         certDetails.setCertType("internal");
@@ -3790,7 +3793,7 @@ public class SSLCertificateServiceTest {
         lookupDetails.setToken(token);
         lookupDetails.setValid(true);
         lookupDetails.setAdmin(true);
-
+        when(controllerUtil.areDownloadInputsValid(any(),any())).thenReturn(true);
         when(tokenValidator.getVaultTokenLookupDetails(Mockito.any())).thenReturn(lookupDetails);
         SSLCertificateMetadataDetails certDetails = new SSLCertificateMetadataDetails();
         certDetails.setCertType("internal");
@@ -3846,7 +3849,7 @@ public class SSLCertificateServiceTest {
         lookupDetails.setToken(token);
         lookupDetails.setValid(true);
         lookupDetails.setAdmin(true);
-
+        when(controllerUtil.areDownloadInputsValid(any(),any())).thenReturn(true);
         when(tokenValidator.getVaultTokenLookupDetails(Mockito.any())).thenReturn(lookupDetails);
         SSLCertificateMetadataDetails certDetails = new SSLCertificateMetadataDetails();
         certDetails.setCertType("internal");
@@ -3899,7 +3902,7 @@ public class SSLCertificateServiceTest {
         lookupDetails.setToken(token);
         lookupDetails.setValid(true);
         lookupDetails.setAdmin(true);
-
+        when(controllerUtil.areDownloadInputsValid(any(),any())).thenReturn(true);
         when(tokenValidator.getVaultTokenLookupDetails(Mockito.any())).thenReturn(lookupDetails);
         SSLCertificateMetadataDetails certDetails = new SSLCertificateMetadataDetails();
         certDetails.setCertType("internal");
@@ -3955,7 +3958,7 @@ public class SSLCertificateServiceTest {
         lookupDetails.setToken(token);
         lookupDetails.setValid(true);
         lookupDetails.setAdmin(true);
-
+        when(controllerUtil.areDownloadInputsValid(any(),any())).thenReturn(true);
         when(tokenValidator.getVaultTokenLookupDetails(Mockito.any())).thenReturn(lookupDetails);
         SSLCertificateMetadataDetails certDetails = new SSLCertificateMetadataDetails();
         certDetails.setCertType("internal");
@@ -4002,7 +4005,7 @@ public class SSLCertificateServiceTest {
         lookupDetails.setToken(token);
         lookupDetails.setValid(true);
         lookupDetails.setAdmin(true);
-
+        when(controllerUtil.areDownloadInputsValid(any(),any())).thenReturn(true);
         when(tokenValidator.getVaultTokenLookupDetails(Mockito.any())).thenReturn(lookupDetails);
         SSLCertificateMetadataDetails certDetails = new SSLCertificateMetadataDetails();
         certDetails.setCertType("internal");
@@ -4042,7 +4045,7 @@ public class SSLCertificateServiceTest {
         lookupDetails.setToken(token);
         lookupDetails.setValid(true);
         lookupDetails.setAdmin(true);
-
+        when(controllerUtil.areDownloadInputsValid(any(),any())).thenReturn(true);
         when(tokenValidator.getVaultTokenLookupDetails(Mockito.any())).thenReturn(lookupDetails);
         SSLCertificateMetadataDetails certDetails = new SSLCertificateMetadataDetails();
         certDetails.setCertType("internal");
@@ -4087,7 +4090,7 @@ public class SSLCertificateServiceTest {
         lookupDetails.setToken(token);
         lookupDetails.setValid(true);
         lookupDetails.setAdmin(true);
-
+        when(controllerUtil.areDownloadInputsValid(any(),any())).thenReturn(true);
         when(tokenValidator.getVaultTokenLookupDetails(Mockito.any())).thenReturn(lookupDetails);
         SSLCertificateMetadataDetails certDetails = new SSLCertificateMetadataDetails();
         certDetails.setCertType("internal");

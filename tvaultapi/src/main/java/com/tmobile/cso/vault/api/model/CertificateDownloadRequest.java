@@ -19,13 +19,20 @@ package com.tmobile.cso.vault.api.model;
 
 import java.io.Serializable;
 
+import javax.validation.constraints.NotNull;
+
 public class CertificateDownloadRequest implements Serializable {
 
     private static final long serialVersionUID = 3599498297619361438L;
+    @NotNull
     private String certificateName;
+    @NotNull
     private String certificateCred;
+    @NotNull
     private boolean issuerChain;
+    @NotNull
     private String format;
+    @NotNull
     private String certType;
 
     public String getCertType() {
