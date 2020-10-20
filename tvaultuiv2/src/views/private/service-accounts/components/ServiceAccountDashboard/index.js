@@ -176,6 +176,7 @@ const EmptyContentBox = styled('div')`
 const ColumnTitleWrap = styled('div')`
   display: flex;
   flex-flow: wrap;
+  width: 100%;
   .button-wrap {
     display: flex;
     width: 100%;

@@ -77,7 +77,7 @@ const ColumnHeader = styled('div')`
 `;
 const StyledInfiniteScroll = styled(InfiniteScroll)`
   width: 100%;
-  max-height: 70vh;
+  max-height: 68vh;
   ${mediaBreakpoints.small} {
     max-height: 78vh;
   }
@@ -189,7 +189,7 @@ const iconStyles = makeStyles(() => ({
 }));
 
 const AppRolesDashboard = () => {
-  const [appRoleType, setAppRoleType] = useState('');
+  const [appRoleType, setAppRoleType] = useState('All Approles');
   const [inputSearchValue, setInputSearchValue] = useState('');
   const [appRoleClicked, setAppRoleClicked] = useState(false);
   const [listItemDetails, setListItemDetails] = useState({});

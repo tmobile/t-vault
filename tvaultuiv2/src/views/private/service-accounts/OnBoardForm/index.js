@@ -682,7 +682,7 @@ const OnBoardForm = (props) => {
               : history?.location?.pathname.includes('/edit-service-accounts')
               ? 'Password rotation configuration for the service account has been updated successfully.'
               : `<p> Onboarding
-                of service account has been completed successfully. To continue, the service account needs to be activated by ${state.userEmail}. If you are owner of the service account, you need to log out and login again to activate it.</p>`
+                of service account has been completed successfully. To continue, the service account needs to be activated by ${userState?.userEmail}. If you are owner of the service account, you need to log out and login again to activate it.</p>`
           }
           cancelButton={
             // eslint-disable-next-line react/jsx-wrap-multilines
@@ -985,7 +985,7 @@ const OnBoardForm = (props) => {
                     buttonType="containedSecondary"
                     onClick={(e) => handleSaveClick(e)}
                   />
-                  {userState?.username ===
+                  {userState?.username.toLowerCase() ===
                     serviceAccountDetails?.managedBy?.userId.toLowerCase() &&
                   !isActiveServiceAccount ? (
                     <OwnerActionsWrap>

@@ -141,7 +141,10 @@ const AccountSelectionTabs = (props) => {
       .then((res) => {
         if (res.data && res.data.data) {
           setResponse({ status: 'success' });
-          if (res.data.data.managedBy === state.username) {
+          if (
+            res.data.data.managedBy.toLowerCase() ===
+            state.username.toLowerCase()
+          ) {
             setDisabledPermission(false);
             if (res.data.data.initialPasswordReset) {
               setHasSvcAccountAcitve(true);
@@ -183,11 +186,13 @@ const AccountSelectionTabs = (props) => {
             textColor="primary"
           >
             <Tab className={classes.tab} label="Secrets" {...a11yProps(0)} />
-            <Tab
-              label="Permissions"
-              {...a11yProps(1)}
-              disabled={!accountDetail.admin || disabledPermission}
-            />
+            {!disabledPermission && (
+              <Tab
+                label="Permissions"
+                {...a11yProps(1)}
+                disabled={disabledPermission}
+              />
+            )}
           </Tabs>
         </AppBar>
         <TabContentsWrap>
