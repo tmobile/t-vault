@@ -33,6 +33,7 @@ import EditAndDeletePopup from '../../../../../components/EditAndDeletePopup';
 import EditCertificate from '../EditCertificate';
 import TransferCertificate from '../TransferCertificateOwner';
 import DeletionConfirmationModal from './components/DeletionConfirmationModal';
+import EditDeletePopper from '../../../service-accounts/components/EditDeletePopper';
 
 const ColumnSection = styled('section')`
   position: relative;
@@ -139,6 +140,8 @@ const ListFolderWrap = styled(Link)`
 const NoListWrap = styled.div`
   width: 35%;
 `;
+
+const EditDeletePopperWrap = styled.div``;
 
 const BorderLine = styled.div`
   border-bottom: 0.1rem solid #1d212c;
@@ -641,6 +644,16 @@ const CertificatesDashboard = () => {
             />
           </PopperWrap>
         ) : null}
+        {isMobileScreen && certificate.applicationName && (
+          <EditDeletePopperWrap onClick={(e) => onActionClicked(e)}>
+            <EditDeletePopper
+              onDeleteClicked={() => onDeleteCertificateClicked(certificate)}
+              onEditClicked={() => onEditListItemClicked(certificate)}
+              admin={contextObj.isAdmin}
+              onTransferOwnerClicked={() => onTransferOwnerClicked(certificate)}
+            />
+          </EditDeletePopperWrap>
+        )}
       </ListFolderWrap>
     ));
   };
