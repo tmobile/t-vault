@@ -1061,7 +1061,7 @@
                     key = document.getElementById('addUser').value.toLowerCase();
                 }
                 if (type === "groups" && !editingPermission) {
-                    key = document.getElementById('addGroup').value.toLowerCase();
+                    key = document.getElementById('addGroup').value;
                 }
                 // extract only userId/groupId from key
                 if (key.includes($scope.domainName)) {
@@ -1072,12 +1072,15 @@
                 }
             }
             if (!editingPermission && key != '' && key != undefined) {
+                var groupIndex = Object.keys($scope.GroupsPermissionsData).findIndex(function (groupName) {
+                    return groupName.toLowerCase() === key.toLowerCase();
+                });
                 if (type === "users" && $scope.UsersPermissionsData!= null && $scope.UsersPermissionsData.hasOwnProperty(key.toLowerCase())) {
                     if ($scope.UsersPermissionsData[key.toLowerCase()] != "sudo") {
                         duplicate = true;
                     }
                 }
-                if (type === "groups" && $scope.GroupsPermissionsData!= null && $scope.GroupsPermissionsData.hasOwnProperty(key.toLowerCase())) {
+                if (type === "groups" && $scope.GroupsPermissionsData!= null && (groupIndex > -1)) {
                     duplicate = true;
                 }
                 if (type === "AWSPermission" && $scope.AwsPermissionsData.data!= null && $scope.AwsPermissionsData.data.hasOwnProperty(key.toLowerCase())) {

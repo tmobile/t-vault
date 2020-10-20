@@ -3365,7 +3365,7 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"This operation is not supported for Userpass authentication. \"]}");
 		} 		
 		ObjectMapper objMapper = new ObjectMapper();
-		String groupName = certificateGroup.getGroupname().toLowerCase();
+		String groupName = certificateGroup.getGroupname();
 		String certificateName = certificateGroup.getCertificateName().toLowerCase();
 		String access = certificateGroup.getAccess().toLowerCase();		
 		String certType = certificateGroup.getCertType().toLowerCase();
@@ -3414,7 +3414,7 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
 					//OIDC Changes
 					if (TVaultConstants.LDAP.equals(vaultAuthMethod)) {
 						currentpolicies = ControllerUtil.getPoliciesAsListFromJson(objMapper, responseJson);
-					} else if (TVaultConstants.OIDC.equals(vaultAuthMethod)) {
+					} else if (TVaultConstants.OIDC.equals(vaultAuthMethod) && !ObjectUtils.isEmpty(oidcGroup)) {
 						currentpolicies.addAll(oidcGroup.getPolicies());
 					}
 				} catch (IOException e) {
@@ -3445,7 +3445,7 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
 			if (ldapConfigresponse.getHttpstatus().equals(HttpStatus.NO_CONTENT)
 					|| ldapConfigresponse.getHttpstatus().equals(HttpStatus.OK)) {
 				return updateMetadataForAddGroupToCertificate(token, groupName, certificateName, access, certPath,
-						currentpoliciesString, userDetails, currentpolicies, oidcGroup.getId());
+						currentpoliciesString, userDetails, currentpolicies, oidcGroup != null ? oidcGroup.getId() : null);
 			}
 			else {
 				log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
@@ -4757,7 +4757,7 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
                 put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
                 build()));
         
-        String groupName = certificateGroup.getGroupname().toLowerCase();
+        String groupName = certificateGroup.getGroupname();
    		String certificateName = certificateGroup.getCertificateName().toLowerCase();
    		String certificateType = certificateGroup.getCertType();
    		String authToken = null;
@@ -4775,12 +4775,15 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
    			isAuthorized = certificateUtils.hasAddOrRemovePermission(userDetails, certificateMetaData);
    			
    		}else {
-   			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
-   					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
-   					put(LogMessage.ACTION, SSLCertificateConstants.REMOVE_GROUP_FROM_CERT_MSG).
-   					put(LogMessage.MESSAGE, "Access denied: No permission to remove group from this certificate").
-   					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
-   					build()));
+			log.error(
+					JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+							.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+							.put(LogMessage.ACTION, SSLCertificateConstants.REMOVE_GROUP_FROM_CERT_MSG)
+							.put(LogMessage.MESSAGE, String.format(
+									"Access denied: No permission to remove group [%s] from this certificate [%s]",
+									groupName, certificateName))
+							.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL))
+							.build()));
    			
    			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Access denied: No permission to remove group from this certificate\"]}");
    		} 
@@ -4861,7 +4864,7 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
 				// OIDC Changes
 				if (TVaultConstants.LDAP.equals(vaultAuthMethod)) {
 					currentpolicies = ControllerUtil.getPoliciesAsListFromJson(objMapper, responseJson);
-				} else if (TVaultConstants.OIDC.equals(vaultAuthMethod)) {
+				} else if (TVaultConstants.OIDC.equals(vaultAuthMethod) && !ObjectUtils.isEmpty(oidcGroup)) {
 					currentpolicies.addAll(oidcGroup.getPolicies());
 				}
 		    } catch (IOException e) {
@@ -4895,7 +4898,7 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
 		if(ldapConfigresponse.getHttpstatus().equals(HttpStatus.NO_CONTENT) || ldapConfigresponse.getHttpstatus().equals(HttpStatus.OK)){
 
 			return updateMetadataForRemoveGroupFromCertificate(groupName, certificatePath, authToken,
-					currentpoliciesString, userDetails, currentpolicies, oidcGroup.getId());
+					currentpoliciesString, userDetails, currentpolicies, oidcGroup!=null?oidcGroup.getId(): null);
 		} else {
 			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 		            put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).

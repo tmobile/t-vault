@@ -1013,7 +1013,7 @@
                     key = document.getElementById('addUser').value.toLowerCase();
                 }
                 if (type === "groups" && !editingPermission) {
-                    key = document.getElementById('addGroup').value.toLowerCase();
+                    key = document.getElementById('addGroup').value;
                 }
                 // extract only userId/groupId from key
                 if (key.includes($scope.domainName)) {
@@ -1025,12 +1025,15 @@
             }
             $scope.permissionChangeInProgress = true;
             if (!editingPermission && key != '' && key != undefined) {
+                var groupIndex = Object.keys($scope.permissionData.GroupsPermissionsData).findIndex(function (groupName) {
+                    return groupName.toLowerCase() === key.toLowerCase();
+                });
                 if (type === "users" && $scope.permissionData.UsersPermissionsData!= null && $scope.permissionData.UsersPermissionsData.hasOwnProperty(key.toLowerCase())) {
                     if ($scope.permissionData.UsersPermissionsData[key.toLowerCase()] != "sudo") {
                         duplicate = true;
                     }
                 }
-                if (type === "groups" && $scope.permissionData.GroupsPermissionsData!= null && $scope.permissionData.GroupsPermissionsData.hasOwnProperty(key.toLowerCase())) {
+                if (type === "groups" && $scope.permissionData.GroupsPermissionsData!= null && (groupIndex > -1)) {
                     duplicate = true;
                 }
                 if (type === "AppRolePermission" && $scope.permissionData.AppRolePermissionsData.data!= null && $scope.permissionData.AppRolePermissionsData.data.hasOwnProperty(key.toLowerCase())) {

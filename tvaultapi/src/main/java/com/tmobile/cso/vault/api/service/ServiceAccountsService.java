@@ -1756,7 +1756,6 @@ public class  ServiceAccountsService {
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"This operation is not supported for Userpass authentication. \"]}");
 		}
 
-		groupName = (groupName !=null) ? groupName.toLowerCase() : groupName;
 		access = (access != null) ? access.toLowerCase(): access;
 
 		boolean canAddGroup = hasAddOrRemovePermission(userDetails, svcAccName, token);
@@ -1946,7 +1945,7 @@ public class  ServiceAccountsService {
 		if (serviceAccountGroup.getAccess().equalsIgnoreCase("reset")) {
 			serviceAccountGroup.setAccess(TVaultConstants.WRITE_POLICY);
 		}
-        String groupName = serviceAccountGroup.getGroupname().toLowerCase();
+        String groupName = serviceAccountGroup.getGroupname();
         String svcAccName = serviceAccountGroup.getSvcAccName();
         String access = serviceAccountGroup.getAccess();
 
