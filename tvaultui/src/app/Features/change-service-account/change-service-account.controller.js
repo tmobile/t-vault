@@ -1379,16 +1379,18 @@
             }
             $scope.permissionChangeInProgress = true;
             if (!editingPermission && key != '' && key != undefined) {
-                var groupIndex = Object.keys($scope.permissionData.GroupsPermissionsData).findIndex(function (groupName) {
-                    return groupName.toLowerCase() === key.toLowerCase();
-                });
                 if (type === "users" && $scope.permissionData.UsersPermissionsData!= null && $scope.permissionData.UsersPermissionsData.hasOwnProperty(key.toLowerCase())) {
                     if ($scope.permissionData.UsersPermissionsData[key.toLowerCase()] != "sudo") {
                         duplicate = true;
                     }
                 }
-                if (type === "groups" && $scope.permissionData.GroupsPermissionsData!= null  && (groupIndex > -1)) {
-                    duplicate = true;
+                if (type === "groups" && $scope.permissionData.GroupsPermissionsData!= null) {
+                    var groupIndex = Object.keys($scope.permissionData.GroupsPermissionsData).findIndex(function (groupName) {
+                        return groupName.toLowerCase() === key.toLowerCase();
+                    });
+                    if(groupIndex > -1) {
+                        duplicate = true;
+                    }
                 }
                 if (type === "AWSPermission" && $scope.permissionData.AwsPermissionsData.data!= null && $scope.permissionData.AwsPermissionsData.data.hasOwnProperty(key.toLowerCase())) {
                     duplicate = true;
