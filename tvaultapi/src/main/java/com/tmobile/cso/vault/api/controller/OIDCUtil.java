@@ -694,7 +694,7 @@ public class OIDCUtil {
 			return allGroups;
 		}
 
-		String filterSearch = "$filter=startsWith%28displayName%2C'"+groupName+"'%29";
+		String filterSearch = "$filter=startsWith%28displayName%2C'"+encodeValue(groupName)+"'%29";
 		String api = ssoGroupsEndpoint + filterSearch;
 		HttpGet getRequest = new HttpGet(api);
 		getRequest.addHeader("accept", TVaultConstants.HTTP_CONTENT_TYPE_JSON);
