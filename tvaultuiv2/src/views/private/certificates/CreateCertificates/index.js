@@ -1,6 +1,6 @@
 /* eslint-disable react/jsx-wrap-multilines */
 /* eslint-disable react/jsx-curly-newline */
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 import { useHistory } from 'react-router-dom';
 import Modal from '@material-ui/core/Modal';
@@ -258,7 +258,7 @@ const CreateCertificates = (props) => {
     setResponseType(null);
   };
 
-  const getOwnerEmail = () => {
+  const getOwnerEmail = useCallback(() => {
     apiService
       .getOwnerEmail(`${state.username}`)
       .then((res) => {
@@ -270,7 +270,7 @@ const CreateCertificates = (props) => {
         setResponseType(-1);
         setToastMessage('Something went wrong while fetching the owner Email!');
       });
-  };
+  }, [state]);
 
   useEffect(() => {
     if (menu?.length > 0) {
@@ -278,7 +278,7 @@ const CreateCertificates = (props) => {
     }
   }, [menu]);
 
-  const getApplicationName = () => {
+  const getApplicationName = useCallback(() => {
     apiService
       .getApplicationName()
       .then((res) => {
@@ -296,7 +296,7 @@ const CreateCertificates = (props) => {
           'Something went wrong while fetching the application name!'
         );
       });
-  };
+  }, []);
 
   useEffect(() => {
     setResponseType(0);
@@ -304,8 +304,7 @@ const CreateCertificates = (props) => {
     if (state.username) {
       getOwnerEmail();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [state]);
+  }, [getApplicationName, state, getOwnerEmail]);
 
   useEffect(() => {
     if (
