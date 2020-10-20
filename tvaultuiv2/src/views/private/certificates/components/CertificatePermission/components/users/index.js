@@ -229,14 +229,15 @@ const Users = (props) => {
         {response.status === 'success' &&
           Object.keys(certificateMetaData).length > 0 && (
             <>
-              {Object.keys(certificateMetaData.users).length > 1 && (
-                <CertificatePermissionsList
-                  list={certificateMetaData.users}
-                  username={username}
-                  onEditClick={(key, value) => onEditClick(key, value)}
-                  onDeleteClick={(key, value) => onDeleteClick(key, value)}
-                />
-              )}
+              {certificateMetaData.users &&
+                Object.keys(certificateMetaData.users).length > 1 && (
+                  <CertificatePermissionsList
+                    list={certificateMetaData.users}
+                    username={username}
+                    onEditClick={(key, value) => onEditClick(key, value)}
+                    onDeleteClick={(key, value) => onDeleteClick(key, value)}
+                  />
+                )}
               {(!certificateMetaData.users ||
                 Object.keys(certificateMetaData.users).length === 1) && (
                 <NoDataWrapper>
