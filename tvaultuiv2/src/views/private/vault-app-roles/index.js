@@ -1,12 +1,10 @@
-import React, { lazy } from 'react';
+import React from 'react';
 // import PropTypes from 'prop-types';
-import { Switch, Route, withRouter } from 'react-router-dom';
+import { withRouter } from 'react-router-dom';
 import styled from 'styled-components';
 import AppRolesDashboard from './components/AppRolesDashboard';
 import ComponentError from '../../../errorBoundaries/ComponentError/component-error';
 import mediaBreakpoints from '../../../breakpoints';
-
-const CreateAppRole = lazy(() => import('./CreateAppRole'));
 
 // styled components goes here
 const SectionPreview = styled('section')`
@@ -18,15 +16,14 @@ const SectionPreview = styled('section')`
   }
 `;
 
-const VaultAppRoles = (props) => {
-  // const { message } = props;
+const VaultAppRoles = () => {
   return (
     <ComponentError>
       <main title="vault-app-role-layout">
         <SectionPreview>
           <AppRolesDashboard />
         </SectionPreview>
-        <Switch>
+        {/* <Switch>
           <Route
             exact
             path="/vault-app-roles/create-vault-app-role"
@@ -41,7 +38,7 @@ const VaultAppRoles = (props) => {
               <CreateAppRole routeProps={{ ...routeProps }} />
             )}
           />
-        </Switch>
+        </Switch> */}
       </main>
     </ComponentError>
   );

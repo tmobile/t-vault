@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useReducer } from 'react';
+import React, { useState, useEffect, useReducer, useContext } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 import { useHistory } from 'react-router-dom';
 import Modal from '@material-ui/core/Modal';
@@ -17,6 +17,7 @@ import ApproleIcon from '../../../../assets/icon-approle.svg';
 import leftArrowIcon from '../../../../assets/left-arrow.svg';
 import mediaBreakpoints from '../../../../breakpoints';
 import SnackbarComponent from '../../../../components/Snackbar';
+import { UserContext } from '../../../../contexts';
 // import AutoCompleteComponent from '../../../../components/FormFields/AutoComplete';
 import LoaderSpinner from '../../../../components/Loaders/LoaderSpinner';
 import apiService from '../apiService';
@@ -166,17 +167,20 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-const CreateAppRole = () => {
+const CreateAppRole = (props) => {
+  const { refresh } = props;
   const classes = useStyles();
   const [open, setOpen] = useState(true);
   const [responseType, setResponseType] = useState(null);
   const isMobileScreen = useMediaQuery(small);
-  const [appRoleError, setApproleError] = useState(false);
+  const [appRoleError, setApproleError] = useState(null);
   const [editApprole, setEditApprole] = useState(false);
   const [numberError, setNumberError] = useState(false);
   const [allAppRoles, setAllAppRoles] = useState([]);
+  const [nameAvailable, setNameAvailable] = useState(true);
   const [status, setStatus] = useState({});
   const history = useHistory();
+  const contextObj = useContext(UserContext);
 
   const initialState = {
     roleName: '',
@@ -202,10 +206,6 @@ const CreateAppRole = () => {
   const [state, dispatch] = useReducer(reducer, initialState);
 
   const onChange = (e) => {
-    setNumberError(false);
-    if (!e?.target?.value.match(/^[0-9]*$/g)) {
-      setNumberError(true);
-    }
     dispatch({
       type: 'INPUT_FORM_FIELDS',
       field: e?.target?.name,
@@ -221,7 +221,28 @@ const CreateAppRole = () => {
     secretIdTtl,
   } = state;
 
-  useEffect(() => {}, []);
+  useEffect(() => {
+    setStatus({ status: 'loading' });
+    apiService
+      .getAppRole()
+      .then((res) => {
+        setStatus({});
+        const appRolesArr = [];
+        if (res?.data?.keys) {
+          res.data.keys.map((item) => {
+            const appObj = {
+              name: item,
+              admin: contextObj?.isAdmin,
+            };
+            return appRolesArr.push(appObj);
+          });
+        }
+        setAllAppRoles([...appRolesArr]);
+      })
+      .catch(() => {
+        setStatus({});
+      });
+  }, [contextObj]);
 
   const handleClose = () => {
     setOpen(false);
@@ -235,15 +256,62 @@ const CreateAppRole = () => {
    */
 
   const validateRoleName = (name) => {
-    debugger;
-    if (allAppRoles?.includes(name)) {
-      setApproleError(true);
+    const itemExits = allAppRoles?.filter((approle) => approle.name === name);
+    if (itemExits?.length) {
+      setApproleError({ error: true, type: 'role-exists' });
+      setNameAvailable(false);
+      return;
     }
+    if (name.length < 3 || !name.match(/^[0-9a-zA-Z]*$/g)) {
+      setApproleError({ error: true, type: 'invalid-role' });
+      setNameAvailable(false);
+      return;
+    }
+    setNameAvailable(true);
   };
 
   const onRoleNameChange = (e) => {
     setApproleError(false);
     validateRoleName(e.target.value);
+    onChange(e);
+  };
+
+  const onMaxTokenChange = (e) => {
+    setNumberError(false);
+    if (!e?.target?.value.match(/^[0-9]*$/g)) {
+      setNumberError(true);
+    }
+    onChange(e);
+  };
+
+  const onTokenTtlChange = (e) => {
+    setNumberError(false);
+    if (!e?.target?.value.match(/^[0-9]*$/g)) {
+      setNumberError(true);
+    }
+    onChange(e);
+  };
+
+  const onSecretIdNumUseChange = (e) => {
+    setNumberError(false);
+    if (!e?.target?.value.match(/^[0-9]*$/g)) {
+      setNumberError(true);
+    }
+    onChange(e);
+  };
+  const onTokenNumUseChange = (e) => {
+    setNumberError(false);
+    if (!e?.target?.value.match(/^[0-9]*$/g)) {
+      setNumberError(true);
+    }
+    onChange(e);
+  };
+
+  const onSecretIdTtl = (e) => {
+    setNumberError(false);
+    if (!e?.target?.value.match(/^[0-9]*$/g)) {
+      setNumberError(true);
+    }
     onChange(e);
   };
 
@@ -337,10 +405,11 @@ const CreateAppRole = () => {
     setResponseType(0);
     apiService
       .createAppRole(payload)
-      .then((res) => {
+      .then(async (res) => {
         if (res && res.status === 200) {
           setResponseType(1);
           setStatus({ status: 'success', message: res.data.messages[0] });
+          await refresh();
           setTimeout(() => {
             setOpen(false);
             history.goBack();
@@ -433,10 +502,18 @@ be renewed "
                   onChange={(e) => onRoleNameChange(e)}
                   error={appRoleError}
                   helperText={
-                    appRoleError ? 'Please enter minimum 3 characters' : ''
+                    // eslint-disable-next-line no-nested-ternary
+                    roleName && appRoleError?.type === 'role-exists'
+                      ? 'This approle name already exists, Please take another name.'
+                      : roleName && appRoleError.type === 'invalid-role'
+                      ? 'Please enter valid role name'
+                      : 'Please enter minimum 3 characters'
                   }
                   onInputBlur={(e) => onInputBlur(e)}
                 />
+                {roleName && nameAvailable && (
+                  <span style={{ color: '#29bd51' }}>Role Name Available!</span>
+                )}
               </InputFieldLabelWrapper>
               <InputFieldLabelWrapper postion>
                 <InputLabelWrap>
@@ -458,7 +535,7 @@ be renewed "
                   fullWidth
                   readOnly={!!editApprole}
                   name="maxTokenTtl"
-                  onChange={(e) => onChange(e)}
+                  onChange={(e) => onMaxTokenChange(e)}
                   error={numberError}
                   helperText={
                     numberError
@@ -489,7 +566,7 @@ be renewed "
                   fullWidth
                   readOnly={!!editApprole}
                   name="tokenTtl"
-                  onChange={(e) => onChange(e)}
+                  onChange={(e) => onTokenTtlChange(e)}
                   error={numberError}
                   helperText={
                     numberError
@@ -519,7 +596,7 @@ be renewed "
                   fullWidth
                   readOnly={!!editApprole}
                   name="sectetIdNumUses"
-                  onChange={(e) => onChange(e)}
+                  onChange={(e) => onSecretIdNumUseChange(e)}
                   error={numberError}
                   helperText={
                     numberError
@@ -549,7 +626,7 @@ be renewed "
                   fullWidth
                   readOnly={!!editApprole}
                   name="tokenNumUses"
-                  onChange={(e) => onChange(e)}
+                  onChange={(e) => onTokenNumUseChange(e)}
                   error={numberError}
                   helperText={
                     numberError
@@ -579,7 +656,7 @@ be renewed "
                   fullWidth
                   readOnly={!!editApprole}
                   name="secretIdTtl"
-                  onChange={(e) => onChange(e)}
+                  onChange={(e) => onSecretIdTtl(e)}
                   error={numberError}
                   helperText={
                     numberError

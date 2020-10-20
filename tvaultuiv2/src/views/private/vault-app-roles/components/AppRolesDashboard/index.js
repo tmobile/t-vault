@@ -39,6 +39,7 @@ import Strings from '../../../../../resources';
 import { UserContext } from '../../../../../contexts';
 import ConfirmationModal from '../../../../../components/ConfirmationModal';
 import ButtonComponent from '../../../../../components/FormFields/ActionButton';
+import CreateAppRole from '../../CreateAppRole';
 
 const ColumnSection = styled('section')`
   position: relative;
@@ -358,7 +359,7 @@ const AppRolesDashboard = () => {
       const obj = appRoleList.find((item) => item === routeName);
       if (!obj) {
         setListItemDetails(appRoleList[0]);
-        history.push(`/vault-app-roles/${appRoleList[0]}`);
+        history.push(`/vault-app-roles/${appRoleList[0].name}`);
       }
     } else {
       setListItemDetails({});
@@ -374,9 +375,10 @@ const AppRolesDashboard = () => {
     setStatus({ status: 'loading' });
     apiService
       .deleteAppRole(deleteAppRoleName)
-      .then((res) => {
+      .then(async (res) => {
         setStatus({ status: 'success', message: res?.data?.messages[0] });
         onDeleteRouteToNextAppRole();
+        await fetchData();
       })
       .catch((err) => {
         setStatus({
@@ -408,7 +410,7 @@ const AppRolesDashboard = () => {
       <ListFolderWrap
         key={appRole.name}
         to={{
-          pathname: `/vault-app-roles/${appRole}`,
+          pathname: `/vault-app-roles/${appRole.name}`,
           state: { data: appRole },
         }}
         onClick={() => onLinkClicked(appRole)}
@@ -641,6 +643,22 @@ const AppRolesDashboard = () => {
             />
           )}
         </SectionPreview>
+        <Switch>
+          <Route
+            exact
+            path="/vault-app-roles/create-vault-app-role"
+            render={(routeProps) => (
+              <CreateAppRole routeProps={routeProps} refresh={fetchData} />
+            )}
+          />
+          <Route
+            exact
+            path="/vault-app-roles/edit-vault-app-role"
+            render={(routeProps) => (
+              <CreateAppRole routeProps={routeProps} refresh={fetchData} />
+            )}
+          />
+        </Switch>
       </>
     </ComponentError>
   );
