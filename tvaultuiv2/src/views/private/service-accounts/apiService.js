@@ -26,8 +26,7 @@ const fetchServiceAccountDetails = (svcName) =>
 const callServiceAccount = (svcName) => api.get(`/serviceaccounts/${svcName}`);
 const updateMetaPath = (svcName) =>
   api.get(`/serviceaccounts/meta?path=ad/roles/${svcName}`);
-const sslCertification = (certName) =>
-  api.get(`/sslcert?certificateName=${certName}&certType=internal`);
+
 const activateServiceAccount = (svcName) =>
   api.put(`/serviceaccounts/password?serviceAccountName=${svcName}`);
 // Service account secret API call.
@@ -75,7 +74,6 @@ export default {
   offBoardServiceAccount,
   addUserPermission,
   deleteUserPermission,
-  sslCertification,
   activateServiceAccount,
   updateServiceAccount,
   addGroupPermission,

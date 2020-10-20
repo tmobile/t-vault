@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import PropTypes from 'prop-types';
 import { debounce } from 'lodash';
 import { makeStyles } from '@material-ui/core/styles';
 import { useHistory } from 'react-router-dom';
@@ -164,7 +165,8 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-const CreateModal = () => {
+const CreateModal = (props) => {
+  const { refresh } = props;
   const classes = useStyles();
   const [open, setOpen] = useState(true);
   const [safeType, setSafeType] = useState('Users Safe');
@@ -285,8 +287,9 @@ const CreateModal = () => {
     setResponseType(0);
     apiService
       .editSafe(payload)
-      .then((res) => {
-        if (res && res.status === 200) {
+      .then(async (res) => {
+        if (res) {
+          await refresh();
           setResponseType(1);
           setToastMessage(`Safe ${name} updated successfully!`);
           setTimeout(() => {
@@ -309,8 +312,9 @@ const CreateModal = () => {
     setResponseType(0);
     apiService
       .createSafe(payload)
-      .then((res) => {
-        if (res && res.status === 200) {
+      .then(async (res) => {
+        await refresh();
+        if (res) {
           setResponseType(1);
           setTimeout(() => {
             setOpen(false);
@@ -532,5 +536,6 @@ const CreateModal = () => {
     </ComponentError>
   );
 };
-
+CreateModal.propTypes = { refresh: PropTypes.func };
+CreateModal.defaultProps = { refresh: () => {} };
 export default CreateModal;
