@@ -38,7 +38,7 @@ angular.module('vault.services.VaultUtility', [])
                 } else if (searchFieldName === "groupName") {
                     DataUrl = RestEndpoints.baseURL + RestEndpoints.groupGetDataFromAAD;
                 }                                
-                DataUrl = DataUrl + searchFieldText;              
+                DataUrl = DataUrl + encodeURIComponent(searchFieldText);
                  try {
                      data.loadingDataFrDropdown = true;
                      // Abort pending requests before making new request
