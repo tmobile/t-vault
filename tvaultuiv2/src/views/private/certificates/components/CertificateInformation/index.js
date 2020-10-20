@@ -1,17 +1,39 @@
+/* eslint-disable react/jsx-curly-newline */
 import React, { useEffect, useState } from 'react';
 import styled, { css } from 'styled-components';
 import PropTypes from 'prop-types';
 import ComponentError from '../../../../../errorBoundaries/ComponentError/component-error';
 import Loader from '../../../../../components/Loaders/LoaderSpinner';
+import Download from './components/Download';
+import SnackbarComponent from '../../../../../components/Snackbar';
 
 const DetailsWrap = styled.div`
   padding: 0 4rem;
   overflow-y: auto;
   height: 100%;
+  display: flex;
+  flex-direction: column;
+`;
+
+const TypeDownloadWrap = styled.div`
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 3rem;
+`;
+
+const TypeWrap = styled.div`
+  p {
+    margin: 0;
+  }
+`;
+
+const DownLoadWrap = styled.div`
+  padding: 1rem 0;
+  align-self: flex-end;
 `;
 
 const EachDetail = styled.div`
-  margin-bottom: 4rem;
+  margin-bottom: 3rem;
   p {
     margin: 0;
   }
@@ -31,6 +53,7 @@ const Value = styled.p`
 const DnsName = styled.p`
   border-bottom: 1px solid #5e627c;
   padding: 1rem 0;
+  font-size: 1.8rem;
 `;
 
 const customStyle = css`
@@ -49,6 +72,7 @@ const CertificateInformation = (props) => {
   const { responseStatus, certificateMetaData, errorMessage } = props;
   const [response, setResponse] = useState({ status: 'loading' });
   const [dnsNames, setDnsNames] = useState([]);
+  const [toastResponse, setToastResponse] = useState(null);
 
   useEffect(() => {
     setResponse({ status: responseStatus });
@@ -66,16 +90,40 @@ const CertificateInformation = (props) => {
     }
   }, [certificateMetaData]);
 
+  const onDownloadChange = (status, val) => {
+    setResponse({ status });
+    setToastResponse(val);
+  };
+
+  const onToastClose = (reason) => {
+    if (reason === 'clickaway') {
+      return;
+    }
+    setToastResponse(null);
+  };
+
   return (
     <ComponentError>
       <>
         {response.status === 'loading' && <Loader customStyle={customStyle} />}
         {response.status === 'success' && (
           <DetailsWrap>
-            <EachDetail>
-              <Label>Certificate Type:</Label>
-              <Value>{certificateMetaData.certType || 'N/A'}</Value>
-            </EachDetail>
+            <TypeDownloadWrap>
+              <TypeWrap>
+                <Label>Certificate Type:</Label>
+                <Value>{certificateMetaData.certType || 'N/A'}</Value>
+              </TypeWrap>
+              {certificateMetaData.certificateName && (
+                <DownLoadWrap>
+                  <Download
+                    certificateMetaData={certificateMetaData}
+                    onDownloadChange={(status, val) =>
+                      onDownloadChange(status, val)
+                    }
+                  />
+                </DownLoadWrap>
+              )}
+            </TypeDownloadWrap>
             <EachDetail>
               <Label>Certificate Name:</Label>
               <Value>{certificateMetaData.certificateName || 'N/A'}</Value>
@@ -101,6 +149,15 @@ const CertificateInformation = (props) => {
           </DetailsWrap>
         )}
         {response.status === 'error' && <ErrorWrap>{errorMessage}</ErrorWrap>}
+        {toastResponse === -1 && (
+          <SnackbarComponent
+            open
+            onClose={() => onToastClose()}
+            severity="error"
+            icon="error"
+            message="Unable to download certificate!"
+          />
+        )}
       </>
     </ComponentError>
   );

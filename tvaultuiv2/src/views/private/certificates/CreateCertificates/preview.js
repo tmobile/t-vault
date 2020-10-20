@@ -26,6 +26,7 @@ const Value = styled.p`
 const DnsName = styled.p`
   border-bottom: 1px solid #5e627c;
   padding: 1rem 0;
+  font-size: 1.8rem;
 `;
 
 const CancelSaveWrapper = styled.div`
@@ -68,7 +69,9 @@ const PreviewCertificate = (props) => {
       if (typeof dns !== 'string') {
         setDnsNames(dns);
       } else {
-        setDnsNames([]);
+        const parts = dns.split(/[[\]]{1,2}/);
+        const stringArray = parts[1].split(', ');
+        setDnsNames([...stringArray]);
       }
     }
   }, [dns]);
