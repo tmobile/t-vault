@@ -33,7 +33,8 @@
         'REPO_LINK' : 'https://github.com/tmobile/t-vault/blob/master/README.md',
         'OIDC_ROLE' : '',
         'OIDC_REDIRECT_URL' : '',
-        'SSL_EXT_CERTIFICATE' : true
+        'SSL_EXT_CERTIFICATE' : true,
+        'PAGE_SIZE' : 2
     });
     /*endinject*/
 })(angular.module('vault.constants.AppConstant', []));
