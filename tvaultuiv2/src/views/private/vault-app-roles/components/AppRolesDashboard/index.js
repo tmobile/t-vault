@@ -77,7 +77,7 @@ const ColumnHeader = styled('div')`
 `;
 const StyledInfiniteScroll = styled(InfiniteScroll)`
   width: 100%;
-  max-height: 57vh;
+  max-height: 70vh;
   ${mediaBreakpoints.small} {
     max-height: 78vh;
   }
@@ -546,17 +546,14 @@ const AppRolesDashboard = () => {
                               description="No approles are created yet!"
                               actionButton={
                                 // eslint-disable-next-line react/jsx-wrap-multilines
-                                contextObj?.isAdmin ? (
-                                  <FloatingActionButtonComponent
-                                    href="/vault-app-roles/create-vault-app-role"
-                                    color="secondary"
-                                    icon="add"
-                                    tooltipTitle="Create New Approle"
-                                    tooltipPos="bottom"
-                                  />
-                                ) : (
-                                  <></>
-                                )
+
+                                <FloatingActionButtonComponent
+                                  href="/vault-app-roles/create-vault-app-role"
+                                  color="secondary"
+                                  icon="add"
+                                  tooltipTitle="Create New Approle"
+                                  tooltipPos="bottom"
+                                />
                               }
                             />
                           </NoListWrap>

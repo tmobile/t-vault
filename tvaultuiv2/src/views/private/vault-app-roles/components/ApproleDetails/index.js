@@ -37,7 +37,7 @@ const TabContentsWrap = styled('div')`
 `;
 
 const NoDataWrapper = styled.div`
-  height: 61vh;
+  height: 100%;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -54,7 +54,7 @@ const noDataStyle = css`
 `;
 
 const NoSecretIdWrap = styled.div`
-  width: 40%;
+  width: 30%;
 `;
 
 const TabPanel = (props) => {
@@ -200,7 +200,8 @@ const AppRoleDetails = (props) => {
             <TitleThree extraCss="color:#5e627c">
               {`${secretIdsData?.length || 0} secretIds`}
             </TitleThree>
-            {getResponseType === 1 && secretIdsData ? (
+
+            {getResponseType === 1 && secretIdsData?.length ? (
               <AppRoleSecrets
                 secretIds={secretIdsData}
                 deleteSecretIds={OnDeleteSecretIds}
@@ -217,7 +218,7 @@ const AppRoleDetails = (props) => {
                       <ButtonComponent
                         label="Add"
                         icon="add"
-                        color="primary"
+                        color="secondary"
                         onClick={() => createSecretId()}
                         width={isMobileScreen ? '45%' : ''}
                       />

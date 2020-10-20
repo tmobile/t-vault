@@ -1,5 +1,6 @@
 /* eslint-disable no-console */
 import React, { useState, useCallback, useEffect, useReducer } from 'react';
+import PropTypes from 'prop-types';
 import { debounce } from 'lodash';
 import { CopyToClipboard } from 'react-copy-to-clipboard';
 import styled, { css } from 'styled-components';
@@ -205,7 +206,8 @@ const useStylesBootstrap = makeStyles((theme) => ({
 }));
 
 // Render component goes here
-const OnBoardForm = () => {
+const OnBoardForm = (props) => {
+  const { refresh } = props;
   const [timeError, setTimeError] = useState(null);
   const [svcPasswordDetails, setSvcPasswordDetails] = useState(null);
   const [isAppNameFetchig, setIsAppNameFetching] = useState(false);
@@ -398,13 +400,14 @@ const OnBoardForm = () => {
     };
     apiService
       .onBoardServiceAccount(payload)
-      .then((res) => {
+      .then(async (res) => {
         setStatus({
           status: 'success',
           message: res.data.messages[0],
         });
         setPostOnBoardModal(true);
         updateServiceAccountDetails(inputServiceName);
+        await refresh();
       })
       .catch((err) => {
         setStatus({
@@ -434,13 +437,14 @@ const OnBoardForm = () => {
     };
     apiService
       .updateServiceAccount(payload)
-      .then((res) => {
+      .then(async (res) => {
         setStatus({
           status: 'success',
           message: res?.data?.messages[0],
         });
         setPostOnBoardModal(true);
         updateServiceAccountDetails(inputServiceName);
+        await refresh();
       })
       .catch((err) => {
         setStatus({
@@ -1024,6 +1028,6 @@ const OnBoardForm = () => {
     </ComponentError>
   );
 };
-OnBoardForm.propTypes = {};
-OnBoardForm.defaultProps = {};
+OnBoardForm.propTypes = { refresh: PropTypes.func };
+OnBoardForm.defaultProps = { refresh: () => {} };
 export default OnBoardForm;

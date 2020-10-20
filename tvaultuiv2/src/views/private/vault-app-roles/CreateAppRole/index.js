@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useReducer, useContext } from 'react';
+import PropTypes from 'prop-types';
 import { makeStyles } from '@material-ui/core/styles';
 import { useHistory } from 'react-router-dom';
 import Modal from '@material-ui/core/Modal';
@@ -327,20 +328,15 @@ const CreateAppRole = (props) => {
         .then((res) => {
           setResponseType(null);
           if (res?.data?.data) {
-            // setSafeDetails(res.data.data);
-            // setName(res.data.data.name);
-            // setDescription(res.data.data.description);
-            // setOwner(res.data.data.owner);
-
             dispatch({
               type: 'UPDATE_FORM_FIELDS',
               payload: {
-                roleName,
-                maxTokenTtl,
-                tokenTtl,
-                sectetIdNumUses,
-                tokenNumUses,
-                secretIdTtl,
+                roleName: history.location.state.appRoleDetails.name,
+                maxTokenTtl: res.data.data.token_max_ttl,
+                tokenTtl: res.data.data.token_ttl,
+                sectetIdNumUses: res.data.data.secret_id_num_uses,
+                tokenNumUses: res.data.data.token_num_uses,
+                secretIdTtl: res.data.data.secret_id_ttl,
               },
             });
           }
@@ -364,8 +360,6 @@ const CreateAppRole = (props) => {
 
   const constructPayload = () => {
     const data = {
-      bind_secret_id: true,
-      policies: [],
       role_name: roleName,
       secret_id_num_uses: sectetIdNumUses,
       secret_id_ttl: secretIdTtl,
@@ -382,10 +376,11 @@ const CreateAppRole = (props) => {
     setResponseType(0);
     apiService
       .updateAppRole(payload)
-      .then((res) => {
-        if (res && res.status === 200) {
+      .then(async (res) => {
+        if (res) {
           setResponseType(1);
           setStatus({ status: 'success', message: res.data.messages[0] });
+          await refresh();
           setTimeout(() => {
             setOpen(false);
             history.goBack();
@@ -406,7 +401,7 @@ const CreateAppRole = (props) => {
     apiService
       .createAppRole(payload)
       .then(async (res) => {
-        if (res && res.status === 200) {
+        if (res) {
           setResponseType(1);
           setStatus({ status: 'success', message: res.data.messages[0] });
           await refresh();
@@ -498,6 +493,7 @@ be renewed "
                   value={roleName}
                   placeholder="Role_name"
                   fullWidth
+                  readOnly={!!editApprole}
                   name="roleName"
                   onChange={(e) => onRoleNameChange(e)}
                   error={appRoleError}
@@ -505,7 +501,7 @@ be renewed "
                     // eslint-disable-next-line no-nested-ternary
                     roleName && appRoleError?.type === 'role-exists'
                       ? 'This approle name already exists, Please take another name.'
-                      : roleName && appRoleError.type === 'invalid-role'
+                      : roleName && appRoleError?.type === 'invalid-role'
                       ? 'Please enter valid role name'
                       : 'Please enter minimum 3 characters'
                   }
@@ -533,7 +529,6 @@ be renewed "
                   value={maxTokenTtl}
                   placeholder="Token Max TTL"
                   fullWidth
-                  readOnly={!!editApprole}
                   name="maxTokenTtl"
                   onChange={(e) => onMaxTokenChange(e)}
                   error={numberError}
@@ -564,7 +559,6 @@ be renewed "
                   value={tokenTtl}
                   placeholder="Token_TTL"
                   fullWidth
-                  readOnly={!!editApprole}
                   name="tokenTtl"
                   onChange={(e) => onTokenTtlChange(e)}
                   error={numberError}
@@ -594,7 +588,6 @@ be renewed "
                   value={sectetIdNumUses}
                   placeholder="secret_Id_Num_Uses"
                   fullWidth
-                  readOnly={!!editApprole}
                   name="sectetIdNumUses"
                   onChange={(e) => onSecretIdNumUseChange(e)}
                   error={numberError}
@@ -624,7 +617,6 @@ be renewed "
                   value={tokenNumUses}
                   placeholder="token_num_uses"
                   fullWidth
-                  readOnly={!!editApprole}
                   name="tokenNumUses"
                   onChange={(e) => onTokenNumUseChange(e)}
                   error={numberError}
@@ -654,7 +646,6 @@ be renewed "
                   value={secretIdTtl}
                   placeholder="secret_id_ttl"
                   fullWidth
-                  readOnly={!!editApprole}
                   name="secretIdTtl"
                   onChange={(e) => onSecretIdTtl(e)}
                   error={numberError}
@@ -677,7 +668,7 @@ be renewed "
                 />
               </CancelButton>
               <ButtonComponent
-                label={!editApprole ? 'Create' : 'Edit'}
+                label={!editApprole ? 'Create' : 'Update'}
                 color="secondary"
                 icon={!editApprole ? 'add' : ''}
                 disabled={getDisabledState()}
@@ -711,5 +702,6 @@ be renewed "
     </ComponentError>
   );
 };
-
+CreateAppRole.propTypes = { refresh: PropTypes.func };
+CreateAppRole.defaultProps = { refresh: () => {} };
 export default CreateAppRole;

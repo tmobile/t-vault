@@ -1,7 +1,6 @@
 /* eslint-disable react/jsx-props-no-spreading */
-import React, { lazy, useContext } from 'react';
-import { Route, Switch, withRouter } from 'react-router-dom';
-// import PropTypes from 'prop-types';
+import React from 'react';
+import { withRouter } from 'react-router-dom';
 // eslint-disable-next-line import/no-unresolved
 import styled from 'styled-components';
 // eslint-disable-next-line import/no-unresolved
@@ -9,10 +8,8 @@ import styled from 'styled-components';
 import mediaBreakpoints from '../../../breakpoints';
 import ComponentError from '../../../errorBoundaries/ComponentError/component-error';
 import ServiceAccountDashboard from './components/ServiceAccountDashboard';
-import { UserContext } from '../../../contexts';
+// import { UserContext } from '../../../contexts';
 // import { useStateValue } from '../../../contexts/globalState';
-
-const OnBoardForm = lazy(() => import('./OnBoardForm'));
 const ServiceAccountSectionPreview = styled('section')`
   margin: 3em auto;
   height: 77vh;
@@ -23,7 +20,7 @@ const ServiceAccountSectionPreview = styled('section')`
 `;
 
 const ServiceAccountLayout = (props) => {
-  const userInfo = useContext(UserContext);
+  // const userInfo = useContext(UserContext);
   // eslint-disable-next-line no-console
 
   return (
@@ -32,7 +29,7 @@ const ServiceAccountLayout = (props) => {
         <ServiceAccountSectionPreview>
           <ServiceAccountDashboard {...props} />
         </ServiceAccountSectionPreview>
-        <Switch>
+        {/* <Switch>
           <Route
             exact
             path="/service-accounts/onboard-service-accounts"
@@ -47,7 +44,7 @@ const ServiceAccountLayout = (props) => {
               <OnBoardForm routeProps={{ ...routeProps, userInfo }} />
             )}
           />
-        </Switch>
+        </Switch> */}
       </main>
     </ComponentError>
   );
