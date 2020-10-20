@@ -36,6 +36,11 @@ const getOwnerTransferEmail = (owner) =>
 const transferOwner = (certType, name, ownerName) =>
   api.put(`/sslcert/${certType}/${name}/${ownerName}/transferowner`);
 
+const onDownloadCertificate = (name, format, certType) =>
+  api.get(`/sslcert/certificates/${name}/${format}/${certType}`);
+const onPrivateDownload = (payload) =>
+  api.post('/sslcert/certificates/download', payload);
+
 export default {
   getAllAdminCertInternal,
   getAllNonAdminCertInternal,
@@ -57,4 +62,6 @@ export default {
   revokeRequest,
   getOwnerTransferEmail,
   transferOwner,
+  onDownloadCertificate,
+  onPrivateDownload,
 };

@@ -1,13 +1,11 @@
 /* eslint-disable react/jsx-props-no-spreading */
 import React from 'react';
-import { Route, Switch, withRouter } from 'react-router-dom';
+import { withRouter } from 'react-router-dom';
 import styled from 'styled-components';
 
 import mediaBreakpoints from '../../../breakpoints';
 import ComponentError from '../../../errorBoundaries/ComponentError/component-error';
 import CertificatesDashboard from './components/CertificatesDashboard';
-import CreateCertificates from './CreateCertificates';
-// import { UserContext } from '../../../contexts';
 
 const CertificatesSectionPreview = styled('section')`
   margin: 3em auto;
@@ -28,15 +26,6 @@ const Certificates = (props) => {
         <CertificatesSectionPreview>
           <CertificatesDashboard {...props} />
         </CertificatesSectionPreview>
-        <Switch>
-          <Route
-            exact
-            path="/certificates/create-ceritificate"
-            render={(routeProps) => (
-              <CreateCertificates routeProps={{ ...routeProps }} />
-            )}
-          />
-        </Switch>
       </main>
     </ComponentError>
   );
