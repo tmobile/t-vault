@@ -15,7 +15,7 @@ import AppRoleSecrets from '../AppRoleSecrets';
 import apiService from '../../apiService';
 import NoData from '../../../../../components/NoData';
 import Error from '../../../../../components/Error';
-import NoSafesIcon from '../../../../../assets/no-data-safes.svg';
+import NoSecretsIcon from '../../../../../assets/no-data-secrets.svg';
 import SnackbarComponent from '../../../../../components/Snackbar';
 import LoaderSpinner from '../../../../../components/Loaders/LoaderSpinner';
 import ButtonComponent from '../../../../../components/FormFields/ActionButton';
@@ -49,12 +49,29 @@ const NoDataWrapper = styled.div`
     text-transform: uppercase;
   }
 `;
+const bgIconStyle = {
+  width: '16rem',
+  height: '16rem',
+};
+
 const noDataStyle = css`
-  width: 100%;
+  width: 45%;
+  margin: 0 auto;
+  ${mediaBreakpoints.small} {
+    width: 100%;
+  }
 `;
 
 const NoSecretIdWrap = styled.div`
-  width: 30%;
+  width: 100%;
+`;
+const customLoaderStyle = css`
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  color: red;
+  z-index: 1;
 `;
 
 const TabPanel = (props) => {
@@ -129,6 +146,7 @@ const AppRoleDetails = (props) => {
   // Function to get the secretIDs  of the given approle.
   const getSecrets = useCallback(() => {
     setStatus({ status: 'loading' });
+    setGetResponseType(null);
     apiService
       .getAccessors(appRoleDetail?.name)
       .then((res) => {
@@ -146,7 +164,7 @@ const AppRoleDetails = (props) => {
         ) {
           setStatus({ message: err.response.data.errors[0] });
         }
-        setGetResponseType(1);
+        setGetResponseType(-1);
       });
   }, [appRoleDetail]);
 
@@ -196,11 +214,12 @@ const AppRoleDetails = (props) => {
         </AppBar>
         <TabContentsWrap>
           <TabPanel value={value} index={0}>
-            {status?.status === 'loading' && <LoaderSpinner size="medium" />}
+            {status?.status === 'loading' && (
+              <LoaderSpinner size="medium" customStyle={customLoaderStyle} />
+            )}
             <TitleThree extraCss="color:#5e627c">
               {`${secretIdsData?.length || 0} secretIds`}
             </TitleThree>
-
             {getResponseType === 1 && secretIdsData?.length ? (
               <AppRoleSecrets
                 secretIds={secretIdsData}
@@ -211,7 +230,7 @@ const AppRoleDetails = (props) => {
                 {' '}
                 <NoSecretIdWrap>
                   <NoData
-                    imageSrc={NoSafesIcon}
+                    imageSrc={NoSecretsIcon}
                     description="There are no secretIds to view here.Once you create a New Approle you’ll be able to add Secret IDs  to this app role here!"
                     actionButton={
                       // eslint-disable-next-line react/jsx-wrap-multilines
@@ -223,6 +242,7 @@ const AppRoleDetails = (props) => {
                         width={isMobileScreen ? '45%' : ''}
                       />
                     }
+                    bgIconStyle={bgIconStyle}
                     customStyle={noDataStyle}
                   />
                 </NoSecretIdWrap>
