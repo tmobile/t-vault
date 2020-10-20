@@ -257,19 +257,7 @@ public class SSLCertificateService {
     @Value("${nclm.mock}")
     private String nclmMockEnabled;    
     
-    @Value("${pacbot.endpoint.getToken}")
-    private String pacbotGetTokenEndpoint;
-    
-    @Value("${pacbot.endpoint.getallcertificates}")
-    private String pacbotGetCertEndpoint;
-    
-    @Value("${pacbot.client.id}")
-    private String pacbotClientId;
-    
-    @Value("${pacbot.client.secret}")
-    private String pacbotClientSecret;
-    
-    @Value("${selfservice.downloadLocation}")
+    @Value("${selfservice.ssfilelocation}")
     private String downloadLocation;
     
 
@@ -1693,14 +1681,14 @@ public class SSLCertificateService {
 				 log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 		                    put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
 		                    put(LogMessage.ACTION, SSLCertificateConstants.POLICY_CREATION_TITLE).
-		                    put(LogMessage.MESSAGE, String.format("read policy created successfully for [%s]", certificateName )).
+		                    put(LogMessage.MESSAGE, String.format("[%s] -Read Policy Created – Completed", certificateName )).
 		                    put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 		                    build()));
 			}else {
 				log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
 						put(LogMessage.ACTION, SSLCertificateConstants.POLICY_CREATION_TITLE).
-						put(LogMessage.MESSAGE, String.format("read policy creation failed for [%s]", certificateName )).
+						put(LogMessage.MESSAGE, String.format("[%s] -Read Policy Creation – FAILED", certificateName )).
 						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 						build()));
 			}
@@ -1715,14 +1703,14 @@ public class SSLCertificateService {
 				 log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 		                    put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
 		                    put(LogMessage.ACTION, SSLCertificateConstants.POLICY_CREATION_TITLE).
-		                    put(LogMessage.MESSAGE, String.format("write policy created successfully for [%s]", certificateName )).
+		                    put(LogMessage.MESSAGE, String.format("[%s] -Write Policy Created – Completed", certificateName )).
 		                    put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 		                    build()));
 			}else {
 				log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
 						put(LogMessage.ACTION, SSLCertificateConstants.POLICY_CREATION_TITLE).
-						put(LogMessage.MESSAGE, String.format("write policy creation failed for [%s]", certificateName )).
+						put(LogMessage.MESSAGE, String.format("[%s] -Write Policy Creation – Failed", certificateName )).
 						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 						build()));
 			}
@@ -1736,14 +1724,14 @@ public class SSLCertificateService {
 				 log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 		                    put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
 		                    put(LogMessage.ACTION, SSLCertificateConstants.POLICY_CREATION_TITLE).
-		                    put(LogMessage.MESSAGE, String.format("deny policy created successfully for [%s]", certificateName )).
+		                    put(LogMessage.MESSAGE, String.format("[%s] -Deny Policy Created – Completed", certificateName )).
 		                    put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 		                    build()));
 			}else {
 				log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
 						put(LogMessage.ACTION, SSLCertificateConstants.POLICY_CREATION_TITLE).
-						put(LogMessage.MESSAGE, String.format("deny policy creation failed for [%s]", certificateName )).
+						put(LogMessage.MESSAGE, String.format("[%s] -Deny Policy Creation – Failed", certificateName )).
 						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 						build()));
 			}
@@ -1758,14 +1746,14 @@ public class SSLCertificateService {
 				 log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 		                    put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
 		                    put(LogMessage.ACTION, SSLCertificateConstants.POLICY_CREATION_TITLE).
-		                    put(LogMessage.MESSAGE, String.format("sudo policy created successfully for [%s]", certificateName )).
+		                    put(LogMessage.MESSAGE, String.format("[%s] -Sudo Policy Created – Completed", certificateName )).
 		                    put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 		                    build()));
 			}else {
 				log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
 						put(LogMessage.ACTION, SSLCertificateConstants.POLICY_CREATION_TITLE).
-						put(LogMessage.MESSAGE, String.format("sudo policy creation failed for [%s]", certificateName )).
+						put(LogMessage.MESSAGE, String.format("[%s] -Sudo Policy Creation – Failed", certificateName )).
 						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 						build()));
 			}
@@ -1783,7 +1771,7 @@ public class SSLCertificateService {
 	            log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 	                    put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
 	                    put(LogMessage.ACTION, SSLCertificateConstants.POLICY_CREATION_TITLE).
-	                    put(LogMessage.MESSAGE, "SSL Certificate Policies Creation Success").
+	                    put(LogMessage.MESSAGE, String.format("[%s] -Policies Creation – Completed", certificateName )).
 	                    put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 	                    build()));
 	            policiesCreated = true;
@@ -1791,7 +1779,7 @@ public class SSLCertificateService {
 	            log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 	                    put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
 	                    put(LogMessage.ACTION, SSLCertificateConstants.POLICY_CREATION_TITLE).
-	                    put(LogMessage.MESSAGE, "SSL Certificate policies creation failed").
+	                    put(LogMessage.MESSAGE, String.format("[%s] -Policies Creation – Failed", certificateName )).
 	                    put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 	                    build()));
 	        }
@@ -6958,8 +6946,6 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
 					build()));
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Access denied: No permission to remove user from this certificate\"]}");
 		}
-	}
-	
-	
+	}	
 
 }
