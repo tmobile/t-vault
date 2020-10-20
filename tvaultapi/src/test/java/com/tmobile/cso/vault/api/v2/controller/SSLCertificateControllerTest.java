@@ -435,4 +435,18 @@ public class SSLCertificateControllerTest {
 		assertEquals(HttpStatus.OK,
 				sslCertificateService.getAllSelfServiceGroups(userDetails).getStatusCode());
 	}
+	
+	 @Test
+	    public void test_onboardCertificates() throws Exception {
+	        // Mock response        
+	        when(sslCertificateService.onboardCerts(userDetails,"5PDrOhsy4ig8L3EpsJZSLAMg",0,1)).thenReturn(new ResponseEntity<>(HttpStatus.OK));
+	        assertEquals(HttpStatus.OK, sslCertificateService.onboardCerts(userDetails,"5PDrOhsy4ig8L3EpsJZSLAMg",0,1).getStatusCode());
+	    }
+	 
+	 @Test
+	    public void test_onboardSingleCertificates() throws Exception {
+	        // Mock response        
+	        when(sslCertificateService.onboardSingleCert(userDetails,"5PDrOhsy4ig8L3EpsJZSLAMg","internal","testcert","tvt")).thenReturn(new ResponseEntity<>(HttpStatus.OK));
+	        assertEquals(HttpStatus.OK, sslCertificateService.onboardSingleCert(userDetails,"5PDrOhsy4ig8L3EpsJZSLAMg","internal","testcert","tvt").getStatusCode());
+	    }
 }
