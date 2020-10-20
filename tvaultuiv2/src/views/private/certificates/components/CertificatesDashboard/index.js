@@ -238,6 +238,7 @@ const CertificatesDashboard = () => {
   const [openDeleteConfirmation, setOpenDeleteConfirmation] = useState(false);
   const [deleteResponse, setDeleteResponse] = useState(false);
   const [deleteError, setDeleteError] = useState(false);
+  const [deleteConfirmClicked, setDeleteConfirmClicked] = useState(false);
   const [deleteModalDetail, setDeleteModalDetail] = useState({
     title: '',
     description: '',
@@ -400,8 +401,7 @@ const CertificatesDashboard = () => {
    * @description function to check if mobile screen the make certificateClicked true
    * based on that value display left and right side.
    */
-  const onLinkClicked = (item) => {
-    setListItemDetails(item);
+  const onLinkClicked = () => {
     if (isMobileScreen) {
       setCertificateClicked(true);
     }
@@ -556,7 +556,8 @@ const CertificatesDashboard = () => {
   const handleDeleteConfirmationModalClose = () => {
     setDeleteResponse(false);
     setOpenDeleteConfirmation(false);
-    if (!deleteError) {
+    if (!deleteError && deleteConfirmClicked) {
+      setDeleteConfirmClicked(false);
       onCloseAllModal(true);
     }
   };
@@ -568,6 +569,7 @@ const CertificatesDashboard = () => {
   const onCertificateDeleteConfirm = () => {
     setResponse({ status: 'loading' });
     setOpenDeleteConfirmation(false);
+    setDeleteConfirmClicked(true);
     apiService
       .deleteCertificate(
         certificateData.certificateName,
@@ -642,7 +644,7 @@ const CertificatesDashboard = () => {
                 onDeleteCertificateClicked(certificate)
               }
               onEditListItemClicked={() => onEditListItemClicked(certificate)}
-              admin={contextObj.isAdmin}
+              admin
               onTransferOwnerClicked={() => onTransferOwnerClicked(certificate)}
             />
           </PopperWrap>
@@ -652,7 +654,7 @@ const CertificatesDashboard = () => {
             <EditDeletePopper
               onDeleteClicked={() => onDeleteCertificateClicked(certificate)}
               onEditClicked={() => onEditListItemClicked(certificate)}
-              admin={contextObj.isAdmin}
+              admin
               onTransferOwnerClicked={() => onTransferOwnerClicked(certificate)}
             />
           </EditDeletePopperWrap>
