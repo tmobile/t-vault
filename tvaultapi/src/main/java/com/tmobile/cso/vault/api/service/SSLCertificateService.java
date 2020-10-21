@@ -7056,6 +7056,7 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
 		     */
 		    public ResponseEntity<String> onboardCerts(UserDetails userDetails,  String token, Integer from, Integer size) throws Exception {
 		    	JsonArray responseArray;
+		    	ResponseEntity<String> response;
 		    	String bearerToken = authenticatePacbot(pacbotClientId,pacbotClientSecret);
 		    	responseArray = getActiveCertificaesFromPacbot(bearerToken, from, size);
 		    	JsonObject jsonObject;
@@ -7065,8 +7066,10 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
 					for (int i = 0; i < responseArray.size(); i++) {
 						jsonObject  = responseArray.get(i).getAsJsonObject();
 						if(!isCertAvailableInMetadata(jsonObject, token)) {
-							createObjectAndOnboardCert(jsonObject,userDetails);
+							response = createObjectAndOnboardCert(jsonObject,userDetails);
+							if (response !=null && HttpStatus.OK.equals(response.getStatusCode())) {
 							successCount++;
+							}
 						}
 						else {
 						continue;
@@ -7246,7 +7249,8 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
 		    }
 		    
 		       
-		    private void createObjectAndOnboardCert(JsonObject certObject,UserDetails userDetails) {
+		    private ResponseEntity<String> createObjectAndOnboardCert(JsonObject certObject,UserDetails userDetails) {
+		    	ResponseEntity<String> response;
 		    	SSLCertificateRequest sslCertificateRequest = new SSLCertificateRequest();		    	
 		    	String certificateName = ObjectUtils.isEmpty(certObject.get("commonname"))?"":certObject.get("commonname").getAsString();
 		    	String containerPath = ObjectUtils.isEmpty(certObject.get("containerPath"))?"":certObject.get("containerPath").getAsString();
@@ -7258,7 +7262,9 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
 		                 put(LogMessage.MESSAGE, String.format("[%s] Onbaord certificate - STARTED ", certificateName)).
 		                 put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 		                 build()));		    	 
-		    	
+		    	if(container_name.equalsIgnoreCase("T-Vault-Test")) {
+		    		certObject.addProperty("app.ou","tvt");
+		    	}
 		    	 String appNameStr = certObject.get("app.ou")==null?"":certObject.get("app.ou").getAsString();
 		    	 if(!StringUtils.isEmpty(appNameStr)) {
 		    	 String[] appNames = Arrays.stream(appNameStr.split(","))
@@ -7268,7 +7274,8 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
 		    	 }
 		    	sslCertificateRequest.setCertificateName(certificateName);		    	
 		    	sslCertificateRequest.setCertType(ObjectUtils.isEmpty(certObject.get("certType"))?"":certObject.get("certType").getAsString().toLowerCase());		    	
-		    	onboardCertificate(sslCertificateRequest,userDetails,containerId);
+		    	response = onboardCertificate(sslCertificateRequest,userDetails,containerId);
+		    	return response;
 		    }
 		    
 		    
