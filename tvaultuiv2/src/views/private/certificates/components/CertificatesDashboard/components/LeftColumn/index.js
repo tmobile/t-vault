@@ -33,6 +33,7 @@ const ListFolderWrap = styled(Link)`
   align-items: center;
   padding: 1.2rem 1.8rem 1.2rem 3.4rem;
   cursor: pointer;
+  justify-content: space-between;
   background-image: ${(props) =>
     props.active === 'true' ? props.theme.gradients.list : 'none'};
   color: ${(props) => (props.active === 'true' ? '#fff' : '#4a4a4a')};

@@ -130,7 +130,7 @@ const CertificateInformation = (props) => {
             </EachDetail>
             <EachDetail>
               <Label>Aplication Name:</Label>
-              <Value>{certificateMetaData.applicationName || 'N/A'}</Value>
+              <Value>{certificateMetaData.applicationTag || 'N/A'}</Value>
             </EachDetail>
             <EachDetail>
               <Label>Validity:</Label>

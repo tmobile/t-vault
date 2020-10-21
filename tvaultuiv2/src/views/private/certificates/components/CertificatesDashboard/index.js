@@ -129,6 +129,12 @@ const EmptyContentBox = styled('div')`
   transform: translate(-50%, -50%);
 `;
 
+const SearchFilterNotAvailable = styled.p`
+  width: 80%;
+  text-align: center;
+  word-break: break-all;
+`;
+
 const useStyles = makeStyles((theme) => ({
   contained: { borderRadius: '0.4rem' },
   select: {
@@ -605,15 +611,17 @@ const CertificatesDashboard = () => {
                   <>
                     {inputSearchValue ? (
                       <NoDataWrapper>
-                        No certificate found with name
-                        <span>{inputSearchValue}</span>
-                        {certificateType !== 'All Certificates' && (
-                          <>
-                            and filter by
-                            <span>{certificateType}</span>
-                          </>
-                        )}
-                        {' . '}
+                        <SearchFilterNotAvailable>
+                          No certificate found with name
+                          <span>{inputSearchValue}</span>
+                          {certificateType !== 'All Certificates' && (
+                            <>
+                              and filter by
+                              <span>{certificateType}</span>
+                            </>
+                          )}
+                          {' . '}
+                        </SearchFilterNotAvailable>
                       </NoDataWrapper>
                     ) : (
                       <NoDataWrapper>
