@@ -29,7 +29,6 @@ const ModalWrapper = styled.section`
     width: 100%;
     padding: 2rem;
     margin: 0;
-    height: fit-content;
   }
 `;
 
@@ -129,7 +128,7 @@ const ViewCertificate = (props) => {
     <ComponentError>
       <ModalWrapper>
         <HeaderWrapper>
-          <LeftIcon src={leftArrowIcon} alt="go-back" onClick={() => {}} />
+          <LeftIcon src={leftArrowIcon} alt="go-back" onClick={onCloseModal} />
           <Typography variant="h5">Edit Certificate</Typography>
         </HeaderWrapper>
         <IconDescriptionWrapper>

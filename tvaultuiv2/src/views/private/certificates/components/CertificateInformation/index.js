@@ -46,14 +46,14 @@ const Label = styled.p`
 `;
 
 const Value = styled.p`
-  font-size: 1.8rem;
+  font-size: 1.6rem;
   text-transform: capitalize;
 `;
 
 const DnsName = styled.p`
   border-bottom: 1px solid #5e627c;
   padding: 1rem 0;
-  font-size: 1.8rem;
+  font-size: 1.6rem;
 `;
 
 const customStyle = css`

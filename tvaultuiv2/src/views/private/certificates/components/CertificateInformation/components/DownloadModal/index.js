@@ -30,10 +30,9 @@ const ModalWrapper = styled.section`
     width: 57.2rem;
   }
   ${small} {
-    width: 100%;
+    width: 90%;
     padding: 2rem;
-    margin: 0;
-    height: fit-content;
+    margin: auto;
   }
 `;
 

@@ -43,7 +43,6 @@ const ModalWrapper = styled.section`
     width: 100%;
     padding: 2rem;
     margin: 0;
-    height: fit-content;
   }
 `;
 
@@ -361,7 +360,7 @@ const CreateCertificates = (props) => {
                   <LeftIcon
                     src={leftArrowIcon}
                     alt="go-back"
-                    onClick={() => {}}
+                    onClick={() => onCloseModal()}
                   />
                   <Typography variant="h5">Transfer Ownership</Typography>
                 </HeaderWrapper>

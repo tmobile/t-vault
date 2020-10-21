@@ -8,7 +8,7 @@ import styled, { css } from 'styled-components';
 import ReactHtmlParser from 'react-html-parser';
 import { TitleOne, TitleTwo } from '../../styles/GlobalStyles';
 import ComponentError from '../../errorBoundaries/ComponentError/component-error';
-// import mediaBreakpoints from '../../breakpoints';
+import mediaBreakpoints from '../../breakpoints';
 
 const ModalWrapper = styled.div`
   background-color: ${(props) =>
@@ -20,6 +20,12 @@ const ModalWrapper = styled.div`
   display: flex;
   flex-direction: column;
   min-height: 24rem;
+  ${mediaBreakpoints.smallAndMedium} {
+    width: 50%;
+  }
+  ${mediaBreakpoints.small} {
+    width: 80%;
+  }
 `;
 
 const ButtonWrapper = styled.div`
