@@ -99,7 +99,7 @@ FloatingActionButtonComponent.propTypes = {
   icon: PropTypes.string.isRequired,
   tooltipPos: PropTypes.string,
   tooltipTitle: PropTypes.string,
-  onClick: PropTypes.func.isRequired,
+  onClick: PropTypes.func,
 };
 
 FloatingActionButtonComponent.defaultProps = {
@@ -109,6 +109,7 @@ FloatingActionButtonComponent.defaultProps = {
   color: 'default',
   tooltipPos: 'bottom',
   tooltipTitle: '',
+  onClick: () => {},
 };
 
 setIcon.propTypes = {
