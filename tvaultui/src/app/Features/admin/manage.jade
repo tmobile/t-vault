@@ -546,7 +546,7 @@ script(type='text/ng-template', id='manageSecretId.html')
                     md-tab(label="Certificate Management" md-on-select="tabChangeForAdminCert()" )
                         md-content(class="md-padding md-content-wrapper page-content-wrapper md-approle-management" ng-init="displayGrid")
                             .md-content-inner-wrapper
-                              div.certnotes How to get started and what to know:
+                              div.certnotes How to get started and what to know
                                 span.cert-collapse-link(ng-click="collapseNoteCert()") >>
                               div.certcollapsible(uib-collapse="isCollapsedCert")
                                   div.svcdescription
@@ -560,7 +560,7 @@ script(type='text/ng-template', id='manageSecretId.html')
                                   div.svcdescription
                                     text &nbsp;&nbsp;&nbsp;Key usage  : digitalSignature, keyEncipherment.
                                   div.svcdescription
-                                    text &nbsp;&nbsp;&nbsp;Extended key usage : serverAuth for Internal  and ServerAuth, ClientAuth for External certificates
+                                    text &nbsp;&nbsp;&nbsp;Extended key usage : serverAuth for Internal  and serverAuth, clientAuth for External certificates.
                                   div.svcdescription
                                     text.weighted  3 :
                                     text If you need a non-standard certificate please reach out to Cloud Support
