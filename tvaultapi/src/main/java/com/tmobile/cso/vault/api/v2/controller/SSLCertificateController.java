@@ -393,4 +393,39 @@ public class SSLCertificateController {
 		UserDetails userDetails = (UserDetails) request.getAttribute(USER_DETAILS_STRING);
 		return sslCertificateService.getAllSelfServiceGroups(userDetails);
 	}
+	
+	/**
+	 * To Onboard NCLM certificates to tvault
+	 * @param request
+	 * @param token
+	 * @param clientId
+	 * @param clientSecret
+	 * @return
+	 * @throws Exception
+	 */
+	@ApiOperation(value = "${SSLCertificateController.onboardcert.value}", notes = "${SSLCertificateController.onboardcert.notes}", hidden = false)
+	@GetMapping(value="/v2/auth/sslcert/onboardcertificates",produces="application/json")
+	public ResponseEntity<String> onboardCerts(HttpServletRequest request, @RequestHeader(value="vault-token") String token,
+			@RequestParam(name = "from", required = false) Integer from, @RequestParam(name = "size", required = false) Integer size) throws Exception {
+		UserDetails userDetails = (UserDetails) request.getAttribute(USER_DETAILS_STRING);
+		return sslCertificateService.onboardCerts(userDetails, token, from, size);
+	}
+	
+	/**
+	 * To Onboard single  NCLM certificates to tvault
+	 * @param request
+	 * @param token
+	 * @param clientId
+	 * @param clientSecret
+	 * @return
+	 * @throws Exception
+	 */
+	@ApiOperation(value = "${SSLCertificateController.onboardsinglecert.value}", notes = "${SSLCertificateController.onboardsinglecert.notes}", hidden = false)
+	@GetMapping(value="/v2/auth/sslcert/onboardsinglecertificate",produces="application/json")
+	public ResponseEntity<String> onboardSingleCertificate(HttpServletRequest request, @RequestHeader(value="vault-token") String token,
+			@RequestParam(name = "certificateType", required = false) String certType, @RequestParam(name = "certificateName", required = false) String commonname,
+			@RequestParam(name = "applicationName", required = false) String appTag	) throws Exception {
+		UserDetails userDetails = (UserDetails) request.getAttribute(USER_DETAILS_STRING);
+		return sslCertificateService.onboardSingleCert(userDetails, token, certType, commonname, appTag);
+	}
 }
