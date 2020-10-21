@@ -1,3 +1,5 @@
+/* eslint-disable jsx-a11y/click-events-have-key-events */
+/* eslint-disable jsx-a11y/no-static-element-interactions */
 /* eslint-disable react/jsx-wrap-multilines */
 /* eslint-disable react/jsx-curly-newline */
 import React, { useState, useEffect, useCallback } from 'react';
@@ -13,6 +15,7 @@ import FormControlLabel from '@material-ui/core/FormControlLabel';
 import Radio from '@material-ui/core/Radio';
 import KeyboardReturnIcon from '@material-ui/icons/KeyboardReturn';
 import PropTypes from 'prop-types';
+import ReactHtmlParser from 'react-html-parser';
 import ConfirmationModal from '../../../../components/ConfirmationModal';
 import TextFieldComponent from '../../../../components/FormFields/TextField';
 import ButtonComponent from '../../../../components/FormFields/ActionButton';
@@ -27,6 +30,9 @@ import LoaderSpinner from '../../../../components/Loaders/LoaderSpinner';
 import { useStateValue } from '../../../../contexts/globalState';
 import apiService from '../apiService';
 import PreviewCertificate from './preview';
+import SwitchComponent from '../../../../components/FormFields/SwitchComponent';
+import ServiceAccountHelp from '../../service-accounts/components/ServiceAccountHelp';
+import Strings from '../../../../resources';
 
 const { small, belowLarge } = mediaBreakpoints;
 
@@ -85,7 +91,7 @@ const SafeIcon = styled.img`
 const CreateCertificateForm = styled.form`
   display: ${(props) => (props.showPreview ? 'none' : 'flex')};
   flex-direction: column;
-  margin-top: 2.8rem;
+  margin-top: 2rem;
 `;
 
 const PreviewWrap = styled.div`
@@ -180,6 +186,8 @@ const EndingBox = styled.div`
   height: 5rem;
   span {
     margin-left: 1rem;
+    margin-top: 0.5rem;
+    cursor: pointer;
   }
 `;
 
@@ -191,6 +199,35 @@ const loaderStyle = css`
   color: red;
   z-index: 1;
 `;
+
+const IncludeDnsWrap = styled.div`
+  display: flex;
+  align-items: center;
+  margin-bottom: 2rem;
+  label {
+    margin-bottom: 0rem;
+  }
+  > span {
+    margin-left: 1rem;
+  }
+`;
+const InfoLine = styled('p')`
+  color: ${(props) => props.theme.customColor.collapse.color};
+  fontsize: ${(props) => props.theme.typography.body2.fontSize};
+  strong {
+    margin-right: 0.5rem;
+  }
+  a {
+    color: ${(props) => props.theme.customColor.magenta};
+  }
+`;
+
+const Span = styled.span`
+  color: ${(props) => props.theme.customColor.collapse.title};
+  fontsize: ${(props) => props.theme.typography.body2.fontSize};
+  ${(props) => props.extraStyles}
+`;
+const CollapsibleContainer = styled.div``;
 
 const useStyles = makeStyles((theme) => ({
   select: {
@@ -238,12 +275,10 @@ const CreateCertificates = (props) => {
   const [responseTitle, setResponseTitle] = useState('');
   const [allApplication, setAllApplication] = useState([]);
   const [openConfirmationModal, setOpenConfirmationModal] = useState(false);
+  const [isDns, setIsDns] = useState(false);
   const isMobileScreen = useMediaQuery(small);
   const history = useHistory();
   const [state] = useStateValue();
-
-  const [menu, setMenu] = useState([]);
-
   const handleClose = () => {
     if (responseType !== 0) {
       setOpen(false);
@@ -273,38 +308,36 @@ const CreateCertificates = (props) => {
   }, [state]);
 
   useEffect(() => {
-    if (menu?.length > 0) {
-      menu.sort((first, sec) => first.localeCompare(sec));
+    if (allApplication?.length > 0) {
+      allApplication.sort((first, sec) =>
+        first.appName.localeCompare(sec.appName)
+      );
     }
-  }, [menu]);
+  }, [allApplication]);
 
-  const getApplicationName = useCallback(() => {
-    apiService
-      .getApplicationName()
-      .then((res) => {
-        if (res.data && res.data.length > 0) {
-          res.data.map((item) => {
-            setAllApplication((prev) => [...prev, item]);
-            return setMenu((prev) => [...prev, item.appName]);
-          });
+  useEffect(() => {
+    async function getApplicationName() {
+      try {
+        const res = await apiService.getApplicationName();
+        if (res) {
+          if (res.data && res.data.length > 0) {
+            setAllApplication([...res.data]);
+            setResponseType(null);
+          }
         }
-        setResponseType(null);
-      })
-      .catch(() => {
+      } catch {
         setResponseType(-1);
         setToastMessage(
           'Something went wrong while fetching the application name!'
         );
-      });
-  }, []);
-
-  useEffect(() => {
+      }
+    }
     setResponseType(0);
     getApplicationName();
     if (state.username) {
       getOwnerEmail();
     }
-  }, [getApplicationName, state, getOwnerEmail]);
+  }, [state, getOwnerEmail]);
 
   useEffect(() => {
     if (
@@ -345,30 +378,39 @@ const CreateCertificates = (props) => {
     }
   };
 
+  const checkDnsAlreadyIncluded = (val) => {
+    if (dnsArray.includes(val)) {
+      setDnsError(true);
+      setErrorDnsMessage('Dns name already added!');
+    } else {
+      setDnsArray((prev) => [...prev, val.toLowerCase()]);
+      setDnsName('');
+      setDnsError(false);
+      setErrorDnsMessage('');
+    }
+  };
+
   const onAddDnsClicked = (e) => {
     if (e.keyCode === 13) {
       const val = `${e.target.value}.t-mobile.com`;
-      if (dnsArray.includes(val)) {
-        setDnsError(true);
-        setErrorDnsMessage('Dns name already added!');
-      } else {
-        setDnsArray((prev) => [...prev, val.toLowerCase()]);
-        setDnsName('');
-        setDnsError(false);
-        setErrorDnsMessage('');
-      }
+      checkDnsAlreadyIncluded(val);
     }
+  };
+
+  const onAddDnsKeyClicked = () => {
+    const val = `${dnsName}.t-mobile.com`;
+    checkDnsAlreadyIncluded(val);
   };
 
   const onDnsNameChange = (e) => {
     setDnsName(e.target.value);
     const { value } = e.target;
-    if (!InputValidation(e.target.value)) {
+    if (value && !InputValidation(value)) {
       setDnsError(true);
       setErrorDnsMessage(
         'DNS can have alphabets, numbers, . and - characters only or should not ends with special character.'
       );
-    } else if (value.toLowerCase().includes('.t-mobile.com')) {
+    } else if (value && value.toLowerCase().includes('.t-mobile.com')) {
       setDnsError(true);
       setErrorDnsMessage('Please enter DNS without .t-mobile.com.');
     } else {
@@ -507,6 +549,46 @@ const CreateCertificates = (props) => {
                   />
                 </PreviewWrap>
                 <CreateCertificateForm showPreview={showPreview}>
+                  <ServiceAccountHelp
+                    title="How to get started and what to know:"
+                    collapseStyles="background:none"
+                  >
+                    <CollapsibleContainer>
+                      <InfoLine>
+                        <Span>
+                          <strong>1:</strong>
+                        </Span>
+                        {ReactHtmlParser(Strings.Resources.certificateGuide1)}
+                      </InfoLine>
+
+                      <InfoLine>
+                        <Span>
+                          <strong>2:</strong>
+                        </Span>
+                        {ReactHtmlParser(Strings.Resources.certificateGuide2)}
+                      </InfoLine>
+
+                      <InfoLine>
+                        <Span>
+                          <strong>3:</strong>
+                        </Span>
+                        {ReactHtmlParser(Strings.Resources.certificateGuide3)}
+                      </InfoLine>
+
+                      <InfoLine>
+                        <Span>
+                          <strong>4:</strong>
+                        </Span>
+                        {ReactHtmlParser(Strings.Resources.certificateGuide4)}
+                      </InfoLine>
+                      <InfoLine>
+                        <Span>
+                          <strong>5:</strong>
+                        </Span>
+                        {ReactHtmlParser(Strings.Resources.certificateGuide5)}
+                      </InfoLine>
+                    </CollapsibleContainer>
+                  </ServiceAccountHelp>
                   <RadioWrap>
                     <InputLabel required>Certificate Type</InputLabel>
                     <RadioGroup
@@ -542,13 +624,13 @@ const CreateCertificates = (props) => {
                           onCertificateNameChange(e);
                         }}
                       />
-                      <EndingBox width="14rem">.T-mobile.com</EndingBox>
+                      <EndingBox width="14rem">.t-mobile.com</EndingBox>
                     </InputEndWrap>
                   </InputFieldLabelWrapper>
                   <InputFieldLabelWrapper>
                     <InputLabel required>Aplication Name</InputLabel>
                     <TextFieldSelect
-                      menu={menu}
+                      menu={[...allApplication.map((item) => item.appName)]}
                       value={applicationName}
                       classes={classes}
                       handleChange={(e) => setApplicationName(e.target.value)}
@@ -556,46 +638,58 @@ const CreateCertificates = (props) => {
                     />
                     <FieldInstruction>
                       Please provide the AD group for which read or reset
-                      permission to be granted later
+                      permission to be granted later.
                     </FieldInstruction>
                   </InputFieldLabelWrapper>
-                  <InputFieldLabelWrapper>
-                    <InputLabel>Add DNS</InputLabel>
-                    <InputEndWrap>
-                      <TextFieldComponent
-                        value={dnsName}
-                        placeholder="Add DNS"
-                        fullWidth
-                        name="dnsName"
-                        onChange={(e) => {
-                          onDnsNameChange(e);
-                        }}
-                        error={dnsError}
-                        helperText={dnsError ? errorDnsMessage : ''}
-                        onKeyDown={(e) => onAddDnsClicked(e)}
-                      />
-                      <EndingBox width="17rem">
-                        .T-mobile.com
-                        <span>
-                          <KeyboardReturnIcon />
-                        </span>
-                      </EndingBox>
-                    </InputEndWrap>
-                    <DNSArrayList>
-                      {dnsArray.map((item) => {
-                        return (
-                          <EachDns key={item}>
-                            <Name>{item}</Name>
-                            <RemoveIcon
-                              src={removeIcon}
-                              alt="remove"
-                              onClick={() => onRemoveClicked(item)}
-                            />
-                          </EachDns>
-                        );
-                      })}
-                    </DNSArrayList>
-                  </InputFieldLabelWrapper>
+                  <IncludeDnsWrap>
+                    <InputLabel>
+                      Are additional DNS names required (SAN Certificate)?
+                    </InputLabel>
+                    <SwitchComponent
+                      checked={isDns}
+                      handleChange={(e) => setIsDns(e.target.checked)}
+                      name="dns"
+                    />
+                  </IncludeDnsWrap>
+                  {isDns && (
+                    <InputFieldLabelWrapper>
+                      <InputLabel>Add DNS</InputLabel>
+                      <InputEndWrap>
+                        <TextFieldComponent
+                          value={dnsName}
+                          placeholder="Add DNS"
+                          fullWidth
+                          name="dnsName"
+                          onChange={(e) => {
+                            onDnsNameChange(e);
+                          }}
+                          error={dnsError}
+                          helperText={dnsError ? errorDnsMessage : ''}
+                          onKeyDown={(e) => onAddDnsClicked(e)}
+                        />
+                        <EndingBox width="17rem">
+                          .t-mobile.com
+                          <span onClick={() => onAddDnsKeyClicked()}>
+                            <KeyboardReturnIcon />
+                          </span>
+                        </EndingBox>
+                      </InputEndWrap>
+                      <DNSArrayList>
+                        {dnsArray.map((item) => {
+                          return (
+                            <EachDns key={item}>
+                              <Name>{item}</Name>
+                              <RemoveIcon
+                                src={removeIcon}
+                                alt="remove"
+                                onClick={() => onRemoveClicked(item)}
+                              />
+                            </EachDns>
+                          );
+                        })}
+                      </DNSArrayList>
+                    </InputFieldLabelWrapper>
+                  )}
                 </CreateCertificateForm>
                 <CancelSaveWrapper showPreview={showPreview}>
                   <CancelButton>

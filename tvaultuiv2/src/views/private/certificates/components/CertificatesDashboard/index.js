@@ -645,6 +645,7 @@ const CertificatesDashboard = () => {
               }
               onEditListItemClicked={() => onEditListItemClicked(certificate)}
               admin
+              isTransferOwner
               onTransferOwnerClicked={() => onTransferOwnerClicked(certificate)}
             />
           </PopperWrap>
