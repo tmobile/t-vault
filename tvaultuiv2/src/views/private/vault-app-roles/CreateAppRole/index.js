@@ -190,6 +190,7 @@ const CreateAppRole = (props) => {
     sectetIdNumUses: '',
     tokenNumUses: '',
     secretIdTtl: '',
+    tokenPolicies: '',
   };
   // eslint-disable-next-line consistent-return
   const reducer = (state, { field, type, value, payload }) => {
@@ -220,6 +221,7 @@ const CreateAppRole = (props) => {
     sectetIdNumUses,
     tokenNumUses,
     secretIdTtl,
+    tokenPolicies,
   } = state;
 
   useEffect(() => {
@@ -337,6 +339,7 @@ const CreateAppRole = (props) => {
                 sectetIdNumUses: res.data.data.secret_id_num_uses,
                 tokenNumUses: res.data.data.token_num_uses,
                 secretIdTtl: res.data.data.secret_id_ttl,
+                tokenPolicies: res.data.data.token_policies.join(','),
               },
             });
           }
@@ -547,7 +550,7 @@ be renewed "
                   <Tooltip
                     classes={classes}
                     arrow
-                    title="Duration in seconds after which the issued token can no longer be renewed"
+                    title="Duration in seconds to set as a TTL for issued tokens and at renewal time"
                     placement="top"
                   >
                     <div>
@@ -576,7 +579,7 @@ be renewed "
                   <Tooltip
                     classes={classes}
                     arrow
-                    title="Duration in seconds after which the issued token can no longer be renewed"
+                    title="Number of times the secretID can be used to fetch a token from this approle"
                     placement="top"
                   >
                     <div>
@@ -605,7 +608,7 @@ be renewed "
                   <Tooltip
                     classes={classes}
                     arrow
-                    title="Duration in seconds after which the issued token can no longer be renewed"
+                    title="Number of times the issued token can be used"
                     placement="top"
                   >
                     <div>
@@ -634,7 +637,7 @@ be renewed "
                   <Tooltip
                     classes={classes}
                     arrow
-                    title="Duration in seconds after which the issued token can no longer be renewed"
+                    title="Duration in seconds after which the issued secretID expires"
                     placement="top"
                   >
                     <div>
@@ -657,6 +660,30 @@ be renewed "
                   onInputBlur={(e) => onInputBlur(e)}
                 />
               </InputFieldLabelWrapper>
+              {tokenPolicies && (
+                <InputFieldLabelWrapper>
+                  <InputLabelWrap>
+                    <InputLabel>Permissions</InputLabel>
+                    <Tooltip
+                      classes={classes}
+                      arrow
+                      title="List of permission allowed for this approle to access secrets and passwords"
+                      placement="top"
+                    >
+                      <div>
+                        <InfoIcon src={infoIcon} alt="info-icon-secret-id" />
+                      </div>
+                    </Tooltip>
+                  </InputLabelWrap>
+                  <TextFieldComponent
+                    value={tokenPolicies}
+                    placeholder="secret_id_ttl"
+                    fullWidth
+                    readOnly
+                    name="secretIdTtl"
+                  />
+                </InputFieldLabelWrapper>
+              )}
             </CreateSafeForm>
             <CancelSaveWrapper>
               <CancelButton>

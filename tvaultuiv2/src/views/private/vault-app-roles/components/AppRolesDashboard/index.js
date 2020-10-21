@@ -453,7 +453,7 @@ const AppRolesDashboard = () => {
           open={deleteAppRoleConfirmation}
           handleClose={handleConfirmationModalClose}
           title="Confirmation"
-          description="Are you sure you want to delete this appRole"
+          description={`<p>Are you sure you want to delete this appRole : <strong>${deleteAppRoleName}</strong></p>`}
           cancelButton={
             // eslint-disable-next-line react/jsx-wrap-multilines
             <ButtonComponent
@@ -565,7 +565,7 @@ const AppRolesDashboard = () => {
               </>
             )}
 
-            {appRoleList?.length && contextObj?.isAdmin ? (
+            {appRoleList?.length ? (
               <FloatBtnWrapper>
                 <FloatingActionButtonComponent
                   href="/vault-app-roles/create-vault-app-role"
