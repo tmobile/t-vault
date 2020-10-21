@@ -7247,7 +7247,7 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
 		         for (int i = 0; i < certArray.size(); i++) {
 		             jsonObject = certArray.get(i).getAsJsonObject();
 		             if(jsonObject.get("certificateStatus").getAsString().equalsIgnoreCase("Active") &&
-//		            		 (!(jsonObject.get("commonname").getAsString().toUpperCase().startsWith("CERTTEST"))) &&
+		            		 (!(jsonObject.get("commonname").getAsString().toUpperCase().startsWith("CERTTEST"))) &&
 		            		 !(jsonObject.get("commonname").getAsString().startsWith("*")) &&
 		            		 ((!StringUtils.isEmpty(jsonObject.get("containerName"))) && (jsonObject.get("containerName").getAsString().equalsIgnoreCase(container_name)) )) {
 		            	 validCertArray.add(certArray.get(i));
