@@ -7236,6 +7236,7 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
 		         for (int i = 0; i < certArray.size(); i++) {
 		             jsonObject = certArray.get(i).getAsJsonObject();
 		             if(jsonObject.get("certificateStatus").getAsString().equalsIgnoreCase("Active") &&
+		            		 (!(jsonObject.get("commonname").getAsString().toUpperCase().startsWith("CERTTEST"))) &&
 		            		 !(jsonObject.get("commonname").getAsString().startsWith("*")) &&
 		            		 ((!StringUtils.isEmpty(jsonObject.get("containerName"))) && (jsonObject.get("containerName").getAsString().equalsIgnoreCase(container_name)) )) {
 		            	 validCertArray.add(certArray.get(i));
@@ -7256,15 +7257,8 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
 		                 put(LogMessage.ACTION, "onboardCertificate").
 		                 put(LogMessage.MESSAGE, String.format("[%s] Onbaord certificate - STARTED ", certificateName)).
 		                 put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
-		                 build()));
-		    	 
-		    	 String dnsStr = ObjectUtils.isEmpty(certObject.get("subjectaltname_dns"))?"":certObject.get("subjectaltname_dns").getAsString();
-		    	 if(!StringUtils.isEmpty(dnsStr)) {
-		    	 String[] dnslist = Arrays.stream(dnsStr.split(","))
-		    		        .map(String::trim)
-		    		        .toArray(String[]::new); 
-		    	 sslCertificateRequest.setDnsList(dnslist); 
-		    	 }
+		                 build()));		    	 
+		    	
 		    	 String appNameStr = certObject.get("app.ou")==null?"":certObject.get("app.ou").getAsString();
 		    	 if(!StringUtils.isEmpty(appNameStr)) {
 		    	 String[] appNames = Arrays.stream(appNameStr.split(","))
@@ -7508,19 +7502,15 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
 		        String nclmAccessToken = getNclmToken();	
 		                
 		        //Get Certificate Details
-				if(!StringUtils.isEmpty(nclmAccessToken)) {
-		        for (int i = 1; i <= retrycount; i++) {           
+				if(!StringUtils.isEmpty(nclmAccessToken)) {		                 
 		            
 		            certDetails = getLatestCertificateFromNCLM(sslCertificateRequest.getCertificateName(), nclmAccessToken, containerId);
 		            log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 		                    put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
 		                    put(LogMessage.ACTION, "populateSSLCertificateMetadataForOnboard").
-		                    put(LogMessage.MESSAGE, String.format("Fetching certificate details count = [%s] and status = [%s]"
-		                            , i, Objects.nonNull(certDetails))).build()));
-		            if (Objects.nonNull(certDetails)) {
-		                break;
-		            }
-		        }
+		                    put(LogMessage.MESSAGE, String.format("Fetching certificate details  status = [%s]"
+		                            , Objects.nonNull(certDetails))).build()));
+		         
 		        }
 		        if (Objects.nonNull(certDetails) && certDetails.getCertificateId()>0) {
 		            sslCertificateMetadataDetails.setCertificateId(certDetails.getCertificateId());
