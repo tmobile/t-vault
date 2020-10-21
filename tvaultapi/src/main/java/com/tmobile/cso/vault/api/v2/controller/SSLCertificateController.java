@@ -403,7 +403,7 @@ public class SSLCertificateController {
 	 * @return
 	 * @throws Exception
 	 */
-	@ApiOperation(value = "${SSLCertificateController.onboardcert.value}", notes = "${SSLCertificateController.onboardcert.notes}", hidden = false)
+	@ApiOperation(value = "${SSLCertificateController.onboardcert.value}", notes = "${SSLCertificateController.onboardcert.notes}", hidden = true)
 	@GetMapping(value="/v2/auth/sslcert/onboardcertificates",produces="application/json")
 	public ResponseEntity<String> onboardCerts(HttpServletRequest request, @RequestHeader(value="vault-token") String token,
 			@RequestParam(name = "from", required = false) Integer from, @RequestParam(name = "size", required = false) Integer size) throws Exception {
@@ -420,7 +420,7 @@ public class SSLCertificateController {
 	 * @return
 	 * @throws Exception
 	 */
-	@ApiOperation(value = "${SSLCertificateController.onboardsinglecert.value}", notes = "${SSLCertificateController.onboardsinglecert.notes}", hidden = false)
+	@ApiOperation(value = "${SSLCertificateController.onboardsinglecert.value}", notes = "${SSLCertificateController.onboardsinglecert.notes}", hidden = true)
 	@GetMapping(value="/v2/auth/sslcert/onboardsinglecertificate",produces="application/json")
 	public ResponseEntity<String> onboardSingleCertificate(HttpServletRequest request, @RequestHeader(value="vault-token") String token,
 			@RequestParam(name = "certificateType", required = false) String certType, @RequestParam(name = "certificateName", required = false) String commonname,
