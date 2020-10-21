@@ -636,6 +636,7 @@
                 // Error handling function
                 console.log(error);
                 $scope.isLoadingData = false;
+                $scope.isLoadingCerts = false;
                 $scope.certificatesLoaded =  true;
                 $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
                 $scope.error('md');
