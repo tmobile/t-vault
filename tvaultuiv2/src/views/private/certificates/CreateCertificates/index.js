@@ -2,7 +2,7 @@
 /* eslint-disable jsx-a11y/no-static-element-interactions */
 /* eslint-disable react/jsx-wrap-multilines */
 /* eslint-disable react/jsx-curly-newline */
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 import { useHistory } from 'react-router-dom';
 import Modal from '@material-ui/core/Modal';
@@ -285,27 +285,12 @@ const CreateCertificates = (props) => {
       history.goBack();
     }
   };
-
   const onToastClose = (reason) => {
     if (reason === 'clickaway') {
       return;
     }
     setResponseType(null);
   };
-
-  const getOwnerEmail = useCallback(() => {
-    apiService
-      .getOwnerEmail(`${state.username}`)
-      .then((res) => {
-        if (res.data.data.values && res.data.data.values[0]) {
-          setOwnerEmail(res.data.data.values[0].userEmail);
-        }
-      })
-      .catch(() => {
-        setResponseType(-1);
-        setToastMessage('Something went wrong while fetching the owner Email!');
-      });
-  }, [state]);
 
   useEffect(() => {
     if (allApplication?.length > 0) {
@@ -316,28 +301,20 @@ const CreateCertificates = (props) => {
   }, [allApplication]);
 
   useEffect(() => {
-    async function getApplicationName() {
-      try {
-        const res = await apiService.getApplicationName();
-        if (res) {
-          if (res.data && res.data.length > 0) {
-            setAllApplication([...res.data]);
-            setResponseType(null);
-          }
-        }
-      } catch {
+    setResponseType(0);
+    if (state) {
+      setResponseType(null);
+      if (state.userEmail) {
+        setOwnerEmail(state.userEmail);
+      }
+      if (state.applicationNameList?.length > 0) {
+        setAllApplication([...state.applicationNameList]);
+      } else if (state.applicationNameList === 'error') {
         setResponseType(-1);
-        setToastMessage(
-          'Something went wrong while fetching the application name!'
-        );
+        setToastMessage('Error occured while fetching the application name!');
       }
     }
-    setResponseType(0);
-    getApplicationName();
-    if (state.username) {
-      getOwnerEmail();
-    }
-  }, [state, getOwnerEmail]);
+  }, [state]);
 
   useEffect(() => {
     if (
@@ -430,6 +407,8 @@ const CreateCertificates = (props) => {
 
   const onCreateClicked = () => {
     const obj = allApplication.find((item) => item.appName === applicationName);
+    const dnsList = [];
+    dnsArray.map((item) => dnsList.push(item.replace('.t-mobile.com', '')));
     if (obj) {
       const payload = {
         appName: obj.appID,
@@ -437,7 +416,7 @@ const CreateCertificates = (props) => {
         certOwnerNTId: state.username,
         certType: certificateType.toLowerCase(),
         certificateName: certName,
-        dnsList: dnsArray,
+        dnsList,
       };
       setResponseType(0);
       apiService
@@ -715,16 +694,6 @@ const CreateCertificates = (props) => {
                     severity="error"
                     icon="error"
                     message={toastMessage || 'Something went wrong!'}
-                  />
-                )}
-                {responseType === 1 && (
-                  <SnackbarComponent
-                    open
-                    onClose={() => onToastClose()}
-                    message={
-                      toastMessage ||
-                      'New Certificate has been createtd successfully'
-                    }
                   />
                 )}
               </ModalWrapper>

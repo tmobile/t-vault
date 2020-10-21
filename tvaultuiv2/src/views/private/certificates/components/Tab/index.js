@@ -1,6 +1,6 @@
 /* eslint-disable no-else-return */
 /* eslint-disable react/jsx-props-no-spreading */
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import styled from 'styled-components';
 
@@ -14,7 +14,7 @@ import { useStateValue } from '../../../../../contexts/globalState';
 import apiService from '../../apiService';
 import CertificateInformation from '../CertificateInformation';
 import CertificatePermission from '../CertificatePermission';
-import { UserContext } from '../../../../../contexts';
+// import { UserContext } from '../../../../../contexts';
 // styled components goes here
 
 const TabPanelWrap = styled.div`
@@ -98,7 +98,7 @@ const CertificateSelectionTabs = (props) => {
   const [hasPermission, setHasPermission] = useState(false);
 
   const [state] = useStateValue();
-  const contextObj = useContext(UserContext);
+  // const contextObj = useContext(UserContext);
 
   const handleChange = (event, newValue) => {
     setValue(newValue);
@@ -107,11 +107,8 @@ const CertificateSelectionTabs = (props) => {
   const fetchDetail = () => {
     setResponse({ status: 'loading' });
     let url = '';
-    if (contextObj?.isAdmin) {
-      url = `/sslcert?certificateName=${certificateDetail.certificateName}&certType=${certificateDetail.certType}`;
-    } else {
-      url = `/sslcert/certificate/${certificateDetail.certType}?certificate_name=${certificateDetail.certificateName}`;
-    }
+    // url = `/sslcert?certificateName=${certificateDetail.certificateName}&certType=${certificateDetail.certType}`;
+    url = `/sslcert/certificate/${certificateDetail.certType}?certificate_name=${certificateDetail.certificateName}`;
     apiService
       .getCertificateDetail(url)
       .then((res) => {

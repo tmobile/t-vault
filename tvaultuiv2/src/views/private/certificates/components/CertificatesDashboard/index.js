@@ -4,7 +4,6 @@ import React, { useState, useEffect, useCallback, useContext } from 'react';
 import styled, { css } from 'styled-components';
 import { makeStyles } from '@material-ui/core/styles';
 import {
-  Link,
   Route,
   Switch,
   useHistory,
@@ -16,7 +15,6 @@ import sectionHeaderBg from '../../../../../assets/certificate-banner.svg';
 import mediaBreakpoints from '../../../../../breakpoints';
 import ComponentError from '../../../../../errorBoundaries/ComponentError/component-error';
 import NoData from '../../../../../components/NoData';
-import certIcon from '../../../../../assets/cert-icon.svg';
 import noCertificateIcon from '../../../../../assets/nocertificate.svg';
 import FloatingActionButtonComponent from '../../../../../components/FormFields/FloatingActionButton';
 import TextFieldComponent from '../../../../../components/FormFields/TextField';
@@ -25,16 +23,13 @@ import ScaledLoader from '../../../../../components/Loaders/ScaledLoader';
 import SelectComponent from '../../../../../components/FormFields/SelectFields';
 import CertificatesReviewDetails from '../CertificatesReviewDetails';
 import CertificateItemDetail from '../CertificateItemDetail';
-import { TitleFour } from '../../../../../styles/GlobalStyles';
 import { UserContext } from '../../../../../contexts';
 import apiService from '../../apiService';
-import CertificateListItem from '../CertificateListItem';
-import EditAndDeletePopup from '../../../../../components/EditAndDeletePopup';
 import EditCertificate from '../EditCertificate';
 import TransferCertificate from '../TransferCertificateOwner';
 import DeletionConfirmationModal from './components/DeletionConfirmationModal';
-import EditDeletePopper from '../../../service-accounts/components/EditDeletePopper';
 import CreateCertificates from '../../CreateCertificates';
+import LeftColumn from './components/LeftColumn';
 
 const ColumnSection = styled('section')`
   position: relative;
@@ -100,56 +95,10 @@ const NoDataWrapper = styled.div`
   }
 `;
 
-const PopperWrap = styled.div`
-  position: absolute;
-  right: 4%;
-  z-index: 1;
-  max-width: 18rem;
-  display: none;
-`;
-
-const CertificateStatus = styled.div`
-  display: flex;
-  align-items: center;
-`;
-
-const ListFolderWrap = styled(Link)`
-  position: relative;
-  display: flex;
-  text-decoration: none;
-  align-items: center;
-  padding: 1.2rem 1.8rem 1.2rem 3.4rem;
-  cursor: pointer;
-  background-image: ${(props) =>
-    props.active === 'true' ? props.theme.gradients.list : 'none'};
-  color: ${(props) => (props.active === 'true' ? '#fff' : '#4a4a4a')};
-  ${mediaBreakpoints.belowLarge} {
-    padding: 2rem 1.1rem;
-  }
-  :hover {
-    background-image: ${(props) => props.theme.gradients.list || 'none'};
-    color: #fff;
-    ${PopperWrap} {
-      display: block;
-    }
-    ${CertificateStatus} {
-      display: none;
-    }
-  }
-`;
-
 const NoListWrap = styled.div`
   width: 35%;
 `;
 
-const EditDeletePopperWrap = styled.div``;
-
-const BorderLine = styled.div`
-  border-bottom: 0.1rem solid #1d212c;
-  width: 90%;
-  position: absolute;
-  bottom: 0;
-`;
 const FloatBtnWrapper = styled('div')`
   position: absolute;
   bottom: 2.8rem;
@@ -178,25 +127,6 @@ const EmptyContentBox = styled('div')`
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-`;
-
-const StatusIcon = styled.span`
-  width: 1.2rem;
-  height: 1.2rem;
-  border-radius: 50%;
-  margin-top: 0.4rem;
-  margin-left: 0.6rem;
-  background-color: ${(props) =>
-    // eslint-disable-next-line no-nested-ternary
-    props.status === 'Active'
-      ? '#347a37'
-      : props.status === 'Revoked'
-      ? '#9a8022'
-      : '#939496'};
-`;
-
-const extraCss = css`
-  color: #5e627c;
 `;
 
 const useStyles = makeStyles((theme) => ({
@@ -454,16 +384,6 @@ const CertificatesDashboard = () => {
   };
 
   /**
-   * @function onActionClicked
-   * @description function to prevent default click.
-   * @param {object} e event
-   */
-  const onActionClicked = (e) => {
-    e.stopPropagation();
-    e.preventDefault();
-  };
-
-  /**
    * @function onSearchChange
    * @description function to search certificate.
    * @param {string} value searched input value.
@@ -602,66 +522,17 @@ const CertificatesDashboard = () => {
   };
 
   const renderList = () => {
-    return certificateList.map((certificate) => (
-      <ListFolderWrap
-        key={certificate.certificateName}
-        to={{
-          pathname: `/certificates/${certificate.certificateName}`,
-          state: { data: certificate },
-        }}
-        onClick={() => onLinkClicked(certificate)}
-        active={
-          history.location.pathname ===
-          `/certificates/${certificate.certificateName}`
-            ? 'true'
-            : 'false'
-        }
-      >
-        <CertificateListItem
-          title={certificate.certificateName}
-          certType={certificate.certType}
-          createDate={
-            certificate.createDate
-              ? new Date(certificate.createDate).toLocaleDateString()
-              : ''
-          }
-          icon={certIcon}
-          showActions={false}
-        />
-        <BorderLine />
-        {certificate.certificateStatus && (
-          <CertificateStatus>
-            <TitleFour extraCss={extraCss}>
-              {certificate.certificateStatus}
-            </TitleFour>
-            <StatusIcon status={certificate.certificateStatus} />
-          </CertificateStatus>
-        )}
-        {certificate.applicationName && !isMobileScreen ? (
-          <PopperWrap onClick={(e) => onActionClicked(e)}>
-            <EditAndDeletePopup
-              onDeletListItemClicked={() =>
-                onDeleteCertificateClicked(certificate)
-              }
-              onEditListItemClicked={() => onEditListItemClicked(certificate)}
-              admin
-              isTransferOwner
-              onTransferOwnerClicked={() => onTransferOwnerClicked(certificate)}
-            />
-          </PopperWrap>
-        ) : null}
-        {isMobileScreen && certificate.applicationName && (
-          <EditDeletePopperWrap onClick={(e) => onActionClicked(e)}>
-            <EditDeletePopper
-              onDeleteClicked={() => onDeleteCertificateClicked(certificate)}
-              onEditClicked={() => onEditListItemClicked(certificate)}
-              admin
-              onTransferOwnerClicked={() => onTransferOwnerClicked(certificate)}
-            />
-          </EditDeletePopperWrap>
-        )}
-      </ListFolderWrap>
-    ));
+    return (
+      <LeftColumn
+        onLinkClicked={(cert) => onLinkClicked(cert)}
+        onEditListItemClicked={(cert) => onEditListItemClicked(cert)}
+        onDeleteCertificateClicked={(cert) => onDeleteCertificateClicked(cert)}
+        onTransferOwnerClicked={(cert) => onTransferOwnerClicked(cert)}
+        isMobileScreen={isMobileScreen}
+        history={history}
+        certificateList={certificateList}
+      />
+    );
   };
   return (
     <ComponentError>
