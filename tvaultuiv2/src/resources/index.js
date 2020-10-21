@@ -20,6 +20,16 @@ const Resources = {
   appRoles: '',
   noTransferOwnerAvailable:
     'Certificate may not be approved or rejected.Please follow the instructions mentioned in email',
+  certificateGuide1:
+    'Ensure you are a member of the self-service administration group in AD for your respective application. You can request access from the owner of your application at <a href="https://access.t-mobile.com/">Cloud Access</a>. If you are not a member of one or more of these groups you will not be able to create certificates yourself.',
+  certificateGuide2:
+    'Currently only the standard SSL Certificate template is used to create certificates, this includes: <br/> Signature algorithm: SHA256-RSA. <br/>Key usage : digitalSignature, keyEncipherment. <br/>Extended key usage : serverAuth for Internal and ServerAuth, ClientAuth for External certificates',
+  certificateGuide3:
+    'If you need a non-standard certificate please reach out to Cloud Support work with them to create this for you. This functionality will be developed and incorporated into T-Vault at a later date.',
+  certificateGuide4:
+    'External certificate requests require approval from the NCLM team, that process is outlined when you request an external certificate.',
+  certificateGuide5:
+    'Suggestions for improvements and features are welcome, please reach out to T-Vault@T-Mobile.com if you have any to share. For more information on how to manage certificates please go <a href="https://ccoe.docs.t-mobile.com/t-vault/user-interface/manage_certificates/">here</a>.',
 };
 
 export default { Resources };

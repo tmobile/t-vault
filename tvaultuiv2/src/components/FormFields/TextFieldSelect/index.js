@@ -1,3 +1,4 @@
+/* eslint-disable react/no-array-index-key */
 import React from 'react';
 import MenuItem from '@material-ui/core/MenuItem';
 import TextField from '@material-ui/core/TextField';
@@ -56,8 +57,8 @@ export default function TextFieldSelect(props) {
         },
       }}
     >
-      {menu.map((item) => (
-        <MenuItem key={item} value={item}>
+      {menu.map((item, index) => (
+        <MenuItem key={index} value={item}>
           {item}
         </MenuItem>
       ))}

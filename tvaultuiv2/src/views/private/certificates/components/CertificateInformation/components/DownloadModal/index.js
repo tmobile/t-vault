@@ -150,14 +150,12 @@ const DownloadModal = (props) => {
   const [password, setPassword] = useState('');
   const isMobileScreen = useMediaQuery(small);
   const [helperText] = useState('');
-  const [issuerChain, setIssuerChain] = useState(false);
+  const [issuerChain, setIssuerChain] = useState(true);
   const [selectItem] = useState([
     { name: 'DER-P12', value: 'pkcs12der' },
     { name: 'PER-PFX', value: 'pembundle' },
     { name: 'PEM-OPENSSL', value: 'pkcs12pem' },
   ]);
-
-  const [menu] = useState(['DER-P12', 'PER-PFX', 'PEM-OPENSSL']);
 
   const onPriDownload = () => {
     let type = '';
@@ -218,7 +216,7 @@ const DownloadModal = (props) => {
                 <InputFieldLabelWrapper>
                   <InputLabel required>Format</InputLabel>
                   <SelectComponent
-                    menu={menu}
+                    menu={[...selectItem.map((item) => item.name)]}
                     value={formatType}
                     classes={classes}
                     onChange={(e) => setFormatType(e.target.value)}

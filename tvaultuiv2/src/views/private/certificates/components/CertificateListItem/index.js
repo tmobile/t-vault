@@ -10,7 +10,6 @@ import mediaBreakpoints from '../../../../../breakpoints';
 const FolderWrap = styled('div')`
   position: relative;
   display: flex;
-  width: 100%;
   text-decoration: none;
   align-items: center;
   justify-content: space-between;
@@ -60,12 +59,11 @@ const LabelWrap = styled.div`
 `;
 
 const extraCss = css`
-  ${mediaBreakpoints.belowLarge} {
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    font-size: 1.6rem;
-  }
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 1.6rem;
+
   ${mediaBreakpoints.belowLarge} {
     width: 17rem;
   }

@@ -130,7 +130,19 @@ const CertificateInformation = (props) => {
             </EachDetail>
             <EachDetail>
               <Label>Aplication Name:</Label>
-              <Value>{certificateMetaData.applicationName || 'N/A'}</Value>
+              <Value>{certificateMetaData.applicationTag || 'N/A'}</Value>
+            </EachDetail>
+            <EachDetail>
+              <Label>Validity:</Label>
+              {certificateMetaData?.createDate ? (
+                <Value>
+                  {new Date(certificateMetaData?.createDate).toDateString()}
+                  {' - '}
+                  {new Date(certificateMetaData?.expiryDate).toDateString()}
+                </Value>
+              ) : (
+                <Value>N/A</Value>
+              )}
             </EachDetail>
             <EachDetail>
               <Label>DNS:</Label>

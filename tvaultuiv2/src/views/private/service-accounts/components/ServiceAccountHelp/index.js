@@ -18,8 +18,6 @@ const Container = styled('div')`
 const useStyles = makeStyles((theme) => ({
   container: {
     display: 'flex',
-  },
-  paper: {
     margin: theme.spacing(1),
   },
 }));
@@ -72,7 +70,7 @@ ServiceAccountHelp.propTypes = {
 };
 ServiceAccountHelp.defaultProps = {
   children: <></>,
-  customStyles: '',
+  customStyles: {},
   elevation: 0,
   setIsAutoExpand: () => {},
   isAutoExpand: false,

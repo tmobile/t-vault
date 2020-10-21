@@ -165,22 +165,6 @@ const ViewCertificate = (props) => {
             <Label>Expiry Date:</Label>
             <Value>{certificateData.expiryDate}</Value>
           </EachDetail>
-          <EachDetail>
-            <Label>Signature Algorithm:</Label>
-            <Value>SHA256-RSA</Value>
-          </EachDetail>
-          <EachDetail>
-            <Label>Key Usage:</Label>
-            <Value>digitalSignature, keyEncipherment</Value>
-          </EachDetail>
-          <EachDetail>
-            <Label>Extended Key Usage:</Label>
-            <Value>serverAuth</Value>
-          </EachDetail>
-          <EachDetail>
-            <Label>Enroll Service:</Label>
-            <Value>T-Mobile Issuing CA 01 - SHA2</Value>
-          </EachDetail>
         </PreviewWrap>
         <CancelSaveWrapper>
           <CancelButton>
