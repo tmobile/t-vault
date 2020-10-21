@@ -20,10 +20,10 @@ import SnackbarComponent from '../../../../../components/Snackbar';
 import BackdropLoader from '../../../../../components/Loaders/BackdropLoader';
 import ButtonComponent from '../../../../../components/FormFields/ActionButton';
 import { TitleThree } from '../../../../../styles/GlobalStyles';
+import { exportCSVFile } from '../../../../../services/helper-function';
 import NamedButton from '../../../../../components/NamedButton';
 import ConfirmationModal from '../../../../../components/ConfirmationModal';
 
-const FileDownload = require('js-file-download');
 // styled components goes here
 const TabPanelWrap = styled.div`
   position: relative;
@@ -257,30 +257,39 @@ const AppRoleDetails = (props) => {
       .getRoleId(appRoleDetail?.name)
       .then((res) => {
         if (res?.data) {
-          // const downlaodableData = {
-          //   Approle: appRoleDetail?.name,
-          //   RoleId: res.data.data.role_id,
-          //   Owner: '',
-          //   SecretID: secretIdInfo?.secret_id,
-          //   AccessorID: secretIdInfo?.secret_id_accessor,
-          // };
-
           const csvData = [
-            ['Approle', 'RoleId', 'Owner', 'SecretID', 'AccessorID'],
-            [
-              appRoleDetail?.name,
-              res.data.data.role_id,
-              '',
-              secretIdInfo?.secret_id,
-              secretIdInfo?.secret_id_accessor,
-            ],
+            {
+              approle: appRoleDetail?.name,
+              roleId: res.data.data.role_id,
+              owner: '',
+              secretID: secretIdInfo?.secret_id,
+              accessorID: secretIdInfo?.secret_id_accessor,
+            },
           ];
-          // const data = new Blob([JSON.stringify(csvData)], {
-          //   type: 'text/csv;charset=utf-8;',
-          // });
-          FileDownload(
-            `${csvData}`,
-            `${appRoleDetail?.name}_${secretIdInfo?.secret_id_accessor}.csv`
+          const headers = {
+            approle: 'Approle'.replace(/,/g, ''), // remove commas to avoid errors
+            roleId: 'RoleId',
+            owner: 'Owner',
+            secretID: 'SecretID',
+            accessorID: 'AccessorID',
+          };
+
+          const itemsFormatted = [];
+
+          // format the data
+          csvData.forEach((item) => {
+            itemsFormatted.push({
+              approle: item.approle.replace(/,/g, ''), // remove commas to avoid errors,
+              roleId: item.roleId,
+              owner: item.owner,
+              secretID: item.secretID,
+              accessorID: item.accessorID,
+            });
+          });
+          exportCSVFile(
+            headers,
+            itemsFormatted,
+            `${appRoleDetail?.name}_${secretIdInfo?.secret_id_accessor}.csv` // name of downloaded file
           );
           setStatus({
             status: 'success',
