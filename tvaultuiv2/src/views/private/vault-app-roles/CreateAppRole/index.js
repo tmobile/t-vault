@@ -677,10 +677,10 @@ be renewed "
                   </InputLabelWrap>
                   <TextFieldComponent
                     value={tokenPolicies}
-                    placeholder="secret_id_ttl"
+                    placeholder=""
                     fullWidth
                     readOnly
-                    name="secretIdTtl"
+                    name="tokenPolicies"
                   />
                 </InputFieldLabelWrapper>
               )}
