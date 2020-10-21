@@ -8,7 +8,6 @@ import Checkbox from '@material-ui/core/Checkbox';
 import PropTypes from 'prop-types';
 // import VisibilityIcon from '@material-ui/icons/Visibility';
 // import VisibilityOffIcon from '@material-ui/icons/VisibilityOff';
-
 import useMediaQuery from '@material-ui/core/useMediaQuery';
 import FileCopyIcon from '@material-ui/icons/FileCopy';
 import LoaderSpinner from '../../../../../components/Loaders/LoaderSpinner';
@@ -17,6 +16,7 @@ import lock from '../../../../../assets/icon_lock.svg';
 import ButtonComponent from '../../../../../components/FormFields/ActionButton';
 import mediaBreakpoints from '../../../../../breakpoints';
 import ConfirmationModal from '../../../../../components/ConfirmationModal';
+import SnackbarComponent from '../../../../../components/Snackbar';
 import {
   PopperItem,
   BackgroundColor,
@@ -86,8 +86,7 @@ const checkBoxStyles = makeStyles((theme) => ({
 }));
 const AppRoleSecrets = (props) => {
   const { secretIds, deleteSecretIds } = props;
-  const [deleteSecretId, setDeleteSecretId] = useState(false);
-  const [status, setStatus] = useState(null);
+  const [status, setStatus] = useState({});
   const [openConfirmationModal, setOpenConfirmationModal] = useState(false);
   const [checkedSecretIds, setCheckedSecretIds] = useState([]);
   const isMobileScreen = useMediaQuery(mediaBreakpoints.small);
@@ -108,19 +107,21 @@ const AppRoleSecrets = (props) => {
     // setResponseType(1);
     setStatus({ status: 'success', message: 'Secret copied to clipboard' });
   };
+  const onToastClose = () => {
+    setStatus({});
+  };
 
   /**
    * @function onDeleteClicked
    * @description function to reset secret when the confirm is clicked.
    */
-  const onDeleteClicked = () => {
-    // const payload = {};
-    setOpenConfirmationModal(false);
-    deleteSecretIds(deleteSecretId);
-  };
-  const onDeleteSecretId = (secretId) => {
+  const onDeleteClicked = (secretId) => {
+    setCheckedSecretIds([secretId]);
     setOpenConfirmationModal(true);
-    setDeleteSecretId(secretId);
+  };
+  const onDeleteSecretId = () => {
+    setOpenConfirmationModal(false);
+    deleteSecretIds(checkedSecretIds);
   };
 
   /**
@@ -159,7 +160,7 @@ const AppRoleSecrets = (props) => {
             <ButtonComponent
               label="Confirm"
               color="secondary"
-              onClick={() => onDeleteClicked()}
+              onClick={() => onDeleteSecretId()}
               width={isMobileScreen ? '100%' : '38%'}
             />
           }
@@ -194,7 +195,7 @@ const AppRoleSecrets = (props) => {
                     horizontal: 'right',
                   }}
                 >
-                  <PopperItem onClick={() => onDeleteSecretId(secretId)}>
+                  <PopperItem onClick={() => onDeleteClicked(secretId)}>
                     <span>Delete</span>
                   </PopperItem>
                   <CopyToClipboard
@@ -211,6 +212,22 @@ const AppRoleSecrets = (props) => {
             </SecretIdWrap>
           ))}
         </SecretsList>
+        {status.status === 'success' && (
+          <SnackbarComponent
+            open
+            onClose={() => onToastClose()}
+            message={status.message}
+          />
+        )}
+        {status.status === 'failed' && (
+          <SnackbarComponent
+            open
+            onClose={() => onToastClose()}
+            severity="error"
+            icon="error"
+            message="Something went wrong!"
+          />
+        )}
       </>
     </ComponentError>
   );

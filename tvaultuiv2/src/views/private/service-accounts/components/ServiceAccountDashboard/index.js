@@ -84,7 +84,7 @@ const ColumnHeader = styled('div')`
 `;
 const StyledInfiniteScroll = styled(InfiniteScroll)`
   width: 100%;
-  max-height: 61vh;
+  max-height: 58vh;
   ${mediaBreakpoints.small} {
     max-height: 78vh;
   }
@@ -176,6 +176,7 @@ const EmptyContentBox = styled('div')`
 const ColumnTitleWrap = styled('div')`
   display: flex;
   flex-flow: wrap;
+  width: 100%;
   .button-wrap {
     display: flex;
     width: 100%;

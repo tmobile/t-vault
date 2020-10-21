@@ -27,6 +27,7 @@ const styles = css`
     font-weight: normal;
     font-size: 1.4rem;
   }
+  ${(props) => props.labelStyle}
 `;
 
 const NamedButton = (props) => {
@@ -41,7 +42,7 @@ const NamedButton = (props) => {
         <TitleTwo color={disable ? '#5e627c' : '#fff'} extraCss={styles}>
           {label}
         </TitleTwo>
-        <Icon alt="icon-plus" src={iconSrc} />
+        {iconSrc && <Icon alt="icon-plus" src={iconSrc} />}
       </ActionButton>
     </ComponentError>
   );

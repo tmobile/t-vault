@@ -27,6 +27,7 @@ const ListTitle = styled('h5')`
   margin: 1rem 0 1.2rem;
   text-overflow: ellipsis;
   overflow: hidden;
+  text-transform: capitalize;
 `;
 const HeaderBg = styled('div')`
   position: absolute;

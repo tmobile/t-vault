@@ -77,7 +77,7 @@ const ColumnHeader = styled('div')`
 `;
 const StyledInfiniteScroll = styled(InfiniteScroll)`
   width: 100%;
-  max-height: 70vh;
+  max-height: 68vh;
   ${mediaBreakpoints.small} {
     max-height: 78vh;
   }
@@ -189,7 +189,7 @@ const iconStyles = makeStyles(() => ({
 }));
 
 const AppRolesDashboard = () => {
-  const [appRoleType, setAppRoleType] = useState('');
+  const [appRoleType, setAppRoleType] = useState('All Approles');
   const [inputSearchValue, setInputSearchValue] = useState('');
   const [appRoleClicked, setAppRoleClicked] = useState(false);
   const [listItemDetails, setListItemDetails] = useState({});
@@ -453,7 +453,7 @@ const AppRolesDashboard = () => {
           open={deleteAppRoleConfirmation}
           handleClose={handleConfirmationModalClose}
           title="Confirmation"
-          description="Are you sure you want to delete this appRole"
+          description={`<p>Are you sure you want to delete this appRole : <strong>${deleteAppRoleName}</strong></p>`}
           cancelButton={
             // eslint-disable-next-line react/jsx-wrap-multilines
             <ButtonComponent
@@ -565,7 +565,7 @@ const AppRolesDashboard = () => {
               </>
             )}
 
-            {appRoleList?.length && contextObj?.isAdmin ? (
+            {appRoleList?.length ? (
               <FloatBtnWrapper>
                 <FloatingActionButtonComponent
                   href="/vault-app-roles/create-vault-app-role"
