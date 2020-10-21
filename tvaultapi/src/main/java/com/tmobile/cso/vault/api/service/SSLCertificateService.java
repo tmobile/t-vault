@@ -791,9 +791,15 @@ public class SSLCertificateService {
             } else {
                 SSLCertificateMetadataDetails certMetaDataDetails = certificateUtils.getCertificateMetaData(token,
                         sslCertificateRequest.getCertificateName(), sslCertificateRequest.getCertType());
-                String responseMessage = sslCertificateRequest.getCertificateName()+" is already" +
+                String responseMessage;
+                if(Objects.nonNull(certMetaDataDetails)) {
+                 responseMessage = sslCertificateRequest.getCertificateName()+" is already" +
                         " available  in system and owned  by "+ certMetaDataDetails.getCertOwnerEmailId() +" " +
                         ". Please try with different certificate name";
+                } else {
+                    responseMessage = "Certificate is already available in NCLM with Active status";
+               }
+
 
                 enrollResponse.setSuccess(Boolean.FALSE);
                 enrollResponse.setHttpstatus(HttpStatus.BAD_REQUEST);
@@ -2536,7 +2542,7 @@ public class SSLCertificateService {
 				log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 		  				put(LogMessage.ACTION, "get certificateName and Status").
-		  			    put(LogMessage.MESSAGE, String.format("CertificatesName [%s] and Status [%s] is ",object.getAsString())).
+		  			    put(LogMessage.MESSAGE, String.format("CertificatesName [%s] and Status [%s] is ",object.get("certificateName")==null?"":object.get("certificateName").getAsString(),response.getHttpstatus())).
 		  			    build()));
 				if (userDetails.getUsername().equalsIgnoreCase(
 						(object.get("certOwnerNtid") != null ? object.get("certOwnerNtid").getAsString() : ""))) {
