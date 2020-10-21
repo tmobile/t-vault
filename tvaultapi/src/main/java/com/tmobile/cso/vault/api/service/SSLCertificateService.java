@@ -2447,6 +2447,7 @@ public class SSLCertificateService {
    		JsonParser jsonParser = new JsonParser();
    		JsonArray responseArray = new JsonArray();
    		JsonObject metadataJsonObj=new JsonObject();
+   		if(certificateResponse!=null) {
         JsonObject jsonObject = (JsonObject) jsonParser.parse(certificateResponse);
    		JsonArray jsonArray = jsonObject.getAsJsonObject("data").getAsJsonArray("keys");
    		List<String> certNames = geMatchCertificates(jsonArray,certName); 		
@@ -2480,6 +2481,7 @@ public class SSLCertificateService {
    		}
    		metadataJsonObj.add("keys", responseArray);   		
    		metadataJsonObj.addProperty("offset", offset);
+   		}
    		return metadataJsonObj.toString();
    	}
 
