@@ -72,14 +72,14 @@ const StatusIcon = styled.span`
   background-color: ${(props) =>
     // eslint-disable-next-line no-nested-ternary
     props.status === 'Active'
-      ? '#347a37'
+      ? props.theme.customColor.status.active
       : props.status === 'Revoked'
-      ? '#9a8022'
-      : '#939496'};
+      ? props.theme.customColor.status.revoked
+      : props.theme.customColor.status.pending};
 `;
 
 const extraCss = css`
-  color: #5e627c;
+  color: ${(props) => props.theme.customColor.secondary.color};
 `;
 
 const LeftColumn = (props) => {

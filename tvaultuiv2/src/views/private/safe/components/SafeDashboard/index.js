@@ -501,14 +501,14 @@ const SafeDashboard = () => {
         <ConfirmationModal
           open={openConfirmationModal}
           handleClose={handleClose}
-          title="confirmation"
+          title="Confirmation"
           description="Are you sure you want to delete this safe?"
           cancelButton={
             <ButtonComponent
               label="Cancel"
               color="primary"
               onClick={() => handleClose()}
-              width={isMobileScreen ? '100%' : '38%'}
+              width="100%"
             />
           }
           confirmButton={

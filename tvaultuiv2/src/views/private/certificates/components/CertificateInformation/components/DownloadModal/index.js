@@ -51,7 +51,7 @@ const InputFieldLabelWrapper = styled.div`
   position: ${(props) => (props.postion ? 'relative' : '')};
   .MuiSelect-icon {
     top: auto;
-    color: #000;
+    color: ${(props) => props.theme.customColor.primary.color};
   }
 `;
 
@@ -65,7 +65,7 @@ const IncludeChainWrap = styled.div`
 `;
 
 const FieldInstruction = styled.p`
-  color: #8b8ea6;
+  color: ${(props) => props.theme.customColor.label.color};
   font-size: 1.3rem;
   margin-top: 1.2rem;
   margin-bottom: 0.5rem;

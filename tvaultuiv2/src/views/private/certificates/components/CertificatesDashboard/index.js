@@ -86,7 +86,7 @@ const NoDataWrapper = styled.div`
   display: flex;
   justify-content: center;
   align-items: center;
-  color: #5e627c;
+  color: ${(props) => props.theme.customColor.secondary.color};
   span {
     margin: 0 0.4rem;
     color: #fff;

@@ -102,7 +102,7 @@ const InputFieldLabelWrapper = styled.div`
   position: ${(props) => (props.postion ? 'relative' : '')};
   .MuiSelect-icon {
     top: auto;
-    color: #000;
+    color: ${(props) => props.theme.customColor.primary.color};
   }
 `;
 const ContainerOwnerWrap = styled.div`
@@ -112,7 +112,7 @@ const ContainerOwnerWrap = styled.div`
 const Container = styled.div``;
 const Owner = styled.div``;
 const Label = styled.span`
-  color: #8b8ea6;
+  color: ${(props) => props.theme.customColor.label.color};
   margin-right: 0.3rem;
 `;
 
@@ -123,7 +123,7 @@ const RadioWrap = styled.div`
 const Value = styled.span``;
 
 const FieldInstruction = styled.p`
-  color: #8b8ea6;
+  color: ${(props) => props.theme.customColor.label.color};
   font-size: 1.3rem;
   margin-top: 1.2rem;
   margin-bottom: 0.5rem;
@@ -177,8 +177,9 @@ const InputEndWrap = styled.div`
 `;
 
 const EndingBox = styled.div`
-  background-color: #fff;
-  color: #000;
+  background-color: ${(props) =>
+    props.theme.customColor.primary.backgroundColor};
+  color: ${(props) => props.theme.customColor.primary.color};
   width: ${(props) => props.width};
   display: flex;
   align-items: center;

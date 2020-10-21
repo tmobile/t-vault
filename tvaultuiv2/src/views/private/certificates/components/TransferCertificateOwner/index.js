@@ -81,7 +81,7 @@ const InputFieldLabelWrapper = styled.div`
   position: ${(props) => (props.postion ? 'relative' : '')};
   .MuiSelect-icon {
     top: auto;
-    color: #000;
+    color: ${(props) => props.theme.customColor.primary.color};
   }
 `;
 
@@ -99,7 +99,7 @@ const ContainerOwnerWrap = styled.div`
 const Container = styled.div``;
 const Owner = styled.div``;
 const Label = styled.span`
-  color: #8b8ea6;
+  color: ${(props) => props.theme.customColor.label.color};
   margin-right: 0.3rem;
 `;
 
