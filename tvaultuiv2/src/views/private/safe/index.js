@@ -1,24 +1,10 @@
 /* eslint-disable react/jsx-props-no-spreading */
 import React from 'react';
 import { withRouter } from 'react-router-dom';
-import styled from 'styled-components';
-import mediaBreakpoints from '../../../breakpoints';
+import { SectionPreview } from '../../../styles/GlobalStyles';
 import ComponentError from '../../../errorBoundaries/ComponentError/component-error';
 import SafeDashboard from './components/SafeDashboard';
-// import { UserContext } from '../../../contexts';
 import { useStateValue } from '../../../contexts/globalState';
-
-const SafeSectionPreview = styled('section')`
-  margin: 3em auto;
-  height: 77vh;
-  ${mediaBreakpoints.semiLarge} {
-    margin: 3rem 3.5rem 0 3.5rem;
-  }
-  ${mediaBreakpoints.small} {
-    margin: 0;
-    height: 89vh;
-  }
-`;
 
 const SafePageLayout = (props) => {
   /** -- statrt of sample code */
@@ -38,27 +24,9 @@ const SafePageLayout = (props) => {
   /** End of Sample code */
   return (
     <ComponentError>
-      <main title="safe-layout">
-        <SafeSectionPreview>
-          <SafeDashboard {...props} />
-        </SafeSectionPreview>
-        {/* <Switch>
-          <Route
-            exact
-            path="/safe/create-safe"
-            render={(routeProps) => (
-              <CreateSafe routeProps={{ ...routeProps }} />
-            )}
-          />
-          <Route
-            exact
-            path="/safe/edit-safe"
-            render={(routeProps) => (
-              <CreateSafe routeProps={{ ...routeProps }} />
-            )}
-          />
-        </Switch> */}
-      </main>
+      <SectionPreview>
+        <SafeDashboard {...props} />
+      </SectionPreview>
     </ComponentError>
   );
 };

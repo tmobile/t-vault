@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="78" height="78" fill="none" viewBox="0 0 78 78">
+    <g filter="url(#filter0_d)">
+        <rect width="70" height="70" x="4" fill="url(#paint0_linear)" rx="5"/>
+    </g>
+    <path fill="#fff" d="M58.263 14h-37.28c-3.19 0-5.784 2.595-5.784 5.784v22.824c0 3.19 2.595 5.784 5.784 5.784h16.66v3.647h-9.89V56h23.74v-3.96h-9.89v-3.648h16.66c3.19 0 5.784-2.595 5.784-5.784V19.784c0-3.19-2.595-5.784-5.784-5.784zm1.823 28.608c0 1.005-.818 1.824-1.823 1.824h-37.28c-1.005 0-1.823-.819-1.823-1.824V19.784c0-1.005.818-1.823 1.823-1.823h37.28c1.005 0 1.823.818 1.823 1.823v22.824z"/>
+    <path fill="#fff" d="M46.851 21.621c-3.011 0-5.845 1.433-7.644 3.804h-11.23l-4.979 4.854v1.97l4.994 4.745h11.215c1.8 2.37 4.633 3.804 7.644 3.804 5.287 0 9.588-4.302 9.588-9.589 0-5.286-4.3-9.588-9.588-9.588zm0 15.216c-2 0-3.868-1.079-4.873-2.816l-.572-.988h-3.983l-2.67-2.537-2.41 2.537h-2.77l-1.887-1.793 1.902-1.854h11.818l.572-.99c1.005-1.735 2.872-2.814 4.873-2.814 3.103 0 5.628 2.524 5.628 5.627 0 3.103-2.525 5.628-5.628 5.628z"/>
+    <path fill="#fff" d="M50.657 31.207c0 1.05-.851 1.901-1.902 1.901-1.05 0-1.902-.85-1.902-1.901 0-1.05.852-1.902 1.902-1.902 1.05 0 1.902.851 1.902 1.902z"/>
+    <defs>
+        <linearGradient id="paint0_linear" x1="39" x2="39" y1="-7.712" y2="73.559" gradientUnits="userSpaceOnUse">
+            <stop stop-color="#FF61B2"/>
+            <stop offset=".509" stop-color="#E20074"/>
+            <stop offset="1" stop-color="#650038"/>
+        </linearGradient>
+        <filter id="filter0_d" width="78" height="78" x="0" y="0" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse">
+            <feFlood flood-opacity="0" result="BackgroundImageFix"/>
+            <feColorMatrix in="SourceAlpha" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0"/>
+            <feOffset dy="4"/>
+            <feGaussianBlur stdDeviation="2"/>
+            <feColorMatrix values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.25 0"/>
+            <feBlend in2="BackgroundImageFix" result="effect1_dropShadow"/>
+            <feBlend in="SourceGraphic" in2="effect1_dropShadow" result="shape"/>
+        </filter>
+    </defs>
+</svg>

@@ -29,11 +29,10 @@ const GlobalCss = withStyles({
 })(() => null);
 
 const Container = styled('div')``;
-const Layout = styled('main')``;
-const Preview = styled('section')`
-  max-width: 130rem;
-  margin: auto;
+const Layout = styled('main')`
+  margin-top: 10rem;
 `;
+const Preview = styled('div')``;
 
 const LoaderWrap = styled('div')`
   height: calc(100vh - 7rem);

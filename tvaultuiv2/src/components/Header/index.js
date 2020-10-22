@@ -14,9 +14,13 @@ import Sidebar from '../Sidebar';
 
 const { small, smallAndMedium, semiLarge } = mediaBreakpoints;
 
-const HeaderWrap = styled('div')`
+const HeaderWrap = styled('header')`
   background-color: #151820;
   box-shadow: 0 5px 25px 0 rgba(226, 0, 116, 0.5);
+  position: fixed;
+  top: 0;
+  width: 100%;
+  z-index: 10;
 `;
 const Container = styled.div`
   display: flex;
