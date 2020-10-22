@@ -267,8 +267,11 @@ const CertificatesDashboard = () => {
         const externalCertArray = [];
         if (result && result[0]?.data?.cert) {
           result[0].data.cert.map((item) => {
-            return Object.entries(item).map(([key]) => {
-              return allCertificateInternal.push(key);
+            return Object.entries(item).map(([key, value]) => {
+              if (value.toLowerCase() !== 'deny') {
+                return allCertificateInternal.push(key);
+              }
+              return null;
             });
           });
         }
