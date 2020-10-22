@@ -63,7 +63,7 @@ const extraCss = css`
   overflow: hidden;
   text-overflow: ellipsis;
   font-size: 1.6rem;
-
+  width: 25rem;
   ${mediaBreakpoints.belowLarge} {
     width: 17rem;
   }
