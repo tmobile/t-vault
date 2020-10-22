@@ -387,6 +387,61 @@
                     return response;
                 });
             },
+            getOnboardedIamServiceAccounts: function(payload, url) {
+                return ServiceEndpoint.getOnboardedIamServiceAccounts.makeRequest(payload, url).then(function(response) {
+                    return response;
+                });
+            },
+            getIamServiceAccount: function(payload, url) {
+                return ServiceEndpoint.getIamServiceAccount.makeRequest(payload, url).then(function(response) {
+                    return response;
+                });
+            },
+            getSecretForIamSvcacc: function(payload, url) {
+                return ServiceEndpoint.getSecretForIamSvcacc.makeRequest(payload, url).then(function(response) {
+                    return response;
+                });
+            },
+            addUserPermissionForIAMSvcacc: function(payload, url) {
+                return ServiceEndpoint.addUserPermissionForIAMSvcacc.makeRequest(payload, url).then(function(response) {
+                    return response;
+                });
+            },
+            deleteUserPermissionFromIAMSvcacc: function(payload, url) {
+                return ServiceEndpoint.deleteUserPermissionFromIAMSvcacc.makeRequest(payload, url).then(function(response) {
+                    return response;
+                });
+            },
+            addGroupPermissionForIAMSvcacc: function(payload, url) {
+                return ServiceEndpoint.addGroupPermissionForIAMSvcacc.makeRequest(payload, url).then(function(response) {
+                    return response;
+                });
+            },
+            deleteGroupPermissionFromIAMSvcacc: function(payload, url) {
+                return ServiceEndpoint.deleteGroupPermissionFromIAMSvcacc.makeRequest(payload, url).then(function(response) {
+                    return response;
+                });
+            },
+            addAppRolePermissionForIAMSvcacc: function(payload, url) {
+                return ServiceEndpoint.addAppRolePermissionForIAMSvcacc.makeRequest(payload, url).then(function(response) {
+                    return response;
+                });
+            },
+            detachAppRolePermissionFromIAMSvcacc: function(payload, url) {
+                return ServiceEndpoint.detachAppRolePermissionFromIAMSvcacc.makeRequest(payload, url).then(function(response) {
+                    return response;
+                });
+            },
+            activateIAMSvcacc: function(payload, url) {
+                return ServiceEndpoint.activateIAMSvcacc.makeRequest(payload, url).then(function(response) {
+                    return response;
+                });
+            },
+            rotateIAMSvcaccSecret: function(payload, url) {
+                return ServiceEndpoint.rotateIAMSvcaccSecret.makeRequest(payload, url).then(function(response) {
+                    return response;
+                });
+            },
             getTheRightErrorMessage : function(responseObject){
                 if(responseObject.status===500 || responseObject.statusText==='Internal Server Error'){
                     return ErrorMessage.ERROR_NETWORK;

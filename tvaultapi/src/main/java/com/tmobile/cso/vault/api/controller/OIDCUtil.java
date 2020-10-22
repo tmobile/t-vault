@@ -4,6 +4,8 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -321,7 +323,7 @@ public class OIDCUtil {
 			return null;
 		}
 
-		String filterSearch = "$filter=displayName%20eq%20'"+groupName+"'";
+		String filterSearch = "$filter=displayName%20eq%20'"+encodeValue(groupName)+"'";
 		String api = ssoGroupsEndpoint + filterSearch;
 		HttpGet getRequest = new HttpGet(api);
 		getRequest.addHeader("accept", TVaultConstants.HTTP_CONTENT_TYPE_JSON);
@@ -432,12 +434,13 @@ public class OIDCUtil {
 	public ResponseEntity<OIDCEntityResponse> oidcFetchEntityDetails(String token, String username, UserDetails userDetails) {
 		String mountAccessor = fetchMountAccessorForOidc(token);
 		if (!StringUtils.isEmpty(mountAccessor)) {
-			ResponseEntity<DirectoryObjects> response = directoryService.searchByCorpId(username);
-			String aliasName = "";
-			Object[] results = response.getBody().getData().getValues();
-			for (Object tp : results) {
-				aliasName = ((DirectoryUser) tp).getUserEmail();
+			DirectoryUser directoryUser = directoryService.getUserDetailsByCorpId(username);
+
+			if (StringUtils.isEmpty(directoryUser.getUserEmail())) {
+				return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new OIDCEntityResponse());
 			}
+			
+			String aliasName = directoryUser.getUserEmail();
 
 			OIDCLookupEntityRequest oidcLookupEntityRequest = new OIDCLookupEntityRequest();
 			oidcLookupEntityRequest.setAlias_name(aliasName);
@@ -691,7 +694,7 @@ public class OIDCUtil {
 			return allGroups;
 		}
 
-		String filterSearch = "$filter=startsWith%28displayName%2C'"+groupName+"'%29";
+		String filterSearch = "$filter=startsWith%28displayName%2C'"+encodeValue(groupName)+"'%29";
 		String api = ssoGroupsEndpoint + filterSearch;
 		HttpGet getRequest = new HttpGet(api);
 		getRequest.addHeader("accept", TVaultConstants.HTTP_CONTENT_TYPE_JSON);
@@ -1047,5 +1050,24 @@ public class OIDCUtil {
 			aadUserObject.setEmail(responseJson.get("mail").getAsString());
 		}
 		return aadUserObject;
+	}
+	
+	/*
+	 * Method to URL encode any string
+	 * @param value
+	 * @return
+	 */
+	private String encodeValue(String value) {
+		String encodedValue = null;
+		try {
+			encodedValue = URLEncoder.encode(value, StandardCharsets.UTF_8.toString());
+		} catch (UnsupportedEncodingException e) {
+			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+					.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+					.put(LogMessage.ACTION, "Encode URL")
+					.put(LogMessage.MESSAGE, "Failed to encode URL value")
+					.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
+		}
+		return encodedValue;
 	}
 }

@@ -47,7 +47,9 @@ readTextFile("../apiUrls.json");
         // written below separately as request requires timeout promise 
         usersGetData : '/v2/ldap/users?UserPrincipalName=',
         groupGetDataFromAAD: '/v2/azure/groups?name=',
-        usersGetDataUsingCorpID: '/v2/ldap/corpusers?CorpId=', 
+        usersGetDataUsingCorpID: '/v2/ldap/corpusers?CorpId=',
+        usersGetDataUsingNTID: '/v2/ldap/ntusers?displayName=',
+        getUsersDataUsingNTIDs: '/v2/ldap/getusersdetail/',
         //baseURL : '/vault'
         endpoints: [{
             name: 'postAction',
@@ -410,6 +412,54 @@ readTextFile("../apiUrls.json");
             name: 'getAllSelfServiceGroups',
             url: '/v2/sslcert/grouplist',
             method: 'GET'
+        },{
+            name: 'getOnboardedIamServiceAccounts',
+            url: '/v2/iamserviceaccounts',
+            method: 'GET'
+        },{
+            name: 'getIamServiceAccount',
+            url: '/v2/iamserviceaccounts/{iam_svc_name}',
+            method: 'GET'
+        },{
+            name: 'getSecretForIamSvcacc',
+            url: '/v2/iamserviceaccounts/secrets/{iam_svc_name}',
+            method: 'GET'
+        },{
+            name: 'addUserPermissionForIAMSvcacc',
+            url: '/v2/iamserviceaccounts/user',
+            method: 'POST'
+        },{
+            name: 'deleteUserPermissionFromIAMSvcacc',
+            url: '/v2/iamserviceaccounts/user',
+            method: 'DELETE'
+        },{
+            name: 'addGroupPermissionForIAMSvcacc',
+            url: '/v2/iamserviceaccounts/group',
+            method: 'POST'
+        },{
+            name: 'deleteGroupPermissionFromIAMSvcacc',
+            url: '/v2/iamserviceaccounts/group',
+            method: 'DELETE'
+        },{
+            name: 'addAppRolePermissionForIAMSvcacc',
+            url: '/v2/iamserviceaccounts/approle',
+            method: 'POST'
+        },{
+            name: 'detachAppRolePermissionFromIAMSvcacc',
+            url: '/v2/iamserviceaccounts/approle',
+            method: 'DELETE'
+        },{
+            name: 'activateIAMSvcacc',
+            url: '/v2/iamserviceaccount/activate?',
+            method: 'POST'
+        },{
+            name: 'rotateIAMSvcaccSecret',
+            url: '/v2/iamserviceaccount/rotate',
+            method: 'POST'
+        },{
+            name: 'addUserPermissionForIAMSvcacc',
+            url: '/v2/iamserviceaccounts/user',
+            method: 'POST'
         }
     ]
     });

@@ -56,7 +56,7 @@ public class TVaultConstants {
     public static final String APPROLE_METADATA_MOUNT_PATH = "metadata/approle";
     public static final String APPROLE_USERS_METADATA_MOUNT_PATH = "metadata/approle_users";
     public static final String AWSROLE_METADATA_MOUNT_PATH = "metadata/awsrole";
-    public static final String SELF_SERVICE_APPROLE_NAME = "selfservicesupportrole";
+    //public static final String SELF_SERVICE_APPROLE_NAME = "selfservicesupportrole";
     public static final String SECRET = "secret";
     public static final boolean HIDEMASTERAPPROLE = true;
     public static final String APPROLE_DELETE_OPERATION="DELETE";
@@ -157,6 +157,11 @@ public class TVaultConstants {
     public static final String IDENTITY_POLICIES = "identity_policies";
     public static final String ENTITY_DISPLAY_NAME = "display_name";
     public static final String OIDC_AUTH_PATH = "auth/oidc/oidc/callback";
+
     public static final String TRUE = "true";
     public static final String NCLM_MOCK_VALUE = "12345";
+
+    public static final String IAM_SVC_PATH = "metadata/iamsvcacc/";
+    public static final String IAM_SVC_ACC_PATH_PREFIX="iamsvcacc";
+    public static final String[] MASTER_APPROLES = { "selfservicesupportrole", "iamportal_master_approle"};
 }

@@ -313,6 +313,7 @@ public class ServiceAccountsControllerV2 {
 	 * @param serviceAccountName
 	 * @return
 	 */
+
 	@ApiOperation(value = "${ServiceAccountsControllerV2.getServiceAccountsList.value}", notes = "${ServiceAccountsControllerV2.getServiceAccountsList.notes}",hidden = false)
 	@GetMapping (value="/v2/serviceaccounts/list",produces="application/json")
 	public ResponseEntity<String> getServiceAccountsList(HttpServletRequest request, @RequestHeader(value="vault-token") String token){

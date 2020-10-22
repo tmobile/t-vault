@@ -34,7 +34,9 @@ import org.springframework.ldap.filter.AndFilter;
 import org.springframework.ldap.filter.EqualsFilter;
 import org.springframework.ldap.filter.Filter;
 import org.springframework.ldap.filter.LikeFilter;
+import org.springframework.ldap.filter.OrFilter;
 import org.springframework.stereotype.Component;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
 import com.google.common.collect.ImmutableMap;
@@ -94,6 +96,24 @@ public class  DirectoryService {
 		usersList.setValues(allPersons.toArray(new DirectoryUser[allPersons.size()]));
 		users.setData(usersList);
 		return ResponseEntity.status(HttpStatus.OK).body(users);
+	}
+	
+	
+	/**
+	 * Get userDetails By CorpID
+	 * @param corpId
+	 * @return
+	 */
+	public DirectoryUser getUserDetailsByCorpId(String corpId) {
+		AndFilter andFilter = new AndFilter();
+		andFilter.and(new EqualsFilter("cn", corpId));
+		andFilter.and(new EqualsFilter("objectClass", "user"));
+
+		List<DirectoryUser> allPersons = getAllPersons(andFilter);
+		if(CollectionUtils.isEmpty(allPersons)){
+			return new DirectoryUser();
+		}
+		return allPersons.get(0);
 	}
 
 	/**
@@ -191,4 +211,75 @@ public class  DirectoryService {
 		});
 	}
 
+	/**
+	 * Method to query ladp with displayName.
+	 * @param displayName
+	 * @return
+	 */
+	public DirectoryObjects searchBydisplayName(String displayName) {
+		AndFilter andFilter = new AndFilter();
+		andFilter.and(new LikeFilter("displayName", displayName+"*"));
+		andFilter.and(new EqualsFilter("objectClass", "user"));
+
+		List<DirectoryUser> allPersons = getAllPersons(andFilter);
+		DirectoryObjects users = new DirectoryObjects();
+		DirectoryObjectsList usersList = new DirectoryObjectsList();
+		usersList.setValues(allPersons.toArray(new DirectoryUser[allPersons.size()]));
+		users.setData(usersList);
+		return users;
+	}
+
+	public DirectoryObjects searchByNTId(String ntId) {
+		AndFilter andFilter = new AndFilter();
+		andFilter.and(new LikeFilter("cn", ntId+"*"));
+		andFilter.and(new EqualsFilter("objectClass", "user"));
+
+		List<DirectoryUser> allPersons = getAllPersons(andFilter);
+		DirectoryObjects users = new DirectoryObjects();
+		DirectoryObjectsList usersList = new DirectoryObjectsList();
+		usersList.setValues(allPersons.toArray(new DirectoryUser[allPersons.size()]));
+		users.setData(usersList);
+		return users;
+	}
+
+	/**
+	 * Search the LDAP with displayName.
+	 * @param ntId
+	 * @return
+	 */
+	public ResponseEntity<DirectoryObjects> searchByDisplayNameAndId(String ntId) {
+		DirectoryObjects objectsByDisplayName = searchBydisplayName(ntId);
+		if (objectsByDisplayName.getData().getValues().length > 0) {
+			return ResponseEntity.status(HttpStatus.OK).body(objectsByDisplayName);
+		}
+
+		DirectoryObjects objectsByCN = searchByNTId(ntId);
+		return ResponseEntity.status(HttpStatus.OK).body(objectsByCN);
+	}
+
+	/**
+	 * Method to gets the list of users from Directory Server by ntIds
+	 *
+	 * @param ntIds
+	 * @return
+	 */
+	public ResponseEntity<DirectoryObjects> getAllUsersDetailByNtIds(String ntIds) {
+		AndFilter andFilter = new AndFilter();
+		if (!StringUtils.isEmpty(ntIds)) {
+			OrFilter orFilter = new OrFilter();
+			String[] userNtIds = ntIds.split(",");
+			andFilter.and(new EqualsFilter("objectClass", "user"));
+			for (String ntId : userNtIds) {
+				orFilter.or(new EqualsFilter("CN", ntId.trim()));
+			}
+			andFilter.and(orFilter);
+		}
+		List<DirectoryUser> allPersons = getAllPersons(andFilter);
+		DirectoryObjects users = new DirectoryObjects();
+		DirectoryObjectsList usersList = new DirectoryObjectsList();
+		usersList.setValues(allPersons.toArray(new DirectoryUser[allPersons.size()]));
+		users.setData(usersList);
+
+		return ResponseEntity.status(HttpStatus.OK).body(users);
+	}
 }

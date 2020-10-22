@@ -39,6 +39,9 @@
         $scope.approleRadioBtn['value'] = 'read';
         $scope.isEmpty = UtilityService.isObjectEmpty;
         $scope.roleNameSelected = false;
+        $scope.userAutoCompleteEnabled = false;
+        $scope.groupAutoCompleteEnabled = false;
+        $scope.disableAddBtn = true;
         $scope.awsConfPopupObj = {
             "auth_type":"",
             "role": "",
@@ -116,6 +119,9 @@
                 "grpNameValEmpty": false
             }
             $scope.permissionChangeInProgress = false;
+            $scope.disableAddBtn = true;
+            $scope.clearInputValue("addUser");
+            $scope.clearInputValue("addGroup");
         }
 
         $scope.isApproleBtnDisabled = function() {
@@ -216,6 +222,7 @@
             };
             lastContent = '';
             $scope.showNoMatchingResults = false;
+            $scope.disableAddBtn = true;
         }
 
         // function call on input keyup 
@@ -249,7 +256,9 @@
                  }
              }
              var newLetter = newVal[variableChanged];
-                newLetter = newLetter.replace(" ", "");
+             if (variableChanged != 'userName'  && variableChanged != 'groupName') {
+               newLetter = newLetter.replace(" ", "");
+             }
                 initiateAutoComplete(variableChanged, ['loading']);
            // delay before providing api call      
           delay(function(){
@@ -359,6 +368,7 @@
                         $scope.inputSelected.select = true; 
                         $scope.showNoMatchingResults = false;  
                         $scope.invalidEmail = false;                
+                        $scope.disableAddBtn = false;
                         $(id).blur();                     
                         $scope.$apply();
                     },
@@ -809,6 +819,7 @@
                                 }
                                 $scope.isCollapsed = true;
                                 hideUserSudoPolicy();
+                                getUserDisplayNameDetails();
                             }
 
                         } catch (e) {
@@ -830,6 +841,57 @@
                     $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
                     $scope.error('md');
                 })
+        }
+
+        var getUserDisplayNameDetails = function () {
+            $scope.isLoadingData = true;
+            $scope.userNames = [];
+            $scope.UsersPermissionsDetails = [];
+            $scope.UsersDisplayNameData = [];
+            for (var key in $scope.permissionData.UsersPermissionsData) {
+                $scope.userNames.push(key);
+            }
+            if ($scope.userNames !== undefined && $scope.userNames.length > 0) {
+                vaultUtilityService.getAllUsersDataForPermissions($scope.userNames.join()).then(function (res, error) {
+                    var serviceData;
+                    if (res) {
+                        $scope.isLoadingData = false;
+                        serviceData = res;
+                        $scope.UsersDisplayNameData = serviceData.response.data.data.values;
+                        for (var i=0;i<$scope.UsersDisplayNameData.length;i++) {
+                            var userNameKey = $scope.UsersDisplayNameData[i].userName.toLowerCase();
+                            var userDisplayName = $scope.UsersDisplayNameData[i].displayName + " ("+$scope.UsersDisplayNameData[i].userName+")";
+                            var permissionVal = "";
+                            for (var key in $scope.permissionData.UsersPermissionsData) {
+                                if(key.toLowerCase() === userNameKey) {
+                                    permissionVal = $scope.permissionData.UsersPermissionsData[key.toLowerCase()];
+                                }
+                            }
+                            $scope.UsersPermissionsDetails.push({"key":userNameKey, "value":permissionVal, "displayName":userDisplayName});
+                        }
+                        $scope.$apply();
+                    } else {
+                        $scope.isLoadingData = false;
+                        serviceData = error;
+                        $scope.commonErrorHandler(serviceData.error, serviceData.error || serviceData.response.data, "getDropdownData");
+
+                    }
+                },
+                function (error) {
+                    $scope.isLoadingData = false;
+                    // Error handling function when api fails
+                    $scope.showInputLoader.show = false;
+                    if (error.status === 500) {
+                        $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_NETWORK');
+                        $scope.error('md');
+                    } else if(error.status !== 200 && (error.xhrStatus === 'error' || error.xhrStatus === 'complete')) {
+                        $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_AUTOCOMPLETE_USERNAME');
+                        $scope.error('md');
+                    }
+                });
+            }else{
+                $scope.isLoadingData = false;
+            }
         }
 
         $scope.oneTimeReset = function() {
@@ -1205,6 +1267,15 @@
             if(!$scope.myVaultKey){ /* Check if user is in the same session */
                 $state.go('/');
             }
+            $scope.disableAddBtn = true;
+            $scope.userAutoCompleteEnabled = false;
+            $scope.groupAutoCompleteEnabled = false;
+            if (AppConstant.AD_USERS_AUTOCOMPLETE == true) {
+                $scope.userAutoCompleteEnabled = true;
+            }
+            if (AppConstant.AD_GROUP_AUTOCOMPLETE == true) {
+                $scope.groupAutoCompleteEnabled = true;
+            }
             $scope.appNameTableOptions = [];
             $scope.requestDataFrChangeSvcacc();
             $scope.fetchUsers();
@@ -1291,6 +1362,21 @@
 
         $scope.addPermission = function (type, key, permission, editingPermission) {
             var duplicate = false;
+            if (key !== null && key !== undefined) {
+                if (type === "users" && !editingPermission) {
+                    key = document.getElementById('addUser').value.toLowerCase();
+                }
+                if (type === "groups" && !editingPermission) {
+                    key = document.getElementById('addGroup').value;
+                }
+                // extract only userId/groupId from key
+                if (key.includes($scope.domainName)) {
+                    key = key.split('@')[0];
+                }
+                if (type === "users" && key.includes("(")) {
+                    key = key.substring(key.lastIndexOf("(") + 1, key.lastIndexOf(")"));
+                }
+            }
             $scope.permissionChangeInProgress = true;
             if (!editingPermission && key != '' && key != undefined) {
                 if (type === "users" && $scope.permissionData.UsersPermissionsData!= null && $scope.permissionData.UsersPermissionsData.hasOwnProperty(key.toLowerCase())) {
@@ -1298,8 +1384,13 @@
                         duplicate = true;
                     }
                 }
-                if (type === "groups" && $scope.permissionData.GroupsPermissionsData!= null && $scope.permissionData.GroupsPermissionsData.hasOwnProperty(key.toLowerCase())) {
-                    duplicate = true;
+                if (type === "groups" && $scope.permissionData.GroupsPermissionsData!= null) {
+                    var groupIndex = Object.keys($scope.permissionData.GroupsPermissionsData).findIndex(function (groupName) {
+                        return groupName.toLowerCase() === key.toLowerCase();
+                    });
+                    if(groupIndex > -1) {
+                        duplicate = true;
+                    }
                 }
                 if (type === "AWSPermission" && $scope.permissionData.AwsPermissionsData.data!= null && $scope.permissionData.AwsPermissionsData.data.hasOwnProperty(key.toLowerCase())) {
                     duplicate = true;
@@ -1315,12 +1406,6 @@
             }
             else if ((key != '' && key != undefined) || type == 'AwsRoleConfigure') {
                 try {
-                    if (type === "users" && !editingPermission) {
-                        key = document.getElementById('addUser').value.toLowerCase();
-                    }
-                    if (type === "groups" && !editingPermission) {
-                        key = document.getElementById('addGroup').value.toLowerCase();
-                    }
                     Modal.close('');
                     $scope.isLoadingData = true;
                     $scope.showInputLoader.show = false;
@@ -1328,13 +1413,6 @@
                     var svcaccname = $scope.svcacc.svcaccId;
                     var apiCallFunction = '';
                     var reqObjtobeSent = {};
-                    // extract only userId/groupId from key
-                    if (key.includes($scope.domainName)) {
-                        key = key.split('@')[0];
-                    }
-                    if (key !== null && key !== undefined) {
-                        key = UtilityService.formatName(key);
-                    }
                     if ($scope.awsConfPopupObj.role !== null && $scope.awsConfPopupObj.role !== undefined) {
                         $scope.awsConfPopupObj.role = UtilityService.formatName($scope.awsConfPopupObj.role);
                     }

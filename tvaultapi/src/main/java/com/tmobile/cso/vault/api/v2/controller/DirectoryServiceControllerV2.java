@@ -20,6 +20,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -61,4 +62,16 @@ public class DirectoryServiceControllerV2 {
 		return directoryService.searchByGroupName(groupName);
 	}
 
+	@ApiOperation(value = "${DirectoryServiceControllerV2.searchByDisplayName.value}", notes = "${DirectoryServiceControllerV2.searchByDisplayName.notes}")
+	@GetMapping(value="/v2/ldap/ntusers",produces="application/json")
+	public ResponseEntity<DirectoryObjects> searchUserInGSM(@ApiParam(name="displayName", defaultValue="")
+	@RequestParam(name="displayName", defaultValue="") String displayName ){
+		return directoryService.searchByDisplayNameAndId(displayName);
+	}
+
+	@ApiOperation(value = "${DirectoryServiceControllerV2.getAllUsersDetailByNtIds.value}", notes = "${DirectoryServiceControllerV2.getAllUsersDetailByNtIds.notes}")
+	@GetMapping(value="/v2/ldap/getusersdetail/{userNames}",produces="application/json")
+	public ResponseEntity<DirectoryObjects> getAllUsersDetailByNtIds(@PathVariable("userNames") String userNames ){
+		return directoryService.getAllUsersDetailByNtIds(userNames);
+	}
 }

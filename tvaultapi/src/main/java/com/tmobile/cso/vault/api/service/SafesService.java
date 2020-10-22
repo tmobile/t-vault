@@ -979,7 +979,6 @@ public class  SafesService {
 		String groupName = requestMap.get("groupname");
 		String path = requestMap.get("path");
 		String access = requestMap.get("access");
-		groupName = (groupName !=null) ? groupName.toLowerCase() : groupName;
 		path = (path != null) ? path.toLowerCase() : path;
 		access = (access != null) ? access.toLowerCase(): access;
 
@@ -2167,8 +2166,13 @@ public class  SafesService {
 		if(!ControllerUtil.areSafeAppRoleInputsValid(requestMap)) {
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid input values\"]}");
 		}
-		if (safeAppRoleAccess.getRole_name().equals(TVaultConstants.SELF_SERVICE_APPROLE_NAME)) {
-			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Access denied: no permission to associate this AppRole to any safe\"]}");
+//		if (safeAppRoleAccess.getRole_name().equals(TVaultConstants.SELF_SERVICE_APPROLE_NAME)) {
+//			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Access denied: no permission to associate this AppRole to any safe\"]}");
+//		}
+		
+		if (Arrays.asList(TVaultConstants.MASTER_APPROLES).contains(safeAppRoleAccess.getRole_name())) {
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+					.body("{\"errors\":[\"Access denied: no permission to associate this AppRole to any safe\"]}");
 		}
 		String approle = requestMap.get("role_name").toString().toLowerCase();
 		String path = requestMap.get("path").toString();

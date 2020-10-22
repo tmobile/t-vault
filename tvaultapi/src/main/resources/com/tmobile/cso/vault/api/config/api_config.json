@@ -1195,5 +1195,33 @@
 			{"name":"mount_accessor", "required":true}
 		],
 		"outparams":["data"]
+	},
+    {"#":"Getting iam service account Info",
+
+    	"apiEndPoint":"/iamsvcacct",
+    	"vaultEndPoint":"/<path>",
+    	"method":"GET",
+      	"params":[
+        	{"name":"path","required":true, "appendToPath":true}
+        ],
+        "outparams":["data"]
+    },
+    {"#":"**** Listing all IAM Service Account Folders and secret *****",
+    	"apiEndPoint":"/iam/list",
+    	"vaultEndPoint":"/<path>?list=true",
+    	"method":"GET",
+      	"params":[
+        	{"name":"path","required":true, "appendToPath":true}
+        ],
+         "outparams":["data/keys"]
+    },
+    {"#" : "**** To get list of all onboarded IAM service accounts ****** ",
+		"apiEndPoint": "/iam/onboardedlist",
+		"vaultEndPoint": "/<path>?list=true",
+		"method": "GET",
+		"params": [
+			{ "name": "path","required": true, "appendToPath": true }
+		],
+		"outparams": ["data/keys"]
 	}
 ]

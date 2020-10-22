@@ -34,7 +34,8 @@
         'OIDC_ROLE' : '',
         'OIDC_REDIRECT_URL' : '',
         'SSL_EXT_CERTIFICATE' : true,
-        'VALID_RENEW_DAYS': 50
+        'VALID_RENEW_DAYS': 50,
+        'PAGE_SIZE' : 2
     });
     /*endinject*/
 })(angular.module('vault.constants.AppConstant', []));

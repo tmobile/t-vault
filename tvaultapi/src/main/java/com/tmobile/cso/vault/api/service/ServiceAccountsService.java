@@ -1756,7 +1756,6 @@ public class  ServiceAccountsService {
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"This operation is not supported for Userpass authentication. \"]}");
 		}
 
-		groupName = (groupName !=null) ? groupName.toLowerCase() : groupName;
 		access = (access != null) ? access.toLowerCase(): access;
 
 		boolean canAddGroup = hasAddOrRemovePermission(userDetails, svcAccName, token);
@@ -1946,7 +1945,7 @@ public class  ServiceAccountsService {
 		if (serviceAccountGroup.getAccess().equalsIgnoreCase("reset")) {
 			serviceAccountGroup.setAccess(TVaultConstants.WRITE_POLICY);
 		}
-        String groupName = serviceAccountGroup.getGroupname().toLowerCase();
+        String groupName = serviceAccountGroup.getGroupname();
         String svcAccName = serviceAccountGroup.getSvcAccName();
         String access = serviceAccountGroup.getAccess();
 
@@ -2125,7 +2124,10 @@ public class  ServiceAccountsService {
         String svcAccName = serviceAccountApprole.getSvcAccName();
         String access = serviceAccountApprole.getAccess();
 
-        if (serviceAccountApprole.getApprolename().equals(TVaultConstants.SELF_SERVICE_APPROLE_NAME)) {
+//        if (serviceAccountApprole.getApprolename().equals(TVaultConstants.SELF_SERVICE_APPROLE_NAME)) {
+//            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Access denied: no permission to associate this AppRole to any Service Account\"]}");
+//        }
+        if (Arrays.asList(TVaultConstants.MASTER_APPROLES).contains(serviceAccountApprole.getApprolename())){
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Access denied: no permission to associate this AppRole to any Service Account\"]}");
         }
         approleName = (approleName !=null) ? approleName.toLowerCase() : approleName;
@@ -2679,8 +2681,13 @@ public class  ServiceAccountsService {
 		String svcAccName = serviceAccountApprole.getSvcAccName();
 		String access = serviceAccountApprole.getAccess();
 
-		if (serviceAccountApprole.getApprolename().equals(TVaultConstants.SELF_SERVICE_APPROLE_NAME)) {
-			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Access denied: no permission to remove this AppRole to any Service Account\"]}");
+//		if (serviceAccountApprole.getApprolename().equals(TVaultConstants.SELF_SERVICE_APPROLE_NAME)) {
+//			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Access denied: no permission to remove this AppRole to any Service Account\"]}");
+//		}
+		
+		if (Arrays.asList(TVaultConstants.MASTER_APPROLES).contains(serviceAccountApprole.getApprolename())) {
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
+					"{\"errors\":[\"Access denied: no permission to remove this AppRole to any Service Account\"]}");
 		}
 		approleName = (approleName !=null) ? approleName.toLowerCase() : approleName;
 		access = (access != null) ? access.toLowerCase(): access;
@@ -3345,7 +3352,6 @@ public class  ServiceAccountsService {
 	 * @param svcAccName
 	 */
 	private void removeOldUserPermissions(String userName, String token, String svcAccName, UserDetails userDetails) {
-
 		OIDCEntityResponse oidcEntityResponse = new OIDCEntityResponse();
 		// Remove metadata directly as removeUserFromServiceAccount() will need refreshed token
 		String path = new StringBuffer(TVaultConstants.SVC_ACC_ROLES_PATH).append(svcAccName).toString();
@@ -3378,32 +3384,34 @@ public class  ServiceAccountsService {
 		Response userResponse = new Response();
 		if (TVaultConstants.USERPASS.equals(vaultAuthMethod)) {
 			userResponse = reqProcessor.process("/auth/userpass/read", "{\"username\":\"" + userName + "\"}", token);
+
 		} else if (TVaultConstants.LDAP.equals(vaultAuthMethod)) {
 			userResponse = reqProcessor.process("/auth/ldap/users", "{\"username\":\"" + userName + "\"}", token);
-	} else if (TVaultConstants.OIDC.equals(vaultAuthMethod)) {
-		// OIDC implementation changes
-		ResponseEntity<OIDCEntityResponse> responseEntity = oidcUtil.oidcFetchEntityDetails(token, userName, userDetails);
-		if (!responseEntity.getStatusCode().equals(HttpStatus.OK)) {
-			if (responseEntity.getStatusCode().equals(HttpStatus.FORBIDDEN)) {
-				log.error(
-						JSONUtil.getJSON(
-								ImmutableMap.<String, String> builder()
-										.put(LogMessage.USER,
-												ThreadLocalContext.getCurrentMap().get(LogMessage.USER)
-														.toString())
-										.put(LogMessage.ACTION, "removeUserFromSafe")
-										.put(LogMessage.MESSAGE,
-												String.format("Trying to fetch OIDC user policies, failed"))
-										.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap()
-												.get(LogMessage.APIURL).toString())
-										.build()));
+		} else if (TVaultConstants.OIDC.equals(vaultAuthMethod)) {
+			// OIDC implementation changes
+			ResponseEntity<OIDCEntityResponse> responseEntity = oidcUtil.oidcFetchEntityDetails(token, userName, userDetails);
+			if (!responseEntity.getStatusCode().equals(HttpStatus.OK)) {
+				if (responseEntity.getStatusCode().equals(HttpStatus.FORBIDDEN)) {
+					log.error(
+							JSONUtil.getJSON(
+									ImmutableMap.<String, String> builder()
+											.put(LogMessage.USER,
+													ThreadLocalContext.getCurrentMap().get(LogMessage.USER)
+															.toString())
+											.put(LogMessage.ACTION, "removeUserFromSafe")
+											.put(LogMessage.MESSAGE,
+													String.format("Trying to fetch OIDC user policies, failed"))
+											.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap()
+													.get(LogMessage.APIURL).toString())
+											.build()));
+				}
 			}
+			oidcEntityResponse.setEntityName(responseEntity.getBody().getEntityName());
+			oidcEntityResponse.setPolicies(responseEntity.getBody().getPolicies());
+			userResponse.setResponse(oidcEntityResponse.getPolicies().toString());
+			userResponse.setHttpstatus(responseEntity.getStatusCode());
 		}
-		oidcEntityResponse.setEntityName(responseEntity.getBody().getEntityName());
-		oidcEntityResponse.setPolicies(responseEntity.getBody().getPolicies());
-		userResponse.setResponse(oidcEntityResponse.getPolicies().toString());
-		userResponse.setHttpstatus(responseEntity.getStatusCode());
-		}
+
 		String responseJson = "";
 		String groups = "";
 		List<String> policies = new ArrayList<>();

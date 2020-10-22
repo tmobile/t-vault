@@ -85,6 +85,14 @@
             "delete",
             "list"
          ]
-	  }
+	  },
+	  "iamsvcacc/*": {
+       "capabilities": [
+         "create",
+         "update",
+         "delete",
+         "list"
+       ]
+     }
    }
 }
