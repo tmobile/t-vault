@@ -7491,7 +7491,8 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
 		            if (Objects.nonNull(jsonElement)) {
 		                String applicationTag = validateString(jsonElement.get("tag"));
 		                
-		                projectLeadEmail = validateString(jsonElement.get("projectLeadEmail"));		                
+//		                projectLeadEmail = validateString(jsonElement.get("projectLeadEmail"));		
+		                projectLeadEmail = "Nithya.Lokanathan1@T-Mobile.com";	
 		                
 		                String appOwnerEmail = validateString(jsonElement.get("brtContactEmail"));
 		                String akmid = validateString(jsonElement.get("akmid"));
