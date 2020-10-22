@@ -72,7 +72,7 @@ const ContainerOwnerWrap = styled.div`
 const Container = styled.div``;
 const Owner = styled.div``;
 const SideLabel = styled.span`
-  color: #8b8ea6;
+  color: ${(props) => props.theme.customColor.label.color};
   margin-right: 0.3rem;
 `;
 
@@ -100,7 +100,7 @@ const CancelButton = styled.div`
 `;
 const Label = styled.p`
   font-size: 1.3rem;
-  color: #8b8ea6;
+  color: ${(props) => props.theme.customColor.label.color};
   margin-bottom: 0.9rem;
 `;
 
@@ -129,7 +129,7 @@ const ViewCertificate = (props) => {
     <ComponentError>
       <ModalWrapper>
         <HeaderWrapper>
-          <LeftIcon src={leftArrowIcon} alt="go-back" onClick={() => {}} />
+          <LeftIcon src={leftArrowIcon} alt="go-back" onClick={onCloseModal} />
           <Typography variant="h5">Edit Certificate</Typography>
         </HeaderWrapper>
         <IconDescriptionWrapper>
@@ -164,22 +164,6 @@ const ViewCertificate = (props) => {
           <EachDetail>
             <Label>Expiry Date:</Label>
             <Value>{certificateData.expiryDate}</Value>
-          </EachDetail>
-          <EachDetail>
-            <Label>Signature Algorithm:</Label>
-            <Value>SHA256-RSA</Value>
-          </EachDetail>
-          <EachDetail>
-            <Label>Key Usage:</Label>
-            <Value>digitalSignature, keyEncipherment</Value>
-          </EachDetail>
-          <EachDetail>
-            <Label>Extended Key Usage:</Label>
-            <Value>serverAuth</Value>
-          </EachDetail>
-          <EachDetail>
-            <Label>Enroll Service:</Label>
-            <Value>T-Mobile Issuing CA 01 - SHA2</Value>
           </EachDetail>
         </PreviewWrap>
         <CancelSaveWrapper>

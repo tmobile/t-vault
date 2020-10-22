@@ -15,7 +15,7 @@ const EachDetail = styled.div`
 
 const Label = styled.p`
   font-size: 1.3rem;
-  color: #8b8ea6;
+  color: ${(props) => props.theme.customColor.label.color};
   margin-bottom: 0.9rem;
 `;
 
@@ -101,6 +101,22 @@ const PreviewCertificate = (props) => {
           ) : (
             'N/A'
           )}
+        </EachDetail>
+        <EachDetail>
+          <Label>Signature Algorithm:</Label>
+          <Value>SHA256-RSA</Value>
+        </EachDetail>
+        <EachDetail>
+          <Label>Key Usage:</Label>
+          <Value>digitalSignature, keyEncipherment</Value>
+        </EachDetail>
+        <EachDetail>
+          <Label>Extended Key Usage:</Label>
+          <Value>serverAuth</Value>
+        </EachDetail>
+        <EachDetail>
+          <Label>Enroll Service:</Label>
+          <Value>T-Mobile Issuing CA 01 - SHA2</Value>
         </EachDetail>
         {!isEditCertificate && (
           <CancelSaveWrapper>

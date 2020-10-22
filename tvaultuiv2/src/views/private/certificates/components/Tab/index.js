@@ -14,6 +14,7 @@ import { useStateValue } from '../../../../../contexts/globalState';
 import apiService from '../../apiService';
 import CertificateInformation from '../CertificateInformation';
 import CertificatePermission from '../CertificatePermission';
+// import { UserContext } from '../../../../../contexts';
 // styled components goes here
 
 const TabPanelWrap = styled.div`
@@ -37,8 +38,8 @@ const TabPanel = (props) => {
     <TabPanelWrap
       role="tabpanel"
       hidden={value !== index}
-      id={`safes-tabpanel-${index}`}
-      aria-labelledby={`safe-tab-${index}`}
+      id={`certs-tabpanel-${index}`}
+      aria-labelledby={`cert-tab-${index}`}
     >
       {children}
     </TabPanelWrap>
@@ -97,21 +98,23 @@ const CertificateSelectionTabs = (props) => {
   const [hasPermission, setHasPermission] = useState(false);
 
   const [state] = useStateValue();
+  // const contextObj = useContext(UserContext);
 
   const handleChange = (event, newValue) => {
     setValue(newValue);
   };
 
-  const fetchDetail = () => {
+  const getAllCertificateDetail = () => {
     setResponse({ status: 'loading' });
+    const url = `/sslcert?certificateName=${certificateDetail.certificateName}&certType=${certificateDetail.certType}`;
     apiService
-      .getCertificateDetail(
-        `/sslcert?certificateName=${certificateDetail.certificateName}&certType=${certificateDetail.certType}`
-      )
+      .getCertificateDetail(url)
       .then((res) => {
         setResponse({ status: 'success' });
         if (res.data.keys && res.data.keys[0]) {
           setCertificateMetaData({ ...res.data.keys[0] });
+        } else if (res.data) {
+          setCertificateMetaData({ ...res.data });
         } else {
           setCertificateMetaData({});
         }
@@ -126,10 +129,76 @@ const CertificateSelectionTabs = (props) => {
       });
   };
 
+  const fetchCertificateDetail = () => {
+    setResponse({ status: 'loading' });
+    const url = `/sslcert/certificate/${certificateDetail.certType}?certificate_name=${certificateDetail.certificateName}`;
+    apiService
+      .getCertificateDetail(url)
+      .then((res) => {
+        setResponse({ status: 'success' });
+        if (res.data.keys && res.data.keys[0]) {
+          setCertificateMetaData({ ...res.data.keys[0] });
+        } else if (res.data) {
+          setCertificateMetaData({ ...res.data });
+        } else {
+          setCertificateMetaData({});
+        }
+      })
+      .catch((err) => {
+        if (err?.response?.data?.errors && err.response.data.errors[0]) {
+          setErrorMessage(err.response.data.errors[0]);
+        }
+        setResponse({ status: 'error' });
+        setValue(0);
+        setHasPermission(false);
+      });
+  };
+
+  /**
+   * @function checkCertStatus
+   * @description function to check the status of revoked certificate.
+   */
+  const checkCertStatus = () => {
+    setResponse({ status: 'loading' });
+    let url = '';
+    if (certificateDetail.certificateStatus === 'Revoked') {
+      url = `/sslcert/checkstatus/${certificateDetail.certificateName}/${certificateDetail.certType}`;
+    } else {
+      url = `/sslcert/validate/${certificateDetail.certificateName}/${certificateDetail.certType}`;
+    }
+    apiService
+      .checkCertificateStatus(url)
+      .then(() => {
+        setResponse({ status: 'success' });
+        setCertificateMetaData({ ...certificateDetail });
+      })
+      .catch((err) => {
+        if (err?.response?.data?.errors && err.response.data.errors[0]) {
+          if (
+            err.response.data.errors[0] ===
+            'Certificate is in Revoke Requested status'
+          ) {
+            setResponse({ status: 'success' });
+            setCertificateMetaData({ ...certificateDetail });
+          } else {
+            setErrorMessage(err.response.data.errors[0]);
+            setResponse({ status: 'error' });
+            setHasPermission(false);
+            setValue(0);
+          }
+        }
+      });
+  };
+
   useEffect(() => {
     if (Object.keys(certificateDetail).length > 0) {
       if (!certificateDetail?.applicationName) {
-        fetchDetail();
+        fetchCertificateDetail();
+      } else if (
+        certificateDetail.certificateStatus === 'Revoked' ||
+        !certificateDetail.certificateStatus
+      ) {
+        checkCertStatus();
       } else {
         setResponse({ status: 'success' });
         setCertificateMetaData({ ...certificateDetail });
@@ -145,7 +214,8 @@ const CertificateSelectionTabs = (props) => {
     ) {
       const available = Object.keys(certificateMetaData.users).find(
         (key) =>
-          certificateMetaData.users[key] === 'write' && key === state.username
+          certificateMetaData.users[key] === 'write' &&
+          key.toLowerCase() === state.username.toLowerCase()
       );
       if (available) {
         setHasPermission(true);
@@ -155,6 +225,7 @@ const CertificateSelectionTabs = (props) => {
       }
     } else {
       setHasPermission(false);
+      setValue(0);
     }
   }, [certificateMetaData, state]);
 
@@ -165,7 +236,7 @@ const CertificateSelectionTabs = (props) => {
           <Tabs
             value={value}
             onChange={handleChange}
-            aria-label="safe tabs"
+            aria-label="cert tabs"
             indicatorColor="secondary"
             textColor="primary"
           >
@@ -185,7 +256,7 @@ const CertificateSelectionTabs = (props) => {
             <CertificatePermission
               responseStatus={response.status}
               certificateMetaData={certificateMetaData}
-              fetchDetail={fetchDetail}
+              fetchDetail={getAllCertificateDetail}
               username={state.username}
             />
           </TabPanel>

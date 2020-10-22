@@ -83,11 +83,14 @@ const EditCertificate = (props) => {
    * @description function to check the status of revoked certificate.
    */
   const checkCertStatus = () => {
+    let url = '';
+    if (certificateData.certificateStatus === 'Revoked') {
+      url = `/sslcert/checkstatus/${certificateData.certificateName}/${certificateData.certType}`;
+    } else {
+      url = `/sslcert/validate/${certificateData.certificateName}/${certificateData.certType}`;
+    }
     apiService
-      .checkExtCertificateStatus(
-        certificateData.certificateName,
-        certificateData.certType
-      )
+      .checkCertificateStatus(url)
       .then((res) => {
         if (
           res?.data?.messages &&

@@ -30,10 +30,9 @@ const ModalWrapper = styled.section`
     width: 57.2rem;
   }
   ${small} {
-    width: 100%;
+    width: 90%;
     padding: 2rem;
-    margin: 0;
-    height: fit-content;
+    margin: auto;
   }
 `;
 
@@ -52,7 +51,7 @@ const InputFieldLabelWrapper = styled.div`
   position: ${(props) => (props.postion ? 'relative' : '')};
   .MuiSelect-icon {
     top: auto;
-    color: #000;
+    color: ${(props) => props.theme.customColor.primary.color};
   }
 `;
 
@@ -66,7 +65,7 @@ const IncludeChainWrap = styled.div`
 `;
 
 const FieldInstruction = styled.p`
-  color: #8b8ea6;
+  color: ${(props) => props.theme.customColor.label.color};
   font-size: 1.3rem;
   margin-top: 1.2rem;
   margin-bottom: 0.5rem;
@@ -150,14 +149,12 @@ const DownloadModal = (props) => {
   const [password, setPassword] = useState('');
   const isMobileScreen = useMediaQuery(small);
   const [helperText] = useState('');
-  const [issuerChain, setIssuerChain] = useState(false);
+  const [issuerChain, setIssuerChain] = useState(true);
   const [selectItem] = useState([
     { name: 'DER-P12', value: 'pkcs12der' },
     { name: 'PER-PFX', value: 'pembundle' },
     { name: 'PEM-OPENSSL', value: 'pkcs12pem' },
   ]);
-
-  const [menu] = useState(['DER-P12', 'PER-PFX', 'PEM-OPENSSL']);
 
   const onPriDownload = () => {
     let type = '';
@@ -218,7 +215,7 @@ const DownloadModal = (props) => {
                 <InputFieldLabelWrapper>
                   <InputLabel required>Format</InputLabel>
                   <SelectComponent
-                    menu={menu}
+                    menu={[...selectItem.map((item) => item.name)]}
                     value={formatType}
                     classes={classes}
                     onChange={(e) => setFormatType(e.target.value)}

@@ -1,6 +1,7 @@
 import React from 'react';
 import styled from 'styled-components';
 import PropTypes from 'prop-types';
+import SyncAltIcon from '@material-ui/icons/SyncAlt';
 import { IconDeleteActive, IconEdit } from '../../../../../assets/SvgIcons';
 import PopperElement from '../../../../../components/Popper';
 import { customColor } from '../../../../../theme';
@@ -57,6 +58,7 @@ const EditDeletePopper = (props) => {
         >
           {admin && (
             <PopperItem onClick={onTransferOwnerClicked}>
+              <SyncAltIcon style={{ fill: '#fff' }} />
               <span>Transfer Owner</span>
             </PopperItem>
           )}

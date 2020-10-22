@@ -10,7 +10,6 @@ import mediaBreakpoints from '../../../../../breakpoints';
 const FolderWrap = styled('div')`
   position: relative;
   display: flex;
-  width: 100%;
   text-decoration: none;
   align-items: center;
   justify-content: space-between;
@@ -36,11 +35,11 @@ const Flag = styled('span')`
   opacity: 0.7;
   font-size: ${(props) => props.fontSize};
   font-style: ${(props) => (props.fontStyle ? props.fontStyle : '')};
-  color: #5e627c;
+  color: ${(props) => props.theme.customColor.secondary.color};
 `;
 
 const CertType = styled('span')`
-  color: #5e627c;
+  color: ${(props) => props.theme.customColor.secondary.color};
   font-size: 1.3rem;
   text-transform: Capitalize;
 `;
@@ -48,7 +47,7 @@ const CertType = styled('span')`
 const Dot = styled.span`
   width: 0.3rem;
   height: 0.3rem;
-  background-color: #5e627c;
+  background-color: ${(props) => props.theme.customColor.secondary.color};
   border-radius: 50%;
   margin: 0 5px;
   display: inline-block;
@@ -60,12 +59,11 @@ const LabelWrap = styled.div`
 `;
 
 const extraCss = css`
-  ${mediaBreakpoints.belowLarge} {
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    font-size: 1.6rem;
-  }
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 1.6rem;
+  width: 25rem;
   ${mediaBreakpoints.belowLarge} {
     width: 17rem;
   }
