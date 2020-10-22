@@ -23,6 +23,7 @@ import { TitleThree } from '../../../../../styles/GlobalStyles';
 import { exportCSVFile } from '../../../../../services/helper-function';
 import NamedButton from '../../../../../components/NamedButton';
 import ConfirmationModal from '../../../../../components/ConfirmationModal';
+import { useStateValue } from '../../../../../contexts/globalState';
 
 // styled components goes here
 const TabPanelWrap = styled.div`
@@ -153,6 +154,9 @@ const AppRoleDetails = (props) => {
   const [downloadSecretModal, setDownloadSecretModal] = useState(false);
   const [secretIdInfo, setSecretIdInfo] = useState({});
   const isMobileScreen = useMediaQuery(mediaBreakpoints.small);
+
+  const [userState] = useStateValue();
+
   const handleChange = (event, newValue) => {
     setValue(newValue);
   };
@@ -261,7 +265,7 @@ const AppRoleDetails = (props) => {
             {
               approle: appRoleDetail?.name,
               roleId: res.data.data.role_id,
-              owner: '',
+              owner: userState?.username,
               secretID: secretIdInfo?.secret_id,
               accessorID: secretIdInfo?.secret_id_accessor,
             },
