@@ -27,6 +27,14 @@ export const customColor = {
   checkbox: {
     color: '#c4c4c4',
   },
+  label: {
+    color: '#8b8ea6',
+  },
+  status: {
+    active: '#347a37',
+    revoked: '#9a8022',
+    pending: '#939496',
+  },
 };
 const customTheme = createMuiTheme({
   breakpoints: {

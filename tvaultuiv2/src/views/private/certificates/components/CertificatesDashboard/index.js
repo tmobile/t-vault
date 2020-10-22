@@ -86,7 +86,7 @@ const NoDataWrapper = styled.div`
   display: flex;
   justify-content: center;
   align-items: center;
-  color: #5e627c;
+  color: ${(props) => props.theme.customColor.secondary.color};
   span {
     margin: 0 0.4rem;
     color: #fff;
@@ -267,8 +267,11 @@ const CertificatesDashboard = () => {
         const externalCertArray = [];
         if (result && result[0]?.data?.cert) {
           result[0].data.cert.map((item) => {
-            return Object.entries(item).map(([key]) => {
-              return allCertificateInternal.push(key);
+            return Object.entries(item).map(([key, value]) => {
+              if (value.toLowerCase() !== 'deny') {
+                return allCertificateInternal.push(key);
+              }
+              return null;
             });
           });
         }

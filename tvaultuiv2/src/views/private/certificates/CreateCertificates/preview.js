@@ -15,7 +15,7 @@ const EachDetail = styled.div`
 
 const Label = styled.p`
   font-size: 1.3rem;
-  color: #8b8ea6;
+  color: ${(props) => props.theme.customColor.label.color};
   margin-bottom: 0.9rem;
 `;
 

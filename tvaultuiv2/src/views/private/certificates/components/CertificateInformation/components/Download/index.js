@@ -13,7 +13,7 @@ const FileDownload = require('js-file-download');
 
 const PoperItemWrap = styled.div``;
 const DownloadText = styled.div`
-  color: #e20074;
+  color: ${(props) => props.theme.customColor.magenta};
   cursor: pointer;
   font-size: 1.6rem;
   display: flex;

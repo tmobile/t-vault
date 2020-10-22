@@ -23,7 +23,6 @@ const CertificateStatus = styled.div`
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  width: 17rem;
 `;
 
 const ListFolderWrap = styled(Link)`
@@ -51,7 +50,10 @@ const ListFolderWrap = styled(Link)`
     }
   }
 `;
-
+const StatusActionWrapper = styled.div`
+  display: flex;
+  align-items: center;
+`;
 const EditDeletePopperWrap = styled.div``;
 
 const BorderLine = styled.div`
@@ -70,14 +72,14 @@ const StatusIcon = styled.span`
   background-color: ${(props) =>
     // eslint-disable-next-line no-nested-ternary
     props.status === 'Active'
-      ? '#347a37'
+      ? props.theme.customColor.status.active
       : props.status === 'Revoked'
-      ? '#9a8022'
-      : '#939496'};
+      ? props.theme.customColor.status.revoked
+      : props.theme.customColor.status.pending};
 `;
 
 const extraCss = css`
-  color: #5e627c;
+  color: ${(props) => props.theme.customColor.secondary.color};
 `;
 
 const LeftColumn = (props) => {
@@ -130,53 +132,55 @@ const LeftColumn = (props) => {
               showActions={false}
             />
             <BorderLine />
-            {certificate.certificateStatus && (
-              <CertificateStatus>
-                <TitleFour extraCss={extraCss}>
-                  {certificate.certificateStatus}
-                </TitleFour>
-                <StatusIcon status={certificate.certificateStatus} />
-              </CertificateStatus>
-            )}
-            {!certificate.certificateStatus && certificate.requestStatus && (
-              <CertificateStatus>
-                <TitleFour extraCss={extraCss}>
-                  {certificate.requestStatus}
-                </TitleFour>
-                <StatusIcon status={certificate.requestStatus} />
-              </CertificateStatus>
-            )}
-            {certificate.applicationName && !isMobileScreen ? (
-              <PopperWrap onClick={(e) => onActionClicked(e)}>
-                <EditAndDeletePopup
-                  onDeletListItemClicked={() =>
-                    onDeleteCertificateClicked(certificate)
-                  }
-                  onEditListItemClicked={() =>
-                    onEditListItemClicked(certificate)
-                  }
-                  admin
-                  isTransferOwner
-                  onTransferOwnerClicked={() =>
-                    onTransferOwnerClicked(certificate)
-                  }
-                />
-              </PopperWrap>
-            ) : null}
-            {isMobileScreen && certificate.applicationName && (
-              <EditDeletePopperWrap onClick={(e) => onActionClicked(e)}>
-                <EditDeletePopper
-                  onDeleteClicked={() =>
-                    onDeleteCertificateClicked(certificate)
-                  }
-                  onEditClicked={() => onEditListItemClicked(certificate)}
-                  admin
-                  onTransferOwnerClicked={() =>
-                    onTransferOwnerClicked(certificate)
-                  }
-                />
-              </EditDeletePopperWrap>
-            )}
+            <StatusActionWrapper>
+              {certificate.certificateStatus && (
+                <CertificateStatus>
+                  <TitleFour extraCss={extraCss}>
+                    {certificate.certificateStatus}
+                  </TitleFour>
+                  <StatusIcon status={certificate.certificateStatus} />
+                </CertificateStatus>
+              )}
+              {!certificate.certificateStatus && certificate.requestStatus && (
+                <CertificateStatus>
+                  <TitleFour extraCss={extraCss}>
+                    {certificate.requestStatus}
+                  </TitleFour>
+                  <StatusIcon status={certificate.requestStatus} />
+                </CertificateStatus>
+              )}
+              {certificate.applicationName && !isMobileScreen ? (
+                <PopperWrap onClick={(e) => onActionClicked(e)}>
+                  <EditAndDeletePopup
+                    onDeletListItemClicked={() =>
+                      onDeleteCertificateClicked(certificate)
+                    }
+                    onEditListItemClicked={() =>
+                      onEditListItemClicked(certificate)
+                    }
+                    admin
+                    isTransferOwner
+                    onTransferOwnerClicked={() =>
+                      onTransferOwnerClicked(certificate)
+                    }
+                  />
+                </PopperWrap>
+              ) : null}
+              {isMobileScreen && certificate.applicationName && (
+                <EditDeletePopperWrap onClick={(e) => onActionClicked(e)}>
+                  <EditDeletePopper
+                    onDeleteClicked={() =>
+                      onDeleteCertificateClicked(certificate)
+                    }
+                    onEditClicked={() => onEditListItemClicked(certificate)}
+                    admin
+                    onTransferOwnerClicked={() =>
+                      onTransferOwnerClicked(certificate)
+                    }
+                  />
+                </EditDeletePopperWrap>
+              )}
+            </StatusActionWrapper>
           </ListFolderWrap>
         ))}
       </>

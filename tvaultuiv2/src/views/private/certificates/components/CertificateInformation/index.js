@@ -41,19 +41,19 @@ const EachDetail = styled.div`
 
 const Label = styled.p`
   font-size: 1.3rem;
-  color: #8b8ea6;
+  color: ${(props) => props.theme.customColor.label.color};
   margin-bottom: 0.9rem;
 `;
 
 const Value = styled.p`
-  font-size: 1.8rem;
+  font-size: 1.6rem;
   text-transform: capitalize;
 `;
 
 const DnsName = styled.p`
   border-bottom: 1px solid #5e627c;
   padding: 1rem 0;
-  font-size: 1.8rem;
+  font-size: 1.6rem;
 `;
 
 const customStyle = css`
@@ -65,7 +65,7 @@ const ErrorWrap = styled.div`
   display: flex;
   justify-content: center;
   align-items: center;
-  color: #8b8ea6;
+  color: ${(props) => props.theme.customColor.label.color};
 `;
 
 const CertificateInformation = (props) => {
