@@ -203,7 +203,7 @@ const loaderStyle = css`
 const IncludeDnsWrap = styled.div`
   display: flex;
   align-items: center;
-  margin-bottom: 2rem;
+  margin-bottom: 5rem;
   label {
     margin-bottom: 0rem;
   }
@@ -632,11 +632,11 @@ const CreateCertificates = (props) => {
                   </IncludeDnsWrap>
                   {isDns && (
                     <InputFieldLabelWrapper>
-                      <InputLabel>Add DNS</InputLabel>
+                      <InputLabel>Add Dns</InputLabel>
                       <InputEndWrap>
                         <TextFieldComponent
                           value={dnsName}
-                          placeholder="Add DNS"
+                          placeholder="Add dns"
                           fullWidth
                           name="dnsName"
                           onChange={(e) => {

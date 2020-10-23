@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import { makeStyles } from '@material-ui/core/styles';
 import { withRouter, Link as RRDLink } from 'react-router-dom';
@@ -78,7 +78,11 @@ const ProfileIconWrap = styled('div')`
     display: none;
   }
 `;
-
+const EachLink = styled.a`
+  margin: 0 1rem;
+  color: #fff;
+  font-size: 1.4rem;
+`;
 const UserName = styled.span``;
 
 const UserIcon = styled.img`
@@ -96,9 +100,10 @@ const useStyles = makeStyles(() => ({
 
 const Header = (props) => {
   const classes = useStyles();
+  const [login, setLogin] = useState(true);
   const { location } = props;
   const [userName] = useState('User');
-  const [state, setState] = React.useState({
+  const [state, setState] = useState({
     left: false,
   });
 
@@ -122,6 +127,20 @@ const Header = (props) => {
   const hideSideMenu = (anchor, open) => {
     setState({ ...state, [anchor]: open });
   };
+
+  useEffect(() => {
+    const val = location.pathname.split('/');
+    if (
+      val[1] !== 'vault-app-roles' &&
+      val[1] !== 'certificates' &&
+      val[1] !== 'service-accounts' &&
+      val[1] !== 'safe'
+    ) {
+      setLogin(true);
+    } else {
+      setLogin(false);
+    }
+  }, [location]);
 
   return (
     <ComponentError>
@@ -149,25 +168,45 @@ const Header = (props) => {
           </>
 
           <TVaultIcon src={vaultIcon} alt="tvault-logo" />
-          <HeaderCenter>
-            {navItems &&
-              navItems.map((item) => (
-                <NavLink
-                  // href={`/${item.path}`}
-                  key={item.label}
-                  to={`/${item.path}`}
-                  component={RRDLink}
-                  active={`/${location.pathname}`
-                    .includes(item.path)
-                    .toString()}
-                >
-                  {item.label}
-                </NavLink>
-              ))}
-          </HeaderCenter>
+          {!login && (
+            <HeaderCenter>
+              {navItems &&
+                navItems.map((item) => (
+                  <NavLink
+                    key={item.label}
+                    to={`/${item.path}`}
+                    component={RRDLink}
+                    active={`/${location.pathname}`
+                      .includes(item.path)
+                      .toString()}
+                  >
+                    {item.label}
+                  </NavLink>
+                ))}
+            </HeaderCenter>
+          )}
           <ProfileIconWrap>
-            <UserName>{userName}</UserName>
-            <UserIcon src={userIcon} alt="usericon" />
+            {login ? (
+              <>
+                <EachLink
+                  href="https://docs.corporate.t-mobile.com/t-vault/introduction/"
+                  target="_blank"
+                >
+                  Docs
+                </EachLink>
+                <EachLink
+                  href="https://perf-vault.corporate.t-mobile.com/vault/swagger-ui.html"
+                  target="_blank"
+                >
+                  Developer API
+                </EachLink>
+              </>
+            ) : (
+              <>
+                <UserName>{userName}</UserName>
+                <UserIcon src={userIcon} alt="usericon" />
+              </>
+            )}
           </ProfileIconWrap>
         </Container>
       </HeaderWrap>

@@ -112,6 +112,6 @@ export const SectionPreview = styled.section`
   height: calc(100vh - 15.6rem);
   ${mediaBreakpoints.small} {
     margin: 0;
-    height: 89vh;
+    height: 100vh;
   }
 `;

@@ -159,7 +159,7 @@ const MobileViewForListDetailPage = css`
   right: 0;
   left: 0;
   bottom: 0;
-  top: 0;
+  top: 7rem;
   z-index: 1;
   overflow-y: auto;
 `;

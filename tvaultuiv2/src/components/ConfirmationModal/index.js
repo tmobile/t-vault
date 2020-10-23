@@ -19,7 +19,7 @@ const ModalWrapper = styled.div`
   width: ${(props) => props.size};
   display: flex;
   flex-direction: column;
-  min-height: 24rem;
+  min-height: 21rem;
   ${mediaBreakpoints.smallAndMedium} {
     width: 50%;
   }
