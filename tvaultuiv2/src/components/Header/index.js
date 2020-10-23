@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import styled from 'styled-components';
 import { makeStyles } from '@material-ui/core/styles';
 import { withRouter, Link as RRDLink } from 'react-router-dom';
@@ -100,7 +100,7 @@ const useStyles = makeStyles(() => ({
 
 const Header = (props) => {
   const classes = useStyles();
-  const [login, setLogin] = useState(true);
+  const [isLogin] = useState(true);
   const { location } = props;
   const [userName] = useState('User');
   const [state, setState] = useState({
@@ -128,20 +128,6 @@ const Header = (props) => {
     setState({ ...state, [anchor]: open });
   };
 
-  useEffect(() => {
-    const val = location.pathname.split('/');
-    if (
-      val[1] !== 'vault-app-roles' &&
-      val[1] !== 'certificates' &&
-      val[1] !== 'service-accounts' &&
-      val[1] !== 'safes'
-    ) {
-      setLogin(true);
-    } else {
-      setLogin(false);
-    }
-  }, [location, login]);
-
   return (
     <ComponentError>
       <HeaderWrap>
@@ -168,7 +154,7 @@ const Header = (props) => {
           </>
 
           <TVaultIcon src={vaultIcon} alt="tvault-logo" />
-          {!login && (
+          {isLogin && (
             <HeaderCenter>
               {navItems &&
                 navItems.map((item) => (
@@ -186,7 +172,7 @@ const Header = (props) => {
             </HeaderCenter>
           )}
           <ProfileIconWrap>
-            {login ? (
+            {!isLogin ? (
               <>
                 <EachLink
                   href="https://docs.corporate.t-mobile.com/t-vault/introduction/"
