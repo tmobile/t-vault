@@ -29,6 +29,7 @@ import NoData from '../../../../../components/NoData';
 import NoSafesIcon from '../../../../../assets/no-data-safes.svg';
 import svcIcon from '../../../../../assets/icon-service-account.svg';
 import FloatingActionButtonComponent from '../../../../../components/FormFields/FloatingActionButton';
+import ButtonComponent from '../../../../../components/FormFields/ActionButton';
 import TextFieldComponent from '../../../../../components/FormFields/TextField';
 import ListItemDetail from '../../../../../components/ListItemDetail';
 import EditDeletePopper from '../EditDeletePopper';
@@ -39,7 +40,6 @@ import SnackbarComponent from '../../../../../components/Snackbar';
 import ScaledLoader from '../../../../../components/Loaders/ScaledLoader';
 import apiService from '../../apiService';
 import Strings from '../../../../../resources';
-import ButtonComponent from '../../../../../components/FormFields/ActionButton';
 import { TitleOne } from '../../../../../styles/GlobalStyles';
 import AccountSelectionTabs from '../Tabs';
 import { UserContext } from '../../../../../contexts';
@@ -84,7 +84,7 @@ const ColumnHeader = styled('div')`
 `;
 const StyledInfiniteScroll = styled(InfiniteScroll)`
   width: 100%;
-  max-height: 58vh;
+  max-height: 69vh;
   ${mediaBreakpoints.small} {
     max-height: 78vh;
   }
@@ -145,7 +145,7 @@ const BorderLine = styled.div`
 `;
 const FloatBtnWrapper = styled('div')`
   position: absolute;
-  bottom: 2.8rem;
+  bottom: 4.5rem;
   right: 2.5rem;
 `;
 
@@ -173,23 +173,13 @@ const EmptyContentBox = styled('div')`
   transform: translate(-50%, -50%);
 `;
 
-const ColumnTitleWrap = styled('div')`
-  display: flex;
-  flex-flow: wrap;
-  width: 100%;
-  .button-wrap {
-    display: flex;
-    width: 100%;
-    align-items: center;
-    padding: 1.5rem 0;
-    justify-content: space-between;
-  }
-  margin-bottom: 0.75rem;
+const ListHeader = css`
+  width: 22rem;
+  font-weight: 600;
 `;
+
 const EditDeletePopperWrap = styled.div``;
-const useStyles = makeStyles(() => ({
-  contained: { borderRadius: '0.4rem' },
-}));
+
 const iconStyles = makeStyles(() => ({
   root: {
     width: '100%',
@@ -221,7 +211,7 @@ const ServiceAccountDashboard = () => {
   ] = useState(false);
   const [state, dispatch] = useStateValue();
   let scrollParentRef = null;
-  const classes = useStyles();
+  // const classes = useStyles();
   const listIconStyles = iconStyles();
   const isMobileScreen = useMediaQuery(mediaBreakpoints.small);
   const history = useHistory();
@@ -298,9 +288,6 @@ const ServiceAccountDashboard = () => {
     });
   }, [fetchData]);
 
-  const showOnBoardForm = () => {
-    setServiceAccountClicked(true);
-  };
   /**
    * @function onSearchChange
    * @description function to search input
@@ -517,6 +504,10 @@ const ServiceAccountDashboard = () => {
       });
   };
 
+  const showOnBoardForm = () => {
+    setServiceAccountClicked(true);
+  };
+
   const renderList = () => {
     return serviceAccountList.map((account) => (
       <ListFolderWrap
@@ -587,34 +578,21 @@ const ServiceAccountDashboard = () => {
         <SectionPreview title="service-account-section">
           <LeftColumnSection isAccountDetailsOpen={serviceAccountClicked}>
             <ColumnHeader>
-              <ColumnTitleWrap>
-                <div className="button-wrap">
-                  <TitleOne extraCss="font-weight:600">
-                    SERVICE ACCOUNTS
-                  </TitleOne>
-                  {contextObj?.isAdmin && (
-                    <ButtonComponent
-                      color="secondary"
-                      icon="add"
-                      label="Onboard Account"
-                      onClick={() => showOnBoardForm()}
-                      classes={classes}
-                      href="/service-accounts/onboard-service-accounts"
-                    />
-                  )}
-                </div>
-
-                <SearchWrap>
-                  <TextFieldComponent
-                    placeholder="Search"
-                    icon="search"
-                    fullWidth
-                    onChange={(e) => onSearchChange(e.target.value)}
-                    value={inputSearchValue || ''}
-                    color="secondary"
-                  />
-                </SearchWrap>
-              </ColumnTitleWrap>
+              <div>
+                <TitleOne extraCss={ListHeader}>
+                  {`SERVICE ACCOUNTS(${serviceAccountList?.length})`}
+                </TitleOne>
+              </div>
+              <SearchWrap>
+                <TextFieldComponent
+                  placeholder="Search"
+                  icon="search"
+                  fullWidth
+                  onChange={(e) => onSearchChange(e.target.value)}
+                  value={inputSearchValue || ''}
+                  color="secondary"
+                />
+              </SearchWrap>
             </ColumnHeader>
             {status.status === 'loading' && (
               <ScaledLoader contentHeight="80%" contentWidth="100%" />
@@ -668,12 +646,13 @@ const ServiceAccountDashboard = () => {
                               actionButton={
                                 // eslint-disable-next-line react/jsx-wrap-multilines
                                 contextObj?.isAdmin ? (
-                                  <FloatingActionButtonComponent
-                                    href="/service-accounts/onboard-service-accounts"
+                                  <ButtonComponent
                                     color="secondary"
                                     icon="add"
-                                    tooltipTitle="Onboard New Service Account"
-                                    tooltipPos="bottom"
+                                    label="Onboard Account"
+                                    onClick={() => showOnBoardForm()}
+                                    // classes={classes}
+                                    href="/service-accounts/onboard-service-accounts"
                                   />
                                 ) : (
                                   <></>
@@ -692,7 +671,7 @@ const ServiceAccountDashboard = () => {
             {serviceAccountList?.length && contextObj?.isAdmin ? (
               <FloatBtnWrapper>
                 <FloatingActionButtonComponent
-                  href="/service-accounts/oboard-service-accounts"
+                  href="/service-accounts/onboard-service-accounts"
                   color="secondary"
                   icon="add"
                   tooltipTitle="Onboard New Service Account"

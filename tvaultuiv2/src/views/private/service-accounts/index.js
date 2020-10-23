@@ -29,22 +29,6 @@ const ServiceAccountLayout = (props) => {
         <ServiceAccountSectionPreview>
           <ServiceAccountDashboard {...props} />
         </ServiceAccountSectionPreview>
-        {/* <Switch>
-          <Route
-            exact
-            path="/service-accounts/onboard-service-accounts"
-            render={(routeProps) => (
-              <OnBoardForm routeProps={{ ...routeProps, userInfo }} />
-            )}
-          />
-          <Route
-            exact
-            path="/service-accounts/edit-service-accounts"
-            render={(routeProps) => (
-              <OnBoardForm routeProps={{ ...routeProps, userInfo }} />
-            )}
-          />
-        </Switch> */}
       </main>
     </ComponentError>
   );
