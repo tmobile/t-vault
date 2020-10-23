@@ -73,7 +73,7 @@ const ColumnHeader = styled('div')`
 `;
 const StyledInfiniteScroll = styled(InfiniteScroll)`
   width: 100%;
-  max-height: 61vh;
+  max-height: 68vh;
   ${mediaBreakpoints.small} {
     max-height: 78vh;
   }
@@ -145,7 +145,7 @@ const BorderLine = styled.div`
 `;
 const FloatBtnWrapper = styled('div')`
   position: absolute;
-  bottom: 3.8rem;
+  bottom: 4.8rem;
   right: 2.5rem;
 `;
 

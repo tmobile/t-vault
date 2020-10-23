@@ -241,7 +241,7 @@ const AddAwsApplication = (props) => {
           name="roleName"
           onChange={(e) => setRoleName(e.target.value)}
         />
-        {isEC2 && <p>**Please fill atleast two of the followings.</p>}
+        {isEC2 && <p>**Please fill atleast one of the followings.</p>}
         <InputAwsWrapper>
           <EachInputField>
             <InputLabel required>Account ID*</InputLabel>
