@@ -208,7 +208,7 @@ const CertificatesDashboard = () => {
     setResponse({ status: 'loading' });
     setAllCertList([]);
     setCertificateList([]);
-    const allCertInternal = apiService.getAllAdminCertInternal();
+    const allCertInternal = await apiService.getAllAdminCertInternal();
     const internalCertificates = await apiService.getInternalCertificates();
     const externalCertificates = await apiService.getExternalCertificates();
     const allApiResponse = Promise.all([
