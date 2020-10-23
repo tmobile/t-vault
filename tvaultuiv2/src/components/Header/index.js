@@ -118,9 +118,9 @@ const Header = (props) => {
     setState({ ...state, [anchor]: open });
   };
   const navItems = [
-    { label: 'Safe', path: 'safe' },
+    { label: 'Safes', path: 'safes' },
     { label: 'Vault Approles', path: 'vault-app-roles' },
-    { label: 'Service accounts', path: 'service-accounts' },
+    { label: 'Service Accounts', path: 'service-accounts' },
     { label: 'Certificates', path: 'certificates' },
   ];
 
@@ -134,13 +134,13 @@ const Header = (props) => {
       val[1] !== 'vault-app-roles' &&
       val[1] !== 'certificates' &&
       val[1] !== 'service-accounts' &&
-      val[1] !== 'safe'
+      val[1] !== 'safes'
     ) {
       setLogin(true);
     } else {
       setLogin(false);
     }
-  }, [location]);
+  }, [location, login]);
 
   return (
     <ComponentError>
