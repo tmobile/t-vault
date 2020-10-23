@@ -7227,7 +7227,8 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
 			            log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 			    				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
 			    				put(LogMessage.ACTION, "getActiveCertificaesFromPacbot").
-			    				put(LogMessage.MESSAGE,"Fetching certificate list from pacbot completed.").
+			    				put(LogMessage.MESSAGE,String.format("Fetching [%s] certificates list from pacbot completed. List contains [%s] valid certificates",
+			    						responseArray.size(),validCertArray.size())).
 			    				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 			    				build()));
 			            }}
@@ -7491,8 +7492,7 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
 		            if (Objects.nonNull(jsonElement)) {
 		                String applicationTag = validateString(jsonElement.get("tag"));
 		                
-//		                projectLeadEmail = validateString(jsonElement.get("projectLeadEmail"));		
-		                projectLeadEmail = "Nithya.Lokanathan1@T-Mobile.com";	
+		                projectLeadEmail = validateString(jsonElement.get("projectLeadEmail"));		
 		                
 		                String appOwnerEmail = validateString(jsonElement.get("brtContactEmail"));
 		                String akmid = validateString(jsonElement.get("akmid"));
