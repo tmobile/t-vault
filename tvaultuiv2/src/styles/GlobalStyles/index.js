@@ -108,11 +108,8 @@ export const TabWrapper = styled.div`
 `;
 
 export const SectionPreview = styled.section`
-  margin: 3em auto;
-  height: 77vh;
-  ${mediaBreakpoints.semiLarge} {
-    margin: 3rem 3.5rem 0 3.5rem;
-  }
+  margin: 11.2rem auto 4.2rem auto;
+  height: calc(100vh - 15.6rem);
   ${mediaBreakpoints.small} {
     margin: 0;
     height: 89vh;

@@ -170,7 +170,7 @@ const customTheme = createMuiTheme({
       letterSpacing: '0.015625rem',
       backgroundImage: 'linear-gradient(to top, #2f3545, #1d212c)',
       backgroundRepeat: 'no-repeat',
-      minHeight: '100vh',
+      // minHeight: '100vh',
       color: '#fff',
     },
     collapse: {

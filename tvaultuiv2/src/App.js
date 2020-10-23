@@ -29,13 +29,11 @@ const GlobalCss = withStyles({
 })(() => null);
 
 const Container = styled('div')``;
-const Layout = styled('main')`
-  margin-top: 10rem;
-`;
+const Layout = styled('main')``;
 const Preview = styled('div')``;
 
 const LoaderWrap = styled('div')`
-  height: calc(100vh - 7rem);
+  height: 100vh;
   display: flex;
   justify-content: center;
   align-item: center;

@@ -3,7 +3,8 @@ import React from 'react';
 import styled, { css } from 'styled-components';
 import Union from '../../../assets/Login/union.svg';
 import Frame from '../../../assets/Login/frame.svg';
-// import Speaker from '../../assets/Login/speaker.png';
+import ButtonComponent from '../../../components/FormFields/ActionButton';
+import Speaker from '../../../assets/Login/speaker.png';
 import LoginHeaderText from '../../../assets/Login/login-header-text.svg';
 import AllGroups from '../../../assets/Login/allgroups.svg';
 import Store from '../../../assets/Login/store.svg';
@@ -13,28 +14,8 @@ import Strings from '../../../resources';
 import ComponentError from '../../../errorBoundaries/ComponentError/component-error';
 
 const Container = styled.section`
-  padding-top: 6.5rem;
+  padding-top: 11.2rem;
   background-image: linear-gradient(to bottom, #11131b, #2c3040);
-`;
-
-const HeaderWrap = styled.div`
-  display: flex;
-  justify-content: center;
-  width: 100%;
-`;
-
-// const SpeakerWrap = styled.div`
-//   background: url(${(props) => props.Speaker || ''});
-//   background-size: contain;
-//   background-repeat: no-repeat;
-// `;
-
-const LoginHeaderTextWrap = styled.div`
-  background: url(${(props) => props.LoginHeaderText || ''});
-  background-size: contain;
-  background-repeat: no-repeat;
-  height: 5rem;
-  width: 60%;
 `;
 const MainContainer = styled.div`
   background: url(${(props) => props.Union || ''});
@@ -46,36 +27,87 @@ const rowCommonCss = css`
   margin: 0 auto;
 `;
 
+const HeaderWrap = styled.div`
+  margin-top: 2rem;
+  width: 100%;
+  height: 5rem;
+  display: flex;
+  justify-content: center;
+`;
+
+const SpeakerText = styled.div`
+  position: absolute;
+  display: flex;
+  justify-content: center;
+  width: 50%;
+`;
+
+const SpeakerWrap = styled.img`
+  position: absolute;
+  width: 71px;
+  left: -11px;
+  top: -1.45rem;
+`;
+
+const LoginHeaderTextWrap = styled.div`
+  background: url(${(props) => props.LoginHeaderText || ''});
+  background-size: contain;
+  background-repeat: no-repeat;
+  height: 5rem;
+  width: 100%;
+`;
+
 const FirstRow = styled.div`
   display: flex;
   align-items: center;
-  margin-top: 5.5rem;
+  height: 65rem;
   ${(props) => props.rowCommonCss};
 `;
 
 const LeftColumn = styled.div`
-  width: 50%;
+  width: 40%;
 `;
 
 const Title = styled.h2`
   font-size: 5.6rem;
   font-weight: bold;
-  width: 50%;
+  width: 65%;
+  margin: 0;
 `;
 
 const Description = styled.p`
   line-height: 2.4rem;
   font-size: 1.6rem;
   color: #c4c4c4;
-  width: 70%;
+  width: 82%;
+  margin: 3rem 0 5rem 0;
+`;
+
+const ButtonWrap = styled.div`
+  display: flex;
+`;
+
+const SignUp = styled.a`
+  background-color: #fff;
+  margin-left: 1rem;
+  text-decoration: none;
+  font-size: 1.4rem;
+  color: #e20074;
+  font-weight: bold;
+  height: 3.6rem;
+  display: flex;
+  align-items: center;
+  width: 10rem;
+  justify-content: center;
 `;
 
 const RightColumn = styled.div`
   background: url(${(props) => props.AllGroups || ''});
   background-size: contain;
   background-repeat: no-repeat;
-  height: 43rem;
-  width: 50%;
+  background-position: right;
+  height: 60rem;
+  width: 60%;
 `;
 
 const SecondRow = styled.div`
@@ -109,7 +141,8 @@ const Tile = styled.div`
 
 const Image = styled.img`
   position: absolute;
-  top: -3.5rem;
+  top: -3rem;
+  width: 7rem;
 `;
 const Heading = styled.h3`
   margin: 3rem 0 2rem;
@@ -145,13 +178,29 @@ const LoginPage = () => {
       <Container>
         <MainContainer Union={Union}>
           <HeaderWrap>
-            {/* <SpeakerWrap Speaker={Speaker} /> */}
-            <LoginHeaderTextWrap LoginHeaderText={LoginHeaderText} />
+            <SpeakerText>
+              <SpeakerWrap src={Speaker} />
+              <LoginHeaderTextWrap LoginHeaderText={LoginHeaderText} />
+            </SpeakerText>
           </HeaderWrap>
           <FirstRow rowCommonCss={rowCommonCss}>
             <LeftColumn>
               <Title>Welcome to T-Vault</Title>
               <Description>{Strings.Resources.tvaultDescription}</Description>
+              <ButtonWrap>
+                <ButtonComponent
+                  label="Go to Dashboard"
+                  color="secondary"
+                  onClick={() => {}}
+                />
+                <SignUp
+                  href="https://access.t-mobile.com/manage"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  Sign Up
+                </SignUp>
+              </ButtonWrap>
             </LeftColumn>
             <RightColumn AllGroups={AllGroups} />
           </FirstRow>

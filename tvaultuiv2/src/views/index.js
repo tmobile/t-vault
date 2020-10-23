@@ -13,7 +13,7 @@ const Certificates = lazy(() => import('./private/certificates'));
 const ServiceAccounts = lazy(() => import('./private/service-accounts'));
 
 const LoaderWrap = styled('div')`
-  height: calc(100vh - 7rem);
+  height: 100vh;
   display: flex;
   justify-content: center;
   align-item: center;
