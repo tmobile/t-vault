@@ -324,6 +324,7 @@ const CreateAppRole = (props) => {
       history.location.state.appRoleDetails.isEdit
     ) {
       setEditApprole(true);
+      setResponseType(0);
       setAllAppRoles([...history.location.state.appRoleDetails.allAppRoles]);
       apiService
         .fetchAppRoleDetails(history.location.state.appRoleDetails.name)
@@ -427,6 +428,7 @@ const CreateAppRole = (props) => {
       return;
     }
     setResponseType(null);
+    setStatus({});
   };
 
   const onInputBlur = () => {};
