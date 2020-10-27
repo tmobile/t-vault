@@ -34,8 +34,6 @@ import com.tmobile.cso.vault.api.process.RequestProcessor;
 import com.tmobile.cso.vault.api.process.Response;
 import com.tmobile.cso.vault.api.utils.*;
 import com.tmobile.cso.vault.api.validator.TokenValidator;
-
-
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.http.HttpEntity;
@@ -44,38 +42,31 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.conn.ssl.NoopHostnameVerifier;
-import org.apache.http.ssl.TrustStrategy;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.LaxRedirectStrategy;
 import org.apache.http.ssl.SSLContextBuilder;
+import org.apache.http.ssl.TrustStrategy;
 import org.apache.http.util.EntityUtils;
-import org.springframework.core.io.InputStreamResource;
-import org.springframework.util.ObjectUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
+import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
-
-import com.google.gson.Gson;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
-import com.tmobile.cso.vault.api.utils.AuthorizationUtils;
-import com.tmobile.cso.vault.api.utils.CertificateUtils;
-import com.tmobile.cso.vault.api.utils.JSONUtil;
-import com.tmobile.cso.vault.api.utils.ThreadLocalContext;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.security.KeyManagementException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
@@ -87,9 +78,6 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 
 @Component
 public class SSLCertificateService {
@@ -864,10 +852,12 @@ public class SSLCertificateService {
                     SSLCertificateConstants.CERT_CREATION_SUBJECT + " - " + sslCertificateRequest.getCertificateName(),
                     "created", token);
         } else {
-            sendExternalEmail(sslCertificateRequest.getCertType(), sslCertificateRequest.getCertificateName(),
-                    sslCertificateRequest.getCertOwnerEmailId(),userDetails.getUsername(),
-                    SSLCertificateConstants.EX_CERT_CREATION_SUBJECT + " - " + sslCertificateRequest.getCertificateName(),
-                    "creation");
+             if(!isMockingEnabled(sslCertificateRequest.getCertType())) {
+                 sendExternalEmail(sslCertificateRequest.getCertType(), sslCertificateRequest.getCertificateName(),
+                         sslCertificateRequest.getCertOwnerEmailId(), userDetails.getUsername(),
+                         SSLCertificateConstants.EX_CERT_CREATION_SUBJECT + " - " + sslCertificateRequest.getCertificateName(),
+                         "creation");
+             }
         }
     }
 
@@ -1221,7 +1211,11 @@ public class SSLCertificateService {
 			    if(sslCertificateRequest.getCertType().equals(SSLCertificateConstants.INTERNAL)) {
                     enrollResponse.setResponse(SSLCertificateConstants.SSL_CERT_SUCCESS);
                 } else {
-                    enrollResponse.setResponse(SSLCertificateConstants.SSL_EXT_CERT_SUCCESS);
+                    if(isMockingEnabled(sslCertificateRequest.getCertType())){
+                        enrollResponse.setResponse(SSLCertificateConstants.SSL_CERT_SUCCESS);
+                    } else {
+                        enrollResponse.setResponse(SSLCertificateConstants.SSL_EXT_CERT_SUCCESS);
+                    }
                 }
 				enrollResponse.setSuccess(Boolean.TRUE);
 				log.debug(JSONUtil.getJSON(ImmutableMap.<String, String> builder()
@@ -1232,6 +1226,13 @@ public class SSLCertificateService {
                 if(operation.equalsIgnoreCase("create")) {
                     sendCreationEmail(sslCertificateRequest, userDetails, token);
                 }
+                log.debug(JSONUtil.getJSON(ImmutableMap.<String, String> builder()
+                        .put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+                        .put(LogMessage.ACTION, String.format("CERTIFICATE [%s] - CREATED SUCCESSFULLY - BY [%s] - " +
+                                        "ON- [%s] AND TYPE [%s]",
+                                sslCertificateRequest.getCertificateName(), sslCertificateRequest.getCertOwnerEmailId(),
+                                LocalDateTime.now(),sslCertificateRequest.getCertType())).build()));
+
 			    return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\""+enrollResponse.getResponse()+"\"]}");
 			}else {
 				enrollResponse.setResponse(SSLCertificateConstants.SSL_OWNER_PERMISSION_EXCEPTION);
@@ -1360,8 +1361,15 @@ public class SSLCertificateService {
                 }
             }else {
                 if (Objects.nonNull(Objects.requireNonNull(certMetaData).getDnsNames())) {
-                    mailTemplateVariables.put("dnsNames", certMetaData.getDnsNames().toString().
-                            substring(3, certMetaData.getDnsNames().toString().length() - 3));
+                    if (isMockingEnabled(certType)) {
+                        //Removing first and last char from String
+                        mailTemplateVariables.put("dnsNames", certMetaData.getDnsNames().toString().
+                                substring(1, certMetaData.getDnsNames().toString().length() - 1));
+
+                    } else {
+                        mailTemplateVariables.put("dnsNames", certMetaData.getDnsNames().toString().
+                                substring(3, certMetaData.getDnsNames().toString().length() - 3));
+                    }
                 }
             }
 
@@ -1370,7 +1378,8 @@ public class SSLCertificateService {
                     .put(LogMessage.ACTION, String.format("sendEmail for SSL certificate [%s] - certType [%s] - User " +
                                     "email=[%s] - subject = [%s]"
                             ,certName , certType,directoryUser.getUserEmail(),subject)).
-                    put(LogMessage.MESSAGE, String.format("Certificate revoked successfully [%s] revoked by [%s] on [%s]",certName,certOwnerNtId,LocalDateTime.now())).
+                    put(LogMessage.MESSAGE, String.format("Certificate [%s] successfully [%s] [%s]  by [%s] on " +
+                            "[%s]",operation,certName,operation,certOwnerNtId,LocalDateTime.now())).
                     build()));
 
             emailUtils.sendHtmlEmalFromTemplateForInternalCert(fromEmail, certOwnerEmailId, subject, mailTemplateVariables);
@@ -1539,14 +1548,21 @@ public class SSLCertificateService {
                 put(LogMessage.ACTION, String.format("MetaData info details = [%s]", sslCertificateMetadataDetails.toString())).
                 build()));
         } else {
-            sslCertificateMetadataDetails.setCertCreatedBy(userDetails.getUsername());
-            sslCertificateMetadataDetails.setCertOwnerEmailId(sslCertificateRequest.getCertOwnerEmailId());
-            sslCertificateMetadataDetails.setCertType(sslCertificateRequest.getCertType());
-            sslCertificateMetadataDetails.setCertOwnerNtid(sslCertificateRequest.getCertOwnerNtid());
-            sslCertificateMetadataDetails.setContainerId(containerId);
-            sslCertificateMetadataDetails.setCertificateName(sslCertificateRequest.getCertificateName());
-            sslCertificateMetadataDetails.setRequestStatus(SSLCertificateConstants.REQUEST_PENDING_APPROVAL);
-            sslCertificateMetadataDetails.setActionId(actionId);
+            //populate mock data for eternal certificate
+            if(isMockingEnabled(sslCertificateRequest.getCertType())) {
+                sslCertificateMetadataDetails = prepareMockdataForExternalCertificate(userDetails,actionId,
+                        sslCertificateRequest,sslCertificateMetadataDetails);
+              }
+            else{
+                sslCertificateMetadataDetails.setCertCreatedBy(userDetails.getUsername());
+                sslCertificateMetadataDetails.setCertOwnerEmailId(sslCertificateRequest.getCertOwnerEmailId());
+                sslCertificateMetadataDetails.setCertType(sslCertificateRequest.getCertType());
+                sslCertificateMetadataDetails.setCertOwnerNtid(sslCertificateRequest.getCertOwnerNtid());
+                sslCertificateMetadataDetails.setContainerId(containerId);
+                sslCertificateMetadataDetails.setCertificateName(sslCertificateRequest.getCertificateName());
+                sslCertificateMetadataDetails.setRequestStatus(SSLCertificateConstants.REQUEST_PENDING_APPROVAL);
+                sslCertificateMetadataDetails.setActionId(actionId);
+            }
             log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
                     put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
                     put(LogMessage.ACTION, String.format("  MetaData info details = [%s] = for an external " +
@@ -1562,6 +1578,36 @@ public class SSLCertificateService {
         rqstParams.put("path", certMetadataPath);
         return ControllerUtil.convetToJson(rqstParams);
 	}
+
+
+    /**
+     * prepareMockdata for external certificate
+     * @param userDetails
+     * @param containerId
+     * @param sslCertificateRequest
+     * @return
+     */
+    private SSLCertificateMetadataDetails prepareMockdataForExternalCertificate(UserDetails userDetails,int containerId,
+                                                                                SSLCertificateRequest sslCertificateRequest,
+                                                                                SSLCertificateMetadataDetails sslCertificateMetadataDetails){
+        CertificateData certDetails = nclmMockUtil.getMockCertificateData(sslCertificateRequest);
+        sslCertificateMetadataDetails.setCertificateId(certDetails.getCertificateId());
+        sslCertificateMetadataDetails.setCertificateName(certDetails.getCertificateName());
+        sslCertificateMetadataDetails.setCreateDate(certDetails.getCreateDate());
+        sslCertificateMetadataDetails.setExpiryDate(certDetails.getExpiryDate());
+        sslCertificateMetadataDetails.setAuthority(certDetails.getAuthority());
+        sslCertificateMetadataDetails.setCertificateStatus(certDetails.getCertificateStatus());
+        sslCertificateMetadataDetails.setContainerName(certDetails.getContainerName());
+        sslCertificateMetadataDetails.setDnsNames(certDetails.getDnsNames());
+        sslCertificateMetadataDetails.setCertCreatedBy(userDetails.getUsername());
+        sslCertificateMetadataDetails.setCertOwnerEmailId(sslCertificateRequest.getCertOwnerEmailId());
+        sslCertificateMetadataDetails.setCertType(sslCertificateRequest.getCertType());
+        sslCertificateMetadataDetails.setCertOwnerNtid(sslCertificateRequest.getCertOwnerNtid());
+        sslCertificateMetadataDetails.setContainerId(containerId);
+        sslCertificateMetadataDetails.setRequestStatus("Approved");
+        return sslCertificateMetadataDetails;
+    }
+
 
     /**
      * Validate the DNSNames
@@ -6441,7 +6487,8 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
      * @return true if mocking flag as enabled and certtype as internal
      */
     private boolean isMockingEnabled(String certType) {
-        return (nclmMockEnabled.equalsIgnoreCase(TVaultConstants.TRUE) && certType.equalsIgnoreCase(SSLCertificateConstants.INTERNAL)) ?
+        return (nclmMockEnabled.equalsIgnoreCase(TVaultConstants.TRUE) && (certType.equalsIgnoreCase(SSLCertificateConstants.INTERNAL)
+                || certType.equalsIgnoreCase(SSLCertificateConstants.EXTERNAL))) ?
                 Boolean.TRUE : Boolean.FALSE;
     }
 

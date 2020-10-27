@@ -493,10 +493,16 @@
             }).then(function (response) {
                 return response;
             }).catch(function(error) {
-                console.log(error);
-                $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
-                $scope.error('md');
-                return error;
+                if(error.status === 400){
+                    $scope.errorMessage = "Your request cannot be processed now due to some technical issue. Please try again later";
+                    $scope.error('md');
+                    return error;
+                  } else {
+                    console.log(error);
+                    $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
+                    $scope.error('md');
+                    return error;
+                }
             });
         }
 

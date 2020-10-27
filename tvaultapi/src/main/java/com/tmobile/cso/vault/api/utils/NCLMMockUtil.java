@@ -97,10 +97,10 @@ public class NCLMMockUtil {
      * @return
      */
     public CertResponse getEnrollMockResponse(){
-        CertResponse CertResponse = new CertResponse();
-        CertResponse.setHttpstatus(HttpStatus.OK);
-        CertResponse.setSuccess(Boolean.TRUE);
-        return CertResponse;
+        CertResponse certResponse = new CertResponse();
+        certResponse.setHttpstatus(HttpStatus.OK);
+        certResponse.setSuccess(Boolean.TRUE);
+        return certResponse;
     }
 
     /**
@@ -146,6 +146,7 @@ public class NCLMMockUtil {
 
     public CertificateData getMockDataForRevoked(){
         CertificateData certificateData = new CertificateData();
+        certificateData.setCertificateId(11);
         certificateData.setCertificateStatus("Revoked");
         return certificateData;
     }
