@@ -1223,15 +1223,17 @@ public class SSLCertificateService {
 						.put(LogMessage.ACTION, String.format("Metadata or Policies created for SSL certificate [%s] - metaDataStatus [%s] - policyStatus [%s]", sslCertificateRequest.getCertificateName(), sslMetaDataCreationStatus, isPoliciesCreated))
 						.build()));
                 //Send email only in case of creation
-                if(operation.equalsIgnoreCase("create")) {
+                if (operation.equalsIgnoreCase("create")) {
                     sendCreationEmail(sslCertificateRequest, userDetails, token);
+
+                    log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+                            .put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+                            .put(LogMessage.ACTION, String.format("CERTIFICATE [%s] - CREATED SUCCESSFULLY - BY [%s] - " +
+                                            "ON- [%s] AND TYPE [%s]",
+                                    sslCertificateRequest.getCertificateName(), sslCertificateRequest.getCertOwnerEmailId(),
+                                    LocalDateTime.now(), sslCertificateRequest.getCertType())).build()));
                 }
-                log.debug(JSONUtil.getJSON(ImmutableMap.<String, String> builder()
-                        .put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
-                        .put(LogMessage.ACTION, String.format("CERTIFICATE [%s] - CREATED SUCCESSFULLY - BY [%s] - " +
-                                        "ON- [%s] AND TYPE [%s]",
-                                sslCertificateRequest.getCertificateName(), sslCertificateRequest.getCertOwnerEmailId(),
-                                LocalDateTime.now(),sslCertificateRequest.getCertType())).build()));
+
 
 			    return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\""+enrollResponse.getResponse()+"\"]}");
 			}else {
@@ -3009,6 +3011,14 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
                 sendEmail(certType, certificateName, certOwnerEmailId,certOwnerNtId,
                         SSLCertificateConstants.CERT_REVOKED_SUBJECT + " - " + certificateName,
                         "revoked", token);
+
+                log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+                        .put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+                        .put(LogMessage.ACTION, String.format("CERTIFICATE [%s] - REVOKED SUCCESSFULLY - BY [%s] - " +
+                                        "ON- [%s] AND TYPE [%s]",
+                                certificateName, certOwnerEmailId, LocalDateTime.now(), certType)).build()));
+
+
 				return ResponseEntity.status(revocationResponse.getHttpstatus())
 						.body("{\"messages\":[\"" + "Revocation done successfully" + "\"]}");
 			} else {
@@ -6429,6 +6439,13 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
                        sendDeleteEmail(token, certType, certificateName, certOwnerEmailId, certOwnerNtId,
                                SSLCertificateConstants.CERT_DELETE_SUBJECT + " - " + certificateName,
                                "deleted", certData);
+
+                       log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+                               .put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+                               .put(LogMessage.ACTION, String.format("CERTIFICATE [%s] - DELETED SUCCESSFULLY - BY [%s] - " +
+                                               "ON- [%s] AND TYPE [%s]",
+                                       certificateName, certOwnerEmailId, LocalDateTime.now(), certType)).build()));
+
                        return ResponseEntity.status(HttpStatus.OK)
                                .body("{\"messages\":[\"" + "Certificate deleted successfully" + "\"]}");
                    } else {
