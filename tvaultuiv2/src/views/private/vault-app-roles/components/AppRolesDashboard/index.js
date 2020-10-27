@@ -77,7 +77,7 @@ const ColumnHeader = styled('div')`
 `;
 const StyledInfiniteScroll = styled(InfiniteScroll)`
   width: 100%;
-  max-height: 68vh;
+  max-height: 69vh;
   ${mediaBreakpoints.small} {
     max-height: 78vh;
   }
@@ -138,7 +138,7 @@ const BorderLine = styled.div`
 `;
 const FloatBtnWrapper = styled('div')`
   position: absolute;
-  bottom: 2.8rem;
+  bottom: 5rem;
   right: 2.5rem;
 `;
 
@@ -189,7 +189,6 @@ const iconStyles = makeStyles(() => ({
 }));
 
 const AppRolesDashboard = () => {
-  const [appRoleType, setAppRoleType] = useState('All Approles');
   const [inputSearchValue, setInputSearchValue] = useState('');
   const [appRoleClicked, setAppRoleClicked] = useState(false);
   const [listItemDetails, setListItemDetails] = useState({});
@@ -197,6 +196,7 @@ const AppRolesDashboard = () => {
   const [isLoading] = useState(false);
   const [appRoleList, setAppRoleList] = useState([]);
   const [menu] = useState(['All Approles']);
+  const [appRoleType, setAppRoleType] = useState('All Approles');
   const [status, setStatus] = useState({});
   const [getResponseType, setGetResponseType] = useState(null);
   const [deleteAppRoleName, setDeleteAppRoleName] = useState('');
@@ -304,6 +304,7 @@ const AppRolesDashboard = () => {
 
   useEffect(() => {
     if (appRoleList?.length > 0) {
+      setAppRoleType(`All Approles(${appRoleList.length})`);
       appRoleList.map((item) => {
         if (history.location.pathname === `/vault-app-roles/${item.name}`) {
           return setListItemDetails(item);

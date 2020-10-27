@@ -51,8 +51,8 @@ const customStyle = css`
 `;
 
 const Icon = styled.img`
-  width: 2.2rem;
-  height: 2.2rem;
+  width: 1.5rem;
+  height: 1.5rem;
   margin-right: 1.6rem;
   margin-left: 2rem;
 `;
@@ -63,8 +63,8 @@ const FolderIconWrap = styled('div')`
   align-items: center;
   cursor: pointer;
   .MuiSvgIcon-root {
-    width: 3rem;
-    height: 3rem;
+    width: 2rem;
+    height: 2rem;
     :hover {
       background: ${(props) =>
         props.theme.customColor.hoverColor.list || '#151820'};
