@@ -3,6 +3,8 @@
 /* eslint-disable consistent-return */
 // eslint-disable-next-line import/prefer-default-export
 
+const FileDownload = require('js-file-download');
+
 export function mockApi(response) {
   return new Promise((resolve, reject) =>
     setTimeout(() => {
@@ -206,4 +208,31 @@ export const getDaysDifference = (start, end) => {
   const diffInTime = date2.getTime() - date1.getTime();
   const diffInTimeDays = diffInTime / (1000 * 3600 * 24);
   return Math.ceil(diffInTimeDays);
+};
+export const convertToCSV = (objArray) => {
+  const array = typeof objArray !== 'object' ? JSON.parse(objArray) : objArray;
+  let str = '';
+  // eslint-disable-next-line no-plusplus
+  for (let i = 0; i < array.length; i++) {
+    let line = '';
+    // eslint-disable-next-line no-restricted-syntax
+    for (const index in array[i]) {
+      if (line !== '') line += ',';
+
+      line += array[i][index];
+    }
+
+    str += `${line}\r\n`;
+  }
+  return str;
+};
+export const exportCSVFile = (headers, items, fileTitle) => {
+  if (headers) {
+    items.unshift(headers);
+  }
+  // Convert Object to JSON
+  const jsonObject = JSON.stringify(items);
+  const csv = convertToCSV(jsonObject);
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  FileDownload(blob, fileTitle);
 };
