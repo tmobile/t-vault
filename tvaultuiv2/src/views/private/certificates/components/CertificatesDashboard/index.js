@@ -115,7 +115,7 @@ const MobileViewForListDetailPage = css`
   right: 0;
   left: 0;
   bottom: 0;
-  top: 0;
+  top: 7rem;
   z-index: 1;
   overflow-y: auto;
 `;
@@ -168,7 +168,6 @@ const CertificatesDashboard = () => {
   const [allCertList, setAllCertList] = useState([]);
   const [certificateClicked, setCertificateClicked] = useState(false);
   const [ListItemDetails, setListItemDetails] = useState({});
-  const [openEditModal, setOpenEditModal] = useState(false);
   const [certificateData, setCertificateData] = useState({});
   const [openTransferModal, setOpenTransferModal] = useState(false);
   const [openDeleteConfirmation, setOpenDeleteConfirmation] = useState(false);
@@ -229,13 +228,19 @@ const CertificatesDashboard = () => {
         }
         if (result && result[1]?.data?.keys) {
           result[1].data.keys.map((item) => {
-            return internalCertArray.push(item);
+            if (item.certificateName) {
+              return internalCertArray.push(item);
+            }
+            return null;
           });
           compareCertificates(internalCertArray, allCertArray, 'internal');
         }
         if (result && result[2]?.data?.keys) {
           result[2].data.keys.map((item) => {
-            return externalCertArray.push(item);
+            if (item.certificateName) {
+              return externalCertArray.push(item);
+            }
+            return null;
           });
         }
         setCertificateList([...internalCertArray, ...externalCertArray]);
@@ -284,7 +289,10 @@ const CertificatesDashboard = () => {
         }
         if (result && result[2]?.data?.keys) {
           result[2].data.keys.map((item) => {
-            return internalCertArray.push(item);
+            if (item.certificateName) {
+              return internalCertArray.push(item);
+            }
+            return null;
           });
         }
         compareCertificates(
@@ -294,7 +302,10 @@ const CertificatesDashboard = () => {
         );
         if (result && result[3]?.data?.keys) {
           result[3].data.keys.map((item) => {
-            return externalCertArray.push(item);
+            if (item.certificateName) {
+              return externalCertArray.push(item);
+            }
+            return null;
           });
         }
         compareCertificates(
@@ -361,7 +372,10 @@ const CertificatesDashboard = () => {
     if (allCertList.length > 0) {
       const val = location.pathname.split('/');
       const certName = val[val.length - 1];
-      if (certName !== 'create-ceritificate') {
+      if (
+        certName !== 'create-ceritificate' &&
+        certName !== 'edit-certificate'
+      ) {
         const obj = allCertList.find(
           (cert) => cert.certificateName === certName
         );
@@ -426,11 +440,13 @@ const CertificatesDashboard = () => {
   /**
    * @function onEditListItemClicked
    * @description function to open the edit modal.
-   * @param {object} item certificate which is clicked.
+   * @param {object} certificate certificate which is clicked.
    */
-  const onEditListItemClicked = (item) => {
-    setOpenEditModal(true);
-    setCertificateData({ ...item });
+  const onEditListItemClicked = (certificate) => {
+    history.push({
+      pathname: '/certificates/edit-certificate',
+      state: { certificate },
+    });
   };
 
   /**
@@ -440,7 +456,6 @@ const CertificatesDashboard = () => {
    * @param {bool} actionPerform true/false based on the success event of corresponding action.
    */
   const onCloseAllModal = (actionPerform) => {
-    setOpenEditModal(false);
     setOpenTransferModal(false);
     setCertificateData({});
     if (actionPerform) {
@@ -547,13 +562,6 @@ const CertificatesDashboard = () => {
     <ComponentError>
       <>
         <SectionPreview title="certificates-section">
-          {openEditModal && (
-            <EditCertificate
-              certificateData={certificateData}
-              open={openEditModal}
-              onCloseModal={(action) => onCloseAllModal(action)}
-            />
-          )}
           {openTransferModal && (
             <TransferCertificate
               certificateData={certificateData}
@@ -712,12 +720,20 @@ const CertificatesDashboard = () => {
             <Route
               exact
               path="/certificates/create-ceritificate"
-              render={(routeProps) => (
+              render={() => (
                 <CreateCertificates
-                  routeProps={routeProps}
                   refresh={() =>
                     contextObj?.isAdmin ? fetchAdminData() : fetchNonAdminData()
                   }
+                />
+              )}
+            />
+            <Route
+              exact
+              path="/certificates/edit-certificate"
+              render={() => (
+                <EditCertificate
+                  refresh={(status) => onCloseAllModal(status)}
                 />
               )}
             />

@@ -231,7 +231,7 @@ const AddGroup = (props) => {
             searchValue={searchValue}
             onSelected={(e, val) => onSelected(e, val)}
             onChange={(e) => onSearchChange(e)}
-            placeholder="Username - Enter min 3 characters"
+            placeholder="Groupname - Enter min 3 characters"
             error={groupname !== searchValue && !isValidGroupName}
             helperText={
               groupname !== searchValue &&
@@ -240,7 +240,7 @@ const AddGroup = (props) => {
             }
           />
           <InstructionText>
-            Search the T-Mobile system to add users
+            Search the T-Mobile system to add groups
           </InstructionText>
           {searchLoader && <LoaderSpinner customStyle={customStyle} />}
         </InputWrapper>

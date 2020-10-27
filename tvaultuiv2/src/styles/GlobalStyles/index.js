@@ -106,3 +106,12 @@ export const TabWrapper = styled.div`
     background-color: inherit;
   }
 `;
+
+export const SectionPreview = styled.section`
+  margin: 11.2rem auto 4.2rem auto;
+  height: calc(100vh - 15.6rem);
+  ${mediaBreakpoints.small} {
+    margin: 0;
+    height: 100vh;
+  }
+`;

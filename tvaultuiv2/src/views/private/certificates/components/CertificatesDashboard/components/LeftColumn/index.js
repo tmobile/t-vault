@@ -37,7 +37,7 @@ const ListFolderWrap = styled(Link)`
     props.active === 'true' ? props.theme.gradients.list : 'none'};
   color: ${(props) => (props.active === 'true' ? '#fff' : '#4a4a4a')};
   ${mediaBreakpoints.belowLarge} {
-    padding: 2rem 1.1rem;
+    padding: 2rem;
   }
   :hover {
     background-image: ${(props) => props.theme.gradients.list || 'none'};

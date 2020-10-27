@@ -8,6 +8,7 @@ import Fade from '@material-ui/core/Fade';
 import { css } from 'styled-components';
 import useMediaQuery from '@material-ui/core/useMediaQuery';
 import PropTypes from 'prop-types';
+import { useHistory } from 'react-router-dom';
 import ButtonComponent from '../../../../../components/FormFields/ActionButton';
 import ConfirmationModal from '../../../../../components/ConfirmationModal';
 import ComponentError from '../../../../../errorBoundaries/ComponentError/component-error';
@@ -54,12 +55,14 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 const EditCertificate = (props) => {
-  const { open, certificateData, onCloseModal } = props;
+  const { refresh } = props;
   const classes = useStyles();
   const [modalDetail, setModalDetail] = useState({
     title: '',
     description: '',
   });
+  const [open] = useState(true);
+  const [certificateData, setCertificateData] = useState({});
   const [openModal, setOpenModal] = useState({ status: 'edit' });
   const [loading, setLoading] = useState(true);
   const [showRevokeRenewBtn, setShowRevokeRenewBtn] = useState(true);
@@ -69,6 +72,15 @@ const EditCertificate = (props) => {
   const [editActionPerform, setEditActionPerform] = useState(false);
 
   const isMobileScreen = useMediaQuery(small);
+  const history = useHistory();
+
+  useEffect(() => {
+    if (history?.location?.state?.certificate) {
+      setCertificateData({ ...history.location.state.certificate });
+    } else {
+      history.goBack();
+    }
+  }, [history]);
 
   /**
    * @function clearModalDetail
@@ -84,6 +96,7 @@ const EditCertificate = (props) => {
    */
   const checkCertStatus = () => {
     let url = '';
+    console.log('object', certificateData);
     if (certificateData.certificateStatus === 'Revoked') {
       url = `/sslcert/checkstatus/${certificateData.certificateName}/${certificateData.certType}`;
     } else {
@@ -193,7 +206,7 @@ const EditCertificate = (props) => {
   };
 
   useEffect(() => {
-    if (certificateData) {
+    if (Object.keys(certificateData).length > 0) {
       if (
         certificateData.certificateStatus === 'Revoked' ||
         !certificateData.certificateStatus
@@ -207,6 +220,11 @@ const EditCertificate = (props) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [certificateData]);
 
+  const closeEditModal = async () => {
+    await refresh(editActionPerform);
+    history.goBack();
+  };
+
   /**
    * @function handleCloseConfirmationModal
    * @description function when user clicked cancel of confirmation modal.
@@ -214,7 +232,7 @@ const EditCertificate = (props) => {
   const handleCloseConfirmationModal = () => {
     if (!loading) {
       setOpenModal({ status: '' });
-      onCloseModal(editActionPerform);
+      closeEditModal();
     }
   };
 
@@ -379,7 +397,7 @@ const EditCertificate = (props) => {
             aria-describedby="transition-modal-description"
             className={classes.modal}
             open={open}
-            onClose={() => onCloseModal(editActionPerform)}
+            onClose={() => closeEditModal()}
             closeAfterTransition
             BackdropComponent={Backdrop}
             BackdropProps={{
@@ -392,7 +410,7 @@ const EditCertificate = (props) => {
                 onCertRenewClicked={onCertRenewClicked}
                 isMobileScreen={isMobileScreen}
                 showRevokeRenewBtn={showRevokeRenewBtn}
-                onCloseModal={() => onCloseModal(editActionPerform)}
+                onCloseModal={() => closeEditModal()}
                 onCertRevokeClicked={onCertRevokeClicked}
               />
             </Fade>
@@ -404,9 +422,7 @@ const EditCertificate = (props) => {
 };
 
 EditCertificate.propTypes = {
-  certificateData: PropTypes.objectOf(PropTypes.any).isRequired,
-  open: PropTypes.bool.isRequired,
-  onCloseModal: PropTypes.func.isRequired,
+  refresh: PropTypes.func.isRequired,
 };
 
 export default EditCertificate;

@@ -13,10 +13,15 @@ const Certificates = lazy(() => import('./private/certificates'));
 const ServiceAccounts = lazy(() => import('./private/service-accounts'));
 
 const LoaderWrap = styled('div')`
-  height: calc(100vh - 7rem);
+  height: 100vh;
   display: flex;
   justify-content: center;
   align-item: center;
+`;
+
+const Wrapper = styled.section`
+  max-width: 130rem;
+  margin: auto;
 `;
 
 const PrivateRoutes = () => {
@@ -33,22 +38,37 @@ const PrivateRoutes = () => {
           <Redirect exact from="/" to="/safe" />
           <Route
             path="/vault-app-roles"
-            render={(routeProps) => <VaultAppRoles routeProps={routeProps} />}
+            render={(routeProps) => (
+              <Wrapper>
+                <VaultAppRoles routeProps={routeProps} />
+              </Wrapper>
+            )}
           />
           <Route
             path="/certificates"
-            render={(routeProps) => <Certificates routeProps={routeProps} />}
+            render={(routeProps) => (
+              <Wrapper>
+                <Certificates routeProps={routeProps} />
+              </Wrapper>
+            )}
           />
           <Route
             path="/service-accounts"
-            render={(routeProps) => <ServiceAccounts routeProps={routeProps} />}
+            render={(routeProps) => (
+              <Wrapper>
+                <ServiceAccounts routeProps={routeProps} />
+              </Wrapper>
+            )}
           />
           <Route
             path="/safe"
-            render={(routeProps) => <Safe routeProps={routeProps} />}
+            render={(routeProps) => (
+              <Wrapper>
+                <Safe routeProps={routeProps} />
+              </Wrapper>
+            )}
           />
           <Route path="/home" render={() => <Home />} />
-
           <Redirect exact to="/" />
         </Switch>
       </Suspense>
