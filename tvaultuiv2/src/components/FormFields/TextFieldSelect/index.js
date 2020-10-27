@@ -54,6 +54,15 @@ export default function TextFieldSelect(props) {
       SelectProps={{
         MenuProps: {
           classes: { paper: classes.dropdownStyle },
+          anchorOrigin: {
+            vertical: 'bottom',
+            horizontal: 'center',
+          },
+          transformOrigin: {
+            vertical: 'top',
+            horizontal: 'center',
+          },
+          getContentAnchorEl: null,
         },
       }}
     >

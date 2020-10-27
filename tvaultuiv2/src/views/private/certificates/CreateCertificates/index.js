@@ -10,9 +10,6 @@ import { Backdrop, Typography, InputLabel } from '@material-ui/core';
 import Fade from '@material-ui/core/Fade';
 import styled, { css } from 'styled-components';
 import useMediaQuery from '@material-ui/core/useMediaQuery';
-import RadioGroup from '@material-ui/core/RadioGroup';
-import FormControlLabel from '@material-ui/core/FormControlLabel';
-import Radio from '@material-ui/core/Radio';
 import KeyboardReturnIcon from '@material-ui/icons/KeyboardReturn';
 import PropTypes from 'prop-types';
 import ReactHtmlParser from 'react-html-parser';
@@ -33,6 +30,7 @@ import PreviewCertificate from './preview';
 import SwitchComponent from '../../../../components/FormFields/SwitchComponent';
 import ServiceAccountHelp from '../../service-accounts/components/ServiceAccountHelp';
 import Strings from '../../../../resources';
+import RadioButtonComponent from '../../../../components/FormFields/RadioButton';
 
 const { small, belowLarge } = mediaBreakpoints;
 
@@ -155,6 +153,7 @@ const RemoveIcon = styled.img`
 const CancelSaveWrapper = styled.div`
   display: ${(props) => (props.showPreview ? 'none' : 'flex')};
   justify-content: flex-end;
+  margin-top: 3rem;
   ${small} {
     margin-top: 5.3rem;
   }
@@ -203,7 +202,7 @@ const loaderStyle = css`
 const IncludeDnsWrap = styled.div`
   display: flex;
   align-items: center;
-  margin-bottom: 5rem;
+  margin-bottom: 2rem;
   label {
     margin-bottom: 0rem;
   }
@@ -237,6 +236,7 @@ const useStyles = makeStyles((theme) => ({
   },
   dropdownStyle: {
     backgroundColor: '#fff',
+    height: '20rem',
   },
   modal: {
     display: 'flex',
@@ -295,7 +295,7 @@ const CreateCertificates = (props) => {
   useEffect(() => {
     if (allApplication?.length > 0) {
       allApplication.sort((first, sec) =>
-        first.appName.localeCompare(sec.appName)
+        first.appName?.localeCompare(sec.appName)
       );
     }
   }, [allApplication]);
@@ -570,24 +570,11 @@ const CreateCertificates = (props) => {
                   </ServiceAccountHelp>
                   <RadioWrap>
                     <InputLabel required>Certificate Type</InputLabel>
-                    <RadioGroup
-                      row
-                      aria-label="certificateType"
-                      name="certificateType"
+                    <RadioButtonComponent
+                      menu={['Internal', 'External']}
+                      handleChange={(e) => setCertificateType(e.target.value)}
                       value={certificateType}
-                      onChange={(e) => setCertificateType(e.target.value)}
-                    >
-                      <FormControlLabel
-                        value="Internal"
-                        control={<Radio color="default" />}
-                        label="Internal"
-                      />
-                      <FormControlLabel
-                        value="External"
-                        control={<Radio color="default" />}
-                        label="External"
-                      />
-                    </RadioGroup>
+                    />
                   </RadioWrap>
                   <InputFieldLabelWrapper>
                     <InputLabel required>Certificate Name</InputLabel>
@@ -606,7 +593,7 @@ const CreateCertificates = (props) => {
                       <EndingBox width="14rem">.t-mobile.com</EndingBox>
                     </InputEndWrap>
                   </InputFieldLabelWrapper>
-                  <InputFieldLabelWrapper>
+                  <InputFieldLabelWrapper postion>
                     <InputLabel required>Aplication Name</InputLabel>
                     <TextFieldSelect
                       menu={[...allApplication.map((item) => item.appName)]}
