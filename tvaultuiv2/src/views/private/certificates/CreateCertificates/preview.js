@@ -91,7 +91,7 @@ const PreviewCertificate = (props) => {
           <Value>{applicationName || 'N/A'}</Value>
         </EachDetail>
         <EachDetail>
-          <Label>DNS:</Label>
+          <Label>Dns:</Label>
           {dnsNames?.length > 0 ? (
             <>
               {dnsNames?.map((item) => {

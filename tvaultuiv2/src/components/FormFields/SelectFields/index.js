@@ -25,7 +25,18 @@ const SelectComponent = (props) => {
       className={classes.select}
       variant={variant || 'filled'}
       color={color}
-      MenuProps={{ classes: { paper: classes.dropdownStyle } }}
+      MenuProps={{
+        classes: { paper: classes.dropdownStyle },
+        anchorOrigin: {
+          vertical: 'bottom',
+          horizontal: 'center',
+        },
+        transformOrigin: {
+          vertical: 'top',
+          horizontal: 'center',
+        },
+        getContentAnchorEl: null,
+      }}
     >
       {menu.map((item, index) => {
         return (
