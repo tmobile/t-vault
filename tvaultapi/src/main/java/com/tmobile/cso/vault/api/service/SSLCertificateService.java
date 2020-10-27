@@ -5596,7 +5596,7 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
 						.body("{\"errors\":[\"No certificate available\"]}");
 			} else {
 
-				if (certificateMetaData.getRequestStatus().equalsIgnoreCase("Approved")) {
+				if (certificateMetaData.getRequestStatus()!=null && certificateMetaData.getRequestStatus().equalsIgnoreCase("Approved")) {
 					return ResponseEntity.status(HttpStatus.BAD_REQUEST)
 							.body("{\"errors\":[\"Certificate already approved\"]}");
 				}
@@ -7280,7 +7280,7 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
 		                 put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 		                 build()));		    	 
 		    	if(container_name.equalsIgnoreCase("T-Vault-Test")) {
-		    		certObject.addProperty("app.ou","tvt");
+		    		certObject.addProperty("app.ou",certObject.get("app.ou")==null?"tvt":certObject.get("app.ou").getAsString());
 		    	}
 		    	 String appNameStr = certObject.get("app.ou")==null?"":certObject.get("app.ou").getAsString();
 		    	 if(!StringUtils.isEmpty(appNameStr)) {
@@ -7388,6 +7388,7 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
 				boolean isPoliciesCreated;
 				CertResponse enrollResponse = new CertResponse();
 				ResponseEntity<String> permissionResponse ;
+				
 				boolean isDeleted =false;
 				try {
 					String metadataJson = populateSSLCertificateMetadataForOnboard(sslCertificateRequest, userDetails,containerId);
@@ -7437,7 +7438,7 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
 											isPoliciesCreated))
 							.build()));
 		            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\""+enrollResponse.getResponse()+"\"]}");
-		        } else {
+		        } else {		        	
 		            log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 		                    put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
 		                    put(LogMessage.ACTION, "generateSSLCertificate").
@@ -7570,6 +7571,9 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
 		            sslCertificateMetadataDetails.setCertificateStatus(certDetails.getCertificateStatus());
 		            sslCertificateMetadataDetails.setContainerName(certDetails.getContainerName());
 		            sslCertificateMetadataDetails.setDnsNames(certDetails.getDnsNames());
+		            if(!sslCertificateRequest.getCertType().equalsIgnoreCase("internal")) {
+		            	sslCertificateMetadataDetails.setRequestStatus("Approved");
+		            }
 
 		        } else {
 		            log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
