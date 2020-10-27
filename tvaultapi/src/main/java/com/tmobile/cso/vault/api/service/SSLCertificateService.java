@@ -7387,6 +7387,8 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
 		    	// Policy Creation
 				boolean isPoliciesCreated;
 				CertResponse enrollResponse = new CertResponse();
+				ResponseEntity<String> permissionResponse ;
+				boolean isDeleted =false;
 				try {
 					String metadataJson = populateSSLCertificateMetadataForOnboard(sslCertificateRequest, userDetails,containerId);
 					isPoliciesCreated = createPolicies(sslCertificateRequest, tokenUtils.getSelfServiceToken());		
@@ -7442,8 +7444,31 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
 		                    put(LogMessage.MESSAGE, "Sudo Policy Creation – Started  ").
 		                    put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 		                    build()));
-		        	return addSudoPermissionToCertificateOwner(sslCertificateRequest, userDetails, enrollResponse
+		            permissionResponse =  addSudoPermissionToCertificateOwner(sslCertificateRequest, userDetails, enrollResponse
 		                    , isPoliciesCreated, sslMetaDataCreationStatus,tokenUtils.getSelfServiceToken(),"onboard");
+		            if (permissionResponse !=null && !(HttpStatus.OK.equals(permissionResponse.getStatusCode()))) {
+		            	log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+			                    put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+			                    put(LogMessage.ACTION, "generateSSLCertificate").
+			                    put(LogMessage.MESSAGE, String.format(" [%s] - ERROR - Sudo Policy Creation – Failed  ",sslCertificateRequest.getCertificateName())).
+			                    put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+			                    build()));
+		            	SSLCertificateMetadataDetails certificateMetaData = certificateUtils.getCertificateMetaData(tokenUtils.getSelfServiceToken(),
+		            			sslCertificateRequest.getCertificateName(), sslCertificateRequest.getCertType());
+		        		String metaDataPath = (sslCertificateRequest.getCertType().equalsIgnoreCase("internal")) ? SSLCertificateConstants.SSL_CERT_PATH
+		        				: SSLCertificateConstants.SSL_EXTERNAL_CERT_PATH;
+		        		String certificatePath = metaDataPath + '/' + sslCertificateRequest.getCertificateName();
+		        		isDeleted = deleteMetaDataAndPermissions(certificateMetaData, certificatePath, tokenUtils.getSelfServiceToken());
+		        		if(isDeleted) {
+		        			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+				                    put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+				                    put(LogMessage.ACTION, "generateSSLCertificate").
+				                    put(LogMessage.MESSAGE, String.format(" [%s] - ERROR - Metadata and policy deletion – Failed  ",sslCertificateRequest.getCertificateName())).
+				                    put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+				                    build()));
+		        		}
+		            }
+		            return permissionResponse;
 		        }
 		    	} catch (Exception e) {
 		    		return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\""+enrollResponse.getResponse()+"\"]}");
