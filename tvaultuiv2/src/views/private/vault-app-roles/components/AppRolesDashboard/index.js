@@ -497,7 +497,6 @@ const AppRolesDashboard = () => {
                 />
               </SearchWrap>
             </ColumnHeader>
-            {console.log('approletype', appRoleType)}
             {status.status === 'loading' && (
               <ScaledLoader contentHeight="80%" contentWidth="100%" />
             )}
