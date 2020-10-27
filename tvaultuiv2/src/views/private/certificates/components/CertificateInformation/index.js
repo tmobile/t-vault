@@ -145,7 +145,7 @@ const CertificateInformation = (props) => {
               )}
             </EachDetail>
             <EachDetail>
-              <Label>DNS:</Label>
+              <Label>Dns:</Label>
               {certificateMetaData.dnsNames && dnsNames.length > 0 ? (
                 <>
                   {dnsNames?.map((item) => {
