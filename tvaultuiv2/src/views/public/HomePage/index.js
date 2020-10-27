@@ -12,6 +12,7 @@ import Access from '../../../assets/Login/access.svg';
 import Distribute from '../../../assets/Login/distribute.svg';
 import Strings from '../../../resources';
 import ComponentError from '../../../errorBoundaries/ComponentError/component-error';
+import { initUserLogin } from './utils';
 
 const Container = styled.section`
   padding-top: 11.2rem;
@@ -172,7 +173,22 @@ const ThirdRow = styled.div`
   }
 `;
 
+// https://perf-vault.corporate.t-mobile.com/?code=0.AAAAC5gPvpndGUu9e7xxoJsCbIcHh0F69apLoW8GFl8c9SITAAA.AQABAAIAAAB2UyzwtQEKR7-rWbgdcBZIT_c3voq6SYKTe3zaXyekNLlXJTzrOoufFL99v7kDfxZ6oIsxsbgd2rzC2mnNgmj9rhneNsEi3Q4uPZVgzcILxBgPgTHF5Gl8f2hblcnhgfUlwE2TGK0wyNKXHGRep5Az_tb3WmMFLzksBMubHeUaB_6ozWi8t3Y-cfseBqpEZmP6IsouZ3KpAMeUmgE5GFhd2EfFS77t8OSzvWQdunFUTXfVcF2v2Oe7CZlkntuXgBumCNX1DGYQAxBEKdDJ4n-17mKgBlSBXzZU6F7aGx0ZUsmxV9mYA1xb2tJ0VQ7UwK_lGh4_4e0GbD727p9SHi65BzA0wkokjao6tBX3DFvi4UjJd9epTtc9WLPh-zepxzLhCkkxBvMELpaYlK27KjXxkKIiJMXYZ-yxbGEBG6fa2ozayxa2CYoJcCtioWzb9ccNdVp76Z3GYBrs5x046FuyX-cIPrKhgD-hOC5qm9V51a4oDbc15x6BrFN_h7gy34Tv_mVoi1GJkEah9nawit_Qp76FSCy5yQ20hUdyKcHiJeeGBp7_iupzvk2buddyf7-jR_yJZVaE-eOFrbHQuLJ3iaWTQ9dYy4Tp4rKZTPy03GthSvv5VB1FOMDUK8_-DNlhHSO_BJQjlzjm1xaI4uBHfA22izu9lT3FzHGjqd63LYUjrQAv2nBr0mAka-bh71l7UJsLRKjBPmrY75veVM-nyK8mKZXgBx4xZk2SaDFnYPDDBFlWswqXgP3al3TUTb9huUMlB3CS9wqbyJHiHkYpY8uxQZhW4ZAxt3hHVowxO4JvQWW7kjy9KCxW_3qFAVogAA&state=92ca2ad4d522af25176eef9226673470e6217441&session_state=cffb33a9-0fd6-4d2c-b77a-a657d531503a#!/
+
 const LoginPage = () => {
+  const initiateLogin = () => {
+    initUserLogin()
+      .then((res) => {
+        // eslint-disable-next-line no-console
+        console.log(res);
+        // eslint-disable-next-line no-debugger
+        debugger;
+        window.location = res.data.auth_url;
+        // window.location = 'localhost:3000/safe';
+      })
+      // eslint-disable-next-line no-console
+      .catch((e) => console.log(e));
+  };
   return (
     <ComponentError>
       <Container>
@@ -191,7 +207,7 @@ const LoginPage = () => {
                 <ButtonComponent
                   label="Go to Dashboard"
                   color="secondary"
-                  onClick={() => {}}
+                  onClick={initiateLogin}
                 />
                 <SignUp
                   href="https://access.t-mobile.com/manage"
