@@ -96,7 +96,6 @@ const EditCertificate = (props) => {
    */
   const checkCertStatus = () => {
     let url = '';
-    console.log('object', certificateData);
     if (certificateData.certificateStatus === 'Revoked') {
       url = `/sslcert/checkstatus/${certificateData.certificateName}/${certificateData.certType}`;
     } else {

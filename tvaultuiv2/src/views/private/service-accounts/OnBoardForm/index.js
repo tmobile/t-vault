@@ -567,7 +567,7 @@ const OnBoardForm = (props) => {
     setStatus({ status: 'loading', message: 'loading' });
     apiService
       .activateServiceAccount(svcName)
-      .then((res) => {
+      .then(async (res) => {
         setStatus({
           status: 'success',
           message: 'Service Account Activated Successfully',
@@ -575,6 +575,7 @@ const OnBoardForm = (props) => {
         setSvcPasswordDetails(res?.data);
         setIsActiveServiceAccount(true);
         setPostOnBoardModal(true);
+        await refresh();
       })
       .catch((err) => {
         setStatus({
