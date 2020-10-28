@@ -7415,6 +7415,22 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
 				boolean sslMetaDataCreationStatus;
 				
 					sslMetaDataCreationStatus = ControllerUtil.createMetadata(metadataJson,tokenUtils.getSelfServiceToken());
+					
+					 JsonParser jsonParser = new JsonParser();
+				        JsonObject object = ((JsonObject) jsonParser.parse(metadataJson)).getAsJsonObject("data");
+						if(object.get("certType").getAsString().equalsIgnoreCase("external")) {
+							
+							String metaDataPath = (sslCertificateRequest.getCertType().equalsIgnoreCase("internal")) ? SSLCertificateConstants.SSL_CERT_PATH
+									: SSLCertificateConstants.SSL_EXTERNAL_CERT_PATH;
+							String certificatePath = metaDataPath + '/' + sslCertificateRequest.getCertificateName();
+							SSLCertificateMetadataDetails certificateMetaData = certificateUtils.getCertificateMetaData(tokenUtils.getSelfServiceToken(),
+									sslCertificateRequest.getCertificateName(), sslCertificateRequest.getCertType());
+							CertificateData certificateData = getExternalCertificate(certificateMetaData);
+							if(!ObjectUtils.isEmpty(certificateData)) {
+								 processCertificateDataAndUpdateMetadata(certificatePath, tokenUtils.getSelfServiceToken(), certificateMetaData,
+										certificateData);
+						}
+						}
 
 		        if (sslMetaDataCreationStatus) {
 		            log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
@@ -7464,7 +7480,7 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
 		        			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 				                    put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
 				                    put(LogMessage.ACTION, "generateSSLCertificate").
-				                    put(LogMessage.MESSAGE, String.format(" [%s] - ERROR - Metadata and policy deletion – Failed  ",sslCertificateRequest.getCertificateName())).
+				                    put(LogMessage.MESSAGE, String.format(" [%s] - ERROR - Metadata and policy deletion – Completed  ",sslCertificateRequest.getCertificateName())).
 				                    put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 				                    build()));
 		        		}
@@ -7571,8 +7587,13 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
 		            sslCertificateMetadataDetails.setCertificateStatus(certDetails.getCertificateStatus());
 		            sslCertificateMetadataDetails.setContainerName(certDetails.getContainerName());
 		            sslCertificateMetadataDetails.setDnsNames(certDetails.getDnsNames());
-		            if(!sslCertificateRequest.getCertType().equalsIgnoreCase("internal")) {
-		            	sslCertificateMetadataDetails.setRequestStatus("Approved");
+		            if(!sslCertificateRequest.getCertType().equalsIgnoreCase("internal")) {		            	
+		            	sslCertificateMetadataDetails.setCertType("external");
+		            	sslCertificateRequest.setCertType("external");		            	
+		            	
+		            }else {
+		            	sslCertificateMetadataDetails.setCertType(sslCertificateRequest.getCertType());
+		            	sslCertificateMetadataDetails.setDnsNames(certDetails.getDnsNames());
 		            }
 
 		        } else {
@@ -7596,8 +7617,7 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
 		    		 }
 		    	}  
 			        sslCertificateMetadataDetails.setCertCreatedBy(displayName);
-			        sslCertificateMetadataDetails.setCertOwnerEmailId(projectLeadEmail);
-			        sslCertificateMetadataDetails.setCertType(sslCertificateRequest.getCertType());
+			        sslCertificateMetadataDetails.setCertOwnerEmailId(projectLeadEmail);			        
 			        sslCertificateMetadataDetails.setCertOwnerNtid(certOwnerNtId);
 			        sslCertificateMetadataDetails.setContainerId(containerId);
 			        
@@ -7653,16 +7673,19 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
 					LocalDateTime  createdDate = null ;
 		            LocalDateTime  certCreatedDate;
 					for (int i = 0; i < jsonArray.size(); i++) {
-					    JsonObject jsonElement = jsonArray.get(i).getAsJsonObject();
-					    if(i==0) {
-		                    createdDate = LocalDateTime.parse(validateString(jsonElement.get("NotBefore")).substring(0, 19));
-		                    }else if (i>0) {
-		                    	createdDate = LocalDateTime.parse(validateString(jsonArray.get(i-1).getAsJsonObject().get("NotBefore")).substring(0, 19));
-		                    }
+					    JsonObject jsonElement = jsonArray.get(i).getAsJsonObject();					   
 					    
 					    if ((Objects.equals(getCertficateName(jsonElement.get("sortedSubjectName").getAsString()), certName))
 					            && jsonElement.get(SSLCertificateConstants.CERTIFICATE_STATUS).getAsString().
 					            equalsIgnoreCase(SSLCertificateConstants.ACTIVE)) {
+					    	 if(i==0) {
+				                    createdDate = LocalDateTime.parse(validateString(jsonElement.get("NotBefore")).substring(0, 19));
+				                    }else if (i>0) {
+				                    	createdDate = jsonArray.get(i-1).getAsJsonObject().get(SSLCertificateConstants.CERTIFICATE_STATUS).getAsString().
+									            equalsIgnoreCase(SSLCertificateConstants.ACTIVE)?LocalDateTime.parse(validateString(jsonArray.get(i-1).getAsJsonObject().get("NotBefore")).substring(0, 19)):
+									            	LocalDateTime.parse(validateString(jsonArray.get(i).getAsJsonObject().get("NotBefore")).substring(0, 19));
+				                    }
+					    	
 					    	certCreatedDate = LocalDateTime.parse(validateString(jsonElement.get("NotBefore")).substring(0, 19));
 		                	if(!ObjectUtils.isEmpty(createdDate) && (createdDate.isBefore(certCreatedDate) || createdDate.isEqual(certCreatedDate))) {
 					        certificateData= new CertificateData();
