@@ -7,7 +7,6 @@ export const initUserLogin = async () => {
     // eslint-disable-next-line no-console
     console.log(response);
     // eslint-disable-next-line no-debugger
-    debugger;
   } catch (e) {
     // eslint-disable-next-line no-console
     console.error('-- Error while initiating authentication process', e);

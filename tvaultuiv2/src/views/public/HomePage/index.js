@@ -2,6 +2,8 @@
 import React, { useState } from 'react';
 import styled, { css } from 'styled-components';
 import useMediaQuery from '@material-ui/core/useMediaQuery';
+import queryString from 'query-string';
+import { useLocation } from 'react-router-dom';
 import Union from '../../../assets/Login/background.svg';
 import IpadBackground from '../../../assets/Login/ipad-background.svg';
 import MobBackground from '../../../assets/Login/mob-background.svg';
@@ -339,12 +341,18 @@ const LoginPage = () => {
   const [openModal, setOpenModal] = useState(false);
   const isMobileScreen = useMediaQuery(small);
 
+  const { search } = useLocation();
+  const urlParams = queryString.parse(search);
+
+  // eslint-disable-next-line no-console
+  console.log('urlParams ------------- ', urlParams);
+
   const handleClose = () => {
     setOpenModal(false);
   };
 
   const onDashboardClicked = () => {
-    setOpenModal(true);
+    // setOpenModal(true);
     initUserLogin()
       .then((res) => {
         // eslint-disable-next-line no-console

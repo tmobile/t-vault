@@ -9,8 +9,7 @@ const getAuth = () => api.get('/auth/tvault/renew');
 const initiateAuth = () =>
   api.post('/auth/oidc/auth_url', {
     role: 'default',
-    redirect_uri: 'https://perf-vault.corporate.t-mobile.com',
-    // redirect_uri: 'localhost:3000/safe',
+    redirect_uri: 'http://localhost:3000',
   });
 
 export default {

@@ -35,7 +35,7 @@ const PrivateRoutes = () => {
         }
       >
         <Switch>
-          <Redirect exact from="/" to="/safe" />
+          {/* <Redirect exact from="/" to="/home" /> */}
           <Route
             path="/vault-app-roles"
             render={(routeProps) => (
@@ -68,7 +68,7 @@ const PrivateRoutes = () => {
               </Wrapper>
             )}
           />
-          <Route path="/home" render={() => <Home />} />
+          <Route path="/" render={() => <Home />} />
           <Redirect exact to="/" />
         </Switch>
       </Suspense>
