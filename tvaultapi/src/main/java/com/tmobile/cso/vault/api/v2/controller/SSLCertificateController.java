@@ -184,6 +184,20 @@ public class SSLCertificateController {
         return sslCertificateService.associateApproletoCertificate(certificateApprole, userDetails);
     }
 
+    /**
+     * Delete approle from Certificate
+     * @param request
+     * @param token
+     * @param certificateApproles
+     * @return
+     */
+    @ApiOperation(value = "${SSLCertificateController.deleteApproleFromCertificate.value}", notes = "${SSLCertificateController.deleteApproleFromCertificate.notes}", hidden = true)
+    @DeleteMapping(value="/v2/sslcert/approle",consumes="application/json",produces="application/json")
+    public ResponseEntity<String> deleteApproleFromCertificate(HttpServletRequest request, @RequestHeader(value="vault-token") String token, @RequestBody CertificateApprole certificateApprole) {
+        UserDetails userDetails = (UserDetails) request.getAttribute(USER_DETAILS_STRING);
+        return sslCertificateService.deleteApproleFromCertificate(certificateApprole, userDetails);
+    }
+    
 	/**
 	 * Download certificate with private key.
 	 * @param request

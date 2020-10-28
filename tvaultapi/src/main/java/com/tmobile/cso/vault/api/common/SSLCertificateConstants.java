@@ -42,6 +42,7 @@ public final class SSLCertificateConstants {
     public static final String ADD_GROUP_TO_CERT_MSG = "Add Group to Certificate";
     public static final String SSL_OWNER_PERMISSION_EXCEPTION="Add sudo permission to certificate owner failed";
     public static final String ADD_APPROLE_TO_CERT_MSG = "Add Approle to Certificate";
+    public static final String DELETE_APPROLE_TO_CERT_MSG = "Delete Approle from Certificate";
     public static final String OWNER_PERMISSION_CERTIFICATE = "o_cert_";
     public static final String CERT_DOWNLOAD_TYPE_PKCS12DERR = "pkcs12der";
     public static final String CERT_DOWNLOAD_TYPE_PEMBUNDLE = "pembundle";
