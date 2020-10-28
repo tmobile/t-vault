@@ -449,7 +449,7 @@ const SafeDashboard = () => {
    * @param {object} safe safe details.
    */
   const onEditSafeClicked = (safe) => {
-    history.push({ pathname: '/safe/edit-safe', state: { safe } });
+    history.push({ pathname: '/safes/edit-safe', state: { safe } });
   };
 
   let scrollParentRef = null;
@@ -459,11 +459,11 @@ const SafeDashboard = () => {
         <SafeFolderWrap
           key={safe.name}
           to={{
-            pathname: `/safe/${safe.name}`,
+            pathname: `/safes/${safe.name}`,
             state: { safe },
           }}
           onClick={() => onLinkClicked()}
-          active={history.location.pathname === `/safe/${safe.name}`}
+          active={history.location.pathname === `/safes/${safe.name}`}
         >
           <ListItem
             title={safe.name}
@@ -479,7 +479,7 @@ const SafeDashboard = () => {
               <PsudoPopper
                 onDeleteSafeClicked={(e) => onDeleteSafeClicked(e, safe.path)}
                 safe={safe}
-                path="/safe/edit-safe"
+                path="/safes/edit-safe"
               />
             </PopperWrap>
           ) : null}
@@ -593,7 +593,7 @@ const SafeDashboard = () => {
                           actionButton={
                             // eslint-disable-next-line react/jsx-wrap-multilines
                             <FloatingActionButtonComponent
-                              href="/safe/create-safe"
+                              href="/safes/create-safe"
                               color="secondary"
                               icon="addd"
                               tooltipTitle="Create New Safe"
@@ -611,7 +611,7 @@ const SafeDashboard = () => {
             {safeList?.length ? (
               <FloatBtnWrapper>
                 <FloatingActionButtonComponent
-                  href="/safe/create-safe"
+                  href="/safes/create-safe"
                   color="secondary"
                   icon="addd"
                   tooltipTitle="Create New Safe"
@@ -629,15 +629,15 @@ const SafeDashboard = () => {
               {safeList[0]?.name && (
                 <Redirect
                   exact
-                  from="/safe"
+                  from="/safes"
                   to={{
-                    pathname: `/safe/${safeList[0]?.name}`,
+                    pathname: `/safes/${safeList[0]?.name}`,
                     state: { safe: safeList[0] },
                   }}
                 />
               )}
               <Route
-                path="/safe/:safeName"
+                path="/safes/:safeName"
                 render={(routerProps) => (
                   <SafeDetails
                     resetClicked={() => onResetClicked()}
@@ -680,14 +680,14 @@ const SafeDashboard = () => {
         <Switch>
           <Route
             exact
-            path="/safe/create-safe"
+            path="/safes/create-safe"
             render={(routeProps) => (
               <CreateSafe routeProps={{ ...routeProps }} refresh={fetchData} />
             )}
           />
           <Route
             exact
-            path="/safe/edit-safe"
+            path="/safes/edit-safe"
             render={(routeProps) => (
               <CreateSafe routeProps={{ ...routeProps }} refresh={fetchData} />
             )}

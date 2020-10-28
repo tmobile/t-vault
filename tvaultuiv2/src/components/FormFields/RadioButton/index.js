@@ -33,6 +33,7 @@ const RadioButtonComponent = (props) => {
       >
         {menu.map((item) => (
           <FormControlLabel
+            key={item}
             value={item}
             control={
               <Radio

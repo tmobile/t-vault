@@ -233,7 +233,7 @@ const CreateModal = (props) => {
 
   useEffect(() => {
     if (
-      history.location.pathname === '/safe/edit-safe' &&
+      history.location.pathname === '/safes/edit-safe' &&
       history.location.state
     ) {
       setEditSafe(true);
