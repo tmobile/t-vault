@@ -126,6 +126,10 @@
                 return ServiceEndpoint.detachAppRolePermission.makeRequest(payload, url).then(function(response) {
                     return response;
                 });
+            },deleteAppRolePermissionFromCertificate: function(payload, url) {
+                return ServiceEndpoint.deleteAppRole.makeRequest(payload, url).then(function(response) {
+                    return response;
+                });
             },
             getAWSConfigurationDetails: function(payload, url) {
                 return ServiceEndpoint.getAwsConfigurationDetails.makeRequest(payload, url).then(function(response) {

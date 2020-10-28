@@ -462,6 +462,13 @@
                             };
                             break;
                         case 'AppRolePermission' :
+                            apiCallFunction = AdminSafesManagement.deleteAppRolePermissionFromCertificate;
+                            reqObjtobeSent = {
+                                "certificateName": certName,
+                                "approleName": key,
+                                "access": permission,
+                                "certType": certficateType
+                            };
                             break;
                     }
                     apiCallFunction(reqObjtobeSent).then(

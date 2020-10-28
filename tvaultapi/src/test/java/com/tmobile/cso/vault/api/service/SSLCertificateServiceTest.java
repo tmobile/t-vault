@@ -2978,6 +2978,32 @@ public class SSLCertificateServiceTest {
         assertEquals(responseEntityExpected, responseEntityActual);
 
     }
+	
+	@Test
+    public void testDeleteAppRoleFromCertificateSuccssfully() {
+
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Approle successfully deleted from Certificate\"]}");
+        token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+        userDetails = getMockUser(false);
+        SSLCertificateMetadataDetails certificateMetadata = getSSLCertificateMetadataDetails();
+        CertificateApprole certificateApprole = new CertificateApprole("certificatename.t-mobile.com", "role1", "read", "internal");
+
+        when(certificateUtils.getCertificateMetaData(token, "certificatename.t-mobile.com", "internal")).thenReturn(certificateMetadata);
+        when(certificateUtils.hasAddOrRemovePermission(userDetails, certificateMetadata)).thenReturn(true);
+
+        Response appRoleResponse = getMockResponse(HttpStatus.OK, true, "{\"data\": {\"policies\":\"r_cert_certificatename.t-mobile.com\"}}");
+        when(reqProcessor.process("/auth/approle/role/read", "{\"role_name\":\"role1\"}",token)).thenReturn(appRoleResponse);
+       // Response configureAppRoleResponse = getMockResponse(HttpStatus.OK, true, "");
+       // when(appRoleService.configureApprole(Mockito.anyString(), Mockito.anyString(), Mockito.anyString())).thenReturn(configureAppRoleResponse);
+        Response updateMetadataResponse = getMockResponse(HttpStatus.NO_CONTENT, true, "");
+        when(ControllerUtil.updateMetadata(Mockito.anyMap(),Mockito.anyString())).thenReturn(updateMetadataResponse);
+
+        ResponseEntity<String> responseEntityActual =  sSLCertificateService.deleteApproleFromCertificate(certificateApprole, userDetails);
+
+        assertEquals(HttpStatus.OK, responseEntityActual.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntityActual);
+
+    }
 
     @Test
     public void testAssociateAppRoleToCertificateFailure400() {
