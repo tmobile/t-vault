@@ -117,7 +117,7 @@ const SafeFolderWrap = styled(Link)`
   align-items: center;
   text-decoration: none;
   justify-content: space-between;
-  padding: 1.2rem 1.8rem 1.2rem 3.4rem;
+  padding: 1.2rem 1.8rem 1.2rem 3.8rem;
   background-image: ${(props) =>
     props.active ? props.theme.gradients.list : 'none'};
   color: ${(props) => (props.active ? '#fff' : '#4a4a4a')};
@@ -203,14 +203,14 @@ const SafeDashboard = () => {
   const [inputSearchValue, setInputSearchValue] = useState('');
   const [menu] = useState([
     'All Safes',
-    'User Safe',
-    'Shared Safe',
-    'Application Safe',
+    'User Safes',
+    'Shared Safes',
+    'Application Safes',
   ]);
   const [selectList] = useState([
-    { selected: 'User Safe', path: 'users' },
-    { selected: 'Shared Safe', path: 'shared' },
-    { selected: 'Application Safe', path: 'apps' },
+    { selected: 'User Safes', path: 'users' },
+    { selected: 'Shared Safes', path: 'shared' },
+    { selected: 'Application Safes', path: 'apps' },
   ]);
   const [safeType, setSafeType] = useState('All Safes');
   const [openConfirmationModal, setOpenConfirmationModal] = useState(false);

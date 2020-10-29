@@ -5,9 +5,12 @@ import Select from '@material-ui/core/Select';
 import PropTypes from 'prop-types';
 import styled from 'styled-components';
 
-const SelectStyle = styled(Select)``;
+const SelectStyle = styled(Select)`
+  text-transform: uppercase;
+`;
 
 const MenuItemList = styled(MenuItem)`
+  text-transform: uppercase;
   &.Mui-selected {
     color: #fff;
   }
