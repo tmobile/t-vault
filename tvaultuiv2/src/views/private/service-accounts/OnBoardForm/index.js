@@ -199,6 +199,19 @@ const customLoaderStyle = css`
   color: red;
 `;
 
+const ViewMoreStyles = css`
+  display: flex;
+  align-items: center;
+  font-weight: 600;
+  cursor: pointer;
+  margin-left: 5rem;
+`;
+const SvcDetailsStyles = css`
+  display: flex;
+  align-items: center;
+  font-weight: 600;
+  cursor: pointer;
+`;
 const useStylesBootstrap = makeStyles((theme) => ({
   tooltip: {
     fontSize: theme.typography.subtitle2.fontSize,
@@ -750,8 +763,10 @@ const OnBoardForm = (props) => {
                   </InfoLine>
                 </HeaderInfoWrapper>
                 <ServiceAcoountHelp
-                  title="view more"
+                  titleMore="view more"
+                  titleLess="view less"
                   collapseStyles="background:none"
+                  titleCss={ViewMoreStyles}
                 >
                   <CollapsibleContainer>
                     <InfoLine>
@@ -818,9 +833,10 @@ const OnBoardForm = (props) => {
                   )}
                   <ServiceAccountDetailWrap>
                     <ServiceAcoountHelp
-                      title="Service Account Details"
+                      titleMore="Service Account Details"
                       isAutoExpand={isAutoExpand}
                       setIsAutoExpand={setIsAutoExpand}
+                      titleCss={SvcDetailsStyles}
                     >
                       <Grid container>
                         <GridColumn customStyles={GridColumnStyles}>

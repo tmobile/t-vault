@@ -17,6 +17,7 @@ const FolderWrap = styled('div')`
 `;
 const SafeDetailBox = styled('div')`
   padding-left: 1.7rem;
+  width: 80%;
 `;
 const SafeAvatarWrap = styled.div`
   .MuiAvatar-root {
@@ -36,9 +37,12 @@ const Flag = styled('span')`
 const LabelWrap = styled.div`
   display: flex;
   align-items: center;
+  width: 100%;
 `;
 
 const extraCss = css`
+  overflow: hidden;
+  text-overflow: ellipsis;
   ${mediaBreakpoints.belowLarge} {
     width: 28rem;
     white-space: nowrap;

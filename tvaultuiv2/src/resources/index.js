@@ -27,7 +27,8 @@ const Resources = {
     'Are you sure you want to transfer service account owner?',
   noCertificatesFound:
     'Once you add a <strong>Certificate</strong> you’ll see the  Corresponding <strong>Details</strong> here!',
-  appRoles: '',
+  appRoles:
+    'AppRoles operate a lot like safes, but they put the aplication as the logical unit for sharing. Additional Accersor ID and Secret ID pairs can easily be created through T-Vault, Secret IDs can only be accessed when downloaded',
   noTransferOwnerAvailable:
     'Certificate may not be approved or rejected.Please follow the instructions mentioned in email',
   certificateGuide1:

@@ -578,7 +578,7 @@ const ServiceAccountDashboard = () => {
         <SectionPreview title="service-account-section">
           <LeftColumnSection isAccountDetailsOpen={serviceAccountClicked}>
             <ColumnHeader>
-              <div>
+              <div style={{ margin: '0 1rem' }}>
                 <TitleOne extraCss={ListHeader}>
                   {`SERVICE ACCOUNTS(${serviceAccountList?.length})`}
                 </TitleOne>

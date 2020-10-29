@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
-import styled, { css } from 'styled-components';
+import styled from 'styled-components';
 import KeyboardArrowDownIcon from '@material-ui/icons/KeyboardArrowDown';
 import ChevronRightIcon from '@material-ui/icons/ChevronRight';
 import { Collapse, Paper, makeStyles } from '@material-ui/core';
@@ -21,22 +21,19 @@ const useStyles = makeStyles((theme) => ({
     margin: theme.spacing(1),
   },
 }));
-const titleCss = css`
-  display: flex;
-  align-items: center;
-  font-weight: 600;
-  cursor: pointer;
-`;
+
 const ServiceAccountHelp = (props) => {
   const classes = useStyles();
   const {
     customStyles,
     children,
-    title,
+    titleMore,
+    titleLess,
     elevation,
     isAutoExpand,
     setIsAutoExpand,
     collapseStyles,
+    titleCss,
   } = props;
   const [isCollapse, setIsCollapse] = useState(false);
 
@@ -51,7 +48,7 @@ const ServiceAccountHelp = (props) => {
     <Container classes={customStyles} collapseStyles={collapseStyles}>
       <TitleThree extraCss={titleCss} onClick={() => handleCollapse()}>
         {!isCollapse ? <ChevronRightIcon /> : <KeyboardArrowDownIcon />}
-        <span>{title}</span>
+        <span>{!isCollapse ? titleMore : titleLess}</span>
       </TitleThree>
       <Collapse in={isCollapse} classes={classes}>
         <Paper elevation={elevation}>{children}</Paper>
@@ -62,11 +59,13 @@ const ServiceAccountHelp = (props) => {
 ServiceAccountHelp.propTypes = {
   children: PropTypes.node,
   customStyles: PropTypes.objectOf(PropTypes.object),
-  title: PropTypes.string.isRequired,
+  titleMore: PropTypes.string.isRequired,
+  titleLess: PropTypes.string,
   elevation: PropTypes.number,
   setIsAutoExpand: PropTypes.func,
   isAutoExpand: PropTypes.bool,
   collapseStyles: PropTypes.string,
+  titleCss: PropTypes.string,
 };
 ServiceAccountHelp.defaultProps = {
   children: <></>,
@@ -75,5 +74,7 @@ ServiceAccountHelp.defaultProps = {
   setIsAutoExpand: () => {},
   isAutoExpand: false,
   collapseStyles: '',
+  titleLess: 'view less',
+  titleCss: '',
 };
 export default ServiceAccountHelp;
