@@ -82,7 +82,6 @@ const Permissions = (props) => {
         let obj = {};
         setResponseType(1);
         if (res && res.data?.data) {
-          console.log('object');
           obj = res.data.data;
           setSafeData({ response: obj, error: '' });
           setCount(Object.keys(res.data.data.users).length);

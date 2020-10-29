@@ -128,7 +128,7 @@ const Groups = (props) => {
    */
   const onSaveClicked = (data) => {
     setResponse({ status: 'loading' });
-    apiService
+    return apiService
       .addGroupPermission(data)
       .then(async (res) => {
         if (res && res.data?.messages) {
@@ -206,7 +206,11 @@ const Groups = (props) => {
    * @param {value} value permission given to the group.
    */
   const onEditClick = (key, value) => {
-    setEditAccess(value);
+    if (value === 'write') {
+      setEditAccess('reset');
+    } else {
+      setEditAccess(value);
+    }
     setEditGroup(key);
     setResponse({ status: 'edit' });
   };
