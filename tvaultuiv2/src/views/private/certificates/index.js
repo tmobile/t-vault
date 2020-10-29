@@ -25,6 +25,25 @@ const Certificates = (props) => {
       });
   }, [dispatch]);
 
+  useEffect(() => {
+    const username = sessionStorage.getItem('username');
+    apiService
+      .getOwnerDetails(username)
+      .then((res) => {
+        if (res.data.data.values && res.data.data.values[0]) {
+          if (res.data.data.values[0].userEmail) {
+            dispatch({
+              type: 'OWNER_EMAIL',
+              payload: res.data.data.values[0].userEmail.toLowerCase(),
+            });
+          }
+        }
+      })
+      .catch(() => {
+        dispatch({ type: 'OWNER_EMAIL', payload: 'error' });
+      });
+  }, [dispatch]);
+
   return (
     <ComponentError>
       <SectionPreview>
