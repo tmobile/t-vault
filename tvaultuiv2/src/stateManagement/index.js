@@ -1,7 +1,7 @@
 const initilaState = {
   message: 'Welcome',
-  username: '',
-  userEmail: '',
+  username: sessionStorage.getItem('username'),
+  userEmail: 'swati.shreya2@t-mobile.com',
   appRoleList: [],
 };
 

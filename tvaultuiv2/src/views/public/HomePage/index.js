@@ -1,9 +1,11 @@
+/* eslint-disable no-console */
 /* eslint-disable react/jsx-one-expression-per-line */
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import styled, { css } from 'styled-components';
 import useMediaQuery from '@material-ui/core/useMediaQuery';
 import queryString from 'query-string';
 import { useLocation } from 'react-router-dom';
+import axios from 'axios';
 import Union from '../../../assets/Login/background.svg';
 import IpadBackground from '../../../assets/Login/ipad-background.svg';
 import MobBackground from '../../../assets/Login/mob-background.svg';
@@ -21,11 +23,17 @@ import Access from '../../../assets/Login/access.svg';
 import Distribute from '../../../assets/Login/distribute.svg';
 import Strings from '../../../resources';
 import ComponentError from '../../../errorBoundaries/ComponentError/component-error';
-import { initUserLogin } from './utils';
+import { useStateValue } from '../../../contexts/globalState';
 import mediaBreakpoints from '../../../breakpoints';
-import LoginModal from './LoginModal';
+import apiService from './apiService';
+import Loader from '../../../components/Loaders/ScaledLoader';
 
 const { smallAndMedium, small } = mediaBreakpoints;
+
+const LoaderWrap = styled.div`
+  height: 100vh;
+  background: linear-gradient(to top, #11131b, #2c3040);
+`;
 
 const Container = styled.section`
   padding-top: 11.2rem;
@@ -46,6 +54,7 @@ const Container = styled.section`
     background-repeat: no-repeat;
   }
 `;
+
 const MainContainer = styled.div`
   background: url(${(props) => props.Union || ''});
   background-size: cover;
@@ -335,118 +344,156 @@ const ContactUs = styled.p`
   }
 `;
 
-// https://perf-vault.corporate.t-mobile.com/?code=0.AAAAC5gPvpndGUu9e7xxoJsCbIcHh0F69apLoW8GFl8c9SITAAA.AQABAAIAAAB2UyzwtQEKR7-rWbgdcBZIT_c3voq6SYKTe3zaXyekNLlXJTzrOoufFL99v7kDfxZ6oIsxsbgd2rzC2mnNgmj9rhneNsEi3Q4uPZVgzcILxBgPgTHF5Gl8f2hblcnhgfUlwE2TGK0wyNKXHGRep5Az_tb3WmMFLzksBMubHeUaB_6ozWi8t3Y-cfseBqpEZmP6IsouZ3KpAMeUmgE5GFhd2EfFS77t8OSzvWQdunFUTXfVcF2v2Oe7CZlkntuXgBumCNX1DGYQAxBEKdDJ4n-17mKgBlSBXzZU6F7aGx0ZUsmxV9mYA1xb2tJ0VQ7UwK_lGh4_4e0GbD727p9SHi65BzA0wkokjao6tBX3DFvi4UjJd9epTtc9WLPh-zepxzLhCkkxBvMELpaYlK27KjXxkKIiJMXYZ-yxbGEBG6fa2ozayxa2CYoJcCtioWzb9ccNdVp76Z3GYBrs5x046FuyX-cIPrKhgD-hOC5qm9V51a4oDbc15x6BrFN_h7gy34Tv_mVoi1GJkEah9nawit_Qp76FSCy5yQ20hUdyKcHiJeeGBp7_iupzvk2buddyf7-jR_yJZVaE-eOFrbHQuLJ3iaWTQ9dYy4Tp4rKZTPy03GthSvv5VB1FOMDUK8_-DNlhHSO_BJQjlzjm1xaI4uBHfA22izu9lT3FzHGjqd63LYUjrQAv2nBr0mAka-bh71l7UJsLRKjBPmrY75veVM-nyK8mKZXgBx4xZk2SaDFnYPDDBFlWswqXgP3al3TUTb9huUMlB3CS9wqbyJHiHkYpY8uxQZhW4ZAxt3hHVowxO4JvQWW7kjy9KCxW_3qFAVogAA&state=92ca2ad4d522af25176eef9226673470e6217441&session_state=cffb33a9-0fd6-4d2c-b77a-a657d531503a#!/
-
 const LoginPage = () => {
-  const [openModal, setOpenModal] = useState(false);
+  const [response, setResponse] = useState({ status: 'home' });
+  const [, dispatch] = useStateValue();
   const isMobileScreen = useMediaQuery(small);
 
   const { search } = useLocation();
   const urlParams = queryString.parse(search);
 
-  // eslint-disable-next-line no-console
-  console.log('urlParams ------------- ', urlParams);
-
-  const handleClose = () => {
-    setOpenModal(false);
+  const getLoggedInUserName = () => {
+    return apiService
+      .getUserName()
+      .then((res) => {
+        if (res.data && res.data.data?.username) {
+          sessionStorage.setItem(
+            'username',
+            res.data.data.username.toLowerCase()
+          );
+        }
+      })
+      .catch((err) => console.log('err', err));
   };
 
+  useEffect(() => {
+    sessionStorage.clear();
+    if (urlParams?.code && urlParams?.state) {
+      setResponse({ status: 'loading' });
+      axios
+        .get(
+          `https://perf-vault.corporate.t-mobile.com/vault/v2/auth/oidc/callback?state=${urlParams.state}&code=${urlParams.code}`
+        )
+        .then(async (res) => {
+          if (res?.data) {
+            setResponse({ status: 'loading' });
+            sessionStorage.setItem('token', res.data.client_token);
+            await getLoggedInUserName();
+            dispatch({ type: 'CALLBACK_DATA', payload: { ...res.data } });
+            window.location = 'http://localhost:3000/safes';
+          }
+        })
+        .catch((e) => console.log('e', e));
+    }
+    // eslint-disable-next-line
+  }, []);
+
   const onDashboardClicked = () => {
-    // setOpenModal(true);
-    initUserLogin()
+    setResponse({ status: 'loading' });
+    const payload = {
+      role: 'default',
+      redirect_uri: 'http://localhost:3000',
+    };
+    axios
+      .post(
+        'https://perf-vault.corporate.t-mobile.com/vault/v2/auth/oidc/auth_url',
+        payload
+      )
       .then((res) => {
-        // eslint-disable-next-line no-console
-        console.log(res);
-        // eslint-disable-next-line no-debugger
-        debugger;
-        window.location = res.data.auth_url;
-        // window.location = 'localhost:3000/safe';
+        window.location = res.data.data.auth_url;
       })
-      // eslint-disable-next-line no-console
-      .catch((e) => console.log(e));
+      .catch((e) => console.log(e.response));
   };
 
   return (
     <ComponentError>
       <>
-        <LoginModal open={openModal} handleClose={() => handleClose()} />
-        <Container
-          Rectangle={Rectangle}
-          IpadRectangle={IpadRectangle}
-          MobRectangle={MobRectangle}
-        >
-          <MainContainer Union={Union}>
-            <HeaderWrap>
-              <SpeakerText>
-                <SpeakerWrap src={Speaker} />
-                <LoginHeaderTextWrap LoginHeaderText={LoginHeaderText} />
-              </SpeakerText>
-            </HeaderWrap>
-            <FirstRow rowCommonCss={rowCommonCss}>
-              <LeftColumn>
-                <Title>Welcome to T-Vault</Title>
-                <Description>{Strings.Resources.tvaultDescription}</Description>
-                <ButtonWrap>
-                  <ButtonComponent
-                    label="Go to Dashboard"
-                    color="secondary"
-                    onClick={() => onDashboardClicked()}
-                    width={isMobileScreen ? '100%' : ''}
-                  />
-                  <SignUp
-                    href="https://access.t-mobile.com/manage"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    Sign Up
-                  </SignUp>
-                </ButtonWrap>
-              </LeftColumn>
-              <RightColumn AllGroups={AllGroups} />
-            </FirstRow>
-            <SecondRow
-              IpadBackground={IpadBackground}
-              MobBackground={MobBackground}
-            >
-              <TabAllGroups AllGroups={AllGroups} />
-              <CardWrapper rowCommonCss={rowCommonCss}>
-                <Tile>
-                  <Image src={Store} alt="store" />
-                  <Heading>Store</Heading>
-                  <Details>{Strings.Resources.storeDescription}</Details>
-                </Tile>
-                <Tile>
-                  <Image src={Access} alt="access" />
-                  <Heading>Access</Heading>
-                  <Details>{Strings.Resources.accessDescription}</Details>
-                </Tile>
-                <Tile>
-                  <Image src={Distribute} alt="distribute" />
-                  <Heading>Distribute</Heading>
-                  <Details>{Strings.Resources.distributeDescription}</Details>
-                </Tile>
-              </CardWrapper>
-              <Instruction>
-                <span>Note: </span>
-                {Strings.Resources.loginNotes}
-              </Instruction>
-            </SecondRow>
-          </MainContainer>
-          <ThirdRow>
-            <ContactUs>
-              Developed by Cloud TeamContact us on
-              <a
-                target="_blank"
-                rel="noopener noreferrer"
-                href="https://t-mobile.enterprise.slack.com/?redir=%2Fr-t2678170234%3Fredir%3D%252Fmessages%252FCA5SB94HY"
+        {response.status === 'loading' && (
+          <LoaderWrap>
+            <Loader />
+          </LoaderWrap>
+        )}
+        {response.status === 'home' && (
+          <Container
+            Rectangle={Rectangle}
+            IpadRectangle={IpadRectangle}
+            MobRectangle={MobRectangle}
+          >
+            <MainContainer Union={Union}>
+              <HeaderWrap>
+                <SpeakerText>
+                  <SpeakerWrap src={Speaker} />
+                  <LoginHeaderTextWrap LoginHeaderText={LoginHeaderText} />
+                </SpeakerText>
+              </HeaderWrap>
+              <FirstRow rowCommonCss={rowCommonCss}>
+                <LeftColumn>
+                  <Title>Welcome To T-Vault</Title>
+                  <Description>
+                    {Strings.Resources.tvaultDescription}
+                  </Description>
+                  <ButtonWrap>
+                    <ButtonComponent
+                      label="Go to Dashboard"
+                      color="secondary"
+                      onClick={() => onDashboardClicked()}
+                      width={isMobileScreen ? '100%' : ''}
+                    />
+                    <SignUp
+                      href="https://access.t-mobile.com/manage"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      Sign Up
+                    </SignUp>
+                  </ButtonWrap>
+                </LeftColumn>
+                <RightColumn AllGroups={AllGroups} />
+              </FirstRow>
+              <SecondRow
+                IpadBackground={IpadBackground}
+                MobBackground={MobBackground}
               >
-                Slack
-              </a>
-              or shoot us an{' '}
-              <a href="mailto: CloudSupport@t-mobile.com">email</a>
-            </ContactUs>
-          </ThirdRow>
-        </Container>
+                <TabAllGroups AllGroups={AllGroups} />
+                <CardWrapper rowCommonCss={rowCommonCss}>
+                  <Tile>
+                    <Image src={Store} alt="store" />
+                    <Heading>Store</Heading>
+                    <Details>{Strings.Resources.storeDescription}</Details>
+                  </Tile>
+                  <Tile>
+                    <Image src={Access} alt="access" />
+                    <Heading>Access</Heading>
+                    <Details>{Strings.Resources.accessDescription}</Details>
+                  </Tile>
+                  <Tile>
+                    <Image src={Distribute} alt="distribute" />
+                    <Heading>Distribute</Heading>
+                    <Details>{Strings.Resources.distributeDescription}</Details>
+                  </Tile>
+                </CardWrapper>
+                <Instruction>
+                  <span>Note: </span>
+                  {Strings.Resources.loginNotes}
+                </Instruction>
+              </SecondRow>
+            </MainContainer>
+            <ThirdRow>
+              <ContactUs>
+                Developed by Cloud TeamContact us on
+                <a
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  href="https://t-mobile.enterprise.slack.com/?redir=%2Fr-t2678170234%3Fredir%3D%252Fmessages%252FCA5SB94HY"
+                >
+                  Slack
+                </a>
+                or shoot us an{' '}
+                <a href="mailto: CloudSupport@t-mobile.com">email</a>
+              </ContactUs>
+            </ThirdRow>
+          </Container>
+        )}
       </>
     </ComponentError>
   );

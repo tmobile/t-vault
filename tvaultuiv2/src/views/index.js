@@ -61,7 +61,7 @@ const PrivateRoutes = () => {
             )}
           />
           <Route
-            path="/safe"
+            path="/safes"
             render={(routeProps) => (
               <Wrapper>
                 <Safe routeProps={routeProps} />

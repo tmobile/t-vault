@@ -2,9 +2,9 @@
 /* eslint-disable no-unreachable */
 /* eslint-disable consistent-return */
 /* eslint-disable no-alert */
-const reducerOne = (state, action) => {
+const loginReducer = (state, action) => {
   switch (action.type) {
-    case 'R1_DUMMY_ONE':
+    case 'CALLBACK_DATA':
       return { ...state, value: action.data };
       break;
 
@@ -17,4 +17,4 @@ const reducerOne = (state, action) => {
   }
 };
 
-export default reducerOne;
+export default loginReducer;

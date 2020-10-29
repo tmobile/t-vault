@@ -2,7 +2,7 @@ import axios from 'axios';
 import config from '../config';
 
 function ApiCall(url, method, data, header) {
-  const token = '';
+  const token = sessionStorage.getItem('token');
   const headers = {
     ...header,
     'vault-token': token,
