@@ -152,8 +152,10 @@ const AddUser = (props) => {
   useEffect(() => {
     if (username) {
       if (
-        (username !== searchValue?.toLowerCase() && !isValidUserName) ||
-        (username === searchValue?.toLowerCase() && access === radioValue)
+        (username.toLowerCase() !== searchValue?.toLowerCase() &&
+          !isValidUserName) ||
+        (username.toLowerCase() === searchValue?.toLowerCase() &&
+          access === radioValue)
       ) {
         setDisabledSave(true);
       } else {

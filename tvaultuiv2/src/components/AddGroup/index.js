@@ -152,8 +152,10 @@ const AddGroup = (props) => {
   useEffect(() => {
     if (groupname) {
       if (
-        (groupname !== searchValue?.toLowerCase() && !isValidGroupName) ||
-        (groupname === searchValue?.toLowerCase() && access === radioValue)
+        (groupname.toLowerCase() !== searchValue?.toLowerCase() &&
+          !isValidGroupName) ||
+        (groupname.toLowerCase() === searchValue?.toLowerCase() &&
+          access === radioValue)
       ) {
         setDisabledSave(true);
       } else {
@@ -234,9 +236,9 @@ const AddGroup = (props) => {
             placeholder="Groupname - Enter min 3 characters"
             error={groupname !== searchValue && !isValidGroupName}
             helperText={
-              groupname !== searchValue &&
-              !isValidGroupName &&
-              `Group name ${searchValue} does not exist!`
+              groupname !== searchValue && !isValidGroupName
+                ? `Group name ${searchValue} does not exist!`
+                : ''
             }
           />
           <InstructionText>
@@ -290,7 +292,7 @@ AddGroup.propTypes = {
 
 AddGroup.defaultProps = {
   groupname: '',
-  access: 'read',
+  access: '',
   isSvcAccount: false,
   isCertificate: false,
 };
