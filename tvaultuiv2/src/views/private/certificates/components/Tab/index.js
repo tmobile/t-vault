@@ -265,7 +265,7 @@ const CertificateSelectionTabs = (props) => {
             />
             {hasPermission && <Tab label="Permissions" {...a11yProps(1)} />}
           </Tabs>
-          {value === 0 && certificateMetaData.certificateName && (
+          {value === 0 && certificateMetaData.applicationName && (
             <DownLoadWrap>
               <Download
                 certificateMetaData={certificateMetaData}

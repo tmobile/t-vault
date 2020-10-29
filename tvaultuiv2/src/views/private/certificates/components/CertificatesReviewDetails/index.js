@@ -7,10 +7,14 @@ import NoData from '../../../../../components/NoData';
 import Strings from '../../../../../resources';
 import noCertificatesIcon from '../../../../../assets/no-certficates.svg';
 import CertificateSelectionTabs from '../Tab';
+import mediaBreakPoint from '../../../../../breakpoints';
 
 const DetailsContainer = styled.section`
   background-image: linear-gradient(to bottom, #151820, #2c3040);
-  height: calc(100% - 15.6rem);
+  height: calc(100% - 15.2rem);
+  ${mediaBreakPoint.small} {
+    height: auto;
+  }
 `;
 const customStyle = css`
   height: 100%;

@@ -4,6 +4,7 @@ import styled, { css } from 'styled-components';
 import PropTypes from 'prop-types';
 import ComponentError from '../../../../../errorBoundaries/ComponentError/component-error';
 import Loader from '../../../../../components/Loaders/LoaderSpinner';
+import mediaBreakPoint from '../../../../../breakpoints';
 
 const DetailsWrap = styled.div`
   padding: 0 4rem;
@@ -11,6 +12,9 @@ const DetailsWrap = styled.div`
   height: 100%;
   display: flex;
   flex-direction: column;
+  ${mediaBreakPoint.small} {
+    padding: 0;
+  }
 `;
 
 const EachDetail = styled.div`
@@ -33,7 +37,7 @@ const Value = styled.p`
 
 const DnsName = styled.p`
   border-bottom: 1px solid #5e627c;
-  padding: 1rem 0;
+  padding: 0.5rem 0;
   font-size: 1.6rem;
   text-transform: capitalize;
 `;

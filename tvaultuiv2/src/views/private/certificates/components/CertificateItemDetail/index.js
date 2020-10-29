@@ -63,6 +63,11 @@ const ListTitle = styled('h5')`
   text-overflow: ellipsis;
   overflow: hidden;
   text-transform: capitalize;
+  word-break: break-all;
+  width: 100%;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
 `;
 
 const CertificateItemDetail = (props) => {
