@@ -12,13 +12,11 @@ import styled, { css } from 'styled-components';
 import useMediaQuery from '@material-ui/core/useMediaQuery';
 import KeyboardReturnIcon from '@material-ui/icons/KeyboardReturn';
 import PropTypes from 'prop-types';
-import ReactHtmlParser from 'react-html-parser';
 import ConfirmationModal from '../../../../components/ConfirmationModal';
 import TextFieldComponent from '../../../../components/FormFields/TextField';
 import ButtonComponent from '../../../../components/FormFields/ActionButton';
 import TextFieldSelect from '../../../../components/FormFields/TextFieldSelect';
 import ComponentError from '../../../../errorBoundaries/ComponentError/component-error';
-import certIcon from '../../../../assets/cert-icon.svg';
 import leftArrowIcon from '../../../../assets/left-arrow.svg';
 import removeIcon from '../../../../assets/close.svg';
 import mediaBreakpoints from '../../../../breakpoints';
@@ -28,9 +26,8 @@ import { useStateValue } from '../../../../contexts/globalState';
 import apiService from '../apiService';
 import PreviewCertificate from './preview';
 import SwitchComponent from '../../../../components/FormFields/SwitchComponent';
-import ServiceAccountHelp from '../../service-accounts/components/ServiceAccountHelp';
-import Strings from '../../../../resources';
 import RadioButtonComponent from '../../../../components/FormFields/RadioButton';
+import CertificateHeader from '../components/CertificateHeader';
 
 const { small, belowLarge } = mediaBreakpoints;
 
@@ -71,19 +68,6 @@ const LeftIcon = styled.img`
     margin-top: 0.3rem;
   }
 `;
-const IconDescriptionWrapper = styled.div`
-  display: flex;
-  align-items: center;
-  margin-bottom: 1.5rem;
-  position: relative;
-  margin-top: 3.2rem;
-`;
-
-const SafeIcon = styled.img`
-  height: 5.7rem;
-  width: 5rem;
-  margin-right: 2rem;
-`;
 
 const CreateCertificateForm = styled.form`
   display: ${(props) => (props.showPreview ? 'none' : 'flex')};
@@ -105,9 +89,13 @@ const InputFieldLabelWrapper = styled.div`
 `;
 const ContainerOwnerWrap = styled.div`
   font-size: 1.4rem;
+  margin-bottom: 1rem;
+  display: ${(props) => (!props.showPreview ? 'block' : 'none')};
 `;
 
-const Container = styled.div``;
+const Container = styled.div`
+  margin-bottom: 0.8rem;
+`;
 const Owner = styled.div``;
 const Label = styled.span`
   color: ${(props) => props.theme.customColor.label.color};
@@ -124,7 +112,7 @@ const FieldInstruction = styled.p`
   color: ${(props) => props.theme.customColor.label.color};
   font-size: 1.3rem;
   margin-top: 1.2rem;
-  margin-bottom: 0.5rem;
+  margin-bottom: 0;
 `;
 
 const DNSArrayList = styled.div`
@@ -137,7 +125,7 @@ const EachDns = styled.div`
   padding: 1rem;
   display: flex;
   align-items: center;
-  margin: 0.3rem 0.5rem;
+  margin: 0.3rem 0.5rem 0.3rem 0;
 `;
 
 const Name = styled.span`
@@ -202,31 +190,14 @@ const loaderStyle = css`
 const IncludeDnsWrap = styled.div`
   display: flex;
   align-items: center;
-  margin-bottom: 2rem;
+  margin-bottom: 1rem;
   label {
     margin-bottom: 0rem;
   }
   > span {
-    margin-left: 1rem;
+    margin-right: 1rem;
   }
 `;
-const InfoLine = styled('p')`
-  color: ${(props) => props.theme.customColor.collapse.color};
-  fontsize: ${(props) => props.theme.typography.body2.fontSize};
-  strong {
-    margin-right: 0.5rem;
-  }
-  a {
-    color: ${(props) => props.theme.customColor.magenta};
-  }
-`;
-
-const Span = styled.span`
-  color: ${(props) => props.theme.customColor.collapse.title};
-  fontsize: ${(props) => props.theme.typography.body2.fontSize};
-  ${(props) => props.extraStyles}
-`;
-const CollapsibleContainer = styled.div``;
 
 const useStyles = makeStyles((theme) => ({
   select: {
@@ -501,24 +472,24 @@ const CreateCertificates = (props) => {
                     <Typography variant="h5">Certificate Preview</Typography>
                   )}
                 </HeaderWrapper>
-                <IconDescriptionWrapper>
-                  <SafeIcon src={certIcon} alt="cert-icon" />
-                  <ContainerOwnerWrap>
-                    <Container>
-                      <Label>Container:</Label>
-                      <Value>VenafiBin_12345</Value>
-                    </Container>
-                    <Owner>
-                      <Label>Owner Email:</Label>
-                      <Value>{ownerEmail}</Value>
-                    </Owner>
-                  </ContainerOwnerWrap>
-                </IconDescriptionWrapper>
+                <CertificateHeader />
+                <ContainerOwnerWrap showPreview={showPreview}>
+                  <Container>
+                    <Label>Container:</Label>
+                    <Value>VenafiBin_12345</Value>
+                  </Container>
+                  <Owner>
+                    <Label>Owner Email:</Label>
+                    <Value>{ownerEmail}</Value>
+                  </Owner>
+                </ContainerOwnerWrap>
                 <PreviewWrap showPreview={showPreview}>
                   <PreviewCertificate
                     dns={dnsArray}
                     certificateType={certificateType}
                     applicationName={applicationName}
+                    owner={ownerEmail}
+                    container="VenafiBin_12345"
                     certName={certName}
                     handleClose={handleClose}
                     onEditClicked={() => setShowPreview(false)}
@@ -528,46 +499,6 @@ const CreateCertificates = (props) => {
                   />
                 </PreviewWrap>
                 <CreateCertificateForm showPreview={showPreview}>
-                  <ServiceAccountHelp
-                    title="How to get started and what to know:"
-                    collapseStyles="background:none"
-                  >
-                    <CollapsibleContainer>
-                      <InfoLine>
-                        <Span>
-                          <strong>1:</strong>
-                        </Span>
-                        {ReactHtmlParser(Strings.Resources.certificateGuide1)}
-                      </InfoLine>
-
-                      <InfoLine>
-                        <Span>
-                          <strong>2:</strong>
-                        </Span>
-                        {ReactHtmlParser(Strings.Resources.certificateGuide2)}
-                      </InfoLine>
-
-                      <InfoLine>
-                        <Span>
-                          <strong>3:</strong>
-                        </Span>
-                        {ReactHtmlParser(Strings.Resources.certificateGuide3)}
-                      </InfoLine>
-
-                      <InfoLine>
-                        <Span>
-                          <strong>4:</strong>
-                        </Span>
-                        {ReactHtmlParser(Strings.Resources.certificateGuide4)}
-                      </InfoLine>
-                      <InfoLine>
-                        <Span>
-                          <strong>5:</strong>
-                        </Span>
-                        {ReactHtmlParser(Strings.Resources.certificateGuide5)}
-                      </InfoLine>
-                    </CollapsibleContainer>
-                  </ServiceAccountHelp>
                   <RadioWrap>
                     <InputLabel required>Certificate Type</InputLabel>
                     <RadioButtonComponent
@@ -608,14 +539,12 @@ const CreateCertificates = (props) => {
                     </FieldInstruction>
                   </InputFieldLabelWrapper>
                   <IncludeDnsWrap>
-                    <InputLabel>
-                      Are additional DNS names required (SAN Certificate)?
-                    </InputLabel>
                     <SwitchComponent
                       checked={isDns}
                       handleChange={(e) => setIsDns(e.target.checked)}
                       name="dns"
                     />
+                    <InputLabel>Enable Additional DNS</InputLabel>
                   </IncludeDnsWrap>
                   {isDns && (
                     <InputFieldLabelWrapper>

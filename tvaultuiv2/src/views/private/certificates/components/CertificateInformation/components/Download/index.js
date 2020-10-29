@@ -13,13 +13,14 @@ const FileDownload = require('js-file-download');
 
 const PoperItemWrap = styled.div``;
 const DownloadText = styled.div`
-  color: ${(props) => props.theme.customColor.magenta};
+  color: #fff;
   cursor: pointer;
   font-size: 1.6rem;
   display: flex;
   align-items: center;
   svg {
     margin-left: 1rem;
+    color: ${customColor.magenta};
   }
   :hover {
     color: #bb0663;
@@ -106,7 +107,7 @@ const Download = (props) => {
         {(popupState) => (
           <div>
             <DownloadText {...bindTrigger(popupState)}>
-              Download Certificate
+              Download
               <GetAppIcon />
             </DownloadText>
             <Popover

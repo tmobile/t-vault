@@ -1,11 +1,12 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import useMediaQuery from '@material-ui/core/useMediaQuery';
-import styled, { css } from 'styled-components';
+import styled from 'styled-components';
 import ComponentError from '../../../../../errorBoundaries/ComponentError/component-error';
 import { BackArrow } from '../../../../../assets/SvgIcons';
 import mediaBreakpoints from '../../../../../breakpoints';
 import { TitleOne, TitleThree } from '../../../../../styles/GlobalStyles';
+import Strings from '../../../../../resources';
 
 // styled components goes here
 const Section = styled('section')`
@@ -57,29 +58,15 @@ const HeaderBg = styled('div')`
 `;
 
 const ListTitle = styled('h5')`
-  font-size: ${(props) => props.theme.typography};
+  font-size: ${(props) => props.theme.typography.h5};
   margin: 1rem 0 1.2rem;
   text-overflow: ellipsis;
   overflow: hidden;
-`;
-
-const DetailWrap = styled.div`
-  display: flex;
-`;
-
-const extraCss = css`
-  margin-left: 1rem;
-  margin-bottom: 0.5rem;
+  text-transform: capitalize;
 `;
 
 const CertificateItemDetail = (props) => {
-  const {
-    ListDetailHeaderBg,
-    renderContent,
-    backToLists,
-    owner,
-    container,
-  } = props;
+  const { ListDetailHeaderBg, renderContent, backToLists, name } = props;
 
   const isMobileScreen = useMediaQuery(mediaBreakpoints.small);
 
@@ -94,7 +81,7 @@ const CertificateItemDetail = (props) => {
           <BackButton onClick={goBackToList}>
             <BackArrow />
             <TitleOne extraCss="font-weight:bold;margin-left:1rem;">
-              {owner !== 'N/A' ? 'Review Details' : 'No Certificates Added'}
+              {name !== 'N/A' ? name : 'No Certificates Added'}
             </TitleOne>
           </BackButton>
         ) : null}
@@ -103,21 +90,12 @@ const CertificateItemDetail = (props) => {
           <div className="list-title-wrap">
             {!isMobileScreen && (
               <ListTitle>
-                {owner !== 'N/A' ? 'Review Details' : 'No Certificates Added'}
+                {name !== 'N/A' ? name : 'No Certificates Added'}
               </ListTitle>
             )}
-            <DetailWrap>
-              <TitleThree color="#8b8ea6">Container:</TitleThree>
-              <TitleThree color="#c4c4c4" extraCss={extraCss}>
-                {container}
-              </TitleThree>
-            </DetailWrap>
-            <DetailWrap>
-              <TitleThree color="#8b8ea6">Owner Email:</TitleThree>
-              <TitleThree color="#c4c4c4" extraCss={extraCss}>
-                {owner}
-              </TitleThree>
-            </DetailWrap>
+            <TitleThree color="#c4c4c4">
+              {Strings.Resources.certificateDesc}
+            </TitleThree>
           </div>
         </ColumnHeader>
         {renderContent}
@@ -129,16 +107,14 @@ CertificateItemDetail.propTypes = {
   ListDetailHeaderBg: PropTypes.string,
   renderContent: PropTypes.node,
   backToLists: PropTypes.func,
-  owner: PropTypes.string,
-  container: PropTypes.string,
+  name: PropTypes.string,
 };
 
 CertificateItemDetail.defaultProps = {
   ListDetailHeaderBg: '',
   renderContent: <div />,
   backToLists: () => {},
-  owner: 'N/A',
-  container: 'N/A',
+  name: 'N/A',
 };
 
 export default CertificateItemDetail;

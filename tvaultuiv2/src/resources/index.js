@@ -28,6 +28,8 @@ const Resources = {
   noCertificatesFound:
     'Once you add a <strong>Certificate</strong> you’ll see the  Corresponding <strong>Details</strong> here!',
   appRoles: '',
+  certificateDesc:
+    'Create both internal and external certificates, External certificates do require approval from an admin before activating, this may take some time. Try to limit your use of external certificates unless completely nessary.',
   noTransferOwnerAvailable:
     'Certificate may not be approved or rejected.Please follow the instructions mentioned in email',
   certificateGuide1:
