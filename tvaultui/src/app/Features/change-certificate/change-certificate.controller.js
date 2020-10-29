@@ -454,6 +454,12 @@
                             };
                             break;
                         case 'AWSPermission' :
+                            apiCallFunction = AdminSafesManagement.detachAWSPermissionFromCertificate;
+                            reqObjtobeSent = {
+                                "certificateName": certName,
+                                "rolename": key,
+                                "certType": certficateType
+                            };
                             break;
                         case 'AppRolePermission' :
                             break;
@@ -585,6 +591,10 @@
 
                                 $rootScope.AppRolePermissionsData = {
                                     "data": object['app-roles']
+                                }
+
+                                $scope.AwsPermissionsData = {
+                                    "data": object['aws-roles']
                                 }
 
                                 $scope.certificate = {
@@ -851,7 +861,9 @@
                         duplicate = true;
                     }
                 }
-
+                if (type === "AWSPermission" && $scope.AwsPermissionsData.data!= null && $scope.AwsPermissionsData.data.hasOwnProperty(key.toLowerCase())) {
+                    duplicate = true;
+                }
                 if (type === "AppRolePermission" && $scope.AppRolePermissionsData.data!= null && $scope.AppRolePermissionsData.data.hasOwnProperty(key.toLowerCase())) {
                     duplicate = true;
                 }
@@ -871,6 +883,12 @@
                     var certficateType = $scope.certificateType;
                     var apiCallFunction = '';
                     var reqObjtobeSent = {};
+                    if ($scope.awsConfPopupObj.role !== null && $scope.awsConfPopupObj.role !== undefined) {
+                        $scope.awsConfPopupObj.role = UtilityService.formatName($scope.awsConfPopupObj.role);
+                    }
+                    if ($scope.awsConfPopupObj.bound_region !== null && $scope.awsConfPopupObj.bound_region !== undefined) {
+                        $scope.awsConfPopupObj.bound_region = UtilityService.formatName($scope.awsConfPopupObj.bound_region);
+                    }
                     var updatedUrlOfEndPoint = "";
                     switch (type) {
                         case 'users' :
@@ -881,11 +899,31 @@
                             apiCallFunction = AdminSafesManagement.addGroupPermissionForCertificate;                           
                             reqObjtobeSent = {"certificateName": certName, "groupname": key, "access": permission.toLowerCase(), "certType":certficateType};
                             break;
-                        case 'AWSPermission' :                            
-                            reqObjtobeSent = {"certificateName": certName, "role": key, "access": permission.toLowerCase()};
+                        case 'AWSPermission' :
+                            apiCallFunction = AdminSafesManagement.addAWSPermissionForCertificate;
+                            reqObjtobeSent = {"certificateName": certName, "rolename": key, "access": permission.toLowerCase(), "certType":certficateType};
                             break;
                         case 'AwsRoleConfigure' :
                             $scope.awsConfPopupObj['policies'] = "";   // Todo: Because of unavailability of edit service, this has been put
+                            // Validate the input here if requried...
+                            if ($scope.awsConfPopupObj.auth_type === 'ec2') {
+                                $scope.awsConfPopupObj.bound_iam_principal_arn = "";
+                                apiCallFunction = AdminSafesManagement.createAwsRoleCertificate;
+                            }
+                            else {
+                                $scope.awsConfPopupObj['policies'] = [];
+                                $scope.awsConfPopupObj.bound_account_id = "";
+                                $scope.awsConfPopupObj.bound_region = "";
+                                $scope.awsConfPopupObj.bound_vpc_id = "";
+                                $scope.awsConfPopupObj.bound_subnet_id = "";
+                                $scope.awsConfPopupObj.bound_ami_id = "";
+                                $scope.awsConfPopupObj.bound_iam_instance_profile_arn = "";
+                                $scope.awsConfPopupObj.bound_iam_role_arn = "";
+                                var arn = [];
+                                arn.push($scope.awsConfPopupObj.bound_iam_principal_arn);
+                                $scope.awsConfPopupObj.bound_iam_principal_arn = arn;
+                                apiCallFunction = AdminSafesManagement.createAwsIAMRoleCertificate;
+                            }
                             reqObjtobeSent = $scope.awsConfPopupObj
                             break;
                         case 'AppRolePermission' : 
@@ -898,19 +936,24 @@
                                 // Try-Catch block to catch errors if there is any change in object structure in the response
                                 try {
                                     $scope.isLoadingData = false;
-                                    $scope.requestDataFrChangeCertificate();
-                                    var notification = UtilityService.getAParticularSuccessMessage('MESSAGE_ADD_SUCCESS');
-                                    if (key !== null && key !== undefined) {
-                                        document.getElementById('addGroup').value = '';
-                                        document.getElementById('addUser').value = '';
-                                        if (type === "users" && key === SessionStore.getItem("username")) {
-                                            clearInputPermissionData();
-                                            return Modal.createModalWithController('stop.modal.html', {
-                                                title: 'Permission changed',
-                                                message: 'For security reasons, if you add or modify permission to yourself, you need to log out and log in again for the added or modified permissions to take effect.'
-                                                });
+                                    if (type === 'AwsRoleConfigure') {
+                                        $scope.addPermission('AWSPermission', $scope.awsConfPopupObj.role, permission, false);
+                                    }
+                                    else {
+                                        $scope.requestDataFrChangeCertificate();
+                                        var notification = UtilityService.getAParticularSuccessMessage('MESSAGE_ADD_SUCCESS');
+                                        if (key !== null && key !== undefined) {
+                                            document.getElementById('addGroup').value = '';
+                                            document.getElementById('addUser').value = '';
+                                            if (type === "users" && key === SessionStore.getItem("username")) {
+                                                clearInputPermissionData();
+                                                return Modal.createModalWithController('stop.modal.html', {
+                                                    title: 'Permission changed',
+                                                    message: 'For security reasons, if you add or modify permission to yourself, you need to log out and log in again for the added or modified permissions to take effect.'
+                                                    });
+                                            }
+                                            Notifications.toast(key + "'s permission" + notification);
                                         }
-                                        Notifications.toast(key + "'s permission" + notification);
                                     }
                                 } catch (e) {
                                     console.log(e);
@@ -931,7 +974,7 @@
                             console.log(error);
                             clearInputPermissionData();
                             $scope.isLoadingData = false;
-                            $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_ADD_OWNER_FOR_PERMISSION');
+                            $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
                             $scope.error('md');
                         })
                 } catch (e) {
@@ -988,9 +1031,8 @@
             $scope.openApprole(size);
         };
 
-        /* TODO: What is open, functon name should be more descriptive */
-        $scope.open = function (size) {
-            Modal.createModal(size, 'changeSafePopup.html', 'ChangeCertificateCtrl', $scope);
+        $scope.openAWSRoleCreatePopup = function (size) {
+            Modal.createModal(size, 'createAWSRolePopup.html', 'ChangeCertificateCtrl', $scope);
         };
 
         /* TODO: What is open, functon name should be more descriptive */
@@ -1265,6 +1307,26 @@
                 $scope.searchValue = '';
             };
         };
+
+        $scope.newAwsConfiguration = function (size) {
+            // To reset the aws configuration details object to create a new one
+            $scope.editingAwsPermission = {"status": false};
+            $scope.awsConfPopupObj = {
+                "auth_type":"",
+                "role": "",
+                "bound_account_id": "",
+                "bound_region": "",
+                "bound_vpc_id": "",
+                "bound_subnet_id": "",
+                "bound_ami_id": "",
+                "bound_iam_instance_profile_arn": "",
+                "bound_iam_role_arn": "",
+                "policies": "",
+                "bound_iam_principal_arn": "",
+                "resolve_aws_unique_ids": "false"
+            };
+            $scope.openAWSRoleCreatePopup(size);
+        }
 
         // TO-BE-CHECKED : Function currently not in use
 

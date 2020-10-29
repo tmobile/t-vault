@@ -460,6 +460,22 @@ readTextFile("../apiUrls.json");
             name: 'addUserPermissionForIAMSvcacc',
             url: '/v2/iamserviceaccounts/user',
             method: 'POST'
+        },{
+            name: 'createAwsRoleCertificate',
+            url: '/v2/sslcert/aws/role',
+            method: 'POST'
+        },{
+            name: 'createAwsIAMRoleCertificate',
+            url: '/v2/sslcert/aws/iam/role',
+            method: 'POST'
+        },{
+            name: 'addAWSPermissionForCertificate',
+            url: '/v2/sslcert/aws',
+            method: 'POST'
+        },{
+            name: 'detachAWSPermissionFromCertificate',
+            url: '/v2/sslcert/aws',
+            method: 'DELETE'
         }
     ]
     });

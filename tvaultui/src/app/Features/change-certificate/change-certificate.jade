@@ -118,6 +118,89 @@ script(type='text/ng-template', id='deleteCertificateFailedPopUp.html')
       .clearfix.bottom-sm-sep
         button.link-style.common-btn.btn.btn-cert.btn-lg(ng-click="cancel()") CLOSE
 
+script(type='text/ng-template', id='createAWSRolePopup.html')
+          .modal-sep
+            .common-header-label.text-center Configure your AWS Role
+          .left-lg-sep.right-lg-sep
+            .common-form.modal-inner-wrapper.aws
+              .aws.common-form
+                .common-form-row
+                    .aws-conf.clearfix
+                        .details-input-group
+                            .control-group
+                                .common-form-label AWS Authentication Type
+                                  span *
+                                .common-radio-group
+                                    label.control.control--radio EC2
+                                      input(type='radio' id='auth_type' value="ec2" ng-model="awsConfPopupObj.auth_type" ng-checked="awsConfPopupObj.auth_type == 'ec2'" ng-click="enableEc2Controls($event)")
+                                      .control__indicator
+                                    label.control.control--radio IAM
+                                      input(type='radio' id='auth_type' value="iam" ng-model="awsConfPopupObj.auth_type" ng-checked="awsConfPopupObj.auth_type == 'iam'" ng-click="enableIamControls($event)")
+                                      .control__indicator
+
+              .common-form-row
+                .details-input-group
+                    .common-form-label Role Name
+                      span *
+                    input.form-control.input-box-style(value="{{awsConfPopupObj.role}}" minlength="3" maxlength="50" restrict-config-char ng-model="awsConfPopupObj.role" placeholder="Role name - Enter min 3 characters" required)
+              .aws-conf.clearfix
+                .font-type-normal **Please fill at least one of the following
+
+                .col-lg-6.col-md-6.col-sm-12.col-xs-12.common-form-row
+                  .details-input-group
+                    .common-form-label Account ID
+                      span **
+                    input.form-control.input-box-style(value="{{awsConfPopupObj.bound_account_id}}" id="bound_account_id" minlength="12" maxlength="15" restrict-to-numbers placeholder="Account ID" ng-model="awsConfPopupObj.bound_account_id" required)
+                .col-lg-6.col-md-6.col-sm-12.col-xs-12.common-form-row
+                  .details-input-group
+                    .common-form-label Region
+                      span **
+                    input.form-control.input-box-style(value="{{awsConfPopupObj.bound_region}}" id="bound_region" restrict-config-char maxlength="25" placeholder="Region ID" ng-model="awsConfPopupObj.bound_region" required)
+                .col-lg-6.col-md-6.col-sm-12.col-xs-12.common-form-row
+                  .details-input-group
+                    .common-form-label VPC ID
+                      span **
+                    input.form-control.input-box-style(value="{{awsConfPopupObj.bound_vpc_id}}" id="bound_vpc_id" restrict-config-char  maxlength="256" placeholder="VPC ID" ng-model="awsConfPopupObj.bound_vpc_id" required)
+                .col-lg-6.col-md-6.col-sm-12.col-xs-12.common-form-row
+                  .details-input-group
+                    .common-form-label Subnet ID
+                      span **
+                    input.form-control.input-box-style(value="{{awsConfPopupObj.bound_subnet_id}}" id="bound_subnet_id" restrict-config-char maxlength="256" placeholder="Subnet ID" ng-model="awsConfPopupObj.bound_subnet_id" required)
+                .col-lg-6.col-md-6.col-sm-12.col-xs-12.common-form-row
+                  .details-input-group
+                    .common-form-label AMI ID
+                      span **
+                    input.form-control.input-box-style(value="{{awsConfPopupObj.bound_ami_id}}" id="bound_ami_id" restrict-config-char maxlength="256" placeholder="AMI ID" ng-model="awsConfPopupObj.bound_ami_id")
+                .col-lg-6.col-md-6.col-sm-12.col-xs-12.common-form-row
+                  .details-input-group
+                    .common-form-label Instance Profile ARN
+                      span **
+                    input.form-control.input-box-style(value="{{awsConfPopupObj.bound_iam_instance_profile_arn}}" id="bound_iam_instance_profile_arn" restrict-arn-special-char minlength="20" maxlength="1024" placeholder="Instance Profile ARN" ng-model="awsConfPopupObj.bound_iam_instance_profile_arn")
+                .col-lg-6.col-md-6.col-sm-12.col-xs-12.common-form-row
+                  .details-input-group
+                    .common-form-label IAM Role ARN
+                      span **
+                    input.form-control.input-box-style(value="{{awsConfPopupObj.bound_iam_role_arn}}" id="bound_iam_role_arn" restrict-arn-special-char minlength="20" maxlength="1024" placeholder="IAM Role ARN" ng-model="awsConfPopupObj.bound_iam_role_arn")
+                .col-lg-6.col-md-6.col-sm-12.col-xs-12.common-form-row
+                  .details-input-group
+                    .common-form-label IAM Principal ARN
+                      span *
+                    input.form-control.input-box-style(value="{{awsConfPopupObj.bound_iam_principal_arn}}" id="bound_iam_principal_arn" restrict-arn-special-char minlength="20" maxlength="1024" placeholder="IAM Principal ARN" ng-model="awsConfPopupObj.bound_iam_principal_arn" required)
+
+              .aws.common-form
+                .common-form-row
+                    .aws-conf.clearfix
+                        .details-input-group
+                            .common-form-label Permission
+                              span *
+                            .common-radio-group
+                                radio-buttons(data="radio" value="awsRadioBtn.value" state="true")
+          .text-center.bottom-lg-sep.modal-sep.aws
+            .clearfix.bottom-sm-sep
+              button.common-btn.btn.btn-primary.btn-lg(ng-click="addPermission('AwsRoleConfigure', awsConfPopupObj.role, awsRadioBtn.value, false)" ng-disabled="!(awsConfPopupObj.auth_type.length > 0 && awsConfPopupObj.role.length > 0 && ((awsConfPopupObj.auth_type == 'ec2' && (awsConfPopupObj.bound_account_id.length > 0 || awsConfPopupObj.bound_region.length > 0 || awsConfPopupObj.bound_vpc_id.length > 0 || awsConfPopupObj.bound_subnet_id.length > 0 || awsConfPopupObj.bound_ami_id.length > 0 || awsConfPopupObj.bound_iam_instance_profile_arn.length >0 || awsConfPopupObj.bound_iam_role_arn.length >0)) || (awsConfPopupObj.auth_type == 'iam' && awsConfPopupObj.bound_iam_principal_arn.length > 0)))" ) {{editingAwsPermission.status == true ? "Update" : "Create"}}
+            .clearfix
+              button.link-style.common-btn.btn.btn-default.btn-lg(ng-click="cancel()") Cancel
+
 script(src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js")
 .container-fluid.common-main-content.route-page.change-safe-wrapper
     .container-fluid-wrapper.curved
@@ -364,6 +447,48 @@ script(src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"
                                                         .list-icon.icon-cross(ng-click="editPermissionItem = !editPermissionItem; activeItem = !activeItem; radioValue = value" ng-class="{'inactive' : editPermissionItem == true, 'hide-icon' : editPermissionItem == false}")
                                                     .down.save
                                                         .list-icon(ng-click = "editPermission('groups', editPermissionItem, key, radioValue); editPermissionItem ? editPermissionItem = !editPermissionItem : editPermissionItem = editPermissionItem" ng-class="{'inactive' : editPermissionItem == false}")  SAVE
+                        md-tab(label="AWS Applications")
+                            loading-state(ng-if='isLoadingData')
+                            md-content(class="md-padding")
+                                .new-container.page-content-container
+                                    div.svceditnotes Add AWS EC2 or IAM role here and assign Read/Deny permissions as needed. Roles with Deny permission will not be able to download certificate.
+                                    .row.change-safe
+                                        .container.actions
+                                            .function-text.right.link-style(ng-click="newAwsConfiguration('md')")
+                                                .add-icon-container.action-icon-wrapper.static
+                                                    .rotate.glyphicon.glyphicon-remove-circle
+                                                .text ADD AWS CONFIGURATION
+                                    .unavailable-text(ng-if="isEmpty(AwsPermissionsData.data)")
+                                      | No AWS Role are given permission to access this certificate,<br> add AWS Role to access the certificate
+                                    .change-safe-table-container(ng-if="!isEmpty(AwsPermissionsData.data)")
+                                        .row.change-safe.header
+                                            .container.name.col-lg-4.col-md-4.col-sm-4.col-xs-4 NAME
+                                            .container.name.col-lg-4.col-md-4.col-sm-4.col-xs-4 ACTION
+                                        .change-safe-table-data.row
+                                            .row.change-safe.item.hide-in-mobile(ng-if="!isLoadingData" ng-init="editPermissionItem = false; activeItem = false; radioValue = (value=='write')?'reset':value" ng-class="{'grayBackground' : activeItem == true}" ng-repeat="(key, value) in AwsPermissionsData.data")
+                                                .container.name.col-lg-4.col-md-4.col-sm-4.col-xs-4(ng-class="{'inactive' : editPermissionItem == false}") {{key}}
+                                                .container.radio-inputs.col-lg-4.col-md-4.col-sm-4.col-xs-4(uib-tooltip="Click edit icon to change permission")
+                                                    radio-buttons(data="radio" value="radioValue" state="editPermissionItem")
+                                                .container.actions.col-lg-4.col-md-4.col-sm-4.col-xs-4
+                                                    .down
+                                                        .list-icon.icon-delete(ng-click = "deletePermission('AWSPermission', true, false, key, radioValue)" uib-tooltip="Delete permission" tooltip-placement="bottom")
+                                                    .down.edit
+                                                        .list-icon.icon-mode_edit(ng-click="editPermissionItem = !editPermissionItem; activeItem = !activeItem" ng-class="{'inactive' : editPermissionItem == true, 'hide-icon' : editPermissionItem == true}" uib-tooltip="Edit permission" tooltip-placement="bottom")
+                                                        .list-icon.icon-cross(ng-click="editPermissionItem = !editPermissionItem; activeItem = !activeItem; radioValue = (value=='write')?'reset':value" ng-class="{'inactive' : editPermissionItem == true, 'hide-icon' : editPermissionItem == false}")
+                                                    .down.save
+                                                        .list-icon(ng-click = "editPermission('AWSPermission', editPermissionItem, key, radioValue); editPermissionItem ? editPermissionItem = !editPermissionItem : editPermissionItem = editPermissionItem" ng-class="{'inactive' : editPermissionItem == false}")  SAVE
+                                            .row.change-safe.item.hide-in-tablet-up(ng-if="!isLoadingData" ng-init="editPermissionItem = true; activeItem = false; radioValue = (value=='write')?'reset':value" ng-class="{'grayBackground' : activeItem == true}" ng-repeat="(key, value) in AwsPermissionsData.data")
+                                                .container.name.col-lg-4.col-md-4.col-sm-4.col-xs-4(ng-class="{'inactive' : editPermissionItem == false}") {{key}}
+                                                .container.radio-inputs.col-lg-4.col-md-4.col-sm-4.col-xs-4(uib-tooltip="Change permission")
+                                                    drop-down(drop-down-options="radio" value="radioValue" error="noTypeSelected")
+                                                .container.actions.col-lg-4.col-md-4.col-sm-4.col-xs-4
+                                                    .down
+                                                        .list-icon.icon-delete(ng-click = "deletePermission('AWSPermission', editPermissionItem, false, key, radioValue)" ng-class="{'inactive' : editPermissionItem == false}" uib-tooltip="Delete permission" tooltip-placement="bottom")
+                                                    .down.hide-in-mobile.edit
+                                                        .list-icon.icon-mode_edit(ng-click="editPermissionItem = !editPermissionItem; activeItem = !activeItem" ng-class="{'inactive' : editPermissionItem == true, 'hide-icon' : editPermissionItem == true}" uib-tooltip="Edit permission" tooltip-placement="bottom")
+                                                        .list-icon.icon-cross(ng-click="editPermissionItem = !editPermissionItem; activeItem = !activeItem; radioValue = (value=='write')?'reset':value" ng-class="{'inactive' : editPermissionItem == true, 'hide-icon' : editPermissionItem == false}")
+                                                    .down.save
+                                                        .list-icon(ng-click = "editPermission('AWSPermission', editPermissionItem, key, radioValue); editPermissionItem ? editPermissionItem = !editPermissionItem : editPermissionItem = editPermissionItem" ng-class="{'inactive' : editPermissionItem == false}")  SAVE
 
                 .clearfix.btn-section
                   .right.col-lg-6.col-md-6.col-sm-6.col-xs-12.bottom-lg-sep.top-lg-sep

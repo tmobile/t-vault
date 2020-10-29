@@ -442,6 +442,26 @@
                     return response;
                 });
             },
+            createAwsRoleCertificate: function(payload, url) {
+                return ServiceEndpoint.createAwsRoleCertificate.makeRequest(payload, url).then(function(response) {
+                    return response;
+                });
+            },
+            createAwsIAMRoleCertificate: function(payload, url) {
+                return ServiceEndpoint.createAwsIAMRoleCertificate.makeRequest(payload, url).then(function(response) {
+                    return response;
+                });
+            },
+            addAWSPermissionForCertificate: function(payload, url) {
+                return ServiceEndpoint.addAWSPermissionForCertificate.makeRequest(payload, url).then(function(response) {
+                    return response;
+                });
+            },
+            detachAWSPermissionFromCertificate: function(payload, url) {
+                return ServiceEndpoint.detachAWSPermissionFromCertificate.makeRequest(payload, url).then(function(response) {
+                    return response;
+                });
+            },
             getTheRightErrorMessage : function(responseObject){
                 if(responseObject.status===500 || responseObject.statusText==='Internal Server Error'){
                     return ErrorMessage.ERROR_NETWORK;

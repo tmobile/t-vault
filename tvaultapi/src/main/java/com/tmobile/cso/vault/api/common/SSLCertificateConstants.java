@@ -100,4 +100,7 @@ public final class SSLCertificateConstants {
     public static final String  SSL_EXT_CERT_SUCCESS="Certificate Request received.Please check your email and follow" +
             " the instructions";
     public static final String  DOWNLOAD_CERT="downloadcert";
+
+    public static final String ADD_AWS_ROLE_TO_CERT_MSG = "Add AWS Role to Certificate";
+    public static final String REMOVE_AWS_ROLE_FROM_CERT_MSG = "Remove AWS Role from Certificate";
 }
