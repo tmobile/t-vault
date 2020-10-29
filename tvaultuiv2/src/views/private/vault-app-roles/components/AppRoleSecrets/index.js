@@ -1,7 +1,7 @@
 /* eslint-disable react/jsx-one-expression-per-line */
 /* eslint-disable react/jsx-wrap-multilines */
 import React, { useState } from 'react';
-import styled, { css } from 'styled-components';
+import styled, { css, keyframes } from 'styled-components';
 import { CopyToClipboard } from 'react-copy-to-clipboard';
 import { makeStyles } from '@material-ui/core/styles';
 import Checkbox from '@material-ui/core/Checkbox';
@@ -77,6 +77,27 @@ const SecretIdWrap = styled.div`
     background: ${BackgroundColor.secretHoverBg};
   }
 `;
+const SlideUp = keyframes`
+ 0%{
+  transform:translateY(3rem)
+} 100%{
+  transfrom:translateY(0)
+}
+`;
+const DeleteOptionWrap = styled.div`
+  position: sticky;
+  bottom: 0;
+  display: flex;
+  padding: 1rem 0;
+  justify-content: flex-end;
+  background: ${(props) =>
+    props.theme.customColor.secondary.backgroundColor || '#20232e'};
+  animation: ${SlideUp} 0.2s ease-in forwards;
+`;
+const OptionsWrap = styled.div`
+  display: flex;
+  align-items: center;
+`;
 const checkBoxStyles = makeStyles((theme) => ({
   root: {
     color: theme.customColor.checkbox.color,
@@ -89,6 +110,7 @@ const AppRoleSecrets = (props) => {
   const [status, setStatus] = useState({});
   const [openConfirmationModal, setOpenConfirmationModal] = useState(false);
   const [checkedSecretIds, setCheckedSecretIds] = useState([]);
+  const [checkBoxClicked, setCheckBoxClicked] = useState(false);
   const isMobileScreen = useMediaQuery(mediaBreakpoints.small);
   const checkBoxClasses = checkBoxStyles();
   /**
@@ -116,12 +138,26 @@ const AppRoleSecrets = (props) => {
    * @description function to reset secret when the confirm is clicked.
    */
   const onDeleteClicked = (secretId) => {
-    setCheckedSecretIds([secretId]);
+    if (secretId) {
+      setCheckedSecretIds([secretId]);
+    }
     setOpenConfirmationModal(true);
   };
+
+  /**
+   * @function onDeleteSecretId
+   * @description call delete api on confirmation
+   */
+
   const onDeleteSecretId = () => {
     setOpenConfirmationModal(false);
     deleteSecretIds(checkedSecretIds);
+  };
+
+  // handle slide up deletebar
+  const handleDeleteSlideUp = () => {
+    setCheckBoxClicked(false);
+    setCheckedSecretIds([]);
   };
 
   /**
@@ -135,10 +171,12 @@ const AppRoleSecrets = (props) => {
     if (tempChecks?.includes(secretId)) {
       tempChecks.splice(indexOfSecretToCheck, 1);
       setCheckedSecretIds([...tempChecks]);
+      if (!tempChecks?.length) setCheckBoxClicked(false);
       return;
     }
     tempChecks.push(secretId);
     setCheckedSecretIds([...tempChecks]);
+    setCheckBoxClicked(true);
   };
   return (
     <ComponentError>
@@ -211,6 +249,26 @@ const AppRoleSecrets = (props) => {
               </FolderIconWrap>
             </SecretIdWrap>
           ))}
+          {checkBoxClicked && (
+            <DeleteOptionWrap>
+              <OptionsWrap>
+                <div style={{ marginRight: '0.8rem' }}>
+                  <ButtonComponent
+                    label="Cancel"
+                    color="primary"
+                    onClick={() => handleDeleteSlideUp(false)}
+                    width={isMobileScreen ? '100%' : '38%'}
+                  />
+                </div>
+                <ButtonComponent
+                  label="Delete"
+                  color="secondary"
+                  onClick={() => onDeleteClicked()}
+                  width={isMobileScreen ? '100%' : '38%'}
+                />
+              </OptionsWrap>
+            </DeleteOptionWrap>
+          )}
         </SecretsList>
         {status.status === 'success' && (
           <SnackbarComponent
