@@ -235,7 +235,7 @@ const CreateCertificates = (props) => {
   const [responseType, setResponseType] = useState(null);
   const [toastMessage, setToastMessage] = useState('');
   const [ownerEmail, setOwnerEmail] = useState('N/A');
-  const [certificateType, setCertificateType] = useState('Internal');
+  const [certificateType, setCertificateType] = useState('internal');
   const [dnsArray, setDnsArray] = useState([]);
   const [showPreview, setShowPreview] = useState(false);
   const [dnsError, setDnsError] = useState(false);
@@ -502,7 +502,7 @@ const CreateCertificates = (props) => {
                   <RadioWrap>
                     <InputLabel required>Certificate Type</InputLabel>
                     <RadioButtonComponent
-                      menu={['Internal', 'External']}
+                      menu={['internal', 'external']}
                       handleChange={(e) => setCertificateType(e.target.value)}
                       value={certificateType}
                     />

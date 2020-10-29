@@ -76,12 +76,13 @@ const Permissions = (props) => {
     setResponseType(0);
     setCount(0);
     setSafeData({});
-    apiService
+    return apiService
       .getSafeDetails(`${safeDetail.path}`)
       .then((res) => {
         let obj = {};
         setResponseType(1);
         if (res && res.data?.data) {
+          console.log('object');
           obj = res.data.data;
           setSafeData({ response: obj, error: '' });
           setCount(Object.keys(res.data.data.users).length);

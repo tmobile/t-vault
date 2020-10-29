@@ -1,3 +1,4 @@
+/* eslint-disable no-nested-ternary */
 import React, { useState, useEffect, useCallback } from 'react';
 import { debounce } from 'lodash';
 import { makeStyles } from '@material-ui/core/styles';
@@ -11,8 +12,7 @@ import AutoCompleteComponent from '../FormFields/AutoComplete';
 import ButtonComponent from '../FormFields/ActionButton';
 import apiService from '../../views/private/safe/apiService';
 import LoaderSpinner from '../Loaders/LoaderSpinner';
-import RadioSafePermissionComponent from '../../views/private/safe/components/RadioPermissions';
-import RadioSvcPermissionComponent from '../../views/private/service-accounts/components/RadioPermissions';
+import RadioButtonComponent from '../FormFields/RadioButton';
 
 const { small } = mediaBreakpoints;
 
@@ -202,8 +202,8 @@ const AddUser = (props) => {
 
   const onSearchChange = (e) => {
     if (e) {
-      setSearchValue(e.target.value);
-      if (e.target.value !== '' && e.target.value?.length > 2) {
+      setSearchValue(e.target?.value);
+      if (e.target?.value !== '' && e.target?.value?.length > 2) {
         callSearchApi(e.target.value);
       }
     }
@@ -249,20 +249,17 @@ const AddUser = (props) => {
           {searchLoader && <LoaderSpinner customStyle={customStyle} />}
         </InputWrapper>
         <RadioButtonWrapper>
-          {isSvcAccount ? (
-            <RadioSvcPermissionComponent
-              radioValue={radioValue}
-              isEdit={!!(access && username)}
-              handleRadioChange={(e) => handleChange(e)}
-            />
-          ) : (
-            <RadioSafePermissionComponent
-              radioValue={radioValue}
-              handleRadioChange={(e) => handleChange(e)}
-              isCertificate={isCertificate}
-            />
-          )}
-
+          <RadioButtonComponent
+            menu={
+              isSvcAccount
+                ? ['read', 'reset', 'deny']
+                : isCertificate
+                ? ['read', 'deny']
+                : ['read', 'write', 'deny']
+            }
+            handleChange={(e) => handleChange(e)}
+            value={radioValue}
+          />
           <CancelSaveWrapper>
             <CancelButton>
               <ButtonComponent

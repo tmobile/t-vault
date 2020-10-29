@@ -10,8 +10,7 @@ import ButtonComponent from '../FormFields/ActionButton';
 import SelectComponent from '../FormFields/SelectFields';
 import apiService from '../../views/private/safe/apiService';
 import LoaderSpinner from '../Loaders/LoaderSpinner';
-import RadioSafePermissionComponent from '../../views/private/safe/components/RadioPermissions';
-import RadioSvcPermissionComponent from '../../views/private/service-accounts/components/RadioPermissions';
+import RadioButtonComponent from '../FormFields/RadioButton';
 
 const { small } = mediaBreakpoints;
 
@@ -181,18 +180,15 @@ const AddAppRole = (props) => {
           <ErrorMessage>No app role is available</ErrorMessage>
         )}
         <RadioButtonWrapper>
-          {isSvcAccount ? (
-            <RadioSvcPermissionComponent
-              radioValue={radioValue}
-              isEdit={!!(access && role)}
-              handleRadioChange={(e) => setRadioValue(e.target.value)}
-            />
-          ) : (
-            <RadioSafePermissionComponent
-              radioValue={radioValue}
-              handleRadioChange={(e) => setRadioValue(e.target.value)}
-            />
-          )}
+          <RadioButtonComponent
+            menu={
+              isSvcAccount
+                ? ['read', 'reset', 'deny']
+                : ['read', 'write', 'deny']
+            }
+            handleChange={(e) => setRadioValue(e.target.value)}
+            value={radioValue}
+          />
           <CancelSaveWrapper>
             <CancelButton>
               <ButtonComponent
