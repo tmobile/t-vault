@@ -7862,7 +7862,7 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
 			                ts_gp_id = public_single_san_ts_gp_id_test!=0?public_single_san_ts_gp_id_test:public_single_san_ts_gp_id; //2276
 			                break;
 			            case PUBLIC_MULTI_SAN:
-			                ts_gp_id = public_multi_san_ts_gp_id_test!=0?public_multi_san_ts_gp_id_test:public_multi_san_ts_gp_id_test; //2277
+			                ts_gp_id = public_multi_san_ts_gp_id_test!=0?public_multi_san_ts_gp_id_test:public_multi_san_ts_gp_id; //2277
 			                break;
 			        }
 			        return ts_gp_id;
