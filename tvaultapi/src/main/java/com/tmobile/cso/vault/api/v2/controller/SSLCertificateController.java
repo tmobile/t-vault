@@ -17,7 +17,9 @@
 package com.tmobile.cso.vault.api.v2.controller;
 
 
+import com.tmobile.cso.vault.api.exception.TVaultValidationException;
 import com.tmobile.cso.vault.api.model.*;
+import com.tmobile.cso.vault.api.service.SSLCertificateAWSRoleService;
 import com.tmobile.cso.vault.api.service.SSLCertificateService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -36,6 +38,9 @@ public class SSLCertificateController {
 
 	@Autowired
 	private SSLCertificateService sslCertificateService;
+
+	@Autowired
+	private SSLCertificateAWSRoleService sslCertificateAWSRoleService;
 	
 	public static final String USER_DETAILS_STRING="UserDetails";
 
@@ -427,5 +432,57 @@ public class SSLCertificateController {
 			@RequestParam(name = "applicationName", required = false) String appTag	) throws Exception {
 		UserDetails userDetails = (UserDetails) request.getAttribute(USER_DETAILS_STRING);
 		return sslCertificateService.onboardSingleCert(userDetails, token, certType, commonname, appTag);
+	}
+
+	/**
+	 * Method to create an AWS ec2 role for SSL certificate
+	 * @param token
+	 * @param awsLoginRole
+	 * @return
+	 */
+	@ApiOperation(value = "${SSLCertificateController.createAWSRoleForSSL.value}", notes = "${SSLCertificateController.createAWSRoleForSSL.notes}")
+	@PostMapping(value="/v2/sslcert/aws/role",consumes="application/json",produces="application/json")
+	public ResponseEntity<String> createAWSRoleForSSL(HttpServletRequest request, @RequestHeader(value="vault-token") String token, @RequestBody AWSLoginRole awsLoginRole) throws TVaultValidationException {
+		UserDetails userDetails = (UserDetails) request.getAttribute(USER_DETAILS_STRING);
+		return sslCertificateAWSRoleService.createAWSRoleForSSL(userDetails, token, awsLoginRole);
+	}
+
+	/**
+	 * Method to create AWS IAM role for SSL certificate
+	 * @param token
+	 * @param awsiamRole
+	 * @return
+	 */
+	@ApiOperation(value = "${SSLCertificateController.createIAMRoleForSSL.value}", notes = "${SSLCertificateController.createIAMRoleForSSL.notes}")
+	@PostMapping(value="/v2/sslcert/aws/iam/role",produces="application/json")
+	public ResponseEntity<String> createIAMRoleForSSL(HttpServletRequest request, @RequestHeader(value="vault-token") String token, @RequestBody AWSIAMRole awsiamRole) throws TVaultValidationException{
+		UserDetails userDetails = (UserDetails) request.getAttribute(USER_DETAILS_STRING);
+		return sslCertificateAWSRoleService.createIAMRoleForSSL(userDetails, token, awsiamRole);
+	}
+
+	/**
+	 * Adds AWS role to SSL certificate
+	 * @param token
+	 * @param serviceAccountAWSRole
+	 * @return
+	 */
+	@ApiOperation(value = "${SSLCertificateController.addAwsRoleToSSLCertificate.value}", notes = "${SSLCertificateController.addAwsRoleToSSLCertificate.notes}")
+	@PostMapping (value="/v2/sslcert/aws",consumes="application/json",produces="application/json")
+	public ResponseEntity<String> addAwsRoleToSSLCertificate(HttpServletRequest request, @RequestHeader(value="vault-token") String token, @Valid @RequestBody CertificateAWSRole certificateAWSRole){
+		UserDetails userDetails = (UserDetails) request.getAttribute(USER_DETAILS_STRING);
+		return sslCertificateAWSRoleService.addAwsRoleToSSLCertificate(userDetails, token, certificateAWSRole);
+	}
+
+	/**
+	 * Remove AWS role from SSL certificate
+	 * @param token
+	 * @param serviceAccountAWSRole
+	 * @return
+	 */
+	@ApiOperation(value = "${SSLCertificateController.removeAWSRoleFromSSLCertificate.value}", notes = "${SSLCertificateController.removeAWSRoleFromSSLCertificate.notes}")
+	@DeleteMapping (value="/v2/sslcert/aws",consumes="application/json",produces="application/json")
+	public ResponseEntity<String> removeAWSRoleFromSSLCertificate(HttpServletRequest request, @RequestHeader(value="vault-token") String token, @Valid @RequestBody CertificateAWSRoleRequest certificateAWSRoleRequest){
+		UserDetails userDetails = (UserDetails) request.getAttribute(USER_DETAILS_STRING);
+		return sslCertificateAWSRoleService.removeAWSRoleFromSSLCertificate(userDetails, token, certificateAWSRoleRequest);
 	}
 }

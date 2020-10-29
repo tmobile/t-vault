@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tmobile.cso.vault.api.common.TVaultConstants;
 import com.tmobile.cso.vault.api.model.*;
 import com.tmobile.cso.vault.api.process.RequestProcessor;
+import com.tmobile.cso.vault.api.service.SSLCertificateAWSRoleService;
 import com.tmobile.cso.vault.api.service.SSLCertificateService;
 import org.junit.Before;
 import org.junit.Test;
@@ -36,6 +37,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 public class SSLCertificateControllerTest {
     @Mock
     public SSLCertificateService sslCertificateService;
+
+    @Mock
+    public SSLCertificateAWSRoleService sslCertificateAWSRoleService;
 
     private MockMvc mockMvc;
 
@@ -449,4 +453,68 @@ public class SSLCertificateControllerTest {
 	        when(sslCertificateService.onboardSingleCert(userDetails,"5PDrOhsy4ig8L3EpsJZSLAMg","internal","testcert","tvt")).thenReturn(new ResponseEntity<>(HttpStatus.OK));
 	        assertEquals(HttpStatus.OK, sslCertificateService.onboardSingleCert(userDetails,"5PDrOhsy4ig8L3EpsJZSLAMg","internal","testcert","tvt").getStatusCode());
 	    }
+
+	@Test
+	public void testCreateAWSRoleForSSL() throws Exception {
+		CertificateAWSRole certificateAWSRole = new CertificateAWSRole("certificatename.t-mobile.com", "role1", "read", "internal");
+
+		String inputJson = new ObjectMapper().writeValueAsString(certificateAWSRole);
+		String responseJson = "{\"messages\":[\"AWS Role created \"]}";
+		ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(responseJson);		
+		when(sslCertificateAWSRoleService.createAWSRoleForSSL(eq(userDetails), eq("5PDrOhsy4ig8L3EpsJZSLAMg"),
+				Mockito.any(AWSLoginRole.class))).thenReturn(responseEntityExpected);
+
+		mockMvc.perform(MockMvcRequestBuilders.post("/v2/sslcert/aws/role")
+				.requestAttr("UserDetails", userDetails).header("vault-token", "5PDrOhsy4ig8L3EpsJZSLAMg")
+				.header("Content-Type", "application/json;charset=UTF-8").content(inputJson))
+				.andExpect(status().isOk()).andExpect(content().string(containsString(responseJson)));
+	}
+
+	@Test
+	public void testCreateIAMRoleForSSL() throws Exception {
+		CertificateAWSRole certificateAWSRole = new CertificateAWSRole("certificatename.t-mobile.com", "role1", "read", "external");
+
+		String inputJson = new ObjectMapper().writeValueAsString(certificateAWSRole);
+		String responseJson = "{\"messages\":[\"AWS Role created \"]}";
+		ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(responseJson);		
+		when(sslCertificateAWSRoleService.createIAMRoleForSSL(eq(userDetails), eq("5PDrOhsy4ig8L3EpsJZSLAMg"),
+				Mockito.any(AWSIAMRole.class))).thenReturn(responseEntityExpected);
+
+		mockMvc.perform(MockMvcRequestBuilders.post("/v2/sslcert/aws/iam/role")
+				.requestAttr("UserDetails", userDetails).header("vault-token", "5PDrOhsy4ig8L3EpsJZSLAMg")
+				.header("Content-Type", "application/json;charset=UTF-8").content(inputJson))
+				.andExpect(status().isOk()).andExpect(content().string(containsString(responseJson)));
+	}
+
+	@Test
+    public void testAddAWSroletoSSLCertificate() throws Exception {
+		CertificateAWSRole certificateAWSRole = new CertificateAWSRole("certificatename", "role1", "read", "external");
+
+        String inputJson =new ObjectMapper().writeValueAsString(certificateAWSRole);
+        String responseJson = "{\"messages\":[\"AWS Role successfully associated with SSL Certificate\"]}";
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(responseJson);
+        when(sslCertificateAWSRoleService.addAwsRoleToSSLCertificate(eq(userDetails), eq("5PDrOhsy4ig8L3EpsJZSLAMg"), Mockito.any(CertificateAWSRole.class))).thenReturn(responseEntityExpected);
+        mockMvc.perform(MockMvcRequestBuilders.post("/v2/sslcert/aws").requestAttr("UserDetails", userDetails)
+                .header("vault-token", "5PDrOhsy4ig8L3EpsJZSLAMg")
+                .header("Content-Type", "application/json;charset=UTF-8")
+                .content(inputJson))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString(responseJson)));
+    }
+
+    @Test
+    public void testRemoveAWSRoleFromSSLCertificate() throws Exception {
+		CertificateAWSRoleRequest certificateAWSRoleRequest = new CertificateAWSRoleRequest("certificatename", "role1",
+				"internal");
+		String inputJson = new ObjectMapper().writeValueAsString(certificateAWSRoleRequest);
+        String responseJson = "{\"messages\":[\"AWS Role is successfully removed from SSL Certificate\"]}";
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(responseJson);        
+        when(sslCertificateAWSRoleService.removeAWSRoleFromSSLCertificate(eq(userDetails), eq("5PDrOhsy4ig8L3EpsJZSLAMg"), Mockito.any(CertificateAWSRoleRequest.class))).thenReturn(responseEntityExpected);
+        mockMvc.perform(MockMvcRequestBuilders.delete("/v2/sslcert/aws").requestAttr("UserDetails", userDetails)
+                .header("vault-token", "5PDrOhsy4ig8L3EpsJZSLAMg")
+                .header("Content-Type", "application/json;charset=UTF-8")
+                .content(inputJson))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString(responseJson)));
+    }
 }
