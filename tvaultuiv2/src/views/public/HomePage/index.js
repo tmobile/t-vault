@@ -378,6 +378,7 @@ const LoginPage = () => {
           if (res?.data) {
             setResponse({ status: 'loading' });
             sessionStorage.setItem('token', res.data.client_token);
+            sessionStorage.setItem('isAdmin', res.data.admin);
             await getLoggedInUserName();
             dispatch({ type: 'CALLBACK_DATA', payload: { ...res.data } });
             window.location = 'http://localhost:3000/safes';
