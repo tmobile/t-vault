@@ -9,8 +9,8 @@ import ComponentError from '../../errorBoundaries/ComponentError/component-error
 import mediaBreakpoints from '../../breakpoints';
 import vaultIcon from '../../assets/tvault.svg';
 import menu from '../../assets/menu.svg';
-import userIcon from '../../assets/icon-profile.svg';
 import Sidebar from '../Sidebar';
+import UserLogout from './userLogout';
 
 const { small, smallAndMedium, semiLarge } = mediaBreakpoints;
 
@@ -86,11 +86,6 @@ const EachLink = styled.a`
   color: #fff;
   font-size: 1.4rem;
 `;
-const UserName = styled.span``;
-
-const UserIcon = styled.img`
-  margin: 0 0.5rem;
-`;
 
 const useStyles = makeStyles(() => ({
   root: {
@@ -130,7 +125,8 @@ const Header = (props) => {
   const hideSideMenu = (anchor, open) => {
     setState({ ...state, [anchor]: open });
   };
-  useEffect(() => {
+
+  const checkToken = () => {
     const loggedIn = sessionStorage.getItem('token');
     if (loggedIn) {
       setIsLogin(true);
@@ -138,6 +134,10 @@ const Header = (props) => {
     } else {
       setIsLogin(false);
     }
+  };
+
+  useEffect(() => {
+    checkToken();
   }, []);
 
   return (
@@ -162,6 +162,7 @@ const Header = (props) => {
                   onClose={() => hideSideMenu('left', false)}
                   navItems={navItems}
                   userName={userName}
+                  checkToken={checkToken}
                 />
               </SwipeableDrawer>
             </>
@@ -203,8 +204,7 @@ const Header = (props) => {
               </DocLinks>
             ) : (
               <ProfileIconWrap>
-                <UserName>{userName}</UserName>
-                <UserIcon src={userIcon} alt="usericon" />
+                <UserLogout userName={userName} checkToken={checkToken} />
               </ProfileIconWrap>
             )}
           </>

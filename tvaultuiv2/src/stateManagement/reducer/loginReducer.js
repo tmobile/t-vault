@@ -5,7 +5,7 @@
 const loginReducer = (state, action) => {
   switch (action.type) {
     case 'CALLBACK_DATA':
-      return { ...state, value: action.data };
+      return { ...state, callbackData: action.payload };
       break;
 
     case 'R1_DUMMY_TWO':
