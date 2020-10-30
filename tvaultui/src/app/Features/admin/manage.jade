@@ -686,7 +686,7 @@ script(type='text/ng-template', id='manageSecretId.html')
                                                       .create-link.middle-block.hide-in-mobile
                                                           .text CREATE NEW CERTIFICATE                                                                                                
                                                   .row.change-data.header.solid-header
-                                                  .row.change-data.item(ng-show="!isLoadingData" ng-class="{'grayBackground' : activeItem == true}" ng-repeat="value in certificateData.certificates |  filter: {certificateName:searchValue} | limitTo: certpaginationLimit()")
+                                                  .row.change-data.item(ng-show="!isLoadingData" ng-class="{'grayBackground' : activeItem == true}" ng-repeat="value in certificateData.certificates |  filter: {certificateName:searchValue} | limitTo: certpaginationLimitExt()")
                                                       .container.name.col-lg-3.col-md-3.col-sm-2.col-xs-2(title="{{ getCertSubjectName(value) }}") {{ getCertSubjectName(value) }}                                                      
                                                       .container.name.col-lg-3.col-md-2.col-sm-1.col-xs-2(title="{{ getCertExpirationDate(value) }}") {{ getCertExpirationDate(value) }}
                                                       .container.radio-inputs.col-lg-1.col-md-2.col-sm-2.col-xs-2
@@ -702,9 +702,9 @@ script(type='text/ng-template', id='manageSecretId.html')
                                                               .list-icon(ng-click="goToAddPermissions(value)")  View/Edit                                                           
                                                           .down.view
                                                               .list-icon(ng-click="transferCertPopup(value)") Transfer Owner                                                            
-                                              .pagination-wrapper(ng-show='hasMoreCertsToShow()')
-                                                  .pagination-count(ng-if="numOfCertificates>0") Displaying {{certcurrentshown}} of {{numOfCertificates}}
-                                                  .pagination-button-wrapper(ng-click='showMoreCertItems()')
+                                              .pagination-wrapper(ng-show='hasMoreCertsToShowExt()')
+                                                  .pagination-count(ng-if="numOfCertificates>0") Displaying {{certcurrentshownExt}} of {{numOfCertificates}}
+                                                  .pagination-button-wrapper(ng-click='showMoreCertItemsExt()')
                                                       button.show-more-btn VIEW MORE
                                                       span
                                                           img(src="assets/icons/front-arrow.svg")
